@@ -541,6 +541,16 @@ component SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedC
 	}
 }
 
+component EmptyPendingSuspenseApp(props: {
+	loader: () => Promise<{ default: typeof ResolvedChild }>;
+}) {
+	const LazyChild = lazy(props.loader);
+
+	try {
+		<LazyChild value="hello" />
+	} pending {}
+}
+
 // ── Try/pending/catch: Loading + Errored ──
 
 component SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
@@ -1172,6 +1182,22 @@ describe('tsrx-solid runtime', () => {
 		await flush();
 		expect(text('.resolved')).toBe('hello');
 		expect(container.querySelector('.pending')).toBeNull();
+	});
+
+	it('renders nothing for an empty pending fallback then resolves (<Loading> + lazy)', async () => {
+		let resolve_fn: (mod: { default: typeof ResolvedChild }) => void;
+		const loader = () => new Promise<{ default: typeof ResolvedChild }>((r) => {
+			resolve_fn = r;
+		});
+
+		await render(EmptyPendingSuspenseApp, { loader });
+		expect(container.innerHTML).toBe('');
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		resolve_fn!({ default: ResolvedChild });
+		await flush();
+		await flush();
+		expect(text('.resolved')).toBe('hello');
 	});
 
 	// ── Try/pending/catch: Loading + Errored ──

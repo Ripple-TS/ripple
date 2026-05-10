@@ -90,6 +90,89 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('return <pre>{__lazy0.count}</pre>;');
 	});
 
+	it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
+		const { code } = compile(
+			`component Test() {
+				<Page
+					params={{
+						menuAlt: (isAdmin) => <tsrx>
+							if (isAdmin) {
+								return [<>Delete</>, <>Edit</>];
+							} else {
+								return [<>View</>];
+							}
+						</tsrx>,
+						direct: () => <tsrx>
+							return [<>View</>];
+						</tsrx>,
+						bySwitch: (role) => <tsrx>
+							switch (role) {
+								case 'admin':
+									return [<>Edit</>];
+								default:
+									return [<>View</>];
+							}
+						</tsrx>,
+						byForOf: (items) => <tsrx>
+							for (const item of items) {
+								if (item.active) {
+									return [<>{item.label}</>];
+								}
+							}
+
+							return [<>Empty</>];
+						</tsrx>,
+						byTry: (load) => <tsrx>
+							try {
+								return [<>{load()}</>];
+							} catch (error) {
+								return [<>Error</>];
+							}
+						</tsrx>,
+					}}
+				/>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			'menuAlt: (isAdmin) => isAdmin ? [<>Delete</>, <>Edit</>] : [<>View</>]',
+		);
+		expect(code).toContain('direct: () => [<>View</>]');
+		expect(code).toContain('bySwitch: (role) => (() => {');
+		expect(code).toContain('switch (role)');
+		expect(code).toContain('byForOf: (items) => (() => {');
+		expect(code).toContain('for (const item of items)');
+		expect(code).toContain('return [<>Empty</>];');
+		expect(code).toContain('byTry: (load) => (() => {');
+		expect(code).toContain('try {');
+		expect(code).toContain('catch(error)');
+		expect(code).toContain('return [<>Error</>];');
+		expect(code).not.toContain('return null;');
+		expect(code).not.toContain('? (() =>');
+	});
+
+	it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
+		const { code } = compile(
+			`component Child(props) {}
+
+			component App() {
+				<Child
+					fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
+					tsx={() => <tsx>{[<>Delete</>, <>Edit</>]}</tsx>}
+					compat={() => <tsx:vue>{[<>Delete</>, <>Edit</>]}</tsx:vue>}
+				/>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('fragment={() => [<>Delete</>, <>Edit</>]}');
+		expect(code).toContain('tsx={() => [<>Delete</>, <>Edit</>]}');
+		expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
+		expect(code).not.toContain('return null;');
+		expect(code).not.toContain('<tsx>');
+	});
+
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
 		const { code, css, cssHash } = compile(
 			`component App() {

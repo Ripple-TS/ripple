@@ -9,7 +9,7 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
  * }} CompileHarness
  *
  * @typedef {{
- *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { errors: Array<{ code?: string }> },
+ *   compile_to_volar_mappings: (source: string, filename?: string, options?: any) => { code: string, errors: Array<{ code?: string }> },
  *   name: string,
  * }} CompileDiagnosticsHarness
  *
@@ -51,6 +51,61 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
+		});
+
+		it('keeps return-value native TSRX templates clean in type-only output', () => {
+			const result = compile_to_volar_mappings(
+				`component Test() {
+					<Page
+						params={{
+							menuAlt: (isAdmin) => <tsrx>
+								if (isAdmin) {
+									return [<>Delete</>, <>Edit</>];
+								} else {
+									return [<>View</>];
+								}
+							</tsrx>,
+							bySwitch: (role) => <tsrx>
+								switch (role) {
+									case 'admin':
+										return [<>Edit</>];
+									default:
+										return [<>View</>];
+								}
+							</tsrx>,
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain(
+				'menuAlt: (isAdmin) => isAdmin ? [<>Delete</>, <>Edit</>] : [<>View</>]',
+			);
+			expect(result.code).toContain('bySwitch: (role) => (() => {');
+			expect(result.code).not.toContain('return null;');
+		});
+
+		it('parses native TSRX callback returns in JSX props without semicolons', () => {
+			const result = compile_to_volar_mappings(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx>
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+			expect(result.code).not.toContain('<tsrx>');
+			expect(result.code).toContain('item.name');
 		});
 	});
 }
@@ -334,6 +389,59 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				expect(code).toContain("<div>{'inline'}</div>");
 				expect(code).not.toContain('function Inline');
 				expect(code).not.toContain('const Inline = () => {');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses legacy anonymous component expressions inside JSX attribute objects',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Page
+							params={{
+								menuAlt2: component({ isAdmin, children }: { isAdmin: boolean, children: (items: JSX.Element[]) => JSX.Element }) {
+									const items = [];
+									if (isAdmin) {
+										items.push(<>Delete</>, <>Edit</>);
+									} else {
+										items.push(<>View</>);
+									}
+									{children(items)}
+								},
+							}}
+						/>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('menuAlt2');
+				expect(code).toContain('items.push');
+				expect(code).toContain('children(items)');
+				expect(code).toContain('</>;');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses legacy anonymous component expressions as JSX attribute values',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Child
+							children={component ({ items }: { items: JSX.Element[] }) {
+								<ul>
+									for (const item of items; index i) {
+										<li key={i}>{item}</li>
+									}
+								</ul>
+							}}
+						/>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('children={function');
+				expect(code).toContain(name === 'solid' ? '<For each={items}>' : 'items.map((item, i)');
+				expect(code).toContain('<li key={i}>{item}</li>');
 			},
 		);
 
@@ -687,6 +795,22 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 			);
 
 			expect(code).toContain('<Box<string>');
+		});
+	});
+
+	describe(`[${name}] component try pending fallbacks`, () => {
+		it('allows empty pending blocks as null fallbacks', () => {
+			const { code } = compile(
+				`export component App() {
+					try {
+						<div>{'content'}</div>
+					} pending {}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('fallback={null}');
+			expect(code).toContain("{'content'}");
 		});
 	});
 
@@ -1279,6 +1403,87 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 			expect(code).toContain('return <><div>a</div><div>b</div></>;');
 		});
+
+		it('keeps special fragment returns inside component-local functions', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`export component App() {
+					<div>"App"</div>
+					function FragmentReturn() {
+						return <><div>fragment</div></>;
+					}
+					function TsxReturn() {
+						return <tsx><div>tsx</div></tsx>;
+					}
+					function TsrxReturn() {
+						return <tsrx><div>"tsrx"</div></tsrx>;
+					}
+					function CompatReturn() {
+						return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('return;');
+			expect(code).toMatch(/function FragmentReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function TsxReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function TsrxReturn\(\) {\s+return <div/);
+			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
+		});
+
+		it('keeps special fragment returns inside component prop arrow functions', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`component Child(props) {}
+
+				export component App() {
+					<Child
+						fragment={() => {
+							return <><div>fragment</div></>;
+						}}
+						tsx={() => {
+							return <tsx><div>tsx</div></tsx>;
+						}}
+						tsrx={() => {
+							return <tsrx><div>"tsrx"</div></tsrx>;
+						}}
+						compat={() => {
+							return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('return;');
+			expect(code).toMatch(/fragment=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/tsx=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return <div/);
+			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
+		});
+
+		it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
+			const { code } = compile(
+				`component Child(props) {}
+
+				export component App() {
+					<Child
+						fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
+						tsx={() => <tsx>{[<>Delete</>, <>Edit</>]}</tsx>}
+						compat={() => <tsx:${compat_kind}>{[<>Delete</>, <>Edit</>]}</tsx:${compat_kind}>}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('fragment={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).toContain('tsx={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).not.toContain('return null;');
+			expect(code).not.toContain('<tsx>');
+		});
 	});
 
 	describe(`[${name}] <tsrx> template fragments`, () => {
@@ -1352,6 +1557,472 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('{"Title"}');
 			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments parenthesized in JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={(<tsrx><span>"Title"</span></tsrx>)} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments passed to calls in JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={wrap(<tsrx><span>"Title"</span></tsrx>)} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in object property JSX attribute values', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <Card content={{ child: <tsrx><span>"Title"</span></tsrx> }} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments returned from render callback props', () => {
+			const { code } = compile(
+				`class Foo { bar() { return <List render={() => { return <tsrx><span>"Item"</span></tsrx>; }} />; } }`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('{"Item"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments returned from callback props without semicolons', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx>
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('item.name');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in returned object props without semicolons', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return {
+									child: <tsrx>
+										<span>{item.name}</span>
+									</tsrx>
+								}
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('item.name');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX template fragments in nested render props without trailing commas', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: () => <tsrx>
+										<div>"nested"</div>
+									</tsrx>
+								}
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: () => <tsrx>
+										<div>"nested trailing comma"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('nested');
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('lowers native TSRX template fragments in top-level render props', () => {
+			const cases = [
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: () => <tsrx>
+									<div>"top"</div>
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'top',
+				],
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: (icon: () => JSX.Element) => <tsrx>
+									<div>"typed top"</div>
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'typed top',
+				],
+				[
+					`class Foo {
+					bar() {
+						return <Page
+							params={{
+								render: () => <tsrx>
+									return [<>View</>];
+								</tsrx>,
+							}}
+						/>
+					}
+				}`,
+					'View',
+				],
+			];
+
+			for (const [source, expected] of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain(expected);
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('preserves JSX parser state across comments after semicolon-free TSRX returns', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx> /* block comment */
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <List
+							render={(item) => {
+								return <tsrx>
+									<span>{item.name}</span>
+								</tsrx> // line comment
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('item.name');
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('lowers native TSRX template fragments from typed nested render props', () => {
+			const cases = [
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (icon: () => JSX.Element) => <tsrx>
+										<div>"typed"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<div>"typed trailing comma"</div>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+			];
+
+			for (const source of cases) {
+				const { code } = compile(source, 'App.tsrx');
+
+				expect(code).toContain('typed');
+				expect(code).not.toContain('<tsrx>');
+			}
+		});
+
+		it('lowers dynamic native TSRX tags from typed nested render props', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								details: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+											if (icon) {
+												icon();
+											}
+										</@tag>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('className');
+			expect(code).toContain('has-icon');
+			expect(code).toContain('icon()');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers native TSRX templates in complex nested params objects', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								title: 'Welcome',
+								header: {
+									class: 'foo',
+									children: <><h1>Big things are coming!</h1></>,
+								},
+								content: <><p>Lorem ipsum...</p></>,
+								menuItems: [
+									<><span>Copy</span></>,
+									<><span>Cut</span></>,
+									<><span>Delete</span></>,
+								],
+								menuAlt: (isAdmin) => <tsrx>
+									if (isAdmin) {
+										return [<>Delete</>, <>Edit</>];
+									} else {
+										return [<>View</>];
+									}
+								</tsrx>,
+								details: {
+									label: {
+										class: 'custom',
+										children: [<>Shipping & returns</>],
+									},
+									leadingIcon: { children: <>icon</> },
+								},
+								details2: {
+									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+											if (icon) {
+												icon();
+											}
+										</@tag>
+									</tsrx>,
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('Welcome');
+			expect(code).toContain('isAdmin');
+			expect(code).toContain('className');
+			expect(code).toContain('has-icon');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('parses fragment arrays as object property values inside JSX attribute objects', () => {
+			const { code } = compile(
+				`class Foo {
+					bar() {
+						return <Page
+							params={{
+								menuItems: [
+									<><span>Copy</span></>,
+									<><span>Cut</span></>,
+									<><span>Delete</span></>,
+								],
+								details: {
+									label: {
+										children: [<>Shipping & returns</>],
+									},
+								},
+							}}
+						/>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('Copy');
+			expect(code).toContain('Cut');
+			expect(code).toContain('Delete');
+			expect(code).toContain('Shipping');
+		});
+
+		it('expression statement inside a JS function body nested in a JSX attribute', () => {
+			const { code } = compile(
+				`component App() {
+					<Page params={{
+						f: () => {
+							<tsrx>
+								<div>"x"</div>
+							</tsrx>
+						},
+					}} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<div');
+			expect(code).toContain('"x"');
+			expect(code).not.toContain('<tsrx>');
+			expect(code).not.toContain('return null;');
+		});
+
+		it('parses native TSRX statements before later JS statements in JSX attribute callbacks', () => {
+			const { code } = compile(
+				`component App() {
+					<Page params={{
+						menuAlt: (isAdmin) => {
+							const items = [];
+							<tsrx>
+								if (isAdmin) {
+									items.push(<>Delete</>, <>Edit</>);
+								} else {
+									items.push(<>View</>);
+								}
+							</tsrx>
+							return items;
+						},
+					}} />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('isAdmin');
+			expect(code).toContain('return items');
+			expect(code).toContain('Delete');
+			expect(code).toContain('View');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
+			const { code } = compile(
+				`component Test() {
+					<Page
+						params={{
+							menuAlt: (isAdmin) => <tsrx>
+								if (isAdmin) {
+									return [<>Delete</>, <>Edit</>];
+								} else {
+									return [<>View</>];
+								}
+							</tsrx>,
+							direct: () => <tsrx>
+								return [<>View</>];
+							</tsrx>,
+							bySwitch: (role) => <tsrx>
+								switch (role) {
+									case 'admin':
+										return [<>Edit</>];
+									default:
+										return [<>View</>];
+								}
+							</tsrx>,
+							byForOf: (items) => <tsrx>
+								for (const item of items) {
+									if (item.active) {
+										return [<>{item.label}</>];
+									}
+								}
+
+								return [<>Empty</>];
+							</tsrx>,
+							byTry: (load) => <tsrx>
+								try {
+									return [<>{load()}</>];
+								} catch (error) {
+									return [<>Error</>];
+								}
+							</tsrx>,
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain(
+				'menuAlt: (isAdmin) => isAdmin ? [<>Delete</>, <>Edit</>] : [<>View</>]',
+			);
+			expect(code).toContain('direct: () => [<>View</>]');
+			expect(code).toContain('bySwitch: (role) => (() => {');
+			expect(code).toContain('switch (role)');
+			expect(code).toContain('byForOf: (items) => (() => {');
+			expect(code).toContain('for (const item of items)');
+			expect(code).toContain('return [<>Empty</>];');
+			expect(code).toContain('byTry: (load) => (() => {');
+			expect(code).toContain('try {');
+			expect(code).toContain('catch(error)');
+			expect(code).toContain('return [<>Error</>];');
+			expect(code).not.toContain('return null;');
+			expect(code).not.toContain('? (() =>');
 		});
 	});
 

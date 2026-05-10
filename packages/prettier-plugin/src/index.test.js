@@ -157,6 +157,112 @@ describe('prettier-plugin', () => {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should break nested TSX element attributes inside expression props', async () => {
+			const cases = [
+				{
+					input: `component Test() {
+  <A fallback={(error) => <>
+    <B id="xyz" status="error" moreProps={{ a: 1, b: 2 }} value={getErrorMessage(
+      error,
+    )} otherProp={2} />
+  </>} />
+}`,
+					expected: `component Test() {
+  <A
+    fallback={(error) => (
+      <>
+        <B
+          id="xyz"
+          status="error"
+          moreProps={{ a: 1, b: 2 }}
+          value={getErrorMessage(error)}
+          otherProp={2}
+        />
+      </>
+    )}
+  />
+}`,
+				},
+				{
+					input: `component Test() {
+  <A fallback={(error) => <tsx>
+    <B id="xyz" status="error" moreProps={{ a: 1, b: 2 }} value={getErrorMessage(
+      error,
+    )} otherProp={2} />
+  </tsx>} />
+}`,
+					expected: `component Test() {
+  <A
+    fallback={(error) => (
+      <tsx>
+        <B
+          id="xyz"
+          status="error"
+          moreProps={{ a: 1, b: 2 }}
+          value={getErrorMessage(error)}
+          otherProp={2}
+        />
+      </tsx>
+    )}
+  />
+}`,
+				},
+				{
+					input: `component Test() {
+  <A fallback={(error) => <tsrx>
+    <B id="xyz" status="error" moreProps={{ a: 1, b: 2 }} value={getErrorMessage(
+      error,
+    )} otherProp={2} />
+  </tsrx>} />
+}`,
+					expected: `component Test() {
+  <A
+    fallback={(error) => (
+      <tsrx>
+        <B
+          id="xyz"
+          status="error"
+          moreProps={{ a: 1, b: 2 }}
+          value={getErrorMessage(error)}
+          otherProp={2}
+        />
+      </tsrx>
+    )}
+  />
+}`,
+				},
+				{
+					input: `component Test() {
+  <A fallback={(error) => <tsx:react>
+    <B id="xyz" status="error" moreProps={{ a: 1, b: 2 }} value={getErrorMessage(
+      error,
+    )} otherProp={2} />
+  </tsx:react>} />
+}`,
+					expected: `component Test() {
+  <A
+    fallback={(error) => (
+      <tsx:react>
+        <B
+          id="xyz"
+          status="error"
+          moreProps={{ a: 1, b: 2 }}
+          value={getErrorMessage(error)}
+          otherProp={2}
+        />
+      </tsx:react>
+    )}
+  />
+}`,
+				},
+			];
+
+			for (const { input, expected } of cases) {
+				const result = await format(input);
+				expect(result).toBeWithNewline(expected);
+			}
+		});
+
 		it('should format whitespace correctly', async () => {
 			const input = `export component Test(){
         let count=0

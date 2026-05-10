@@ -1687,7 +1687,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'ArrowFunctionExpression':
-			nodeContent = printArrowFunction(node, path, options, print);
+			nodeContent = printArrowFunction(node, path, options, print, args);
 			break;
 
 		case 'FunctionExpression':
@@ -2723,9 +2723,10 @@ function printFunctionExpression(node, path, options, print) {
  * @param {AstPath<AST.ArrowFunctionExpression>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {PrintArgs} [args] - Additional context arguments
  * @returns {Doc}
  */
-function printArrowFunction(node, path, options, print) {
+function printArrowFunction(node, path, options, print, args) {
 	/** @type {Doc[]} */
 	const parts = [];
 
@@ -2773,20 +2774,42 @@ function printArrowFunction(node, path, options, print) {
 		// For expression bodies, check if we need to wrap in parens
 		// Wrap ObjectExpression, AssignmentExpression, and SequenceExpression in parens
 		// to avoid ambiguity with block statements or to clarify intent
+		const bodyDoc = path.call(print, 'body');
 		if (
 			node.body.type === 'ObjectExpression' ||
 			node.body.type === 'AssignmentExpression' ||
-			node.body.type === 'SequenceExpression'
+			node.body.type === 'SequenceExpression' ||
+			(args?.isInAttribute && isTemplateExpression(node.body))
 		) {
 			parts.push('(');
-			parts.push(path.call(print, 'body'));
+			if (isTemplateExpression(node.body)) {
+				parts.push(indent([hardline, bodyDoc]));
+				parts.push(hardline);
+			} else {
+				parts.push(bodyDoc);
+			}
 			parts.push(')');
 		} else {
-			parts.push(path.call(print, 'body'));
+			parts.push(bodyDoc);
 		}
 	}
 
 	return parts;
+}
+
+/**
+ * Check whether an expression is one of TSRX's template expression wrappers.
+ * @param {AST.Node} node - The node to check
+ * @returns {boolean}
+ */
+function isTemplateExpression(node) {
+	return (
+		node.type === 'Tsx' ||
+		node.type === 'TsxCompat' ||
+		node.type === 'Tsrx' ||
+		node.type === 'JSXElement' ||
+		node.type === 'JSXFragment'
+	);
 }
 
 /**
@@ -5816,12 +5839,15 @@ function printJSXElement(node, path, options, print) {
 	// Format attributes
 	/** @type {Doc} */
 	let attributesDoc = '';
+	let hasBreakingAttribute = false;
 	if (hasAttributes) {
 		/** @type {Doc[]} */
 		const attrs = openingElement.attributes.map(
 			(/** @type {AST.Node} */ attr, /** @type {number} */ i) => {
+				/** @type {Doc} */
+				let attrDoc = '';
 				if (attr.type === 'JSXAttribute') {
-					return path.call(
+					attrDoc = path.call(
 						(attrPath) =>
 							printJSXAttribute(
 								/** @type {ESTreeJSX.JSXAttribute} */ (attrPath.node),
@@ -5834,20 +5860,39 @@ function printJSXElement(node, path, options, print) {
 						i,
 					);
 				} else if (attr.type === 'JSXSpreadAttribute' || attr.type === 'SpreadAttribute') {
-					return ['{...', path.call(print, 'openingElement', 'attributes', i, 'argument'), '}'];
+					attrDoc = ['{...', path.call(print, 'openingElement', 'attributes', i, 'argument'), '}'];
 				}
-				return '';
+				if (!hasBreakingAttribute && attrDoc && willBreak(attrDoc)) {
+					hasBreakingAttribute = true;
+				}
+				return attrDoc;
 			},
 		);
-		attributesDoc = [' ', join(' ', attrs)];
+		const attrLineBreak = options.singleAttributePerLine ? hardline : line;
+		attributesDoc = indent([attrLineBreak, join(attrLineBreak, attrs)]);
 	}
+	const shouldForceBreak = hasBreakingAttribute;
 
 	if (isSelfClosing) {
-		return ['<', tagName, typeArgsDoc, attributesDoc, ' />'];
+		return group(['<', tagName, typeArgsDoc, attributesDoc, hasAttributes ? line : ' ', '/>'], {
+			shouldBreak: shouldForceBreak,
+		});
 	}
 
+	const openingTag = group(
+		[
+			'<',
+			tagName,
+			typeArgsDoc,
+			attributesDoc,
+			hasAttributes && !options.bracketSameLine ? softline : '',
+			'>',
+		],
+		{ shouldBreak: shouldForceBreak },
+	);
+
 	if (!hasChildren) {
-		return ['<', tagName, typeArgsDoc, attributesDoc, '></', tagName, '>'];
+		return [openingTag, '</', tagName, '>'];
 	}
 
 	// Format children - filter out empty text nodes and merge adjacent text nodes
@@ -5891,7 +5936,7 @@ function printJSXElement(node, path, options, print) {
 
 	// Check if content can be inlined (single text node or single expression)
 	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
-		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
+		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
 	}
 	const meaningfulChildren = node.children.filter(
 		(child) => child.type !== 'JSXText' || child.value.trim(),
@@ -5902,7 +5947,7 @@ function printJSXElement(node, path, options, print) {
 		singleMeaningfulChild?.type === 'JSXExpressionContainer' &&
 		singleMeaningfulChild.expression.type === 'Identifier'
 	) {
-		return ['<', tagName, typeArgsDoc, attributesDoc, '>', childrenDocs[0], '</', tagName, '>'];
+		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
 	}
 
 	// Multiple children or complex children - format with line breaks
@@ -5916,11 +5961,7 @@ function printJSXElement(node, path, options, print) {
 
 	// Build the final element
 	return group([
-		'<',
-		tagName,
-		typeArgsDoc,
-		attributesDoc,
-		'>',
+		openingTag,
 		indent([hardline, ...formattedChildren]),
 		hardline,
 		'</',
@@ -6009,7 +6050,11 @@ function printJSXAttribute(attr, path, options, print) {
 	}
 
 	if (attr.value.type === 'JSXExpressionContainer') {
-		const exprDoc = path.call(print, 'value', 'expression');
+		const exprDoc = path.call(
+			(valuePath) => print(valuePath, { isInAttribute: true }),
+			'value',
+			'expression',
+		);
 		return [name, '={', exprDoc, '}'];
 	}
 

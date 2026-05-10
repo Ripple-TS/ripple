@@ -419,9 +419,12 @@ class TsxSpreadRefRenderer {
 		};
 
 		return <tsx>
-			<input {...props} ref={(node: HTMLInputElement | null) => {
-				tsx_explicit_ref_captured = node;
-			}} />
+			<input
+				{...props}
+				ref={(node: HTMLInputElement | null) => {
+					tsx_explicit_ref_captured = node;
+				}}
+			/>
 		</tsx>;
 	}
 }
@@ -629,6 +632,12 @@ component SuspenseApp(props: { promise: Promise<string> }) {
 	} pending {
 		<p class="pending">{'loading...'}</p>
 	}
+}
+
+component EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
+	try {
+		<AsyncChild promise={props.promise} />
+	} pending {}
 }
 
 // ── Try/pending/catch: Suspense + ErrorBoundary ──
@@ -1335,6 +1344,22 @@ describe('tsrx-react runtime', () => {
 		});
 		expect(text('.resolved')).toBe('hello');
 		expect(container.querySelector('.pending')).toBeNull();
+	});
+
+	it('renders nothing for an empty pending fallback then resolves with use()', async () => {
+		let resolve_fn: (value: string) => void;
+		const promise = new Promise<string>((r) => {
+			resolve_fn = r;
+		});
+
+		await render(EmptyPendingSuspenseApp, { promise });
+		expect(container.innerHTML).toBe('');
+		expect(container.querySelector('.resolved')).toBeNull();
+
+		await act(async () => {
+			resolve_fn('hello');
+		});
+		expect(text('.resolved')).toBe('hello');
 	});
 
 	// ── Try/pending/catch: Suspense + ErrorBoundary ──

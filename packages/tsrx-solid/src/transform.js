@@ -21,6 +21,7 @@ import {
 	captureJsxChild,
 	CREATE_REF_PROP_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+	returnValueBodyToExpression as return_value_body_to_expression,
 	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
 	// Shared AST builders (truly platform-agnostic utilities).
 	clone_expression_node,
@@ -454,6 +455,20 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
 	);
 
+	const returned_expression = return_value_body_to_expression(children, node, transform_context);
+	if (returned_expression) {
+		if (
+			in_jsx_child &&
+			returned_expression.type !== 'JSXElement' &&
+			returned_expression.type !== 'JSXFragment' &&
+			returned_expression.type !== 'JSXText' &&
+			returned_expression.type !== 'JSXExpressionContainer'
+		) {
+			return to_jsx_expression_container(returned_expression, node);
+		}
+		return returned_expression;
+	}
+
 	let expression = body_to_jsx_child(children, transform_context);
 	if (is_branch_arrow(expression)) {
 		expression = b.call(expression);
@@ -509,7 +524,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	const statements = [];
 	/** @type {any[]} */
 	const children = [];
-	let has_bare_return = false;
+	let has_terminal_return = false;
 	let capture_index = 0;
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
@@ -522,7 +537,13 @@ function body_to_jsx_child(body_nodes, transform_context) {
 				loc: child.loc,
 			});
 			children.length = 0;
-			has_bare_return = true;
+			has_terminal_return = true;
+			continue;
+		}
+
+		if (child?.type === 'ReturnStatement' && child.argument != null) {
+			statements.push(child);
+			has_terminal_return = true;
 			continue;
 		}
 
@@ -557,7 +578,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	// statements run when (and only when) the branch actually renders.
 	/** @type {any[]} */
 	const block_body = [...statements];
-	if (children.length > 0 || !has_bare_return) {
+	if (children.length > 0 || !has_terminal_return) {
 		block_body.push(
 			/** @type {any} */ ({
 				type: 'ReturnStatement',

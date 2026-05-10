@@ -317,8 +317,12 @@ describe('tsx expression', () => {
 			let &[index] = track(0);
 
 			const el = <tsx>
-				<div id={'item-' + index} class={'item pos-' + index} data-index={index} title={'Item ' +
-					index}>
+				<div
+					id={'item-' + index}
+					class={'item pos-' + index}
+					data-index={index}
+					title={'Item ' + index}
+				>
 					{'Item ' + index}
 				</div>
 			</tsx>;
