@@ -3163,8 +3163,6 @@ function collect_block_binding_names_from_statement(statement, names) {
 			for (const declaration of statement.left.declarations || []) {
 				collect_pattern_names(declaration.id, names);
 			}
-		} else {
-			collect_pattern_names(statement.left, names);
 		}
 		return;
 	}

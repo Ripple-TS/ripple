@@ -2921,6 +2921,24 @@ export function optionalFn(bar: string, baz?: string) {
 			).toThrow(/useState result is assigned to `last`/);
 		});
 
+		it('rejects hook results assigned to a for-of assignment-target outer binding', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, items }: { show: boolean; items: number[] }) {
+								let x: number | undefined;
+								if (show) {
+									for (x of items) {
+										console.log(x);
+									}
+									[x] = useState(0);
+									<div>{x}</div>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
 		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
 			const { code } = compile(
 				`export component App({ items }: { items: string[] }) {
