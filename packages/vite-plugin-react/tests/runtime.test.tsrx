@@ -331,6 +331,46 @@ component ForContinueApp() {
 	}
 }
 
+// ── For-of over a Set ──
+
+component ForOverSetApp() {
+	const items = new Set<string>(['x', 'y', 'z']);
+
+	for (const item of items) {
+		<li class="set-item" key={item}>{item}</li>
+	}
+}
+
+// ── For-of over a Map ──
+
+component ForOverMapApp() {
+	const entries = new Map<string, number>([
+		['a', 1],
+		['b', 2],
+		['c', 3],
+	]);
+
+	for (const [key, value] of entries) {
+		<li class="map-item" {key}>{key + ':' + value}</li>
+	}
+}
+
+// ── For-of over a custom iterable ──
+
+component ForOverCustomIterableApp() {
+	function* iter() {
+		yield 'one';
+		yield 'two';
+		yield 'three';
+	}
+
+	const items = iter();
+
+	for (const item of items) {
+		<li class="generator-item" key={item}>{item}</li>
+	}
+}
+
 // ── Switch with reactivity ──
 
 component SwitchReactiveApp() {
@@ -1293,6 +1333,35 @@ describe('tsrx-react runtime', () => {
 		).toEqual([
 			'a',
 			'c',
+		]);
+	});
+
+	it('renders for-of over a Set via map_iterable', async () => {
+		await render(ForOverSetApp);
+		expect(Array.from(container.querySelectorAll('.set-item'), (el) => el.textContent)).toEqual([
+			'x',
+			'y',
+			'z',
+		]);
+	});
+
+	it('renders for-of over a Map via map_iterable', async () => {
+		await render(ForOverMapApp);
+		expect(Array.from(container.querySelectorAll('.map-item'), (el) => el.textContent)).toEqual([
+			'a:1',
+			'b:2',
+			'c:3',
+		]);
+	});
+
+	it('renders for-of over a generator/iterator via map_iterable', async () => {
+		await render(ForOverCustomIterableApp);
+		expect(
+			Array.from(container.querySelectorAll('.generator-item'), (el) => el.textContent),
+		).toEqual([
+			'one',
+			'two',
+			'three',
 		]);
 	});
 

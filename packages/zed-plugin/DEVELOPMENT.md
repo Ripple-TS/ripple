@@ -84,7 +84,7 @@ zed-plugin/
 If you update the tree-sitter grammar in `grammars/tree-sitter`:
 
 1. Update query files in `languages/tsrx/` if needed
-2. Update the `rev` field in `extension.toml` to the new commit SHA
+2. Run `pnpm sync-zed-grammar-rev` to update the `rev` field in `extension.toml`
 3. Test locally
 4. Bump version in `extension.toml`
 5. Submit PR to zed-extensions repo (if published)

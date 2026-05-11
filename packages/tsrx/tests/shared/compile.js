@@ -107,6 +107,27 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).not.toContain('<tsrx>');
 			expect(result.code).toContain('item.name');
 		});
+
+		it('reports semicolon-terminated template expression containers', () => {
+			const result = compile_to_volar_mappings(
+				`component App() {
+					{
+						renderThing();
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(
+				DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+			);
+			const diagnostic = result.errors.find(
+				(error) => error.code === DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+			);
+			expect(diagnostic?.loc?.start).toEqual({ line: 3, column: 19 });
+			expect(diagnostic?.loc?.end).toEqual({ line: 3, column: 20 });
+			expect(result.code).toContain('renderThing()');
+		});
 	});
 }
 
@@ -808,8 +829,39 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				);
 
 				expect(code).toContain('children={function');
-				expect(code).toContain(name === 'solid' ? '<For each={items}>' : 'items.map((item, i)');
+				expect(code).toContain(
+					name === 'solid' ? '<For each={items}>' : '__map_iterable(items, (item, i)',
+				);
 				expect(code).toContain('<li key={i}>{item}</li>');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses semicolon-terminated template expression containers',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Child
+							children={component({ items }: { items: JSX.Element[] }) {
+								<ul>
+									for (const item of items; index i) {
+										<li key={i}>{item}</li>
+									}
+								</ul>
+							}}
+						/>
+					}
+
+					component Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) {
+						{
+							children({ items: [<><span>Item 1</span></>, <><span>Item 2</span></>, <><span>Item 3</span></>] });
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('children({');
+				expect(code).toContain('Item 3');
 			},
 		);
 
@@ -3387,7 +3439,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('useState(name)');
 			expect(code).toContain('StatementBodyHook');
-			expect(code).toContain('map(');
+			expect(code).toContain('__map_iterable(');
 		});
 
 		it('falls back to the existing transform for non-hook for-of loops', () => {
@@ -3401,7 +3453,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('StatementBodyHook');
-			expect(code).toContain('items.map((item, i)');
+			expect(code).toContain('__map_iterable(items, (item, i)');
 		});
 	});
 

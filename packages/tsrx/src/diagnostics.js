@@ -4,4 +4,5 @@ export const DIAGNOSTIC_CODES = {
 	FUNCTION_COMPONENT_SYNTAX: 'tsrx-function-component-syntax',
 	UNCLOSED_TAG: 'tsrx-unclosed-tag',
 	MISMATCHED_CLOSING_TAG: 'tsrx-mismatched-closing-tag',
+	TEMPLATE_EXPRESSION_TRAILING_SEMICOLON: 'tsrx-template-expression-trailing-semicolon',
 };

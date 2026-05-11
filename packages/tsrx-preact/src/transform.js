@@ -37,6 +37,7 @@ const preact_platform = {
 		errorBoundary: '@tsrx/preact/error-boundary',
 		mergeRefs: '@tsrx/preact/ref',
 		refProp: '@tsrx/preact/ref',
+		forOfIterableHelper: '@tsrx/preact/runtime',
 	},
 	jsx: {
 		rewriteClassAttr: false,

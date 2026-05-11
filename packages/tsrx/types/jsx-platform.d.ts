@@ -39,6 +39,8 @@ export interface JsxTransformContext {
 	needs_ref_prop: boolean;
 	needs_normalize_spread_props: boolean;
 	needs_fragment: boolean;
+	needs_for_of_iterable: boolean;
+	needs_iteration_value_type: boolean;
 	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
@@ -300,6 +302,14 @@ export interface JsxPlatform {
 		 * `prop={ref expr}` or normalizing host spreads containing named refs.
 		 */
 		refProp?: string;
+		/**
+		 * Module to import the `map_iterable` runtime helper (and the
+		 * `IterationValue` type) from when compiling `for ... of` bodies whose
+		 * source can be any `Iterable` — not just an array. React and Preact
+		 * use `'@tsrx/core/runtime'`. Solid and Vue lower for-of via their own
+		 * iteration components and leave this unset.
+		 */
+		forOfIterableHelper?: string;
 	};
 
 	jsx: {

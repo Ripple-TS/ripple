@@ -246,6 +246,8 @@ export function createJsxTransform(platform) {
 			needs_ref_prop: false,
 			needs_normalize_spread_props: false,
 			needs_fragment: false,
+			needs_for_of_iterable: false,
+			needs_iteration_value_type: false,
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
@@ -1958,10 +1960,13 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
 	);
-	const { source_decl, source_normalize_decl } = build_array_normalization_decls(
-		source_id,
-		node.right,
-	);
+	const use_iterable_helper = !!transform_context.platform.imports.forOfIterableHelper;
+	const { source_decl, source_normalize_decl } = use_iterable_helper
+		? {
+				source_decl: b.let(clone_identifier(source_id), clone_expression_node(node.right)),
+				source_normalize_decl: null,
+			}
+		: build_array_normalization_decls(source_id, node.right);
 
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
@@ -1996,7 +2001,13 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 	const loop_aliases = use_module_scoped_component
 		? []
 		: loop_bindings.map((binding) =>
-				create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
+				create_loop_scoped_type_alias_declaration(
+					helper_id,
+					binding,
+					source_id,
+					loop_params,
+					transform_context,
+				),
 			);
 
 	const ordered_bindings = [...outer_bindings, ...loop_bindings];
@@ -2075,11 +2086,19 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 
 	const iter_callback = b.arrow(callback_params, callback_invocation_element);
 
-	const map_call = b.call(b.member(clone_identifier(source_id), 'map'), iter_callback);
+	let map_call;
+	if (use_iterable_helper) {
+		transform_context.needs_for_of_iterable = true;
+		map_call = b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), clone_identifier(source_id), iter_callback);
+	} else {
+		map_call = b.call(b.member(clone_identifier(source_id), 'map'), iter_callback);
+	}
 
 	const jsx_child = to_jsx_expression_container(map_call, node);
 
-	const hoist_statements = [source_decl, source_normalize_decl];
+	const hoist_statements = source_normalize_decl
+		? [source_decl, source_normalize_decl]
+		: [source_decl];
 	for (const alias of ordered_aliases) hoist_statements.push(alias.declaration);
 	if (helper_decl) {
 		hoist_statements.push(helper_decl);
@@ -2093,28 +2112,49 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 
 /**
  * Build a TS `type` alias for a loop-scoped binding, deriving the type
- * from the iteration source. For the value param we use
- * `(typeof source)[number]`, which gives the right element type for arrays
- * and tuples (the common case in JSX templates). For the index param,
- * the type is always `number`.
+ * from the iteration source. For the index param the type is always
+ * `number`. For the value param the shape depends on whether the platform
+ * uses the `map_iterable` runtime helper:
+ *
+ * - With the helper (React, Preact): `IterationValue<typeof source>` — any
+ *   `Iterable<T>` is accepted, so the element type is derived through the
+ *   runtime's exported helper type.
+ * - Without the helper: `(typeof source)[number]` — arrays/tuples only,
+ *   matching the inline `.map()` lowering.
  *
  * @param {AST.Identifier} helper_id
  * @param {AST.Identifier} binding
  * @param {AST.Identifier} source_id
  * @param {any[]} loop_params
+ * @param {TransformContext} transform_context
  * @returns {{ id: AST.Identifier, declaration: any }}
  */
-function create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params) {
+function create_loop_scoped_type_alias_declaration(
+	helper_id,
+	binding,
+	source_id,
+	loop_params,
+	transform_context,
+) {
 	const alias_id = create_generated_identifier(`_tsrx_${helper_id.name}_${binding.name}`);
 	const is_index = loop_params.length > 1 && binding.name === loop_params[1].name;
+	const use_iterable_helper = !!transform_context.platform.imports.forOfIterableHelper;
 	const type_annotation = is_index
 		? b.ts_keyword_type('number')
-		: /** @type {any} */ ({
-				type: 'TSIndexedAccessType',
-				objectType: b.ts_type_query(clone_identifier(source_id)),
-				indexType: b.ts_keyword_type('number'),
-				metadata: { path: [] },
-			});
+		: use_iterable_helper
+			? (() => {
+					transform_context.needs_iteration_value_type = true;
+					return b.ts_type_reference(
+						b.id(ITERATION_VALUE_INTERNAL_NAME),
+						b.ts_type_parameter_instantiation([b.ts_type_query(clone_identifier(source_id))]),
+					);
+				})()
+			: /** @type {any} */ ({
+					type: 'TSIndexedAccessType',
+					objectType: b.ts_type_query(clone_identifier(source_id)),
+					indexType: b.ts_keyword_type('number'),
+					metadata: { path: [] },
+				});
 
 	return {
 		id: alias_id,
@@ -4230,6 +4270,27 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 
+	const iter_callback = /** @type {any} */ ({
+		type: 'ArrowFunctionExpression',
+		params: loop_params,
+		body: /** @type {any} */ ({
+			type: 'BlockStatement',
+			body: body_statements,
+			metadata: { path: [] },
+		}),
+		async: false,
+		generator: false,
+		expression: false,
+		metadata: { path: [] },
+	});
+
+	if (transform_context.platform.imports.forOfIterableHelper) {
+		transform_context.needs_for_of_iterable = true;
+		return to_jsx_expression_container(
+			b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), node.right, iter_callback),
+		);
+	}
+
 	return to_jsx_expression_container(
 		/** @type {any} */ ({
 			type: 'CallExpression',
@@ -4241,21 +4302,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 				optional: false,
 				metadata: { path: [] },
 			},
-			arguments: [
-				{
-					type: 'ArrowFunctionExpression',
-					params: loop_params,
-					body: /** @type {any} */ ({
-						type: 'BlockStatement',
-						body: body_statements,
-						metadata: { path: [] },
-					}),
-					async: false,
-					generator: false,
-					expression: false,
-					metadata: { path: [] },
-				},
-			],
+			arguments: [iter_callback],
 			async: false,
 			optional: false,
 			metadata: { path: [] },
@@ -4713,6 +4760,45 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 				type: 'Literal',
 				value: suspense_source,
 				raw: `'${suspense_source}'`,
+			},
+			metadata: { path: [] },
+		});
+	}
+
+	if (transform_context.needs_for_of_iterable && platform.imports.forOfIterableHelper) {
+		const for_of_iterable_source = platform.imports.forOfIterableHelper;
+		const specifiers = /** @type {any[]} */ ([
+			{
+				type: 'ImportSpecifier',
+				imported: { type: 'Identifier', name: 'map_iterable', metadata: { path: [] } },
+				local: { type: 'Identifier', name: MAP_ITERABLE_INTERNAL_NAME, metadata: { path: [] } },
+				metadata: { path: [] },
+			},
+		]);
+		// The loop-scoped type alias `IterationValue<typeof source>` only
+		// appears in the output when at least one hook-bearing for-of body
+		// was lowered with non-module-scoped helpers (editor tooling sets
+		// this for typeOnly virtual modules).
+		if (transform_context.needs_iteration_value_type) {
+			specifiers.push({
+				type: 'ImportSpecifier',
+				imported: { type: 'Identifier', name: 'IterationValue', metadata: { path: [] } },
+				local: {
+					type: 'Identifier',
+					name: ITERATION_VALUE_INTERNAL_NAME,
+					metadata: { path: [] },
+				},
+				importKind: 'type',
+				metadata: { path: [] },
+			});
+		}
+		imports.push({
+			type: 'ImportDeclaration',
+			specifiers,
+			source: {
+				type: 'Literal',
+				value: for_of_iterable_source,
+				raw: `'${for_of_iterable_source}'`,
 			},
 			metadata: { path: [] },
 		});
@@ -5676,6 +5762,8 @@ function is_jsx_ref_attribute(attr) {
 export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
 export const CREATE_REF_PROP_INTERNAL_NAME = '__create_ref_prop';
 export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
+export const MAP_ITERABLE_INTERNAL_NAME = '__map_iterable';
+export const ITERATION_VALUE_INTERNAL_NAME = '__IterationValue';
 
 /**
  * @param {any} attr

@@ -135,7 +135,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.map(');
+		expect(code).toContain('__map_iterable(');
 		expect(code).toContain('key={item.id}');
 		expect(code).not.toContain('does not support `key` in `for` control flow');
 	});
@@ -240,7 +240,8 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain('__map_iterable(items, (item, i) => {');
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
@@ -256,7 +257,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain('__map_iterable(items, (item, i) => {');
 		expect(code).toContain('return <div key={item}>{item}</div>;');
 	});
 
@@ -272,9 +273,60 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item) => {');
+		expect(code).toContain('__map_iterable(items, (item) => {');
 		expect(code).toContain('return <div key={item.inner}>{item.id}</div>;');
 		expect(code).not.toContain('return <div key={item.id}>{item.id}</div>;');
+	});
+
+	it('uses map_iterable for for-of over a Set without normalizing it', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: Set<string> }) {
+				for (const item of items) {
+					<li key={item}>{item}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain('__map_iterable(items, (item) => {');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('uses map_iterable for for-of over a Map without normalizing it', () => {
+		const { code } = compile(
+			`export component App({ entries }: { entries: Map<string, number> }) {
+				for (const [key, value] of entries) {
+					<li key={key}>{key + ':' + value}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('__map_iterable(entries,');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('uses map_iterable inside a hook-bearing for-of without normalizing the source', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: Iterable<string> }) {
+				for (const item of items) {
+					const [open, setOpen] = useState(false);
+					<li key={item}>{open ? item : '-'}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App__StatementBodyHook1');
+		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
 	});
 
 	it('supports lone early returns in component-body if statements', () => {
@@ -1300,9 +1352,11 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function App__StatementBodyHook1');
-		// Hook-bearing for-of bodies emit `Array.from(source, callback)` so
-		// any Iterable works, with the helper hoisted above the iteration.
-		expect(code).toContain('Array.from(');
+		// Hook-bearing for-of bodies emit `map_iterable(source, callback)`
+		// so any Iterable works, with the helper hoisted above the iteration.
+		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain('__map_iterable(');
+		expect(code).not.toContain('Array.from(');
 		// Hook should be inside the helper, not the iteration callback directly
 		const hook_pos = code.indexOf('useState(false)');
 		const helper_pos = code.indexOf('function App__StatementBodyHook1');
@@ -1424,7 +1478,7 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function Component__StatementBodyHook1');
-		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('__map_iterable(items, (item, index) =>');
 		expect(code).toContain('<Component__StatementBodyHook1 item={item} key={index} />');
 		expect(code).not.toContain('index={index} />');
 	});
@@ -1494,7 +1548,7 @@ describe('@tsrx/react basic', () => {
 			'FeatureCard.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('__map_iterable(items, (item, index) =>');
 		expect(code).toContain('return <li key={index}>{item}</li>;');
 	});
 });

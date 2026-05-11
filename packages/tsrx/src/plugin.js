@@ -224,6 +224,7 @@ export function TSRXPlugin(config) {
 			#filename = null;
 			#componentDepth = 0;
 			#functionBodyDepth = 0;
+			#allowExpressionContainerTrailingSemicolon = false;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -352,7 +353,14 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseNativeTemplateExpressionContainer() {
-				const node = this.jsx_parseExpressionContainer();
+				const allow_trailing_semicolon = this.#allowExpressionContainerTrailingSemicolon;
+				this.#allowExpressionContainerTrailingSemicolon = true;
+				let node;
+				try {
+					node = this.jsx_parseExpressionContainer();
+				} finally {
+					this.#allowExpressionContainerTrailingSemicolon = allow_trailing_semicolon;
+				}
 				// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 				// but convert other expressions to native TSRX child nodes.
 				if (node.expression.type !== 'JSXEmptyExpression') {
@@ -1770,6 +1778,16 @@ export function TSRXPlugin(config) {
 						/** @type {number} */ (node.expression.start),
 						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
 					);
+				}
+				if (this.#allowExpressionContainerTrailingSemicolon && this.type === tt.semi) {
+					if (this.#collect) {
+						this.#report_recoverable_error(
+							this.start,
+							'TSRX expression containers do not use semicolons. Remove this semicolon.',
+							DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+						);
+					}
+					this.next();
 				}
 				this.expect(tt.braceR);
 

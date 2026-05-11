@@ -13,6 +13,27 @@
   (expression) @injection.content
   (#set! injection.language "typescript"))
 
+; TSX expression islands. Shorthand fragments and <tsx> blocks use TSX syntax
+; rather than Ripple template statements.
+((jsx_fragment) @injection.content
+  (#set! injection.language "tsx"))
+
+((jsx_element
+  open_tag: (jsx_opening_element
+    name: (jsx_element_name (identifier) @_tsx_name))) @injection.content
+  (#eq? @_tsx_name "tsx")
+  (#set! injection.language "tsx"))
+
+((jsx_element
+  open_tag: (jsx_opening_element
+    name: (jsx_element_name
+      (jsx_namespace_name
+        (identifier) @_tsx_namespace
+        (identifier) @_tsx_name)))) @injection.content
+  (#eq? @_tsx_namespace "tsx")
+  (#eq? @_tsx_name "react")
+  (#set! injection.language "tsx"))
+
 ; Inject Ripple into JSX text blocks so statement-like template code
 ; (e.g. const/if lines in JSX children) is highlighted consistently.
 ((jsx_text) @injection.content

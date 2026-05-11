@@ -17,10 +17,15 @@
  *     css?: AST.Element['metadata']['css']
  *   },
  * }} CodePosition
+ * @typedef {{
+ *   column: number,
+ *   position: CodePosition,
+ * }} SourceLineGeneratedPosition
  */
 
 /** @typedef {Map<string, CodePosition[]>} CodeToGeneratedMap */
 /** @typedef {Map<string, {line: number, column: number}[]>} GeneratedToSourceMap */
+/** @typedef {Map<number, SourceLineGeneratedPosition[]>} SourceLineGeneratedMap */
 
 import { decode } from '@jridgewell/sourcemap-codec';
 
@@ -83,18 +88,22 @@ export const offset_to_line_col = (offset, line_offsets) => {
  * @param {PostProcessingChanges} post_processing_changes - Optional post-processing changes to apply
  * @param {LineOffsets} line_offsets - Pre-computed line offsets array
  * @param {string} generated_code - The final generated code (after post-processing)
- * @returns {[CodeToGeneratedMap, GeneratedToSourceMap]} Tuple of [source-to-generated map, generated-to-source map]
+ * @param {boolean} [include_source_line_generated_map] - Whether to build the optional source-line predecessor lookup
+ * @returns {[CodeToGeneratedMap, GeneratedToSourceMap, SourceLineGeneratedMap | null]} Tuple of [source-to-generated map, generated-to-source map, source-line generated map]
  */
 export function build_src_to_gen_map(
 	source_map,
 	post_processing_changes,
 	line_offsets,
 	generated_code,
+	include_source_line_generated_map = false,
 ) {
 	/** @type {CodeToGeneratedMap} */
 	const map = new Map();
 	/** @type {GeneratedToSourceMap} */
 	const reverse_map = new Map();
+	/** @type {SourceLineGeneratedMap | null} */
+	const source_line_generated_map = include_source_line_generated_map ? new Map() : null;
 
 	// Decode the VLQ-encoded mappings string
 	const decoded = decode(source_map.mappings);
@@ -192,6 +201,14 @@ export function build_src_to_gen_map(
 				map.set(key, []);
 			}
 			/** @type {CodePosition[]} */ (map.get(key)).push(gen_pos);
+			if (source_line_generated_map) {
+				if (!source_line_generated_map.has(segment.sourceLine)) {
+					source_line_generated_map.set(segment.sourceLine, []);
+				}
+				/** @type {SourceLineGeneratedPosition[]} */ (
+					source_line_generated_map.get(segment.sourceLine)
+				).push({ column: segment.sourceColumn, position: gen_pos });
+			}
 
 			// Store reverse mapping (generated to source)
 			const gen_key = `${gen_pos.line}:${gen_pos.column}`;
@@ -206,7 +223,7 @@ export function build_src_to_gen_map(
 		}
 	}
 
-	return [map, reverse_map];
+	return [map, reverse_map, source_line_generated_map];
 }
 
 /**

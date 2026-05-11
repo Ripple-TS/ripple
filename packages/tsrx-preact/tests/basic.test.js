@@ -134,9 +134,51 @@ describe('@tsrx/preact basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.map(');
+		expect(code).toContain('__map_iterable(');
 		expect(code).toContain('key={item.id}');
 		expect(code).not.toContain('does not support `key` in `for` control flow');
+	});
+
+	it('uses map_iterable for for-of over a Set without normalizing it', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: Set<string> }) {
+				for (const item of items) {
+					<li key={item}>{item}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/preact/runtime';`,
+		);
+		expect(code).toContain('__map_iterable(items, (item) => {');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('uses map_iterable inside a hook-bearing for-of without normalizing the source', () => {
+		const { code } = compile(
+			`import { useState } from 'preact/hooks';
+
+			export component App({ items }: { items: Iterable<string> }) {
+				for (const item of items) {
+					const [open, setOpen] = useState(false);
+					<li key={item}>{open ? item : '-'}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('map_iterable as __map_iterable');
+		// Preact does not module-scope hook helpers, so the loop-scoped
+		// type alias references the runtime `IterationValue` helper.
+		expect(code).toContain('IterationValue as type __IterationValue');
+		expect(code).toContain("from '@tsrx/preact/runtime'");
+		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
+		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
 	});
 
 	it('does not hoist render-time expressions across early returns', () => {
