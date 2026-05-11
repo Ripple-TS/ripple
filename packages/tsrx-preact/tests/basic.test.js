@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
+	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -21,6 +22,12 @@ runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'preact' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'preact' });
+runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name: 'preact',
+	clientHelperShape: 'local-cache',
+});
 
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {

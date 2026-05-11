@@ -832,6 +832,21 @@ importers:
         specifier: catalog:default
         version: 1.1.4
     devDependencies:
+      '@solidjs/web':
+        specifier: 2.0.0-beta.7
+        version: 2.0.0-beta.7(@solidjs/signals@2.0.0-beta.7)(solid-js@2.0.0-beta.7)
+      '@tsrx/preact':
+        specifier: workspace:*
+        version: link:../tsrx-preact
+      '@tsrx/react':
+        specifier: workspace:*
+        version: link:../tsrx-react
+      '@tsrx/solid':
+        specifier: workspace:*
+        version: link:../tsrx-solid
+      '@tsrx/vue':
+        specifier: workspace:*
+        version: link:../tsrx-vue
       '@types/node':
         specifier: catalog:default
         version: 24.11.0
@@ -841,12 +856,30 @@ importers:
       '@volar/language-core':
         specifier: catalog:default
         version: 2.4.28
+      preact:
+        specifier: catalog:default
+        version: 10.29.1
+      react:
+        specifier: catalog:default
+        version: 19.2.4
+      react-dom:
+        specifier: catalog:default
+        version: 19.2.4(react@19.2.4)
+      solid-js:
+        specifier: 2.0.0-beta.7
+        version: 2.0.0-beta.7
       typescript:
         specifier: catalog:default
         version: 5.9.3
       vscode-languageserver-types:
         specifier: catalog:default
         version: 3.17.5
+      vue:
+        specifier: 3.6.0-beta.10
+        version: 3.6.0-beta.10(typescript@5.9.3)
+      vue-jsx-vapor:
+        specifier: ^3.2.12
+        version: 3.2.12(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3))
 
   packages/tsrx-mcp:
     dependencies:
@@ -1094,6 +1127,9 @@ importers:
         specifier: workspace:*
         version: link:../tsrx-preact
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       preact:
         specifier: catalog:default
         version: 10.29.1
@@ -1113,6 +1149,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.100.6
         version: 5.100.6(react@19.2.4)
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       '@types/react':
         specifier: catalog:default
         version: 19.2.14
@@ -1144,6 +1183,9 @@ importers:
         specifier: workspace:*
         version: link:../tsrx-solid
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       solid-js:
         specifier: 2.0.0-beta.7
         version: 2.0.0-beta.7
@@ -1163,6 +1205,9 @@ importers:
         specifier: workspace:*
         version: link:../tsrx-vue
     devDependencies:
+      '@tsrx/core':
+        specifier: workspace:*
+        version: link:../tsrx
       typescript:
         specifier: catalog:default
         version: 5.9.3
@@ -9632,6 +9677,18 @@ snapshots:
       esbuild: 0.27.3
       vite: 8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1)
 
+  '@vue-jsx-vapor/macros@3.2.12(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3))':
+    dependencies:
+      hash-sum: 2.0.0
+      magic-string: 0.30.21
+      ts-macro: 0.3.7
+      unplugin: 3.0.0
+      unplugin-utils: 0.3.1
+      vue: 3.6.0-beta.10(typescript@5.9.3)
+    optionalDependencies:
+      esbuild: 0.27.3
+      vite: 8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+
   '@vue-jsx-vapor/macros@3.2.12(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       hash-sum: 2.0.0
@@ -13211,6 +13268,23 @@ snapshots:
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
+      - csstype
+
+  vue-jsx-vapor@3.2.12(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3)):
+    dependencies:
+      '@vue-jsx-vapor/compiler-rs': 3.2.12
+      '@vue-jsx-vapor/macros': 3.2.12(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.6.0-beta.10(typescript@5.9.3))
+      '@vue-jsx-vapor/runtime': 3.2.12(csstype@3.2.3)(vue@3.6.0-beta.10(typescript@5.9.3))
+      '@vue/shared': 3.6.0-beta.8
+      pathe: 2.0.3
+      ts-macro: 0.3.7
+      unplugin: 3.0.0
+      unplugin-utils: 0.3.1
+      vue: 3.6.0-beta.10(typescript@5.9.3)
+    optionalDependencies:
+      esbuild: 0.27.3
+      vite: 8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@24.11.0)(esbuild@0.27.3)(jiti@2.6.1)
+    transitivePeerDependencies:
       - csstype
 
   vue-jsx-vapor@3.2.12(csstype@3.2.3)(esbuild@0.27.3)(vite@8.0.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))(vue@3.5.29(typescript@5.9.3)):

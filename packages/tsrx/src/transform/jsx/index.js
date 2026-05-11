@@ -21,6 +21,7 @@ import {
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
+	is_component_jsx_name,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -1425,7 +1426,7 @@ function create_module_scoped_hook_component_id(helper_id, transform_context) {
  * @param {any[]} params
  * @returns {Map<string, AST.Identifier>}
  */
-function collect_param_bindings(params) {
+export function collect_param_bindings(params) {
 	const bindings = new Map();
 	for (const param of params) {
 		collect_pattern_bindings(param, bindings);
@@ -1438,7 +1439,7 @@ function collect_param_bindings(params) {
  * @param {Map<string, AST.Identifier>} bindings
  * @returns {void}
  */
-function collect_statement_bindings(statement, bindings) {
+export function collect_statement_bindings(statement, bindings) {
 	if (!statement) return;
 
 	if (statement.type === 'VariableDeclaration') {
@@ -1572,6 +1573,16 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 		const node = render_nodes[i];
 		if (node.type !== 'JSXElement') continue;
 		if (!is_hoist_safe_jsx_node(node)) continue;
+		if (is_bare_component_invocation(node)) {
+			// `<Helper />` with no attributes and no children is just an
+			// invocation reference — most often a generated `StatementBodyHook`
+			// chain element we emitted ourselves. Hoisting it would produce
+			// `const App__staticN = <Helper />` aliases that bloat the output
+			// without enabling React's element-identity fast path (the helper
+			// isn't memoized, so the parent re-invokes it every render either
+			// way). Inline the reference at the call site instead.
+			continue;
+		}
 		if (
 			transform_context.platform.hooks?.canHoistStaticNode &&
 			!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
@@ -1587,6 +1598,23 @@ function hoist_static_render_nodes(render_nodes, transform_context) {
 
 		render_nodes[i] = to_jsx_expression_container(clone_identifier(id), node);
 	}
+}
+
+/**
+ * `<Helper />` shape with no attributes and no children. The opening element
+ * name must be component-shaped (see `is_component_jsx_name`) — lowercase
+ * identifiers are host DOM tags, which *do* benefit from hoisting because
+ * React diffs them against the previous render.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_bare_component_invocation(node) {
+	if (!node || node.type !== 'JSXElement') return false;
+	const opening = node.openingElement;
+	if (!opening || opening.attributes.length > 0) return false;
+	if (node.children.length > 0) return false;
+	return is_component_jsx_name(opening.name);
 }
 
 /**
@@ -4375,29 +4403,12 @@ function keyed_fragment_to_jsx_element(fragment, key_expression) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function switch_statement_to_jsx_child(node, transform_context) {
+	const { setup_statements, switch_statement } = build_switch_with_lift(node, transform_context);
+
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [
-						create_render_switch_statement(node, transform_context),
-						create_null_return_statement(),
-					],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(
+			b.arrow([], b.block([...setup_statements, switch_statement, create_null_return_statement()])),
+		),
 	);
 }
 
@@ -4892,85 +4903,306 @@ function create_render_if_statement(node, transform_context) {
 }
 
 /**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
+ * Per-source-case information used by the switch lift to decide whether each
+ * case body needs to be hoisted into its own helper component or can stay
+ * inline.
+ *
+ * `own_body` is everything in the case's `consequent` up to (and including for
+ * `return <expr>`, excluding for `break` / bare `return;`) the first
+ * terminator. `has_terminator` records whether such a terminator was seen.
+ *
+ * @param {any[]} consequent
+ * @returns {{ own_body: any[], has_terminator: boolean }}
  */
-function create_render_switch_statement(node, transform_context) {
-	return /** @type {any} */ ({
-		type: 'SwitchStatement',
-		discriminant: node.discriminant,
-		cases: node.cases.map((/** @type {any} */ c) =>
-			create_render_switch_case(c, transform_context),
-		),
-		metadata: { path: [] },
-	});
+function summarize_switch_case_body(consequent) {
+	const own_body = [];
+	let has_terminator = false;
+	for (const child of consequent) {
+		if (child.type === 'BreakStatement') {
+			has_terminator = true;
+			break;
+		}
+		if (child.type === 'ReturnStatement' && child.argument == null) {
+			has_terminator = true;
+			break;
+		}
+		own_body.push(child);
+		if (child.type === 'ReturnStatement') {
+			// `return <expr>;` — keep it in own_body so build_render_statements
+			// can emit it as the terminal return for this case, then stop
+			// collecting further nodes.
+			has_terminator = true;
+			break;
+		}
+	}
+	return { own_body, has_terminator };
 }
 
 /**
- * @param {any} switch_case
- * @param {TransformContext} transform_context
+ * Clone a helper's `component_element` for embedding in another case arm or
+ * inside another helper's body. Locations are stripped because the same
+ * element appears in multiple positions; only the helper's *definition* (the
+ * lifted function) keeps the source position so editor IntelliSense doesn't
+ * see double/triple hits per source range.
+ *
+ * @param {{ component_element: ESTreeJSX.JSXElement }} helper
  * @returns {any}
  */
-function create_render_switch_case(switch_case, transform_context) {
-	const consequent = flatten_switch_consequent(switch_case.consequent || []);
+export function clone_switch_helper_invocation(helper) {
+	return clone_expression_node(helper.component_element, false);
+}
 
-	// Strip trailing break statements for hook analysis
-	const body_without_break = [];
-	for (const child of consequent) {
-		if (child.type === 'BreakStatement') break;
-		body_without_break.push(child);
-	}
-
-	if (body_contains_top_level_hook_call(body_without_break, transform_context, true)) {
-		return /** @type {any} */ ({
-			type: 'SwitchCase',
-			test: switch_case.test,
-			consequent: hook_safe_render_statements(body_without_break, undefined, transform_context),
-			metadata: { path: [] },
-		});
-	}
-
-	const case_body = [];
-	const render_nodes = [];
-	let has_terminal = false;
-
-	for (const child of consequent) {
-		if (child.type === 'BreakStatement') {
-			if (render_nodes.length > 0 && !has_terminal) {
-				case_body.push(create_component_return_statement(render_nodes, switch_case));
-			} else if (!has_terminal) {
-				case_body.push(child);
-			}
-			has_terminal = true;
-			break;
-		}
-
-		if (is_bare_return_statement(child)) {
-			case_body.push(create_component_return_statement(render_nodes, child));
-			has_terminal = true;
-			break;
-		}
-
-		if (is_jsx_child(child)) {
-			render_nodes.push(to_jsx_child(child, transform_context));
-		} else if (is_bare_render_expression(child)) {
-			render_nodes.push(to_jsx_expression_container(child, child));
-		} else {
-			case_body.push(child);
-		}
-	}
-
-	if (!has_terminal && render_nodes.length > 0) {
-		case_body.push(create_component_return_statement(render_nodes, switch_case));
-	}
-
-	return /** @type {any} */ ({
-		type: 'SwitchCase',
-		test: switch_case.test,
-		consequent: case_body,
-		metadata: { path: [] },
+/**
+ * Plan the switch lift: decide which case bodies to hoist into their own
+ * helper components, build them in reverse so each helper can chain into the
+ * next, and return everything callers need to construct a target-specific
+ * switch shape (a JS `switch` for React/Preact/Vue or `<Switch>/<Match>` for
+ * Solid). Centralizes the lift bookkeeping so both consumers see the same
+ * hook-detection rules, duplication analysis, and helper-id numbering.
+ *
+ * Returned helpers — when non-null — are already constructed via
+ * `create_hook_safe_helper`, which is the same path hook-bearing case bodies
+ * have always used. Locally-scoped helpers have their declarations in
+ * `setup_statements`; module-scoped helpers (the client transform default on
+ * React, Vue, and Solid) already pushed their declarations into
+ * `transform_context.helper_state.helpers`, so `setup_statements` is empty.
+ *
+ * @param {any} switch_node
+ * @param {TransformContext} transform_context
+ * @returns {{
+ *   case_info: Array<{ own_body: any[], has_terminator: boolean }>,
+ *   case_helpers: Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>,
+ *   find_next_helper_after: (from_index: number) => { component_element: ESTreeJSX.JSXElement } | null,
+ *   setup_statements: any[],
+ * }}
+ */
+export function plan_switch_lift(switch_node, transform_context) {
+	const case_info = switch_node.cases.map((/** @type {any} */ c) => {
+		const consequent = flatten_switch_consequent(c.consequent || []);
+		return summarize_switch_case_body(consequent);
 	});
+
+	// A case body needs to be lifted iff (a) it would render in more than one
+	// arm after fall-through expansion, or (b) it contains hooks (which always
+	// went through the lift pipeline before this change). Duplication happens
+	// exactly when the previous case has no terminator — that's the only way
+	// an earlier arm can reach this body via JS fall-through semantics.
+	const needs_helper = case_info.map(
+		(/** @type {{ own_body: any[], has_terminator: boolean }} */ info, /** @type {number} */ k) => {
+			if (info.own_body.length === 0) return false;
+			if (body_contains_top_level_hook_call(info.own_body, transform_context, true)) {
+				return true;
+			}
+			if (k === 0) return false;
+			return !case_info[k - 1].has_terminator;
+		},
+	);
+
+	// Pre-allocate helper ids in source order so the snapshot's
+	// `StatementBodyHook<N>` numbering reads top-to-bottom by case position
+	// even though we build helpers in reverse below.
+	/** @type {Array<AST.Identifier | null>} */
+	const helper_ids = needs_helper.map((/** @type {boolean} */ needs) =>
+		needs
+			? create_generated_identifier(create_local_statement_component_name(transform_context))
+			: null,
+	);
+
+	/** @type {Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>} */
+	const case_helpers = new Array(switch_node.cases.length).fill(null);
+
+	/**
+	 * Find the next downstream helper this arm chains into when it has no
+	 * terminator: scan forward past any empty cases until we hit either a
+	 * helper-bearing case or a case whose body has a terminator (which stops
+	 * the chain — JS would have `break`/`return`ed out at that point).
+	 *
+	 * @param {number} from_index
+	 * @returns {{ component_element: ESTreeJSX.JSXElement } | null}
+	 */
+	function find_next_helper_after(from_index) {
+		for (let j = from_index + 1; j < switch_node.cases.length; j++) {
+			if (case_helpers[j]) return case_helpers[j];
+			if (case_info[j].has_terminator) return null;
+		}
+		return null;
+	}
+
+	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
+		if (!needs_helper[i]) continue;
+		const { own_body, has_terminator } = case_info[i];
+
+		let helper_body = own_body;
+		if (!has_terminator) {
+			const next_helper = find_next_helper_after(i);
+			if (next_helper) {
+				helper_body = [...own_body, clone_switch_helper_invocation(next_helper)];
+			}
+		}
+
+		case_helpers[i] = create_hook_safe_helper(
+			helper_body,
+			undefined,
+			switch_node.cases[i],
+			transform_context,
+			/** @type {any} */ (helper_ids[i]),
+		);
+	}
+
+	// Hoist all helpers' setup statements above the switch in source order so
+	// the switch body stays a pure dispatcher.
+	const setup_statements = [];
+	for (const helper of case_helpers) {
+		if (helper) setup_statements.push(...helper.setup_statements);
+	}
+
+	return {
+		case_info,
+		case_helpers,
+		find_next_helper_after,
+		setup_statements,
+	};
+}
+
+/**
+ * Switch lift for fall-through deduplication. Reuses the same `create_hook_safe_helper`
+ * pipeline as hook-bearing case bodies: every case whose body would otherwise
+ * appear in 2+ arms (because the previous case had no `break` / `return`) is
+ * hoisted into its own helper component, and each upstream arm references the
+ * next helper at the end of its own body to materialize JS fall-through at
+ * render time. Cases whose bodies live in exactly one arm stay inline so the
+ * common (break-terminated) shape compiles to the same simple switch as before
+ * the lift was introduced.
+ *
+ * The chain pattern:
+ *   helper_idle  = () => <><Online/><Helper_active/></>
+ *   helper_active = () => <><Away/><Helper_offline/></>
+ *   helper_offline = () => <Offline/>
+ *
+ *   case "idle":    return <Helper_idle/>
+ *   case "active":  return <Helper_active/>
+ *   case "offline": return <Helper_offline/>
+ *
+ * Each case body appears exactly once in the generated module — matching how
+ * we already handle hook-bearing case bodies — which keeps the bundle from
+ * growing quadratically in case count and means editor mappings are 1:1.
+ *
+ * @param {any} switch_node
+ * @param {TransformContext} transform_context
+ * @returns {{ setup_statements: any[], switch_statement: any }}
+ */
+function build_switch_with_lift(switch_node, transform_context) {
+	const { case_info, case_helpers, find_next_helper_after, setup_statements } = plan_switch_lift(
+		switch_node,
+		transform_context,
+	);
+
+	const new_cases = switch_node.cases.map(
+		(/** @type {any} */ original_case, /** @type {number} */ i) => {
+			const helper = case_helpers[i];
+			if (helper) {
+				return /** @type {any} */ ({
+					type: 'SwitchCase',
+					test: original_case.test,
+					consequent: [
+						create_component_return_statement([helper.component_element], original_case),
+					],
+					metadata: { path: [] },
+				});
+			}
+
+			const { own_body, has_terminator } = case_info[i];
+
+			if (own_body.length === 0 && !has_terminator) {
+				// Alias-pattern empty case (`case 'a': case 'b': ...`) — keep
+				// the arm body empty so JS falls through to the next case at
+				// runtime, where the helper invocation actually lives.
+				return /** @type {any} */ ({
+					type: 'SwitchCase',
+					test: original_case.test,
+					consequent: [],
+					metadata: { path: [] },
+				});
+			}
+
+			const case_body = [];
+			const render_nodes = [];
+			let has_terminal = false;
+
+			for (const child of own_body) {
+				if (is_bare_return_statement(child)) {
+					case_body.push(create_component_return_statement(render_nodes, child));
+					has_terminal = true;
+					break;
+				}
+				if (child.type === 'ReturnStatement') {
+					case_body.push(child);
+					has_terminal = true;
+					break;
+				}
+				if (is_jsx_child(child)) {
+					render_nodes.push(to_jsx_child(child, transform_context));
+				} else if (is_bare_render_expression(child)) {
+					render_nodes.push(to_jsx_expression_container(child, child));
+				} else {
+					case_body.push(child);
+				}
+			}
+
+			if (!has_terminal && !has_terminator) {
+				const next_helper = find_next_helper_after(i);
+				if (next_helper) {
+					render_nodes.push(clone_switch_helper_invocation(next_helper));
+				}
+			}
+
+			if (!has_terminal) {
+				if (render_nodes.length > 0) {
+					case_body.push(create_component_return_statement(render_nodes, original_case));
+				} else if (has_terminator) {
+					// Empty body with explicit `break;` / bare `return;` — keep
+					// a `break` so JS doesn't fall through into the next case
+					// (which may now hold the lifted helper invocation).
+					case_body.push(
+						/** @type {any} */ ({
+							type: 'BreakStatement',
+							label: null,
+							metadata: { path: [] },
+						}),
+					);
+				} else if (case_body.length > 0) {
+					// Statements-only inline case without terminator. We've
+					// already inlined the downstream chain via the helper
+					// reference above, so emit a `break` to stop the runtime
+					// from re-running downstream statements via JS fall-through.
+					case_body.push(
+						/** @type {any} */ ({
+							type: 'BreakStatement',
+							label: null,
+							metadata: { path: [] },
+						}),
+					);
+				}
+			}
+
+			return /** @type {any} */ ({
+				type: 'SwitchCase',
+				test: original_case.test,
+				consequent: case_body,
+				metadata: { path: [] },
+			});
+		},
+	);
+
+	return {
+		setup_statements,
+		switch_statement: /** @type {any} */ ({
+			type: 'SwitchStatement',
+			discriminant: switch_node.discriminant,
+			cases: new_cases,
+			metadata: { path: [] },
+		}),
+	};
 }
 
 /**

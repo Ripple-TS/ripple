@@ -26,6 +26,7 @@
     "vite": "*"
   },
   "devDependencies": {
+    "@tsrx/core": "workspace:*",
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vue": "3.6.0-beta.10",

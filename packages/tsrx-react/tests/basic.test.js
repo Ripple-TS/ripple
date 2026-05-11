@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
+	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -21,6 +22,12 @@ runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'react' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'react' });
+runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name: 'react',
+	clientHelperShape: 'module-function',
+});
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -1796,7 +1803,7 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('step + 1');
 	});
 
-	it('hoists JSXMemberExpression elements when only the property matches a scope binding', () => {
+	it('treats JSXMemberExpression property labels as not referencing scope bindings', () => {
 		const { code } = compile(
 			`import Icons from './Icons';
 			export component App({Button}: {Button: any}) {
@@ -1805,9 +1812,16 @@ describe('lazy destructuring', () => {
 			'App.tsrx',
 		);
 
-		// Icons.Button should be hoisted — Button is a property label, not a variable reference
-		// Only the object (Icons) matters, and it's a module-scope import
-		expect(code).toContain('App__static1');
+		// Bare `<Component />` references (no attributes, no children) are
+		// not hoisted into module-level `App__static` aliases — hoisting
+		// would just add an alias indirection without enabling React's
+		// element-identity fast path on the (non-memo'd) helper. The point
+		// of this test is the *scope-binding* analysis: `Icons.Button` is
+		// a property-access shape where the `Button` part is a label, not
+		// a variable reference, so the `{Button}` component param doesn't
+		// turn `Icons.Button` into a scope-referencing element.
+		expect(code).toContain('<Icons.Button />');
+		expect(code).not.toContain('App__static');
 	});
 
 	it('does not leak inner-scope bindings into helper component props', () => {

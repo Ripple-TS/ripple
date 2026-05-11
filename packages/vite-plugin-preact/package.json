@@ -26,6 +26,7 @@
     "vite": "*"
   },
   "devDependencies": {
+    "@tsrx/core": "workspace:*",
     "preact": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default"

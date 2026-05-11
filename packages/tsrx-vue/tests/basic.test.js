@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 	runSharedComponentParamsTests,
+	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -20,6 +21,12 @@ runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'vue' });
+runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name: 'vue',
+	clientHelperShape: 'module-vapor-component',
+});
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {
@@ -601,14 +608,68 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('let App__StatementBodyHook1;');
-		expect(code).not.toContain('let App__StatementBodyHook2;');
-		expect(code).toContain('App__StatementBodyHook1 = defineVaporComponent(');
-		expect(code).toContain('function StatementBodyHook1({ count }');
+		expect(code).toContain('const App__StatementBodyHook1 = defineVaporComponent(');
+		expect(code).not.toContain('App__StatementBodyHook2');
+		expect(code).toContain('function App__StatementBodyHook1({ count }');
 		expect(code).toContain('const doubled = ref(0);');
 		expect(code).toContain('skip.value');
-		expect(code).toContain('<StatementBodyHook1 count={count} />');
+		expect(code).toContain('<App__StatementBodyHook1 count={count} />');
 		expect(code).not.toContain('App__Continue');
+	});
+
+	describe('if-continuation lift (client vs typeOnly)', () => {
+		// Switch fall-through hoisting is exercised by the shared
+		// `runSharedSwitchHelperHoistingTests` block above; this block stays
+		// Vue-local because it covers the *if + early-return continuation*
+		// lift with Vue-specific surface (`ref`-typed prop, the
+		// `defineVaporComponent` wrapper around the lazy initializer).
+		const if_source = `import { ref } from 'vue';
+
+			component App() {
+				const count = ref(0);
+				const skip = ref(false);
+
+				if (skip.value) {
+					return;
+				}
+
+				const doubled = ref(0);
+
+				<button onClick={() => {
+					count.value++;
+					doubled.value = count.value * 2;
+				}}>{count.value}</button>
+			}`;
+
+		it('hoists the if-continuation helper to module scope in the client transform', () => {
+			const { code } = compile(if_source, 'App.tsrx');
+
+			// Module-scoped declaration: a top-level `const StatementBodyHook =
+			// defineVaporComponent(function StatementBodyHook(...) { ... })`
+			// declared outside the App component body.
+			expect(code).toMatch(
+				/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\(\{ count \}/m,
+			);
+			// The lazy-cache `let App__StatementBodyHookN;` slot used by the
+			// local-scoped path is gone — hoisting removes the need for it.
+			expect(code).not.toContain('let App__StatementBodyHook');
+			// Component body just references the hoisted name directly.
+			expect(code).toContain('<App__StatementBodyHook1 count={count} />');
+			expect(code).not.toMatch(/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook/);
+		});
+
+		it('keeps the if-continuation helper inline in the typeOnly transform', () => {
+			const { code } = compile_to_volar_mappings(if_source, 'App.tsrx');
+
+			// Volar TSX still uses the original local-scoped shape: a
+			// module-level `let StatementBodyHook` slot and a per-render
+			// lazy `defineVaporComponent` initializer inside the App body.
+			expect(code).toContain('let App__StatementBodyHook1;');
+			expect(code).toMatch(
+				/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*defineVaporComponent\(/,
+			);
+			expect(code).toMatch(/<StatementBodyHook\d+ count=\{count\} \/>/);
+		});
 	});
 
 	it('compiles for...of statements in component bodies', () => {

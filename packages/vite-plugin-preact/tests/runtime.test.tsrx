@@ -1,6 +1,9 @@
 import { lazy } from 'preact/compat';
 import { act } from 'preact/test-utils';
 import { useState } from 'preact/hooks';
+import {
+	runSwitchFallthroughRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/switch-fallthrough';
 
 component ResolvedChild(props: { value: string }) {
 	<p class="resolved">{props.value}</p>
@@ -274,3 +277,5 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(container.querySelector('.tsrx-expression-hook-count')?.textContent).toBe('second:1');
 	});
 });
+
+runSwitchFallthroughRuntimeTests();

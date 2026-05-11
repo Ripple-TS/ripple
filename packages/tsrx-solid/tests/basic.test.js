@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
+	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -21,6 +22,12 @@ runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'solid' });
+runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name: 'solid',
+	clientHelperShape: 'module-function',
+});
 
 describe('@tsrx/solid basic', () => {
 	describe('component → function', () => {
@@ -507,6 +514,42 @@ describe('@tsrx/solid basic', () => {
 			expect(inner_show_idx).toBeGreaterThan(world_idx);
 			expect(done_idx).toBeGreaterThan(inner_show_idx);
 			expect(code).not.toContain('<Show when={!early}>{(_) =>');
+		});
+	});
+
+	describe('switch helper static-alias suppression', () => {
+		// Switch hoisting (client vs typeOnly) is exercised by the shared
+		// `runSharedSwitchHelperHoistingTests` block above. This block stays
+		// Solid-local because it covers Solid's `canHoistStaticNode` veto on
+		// bare component invocations — a Solid-specific optimization decision
+		// that doesn't apply to React's `App__static` hoisting policy.
+		const switch_source = `export component App({ status }: { status: string }) {
+			switch (status) {
+				case "idle":
+					<span>{'Online'}</span>
+				case "active":
+					<span>{'Away'}</span>
+				case "offline":
+					<span>{'Offline'}</span>
+			}
+		}`;
+
+		it('does not hoist bare helper-component references into App__static aliases', () => {
+			// `<App__StatementBodyHook2 />` is just a component invocation; on
+			// Solid the static-element-identity optimization React relies on
+			// doesn't apply, so hoisting it into a module-level `App__static`
+			// const only adds an alias indirection. Truly-static DOM trees
+			// (e.g. `<span>'Online'</span>` with no scope refs) should still
+			// be hoisted — those are real DOM nodes worth caching.
+			const { code } = compile(switch_source, 'App.tsrx');
+
+			// `App__static<N>` declarations should NOT alias a bare
+			// StatementBodyHook reference.
+			expect(code).not.toMatch(/const App__static\d+\s*=\s*<App__StatementBodyHook\d+\s*\/>/);
+			// But truly-static `<span>` content still gets hoisted as
+			// `App__static<N>` — the React-style optimization survives for
+			// content where it actually helps.
+			expect(code).toMatch(/const App__static\d+\s*=\s*<span>/);
 		});
 	});
 

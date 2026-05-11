@@ -10,18 +10,16 @@ const Child = defineVaporComponent(function Child() {
 	return Child__static1;
 });
 
-let App__StatementBodyHook1;
+const App__StatementBodyHook1 = defineVaporComponent(function App__StatementBodyHook1() {
+	provide('theme', 'dark');
+
+	return <Child />;
+});
 
 const App = defineVaporComponent(function App() {
 	const skip = ref(true);
 
-	const StatementBodyHook1 = App__StatementBodyHook1 ?? (App__StatementBodyHook1 = defineVaporComponent(function StatementBodyHook1() {
-		provide('theme', 'dark');
-
-		return <Child />;
-	}));
-
-	return skip.value ? null : <StatementBodyHook1 />;
+	return skip.value ? null : <App__StatementBodyHook1 />;
 });"
 `;
 

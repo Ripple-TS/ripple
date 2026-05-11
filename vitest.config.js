@@ -12,6 +12,26 @@ const vue_jsx_vapor_jsx_runtime_path = fileURLToPath(
 	new URL('./packages/vite-plugin-vue/tests/vue-jsx-vapor-jsx-runtime-shim.js', import.meta.url),
 );
 
+/**
+ * `vite-plugin-solid` and `vue-jsx-vapor` rewrite `.tsrx` test files into
+ * virtual `<path>.tsrx.tsx` ids before vite's import-analysis runs. Vite then
+ * walks `node_modules` from the virtual id and misses workspace packages
+ * that are only symlinked into the test file's package — including the
+ * shared `@tsrx/core` test-harness paths. A single regex alias maps every
+ * `@tsrx/core/test-harness/runtime/<file>` import to the matching file
+ * under `packages/tsrx/tests/shared/runtime/<file>` so new shared fixtures
+ * work without per-file additions to this config.
+ */
+const tsrx_core_test_harness_runtime_dir = fileURLToPath(
+	new URL('./packages/tsrx/tests/shared/runtime/', import.meta.url),
+);
+const tsrx_core_test_harness_alias = [
+	{
+		find: /^@tsrx\/core\/test-harness\/runtime\/(.*)$/,
+		replacement: `${tsrx_core_test_harness_runtime_dir}$1`,
+	},
+];
+
 const vue_runtime_alias_plugin = {
 	name: 'tsrx-vue-runtime-aliases',
 	enforce: 'pre',
@@ -155,7 +175,9 @@ export default defineConfig({
 					(await import('./packages/vite-plugin-vue/src/index.js')).tsrxVue(),
 					(await import('./packages/vite-plugin-vue/src/vapor.js')).tsrxVueVapor(),
 				],
-				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+				resolve: process.env.VITEST
+					? { conditions: ['browser'], alias: tsrx_core_test_harness_alias }
+					: { alias: tsrx_core_test_harness_alias },
 				ssr: {
 					noExternal: ['vue', 'vue-jsx-vapor', '@tsrx/vue'],
 				},
@@ -245,6 +267,9 @@ export default defineConfig({
 					(await import('./packages/vite-plugin-solid/src/index.js')).tsrxSolid(),
 					(await import('vite-plugin-solid')).default(),
 				],
+				resolve: {
+					alias: tsrx_core_test_harness_alias,
+				},
 			},
 			{
 				test: {

@@ -27,10 +27,14 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
+	cloneSwitchHelperInvocation as clone_switch_helper_invocation,
+	collectParamBindings as collect_param_bindings,
+	collectStatementBindings as collect_statement_bindings,
+	contains_component_jsx,
 	create_generated_identifier,
 	create_null_literal,
-	flatten_switch_consequent,
 	get_for_of_iteration_params,
+	planSwitchLift as plan_switch_lift,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_dynamic_element_id,
@@ -104,6 +108,12 @@ const solid_platform = {
 		scanUseServerDirectiveForAwaitWithCustomValidator: false,
 	},
 	hooks: {
+		// Hoist to module scope in the client transform —
+		// same trade-off as React and Vue, where one definition per helper
+		// keeps bundles small and source mappings 1:1. The
+		// `compile_to_volar_mappings` entry point opts back out so Volar's
+		// type-only output keeps helpers inline against the component body.
+		moduleScopedHookComponents: true,
 		initialState: () => ({
 			needs_show: false,
 			needs_for: false,
@@ -113,6 +123,17 @@ const solid_platform = {
 			needs_loading: false,
 			needs_normalize_spread_props: false,
 		}),
+		canHoistStaticNode(node) {
+			// Solid's reactive runtime doesn't reuse JSX-element identity the
+			// way React does, so hoisting `<Component />` references to module
+			// level pays no runtime cost — it just creates an extra `const`
+			// that aliases a helper invocation (e.g. `App__static1 =
+			// <App__StatementBodyHook2 />`). Truly-static DOM trees like
+			// `<span>'Hello'</span>` still benefit from being hoisted out of
+			// the per-render closure, so we only veto hoisting when the
+			// subtree contains a *component* JSX element. Same logic Vue uses.
+			return !contains_component_jsx(node);
+		},
 		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
 			const adjusted_node = /** @type {any} */ ({
@@ -134,8 +155,8 @@ const solid_platform = {
 			switchStatement: switch_statement_to_jsx_child,
 			tryStatement: try_statement_to_jsx_child,
 		},
-		componentToFunction: (component, ctx) =>
-			component_to_function_declaration(component, /** @type {any} */ (ctx)),
+		componentToFunction: (component, ctx, helper_state) =>
+			component_to_function_declaration(component, /** @type {any} */ (ctx), helper_state),
 		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
 		// `transformElementAttributes` is intentionally omitted: the
 		// `transformElement` hook below short-circuits core's element walker
@@ -180,11 +201,41 @@ function get_await_keyword_start(await_node, source) {
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
+ * @param {any} [walk_helper_state]
+ *   The helper_state owned by the walker for this component. Solid's local
+ *   body lowering happens *after* the walker has restored `helper_state` to
+ *   the outer scope's value, so we re-install the walker's helper_state here
+ *   for the duration of the body lowering. That way `to_jsx_child` calls into
+ *   `switch_statement_to_jsx_child` (and any other lift path that goes
+ *   through `create_hook_safe_helper`) see the same module-scoped helper
+ *   bucket the React / Vue paths see, and `moduleScopedHookComponents: true`
+ *   actually hoists Solid's `<StatementBodyHook/>` helpers out of the
+ *   component body.
  * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
-function component_to_function_declaration(component, transform_context) {
+function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
+
+	const saved_helper_state = transform_context.helper_state;
+	if (walk_helper_state) {
+		transform_context.helper_state = walk_helper_state;
+	}
+
+	// Re-install the component's body bindings before lowering the body. The
+	// walker sets `state.available_bindings` to the component-scope bindings
+	// during `next()` and restores them before calling the platform's
+	// `componentToFunction` hook — but Solid's body lowering happens *here*,
+	// after that restore, so `to_jsx_child` (and any `create_hook_safe_helper`
+	// it triggers via `switch_statement_to_jsx_child` / the if / try / for-of
+	// lifts) wouldn't otherwise see component-scope locals like `const obj =
+	// {...}` and would emit helpers that close over undefined references.
+	const saved_bindings = transform_context.available_bindings;
+	const body_bindings = collect_param_bindings(params);
+	for (const node of body) {
+		collect_statement_bindings(node, body_bindings);
+	}
+	transform_context.available_bindings = body_bindings;
 
 	// In type-only mode the lazy rewrite is skipped so destructuring patterns
 	// survive into the virtual TSX and TypeScript can flow real types.
@@ -393,6 +444,20 @@ function component_to_function_declaration(component, transform_context) {
 	}
 
 	setLocation(fn, /** @type {any} */ (component), true);
+
+	// Restore the outer helper_state and bindings, then surface this
+	// component's generated helpers / statics so the downstream Program-level
+	// lift can hoist them (`moduleScopedHookComponents: true` registers
+	// helpers into `helper_state.helpers`; the React/Vue post-pass reads them
+	// off `fn.metadata.generated_helpers`).
+	transform_context.helper_state = saved_helper_state;
+	transform_context.available_bindings = saved_bindings;
+	if (walk_helper_state) {
+		const fn_metadata = /** @type {any} */ (fn.metadata);
+		fn_metadata.generated_helpers = walk_helper_state.helpers;
+		fn_metadata.generated_statics = walk_helper_state.statics;
+	}
+
 	return fn;
 }
 
@@ -1197,6 +1262,20 @@ function for_of_statement_to_jsx_child(node, transform_context) {
  * statement with a discriminant `d` and cases `[c1, c2, default]` becomes:
  *   <Switch fallback={...default}><Match when={d === c1}>...</Match>...</Switch>
  *
+ * Fall-through across cases reuses the shared `plan_switch_lift` pipeline
+ * from `@tsrx/core`: each duplicated case body is hoisted into a
+ * `StatementBodyHook` helper component that chains into the next helper, and
+ * each `<Match>` body just renders the appropriate helper element. The
+ * client transform hoists those helpers to module scope (Solid's platform
+ * sets `moduleScopedHookComponents: true`); `compile_to_volar_mappings` opts
+ * back out and emits the helpers locally inside the component body so Volar
+ * still sees closure-captured bindings against the component scope.
+ *
+ * When any case is lifted in `typeOnly` mode the helper declarations have to
+ * live somewhere local-scoped — we wrap the whole `<Switch>` in an IIFE that
+ * declares them in order and returns the element. The client transform's
+ * module-scoped helpers leave that IIFE empty, so we skip the wrapper.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
@@ -1205,20 +1284,51 @@ function switch_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_switch = true;
 	transform_context.needs_match = true;
 
+	const { case_info, case_helpers, find_next_helper_after, setup_statements } = plan_switch_lift(
+		node,
+		transform_context,
+	);
+
 	/** @type {any} */
 	let fallback = null;
-	const match_children = [];
+	/** @type {Array<{ test: any, body_jsx: any }>} */
+	const match_entries = [];
 
-	for (const switch_case of node.cases) {
-		const consequent = flatten_switch_consequent(switch_case.consequent || []);
-		const body = [];
-		for (const child of consequent) {
-			if (child.type === 'BreakStatement') break;
-			body.push(child);
+	for (let i = 0; i < node.cases.length; i++) {
+		const original_case = node.cases[i];
+		const info = case_info[i];
+		const helper = case_helpers[i];
+
+		/** @type {any} */
+		let body_jsx;
+		if (helper) {
+			// Lifted case: render the helper element directly. Use the
+			// original `component_element` (not a clone) for this — its
+			// definition's `loc` is what the case position should map to.
+			body_jsx = helper.component_element;
+		} else if (info.own_body.length === 0) {
+			// Empty case in the source. If a downstream chain exists (alias
+			// pattern like `case 1: case 2: body; break;`), the `<Match>` for
+			// the empty label still has to render that downstream body —
+			// Solid's `<Match>` arms are exclusive, so JS fall-through can't
+			// rescue us here.
+			const next_helper = find_next_helper_after(i);
+			body_jsx = next_helper ? clone_switch_helper_invocation(next_helper) : create_null_literal();
+		} else {
+			// Inline case body: process JSX/non-JSX statements just like Solid
+			// does for any other branch body, then append the chain helper if
+			// this case falls through with no terminator.
+			const inline_body = [...info.own_body];
+			if (!info.has_terminator) {
+				const next_helper = find_next_helper_after(i);
+				if (next_helper) {
+					inline_body.push(clone_switch_helper_invocation(next_helper));
+				}
+			}
+			body_jsx = body_to_jsx_child(inline_body, transform_context);
 		}
 
-		const body_jsx = body_to_jsx_child(body, transform_context);
-		if (switch_case.test === null) {
+		if (original_case.test === null) {
 			fallback = body_jsx;
 			continue;
 		}
@@ -1226,30 +1336,28 @@ function switch_statement_to_jsx_child(node, transform_context) {
 		// Clone the discriminant per-case: every generated `<Match when={d === caseN}>`
 		// would otherwise share the same AST node reference, so a downstream pass
 		// (lazy transforms, printer metadata, source-map annotation) mutating it on
-		// one case would corrupt the others.
-		const test = /** @type {any} */ ({
-			type: 'BinaryExpression',
-			operator: '===',
-			left: clone_expression_node(node.discriminant),
-			right: switch_case.test,
-			metadata: { path: [] },
-		});
+		// one case would corrupt the others. The right operand (`caseN`) is the
+		// original source `test` node — unique per case, so we keep its real loc
+		// for editor IntelliSense and don't clone it.
+		const test = b.binary('===', clone_expression_node(node.discriminant), original_case.test);
 
-		match_children.push(
-			create_jsx_element(
-				'Match',
-				[
-					{
-						type: 'JSXAttribute',
-						name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
-						value: to_jsx_expression_container(test),
-						metadata: { path: [] },
-					},
-				],
-				[jsx_child_wrap(to_function_child(body_jsx))],
-			),
-		);
+		match_entries.push({ test, body_jsx });
 	}
+
+	const match_children = match_entries.map(({ test, body_jsx }) =>
+		create_jsx_element(
+			'Match',
+			[
+				{
+					type: 'JSXAttribute',
+					name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
+					value: to_jsx_expression_container(test),
+					metadata: { path: [] },
+				},
+			],
+			[jsx_child_wrap(to_function_child(body_jsx))],
+		),
+	);
 
 	const attributes =
 		fallback !== null
@@ -1263,7 +1371,17 @@ function switch_statement_to_jsx_child(node, transform_context) {
 				]
 			: [];
 
-	return create_jsx_element('Switch', attributes, match_children);
+	const switch_element = create_jsx_element('Switch', attributes, match_children);
+
+	if (setup_statements.length === 0) {
+		return switch_element;
+	}
+
+	// Local-scoped helpers (typeOnly mode): wrap the <Switch> in an IIFE that
+	// declares the helpers in source order and returns the element.
+	return to_jsx_expression_container(
+		b.call(b.arrow([], b.block([...setup_statements, b.return(switch_element)]))),
+	);
 }
 
 /**

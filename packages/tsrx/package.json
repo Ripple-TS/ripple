@@ -31,9 +31,16 @@
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"
     },
+    "./runtime": {
+      "types": "./types/runtime/index.d.ts",
+      "default": "./src/runtime/index.js"
+    },
     "./runtime/*": "./src/runtime/*.js",
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
-    "./test-harness/compile": "./tests/shared/compile.js"
+    "./test-harness/compile": "./tests/shared/compile.js",
+    "./test-harness/runtime/*": "./tests/shared/runtime/*.js",
+    "./test-harness/runtime/*.js": "./tests/shared/runtime/*.js",
+    "./test-harness/runtime/*.tsrx": "./tests/shared/runtime/*.tsrx"
   },
   "dependencies": {
     "@jridgewell/sourcemap-codec": "catalog:default",
@@ -48,11 +55,22 @@
     "zimmerframe": "catalog:default"
   },
   "devDependencies": {
+    "@solidjs/web": "2.0.0-beta.7",
+    "@tsrx/preact": "workspace:*",
+    "@tsrx/react": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "@tsrx/vue": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
-    "typescript": "catalog:default",
     "@volar/language-core": "catalog:default",
-    "vscode-languageserver-types": "catalog:default"
+    "preact": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
+    "solid-js": "2.0.0-beta.7",
+    "typescript": "catalog:default",
+    "vscode-languageserver-types": "catalog:default",
+    "vue": "3.6.0-beta.10",
+    "vue-jsx-vapor": "^3.2.12"
   },
   "files": [
     "src",

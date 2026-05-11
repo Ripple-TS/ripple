@@ -6,6 +6,7 @@ import {
 	builders,
 	clone_expression_node,
 	clone_identifier,
+	contains_component_jsx,
 	CREATE_REF_PROP_INTERNAL_NAME,
 	create_generated_identifier,
 	componentToFunctionDeclaration,
@@ -47,6 +48,13 @@ const vue_platform = {
 			'Vue TSRX does not support `pending` blocks in component templates yet. Vue Suspense uses fallback slots rather than a `fallback` prop, so `try { ... } pending { ... }` cannot be lowered correctly for this target yet.',
 	},
 	hooks: {
+		// Hoist to module scope
+		// in the regular client transform — same trade-off as React, where one
+		// definition per helper keeps bundles small and source mappings 1:1
+		// for editor IntelliSense. The `compile_to_volar_mappings` entry point
+		// opts back out so Volar's type-only output keeps helpers inline,
+		// matching how it generates virtual TSX today.
+		moduleScopedHookComponents: true,
 		initialState: () => ({
 			needs_define_vapor_component: false,
 			needs_vapor_for: false,
@@ -1036,59 +1044,6 @@ function create_jsx_attribute(name, value, source_node) {
  */
 function to_jsx_expression_container(expression, source_node = expression) {
 	return builders.jsx_expression_container(expression, source_node);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function contains_component_jsx(node) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	if (node.type === 'JSXElement') {
-		if (is_component_jsx_name(node.openingElement?.name)) {
-			return true;
-		}
-
-		return node.children.some(contains_component_jsx);
-	}
-
-	if (node.type === 'JSXFragment') {
-		return node.children.some(contains_component_jsx);
-	}
-
-	if (node.type === 'JSXExpressionContainer') {
-		return contains_component_jsx(node.expression);
-	}
-
-	if (Array.isArray(node)) {
-		return node.some(contains_component_jsx);
-	}
-
-	return false;
-}
-
-/**
- * @param {any} name
- * @returns {boolean}
- */
-function is_component_jsx_name(name) {
-	if (!name || typeof name !== 'object') {
-		return false;
-	}
-
-	if (name.type === 'JSXIdentifier') {
-		const first = name.name?.[0];
-		return first != null && first >= 'A' && first <= 'Z';
-	}
-
-	if (name.type === 'JSXMemberExpression') {
-		return true;
-	}
-
-	return false;
 }
 
 /**

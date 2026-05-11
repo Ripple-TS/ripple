@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.100.6",
+    "@tsrx/core": "workspace:*",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",

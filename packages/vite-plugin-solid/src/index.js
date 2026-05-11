@@ -97,8 +97,15 @@ export function tsrxSolid(options = {}) {
 				// Fallback: when `this.resolve` can't resolve (e.g. an absolute
 				// path coming in as a root entry such as a vitest test file),
 				// still rewrite to the virtual `.tsx` id directly so `load`
-				// can read the real file.
-				return source + VIRTUAL_TSX_SUFFIX;
+				// can read the real file. Re-anchor the virtual id to an
+				// absolute path so downstream import resolution walks the
+				// correct `node_modules` chain — leaving it relative makes
+				// vite walk up from the workspace root and miss package
+				// dependencies declared inside `packages/<pkg>/node_modules`.
+				const absolute_source = isAbsolute(source)
+					? source
+					: path_resolve(root_dir, source.replace(/^\/+/, ''));
+				return absolute_source + VIRTUAL_TSX_SUFFIX;
 			}
 			return null;
 		},

@@ -1,5 +1,8 @@
 import type { MockInstance } from 'vitest';
 import { createSignal, lazy } from 'solid-js';
+import {
+	runSwitchFallthroughRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/switch-fallthrough';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
@@ -1458,3 +1461,5 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.lazy-combined')).toBe('Count: 1');
 	});
 });
+
+runSwitchFallthroughRuntimeTests();

@@ -1,5 +1,8 @@
 import type { MockInstance } from 'vitest';
 import { inject, provide, reactive, ref, watch, watchEffect } from 'vue';
+import {
+	runSwitchFallthroughRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/switch-fallthrough';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
@@ -1358,3 +1361,5 @@ describe('tsrx-vue runtime', () => {
 		expect(text('.try-page')).toBe('404');
 	});
 });
+
+runSwitchFallthroughRuntimeTests();

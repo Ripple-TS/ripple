@@ -177,6 +177,373 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 }
 
 /**
+ * Shared switch fall-through coverage. JavaScript `switch` semantics let a
+ * matched case execute its own body and then continue into subsequent case
+ * bodies until a `break` (or terminal `return`) is hit. The TSRX transforms
+ * realize that statically: each case's compiled body includes the JSX of
+ * downstream cases it would have fallen through into. React/Preact/Vue keep a
+ * JS `switch` whose case-arms return the expanded body; Solid lowers to
+ * `<Switch>/<Match>` whose individual `<Match>` arms each render the same
+ * expanded body. Either way the cross-target invariant is that downstream
+ * case JSX appears once per fall-through entry point.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedSwitchFallthroughTests({ compile, name }) {
+	describe(`[${name}] switch fall-through`, () => {
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'lifts each downstream case body into a single helper component',
+			() => {
+				const { code } = compile(
+					`export component StatusBadge({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// With the fall-through lift, each downstream case body is
+				// hoisted into a helper component that chains into the next
+				// helper. Every JSX body appears exactly once regardless of how
+				// many arms would have fallen into it.
+				expect(count_substring(code, "'Online'")).toBe(1);
+				expect(count_substring(code, "'Away'")).toBe(1);
+				expect(count_substring(code, "'Offline'")).toBe(1);
+			},
+		);
+
+		it('treats explicit break as a stop signal and leaves later cases independent', () => {
+			const { code } = compile(
+				`export component App({ kind }: { kind: string }) {
+					switch (kind) {
+						case "a":
+							<span>{'A'}</span>
+							break
+						case "b":
+							<span>{'B'}</span>
+							break
+						default:
+							<span>{'Other'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			// Each case stops at its break; the default case is a separate
+			// entry so its body is rendered exactly once. No fall-through means
+			// no helpers are introduced on the React-family targets either.
+			expect(count_substring(code, "'A'")).toBe(1);
+			expect(count_substring(code, "'B'")).toBe(1);
+			expect(count_substring(code, "'Other'")).toBe(1);
+			if (['react', 'preact', 'vue'].includes(name)) {
+				expect(code).not.toContain('StatementBodyHook');
+			}
+		});
+
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'treats stacked case labels as fall-through aliases for one lifted body',
+			() => {
+				const { code } = compile(
+					`export component App({ n }: { n: number }) {
+						switch (n) {
+							case 1:
+							case 2:
+								<span>{'one or two'}</span>
+								break
+							default:
+								<span>{'other'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// Empty `case 1:` falls through to `case 2:` at runtime; the
+				// shared body is lifted into a helper so it lives in exactly
+				// one place.
+				expect(count_substring(code, "'one or two'")).toBe(1);
+				expect(count_substring(code, "'other'")).toBe(1);
+			},
+		);
+
+		it.runIf(name === 'solid')(
+			'lifts a shared body into one StatementBodyHook helper across both <Match> arms',
+			() => {
+				const { code } = compile(
+					`export component App({ n }: { n: number }) {
+						switch (n) {
+							case 1:
+							case 2:
+								<span>{'one or two'}</span>
+								break
+							default:
+								<span>{'other'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// Solid's <Switch>/<Match> is exclusive, so each label still
+				// needs its own <Match>, but both Matches now invoke a single
+				// hoisted StatementBodyHook helper instead of duplicating the
+				// JSX body.
+				expect(count_substring(code, "'one or two'")).toBe(1);
+				expect(count_substring(code, "'other'")).toBe(1);
+				// The helper for the shared body is hoisted to module scope —
+				// either as a top-level `function App__StatementBodyHook<N>()`
+				// declaration or as a `const App__StatementBodyHook<N> = ...`
+				// initializer (the wrapper shape depends on which platform
+				// the helper goes through, but the prefix is consistent).
+				expect(code).toMatch(/(?:function|const)\s+App__StatementBodyHook\d+/);
+			},
+		);
+
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'lifts duplicated case bodies into StatementBodyHook helpers chained from each arm',
+			() => {
+				const { code } = compile(
+					`export component App({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('switch (status)');
+				// Helper element names are prefixed with the component name on
+				// module-scoped platforms (React: `App__StatementBodyHook1`)
+				// and bare on local-scoped platforms (Preact/Vue:
+				// `StatementBodyHook1`), so the regex accepts either shape.
+				const helper_ref = '<[\\w$]*StatementBodyHook\\d+ /\\s*>';
+				// First case isn't duplicated downstream, so its body stays
+				// inline but appends the next helper invocation as the chain
+				// entry point.
+				expect(code).toMatch(
+					new RegExp(
+						`case\\s+"idle":[\\s\\S]*?return <><span>\\{'Online'\\}</span>${helper_ref}</>;`,
+					),
+				);
+				// Duplicated cases just call into their helper.
+				expect(code).toMatch(new RegExp(`case\\s+"active":[\\s\\S]*?return ${helper_ref};`));
+				expect(code).toMatch(new RegExp(`case\\s+"offline":[\\s\\S]*?return ${helper_ref};`));
+
+				// Exactly two `function <prefix>StatementBodyHook<N>()`
+				// definitions exist — one per duplicated case body. The
+				// `<prefix>` is empty on Preact/Vue and `App__` on React's
+				// module-scoped helpers.
+				const helper_def_matches = code.match(
+					/function\s+[\w$]*StatementBodyHook\d+\s*\(\)\s*\{[\s\S]*?\n\s*\}/g,
+				);
+				expect(helper_def_matches).not.toBeNull();
+				expect(/** @type {RegExpMatchArray} */ (helper_def_matches).length).toBe(2);
+				const helper_defs = /** @type {RegExpMatchArray} */ (helper_def_matches);
+
+				// Exactly one helper is "terminal" (renders its body and stops)
+				// and exactly one is "chained" (renders its body then renders
+				// the next helper). For the terminal helper, its compiled
+				// return uses the same identifier that the static-hoisted
+				// `<span>{'Offline'}</span>` was bound to; otherwise it falls
+				// back to the literal span. Likewise the chained helper's
+				// compiled return references either the `'Away'` static or its
+				// span literal alongside another helper invocation.
+				const find_static_id = (/** @type {string} */ literal) => {
+					const m = code.match(
+						new RegExp(`const\\s+([\\w$]+)\\s*=\\s*<span>\\{'${literal}'\\}</span>;`),
+					);
+					return m ? m[1] : null;
+				};
+				const offline_static = find_static_id('Offline');
+				const away_static = find_static_id('Away');
+
+				const terminal_helpers = helper_defs.filter((def) => {
+					const has_offline = offline_static
+						? def.includes(offline_static)
+						: def.includes("<span>{'Offline'}</span>");
+					const has_chain_ref = /<[\w$]*StatementBodyHook\d+\s*\/>/.test(def);
+					return has_offline && !has_chain_ref;
+				});
+				expect(terminal_helpers.length).toBe(1);
+
+				const chained_helpers = helper_defs.filter((def) => {
+					const has_away = away_static
+						? def.includes(away_static)
+						: def.includes("<span>{'Away'}</span>");
+					// The chain reference is always inlined directly into the
+					// helper body now — bare `<StatementBodyHook />` invocations
+					// are not hoisted into `App__staticN` aliases because doing
+					// so just adds an indirection without enabling React's
+					// element-identity fast path on a non-memo'd helper.
+					const inline_chain = /<[\w$]*StatementBodyHook\d+\s*\/>/.test(def);
+					return has_away && inline_chain;
+				});
+				expect(chained_helpers.length).toBe(1);
+
+				// And no `App__staticN` const should alias a bare
+				// StatementBodyHook reference anywhere in the output.
+				expect(code).not.toMatch(
+					/const\s+[\w$]+__static\d+\s*=\s*<[\w$]*StatementBodyHook\d+\s*\/>/,
+				);
+			},
+		);
+
+		it.runIf(name === 'solid')(
+			'lowers fall-through to <Match> arms that invoke hoisted helpers',
+			() => {
+				const { code } = compile(
+					`export component App({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('<Switch');
+				expect(code).toMatch(/<Match when=\{status === "idle"\}>/);
+				expect(code).toMatch(/<Match when=\{status === "active"\}>/);
+				expect(code).toMatch(/<Match when=\{status === "offline"\}>/);
+				// Each body literal lives in exactly one place — the lifted
+				// helper that defines it. The Match arms reference the
+				// helpers; downstream chain is materialized helper-to-helper.
+				expect(count_substring(code, "'Offline'")).toBe(1);
+				expect(count_substring(code, "'Away'")).toBe(1);
+				expect(count_substring(code, "'Online'")).toBe(1);
+			},
+		);
+
+		it.runIf(name === 'solid')('routes default cases to <Switch fallback>', () => {
+			const { code } = compile(
+				`export component App({ kind }: { kind: string }) {
+					switch (kind) {
+						case "a":
+							<span>{'A'}</span>
+							break
+						default:
+							<span>{'D'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toMatch(/<Match when=\{kind === "a"\}>/);
+			expect(count_substring(code, "'D'")).toBe(1);
+		});
+	});
+}
+
+/**
+ * Shared assertions covering where each target places the lifted
+ * `StatementBodyHook` helper component for switch-fall-through deduplication
+ * — module scope for the client transform on every target whose platform
+ * sets `moduleScopedHookComponents: true` (React, Solid, Vue), and a local
+ * `let App__StatementBodyHook<N>` cache slot + per-render `?? (= …)` lazy
+ * initializer otherwise. `compile_to_volar_mappings` keeps the local-scoped
+ * shape regardless of platform default so Volar's virtual TSX can still
+ * resolve closure-captured bindings against the component body.
+ *
+ * The `StatementBodyHook` name is React-flavored historically, but on
+ * Vue/Solid the lift solves different problems (avoid re-`defineVaporComponent`
+ * per render, dedup downstream-arm JSX, etc.) — same machinery either way.
+ *
+ * @typedef {'module-function' | 'module-vapor-component' | 'local-cache'} SwitchHelperClientShape
+ *
+ * @param {{
+ *   compile: CompileHarness['compile'],
+ *   compile_to_volar_mappings: CompileDiagnosticsHarness['compile_to_volar_mappings'],
+ *   name: string,
+ *   clientHelperShape: SwitchHelperClientShape,
+ * }} harness
+ */
+export function runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name,
+	clientHelperShape,
+}) {
+	describe(`[${name}] StatementBodyHook hoisting (client vs typeOnly)`, () => {
+		// Three fall-through cases without break: two of those bodies are
+		// duplicated downstream (active, offline) so two helpers should exist.
+		const switch_source = `export component App({ status }: { status: string }) {
+			switch (status) {
+				case "idle":
+					<span>{'Online'}</span>
+				case "active":
+					<span>{'Away'}</span>
+				case "offline":
+					<span>{'Offline'}</span>
+			}
+		}`;
+
+		it('lifts duplicated case bodies in the client transform', () => {
+			const { code } = compile(switch_source, 'App.tsrx');
+
+			if (clientHelperShape === 'module-function') {
+				// React/Solid: top-level `function App__StatementBodyHook<N>()`
+				// declarations, no per-render cache slots.
+				const top_level_helper_count = (
+					code.match(/^function App__StatementBodyHook\d+\(\)/gm) || []
+				).length;
+				expect(top_level_helper_count).toBe(2);
+				expect(code).not.toContain('let App__StatementBodyHook');
+			} else if (clientHelperShape === 'module-vapor-component') {
+				// Vue: top-level `const App__StatementBodyHook<N> =
+				// defineVaporComponent(function App__StatementBodyHook<N>() {...})`.
+				const top_level_helper_count = (
+					code.match(
+						/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\(\)/gm,
+					) || []
+				).length;
+				expect(top_level_helper_count).toBe(2);
+				expect(code).not.toContain('let App__StatementBodyHook');
+			} else {
+				// Preact: local cache slot + `?? (= function …)` lazy
+				// initializer per duplicated body; no top-level declarations.
+				const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
+				expect(cache_slot_count).toBe(2);
+				expect(code).toMatch(
+					/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*function StatementBodyHook\d+\(\)/,
+				);
+			}
+		});
+
+		it('keeps lifted case bodies inline in the typeOnly transform', () => {
+			const { code } = compile_to_volar_mappings(switch_source, 'App.tsrx');
+
+			// Volar's virtual TSX always uses the local cache-slot pattern so
+			// closure-captured bindings stay in the component scope for type
+			// checking. The wrapper inside the lazy initializer varies per
+			// target — `defineVaporComponent(function …)` on Vue, plain
+			// `function …` elsewhere — but the slot + `?? (=` shape is uniform.
+			const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
+			expect(cache_slot_count).toBe(2);
+			expect(code).toMatch(
+				/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*/,
+			);
+			// No top-level helper declarations in either lifted shape.
+			expect(code).not.toMatch(/^function App__StatementBodyHook\d+\(\)/m);
+			expect(code).not.toMatch(/^const App__StatementBodyHook\d+ = defineVaporComponent\(/m);
+		});
+	});
+}
+
+/**
  * Shared component-loop regressions. Vue does not share the full JSX output
  * suite because its component export shape differs, but it should still share
  * these component-body validation rules.
@@ -185,6 +552,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
  */
 export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 	runSharedFragmentExpressionRenderTests({ compile, name });
+	runSharedSwitchFallthroughTests({ compile, name });
 
 	describe(`[${name}] component loop control flow`, () => {
 		it('uses continue to skip a for...of iteration', () => {
