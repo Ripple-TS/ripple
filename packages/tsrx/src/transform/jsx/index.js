@@ -929,26 +929,6 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		}
 
 		if (
-			child.type === 'IfStatement' &&
-			!child.alternate &&
-			!is_returning_if_statement(child) &&
-			!transform_context.platform.hooks?.isTopLevelSetupCall &&
-			body_contains_top_level_hook_call([child], transform_context, true) &&
-			i + 1 < body_nodes.length
-		) {
-			statements.push(
-				...create_continuation_lift_if_statement(
-					child,
-					body_nodes.slice(i + 1),
-					render_nodes,
-					transform_context,
-				),
-			);
-			transform_context.available_bindings = saved_bindings;
-			return statements;
-		}
-
-		if (
 			child.type === 'ForOfStatement' &&
 			!child.await &&
 			!transform_context.platform.hooks?.isTopLevelSetupCall &&
@@ -959,26 +939,9 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				true,
 			)
 		) {
-			const for_of_continuation = body_nodes.slice(i + 1);
-			const hoisted = build_hoisted_for_of_with_hooks(
-				child,
-				for_of_continuation,
-				transform_context,
-			);
+			const hoisted = build_hoisted_for_of_with_hooks(child, transform_context);
 			if (hoisted) {
 				statements.push(...hoisted.hoist_statements);
-				if (for_of_continuation.length > 0) {
-					// Tail was lifted into the helper; everything after the for-of
-					// now lives there. Combine prior render_nodes with the iteration
-					// JSX and return.
-					statements.push({
-						type: 'ReturnStatement',
-						argument: combine_render_return_argument(render_nodes, hoisted.jsx_child),
-						metadata: { path: [] },
-					});
-					transform_context.available_bindings = saved_bindings;
-					return statements;
-				}
 				if (interleaved && is_capturable_jsx_child(hoisted.jsx_child)) {
 					const { declaration, reference } = captureJsxChild(hoisted.jsx_child, capture_index++);
 					statements.push(declaration);
@@ -988,43 +951,6 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				}
 				continue;
 			}
-		}
-
-		if (
-			child.type === 'TryStatement' &&
-			!child.finalizer &&
-			!transform_context.platform.hooks?.isTopLevelSetupCall &&
-			try_statement_contains_hooks(child, transform_context) &&
-			i + 1 < body_nodes.length
-		) {
-			statements.push(
-				...create_continuation_lift_try_statement(
-					child,
-					body_nodes.slice(i + 1),
-					render_nodes,
-					transform_context,
-				),
-			);
-			transform_context.available_bindings = saved_bindings;
-			return statements;
-		}
-
-		if (
-			child.type === 'SwitchStatement' &&
-			!transform_context.platform.hooks?.isTopLevelSetupCall &&
-			body_contains_top_level_hook_call([child], transform_context, true) &&
-			i + 1 < body_nodes.length
-		) {
-			statements.push(
-				...create_continuation_lift_switch_statement(
-					child,
-					body_nodes.slice(i + 1),
-					render_nodes,
-					transform_context,
-				),
-			);
-			transform_context.available_bindings = saved_bindings;
-			return statements;
 		}
 
 		if (is_jsx_child(child)) {
@@ -1891,169 +1817,6 @@ function create_component_returning_if_statement(node, render_nodes, transform_c
 	return set_loc(b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null), node);
 }
 
-/* ---------------------------------------------------------------------- *
- * Continuation-lift primitives shared across if / switch / try / for-of  *
- * ---------------------------------------------------------------------- */
-
-/**
- * Build the helper component that owns the post-control-flow continuation.
- * Same shape as `create_hook_safe_helper`; named for intent at lift call sites.
- *
- * @param {any[]} continuation_body
- * @param {any} source_node
- * @param {TransformContext} transform_context
- * @returns {{ setup_statements: any[], component_element: ESTreeJSX.JSXElement }}
- */
-function build_tail_helper(continuation_body, source_node, transform_context) {
-	return create_hook_safe_helper(continuation_body, undefined, source_node, transform_context);
-}
-
-/**
- * Clone the tail helper's component element for embedding inside another
- * branch's body. Loses location info because the same element appears in
- * multiple positions and downstream tooling treats AST nodes as identity-keyed.
- *
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {any}
- */
-function clone_tail_invocation(tail_helper) {
-	return clone_expression_node(tail_helper.component_element, false);
-}
-
-/**
- * Return `[...body, <TailHelper x={x} />]` so the branch's render output
- * includes the tail invocation and the post-hook locals flow forward.
- * Used by if / switch / try (unconditional append). For-of uses a different
- * shape — gating on `_tsrx_isLast_<n>` — so it constructs its own.
- *
- * @param {any[]} body
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {any[]}
- */
-function append_tail_invocation(body, tail_helper) {
-	return [...body, clone_tail_invocation(tail_helper)];
-}
-
-/**
- * @param {AST.Identifier} tail_synthetic_id
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {any}
- */
-function create_loop_tail_expression(tail_synthetic_id, tail_helper) {
-	return b.logical('&&', clone_identifier(tail_synthetic_id), clone_tail_invocation(tail_helper));
-}
-
-/**
- * @param {AST.Identifier} tail_synthetic_id
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {any}
- */
-function create_loop_tail_conditional(tail_synthetic_id, tail_helper) {
-	return b.conditional(
-		clone_identifier(tail_synthetic_id),
-		clone_tail_invocation(tail_helper),
-		create_null_literal(),
-	);
-}
-
-/**
- * @param {any[]} statements
- * @param {AST.Identifier} tail_synthetic_id
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {void}
- */
-function append_loop_tail_to_return_statements(statements, tail_synthetic_id, tail_helper) {
-	for (const statement of statements) {
-		append_loop_tail_to_return_statement(statement, tail_synthetic_id, tail_helper, false);
-	}
-}
-
-/**
- * @param {any} node
- * @param {AST.Identifier} tail_synthetic_id
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @param {boolean} inside_nested_function
- * @returns {void}
- */
-function append_loop_tail_to_return_statement(
-	node,
-	tail_synthetic_id,
-	tail_helper,
-	inside_nested_function,
-) {
-	if (!node || typeof node !== 'object') {
-		return;
-	}
-
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
-	) {
-		inside_nested_function = true;
-	}
-
-	if (!inside_nested_function && node.type === 'ReturnStatement') {
-		if (
-			references_scope_bindings(
-				node.argument,
-				new Map([[tail_synthetic_id.name, tail_synthetic_id]]),
-			)
-		) {
-			return;
-		}
-		node.argument = append_loop_tail_to_return_argument(
-			node.argument,
-			tail_synthetic_id,
-			tail_helper,
-		);
-		return;
-	}
-
-	if (Array.isArray(node)) {
-		for (const child of node) {
-			append_loop_tail_to_return_statement(
-				child,
-				tail_synthetic_id,
-				tail_helper,
-				inside_nested_function,
-			);
-		}
-		return;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		append_loop_tail_to_return_statement(
-			node[key],
-			tail_synthetic_id,
-			tail_helper,
-			inside_nested_function,
-		);
-	}
-}
-
-/**
- * @param {any} return_argument
- * @param {AST.Identifier} tail_synthetic_id
- * @param {{ component_element: ESTreeJSX.JSXElement }} tail_helper
- * @returns {any}
- */
-function append_loop_tail_to_return_argument(return_argument, tail_synthetic_id, tail_helper) {
-	if (return_argument == null || is_null_literal(return_argument)) {
-		return create_loop_tail_conditional(tail_synthetic_id, tail_helper);
-	}
-
-	return (
-		build_return_expression([
-			return_argument_to_render_node(return_argument),
-			to_jsx_expression_container(create_loop_tail_expression(tail_synthetic_id, tail_helper)),
-		]) || create_null_literal()
-	);
-}
-
 /**
  * Build a `return <combined-render-fragment>;` statement, prepending any
  * `render_nodes` collected before the control-flow construct so they don't
@@ -2134,256 +1897,6 @@ function create_component_helper_split_returning_if_statements(
 }
 
 /**
- * Lift a non-returning `if` whose consequent contains hook calls plus the
- * statements that follow it into helper components.
- *
- * Without this, the consequent's hook would be wrapped into a child component
- * (StatementBodyHook) but any code after the `if` that reads bindings the hook
- * mutates would observe the pre-hook value, because React commits children
- * after their parent has finished rendering. The fix mirrors the early-return
- * splitter: emit a tail helper that owns the post-`if` statements, append a
- * call to it inside the branch helper so the post-hook bindings flow forward,
- * and render the tail helper directly when the `if` is false.
- *
- * @param {any} if_node
- * @param {any[]} continuation_body
- * @param {any[]} render_nodes
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function create_continuation_lift_if_statement(
-	if_node,
-	continuation_body,
-	render_nodes,
-	transform_context,
-) {
-	const consequent_body = get_if_consequent_body(if_node);
-	const tail_helper = build_tail_helper(continuation_body, if_node, transform_context);
-	const branch_helper = create_hook_safe_helper(
-		append_tail_invocation(consequent_body, tail_helper),
-		undefined,
-		if_node.consequent,
-		transform_context,
-	);
-
-	const branch_block = set_loc(
-		b.block([
-			...branch_helper.setup_statements,
-			combined_return_statement(render_nodes, branch_helper.component_element),
-		]),
-		if_node.consequent,
-	);
-
-	return [
-		...tail_helper.setup_statements,
-		set_loc(b.if(if_node.test, branch_block, null), if_node),
-		combined_return_statement(render_nodes, tail_helper.component_element),
-	];
-}
-
-/**
- * Continuation lift for `try` / `try / pending / catch` statements. Same
- * shape as if/switch: build a tail helper from the post-`try` statements, and
- * append a clone of its invocation to the try body and the catch body so the
- * post-hook locals inside each branch flow forward into the tail. The pending
- * body is left untouched — when Suspense renders the pending fallback the
- * parent's render is unwound, so the tail wouldn't run in source semantics
- * either. Once augmented, the existing try transform builds the
- * Suspense / TsrxErrorBoundary wrapper as usual.
- *
- * @param {any} node - TryStatement
- * @param {any[]} continuation_body
- * @param {any[]} render_nodes
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function create_continuation_lift_try_statement(
-	node,
-	continuation_body,
-	render_nodes,
-	transform_context,
-) {
-	const tail_helper = build_tail_helper(continuation_body, node, transform_context);
-
-	const augmented_block = {
-		...node.block,
-		body: append_tail_invocation(node.block.body || [], tail_helper),
-	};
-
-	let augmented_handler = node.handler;
-	if (node.handler) {
-		augmented_handler = {
-			...node.handler,
-			body: {
-				...node.handler.body,
-				body: append_tail_invocation(node.handler.body.body || [], tail_helper),
-			},
-		};
-	}
-
-	const augmented_try = {
-		...node,
-		block: augmented_block,
-		handler: augmented_handler,
-	};
-
-	const try_jsx_child = (
-		transform_context.platform.hooks?.controlFlow?.tryStatement ?? try_statement_to_jsx_child
-	)(augmented_try, transform_context);
-
-	return [...tail_helper.setup_statements, combined_return_statement(render_nodes, try_jsx_child)];
-}
-
-/**
- * @param {any} node - TryStatement
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function try_statement_contains_hooks(node, transform_context) {
-	if (body_contains_top_level_hook_call(node.block?.body || [], transform_context, true)) {
-		return true;
-	}
-	if (
-		node.handler &&
-		body_contains_top_level_hook_call(node.handler.body?.body || [], transform_context, true)
-	) {
-		return true;
-	}
-	if (
-		node.pending &&
-		body_contains_top_level_hook_call(node.pending.body || [], transform_context, true)
-	) {
-		return true;
-	}
-	return false;
-}
-
-/**
- * Continuation lift for `switch` statements. Same shape as the if-version:
- * each case body is wrapped in its own helper component that ends with a
- * call to a shared tail helper, so post-hook bindings inside any case flow
- * forward to the statements after the switch. The fall-through return at
- * the end renders the tail helper directly, covering the case where no
- * `case` (and no `default`) matched.
- *
- * Empty fall-through cases (`case 'a':` with no body, falling through to
- * the next case) are preserved as-is — they must not get their own helper
- * because that would convert fall-through into early-return.
- *
- * @param {any} switch_node
- * @param {any[]} continuation_body
- * @param {any[]} render_nodes
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function create_continuation_lift_switch_statement(
-	switch_node,
-	continuation_body,
-	render_nodes,
-	transform_context,
-) {
-	const tail_helper = build_tail_helper(continuation_body, switch_node, transform_context);
-
-	// Per-case info computed once: own body (statements before any
-	// terminator) and whether the case has a `break` / `return`.
-	const case_info = switch_node.cases.map((/** @type {any} */ c) => {
-		const consequent = flatten_switch_consequent(c.consequent || []);
-		const own_body = [];
-		let own_has_terminator = false;
-		for (const node of consequent) {
-			if (node.type === 'BreakStatement' || node.type === 'ReturnStatement') {
-				own_has_terminator = true;
-				break;
-			}
-			own_body.push(node);
-		}
-		return { own_body, own_has_terminator };
-	});
-
-	// Allocate helper ids in source order (forward pass) so the snapshot's
-	// `StatementBodyHook<N>` numbering reads top-to-bottom by case position.
-	/** @type {Array<AST.Identifier | null>} */
-	const helper_ids = case_info.map(
-		(/** @type {{ own_body: any[], own_has_terminator: boolean }} */ info) =>
-			info.own_body.length === 0
-				? null
-				: create_generated_identifier(create_local_statement_component_name(transform_context)),
-	);
-
-	// Build helpers in reverse order: each fall-through case's helper body
-	// invokes the *next* case's helper, so the chain forwards post-mutation
-	// locals through the switch. Reverse iteration ensures the next helper's
-	// component_element is already constructed when we need to embed it.
-	/** @type {Array<{ setup_statements: any[], component_element: any } | null>} */
-	const case_helper_by_index = new Array(switch_node.cases.length).fill(null);
-	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
-		const { own_body, own_has_terminator } = case_info[i];
-		if (own_body.length === 0) continue;
-
-		// Determine the downstream helper this case invokes after its own body.
-		// - With a terminator: invoke the tail helper directly (case exits switch).
-		// - Otherwise (fall-through): invoke the next non-empty case's helper,
-		//   or the tail if nothing else follows.
-		let downstream;
-		if (own_has_terminator) {
-			downstream = tail_helper;
-		} else {
-			let next_helper = null;
-			for (let j = i + 1; j < switch_node.cases.length; j++) {
-				if (case_helper_by_index[j]) {
-					next_helper = case_helper_by_index[j];
-					break;
-				}
-			}
-			downstream = next_helper ?? tail_helper;
-		}
-
-		case_helper_by_index[i] = create_hook_safe_helper(
-			append_tail_invocation(own_body, downstream),
-			undefined,
-			switch_node.cases[i],
-			transform_context,
-			/** @type {any} */ (helper_ids[i]),
-		);
-	}
-
-	const new_cases = switch_node.cases.map(
-		(/** @type {any} */ original_case, /** @type {number} */ i) => {
-			const helper = case_helper_by_index[i];
-			if (helper) {
-				return b.switch_case(original_case.test, [
-					combined_return_statement(render_nodes, helper.component_element),
-				]);
-			}
-
-			const { own_body, own_has_terminator } = case_info[i];
-			if (own_body.length === 0 && own_has_terminator) {
-				// `case 'a': break;` — exits the switch, then runs the tail.
-				return b.switch_case(original_case.test, [
-					combined_return_statement(render_nodes, tail_helper.component_element),
-				]);
-			}
-			// Genuine empty fall-through (`case 'a': case 'b': ...`).
-			return b.switch_case(original_case.test, []);
-		},
-	);
-
-	// Hoist all case helpers' setup statements above the switch in source
-	// order so the switch body is purely a dispatcher.
-	const case_helper_setup_statements = [];
-	for (const helper of case_helper_by_index) {
-		if (helper) case_helper_setup_statements.push(...helper.setup_statements);
-	}
-
-	return [
-		...tail_helper.setup_statements,
-		...case_helper_setup_statements,
-		set_loc(b.switch(switch_node.discriminant, new_cases), switch_node),
-		combined_return_statement(render_nodes, tail_helper.component_element),
-	];
-}
-
-/**
  * Hoist the helper for a hook-bearing for-of body out of the iteration
  * callback so the helper is declared once per render rather than re-bound on
  * every iteration. Loop-scoped param types are derived from the iteration
@@ -2395,57 +1908,24 @@ function create_continuation_lift_switch_statement(
  * works while skipping the copy when the source is already an array. The
  * iteration itself is emitted as `source.map((item, i) => ...)`.
  *
- * If `continuation_body` is non-empty (the for-of has a tail) we also lift
- * the tail into a TailHelper and call it conditionally on the last iteration
- * via an `isLast={i === source.length - 1}` prop on the loop helper. The
- * loop helper's mutated locals (post-`useState`) flow into the TailHelper as
- * its props. When the source is empty, `.map` returns `[]` and the TailHelper
- * never renders — we add a sibling fallback so the source's tail still runs
- * with the original outer values in that case.
- *
  * Bails out (returns null) when the loop pattern is destructured — deriving
  * element types from a tuple/object pattern is more involved and deferred.
  *
  * @param {any} node - ForOfStatement
- * @param {any[]} continuation_body
  * @param {TransformContext} transform_context
  * @returns {{ hoist_statements: any[], jsx_child: any } | null}
  */
-function build_hoisted_for_of_with_hooks(node, continuation_body, transform_context) {
+function build_hoisted_for_of_with_hooks(node, transform_context) {
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	for (const param of loop_params) {
 		if (param.type !== 'Identifier') return null;
 	}
 
-	const has_tail = continuation_body.length > 0;
 	const original_loop_body = /** @type {any[]} */ (
 		rewrite_loop_continues_to_bare_returns(
 			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
 		)
 	);
-
-	// When there's a tail, build TailHelper first so its component_element can
-	// be embedded inside the loop helper's body (gated on isLast). The
-	// synthetic isLast prop uses the loop helper's index (which will be the
-	// next one assigned, since `create_hook_safe_helper` for the tail just
-	// consumed one) so it lines up with `StatementBodyHook<N>` in the output.
-	let tail_helper = null;
-	/** @type {AST.Identifier} */ let tail_synthetic_id;
-	if (has_tail) {
-		tail_helper = build_tail_helper(continuation_body, node, transform_context);
-		tail_synthetic_id = create_generated_identifier(
-			`_tsrx_isLast_${transform_context.local_statement_component_index + 1}`,
-		);
-	} else {
-		tail_synthetic_id = /** @type {any} */ (null);
-	}
-	const loop_tail_expression = has_tail
-		? create_loop_tail_expression(tail_synthetic_id, /** @type {any} */ (tail_helper))
-		: null;
-	const loop_body =
-		has_tail && loop_tail_expression
-			? [...original_loop_body, b.jsx_expression_container(loop_tail_expression)]
-			: original_loop_body;
 
 	const source_id = create_generated_identifier(
 		`_tsrx_iteration_items_${transform_context.local_statement_component_index + 1}`,
@@ -2468,7 +1948,7 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 	);
 
 	const all_helper_bindings = get_referenced_helper_bindings(
-		loop_body,
+		original_loop_body,
 		transform_context.available_bindings,
 	);
 	const outer_bindings = all_helper_bindings.filter((b) => !loop_scoped_names.has(b.name));
@@ -2491,61 +1971,30 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 				create_loop_scoped_type_alias_declaration(helper_id, binding, source_id, loop_params),
 			);
 
-	// Synthetic `isLast` prop on the loop helper when there's a tail. It's
-	// passed from the .map callback as `i === source.length - 1` so every
-	// loop-helper return can append the tail helper on the last iteration.
-	const tail_isLast_alias = has_tail
-		? use_module_scoped_component
-			? null
-			: {
-					id: create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-					declaration: b.ts_type_alias(
-						create_generated_identifier(`_tsrx_${helper_id.name}_isLast`),
-						b.ts_keyword_type('boolean'),
-					),
-				}
-		: null;
-
 	const ordered_bindings = [...outer_bindings, ...loop_bindings];
 	const ordered_aliases = [...outer_aliases, ...loop_aliases];
 	const ordered_use_typeof = [...outer_bindings.map(() => true), ...loop_bindings.map(() => false)];
 
-	const signature_bindings = has_tail ? [...ordered_bindings, tail_synthetic_id] : ordered_bindings;
-	const signature_aliases = has_tail
-		? [...ordered_aliases, /** @type {any} */ (tail_isLast_alias)]
-		: ordered_aliases;
-	const signature_use_typeof = has_tail ? [...ordered_use_typeof, false] : ordered_use_typeof;
-
 	const props_type =
-		signature_bindings.length > 0 && !use_module_scoped_component
+		ordered_bindings.length > 0 && !use_module_scoped_component
 			? create_helper_props_type_literal_with_typeof_flags(
-					signature_bindings,
-					signature_aliases,
-					signature_use_typeof,
+					ordered_bindings,
+					ordered_aliases,
+					ordered_use_typeof,
 				)
 			: null;
 	const params =
-		signature_bindings.length > 0
+		ordered_bindings.length > 0
 			? [
 					props_type !== null
-						? create_typed_helper_props_pattern(signature_bindings, props_type)
-						: create_helper_props_pattern(signature_bindings),
+						? create_typed_helper_props_pattern(ordered_bindings, props_type)
+						: create_helper_props_pattern(ordered_bindings),
 				]
 			: [];
 
 	const fn_saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(fn_saved_bindings);
-	if (has_tail) {
-		transform_context.available_bindings.set(tail_synthetic_id.name, tail_synthetic_id);
-	}
-	const fn_body_statements = build_render_statements(loop_body, true, transform_context);
-	if (has_tail) {
-		append_loop_tail_to_return_statements(
-			fn_body_statements,
-			tail_synthetic_id,
-			/** @type {any} */ (tail_helper),
-		);
-	}
+	const fn_body_statements = build_render_statements(original_loop_body, true, transform_context);
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = /** @type {any} */ (
@@ -2582,18 +2031,6 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		{ mapWrapper: false, mapBindingNames: false, mapBindingValues: false },
 	);
 
-	// When there's a tail, the .map callback always needs an index to compute
-	// `isLast`. If the user didn't write `index i`, synthesize one. The same
-	// identifier is also used as the implicit key fallback below.
-	let index_identifier;
-	if (loop_params.length >= 2) {
-		index_identifier = clone_identifier(loop_params[1]);
-	} else if (has_tail) {
-		index_identifier = create_generated_identifier('i');
-	} else {
-		index_identifier = null;
-	}
-
 	const body_key_expression = find_key_expression_in_body(original_loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
@@ -2606,57 +2043,16 @@ function build_hoisted_for_of_with_hooks(node, continuation_body, transform_cont
 		);
 	}
 
-	if (has_tail && index_identifier) {
-		const length_minus_one = b.binary(
-			'-',
-			b.member(clone_identifier(source_id), 'length'),
-			b.literal(1),
-		);
-		callback_invocation_element.openingElement.attributes.push(
-			b.jsx_attribute(
-				b.jsx_id(tail_synthetic_id.name),
-				to_jsx_expression_container(
-					b.binary('===', clone_identifier(index_identifier), length_minus_one),
-				),
-			),
-		);
-	}
-
-	const callback_params =
-		has_tail && loop_params.length < 2 && index_identifier
-			? [
-					...loop_params.map((/** @type {any} */ p) => clone_identifier(p)),
-					clone_identifier(index_identifier),
-				]
-			: loop_params.map((/** @type {any} */ p) => clone_identifier(p));
+	const callback_params = loop_params.map((/** @type {any} */ p) => clone_identifier(p));
 
 	const iter_callback = b.arrow(callback_params, callback_invocation_element);
 
 	const map_call = b.call(b.member(clone_identifier(source_id), 'map'), iter_callback);
 
-	// jsx_child for the iteration. When there's a tail, also render the tail
-	// helper directly when the source is empty (no iterations means the loop
-	// helper never fires, so the tail wouldn't run otherwise).
-	const jsx_child = has_tail
-		? to_jsx_expression_container(
-				b.conditional(
-					b.binary('===', b.member(clone_identifier(source_id), 'length'), b.literal(0)),
-					clone_tail_invocation(/** @type {any} */ (tail_helper)),
-					map_call,
-				),
-				node,
-			)
-		: to_jsx_expression_container(map_call, node);
+	const jsx_child = to_jsx_expression_container(map_call, node);
 
 	const hoist_statements = [source_decl, source_normalize_decl];
-	if (has_tail) {
-		// TailHelper's setup statements (its alias consts and cache decl).
-		hoist_statements.push(.../** @type {any} */ (tail_helper).setup_statements);
-	}
 	for (const alias of ordered_aliases) hoist_statements.push(alias.declaration);
-	if (has_tail && tail_isLast_alias) {
-		hoist_statements.push(tail_isLast_alias.declaration);
-	}
 	if (helper_decl) {
 		hoist_statements.push(helper_decl);
 	}
