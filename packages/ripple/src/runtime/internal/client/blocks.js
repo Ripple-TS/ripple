@@ -188,7 +188,7 @@ export function root(fn, compat) {
 		};
 	}
 
-	return block(ROOT_BLOCK, target_fn, { compat }, create_component_ctx());
+	return block(ROOT_BLOCK, target_fn, { compat, start: null, end: null }, create_component_ctx());
 }
 
 /**
@@ -274,7 +274,7 @@ export function destroy_block_children(parent, remove_dom = false) {
 	var block = parent.first;
 	parent.first = parent.last = null;
 
-	if ((parent.f & CONTAINS_TEARDOWN) !== 0) {
+	if (remove_dom || (parent.f & CONTAINS_TEARDOWN) !== 0) {
 		while (block !== null) {
 			var next = block.next;
 			destroy_block(block, remove_dom);
@@ -456,7 +456,7 @@ export function destroy_block(block, remove_dom = true) {
 		(f & HEAD_BLOCK) !== 0
 	) {
 		var s = block.s;
-		if (s !== null) {
+		if (s !== null && s.start !== null) {
 			remove_block_dom(s.start, s.end);
 			removed = true;
 		}
