@@ -1332,6 +1332,7 @@ export function runSharedClassComponentDeclarationTests({
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.
+ * Vue should be excluded from running these
  *
  * @param {CompileHarness} harness
  */
