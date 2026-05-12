@@ -366,13 +366,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 	let fn;
 
 	if (component.id) {
-		fn = b.function_declaration(
-			component.id,
-			params,
-			body_block,
-			false,
-			component.typeParameters,
-		);
+		fn = b.function_declaration(component.id, params, body_block, false, component.typeParameters);
 	} else if (component.metadata?.arrow) {
 		fn = b.arrow(params, body_block, false, component.typeParameters);
 	} else {
