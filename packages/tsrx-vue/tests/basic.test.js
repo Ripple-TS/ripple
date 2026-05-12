@@ -28,7 +28,6 @@ runSharedSwitchHelperHoistingTests({
 	name: 'vue',
 	clientHelperShape: 'module-vapor-component',
 });
-runSharedNestedLazyDestructuringTests({ compile, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {

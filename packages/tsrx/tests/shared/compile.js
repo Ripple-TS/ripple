@@ -1337,6 +1337,7 @@ export function runSharedClassComponentDeclarationTests({
  */
 export function runSharedCompileTests({ compile, name, classAttrName }) {
 	runSharedComponentLoopControlFlowTests({ compile, name });
+	runSharedNestedLazyDestructuringTests({ compile, name });
 
 	describe(`[${name}] component export shapes`, () => {
 		// `component X()` maps to `function X()` identically on every target
@@ -2831,8 +2832,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
 		});
 	});
-
-	runSharedNestedLazyDestructuringTests({ compile, name });
 
 	describe(`[${name}] interleaved statements and JSX children`, () => {
 		// When a mutation sits between JSX siblings, each child has to be
