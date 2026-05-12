@@ -150,7 +150,7 @@ describe('@tsrx/preact basic', () => {
 		);
 
 		expect(code).toContain(
-			`import { map_iterable as __map_iterable } from '@tsrx/preact/runtime';`,
+			`import { map_iterable as __map_iterable } from '@tsrx/preact/runtime/iterable';`,
 		);
 		expect(code).toContain('__map_iterable(items, (item) => {');
 		expect(code).not.toContain('Array.from(');
@@ -174,7 +174,7 @@ describe('@tsrx/preact basic', () => {
 		// Preact does not module-scope hook helpers, so the loop-scoped
 		// type alias references the runtime `IterationValue` helper.
 		expect(code).toContain('type IterationValue as __IterationValue');
-		expect(code).toContain("from '@tsrx/preact/runtime'");
+		expect(code).toContain("from '@tsrx/preact/runtime/iterable'");
 		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
 		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
 		expect(code).not.toContain('Array.from(');

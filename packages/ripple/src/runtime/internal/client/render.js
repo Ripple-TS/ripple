@@ -10,13 +10,10 @@ import {
 	get_prototype_of,
 } from '@tsrx/core/runtime/language-helpers';
 import { event } from './events.js';
-import {
-	getAttributeEventName as get_attribute_event_name,
-	isEventAttribute as is_event_attribute,
-} from '@tsrx/core';
+import { get_attribute_event_name, is_event_attribute } from '@tsrx/core/runtime/events';
 import { get } from './runtime.js';
 import { clsx } from 'clsx';
-import { normalizeCssPropertyName as normalize_css_property_name } from '@tsrx/core';
+import { normalize_css_property_name } from '@tsrx/core/runtime/html';
 
 /**
  * @param {Text} text

@@ -240,7 +240,9 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
 		expect(code).toContain('__map_iterable(items, (item, i) => {');
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
@@ -288,7 +290,9 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
 		expect(code).toContain('__map_iterable(items, (item) => {');
 		expect(code).not.toContain('Array.from(');
 		expect(code).not.toContain('Array.isArray(');
@@ -323,7 +327,9 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function App__StatementBodyHook1');
-		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
 		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
 		expect(code).not.toContain('Array.from(');
 		expect(code).not.toContain('Array.isArray(');
@@ -344,7 +350,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('map_iterable as __map_iterable');
 		expect(code).toContain('type IterationValue as __IterationValue');
-		expect(code).toContain("from '@tsrx/react/runtime'");
+		expect(code).toContain("from '@tsrx/react/runtime/iterable'");
 		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
@@ -1374,7 +1380,9 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('function App__StatementBodyHook1');
 		// Hook-bearing for-of bodies emit `map_iterable(source, callback)`
 		// so any Iterable works, with the helper hoisted above the iteration.
-		expect(code).toContain(`import { map_iterable as __map_iterable } from '@tsrx/react/runtime';`);
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
 		expect(code).toContain('__map_iterable(');
 		expect(code).not.toContain('Array.from(');
 		// Hook should be inside the helper, not the iteration callback directly

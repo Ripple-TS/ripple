@@ -19,7 +19,7 @@ const react_platform = {
 		errorBoundary: '@tsrx/react/error-boundary',
 		mergeRefs: '@tsrx/react/ref',
 		refProp: '@tsrx/react/ref',
-		forOfIterableHelper: '@tsrx/react/runtime',
+		forOfIterableHelper: '@tsrx/react/runtime/iterable',
 	},
 	jsx: {
 		rewriteClassAttr: true,

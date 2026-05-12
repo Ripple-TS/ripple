@@ -29,10 +29,13 @@ import {
 import { DEV } from 'esm-env';
 import { is_ripple_object } from '../client/utils.js';
 import { array_slice } from '@tsrx/core/runtime/language-helpers';
-import { escape, escapeScript as escape_script } from '@tsrx/core';
-import { isBooleanAttribute as is_boolean_attribute } from '@tsrx/core';
+import {
+	escape,
+	escape_script,
+	is_boolean_attribute,
+	normalize_css_property_name,
+} from '@tsrx/core/runtime/html';
 import { clsx } from 'clsx';
-import { normalizeCssPropertyName as normalize_css_property_name } from '@tsrx/core';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
 import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
@@ -53,7 +56,7 @@ import { COMPONENT_BLOCK, TRY_BLOCK } from './constants.js';
 
 export { escape };
 export { register_component_css as register_css } from './css-registry.js';
-export { simpleHash as simple_hash, strongHash as strong_hash } from '@tsrx/core';
+export { simple_hash, strong_hash } from '@tsrx/core/runtime/hash';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };

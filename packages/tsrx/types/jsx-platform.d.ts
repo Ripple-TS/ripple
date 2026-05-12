@@ -306,8 +306,10 @@ export interface JsxPlatform {
 		 * Module to import the `map_iterable` runtime helper (and the
 		 * `IterationValue` type) from when compiling `for ... of` bodies whose
 		 * source can be any `Iterable` — not just an array. React and Preact
-		 * use `'@tsrx/core/runtime'`. Solid and Vue lower for-of via their own
-		 * iteration components and leave this unset.
+		 * use target-owned paths like `'@tsrx/react/runtime/iterable'` and
+		 * `'@tsrx/preact/runtime/iterable'`, which re-export from
+		 * `'@tsrx/core/runtime/iterable'`. Solid and Vue lower for-of via their
+		 * own iteration components and leave this unset.
 		 */
 		forOfIterableHelper?: string;
 	};

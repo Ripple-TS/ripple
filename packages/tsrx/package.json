@@ -31,11 +31,26 @@
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"
     },
-    "./runtime": {
-      "types": "./types/runtime/index.d.ts",
-      "default": "./src/runtime/index.js"
+    "./runtime/events": {
+      "types": "./types/runtime/events.d.ts",
+      "default": "./src/runtime/events.js"
     },
-    "./runtime/*": "./src/runtime/*.js",
+    "./runtime/hash": {
+      "types": "./types/runtime/hash.d.ts",
+      "default": "./src/runtime/hash.js"
+    },
+    "./runtime/html": {
+      "types": "./types/runtime/html.d.ts",
+      "default": "./src/runtime/html.js"
+    },
+    "./runtime/language-helpers": {
+      "types": "./types/runtime/language-helpers.d.ts",
+      "default": "./src/runtime/language-helpers.js"
+    },
+    "./runtime/iterable": {
+      "types": "./types/runtime/iterable.d.ts",
+      "default": "./src/runtime/iterable.js"
+    },
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
     "./test-harness/compile": "./tests/shared/compile.js",
     "./test-harness/runtime/*": "./tests/shared/runtime/*.js",
