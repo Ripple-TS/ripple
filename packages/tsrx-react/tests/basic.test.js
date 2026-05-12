@@ -329,6 +329,26 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('Array.isArray(');
 	});
 
+	it('emits a valid type-only IterationValue import in virtual TSX for hook-bearing for-of', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: Iterable<string> }) {
+				for (const item of items) {
+					const [open, setOpen] = useState(false);
+					<li key={item}>{open ? item : '-'}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('map_iterable as __map_iterable');
+		expect(code).toContain('type IterationValue as __IterationValue');
+		expect(code).toContain("from '@tsrx/react/runtime'");
+		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
+		expect(code).not.toContain('IterationValue as type __IterationValue');
+	});
+
 	it('supports lone early returns in component-body if statements', () => {
 		const { code } = compile(
 			`export component App() {

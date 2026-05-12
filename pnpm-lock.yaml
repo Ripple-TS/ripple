@@ -109,8 +109,8 @@ catalogs:
       specifier: ^1.2.2
       version: 1.2.2
     esrap:
-      specifier: ^2.1.0
-      version: 2.2.3
+      specifier: ^2.2.7
+      version: 2.2.7
     is-reference:
       specifier: ^3.0.3
       version: 3.0.3
@@ -239,6 +239,11 @@ catalogs:
 
 overrides:
   semver: ^7.7.4
+
+patchedDependencies:
+  esrap@2.2.7:
+    hash: 5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f
+    path: patches/esrap@2.2.7.patch
 
 importers:
 
@@ -821,7 +826,7 @@ importers:
         version: 8.16.0
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       is-reference:
         specifier: catalog:default
         version: 3.0.3
@@ -916,7 +921,7 @@ importers:
         version: link:../tsrx
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       zimmerframe:
         specifier: catalog:default
         version: 1.1.4
@@ -941,7 +946,7 @@ importers:
         version: link:../tsrx
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       react:
         specifier: '>=18'
         version: 19.2.4
@@ -969,7 +974,7 @@ importers:
         version: link:../tsrx
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       is-reference:
         specifier: catalog:default
         version: 3.0.3
@@ -1003,7 +1008,7 @@ importers:
         version: link:../tsrx
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       solid-js:
         specifier: '>=1.8 || >=2.0.0-beta'
         version: 1.9.12
@@ -1028,7 +1033,7 @@ importers:
         version: link:../tsrx
       esrap:
         specifier: catalog:default
-        version: 2.2.3
+        version: 2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1)
       is-reference:
         specifier: catalog:default
         version: 3.0.3
@@ -4717,6 +4722,14 @@ packages:
 
   esrap@2.2.3:
     resolution: {integrity: sha512-8fOS+GIGCQZl/ZIlhl59htOlms6U8NvX6ZYgYHpRU/b6tVSh3uHkOHZikl3D4cMbYM0JlpBe+p/BkZEi8J9XIQ==}
+
+  esrap@2.2.7:
+    resolution: {integrity: sha512-Dl7o7btn2YXca1VXx+PVl+lKuZdHBm8oCFuckUxqchMvNMdHMJ/qF31wtPaVyWvFYLQePkbXJrirWzbAP6Yamw==}
+    peerDependencies:
+      '@typescript-eslint/types': ^8.2.0
+    peerDependenciesMeta:
+      '@typescript-eslint/types':
+        optional: true
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
@@ -10631,6 +10644,12 @@ snapshots:
   esrap@2.2.3:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  esrap@2.2.7(patch_hash=5177a1748b39227f57701f33c7cfe4d32f8ee690d4c550a9f77b7fc6da29ca4f)(@typescript-eslint/types@8.56.1):
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.5.5
+    optionalDependencies:
+      '@typescript-eslint/types': 8.56.1
 
   esrecurse@4.3.0:
     dependencies:

@@ -1,0 +1,21 @@
+diff --git a/src/languages/ts/index.js b/src/languages/ts/index.js
+index 7fe64e3aa45289b618ddafab1af6cbab1921c786..fc167f74c28a2579263e4949066476bb1a97eec1 100644
+--- a/src/languages/ts/index.js
++++ b/src/languages/ts/index.js
+@@ -1406,6 +1406,8 @@ export default (options = {}) => {
+ 		},
+ 
+ 		ImportSpecifier(node, context) {
++			if (node.importKind == 'type') context.write('type ');
++
+ 			if (
+ 				node.local.type === 'Identifier' &&
+ 				node.imported.type === 'Identifier' &&
+@@ -1415,7 +1417,6 @@ export default (options = {}) => {
+ 				context.write(' as ');
+ 			}
+ 
+-			if (node.importKind == 'type') context.write('type ');
+ 			context.visit(node.local);
+ 		},
+ 
