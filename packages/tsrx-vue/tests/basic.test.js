@@ -5,7 +5,6 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 	runSharedComponentParamsTests,
-	runSharedNestedLazyDestructuringTests,
 	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
