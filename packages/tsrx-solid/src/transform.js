@@ -365,27 +365,12 @@ function component_to_function_declaration(component, transform_context, walk_he
 	}
 
 	if (render_nodes.length > 0) {
-		statements.push(
-			/** @type {any} */ ({
-				type: 'ReturnStatement',
-				argument: build_return_expression(render_nodes) || {
-					type: 'Literal',
-					value: null,
-					raw: 'null',
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			}),
-		);
+		statements.push(b.return(build_return_expression(render_nodes) || b.literal(null)));
 	}
 
 	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
 
-	const body_block = /** @type {any} */ ({
-		type: 'BlockStatement',
-		body: statements,
-		metadata: { path: [] },
-	});
+	const body_block = b.block(statements);
 	const final_body =
 		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
@@ -393,48 +378,19 @@ function component_to_function_declaration(component, transform_context, walk_he
 	let fn;
 
 	if (component.id) {
-		fn = /** @type {any} */ ({
-			type: 'FunctionDeclaration',
-			id: component.id,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function_declaration(
+			component.id,
+			final_params,
+			final_body,
+			false,
+			component.typeParameters,
+		);
 	} else if (component.metadata?.arrow) {
-		fn = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			expression: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.arrow(final_params, final_body, false, component.typeParameters);
 	} else {
-		fn = /** @type {any} */ ({
-			type: 'FunctionExpression',
-			id: null,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function(null, final_params, final_body, false, component.typeParameters);
 	}
+	fn.metadata.is_component = true;
 
 	if (fn.type === 'FunctionDeclaration' && fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
@@ -593,14 +549,12 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	let capture_index = 0;
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
-			statements.push({
-				type: 'ReturnStatement',
-				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
-				metadata: { path: [] },
-				start: child.start,
-				end: child.end,
-				loc: child.loc,
-			});
+			statements.push(
+				set_loc(
+					b.return(children.length > 0 ? build_return_expression(children) : create_null_literal()),
+					child,
+				),
+			);
 			children.length = 0;
 			has_terminal_return = true;
 			continue;
@@ -645,27 +599,13 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	const block_body = [...statements];
 	if (children.length > 0 || !has_terminal_return) {
 		block_body.push(
-			/** @type {any} */ ({
-				type: 'ReturnStatement',
-				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
-				metadata: { path: [] },
-			}),
+			b.return(children.length > 0 ? build_return_expression(children) : create_null_literal()),
 		);
 	}
 
-	return /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: [],
-		body: {
-			type: 'BlockStatement',
-			body: block_body,
-			metadata: { path: [] },
-		},
-		async: false,
-		generator: false,
-		expression: false,
-		metadata: { path: [], is_branch_arrow: true },
-	});
+	const arrow = b.arrow([], b.block(block_body));
+	/** @type {any} */ (arrow.metadata).is_branch_arrow = true;
+	return arrow;
 }
 
 /**
@@ -751,14 +691,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	const create_return_statement = (source_node, render_nodes) => {
 		const cloned = render_nodes.map((node) => clone_expression_node(node));
 		const argument = cloned.length > 0 ? build_return_expression(cloned) : create_null_literal();
-		return {
-			type: 'ReturnStatement',
-			argument,
-			metadata: { path: [] },
-			start: source_node?.start,
-			end: source_node?.end,
-			loc: source_node?.loc,
-		};
+		return set_loc(b.return(argument), source_node);
 	};
 
 	/** @param {any} source_node */
@@ -784,20 +717,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 				transform_context,
 			);
 			prepend_render_nodes_to_return_statements(branch_statements, children);
-			statements.push({
-				type: 'IfStatement',
-				test: child.test,
-				consequent: {
-					type: 'BlockStatement',
-					body: branch_statements,
-					metadata: { path: [] },
-				},
-				alternate: null,
-				metadata: { path: [] },
-				start: child.start,
-				end: child.end,
-				loc: child.loc,
-			});
+			statements.push(set_loc(b.if(child.test, b.block(branch_statements), null), child));
 			continue;
 		}
 
@@ -1018,13 +938,7 @@ function negate_expression(expr) {
 		return clone_expression_node(expr.argument);
 	}
 
-	return {
-		type: 'UnaryExpression',
-		operator: '!',
-		prefix: true,
-		argument: clone_expression_node(expr),
-		metadata: { path: [] },
-	};
+	return b.unary('!', clone_expression_node(expr));
 }
 
 /**
@@ -1036,13 +950,7 @@ function negate_expression(expr) {
  */
 function iife_if_arrow(node) {
 	if (!is_branch_arrow(node)) return node;
-	return {
-		type: 'CallExpression',
-		callee: node,
-		arguments: [],
-		optional: false,
-		metadata: { path: [] },
-	};
+	return b.call(node);
 }
 
 /**
@@ -1202,54 +1110,26 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		)
 	);
 
-	let arrow = /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: loop_params,
-		body: null,
-		async: false,
-		generator: false,
-		expression: true,
-		metadata: { path: [] },
-	});
+	let arrow;
 
 	if (body_has_loop_skip(loop_body)) {
-		arrow.body = {
-			type: 'BlockStatement',
-			body: loop_body_to_callback_statements(loop_body, transform_context),
-			metadata: { path: [] },
-		};
-		arrow.expression = false;
+		arrow = b.arrow(
+			loop_params,
+			b.block(loop_body_to_callback_statements(loop_body, transform_context)),
+		);
 	} else {
+		// Placeholder body — merge_branch_body_into_arrow replaces it below.
+		arrow = b.arrow(loop_params, b.literal(null));
 		arrow = merge_branch_body_into_arrow(arrow, body_to_jsx_child(loop_body, transform_context));
 	}
 
-	const attributes = [
-		{
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'each', metadata: { path: [] } },
-			value: to_jsx_expression_container(node.right),
-			metadata: { path: [] },
-		},
-	];
+	const attributes = [b.jsx_attribute(b.jsx_id('each'), to_jsx_expression_container(node.right))];
 
 	if (node.key) {
 		const item_param = clone_expression_node(loop_params[0]);
-		const keyed_arrow = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			params: [item_param],
-			body: node.key,
-			async: false,
-			generator: false,
-			expression: true,
-			metadata: { path: [] },
-		});
+		const keyed_arrow = b.arrow([item_param], node.key);
 		attributes.push(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'keyed', metadata: { path: [] } },
-				value: to_jsx_expression_container(keyed_arrow, node.key),
-				metadata: { path: [] },
-			}),
+			b.jsx_attribute(b.jsx_id('keyed'), to_jsx_expression_container(keyed_arrow, node.key)),
 		);
 	}
 
@@ -1454,28 +1334,13 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const catch_jsx = body_to_jsx_child(catch_body_nodes, transform_context);
 
 		const fallback_fn = merge_branch_body_into_arrow(
-			/** @type {any} */ ({
-				type: 'ArrowFunctionExpression',
-				params: catch_params,
-				body: null,
-				async: false,
-				generator: false,
-				expression: true,
-				metadata: { path: [] },
-			}),
+			b.arrow(catch_params, b.literal(null)),
 			catch_jsx,
 		);
 
 		result = create_jsx_element(
 			'Errored',
-			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: to_jsx_expression_container(fallback_fn),
-					metadata: { path: [] },
-				},
-			],
+			[b.jsx_attribute(b.jsx_id('fallback'), to_jsx_expression_container(fallback_fn))],
 			[result],
 		);
 	}
@@ -1542,47 +1407,16 @@ function inject_solid_imports(program, transform_context) {
 		const specifiers = [];
 
 		if (transform_context.needs_ref_prop) {
-			specifiers.push({
-				type: 'ImportSpecifier',
-				imported: { type: 'Identifier', name: 'create_ref_prop', metadata: { path: [] } },
-				local: {
-					type: 'Identifier',
-					name: CREATE_REF_PROP_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			});
+			specifiers.push(b.import_specifier('create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME));
 		}
 
 		if (transform_context.needs_normalize_spread_props) {
-			specifiers.push({
-				type: 'ImportSpecifier',
-				imported: {
-					type: 'Identifier',
-					name: 'normalize_spread_props',
-					metadata: { path: [] },
-				},
-				local: {
-					type: 'Identifier',
-					name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			});
+			specifiers.push(
+				b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME),
+			);
 		}
 
-		program.body.unshift(
-			/** @type {any} */ ({
-				type: 'ImportDeclaration',
-				specifiers,
-				source: {
-					type: 'Literal',
-					value: '@tsrx/solid/ref',
-					raw: "'@tsrx/solid/ref'",
-				},
-				metadata: { path: [] },
-			}),
-		);
+		program.body.unshift(b.import_declaration(specifiers, '@tsrx/solid/ref'));
 	}
 
 	const needed = [];
@@ -1595,20 +1429,11 @@ function inject_solid_imports(program, transform_context) {
 
 	if (needed.length === 0) return;
 
-	const specifiers = needed.map((name) => ({
-		type: 'ImportSpecifier',
-		imported: { type: 'Identifier', name, metadata: { path: [] } },
-		local: { type: 'Identifier', name, metadata: { path: [] } },
-		metadata: { path: [] },
-	}));
-
 	program.body.unshift(
-		/** @type {any} */ ({
-			type: 'ImportDeclaration',
-			specifiers,
-			source: { type: 'Literal', value: 'solid-js', raw: "'solid-js'" },
-			metadata: { path: [] },
-		}),
+		b.imports(
+			needed.map((name) => [name, name]),
+			'solid-js',
+		),
 	);
 }
 
@@ -1994,57 +1819,19 @@ function is_solid_jsx_ref_attribute(attr) {
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
 	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(
-		/** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: dynamic_id,
-					init: clone_expression_node(node.id),
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		}),
-		node,
-	);
+	const alias_declaration = set_loc(b.const(dynamic_id, clone_expression_node(node.id)), node);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [
-						alias_declaration,
-						{
-							type: 'ReturnStatement',
-							argument: {
-								type: 'ConditionalExpression',
-								test: clone_identifier(dynamic_id),
-								consequent: jsx_element,
-								alternate: create_null_literal(),
-								metadata: { path: [] },
-							},
-							metadata: { path: [] },
-						},
-					],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(
+			b.arrow(
+				[],
+				b.block([
+					alias_declaration,
+					b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
+				]),
+			),
+		),
 		node,
 	);
 }

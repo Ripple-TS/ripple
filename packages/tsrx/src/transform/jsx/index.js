@@ -518,7 +518,7 @@ export function createJsxTransform(platform) {
 				const value = state.current_css_hash
 					? `${state.current_css_hash} ${class_name}`
 					: class_name;
-				return /** @type {any} */ (b.literal(value, node));
+				return b.literal(value, undefined, node);
 			},
 
 			// Default .metadata on every function-like node so downstream consumers
@@ -669,11 +669,7 @@ export function component_to_function_declaration(component, transform_context, 
 	// Wrap body_statements in a BlockStatement so that apply_lazy_transforms
 	// runs collect_block_shadowed_names and detects body-level declarations
 	// (e.g. `const name = ...`) that shadow lazy binding names.
-	const body_block = /** @type {any} */ ({
-		type: 'BlockStatement',
-		body: body_statements,
-		metadata: { path: [] },
-	});
+	const body_block = b.block(body_statements);
 	const final_body =
 		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
@@ -681,48 +677,19 @@ export function component_to_function_declaration(component, transform_context, 
 	let fn;
 
 	if (component.id) {
-		fn = /** @type {any} */ ({
-			type: 'FunctionDeclaration',
-			id: component.id,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: is_async_component,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function_declaration(
+			component.id,
+			final_params,
+			final_body,
+			is_async_component,
+			component.typeParameters,
+		);
 	} else if (component.metadata?.arrow) {
-		fn = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: is_async_component,
-			generator: false,
-			expression: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.arrow(final_params, final_body, is_async_component, component.typeParameters);
 	} else {
-		fn = /** @type {any} */ ({
-			type: 'FunctionExpression',
-			id: null,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: is_async_component,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function(null, final_params, final_body, is_async_component, component.typeParameters);
 	}
+	/** @type {any} */ (fn.metadata).is_component = true;
 
 	// Restore context
 	transform_context.helper_state = saved_helper_state;
@@ -892,25 +859,16 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 						if (stmt.type === 'ReturnStatement') {
 							if (stmt.argument) {
 								render_nodes.push(
-									/** @type {any} */ ({
-										type: 'JSXExpressionContainer',
-										expression: set_loc(
-											/** @type {any} */ ({
-												type: 'ConditionalExpression',
-												test: clone_expression_node(child.test),
-												consequent: {
-													type: 'Literal',
-													value: null,
-													raw: 'null',
-													metadata: { path: [] },
-												},
-												alternate: stmt.argument,
-												metadata: { path: [] },
-											}),
+									b.jsx_expression_container(
+										set_loc(
+											b.conditional(
+												clone_expression_node(child.test),
+												b.literal(null),
+												stmt.argument,
+											),
 											child,
 										),
-										metadata: { path: [] },
-									}),
+									),
 								);
 							}
 						} else {
@@ -980,10 +938,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 	const return_arg = build_return_expression(render_nodes);
 	if (return_arg || (return_null_when_empty && !has_terminal_return)) {
-		statements.push({
-			type: 'ReturnStatement',
-			argument: return_arg || { type: 'Literal', value: null, raw: 'null' },
-		});
+		statements.push(b.return(return_arg || b.literal(null)));
 	}
 
 	transform_context.available_bindings = saved_bindings;
@@ -1183,16 +1138,7 @@ function create_helper_props_property(binding) {
 	const key = create_generated_identifier(binding.name);
 	const value = create_generated_identifier(binding.name);
 
-	return /** @type {any} */ ({
-		type: 'Property',
-		key,
-		value,
-		kind: 'init',
-		method: false,
-		shorthand: true,
-		computed: false,
-		metadata: { path: [] },
-	});
+	return b.prop('init', key, value, false, true);
 }
 
 /**
@@ -2036,9 +1982,7 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 	const fn_body_statements = build_render_statements(original_loop_body, true, transform_context);
 	transform_context.available_bindings = fn_saved_bindings;
 
-	const helper_fn = /** @type {any} */ (
-		b.function(clone_identifier(component_id), params, b.block(fn_body_statements))
-	);
+	const helper_fn = b.function(clone_identifier(component_id), params, b.block(fn_body_statements));
 	helper_fn.metadata = { path: [], is_component: true, is_method: false };
 
 	let helper_decl;
@@ -2214,23 +2158,19 @@ function create_setup_once_helper_split_returning_if_statements(
 	return [
 		...branch_helper.setup_statements,
 		...continuation_helper.setup_statements,
-		{
-			type: 'ReturnStatement',
-			argument: combine_render_return_argument(
+		b.return(
+			combine_render_return_argument(
 				render_nodes,
 				set_loc(
-					/** @type {any} */ ({
-						type: 'ConditionalExpression',
-						test: node.test,
-						consequent: branch_helper.component_element,
-						alternate: continuation_helper.component_element,
-						metadata: { path: [] },
-					}),
+					b.conditional(
+						node.test,
+						branch_helper.component_element,
+						continuation_helper.component_element,
+					),
 					node,
 				),
 			),
-			metadata: { path: [] },
-		},
+		),
 	];
 }
 
@@ -2502,25 +2442,7 @@ function statement_body_to_jsx_child(body_nodes, transform_context) {
 	}
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: build_render_statements(body_nodes, true, transform_context),
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(b.arrow([], b.block(build_render_statements(body_nodes, true, transform_context)))),
 	);
 }
 
@@ -2571,11 +2493,7 @@ function hook_safe_render_statements(body_nodes, key_expression, transform_conte
 	);
 	const statements = [...helper.setup_statements];
 
-	statements.push({
-		type: 'ReturnStatement',
-		argument: helper.component_element,
-		metadata: { path: [] },
-	});
+	statements.push(b.return(helper.component_element));
 
 	return statements;
 }
@@ -3337,23 +3255,13 @@ function create_hook_safe_helper(
 	const saved_bindings = transform_context.available_bindings;
 	transform_context.available_bindings = new Map(saved_bindings);
 
-	const helper_fn = /** @type {any} */ ({
-		type: 'FunctionExpression',
-		id: clone_identifier(component_id),
+	const helper_fn = b.function(
+		clone_identifier(component_id),
 		params,
-		body: {
-			type: 'BlockStatement',
-			body: build_render_statements(body_nodes, true, transform_context),
-			metadata: { path: [] },
-		},
-		async: false,
-		generator: false,
-		metadata: {
-			path: [],
-			is_component: true,
-			is_method: false,
-		},
-	});
+		b.block(build_render_statements(body_nodes, true, transform_context)),
+	);
+	helper_fn.metadata.is_component = true;
+	helper_fn.metadata.is_method = false;
 
 	transform_context.available_bindings = saved_bindings;
 
@@ -3419,7 +3327,7 @@ function create_hook_safe_helper(
 
 /**
  * @param {AST.Identifier} helper_id
- * @param {any} helper_fn
+ * @param {AST.FunctionExpression} helper_fn
  * @param {any} source_node
  * @param {TransformContext} transform_context
  * @returns {any}
@@ -3432,7 +3340,7 @@ function create_helper_declaration(helper_id, helper_fn, source_node, transform_
 
 /**
  * @param {AST.Identifier} helper_id
- * @param {any} helper_fn
+ * @param {AST.FunctionExpression} helper_fn
  * @param {any} source_node
  * @param {TransformContext} transform_context
  * @returns {any}
@@ -3461,32 +3369,7 @@ function create_helper_init_expression(helper_id, helper_fn, source_node, transf
  * @returns {any}
  */
 function create_hook_safe_helper_iife(setup_statements, component_element) {
-	return /** @type {any} */ ({
-		type: 'CallExpression',
-		callee: {
-			type: 'ArrowFunctionExpression',
-			params: [],
-			body: /** @type {any} */ ({
-				type: 'BlockStatement',
-				body: [
-					...setup_statements,
-					{
-						type: 'ReturnStatement',
-						argument: component_element,
-						metadata: { path: [] },
-					},
-				],
-				metadata: { path: [] },
-			}),
-			async: false,
-			generator: false,
-			expression: false,
-			metadata: { path: [] },
-		},
-		arguments: [],
-		optional: false,
-		metadata: { path: [] },
-	});
+	return b.call(b.arrow([], b.block([...setup_statements, b.return(component_element)])));
 }
 
 /**
@@ -3499,19 +3382,7 @@ function create_helper_type_alias_declaration(helper_id, binding) {
 
 	return {
 		id: alias_id,
-		declaration: /** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: clone_identifier(alias_id),
-					init: create_generated_identifier(binding.name),
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		}),
+		declaration: b.const(clone_identifier(alias_id), create_generated_identifier(binding.name)),
 	};
 }
 
@@ -3521,33 +3392,14 @@ function create_helper_type_alias_declaration(helper_id, binding) {
  * @returns {any}
  */
 function create_helper_props_type_literal(bindings, aliases) {
-	return /** @type {any} */ ({
-		type: 'TSTypeLiteral',
-		members: bindings.map(
-			(binding, i) =>
-				/** @type {any} */ ({
-					type: 'TSPropertySignature',
-					key: create_generated_identifier(binding.name),
-					computed: false,
-					optional: false,
-					readonly: false,
-					static: false,
-					kind: 'init',
-					typeAnnotation: {
-						type: 'TSTypeAnnotation',
-						typeAnnotation: {
-							type: 'TSTypeQuery',
-							exprName: clone_identifier(aliases[i].id),
-							typeArguments: null,
-							metadata: { path: [] },
-						},
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				}),
+	return b.ts_type_literal(
+		bindings.map((binding, i) =>
+			b.ts_property_signature(
+				create_generated_identifier(binding.name),
+				b.ts_type_annotation(b.ts_type_query(clone_identifier(aliases[i].id))),
+			),
 		),
-		metadata: { path: [] },
-	});
+	);
 }
 
 /**
@@ -3557,11 +3409,7 @@ function create_helper_props_type_literal(bindings, aliases) {
  */
 function create_typed_helper_props_pattern(bindings, props_type) {
 	const pattern = create_helper_props_pattern(bindings);
-	/** @type {any} */ (pattern).typeAnnotation = {
-		type: 'TSTypeAnnotation',
-		typeAnnotation: props_type,
-		metadata: { path: [] },
-	};
+	/** @type {any} */ (pattern).typeAnnotation = b.ts_type_annotation(props_type);
 	return pattern;
 }
 
@@ -3570,19 +3418,7 @@ function create_typed_helper_props_pattern(bindings, props_type) {
  * @returns {any}
  */
 function create_helper_cache_declaration(cache_id) {
-	return /** @type {any} */ ({
-		type: 'VariableDeclaration',
-		kind: 'let',
-		declarations: [
-			{
-				type: 'VariableDeclarator',
-				id: clone_identifier(cache_id),
-				init: null,
-				metadata: { path: [] },
-			},
-		],
-		metadata: { path: [] },
-	});
+	return b.let(clone_identifier(cache_id));
 }
 
 /**
@@ -3592,44 +3428,27 @@ function create_helper_cache_declaration(cache_id) {
  * @returns {any}
  */
 function create_cached_helper_declaration(helper_id, cache_id, helper_init) {
-	return /** @type {any} */ ({
-		type: 'VariableDeclaration',
-		kind: 'const',
-		declarations: [
-			{
-				type: 'VariableDeclarator',
-				id: clone_identifier(helper_id),
-				init: {
-					type: 'LogicalExpression',
-					operator: '??',
-					left: clone_identifier(cache_id),
-					right: {
-						type: 'AssignmentExpression',
-						operator: '=',
-						left: clone_identifier(cache_id),
-						right: helper_init,
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			},
-		],
-		metadata: { path: [] },
-	});
+	return b.const(
+		clone_identifier(helper_id),
+		b.logical(
+			'??',
+			clone_identifier(cache_id),
+			b.assignment('=', clone_identifier(cache_id), helper_init),
+		),
+	);
 }
 
 /**
  * @param {AST.Identifier} helper_id
- * @param {any} helper_fn
+ * @param {AST.FunctionExpression} helper_fn
  * @returns {AST.FunctionDeclaration}
  */
 function create_helper_function_declaration_from_expression(helper_id, helper_fn) {
-	return /** @type {any} */ ({
+	return {
 		...helper_fn,
 		type: 'FunctionDeclaration',
 		id: clone_identifier(helper_id),
-	});
+	};
 }
 
 /**
@@ -4014,25 +3833,7 @@ function if_statement_to_jsx_child(node, transform_context) {
 	}
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [render_if_statement, create_null_return_statement()],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(b.arrow([], b.block([render_if_statement, create_null_return_statement()]))),
 	);
 }
 
@@ -4057,16 +3858,7 @@ function render_if_statement_to_conditional_expression(node) {
 		}
 	}
 
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'ConditionalExpression',
-			test: node.test,
-			consequent,
-			alternate,
-			metadata: { path: [] },
-		}),
-		node,
-	);
+	return set_loc(b.conditional(node.test, consequent, alternate), node);
 }
 
 /**
@@ -4137,14 +3929,7 @@ function find_key_expression_in_body(body_nodes) {
  * @returns {any}
  */
 function continue_to_bare_return(source_node) {
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'ReturnStatement',
-			argument: null,
-			metadata: { path: [] },
-		}),
-		source_node,
-	);
+	return set_loc(b.return(null), source_node);
 }
 
 /**
@@ -4270,19 +4055,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	// Restore bindings
 	transform_context.available_bindings = saved_bindings;
 
-	const iter_callback = /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: loop_params,
-		body: /** @type {any} */ ({
-			type: 'BlockStatement',
-			body: body_statements,
-			metadata: { path: [] },
-		}),
-		async: false,
-		generator: false,
-		expression: false,
-		metadata: { path: [] },
-	});
+	const iter_callback = b.arrow(loop_params, b.block(body_statements));
 
 	if (transform_context.platform.imports.forOfIterableHelper) {
 		transform_context.needs_for_of_iterable = true;
@@ -4292,21 +4065,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'MemberExpression',
-				object: node.right,
-				property: create_generated_identifier('map'),
-				computed: false,
-				optional: false,
-				metadata: { path: [] },
-			},
-			arguments: [iter_callback],
-			async: false,
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(b.member(node.right, create_generated_identifier('map')), iter_callback),
 	);
 }
 
@@ -4327,7 +4086,7 @@ function apply_key_to_loop_body(body_nodes, key_expression) {
 			if (!has_key) {
 				attributes.push({
 					type: 'Attribute',
-					name: { type: 'Identifier', name: 'key', metadata: { path: [] } },
+					name: b.id('key'),
 					value: clone_expression_node(key_expression),
 					shorthand: false,
 					metadata: { path: [] },
@@ -4347,15 +4106,10 @@ function apply_key_to_loop_body(body_nodes, key_expression) {
 
 			if (!has_key) {
 				attributes.push(
-					/** @type {any} */ ({
-						type: 'JSXAttribute',
-						name: { type: 'JSXIdentifier', name: 'key', metadata: { path: [] } },
-						value: to_jsx_expression_container(
-							clone_expression_node(key_expression),
-							key_expression,
-						),
-						metadata: { path: [] },
-					}),
+					b.jsx_attribute(
+						b.jsx_id('key'),
+						to_jsx_expression_container(clone_expression_node(key_expression), key_expression),
+					),
 				);
 			}
 			return;
@@ -4595,19 +4349,10 @@ function try_statement_to_jsx_child(node, transform_context) {
 			catch_scoped_names,
 		);
 
-		const fallback_fn = {
-			type: 'ArrowFunctionExpression',
-			params: catch_params,
-			body: /** @type {any} */ ({
-				type: 'BlockStatement',
-				body: build_render_statements(catch_body_nodes, true, transform_context),
-				metadata: { path: [] },
-			}),
-			async: false,
-			generator: false,
-			expression: false,
-			metadata: { path: [] },
-		};
+		const fallback_fn = b.arrow(
+			catch_params,
+			b.block(build_render_statements(catch_body_nodes, true, transform_context)),
+		);
 
 		transform_context.available_bindings = saved_catch_bindings;
 
@@ -4620,40 +4365,10 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		if (boundary_content && transform_context.inside_element_child) {
 			result = to_jsx_expression_container(
-				/** @type {any} */ ({
-					type: 'CallExpression',
-					callee: { type: 'Identifier', name: 'TsrxErrorBoundary', metadata: { path: [] } },
-					arguments: [
-						{
-							type: 'ObjectExpression',
-							properties: [
-								{
-									type: 'Property',
-									key: { type: 'Identifier', name: 'fallback', metadata: { path: [] } },
-									value: fallback_fn,
-									kind: 'init',
-									method: false,
-									shorthand: false,
-									computed: false,
-									metadata: { path: [] },
-								},
-								{
-									type: 'Property',
-									key: { type: 'Identifier', name: 'content', metadata: { path: [] } },
-									value: boundary_content,
-									kind: 'init',
-									method: false,
-									shorthand: false,
-									computed: false,
-									metadata: { path: [] },
-								},
-							],
-							metadata: { path: [] },
-						},
-					],
-					optional: false,
-					metadata: { path: [] },
-				}),
+				b.call(
+					'TsrxErrorBoundary',
+					b.object([b.init('fallback', fallback_fn), b.init('content', boundary_content)]),
+				),
 			);
 
 			return result;
@@ -4662,21 +4377,12 @@ function try_statement_to_jsx_child(node, transform_context) {
 		result = create_jsx_element(
 			'TsrxErrorBoundary',
 			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
-					metadata: { path: [] },
-				},
+				b.jsx_attribute(
+					b.jsx_id('fallback'),
+					to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
+				),
 				...(boundary_content
-					? [
-							{
-								type: 'JSXAttribute',
-								name: { type: 'JSXIdentifier', name: 'content', metadata: { path: [] } },
-								value: to_jsx_expression_container(boundary_content),
-								metadata: { path: [] },
-							},
-						]
+					? [b.jsx_attribute(b.jsx_id('content'), to_jsx_expression_container(boundary_content))]
 					: []),
 			],
 			boundary_content ? [] : [result],
@@ -4725,112 +4431,29 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 	const imports = [];
 
 	if (transform_context.needs_fragment && platform.imports.fragment) {
-		const fragment_source = platform.imports.fragment;
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers: [
-				{
-					type: 'ImportSpecifier',
-					imported: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
-					local: { type: 'Identifier', name: 'Fragment', metadata: { path: [] } },
-					metadata: { path: [] },
-				},
-			],
-			source: {
-				type: 'Literal',
-				value: fragment_source,
-				raw: `'${fragment_source}'`,
-			},
-			metadata: { path: [] },
-		});
+		imports.push(b.imports([['Fragment', 'Fragment']], platform.imports.fragment));
 	}
 
 	if (transform_context.needs_suspense) {
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers: [
-				{
-					type: 'ImportSpecifier',
-					imported: { type: 'Identifier', name: 'Suspense', metadata: { path: [] } },
-					local: { type: 'Identifier', name: 'Suspense', metadata: { path: [] } },
-					metadata: { path: [] },
-				},
-			],
-			source: {
-				type: 'Literal',
-				value: suspense_source,
-				raw: `'${suspense_source}'`,
-			},
-			metadata: { path: [] },
-		});
+		imports.push(b.imports([['Suspense', 'Suspense']], suspense_source));
 	}
 
 	if (transform_context.needs_for_of_iterable && platform.imports.forOfIterableHelper) {
-		const for_of_iterable_source = platform.imports.forOfIterableHelper;
-		const specifiers = /** @type {any[]} */ ([
-			{
-				type: 'ImportSpecifier',
-				imported: { type: 'Identifier', name: 'map_iterable', metadata: { path: [] } },
-				local: { type: 'Identifier', name: MAP_ITERABLE_INTERNAL_NAME, metadata: { path: [] } },
-				metadata: { path: [] },
-			},
-		]);
+		const specifiers = [b.import_specifier('map_iterable', MAP_ITERABLE_INTERNAL_NAME)];
 		// The loop-scoped type alias `IterationValue<typeof source>` only
 		// appears in the output when at least one hook-bearing for-of body
 		// was lowered with non-module-scoped helpers (editor tooling sets
 		// this for typeOnly virtual modules).
 		if (transform_context.needs_iteration_value_type) {
-			specifiers.push({
-				type: 'ImportSpecifier',
-				imported: { type: 'Identifier', name: 'IterationValue', metadata: { path: [] } },
-				local: {
-					type: 'Identifier',
-					name: ITERATION_VALUE_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
-				importKind: 'type',
-				metadata: { path: [] },
-			});
+			specifiers.push(b.import_specifier('IterationValue', ITERATION_VALUE_INTERNAL_NAME, 'type'));
 		}
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers,
-			source: {
-				type: 'Literal',
-				value: for_of_iterable_source,
-				raw: `'${for_of_iterable_source}'`,
-			},
-			metadata: { path: [] },
-		});
+		imports.push(b.import_declaration(specifiers, platform.imports.forOfIterableHelper));
 	}
 
 	if (transform_context.needs_error_boundary) {
-		const error_boundary_source = platform.imports.errorBoundary;
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers: [
-				{
-					type: 'ImportSpecifier',
-					imported: {
-						type: 'Identifier',
-						name: 'TsrxErrorBoundary',
-						metadata: { path: [] },
-					},
-					local: {
-						type: 'Identifier',
-						name: 'TsrxErrorBoundary',
-						metadata: { path: [] },
-					},
-					metadata: { path: [] },
-				},
-			],
-			source: {
-				type: 'Literal',
-				value: error_boundary_source,
-				raw: `'${error_boundary_source}'`,
-			},
-			metadata: { path: [] },
-		});
+		imports.push(
+			b.imports([['TsrxErrorBoundary', 'TsrxErrorBoundary']], platform.imports.errorBoundary),
+		);
 	}
 
 	const merge_refs_source =
@@ -4848,67 +4471,31 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 	const ref_imports = new Map();
 
 	if (merge_refs_source !== null) {
-		add_ref_import_specifier(ref_imports, merge_refs_source, {
-			type: 'ImportSpecifier',
-			imported: {
-				type: 'Identifier',
-				name: 'mergeRefs',
-				metadata: { path: [] },
-			},
-			local: {
-				type: 'Identifier',
-				name: MERGE_REFS_INTERNAL_NAME,
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		});
+		add_ref_import_specifier(
+			ref_imports,
+			merge_refs_source,
+			b.import_specifier('mergeRefs', MERGE_REFS_INTERNAL_NAME),
+		);
 	}
 
 	if (ref_prop_source !== null) {
-		add_ref_import_specifier(ref_imports, ref_prop_source, {
-			type: 'ImportSpecifier',
-			imported: {
-				type: 'Identifier',
-				name: 'create_ref_prop',
-				metadata: { path: [] },
-			},
-			local: {
-				type: 'Identifier',
-				name: CREATE_REF_PROP_INTERNAL_NAME,
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		});
+		add_ref_import_specifier(
+			ref_imports,
+			ref_prop_source,
+			b.import_specifier('create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME),
+		);
 	}
 
 	if (normalize_spread_props_source !== null) {
-		add_ref_import_specifier(ref_imports, normalize_spread_props_source, {
-			type: 'ImportSpecifier',
-			imported: {
-				type: 'Identifier',
-				name: 'normalize_spread_props',
-				metadata: { path: [] },
-			},
-			local: {
-				type: 'Identifier',
-				name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		});
+		add_ref_import_specifier(
+			ref_imports,
+			normalize_spread_props_source,
+			b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME),
+		);
 	}
 
 	for (const [source, ref_specifiers] of ref_imports) {
-		imports.push({
-			type: 'ImportDeclaration',
-			specifiers: ref_specifiers,
-			source: {
-				type: 'Literal',
-				value: source,
-				raw: `'${source}'`,
-			},
-			metadata: { path: [] },
-		});
+		imports.push(b.import_declaration(ref_specifiers, source));
 	}
 
 	if (imports.length > 0) {
@@ -4956,34 +4543,29 @@ function create_render_if_statement(node, transform_context) {
 				true,
 			);
 			alternate = set_loc(
-				/** @type {any} */ ({
-					type: 'BlockStatement',
-					body: alternate_has_hooks
+				b.block(
+					alternate_has_hooks
 						? hook_safe_render_statements(alternate_body, undefined, transform_context)
 						: build_render_statements(alternate_body, true, transform_context),
-					metadata: { path: [] },
-				}),
+				),
 				node.alternate,
 			);
 		}
 	}
 
 	return set_loc(
-		{
-			type: 'IfStatement',
-			test: node.test,
-			consequent: set_loc(
-				/** @type {any} */ ({
-					type: 'BlockStatement',
-					body: consequent_has_hooks
+		b.if(
+			node.test,
+			set_loc(
+				b.block(
+					consequent_has_hooks
 						? hook_safe_render_statements(consequent_body, undefined, transform_context)
 						: build_render_statements(consequent_body, true, transform_context),
-					metadata: { path: [] },
-				}),
+				),
 				node.consequent,
 			),
 			alternate,
-		},
+		),
 		node,
 	);
 }
@@ -5295,10 +4877,7 @@ function build_switch_with_lift(switch_node, transform_context) {
  * @returns {any}
  */
 function create_null_return_statement() {
-	return {
-		type: 'ReturnStatement',
-		argument: { type: 'Literal', value: null, raw: 'null' },
-	};
+	return b.return(b.literal(null));
 }
 
 /**
@@ -5399,10 +4978,7 @@ function normalize_named_ref_attributes(attrs, is_host, transform_context) {
 		return {
 			...attr,
 			metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
-			name:
-				attr.name?.type === 'JSXIdentifier'
-					? { ...attr.name, name: 'ref' }
-					: { type: 'Identifier', name: 'ref', metadata: { path: [] } },
+			name: attr.name?.type === 'JSXIdentifier' ? { ...attr.name, name: 'ref' } : b.id('ref'),
 		};
 	});
 }
@@ -5543,6 +5119,7 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
 			[],
 			b.block([...declarations, b.return(return_expression)], expression),
 			false,
+			undefined,
 			expression,
 		),
 	);
@@ -5694,22 +5271,8 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 
 	const merged_value =
 		strategy === 'merge-refs'
-			? /** @type {any} */ ({
-					type: 'CallExpression',
-					callee: {
-						type: 'Identifier',
-						name: MERGE_REFS_INTERNAL_NAME,
-						metadata: { path: [] },
-					},
-					arguments: ref_exprs,
-					optional: false,
-					metadata: { path: [] },
-				})
-			: /** @type {any} */ ({
-					type: 'ArrayExpression',
-					elements: ref_exprs,
-					metadata: { path: [] },
-				});
+			? b.call(b.id(MERGE_REFS_INTERNAL_NAME), ...ref_exprs)
+			: b.array(ref_exprs);
 
 	if (strategy === 'merge-refs') {
 		transform_context.needs_merge_refs = true;
@@ -5723,11 +5286,7 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	const merged_name = build_jsx_id('ref', source_attr?.name);
 	const merged_attr = build_jsx_attribute(
 		merged_name,
-		/** @type {any} */ ({
-			type: 'JSXExpressionContainer',
-			expression: merged_value,
-			metadata: { path: [] },
-		}),
+		b.jsx_expression_container(merged_value),
 		false,
 		source_attr,
 	);
@@ -5837,10 +5396,7 @@ export function to_jsx_attribute(attr, transform_context) {
 		attr_name.type === 'Identifier' &&
 		attr_name.name === 'class'
 	) {
-		attr_name = set_loc(
-			/** @type {any} */ ({ type: 'Identifier', name: 'className', metadata: { path: [] } }),
-			attr.name,
-		);
+		attr_name = set_loc(b.id('className'), attr.name);
 	}
 
 	const name =
@@ -5903,16 +5459,7 @@ function create_ref_prop_call(node, transform_context) {
 
 	if (argument.type === 'Identifier' || argument.type === 'MemberExpression') {
 		args.push(
-			b.arrow(
-				[b.id('v')],
-				/** @type {any} */ ({
-					type: 'AssignmentExpression',
-					operator: '=',
-					left: clone_expression_node(argument, false),
-					right: b.id('v'),
-					metadata: { path: [] },
-				}),
-			),
+			b.arrow([b.id('v')], b.assignment('=', clone_expression_node(argument, false), b.id('v'))),
 		);
 	}
 
@@ -5926,57 +5473,19 @@ function create_ref_prop_call(node, transform_context) {
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
 	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(
-		/** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: dynamic_id,
-					init: clone_expression_node(node.id),
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		}),
-		node,
-	);
+	const alias_declaration = set_loc(b.const(dynamic_id, clone_expression_node(node.id)), node);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [
-						alias_declaration,
-						{
-							type: 'ReturnStatement',
-							argument: {
-								type: 'ConditionalExpression',
-								test: clone_identifier(dynamic_id),
-								consequent: jsx_element,
-								alternate: create_null_literal(),
-								metadata: { path: [] },
-							},
-							metadata: { path: [] },
-						},
-					],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(
+			b.arrow(
+				[],
+				b.block([
+					alias_declaration,
+					b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
+				]),
+			),
+		),
 		node,
 	);
 }

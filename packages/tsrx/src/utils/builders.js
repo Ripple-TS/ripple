@@ -57,10 +57,12 @@ export function assignment_pattern(left, right) {
 /**
  * @param {Array<AST.Pattern>} params
  * @param {AST.BlockStatement | AST.Expression} body
+ * @param {boolean} [async]
+ * @param {AST.TSTypeParameterDeclaration} [type_parameters]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.ArrowFunctionExpression}
  */
-export function arrow(params, body, async = false, loc_info) {
+export function arrow(params, body, async = false, type_parameters, loc_info) {
 	const node = /** @type {AST.ArrowFunctionExpression} */ ({
 		type: 'ArrowFunctionExpression',
 		params,
@@ -68,6 +70,7 @@ export function arrow(params, body, async = false, loc_info) {
 		expression: body.type !== 'BlockStatement',
 		generator: false,
 		async,
+		typeParameters: type_parameters,
 		metadata: { path: [] },
 	});
 
@@ -296,12 +299,16 @@ export function export_builder(
  * @param {AST.Identifier} id
  * @param {AST.Pattern[]} params
  * @param {AST.BlockStatement} body
+ * @param {boolean} [async]
+ * @param {AST.TSTypeParameterDeclaration} [type_parameters]
+ * @param
  * @returns {AST.FunctionDeclaration}
  */
-export function function_declaration(id, params, body, async = false) {
+export function function_declaration(id, params, body, async = false, type_parameters) {
 	return {
 		type: 'FunctionDeclaration',
 		id,
+		typeParameters: type_parameters,
 		params,
 		body,
 		generator: false,
@@ -370,11 +377,12 @@ export function init(name, value) {
 
 /**
  * @param {boolean | string | number | bigint | false | RegExp | null | undefined} value
+ * @param {string} [raw]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.Literal}
  */
-export function literal(value, loc_info) {
-	const node = /** @type {AST.Literal} */ ({ type: 'Literal', value, metadata: { path: [] } });
+export function literal(value, raw, loc_info) {
+	const node = /** @type {AST.Literal} */ ({ type: 'Literal', value, raw, metadata: { path: [] } });
 
 	return set_location(node, loc_info);
 }
@@ -940,16 +948,18 @@ export function method(kind, key, params, body, computed = false, is_static = fa
  * @param {AST.Pattern[]} params
  * @param {AST.BlockStatement} body
  * @param {boolean} async
+ * @param {AST.TSTypeParameterDeclaration} [type_parameters]
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {AST.FunctionExpression}
  */
-function function_builder(id, params, body, async = false, loc_info) {
+function function_builder(id, params, body, async = false, type_parameters, loc_info) {
 	/** @type {AST.FunctionExpression} */
 	const node = {
 		type: 'FunctionExpression',
 		id,
 		params,
 		body,
+		typeParameters: type_parameters,
 		generator: false,
 		async,
 		metadata: { path: [] },
@@ -990,7 +1000,7 @@ export function import_all(as, source, attributes = [], importKind = 'value') {
 }
 
 /**
- * @param {Array<[string, string, AST.ImportDeclaration['importKind']]>} parts
+ * @param {Array<[string, string] | [string, string, AST.ImportDeclaration['importKind']]>} parts
  * @param {string} source
  * @param {Array<AST.ImportAttribute>} attributes
  * @param {AST.ImportDeclaration['importKind']} importKind
@@ -1001,13 +1011,41 @@ export function imports(parts, source, attributes = [], importKind = 'value') {
 		type: 'ImportDeclaration',
 		source: literal(source),
 		attributes,
-		specifiers: parts.map((p) => ({
-			type: 'ImportSpecifier',
-			imported: id(p[0]),
-			local: id(p[1]),
-			importKind: p.length > 2 ? p[2] : 'value',
-			metadata: { path: [] },
-		})),
+		specifiers: parts.map((p) => import_specifier(p[0], p[1], p.length > 2 ? p[2] : 'value')),
+		importKind,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * @param {string | AST.Identifier} imported
+ * @param {string | AST.Identifier} [local]
+ * @param {AST.ImportDeclaration['importKind']} [importKind]
+ * @returns {AST.ImportSpecifier}
+ */
+export function import_specifier(imported, local = imported, importKind = 'value') {
+	return {
+		type: 'ImportSpecifier',
+		imported: typeof imported === 'string' ? id(imported) : imported,
+		local: typeof local === 'string' ? id(local) : local,
+		importKind,
+		metadata: { path: [] },
+	};
+}
+
+/**
+ * @param {Array<AST.ImportSpecifier | AST.ImportDefaultSpecifier | AST.ImportNamespaceSpecifier>} specifiers
+ * @param {string} source
+ * @param {Array<AST.ImportAttribute>} [attributes]
+ * @param {AST.ImportDeclaration['importKind']} [importKind]
+ * @returns {AST.ImportDeclaration}
+ */
+export function import_declaration(specifiers, source, attributes = [], importKind = 'value') {
+	return {
+		type: 'ImportDeclaration',
+		source: literal(source),
+		specifiers,
+		attributes,
 		importKind,
 		metadata: { path: [] },
 	};

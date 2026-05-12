@@ -2204,15 +2204,23 @@ const visitors = {
 						params,
 						component_body,
 						false,
+						undefined,
 						/** @type {AST.NodeWithLocation} */ (node),
 					)
 				: node.metadata?.arrow
-					? b.arrow(params, component_body, false, /** @type {AST.NodeWithLocation} */ (node))
+					? b.arrow(
+							params,
+							component_body,
+							false,
+							undefined,
+							/** @type {AST.NodeWithLocation} */ (node),
+						)
 					: b.function(
 							null,
 							params,
 							component_body,
 							false,
+							undefined,
 							/** @type {AST.NodeWithLocation} */ (node),
 						);
 			func.typeParameters = node.typeParameters;
@@ -2893,6 +2901,7 @@ const visitors = {
 		) {
 			const literal = b.literal(
 				node.quasis[0].value.cooked,
+				undefined,
 				/** @type {AST.NodeWithLocation} */ (node),
 			);
 			literal.metadata.source_name = '`' + node.quasis[0].value.raw + '`';

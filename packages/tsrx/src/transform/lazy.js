@@ -1,5 +1,7 @@
 /** @import * as AST from 'estree' */
 
+import * as b from '../utils/builders.js';
+
 /**
  * Lazy destructuring transform — framework-agnostic.
  *
@@ -68,7 +70,7 @@ function set_source_location(node, loc_info) {
  * @returns {any}
  */
 function create_generated_identifier(name, loc_info, source_name, source_length) {
-	const id = /** @type {any} */ ({ type: 'Identifier', name, metadata: { path: [] } });
+	const id = b.id(name);
 	if (source_name && source_name !== name) id.metadata.source_name = source_name;
 	if (source_length != null) id.metadata.source_length = source_length;
 	return set_source_location(id, loc_info);
@@ -111,40 +113,19 @@ function create_lazy_object_type_annotation(pattern) {
 		const key = prop.key;
 		if (key.type !== 'Identifier' && key.type !== 'Literal') continue;
 
-		members.push({
-			type: 'TSPropertySignature',
-			key:
-				key.type === 'Identifier'
-					? create_generated_identifier(key.name, key)
-					: set_source_location({ ...key, metadata: { path: [] } }, key),
-			computed: false,
-			optional: false,
-			readonly: false,
-			static: false,
-			kind: 'init',
-			typeAnnotation: {
-				type: 'TSTypeAnnotation',
-				typeAnnotation: {
-					type: 'TSAnyKeyword',
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			},
-			metadata: { path: [] },
-		});
+		const member_key =
+			key.type === 'Identifier'
+				? create_generated_identifier(key.name, key)
+				: set_source_location({ ...key, metadata: { path: [] } }, key);
+
+		members.push(
+			b.ts_property_signature(member_key, b.ts_type_annotation(b.ts_keyword_type('any'))),
+		);
 	}
 
 	if (members.length === 0) return null;
 
-	return {
-		type: 'TSTypeAnnotation',
-		typeAnnotation: {
-			type: 'TSTypeLiteral',
-			members,
-			metadata: { path: [] },
-		},
-		metadata: { path: [] },
-	};
+	return b.ts_type_annotation(b.ts_type_literal(members));
 }
 
 /**
@@ -233,17 +214,14 @@ export function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
 				const computed = prop.computed || key.type !== 'Identifier';
 				lazy_bindings.set(actual.name, {
 					source_name,
-					read: (reference) => ({
-						type: 'MemberExpression',
-						object: create_generated_identifier(source_name),
-						property:
+					read: (reference) =>
+						b.member(
+							create_generated_identifier(source_name),
 							computed || key.type !== 'Identifier'
 								? { ...key }
 								: create_generated_identifier(key.name, reference, reference?.name),
-						computed,
-						optional: false,
-						metadata: { path: [] },
-					}),
+							computed,
+						),
 				});
 			}
 		}
@@ -257,14 +235,7 @@ export function collect_lazy_bindings(pattern, source_name, lazy_bindings) {
 				const index = i;
 				lazy_bindings.set(actual.name, {
 					source_name,
-					read: () => ({
-						type: 'MemberExpression',
-						object: create_generated_identifier(source_name),
-						property: { type: 'Literal', value: index, raw: String(index), metadata: { path: [] } },
-						computed: true,
-						optional: false,
-						metadata: { path: [] },
-					}),
+					read: () => b.member(create_generated_identifier(source_name), b.literal(index), true),
 				});
 			}
 		}
@@ -625,19 +596,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		const lazy_id = create_generated_identifier(pattern.metadata.lazy_id);
 		if (pattern.typeAnnotation) lazy_id.typeAnnotation = pattern.typeAnnotation;
 		const init = apply_lazy_transforms(node.expression.right, lazy_bindings);
-		return /** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: lazy_id,
-					init,
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		});
+		return b.const(lazy_id, init);
 	}
 
 	// AssignmentExpression / UpdateExpression whose target is a lazy identifier.
