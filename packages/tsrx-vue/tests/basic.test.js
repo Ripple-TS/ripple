@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 	runSharedComponentParamsTests,
+	runSharedNestedLazyDestructuringTests,
 	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
@@ -27,6 +28,7 @@ runSharedSwitchHelperHoistingTests({
 	name: 'vue',
 	clientHelperShape: 'module-vapor-component',
 });
+runSharedNestedLazyDestructuringTests({ compile, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
 	it('wraps named component exports in defineVaporComponent', () => {

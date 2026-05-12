@@ -132,6 +132,222 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * Nested `&{...}` / `&[...]` patterns must chain accessors through every lazy
+ * level: a reference to the inner binding becomes the full member path through
+ * the synthesized parent identifier, and assignments to it write back through
+ * that same path. These tests are framework-agnostic — every target that
+ * supports the lazy `&` syntax should exercise them.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedNestedLazyDestructuringTests({ compile, name }) {
+	describe(`[${name}] nested lazy destructuring`, () => {
+		it('transforms nested lazy object inside lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ outer: &{ inner } }: { outer: { inner: number } }) {
+					<div>{inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { outer: { inner: number } })');
+			expect(code).toContain('__lazy0.outer.inner');
+			// Bare `inner` must not leak through (any identifier use except as a
+			// property key — a property key is followed by `:`).
+			expect(code).not.toMatch(/[^.]\binner\b(?!:)/);
+		});
+
+		it('transforms nested lazy array inside lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ pair: &[first, second] }: { pair: [number, number] }) {
+					<div>{first}{second}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { pair: [number, number] })');
+			expect(code).toContain('__lazy0.pair[0]');
+			expect(code).toContain('__lazy0.pair[1]');
+		});
+
+		it('transforms nested lazy object inside lazy array in function params', () => {
+			const { code } = compile(
+				`export function getName(&[&{ name }]: [{ name: string }]) {
+					return name;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function getName(__lazy0: [{ name: string }])');
+			expect(code).toContain('__lazy0[0].name');
+		});
+
+		it('transforms three-level nested lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
+					<div>{c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { a: { b: { c: number } } })');
+			expect(code).toContain('__lazy0.a.b.c');
+		});
+
+		it('transforms nested lazy in variable declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { outer: { inner: 5 } };
+					let &{ outer: &{ inner } } = data;
+					inner = 99;
+					<div>{data.outer.inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.outer.inner = 99');
+			// Plain (non-lazy) destructure of `inner` must not leak through.
+			expect(code).not.toContain('{ outer: { inner } } = data');
+		});
+
+		it('transforms nested lazy array-in-object in variable declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { pair: [1, 2] as [number, number] };
+					let &{ pair: &[first, second] } = data;
+					first = 100;
+					second = 200;
+					<div>{data.pair[0]}{data.pair[1]}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.pair[0] = 100');
+			expect(code).toContain('__lazy0.pair[1] = 200');
+		});
+
+		it('transforms nested lazy in function params with writeback', () => {
+			const { code } = compile(
+				`export function bump(&{ pair: &[first, second] }: { pair: [number, number] }) {
+					first = first + 10;
+					second = second + 20;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function bump(__lazy0: { pair: [number, number] })');
+			expect(code).toContain('__lazy0.pair[0] = __lazy0.pair[0] + 10');
+			expect(code).toContain('__lazy0.pair[1] = __lazy0.pair[1] + 20');
+		});
+
+		it('transforms compound assignment through nested lazy chain', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { a: { b: { c: 5 } } };
+					let &{ a: &{ b: &{ c } } } = data;
+					c += 10;
+					c *= 2;
+					<div>{data.a.b.c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.a.b.c += 10');
+			expect(code).toContain('__lazy0.a.b.c *= 2');
+		});
+
+		// Lazy `&` markers can appear at any depth — the outer pattern need not
+		// be lazy. The non-lazy outer destructure is preserved; only the lazy
+		// nested pattern is replaced with its synthesized id.
+
+		it('replaces lazy pattern nested inside non-lazy object component param', () => {
+			const { code } = compile(
+				`export component App({ something: &[first, second] }: { something: [number, number] }) {
+					<div>{first}{second}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App({ something: __lazy0 }');
+			expect(code).toContain('__lazy0[0]');
+			expect(code).toContain('__lazy0[1]');
+			// The inner lazy pattern must not survive as a real destructure.
+			expect(code).not.toContain('[first, second]');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy array component param', () => {
+			const { code } = compile(
+				`export component App([head, &{ inner }]: [number, { inner: number }]) {
+					<div>{head}{inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App([head, __lazy0]');
+			expect(code).toContain('__lazy0.inner');
+			expect(code).not.toContain('{ inner }');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy function param with writeback', () => {
+			const { code } = compile(
+				`export function bump({ pair: &[first, second] }: { pair: [number, number] }) {
+					first = 100;
+					second = 200;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function bump({ pair: __lazy0 }');
+			expect(code).toContain('__lazy0[0] = 100');
+			expect(code).toContain('__lazy0[1] = 200');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy let declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { outer: { inner: 5 } };
+					let { outer: &{ inner } } = data;
+					inner = 99;
+					<div>{data.outer.inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let { outer: __lazy0 } = data');
+			expect(code).toContain('__lazy0.inner = 99');
+		});
+
+		it('replaces multiple sibling lazy patterns nested in non-lazy outer', () => {
+			const { code } = compile(
+				`export component App({ a: &{ x }, b: &{ y } }: { a: { x: number }, b: { y: number } }) {
+					<div>{x}{y}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toMatch(/\{\s*a:\s*__lazy0,\s*b:\s*__lazy1\s*\}/);
+			expect(code).toContain('__lazy0.x');
+			expect(code).toContain('__lazy1.y');
+		});
+
+		it('replaces deeply nested lazy pattern through multiple non-lazy levels', () => {
+			const { code } = compile(
+				`export component App({ a: { b: &{ c } } }: { a: { b: { c: number } } }) {
+					<div>{c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App({ a: { b: __lazy0 } }');
+			expect(code).toContain('__lazy0.c');
+		});
+	});
+}
+
+/**
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedFragmentExpressionRenderTests({ compile, name }) {
@@ -2615,6 +2831,8 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toMatch(/console\.log\(__lazy0\.name\)/);
 		});
 	});
+
+	runSharedNestedLazyDestructuringTests({ compile, name });
 
 	describe(`[${name}] interleaved statements and JSX children`, () => {
 		// When a mutation sits between JSX siblings, each child has to be
