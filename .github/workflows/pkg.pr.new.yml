@@ -11,6 +11,10 @@ on:
     types: [submitted]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   approval-check:
     name: Check for Collaborator Approval
@@ -18,10 +22,10 @@ jobs:
     # if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     outputs:
-      is-approved: ${{ steps.check_for_approval.outputs.collaborator-approved }}
+      is_approved: ${{ steps.check_for_approval.outputs.result }}
     steps:
       - name: Check for approval by a collaborator
-        id: check-for-approval
+        id: check_for_approval
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -55,7 +59,7 @@ jobs:
         github.event.pull_request.author_association == 'OWNER' ||
         github.event.pull_request.author_association == 'COLLABORATOR'
       )) ||
-      (needs.approval-check.outputs.approved == 'true') ||
+      (needs.approval-check.outputs.is_approved == 'true') ||
       (github.event_name == 'pull_request_review' &&
        github.event.review.state == 'approved' && (
         github.event.review.author_association == 'MEMBER' ||
@@ -67,13 +71,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: "pnpm"

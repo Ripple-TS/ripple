@@ -31,6 +31,7 @@
     }
   },
   "devDependencies": {
+    "next": "^16.2.6",
     "typescript": "catalog:default"
   },
   "files": [

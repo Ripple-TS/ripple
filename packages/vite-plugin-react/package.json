@@ -26,14 +26,14 @@
     "vite": "*"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.100.6",
+    "@tanstack/react-query": "^5.100.10",
     "@tsrx/core": "workspace:*",
     "@types/react": "catalog:default",
     "@types/react-dom": "catalog:default",
     "react": "catalog:default",
     "react-aria-components": "^1.17.0",
     "react-dom": "catalog:default",
-    "react-router": "^7.14.2",
+    "react-router": "^7.15.0",
     "typescript": "catalog:default",
     "vite": "catalog:default"
   },
