@@ -11,9 +11,7 @@ import {
 	setLocation,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	applyLazyTransforms as apply_lazy_transforms,
-	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
-	replaceLazyParams as replace_lazy_params,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isRefPropExpression as is_ref_prop_expression,
 	isInterleavedBody as is_interleaved_body_core,
@@ -237,12 +235,6 @@ function component_to_function_declaration(component, transform_context, walk_he
 	}
 	transform_context.available_bindings = body_bindings;
 
-	// In type-only mode the lazy rewrite is skipped so destructuring patterns
-	// survive into the virtual TSX and TypeScript can flow real types.
-	const lazy_bindings = transform_context.typeOnly
-		? new Map()
-		: collect_lazy_bindings_from_component(params, body, transform_context);
-
 	// Detect top-level early-return patterns such as `if (cond) { return; }`
 	// and `if (cond) { <p />; return; }`.
 	// Solid components run their body once at setup, so an early `return` would
@@ -368,11 +360,7 @@ function component_to_function_declaration(component, transform_context, walk_he
 		statements.push(b.return(build_return_expression(render_nodes) || b.literal(null)));
 	}
 
-	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
-
 	const body_block = b.block(statements);
-	const final_body =
-		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
 	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
 	let fn;
@@ -380,17 +368,34 @@ function component_to_function_declaration(component, transform_context, walk_he
 	if (component.id) {
 		fn = b.function_declaration(
 			component.id,
-			final_params,
-			final_body,
+			params,
+			body_block,
 			false,
 			component.typeParameters,
 		);
 	} else if (component.metadata?.arrow) {
-		fn = b.arrow(final_params, final_body, false, component.typeParameters);
+		fn = b.arrow(params, body_block, false, component.typeParameters);
 	} else {
-		fn = b.function(null, final_params, final_body, false, component.typeParameters);
+		fn = b.function(null, params, body_block, false, component.typeParameters);
 	}
 	fn.metadata.is_component = true;
+
+	// `preallocate_lazy_ids` stamped `has_lazy_descendants` on the source
+	// `Component` node; the freshly-built `fn` shares the same params/body
+	// subtree, so propagate the flag so the function-handler's early-return
+	// path can fire for non-lazy components.
+	if (/** @type {any} */ (component).metadata?.has_lazy_descendants) {
+		/** @type {any} */ (fn.metadata).has_lazy_descendants = true;
+	}
+
+	// Apply lazy `&{}` / `&[]` rewrites end-to-end via the function-handler in
+	// `apply_lazy_transforms`. Constant-time fast-path for functions whose
+	// subtrees contain no lazy patterns (flagged ahead of time by
+	// `preallocate_lazy_ids`). In type-only mode the rewrite is skipped so
+	// destructuring patterns survive into the virtual TSX.
+	if (!transform_context.typeOnly) {
+		fn = /** @type {typeof fn} */ (apply_lazy_transforms(fn, new Map()));
+	}
 
 	if (fn.type === 'FunctionDeclaration' && fn.id) {
 		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({

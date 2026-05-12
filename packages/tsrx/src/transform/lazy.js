@@ -1,24 +1,27 @@
 /** @import * as AST from 'estree' */
 
 import * as b from '../utils/builders.js';
+import { is_function_or_component_node } from '../utils/ast.js';
 
 /**
  * Lazy destructuring transform — framework-agnostic.
  *
- * Shared between `@tsrx/react` and `@tsrx/solid`. Walks an AST and rewrites
- * references to names introduced by `&{ ... }` / `&[ ... ]` destructuring
- * patterns into member-expression accesses on a generated source identifier.
+ * Shared between `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, and `@tsrx/vue`.
+ * Walks an AST and rewrites references to names introduced by `&{ ... }` /
+ * `&[ ... ]` destructuring patterns into member-expression accesses on a
+ * generated source identifier.
  *
  * Usage:
  *   1. Create a context with `createLazyContext()` (or provide any object with
  *      a `lazy_next_id: number` field).
  *   2. Run `preallocateLazyIds(root, context)` once over the full program to
- *      assign stable `metadata.lazy_id` values to every lazy pattern.
- *   3. For each function/component scope, collect bindings with
- *      `collectLazyBindingsFromComponent(params, body, context)` and pass the
- *      resulting map into `applyLazyTransforms(body, map)`.
- *   4. If a component declares lazy params, pass its params through
- *      `replaceLazyParams(params)` before emitting.
+ *      assign stable `metadata.lazy_id` values to every lazy pattern and to
+ *      flag function-like nodes whose subtree contains any lazy pattern via
+ *      `metadata.has_lazy_descendants`.
+ *   3. After converting components to functions, call `applyLazyTransforms(fn,
+ *      new Map())` on each top-level function. The function-handler walks the
+ *      whole subtree, collects param + body bindings, replaces lazy patterns
+ *      with their generated identifiers, and rewrites every reference.
  *
  * The transform is purely AST-to-AST and has no framework-specific knowledge.
  */
@@ -273,37 +276,6 @@ function collect_lazy_bindings_at(pattern, source_name, build_parent, lazy_bindi
 }
 
 /**
- * Collect lazy bindings from a component's params and top-level body declarations.
- * Mutates each lazy pattern's `metadata.lazy_id` in place (idempotent if already set).
- *
- * @param {any[]} params
- * @param {any[]} body
- * @param {LazyContext} context
- * @returns {Map<string, LazyBinding>}
- */
-export function collect_lazy_bindings_from_component(params, body, context) {
-	/** @type {Map<string, LazyBinding>} */
-	const lazy_bindings = new Map();
-
-	for (const param of params) {
-		visit_topmost_lazy_patterns(param, (lazy) => {
-			if (!lazy.metadata?.lazy_id) {
-				lazy.metadata = { ...lazy.metadata, lazy_id: generate_lazy_id(context) };
-			}
-			collect_lazy_bindings(lazy, lazy.metadata.lazy_id, lazy_bindings);
-		});
-	}
-
-	// VariableDeclaration lazy patterns already have their `lazy_id` assigned
-	// by `preallocate_lazy_ids` (run once over the whole program by the target
-	// transforms), so `collect_lazy_bindings_from_statements` handles them
-	// alongside the expression-statement assignment form.
-	collect_lazy_bindings_from_statements(body, lazy_bindings);
-
-	return lazy_bindings;
-}
-
-/**
  * Collect lazy bindings from statements at the top level of a block. Reads
  * already-allocated `lazy_id` values from pattern metadata. Handles both
  * `let &[x] = ...` variable declarations and statement-level `&[x] = expr;`
@@ -318,7 +290,6 @@ export function collect_lazy_bindings_from_statements(statements, lazy_bindings)
 			for (const declarator of stmt.declarations || []) {
 				visit_topmost_lazy_patterns(declarator.id, (lazy) => {
 					if (!lazy.metadata?.lazy_id) return;
-					if (lazy_bindings_contains(lazy_bindings, lazy)) return;
 					collect_lazy_bindings(lazy, lazy.metadata.lazy_id, lazy_bindings);
 				});
 			}
@@ -333,29 +304,6 @@ export function collect_lazy_bindings_from_statements(statements, lazy_bindings)
 			});
 		}
 	}
-}
-
-/**
- * @param {Map<string, LazyBinding>} lazy_bindings
- * @param {any} pattern
- * @returns {boolean}
- */
-function lazy_bindings_contains(lazy_bindings, pattern) {
-	if (pattern.type === 'ObjectPattern') {
-		for (const prop of pattern.properties || []) {
-			if (prop.type === 'RestElement') continue;
-			const value = prop.value;
-			const actual = value?.type === 'AssignmentPattern' ? value.left : value;
-			if (actual?.type === 'Identifier' && lazy_bindings.has(actual.name)) return true;
-		}
-	} else if (pattern.type === 'ArrayPattern') {
-		for (const element of pattern.elements || []) {
-			if (!element || element.type === 'RestElement') continue;
-			const actual = element.type === 'AssignmentPattern' ? element.left : element;
-			if (actual?.type === 'Identifier' && lazy_bindings.has(actual.name)) return true;
-		}
-	}
-	return false;
 }
 
 /**
@@ -495,6 +443,10 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
  * e.g. `{ pair: &[a, b] }` allocates an id for the inner `&[a, b]`. Idempotent:
  * skips patterns that already have a `lazy_id`.
  *
+ * Also stamps `metadata.has_lazy_descendants = true` on every function-like
+ * node whose subtree contains any lazy pattern, so `apply_lazy_transforms`
+ * can take a constant-time early-return path for purely non-lazy functions.
+ *
  * @param {any} root
  * @param {LazyContext} context
  */
@@ -507,20 +459,23 @@ export function preallocate_lazy_ids(root, context) {
 		});
 	};
 
-	/** @param {any} node */
+	/**
+	 * @param {any} node
+	 * @returns {boolean} true if `node`'s subtree contains any lazy pattern.
+	 */
 	const visit = (node) => {
-		if (!node || typeof node !== 'object') return;
+		if (!node || typeof node !== 'object') return false;
 		if (Array.isArray(node)) {
-			for (const child of node) visit(child);
-			return;
+			let found = false;
+			for (const child of node) {
+				if (visit(child)) found = true;
+			}
+			return found;
 		}
 
-		if (
-			node.type === 'FunctionDeclaration' ||
-			node.type === 'FunctionExpression' ||
-			node.type === 'ArrowFunctionExpression' ||
-			node.type === 'Component'
-		) {
+		const is_function_like = is_function_or_component_node(node);
+
+		if (is_function_like) {
 			for (const param of node.params || []) {
 				assign_id(param?.type === 'AssignmentPattern' ? param.left : param);
 			}
@@ -538,10 +493,19 @@ export function preallocate_lazy_ids(root, context) {
 			assign_id(node.expression.left);
 		}
 
+		let found =
+			(node.type === 'ObjectPattern' || node.type === 'ArrayPattern') && node.lazy === true;
+
 		for (const key of Object.keys(node)) {
 			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-			visit(node[key]);
+			if (visit(node[key])) found = true;
 		}
+
+		if (is_function_like && found) {
+			node.metadata = { ...node.metadata, has_lazy_descendants: true };
+		}
+
+		return found;
 	};
 
 	visit(root);
@@ -597,10 +561,20 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 				? new Map([...outer_minus_shadow, ...own_bindings])
 				: outer_minus_shadow;
 
-		if (inner_bindings.size === 0 && !params_changed && !had_lazy_param) return node;
+		if (
+			inner_bindings.size === 0 &&
+			!params_changed &&
+			!had_lazy_param &&
+			!node.metadata?.has_lazy_descendants
+		) {
+			return node;
+		}
 
-		const new_body =
-			inner_bindings.size > 0 ? apply_lazy_transforms(node.body, inner_bindings) : node.body;
+		// Past the early-return: either we have active lazy bindings, lazy
+		// params to replace, defaults referencing outer lazy, or the body
+		// contains lazy descendants the BlockStatement handler will collect.
+		// In every case the body needs to be walked.
+		const new_body = apply_lazy_transforms(node.body, inner_bindings);
 
 		const final_params_src = params_changed ? new_params : node.params;
 		const final_params = had_lazy_param ? replace_lazy_params(final_params_src) : final_params_src;

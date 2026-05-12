@@ -92,6 +92,7 @@ interface FunctionMetaData extends BaseNodeMetaData {
 	is_component?: boolean;
 	is_method?: boolean;
 	tracked?: boolean;
+	has_lazy_descendants?: boolean;
 }
 
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output

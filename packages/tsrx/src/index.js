@@ -88,6 +88,7 @@ export {
 	is_class_node as isClassNode,
 	is_component_node as isComponentNode,
 	is_function_node as isFunctionNode,
+	is_function_or_component_node as isFunctionOrComponentNode,
 	is_inside_component as isInsideComponent,
 } from './utils/ast.js';
 
@@ -205,11 +206,9 @@ export {
 export {
 	create_lazy_context as createLazyContext,
 	collect_lazy_bindings as collectLazyBindings,
-	collect_lazy_bindings_from_component as collectLazyBindingsFromComponent,
 	collect_lazy_bindings_from_statements as collectLazyBindingsFromStatements,
 	preallocate_lazy_ids as preallocateLazyIds,
 	apply_lazy_transforms as applyLazyTransforms,
-	replace_lazy_params as replaceLazyParams,
 } from './transform/lazy.js';
 export {
 	find_first_top_level_await as findFirstTopLevelAwait,

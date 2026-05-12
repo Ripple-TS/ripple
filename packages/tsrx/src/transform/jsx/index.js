@@ -34,12 +34,7 @@ import {
 	jsx_id as build_jsx_id,
 } from '../../utils/builders.js';
 import * as b from '../../utils/builders.js';
-import {
-	apply_lazy_transforms,
-	collect_lazy_bindings_from_component,
-	preallocate_lazy_ids,
-	replace_lazy_params,
-} from '../lazy.js';
+import { apply_lazy_transforms, preallocate_lazy_ids } from '../lazy.js';
 import { find_first_top_level_await_in_component_body } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
 import {
@@ -50,7 +45,7 @@ import {
 	validate_component_return_statement,
 	validate_component_unsupported_loop_statement,
 } from '../../analyze/validation.js';
-import { get_component_from_path } from '../../utils/ast.js';
+import { get_component_from_path, is_function_or_component_node } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
 	is_capturable_jsx_child,
@@ -646,15 +641,6 @@ export function component_to_function_declaration(component, transform_context, 
 	// Collect param bindings from original patterns (lazy patterns still intact).
 	const param_bindings = collect_param_bindings(params);
 
-	// Collect lazy binding info WITHOUT mutating patterns. Stores lazy_id on metadata
-	// for later replacement. Body bindings (count, setCount, etc.) are still in the
-	// original patterns, so collect_statement_bindings during build will find them.
-	// In type-only mode the lazy rewrite is skipped entirely so destructuring
-	// patterns survive into the virtual TSX and TypeScript can flow real types.
-	const lazy_bindings = transform_context.typeOnly
-		? new Map()
-		: collect_lazy_bindings_from_component(params, body, transform_context);
-
 	// Save and set context for this component scope
 	const saved_helper_state = transform_context.helper_state;
 	const saved_bindings = transform_context.available_bindings;
@@ -662,16 +648,7 @@ export function component_to_function_declaration(component, transform_context, 
 	transform_context.available_bindings = new Map(param_bindings);
 
 	const body_statements = build_component_statements(body, transform_context);
-
-	// Replace lazy param patterns with generated identifiers
-	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
-
-	// Wrap body_statements in a BlockStatement so that apply_lazy_transforms
-	// runs collect_block_shadowed_names and detects body-level declarations
-	// (e.g. `const name = ...`) that shadow lazy binding names.
 	const body_block = b.block(body_statements);
-	const final_body =
-		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
 
 	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
 	let fn;
@@ -679,17 +656,37 @@ export function component_to_function_declaration(component, transform_context, 
 	if (component.id) {
 		fn = b.function_declaration(
 			component.id,
-			final_params,
-			final_body,
+			params,
+			body_block,
 			is_async_component,
 			component.typeParameters,
 		);
 	} else if (component.metadata?.arrow) {
-		fn = b.arrow(final_params, final_body, is_async_component, component.typeParameters);
+		fn = b.arrow(params, body_block, is_async_component, component.typeParameters);
 	} else {
-		fn = b.function(null, final_params, final_body, is_async_component, component.typeParameters);
+		fn = b.function(null, params, body_block, is_async_component, component.typeParameters);
 	}
 	/** @type {any} */ (fn.metadata).is_component = true;
+
+	// `preallocate_lazy_ids` stamped `has_lazy_descendants` on the source
+	// `Component` node; the freshly-built `fn` shares the same params/body
+	// subtree, so the flag is equally applicable. Propagating it lets
+	// `apply_lazy_transforms` honor its constant-time early-return path.
+	if (/** @type {any} */ (component).metadata?.has_lazy_descendants) {
+		/** @type {any} */ (fn.metadata).has_lazy_descendants = true;
+	}
+
+	// Apply lazy `&{}` / `&[]` rewrites end-to-end: the function-handler in
+	// `apply_lazy_transforms` collects param bindings, merges with body bindings
+	// discovered by the BlockStatement handler, replaces lazy params with their
+	// `__lazyN` ids, and rewrites every reference. Constant-time fast-path for
+	// functions whose subtrees contain no lazy patterns (flagged ahead of time
+	// by `preallocate_lazy_ids`). In type-only mode the rewrite is skipped so
+	// destructuring patterns survive into the virtual TSX and TypeScript can
+	// flow real types.
+	if (!transform_context.typeOnly) {
+		fn = /** @type {typeof fn} */ (apply_lazy_transforms(fn, new Map()));
+	}
 
 	// Restore context
 	transform_context.helper_state = saved_helper_state;
@@ -2689,7 +2686,7 @@ function validate_hook_outer_assignments_in_node(
 		return;
 	}
 
-	if (is_function_like_node(node)) {
+	if (is_function_or_component_node(node)) {
 		return;
 	}
 
@@ -2831,7 +2828,7 @@ function validate_hook_outer_assignments_in_node(
 function validate_hook_callback_outer_mutations(call_node, shadowed_names, transform_context) {
 	const hook_name = get_hook_callee_name(call_node.callee);
 	for (const argument of call_node.arguments || []) {
-		if (!is_function_like_node(argument)) {
+		if (!is_function_or_component_node(argument)) {
 			continue;
 		}
 		const callback_shadowed_names = create_function_like_shadowed_names(argument, shadowed_names);
@@ -2842,21 +2839,6 @@ function validate_hook_callback_outer_mutations(call_node, shadowed_names, trans
 			hook_name,
 		);
 	}
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_function_like_node(node) {
-	return (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		// this is just in case but we should already
-		// have a component replaced with a function node
-		node.type === 'Component'
-	);
 }
 
 /**
@@ -2906,7 +2888,7 @@ function validate_hook_callback_outer_mutations_in_node(
 		return;
 	}
 
-	if (is_function_like_node(node)) {
+	if (is_function_or_component_node(node)) {
 		validate_hook_callback_outer_mutations_in_node(
 			node.body,
 			create_function_like_shadowed_names(node, shadowed_names),
