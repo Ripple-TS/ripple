@@ -1,5 +1,26 @@
 # ripple
 
+## 0.3.57
+
+### Patch Changes
+
+- [#1126](https://github.com/Ripple-TS/ripple/pull/1126)
+  [`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep runtime helper imports
+  on namespaced runtime subpaths so production app bundles do not pull in
+  compiler-only modules.
+
+- [#1123](https://github.com/Ripple-TS/ripple/pull/1123)
+  [`e4a04dd`](https://github.com/Ripple-TS/ripple/commit/e4a04ddb4bbc8e21a9c7c2c65b179d764b72e4fb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Nested lazy destructuring
+  support for all tsrx targets. Ripple already fully supported it.
+- Updated dependencies
+  [[`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234),
+  [`e4a04dd`](https://github.com/Ripple-TS/ripple/commit/e4a04ddb4bbc8e21a9c7c2c65b179d764b72e4fb)]:
+  - @tsrx/core@0.1.7
+  - ripple@0.3.57
+  - @tsrx/ripple@0.1.7
+
 ## 0.3.56
 
 ### Patch Changes
