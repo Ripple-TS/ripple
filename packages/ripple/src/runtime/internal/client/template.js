@@ -23,7 +23,7 @@ export function assign_nodes(start, end) {
 			start,
 			end,
 		};
-	} else if (s.start === null) {
+	} else if (s.start == null) {
 		s.start = start;
 		s.end = end;
 	}

@@ -456,7 +456,7 @@ export function destroy_block(block, remove_dom = true) {
 		(f & HEAD_BLOCK) !== 0
 	) {
 		var s = block.s;
-		if (s !== null) {
+		if (s !== null && s.start != null) {
 			remove_block_dom(s.start, s.end);
 			removed = true;
 		}
