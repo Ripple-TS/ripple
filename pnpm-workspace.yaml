@@ -99,3 +99,6 @@ catalogs:
     typescript: *ts_common
   vscode:
     typescript: *ts_common
+
+patchedDependencies:
+  esrap@2.2.7: patches/esrap@2.2.7.patch
