@@ -1,5 +1,22 @@
 # ripple
 
+## 0.3.58
+
+### Patch Changes
+
+- [#1130](https://github.com/Ripple-TS/ripple/pull/1130)
+  [`0a5f39b`](https://github.com/Ripple-TS/ripple/commit/0a5f39b6e13807dfd3dc1228f40d7bb02b933373)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix client cleanup for
+  HMR-wrapped roots that do not own their DOM range directly.
+
+- Updated dependencies
+  [[`b54fdfc`](https://github.com/Ripple-TS/ripple/commit/b54fdfc3ebfea29ac613307b76732c5bf5f49ab5),
+  [`0a5f39b`](https://github.com/Ripple-TS/ripple/commit/0a5f39b6e13807dfd3dc1228f40d7bb02b933373),
+  [`165703c`](https://github.com/Ripple-TS/ripple/commit/165703c588b52f3dc0d26c06187f21700d448693)]:
+  - @tsrx/core@0.1.8
+  - ripple@0.3.58
+  - @tsrx/ripple@0.1.8
+
 ## 0.3.57
 
 ### Patch Changes

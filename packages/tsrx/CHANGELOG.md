@@ -1,5 +1,17 @@
 # @tsrx/core
 
+## 0.1.8
+
+### Patch Changes
+
+- [`b54fdfc`](https://github.com/Ripple-TS/ripple/commit/b54fdfc3ebfea29ac613307b76732c5bf5f49ab5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parse semicolonless `<tsrx>`
+  returns inside component callback props.
+
+- [`165703c`](https://github.com/Ripple-TS/ripple/commit/165703c588b52f3dc0d26c06187f21700d448693)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Use esrap 2.2.8 instead of
+  carrying a local 2.2.7 patch.
+
 ## 0.1.7
 
 ### Patch Changes

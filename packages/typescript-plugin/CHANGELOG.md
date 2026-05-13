@@ -1,5 +1,23 @@
 # @tsrx/typescript-plugin
 
+## 0.3.58
+
+### Patch Changes
+
+- [#1125](https://github.com/Ripple-TS/ripple/pull/1125)
+  [`632dff5`](https://github.com/Ripple-TS/ripple/commit/632dff50ab970186b6a5b19950d1ae775cd27145)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Keep failed `tsrx-tsc`
+  compilations on the raw TSRX module instead of trying the runtime `compile()`
+  fallback.
+
+- Updated dependencies
+  [[`165703c`](https://github.com/Ripple-TS/ripple/commit/165703c588b52f3dc0d26c06187f21700d448693)]:
+  - @tsrx/preact@0.1.8
+  - @tsrx/react@0.2.8
+  - @tsrx/ripple@0.1.8
+  - @tsrx/solid@0.1.8
+  - @tsrx/vue@0.1.8
+
 ## 0.3.57
 
 ### Patch Changes
