@@ -26,18 +26,18 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-typescript": "^7.28.5",
     "@tsrx/solid": "workspace:*",
-    "babel-preset-solid": "2.0.0-beta.7"
+    "babel-preset-solid": "2.0.0-beta.11"
   },
   "peerDependencies": {
-    "@solidjs/web": ">=2.0.0-beta.7",
+    "@solidjs/web": ">=2.0.0-beta.11",
     "bun": "^1.0.0",
-    "solid-js": ">=2.0.0-beta.7"
+    "solid-js": ">=2.0.0-beta.11"
   },
   "devDependencies": {
-    "@solidjs/web": "2.0.0-beta.7",
+    "@solidjs/web": "2.0.0-beta.11",
     "@types/babel__core": "^7.20.5",
     "@types/bun": "catalog:default",
-    "solid-js": "2.0.0-beta.7",
+    "solid-js": "2.0.0-beta.11",
     "typescript": "catalog:default"
   },
   "files": [
