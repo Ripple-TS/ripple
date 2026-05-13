@@ -23,21 +23,21 @@
     "test": "pnpm -w test --project bun-plugin-solid"
   },
   "dependencies": {
-    "@babel/core": "^7.29.0",
-    "@babel/preset-typescript": "^7.28.5",
+    "@babel/core": "catalog:default",
+    "@babel/preset-typescript": "catalog:default",
     "@tsrx/solid": "workspace:*",
-    "babel-preset-solid": "2.0.0-beta.11"
+    "babel-preset-solid": "catalog:default"
   },
   "peerDependencies": {
-    "@solidjs/web": ">=2.0.0-beta.11",
+    "@solidjs/web": "catalog:default",
     "bun": "^1.0.0",
-    "solid-js": ">=2.0.0-beta.11"
+    "solid-js": "catalog:default"
   },
   "devDependencies": {
-    "@solidjs/web": "2.0.0-beta.11",
-    "@types/babel__core": "^7.20.5",
+    "@solidjs/web": "catalog:default",
+    "@types/babel__core": "catalog:default",
     "@types/bun": "catalog:default",
-    "solid-js": "2.0.0-beta.11",
+    "solid-js": "catalog:default",
     "typescript": "catalog:default"
   },
   "files": [
