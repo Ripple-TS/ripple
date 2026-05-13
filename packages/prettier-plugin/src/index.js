@@ -3061,11 +3061,13 @@ function printCallArguments(path, options, print) {
 	}, 'arguments');
 	const trailingComma = shouldPrintComma(options, 'all') ? ',' : '';
 
-	// Special case: single array argument should keep opening bracket inline
+	// Special case: single array/object argument should keep opening delimiter inline
 	const isSingleArrayArgument = args.length === 1 && args[0] && args[0].type === 'ArrayExpression';
+	const isSingleObjectArgument =
+		args.length === 1 && args[0] && args[0].type === 'ObjectExpression';
 
-	if (isSingleArrayArgument) {
-		// Don't use group() - just concat to allow array to control its own breaking
+	if (isSingleArrayArgument || isSingleObjectArgument) {
+		// Don't use group() - just concat to allow the argument to control its own breaking
 		// For single argument, no trailing comma needed
 		return ['(', argumentDocs[0], ')'];
 	} // Check if we should hug arrow functions (keep params inline even when body breaks)
@@ -6594,7 +6596,10 @@ function printAttribute(node, path, options, print) {
 			parts.push('=');
 			const useJsxSingleQuote = options.jsxSingleQuote === true;
 			parts.push(
-				formatStringLiteral(node.value.value, { ...options, singleQuote: useJsxSingleQuote }),
+				formatStringLiteral(node.value.value, {
+					...options,
+					singleQuote: useJsxSingleQuote,
+				}),
 			);
 		} else {
 			// All other values need curly braces: numbers, booleans, null, expressions, etc.

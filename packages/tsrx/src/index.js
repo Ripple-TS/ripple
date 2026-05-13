@@ -88,6 +88,7 @@ export {
 	is_class_node as isClassNode,
 	is_component_node as isComponentNode,
 	is_function_node as isFunctionNode,
+	is_function_or_component_node as isFunctionOrComponentNode,
 	is_inside_component as isInsideComponent,
 } from './utils/ast.js';
 
@@ -142,6 +143,9 @@ export { escape, escape_script as escapeScript } from './utils/escaping.js';
 // Transform
 export {
 	add_jsx_setup_declaration as addJsxSetupDeclaration,
+	clone_switch_helper_invocation as cloneSwitchHelperInvocation,
+	collect_param_bindings as collectParamBindings,
+	collect_statement_bindings as collectStatementBindings,
 	createJsxTransform,
 	CREATE_REF_PROP_INTERNAL_NAME,
 	extract_jsx_setup_declarations as extractJsxSetupDeclarations,
@@ -149,6 +153,7 @@ export {
 	MERGE_REFS_INTERNAL_NAME,
 	merge_duplicate_refs as mergeDuplicateRefs,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+	plan_switch_lift as planSwitchLift,
 	return_value_body_to_expression as returnValueBodyToExpression,
 	rewrite_loop_continues_to_bare_returns as rewriteLoopContinuesToBareReturns,
 	to_jsx_attribute as toJsxAttribute,
@@ -165,13 +170,16 @@ export {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
+	contains_component_jsx,
 	create_compile_error,
 	create_generated_identifier,
 	create_null_literal,
+	expand_switch_cases_for_fallthrough,
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
+	is_component_jsx_name,
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
@@ -198,11 +206,9 @@ export {
 export {
 	create_lazy_context as createLazyContext,
 	collect_lazy_bindings as collectLazyBindings,
-	collect_lazy_bindings_from_component as collectLazyBindingsFromComponent,
 	collect_lazy_bindings_from_statements as collectLazyBindingsFromStatements,
 	preallocate_lazy_ids as preallocateLazyIds,
 	apply_lazy_transforms as applyLazyTransforms,
-	replace_lazy_params as replaceLazyParams,
 } from './transform/lazy.js';
 export {
 	find_first_top_level_await as findFirstTopLevelAwait,

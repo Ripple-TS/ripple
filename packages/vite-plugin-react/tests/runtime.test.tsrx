@@ -1,5 +1,8 @@
 import type { MockInstance } from 'vitest';
 import { useState, use } from 'react';
+import {
+	runSwitchFallthroughRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/switch-fallthrough';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
@@ -325,6 +328,46 @@ component ForContinueApp() {
 	for (const item of items) {
 		if (!item) continue;
 		<li class="continue-item" key={item}>{item}</li>
+	}
+}
+
+// ── For-of over a Set ──
+
+component ForOverSetApp() {
+	const items = new Set<string>(['x', 'y', 'z']);
+
+	for (const item of items) {
+		<li class="set-item" key={item}>{item}</li>
+	}
+}
+
+// ── For-of over a Map ──
+
+component ForOverMapApp() {
+	const entries = new Map<string, number>([
+		['a', 1],
+		['b', 2],
+		['c', 3],
+	]);
+
+	for (const [key, value] of entries) {
+		<li class="map-item" {key}>{key + ':' + value}</li>
+	}
+}
+
+// ── For-of over a custom iterable ──
+
+component ForOverCustomIterableApp() {
+	function* iter() {
+		yield 'one';
+		yield 'two';
+		yield 'three';
+	}
+
+	const items = iter();
+
+	for (const item of items) {
+		<li class="generator-item" key={item}>{item}</li>
 	}
 }
 
@@ -916,6 +959,30 @@ component HookInSwitchWithScopeApp() {
 	</button>
 }
 
+// ── Hook inside expression-position <tsrx> from a regular function ──
+
+function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
+	if (!props.active) return null;
+
+	return <tsrx>
+		const [count, setCount] = useState(0);
+		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
+			{props.label + ':' + count}
+		</button>
+	</tsrx>;
+}
+
+component TsrxExpressionHookApp() {
+	const [active, setActive] = useState(false);
+	const [label, setLabel] = useState('first');
+
+	<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
+		{active ? 'hide' : 'show'}
+	</button>
+	<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
+	<TsrxExpressionHookPanel {active} {label} />
+}
+
 // ── Static hoisting: mixed static and dynamic siblings ──
 
 component StaticHoistMixedApp() {
@@ -1269,6 +1336,35 @@ describe('tsrx-react runtime', () => {
 		]);
 	});
 
+	it('renders for-of over a Set via map_iterable', async () => {
+		await render(ForOverSetApp);
+		expect(Array.from(container.querySelectorAll('.set-item'), (el) => el.textContent)).toEqual([
+			'x',
+			'y',
+			'z',
+		]);
+	});
+
+	it('renders for-of over a Map via map_iterable', async () => {
+		await render(ForOverMapApp);
+		expect(Array.from(container.querySelectorAll('.map-item'), (el) => el.textContent)).toEqual([
+			'a:1',
+			'b:2',
+			'c:3',
+		]);
+	});
+
+	it('renders for-of over a generator/iterator via map_iterable', async () => {
+		await render(ForOverCustomIterableApp);
+		expect(
+			Array.from(container.querySelectorAll('.generator-item'), (el) => el.textContent),
+		).toEqual([
+			'one',
+			'two',
+			'three',
+		]);
+	});
+
 	// ── Reactive control flow: switch ──
 
 	it('switches rendered branch on state change', async () => {
@@ -1584,6 +1680,20 @@ describe('tsrx-react runtime', () => {
 		expect(text('.switch-scope-val')).toBe('dark:info');
 	});
 
+	it('keeps <tsrx> expression hook state stable across regular function rerenders', async () => {
+		await render(TsrxExpressionHookApp);
+		expect(container.querySelector('.tsrx-expression-hook-count')).toBeNull();
+
+		await click('.tsrx-expression-hook-toggle');
+		expect(text('.tsrx-expression-hook-count')).toBe('first:0');
+
+		await click('.tsrx-expression-hook-count');
+		expect(text('.tsrx-expression-hook-count')).toBe('first:1');
+
+		await click('.tsrx-expression-hook-label');
+		expect(text('.tsrx-expression-hook-count')).toBe('second:1');
+	});
+
 	// ── Static hoisting ──
 
 	it('hoists static elements while keeping dynamic siblings interactive', async () => {
@@ -1647,3 +1757,5 @@ describe('tsrx-react runtime', () => {
 		expect(text('.lazy-combined')).toBe('Count: 1');
 	});
 });
+
+runSwitchFallthroughRuntimeTests();

@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -64,7 +64,7 @@ jobs:
         run: pnpm run build-and-package
 
       - name: Upload VSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vscode-plugin VSIX
           path: ./packages/vscode-plugin/*.vsix
@@ -77,12 +77,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Download VSIX
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: vscode-plugin VSIX
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Publish to VSM
         run: pnpx -- @vscode/vsce publish -i *.vsix
@@ -97,12 +97,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Download VSIX
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: vscode-plugin VSIX
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Publish to OVSX
         run: pnpx ovsx publish *.vsix

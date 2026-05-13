@@ -3,7 +3,7 @@
   "description": "Core compiler infrastructure for TSRX syntax",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.1.3",
+  "version": "0.1.7",
   "type": "module",
   "repository": {
     "type": "git",
@@ -31,9 +31,31 @@
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"
     },
-    "./runtime/*": "./src/runtime/*.js",
+    "./runtime/events": {
+      "types": "./types/runtime/events.d.ts",
+      "default": "./src/runtime/events.js"
+    },
+    "./runtime/hash": {
+      "types": "./types/runtime/hash.d.ts",
+      "default": "./src/runtime/hash.js"
+    },
+    "./runtime/html": {
+      "types": "./types/runtime/html.d.ts",
+      "default": "./src/runtime/html.js"
+    },
+    "./runtime/language-helpers": {
+      "types": "./types/runtime/language-helpers.d.ts",
+      "default": "./src/runtime/language-helpers.js"
+    },
+    "./runtime/iterable": {
+      "types": "./types/runtime/iterable.d.ts",
+      "default": "./src/runtime/iterable.js"
+    },
     "./test-harness/source-mappings": "./tests/shared/source-mappings.js",
-    "./test-harness/compile": "./tests/shared/compile.js"
+    "./test-harness/compile": "./tests/shared/compile.js",
+    "./test-harness/runtime/*": "./tests/shared/runtime/*.js",
+    "./test-harness/runtime/*.js": "./tests/shared/runtime/*.js",
+    "./test-harness/runtime/*.tsrx": "./tests/shared/runtime/*.tsrx"
   },
   "dependencies": {
     "@jridgewell/sourcemap-codec": "catalog:default",
@@ -48,11 +70,22 @@
     "zimmerframe": "catalog:default"
   },
   "devDependencies": {
+    "@solidjs/web": "2.0.0-beta.7",
+    "@tsrx/preact": "workspace:*",
+    "@tsrx/react": "workspace:*",
+    "@tsrx/solid": "workspace:*",
+    "@tsrx/vue": "workspace:*",
     "@types/node": "catalog:default",
     "@typescript-eslint/types": "catalog:default",
-    "typescript": "catalog:default",
     "@volar/language-core": "catalog:default",
-    "vscode-languageserver-types": "catalog:default"
+    "preact": "catalog:default",
+    "react": "catalog:default",
+    "react-dom": "catalog:default",
+    "solid-js": "2.0.0-beta.7",
+    "typescript": "catalog:default",
+    "vscode-languageserver-types": "catalog:default",
+    "vue": "3.6.0-beta.10",
+    "vue-jsx-vapor": "^3.2.12"
   },
   "files": [
     "src",

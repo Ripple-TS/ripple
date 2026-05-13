@@ -6,8 +6,8 @@ export default defineConfig({
 	format: ['esm'],
 	fixedExtension: false,
 	dts: true,
-	// Mark peer dependencies as external so they're not bundled
-	external: ['eslint', '@tsrx/ripple'],
+	// Mark peer dependencies and workspace packages as external so they're not bundled
+	external: ['eslint', '@tsrx/core'],
 	outputOptions: {
 		legalComments: 'inline',
 	},

@@ -1,5 +1,61 @@
 # Changelog
 
+## 2.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234)]:
+  - @tsrx/react@0.2.7
+  - @ripple-ts/language-server@0.3.57
+  - @tsrx/ripple@0.1.7
+  - @tsrx/typescript-plugin@0.3.57
+
+## 2.0.6
+
+### Patch Changes
+
+- [`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Republish version with the
+  new publish.yaml workflow
+
+- Updated dependencies
+  [[`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)]:
+  - @tsrx/react@0.2.6
+  - @ripple-ts/language-server@0.3.56
+  - @tsrx/ripple@0.1.6
+  - @tsrx/typescript-plugin@0.3.56
+
+## 2.0.5
+
+### Patch Changes
+
+- [#1116](https://github.com/Ripple-TS/ripple/pull/1116)
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Highlight shorthand fragments
+  and TSX islands with TSX syntax.
+
+- Updated dependencies
+  [[`de27e18`](https://github.com/Ripple-TS/ripple/commit/de27e182d002ea736aee992acca4cbf9873a307d),
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5),
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5),
+  [`18b4aef`](https://github.com/Ripple-TS/ripple/commit/18b4aefa8127e56a9f1b3058da2d4d2172551579)]:
+  - @tsrx/react@0.2.5
+  - @ripple-ts/language-server@0.3.55
+  - @tsrx/ripple@0.1.5
+  - @tsrx/typescript-plugin@0.3.55
+
+## 2.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26)]:
+  - @tsrx/react@0.2.4
+  - @ripple-ts/language-server@0.3.54
+  - @tsrx/ripple@0.1.4
+  - @tsrx/typescript-plugin@0.3.54
+
 ## 2.0.3
 
 ### Patch Changes

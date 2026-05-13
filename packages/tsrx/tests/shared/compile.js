@@ -107,6 +107,243 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).not.toContain('<tsrx>');
 			expect(result.code).toContain('item.name');
 		});
+
+		it('reports semicolon-terminated template expression containers', () => {
+			const result = compile_to_volar_mappings(
+				`component App() {
+					{
+						renderThing();
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(
+				DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+			);
+			const diagnostic = result.errors.find(
+				(error) => error.code === DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+			);
+			expect(diagnostic?.loc?.start).toEqual({ line: 3, column: 19 });
+			expect(diagnostic?.loc?.end).toEqual({ line: 3, column: 20 });
+			expect(result.code).toContain('renderThing()');
+		});
+	});
+}
+
+/**
+ * Nested `&{...}` / `&[...]` patterns must chain accessors through every lazy
+ * level: a reference to the inner binding becomes the full member path through
+ * the synthesized parent identifier, and assignments to it write back through
+ * that same path. These tests are framework-agnostic — every target that
+ * supports the lazy `&` syntax should exercise them.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedNestedLazyDestructuringTests({ compile, name }) {
+	describe(`[${name}] nested lazy destructuring`, () => {
+		it('transforms nested lazy object inside lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ outer: &{ inner } }: { outer: { inner: number } }) {
+					<div>{inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { outer: { inner: number } })');
+			expect(code).toContain('__lazy0.outer.inner');
+			// Bare `inner` must not leak through (any identifier use except as a
+			// property key — a property key is followed by `:`).
+			expect(code).not.toMatch(/[^.]\binner\b(?!:)/);
+		});
+
+		it('transforms nested lazy array inside lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ pair: &[first, second] }: { pair: [number, number] }) {
+					<div>{first}{second}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { pair: [number, number] })');
+			expect(code).toContain('__lazy0.pair[0]');
+			expect(code).toContain('__lazy0.pair[1]');
+		});
+
+		it('transforms nested lazy object inside lazy array in function params', () => {
+			const { code } = compile(
+				`export function getName(&[&{ name }]: [{ name: string }]) {
+					return name;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function getName(__lazy0: [{ name: string }])');
+			expect(code).toContain('__lazy0[0].name');
+		});
+
+		it('transforms three-level nested lazy object in component params', () => {
+			const { code } = compile(
+				`export component App(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
+					<div>{c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App(__lazy0: { a: { b: { c: number } } })');
+			expect(code).toContain('__lazy0.a.b.c');
+		});
+
+		it('transforms nested lazy in variable declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { outer: { inner: 5 } };
+					let &{ outer: &{ inner } } = data;
+					inner = 99;
+					<div>{data.outer.inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.outer.inner = 99');
+			// Plain (non-lazy) destructure of `inner` must not leak through.
+			expect(code).not.toContain('{ outer: { inner } } = data');
+		});
+
+		it('transforms nested lazy array-in-object in variable declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { pair: [1, 2] as [number, number] };
+					let &{ pair: &[first, second] } = data;
+					first = 100;
+					second = 200;
+					<div>{data.pair[0]}{data.pair[1]}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.pair[0] = 100');
+			expect(code).toContain('__lazy0.pair[1] = 200');
+		});
+
+		it('transforms nested lazy in function params with writeback', () => {
+			const { code } = compile(
+				`export function bump(&{ pair: &[first, second] }: { pair: [number, number] }) {
+					first = first + 10;
+					second = second + 20;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function bump(__lazy0: { pair: [number, number] })');
+			expect(code).toContain('__lazy0.pair[0] = __lazy0.pair[0] + 10');
+			expect(code).toContain('__lazy0.pair[1] = __lazy0.pair[1] + 20');
+		});
+
+		it('transforms compound assignment through nested lazy chain', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { a: { b: { c: 5 } } };
+					let &{ a: &{ b: &{ c } } } = data;
+					c += 10;
+					c *= 2;
+					<div>{data.a.b.c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let __lazy0 = data');
+			expect(code).toContain('__lazy0.a.b.c += 10');
+			expect(code).toContain('__lazy0.a.b.c *= 2');
+		});
+
+		// Lazy `&` markers can appear at any depth — the outer pattern need not
+		// be lazy. The non-lazy outer destructure is preserved; only the lazy
+		// nested pattern is replaced with its synthesized id.
+
+		it('replaces lazy pattern nested inside non-lazy object component param', () => {
+			const { code } = compile(
+				`export component App({ something: &[first, second] }: { something: [number, number] }) {
+					<div>{first}{second}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App({ something: __lazy0 }');
+			expect(code).toContain('__lazy0[0]');
+			expect(code).toContain('__lazy0[1]');
+			// The inner lazy pattern must not survive as a real destructure.
+			expect(code).not.toContain('[first, second]');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy array component param', () => {
+			const { code } = compile(
+				`export component App([head, &{ inner }]: [number, { inner: number }]) {
+					<div>{head}{inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App([head, __lazy0]');
+			expect(code).toContain('__lazy0.inner');
+			expect(code).not.toContain('{ inner }');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy function param with writeback', () => {
+			const { code } = compile(
+				`export function bump({ pair: &[first, second] }: { pair: [number, number] }) {
+					first = 100;
+					second = 200;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function bump({ pair: __lazy0 }');
+			expect(code).toContain('__lazy0[0] = 100');
+			expect(code).toContain('__lazy0[1] = 200');
+		});
+
+		it('replaces lazy pattern nested inside non-lazy let declaration with writeback', () => {
+			const { code } = compile(
+				`export component App() {
+					const data = { outer: { inner: 5 } };
+					let { outer: &{ inner } } = data;
+					inner = 99;
+					<div>{data.outer.inner}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let { outer: __lazy0 } = data');
+			expect(code).toContain('__lazy0.inner = 99');
+		});
+
+		it('replaces multiple sibling lazy patterns nested in non-lazy outer', () => {
+			const { code } = compile(
+				`export component App({ a: &{ x }, b: &{ y } }: { a: { x: number }, b: { y: number } }) {
+					<div>{x}{y}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toMatch(/\{\s*a:\s*__lazy0,\s*b:\s*__lazy1\s*\}/);
+			expect(code).toContain('__lazy0.x');
+			expect(code).toContain('__lazy1.y');
+		});
+
+		it('replaces deeply nested lazy pattern through multiple non-lazy levels', () => {
+			const { code } = compile(
+				`export component App({ a: { b: &{ c } } }: { a: { b: { c: number } } }) {
+					<div>{c}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function App({ a: { b: __lazy0 } }');
+			expect(code).toContain('__lazy0.c');
+		});
 	});
 }
 
@@ -177,6 +414,373 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 }
 
 /**
+ * Shared switch fall-through coverage. JavaScript `switch` semantics let a
+ * matched case execute its own body and then continue into subsequent case
+ * bodies until a `break` (or terminal `return`) is hit. The TSRX transforms
+ * realize that statically: each case's compiled body includes the JSX of
+ * downstream cases it would have fallen through into. React/Preact/Vue keep a
+ * JS `switch` whose case-arms return the expanded body; Solid lowers to
+ * `<Switch>/<Match>` whose individual `<Match>` arms each render the same
+ * expanded body. Either way the cross-target invariant is that downstream
+ * case JSX appears once per fall-through entry point.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedSwitchFallthroughTests({ compile, name }) {
+	describe(`[${name}] switch fall-through`, () => {
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'lifts each downstream case body into a single helper component',
+			() => {
+				const { code } = compile(
+					`export component StatusBadge({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// With the fall-through lift, each downstream case body is
+				// hoisted into a helper component that chains into the next
+				// helper. Every JSX body appears exactly once regardless of how
+				// many arms would have fallen into it.
+				expect(count_substring(code, "'Online'")).toBe(1);
+				expect(count_substring(code, "'Away'")).toBe(1);
+				expect(count_substring(code, "'Offline'")).toBe(1);
+			},
+		);
+
+		it('treats explicit break as a stop signal and leaves later cases independent', () => {
+			const { code } = compile(
+				`export component App({ kind }: { kind: string }) {
+					switch (kind) {
+						case "a":
+							<span>{'A'}</span>
+							break
+						case "b":
+							<span>{'B'}</span>
+							break
+						default:
+							<span>{'Other'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			// Each case stops at its break; the default case is a separate
+			// entry so its body is rendered exactly once. No fall-through means
+			// no helpers are introduced on the React-family targets either.
+			expect(count_substring(code, "'A'")).toBe(1);
+			expect(count_substring(code, "'B'")).toBe(1);
+			expect(count_substring(code, "'Other'")).toBe(1);
+			if (['react', 'preact', 'vue'].includes(name)) {
+				expect(code).not.toContain('StatementBodyHook');
+			}
+		});
+
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'treats stacked case labels as fall-through aliases for one lifted body',
+			() => {
+				const { code } = compile(
+					`export component App({ n }: { n: number }) {
+						switch (n) {
+							case 1:
+							case 2:
+								<span>{'one or two'}</span>
+								break
+							default:
+								<span>{'other'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// Empty `case 1:` falls through to `case 2:` at runtime; the
+				// shared body is lifted into a helper so it lives in exactly
+				// one place.
+				expect(count_substring(code, "'one or two'")).toBe(1);
+				expect(count_substring(code, "'other'")).toBe(1);
+			},
+		);
+
+		it.runIf(name === 'solid')(
+			'lifts a shared body into one StatementBodyHook helper across both <Match> arms',
+			() => {
+				const { code } = compile(
+					`export component App({ n }: { n: number }) {
+						switch (n) {
+							case 1:
+							case 2:
+								<span>{'one or two'}</span>
+								break
+							default:
+								<span>{'other'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				// Solid's <Switch>/<Match> is exclusive, so each label still
+				// needs its own <Match>, but both Matches now invoke a single
+				// hoisted StatementBodyHook helper instead of duplicating the
+				// JSX body.
+				expect(count_substring(code, "'one or two'")).toBe(1);
+				expect(count_substring(code, "'other'")).toBe(1);
+				// The helper for the shared body is hoisted to module scope —
+				// either as a top-level `function App__StatementBodyHook<N>()`
+				// declaration or as a `const App__StatementBodyHook<N> = ...`
+				// initializer (the wrapper shape depends on which platform
+				// the helper goes through, but the prefix is consistent).
+				expect(code).toMatch(/(?:function|const)\s+App__StatementBodyHook\d+/);
+			},
+		);
+
+		it.runIf(['react', 'preact', 'vue'].includes(name))(
+			'lifts duplicated case bodies into StatementBodyHook helpers chained from each arm',
+			() => {
+				const { code } = compile(
+					`export component App({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('switch (status)');
+				// Helper element names are prefixed with the component name on
+				// module-scoped platforms (React: `App__StatementBodyHook1`)
+				// and bare on local-scoped platforms (Preact/Vue:
+				// `StatementBodyHook1`), so the regex accepts either shape.
+				const helper_ref = '<[\\w$]*StatementBodyHook\\d+ /\\s*>';
+				// First case isn't duplicated downstream, so its body stays
+				// inline but appends the next helper invocation as the chain
+				// entry point.
+				expect(code).toMatch(
+					new RegExp(
+						`case\\s+"idle":[\\s\\S]*?return <><span>\\{'Online'\\}</span>${helper_ref}</>;`,
+					),
+				);
+				// Duplicated cases just call into their helper.
+				expect(code).toMatch(new RegExp(`case\\s+"active":[\\s\\S]*?return ${helper_ref};`));
+				expect(code).toMatch(new RegExp(`case\\s+"offline":[\\s\\S]*?return ${helper_ref};`));
+
+				// Exactly two `function <prefix>StatementBodyHook<N>()`
+				// definitions exist — one per duplicated case body. The
+				// `<prefix>` is empty on Preact/Vue and `App__` on React's
+				// module-scoped helpers.
+				const helper_def_matches = code.match(
+					/function\s+[\w$]*StatementBodyHook\d+\s*\(\)\s*\{[\s\S]*?\n\s*\}/g,
+				);
+				expect(helper_def_matches).not.toBeNull();
+				expect(/** @type {RegExpMatchArray} */ (helper_def_matches).length).toBe(2);
+				const helper_defs = /** @type {RegExpMatchArray} */ (helper_def_matches);
+
+				// Exactly one helper is "terminal" (renders its body and stops)
+				// and exactly one is "chained" (renders its body then renders
+				// the next helper). For the terminal helper, its compiled
+				// return uses the same identifier that the static-hoisted
+				// `<span>{'Offline'}</span>` was bound to; otherwise it falls
+				// back to the literal span. Likewise the chained helper's
+				// compiled return references either the `'Away'` static or its
+				// span literal alongside another helper invocation.
+				const find_static_id = (/** @type {string} */ literal) => {
+					const m = code.match(
+						new RegExp(`const\\s+([\\w$]+)\\s*=\\s*<span>\\{'${literal}'\\}</span>;`),
+					);
+					return m ? m[1] : null;
+				};
+				const offline_static = find_static_id('Offline');
+				const away_static = find_static_id('Away');
+
+				const terminal_helpers = helper_defs.filter((def) => {
+					const has_offline = offline_static
+						? def.includes(offline_static)
+						: def.includes("<span>{'Offline'}</span>");
+					const has_chain_ref = /<[\w$]*StatementBodyHook\d+\s*\/>/.test(def);
+					return has_offline && !has_chain_ref;
+				});
+				expect(terminal_helpers.length).toBe(1);
+
+				const chained_helpers = helper_defs.filter((def) => {
+					const has_away = away_static
+						? def.includes(away_static)
+						: def.includes("<span>{'Away'}</span>");
+					// The chain reference is always inlined directly into the
+					// helper body now — bare `<StatementBodyHook />` invocations
+					// are not hoisted into `App__staticN` aliases because doing
+					// so just adds an indirection without enabling React's
+					// element-identity fast path on a non-memo'd helper.
+					const inline_chain = /<[\w$]*StatementBodyHook\d+\s*\/>/.test(def);
+					return has_away && inline_chain;
+				});
+				expect(chained_helpers.length).toBe(1);
+
+				// And no `App__staticN` const should alias a bare
+				// StatementBodyHook reference anywhere in the output.
+				expect(code).not.toMatch(
+					/const\s+[\w$]+__static\d+\s*=\s*<[\w$]*StatementBodyHook\d+\s*\/>/,
+				);
+			},
+		);
+
+		it.runIf(name === 'solid')(
+			'lowers fall-through to <Match> arms that invoke hoisted helpers',
+			() => {
+				const { code } = compile(
+					`export component App({ status }: { status: string }) {
+						switch (status) {
+							case "idle":
+								<span>{'Online'}</span>
+							case "active":
+								<span>{'Away'}</span>
+							case "offline":
+								<span>{'Offline'}</span>
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('<Switch');
+				expect(code).toMatch(/<Match when=\{status === "idle"\}>/);
+				expect(code).toMatch(/<Match when=\{status === "active"\}>/);
+				expect(code).toMatch(/<Match when=\{status === "offline"\}>/);
+				// Each body literal lives in exactly one place — the lifted
+				// helper that defines it. The Match arms reference the
+				// helpers; downstream chain is materialized helper-to-helper.
+				expect(count_substring(code, "'Offline'")).toBe(1);
+				expect(count_substring(code, "'Away'")).toBe(1);
+				expect(count_substring(code, "'Online'")).toBe(1);
+			},
+		);
+
+		it.runIf(name === 'solid')('routes default cases to <Switch fallback>', () => {
+			const { code } = compile(
+				`export component App({ kind }: { kind: string }) {
+					switch (kind) {
+						case "a":
+							<span>{'A'}</span>
+							break
+						default:
+							<span>{'D'}</span>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toMatch(/<Match when=\{kind === "a"\}>/);
+			expect(count_substring(code, "'D'")).toBe(1);
+		});
+	});
+}
+
+/**
+ * Shared assertions covering where each target places the lifted
+ * `StatementBodyHook` helper component for switch-fall-through deduplication
+ * — module scope for the client transform on every target whose platform
+ * sets `moduleScopedHookComponents: true` (React, Solid, Vue), and a local
+ * `let App__StatementBodyHook<N>` cache slot + per-render `?? (= …)` lazy
+ * initializer otherwise. `compile_to_volar_mappings` keeps the local-scoped
+ * shape regardless of platform default so Volar's virtual TSX can still
+ * resolve closure-captured bindings against the component body.
+ *
+ * The `StatementBodyHook` name is React-flavored historically, but on
+ * Vue/Solid the lift solves different problems (avoid re-`defineVaporComponent`
+ * per render, dedup downstream-arm JSX, etc.) — same machinery either way.
+ *
+ * @typedef {'module-function' | 'module-vapor-component' | 'local-cache'} SwitchHelperClientShape
+ *
+ * @param {{
+ *   compile: CompileHarness['compile'],
+ *   compile_to_volar_mappings: CompileDiagnosticsHarness['compile_to_volar_mappings'],
+ *   name: string,
+ *   clientHelperShape: SwitchHelperClientShape,
+ * }} harness
+ */
+export function runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name,
+	clientHelperShape,
+}) {
+	describe(`[${name}] StatementBodyHook hoisting (client vs typeOnly)`, () => {
+		// Three fall-through cases without break: two of those bodies are
+		// duplicated downstream (active, offline) so two helpers should exist.
+		const switch_source = `export component App({ status }: { status: string }) {
+			switch (status) {
+				case "idle":
+					<span>{'Online'}</span>
+				case "active":
+					<span>{'Away'}</span>
+				case "offline":
+					<span>{'Offline'}</span>
+			}
+		}`;
+
+		it('lifts duplicated case bodies in the client transform', () => {
+			const { code } = compile(switch_source, 'App.tsrx');
+
+			if (clientHelperShape === 'module-function') {
+				// React/Solid: top-level `function App__StatementBodyHook<N>()`
+				// declarations, no per-render cache slots.
+				const top_level_helper_count = (
+					code.match(/^function App__StatementBodyHook\d+\(\)/gm) || []
+				).length;
+				expect(top_level_helper_count).toBe(2);
+				expect(code).not.toContain('let App__StatementBodyHook');
+			} else if (clientHelperShape === 'module-vapor-component') {
+				// Vue: top-level `const App__StatementBodyHook<N> =
+				// defineVaporComponent(function App__StatementBodyHook<N>() {...})`.
+				const top_level_helper_count = (
+					code.match(
+						/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\(\)/gm,
+					) || []
+				).length;
+				expect(top_level_helper_count).toBe(2);
+				expect(code).not.toContain('let App__StatementBodyHook');
+			} else {
+				// Preact: local cache slot + `?? (= function …)` lazy
+				// initializer per duplicated body; no top-level declarations.
+				const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
+				expect(cache_slot_count).toBe(2);
+				expect(code).toMatch(
+					/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*function StatementBodyHook\d+\(\)/,
+				);
+			}
+		});
+
+		it('keeps lifted case bodies inline in the typeOnly transform', () => {
+			const { code } = compile_to_volar_mappings(switch_source, 'App.tsrx');
+
+			// Volar's virtual TSX always uses the local cache-slot pattern so
+			// closure-captured bindings stay in the component scope for type
+			// checking. The wrapper inside the lazy initializer varies per
+			// target — `defineVaporComponent(function …)` on Vue, plain
+			// `function …` elsewhere — but the slot + `?? (=` shape is uniform.
+			const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
+			expect(cache_slot_count).toBe(2);
+			expect(code).toMatch(
+				/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*/,
+			);
+			// No top-level helper declarations in either lifted shape.
+			expect(code).not.toMatch(/^function App__StatementBodyHook\d+\(\)/m);
+			expect(code).not.toMatch(/^const App__StatementBodyHook\d+ = defineVaporComponent\(/m);
+		});
+	});
+}
+
+/**
  * Shared component-loop regressions. Vue does not share the full JSX output
  * suite because its component export shape differs, but it should still share
  * these component-body validation rules.
@@ -185,6 +789,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
  */
 export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 	runSharedFragmentExpressionRenderTests({ compile, name });
+	runSharedSwitchFallthroughTests({ compile, name });
 
 	describe(`[${name}] component loop control flow`, () => {
 		it('uses continue to skip a for...of iteration', () => {
@@ -440,8 +1045,39 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				);
 
 				expect(code).toContain('children={function');
-				expect(code).toContain(name === 'solid' ? '<For each={items}>' : 'items.map((item, i)');
+				expect(code).toContain(
+					name === 'solid' ? '<For each={items}>' : '__map_iterable(items, (item, i)',
+				);
 				expect(code).toContain('<li key={i}>{item}</li>');
+			},
+		);
+
+		it.runIf(jsx_targets.includes(name))(
+			'parses semicolon-terminated template expression containers',
+			() => {
+				const { code } = compile(
+					`export component App() {
+						<Child
+							children={component({ items }: { items: JSX.Element[] }) {
+								<ul>
+									for (const item of items; index i) {
+										<li key={i}>{item}</li>
+									}
+								</ul>
+							}}
+						/>
+					}
+
+					component Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) {
+						{
+							children({ items: [<><span>Item 1</span></>, <><span>Item 2</span></>, <><span>Item 3</span></>] });
+						}
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('children({');
+				expect(code).toContain('Item 3');
 			},
 		);
 
@@ -696,11 +1332,13 @@ export function runSharedClassComponentDeclarationTests({
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.
+ * Vue should be excluded from running these
  *
  * @param {CompileHarness} harness
  */
 export function runSharedCompileTests({ compile, name, classAttrName }) {
 	runSharedComponentLoopControlFlowTests({ compile, name });
+	runSharedNestedLazyDestructuringTests({ compile, name });
 
 	describe(`[${name}] component export shapes`, () => {
 		// `component X()` maps to `function X()` identically on every target
@@ -1463,6 +2101,26 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});
 
+		it('parses semicolon-less native TSRX returns in component prop arrow functions', () => {
+			const { code } = compile(
+				`component Card(props) {}
+
+				component App() {
+					<Card
+						children={() => {
+							return <tsrx>
+								<div>"Hello, World!"</div>
+							</tsrx>
+						}}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('<tsrx>');
+			expect(code).toContain('Hello, World!');
+		});
+
 		it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
 			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
@@ -1546,6 +2204,27 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain('{"Title"}');
+			expect(code).not.toContain('<tsrx>');
+		});
+
+		it('lowers statement-bodied native TSRX templates in self-closing component attributes', () => {
+			const { code } = compile(
+				`component App() {
+					<Card
+						content={<tsrx>
+							if (foo) {
+								<div>
+									if (foo > 1) {}
+								</div>
+							}
+						</tsrx>}
+					/>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('foo');
+			expect(code).toContain('<Card');
 			expect(code).not.toContain('<tsrx>');
 		});
 
@@ -2618,564 +3297,495 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	// When a non-returning `if` whose branch contains a hook is followed by
-	// statements that read bindings the hook mutates, those reads happen in
-	// the parent's render frame, before the child component containing the
-	// hook has run. React/Preact apply a continuation lift to fix this; Solid
-	// uses a `<Show>` wrapper, and Vue's setup-once platform skips the lift.
-	// Snapshots are per-target to make the divergence explicit.
-	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] continuation lift for if-with-hook`,
-		() => {
-			it('lifts the tail of a single non-returning if-with-hook into a helper', () => {
-				const { code } = compile(
-					`export component App({ show }: { show: boolean }) {
-					let x: number | undefined;
-					if (show) {
-						[x] = useState(100);
-						<div>{x}</div>
-					}
-					console.log(x);
-				}`,
-					'App.tsrx',
+	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation constraints`, () => {
+		it('extracts hooks in expression-position <tsrx> into stable helper components', () => {
+			const { code } = compile(
+				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
+						function App({ active }: { active: boolean }) {
+							if (!active) return null;
+
+							return <tsrx>
+								useEffect(() => {
+									console.log(active);
+								}, [active]);
+								<span>{active ? 'active' : 'inactive'}</span>
+							</tsrx>;
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('useEffect(');
+			expect(code).toContain('active={active}');
+			expect(code).not.toContain('<tsrx>');
+			if (name === 'react') {
+				expect(code.indexOf('function App__StatementBodyHook1')).toBeLessThan(
+					code.indexOf('function App('),
 				);
+			} else {
+				expect(code).toContain('let App__StatementBodyHook1;');
+				expect(code).toContain('App__StatementBodyHook1 ??');
+			}
+		});
 
-				expect(code).toMatchSnapshot();
-			});
-
-			it('chains tail helpers across sibling ifs that each contain hooks', () => {
-				const { code } = compile(
-					`export component App({ a, b }: { a: boolean, b: boolean }) {
-					let x: number | undefined;
-					let y: number | undefined;
-					if (a) {
-						[x] = useState(100);
-						<div>{x}</div>
-					}
-					if (b) {
-						[y] = useState(200);
-						<span>{y}</span>
-					}
-					console.log(x, y);
-				}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('handles nested if-with-hook so the mid-tail observes the inner hook', () => {
-				const { code } = compile(
-					`export component App({ a, b }: { a: boolean, b: boolean }) {
-					let x: number | undefined;
-					if (a) {
-						if (b) {
-							[x] = useState(100);
-							<div>{x}</div>
-						}
-						console.log('mid', x);
-					}
-					console.log('end', x);
-				}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('does not lift when the if has no statements after it', () => {
-				const { code } = compile(
-					`export component App({ show }: { show: boolean }) {
-					if (show) {
-						const [x] = useState(100);
-						<div>{x}</div>
-					}
-				}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('does not lift when the if has an else branch', () => {
-				const { code } = compile(
-					`export component App({ show }: { show: boolean }) {
-					let x: number | undefined;
-					if (show) {
-						[x] = useState(100);
-						<div>{x}</div>
-					} else {
-						<div>{'no'}</div>
-					}
-					console.log(x);
-				}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-		},
-	);
-
-	// `switch` cases with hooks are wrapped in their own helper components for
-	// the same reason `if` branches are, and the same parent-reads-stale
-	// problem applies when statements after the switch read bindings the case
-	// bodies mutate. The lift extends to switches: each case body becomes its
-	// own helper that ends with a call to a shared tail helper, and the
-	// fall-through return renders the tail helper directly. Cases that fall
-	// through (have a non-empty body without a terminator) bail out of the
-	// lift to preserve their original semantics.
-	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] continuation lift for switch-with-hook`,
-		() => {
-			it('lifts the tail of a switch whose cases contain hooks', () => {
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-							case 'b':
-								[x] = useState(200);
-								<span>{x}</span>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('lifts the tail when only some switch cases contain hooks', () => {
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' | 'c' }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-							case 'b':
-								<span>{'static'}</span>
-								break;
-							default:
-								<p>{'fallback'}</p>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('lifts the tail when a switch has a default case with a hook', () => {
-				const { code } = compile(
-					`export component App({ kind }: { kind: string }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-								<div>{'a'}</div>
-								break;
-							default:
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('does not lift when the switch has no statements after it', () => {
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' }) {
-						switch (kind) {
-							case 'a':
+		it('allows hook results that stay local to an extracted branch', () => {
+			const { code } = compile(
+				`export component App({ show }: { show: boolean }) {
+							if (show) {
 								const [x] = useState(100);
 								<div>{x}</div>
-								break;
-							case 'b':
-								<span>{'b'}</span>
-								break;
-						}
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('break-only case does not silently fall through into another case', () => {
-				// A `case 'a': break;` with no other body originally exits the
-				// switch and runs the tail. Naively producing an empty case in
-				// the lift would make 'a' fall through into the next case's
-				// helper (which here calls a hook), executing the wrong branch
-				// for the wrong input. The fixed shape returns the tail helper
-				// directly for break-only cases.
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-								break;
-							case 'b':
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				// Bug: break-only 'a' must NOT collapse to an empty case that
-				// then falls into 'b' and runs `useState(100)`.
-				expect(code).not.toMatch(/case 'a':\s*\n\s*case 'b':/);
-				expect(code).toMatchSnapshot();
-			});
-
-			it('preserves empty fall-through cases that share a body with the next case', () => {
-				// `case 'a': case 'b': hook + JSX; break;` is genuine
-				// empty-fall-through — 'a' has no body of its own and is meant
-				// to share 'b's body. The lift must keep 'a' as an empty case
-				// so the switch falls into 'b's body.
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' | 'c' }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-							case 'b':
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-							default:
-								<span>{'other'}</span>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('non-empty fall-through merges the trailing case body into the falling case', () => {
-				// `case 'a': x = 1; case 'b': [x] = useState(100); break;` —
-				// when 'a' matches it should run `x = 1` then fall through
-				// into 'b's hook + JSX. Naive lifting would either bail out
-				// (preserving the existing transform's bug) or convert 'a'
-				// into an early-return that skips 'b's body entirely.
-				// Instead we merge fall-through cases: 'a' gets its own helper
-				// whose body is `[x = 1, [x] = useState(100), <div>{x}</div>]`
-				// so the post-hook `x` correctly flows into the tail. Both
-				// 'a' and 'b' end up printing 100.
-				const { code } = compile(
-					`export component App({ kind }: { kind: 'a' | 'b' }) {
-						let x: number | undefined;
-						switch (kind) {
-							case 'a':
-								x = 1;
-							case 'b':
-								[x] = useState(100);
-								<div>{x}</div>
-								break;
-						}
-						console.log(x);
-					}`,
-					'App.tsrx',
-				);
-
-				// Lift applies: each case returns its own helper (no bail-out).
-				expect(code).not.toContain('(() =>');
-				expect(code).toMatchSnapshot();
-			});
-		},
-	);
-
-	// `for-of` loops with hooks have a multi-iteration bug shape: each
-	// iteration becomes a sibling component, so post-loop reads of bindings
-	// the iteration body mutated would observe the parent's stale value.
-	// The lift wraps each iteration in a loop helper, threads an `isLast`
-	// prop computed from the index, and renders the tail helper inside the
-	// last iteration so it sees that iteration's post-`useState` locals.
-	// When the iteration source is empty, the tail helper is rendered
-	// directly so the source's tail still runs once.
-	//
-	// We also hoist the helper declaration above the loop (so it isn't
-	// re-bound on every iteration) and normalize the source via
-	// `Array.isArray(src) ? src : Array.from(src)` so any Iterable / ArrayLike
-	// works. Loop-scoped param types are derived from the iteration source
-	// via TS `type` aliases.
-	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] hoisted helper and tail lift for for-of-with-hook`,
-		() => {
-			it('lifts the tail of a for-of with hooks (prop iteration source)', () => {
-				const { code } = compile(
-					`export component App({ items }: { items: number[] }) {
-						let last: number | undefined;
-						for (const item of items; index i) {
-							[last] = useState(item);
-							<div key={i}>{last}</div>
-						}
-						console.log(last);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('renders the lifted tail when the last hook iteration continues', () => {
-				const { code } = compile(
-					`export component App({ items }: { items: number[] }) {
-						let last: number | undefined;
-						for (const item of items; index i) {
-							[last] = useState(item);
-							if (item === 0) continue
-							<div key={i}>{last}</div>
-						}
-						<span>{last}</span>
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).not.toContain('continue;');
-				expect(code).toContain('return <span>{last}</span>;');
-				expect(code).toMatch(
-					/if \(item === 0\) \{\s+return _tsrx_isLast_\d+ \? <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/> : null;\s+\}/,
-				);
-				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
-				);
-			});
-
-			it('renders the lifted tail when the last iteration continues before loop hooks', () => {
-				const { code } = compile(
-					`export component App() {
-						let last: number | undefined;
-						for (const item of [1, 2, 3]; index i) {
-							if (i === 2) continue
-							[last] = useState(item);
-							<div key={i}>{last}</div>
-						}
-						console.log(last);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).not.toContain('continue;');
-				expect(code).toContain('console.log(last);');
-				expect(code).toMatch(
-					/if \(i === 2\) \{[\s\S]*return [\s\S]*_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>/,
-				);
-				expect(code).toMatch(
-					/return <><div key=\{i\}>\{last\}<\/div>\{_tsrx_isLast_\d+ && <(?:\w+__)?StatementBodyHook\d+ last=\{last\} \/>}<\/>;/,
-				);
-			});
-
-			it('lifts the tail of a for-of with hooks (inline-literal iteration source)', () => {
-				const { code } = compile(
-					`export component App() {
-						let last: number | undefined;
-						for (const item of [1, 2, 3]; index i) {
-							[last] = useState(item);
-							<div key={i}>{last}</div>
-						}
-						console.log(last);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('lifts the tail across nested for-of-with-hooks', () => {
-				// Inner for-of's tail is `console.log('mid', last)` (lifted into
-				// its own helper called on the inner-last iteration). Outer
-				// for-of's tail is `console.log('end', last)` (lifted into a
-				// helper called on the outer-last iteration). The mid-tail flows
-				// the inner helper's local `last` forward; the end-tail flows
-				// the outer helper's local `last` forward.
-				const { code } = compile(
-					`export component App({ groups }: { groups: number[][] }) {
-						let last: number | undefined;
-						for (const group of groups) {
-							for (const item of group) {
-								[last] = useState(item);
-								<div key={item}>{last}</div>
 							}
-							console.log('mid', last);
-						}
-						console.log('end', last);
-					}`,
-					'App.tsrx',
-				);
+							<span>{'after'}</span>
+						}`,
+				'App.tsrx',
+			);
 
-				expect(code).toMatchSnapshot();
+			expect(code).toContain('useState(100)');
+			expect(code).toContain('StatementBodyHook');
+			expect(code).toContain('after');
+		});
+
+		it('allows conditional hook callbacks to read outer bindings', () => {
+			const { code } = compile(
+				`export component App({ show, value }: { show: boolean; value: string }) {
+							const label = value.trim();
+							if (show) {
+								useEffect(() => {
+									console.log(label);
+								}, [label]);
+								<span>{label}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('useEffect(');
+			expect(code).toContain('label={label}');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
+			const { code } = compile(
+				`export component App({ show, value }: { show: boolean; value: string }) {
+							if (show) {
+								let latest: string | undefined;
+								useEffect(() => {
+									latest = value;
+								}, [value]);
+								<span>{value}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('latest = value');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('allows conditional hook callbacks to mutate module-level bindings', () => {
+			const { code } = compile(
+				`let effectCount = 0;
+
+						export component App({ show }: { show: boolean }) {
+							if (show) {
+								useEffect(() => {
+									effectCount++;
+								}, []);
+								<span>{effectCount}</span>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('effectCount++');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('rejects conditional hook callbacks that assign to parent-scope bindings', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, value }: { show: boolean; value: string }) {
+								let latest: string | undefined;
+								if (show) {
+									useEffect(() => {
+										latest = value;
+									}, [value]);
+									<span>{value}</span>
+								}
+								console.log(latest);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useEffect callback mutates `latest`/);
+		});
+
+		it('rejects conditional hook cleanup callbacks that mutate parent-scope bindings', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let cleanupCount = 0;
+								if (show) {
+									useEffect(() => {
+										return () => {
+											cleanupCount++;
+										};
+									}, []);
+									<span>{'visible'}</span>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useEffect callback mutates `cleanupCount`/);
+		});
+
+		it('rejects assigning hook results to bindings outside an extracted if branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let x: number | undefined;
+								if (show) {
+									[x] = useState(100);
+									<div>{x}</div>
+								}
+								console.log(x);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('rejects assigning hook-derived values to bindings outside an extracted branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let x: number | undefined;
+								if (show) {
+									const [state] = useState(100);
+									x = state;
+									<div>{state}</div>
+								}
+								console.log(x);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/hook result is assigned to `x`/);
+		});
+
+		it('rejects compound assigning hook results to bindings outside an extracted branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let total = 0;
+								if (show) {
+									total += useCustomNumber();
+									<div>{total}</div>
+								}
+								console.log(total);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useCustomNumber result is assigned to `total`/);
+		});
+
+		it('rejects compound assigning hook-derived locals to bindings outside an extracted branch', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let total = 0;
+								if (show) {
+									const delta = useCustomNumber();
+									total += delta;
+									<div>{total}</div>
+								}
+								console.log(total);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/hook result is assigned to `total`/);
+		});
+
+		it('rejects hook-result assignments nested inside assignment targets', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let key = 0;
+								const values: Record<number, string> = {};
+								if (show) {
+									values[key = useCustomNumber()] = 'active';
+									<div>{values[key]}</div>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useCustomNumber result is assigned to `key`/);
+		});
+
+		it('rejects assigning hook results to outer bindings inside <tsrx> expressions', () => {
+			expect(() =>
+				compile(
+					`function App({ show }: { show: boolean }) {
+								let x: number | undefined;
+								return <tsrx>
+									if (show) {
+										[x] = useState(100);
+										<div>{x}</div>
+									}
+								</tsrx>;
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+	});
+
+	describe.runIf(['react', 'preact'].includes(name))(
+		`[${name}] hook isolation outer binding diagnostics`,
+		() => {
+			it('rejects assigning hook results to outer bindings inside switch cases', () => {
+				expect(() =>
+					compile(
+						`export component App({ kind }: { kind: 'a' | 'b' }) {
+								let x: number | undefined;
+								switch (kind) {
+									case 'a':
+										[x] = useState(100);
+										<div>{x}</div>
+										break;
+									case 'b':
+										<span>{'b'}</span>
+										break;
+								}
+								console.log(x);
+							}`,
+						'App.tsrx',
+					),
+				).toThrow(/useState result is assigned to `x`/);
 			});
 
-			it('lifts the tail across sibling for-of-with-hooks at the same level', () => {
-				// Both for-ofs have hooks, so each gets its own loop helper. The
-				// trigger fires on the first for-of, lifting `[second-for-of,
-				// console.log]` into a tail helper. That tail helper itself
-				// recursively triggers on the inner for-of, lifting
-				// `[console.log]` into a deeper tail helper.
+			it('allows switch case hook results that stay local', () => {
 				const { code } = compile(
-					`export component App({ as, bs }: { as: number[], bs: number[] }) {
-						let lastA: number | undefined;
-						let lastB: number | undefined;
-						for (const a of as) {
-							[lastA] = useState(a);
-							<div key={a}>{lastA}</div>
-						}
-						for (const b of bs) {
-							[lastB] = useState(b);
-							<span key={b}>{lastB}</span>
-						}
-						console.log(lastA, lastB);
-					}`,
+					`export component App({ kind }: { kind: 'a' | 'b' }) {
+							switch (kind) {
+								case 'a':
+									const [x] = useState(100);
+									<div>{x}</div>
+									break;
+								case 'b':
+									<span>{'b'}</span>
+									break;
+							}
+						}`,
 					'App.tsrx',
 				);
 
-				expect(code).toMatchSnapshot();
-			});
-
-			it('hoists the helper without a tail lift when nothing follows the loop', () => {
-				// No tail means no synthesizing of `isLast` or empty fallback —
-				// just the hoist + Array.isArray-check + .map.
-				const { code } = compile(
-					`export component App({ items }: { items: string[] }) {
-						for (const name of items) {
-							const [val] = useState(name);
-							<div key={name}>{val}</div>
-						}
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
-			});
-
-			it('falls back to the existing transform for non-hook for-of loops', () => {
-				// Without hooks in the body, the lift trigger doesn't fire and
-				// the existing `items.map(...)` shape is preserved.
-				const { code } = compile(
-					`export component App({ items }: { items: number[] }) {
-						for (const item of items; index i) {
-							<div key={i}>{item}</div>
-						}
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
+				expect(code).toContain('useState(100)');
+				expect(code).toContain('StatementBodyHook');
 			});
 		},
 	);
 
-	// Try statements with hooks in the try (or catch) body have the same
-	// parent-reads-stale problem as if/switch: the body is wrapped into a
-	// helper component, so post-try statements that read bindings the body
-	// mutated observe the parent's frozen value. These snapshots capture the
-	// current shape (potentially buggy) so we can see what needs fixing.
+	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation in loops`, () => {
+		it('rejects assigning hook results to outer bindings inside for-of bodies', () => {
+			expect(() =>
+				compile(
+					`export component App({ items }: { items: number[] }) {
+								let last: number | undefined;
+								for (const item of items; index i) {
+									[last] = useState(item);
+									<div key={i}>{last}</div>
+								}
+								console.log(last);
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `last`/);
+		});
+
+		it('rejects hook results assigned to an outer binding after a for-of with a same-named const declaration', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, items }: { show: boolean; items: number[] }) {
+								let x: number | undefined;
+								if (show) {
+									for (const x of items) {
+										<div key={x}>{x}</div>
+									}
+									[x] = useState(0);
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('allows hook usage inside a for-of body whose let-declared loop var shadows an outer binding', () => {
+			const { code } = compile(
+				`export component App({ show, items }: { show: boolean; items: number[] }) {
+							let x: number | undefined;
+							if (show) {
+								for (let x of items) {
+									const [val] = useState(x);
+									<div key={x}>{val}</div>
+								}
+							}
+						}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('useState(x)');
+			expect(code).toContain('StatementBodyHook');
+		});
+
+		it('rejects for-of whose hook iterable is bound into an outer identifier', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let x: number | undefined;
+								if (show) {
+									for (x of useState(0)) {
+										<div>{x}</div>
+									}
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('rejects for-of whose hook iterable is bound into an outer destructuring target', () => {
+			expect(() =>
+				compile(
+					`export component App({ show }: { show: boolean }) {
+								let a: number | undefined;
+								let b: number | undefined;
+								if (show) {
+									for ([a, b] of [useState(0)]) {
+										<div>{a}{b}</div>
+									}
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `a`, `b`/);
+		});
+
+		it('rejects hook results assigned to a for-of assignment-target outer binding', () => {
+			expect(() =>
+				compile(
+					`export component App({ show, items }: { show: boolean; items: number[] }) {
+								let x: number | undefined;
+								if (show) {
+									for (x of items) {
+										console.log(x);
+									}
+									[x] = useState(0);
+									<div>{x}</div>
+								}
+							}`,
+					'App.tsrx',
+				),
+			).toThrow(/useState result is assigned to `x`/);
+		});
+
+		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: string[] }) {
+							for (const name of items) {
+								const [val] = useState(name);
+								<div key={name}>{val}</div>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('useState(name)');
+			expect(code).toContain('StatementBodyHook');
+			expect(code).toContain('__map_iterable(');
+		});
+
+		it('falls back to the existing transform for non-hook for-of loops', () => {
+			const { code } = compile(
+				`export component App({ items }: { items: number[] }) {
+							for (const item of items; index i) {
+								<div key={i}>{item}</div>
+							}
+						}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('StatementBodyHook');
+			expect(code).toContain('__map_iterable(items, (item, i)');
+		});
+	});
+
 	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] continuation lift for try-with-hook`,
+		`[${name}] hook isolation in try blocks`,
 		() => {
-			it('try/catch with a hook in the try body and a tail that reads the mutated outer', () => {
-				const { code } = compile(
-					`export component App({ load }: { load: () => number }) {
-						let data: number | undefined;
-						try {
-							[data] = useState(load());
-							<div>{data}</div>
-						} catch (err) {
-							<div>{'error'}</div>
-						}
-						console.log(data);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
+			it('rejects assigning hook results to outer bindings inside try bodies', () => {
+				expect(() =>
+					compile(
+						`export component App({ load }: { load: () => number }) {
+								let data: number | undefined;
+								try {
+									[data] = useState(load());
+									<div>{data}</div>
+								} catch (err) {
+									<div>{'error'}</div>
+								}
+								console.log(data);
+							}`,
+						'App.tsrx',
+					),
+				).toThrow(/useState result is assigned to `data`/);
 			});
 
-			it('try/pending/catch with a hook in the try body and a tail that reads the mutated outer', () => {
-				const { code } = compile(
-					`export component App({ load }: { load: () => number }) {
-						let data: number | undefined;
-						try {
-							[data] = useState(load());
-							<div>{data}</div>
-						} pending {
-							<p>{'loading'}</p>
-						} catch (err) {
-							<div>{'error'}</div>
-						}
-						console.log(data);
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
+			it('rejects assigning hook results to outer bindings inside catch bodies', () => {
+				expect(() =>
+					compile(
+						`export component App({ load }: { load: () => number }) {
+								let attempt: number | undefined;
+								try {
+									<div>{load()}</div>
+								} catch (err) {
+									[attempt] = useState(0);
+									<div>{attempt}</div>
+								}
+								console.log(attempt);
+							}`,
+						'App.tsrx',
+					),
+				).toThrow(/useState result is assigned to `attempt`/);
 			});
 
-			it('try/catch with a hook in the catch body and a tail that reads the mutated outer', () => {
+			it('allows try-body hook results that stay local', () => {
 				const { code } = compile(
 					`export component App({ load }: { load: () => number }) {
-						let attempt: number | undefined;
-						try {
-							<div>{load()}</div>
-						} catch (err) {
-							[attempt] = useState(0);
-							<div>{attempt}</div>
-						}
-						console.log(attempt);
-					}`,
+							try {
+								const [data] = useState(load());
+								<div>{data}</div>
+							} catch (err) {
+								<div>{'error'}</div>
+							}
+						}`,
 					'App.tsrx',
 				);
 
-				expect(code).toMatchSnapshot();
-			});
-
-			it('try with a hook but no statements after it (no tail to lift)', () => {
-				const { code } = compile(
-					`export component App({ load }: { load: () => number }) {
-						try {
-							const [data] = useState(load());
-							<div>{data}</div>
-						} catch (err) {
-							<div>{'error'}</div>
-						}
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toMatchSnapshot();
+				expect(code).toContain('useState(load())');
+				expect(code).toContain('StatementBodyHook');
 			});
 
 			it('try without hooks falls back to the existing transform', () => {
 				const { code } = compile(
 					`export component App({ load }: { load: () => number }) {
-						try {
-							<div>{load()}</div>
-						} catch (err) {
-							<div>{'error'}</div>
-						}
-					}`,
+							try {
+								<div>{load()}</div>
+							} catch (err) {
+								<div>{'error'}</div>
+							}
+						}`,
 					'App.tsrx',
 				);
 
-				expect(code).toMatchSnapshot();
+				expect(code).not.toContain('StatementBodyHook');
+				expect(code).toContain('TsrxErrorBoundary');
 			});
 		},
 	);

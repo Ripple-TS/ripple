@@ -292,34 +292,6 @@ export class TSRXVirtualCode {
 			logError('Ripple compilation failed for', this.fileName, ':', error);
 			if (process.env.TSRX_TSC === 'true') {
 				logTSRXErrors(this.fileName, [error]);
-
-				// In tsrx-tsc, swap in a best-effort transpile so we don't fall through
-				// to the raw-source fallback below (which would produce a flood of
-				// bogus TS diagnostics in the CLI output, drowning the real error).
-				// We surface the loose-mode usage errors collected by `compile` so
-				// the user still sees the same non-fatal diagnostics they'd get on
-				// a successful loose-mode compile.
-				const fallback = getFallbackGeneratedCode(this.tsrx, newCode, this.fileName);
-				if (fallback !== undefined) {
-					logTSRXErrors(this.fileName, fallback.errors);
-					transpiled = {
-						code: fallback.code,
-						mappings: [
-							{
-								sourceOffsets: [0],
-								generatedOffsets: [0],
-								lengths: [newCode.length],
-								generatedLengths: [fallback.code.length],
-								data: {
-									verification: false,
-									customData: {},
-								},
-							},
-						],
-						errors: fallback.errors,
-						cssMappings: [],
-					};
-				}
 			}
 			error.type = 'fatal';
 			this.fatalErrors.push(error);
@@ -394,17 +366,12 @@ export class TSRXVirtualCode {
 
 			this.originalCode = newCode;
 
-			// In the editor we feed the raw source back as the generated code, with
-			// verification enabled. This lets TS parse it and surface errors at the
-			// broken construct itself — important when a Ripple compile error has no
-			// `pos` (or an unreliable one), since the dedicated diagnostic plugin
-			// would otherwise pin the error to offset 0 (top of file, off-screen)
-			// and the user would have no signal pointing at the actual problem.
-			//
-			// In tsrx-tsc we'd rather emit a clean TS-valid placeholder, but that
-			// path is handled in the catch above (which sets `transpiled` from
-			// `getFallbackGeneratedCode`), so by the time we reach this branch we're
-			// in editor context and want the raw-source behavior.
+			// Feed the raw source back as the generated code, with verification
+			// enabled. This lets TS parse it and surface errors at the broken
+			// construct itself — important when a Ripple compile error has no `pos`
+			// (or an unreliable one), since the dedicated diagnostic plugin would
+			// otherwise pin the error to offset 0 (top of file, off-screen) and the
+			// user would have no signal pointing at the actual problem.
 			this.generatedCode = newCode;
 
 			// Create 1:1 mappings for the entire content
@@ -498,26 +465,6 @@ function logTSRXErrors(file_name, errors) {
 		}
 		loggedCompilationFailures.add(key);
 		console.error(`[tsrx-tsc] ${file_name}: ${message}`);
-	}
-}
-
-/**
- * @param {TSRXCompilerModule} tsrx
- * @param {string} source
- * @param {string} file_name
- * @returns {{ code: string, errors: TSRXCompileError[] } | undefined}
- */
-function getFallbackGeneratedCode(tsrx, source, file_name) {
-	if (typeof tsrx.compile !== 'function') {
-		return;
-	}
-	try {
-		const result = tsrx.compile(source, file_name, { loose: true });
-		if (typeof result?.code === 'string') {
-			return { code: result.code, errors: result?.errors ?? [] };
-		}
-	} catch (error) {
-		logError('Fallback compilation failed for', file_name, ':', error);
 	}
 }
 

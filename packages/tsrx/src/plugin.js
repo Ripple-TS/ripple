@@ -20,6 +20,39 @@ import { DIAGNOSTIC_CODES } from './diagnostics.js';
 const JSX_EXPRESSION_VALUE_ERROR =
 	'JSX elements cannot be used as expressions. Wrap JSX with `<>...</>` or `<tsx>...</tsx>`, wrap TSRX templates with `<tsrx>...</tsrx>`, or use elements as statements within a component.';
 
+const CharCode = Object.freeze({
+	tab: 9,
+	lineFeed: 10,
+	carriageReturn: 13,
+	space: 32,
+	doubleQuote: 34,
+	dollar: 36,
+	ampersand: 38,
+	singleQuote: 39,
+	openParen: 40,
+	closeParen: 41,
+	asterisk: 42,
+	slash: 47,
+	colon: 58,
+	semicolon: 59,
+	lessThan: 60,
+	equals: 61,
+	greaterThan: 62,
+	at: 64,
+	digit0: 48,
+	digit9: 57,
+	uppercaseA: 65,
+	uppercaseZ: 90,
+	openBracket: 91,
+	backslash: 92,
+	underscore: 95,
+	backtick: 96,
+	lowercaseA: 97,
+	lowercaseZ: 122,
+	openBrace: 123,
+	closeBrace: 125,
+});
+
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
 /** @type {WeakMap<Record<string, boolean>, Set<string>>} */
@@ -58,7 +91,13 @@ function get_argument_clash_reported_names(check_clashes) {
 function skip_whitespace_from(input, i) {
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
-		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+		if (
+			ch !== CharCode.space &&
+			ch !== CharCode.tab &&
+			ch !== CharCode.lineFeed &&
+			ch !== CharCode.carriageReturn
+		)
+			break;
 		i++;
 	}
 	return i;
@@ -75,7 +114,7 @@ function skip_string_from(input, i, quote) {
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
 		i++;
-		if (ch === 92)
+		if (ch === CharCode.backslash)
 			i++; // backslash escape
 		else if (ch === quote) return i;
 	}
@@ -95,7 +134,7 @@ function scan_balanced_from(input, i, open, close) {
 	i++;
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
-		if (ch === 34 || ch === 39 || ch === 96) {
+		if (ch === CharCode.doubleQuote || ch === CharCode.singleQuote || ch === CharCode.backtick) {
 			i = skip_string_from(input, i, ch);
 			continue;
 		}
@@ -114,47 +153,50 @@ function scan_balanced_from(input, i, open, close) {
  * @param {number} pos
  */
 function looks_like_generic_arrow(input, pos) {
-	if (input.charCodeAt(pos) !== 60) return false;
+	if (input.charCodeAt(pos) !== CharCode.lessThan) return false;
 
 	// Match the angle brackets, skipping over string literals.
 	let i = pos + 1;
 	let depth = 1;
 	while (i < input.length) {
 		const ch = input.charCodeAt(i);
-		if (ch === 34 || ch === 39 || ch === 96) {
+		if (ch === CharCode.doubleQuote || ch === CharCode.singleQuote || ch === CharCode.backtick) {
 			i = skip_string_from(input, i, ch);
 			continue;
 		}
-		if (ch === 60) depth++;
-		else if (ch === 62 && --depth === 0) break;
+		if (ch === CharCode.lessThan) depth++;
+		else if (ch === CharCode.greaterThan && --depth === 0) break;
 		i++;
 	}
 	if (depth !== 0) return false;
 
 	// `>` must be followed by `(...)`.
 	i = skip_whitespace_from(input, i + 1);
-	if (input.charCodeAt(i) !== 40) return false;
-	i = scan_balanced_from(input, i, 40, 41);
+	if (input.charCodeAt(i) !== CharCode.openParen) return false;
+	i = scan_balanced_from(input, i, CharCode.openParen, CharCode.closeParen);
 	if (i === -1) return false;
 
 	// Optional `: ReturnType` before `=>`.
 	i = skip_whitespace_from(input, i);
-	if (input.charCodeAt(i) === 58) {
+	if (input.charCodeAt(i) === CharCode.colon) {
 		i++;
 		while (i < input.length) {
 			const ch = input.charCodeAt(i);
-			if (ch === 34 || ch === 39 || ch === 96) {
+			if (ch === CharCode.doubleQuote || ch === CharCode.singleQuote || ch === CharCode.backtick) {
 				i = skip_string_from(input, i, ch);
 				continue;
 			}
-			if (ch === 61 && input.charCodeAt(i + 1) === 62) return true;
-			if (ch === 59 || ch === 123 || ch === 125) return false;
+			if (ch === CharCode.equals && input.charCodeAt(i + 1) === CharCode.greaterThan) return true;
+			if (ch === CharCode.semicolon || ch === CharCode.openBrace || ch === CharCode.closeBrace)
+				return false;
 			i++;
 		}
 		return false;
 	}
 
-	return input.charCodeAt(i) === 61 && input.charCodeAt(i + 1) === 62;
+	return (
+		input.charCodeAt(i) === CharCode.equals && input.charCodeAt(i + 1) === CharCode.greaterThan
+	);
 }
 
 /**
@@ -176,7 +218,13 @@ function previous_word_before(input, pos) {
 	let i = pos - 1;
 	while (i >= 0) {
 		const ch = input.charCodeAt(i);
-		if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) break;
+		if (
+			ch !== CharCode.space &&
+			ch !== CharCode.tab &&
+			ch !== CharCode.lineFeed &&
+			ch !== CharCode.carriageReturn
+		)
+			break;
 		i--;
 	}
 	const end = i + 1;
@@ -224,6 +272,7 @@ export function TSRXPlugin(config) {
 			#filename = null;
 			#componentDepth = 0;
 			#functionBodyDepth = 0;
+			#allowExpressionContainerTrailingSemicolon = false;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -265,7 +314,12 @@ export function TSRXPlugin(config) {
 				let index = this.pos - 1;
 				while (index >= 0) {
 					const ch = this.input.charCodeAt(index);
-					if (ch !== 32 && ch !== 9 && ch !== 10 && ch !== 13) {
+					if (
+						ch !== CharCode.space &&
+						ch !== CharCode.tab &&
+						ch !== CharCode.lineFeed &&
+						ch !== CharCode.carriageReturn
+					) {
 						return ch;
 					}
 					index--;
@@ -352,7 +406,14 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseNativeTemplateExpressionContainer() {
-				const node = this.jsx_parseExpressionContainer();
+				const allow_trailing_semicolon = this.#allowExpressionContainerTrailingSemicolon;
+				this.#allowExpressionContainerTrailingSemicolon = true;
+				let node;
+				try {
+					node = this.jsx_parseExpressionContainer();
+				} finally {
+					this.#allowExpressionContainerTrailingSemicolon = allow_trailing_semicolon;
+				}
 				// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 				// but convert other expressions to native TSRX child nodes.
 				if (node.expression.type !== 'JSXEmptyExpression') {
@@ -446,7 +507,7 @@ export function TSRXPlugin(config) {
 				}
 
 				const after = this.input.charCodeAt(this.pos + 4);
-				return after === 62 /* > */;
+				return after === CharCode.greaterThan;
 			}
 
 			#parseTsxIslandText() {
@@ -458,7 +519,7 @@ export function TSRXPlugin(config) {
 					const ch = this.input.charCodeAt(this.pos);
 
 					// Stop at opening tag, expression, or the component-closing brace
-					if (ch === 60 || ch === 123 || ch === 125) {
+					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
 						break;
 					}
 
@@ -488,24 +549,27 @@ export function TSRXPlugin(config) {
 				// fragment props like `content={<></>}` still need the JSX context.
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
-					if (ch === 32 || ch === 9) {
+					if (ch === CharCode.space || ch === CharCode.tab) {
 						index++;
-					} else if (ch === 10 || ch === 13) {
+					} else if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) {
 						has_newline = true;
 						index++;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+					} else if (
+						ch === CharCode.slash &&
+						this.input.charCodeAt(index + 1) === CharCode.asterisk
+					) {
 						const end = this.input.indexOf('*/', index + 2);
 						const comment_end = end === -1 ? this.input.length : end + 2;
 						if (this.input.slice(index, comment_end).match(regex_newline_characters)) {
 							has_newline = true;
 						}
 						index = comment_end;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+					} else if (ch === CharCode.slash && this.input.charCodeAt(index + 1) === CharCode.slash) {
 						has_newline = true;
 						index += 2;
 						while (index < this.input.length) {
 							const comment_ch = this.input.charCodeAt(index);
-							if (comment_ch === 10 || comment_ch === 13) break;
+							if (comment_ch === CharCode.lineFeed || comment_ch === CharCode.carriageReturn) break;
 							index++;
 						}
 					} else {
@@ -513,7 +577,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (!has_newline || this.input.charCodeAt(index) !== 123) {
+				if (!has_newline || this.input.charCodeAt(index) !== CharCode.openBrace) {
 					return;
 				}
 
@@ -536,16 +600,24 @@ export function TSRXPlugin(config) {
 			#skipWhitespaceAndComments(index) {
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
-					if (ch === 32 || ch === 9 || ch === 10 || ch === 13) {
+					if (
+						ch === CharCode.space ||
+						ch === CharCode.tab ||
+						ch === CharCode.lineFeed ||
+						ch === CharCode.carriageReturn
+					) {
 						index++;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 42) {
+					} else if (
+						ch === CharCode.slash &&
+						this.input.charCodeAt(index + 1) === CharCode.asterisk
+					) {
 						const end = this.input.indexOf('*/', index + 2);
 						index = end === -1 ? this.input.length : end + 2;
-					} else if (ch === 47 && this.input.charCodeAt(index + 1) === 47) {
+					} else if (ch === CharCode.slash && this.input.charCodeAt(index + 1) === CharCode.slash) {
 						index += 2;
 						while (index < this.input.length) {
 							const comment_ch = this.input.charCodeAt(index);
-							if (comment_ch === 10 || comment_ch === 13) break;
+							if (comment_ch === CharCode.lineFeed || comment_ch === CharCode.carriageReturn) break;
 							index++;
 						}
 					} else {
@@ -561,7 +633,7 @@ export function TSRXPlugin(config) {
 				let count = 0;
 				while (index < this.input.length) {
 					index = this.#skipWhitespaceAndComments(index);
-					if (this.input.charCodeAt(index) !== 125) break;
+					if (this.input.charCodeAt(index) !== CharCode.closeBrace) break;
 					count++;
 					index++;
 				}
@@ -644,6 +716,18 @@ export function TSRXPlugin(config) {
 					ctx.length = ci - 1;
 					return;
 				}
+				// Statement-bodied `<tsrx>` attributes can leave the attribute's
+				// expression contexts above the still-open JSX tag context. Strip
+				// those so a following `/>` stays in JSX opening-tag mode.
+				if (
+					this.type === tt.braceR &&
+					top === tstc.tc_expr &&
+					second === b_expr &&
+					ctx[ci - 2] === tstc.tc_oTag
+				) {
+					ctx.length = ci - 1;
+					return;
+				}
 				// Closing token after the template at expression position. For `}`
 				// only pop if it actually closes this `b_expr` — otherwise the
 				// brace targets an inner callback/object body that should pop it
@@ -681,11 +765,11 @@ export function TSRXPlugin(config) {
 				const prev = this.#previousNonWhitespaceChar();
 				return (
 					prev === null ||
-					prev === 34 || // "
-					prev === 59 || // ;
-					prev === 62 || // >
-					(prev === 123 && this.#allowDoubleQuotedTextChildAfterBrace) || // {
-					prev === 125 // }
+					prev === CharCode.doubleQuote ||
+					prev === CharCode.semicolon ||
+					prev === CharCode.greaterThan ||
+					(prev === CharCode.openBrace && this.#allowDoubleQuotedTextChildAfterBrace) ||
+					prev === CharCode.closeBrace
 				);
 			}
 
@@ -698,13 +782,13 @@ export function TSRXPlugin(config) {
 				while (this.pos < this.input.length) {
 					const ch = this.input.charCodeAt(this.pos);
 
-					if (ch === 34 /* " */) {
+					if (ch === CharCode.doubleQuote) {
 						out += this.input.slice(chunkStart, this.pos);
 						this.pos++;
 						return this.finishToken(tt.string, out);
 					}
 
-					if (ch === 38 /* & */) {
+					if (ch === CharCode.ampersand) {
 						out += this.input.slice(chunkStart, this.pos);
 						out += this.jsx_readEntity();
 						chunkStart = this.pos;
@@ -1030,7 +1114,7 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['readToken']}
 			 */
 			readToken(code) {
-				if (code === 60 && looks_like_generic_arrow(this.input, this.pos)) {
+				if (code === CharCode.lessThan && looks_like_generic_arrow(this.input, this.pos)) {
 					++this.pos;
 					return this.finishToken(tt.relational, '<');
 				}
@@ -1042,7 +1126,19 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
-				if (code === 34) {
+				// Callback props that return `<tsrx>...</tsrx>` without a semicolon can
+				// leave the attribute expression context above the still-open tag. Drop
+				// it before tokenizing `/>`, otherwise Acorn treats `/` as a regexp.
+				if (
+					code === CharCode.slash &&
+					this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan &&
+					this.curContext() === b_expr &&
+					this.context[this.context.length - 2] === tstc.tc_oTag
+				) {
+					this.context.pop();
+					this.exprAllowed = false;
+				}
+				if (code === CharCode.doubleQuote) {
 					const is_double_quoted_text_child = this.#isDoubleQuotedTextChildStart();
 					this.#allowDoubleQuotedTextChildAfterBrace = false;
 					if (is_double_quoted_text_child) {
@@ -1052,11 +1148,11 @@ export function TSRXPlugin(config) {
 					this.#allowDoubleQuotedTextChildAfterBrace = false;
 				}
 
-				if (code !== 60) {
+				if (code !== CharCode.lessThan) {
 					this.#allowTagStartAfterDoubleQuotedText = false;
 				}
 
-				if (code === 60) {
+				if (code === CharCode.lessThan) {
 					// < character
 					const inComponent = this.#isInsideComponentTemplate();
 					/** @type {number | null} */
@@ -1073,7 +1169,7 @@ export function TSRXPlugin(config) {
 					// Skip whitespace backwards
 					while (lookback >= 0) {
 						const ch = this.input.charCodeAt(lookback);
-						if (ch !== 32 && ch !== 9) break; // not space or tab
+						if (ch !== CharCode.space && ch !== CharCode.tab) break; // not space or tab
 						lookback--;
 					}
 
@@ -1085,12 +1181,12 @@ export function TSRXPlugin(config) {
 						// If preceded by identifier character (letter, digit, _, $) or closing paren,
 						// this is likely TypeScript generics, not JSX
 						const isIdentifierChar =
-							(prevChar >= 65 && prevChar <= 90) || // A-Z
-							(prevChar >= 97 && prevChar <= 122) || // a-z
-							(prevChar >= 48 && prevChar <= 57) || // 0-9
-							prevChar === 95 || // _
-							prevChar === 36 || // $
-							prevChar === 41; // )
+							(prevChar >= CharCode.uppercaseA && prevChar <= CharCode.uppercaseZ) ||
+							(prevChar >= CharCode.lowercaseA && prevChar <= CharCode.lowercaseZ) ||
+							(prevChar >= CharCode.digit0 && prevChar <= CharCode.digit9) ||
+							prevChar === CharCode.underscore ||
+							prevChar === CharCode.dollar ||
+							prevChar === CharCode.closeParen;
 
 						if (isIdentifierChar) {
 							return super.getTokenFromCode(code);
@@ -1105,23 +1201,26 @@ export function TSRXPlugin(config) {
 					const nextChar =
 						this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
 					const isWhitespaceAfterLt =
-						nextChar === 32 || nextChar === 9 || nextChar === 10 || nextChar === 13;
+						nextChar === CharCode.space ||
+						nextChar === CharCode.tab ||
+						nextChar === CharCode.lineFeed ||
+						nextChar === CharCode.carriageReturn;
 					const isTagLikeAfterLt =
 						!isWhitespaceAfterLt &&
-						(nextChar === 47 || // '/'
-							nextChar === 62 || // '>' (fragments: <>)
-							nextChar === 64 || // '@'
-							nextChar === 36 || // '$'
-							nextChar === 95 || // '_'
-							(nextChar >= 65 && nextChar <= 90) || // A-Z
-							(nextChar >= 97 && nextChar <= 122)); // a-z
+						(nextChar === CharCode.slash ||
+							nextChar === CharCode.greaterThan ||
+							nextChar === CharCode.at ||
+							nextChar === CharCode.dollar ||
+							nextChar === CharCode.underscore ||
+							(nextChar >= CharCode.uppercaseA && nextChar <= CharCode.uppercaseZ) ||
+							(nextChar >= CharCode.lowercaseA && nextChar <= CharCode.lowercaseZ));
 					const prevAllowsTagStart =
 						prevNonWhitespaceChar === null ||
-						prevNonWhitespaceChar === 10 || // '\n'
-						prevNonWhitespaceChar === 13 || // '\r'
-						prevNonWhitespaceChar === 123 || // '{'
-						prevNonWhitespaceChar === 125 || // '}'
-						prevNonWhitespaceChar === 62; // '>'
+						prevNonWhitespaceChar === CharCode.lineFeed || // '\n'
+						prevNonWhitespaceChar === CharCode.carriageReturn || // '\r'
+						prevNonWhitespaceChar === CharCode.openBrace ||
+						prevNonWhitespaceChar === CharCode.closeBrace ||
+						prevNonWhitespaceChar === CharCode.greaterThan;
 
 					if (!inComponent && prevAllowsTagStart && isTagLikeAfterLt) {
 						++this.pos;
@@ -1133,10 +1232,10 @@ export function TSRXPlugin(config) {
 						// a newline/indentation before the next '<'. This is important for inputs
 						// like `<div />` and `</div><style>...</style>` which Prettier formats.
 						if (
-							(prevNonWhitespaceChar === 34 /* '"' */ &&
+							(prevNonWhitespaceChar === CharCode.doubleQuote &&
 								this.#allowTagStartAfterDoubleQuotedText) ||
-							prevNonWhitespaceChar === 123 /* '{' */ ||
-							prevNonWhitespaceChar === 62 /* '>' */
+							prevNonWhitespaceChar === CharCode.openBrace ||
+							prevNonWhitespaceChar === CharCode.greaterThan
 						) {
 							if (!isWhitespaceAfterLt) {
 								this.#allowTagStartAfterDoubleQuotedText = false;
@@ -1152,8 +1251,8 @@ export function TSRXPlugin(config) {
 						let lineStart = this.pos - 1;
 						while (
 							lineStart >= 0 &&
-							this.input.charCodeAt(lineStart) !== 10 &&
-							this.input.charCodeAt(lineStart) !== 13
+							this.input.charCodeAt(lineStart) !== CharCode.lineFeed &&
+							this.input.charCodeAt(lineStart) !== CharCode.carriageReturn
 						) {
 							lineStart--;
 						}
@@ -1163,7 +1262,7 @@ export function TSRXPlugin(config) {
 						let allWhitespace = true;
 						for (let i = lineStart; i < this.pos; i++) {
 							const ch = this.input.charCodeAt(i);
-							if (ch !== 32 && ch !== 9) {
+							if (ch !== CharCode.space && ch !== CharCode.tab) {
 								allWhitespace = false;
 								break;
 							}
@@ -1185,7 +1284,7 @@ export function TSRXPlugin(config) {
 			/**
 			 * Override isLet to recognize `let &{` and `let &[` as variable declarations.
 			 * Acorn's isLet checks the char after `let` and only recognizes `{`, `[`, or identifiers.
-			 * The `&` char (38) is not in that set, so `let &{...}` would not be parsed as a declaration.
+			 * The `&` character is not in that set, so `let &{...}` would not be parsed as a declaration.
 			 * @type {Parse.Parser['isLet']}
 			 */
 			isLet(context) {
@@ -1197,9 +1296,9 @@ export function TSRXPlugin(config) {
 				const next = this.pos + match[0].length;
 				const nextCh = this.input.charCodeAt(next);
 				// If next char is &, check if char after & is { or [
-				if (nextCh === 38) {
+				if (nextCh === CharCode.ampersand) {
 					const afterAmp = this.input.charCodeAt(next + 1);
-					if (afterAmp === 123 || afterAmp === 91) return true;
+					if (afterAmp === CharCode.openBrace || afterAmp === CharCode.openBracket) return true;
 				}
 				return super.isLet(context);
 			}
@@ -1213,7 +1312,7 @@ export function TSRXPlugin(config) {
 				if (this.type === tt.bitwiseAND) {
 					// Check that the char immediately after & is { or [ (no whitespace)
 					const charAfterAmp = this.input.charCodeAt(this.end);
-					if (charAfterAmp === 123 || charAfterAmp === 91) {
+					if (charAfterAmp === CharCode.openBrace || charAfterAmp === CharCode.openBracket) {
 						// & directly followed by { or [ — lazy destructuring
 						this.next(); // consume &, now current token is { or [
 						const pattern = super.parseBindingAtom();
@@ -1771,6 +1870,16 @@ export function TSRXPlugin(config) {
 						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
 					);
 				}
+				if (this.#allowExpressionContainerTrailingSemicolon && this.type === tt.semi) {
+					if (this.#collect) {
+						this.#report_recoverable_error(
+							this.start,
+							'TSRX expression containers do not use semicolons. Remove this semicolon.',
+							DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+						);
+					}
+					this.next();
+				}
 				this.expect(tt.braceR);
 
 				return this.finishNode(node, 'JSXExpressionContainer');
@@ -2091,20 +2200,20 @@ export function TSRXPlugin(config) {
 					let ch = this.input.charCodeAt(this.pos);
 
 					switch (ch) {
-						case 60: // '<'
-						case 123: // '{'
+						case CharCode.lessThan:
+						case CharCode.openBrace:
 							// In JSX text mode, '<' and '{' always start a tag/expression container.
 							// `exprAllowed` can be false here due to surrounding parser state, but
 							// throwing breaks valid templates (e.g. sibling tags after a close).
-							if (ch === 60) {
+							if (ch === CharCode.lessThan) {
 								++this.pos;
 								return this.finishToken(tstt.jsxTagStart);
 							}
 							return this.getTokenFromCode(ch);
 
-						case 47: // '/'
+						case CharCode.slash:
 							// Check if this is a comment (// or /*)
-							if (this.input.charCodeAt(this.pos + 1) === 47) {
+							if (this.input.charCodeAt(this.pos + 1) === CharCode.slash) {
 								// '//'
 								// Line comment - handle it properly
 								const commentStart = this.pos;
@@ -2138,7 +2247,7 @@ export function TSRXPlugin(config) {
 
 								// Continue processing from current position
 								break;
-							} else if (this.input.charCodeAt(this.pos + 1) === 42) {
+							} else if (this.input.charCodeAt(this.pos + 1) === CharCode.asterisk) {
 								// '/*'
 								// Block comment - handle it properly
 								const commentStart = this.pos;
@@ -2148,8 +2257,8 @@ export function TSRXPlugin(config) {
 								let commentText = '';
 								while (this.pos < this.input.length - 1) {
 									if (
-										this.input.charCodeAt(this.pos) === 42 &&
-										this.input.charCodeAt(this.pos + 1) === 47
+										this.input.charCodeAt(this.pos) === CharCode.asterisk &&
+										this.input.charCodeAt(this.pos + 1) === CharCode.slash
 									) {
 										this.pos += 2;
 										break;
@@ -2184,17 +2293,16 @@ export function TSRXPlugin(config) {
 							this.exprAllowed = true;
 							return original.readToken.call(this, ch);
 
-						case 38: // '&'
+						case CharCode.ampersand:
 							out += this.input.slice(chunkStart, this.pos);
 							out += this.jsx_readEntity();
 							chunkStart = this.pos;
 							break;
 
-						case 62: // '>'
-						case 125: {
-							// '}'
+						case CharCode.greaterThan:
+						case CharCode.closeBrace: {
 							if (
-								ch === 125 &&
+								ch === CharCode.closeBrace &&
 								(this.#path.length === 0 ||
 									this.#path.at(-1)?.type === 'Component' ||
 									this.#path.at(-1)?.type === 'Element' ||
@@ -2208,7 +2316,7 @@ export function TSRXPlugin(config) {
 								'Unexpected token `' +
 									this.input[this.pos] +
 									'`. Did you mean `' +
-									(ch === 62 ? '&gt;' : '&rbrace;') +
+									(ch === CharCode.greaterThan ? '&gt;' : '&rbrace;') +
 									'` or ' +
 									'`{"' +
 									this.input[this.pos] +
@@ -2222,7 +2330,7 @@ export function TSRXPlugin(config) {
 								out += this.input.slice(chunkStart, this.pos);
 								out += this.jsx_readNewLine(true);
 								chunkStart = this.pos;
-							} else if (ch === 32 || ch === 9) {
+							} else if (ch === CharCode.space || ch === CharCode.tab) {
 								++this.pos;
 							} else {
 								this.#resetTokenStartToCurrentPosition();
@@ -2253,28 +2361,28 @@ export function TSRXPlugin(config) {
 				// Check if the element being parsed IS a <tsx>, <tsrx>, or <tsx:*> tag
 				// Current token is jsxTagStart, this.end is position after '<'
 				const tag_name_start = this.end;
-				const is_fragment_tag = this.input.charCodeAt(tag_name_start) === 62;
+				const is_fragment_tag = this.input.charCodeAt(tag_name_start) === CharCode.greaterThan;
 				const char_after_tsx = this.input.charCodeAt(tag_name_start + 3);
 				const char_after_tsrx = this.input.charCodeAt(tag_name_start + 4);
 				const is_tsx_tag =
 					this.input.startsWith('tsx', tag_name_start) &&
 					(tag_name_start + 3 >= this.input.length ||
-						char_after_tsx === 62 || // >
-						char_after_tsx === 47 || // / (self-closing)
-						char_after_tsx === 32 || // space
-						char_after_tsx === 9 || // tab
-						char_after_tsx === 10 || // newline
-						char_after_tsx === 13 || // carriage return
-						char_after_tsx === 58); // : (tsx:react)
+						char_after_tsx === CharCode.greaterThan ||
+						char_after_tsx === CharCode.slash ||
+						char_after_tsx === CharCode.space ||
+						char_after_tsx === CharCode.tab ||
+						char_after_tsx === CharCode.lineFeed ||
+						char_after_tsx === CharCode.carriageReturn ||
+						char_after_tsx === CharCode.colon);
 				const is_tsrx_tag =
 					this.input.startsWith('tsrx', tag_name_start) &&
 					(tag_name_start + 4 >= this.input.length ||
-						char_after_tsrx === 62 || // >
-						char_after_tsrx === 47 || // / (self-closing)
-						char_after_tsrx === 32 || // space
-						char_after_tsrx === 9 || // tab
-						char_after_tsrx === 10 || // newline
-						char_after_tsrx === 13); // carriage return
+						char_after_tsrx === CharCode.greaterThan ||
+						char_after_tsrx === CharCode.slash ||
+						char_after_tsrx === CharCode.space ||
+						char_after_tsrx === CharCode.tab ||
+						char_after_tsrx === CharCode.lineFeed ||
+						char_after_tsrx === CharCode.carriageReturn);
 
 				if (is_fragment_tag || is_tsx_tag || is_tsrx_tag) {
 					// Use Ripple's parseElement to create a Tsx/Tsrx/TsxCompat node.
@@ -2757,7 +2865,10 @@ export function TSRXPlugin(config) {
 				}
 				if (this.type === tt.braceL) {
 					body.push(this.#parseNativeTemplateExpressionContainer());
-				} else if (this.type === tt.string && this.input.charCodeAt(this.start) === 34) {
+				} else if (
+					this.type === tt.string &&
+					this.input.charCodeAt(this.start) === CharCode.doubleQuote
+				) {
 					body.push(this.parseDoubleQuotedTextChild());
 				} else if (this.type === tt.braceR) {
 					// Leaving a component/template body. We may still be in TSX/JSX tokenization
@@ -2770,8 +2881,8 @@ export function TSRXPlugin(config) {
 					return;
 				} else if (
 					this.type === tstt.jsxTagStart ||
-					(this.input.charCodeAt(this.start) === 60 /* < */ &&
-						this.input.charCodeAt(this.start + 1) === 47) /* / */
+					(this.input.charCodeAt(this.start) === CharCode.lessThan &&
+						this.input.charCodeAt(this.start + 1) === CharCode.slash)
 				) {
 					const startPos = this.start;
 					const startLoc = this.startLoc;
@@ -3052,7 +3163,7 @@ export function TSRXPlugin(config) {
 				if (
 					this.#functionBodyDepth === 0 &&
 					this.type === tt.string &&
-					this.input.charCodeAt(this.start) === 34 &&
+					this.input.charCodeAt(this.start) === CharCode.doubleQuote &&
 					(this.#path.at(-1)?.type === 'Component' || this.#path.at(-1)?.type === 'Element')
 				) {
 					this.pos = this.start;
@@ -3066,7 +3177,7 @@ export function TSRXPlugin(config) {
 				// e.g., &[data] = track(0); or &{x, y} = obj;
 				if (this.type === tt.bitwiseAND) {
 					const charAfterAmp = this.input.charCodeAt(this.end);
-					if (charAfterAmp === 123 || charAfterAmp === 91) {
+					if (charAfterAmp === CharCode.openBrace || charAfterAmp === CharCode.openBracket) {
 						const node = /** @type {AST.ExpressionStatement} */ (this.startNode());
 						const assign_node = /** @type {AST.AssignmentExpression} */ (this.startNode());
 						this.next(); // consume &

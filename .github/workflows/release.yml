@@ -1,4 +1,4 @@
-name: Release
+name: Release PR
 
 on:
   push:
@@ -11,13 +11,12 @@ concurrency:
 permissions: {}
 
 jobs:
-  release:
+  release-pr:
     if: github.repository == 'Ripple-TS/ripple'
     permissions:
       contents: write
-      id-token: write
       pull-requests: write
-    name: Release
+    name: Release PR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -26,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -40,12 +39,12 @@ jobs:
       - name: Disallow major and minor bumps in changesets
         run: pnpm changeset:check
 
-      - name: Create Release Pull Request or Publish to npm
+      - name: Create or update release pull request
         id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm changeset:version
-          publish: pnpm changeset:publish
+          commit: Version Packages
+          title: Version Packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true

@@ -493,12 +493,10 @@ describe('basic server > attribute rendering', () => {
 
 	it('render spread attributes', async () => {
 		component Basic() {
-			let &[attrs] = track<TestAttributes>(
-				{
-					class: 'initial',
-					id: 'test-1',
-				},
-			);
+			let &[attrs] = track<TestAttributes>({
+				class: 'initial',
+				id: 'test-1',
+			});
 
 			<div {...attrs}>{'Spread Attributes'}</div>
 		}

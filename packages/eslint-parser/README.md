@@ -3,21 +3,18 @@
 [![npm version](https://img.shields.io/npm/v/%40tsrx%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@tsrx/eslint-parser)
 [![npm downloads](https://img.shields.io/npm/dm/%40tsrx%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@tsrx/eslint-parser)
 
-ESLint parser for Ripple component files. This parser enables ESLint to understand
-and lint `.tsrx` files by default, while also supporting `.tsrx` files through
-Ripple's built-in compiler.
+ESLint parser for TSRX component files. This parser enables ESLint to understand
+and lint `.tsrx` files by default, using the shared TSRX parser from `@tsrx/core`.
 
 ## Installation
 
 ```bash
-pnpm add --save-dev '@tsrx/eslint-parser' ripple
+pnpm add --save-dev '@tsrx/eslint-parser'
 # or
-npm install --save-dev '@tsrx/eslint-parser' ripple
+npm install --save-dev '@tsrx/eslint-parser'
 # or
-yarn add --dev '@tsrx/eslint-parser' ripple
+yarn add --dev '@tsrx/eslint-parser'
 ```
-
-**Note:** This parser requires `ripple` as a peer dependency.
 
 ## Usage
 
@@ -25,20 +22,20 @@ yarn add --dev '@tsrx/eslint-parser' ripple
 
 ```js
 // eslint.config.js
-import rippleParser from '@tsrx/eslint-parser';
-import ripplePlugin from '@tsrx/eslint-plugin';
+import tsrxParser from '@tsrx/eslint-parser';
+import tsrxPlugin from '@tsrx/eslint-plugin';
 
 export default [
   {
-    files: ['**/*.{tsrx,ripple}'],
+    files: ['**/*.tsrx'],
     languageOptions: {
-      parser: rippleParser,
+      parser: tsrxParser,
     },
     plugins: {
-      ripple: ripplePlugin,
+      ripple: tsrxPlugin,
     },
     rules: {
-      ...ripplePlugin.configs.recommended.rules,
+      ...tsrxPlugin.configs.recommended.rules,
     },
   },
 ];
@@ -61,25 +58,24 @@ export default [
 
 ## How It Works
 
-This parser uses Ripple's compiler (`ripple/compiler`) to parse Ripple component
-files into an ESTree-compatible AST that ESLint can analyze. The Ripple compiler
-already outputs ESTree-compliant ASTs, making integration straightforward.
+This parser uses the shared TSRX parser (`@tsrx/core`) to parse TSRX component
+files into an ESTree-compatible AST that ESLint can analyze.
 
 The parser:
 
-1. Loads the Ripple compiler
-2. Parses the component source code (`.tsrx` or `.tsrx`)
+1. Parses the component source code (`.tsrx`)
+2. Normalizes the AST for ESLint traversal
 3. Returns the ESTree AST to ESLint
-4. Allows ESLint rules to analyze Ripple-specific patterns
+4. Allows ESLint rules to analyze TSRX-specific patterns
 
 ## Supported Syntax
 
-The parser supports all Ripple syntax including:
+The parser supports TSRX syntax including:
 
 - `component` declarations
 - `track()` reactive values (imported from `ripple`)
 - `@` unboxing operator
-- Reactive collections (`RippleArray`, `RippleObject`, etc.)
+- Reactive collections
 - JSX-like templating inside components
 - All standard JavaScript/TypeScript syntax
 
@@ -87,7 +83,7 @@ The parser supports all Ripple syntax including:
 
 Given a `.tsrx` file:
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export component Counter() {
@@ -108,21 +104,12 @@ The parser will successfully parse this and allow ESLint rules (like those from
 - Component export requirements
 - And more
 
-## Limitations
-
-- The parser requires Node.js runtime as it uses `require()` to load the Ripple
-  compiler
-- Browser-based linting is not currently supported
-
 ## Related Packages
 
 - [@tsrx/eslint-plugin](https://www.npmjs.com/package/@tsrx/eslint-plugin) -
-  ESLint rules for Ripple
-- [ripple](https://ripplejs.com) - The Ripple framework
-- [@ripple-ts/vite-plugin](https://www.npmjs.com/package/@ripple-ts/vite-plugin) -
-  Vite plugin for Ripple
+  ESLint rules for TSRX
 - [@tsrx/prettier-plugin](https://www.npmjs.com/package/@tsrx/prettier-plugin) -
-  Prettier plugin for Ripple
+  Prettier plugin for TSRX
 
 ## License
 

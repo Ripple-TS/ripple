@@ -1,6 +1,6 @@
 import type { Program } from 'estree';
 import type { Linter } from 'eslint';
-import { createRequire } from 'module';
+import { parseModule as parse_module } from '@tsrx/core';
 
 interface ParseResult {
 	ast: Program;
@@ -10,13 +10,13 @@ interface ParseResult {
 }
 
 /**
- * The Ripple compiler's AST contains some redundant references (e.g. `Element.attributes`
+ * The TSRX parser's AST contains some redundant references (e.g. `Element.attributes`
  * and `Element.openingElement.attributes`) that are useful for formatters/source-maps.
  * ESLint's traverser will visit both paths and can trigger duplicate rule reports.
  *
  * For ESLint, we prune JSX wrapper nodes to keep a single traversal path.
  */
-function normalizeRippleAstForEslint(ast: any): void {
+function normalize_tsrx_ast_for_eslint(ast: any): void {
 	const seen = new Set<any>();
 	const visit = (node: any) => {
 		if (!node || typeof node !== 'object') return;
@@ -48,7 +48,7 @@ function normalizeRippleAstForEslint(ast: any): void {
  * Recursively walks the AST and ensures all nodes have range and loc properties
  * ESLint's scope analyzer requires these properties on ALL nodes
  */
-function ensureNodeProperties(node: any, code: string): void {
+function ensure_node_properties(node: any, code: string): void {
 	if (!node || typeof node !== 'object') {
 		return;
 	}
@@ -61,36 +61,36 @@ function ensureNodeProperties(node: any, code: string): void {
 	// Ensure loc property exists
 	if (!node.loc && node.start !== undefined && node.end !== undefined) {
 		const lines = code.split('\n');
-		let currentPos = 0;
-		let startLine = 1;
-		let startColumn = 0;
-		let endLine = 1;
-		let endColumn = 0;
+		let current_pos = 0;
+		let start_line = 1;
+		let start_column = 0;
+		let end_line = 1;
+		let end_column = 0;
 
 		for (let i = 0; i < lines.length; i++) {
-			const lineLength = lines[i].length + 1;
-			if (currentPos + lineLength > node.start) {
-				startLine = i + 1;
-				startColumn = node.start - currentPos;
+			const line_length = lines[i].length + 1;
+			if (current_pos + line_length > node.start) {
+				start_line = i + 1;
+				start_column = node.start - current_pos;
 				break;
 			}
-			currentPos += lineLength;
+			current_pos += line_length;
 		}
 
-		currentPos = 0;
+		current_pos = 0;
 		for (let i = 0; i < lines.length; i++) {
-			const lineLength = lines[i].length + 1;
-			if (currentPos + lineLength > node.end) {
-				endLine = i + 1;
-				endColumn = node.end - currentPos;
+			const line_length = lines[i].length + 1;
+			if (current_pos + line_length > node.end) {
+				end_line = i + 1;
+				end_column = node.end - current_pos;
 				break;
 			}
-			currentPos += lineLength;
+			current_pos += line_length;
 		}
 
 		node.loc = {
-			start: { line: startLine, column: startColumn },
-			end: { line: endLine, column: endColumn },
+			start: { line: start_line, column: start_column },
+			end: { line: end_line, column: end_column },
 		};
 	}
 
@@ -101,34 +101,30 @@ function ensureNodeProperties(node: any, code: string): void {
 
 		const value = node[key];
 		if (Array.isArray(value)) {
-			value.forEach((child) => ensureNodeProperties(child, code));
+			value.forEach((child) => ensure_node_properties(child, code));
 		} else if (value && typeof value === 'object' && value.type) {
-			ensureNodeProperties(value, code);
+			ensure_node_properties(value, code);
 		}
 	}
 }
 
 /**
- * ESLint parser for Ripple (.tsrx) files
+ * ESLint parser for TSRX (.tsrx) files
  *
- * This parser uses Ripple's built-in compiler to parse .tsrx files
+ * This parser uses the shared TSRX parser to parse .tsrx files
  * and returns an ESTree-compatible AST for ESLint to analyze.
  */
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
 	try {
-		// Dynamically import the Ripple compiler
-		// We use dynamic import to avoid bundling the entire compiler
-		const rippleCompiler = requireRippleCompiler();
-
-		// Parse the Ripple source code using the Ripple compiler
-		const ast = rippleCompiler.parse(code);
+		// Parse the TSRX source code using the shared TSRX parser
+		const ast = parse_module(code, options?.filePath) as any;
 		if (!ast) throw new Error('Parser returned null or undefined AST');
 
 		// Normalize for ESLint traversal (avoid duplicate node visits)
-		normalizeRippleAstForEslint(ast);
+		normalize_tsrx_ast_for_eslint(ast);
 
 		// Recursively ensure all nodes have range and loc properties
-		ensureNodeProperties(ast, code);
+		ensure_node_properties(ast, code);
 
 		// Create a properly structured AST object ensuring all required properties exist
 		const result: any = {
@@ -152,8 +148,8 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 			visitorKeys: undefined, // Use ESLint's default visitor keys
 		};
 	} catch (error: any) {
-		// Transform Ripple parse errors to ESLint-compatible format
-		throw new SyntaxError(`Failed to parse Ripple file: ${error.message || error}`);
+		// Transform TSRX parse errors to ESLint-compatible format
+		throw new SyntaxError(`Failed to parse TSRX file: ${error.message || error}`);
 	}
 }
 
@@ -163,44 +159,6 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 export function parse(code: string, options?: Linter.ParserOptions): Program {
 	const result = parseForESLint(code, options);
 	return result.ast;
-}
-
-/**
- * Helper to require the Ripple compiler
- * This handles both CommonJS and ESM environments
- */
-function requireRippleCompiler(): any {
-	const globalRipple = (globalThis as any).__RIPPLE_COMPILER__;
-	if (globalRipple && globalRipple.parse) {
-		return globalRipple;
-	}
-
-	try {
-		// Use createRequire to dynamically require the module
-		// This works in both ESM and CommonJS contexts
-		const require = createRequire(import.meta.url);
-		const ripple = require('@tsrx/ripple');
-
-		if (!ripple || !ripple.parse) {
-			throw new Error('Ripple compiler loaded but parse function not found.');
-		}
-
-		(globalThis as any).__RIPPLE_COMPILER__ = ripple;
-
-		return ripple;
-	} catch (error: any) {
-		throw new Error(
-			`Failed to load Ripple compiler: ${error.message}. ` +
-				'Make sure the "@tsrx/ripple" package is installed as a peer dependency.',
-		);
-	}
-}
-
-declare global {
-	var __RIPPLE_COMPILER__: {
-		parse: (source: string) => Program;
-		compile: (source: string, filename: string, options?: any) => any;
-	};
 }
 
 export default {

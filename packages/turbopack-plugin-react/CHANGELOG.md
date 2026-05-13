@@ -1,5 +1,39 @@
 # @tsrx/turbopack-plugin-react
 
+## 0.1.30
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234)]:
+  - @tsrx/react@0.2.7
+
+## 0.1.29
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)]:
+  - @tsrx/react@0.2.6
+
+## 0.1.28
+
+### Patch Changes
+
+- Updated dependencies
+  [[`de27e18`](https://github.com/Ripple-TS/ripple/commit/de27e182d002ea736aee992acca4cbf9873a307d),
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5),
+  [`18b4aef`](https://github.com/Ripple-TS/ripple/commit/18b4aefa8127e56a9f1b3058da2d4d2172551579)]:
+  - @tsrx/react@0.2.5
+
+## 0.1.27
+
+### Patch Changes
+
+- Updated dependencies
+  [[`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26)]:
+  - @tsrx/react@0.2.4
+
 ## 0.1.26
 
 ### Patch Changes

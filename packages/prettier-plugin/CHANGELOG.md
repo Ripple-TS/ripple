@@ -1,5 +1,52 @@
 # @tsrx/prettier-plugin
 
+## 0.3.57
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234),
+  [`e4a04dd`](https://github.com/Ripple-TS/ripple/commit/e4a04ddb4bbc8e21a9c7c2c65b179d764b72e4fb)]:
+  - @tsrx/core@0.1.7
+
+## 0.3.56
+
+### Patch Changes
+
+- [`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Republish version with the
+  new publish.yaml workflow
+
+- Updated dependencies
+  [[`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)]:
+  - @tsrx/core@0.1.6
+
+## 0.3.55
+
+### Patch Changes
+
+- [`8b50197`](https://github.com/Ripple-TS/ripple/commit/8b501978b0ab57b6d7df0238a493b2e243e79cb4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep a single object argument
+  attached to the call parentheses when the object wraps.
+
+- Updated dependencies
+  [[`de27e18`](https://github.com/Ripple-TS/ripple/commit/de27e182d002ea736aee992acca4cbf9873a307d),
+  [`59e1e32`](https://github.com/Ripple-TS/ripple/commit/59e1e328607598fe342abbba35f76e5fadb9ca5c),
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5),
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5),
+  [`18b4aef`](https://github.com/Ripple-TS/ripple/commit/18b4aefa8127e56a9f1b3058da2d4d2172551579)]:
+  - @tsrx/core@0.1.5
+
+## 0.3.54
+
+### Patch Changes
+
+- Updated dependencies
+  [[`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26),
+  [`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26),
+  [`509170b`](https://github.com/Ripple-TS/ripple/commit/509170ba3cecc611ba1798575c70555070665736)]:
+  - @tsrx/core@0.1.4
+
 ## 0.3.53
 
 ### Patch Changes

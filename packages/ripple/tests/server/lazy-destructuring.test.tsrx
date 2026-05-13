@@ -140,7 +140,11 @@ describe('lazy destructuring', () => {
 	it(
 		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
 		async () => {
-			component Inner({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+			component Inner({
+				values: [head, ...&{ 0: first_rest, length: rest_length }],
+			}: {
+				values: number[];
+			}) {
 				const before = `${first_rest}-${rest_length}`;
 				rest_length = 0;
 				<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
@@ -159,7 +163,11 @@ describe('lazy destructuring', () => {
 		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy function params',
 		async () => {
 			component Test() {
-				function getInfo({ values: [head, ...&{ 0: first_rest, length: rest_length }] }) {
+				function getInfo({
+					values: [head, ...&{ 0: first_rest, length: rest_length }],
+				}: {
+					values: number[];
+				}) {
 					const before = `${first_rest}-${rest_length}`;
 					rest_length = 0;
 					return `${head}-${before}-${first_rest}-${rest_length}`;
@@ -227,5 +235,305 @@ describe('lazy destructuring', () => {
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<pre>10-20</pre>');
+	});
+
+	describe('nested lazy destructuring', () => {
+		it('preserves nested lazy object access inside lazy object as component params', async () => {
+			let inner_value = 7;
+
+			component Inner(&{ outer: &{ inner } }: { outer: { inner: number } }) {
+				const before = inner;
+				inner_value = 8;
+				<pre>{`${before}-${inner}`}</pre>
+			}
+
+			component Test() {
+				const outer = {
+					get inner() {
+						return inner_value;
+					},
+				};
+				<Inner {outer} />
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>7-8</pre>');
+		});
+
+		it('preserves nested lazy array access inside regular object as component params', async () => {
+			let first_value = 3;
+			let second_value = 4;
+
+			component Inner({ pair: &[first, second] }: { pair: [number, number] }) {
+				const before = `${first}-${second}`;
+				first_value = 5;
+				second_value = 6;
+				<pre>{`${before}-${first}-${second}`}</pre>
+			}
+
+			component Test() {
+				const pair = [0, 0] as [number, number];
+				Object.defineProperty(pair, 0, { get: () => first_value });
+				Object.defineProperty(pair, 1, { get: () => second_value });
+				<Inner {pair} />
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>3-4-5-6</pre>');
+		});
+
+		it('preserves nested lazy object access inside lazy array as function params', async () => {
+			component Test() {
+				let name_value = 'Alice';
+				function getName(&[&{ name }]: [{ name: string }]) {
+					const before = name;
+					name_value = 'Bob';
+					return `${before}-${name}`;
+				}
+				const user = {
+					get name() {
+						return name_value;
+					},
+				};
+				<pre>{getName([user])}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>Alice-Bob</pre>');
+		});
+
+		it('preserves nested lazy array access inside lazy array as function params', async () => {
+			component Test() {
+				let first_value = 5;
+				let second_value = 6;
+				function getValues(&[&[a, b]]: [[number, number]]) {
+					const before = `${a}-${b}`;
+					first_value = 7;
+					second_value = 8;
+					return `${before}-${a}-${b}`;
+				}
+				const pair = [0, 0] as [number, number];
+				Object.defineProperty(pair, 0, { get: () => first_value });
+				Object.defineProperty(pair, 1, { get: () => second_value });
+				<pre>{getValues([pair])}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>5-6-7-8</pre>');
+		});
+
+		it('preserves three-level lazy object access as component params', async () => {
+			let c_value = 42;
+
+			component Inner(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
+				const before = c;
+				c_value = 43;
+				<pre>{`${before}-${c}`}</pre>
+			}
+
+			component Test() {
+				const a = {
+					b: {
+						get c() {
+							return c_value;
+						},
+					},
+				};
+				<Inner {a} />
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>42-43</pre>');
+		});
+
+		it('preserves nested lazy object access inside lazy object as function params', async () => {
+			component Test() {
+				let inner_value = 11;
+				function getValue(&{ outer: &{ inner } }: { outer: { inner: number } }) {
+					const before = inner;
+					inner_value = 12;
+					return `${before}-${inner}`;
+				}
+				const outer = {
+					get inner() {
+						return inner_value;
+					},
+				};
+				<pre>{getValue({ outer })}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>11-12</pre>');
+		});
+
+		it(
+			'supports nested lazy array inside lazy object as function params with writeback',
+			async () => {
+				component Test() {
+					const obj = { pair: [1, 2] as [number, number] };
+					function bump(&{ pair: &[first, second] }: { pair: [number, number] }) {
+						first = first + 10;
+						second = second + 20;
+					}
+					bump(obj);
+					<pre>{`${obj.pair[0]}-${obj.pair[1]}`}</pre>
+				}
+
+				const { body } = await render(Test);
+				expect(body).toBeHtml('<pre>11-22</pre>');
+			},
+		);
+
+		it('preserves three-level lazy object access as function params', async () => {
+			component Test() {
+				let c_value = 99;
+				function getValue(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
+					const before = c;
+					c_value = 100;
+					return `${before}-${c}`;
+				}
+				const a = {
+					b: {
+						get c() {
+							return c_value;
+						},
+					},
+				};
+				<pre>{getValue({ a })}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>99-100</pre>');
+		});
+
+		it('preserves nested lazy object access inside lazy object in const declaration', async () => {
+			component Test() {
+				let inner_value = 5;
+				const data = {
+					outer: {
+						get inner() {
+							return inner_value;
+						},
+					},
+				};
+				const &{ outer: &{ inner } } = data;
+				const before = inner;
+				inner_value = 6;
+				<pre>{`${before}-${inner}`}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>5-6</pre>');
+		});
+
+		it('supports nested lazy object inside lazy object in let with writeback', async () => {
+			component Test() {
+				const data = { outer: { inner: 5 } };
+				let &{ outer: &{ inner } } = data;
+				inner = 50;
+				<pre>{data.outer.inner}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>50</pre>');
+		});
+
+		it('supports nested lazy array inside lazy object in let with writeback', async () => {
+			component Test() {
+				const data = { pair: [1, 2] as [number, number] };
+				let &{ pair: &[first, second] } = data;
+				first = 100;
+				second = 200;
+				<pre>{`${data.pair[0]}-${data.pair[1]}`}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>100-200</pre>');
+		});
+
+		it('supports three-level lazy object nesting in let with writeback', async () => {
+			component Test() {
+				const data = { a: { b: { c: 1 } } };
+				let &{ a: &{ b: &{ c } } } = data;
+				c = 999;
+				<pre>{data.a.b.c}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>999</pre>');
+		});
+
+		it('supports compound assignment on deeply nested lazy bindings', async () => {
+			component Test() {
+				const data = { a: { b: { c: 5 } } };
+				let &{ a: &{ b: &{ c } } } = data;
+				c += 10;
+				c *= 2;
+				<pre>{data.a.b.c}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>30</pre>');
+		});
+
+		it('preserves default values inside nested lazy destructuring', async () => {
+			component Test() {
+				let inner_value: number | undefined;
+				const data: { outer: { inner?: number } } = {
+					outer: {
+						get inner() {
+							return inner_value;
+						},
+					},
+				};
+				const &{ outer: &{ inner = 42 } } = data;
+				const before = inner;
+				inner_value = 43;
+				<pre>{`${before}-${inner}`}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>42-43</pre>');
+		});
+
+		it('preserves multiple sibling nested lazy destructures', async () => {
+			component Test() {
+				let x_value = 1;
+				let y_value = 2;
+				const data = {
+					a: {
+						get x() {
+							return x_value;
+						},
+					},
+					b: {
+						get y() {
+							return y_value;
+						},
+					},
+				};
+				const &{ a: &{ x }, b: &{ y } } = data;
+				const before = `${x}-${y}`;
+				x_value = 3;
+				y_value = 4;
+				<pre>{`${before}-${x}-${y}`}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>1-2-3-4</pre>');
+		});
+
+		it('supports multiple sibling nested lazy destructures with writeback', async () => {
+			component Test() {
+				const data = { a: { x: 1 }, b: { y: 2 } };
+				let &{ a: &{ x }, b: &{ y } } = data;
+				x = 11;
+				y = 22;
+				<pre>{`${data.a.x}-${data.b.y}`}</pre>
+			}
+
+			const { body } = await render(Test);
+			expect(body).toBeHtml('<pre>11-22</pre>');
+		});
 	});
 });

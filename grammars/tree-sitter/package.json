@@ -19,7 +19,7 @@
   "devDependencies": {
     "tree-sitter-cli": "^0.26.6",
     "prebuildify": "^6.0.0",
-    "node-gyp": "^12.2.0"
+    "node-gyp": "^12.3.0"
   },
   "scripts": {
     "generate": "tree-sitter generate",

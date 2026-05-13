@@ -1705,6 +1705,17 @@ function bind_element_rect(maybe_tracked, type) {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep a single object argument attached when the object breaks', async () => {
+			const input = `foo({ a: 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz' });`;
+
+			const expected = `foo({
+  a: 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz',
+});`;
+
+			const result = await format(input, { singleQuote: true, printWidth: 85 });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should break up call expressions on new lines with inline jsdoc comments with printWidth 100', async () => {
 			const input = `for (const quasi of template.quasis) {
   quasi.value.raw = sanitize_template_string(/** @type {string} */ (quasi.value.cooked));
@@ -3710,7 +3721,10 @@ const fn = <T>(arg: T): T => arg;`;
   };
 }`;
 
-			const result = await format(input, { singleQuote: true, arrowParens: 'always' });
+			const result = await format(input, {
+				singleQuote: true,
+				arrowParens: 'always',
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -3766,7 +3780,10 @@ function inputRef(node) {
 
 //yet more`;
 
-			const result = await format(input, { singleQuote: true, arrowParens: 'always' });
+			const result = await format(input, {
+				singleQuote: true,
+				arrowParens: 'always',
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -3801,7 +3818,10 @@ try {
   }
 }`;
 
-			const result = await format(input, { singleQuote: true, arrowParens: 'always' });
+			const result = await format(input, {
+				singleQuote: true,
+				arrowParens: 'always',
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -3868,7 +3888,10 @@ try {
   },
 ];`;
 
-			const result = await format(input, { singleQuote: true, arrowParens: 'always' });
+			const result = await format(input, {
+				singleQuote: true,
+				arrowParens: 'always',
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -3979,7 +4002,10 @@ component RowList({ rows, Row }) {
   Medium,
   Large
 }`;
-			const result = await format(input, { singleQuote: true, trailingComma: 'none' });
+			const result = await format(input, {
+				singleQuote: true,
+				trailingComma: 'none',
+			});
 			expect(result).toBeWithNewline(expected);
 		});
 
@@ -4668,7 +4694,10 @@ component Polygon() {
   <polygon points="0,0 30,0 15,10" />
 }`;
 
-				const result = await format(expected, { singleQuote: true, printWidth: 100 });
+				const result = await format(expected, {
+					singleQuote: true,
+					printWidth: 100,
+				});
 				expect(result).toBeWithNewline(expected);
 			});
 

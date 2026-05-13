@@ -192,13 +192,13 @@ const REACT_HOOKS_HTML = [
 	'<span class="ln"> 6</span>     <span class="kw-ctrl">return</span>;',
 	'<span class="ln"> 7</span>   <span class="br">}</span>',
 	'<span class="ln"> 8</span>',
-	'<span class="ln"> 9</span>   <span class="cmt">// Hooks after a guard — this is fine in TSRX</span>',
+	'<span class="ln"> 9</span>   <span class="cmt">// Hooks after a guard are isolated safely</span>',
 	'<span class="ln">10</span>   <span class="kw">const</span> <span class="br">[</span><span class="prop">tab</span>, <span class="prop">setTab</span><span class="br">]</span> = <span class="fn">useState</span><span class="br">(</span><span class="str">\'overview\'</span><span class="br">)</span>;',
 	'<span class="ln">11</span>',
 	'<span class="ln">12</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
 	'<span class="ln">13</span>   <span class="tag">&lt;</span><span class="el">TabBar</span> <span class="attr">value</span>=<span class="tbr">{</span><span class="prop">tab</span><span class="tbr">}</span> <span class="attr">onChange</span>=<span class="tbr">{</span><span class="prop">setTab</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
 	'<span class="ln">14</span>',
-	'<span class="ln">15</span>   <span class="cmt">// Hooks inside a loop — the compiler extracts them</span>',
+	'<span class="ln">15</span>   <span class="cmt">// Hook results inside loops must stay local</span>',
 	'<span class="ln">16</span>   <span class="tag">&lt;</span><span class="el">ul</span><span class="tag">&gt;</span>',
 	'<span class="ln">17</span>     <span class="kw">for</span> <span class="br">(</span><span class="kw">const</span> <span class="prop">post</span> <span class="kw">of</span> <span class="prop">posts</span><span class="br">)</span> <span class="br">{</span>',
 	'<span class="ln">18</span>       <span class="fn">useEffect</span><span class="br">(</span><span class="br">(</span><span class="br">)</span> =&gt; <span class="br">{</span>',
@@ -598,7 +598,9 @@ export component DocsPage() {
 							<code class="inline-code">{'@tsrx/react'}</code>
 							{' or Preact with '}
 							<code class="inline-code">{'@tsrx/preact'}</code>
-							{', the compiler lifts all hook calls to the top of the generated function — regardless of where they appear in the TSRX source. That means hooks can appear after early returns, inside conditional blocks, or even inside loops, and the compiled output still satisfies the Rules of Hooks.'}
+							{', hooks that appear in conditional, loop, switch, try, or expression-position '}
+							<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
+							{' scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.'}
 						</p>
 						<pre class="code-block">
 							<code>{html REACT_HOOKS_HTML}</code>

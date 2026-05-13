@@ -4,12 +4,10 @@ import { TRACKED_ARRAY } from '../../../src/runtime/internal/client/constants.js
 describe('basic client > collections', () => {
 	it('renders with simple reactive objects', () => {
 		component Basic() {
-			let &[user] = track(
-				{
-					name: 'John',
-					age: 25,
-				},
-			);
+			let &[user] = track({
+				name: 'John',
+				age: 25,
+			});
 
 			<div class="name">{user.name}</div>
 			<div class="age">{user.age}</div>
@@ -40,12 +38,10 @@ describe('basic client > collections', () => {
 
 	it('renders with nested reactive objects', () => {
 		component Basic() {
-			let &[user] = track(
-				{
-					name: track('John'),
-					age: track(25),
-				},
-			);
+			let &[user] = track({
+				name: track('John'),
+				age: track(25),
+			});
 
 			<div class="name">{user.name.value}</div>
 			<div class="age">{user.age.value}</div>

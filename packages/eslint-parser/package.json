@@ -1,6 +1,6 @@
 {
   "name": "@tsrx/eslint-parser",
-  "version": "0.3.53",
+  "version": "0.3.57",
   "description": "ESLint parser for Ripple (.tsrx files)",
   "type": "module",
   "main": "src/index.ts",
@@ -36,11 +36,10 @@
     "prepack": "pnpm build"
   },
   "peerDependencies": {
-    "eslint": "catalog:peer",
-    "ripple": "catalog:peer"
+    "eslint": "catalog:peer"
   },
   "dependencies": {
-    "@tsrx/ripple": "workspace:*"
+    "@tsrx/core": "workspace:*"
   },
   "devDependencies": {
     "@types/eslint": "catalog:default",

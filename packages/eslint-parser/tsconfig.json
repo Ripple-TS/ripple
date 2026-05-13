@@ -6,6 +6,7 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "declarationMap": true,
+    "allowJs": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,

@@ -163,6 +163,74 @@ export function identifier_to_jsx_name(id) {
 }
 
 /**
+ * A JSX tag name refers to a *component* (rather than a host/DOM tag) iff:
+ * - it's a `JSXIdentifier` whose first character is uppercase (the convention
+ *   every framework's JSX runtime keys off — `<div>` is a host element,
+ *   `<Foo>` is a component), or
+ * - it's a `JSXMemberExpression` (e.g. `<Icons.Button />`).
+ *
+ * Used by platforms that veto static-hoisting of component JSX (Vue, Solid)
+ * and by core's narrower bare-component-invocation predicate.
+ *
+ * @param {any} name
+ * @returns {boolean}
+ */
+export function is_component_jsx_name(name) {
+	if (!name || typeof name !== 'object') {
+		return false;
+	}
+
+	if (name.type === 'JSXIdentifier') {
+		const first = name.name?.[0];
+		return first != null && first >= 'A' && first <= 'Z';
+	}
+
+	if (name.type === 'JSXMemberExpression') {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Does this JSX subtree contain any component-shaped element (anywhere —
+ * including nested under host elements or inside expression containers)?
+ * Vue and Solid use this as their `canHoistStaticNode` predicate: hoisting a
+ * subtree that invokes a component into a module-level constant pins that
+ * component instance to module identity, which doesn't help either framework
+ * the way it helps React, so it's wasted output.
+ *
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function contains_component_jsx(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (node.type === 'JSXElement') {
+		if (is_component_jsx_name(node.openingElement?.name)) {
+			return true;
+		}
+		return node.children?.some(contains_component_jsx) ?? false;
+	}
+
+	if (node.type === 'JSXFragment') {
+		return node.children?.some(contains_component_jsx) ?? false;
+	}
+
+	if (node.type === 'JSXExpressionContainer') {
+		return contains_component_jsx(node.expression);
+	}
+
+	if (Array.isArray(node)) {
+		return node.some(contains_component_jsx);
+	}
+
+	return false;
+}
+
+/**
  * @param {any} node
  * @returns {boolean}
  */
@@ -300,6 +368,58 @@ export function flatten_switch_consequent(consequent) {
 		}
 	}
 	return result;
+}
+
+/**
+ * Compute fall-through expansions for each `case` in a `switch`. JavaScript
+ * `switch` semantics say that once a case body executes, execution continues
+ * into the bodies of subsequent cases until a `break` or terminal `return` is
+ * hit. We pre-compute, per case, the flat list of statements that should run
+ * when that case is the entry point — so downstream targets (which render each
+ * case independently rather than executing fall-through at runtime) still
+ * produce the right output.
+ *
+ * Walking right-to-left lets each case reuse the next case's already-expanded
+ * tail without recomputation. Downstream nodes are deep-cloned when absorbed
+ * so each case's expanded body owns its own AST subtree.
+ *
+ * @param {any[]} cases
+ * @returns {Array<{ test: any, body: any[], source: any }>}
+ */
+export function expand_switch_cases_for_fallthrough(cases) {
+	/** @type {Array<{ test: any, body: any[], source: any }>} */
+	const expanded = new Array(cases.length);
+	for (let i = cases.length - 1; i >= 0; i--) {
+		const consequent = flatten_switch_consequent(cases[i].consequent || []);
+		const body = [];
+		let has_terminal = false;
+		for (const child of consequent) {
+			if (child.type === 'BreakStatement') {
+				has_terminal = true;
+				break;
+			}
+			body.push(child);
+			if (child.type === 'ReturnStatement') {
+				has_terminal = true;
+				break;
+			}
+		}
+		// Strip locations from cloned downstream nodes. Only the original case
+		// (one entry up the chain) keeps `loc`/`start`/`end`; clones inlined
+		// into upstream cases would otherwise point editor IntelliSense at the
+		// same source range multiple times (one hover/go-to-definition per
+		// fall-through entry point), producing double/triple results in Volar.
+		const downstream =
+			!has_terminal && i + 1 < cases.length
+				? expanded[i + 1].body.map((n) => clone_expression_node(n, false))
+				: [];
+		expanded[i] = {
+			test: cases[i].test,
+			body: [...body, ...downstream],
+			source: cases[i],
+		};
+	}
+	return expanded;
 }
 
 /**

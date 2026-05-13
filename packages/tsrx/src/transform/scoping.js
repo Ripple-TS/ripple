@@ -6,6 +6,7 @@
  */
 
 import { walk } from 'zimmerframe';
+import * as b from '../utils/builders.js';
 
 /**
  * Mark every selector inside the stylesheet as "used" so `renderStylesheets`
@@ -183,7 +184,7 @@ export function add_hash_class(element, hash) {
 	if (!existing) {
 		attrs.push({
 			type: 'Attribute',
-			name: { type: 'Identifier', name: 'class' },
+			name: b.id('class'),
 			value: { type: 'Literal', value: hash, raw: JSON.stringify(hash) },
 		});
 		return;
@@ -203,22 +204,7 @@ export function add_hash_class(element, hash) {
 
 	// Dynamic expression. Concatenate at runtime via template literal.
 	const expression = value.type === 'JSXExpressionContainer' ? value.expression : value;
-	existing.value = {
-		type: 'TemplateLiteral',
-		expressions: [expression],
-		quasis: [
-			{
-				type: 'TemplateElement',
-				value: { raw: '', cooked: '' },
-				tail: false,
-			},
-			{
-				type: 'TemplateElement',
-				value: { raw: ` ${hash}`, cooked: ` ${hash}` },
-				tail: true,
-			},
-		],
-	};
+	existing.value = b.template([b.quasi('', false), b.quasi(` ${hash}`, true)], [expression]);
 }
 
 /**
@@ -237,13 +223,9 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 	);
 
 	if (!existing) {
-		attrs.push({
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: jsx_class_attr_name, metadata: { path: [] } },
-			value: { type: 'Literal', value: hash, raw: JSON.stringify(hash) },
-			shorthand: false,
-			metadata: { path: [] },
-		});
+		const hash_literal = b.literal(hash);
+		/** @type {any} */ (hash_literal).raw = JSON.stringify(hash);
+		attrs.push(b.jsx_attribute(b.jsx_id(jsx_class_attr_name), hash_literal));
 		return;
 	}
 
@@ -268,25 +250,7 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 	}
 
 	const expression = value.type === 'JSXExpressionContainer' ? value.expression : value;
-	existing.value = {
-		type: 'JSXExpressionContainer',
-		expression: {
-			type: 'TemplateLiteral',
-			expressions: [expression],
-			quasis: [
-				{
-					type: 'TemplateElement',
-					value: { raw: '', cooked: '' },
-					tail: false,
-				},
-				{
-					type: 'TemplateElement',
-					value: { raw: ` ${hash}`, cooked: ` ${hash}` },
-					tail: true,
-				},
-			],
-			metadata: { path: [] },
-		},
-		metadata: { path: [] },
-	};
+	existing.value = b.jsx_expression_container(
+		b.template([b.quasi('', false), b.quasi(` ${hash}`, true)], [expression]),
+	);
 }

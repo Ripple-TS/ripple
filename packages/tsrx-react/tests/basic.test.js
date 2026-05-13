@@ -5,6 +5,7 @@ import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
+	runSharedSwitchHelperHoistingTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -21,6 +22,12 @@ runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'react' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'react' });
+runSharedSwitchHelperHoistingTests({
+	compile,
+	compile_to_volar_mappings,
+	name: 'react',
+	clientHelperShape: 'module-function',
+});
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -128,7 +135,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('.map(');
+		expect(code).toContain('__map_iterable(');
 		expect(code).toContain('key={item.id}');
 		expect(code).not.toContain('does not support `key` in `for` control flow');
 	});
@@ -233,7 +240,10 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
+		expect(code).toContain('__map_iterable(items, (item, i) => {');
 		expect(code).toContain('return <div key={i}>{item}</div>;');
 	});
 
@@ -249,7 +259,7 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, i) => {');
+		expect(code).toContain('__map_iterable(items, (item, i) => {');
 		expect(code).toContain('return <div key={item}>{item}</div>;');
 	});
 
@@ -265,9 +275,84 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('items.map((item) => {');
+		expect(code).toContain('__map_iterable(items, (item) => {');
 		expect(code).toContain('return <div key={item.inner}>{item.id}</div>;');
 		expect(code).not.toContain('return <div key={item.id}>{item.id}</div>;');
+	});
+
+	it('uses map_iterable for for-of over a Set without normalizing it', () => {
+		const { code } = compile(
+			`export component App({ items }: { items: Set<string> }) {
+				for (const item of items) {
+					<li key={item}>{item}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
+		expect(code).toContain('__map_iterable(items, (item) => {');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('uses map_iterable for for-of over a Map without normalizing it', () => {
+		const { code } = compile(
+			`export component App({ entries }: { entries: Map<string, number> }) {
+				for (const [key, value] of entries) {
+					<li key={key}>{key + ':' + value}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('__map_iterable(entries,');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('uses map_iterable inside a hook-bearing for-of without normalizing the source', () => {
+		const { code } = compile(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: Iterable<string> }) {
+				for (const item of items) {
+					const [open, setOpen] = useState(false);
+					<li key={item}>{open ? item : '-'}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App__StatementBodyHook1');
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
+		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
+		expect(code).not.toContain('Array.from(');
+		expect(code).not.toContain('Array.isArray(');
+	});
+
+	it('emits a valid type-only IterationValue import in virtual TSX for hook-bearing for-of', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { useState } from 'react';
+
+			export component App({ items }: { items: Iterable<string> }) {
+				for (const item of items) {
+					const [open, setOpen] = useState(false);
+					<li key={item}>{open ? item : '-'}</li>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('map_iterable as __map_iterable');
+		expect(code).toContain('type IterationValue as __IterationValue');
+		expect(code).toContain("from '@tsrx/react/runtime/iterable'");
+		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
+		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
 	it('supports lone early returns in component-body if statements', () => {
@@ -1293,9 +1378,13 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function App__StatementBodyHook1');
-		// Hook-bearing for-of bodies emit `Array.from(source, callback)` so
-		// any Iterable works, with the helper hoisted above the iteration.
-		expect(code).toContain('Array.from(');
+		// Hook-bearing for-of bodies emit `map_iterable(source, callback)`
+		// so any Iterable works, with the helper hoisted above the iteration.
+		expect(code).toContain(
+			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
+		);
+		expect(code).toContain('__map_iterable(');
+		expect(code).not.toContain('Array.from(');
 		// Hook should be inside the helper, not the iteration callback directly
 		const hook_pos = code.indexOf('useState(false)');
 		const helper_pos = code.indexOf('function App__StatementBodyHook1');
@@ -1417,7 +1506,7 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('function Component__StatementBodyHook1');
-		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('__map_iterable(items, (item, index) =>');
 		expect(code).toContain('<Component__StatementBodyHook1 item={item} key={index} />');
 		expect(code).not.toContain('index={index} />');
 	});
@@ -1487,7 +1576,7 @@ describe('@tsrx/react basic', () => {
 			'FeatureCard.tsrx',
 		);
 
-		expect(code).toContain('items.map((item, index) =>');
+		expect(code).toContain('__map_iterable(items, (item, index) =>');
 		expect(code).toContain('return <li key={index}>{item}</li>;');
 	});
 });
@@ -1796,7 +1885,7 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('step + 1');
 	});
 
-	it('hoists JSXMemberExpression elements when only the property matches a scope binding', () => {
+	it('treats JSXMemberExpression property labels as not referencing scope bindings', () => {
 		const { code } = compile(
 			`import Icons from './Icons';
 			export component App({Button}: {Button: any}) {
@@ -1805,9 +1894,16 @@ describe('lazy destructuring', () => {
 			'App.tsrx',
 		);
 
-		// Icons.Button should be hoisted — Button is a property label, not a variable reference
-		// Only the object (Icons) matters, and it's a module-scope import
-		expect(code).toContain('App__static1');
+		// Bare `<Component />` references (no attributes, no children) are
+		// not hoisted into module-level `App__static` aliases — hoisting
+		// would just add an alias indirection without enabling React's
+		// element-identity fast path on the (non-memo'd) helper. The point
+		// of this test is the *scope-binding* analysis: `Icons.Button` is
+		// a property-access shape where the `Button` part is a label, not
+		// a variable reference, so the `{Button}` component param doesn't
+		// turn `Icons.Button` into a scope-referencing element.
+		expect(code).toContain('<Icons.Button />');
+		expect(code).not.toContain('App__static');
 	});
 
 	it('does not leak inner-scope bindings into helper component props', () => {

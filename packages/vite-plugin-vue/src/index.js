@@ -80,7 +80,15 @@ export function tsrxVue(options = {}) {
 					return { ...resolved, id: resolved.id + VIRTUAL_TSX_SUFFIX };
 				}
 				if (resolved) return resolved;
-				return source + VIRTUAL_TSX_SUFFIX;
+				// Re-anchor the fallback virtual id to an absolute path so
+				// downstream import resolution walks `node_modules` from the
+				// real file's location rather than from workspace root —
+				// otherwise package deps declared inside
+				// `packages/<pkg>/node_modules` are invisible to vite.
+				const absoluteSource = isAbsolute(source)
+					? source
+					: pathResolve(rootDir, source.replace(/^\/+/, ''));
+				return absoluteSource + VIRTUAL_TSX_SUFFIX;
 			}
 
 			return null;

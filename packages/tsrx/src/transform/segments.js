@@ -10,6 +10,7 @@
 	VolarMappingsResult,
 	PostProcessingChanges,
 	LineOffsets,
+	CompileError,
 } from '../../types/index';
 @import { CodeMapping as VolarCodeMapping } from '@volar/language-core';
  */
@@ -343,6 +344,7 @@ function extract_classes(node, src_to_gen_map, gen_line_offsets, src_line_offset
  * @param {RawSourceMap} source_map - Esrap source map for accurate position lookup
  * @param {PostProcessingChanges } post_processing_changes - Optional post-processing changes
  * @param {number[]} line_offsets - Pre-computed line offsets array for generated code
+ * @param {CompileError[]} [errors]
  * @returns {Omit<VolarMappingsResult, 'errors'>}
  */
 export function convert_source_map_to_mappings(
@@ -353,6 +355,7 @@ export function convert_source_map_to_mappings(
 	source_map,
 	post_processing_changes,
 	line_offsets,
+	errors = [],
 ) {
 	/** @type {CodeMapping[]} */
 	const mappings = [];
@@ -361,11 +364,12 @@ export function convert_source_map_to_mappings(
 	const src_line_offsets = build_line_offsets(source);
 	const gen_line_offsets = build_line_offsets(generated_code);
 
-	const [src_to_gen_map] = build_src_to_gen_map(
+	const [src_to_gen_map, , source_line_generated_map] = build_src_to_gen_map(
 		source_map,
 		post_processing_changes,
 		line_offsets,
 		generated_code,
+		errors.length > 0,
 	);
 
 	/** @type {Token[]} */
@@ -2250,6 +2254,15 @@ export function convert_source_map_to_mappings(
 		});
 	}
 
+	add_diagnostic_mappings(
+		mappings,
+		errors,
+		generated_code,
+		src_to_gen_map,
+		source_line_generated_map,
+		gen_line_offsets,
+	);
+
 	// Sort mappings by start position, but prioritize narrower ranges that are fully contained
 	// within wider ones. This ensures that specific tokens (like identifiers) take precedence
 	// over broader ranges (like `if` consequent blocks) during language server lookups.
@@ -2351,7 +2364,7 @@ function find_component_keyword_offset(generated_code, generated_id_start) {
  * 	source: string,
  * 	generated_code: string,
  * 	source_map: RawSourceMap,
- * 	errors?: import('../../types/index').CompileError[],
+ * 	errors?: CompileError[],
  * 	post_processing_changes?: PostProcessingChanges,
  * 	line_offsets?: LineOffsets,
  * }} params
@@ -2367,18 +2380,158 @@ export function create_volar_mappings_result({
 	post_processing_changes,
 	line_offsets,
 }) {
+	const result = convert_source_map_to_mappings(
+		ast,
+		ast_from_source,
+		source,
+		generated_code,
+		source_map,
+		/** @type {PostProcessingChanges} */ (post_processing_changes),
+		line_offsets ?? build_line_offsets(generated_code),
+		errors,
+	);
+
 	return {
-		...convert_source_map_to_mappings(
-			ast,
-			ast_from_source,
-			source,
-			generated_code,
-			source_map,
-			/** @type {PostProcessingChanges} */ (post_processing_changes),
-			line_offsets ?? build_line_offsets(generated_code),
-		),
+		...result,
 		errors,
 	};
+}
+
+/**
+ * Parser diagnostics can point at source-only tokens that are intentionally
+ * omitted or rewritten away in generated TSX. Add a narrow mapping so the
+ * language-server diagnostic plugin can translate those exact source ranges.
+ *
+ * @param {CodeMapping[]} mappings
+ * @param {CompileError[]} errors
+ * @param {string} generated_code
+ * @param {Map<string, Array<{ line: number, column: number }>>} src_to_gen_map
+ * @param {Map<number, Array<{ column: number, position: { line: number, column: number } }>> | null} source_line_generated_map
+ * @param {LineOffsets} gen_line_offsets
+ */
+function add_diagnostic_mappings(
+	mappings,
+	errors,
+	generated_code,
+	src_to_gen_map,
+	source_line_generated_map,
+	gen_line_offsets,
+) {
+	if (errors.length === 0 || !source_line_generated_map) {
+		return;
+	}
+
+	/** @type {CodeMapping[]} */
+	const diagnostic_mappings = [];
+
+	for (const error of errors) {
+		const start = error.pos;
+		if (start === undefined) continue;
+		if (has_exact_source_map_position(error, src_to_gen_map)) continue;
+
+		const end = error.end && error.end > start ? error.end : start + 1;
+		const length = end - start;
+		const generated_start = get_nearest_generated_offset_from_source_line_map(
+			error,
+			source_line_generated_map,
+			gen_line_offsets,
+			generated_code,
+		);
+		if (generated_start === null) continue;
+
+		diagnostic_mappings.push({
+			sourceOffsets: [start],
+			generatedOffsets: [generated_start],
+			lengths: [length],
+			generatedLengths: [
+				generated_code.length === 0
+					? 0
+					: Math.max(1, Math.min(length, generated_code.length - generated_start)),
+			],
+			data: {
+				...mapping_data_verify_only,
+				customData: {},
+			},
+		});
+	}
+
+	mappings.unshift(...diagnostic_mappings);
+}
+
+/**
+ * @param {CompileError} error
+ * @param {Map<string, Array<{ line: number, column: number }>>} src_to_gen_map
+ */
+function has_exact_source_map_position(error, src_to_gen_map) {
+	const loc = error.loc?.start;
+	return !!loc && src_to_gen_map.has(`${loc.line}:${loc.column}`);
+}
+
+/**
+ * @param {CompileError} error
+ * @param {Map<number, Array<{ column: number, position: { line: number, column: number } }>>} source_line_generated_map
+ * @param {LineOffsets} gen_line_offsets
+ * @param {string} generated_code
+ */
+function get_nearest_generated_offset_from_source_line_map(
+	error,
+	source_line_generated_map,
+	gen_line_offsets,
+	generated_code,
+) {
+	const loc = error.loc?.start;
+	if (!loc || generated_code.length === 0) {
+		return null;
+	}
+
+	const position = get_nearest_source_line_generated_position(
+		source_line_generated_map,
+		loc.line,
+		loc.column,
+	);
+	if (!position) {
+		return null;
+	}
+
+	const generated_offset =
+		loc_to_offset(position.line, position.column, gen_line_offsets) +
+		('sourceColumn' in position ? loc.column - position.sourceColumn : 0);
+	return Math.max(0, Math.min(generated_offset, generated_code.length - 1));
+}
+
+/**
+ * @param {Map<number, Array<{ column: number, position: { line: number, column: number } }>>} source_line_generated_map
+ * @param {number} line
+ * @param {number} column
+ * @returns {{ line: number, column: number, sourceColumn: number } | null}
+ */
+function get_nearest_source_line_generated_position(source_line_generated_map, line, column) {
+	const line_positions = source_line_generated_map.get(line);
+	if (!line_positions?.length) {
+		return null;
+	}
+	line_positions.sort((a, b) => a.column - b.column);
+
+	let low = 0;
+	let high = line_positions.length - 1;
+	let best = -1;
+	while (low <= high) {
+		const mid = (low + high) >> 1;
+		if (line_positions[mid].column <= column) {
+			best = mid;
+			low = mid + 1;
+		} else {
+			high = mid - 1;
+		}
+	}
+
+	if (best === -1) {
+		return null;
+	}
+
+	const entry = line_positions[best];
+	const position = entry.position;
+	return { line: position.line, column: position.column, sourceColumn: entry.column };
 }
 
 /**

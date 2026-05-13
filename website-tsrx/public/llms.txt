@@ -814,10 +814,13 @@ compound/descendant selectors cannot be passed.
 
 ### React (`@tsrx/react`) — hooks + await
 
-The compiler **lifts all hook calls** to the top of the generated function
-regardless of where they appear in the TSRX source. That means hooks can
-sit after early returns, inside conditional branches, or inside loops, and
-the compiled output still satisfies the Rules of Hooks.
+The compiler isolates hook calls that appear in conditional, loop, switch, try,
+or expression-position `<tsrx>...</tsrx>` scopes behind generated child
+components when it can do so safely. Hook results must stay local to that
+generated component. Hook callbacks may read outer values, and may mutate
+branch-local or module-level bindings, but mutating a parent component/function
+binding across the generated component boundary is a compiler error. Move that
+state into an explicit child component when values need to cross the boundary.
 
 React additionally supports top-level component-body `await` and TSRX emits
 an async component function when it appears in the component body.
@@ -831,13 +834,13 @@ component UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
     return;
   }
 
-  // Hook after a guard — compiles to a top-of-function call
+  // Hook after a guard — isolated safely by the compiler
   const [tab, setTab] = useState('overview');
 
   <h1>{user.name}</h1>
   <TabBar value={tab} onChange={setTab} />
 
-  // Hook inside a loop — compiler extracts it per-item via a child component
+  // Hook inside a loop — hook results stay local to the extracted item
   <ul>
     for (const post of posts) {
       useEffect(() => {

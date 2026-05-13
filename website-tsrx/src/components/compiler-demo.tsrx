@@ -150,38 +150,36 @@ export component CompilerDemo() {
 
 			const output_lang_compartment = new Compartment();
 
-			const shared_theme = EditorView.theme(
-				{
-					'&': {
-						height: '100%',
-						backgroundColor: '#091225',
-						color: '#e7ecff',
-						fontFamily: 'Spline Sans Mono, SFMono-Regular, monospace',
-						fontSize: '0.9rem',
-					},
-					'.cm-scroller': {
-						overflow: 'auto',
-					},
-					'.cm-content': {
-						padding: '1rem 0.75rem 1.25rem',
-						minHeight: '100%',
-					},
-					'.cm-gutters': {
-						backgroundColor: '#091225',
-						color: 'rgba(183, 198, 255, 0.5)',
-						border: 'none',
-					},
-					'.cm-activeLine, .cm-activeLineGutter': {
-						backgroundColor: 'rgba(133, 155, 255, 0.09)',
-					},
-					'.cm-selectionBackground': {
-						backgroundColor: 'rgba(138, 152, 255, 0.34) !important',
-					},
-					'.cm-cursor': {
-						borderLeftColor: '#d7dfff',
-					},
+			const shared_theme = EditorView.theme({
+				'&': {
+					height: '100%',
+					backgroundColor: '#091225',
+					color: '#e7ecff',
+					fontFamily: 'Spline Sans Mono, SFMono-Regular, monospace',
+					fontSize: '0.9rem',
 				},
-			);
+				'.cm-scroller': {
+					overflow: 'auto',
+				},
+				'.cm-content': {
+					padding: '1rem 0.75rem 1.25rem',
+					minHeight: '100%',
+				},
+				'.cm-gutters': {
+					backgroundColor: '#091225',
+					color: 'rgba(183, 198, 255, 0.5)',
+					border: 'none',
+				},
+				'.cm-activeLine, .cm-activeLineGutter': {
+					backgroundColor: 'rgba(133, 155, 255, 0.09)',
+				},
+				'.cm-selectionBackground': {
+					backgroundColor: 'rgba(138, 152, 255, 0.34) !important',
+				},
+				'.cm-cursor': {
+					borderLeftColor: '#d7dfff',
+				},
+			});
 
 			const editable_extensions = [
 				lineNumbers(),
@@ -205,11 +203,9 @@ export component CompilerDemo() {
 			];
 
 			const replace_doc = (view: any, next_doc: string) => {
-				view.dispatch(
-					{
-						changes: { from: 0, to: view.state.doc.length, insert: next_doc },
-					},
-				);
+				view.dispatch({
+					changes: { from: 0, to: view.state.doc.length, insert: next_doc },
+				});
 			};
 
 			const compile_source = async (source: string) => {
@@ -258,9 +254,9 @@ export component CompilerDemo() {
 					}
 
 					const output_lang = TARGET_OUTPUT_LANG[selected_target.value] ?? 'tsx';
-					output_view.dispatch(
-						{ effects: output_lang_compartment.reconfigure(shiki_highlight(output_lang)) },
-					);
+					output_view.dispatch({
+						effects: output_lang_compartment.reconfigure(shiki_highlight(output_lang)),
+					});
 					replace_doc(output_view, join_compiled_output(payload.output.code, payload.output.css));
 					status = `${TARGET_LABELS[payload.target] ?? 'Selected output'} ready`;
 					last_updated = new Date().toLocaleTimeString([], {
@@ -340,37 +336,33 @@ export component CompilerDemo() {
 			};
 
 			source_view = new EditorView({
-				state: EditorState.create(
-					{
-						doc: latest_source,
-						extensions: [
-							...editable_extensions,
-							EditorView.updateListener.of((update: any) => {
-								if (!update.docChanged) {
-									return;
-								}
+				state: EditorState.create({
+					doc: latest_source,
+					extensions: [
+						...editable_extensions,
+						EditorView.updateListener.of((update: any) => {
+							if (!update.docChanged) {
+								return;
+							}
 
-								const next_source = update.state.doc.toString();
+							const next_source = update.state.doc.toString();
 
-								window.clearTimeout(debounce_id);
-								debounce_id = window.setTimeout(() => {
-									void compile_source(next_source);
-								}, DEBOUNCE_MS);
-								update_hash(next_source);
-							}),
-						],
-					},
-				),
+							window.clearTimeout(debounce_id);
+							debounce_id = window.setTimeout(() => {
+								void compile_source(next_source);
+							}, DEBOUNCE_MS);
+							update_hash(next_source);
+						}),
+					],
+				}),
 				parent: source_ref.value,
 			});
 
 			output_view = new EditorView({
-				state: EditorState.create(
-					{
-						doc: '// Compiled output will appear here after the first compile.',
-						extensions: readonly_extensions,
-					},
-				),
+				state: EditorState.create({
+					doc: '// Compiled output will appear here after the first compile.',
+					extensions: readonly_extensions,
+				}),
 				parent: output_ref.value,
 			});
 

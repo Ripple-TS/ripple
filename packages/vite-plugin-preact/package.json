@@ -3,7 +3,7 @@
   "description": "Vite plugin for @tsrx/preact (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.27",
+  "version": "0.0.31",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -26,6 +26,7 @@
     "vite": "*"
   },
   "devDependencies": {
+    "@tsrx/core": "workspace:*",
     "preact": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default"

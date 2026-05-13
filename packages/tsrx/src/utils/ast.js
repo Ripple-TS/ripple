@@ -36,6 +36,19 @@ export function is_function_node(node) {
  * @param {AST.Node} node
  * @returns {boolean}
  */
+export function is_function_or_component_node(node) {
+	return (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'Component'
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
 export function is_class_node(node) {
 	return node.type === 'ClassExpression' || node.type === 'ClassDeclaration';
 }

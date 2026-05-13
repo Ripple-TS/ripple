@@ -1,5 +1,144 @@
 # @tsrx/core
 
+## 0.1.7
+
+### Patch Changes
+
+- [#1126](https://github.com/Ripple-TS/ripple/pull/1126)
+  [`2b1f746`](https://github.com/Ripple-TS/ripple/commit/2b1f7469ab31713140a5baf912a19fa8eedb9234)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep runtime helper imports
+  on namespaced runtime subpaths so production app bundles do not pull in
+  compiler-only modules.
+
+- [#1123](https://github.com/Ripple-TS/ripple/pull/1123)
+  [`e4a04dd`](https://github.com/Ripple-TS/ripple/commit/e4a04ddb4bbc8e21a9c7c2c65b179d764b72e4fb)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Nested lazy destructuring
+  support for all tsrx targets. Ripple already fully supported it.
+
+## 0.1.6
+
+### Patch Changes
+
+- [`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Republish version with the
+  new publish.yaml workflow
+
+## 0.1.5
+
+### Patch Changes
+
+- [#1110](https://github.com/Ripple-TS/ripple/pull/1110)
+  [`de27e18`](https://github.com/Ripple-TS/ripple/commit/de27e182d002ea736aee992acca4cbf9873a307d)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Drop the
+  continuation/tail-helper lift for hook-bearing `if`, `switch`, `try`, and
+  `for-of` blocks in React and Preact output. The pattern existed to forward
+  post-hook mutations through to statements after the control-flow construct, but
+  the hook-callback-outer-mutation and hook-result-outer-assignment validations
+  make those mutations unreachable. The hook-bearing branch is still wrapped in
+  its own `StatementBodyHook` helper to satisfy Rules of Hooks; trailing
+  statements now stay in the parent component instead of being lifted into a tail
+  helper. For-of helpers no longer thread an `_tsrx_isLast_*` prop or emit an
+  empty-source fallback. Output is smaller and easier to read with no behavior
+  change for valid programs.
+
+- [`59e1e32`](https://github.com/Ripple-TS/ripple/commit/59e1e328607598fe342abbba35f76e5fadb9ca5c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix parsing for
+  statement-bodied `<tsrx>` templates used directly as self-closing JSX component
+  attribute values.
+
+- [#1116](https://github.com/Ripple-TS/ripple/pull/1116)
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Compile `for ... of` in React
+  and Preact components through a new `map_iterable` runtime helper instead of an
+  inline `Array.isArray(src) ? src : Array.from(src)` normalization followed by
+  `.map(...)`. Both the non-hook and hook-bearing lowerings now emit a single
+  `map_iterable(source, (item, i) => ...)` call that accepts any `Iterable` —
+  `Set`, `Map`, generators, and other iterators — without copying arrays. The
+  helper is imported from a new target-namespaced subpath: `@tsrx/react/runtime`
+  for React output and `@tsrx/preact/runtime` for Preact output, both of which
+  re-export from `@tsrx/core/runtime`, so end-user projects only need the target
+  package installed. Loop-scoped TS types in editor-tooling (non-module-scoped
+  helper) output reference the new `IterationValue<T>` helper so destructured
+  `Map` entries and other non-array sources type-check correctly.
+
+- [#1116](https://github.com/Ripple-TS/ripple/pull/1116)
+  [`1256569`](https://github.com/Ripple-TS/ripple/commit/12565695efaa3a4ad429245807721ea671c2ecb5)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow native TSRX template
+  expression containers to recover from a trailing semicolon before the closing
+  brace while reporting an editor diagnostic.
+
+- [#1112](https://github.com/Ripple-TS/ripple/pull/1112)
+  [`18b4aef`](https://github.com/Ripple-TS/ripple/commit/18b4aefa8127e56a9f1b3058da2d4d2172551579)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support JavaScript `switch`
+  fall-through semantics in component templates across the React, Preact, Solid,
+  and Vue targets. When a `case` body has no `break` (or terminal `return`), each
+  entry case now renders its own body plus every downstream body it would have
+  fallen into — matching JS spec and the existing Ripple runtime behavior.
+
+  All four targets reuse the same `create_hook_safe_helper` lift that hook-bearing
+  case bodies already go through, orchestrated by a shared `plan_switch_lift`
+  planner exported from `@tsrx/core`. Any case body that appears in more than one
+  arm after fall-through analysis is hoisted into its own `StatementBodyHook`
+  helper component, and each upstream arm chains into the next helper at the end
+  of its body. Each case body therefore appears exactly once in the generated
+  module regardless of how many arms reach it, keeping bundle size linear in case
+  count and source mappings 1:1 for editor IntelliSense. Cases that terminate with
+  `break` (or aren't reached via fall-through) stay inline as before.
+  - **React, Preact, Vue** keep the JS `switch` and emit case arms that
+    `return <Helper/>` for lifted bodies; inline arms append `<NextHelper/>` as
+    the chain entry point.
+  - **Solid** lowers each entry case to a `<Match>` whose body is the lifted
+    helper element, or for inline arms a fragment of the inline JSX plus a chain
+    `<NextHelper/>`.
+
+  Vue's and Solid's client transforms now hoist all `StatementBodyHook` helpers —
+  not just the fall-through ones — to module scope (Vue wraps each in
+  `defineVaporComponent`). Every control flow that already went through the lift
+  on React (hook-bearing `if`, `switch`, `try`, and `for-of` bodies) now produces
+  a single top-level helper instead of a per-render lazy initializer.
+  `compile_to_volar_mappings` opts back out via
+  `moduleScopedHookComponents: false` so Volar's virtual TSX keeps helpers local —
+  closure-captured bindings stay resolvable against the component body for type
+  checking.
+
+  Create map helper functions for for-of loops to be used in the future transforms
+
+## 0.1.4
+
+### Patch Changes
+
+- [#1104](https://github.com/Ripple-TS/ripple/pull/1104)
+  [`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26)
+  Thanks [@trueadm](https://github.com/trueadm)! - Tighten hook outer-binding
+  validator around `for…of`:
+  - A non-declaration target (`for (x of items)`) was being treated as a local
+    declaration, hiding later hook-result assignments to the same outer binding.
+  - `let`/`const` declared by a for-of (`for (const x of items)`) was likewise
+    being added to the _enclosing_ block's shadowed set, even though the binding
+    is scoped to the loop in JavaScript. This let after-loop assignments to a
+    same-named outer binding (e.g.,
+    `for (const x of items) { … } [x] = useState(0)`) escape detection.
+    Loop-declared names are now scoped to the body sub-tree only.
+  - The for-of's own iteration assignment was not inspected at all, so iterating a
+    hook-derived value into an outer binding (e.g., `for (x of useState(0))` or
+    `for ([a, b] of [useState(0)])`) silently lost the rebind in the emitted code.
+
+  All three shapes now report the same diagnostic as a direct hook-result
+  assignment to an outer binding.
+
+- [#1104](https://github.com/Ripple-TS/ripple/pull/1104)
+  [`3e84758`](https://github.com/Ripple-TS/ripple/commit/3e847588027d6254c3999a87c717e9d58fb55a26)
+  Thanks [@trueadm](https://github.com/trueadm)! - Constrain React and Preact hook
+  isolation so hook results cannot cross generated hook component boundaries,
+  reject hook callbacks that mutate parent-scope bindings across those boundaries,
+  and keep hook-bearing `<tsrx>` expressions in regular functions behind stable
+  helper components.
+
+- [#1105](https://github.com/Ripple-TS/ripple/pull/1105)
+  [`509170b`](https://github.com/Ripple-TS/ripple/commit/509170ba3cecc611ba1798575c70555070665736)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix parsing native TSRX
+  statements before later JavaScript statements inside JSX attribute callbacks.
+
 ## 0.1.3
 
 ### Patch Changes

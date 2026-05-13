@@ -462,12 +462,10 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes', () => {
 		component Basic() {
-			let &[attrs] = track<TestAttributes>(
-				{
-					class: 'initial',
-					id: 'test-1',
-				},
-			);
+			let &[attrs] = track<TestAttributes>({
+				class: 'initial',
+				id: 'test-1',
+			});
 
 			<button
 				onClick={() => {

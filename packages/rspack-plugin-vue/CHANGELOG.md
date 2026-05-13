@@ -1,5 +1,36 @@
 # @tsrx/rspack-plugin-vue
 
+## 0.0.19
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e4a04dd`](https://github.com/Ripple-TS/ripple/commit/e4a04ddb4bbc8e21a9c7c2c65b179d764b72e4fb)]:
+  - @tsrx/vue@0.1.7
+
+## 0.0.18
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a59ccb8`](https://github.com/Ripple-TS/ripple/commit/a59ccb83b91257bf34fca2ba1415e77d1f815a7b)]:
+  - @tsrx/vue@0.1.6
+
+## 0.0.17
+
+### Patch Changes
+
+- Updated dependencies
+  [[`18b4aef`](https://github.com/Ripple-TS/ripple/commit/18b4aefa8127e56a9f1b3058da2d4d2172551579)]:
+  - @tsrx/vue@0.1.5
+
+## 0.0.16
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/vue@0.1.4
+
 ## 0.0.15
 
 ### Patch Changes

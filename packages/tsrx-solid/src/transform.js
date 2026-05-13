@@ -11,9 +11,7 @@ import {
 	setLocation,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	applyLazyTransforms as apply_lazy_transforms,
-	collectLazyBindingsFromComponent as collect_lazy_bindings_from_component,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
-	replaceLazyParams as replace_lazy_params,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isRefPropExpression as is_ref_prop_expression,
 	isInterleavedBody as is_interleaved_body_core,
@@ -27,10 +25,14 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
+	cloneSwitchHelperInvocation as clone_switch_helper_invocation,
+	collectParamBindings as collect_param_bindings,
+	collectStatementBindings as collect_statement_bindings,
+	contains_component_jsx,
 	create_generated_identifier,
 	create_null_literal,
-	flatten_switch_consequent,
 	get_for_of_iteration_params,
+	planSwitchLift as plan_switch_lift,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_dynamic_element_id,
@@ -104,6 +106,12 @@ const solid_platform = {
 		scanUseServerDirectiveForAwaitWithCustomValidator: false,
 	},
 	hooks: {
+		// Hoist to module scope in the client transform —
+		// same trade-off as React and Vue, where one definition per helper
+		// keeps bundles small and source mappings 1:1. The
+		// `compile_to_volar_mappings` entry point opts back out so Volar's
+		// type-only output keeps helpers inline against the component body.
+		moduleScopedHookComponents: true,
 		initialState: () => ({
 			needs_show: false,
 			needs_for: false,
@@ -113,6 +121,17 @@ const solid_platform = {
 			needs_loading: false,
 			needs_normalize_spread_props: false,
 		}),
+		canHoistStaticNode(node) {
+			// Solid's reactive runtime doesn't reuse JSX-element identity the
+			// way React does, so hoisting `<Component />` references to module
+			// level pays no runtime cost — it just creates an extra `const`
+			// that aliases a helper invocation (e.g. `App__static1 =
+			// <App__StatementBodyHook2 />`). Truly-static DOM trees like
+			// `<span>'Hello'</span>` still benefit from being hoisted out of
+			// the per-render closure, so we only veto hoisting when the
+			// subtree contains a *component* JSX element. Same logic Vue uses.
+			return !contains_component_jsx(node);
+		},
 		validateComponentAwait: (await_expression, _component, ctx, _requires, source) => {
 			const await_start = get_await_keyword_start(await_expression, source);
 			const adjusted_node = /** @type {any} */ ({
@@ -134,8 +153,8 @@ const solid_platform = {
 			switchStatement: switch_statement_to_jsx_child,
 			tryStatement: try_statement_to_jsx_child,
 		},
-		componentToFunction: (component, ctx) =>
-			component_to_function_declaration(component, /** @type {any} */ (ctx)),
+		componentToFunction: (component, ctx, helper_state) =>
+			component_to_function_declaration(component, /** @type {any} */ (ctx), helper_state),
 		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
 		// `transformElementAttributes` is intentionally omitted: the
 		// `transformElement` hook below short-circuits core's element walker
@@ -180,17 +199,41 @@ function get_await_keyword_start(await_node, source) {
 /**
  * @param {any} component
  * @param {TransformContext} transform_context
+ * @param {any} [walk_helper_state]
+ *   The helper_state owned by the walker for this component. Solid's local
+ *   body lowering happens *after* the walker has restored `helper_state` to
+ *   the outer scope's value, so we re-install the walker's helper_state here
+ *   for the duration of the body lowering. That way `to_jsx_child` calls into
+ *   `switch_statement_to_jsx_child` (and any other lift path that goes
+ *   through `create_hook_safe_helper`) see the same module-scoped helper
+ *   bucket the React / Vue paths see, and `moduleScopedHookComponents: true`
+ *   actually hoists Solid's `<StatementBodyHook/>` helpers out of the
+ *   component body.
  * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
  */
-function component_to_function_declaration(component, transform_context) {
+function component_to_function_declaration(component, transform_context, walk_helper_state) {
 	const params = component.params || [];
 	const body = /** @type {any[]} */ (component.body || []);
 
-	// In type-only mode the lazy rewrite is skipped so destructuring patterns
-	// survive into the virtual TSX and TypeScript can flow real types.
-	const lazy_bindings = transform_context.typeOnly
-		? new Map()
-		: collect_lazy_bindings_from_component(params, body, transform_context);
+	const saved_helper_state = transform_context.helper_state;
+	if (walk_helper_state) {
+		transform_context.helper_state = walk_helper_state;
+	}
+
+	// Re-install the component's body bindings before lowering the body. The
+	// walker sets `state.available_bindings` to the component-scope bindings
+	// during `next()` and restores them before calling the platform's
+	// `componentToFunction` hook — but Solid's body lowering happens *here*,
+	// after that restore, so `to_jsx_child` (and any `create_hook_safe_helper`
+	// it triggers via `switch_statement_to_jsx_child` / the if / try / for-of
+	// lifts) wouldn't otherwise see component-scope locals like `const obj =
+	// {...}` and would emit helpers that close over undefined references.
+	const saved_bindings = transform_context.available_bindings;
+	const body_bindings = collect_param_bindings(params);
+	for (const node of body) {
+		collect_statement_bindings(node, body_bindings);
+	}
+	transform_context.available_bindings = body_bindings;
 
 	// Detect top-level early-return patterns such as `if (cond) { return; }`
 	// and `if (cond) { <p />; return; }`.
@@ -314,75 +357,38 @@ function component_to_function_declaration(component, transform_context) {
 	}
 
 	if (render_nodes.length > 0) {
-		statements.push(
-			/** @type {any} */ ({
-				type: 'ReturnStatement',
-				argument: build_return_expression(render_nodes) || {
-					type: 'Literal',
-					value: null,
-					raw: 'null',
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			}),
-		);
+		statements.push(b.return(build_return_expression(render_nodes) || b.literal(null)));
 	}
 
-	const final_params = lazy_bindings.size > 0 ? replace_lazy_params(params) : params;
-
-	const body_block = /** @type {any} */ ({
-		type: 'BlockStatement',
-		body: statements,
-		metadata: { path: [] },
-	});
-	const final_body =
-		lazy_bindings.size > 0 ? apply_lazy_transforms(body_block, lazy_bindings) : body_block;
+	const body_block = b.block(statements);
 
 	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
 	let fn;
 
 	if (component.id) {
-		fn = /** @type {any} */ ({
-			type: 'FunctionDeclaration',
-			id: component.id,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function_declaration(component.id, params, body_block, false, component.typeParameters);
 	} else if (component.metadata?.arrow) {
-		fn = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			expression: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.arrow(params, body_block, false, component.typeParameters);
 	} else {
-		fn = /** @type {any} */ ({
-			type: 'FunctionExpression',
-			id: null,
-			typeParameters: component.typeParameters,
-			params: final_params,
-			body: final_body,
-			async: false,
-			generator: false,
-			metadata: {
-				path: [],
-				is_component: true,
-			},
-		});
+		fn = b.function(null, params, body_block, false, component.typeParameters);
+	}
+	fn.metadata.is_component = true;
+
+	// `preallocate_lazy_ids` stamped `has_lazy_descendants` on the source
+	// `Component` node; the freshly-built `fn` shares the same params/body
+	// subtree, so propagate the flag so the function-handler's early-return
+	// path can fire for non-lazy components.
+	if (/** @type {any} */ (component).metadata?.has_lazy_descendants) {
+		/** @type {any} */ (fn.metadata).has_lazy_descendants = true;
+	}
+
+	// Apply lazy `&{}` / `&[]` rewrites end-to-end via the function-handler in
+	// `apply_lazy_transforms`. Constant-time fast-path for functions whose
+	// subtrees contain no lazy patterns (flagged ahead of time by
+	// `preallocate_lazy_ids`). In type-only mode the rewrite is skipped so
+	// destructuring patterns survive into the virtual TSX.
+	if (!transform_context.typeOnly) {
+		fn = /** @type {typeof fn} */ (apply_lazy_transforms(fn, new Map()));
 	}
 
 	if (fn.type === 'FunctionDeclaration' && fn.id) {
@@ -393,6 +399,20 @@ function component_to_function_declaration(component, transform_context) {
 	}
 
 	setLocation(fn, /** @type {any} */ (component), true);
+
+	// Restore the outer helper_state and bindings, then surface this
+	// component's generated helpers / statics so the downstream Program-level
+	// lift can hoist them (`moduleScopedHookComponents: true` registers
+	// helpers into `helper_state.helpers`; the React/Vue post-pass reads them
+	// off `fn.metadata.generated_helpers`).
+	transform_context.helper_state = saved_helper_state;
+	transform_context.available_bindings = saved_bindings;
+	if (walk_helper_state) {
+		const fn_metadata = /** @type {any} */ (fn.metadata);
+		fn_metadata.generated_helpers = walk_helper_state.helpers;
+		fn_metadata.generated_statics = walk_helper_state.statics;
+	}
+
 	return fn;
 }
 
@@ -528,14 +548,12 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	let capture_index = 0;
 	for (const child of body_nodes) {
 		if (is_bare_return_statement(child)) {
-			statements.push({
-				type: 'ReturnStatement',
-				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
-				metadata: { path: [] },
-				start: child.start,
-				end: child.end,
-				loc: child.loc,
-			});
+			statements.push(
+				set_loc(
+					b.return(children.length > 0 ? build_return_expression(children) : create_null_literal()),
+					child,
+				),
+			);
 			children.length = 0;
 			has_terminal_return = true;
 			continue;
@@ -580,27 +598,13 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	const block_body = [...statements];
 	if (children.length > 0 || !has_terminal_return) {
 		block_body.push(
-			/** @type {any} */ ({
-				type: 'ReturnStatement',
-				argument: children.length > 0 ? build_return_expression(children) : create_null_literal(),
-				metadata: { path: [] },
-			}),
+			b.return(children.length > 0 ? build_return_expression(children) : create_null_literal()),
 		);
 	}
 
-	return /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: [],
-		body: {
-			type: 'BlockStatement',
-			body: block_body,
-			metadata: { path: [] },
-		},
-		async: false,
-		generator: false,
-		expression: false,
-		metadata: { path: [], is_branch_arrow: true },
-	});
+	const arrow = b.arrow([], b.block(block_body));
+	/** @type {any} */ (arrow.metadata).is_branch_arrow = true;
+	return arrow;
 }
 
 /**
@@ -686,14 +690,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	const create_return_statement = (source_node, render_nodes) => {
 		const cloned = render_nodes.map((node) => clone_expression_node(node));
 		const argument = cloned.length > 0 ? build_return_expression(cloned) : create_null_literal();
-		return {
-			type: 'ReturnStatement',
-			argument,
-			metadata: { path: [] },
-			start: source_node?.start,
-			end: source_node?.end,
-			loc: source_node?.loc,
-		};
+		return set_loc(b.return(argument), source_node);
 	};
 
 	/** @param {any} source_node */
@@ -719,20 +716,7 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 				transform_context,
 			);
 			prepend_render_nodes_to_return_statements(branch_statements, children);
-			statements.push({
-				type: 'IfStatement',
-				test: child.test,
-				consequent: {
-					type: 'BlockStatement',
-					body: branch_statements,
-					metadata: { path: [] },
-				},
-				alternate: null,
-				metadata: { path: [] },
-				start: child.start,
-				end: child.end,
-				loc: child.loc,
-			});
+			statements.push(set_loc(b.if(child.test, b.block(branch_statements), null), child));
 			continue;
 		}
 
@@ -953,13 +937,7 @@ function negate_expression(expr) {
 		return clone_expression_node(expr.argument);
 	}
 
-	return {
-		type: 'UnaryExpression',
-		operator: '!',
-		prefix: true,
-		argument: clone_expression_node(expr),
-		metadata: { path: [] },
-	};
+	return b.unary('!', clone_expression_node(expr));
 }
 
 /**
@@ -971,13 +949,7 @@ function negate_expression(expr) {
  */
 function iife_if_arrow(node) {
 	if (!is_branch_arrow(node)) return node;
-	return {
-		type: 'CallExpression',
-		callee: node,
-		arguments: [],
-		optional: false,
-		metadata: { path: [] },
-	};
+	return b.call(node);
 }
 
 /**
@@ -1137,54 +1109,26 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		)
 	);
 
-	let arrow = /** @type {any} */ ({
-		type: 'ArrowFunctionExpression',
-		params: loop_params,
-		body: null,
-		async: false,
-		generator: false,
-		expression: true,
-		metadata: { path: [] },
-	});
+	let arrow;
 
 	if (body_has_loop_skip(loop_body)) {
-		arrow.body = {
-			type: 'BlockStatement',
-			body: loop_body_to_callback_statements(loop_body, transform_context),
-			metadata: { path: [] },
-		};
-		arrow.expression = false;
+		arrow = b.arrow(
+			loop_params,
+			b.block(loop_body_to_callback_statements(loop_body, transform_context)),
+		);
 	} else {
+		// Placeholder body — merge_branch_body_into_arrow replaces it below.
+		arrow = b.arrow(loop_params, b.literal(null));
 		arrow = merge_branch_body_into_arrow(arrow, body_to_jsx_child(loop_body, transform_context));
 	}
 
-	const attributes = [
-		{
-			type: 'JSXAttribute',
-			name: { type: 'JSXIdentifier', name: 'each', metadata: { path: [] } },
-			value: to_jsx_expression_container(node.right),
-			metadata: { path: [] },
-		},
-	];
+	const attributes = [b.jsx_attribute(b.jsx_id('each'), to_jsx_expression_container(node.right))];
 
 	if (node.key) {
 		const item_param = clone_expression_node(loop_params[0]);
-		const keyed_arrow = /** @type {any} */ ({
-			type: 'ArrowFunctionExpression',
-			params: [item_param],
-			body: node.key,
-			async: false,
-			generator: false,
-			expression: true,
-			metadata: { path: [] },
-		});
+		const keyed_arrow = b.arrow([item_param], node.key);
 		attributes.push(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'keyed', metadata: { path: [] } },
-				value: to_jsx_expression_container(keyed_arrow, node.key),
-				metadata: { path: [] },
-			}),
+			b.jsx_attribute(b.jsx_id('keyed'), to_jsx_expression_container(keyed_arrow, node.key)),
 		);
 	}
 
@@ -1197,6 +1141,20 @@ function for_of_statement_to_jsx_child(node, transform_context) {
  * statement with a discriminant `d` and cases `[c1, c2, default]` becomes:
  *   <Switch fallback={...default}><Match when={d === c1}>...</Match>...</Switch>
  *
+ * Fall-through across cases reuses the shared `plan_switch_lift` pipeline
+ * from `@tsrx/core`: each duplicated case body is hoisted into a
+ * `StatementBodyHook` helper component that chains into the next helper, and
+ * each `<Match>` body just renders the appropriate helper element. The
+ * client transform hoists those helpers to module scope (Solid's platform
+ * sets `moduleScopedHookComponents: true`); `compile_to_volar_mappings` opts
+ * back out and emits the helpers locally inside the component body so Volar
+ * still sees closure-captured bindings against the component scope.
+ *
+ * When any case is lifted in `typeOnly` mode the helper declarations have to
+ * live somewhere local-scoped — we wrap the whole `<Switch>` in an IIFE that
+ * declares them in order and returns the element. The client transform's
+ * module-scoped helpers leave that IIFE empty, so we skip the wrapper.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
@@ -1205,20 +1163,51 @@ function switch_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_switch = true;
 	transform_context.needs_match = true;
 
+	const { case_info, case_helpers, find_next_helper_after, setup_statements } = plan_switch_lift(
+		node,
+		transform_context,
+	);
+
 	/** @type {any} */
 	let fallback = null;
-	const match_children = [];
+	/** @type {Array<{ test: any, body_jsx: any }>} */
+	const match_entries = [];
 
-	for (const switch_case of node.cases) {
-		const consequent = flatten_switch_consequent(switch_case.consequent || []);
-		const body = [];
-		for (const child of consequent) {
-			if (child.type === 'BreakStatement') break;
-			body.push(child);
+	for (let i = 0; i < node.cases.length; i++) {
+		const original_case = node.cases[i];
+		const info = case_info[i];
+		const helper = case_helpers[i];
+
+		/** @type {any} */
+		let body_jsx;
+		if (helper) {
+			// Lifted case: render the helper element directly. Use the
+			// original `component_element` (not a clone) for this — its
+			// definition's `loc` is what the case position should map to.
+			body_jsx = helper.component_element;
+		} else if (info.own_body.length === 0) {
+			// Empty case in the source. If a downstream chain exists (alias
+			// pattern like `case 1: case 2: body; break;`), the `<Match>` for
+			// the empty label still has to render that downstream body —
+			// Solid's `<Match>` arms are exclusive, so JS fall-through can't
+			// rescue us here.
+			const next_helper = find_next_helper_after(i);
+			body_jsx = next_helper ? clone_switch_helper_invocation(next_helper) : create_null_literal();
+		} else {
+			// Inline case body: process JSX/non-JSX statements just like Solid
+			// does for any other branch body, then append the chain helper if
+			// this case falls through with no terminator.
+			const inline_body = [...info.own_body];
+			if (!info.has_terminator) {
+				const next_helper = find_next_helper_after(i);
+				if (next_helper) {
+					inline_body.push(clone_switch_helper_invocation(next_helper));
+				}
+			}
+			body_jsx = body_to_jsx_child(inline_body, transform_context);
 		}
 
-		const body_jsx = body_to_jsx_child(body, transform_context);
-		if (switch_case.test === null) {
+		if (original_case.test === null) {
 			fallback = body_jsx;
 			continue;
 		}
@@ -1226,30 +1215,28 @@ function switch_statement_to_jsx_child(node, transform_context) {
 		// Clone the discriminant per-case: every generated `<Match when={d === caseN}>`
 		// would otherwise share the same AST node reference, so a downstream pass
 		// (lazy transforms, printer metadata, source-map annotation) mutating it on
-		// one case would corrupt the others.
-		const test = /** @type {any} */ ({
-			type: 'BinaryExpression',
-			operator: '===',
-			left: clone_expression_node(node.discriminant),
-			right: switch_case.test,
-			metadata: { path: [] },
-		});
+		// one case would corrupt the others. The right operand (`caseN`) is the
+		// original source `test` node — unique per case, so we keep its real loc
+		// for editor IntelliSense and don't clone it.
+		const test = b.binary('===', clone_expression_node(node.discriminant), original_case.test);
 
-		match_children.push(
-			create_jsx_element(
-				'Match',
-				[
-					{
-						type: 'JSXAttribute',
-						name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
-						value: to_jsx_expression_container(test),
-						metadata: { path: [] },
-					},
-				],
-				[jsx_child_wrap(to_function_child(body_jsx))],
-			),
-		);
+		match_entries.push({ test, body_jsx });
 	}
+
+	const match_children = match_entries.map(({ test, body_jsx }) =>
+		create_jsx_element(
+			'Match',
+			[
+				{
+					type: 'JSXAttribute',
+					name: { type: 'JSXIdentifier', name: 'when', metadata: { path: [] } },
+					value: to_jsx_expression_container(test),
+					metadata: { path: [] },
+				},
+			],
+			[jsx_child_wrap(to_function_child(body_jsx))],
+		),
+	);
 
 	const attributes =
 		fallback !== null
@@ -1263,7 +1250,17 @@ function switch_statement_to_jsx_child(node, transform_context) {
 				]
 			: [];
 
-	return create_jsx_element('Switch', attributes, match_children);
+	const switch_element = create_jsx_element('Switch', attributes, match_children);
+
+	if (setup_statements.length === 0) {
+		return switch_element;
+	}
+
+	// Local-scoped helpers (typeOnly mode): wrap the <Switch> in an IIFE that
+	// declares the helpers in source order and returns the element.
+	return to_jsx_expression_container(
+		b.call(b.arrow([], b.block([...setup_statements, b.return(switch_element)]))),
+	);
 }
 
 /**
@@ -1336,28 +1333,13 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const catch_jsx = body_to_jsx_child(catch_body_nodes, transform_context);
 
 		const fallback_fn = merge_branch_body_into_arrow(
-			/** @type {any} */ ({
-				type: 'ArrowFunctionExpression',
-				params: catch_params,
-				body: null,
-				async: false,
-				generator: false,
-				expression: true,
-				metadata: { path: [] },
-			}),
+			b.arrow(catch_params, b.literal(null)),
 			catch_jsx,
 		);
 
 		result = create_jsx_element(
 			'Errored',
-			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: to_jsx_expression_container(fallback_fn),
-					metadata: { path: [] },
-				},
-			],
+			[b.jsx_attribute(b.jsx_id('fallback'), to_jsx_expression_container(fallback_fn))],
 			[result],
 		);
 	}
@@ -1424,47 +1406,16 @@ function inject_solid_imports(program, transform_context) {
 		const specifiers = [];
 
 		if (transform_context.needs_ref_prop) {
-			specifiers.push({
-				type: 'ImportSpecifier',
-				imported: { type: 'Identifier', name: 'create_ref_prop', metadata: { path: [] } },
-				local: {
-					type: 'Identifier',
-					name: CREATE_REF_PROP_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			});
+			specifiers.push(b.import_specifier('create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME));
 		}
 
 		if (transform_context.needs_normalize_spread_props) {
-			specifiers.push({
-				type: 'ImportSpecifier',
-				imported: {
-					type: 'Identifier',
-					name: 'normalize_spread_props',
-					metadata: { path: [] },
-				},
-				local: {
-					type: 'Identifier',
-					name: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-					metadata: { path: [] },
-				},
-				metadata: { path: [] },
-			});
+			specifiers.push(
+				b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME),
+			);
 		}
 
-		program.body.unshift(
-			/** @type {any} */ ({
-				type: 'ImportDeclaration',
-				specifiers,
-				source: {
-					type: 'Literal',
-					value: '@tsrx/solid/ref',
-					raw: "'@tsrx/solid/ref'",
-				},
-				metadata: { path: [] },
-			}),
-		);
+		program.body.unshift(b.import_declaration(specifiers, '@tsrx/solid/ref'));
 	}
 
 	const needed = [];
@@ -1477,20 +1428,11 @@ function inject_solid_imports(program, transform_context) {
 
 	if (needed.length === 0) return;
 
-	const specifiers = needed.map((name) => ({
-		type: 'ImportSpecifier',
-		imported: { type: 'Identifier', name, metadata: { path: [] } },
-		local: { type: 'Identifier', name, metadata: { path: [] } },
-		metadata: { path: [] },
-	}));
-
 	program.body.unshift(
-		/** @type {any} */ ({
-			type: 'ImportDeclaration',
-			specifiers,
-			source: { type: 'Literal', value: 'solid-js', raw: "'solid-js'" },
-			metadata: { path: [] },
-		}),
+		b.imports(
+			needed.map((name) => [name, name]),
+			'solid-js',
+		),
 	);
 }
 
@@ -1876,57 +1818,19 @@ function is_solid_jsx_ref_attribute(attr) {
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
 	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(
-		/** @type {any} */ ({
-			type: 'VariableDeclaration',
-			kind: 'const',
-			declarations: [
-				{
-					type: 'VariableDeclarator',
-					id: dynamic_id,
-					init: clone_expression_node(node.id),
-					metadata: { path: [] },
-				},
-			],
-			metadata: { path: [] },
-		}),
-		node,
-	);
+	const alias_declaration = set_loc(b.const(dynamic_id, clone_expression_node(node.id)), node);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(
-		/** @type {any} */ ({
-			type: 'CallExpression',
-			callee: {
-				type: 'ArrowFunctionExpression',
-				params: [],
-				body: /** @type {any} */ ({
-					type: 'BlockStatement',
-					body: [
-						alias_declaration,
-						{
-							type: 'ReturnStatement',
-							argument: {
-								type: 'ConditionalExpression',
-								test: clone_identifier(dynamic_id),
-								consequent: jsx_element,
-								alternate: create_null_literal(),
-								metadata: { path: [] },
-							},
-							metadata: { path: [] },
-						},
-					],
-					metadata: { path: [] },
-				}),
-				async: false,
-				generator: false,
-				expression: false,
-				metadata: { path: [] },
-			},
-			arguments: [],
-			optional: false,
-			metadata: { path: [] },
-		}),
+		b.call(
+			b.arrow(
+				[],
+				b.block([
+					alias_declaration,
+					b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
+				]),
+			),
+		),
 		node,
 	);
 }
