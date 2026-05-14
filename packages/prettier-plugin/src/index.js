@@ -4286,23 +4286,17 @@ function printTSInterfaceBody(node, path, options, print) {
  * @param {AstPath<AST.TSTypeAliasDeclaration>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
- * @returns {Doc[]}
+ * @returns {Doc}
  */
 function printTSTypeAliasDeclaration(node, path, options, print) {
 	/** @type {Doc[]} */
-	const parts = [];
-	parts.push('type ');
-	parts.push(node.id.name);
+	const head = ['type ', node.id.name];
 
 	if (node.typeParameters) {
-		parts.push(path.call(print, 'typeParameters'));
+		head.push(path.call(print, 'typeParameters'));
 	}
 
-	parts.push(' = ');
-	parts.push(path.call(print, 'typeAnnotation'));
-	parts.push(semi(options));
-
-	return parts;
+	return group([head, ' =', indent([line, path.call(print, 'typeAnnotation')]), semi(options)]);
 }
 
 /**
@@ -5394,19 +5388,22 @@ function printTSConstructorType(node, path, options, print) {
  * @param {AstPath<AST.TSConditionalType>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
- * @returns {Doc[]}
+ * @returns {Doc}
  */
 function printTSConditionalType(node, path, options, print) {
-	/** @type {Doc[]} */
-	const parts = [];
-	parts.push(path.call(print, 'checkType'));
-	parts.push(' extends ');
-	parts.push(path.call(print, 'extendsType'));
-	parts.push(' ? ');
-	parts.push(path.call(print, 'trueType'));
-	parts.push(' : ');
-	parts.push(path.call(print, 'falseType'));
-	return parts;
+	const trueType = path.call(print, 'trueType');
+	const falseType = path.call(print, 'falseType');
+
+	const shouldIndentTrueType = node.trueType.type !== 'TSConditionalType';
+	const shouldIndentFalseType = node.falseType.type !== 'TSConditionalType';
+
+	return group([
+		path.call(print, 'checkType'),
+		' extends ',
+		path.call(print, 'extendsType'),
+		indent([line, '? ', shouldIndentTrueType ? indent(trueType) : trueType]),
+		indent([line, ': ', shouldIndentFalseType ? indent(falseType) : falseType]),
+	]);
 }
 
 /**

@@ -3474,6 +3474,20 @@ const items = [] as unknown[];`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should break long nested TypeScript conditional type aliases', async () => {
+			const input = `type PageModelValue<Value> = Value extends ReadonlySignal<unknown> ? Value : Value extends (...args: any[]) => any ? Value : Value extends object ? { [Key in keyof Value]: PageModelValue<Value[Key]> } : never;`;
+			const expected = `type PageModelValue<Value> =
+  Value extends ReadonlySignal<unknown>
+    ? Value
+    : Value extends (...args: any[]) => any
+      ? Value
+      : Value extends object
+        ? { [Key in keyof Value]: PageModelValue<Value[Key]> }
+        : never;`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format TypeScript mapped types (TSMappedType)', async () => {
 			const input = `type ReadonlyPartial<T> = { readonly [K in keyof T]?: T[K] }`;
 			const expected = `type ReadonlyPartial<T> = { readonly [K in keyof T]?: T[K] };`;
