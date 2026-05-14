@@ -61,17 +61,40 @@ const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
 
 /**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+export function get_invalid_html_child_error_message(transform_context) {
+	return `\`{html ...}\` is only supported as the sole child of an element in ${transform_context.platform.name}.`;
+}
+
+/**
  * @param {AST.Node} node
  * @param {TransformContext} transform_context
  */
-function report_html_template_unsupported_error(node, transform_context) {
-	// this should be a fatal error so we don't pass the errors collection,
-	// since we don't have a transform for the Html node
+function report_invalid_html_child_error(node, transform_context) {
 	error(
-		`\`{html ...}\` is not supported on the ${transform_context.platform.name} target. Use \`dangerouslySetInnerHTML={{ __html: ... }}\` as an element attribute instead.`,
+		get_invalid_html_child_error_message(transform_context),
 		transform_context.filename,
 		node,
+		transform_context.errors,
+		transform_context.comments,
 	);
+}
+
+/**
+ * In loose/editor mode `error(...)` records the diagnostic and continues, so an
+ * invalid standalone `{html ...}` child still needs a valid expression node for
+ * the virtual TSX output.
+ *
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {ESTreeJSX.JSXExpressionContainer}
+ */
+export function recover_invalid_html_child(node, transform_context) {
+	report_invalid_html_child_error(node, transform_context);
+	const expression = set_loc(clone_expression_node(node.expression), node);
+	return to_jsx_expression_container(expression, node);
 }
 
 /**
@@ -2310,10 +2333,19 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 			selfClosing = child_transform.selfClosing;
 		}
 	} else {
-		if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
-			return report_html_template_unsupported_error(node, transform_context);
+		const html_child_transform = rewrite_host_html_children(
+			node,
+			walked_children,
+			raw_children,
+			attributes,
+			transform_context,
+		);
+		if (html_child_transform) {
+			children = html_child_transform.children;
+			selfClosing = html_child_transform.selfClosing;
+		} else {
+			children = create_element_children(walked_children, transform_context);
 		}
-		children = create_element_children(walked_children, transform_context);
 	}
 	const has_unmappable_attribute = attributes.some(
 		(/** @type {any} */ attribute) => attribute?.metadata?.has_unmappable_value,
@@ -2339,6 +2371,117 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 			);
 
 	return set_loc(b.jsx_element_fresh(openingElement, closingElement, children), node);
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} walked_children
+ * @param {any[]} raw_children
+ * @param {any[]} attributes
+ * @param {TransformContext} transform_context
+ * @returns {{ children: any[]; selfClosing: boolean } | null}
+ */
+export function rewrite_host_html_children(
+	node,
+	walked_children,
+	raw_children,
+	attributes,
+	transform_context,
+) {
+	const source_children = raw_children || walked_children;
+	const source_html_index = source_children.findIndex((child) => child?.type === 'Html');
+	if (source_html_index === -1) {
+		return null;
+	}
+	const source_html = source_children[source_html_index];
+	const walked_html =
+		walked_children[source_html_index]?.type === 'Html'
+			? walked_children[source_html_index]
+			: source_html;
+
+	if (is_component_like_element(node) || source_children.length !== 1) {
+		report_invalid_html_child_error(source_html, transform_context);
+	}
+
+	const conflicting_attribute = get_host_html_conflicting_attribute(attributes, transform_context);
+	if (conflicting_attribute !== null) {
+		error(
+			create_host_html_conflict_error(conflicting_attribute, transform_context),
+			transform_context.filename,
+			source_html,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+
+	attributes.push(create_host_html_attribute(walked_html, source_html, transform_context));
+
+	return { children: [], selfClosing: true };
+}
+
+/**
+ * @param {any[]} attributes
+ * @param {TransformContext} transform_context
+ * @returns {{ kind: 'attribute'; name: string } | null}
+ */
+export function get_host_html_conflicting_attribute(attributes, transform_context) {
+	const conflicting_attributes = get_host_html_conflicting_attribute_names(transform_context);
+	for (const name of conflicting_attributes) {
+		if (has_jsx_attribute(attributes, name)) {
+			return { kind: 'attribute', name };
+		}
+	}
+
+	return null;
+}
+
+/**
+ * @param {{ kind: 'attribute'; name: string }} conflicting_attribute
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+export function create_host_html_conflict_error(conflicting_attribute, transform_context) {
+	const html_attribute = get_host_html_attribute_name(transform_context);
+	return `\`{html ...}\` lowers to \`${html_attribute}\` on the ${transform_context.platform.name} target and cannot be combined with an existing \`${conflicting_attribute.name}\` attribute.`;
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string[]}
+ */
+function get_host_html_conflicting_attribute_names(transform_context) {
+	switch (transform_context.platform.name) {
+		case 'Solid':
+			return ['innerHTML', 'textContent'];
+		case 'Vue':
+			return ['innerHTML'];
+		default:
+			return [get_host_html_attribute_name(transform_context)];
+	}
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {'dangerouslySetInnerHTML' | 'innerHTML'}
+ */
+function get_host_html_attribute_name(transform_context) {
+	return transform_context.platform.jsx?.htmlProp === 'dangerouslySetInnerHTML'
+		? 'dangerouslySetInnerHTML'
+		: 'innerHTML';
+}
+
+/**
+ * @param {any[]} attributes
+ * @param {string} name
+ * @returns {boolean}
+ */
+function has_jsx_attribute(attributes, name) {
+	return attributes.some(
+		(attr) =>
+			attr?.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			attr.name.name === name,
+	);
 }
 
 /**
@@ -3580,7 +3723,7 @@ function to_jsx_child(node, transform_context) {
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
 		case 'Html':
-			return report_html_template_unsupported_error(node, transform_context);
+			return recover_invalid_html_child(node, transform_context);
 		case 'IfStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.ifStatement ?? if_statement_to_jsx_child
@@ -4918,7 +5061,7 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
  * @param {any} element
  * @returns {boolean}
  */
-function is_component_like_element(element) {
+export function is_component_like_element(element) {
 	const id = element?.id;
 	if (!id) return false;
 	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
@@ -5124,6 +5267,31 @@ function is_named_ref_attribute(attr) {
 			is_ref_prop_expression(attr.value) ||
 			(attr.value?.type === 'JSXExpressionContainer' &&
 				is_ref_prop_expression(attr.value.expression)))
+	);
+}
+
+/**
+ * @param {any} html_expression
+ * @param {any} source_attr
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+export function create_host_html_attribute(html_expression, source_attr, transform_context) {
+	const expression =
+		html_expression?.type === 'Html' ? html_expression.expression : html_expression;
+	const name = get_host_html_attribute_name(transform_context);
+	const value =
+		name === 'dangerouslySetInnerHTML'
+			? set_loc(b.object([b.prop('init', b.id('__html'), expression)]), source_attr)
+			: expression;
+	const value_container = to_jsx_expression_container(value, source_attr);
+	if (name !== 'dangerouslySetInnerHTML') {
+		setLocation(value_container, source_attr, true);
+	}
+
+	return set_loc(
+		build_jsx_attribute(b.jsx_id(name), value_container, false, source_attr),
+		source_attr,
 	);
 }
 

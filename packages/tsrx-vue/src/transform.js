@@ -12,8 +12,10 @@ import {
 	componentToFunctionDeclaration,
 	createJsxTransform,
 	error,
+	is_component_like_element,
 	MERGE_REFS_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+	rewriteHostHtmlChildren as rewrite_host_html_children,
 	setLocation,
 	toJsxAttribute,
 } from '@tsrx/core';
@@ -962,34 +964,16 @@ function rewrite_host_text_or_html_children(
 ) {
 	const source_children = raw_children || walked_children;
 	const is_composite = is_component_like_element(node);
-	const html_children = source_children.filter((child) => child?.type === 'Html');
 
-	if (html_children.length > 0) {
-		if (
-			is_composite ||
-			source_children.length !== 1 ||
-			has_dom_content_attribute(attributes, 'innerHTML') ||
-			has_dom_content_attribute(attributes, 'textContent')
-		) {
-			error(
-				'`{html ...}` on the Vue target is only supported as the sole child of a host element. Use `innerHTML={...}` as an element attribute when you need the explicit prop form.',
-				transform_context?.filename ?? null,
-				html_children[0],
-				transform_context?.errors,
-				transform_context?.comments,
-			);
-		}
-
-		const walked_html = walked_children[0] || html_children[0];
-		attributes.push(
-			create_jsx_attribute(
-				'innerHTML',
-				to_jsx_expression_container(walked_html.expression, html_children[0]),
-				html_children[0],
-			),
-		);
-
-		return { children: [], selfClosing: true };
+	const html_child_transform = rewrite_host_html_children(
+		node,
+		walked_children,
+		raw_children,
+		attributes,
+		transform_context,
+	);
+	if (html_child_transform) {
+		return html_child_transform;
 	}
 
 	if (!is_composite && source_children.length === 1 && source_children[0]?.type === 'Text') {
@@ -997,44 +981,6 @@ function rewrite_host_text_or_html_children(
 	}
 
 	return null;
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_component_like_element(node) {
-	const id = node?.id;
-	if (!id) return false;
-	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
-	if (id.type === 'MemberExpression') return true;
-	return false;
-}
-
-/**
- * @param {any[]} attributes
- * @param {string} name
- * @returns {boolean}
- */
-function has_dom_content_attribute(attributes, name) {
-	return attributes.some(
-		(/** @type {any} */ attribute) =>
-			attribute &&
-			(attribute.type === 'JSXSpreadAttribute' ||
-				(attribute.type === 'JSXAttribute' &&
-					attribute.name?.type === 'JSXIdentifier' &&
-					attribute.name.name === name)),
-	);
-}
-
-/**
- * @param {string} name
- * @param {any} value
- * @param {any} source_node
- * @returns {any}
- */
-function create_jsx_attribute(name, value, source_node) {
-	return builders.jsx_attribute(builders.jsx_id(name), value, false, source_node);
 }
 
 /**

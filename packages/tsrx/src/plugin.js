@@ -19,6 +19,8 @@ import { DIAGNOSTIC_CODES } from './diagnostics.js';
 
 const JSX_EXPRESSION_VALUE_ERROR =
 	'JSX elements cannot be used as expressions. Wrap JSX with `<>...</>` or `<tsx>...</tsx>`, wrap TSRX templates with `<tsrx>...</tsrx>`, or use elements as statements within a component.';
+const HTML_ATTRIBUTE_VALUE_ERROR =
+	'`{html ...}` is not supported as an attribute value. Use a string literal or expression without `html`.';
 
 const CharCode = Object.freeze({
 	tab: 9,
@@ -1969,6 +1971,27 @@ export function TSRXPlugin(config) {
 						/** @type {AST.RefAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
 						return /** @type {AST.RefAttribute} */ (this.finishNode(node, 'RefAttribute'));
+					} else if (this.type === tt.name && this.value === 'html') {
+						// {html ...}
+						// The support is purely for better error messages to avoid
+						// the parser throw an unexpected token error
+						const id = /** @type {AST.Identifier} */ (this.parseIdentNode());
+						id.tracked = false;
+						this.finishNode(id, 'Identifier');
+						this.next();
+						const value = this.type === tt.braceR ? id : this.parseMaybeAssign();
+						const report_end = this.type === tt.braceR ? this.end : (value.end ?? this.end);
+						this.#report_recoverable_error_range(
+							node.start ?? id.start ?? this.start,
+							report_end,
+							HTML_ATTRIBUTE_VALUE_ERROR,
+							DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
+						);
+						/** @type {AST.Attribute} */ (node).name = id;
+						/** @type {AST.Attribute} */ (node).value = value;
+						/** @type {AST.Attribute} */ (node).shorthand = false;
+						this.expect(tt.braceR);
+						return this.finishNode(node, 'Attribute');
 					} else if (this.type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
 						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
@@ -1992,10 +2015,18 @@ export function TSRXPlugin(config) {
 					}
 				}
 				/** @type {ESTreeJSX.JSXAttribute} */ (node).name = this.jsx_parseNamespacedName();
-				/** @type {ESTreeJSX.JSXAttribute} */ (node).value =
-					/** @type {ESTreeJSX.JSXAttribute['value'] | null} */ (
-						this.eat(tt.eq) ? this.jsx_parseAttributeValue() : null
+				const value = /** @type {ESTreeJSX.JSXAttribute['value'] | null} */ (
+					this.eat(tt.eq) ? this.jsx_parseAttributeValue() : null
+				);
+				if (value?.type === 'JSXExpressionContainer' && value.html) {
+					this.#report_recoverable_error_range(
+						value.start ?? node.start ?? this.start,
+						value.end ?? node.end ?? this.end,
+						HTML_ATTRIBUTE_VALUE_ERROR,
+						DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
 					);
+				}
+				/** @type {ESTreeJSX.JSXAttribute} */ (node).value = value;
 				return this.finishNode(node, 'JSXAttribute');
 			}
 
@@ -2205,6 +2236,8 @@ export function TSRXPlugin(config) {
 							// In JSX text mode, '<' and '{' always start a tag/expression container.
 							// `exprAllowed` can be false here due to surrounding parser state, but
 							// throwing breaks valid templates (e.g. sibling tags after a close).
+							this.start = this.pos;
+							this.startLoc = this.curPosition();
 							if (ch === CharCode.lessThan) {
 								++this.pos;
 								return this.finishToken(tstt.jsxTagStart);
@@ -2434,6 +2467,8 @@ export function TSRXPlugin(config) {
 				/** @type {AST.NodeWithLocation} */ (element).loc.start = position;
 				element.metadata = { path: [] };
 				element.children = [];
+				element.type = 'Element';
+				this.#path.push(element);
 
 				const open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
 					this.jsx_parseOpeningElementAt(start, position)
@@ -2492,8 +2527,6 @@ export function TSRXPlugin(config) {
 					element.type = 'Element';
 				}
 
-				this.#path.push(element);
-
 				for (const attr of open.attributes) {
 					if (attr.type === 'JSXAttribute') {
 						/** @type {AST.Attribute} */ (/** @type {unknown} */ (attr)).type = 'Attribute';
@@ -2534,7 +2567,12 @@ export function TSRXPlugin(config) {
 
 				element.attributes = open.attributes;
 				element.metadata ??= { path: [] };
-				element.metadata.commentContainerId = ++this.#commentContextId;
+				// Opening-tag parsing can tokenize comments that appear before the first
+				// child. Preserve that early container id so the comment stays associated
+				// with this element during comment attachment/printing.
+				if (element.metadata.commentContainerId === undefined) {
+					element.metadata.commentContainerId = ++this.#commentContextId;
+				}
 
 				if (element.selfClosing) {
 					this.#path.pop();

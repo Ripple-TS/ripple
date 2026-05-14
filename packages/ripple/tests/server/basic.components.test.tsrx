@@ -33,8 +33,8 @@ describe('basic server > components & composition', () => {
 
 	it('does not render a falsy component call', async () => {
 		component Card(props: PropsWithChildrenOptional<{ test: Component }>) {
+			// @ts-expect-error - ripple automatically handles falsy children
 			<div class="card">
-				// @ts-expect-error - ripple automatically handles falsy children
 				{props.children}
 			</div>
 		}

@@ -70,10 +70,9 @@ const TEXT_KW_HTML = [
 
 const HTML_KW_HTML = [
 	'<span class="ln">1</span> <span class="kw">component</span> <span class="fn">Article</span><span class="br">(</span><span class="br">{</span> <span class="prop">markup</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">markup</span>: <span class="type">string</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">2</span>   <span class="cmt">// {html ...} inserts the value as raw HTML — no escaping.</span>',
-	'<span class="ln">3</span>   <span class="cmt">// Only use on trusted input; this is equivalent to innerHTML.</span>',
-	'<span class="ln">4</span>   <span class="tag">&lt;</span><span class="el">article</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="kw">html</span> <span class="prop">markup</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">article</span><span class="tag">&gt;</span>',
-	'<span class="ln">5</span> <span class="br">}</span>',
+	'<span class="ln">2</span>   <span class="cmt">// {html ...} inserts trusted markup as raw HTML.</span>',
+	'<span class="ln">3</span>   <span class="tag">&lt;</span><span class="el">article</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="kw">html</span> <span class="prop">markup</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">article</span><span class="tag">&gt;</span>',
+	'<span class="ln">4</span> <span class="br">}</span>',
 ].join('\n');
 
 const IF_HTML = [
@@ -498,44 +497,79 @@ export component FeaturesPage() {
 					<section class="doc-section" id="raw-html">
 						<h2 class="section-heading">{'Raw HTML'}</h2>
 						<p class="section-body">
-							<strong>{'Ripple fully supports this; Vue supports a narrower subset. '}</strong>
 							{'The '}
 							<code class="inline-code">{'{html expr}'}</code>
-							{' container is an escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
+							{' directive is an escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
 							<code class="inline-code">{'{@html ...}'}</code>
-							{'. The expression must evaluate to a string, and it replaces the surrounding element\'s contents as parsed HTML rather than escaped text.'}
+							{'. Use it as child content: '}
+							<code class="inline-code">{'<article>{html source}</article>'}</code>
+							{'.'}
+						</p>
+						<p class="section-body">
+							{'The html expression '}
+							<code class="inline-code">{'{html ...}'}</code>
+							{' must be the sole child of a host element. Ripple also supports child-level raw HTML mixed with sibling children.'}
 						</p>
 						<pre class="code-block">
 							<code>{html HTML_KW_HTML}</code>
 						</pre>
-						<p class="section-body">
-							{'Only one '}
-							<code class="inline-code">{'{html ...}'}</code>
-							{' may sit inside an element, and it can\'t share the element with sibling children. Like '}
-							<code class="inline-code">{'text'}</code>
-							{', the '}
-							<code class="inline-code">{'html'}</code>
-							{' keyword is compile-time only and disappears after the transform — in Ripple it lowers to an internal '}
-							<code class="inline-code">{'_$_.html'}</code>
-							{' binding.'}
-						</p>
-						<p class="section-body">
-							{'React, Preact, and Solid do not have a cleanly-matching child-level primitive, so compiling '}
-							<code class="inline-code">{'{html ...}'}</code>
-							{' with '}
-							<code class="inline-code">{'@tsrx/react'}</code>
-							{', '}
-							<code class="inline-code">{'@tsrx/preact'}</code>
-							{', or '}
-							<code class="inline-code">{'@tsrx/solid'}</code>
-							{' is a compile-time error. Vue accepts it only when it is the sole child of a host element, where it lowers to '}
-							<code class="inline-code">{'innerHTML={markup}'}</code>
-							{'; composite elements and sibling children are rejected. For the other non-Ripple targets, reach for the attribute-level equivalent directly: '}
-							<code class="inline-code">{'dangerouslySetInnerHTML={{ __html: markup }}'}</code>
-							{' on React and Preact, or '}
-							<code class="inline-code">{'innerHTML={markup}'}</code>
-							{' on Solid.'}
-						</p>
+
+						<table class="ref-target-table">
+							<thead>
+								<tr>
+									<th>{'Framework'}</th>
+									<th>
+										{'Children use'}
+										<br />
+										<code class="inline-code">{'<div>{html markup}</div>'}</code>
+									</th>
+									<th>{'Sibling children'}</th>
+									<th>{'Maps to'}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>{'React'}</td>
+									<td>{'✓ sole child'}</td>
+									<td>{'No'}</td>
+									<td>
+										<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
+									</td>
+								</tr>
+								<tr>
+									<td>{'Preact'}</td>
+									<td>{'✓ sole child'}</td>
+									<td>{'No'}</td>
+									<td>
+										<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
+									</td>
+								</tr>
+								<tr>
+									<td>{'Solid'}</td>
+									<td>{'✓ sole child'}</td>
+									<td>{'No'}</td>
+									<td>
+										<code class="inline-code">{'innerHTML'}</code>
+									</td>
+								</tr>
+								<tr>
+									<td>{'Vue'}</td>
+									<td>{'✓ sole child'}</td>
+									<td>{'No'}</td>
+									<td>
+										<code class="inline-code">{'innerHTML'}</code>
+									</td>
+								</tr>
+								<tr>
+									<td>{'Ripple'}</td>
+									<td>{'✓ with siblings'}</td>
+									<td>{'Yes'}</td>
+									<td>
+										<code class="inline-code">{'native'}</code>
+									</td>
+								</tr>
+							</tbody>
+						</table>
 						<p class="section-body muted">
 							<strong>{'Security: '}</strong>
 							{'only use '}

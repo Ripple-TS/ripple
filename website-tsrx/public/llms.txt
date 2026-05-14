@@ -418,14 +418,13 @@ component Price({ amount }: { amount: number }) {
 }
 ```
 
-#### `{html expr}` — raw HTML, **Ripple plus limited Vue host support**
+#### `{html expr}` — raw HTML
 
-Inserts the string as parsed HTML. Ripple supports this directly. Vue supports
-it only when `{html expr}` is the **sole child of a host element**, where it
-lowers to `innerHTML={expr}`. React, Preact, and Solid reject the child-level
-form at compile time; use the attribute-level equivalents instead:
-`dangerouslySetInnerHTML={{ __html: x }}` on React/Preact, `innerHTML={x}` on
-Solid.
+To render trusted raw HTML strings, use the `{html}` directive as child content:
+`<article>{html source}</article>`.
+
+Except for Ripple, `{html ...}` must be the sole child of a host element.
+Ripple supports child-level `{html ...}` mixed with sibling children.
 
 ```tsrx
 component Article({ markup }: { markup: string }) {
@@ -869,8 +868,6 @@ component UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
   `vue-jsx-vapor` runtime
 - Supports `if`, `for`, `switch`, `try { } catch { }`, scoped styles, and
   `{text ...}`
-- Supports `{html ...}` only as the sole child of a host element; lowers to
-  `innerHTML={...}`
 - Supports `{ref ...}` callback refs on host elements; repeated refs are
   merged into one callback
 - Does not currently support composite refs, `pending` blocks, `finally`
@@ -977,7 +974,7 @@ component List<T>({ items, render }: Props<T>) {
 | JSX as value             | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content             | `<p>"literal"</p>`, `<p>{expr}</p>`             |
 | Forced escaped text      | `<span>{text expr}</span>`                       |
-| Raw HTML (Ripple, host-only Vue) | `<article>{html markup}</article>`        |
+| Raw HTML               | `<article>{html markup}</article>`              |
 | Lazy prop destructure    | `component C(&{ x, y }: Props) { ... }`          |
 | Lazy array destructure   | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand           | `<Input {value} {onChange} />`                   |

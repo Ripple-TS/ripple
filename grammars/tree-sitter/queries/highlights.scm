@@ -13,6 +13,8 @@
   "style" @keyword
   (string) @string)
 
+(jsx_expression "html" @keyword)
+
 ; Reserved identifiers
 [
   "track"

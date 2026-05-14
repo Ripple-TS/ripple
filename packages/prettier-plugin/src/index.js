@@ -6384,12 +6384,23 @@ function printElement(element, path, options, print) {
 			isTextLikeChild && Array.isArray(currentChild.expression?.leadingComments)
 				? currentChild.expression.leadingComments
 				: null;
+		const elementBodyLeadingComments =
+			hasTextLeadingComments && node.openingElement
+				? /** @type {AST.Comment[]} */ (currentChild.leadingComments).filter(
+						(comment) =>
+							comment.context?.containerId === node.metadata?.commentContainerId &&
+							comment.context?.beforeMeaningfulChild &&
+							typeof comment.start === 'number' &&
+							comment.start >= /** @type {AST.NodeWithLocation} */ (node.openingElement).end &&
+							comment.start < /** @type {AST.NodeWithLocation} */ (currentChild).start,
+					)
+				: [];
 
 		if (hasTextLeadingComments) {
 			for (let j = 0; j < /** @type {AST.Comment[]} */ (currentChild.leadingComments).length; j++) {
 				const comment = /** @type {AST.Comment[]} */ (currentChild.leadingComments)[j];
 				// Don't lift comments that belong inside the opening tag (handled in attribute section)
-				if (!openingTagCommentsSet.has(comment)) {
+				if (!openingTagCommentsSet.has(comment) && !elementBodyLeadingComments.includes(comment)) {
 					fallbackElementComments.push(comment);
 				}
 			}
@@ -6408,10 +6419,15 @@ function printElement(element, path, options, print) {
 				? path.call((childPath) => print(childPath, childPrintArgs), 'children', i)
 				: path.call(print, 'children', i);
 
-		const childDoc =
-			rawExpressionLeadingComments && rawExpressionLeadingComments.length > 0
-				? [...createElementLevelCommentParts(rawExpressionLeadingComments), printedChild]
-				: printedChild;
+		const childLeadingCommentParts =
+			elementBodyLeadingComments.length > 0
+				? createElementLevelCommentParts(elementBodyLeadingComments)
+				: rawExpressionLeadingComments && rawExpressionLeadingComments.length > 0
+					? createElementLevelCommentParts(rawExpressionLeadingComments)
+					: null;
+		const childDoc = childLeadingCommentParts
+			? [...childLeadingCommentParts, printedChild]
+			: printedChild;
 		finalChildren.push(childDoc);
 
 		// Insert element-body comments that fall between this child and the next child (or the closing tag).

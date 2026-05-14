@@ -94,6 +94,47 @@ component ExplicitTextApp() {
 	<div class="explicit-text-undefined">{text missing}</div>
 }
 
+component ExplicitHtmlApp() {
+	const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+
+	<div class="explicit-html-child">{html markup}</div>
+	<button
+		class="explicit-html-update"
+		onClick={() => {
+			setMarkup('<strong class="html-node">updated</strong>');
+		}}
+	>
+		{'update'}
+	</button>
+}
+
+component SpreadHtmlApp() {
+	const [spreadProps, setSpreadProps] = useState({
+		dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
+	});
+	const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+
+	<div class="spread-html-child" {...spreadProps}>{html markup}</div>
+	<button
+		class="spread-html-update-spread"
+		onClick={() => {
+			setSpreadProps({
+				dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
+			});
+		}}
+	>
+		{'spread'}
+	</button>
+	<button
+		class="spread-html-update-markup"
+		onClick={() => {
+			setMarkup('<strong class="html-node">updated</strong>');
+		}}
+	>
+		{'markup'}
+	</button>
+}
+
 component CallableBlockRuntimeApp() {
 	function readDeclaration() {
 		const marker = 'decl-outer';
@@ -1120,6 +1161,30 @@ describe('tsrx-react runtime', () => {
 		expect(text('.explicit-text-boolean')).toBe('false');
 		expect(text('.explicit-text-null')).toBe('');
 		expect(text('.explicit-text-undefined')).toBe('');
+	});
+
+	it('renders explicit html interpolation as html', async () => {
+		await render(ExplicitHtmlApp);
+		expect(text('.explicit-html-child')).toBe('safe enough');
+		expect(container.querySelector('.explicit-html-child .html-node')?.tagName).toBe('SPAN');
+
+		await click('.explicit-html-update');
+		expect(text('.explicit-html-child')).toBe('updated');
+		expect(container.querySelector('.explicit-html-child .html-node')?.tagName).toBe('STRONG');
+	});
+
+	it('lets native runtime resolve spread props before explicit html interpolation', async () => {
+		await render(SpreadHtmlApp);
+		expect(text('.spread-html-child')).toBe('safe enough');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('SPAN');
+
+		await click('.spread-html-update-spread');
+		expect(text('.spread-html-child')).toBe('safe enough');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('SPAN');
+
+		await click('.spread-html-update-markup');
+		expect(text('.spread-html-child')).toBe('updated');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('STRONG');
 	});
 
 	it('runs nested JavaScript blocks inside component-local callables', async () => {

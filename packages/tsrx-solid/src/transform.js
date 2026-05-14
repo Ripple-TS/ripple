@@ -32,11 +32,14 @@ import {
 	create_generated_identifier,
 	create_null_literal,
 	get_for_of_iteration_params,
+	is_component_like_element,
 	planSwitchLift as plan_switch_lift,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
+	recoverInvalidHtmlChild as recover_invalid_html_child,
+	rewriteHostHtmlChildren as rewrite_host_html_children,
 	set_loc,
 	to_text_expression,
 } from '@tsrx/core';
@@ -443,9 +446,7 @@ function to_jsx_child(node, transform_context) {
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
 		case 'Html':
-			throw new Error(
-				'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
-			);
+			return recover_invalid_html_child(node, transform_context);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'ForOfStatement':
@@ -1457,19 +1458,8 @@ function inject_solid_imports(program, transform_context) {
 function to_jsx_element(node, transform_context, pre_walk_children) {
 	if (node.type === 'JSXElement') return node;
 
-	// `{html expr}` isn't supported on the Solid target — users should reach
-	// for `innerHTML={...}` directly as an element attribute so the
-	// semantics (replaces all children; only valid on host elements) are
-	// explicit in their source. Only Ripple has a `{html ...}` primitive.
-	// The check runs before the dynamic-element branch so `<@Dyn>{html x}</@Dyn>`
-	// fails with the same diagnostic as the static-element case.
 	const walked_children = node.children || [];
 	const text_optimization_children = pre_walk_children ?? walked_children;
-	if (walked_children.some((/** @type {any} */ c) => c && c.type === 'Html')) {
-		throw new Error(
-			'`{html ...}` is not supported on the Solid target. Use `innerHTML={...}` as an element attribute instead.',
-		);
-	}
 
 	if (!node.id) {
 		error(
@@ -1495,12 +1485,28 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 	}
 
 	const name = identifier_to_jsx_name(node.id);
-	const is_composite = is_composite_element(node);
+	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
 		node.attributes || [],
 		is_composite,
 		transform_context,
 	);
+
+	const html_child_transform = rewrite_host_html_children(
+		node,
+		walked_children,
+		pre_walk_children ?? walked_children,
+		attributes,
+		transform_context,
+	);
+	if (html_child_transform) {
+		const openingElement = set_loc(
+			b.jsx_opening_element(name, attributes, true, node.openingElement?.typeArguments),
+			node.openingElement || node,
+		);
+
+		return set_loc(b.jsx_element_fresh(openingElement, null, []), node);
+	}
 
 	// Optimization: `<el>{text expr}</el>` with a single `{text ...}` child
 	// on a host (DOM) element lowers to `<el textContent={expr} />`. Solid
@@ -1608,22 +1614,6 @@ function create_element_children(children, transform_context) {
 	}
 
 	return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
-}
-
-/**
- * Detect whether an `Element` node represents a composite component (tag
- * name starts with an uppercase letter, or is a member expression like
- * `Namespace.Component`).
- *
- * @param {any} node
- * @returns {boolean}
- */
-function is_composite_element(node) {
-	const id = node?.id;
-	if (!id) return false;
-	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
-	if (id.type === 'MemberExpression') return true;
-	return false;
 }
 
 /**
@@ -1842,7 +1832,7 @@ function dynamic_element_to_jsx_child(node, transform_context) {
  * @returns {any}
  */
 function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
-	const is_composite = is_composite_element(node);
+	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
 		node.attributes || [],
 		is_composite,

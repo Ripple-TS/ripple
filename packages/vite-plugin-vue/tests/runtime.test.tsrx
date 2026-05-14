@@ -80,6 +80,31 @@ component ExplicitHtmlApp() {
 	</button>
 }
 
+component SpreadHtmlApp() {
+	const spreadProps = ref({
+		innerHTML: '<em class="html-node">spread</em>',
+	});
+	const markup = ref('<span class="html-node">safe enough</span>');
+
+	<div class="spread-html-child" {...spreadProps.value}>{html markup.value}</div>
+	<button
+		class="spread-html-update-spread"
+		onClick={() => {
+			spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
+		}}
+	>
+		{'spread'}
+	</button>
+	<button
+		class="spread-html-update-markup"
+		onClick={() => {
+			markup.value = '<strong class="html-node">updated</strong>';
+		}}
+	>
+		{'markup'}
+	</button>
+}
+
 let element_ref_captured: HTMLDivElement | null = null;
 
 let keyword_ref_callback_captured: HTMLDivElement | null = null;
@@ -844,6 +869,20 @@ describe('tsrx-vue runtime', () => {
 		await click('.explicit-html-update');
 		expect(text('.explicit-html-target')).toBe('updated');
 		expect(container.querySelector('.explicit-html-target .html-node')?.tagName).toBe('STRONG');
+	});
+
+	it('lets native runtime resolve spread props before explicit html interpolation', async () => {
+		await render(SpreadHtmlApp);
+		expect(text('.spread-html-child')).toBe('safe enough');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('SPAN');
+
+		await click('.spread-html-update-spread');
+		expect(text('.spread-html-child')).toBe('safe enough');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('SPAN');
+
+		await click('.spread-html-update-markup');
+		expect(text('.spread-html-child')).toBe('updated');
+		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('STRONG');
 	});
 
 	it('supports ref callback on elements', async () => {

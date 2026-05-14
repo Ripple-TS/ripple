@@ -25,6 +25,7 @@ const react_platform = {
 		rewriteClassAttr: true,
 		acceptedTsxKinds: ['react'],
 		multiRefStrategy: 'merge-refs',
+		htmlProp: 'dangerouslySetInnerHTML',
 	},
 	validation: {
 		requireUseServerForAwait: false,

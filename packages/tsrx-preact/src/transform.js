@@ -43,6 +43,7 @@ const preact_platform = {
 		rewriteClassAttr: false,
 		acceptedTsxKinds: ['preact', 'react'],
 		multiRefStrategy: 'merge-refs',
+		htmlProp: 'dangerouslySetInnerHTML',
 	},
 	validation: {
 		requireUseServerForAwait: true,

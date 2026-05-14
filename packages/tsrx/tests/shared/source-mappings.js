@@ -572,6 +572,77 @@ component C() {
 			expect(result.code).toContain('function App({ a: b, b }: { a: string; b: string })');
 		});
 
+		it('maps invalid child html diagnostics to the directive range', () => {
+			const source = `component App({ markup }: { markup: string }) {
+	<article>
+		{html markup}
+		<span>child</span>
+	</article>
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const error = result.errors[0];
+
+			expect(error.message).toMatch(/only supported as the sole child of an element/);
+			expect(source.slice(error.pos, error.end)).toBe('{html markup}');
+			expect(
+				result.mappings.find(
+					(mapping) =>
+						mapping.sourceOffsets[0] === error.pos && mapping.lengths[0] === error.end - error.pos,
+				),
+			).toBeDefined();
+		});
+
+		it('maps invalid component child html diagnostics to the generated html value wrapper', () => {
+			const source = `component Component({ children }) {
+	<div>{children}</div>
+}
+
+export component App() {
+	<Component>{html \`<p>Hello, World!</p>\`}</Component>
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const error = result.errors[0];
+			const mapping = result.mappings.find(
+				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ mapping) =>
+					mapping.sourceOffsets[0] === error.pos && mapping.lengths[0] === error.end - error.pos,
+			);
+
+			expect(error.message).toMatch(/only supported as the sole child of an element/);
+			expect(source.slice(error.pos, error.end)).toBe('{html `<p>Hello, World!</p>`}');
+			expect(mapping).toBeDefined();
+			expect(
+				result.code.slice(
+					mapping.generatedOffsets[0],
+					mapping.generatedOffsets[0] + mapping.generatedLengths[0],
+				),
+			).toMatch(/\{(?: __html: )?`<p>Hello, World!<\/p>` ?\}/);
+		});
+
+		it('maps invalid component body html diagnostics to the recovered expression', () => {
+			const source = `component Test() {
+	{html \`<p>Hello, World!</p>\`}
+}`;
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const error = result.errors[0];
+			const mapping = result.mappings.find(
+				(/** @type {{ sourceOffsets: number[], lengths: number[] }} */ mapping) =>
+					mapping.sourceOffsets[0] === error.pos && mapping.lengths[0] === error.end - error.pos,
+			);
+
+			expect(error.message).toMatch(/only supported as the sole child of an element/);
+			expect(source.slice(error.pos, error.end)).toBe('{html `<p>Hello, World!</p>`}');
+			expect(mapping).toBeDefined();
+			expect(
+				result.code.slice(
+					mapping.generatedOffsets[0],
+					mapping.generatedOffsets[0] + mapping.generatedLengths[0],
+				),
+			).toBe('`<p>Hello, World!</p>`');
+		});
+
 		it('reports repeated lazy param bindings with full identifier ranges', () => {
 			const source = `component App(&{ a: value, value }: { a: string, value: string }) {
 	<>{value}</>

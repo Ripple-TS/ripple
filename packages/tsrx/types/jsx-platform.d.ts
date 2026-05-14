@@ -345,6 +345,8 @@ export interface JsxPlatform {
 		 * explicit `ref={normalized.ref}` attribute.
 		 */
 		hostSpreadRefStrategy?: 'explicit-ref-attr';
+		/** Native host prop used when lowering a sole child `{html ...}`. */
+		htmlProp?: 'dangerouslySetInnerHTML' | 'innerHTML';
 	};
 
 	validation: {

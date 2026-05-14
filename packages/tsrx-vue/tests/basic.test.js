@@ -457,7 +457,7 @@ describe('@tsrx/vue basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).toThrow(/only supported as the sole child of a host element/);
+		).toThrow(/only supported as the sole child of an element/);
 	});
 
 	it('rejects {html expr} when mixed with sibling children', () => {
@@ -469,7 +469,7 @@ describe('@tsrx/vue basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).toThrow(/only supported as the sole child of a host element/);
+		).toThrow(/only supported as the sole child of an element/);
 	});
 
 	it('compiles a simple if block in component bodies', () => {
