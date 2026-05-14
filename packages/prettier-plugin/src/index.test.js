@@ -1098,6 +1098,23 @@ export component Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should not force attribute-less elements to break with singleAttributePerLine', async () => {
+			const input = `component One() {
+  <div>"Hello"</div>
+}`;
+
+			const expected = `component One() {
+  <div>"Hello"</div>
+}`;
+
+			const result = await format(input, {
+				singleQuote: true,
+				printWidth: 100,
+				singleAttributePerLine: true,
+			});
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should respect singleAttributePerLine set to false setting', async () => {
 			const input = `component One() {
   <button
@@ -3279,6 +3296,21 @@ const items = [] as unknown[];`;
 }`;
 
 		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve literal newlines in direct double-quoted text children', async () => {
+		const input = `component App() {
+  <pre>"first
+second"</pre>
+}`;
+
+		const expected = `component App() {
+  <pre>"first
+second"</pre>
+}`;
+
+		const result = await format(input);
 		expect(result).toBeWithNewline(expected);
 	});
 

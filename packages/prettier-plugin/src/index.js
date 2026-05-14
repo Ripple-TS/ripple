@@ -27,6 +27,7 @@ const {
 	line,
 	softline,
 	hardline,
+	literalline,
 	group,
 	indent,
 	ifBreak,
@@ -5513,9 +5514,15 @@ function printRawText(raw) {
 	}
 
 	return fill(
-		text.split(/(\s+)/u).map((part) => {
-			return /^\s+$/u.test(part) ? line : part;
-		}),
+		text
+			.split(/(\r\n|\r|\n|[^\S\r\n]+)/u)
+			.filter(Boolean)
+			.map((part) => {
+				if (/^(?:\r\n|\r|\n)$/u.test(part)) {
+					return literalline;
+				}
+				return /^[^\S\r\n]+$/u.test(part) ? line : part;
+			}),
 	);
 }
 
@@ -6288,7 +6295,7 @@ function printElement(element, path, options, print) {
 			}, 'attributes')
 		: [];
 	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
-	const openingTagAlwaysBreaks = options.singleAttributePerLine || shouldForceBreak;
+	const openingTagAlwaysBreaks = (hasAttributes && options.singleAttributePerLine) || shouldForceBreak;
 	const openingTag = group([
 		'<',
 		tagName,

@@ -47,7 +47,8 @@ component BasicApp() {
 component DirectQuotedTextApp() {
 	<div class="direct-quoted-entities">"Rock &amp; &quot;Roll&quot;"</div>
 	<div class="direct-quoted-backslash">"line\nbreak"</div>
-	<pre class="direct-quoted-multiline">"first second"</pre>
+	<pre class="direct-quoted-multiline">"first
+second"</pre>
 }
 
 component DirectQuotedTextIfElseTrueApp() {
