@@ -23,6 +23,7 @@ import {
 	isVoidElement,
 	extractPaths,
 	analyzeCss,
+	pruneCss,
 	error,
 	getReturnKeywordNode,
 	isEventAttribute,
@@ -48,7 +49,6 @@ import {
 	strong_hash,
 } from '../utils.js';
 import is_reference from 'is-reference';
-import { prune_css } from './prune.js';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
 
@@ -1542,7 +1542,7 @@ const visitors = {
 			analyzeCss(css);
 
 			for (const node of elements) {
-				prune_css(css, node, metadata.styleClasses, topScopedClasses);
+				pruneCss(css, node, metadata.styleClasses, topScopedClasses);
 			}
 
 			if (topScopedClasses.size > 0) {

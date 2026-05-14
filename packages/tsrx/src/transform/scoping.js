@@ -95,9 +95,15 @@ function is_composite_jsx_element(node) {
  * @param {any} node
  * @param {string} hash
  * @param {'class' | 'className'} [jsx_class_attr_name='class']
+ * @param {boolean} [preserve_style_elements=false]
  * @returns {any}
  */
-export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
+export function annotate_with_hash(
+	node,
+	hash,
+	jsx_class_attr_name = 'class',
+	preserve_style_elements = false,
+) {
 	if (!node || typeof node !== 'object') return node;
 	if (
 		node.type === 'Component' ||
@@ -109,13 +115,19 @@ export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
 	}
 
 	if (node.type === 'Element') {
+		if (preserve_style_elements && is_style_element(node)) {
+			node.children = [];
+			return node;
+		}
 		if (!is_style_element(node) && !is_composite_element(node)) {
 			add_hash_class(node, hash);
 		}
 		if (Array.isArray(node.children)) {
 			node.children = node.children
-				.filter((/** @type {any} */ child) => !is_style_element(child))
-				.map((/** @type {any} */ child) => annotate_with_hash(child, hash, jsx_class_attr_name));
+				.filter((/** @type {any} */ child) => preserve_style_elements || !is_style_element(child))
+				.map((/** @type {any} */ child) =>
+					annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
+				);
 		}
 		return node;
 	}
@@ -126,7 +138,7 @@ export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
 		}
 		if (Array.isArray(node.children)) {
 			node.children = node.children.map((/** @type {any} */ child) =>
-				annotate_with_hash(child, hash, jsx_class_attr_name),
+				annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
 			);
 		}
 		return node;
@@ -140,10 +152,10 @@ export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
 		const value = node[key];
 		if (Array.isArray(value)) {
 			node[key] = value.map((/** @type {any} */ child) =>
-				annotate_with_hash(child, hash, jsx_class_attr_name),
+				annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
 			);
 		} else if (value && typeof value === 'object') {
-			node[key] = annotate_with_hash(value, hash, jsx_class_attr_name);
+			node[key] = annotate_with_hash(value, hash, jsx_class_attr_name, preserve_style_elements);
 		}
 	}
 
@@ -154,14 +166,22 @@ export function annotate_with_hash(node, hash, jsx_class_attr_name = 'class') {
  * @param {any} component
  * @param {string} hash
  * @param {'class' | 'className'} [jsx_class_attr_name='class']
+ * @param {boolean} [preserve_style_elements=false]
  * @returns {void}
  */
-export function annotate_component_with_hash(component, hash, jsx_class_attr_name = 'class') {
+export function annotate_component_with_hash(
+	component,
+	hash,
+	jsx_class_attr_name = 'class',
+	preserve_style_elements = false,
+) {
 	/** @type {any[]} */
 	const body = component.body;
 	component.body = body
-		.filter((/** @type {any} */ child) => !is_style_element(child))
-		.map((/** @type {any} */ child) => annotate_with_hash(child, hash, jsx_class_attr_name));
+		.filter((/** @type {any} */ child) => preserve_style_elements || !is_style_element(child))
+		.map((/** @type {any} */ child) =>
+			annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
+		);
 }
 
 /**
@@ -198,7 +218,8 @@ export function add_hash_class(element, hash) {
 
 	if (value.type === 'Literal' && typeof value.value === 'string') {
 		const merged = `${value.value} ${hash}`;
-		existing.value = { type: 'Literal', value: merged, raw: JSON.stringify(merged) };
+		value.value = merged;
+		value.raw = JSON.stringify(merged);
 		return;
 	}
 
@@ -233,7 +254,11 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 		existing.name = {
 			type: 'JSXIdentifier',
 			name: jsx_class_attr_name,
-			metadata: existing.name.metadata || { path: [] },
+			metadata: {
+				...(existing.name.metadata || { path: [] }),
+				source_name: existing.name.name,
+				source_length: existing.name.name.length,
+			},
 		};
 	}
 
@@ -245,7 +270,8 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 
 	if (value.type === 'Literal' && typeof value.value === 'string') {
 		const merged = `${value.value} ${hash}`;
-		existing.value = { type: 'Literal', value: merged, raw: JSON.stringify(merged) };
+		value.value = merged;
+		value.raw = JSON.stringify(merged);
 		return;
 	}
 

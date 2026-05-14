@@ -121,6 +121,86 @@ export function runSharedSourceMappingTests({
 		// element's start/end positions wouldn't otherwise resolve.
 		it('self-closing element', () => expect_maps(`component C() { <input /> }`));
 		it('self-closing with attribute', () => expect_maps(`component C() { <input class="foo" /> }`));
+		it('marks self-closing tokens for attribute completions', () => {
+			const source = `component C() { <input /> }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_offset = source.indexOf('/>');
+			const mapping = result.mappings.find((entry) => {
+				const start = entry.sourceOffsets[0];
+				const end = start + entry.lengths[0];
+				return source_offset >= start && source_offset <= end;
+			});
+
+			expect(mapping?.data.completion).toBe(true);
+		});
+		it('keeps DOM attribute completions when scoped styles are present', () => {
+			const source = `component C() {
+	<img src="logo.png" alt="Logo" class="logo" />
+	<style>
+		.logo { display: block; }
+	</style>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+			for (const attribute of ['src', 'alt', 'class']) {
+				const source_offset = source.indexOf(attribute);
+				const mapping = result.mappings.find((entry) => {
+					const start = entry.sourceOffsets[0];
+					const end = start + entry.lengths[0];
+					return source_offset >= start && source_offset <= end;
+				});
+
+				expect(mapping?.data.completion).toBe(true);
+			}
+		});
+		it('keeps class attribute source mappings narrowed to the attribute name', () => {
+			const source = `component C() { <div class="app" /> }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_offset = source.indexOf('class');
+			const mapping = result.mappings.find((entry) => {
+				const start = entry.sourceOffsets[0];
+				const end = start + entry.lengths[0];
+				return source_offset >= start && source_offset <= end;
+			});
+
+			expect(
+				mapping &&
+					source.slice(mapping.sourceOffsets[0], mapping.sourceOffsets[0] + mapping.lengths[0]),
+			).toBe('class');
+		});
+		it('maps nested scoped class definitions to their own selectors', () => {
+			const source = `component C() {
+	<div class="app">
+		<div class="card"></div>
+	</div>
+	<style>
+		.app { display: block; }
+		.card { padding: 1rem; }
+	</style>
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_offset = source.indexOf('card');
+			const mapping = result.mappings.find((entry) => {
+				const start = entry.sourceOffsets[0];
+				const end = start + entry.lengths[0];
+				return (
+					source_offset >= start &&
+					source_offset <= end &&
+					entry.data.customData.definition?.location
+				);
+			});
+
+			expect(mapping?.data.customData.definition?.location).toMatchObject({
+				start: source.indexOf('.card') - source.indexOf('\n\t\t.app'),
+			});
+			expect(
+				result.cssMappings.some(
+					(entry) =>
+						entry.data.customData.embeddedId ===
+						mapping?.data.customData.definition?.location?.embeddedId,
+				),
+			).toBe(true);
+		});
 		it('element with attribute spread', () =>
 			expect_maps(`component C() { const o = {}; <div {...o} /> }`));
 

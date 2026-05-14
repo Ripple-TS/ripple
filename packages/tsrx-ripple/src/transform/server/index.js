@@ -17,6 +17,7 @@ import {
 	isInsideComponent as is_inside_component,
 	renderCssResult,
 	renderStylesheets,
+	pruneCss,
 	CSS_HASH_IDENTIFIER,
 	obfuscateIdentifier,
 	BLOCK_CLOSE,
@@ -48,7 +49,6 @@ import {
 	strip_class_typescript_syntax,
 	jsx_to_ripple_node,
 } from '../../utils.js';
-import { prune_css } from '../../analyze/prune.js';
 
 /**
  * Re-run CSS pruning on JSX converted from a `<tsx>` block so server output
@@ -74,7 +74,7 @@ function apply_tsrx_css_scoping(nodes, state) {
 	 */
 	function visit_node(node) {
 		if (node.type === 'Element') {
-			prune_css(css, node, style_classes, top_scoped_classes);
+			pruneCss(css, node, style_classes, top_scoped_classes);
 			for (const child of node.children) {
 				visit_node(child);
 			}

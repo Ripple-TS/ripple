@@ -5,6 +5,8 @@
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
 import { error } from '../../errors.js';
+import { analyze_css } from '../../analyze/css-analyze.js';
+import { prune_css } from '../../analyze/prune.js';
 import {
 	ensure_function_metadata,
 	in_jsx_child_context,
@@ -36,7 +38,11 @@ import {
 import * as b from '../../utils/builders.js';
 import { apply_lazy_transforms, preallocate_lazy_ids } from '../lazy.js';
 import { find_first_top_level_await_in_component_body } from '../await.js';
-import { prepare_stylesheet_for_render, annotate_component_with_hash } from '../scoping.js';
+import {
+	prepare_stylesheet_for_render,
+	annotate_component_with_hash,
+	is_style_element,
+} from '../scoping.js';
 import {
 	validate_class_component_declarations,
 	validate_component_loop_break_statement,
@@ -426,12 +432,14 @@ export function createJsxTransform(platform) {
 
 				const css = as_any.css;
 				if (css) {
+					apply_css_definition_metadata(as_any, css);
 					stylesheets.push(css);
 					const hash = css.hash;
 					annotate_component_with_hash(
 						as_any,
 						hash,
 						platform.jsx.rewriteClassAttr ? 'className' : 'class',
+						transform_context.typeOnly,
 					);
 				}
 				return next(state);
@@ -607,6 +615,73 @@ export function createJsxTransform(platform) {
 	}
 
 	return transform;
+}
+
+/**
+ * Attach selector-location metadata used by editor definitions/hover before
+ * the shared scoping pass mutates class attributes with the component hash.
+ *
+ * @param {any} component
+ * @param {any} css
+ * @returns {void}
+ */
+function apply_css_definition_metadata(component, css) {
+	analyze_css(css);
+
+	const metadata = component.metadata || (component.metadata = { path: [] });
+	const style_classes = metadata.styleClasses || (metadata.styleClasses = new Map());
+	const top_scoped_classes = metadata.topScopedClasses || new Map();
+	const elements = collect_css_prunable_elements(component.body || []);
+
+	for (const element of elements) {
+		prune_css(css, element, style_classes, top_scoped_classes);
+	}
+
+	if (top_scoped_classes.size > 0) {
+		metadata.topScopedClasses = top_scoped_classes;
+	}
+}
+
+/**
+ * @param {any} value
+ * @param {any[]} [elements]
+ * @returns {any[]}
+ */
+function collect_css_prunable_elements(value, elements = []) {
+	if (!value || typeof value !== 'object') {
+		return elements;
+	}
+
+	if (Array.isArray(value)) {
+		for (const child of value) {
+			collect_css_prunable_elements(child, elements);
+		}
+		return elements;
+	}
+
+	if (
+		value.type === 'FunctionDeclaration' ||
+		value.type === 'FunctionExpression' ||
+		value.type === 'ArrowFunctionExpression' ||
+		value.type === 'Component'
+	) {
+		return elements;
+	}
+
+	if (value.type === 'Element') {
+		if (!is_style_element(value)) {
+			elements.push(value);
+		}
+	}
+
+	for (const key of Object.keys(value)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
+			continue;
+		}
+		collect_css_prunable_elements(value[key], elements);
+	}
+
+	return elements;
 }
 
 /**
@@ -5547,6 +5622,8 @@ export function to_jsx_attribute(attr, transform_context) {
 		attr_name.name === 'class'
 	) {
 		attr_name = set_loc(b.id('className'), attr.name);
+		attr_name.metadata.source_name = 'class';
+		attr_name.metadata.source_length = 'class'.length;
 	}
 
 	const name =

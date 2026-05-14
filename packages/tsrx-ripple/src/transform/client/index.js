@@ -38,6 +38,7 @@ import {
 	obfuscateIdentifier,
 	object,
 	renderCssResult,
+	pruneCss,
 	getOriginalEventName,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
@@ -75,7 +76,6 @@ import {
 	strip_class_typescript_syntax,
 	jsx_to_ripple_node,
 } from '../../utils.js';
-import { prune_css } from '../../analyze/prune.js';
 import is_reference from 'is-reference';
 
 /**
@@ -102,7 +102,7 @@ function apply_tsrx_css_scoping(nodes, state) {
 	 */
 	function visit_node(node) {
 		if (node.type === 'Element') {
-			prune_css(css, node, style_classes, top_scoped_classes);
+			pruneCss(css, node, style_classes, top_scoped_classes);
 			for (const child of node.children) {
 				visit_node(child);
 			}

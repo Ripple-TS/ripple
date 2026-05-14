@@ -236,6 +236,7 @@ export {
 
 // Analyze
 export { analyze_css as analyzeCss } from './analyze/css-analyze.js';
+export { prune_css as pruneCss } from './analyze/prune.js';
 export {
 	CLASS_COMPONENT_AS_NON_ARROW_PROPERTY_ERROR,
 	COMPONENT_DO_WHILE_STATEMENT_ERROR,

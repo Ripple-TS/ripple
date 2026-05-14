@@ -3,7 +3,6 @@
 /** @typedef {0 | 1} Direction */
 
 import { walk } from 'zimmerframe';
-import { is_element_dom_element, is_element_dynamic } from '../utils.js';
 
 const regex_backslash_and_following_character = /\\(.)/g;
 /** @type {Direction} */
@@ -19,6 +18,30 @@ let css_hash;
 let style_identifier_classes;
 /** @type {TopScopedClasses} */
 let top_scoped_classes;
+
+/**
+ * Returns true if node is a DOM element (not a component).
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_element_dom_element(node) {
+	const id = /** @type {AST.Element} */ (node).id;
+	return (
+		id.type === 'Identifier' &&
+		id.name[0].toLowerCase() === id.name[0] &&
+		id.name !== 'children' &&
+		!id.tracked
+	);
+}
+
+/**
+ * Returns true if element is dynamic.
+ * @param {AST.Element} node
+ * @returns {boolean}
+ */
+function is_element_dynamic(node) {
+	return node.id.type === 'Identifier' ? !!node.id.tracked : false;
+}
 
 // CSS selector constants
 /**
@@ -293,7 +316,7 @@ function get_descendant_elements(node, adjacent_only) {
 			if (adjacent_only) return; // Only direct children for '>' combinator
 		}
 
-		// Visit children based on Ripple's AST structure
+		// Visit children based on TSRX's template AST structure
 		if (/** @type {AST.Element} */ (current_node).children) {
 			for (const child of /** @type {AST.Element} */ (current_node).children) {
 				visit(child, depth + 1);

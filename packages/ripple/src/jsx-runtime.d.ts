@@ -43,8 +43,422 @@ export function Fragment(props: { children?: any }): void;
 
 export type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
 
+type Event<
+	Target extends globalThis.EventTarget,
+	EventType extends globalThis.Event,
+> = EventType & {
+	readonly currentTarget: Target;
+};
+
+type EventHandler<Target extends globalThis.EventTarget, EventType extends globalThis.Event> = (
+	this: Target,
+	event: Event<Target, EventType>,
+) => void;
+
+type EventHandlerObject<
+	Target extends globalThis.EventTarget,
+	EventType extends globalThis.Event,
+> = Omit<AddEventObject, 'handleEvent'> & {
+	handleEvent(this: Target, event: Event<Target, EventType>): void;
+};
+
+type EventHandlerValue<Target extends globalThis.EventTarget, EventType extends globalThis.Event> =
+	| EventHandler<Target, EventType>
+	| EventHandlerObject<Target, EventType>;
+
+type ElementEventHandler<
+	Target extends globalThis.EventTarget,
+	Type extends keyof GlobalEventHandlersEventMap,
+> = EventHandlerValue<Target, GlobalEventHandlersEventMap[Type]>;
+
+type SVGElementAttributes<Tag extends keyof SVGElementTagNameMap> = HTMLAttributes<
+	SVGElementTagNameMap[Tag]
+> &
+	SVGAttributes<SVGElementTagNameMap[Tag]>;
+
+type BaseHTMLAttributes<Target extends HTMLBaseElement = HTMLBaseElement> =
+	HTMLAttributes<Target> & {
+		href?: Nullable<string>;
+		target?: Nullable<string>;
+	};
+
+type LinkHTMLAttributes<Target extends HTMLLinkElement = HTMLLinkElement> =
+	HTMLAttributes<Target> & {
+		rel?: Nullable<string>;
+		href?: Nullable<string>;
+		type?: Nullable<string>;
+		media?: Nullable<string>;
+		as?: Nullable<string>;
+		crossOrigin?: 'anonymous' | 'use-credentials';
+		integrity?: Nullable<string>;
+	};
+
+type MetaHTMLAttributes<Target extends HTMLMetaElement = HTMLMetaElement> =
+	HTMLAttributes<Target> & {
+		name?: Nullable<string>;
+		content?: Nullable<string>;
+		charSet?: Nullable<string>;
+		httpEquiv?: Nullable<string>;
+		property?: Nullable<string>;
+	};
+
+type StyleHTMLAttributes<Target extends HTMLStyleElement = HTMLStyleElement> =
+	HTMLAttributes<Target> & {
+		type?: Nullable<string>;
+		media?: Nullable<string>;
+	};
+
+type BlockquoteHTMLAttributes<Target extends HTMLQuoteElement = HTMLQuoteElement> =
+	HTMLAttributes<Target> & {
+		cite?: Nullable<string>;
+	};
+
+type LiHTMLAttributes<Target extends HTMLLIElement = HTMLLIElement> = HTMLAttributes<Target> & {
+	value?: Nullable<number>;
+};
+
+type OlHTMLAttributes<Target extends HTMLOListElement = HTMLOListElement> =
+	HTMLAttributes<Target> & {
+		reversed?: boolean;
+		start?: Nullable<number>;
+		type?: '1' | 'a' | 'A' | 'i' | 'I';
+	};
+
+type AnchorHTMLAttributes<Target extends HTMLAnchorElement = HTMLAnchorElement> =
+	HTMLAttributes<Target> & {
+		href?: Nullable<string>;
+		target?: Nullable<string>;
+		rel?: Nullable<string>;
+		download?: string | boolean;
+		hrefLang?: Nullable<string>;
+		type?: Nullable<string>;
+		referrerPolicy?: Nullable<string>;
+	};
+
+type DataHTMLAttributes<Target extends HTMLDataElement = HTMLDataElement> =
+	HTMLAttributes<Target> & {
+		value?: Nullable<string>;
+	};
+
+type QuoteHTMLAttributes<Target extends HTMLQuoteElement = HTMLQuoteElement> =
+	HTMLAttributes<Target> & {
+		cite?: Nullable<string>;
+	};
+
+type TimeHTMLAttributes<Target extends HTMLTimeElement = HTMLTimeElement> =
+	HTMLAttributes<Target> & {
+		dateTime?: Nullable<string>;
+	};
+
+type AreaHTMLAttributes<Target extends HTMLAreaElement = HTMLAreaElement> =
+	HTMLAttributes<Target> & {
+		alt?: Nullable<string>;
+		coords?: Nullable<string>;
+		download?: Nullable<string>;
+		href?: Nullable<string>;
+		hrefLang?: Nullable<string>;
+		media?: Nullable<string>;
+		rel?: Nullable<string>;
+		shape?: 'rect' | 'circle' | 'poly' | 'default';
+		target?: Nullable<string>;
+	};
+
+type AudioHTMLAttributes<Target extends HTMLAudioElement = HTMLAudioElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		autoplay?: boolean;
+		controls?: boolean;
+		loop?: boolean;
+		muted?: boolean;
+		preload?: 'none' | 'metadata' | 'auto';
+		crossOrigin?: 'anonymous' | 'use-credentials';
+	};
+
+type ImgHTMLAttributes<Target extends HTMLImageElement = HTMLImageElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		alt?: Nullable<string>;
+		width?: string | number;
+		height?: string | number;
+		loading?: 'eager' | 'lazy';
+		crossOrigin?: 'anonymous' | 'use-credentials';
+		decoding?: 'sync' | 'async' | 'auto';
+		fetchPriority?: 'high' | 'low' | 'auto';
+		referrerPolicy?: Nullable<string>;
+		sizes?: Nullable<string>;
+		srcSet?: Nullable<string>;
+		useMap?: Nullable<string>;
+	};
+
+type MapHTMLAttributes<Target extends HTMLMapElement = HTMLMapElement> = HTMLAttributes<Target> & {
+	name?: Nullable<string>;
+};
+
+type TrackHTMLAttributes<Target extends HTMLTrackElement = HTMLTrackElement> =
+	HTMLAttributes<Target> & {
+		default?: boolean;
+		kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
+		label?: Nullable<string>;
+		src?: Nullable<string>;
+		srcLang?: Nullable<string>;
+	};
+
+type VideoHTMLAttributes<Target extends HTMLVideoElement = HTMLVideoElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		autoplay?: boolean;
+		controls?: boolean;
+		loop?: boolean;
+		muted?: boolean;
+		preload?: 'none' | 'metadata' | 'auto';
+		poster?: Nullable<string>;
+		width?: string | number;
+		height?: string | number;
+		crossOrigin?: 'anonymous' | 'use-credentials';
+		playsInline?: boolean;
+	};
+
+type EmbedHTMLAttributes<Target extends HTMLEmbedElement = HTMLEmbedElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		type?: Nullable<string>;
+		width?: string | number;
+		height?: string | number;
+	};
+
+type IframeHTMLAttributes<Target extends HTMLIFrameElement = HTMLIFrameElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		srcdoc?: Nullable<string>;
+		name?: Nullable<string>;
+		sandbox?: Nullable<string>;
+		allow?: Nullable<string>;
+		allowFullScreen?: boolean;
+		width?: string | number;
+		height?: string | number;
+		loading?: 'eager' | 'lazy';
+		referrerPolicy?: Nullable<string>;
+	};
+
+type ObjectHTMLAttributes<Target extends HTMLObjectElement = HTMLObjectElement> =
+	HTMLAttributes<Target> & {
+		data?: Nullable<string>;
+		type?: Nullable<string>;
+		name?: Nullable<string>;
+		useMap?: Nullable<string>;
+		width?: string | number;
+		height?: string | number;
+	};
+
+type PortalHTMLAttributes<Target extends HTMLElement = HTMLElement> = HTMLAttributes<Target> & {
+	referrerPolicy?: Nullable<string>;
+	src?: Nullable<string>;
+};
+
+type SourceHTMLAttributes<Target extends HTMLSourceElement = HTMLSourceElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		type?: Nullable<string>;
+		media?: Nullable<string>;
+		sizes?: Nullable<string>;
+		srcSet?: Nullable<string>;
+	};
+
+type CanvasHTMLAttributes<Target extends HTMLCanvasElement = HTMLCanvasElement> =
+	HTMLAttributes<Target> & {
+		width?: string | number;
+		height?: string | number;
+	};
+
+type ScriptHTMLAttributes<Target extends HTMLScriptElement = HTMLScriptElement> =
+	HTMLAttributes<Target> & {
+		src?: Nullable<string>;
+		type?: Nullable<string>;
+		async?: boolean;
+		defer?: boolean;
+		crossOrigin?: 'anonymous' | 'use-credentials';
+		integrity?: Nullable<string>;
+		noModule?: boolean;
+		referrerPolicy?: Nullable<string>;
+	};
+
+type ModHTMLAttributes<Target extends HTMLModElement = HTMLModElement> = HTMLAttributes<Target> & {
+	cite?: Nullable<string>;
+	dateTime?: Nullable<string>;
+};
+
+type ColHTMLAttributes<Target extends HTMLTableColElement = HTMLTableColElement> =
+	HTMLAttributes<Target> & {
+		span?: Nullable<number>;
+	};
+
+type TableCellHTMLAttributes<Target extends HTMLTableCellElement = HTMLTableCellElement> =
+	HTMLAttributes<Target> & {
+		colSpan?: Nullable<number>;
+		rowSpan?: Nullable<number>;
+		headers?: Nullable<string>;
+	};
+
+type ThHTMLAttributes<Target extends HTMLTableCellElement = HTMLTableCellElement> =
+	TableCellHTMLAttributes<Target> & {
+		scope?: 'row' | 'col' | 'rowgroup' | 'colgroup';
+		abbr?: Nullable<string>;
+	};
+
+type ButtonHTMLAttributes<Target extends HTMLButtonElement = HTMLButtonElement> =
+	HTMLAttributes<Target> & {
+		type?: 'button' | 'submit' | 'reset';
+		disabled?: boolean;
+		form?: Nullable<string>;
+		formAction?: Nullable<string>;
+		formEncType?: Nullable<string>;
+		formMethod?: Nullable<string>;
+		formNoValidate?: boolean;
+		formTarget?: Nullable<string>;
+		name?: Nullable<string>;
+		value?: Nullable<string>;
+	};
+
+type FieldsetHTMLAttributes<Target extends HTMLFieldSetElement = HTMLFieldSetElement> =
+	HTMLAttributes<Target> & {
+		disabled?: boolean;
+		form?: Nullable<string>;
+		name?: Nullable<string>;
+	};
+
+type FormHTMLAttributes<Target extends HTMLFormElement = HTMLFormElement> =
+	HTMLAttributes<Target> & {
+		action?: Nullable<string>;
+		method?: 'get' | 'post' | 'dialog';
+		encType?: Nullable<string>;
+		acceptCharset?: Nullable<string>;
+		autoComplete?: 'on' | 'off';
+		noValidate?: boolean;
+		target?: Nullable<string>;
+	};
+
+type InputHTMLAttributes<Target extends HTMLInputElement = HTMLInputElement> =
+	HTMLAttributes<Target> & {
+		type?: Nullable<string>;
+		value?: string | number;
+		placeholder?: Nullable<string>;
+		disabled?: boolean;
+		name?: Nullable<string>;
+		accept?: Nullable<string>;
+		autoComplete?: Nullable<string>;
+		autoFocus?: boolean;
+		checked?: boolean;
+		form?: Nullable<string>;
+		formAction?: Nullable<string>;
+		formEncType?: Nullable<string>;
+		formMethod?: Nullable<string>;
+		formNoValidate?: boolean;
+		formTarget?: Nullable<string>;
+		list?: Nullable<string>;
+		max?: string | number;
+		maxLength?: Nullable<number>;
+		min?: string | number;
+		minLength?: Nullable<number>;
+		multiple?: boolean;
+		pattern?: Nullable<string>;
+		readOnly?: boolean;
+		required?: boolean;
+		size?: Nullable<number>;
+		src?: Nullable<string>;
+		step?: string | number;
+		width?: string | number;
+		height?: string | number;
+	};
+
+type LabelHTMLAttributes<Target extends HTMLLabelElement = HTMLLabelElement> =
+	HTMLAttributes<Target> & {
+		for?: Nullable<string>;
+		htmlFor?: Nullable<string>;
+	};
+
+type MeterHTMLAttributes<Target extends HTMLMeterElement = HTMLMeterElement> =
+	HTMLAttributes<Target> & {
+		value?: Nullable<number>;
+		min?: Nullable<number>;
+		max?: Nullable<number>;
+		low?: Nullable<number>;
+		high?: Nullable<number>;
+		optimum?: Nullable<number>;
+	};
+
+type OptgroupHTMLAttributes<Target extends HTMLOptGroupElement = HTMLOptGroupElement> =
+	HTMLAttributes<Target> & {
+		disabled?: boolean;
+		label?: Nullable<string>;
+	};
+
+type OptionHTMLAttributes<Target extends HTMLOptionElement = HTMLOptionElement> =
+	HTMLAttributes<Target> & {
+		value?: string | number;
+		selected?: boolean;
+		disabled?: boolean;
+		label?: Nullable<string>;
+	};
+
+type OutputHTMLAttributes<Target extends HTMLOutputElement = HTMLOutputElement> =
+	HTMLAttributes<Target> & {
+		for?: Nullable<string>;
+		htmlFor?: Nullable<string>;
+		form?: Nullable<string>;
+		name?: Nullable<string>;
+	};
+
+type ProgressHTMLAttributes<Target extends HTMLProgressElement = HTMLProgressElement> =
+	HTMLAttributes<Target> & {
+		value?: Nullable<number>;
+		max?: Nullable<number>;
+	};
+
+type SelectHTMLAttributes<Target extends HTMLSelectElement = HTMLSelectElement> =
+	HTMLAttributes<Target> & {
+		disabled?: boolean;
+		form?: Nullable<string>;
+		multiple?: boolean;
+		name?: Nullable<string>;
+		required?: boolean;
+		size?: Nullable<number>;
+		autoComplete?: Nullable<string>;
+	};
+
+type TextareaHTMLAttributes<Target extends HTMLTextAreaElement = HTMLTextAreaElement> =
+	HTMLAttributes<Target> & {
+		placeholder?: Nullable<string>;
+		disabled?: boolean;
+		rows?: Nullable<number>;
+		cols?: Nullable<number>;
+		name?: Nullable<string>;
+		form?: Nullable<string>;
+		maxLength?: Nullable<number>;
+		minLength?: Nullable<number>;
+		readOnly?: boolean;
+		required?: boolean;
+		wrap?: 'soft' | 'hard';
+		autoComplete?: Nullable<string>;
+		autoFocus?: boolean;
+	};
+
+type DetailsHTMLAttributes<Target extends HTMLDetailsElement = HTMLDetailsElement> =
+	HTMLAttributes<Target> & {
+		open?: boolean;
+	};
+
+type DialogHTMLAttributes<Target extends HTMLDialogElement = HTMLDialogElement> =
+	HTMLAttributes<Target> & {
+		open?: boolean;
+	};
+
+type SlotHTMLAttributes<Target extends HTMLSlotElement = HTMLSlotElement> =
+	HTMLAttributes<Target> & {
+		name?: Nullable<string>;
+	};
+
 // Base HTML attributes
-interface HTMLAttributes {
+interface HTMLAttributes<Target extends globalThis.Element = globalThis.HTMLElement> {
 	class?: ClassValue | undefined | null;
 	className?: Nullable<string>;
 	id?: Nullable<string>;
@@ -84,53 +498,93 @@ interface HTMLAttributes {
 	'aria-valuetext'?: Nullable<string>;
 
 	// Event handlers
-	onClick?: EventListener | AddEventObject;
-	onDblClick?: EventListener | AddEventObject;
-	onInput?: EventListener | AddEventObject;
-	onChange?: EventListener | AddEventObject;
-	onSubmit?: EventListener | AddEventObject;
-	onFocus?: EventListener | AddEventObject;
-	onBlur?: EventListener | AddEventObject;
-	onKeyDown?: EventListener | AddEventObject;
-	onKeyUp?: EventListener | AddEventObject;
-	onKeyPress?: EventListener | AddEventObject;
-	onMouseDown?: EventListener | AddEventObject;
-	onMouseUp?: EventListener | AddEventObject;
-	onMouseEnter?: EventListener | AddEventObject;
-	onMouseLeave?: EventListener | AddEventObject;
-	onMouseMove?: EventListener | AddEventObject;
-	onMouseOver?: EventListener | AddEventObject;
-	onMouseOut?: EventListener | AddEventObject;
-	onWheel?: EventListener | AddEventObject;
-	onScroll?: EventListener | AddEventObject;
-	onTouchStart?: EventListener | AddEventObject;
-	onTouchMove?: EventListener | AddEventObject;
-	onTouchEnd?: EventListener | AddEventObject;
-	onTouchCancel?: EventListener | AddEventObject;
-	onDragStart?: EventListener | AddEventObject;
-	onDrag?: EventListener | AddEventObject;
-	onDragEnd?: EventListener | AddEventObject;
-	onDragEnter?: EventListener | AddEventObject;
-	onDragLeave?: EventListener | AddEventObject;
-	onDragOver?: EventListener | AddEventObject;
-	onDrop?: EventListener | AddEventObject;
-	onCopy?: EventListener | AddEventObject;
-	onCut?: EventListener | AddEventObject;
-	onPaste?: EventListener | AddEventObject;
-	onLoad?: EventListener | AddEventObject;
-	onError?: EventListener | AddEventObject;
-	onResize?: EventListener | AddEventObject;
-	onAnimationStart?: EventListener | AddEventObject;
-	onAnimationEnd?: EventListener | AddEventObject;
-	onAnimationIteration?: EventListener | AddEventObject;
-	onTransitionEnd?: EventListener | AddEventObject;
+	onClick?: ElementEventHandler<Target, 'click'>;
+	onClickCapture?: ElementEventHandler<Target, 'click'>;
+	onDblClick?: ElementEventHandler<Target, 'dblclick'>;
+	onDblClickCapture?: ElementEventHandler<Target, 'dblclick'>;
+	onInput?: ElementEventHandler<Target, 'input'>;
+	onInputCapture?: ElementEventHandler<Target, 'input'>;
+	onChange?: ElementEventHandler<Target, 'change'>;
+	onChangeCapture?: ElementEventHandler<Target, 'change'>;
+	onSubmit?: ElementEventHandler<Target, 'submit'>;
+	onSubmitCapture?: ElementEventHandler<Target, 'submit'>;
+	onFocus?: ElementEventHandler<Target, 'focus'>;
+	onFocusCapture?: ElementEventHandler<Target, 'focus'>;
+	onBlur?: ElementEventHandler<Target, 'blur'>;
+	onBlurCapture?: ElementEventHandler<Target, 'blur'>;
+	onKeyDown?: ElementEventHandler<Target, 'keydown'>;
+	onKeyDownCapture?: ElementEventHandler<Target, 'keydown'>;
+	onKeyUp?: ElementEventHandler<Target, 'keyup'>;
+	onKeyUpCapture?: ElementEventHandler<Target, 'keyup'>;
+	onKeyPress?: ElementEventHandler<Target, 'keypress'>;
+	onKeyPressCapture?: ElementEventHandler<Target, 'keypress'>;
+	onMouseDown?: ElementEventHandler<Target, 'mousedown'>;
+	onMouseDownCapture?: ElementEventHandler<Target, 'mousedown'>;
+	onMouseUp?: ElementEventHandler<Target, 'mouseup'>;
+	onMouseUpCapture?: ElementEventHandler<Target, 'mouseup'>;
+	onMouseEnter?: ElementEventHandler<Target, 'mouseenter'>;
+	onMouseEnterCapture?: ElementEventHandler<Target, 'mouseenter'>;
+	onMouseLeave?: ElementEventHandler<Target, 'mouseleave'>;
+	onMouseLeaveCapture?: ElementEventHandler<Target, 'mouseleave'>;
+	onMouseMove?: ElementEventHandler<Target, 'mousemove'>;
+	onMouseMoveCapture?: ElementEventHandler<Target, 'mousemove'>;
+	onMouseOver?: ElementEventHandler<Target, 'mouseover'>;
+	onMouseOverCapture?: ElementEventHandler<Target, 'mouseover'>;
+	onMouseOut?: ElementEventHandler<Target, 'mouseout'>;
+	onMouseOutCapture?: ElementEventHandler<Target, 'mouseout'>;
+	onWheel?: ElementEventHandler<Target, 'wheel'>;
+	onWheelCapture?: ElementEventHandler<Target, 'wheel'>;
+	onScroll?: ElementEventHandler<Target, 'scroll'>;
+	onScrollCapture?: ElementEventHandler<Target, 'scroll'>;
+	onTouchStart?: ElementEventHandler<Target, 'touchstart'>;
+	onTouchStartCapture?: ElementEventHandler<Target, 'touchstart'>;
+	onTouchMove?: ElementEventHandler<Target, 'touchmove'>;
+	onTouchMoveCapture?: ElementEventHandler<Target, 'touchmove'>;
+	onTouchEnd?: ElementEventHandler<Target, 'touchend'>;
+	onTouchEndCapture?: ElementEventHandler<Target, 'touchend'>;
+	onTouchCancel?: ElementEventHandler<Target, 'touchcancel'>;
+	onTouchCancelCapture?: ElementEventHandler<Target, 'touchcancel'>;
+	onDragStart?: ElementEventHandler<Target, 'dragstart'>;
+	onDragStartCapture?: ElementEventHandler<Target, 'dragstart'>;
+	onDrag?: ElementEventHandler<Target, 'drag'>;
+	onDragCapture?: ElementEventHandler<Target, 'drag'>;
+	onDragEnd?: ElementEventHandler<Target, 'dragend'>;
+	onDragEndCapture?: ElementEventHandler<Target, 'dragend'>;
+	onDragEnter?: ElementEventHandler<Target, 'dragenter'>;
+	onDragEnterCapture?: ElementEventHandler<Target, 'dragenter'>;
+	onDragLeave?: ElementEventHandler<Target, 'dragleave'>;
+	onDragLeaveCapture?: ElementEventHandler<Target, 'dragleave'>;
+	onDragOver?: ElementEventHandler<Target, 'dragover'>;
+	onDragOverCapture?: ElementEventHandler<Target, 'dragover'>;
+	onDrop?: ElementEventHandler<Target, 'drop'>;
+	onDropCapture?: ElementEventHandler<Target, 'drop'>;
+	onCopy?: ElementEventHandler<Target, 'copy'>;
+	onCopyCapture?: ElementEventHandler<Target, 'copy'>;
+	onCut?: ElementEventHandler<Target, 'cut'>;
+	onCutCapture?: ElementEventHandler<Target, 'cut'>;
+	onPaste?: ElementEventHandler<Target, 'paste'>;
+	onPasteCapture?: ElementEventHandler<Target, 'paste'>;
+	onLoad?: ElementEventHandler<Target, 'load'>;
+	onLoadCapture?: ElementEventHandler<Target, 'load'>;
+	onError?: ElementEventHandler<Target, 'error'>;
+	onErrorCapture?: ElementEventHandler<Target, 'error'>;
+	onResize?: ElementEventHandler<Target, 'resize'>;
+	onResizeCapture?: ElementEventHandler<Target, 'resize'>;
+	onAnimationStart?: ElementEventHandler<Target, 'animationstart'>;
+	onAnimationStartCapture?: ElementEventHandler<Target, 'animationstart'>;
+	onAnimationEnd?: ElementEventHandler<Target, 'animationend'>;
+	onAnimationEndCapture?: ElementEventHandler<Target, 'animationend'>;
+	onAnimationIteration?: ElementEventHandler<Target, 'animationiteration'>;
+	onAnimationIterationCapture?: ElementEventHandler<Target, 'animationiteration'>;
+	onTransitionEnd?: ElementEventHandler<Target, 'transitionend'>;
+	onTransitionEndCapture?: ElementEventHandler<Target, 'transitionend'>;
 
 	children?: any;
 	[key: string]: any;
 }
 
 // SVG common attributes
-interface SVGAttributes {
+interface SVGAttributes<Target extends globalThis.SVGElement = globalThis.SVGElement> {
 	// Core attributes
 	id?: Nullable<string>;
 	lang?: Nullable<string>;
@@ -266,18 +720,30 @@ interface SVGAttributes {
 	'xmlns:xlink'?: Nullable<string>;
 
 	// Event handlers (inherited from HTML but included for clarity)
-	onClick?: EventListener | AddEventObject;
-	onMouseDown?: EventListener | AddEventObject;
-	onMouseUp?: EventListener | AddEventObject;
-	onMouseMove?: EventListener | AddEventObject;
-	onMouseEnter?: EventListener | AddEventObject;
-	onMouseLeave?: EventListener | AddEventObject;
-	onMouseOver?: EventListener | AddEventObject;
-	onMouseOut?: EventListener | AddEventObject;
-	onFocus?: EventListener | AddEventObject;
-	onBlur?: EventListener | AddEventObject;
-	onLoad?: EventListener | AddEventObject;
-	onError?: EventListener | AddEventObject;
+	onClick?: ElementEventHandler<Target, 'click'>;
+	onClickCapture?: ElementEventHandler<Target, 'click'>;
+	onMouseDown?: ElementEventHandler<Target, 'mousedown'>;
+	onMouseDownCapture?: ElementEventHandler<Target, 'mousedown'>;
+	onMouseUp?: ElementEventHandler<Target, 'mouseup'>;
+	onMouseUpCapture?: ElementEventHandler<Target, 'mouseup'>;
+	onMouseMove?: ElementEventHandler<Target, 'mousemove'>;
+	onMouseMoveCapture?: ElementEventHandler<Target, 'mousemove'>;
+	onMouseEnter?: ElementEventHandler<Target, 'mouseenter'>;
+	onMouseEnterCapture?: ElementEventHandler<Target, 'mouseenter'>;
+	onMouseLeave?: ElementEventHandler<Target, 'mouseleave'>;
+	onMouseLeaveCapture?: ElementEventHandler<Target, 'mouseleave'>;
+	onMouseOver?: ElementEventHandler<Target, 'mouseover'>;
+	onMouseOverCapture?: ElementEventHandler<Target, 'mouseover'>;
+	onMouseOut?: ElementEventHandler<Target, 'mouseout'>;
+	onMouseOutCapture?: ElementEventHandler<Target, 'mouseout'>;
+	onFocus?: ElementEventHandler<Target, 'focus'>;
+	onFocusCapture?: ElementEventHandler<Target, 'focus'>;
+	onBlur?: ElementEventHandler<Target, 'blur'>;
+	onBlurCapture?: ElementEventHandler<Target, 'blur'>;
+	onLoad?: ElementEventHandler<Target, 'load'>;
+	onLoadCapture?: ElementEventHandler<Target, 'load'>;
+	onError?: ElementEventHandler<Target, 'error'>;
+	onErrorCapture?: ElementEventHandler<Target, 'error'>;
 
 	children?: any;
 	[key: string]: any;
@@ -308,7 +774,9 @@ interface SVGAnimationAttributes {
 }
 
 // SVG gradient attributes
-interface SVGGradientAttributes extends SVGAttributes {
+interface SVGGradientAttributes<
+	Target extends globalThis.SVGElement = globalThis.SVGElement,
+> extends SVGAttributes<Target> {
 	gradientUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 	gradientTransform?: Nullable<string>;
 	spreadMethod?: 'pad' | 'reflect' | 'repeat';
@@ -356,253 +824,130 @@ declare global {
 
 		interface IntrinsicElements {
 			// Document metadata
-			head: HTMLAttributes;
-			title: HTMLAttributes;
-			base: HTMLAttributes & {
-				href?: Nullable<string>;
-				target?: Nullable<string>;
-			};
-			link: HTMLAttributes & {
-				rel?: Nullable<string>;
-				href?: Nullable<string>;
-				type?: Nullable<string>;
-				media?: Nullable<string>;
-				as?: Nullable<string>;
-				crossOrigin?: 'anonymous' | 'use-credentials';
-				integrity?: Nullable<string>;
-			};
-			meta: HTMLAttributes & {
-				name?: Nullable<string>;
-				content?: Nullable<string>;
-				charSet?: Nullable<string>;
-				httpEquiv?: Nullable<string>;
-				property?: Nullable<string>;
-			};
-			style: HTMLAttributes & {
-				type?: Nullable<string>;
-				media?: Nullable<string>;
-			};
+			head: HTMLAttributes<HTMLHeadElement>;
+			title: HTMLAttributes<HTMLTitleElement>;
+			base: BaseHTMLAttributes<HTMLBaseElement>;
+			link: LinkHTMLAttributes<HTMLLinkElement>;
+			meta: MetaHTMLAttributes<HTMLMetaElement>;
+			style: StyleHTMLAttributes<HTMLStyleElement>;
 
 			// Sectioning root
-			body: HTMLAttributes;
+			body: HTMLAttributes<HTMLBodyElement>;
 
 			// Content sectioning
-			address: HTMLAttributes;
-			article: HTMLAttributes;
-			aside: HTMLAttributes;
-			footer: HTMLAttributes;
-			header: HTMLAttributes;
-			h1: HTMLAttributes;
-			h2: HTMLAttributes;
-			h3: HTMLAttributes;
-			h4: HTMLAttributes;
-			h5: HTMLAttributes;
-			h6: HTMLAttributes;
-			hgroup: HTMLAttributes;
-			main: HTMLAttributes;
-			nav: HTMLAttributes;
-			section: HTMLAttributes;
-			search: HTMLAttributes;
+			address: HTMLAttributes<HTMLElement>;
+			article: HTMLAttributes<HTMLElement>;
+			aside: HTMLAttributes<HTMLElement>;
+			footer: HTMLAttributes<HTMLElement>;
+			header: HTMLAttributes<HTMLElement>;
+			h1: HTMLAttributes<HTMLHeadingElement>;
+			h2: HTMLAttributes<HTMLHeadingElement>;
+			h3: HTMLAttributes<HTMLHeadingElement>;
+			h4: HTMLAttributes<HTMLHeadingElement>;
+			h5: HTMLAttributes<HTMLHeadingElement>;
+			h6: HTMLAttributes<HTMLHeadingElement>;
+			hgroup: HTMLAttributes<HTMLElement>;
+			main: HTMLAttributes<HTMLElement>;
+			nav: HTMLAttributes<HTMLElement>;
+			section: HTMLAttributes<HTMLElement>;
+			search: HTMLAttributes<HTMLElement>;
 
 			// Text content
-			blockquote: HTMLAttributes & {
-				cite?: Nullable<string>;
-			};
-			dd: HTMLAttributes;
-			div: HTMLAttributes;
-			dl: HTMLAttributes;
-			dt: HTMLAttributes;
-			figcaption: HTMLAttributes;
-			figure: HTMLAttributes;
-			hr: HTMLAttributes;
-			li: HTMLAttributes & {
-				value?: Nullable<number>;
-			};
-			menu: HTMLAttributes;
-			ol: HTMLAttributes & {
-				reversed?: boolean;
-				start?: Nullable<number>;
-				type?: '1' | 'a' | 'A' | 'i' | 'I';
-			};
-			p: HTMLAttributes;
-			pre: HTMLAttributes;
-			ul: HTMLAttributes;
+			blockquote: BlockquoteHTMLAttributes<HTMLQuoteElement>;
+			dd: HTMLAttributes<HTMLElement>;
+			div: HTMLAttributes<HTMLDivElement>;
+			dl: HTMLAttributes<HTMLDListElement>;
+			dt: HTMLAttributes<HTMLElement>;
+			figcaption: HTMLAttributes<HTMLElement>;
+			figure: HTMLAttributes<HTMLElement>;
+			hr: HTMLAttributes<HTMLHRElement>;
+			li: LiHTMLAttributes<HTMLLIElement>;
+			menu: HTMLAttributes<HTMLMenuElement>;
+			ol: OlHTMLAttributes<HTMLOListElement>;
+			p: HTMLAttributes<HTMLParagraphElement>;
+			pre: HTMLAttributes<HTMLPreElement>;
+			ul: HTMLAttributes<HTMLUListElement>;
 
 			// Inline text semantics
-			a: HTMLAttributes & {
-				href?: Nullable<string>;
-				target?: Nullable<string>;
-				rel?: Nullable<string>;
-				download?: string | boolean;
-				hrefLang?: Nullable<string>;
-				type?: Nullable<string>;
-				referrerPolicy?: Nullable<string>;
-			};
-			abbr: HTMLAttributes;
-			b: HTMLAttributes;
-			bdi: HTMLAttributes;
-			bdo: HTMLAttributes;
-			br: HTMLAttributes;
-			cite: HTMLAttributes;
-			code: HTMLAttributes;
-			data: HTMLAttributes & {
-				value?: Nullable<string>;
-			};
-			dfn: HTMLAttributes;
-			em: HTMLAttributes;
-			i: HTMLAttributes;
-			kbd: HTMLAttributes;
-			mark: HTMLAttributes;
-			q: HTMLAttributes & {
-				cite?: Nullable<string>;
-			};
-			rp: HTMLAttributes;
-			rt: HTMLAttributes;
-			ruby: HTMLAttributes;
-			s: HTMLAttributes;
-			samp: HTMLAttributes;
-			small: HTMLAttributes;
-			span: HTMLAttributes;
-			strong: HTMLAttributes;
-			sub: HTMLAttributes;
-			sup: HTMLAttributes;
-			time: HTMLAttributes & {
-				dateTime?: Nullable<string>;
-			};
-			u: HTMLAttributes;
-			var: HTMLAttributes;
-			wbr: HTMLAttributes;
+			a: AnchorHTMLAttributes<HTMLAnchorElement>;
+			abbr: HTMLAttributes<HTMLElement>;
+			b: HTMLAttributes<HTMLElement>;
+			bdi: HTMLAttributes<HTMLElement>;
+			bdo: HTMLAttributes<HTMLElement>;
+			br: HTMLAttributes<HTMLBRElement>;
+			cite: HTMLAttributes<HTMLElement>;
+			code: HTMLAttributes<HTMLElement>;
+			data: DataHTMLAttributes<HTMLDataElement>;
+			dfn: HTMLAttributes<HTMLElement>;
+			em: HTMLAttributes<HTMLElement>;
+			i: HTMLAttributes<HTMLElement>;
+			kbd: HTMLAttributes<HTMLElement>;
+			mark: HTMLAttributes<HTMLElement>;
+			q: QuoteHTMLAttributes<HTMLQuoteElement>;
+			rp: HTMLAttributes<HTMLElement>;
+			rt: HTMLAttributes<HTMLElement>;
+			ruby: HTMLAttributes<HTMLElement>;
+			s: HTMLAttributes<HTMLElement>;
+			samp: HTMLAttributes<HTMLElement>;
+			small: HTMLAttributes<HTMLElement>;
+			span: HTMLAttributes<HTMLSpanElement>;
+			strong: HTMLAttributes<HTMLElement>;
+			sub: HTMLAttributes<HTMLElement>;
+			sup: HTMLAttributes<HTMLElement>;
+			time: TimeHTMLAttributes<HTMLTimeElement>;
+			u: HTMLAttributes<HTMLElement>;
+			var: HTMLAttributes<HTMLElement>;
+			wbr: HTMLAttributes<HTMLElement>;
 
 			// Image and multimedia
-			area: HTMLAttributes & {
-				alt?: Nullable<string>;
-				coords?: Nullable<string>;
-				download?: Nullable<string>;
-				href?: Nullable<string>;
-				hrefLang?: Nullable<string>;
-				media?: Nullable<string>;
-				rel?: Nullable<string>;
-				shape?: 'rect' | 'circle' | 'poly' | 'default';
-				target?: Nullable<string>;
-			};
-			audio: HTMLAttributes & {
-				src?: Nullable<string>;
-				autoplay?: boolean;
-				controls?: boolean;
-				loop?: boolean;
-				muted?: boolean;
-				preload?: 'none' | 'metadata' | 'auto';
-				crossOrigin?: 'anonymous' | 'use-credentials';
-			};
-			img: HTMLAttributes & {
-				src?: Nullable<string>;
-				alt?: Nullable<string>;
-				width?: string | number;
-				height?: string | number;
-				loading?: 'eager' | 'lazy';
-				crossOrigin?: 'anonymous' | 'use-credentials';
-				decoding?: 'sync' | 'async' | 'auto';
-				fetchPriority?: 'high' | 'low' | 'auto';
-				referrerPolicy?: Nullable<string>;
-				sizes?: Nullable<string>;
-				srcSet?: Nullable<string>;
-				useMap?: Nullable<string>;
-			};
-			map: HTMLAttributes & {
-				name?: Nullable<string>;
-			};
-			track: HTMLAttributes & {
-				default?: boolean;
-				kind?: 'subtitles' | 'captions' | 'descriptions' | 'chapters' | 'metadata';
-				label?: Nullable<string>;
-				src?: Nullable<string>;
-				srcLang?: Nullable<string>;
-			};
-			video: HTMLAttributes & {
-				src?: Nullable<string>;
-				autoplay?: boolean;
-				controls?: boolean;
-				loop?: boolean;
-				muted?: boolean;
-				preload?: 'none' | 'metadata' | 'auto';
-				poster?: Nullable<string>;
-				width?: string | number;
-				height?: string | number;
-				crossOrigin?: 'anonymous' | 'use-credentials';
-				playsInline?: boolean;
-			};
+			area: AreaHTMLAttributes<HTMLAreaElement>;
+			audio: AudioHTMLAttributes<HTMLAudioElement>;
+			img: ImgHTMLAttributes<HTMLImageElement>;
+			map: MapHTMLAttributes<HTMLMapElement>;
+			track: TrackHTMLAttributes<HTMLTrackElement>;
+			video: VideoHTMLAttributes<HTMLVideoElement>;
 
 			// Embedded content
-			embed: HTMLAttributes & {
-				src?: Nullable<string>;
-				type?: Nullable<string>;
-				width?: string | number;
-				height?: string | number;
-			};
-			iframe: HTMLAttributes & {
-				src?: Nullable<string>;
-				srcdoc?: Nullable<string>;
-				name?: Nullable<string>;
-				sandbox?: Nullable<string>;
-				allow?: Nullable<string>;
-				allowFullScreen?: boolean;
-				width?: string | number;
-				height?: string | number;
-				loading?: 'eager' | 'lazy';
-				referrerPolicy?: Nullable<string>;
-			};
-			object: HTMLAttributes & {
-				data?: Nullable<string>;
-				type?: Nullable<string>;
-				name?: Nullable<string>;
-				useMap?: Nullable<string>;
-				width?: string | number;
-				height?: string | number;
-			};
-			picture: HTMLAttributes;
-			portal: HTMLAttributes & {
-				referrerPolicy?: Nullable<string>;
-				src?: Nullable<string>;
-			};
-			source: HTMLAttributes & {
-				src?: Nullable<string>;
-				type?: Nullable<string>;
-				media?: Nullable<string>;
-				sizes?: Nullable<string>;
-				srcSet?: Nullable<string>;
-			};
+			embed: EmbedHTMLAttributes<HTMLEmbedElement>;
+			iframe: IframeHTMLAttributes<HTMLIFrameElement>;
+			object: ObjectHTMLAttributes<HTMLObjectElement>;
+			picture: HTMLAttributes<HTMLPictureElement>;
+			portal: PortalHTMLAttributes<HTMLElement>;
+			source: SourceHTMLAttributes<HTMLSourceElement>;
 
 			// SVG and MathML
-			svg: HTMLAttributes & SVGAttributes;
-			math: HTMLAttributes;
+			svg: HTMLAttributes<SVGElementTagNameMap['svg']> & SVGAttributes<SVGElementTagNameMap['svg']>;
+			math: HTMLAttributes<MathMLElementTagNameMap['math']>;
 
 			// SVG elements
-			animate: HTMLAttributes & SVGAnimationAttributes;
-			animateMotion: HTMLAttributes & SVGAnimationAttributes;
-			animateTransform: HTMLAttributes &
+			animate: HTMLAttributes<SVGElementTagNameMap['animate']> & SVGAnimationAttributes;
+			animateMotion: HTMLAttributes<SVGElementTagNameMap['animateMotion']> & SVGAnimationAttributes;
+			animateTransform: HTMLAttributes<SVGElementTagNameMap['animateTransform']> &
 				SVGAnimationAttributes & {
 					type?: 'translate' | 'scale' | 'rotate' | 'skewX' | 'skewY';
 				};
-			circle: HTMLAttributes &
-				SVGAttributes & {
+			circle: HTMLAttributes<SVGElementTagNameMap['circle']> &
+				SVGAttributes<SVGElementTagNameMap['circle']> & {
 					cx?: string | number;
 					cy?: string | number;
 					r?: string | number;
 				};
-			clipPath: HTMLAttributes &
-				SVGAttributes & {
+			clipPath: HTMLAttributes<SVGElementTagNameMap['clipPath']> &
+				SVGAttributes<SVGElementTagNameMap['clipPath']> & {
 					clipPathUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 				};
-			defs: HTMLAttributes & SVGAttributes;
-			desc: HTMLAttributes & SVGAttributes;
-			ellipse: HTMLAttributes &
-				SVGAttributes & {
+			defs: HTMLAttributes<SVGElementTagNameMap['defs']> &
+				SVGAttributes<SVGElementTagNameMap['defs']>;
+			desc: HTMLAttributes<SVGElementTagNameMap['desc']> &
+				SVGAttributes<SVGElementTagNameMap['desc']>;
+			ellipse: HTMLAttributes<SVGElementTagNameMap['ellipse']> &
+				SVGAttributes<SVGElementTagNameMap['ellipse']> & {
 					cx?: string | number;
 					cy?: string | number;
 					rx?: string | number;
 					ry?: string | number;
 				};
-			feBlend: HTMLAttributes &
+			feBlend: HTMLAttributes<SVGElementTagNameMap['feBlend']> &
 				SVGFilterAttributes & {
 					mode?:
 						| 'normal'
@@ -623,13 +968,14 @@ declare global {
 						| 'luminosity';
 					in2?: Nullable<string>;
 				};
-			feColorMatrix: HTMLAttributes &
+			feColorMatrix: HTMLAttributes<SVGElementTagNameMap['feColorMatrix']> &
 				SVGFilterAttributes & {
 					type?: 'matrix' | 'saturate' | 'hueRotate' | 'luminanceToAlpha';
 					values?: Nullable<string>;
 				};
-			feComponentTransfer: HTMLAttributes & SVGFilterAttributes;
-			feComposite: HTMLAttributes &
+			feComponentTransfer: HTMLAttributes<SVGElementTagNameMap['feComponentTransfer']> &
+				SVGFilterAttributes;
+			feComposite: HTMLAttributes<SVGElementTagNameMap['feComposite']> &
 				SVGFilterAttributes & {
 					operator?: 'over' | 'in' | 'out' | 'atop' | 'xor' | 'lighter' | 'arithmetic';
 					in2?: Nullable<string>;
@@ -638,54 +984,58 @@ declare global {
 					k3?: Nullable<number>;
 					k4?: Nullable<number>;
 				};
-			feConvolveMatrix: HTMLAttributes & SVGFilterAttributes;
-			feDiffuseLighting: HTMLAttributes & SVGFilterAttributes;
-			feDisplacementMap: HTMLAttributes & SVGFilterAttributes;
-			feDistantLight: HTMLAttributes &
+			feConvolveMatrix: HTMLAttributes<SVGElementTagNameMap['feConvolveMatrix']> &
+				SVGFilterAttributes;
+			feDiffuseLighting: HTMLAttributes<SVGElementTagNameMap['feDiffuseLighting']> &
+				SVGFilterAttributes;
+			feDisplacementMap: HTMLAttributes<SVGElementTagNameMap['feDisplacementMap']> &
+				SVGFilterAttributes;
+			feDistantLight: HTMLAttributes<SVGElementTagNameMap['feDistantLight']> &
 				SVGFilterAttributes & {
 					azimuth?: Nullable<number>;
 					elevation?: Nullable<number>;
 				};
-			feDropShadow: HTMLAttributes &
+			feDropShadow: HTMLAttributes<SVGElementTagNameMap['feDropShadow']> &
 				SVGFilterAttributes & {
 					dx?: Nullable<number>;
 					dy?: Nullable<number>;
 					stdDeviation?: number | string;
 				};
-			feFlood: HTMLAttributes &
+			feFlood: HTMLAttributes<SVGElementTagNameMap['feFlood']> &
 				SVGFilterAttributes & {
 					'flood-color'?: Nullable<string>;
 					'flood-opacity'?: number | string;
 				};
-			feFuncA: HTMLAttributes & SVGTransferFunctionAttributes;
-			feFuncB: HTMLAttributes & SVGTransferFunctionAttributes;
-			feFuncG: HTMLAttributes & SVGTransferFunctionAttributes;
-			feFuncR: HTMLAttributes & SVGTransferFunctionAttributes;
-			feGaussianBlur: HTMLAttributes &
+			feFuncA: HTMLAttributes<SVGElementTagNameMap['feFuncA']> & SVGTransferFunctionAttributes;
+			feFuncB: HTMLAttributes<SVGElementTagNameMap['feFuncB']> & SVGTransferFunctionAttributes;
+			feFuncG: HTMLAttributes<SVGElementTagNameMap['feFuncG']> & SVGTransferFunctionAttributes;
+			feFuncR: HTMLAttributes<SVGElementTagNameMap['feFuncR']> & SVGTransferFunctionAttributes;
+			feGaussianBlur: HTMLAttributes<SVGElementTagNameMap['feGaussianBlur']> &
 				SVGFilterAttributes & {
 					stdDeviation?: number | string;
 				};
-			feImage: HTMLAttributes & SVGFilterAttributes;
-			feMerge: HTMLAttributes & SVGFilterAttributes;
-			feMergeNode: HTMLAttributes & SVGFilterAttributes;
-			feMorphology: HTMLAttributes &
+			feImage: HTMLAttributes<SVGElementTagNameMap['feImage']> & SVGFilterAttributes;
+			feMerge: HTMLAttributes<SVGElementTagNameMap['feMerge']> & SVGFilterAttributes;
+			feMergeNode: HTMLAttributes<SVGElementTagNameMap['feMergeNode']> & SVGFilterAttributes;
+			feMorphology: HTMLAttributes<SVGElementTagNameMap['feMorphology']> &
 				SVGFilterAttributes & {
 					operator?: 'erode' | 'dilate';
 					radius?: number | string;
 				};
-			feOffset: HTMLAttributes &
+			feOffset: HTMLAttributes<SVGElementTagNameMap['feOffset']> &
 				SVGFilterAttributes & {
 					dx?: Nullable<number>;
 					dy?: Nullable<number>;
 				};
-			fePointLight: HTMLAttributes &
+			fePointLight: HTMLAttributes<SVGElementTagNameMap['fePointLight']> &
 				SVGFilterAttributes & {
 					x?: Nullable<number>;
 					y?: Nullable<number>;
 					z?: Nullable<number>;
 				};
-			feSpecularLighting: HTMLAttributes & SVGFilterAttributes;
-			feSpotLight: HTMLAttributes &
+			feSpecularLighting: HTMLAttributes<SVGElementTagNameMap['feSpecularLighting']> &
+				SVGFilterAttributes;
+			feSpotLight: HTMLAttributes<SVGElementTagNameMap['feSpotLight']> &
 				SVGFilterAttributes & {
 					x?: Nullable<number>;
 					y?: Nullable<number>;
@@ -696,8 +1046,8 @@ declare global {
 					specularExponent?: Nullable<number>;
 					limitingConeAngle?: Nullable<number>;
 				};
-			feTile: HTMLAttributes & SVGFilterAttributes;
-			feTurbulence: HTMLAttributes &
+			feTile: HTMLAttributes<SVGElementTagNameMap['feTile']> & SVGFilterAttributes;
+			feTurbulence: HTMLAttributes<SVGElementTagNameMap['feTurbulence']> &
 				SVGFilterAttributes & {
 					baseFrequency?: number | string;
 					numOctaves?: Nullable<number>;
@@ -705,8 +1055,8 @@ declare global {
 					stitchTiles?: 'stitch' | 'noStitch';
 					type?: 'fractalNoise' | 'turbulence';
 				};
-			filter: HTMLAttributes &
-				SVGAttributes & {
+			filter: HTMLAttributes<SVGElementTagNameMap['filter']> &
+				SVGAttributes<SVGElementTagNameMap['filter']> & {
 					filterUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					primitiveUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					x?: string | number;
@@ -714,16 +1064,16 @@ declare global {
 					width?: string | number;
 					height?: string | number;
 				};
-			foreignObject: HTMLAttributes &
-				SVGAttributes & {
+			foreignObject: HTMLAttributes<SVGElementTagNameMap['foreignObject']> &
+				SVGAttributes<SVGElementTagNameMap['foreignObject']> & {
 					x?: string | number;
 					y?: string | number;
 					width?: string | number;
 					height?: string | number;
 				};
-			g: HTMLAttributes & SVGAttributes;
-			image: HTMLAttributes &
-				SVGAttributes & {
+			g: HTMLAttributes<SVGElementTagNameMap['g']> & SVGAttributes<SVGElementTagNameMap['g']>;
+			image: HTMLAttributes<SVGElementTagNameMap['image']> &
+				SVGAttributes<SVGElementTagNameMap['image']> & {
 					href?: Nullable<string>;
 					'xlink:href'?: Nullable<string>;
 					x?: string | number;
@@ -732,22 +1082,22 @@ declare global {
 					height?: string | number;
 					preserveAspectRatio?: Nullable<string>;
 				};
-			line: HTMLAttributes &
-				SVGAttributes & {
+			line: HTMLAttributes<SVGElementTagNameMap['line']> &
+				SVGAttributes<SVGElementTagNameMap['line']> & {
 					x1?: string | number;
 					y1?: string | number;
 					x2?: string | number;
 					y2?: string | number;
 				};
-			linearGradient: HTMLAttributes &
-				SVGGradientAttributes & {
+			linearGradient: HTMLAttributes<SVGElementTagNameMap['linearGradient']> &
+				SVGGradientAttributes<SVGElementTagNameMap['linearGradient']> & {
 					x1?: string | number;
 					y1?: string | number;
 					x2?: string | number;
 					y2?: string | number;
 				};
-			marker: HTMLAttributes &
-				SVGAttributes & {
+			marker: HTMLAttributes<SVGElementTagNameMap['marker']> &
+				SVGAttributes<SVGElementTagNameMap['marker']> & {
 					markerHeight?: string | number;
 					markerUnits?: 'strokeWidth' | 'userSpaceOnUse';
 					markerWidth?: string | number;
@@ -755,8 +1105,8 @@ declare global {
 					refX?: string | number;
 					refY?: string | number;
 				};
-			mask: HTMLAttributes &
-				SVGAttributes & {
+			mask: HTMLAttributes<SVGElementTagNameMap['mask']> &
+				SVGAttributes<SVGElementTagNameMap['mask']> & {
 					maskContentUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					maskUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					x?: string | number;
@@ -764,18 +1114,19 @@ declare global {
 					width?: string | number;
 					height?: string | number;
 				};
-			metadata: HTMLAttributes & SVGAttributes;
-			mpath: HTMLAttributes &
-				SVGAttributes & {
+			metadata: HTMLAttributes<SVGElementTagNameMap['metadata']> &
+				SVGAttributes<SVGElementTagNameMap['metadata']>;
+			mpath: HTMLAttributes<SVGElementTagNameMap['mpath']> &
+				SVGAttributes<SVGElementTagNameMap['mpath']> & {
 					'xlink:href'?: Nullable<string>;
 				};
-			path: HTMLAttributes &
-				SVGAttributes & {
+			path: HTMLAttributes<SVGElementTagNameMap['path']> &
+				SVGAttributes<SVGElementTagNameMap['path']> & {
 					d?: Nullable<string>;
 					pathLength?: Nullable<number>;
 				};
-			pattern: HTMLAttributes &
-				SVGAttributes & {
+			pattern: HTMLAttributes<SVGElementTagNameMap['pattern']> &
+				SVGAttributes<SVGElementTagNameMap['pattern']> & {
 					patternContentUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
 					patternTransform?: Nullable<string>;
 					patternUnits?: 'userSpaceOnUse' | 'objectBoundingBox';
@@ -784,16 +1135,16 @@ declare global {
 					width?: string | number;
 					height?: string | number;
 				};
-			polygon: HTMLAttributes &
-				SVGAttributes & {
+			polygon: HTMLAttributes<SVGElementTagNameMap['polygon']> &
+				SVGAttributes<SVGElementTagNameMap['polygon']> & {
 					points?: Nullable<string>;
 				};
-			polyline: HTMLAttributes &
-				SVGAttributes & {
+			polyline: HTMLAttributes<SVGElementTagNameMap['polyline']> &
+				SVGAttributes<SVGElementTagNameMap['polyline']> & {
 					points?: Nullable<string>;
 				};
-			radialGradient: HTMLAttributes &
-				SVGGradientAttributes & {
+			radialGradient: HTMLAttributes<SVGElementTagNameMap['radialGradient']> &
+				SVGGradientAttributes<SVGElementTagNameMap['radialGradient']> & {
 					cx?: string | number;
 					cy?: string | number;
 					r?: string | number;
@@ -801,8 +1152,8 @@ declare global {
 					fy?: string | number;
 					fr?: string | number;
 				};
-			rect: HTMLAttributes &
-				SVGAttributes & {
+			rect: HTMLAttributes<SVGElementTagNameMap['rect']> &
+				SVGAttributes<SVGElementTagNameMap['rect']> & {
 					x?: string | number;
 					y?: string | number;
 					width?: string | number;
@@ -810,24 +1161,27 @@ declare global {
 					rx?: string | number;
 					ry?: string | number;
 				};
-			set: HTMLAttributes & SVGAnimationAttributes;
-			stop: HTMLAttributes &
-				SVGAttributes & {
+			set: HTMLAttributes<SVGElementTagNameMap['set']> & SVGAnimationAttributes;
+			stop: HTMLAttributes<SVGElementTagNameMap['stop']> &
+				SVGAttributes<SVGElementTagNameMap['stop']> & {
 					offset?: string | number;
 					'stop-color'?: Nullable<string>;
 					'stop-opacity'?: number | string;
 				};
-			switch: HTMLAttributes & SVGAttributes;
-			symbol: HTMLAttributes &
-				SVGAttributes & {
+			switch: HTMLAttributes<SVGElementTagNameMap['switch']> &
+				SVGAttributes<SVGElementTagNameMap['switch']>;
+			symbol: HTMLAttributes<SVGElementTagNameMap['symbol']> &
+				SVGAttributes<SVGElementTagNameMap['symbol']> & {
 					viewBox?: Nullable<string>;
 					preserveAspectRatio?: Nullable<string>;
 					refX?: string | number;
 					refY?: string | number;
 				};
-			text: HTMLAttributes & SVGAttributes & SVGTextAttributes;
-			textPath: HTMLAttributes &
-				SVGAttributes &
+			text: HTMLAttributes<SVGElementTagNameMap['text']> &
+				SVGAttributes<SVGElementTagNameMap['text']> &
+				SVGTextAttributes;
+			textPath: HTMLAttributes<SVGElementTagNameMap['textPath']> &
+				SVGAttributes<SVGElementTagNameMap['textPath']> &
 				SVGTextAttributes & {
 					href?: Nullable<string>;
 					'xlink:href'?: Nullable<string>;
@@ -835,9 +1189,11 @@ declare global {
 					method?: 'align' | 'stretch';
 					spacing?: 'auto' | 'exact';
 				};
-			tspan: HTMLAttributes & SVGAttributes & SVGTextAttributes;
-			use: HTMLAttributes &
-				SVGAttributes & {
+			tspan: HTMLAttributes<SVGElementTagNameMap['tspan']> &
+				SVGAttributes<SVGElementTagNameMap['tspan']> &
+				SVGTextAttributes;
+			use: HTMLAttributes<SVGElementTagNameMap['use']> &
+				SVGAttributes<SVGElementTagNameMap['use']> & {
 					href?: Nullable<string>;
 					'xlink:href'?: Nullable<string>;
 					x?: string | number;
@@ -845,199 +1201,60 @@ declare global {
 					width?: string | number;
 					height?: string | number;
 				};
-			view: HTMLAttributes &
-				SVGAttributes & {
+			view: HTMLAttributes<SVGElementTagNameMap['view']> &
+				SVGAttributes<SVGElementTagNameMap['view']> & {
 					viewBox?: Nullable<string>;
 					preserveAspectRatio?: Nullable<string>;
 				};
 
 			// Scripting
-			canvas: HTMLAttributes & {
-				width?: string | number;
-				height?: string | number;
-			};
-			noscript: HTMLAttributes;
-			script: HTMLAttributes & {
-				src?: Nullable<string>;
-				type?: Nullable<string>;
-				async?: boolean;
-				defer?: boolean;
-				crossOrigin?: 'anonymous' | 'use-credentials';
-				integrity?: Nullable<string>;
-				noModule?: boolean;
-				referrerPolicy?: Nullable<string>;
-			};
+			canvas: CanvasHTMLAttributes<HTMLCanvasElement>;
+			noscript: HTMLAttributes<HTMLElement>;
+			script: ScriptHTMLAttributes<HTMLScriptElement>;
 
 			// Demarcating edits
-			del: HTMLAttributes & {
-				cite?: Nullable<string>;
-				dateTime?: Nullable<string>;
-			};
-			ins: HTMLAttributes & {
-				cite?: Nullable<string>;
-				dateTime?: Nullable<string>;
-			};
+			del: ModHTMLAttributes<HTMLModElement>;
+			ins: ModHTMLAttributes<HTMLModElement>;
 
 			// Table content
-			caption: HTMLAttributes;
-			col: HTMLAttributes & {
-				span?: Nullable<number>;
-			};
-			colgroup: HTMLAttributes & {
-				span?: Nullable<number>;
-			};
-			table: HTMLAttributes;
-			tbody: HTMLAttributes;
-			td: HTMLAttributes & {
-				colSpan?: Nullable<number>;
-				rowSpan?: Nullable<number>;
-				headers?: Nullable<string>;
-			};
-			tfoot: HTMLAttributes;
-			th: HTMLAttributes & {
-				colSpan?: Nullable<number>;
-				rowSpan?: Nullable<number>;
-				headers?: Nullable<string>;
-				scope?: 'row' | 'col' | 'rowgroup' | 'colgroup';
-				abbr?: Nullable<string>;
-			};
-			thead: HTMLAttributes;
-			tr: HTMLAttributes;
+			caption: HTMLAttributes<HTMLTableCaptionElement>;
+			col: ColHTMLAttributes<HTMLTableColElement>;
+			colgroup: ColHTMLAttributes<HTMLTableColElement>;
+			table: HTMLAttributes<HTMLTableElement>;
+			tbody: HTMLAttributes<HTMLTableSectionElement>;
+			td: TableCellHTMLAttributes<HTMLTableCellElement>;
+			tfoot: HTMLAttributes<HTMLTableSectionElement>;
+			th: ThHTMLAttributes<HTMLTableCellElement>;
+			thead: HTMLAttributes<HTMLTableSectionElement>;
+			tr: HTMLAttributes<HTMLTableRowElement>;
 
 			// Forms
-			button: HTMLAttributes & {
-				type?: 'button' | 'submit' | 'reset';
-				disabled?: boolean;
-				form?: Nullable<string>;
-				formAction?: Nullable<string>;
-				formEncType?: Nullable<string>;
-				formMethod?: Nullable<string>;
-				formNoValidate?: boolean;
-				formTarget?: Nullable<string>;
-				name?: Nullable<string>;
-				value?: Nullable<string>;
-			};
-			datalist: HTMLAttributes;
-			fieldset: HTMLAttributes & {
-				disabled?: boolean;
-				form?: Nullable<string>;
-				name?: Nullable<string>;
-			};
-			form: HTMLAttributes & {
-				action?: Nullable<string>;
-				method?: 'get' | 'post' | 'dialog';
-				encType?: Nullable<string>;
-				acceptCharset?: Nullable<string>;
-				autoComplete?: 'on' | 'off';
-				noValidate?: boolean;
-				target?: Nullable<string>;
-			};
-			input: HTMLAttributes & {
-				type?: Nullable<string>;
-				value?: string | number;
-				placeholder?: Nullable<string>;
-				disabled?: boolean;
-				name?: Nullable<string>;
-				accept?: Nullable<string>;
-				autoComplete?: Nullable<string>;
-				autoFocus?: boolean;
-				checked?: boolean;
-				form?: Nullable<string>;
-				formAction?: Nullable<string>;
-				formEncType?: Nullable<string>;
-				formMethod?: Nullable<string>;
-				formNoValidate?: boolean;
-				formTarget?: Nullable<string>;
-				list?: Nullable<string>;
-				max?: string | number;
-				maxLength?: Nullable<number>;
-				min?: string | number;
-				minLength?: Nullable<number>;
-				multiple?: boolean;
-				pattern?: Nullable<string>;
-				readOnly?: boolean;
-				required?: boolean;
-				size?: Nullable<number>;
-				src?: Nullable<string>;
-				step?: string | number;
-				width?: string | number;
-				height?: string | number;
-			};
-			label: HTMLAttributes & {
-				for?: Nullable<string>;
-				htmlFor?: Nullable<string>;
-			};
-			legend: HTMLAttributes;
-			meter: HTMLAttributes & {
-				value?: Nullable<number>;
-				min?: Nullable<number>;
-				max?: Nullable<number>;
-				low?: Nullable<number>;
-				high?: Nullable<number>;
-				optimum?: Nullable<number>;
-			};
-			optgroup: HTMLAttributes & {
-				disabled?: boolean;
-				label?: Nullable<string>;
-			};
-			option: HTMLAttributes & {
-				value?: string | number;
-				selected?: boolean;
-				disabled?: boolean;
-				label?: Nullable<string>;
-			};
-			output: HTMLAttributes & {
-				for?: Nullable<string>;
-				htmlFor?: Nullable<string>;
-				form?: Nullable<string>;
-				name?: Nullable<string>;
-			};
-			progress: HTMLAttributes & {
-				value?: Nullable<number>;
-				max?: Nullable<number>;
-			};
-			select: HTMLAttributes & {
-				disabled?: boolean;
-				form?: Nullable<string>;
-				multiple?: boolean;
-				name?: Nullable<string>;
-				required?: boolean;
-				size?: Nullable<number>;
-				autoComplete?: Nullable<string>;
-			};
-			textarea: HTMLAttributes & {
-				placeholder?: Nullable<string>;
-				disabled?: boolean;
-				rows?: Nullable<number>;
-				cols?: Nullable<number>;
-				name?: Nullable<string>;
-				form?: Nullable<string>;
-				maxLength?: Nullable<number>;
-				minLength?: Nullable<number>;
-				readOnly?: boolean;
-				required?: boolean;
-				wrap?: 'soft' | 'hard';
-				autoComplete?: Nullable<string>;
-				autoFocus?: boolean;
-			};
+			button: ButtonHTMLAttributes<HTMLButtonElement>;
+			datalist: HTMLAttributes<HTMLDataListElement>;
+			fieldset: FieldsetHTMLAttributes<HTMLFieldSetElement>;
+			form: FormHTMLAttributes<HTMLFormElement>;
+			input: InputHTMLAttributes<HTMLInputElement>;
+			label: LabelHTMLAttributes<HTMLLabelElement>;
+			legend: HTMLAttributes<HTMLLegendElement>;
+			meter: MeterHTMLAttributes<HTMLMeterElement>;
+			optgroup: OptgroupHTMLAttributes<HTMLOptGroupElement>;
+			option: OptionHTMLAttributes<HTMLOptionElement>;
+			output: OutputHTMLAttributes<HTMLOutputElement>;
+			progress: ProgressHTMLAttributes<HTMLProgressElement>;
+			select: SelectHTMLAttributes<HTMLSelectElement>;
+			textarea: TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 			// Interactive elements
-			details: HTMLAttributes & {
-				open?: boolean;
-			};
-			dialog: HTMLAttributes & {
-				open?: boolean;
-			};
-			summary: HTMLAttributes;
+			details: DetailsHTMLAttributes<HTMLDetailsElement>;
+			dialog: DialogHTMLAttributes<HTMLDialogElement>;
+			summary: HTMLAttributes<HTMLElement>;
 
 			// Web Components
-			slot: HTMLAttributes & {
-				name?: Nullable<string>;
-			};
-			template: HTMLAttributes;
+			slot: SlotHTMLAttributes<HTMLSlotElement>;
+			template: HTMLAttributes<HTMLTemplateElement>;
 
 			// Catch-all for any other elements
-			[elemName: string]: HTMLAttributes;
+			[elemName: string]: HTMLAttributes<never>;
 		}
 
 		interface ElementChildrenAttribute {

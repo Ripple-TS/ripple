@@ -162,14 +162,14 @@ function visit_source_ast(ast, src_line_offsets, { regions, css_element_info }) 
 					start: cssStart,
 					end: cssEnd,
 					content: node.css,
-					id: get_style_region_id(node.metadata.styleScopeHash, `head-${region_id}`),
+					id: get_style_region_id(node.metadata.styleScopeHash, `head-${region_id++}`),
 				});
 			}
 
 			context.next();
 		},
 		Attribute(node, context) {
-			const element = context.path?.find((n) => n.type === 'Element');
+			const element = context.path?.findLast((n) => n.type === 'Element');
 			if (element?.metadata?.css?.scopedClasses) {
 				// we don't need to check is_element_dom_element(node)
 				// since scopedClasses are added during pruning only to DOM elements
@@ -568,10 +568,11 @@ export function convert_source_map_to_mappings(
 				if (node.loc && node.name) {
 					/** @type {Token} */
 					const token = {
-						source: node.metadata?.is_capitalized ? node.metadata.source_name : node.name,
+						source: node.metadata?.source_name ?? node.name,
 						generated: node.name,
 						loc: node.loc,
 						metadata: {},
+						sourceLength: node.metadata?.source_length,
 					};
 					if (node.metadata?.disable_verification) {
 						token.mappingData = { ...mapping_data, verification: false };
@@ -708,16 +709,24 @@ export function convert_source_map_to_mappings(
 						visit(node.value);
 					}
 				} else {
+					const is_class_attribute =
+						node.name?.type === 'JSXIdentifier' &&
+						(node.name.name === 'class' || node.name.name === 'className');
 					const attr =
-						node.name.name === 'class' && node.value?.type === 'JSXExpressionContainer'
+						is_class_attribute && node.value?.type === 'JSXExpressionContainer'
 							? node.value.expression
 							: node.value;
 
-					const css = attr
-						? css_element_info.get(`${attr.loc?.start.line}:${attr.loc?.start.column}`)
-						: null;
+					const css =
+						is_class_attribute && attr
+							? css_element_info.get(`${attr.loc?.start.line}:${attr.loc?.start.column}`)
+							: null;
 
 					if (attr && css) {
+						if (node.name) {
+							visit(node.name);
+						}
+
 						// Extract class names from the attribute value
 						const classes = extract_classes(
 							attr,
@@ -861,7 +870,7 @@ export function convert_source_map_to_mappings(
 						target_node,
 						src_to_gen_map,
 						gen_line_offsets,
-						mapping_data_verify_only,
+						closing ? mapping_data_verify_only : mapping_data_verify_complete,
 					);
 					// The generated code includes a semicolon after the closing or self-closed tag
 					// We're extending the mapping to include the semicolon
