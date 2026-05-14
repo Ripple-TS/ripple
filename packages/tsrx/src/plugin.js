@@ -2586,7 +2586,7 @@ export function TSRXPlugin(config) {
 						enterScope: true,
 					});
 
-					if (element.type === 'Tsx') {
+					if (/** @type {AST.Tsx} */ (element).type === 'Tsx') {
 						this.#path.pop();
 
 						if (!element.unclosed) {
@@ -2763,7 +2763,7 @@ export function TSRXPlugin(config) {
 							enterScope: true,
 						});
 
-						if (element.type === 'Tsx') {
+						if (/** @type {AST.Tsx} */ (element).type === 'Tsx') {
 							this.#path.pop();
 
 							if (!element.unclosed) {
@@ -2787,12 +2787,15 @@ export function TSRXPlugin(config) {
 								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
-						} else if (element.type === 'TsxCompat') {
+						} else if (/** @type {AST.TsxCompat} */ (element).type === 'TsxCompat') {
 							this.#path.pop();
 
 							if (!element.unclosed) {
 								const raise_error = () => {
-									this.raise(this.start, `Expected closing tag '</tsx:${element.kind}>'`);
+									this.raise(
+										this.start,
+										`Expected closing tag '</tsx:${/** @type {AST.TsxCompat} */ (element).kind}>'`,
+									);
 								};
 
 								this.next();
@@ -2809,7 +2812,7 @@ export function TSRXPlugin(config) {
 									raise_error();
 								}
 								this.next();
-								if (this.value !== element.kind) {
+								if (this.value !== /** @type {AST.TsxCompat} */ (element).kind) {
 									raise_error();
 								}
 								this.next();
@@ -2819,7 +2822,10 @@ export function TSRXPlugin(config) {
 								this.#popTsxTokenContextBeforeTemplateExpressionChild();
 								this.next();
 							}
-						} else if (element.type === 'Tsrx' && this.#path[this.#path.length - 1] === element) {
+						} else if (
+							/** @type {AST.Tsrx} */ (element).type === 'Tsrx' &&
+							this.#path[this.#path.length - 1] === element
+						) {
 							this.#report_broken_markup_error(
 								this.start,
 								"Unclosed tag '<tsrx>'. Expected '</tsrx>' before end of component.",
