@@ -3239,6 +3239,51 @@ const items = [] as unknown[];`;
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should break long direct text children after inline attributes', async () => {
+		const input = `component App() {
+  <span
+      class={styles.notificationMessage}
+  >"The report is ready. Review the summary before sharing it with the team."</span>
+}`;
+
+		const expected = `component App() {
+  <span class={styles.notificationMessage}>
+    "The report is ready. Review the summary before sharing it with the team."
+  </span>
+}`;
+
+		const result = await format(input, { printWidth: 80 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should wrap long direct text children when elements break', async () => {
+		const input = `component App() {
+  <span class={styles.notificationMessage}>"The report is ready. Review the summary before sharing it with the team."</span>
+}`;
+
+		const expectedPrintWidth70 = `component App() {
+  <span class={styles.notificationMessage}>
+    "The report is ready. Review the summary before sharing it with
+    the team."
+  </span>
+}`;
+		const expectedPrintWidth40 = `component App() {
+  <span
+    class={styles.notificationMessage}
+  >
+    "The report is ready. Review the
+    summary before sharing it with the
+    team."
+  </span>
+}`;
+
+		const resultPrintWidth70 = await format(input, { printWidth: 70 });
+		expect(resultPrintWidth70).toBeWithNewline(expectedPrintWidth70);
+
+		const resultPrintWidth40 = await format(input, { printWidth: 40 });
+		expect(resultPrintWidth40).toBeWithNewline(expectedPrintWidth40);
+	});
+
 	it('should not insert a new line between js and jsx if not provided', async () => {
 		const expected = `export component App() {
   let text = 'something';

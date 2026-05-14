@@ -2236,7 +2236,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'Text': {
 			if (typeof node.raw === 'string') {
-				nodeContent = node.raw;
+				nodeContent = printRawText(node.raw);
 				break;
 			}
 
@@ -5502,6 +5502,24 @@ function printTSIndexedAccessType(node, path, options, print) {
 }
 
 /**
+ * Print direct TSRX text so it can wrap like JSX text when an element body breaks.
+ * @param {string} raw
+ * @returns {Doc}
+ */
+function printRawText(raw) {
+	const text = raw.trim();
+	if (!text) {
+		return '';
+	}
+
+	return fill(
+		text.split(/(\s+)/u).map((part) => {
+			return /^\s+$/u.test(part) ? line : part;
+		}),
+	);
+}
+
+/**
  * @param {AST.Node} parentNode
  * @param {AST.Node} firstChild
  * @param {Doc} childDoc
@@ -6270,6 +6288,7 @@ function printElement(element, path, options, print) {
 			}, 'attributes')
 		: [];
 	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
+	const openingTagAlwaysBreaks = options.singleAttributePerLine || shouldForceBreak;
 	const openingTag = group([
 		'<',
 		tagName,
@@ -6553,7 +6572,12 @@ function printElement(element, path, options, print) {
 		const isElementChild = firstChild && firstChild.type === 'Element';
 
 		if (typeof child === 'string' && shouldInlineSingleChild(node, firstChild, child)) {
-			elementOutput = group([openingTag, child, closingTag]);
+			elementOutput = openingTagAlwaysBreaks
+				? [openingTag, indent([hardline, child]), hardline, closingTag]
+				: conditionalGroup([
+						group([openingTag, child, closingTag]),
+						[openingTag, indent([hardline, child]), hardline, closingTag],
+					]);
 		} else if (
 			child &&
 			typeof child === 'object' &&
