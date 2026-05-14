@@ -42,6 +42,10 @@ website/.vitepress/.temp/
 !.vscode/settings.json
 !.vscode/launch.json
 !.vscode/tasks.json
+# But include playground/.vscode/settings.json
+!playground/.vscode/
+playground/.vscode/*
+!playground/.vscode/settings.json
 
 # Chrome Debugger
 .chrome-debug-profile/
