@@ -6570,8 +6570,13 @@ function printElement(element, path, options, print) {
 		const isNonSelfClosingElement =
 			firstChild && firstChild.type === 'Element' && !firstChild.selfClosing;
 		const isElementChild = firstChild && firstChild.type === 'Element';
+		const isRawTextChild =
+			firstChild && firstChild.type === 'Text' && typeof firstChild.raw === 'string';
 
-		if (typeof child === 'string' && shouldInlineSingleChild(node, firstChild, child)) {
+		if (
+			(typeof child === 'string' || isRawTextChild) &&
+			shouldInlineSingleChild(node, firstChild, child)
+		) {
 			elementOutput = openingTagAlwaysBreaks
 				? [openingTag, indent([hardline, child]), hardline, closingTag]
 				: conditionalGroup([

@@ -119,7 +119,9 @@ component ElementRefApp() {
 			element_ref_captured = node;
 		}}
 		class="ref-target"
-	>"ref test"</div>
+	>
+		"ref test"
+	</div>
 }
 
 component KeywordRefCallbackApp() {

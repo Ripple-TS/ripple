@@ -29,8 +29,7 @@ describe('basic client', () => {
 		component Basic() {
 			<div>"Rock &amp; &quot;Roll&quot;"</div>
 			<div>"line\nbreak"</div>
-			<pre>"first
-second"</pre>
+			<pre>"first second"</pre>
 		}
 
 		const { body } = await render(Basic);

@@ -180,7 +180,9 @@ component ElementRefCallbackApp() {
 			callback_ref_captured = node;
 		}}
 		class="ref-callback"
-	>"ref callback"</div>
+	>
+		"ref callback"
+	</div>
 }
 
 // ── Ref on composite components via prop forwarding ──

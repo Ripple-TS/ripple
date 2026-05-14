@@ -64,6 +64,40 @@ describe('prettier-plugin', () => {
 
 	/**
 	 * @param {string} code
+	 * @param {import('prettier').Options} [options]
+	 */
+	const printToDoc = async (code, options = {}) => {
+		return await prettier.__debug.printToDoc(code, {
+			parser: 'ripple',
+			plugins: [join(__dirname, 'index.js')],
+			...options,
+		});
+	};
+
+	/**
+	 * @param {unknown} doc
+	 * @param {(doc: Record<string, unknown>) => boolean} predicate
+	 * @returns {boolean}
+	 */
+	const docContains = (doc, predicate) => {
+		if (!doc || typeof doc !== 'object') {
+			return false;
+		}
+
+		if (Array.isArray(doc)) {
+			return doc.some((part) => docContains(part, predicate));
+		}
+
+		const objectDoc = /** @type {Record<string, unknown>} */ (doc);
+		if (predicate(objectDoc)) {
+			return true;
+		}
+
+		return Object.values(objectDoc).some((value) => docContains(value, predicate));
+	};
+
+	/**
+	 * @param {string} code
 	 * @param {Partial<import('prettier').CursorOptions>} options
 	 */
 	const formatWithCursorHelper = async (code, options = {}) => {
@@ -3282,6 +3316,30 @@ const items = [] as unknown[];`;
 
 		const resultPrintWidth40 = await format(input, { printWidth: 40 });
 		expect(resultPrintWidth40).toBeWithNewline(expectedPrintWidth40);
+	});
+
+	it('should keep direct text children on the text-specific conditional layout path', async () => {
+		const input = `component App() {
+  <div>"The report is ready. Review the summary before sharing it with the team."</div>
+}`;
+
+		const doc = await printToDoc(input, { printWidth: 70 });
+		const hasConditionalTextGroup = docContains(doc, (part) => {
+			return (
+				part.type === 'group' &&
+				Array.isArray(part.expandedStates) &&
+				docContains(part.contents, (childPart) => {
+					return (
+						childPart.type === 'fill' &&
+						Array.isArray(childPart.parts) &&
+						childPart.parts.includes('"The') &&
+						childPart.parts.includes('team."')
+					);
+				})
+			);
+		});
+
+		expect(hasConditionalTextGroup).toBe(true);
 	});
 
 	it('should not insert a new line between js and jsx if not provided', async () => {

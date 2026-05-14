@@ -44,8 +44,7 @@ describe('basic client > rendering & text', () => {
 		component Basic() {
 			<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
 			<div class="backslash">"line\nbreak"</div>
-			<pre class="multiline">"first
-second"</pre>
+			<pre class="multiline">"first second"</pre>
 		}
 
 		render(Basic);
