@@ -1,5 +1,13 @@
 # @tsrx/ripple
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b1d6de0`](https://github.com/Ripple-TS/ripple/commit/b1d6de05912aca4cf40af68f291851eda706140c)]:
+  - @tsrx/core@0.1.9
+
 ## 0.1.8
 
 ### Patch Changes

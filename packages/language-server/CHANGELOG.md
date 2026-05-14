@@ -1,5 +1,14 @@
 # @ripple-ts/language-server
 
+## 0.3.59
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b1d6de0`](https://github.com/Ripple-TS/ripple/commit/b1d6de05912aca4cf40af68f291851eda706140c)]:
+  - @tsrx/core@0.1.9
+  - @tsrx/typescript-plugin@0.3.59
+
 ## 0.3.58
 
 ### Patch Changes

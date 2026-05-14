@@ -1,5 +1,24 @@
 # @tsrx/prettier-plugin
 
+## 0.3.59
+
+### Patch Changes
+
+- [#1135](https://github.com/Ripple-TS/ripple/pull/1135)
+  [`b1d6de0`](https://github.com/Ripple-TS/ripple/commit/b1d6de05912aca4cf40af68f291851eda706140c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support sole-child
+  `{html ...}` raw HTML lowering for React, Preact, Solid and Vue targets, while
+  keeping Ripple's existing child raw HTML behavior unchanged.
+
+- [#1136](https://github.com/Ripple-TS/ripple/pull/1136)
+  [`e48ea68`](https://github.com/Ripple-TS/ripple/commit/e48ea6837591d9c9a46d31cf951ddf69117adf6e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Break long nested TypeScript
+  conditional type aliases across multiple lines when formatting TSRX files.
+
+- Updated dependencies
+  [[`b1d6de0`](https://github.com/Ripple-TS/ripple/commit/b1d6de05912aca4cf40af68f291851eda706140c)]:
+  - @tsrx/core@0.1.9
+
 ## 0.3.58
 
 ### Patch Changes
