@@ -4,6 +4,14 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { languages } from './index.js';
 
+/**
+ * @typedef {typeof prettier & {
+ *   __debug: {
+ *     printToDoc: (code: string, options: import('prettier').Options) => Promise<import('prettier').Doc>;
+ *   };
+ * }} PrettierWithDebug
+ */
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -67,7 +75,8 @@ describe('prettier-plugin', () => {
 	 * @param {import('prettier').Options} [options]
 	 */
 	const printToDoc = async (code, options = {}) => {
-		return await prettier.__debug.printToDoc(code, {
+		const prettierWithDebug = /** @type {PrettierWithDebug} */ (prettier);
+		return await prettierWithDebug.__debug.printToDoc(code, {
 			parser: 'ripple',
 			plugins: [join(__dirname, 'index.js')],
 			...options,
