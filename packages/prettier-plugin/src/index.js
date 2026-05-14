@@ -27,7 +27,6 @@ const {
 	line,
 	softline,
 	hardline,
-	literalline,
 	group,
 	indent,
 	ifBreak,
@@ -37,7 +36,7 @@ const {
 	indentIfBreak,
 	lineSuffix,
 } = builders;
-const { willBreak } = utils;
+const { replaceEndOfLine, willBreak } = utils;
 
 /** @type {import('prettier').Plugin['languages']} */
 export const languages = [
@@ -5508,20 +5507,17 @@ function printTSIndexedAccessType(node, path, options, print) {
  * @returns {Doc}
  */
 function printRawText(raw) {
-	const text = raw.trim();
+	const text = raw.trim().replace(/(?:\r\n|\r|\n)[^\S\r\n]+/gu, ' ');
 	if (!text) {
 		return '';
 	}
 
 	return fill(
 		text
-			.split(/(\r\n|\r|\n|[^\S\r\n]+)/u)
+			.split(/([^\S\r\n]+)/u)
 			.filter(Boolean)
 			.map((part) => {
-				if (/^(?:\r\n|\r|\n)$/u.test(part)) {
-					return literalline;
-				}
-				return /^[^\S\r\n]+$/u.test(part) ? line : part;
+				return /^[^\S\r\n]+$/u.test(part) ? line : replaceEndOfLine(part);
 			}),
 	);
 }
@@ -6295,7 +6291,8 @@ function printElement(element, path, options, print) {
 			}, 'attributes')
 		: [];
 	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
-	const openingTagAlwaysBreaks = (hasAttributes && options.singleAttributePerLine) || shouldForceBreak;
+	const openingTagAlwaysBreaks =
+		(hasAttributes && options.singleAttributePerLine) || shouldForceBreak;
 	const openingTag = group([
 		'<',
 		tagName,

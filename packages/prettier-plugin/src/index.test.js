@@ -3314,6 +3314,30 @@ second"</pre>
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should wrap direct double-quoted text children idempotently', async () => {
+		const input = `component App() {
+  <p class="lede">
+    "Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes "
+    <code class="inline-code">".tsrx"</code>
+    " files feel native in the rest of your repo."
+  </p>
+}`;
+
+		const expected = `component App() {
+  <p class="lede">
+    "Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that
+    makes "
+    <code class="inline-code">".tsrx"</code>
+    " files feel native in the rest of your repo."
+  </p>
+}`;
+
+		const result = await format(input, { printWidth: 100 });
+		const secondResult = await format(result, { printWidth: 100 });
+		expect(result).toBeWithNewline(expected);
+		expect(secondResult).toBeWithNewline(expected);
+	});
+
 	it('should break long direct text children after inline attributes', async () => {
 		const input = `component App() {
   <span
@@ -3373,8 +3397,8 @@ second"</pre>
 					return (
 						childPart.type === 'fill' &&
 						Array.isArray(childPart.parts) &&
-						childPart.parts.includes('"The') &&
-						childPart.parts.includes('team."')
+						childPart.parts.some((part) => Array.isArray(part) && part.includes('"The')) &&
+						childPart.parts.some((part) => Array.isArray(part) && part.includes('team."'))
 					);
 				})
 			);
