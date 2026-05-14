@@ -138,7 +138,7 @@ function escapeXml(value) {
 }
 
 main().catch((error) => {
-	console.error('TextMate grammar successfully copied to destinations.');
+	console.error('TextMate grammar regeneration failed.');
 	console.error(error);
 	process.exitCode = 1;
 });
