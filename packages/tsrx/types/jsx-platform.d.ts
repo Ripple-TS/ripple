@@ -207,7 +207,12 @@ export interface JsxPlatformHooks {
 	 * Vue Vapor uses this to provide `default` and `fallback` slots via
 	 * `v-slots`.
 	 */
-	createPendingBoundary?: (tryContent: any, fallbackContent: any, ctx: any, node: any) => any | null;
+	createPendingBoundary?: (
+		tryContent: any,
+		fallbackContent: any,
+		ctx: any,
+		node: any,
+	) => any | null;
 	/**
 	 * Optionally replace the default `try/catch` boundary wrapper. The hook
 	 * receives the current render content, the original try-body content before

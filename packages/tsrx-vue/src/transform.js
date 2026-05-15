@@ -271,11 +271,7 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
 		builders.declaration('const', [
 			builders.declarator(
 				clone_identifier(helper_id),
-				create_define_vapor_component_call(
-					function_declaration_to_expression(helper_fn),
-					[],
-					[],
-				),
+				create_define_vapor_component_call(function_declaration_to_expression(helper_fn), [], []),
 			),
 		]),
 		source_node,
@@ -288,11 +284,7 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
  * @param {any[]} generated_statics
  * @returns {any}
  */
-function create_define_vapor_component_call(
-	fn_expression,
-	generated_helpers,
-	generated_statics,
-) {
+function create_define_vapor_component_call(fn_expression, generated_helpers, generated_statics) {
 	const call = builders.call('defineVaporComponent', fn_expression);
 	Object.assign(/** @type {any} */ (call.metadata), {
 		generated_helpers,
