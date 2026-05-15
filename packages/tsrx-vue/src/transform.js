@@ -237,14 +237,13 @@ function component_to_vapor_component_declaration(component, transform_context, 
 		function_declaration_to_expression(fn),
 		generated_helpers,
 		generated_statics,
-		component,
 	);
 
 	if (component.default || !component.id) {
 		return call;
 	}
 
-	const component_id = clone_identifier(component.id);
+	const component_id = create_generated_identifier(component.id.name);
 	const fn_id = fn.type === 'FunctionDeclaration' ? fn.id : null;
 	component_id.metadata = {
 		...component_id.metadata,
@@ -258,7 +257,7 @@ function component_to_vapor_component_declaration(component, transform_context, 
 		generated_helpers,
 		generated_statics,
 	});
-	return setLocation(/** @type {any} */ (declaration), component);
+	return declaration;
 }
 
 /**
@@ -276,7 +275,6 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
 					function_declaration_to_expression(helper_fn),
 					[],
 					[],
-					source_node,
 				),
 			),
 		]),
@@ -288,21 +286,19 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
  * @param {any} fn_expression
  * @param {any[]} generated_helpers
  * @param {any[]} generated_statics
- * @param {any} source_node
  * @returns {any}
  */
 function create_define_vapor_component_call(
 	fn_expression,
 	generated_helpers,
 	generated_statics,
-	source_node,
 ) {
 	const call = builders.call('defineVaporComponent', fn_expression);
 	Object.assign(/** @type {any} */ (call.metadata), {
 		generated_helpers,
 		generated_statics,
 	});
-	return setLocation(call, source_node);
+	return call;
 }
 
 /**

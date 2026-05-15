@@ -261,6 +261,43 @@ describe('@tsrx/vue basic', () => {
 		expect(prop_mapping?.data.verification).toBe(true);
 	});
 
+	it('maps Vue component declarations to the generated function in Volar TSX', () => {
+		const source = `import { ref } from 'vue';
+
+		component App() {
+			const count = ref(0);
+			<button>{count.value}</button>
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const source_component_offset = source.indexOf('component');
+		const source_name_offset = source.indexOf('App');
+		const generated_function_keyword_offset = result.code.indexOf('function App');
+		const generated_function_name_offset = generated_function_keyword_offset + 'function '.length;
+		const generated_define_offset = result.code.indexOf('defineVaporComponent(function App');
+		const generated_outer_name_offset = result.code.indexOf('const App') + 'const '.length;
+		const find_generated_mapping = (offset) =>
+			result.mappings.find(
+				(mapping) =>
+					mapping.generatedOffsets[0] <= offset &&
+					offset < mapping.generatedOffsets[0] + mapping.generatedLengths[0],
+			);
+		const name_mappings = result.mappings.filter(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_name_offset && mapping.lengths[0] === 'App'.length,
+		);
+		const component_keyword_mapping = result.mappings.find(
+			(mapping) =>
+				mapping.sourceOffsets[0] === source_component_offset &&
+				mapping.lengths[0] === 'component'.length,
+		);
+
+		expect(name_mappings).toHaveLength(1);
+		expect(name_mappings[0].generatedOffsets[0]).toBe(generated_function_name_offset);
+		expect(component_keyword_mapping?.generatedOffsets[0]).toBe(generated_function_keyword_offset);
+		expect(find_generated_mapping(generated_define_offset)).toBeUndefined();
+		expect(find_generated_mapping(generated_outer_name_offset)).toBeUndefined();
+	});
+
 	it('rejects {ref ...} on composite components', () => {
 		expect(() =>
 			compile(
