@@ -1,5 +1,24 @@
 # @tsrx/prettier-plugin
 
+## 0.3.60
+
+### Patch Changes
+
+- [#1143](https://github.com/Ripple-TS/ripple/pull/1143)
+  [`12c2fb8`](https://github.com/Ripple-TS/ripple/commit/12c2fb8853eeefbee9fb9206b900ea20104db91c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep closing tags on their
+  own line when long direct text children force TSRX elements with attributes to
+  expand.
+
+- [#1143](https://github.com/Ripple-TS/ripple/pull/1143)
+  [`12c2fb8`](https://github.com/Ripple-TS/ripple/commit/12c2fb8853eeefbee9fb9206b900ea20104db91c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep wrapped direct TSRX text
+  children stable across repeated formatting.
+
+- Updated dependencies
+  [[`8c064c8`](https://github.com/Ripple-TS/ripple/commit/8c064c888b60e4fcf88f6828e51792b3bba5797a)]:
+  - @tsrx/core@0.1.10
+
 ## 0.3.59
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @tsrx/typescript-plugin
 
+## 0.3.60
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.10
+  - @tsrx/react@0.2.10
+  - @tsrx/ripple@0.1.10
+  - @tsrx/solid@0.1.10
+  - @tsrx/vue@0.1.10
+
 ## 0.3.59
 
 ### Patch Changes
