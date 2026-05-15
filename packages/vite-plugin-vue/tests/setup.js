@@ -1,4 +1,4 @@
-import { createVaporApp, nextTick } from './vue-runtime-shim.js';
+import { createVaporApp, nextTick } from 'vue';
 
 /** @type {HTMLDivElement} */
 let container;
@@ -19,7 +19,7 @@ globalThis.render = async function render(Component, props) {
  * @returns {Promise<void>}
  */
 globalThis.flush = async function flush() {
-	for (let i = 0; i < 4; i++) {
+	for (let i = 0; i < 8; i++) {
 		await nextTick();
 	}
 };

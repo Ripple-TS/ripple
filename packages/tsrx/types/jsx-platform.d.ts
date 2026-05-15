@@ -201,10 +201,31 @@ export interface JsxPlatformHooks {
 	 */
 	renderForOf?: (node: any, loopParams: any[], bodyStatements: any[], ctx: any) => any | null;
 	/**
+	 * Optionally replace the default React-style pending lowering for
+	 * `try { ... } pending { ... }`. The default emits
+	 * `<Suspense fallback={fallbackContent}>tryContent</Suspense>`.
+	 * Vue Vapor uses this to provide `default` and `fallback` slots via
+	 * `v-slots`.
+	 */
+	createPendingBoundary?: (tryContent: any, fallbackContent: any, ctx: any, node: any) => any | null;
+	/**
+	 * Optionally replace the default `try/catch` boundary wrapper. The hook
+	 * receives the current render content, the original try-body content before
+	 * any pending wrapper, and the generated catch fallback function.
+	 */
+	createErrorBoundary?: (
+		tryContent: any,
+		rawTryContent: any,
+		fallbackFn: any,
+		ctx: any,
+		node: any,
+	) => any | null;
+	/**
 	 * Optionally move the primary `try { ... }` render content into an explicit
 	 * error-boundary prop instead of rendering it as the boundary's JSX children.
 	 * Vue Vapor uses this because boundary content must execute lazily from a
-	 * zero-argument function.
+	 * zero-argument function. If a `pending` block exists, `tryContent` is the
+	 * already-created pending boundary so catch wrappers still enclose it.
 	 */
 	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
 	/**

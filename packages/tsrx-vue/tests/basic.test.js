@@ -855,23 +855,71 @@ describe('@tsrx/vue basic', () => {
 		expect(code).not.toContain('Suspense');
 	});
 
-	it('rejects pending blocks in component try statements with a Vue-specific explanation', () => {
-		expect(() =>
-			compile(
-				`component App() {
-					try {
-						<div>{'Async content'}</div>
-					} pending {
-						<div>{'Loading...'}</div>
-					} catch (error, reset) {
-						<button onClick={reset}>{error.message}</button>
-					}
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(
-			/Vue TSRX does not support `pending` blocks in component templates yet\. Vue Suspense uses fallback slots rather than a `fallback` prop/,
+	it('compiles try/pending into a Vue Suspense slot boundary', () => {
+		const { code } = compile(
+			`component App() {
+				try {
+					<div>{'Async content'}</div>
+				} pending {
+					<div>{'Loading...'}</div>
+				}
+			}`,
+			'App.tsrx',
 		);
+
+		expect(code).toContain('Suspense');
+		expect(code).toContain("from 'vue'");
+		expect(code).toContain('v-slots=');
+		expect(code).toContain('default: () =>');
+		expect(code).toContain('fallback: () =>');
+		expect(code).toContain("{'Loading...'}");
+		expect(code).not.toContain('fallback={');
+		expect(code).not.toContain('TsrxErrorBoundary');
+	});
+
+	it('compiles empty pending blocks as null Vue Suspense fallbacks', () => {
+		const { code } = compile(
+			`component App() {
+				try {
+					<div>{'Async content'}</div>
+				} pending {}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Suspense');
+		expect(code).toContain('v-slots=');
+		expect(code).toContain('default: () =>');
+		expect(code).not.toContain('fallback: () =>');
+		expect(code).not.toContain('fallback={');
+	});
+
+	it('compiles try/pending/catch into Suspense with an error boundary default slot', () => {
+		const { code } = compile(
+			`component App() {
+				try {
+					<div>{'Async content'}</div>
+				} pending {
+					<div>{'Loading...'}</div>
+				} catch (error, reset) {
+					<button onClick={reset}>{error.message}</button>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('TsrxErrorBoundary');
+		expect(code).toContain("from '@tsrx/vue/error-boundary'");
+		expect(code).toContain('Suspense');
+		expect(code).toContain("from 'vue'");
+		expect(code).toContain('v-slots=');
+		expect(code).toContain('default: () => <TsrxErrorBoundary');
+		expect(code).toContain('content={() =>');
+		expect(code).toContain('error.message');
+
+		const error_boundary_index = code.indexOf('<TsrxErrorBoundary');
+		const suspense_index = code.indexOf('<Suspense');
+		expect(suspense_index).toBeLessThan(error_boundary_index);
 	});
 
 	it('rejects JavaScript try/finally in component bodies', () => {

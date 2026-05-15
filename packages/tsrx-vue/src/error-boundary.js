@@ -130,6 +130,9 @@ function create_boundary_nodes(render) {
  */
 export function TsrxErrorBoundary(props) {
 	const instance = getCurrentInstance();
+	if (instance) {
+		initialize_boundary_state(instance);
+	}
 	const state = instance ? boundary_states.get(instance) : undefined;
 	const error = state?.error ?? shallowRef(/** @type {unknown} */ (null));
 	const reset =
@@ -155,6 +158,16 @@ export function TsrxErrorBoundary(props) {
 /** @returns {void} */
 TsrxErrorBoundary.__setup = function setup() {
 	const instance = getCurrentInstance();
+	if (instance) {
+		initialize_boundary_state(instance);
+	}
+};
+
+/**
+ * @param {BoundaryValue} instance
+ * @returns {void}
+ */
+function initialize_boundary_state(instance) {
 	if (!instance || boundary_states.has(instance)) {
 		return;
 	}
@@ -170,4 +183,4 @@ TsrxErrorBoundary.__setup = function setup() {
 		error.value = captured_error;
 		return false;
 	});
-};
+}

@@ -1,5 +1,5 @@
 import type { MockInstance } from 'vitest';
-import { inject, provide, reactive, ref, watch, watchEffect } from 'vue';
+import { defineVaporAsyncComponent, inject, provide, reactive, ref, watch, watchEffect } from 'vue';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
@@ -8,6 +8,7 @@ const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
 	'conditional boom',
 	'inner error',
+	'pending catch boom',
 	'Unhandled error during execution of setup function',
 	'Active effect was not restored correctly',
 ];
@@ -816,6 +817,43 @@ component SwitchInsideTryApp() {
 	<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
 }
 
+component AsyncResolvedChild(props: { value: string }) {
+	<p class="async-resolved">{props.value}</p>
+}
+
+component SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+
+	try {
+		<AsyncChild value="hello" />
+	} pending {
+		<p class="async-pending">{'loading...'}</p>
+	}
+}
+
+component EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+
+	try {
+		<AsyncChild value="hello" />
+	} pending {}
+}
+
+component ThrowingSuspenseChild() {
+	throw new Error('pending catch boom');
+	<p>{'unreachable'}</p>
+}
+
+component SuspenseErrorApp() {
+	try {
+		<ThrowingSuspenseChild />
+	} pending {
+		<p class="async-pending">{'loading...'}</p>
+	} catch (err) {
+		<p class="async-caught">{(err as Error).message}</p>
+	}
+}
+
 describe('tsrx-vue runtime', () => {
 	beforeEach(() => {
 		const original_console_error = console.error;
@@ -1400,6 +1438,46 @@ describe('tsrx-vue runtime', () => {
 
 		await click('.go-unknown');
 		expect(text('.try-page')).toBe('404');
+	});
+
+	it('shows pending fallback then resolves a Vapor async component', async () => {
+		let resolve_fn: (resolved: typeof AsyncResolvedChild) => void;
+		const promise = new Promise<typeof AsyncResolvedChild>((resolve) => {
+			resolve_fn = resolve;
+		});
+
+		await render(SuspenseApp, { promise });
+		expect(text('.async-pending')).toBe('loading...');
+		expect(container.querySelector('.async-resolved')).toBeNull();
+
+		resolve_fn!(AsyncResolvedChild);
+		await flush();
+		expect(text('.async-resolved')).toBe('hello');
+		expect(container.querySelector('.async-pending')).toBeNull();
+	});
+
+	it('renders no fallback for empty pending then resolves a Vapor async component', async () => {
+		let resolve_fn: (resolved: typeof AsyncResolvedChild) => void;
+		const promise = new Promise<typeof AsyncResolvedChild>((resolve) => {
+			resolve_fn = resolve;
+		});
+
+		await render(EmptyPendingSuspenseApp, { promise });
+		expect(container.textContent).toBe('');
+		expect(container.querySelector('.async-pending')).toBeNull();
+		expect(container.querySelector('.async-resolved')).toBeNull();
+
+		resolve_fn!(AsyncResolvedChild);
+		await flush();
+		expect(text('.async-resolved')).toBe('hello');
+	});
+
+	it('routes errors from Suspense default content to catch blocks', async () => {
+		await render(SuspenseErrorApp);
+		await flush();
+		expect(text('.async-caught')).toBe('pending catch boom');
+		expect(container.querySelector('.async-pending')).toBeNull();
+		expect(container.querySelector('.async-resolved')).toBeNull();
 	});
 });
 

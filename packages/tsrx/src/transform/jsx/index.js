@@ -4502,18 +4502,25 @@ function try_statement_to_jsx_child(node, transform_context) {
 				? to_jsx_expression_container(create_null_literal())
 				: statement_body_to_jsx_child(pending_body_nodes, transform_context);
 
-		result = create_jsx_element(
-			'Suspense',
-			[
-				{
-					type: 'JSXAttribute',
-					name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
-					value: fallback_content,
-					metadata: { path: [] },
-				},
-			],
-			[result],
-		);
+		result =
+			transform_context.platform.hooks?.createPendingBoundary?.(
+				result,
+				fallback_content,
+				transform_context,
+				node,
+			) ??
+			create_jsx_element(
+				'Suspense',
+				[
+					{
+						type: 'JSXAttribute',
+						name: { type: 'JSXIdentifier', name: 'fallback', metadata: { path: [] } },
+						value: fallback_content,
+						metadata: { path: [] },
+					},
+				],
+				[result],
+			);
 	}
 
 	// Wrap in <TsrxErrorBoundary> if catch block exists
@@ -4558,12 +4565,23 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		const boundary_content =
 			transform_context.platform.hooks?.createErrorBoundaryContent?.(
-				try_content,
+				result,
 				transform_context,
 				node,
 			) ?? null;
 
-		if (boundary_content && transform_context.inside_element_child) {
+		const custom_boundary =
+			transform_context.platform.hooks?.createErrorBoundary?.(
+				result,
+				try_content,
+				fallback_fn,
+				transform_context,
+				node,
+			) ?? null;
+
+		if (custom_boundary) {
+			result = custom_boundary;
+		} else if (boundary_content && transform_context.inside_element_child) {
 			result = to_jsx_expression_container(
 				b.call(
 					'TsrxErrorBoundary',
@@ -4572,21 +4590,21 @@ function try_statement_to_jsx_child(node, transform_context) {
 			);
 
 			return result;
+		} else {
+			result = create_jsx_element(
+				'TsrxErrorBoundary',
+				[
+					b.jsx_attribute(
+						b.jsx_id('fallback'),
+						to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
+					),
+					...(boundary_content
+						? [b.jsx_attribute(b.jsx_id('content'), to_jsx_expression_container(boundary_content))]
+						: []),
+				],
+				boundary_content ? [] : [result],
+			);
 		}
-
-		result = create_jsx_element(
-			'TsrxErrorBoundary',
-			[
-				b.jsx_attribute(
-					b.jsx_id('fallback'),
-					to_jsx_expression_container(/** @type {any} */ (fallback_fn)),
-				),
-				...(boundary_content
-					? [b.jsx_attribute(b.jsx_id('content'), to_jsx_expression_container(boundary_content))]
-					: []),
-			],
-			boundary_content ? [] : [result],
-		);
 	}
 
 	// result is a JSXElement, but we need to return a JSXExpressionContainer

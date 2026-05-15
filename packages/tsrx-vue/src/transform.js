@@ -46,8 +46,6 @@ const vue_platform = {
 	validation: {
 		requireUseServerForAwait: true,
 		scanUseServerDirectiveForAwaitWithCustomValidator: false,
-		unsupportedTryPendingMessage:
-			'Vue TSRX does not support `pending` blocks in component templates yet. Vue Suspense uses fallback slots rather than a `fallback` prop, so `try { ... } pending { ... }` cannot be lowered correctly for this target yet.',
 	},
 	hooks: {
 		// Hoist to module scope
@@ -83,8 +81,24 @@ const vue_platform = {
 		},
 		renderForOf: (node, loop_params, body_statements, ctx) =>
 			render_for_of_as_vapor_for(node, loop_params, body_statements, ctx),
+		createPendingBoundary(try_content, fallback_content) {
+			return create_vapor_pending_boundary(try_content, fallback_content);
+		},
+		createErrorBoundary(try_content, raw_try_content, fallback_fn, ctx, node) {
+			if (!node.pending) {
+				return null;
+			}
+			const fallback_content = /** @type {any} */ (try_content.metadata)?.vapor_pending_fallback;
+			if (!fallback_content) {
+				return null;
+			}
+			return create_vapor_pending_boundary(
+				create_vapor_error_boundary(raw_try_content, fallback_fn),
+				fallback_content,
+			);
+		},
 		createErrorBoundaryContent(try_content) {
-			return builders.arrow([], try_content.expression);
+			return builders.arrow([], jsx_child_to_expression(try_content));
 		},
 		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
 			return rewrite_host_text_or_html_children(
@@ -115,6 +129,71 @@ const vue_platform = {
 };
 
 export const transform = createJsxTransform(vue_platform);
+
+/**
+ * @param {any} try_content
+ * @param {any} fallback_content
+ * @returns {any}
+ */
+function create_vapor_pending_boundary(try_content, fallback_content) {
+	const fallback_expression = jsx_child_to_expression(fallback_content);
+	const slots_properties = [
+		builders.init('_', builders.literal(1)),
+		builders.init('default', builders.arrow([], jsx_child_to_expression(try_content))),
+	];
+
+	if (fallback_expression.type !== 'Literal' || fallback_expression.value !== null) {
+		slots_properties.push(builders.init('fallback', builders.arrow([], fallback_expression)));
+	}
+
+	const slots = builders.object(slots_properties);
+
+	const boundary = builders.jsx_element_fresh(
+		builders.jsx_opening_element(
+			builders.jsx_id('Suspense'),
+			[builders.jsx_attribute(builders.jsx_id('v-slots'), to_jsx_expression_container(slots))],
+			true,
+		),
+		null,
+		[],
+	);
+	/** @type {any} */ (boundary.metadata).vapor_pending_fallback = fallback_content;
+	return boundary;
+}
+
+/**
+ * @param {any} child
+ * @returns {any}
+ */
+function jsx_child_to_expression(child) {
+	return child?.type === 'JSXExpressionContainer' ? child.expression : child;
+}
+
+/**
+ * @param {any} content
+ * @param {any} fallback_fn
+ * @returns {any}
+ */
+function create_vapor_error_boundary(content, fallback_fn) {
+	return builders.jsx_element_fresh(
+		builders.jsx_opening_element(
+			builders.jsx_id('TsrxErrorBoundary'),
+			[
+				builders.jsx_attribute(
+					builders.jsx_id('fallback'),
+					to_jsx_expression_container(fallback_fn),
+				),
+				builders.jsx_attribute(
+					builders.jsx_id('content'),
+					to_jsx_expression_container(builders.arrow([], jsx_child_to_expression(content))),
+				),
+			],
+			true,
+		),
+		null,
+		[],
+	);
+}
 
 /**
  * Vue's `VNodeRef` type is wider than TSRX host refs because it also supports
