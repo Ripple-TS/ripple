@@ -23,14 +23,15 @@
     "@tsrx/vue": "workspace:*"
   },
   "peerDependencies": {
-    "vite": "*"
+    "vite": "*",
+    "vue-jsx-vapor": ">=3.2.14"
   },
   "devDependencies": {
     "@tsrx/core": "workspace:*",
     "typescript": "catalog:default",
     "vite": "catalog:default",
-    "vue": "3.6.0-beta.10",
-    "vue-jsx-vapor": "^3.2.12"
+    "vue": "3.6.0-beta.12",
+    "vue-jsx-vapor": "^3.2.14"
   },
   "files": [
     "src",

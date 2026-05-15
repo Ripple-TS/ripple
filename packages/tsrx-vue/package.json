@@ -22,6 +22,10 @@
       "types": "./types/error-boundary.d.ts",
       "default": "./src/error-boundary.js"
     },
+    "./interop": {
+      "types": "./types/interop.d.ts",
+      "default": "./src/interop.js"
+    },
     "./ref": {
       "types": "./types/ref.d.ts",
       "default": "./src/ref.js"
@@ -35,7 +39,7 @@
   },
   "peerDependencies": {
     "vue": ">=3.5",
-    "vue-jsx-vapor": ">=3.2.12"
+    "vue-jsx-vapor": ">=3.2.14"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",

@@ -106,6 +106,19 @@ async function load_tsrx(hooks, file_path) {
 
 /**
  * @param {Hooks} hooks
+ * @param {string} file_path
+ * @returns {Promise<{ contents: string, loader: string } | undefined>}
+ */
+async function load_source(hooks, file_path) {
+	const hook = hooks.onLoad.find(
+		({ options }) => options.namespace === 'file' && options.filter.test(file_path),
+	);
+	if (!hook) throw new Error('missing source onLoad hook');
+	return hook.callback({ path: file_path, namespace: 'file', importer: '', kind: 'entry-point' });
+}
+
+/**
+ * @param {Hooks} hooks
  * @param {string} id
  */
 function load_css(hooks, id) {
@@ -220,5 +233,54 @@ describe('@tsrx/bun-plugin-vue', () => {
 		const hooks = setup_plugin({ exclude: /ignored\.tsrx$/ }, { target: 'browser' });
 		const transformed = await load_tsrx(hooks, '/project/ignored.tsrx');
 		expect(transformed).toBeUndefined();
+	});
+
+	it('installs vaporInteropPlugin on createVaporApp calls', async () => {
+		const dir = await mkdtemp(path.join(os.tmpdir(), 'tsrx-bun-plugin-vue-'));
+		try {
+			const file_path = path.join(dir, 'main.ts');
+			await writeFile(
+				file_path,
+				`import { createVaporApp } from 'vue';
+import App from './App.tsrx';
+
+createVaporApp(App).mount('#root');`,
+			);
+
+			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });
+			const transformed = await load_source(hooks, file_path);
+
+			expect(transformed).toBeDefined();
+			expect(transformed?.loader).toBe('ts');
+			expect(transformed?.contents).toContain(
+				`import { createVaporApp as __tsrx_createVaporApp, vaporInteropPlugin } from 'vue';`,
+			);
+			expect(transformed?.contents).toContain(
+				`const createVaporApp = (...args) => __tsrx_createVaporApp(...args).use(vaporInteropPlugin);`,
+			);
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
+	});
+
+	it('leaves manually installed interop alone', async () => {
+		const dir = await mkdtemp(path.join(os.tmpdir(), 'tsrx-bun-plugin-vue-'));
+		try {
+			const file_path = path.join(dir, 'main.ts');
+			await writeFile(
+				file_path,
+				`import { createVaporApp, vaporInteropPlugin } from 'vue';
+import App from './App.tsrx';
+
+createVaporApp(App).use(vaporInteropPlugin).mount('#root');`,
+			);
+
+			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });
+			const transformed = await load_source(hooks, file_path);
+
+			expect(transformed).toBeUndefined();
+		} finally {
+			await rm(dir, { recursive: true, force: true });
+		}
 	});
 });

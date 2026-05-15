@@ -62,9 +62,8 @@ npm install -D @tsrx/bun-plugin-vue        # Bun
 npm install ripple @ripple-ts/vite-plugin
 ```
 
-Vue's Vite setup also needs `vue-jsx-vapor/vite` in the plugin list after
-`@tsrx/vite-plugin-vue`, and editor/typecheck configs should set
-`jsxImportSource: 'vue-jsx-vapor'`.
+Vue's Vite setup should use `tsrxVue()` from `@tsrx/vite-plugin-vue`,
+and editor/typecheck configs should set `jsxImportSource: 'vue-jsx-vapor'`.
 
 ### Rspack setup (React target)
 
@@ -150,11 +149,11 @@ export default {
 };
 ```
 
-Options: `{ vapor?: { macros?: boolean | object, interop?: boolean, compiler?: { runtimeModuleName?: string } } }`
+Options: `{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }`
 — forwards options to `vue-jsx-vapor`. By default the plugin enables macros
 and uses `runtimeModuleName: 'vue-jsx-vapor'`. Like the other Rspack plugins,
-it also pushes `.tsrx` into `resolve.extensions` and enables `experiments.css`
-when unset.
+it pushes `.tsrx` into `resolve.extensions` and enables `experiments.css` when
+unset.
 
 ### Turbopack setup (React target)
 
@@ -266,10 +265,10 @@ await Bun.build({
 });
 ```
 
-Options: `{ vapor?: { macros?: boolean | object, interop?: boolean, compiler?: { runtimeModuleName?: string } }, emitCss?: boolean, include?: RegExp, exclude?: RegExp | RegExp[] }`
+Options: `{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } }, emitCss?: boolean, include?: RegExp, exclude?: RegExp | RegExp[] }`
 — forwards options to `vue-jsx-vapor`, disables virtual CSS emission when
-requested, or filters which files the plugin compiles. Like the Vite and
-Rspack Vue integrations, editor typechecking should set
+requested, or filters which files the plugin compiles. Like the Vite and Rspack
+Vue integrations, editor typechecking should set
 `jsxImportSource: 'vue-jsx-vapor'`.
 
 Files use the `.tsrx` extension. The compiler transforms the same source
@@ -691,17 +690,25 @@ component SafeProfile({ userId }: { userId: string }) {
 
 ### Async boundaries
 
-Async work is expressed with the target's own lazy-loading primitive
-(`lazy()` from `react` / `solid-js`, the Ripple equivalent on the Ripple
-target) and suspended via `try` / `pending` / `catch`.
+Async work is expressed with the target's own suspension primitive and wrapped
+with `try` / `pending` / `catch`.
 
-- **Solid + Ripple**: component bodies are synchronous; top-level
-  component-body `await` is a compile-time error.
-- **React**: top-level component-body `await` is supported and TSRX emits
-  an async component function.
-- **React**: `for await...of` is not supported inside component templates.
-  Resolve async iterables in an upstream helper and render plain data in the
-  template.
+- **React + Preact**: use `lazy()` children, React/Preact suspense primitives,
+  or React's `use()` style APIs where available. Top-level component-body
+  `await` is supported and TSRX emits an async component function.
+- **Solid**: use `lazy()` or a Solid resource that suspends under `<Loading>`.
+  Component bodies are synchronous; top-level component-body `await` is a
+  compile-time error.
+- **Vue**: use suspending children such as `defineVaporAsyncComponent()`.
+  TSRX lowers `pending` currently to Vue `<Suspense v-slots={{ default, fallback }}>`,
+	until support for VaporSuspense is added by the vue team.
+  Component-body `await` is not supported in Vue TSRX components.
+- **Ripple**: use `trackAsync()` inside an upstream `try` / `pending`
+  boundary. Component bodies are synchronous; top-level component-body `await`
+  is a compile-time error.
+- **React + Preact**: `for await...of` is not supported inside component
+  templates. Resolve async iterables in an upstream helper and render plain data
+  in the template.
 
 ```tsrx
 const UserProfile = lazy(() => import('./UserProfile.tsrx'));
@@ -718,8 +725,9 @@ export component App() {
 ```
 
 **LLM DON'T:**
-- Do not write top-level component-body `await` in Solid or Ripple targets.
-- Do not use `for await...of` inside React component templates.
+- Do not write top-level component-body `await` in Solid, Vue, or Ripple
+  targets.
+- Do not use `for await...of` inside React or Preact component templates.
 - Do not mark components `async`.
 
 ### Early returns
@@ -862,20 +870,25 @@ component UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
 - `<@Dyn />` dynamic elements → runtime-dispatched element
 - `&{ ... }` lazy destructuring preserves Solid signal reactivity
 
+Requires `solid-js@>=2.0.0-beta`. The `<Errored>` and `<Loading>` flow
+primitives are part of Solid 2.0's public API; older Solid (1.x) is not
+supported directly — use `ErrorBoundary` / `Suspense` manually if needed.
+
 ### Vue (`@tsrx/vue`)
 
 - Compiles components to `defineVaporComponent(...)` output for the
   `vue-jsx-vapor` runtime
-- Supports `if`, `for`, `switch`, `try { } catch { }`, scoped styles, and
-  `{text ...}`
+- Supports `if`, `for`, `switch`, `try { } catch { }`,
+  `try { } pending { }`, scoped styles, and `{text ...}`
+- Lowers `pending` blocks to Vue `<Suspense>` with `v-slots`; empty
+  `pending {}` produces no fallback slot.  This will be replace with VaporSuspense
+	once it's released.
 - Supports `{ref ...}` callback refs on host elements; repeated refs are
   merged into one callback
-- Does not currently support composite refs, `pending` blocks, `finally`
-  blocks, or top-level component-body `await`
-
-Requires `solid-js@>=2.0.0-beta`. The `<Errored>` and `<Loading>` flow
-primitives are part of Solid 2.0's public API; older Solid (1.x) is not
-supported directly — use `ErrorBoundary` / `Suspense` manually if needed.
+- Use suspending children such as `defineVaporAsyncComponent()` for
+  `try/pending`; component-level `await` remains unsupported
+- Does not currently support composite refs, `finally` blocks, or top-level
+  component-body `await`
 
 ### Ripple (`ripple`)
 

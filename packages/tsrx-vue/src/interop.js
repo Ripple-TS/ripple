@@ -1,72 +1,24 @@
-/** @import { Plugin } from 'vite' */
-
-import vueJsxVaporModule from 'vue-jsx-vapor/vite';
-
-/**
- * @typedef {(options: {
- *   macros: boolean;
- *   compiler: { runtimeModuleName: string };
- * }) => Plugin[]} VueJsxVaporPlugin
- */
-
-const vueJsxVaporModuleInterop = /** @type {VueJsxVaporPlugin | { default: VueJsxVaporPlugin }} */ (
-	/** @type {unknown} */ (vueJsxVaporModule)
-);
-const vueJsxVapor =
-	typeof vueJsxVaporModuleInterop === 'function'
-		? vueJsxVaporModuleInterop
-		: vueJsxVaporModuleInterop.default;
-
-export function tsrxVueVapor() {
-	return [
-		create_vapor_interop_plugin(),
-		...vueJsxVapor({
-			macros: true,
-			compiler: {
-				runtimeModuleName: 'vue-jsx-vapor',
-			},
-		}),
-	];
-}
+const vue_import_pattern = /import(?!\s+type)\s*\{([\s\S]*?)\}\s*from\s*(['"])vue\2\s*;?/g;
 
 /**
  * Vue's built-in renderer primitives, including `Suspense`, need Vapor/VDOM
  * interop when mounted from a Vapor app. TSRX can emit `Suspense` for
- * `try/pending`, so make Vapor app creation install the interop plugin without
- * every app entry point needing to remember it.
+ * `try/pending`, so bundler plugins use this rewrite to make Vapor app
+ * creation install the interop plugin without every app entry point needing to
+ * remember it.
  *
- * @returns {Plugin}
- */
-function create_vapor_interop_plugin() {
-	return {
-		name: '@tsrx/vite-plugin-vue:vapor-interop',
-		enforce: 'pre',
-		transform(code, id) {
-			if (!/\bcreateVaporApp\b/.test(code) || !/\bfrom\s*['"]vue['"]/.test(code)) {
-				return null;
-			}
-
-			const transformed = add_vapor_interop_to_create_vapor_app(code);
-			if (transformed === code) {
-				return null;
-			}
-
-			return { code: transformed, map: null };
-		},
-	};
-}
-
-const vue_import_pattern = /import(?!\s+type)\s*\{([\s\S]*?)\}\s*from\s*(['"])vue\2\s*;?/g;
-
-/**
- * @param {string} code
+ * @param {string} source
  * @returns {string}
  */
-function add_vapor_interop_to_create_vapor_app(code) {
+export function addVaporInteropToCreateVaporApp(source) {
+	if (!/\bcreateVaporApp\b/.test(source) || !/\bfrom\s*['"]vue['"]/.test(source)) {
+		return source;
+	}
+
 	/** @type {string | null} */
 	let existing_interop_local = null;
 
-	for (const match of code.matchAll(vue_import_pattern)) {
+	for (const match of source.matchAll(vue_import_pattern)) {
 		for (const specifier of split_import_specifiers(match[1])) {
 			const parsed = parse_import_specifier(specifier);
 			if (parsed?.imported === 'vaporInteropPlugin') {
@@ -77,14 +29,14 @@ function add_vapor_interop_to_create_vapor_app(code) {
 		if (existing_interop_local) break;
 	}
 
-	if (existing_interop_local && code.includes(`.use(${existing_interop_local})`)) {
-		return code;
+	if (existing_interop_local && source.includes(`.use(${existing_interop_local})`)) {
+		return source;
 	}
 
 	const interop_local = existing_interop_local ?? 'vaporInteropPlugin';
 	let added_interop_import = existing_interop_local !== null;
 
-	return code.replace(vue_import_pattern, (full, specifier_text, quote) => {
+	return source.replace(vue_import_pattern, (full, specifier_text, quote) => {
 		const specifiers = split_import_specifiers(specifier_text);
 		/** @type {string[]} */
 		const wrappers = [];

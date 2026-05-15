@@ -6,7 +6,16 @@ export interface TsrxVueOptions {
 	 * the plugin should compile as tsrx sources. Defaults to `/\.tsrx$/`.
 	 */
 	include?: RegExp;
+	/**
+	 * Options forwarded to `vue-jsx-vapor/vite`.
+	 */
+	vapor?: {
+		macros?: boolean | object;
+		compiler?: {
+			runtimeModuleName?: string;
+		};
+	};
 }
 
-export function tsrxVue(options?: TsrxVueOptions): Plugin;
+export function tsrxVue(options?: TsrxVueOptions): Plugin[];
 export default tsrxVue;

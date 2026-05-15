@@ -13,14 +13,15 @@
     "debug-tsx": "node ../../scripts/debug-mode.js tsx @tsrx/vue"
   },
   "dependencies": {
-    "vue": "3.6.0-beta.8"
+    "vue": "3.6.0-beta.12"
   },
   "devDependencies": {
     "@ripple-ts/language-server": "workspace:*",
     "@tsrx/typescript-plugin": "workspace:*",
+    "@tsrx/vite-plugin-vue": "workspace:*",
     "@tsrx/vue": "workspace:*",
     "typescript": "catalog:default",
     "vite": "catalog:default",
-    "vue-jsx-vapor": "^3.2.10"
+    "vue-jsx-vapor": "^3.2.14"
   }
 }

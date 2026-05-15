@@ -880,7 +880,11 @@ export component FeaturesPage() {
 							<code class="inline-code">{'preact/compat'}</code>
 							{', or '}
 							<code class="inline-code">{'solid-js'}</code>
-							{', and the Ripple equivalent on the Ripple target. In Solid and Ripple targets, component bodies are synchronous and do not allow inline '}
+							{', '}
+							<code class="inline-code">{'defineVaporAsyncComponent()'}</code>
+							{' on Vue Vapor, and '}
+							<code class="inline-code">{'trackAsync()'}</code>
+							{' on Ripple. In Solid, Vue, and Ripple targets, component bodies are synchronous and do not allow inline '}
 							<code class="inline-code">{'await'}</code>
 							{'. On React and Preact, top-level component-body '}
 							<code class="inline-code">{'await'}</code>

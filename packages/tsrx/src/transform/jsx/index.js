@@ -1215,23 +1215,27 @@ function is_hook_callee(callee) {
 
 /**
  * @param {AST.Identifier[]} bindings
+ * @param {Set<string>} [mapped_bindings]
  * @returns {AST.ObjectPattern}
  */
-function create_helper_props_pattern(bindings) {
+function create_helper_props_pattern(bindings, mapped_bindings = new Set()) {
 	return /** @type {any} */ ({
 		type: 'ObjectPattern',
-		properties: bindings.map((binding) => create_helper_props_property(binding)),
+		properties: bindings.map((binding) =>
+			create_helper_props_property(binding, mapped_bindings.has(binding.name)),
+		),
 		metadata: { path: [] },
 	});
 }
 
 /**
  * @param {AST.Identifier} binding
+ * @param {boolean} [map_binding]
  * @returns {AST.Property}
  */
-function create_helper_props_property(binding) {
-	const key = create_generated_identifier(binding.name);
-	const value = create_generated_identifier(binding.name);
+function create_helper_props_property(binding, map_binding = false) {
+	const key = map_binding ? clone_identifier(binding) : create_generated_identifier(binding.name);
+	const value = map_binding ? clone_identifier(binding) : create_generated_identifier(binding.name);
 
 	return b.prop('init', key, value, false, true);
 }
@@ -3411,14 +3415,16 @@ function get_hook_callee_name(callee) {
  *   Used by the switch lift's chained-call build, which allocates ids in
  *   source order in a forward pass and then constructs helpers in reverse so
  *   each fall-through case can reference the next case's component element.
+ * @param {{ transientBindings?: Set<string> }} [options]
  * @returns {{ setup_statements: any[], component_element: ESTreeJSX.JSXElement }}
  */
-function create_hook_safe_helper(
+export function create_hook_safe_helper(
 	body_nodes,
 	key_expression,
 	source_node,
 	transform_context,
 	preallocated_helper_id,
+	options = {},
 ) {
 	validate_hook_safe_body_does_not_assign_hook_results_to_outer_bindings(
 		body_nodes,
@@ -3436,9 +3442,14 @@ function create_hook_safe_helper(
 		body_nodes,
 		transform_context.available_bindings,
 	);
+	const transient_bindings = options.transientBindings ?? new Set();
 	const aliases = use_module_scoped_component
 		? []
-		: helper_bindings.map((binding) => create_helper_type_alias_declaration(helper_id, binding));
+		: helper_bindings.map((binding) =>
+				transient_bindings.has(binding.name)
+					? null
+					: create_helper_type_alias_declaration(helper_id, binding),
+			);
 	const props_type =
 		helper_bindings.length > 0 && !use_module_scoped_component
 			? create_helper_props_type_literal(helper_bindings, aliases)
@@ -3447,8 +3458,8 @@ function create_hook_safe_helper(
 		helper_bindings.length > 0
 			? [
 					props_type !== null
-						? create_typed_helper_props_pattern(helper_bindings, props_type)
-						: create_helper_props_pattern(helper_bindings),
+						? create_typed_helper_props_pattern(helper_bindings, props_type, transient_bindings)
+						: create_helper_props_pattern(helper_bindings, transient_bindings),
 				]
 			: [];
 
@@ -3490,7 +3501,7 @@ function create_hook_safe_helper(
 	if (!transform_context.helper_state) {
 		return {
 			setup_statements: [
-				...aliases.map((alias) => alias.declaration),
+				...aliases.flatMap((alias) => (alias ? [alias.declaration] : [])),
 				create_helper_declaration(helper_id, helper_fn, source_node, transform_context),
 			],
 			component_element,
@@ -3514,7 +3525,7 @@ function create_hook_safe_helper(
 
 	return {
 		setup_statements: [
-			...aliases.map((alias) => alias.declaration),
+			...aliases.flatMap((alias) => (alias ? [alias.declaration] : [])),
 			create_cached_helper_declaration(
 				helper_id,
 				cache_id,
@@ -3588,7 +3599,7 @@ function create_helper_type_alias_declaration(helper_id, binding) {
 
 /**
  * @param {AST.Identifier[]} bindings
- * @param {{ id: AST.Identifier }[]} aliases
+ * @param {({ id: AST.Identifier } | null)[]} aliases
  * @returns {any}
  */
 function create_helper_props_type_literal(bindings, aliases) {
@@ -3596,7 +3607,13 @@ function create_helper_props_type_literal(bindings, aliases) {
 		bindings.map((binding, i) =>
 			b.ts_property_signature(
 				create_generated_identifier(binding.name),
-				b.ts_type_annotation(b.ts_type_query(clone_identifier(aliases[i].id))),
+				b.ts_type_annotation(
+					aliases[i]
+						? b.ts_type_query(
+								clone_identifier(/** @type {{ id: AST.Identifier }} */ (aliases[i]).id),
+							)
+						: b.ts_keyword_type('any'),
+				),
 			),
 		),
 	);
@@ -3605,10 +3622,11 @@ function create_helper_props_type_literal(bindings, aliases) {
 /**
  * @param {AST.Identifier[]} bindings
  * @param {any} props_type
+ * @param {Set<string>} [mapped_bindings]
  * @returns {AST.ObjectPattern}
  */
-function create_typed_helper_props_pattern(bindings, props_type) {
-	const pattern = create_helper_props_pattern(bindings);
+function create_typed_helper_props_pattern(bindings, props_type, mapped_bindings = new Set()) {
+	const pattern = create_helper_props_pattern(bindings, mapped_bindings);
 	/** @type {any} */ (pattern).typeAnnotation = b.ts_type_annotation(props_type);
 	return pattern;
 }
@@ -4558,8 +4576,19 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 		const fallback_fn = b.arrow(
 			catch_params,
-			b.block(build_render_statements(catch_body_nodes, true, transform_context)),
+			b.block(build_render_statements(catch_body_nodes, true, transform_context), handler.body),
+			false,
+			undefined,
+			handler,
 		);
+
+		const fallback_component =
+			transform_context.platform.hooks?.createErrorFallbackComponent?.(
+				catch_body_nodes,
+				catch_params,
+				transform_context,
+				node,
+			) ?? null;
 
 		transform_context.available_bindings = saved_catch_bindings;
 
@@ -4577,6 +4606,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 				fallback_fn,
 				transform_context,
 				node,
+				{ fallbackComponent: fallback_component },
 			) ?? null;
 
 		if (custom_boundary) {

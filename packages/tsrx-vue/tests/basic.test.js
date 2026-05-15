@@ -931,15 +931,17 @@ describe('@tsrx/vue basic', () => {
 		expect(code).not.toContain('fallback={');
 	});
 
-	it('compiles try/pending/catch into Suspense with an error boundary default slot', () => {
+	it('compiles try/pending/catch into an error boundary around Suspense', () => {
 		const { code } = compile(
 			`component App() {
+				const suffix = '!';
+
 				try {
 					<div>{'Async content'}</div>
 				} pending {
 					<div>{'Loading...'}</div>
 				} catch (error, reset) {
-					<button onClick={reset}>{error.message}</button>
+					<button onClick={reset}>{error.message}{suffix}</button>
 				}
 			}`,
 			'App.tsrx',
@@ -950,13 +952,62 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('Suspense');
 		expect(code).toContain("from 'vue'");
 		expect(code).toContain('v-slots=');
-		expect(code).toContain('default: () => <TsrxErrorBoundary');
+		expect(code).toContain('content={() => <Suspense');
+		expect(code).toContain('default: () =>');
 		expect(code).toContain('content={() =>');
 		expect(code).toContain('error.message');
+		expect(code.match(/error\.message/g)).toHaveLength(1);
+		expect(code).toContain('StatementBodyHook');
+		expect(code).toContain('suffix={suffix}');
 
 		const error_boundary_index = code.indexOf('<TsrxErrorBoundary');
 		const suspense_index = code.indexOf('<Suspense');
-		expect(suspense_index).toBeLessThan(error_boundary_index);
+		expect(error_boundary_index).toBeLessThan(suspense_index);
+	});
+
+	it('keeps try/pending/catch Suspense lowering valid in type-only output', () => {
+		const source = `import { defineVaporAsyncComponent } from 'vue';
+
+			component AsyncResolvedChild(props: { value: string }) {
+				<p class="async-resolved">{props.value}</p>
+			}
+
+			component App(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+				const suffix = '!';
+				const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+
+				try {
+					<AsyncChild value="hello" />
+				} pending {
+					<p class="async-pending">{'loading...'}</p>
+				} catch (err) {
+					<p class="async-caught">{(err as Error).message}{suffix}</p>
+				}
+			}`;
+		const { code, errors, mappings } = compile_to_volar_mappings(source, 'App.tsrx');
+
+		expect(errors).toHaveLength(0);
+		expect(code).toContain('TsrxErrorBoundary');
+		expect(code).toContain('Suspense');
+		expect(code).toContain('fallback={(err, _reset) =>');
+		expect(code).toContain('default: () => (() => {');
+		expect(code).toContain('return <AsyncChild value="hello" />;');
+		expect(code).not.toContain('catch(_error)');
+		expect(code).not.toContain('return ((err, _reset) =>');
+		expect(code).not.toContain('err: any');
+		expect(code).not.toContain('suffix: typeof');
+		expect(code).not.toContain('StatementBodyHook');
+		expect(code).not.toContain('let App__StatementBodyHook1');
+		expect(code).not.toContain('_tsrx_StatementBodyHook1_err = err');
+
+		const catch_param_offset = source.indexOf('catch (err)') + 'catch ('.length;
+		expect(
+			mappings.some((mapping) => {
+				const start = mapping.sourceOffsets[0];
+				const end = start + mapping.lengths[0];
+				return start <= catch_param_offset && catch_param_offset < end;
+			}),
+		).toBe(true);
 	});
 
 	it('rejects JavaScript try/finally in component bodies', () => {

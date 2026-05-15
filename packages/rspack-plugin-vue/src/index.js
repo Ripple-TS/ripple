@@ -9,9 +9,11 @@ const __dirname = path.dirname(__filename);
 const JS_LOADER = path.join(__dirname, 'js-loader.js');
 const VAPOR_LOADER = path.join(__dirname, 'vapor-loader.js');
 const CSS_LOADER = path.join(__dirname, 'css-loader.js');
+const INTEROP_LOADER = path.join(__dirname, 'interop-loader.js');
 
 const TSRX_EXTENSION_PATTERN = /\.tsrx$/;
 const CSS_QUERY_PATTERN = /tsrx-css/;
+const SOURCE_EXTENSION_PATTERN = /\.[cm]?[jt]sx?$/;
 
 /**
  * Rspack plugin for `.tsrx` files that compiles them via `@tsrx/vue`, runs the
@@ -24,7 +26,7 @@ const CSS_QUERY_PATTERN = /tsrx-css/;
  */
 export class TsrxVueRspackPlugin {
 	/**
-	 * @param {{ vapor?: { interop?: boolean, macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }} [options]
+	 * @param {{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }} [options]
 	 */
 	constructor(options = {}) {
 		this.options = {
@@ -50,6 +52,15 @@ export class TsrxVueRspackPlugin {
 		}
 
 		compiler.options.module.rules.unshift(
+			{
+				test: SOURCE_EXTENSION_PATTERN,
+				exclude: /node_modules/,
+				use: [
+					{
+						loader: INTEROP_LOADER,
+					},
+				],
+			},
 			{
 				test: TSRX_EXTENSION_PATTERN,
 				resourceQuery: { not: CSS_QUERY_PATTERN },

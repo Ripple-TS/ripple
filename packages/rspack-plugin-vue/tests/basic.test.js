@@ -3,11 +3,12 @@ import { compile } from '@tsrx/vue';
 import jsLoader from '../src/js-loader.js';
 import vaporLoader from '../src/vapor-loader.js';
 import cssLoader from '../src/css-loader.js';
+import interopLoader from '../src/interop-loader.js';
 import { TsrxVueRspackPlugin } from '../src/index.js';
 
 /**
  * @param {string} resourcePath
- * @param {{ vapor?: { interop?: boolean, macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }} [options]
+ * @param {{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }} [options]
  * @returns {{ context: object, promise: Promise<{ err: unknown, output: string | null, map: unknown }> }}
  */
 function createLoaderContext(resourcePath, options = {}) {
@@ -131,6 +132,32 @@ describe('@tsrx/rspack-plugin-vue css-loader', () => {
 	});
 });
 
+describe('@tsrx/rspack-plugin-vue interop-loader', () => {
+	it('installs vaporInteropPlugin on createVaporApp calls', () => {
+		const output = interopLoader(`import { createVaporApp } from 'vue';
+import App from './App.tsrx';
+
+createVaporApp(App).mount('#root');`);
+
+		expect(output).toContain(
+			`import { createVaporApp as __tsrx_createVaporApp, vaporInteropPlugin } from 'vue';`,
+		);
+		expect(output).toContain(
+			`const createVaporApp = (...args) => __tsrx_createVaporApp(...args).use(vaporInteropPlugin);`,
+		);
+		expect(output).toContain(`createVaporApp(App).mount('#root');`);
+	});
+
+	it('leaves manually installed interop alone', () => {
+		const input = `import { createVaporApp, vaporInteropPlugin } from 'vue';
+import App from './App.tsrx';
+
+createVaporApp(App).use(vaporInteropPlugin).mount('#root');`;
+
+		expect(interopLoader(input)).toBe(input);
+	});
+});
+
 describe('@tsrx/rspack-plugin-vue plugin', () => {
 	it('registers module rules for .tsrx and sibling css query', () => {
 		const plugin = new TsrxVueRspackPlugin();
@@ -146,9 +173,12 @@ describe('@tsrx/rspack-plugin-vue plugin', () => {
 
 		expect(compiler.options.resolve.extensions).toContain('.tsrx');
 		expect(compiler.options.experiments.css).toBe(true);
-		expect(compiler.options.module.rules).toHaveLength(2);
+		expect(compiler.options.module.rules).toHaveLength(3);
 
-		const [jsRule, cssRule] = compiler.options.module.rules;
+		const [interopRule, jsRule, cssRule] = compiler.options.module.rules;
+		expect(interopRule.test.toString()).toContain('[jt]sx');
+		expect(interopRule.exclude.toString()).toContain('node_modules');
+		expect(interopRule.use[0].loader).toContain('interop-loader');
 		expect(jsRule.test.toString()).toContain('tsrx');
 		expect(jsRule.use).toHaveLength(3);
 		expect(jsRule.use[0].loader).toBe('builtin:swc-loader');
@@ -181,7 +211,7 @@ describe('@tsrx/rspack-plugin-vue plugin', () => {
 
 		plugin.apply(/** @type {any} */ (compiler));
 
-		const jsRule = compiler.options.module.rules[0];
+		const jsRule = compiler.options.module.rules[1];
 		expect(jsRule.use[1].options.vapor.compiler.runtimeModuleName).toBe('custom-runtime');
 	});
 

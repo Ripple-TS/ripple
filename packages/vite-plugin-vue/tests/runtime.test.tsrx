@@ -831,6 +831,18 @@ component SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 	}
 }
 
+component SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+
+	try {
+		<AsyncChild value="hello" />
+	} pending {
+		<p class="async-pending">{'loading...'}</p>
+	} catch (err) {
+		<p class="async-caught">{(err as Error).message}</p>
+	}
+}
+
 component EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
 
@@ -845,12 +857,17 @@ component ThrowingSuspenseChild() {
 }
 
 component SuspenseErrorApp() {
+	const prefix = 'caught: ';
+
 	try {
 		<ThrowingSuspenseChild />
 	} pending {
 		<p class="async-pending">{'loading...'}</p>
 	} catch (err) {
-		<p class="async-caught">{(err as Error).message}</p>
+		<p class="async-caught">
+			{prefix}
+			{(err as Error).message}
+		</p>
 	}
 }
 
@@ -1456,6 +1473,29 @@ describe('tsrx-vue runtime', () => {
 		expect(container.querySelector('.async-pending')).toBeNull();
 	});
 
+	it('shows pending fallback with catch while a Vapor async component is unresolved', async () => {
+		let resolve_fn: (resolved: typeof AsyncResolvedChild) => void;
+		let settled = false;
+		const promise = new Promise<typeof AsyncResolvedChild>((resolve) => {
+			resolve_fn = resolve;
+		}).then((resolved) => {
+			settled = true;
+			return resolved;
+		});
+
+		await render(SuspenseCatchApp, { promise });
+		expect(settled).toBe(false);
+		expect(text('.async-pending')).toBe('loading...');
+		expect(container.querySelector('.async-resolved')).toBeNull();
+		expect(container.querySelector('.async-caught')).toBeNull();
+
+		resolve_fn!(AsyncResolvedChild);
+		await flush();
+		expect(settled).toBe(true);
+		expect(text('.async-resolved')).toBe('hello');
+		expect(container.querySelector('.async-pending')).toBeNull();
+	});
+
 	it('renders no fallback for empty pending then resolves a Vapor async component', async () => {
 		let resolve_fn: (resolved: typeof AsyncResolvedChild) => void;
 		const promise = new Promise<typeof AsyncResolvedChild>((resolve) => {
@@ -1475,7 +1515,7 @@ describe('tsrx-vue runtime', () => {
 	it('routes errors from Suspense default content to catch blocks', async () => {
 		await render(SuspenseErrorApp);
 		await flush();
-		expect(text('.async-caught')).toBe('pending catch boom');
+		expect(text('.async-caught')).toBe('caught: pending catch boom');
 		expect(container.querySelector('.async-pending')).toBeNull();
 		expect(container.querySelector('.async-resolved')).toBeNull();
 	});

@@ -66,7 +66,7 @@ async function composeSourceMaps(inputMap, outputMap) {
  * Runs the compiled TSX through `vue-jsx-vapor`'s public transform API, then
  * composes its sourcemap with the upstream tsrx compile map when available.
  *
- * @this {LoaderContext<{ vapor?: { interop?: boolean, macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }>}
+ * @this {LoaderContext<{ vapor?: { macros?: boolean | object, compiler?: { runtimeModuleName?: string } } }>}
  * @param {string} source
  * @param {unknown} inputMap
  * @returns {void}
@@ -74,12 +74,16 @@ async function composeSourceMaps(inputMap, outputMap) {
 export default function vaporLoader(source, inputMap) {
 	const callback = this.async();
 	const options = this.getOptions?.() ?? {};
+	const { interop: _interop, ...vapor_options } =
+		/** @type {{ interop?: boolean, macros?: boolean | object, compiler?: { runtimeModuleName?: string } }} */ (
+			options.vapor ?? {}
+		);
 	const vapor = {
 		...DEFAULT_VAPOR_OPTIONS,
-		...options.vapor,
+		...vapor_options,
 		compiler: {
 			...DEFAULT_VAPOR_OPTIONS.compiler,
-			...options.vapor?.compiler,
+			...vapor_options.compiler,
 		},
 	};
 

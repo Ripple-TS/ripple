@@ -182,7 +182,6 @@ export default defineConfig({
 				plugins: [
 					vue_runtime_alias_plugin,
 					(await import('./packages/vite-plugin-vue/src/index.js')).tsrxVue(),
-					(await import('./packages/vite-plugin-vue/src/vapor.js')).tsrxVueVapor(),
 				],
 				resolve: process.env.VITEST
 					? { conditions: ['browser'], alias: tsrx_core_test_harness_alias }

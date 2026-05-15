@@ -1,7 +1,6 @@
 import type { BunPlugin } from 'bun';
 
 export interface TsrxVueBunPluginVaporOptions {
-	interop?: boolean;
 	macros?: boolean | object;
 	compiler?: {
 		runtimeModuleName?: string;

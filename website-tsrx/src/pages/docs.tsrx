@@ -127,22 +127,17 @@ const CHILDREN_HTML = [
 ].join('\n');
 
 const ASYNC_BOUNDARY_HTML = [
-	'<span class="ln"> 1</span> <span class="kw">component</span> <span class="fn">UserProfile</span><span class="br">(</span><span class="br">{</span> <span class="prop">id</span> <span class="br">}</span>: <span class="br">{</span> <span class="prop">id</span>: <span class="type">number</span> <span class="br">}</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 2</span>   <span class="kw">const</span> <span class="prop">user</span> = <span class="kw">await</span> <span class="fn">fetchUser</span><span class="br">(</span><span class="prop">id</span><span class="br">)</span>;',
-	'<span class="ln"> 3</span>',
-	'<span class="ln"> 4</span>   <span class="tag">&lt;</span><span class="el">h1</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">name</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">h1</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 5</span>   <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="prop">user</span>.<span class="prop">email</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln"> 6</span> <span class="br">}</span>',
-	'<span class="ln"> 7</span>',
-	'<span class="ln"> 8</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln"> 9</span>   <span class="kw">try</span> <span class="br">{</span>',
-	'<span class="ln">10</span>     <span class="tag">&lt;</span><span class="el">UserProfile</span> <span class="attr">id</span>=<span class="tbr">{</span><span class="val">1</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
-	'<span class="ln">11</span>   <span class="br">}</span> <span class="kw">pending</span> <span class="br">{</span>',
-	'<span class="ln">12</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading...\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln">13</span>   <span class="br">}</span> <span class="kw">catch</span> <span class="br">(</span><span class="prop">e</span><span class="br">)</span> <span class="br">{</span>',
-	'<span class="ln">14</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Something went wrong.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
-	'<span class="ln">15</span>   <span class="br">}</span>',
-	'<span class="ln">16</span> <span class="br">}</span>',
+	'<span class="ln"> 1</span> <span class="kw">const</span> <span class="fn">UserProfile</span> = <span class="fn">lazy</span><span class="br">(</span><span class="br">(</span><span class="br">)</span> =&gt; <span class="fn">import</span><span class="br">(</span><span class="str">\'./UserProfile.tsrx\'</span><span class="br">)</span><span class="br">)</span>;',
+	'<span class="ln"> 2</span>',
+	'<span class="ln"> 3</span> <span class="kw-export">export</span> <span class="kw">component</span> <span class="fn">App</span><span class="br">(</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 4</span>   <span class="kw">try</span> <span class="br">{</span>',
+	'<span class="ln"> 5</span>     <span class="tag">&lt;</span><span class="el">UserProfile</span> <span class="attr">id</span>=<span class="tbr">{</span><span class="val">1</span><span class="tbr">}</span> <span class="tag">/&gt;</span>',
+	'<span class="ln"> 6</span>   <span class="br">}</span> <span class="kw">pending</span> <span class="br">{</span>',
+	'<span class="ln"> 7</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Loading...\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln"> 8</span>   <span class="br">}</span> <span class="kw">catch</span> <span class="br">(</span><span class="prop">e</span><span class="br">)</span> <span class="br">{</span>',
+	'<span class="ln"> 9</span>     <span class="tag">&lt;</span><span class="el">p</span><span class="tag">&gt;</span><span class="tbr">{</span><span class="str">\'Something went wrong.\'</span><span class="tbr">}</span><span class="tag">&lt;/</span><span class="el">p</span><span class="tag">&gt;</span>',
+	'<span class="ln">10</span>   <span class="br">}</span>',
+	'<span class="ln">11</span> <span class="br">}</span>',
 ].join('\n');
 
 const SCOPED_STYLES_HTML = [
@@ -480,22 +475,28 @@ export component DocsPage() {
 					<section class="doc-section" id="async-boundaries">
 						<h2 class="section-heading">{'Async boundaries'}</h2>
 						<p class="section-body">
-							{'Components can use '}
-							<code class="inline-code">{'await'}</code>
-							{' directly in their body — no '}
-							<code class="inline-code">{'async'}</code>
-							{' keyword needed. Everything before the first '}
-							<code class="inline-code">{'await'}</code>
-							{' renders immediately; everything after suspends until the promise resolves.'}
-						</p>
-						<p class="section-body">
-							{'Wrap the component in a '}
+							{'Wrap a component subtree in '}
 							<code class="inline-code">{'try'}</code>
 							{' / '}
 							<code class="inline-code">{'pending'}</code>
-							{' block to show fallback UI while the async operation is in flight. Add a '}
+							{' / '}
 							<code class="inline-code">{'catch'}</code>
-							{' clause to handle both sync throws and async rejections. Both clauses are optional and can be used independently.'}
+							{' to handle async children. While a lazy child or resource is in flight, the pending branch renders; when it resolves, the try body takes over; if it rejects or throws, catch renders fallback UI.'}
+						</p>
+						<p class="section-body">
+							{'Async work uses each target\'s own primitive: '}
+							<code class="inline-code">{'lazy()'}</code>
+							{' or '}
+							<code class="inline-code">{'use()'}</code>
+							{' for React/Preact, '}
+							<code class="inline-code">{'lazy()'}</code>
+							{' for Solid, '}
+							<code class="inline-code">{'defineVaporAsyncComponent()'}</code>
+							{' for Vue Vapor, and '}
+							<code class="inline-code">{'trackAsync()'}</code>
+							{' for Ripple. Vue, Solid, and Ripple component bodies remain synchronous; React and Preact also support top-level component-body '}
+							<code class="inline-code">{'await'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code>{html ASYNC_BOUNDARY_HTML}</code>

@@ -3,13 +3,16 @@
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { compile } from '@tsrx/vue';
+import { addVaporInteropToCreateVaporApp } from '@tsrx/vue/interop';
 
 const require = createRequire(import.meta.url);
 const { transformVueJsxVapor } = require('vue-jsx-vapor/api');
 
 const DEFAULT_INCLUDE = /\.tsrx$/;
+const SOURCE_EXTENSION_PATTERN = /\.[cm]?[jt]sx?$/;
 const CSS_QUERY = '?tsrx-css&lang.css';
 const CSS_QUERY_PATTERN = /\?tsrx-css&lang\.css$/;
+const NODE_MODULES_PATTERN = /[/\\]node_modules[/\\]/;
 const DEFAULT_VAPOR_OPTIONS = {
 	macros: true,
 	compiler: {
@@ -23,7 +26,6 @@ const DEFAULT_VAPOR_OPTIONS = {
  * 	exclude?: RegExp | RegExp[],
  * 	emitCss?: boolean,
  * 	vapor?: {
- * 		interop?: boolean,
  * 		macros?: boolean | object,
  * 		compiler?: { runtimeModuleName?: string },
  * 	},
@@ -72,6 +74,17 @@ function to_css_id(file_path) {
 }
 
 /**
+ * @param {string} file_path
+ * @returns {'js' | 'jsx' | 'ts' | 'tsx'}
+ */
+function get_source_loader(file_path) {
+	if (/\.[cm]?tsx$/.test(file_path)) return 'tsx';
+	if (/\.[cm]?ts$/.test(file_path)) return 'ts';
+	if (/\.[cm]?jsx$/.test(file_path)) return 'jsx';
+	return 'js';
+}
+
+/**
  * @param {Target | undefined} target
  * @returns {Transpiler | null}
  */
@@ -89,12 +102,16 @@ function create_transpiler(target) {
  * @param {TsrxVueBunPluginOptions['vapor']} options
  */
 function resolve_vapor_options(options) {
+	const { interop: _interop, ...rest } =
+		/** @type {{ interop?: boolean, macros?: boolean | object, compiler?: { runtimeModuleName?: string } }} */ (
+			options ?? {}
+		);
 	return {
 		...DEFAULT_VAPOR_OPTIONS,
-		...options,
+		...rest,
 		compiler: {
 			...DEFAULT_VAPOR_OPTIONS.compiler,
-			...options?.compiler,
+			...rest.compiler,
 		},
 	};
 }
@@ -172,6 +189,19 @@ export function tsrxVue(options = {}) {
 					};
 				},
 			);
+
+			build.onLoad({ filter: SOURCE_EXTENSION_PATTERN, namespace: 'file' }, async (args) => {
+				if (NODE_MODULES_PATTERN.test(args.path)) return undefined;
+
+				const source = await readFile(args.path, 'utf-8');
+				const transformed = addVaporInteropToCreateVaporApp(source);
+				if (transformed === source) return undefined;
+
+				return {
+					contents: transformed,
+					loader: get_source_loader(args.path),
+				};
+			});
 		},
 	};
 }

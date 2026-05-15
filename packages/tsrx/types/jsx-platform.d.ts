@@ -214,6 +214,17 @@ export interface JsxPlatformHooks {
 		node: any,
 	) => any | null;
 	/**
+	 * Optionally create a generated component for a catch fallback body while
+	 * the catch parameters are still in scope. Platforms can use this to reuse
+	 * one mapped catch-body component from multiple runtime catch sites.
+	 */
+	createErrorFallbackComponent?: (
+		catchBodyNodes: any[],
+		catchParams: any[],
+		ctx: any,
+		node: any,
+	) => any | null;
+	/**
 	 * Optionally replace the default `try/catch` boundary wrapper. The hook
 	 * receives the current render content, the original try-body content before
 	 * any pending wrapper, and the generated catch fallback function.
@@ -224,6 +235,7 @@ export interface JsxPlatformHooks {
 		fallbackFn: any,
 		ctx: any,
 		node: any,
+		info?: { fallbackComponent?: any },
 	) => any | null;
 	/**
 	 * Optionally move the primary `try { ... }` render content into an explicit

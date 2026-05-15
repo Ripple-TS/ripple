@@ -127,7 +127,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 	},
 	{
 		value: 'error-boundary',
-		label: 'Try/catch boundary',
+		label: 'Error boundary',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `component SafeProfile({ userId }: { userId: string }) {
   try {
@@ -136,6 +136,22 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
     <div class="error">
       <p>"Something went wrong."</p>
     </div>
+  }
+}`,
+	},
+	{
+		value: 'async-boundary',
+		label: 'Async boundary',
+		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
+		source: `import { AsyncProfile } from './profile.tsrx';
+
+export component App() {
+  try {
+    <AsyncProfile />
+  } pending {
+    <p class="pending">"Loading profile..."</p>
+  } catch (error) {
+    <p class="error">{(error as Error).message}</p>
   }
 }`,
 	},

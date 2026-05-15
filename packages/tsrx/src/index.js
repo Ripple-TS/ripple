@@ -146,6 +146,7 @@ export {
 	clone_switch_helper_invocation as cloneSwitchHelperInvocation,
 	collect_param_bindings as collectParamBindings,
 	collect_statement_bindings as collectStatementBindings,
+	create_hook_safe_helper as createHookSafeHelper,
 	create_host_html_attribute as createHostHtmlAttribute,
 	create_host_html_conflict_error as createHostHtmlConflictError,
 	createJsxTransform,

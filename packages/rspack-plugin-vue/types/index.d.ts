@@ -1,7 +1,6 @@
 import type { Compiler, RspackPluginInstance } from '@rspack/core';
 
 export interface TsrxVueRspackVaporOptions {
-	interop?: boolean;
 	macros?: boolean | object;
 	compiler?: {
 		runtimeModuleName?: string;
