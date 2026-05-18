@@ -1,5 +1,7 @@
 # @tsrx/eslint-parser
 
+## 0.3.62
+
 ## 0.3.61
 
 ### Patch Changes

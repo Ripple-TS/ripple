@@ -1,5 +1,18 @@
 # @ripple-ts/vite-plugin
 
+## 0.3.62
+
+### Patch Changes
+
+- [#1148](https://github.com/Ripple-TS/ripple/pull/1148)
+  [`78d766a`](https://github.com/Ripple-TS/ripple/commit/78d766ad263152cd7a8decf64979d33be52a0124)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Chain TSRX compiler
+  source maps through the Vite JSX transform so browser devtools show original
+  `.tsrx` sources instead of generated TSX.
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.62
+
 ## 0.3.61
 
 ### Patch Changes

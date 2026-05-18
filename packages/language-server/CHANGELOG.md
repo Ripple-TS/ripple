@@ -1,5 +1,28 @@
 # @ripple-ts/language-server
 
+## 0.3.62
+
+### Patch Changes
+
+- [#1144](https://github.com/Ripple-TS/ripple/pull/1144)
+  [`0e8baf2`](https://github.com/Ripple-TS/ripple/commit/0e8baf278e4105ae019929138956938cd5189035)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Keep document symbol
+  parent ranges wide enough for nested locals to appear in editor breadcrumbs.
+
+- [#1144](https://github.com/Ripple-TS/ripple/pull/1144)
+  [`0e8baf2`](https://github.com/Ripple-TS/ripple/commit/0e8baf278e4105ae019929138956938cd5189035)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Stop treating target
+  compiler packages as bundled language-server dependencies.
+
+- [#1144](https://github.com/Ripple-TS/ripple/pull/1144)
+  [`0e8baf2`](https://github.com/Ripple-TS/ripple/commit/0e8baf278e4105ae019929138956938cd5189035)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Add document symbol
+  support for TSRX editor outlines.
+
+- Updated dependencies
+  [[`0e8baf2`](https://github.com/Ripple-TS/ripple/commit/0e8baf278e4105ae019929138956938cd5189035)]:
+  - @tsrx/typescript-plugin@0.3.62
+
 ## 0.3.61
 
 ### Patch Changes
