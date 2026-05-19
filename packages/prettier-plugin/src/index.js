@@ -718,11 +718,13 @@ function printRippleNode(node, path, options, print, args) {
 	const isInlineContext = args && args.isInlineContext;
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
+	const parentNode = /** @type {AST.Node | null} */ (path.getParentNode());
 
 	// For TSRXExpression, Text, and Html nodes, don't add leading comments here - they should be handled
-	// as separate children within the element, not as part of the expression
+	// as separate children within elements, not as part of the expression.
 	const shouldSkipLeadingComments =
-		node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html';
+		parentNode?.type === 'Element' &&
+		(node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html');
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -5930,6 +5932,24 @@ function printJSXElement(node, path, options, print) {
 			// Accumulate text content, preserving spaces between words
 			const trimmed = child.value.trim();
 			if (trimmed) {
+				const nextChild = node.children[i + 1];
+				const afterNextChild = node.children[i + 2];
+				const nextText = afterNextChild?.type === 'JSXText' ? afterNextChild.value.trim() : '';
+				if (
+					tagName === 'tsrx' &&
+					trimmed.endsWith('=') &&
+					nextChild?.type === 'JSXElement' &&
+					nextText === ';'
+				) {
+					if (currentText) {
+						childrenDocs.push(currentText);
+						currentText = '';
+					}
+					childrenDocs.push([trimmed, ' ', path.call(print, 'children', i + 1), ';']);
+					i += 2;
+					continue;
+				}
+
 				if (currentText) {
 					currentText += ' ' + trimmed;
 				} else {

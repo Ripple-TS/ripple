@@ -200,6 +200,49 @@ describe('prettier-plugin', () => {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve comments before expressions after nested tsx and tsrx blocks', async () => {
+			const input = `component App() {
+	const content = <tsx>
+		{<tsrx>
+			const nested =
+			<tsx>
+				<span class="nested-tsx">
+					{'inside nested tsx'}
+				</span>
+			</tsx>
+			;
+			<div class="native">{nested}</div>
+		</tsrx>}
+	</tsx>;
+
+	// const content = <tsrx>
+	// 	<div>{hey()}</div>
+	// </tsrx>;
+
+	{content}
+}`;
+			const expected = `component App() {
+  const content = <tsx>
+    {<tsrx>
+      const nested = <tsx>
+        <span class="nested-tsx">
+          {'inside nested tsx'}
+        </span>
+      </tsx>;
+      <div class="native">{nested}</div>
+    </tsrx>}
+  </tsx>;
+
+  // const content = <tsrx>
+  // 	<div>{hey()}</div>
+  // </tsrx>;
+
+  {content}
+}`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should break nested TSX element attributes inside expression props', async () => {
 			const cases = [
 				{
