@@ -17,7 +17,7 @@ export function TrackedState(__anchor, _, __block) {
 	var div_1 = root();
 
 	{
-		var expression = _$_.child(div_1, true);
+		var expression = _$_.child(div_1);
 
 		_$_.expression(expression, () => _$_.get(lazy));
 		_$_.pop(div_1);
@@ -37,7 +37,7 @@ export function CounterWithInitial(__anchor, props, __block) {
 		var span_1 = _$_.child(div_2);
 
 		{
-			var expression_1 = _$_.child(span_1, true);
+			var expression_1 = _$_.child(span_1);
 
 			_$_.expression(expression_1, () => _$_.get(lazy_1));
 			_$_.pop(span_1);
@@ -68,7 +68,7 @@ export function ComputedValues(__anchor, _, __block) {
 	var div_3 = root_3();
 
 	{
-		var expression_2 = _$_.child(div_3, true);
+		var expression_2 = _$_.child(div_3);
 
 		_$_.expression(expression_2, sum);
 		_$_.pop(div_3);
@@ -88,7 +88,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_4 = _$_.first_child_frag(fragment_1);
 
 	{
-		var expression_3 = _$_.child(div_4, true);
+		var expression_3 = _$_.child(div_4);
 
 		_$_.expression(expression_3, () => _$_.get(lazy_4));
 		_$_.pop(div_4);
@@ -97,7 +97,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_5 = _$_.sibling(div_4);
 
 	{
-		var expression_4 = _$_.child(div_5, true);
+		var expression_4 = _$_.child(div_5);
 
 		_$_.expression(expression_4, () => _$_.get(lazy_5));
 		_$_.pop(div_5);
@@ -106,7 +106,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	var div_6 = _$_.sibling(div_5);
 
 	{
-		var expression_5 = _$_.child(div_6, true);
+		var expression_5 = _$_.child(div_6);
 
 		_$_.expression(expression_5, () => _$_.get(lazy_6));
 		_$_.pop(div_6);
@@ -126,7 +126,7 @@ export function DerivedState(__anchor, _, __block) {
 	var div_7 = root_5();
 
 	{
-		var expression_6 = _$_.child(div_7, true);
+		var expression_6 = _$_.child(div_7);
 
 		_$_.expression(expression_6, fullName);
 		_$_.pop(div_7);

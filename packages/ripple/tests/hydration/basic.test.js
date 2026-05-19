@@ -110,6 +110,28 @@ describe('hydration > basic', () => {
 		expect(collection?.querySelector('.primitive-tail')?.textContent).toBe(' ok');
 	});
 
+	it('hydrates dynamic array values returned from calls without comma stringification', async () => {
+		await hydrateComponent(
+			ServerComponents.DynamicArrayFromCall,
+			ClientComponents.DynamicArrayFromCall,
+		);
+
+		expect(container.querySelector('.dynamic-array-call')?.textContent).toBe(
+			'start:one2truefalse:end',
+		);
+	});
+
+	it('hydrates dynamic array values from tracked state without comma stringification', async () => {
+		await hydrateComponent(
+			ServerComponents.DynamicArrayFromTrack,
+			ClientComponents.DynamicArrayFromTrack,
+		);
+
+		expect(container.querySelector('.dynamic-array-track')?.textContent).toBe(
+			'start:one2truefalse:end',
+		);
+	});
+
 	it('hydrates tsrx nested directly inside a top-level tsx expression value', async () => {
 		await hydrateComponent(
 			ServerComponents.NestedTsrxInsideTopLevelTsxExpression,

@@ -485,7 +485,7 @@ export function DocLayout(
 						var a_2 = _$_.child(nav_1);
 
 						{
-							var expression_2 = _$_.child(a_2, true);
+							var expression_2 = _$_.child(a_2);
 
 							_$_.expression(expression_2, () => nextLink.text);
 							_$_.pop(a_2);
@@ -533,7 +533,7 @@ export function DocLayout(
 										var a_3 = _$_.child(li_1);
 
 										{
-											var expression_3 = _$_.child(a_3, true);
+											var expression_3 = _$_.child(a_3);
 
 											_$_.expression(expression_3, () => item.text);
 											_$_.pop(a_3);
@@ -845,7 +845,7 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 			var span_1 = _$_.child(a_4);
 
 			{
-				var expression_8 = _$_.child(span_1, true);
+				var expression_8 = _$_.child(span_1);
 
 				_$_.expression(expression_8, () => label);
 				_$_.pop(span_1);
@@ -872,7 +872,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			var h2_2 = _$_.child(div_29);
 
 			{
-				var expression_9 = _$_.child(h2_2, true);
+				var expression_9 = _$_.child(h2_2);
 
 				_$_.expression(expression_9, () => title);
 				_$_.pop(h2_2);
@@ -1398,7 +1398,7 @@ function DocsLayoutInner(
 										var a_5 = _$_.child(nav_4);
 
 										{
-											var expression_14 = _$_.child(a_5, true);
+											var expression_14 = _$_.child(a_5);
 
 											_$_.expression(expression_14, () => nextLink.text);
 											_$_.pop(a_5);
@@ -1595,7 +1595,7 @@ function DocsLayoutExact(
 													var span_2 = _$_.child(a_7);
 
 													{
-														var expression_16 = _$_.child(span_2, true);
+														var expression_16 = _$_.child(span_2);
 
 														_$_.expression(expression_16, () => prevLink.text);
 														_$_.pop(span_2);
@@ -1630,7 +1630,7 @@ function DocsLayoutExact(
 													var span_4 = _$_.child(a_8);
 
 													{
-														var expression_17 = _$_.child(span_4, true);
+														var expression_17 = _$_.child(span_4);
 
 														_$_.expression(expression_17, () => nextLink.text);
 														_$_.pop(span_4);
@@ -1689,7 +1689,7 @@ function DocsLayoutExact(
 												var a_9 = root_76();
 
 												{
-													var expression_18 = _$_.child(a_9, true);
+													var expression_18 = _$_.child(a_9);
 
 													_$_.expression(expression_18, () => item.text);
 													_$_.pop(a_9);

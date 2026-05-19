@@ -56,7 +56,7 @@ export function AsyncWithServerCall(__anchor, _, __block) {
 			var p_1 = root_1();
 
 			{
-				var expression = _$_.child(p_1, true);
+				var expression = _$_.child(p_1);
 
 				_$_.expression(expression, () => _$_.get(lazy_1));
 				_$_.pop(p_1);
@@ -89,7 +89,7 @@ export function AsyncSimpleValue(__anchor, _, __block) {
 			var p_3 = root_4();
 
 			{
-				var expression_1 = _$_.child(p_3, true);
+				var expression_1 = _$_.child(p_3);
 
 				_$_.expression(expression_1, () => _$_.get(lazy_2));
 				_$_.pop(p_3);
@@ -122,7 +122,7 @@ export function AsyncNumericValue(__anchor, _, __block) {
 			var span_1 = root_7();
 
 			{
-				var expression_2 = _$_.child(span_1, true);
+				var expression_2 = _$_.child(span_1);
 
 				_$_.expression(expression_2, () => _$_.get(lazy_3));
 				_$_.pop(span_1);
@@ -158,7 +158,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 				var span_3 = _$_.child(div_1);
 
 				{
-					var expression_3 = _$_.child(span_3, true);
+					var expression_3 = _$_.child(span_3);
 
 					_$_.expression(expression_3, () => _$_.get(lazy_4).name);
 					_$_.pop(span_3);
@@ -167,7 +167,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 				var span_4 = _$_.sibling(span_3);
 
 				{
-					var expression_4 = _$_.child(span_4, true);
+					var expression_4 = _$_.child(span_4);
 
 					_$_.expression(expression_4, () => _$_.get(lazy_4).age);
 					_$_.pop(span_4);
@@ -205,7 +205,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 				var span_5 = _$_.child(div_3);
 
 				{
-					var expression_5 = _$_.child(span_5, true);
+					var expression_5 = _$_.child(span_5);
 
 					_$_.expression(expression_5, () => _$_.get(lazy_5));
 					_$_.pop(span_5);
@@ -214,7 +214,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 				var span_6 = _$_.sibling(span_5);
 
 				{
-					var expression_6 = _$_.child(span_6, true);
+					var expression_6 = _$_.child(span_6);
 
 					_$_.expression(expression_6, () => _$_.get(lazy_6));
 					_$_.pop(span_6);
@@ -248,7 +248,7 @@ export function AsyncWithCatch(__anchor, _, __block) {
 			var p_5 = root_16();
 
 			{
-				var expression_7 = _$_.child(p_5, true);
+				var expression_7 = _$_.child(p_5);
 
 				_$_.expression(expression_7, () => _$_.get(lazy_7));
 				_$_.pop(p_5);
@@ -260,7 +260,7 @@ export function AsyncWithCatch(__anchor, _, __block) {
 			var p_6 = root_17();
 
 			{
-				var expression_8 = _$_.child(p_6, true);
+				var expression_8 = _$_.child(p_6);
 
 				_$_.expression(expression_8, () => e.message);
 				_$_.pop(p_6);
@@ -292,7 +292,7 @@ export function ChildWithError(__anchor, _, __block) {
 			var p_8 = root_20();
 
 			{
-				var expression_9 = _$_.child(p_8, true);
+				var expression_9 = _$_.child(p_8);
 
 				_$_.expression(expression_9, () => _$_.get(lazy_8));
 				_$_.pop(p_8);
@@ -331,7 +331,7 @@ export function ParentWithCatch(__anchor, _, __block) {
 			var p_10 = root_24();
 
 			{
-				var expression_10 = _$_.child(p_10, true);
+				var expression_10 = _$_.child(p_10);
 
 				_$_.expression(expression_10, () => e.message);
 				_$_.pop(p_10);
@@ -365,7 +365,7 @@ export function AsyncWithReactiveDependency(__anchor, _, __block) {
 			var p_11 = root_26();
 
 			{
-				var expression_11 = _$_.child(p_11, true);
+				var expression_11 = _$_.child(p_11);
 
 				_$_.expression(expression_11, () => _$_.get(lazy_10));
 				_$_.pop(p_11);

@@ -4329,7 +4329,7 @@ function transform_children(children, context) {
 				) {
 					skipped++;
 					state.template?.push(' ');
-					const id = flush_node(true);
+					const id = flush_node(false);
 					const call = b.call('_$_.expression', id, b.thunk(expr));
 					state.init?.push(
 						state.namespace !== DEFAULT_NAMESPACE

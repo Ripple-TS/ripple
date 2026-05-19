@@ -80,7 +80,7 @@ export function StaticForLoop(__anchor, _, __block) {
 				var li_1 = root_1();
 
 				{
-					var expression = _$_.child(li_1, true);
+					var expression = _$_.child(li_1);
 
 					_$_.expression(expression, () => item);
 					_$_.pop(li_1);
@@ -112,7 +112,7 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 				var li_2 = root_3();
 
 				{
-					var expression_1 = _$_.child(li_2, true);
+					var expression_1 = _$_.child(li_2);
 
 					_$_.expression(expression_1, () => `${_$_.get(i)}: ${item}`);
 					_$_.pop(li_2);
@@ -149,7 +149,7 @@ export function KeyedForLoop(__anchor, _, __block) {
 				var li_3 = root_5();
 
 				{
-					var expression_2 = _$_.child(li_3, true);
+					var expression_2 = _$_.child(li_3);
 
 					_$_.expression(expression_2, () => _$_.get(pattern).name);
 					_$_.pop(li_3);
@@ -189,7 +189,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 				var li_4 = root_7();
 
 				{
-					var expression_3 = _$_.child(li_4, true);
+					var expression_3 = _$_.child(li_4);
 
 					_$_.expression(expression_3, () => item);
 					_$_.pop(li_4);
@@ -229,7 +229,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 				var li_5 = root_9();
 
 				{
-					var expression_4 = _$_.child(li_5, true);
+					var expression_4 = _$_.child(li_5);
 
 					_$_.expression(expression_4, () => item);
 					_$_.pop(li_5);
@@ -265,7 +265,7 @@ export function ForLoopInteractive(__anchor, _, __block) {
 					var span_1 = _$_.child(div_2);
 
 					{
-						var expression_5 = _$_.child(span_1, true);
+						var expression_5 = _$_.child(span_1);
 
 						_$_.expression(expression_5, () => count);
 						_$_.pop(span_1);
@@ -318,7 +318,7 @@ export function NestedForLoop(__anchor, _, __block) {
 							var span_2 = root_14();
 
 							{
-								var expression_6 = _$_.child(span_2, true);
+								var expression_6 = _$_.child(span_2);
 
 								_$_.expression(expression_6, () => cell);
 								_$_.pop(span_2);
@@ -366,7 +366,7 @@ export function EmptyForLoop(__anchor, _, __block) {
 				var span_3 = root_16();
 
 				{
-					var expression_7 = _$_.child(span_3, true);
+					var expression_7 = _$_.child(span_3);
 
 					_$_.expression(expression_7, () => item);
 					_$_.pop(span_3);
@@ -405,7 +405,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 					var span_4 = _$_.child(div_7);
 
 					{
-						var expression_8 = _$_.child(span_4, true);
+						var expression_8 = _$_.child(span_4);
 
 						_$_.expression(expression_8, () => _$_.get(pattern_1).name);
 						_$_.pop(span_4);
@@ -414,7 +414,7 @@ export function ForLoopComplexObjects(__anchor, _, __block) {
 					var span_5 = _$_.sibling(span_4);
 
 					{
-						var expression_9 = _$_.child(span_5, true);
+						var expression_9 = _$_.child(span_5);
 
 						_$_.expression(expression_9, () => _$_.get(pattern_1).role);
 						_$_.pop(span_5);
@@ -468,7 +468,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 				var li_6 = root_20();
 
 				{
-					var expression_10 = _$_.child(li_6, true);
+					var expression_10 = _$_.child(li_6);
 
 					_$_.expression(expression_10, () => _$_.get(pattern_2).name);
 					_$_.pop(li_6);
@@ -513,7 +513,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 				var li_7 = root_22();
 
 				{
-					var expression_11 = _$_.child(li_7, true);
+					var expression_11 = _$_.child(li_7);
 
 					_$_.expression(expression_11, () => _$_.get(pattern_3).name);
 					_$_.pop(li_7);
@@ -560,7 +560,7 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 				_$_.set_class(li_8, `item-${item}`, void 0, true);
 
 				{
-					var expression_12 = _$_.child(li_8, true);
+					var expression_12 = _$_.child(li_8);
 
 					_$_.expression(expression_12, () => item);
 					_$_.pop(li_8);
@@ -611,7 +611,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 						var li_9 = root_27();
 
 						{
-							var expression_13 = _$_.child(li_9, true);
+							var expression_13 = _$_.child(li_9);
 
 							_$_.expression(expression_13, () => item);
 							_$_.pop(li_9);
@@ -658,7 +658,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 				var li_10 = root_29();
 
 				{
-					var expression_14 = _$_.child(li_10, true);
+					var expression_14 = _$_.child(li_10);
 
 					_$_.expression(expression_14, () => item);
 					_$_.pop(li_10);
@@ -698,7 +698,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 				var li_11 = root_31();
 
 				{
-					var expression_15 = _$_.child(li_11, true);
+					var expression_15 = _$_.child(li_11);
 
 					_$_.expression(expression_15, () => item);
 					_$_.pop(li_11);
@@ -754,7 +754,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 							var span_6 = root_34();
 
 							{
-								var expression_16 = _$_.child(span_6, true);
+								var expression_16 = _$_.child(span_6);
 
 								_$_.expression(expression_16, () => cell);
 								_$_.pop(span_6);
@@ -822,7 +822,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 					var h2_1 = _$_.child(div_11);
 
 					{
-						var expression_17 = _$_.child(h2_1, true);
+						var expression_17 = _$_.child(h2_1);
 
 						_$_.expression(expression_17, () => _$_.get(pattern_4).name);
 						_$_.pop(h2_1);
@@ -840,7 +840,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 								var h3_1 = _$_.child(div_12);
 
 								{
-									var expression_18 = _$_.child(h3_1, true);
+									var expression_18 = _$_.child(h3_1);
 
 									_$_.expression(expression_18, () => _$_.get(pattern_5).name);
 									_$_.pop(h3_1);
@@ -856,7 +856,7 @@ export function ForLoopDeeplyNested(__anchor, _, __block) {
 											var li_12 = root_38();
 
 											{
-												var expression_19 = _$_.child(li_12, true);
+												var expression_19 = _$_.child(li_12);
 
 												_$_.expression(expression_19, () => member);
 												_$_.pop(li_12);
@@ -922,7 +922,7 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 				var li_13 = root_40();
 
 				{
-					var expression_20 = _$_.child(li_13, true);
+					var expression_20 = _$_.child(li_13);
 
 					_$_.expression(expression_20, () => `[${_$_.get(i)}] ${item}`);
 					_$_.pop(li_13);
@@ -979,7 +979,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 				var li_14 = root_42();
 
 				{
-					var expression_21 = _$_.child(li_14, true);
+					var expression_21 = _$_.child(li_14);
 
 					_$_.expression(expression_21, () => `[${_$_.get(i)}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`);
 					_$_.pop(li_14);
@@ -1036,7 +1036,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 				_$_.set_class(div_14, `item-${item}`, void 0, true);
 
 				{
-					var expression_22 = _$_.child(div_14, true);
+					var expression_22 = _$_.child(div_14);
 
 					_$_.expression(expression_22, () => item);
 					_$_.pop(div_14);
@@ -1123,7 +1123,7 @@ function TodoItem(__anchor, props, __block) {
 		var span_7 = _$_.sibling(input_1);
 
 		{
-			var expression_23 = _$_.child(span_7, true);
+			var expression_23 = _$_.child(span_7);
 
 			_$_.expression(expression_23, () => props.text);
 			_$_.pop(span_7);
@@ -1171,7 +1171,7 @@ export function ForLoopSingleItem(__anchor, _, __block) {
 				var li_15 = root_49();
 
 				{
-					var expression_24 = _$_.child(li_15, true);
+					var expression_24 = _$_.child(li_15);
 
 					_$_.expression(expression_24, () => item);
 					_$_.pop(li_15);
@@ -1212,7 +1212,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 				_$_.set_class(li_16, `item-${item}`, void 0, true);
 
 				{
-					var expression_25 = _$_.child(li_16, true);
+					var expression_25 = _$_.child(li_16);
 
 					_$_.expression(expression_25, () => item);
 					_$_.pop(li_16);
@@ -1257,7 +1257,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 				_$_.set_class(li_17, `item-${item}`, void 0, true);
 
 				{
-					var expression_26 = _$_.child(li_17, true);
+					var expression_26 = _$_.child(li_17);
 
 					_$_.expression(expression_26, () => item);
 					_$_.pop(li_17);
@@ -1299,7 +1299,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 				_$_.set_class(li_18, `item-${item}`, void 0, true);
 
 				{
-					var expression_27 = _$_.child(li_18, true);
+					var expression_27 = _$_.child(li_18);
 
 					_$_.expression(expression_27, () => item);
 					_$_.pop(li_18);
@@ -1332,7 +1332,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 				var li_19 = root_57();
 
 				{
-					var expression_28 = _$_.child(li_19, true);
+					var expression_28 = _$_.child(li_19);
 
 					_$_.expression(expression_28, () => item);
 					_$_.pop(li_19);
@@ -1380,7 +1380,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 				_$_.set_class(li_20, `item-${item}`, void 0, true);
 
 				{
-					var expression_29 = _$_.child(li_20, true);
+					var expression_29 = _$_.child(li_20);
 
 					_$_.expression(expression_29, () => item);
 					_$_.pop(li_20);
@@ -1422,7 +1422,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 				_$_.set_class(li_21, `item-${item}`, void 0, true);
 
 				{
-					var expression_30 = _$_.child(li_21, true);
+					var expression_30 = _$_.child(li_21);
 
 					_$_.expression(expression_30, () => item);
 					_$_.pop(li_21);

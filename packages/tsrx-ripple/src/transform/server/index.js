@@ -192,35 +192,37 @@ function contains_template_value_node(node) {
 
 /**
  * @param {AST.Statement} statement
+ * @param {(expression: AST.Expression) => boolean} returns_value
  * @returns {boolean}
  */
-function statement_returns_template_value(statement) {
+function statement_returns_value(statement, returns_value) {
 	switch (statement.type) {
 		case 'ReturnStatement':
 			return (
 				statement.argument != null &&
-				contains_template_value_node(/** @type {AST.Node} */ (statement.argument))
+				returns_value(/** @type {AST.Expression} */ (statement.argument))
 			);
 
 		case 'BlockStatement':
-			return statements_return_template_value(statement.body);
+			return statements_return_value(statement.body, returns_value);
 
 		case 'IfStatement':
 			return (
-				statement_returns_template_value(statement.consequent) ||
-				(statement.alternate != null && statement_returns_template_value(statement.alternate))
+				statement_returns_value(statement.consequent, returns_value) ||
+				(statement.alternate != null && statement_returns_value(statement.alternate, returns_value))
 			);
 
 		case 'SwitchStatement':
 			return statement.cases.some((switch_case) =>
-				statements_return_template_value(switch_case.consequent),
+				statements_return_value(switch_case.consequent, returns_value),
 			);
 
 		case 'TryStatement':
 			return (
-				statement_returns_template_value(statement.block) ||
-				(statement.handler != null && statement_returns_template_value(statement.handler.body)) ||
-				(statement.finalizer != null && statement_returns_template_value(statement.finalizer))
+				statement_returns_value(statement.block, returns_value) ||
+				(statement.handler != null &&
+					statement_returns_value(statement.handler.body, returns_value)) ||
+				(statement.finalizer != null && statement_returns_value(statement.finalizer, returns_value))
 			);
 
 		case 'ForStatement':
@@ -230,7 +232,7 @@ function statement_returns_template_value(statement) {
 		case 'DoWhileStatement':
 		case 'LabeledStatement':
 		case 'WithStatement':
-			return statement_returns_template_value(statement.body);
+			return statement_returns_value(statement.body, returns_value);
 
 		default:
 			return false;
@@ -239,23 +241,25 @@ function statement_returns_template_value(statement) {
 
 /**
  * @param {AST.Statement[]} statements
+ * @param {(expression: AST.Expression) => boolean} returns_value
  * @returns {boolean}
  */
-function statements_return_template_value(statements) {
-	return statements.some(statement_returns_template_value);
+function statements_return_value(statements, returns_value) {
+	return statements.some((statement) => statement_returns_value(statement, returns_value));
 }
 
 /**
  * @param {AST.Node | null | undefined} node
+ * @param {(expression: AST.Expression) => boolean} returns_value
  * @returns {boolean}
  */
-function function_returns_template_value(node) {
+function function_returns_value(node, returns_value) {
 	if (node == null || !isFunctionNode(node)) {
 		return false;
 	}
 
 	if (node.type === 'ArrowFunctionExpression' && node.body.type !== 'BlockStatement') {
-		return contains_template_value_node(/** @type {AST.Node} */ (node.body));
+		return returns_value(/** @type {AST.Expression} */ (node.body));
 	}
 
 	const body = /** @type {AST.Function} */ (node).body;
@@ -263,7 +267,17 @@ function function_returns_template_value(node) {
 		return false;
 	}
 
-	return statements_return_template_value(body.body);
+	return statements_return_value(body.body, returns_value);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function function_returns_template_value(node) {
+	return function_returns_value(node, (expression) =>
+		contains_template_value_node(/** @type {AST.Node} */ (expression)),
+	);
 }
 
 /**
@@ -299,20 +313,53 @@ function is_template_value_binding(expression, scope) {
 }
 
 /**
- * @param {AST.Node} expression
+ * @param {AST.Expression | AST.SpreadElement} expression
  * @param {ScopeInterface} scope
+ * @param {TransformServerContext} context
  * @returns {boolean}
  */
-function is_collection_value_expression(expression, scope) {
+function is_collection_value_expression(expression, scope, context) {
 	if (expression.type === 'ArrayExpression') {
 		return true;
+	}
+
+	if (
+		expression.type === 'TSAsExpression' ||
+		expression.type === 'TSSatisfiesExpression' ||
+		expression.type === 'TSNonNullExpression'
+	) {
+		return is_collection_value_expression(expression.expression, scope, context);
+	}
+
+	if (expression.type === 'CallExpression') {
+		if (is_ripple_track_call(expression.callee, context)) {
+			const first_arg = expression.arguments[0];
+			return (
+				first_arg != null &&
+				is_collection_value_expression(
+					/** @type {AST.Expression | AST.SpreadElement} */ (first_arg),
+					scope,
+					context,
+				)
+			);
+		}
+
+		if (expression.callee.type === 'Identifier') {
+			return function_returns_value(scope.get(expression.callee.name)?.initial, (expression) =>
+				is_collection_value_expression(expression, scope, context),
+			);
+		}
 	}
 
 	if (expression.type !== 'Identifier') {
 		return false;
 	}
 
-	return scope.get(expression.name)?.initial?.type === 'ArrayExpression';
+	const initial = scope.get(expression.name)?.initial;
+	return (
+		initial != null &&
+		is_collection_value_expression(/** @type {AST.Expression} */ (initial), scope, context)
+	);
 }
 
 /**
@@ -1952,13 +1999,18 @@ const visitors = {
 		context.state.init?.push(b.stmt(b.call('_$_.try_block', try_fn, catch_fn, pending_fn)));
 	},
 
-	TSRXExpression(node, { visit, state }) {
+	TSRXExpression(node, context) {
+		const { visit, state } = context;
 		const is_children_expression =
 			is_children_template_expression(node.expression, state.scope) ||
 			contains_template_value_node(/** @type {AST.Node} */ (node.expression)) ||
 			is_template_value_call(/** @type {AST.Expression} */ (node.expression), state.scope) ||
-			is_template_value_binding(node.expression, state.scope) ||
-			is_collection_value_expression(node.expression, state.scope);
+			is_template_value_binding(node.expression, state.scope);
+		const is_collection_expression = is_collection_value_expression(
+			/** @type {AST.Expression} */ (node.expression),
+			state.scope,
+			context,
+		);
 		let expression = /** @type {AST.Expression} */ (
 			visit(node.expression, {
 				...state,
@@ -1970,7 +2022,7 @@ const visitors = {
 			state.init?.push(
 				b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
 			);
-		} else if (is_children_expression) {
+		} else if (is_children_expression || is_collection_expression) {
 			state.init?.push(b.stmt(b.call('_$_.render_expression', expression)));
 		} else {
 			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));

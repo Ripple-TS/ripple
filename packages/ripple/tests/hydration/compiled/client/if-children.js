@@ -69,7 +69,7 @@ export function ChildItem(__anchor, { text: label }, __block) {
 	var div_4 = root_2();
 
 	{
-		var expression_1 = _$_.child(div_4, true);
+		var expression_1 = _$_.child(div_4);
 
 		_$_.expression(expression_1, () => label);
 		_$_.pop(div_4);
@@ -364,7 +364,7 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 			var li_1 = _$_.child(ul_1);
 
 			{
-				var expression_3 = _$_.child(li_1, true);
+				var expression_3 = _$_.child(li_1);
 
 				_$_.expression(expression_3, () => 'Item count: ' + _$_.with_scope(__block, () => String(_$_.get(lazy_6))));
 				_$_.pop(li_1);

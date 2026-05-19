@@ -27,7 +27,7 @@ export function ClickCounter(__anchor, _, __block) {
 		var span_1 = _$_.sibling(button_1);
 
 		{
-			var expression = _$_.child(span_1, true);
+			var expression = _$_.child(span_1);
 
 			_$_.expression(expression, () => _$_.get(lazy));
 			_$_.pop(span_1);
@@ -54,7 +54,7 @@ export function IncrementDecrement(__anchor, _, __block) {
 		var span_2 = _$_.sibling(button_2);
 
 		{
-			var expression_1 = _$_.child(span_2, true);
+			var expression_1 = _$_.child(span_2);
 
 			_$_.expression(expression_1, () => _$_.get(lazy_1));
 			_$_.pop(span_2);
@@ -92,7 +92,7 @@ export function MultipleEvents(__anchor, _, __block) {
 		var span_3 = _$_.sibling(button_4);
 
 		{
-			var expression_2 = _$_.child(span_3, true);
+			var expression_2 = _$_.child(span_3);
 
 			_$_.expression(expression_2, () => _$_.get(lazy_2));
 			_$_.pop(span_3);
@@ -101,7 +101,7 @@ export function MultipleEvents(__anchor, _, __block) {
 		var span_4 = _$_.sibling(span_3);
 
 		{
-			var expression_3 = _$_.child(span_4, true);
+			var expression_3 = _$_.child(span_4);
 
 			_$_.expression(expression_3, () => _$_.get(lazy_3));
 			_$_.pop(span_4);
@@ -133,7 +133,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 		var span_5 = _$_.sibling(button_5);
 
 		{
-			var expression_4 = _$_.child(span_5, true);
+			var expression_4 = _$_.child(span_5);
 
 			_$_.expression(expression_4, () => _$_.get(lazy_4));
 			_$_.pop(span_5);
@@ -142,7 +142,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 		var span_6 = _$_.sibling(span_5);
 
 		{
-			var expression_5 = _$_.child(span_6, true);
+			var expression_5 = _$_.child(span_6);
 
 			_$_.expression(expression_5, () => _$_.get(lazy_5));
 			_$_.pop(span_6);
@@ -167,7 +167,7 @@ export function ToggleButton(__anchor, _, __block) {
 		};
 
 		{
-			var expression_6 = _$_.child(button_6, true);
+			var expression_6 = _$_.child(button_6);
 
 			_$_.expression(expression_6, () => _$_.get(lazy_6) ? 'ON' : 'OFF');
 			_$_.pop(button_6);
@@ -186,7 +186,7 @@ export function ChildButton(__anchor, props, __block) {
 	_$_.render_event('Click', button_7, () => props.onClick);
 
 	{
-		var expression_7 = _$_.child(button_7, true);
+		var expression_7 = _$_.child(button_7);
 
 		_$_.expression(expression_7, () => props.label);
 		_$_.pop(button_7);
@@ -219,7 +219,7 @@ export function ParentWithChildButton(__anchor, _, __block) {
 		var span_7 = _$_.sibling(node);
 
 		{
-			var expression_8 = _$_.child(span_7, true);
+			var expression_8 = _$_.child(span_7);
 
 			_$_.expression(expression_8, () => _$_.get(lazy_7));
 			_$_.pop(span_7);

@@ -182,6 +182,22 @@ export component MixedTsrxCollectionPrimitiveClientText() {
 	<div class="mixed-collection-primitive">{content}</div>
 }
 
+function createPrimitiveItems() {
+	return ['start:', ['one', 2], true, null, false, ':end'];
+}
+
+export component DynamicArrayFromCall() {
+	const items = createPrimitiveItems();
+
+	<div class="dynamic-array-call">{items}</div>
+}
+
+export component DynamicArrayFromTrack() {
+	let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
+
+	<div class="dynamic-array-track">{items}</div>
+}
+
 export component NestedTsrxInsideTopLevelTsxExpression() {
 	const content = <tsx>
 		<section class="outer">

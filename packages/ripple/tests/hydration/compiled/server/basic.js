@@ -584,6 +584,50 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 	_$_.pop_component();
 }
 
+function createPrimitiveItems() {
+	return ['start:', ['one', 2], true, null, false, ':end'];
+}
+
+export function DynamicArrayFromCall() {
+	_$_.push_component();
+
+	const items = createPrimitiveItems();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="dynamic-array-call"');
+		_$_.output_push('>');
+
+		{
+			_$_.render_expression(items);
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function DynamicArrayFromTrack() {
+	_$_.push_component();
+
+	let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="dynamic-array-track"');
+		_$_.output_push('>');
+
+		{
+			_$_.render_expression(_$_.get(lazy));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	_$_.push_component();
 
@@ -723,7 +767,7 @@ function TextProp(__props) {
 export function TextPropWithToggle() {
 	_$_.push_component();
 
-	let lazy = _$_.track(false, 'b5de6402');
+	let lazy_1 = _$_.track(false, '1ba81c3b');
 
 	_$_.regular_block(() => {
 		{
@@ -731,7 +775,7 @@ export function TextPropWithToggle() {
 
 			const args = [
 				{
-					children: _$_.normalize_children(_$_.get(lazy) ? 'hello' : '')
+					children: _$_.normalize_children(_$_.get(lazy_1) ? 'hello' : '')
 				}
 			];
 
