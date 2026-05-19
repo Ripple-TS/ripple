@@ -208,4 +208,22 @@ describe('basic client > collections', () => {
 		expect(container.querySelector('.frame').textContent).toBe('start:one2truefalse:end');
 		expect(container.querySelector('.bound-frame').textContent).toBe('start:one2truefalse:end');
 	});
+
+	it('flattens conditional primitive array expressions', () => {
+		component App() {
+			const condition = true;
+			const ternary_items = condition
+				? ['start:', ['one', 2], null, true, false, ':end']
+				: ['fallback'];
+			const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+
+			<div class="ternary-frame">{ternary_items}</div>
+			<div class="logical-frame">{logical_items}</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('.ternary-frame').textContent).toBe('start:one2truefalse:end');
+		expect(container.querySelector('.logical-frame').textContent).toBe('start:one2truefalse:end');
+	});
 });

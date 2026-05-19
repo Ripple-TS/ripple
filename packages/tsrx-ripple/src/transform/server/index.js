@@ -331,6 +331,20 @@ function is_collection_value_expression(expression, scope, context) {
 		return is_collection_value_expression(expression.expression, scope, context);
 	}
 
+	if (expression.type === 'ConditionalExpression') {
+		return (
+			is_collection_value_expression(expression.consequent, scope, context) ||
+			is_collection_value_expression(expression.alternate, scope, context)
+		);
+	}
+
+	if (expression.type === 'LogicalExpression') {
+		return (
+			is_collection_value_expression(expression.left, scope, context) ||
+			is_collection_value_expression(expression.right, scope, context)
+		);
+	}
+
 	if (expression.type === 'CallExpression') {
 		if (is_ripple_track_call(expression.callee, context)) {
 			const first_arg = expression.arguments[0];

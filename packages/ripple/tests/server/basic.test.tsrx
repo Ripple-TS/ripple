@@ -185,6 +185,23 @@ second"</pre>
 		expect(body).toBeHtml('<div>start:one2truefalse:end</div><div>start:one2truefalse:end</div>');
 	});
 
+	it('flattens conditional primitive array expressions', async () => {
+		component Basic() {
+			const condition = true;
+			const ternary_items = condition
+				? ['start:', ['one', 2], null, true, false, ':end']
+				: ['fallback'];
+			const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+
+			<div>{ternary_items}</div>
+			<div>{logical_items}</div>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div>start:one2truefalse:end</div><div>start:one2truefalse:end</div>');
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

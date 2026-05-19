@@ -628,6 +628,51 @@ export function DynamicArrayFromTrack() {
 	_$_.pop_component();
 }
 
+export function DynamicArrayFromConditional() {
+	_$_.push_component();
+
+	const condition = true;
+
+	const items = condition
+		? ['start:', ['one', 2], true, null, false, ':end']
+		: ['fallback'];
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="dynamic-array-conditional"');
+		_$_.output_push('>');
+
+		{
+			_$_.render_expression(items);
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
+export function DynamicArrayFromLogical() {
+	_$_.push_component();
+
+	const condition = true;
+	const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="dynamic-array-logical"');
+		_$_.output_push('>');
+
+		{
+			_$_.render_expression(items);
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	_$_.pop_component();
+}
+
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	_$_.push_component();
 

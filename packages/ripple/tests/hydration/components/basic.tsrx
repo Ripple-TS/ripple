@@ -198,6 +198,20 @@ export component DynamicArrayFromTrack() {
 	<div class="dynamic-array-track">{items}</div>
 }
 
+export component DynamicArrayFromConditional() {
+	const condition = true;
+	const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];
+
+	<div class="dynamic-array-conditional">{items}</div>
+}
+
+export component DynamicArrayFromLogical() {
+	const condition = true;
+	const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
+
+	<div class="dynamic-array-logical">{items}</div>
+}
+
 export component NestedTsrxInsideTopLevelTsxExpression() {
 	const content = <tsx>
 		<section class="outer">

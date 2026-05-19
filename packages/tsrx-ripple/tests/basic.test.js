@@ -283,6 +283,43 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).toContain('? [');
 		expect(code).not.toContain('<tsx>');
 	});
+
+	it('uses server render_expression for conditional array expression values', () => {
+		const { code } = compile(
+			`component App() {
+				const condition = true;
+				const ternary_items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
+				const logical_items = condition && ['start:', ['one', 2], ':end'];
+
+				<div>{ternary_items}</div>
+				<div>{logical_items}</div>
+			}`,
+			'App.tsrx',
+			{ mode: 'server' },
+		);
+
+		expect(code).toContain('_$_.render_expression(ternary_items)');
+		expect(code).toContain('_$_.render_expression(logical_items)');
+		expect(code).not.toContain('_$_.escape(ternary_items)');
+		expect(code).not.toContain('_$_.escape(logical_items)');
+	});
+
+	it('uses client expression anchors that can hydrate conditional array markers', () => {
+		const { code } = compile(
+			`component App() {
+				const condition = true;
+				const items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
+
+				<div>{items}</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('template(`<div> </div>`');
+		expect(code).toContain('_$_.child(');
+		expect(code).not.toContain('_$_.child(div, true)');
+		expect(code).toContain('_$_.expression(');
+	});
 });
 
 describe('@tsrx/ripple nested function fragment returns', () => {

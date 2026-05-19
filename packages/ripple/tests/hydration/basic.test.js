@@ -132,6 +132,28 @@ describe('hydration > basic', () => {
 		);
 	});
 
+	it('hydrates dynamic array values from conditionals without comma stringification', async () => {
+		await hydrateComponent(
+			ServerComponents.DynamicArrayFromConditional,
+			ClientComponents.DynamicArrayFromConditional,
+		);
+
+		expect(container.querySelector('.dynamic-array-conditional')?.textContent).toBe(
+			'start:one2truefalse:end',
+		);
+	});
+
+	it('hydrates dynamic array values from logical expressions without comma stringification', async () => {
+		await hydrateComponent(
+			ServerComponents.DynamicArrayFromLogical,
+			ClientComponents.DynamicArrayFromLogical,
+		);
+
+		expect(container.querySelector('.dynamic-array-logical')?.textContent).toBe(
+			'start:one2truefalse:end',
+		);
+	});
+
 	it('hydrates tsrx nested directly inside a top-level tsx expression value', async () => {
 		await hydrateComponent(
 			ServerComponents.NestedTsrxInsideTopLevelTsxExpression,
