@@ -28,7 +28,7 @@ import {
 } from '../client/constants.js';
 import { DEV } from 'esm-env';
 import { is_ripple_object } from '../client/utils.js';
-import { array_slice } from '@tsrx/core/runtime/language-helpers';
+import { array_slice, is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	escape,
 	escape_script,
@@ -38,12 +38,7 @@ import {
 import { clsx } from 'clsx';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import {
-	is_tsrx_element,
-	normalize_children,
-	tsrx_element,
-	is_tsrx_collection,
-} from '../../element.js';
+import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -98,7 +93,7 @@ function render_tsrx_collection(value) {
 
 		if (is_tsrx_element(item)) {
 			item.render({});
-		} else if (is_tsrx_collection(item)) {
+		} else if (is_array(item)) {
 			render_tsrx_collection(item);
 		} else if (item != null) {
 			output_push(escape(item));
@@ -115,7 +110,7 @@ export function render_expression(value) {
 
 	if (is_tsrx_element(value)) {
 		value.render({});
-	} else if (is_tsrx_collection(value)) {
+	} else if (is_array(value)) {
 		render_tsrx_collection(value);
 	} else {
 		output_push(escape(value ?? ''));

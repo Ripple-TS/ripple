@@ -173,4 +173,39 @@ describe('basic client > collections', () => {
 		expect(frame.querySelectorAll('.middle')).toHaveLength(1);
 		expect(countCommentNodes(frame)).toBe(initialCommentCount);
 	});
+
+	it('flattens nested primitive arrays inside mixed tsrx collections', () => {
+		component App() {
+			<div class="frame">
+				{<tsx>
+					{[
+						'start:',
+						['one', 2, true, null, false],
+						<strong>
+							{'!'}
+						</strong>,
+						':end',
+					]}
+				</tsx>}
+			</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('.frame').textContent).toBe('start:one2truefalse!:end');
+	});
+
+	it('flattens direct primitive array expressions', () => {
+		component App() {
+			const items = ['start:', ['one', 2], null, true, false, ':end'];
+
+			<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
+			<div class="bound-frame">{items}</div>
+		}
+
+		render(App);
+
+		expect(container.querySelector('.frame').textContent).toBe('start:one2truefalse:end');
+		expect(container.querySelector('.bound-frame').textContent).toBe('start:one2truefalse:end');
+	});
 });

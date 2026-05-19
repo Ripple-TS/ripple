@@ -299,6 +299,23 @@ function is_template_value_binding(expression, scope) {
 }
 
 /**
+ * @param {AST.Node} expression
+ * @param {ScopeInterface} scope
+ * @returns {boolean}
+ */
+function is_collection_value_expression(expression, scope) {
+	if (expression.type === 'ArrayExpression') {
+		return true;
+	}
+
+	if (expression.type !== 'Identifier') {
+		return false;
+	}
+
+	return scope.get(expression.name)?.initial?.type === 'ArrayExpression';
+}
+
+/**
  * @param {AST.ImportDeclaration} node
  * @returns {string | null}
  */
@@ -1940,7 +1957,8 @@ const visitors = {
 			is_children_template_expression(node.expression, state.scope) ||
 			contains_template_value_node(/** @type {AST.Node} */ (node.expression)) ||
 			is_template_value_call(/** @type {AST.Expression} */ (node.expression), state.scope) ||
-			is_template_value_binding(node.expression, state.scope);
+			is_template_value_binding(node.expression, state.scope) ||
+			is_collection_value_expression(node.expression, state.scope);
 		let expression = /** @type {AST.Expression} */ (
 			visit(node.expression, {
 				...state,

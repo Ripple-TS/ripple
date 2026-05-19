@@ -151,6 +151,40 @@ second"</pre>
 		);
 	});
 
+	it('flattens nested primitive arrays inside mixed tsrx collections', async () => {
+		component Basic() {
+			<div>
+				{<tsx>
+					{[
+						'start:',
+						['one', 2, true, null, false],
+						<strong>
+							{'!'}
+						</strong>,
+						':end',
+					]}
+				</tsx>}
+			</div>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div>start:one2truefalse<strong>!</strong>:end</div>');
+	});
+
+	it('flattens direct primitive array expressions', async () => {
+		component Basic() {
+			const items = ['start:', ['one', 2], null, true, false, ':end'];
+
+			<div>{['start:', ['one', 2], null, true, false, ':end']}</div>
+			<div>{items}</div>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div>start:one2truefalse:end</div><div>start:one2truefalse:end</div>');
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

@@ -1,5 +1,6 @@
 /** @import { Block } from '#client' */
 
+import { is_array } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render } from './blocks.js';
 import { BRANCH_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
@@ -7,7 +8,7 @@ import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
-import { is_tsrx_element, is_tsrx_collection } from '../../element.js';
+import { is_tsrx_element } from '../../element.js';
 
 /**
  * Finds the nearest enclosing BRANCH_BLOCK in the block hierarchy.
@@ -57,7 +58,7 @@ function render_tsrx_collection_items(value, anchor, block) {
 
 		if (is_tsrx_element(item)) {
 			item.render(anchor, block);
-		} else if (is_tsrx_collection(item)) {
+		} else if (is_array(item)) {
 			render_tsrx_collection_items(item, anchor, block);
 		} else if (item != null) {
 			render_tsrx_collection_text(item + '', anchor);
@@ -135,7 +136,7 @@ export function expression(node, get_value) {
 
 	render(() => {
 		var next_value = get_value();
-		var next_is_collection = is_tsrx_collection(next_value);
+		var next_is_collection = is_array(next_value);
 		var next_is_element = next_is_collection || is_tsrx_element(next_value);
 		var is_hydration_marker = hydrating && anchor.nodeType === COMMENT_NODE;
 
