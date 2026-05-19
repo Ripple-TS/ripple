@@ -350,6 +350,25 @@ const Inline = component(props) {
 		expect(result).not.toContain('const Inline = (__anchor, props, __block) => {');
 	});
 
+	it('emits function calls with nested template returns as expressions in client output', () => {
+		const source = `
+component App() {
+	function make(flag) {
+		if (flag) {
+			return <tsx><span>{'nested'}</span></tsx>;
+		}
+
+		return null;
+	}
+
+	<div>{make(true)}</div>
+}
+`;
+		const result = compile(source, 'nested-template-return.tsrx', { mode: 'client' }).code;
+
+		expect(result).toContain('_$_.expression(expression, () => make(true))');
+	});
+
 	// 	it(
 	// 		'imports and uses only obfuscated Tracked imports when encountering only shorthand syntax',
 	// 		() => {

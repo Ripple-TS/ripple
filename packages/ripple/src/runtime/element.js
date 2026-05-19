@@ -28,6 +28,25 @@ export function is_tsrx_element(value) {
 
 /**
  * @param {any} value
+ * @returns {boolean}
+ */
+export function is_tsrx_collection(value) {
+	if (!Array.isArray(value)) {
+		return false;
+	}
+
+	for (var i = 0; i < value.length; i++) {
+		var item = value[i];
+		if (is_tsrx_element(item) || is_tsrx_collection(item)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} value
  * @returns {any}
  */
 export function normalize_children(value) {

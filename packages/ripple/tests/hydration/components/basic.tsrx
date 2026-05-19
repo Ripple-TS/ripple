@@ -87,6 +87,101 @@ export component NestedTsxTsrxExpressionValues() {
 	{makeNestedTsxTsrxFragment('from helper')}
 }
 
+export component MixedTsrxCollectionText() {
+	const content = <tsx>
+		{[
+			'alpha ',
+			<strong class="middle">
+				{'beta'}
+			</strong>,
+			' gamma ',
+			[
+				'delta ',
+				<em class="tail">
+					{'epsilon'}
+				</em>,
+				' zeta',
+			],
+		]}
+	</tsx>;
+
+	<div class="mixed-collection">{content}</div>
+}
+
+export component MixedTsrxCollectionSplitServerText() {
+	const content = <tsx>
+		{[
+			'alpha ',
+			<strong class="middle">
+				{'beta'}
+			</strong>,
+			' gamma ',
+			[
+				'delta ',
+				<em class="tail">
+					{'epsilon'}
+				</em>,
+				' zeta',
+			],
+		]}
+	</tsx>;
+
+	<div class="mixed-collection-split">{content}</div>
+}
+
+export component MixedTsrxCollectionSplitClientText() {
+	const content = <tsx>
+		{[
+			'alpha ',
+			<strong class="middle">
+				{'beta'}
+			</strong>,
+			' gamma ',
+			[
+				'changed ',
+				<em class="tail">
+					{'epsilon'}
+				</em>,
+				' zeta',
+			],
+		]}
+	</tsx>;
+
+	<div class="mixed-collection-split">{content}</div>
+}
+
+export component MixedTsrxCollectionPrimitiveServerText() {
+	const content = <tsx>
+		{[
+			'count: ',
+			1,
+			' / ',
+			true,
+			<span class="primitive-tail">
+				{' ok'}
+			</span>,
+		]}
+	</tsx>;
+
+	<div class="mixed-collection-primitive">{content}</div>
+}
+
+export component MixedTsrxCollectionPrimitiveClientText() {
+	const content = <tsx>
+		{[
+			'count: ',
+			2,
+			' / ',
+			false,
+			<span class="primitive-tail">
+				{' ok'}
+			</span>,
+		]}
+	</tsx>;
+
+	<div class="mixed-collection-primitive">{content}</div>
+}
+
 export component NestedTsrxInsideTopLevelTsxExpression() {
 	const content = <tsx>
 		<section class="outer">

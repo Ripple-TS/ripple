@@ -75,6 +75,41 @@ describe('hydration > basic', () => {
 		).toEqual(['1', '2', '3', '4']);
 	});
 
+	it('hydrates mixed tsrx collection text without duplicating server text', async () => {
+		await hydrateComponent(
+			ServerComponents.MixedTsrxCollectionText,
+			ClientComponents.MixedTsrxCollectionText,
+		);
+
+		const collection = container.querySelector('.mixed-collection');
+		expect(collection?.textContent).toBe('alpha beta gamma delta epsilon zeta');
+		expect(collection?.querySelector('.middle')?.textContent).toBe('beta');
+		expect(collection?.querySelector('.tail')?.textContent).toBe('epsilon');
+	});
+
+	it('hydrates split mixed collection text when the client updates a coalesced server text segment', async () => {
+		await hydrateComponent(
+			ServerComponents.MixedTsrxCollectionSplitServerText,
+			ClientComponents.MixedTsrxCollectionSplitClientText,
+		);
+
+		const collection = container.querySelector('.mixed-collection-split');
+		expect(collection?.textContent).toBe('alpha beta gamma changed epsilon zeta');
+		expect(collection?.querySelector('.middle')?.textContent).toBe('beta');
+		expect(collection?.querySelector('.tail')?.textContent).toBe('epsilon');
+	});
+
+	it('hydrates primitive mixed collection text with client/server text differences', async () => {
+		await hydrateComponent(
+			ServerComponents.MixedTsrxCollectionPrimitiveServerText,
+			ClientComponents.MixedTsrxCollectionPrimitiveClientText,
+		);
+
+		const collection = container.querySelector('.mixed-collection-primitive');
+		expect(collection?.textContent).toBe('count: 2 / false ok');
+		expect(collection?.querySelector('.primitive-tail')?.textContent).toBe(' ok');
+	});
+
 	it('hydrates tsrx nested directly inside a top-level tsx expression value', async () => {
 		await hydrateComponent(
 			ServerComponents.NestedTsrxInsideTopLevelTsxExpression,

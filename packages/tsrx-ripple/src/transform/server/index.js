@@ -23,6 +23,7 @@ import {
 	obfuscateIdentifier,
 	BLOCK_CLOSE,
 	BLOCK_OPEN,
+	isFunctionNode,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -190,16 +191,66 @@ function contains_template_value_node(node) {
 }
 
 /**
+ * @param {AST.Statement} statement
+ * @returns {boolean}
+ */
+function statement_returns_template_value(statement) {
+	switch (statement.type) {
+		case 'ReturnStatement':
+			return (
+				statement.argument != null &&
+				contains_template_value_node(/** @type {AST.Node} */ (statement.argument))
+			);
+
+		case 'BlockStatement':
+			return statements_return_template_value(statement.body);
+
+		case 'IfStatement':
+			return (
+				statement_returns_template_value(statement.consequent) ||
+				(statement.alternate != null && statement_returns_template_value(statement.alternate))
+			);
+
+		case 'SwitchStatement':
+			return statement.cases.some((switch_case) =>
+				statements_return_template_value(switch_case.consequent),
+			);
+
+		case 'TryStatement':
+			return (
+				statement_returns_template_value(statement.block) ||
+				(statement.handler != null && statement_returns_template_value(statement.handler.body)) ||
+				(statement.finalizer != null && statement_returns_template_value(statement.finalizer))
+			);
+
+		case 'ForStatement':
+		case 'ForInStatement':
+		case 'ForOfStatement':
+		case 'WhileStatement':
+		case 'DoWhileStatement':
+		case 'LabeledStatement':
+		case 'WithStatement':
+			return statement_returns_template_value(statement.body);
+
+		default:
+			return false;
+	}
+}
+
+/**
+ * @param {AST.Statement[]} statements
+ * @returns {boolean}
+ */
+function statements_return_template_value(statements) {
+	return statements.some(statement_returns_template_value);
+}
+
+/**
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
 function function_returns_template_value(node) {
-	if (
-		node == null ||
-		(node.type !== 'FunctionDeclaration' &&
-			node.type !== 'FunctionExpression' &&
-			node.type !== 'ArrowFunctionExpression')
-	) {
+	if (node == null || !isFunctionNode(node)) {
 		return false;
 	}
 
@@ -207,18 +258,11 @@ function function_returns_template_value(node) {
 		return contains_template_value_node(/** @type {AST.Node} */ (node.body));
 	}
 
-	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	for (const statement of body) {
-		if (
-			statement.type === 'ReturnStatement' &&
-			statement.argument &&
-			contains_template_value_node(/** @type {AST.Node} */ (statement.argument))
-		) {
-			return true;
-		}
+	if (node.body?.type !== 'BlockStatement') {
+		return false;
 	}
 
-	return false;
+	return statements_return_template_value(node.body.body);
 }
 
 /**

@@ -7,7 +7,7 @@ import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
-import { is_tsrx_element } from '../../element.js';
+import { is_tsrx_element, is_tsrx_collection } from '../../element.js';
 
 /**
  * Finds the nearest enclosing BRANCH_BLOCK in the block hierarchy.
@@ -22,25 +22,6 @@ function find_enclosing_branch(block) {
 		block = block.p;
 	}
 	return null;
-}
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-function is_tsrx_collection(value) {
-	if (!Array.isArray(value)) {
-		return false;
-	}
-
-	for (var i = 0; i < value.length; i++) {
-		var item = value[i];
-		if (is_tsrx_element(item) || is_tsrx_collection(item)) {
-			return true;
-		}
-	}
-
-	return false;
 }
 
 /**
@@ -79,9 +60,55 @@ function render_tsrx_collection_items(value, anchor, block) {
 		} else if (is_tsrx_collection(item)) {
 			render_tsrx_collection_items(item, anchor, block);
 		} else if (item != null) {
-			anchor.before(create_text(item + ''));
+			render_tsrx_collection_text(item + '', anchor);
 		}
 	}
+}
+
+/**
+ * @param {string} value
+ * @param {ChildNode} anchor
+ * @returns {void}
+ */
+function render_tsrx_collection_text(value, anchor) {
+	if (!hydrating) {
+		anchor.before(create_text(value));
+		return;
+	}
+
+	var node = hydrate_node;
+
+	if (node?.nodeType === TEXT_NODE) {
+		var current_value = /** @type {Text} */ (node).nodeValue ?? '';
+
+		if (current_value !== value) {
+			/** @type {Text} */ (node).nodeValue = value;
+
+			if (current_value.startsWith(value)) {
+				var remaining = current_value.slice(value.length);
+
+				if (remaining !== '') {
+					var remaining_text = create_text(remaining);
+					/** @type {ChildNode} */ (node).after(remaining_text);
+					set_hydrate_node(remaining_text);
+					return;
+				}
+			}
+		}
+
+		set_hydrate_node(get_next_sibling(node) ?? anchor);
+		return;
+	}
+
+	var new_text = create_text(value);
+
+	if (node !== null && node !== anchor) {
+		/** @type {ChildNode} */ (node).before(new_text);
+	} else {
+		anchor.before(new_text);
+	}
+
+	set_hydrate_node(node ?? anchor);
 }
 
 /**

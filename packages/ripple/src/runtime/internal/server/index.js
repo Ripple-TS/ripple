@@ -38,7 +38,12 @@ import {
 import { clsx } from 'clsx';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
+import {
+	is_tsrx_element,
+	normalize_children,
+	tsrx_element,
+	is_tsrx_collection,
+} from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -82,25 +87,6 @@ export class TrackAsyncRunError extends Error {
 }
 
 export function noop() {}
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-function is_tsrx_collection(value) {
-	if (!Array.isArray(value)) {
-		return false;
-	}
-
-	for (var i = 0; i < value.length; i++) {
-		var item = value[i];
-		if (is_tsrx_element(item) || is_tsrx_collection(item)) {
-			return true;
-		}
-	}
-
-	return false;
-}
 
 /**
  * @param {any[]} value

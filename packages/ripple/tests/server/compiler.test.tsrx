@@ -168,6 +168,48 @@ export component App() {
 		expect((result.match(/children:/g) || []).length).toBe(1);
 		expect(result).toContain('children: _$_.tsrx_element(');
 	});
+
+	it('routes calls to functions with nested template returns through render_expression', () => {
+		const source = `
+component App() {
+	function make(flag) {
+		if (flag) {
+			return <tsx><span>{'nested'}</span></tsx>;
+		}
+
+		return null;
+	}
+
+	<div>{make(true)}</div>
+}
+`;
+
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
+
+		expect(result).toContain('_$_.render_expression(make(true))');
+		expect(result).not.toContain('_$_.escape(make(true))');
+	});
+
+	it('does not treat nested function template returns as outer function returns', () => {
+		const source = `
+component App() {
+	function make() {
+		function nested() {
+			return <tsx><span>{'nested'}</span></tsx>;
+		}
+
+		return nested;
+	}
+
+	<div>{make()}</div>
+}
+`;
+
+		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
+
+		expect(result).toContain('_$_.output_push(_$_.escape(make()))');
+		expect(result).not.toContain('_$_.render_expression(make())');
+	});
 });
 
 describe('compiler server module tests', () => {
