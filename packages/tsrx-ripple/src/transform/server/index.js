@@ -258,11 +258,12 @@ function function_returns_template_value(node) {
 		return contains_template_value_node(/** @type {AST.Node} */ (node.body));
 	}
 
-	if (node.body?.type !== 'BlockStatement') {
+	const body = /** @type {AST.Function} */ (node).body;
+	if (body.type !== 'BlockStatement') {
 		return false;
 	}
 
-	return statements_return_template_value(node.body.body);
+	return statements_return_template_value(body.body);
 }
 
 /**

@@ -182,7 +182,7 @@ export function expression(node, get_value) {
 			var parent_branch = find_enclosing_branch(active_block);
 
 			child_block = branch(() => {
-				var block = active_block;
+				var block = /** @type {Block} */ (active_block);
 				if (next_is_collection) {
 					render_tsrx_collection(next_value, end ?? anchor, block);
 				} else {
