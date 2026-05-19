@@ -109,7 +109,7 @@ export function expression(node, get_value) {
 	render(() => {
 		var next_value = get_value();
 		var next_is_collection = is_tsrx_collection(next_value);
-		var next_is_element = is_tsrx_element(next_value) || next_is_collection;
+		var next_is_element = next_is_collection || is_tsrx_element(next_value);
 		var is_hydration_marker = hydrating && anchor.nodeType === COMMENT_NODE;
 
 		if (is_hydration_marker) {
