@@ -4152,7 +4152,9 @@ function transform_children(children, context) {
 			let is_create_text_only = false;
 			if (node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html') {
 				metadata = { tracking: false };
-				expression = /** @type {AST.Expression} */ (visit(node.expression, { ...state, metadata }));
+				expression = /** @type {AST.Expression} */ (
+					visit(node.expression, { ...state, flush_node: null, metadata })
+				);
 				is_create_text_only =
 					node.type !== 'Html' && normalized.length === 1 && expression.type === 'Literal';
 			}

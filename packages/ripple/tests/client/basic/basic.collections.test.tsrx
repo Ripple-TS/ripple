@@ -2,6 +2,17 @@ import { RippleArray, flushSync, track } from 'ripple';
 import { TRACKED_ARRAY } from '../../../src/runtime/internal/client/constants.js';
 
 describe('basic client > collections', () => {
+	function countCommentNodes(node: Node) {
+		const walker = document.createTreeWalker(node, NodeFilter.SHOW_COMMENT);
+		let count = 0;
+
+		while (walker.nextNode()) {
+			count++;
+		}
+
+		return count;
+	}
+
 	it('renders with simple reactive objects', () => {
 		component Basic() {
 			let &[user] = track({
@@ -105,5 +116,61 @@ describe('basic client > collections', () => {
 
 		expect(pre1.textContent).toBe('4');
 		expect(pre2.textContent).toBe('2');
+	});
+
+	it('cleans up mixed tsrx collection sentinels and trailing text on rerender', () => {
+		component App() {
+			let &[primary] = track(true);
+
+			<div class="frame">
+				{<tsx>
+					{primary
+						? [
+								'first:',
+								<strong class="middle">
+									{'one'}
+								</strong>,
+								':tail',
+							]
+						: [
+								'second:',
+								<strong class="middle">
+									{'two'}
+								</strong>,
+								':done',
+							]}
+				</tsx>}
+			</div>
+			<button
+				onClick={() => {
+					primary = !primary;
+				}}
+			>
+				{'toggle'}
+			</button>
+		}
+
+		render(App);
+
+		const frame = container.querySelector('.frame');
+		const button = container.querySelector('button');
+		const initialCommentCount = countCommentNodes(frame);
+
+		expect(frame.textContent).toBe('first:one:tail');
+		expect(frame.querySelectorAll('.middle')).toHaveLength(1);
+
+		button.click();
+		flushSync();
+
+		expect(frame.textContent).toBe('second:two:done');
+		expect(frame.querySelectorAll('.middle')).toHaveLength(1);
+		expect(countCommentNodes(frame)).toBe(initialCommentCount);
+
+		button.click();
+		flushSync();
+
+		expect(frame.textContent).toBe('first:one:tail');
+		expect(frame.querySelectorAll('.middle')).toHaveLength(1);
+		expect(countCommentNodes(frame)).toBe(initialCommentCount);
 	});
 });

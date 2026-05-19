@@ -263,6 +263,28 @@ describe('@tsrx/ripple <tsrx> Volar output', () => {
 	});
 });
 
+describe('@tsrx/ripple <tsx> expression values', () => {
+	it('lowers tsx values nested in template expressions', () => {
+		const { code } = compile(
+			`component App() {
+				const primary = true;
+				<div>
+					{<tsx>
+						{primary
+							? ['first:', <strong>{'one'}</strong>, ':tail']
+							: ['second:', <strong>{'two'}</strong>, ':done']}
+					</tsx>}
+				</div>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('_$_.tsrx_element');
+		expect(code).toContain('? [');
+		expect(code).not.toContain('<tsx>');
+	});
+});
+
 describe('@tsrx/ripple nested function fragment returns', () => {
 	it('keeps special fragment returns inside component-local functions', () => {
 		const { code } = compile(

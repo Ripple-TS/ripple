@@ -1,3 +1,5 @@
+import { is_array } from '@tsrx/core/runtime/language-helpers';
+
 const TSRX_ELEMENT = Symbol.for('ripple.element');
 
 /**
@@ -31,7 +33,7 @@ export function is_tsrx_element(value) {
  * @returns {boolean}
  */
 export function is_tsrx_collection(value) {
-	if (!Array.isArray(value)) {
+	if (!is_array(value)) {
 		return false;
 	}
 
