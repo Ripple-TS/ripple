@@ -699,6 +699,12 @@ importers:
         specifier: catalog:default
         version: 1.2.2
     devDependencies:
+      '@types/estree':
+        specifier: catalog:default
+        version: 1.0.8
+      '@types/estree-jsx':
+        specifier: catalog:default
+        version: 1.0.5
       '@types/node':
         specifier: catalog:default
         version: 24.11.0

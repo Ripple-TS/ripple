@@ -122,6 +122,31 @@ function apply_tsrx_css_scoping(nodes, state) {
 }
 
 /**
+ * JSX parsed inside `<tsx>` treats `<tsx>`/`<tsrx>` as ordinary JSX tags. For
+ * TypeScript output, convert those reserved tags back into TSRX nodes before
+ * visiting so nested islands use the same lowering path as top-level islands.
+ *
+ * @param {ESTreeJSX.JSXElement} node
+ * @param {VisitorClientContext} context
+ * @returns {AST.Node | null}
+ */
+function jsx_template_to_ts_node(node, context) {
+	const name = node.openingElement.name;
+	if (name.type !== 'JSXIdentifier' || (name.name !== 'tsx' && name.name !== 'tsrx')) {
+		return null;
+	}
+
+	const converted = jsx_to_ripple_node(
+		/** @type {AST.Node} */ (/** @type {unknown} */ (node)),
+		context.path,
+	);
+	if (converted === null || Array.isArray(converted)) {
+		return null;
+	}
+	return /** @type {AST.Node} */ (converted);
+}
+
+/**
  * @param {AST.ImportDeclaration} node
  * @returns {string | null}
  */
@@ -651,7 +676,7 @@ function SetStateForOutsideComponent(state, more_state = {}) {
  */
 function build_jsx_to_tsrx_element(node, context) {
 	const { state, visit, path } = context;
-	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path, state.source);
+	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path);
 	const converted = Array.isArray(result) ? result : [result];
 	/** @type {AST.Node[]} */
 	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
@@ -1229,6 +1254,17 @@ const visitors = {
 					metadata: { path: [] },
 				});
 			}
+			if (node.expression?.type === 'JSXElement') {
+				const tsx_template_node = jsx_template_to_ts_node(node.expression, context);
+				if (tsx_template_node !== null) {
+					return b.jsx_expression_container(
+						/** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
+							context.visit(tsx_template_node, context.state)
+						),
+						/** @type {AST.NodeWithLocation} */ (node),
+					);
+				}
+			}
 			return context.next();
 		}
 		return context.visit(node.expression);
@@ -1306,6 +1342,10 @@ const visitors = {
 
 	JSXElement(node, context) {
 		if (context.state.to_ts) {
+			const tsx_template_node = jsx_template_to_ts_node(node, context);
+			if (tsx_template_node !== null) {
+				return context.visit(tsx_template_node, context.state);
+			}
 			return context.next();
 		}
 		if (context.state.jsx_to_tsrx_element) {
@@ -1428,7 +1468,7 @@ const visitors = {
 		/** @type {AST.Node[]} */
 		const children_filtered = [];
 		for (const raw_child of node.children) {
-			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path, state.source);
+			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path);
 			const items = Array.isArray(result) ? result : [result];
 			for (const child of items) {
 				if (child == null || child.type === 'EmptyStatement') continue;
@@ -5606,7 +5646,6 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		stylesheets: [],
 		to_ts,
 		filename,
-		source,
 		namespace: 'html',
 		metadata: {},
 		errors: analysis.errors,

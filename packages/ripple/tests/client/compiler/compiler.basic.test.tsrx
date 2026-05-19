@@ -460,6 +460,69 @@ component App() {
 		expect(track_result).not.toContain('lazy0');
 	});
 
+	it('lowers nested tsrx inside tsx in to_ts output', () => {
+		const source = `
+component App() {
+	const content = <tsx>
+		{<tsrx>
+			const nested = <tsx>
+				<span class="nested-tsx">
+					{'inside nested tsx'}
+				</span>
+			</tsx>;
+			<div class="native">{nested}</div>
+		</tsrx>}
+	</tsx>;
+
+	{content}
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
+
+		expect(result).not.toContain('<tsrx>');
+		expect(result).not.toContain('</tsrx>');
+		expect(result).not.toContain('<tsx>');
+		expect(result).not.toContain('</tsx>');
+		expect(result).toContain('const nested = <>');
+		expect(result).toContain('children.push(<div class="native">');
+	});
+
+	it('maps identifiers from nested tsrx inside tsx in to_ts output', () => {
+		const source = `
+component App() {
+	const content = <tsx>
+		{<tsrx>
+			const nested = <tsx>
+				<span class="nested-tsx">
+					{'inside nested tsx'}
+				</span>
+			</tsx>;
+			<div class="native">{nested}</div>
+		</tsrx>}
+	</tsx>;
+
+	{content}
+}
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
+		const source_declaration = source.indexOf('nested =');
+		const source_reference = source.indexOf('nested}</div>');
+		const generated_declaration = result.code.indexOf('const nested') + 'const '.length;
+		const generated_reference = result.code.indexOf('nested;', generated_declaration);
+
+		function find_mapping(source_offset: number, generated_offset: number) {
+			return result.mappings.find(
+				(mapping) => mapping.sourceOffsets[0] === source_offset &&
+					mapping.generatedOffsets[0] === generated_offset &&
+					mapping.lengths[0] === 'nested'.length &&
+					mapping.generatedLengths[0] === 'nested'.length,
+			);
+		}
+
+		expect(find_mapping(source_declaration, generated_declaration)).toBeDefined();
+		expect(find_mapping(source_reference, generated_reference)).toBeDefined();
+	});
+
 	it('preserves optional markers in to_ts TypeScript output', () => {
 		const source = `
 export type OptionalTuple = [bar: string, baz?: string];

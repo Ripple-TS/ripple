@@ -24,6 +24,13 @@
   (#eq? @_tsx_name "tsx")
   (#set! injection.language "tsx"))
 
+; TSRX islands keep Ripple syntax, including when nested inside a TSX island.
+((jsx_element
+  open_tag: (jsx_opening_element
+    name: (jsx_element_name (identifier) @_tsrx_name))) @injection.content
+  (#eq? @_tsrx_name "tsrx")
+  (#set! injection.language "ripple"))
+
 ((jsx_element
   open_tag: (jsx_opening_element
     name: (jsx_element_name

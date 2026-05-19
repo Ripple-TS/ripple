@@ -478,7 +478,7 @@ export function TSRXPlugin(config) {
 					}
 
 					if (this.type === tt.braceL) {
-						body.push(this.jsx_parseExpressionContainer());
+						body.push(this.#parseTsxIslandExpressionContainer());
 					} else if (this.type === tstt.jsxTagStart) {
 						body.push(super.jsx_parseElement());
 					} else {
@@ -490,6 +490,79 @@ export function TSRXPlugin(config) {
 						this.next();
 					}
 				}
+			}
+
+			#parseTsxIslandExpressionContainer() {
+				if (!this.#isAtReservedTemplateExpressionContainer()) {
+					return this.jsx_parseExpressionContainer();
+				}
+
+				const node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
+				this.next();
+				this.next();
+				const expression = /** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
+					/** @type {unknown} */ (this.parseElement())
+				);
+				node.expression = expression;
+				this.#popTokenContextsAfterTemplateExpressionElement(
+					/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (expression)),
+				);
+				this.expect(tt.braceR);
+				return this.finishNode(node, 'JSXExpressionContainer');
+			}
+
+			#isAtReservedTemplateExpressionContainer() {
+				if (this.type !== tt.braceL) {
+					return false;
+				}
+
+				let index = this.start + 1;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (
+						ch === CharCode.space ||
+						ch === CharCode.tab ||
+						ch === CharCode.lineFeed ||
+						ch === CharCode.carriageReturn
+					) {
+						index++;
+					} else {
+						break;
+					}
+				}
+
+				if (this.input.charCodeAt(index) !== CharCode.lessThan) {
+					return false;
+				}
+
+				return this.#isReservedTemplateTagNameStart(index + 1);
+			}
+
+			/**
+			 * @param {number} index
+			 */
+			#isReservedTemplateTagNameStart(index) {
+				const char_after_tsx = this.input.charCodeAt(index + 3);
+				const char_after_tsrx = this.input.charCodeAt(index + 4);
+				return (
+					(this.input.startsWith('tsx', index) &&
+						(index + 3 >= this.input.length ||
+							char_after_tsx === CharCode.greaterThan ||
+							char_after_tsx === CharCode.slash ||
+							char_after_tsx === CharCode.space ||
+							char_after_tsx === CharCode.tab ||
+							char_after_tsx === CharCode.lineFeed ||
+							char_after_tsx === CharCode.carriageReturn ||
+							char_after_tsx === CharCode.colon)) ||
+					(this.input.startsWith('tsrx', index) &&
+						(index + 4 >= this.input.length ||
+							char_after_tsrx === CharCode.greaterThan ||
+							char_after_tsrx === CharCode.slash ||
+							char_after_tsrx === CharCode.space ||
+							char_after_tsrx === CharCode.tab ||
+							char_after_tsrx === CharCode.lineFeed ||
+							char_after_tsrx === CharCode.carriageReturn))
+				);
 			}
 
 			/**
@@ -2202,10 +2275,11 @@ export function TSRXPlugin(config) {
 
 			/** @type {Parse.Parser['jsx_readToken']} */
 			jsx_readToken() {
-				const inside_tsx_compat = this.#path.findLast(
-					(n) => n.type === 'TsxCompat' || n.type === 'Tsx',
+				const current_template_node = this.#path.findLast(
+					(n) =>
+						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
 				);
-				if (inside_tsx_compat) {
+				if (current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') {
 					return super.jsx_readToken();
 				}
 				let out = '',
@@ -2385,8 +2459,11 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				const inside_tsx = this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
-				if (inside_tsx) {
+				const current_template_node = this.#path.findLast(
+					(n) =>
+						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
+				);
+				if (current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') {
 					// Inside tsx/tsx:*, let acorn-jsx handle it normally
 					return super.jsx_parseElement();
 				}
@@ -2887,9 +2964,24 @@ export function TSRXPlugin(config) {
 			parseTemplateBody(body) {
 				const inside_func =
 					this.context.some((n) => n.token === 'function') || this.scopeStack.length > 1;
-				const inside_tsx_island = this.#path.findLast(
-					(n) => n.type === 'Tsx' || n.type === 'TsxCompat',
+				const current_template_node = this.#path.findLast(
+					(n) =>
+						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
 				);
+				const inside_tsx_island =
+					current_template_node?.type === 'Tsx' || current_template_node?.type === 'TsxCompat'
+						? current_template_node
+						: null;
+
+				if (current_template_node?.type === 'Tsrx' && this.type === tstt.jsxText) {
+					while (this.curContext() === tstc.tc_expr) {
+						this.context.pop();
+					}
+					this.pos = this.start;
+					this.next();
+					this.parseTemplateBody(body);
+					return;
+				}
 
 				if (!inside_func) {
 					if (this.type.label === 'continue') {

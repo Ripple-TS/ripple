@@ -1247,7 +1247,9 @@ export interface Binding {
 		| AST.FunctionDeclaration
 		| AST.ClassDeclaration
 		| AST.ImportDeclaration
-		| AST.TSModuleDeclaration;
+		| AST.TSModuleDeclaration
+		| AST.Tsx
+		| AST.Tsrx;
 	/** Whether this binding has been reassigned */
 	reassigned: boolean;
 	/** Whether this binding has been mutated (property access) */
@@ -1261,6 +1263,7 @@ export interface Binding {
 		is_dynamic_component?: boolean;
 		pattern?: AST.Identifier;
 		is_ripple_object?: boolean;
+		is_template_value?: boolean;
 	} | null;
 	/** Kind of binding */
 	kind: BindingKind;
@@ -1340,7 +1343,9 @@ export interface ScopeInterface {
 			| AST.FunctionDeclaration
 			| AST.ClassDeclaration
 			| AST.ImportDeclaration
-			| AST.TSModuleDeclaration,
+			| AST.TSModuleDeclaration
+			| AST.Tsx
+			| AST.Tsrx,
 	): Binding;
 	/** Get binding by name */
 	get(name: string): Binding | null;
@@ -1416,6 +1421,7 @@ export interface TransformServerState extends BaseState {
 	template_child?: boolean;
 	skip_regular_blocks?: boolean;
 	in_regular_block?: boolean;
+	jsx_to_tsrx_element?: boolean;
 }
 
 export type UpdateList = Array<
@@ -1450,6 +1456,7 @@ export interface TransformClientState extends BaseState {
 	skip_children_traversal: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 	is_tsrx_element?: boolean;
+	jsx_to_tsrx_element?: boolean;
 }
 
 /** Override zimmerframe types and provide our own */

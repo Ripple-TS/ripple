@@ -590,13 +590,11 @@ describe('tsx expression', () => {
 		component App() {
 			const content = <tsx>
 				{<tsrx>
-					const nested =
-					<tsx>
+					const nested = <tsx>
 						<span class="nested-tsx">
 							{'inside nested tsx'}
 						</span>
-					</tsx>
-					;
+					</tsx>;
 					<div class="native">{nested}</div>
 				</tsrx>}
 			</tsx>;

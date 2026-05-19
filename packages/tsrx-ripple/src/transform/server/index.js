@@ -101,7 +101,7 @@ function apply_tsrx_css_scoping(nodes, state) {
  */
 function build_jsx_to_tsrx_element(node, context) {
 	const { visit, state, path } = context;
-	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path, state.source);
+	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path);
 	const converted = Array.isArray(result) ? result : [result];
 	/** @type {AST.Node[]} */
 	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
@@ -135,7 +135,7 @@ function build_template_node_to_tsrx_element(node, context) {
 	const children =
 		node.type === 'Tsx'
 			? node.children
-					.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path, state.source))
+					.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
 					.flat()
 					.filter((child) => child != null)
 			: node.children.filter((child) => child != null && child.type !== 'EmptyStatement');
@@ -232,6 +232,25 @@ function is_template_value_call(expression, scope) {
 	}
 
 	return function_returns_template_value(scope.get(expression.callee.name)?.initial);
+}
+
+/**
+ * @param {AST.Node} expression
+ * @param {ScopeInterface} scope
+ * @returns {boolean}
+ */
+function is_template_value_binding(expression, scope) {
+	if (expression.type !== 'Identifier') {
+		return false;
+	}
+
+	const binding = scope.get(expression.name);
+	const initial = binding?.initial;
+	return (
+		binding?.metadata?.is_template_value === true ||
+		initial?.type === 'Tsx' ||
+		initial?.type === 'Tsrx'
+	);
 }
 
 /**
@@ -437,23 +456,16 @@ function transform_variable_declaration(node, context) {
 			}
 		}
 
+		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
 		const init =
-			declarator.init?.type === 'Tsx' || declarator.init?.type === 'Tsrx'
-				? build_template_node_to_tsrx_element(declarator.init, context)
-				: declarator.init
+			declarator_init?.type === 'Tsx' || declarator_init?.type === 'Tsrx'
+				? build_template_node_to_tsrx_element(declarator_init, context)
+				: declarator_init
 					? /** @type {AST.Expression} */ (
-							context.visit(declarator.init, { ...context.state, template_child: false })
+							context.visit(declarator_init, { ...context.state, template_child: false })
 						)
 					: null;
 		transformed_inits.set(declarator, init);
-
-		if (
-			declarator.id.type === 'Identifier' &&
-			(declarator.init?.type === 'Tsx' || declarator.init?.type === 'Tsrx')
-		) {
-			context.state.template_value_locals ??= new Set();
-			context.state.template_value_locals.add(declarator.id.name);
-		}
 	}
 
 	return {
@@ -1883,8 +1895,7 @@ const visitors = {
 			is_children_template_expression(node.expression, state.scope) ||
 			contains_template_value_node(/** @type {AST.Node} */ (node.expression)) ||
 			is_template_value_call(/** @type {AST.Expression} */ (node.expression), state.scope) ||
-			(node.expression.type === 'Identifier' &&
-				state.template_value_locals?.has(node.expression.name));
+			is_template_value_binding(node.expression, state.scope);
 		let expression = /** @type {AST.Expression} */ (
 			visit(node.expression, {
 				...state,
@@ -1917,7 +1928,7 @@ const visitors = {
 
 	Tsx(node, { visit, state, path }) {
 		const converted_children = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path, state.source))
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
 			.flat()
 			.filter((child) => child != null);
 		apply_tsrx_css_scoping(converted_children, state);
@@ -2163,7 +2174,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		server_block_locals: [],
 		server_exported_names: [],
 		filename,
-		source,
 		namespace: 'html',
 		// TODO: should we remove all `to_ts` usages we use the client rendering for that?
 		to_ts: false,

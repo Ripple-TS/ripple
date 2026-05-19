@@ -1,9 +1,10 @@
-import type { AddEventObject } from '#public';
+import type { AddEventObject, TSRXElement } from '#public';
 import type { Nullable } from '#helpers';
 
 /**
  * Ripple JSX Runtime Type Definitions
- * Ripple components are imperative and don't return JSX elements
+ * Ripple components are imperative, but JSX expressions still represent
+ * renderable TSRX values when used in expression positions.
  */
 
 // Ripple components don't return JSX elements - they're imperative
@@ -17,13 +18,13 @@ export function jsx(
 	type: string | ComponentType<any>,
 	props?: any,
 	key?: string | number | null,
-): void;
+): TSRXElement;
 
 export function rsx(
 	type: string | ComponentType<any>,
 	props?: any,
 	key?: string | number | null,
-): void;
+): TSRXElement;
 
 /**
  * Create a JSX element with static children (optimization for multiple children)
@@ -33,13 +34,13 @@ export function jsxs(
 	type: string | ComponentType<any>,
 	props?: any,
 	key?: string | number | null,
-): void;
+): TSRXElement;
 
 /**
  * JSX Fragment component
- * In Ripple, fragments are imperative and don't return anything
+ * Ripple fragments are renderable expression values.
  */
-export function Fragment(props: { children?: any }): void;
+export function Fragment(props: { children?: any }): TSRXElement;
 
 export type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
 
@@ -819,8 +820,8 @@ interface SVGTextAttributes {
 // Global JSX namespace for TypeScript
 declare global {
 	namespace JSX {
-		// In Ripple, JSX expressions don't return elements - they're imperative
-		type Element = void;
+		type Element = TSRXElement;
+		type ElementType = keyof IntrinsicElements | ComponentType<any>;
 
 		interface IntrinsicElements {
 			// Document metadata

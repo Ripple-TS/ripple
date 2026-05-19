@@ -6544,6 +6544,24 @@
           "include": "#jsx-ref-modifier"
         },
         {
+          "include": "#jsx-tag-tsx"
+        },
+        {
+          "include": "#jsx-tag-tsrx"
+        },
+        {
+          "include": "#jsx-tag-tsx-react"
+        },
+        {
+          "include": "#jsx-tsx-tag-fragment"
+        },
+        {
+          "include": "#jsx-tag-without-attributes-in-expression"
+        },
+        {
+          "include": "#jsx-tag-in-expression"
+        },
+        {
           "include": "#expressionWithoutIdentifiers"
         },
         {
@@ -7104,6 +7122,18 @@
         },
         {
           "include": "#jsx-ref-modifier"
+        },
+        {
+          "include": "#jsx-tag-tsx"
+        },
+        {
+          "include": "#jsx-tag-tsrx"
+        },
+        {
+          "include": "#jsx-tag-tsx-react"
+        },
+        {
+          "include": "#jsx-tsx-tag-fragment"
         },
         {
           "include": "#jsx-tsx-tag-in-expression"

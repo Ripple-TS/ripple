@@ -78,6 +78,8 @@
     "@tsrx/ripple": "workspace:*"
   },
   "devDependencies": {
+    "@types/estree": "catalog:default",
+    "@types/estree-jsx": "catalog:default",
     "@types/node": "catalog:default"
   }
 }

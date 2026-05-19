@@ -5294,6 +5294,30 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-tsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsrx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsx-react</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tsx-tag-fragment</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-without-attributes-in-expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-in-expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#expressionWithoutIdentifiers</string>
 				</dict>
 				<dict>
@@ -6256,6 +6280,22 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-ref-modifier</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsrx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-tsx-react</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tsx-tag-fragment</string>
 				</dict>
 				<dict>
 					<key>include</key>

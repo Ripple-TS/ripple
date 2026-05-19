@@ -13,7 +13,6 @@ import {
 	isNonDelegated,
 	isVoidElement,
 	normalizeEventName,
-	parseModule,
 	simpleHash,
 	strongHash,
 } from '@tsrx/core';
@@ -1034,27 +1033,19 @@ function jsx_member_expression_to_member_expression(jsx_member) {
  * (Element, Text, TSRXExpression) for processing inside `<tsx>` blocks.
  * @param {AST.Node} node
  * @param {AST.Node[]} [inherited_path=[]]
- * @param {string} [source]
  * @returns {AST.Node | AST.Node[] | null}
  */
-export function jsx_to_ripple_node(node, inherited_path = [], source) {
+export function jsx_to_ripple_node(node, inherited_path = []) {
 	if (node.type === 'JSXElement') {
 		const opening = node.openingElement;
 		const name = opening.name;
 
 		if (name.type === 'JSXIdentifier' && (name.name === 'tsx' || name.name === 'tsrx')) {
-			if (name.name === 'tsrx' && source !== undefined) {
-				const parsed = parse_jsx_tsrx_node(node, source);
-				if (parsed !== null) {
-					return parsed;
-				}
-			}
-
 			const children =
 				name.name === 'tsrx'
 					? /** @type {AST.Node[]} */ (
 							/** @type {AST.Node[]} */ (node.children)
-								.map((child) => jsx_to_ripple_node(child, inherited_path, source))
+								.map((child) => jsx_to_ripple_node(child, inherited_path))
 								.flat()
 								.filter(Boolean)
 						)
@@ -1155,7 +1146,7 @@ export function jsx_to_ripple_node(node, inherited_path = [], source) {
 
 		element.children = /** @type {AST.Node[]} */ (
 			/** @type {AST.Node[]} */ (node.children)
-				.map((child) => jsx_to_ripple_node(child, [...inherited_path, element], source))
+				.map((child) => jsx_to_ripple_node(child, [...inherited_path, element]))
 				.flat()
 				.filter(Boolean)
 		);
@@ -1194,78 +1185,11 @@ export function jsx_to_ripple_node(node, inherited_path = [], source) {
 	if (node.type === 'JSXFragment') {
 		return /** @type {AST.Node[]} */ (
 			/** @type {AST.Node[]} */ (node.children)
-				.map((child) => jsx_to_ripple_node(child, inherited_path, source))
+				.map((child) => jsx_to_ripple_node(child, inherited_path))
 				.flat()
 				.filter(Boolean)
 		);
 	}
 
 	return node;
-}
-
-/**
- * Re-parse nested `<tsrx>` inside JSX-style `<tsx>` so native TSRX setup
- * statements stay in statement position instead of becoming JSX text.
- * @param {AST.Node} node
- * @param {string} source
- * @returns {AST.Node | null}
- */
-function parse_jsx_tsrx_node(node, source) {
-	if (typeof node.start !== 'number' || typeof node.end !== 'number') {
-		return null;
-	}
-
-	const prefix = 'const __tsrx = ';
-	const wrapped = `${prefix}${source.slice(node.start, node.end)};`;
-
-	try {
-		const ast = parseModule(wrapped, 'nested.tsrx', { loose: true });
-		const declaration = ast.body[0];
-		if (declaration?.type !== 'VariableDeclaration') {
-			return null;
-		}
-		const parsed = declaration.declarations[0]?.init;
-		if (!parsed) {
-			return null;
-		}
-		offset_node_positions(/** @type {AST.Node} */ (parsed), node.start - prefix.length);
-		return /** @type {AST.Node} */ (parsed);
-	} catch {
-		return null;
-	}
-}
-
-/**
- * @param {AST.Node} node
- * @param {number} offset
- * @param {Set<object>} [seen]
- * @returns {void}
- */
-function offset_node_positions(node, offset, seen = new Set()) {
-	if (node === null || typeof node !== 'object' || seen.has(node)) {
-		return;
-	}
-	seen.add(node);
-
-	if (typeof node.start === 'number') {
-		node.start += offset;
-	}
-	if (typeof node.end === 'number') {
-		node.end += offset;
-	}
-
-	for (const value of Object.values(node)) {
-		if (value === null || typeof value !== 'object') {
-			continue;
-		}
-		if (Array.isArray(value)) {
-			for (const item of value) {
-				if (item !== null && typeof item === 'object') {
-					offset_node_positions(/** @type {AST.Node} */ (item), offset, seen);
-				}
-			}
-		} else if ('type' in value) {
-			offset_node_positions(/** @type {AST.Node} */ (value), offset, seen);
-		}
-	}
 }

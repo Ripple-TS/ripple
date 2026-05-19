@@ -130,13 +130,11 @@ second"</pre>
 		component Basic() {
 			const content = <tsx>
 				{<tsrx>
-					const nested =
-					<tsx>
+					const nested = <tsx>
 						<span>
 							{'inside nested tsx'}
 						</span>
-					</tsx>
-					;
+					</tsx>;
 					<div>{nested}</div>
 				</tsrx>}
 			</tsx>;
