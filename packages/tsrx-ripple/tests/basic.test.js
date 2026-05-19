@@ -227,6 +227,20 @@ component App() {
 });
 
 describe('@tsrx/ripple <tsrx> Volar output', () => {
+	it('prints JSX converted from nested tsrx inside tsx expression containers', () => {
+		const source = `component App() {
+	const content = <tsx>
+		<section>{<tsrx><div>{'inside'}</div></tsrx>}</section>
+	</tsx>;
+	{content}
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(result.code).toContain('<section>{<div>');
+		expect(result.code).not.toContain('<tsrx>');
+		expect(result.code).not.toContain('<tsx>');
+	});
+
 	it('returns children before and after setup statements', () => {
 		const source = `class Foo { bar() { return <tsrx><div>"before"</div> const x = 1; <div>{x}</div></tsrx>; } }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });

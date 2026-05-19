@@ -1137,6 +1137,8 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				id,
 				attributes,
 				children: [],
+				openingElement: opening,
+				closingElement: node.closingElement,
 				selfClosing: opening.selfClosing,
 				metadata: { scoped: false, path: inherited_path },
 				start: node.start,
