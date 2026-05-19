@@ -66,6 +66,72 @@ export component ExpressionContent() {
 	<span>{label.toUpperCase()}</span>
 }
 
+function makeNestedTsxTsrxFragment(label: string) {
+	return <tsrx>
+		<span class="label">{label}</span>
+		const test = <tsx>
+			{[1, 2, 3, 4].map(
+				(item) => <tsx>
+					{<tsrx>
+						<div class="helper-item">{item}</div>
+					</tsrx>}
+				</tsx>,
+			)}
+		</tsx>;
+		{test}
+	</tsrx>;
+}
+
+export component NestedTsxTsrxExpressionValues() {
+	{<tsx>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</tsx>}
+	{makeNestedTsxTsrxFragment('from helper')}
+}
+
+export component NestedTsrxInsideTopLevelTsxExpression() {
+	const content = <tsx>
+		<section class="outer">
+			{<tsrx>
+				<div class="inner">
+					{'from tsrx'}
+				</div>
+			</tsrx>}
+		</section>
+	</tsx>;
+
+	{content}
+}
+
+export component NestedTsrxElementsInsideTopLevelTsxValue() {
+	const content = <tsx>
+		<div class="wrapper">
+			{<tsrx>
+				<section class="native">
+					<span class="nested-tsrx">
+						{'inside nested tsrx'}
+					</span>
+				</section>
+			</tsrx>}
+		</div>
+	</tsx>;
+
+	{content}
+}
+
+export component TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
+	const content = <tsx>
+		{<tsrx>
+			const nested = <tsx>
+				<span class="nested-tsx">
+					{'inside nested tsx'}
+				</span>
+			</tsx>;
+			<div class="native">{nested}</div>
+		</tsrx>}
+	</tsx>;
+
+	{content}
+}
+
 component TextProp(&{ children }: { children: string }) {
 	<div class="text-prop">{children}</div>
 }

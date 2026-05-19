@@ -5,7 +5,7 @@ import { BRANCH_BLOCK, UNINITIALIZED } from './constants.js';
 import { create_text, get_next_sibling } from './operations.js';
 import { assign_nodes } from './template.js';
 import { active_block } from './runtime.js';
-import { hydrating, set_hydrate_node } from './hydration.js';
+import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { COMMENT_NODE, HYDRATION_END, HYDRATION_START, TEXT_NODE } from '../../../constants.js';
 import { is_tsrx_element } from '../../element.js';
 
@@ -50,6 +50,12 @@ function is_tsrx_collection(value) {
  * @returns {void}
  */
 function render_tsrx_collection(value, anchor, block) {
+	if (hydrating) {
+		assign_nodes(/** @type {Node} */ (hydrate_node ?? anchor), anchor);
+		render_tsrx_collection_items(value, anchor, block);
+		return;
+	}
+
 	var start = document.createComment('');
 	var end = document.createComment('');
 

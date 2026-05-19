@@ -283,6 +283,186 @@ export function ExpressionContent() {
 	_$_.pop_component();
 }
 
+function makeNestedTsxTsrxFragment(label) {
+	return _$_.tsrx_element(function render_children() {
+		_$_.output_push('<span');
+		_$_.output_push(' class="label"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(label));
+		}
+
+		_$_.output_push('</span>');
+
+		const test = _$_.tsrx_element(function render_children() {
+			_$_.render_expression([1, 2, 3, 4].map((item) => _$_.tsrx_element(function render_children() {
+				{
+					_$_.render_expression(_$_.tsrx_element(function render_children() {
+						{
+							_$_.output_push('<div');
+							_$_.output_push(' class="helper-item"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(item));
+							}
+
+							_$_.output_push('</div>');
+						}
+					}));
+				}
+			})));
+		});
+
+		_$_.render_expression(test);
+	});
+}
+
+export function NestedTsxTsrxExpressionValues() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.render_expression(_$_.tsrx_element(function render_children() {
+			_$_.render_expression([1, 2, 3].map((item) => _$_.tsrx_element(function render_children() {
+				_$_.output_push('<div');
+				_$_.output_push(' class="app-item"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(item));
+				}
+
+				_$_.output_push('</div>');
+			})));
+		}));
+	});
+
+	_$_.regular_block(() => {
+		_$_.render_expression(makeNestedTsxTsrxFragment('from helper'));
+	});
+
+	_$_.pop_component();
+}
+
+export function NestedTsrxInsideTopLevelTsxExpression() {
+	_$_.push_component();
+
+	const content = _$_.tsrx_element(function render_children() {
+		_$_.regular_block(() => {
+			_$_.output_push('<section');
+			_$_.output_push(' class="outer"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(_$_.tsrx_element(function render_children() {
+					{
+						_$_.output_push('<div');
+						_$_.output_push(' class="inner"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('from tsrx');
+						}
+
+						_$_.output_push('</div>');
+					}
+				}));
+			}
+
+			_$_.output_push('</section>');
+		});
+	});
+
+	_$_.regular_block(() => {
+		_$_.render_expression(content);
+	});
+
+	_$_.pop_component();
+}
+
+export function NestedTsrxElementsInsideTopLevelTsxValue() {
+	_$_.push_component();
+
+	const content = _$_.tsrx_element(function render_children() {
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="wrapper"');
+			_$_.output_push('>');
+
+			{
+				_$_.render_expression(_$_.tsrx_element(function render_children() {
+					{
+						_$_.output_push('<section');
+						_$_.output_push(' class="native"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<span');
+							_$_.output_push(' class="nested-tsrx"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('inside nested tsrx');
+							}
+
+							_$_.output_push('</span>');
+						}
+
+						_$_.output_push('</section>');
+					}
+				}));
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+
+	_$_.regular_block(() => {
+		_$_.render_expression(content);
+	});
+
+	_$_.pop_component();
+}
+
+export function TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
+	_$_.push_component();
+
+	const content = _$_.tsrx_element(function render_children() {
+		_$_.regular_block(() => {
+			_$_.render_expression(_$_.tsrx_element(function render_children() {
+				const nested = _$_.tsrx_element(function render_children() {
+					_$_.output_push('<span');
+					_$_.output_push(' class="nested-tsx"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('inside nested tsx');
+					}
+
+					_$_.output_push('</span>');
+				});
+
+				_$_.output_push('<div');
+				_$_.output_push(' class="native"');
+				_$_.output_push('>');
+
+				{
+					_$_.render_expression(nested);
+				}
+
+				_$_.output_push('</div>');
+			}));
+		});
+	});
+
+	_$_.regular_block(() => {
+		_$_.render_expression(content);
+	});
+
+	_$_.pop_component();
+}
+
 function TextProp(__props) {
 	_$_.push_component();
 

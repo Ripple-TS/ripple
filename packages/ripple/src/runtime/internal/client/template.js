@@ -1,6 +1,9 @@
 /** @import { Block } from '#client' */
 
 import {
+	COMMENT_NODE,
+	HYDRATION_END,
+	HYDRATION_START,
 	TEMPLATE_FRAGMENT,
 	TEMPLATE_USE_IMPORT_NODE,
 	TEMPLATE_SVG_NAMESPACE,
@@ -177,6 +180,10 @@ export function append(anchor, dom, skip_advance) {
 			if (s !== null) {
 				s.end = /** @type {Node} */ (hydrate_node);
 			}
+
+			if (is_after_hydration_block(dom, hydrate_node)) {
+				return;
+			}
 		}
 
 		// Only advance if there's a next sibling. At the end of a component's
@@ -185,6 +192,44 @@ export function append(anchor, dom, skip_advance) {
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));
+}
+
+/**
+ * @param {Node} start
+ * @param {Node | null} target
+ * @returns {boolean}
+ */
+function is_after_hydration_block(start, target) {
+	if (
+		target === null ||
+		start.nodeType !== COMMENT_NODE ||
+		/** @type {Comment} */ (start).data !== HYDRATION_START
+	) {
+		return false;
+	}
+
+	var current = get_next_sibling(start);
+	var depth = 0;
+
+	while (current !== null && current !== target) {
+		if (current.nodeType === COMMENT_NODE) {
+			var data = /** @type {Comment} */ (current).data;
+
+			if (data === HYDRATION_START) {
+				depth += 1;
+			} else if (data === HYDRATION_END) {
+				if (depth === 0) {
+					return true;
+				}
+
+				depth -= 1;
+			}
+		}
+
+		current = get_next_sibling(current);
+	}
+
+	return false;
 }
 
 export function text(data = '') {

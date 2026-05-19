@@ -55,15 +55,15 @@ second"</pre>
 		expect(body).toBeHtml('<div><span>Server</span></div>');
 	});
 
-	it('renders nested tsx and tsrx expression values', async () => {
+	it('renders deeply nested tsx and tsrx expression values', async () => {
 		function makeFragment(label: string) {
 			return <tsrx>
-				<span>{label}</span>
+				<span class="label">{label}</span>
 				const test = <tsx>
-					{[1, 2, 3].map(
+					{[1, 2, 3, 4].map(
 						(item) => <tsx>
 							{<tsrx>
-								<div>{item}</div>
+								<div class="helper-item">{item}</div>
 							</tsrx>}
 						</tsx>,
 					)}
@@ -73,23 +73,23 @@ second"</pre>
 		}
 
 		component Basic() {
-			{<tsx>{[1, 2].map((item) => <div>{item}</div>)}</tsx>}
-			{makeFragment('Server')}
+			{<tsx>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</tsx>}
+			{makeFragment('from helper')}
 		}
 
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml(
-			'<div>1</div><div>2</div><span>Server</span><div>1</div><div>2</div><div>3</div>',
+			'<div class="app-item">1</div><div class="app-item">2</div><div class="app-item">3</div><span class="label">from helper</span><div class="helper-item">1</div><div class="helper-item">2</div><div class="helper-item">3</div><div class="helper-item">4</div>',
 		);
 	});
 
 	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
 		component Basic() {
 			const content = <tsx>
-				<section>
+				<section class="outer">
 					{<tsrx>
-						<div>
+						<div class="inner">
 							{'from tsrx'}
 						</div>
 					</tsrx>}
@@ -101,16 +101,16 @@ second"</pre>
 
 		const { body } = await render(Basic);
 
-		expect(body).toBeHtml('<section><div>from tsrx</div></section>');
+		expect(body).toBeHtml('<section class="outer"><div class="inner">from tsrx</div></section>');
 	});
 
 	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
 		component Basic() {
 			const content = <tsx>
-				<div>
+				<div class="wrapper">
 					{<tsrx>
-						<section>
-							<span>
+						<section class="native">
+							<span class="nested-tsrx">
 								{'inside nested tsrx'}
 							</span>
 						</section>
@@ -123,7 +123,9 @@ second"</pre>
 
 		const { body } = await render(Basic);
 
-		expect(body).toBeHtml('<div><section><span>inside nested tsrx</span></section></div>');
+		expect(body).toBeHtml(
+			'<div class="wrapper"><section class="native"><span class="nested-tsrx">inside nested tsrx</span></section></div>',
+		);
 	});
 
 	it('renders tsx declared inside tsrx nested from a top-level tsx value', async () => {
@@ -131,11 +133,11 @@ second"</pre>
 			const content = <tsx>
 				{<tsrx>
 					const nested = <tsx>
-						<span>
+						<span class="nested-tsx">
 							{'inside nested tsx'}
 						</span>
 					</tsx>;
-					<div>{nested}</div>
+					<div class="native">{nested}</div>
 				</tsrx>}
 			</tsx>;
 
@@ -144,7 +146,9 @@ second"</pre>
 
 		const { body } = await render(Basic);
 
-		expect(body).toBeHtml('<div><span>inside nested tsx</span></div>');
+		expect(body).toBeHtml(
+			'<div class="native"><span class="nested-tsx">inside nested tsx</span></div>',
+		);
 	});
 
 	it('renders tracked state updates', async () => {
