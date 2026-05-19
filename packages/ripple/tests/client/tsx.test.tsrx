@@ -503,6 +503,114 @@ describe('tsx expression', () => {
 		expect(button.querySelector('.btn-label').textContent).toBe('Save');
 	});
 
+	it('renders deeply nested tsx and tsrx expression values', () => {
+		function makeFragment(label: string) {
+			return <tsrx>
+				<span class="label">{label}</span>
+				const test = <tsx>
+					{[1, 2, 3, 4].map(
+						(item) => <tsx>
+							{<tsrx>
+								<div class="helper-item">{item}</div>
+							</tsrx>}
+						</tsx>,
+					)}
+				</tsx>;
+				{test}
+			</tsrx>;
+		}
+
+		component App() {
+			{<tsx>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</tsx>}
+			{makeFragment('from helper')}
+		}
+
+		render(App);
+
+		expect(
+			Array.from(container.querySelectorAll('.app-item')).map((node) => node.textContent),
+		).toEqual([
+			'1',
+			'2',
+			'3',
+		]);
+		expect(container.querySelector('.label').textContent).toBe('from helper');
+		expect(
+			Array.from(container.querySelectorAll('.helper-item')).map((node) => node.textContent),
+		).toEqual(['1', '2', '3', '4']);
+	});
+
+	it('renders tsrx nested directly inside a top-level tsx expression value', () => {
+		component App() {
+			const content = <tsx>
+				<section class="outer">
+					{<tsrx>
+						<div class="inner">
+							{'from tsrx'}
+						</div>
+					</tsrx>}
+				</section>
+			</tsx>;
+
+			{content}
+		}
+
+		render(App);
+
+		const outer = container.querySelector('.outer');
+		expect(outer).toBeTruthy();
+		expect(outer.querySelector('.inner').textContent).toBe('from tsrx');
+	});
+
+	it('renders nested elements from tsrx inside a top-level tsx value', () => {
+		component App() {
+			const content = <tsx>
+				<div class="wrapper">
+					{<tsrx>
+						<section class="native">
+							<span class="nested-tsrx">
+								{'inside nested tsrx'}
+							</span>
+						</section>
+					</tsrx>}
+				</div>
+			</tsx>;
+
+			{content}
+		}
+
+		render(App);
+
+		const native = container.querySelector('.native');
+		expect(native).toBeTruthy();
+		expect(native.querySelector('.nested-tsrx').textContent).toBe('inside nested tsrx');
+	});
+
+	it('renders tsx declared inside tsrx nested from a top-level tsx value', () => {
+		component App() {
+			const content = <tsx>
+				{<tsrx>
+					const nested =
+					<tsx>
+						<span class="nested-tsx">
+							{'inside nested tsx'}
+						</span>
+					</tsx>
+					;
+					<div class="native">{nested}</div>
+				</tsrx>}
+			</tsx>;
+
+			{content}
+		}
+
+		render(App);
+
+		const native = container.querySelector('.native');
+		expect(native).toBeTruthy();
+		expect(native.querySelector('.nested-tsx').textContent).toBe('inside nested tsx');
+	});
+
 	it('renders tsx as prop with fallback in component', () => {
 		component Alert(&{ icon, message }: { icon?: any; message: string }) {
 			<div class="alert">

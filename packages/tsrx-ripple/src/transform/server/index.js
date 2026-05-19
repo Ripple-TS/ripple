@@ -1,4 +1,5 @@
 /** @import * as AST from 'estree'; */
+/** @import * as ESTreeJSX from 'estree-jsx'; */
 /** @import { RawSourceMap } from 'source-map'; */
 /**
 @import {
@@ -91,6 +92,146 @@ function apply_tsrx_css_scoping(nodes, state) {
 	for (const node of nodes) {
 		visit_node(node);
 	}
+}
+
+/**
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {TransformServerContext} context
+ * @returns {AST.CallExpression}
+ */
+function build_jsx_to_tsrx_element(node, context) {
+	const { visit, state, path } = context;
+	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path, state.source);
+	const converted = Array.isArray(result) ? result : [result];
+	/** @type {AST.Node[]} */
+	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
+
+	apply_tsrx_css_scoping(children, state);
+
+	/** @type {AST.Statement[]} */
+	const init = [];
+	transform_children(
+		children,
+		/** @type {TransformServerContext} */ ({
+			visit,
+			state: {
+				...state,
+				init,
+				jsx_to_tsrx_element: true,
+			},
+		}),
+	);
+
+	return b.call('_$_.tsrx_element', b.function(b.id('render_children'), [], b.block(init)));
+}
+
+/**
+ * @param {AST.Tsx | AST.Tsrx} node
+ * @param {TransformServerContext} context
+ * @returns {AST.CallExpression}
+ */
+function build_template_node_to_tsrx_element(node, context) {
+	const { visit, state, path } = context;
+	const children =
+		node.type === 'Tsx'
+			? node.children
+					.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path, state.source))
+					.flat()
+					.filter((child) => child != null)
+			: node.children.filter((child) => child != null && child.type !== 'EmptyStatement');
+
+	apply_tsrx_css_scoping(children, state);
+
+	/** @type {AST.Statement[]} */
+	const init = [];
+	transform_children(
+		children,
+		/** @type {TransformServerContext} */ ({
+			visit,
+			state: {
+				...state,
+				init,
+				template_child: false,
+				jsx_to_tsrx_element: true,
+			},
+		}),
+	);
+
+	return b.call('_$_.tsrx_element', b.function(b.id('render_children'), [], b.block(init)));
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function contains_template_value_node(node) {
+	let found = false;
+
+	walk(node, null, {
+		_(node, { next }) {
+			if (found) {
+				return;
+			}
+			if (
+				node.type === 'JSXElement' ||
+				node.type === 'JSXFragment' ||
+				node.type === 'Tsx' ||
+				node.type === 'Tsrx' ||
+				node.type === 'TsxCompat'
+			) {
+				found = true;
+				return;
+			}
+			next();
+		},
+	});
+
+	return found;
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function function_returns_template_value(node) {
+	if (
+		node == null ||
+		(node.type !== 'FunctionDeclaration' &&
+			node.type !== 'FunctionExpression' &&
+			node.type !== 'ArrowFunctionExpression')
+	) {
+		return false;
+	}
+
+	if (node.type === 'ArrowFunctionExpression' && node.body.type !== 'BlockStatement') {
+		return contains_template_value_node(/** @type {AST.Node} */ (node.body));
+	}
+
+	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
+	for (const statement of body) {
+		if (
+			statement.type === 'ReturnStatement' &&
+			statement.argument &&
+			contains_template_value_node(/** @type {AST.Node} */ (statement.argument))
+		) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {ScopeInterface} scope
+ * @returns {boolean}
+ */
+function is_template_value_call(expression, scope) {
+	if (expression.type !== 'CallExpression' || expression.callee.type !== 'Identifier') {
+		return false;
+	}
+
+	return function_returns_template_value(scope.get(expression.callee.name)?.initial);
 }
 
 /**
@@ -275,6 +416,57 @@ function collect_returns_from_children(children) {
 }
 
 /**
+ * @param {AST.VariableDeclaration} node
+ * @param {TransformServerContext} context
+ * @returns {AST.VariableDeclaration}
+ */
+function transform_variable_declaration(node, context) {
+	/** @type {Map<AST.VariableDeclarator, AST.Expression | null>} */
+	const transformed_inits = new Map();
+
+	for (const declarator of node.declarations) {
+		if (!context.state.to_ts) {
+			delete declarator.id.typeAnnotation;
+
+			if (
+				(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
+				declarator.id.lazy &&
+				declarator.id.metadata?.lazy_id
+			) {
+				declarator.id = b.id(declarator.id.metadata.lazy_id);
+			}
+		}
+
+		const init =
+			declarator.init?.type === 'Tsx' || declarator.init?.type === 'Tsrx'
+				? build_template_node_to_tsrx_element(declarator.init, context)
+				: declarator.init
+					? /** @type {AST.Expression} */ (
+							context.visit(declarator.init, { ...context.state, template_child: false })
+						)
+					: null;
+		transformed_inits.set(declarator, init);
+
+		if (
+			declarator.id.type === 'Identifier' &&
+			(declarator.init?.type === 'Tsx' || declarator.init?.type === 'Tsrx')
+		) {
+			context.state.template_value_locals ??= new Set();
+			context.state.template_value_locals.add(declarator.id.name);
+		}
+	}
+
+	return {
+		...node,
+		declarations: node.declarations.map((declarator) => ({
+			...declarator,
+			id: /** @type {AST.Pattern} */ (context.visit(declarator.id)),
+			init: transformed_inits.get(declarator) ?? null,
+		})),
+	};
+}
+
+/**
  * @param {AST.Node[]} children
  * @param {TransformServerContext} context
  */
@@ -353,7 +545,12 @@ function transform_children(children, context) {
 			node.type === 'Component'
 		) {
 			state.init?.push(
-				/** @type {AST.Statement} */ (visit(node, { ...local_state, return_flags })),
+				node.type === 'VariableDeclaration'
+					? transform_variable_declaration(node, {
+							...context,
+							state: local_state,
+						})
+					: /** @type {AST.Statement} */ (visit(node, { ...local_state, return_flags })),
 			);
 			if (node.type === 'ReturnStatement') {
 				const info = return_flags.get(node);
@@ -673,6 +870,20 @@ const visitors = {
 		return context.next();
 	},
 
+	JSXElement(node, context) {
+		if (context.state.jsx_to_tsrx_element) {
+			return build_jsx_to_tsrx_element(node, context);
+		}
+		return context.next();
+	},
+
+	JSXFragment(node, context) {
+		if (context.state.jsx_to_tsrx_element) {
+			return build_jsx_to_tsrx_element(node, context);
+		}
+		return context.next();
+	},
+
 	NewExpression(node, context) {
 		const callee = node.callee;
 
@@ -781,8 +992,7 @@ const visitors = {
 	ArrowFunctionExpression(node, context) {
 		delete node.returnType;
 		delete node.typeParameters;
-		for (let i = 0; i < node.params.length; i++) {
-			const param = node.params[i];
+		const params = node.params.map((param) => {
 			delete param.typeAnnotation;
 			// Handle AssignmentPattern (parameters with default values)
 			if (param.type === 'AssignmentPattern' && param.left) {
@@ -792,14 +1002,21 @@ const visitors = {
 			const pattern = param.type === 'AssignmentPattern' ? param.left : param;
 			if (pattern.type === 'ObjectPattern' || pattern.type === 'ArrayPattern') {
 				const transformed_pattern = replace_lazy_param_pattern(pattern);
-				node.params[i] =
-					param.type === 'AssignmentPattern'
-						? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
-						: transformed_pattern;
+				return param.type === 'AssignmentPattern'
+					? /** @type {AST.AssignmentPattern} */ ({ ...param, left: transformed_pattern })
+					: transformed_pattern;
 			}
-		}
+			return param;
+		});
 
-		return context.next();
+		return {
+			...node,
+			params: params.map((param) => /** @type {AST.Pattern} */ (context.visit(param))),
+			body:
+				node.body.type === 'BlockStatement'
+					? /** @type {AST.BlockStatement} */ (context.visit(node.body))
+					: /** @type {AST.Expression} */ (context.visit(node.body)),
+		};
 	},
 
 	TSAsExpression(node, context) {
@@ -950,22 +1167,7 @@ const visitors = {
 	},
 
 	VariableDeclaration(node, context) {
-		for (const declarator of node.declarations) {
-			if (!context.state.to_ts) {
-				delete declarator.id.typeAnnotation;
-
-				// Replace lazy destructuring patterns with the generated identifier
-				if (
-					(declarator.id.type === 'ObjectPattern' || declarator.id.type === 'ArrayPattern') &&
-					declarator.id.lazy &&
-					declarator.id.metadata?.lazy_id
-				) {
-					declarator.id = b.id(declarator.id.metadata.lazy_id);
-				}
-			}
-		}
-
-		return context.next();
+		return transform_variable_declaration(node, context);
 	},
 
 	Element(node, context) {
@@ -1677,8 +1879,18 @@ const visitors = {
 	},
 
 	TSRXExpression(node, { visit, state }) {
-		let expression = /** @type {AST.Expression} */ (visit(node.expression, state));
-		const is_children_expression = is_children_template_expression(node.expression, state.scope);
+		const is_children_expression =
+			is_children_template_expression(node.expression, state.scope) ||
+			contains_template_value_node(/** @type {AST.Node} */ (node.expression)) ||
+			is_template_value_call(/** @type {AST.Expression} */ (node.expression), state.scope) ||
+			(node.expression.type === 'Identifier' &&
+				state.template_value_locals?.has(node.expression.name));
+		let expression = /** @type {AST.Expression} */ (
+			visit(node.expression, {
+				...state,
+				template_child: is_children_expression ? false : state.template_child,
+			})
+		);
 
 		if (expression.type === 'Literal') {
 			state.init?.push(
@@ -1705,7 +1917,7 @@ const visitors = {
 
 	Tsx(node, { visit, state, path }) {
 		const converted_children = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
+			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path, state.source))
 			.flat()
 			.filter((child) => child != null);
 		apply_tsrx_css_scoping(converted_children, state);
@@ -1719,6 +1931,7 @@ const visitors = {
 				state: {
 					...state,
 					init,
+					jsx_to_tsrx_element: true,
 				},
 			}),
 		);
@@ -1750,6 +1963,7 @@ const visitors = {
 				state: {
 					...state,
 					init,
+					jsx_to_tsrx_element: true,
 				},
 			}),
 		);
@@ -1949,6 +2163,7 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 		server_block_locals: [],
 		server_exported_names: [],
 		filename,
+		source,
 		namespace: 'html',
 		// TODO: should we remove all `to_ts` usages we use the client rendering for that?
 		to_ts: false,

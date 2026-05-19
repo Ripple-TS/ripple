@@ -644,6 +644,36 @@ function SetStateForOutsideComponent(state, more_state = {}) {
 	});
 }
 
+/**
+ * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {TransformClientContext} context
+ * @returns {AST.CallExpression}
+ */
+function build_jsx_to_tsrx_element(node, context) {
+	const { state, visit, path } = context;
+	const result = jsx_to_ripple_node(/** @type {AST.Node} */ (node), path, state.source);
+	const converted = Array.isArray(result) ? result : [result];
+	/** @type {AST.Node[]} */
+	const children = converted.filter((child) => child != null && child.type !== 'EmptyStatement');
+
+	apply_tsrx_css_scoping(children, state);
+
+	const children_component = b.component(b.id('render_children'), [], children);
+
+	return b.call(
+		'_$_.tsrx_element',
+		/** @type {AST.Expression} */ (
+			visit(children_component, {
+				...state,
+				flush_node: null,
+				namespace: state.namespace,
+				is_tsrx_element: true,
+				jsx_to_tsrx_element: true,
+			})
+		),
+	);
+}
+
 /** @type {Visitors<AST.Node, TransformClientState>} */
 const visitors = {
 	_(node, { next, state, path }) {
@@ -1223,6 +1253,9 @@ const visitors = {
 		if (context.state.to_ts) {
 			return context.next();
 		}
+		if (context.state.jsx_to_tsrx_element) {
+			return build_jsx_to_tsrx_element(node, context);
+		}
 		const attributes = node.openingFragment.attributes;
 		const normalized_children = node.children.filter((child) => {
 			return child.type !== 'JSXText' || child.value.trim() !== '';
@@ -1274,6 +1307,9 @@ const visitors = {
 	JSXElement(node, context) {
 		if (context.state.to_ts) {
 			return context.next();
+		}
+		if (context.state.jsx_to_tsrx_element) {
+			return build_jsx_to_tsrx_element(node, context);
 		}
 		const name = node.openingElement.name;
 		const attributes = node.openingElement.attributes;
@@ -1392,7 +1428,7 @@ const visitors = {
 		/** @type {AST.Node[]} */
 		const children_filtered = [];
 		for (const raw_child of node.children) {
-			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path);
+			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path, state.source);
 			const items = Array.isArray(result) ? result : [result];
 			for (const child of items) {
 				if (child == null || child.type === 'EmptyStatement') continue;
@@ -1414,6 +1450,7 @@ const visitors = {
 					...state,
 					namespace: state.namespace,
 					is_tsrx_element: true,
+					jsx_to_tsrx_element: true,
 				})
 			),
 		);
@@ -1459,6 +1496,7 @@ const visitors = {
 					...state,
 					namespace: state.namespace,
 					is_tsrx_element: true,
+					jsx_to_tsrx_element: true,
 				})
 			),
 		);
@@ -5568,6 +5606,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		stylesheets: [],
 		to_ts,
 		filename,
+		source,
 		namespace: 'html',
 		metadata: {},
 		errors: analysis.errors,

@@ -55,6 +55,100 @@ second"</pre>
 		expect(body).toBeHtml('<div><span>Server</span></div>');
 	});
 
+	it('renders nested tsx and tsrx expression values', async () => {
+		function makeFragment(label: string) {
+			return <tsrx>
+				<span>{label}</span>
+				const test = <tsx>
+					{[1, 2, 3].map(
+						(item) => <tsx>
+							{<tsrx>
+								<div>{item}</div>
+							</tsrx>}
+						</tsx>,
+					)}
+				</tsx>;
+				{test}
+			</tsrx>;
+		}
+
+		component Basic() {
+			{<tsx>{[1, 2].map((item) => <div>{item}</div>)}</tsx>}
+			{makeFragment('Server')}
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml(
+			'<div>1</div><div>2</div><span>Server</span><div>1</div><div>2</div><div>3</div>',
+		);
+	});
+
+	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
+		component Basic() {
+			const content = <tsx>
+				<section>
+					{<tsrx>
+						<div>
+							{'from tsrx'}
+						</div>
+					</tsrx>}
+				</section>
+			</tsx>;
+
+			{content}
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<section><div>from tsrx</div></section>');
+	});
+
+	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
+		component Basic() {
+			const content = <tsx>
+				<div>
+					{<tsrx>
+						<section>
+							<span>
+								{'inside nested tsrx'}
+							</span>
+						</section>
+					</tsrx>}
+				</div>
+			</tsx>;
+
+			{content}
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div><section><span>inside nested tsrx</span></section></div>');
+	});
+
+	it('renders tsx declared inside tsrx nested from a top-level tsx value', async () => {
+		component Basic() {
+			const content = <tsx>
+				{<tsrx>
+					const nested =
+					<tsx>
+						<span>
+							{'inside nested tsx'}
+						</span>
+					</tsx>
+					;
+					<div>{nested}</div>
+				</tsrx>}
+			</tsx>;
+
+			{content}
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('<div><span>inside nested tsx</span></div>');
+	});
+
 	it('renders tracked state updates', async () => {
 		component Counter() {
 			let &[count] = track(0);

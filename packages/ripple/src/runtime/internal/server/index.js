@@ -85,6 +85,43 @@ export function noop() {}
 
 /**
  * @param {any} value
+ * @returns {boolean}
+ */
+function is_tsrx_collection(value) {
+	if (!Array.isArray(value)) {
+		return false;
+	}
+
+	for (var i = 0; i < value.length; i++) {
+		var item = value[i];
+		if (is_tsrx_element(item) || is_tsrx_collection(item)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any[]} value
+ * @returns {void}
+ */
+function render_tsrx_collection(value) {
+	for (var i = 0; i < value.length; i++) {
+		var item = value[i];
+
+		if (is_tsrx_element(item)) {
+			item.render({});
+		} else if (is_tsrx_collection(item)) {
+			render_tsrx_collection(item);
+		} else if (item != null) {
+			output_push(escape(item));
+		}
+	}
+}
+
+/**
+ * @param {any} value
  * @returns {void}
  */
 export function render_expression(value) {
@@ -92,6 +129,8 @@ export function render_expression(value) {
 
 	if (is_tsrx_element(value)) {
 		value.render({});
+	} else if (is_tsrx_collection(value)) {
+		render_tsrx_collection(value);
 	} else {
 		output_push(escape(value ?? ''));
 	}
