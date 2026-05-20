@@ -826,7 +826,11 @@ export function TSRXPlugin(config) {
 			}
 
 			#isDoubleQuotedTextChildStart() {
-				if (this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx')) {
+				const current_template_node = this.#path.findLast(
+					(n) =>
+						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
+				);
+				if (current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') {
 					return false;
 				}
 
@@ -2028,8 +2032,17 @@ export function TSRXPlugin(config) {
 					);
 
 				if (this.eat(tt.braceL)) {
-					const inside_tsx = this.#path.findLast((n) => n.type === 'TsxCompat' || n.type === 'Tsx');
-					if (inside_tsx) {
+					const current_template_node = this.#path.findLast(
+						(n) =>
+							n.type === 'Element' ||
+							n.type === 'Tsx' ||
+							n.type === 'Tsrx' ||
+							n.type === 'TsxCompat',
+					);
+					if (
+						current_template_node?.type === 'Tsx' ||
+						current_template_node?.type === 'TsxCompat'
+					) {
 						if (this.type === tt.ellipsis) {
 							this.expect(tt.ellipsis);
 							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();

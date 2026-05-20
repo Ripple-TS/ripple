@@ -198,6 +198,31 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 			expect(code).toContain(` ${classAttrName}={classes.contentEditable}`);
 			expect(code).toContain(`placeholder={<div ${classAttrName}={classes.placeholder}>`);
 		});
+
+		it('allows native shorthand attributes in tsrx blocks nested under TSX', () => {
+			const { code } = compile(
+				`export function Test(props) {
+					return <>
+						<List
+							items={props.items}
+							renderItem={(item) =>
+								<tsrx>
+									<ItemView {item} onSelect={props.onSelect}>
+										"Selected"
+									</ItemView>
+								</tsrx>
+							}
+						/>
+					</>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('<tsrx>');
+			expect(code).toContain('item={item}');
+			expect(code).toContain('onSelect={props.onSelect}');
+			expect(code).toContain('{"Selected"}');
+		});
 	});
 }
 
