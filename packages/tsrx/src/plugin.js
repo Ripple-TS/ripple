@@ -275,6 +275,7 @@ export function TSRXPlugin(config) {
 			#componentDepth = 0;
 			#functionBodyDepth = 0;
 			#allowExpressionContainerTrailingSemicolon = false;
+			#tsxIslandExpressionDepth = 0;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -493,22 +494,27 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseTsxIslandExpressionContainer() {
-				if (!this.#isAtReservedTemplateExpressionContainer()) {
-					return this.jsx_parseExpressionContainer();
-				}
+				this.#tsxIslandExpressionDepth++;
+				try {
+					if (!this.#isAtReservedTemplateExpressionContainer()) {
+						return this.jsx_parseExpressionContainer();
+					}
 
-				const node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
-				this.next();
-				this.next();
-				const expression = /** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
-					/** @type {unknown} */ (this.parseElement())
-				);
-				node.expression = expression;
-				this.#popTokenContextsAfterTemplateExpressionElement(
-					/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (expression)),
-				);
-				this.expect(tt.braceR);
-				return this.finishNode(node, 'JSXExpressionContainer');
+					const node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
+					this.next();
+					this.next();
+					const expression = /** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
+						/** @type {unknown} */ (this.parseElement())
+					);
+					node.expression = expression;
+					this.#popTokenContextsAfterTemplateExpressionElement(
+						/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (expression)),
+					);
+					this.expect(tt.braceR);
+					return this.finishNode(node, 'JSXExpressionContainer');
+				} finally {
+					this.#tsxIslandExpressionDepth--;
+				}
 			}
 
 			#isAtReservedTemplateExpressionContainer() {
@@ -2459,15 +2465,6 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				const current_template_node = this.#path.findLast(
-					(n) =>
-						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
-				);
-				if (current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') {
-					// Inside tsx/tsx:*, let acorn-jsx handle it normally
-					return super.jsx_parseElement();
-				}
-
 				// Check if the element being parsed IS a <tsx>, <tsrx>, or <tsx:*> tag
 				// Current token is jsxTagStart, this.end is position after '<'
 				const tag_name_start = this.end;
@@ -2494,6 +2491,20 @@ export function TSRXPlugin(config) {
 						char_after_tsrx === CharCode.lineFeed ||
 						char_after_tsrx === CharCode.carriageReturn);
 
+				const current_template_node = this.#path.findLast(
+					(n) =>
+						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
+				);
+				if (
+					(current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') &&
+					!is_tsrx_tag
+				) {
+					// Inside tsx/tsx:*, let acorn-jsx handle regular TSX tags normally.
+					// Nested <tsrx> still needs Ripple's native template parser so it
+					// can lower through the same path as <tsrx> in component bodies.
+					return super.jsx_parseElement();
+				}
+
 				if (is_fragment_tag || is_tsx_tag || is_tsrx_tag) {
 					// Use Ripple's parseElement to create a Tsx/Tsrx/TsxCompat node.
 					// Bare fragments (<></>) are shorthand for <tsx>...</tsx>.
@@ -2501,9 +2512,21 @@ export function TSRXPlugin(config) {
 					const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 						/** @type {unknown} */ (this.parseElement())
 					);
-					this.#popTokenContextsAfterTemplateExpressionElement(
-						/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (parsed)),
-					);
+					if (
+						current_template_node?.type !== 'Tsx' &&
+						current_template_node?.type !== 'TsxCompat'
+					) {
+						this.#popTokenContextsAfterTemplateExpressionElement(
+							/** @type {AST.Tsx | AST.Tsrx | AST.TsxCompat} */ (/** @type {unknown} */ (parsed)),
+						);
+					} else if (this.type === tt.braceR && this.curContext() === tstc.tc_expr) {
+						if (this.#tsxIslandExpressionDepth === 0) {
+							// Acorn still owns the surrounding JSX expression container.
+							// Keep a block-expression context for its closing `}` so the
+							// parent TSX tag continues tokenizing as JSX afterward.
+							this.context.push(b_expr);
+						}
+					}
 					return parsed;
 				}
 

@@ -299,17 +299,15 @@ function makeNestedTsxTsrxFragment(label) {
 			_$_.render_expression([1, 2, 3, 4].map((item) => _$_.tsrx_element(function render_children() {
 				{
 					_$_.render_expression(_$_.tsrx_element(function render_children() {
+						_$_.output_push('<div');
+						_$_.output_push(' class="helper-item"');
+						_$_.output_push('>');
+
 						{
-							_$_.output_push('<div');
-							_$_.output_push(' class="helper-item"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(item));
-							}
-
-							_$_.output_push('</div>');
+							_$_.output_push(_$_.escape(item));
 						}
+
+						_$_.output_push('</div>');
 					}));
 				}
 			})));
@@ -684,17 +682,15 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 
 			{
 				_$_.render_expression(_$_.tsrx_element(function render_children() {
+					_$_.output_push('<div');
+					_$_.output_push(' class="inner"');
+					_$_.output_push('>');
+
 					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="inner"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('from tsrx');
-						}
-
-						_$_.output_push('</div>');
+						_$_.output_push('from tsrx');
 					}
+
+					_$_.output_push('</div>');
 				}));
 			}
 
@@ -720,25 +716,23 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 
 			{
 				_$_.render_expression(_$_.tsrx_element(function render_children() {
+					_$_.output_push('<section');
+					_$_.output_push(' class="native"');
+					_$_.output_push('>');
+
 					{
-						_$_.output_push('<section');
-						_$_.output_push(' class="native"');
+						_$_.output_push('<span');
+						_$_.output_push(' class="nested-tsrx"');
 						_$_.output_push('>');
 
 						{
-							_$_.output_push('<span');
-							_$_.output_push(' class="nested-tsrx"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('inside nested tsrx');
-							}
-
-							_$_.output_push('</span>');
+							_$_.output_push('inside nested tsrx');
 						}
 
-						_$_.output_push('</section>');
+						_$_.output_push('</span>');
 					}
+
+					_$_.output_push('</section>');
 				}));
 			}
 

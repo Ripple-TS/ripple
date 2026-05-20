@@ -164,6 +164,44 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 }
 
 /**
+ * @param {CompileHarness} harness
+ */
+export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }) {
+	describe(`[${name}] <tsrx> inside TSX expressions`, () => {
+		it('lowers nested native TSRX templates inside regular function TSX props', () => {
+			const { code } = compile(
+				`function App3() {
+					return <>
+						<PlainTextPlugin
+							ErrorBoundary={LexicalErrorBoundary}
+							contentEditable={<tsrx>
+								<ContentEditable
+									aria-placeholder={placeholder}
+									class={classes.contentEditable}
+									placeholder={<tsrx>
+										<div class={classes.placeholder}>{placeholder}</div>
+									</tsrx>}
+								/>
+							</tsrx>}
+							placeholder={<tsrx>
+								<div class={classes.placeholder}>{placeholder}</div>
+							</tsrx>}
+						/>
+					</>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).not.toContain('<tsrx>');
+			expect(code).not.toContain('</tsrx>');
+			expect(code).toContain('contentEditable={<ContentEditable');
+			expect(code).toContain(` ${classAttrName}={classes.contentEditable}`);
+			expect(code).toContain(`placeholder={<div ${classAttrName}={classes.placeholder}>`);
+		});
+	});
+}
+
+/**
  * Nested `&{...}` / `&[...]` patterns must chain accessors through every lazy
  * level: a reference to the inner binding becomes the full member path through
  * the synthesized parent identifier, and assignments to it write back through

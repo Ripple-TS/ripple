@@ -3,6 +3,9 @@ import { createSignal, lazy } from 'solid-js';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
+import {
+	runTsxExpressionTsrxRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/tsx-expression-tsrx';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
@@ -1528,3 +1531,4 @@ describe('tsrx-solid runtime', () => {
 });
 
 runSwitchFallthroughRuntimeTests();
+runTsxExpressionTsrxRuntimeTests();

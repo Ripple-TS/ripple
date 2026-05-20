@@ -216,9 +216,7 @@ export component NestedTsrxInsideTopLevelTsxExpression() {
 	const content = <tsx>
 		<section class="outer">
 			{<tsrx>
-				<div class="inner">
-					{'from tsrx'}
-				</div>
+				<div class="inner">{'from tsrx'}</div>
 			</tsrx>}
 		</section>
 	</tsx>;
@@ -231,9 +229,7 @@ export component NestedTsrxElementsInsideTopLevelTsxValue() {
 		<div class="wrapper">
 			{<tsrx>
 				<section class="native">
-					<span class="nested-tsrx">
-						{'inside nested tsrx'}
-					</span>
+					<span class="nested-tsrx">{'inside nested tsrx'}</span>
 				</section>
 			</tsrx>}
 		</div>

@@ -6,6 +6,7 @@ import {
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
 	runSharedSwitchHelperHoistingTests,
+	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -18,6 +19,7 @@ runSharedSourceMappingTests({
 });
 
 runSharedAnonymousComponentTests({ compile, name: 'solid' });
+runSharedTsxExpressionTsrxTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'solid' });

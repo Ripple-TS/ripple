@@ -3,6 +3,9 @@ import { useState, use } from 'react';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
+import {
+	runTsxExpressionTsrxRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/tsx-expression-tsrx';
 
 const EXPECTED_ERROR_LOG_SNIPPETS = [
 	'sync boom',
@@ -1824,3 +1827,4 @@ describe('tsrx-react runtime', () => {
 });
 
 runSwitchFallthroughRuntimeTests();
+runTsxExpressionTsrxRuntimeTests();

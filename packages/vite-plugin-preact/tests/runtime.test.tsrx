@@ -4,6 +4,9 @@ import { useState } from 'preact/hooks';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
+import {
+	runTsxExpressionTsrxRuntimeTests,
+} from '@tsrx/core/test-harness/runtime/tsx-expression-tsrx';
 
 function text(selector: string): string | null {
 	return container.querySelector(selector)?.textContent ?? null;
@@ -417,3 +420,4 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 });
 
 runSwitchFallthroughRuntimeTests();
+runTsxExpressionTsrxRuntimeTests();

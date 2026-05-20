@@ -7,6 +7,7 @@ import {
 	runSharedComponentParamsTests,
 	runSharedNestedLazyDestructuringTests,
 	runSharedSwitchHelperHoistingTests,
+	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
@@ -18,6 +19,7 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: true,
 });
 runSharedAnonymousComponentTests({ compile, name: 'vue' });
+runSharedTsxExpressionTsrxTests({ compile, name: 'vue', classAttrName: 'class' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'vue' });
