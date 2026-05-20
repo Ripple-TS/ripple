@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.15
+
+### Patch Changes
+
+- [`c7aea34`](https://github.com/Ripple-TS/ripple/commit/c7aea34f65f712f9659e3578ae73328fc4e34761)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Highlight TSRX and TSX
+  expression islands inside parenthesized arrow returns.
+
+- [`418658c`](https://github.com/Ripple-TS/ripple/commit/418658c96b38d62e3c260d4b8c7d481272a41753)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix highlighting after
+  multi-line self-closing TSX tags with TSRX attribute expressions.
+
+- Updated dependencies []:
+  - @ripple-ts/language-server@0.3.65
+  - @tsrx/typescript-plugin@0.3.65
+
 ## 2.0.14
 
 ### Patch Changes

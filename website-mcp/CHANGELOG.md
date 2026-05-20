@@ -1,5 +1,17 @@
 # website-mcp
 
+## 0.0.26
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/mcp@0.0.26
+  - @tsrx/preact@0.1.13
+  - @tsrx/react@0.2.13
+  - @tsrx/ripple@0.1.13
+  - @tsrx/solid@0.1.13
+  - @tsrx/vue@0.1.13
+
 ## 0.0.25
 
 ### Patch Changes

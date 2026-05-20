@@ -1,5 +1,14 @@
 # @tsrx/core
 
+## 0.1.13
+
+### Patch Changes
+
+- [#1162](https://github.com/Ripple-TS/ripple/pull/1162)
+  [`95c2976`](https://github.com/Ripple-TS/ripple/commit/95c2976b9ec2c20c4160ad13b636c1ed03e863ef)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow native TSRX shorthand
+  attributes inside `<tsrx>` blocks nested under TSX.
+
 ## 0.1.12
 
 ### Patch Changes

@@ -1,5 +1,28 @@
 # @tsrx/prettier-plugin
 
+## 0.3.65
+
+### Patch Changes
+
+- [`767e645`](https://github.com/Ripple-TS/ripple/commit/767e645147e11b1b4d37e4b7a3cfdbc834c4a07f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep `?? null` fallback
+  formatting inline when the expression is used as a ternary test.
+
+- [#1161](https://github.com/Ripple-TS/ripple/pull/1161)
+  [`c31368c`](https://github.com/Ripple-TS/ripple/commit/c31368cf47c2fe1a101fb8ef7d9b4ff4a939d17a)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Avoid forcing parentheses
+  around template arrow returns in JSX attributes and format explicit `<tsx>`
+  blocks across lines.
+
+- [#1160](https://github.com/Ripple-TS/ripple/pull/1160)
+  [`08de536`](https://github.com/Ripple-TS/ripple/commit/08de5367a6d93b687577cd936aac82adc27e7775)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Print TypeScript
+  `satisfies` expressions instead of replacing them with unknown-node comments.
+
+- Updated dependencies
+  [[`95c2976`](https://github.com/Ripple-TS/ripple/commit/95c2976b9ec2c20c4160ad13b636c1ed03e863ef)]:
+  - @tsrx/core@0.1.13
+
 ## 0.3.64
 
 ### Patch Changes
