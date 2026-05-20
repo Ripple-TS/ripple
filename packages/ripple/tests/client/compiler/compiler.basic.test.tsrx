@@ -531,10 +531,11 @@ component App() {
 
 		function find_mapping(source_offset: number, generated_offset: number) {
 			return result.mappings.find(
-				(mapping) => mapping.sourceOffsets[0] === source_offset &&
-					mapping.generatedOffsets[0] === generated_offset &&
-					mapping.lengths[0] === 'nested'.length &&
-					mapping.generatedLengths[0] === 'nested'.length,
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_offset &&
+						mapping.generatedOffsets[0] === generated_offset &&
+						mapping.lengths[0] === 'nested'.length &&
+						mapping.generatedLengths[0] === 'nested'.length,
 			);
 		}
 
@@ -668,10 +669,11 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 					generatedOffsets: number[];
 					lengths: number[];
 					generatedLengths: number[];
-				}) => mapping.sourceOffsets[0] === source_offset &&
-					mapping.generatedOffsets[0] === generated_offset &&
-					mapping.lengths[0] === identifier.length &&
-					mapping.generatedLengths[0] === identifier.length,
+				}) =>
+					mapping.sourceOffsets[0] === source_offset &&
+						mapping.generatedOffsets[0] === generated_offset &&
+						mapping.lengths[0] === identifier.length &&
+						mapping.generatedLengths[0] === identifier.length,
 			);
 
 			expect(source_offset).toBeGreaterThan(-1);
@@ -969,10 +971,11 @@ component App() {
 			generated_length = length,
 		) {
 			return result.mappings.find(
-				(mapping) => mapping.sourceOffsets[0] === source_offset &&
-					mapping.generatedOffsets[0] === generated_offset &&
-					mapping.lengths[0] === length &&
-					mapping.generatedLengths[0] === generated_length,
+				(mapping) =>
+					mapping.sourceOffsets[0] === source_offset &&
+						mapping.generatedOffsets[0] === generated_offset &&
+						mapping.lengths[0] === length &&
+						mapping.generatedLengths[0] === generated_length,
 			);
 		}
 
