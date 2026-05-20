@@ -1380,6 +1380,19 @@ import { effect, track } from 'ripple';`;
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should break arrow before a long generic optional call with nullish fallback', async () => {
+			const input = `const test = () => menuRef.current?.querySelector<HTMLElement>(
+        "[role=\\"menuitem\\"]:not([aria-disabled=\\"true\\"])",
+      ) ??
+        null`;
+			const expected = `const test = () =>
+  menuRef.current?.querySelector<HTMLElement>(
+    '[role="menuitem"]:not([aria-disabled="true"])',
+  ) ?? null;`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('does not add spaces around inlined array elements in destructured arguments', async () => {
 			const expected = `for (const [key, value] of Object.entries(attributes).filter(([_key, value]) => value !== '')) {
 }

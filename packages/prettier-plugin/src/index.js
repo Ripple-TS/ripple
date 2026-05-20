@@ -14,7 +14,7 @@
  * @typedef {((path: AstPath) => Doc) & ((path: AstPath, args: PrintArgs) => Doc)} PrintFn
  */
 
-/** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
+/** @typedef {Partial<Pick<ParserOptions, 'singleQuote' | 'jsxSingleQuote' | 'semi' | 'trailingComma' | 'useTabs' | 'tabWidth' | 'singleAttributePerLine' | 'bracketSameLine' | 'bracketSpacing' | 'arrowParens' | 'originalText' | 'printWidth'>> & { locStart: (node: AST.NodeWithLocation) => number, locEnd: (node: AST.NodeWithLocation) => number }} RippleFormatOptions */
 
 /** @typedef {{ isInAttribute?: boolean, isInArray?: boolean, allowInlineObject?: boolean, isConditionalTest?: boolean, isNestedConditional?: boolean, suppressLeadingComments?: boolean, suppressExpressionLeadingComments?: boolean, isInlineContext?: boolean, isStatement?: boolean, isLogicalAndOr?: boolean, allowShorthandProperty?: boolean, isFirstChild?: boolean, skipComponentLabel?: boolean, noBreakInside?: boolean, expandLastArg?: boolean }} PrintArgs */
 
@@ -1923,6 +1923,13 @@ function printRippleNode(node, path, options, print, args) {
 		case 'LogicalExpression': {
 			const logicalParent = path.getParentNode();
 			let logicalResult;
+			const rightIsNullLiteral = node.right.type === 'Literal' && node.right.value === null;
+			const shouldKeepNullishFallbackInline =
+				node.operator === '??' &&
+				rightIsNullLiteral &&
+				(node.left.type === 'CallExpression' ||
+					node.left.type === 'ChainExpression' ||
+					node.left.type === 'NewExpression');
 			// Don't add indent if we're in a conditional test context
 			if (args?.isConditionalTest) {
 				logicalResult = group([
@@ -1930,6 +1937,14 @@ function printRippleNode(node, path, options, print, args) {
 					' ',
 					node.operator,
 					[line, path.call((childPath) => print(childPath, { isConditionalTest: true }), 'right')],
+				]);
+			} else if (shouldKeepNullishFallbackInline) {
+				logicalResult = group([
+					path.call(print, 'left'),
+					' ',
+					node.operator,
+					' ',
+					path.call(print, 'right'),
 				]);
 			} else {
 				logicalResult = group([
@@ -2814,36 +2829,45 @@ function printArrowFunction(node, path, options, print, args) {
 		parts.push(': ', path.call(print, 'returnType'));
 	}
 
-	parts.push(' => ');
-
 	// For block statements, print the body directly to get proper formatting
 	if (node.body.type === 'BlockStatement') {
+		parts.push(' => ');
 		parts.push(path.call(print, 'body'));
 	} else {
 		// For expression bodies, check if we need to wrap in parens
 		// Wrap ObjectExpression, AssignmentExpression, and SequenceExpression in parens
 		// to avoid ambiguity with block statements or to clarify intent
 		const bodyDoc = path.call(print, 'body');
+		const groupId = Symbol('arrow');
+		const shouldBreakBody = shouldBreakArrowExpressionBody(node.body, options);
+		/** @type {Doc | Doc[]} */
+		let bodyContent;
 		if (
 			node.body.type === 'ObjectExpression' ||
 			node.body.type === 'AssignmentExpression' ||
 			node.body.type === 'SequenceExpression' ||
 			(args?.isInAttribute && isTemplateExpression(node.body))
 		) {
-			parts.push('(');
 			if (isTemplateExpression(node.body)) {
-				parts.push(indent([hardline, bodyDoc]));
-				parts.push(hardline);
+				bodyContent = ['(', indent([hardline, bodyDoc]), hardline, ')'];
 			} else {
-				parts.push(bodyDoc);
+				bodyContent = ['(', bodyDoc, ')'];
 			}
-			parts.push(')');
 		} else {
-			parts.push(bodyDoc);
+			bodyContent = bodyDoc;
+		}
+		if (shouldBreakBody) {
+			parts.push(' =>', indent([hardline, bodyContent]));
+		} else {
+			parts.push(
+				' =>',
+				group(indent(line), { id: groupId }),
+				indentIfBreak(bodyContent, { groupId }),
+			);
 		}
 	}
 
-	return parts;
+	return group(parts);
 }
 
 /**
@@ -3051,6 +3075,33 @@ function shouldHugArrowFunctions(args) {
 	}
 
 	return firstBlockIndex === 0;
+}
+
+/**
+ * Check whether a node's original source span exceeds the configured print width.
+ * @param {AST.NodeWithLocation} node - The node to check
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function sourceSpanExceedsPrintWidth(node, options) {
+	const printWidth = options.printWidth ?? 80;
+	if (!options.originalText || node.start === undefined || node.end === undefined) {
+		return false;
+	}
+	return options.originalText.slice(node.start, node.end).length > printWidth;
+}
+
+/**
+ * Check if an arrow expression body should break immediately after `=>`.
+ * @param {AST.Expression} node - The arrow body expression
+ * @param {RippleFormatOptions} options - Prettier options
+ * @returns {boolean}
+ */
+function shouldBreakArrowExpressionBody(node, options) {
+	return (
+		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
+		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
+	);
 }
 
 /**
