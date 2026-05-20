@@ -200,6 +200,58 @@ describe('prettier-plugin', () => {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should format explicit tsx arrow returns like tsrx blocks', async () => {
+			const input = `component Test(props) {
+	const func = (item) => <tsx><ItemView item={item} onSelect={props.onSelect} /></tsx>;
+
+	<List
+		items={props.items}
+		renderItem={(item) => <tsx><ItemView item={item} onSelect={props.onSelect} /></tsx>}
+	/>
+}`;
+			const expected = `component Test(props) {
+  const func = (item) => <tsx>
+    <ItemView item={item} onSelect={props.onSelect} />
+  </tsx>;
+
+  <List
+    items={props.items}
+    renderItem={(item) =>
+      <tsx>
+        <ItemView item={item} onSelect={props.onSelect} />
+      </tsx>
+    }
+  />
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format template arrow returns in tsx attributes like ripple attributes', async () => {
+			const input = `component Test(props) {
+	const view = <tsx>
+		<List
+			items={props.items}
+			renderItem={(item) => <tsx><ItemView item={item} onSelect={props.onSelect} /></tsx>}
+		/>
+	</tsx>;
+}`;
+			const expected = `component Test(props) {
+  const view = <tsx>
+    <List
+      items={props.items}
+      renderItem={(item) =>
+        <tsx>
+          <ItemView item={item} onSelect={props.onSelect} />
+        </tsx>
+      }
+    />
+  </tsx>;
+}`;
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve comments before expressions after nested tsx and tsrx blocks', async () => {
 			const input = `component App() {
 	const content = <tsx>
@@ -255,7 +307,7 @@ describe('prettier-plugin', () => {
 }`,
 					expected: `component Test() {
   <A
-    fallback={(error) => (
+    fallback={(error) =>
       <>
         <B
           id="xyz"
@@ -265,7 +317,7 @@ describe('prettier-plugin', () => {
           otherProp={2}
         />
       </>
-    )}
+    }
   />
 }`,
 				},
@@ -279,7 +331,7 @@ describe('prettier-plugin', () => {
 }`,
 					expected: `component Test() {
   <A
-    fallback={(error) => (
+    fallback={(error) =>
       <tsx>
         <B
           id="xyz"
@@ -289,7 +341,7 @@ describe('prettier-plugin', () => {
           otherProp={2}
         />
       </tsx>
-    )}
+    }
   />
 }`,
 				},
@@ -303,7 +355,7 @@ describe('prettier-plugin', () => {
 }`,
 					expected: `component Test() {
   <A
-    fallback={(error) => (
+    fallback={(error) =>
       <tsrx>
         <B
           id="xyz"
@@ -313,7 +365,7 @@ describe('prettier-plugin', () => {
           otherProp={2}
         />
       </tsrx>
-    )}
+    }
   />
 }`,
 				},
@@ -327,7 +379,7 @@ describe('prettier-plugin', () => {
 }`,
 					expected: `component Test() {
   <A
-    fallback={(error) => (
+    fallback={(error) =>
       <tsx:react>
         <B
           id="xyz"
@@ -337,7 +389,7 @@ describe('prettier-plugin', () => {
           otherProp={2}
         />
       </tsx:react>
-    )}
+    }
   />
 }`,
 				},
@@ -1015,7 +1067,9 @@ import { Something, type Props, track } from 'ripple';`;
 const foo = <tsx><Bar {...props} /></tsx>;`;
 
 			const expected = `const props = {};
-const foo = <tsx><Bar {...props} /></tsx>;`;
+const foo = <tsx>
+  <Bar {...props} />
+</tsx>;`;
 
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
@@ -2279,7 +2333,9 @@ files = [...(files ?? []), ...dt.files];`;
 
 			const expected = `class Foo {
   bar() {
-    return <tsx>{'Hello'}</tsx>;
+    return <tsx>
+      {'Hello'}
+    </tsx>;
   }
 }`;
 

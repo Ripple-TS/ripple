@@ -2839,20 +2839,15 @@ function printArrowFunction(node, path, options, print, args) {
 		// to avoid ambiguity with block statements or to clarify intent
 		const bodyDoc = path.call(print, 'body');
 		const groupId = Symbol('arrow');
-		const shouldBreakBody = shouldBreakArrowExpressionBody(node.body, options);
+		const shouldBreakBody = shouldBreakArrowExpressionBody(node.body, options, args);
 		/** @type {Doc | Doc[]} */
 		let bodyContent;
 		if (
 			node.body.type === 'ObjectExpression' ||
 			node.body.type === 'AssignmentExpression' ||
-			node.body.type === 'SequenceExpression' ||
-			(args?.isInAttribute && isTemplateExpression(node.body))
+			node.body.type === 'SequenceExpression'
 		) {
-			if (isTemplateExpression(node.body)) {
-				bodyContent = ['(', indent([hardline, bodyDoc]), hardline, ')'];
-			} else {
-				bodyContent = ['(', bodyDoc, ')'];
-			}
+			bodyContent = ['(', bodyDoc, ')'];
 		} else {
 			bodyContent = bodyDoc;
 		}
@@ -2883,6 +2878,15 @@ function isTemplateExpression(node) {
 		node.type === 'JSXElement' ||
 		node.type === 'JSXFragment'
 	);
+}
+
+/**
+ * Check whether a braced attribute expression should close on its own line.
+ * @param {AST.Node} node - The expression inside the attribute braces
+ * @returns {boolean}
+ */
+function shouldBreakAttributeExpressionClosingBrace(node) {
+	return node.type === 'ArrowFunctionExpression' && node.body && isTemplateExpression(node.body);
 }
 
 /**
@@ -3095,9 +3099,13 @@ function sourceSpanExceedsPrintWidth(node, options) {
  * Check if an arrow expression body should break immediately after `=>`.
  * @param {AST.Expression} node - The arrow body expression
  * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintArgs} [args] - Additional context arguments
  * @returns {boolean}
  */
-function shouldBreakArrowExpressionBody(node, options) {
+function shouldBreakArrowExpressionBody(node, options, args) {
+	if (args?.isInAttribute && isTemplateExpression(node)) {
+		return true;
+	}
 	return (
 		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
 		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
@@ -5778,7 +5786,7 @@ function printTsx(node, path, options, print) {
 		return [tagName, closingTagName];
 	}
 
-	if (printedChildren.length > 1) {
+	if (!is_fragment || printedChildren.length > 1) {
 		return group([
 			tagName,
 			indent([hardline, join(hardline, printedChildren)]),
@@ -6192,11 +6200,15 @@ function printJSXAttribute(attr, path, options, print) {
 	}
 
 	if (attr.value.type === 'JSXExpressionContainer') {
+		const expression = attr.value.expression;
 		const exprDoc = path.call(
 			(valuePath) => print(valuePath, { isInAttribute: true }),
 			'value',
 			'expression',
 		);
+		if (shouldBreakAttributeExpressionClosingBrace(expression)) {
+			return [name, '={', exprDoc, hardline, '}'];
+		}
 		return [name, '={', exprDoc, '}'];
 	}
 
@@ -6774,6 +6786,9 @@ function printAttribute(node, path, options, print) {
 			parts.push('={');
 			// Pass inline context for attribute values (keep objects compact)
 			parts.push(path.call((attrPath) => print(attrPath, { isInAttribute: true }), 'value'));
+			if (shouldBreakAttributeExpressionClosingBrace(node.value)) {
+				parts.push(hardline);
+			}
 			parts.push('}');
 		}
 	}
