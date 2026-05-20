@@ -1,5 +1,26 @@
 # @tsrx/prettier-plugin
 
+## 0.3.63
+
+### Patch Changes
+
+- [#1155](https://github.com/Ripple-TS/ripple/pull/1155)
+  [`b135007`](https://github.com/Ripple-TS/ripple/commit/b135007e4ebfc87b789b49b7c6af38e633b689f0)
+  Thanks [@aleclarson](https://github.com/aleclarson)! - Preserve required
+  parentheses around assignment expressions in precedence-sensitive expression
+  contexts.
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve comments before TSRX
+  expressions that follow nested `<tsx>` and `<tsrx>` blocks, and keep nested
+  `<tsx>` initializer semicolons attached.
+
+- Updated dependencies
+  [[`2acbbea`](https://github.com/Ripple-TS/ripple/commit/2acbbea9253ac8f516fe0d3a7a38331490e6fd8b),
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)]:
+  - @tsrx/core@0.1.12
+
 ## 0.3.62
 
 ### Patch Changes

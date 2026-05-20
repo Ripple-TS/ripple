@@ -1,5 +1,44 @@
 # @tsrx/ripple
 
+## 0.1.12
+
+### Patch Changes
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parse nested `<tsrx>` islands
+  inside `<tsx>` expression containers as native TSRX so setup declarations and
+  references keep Volar mappings, and hydrate deeply nested `<tsx>`/`<tsrx>`
+  expression values without skipping server markers.
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Render calls to helper
+  functions with nested `<tsx>` or `<tsrx>` returns as template expressions during
+  SSR.
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix to_ts output for nested
+  `<tsrx>` islands inside `<tsx>` blocks.
+
+  Type JSX expression values as `TSRXElement` so IntelliSense reports assigned
+  TSX/TSRX fragments as renderable values instead of `void`.
+
+  Fix TextMate highlighting for nested `<tsrx>` and `<tsx>` tags inside JSX
+  expression containers.
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Render nested `<tsx>` and
+  `<tsrx>` expression values, including arrays returned from JSX-style
+  expressions.
+
+- Updated dependencies
+  [[`2acbbea`](https://github.com/Ripple-TS/ripple/commit/2acbbea9253ac8f516fe0d3a7a38331490e6fd8b),
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)]:
+  - @tsrx/core@0.1.12
+
 ## 0.1.11
 
 ### Patch Changes

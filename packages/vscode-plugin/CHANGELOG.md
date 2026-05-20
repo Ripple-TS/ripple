@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.13
+
+### Patch Changes
+
+- [#1153](https://github.com/Ripple-TS/ripple/pull/1153)
+  [`9df9fe3`](https://github.com/Ripple-TS/ripple/commit/9df9fe3a2d26978e69172db84994ac496761cd04)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix to_ts output for nested
+  `<tsrx>` islands inside `<tsx>` blocks.
+
+  Type JSX expression values as `TSRXElement` so IntelliSense reports assigned
+  TSX/TSRX fragments as renderable values instead of `void`.
+
+  Fix TextMate highlighting for nested `<tsrx>` and `<tsx>` tags inside JSX
+  expression containers.
+
+- Updated dependencies []:
+  - @ripple-ts/language-server@0.3.63
+  - @tsrx/typescript-plugin@0.3.63
+
 ## 2.0.12
 
 ### Patch Changes

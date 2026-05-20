@@ -1,5 +1,12 @@
 # @tsrx/vite-plugin-solid
 
+## 0.0.42
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/solid@0.1.12
+
 ## 0.0.41
 
 ### Patch Changes
