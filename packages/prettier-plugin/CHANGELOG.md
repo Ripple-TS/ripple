@@ -1,5 +1,15 @@
 # @tsrx/prettier-plugin
 
+## 0.3.64
+
+### Patch Changes
+
+- [#1157](https://github.com/Ripple-TS/ripple/pull/1157)
+  [`f06059c`](https://github.com/Ripple-TS/ripple/commit/f06059cdfd897f380169ea528e93196073afc768)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix formatting for
+  expression-bodied arrows that return long generic optional calls with nullish
+  fallbacks.
+
 ## 0.3.63
 
 ### Patch Changes
