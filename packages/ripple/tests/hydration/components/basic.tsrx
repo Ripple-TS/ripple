@@ -83,7 +83,9 @@ function makeNestedTsxTsrxFragment(label: string) {
 }
 
 export component NestedTsxTsrxExpressionValues() {
-	{<tsx>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</tsx>}
+	{<tsx>
+		{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
+	</tsx>}
 	{makeNestedTsxTsrxFragment('from helper')}
 }
 

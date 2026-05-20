@@ -73,7 +73,9 @@ second"</pre>
 		}
 
 		component Basic() {
-			{<tsx>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</tsx>}
+			{<tsx>
+				{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
+			</tsx>}
 			{makeFragment('from helper')}
 		}
 
