@@ -696,17 +696,26 @@ export async function render(component, passed_in_options = {}) {
 			}
 		},
 		(error) => {
-			// TODO - allow a global error template in ripple.config.ts
 			// We're not going to send the error in the stream stream.error()
 			// as we should send sent the error template
 
 			// store the error to be returned
 			top_level_error = error;
-			console.error(error);
+			const output = /** @type {Block | null} */ (root_block)?.o;
+			if (output?.isSyncRun()) {
+				output._decrementPending();
+				output._finishSyncRun();
+			}
+			if (options.rootBoundary?.catch) {
+				options.rootBoundary.catch({ error, reset: noop });
+			} else {
+				console.error(error);
+			}
 		},
 		() => {
-			// TODO - allow a global pending in ripple.config.ts
-			// pending would be implemented as part of the streaming rendering support
+			if (options.rootBoundary?.pending) {
+				options.rootBoundary.pending({});
+			}
 		},
 	);
 

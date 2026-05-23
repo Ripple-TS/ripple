@@ -4,6 +4,7 @@ import type {
 	Middleware,
 	ResolvedRippleConfig,
 	RippleConfigOptions,
+	RootBoundaryOptions,
 } from '@ripple-ts/vite-plugin';
 
 export function resolveRippleConfig(
@@ -27,6 +28,7 @@ export interface ServerManifest {
 	rpcModules?: Record<string, Record<string, Function>>;
 	/** Trust X-Forwarded-* headers when deriving origin for RPC fetch */
 	trustProxy?: boolean;
+	rootBoundary?: RootBoundaryOptions;
 	/** Platform-specific runtime primitives from the adapter */
 	runtime: RuntimePrimitives;
 	/**
@@ -46,7 +48,10 @@ export interface RenderResult {
 }
 
 export interface HandlerOptions {
-	render: (component: Function) => Promise<RenderResult>;
+	render: (
+		component: Function,
+		options?: { rootBoundary?: RootBoundaryOptions },
+	) => Promise<RenderResult>;
 	getCss: (css: Set<string>) => string;
 	htmlTemplate: string;
 	executeServerFunction: (fn: Function, body: string) => Promise<string>;

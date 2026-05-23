@@ -6,6 +6,56 @@
  */
 
 /**
+ * @typedef {string | readonly [string, string]} RenderRouteEntry
+ */
+
+/**
+ * @param {RenderRouteEntry | undefined} entry
+ * @returns {string | undefined}
+ */
+export function get_route_entry_path(entry) {
+	return typeof entry === 'string' ? entry : entry?.[1];
+}
+
+/**
+ * @param {RenderRouteEntry | undefined} entry
+ * @returns {string | undefined}
+ */
+export function get_route_entry_export_name(entry) {
+	return typeof entry === 'string' ? undefined : entry?.[0];
+}
+
+/**
+ * @param {RenderRouteEntry | undefined} entry
+ * @returns {string | undefined}
+ */
+export function get_route_entry_id(entry) {
+	const path = get_route_entry_path(entry);
+	const export_name = get_route_entry_export_name(entry);
+	return path && export_name ? `${path}#${export_name}` : path;
+}
+
+/**
+ * @param {Record<string, unknown>} module
+ * @param {string | undefined} export_name
+ * @returns {Function | null}
+ */
+export function get_component_export(module, export_name) {
+	if (export_name && typeof module[export_name] === 'function') {
+		return module[export_name];
+	}
+	if (typeof module.default === 'function') {
+		return module.default;
+	}
+	for (const [key, value] of Object.entries(module)) {
+		if (typeof value === 'function' && /^[A-Z]/.test(key)) {
+			return value;
+		}
+	}
+	return null;
+}
+
+/**
  * Route for rendering Ripple components with SSR
  */
 export class RenderRoute {
@@ -15,10 +65,13 @@ export class RenderRoute {
 	/** @type {string} */
 	path;
 
-	/** @type {string} */
+	/** @type {RenderRouteEntry | undefined} */
 	entry;
 
-	/** @type {string | undefined} */
+	/** @type {Function | undefined} */
+	component;
+
+	/** @type {string | Function | undefined} */
 	layout;
 
 	/** @type {Middleware[]} */
@@ -28,8 +81,13 @@ export class RenderRoute {
 	 * @param {RenderRouteOptions} options
 	 */
 	constructor(options) {
+		if (!options.entry && !options.component) {
+			throw new Error('RenderRoute requires either `entry` or `component`.');
+		}
+
 		this.path = options.path;
 		this.entry = options.entry;
+		this.component = options.component;
 		this.layout = options.layout;
 		this.before = options.before ?? [];
 	}

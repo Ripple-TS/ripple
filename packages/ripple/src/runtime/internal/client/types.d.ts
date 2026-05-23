@@ -69,6 +69,11 @@ export type CompatOptions = {
 	[key: string]: CompatApi;
 };
 
+export type RootBoundaryOptions = {
+	pending?: (anchor: Node, props: Record<string, never>, block: Block | null) => void;
+	catch?: (anchor: Node, props: { error: unknown; reset: () => void }, block: Block | null) => void;
+};
+
 declare global {
 	interface Element {
 		__attributes?: {

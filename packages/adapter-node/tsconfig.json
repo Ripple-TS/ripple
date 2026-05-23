@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
+    "module": "esnext",
+    "lib": ["esnext"],
+    "target": "esnext",
+    "noEmit": true,
     "allowJs": true,
-    "noEmit": true
+    "moduleResolution": "bundler",
+    "strict": true,
+    "checkJs": true,
+    "types": ["node"]
   },
-  "include": ["./src/**/*", "./tests/**/*"],
+  "include": ["./src/**/*", "./tests/**/*", "./types/**/*"],
   "exclude": ["dist", "node_modules"]
 }

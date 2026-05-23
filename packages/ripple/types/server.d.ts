@@ -1,4 +1,4 @@
-import type { Component } from '#public';
+import type { Component, RootBoundaryOptions } from '#public';
 
 // Re-export runtime types for server-compiled components
 export {
@@ -48,6 +48,7 @@ export interface BaseRenderOptions {
 	// defaults to true
 	// set to false to add more content
 	closeStream?: boolean;
+	rootBoundary?: RootBoundaryOptions;
 }
 
 export interface StreamingRenderOptions extends BaseRenderOptions {

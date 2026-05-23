@@ -17,13 +17,18 @@ export function tsrx_element(render: Function): TSRXElement;
 
 export function mount(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any> },
+	options: { target: HTMLElement; props?: Record<string, any>; rootBoundary?: RootBoundaryOptions },
 ): () => void;
 
 export function hydrate(
 	component: Component,
-	options: { target: HTMLElement; props?: Record<string, any> },
+	options: { target: HTMLElement; props?: Record<string, any>; rootBoundary?: RootBoundaryOptions },
 ): () => void;
+
+export interface RootBoundaryOptions {
+	pending?: Component<Record<string, never>>;
+	catch?: Component<{ error: unknown; reset: () => void }>;
+}
 
 export function tick(): Promise<void>;
 

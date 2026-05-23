@@ -2,10 +2,16 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js';
+import {
+	get_component_export,
+	get_route_entry_export_name,
+	get_route_entry_path,
+} from '../routes.js';
 
 /**
  * @typedef {import('@ripple-ts/vite-plugin').Context} Context
  * @typedef {import('@ripple-ts/vite-plugin').RenderRoute} RenderRoute
+ * @typedef {import('@ripple-ts/vite-plugin').ResolvedRippleConfig} ResolvedRippleConfig
  * @typedef {import('vite').ViteDevServer} ViteDevServer
  */
 
@@ -22,9 +28,10 @@ import { createLayoutWrapper, createPropsWrapper } from './component-wrappers.js
  * @param {RenderRoute} route
  * @param {Context} context
  * @param {ViteDevServer} vite
+ * @param {ResolvedRippleConfig} [rippleConfig]
  * @returns {Promise<Response>}
  */
-export async function handleRenderRoute(route, context, vite) {
+export async function handleRenderRoute(route, context, vite, rippleConfig) {
 	try {
 		// Initialize so the server can register
 		// RPC functions from `module server` declarations during SSR module loading
@@ -36,11 +43,16 @@ export async function handleRenderRoute(route, context, vite) {
 		const { render, get_css_for_hashes } = await vite.ssrLoadModule('ripple/server');
 
 		// Load the page component
-		const pageModule = await vite.ssrLoadModule(route.entry);
-		const PageComponent = getDefaultExport(pageModule);
+		/** @type {Function | null} */
+		let PageComponent = typeof route.component === 'function' ? route.component : null;
+		const entryPath = get_route_entry_path(route.entry);
+		if (!PageComponent && entryPath) {
+			const pageModule = await vite.ssrLoadModule(entryPath);
+			PageComponent = get_component_export(pageModule, get_route_entry_export_name(route.entry));
+		}
 
 		if (!PageComponent) {
-			throw new Error(`No default export found in ${route.entry}`);
+			throw new Error(`No component found for route ${route.path}`);
 		}
 
 		// Build the component tree (with optional layout)
@@ -49,8 +61,12 @@ export async function handleRenderRoute(route, context, vite) {
 
 		if (route.layout) {
 			// Load layout component
-			const layoutModule = await vite.ssrLoadModule(route.layout);
-			const LayoutComponent = getDefaultExport(layoutModule);
+			/** @type {Function | null} */
+			let LayoutComponent = typeof route.layout === 'function' ? route.layout : null;
+			if (!LayoutComponent) {
+				const layoutModule = await vite.ssrLoadModule(/** @type {string} */ (route.layout));
+				LayoutComponent = get_component_export(layoutModule, undefined);
+			}
 
 			if (!LayoutComponent) {
 				throw new Error(`No default export found in ${route.layout}`);
@@ -66,7 +82,9 @@ export async function handleRenderRoute(route, context, vite) {
 
 		// Render to HTML
 		/** @type {RenderResult} */
-		const { head, body, css } = await render(RootComponent);
+		const { head, body, css } = await render(RootComponent, {
+			rootBoundary: rippleConfig?.rootBoundary,
+		});
 
 		// Generate CSS tags
 		let cssContent = '';
@@ -79,7 +97,8 @@ export async function handleRenderRoute(route, context, vite) {
 
 		// Build head content with hydration data
 		const routeData = JSON.stringify({
-			entry: route.entry,
+			entry: entryPath,
+			routeIndex: getRenderRouteIndex(rippleConfig, route),
 			params: context.params,
 		});
 		const headContent = [
@@ -124,23 +143,17 @@ export async function handleRenderRoute(route, context, vite) {
 }
 
 /**
- * Get the default export from a module
- * Handles both `export default` and `export { X as default }`
- *
- * @param {Record<string, unknown>} module
- * @returns {Function | null}
+ * @param {ResolvedRippleConfig | undefined} config
+ * @param {RenderRoute} route
+ * @returns {number | undefined}
  */
-function getDefaultExport(module) {
-	if (typeof module.default === 'function') {
-		return module.default;
+function getRenderRouteIndex(config, route) {
+	if (!config) {
+		return undefined;
 	}
-	// Look for a component-like export (capitalized function)
-	for (const [key, value] of Object.entries(module)) {
-		if (typeof value === 'function' && /^[A-Z]/.test(key)) {
-			return value;
-		}
-	}
-	return null;
+	var renderRoutes = config.router.routes.filter((r) => r.type === 'render');
+	var index = renderRoutes.indexOf(route);
+	return index === -1 ? undefined : index;
 }
 
 /**

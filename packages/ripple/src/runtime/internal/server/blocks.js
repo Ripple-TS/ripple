@@ -88,6 +88,7 @@ export function try_block(try_fn, catch_fn = null, pending_fn = null) {
 	try {
 		try_fn();
 	} catch (error) {
+		set_active_block(created_block);
 		if (error === ASYNC_DERIVED_READ_THROWN && created_block.f & TRY_PENDING_BLOCK) {
 			// we should only end up here in the streaming mode during the sync phase
 			created_block.o.clear();

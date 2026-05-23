@@ -27,6 +27,37 @@ export async function hydrateComponent(serverComponent, clientComponent) {
 }
 
 /**
+ * Helper to server render and hydrate a component with explicit root boundary options.
+ * @param {() => void} serverComponent
+ * @param {() => void} clientComponent
+ * @param {import('ripple/server').BaseRenderOptions['rootBoundary']} serverRootBoundary
+ * @param {import('ripple').RootBoundaryOptions} clientRootBoundary
+ * @param {((details: { container: HTMLDivElement, body: string }) => void) | undefined} [beforeHydrate]
+ * @returns {Promise<{ container: HTMLDivElement, unmount: () => void, body: string }>}
+ */
+export async function hydrateComponentWithRootBoundary(
+	serverComponent,
+	clientComponent,
+	serverRootBoundary,
+	clientRootBoundary,
+	beforeHydrate,
+) {
+	const { body } = await render(serverComponent, {
+		rootBoundary: serverRootBoundary,
+	});
+
+	container.innerHTML = body;
+	beforeHydrate?.({ container, body });
+
+	const unmount = hydrate(clientComponent, {
+		target: container,
+		rootBoundary: clientRootBoundary,
+	});
+
+	return { container, unmount, body };
+}
+
+/**
  * Strips hydration markers from HTML for testing purposes.
  * Hydration markers are: <!--[--> <!--[!--> <!--]-->
  * Also strips HTML block markers: hash comments and empty comment end markers

@@ -391,6 +391,10 @@ importers:
       '@ripple-ts/adapter':
         specifier: workspace:*
         version: link:../adapter
+    devDependencies:
+      '@types/node':
+        specifier: catalog:default
+        version: 24.11.0
 
   packages/adapter-vercel:
     dependencies:

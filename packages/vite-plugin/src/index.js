@@ -22,8 +22,20 @@ import {
 	rippleConfigExists,
 } from './load-config.js';
 import { ENTRY_FILENAME } from './constants.js';
+import {
+	RESOLVED_ADAPTER_BROWSER_STUB_ID,
+	RESOLVED_VIRTUAL_COMPAT_ID,
+	SERVER_ONLY_ADAPTER_IDS,
+	VIRTUAL_COMPAT_ID,
+	create_adapter_browser_stub_source,
+	create_client_entry_source,
+	create_compat_virtual_module,
+	to_vite_root_import,
+	write_project_generated_file,
+} from './project-codegen.js';
 
 import { patch_global_fetch, is_rpc_request, handle_rpc_request } from '@ripple-ts/adapter/rpc';
+import { get_route_entry_path } from './routes.js';
 
 // Re-export route classes
 export { RenderRoute, ServerRoute } from './routes.js';
@@ -38,8 +50,6 @@ const VITE_FS_PREFIX = '/@fs/';
 const IS_WINDOWS = process.platform === 'win32';
 const VIRTUAL_HYDRATE_ID = 'virtual:ripple-hydrate';
 const RESOLVED_VIRTUAL_HYDRATE_ID = '\0virtual:ripple-hydrate';
-const VIRTUAL_COMPAT_ID = 'virtual:ripple-compat';
-const RESOLVED_VIRTUAL_COMPAT_ID = '\0virtual:ripple-compat';
 const RIPPLE_EXTENSIONS = ['.tsrx'];
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
 
@@ -85,52 +95,6 @@ function getDevAsyncContext(config) {
 	patch_global_fetch(devAsyncContext);
 
 	return devAsyncContext;
-}
-
-/**
- * @param {ResolvedRippleConfig | null} config
- * @returns {string}
- */
-function create_compat_virtual_module(config) {
-	const compat_entries = Object.entries(config?.compat ?? {});
-
-	if (compat_entries.length === 0) {
-		return `const compat = undefined;
-globalThis.__RIPPLE_COMPAT__ = compat;
-export { compat };
-export default compat;
-`;
-	}
-
-	const imports = [];
-	const properties = [];
-
-	for (let i = 0; i < compat_entries.length; i++) {
-		const [kind, entry] = compat_entries[i];
-		const local_name = `__ripple_compat_factory_${i}`;
-
-		if (entry.factory) {
-			imports.push(
-				`import { ${entry.factory} as ${local_name} } from ${JSON.stringify(entry.from)};`,
-			);
-		} else {
-			imports.push(`import ${local_name} from ${JSON.stringify(entry.from)};`);
-		}
-
-		properties.push(`  ${JSON.stringify(kind)}: ${local_name}(),`);
-	}
-
-	return `${imports.join('\n')}
-
-const compat = {
-${properties.join('\n')}
-};
-
-globalThis.__RIPPLE_COMPAT__ = compat;
-
-export { compat };
-export default compat;
-`;
 }
 
 /**
@@ -464,7 +428,12 @@ export function ripple(inlineOptions = {}) {
 							(/** @type {Route} */ r) => r.type === 'render',
 						);
 						const uniqueEntries = [
-							...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
+							...new Set(
+								renderRoutes
+									.map((/** @type {RenderRoute} */ r) => r.entry)
+									.map(get_route_entry_path)
+									.filter((entry) => typeof entry === 'string'),
+							),
 						];
 						for (const entry of uniqueEntries) {
 							const sourcePath = entry.startsWith('/') ? entry.slice(1) : entry;
@@ -563,7 +532,9 @@ export function ripple(inlineOptions = {}) {
 
 				renderRouteEntries = loadedRippleConfig.router.routes
 					.filter((/** @type {Route} */ r) => r.type === 'render')
-					.map((/** @type {RenderRoute} */ r) => r.entry);
+					.map((/** @type {RenderRoute} */ r) => r.entry)
+					.map(get_route_entry_path)
+					.filter((entry) => typeof entry === 'string');
 
 				// Deduplicate entries (multiple routes can share the same component)
 				renderRouteEntries = [...new Set(renderRouteEntries)];
@@ -761,7 +732,12 @@ export function ripple(inlineOptions = {}) {
 									globalMiddlewares,
 									freshMatch.route.before || [],
 									async () =>
-										handleRenderRoute(/** @type {RenderRoute} */ (freshMatch.route), context, vite),
+										handleRenderRoute(
+											/** @type {RenderRoute} */ (freshMatch.route),
+											context,
+											vite,
+											rippleConfig ?? undefined,
+										),
 									[],
 								);
 							} else {
@@ -956,7 +932,12 @@ export function ripple(inlineOptions = {}) {
 					(/** @type {Route} */ r) => r.type === 'render',
 				);
 				const uniqueEntries = [
-					...new Set(renderRoutes.map((/** @type {RenderRoute} */ r) => r.entry)),
+					...new Set(
+						renderRoutes
+							.map((/** @type {RenderRoute} */ r) => r.entry)
+							.map(get_route_entry_path)
+							.filter((entry) => typeof entry === 'string'),
+					),
 				];
 
 				for (const entry of uniqueEntries) {
@@ -1009,6 +990,11 @@ export function ripple(inlineOptions = {}) {
 					rpcModulePaths: [...serverModuleModules],
 					clientAssetMap,
 				});
+				const serverEntryFile = write_project_generated_file(
+					config,
+					'server-entry.js',
+					serverEntryCode,
+				);
 
 				const VIRTUAL_SERVER_ENTRY_ID = 'virtual:ripple-server-entry';
 				const RESOLVED_VIRTUAL_SERVER_ENTRY_ID = '\0' + VIRTUAL_SERVER_ENTRY_ID;
@@ -1020,7 +1006,9 @@ export function ripple(inlineOptions = {}) {
 						if (id === VIRTUAL_SERVER_ENTRY_ID) return RESOLVED_VIRTUAL_SERVER_ENTRY_ID;
 					},
 					load(id) {
-						if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) return serverEntryCode;
+						if (id === RESOLVED_VIRTUAL_SERVER_ENTRY_ID) {
+							return fs.readFileSync(serverEntryFile, 'utf-8');
+						}
 					},
 				};
 
@@ -1086,6 +1074,10 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async resolveId(id, importer, options) {
+				if (!options?.ssr && SERVER_ONLY_ADAPTER_IDS.has(id)) {
+					return RESOLVED_ADAPTER_BROWSER_STUB_ID;
+				}
+
 				// Handle virtual hydrate module
 				if (id === VIRTUAL_HYDRATE_ID) {
 					return RESOLVED_VIRTUAL_HYDRATE_ID;
@@ -1135,6 +1127,10 @@ export function ripple(inlineOptions = {}) {
 			},
 
 			async load(id, opts) {
+				if (id === RESOLVED_ADAPTER_BROWSER_STUB_ID) {
+					return create_adapter_browser_stub_source();
+				}
+
 				if (id === RESOLVED_VIRTUAL_COMPAT_ID) {
 					const compat_config = await get_current_ripple_config();
 					return create_compat_virtual_module(compat_config);
@@ -1142,102 +1138,15 @@ export function ripple(inlineOptions = {}) {
 
 				// Handle virtual hydrate module
 				if (id === RESOLVED_VIRTUAL_HYDRATE_ID) {
-					if (isBuild && renderRouteEntries.length > 0) {
-						// Production: generate static import map so Vite bundles page components
-						const importMapLines = renderRouteEntries
-							.map((entry) => `  ${JSON.stringify(entry)}: () => import(${JSON.stringify(entry)}),`)
-							.join('\n');
-
-						// IMPORTANT: Use async IIFE instead of top-level await.
-						// The page modules statically import from the main bundle (which contains
-						// the runtime). If we used top-level await here, it would deadlock:
-						// main bundle awaits page module import → page module awaits main bundle's
-						// TLA to complete → circular wait.
-						return `
-import ${JSON.stringify(VIRTUAL_COMPAT_ID)};
-import { hydrate, mount } from 'ripple';
-
-const routeModules = {
-${importMapLines}
-};
-
-(async () => {
-  try {
-    const data = JSON.parse(document.getElementById('__ripple_data').textContent);
-    const target = document.getElementById('root');
-    const loadModule = routeModules[data.entry];
-
-    if (!loadModule) {
-      console.error('[ripple] No client module for route:', data.entry);
-      return;
-    }
-
-    const module = await loadModule();
-    const Component =
-      module.default ||
-      Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
-
-    if (!Component || !target) {
-      console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
-      return;
-    }
-
-    try {
-      hydrate(Component, {
-        target,
-        props: { params: data.params }
-      });
-    } catch (error) {
-      console.warn('[ripple] Hydration failed, falling back to mount.', error);
-      mount(Component, {
-        target,
-        props: { params: data.params }
-      });
-    }
-  } catch (error) {
-    console.error('[ripple] Failed to bootstrap client hydration.', error);
-  }
-})();
-`;
-					}
-
-					// Dev mode: use async IIFE to avoid top-level await deadlock
-					// (same reason as production — page modules import from the main bundle)
-					return `
-import ${JSON.stringify(VIRTUAL_COMPAT_ID)};
-import { hydrate, mount } from 'ripple';
-
-(async () => {
-  try {
-    const data = JSON.parse(document.getElementById('__ripple_data').textContent);
-    const target = document.getElementById('root');
-    const module = await import(/* @vite-ignore */ data.entry);
-    const Component =
-      module.default ||
-      Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
-
-    if (!Component || !target) {
-      console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
-      return;
-    }
-
-    try {
-      hydrate(Component, {
-        target,
-        props: { params: data.params }
-      });
-    } catch (error) {
-      console.warn('[ripple] Hydration failed, falling back to mount.', error);
-      mount(Component, {
-        target,
-        props: { params: data.params }
-      });
-    }
-  } catch (error) {
-    console.error('[ripple] Failed to bootstrap client hydration.', error);
-  }
-})();
-`;
+					const file = write_project_generated_file(
+						config,
+						'client-entry.js',
+						create_client_entry_source({
+							configPath: to_vite_root_import(getRippleConfigPath(root), root),
+							staticEntries: isBuild ? renderRouteEntries : [],
+						}),
+					);
+					return fs.readFileSync(file, 'utf-8');
 				}
 
 				if (cssCache.has(id)) {

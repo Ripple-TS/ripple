@@ -659,7 +659,7 @@ describe('async suspense', () => {
 		},
 	);
 
-	it('throws when trackAsync is used without a try/pending boundary', () => {
+	it('uses the root pending boundary when trackAsync has no local try/pending boundary', () => {
 		component App() {
 			let &[value] = trackAsync(() => Promise.resolve('test'));
 			<div>{value}</div>
@@ -667,6 +667,6 @@ describe('async suspense', () => {
 
 		expect(() => {
 			render(App);
-		}).toThrow('Missing parent `try { ... } pending { ... }` statement');
+		}).not.toThrow();
 	});
 });

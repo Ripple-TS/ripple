@@ -367,8 +367,7 @@ function create_static_handler(dir, options = {}) {
 			return new Response(null, { status: 200, headers });
 		}
 
-		/** @type {BodyInit} */
-		const file_body = /** @type {any} */ (Readable.toWeb(createReadStream(file_path)));
+		const file_body = Readable.toWeb(createReadStream(file_path));
 		return new Response(file_body, { status: 200, headers });
 	};
 }

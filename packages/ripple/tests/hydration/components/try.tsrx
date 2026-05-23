@@ -1,5 +1,31 @@
 import { trackAsync } from 'ripple';
 
+export component RootPending() {
+	<p class="root-pending">{'root loading...'}</p>
+}
+
+export component RootCatch({ error, reset }: { error: Error; reset: () => void }) {
+	<section class="root-catch">
+		<p class="root-error">{error.message}</p>
+		<button class="root-reset" onClick={reset}>{'retry'}</button>
+	</section>
+}
+
+export component RootThrows() {
+	throw new Error('root exploded');
+	<p>{'should not render'}</p>
+}
+
+export component RootAsyncDirect() {
+	let &[value] = trackAsync(() => Promise.resolve('root async value'));
+	<p class="root-async-value">{value}</p>
+}
+
+export component RootAsyncRejects() {
+	let &[value] = trackAsync(() => Promise.reject(new Error('root async failed')));
+	<p class="root-async-value">{value}</p>
+}
+
 export component AsyncListInTryPending() {
 	try {
 		<AsyncList />

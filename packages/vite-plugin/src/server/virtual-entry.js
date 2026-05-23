@@ -10,6 +10,12 @@
 
 /** @import { Route } from '@ripple-ts/vite-plugin' */
 
+import {
+	get_route_entry_export_name,
+	get_route_entry_id,
+	get_route_entry_path,
+} from '../routes.js';
+
 /**
  * @typedef {Object} ClientAssetEntry
  * @property {string} js - Path to the built JS file
@@ -63,10 +69,11 @@ export function generateServerEntry(options) {
 
 	for (const route of routes) {
 		if (route.type === 'render') {
-			if (!component_imports.has(route.entry)) {
-				component_imports.set(route.entry, `_page_${component_index++}`);
+			const entryPath = get_route_entry_path(route.entry);
+			if (entryPath && !component_imports.has(entryPath)) {
+				component_imports.set(entryPath, `_page_${component_index++}`);
 			}
-			if (route.layout && !layout_imports.has(route.layout)) {
+			if (typeof route.layout === 'string' && !layout_imports.has(route.layout)) {
 				layout_imports.set(route.layout, `_layout_${layout_index++}`);
 			}
 		}
@@ -95,12 +102,25 @@ export function generateServerEntry(options) {
 
 	// --- Dynamic map entries ---
 
-	const component_entries = [...component_imports]
-		.map(([entry, varName]) => `  ${JSON.stringify(entry)}: getDefaultExport(${varName}),`)
+	const component_entries = routes
+		.filter((route) => route.type === 'render')
+		.map((route) => {
+			const entryId = get_route_entry_id(route.entry);
+			const entryPath = get_route_entry_path(route.entry);
+			const exportName = get_route_entry_export_name(route.entry);
+			const varName = entryPath ? component_imports.get(entryPath) : undefined;
+
+			if (!entryId || !varName) {
+				return null;
+			}
+
+			return `  ${JSON.stringify(entryId)}: getComponentExport(${varName}, ${JSON.stringify(exportName)}),`;
+		})
+		.filter(Boolean)
 		.join('\n');
 
 	const layout_entries = [...layout_imports]
-		.map(([layout, varName]) => `  ${JSON.stringify(layout)}: getDefaultExport(${varName}),`)
+		.map(([layout, varName]) => `  ${JSON.stringify(layout)}: getComponentExport(${varName}),`)
 		.join('\n');
 
 	// Only check _$_server_$_ on modules known to have `module server` declarations.
@@ -142,7 +162,8 @@ try {
   process.exit(1);
 }
 
-function getDefaultExport(mod) {
+function getComponentExport(mod, exportName) {
+  if (exportName && typeof mod[exportName] === 'function') return mod[exportName];
   if (typeof mod.default === 'function') return mod.default;
   for (const [key, value] of Object.entries(mod)) {
     if (typeof value === 'function' && /^[A-Z]/.test(key)) return value;
@@ -178,6 +199,7 @@ const handler = createHandler(
     middlewares: rippleConfig.middlewares,
     rpcModules,
     trustProxy: rippleConfig.server.trustProxy,
+    rootBoundary: rippleConfig.rootBoundary,
     runtime: rippleConfig.adapter.runtime,
     clientAssets,
   },

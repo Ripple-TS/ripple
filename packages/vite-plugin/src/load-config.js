@@ -19,7 +19,10 @@
 
 import path from 'node:path';
 import fs from 'node:fs';
+import { compile } from '@tsrx/ripple';
 import { DEFAULT_OUTDIR } from './constants.js';
+
+const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
 
 /**
  * @param {unknown} entry
@@ -77,6 +80,67 @@ function normalize_compat_entry(kind, entry) {
 }
 
 /**
+ * @param {unknown} route
+ * @returns {void}
+ */
+function validate_render_route(route) {
+	if (
+		!route ||
+		typeof route !== 'object' ||
+		/** @type {{ type?: unknown }} */ (route).type !== 'render'
+	) {
+		return;
+	}
+
+	const render_route = /** @type {{ entry?: unknown, component?: unknown, layout?: unknown }} */ (
+		route
+	);
+	const has_entry =
+		typeof render_route.entry === 'string' ||
+		(Array.isArray(render_route.entry) &&
+			render_route.entry.length === 2 &&
+			typeof render_route.entry[0] === 'string' &&
+			typeof render_route.entry[1] === 'string');
+
+	if (!has_entry && typeof render_route.component !== 'function') {
+		throw new Error(
+			'[@ripple-ts/vite-plugin] RenderRoute requires either a string/tuple `entry` or a component function.',
+		);
+	}
+
+	if (
+		render_route.layout !== undefined &&
+		typeof render_route.layout !== 'string' &&
+		typeof render_route.layout !== 'function'
+	) {
+		throw new Error(
+			'[@ripple-ts/vite-plugin] RenderRoute `layout` must be a string path or component function.',
+		);
+	}
+}
+
+/**
+ * @param {unknown} rootBoundary
+ * @returns {void}
+ */
+function validate_root_boundary(rootBoundary) {
+	if (rootBoundary === undefined) {
+		return;
+	}
+	if (!rootBoundary || typeof rootBoundary !== 'object') {
+		throw new Error('[@ripple-ts/vite-plugin] rootBoundary must be an object when provided.');
+	}
+
+	const boundary = /** @type {{ pending?: unknown, catch?: unknown }} */ (rootBoundary);
+	if (boundary.pending !== undefined && typeof boundary.pending !== 'function') {
+		throw new Error('[@ripple-ts/vite-plugin] rootBoundary.pending must be a component function.');
+	}
+	if (boundary.catch !== undefined && typeof boundary.catch !== 'function') {
+		throw new Error('[@ripple-ts/vite-plugin] rootBoundary.catch must be a component function.');
+	}
+}
+
+/**
  * Validate a raw ripple config and apply all defaults.
  *
  * After this function returns every optional field carries its default
@@ -117,6 +181,16 @@ export function resolveRippleConfig(raw, options = {}) {
 		}
 	}
 
+	if (raw.router?.routes !== undefined && !Array.isArray(raw.router.routes)) {
+		throw new Error('[@ripple-ts/vite-plugin] router.routes must be an array.');
+	}
+
+	for (const route of raw.router?.routes ?? []) {
+		validate_render_route(route);
+	}
+
+	validate_root_boundary(raw.rootBoundary);
+
 	// ------------------------------------------------------------------
 	// Apply defaults
 	// ------------------------------------------------------------------
@@ -130,6 +204,7 @@ export function resolveRippleConfig(raw, options = {}) {
 		router: {
 			routes: raw.router?.routes ?? [],
 		},
+		rootBoundary: raw.rootBoundary ?? {},
 		middlewares: raw.middlewares ?? [],
 		compat: Object.fromEntries(
 			Object.entries(raw.compat ?? {}).map(([kind, entry]) => [
@@ -211,12 +286,20 @@ export async function loadRippleConfig(projectRoot, options = {}) {
 		configFile: false,
 		appType: 'custom',
 		server: { middlewareMode: true },
-		// We don't need to load the ripple plugin for now
-		// but if we start using references to components in router.routes
-		// then we'll need to add the plugin here to handle the .tsrx imports.
-		// But this will cause a circular references warning
-		// that we should resolve when we implement references to components.
-		// plugins: [ripple({ excludeRippleExternalModules: true })],
+		plugins: [
+			{
+				name: 'ripple-config-tsrx-loader',
+				transform(source, id) {
+					if (!RIPPLE_EXTENSION_PATTERN.test(id)) return null;
+					const filename = id.replace(projectRoot, '');
+					return compile(source, filename, {
+						mode: 'server',
+						dev: true,
+						hmr: false,
+					});
+				},
+			},
+		],
 		logLevel: 'silent',
 	});
 

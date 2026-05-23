@@ -34,8 +34,9 @@ export function loadRippleConfig(
 export class RenderRoute {
 	readonly type: 'render';
 	path: string;
-	entry: string;
-	layout?: string;
+	entry?: RenderRouteEntry;
+	component?: Component;
+	layout?: string | Component;
 	before: Middleware[];
 	constructor(options: RenderRouteOptions);
 }
@@ -59,10 +60,12 @@ export type Route = RenderRoute | ServerRoute;
 export interface RenderRouteOptions {
 	/** URL path pattern (e.g., '/', '/posts/:id', '/docs/*slug') */
 	path: string;
-	/** Path to the Ripple component entry file */
-	entry: string;
+	/** Path to the Ripple component entry file, optionally with a preferred named export */
+	entry?: RenderRouteEntry;
+	/** Ripple component reference imported from a .tsrx module */
+	component?: Component;
 	/** Path to the layout component (wraps the entry) */
-	layout?: string;
+	layout?: string | Component;
 	/** Middleware to run before rendering */
 	before?: Middleware[];
 }
@@ -105,6 +108,15 @@ export type RouteHandler = (context: Context) => Response | Promise<Response>;
 
 export interface RipplePluginOptions {
 	excludeRippleExternalModules?: boolean;
+}
+
+export type Component<T = Record<string, any>> = (props: T) => void;
+
+export type RenderRouteEntry = string | readonly [exportName: string, path: string];
+
+export interface RootBoundaryOptions {
+	pending?: Component<Record<string, never>>;
+	catch?: Component<{ error: unknown; reset: () => void }>;
 }
 
 export interface CompatFactoryConfig {
@@ -150,6 +162,8 @@ export interface RippleConfigOptions {
 	router?: {
 		routes: Route[];
 	};
+	/** Global root pending/catch UI used by client and SSR render roots */
+	rootBoundary?: RootBoundaryOptions;
 	/** Global middlewares applied to all routes */
 	middlewares?: Middleware[];
 	/**
@@ -199,6 +213,7 @@ export interface ResolvedRippleConfig {
 	router: {
 		routes: Route[];
 	};
+	rootBoundary: RootBoundaryOptions;
 	/** @default [] */
 	middlewares: Middleware[];
 	/** @default {} */

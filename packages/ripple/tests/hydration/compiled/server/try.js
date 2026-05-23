@@ -3,6 +3,118 @@ import * as _$_ from 'ripple/internal/server';
 
 import { trackAsync } from 'ripple/server';
 
+export function RootPending() {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="root-pending"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('root loading...');
+		}
+
+		_$_.output_push('</p>');
+	});
+
+	_$_.pop_component();
+}
+
+export function RootCatch({ error, reset }) {
+	_$_.push_component();
+
+	_$_.regular_block(() => {
+		_$_.output_push('<section');
+		_$_.output_push(' class="root-catch"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('<p');
+			_$_.output_push(' class="root-error"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push(_$_.escape(error.message));
+			}
+
+			_$_.output_push('</p>');
+			_$_.output_push('<button');
+			_$_.output_push(' class="root-reset"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('retry');
+			}
+
+			_$_.output_push('</button>');
+		}
+
+		_$_.output_push('</section>');
+	});
+
+	_$_.pop_component();
+}
+
+export function RootThrows() {
+	_$_.push_component();
+
+	throw new Error('root exploded');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push('should not render');
+		}
+
+		_$_.output_push('</p>');
+	});
+
+	_$_.pop_component();
+}
+
+export function RootAsyncDirect() {
+	_$_.push_component();
+
+	let lazy = _$_.track_async(() => Promise.resolve('root async value'), 'd6bf9e33');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="root-async-value"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy)));
+		}
+
+		_$_.output_push('</p>');
+	});
+
+	_$_.pop_component();
+}
+
+export function RootAsyncRejects() {
+	_$_.push_component();
+
+	let lazy_1 = _$_.track_async(() => Promise.reject(new Error('root async failed')), 'd2fe7b64');
+
+	_$_.regular_block(() => {
+		_$_.output_push('<p');
+		_$_.output_push(' class="root-async-value"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+		}
+
+		_$_.output_push('</p>');
+	});
+
+	_$_.pop_component();
+}
+
 export function AsyncListInTryPending() {
 	_$_.push_component();
 
@@ -47,7 +159,7 @@ export function AsyncListInTryPending() {
 function AsyncList() {
 	_$_.push_component();
 
-	let lazy = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'd6bf9e33');
+	let lazy_2 = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b3d31627');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<ul');
@@ -57,7 +169,7 @@ function AsyncList() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (let item of _$_.get(lazy)) {
+			for (let item of _$_.get(lazy_2)) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -133,7 +245,7 @@ export function AsyncTryWithLeadingSibling() {
 function AsyncContent() {
 	_$_.push_component();
 
-	let lazy_1 = _$_.track_async(() => Promise.resolve('ready'), 'd2fe7b64');
+	let lazy_3 = _$_.track_async(() => Promise.resolve('ready'), '15ea8758');
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -141,7 +253,7 @@ function AsyncContent() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			_$_.output_push(_$_.escape(_$_.get(lazy_3)));
 		}
 
 		_$_.output_push('</div>');
