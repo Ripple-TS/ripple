@@ -1286,11 +1286,16 @@ export function lazy_array_set(lazy, value, index = 0) {
 		return;
 	}
 	var flags = lazy.f;
-	if (index === 0 && (flags === TRACKED || flags === DERIVED)) {
-		set(/** @type {Derived | Tracked} */ (lazy), value);
-	} else {
-		lazy[index] = value;
+	if (flags === TRACKED || flags === DERIVED) {
+		if (index === 0) {
+			set(/** @type {Derived | Tracked} */ (lazy), value);
+			return;
+		}
+		if (index === 1) {
+			throw_tracked_index_reference_error();
+		}
 	}
+	lazy[index] = value;
 }
 
 /**

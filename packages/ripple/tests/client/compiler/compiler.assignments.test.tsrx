@@ -161,6 +161,20 @@ component App() {
 		expect(code).not.toContain('lazy[1][0]');
 	});
 
+	it('compiles writes to unknown lazy array index 1 through lazy array helpers', () => {
+		const source = `component Child({ pair: &[first, second] }) {
+	second = 10;
+	<div>{first}</div>
+}
+component App() {
+	<Child pair={[0, 1]} />
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
+		expect(code).not.toContain('lazy[1] =');
+	});
+
 	it('compiles known tracked indexed access through tracked helpers', () => {
 		const source = `import { track } from 'ripple';
 component App() {

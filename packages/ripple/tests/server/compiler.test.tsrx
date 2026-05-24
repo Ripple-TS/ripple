@@ -47,6 +47,23 @@ component Test() {
 		expect(code).not.toContain('!');
 	});
 
+	it(
+		'compiles writes to unknown lazy array index 1 through lazy array helpers in SSR output',
+		() => {
+			const source = `component Child({ pair: &[first, second] }) {
+	second = 10;
+	<div>{first}</div>
+}
+component App() {
+	<Child pair={[0, 1]} />
+}`;
+			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
+			expect(code).not.toContain('lazy[1] =');
+		},
+	);
+
 	it('removes class TypeScript syntax from JS output', () => {
 		const source = `interface BaseEvent {}
 
