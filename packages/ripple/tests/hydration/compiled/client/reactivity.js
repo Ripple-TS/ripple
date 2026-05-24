@@ -19,7 +19,7 @@ export function TrackedState(__anchor, _, __block) {
 	{
 		var expression = _$_.child(div_1);
 
-		_$_.expression(expression, () => _$_.get(lazy));
+		_$_.expression(expression, () => lazy.value);
 		_$_.pop(div_1);
 	}
 
@@ -39,7 +39,7 @@ export function CounterWithInitial(__anchor, props, __block) {
 		{
 			var expression_1 = _$_.child(span_1);
 
-			_$_.expression(expression_1, () => _$_.get(lazy_1));
+			_$_.expression(expression_1, () => lazy_1.value);
 			_$_.pop(span_1);
 		}
 	}
@@ -64,7 +64,7 @@ export function ComputedValues(__anchor, _, __block) {
 
 	let lazy_2 = _$_.track(2, __block, 'b78281db');
 	let lazy_3 = _$_.track(3, __block, 'a0cf6c6d');
-	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
+	const sum = () => lazy_2.value + lazy_3.value;
 	var div_3 = root_3();
 
 	{
@@ -90,7 +90,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	{
 		var expression_3 = _$_.child(div_4);
 
-		_$_.expression(expression_3, () => _$_.get(lazy_4));
+		_$_.expression(expression_3, () => lazy_4.value);
 		_$_.pop(div_4);
 	}
 
@@ -99,7 +99,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	{
 		var expression_4 = _$_.child(div_5);
 
-		_$_.expression(expression_4, () => _$_.get(lazy_5));
+		_$_.expression(expression_4, () => lazy_5.value);
 		_$_.pop(div_5);
 	}
 
@@ -108,7 +108,7 @@ export function MultipleTracked(__anchor, _, __block) {
 	{
 		var expression_5 = _$_.child(div_6);
 
-		_$_.expression(expression_5, () => _$_.get(lazy_6));
+		_$_.expression(expression_5, () => lazy_6.value);
 		_$_.pop(div_6);
 	}
 
@@ -122,7 +122,7 @@ export function DerivedState(__anchor, _, __block) {
 
 	let lazy_7 = _$_.track('John', __block, '6015eeca');
 	let lazy_8 = _$_.track('Doe', __block, '4fa9a20e');
-	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
+	const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
 	var div_7 = root_5();
 
 	{

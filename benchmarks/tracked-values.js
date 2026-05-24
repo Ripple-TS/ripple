@@ -1,5 +1,13 @@
 import { Bench } from 'tinybench';
-import { tracked, derived, get, set, root } from 'ripple/internal/client';
+import {
+	tracked,
+	derived,
+	get,
+	lazy_array_get,
+	lazy_array_set,
+	set,
+	root,
+} from 'ripple/internal/client';
 
 const SCALES = [10, 100, 1_000, 10_000, 100_000];
 
@@ -42,7 +50,7 @@ async function run_suite(n) {
 
 	// ── Read ─────────────────────────────────────────────────
 	bench.add(
-		`read ${n.toLocaleString()} tracked values`,
+		`read ${n.toLocaleString()} tracked values via get()`,
 		() => {
 			let sum = 0;
 			for (let i = 0; i < values.length; i++) {
@@ -60,9 +68,104 @@ async function run_suite(n) {
 		},
 	);
 
+	bench.add(
+		`read ${n.toLocaleString()} tracked values via .value`,
+		() => {
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += values[i].value;
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`read ${n.toLocaleString()} tracked values via lazy_array_get()`,
+		() => {
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += lazy_array_get(values[i]);
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`read ${n.toLocaleString()} arrays via [0]`,
+		() => {
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += values[i][0];
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = [i, null];
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`read ${n.toLocaleString()} arrays via lazy_array_get()`,
+		() => {
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += lazy_array_get(values[i]);
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = [i, null];
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`read ${n.toLocaleString()} mixed lazy values via lazy_array_get()`,
+		() => {
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += lazy_array_get(values[i]);
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = (i & 1) === 0 ? tracked(i, block) : [i, null];
+				}
+			},
+		},
+	);
+
 	// ── Write ────────────────────────────────────────────────
 	bench.add(
-		`write ${n.toLocaleString()} tracked values`,
+		`write ${n.toLocaleString()} tracked values via set()`,
 		() => {
 			for (let i = 0; i < values.length; i++) {
 				set(values[i], i + 1);
@@ -84,9 +187,124 @@ async function run_suite(n) {
 		},
 	);
 
+	bench.add(
+		`write ${n.toLocaleString()} tracked values via .value`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				values[i].value = i + 1;
+			}
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+			beforeEach() {
+				// Reset values so set() detects a change each iteration
+				for (let i = 0; i < values.length; i++) {
+					values[i].__v = i;
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`write ${n.toLocaleString()} tracked values via lazy_array_set()`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				lazy_array_set(values[i], i + 1);
+			}
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+			beforeEach() {
+				for (let i = 0; i < values.length; i++) {
+					values[i].__v = i;
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`write ${n.toLocaleString()} arrays via [0]`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				values[i][0] = i + 1;
+			}
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = [i, null];
+				}
+			},
+			beforeEach() {
+				for (let i = 0; i < values.length; i++) {
+					values[i][0] = i;
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`write ${n.toLocaleString()} arrays via lazy_array_set()`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				lazy_array_set(values[i], i + 1);
+			}
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = [i, null];
+				}
+			},
+			beforeEach() {
+				for (let i = 0; i < values.length; i++) {
+					values[i][0] = i;
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`write ${n.toLocaleString()} mixed lazy values via lazy_array_set()`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				lazy_array_set(values[i], i + 1);
+			}
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = (i & 1) === 0 ? tracked(i, block) : [i, null];
+				}
+			},
+			beforeEach() {
+				for (let i = 0; i < values.length; i++) {
+					if ((i & 1) === 0) {
+						values[i].__v = i;
+					} else {
+						values[i][0] = i;
+					}
+				}
+			},
+		},
+	);
+
 	// ── Write then Read (dirty-check path) ───────────────────
 	bench.add(
-		`write+read ${n.toLocaleString()} tracked values`,
+		`write+read ${n.toLocaleString()} tracked values via set()/get()`,
 		() => {
 			for (let i = 0; i < values.length; i++) {
 				set(values[i], i + 1);
@@ -112,9 +330,36 @@ async function run_suite(n) {
 		},
 	);
 
+	bench.add(
+		`write+read ${n.toLocaleString()} tracked values via .value`,
+		() => {
+			for (let i = 0; i < values.length; i++) {
+				values[i].value = i + 1;
+			}
+			let sum = 0;
+			for (let i = 0; i < values.length; i++) {
+				sum += values[i].value;
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+			beforeEach() {
+				for (let i = 0; i < values.length; i++) {
+					values[i].__v = i;
+				}
+			},
+		},
+	);
+
 	// ── Derived creation + read ──────────────────────────────
 	bench.add(
-		`create+read ${n.toLocaleString()} derived values`,
+		`create+read ${n.toLocaleString()} derived values via get()`,
 		() => {
 			const arr = new Array(n);
 			for (let i = 0; i < n; i++) {
@@ -123,6 +368,29 @@ async function run_suite(n) {
 			let sum = 0;
 			for (let i = 0; i < arr.length; i++) {
 				sum += get(arr[i]);
+			}
+			return sum;
+		},
+		{
+			beforeAll() {
+				values = new Array(n);
+				for (let i = 0; i < n; i++) {
+					values[i] = tracked(i, block);
+				}
+			},
+		},
+	);
+
+	bench.add(
+		`create+read ${n.toLocaleString()} derived values via .value`,
+		() => {
+			const arr = new Array(n);
+			for (let i = 0; i < n; i++) {
+				arr[i] = derived(() => get(values[i]) * 2, block);
+			}
+			let sum = 0;
+			for (let i = 0; i < arr.length; i++) {
+				sum += arr[i].value;
 			}
 			return sum;
 		},

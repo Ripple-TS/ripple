@@ -27,7 +27,7 @@ export function ClickCounter() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy)));
+				_$_.output_push(_$_.escape(lazy.value));
 			}
 
 			_$_.output_push('</span>');
@@ -63,7 +63,7 @@ export function IncrementDecrement() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+				_$_.output_push(_$_.escape(lazy_1.value));
 			}
 
 			_$_.output_push('</span>');
@@ -109,7 +109,7 @@ export function MultipleEvents() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_2)));
+				_$_.output_push(_$_.escape(lazy_2.value));
 			}
 
 			_$_.output_push('</span>');
@@ -118,7 +118,7 @@ export function MultipleEvents() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_3)));
+				_$_.output_push(_$_.escape(lazy_3.value));
 			}
 
 			_$_.output_push('</span>');
@@ -160,7 +160,7 @@ export function MultiStateUpdate() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+				_$_.output_push(_$_.escape(lazy_4.value));
 			}
 
 			_$_.output_push('</span>');
@@ -169,7 +169,7 @@ export function MultiStateUpdate() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+				_$_.output_push(_$_.escape(lazy_5.value));
 			}
 
 			_$_.output_push('</span>');
@@ -196,7 +196,7 @@ export function ToggleButton() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_6) ? 'ON' : 'OFF'));
+				_$_.output_push(_$_.escape(lazy_6.value ? 'ON' : 'OFF'));
 			}
 
 			_$_.output_push('</button>');
@@ -256,7 +256,7 @@ export function ParentWithChildButton() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_7)));
+				_$_.output_push(_$_.escape(lazy_7.value));
 			}
 
 			_$_.output_push('</span>');

@@ -54,7 +54,7 @@ export function ConditionalPortal(__anchor, _, __block) {
 	{
 		var button_1 = _$_.child(div_3);
 
-		button_1.__click = () => _$_.set(lazy, !_$_.get(lazy));
+		button_1.__click = () => _$_.set(lazy, !lazy.value);
 
 		var node_1 = _$_.sibling(button_1);
 
@@ -83,7 +83,7 @@ export function ConditionalPortal(__anchor, _, __block) {
 			};
 
 			_$_.if(node_1, (__render) => {
-				if (_$_.get(lazy)) __render(consequent);
+				if (lazy.value) __render(consequent);
 			});
 		}
 

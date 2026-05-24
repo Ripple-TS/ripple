@@ -139,4 +139,45 @@ component App() {
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
 	});
+
+	it('compiles unknown lazy array destructuring through lazy array helpers', () => {
+		const source = `import { track } from 'ripple';
+component Child({ tr: &[count, tr] }) {
+	count++;
+	tr[0]++;
+	<div>{count}</div>
+}
+component App() {
+	let tracked = track(0);
+	<Child tr={tracked} />
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('_$_.lazy_array_get(lazy, 0)');
+		expect(code).toContain('_$_.lazy_array_update(lazy, 0)');
+		expect(code).toContain('_$_.lazy_array_get(lazy, 1)');
+		expect(code).toContain('_$_.lazy_array_update(_$_.lazy_array_get(lazy, 1), 0)');
+		expect(code).not.toContain('lazy[0]');
+		expect(code).not.toContain('lazy[1][0]');
+	});
+
+	it('compiles known tracked indexed access through tracked helpers', () => {
+		const source = `import { track } from 'ripple';
+component App() {
+	let tracked = track(0);
+	tracked[0]++;
+	tracked[0] = tracked[0] + 1;
+	let value = tracked[0];
+	let ref = tracked[1];
+	<div>{value}</div>
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('_$_.update(tracked)');
+		expect(code).toContain('_$_.set(tracked, tracked.value + 1)');
+		expect(code).toContain('let value = tracked.value;');
+		expect(code).toContain('let ref = tracked;');
+		expect(code).not.toContain('tracked[0]');
+		expect(code).not.toContain('tracked[1]');
+	});
 });

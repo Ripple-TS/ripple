@@ -49,7 +49,7 @@ function AsyncList(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_1,
-			() => _$_.get(lazy),
+			() => lazy.value,
 			(__anchor, item) => {
 				var li_1 = root_4();
 
@@ -109,7 +109,7 @@ function AsyncContent(__anchor, _, __block) {
 	{
 		var expression_1 = _$_.child(div_3);
 
-		_$_.expression(expression_1, () => _$_.get(lazy_1));
+		_$_.expression(expression_1, () => lazy_1.value);
 		_$_.pop(div_3);
 	}
 

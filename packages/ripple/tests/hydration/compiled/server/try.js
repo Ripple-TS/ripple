@@ -57,7 +57,7 @@ function AsyncList() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (let item of _$_.get(lazy)) {
+			for (let item of lazy.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -141,7 +141,7 @@ function AsyncContent() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			_$_.output_push(_$_.escape(lazy_1.value));
 		}
 
 		_$_.output_push('</div>');

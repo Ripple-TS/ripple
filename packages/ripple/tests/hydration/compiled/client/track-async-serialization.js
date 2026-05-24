@@ -52,13 +52,13 @@ export function AsyncWithServerCall(__anchor, _, __block) {
 	_$_.try(
 		node,
 		(__anchor) => {
-			let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(_$_.get(lazy))), __block, 'f0c2b41e');
+			let lazy_1 = _$_.track_async(() => _$_.with_scope(__block, () => formatValue(lazy.value)), __block, 'f0c2b41e');
 			var p_1 = root_1();
 
 			{
 				var expression = _$_.child(p_1);
 
-				_$_.expression(expression, () => _$_.get(lazy_1));
+				_$_.expression(expression, () => lazy_1.value);
 				_$_.pop(p_1);
 			}
 
@@ -91,7 +91,7 @@ export function AsyncSimpleValue(__anchor, _, __block) {
 			{
 				var expression_1 = _$_.child(p_3);
 
-				_$_.expression(expression_1, () => _$_.get(lazy_2));
+				_$_.expression(expression_1, () => lazy_2.value);
 				_$_.pop(p_3);
 			}
 
@@ -124,7 +124,7 @@ export function AsyncNumericValue(__anchor, _, __block) {
 			{
 				var expression_2 = _$_.child(span_1);
 
-				_$_.expression(expression_2, () => _$_.get(lazy_3));
+				_$_.expression(expression_2, () => lazy_3.value);
 				_$_.pop(span_1);
 			}
 
@@ -160,7 +160,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 				{
 					var expression_3 = _$_.child(span_3);
 
-					_$_.expression(expression_3, () => _$_.get(lazy_4).name);
+					_$_.expression(expression_3, () => lazy_4.value.name);
 					_$_.pop(span_3);
 				}
 
@@ -169,7 +169,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 				{
 					var expression_4 = _$_.child(span_4);
 
-					_$_.expression(expression_4, () => _$_.get(lazy_4).age);
+					_$_.expression(expression_4, () => lazy_4.value.age);
 					_$_.pop(span_4);
 				}
 			}
@@ -207,7 +207,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 				{
 					var expression_5 = _$_.child(span_5);
 
-					_$_.expression(expression_5, () => _$_.get(lazy_5));
+					_$_.expression(expression_5, () => lazy_5.value);
 					_$_.pop(span_5);
 				}
 
@@ -216,7 +216,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 				{
 					var expression_6 = _$_.child(span_6);
 
-					_$_.expression(expression_6, () => _$_.get(lazy_6));
+					_$_.expression(expression_6, () => lazy_6.value);
 					_$_.pop(span_6);
 				}
 			}
@@ -250,7 +250,7 @@ export function AsyncWithCatch(__anchor, _, __block) {
 			{
 				var expression_7 = _$_.child(p_5);
 
-				_$_.expression(expression_7, () => _$_.get(lazy_7));
+				_$_.expression(expression_7, () => lazy_7.value);
 				_$_.pop(p_5);
 			}
 
@@ -294,7 +294,7 @@ export function ChildWithError(__anchor, _, __block) {
 			{
 				var expression_9 = _$_.child(p_8);
 
-				_$_.expression(expression_9, () => _$_.get(lazy_8));
+				_$_.expression(expression_9, () => lazy_8.value);
 				_$_.pop(p_8);
 			}
 
@@ -361,13 +361,13 @@ export function AsyncWithReactiveDependency(__anchor, _, __block) {
 	_$_.try(
 		node_9,
 		(__anchor) => {
-			let lazy_10 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${_$_.get(lazy_9)}`)), __block, 'cdd1adb8');
+			let lazy_10 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${lazy_9.value}`)), __block, 'cdd1adb8');
 			var p_11 = root_26();
 
 			{
 				var expression_11 = _$_.child(p_11);
 
-				_$_.expression(expression_11, () => _$_.get(lazy_10));
+				_$_.expression(expression_11, () => lazy_10.value);
 				_$_.pop(p_11);
 			}
 

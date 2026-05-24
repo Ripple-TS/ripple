@@ -85,6 +85,110 @@ export function is_reserved(word) {
 	return RESERVED_WORDS.includes(word);
 }
 
+/**
+ * @param {AST.Expression} tracked
+ * @returns {AST.MemberExpression}
+ */
+export function tracked_get(tracked) {
+	return b.member(tracked, b.id('value'));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_get(lazy, index) {
+	return b.call('_$_.lazy_array_get', lazy, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_rest(lazy, index) {
+	return b.call('_$_.lazy_array_rest', lazy, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {AST.Expression} value
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_set(lazy, value, index) {
+	return b.call('_$_.lazy_array_set', lazy, value, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @param {boolean} prefix
+ * @param {number} [d]
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_update(lazy, index, prefix, d = 1) {
+	/** @type {AST.Expression[]} */
+	const args = [lazy, b.literal(index)];
+	if (d !== 1) {
+		args.push(b.literal(d));
+	}
+	return b.call(prefix ? '_$_.lazy_array_update_pre' : '_$_.lazy_array_update', ...args);
+}
+
+/**
+ * Strips TypeScript-only expression wrappers from expression positions that the
+ * generic visitor does not reliably walk, such as assignment/update targets.
+ * @param {AST.Expression | AST.Pattern} node
+ * @param {CommonContext} context
+ * @returns {AST.Expression | AST.Pattern}
+ */
+export function strip_typescript_expression_wrappers(node, context) {
+	if (
+		node.type === 'TSAsExpression' ||
+		node.type === 'TSTypeAssertion' ||
+		node.type === 'TSNonNullExpression' ||
+		node.type === 'TSInstantiationExpression'
+	) {
+		return strip_typescript_expression_wrappers(
+			/** @type {AST.Expression} */ (node.expression),
+			context,
+		);
+	}
+
+	if (node.type === 'MemberExpression') {
+		return {
+			...node,
+			object:
+				node.object.type === 'Super'
+					? node.object
+					: /** @type {AST.Expression} */ (
+							strip_typescript_expression_wrappers(node.object, context)
+						),
+			property: node.computed
+				? /** @type {AST.Expression} */ (
+						strip_typescript_expression_wrappers(
+							/** @type {AST.Expression} */ (node.property),
+							context,
+						)
+					)
+				: node.property,
+		};
+	}
+
+	if (node.type === 'ParenthesizedExpression') {
+		return {
+			...node,
+			expression: /** @type {AST.Expression} */ (
+				strip_typescript_expression_wrappers(node.expression, context)
+			),
+		};
+	}
+
+	return /** @type {AST.Expression | AST.Pattern} */ (context.visit(node));
+}
+
 // Omits track, trackSplit and trackAsync are they're handled separately
 /** @type {Record<string, {name: string, requiresBlock?: boolean}>} */
 const RIPPLE_IMPORT_CALL_NAME = {

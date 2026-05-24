@@ -15,3 +15,7 @@ export const has_own_property: typeof Object.prototype.hasOwnProperty;
 
 export function has_prototype_accessor(value: object, key: PropertyKey): boolean;
 export function array_slice(array_like: ArrayLike<any>, ...args: number[]): any[];
+export function iterable_array_from<T>(
+	iterable: Iterable<T> | Iterator<T> | ArrayLike<T>,
+	index?: number,
+): T[];

@@ -68,7 +68,7 @@ export function SwitchReactive() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		switch (_$_.get(lazy)) {
+		switch (lazy.value) {
 			case 'a':
 				_$_.output_push('<div');
 				_$_.output_push(' class="case-a"');
@@ -162,7 +162,7 @@ export function SwitchNumericLevels() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		switch (_$_.get(lazy_1)) {
+		switch (lazy_1.value) {
 			case 1:
 				_$_.output_push('<div');
 				_$_.output_push(' class="level-1"');
@@ -220,7 +220,7 @@ export function SwitchBlockScoped() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		switch (_$_.get(lazy_2)) {
+		switch (lazy_2.value) {
 			case 1:
 				_$_.output_push('<div');
 				_$_.output_push(' class="block-1"');
@@ -278,7 +278,7 @@ export function SwitchNoBreak() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		switch (_$_.get(lazy_3)) {
+		switch (lazy_3.value) {
 			case 1:
 				_$_.output_push('<div');
 				_$_.output_push(' class="nobreak-1"');

@@ -163,8 +163,7 @@ interface TrackedBase<V> {
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
-// Supports indexed access: track(0)[0] → value, track(0)[1] → Tracked<V>
-// And destructuring `const [one, two] = track(0);`
+// Supports destructuring `const [one, two] = track(0);`
 export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
 // Helper type to infer component type from a function that returns a component

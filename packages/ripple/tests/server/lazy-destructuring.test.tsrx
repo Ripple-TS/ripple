@@ -214,6 +214,23 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>x-yz</pre>');
 	});
 
+	it('supports rest in lazy array destructuring for iterable values', async () => {
+		component Test() {
+			const source = {
+				*[Symbol.iterator]() {
+					yield 'x';
+					yield 'y';
+					yield 'z';
+				},
+			};
+			const &[first, ...rest] = source;
+			<pre>{`${first}-${rest.join('')}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>x-yz</pre>');
+	});
+
 	it('supports standalone lazy array destructuring with track()', async () => {
 		component Test() {
 			let count;

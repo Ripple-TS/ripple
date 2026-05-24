@@ -38,7 +38,7 @@ export function AsyncWithServerCall() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_1 = _$_.track_async(() => formatValue(_$_.get(lazy)), 'f0c2b41e');
+			let lazy_1 = _$_.track_async(() => formatValue(lazy.value), 'f0c2b41e');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -46,7 +46,7 @@ export function AsyncWithServerCall() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+					_$_.output_push(_$_.escape(lazy_1.value));
 				}
 
 				_$_.output_push('</p>');
@@ -92,7 +92,7 @@ export function AsyncSimpleValue() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_2)));
+					_$_.output_push(_$_.escape(lazy_2.value));
 				}
 
 				_$_.output_push('</p>');
@@ -138,7 +138,7 @@ export function AsyncNumericValue() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_3)));
+					_$_.output_push(_$_.escape(lazy_3.value));
 				}
 
 				_$_.output_push('</span>');
@@ -189,7 +189,7 @@ export function AsyncObjectValue() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_4).name));
+						_$_.output_push(_$_.escape(lazy_4.value.name));
 					}
 
 					_$_.output_push('</span>');
@@ -198,7 +198,7 @@ export function AsyncObjectValue() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_4).age));
+						_$_.output_push(_$_.escape(lazy_4.value.age));
 					}
 
 					_$_.output_push('</span>');
@@ -253,7 +253,7 @@ export function AsyncMultipleValues() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+						_$_.output_push(_$_.escape(lazy_5.value));
 					}
 
 					_$_.output_push('</span>');
@@ -262,7 +262,7 @@ export function AsyncMultipleValues() {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(_$_.get(lazy_6)));
+						_$_.output_push(_$_.escape(lazy_6.value));
 					}
 
 					_$_.output_push('</span>');
@@ -311,7 +311,7 @@ export function AsyncWithCatch() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_7)));
+					_$_.output_push(_$_.escape(lazy_7.value));
 				}
 
 				_$_.output_push('</p>');
@@ -373,7 +373,7 @@ export function ChildWithError() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_8)));
+					_$_.output_push(_$_.escape(lazy_8.value));
 				}
 
 				_$_.output_push('</p>');
@@ -466,7 +466,7 @@ export function AsyncWithReactiveDependency() {
 		() => {
 			_$_.output_push('<!--[-->');
 
-			let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${_$_.get(lazy_9)}`), 'cdd1adb8');
+			let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${lazy_9.value}`), 'cdd1adb8');
 
 			_$_.regular_block(() => {
 				_$_.output_push('<p');
@@ -474,7 +474,7 @@ export function AsyncWithReactiveDependency() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(_$_.get(lazy_10)));
+					_$_.output_push(_$_.escape(lazy_10.value));
 				}
 
 				_$_.output_push('</p>');

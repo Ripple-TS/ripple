@@ -111,7 +111,7 @@ export function ReactiveIf() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy)) {
+		if (lazy.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="content"');
 			_$_.output_push('>');
@@ -149,7 +149,7 @@ export function ReactiveIfElse() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_1)) {
+		if (lazy_1.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="on"');
 			_$_.output_push('>');
@@ -210,7 +210,7 @@ export function NestedIf() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_2)) {
+		if (lazy_2.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="outer-content"');
 			_$_.output_push('>');
@@ -219,7 +219,7 @@ export function NestedIf() {
 				_$_.output_push('Outer');
 				_$_.output_push('<!--[-->');
 
-				if (_$_.get(lazy_3)) {
+				if (lazy_3.value) {
 					_$_.output_push('<span');
 					_$_.output_push(' class="inner-content"');
 					_$_.output_push('>');
@@ -282,7 +282,7 @@ export function IfElseIfChain() {
 			_$_.output_push('</button>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_4) === 'loading') {
+			if (lazy_4.value === 'loading') {
 				_$_.output_push('<div');
 				_$_.output_push(' class="state"');
 				_$_.output_push('>');
@@ -295,7 +295,7 @@ export function IfElseIfChain() {
 			} else {
 				_$_.output_push('<!--[-->');
 
-				if (_$_.get(lazy_4) === 'success') {
+				if (lazy_4.value === 'success') {
 					_$_.output_push('<div');
 					_$_.output_push(' class="state"');
 					_$_.output_push('>');

@@ -77,7 +77,7 @@ export function ConditionalPortal() {
 			_$_.output_push('</button>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy)) {
+			if (lazy.value) {
 				{
 					const comp = Portal;
 

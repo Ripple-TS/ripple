@@ -49,6 +49,7 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	strip_class_typescript_syntax,
+	strip_typescript_expression_wrappers,
 	jsx_to_ripple_node,
 } from '../../utils.js';
 
@@ -1161,6 +1162,13 @@ const visitors = {
 		return context.next();
 	},
 
+	TSNonNullExpression(node, context) {
+		if (!context.state.to_ts) {
+			return context.visit(/** @type {AST.Expression} */ (node.expression));
+		}
+		return context.next();
+	},
+
 	TSInstantiationExpression(node, context) {
 		if (!context.state.to_ts) {
 			// In JavaScript, just return the expression wrapped in parentheses
@@ -1860,7 +1868,11 @@ const visitors = {
 			}
 		}
 
-		return context.next();
+		return {
+			...node,
+			left: /** @type {AST.Pattern} */ (strip_typescript_expression_wrappers(node.left, context)),
+			right: /** @type {AST.Expression} */ (context.visit(node.right)),
+		};
 	},
 
 	UpdateExpression(node, context) {
@@ -1873,6 +1885,13 @@ const visitors = {
 				return binding.transform.update(node);
 			}
 		}
+
+		return {
+			...node,
+			argument: /** @type {AST.Expression} */ (
+				strip_typescript_expression_wrappers(node.argument, context)
+			),
+		};
 	},
 
 	Style(node, context) {
@@ -2312,7 +2331,7 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 
 	state.imports.add(`import * as _$_ from 'ripple/internal/server'`);
 
-	const program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
+	let program = /** @type {AST.Program} */ (walk(analysis.ast, { ...state }, visitors));
 
 	const { css, cssHash } = renderCssResult(state.stylesheets, minify_css);
 

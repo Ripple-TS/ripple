@@ -42,14 +42,14 @@ export function ReactiveTitle(__anchor, _, __block) {
 		{
 			var expression = _$_.child(span_1);
 
-			_$_.expression(expression, () => _$_.get(lazy));
+			_$_.expression(expression, () => lazy.value);
 			_$_.pop(span_1);
 		}
 	}
 
 	_$_.head('8af28792', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = _$_.get(lazy);
+			_$_.document.title = lazy.value;
 		});
 	});
 
@@ -83,7 +83,7 @@ export function ReactiveMetaTags(__anchor, _, __block) {
 	{
 		var expression_1 = _$_.child(div_4);
 
-		_$_.expression(expression_1, () => _$_.get(lazy_1));
+		_$_.expression(expression_1, () => lazy_1.value);
 		_$_.pop(div_4);
 	}
 
@@ -108,13 +108,13 @@ export function TitleWithTemplate(__anchor, _, __block) {
 	{
 		var expression_2 = _$_.child(div_5);
 
-		_$_.expression(expression_2, () => _$_.get(lazy_2));
+		_$_.expression(expression_2, () => lazy_2.value);
 		_$_.pop(div_5);
 	}
 
 	_$_.head('72f81455', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = `Hello ${_$_.get(lazy_2)}!`;
+			_$_.document.title = `Hello ${lazy_2.value}!`;
 		});
 	});
 
@@ -145,13 +145,13 @@ export function ConditionalTitle(__anchor, _, __block) {
 	{
 		var expression_3 = _$_.child(div_7);
 
-		_$_.expression(expression_3, () => _$_.get(lazy_4));
+		_$_.expression(expression_3, () => lazy_4.value);
 		_$_.pop(div_7);
 	}
 
 	_$_.head('453e9ed4', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = _$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4);
+			_$_.document.title = lazy_3.value ? 'App - ' + lazy_4.value : lazy_4.value;
 		});
 	});
 
@@ -172,14 +172,14 @@ export function ComputedTitle(__anchor, _, __block) {
 		{
 			var expression_4 = _$_.child(span_2);
 
-			_$_.expression(expression_4, () => _$_.get(lazy_5));
+			_$_.expression(expression_4, () => lazy_5.value);
 			_$_.pop(span_2);
 		}
 	}
 
 	_$_.head('63888c83', (__anchor) => {
 		_$_.render(() => {
-			_$_.document.title = prefix + _$_.get(lazy_5);
+			_$_.document.title = prefix + lazy_5.value;
 		});
 	});
 

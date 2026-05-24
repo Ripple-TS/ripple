@@ -941,7 +941,7 @@ function SidebarSection({ title, children }) {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy)) {
+			if (lazy.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="section-items"');
 				_$_.output_push('>');

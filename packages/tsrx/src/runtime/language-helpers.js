@@ -55,3 +55,37 @@ export function array_slice(array_like, ...args) {
 		? array_like.slice(...args)
 		: array_prototype.slice.call(array_like, ...args);
 }
+
+/**
+ * Converts iterables, iterators, and array-like values to an array from an index.
+ * @template T
+ * @param {Iterable<T> | Iterator<T> | ArrayLike<T>} iterable
+ * @param {number} [index]
+ * @returns {T[]}
+ */
+export function iterable_array_from(iterable, index = 0) {
+	/** @type {Iterator<T>} */
+	var iterator;
+	var iterable_prop = /** @type {Iterable<T>} */ (iterable)[Symbol.iterator];
+
+	if (typeof iterable_prop === 'function') {
+		iterator = iterable_prop.call(iterable);
+	} else if (typeof (/** @type {Iterator<T>} */ (iterable).next) === 'function') {
+		iterator = Iterator.from(/** @type {Iterator<T>} */ (iterable));
+	} else {
+		return array_from(/** @type {ArrayLike<T>} */ (iterable)).slice(index);
+	}
+
+	var result = [];
+	var i = 0;
+	var current = iterator.next();
+	while (!current.done) {
+		if (i++ < index) {
+			current = iterator.next();
+			continue;
+		}
+		result.push(current.value);
+		current = iterator.next();
+	}
+	return result;
+}
