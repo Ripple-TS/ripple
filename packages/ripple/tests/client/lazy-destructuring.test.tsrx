@@ -400,6 +400,38 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('div')!.textContent).toBe('100');
 	});
 
+	it('supports direct value access on tracked values', () => {
+		component Test() {
+			let tracked = track(0);
+			++tracked.value;
+			tracked.value++;
+			tracked.value = tracked.value + 1;
+			let value = tracked.value;
+			let ref = tracked;
+
+			<pre>{`${value}-${ref === tracked}`}</pre>
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('3-true');
+	});
+
+	it('supports lazy destructured tracked ref value access', () => {
+		component Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) {
+			++tracked_ref.value;
+			tracked_ref.value++;
+			<pre>{`${value}-${tracked_ref.value}`}</pre>
+		}
+
+		component Test() {
+			let tracked = track(0);
+			<Child pair={tracked} />
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('2-2');
+	});
+
 	it('supports standalone lazy object destructuring', () => {
 		component Test() {
 			let a;

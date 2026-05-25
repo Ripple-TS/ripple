@@ -7,6 +7,7 @@
 	Context,
 	ScopeInterface,
 	Visitors,
+	Binding,
 	TopScopedClasses,
 	StyleClasses,
 } from '../../types/index';
@@ -56,6 +57,11 @@ import {
 import is_reference from 'is-reference';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
+
+const TRACKED_INDEX_VALUE_ERROR =
+	'Do not access tracked values with [0]. Use .value or &[] lazy destructuring instead. Numeric tracked access leads to degraded performance.';
+const TRACKED_INDEX_REFERENCE_ERROR =
+	'Do not access tracked values with [1]. Use the tracked value directly instead. Numeric tracked access leads to degraded performance.';
 
 const mutating_method_names = new Set([
 	'add',
@@ -761,6 +767,54 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 }
 
 /**
+ * @param {AST.MemberExpression} node
+ * @returns {0 | 1 | null}
+ */
+function get_tracked_numeric_index(node) {
+	return node.computed &&
+		node.property.type === 'Literal' &&
+		(node.property.value === 0 || node.property.value === 1)
+		? /** @type {0 | 1} */ (node.property.value)
+		: null;
+}
+
+/**
+ * @param {0 | 1} index
+ * @returns {string}
+ */
+function get_tracked_numeric_index_error(index) {
+	return index === 0 ? TRACKED_INDEX_VALUE_ERROR : TRACKED_INDEX_REFERENCE_ERROR;
+}
+
+/**
+ * @param {Binding | null} binding
+ * @param {AnalysisContext} context
+ * @returns {boolean}
+ */
+function is_known_tracked_binding(binding, context) {
+	return (
+		binding !== null &&
+		binding.kind !== 'lazy' &&
+		binding.kind !== 'lazy_fallback' &&
+		binding.initial?.type === 'CallExpression' &&
+		is_ripple_track_call(binding.initial.callee, context) !== null
+	);
+}
+
+/**
+ * @param {Binding | null} binding
+ * @returns {boolean}
+ */
+function is_known_tracked_lazy_ref_binding(binding) {
+	return (
+		binding !== null &&
+		(binding.kind === 'lazy' || binding.kind === 'lazy_fallback') &&
+		binding.metadata?.lazy_array_source_tracked === true &&
+		binding.metadata.lazy_array_index === 1
+	);
+}
+
+/**
  * @param {AST.Pattern} pattern
  * @returns {AST.TypeNode | undefined}
  */
@@ -1310,6 +1364,7 @@ const visitors = {
 
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
 			const binding = context.state.scope.get(node.object.name);
+			const tracked_numeric_index = get_tracked_numeric_index(node);
 
 			if (binding && binding.metadata?.is_ripple_object) {
 				const internalProperties = new Set(['__v', 'a', 'b', 'c', 'f']);
@@ -1332,22 +1387,23 @@ const visitors = {
 				}
 			}
 
-			if (
-				binding !== null &&
-				binding.kind !== 'lazy' &&
-				binding.kind !== 'lazy_fallback' &&
-				binding.initial?.type === 'CallExpression' &&
-				is_ripple_track_call(binding.initial.callee, context)
-			) {
+			if (is_known_tracked_binding(binding, context)) {
+				if (tracked_numeric_index !== null) {
+					error(
+						get_tracked_numeric_index_error(tracked_numeric_index),
+						context.state.analysis.module.filename,
+						node.property,
+						context.state.collect ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+					context.next();
+					return;
+				}
+
 				const is_allowed_tracked_access =
-					// Allow [0] and [1] indexed access on tracked objects.
-					(node.computed &&
-						node.property.type === 'Literal' &&
-						(node.property.value === 0 || node.property.value === 1)) ||
-					// Allow .value and .length property access on tracked objects.
-					(!node.computed &&
-						node.property.type === 'Identifier' &&
-						(node.property.name === 'value' || node.property.name === 'length'));
+					!node.computed &&
+					node.property.type === 'Identifier' &&
+					(node.property.name === 'value' || node.property.name === 'length');
 
 				if (is_allowed_tracked_access) {
 					// pass through
@@ -1360,6 +1416,16 @@ const visitors = {
 						context.state.analysis.comments,
 					);
 				}
+			}
+
+			if (is_known_tracked_lazy_ref_binding(binding) && tracked_numeric_index !== null) {
+				error(
+					get_tracked_numeric_index_error(tracked_numeric_index),
+					context.state.analysis.module.filename,
+					node.property,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
 			}
 		}
 

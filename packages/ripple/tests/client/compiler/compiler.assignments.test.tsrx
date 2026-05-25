@@ -189,7 +189,7 @@ component App() {
 		expect(code).not.toContain('_$_.lazy_array_get(_$_.lazy_array_get(lazy, 0), 0)');
 	});
 
-	it('compiles indexed access on known tracked lazy destructures through tracked helpers', () => {
+	it('throws on indexed access through known tracked lazy destructures', () => {
 		const source = `import { track } from 'ripple';
 component App() {
 	let &[value, tracked_ref] = track({ 0: 'x' });
@@ -198,15 +198,13 @@ component App() {
 	let next = value[0];
 	<div>{nested}{next}</div>
 }`;
-		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 
-		expect(code).toContain('let nested = lazy.value[0];');
-		expect(code).toContain('_$_.set(lazy, { 0: \'y\' });');
-		expect(code).toContain('let next = lazy.value[0];');
-		expect(code).not.toContain('_$_.lazy_array_get(lazy, 0)');
+		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
+			/Use \.value or &\[\] lazy destructuring/,
+		);
 	});
 
-	it('compiles known tracked indexed access through tracked helpers', () => {
+	it('throws on known tracked indexed access', () => {
 		const source = `import { track } from 'ripple';
 component App() {
 	let tracked = track(0);
@@ -216,13 +214,9 @@ component App() {
 	let ref = tracked[1];
 	<div>{value}</div>
 }`;
-		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 
-		expect(code).toContain('_$_.update(tracked)');
-		expect(code).toContain('_$_.set(tracked, tracked.value + 1)');
-		expect(code).toContain('let value = tracked.value;');
-		expect(code).toContain('let ref = tracked;');
-		expect(code).not.toContain('tracked[0]');
-		expect(code).not.toContain('tracked[1]');
+		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
+			/Use \.value or &\[\] lazy destructuring/,
+		);
 	});
 });

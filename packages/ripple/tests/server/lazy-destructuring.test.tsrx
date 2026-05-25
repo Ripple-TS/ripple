@@ -255,14 +255,14 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<div>0</div>');
 	});
 
-	it('supports direct indexed access on tracked values during SSR', async () => {
+	it('supports direct value access on tracked values during SSR', async () => {
 		component Test() {
 			let tracked = track(0);
-			++tracked[0];
-			tracked[0]++;
-			tracked[0] = tracked[0] + 1;
-			let value = tracked[0];
-			let ref = tracked[1];
+			++tracked.value;
+			tracked.value++;
+			tracked.value = tracked.value + 1;
+			let value = tracked.value;
+			let ref = tracked;
 
 			<pre>{`${value}-${ref === tracked}`}</pre>
 		}
@@ -271,10 +271,10 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>3-true</pre>');
 	});
 
-	it('supports indexed access on lazy destructured tracked refs during SSR', async () => {
+	it('supports lazy destructured tracked ref value access during SSR', async () => {
 		component Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) {
-			++tracked_ref[0];
-			tracked_ref[0]++;
+			++tracked_ref.value;
+			tracked_ref.value++;
 			<pre>{`${value}-${tracked_ref.value}`}</pre>
 		}
 
