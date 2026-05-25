@@ -3035,6 +3035,41 @@ function test() {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('should preserve comments in destructured typed component parameters', async () => {
+		const expected = `component Child({
+  tr: &[count, tr],
+  // test,
+}: {
+  tr: [number, Tracked<number>];
+  // test: (node: HTMLDivElement) => void;
+}) {
+  <button
+    onClick={() => {
+      count++;
+      tr[0]++;
+    }}
+  >
+    {count}
+  </button>
+}`;
+
+		const result = await format(expected);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve comments in destructured typed function parameters', async () => {
+		const expected = `function Child({
+  tr: &[count, tr],
+  // test,
+}: {
+  tr: [number, Tracked<number>];
+  // test: (node: HTMLDivElement) => void;
+}) {}`;
+
+		const result = await format(expected);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('should preserve trailing comments in call arguments', async () => {
 		const expected = `fn(
   arg1,
@@ -3779,6 +3814,34 @@ second"</pre>
 }`;
 
 			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should format multiline TypeScript union object types like Prettier TypeScript', async () => {
+			const input = `type SvgIconSource = { name: SvgIconName; data?: never } | {
+    data: SvgIconData;
+    name?: never;
+ }`;
+
+			const expected = `type SvgIconSource =
+  | { name: SvgIconName; data?: never }
+  | {
+      data: SvgIconData;
+      name?: never;
+    };`;
+
+			const result = await format(input);
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should break long TypeScript union types with leading operators', async () => {
+			const input = `type Source = SomeVeryLongTypeNameThatWillDefinitelyNotFit | AnotherVeryLongTypeNameThatWillDefinitelyNotFit;`;
+
+			const expected = `type Source =
+  | SomeVeryLongTypeNameThatWillDefinitelyNotFit
+  | AnotherVeryLongTypeNameThatWillDefinitelyNotFit;`;
+
+			const result = await format(input, { printWidth: 50 });
 			expect(result).toBeWithNewline(expected);
 		});
 

@@ -605,6 +605,10 @@ export function get_comment_handlers(source, comments, index = 0) {
 									node_array = parent.elements;
 								} else if (parent.type === 'ObjectExpression') {
 									node_array = parent.properties;
+								} else if (parent.type === 'ObjectPattern') {
+									node_array = parent.properties;
+								} else if (parent.type === 'TSTypeLiteral') {
+									node_array = parent.members;
 								} else if (
 									parent.type === 'FunctionDeclaration' ||
 									parent.type === 'FunctionExpression' ||
@@ -622,11 +626,22 @@ export function get_comment_handlers(source, comments, index = 0) {
 								is_last_in_array = node_array.indexOf(node) === node_array.length - 1;
 							}
 
+							const trailingCommentBoundary =
+								parent &&
+								parent.type === 'ObjectPattern' &&
+								parent.typeAnnotation &&
+								parent.typeAnnotation.start !== undefined
+									? parent.typeAnnotation.start
+									: parent?.end;
+
 							if (is_last_in_array) {
 								if (isParam || isArgument) {
 									while (comments.length) {
 										const potentialComment = comments[0];
-										if (parent && potentialComment.start >= parent.end) {
+										if (
+											trailingCommentBoundary !== undefined &&
+											potentialComment.start >= trailingCommentBoundary
+										) {
 											break;
 										}
 
@@ -653,7 +668,12 @@ export function get_comment_handlers(source, comments, index = 0) {
 									// and they can be separated by newlines
 									while (comments.length) {
 										const comment = comments[0];
-										if (parent && comment.start >= parent.end) break;
+										if (
+											trailingCommentBoundary !== undefined &&
+											comment.start >= trailingCommentBoundary
+										) {
+											break;
+										}
 
 										const maybeInner = getEmptyElementInnerCommentTarget(comment);
 										if (maybeInner) {

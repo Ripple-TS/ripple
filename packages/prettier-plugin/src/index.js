@@ -35,6 +35,7 @@ const {
 	breakParent,
 	indentIfBreak,
 	lineSuffix,
+	align,
 } = builders;
 const { replaceEndOfLine, willBreak } = utils;
 
@@ -2137,8 +2138,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'TSUnionType': {
-			const types = path.map(print, 'types');
-			nodeContent = join(' | ', types);
+			nodeContent = printTSUnionType(node, path, print);
 			break;
 		}
 
@@ -4416,6 +4416,30 @@ function printTSTypeAliasDeclaration(node, path, options, print) {
 	}
 
 	return group([head, ' =', indent([line, path.call(print, 'typeAnnotation')]), semi(options)]);
+}
+
+/**
+ * Print a TypeScript union type
+ * @param {AST.TSUnionType} node - The union node
+ * @param {AstPath<AST.TSUnionType>} path - The AST path
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc}
+ */
+function printTSUnionType(node, path, print) {
+	const types = path.map(print, 'types');
+	const inlineDoc = join(' | ', types);
+	const multilineDoc = [
+		'| ',
+		join(
+			[hardline, '| '],
+			types.map((typeDoc) => align(2, typeDoc)),
+		),
+	];
+	const shouldBreak = node.types.some(
+		(typeNode, index) => !wasOriginallySingleLine(typeNode) || willBreak(types[index]),
+	);
+
+	return shouldBreak ? group(multilineDoc) : conditionalGroup([inlineDoc, multilineDoc]);
 }
 
 /**
