@@ -8,6 +8,8 @@ import {
 
 const value_message = /Use \.value or &\[\] lazy destructuring/;
 const reference_message = /Use the tracked value directly instead/;
+const value_index = Number(0);
+const reference_index = Number(1);
 
 describe('client tracked numeric access', () => {
 	it('throws when tracked values are accessed through numeric properties', () => {
@@ -20,11 +22,11 @@ describe('client tracked numeric access', () => {
 
 		render(Test);
 
-		expect(() => value[0]).toThrow(value_message);
+		expect(() => value[value_index]).toThrow(value_message);
 		expect(() => {
-			value[0] = 1;
+			value[value_index] = 1;
 		}).toThrow(value_message);
-		expect(() => value[1]).toThrow(reference_message);
+		expect(() => value[reference_index]).toThrow(reference_message);
 	});
 
 	it('throws when derived values are accessed through numeric properties', () => {
@@ -37,11 +39,11 @@ describe('client tracked numeric access', () => {
 
 		render(Test);
 
-		expect(() => value[0]).toThrow(value_message);
+		expect(() => value[value_index]).toThrow(value_message);
 		expect(() => {
-			value[0] = 2;
+			value[value_index] = 2;
 		}).toThrow(value_message);
-		expect(() => value[1]).toThrow(reference_message);
+		expect(() => value[reference_index]).toThrow(reference_message);
 	});
 
 	it('sets tracked lazy index 0 and rejects tracked lazy index 1', () => {

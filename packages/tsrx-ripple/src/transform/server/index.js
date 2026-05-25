@@ -51,6 +51,11 @@ import {
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
 	jsx_to_ripple_node,
+	build_index_read,
+	build_index_write,
+	build_index_update,
+	get_indexed_reactive_target,
+	rewrite_lazy_member_base,
 } from '../../utils.js';
 
 /**
@@ -861,6 +866,20 @@ const visitors = {
 
 			return node;
 		}
+	},
+
+	MemberExpression(node, context) {
+		if (!context.state.to_ts) {
+			const target = get_indexed_reactive_target(node, context);
+			if (target !== null) {
+				const read = build_index_read(target.target, target.index, target.tracked);
+				if (read !== null) {
+					return read;
+				}
+			}
+		}
+
+		return context.next();
 	},
 
 	RefExpression(node, context) {
@@ -1849,7 +1868,44 @@ const visitors = {
 	},
 
 	AssignmentExpression(node, context) {
+		if (context.state.to_ts) {
+			return context.next();
+		}
+
 		const left = node.left;
+
+		if (left.type === 'MemberExpression') {
+			const target = get_indexed_reactive_target(left, context);
+			if (target !== null) {
+				const right = /** @type {AST.Expression} */ (context.visit(node.right));
+				let value = right;
+				if (node.operator !== '=') {
+					const operator = /** @type {AST.BinaryOperator} */ (node.operator.slice(0, -1));
+					const current = build_index_read(target.target, target.index, target.tracked);
+					if (current !== null) {
+						value = b.binary(operator, current, right);
+					}
+				}
+				const assignment = build_index_write(target.target, target.index, value, target.tracked);
+				if (assignment !== null) {
+					return assignment;
+				}
+			}
+
+			const rewritten_left = rewrite_lazy_member_base(left, context);
+			if (rewritten_left !== left) {
+				return {
+					...node,
+					left: /** @type {AST.Pattern} */ (
+						strip_typescript_expression_wrappers(
+							/** @type {AST.Expression} */ (rewritten_left),
+							context,
+						)
+					),
+					right: /** @type {AST.Expression} */ (context.visit(node.right)),
+				};
+			}
+		}
 
 		// Handle lazy binding assignments (e.g., a = 5 where a is from let &{a} = obj)
 		if (left.type === 'Identifier') {
@@ -1876,7 +1932,21 @@ const visitors = {
 	},
 
 	UpdateExpression(node, context) {
+		if (context.state.to_ts) {
+			return context.next();
+		}
+
 		const argument = node.argument;
+
+		if (argument.type === 'MemberExpression') {
+			const target = get_indexed_reactive_target(argument, context);
+			if (target !== null) {
+				const update = build_index_update(target.target, target.index, target.tracked, node);
+				if (update !== null) {
+					return update;
+				}
+			}
+		}
 
 		// Handle lazy binding updates (e.g., a++ where a is from let &{a} = obj)
 		if (argument.type === 'Identifier') {

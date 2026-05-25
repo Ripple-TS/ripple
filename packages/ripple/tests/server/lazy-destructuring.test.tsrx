@@ -242,6 +242,38 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<div>0</div>');
 	});
 
+	it('supports direct indexed access on tracked values during SSR', async () => {
+		component Test() {
+			let tracked = track(0);
+			++tracked[0];
+			tracked[0]++;
+			tracked[0] = tracked[0] + 1;
+			let value = tracked[0];
+			let ref = tracked[1];
+
+			<pre>{`${value}-${ref === tracked}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>3-true</pre>');
+	});
+
+	it('supports indexed access on lazy destructured tracked refs during SSR', async () => {
+		component Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) {
+			++tracked_ref[0];
+			tracked_ref[0]++;
+			<pre>{`${value}-${tracked_ref.value}`}</pre>
+		}
+
+		component Test() {
+			let tracked = track(0);
+			<Child pair={tracked} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>2-2</pre>');
+	});
+
 	it('supports standalone lazy object destructuring', async () => {
 		component Test() {
 			let a;

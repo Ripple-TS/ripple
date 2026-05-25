@@ -64,6 +64,51 @@ component App() {
 		},
 	);
 
+	it('compiles known tracked indexed access through tracked helpers in SSR output', () => {
+		const source = `import { track } from 'ripple';
+component App() {
+	let tracked = track(0);
+	++tracked[0];
+	tracked[0]++;
+	tracked[0] = tracked[0] + 1;
+	let value = tracked[0];
+	let ref = tracked[1];
+	<div>{value}</div>
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+		expect(code).toContain('_$_.update_pre(tracked)');
+		expect(code).toContain('_$_.update(tracked)');
+		expect(code).toContain('_$_.set(tracked, tracked.value + 1)');
+		expect(code).toContain('let value = tracked.value;');
+		expect(code).toContain('let ref = tracked;');
+		expect(code).not.toContain('tracked[0]');
+		expect(code).not.toContain('tracked[1]');
+	});
+
+	it(
+		'compiles indexed access on unknown lazy tracked refs through lazy array helpers in SSR output',
+		() => {
+			const source = `import { track } from 'ripple';
+component Child({ pair: &[value, tracked_ref] }) {
+	++tracked_ref[0];
+	tracked_ref[0]++;
+	<div>{value}</div>
+}
+component App() {
+	let tracked = track(0);
+	<Child pair={tracked} />
+}`;
+			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(code).toContain('_$_.lazy_array_get(lazy, 1)');
+			expect(code).toContain('_$_.lazy_array_update_pre(_$_.lazy_array_get(lazy, 1), 0)');
+			expect(code).toContain('_$_.lazy_array_update(_$_.lazy_array_get(lazy, 1), 0)');
+			expect(code).not.toContain('lazy[1][0]');
+			expect(code).not.toContain('lazy_array_get(lazy, 1)[0]');
+		},
+	);
+
 	it('removes class TypeScript syntax from JS output', () => {
 		const source = `interface BaseEvent {}
 
