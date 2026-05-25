@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { track } from 'ripple';
-import { lazy_array_set, lazy_array_update } from '../../src/runtime/internal/client/runtime.js';
+import {
+	lazy_array_get,
+	lazy_array_set,
+	lazy_array_update,
+} from '../../src/runtime/internal/client/runtime.js';
 
 const value_message = /Use \.value or &\[\] lazy destructuring/;
 const reference_message = /Use the tracked value directly instead/;
@@ -60,5 +64,25 @@ describe('client tracked numeric access', () => {
 		expect(() => {
 			lazy_array_update(value, 1);
 		}).toThrow(reference_message);
+	});
+
+	it('returns undefined for tracked lazy indexes past the tuple length', () => {
+		let value: any;
+		let derived: any;
+
+		component Test() {
+			value = track(0);
+			derived = track(() => value.value + 1);
+			<div />
+		}
+
+		render(Test);
+
+		expect(lazy_array_get(value, 0)).toBe(0);
+		expect(lazy_array_get(value, 1)).toBe(value);
+		expect(lazy_array_get(value, 2)).toBeUndefined();
+		expect(lazy_array_get(derived, 0)).toBe(1);
+		expect(lazy_array_get(derived, 1)).toBe(derived);
+		expect(lazy_array_get(derived, 2)).toBeUndefined();
 	});
 });

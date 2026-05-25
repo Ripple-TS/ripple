@@ -946,10 +946,18 @@ export function lazy_array_get(lazy, index = 0) {
 	}
 	var flags = lazy.f;
 	if (flags === TRACKED) {
-		return index === 0 ? get_tracked(/** @type {Tracked} */ (lazy)) : lazy;
+		return index === 0
+			? get_tracked(/** @type {Tracked} */ (lazy))
+			: index === 1
+				? lazy
+				: undefined;
 	}
 	if (flags === DERIVED) {
-		return index === 0 ? get_derived(/** @type {Derived} */ (lazy)) : lazy;
+		return index === 0
+			? get_derived(/** @type {Derived} */ (lazy))
+			: index === 1
+				? lazy
+				: undefined;
 	}
 	return iterable_array_from(lazy, index)[0];
 }
