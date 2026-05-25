@@ -4,6 +4,13 @@ export type MergeableRefCallback<T> = {
 export type MergeableRefObject<T> = { current: T | null };
 export type MergeableVueRef<T> = { value: T | null };
 export type RefProp<T = unknown> = (node: T | null) => void | (() => void);
+export type RefValue<T = Element> =
+	| ((node: T) => void | (() => void))
+	| { current: T | null }
+	| { value: T | null }
+	| T
+	| null
+	| undefined;
 
 export type MergeableRef<T> =
 	| MergeableRefCallback<T>
@@ -14,9 +21,9 @@ export type MergeableRef<T> =
 
 export function mergeRefs<T = any>(...refs: Array<MergeableRef<T>>): (node: T | null) => () => void;
 export function isRefProp(value: unknown): boolean;
-export function create_ref_prop<T>(
-	get_ref_value: () => T,
-	set_ref_value?: (value: T) => void,
+export function create_ref_prop<T = Element>(
+	get_ref_value: () => RefValue<T>,
+	set_ref_value?: (value: any) => void,
 ): RefProp<T>;
 export function apply_ref_value<T>(
 	ref_value: unknown,

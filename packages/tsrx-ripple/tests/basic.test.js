@@ -150,9 +150,32 @@ describe('@tsrx/ripple named ref props', () => {
 
 		expect(code).toContain("import { _$_RefProp__create } from 'ripple/compiler/internal/import';");
 		expect(code).toContain(
-			'<input input_ref={_$_RefProp__create(() => input, (v) => input = v)} />',
+			"<input input_ref={_$_RefProp__create<HTMLElementTagNameMap['input']>(() => input, (v) => input = v)} />",
 		);
 		expect(code).not.toContain('input_ref={ref input}');
+	});
+
+	it('preserves child namespaces for nested host ref props in Volar TypeScript output', () => {
+		const { code } = compile_to_volar_mappings(
+			`component App() {
+				let circle;
+				let div;
+				<svg>
+					<circle circle_ref={ref circle} />
+					<foreignObject>
+						<div div_ref={ref div} />
+					</foreignObject>
+				</svg>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(
+			"<circle circle_ref={_$_RefProp__create<SVGElementTagNameMap['circle']>(() => circle, (v) => circle = v)} />",
+		);
+		expect(code).toContain(
+			"<div div_ref={_$_RefProp__create<HTMLElementTagNameMap['div']>(() => div, (v) => div = v)} />",
+		);
 	});
 
 	it('does not map the generated named ref setter back to the source ref target', () => {

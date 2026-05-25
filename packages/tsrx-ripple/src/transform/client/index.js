@@ -42,10 +42,12 @@ import {
 	getOriginalEventName,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
+	isRefExpressionAttributeValue as is_ref_expression_attribute_value,
 	normalizeEventName,
 	shouldPreserveComment,
 	formatComment,
 	setLocation,
+	createElementRefTargetTypeForName as create_element_ref_target_type_for_name,
 } from '@tsrx/core';
 const b = builders;
 import {
@@ -582,10 +584,29 @@ function create_ref_value_call(source_argument, context) {
 	const args = [b.thunk(argument)];
 	add_ref_setter_arg(args, source, argument);
 
-	return b.call(
+	const call = b.call(
 		state.to_ts ? set_hidden_import_from_ripple('createRefProp', context) : '_$_.create_ref_prop',
 		...args,
 	);
+	if (state.to_ts && state.ref_target_type) {
+		call.typeArguments = b.ts_type_parameter_instantiation([state.ref_target_type]);
+	}
+	return call;
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {TransformClientState} state
+ * @returns {AST.TypeNode | null}
+ */
+function create_element_ref_target_type(node, state) {
+	if (!is_element_dom_element(node)) {
+		return null;
+	}
+	const element_name = /** @type {AST.Identifier} */ (node.id).name;
+	const namespace =
+		element_name === 'svg' ? 'svg' : element_name === 'math' ? 'mathml' : state.namespace;
+	return create_element_ref_target_type_for_name(element_name, namespace);
 }
 
 /**
@@ -3311,6 +3332,15 @@ function transform_ts_child(node, context) {
 		/** @type {ESTreeJSX.JSXElement['children']} */
 		const children = [];
 		let has_children_props = false;
+		const is_dom_element = is_element_dom_element(node);
+		const element_name =
+			/** @type {AST.Node} */ (node.id).type === 'Identifier'
+				? /** @type {AST.Identifier} */ (node.id).name
+				: null;
+		const child_namespace =
+			is_dom_element && element_name !== null
+				? determine_namespace_for_children(element_name, state.namespace)
+				: state.namespace;
 
 		const attributes = node.attributes.map((attr) => {
 			if (attr.type === 'Attribute') {
@@ -3318,13 +3348,22 @@ function transform_ts_child(node, context) {
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
 					attr.value
 				);
+				const ref_target_type = is_ref_expression_attribute_value(attr_value)
+					? create_element_ref_target_type(node, state)
+					: null;
 				const value =
 					attr_value === null
 						? // <div attr>, not adding `name` for loc because `jsx_name` below
 							// will take care of the mapping JSXAttribute's JSXIdentifier
 							b.literal(true)
 						: // reset init, update, final to avoid adding attr value to the component body
-							visit(attr_value, SetStateForOutsideComponent(state));
+							visit(
+								attr_value,
+								SetStateForOutsideComponent(
+									state,
+									ref_target_type ? { ref_target_type } : undefined,
+								),
+							);
 
 				// Handle both regular identifiers and tracked identifiers
 				/** @type {string} */
@@ -3403,10 +3442,9 @@ function transform_ts_child(node, context) {
 		});
 
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
-			const is_dom_element = is_element_dom_element(node);
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
 			const thunk =
-				/** @type {AST.Identifier} */ (node.id).name === 'style'
+				element_name === 'style'
 					? null
 					: b.thunk(
 							b.block(
@@ -3415,10 +3453,8 @@ function transform_ts_child(node, context) {
 									state: {
 										...state,
 										scope: component_scope,
-										inside_head:
-											/** @type {AST.Identifier} */ (node.id).name === 'head'
-												? true
-												: state.inside_head,
+										inside_head: element_name === 'head' ? true : state.inside_head,
+										namespace: child_namespace,
 										skip_children_traversal: is_dom_element,
 									},
 								}),

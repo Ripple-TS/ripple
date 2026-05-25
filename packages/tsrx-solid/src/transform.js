@@ -4,7 +4,9 @@
 
 import {
 	createJsxTransform,
+	createElementRefTargetType,
 	error,
+	addRefTargetTypeToRefPropAttributes as add_ref_target_type_to_ref_prop_attributes,
 	mergeDuplicateRefs,
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
@@ -1490,6 +1492,7 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 		node.attributes || [],
 		is_composite,
 		transform_context,
+		node,
 	);
 
 	const html_child_transform = rewrite_host_html_children(
@@ -1656,9 +1659,10 @@ function has_text_content_attribute(attributes) {
  * @param {any[]} raw_attrs
  * @param {boolean} is_composite
  * @param {TransformContext} transform_context
+ * @param {any} element
  * @returns {any[]}
  */
-function transform_element_attributes(raw_attrs, is_composite, transform_context) {
+function transform_element_attributes(raw_attrs, is_composite, transform_context, element) {
 	validateAtMostOneRefAttribute(raw_attrs, /** @type {any} */ (transform_context));
 	/** @type {any[]} */
 	const result = [];
@@ -1670,6 +1674,12 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 	)) {
 		if (!attr) continue;
 		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
+	}
+	if (transform_context.typeOnly) {
+		add_ref_target_type_to_ref_prop_attributes(
+			result,
+			!is_composite ? createElementRefTargetType(element) : null,
+		);
 	}
 	return mergeDuplicateRefs(
 		normalize_solid_host_ref_spreads(result, !is_composite, transform_context),
@@ -1837,6 +1847,7 @@ function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
 		node.attributes || [],
 		is_composite,
 		transform_context,
+		null,
 	);
 	const selfClosing = !!node.selfClosing;
 	const children = create_element_children(node.children || [], transform_context);

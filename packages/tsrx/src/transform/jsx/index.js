@@ -570,6 +570,12 @@ export function createJsxTransform(platform) {
 					!is_component,
 					transform_context,
 				);
+				if (transform_context.typeOnly) {
+					add_ref_target_type_to_ref_prop_attributes(
+						attrs,
+						!is_component ? create_element_ref_target_type(visited) : null,
+					);
+				}
 				return {
 					...visited,
 					attributes: merge_duplicate_refs(
@@ -5174,10 +5180,41 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 	const result = hook
 		? hook(attrs, transform_context, element)
 		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
+	if (transform_context.typeOnly) {
+		add_ref_target_type_to_ref_prop_attributes(
+			result,
+			!is_component ? create_element_ref_target_type(element) : null,
+		);
+	}
 	return merge_duplicate_refs(
 		normalize_host_ref_spreads(result, !is_component, transform_context),
 		transform_context,
 	);
+}
+
+/**
+ * @param {any[]} attrs
+ * @param {AST.TypeNode | null} ref_target_type
+ * @returns {void}
+ */
+export function add_ref_target_type_to_ref_prop_attributes(attrs, ref_target_type) {
+	if (!ref_target_type) return;
+	for (const attr of attrs) {
+		const expression =
+			attr?.type === 'JSXAttribute' &&
+			attr.value?.type === 'JSXExpressionContainer' &&
+			attr.value.expression?.type !== 'JSXEmptyExpression'
+				? attr.value.expression
+				: null;
+		if (
+			expression?.type === 'CallExpression' &&
+			expression.callee?.type === 'Identifier' &&
+			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME &&
+			!expression.typeArguments
+		) {
+			expression.typeArguments = b.ts_type_parameter_instantiation([ref_target_type]);
+		}
+	}
 }
 
 /**
@@ -5596,6 +5633,115 @@ export const CREATE_REF_PROP_INTERNAL_NAME = '__create_ref_prop';
 export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
 export const MAP_ITERABLE_INTERNAL_NAME = '__map_iterable';
 export const ITERATION_VALUE_INTERNAL_NAME = '__IterationValue';
+
+const HTML_REF_TAG_NAMES = new Set(
+	'a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption cite code col colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd label legend li link main map mark menu meta meter nav noscript object ol optgroup option output p picture pre progress q rp rt ruby s samp script search section select slot small source span strong style sub summary sup table tbody td template textarea tfoot th thead time title tr track u ul var video wbr'.split(
+		' ',
+	),
+);
+
+const SVG_REF_TAG_NAMES = new Set(
+	'a animate animateMotion animateTransform circle clipPath defs desc ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter foreignObject g image line linearGradient marker mask metadata mpath path pattern polygon polyline radialGradient rect script set stop style svg switch symbol text textPath title tspan use view'.split(
+		' ',
+	),
+);
+
+const MATHML_REF_TAG_NAMES = new Set(
+	'annotation annotation-xml maction math merror mfrac mi mmultiscripts mn mo mover mpadded mphantom mprescripts mroot mrow ms mspace msqrt mstyle msub msubsup msup mtable mtd mtext mtr munder munderover semantics'.split(
+		' ',
+	),
+);
+
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
+export function is_ref_expression_attribute_value(value) {
+	return (
+		value?.type === 'RefExpression' ||
+		(value?.type === 'JSXExpressionContainer' && value.expression?.type === 'RefExpression')
+	);
+}
+
+/**
+ * @param {any} element
+ * @param {'html' | 'svg' | 'mathml'} [namespace]
+ * @returns {AST.TypeNode | null}
+ */
+export function create_element_ref_target_type(element, namespace) {
+	const tag_name = get_element_ref_tag_name(element);
+	return tag_name === null ? null : create_element_ref_target_type_for_name(tag_name, namespace);
+}
+
+/**
+ * @param {string} tag_name
+ * @param {'html' | 'svg' | 'mathml'} [namespace]
+ * @returns {AST.TypeNode}
+ */
+export function create_element_ref_target_type_for_name(tag_name, namespace = 'html') {
+	const resolved_namespace =
+		tag_name === 'svg'
+			? 'svg'
+			: tag_name === 'math'
+				? 'mathml'
+				: namespace === 'html'
+					? infer_ref_namespace(tag_name)
+					: namespace;
+
+	if (resolved_namespace === 'svg') {
+		return SVG_REF_TAG_NAMES.has(tag_name)
+			? create_tag_name_map_ref_type('SVGElementTagNameMap', tag_name)
+			: b.ts_type_reference(b.id('SVGElement'));
+	}
+	if (resolved_namespace === 'mathml') {
+		return MATHML_REF_TAG_NAMES.has(tag_name)
+			? create_tag_name_map_ref_type('MathMLElementTagNameMap', tag_name)
+			: b.ts_type_reference(b.id('MathMLElement'));
+	}
+	return HTML_REF_TAG_NAMES.has(tag_name)
+		? create_tag_name_map_ref_type('HTMLElementTagNameMap', tag_name)
+		: b.ts_type_reference(b.id('HTMLElement'));
+}
+
+/**
+ * @param {string} tag_name
+ * @returns {'html' | 'svg' | 'mathml'}
+ */
+function infer_ref_namespace(tag_name) {
+	if (HTML_REF_TAG_NAMES.has(tag_name)) return 'html';
+	if (SVG_REF_TAG_NAMES.has(tag_name)) return 'svg';
+	if (MATHML_REF_TAG_NAMES.has(tag_name)) return 'mathml';
+	return 'html';
+}
+
+/**
+ * @param {any} element
+ * @returns {string | null}
+ */
+function get_element_ref_tag_name(element) {
+	const id = element?.id;
+	if (id?.type === 'Identifier') return id.name;
+	const name = element?.name;
+	if (name?.type === 'JSXIdentifier') return name.name;
+	if (element?.openingElement?.name?.type === 'JSXIdentifier') {
+		return element.openingElement.name.name;
+	}
+	return null;
+}
+
+/**
+ * @param {string} map_name
+ * @param {string} tag_name
+ * @returns {AST.TypeNode}
+ */
+function create_tag_name_map_ref_type(map_name, tag_name) {
+	return /** @type {AST.TypeNode} */ ({
+		type: 'TSIndexedAccessType',
+		objectType: b.ts_type_reference(b.id(map_name)),
+		indexType: b.ts_literal_type(b.literal(tag_name)),
+		metadata: { path: [] },
+	});
+}
 
 /**
  * @param {any} attr
