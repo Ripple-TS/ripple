@@ -58,4 +58,19 @@ describe('server tracked numeric access', () => {
 		expect(lazy_array_get(derived, 1)).toBe(derived);
 		expect(lazy_array_get(derived, 2)).toBeUndefined();
 	});
+
+	it('ignores tracked lazy writes past the tuple length', () => {
+		const value = track(0);
+		const derived = track(() => value.value + 1);
+
+		lazy_array_set(value, 10, 2);
+		lazy_array_update(value, 2);
+		lazy_array_set(derived, 20, 2);
+		lazy_array_update(derived, 2);
+
+		expect(lazy_array_get(value, 2)).toBeUndefined();
+		expect(lazy_array_get(derived, 2)).toBeUndefined();
+		expect(Object.hasOwn(value, 2)).toBe(false);
+		expect(Object.hasOwn(derived, 2)).toBe(false);
+	});
 });

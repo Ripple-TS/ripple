@@ -1292,6 +1292,7 @@ export function lazy_array_set(lazy, value, index = 0) {
 		if (index === 1) {
 			throw_tracked_index_reference_error();
 		}
+		return;
 	}
 	lazy[index] = value;
 }
