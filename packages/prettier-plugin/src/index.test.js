@@ -3817,6 +3817,42 @@ second"</pre>
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should normalize simple cast union types at print width 100', async () => {
+			const input = `const alphaLink = container.querySelector('[data-route-id="alpha"]') as HTMLAnchorElement | null;
+const saveButton = container.querySelector('[data-action-id="save"]') as HTMLButtonElement | null;
+const deleteButton = container.querySelector('[data-action-id="delete"]') as | HTMLButtonElement
+| null;`;
+
+			const expected = `const alphaLink = container.querySelector('[data-route-id="alpha"]') as HTMLAnchorElement | null;
+const saveButton = container.querySelector('[data-action-id="save"]') as HTMLButtonElement | null;
+const deleteButton = container.querySelector(
+  '[data-action-id="delete"]',
+) as HTMLButtonElement | null;`;
+
+			const result = await format(input, { printWidth: 100, singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should normalize simple cast union types at print width 80', async () => {
+			const input = `const alphaLink = container.querySelector('[data-route-id="alpha"]') as HTMLAnchorElement | null;
+const saveButton = container.querySelector('[data-action-id="save"]') as HTMLButtonElement | null;
+const deleteButton = container.querySelector('[data-action-id="delete"]') as | HTMLButtonElement
+| null;`;
+
+			const expected = `const alphaLink = container.querySelector(
+  '[data-route-id="alpha"]',
+) as HTMLAnchorElement | null;
+const saveButton = container.querySelector(
+  '[data-action-id="save"]',
+) as HTMLButtonElement | null;
+const deleteButton = container.querySelector(
+  '[data-action-id="delete"]',
+) as HTMLButtonElement | null;`;
+
+			const result = await format(input, { printWidth: 80, singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should format multiline TypeScript union object types like Prettier TypeScript', async () => {
 			const input = `type SvgIconSource = { name: SvgIconName; data?: never } | {
     data: SvgIconData;
