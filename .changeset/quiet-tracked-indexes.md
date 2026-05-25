@@ -1,5 +1,7 @@
 ---
 'ripple': patch
+'@tsrx/ripple': patch
+'@tsrx/core': patch
 ---
 
 Replace all [0] and [1] compiled output with `.value` and direct `lazy`
