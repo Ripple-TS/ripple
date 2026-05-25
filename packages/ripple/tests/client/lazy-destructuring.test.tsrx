@@ -78,6 +78,19 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('30-40');
 	});
 
+	it('preserves numeric member access on lazy array value bindings', () => {
+		component Child({ pair: &[first] }: { pair: [{ 0: string }] }) {
+			<pre>{first[0]}</pre>
+		}
+
+		component Test() {
+			<Child pair={[{ 0: 'x' }]} />
+		}
+
+		render(Test);
+		expect(container.querySelector('pre')!.textContent).toBe('x');
+	});
+
 	it('supports default values in lazy object destructuring', () => {
 		component Test() {
 			const obj: { a: number; b?: number } = { a: 5 };

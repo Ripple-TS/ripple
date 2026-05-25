@@ -455,11 +455,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 	var button_4 = _$_.first_child_frag(fragment_2);
 
 	button_4.__click = () => {
-		_$_.set(lazy_3, [
-			_$_.lazy_array_get(lazy_3.value, 2),
-			_$_.lazy_array_get(lazy_3.value, 0),
-			_$_.lazy_array_get(lazy_3.value, 1)
-		]);
+		_$_.set(lazy_3, [lazy_3.value[2], lazy_3.value[0], lazy_3.value[1]]);
 	};
 
 	var ul_6 = _$_.sibling(button_4);
@@ -966,11 +962,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	var button_14 = _$_.first_child_frag(fragment_10);
 
 	button_14.__click = () => {
-		_$_.set(lazy_12, [
-			_$_.lazy_array_get(lazy_12.value, 1),
-			_$_.lazy_array_get(lazy_12.value, 2),
-			_$_.lazy_array_get(lazy_12.value, 0)
-		]);
+		_$_.set(lazy_12, [lazy_12.value[1], lazy_12.value[2], lazy_12.value[0]]);
 	};
 
 	var ul_14 = _$_.sibling(button_14);

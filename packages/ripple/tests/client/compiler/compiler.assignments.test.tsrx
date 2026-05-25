@@ -175,6 +175,37 @@ component App() {
 		expect(code).not.toContain('lazy[1] =');
 	});
 
+	it('does not double-wrap member access on lazy array value bindings', () => {
+		const source = `component Child({ pair: &[first] }) {
+	let value = first[0];
+	<div>{value}</div>
+}
+component App() {
+	<Child pair={[{ 0: 'x' }]} />
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('let value = _$_.lazy_array_get(lazy, 0)[0];');
+		expect(code).not.toContain('_$_.lazy_array_get(_$_.lazy_array_get(lazy, 0), 0)');
+	});
+
+	it('compiles indexed access on known tracked lazy destructures through tracked helpers', () => {
+		const source = `import { track } from 'ripple';
+component App() {
+	let &[value, tracked_ref] = track({ 0: 'x' });
+	let nested = value[0];
+	tracked_ref[0] = { 0: 'y' };
+	let next = value[0];
+	<div>{nested}{next}</div>
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('let nested = lazy.value[0];');
+		expect(code).toContain('_$_.set(lazy, { 0: \'y\' });');
+		expect(code).toContain('let next = lazy.value[0];');
+		expect(code).not.toContain('_$_.lazy_array_get(lazy, 0)');
+	});
+
 	it('compiles known tracked indexed access through tracked helpers', () => {
 		const source = `import { track } from 'ripple';
 component App() {

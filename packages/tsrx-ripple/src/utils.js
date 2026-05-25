@@ -207,6 +207,10 @@ export function get_lazy_array_member_target(object, context) {
 		};
 	}
 
+	if (binding.metadata?.lazy_array_index !== 1) {
+		return null;
+	}
+
 	return {
 		target: binding.transform.read(object),
 		tracked: false,

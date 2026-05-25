@@ -192,6 +192,19 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
 	});
 
+	it('preserves numeric member access on lazy array value bindings', async () => {
+		component Child({ pair: &[first] }: { pair: [{ 0: string }] }) {
+			<pre>{first[0]}</pre>
+		}
+
+		component Test() {
+			<Child pair={[{ 0: 'x' }]} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>x</pre>');
+	});
+
 	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {
 		component Test() {
 			let tracked_value = track(0);
