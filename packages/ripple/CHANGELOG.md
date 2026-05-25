@@ -1,5 +1,42 @@
 # ripple
 
+## 0.3.66
+
+### Patch Changes
+
+- [#1166](https://github.com/Ripple-TS/ripple/pull/1166)
+  [`1dc0331`](https://github.com/Ripple-TS/ripple/commit/1dc0331f7b7296545ee459dc31a92057871cbb0d)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Replace all [0] and [1]
+  compiled output with `.value` and direct `lazy` Throw runtime errors for direct
+  `[0]` and `[1]` access on tracked and derived values. Fix type removal for
+  non-tsx paths Remove the public `get` and `set` exports in favor of `.value`
+  access. Ignore lazy writes past the tracked tuple length instead of creating
+  numeric properties.
+
+- [#1169](https://github.com/Ripple-TS/ripple/pull/1169)
+  [`bf1cb96`](https://github.com/Ripple-TS/ripple/commit/bf1cb96f2ea9b325e30f5a051c451f92659d20f9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Type host `ref={...}`
+  attributes, named ref props, and generated ref keys so inline callbacks
+  `{ref ...}` receive element-specific JSX types.
+
+  Exclude `returnType` from the compiler types that use typeAnnotation instead due
+  to the way `@sveltejs/acorn-typescript` parses them.
+
+- [#1168](https://github.com/Ripple-TS/ripple/pull/1168)
+  [`146cbf5`](https://github.com/Ripple-TS/ripple/commit/146cbf58120aad05161d503118a47bdc566ba869)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add global root pending/catch
+  boundary support and allow Ripple config routes to reference named entry
+  exports.
+
+  Refactor vite-plugin to keep code generation in one place, produce cache as
+  necessary and generate actual files for inspection.
+
+- Updated dependencies
+  [[`1dc0331`](https://github.com/Ripple-TS/ripple/commit/1dc0331f7b7296545ee459dc31a92057871cbb0d),
+  [`bf1cb96`](https://github.com/Ripple-TS/ripple/commit/bf1cb96f2ea9b325e30f5a051c451f92659d20f9)]:
+  - @tsrx/ripple@0.1.14
+  - @tsrx/core@0.1.14
+
 ## 0.3.65
 
 ### Patch Changes

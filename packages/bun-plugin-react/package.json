@@ -3,7 +3,7 @@
   "description": "Bun plugin for @tsrx/react (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "type": "module",
   "publishConfig": {
     "access": "public"

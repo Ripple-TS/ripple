@@ -1,5 +1,23 @@
 # @tsrx/prettier-plugin
 
+## 0.3.66
+
+### Patch Changes
+
+- [#1169](https://github.com/Ripple-TS/ripple/pull/1169)
+  [`bf1cb96`](https://github.com/Ripple-TS/ripple/commit/bf1cb96f2ea9b325e30f5a051c451f92659d20f9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Type host `ref={...}`
+  attributes, named ref props, and generated ref keys so inline callbacks
+  `{ref ...}` receive element-specific JSX types.
+
+  Exclude `returnType` from the compiler types that use typeAnnotation instead due
+  to the way `@sveltejs/acorn-typescript` parses them.
+
+- Updated dependencies
+  [[`1dc0331`](https://github.com/Ripple-TS/ripple/commit/1dc0331f7b7296545ee459dc31a92057871cbb0d),
+  [`bf1cb96`](https://github.com/Ripple-TS/ripple/commit/bf1cb96f2ea9b325e30f5a051c451f92659d20f9)]:
+  - @tsrx/core@0.1.14
+
 ## 0.3.65
 
 ### Patch Changes

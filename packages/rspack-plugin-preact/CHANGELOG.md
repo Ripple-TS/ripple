@@ -1,5 +1,13 @@
 # @tsrx/rspack-plugin-preact
 
+## 0.0.30
+
+### Patch Changes
+
+- Updated dependencies
+  [[`bf1cb96`](https://github.com/Ripple-TS/ripple/commit/bf1cb96f2ea9b325e30f5a051c451f92659d20f9)]:
+  - @tsrx/preact@0.1.14
+
 ## 0.0.29
 
 ### Patch Changes
