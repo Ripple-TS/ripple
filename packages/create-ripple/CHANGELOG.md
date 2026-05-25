@@ -1,5 +1,17 @@
 # create-ripple
 
+## 0.3.67
+
+### Patch Changes
+
+- [`f568e60`](https://github.com/Ripple-TS/ripple/commit/f568e605e745587af0006f5bc821d88267a86a76)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add skipLibCheck to the basic
+  template
+
+- Updated dependencies
+  [[`f568e60`](https://github.com/Ripple-TS/ripple/commit/f568e605e745587af0006f5bc821d88267a86a76)]:
+  - @ripple-ts/cli@0.3.67
+
 ## 0.3.66
 
 ### Patch Changes

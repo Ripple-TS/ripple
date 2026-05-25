@@ -1,5 +1,13 @@
 # @tsrx/bun-plugin-preact
 
+## 0.0.38
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d083ab8`](https://github.com/Ripple-TS/ripple/commit/d083ab8e802259fa6d8b7bf9bb64d4be899848c4)]:
+  - @tsrx/preact@0.1.15
+
 ## 0.0.37
 
 ### Patch Changes

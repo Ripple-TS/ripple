@@ -1,5 +1,24 @@
 # @tsrx/prettier-plugin
 
+## 0.3.67
+
+### Patch Changes
+
+- [#1173](https://github.com/Ripple-TS/ripple/pull/1173)
+  [`ea717f2`](https://github.com/Ripple-TS/ripple/commit/ea717f2ac20901aca59946c1cea8066c28a4220c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve comments inside
+  destructured typed parameters and type literals during formatting.
+
+- [#1173](https://github.com/Ripple-TS/ripple/pull/1173)
+  [`ea717f2`](https://github.com/Ripple-TS/ripple/commit/ea717f2ac20901aca59946c1cea8066c28a4220c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Format multiline TypeScript
+  union types with leading operators and normalize simple cast unions inline.
+
+- Updated dependencies
+  [[`ea717f2`](https://github.com/Ripple-TS/ripple/commit/ea717f2ac20901aca59946c1cea8066c28a4220c),
+  [`d083ab8`](https://github.com/Ripple-TS/ripple/commit/d083ab8e802259fa6d8b7bf9bb64d4be899848c4)]:
+  - @tsrx/core@0.1.15
+
 ## 0.3.66
 
 ### Patch Changes

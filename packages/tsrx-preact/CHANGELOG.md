@@ -1,5 +1,19 @@
 # @tsrx/preact
 
+## 0.1.15
+
+### Patch Changes
+
+- [#1172](https://github.com/Ripple-TS/ripple/pull/1172)
+  [`d083ab8`](https://github.com/Ripple-TS/ripple/commit/d083ab8e802259fa6d8b7bf9bb64d4be899848c4)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add verification-only Volar
+  mappings for whole arrow functions.
+
+- Updated dependencies
+  [[`ea717f2`](https://github.com/Ripple-TS/ripple/commit/ea717f2ac20901aca59946c1cea8066c28a4220c),
+  [`d083ab8`](https://github.com/Ripple-TS/ripple/commit/d083ab8e802259fa6d8b7bf9bb64d4be899848c4)]:
+  - @tsrx/core@0.1.15
+
 ## 0.1.14
 
 ### Patch Changes
