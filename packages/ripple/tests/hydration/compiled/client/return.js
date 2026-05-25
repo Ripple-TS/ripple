@@ -1175,7 +1175,7 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment_59);
 
 	button_1.__click = () => {
-		_$_.set(lazy, !_$_.get(lazy));
+		_$_.set(lazy, !lazy.value);
 	};
 
 	var node_51 = _$_.sibling(button_1);
@@ -1191,7 +1191,7 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 		_$_.if(node_51, (__render) => {
 			_$_.set(__r_28, false);
 
-			if (_$_.get(lazy)) __render(consequent_30);
+			if (lazy.value) __render(consequent_30);
 		});
 	}
 
@@ -1204,7 +1204,7 @@ export function ReactiveReturnTrueToFalse(__anchor, _, __block) {
 	};
 
 	_$_.if(node_52, (__render) => {
-		if (!_$_.get(__r_28)) __render(content_21);
+		if (!__r_28.value) __render(content_21);
 	});
 
 	_$_.append(__anchor, fragment_59);
@@ -1220,7 +1220,7 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_61);
 
 	button_2.__click = () => {
-		_$_.set(lazy_1, !_$_.get(lazy_1));
+		_$_.set(lazy_1, !lazy_1.value);
 	};
 
 	var node_53 = _$_.sibling(button_2);
@@ -1236,7 +1236,7 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 		_$_.if(node_53, (__render) => {
 			_$_.set(__r_29, false);
 
-			if (_$_.get(lazy_1)) __render(consequent_31);
+			if (lazy_1.value) __render(consequent_31);
 		});
 	}
 
@@ -1249,7 +1249,7 @@ export function ReactiveReturnFalseToTrue(__anchor, _, __block) {
 	};
 
 	_$_.if(node_54, (__render) => {
-		if (!_$_.get(__r_29)) __render(content_22);
+		if (!__r_29.value) __render(content_22);
 	});
 
 	_$_.append(__anchor, fragment_61);
@@ -1266,7 +1266,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 	var button_3 = _$_.first_child_frag(fragment_63);
 
 	button_3.__click = () => {
-		_$_.set(lazy_2, !_$_.get(lazy_2));
+		_$_.set(lazy_2, !lazy_2.value);
 	};
 
 	var node_55 = _$_.sibling(button_3);
@@ -1288,7 +1288,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 				_$_.if(node_56, (__render) => {
 					_$_.set(__r_30, false);
 
-					if (_$_.get(lazy_2)) __render(consequent_32);
+					if (lazy_2.value) __render(consequent_32);
 				});
 			}
 
@@ -1311,7 +1311,7 @@ export function ReactiveNestedReturn(__anchor, _, __block) {
 	};
 
 	_$_.if(node_57, (__render) => {
-		if (!_$_.get(__r_30)) __render(content_23);
+		if (!__r_30.value) __render(content_23);
 	});
 
 	_$_.append(__anchor, fragment_63);
@@ -1581,9 +1581,9 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 	var button_4 = _$_.first_child_frag(fragment_82);
 
 	button_4.__click = () => {
-		if (_$_.get(lazy_3) === 'first') {
+		if (lazy_3.value === 'first') {
 			_$_.set(lazy_3, 'second');
-		} else if (_$_.get(lazy_3) === 'second') {
+		} else if (lazy_3.value === 'second') {
 			_$_.set(lazy_3, 'none');
 		} else {
 			_$_.set(lazy_3, 'first');
@@ -1603,7 +1603,7 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 		_$_.if(node_71, (__render) => {
 			_$_.set(__r_38, false);
 
-			if (_$_.get(lazy_3) === 'first') __render(consequent_41);
+			if (lazy_3.value === 'first') __render(consequent_41);
 		});
 	}
 
@@ -1624,7 +1624,7 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 			_$_.if(node_73, (__render) => {
 				_$_.set(__r_39, false);
 
-				if (_$_.get(lazy_3) === 'second') __render(consequent_42);
+				if (lazy_3.value === 'second') __render(consequent_42);
 			});
 		}
 
@@ -1632,7 +1632,7 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_72, (__render) => {
-		if (!_$_.get(__r_38)) __render(content_30);
+		if (!__r_38.value) __render(content_30);
 	});
 
 	var node_74 = _$_.sibling(node_72);
@@ -1644,7 +1644,7 @@ export function ReactiveSiblingReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_74, (__render) => {
-		if (!_$_.get(__r_38) && !_$_.get(__r_39)) __render(content_31);
+		if (!__r_38.value && !__r_39.value) __render(content_31);
 	});
 
 	_$_.append(__anchor, fragment_82);
@@ -1661,13 +1661,13 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 	var button_5 = _$_.first_child_frag(fragment_86);
 
 	button_5.__click = () => {
-		_$_.set(lazy_4, !_$_.get(lazy_4));
+		_$_.set(lazy_4, !lazy_4.value);
 	};
 
 	var button_6 = _$_.sibling(button_5);
 
 	button_6.__click = () => {
-		_$_.set(lazy_5, !_$_.get(lazy_5));
+		_$_.set(lazy_5, !lazy_5.value);
 	};
 
 	var node_75 = _$_.sibling(button_6);
@@ -1689,7 +1689,7 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 				_$_.if(node_76, (__render) => {
 					_$_.set(__r_40, false);
 
-					if (_$_.get(lazy_5)) __render(consequent_43);
+					if (lazy_5.value) __render(consequent_43);
 				});
 			}
 
@@ -1699,7 +1699,7 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 		_$_.if(node_75, (__render) => {
 			_$_.set(__r_40, false);
 
-			if (_$_.get(lazy_4)) __render(consequent_44);
+			if (lazy_4.value) __render(consequent_44);
 		});
 	}
 
@@ -1711,7 +1711,7 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 		{
 			var expression = _$_.child(div_39);
 
-			_$_.expression(expression, () => _$_.get(lazy_4) ? 'a-on rest' : 'a-off rest');
+			_$_.expression(expression, () => lazy_4.value ? 'a-on rest' : 'a-off rest');
 			_$_.pop(div_39);
 		}
 
@@ -1719,7 +1719,7 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_77, (__render) => {
-		if (!_$_.get(__r_40)) __render(content_32);
+		if (!__r_40.value) __render(content_32);
 	});
 
 	_$_.append(__anchor, fragment_86);
@@ -1736,7 +1736,7 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 	var button_7 = _$_.first_child_frag(fragment_89);
 
 	button_7.__click = () => {
-		_$_.set(lazy_6, (_$_.get(lazy_6) + 1) % 3);
+		_$_.set(lazy_6, (lazy_6.value + 1) % 3);
 	};
 
 	var node_78 = _$_.sibling(button_7);
@@ -1764,7 +1764,7 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 				_$_.if(node_79, (__render) => {
 					_$_.set(__r_42, false);
 
-					if (_$_.get(lazy_6) === 1) __render(consequent_46);
+					if (lazy_6.value === 1) __render(consequent_46);
 				});
 			}
 
@@ -1777,7 +1777,7 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 			_$_.set(__r_41, false);
 			_$_.set(__r_42, false);
 
-			if (_$_.get(lazy_6) === 0) __render(consequent_45); else __render(alternate_8, false);
+			if (lazy_6.value === 0) __render(consequent_45); else __render(alternate_8, false);
 		});
 	}
 
@@ -1791,7 +1791,7 @@ export function ReactiveElseIfReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_80, (__render) => {
-		if (!_$_.get(__r_41) && !_$_.get(__r_42)) __render(content_33);
+		if (!__r_41.value && !__r_42.value) __render(content_33);
 	});
 
 	_$_.append(__anchor, fragment_89);
@@ -1813,25 +1813,25 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	var button_8 = _$_.first_child_frag(fragment_94);
 
 	button_8.__click = () => {
-		_$_.set(lazy_7, !_$_.get(lazy_7));
+		_$_.set(lazy_7, !lazy_7.value);
 	};
 
 	var button_9 = _$_.sibling(button_8);
 
 	button_9.__click = () => {
-		_$_.set(lazy_8, !_$_.get(lazy_8));
+		_$_.set(lazy_8, !lazy_8.value);
 	};
 
 	var button_10 = _$_.sibling(button_9);
 
 	button_10.__click = () => {
-		_$_.set(lazy_9, !_$_.get(lazy_9));
+		_$_.set(lazy_9, !lazy_9.value);
 	};
 
 	var button_11 = _$_.sibling(button_10);
 
 	button_11.__click = () => {
-		_$_.set(lazy_10, !_$_.get(lazy_10));
+		_$_.set(lazy_10, !lazy_10.value);
 	};
 
 	var div_40 = _$_.sibling(button_11);
@@ -1848,7 +1848,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 		_$_.if(node_81, (__render) => {
 			_$_.set(__r_43, false);
 
-			if (_$_.get(lazy_7)) __render(consequent_47);
+			if (lazy_7.value) __render(consequent_47);
 		});
 	}
 
@@ -1874,7 +1874,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 				_$_.if(node_83, (__render) => {
 					_$_.set(__r_44, false);
 
-					if (_$_.get(lazy_8)) __render(consequent_48);
+					if (lazy_8.value) __render(consequent_48);
 				});
 			}
 
@@ -1900,7 +1900,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 						_$_.if(node_85, (__render) => {
 							_$_.set(__r_45, false);
 
-							if (_$_.get(lazy_9)) __render(consequent_49);
+							if (lazy_9.value) __render(consequent_49);
 						});
 					}
 
@@ -1922,7 +1922,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 							_$_.if(node_87, (__render) => {
 								_$_.set(__r_46, false);
 
-								if (_$_.get(lazy_10)) __render(consequent_50);
+								if (lazy_10.value) __render(consequent_50);
 							});
 						}
 
@@ -1930,7 +1930,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 					};
 
 					_$_.if(node_86, (__render) => {
-						if (!_$_.get(__r_45)) __render(content_34);
+						if (!__r_45.value) __render(content_34);
 					});
 
 					_$_.pop(section_2);
@@ -1940,7 +1940,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 			};
 
 			_$_.if(node_84, (__render) => {
-				if (!_$_.get(__r_44)) __render(content_35);
+				if (!__r_44.value) __render(content_35);
 			});
 
 			_$_.pop(section_1);
@@ -1951,7 +1951,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_82, (__render) => {
-		if (!_$_.get(__r_43)) __render(content_36);
+		if (!__r_43.value) __render(content_36);
 	});
 
 	var node_88 = _$_.sibling(node_82);
@@ -1964,7 +1964,7 @@ export function ReactiveDeepNestedIndependentReturns(__anchor, _, __block) {
 	};
 
 	_$_.if(node_88, (__render) => {
-		if (!_$_.get(__r_43) && !_$_.get(__r_44) && !_$_.get(__r_45) && !_$_.get(__r_46)) __render(content_37);
+		if (!__r_43.value && !__r_44.value && !__r_45.value && !__r_46.value) __render(content_37);
 	});
 
 	_$_.append(__anchor, fragment_94);

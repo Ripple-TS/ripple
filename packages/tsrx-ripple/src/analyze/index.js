@@ -7,6 +7,7 @@
 	Context,
 	ScopeInterface,
 	Visitors,
+	Binding,
 	TopScopedClasses,
 	StyleClasses,
 } from '../../types/index';
@@ -47,10 +48,20 @@ import {
 	normalize_children,
 	is_binding_function,
 	strong_hash,
+	tracked_get,
+	build_lazy_array_get,
+	build_lazy_array_rest,
+	build_lazy_array_set,
+	build_lazy_array_update,
 } from '../utils.js';
 import is_reference from 'is-reference';
 
 const valid_in_head = new Set(['title', 'base', 'link', 'meta', 'style', 'script', 'noscript']);
+
+const TRACKED_INDEX_VALUE_ERROR =
+	'Do not access tracked values with [0]. Use .value or &[] lazy destructuring instead. Numeric tracked access leads to degraded performance.';
+const TRACKED_INDEX_REFERENCE_ERROR =
+	'Do not access tracked values with [1]. Use the tracked value directly instead. Numeric tracked access leads to degraded performance.';
 
 const mutating_method_names = new Set([
 	'add',
@@ -361,6 +372,11 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 	// For ArrayPattern from track() calls, use direct get/set calls as a fast path
 	// instead of going through prototype getters source[0]/source[1]
 	if (pattern.type === 'ArrayPattern' && is_track_call) {
+		setup_tracked_lazy_array_transforms(pattern, source_id, state, writable);
+		return;
+	}
+
+	if (pattern.type === 'ArrayPattern') {
 		setup_lazy_array_transforms(pattern, source_id, state, writable);
 		return;
 	}
@@ -439,33 +455,58 @@ function setup_lazy_transforms(pattern, source_id, state, writable, is_track_cal
 }
 
 /**
+ * @param {AST.RestElement} element
+ * @param {AST.Identifier} source_id
+ * @param {number} index
+ * @param {AnalysisState} state
+ */
+function setup_lazy_array_rest_transform(element, source_id, index, state) {
+	const rest_source = build_lazy_array_rest(source_id, index);
+
+	if (element.argument.type === 'Identifier') {
+		const binding = state.scope.get(element.argument.name);
+		if (binding !== null) {
+			binding.kind = 'lazy';
+			binding.metadata = {
+				...binding.metadata,
+				lazy_array_rest: true,
+			};
+			binding.transform = {
+				read: (_) => rest_source,
+			};
+		}
+		return;
+	}
+
+	const rest_paths = extractPaths(element.argument);
+	for (const path of rest_paths) {
+		const name = /** @type {AST.Identifier} */ (path.node).name;
+		const binding = state.scope.get(name);
+		if (binding !== null) {
+			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
+			binding.transform = {
+				read: (_) => path.expression(/** @type {AST.CallExpression} */ (rest_source)),
+			};
+		}
+	}
+}
+
+/**
  * Set up fast-path transforms for lazy array destructuring of tracked values.
- * For index 0 (the value): uses _$_.get/set/update directly instead of source[0] getters.
+ * For index 0 (the value): uses direct tracked get/set/update helpers instead of source[0] getters.
  * For index 1 (the tracked ref): returns source directly instead of source[1].
  * @param {AST.ArrayPattern} pattern - The array destructuring pattern
  * @param {AST.Identifier} source_id - The identifier for the tracked value
  * @param {AnalysisState} state - The analysis state
  * @param {boolean} writable - Whether assignments/updates should be supported
  */
-function setup_lazy_array_transforms(pattern, source_id, state, writable) {
+function setup_tracked_lazy_array_transforms(pattern, source_id, state, writable) {
 	for (let i = 0; i < pattern.elements.length; i++) {
 		const element = pattern.elements[i];
 		if (!element) continue;
 
-		// Rest elements — fall back to generic source.slice(i)
 		if (element.type === 'RestElement') {
-			const rest_paths = extractPaths(pattern);
-			for (const path of rest_paths) {
-				if (!path.is_rest) continue;
-				const name = /** @type {AST.Identifier} */ (path.node).name;
-				const binding = state.scope.get(name);
-				if (binding !== null) {
-					binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
-					binding.transform = {
-						read: (_) => path.expression(source_id),
-					};
-				}
-			}
+			setup_lazy_array_rest_transform(element, source_id, i, state);
 			continue;
 		}
 
@@ -482,19 +523,25 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 			if (binding === null) continue;
 
 			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
+			binding.metadata = {
+				...binding.metadata,
+				lazy_array_source: source_id.name,
+				lazy_array_index: i,
+				lazy_array_source_tracked: true,
+			};
 
 			if (i === 0) {
-				// Fast path for index 0: use _$_.get(source) instead of source[0]
+				// Fast path for index 0: use source.value instead of source[0]
 				const read_expr = has_fallback
 					? () =>
 							b.call(
 								'_$_.fallback',
-								b.call('_$_.get', source_id),
+								tracked_get(source_id),
 								/** @type {AST.Expression} */ (fallback_value),
 							)
-					: () => b.call('_$_.get', source_id);
+					: () => tracked_get(source_id);
 
-				// Signal that read already produces an unwrapped value (calls _$_.get internally)
+				// Signal that read already produces an unwrapped value.
 				binding.read_unwraps = true;
 
 				binding.transform = {
@@ -560,7 +607,7 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 			/** @type {(object: AST.Expression) => AST.Expression} */
 			const base_expression =
 				i === 0
-					? (object) => b.call('_$_.get', object)
+					? (object) => tracked_get(object)
 					: i === 1
 						? (object) => object
 						: (object) => b.member(object, b.literal(i), true);
@@ -639,6 +686,132 @@ function setup_lazy_array_transforms(pattern, source_id, state, writable) {
 			}
 		}
 	}
+}
+
+/**
+ * Set up lazy array destructuring transforms when the source may be either a
+ * plain lazy array or a tracked value.
+ * @param {AST.ArrayPattern} pattern
+ * @param {AST.Identifier} source_id
+ * @param {AnalysisState} state
+ * @param {boolean} writable
+ */
+function setup_lazy_array_transforms(pattern, source_id, state, writable) {
+	for (let i = 0; i < pattern.elements.length; i++) {
+		const element = pattern.elements[i];
+		if (!element) continue;
+
+		if (element.type === 'RestElement') {
+			setup_lazy_array_rest_transform(element, source_id, i, state);
+			continue;
+		}
+
+		const actual = element.type === 'AssignmentPattern' ? element.left : element;
+		const has_fallback = element.type === 'AssignmentPattern';
+		/** @type {AST.Expression | null} */
+		const fallback_value = has_fallback
+			? /** @type {AST.AssignmentPattern} */ (element).right
+			: null;
+
+		if (actual.type === 'Identifier') {
+			const binding = state.scope.get(actual.name);
+			if (binding === null) continue;
+
+			const read_expr = has_fallback
+				? () =>
+						b.call(
+							'_$_.fallback',
+							build_lazy_array_get(source_id, i),
+							/** @type {AST.Expression} */ (fallback_value),
+						)
+				: () => build_lazy_array_get(source_id, i);
+
+			binding.kind = has_fallback ? 'lazy_fallback' : 'lazy';
+			binding.read_unwraps = true;
+			binding.metadata = {
+				...binding.metadata,
+				lazy_array_source: source_id.name,
+				lazy_array_index: i,
+				lazy_array_source_tracked: false,
+			};
+			binding.transform = {
+				read: (_) => read_expr(),
+			};
+
+			if (writable) {
+				binding.transform.assign = (_, value) => build_lazy_array_set(source_id, value, i);
+				binding.transform.update = (node) =>
+					build_lazy_array_update(source_id, i, node.prefix, node.operator === '--' ? -1 : 1);
+			}
+			continue;
+		}
+
+		const base_expression = /** @type {(object: AST.Expression) => AST.Expression} */ (
+			(object) => build_lazy_array_get(object, i)
+		);
+		const inner_paths = extractPaths(element);
+		for (const path of inner_paths) {
+			const name = /** @type {AST.Identifier} */ (path.node).name;
+			const binding = state.scope.get(name);
+			if (binding === null) continue;
+
+			binding.kind = path.has_default_value ? 'lazy_fallback' : 'lazy';
+			binding.transform = {
+				read: (_) =>
+					path.expression(
+						/** @type {AST.Identifier | AST.CallExpression} */ (base_expression(source_id)),
+					),
+			};
+		}
+	}
+}
+
+/**
+ * @param {AST.MemberExpression} node
+ * @returns {0 | 1 | null}
+ */
+function get_tracked_numeric_index(node) {
+	return node.computed &&
+		node.property.type === 'Literal' &&
+		(node.property.value === 0 || node.property.value === 1)
+		? /** @type {0 | 1} */ (node.property.value)
+		: null;
+}
+
+/**
+ * @param {0 | 1} index
+ * @returns {string}
+ */
+function get_tracked_numeric_index_error(index) {
+	return index === 0 ? TRACKED_INDEX_VALUE_ERROR : TRACKED_INDEX_REFERENCE_ERROR;
+}
+
+/**
+ * @param {Binding | null} binding
+ * @param {AnalysisContext} context
+ * @returns {boolean}
+ */
+function is_known_tracked_binding(binding, context) {
+	return (
+		binding !== null &&
+		binding.kind !== 'lazy' &&
+		binding.kind !== 'lazy_fallback' &&
+		binding.initial?.type === 'CallExpression' &&
+		is_ripple_track_call(binding.initial.callee, context) !== null
+	);
+}
+
+/**
+ * @param {Binding | null} binding
+ * @returns {boolean}
+ */
+function is_known_tracked_lazy_ref_binding(binding) {
+	return (
+		binding !== null &&
+		(binding.kind === 'lazy' || binding.kind === 'lazy_fallback') &&
+		binding.metadata?.lazy_array_source_tracked === true &&
+		binding.metadata.lazy_array_index === 1
+	);
 }
 
 /**
@@ -1191,6 +1364,7 @@ const visitors = {
 
 		if (node.object.type === 'Identifier' && !node.object.tracked) {
 			const binding = context.state.scope.get(node.object.name);
+			const tracked_numeric_index = get_tracked_numeric_index(node);
 
 			if (binding && binding.metadata?.is_ripple_object) {
 				const internalProperties = new Set(['__v', 'a', 'b', 'c', 'f']);
@@ -1213,22 +1387,23 @@ const visitors = {
 				}
 			}
 
-			if (
-				binding !== null &&
-				binding.kind !== 'lazy' &&
-				binding.kind !== 'lazy_fallback' &&
-				binding.initial?.type === 'CallExpression' &&
-				is_ripple_track_call(binding.initial.callee, context)
-			) {
+			if (is_known_tracked_binding(binding, context)) {
+				if (tracked_numeric_index !== null) {
+					error(
+						get_tracked_numeric_index_error(tracked_numeric_index),
+						context.state.analysis.module.filename,
+						node.property,
+						context.state.collect ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+					context.next();
+					return;
+				}
+
 				const is_allowed_tracked_access =
-					// Allow [0] and [1] indexed access on tracked objects.
-					(node.computed &&
-						node.property.type === 'Literal' &&
-						(node.property.value === 0 || node.property.value === 1)) ||
-					// Allow .value and .length property access on tracked objects.
-					(!node.computed &&
-						node.property.type === 'Identifier' &&
-						(node.property.name === 'value' || node.property.name === 'length'));
+					!node.computed &&
+					node.property.type === 'Identifier' &&
+					(node.property.name === 'value' || node.property.name === 'length');
 
 				if (is_allowed_tracked_access) {
 					// pass through
@@ -1241,6 +1416,16 @@ const visitors = {
 						context.state.analysis.comments,
 					);
 				}
+			}
+
+			if (is_known_tracked_lazy_ref_binding(binding) && tracked_numeric_index !== null) {
+				error(
+					get_tracked_numeric_index_error(tracked_numeric_index),
+					context.state.analysis.module.filename,
+					node.property,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
 			}
 		}
 
@@ -1634,7 +1819,7 @@ const visitors = {
 				binding.kind = 'index';
 				binding.transform = {
 					read: (node) => {
-						return b.call('_$_.get', node);
+						return tracked_get(node ?? binding.node);
 					},
 				};
 			}

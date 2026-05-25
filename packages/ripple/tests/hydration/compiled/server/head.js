@@ -45,7 +45,7 @@ export function ReactiveTitle() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy)));
+				_$_.output_push(_$_.escape(lazy.value));
 			}
 
 			_$_.output_push('</span>');
@@ -60,7 +60,7 @@ export function ReactiveTitle() {
 	_$_.output_push('>');
 
 	{
-		_$_.output_push(_$_.escape(_$_.get(lazy)));
+		_$_.output_push(_$_.escape(lazy.value));
 	}
 
 	_$_.output_push('</title>');
@@ -114,7 +114,7 @@ export function ReactiveMetaTags() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			_$_.output_push(_$_.escape(lazy_1.value));
 		}
 
 		_$_.output_push('</div>');
@@ -132,7 +132,7 @@ export function ReactiveMetaTags() {
 	_$_.output_push('</title>');
 	_$_.output_push('<meta');
 	_$_.output_push(' name="description"');
-	_$_.output_push(_$_.attr('content', _$_.get(lazy_1), false));
+	_$_.output_push(_$_.attr('content', lazy_1.value, false));
 	_$_.output_push(' />');
 	_$_.set_output_target(null);
 	_$_.pop_component();
@@ -148,7 +148,7 @@ export function TitleWithTemplate() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_2)));
+			_$_.output_push(_$_.escape(lazy_2.value));
 		}
 
 		_$_.output_push('</div>');
@@ -160,7 +160,7 @@ export function TitleWithTemplate() {
 	_$_.output_push('>');
 
 	{
-		_$_.output_push(_$_.escape(`Hello ${_$_.get(lazy_2)}!`));
+		_$_.output_push(_$_.escape(`Hello ${lazy_2.value}!`));
 	}
 
 	_$_.output_push('</title>');
@@ -207,7 +207,7 @@ export function ConditionalTitle() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+			_$_.output_push(_$_.escape(lazy_4.value));
 		}
 
 		_$_.output_push('</div>');
@@ -219,7 +219,7 @@ export function ConditionalTitle() {
 	_$_.output_push('>');
 
 	{
-		_$_.output_push(_$_.escape(_$_.get(lazy_3) ? 'App - ' + _$_.get(lazy_4) : _$_.get(lazy_4)));
+		_$_.output_push(_$_.escape(lazy_3.value ? 'App - ' + lazy_4.value : lazy_4.value));
 	}
 
 	_$_.output_push('</title>');
@@ -242,7 +242,7 @@ export function ComputedTitle() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+				_$_.output_push(_$_.escape(lazy_5.value));
 			}
 
 			_$_.output_push('</span>');
@@ -257,7 +257,7 @@ export function ComputedTitle() {
 	_$_.output_push('>');
 
 	{
-		_$_.output_push(_$_.escape(prefix + _$_.get(lazy_5)));
+		_$_.output_push(_$_.escape(prefix + lazy_5.value));
 	}
 
 	_$_.output_push('</title>');

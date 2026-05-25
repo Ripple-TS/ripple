@@ -617,7 +617,7 @@ export function DynamicArrayFromTrack() {
 		_$_.output_push('>');
 
 		{
-			_$_.render_expression(_$_.get(lazy));
+			_$_.render_expression(lazy.value);
 		}
 
 		_$_.output_push('</div>');
@@ -814,7 +814,7 @@ export function TextPropWithToggle() {
 
 			const args = [
 				{
-					children: _$_.normalize_children(_$_.get(lazy_1) ? 'hello' : '')
+					children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
 				}
 			];
 

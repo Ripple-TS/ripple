@@ -47,6 +47,7 @@ import {
 import { is_ripple_object } from './utils.js';
 
 import {
+	iterable_array_from,
 	define_property,
 	get_descriptor,
 	get_own_property_symbols,
@@ -54,6 +55,10 @@ import {
 	object_keys,
 } from '@tsrx/core/runtime/language-helpers';
 import { get_async_track_result } from '../../../utils/async.js';
+import {
+	throw_tracked_index_reference_error,
+	throw_tracked_index_value_error,
+} from '../../../utils/errors.js';
 import { get_track_async_script_id } from '../../../utils/track-async-serialization.js';
 import * as devalue from 'devalue';
 import { hydrating, track_hash_reference } from './hydration.js';
@@ -415,15 +420,15 @@ class TrackedValue {
 	}
 	/** @returns {any} */
 	get [0]() {
-		return get_tracked(this);
+		return throw_tracked_index_value_error();
 	}
 	/** @param {any} v */
 	set [0](v) {
-		set(this, v);
+		throw_tracked_index_value_error();
 	}
 	/** @returns {Tracked} */
 	get [1]() {
-		return /** @type {Tracked} */ (this);
+		return throw_tracked_index_reference_error();
 	}
 	/** @returns {any} */
 	get value() {
@@ -475,15 +480,15 @@ class DerivedValue {
 	}
 	/** @returns {any} */
 	get [0]() {
-		return get_derived(this);
+		return throw_tracked_index_value_error();
 	}
 	/** @param {any} v */
 	set [0](v) {
-		set(this, v);
+		throw_tracked_index_value_error();
 	}
 	/** @returns {Derived} */
 	get [1]() {
-		return /** @type {Derived} */ (this);
+		return throw_tracked_index_reference_error();
 	}
 	/** @returns {any} */
 	get value() {
@@ -1191,6 +1196,60 @@ export function get(tracked) {
 }
 
 /**
+ * @param {any} lazy
+ * @param {number} [index]
+ * @returns {any}
+ */
+export function lazy_array_get(lazy, index = 0) {
+	if (is_array(lazy)) {
+		return lazy[index];
+	}
+	var flags = lazy.f;
+	if (flags === TRACKED) {
+		return index === 0
+			? get_tracked(/** @type {Tracked} */ (lazy))
+			: index === 1
+				? lazy
+				: undefined;
+	}
+	if (flags === DERIVED) {
+		return index === 0
+			? get_derived(/** @type {Derived} */ (lazy))
+			: index === 1
+				? lazy
+				: undefined;
+	}
+	return iterable_array_from(lazy, index)[0];
+}
+
+/**
+ * @param {any} lazy
+ * @param {number} [index]
+ * @returns {any[]}
+ */
+export function lazy_array_rest(lazy, index = 0) {
+	if (is_array(lazy)) {
+		return lazy.slice(index);
+	}
+	var flags = lazy.f;
+	if (flags === TRACKED) {
+		return index === 0
+			? [get_tracked(/** @type {Tracked} */ (lazy)), lazy]
+			: index === 1
+				? [lazy]
+				: [];
+	}
+	if (flags === DERIVED) {
+		return index === 0
+			? [get_derived(/** @type {Derived} */ (lazy)), lazy]
+			: index === 1
+				? [lazy]
+				: [];
+	}
+	return iterable_array_from(lazy, index);
+}
+
+/**
  * @param {Tracked} tracked
  */
 export function get_tracked(tracked) {
@@ -1214,13 +1273,54 @@ export function get_tracked(tracked) {
 }
 
 /**
- * Exposed version of `set` to avoid internal bugs
- * since block is required on the internal `set`
- * @param {Derived | Tracked} tracked
+ * @param {any} lazy
  * @param {any} value
+ * @param {number} [index]
+ * @returns {void}
  */
-export function public_set(tracked, value) {
-	set(tracked, value);
+export function lazy_array_set(lazy, value, index = 0) {
+	if (is_array(lazy)) {
+		lazy[index] = value;
+		return;
+	}
+	var flags = lazy.f;
+	if (flags === TRACKED || flags === DERIVED) {
+		if (index === 0) {
+			set(/** @type {Derived | Tracked} */ (lazy), value);
+			return;
+		}
+		if (index === 1) {
+			throw_tracked_index_reference_error();
+		}
+		return;
+	}
+	lazy[index] = value;
+}
+
+/**
+ * @param {any} lazy
+ * @param {number} [index]
+ * @param {number} [d]
+ * @returns {number}
+ */
+export function lazy_array_update(lazy, index = 0, d = 1) {
+	var value = lazy_array_get(lazy, index);
+	var result = d === 1 ? value++ : value--;
+	lazy_array_set(lazy, value, index);
+	return result;
+}
+
+/**
+ * @param {any} lazy
+ * @param {number} [index]
+ * @param {number} [d]
+ * @returns {number}
+ */
+export function lazy_array_update_pre(lazy, index = 0, d = 1) {
+	var value = lazy_array_get(lazy, index);
+	var new_value = d === 1 ? ++value : --value;
+	lazy_array_set(lazy, new_value, index);
+	return new_value;
 }
 
 /**

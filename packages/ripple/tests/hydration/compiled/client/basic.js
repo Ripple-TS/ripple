@@ -537,7 +537,7 @@ export function DynamicArrayFromTrack(__anchor, _, __block) {
 	{
 		var expression_23 = _$_.child(div_16);
 
-		_$_.expression(expression_23, () => _$_.get(lazy));
+		_$_.expression(expression_23, () => lazy.value);
 		_$_.pop(div_16);
 	}
 
@@ -707,7 +707,7 @@ export function TextPropWithToggle(__anchor, _, __block) {
 		node_5,
 		{
 			get children() {
-				return _$_.normalize_children(_$_.get(lazy_1) ? 'hello' : '');
+				return _$_.normalize_children(lazy_1.value ? 'hello' : '');
 			}
 		},
 		_$_.active_block

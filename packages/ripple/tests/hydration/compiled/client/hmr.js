@@ -47,7 +47,7 @@ export function Content(__anchor, _, __block) {
 			};
 
 			_$_.if(node, (__render) => {
-				if (_$_.get(lazy)) __render(consequent);
+				if (lazy.value) __render(consequent);
 			});
 		}
 

@@ -168,8 +168,7 @@ interface TrackedBase<V> {
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }
-// Supports indexed access: track(0)[0] → value, track(0)[1] → Tracked<V>
-// And destructuring `const [one, two] = track(0);`
+// Supports destructuring `const [one, two] = track(0);`
 export type Tracked<V> = [V, Tracked<V>] & TrackedBase<V> & TrackedCallable<V>;
 
 // Helper type to infer component type from a function that returns a component
@@ -187,10 +186,6 @@ export type PropsWithChildrenOptional<T extends object = {}> = Expand<
 export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
-
-export function get<V>(tracked: Tracked<V>): V;
-
-export function set<V>(tracked: Tracked<V>, value: V): void;
 
 // Overload for tracked values - returns the original tracked value type
 export function track<V>(value: Tracked<V>): Tracked<V>;

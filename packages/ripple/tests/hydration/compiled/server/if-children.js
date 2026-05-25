@@ -26,7 +26,7 @@ export function IfWithChildren({ children }) {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy)) {
+			if (lazy.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="content"');
 				_$_.output_push('>');
@@ -126,7 +126,7 @@ export function IfWithStaticChildren() {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_1)) {
+			if (lazy_1.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="content"');
 				_$_.output_push('>');
@@ -220,7 +220,7 @@ export function IfWithSiblingsAndChildren({ children }) {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_2)) {
+			if (lazy_2.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="items"');
 				_$_.output_push('>');
@@ -317,7 +317,7 @@ export function ElementWithChildrenThenIf() {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_3)) {
+			if (lazy_3.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="conditional"');
 				_$_.output_push('>');
@@ -403,7 +403,7 @@ export function DeepNestingThenIf() {
 			_$_.output_push('</article>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_4)) {
+			if (lazy_4.value) {
 				_$_.output_push('<footer');
 				_$_.output_push(' class="footer"');
 				_$_.output_push('>');
@@ -453,7 +453,7 @@ export function DomElementChildrenThenSibling() {
 
 			{
 				_$_.output_push('<button');
-				_$_.output_push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'code' ? 'true' : 'false', false));
+				_$_.output_push(_$_.attr('aria-selected', lazy_5.value === 'code' ? 'true' : 'false', false));
 				_$_.output_push(' class="tab"');
 				_$_.output_push('>');
 
@@ -463,7 +463,7 @@ export function DomElementChildrenThenSibling() {
 
 				_$_.output_push('</button>');
 				_$_.output_push('<button');
-				_$_.output_push(_$_.attr('aria-selected', _$_.get(lazy_5) === 'preview' ? 'true' : 'false', false));
+				_$_.output_push(_$_.attr('aria-selected', lazy_5.value === 'preview' ? 'true' : 'false', false));
 				_$_.output_push(' class="tab"');
 				_$_.output_push('>');
 
@@ -482,7 +482,7 @@ export function DomElementChildrenThenSibling() {
 			{
 				_$_.output_push('<!--[-->');
 
-				if (_$_.get(lazy_5) === 'code') {
+				if (lazy_5.value === 'code') {
 					_$_.output_push('<pre');
 					_$_.output_push(' class="code"');
 					_$_.output_push('>');
@@ -537,7 +537,7 @@ export function DomChildrenThenStaticSiblings() {
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape('Item count: ' + String(_$_.get(lazy_6))));
+					_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value)));
 				}
 
 				_$_.output_push('</li>');

@@ -2,8 +2,6 @@ import { output_push, noop } from './internal/server/index.js';
 
 export { Context } from './internal/server/context.js';
 export {
-	get,
-	set,
 	untrack,
 	track,
 	track_async as trackAsync,

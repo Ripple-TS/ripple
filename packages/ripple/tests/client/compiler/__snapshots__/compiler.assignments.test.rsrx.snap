@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`compiler > assignments > compiles tracked values in effect with assignment expression 1`] = `"state.count = _$_.get(lazy);"`;
+exports[`compiler > assignments > compiles tracked values in effect with assignment expression 1`] = `"state.count = lazy.value;"`;
 
 exports[`compiler > assignments > compiles tracked values in effect with update expressions 1`] = `
 "_$_.untrack(() => {

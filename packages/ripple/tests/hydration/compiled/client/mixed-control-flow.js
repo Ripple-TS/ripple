@@ -175,19 +175,19 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment_4);
 
 	button_1.__click = () => {
-		_$_.set(lazy, !_$_.get(lazy));
+		_$_.set(lazy, !lazy.value);
 	};
 
 	var button_2 = _$_.sibling(button_1);
 
 	button_2.__click = () => {
-		_$_.set(lazy_1, _$_.get(lazy_1) === 'a' ? 'b' : 'a');
+		_$_.set(lazy_1, lazy_1.value === 'a' ? 'b' : 'a');
 	};
 
 	var button_3 = _$_.sibling(button_2);
 
 	button_3.__click = () => {
-		_$_.set(lazy_2, [..._$_.get(lazy_2), { id: 3, label: 'Three' }]);
+		_$_.set(lazy_2, [...lazy_2.value, { id: 3, label: 'Three' }]);
 	};
 
 	var node_4 = _$_.sibling(button_3);
@@ -199,7 +199,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 			{
 				_$_.for_keyed(
 					div_5,
-					() => _$_.get(lazy_2),
+					() => lazy_2.value,
 					(__anchor, pattern_1) => {
 						var fragment_5 = root_11();
 						var node_5 = _$_.first_child_frag(fragment_5);
@@ -274,7 +274,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 							_$_.switch(node_5, () => {
 								var result = [];
 
-								switch (_$_.get(lazy_1)) {
+								switch (lazy_1.value) {
 									case 'a':
 										result.push(switch_case_0_1);
 										return result;
@@ -299,7 +299,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 		};
 
 		_$_.if(node_4, (__render) => {
-			if (_$_.get(lazy)) __render(consequent_1);
+			if (lazy.value) __render(consequent_1);
 		});
 	}
 
@@ -409,7 +409,7 @@ function AsyncRow(__anchor, { label }, __block) {
 	{
 		var expression_5 = _$_.child(div_9);
 
-		_$_.expression(expression_5, () => _$_.get(lazy_3));
+		_$_.expression(expression_5, () => lazy_3.value);
 		_$_.pop(div_9);
 	}
 

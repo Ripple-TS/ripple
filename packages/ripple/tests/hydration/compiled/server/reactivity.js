@@ -14,7 +14,7 @@ export function TrackedState() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy)));
+			_$_.output_push(_$_.escape(lazy.value));
 		}
 
 		_$_.output_push('</div>');
@@ -38,7 +38,7 @@ export function CounterWithInitial(props) {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+				_$_.output_push(_$_.escape(lazy_1.value));
 			}
 
 			_$_.output_push('</span>');
@@ -70,7 +70,7 @@ export function ComputedValues() {
 
 	let lazy_2 = _$_.track(2, 'b78281db');
 	let lazy_3 = _$_.track(3, 'a0cf6c6d');
-	const sum = () => _$_.get(lazy_2) + _$_.get(lazy_3);
+	const sum = () => lazy_2.value + lazy_3.value;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -100,7 +100,7 @@ export function MultipleTracked() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_4)));
+			_$_.output_push(_$_.escape(lazy_4.value));
 		}
 
 		_$_.output_push('</div>');
@@ -112,7 +112,7 @@ export function MultipleTracked() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_5)));
+			_$_.output_push(_$_.escape(lazy_5.value));
 		}
 
 		_$_.output_push('</div>');
@@ -124,7 +124,7 @@ export function MultipleTracked() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_6)));
+			_$_.output_push(_$_.escape(lazy_6.value));
 		}
 
 		_$_.output_push('</div>');
@@ -138,7 +138,7 @@ export function DerivedState() {
 
 	let lazy_7 = _$_.track('John', '6015eeca');
 	let lazy_8 = _$_.track('Doe', '4fa9a20e');
-	const fullName = () => `${_$_.get(lazy_7)} ${_$_.get(lazy_8)}`;
+	const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');

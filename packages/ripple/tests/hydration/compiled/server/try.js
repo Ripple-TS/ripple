@@ -86,7 +86,7 @@ export function RootAsyncDirect() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy)));
+			_$_.output_push(_$_.escape(lazy.value));
 		}
 
 		_$_.output_push('</p>');
@@ -106,7 +106,7 @@ export function RootAsyncRejects() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_1)));
+			_$_.output_push(_$_.escape(lazy_1.value));
 		}
 
 		_$_.output_push('</p>');
@@ -169,7 +169,7 @@ function AsyncList() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (let item of _$_.get(lazy_2)) {
+			for (let item of lazy_2.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -253,7 +253,7 @@ function AsyncContent() {
 		_$_.output_push('>');
 
 		{
-			_$_.output_push(_$_.escape(_$_.get(lazy_3)));
+			_$_.output_push(_$_.escape(lazy_3.value));
 		}
 
 		_$_.output_push('</div>');

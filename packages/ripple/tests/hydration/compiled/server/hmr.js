@@ -51,7 +51,7 @@ export function Content() {
 		{
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy)) {
+			if (lazy.value) {
 				_$_.output_push('<p');
 				_$_.output_push(' class="text"');
 				_$_.output_push('>');

@@ -29,7 +29,7 @@ export function ClickCounter(__anchor, _, __block) {
 		{
 			var expression = _$_.child(span_1);
 
-			_$_.expression(expression, () => _$_.get(lazy));
+			_$_.expression(expression, () => lazy.value);
 			_$_.pop(span_1);
 		}
 	}
@@ -56,7 +56,7 @@ export function IncrementDecrement(__anchor, _, __block) {
 		{
 			var expression_1 = _$_.child(span_2);
 
-			_$_.expression(expression_1, () => _$_.get(lazy_1));
+			_$_.expression(expression_1, () => lazy_1.value);
 			_$_.pop(span_2);
 		}
 
@@ -94,7 +94,7 @@ export function MultipleEvents(__anchor, _, __block) {
 		{
 			var expression_2 = _$_.child(span_3);
 
-			_$_.expression(expression_2, () => _$_.get(lazy_2));
+			_$_.expression(expression_2, () => lazy_2.value);
 			_$_.pop(span_3);
 		}
 
@@ -103,7 +103,7 @@ export function MultipleEvents(__anchor, _, __block) {
 		{
 			var expression_3 = _$_.child(span_4);
 
-			_$_.expression(expression_3, () => _$_.get(lazy_3));
+			_$_.expression(expression_3, () => lazy_3.value);
 			_$_.pop(span_4);
 		}
 	}
@@ -135,7 +135,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 		{
 			var expression_4 = _$_.child(span_5);
 
-			_$_.expression(expression_4, () => _$_.get(lazy_4));
+			_$_.expression(expression_4, () => lazy_4.value);
 			_$_.pop(span_5);
 		}
 
@@ -144,7 +144,7 @@ export function MultiStateUpdate(__anchor, _, __block) {
 		{
 			var expression_5 = _$_.child(span_6);
 
-			_$_.expression(expression_5, () => _$_.get(lazy_5));
+			_$_.expression(expression_5, () => lazy_5.value);
 			_$_.pop(span_6);
 		}
 	}
@@ -163,13 +163,13 @@ export function ToggleButton(__anchor, _, __block) {
 		var button_6 = _$_.child(div_5);
 
 		button_6.__click = () => {
-			_$_.set(lazy_6, !_$_.get(lazy_6));
+			_$_.set(lazy_6, !lazy_6.value);
 		};
 
 		{
 			var expression_6 = _$_.child(button_6);
 
-			_$_.expression(expression_6, () => _$_.get(lazy_6) ? 'ON' : 'OFF');
+			_$_.expression(expression_6, () => lazy_6.value ? 'ON' : 'OFF');
 			_$_.pop(button_6);
 		}
 	}
@@ -221,7 +221,7 @@ export function ParentWithChildButton(__anchor, _, __block) {
 		{
 			var expression_8 = _$_.child(span_7);
 
-			_$_.expression(expression_8, () => _$_.get(lazy_7));
+			_$_.expression(expression_8, () => lazy_7.value);
 			_$_.pop(span_7);
 		}
 

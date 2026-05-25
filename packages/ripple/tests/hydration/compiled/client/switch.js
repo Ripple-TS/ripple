@@ -84,7 +84,7 @@ export function SwitchReactive(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment_3);
 
 	button_1.__click = () => {
-		if (_$_.get(lazy) === 'a') _$_.set(lazy, 'b'); else if (_$_.get(lazy) === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
+		if (lazy.value === 'a') _$_.set(lazy, 'b'); else if (lazy.value === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
 	};
 
 	var node_1 = _$_.sibling(button_1);
@@ -111,7 +111,7 @@ export function SwitchReactive(__anchor, _, __block) {
 		_$_.switch(node_1, () => {
 			var result = [];
 
-			switch (_$_.get(lazy)) {
+			switch (lazy.value) {
 				case 'a':
 					result.push(switch_case_0_1);
 					return result;
@@ -180,7 +180,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_8);
 
 	button_2.__click = () => {
-		if (_$_.get(lazy_1) === 1) _$_.set(lazy_1, 2); else if (_$_.get(lazy_1) === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
+		if (lazy_1.value === 1) _$_.set(lazy_1, 2); else if (lazy_1.value === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
 	};
 
 	var node_3 = _$_.sibling(button_2);
@@ -207,7 +207,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 		_$_.switch(node_3, () => {
 			var result = [];
 
-			switch (_$_.get(lazy_1)) {
+			switch (lazy_1.value) {
 				case 1:
 					result.push(switch_case_0_3);
 					return result;
@@ -235,7 +235,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 	var button_3 = _$_.first_child_frag(fragment_12);
 
 	button_3.__click = () => {
-		if (_$_.get(lazy_2) === 1) _$_.set(lazy_2, 2); else if (_$_.get(lazy_2) === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
+		if (lazy_2.value === 1) _$_.set(lazy_2, 2); else if (lazy_2.value === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
 	};
 
 	var node_4 = _$_.sibling(button_3);
@@ -262,7 +262,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 		_$_.switch(node_4, () => {
 			var result = [];
 
-			switch (_$_.get(lazy_2)) {
+			switch (lazy_2.value) {
 				case 1:
 					result.push(switch_case_0_4);
 					return result;
@@ -290,7 +290,7 @@ export function SwitchNoBreak(__anchor, _, __block) {
 	var button_4 = _$_.first_child_frag(fragment_16);
 
 	button_4.__click = () => {
-		if (_$_.get(lazy_3) === 1) _$_.set(lazy_3, 2); else if (_$_.get(lazy_3) === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
+		if (lazy_3.value === 1) _$_.set(lazy_3, 2); else if (lazy_3.value === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
 	};
 
 	var node_5 = _$_.sibling(button_4);
@@ -317,7 +317,7 @@ export function SwitchNoBreak(__anchor, _, __block) {
 		_$_.switch(node_5, () => {
 			var result = [];
 
-			switch (_$_.get(lazy_3)) {
+			switch (lazy_3.value) {
 				case 1:
 					result.push(switch_case_0_5);
 

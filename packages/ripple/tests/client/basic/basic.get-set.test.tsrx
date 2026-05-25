@@ -1,11 +1,11 @@
-import { effect, flushSync, get, set, track, untrack } from 'ripple';
+import { effect, flushSync, track, untrack } from 'ripple';
 
-describe('basic client > get/set functions', () => {
+describe('basic client > tracked value access', () => {
 	it('gets tracked value', () => {
 		component Test() {
 			let count = track(0);
 
-			<div>{get(count)}</div>
+			<div>{count.value}</div>
 		}
 
 		render(Test);
@@ -18,7 +18,7 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let &[count] = track(0);
 
-			<p>{get(count)}</p>
+			<p>{count}</p>
 			<button onClick={() => count++}>{'increment'}</button>
 		}
 
@@ -38,7 +38,7 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let &[count] = track(0);
 
-			<p>{get(count)}</p>
+			<p>{count}</p>
 			<button
 				onClick={() => {
 					count++;
@@ -66,8 +66,8 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let count = track(0);
 
-			<p>{get(count)}</p>
-			<button onClick={() => set(count, 10)}>{'set to 10'}</button>
+			<p>{count.value}</p>
+			<button onClick={() => (count.value = 10)}>{'set to 10'}</button>
 		}
 
 		render(Test);
@@ -86,12 +86,12 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let count = track(0);
 
-			<p>{get(count)}</p>
+			<p>{count.value}</p>
 			<button
 				onClick={() => {
-					set(count, 5);
-					set(count, 15);
-					set(count, 25);
+					count.value = 5;
+					count.value = 15;
+					count.value = 25;
 				}}
 			>
 				{'set multiple times'}
@@ -114,8 +114,8 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let count = track(0);
 
-			<p>{get(count)}</p>
-			<button onClick={() => set(count, get(count) + 10)}>{'add 10'}</button>
+			<p>{count.value}</p>
+			<button onClick={() => (count.value = count.value + 10)}>{'add 10'}</button>
 		}
 
 		render(Test);
@@ -140,12 +140,12 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let count = track(0);
 
-			<p>{get(count)}</p>
+			<p>{count.value}</p>
 			<button
 				onClick={() => {
-					set(count, get(count) + 5);
-					set(count, get(count) + 15);
-					set(count, get(count) + 25);
+					count.value = count.value + 5;
+					count.value = count.value + 15;
+					count.value = count.value + 25;
 				}}
 			>
 				{'add multiple times'}
@@ -177,7 +177,7 @@ describe('basic client > get/set functions', () => {
 
 		component Test() {
 			let count = store();
-			<p>{get(count)}</p>
+			<p>{count.value}</p>
 		}
 
 		render(Test);
@@ -194,8 +194,8 @@ describe('basic client > get/set functions', () => {
 		component Test() {
 			let count = store();
 
-			<p>{get(count)}</p>
-			<button onClick={() => set(count, 50)}>{'set to 50'}</button>
+			<p>{count.value}</p>
+			<button onClick={() => (count.value = 50)}>{'set to 50'}</button>
 		}
 
 		render(Test);
@@ -216,11 +216,11 @@ describe('basic client > get/set functions', () => {
 			let double = track(0);
 
 			effect(() => {
-				set(double, get(count) * 2);
+				double.value = count.value * 2;
 			});
 
-			<p>{get(double)}</p>
-			<button onClick={() => set(count, get(count) + 1)}>{'increment'}</button>
+			<p>{double.value}</p>
+			<button onClick={() => (count.value = count.value + 1)}>{'increment'}</button>
 		}
 
 		render(Test);
@@ -247,12 +247,12 @@ describe('basic client > get/set functions', () => {
 
 			effect(() => {
 				untrack(() => {
-					set(double, get(count) * 2);
+					double.value = count.value * 2;
 				});
 			});
 
-			<p>{get(double)}</p>
-			<button onClick={() => set(count, get(count) + 1)}>{'increment'}</button>
+			<p>{double.value}</p>
+			<button onClick={() => (count.value = count.value + 1)}>{'increment'}</button>
 		}
 
 		render(Test);

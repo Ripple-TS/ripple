@@ -880,7 +880,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 
 			var button_1 = _$_.sibling(h2_2);
 
-			button_1.__click = () => _$_.set(lazy, !_$_.get(lazy));
+			button_1.__click = () => _$_.set(lazy, !lazy.value);
 		}
 
 		_$_.pop(div_29);
@@ -902,7 +902,7 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			};
 
 			_$_.if(node_34, (__render) => {
-				if (_$_.get(lazy)) __render(consequent_4);
+				if (lazy.value) __render(consequent_4);
 			});
 		}
 

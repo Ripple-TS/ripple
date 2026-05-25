@@ -114,7 +114,7 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 				{
 					var expression_1 = _$_.child(li_2);
 
-					_$_.expression(expression_1, () => `${_$_.get(i)}: ${item}`);
+					_$_.expression(expression_1, () => `${i.value}: ${item}`);
 					_$_.pop(li_2);
 				}
 
@@ -176,7 +176,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment);
 
 	button_1.__click = () => {
-		_$_.set(lazy, [..._$_.get(lazy), 'C']);
+		_$_.set(lazy, [...lazy.value, 'C']);
 	};
 
 	var ul_4 = _$_.sibling(button_1);
@@ -184,7 +184,7 @@ export function ReactiveForLoopAdd(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_4,
-			() => _$_.get(lazy),
+			() => lazy.value,
 			(__anchor, item) => {
 				var li_4 = root_7();
 
@@ -216,7 +216,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_1);
 
 	button_2.__click = () => {
-		_$_.set(lazy_1, _$_.with_scope(__block, () => _$_.get(lazy_1).slice(0, -1)));
+		_$_.set(lazy_1, _$_.with_scope(__block, () => lazy_1.value.slice(0, -1)));
 	};
 
 	var ul_5 = _$_.sibling(button_2);
@@ -224,7 +224,7 @@ export function ReactiveForLoopRemove(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_5,
-			() => _$_.get(lazy_1),
+			() => lazy_1.value,
 			(__anchor, item) => {
 				var li_5 = root_9();
 
@@ -257,7 +257,7 @@ export function ForLoopInteractive(__anchor, _, __block) {
 	{
 		_$_.for(
 			div_1,
-			() => _$_.get(lazy_2),
+			() => lazy_2.value,
 			(__anchor, count, i) => {
 				var div_2 = root_11();
 
@@ -274,15 +274,15 @@ export function ForLoopInteractive(__anchor, _, __block) {
 					var button_3 = _$_.sibling(span_1);
 
 					button_3.__click = () => {
-						const newCounts = [..._$_.get(lazy_2)];
+						const newCounts = [...lazy_2.value];
 
-						newCounts[_$_.get(i)]++;
+						newCounts[i.value]++;
 						_$_.set(lazy_2, newCounts);
 					};
 				}
 
 				_$_.render(() => {
-					_$_.set_class(div_2, `item-${_$_.get(i)}`, void 0, true);
+					_$_.set_class(div_2, `item-${i.value}`, void 0, true);
 				});
 
 				_$_.append(__anchor, div_2);
@@ -325,7 +325,7 @@ export function NestedForLoop(__anchor, _, __block) {
 							}
 
 							_$_.render(() => {
-								_$_.set_class(span_2, `cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`, void 0, true);
+								_$_.set_class(span_2, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
 							});
 
 							_$_.append(__anchor, span_2);
@@ -336,7 +336,7 @@ export function NestedForLoop(__anchor, _, __block) {
 					_$_.pop(div_4);
 
 					_$_.render(() => {
-						_$_.set_class(div_4, `row-${_$_.get(rowIndex)}`, void 0, true);
+						_$_.set_class(div_4, `row-${rowIndex.value}`, void 0, true);
 					});
 				}
 
@@ -455,7 +455,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 	var button_4 = _$_.first_child_frag(fragment_2);
 
 	button_4.__click = () => {
-		_$_.set(lazy_3, [_$_.get(lazy_3)[2], _$_.get(lazy_3)[0], _$_.get(lazy_3)[1]]);
+		_$_.set(lazy_3, [lazy_3.value[2], lazy_3.value[0], lazy_3.value[1]]);
 	};
 
 	var ul_6 = _$_.sibling(button_4);
@@ -463,7 +463,7 @@ export function KeyedForLoopReorder(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_6,
-			() => _$_.get(lazy_3),
+			() => lazy_3.value,
 			(__anchor, pattern_2) => {
 				var li_6 = root_20();
 
@@ -500,7 +500,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 	var button_5 = _$_.first_child_frag(fragment_3);
 
 	button_5.__click = () => {
-		_$_.set(lazy_4, _$_.with_scope(__block, () => _$_.get(lazy_4).map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
+		_$_.set(lazy_4, _$_.with_scope(__block, () => lazy_4.value.map((item) => item.id === 1 ? { ...item, name: 'Updated' } : item)));
 	};
 
 	var ul_7 = _$_.sibling(button_5);
@@ -508,7 +508,7 @@ export function KeyedForLoopUpdate(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_7,
-			() => _$_.get(lazy_4),
+			() => lazy_4.value,
 			(__anchor, pattern_3) => {
 				var li_7 = root_22();
 
@@ -553,7 +553,7 @@ export function ForLoopMixedOperations(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_8,
-			() => _$_.get(lazy_5),
+			() => lazy_5.value,
 			(__anchor, item) => {
 				var li_8 = root_24();
 
@@ -588,13 +588,13 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 	var button_7 = _$_.first_child_frag(fragment_5);
 
 	button_7.__click = () => {
-		_$_.set(lazy_6, !_$_.get(lazy_6));
+		_$_.set(lazy_6, !lazy_6.value);
 	};
 
 	var button_8 = _$_.sibling(button_7);
 
 	button_8.__click = () => {
-		_$_.set(lazy_7, [..._$_.get(lazy_7), 'W']);
+		_$_.set(lazy_7, [...lazy_7.value, 'W']);
 	};
 
 	var node = _$_.sibling(button_8);
@@ -606,7 +606,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 			{
 				_$_.for(
 					ul_9,
-					() => _$_.get(lazy_7),
+					() => lazy_7.value,
 					(__anchor, item) => {
 						var li_9 = root_27();
 
@@ -629,7 +629,7 @@ export function ForLoopInsideIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node, (__render) => {
-			if (_$_.get(lazy_6)) __render(consequent);
+			if (lazy_6.value) __render(consequent);
 		});
 	}
 
@@ -653,7 +653,7 @@ export function ForLoopEmptyToPopulated(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_10,
-			() => _$_.get(lazy_8),
+			() => lazy_8.value,
 			(__anchor, item) => {
 				var li_10 = root_29();
 
@@ -693,7 +693,7 @@ export function ForLoopPopulatedToEmpty(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_11,
-			() => _$_.get(lazy_9),
+			() => lazy_9.value,
 			(__anchor, item) => {
 				var li_11 = root_31();
 
@@ -725,13 +725,13 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 	var button_11 = _$_.first_child_frag(fragment_8);
 
 	button_11.__click = () => {
-		_$_.set(lazy_10, [..._$_.get(lazy_10), [5, 6]]);
+		_$_.set(lazy_10, [...lazy_10.value, [5, 6]]);
 	};
 
 	var button_12 = _$_.sibling(button_11);
 
 	button_12.__click = () => {
-		const newGrid = _$_.with_scope(__block, () => _$_.get(lazy_10).map((row) => [...row]));
+		const newGrid = _$_.with_scope(__block, () => lazy_10.value.map((row) => [...row]));
 
 		newGrid[0][0] = 99;
 		_$_.set(lazy_10, newGrid);
@@ -742,7 +742,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 	{
 		_$_.for(
 			div_8,
-			() => _$_.get(lazy_10),
+			() => lazy_10.value,
 			(__anchor, row, rowIndex) => {
 				var div_9 = root_33();
 
@@ -761,7 +761,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 							}
 
 							_$_.render(() => {
-								_$_.set_class(span_6, `cell-${_$_.get(rowIndex)}-${_$_.get(colIndex)}`, void 0, true);
+								_$_.set_class(span_6, `cell-${rowIndex.value}-${colIndex.value}`, void 0, true);
 							});
 
 							_$_.append(__anchor, span_6);
@@ -772,7 +772,7 @@ export function NestedForLoopReactive(__anchor, _, __block) {
 					_$_.pop(div_9);
 
 					_$_.render(() => {
-						_$_.set_class(div_9, `row-${_$_.get(rowIndex)}`, void 0, true);
+						_$_.set_class(div_9, `row-${rowIndex.value}`, void 0, true);
 					});
 				}
 
@@ -909,7 +909,7 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 	var button_13 = _$_.first_child_frag(fragment_9);
 
 	button_13.__click = () => {
-		_$_.set(lazy_11, ['Zeroth', ..._$_.get(lazy_11)]);
+		_$_.set(lazy_11, ['Zeroth', ...lazy_11.value]);
 	};
 
 	var ul_13 = _$_.sibling(button_13);
@@ -917,19 +917,19 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_13,
-			() => _$_.get(lazy_11),
+			() => lazy_11.value,
 			(__anchor, item, i) => {
 				var li_13 = root_40();
 
 				{
 					var expression_20 = _$_.child(li_13);
 
-					_$_.expression(expression_20, () => `[${_$_.get(i)}] ${item}`);
+					_$_.expression(expression_20, () => `[${i.value}] ${item}`);
 					_$_.pop(li_13);
 				}
 
 				_$_.render(() => {
-					_$_.set_class(li_13, `item-${_$_.get(i)}`, void 0, true);
+					_$_.set_class(li_13, `item-${i.value}`, void 0, true);
 				});
 
 				_$_.append(__anchor, li_13);
@@ -962,11 +962,7 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	var button_14 = _$_.first_child_frag(fragment_10);
 
 	button_14.__click = () => {
-		_$_.set(lazy_12, [
-			_$_.get(lazy_12)[1],
-			_$_.get(lazy_12)[2],
-			_$_.get(lazy_12)[0]
-		]);
+		_$_.set(lazy_12, [lazy_12.value[1], lazy_12.value[2], lazy_12.value[0]]);
 	};
 
 	var ul_14 = _$_.sibling(button_14);
@@ -974,20 +970,20 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 	{
 		_$_.for_keyed(
 			ul_14,
-			() => _$_.get(lazy_12),
+			() => lazy_12.value,
 			(__anchor, pattern_6, i) => {
 				var li_14 = root_42();
 
 				{
 					var expression_21 = _$_.child(li_14);
 
-					_$_.expression(expression_21, () => `[${_$_.get(i)}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`);
+					_$_.expression(expression_21, () => `[${i.value}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`);
 					_$_.pop(li_14);
 				}
 
 				_$_.render(
 					(__prev) => {
-						var __a = _$_.get(i);
+						var __a = i.value;
 
 						if (__prev.a !== __a) {
 							_$_.set_attribute(li_14, 'data-index', __prev.a = __a);
@@ -1029,7 +1025,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 
 		_$_.for(
 			node_2,
-			() => _$_.get(lazy_13),
+			() => lazy_13.value,
 			(__anchor, item) => {
 				var div_14 = root_44();
 
@@ -1053,7 +1049,7 @@ export function ForLoopWithSiblings(__anchor, _, __block) {
 	var button_15 = _$_.sibling(div_13);
 
 	button_15.__click = () => {
-		_$_.set(lazy_13, [..._$_.get(lazy_13), 'C']);
+		_$_.set(lazy_13, [...lazy_13.value, 'C']);
 	};
 
 	_$_.next();
@@ -1132,13 +1128,13 @@ function TodoItem(__anchor, props, __block) {
 
 	_$_.render(
 		(__prev) => {
-			var __a = _$_.get(lazy_14);
+			var __a = lazy_14.value;
 
 			if (__prev.a !== __a) {
 				_$_.set_checked(input_1, __prev.a = __a);
 			}
 
-			var __b = _$_.get(lazy_14) ? 'completed' : 'pending';
+			var __b = lazy_14.value ? 'completed' : 'pending';
 
 			if (__prev.b !== __b) {
 				_$_.set_class(span_7, __prev.b = __b, void 0, true);
@@ -1197,7 +1193,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	var button_16 = _$_.first_child_frag(fragment_13);
 
 	button_16.__click = () => {
-		_$_.set(lazy_15, ['A', ..._$_.get(lazy_15)]);
+		_$_.set(lazy_15, ['A', ...lazy_15.value]);
 	};
 
 	var ul_16 = _$_.sibling(button_16);
@@ -1205,7 +1201,7 @@ export function ForLoopAddAtBeginning(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_16,
-			() => _$_.get(lazy_15),
+			() => lazy_15.value,
 			(__anchor, item) => {
 				var li_16 = root_51();
 
@@ -1239,7 +1235,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 	var button_17 = _$_.first_child_frag(fragment_14);
 
 	button_17.__click = () => {
-		const copy = [..._$_.get(lazy_16)];
+		const copy = [...lazy_16.value];
 
 		_$_.with_scope(__block, () => copy.splice(1, 0, 'B'));
 		_$_.set(lazy_16, copy);
@@ -1250,7 +1246,7 @@ export function ForLoopAddInMiddle(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_17,
-			() => _$_.get(lazy_16),
+			() => lazy_16.value,
 			(__anchor, item) => {
 				var li_17 = root_53();
 
@@ -1284,7 +1280,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	var button_18 = _$_.first_child_frag(fragment_15);
 
 	button_18.__click = () => {
-		_$_.set(lazy_17, _$_.with_scope(__block, () => _$_.get(lazy_17).filter((item) => item !== 'B')));
+		_$_.set(lazy_17, _$_.with_scope(__block, () => lazy_17.value.filter((item) => item !== 'B')));
 	};
 
 	var ul_18 = _$_.sibling(button_18);
@@ -1292,7 +1288,7 @@ export function ForLoopRemoveFromMiddle(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_18,
-			() => _$_.get(lazy_17),
+			() => lazy_17.value,
 			(__anchor, item) => {
 				var li_18 = root_55();
 
@@ -1339,7 +1335,7 @@ export function ForLoopLargeList(__anchor, _, __block) {
 				}
 
 				_$_.render(() => {
-					_$_.set_class(li_19, `item-${_$_.get(i)}`, void 0, true);
+					_$_.set_class(li_19, `item-${i.value}`, void 0, true);
 				});
 
 				_$_.append(__anchor, li_19);
@@ -1362,7 +1358,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 	var button_19 = _$_.first_child_frag(fragment_16);
 
 	button_19.__click = () => {
-		const copy = [..._$_.get(lazy_18)];
+		const copy = [...lazy_18.value];
 
 		[copy[0], copy[3]] = [copy[3], copy[0]];
 		_$_.set(lazy_18, copy);
@@ -1373,7 +1369,7 @@ export function ForLoopSwap(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_20,
-			() => _$_.get(lazy_18),
+			() => lazy_18.value,
 			(__anchor, item) => {
 				var li_20 = root_59();
 
@@ -1407,7 +1403,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 	var button_20 = _$_.first_child_frag(fragment_17);
 
 	button_20.__click = () => {
-		_$_.set(lazy_19, _$_.with_scope(__block, () => [..._$_.get(lazy_19)].reverse()));
+		_$_.set(lazy_19, _$_.with_scope(__block, () => [...lazy_19.value].reverse()));
 	};
 
 	var ul_21 = _$_.sibling(button_20);
@@ -1415,7 +1411,7 @@ export function ForLoopReverse(__anchor, _, __block) {
 	{
 		_$_.for(
 			ul_21,
-			() => _$_.get(lazy_19),
+			() => lazy_19.value,
 			(__anchor, item) => {
 				var li_21 = root_61();
 

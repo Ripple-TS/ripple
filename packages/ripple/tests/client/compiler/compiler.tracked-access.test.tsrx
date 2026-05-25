@@ -1,5 +1,8 @@
 import { compile } from '@tsrx/ripple';
 
+const value_message = /Use \.value or &\[\] lazy destructuring/;
+const reference_message = /Use the tracked value directly instead/;
+
 describe('Compiler: Tracked Object Direct Access Checks', () => {
 	it('should error on direct access to __v of a tracked object', () => {
 		const code = `
@@ -77,12 +80,12 @@ import { track } from 'ripple';
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should compile successfully with correct get() function access', () => {
+	it('should compile successfully with correct value access', () => {
 		const code = `
-import { get, track } from 'ripple';
+import { track } from 'ripple';
             export default component App() {
                 let count = track(0);
-                console.log(get(count));
+                console.log(count.value);
             }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -122,7 +125,7 @@ import { get, track } from 'ripple';
 		},
 	);
 
-	it('should allow indexed [0] access on a tracked object', () => {
+	it('should error on indexed [0] access on a tracked object', () => {
 		const code = `
 import { track } from 'ripple';
             export default component App() {
@@ -130,10 +133,10 @@ import { track } from 'ripple';
                 console.log(count[0]);
             }
         `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
 	});
 
-	it('should allow indexed [1] access on a tracked object', () => {
+	it('should error on indexed [1] access on a tracked object', () => {
 		const code = `
 import { track } from 'ripple';
             export default component App() {
@@ -141,15 +144,56 @@ import { track } from 'ripple';
                 let raw = count[1];
             }
         `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+		expect(() => compile(code, 'test.tsrx')).toThrow(reference_message);
 	});
 
-	it('should allow [0] write on a tracked object', () => {
+	it('should error on indexed [0] write on a tracked object', () => {
 		const code = `
 import { track } from 'ripple';
             export default component App() {
                 let count = track(0);
                 count[0] = 5;
+            }
+        `;
+		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
+	});
+
+	it('collects tracked numeric index errors in loose mode', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let count = track(0);
+                console.log(count[0]);
+                let raw = count[1];
+            }
+        `;
+		const result = compile(code, 'test.tsrx', { loose: true });
+
+		expect(result.errors.map((error) => error.message)).toEqual(
+			expect.arrayContaining([
+				expect.stringMatching(value_message),
+				expect.stringMatching(reference_message),
+			]),
+		);
+	});
+
+	it('should error on indexed access through a known tracked lazy ref binding', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let &[value, tracked_ref] = track(0);
+                tracked_ref[0]++;
+            }
+        `;
+		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
+	});
+
+	it('should allow lazy destructuring a tracked value', () => {
+		const code = `
+import { track } from 'ripple';
+            export default component App() {
+                let &[value, tracked_ref] = track(0);
+                console.log(value, tracked_ref.value);
             }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();

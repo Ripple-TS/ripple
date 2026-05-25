@@ -192,6 +192,19 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>Alice-30</pre>');
 	});
 
+	it('preserves numeric member access on lazy array value bindings', async () => {
+		component Child({ pair: &[first] }: { pair: [{ 0: string }] }) {
+			<pre>{first[0]}</pre>
+		}
+
+		component Test() {
+			<Child pair={[{ 0: 'x' }]} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>x</pre>');
+	});
+
 	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {
 		component Test() {
 			let tracked_value = track(0);
@@ -214,6 +227,23 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>x-yz</pre>');
 	});
 
+	it('supports rest in lazy array destructuring for iterable values', async () => {
+		component Test() {
+			const source = {
+				*[Symbol.iterator]() {
+					yield 'x';
+					yield 'y';
+					yield 'z';
+				},
+			};
+			const &[first, ...rest] = source;
+			<pre>{`${first}-${rest.join('')}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>x-yz</pre>');
+	});
+
 	it('supports standalone lazy array destructuring with track()', async () => {
 		component Test() {
 			let count;
@@ -223,6 +253,38 @@ describe('lazy destructuring', () => {
 
 		const { body } = await render(Test);
 		expect(body).toBeHtml('<div>0</div>');
+	});
+
+	it('supports direct value access on tracked values during SSR', async () => {
+		component Test() {
+			let tracked = track(0);
+			++tracked.value;
+			tracked.value++;
+			tracked.value = tracked.value + 1;
+			let value = tracked.value;
+			let ref = tracked;
+
+			<pre>{`${value}-${ref === tracked}`}</pre>
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>3-true</pre>');
+	});
+
+	it('supports lazy destructured tracked ref value access during SSR', async () => {
+		component Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) {
+			++tracked_ref.value;
+			tracked_ref.value++;
+			<pre>{`${value}-${tracked_ref.value}`}</pre>
+		}
+
+		component Test() {
+			let tracked = track(0);
+			<Child pair={tracked} />
+		}
+
+		const { body } = await render(Test);
+		expect(body).toBeHtml('<pre>2-2</pre>');
 	});
 
 	it('supports standalone lazy object destructuring', async () => {

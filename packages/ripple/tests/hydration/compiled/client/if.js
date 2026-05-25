@@ -107,7 +107,7 @@ export function ReactiveIf(__anchor, _, __block) {
 	var button_1 = _$_.first_child_frag(fragment_3);
 
 	button_1.__click = () => {
-		_$_.set(lazy, !_$_.get(lazy));
+		_$_.set(lazy, !lazy.value);
 	};
 
 	var node_3 = _$_.sibling(button_1);
@@ -120,7 +120,7 @@ export function ReactiveIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node_3, (__render) => {
-			if (_$_.get(lazy)) __render(consequent_3);
+			if (lazy.value) __render(consequent_3);
 		});
 	}
 
@@ -136,7 +136,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 	var button_2 = _$_.first_child_frag(fragment_4);
 
 	button_2.__click = () => {
-		_$_.set(lazy_1, !_$_.get(lazy_1));
+		_$_.set(lazy_1, !lazy_1.value);
 	};
 
 	var node_4 = _$_.sibling(button_2);
@@ -155,7 +155,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 		};
 
 		_$_.if(node_4, (__render) => {
-			if (_$_.get(lazy_1)) __render(consequent_4); else __render(alternate_1, false);
+			if (lazy_1.value) __render(consequent_4); else __render(alternate_1, false);
 		});
 	}
 
@@ -172,13 +172,13 @@ export function NestedIf(__anchor, _, __block) {
 	var button_3 = _$_.first_child_frag(fragment_5);
 
 	button_3.__click = () => {
-		_$_.set(lazy_2, !_$_.get(lazy_2));
+		_$_.set(lazy_2, !lazy_2.value);
 	};
 
 	var button_4 = _$_.sibling(button_3);
 
 	button_4.__click = () => {
-		_$_.set(lazy_3, !_$_.get(lazy_3));
+		_$_.set(lazy_3, !lazy_3.value);
 	};
 
 	var node_5 = _$_.sibling(button_4);
@@ -199,7 +199,7 @@ export function NestedIf(__anchor, _, __block) {
 					};
 
 					_$_.if(node_6, (__render) => {
-						if (_$_.get(lazy_3)) __render(consequent_5);
+						if (lazy_3.value) __render(consequent_5);
 					});
 				}
 
@@ -210,7 +210,7 @@ export function NestedIf(__anchor, _, __block) {
 		};
 
 		_$_.if(node_5, (__render) => {
-			if (_$_.get(lazy_2)) __render(consequent_6);
+			if (lazy_2.value) __render(consequent_6);
 		});
 	}
 
@@ -270,7 +270,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 					};
 
 					_$_.if(node_8, (__render) => {
-						if (_$_.get(lazy_4) === 'success') __render(consequent_8); else __render(alternate_2, false);
+						if (lazy_4.value === 'success') __render(consequent_8); else __render(alternate_2, false);
 					});
 				}
 
@@ -278,7 +278,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 			};
 
 			_$_.if(node_7, (__render) => {
-				if (_$_.get(lazy_4) === 'loading') __render(consequent_7); else __render(alternate_3, false);
+				if (lazy_4.value === 'loading') __render(consequent_7); else __render(alternate_3, false);
 			});
 		}
 

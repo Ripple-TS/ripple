@@ -24,6 +24,115 @@ function getString(e: string = 'test') {
 		expect(result.code).toMatchSnapshot();
 	});
 
+	it('removes TypeScript-only expression wrappers from assignment and update targets', () => {
+		const source = `
+beforeAll(() => {
+	(global as any).ResizeObserver = createMockResizeObserver;
+	(global as any).count++;
+});
+
+component Test() {
+	let toggle: { value: boolean } | undefined;
+	toggle!.value = false;
+	toggle!.value++;
+}`;
+
+		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+		expect(code).toContain('global.ResizeObserver = createMockResizeObserver');
+		expect(code).toContain('global.count++');
+		expect(code).toContain('toggle.value = false');
+		expect(code).toContain('toggle.value++');
+		expect(code).not.toContain('as any');
+		expect(code).not.toContain('!');
+	});
+
+	it(
+		'compiles writes to unknown lazy array index 1 through lazy array helpers in SSR output',
+		() => {
+			const source = `component Child({ pair: &[first, second] }) {
+	second = 10;
+	<div>{first}</div>
+}
+component App() {
+	<Child pair={[0, 1]} />
+}`;
+			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
+			expect(code).not.toContain('lazy[1] =');
+		},
+	);
+
+	it('does not double-wrap member access on lazy array value bindings in SSR output', () => {
+		const source = `component Child({ pair: &[first] }) {
+	let value = first[0];
+	<div>{value}</div>
+}
+component App() {
+	<Child pair={[{ 0: 'x' }]} />
+}`;
+		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+		expect(code).toContain('let value = _$_.lazy_array_get(lazy, 0)[0];');
+		expect(code).not.toContain('_$_.lazy_array_get(_$_.lazy_array_get(lazy, 0), 0)');
+	});
+
+	it('throws on indexed access through known tracked lazy destructures in SSR output', () => {
+		const source = `import { track } from 'ripple';
+component App() {
+	let &[value, tracked_ref] = track({ 0: 'x' });
+	let nested = value[0];
+	tracked_ref[0] = { 0: 'y' };
+	let next = value[0];
+	<div>{nested}{next}</div>
+}`;
+
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
+			/Use \.value or &\[\] lazy destructuring/,
+		);
+	});
+
+	it('throws on known tracked indexed access in SSR output', () => {
+		const source = `import { track } from 'ripple';
+component App() {
+	let tracked = track(0);
+	++tracked[0];
+	tracked[0]++;
+	tracked[0] = tracked[0] + 1;
+	let value = tracked[0];
+	let ref = tracked[1];
+	<div>{value}</div>
+}`;
+
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
+			/Use \.value or &\[\] lazy destructuring/,
+		);
+	});
+
+	it(
+		'compiles indexed access on unknown lazy tracked refs through lazy array helpers in SSR output',
+		() => {
+			const source = `import { track } from 'ripple';
+component Child({ pair: &[value, tracked_ref] }) {
+	++tracked_ref[0];
+	tracked_ref[0]++;
+	<div>{value}</div>
+}
+component App() {
+	let tracked = track(0);
+	<Child pair={tracked} />
+}`;
+			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(code).toContain('_$_.lazy_array_get(lazy, 1)');
+			expect(code).toContain('_$_.lazy_array_update_pre(_$_.lazy_array_get(lazy, 1), 0)');
+			expect(code).toContain('_$_.lazy_array_update(_$_.lazy_array_get(lazy, 1), 0)');
+			expect(code).not.toContain('lazy[1][0]');
+			expect(code).not.toContain('lazy_array_get(lazy, 1)[0]');
+		},
+	);
+
 	it('removes class TypeScript syntax from JS output', () => {
 		const source = `interface BaseEvent {}
 

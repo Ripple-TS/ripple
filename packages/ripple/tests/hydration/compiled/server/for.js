@@ -130,7 +130,7 @@ export function ReactiveForLoopAdd() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy)) {
+			for (const item of lazy.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -174,7 +174,7 @@ export function ReactiveForLoopRemove() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_1)) {
+			for (const item of lazy_1.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -208,7 +208,7 @@ export function ForLoopInteractive() {
 
 			var i = 0;
 
-			for (const count of _$_.get(lazy_2)) {
+			for (const count of lazy_2.value) {
 				_$_.output_push('<div');
 				_$_.output_push(_$_.attr('class', `item-${i}`));
 				_$_.output_push('>');
@@ -418,7 +418,7 @@ export function KeyedForLoopReorder() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_3)) {
+			for (const item of lazy_3.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item.id}`));
 				_$_.output_push('>');
@@ -463,7 +463,7 @@ export function KeyedForLoopUpdate() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_4)) {
+			for (const item of lazy_4.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item.id}`));
 				_$_.output_push('>');
@@ -508,7 +508,7 @@ export function ForLoopMixedOperations() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_5)) {
+			for (const item of lazy_5.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -562,7 +562,7 @@ export function ForLoopInsideIf() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_6)) {
+		if (lazy_6.value) {
 			_$_.output_push('<ul');
 			_$_.output_push(' class="list"');
 			_$_.output_push('>');
@@ -570,7 +570,7 @@ export function ForLoopInsideIf() {
 			{
 				_$_.output_push('<!--[-->');
 
-				for (const item of _$_.get(lazy_7)) {
+				for (const item of lazy_7.value) {
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -618,7 +618,7 @@ export function ForLoopEmptyToPopulated() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_8)) {
+			for (const item of lazy_8.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -663,7 +663,7 @@ export function ForLoopPopulatedToEmpty() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_9)) {
+			for (const item of lazy_9.value) {
 				_$_.output_push('<li');
 				_$_.output_push('>');
 
@@ -722,7 +722,7 @@ export function NestedForLoopReactive() {
 
 			var rowIndex = 0;
 
-			for (const row of _$_.get(lazy_10)) {
+			for (const row of lazy_10.value) {
 				_$_.output_push('<div');
 				_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
 				_$_.output_push('>');
@@ -889,7 +889,7 @@ export function ForLoopIndexUpdate() {
 
 			var i = 0;
 
-			for (const item of _$_.get(lazy_11)) {
+			for (const item of lazy_11.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${i}`));
 				_$_.output_push('>');
@@ -944,7 +944,7 @@ export function KeyedForLoopWithIndex() {
 
 			var i = 0;
 
-			for (const item of _$_.get(lazy_12)) {
+			for (const item of lazy_12.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('data-index', i, false));
 				_$_.output_push(_$_.attr('class', `item-${item.id}`));
@@ -989,7 +989,7 @@ export function ForLoopWithSiblings() {
 			_$_.output_push('</header>');
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_13)) {
+			for (const item of lazy_13.value) {
 				_$_.output_push('<div');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -1078,11 +1078,11 @@ function TodoItem(props) {
 		{
 			_$_.output_push('<input');
 			_$_.output_push(' type="checkbox"');
-			_$_.output_push(_$_.attr('checked', _$_.get(lazy_14), true));
+			_$_.output_push(_$_.attr('checked', lazy_14.value, true));
 			_$_.output_push(' class="checkbox"');
 			_$_.output_push(' />');
 			_$_.output_push('<span');
-			_$_.output_push(_$_.attr('class', _$_.get(lazy_14) ? 'completed' : 'pending'));
+			_$_.output_push(_$_.attr('class', lazy_14.value ? 'completed' : 'pending'));
 			_$_.output_push('>');
 
 			{
@@ -1155,7 +1155,7 @@ export function ForLoopAddAtBeginning() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_15)) {
+			for (const item of lazy_15.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -1200,7 +1200,7 @@ export function ForLoopAddInMiddle() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_16)) {
+			for (const item of lazy_16.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -1245,7 +1245,7 @@ export function ForLoopRemoveFromMiddle() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_17)) {
+			for (const item of lazy_17.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -1327,7 +1327,7 @@ export function ForLoopSwap() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_18)) {
+			for (const item of lazy_18.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');
@@ -1372,7 +1372,7 @@ export function ForLoopReverse() {
 		{
 			_$_.output_push('<!--[-->');
 
-			for (const item of _$_.get(lazy_19)) {
+			for (const item of lazy_19.value) {
 				_$_.output_push('<li');
 				_$_.output_push(_$_.attr('class', `item-${item}`));
 				_$_.output_push('>');

@@ -52,13 +52,11 @@ function render_root_boundary(anchor, render_component, boundary) {
 		(component_anchor) => {
 			render_component(component_anchor);
 		},
-		(catch_anchor, error, reset) => {
-			if (Catch) {
-				Catch(catch_anchor, { error, reset: reset ?? (() => {}) }, active_block);
-			} else {
-				console.error(error);
-			}
-		},
+		Catch
+			? (catch_anchor, error, reset) => {
+					Catch(catch_anchor, { error, reset: reset ?? (() => {}) }, active_block);
+				}
+			: null,
 		(pending_anchor) => {
 			if (Pending) {
 				Pending(pending_anchor, {}, active_block);
@@ -195,7 +193,7 @@ export { user_effect as effect } from './internal/client/blocks.js';
 
 export { Portal } from './internal/client/portal.js';
 
-export { ref_prop as createRefKey, get, public_set as set } from './internal/client/runtime.js';
+export { ref_prop as createRefKey } from './internal/client/runtime.js';
 
 export { isRefProp } from '@tsrx/core/runtime/ref';
 

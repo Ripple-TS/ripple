@@ -1172,7 +1172,7 @@ export function ReactiveReturnTrueToFalse() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy)) {
+		if (lazy.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="guard"');
 			_$_.output_push('>');
@@ -1230,7 +1230,7 @@ export function ReactiveReturnFalseToTrue() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_1)) {
+		if (lazy_1.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="guard"');
 			_$_.output_push('>');
@@ -1301,7 +1301,7 @@ export function ReactiveNestedReturn() {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_2)) {
+			if (lazy_2.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="b"');
 				_$_.output_push('>');
@@ -1717,7 +1717,7 @@ export function ReactiveSiblingReturns() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_3) === 'first') {
+		if (lazy_3.value === 'first') {
 			_$_.output_push('<div');
 			_$_.output_push(' class="first"');
 			_$_.output_push('>');
@@ -1739,7 +1739,7 @@ export function ReactiveSiblingReturns() {
 		if (!__r_38) {
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_3) === 'second') {
+			if (lazy_3.value === 'second') {
 				_$_.output_push('<div');
 				_$_.output_push(' class="second"');
 				_$_.output_push('>');
@@ -1813,7 +1813,7 @@ export function ReactiveOuterInnerReturns() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_4)) {
+		if (lazy_4.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="a"');
 			_$_.output_push('>');
@@ -1825,7 +1825,7 @@ export function ReactiveOuterInnerReturns() {
 			_$_.output_push('</div>');
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_5)) {
+			if (lazy_5.value) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="b"');
 				_$_.output_push('>');
@@ -1853,7 +1853,7 @@ export function ReactiveOuterInnerReturns() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(_$_.get(lazy_4) ? 'a-on rest' : 'a-off rest'));
+				_$_.output_push(_$_.escape(lazy_4.value ? 'a-on rest' : 'a-off rest'));
 			}
 
 			_$_.output_push('</div>');
@@ -1887,7 +1887,7 @@ export function ReactiveElseIfReturns() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_6) === 0) {
+		if (lazy_6.value === 0) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="zero"');
 			_$_.output_push('>');
@@ -1901,7 +1901,7 @@ export function ReactiveElseIfReturns() {
 		} else {
 			_$_.output_push('<!--[-->');
 
-			if (_$_.get(lazy_6) === 1) {
+			if (lazy_6.value === 1) {
 				_$_.output_push('<div');
 				_$_.output_push(' class="one"');
 				_$_.output_push('>');
@@ -2025,7 +2025,7 @@ export function ReactiveDeepNestedIndependentReturns() {
 	_$_.regular_block(() => {
 		_$_.output_push('<!--[-->');
 
-		if (_$_.get(lazy_7)) {
+		if (lazy_7.value) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="hit-1"');
 			_$_.output_push('>');
@@ -2070,7 +2070,7 @@ export function ReactiveDeepNestedIndependentReturns() {
 				_$_.output_push('</div>');
 				_$_.output_push('<!--[-->');
 
-				if (_$_.get(lazy_8)) {
+				if (lazy_8.value) {
 					_$_.output_push('<div');
 					_$_.output_push(' class="hit-2"');
 					_$_.output_push('>');
@@ -2112,7 +2112,7 @@ export function ReactiveDeepNestedIndependentReturns() {
 						_$_.output_push('</div>');
 						_$_.output_push('<!--[-->');
 
-						if (_$_.get(lazy_9)) {
+						if (lazy_9.value) {
 							_$_.output_push('<div');
 							_$_.output_push(' class="hit-3"');
 							_$_.output_push('>');
@@ -2140,7 +2140,7 @@ export function ReactiveDeepNestedIndependentReturns() {
 							_$_.output_push('</div>');
 							_$_.output_push('<!--[-->');
 
-							if (_$_.get(lazy_10)) {
+							if (lazy_10.value) {
 								_$_.output_push('<div');
 								_$_.output_push(' class="hit-4"');
 								_$_.output_push('>');

@@ -26,6 +26,29 @@ function getString(e: string = 'test') {
 		expect(result.code).toMatchSnapshot();
 	});
 
+	it('removes TypeScript-only expression wrappers from assignment and update targets', () => {
+		const source = `
+beforeAll(() => {
+	(global as any).ResizeObserver = createMockResizeObserver;
+	(global as any).count++;
+});
+
+component Test() {
+	let toggle: { value: boolean } | undefined;
+	toggle!.value = false;
+	toggle!.value++;
+}`;
+
+		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
+
+		expect(code).toContain('global.ResizeObserver = createMockResizeObserver');
+		expect(code).toContain('global.count++');
+		expect(code).toContain('toggle.value = false');
+		expect(code).toContain('toggle.value++');
+		expect(code).not.toContain('as any');
+		expect(code).not.toContain('!');
+	});
+
 	it('removes class TypeScript syntax from JS output', () => {
 		const source = `interface BaseEvent {}
 

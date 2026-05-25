@@ -85,6 +85,307 @@ export function is_reserved(word) {
 	return RESERVED_WORDS.includes(word);
 }
 
+/**
+ * @param {AST.Expression} tracked
+ * @returns {AST.MemberExpression}
+ */
+export function tracked_get(tracked) {
+	return b.member(tracked, b.id('value'));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_get(lazy, index) {
+	return b.call('_$_.lazy_array_get', lazy, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_rest(lazy, index) {
+	return b.call('_$_.lazy_array_rest', lazy, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {AST.Expression} value
+ * @param {number} index
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_set(lazy, value, index) {
+	return b.call('_$_.lazy_array_set', lazy, value, b.literal(index));
+}
+
+/**
+ * @param {AST.Expression} lazy
+ * @param {number} index
+ * @param {boolean} prefix
+ * @param {number} [d]
+ * @returns {AST.CallExpression}
+ */
+export function build_lazy_array_update(lazy, index, prefix, d = 1) {
+	/** @type {AST.Expression[]} */
+	const args = [lazy, b.literal(index)];
+	if (d !== 1) {
+		args.push(b.literal(d));
+	}
+	return b.call(prefix ? '_$_.lazy_array_update_pre' : '_$_.lazy_array_update', ...args);
+}
+
+/**
+ * @param {AST.MemberExpression} node
+ * @returns {number | null}
+ */
+export function get_static_numeric_index(node) {
+	if (
+		!node.computed ||
+		node.property.type !== 'Literal' ||
+		typeof node.property.value !== 'number'
+	) {
+		return null;
+	}
+	return node.property.value;
+}
+
+/**
+ * @param {Binding | null | undefined} binding
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_known_tracked_binding(binding, context) {
+	return (
+		binding?.kind !== 'lazy' &&
+		binding?.kind !== 'lazy_fallback' &&
+		binding?.initial?.type === 'CallExpression' &&
+		is_ripple_track_call(binding.initial.callee, context) !== null
+	);
+}
+
+/**
+ * @param {AST.Identifier} object
+ * @param {number} index
+ * @param {CommonContext} context
+ * @returns {AST.Expression | null}
+ */
+export function build_known_tracked_index_read(object, index, context) {
+	const binding = context.state.scope?.get(object.name);
+	if (!is_known_tracked_binding(binding, context)) {
+		return null;
+	}
+	return index === 0 ? tracked_get(object) : index === 1 ? object : null;
+}
+
+/**
+ * @param {AST.Identifier} object
+ * @param {CommonContext} context
+ * @returns {{ target: AST.Expression, tracked: boolean } | null}
+ */
+export function get_lazy_array_member_target(object, context) {
+	const binding = context.state.scope?.get(object.name);
+	if (
+		binding?.node === object ||
+		binding?.metadata?.lazy_array_rest ||
+		(binding?.kind !== 'lazy' && binding?.kind !== 'lazy_fallback') ||
+		binding.transform?.read === undefined
+	) {
+		return null;
+	}
+
+	if (
+		binding.metadata?.lazy_array_source_tracked &&
+		binding.metadata.lazy_array_index === 1 &&
+		binding.metadata.lazy_array_source
+	) {
+		return {
+			target: b.id(binding.metadata.lazy_array_source),
+			tracked: true,
+		};
+	}
+
+	if (binding.metadata?.lazy_array_index !== 1) {
+		return null;
+	}
+
+	return {
+		target: binding.transform.read(object),
+		tracked: false,
+	};
+}
+
+/**
+ * @param {AST.Expression} target
+ * @param {number} index
+ * @param {boolean} tracked
+ * @returns {AST.Expression | null}
+ */
+export function build_index_read(target, index, tracked) {
+	if (tracked) {
+		return index === 0 ? tracked_get(target) : index === 1 ? target : null;
+	}
+	return build_lazy_array_get(target, index);
+}
+
+/**
+ * @param {AST.Expression} target
+ * @param {number} index
+ * @param {AST.Expression} value
+ * @param {boolean} tracked
+ * @returns {AST.Expression | null}
+ */
+export function build_index_write(target, index, value, tracked) {
+	if (tracked) {
+		return index === 0 ? b.call('_$_.set', target, value) : null;
+	}
+	return build_lazy_array_set(target, value, index);
+}
+
+/**
+ * @param {AST.Expression} target
+ * @param {number} index
+ * @param {boolean} tracked
+ * @param {AST.UpdateExpression} node
+ * @returns {AST.CallExpression | AST.Expression | null}
+ */
+export function build_index_update(target, index, tracked, node) {
+	if (tracked) {
+		if (index !== 0) {
+			return null;
+		}
+		const fn_name = node.prefix ? '_$_.update_pre' : '_$_.update';
+		/** @type {AST.Expression[]} */
+		const args = [target];
+		if (node.operator === '--') {
+			args.push(b.literal(-1));
+		}
+		return b.call(fn_name, ...args);
+	}
+
+	return build_lazy_array_update(target, index, node.prefix, node.operator === '--' ? -1 : 1);
+}
+
+/**
+ * @param {AST.MemberExpression} node
+ * @param {CommonContext} context
+ * @returns {{ target: AST.Expression, index: number, tracked: boolean } | null}
+ */
+export function get_indexed_reactive_target(node, context) {
+	const index = get_static_numeric_index(node);
+	if (index === null || node.object.type !== 'Identifier') {
+		return null;
+	}
+
+	const known_tracked_read = build_known_tracked_index_read(node.object, index, context);
+	if (known_tracked_read !== null) {
+		return {
+			target: node.object,
+			index,
+			tracked: true,
+		};
+	}
+
+	const lazy_target = get_lazy_array_member_target(node.object, context);
+	if (lazy_target !== null) {
+		return {
+			...lazy_target,
+			index,
+		};
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.Expression | AST.Super} node
+ * @param {CommonContext} context
+ * @returns {AST.Expression | AST.Super}
+ */
+export function rewrite_lazy_member_base(node, context) {
+	if (node.type === 'Identifier') {
+		const binding = context.state.scope?.get(node.name);
+		if (
+			binding?.node !== node &&
+			(binding?.kind === 'lazy' || binding?.kind === 'lazy_fallback') &&
+			binding.transform?.read !== undefined
+		) {
+			return binding.transform.read(node);
+		}
+	}
+
+	if (node.type === 'MemberExpression') {
+		const target = get_indexed_reactive_target(node, context);
+		if (target !== null) {
+			const read = build_index_read(target.target, target.index, target.tracked);
+			if (read !== null) {
+				return read;
+			}
+		}
+
+		return {
+			...node,
+			object: rewrite_lazy_member_base(node.object, context),
+		};
+	}
+
+	return node;
+}
+
+/**
+ * Strips TypeScript-only expression wrappers from expression positions that the
+ * generic visitor does not reliably walk, such as assignment/update targets.
+ * @param {AST.Expression | AST.Pattern} node
+ * @param {CommonContext} context
+ * @returns {AST.Expression | AST.Pattern}
+ */
+export function strip_typescript_expression_wrappers(node, context) {
+	if (
+		node.type === 'TSAsExpression' ||
+		node.type === 'TSTypeAssertion' ||
+		node.type === 'TSNonNullExpression' ||
+		node.type === 'TSInstantiationExpression'
+	) {
+		return strip_typescript_expression_wrappers(
+			/** @type {AST.Expression} */ (node.expression),
+			context,
+		);
+	}
+
+	if (node.type === 'MemberExpression') {
+		return {
+			...node,
+			object:
+				node.object.type === 'Super'
+					? node.object
+					: /** @type {AST.Expression} */ (
+							strip_typescript_expression_wrappers(node.object, context)
+						),
+			property: node.computed
+				? /** @type {AST.Expression} */ (
+						strip_typescript_expression_wrappers(
+							/** @type {AST.Expression} */ (node.property),
+							context,
+						)
+					)
+				: node.property,
+		};
+	}
+
+	if (node.type === 'ParenthesizedExpression') {
+		return {
+			...node,
+			expression: /** @type {AST.Expression} */ (
+				strip_typescript_expression_wrappers(node.expression, context)
+			),
+		};
+	}
+
+	return /** @type {AST.Expression | AST.Pattern} */ (context.visit(node));
+}
+
 // Omits track, trackSplit and trackAsync are they're handled separately
 /** @type {Record<string, {name: string, requiresBlock?: boolean}>} */
 const RIPPLE_IMPORT_CALL_NAME = {

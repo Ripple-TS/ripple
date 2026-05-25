@@ -52,11 +52,11 @@ count.value++;
 console.log(count.value); // 1
 ```
 
-Using `&[...]` lazy destructuring is preferred in most cases because it produces
-cleaner, more readable code. However, `.value` is useful when you need to keep the
-`Tracked<V>` object around — for example, when storing tracked values in data
-structures, passing them as props typed as `Tracked<T>`, or when you need both the
-tracked object and its value in different contexts:
+Using `&[...]` lazy destructuring is typically preferred in most cases because it produces
+cleaner, more readable code. However, `.value` is useful when need top performance,
+especially in hot paths, or to keep the `Tracked<V>` object around — for example,
+when storing tracked values in data structures, passing them as props typed as `Tracked<T>`,
+or when you need both the tracked object and its value in different contexts.
 
 ```ts
 import { track } from 'ripple';
@@ -71,11 +71,11 @@ count++;                    // convenient direct access via lazy destructuring
 console.log(countTracked.value);  // equivalent: read via .value on the tracked object
 ```
 
-::: info When to use `.value` Use `.value` when you need to work with the
-`Tracked<V>` object directly, such as storing tracked values in arrays or objects,
-or passing them to functions and components that expect `Tracked<T>`. Use `&[...]`
-lazy destructuring for everyday reactive variables where you want clean, direct
-access.
+::: info When to use `.value` Use `.value` when you need top performance or
+to work with the `Tracked<V>` object directly, such as storing tracked values
+in arrays or objects, or passing them to functions and components that expect
+`Tracked<T>`. Use `&[...]` lazy destructuring for everyday reactive variables
+where you want clean, direct access.
 :::
 
 Tracked derived values are also `Tracked<T>` objects, except that you pass a
@@ -194,7 +194,7 @@ reactivity:
 component Child(&{ count, className, children }: Props) {
   // count, className, children are lazily read from the props object
   <button class={className}>{children}</button>
-  <pre>{`Count is: ${count}`}</pre>
+  <pre>"Count is: "{count}</pre>
 }
 ```
 
@@ -213,7 +213,7 @@ const &{ a, b } = someObject; // read-only lazy access
 let &{ x, y } = mutableObject; // supports assignment: x = 5 writes back
 ```
 
-::: tip When to use lazy destructuring Use `&{...}` whenever you destructure
+::: info When to use lazy destructuring Use `&{...}` whenever you destructure
 reactive props or tracked objects and need the variables to remain reactive.
 Regular destructuring (`{ a, b } = obj`) eagerly copies values and loses
 reactivity.
@@ -379,7 +379,7 @@ export component App() {
 
 </Code>
 
-## Reactive Collection Primitives <Badge type="warning" text="Experimental" />
+## Reactive Collection Primitives
 
 Because Ripple isn't based on Signals, there is no mechanism with which we can
 hijack collection mutations. Thus, you'll need to use the reactive collection

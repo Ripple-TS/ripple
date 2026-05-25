@@ -1558,7 +1558,7 @@ describe('sync error while async deriveds are pending', () => {
 		expect(container.querySelector('.top-caught')?.textContent).toBe('deep error');
 	});
 
-	it('try block without catch routes to the root catch boundary', async () => {
+	it('try block without catch throws to global when no upstream boundary exists', async () => {
 		component ThrowingChild() {
 			throw new Error('unhandled error');
 			<p>{'should not render'}</p>
@@ -1574,7 +1574,7 @@ describe('sync error while async deriveds are pending', () => {
 
 		expect(() => {
 			render(App);
-		}).not.toThrow();
+		}).toThrow('unhandled error');
 	});
 
 	it(

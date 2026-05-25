@@ -325,7 +325,7 @@ raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
 Direct double-quoted children are static escaped text. By default, a
 `{expression}` in a template can render either text or a fragment. If you know
 the expression will always be text, you can use the `{text}` directive to make
-that explicit:
+that explicit. It should also result in better performance.
 
 ```ripple
 export component Frame({ children }) {
