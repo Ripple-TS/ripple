@@ -42,21 +42,6 @@ function createHandlerOptions() {
 }
 
 describe('render route SSR props', () => {
-	it('allows render routes to use a direct component instead of an entry', () => {
-		function Page() {}
-		const route = new RenderRoute({
-			path: '/tool/:slug',
-			component: Page,
-		});
-
-		expect(route.entry).toBeUndefined();
-		expect(route.component).toBe(Page);
-		expect(route.before).toEqual([]);
-		expect(() => new RenderRoute({ path: '/missing' })).toThrow(
-			'RenderRoute requires either `entry` or `component`.',
-		);
-	});
-
 	it('allows render routes to prefer a named component export from an entry tuple', () => {
 		const route = new RenderRoute({
 			path: '/docs/guide/dom-refs',
@@ -64,6 +49,8 @@ describe('render route SSR props', () => {
 		});
 
 		expect(route.entry).toEqual(['DomRefsPage', '/src/pages/docs/guide/dom-refs.tsrx']);
+		expect(route.before).toEqual([]);
+		expect(() => new RenderRoute({ path: '/missing' })).toThrow('RenderRoute requires an `entry`.');
 	});
 
 	it('passes injected props as the first SSR component argument', () => {
@@ -155,7 +142,7 @@ describe('render route SSR props', () => {
 		});
 	});
 
-	it('passes route params and root boundary to production component routes', async () => {
+	it('passes route params and root boundary to production render route components', async () => {
 		let pageProps;
 		let renderOptions;
 		function Page(props) {
@@ -167,15 +154,15 @@ describe('render route SSR props', () => {
 		};
 		const route = {
 			type: 'render',
-			path: '/component/:slug',
-			component: Page,
+			path: '/tool/:slug',
+			entry: '/src/ToolPage.tsrx',
 			before: [],
 		};
 
 		const handler = createHandler(
 			{
 				routes: [route],
-				components: {},
+				components: { '/src/ToolPage.tsrx': Page },
 				layouts: {},
 				middlewares: [],
 				runtime: createRuntime(),
@@ -191,7 +178,7 @@ describe('render route SSR props', () => {
 			},
 		);
 
-		const response = await handler(new Request('https://example.test/component/echo-api'));
+		const response = await handler(new Request('https://example.test/tool/echo-api'));
 		const html = await response.text();
 
 		expect(response.status).toBe(200);
@@ -201,6 +188,7 @@ describe('render route SSR props', () => {
 		});
 		expect(renderOptions).toEqual({ rootBoundary });
 		expect(parseRippleData(html)).toEqual({
+			entry: '/src/ToolPage.tsrx',
 			routeIndex: 0,
 			params: { slug: 'echo-api' },
 		});
@@ -324,7 +312,7 @@ describe('render route SSR props', () => {
 		}
 	});
 
-	it('passes route params and root boundary to dev component routes', async () => {
+	it('passes route params and root boundary to dev render route components', async () => {
 		const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ripple-render-route-'));
 		fs.writeFileSync(
 			path.join(tmpDir, 'index.html'),
@@ -342,8 +330,8 @@ describe('render route SSR props', () => {
 		};
 		const route = {
 			type: 'render',
-			path: '/component/:slug',
-			component: Page,
+			path: '/tool/:slug',
+			entry: '/src/ToolPage.tsrx',
 			before: [],
 		};
 
@@ -361,6 +349,9 @@ describe('render route SSR props', () => {
 						get_css_for_hashes: () => '',
 					};
 				}
+				if (id === '/src/ToolPage.tsrx') {
+					return { default: Page };
+				}
 				throw new Error(`Unexpected module: ${id}`);
 			}),
 		};
@@ -369,9 +360,9 @@ describe('render route SSR props', () => {
 			const response = await handleRenderRoute(
 				route,
 				{
-					request: new Request('https://example.test/component/echo-api'),
+					request: new Request('https://example.test/tool/echo-api'),
 					params: { slug: 'echo-api' },
-					url: new URL('https://example.test/component/echo-api'),
+					url: new URL('https://example.test/tool/echo-api'),
 					state: new Map(),
 				},
 				vite,
@@ -389,11 +380,13 @@ describe('render route SSR props', () => {
 			});
 			expect(renderOptions).toEqual({ rootBoundary });
 			expect(parseRippleData(html)).toEqual({
+				entry: '/src/ToolPage.tsrx',
 				routeIndex: 0,
 				params: { slug: 'echo-api' },
 			});
-			expect(vite.ssrLoadModule).toHaveBeenCalledTimes(1);
+			expect(vite.ssrLoadModule).toHaveBeenCalledTimes(2);
 			expect(vite.ssrLoadModule).toHaveBeenCalledWith('ripple/server');
+			expect(vite.ssrLoadModule).toHaveBeenCalledWith('/src/ToolPage.tsrx');
 		} finally {
 			fs.rmSync(tmpDir, { recursive: true, force: true });
 		}

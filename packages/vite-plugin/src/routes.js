@@ -68,10 +68,7 @@ export class RenderRoute {
 	/** @type {RenderRouteEntry | undefined} */
 	entry;
 
-	/** @type {Function | undefined} */
-	component;
-
-	/** @type {string | Function | undefined} */
+	/** @type {string | undefined} */
 	layout;
 
 	/** @type {Middleware[]} */
@@ -81,13 +78,12 @@ export class RenderRoute {
 	 * @param {RenderRouteOptions} options
 	 */
 	constructor(options) {
-		if (!options.entry && !options.component) {
-			throw new Error('RenderRoute requires either `entry` or `component`.');
+		if (!options.entry) {
+			throw new Error('RenderRoute requires an `entry`.');
 		}
 
 		this.path = options.path;
 		this.entry = options.entry;
-		this.component = options.component;
 		this.layout = options.layout;
 		this.before = options.before ?? [];
 	}

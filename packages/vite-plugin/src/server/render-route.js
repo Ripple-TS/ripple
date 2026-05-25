@@ -43,13 +43,12 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 		const { render, get_css_for_hashes } = await vite.ssrLoadModule('ripple/server');
 
 		// Load the page component
-		/** @type {Function | null} */
-		let PageComponent = typeof route.component === 'function' ? route.component : null;
 		const entryPath = get_route_entry_path(route.entry);
-		if (!PageComponent && entryPath) {
-			const pageModule = await vite.ssrLoadModule(entryPath);
-			PageComponent = get_component_export(pageModule, get_route_entry_export_name(route.entry));
-		}
+		const pageModule = await vite.ssrLoadModule(/** @type {string} */ (entryPath));
+		const PageComponent = get_component_export(
+			pageModule,
+			get_route_entry_export_name(route.entry),
+		);
 
 		if (!PageComponent) {
 			throw new Error(`No component found for route ${route.path}`);
@@ -61,12 +60,8 @@ export async function handleRenderRoute(route, context, vite, rippleConfig) {
 
 		if (route.layout) {
 			// Load layout component
-			/** @type {Function | null} */
-			let LayoutComponent = typeof route.layout === 'function' ? route.layout : null;
-			if (!LayoutComponent) {
-				const layoutModule = await vite.ssrLoadModule(/** @type {string} */ (route.layout));
-				LayoutComponent = get_component_export(layoutModule, undefined);
-			}
+			const layoutModule = await vite.ssrLoadModule(route.layout);
+			const LayoutComponent = get_component_export(layoutModule, undefined);
 
 			if (!LayoutComponent) {
 				throw new Error(`No default export found in ${route.layout}`);

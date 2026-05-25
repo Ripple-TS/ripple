@@ -92,9 +92,7 @@ function validate_render_route(route) {
 		return;
 	}
 
-	const render_route = /** @type {{ entry?: unknown, component?: unknown, layout?: unknown }} */ (
-		route
-	);
+	const render_route = /** @type {{ entry?: unknown, layout?: unknown }} */ (route);
 	const has_entry =
 		typeof render_route.entry === 'string' ||
 		(Array.isArray(render_route.entry) &&
@@ -102,20 +100,12 @@ function validate_render_route(route) {
 			typeof render_route.entry[0] === 'string' &&
 			typeof render_route.entry[1] === 'string');
 
-	if (!has_entry && typeof render_route.component !== 'function') {
-		throw new Error(
-			'[@ripple-ts/vite-plugin] RenderRoute requires either a string/tuple `entry` or a component function.',
-		);
+	if (!has_entry) {
+		throw new Error('[@ripple-ts/vite-plugin] RenderRoute requires a string/tuple `entry`.');
 	}
 
-	if (
-		render_route.layout !== undefined &&
-		typeof render_route.layout !== 'string' &&
-		typeof render_route.layout !== 'function'
-	) {
-		throw new Error(
-			'[@ripple-ts/vite-plugin] RenderRoute `layout` must be a string path or component function.',
-		);
+	if (render_route.layout !== undefined && typeof render_route.layout !== 'string') {
+		throw new Error('[@ripple-ts/vite-plugin] RenderRoute `layout` must be a string path.');
 	}
 }
 

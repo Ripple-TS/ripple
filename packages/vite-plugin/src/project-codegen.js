@@ -150,10 +150,6 @@ async function resolveRouteComponent(data) {
   const route =
     typeof data.routeIndex === 'number' ? renderRoutes[data.routeIndex] : undefined;
 
-  if (typeof route?.component === 'function') {
-    return route.component;
-  }
-
   const entry = route?.entry ?? data.entry;
   const entryPath = getRouteEntryPath(entry);
   const exportName = getRouteEntryExportName(entry);

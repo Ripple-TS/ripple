@@ -156,12 +156,7 @@ async function handleRenderRoute(
 		// Get the page component
 		const entryId = get_route_entry_id(route.entry);
 		const entryPath = get_route_entry_path(route.entry);
-		const PageComponent =
-			typeof route.component === 'function'
-				? route.component
-				: entryId
-					? manifest.components[entryId]
-					: null;
+		const PageComponent = entryId ? manifest.components[entryId] : null;
 		if (!PageComponent) {
 			throw new Error(`Component not found for route ${route.path}`);
 		}
@@ -170,9 +165,7 @@ async function handleRenderRoute(
 		let RootComponent;
 		const pageProps = { params: context.params };
 
-		if (typeof route.layout === 'function') {
-			RootComponent = createLayoutWrapper(route.layout, PageComponent, pageProps);
-		} else if (route.layout && manifest.layouts[route.layout]) {
+		if (route.layout && manifest.layouts[route.layout]) {
 			const LayoutComponent = manifest.layouts[route.layout];
 			RootComponent = createLayoutWrapper(LayoutComponent, PageComponent, pageProps);
 		} else {

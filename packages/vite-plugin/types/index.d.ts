@@ -34,9 +34,8 @@ export function loadRippleConfig(
 export class RenderRoute {
 	readonly type: 'render';
 	path: string;
-	entry?: RenderRouteEntry;
-	component?: Component;
-	layout?: string | Component;
+	entry: RenderRouteEntry;
+	layout?: string;
 	before: Middleware[];
 	constructor(options: RenderRouteOptions);
 }
@@ -61,11 +60,9 @@ export interface RenderRouteOptions {
 	/** URL path pattern (e.g., '/', '/posts/:id', '/docs/*slug') */
 	path: string;
 	/** Path to the Ripple component entry file, optionally with a preferred named export */
-	entry?: RenderRouteEntry;
-	/** Ripple component reference imported from a .tsrx module */
-	component?: Component;
+	entry: RenderRouteEntry;
 	/** Path to the layout component (wraps the entry) */
-	layout?: string | Component;
+	layout?: string;
 	/** Middleware to run before rendering */
 	before?: Middleware[];
 }
