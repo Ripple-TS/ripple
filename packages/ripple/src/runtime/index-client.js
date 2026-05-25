@@ -154,7 +154,7 @@ export { user_effect as effect } from './internal/client/blocks.js';
 
 export { Portal } from './internal/client/portal.js';
 
-export { ref_prop as createRefKey, get, public_set as set } from './internal/client/runtime.js';
+export { ref_prop as createRefKey } from './internal/client/runtime.js';
 
 export { isRefProp } from '@tsrx/core/runtime/ref';
 

@@ -1,4 +1,4 @@
-import { get, set, track } from 'ripple';
+import { track } from 'ripple';
 
 describe('await in control flow', () => {
 	it('all tests are commented out for now as await in control flow is not yet supported', () => {

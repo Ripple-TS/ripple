@@ -80,12 +80,12 @@ import { track } from 'ripple';
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should compile successfully with correct get() function access', () => {
+	it('should compile successfully with correct value access', () => {
 		const code = `
-import { get, track } from 'ripple';
+import { track } from 'ripple';
             export default component App() {
                 let count = track(0);
-                console.log(get(count));
+                console.log(count.value);
             }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();

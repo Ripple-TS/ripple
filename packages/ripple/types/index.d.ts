@@ -182,10 +182,6 @@ export type PropsNoChildren<T extends object = {}> = Expand<T>;
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-export function get<V>(tracked: Tracked<V>): V;
-
-export function set<V>(tracked: Tracked<V>, value: V): void;
-
 // Overload for tracked values - returns the original tracked value type
 export function track<V>(value: Tracked<V>): Tracked<V>;
 // Overload for function values - infers the return type of the function
