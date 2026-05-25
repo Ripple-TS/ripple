@@ -235,6 +235,7 @@ export function tsx_with_ts_locations() {
 		'AwaitExpression',
 		'SwitchStatement',
 		'TaggedTemplateExpression',
+		'ArrowFunctionExpression',
 		// JSX wrapper nodes: esrap writes `<`, `>`, `</`, `{`, `}` without
 		// locations, so the opening/closing element's and expression
 		// container's start and end don't resolve.

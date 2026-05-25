@@ -49,6 +49,27 @@ describe('@tsrx/ripple Volar mappings cover declaration keywords', () => {
 	});
 });
 
+describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
+	it('adds a verification-only mapping for the whole arrow function', () => {
+		const source = `component C() { const f = (x: number): number => x + 1; }`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const source_arrow = '(x: number): number => x + 1';
+		const source_offset = source.indexOf(source_arrow);
+		const generated_offset = result.code.indexOf(source_arrow);
+		const mapping = find_exact_mapping(
+			result.mappings,
+			source_offset,
+			generated_offset,
+			source_arrow.length,
+		);
+
+		expect(mapping?.data.verification).toBe(true);
+		expect(mapping?.data.completion).toBeUndefined();
+		expect(mapping?.data.semantic).toBeUndefined();
+		expect(mapping?.data.navigation).toBeUndefined();
+	});
+});
+
 describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(

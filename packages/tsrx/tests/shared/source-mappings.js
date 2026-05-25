@@ -5,6 +5,7 @@ import {
 	build_src_to_gen_map,
 	find_exact_mapping,
 	get_generated_position,
+	offset_to_line_col,
 } from '../../src/source-map-utils.js';
 
 /**
@@ -326,6 +327,48 @@ component C() {
 			);
 
 			expect(() => get_generated_position(2, 1, src_to_gen_map)).not.toThrow();
+		});
+	});
+
+	describe(`[${name}] raw source maps cover arrow functions`, () => {
+		it('maps the whole arrow function start and end', () => {
+			const source = `component C() { const f = (x: number): number => x + 1; }`;
+			const result = compile(source, 'App.tsrx');
+			const [src_to_gen_map] = build_src_to_gen_map(
+				result.map,
+				new Map(),
+				build_line_offsets(result.code),
+				result.code,
+			);
+			const source_line_offsets = build_line_offsets(source);
+			const arrow_start = source.indexOf('(x: number)');
+			const arrow_end = source.indexOf(';', arrow_start);
+			const start = offset_to_line_col(arrow_start, source_line_offsets);
+			const end = offset_to_line_col(arrow_end, source_line_offsets);
+
+			expect(() => get_generated_position(start.line, start.column, src_to_gen_map)).not.toThrow();
+			expect(() => get_generated_position(end.line, end.column, src_to_gen_map)).not.toThrow();
+		});
+	});
+
+	describe(`[${name}] Volar mappings cover arrow functions`, () => {
+		it('adds a verification-only mapping for the whole arrow function', () => {
+			const source = `component C() { const f = (x: number): number => x + 1; }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_arrow = '(x: number): number => x + 1';
+			const source_offset = source.indexOf(source_arrow);
+			const generated_offset = result.code.indexOf(source_arrow);
+			const mapping = find_exact_mapping(
+				result.mappings,
+				source_offset,
+				generated_offset,
+				source_arrow.length,
+			);
+
+			expect(mapping?.data.verification).toBe(true);
+			expect(mapping?.data.completion).toBeUndefined();
+			expect(mapping?.data.semantic).toBeUndefined();
+			expect(mapping?.data.navigation).toBeUndefined();
 		});
 	});
 

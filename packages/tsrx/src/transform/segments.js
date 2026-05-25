@@ -903,6 +903,23 @@ export function convert_source_map_to_mappings(
 				node.type === 'ArrowFunctionExpression'
 			) {
 				const is_method = node.metadata?.is_method;
+
+				if (node.type === 'ArrowFunctionExpression' && node.loc) {
+					const start_key = `${node.loc.start.line}:${node.loc.start.column}`;
+					const end_key = `${node.loc.end.line}:${node.loc.end.column}`;
+
+					if (src_to_gen_map.has(start_key) && src_to_gen_map.has(end_key)) {
+						mappings.push(
+							get_mapping_from_node(
+								node,
+								src_to_gen_map,
+								gen_line_offsets,
+								mapping_data_verify_only,
+							),
+						);
+					}
+				}
+
 				// Add function/component keyword token
 				if (
 					(node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') &&

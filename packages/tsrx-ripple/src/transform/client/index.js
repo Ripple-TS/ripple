@@ -5570,6 +5570,8 @@ function create_tsx_with_typescript_support(comments) {
 		// prints as `() => ...` and segments.js can't resolve the return-type
 		// nodes' positions in the generated output.
 		ArrowFunctionExpression(node, context) {
+			if (node.loc) context.location(node.loc.start.line, node.loc.start.column);
+
 			if (node.async) context.write('async ');
 
 			if (node.typeParameters) {
@@ -5603,6 +5605,8 @@ function create_tsx_with_typescript_support(comments) {
 			} else {
 				context.visit(node.body);
 			}
+
+			if (node.loc) context.location(node.loc.end.line, node.loc.end.column);
 		},
 		ClassDeclaration(node, context) {
 			if (node.loc) {
