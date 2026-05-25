@@ -1,4 +1,4 @@
-import type { AddEventObject, TSRXElement } from '#public';
+import type { AddEventObject, RefKey, TSRXElement } from '#public';
 import type { Nullable } from '#helpers';
 
 /**
@@ -66,6 +66,17 @@ type EventHandlerObject<
 type EventHandlerValue<Target extends globalThis.EventTarget, EventType extends globalThis.Event> =
 	| EventHandler<Target, EventType>
 	| EventHandlerObject<Target, EventType>;
+
+type RefValue<Target extends globalThis.Element> =
+	| ((node: Target) => void | (() => void))
+	| { value: Target | null }
+	| Target
+	| null
+	| undefined;
+
+type RefAttribute<Target extends globalThis.Element> = {
+	[Key in RefKey]?: RefValue<Target>;
+};
 
 type ElementEventHandler<
 	Target extends globalThis.EventTarget,
@@ -459,7 +470,10 @@ type SlotHTMLAttributes<Target extends HTMLSlotElement = HTMLSlotElement> =
 	};
 
 // Base HTML attributes
-interface HTMLAttributes<Target extends globalThis.Element = globalThis.HTMLElement> {
+interface HTMLAttributes<
+	Target extends globalThis.Element = globalThis.HTMLElement,
+> extends RefAttribute<Target> {
+	ref?: RefValue<Target>;
 	class?: ClassValue | undefined | null;
 	className?: Nullable<string>;
 	id?: Nullable<string>;
@@ -1255,7 +1269,7 @@ declare global {
 			template: HTMLAttributes<HTMLTemplateElement>;
 
 			// Catch-all for any other elements
-			[elemName: string]: HTMLAttributes<never>;
+			[elemName: string]: HTMLAttributes<any>;
 		}
 
 		interface ElementChildrenAttribute {

@@ -827,7 +827,7 @@ declare module 'estree' {
 	interface TSBooleanKeyword extends AcornTSNode<TSESTree.TSBooleanKeyword> {}
 	interface TSCallSignatureDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSCallSignatureDeclaration>,
-		'typeParameters' | 'typeAnnotation'
+		'typeParameters' | 'params' | 'returnType'
 	> {
 		parameters: Parameter[];
 		typeParameters: TSTypeParameterDeclaration | undefined;
@@ -844,7 +844,7 @@ declare module 'estree' {
 	}
 	interface TSConstructorType extends Omit<
 		AcornTSNode<TSESTree.TSConstructorType>,
-		'typeParameters' | 'params'
+		'typeParameters' | 'params' | 'returnType'
 	> {
 		typeAnnotation: TSTypeAnnotation | undefined;
 		typeParameters: TSTypeParameterDeclaration | undefined;
@@ -852,7 +852,7 @@ declare module 'estree' {
 	}
 	interface TSConstructSignatureDeclaration extends Omit<
 		AcornTSNode<TSESTree.TSConstructSignatureDeclaration>,
-		'typeParameters' | 'typeAnnotation'
+		'typeParameters' | 'params' | 'returnType'
 	> {
 		parameters: Parameter[];
 		typeParameters: TSTypeParameterDeclaration | undefined;
@@ -892,7 +892,7 @@ declare module 'estree' {
 	}
 	interface TSFunctionType extends Omit<
 		AcornTSNode<TSESTree.TSFunctionType>,
-		'typeParameters' | 'params'
+		'typeParameters' | 'params' | 'returnType'
 	> {
 		typeAnnotation: TSTypeAnnotation | undefined;
 		typeParameters: TSTypeParameterDeclaration | undefined;
@@ -961,7 +961,7 @@ declare module 'estree' {
 	}
 	interface TSMethodSignature extends Omit<
 		AcornTSNode<TSESTree.TSMethodSignature>,
-		'key' | 'typeParameters' | 'params' | 'typeAnnotation'
+		'key' | 'typeParameters' | 'params' | 'returnType'
 	> {
 		key: PropertyNameComputed | PropertyNameNonComputed;
 		typeParameters: TSTypeParameterDeclaration | undefined;

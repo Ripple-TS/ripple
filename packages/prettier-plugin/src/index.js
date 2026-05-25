@@ -2182,9 +2182,7 @@ function printRippleNode(node, path, options, print, args) {
 
 			// Handle return type
 			parts.push(' => ');
-			if (node.returnType) {
-				parts.push(path.call(print, 'returnType'));
-			} else if (node.typeAnnotation) {
+			if (node.typeAnnotation) {
 				parts.push(path.call(print, 'typeAnnotation'));
 			}
 
@@ -5495,9 +5493,7 @@ function printTSConstructorType(node, path, options, print) {
 	}
 	parts.push(')');
 	parts.push(' => ');
-	if (node.returnType) {
-		parts.push(path.call(print, 'returnType'));
-	} else if (node.typeAnnotation) {
+	if (node.typeAnnotation) {
 		parts.push(path.call(print, 'typeAnnotation'));
 	}
 	return parts;

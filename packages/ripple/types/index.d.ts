@@ -4,6 +4,8 @@ export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsr
 export type Component<T = Record<string, any>> = (props: T) => void;
 
 declare const TSRX_ELEMENT: unique symbol;
+declare const REF_KEY: unique symbol;
+export type RefKey = typeof REF_KEY;
 
 export type TSRXElement = {
 	readonly render: Function;
@@ -149,7 +151,7 @@ declare global {
 	};
 }
 
-export function createRefKey(): symbol;
+export function createRefKey(): RefKey;
 
 export function isRefProp(value: unknown): boolean;
 
