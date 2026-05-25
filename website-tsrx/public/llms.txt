@@ -409,7 +409,7 @@ template literals are JavaScript expressions and must stay inside `{}`.
 
 Coerces the value to a string and escapes HTML-special characters. Reach for
 it when the polymorphic `{expr}` could be ambiguous (e.g. the expression
-might resolve to a JSX fragment or untrusted input).
+might resolve to a JSX fragment or untrusted input) and when you need top performance.
 
 ```tsrx
 component Price({ amount }: { amount: number }) {

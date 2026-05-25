@@ -40,39 +40,35 @@ as a value.
 
 ```ripple
 // ❌ Wrong - Plain templates outside the component
-const element = <div>
-  "Hello"
-</div>; // Compilation error
+const element = <div>"Hello"</div>;  // Compilation error
 
 function regularFunction() {
-  return <span>
-    "Not allowed"
-  </span>; // Compilation error
+	return <span>"Not allowed"</span>;  // Compilation error
 }
 
-const myTemplate = <div>
-  "Cannot assign JSX"
-</div>; // Compilation error
+const myTemplate = (
+	<div>"Cannot assign JSX"</div>  // Compilation error
+);
 
 // ✅ Correct - Templates only inside components
 component MyComponent() {
-  // Template syntax is valid here
+	// Template syntax is valid here
   <div>"Hello World"</div>
 
-  // You can have JavaScript code mixed with templates
-  const message = 'Dynamic content';
-  console.log('This JavaScript works');
+	// You can have JavaScript code mixed with templates
+	const message = "Dynamic content";
+	console.log("This JavaScript works");
 
-  <p>{message}</p>
+	<p>{message}</p>
 }
 
 // ✅ Correct - Helper functions can return data
 function getMessage() {
-  return 'Hello from function'; // Return data, not JSX
+	return "Hello from function";  // Return data, not JSX
 }
 
 component App() {
-  <div>{getMessage()}</div> // Use function result in template
+	<div>{getMessage()}</div>  // Use function result in template
 }
 ```
 
@@ -329,7 +325,7 @@ raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
 Direct double-quoted children are static escaped text. By default, a
 `{expression}` in a template can render either text or a fragment. If you know
 the expression will always be text, you can use the `{text}` directive to make
-that explicit:
+that explicit. It should also result in better performance.
 
 ```ripple
 export component Frame({ children }) {
