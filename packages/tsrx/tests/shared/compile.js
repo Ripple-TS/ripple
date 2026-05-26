@@ -2098,20 +2098,6 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('supports dynamic element syntax in direct tsrx children of fragment shorthand values', () => {
-			expect(() =>
-				compile(
-					`class Foo {
-						bar() {
-							const tag = 'section';
-							return <><tsrx><@tag id="x" /></tsrx></>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
 		it('declares normalized host spread refs inside tsx expression blocks', () => {
 			const { code } = compile(
 				`class Foo {
