@@ -308,6 +308,218 @@ describe('@tsrx/ripple <tsrx> Volar output', () => {
 });
 
 describe('@tsrx/ripple <tsx> expression values', () => {
+	it('passes plain identifier props directly in fragment shorthand values', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const placeholder = 'value';
+				return <><Some prop={placeholder} /></>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('passes plain identifier props directly in tsx expression values', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const placeholder = 'value';
+				return <tsx><Some prop={placeholder} /></tsx>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('passes plain identifier props directly in tsrx expression values', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const placeholder = 'value';
+				return <tsrx><Some prop={placeholder} /></tsrx>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('passes plain identifier props directly in component bodies', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			component Test() {
+				const placeholder = 'value';
+				<Some prop={placeholder} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('passes plain non-tracked expression props directly', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const first = 'hello';
+				const second = 'world';
+				return <><Some prop={first + second} /></>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('Some(node, { prop: first + second }, _$_.active_block);');
+		expect(code).not.toContain('get prop()');
+	});
+
+	it('wraps member expression props in getters', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const obj = { value: 'value' };
+				return <><Some prop={obj.value} /></>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('return obj.value;');
+	});
+
+	it('wraps computed member expression props in getters', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function Test() {
+				const obj = { value: 'value' };
+				const key = 'value';
+				return <tsx><Some prop={obj[key]} /></tsx>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('return obj[key];');
+	});
+
+	it('wraps call expression props in getters', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function getValue() {
+				return 'value';
+			}
+			function Test() {
+				return <tsrx><Some prop={getValue()} /></tsrx>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('getValue');
+	});
+
+	it('wraps call expression props in fragment shorthand values in getters', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function getValue() {
+				return 'value';
+			}
+			function Test() {
+				return <><Some prop={getValue()} /></>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('getValue');
+	});
+
+	it('wraps call expression props in component bodies in getters', () => {
+		const { code } = compile(
+			`component Some(props) {}
+			function getValue() {
+				return 'value';
+			}
+			component Test() {
+				<Some prop={getValue()} />
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('getValue');
+	});
+
+	it('wraps lazy tracked identifier props in fragment shorthand values in getters', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			component Some(props) {}
+			component Test() {
+				let &[count] = track(0);
+				const content = <><Some prop={count} /></>;
+				{content}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('return lazy.value;');
+	});
+
+	it('wraps lazy tracked identifier props in function fragment returns in getters', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			component Some(props) {}
+			function Test() {
+				let &[count] = track(0);
+				return <><Some prop={count} /></>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('return _$_.tsrx_element');
+		expect(code).toContain('get prop()');
+		expect(code).toContain('return lazy.value;');
+	});
+
+	it('wraps lazy tracked identifier props in getters', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			component Some(props) {}
+			component Test() {
+				let &[count] = track(0);
+				const content = <tsx><Some prop={count} /></tsx>;
+				{content}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain('return lazy.value;');
+	});
+
+	it('wraps lazy tracked expression props in getters', () => {
+		const { code } = compile(
+			`import { track } from 'ripple';
+			component Some(props) {}
+			component Test() {
+				let &[count] = track(0);
+				const content = <tsrx><Some prop={count % 2 ? 'odd' : 'even'} /></tsrx>;
+				{content}
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('get prop()');
+		expect(code).toContain(`return lazy.value % 2 ? 'odd' : 'even';`);
+	});
+
 	it('lowers tsx values nested in template expressions', () => {
 		const { code } = compile(
 			`component App() {

@@ -1398,7 +1398,6 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		const attributes = opening.attributes
 			.map((attr) => {
 				if (attr.type === 'JSXAttribute') {
-					const is_dynamic = attr.value && attr.value.type === 'JSXExpressionContainer';
 					return /** @type {AST.Node} */ ({
 						type: 'Attribute',
 						name: {
@@ -1407,7 +1406,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 								attr.name.type === 'JSXIdentifier'
 									? attr.name.name
 									: attr.name.namespace.name + ':' + attr.name.name.name,
-							tracked: is_dynamic,
+							tracked: false,
 							start: attr.name.start,
 							end: attr.name.end,
 						},
