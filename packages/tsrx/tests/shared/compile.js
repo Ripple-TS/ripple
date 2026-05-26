@@ -2015,6 +2015,75 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsx>');
 		});
 
+		it('rejects dynamic attribute names inside tsx blocks', () => {
+			expect(() =>
+				compile(
+					`component Some(props) {}
+					class Foo {
+						bar() {
+							const placeholder = 'value';
+							return <tsx><Some @prop={placeholder} /></tsx>;
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/not attribute names/);
+		});
+
+		it('rejects dynamic element syntax inside tsx blocks', () => {
+			expect(() =>
+				compile(
+					`class Foo {
+						bar() {
+							const tag = 'section';
+							return <tsx><@tag id="x" /></tsx>;
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/only supported in native TSRX templates/);
+		});
+
+		it('rejects dynamic element syntax inside fragment shorthand values', () => {
+			expect(() =>
+				compile(
+					`class Foo {
+						bar() {
+							const tag = 'section';
+							return <><@tag id="x" /></>;
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/only supported in native TSRX templates/);
+		});
+
+		it('supports dynamic element syntax in native tsrx templates', () => {
+			expect(() =>
+				compile(
+					`export component App() {
+						const tag = 'section';
+						<@tag id="x" />
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('supports dynamic element syntax in explicit tsrx templates', () => {
+			expect(() =>
+				compile(
+					`class Foo {
+						bar() {
+							const tag = 'section';
+							return <tsrx><@tag id="x" /></tsrx>;
+						}
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
 		it('declares normalized host spread refs inside tsx expression blocks', () => {
 			const { code } = compile(
 				`class Foo {

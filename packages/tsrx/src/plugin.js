@@ -21,6 +21,10 @@ const JSX_EXPRESSION_VALUE_ERROR =
 	'JSX elements cannot be used as expressions. Wrap JSX with `<>...</>` or `<tsx>...</tsx>`, wrap TSRX templates with `<tsrx>...</tsrx>`, or use elements as statements within a component.';
 const HTML_ATTRIBUTE_VALUE_ERROR =
 	'`{html ...}` is not supported as an attribute value. Use a string literal or expression without `html`.';
+const DYNAMIC_ELEMENT_IN_TSX_ERROR =
+	'Dynamic element syntax (`<@...>`) is only supported in native TSRX templates.';
+const DYNAMIC_ATTRIBUTE_NAME_ERROR =
+	'Dynamic component / element syntax (`@`) is only supported on native TSRX element names, not attribute names.';
 
 const CharCode = Object.freeze({
 	tab: 9,
@@ -406,6 +410,35 @@ export function TSRXPlugin(config) {
 					node?.type === 'Tsrx' ||
 					node?.type === 'TsxCompat'
 				);
+			}
+
+			/**
+			 * @param {AST.Node[]} children
+			 */
+			#reportDynamicJsxElementsInTsx(children) {
+				for (const child of children) {
+					if (child?.type === 'Tsrx') {
+						continue;
+					}
+					if (child?.type === 'JSXElement') {
+						const name = child.openingElement?.name;
+						const is_dynamic_name =
+							(name?.type === 'JSXIdentifier' && name.tracked) ||
+							(name?.type === 'JSXMemberExpression' &&
+								name.object.type === 'JSXIdentifier' &&
+								name.object.tracked);
+						if (is_dynamic_name) {
+							this.#report_recoverable_error_range(
+								/** @type {AST.NodeWithLocation} */ (name).start ?? child.start,
+								/** @type {AST.NodeWithLocation} */ (name).end ?? child.end,
+								DYNAMIC_ELEMENT_IN_TSX_ERROR,
+							);
+						}
+						this.#reportDynamicJsxElementsInTsx(/** @type {AST.Node[]} */ (child.children));
+					} else if (child?.type === 'Tsx' || child?.type === 'TsxCompat') {
+						this.#reportDynamicJsxElementsInTsx(/** @type {AST.Node[]} */ (child.children));
+					}
+				}
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -2107,6 +2140,20 @@ export function TSRXPlugin(config) {
 					}
 				}
 				/** @type {ESTreeJSX.JSXAttribute} */ (node).name = this.jsx_parseNamespacedName();
+				if (
+					/** @type {ESTreeJSX.JSXAttribute} */ (node).name.type === 'JSXIdentifier' &&
+					/** @type {ESTreeJSX.JSXIdentifier} */ (/** @type {ESTreeJSX.JSXAttribute} */ (node).name)
+						.tracked
+				) {
+					this.#report_recoverable_error_range(
+						/** @type {AST.NodeWithLocation} */ (node).start,
+						/** @type {AST.NodeWithLocation} */ (/** @type {ESTreeJSX.JSXAttribute} */ (node).name)
+							.end ??
+							node.end ??
+							node.start,
+						DYNAMIC_ATTRIBUTE_NAME_ERROR,
+					);
+				}
 				const value = /** @type {ESTreeJSX.JSXAttribute['value'] | null} */ (
 					this.eat(tt.eq) ? this.jsx_parseAttributeValue() : null
 				);
@@ -2512,6 +2559,13 @@ export function TSRXPlugin(config) {
 					(current_template_node?.type === 'TsxCompat' || current_template_node?.type === 'Tsx') &&
 					!is_tsrx_tag
 				) {
+					if (this.input.charCodeAt(tag_name_start) === CharCode.at) {
+						this.#report_recoverable_error_range(
+							this.start,
+							tag_name_start + 1,
+							DYNAMIC_ELEMENT_IN_TSX_ERROR,
+						);
+					}
 					// Inside tsx/tsx:*, let acorn-jsx handle regular TSX tags normally.
 					// Nested <tsrx> still needs Ripple's native template parser so it
 					// can lower through the same path as <tsrx> in component bodies.
@@ -2603,6 +2657,12 @@ export function TSRXPlugin(config) {
 					!is_tsx_compat &&
 					open.name.type === 'JSXIdentifier' &&
 					open.name.name === 'tsrx';
+				const is_dynamic_name =
+					!is_fragment &&
+					((open.name.type === 'JSXIdentifier' && open.name.tracked) ||
+						(open.name.type === 'JSXMemberExpression' &&
+							open.name.object.type === 'JSXIdentifier' &&
+							open.name.object.tracked));
 
 				if (is_tsx_compat) {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
@@ -2638,6 +2698,14 @@ export function TSRXPlugin(config) {
 					/** @type {AST.Tsx} */ (element).type = 'Tsx';
 				} else {
 					element.type = 'Element';
+				}
+
+				if ((is_tsx || is_fragment) && is_dynamic_name) {
+					this.#report_recoverable_error_range(
+						open.name.start ?? open.start,
+						open.name.end ?? open.end,
+						DYNAMIC_ELEMENT_IN_TSX_ERROR,
+					);
 				}
 
 				for (const attr of open.attributes) {
@@ -2698,6 +2766,7 @@ export function TSRXPlugin(config) {
 					this.#parseNativeTemplateBody(element, /** @type {AST.Element} */ (element).children, {
 						enterScope: true,
 					});
+					this.#reportDynamicJsxElementsInTsx(/** @type {AST.Element} */ (element).children);
 
 					if (/** @type {AST.Tsx} */ (element).type === 'Tsx') {
 						this.#path.pop();
@@ -2875,6 +2944,9 @@ export function TSRXPlugin(config) {
 						this.#parseNativeTemplateBody(element, /** @type {AST.Element} */ (element).children, {
 							enterScope: true,
 						});
+						if (/** @type {AST.Tsx} */ (element).type === 'Tsx') {
+							this.#reportDynamicJsxElementsInTsx(/** @type {AST.Element} */ (element).children);
+						}
 
 						if (/** @type {AST.Tsx} */ (element).type === 'Tsx') {
 							this.#path.pop();
