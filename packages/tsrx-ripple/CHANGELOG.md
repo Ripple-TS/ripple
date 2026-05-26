@@ -1,5 +1,19 @@
 # @tsrx/ripple
 
+## 0.1.16
+
+### Patch Changes
+
+- [#1175](https://github.com/Ripple-TS/ripple/pull/1175)
+  [`d045396`](https://github.com/Ripple-TS/ripple/commit/d0453962cfe1df7a98a0981b0bf3e5729195a9ae)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Align prop getter generation
+  for JSX-style TSRX expression fragments with native TSRX component templates.
+  Reject native dynamic marker syntax on TSX attribute names and inside TSX
+  fragments.
+- Updated dependencies
+  [[`d045396`](https://github.com/Ripple-TS/ripple/commit/d0453962cfe1df7a98a0981b0bf3e5729195a9ae)]:
+  - @tsrx/core@0.1.16
+
 ## 0.1.15
 
 ### Patch Changes
