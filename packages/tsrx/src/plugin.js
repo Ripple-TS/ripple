@@ -422,6 +422,9 @@ export function TSRXPlugin(config) {
 					}
 					if (child?.type === 'JSXElement') {
 						const name = child.openingElement?.name;
+						if (name?.type === 'JSXIdentifier' && name.name === 'tsrx') {
+							continue;
+						}
 						const is_dynamic_name =
 							(name?.type === 'JSXIdentifier' && name.tracked) ||
 							(name?.type === 'JSXMemberExpression' &&
