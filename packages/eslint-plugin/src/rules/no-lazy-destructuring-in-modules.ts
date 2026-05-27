@@ -16,7 +16,7 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		const filename = context.filename;
 
-		// Skip component files where lazy destructuring is valid
+		// Skip TSRX files where lazy destructuring is valid
 		if (filename && filename.endsWith('.tsrx')) {
 			return {};
 		}

@@ -9,6 +9,19 @@ interface ParseResult {
 	visitorKeys?: Record<string, string[]>;
 }
 
+const visitorKeys: Record<string, string[]> = {
+	Program: ['body'],
+	Tsrx: ['children'],
+	Tsx: ['children'],
+	TsxCompat: ['children'],
+	Element: ['id', 'attributes', 'children'],
+	Attribute: ['name', 'value'],
+	Text: ['expression'],
+	TSRXExpression: ['expression'],
+	Style: ['value'],
+	StyleSheet: [],
+};
+
 /**
  * The TSRX parser's AST contains some redundant references (e.g. `Element.attributes`
  * and `Element.openingElement.attributes`) that are useful for formatters/source-maps.
@@ -145,7 +158,7 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 		return {
 			ast: result,
 			services: {},
-			visitorKeys: undefined, // Use ESLint's default visitor keys
+			visitorKeys,
 		};
 	} catch (error: any) {
 		// Transform TSRX parse errors to ESLint-compatible format

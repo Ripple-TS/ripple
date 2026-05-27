@@ -17,45 +17,53 @@ ruleTester.run('valid-for-of-key', rule, {
 		// Valid: for...of with valid key (variable defined in loop)
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [{id: 1}, {id: 2}];
 					for (const item of items; key item.id) {
 						<div>{item.id}</div>
 					}
+					</>;
 				}
 			`,
 		},
 		// Valid: for...of with valid key (variable defined in outer scope)
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [1, 2];
 					const globalId = 123;
 					for (const item of items; key globalId) {
 						<div>{item}</div>
 					}
+					</>;
 				}
 			`,
 		},
 		// Valid: for...of without key
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [1, 2];
 					for (const item of items) {
 						<div>{item}</div>
 					}
+					</>;
 				}
 			`,
 		},
 		// Valid: for...of with index and key
 		{
 			code: `
-        component App() {
+        function App() {
+          return <>
           const items = [{id: 1}, {id: 2}];
           for (const item of items; index i; key item.id) {
             <div>{item.id}</div>
           }
+          </>;
         }
       `,
 		},
@@ -64,11 +72,13 @@ ruleTester.run('valid-for-of-key', rule, {
 		// Invalid: key uses undefined variable
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [{id: 1}, {id: 2}];
 					for (const item of items; key unknownVariable) {
 						<div>{item.id}</div>
 					}
+					</>;
 				}
 			`,
 			errors: [
@@ -83,11 +93,13 @@ ruleTester.run('valid-for-of-key', rule, {
 		// Invalid: key uses undefined variable in expression
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [{id: 1}, {id: 2}];
 					for (const item of items; key item.id + unknownVariable) {
 						<div>{item.id}</div>
 					}
+					</>;
 				}
 			`,
 			errors: [

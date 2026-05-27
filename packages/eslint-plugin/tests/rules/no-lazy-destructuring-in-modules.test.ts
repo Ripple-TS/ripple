@@ -50,12 +50,14 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 		{
 			code: `
 				import { track, effect } from 'ripple';
-				component Counter() {
+				function Counter() {
+					return <>
 					let &[count] = track(0);
 					effect(() => {
 						console.log(count);
 					});
 					<div>{count}</div>
+					</>;
 				}
 			`,
 			filename: 'Counter.tsrx',
@@ -64,8 +66,10 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 		{
 			code: `
 				import { track } from 'ripple';
-				component Child(&{ count, name }: Props) {
+				function Child(&{ count, name }: Props) {
+					return <>
 					<div>{count}{name}</div>
+					</>;
 				}
 			`,
 			filename: 'Child.tsrx',

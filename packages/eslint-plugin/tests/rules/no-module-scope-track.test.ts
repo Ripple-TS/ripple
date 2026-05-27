@@ -14,12 +14,15 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('no-module-scope-track', rule, {
 	valid: [
-		// Valid: track() inside component
+		// Valid: track() inside a component function
 		{
 			code: `
 				import { track } from 'ripple';
-				component App() {
+				function App() {
+					return <>
 					let count = track(0);
+					<div>{count}</div>
+					</>;
 				}
 			`,
 		},

@@ -17,21 +17,22 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('no-return-in-component', rule, {
 	valid: [
-		// Valid: JSX as statement
+		// Valid: component functions return native TSRX.
 		{
 			code: `
-				component App() {
-					<div>{'Hello'}</div>
+				function App() {
+					return <div>{"Hello"}</div>;
 				}
 			`,
 		},
 		// Valid: return non-JSX
 		{
 			code: `
-				component App() {
+				function App() {
 					function helper() {
 						return 42;
 					}
+					return <div>{helper()}</div>;
 				}
 			`,
 		},

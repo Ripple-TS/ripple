@@ -53,7 +53,6 @@ function createConfig(name: string, files: string[], parser: any) {
 		rules: {
 			'ripple/no-module-scope-track': 'error',
 			'ripple/prefer-oninput': 'warn',
-			'ripple/no-return-in-component': 'error',
 			'ripple/control-flow-jsx': 'error',
 			'ripple/no-lazy-destructuring-in-modules': 'error',
 			'ripple/valid-for-of-key': 'error',

@@ -3,8 +3,8 @@
 [![npm version](https://img.shields.io/npm/v/%40tsrx%2Feslint-parser?logo=npm)](https://www.npmjs.com/package/@tsrx/eslint-parser)
 [![npm downloads](https://img.shields.io/npm/dm/%40tsrx%2Feslint-parser?logo=npm&label=downloads)](https://www.npmjs.com/package/@tsrx/eslint-parser)
 
-ESLint parser for TSRX component files. This parser enables ESLint to understand
-and lint `.tsrx` files by default, using the shared TSRX parser from `@tsrx/core`.
+ESLint parser for TSRX files. This parser enables ESLint to understand and lint
+`.tsrx` files by default, using the shared TSRX parser from `@tsrx/core`.
 
 ## Installation
 
@@ -47,7 +47,7 @@ export default [
 {
   "overrides": [
     {
-      "files": ["*.tsrx", "*.tsrx"],
+      "files": ["*.tsrx"],
       "parser": "@tsrx/eslint-parser",
       "plugins": ["ripple"],
       "extends": ["plugin:ripple/recommended"]
@@ -58,12 +58,12 @@ export default [
 
 ## How It Works
 
-This parser uses the shared TSRX parser (`@tsrx/core`) to parse TSRX component
-files into an ESTree-compatible AST that ESLint can analyze.
+This parser uses the shared TSRX parser (`@tsrx/core`) to parse TSRX files into an
+ESTree-compatible AST that ESLint can analyze.
 
 The parser:
 
-1. Parses the component source code (`.tsrx`)
+1. Parses the TSRX source code (`.tsrx`)
 2. Normalizes the AST for ESLint traversal
 3. Returns the ESTree AST to ESLint
 4. Allows ESLint rules to analyze TSRX-specific patterns
@@ -72,11 +72,12 @@ The parser:
 
 The parser supports TSRX syntax including:
 
-- `component` declarations
+- Native TSRX elements and fragments as JavaScript expressions
+- Statement-based content inside returned TSRX fragments
+- Function components that return TSRX, TSX, or standard JavaScript values
 - `track()` reactive values (imported from `ripple`)
 - `@` unboxing operator
 - Reactive collections
-- JSX-like templating inside components
 - All standard JavaScript/TypeScript syntax
 
 ## Example
@@ -86,13 +87,13 @@ Given a `.tsrx` file:
 ```tsrx
 import { track } from 'ripple';
 
-export component Counter() {
-  let count = track(0);
+export function Counter() {
+  let &[count] = track(0);
 
-  <div>
-    <button onClick={() => @count++}>Increment</button>
-    <span>{@count}</span>
-  </div>
+  return <button onClick={() => count++}>
+    {'Increment'}
+    <span>{count}</span>
+  </button>;
 }
 ```
 
@@ -101,7 +102,7 @@ The parser will successfully parse this and allow ESLint rules (like those from
 
 - Track calls at module scope
 - Missing @ operators
-- Component export requirements
+- Invalid rendering control flow
 - And more
 
 ## Related Packages

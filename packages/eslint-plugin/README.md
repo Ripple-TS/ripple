@@ -36,8 +36,7 @@ The plugin automatically:
 - Detects and uses `@typescript-eslint/parser` if installed for `.ts`/`.tsx` files
 - Excludes `.d.ts` files, `node_modules`, `dist`, and `build` directories from
   linting
-- Works with both `.ts`/`.tsx` and Ripple component files (`.tsrx` by default,
-  plus `.tsrx`)
+- Works with `.ts`, `.tsx`, and `.tsrx` files
 
 ### Legacy Config (.eslintrc)
 
@@ -85,8 +84,8 @@ export default [
 
 ### `ripple/no-module-scope-track` (error)
 
-Prevents calling `track()` at module scope. Tracked values must be created within
-a component context.
+Prevents calling `track()` at module scope. Tracked values must be created inside
+a function body.
 
 ❌ **Incorrect:**
 
@@ -96,8 +95,8 @@ import { track } from 'ripple';
 // This will cause runtime errors
 let globalCount = track(0);
 
-export component App() {
-  <div>{@globalCount}</div>
+export function App() {
+  return <div>{globalCount}</div>;
 }
 ```
 
@@ -106,33 +105,10 @@ export component App() {
 ```js
 import { track } from 'ripple';
 
-export component App() {
-  // track() called within component
+export function App() {
   let count = track(0);
 
-  <div>{@count}</div>
-}
-```
-
-### `ripple/require-component-export` (warning)
-
-Warns when capitalized components are not exported. This helps ensure components
-are reusable across modules.
-
-❌ **Incorrect:**
-
-```js
-component MyButton() {
-  <button>Click me</button>
-}
-// MyButton is defined but not exported
-```
-
-✅ **Correct:**
-
-```js
-export component MyButton() {
-  <button>Click me</button>
+  return <div>{count}</div>;
 }
 ```
 
@@ -155,26 +131,11 @@ Ripple doesn't have synthetic events, so `onInput` is the correct event handler.
 
 This rule is auto-fixable with `--fix`.
 
-### `ripple/no-return-in-component` (error)
+### `ripple/control-flow-jsx` (error)
 
-Prevents returning JSX from Ripple components. In Ripple, JSX should be used as
-statements, not expressions.
-
-❌ **Incorrect:**
-
-```js
-export component App() {
-  return <div>Hello World</div>;
-}
-```
-
-✅ **Correct:**
-
-```js
-export component App() {
-  <div>Hello World</div>
-}
-```
+Checks render control flow inside functions that return native TSRX. `for...of`
+loops in returned TSRX should render elements, while loops inside `effect()`
+callbacks should not render JSX.
 
 ### `ripple/no-lazy-destructuring-in-modules` (error)
 
@@ -217,9 +178,13 @@ export function useCount() {
 }
 ```
 
-**Note:** Lazy destructuring (`&[]` / `&{}`) is only valid in Ripple component
-files (`.tsrx` by default). In TypeScript modules, use `.value` to read and write
-tracked values.
+**Note:** Lazy destructuring (`&[]` / `&{}`) is only valid in TSRX files. In
+TypeScript modules, use `.value` to read and write tracked values.
+
+### `ripple/no-return-in-component` (deprecated)
+
+This compatibility rule is now a no-op. TSRX components are ordinary functions, so
+returning native TSRX is the expected authoring style.
 
 ## Custom Configuration
 
@@ -231,17 +196,16 @@ export default [
     plugins: { ripple },
     rules: {
       'ripple/no-module-scope-track': 'error',
-      'ripple/require-component-export': 'off', // Disable this rule
       'ripple/prefer-oninput': 'error', // Make this an error instead of warning
-      'ripple/no-return-in-component': 'error',
+      'ripple/control-flow-jsx': 'error',
       'ripple/no-lazy-destructuring-in-modules': 'error',
+      'ripple/valid-for-of-key': 'error',
     },
   },
 ];
 ```
 
-The plugin will automatically detect and use the Ripple parser for your Ripple
-component files, including `.tsrx`.
+The plugin will automatically detect and use the Ripple parser for `.tsrx` files.
 
 ## License
 

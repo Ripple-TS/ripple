@@ -17,15 +17,17 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('control-flow-jsx', rule, {
 	valid: [
-		// Valid: for...of with JSX in component body (outside effect)
+		// Valid: for...of with JSX in returned TSRX (outside effect)
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = ['Item 1', 'Item 2'];
 
 					for (const item of items) {
 						<div>{item}</div>
 					}
+					</>;
 				}
 			`,
 		},
@@ -33,7 +35,8 @@ ruleTester.run('control-flow-jsx', rule, {
 		{
 			code: `
 				import { effect } from 'ripple';
-				component App() {
+				function App() {
+					return <>
 					const items = ['Item 1', 'Item 2'];
 					effect(() => {
 						let sum = 0;
@@ -41,19 +44,22 @@ ruleTester.run('control-flow-jsx', rule, {
 							sum += item;
 						}
 					});
+					</>;
 				}
 			`,
 		},
-		// Valid: nested JSX in for...of in component
+		// Valid: nested JSX in for...of in returned TSRX
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [1, 2, 3];
 					for (const item of items) {
 						<div>
 							<span>{item}</span>
 						</div>
 					}
+					</>;
 				}
 			`,
 		},
@@ -61,7 +67,8 @@ ruleTester.run('control-flow-jsx', rule, {
 		{
 			code: `
 				import { RippleArray, track, effect, untrack } from 'ripple';
-				component App() {
+				function App() {
+					return <>
 					const items = new RippleArray(1, 2, 3);
 					const &[sum] = track(0);
 					effect(() => {
@@ -72,10 +79,11 @@ ruleTester.run('control-flow-jsx', rule, {
 							});
 						}
 					});
+					</>;
 				}
 			`,
 		},
-		// Valid: for...of outside component (no checks applied)
+		// Valid: for...of outside returned TSRX (no checks applied)
 		{
 			code: `
 				function notAComponent() {
@@ -88,14 +96,16 @@ ruleTester.run('control-flow-jsx', rule, {
 		},
 	],
 	invalid: [
-		// Invalid: for...of without JSX in component body
+		// Invalid: for...of without JSX in returned TSRX
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = ['Item 1', 'Item 2'];
 					for (const item of items) {
 						console.log(item);
 					}
+					</>;
 				}
 			`,
 			errors: [
@@ -108,13 +118,15 @@ ruleTester.run('control-flow-jsx', rule, {
 		{
 			code: `
 				import { effect } from 'ripple';
-				component App() {
+				function App() {
+					return <>
 					const items = ['Item 1', 'Item 2'];
 					effect(() => {
 						for (const item of items) {
 							<div>{item}</div>
 						}
 					});
+					</>;
 				}
 			`,
 			errors: [
@@ -127,7 +139,8 @@ ruleTester.run('control-flow-jsx', rule, {
 		{
 			code: `
 				import { effect } from 'ripple';
-				component App() {
+				function App() {
+					return <>
 					const items = [1, 2, 3];
 					effect(() => {
 						for (const item of items) {
@@ -136,6 +149,7 @@ ruleTester.run('control-flow-jsx', rule, {
 							}
 						}
 					});
+					</>;
 				}
 			`,
 			errors: [
@@ -144,15 +158,17 @@ ruleTester.run('control-flow-jsx', rule, {
 				},
 			],
 		},
-		// Invalid: for...of without JSX in component (even with other statements)
+		// Invalid: for...of without JSX in returned TSRX (even with other statements)
 		{
 			code: `
-				component App() {
+				function App() {
+					return <>
 					const items = [1, 2, 3];
 					for (const item of items) {
 						const double = item * 2;
 						console.log(double);
 					}
+					</>;
 				}
 			`,
 			errors: [

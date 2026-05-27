@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import type * as AST from '@tsrx/core/types/estree';
+import { functionReturnsNativeTsrx, isNativeTsrxNode } from '../utils/tsrx.js';
 
 const rule: Rule.RuleModule = {
 	meta: {
@@ -11,7 +12,7 @@ const rule: Rule.RuleModule = {
 		},
 		messages: {
 			requireJsxInLoop:
-				'For...of loops in component bodies should contain JSX elements. Use JSX to render items.',
+				'For...of loops in returned TSRX should contain JSX elements. Use JSX to render items.',
 			noJsxInEffectLoop:
 				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
 		},
@@ -20,6 +21,8 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		let insideComponent = 0;
 		let insideEffect = 0;
+		let nonComponentFunctionDepth = 0;
+		const functionStack: boolean[] = [];
 
 		function containsJSX(node: AST.Node, visited: Set<AST.Node> = new Set()): boolean {
 			if (!node) return false;
@@ -28,11 +31,10 @@ const rule: Rule.RuleModule = {
 			if (visited.has(node)) return false;
 			visited.add(node);
 
-			// Check if current node is JSX/Element (Ripple uses 'Element' type instead of 'JSXElement')
 			if (
 				node.type === ('JSXElement' as string) ||
 				node.type === ('JSXFragment' as string) ||
-				node.type === ('Element' as string)
+				isNativeTsrxNode(node)
 			) {
 				return true;
 			}
@@ -61,12 +63,12 @@ const rule: Rule.RuleModule = {
 		}
 
 		return {
-			Component() {
-				insideComponent++;
-			},
-			'Component:exit'() {
-				insideComponent--;
-			},
+			FunctionDeclaration: enterFunction,
+			'FunctionDeclaration:exit': exitFunction,
+			FunctionExpression: enterFunction,
+			'FunctionExpression:exit': exitFunction,
+			ArrowFunctionExpression: enterFunction,
+			'ArrowFunctionExpression:exit': exitFunction,
 
 			"CallExpression[callee.name='effect']"() {
 				insideEffect++;
@@ -87,6 +89,8 @@ const rule: Rule.RuleModule = {
 							messageId: 'noJsxInEffectLoop',
 						});
 					}
+				} else if (nonComponentFunctionDepth > 0) {
+					return;
 				} else {
 					if (!hasJSX) {
 						context.report({
@@ -97,6 +101,27 @@ const rule: Rule.RuleModule = {
 				}
 			},
 		};
+
+		function enterFunction(node: AST.Node) {
+			const isComponent = functionReturnsNativeTsrx(node);
+			functionStack.push(isComponent);
+
+			if (isComponent) {
+				insideComponent++;
+			} else if (insideComponent > 0) {
+				nonComponentFunctionDepth++;
+			}
+		}
+
+		function exitFunction() {
+			const isComponent = functionStack.pop();
+
+			if (isComponent) {
+				insideComponent--;
+			} else if (insideComponent > 0) {
+				nonComponentFunctionDepth--;
+			}
+		}
 	},
 };
 
