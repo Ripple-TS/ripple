@@ -8,7 +8,8 @@ Ripple supports native CSS styling that's scoped (localized) to the given
 component using the `<style>` element.
 
 ```ripple
-component MyComponent() {
+function MyComponent() {
+  return <>
   <div class="container">
     <h1>"Hello World"</h1>
   </div>
@@ -24,6 +25,8 @@ component MyComponent() {
       font-size: 2rem;
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -94,7 +97,8 @@ styles, use the `:global()` pseudo-class or `:global` block:
 <Code>
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   <div class="container">
     <Child />
   </div>
@@ -123,15 +127,20 @@ export component App() {
       }
     }
   </style>
+
+  </>;
 }
 
-component Child() {
+function Child() {
+  return <>
   // The div should have its font-size at 2rem from parent
   <div>
     <h2 class="header">"This is a header with font-size 3rem"</h2>
     <span class="highlight">"This will be red and bold"</span>
     <p class="nested">"This will have left margin"</p>
   </div>
+
+  </>;
 }
 ```
 
@@ -145,7 +154,8 @@ across components, prefix the animation name with `-global-`:
 <Code>
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   <div class="parent">
     <Child />
   </div>
@@ -175,9 +185,12 @@ export component App() {
       animation: slideIn 1s;
     }
   </style>
+
+  </>;
 }
 
-component Child() {
+function Child() {
+  return <>
   <div class="child">"Child content"</div>
 
   <style>
@@ -185,6 +198,8 @@ component Child() {
       animation: fadeIn 1s; /* Uses global fadeIn from Parent */
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -203,11 +218,15 @@ elements via the `class` attribute.
 ### Basic Usage
 
 ```ripple
-component Child({ className }: { className: string }) {
+function Child({ className }: { className: string }) {
+  return <>
   <div class={className}>"styled child"</div>
+
+  </>;
 }
 
-component Parent() {
+function Parent() {
+  return <>
   <Child className={#style.highlight} />
 
   <style>
@@ -215,18 +234,24 @@ component Parent() {
       color: red;
     }
   </style>
+
+  </>;
 }
 ```
 
 You can pass multiple classes:
 
 ```ripple
-component Child({ primary, secondary }: { primary: string; secondary: string }) {
+function Child({ primary, secondary }: { primary: string; secondary: string }) {
+  return <>
   <div class={primary}>"primary"</div>
   <span class={secondary}>"secondary"</span>
+
+  </>;
 }
 
-component Parent() {
+function Parent() {
+  return <>
   <Child primary={#style.primary} secondary={#style.secondary} />
 
   <style>
@@ -237,6 +262,8 @@ component Parent() {
       color: gray;
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -247,11 +274,15 @@ component Parent() {
 ```ripple
 import { track } from 'ripple';
 
-component Child({ cls }: { cls: string }) {
+function Child({ cls }: { cls: string }) {
+  return <>
   <span class={cls}>"text"</span>
+
+  </>;
 }
 
-component Parent() {
+function Parent() {
+  return <>
   let &[Dynamic] = track(() => Child);
   <@Dynamic cls={#style.text} />
 
@@ -260,6 +291,8 @@ component Parent() {
       color: red;
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -269,7 +302,8 @@ A child component can combine classes it receives from a parent with its own
 scoped classes:
 
 ```ripple
-component Card({ className }: { className?: string }) {
+function Card({ className }: { className?: string }) {
+  return <>
   <div class={['card-base', className ?? '']}>"card content"</div>
 
   <style>
@@ -277,9 +311,12 @@ component Card({ className }: { className?: string }) {
       border: 1px solid black;
     }
   </style>
+
+  </>;
 }
 
-component App() {
+function App() {
+  return <>
   <Card className={#style.themed} />
 
   <style>
@@ -287,6 +324,8 @@ component App() {
       background: purple;
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -300,7 +339,8 @@ If a class appears both standalone and in a descendant selector, it can still be
 used with `#style`:
 
 ```ripple
-component App() {
+function App() {
+  return <>
   <div class="parent">
     <Child cls={#style.dual} />
   </div>
@@ -316,6 +356,8 @@ component App() {
       font-weight: bold;
     }
   </style>
+
+  </>;
 }
 ```
 
@@ -323,7 +365,8 @@ The following will **not** work because the class has no standalone rule:
 
 ```ripple
 // ❌ .nested only exists in a descendant selector
-component App() {
+function App() {
+  return <>
   <Child cls={#style.nested} />
 
   <style>
@@ -331,6 +374,8 @@ component App() {
       color: red;
     }
   </style>
+
+  </>;
 }
 ```
 

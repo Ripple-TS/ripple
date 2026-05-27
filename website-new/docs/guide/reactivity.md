@@ -141,7 +141,8 @@ validating, or transforming values before they are exposed or stored.
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[count] = track(
     0,
     (current) => {
@@ -157,6 +158,8 @@ export component App() {
       return next;
     },
   );
+
+  </>;
 }
 ```
 
@@ -191,10 +194,13 @@ const &{ a, ...rest } = props;
 reactivity:
 
 ```ripple
-component Child(&{ count, className, children }: Props) {
+function Child(&{ count, className, children }: Props) {
+  return <>
   // count, className, children are lazily read from the props object
   <button class={className}>{children}</button>
   <pre>"Count is: "{count}</pre>
+
+  </>;
 }
 ```
 
@@ -239,7 +245,8 @@ function createDouble(&[count]) {
   return double;
 }
 
-export component App() {
+export function App() {
+  return <>
   let &[count, countTracked] = track(0);
 
   const &[double] = createDouble(countTracked);
@@ -252,6 +259,8 @@ export component App() {
   >
     "Increment"
   </button>
+
+  </>;
 }
 ```
 
@@ -276,7 +285,8 @@ UIs with minimal boilerplate.
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[swapMe, swapMeTracked] = track(() => Child1);
 
   <Child swapMe={swapMeTracked} />
@@ -284,18 +294,29 @@ export component App() {
   <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
     "Swap Component"
   </button>
+
+  </>;
 }
 
-component Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
+function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
+  return <>
   <@swapMe />
+
+  </>;
 }
 
-component Child1(props) {
+function Child1(props) {
+  return <>
   <pre>"I am child 1"</pre>
+
+  </>;
 }
 
-component Child2(props) {
+function Child2(props) {
+  return <>
   <pre>"I am child 2"</pre>
+
+  </>;
 }
 ```
 
@@ -311,7 +332,8 @@ based on changes that happen upon updates. To do this, you can use `effect`:
 ```ripple
 import { track, effect } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[count] = track(0);
 
   effect(() => {
@@ -319,6 +341,8 @@ export component App() {
   });
 
   <button onClick={() => count++}>"Increment"</button>
+
+  </>;
 }
 ```
 
@@ -336,7 +360,8 @@ DOM changes are complete before executing subsequent code, similar to Vue's
 ```ripple
 import { tick, track, effect } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[count] = track(0);
 
   effect(() => {
@@ -353,6 +378,8 @@ export component App() {
   });
 
   <button onClick={() => count++}>"Increment"</button>
+
+  </>;
 }
 ```
 
@@ -365,7 +392,8 @@ export component App() {
 ```ripple
 import { track, effect, untrack } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
   let &[quadruple] = track(() => double * 2);
@@ -374,6 +402,8 @@ export component App() {
     // This effect will never fire again, as we've untracked the only dependency it has
     console.log(untrack(() => quadruple));
   });
+
+  </>;
 }
 ```
 
@@ -395,7 +425,8 @@ object, like arrays:
 ```ripple
 import { track, effect } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[first] = track(1);
   let &[second] = track(2);
   const arr = [first, second];
@@ -405,6 +436,8 @@ export component App() {
   effect(() => {
     console.log(total);
   });
+
+  </>;
 }
 ```
 
@@ -443,7 +476,8 @@ Usage Example:
 ```ripple
 import { RippleArray } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   const items = new RippleArray(1, 2, 3);
 
   <div>
@@ -456,6 +490,8 @@ export component App() {
     }
     <button onClick={() => items.push(items.length + 1)}>"Add"</button>
   </div>
+
+  </>;
 }
 ```
 
@@ -480,7 +516,8 @@ Usage Example:
 ```ripple
 import { RippleObject } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   const obj = new RippleObject({ a: 0 });
 
   obj.a = 0;
@@ -502,6 +539,8 @@ export component App() {
   >
     "Increment"
   </button>
+
+  </>;
 }
 ```
 
@@ -526,7 +565,8 @@ reactive variables.
 ```ripple
 import { RippleSet, track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   const set = new RippleSet([1, 2, 3]);
 
   // direct usage
@@ -544,6 +584,8 @@ export component App() {
 
   <button onClick={() => set.delete(2)}>"Delete 2"</button>
   <button onClick={() => set.add(2)}>"Add 2"</button>
+
+  </>;
 }
 ```
 
@@ -568,7 +610,8 @@ reactive variables.
 ```ripple
 import { RippleMap, track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
 
   // direct usage
@@ -586,6 +629,8 @@ export component App() {
 
   <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
   <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+
+  </>;
 }
 ```
 
@@ -612,7 +657,8 @@ etc.) are reactive and will update when the date is modified.
 ```ripple
 import { RippleDate, track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
   // direct usage
@@ -637,6 +683,8 @@ export component App() {
 
   <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
   <button onClick={() => date.setMonth(11)}>"Change to December"</button>
+
+  </>;
 }
 ```
 

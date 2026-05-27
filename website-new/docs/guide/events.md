@@ -30,7 +30,8 @@ possible, to improve runtime performance.
 ```ripple
 import { track } from 'ripple';
 
-export component EventExample() {
+export function EventExample() {
+  return <>
   let &[message] = track('');
 
   <div>
@@ -38,6 +39,8 @@ export component EventExample() {
     <input onInput={(e) => (message = e.target.value)} />
     <p>{message}</p>
   </div>
+
+  </>;
 }
 ```
 
@@ -80,7 +83,8 @@ phase. This is equivalent to using the `Capture` suffix on the event name.
 ```ripple
 import { RippleArray } from 'ripple';
 
-export component EventExample() {
+export function EventExample() {
+  return <>
   let order = new RippleArray();
 
   <div
@@ -92,6 +96,8 @@ export component EventExample() {
     <button onClick={() => order.push('inner-bubble')}>"Click"</button>
     <p>{order.join(' → ')}</p>
   </div>
+
+  </>;
 }
 // Clicking button outputs: outer-capture → inner-bubble
 ```
@@ -107,7 +113,8 @@ is useful for one-time setup or cleanup operations.
 ```ripple
 import { track } from 'ripple';
 
-export component EventExample() {
+export function EventExample() {
+  return <>
   let &[count] = track(0);
 
   <button
@@ -119,6 +126,8 @@ export component EventExample() {
     "Click me (only works once)"
   </button>
   <p>{`Clicks: ${count}`}</p>
+
+  </>;
 }
 // Button only responds to the first click
 ```
@@ -157,7 +166,7 @@ no effect and may trigger a console warning in some browsers.
 **Type:** `AbortSignal`
 
 An `AbortSignal` that can be used to remove the event listener programmatically.
-This is particularly useful for cleaning up event listeners when a component's
+This is particularly useful for cleaning up event listeners when a function's
 state changes or when an async operation is cancelled.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#signal)
 
@@ -176,7 +185,8 @@ Event delegation is automatically disabled for:
 - Events that don't support delegation (like `focus`, `blur`, `load`, etc.)
 
 ```ripple
-export component EventExample() {
+export function EventExample() {
+  return <>
   <button
     onClick={{
       handleEvent: () => console.log('clicked'),
@@ -185,6 +195,8 @@ export component EventExample() {
   >
     "Click me"
   </button>
+
+  </>;
 }
 ```
 
@@ -199,7 +211,8 @@ inferred from the attribute.
 ```ripple
 import { track } from 'ripple';
 
-export component EventExample() {
+export function EventExample() {
+  return <>
   let &[count] = track(0);
 
   <div
@@ -210,7 +223,11 @@ export component EventExample() {
   >
     "Custom event target"
   </div>
-  <p>{`Event count: ${count}`}</p>
+  <p>{`Event count: ${
+  return <>count
+  </>;}`}</p>
+
+  </>;
 }
 // The element listens for 'MyCustomEvent' instead of 'mycustomevent'
 ```
@@ -231,7 +248,8 @@ ones that can be used for event attributes with the object syntax.
 ```ripple
 import { on, effect } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
@@ -241,6 +259,8 @@ export component App() {
     // return the removeListener when the component unmounts
     return removeListener;
   });
+
+  </>;
 }
 ```
 

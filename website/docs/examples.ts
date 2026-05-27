@@ -1,23 +1,28 @@
 export const examples: Array<{ title: string; code: string }> = [
 	{
 		title: 'Hello World',
-		code: `export default component App() {
+		code: `export default function App() {
+		  return <>
   <div>"Hello World"</div>
-}`,
+
+		  </>;}`,
 	},
 	{
 		title: 'Dynamic Content',
-		code: `export default component App() {
+		code: `export default function App() {
+		  return <>
 	const message = "Hello Ripple!";
 
   <div>{message}</div>
-}`,
+
+		  </>;}`,
 	},
 	{
 		title: 'Styling',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
 	<div class="message">"Hello Ripple!"</div>
 
   <InlineStyles />
@@ -31,9 +36,12 @@ export default component App() {
 			padding: 1rem;
 		}
 	</style>
+
+  </>;
 }
 
-component InlineStyles() {
+function InlineStyles() {
+  return <>
   let &[color] = track('#3e95ff');
 
   <p style={\`color: \${color}; font-weight: bold; background-color: #eee\`}>
@@ -54,9 +62,11 @@ component InlineStyles() {
 
   // using object directly
 	<p style={style}>"Hello Ripple!"</p>
+  </>;
 }
 
-component DynamicClasses() {
+function DynamicClasses() {
+  return <>
   let &[includeBaz] = track(true);
   <p class={{ foo: true, bar: false, baz: includeBaz }}> // becomes: class="foo baz"
 		"Hello Ripple!"
@@ -70,12 +80,15 @@ component DynamicClasses() {
   <p class={['foo', {bar: count > 2}, count > 3 && 'bat']}> // becomes: class="foo bar"
 		"Hello Ripple!"
   </p>
+
+  </>;
 }
 `,
 	},
 	{
 		title: 'Components',
-		code: `component Card() {
+		code: `function Card() {
+		  return <>
 	<div class="card">
 		<p>"Card content here"</p>
 	</div>
@@ -89,16 +102,22 @@ component DynamicClasses() {
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 		}
 	</style>
-}
 
-export default component App() {
+		  </>;
+		}
+
+export default function App() {
+  return <>
 	<Card />
+
+  </>;
 }
 		`,
 	},
 	{
 		title: 'Props',
-		code: `export default component App() {
+		code: `export default function App() {
+		  return <>
 	<Card message="A Card" />
 
 	const message = "Another card";
@@ -110,9 +129,12 @@ export default component App() {
     onClick: () => { alert("Card clicked!") }
   };
 	<Card {...props} /> // props spread
-}
 
-component Card(props: { message: string, className?: string, onClick?: () => void }) {
+		  </>;
+		}
+
+function Card(props: { message: string, className?: string, onClick?: () => void }) {
+  return <>
 	<div class={\`card \${props.className}\`} onclick={props.onClick || (() => {})}>
 		<p>{props.message}</p>
 	</div>
@@ -130,6 +152,7 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
       color: #000;
     }
 	</style>
+  </>;
 }
 `,
 	},
@@ -137,17 +160,23 @@ component Card(props: { message: string, className?: string, onClick?: () => voi
 		title: 'Children',
 		code: `import type { Children } from 'ripple';
 
-component Card(props: { children: Children }) {
+function Card(props: { children: Children }) {
+  return <>
   <div class="card">
     {props.children}
   </div>
+
+  </>;
 }
 
 // Usage
-export default component App() {
+export default function App() {
+  return <>
 	<Card>
 		<p>"Card content here"</p>
 	</Card>
+
+  </>;
 }
 `,
 	},
@@ -155,21 +184,33 @@ export default component App() {
 		title: 'Named Children',
 		code: `import type { Component } from 'ripple';
 
-component Composite(&{ PropComp, InlineComp }) {
+function Composite(&{ PropComp, InlineComp }) {
+  return <>
 	<PropComp />
 	<InlineComp />
+
+  </>;
 }
 
-component Separate() {
+function Separate() {
+  return <>
 	<p>"I'm a separate component."</p>
+
+  </>;
 }
 
-component InlineComp() {
+function InlineComp() {
+  return <>
 	<p>"I'm an inline component."</p>
+
+  </>;
 }
 
-export default component App() {
+export default function App() {
+  return <>
 	<Composite PropComp={Separate} InlineComp={InlineComp} />
+
+  </>;
 }
 `,
 	},
@@ -177,7 +218,8 @@ export default component App() {
 		title: 'Child Composition',
 		code: `import type { Children, Component } from 'ripple';
 
-component Card(&{ children, Header, Footer }) {
+function Card(&{ children, Header, Footer }) {
+  return <>
 	<fieldset>
 		if (Header) {
 			<Header />
@@ -189,20 +231,31 @@ component Card(&{ children, Header, Footer }) {
 			<Footer />
 		}
 	</fieldset>
+
+  </>;
 }
 
-component CustomHeader() {
+function CustomHeader() {
+  return <>
 	<h1>"Card Title"</h1>
+
+  </>;
 }
 
-component Footer() {
+function Footer() {
+  return <>
 	<p>"Card footer"</p>
+
+  </>;
 }
 
-export default component App() {
+export default function App() {
+  return <>
 	<Card Header={CustomHeader} Footer={Footer}>
 		<p>"Card content here"</p>
 	</Card>
+
+  </>;
 }
 `,
 	},
@@ -210,7 +263,8 @@ export default component App() {
 		title: 'Portal Component',
 		code: `import { Portal } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
 	<div class="app">
 		<h1>"My App"</h1>
 
@@ -222,12 +276,15 @@ export default component App() {
 			</div>
 		</Portal>
 	</div>
+
+  </>;
 }
 `,
 	},
 	{
 		title: 'If Statements',
-		code: `component Truthy({ x }) {
+		code: `function Truthy({ x }) {
+		  return <>
   <div>
     if (x) {
       <span>"x is truthy"</span>
@@ -235,11 +292,16 @@ export default component App() {
       <span>"x is falsy"</span>
     }
   </div>
-}
 
-export default component App() {
+		  </>;
+		}
+
+export default function App() {
+  return <>
   <Truthy x={true} />
   <Truthy x={false} />
+
+  </>;
 }
 `,
 	},
@@ -247,7 +309,8 @@ export default component App() {
 		title: 'Switch Statements',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
 	let &[count] = track(1);
 
 	<button onClick={() => count++}>"Increment"</button>
@@ -262,31 +325,42 @@ export default component App() {
 		default:
 			<div>"Count is other"</div>
 	}
+
+  </>;
 }
 `,
 	},
 	{
 		title: 'For Loops',
-		code: `component List({ items }) {
+		code: `function List({ items }) {
+		  return <>
 	<ul>
 		for (const item of items) {
 			<li>{item}</li>
 		}
 	</ul>
-}
 
-component ListWithIndex({ items }) {
+		  </>;
+		}
+
+function ListWithIndex({ items }) {
+  return <>
   <ul>
     for (const item of items; index i) {
       <li>{i}": "{item}</li>
     }
   </ul>
+
+  </>;
 }
 
-export default component App() {
+export default function App() {
+  return <>
   const items = ['apple', 'banana', 'cherry']
 	<List {items} />
 	<ListWithIndex {items} />
+
+  </>;
 }
 `,
 	},
@@ -296,11 +370,15 @@ export default component App() {
 	console.warn(e);
 }
 
-component ComponentThatFails(props) {
+function ComponentThatFails(props) {
+  return <>
 	<div>{props.foo.bar}</div>
+
+  </>;
 }
 
-export default component ErrorBoundary() {
+export default function ErrorBoundary() {
+  return <>
   <div>
     try {
       <ComponentThatFails />
@@ -310,13 +388,15 @@ export default component ErrorBoundary() {
       <div>"An error occurred! "{e.message}</div>
     }
   </div>
-}`,
+
+  </>;}`,
 	},
 	{
 		title: 'Async',
 		code: `import { trackAsync } from 'ripple';
 
-component AsyncComponent() {
+function AsyncComponent() {
+  return <>
 	let &[message] = trackAsync(() =>
 		new Promise((resolve) => {
 			setTimeout(() => resolve('Async content loaded!'), 2000);
@@ -324,20 +404,26 @@ component AsyncComponent() {
 	);
 
 	<p>{message}</p>
+
+  </>;
 }
 
-export default component SuspenseBoundary() {
+export default function SuspenseBoundary() {
+  return <>
 	try {
 		<AsyncComponent />
 	} pending {
 		<p>"Loading..."</p>
 	}
+
+  </>;
 }
 `,
 	},
 	{
 		title: 'Raw HTML',
-		code: `export default component App() {
+		code: `export default function App() {
+		  return <>
 	let source = \`
 <h1>My Blog Post</h1>
 <p>Hi! I like JS and Ripple.</p>
@@ -348,12 +434,14 @@ export default component SuspenseBoundary() {
 	</article>
 }
 `,
-	},
+	
+		  </>;},
 	{
 		title: 'Reactive Variables',
 		code: `import { track } from 'ripple';
 
-export default component Counter() {
+export default function Counter() {
+  return <>
 	let &[count] = track(0);  // Reactive variable
 	let &[double] = track(() => count * 2);  // Derived reactive value
 	let &[quadruple] = track(() => double * 2);
@@ -375,14 +463,16 @@ export default component Counter() {
 			padding: 10px;
 		}
 	</style>
-}`,
+
+  </>;}`,
 	},
 	{
 		title: 'Effects',
 		code: `import { effect, track } from 'ripple';
 import confetti from 'canvas-confetti';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[count] = track(0);
 
   effect(() => {
@@ -393,6 +483,8 @@ export default component App() {
   });
 
 	<button onClick={() => count++}>"Increment"</button>
+
+  </>;
 }
 `,
 	},
@@ -400,7 +492,8 @@ export default component App() {
 		title: 'Simple Reactive Array',
 		code: `import { effect, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
 	let &[first, firstTracked] = track(1);
 	let &[second, secondTracked] = track(2);
 	const arr = [firstTracked, secondTracked];
@@ -416,6 +509,8 @@ export default component App() {
 		<button onClick={() => second++}>"Second: "{second}</button>
 		<p>"Total: "{total}</p>
 	</div>
+
+  </>;
 }
 `,
 	},
@@ -423,7 +518,8 @@ export default component App() {
 		title: 'Fully Reactive Array',
 		code: `import { RippleArray, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   // create a RippleArray using the constructor
   const arr = new RippleArray(1, 2, 3);
 
@@ -457,6 +553,8 @@ export default component App() {
       margin: 5px;
     }
   </style>
+
+  </>;
 }
 `,
 	},
@@ -464,7 +562,8 @@ export default component App() {
 		title: 'Reactive Object',
 		code: `import { RippleObject } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   const obj = new RippleObject({a: 0})
 
   obj.a = 0;
@@ -472,6 +571,8 @@ export default component App() {
 	<pre>"obj.a is: "{obj.a}</pre>
 	<pre>"obj.b is: "{obj.b}</pre>
 	<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
+
+  </>;
 }
 `,
 	},
@@ -479,7 +580,8 @@ export default component App() {
 		title: 'Reactive Set',
 		code: `import { RippleSet, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   const set = new RippleSet([1, 2, 3]);
 
   // direct usage
@@ -491,6 +593,8 @@ export default component App() {
 
   <button onClick={() => set.delete(2)}>"Delete 2"</button>
   <button onClick={() => set.add(2)}>"Add 2"</button>
+
+  </>;
 }
 `,
 	},
@@ -498,7 +602,8 @@ export default component App() {
 		title: 'Reactive Map',
 		code: `import { RippleMap, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
   // direct usage
@@ -510,6 +615,8 @@ export default component App() {
 
   <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
   <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+
+  </>;
 }
 `,
 	},
@@ -517,7 +624,8 @@ export default component App() {
 		title: 'Reactive Date',
 		code: `import { RippleDate, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
   // direct usage
@@ -531,6 +639,8 @@ export default component App() {
 
   <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
   <button onClick={() => date.setMonth(11)}>"Change to December"</button>
+
+  </>;
 }
 `,
 	},
@@ -538,7 +648,8 @@ export default component App() {
 		title: 'Tracked with get/set',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[count] = track(0,
     (current) => {
       console.log(current);
@@ -569,6 +680,8 @@ export default component App() {
 			padding: 10px;
 		}
 	</style>
+
+  </>;
 }
 `,
 	},
@@ -593,7 +706,8 @@ function createQuad(&[count]) {
   return quadTrack;
 }
 
-export default component App() {
+export default function App() {
+  return <>
   let &[count, countTrack] = track(0);
 
   const &[double] = createDouble(countTrack);
@@ -603,6 +717,8 @@ export default component App() {
   <p>"Quadruple: "{quad}</p>
 
 	<button onClick={() => { count++; }}>"Increment"</button>
+
+  </>;
 }
 `,
 	},
@@ -610,7 +726,8 @@ export default component App() {
 		title: 'Dynamic Components',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[swapMe, swapMeTracked] = track(() => Child1);
 
   <Child swapMe={swapMeTracked} />
@@ -618,18 +735,29 @@ export default component App() {
   <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
 		"Swap Component"
 	</button>
+
+  </>;
 }
 
-component Child({ swapMe }: {swapMe: Tracked<Component>}) {
+function Child({ swapMe }: {swapMe: Tracked<Component>}) {
+  return <>
   <@swapMe />
+
+  </>;
 }
 
-component Child1(props) {
+function Child1(props) {
+  return <>
   <pre>"I am child 1"</pre>
+
+  </>;
 }
 
-component Child2(props) {
+function Child2(props) {
+  return <>
   <pre>"I am child 2"</pre>
+
+  </>;
 }
 `,
 	},
@@ -637,7 +765,8 @@ component Child2(props) {
 		title: 'Component Transport Pattern',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   const &[tracked_basic] = track(() => basic);
   const obj = {
     tracked_basic,
@@ -649,24 +778,38 @@ export default component App() {
   <@ripple_object.tracked_basic />
   <Child {Button}>"Child Button"</Child>
   <AnotherChild Button={AnotherButton}>"Another Child Button"</AnotherChild>
+
+  </>;
 }
 
-component Child({ Button, children }) {
+function Child({ Button, children }) {
+  return <>
   <@Button>{children}</@Button>
+
+  </>;
 }
 
-component AnotherChild(&{ Button, children }) {
+function AnotherChild(&{ Button, children }) {
+  return <>
   <@Button>{children}</@Button>
+
+  </>;
 }
 
-component SomeButton({ children }) {
+function SomeButton({ children }) {
+  return <>
   <button onClick={() => alert('Clicked')}>
 		{children}
 	</button>
+
+  </>;
 }
 
-component basic() {
+function basic() {
+  return <>
   <div>"Basic Component"</div>
+
+  </>;
 }
 `,
 	},
@@ -674,7 +817,8 @@ component basic() {
 		title: 'Untracking Reactivity',
 		code: `import { effect, track, untrack } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
   let &[quadruple] = track(() => double * 2);
@@ -683,6 +827,8 @@ export default component App() {
     // This effect will never fire again, as we've untracked the only dependency it has
     console.log(untrack(() => quadruple));
   })
+
+  </>;
 }
 `,
 	},
@@ -690,7 +836,8 @@ export default component App() {
 		title: 'Events',
 		code: `import { effect, on, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[message] = track('');
 
   <div>
@@ -709,6 +856,8 @@ export default component App() {
     // return the removeListener when the component unmounts
     return removeListener;
   });
+
+  </>;
 }
 `,
 	},
@@ -716,7 +865,8 @@ export default component App() {
 		title: 'DOM References',
 		code: `import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[div] = track();
 
   const divRef = (node) => {
@@ -730,6 +880,8 @@ export default component App() {
   };
 
 	<div {ref divRef}>"Hello world"</div>
+
+  </>;
 }
 `,
 	},
@@ -737,7 +889,8 @@ export default component App() {
 		title: 'createRefKey',
 		code: `import { createRefKey, track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[value] = track('');
 
   const props = {
@@ -757,6 +910,8 @@ export default component App() {
 
   <input type="text" {...props} />
   <div>{value}</div>
+
+  </>;
 }
 `,
 	},
@@ -766,7 +921,8 @@ export default component App() {
 
 const MyContext = new Context(null);
 
-export default component Parent() {
+export default function Parent() {
+  return <>
 	const value = MyContext.get();
 
 	// Context is read in the Parent component, but hasn't yet
@@ -778,14 +934,19 @@ export default component Parent() {
 	MyContext.set("Hello from context!");
 
 	<Child />
+
+  </>;
 }
 
-component Child() {
+function Child() {
+  return <>
 	// Context is read in the Child component
 	const value = MyContext.get();
 
 	// value is "Hello from context!"
 	console.log(value);
+
+  </>;
 }
 `,
 	},

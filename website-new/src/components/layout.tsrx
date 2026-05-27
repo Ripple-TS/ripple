@@ -1,179 +1,180 @@
-export component Layout({ children }) {
-	<main>
-		<div class="container">{children}</div>
+export function Layout({ children }) {
+	return <>
+		<main>
+			<div class="container">{children}</div>
 
-		<div class="vercel-footer">
-			<p>
-				{'Backed by '}
-				<a href="https://vercel.com" target="_blank" rel="noopener noreferrer">{'Vercel'}</a>
-			</p>
-		</div>
-	</main>
-
-	<style>
-		:global(*) {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
-
-		:global(html) {
-			overflow-x: hidden;
-		}
-
-		:global(body) {
-			font-family:
-				'Recursive',
-				-apple-system,
-				BlinkMacSystemFont,
-				'Segoe UI',
-				Roboto,
-				sans-serif;
-			background: #0a0a0f;
-			color: white;
-			min-height: 100vh;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			overflow-x: hidden;
-			overflow-y: auto;
-			position: relative;
-		}
-
-		/* Scrollbar styling */
-		:global(*) {
-			scrollbar-width: thin;
-			scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-		}
-
-		:global(*::-webkit-scrollbar) {
-			width: 8px;
-			height: 8px;
-		}
-
-		:global(*::-webkit-scrollbar-track) {
-			background: transparent;
-		}
-
-		:global(*::-webkit-scrollbar-thumb) {
-			background-color: rgba(255, 255, 255, 0.2);
-			border-radius: 4px;
-		}
-
-		:global(*::-webkit-scrollbar-thumb:hover) {
-			background-color: rgba(255, 255, 255, 0.3);
-		}
-
-		:global(body::before) {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background:
-				radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.15), transparent),
-				radial-gradient(1px 1px at 40px 70px, rgba(120, 219, 226, 0.4), transparent),
-				radial-gradient(1px 1px at 90px 40px, rgba(255, 119, 198, 0.3), transparent),
-				radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.1), transparent),
-				radial-gradient(2px 2px at 160px 30px, rgba(120, 219, 226, 0.2), transparent);
-			background-repeat: repeat;
-			background-size:
-				200px 100px,
-				200px 100px,
-				200px 100px,
-				200px 100px,
-				200px 100px;
-			animation: starTwinkle 8s linear infinite;
-		}
-
-		:global(body::after) {
-			content: '';
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background:
-				radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-				radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
-				radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.1) 0%, transparent 50%);
-		}
-
-		.vercel-footer {
-			position: relative;
-			z-index: 10;
-			padding: 1.5rem;
-			text-align: center;
-			opacity: 0.7;
-		}
-
-		.vercel-footer p {
-			font-size: 0.875rem;
-			color: rgba(255, 255, 255, 0.7);
-			margin: 0;
-		}
-
-		.vercel-footer a {
-			color: rgba(255, 255, 255, 0.9);
-			text-decoration: underline;
-			transition: opacity 0.3s ease;
-		}
-
-		.vercel-footer a:hover {
-			opacity: 0.8;
-		}
-
-		/* BROKEN: Keyframes are not working currently */
-		@keyframes -global-starTwinkle {
-			0%,
-			100% {
-				opacity: 1;
+			<div class="vercel-footer">
+				<p>
+					{'Backed by '}
+					<a href="https://vercel.com" target="_blank" rel="noopener noreferrer">{'Vercel'}</a>
+				</p>
+			</div>
+		</main>
+		<style>
+			:global(*) {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
 			}
-			50% {
-				opacity: 0.7;
-			}
-		}
 
-		@keyframes -global-atmosphericShift {
-			0%,
-			100% {
-				transform: translateX(0) translateY(0) scale(1);
-				opacity: 0.8;
-			}
-			25% {
-				transform: translateX(20px) translateY(-15px) scale(1.05);
-				opacity: 0.9;
-			}
-			50% {
-				transform: translateX(-10px) translateY(-25px) scale(0.95);
-				opacity: 1;
-			}
-			75% {
-				transform: translateX(-15px) translateY(10px) scale(1.02);
-				opacity: 0.85;
-			}
-		}
-
-		:global(main) {
-			min-width: 0;
-			max-width: 100%;
-		}
-
-		:global(.container) {
-			text-align: center;
-			max-width: 720px;
-			padding: 2rem;
-			position: relative;
-			z-index: 10;
-		}
-
-		@media (max-width: 768px) {
-			:global(.container) {
-				padding: 1rem;
-				max-width: 100%;
+			:global(html) {
 				overflow-x: hidden;
 			}
-		}
-	</style>
+
+			:global(body) {
+				font-family:
+					'Recursive',
+					-apple-system,
+					BlinkMacSystemFont,
+					'Segoe UI',
+					Roboto,
+					sans-serif;
+				background: #0a0a0f;
+				color: white;
+				min-height: 100vh;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow-x: hidden;
+				overflow-y: auto;
+				position: relative;
+			}
+
+			/* Scrollbar styling */
+			:global(*) {
+				scrollbar-width: thin;
+				scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+			}
+
+			:global(*::-webkit-scrollbar) {
+				width: 8px;
+				height: 8px;
+			}
+
+			:global(*::-webkit-scrollbar-track) {
+				background: transparent;
+			}
+
+			:global(*::-webkit-scrollbar-thumb) {
+				background-color: rgba(255, 255, 255, 0.2);
+				border-radius: 4px;
+			}
+
+			:global(*::-webkit-scrollbar-thumb:hover) {
+				background-color: rgba(255, 255, 255, 0.3);
+			}
+
+			:global(body::before) {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background:
+					radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.15), transparent),
+					radial-gradient(1px 1px at 40px 70px, rgba(120, 219, 226, 0.4), transparent),
+					radial-gradient(1px 1px at 90px 40px, rgba(255, 119, 198, 0.3), transparent),
+					radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.1), transparent),
+					radial-gradient(2px 2px at 160px 30px, rgba(120, 219, 226, 0.2), transparent);
+				background-repeat: repeat;
+				background-size:
+					200px 100px,
+					200px 100px,
+					200px 100px,
+					200px 100px,
+					200px 100px;
+				animation: starTwinkle 8s linear infinite;
+			}
+
+			:global(body::after) {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background:
+					radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+					radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+					radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.1) 0%, transparent 50%);
+			}
+
+			.vercel-footer {
+				position: relative;
+				z-index: 10;
+				padding: 1.5rem;
+				text-align: center;
+				opacity: 0.7;
+			}
+
+			.vercel-footer p {
+				font-size: 0.875rem;
+				color: rgba(255, 255, 255, 0.7);
+				margin: 0;
+			}
+
+			.vercel-footer a {
+				color: rgba(255, 255, 255, 0.9);
+				text-decoration: underline;
+				transition: opacity 0.3s ease;
+			}
+
+			.vercel-footer a:hover {
+				opacity: 0.8;
+			}
+
+			/* BROKEN: Keyframes are not working currently */
+			@keyframes -global-starTwinkle {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.7;
+				}
+			}
+
+			@keyframes -global-atmosphericShift {
+				0%,
+				100% {
+					transform: translateX(0) translateY(0) scale(1);
+					opacity: 0.8;
+				}
+				25% {
+					transform: translateX(20px) translateY(-15px) scale(1.05);
+					opacity: 0.9;
+				}
+				50% {
+					transform: translateX(-10px) translateY(-25px) scale(0.95);
+					opacity: 1;
+				}
+				75% {
+					transform: translateX(-15px) translateY(10px) scale(1.02);
+					opacity: 0.85;
+				}
+			}
+
+			:global(main) {
+				min-width: 0;
+				max-width: 100%;
+			}
+
+			:global(.container) {
+				text-align: center;
+				max-width: 720px;
+				padding: 2rem;
+				position: relative;
+				z-index: 10;
+			}
+
+			@media (max-width: 768px) {
+				:global(.container) {
+					padding: 1rem;
+					max-width: 100%;
+					overflow-x: hidden;
+				}
+			}
+		</style>
+	</>;
 }

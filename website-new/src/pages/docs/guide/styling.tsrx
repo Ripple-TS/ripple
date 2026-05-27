@@ -10,17 +10,18 @@ module server {
 
 import { load_doc } from server;
 
-export component StylingPage() {
-	const doc = load_doc();
-
-	<DocsLayout
-		title={doc.title}
-		editPath={doc.editPath}
-		prevLink={doc.prev}
-		nextLink={doc.next}
-		toc={doc.toc}
-		currentPath="/docs/guide/styling"
-	>
-		<div class="doc-content">{html doc.html}</div>
-	</DocsLayout>
+export function StylingPage() {
+	return <>
+		const doc = load_doc();
+		<DocsLayout
+			title={doc.title}
+			editPath={doc.editPath}
+			prevLink={doc.prev}
+			nextLink={doc.next}
+			toc={doc.toc}
+			currentPath="/docs/guide/styling"
+		>
+			<div class="doc-content">{html doc.html}</div>
+		</DocsLayout>
+	</>;
 }

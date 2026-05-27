@@ -10,17 +10,18 @@ module server {
 
 import { load_doc } from server;
 
-export component BindingsPage() {
-	const doc = load_doc();
-
-	<DocsLayout
-		title={doc.title}
-		editPath={doc.editPath}
-		prevLink={doc.prev}
-		nextLink={doc.next}
-		toc={doc.toc}
-		currentPath="/docs/guide/bindings"
-	>
-		<div class="doc-content">{html doc.html}</div>
-	</DocsLayout>
+export function BindingsPage() {
+	return <>
+		const doc = load_doc();
+		<DocsLayout
+			title={doc.title}
+			editPath={doc.editPath}
+			prevLink={doc.prev}
+			nextLink={doc.next}
+			toc={doc.toc}
+			currentPath="/docs/guide/bindings"
+		>
+			<div class="doc-content">{html doc.html}</div>
+		</DocsLayout>
+	</>;
 }

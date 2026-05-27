@@ -11,12 +11,15 @@ time, it's caused by unquoted text in a template. Static text should be written
 as a direct double-quoted child; JavaScript expressions should use {braces}.
 
 ```ripple
-export component TextBrace() {
+export function TextBrace() {
+  return <>
   // ✔️ valid
   <p>"Hello world!"</p>
 
   // ❌ invalid
   // <p>Hello world!</p>
+
+  </>;
 }
 ```
 
@@ -42,7 +45,8 @@ encountering this, check for any usage of void elements that aren't using JSX
 self-closing syntax.
 
 ```ripple
-export component Bracey() {
+export function Bracey() {
+  return <>
   // ✔️ valid
   <input />
   <img />
@@ -54,6 +58,8 @@ export component Bracey() {
   // <img>
   // <hr>
   // <br>
+
+  </>;
 }
 ```
 

@@ -10,17 +10,18 @@ module server {
 
 import { load_doc } from server;
 
-export component ReactivityPage() {
-	const doc = load_doc();
-
-	<DocsLayout
-		title={doc.title}
-		editPath={doc.editPath}
-		prevLink={doc.prev}
-		nextLink={doc.next}
-		toc={doc.toc}
-		currentPath="/docs/guide/reactivity"
-	>
-		<div class="doc-content">{html doc.html}</div>
-	</DocsLayout>
+export function ReactivityPage() {
+	return <>
+		const doc = load_doc();
+		<DocsLayout
+			title={doc.title}
+			editPath={doc.editPath}
+			prevLink={doc.prev}
+			nextLink={doc.next}
+			toc={doc.toc}
+			currentPath="/docs/guide/reactivity"
+		>
+			<div class="doc-content">{html doc.html}</div>
+		</DocsLayout>
+	</>;
 }

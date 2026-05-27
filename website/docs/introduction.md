@@ -28,7 +28,8 @@ same component file to React, Solid, or Ripple.
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   <div class="container">
     <h1>"Welcome to Ripple!"</h1>
 
@@ -53,6 +54,8 @@ export component App() {
       margin: 1rem;
     }
   </style>
+
+  </>;
 }
 ```
 

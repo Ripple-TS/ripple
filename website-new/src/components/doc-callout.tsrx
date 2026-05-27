@@ -1,4 +1,4 @@
-export component DocCallout({
+export function DocCallout({
 	type = 'info',
 	title = '',
 	children,
@@ -7,10 +7,12 @@ export component DocCallout({
 	title?: string;
 	children: any;
 }) {
-	<div class={`${type} custom-block`}>
-		if (title) {
-			<p class="custom-block-title">{title}</p>
-		}
-		{children}
-	</div>
+	return <>
+		<div class={`${type} custom-block`}>
+			if (title) {
+				<p class="custom-block-title">{title}</p>
+			}
+			{children}
+		</div>
+	</>;
 }

@@ -27,7 +27,8 @@ and cleared when it unmounts.
 ```ripple
 import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let div: HTMLDivElement | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
@@ -35,6 +36,8 @@ export default component App() {
   <div {ref div}>"Hello world"</div>
   <input ref={input} type="text" />
   <button {ref state.button}>"Save"</button>
+
+  </>;
 }
 ```
 
@@ -48,7 +51,8 @@ function to run when the element is removed.
 <Code console>
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   function setup(node: HTMLDivElement) {
     console.log('mounted', node);
 
@@ -58,6 +62,8 @@ export component App() {
   }
 
   <div {ref setup}>"Hello world"</div>
+
+  </>;
 }
 ```
 
@@ -68,7 +74,8 @@ You can also create callback refs inline.
 <Code console>
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   let div: HTMLDivElement | undefined;
 
   <div
@@ -82,6 +89,8 @@ export component App() {
   >
     "Hello world"
   </div>
+
+  </>;
 }
 ```
 
@@ -93,8 +102,11 @@ when the ref setup needs configuration.
 ```ripple
 import { fadeIn } from 'some-library';
 
-export component App({ ms }) {
+export function App({ ms }) {
+  return <>
   <div {ref fadeIn({ ms })}>"Hello world"</div>
+
+  </>;
 }
 ```
 
@@ -104,13 +116,16 @@ Use `ref={value}` when you want the ref to look like the host runtime's native
 ref attribute. In Ripple it accepts the same values as `{ref value}`.
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   let input: HTMLInputElement | undefined;
   const state: { wrapper?: HTMLDivElement } = {};
 
   <div ref={state.wrapper}>
     <input ref={input} type="text" />
   </div>
+
+  </>;
 }
 ```
 
@@ -120,7 +135,8 @@ You can combine one `ref={...}` with any number of `{ref ...}` or named
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let input: HTMLInputElement | undefined;
   const trackedInput = track<HTMLInputElement | null>(null);
 
@@ -130,6 +146,8 @@ export component App() {
     logRef={ref (node) => console.log(node)}
     type="text"
   />
+
+  </>;
 }
 ```
 
@@ -142,17 +160,23 @@ through a spread.
 <Code console>
 
 ```ripple
-export component Field({ inputRef, ...rest }) {
+export function Field({ inputRef, ...rest }) {
+  return <>
   <label>
     "Search"
     <input type="search" ref={inputRef} {...rest} />
   </label>
+
+  </>;
 }
 
-export component App() {
+export function App() {
+  return <>
   let input: HTMLInputElement | undefined;
 
   <Field inputRef={ref input} placeholder="Search docs" />
+
+  </>;
 }
 ```
 
@@ -162,10 +186,13 @@ Named ref props also work directly on DOM elements. Ripple recognizes the ref
 value and does not emit the prop name as an attribute.
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   let input: HTMLInputElement | undefined;
 
   <input inputRef={ref input} type="text" />
+
+  </>;
 }
 ```
 
@@ -175,14 +202,20 @@ prop name. Use a named ref prop when a component API should expose a specific re
 slot.
 
 ```ripple
-component Input({ id, ...rest }) {
+function Input({ id, ...rest }) {
+  return <>
   <input {id} {...rest} />
+
+  </>;
 }
 
-export component App() {
+export function App() {
+  return <>
   let input: HTMLInputElement | undefined;
 
   <Input id="email" {ref input} />
+
+  </>;
 }
 ```
 
@@ -194,12 +227,15 @@ needs to distinguish a named ref prop from an ordinary prop.
 ```ripple
 import { isRefProp } from 'ripple';
 
-component Field({ inputRef, ...rest }) {
+function Field({ inputRef, ...rest }) {
+  return <>
   if (isRefProp(inputRef)) {
     console.log('received a ref prop');
   }
 
   <input ref={inputRef} {...rest} />
+
+  </>;
 }
 ```
 
@@ -217,7 +253,8 @@ relying directly on template syntax.
 ```ripple
 import { createRefKey, track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[value] = track('');
   let input: HTMLInputElement | undefined;
 
@@ -246,10 +283,15 @@ export component App() {
 
   // with composite component
   <Input {...props} />
+
+  </>;
 }
 
-component Input({ id, value, ...rest }) {
+function Input({ id, value, ...rest }) {
+  return <>
   <input type="text" {id} {value} {...rest} />
+
+  </>;
 }
 ```
 

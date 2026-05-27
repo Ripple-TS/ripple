@@ -15,7 +15,8 @@ function will receive the reference to the underlying DOM element.
 ```ripple
 import { track } from 'ripple';
 
-export default component App() {
+export default function App() {
+  return <>
   let &[div] = track();
 
   const divRef = (node) => {
@@ -29,6 +30,8 @@ export default component App() {
   };
 
   <div {ref divRef}>"Hello world"</div>
+
+  </>;
 }
 ```
 
@@ -41,7 +44,8 @@ You can also create `{ref}` functions inline.
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[div] = track();
 
   <div
@@ -53,6 +57,8 @@ export component App() {
   >
     "Hello world"
   </div>
+
+  </>;
 }
 ```
 
@@ -65,8 +71,11 @@ reactive properties.
 ```ripple
 import { fadeIn } from 'some-library';
 
-export component App({ ms }) {
+export function App({ ms }) {
+  return <>
   <div {ref fadeIn({ ms })}>"Hello world"</div>
+
+  </>;
 }
 ```
 
@@ -91,7 +100,8 @@ relying directly on the `{ref ...}` template syntax.
 ```ripple
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
+  return <>
   let &[value] = track('');
 
   const props = {
@@ -114,10 +124,15 @@ export component App() {
 
   // with composite component
   <Input {...props} />
+
+  </>;
 }
 
-component Input({ id, value, ...rest }) {
+function Input({ id, value, ...rest }) {
+  return <>
   <input type="text" {id} {value} {...rest} />
+
+  </>;
 }
 ```
 

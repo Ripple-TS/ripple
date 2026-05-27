@@ -18,8 +18,11 @@ where we'd normally use a `function` keyword. Internally, Ripple's compiler will
 transform that into a function that it can call.
 
 ```ripple
-component Hello() {
+function Hello() {
+  return <>
   <span>"Hello World!"</span>
+
+  </>;
 }
 ```
 
@@ -51,7 +54,8 @@ const myTemplate = (
 );
 
 // ✅ Correct - Templates only inside components
-component MyComponent() {
+function MyComponent() {
+  return <>
 	// Template syntax is valid here
   <div>"Hello World"</div>
 
@@ -60,6 +64,8 @@ component MyComponent() {
 	console.log("This JavaScript works");
 
 	<p>{message}</p>
+
+  </>;
 }
 
 // ✅ Correct - Helper functions can return data
@@ -67,8 +73,11 @@ function getMessage() {
 	return "Hello from function";  // Return data, not JSX
 }
 
-component App() {
+function App() {
+  return <>
 	<div>{getMessage()}</div>  // Use function result in template
+
+  </>;
 }
 ```
 
@@ -82,7 +91,8 @@ when you want JSX-style children.
 
 ```ripple
 // ✅ Correct - Store native TSRX in a variable
-component App() {
+function App() {
+  return <>
   const title = <tsrx>
     <span class="title">
       "Settings"
@@ -90,6 +100,8 @@ component App() {
   </tsrx>;
 
   <header>{title}</header>
+
+  </>;
 }
 
 // ✅ Correct - Return native TSRX from a helper function
@@ -102,19 +114,26 @@ function createBadge(label: string) {
   </tsrx>;
 }
 
-component App() {
+function App() {
+  return <>
   {createBadge('New')}
+
+  </>;
 }
 
 // ✅ Correct - Pass JSX-style values directly as props
-component Card(props: { title: any; children: any }) {
+function Card(props: { title: any; children: any }) {
+  return <>
   <section>
     <h2>{props.title}</h2>
     <div>{props.children}</div>
   </section>
+
+  </>;
 }
 
-component App() {
+function App() {
+  return <>
   <Card
     title={<tsx>
       <span>
@@ -127,6 +146,8 @@ component App() {
       </p>
     </tsx>}
   />
+
+  </>;
 }
 ```
 
@@ -147,7 +168,8 @@ Use `return;` to stop evaluating the rest of the current render path after a
 condition is met.
 
 ```ripple
-component Profile({ user }) {
+function Profile({ user }) {
+  return <>
   if (!user) {
     <p>"Please sign in to continue."</p>
     return;
@@ -155,6 +177,8 @@ component Profile({ user }) {
 
   <h1>{user.name}</h1>
   <p>{user.email}</p>
+
+  </>;
 }
 ```
 
@@ -220,7 +244,8 @@ call functions, and execute JavaScript statements directly within JSX elements -
 similar to block statements in regular JavaScript.
 
 ```ripple
-component TemplateScope() {
+function TemplateScope() {
+  return <>
   <div>
     // Variable declarations inside templates
     const message = 'Hello from template scope';
@@ -251,6 +276,8 @@ component TemplateScope() {
     debugger;
     // You can even put debugger statements
   </div>
+
+  </>;
 }
 ```
 
@@ -295,13 +322,16 @@ injections. If you'd like to render trusted HTML onto your page, you can use the
 HTML directive to opt-out:
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   let source = `
 <h1>My Blog Post</h1>
 <p>Hi! I like JS and Ripple.</p>
 `;
 
   <article>{html source}</article>
+
+  </>;
 }
 ```
 
@@ -328,12 +358,15 @@ the expression will always be text, you can use the `{text}` directive to make
 that explicit. It should also result in better performance.
 
 ```ripple
-export component Frame({ children }) {
+export function Frame({ children }) {
+  return <>
   <div class="frame">
     {text 'before'}
     {children}
     {text 'after'}
   </div>
+
+  </>;
 }
 ```
 
@@ -346,11 +379,14 @@ compiler can optimize `{text}` expressions more efficiently than general
 expressions that might need to handle component rendering.
 
 ```ripple
-export component App() {
+export function App() {
+  return <>
   const markup = '<span>Not HTML</span>';
 
   // Renders the literal string "<span>Not HTML</span>" as text
   <div>{text markup}</div>
+
+  </>;
 }
 ```
 

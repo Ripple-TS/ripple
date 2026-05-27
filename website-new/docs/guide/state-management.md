@@ -32,7 +32,8 @@ import { Context, track } from 'ripple';
 const context = new Context({});
 const context2 = new Context();
 
-export component App() {
+export function App() {
+  return <>
   // get reference to the object
   const obj = context.get();
   // set your reactive value
@@ -62,6 +63,8 @@ export component App() {
     "Context2: "
     {count2}
   </pre>
+
+  </>;
 }
 ```
 
@@ -76,15 +79,19 @@ import { Context } from 'ripple';
 
 const MyContext = new Context(null);
 
-component Child() {
+function Child() {
+  return <>
   // Context is read in the Child component
   const value = MyContext.get();
 
   // value is "Hello from context!"
   console.log(value);
+
+  </>;
 }
 
-export component Parent() {
+export function Parent() {
+  return <>
   const value = MyContext.get();
 
   // Context is read in the Parent component, but hasn't yet
@@ -96,6 +103,8 @@ export component Parent() {
   MyContext.set('Hello from context!');
 
   <Child />
+
+  </>;
 }
 ```
 
