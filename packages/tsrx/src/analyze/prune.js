@@ -323,12 +323,6 @@ function get_descendant_elements(node, adjacent_only) {
 			}
 		}
 
-		if (/** @type {AST.Component} */ (current_node).body) {
-			for (const child of /** @type {AST.Component} */ (current_node).body) {
-				visit(child, depth + 1);
-			}
-		}
-
 		// For template nodes and interpolation expressions
 		if (
 			(current_node.type === 'TSRXExpression' ||
@@ -399,7 +393,6 @@ function can_render_dynamic_content(element, check_classes = false) {
  */
 function get_possible_element_siblings(node, direction, adjacent_only) {
 	const siblings = new Map();
-	// Parent has to be an Element not a Component
 	const parent = get_element_parent(node);
 
 	if (!parent) {
@@ -428,9 +421,9 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 	for (let i = start; i !== end; i += step) {
 		const sibling = container[i];
 
-		if (sibling.type === 'Element' || sibling.type === 'Component') {
+		if (sibling.type === 'Element') {
 			siblings.set(sibling, true);
-			// Don't break for dynamic elements (children, Components, dynamic components)
+			// Don't break for dynamic elements (children and dynamic components)
 			// as they can render dynamic content or might render nothing
 			const isDynamic = can_render_dynamic_content(sibling, false);
 			if (adjacent_only && !isDynamic) {
@@ -534,12 +527,6 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 												break;
 											}
 											if (combinator.name === '+') break; // For adjacent, only check first element
-										} else if (subsequent.type === 'Component') {
-											// Skip components when looking for the target element
-											if (combinator.name === '+') {
-												// For adjacent, continue looking
-												continue;
-											}
 										}
 									}
 								}

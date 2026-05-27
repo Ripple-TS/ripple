@@ -30,12 +30,10 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	validateNesting,
-	validateClassComponentDeclarations,
-	validateComponentLoopBreakStatement,
-	validateComponentLoopReturnStatement,
-	validateComponentParams,
-	validateComponentReturnStatement,
-	validateComponentUnsupportedLoopStatement,
+	validateTsrxLoopBreakStatement,
+	validateTsrxLoopReturnStatement,
+	validateTsrxReturnStatement,
+	validateTsrxUnsupportedLoopStatement,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -1663,24 +1661,11 @@ const visitors = {
 	},
 
 	ClassBody(node, context) {
-		validateClassComponentDeclarations(
-			node,
-			context.state.analysis.module.filename,
-			context.state.collect ? context.state.analysis.errors : undefined,
-			context.state.analysis.comments,
-		);
 		context.next();
 	},
 
 	Component(node, context) {
 		context.state.component = node;
-
-		validateComponentParams(
-			node,
-			context.state.analysis.module.filename,
-			context.state.collect ? context.state.analysis.errors : undefined,
-			context.state.analysis.comments,
-		);
 
 		if (node.params.length > 0) {
 			const props = node.params[0];
@@ -1762,7 +1747,7 @@ const visitors = {
 
 	ForStatement(node, context) {
 		if (is_inside_component(context)) {
-			validateComponentUnsupportedLoopStatement(
+			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2092,7 +2077,7 @@ const visitors = {
 		}
 
 		if (is_inside_component_for_of(context.path)) {
-			validateComponentLoopReturnStatement(
+			validateTsrxLoopReturnStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2101,7 +2086,7 @@ const visitors = {
 			return;
 		}
 
-		validateComponentReturnStatement(
+		validateTsrxReturnStatement(
 			node,
 			context.state.analysis.module.filename,
 			context.state.collect ? context.state.analysis.errors : undefined,
@@ -2137,7 +2122,7 @@ const visitors = {
 
 	BreakStatement(node, context) {
 		if (is_inside_component(context) && break_targets_component_loop(context.path)) {
-			validateComponentLoopBreakStatement(
+			validateTsrxLoopBreakStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2238,7 +2223,7 @@ const visitors = {
 
 	ForInStatement(node, context) {
 		if (is_inside_component(context)) {
-			validateComponentUnsupportedLoopStatement(
+			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2251,7 +2236,7 @@ const visitors = {
 
 	WhileStatement(node, context) {
 		if (is_inside_component(context)) {
-			validateComponentUnsupportedLoopStatement(
+			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,
@@ -2264,7 +2249,7 @@ const visitors = {
 
 	DoWhileStatement(node, context) {
 		if (is_inside_component(context)) {
-			validateComponentUnsupportedLoopStatement(
+			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
 				context.state.collect ? context.state.analysis.errors : undefined,

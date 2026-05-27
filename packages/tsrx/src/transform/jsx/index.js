@@ -37,22 +37,8 @@ import {
 } from '../../utils/builders.js';
 import * as b from '../../utils/builders.js';
 import { apply_lazy_transforms, preallocate_lazy_ids } from '../lazy.js';
-import { find_first_top_level_await_in_component_body } from '../await.js';
-import {
-	prepare_stylesheet_for_render,
-	annotate_component_with_hash,
-	annotate_with_hash,
-	is_style_element,
-} from '../scoping.js';
-import {
-	validate_class_component_declarations,
-	validate_component_loop_break_statement,
-	validate_component_loop_return_statement,
-	validate_component_params,
-	validate_component_return_statement,
-	validate_component_unsupported_loop_statement,
-} from '../../analyze/validation.js';
-import { get_component_from_path, is_function_or_component_node } from '../../utils/ast.js';
+import { prepare_stylesheet_for_render, annotate_with_hash, is_style_element } from '../scoping.js';
+import { is_function_or_component_node } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
 	is_capturable_jsx_child,
@@ -183,59 +169,15 @@ function is_function_or_class_boundary(node) {
 }
 
 /**
- * @param {any[]} path
- * @returns {boolean}
- */
-function is_inside_component_for_of(path) {
-	for (let i = path.length - 1; i >= 0; i -= 1) {
-		const node = path[i];
-		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
-			return false;
-		}
-		if (node?.type === 'ForOfStatement') {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @param {any[]} path
- * @returns {boolean}
- */
-function break_targets_component_loop(path) {
-	for (let i = path.length - 1; i >= 0; i -= 1) {
-		const node = path[i];
-		if (is_function_or_class_boundary(node) || node?.type === 'Component') {
-			return false;
-		}
-		if (node?.type === 'SwitchStatement') {
-			return false;
-		}
-		if (
-			node?.type === 'ForOfStatement' ||
-			node?.type === 'ForStatement' ||
-			node?.type === 'ForInStatement' ||
-			node?.type === 'WhileStatement' ||
-			node?.type === 'DoWhileStatement'
-		) {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
- * Solid). Given a `JsxPlatform` descriptor, returns a transform that parses
- * Ripple's `Component`/`Element`/`Text`/`TSRXExpression` AST into a plain
- * TSX module for that platform.
+ * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
+ * native TSRX template nodes into a plain TSX module for that platform.
  *
- * Any `<style>` element declared inside a component is collected, rendered
- * via `@tsrx/core`'s stylesheet renderer, and returned alongside the JS
- * output so a downstream plugin can inject it. The compiler also augments
- * every non-style Element in a scoped component with the stylesheet's hash
- * class so scoped selectors match correctly.
+ * Any `<style>` element declared inside a TSRX fragment is collected, rendered
+ * via `@tsrx/core`'s stylesheet renderer, and returned alongside the JS output
+ * so a downstream plugin can inject it. The compiler also augments every
+ * non-style Element in that fragment with the stylesheet's hash class so scoped
+ * selectors match correctly.
  *
  * @param {JsxPlatform} platform
  * @returns {(ast: AST.Program, source: string, filename?: string, options?: JsxTransformOptions) => JsxTransformResult}
@@ -250,13 +192,6 @@ export function createJsxTransform(platform) {
 	 */
 	function transform(ast, source, filename, options) {
 		const suspense_source = options?.suspenseSource ?? platform.imports.suspense;
-		const should_scan_use_server_directive =
-			platform.validation.requireUseServerForAwait &&
-			(!platform.hooks?.validateComponentAwait ||
-				platform.validation.scanUseServerDirectiveForAwaitWithCustomValidator !== false);
-		const module_uses_server_directive = should_scan_use_server_directive
-			? has_use_server_directive(ast)
-			: true;
 		const collect = !!(options?.collect || options?.loose);
 		/** @type {any[]} */
 		const stylesheets = [];
@@ -277,6 +212,7 @@ export function createJsxTransform(platform) {
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
+			hook_helpers_enabled: false,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
 			current_css_hash: null,
@@ -295,201 +231,12 @@ export function createJsxTransform(platform) {
 		}
 
 		walk(/** @type {any} */ (ast), transform_context, {
-			ReturnStatement(node, { next, path }) {
-				if (get_component_from_path(path)) {
-					if (is_inside_component_for_of(path)) {
-						validate_component_loop_return_statement(
-							node,
-							filename,
-							transform_context.errors,
-							transform_context.comments,
-						);
-					} else {
-						validate_component_return_statement(
-							node,
-							filename,
-							transform_context.errors,
-							transform_context.comments,
-						);
-					}
-				}
-
-				return next();
-			},
-
-			BreakStatement(node, { next, path }) {
-				if (get_component_from_path(path) && break_targets_component_loop(path)) {
-					validate_component_loop_break_statement(
-						node,
-						filename,
-						transform_context.errors,
-						transform_context.comments,
-					);
-				}
-
-				return next();
-			},
-
-			ForStatement(node, { next, path }) {
-				if (get_component_from_path(path)) {
-					validate_component_unsupported_loop_statement(
-						node,
-						filename,
-						transform_context.errors,
-						transform_context.comments,
-					);
-				}
-
-				return next();
-			},
-
-			ForInStatement(node, { next, path }) {
-				if (get_component_from_path(path)) {
-					validate_component_unsupported_loop_statement(
-						node,
-						filename,
-						transform_context.errors,
-						transform_context.comments,
-					);
-				}
-
-				return next();
-			},
-
-			WhileStatement(node, { next, path }) {
-				if (get_component_from_path(path)) {
-					validate_component_unsupported_loop_statement(
-						node,
-						filename,
-						transform_context.errors,
-						transform_context.comments,
-					);
-				}
-
-				return next();
-			},
-
-			DoWhileStatement(node, { next, path }) {
-				if (get_component_from_path(path)) {
-					validate_component_unsupported_loop_statement(
-						node,
-						filename,
-						transform_context.errors,
-						transform_context.comments,
-					);
-				}
-
-				return next();
-			},
-
-			ClassBody(node, { next }) {
-				validate_class_component_declarations(
-					/** @type {any} */ (node),
-					filename,
-					transform_context.errors,
-					transform_context.comments,
-				);
-				return next();
-			},
-
-			Component(node, { next, state }) {
-				const as_any = /** @type {any} */ (node);
-
-				validate_component_params(
-					as_any,
-					filename,
-					transform_context.errors,
-					transform_context.comments,
-				);
-
-				const await_expression = find_first_top_level_await_in_component_body(as_any.body || []);
-
-				if (await_expression) {
-					// Let a platform reject component-level await entirely (solid)
-					// or customize the error. Otherwise fall back to the default
-					// `requireUseServerForAwait` check.
-					if (platform.hooks?.validateComponentAwait) {
-						platform.hooks.validateComponentAwait(
-							await_expression,
-							as_any,
-							state,
-							module_uses_server_directive,
-							source,
-						);
-					} else if (!module_uses_server_directive) {
-						error(
-							`${platform.name} components can only use \`await\` when the module has a top-level "use server" directive.`,
-							state.filename,
-							await_expression,
-							state.errors,
-							state.comments,
-						);
-					}
-
-					as_any.metadata = /** @type {any} */ ({
-						...(as_any.metadata || {}),
-						contains_top_level_await: true,
-					});
-				}
-
-				const css = as_any.css;
-				if (css) {
-					apply_css_definition_metadata(as_any, css);
-					stylesheets.push(css);
-					const hash = css.hash;
-					annotate_component_with_hash(
-						as_any,
-						hash,
-						platform.jsx.rewriteClassAttr ? 'className' : 'class',
-						transform_context.typeOnly,
-					);
-				}
-				return next(state);
-			},
-
-			FunctionDeclaration: collect_native_function_component_metadata,
-			FunctionExpression: collect_native_function_component_metadata,
-			ArrowFunctionExpression: collect_native_function_component_metadata,
+			FunctionDeclaration: collect_native_function_tsrx_metadata,
+			FunctionExpression: collect_native_function_tsrx_metadata,
+			ArrowFunctionExpression: collect_native_function_tsrx_metadata,
 		});
 
 		const transformed = walk(/** @type {any} */ (ast), transform_context, {
-			Component(node, { next, state }) {
-				const as_any = /** @type {any} */ (node);
-
-				// Set up helper_state and bindings BEFORE next() so that nested
-				// hook_safe_* calls (inside Element children) can register helpers
-				// and access available bindings during the bottom-up walk.
-				const helper_state = create_helper_state(as_any.id?.name || 'Component');
-				const saved_helper_state = state.helper_state;
-				const saved_bindings = state.available_bindings;
-				const saved_css_hash = state.current_css_hash;
-				state.helper_state = helper_state;
-				state.current_css_hash = as_any.css ? as_any.css.hash : null;
-
-				// Pre-collect component body bindings (params + top-level statements)
-				// so Element children processed during the bottom-up walk can see
-				// component-scope names. Hook-safe helpers filter this set down to
-				// the names their body actually references before generating props.
-				const body_bindings = collect_param_bindings(as_any.params || []);
-				const body = as_any.body || [];
-				const split_index = find_hook_safe_split_index(body, state);
-				const collect_end = split_index === -1 ? body.length : split_index;
-				for (let i = 0; i < collect_end; i += 1) {
-					collect_statement_bindings(body[i], body_bindings);
-				}
-				state.available_bindings = body_bindings;
-
-				const inner = /** @type {any} */ (next() ?? node);
-
-				// Restore context
-				state.helper_state = saved_helper_state;
-				state.available_bindings = saved_bindings;
-				state.current_css_hash = saved_css_hash;
-
-				const convert = platform.hooks?.componentToFunction ?? component_to_function_declaration;
-				return /** @type {any} */ (convert(inner, state, helper_state));
-			},
-
 			Tsx(node, { next, path }) {
 				const inner = /** @type {any} */ (next() ?? node);
 				const in_jsx_child = in_jsx_child_context(path);
@@ -499,7 +246,7 @@ export function createJsxTransform(platform) {
 			},
 
 			Tsrx(node, { next, path, state }) {
-				const inner = /** @type {any} */ (next() ?? node);
+				const inner = with_tsrx_fragment_styles(node, state, () => next() ?? node);
 				const in_jsx_child = in_jsx_child_context(path);
 				return /** @type {any} */ (
 					wrap_jsx_setup_declarations(
@@ -550,16 +297,14 @@ export function createJsxTransform(platform) {
 				const value = state.current_css_hash
 					? `${state.current_css_hash} ${class_name}`
 					: class_name;
-				return b.literal(value, undefined, node);
+				return b.literal(value, undefined, /** @type {any} */ (node));
 			},
 
 			// Default .metadata on every function-like node so downstream consumers
-			// (e.g. segments.js reading node.value.metadata.is_component on class
-			// methods) don't trip on an undefined metadata object. Ripple's analyze
-			// phase does this via visit_function; tsrx-react has no analyze phase.
-			// If a plain JS function contains a hook-bearing <tsrx> expression,
-			// give it a temporary helper scope so extracted hook components can
-			// be emitted with stable identities just like component-body helpers.
+			// do not trip on an undefined metadata object. Ripple's analyze phase
+			// does this via visit_function; tsrx-react has no analyze phase.
+			// If an uppercase JS function contains hook-bearing TSRX, give it a
+			// temporary helper scope so extracted hook helpers get stable identities.
 			FunctionDeclaration: transform_function,
 			FunctionExpression: transform_function,
 			ArrowFunctionExpression: transform_function,
@@ -569,7 +314,7 @@ export function createJsxTransform(platform) {
 			},
 
 			JSXOpeningElement(node, { next }) {
-				const visited = next() || node;
+				const visited = /** @type {any} */ (next() || node);
 				if (visited.metadata?.native_tsrx_pretransformed) {
 					return visited;
 				}
@@ -603,9 +348,7 @@ export function createJsxTransform(platform) {
 		}
 
 		// Apply lazy destructuring transforms to module-level code (top-level function
-		// declarations, arrow functions, etc.). Component bodies have already been
-		// transformed inside component_to_function_declaration; this catches plain
-		// functions outside components and any lazy patterns in module scope.
+		// declarations, arrow functions, etc.).
 		// In type-only mode, the lazy patterns survive untouched: esrap ignores the
 		// non-standard `lazy` flag, so `&{ a, b }` prints as `{ a, b }`, `let &[a]
 		// = expr` prints as `let [a] = expr`, and the bare statement-level form
@@ -646,7 +389,7 @@ function apply_css_definition_metadata(component, css) {
 	const metadata = component.metadata || (component.metadata = { path: [] });
 	const style_classes = metadata.styleClasses || (metadata.styleClasses = new Map());
 	const top_scoped_classes = metadata.topScopedClasses || new Map();
-	const elements = collect_css_prunable_elements(component.body || []);
+	const elements = collect_css_prunable_elements(component.body || component.children || []);
 
 	for (const element of elements) {
 		prune_css(css, element, style_classes, top_scoped_classes);
@@ -677,8 +420,7 @@ function collect_css_prunable_elements(value, elements = []) {
 	if (
 		value.type === 'FunctionDeclaration' ||
 		value.type === 'FunctionExpression' ||
-		value.type === 'ArrowFunctionExpression' ||
-		value.type === 'Component'
+		value.type === 'ArrowFunctionExpression'
 	) {
 		return elements;
 	}
@@ -697,127 +439,6 @@ function collect_css_prunable_elements(value, elements = []) {
 	}
 
 	return elements;
-}
-
-/**
- * Detect a top-level `"use server"` directive. Used by platforms whose
- * validation rule requires the directive to enable top-level `await`
- * in components (currently: Preact).
- *
- * @param {AST.Program} program
- * @returns {boolean}
- */
-function has_use_server_directive(program) {
-	for (const statement of program.body || []) {
-		const directive = /** @type {any} */ (statement).directive;
-
-		if (directive === 'use server') {
-			return true;
-		}
-
-		if (
-			statement.type === 'ExpressionStatement' &&
-			statement.expression?.type === 'Literal' &&
-			statement.expression.value === 'use server'
-		) {
-			return true;
-		}
-
-		if (directive == null) {
-			break;
-		}
-	}
-
-	return false;
-}
-
-/**
- * Lower a TSRX `Component` node into the shared function-declaration form used
- * by the default JSX targets. Platform hooks can reuse this helper and wrap the
- * resulting function in another declaration shape without reimplementing
- * component body lowering, lazy destructuring, helper generation, or top-level
- * await handling.
- *
- * @param {any} component
- * @param {TransformContext} transform_context
- * @param {{ base_name: string, next_id: number, helpers: AST.FunctionDeclaration[], statics: any[] }} [walk_helper_state]
- * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
- */
-export function component_to_function_declaration(component, transform_context, walk_helper_state) {
-	const helper_state = walk_helper_state || create_helper_state(component.id?.name || 'Component');
-	const params = component.params || [];
-	const body = /** @type {any[]} */ (component.body || []);
-	const is_async_component =
-		!!component?.metadata?.contains_top_level_await ||
-		find_first_top_level_await_in_component_body(body) !== null;
-
-	// Collect param bindings from original patterns (lazy patterns still intact).
-	const param_bindings = collect_param_bindings(params);
-
-	// Save and set context for this component scope
-	const saved_helper_state = transform_context.helper_state;
-	const saved_bindings = transform_context.available_bindings;
-	transform_context.helper_state = helper_state;
-	transform_context.available_bindings = new Map(param_bindings);
-
-	const body_statements = build_component_statements(body, transform_context);
-	const body_block = b.block(body_statements);
-
-	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
-	let fn;
-
-	if (component.id) {
-		fn = b.function_declaration(
-			component.id,
-			params,
-			body_block,
-			is_async_component,
-			component.typeParameters,
-		);
-	} else if (component.metadata?.arrow) {
-		fn = b.arrow(params, body_block, is_async_component, component.typeParameters);
-	} else {
-		fn = b.function(null, params, body_block, is_async_component, component.typeParameters);
-	}
-	/** @type {any} */ (fn.metadata).is_component = true;
-
-	// `preallocate_lazy_ids` stamped `has_lazy_descendants` on the source
-	// `Component` node; the freshly-built `fn` shares the same params/body
-	// subtree, so the flag is equally applicable. Propagating it lets
-	// `apply_lazy_transforms` honor its constant-time early-return path.
-	if (/** @type {any} */ (component).metadata?.has_lazy_descendants) {
-		/** @type {any} */ (fn.metadata).has_lazy_descendants = true;
-	}
-
-	// Apply lazy `&{}` / `&[]` rewrites end-to-end: the function-handler in
-	// `apply_lazy_transforms` collects param bindings, merges with body bindings
-	// discovered by the BlockStatement handler, replaces lazy params with their
-	// `__lazyN` ids, and rewrites every reference. Constant-time fast-path for
-	// functions whose subtrees contain no lazy patterns (flagged ahead of time
-	// by `preallocate_lazy_ids`). In type-only mode the rewrite is skipped so
-	// destructuring patterns survive into the virtual TSX and TypeScript can
-	// flow real types.
-	if (!transform_context.typeOnly) {
-		fn = /** @type {typeof fn} */ (apply_lazy_transforms(fn, new Map()));
-	}
-
-	// Restore context
-	transform_context.helper_state = saved_helper_state;
-	transform_context.available_bindings = saved_bindings;
-
-	const fn_metadata = /** @type {any} */ (fn.metadata);
-	fn_metadata.generated_helpers = helper_state.helpers;
-	fn_metadata.generated_statics = helper_state.statics;
-
-	if (fn.type === 'FunctionDeclaration' && fn.id) {
-		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
-			...fn.id.metadata,
-			is_component: true,
-		});
-	}
-
-	setLocation(fn, /** @type {any} */ (component), true);
-	return fn;
 }
 
 /**
@@ -894,7 +515,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				);
 			}
 
-			if (branch_has_hooks || continuation_has_hooks) {
+			if (
+				should_extract_hook_helpers(transform_context) &&
+				(branch_has_hooks || continuation_has_hooks)
+			) {
 				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
 					statements.push(
 						...create_setup_once_helper_split_returning_if_statements(
@@ -1002,6 +626,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		if (
 			child.type === 'ForOfStatement' &&
 			!child.await &&
+			should_extract_hook_helpers(transform_context) &&
 			!transform_context.platform.hooks?.isTopLevelSetupCall &&
 			!transform_context.platform.hooks?.controlFlow?.forOf &&
 			body_contains_top_level_hook_call(
@@ -1320,41 +945,27 @@ function create_helper_state(base_name) {
  * @param {{ next: (state?: TransformContext) => any, state: TransformContext }} context
  * @returns {any}
  */
-function collect_native_function_component_metadata(node, { next, state }) {
+function collect_native_function_tsrx_metadata(node, { next, state }) {
 	if (!function_has_native_tsrx_return(node)) {
 		return next(state);
 	}
 
 	node.metadata = {
 		...(node.metadata || {}),
-		is_component: true,
-		native_tsrx_component: true,
+		native_tsrx_function: true,
 	};
-
-	const css = collect_native_function_component_stylesheet(node);
-	if (css) {
-		node.metadata.native_tsrx_css = css;
-		apply_css_definition_metadata(get_function_css_container(node), css);
-		state.stylesheets.push(css);
-		annotate_native_function_with_hash(
-			node,
-			css.hash,
-			state.platform.jsx.rewriteClassAttr ? 'className' : 'class',
-			state.typeOnly,
-		);
-	}
 
 	return next(state);
 }
 
 /**
  * @param {any} node
- * @param {{ next: () => any, state: TransformContext }} context
+ * @param {{ next: () => any, state: TransformContext, path: AST.Node[] }} context
  * @returns {any}
  */
 function transform_function(node, context) {
-	if (node.metadata?.native_tsrx_component || function_has_native_tsrx_return(node)) {
-		return transform_native_function_component(node, context);
+	if (node.metadata?.native_tsrx_function || function_has_native_tsrx_return(node)) {
+		return transform_native_tsrx_function(node, context);
 	}
 
 	return transform_function_with_hook_helpers(node, context);
@@ -1362,22 +973,23 @@ function transform_function(node, context) {
 
 /**
  * @param {any} node
- * @param {{ next: () => any, state: TransformContext }} context
+ * @param {{ next: () => any, state: TransformContext, path: AST.Node[] }} context
  * @returns {any}
  */
-function transform_native_function_component(node, { next, state }) {
+function transform_native_tsrx_function(node, { next, state, path }) {
 	const helper_state =
-		state.helper_state || create_helper_state(get_function_helper_base_name(node));
+		state.helper_state || create_helper_state(get_function_helper_base_name(node, path));
 	const saved_helper_state = state.helper_state;
 	const saved_bindings = state.available_bindings;
 	const saved_css_hash = state.current_css_hash;
+	const saved_hook_helpers_enabled = state.hook_helpers_enabled;
 
 	state.helper_state = helper_state;
+	state.hook_helpers_enabled = is_uppercase_function_like(node, path);
 	state.available_bindings = merge_binding_maps(
 		saved_bindings,
 		collect_function_scope_bindings(node),
 	);
-	state.current_css_hash = node.metadata?.native_tsrx_css?.hash ?? saved_css_hash;
 
 	expand_native_tsrx_function_returns(node, state);
 
@@ -1386,23 +998,16 @@ function transform_native_function_component(node, { next, state }) {
 	state.helper_state = saved_helper_state;
 	state.available_bindings = saved_bindings;
 	state.current_css_hash = saved_css_hash;
+	state.hook_helpers_enabled = saved_hook_helpers_enabled;
 
 	ensure_function_metadata(inner, { next: () => inner });
 	inner.metadata = {
 		...(inner.metadata || {}),
-		is_component: true,
-		native_tsrx_component: true,
+		native_tsrx_function: true,
 	};
 	if (!saved_helper_state && (helper_state.helpers.length || helper_state.statics.length)) {
 		inner.metadata.generated_helpers = helper_state.helpers;
 		inner.metadata.generated_statics = helper_state.statics;
-	}
-
-	if (inner.type === 'FunctionDeclaration' && inner.id) {
-		inner.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
-			...inner.id.metadata,
-			is_component: true,
-		});
 	}
 
 	return inner;
@@ -1410,25 +1015,32 @@ function transform_native_function_component(node, { next, state }) {
 
 /**
  * @param {any} node
- * @param {{ next: () => any, state: TransformContext }} context
+ * @param {{ next: () => any, state: TransformContext, path: AST.Node[] }} context
  * @returns {any}
  */
-function transform_function_with_hook_helpers(node, { next, state }) {
-	if (state.helper_state || !function_contains_hook_bearing_tsrx(node, state)) {
+function transform_function_with_hook_helpers(node, { next, state, path }) {
+	if (
+		state.helper_state ||
+		!is_uppercase_function_like(node, path) ||
+		!function_contains_hook_bearing_tsrx(node, state)
+	) {
 		return ensure_function_metadata(node, { next });
 	}
 
-	const helper_state = create_helper_state(get_function_helper_base_name(node));
+	const helper_state = create_helper_state(get_function_helper_base_name(node, path));
 	const saved_helper_state = state.helper_state;
 	const saved_bindings = state.available_bindings;
+	const saved_hook_helpers_enabled = state.hook_helpers_enabled;
 
 	state.helper_state = helper_state;
+	state.hook_helpers_enabled = true;
 	state.available_bindings = collect_function_scope_bindings(node);
 
 	const inner = /** @type {any} */ (next() ?? node);
 
 	state.helper_state = saved_helper_state;
 	state.available_bindings = saved_bindings;
+	state.hook_helpers_enabled = saved_hook_helpers_enabled;
 
 	ensure_function_metadata(inner, { next: () => inner });
 	if (helper_state.helpers.length || helper_state.statics.length) {
@@ -1444,13 +1056,81 @@ function transform_function_with_hook_helpers(node, { next, state }) {
 
 /**
  * @param {any} node
+ * @param {AST.Node[]} [path]
  * @returns {string}
  */
-function get_function_helper_base_name(node) {
+function get_function_helper_base_name(node, path = []) {
+	return get_function_like_name(node, path) || 'Tsrx';
+}
+
+/**
+ * @param {any} node
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_uppercase_function_like(node, path) {
+	const name = get_function_like_name(node, path);
+	return !!(name && /^[A-Z]/.test(name));
+}
+
+/**
+ * @param {any} node
+ * @param {AST.Node[]} path
+ * @returns {string | null}
+ */
+function get_function_like_name(node, path) {
 	if (node.id?.type === 'Identifier') {
 		return node.id.name;
 	}
-	return 'Tsrx';
+
+	const parent = /** @type {any} */ (path.at(-1));
+	if (!parent) return null;
+
+	if (parent.type === 'VariableDeclarator' && parent.init === node) {
+		return get_static_binding_name(parent.id);
+	}
+
+	if (parent.type === 'Property' && parent.value === node) {
+		return get_static_property_name(parent.key);
+	}
+
+	if (parent.type === 'MethodDefinition' && parent.value === node) {
+		return get_static_property_name(parent.key);
+	}
+
+	if (parent.type === 'AssignmentExpression' && parent.right === node) {
+		return get_static_binding_name(parent.left);
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {string | null}
+ */
+function get_static_binding_name(node) {
+	if (node?.type === 'Identifier') {
+		return node.name;
+	}
+	if (node?.type === 'MemberExpression' && !node.computed) {
+		return get_static_property_name(node.property);
+	}
+	return null;
+}
+
+/**
+ * @param {any} key
+ * @returns {string | null}
+ */
+function get_static_property_name(key) {
+	if (key?.type === 'Identifier') {
+		return key.name;
+	}
+	if (key?.type === 'Literal' && typeof key.value === 'string') {
+		return key.value;
+	}
+	return null;
 }
 
 /**
@@ -1596,20 +1276,57 @@ function node_contains_native_tsrx_template(node) {
  * @param {any} node
  * @returns {any}
  */
-function collect_native_function_component_stylesheet(node) {
+function collect_tsrx_stylesheet(node) {
 	/** @type {any[]} */
 	const styles = [];
-	collect_style_elements(node.body, styles);
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		collect_style_elements(node.body, styles);
-	}
+	collect_style_elements(node.children || [], styles);
 
 	if (styles.length === 0) return null;
 	if (styles.length > 1) {
-		throw new Error('Components can only have one style tag');
+		throw new Error('TSRX fragments can only have one style tag');
 	}
 
 	return styles[0];
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {string | null}
+ */
+function prepare_tsrx_fragment_styles(node, transform_context) {
+	const css = collect_tsrx_stylesheet(node);
+	if (!css) return null;
+
+	apply_css_definition_metadata(node, css);
+	transform_context.stylesheets.push(css);
+	annotate_tsrx_with_hash(
+		node,
+		css.hash,
+		transform_context.platform.jsx.rewriteClassAttr ? 'className' : 'class',
+		transform_context.typeOnly,
+	);
+	return css.hash;
+}
+
+/**
+ * @template T
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {() => T} callback
+ * @returns {T}
+ */
+function with_tsrx_fragment_styles(node, transform_context, callback) {
+	const css_hash = prepare_tsrx_fragment_styles(node, transform_context);
+	const saved_css_hash = transform_context.current_css_hash;
+	if (css_hash) {
+		transform_context.current_css_hash = css_hash;
+	}
+	try {
+		return callback();
+	} finally {
+		transform_context.current_css_hash = saved_css_hash;
+	}
 }
 
 /**
@@ -1637,7 +1354,7 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (is_function_or_class_boundary(node)) {
+	if (is_function_or_class_boundary(node) || node.type === 'Tsrx') {
 		return;
 	}
 
@@ -1651,44 +1368,17 @@ function collect_style_elements(node, styles) {
 
 /**
  * @param {any} node
- * @returns {{ body: any[], metadata: any }}
- */
-function get_function_css_container(node) {
-	const body =
-		node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement'
-			? [node.body]
-			: node.body?.body || [];
-	return { body, metadata: node.metadata || (node.metadata = { path: [] }) };
-}
-
-/**
- * @param {any} node
  * @param {string} hash
  * @param {'class' | 'className'} jsx_class_attr_name
  * @param {boolean} preserve_style_elements
  * @returns {void}
  */
-function annotate_native_function_with_hash(
-	node,
-	hash,
-	jsx_class_attr_name,
-	preserve_style_elements,
-) {
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		node.body = annotate_with_hash(node.body, hash, jsx_class_attr_name, preserve_style_elements);
-		if (!preserve_style_elements) {
-			node.body = strip_style_elements(node.body) || node.body;
-		}
-		return;
-	}
-
-	if (node.body?.type !== 'BlockStatement') return;
-
-	node.body.body = node.body.body.map((/** @type {any} */ statement) =>
+function annotate_tsrx_with_hash(node, hash, jsx_class_attr_name, preserve_style_elements) {
+	node.children = (node.children || []).map((/** @type {any} */ statement) =>
 		annotate_with_hash(statement, hash, jsx_class_attr_name, preserve_style_elements),
 	);
 	if (!preserve_style_elements) {
-		node.body.body = strip_style_elements(node.body.body);
+		node.children = strip_style_elements(node.children);
 	}
 }
 
@@ -1739,13 +1429,12 @@ function strip_style_elements(node) {
  */
 function expand_native_tsrx_function_returns(node, transform_context) {
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type === 'Tsrx') {
-		lower_style_directives_in_place(node.body, transform_context, []);
-		node.body = b.block(
-			mark_native_pretransformed_jsx(
-				build_render_statements(get_tsrx_render_children(node.body), true, transform_context),
-			),
-			node.body,
-		);
+		const body = node.body;
+		const statements = with_tsrx_fragment_styles(body, transform_context, () => {
+			lower_style_directives_in_place(body, transform_context, []);
+			return build_render_statements(get_tsrx_render_children(body), true, transform_context);
+		});
+		node.body = b.block(mark_native_pretransformed_jsx(statements), body);
 		node.expression = false;
 		return;
 	}
@@ -1780,14 +1469,13 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 	if (!statement || typeof statement !== 'object') return [statement];
 
 	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
-		lower_style_directives_in_place(statement.argument, transform_context, [statement]);
-		return mark_native_pretransformed_jsx(
-			build_render_statements(
-				get_tsrx_render_children(statement.argument),
-				true,
-				transform_context,
-			),
-		);
+		const fragment = statement.argument;
+		return with_tsrx_fragment_styles(fragment, transform_context, () => {
+			lower_style_directives_in_place(fragment, transform_context, [statement]);
+			return mark_native_pretransformed_jsx(
+				build_render_statements(get_tsrx_render_children(fragment), true, transform_context),
+			);
+		});
 	}
 
 	if (is_function_or_class_boundary(statement)) {
@@ -1967,8 +1655,7 @@ function collect_descendant_declaration_bindings(node, bindings) {
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
+		node.type === 'ArrowFunctionExpression'
 	) {
 		return;
 	}
@@ -2018,8 +1705,7 @@ function node_contains_hook_bearing_tsrx(node, transform_context) {
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
+		node.type === 'ArrowFunctionExpression'
 	) {
 		return false;
 	}
@@ -2045,13 +1731,21 @@ function should_use_module_scoped_hook_components(transform_context) {
 }
 
 /**
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function should_extract_hook_helpers(transform_context) {
+	return !!transform_context.hook_helpers_enabled;
+}
+
+/**
  * @param {AST.Identifier} helper_id
  * @param {TransformContext} transform_context
  * @returns {AST.Identifier}
  */
 function create_module_scoped_hook_component_id(helper_id, transform_context) {
 	return create_generated_identifier(
-		`${transform_context.helper_state?.base_name || 'Component'}__${helper_id.name}`,
+		`${transform_context.helper_state?.base_name || 'Tsrx'}__${helper_id.name}`,
 	);
 }
 
@@ -2323,11 +2017,9 @@ function expand_component_helpers(program) {
 }
 
 /**
- * Component hooks may replace a `Component` node with a function declaration,
- * variable declaration, object literal member, or export-safe expression.
- * Generated helper/statics metadata is carried on whichever replacement node
- * the hook returns, so helper expansion must read metadata from that broader
- * set.
+ * Generated helper/statics metadata can be carried on function declarations,
+ * variable declarations, object literal members, or export-safe expressions,
+ * so helper expansion reads metadata from that broader set.
  *
  * @param {any} node
  * @returns {{ generated_helpers?: any[], generated_statics?: any[] }[]}
@@ -2668,7 +2360,7 @@ function build_hoisted_for_of_with_hooks(node, transform_context) {
 	transform_context.available_bindings = fn_saved_bindings;
 
 	const helper_fn = b.function(clone_identifier(component_id), params, b.block(fn_body_statements));
-	helper_fn.metadata = { path: [], is_component: true, is_method: false };
+	helper_fn.metadata = { path: [], is_method: false };
 
 	let helper_decl;
 	if (transform_context.helper_state && use_module_scoped_component) {
@@ -3206,8 +2898,7 @@ function child_contains_return_semantics(node) {
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
+		node.type === 'ArrowFunctionExpression'
 	) {
 		return false;
 	}
@@ -3242,7 +2933,10 @@ function is_inline_element_child(node) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function statement_body_to_jsx_child(body_nodes, transform_context) {
-	if (body_contains_top_level_hook_call(body_nodes, transform_context, true)) {
+	if (
+		should_extract_hook_helpers(transform_context) &&
+		body_contains_top_level_hook_call(body_nodes, transform_context, true)
+	) {
 		return hook_safe_statement_body_to_jsx_child(body_nodes, transform_context);
 	}
 
@@ -3803,8 +3497,7 @@ function references_name_in_set(node, names) {
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
+		node.type === 'ArrowFunctionExpression'
 	) {
 		return false;
 	}
@@ -3949,8 +3642,7 @@ function find_first_hook_call_name(node) {
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'Component'
+		node.type === 'ArrowFunctionExpression'
 	) {
 		return null;
 	}
@@ -4057,7 +3749,6 @@ export function create_hook_safe_helper(
 		params,
 		b.block(build_render_statements(body_nodes, true, transform_context)),
 	);
-	helper_fn.metadata.is_component = true;
 	helper_fn.metadata.is_method = false;
 
 	transform_context.available_bindings = saved_bindings;
@@ -4307,7 +3998,7 @@ function validate_style_directive(node, transform_context, path) {
 
 	if (!transform_context.current_css_hash) {
 		error(
-			'`{style "class_name"}` requires a <style> block in the current component.',
+			'`{style "class_name"}` requires a <style> block in the current TSRX fragment.',
 			transform_context.filename,
 			node,
 			transform_context.errors,
@@ -4538,8 +4229,7 @@ function body_contains_top_level_return_value(node) {
 		node.type === 'FunctionExpression' ||
 		node.type === 'ArrowFunctionExpression' ||
 		node.type === 'ClassDeclaration' ||
-		node.type === 'ClassExpression' ||
-		node.type === 'Component'
+		node.type === 'ClassExpression'
 	) {
 		return false;
 	}
@@ -4794,7 +4484,7 @@ function is_loop_statement(node) {
 function for_of_statement_to_jsx_child(node, transform_context) {
 	if (node.await) {
 		error(
-			`${transform_context.platform.name} TSRX does not support \`for await...of\` in component templates.`,
+			`${transform_context.platform.name} TSRX does not support \`for await...of\` in TSRX templates.`,
 			transform_context.filename,
 			node,
 			transform_context.errors,
@@ -4808,7 +4498,9 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
 		)
 	);
-	const has_hooks = body_contains_top_level_hook_call(loop_body, transform_context, true);
+	const has_hooks =
+		should_extract_hook_helpers(transform_context) &&
+		body_contains_top_level_hook_call(loop_body, transform_context, true);
 	const body_key_expression = find_key_expression_in_body(loop_body);
 	const explicit_key_expression =
 		body_key_expression ?? (node.key ? clone_expression_node(node.key) : undefined);
@@ -5037,7 +4729,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 	if (finalizer) {
 		error(
-			`${transform_context.platform.name} TSRX does not support JavaScript \`try/finally\` in component templates. \`finally\` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.`,
+			`${transform_context.platform.name} TSRX does not support JavaScript \`try/finally\` in TSRX templates. \`finally\` is not part of TSRX control flow; move the try/finally into a function if you need cleanup logic.`,
 			transform_context.filename,
 			finalizer,
 			transform_context.errors,
@@ -5047,7 +4739,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 	if (!pending && !handler) {
 		error(
-			'Component try statements must have a `pending` or `catch` block.',
+			'TSRX try statements must have a `pending` or `catch` block.',
 			transform_context.filename,
 			node,
 			transform_context.errors,
@@ -5071,7 +4763,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const try_body = node.block.body || [];
 		if (!try_body.some(is_jsx_child)) {
 			error(
-				'Component try statements must contain a template in their main body. Move the try statement into a function if it does not render anything.',
+				'TSRX try statements must contain a template in their main body. Move the try statement into a function if it does not render anything.',
 				transform_context.filename,
 				node.block,
 				transform_context.errors,
@@ -5081,7 +4773,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 		const pending_body = pending.body || [];
 		if (pending_body.length > 0 && !pending_body.some(is_jsx_child)) {
 			error(
-				'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
+				'TSRX try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
 				transform_context.filename,
 				pending,
 				transform_context.errors,
@@ -5359,11 +5051,9 @@ function add_ref_import_specifier(imports, source, specifier) {
 function create_render_if_statement(node, transform_context) {
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-	const consequent_has_hooks = body_contains_top_level_hook_call(
-		consequent_body,
-		transform_context,
-		true,
-	);
+	const consequent_has_hooks =
+		should_extract_hook_helpers(transform_context) &&
+		body_contains_top_level_hook_call(consequent_body, transform_context, true);
 
 	let alternate = null;
 	if (node.alternate) {
@@ -5371,11 +5061,9 @@ function create_render_if_statement(node, transform_context) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
 			const alternate_body = node.alternate.body || [node.alternate];
-			const alternate_has_hooks = body_contains_top_level_hook_call(
-				alternate_body,
-				transform_context,
-				true,
-			);
+			const alternate_has_hooks =
+				should_extract_hook_helpers(transform_context) &&
+				body_contains_top_level_hook_call(alternate_body, transform_context, true);
 			alternate = set_loc(
 				b.block(
 					alternate_has_hooks
@@ -5492,7 +5180,10 @@ export function plan_switch_lift(switch_node, transform_context) {
 	const needs_helper = case_info.map(
 		(/** @type {{ own_body: any[], has_terminator: boolean }} */ info, /** @type {number} */ k) => {
 			if (info.own_body.length === 0) return false;
-			if (body_contains_top_level_hook_call(info.own_body, transform_context, true)) {
+			if (
+				should_extract_hook_helpers(transform_context) &&
+				body_contains_top_level_hook_call(info.own_body, transform_context, true)
+			) {
 				return true;
 			}
 			if (k === 0) return false;

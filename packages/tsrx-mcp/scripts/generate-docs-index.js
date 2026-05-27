@@ -45,10 +45,6 @@ export async function generate_docs_index() {
 	fs.accessSync(features_path);
 	fs.accessSync(getting_started_path);
 
-	const component_grammar = extract_string_array_constant(
-		'COMPONENT_GRAMMAR',
-		specification_source,
-	);
 	const expression_island_grammar = extract_string_array_constant(
 		'EXPRESSION_ISLAND_GRAMMAR',
 		specification_source,
@@ -75,10 +71,10 @@ export async function generate_docs_index() {
 TSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.
 
 Core ideas:
-- component declarations use the component keyword.
-- JSX-like elements can be written as statements inside component bodies.
+- Components are ordinary TypeScript functions that return TSRX.
+- TSRX opens in expression position, then template children are statement based inside the fragment.
 - control-flow statements can contain template output.
-- expression-position native TSRX must use <tsrx>...</tsrx>; JSX-style values use <>...</> or <tsx>...</tsx>.
+- native TSRX can be returned directly as \`<div />\` or \`<>...</>\`; JSX-style values can use \`<tsx>...</tsx>\` when needed.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
@@ -87,26 +83,19 @@ Source: website-tsrx/src/pages/specification.tsrx`,
 		},
 		{
 			slug: 'components',
-			title: 'Component Declarations',
-			use_cases:
-				'components, component keyword, props, authoring .tsrx files, no jsx return syntax',
-			content: `# Component Declarations
+			title: 'Function Components',
+			use_cases: 'components, functions, props, authoring .tsrx files, jsx return syntax',
+			content: `# Function Components
 
-Components are declared with the component keyword, not as functions returning JSX.
+TSRX does not have a component declaration keyword. Author components as ordinary TypeScript functions and return TSRX from them.
 
 \`\`\`tsx
-component Button(props: { label: string }) {
-  <button>{props.label}</button>
+function Button(props: { label: string }) {
+  return <button>{props.label}</button>;
 }
 \`\`\`
 
-Inside a component body, template elements are statements. Do not generate \`return <div />\` from a component body. Use a bare \`return;\` only as a guard exit after emitting fallback template statements.
-
-Specification grammar:
-
-\`\`\`text
-${component_grammar}
-\`\`\`
+Inside the returned TSRX fragment, template elements and control flow are statement based.
 
 Source: website-tsrx/src/pages/specification.tsrx#components`,
 		},
@@ -120,9 +109,11 @@ Source: website-tsrx/src/pages/specification.tsrx#components`,
 Raw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.
 
 \`\`\`tsx
-component Greeting({ name }: { name: string }) {
+function Greeting({ name }: { name: string }) {
+  return <>
   <h1>"Hello"</h1>
   <p>{name}</p>
+  </>;
 }
 \`\`\`
 
@@ -143,13 +134,13 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 				'fragments, tsrx tag, tsx tag, pass template as prop, return template from helper, render props, expression position jsx',
 			content: `# Expression Values
 
-Regular template elements in component bodies are statements and have no value. When native TSRX must be used in expression position, wrap it in \`<tsrx>...</tsrx>\`. When JSX-style children must be used in expression position, wrap them in \`<>...</>\` or \`<tsx>...</tsx>\`.
+Returned TSRX opens in expression position. Inside the TSRX fragment, template elements are statements and control flow can emit UI.
 
 \`\`\`tsx
-component App() {
-  const title = <tsrx><span>"Settings"</span></tsrx>;
+function App() {
+  const title = <>"Settings"</>;
 
-  <Card title={title} />
+  return <Card title={title} />;
 }
 \`\`\`
 
@@ -157,14 +148,14 @@ Native TSRX expression fragments can contain setup statements and template contr
 
 \`\`\`tsx
 function badge(label: string) {
-  return <tsrx>
+  return <>
     const normalized = label.trim();
     <span class="badge">{normalized}</span>
-  </tsrx>;
+  </>;
 }
 \`\`\`
 
-Use these wrappers for assigning UI to variables, returning UI from helper functions, or passing UI as props. Do not write \`const el = <div />\` directly in TSRX component code.
+Use fragments for assigning UI to variables, returning UI from helper functions, or passing UI as props.
 
 Specification grammar:
 
@@ -181,13 +172,14 @@ Source: website-tsrx/src/pages/specification.tsrx#tsx-islands`,
 				'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
 			content: `# Control Flow
 
-Standard JavaScript control flow can contain template statements inside component bodies and nested element children.
+Standard JavaScript control flow can contain template statements inside returned TSRX fragments and nested element children.
 
 \`\`\`tsx
-component List({ items }: { items: string[] }) {
+function List({ items }: { items: string[] }) {
+  return <>
   if (items.length === 0) {
     <p>"No items"</p>
-    return;
+    return null;
   }
 
   <ul>
@@ -196,14 +188,15 @@ component List({ items }: { items: string[] }) {
       <li>{item}</li>
     }
   </ul>
+  </>;
 }
 \`\`\`
 
-A bare \`return;\` exits the current render path. A return with a value is invalid inside a TSRX component body.
+Use normal function returns for guard exits. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
 
-Inside a component \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. Top-level \`return\` and \`break\` are invalid inside component \`for...of\` loops; use \`continue\` for item skips, \`return;\` for non-loop guard exits, and \`break\` only for \`switch\` cases.
+Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. Top-level \`return\` and \`break\` are invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
 
-Component rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in component template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
+TSRX rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in TSRX template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
 
 Source: website-tsrx/src/pages/features.tsrx#for`,
 		},

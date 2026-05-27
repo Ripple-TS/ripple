@@ -53,8 +53,7 @@ export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
  * Default `node.metadata` to `{ path: [] }` if missing, then continue the
  * walk. Use as the `FunctionDeclaration` / `FunctionExpression` /
  * `ArrowFunctionExpression` visitor in a zimmerframe walk so that downstream
- * consumers (e.g. `segments.js` reading `node.value.metadata.is_component`
- * on class methods) don't trip on an undefined metadata object.
+ * consumers don't trip on an undefined metadata object.
  *
  * Ripple's analyze phase does this via `visit_function`; the tsrx-* targets
  * have no analyze phase, so we default metadata during the main walk.

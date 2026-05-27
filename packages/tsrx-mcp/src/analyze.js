@@ -1,11 +1,11 @@
 import {
-	COMPONENT_DO_WHILE_STATEMENT_ERROR,
-	COMPONENT_FOR_IN_STATEMENT_ERROR,
-	COMPONENT_FOR_STATEMENT_ERROR,
-	COMPONENT_LOOP_BREAK_ERROR,
-	COMPONENT_LOOP_RETURN_ERROR,
-	COMPONENT_WHILE_STATEMENT_ERROR,
 	DIAGNOSTIC_CODES,
+	TSRX_DO_WHILE_STATEMENT_ERROR,
+	TSRX_FOR_IN_STATEMENT_ERROR,
+	TSRX_FOR_STATEMENT_ERROR,
+	TSRX_LOOP_BREAK_ERROR,
+	TSRX_LOOP_RETURN_ERROR,
+	TSRX_WHILE_STATEMENT_ERROR,
 } from '@tsrx/core';
 import { compile_tsrx } from './compile.js';
 
@@ -49,31 +49,6 @@ function create_advice(input) {
 		});
 	}
 
-	const has_function_component_syntax = error_codes.has(DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX);
-	if (has_function_component_syntax) {
-		advice.push({
-			kind: 'function-component-syntax',
-			severity: 'warning',
-			title: 'Use TSRX component declarations',
-			message:
-				'.tsrx component files should use the component keyword. A React-style function returning JSX is usually the wrong authoring shape for TSRX.',
-			documentation: ['tsrx://docs/components.md'],
-		});
-	}
-
-	const fired_jsx_return = error_codes.has(DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT);
-
-	if (fired_jsx_return) {
-		advice.push({
-			kind: 'jsx-return-in-component',
-			severity: 'error',
-			title: 'Do not return JSX from component bodies',
-			message:
-				'Inside a TSRX component body, template elements are statements. Replace `return <div />` with a template statement like `<div />`; use bare `return;` only for guard exits.',
-			documentation: ['tsrx://docs/components.md', 'tsrx://docs/tsx-expression-values.md'],
-		});
-	}
-
 	if (error_codes.has(DIAGNOSTIC_CODES.UNCLOSED_TAG)) {
 		advice.push({
 			kind: 'unclosed-tag',
@@ -107,25 +82,22 @@ function create_advice(input) {
 		});
 	}
 
-	if (
-		error_messages.has(COMPONENT_LOOP_RETURN_ERROR) ||
-		error_messages.has(COMPONENT_LOOP_BREAK_ERROR)
-	) {
+	if (error_messages.has(TSRX_LOOP_RETURN_ERROR) || error_messages.has(TSRX_LOOP_BREAK_ERROR)) {
 		advice.push({
-			kind: 'component-loop-control-flow',
+			kind: 'tsrx-loop-control-flow',
 			severity: 'error',
-			title: 'Use continue inside component for...of loops',
+			title: 'Use continue inside TSRX for...of loops',
 			message:
-				'Top-level return and break statements are not valid inside a component for...of loop. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+				'Top-level return and break statements are not valid inside a TSRX for...of loop. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}
 
 	if (
-		error_messages.has(COMPONENT_FOR_STATEMENT_ERROR) ||
-		error_messages.has(COMPONENT_FOR_IN_STATEMENT_ERROR) ||
-		error_messages.has(COMPONENT_WHILE_STATEMENT_ERROR) ||
-		error_messages.has(COMPONENT_DO_WHILE_STATEMENT_ERROR)
+		error_messages.has(TSRX_FOR_STATEMENT_ERROR) ||
+		error_messages.has(TSRX_FOR_IN_STATEMENT_ERROR) ||
+		error_messages.has(TSRX_WHILE_STATEMENT_ERROR) ||
+		error_messages.has(TSRX_DO_WHILE_STATEMENT_ERROR)
 	) {
 		advice.push({
 			kind: 'unsupported-component-loop',

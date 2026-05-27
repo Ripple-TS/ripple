@@ -107,19 +107,6 @@ export function create_scopes(ast, root, parent, error_options) {
 			}
 		},
 
-		Component(node, { state, next }) {
-			const scope = state.scope.child();
-			scopes.set(node, scope);
-
-			// Only declare the component name if it has an id (not anonymous)
-			if (node.id) {
-				scope.declare(node.id, 'normal', 'component');
-			}
-
-			add_params(scope, node.params);
-			next({ scope });
-		},
-
 		Element(node, { state, next }) {
 			const scope = state.scope.child();
 			scopes.set(node, scope);

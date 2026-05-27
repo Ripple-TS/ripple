@@ -49,6 +49,7 @@ export interface JsxTransformContext {
 		helpers: any[];
 		statics: any[];
 	} | null;
+	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
 	lazy_next_id: number;
 	current_css_hash: string | null;
@@ -145,18 +146,6 @@ export interface JsxPlatformHooks {
 	 * Composition API state like `ref()`.
 	 */
 	isTopLevelSetupCall?: (callExpression: any, ctx: any) => boolean;
-	/**
-	 * Lower a `component` declaration to the replacement node for its current
-	 * position. React / Preact use the default helper and return a
-	 * `FunctionDeclaration`. Other targets may return a variable declaration or
-	 * an expression that wraps the shared lowered function body (for example,
-	 * `defineVaporComponent(...)`).
-	 *
-	 * The default lowering is exported as `componentToFunctionDeclaration()` so
-	 * platform hooks can build on it instead of reimplementing component body
-	 * handling.
-	 */
-	componentToFunction?: (component: any, ctx: any, helperState?: any) => any;
 	/**
 	 * Wrap a hoisted helper component declaration emitted by the shared control-
 	 * flow splitter. The default is the plain function declaration; Vue uses
@@ -443,9 +432,3 @@ export function createJsxTransform(
 	filename?: string,
 	options?: JsxTransformOptions,
 ) => JsxTransformResult;
-
-export function componentToFunctionDeclaration(
-	component: any,
-	ctx: any,
-	helperState?: any,
-): AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression;

@@ -342,7 +342,6 @@ export function TSRXPlugin(config) {
 			 */
 			#isNativeTemplateNode(node) {
 				return (
-					node?.type === 'Component' ||
 					node?.type === 'Element' ||
 					node?.type === 'Tsx' ||
 					node?.type === 'Tsrx' ||
@@ -809,10 +808,7 @@ export function TSRXPlugin(config) {
 				}
 
 				const parent = this.#path.at(-1);
-				if (
-					!parent ||
-					(parent.type !== 'Component' && parent.type !== 'Element' && parent.type !== 'Tsrx')
-				) {
+				if (!parent || (parent.type !== 'Element' && parent.type !== 'Tsrx')) {
 					return false;
 				}
 
@@ -1158,7 +1154,7 @@ export function TSRXPlugin(config) {
 					const parent = this.#path.at(-1);
 					const inNativeTemplate =
 						this.#functionBodyDepth === 0 &&
-						(parent?.type === 'Component' || parent?.type === 'Element' || parent?.type === 'Tsrx');
+						(parent?.type === 'Element' || parent?.type === 'Tsrx');
 					/** @type {number | null} */
 					let prevNonWhitespaceChar = null;
 
@@ -2167,7 +2163,6 @@ export function TSRXPlugin(config) {
 							if (
 								ch === CharCode.closeBrace &&
 								(this.#path.length === 0 ||
-									this.#path.at(-1)?.type === 'Component' ||
 									this.#path.at(-1)?.type === 'Element' ||
 									this.#path.at(-1)?.type === 'Tsrx')
 							) {
@@ -2518,16 +2513,8 @@ export function TSRXPlugin(config) {
 						const end = input.indexOf('</style>');
 						const content = end === -1 ? input : input.slice(0, end);
 
-						const component = /** @type {AST.Component | undefined} */ (
-							this.#path.findLast((n) => n.type === 'Component')
-						);
 						const parsed_css = parse_style(content, { loose: this.#loose });
-
-						if (!inside_head && component) {
-							if (component.css !== null) {
-								throw new Error('Components can only have one style tag');
-							}
-							component.css = parsed_css;
+						if (!inside_head) {
 							/** @type {AST.Element} */ (element).metadata.styleScopeHash = parsed_css.hash;
 						}
 
@@ -2867,7 +2854,7 @@ export function TSRXPlugin(config) {
 							while (this.#path.length > 0) {
 								const elem = this.#path[this.#path.length - 1];
 
-								// Stop at non-Element boundaries (Component, etc.)
+								// Stop at non-template boundaries.
 								if (
 									elem.type !== 'Element' &&
 									elem.type !== 'Tsx' &&
@@ -3049,9 +3036,7 @@ export function TSRXPlugin(config) {
 					this.#functionBodyDepth === 0 &&
 					this.type === tt.string &&
 					this.input.charCodeAt(this.start) === CharCode.doubleQuote &&
-					(this.#path.at(-1)?.type === 'Component' ||
-						this.#path.at(-1)?.type === 'Element' ||
-						this.#path.at(-1)?.type === 'Tsrx')
+					(this.#path.at(-1)?.type === 'Element' || this.#path.at(-1)?.type === 'Tsrx')
 				) {
 					this.pos = this.start;
 					this.#readDoubleQuotedTextChildToken();
@@ -3105,7 +3090,7 @@ export function TSRXPlugin(config) {
 				// nested function callable, not in a template.
 				if (
 					this.#functionBodyDepth === 0 &&
-					(parent?.type === 'Component' || parent?.type === 'Element' || parent?.type === 'Tsrx')
+					(parent?.type === 'Element' || parent?.type === 'Tsrx')
 				) {
 					if (createNewLexicalScope === void 0) createNewLexicalScope = true;
 					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());

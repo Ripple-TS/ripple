@@ -972,252 +972,125 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 }
 
 /**
- * Shared anonymous component expression regressions. These cover parser support
- * for arrow-shaped anonymous components and the cross-target lowering contract:
- * arrow-authored anonymous components become arrow functions, legacy anonymous
- * components stay function expressions, and named components continue to use
- * declarations in the broader shared suite.
+ * Shared anonymous function component regressions. These cover parser support
+ * for ordinary function expressions and arrow functions that return native TSRX.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedAnonymousComponentTests({ compile, name }) {
-	describe(`[${name}] anonymous component expressions`, () => {
-		const jsx_targets = ['react', 'preact', 'solid'];
+	describe(`[${name}] anonymous function components`, () => {
+		it('parses arrow function components that return native TSRX', () => {
+			const { code } = compile(
+				`const Inline = (props: { x: string }) => <div>{props.x}</div>;`,
+				'App.tsrx',
+			);
 
-		it.runIf(jsx_targets.includes(name))(
-			'parses anonymous component arrow expressions as plain arrow functions',
-			() => {
-				const { code } = compile(
-					`const Inline = component(props: { x: string }) => {
-						<div>{props.x}</div>
-					}`,
-					'App.tsrx',
-				);
+			expect(code).toContain('const Inline = (props: { x: string }) => <div>{props.x}</div>;');
+			expect(code).not.toContain('function Inline');
+		});
 
-				expect(code).toContain('const Inline = (props: { x: string }) => {');
-				expect(code).toContain('<div>{props.x}</div>');
-				expect(code).not.toContain('function Inline');
-				expect(code).not.toContain('function (props');
-			},
-		);
+		it('parses function expression components that return native TSRX', () => {
+			const { code } = compile(
+				`const Inline = function (props: { x: string }) {
+					return <div>{props.x}</div>;
+				};`,
+				'App.tsrx',
+			);
 
-		it.runIf(name === 'vue')(
-			'parses anonymous component arrow expressions as defineVaporComponent arrows',
-			() => {
-				const { code } = compile(
-					`const Inline = component(props: { x: string }) => {
-						<div>{props.x}</div>
-					}`,
-					'App.tsrx',
-				);
+			expect(code).toContain('const Inline = function (props: { x: string })');
+			expect(code).toContain('<div>{props.x}</div>');
+			expect(code).not.toContain('function Inline');
+		});
 
-				expect(code).toContain('const Inline = defineVaporComponent((props: { x: string }) => {');
-				expect(code).toContain('<div>{props.x}</div>');
-				expect(code).not.toContain('function Inline');
-				expect(code).not.toContain('function (props');
-			},
-		);
+		it('lowers function component props inside JSX attribute objects', () => {
+			const { code } = compile(
+				`export function App() { return <>
+					<Page
+						params={{
+							menuAlt2: ({ isAdmin, children }: { isAdmin: boolean, children: (items: string[]) => JSX.Element }) => {
+								const items: string[] = [];
+								if (isAdmin) {
+									items.push('Delete', 'Edit');
+								} else {
+									items.push('View');
+								}
+								return <>{children(items)}</>;
+							},
+						}}
+					/>
+				</>; }`,
+				'App.tsrx',
+			);
 
-		it.runIf(jsx_targets.includes(name))(
-			'lowers legacy anonymous component expressions to plain function expressions',
-			() => {
-				const { code } = compile(
-					`const Inline = component() {
-						<div>{'inline'}</div>
-					}`,
-					'App.tsrx',
-				);
+			expect(code).toContain('menuAlt2');
+			expect(code).toContain('items.push');
+			expect(code).toContain('return children(items);');
+		});
 
-				expect(code).toContain('const Inline = function () {');
-				expect(code).toContain("<div>{'inline'}</div>");
-				expect(code).not.toContain('function Inline');
-				expect(code).not.toContain('const Inline = () => {');
-			},
-		);
+		it('lowers expression-bodied function component props', () => {
+			const { code } = compile(
+				`export function App() { return <>
+					<Child
+						children={({ items }: { items: JSX.Element[] }) => <ul>
+							for (const item of items; index i) {
+								<li key={i}>{item}</li>
+							}
+						</ul>}
+					/>
+				</>; }`,
+				'App.tsrx',
+			);
 
-		it.runIf(jsx_targets.includes(name))(
-			'parses legacy anonymous component expressions inside JSX attribute objects',
-			() => {
-				const { code } = compile(
-					`export function App() { return <>
-						<Page
-							params={{
-								menuAlt2: component({ isAdmin, children }: { isAdmin: boolean, children: (items: JSX.Element[]) => JSX.Element }) {
-									const items = [];
-									if (isAdmin) {
-										items.push(<>Delete</>, <>Edit</>);
-									} else {
-										items.push(<>View</>);
-									}
-									{children(items)}
-								},
-							}}
-						/>
-					</>; }`,
-					'App.tsrx',
-				);
+			expect(code).toContain('children={({ items }: { items: JSX.Element[] }) => <ul>');
+			expect(code).toContain(
+				name === 'solid'
+					? '<For each={items}>'
+					: name === 'vue'
+						? '<VaporFor in={items}'
+						: '__map_iterable(items, (item, i)',
+			);
+			expect(code).toContain(name === 'vue' ? '<li>{item.value}</li>' : '<li key={i}>{item}</li>');
+		});
 
-				expect(code).toContain('menuAlt2');
-				expect(code).toContain('items.push');
-				expect(code).toContain('children(items)');
-				expect(code).toContain('</>;');
-			},
-		);
+		it('parses semicolon-terminated template expression containers', () => {
+			const { code } = compile(
+				`export function App() { return <>
+					<Child
+						children={({ items }: { items: JSX.Element[] }) => {
+							return <ul>
+								for (const item of items; index i) {
+									<li key={i}>{item}</li>
+								}
+							</ul>;
+						}}
+					/>
+				</>; }
 
-		it.runIf(jsx_targets.includes(name))(
-			'parses legacy anonymous component expressions as JSX attribute values',
-			() => {
-				const { code } = compile(
-					`export function App() { return <>
-						<Child
-							children={component ({ items }: { items: JSX.Element[] }) {
-								<ul>
-									for (const item of items; index i) {
-										<li key={i}>{item}</li>
-									}
-								</ul>
-							}}
-						/>
-					</>; }`,
-					'App.tsrx',
-				);
+				function Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) { return <>
+					{
+						children({ items: [<span>Item 1</span>, <span>Item 2</span>, <span>Item 3</span>] });
+					}
+				</>; }`,
+				'App.tsrx',
+			);
 
-				expect(code).toContain('children={function');
-				expect(code).toContain(
-					name === 'solid' ? '<For each={items}>' : '__map_iterable(items, (item, i)',
-				);
-				expect(code).toContain('<li key={i}>{item}</li>');
-			},
-		);
-
-		it.runIf(jsx_targets.includes(name))(
-			'parses semicolon-terminated template expression containers',
-			() => {
-				const { code } = compile(
-					`export function App() { return <>
-						<Child
-							children={component({ items }: { items: JSX.Element[] }) {
-								<ul>
-									for (const item of items; index i) {
-										<li key={i}>{item}</li>
-									}
-								</ul>
-							}}
-						/>
-					</>; }
-
-					function Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) { return <>
-						{
-							children({ items: [<><span>Item 1</span></>, <><span>Item 2</span></>, <><span>Item 3</span></>] });
-						}
-					</>; }`,
-					'App.tsrx',
-				);
-
-				expect(code).toContain('children({');
-				expect(code).toContain('Item 3');
-			},
-		);
-
-		it.runIf(name === 'vue')(
-			'lowers legacy anonymous component expressions to defineVaporComponent functions',
-			() => {
-				const { code } = compile(
-					`const Inline = component() {
-						<div>{'inline'}</div>
-					}`,
-					'App.tsrx',
-				);
-
-				expect(code).toContain('const Inline = defineVaporComponent(function () {');
-				expect(code).toContain("<div>{'inline'}</div>");
-				expect(code).not.toContain('function Inline');
-				expect(code).not.toContain('const Inline = defineVaporComponent(() => {');
-			},
-		);
+			expect(code).toContain('children({');
+			expect(code).toContain('Item 3');
+		});
 	});
 }
 
 /**
- * Shared validation that components only accept a single (props) parameter.
- * Without this rule, JSX targets pass extra params straight through into the
- * generated function, and ripple silently drops them. The rule is enforced
- * across every component declaration shape — named declaration, anonymous
- * expression (legacy and arrow), and arrow class property (regular and
- * static). Runs against both `compile` (which throws) and
- * `compile_to_volar_mappings` (which collects errors) so the same rule fires
- * for production builds and editor tooling.
+ * Shared validation that function components behave like ordinary TypeScript
+ * functions. TSRX no longer has a special component parameter syntax, so the
+ * compiler should not reject additional function parameters.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
  */
 export function runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name }) {
-	const expected_message =
-		'Components accept a single props parameter. Move additional inputs into the props object instead.';
+	const removed_message = 'TSRX functions accept ordinary TypeScript parameters.';
 
-	/**
-	 * @param {string} source
-	 * @param {string} label
-	 */
-	function expect_compile_throws(source, label) {
-		it(`rejects ${label} via compile`, () => {
-			expect(() => compile(source, 'App.tsrx')).toThrow(/single props parameter/);
-		});
-	}
-
-	/**
-	 * @param {string} source
-	 * @param {string} label
-	 */
-	function expect_volar_collects(source, label) {
-		it(`surfaces ${label} via Volar mappings`, () => {
-			const result = compile_to_volar_mappings(source, 'App.tsrx');
-
-			expect(
-				result.errors.some((error) =>
-					/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
-				),
-			).toBe(true);
-		});
-	}
-
-	const cases = /** @type {const} */ ([
-		[
-			'a named component declaration with multiple parameters',
-			`export function App(a, b) { return <>
-				<div>{a}</div>
-			</>; }`,
-		],
-		[
-			'an anonymous component expression with multiple parameters',
-			`const Inline = component(a, b) {
-				<div>{a}</div>
-			}`,
-		],
-		[
-			'an anonymous arrow component expression with multiple parameters',
-			`const Inline = component(a, b) => {
-				<div>{a}</div>
-			}`,
-		],
-		[
-			'an arrow component class property with multiple parameters',
-			`export class App {
-				Inline = component(a, b) => {
-					<div>{a}</div>
-				}
-			}`,
-		],
-		[
-			'a static arrow component class property with multiple parameters',
-			`export class App {
-				static Inline = component(a, b) => {
-					<div>{a}</div>
-				}
-			}`,
-		],
-	]);
-
-	describe(`[${name}] component params`, () => {
+	describe(`[${name}] function component params`, () => {
 		it('accepts a single props parameter', () => {
 			expect(() =>
 				compile(
@@ -1229,39 +1102,54 @@ export function runSharedComponentParamsTests({ compile, compile_to_volar_mappin
 			).not.toThrow();
 		});
 
-		for (const [label, source] of cases) {
-			expect_compile_throws(source, label);
-			expect_volar_collects(source, label);
-		}
+		it('accepts multiple parameters on ordinary functions that return TSRX', () => {
+			expect(() =>
+				compile(
+					`export function App(a, b, c) { return <>
+						<div>{a}{b}{c}</div>
+					</>; }`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
 
-		it('reports one Volar diagnostic per extra parameter, each at the param position', () => {
+		it('does not surface removed props-parameter diagnostics via Volar mappings', () => {
 			const result = compile_to_volar_mappings(
 				`export function App(a, b, c) { return <>
-					<div>{a}</div>
+					<div>{a}{b}{c}</div>
 				</>; }`,
 				'App.tsrx',
 			);
 
-			const offending = result.errors.filter((error) =>
-				/** @type {{ message?: string }} */ (error).message?.includes(expected_message),
-			);
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(removed_message),
+				),
+			).toBe(false);
+		});
 
-			expect(offending).toHaveLength(2);
+		it('accepts multiple parameters on class field function components', () => {
+			const source = `export class App {
+				Inline = (a, b) => <div>{a}{b}</div>;
+				static Other = (a, b) => <span>{a}{b}</span>;
+			}`;
 
-			const positions = offending.map((error) => /** @type {{ pos?: number }} */ (error).pos);
-			expect(new Set(positions).size).toBe(2);
+			expect(() => compile(source, 'App.tsrx')).not.toThrow();
+
+			const result = compile_to_volar_mappings(source, 'App.tsrx');
+			expect(
+				result.errors.some((error) =>
+					/** @type {{ message?: string }} */ (error).message?.includes(removed_message),
+				),
+			).toBe(false);
 		});
 	});
 }
 
 /**
- * Shared validation that components declared inside a class must use an arrow
- * function class property (regular or static). The method-style form
- * (`function foo() { return <></>; }` inside a class body) is rejected at parse time. The
- * non-arrow property form (`Foo = component() {}`) is rejected by the analyze
- * stage. Runs against both `compile` (which throws) and
- * `compile_to_volar_mappings` (which collects errors) so the rule is enforced
- * in production and editor tooling alike.
+ * Shared validation that class members returning TSRX behave like ordinary
+ * TypeScript class members. Arrow properties, static arrow properties, methods,
+ * and function expression properties are all valid shapes.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
  */
@@ -1270,13 +1158,35 @@ export function runSharedClassComponentDeclarationTests({
 	compile_to_volar_mappings,
 	name,
 }) {
-	describe(`[${name}] class component declarations`, () => {
-		it('allows an arrow component as a class property', () => {
+	describe(`[${name}] class function components`, () => {
+		it('allows an arrow function component as a class property', () => {
 			expect(() =>
 				compile(
 					`export class App {
-						Inline = component() => {
-							<div>{'hi'}</div>
+						Inline = () => <div>{'hi'}</div>;
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('allows an arrow function component as a static class property', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						static Inline = () => <div>{'hi'}</div>;
+					}`,
+					'App.tsrx',
+				),
+			).not.toThrow();
+		});
+
+		it('allows a class method that returns native TSRX', () => {
+			expect(() =>
+				compile(
+					`export class App {
+						Inline() {
+							return <div>{'hi'}</div>;
 						}
 					}`,
 					'App.tsrx',
@@ -1284,72 +1194,26 @@ export function runSharedClassComponentDeclarationTests({
 			).not.toThrow();
 		});
 
-		it('allows an arrow component as a static class property', () => {
+		it('allows a function expression class property that returns native TSRX', () => {
 			expect(() =>
 				compile(
 					`export class App {
-						static Inline = component() => {
-							<div>{'hi'}</div>
-						}
+						Inline = function () {
+							return <div>{'hi'}</div>;
+						};
 					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
 		});
 
-		it('rejects a component declared as a class method at parse time', () => {
-			expect(() =>
-				compile(
-					`export class App {
-						function Inline() { return <>
-							<div>{'hi'}</div>
-						</>; }
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/Unexpected token/);
-		});
-
-		it('rejects a non-arrow component as a class property value', () => {
-			expect(() =>
-				compile(
-					`export class App {
-						Inline = component() {
-							<div>{'hi'}</div>
-						}
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/Non-arrow component property values are not allowed/);
-		});
-
-		it('surfaces non-arrow property class component errors via Volar mappings', () => {
+		it('does not flag class members returning TSRX via Volar mappings', () => {
 			const result = compile_to_volar_mappings(
 				`export class App {
-					Inline = component() {
-						<div>{'hi'}</div>
-					}
-				}`,
-				'App.tsrx',
-			);
-
-			expect(
-				result.errors.some((error) =>
-					/** @type {{ message?: string }} */ (error).message?.includes(
-						'Non-arrow component property values are not allowed',
-					),
-				),
-			).toBe(true);
-		});
-
-		it('does not flag arrow component class properties via Volar mappings', () => {
-			const result = compile_to_volar_mappings(
-				`export class App {
-					Inline = component() => {
-						<div>{'hi'}</div>
-					}
-					static Other = component() => {
-						<span>{'hello'}</span>
+					Inline = () => <div>{'hi'}</div>;
+					static Other = () => <span>{'hello'}</span>;
+					Method() {
+						return <p>{'method'}</p>;
 					}
 				}`,
 				'App.tsrx',

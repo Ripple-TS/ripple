@@ -10,9 +10,7 @@ import {
 	mergeDuplicateRefs,
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
-	setLocation,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
-	applyLazyTransforms as apply_lazy_transforms,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isRefPropExpression as is_ref_prop_expression,
@@ -28,8 +26,6 @@ import {
 	clone_identifier,
 	clone_jsx_name,
 	cloneSwitchHelperInvocation as clone_switch_helper_invocation,
-	collectParamBindings as collect_param_bindings,
-	collectStatementBindings as collect_statement_bindings,
 	contains_component_jsx,
 	create_generated_identifier,
 	create_null_literal,
@@ -158,8 +154,6 @@ const solid_platform = {
 			switchStatement: switch_statement_to_jsx_child,
 			tryStatement: try_statement_to_jsx_child,
 		},
-		componentToFunction: (component, ctx, helper_state) =>
-			component_to_function_declaration(component, /** @type {any} */ (ctx), helper_state),
 		injectImports: (program, ctx) => inject_solid_imports(program, /** @type {any} */ (ctx)),
 		// `transformElementAttributes` is intentionally omitted: the
 		// `transformElement` hook below short-circuits core's element walker
@@ -197,230 +191,6 @@ function get_await_keyword_start(await_node, source) {
 
 	return await_node?.start ?? 0;
 }
-// =====================================================================
-// Component → FunctionDeclaration / FunctionExpression / ArrowFunctionExpression
-// =====================================================================
-
-/**
- * @param {any} component
- * @param {TransformContext} transform_context
- * @param {any} [walk_helper_state]
- *   The helper_state owned by the walker for this component. Solid's local
- *   body lowering happens *after* the walker has restored `helper_state` to
- *   the outer scope's value, so we re-install the walker's helper_state here
- *   for the duration of the body lowering. That way `to_jsx_child` calls into
- *   `switch_statement_to_jsx_child` (and any other lift path that goes
- *   through `create_hook_safe_helper`) see the same module-scoped helper
- *   bucket the React / Vue paths see, and `moduleScopedHookComponents: true`
- *   actually hoists Solid's `<StatementBodyHook/>` helpers out of the
- *   component body.
- * @returns {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression}
- */
-function component_to_function_declaration(component, transform_context, walk_helper_state) {
-	const params = component.params || [];
-	const body = /** @type {any[]} */ (component.body || []);
-
-	const saved_helper_state = transform_context.helper_state;
-	if (walk_helper_state) {
-		transform_context.helper_state = walk_helper_state;
-	}
-
-	// Re-install the component's body bindings before lowering the body. The
-	// walker sets `state.available_bindings` to the component-scope bindings
-	// during `next()` and restores them before calling the platform's
-	// `componentToFunction` hook — but Solid's body lowering happens *here*,
-	// after that restore, so `to_jsx_child` (and any `create_hook_safe_helper`
-	// it triggers via `switch_statement_to_jsx_child` / the if / try / for-of
-	// lifts) wouldn't otherwise see component-scope locals like `const obj =
-	// {...}` and would emit helpers that close over undefined references.
-	const saved_bindings = transform_context.available_bindings;
-	const body_bindings = collect_param_bindings(params);
-	for (const node of body) {
-		collect_statement_bindings(node, body_bindings);
-	}
-	transform_context.available_bindings = body_bindings;
-
-	// Detect top-level early-return patterns such as `if (cond) { return; }`
-	// and `if (cond) { <p />; return; }`.
-	// Solid components run their body once at setup, so an early `return` would
-	// make subsequent statements and JSX permanently inert. To preserve
-	// React-like "stop rendering the rest when cond becomes true" semantics,
-	// keep JSX before the guard outside and lift the guarded/continuation JSX
-	// into `<Show>` branches whose function-children re-run when `cond` changes.
-	// Non-JSX statements on either side stay in the outer body so setup code
-	// (signal creation, resource declarations, etc.) runs exactly once at
-	// component setup — putting them inside the `<Show>` arrow would re-run
-	// them on every toggle, creating fresh signals and losing state.
-	//
-	// The `if` node itself is elided: its `test` expression lives on in the
-	// `<Show>` attribute and is evaluated reactively by Solid's runtime, so
-	// any side effects or reactive reads in `cond` are preserved.
-	// Non-JSX statements after the guard run unconditionally rather than being
-	// gated by it; this is an intentional divergence from imperative `return`
-	// semantics required by the setup-once component model.
-	const early_idx = body.findIndex((node) => get_returning_if_info(node) !== null);
-	/** @type {any[]} */
-	let effective_body = body;
-	if (early_idx !== -1) {
-		const early_if = /** @type {any} */ (body[early_idx]);
-		const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
-			get_returning_if_info(early_if)
-		);
-		const before = body.slice(0, early_idx);
-		const after = body.slice(early_idx + 1);
-		const branch_has_content_before_return = early_info.return_index > 0;
-
-		// If mutations are interleaved with JSX children, the mutation and the
-		// JSX it affects can't both be hoisted out of order — that is the same
-		// bug `body_to_jsx_child` avoids. Capture each JSX child into a const
-		// at its source position so later mutations in the outer body don't
-		// retroactively change what earlier children rendered.
-		const early_interleaved = is_interleaved_body([...before, ...after]);
-
-		/** @type {any[]} */
-		const before_non_jsx = [];
-		/** @type {any[]} */
-		const before_jsx = [];
-		/** @type {any[]} */
-		const after_non_jsx = [];
-		/** @type {any[]} */
-		const after_jsx = [];
-		let early_capture_index = 0;
-
-		/**
-		 * @param {any[]} nodes
-		 * @param {any[]} outer
-		 * @param {any[]} jsx_bucket
-		 */
-		const collect = (nodes, outer, jsx_bucket) => {
-			for (const child of nodes) {
-				if (is_jsx_child(child)) {
-					if (get_returning_if_info(child) !== null) {
-						jsx_bucket.push(child);
-						continue;
-					}
-					if (early_interleaved) {
-						const jsx = to_jsx_child(child, transform_context);
-						outer.push(...extract_jsx_setup_declarations(jsx));
-						if (is_capturable_jsx_child(jsx)) {
-							const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
-							outer.push(declaration);
-							jsx_bucket.push(reference);
-						} else {
-							jsx_bucket.push(jsx);
-						}
-					} else {
-						jsx_bucket.push(child);
-					}
-				} else {
-					outer.push(child);
-				}
-			}
-		};
-
-		collect(before, before_non_jsx, before_jsx);
-		collect(after, after_non_jsx, after_jsx);
-
-		const next_body = [...before_non_jsx, ...before_jsx, ...after_non_jsx];
-
-		if (branch_has_content_before_return) {
-			transform_context.needs_show = true;
-			const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
-			const fallback_body =
-				after_jsx.length > 0 ? body_to_early_return_jsx_child(after_jsx, transform_context) : null;
-			next_body.push(build_show_element(early_if.test, branch_body, fallback_body));
-		} else if (after_jsx.length > 0) {
-			transform_context.needs_show = true;
-			const show_body = body_to_early_return_jsx_child(after_jsx, transform_context);
-			next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
-		}
-
-		effective_body = next_body;
-	}
-
-	const statements = [];
-	const render_nodes = [];
-	const interleaved = is_interleaved_body(effective_body);
-	let capture_index = 0;
-
-	for (const child of effective_body) {
-		if (is_jsx_child(child)) {
-			const jsx = to_jsx_child(child, transform_context);
-			statements.push(...extract_jsx_setup_declarations(jsx));
-			if (interleaved && is_capturable_jsx_child(jsx)) {
-				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
-				statements.push(declaration);
-				render_nodes.push(reference);
-			} else {
-				render_nodes.push(jsx);
-			}
-		} else if (is_bare_render_expression(child)) {
-			render_nodes.push(to_jsx_expression_container(child, child));
-		} else {
-			statements.push(child);
-		}
-	}
-
-	if (render_nodes.length > 0) {
-		statements.push(b.return(build_return_expression(render_nodes) || b.literal(null)));
-	}
-
-	const body_block = b.block(statements);
-
-	/** @type {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} */
-	let fn;
-
-	if (component.id) {
-		fn = b.function_declaration(component.id, params, body_block, false, component.typeParameters);
-	} else if (component.metadata?.arrow) {
-		fn = b.arrow(params, body_block, false, component.typeParameters);
-	} else {
-		fn = b.function(null, params, body_block, false, component.typeParameters);
-	}
-	fn.metadata.is_component = true;
-
-	// `preallocate_lazy_ids` stamped `has_lazy_descendants` on the source
-	// `Component` node; the freshly-built `fn` shares the same params/body
-	// subtree, so propagate the flag so the function-handler's early-return
-	// path can fire for non-lazy components.
-	if (/** @type {any} */ (component).metadata?.has_lazy_descendants) {
-		/** @type {any} */ (fn.metadata).has_lazy_descendants = true;
-	}
-
-	// Apply lazy `&{}` / `&[]` rewrites end-to-end via the function-handler in
-	// `apply_lazy_transforms`. Constant-time fast-path for functions whose
-	// subtrees contain no lazy patterns (flagged ahead of time by
-	// `preallocate_lazy_ids`). In type-only mode the rewrite is skipped so
-	// destructuring patterns survive into the virtual TSX.
-	if (!transform_context.typeOnly) {
-		fn = /** @type {typeof fn} */ (apply_lazy_transforms(fn, new Map()));
-	}
-
-	if (fn.type === 'FunctionDeclaration' && fn.id) {
-		fn.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
-			...fn.id.metadata,
-			is_component: true,
-		});
-	}
-
-	setLocation(fn, /** @type {any} */ (component), true);
-
-	// Restore the outer helper_state and bindings, then surface this
-	// component's generated helpers / statics so the downstream Program-level
-	// lift can hoist them (`moduleScopedHookComponents: true` registers
-	// helpers into `helper_state.helpers`; the React/Vue post-pass reads them
-	// off `fn.metadata.generated_helpers`).
-	transform_context.helper_state = saved_helper_state;
-	transform_context.available_bindings = saved_bindings;
-	if (walk_helper_state) {
-		const fn_metadata = /** @type {any} */ (fn.metadata);
-		fn_metadata.generated_helpers = walk_helper_state.helpers;
-		fn_metadata.generated_statics = walk_helper_state.statics;
-	}
-
-	return fn;
-}
-
 // =====================================================================
 // Control flow → Solid JSX components
 // =====================================================================

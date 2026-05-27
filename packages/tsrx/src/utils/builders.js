@@ -78,24 +78,6 @@ export function arrow(params, body, async = false, type_parameters, loc_info) {
 }
 
 /**
- * @param {AST.Identifier} id
- * @param {AST.Pattern[]} params
- * @param {AST.Node[]} body
- * @returns {AST.Component}
- */
-export function component(id, params, body) {
-	return {
-		type: 'Component',
-		id,
-		params,
-		body,
-		css: null,
-		metadata: { path: [] },
-		default: false,
-	};
-}
-
-/**
  * @param {AST.AssignmentOperator} operator
  * @param {AST.Pattern} left
  * @param {AST.Expression} right

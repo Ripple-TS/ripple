@@ -89,7 +89,7 @@ function is_composite_jsx_element(node) {
 }
 
 /**
- * Recursively walk `Element` nodes within a component body and add the hash
+ * Recursively walk `Element` nodes within a TSRX fragment and add the hash
  * class name so scope-qualified selectors (e.g. `.foo.hash`) match.
  *
  * @param {any} node
@@ -106,7 +106,6 @@ export function annotate_with_hash(
 ) {
 	if (!node || typeof node !== 'object') return node;
 	if (
-		node.type === 'Component' ||
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||
 		node.type === 'ArrowFunctionExpression'

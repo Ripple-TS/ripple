@@ -741,7 +741,7 @@ describe('@tsrx/react basic', () => {
 		expect(get_duplicate_mapping_keys(mappings.mappings)).toEqual([]);
 	});
 
-	it('maps function components to the component identifier', () => {
+	it('maps native TSRX functions to the function identifier', () => {
 		const source = `export function App() { return <>
 			<div>{'Hello world'}</div>
 		</>; }`;
@@ -757,7 +757,7 @@ describe('@tsrx/react basic', () => {
 		expect(function_identifier_mapping).toBeDefined();
 		expect(function_identifier_mapping?.data.semantic).toBe(true);
 		expect(function_identifier_mapping?.data.navigation).toBe(true);
-		expect(function_identifier_mapping?.data.customData.hover).toBeTypeOf('function');
+		expect(function_identifier_mapping?.data.customData.hover).toBeUndefined();
 	});
 
 	it('supports loose-mode Volar parsing for React source', () => {

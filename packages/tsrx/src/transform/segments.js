@@ -56,7 +56,6 @@ import {
 	get_mapping_from_node,
 } from '../source-map-utils.js';
 
-const LABEL_TO_COMPONENT_REPLACE_REGEX = /(function|\((property|method)\))/;
 const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
 
 /**
@@ -65,17 +64,6 @@ const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
  */
 function escape_regex(value) {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * @param {string} content
- * @returns {string}
- */
-function replace_label_to_component(content) {
-	return content.replace(LABEL_TO_COMPONENT_REPLACE_REGEX, (_, fn, kind) => {
-		if (fn === 'function') return 'component';
-		return `(component ${kind})`;
-	});
 }
 
 /**
@@ -443,52 +431,11 @@ export function convert_source_map_to_mappings(
 	}
 
 	/**
-	 * @typedef {AST.Property & {value: AST.FunctionExpression, method: true} & {value: {metadata: {is_component: true}}}} PropertyIsComponent
-	 */
-
-	/**
-	 * Maps `component` to the identifier's location
-	 * e.g. const obj = { component something() { } }
-	 * since there is no function keyword in source maps
-	 * @param {PropertyIsComponent} node
-	 * @returns {void}
-	 */
-	function set_component_mapping_to_name(node) {
-		if (node.key.loc) {
-			/** @type {CodeMapping} */
-			let mapping;
-			let start = /** @type {AST.NodeWithLocation} */ (node).start;
-			let length = 'component'.length;
-
-			if (node.value.type === 'FunctionExpression' && node.value.id) {
-				const id = /** @type {AST.Identifier & AST.NodeWithLocation} */ (node.value.id);
-				mapping = get_mapping_from_node(id, src_to_gen_map, gen_line_offsets);
-			} else {
-				// e.g. key is computed or literal
-				mapping = get_mapping_from_node(node.key, src_to_gen_map, gen_line_offsets);
-			}
-
-			// overwrite source start and length to point to 'component' keyword
-			mapping.sourceOffsets = [start];
-			mapping.lengths = [length];
-			mapping.data.customData.hover = replace_label_to_component;
-
-			mappings.push(mapping);
-		}
-	}
-
-	/**
 	 * @param {AST.Literal} node
-	 * @param {boolean} [is_component]
 	 */
-	function handle_literal(node, is_component = false) {
+	function handle_literal(node) {
 		if (node.loc) {
 			const mapping = get_mapping_from_node(node, src_to_gen_map, gen_line_offsets);
-
-			if (is_component) {
-				mapping.data.customData.hover = replace_label_to_component;
-			}
-
 			mappings.push(mapping);
 		}
 	}
@@ -524,15 +471,8 @@ export function convert_source_map_to_mappings(
 						};
 					}
 
-					if (node.metadata?.is_component) {
-						// only if the node has a component as the parent
-						token.metadata.hover = replace_label_to_component;
-					}
 					if (node.metadata?.source_length != null && LAZY_PARAM_IDENTIFIER_REGEX.test(node.name)) {
-						token.metadata.hover = create_lazy_param_hover_replacement(
-							node.name,
-							node.metadata?.lazy_param_is_component ? replace_label_to_component : undefined,
-						);
+						token.metadata.hover = create_lazy_param_hover_replacement(node.name);
 					}
 					if ('hover' in (node.metadata || {})) {
 						token.metadata.hover = /** @type {any} */ (node.metadata).hover;
@@ -772,25 +712,6 @@ export function convert_source_map_to_mappings(
 							visit(node.name);
 						}
 
-						if (
-							node.name.type === 'JSXIdentifier' &&
-							node.name.metadata?.is_component &&
-							node.name.loc
-						) {
-							const mapping = get_mapping_from_node(
-								node.name,
-								src_to_gen_map,
-								gen_line_offsets,
-								mapping_data,
-							);
-							mapping.sourceOffsets = [
-								/** @type {AST.NodeWithLocation} */ (node.name).start - 'component '.length,
-							];
-							mapping.lengths = ['component'.length];
-
-							mapping.data.customData.hover = replace_label_to_component;
-							mappings.push(mapping);
-						}
 						if (node.value) {
 							visit(node.value);
 						}
@@ -920,69 +841,51 @@ export function convert_source_map_to_mappings(
 					}
 				}
 
-				// Add function/component keyword token
+				// Add the function keyword token.
 				if (
 					(node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') &&
 					!is_method &&
 					node.loc
 				) {
 					const node_fn = /** @type (typeof node) & AST.NodeWithLocation */ (node);
-					const is_component = node_fn.metadata?.is_component;
-					const source_func_keyword = is_component ? 'component' : 'function';
 					const function_hover = create_function_hover_replacement(
 						/** @type {AST.Parameter[]} */ (node.params),
-						is_component ? replace_label_to_component : undefined,
 					);
 					let start_col = node_fn.loc.start.column;
 					let start = node_fn.start;
 					const async_keyword = 'async';
 
-					if (is_component && node_fn.id?.loc) {
-						const mapping = get_mapping_from_node(node_fn.id, src_to_gen_map, gen_line_offsets);
-						const generated_id_start = mapping.generatedOffsets[0];
-						const generated_keyword_start = find_component_keyword_offset(
-							generated_code,
-							generated_id_start,
-						);
-						mapping.sourceOffsets = [start];
-						mapping.lengths = [source_func_keyword.length];
-						mapping.generatedOffsets = [generated_keyword_start];
-						mapping.generatedLengths = ['function'.length];
-						if (function_hover) mapping.data.customData.hover = function_hover;
-						mappings.push(mapping);
-					} else {
-						if (node_fn.async) {
-							// We explicitly mapped async and function in esrap
-							tokens.push({
-								source: async_keyword,
-								generated: async_keyword,
-								loc: {
-									start: { line: node_fn.loc.start.line, column: start_col },
-									end: {
-										line: node_fn.loc.start.line,
-										column: start_col + async_keyword.length,
-									},
-								},
-								metadata: {},
-							});
-
-							start_col += async_keyword.length + 1; // +1 for space
-							start += async_keyword.length + 1;
-						}
-
+					if (node_fn.async) {
+						// We explicitly mapped async and function in esrap
 						tokens.push({
-							source: source_func_keyword,
-							generated: 'function',
+							source: async_keyword,
+							generated: async_keyword,
 							loc: {
 								start: { line: node_fn.loc.start.line, column: start_col },
 								end: {
 									line: node_fn.loc.start.line,
-									column: start_col + source_func_keyword.length,
+									column: start_col + async_keyword.length,
 								},
 							},
-							metadata: function_hover ? { hover: function_hover } : {},
+							metadata: {},
 						});
+
+						start_col += async_keyword.length + 1; // +1 for space
+						start += async_keyword.length + 1;
 					}
+
+					tokens.push({
+						source: 'function',
+						generated: 'function',
+						loc: {
+							start: { line: node_fn.loc.start.line, column: start_col },
+							end: {
+								line: node_fn.loc.start.line,
+								column: start_col + 'function'.length,
+							},
+						},
+						metadata: function_hover ? { hover: function_hover } : {},
+					});
 				}
 
 				// Visit in source order: id, params, body
@@ -997,7 +900,6 @@ export function convert_source_map_to_mappings(
 					);
 					const function_hover = create_function_hover_replacement(
 						/** @type {AST.Parameter[]} */ (node.params),
-						node.metadata?.is_component ? replace_label_to_component : undefined,
 					);
 					if (function_hover && id.loc) {
 						tokens.push({
@@ -1018,13 +920,6 @@ export function convert_source_map_to_mappings(
 
 				if (node.params) {
 					for (const param of node.params) {
-						if (
-							param.type === 'Identifier' &&
-							param.metadata?.source_length != null &&
-							LAZY_PARAM_IDENTIFIER_REGEX.test(param.name)
-						) {
-							param.metadata.lazy_param_is_component = node.metadata?.is_component === true;
-						}
 						visit(param);
 						if (param.typeAnnotation) {
 							visit(param.typeAnnotation);
@@ -1406,19 +1301,8 @@ export function convert_source_map_to_mappings(
 						set_bracket_computed_mapping(node, mappings);
 					}
 
-					if (
-						node.value.type === 'FunctionExpression' &&
-						node.method &&
-						node.value.metadata.is_component
-					) {
-						set_component_mapping_to_name(/** @type {PropertyIsComponent} */ (node));
-					}
-
 					if (node.key.type === 'Literal') {
-						handle_literal(
-							node.key,
-							/** @type {AST.FunctionExpression} */ (node.value).metadata.is_component,
-						);
+						handle_literal(node.key);
 					} else {
 						visit(node.key);
 					}
@@ -2372,21 +2256,6 @@ export function convert_source_map_to_mappings(
 		mappings,
 		cssMappings,
 	};
-}
-
-/**
- * @param {string} generated_code
- * @param {number} generated_id_start
- * @returns {number}
- */
-function find_component_keyword_offset(generated_code, generated_id_start) {
-	const function_keyword_index = generated_code.lastIndexOf('function', generated_id_start);
-
-	if (function_keyword_index === -1) {
-		return generated_id_start;
-	}
-
-	return function_keyword_index;
 }
 
 /**

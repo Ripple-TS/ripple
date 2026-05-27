@@ -438,10 +438,10 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
 
 /**
  * Walk the AST and pre-allocate `lazy_id` metadata on every lazy destructuring
- * pattern: function/component params, variable declarator ids, and statement-level
- * assignment LHS. Walks into non-lazy outer patterns to find nested lazy ones,
- * e.g. `{ pair: &[a, b] }` allocates an id for the inner `&[a, b]`. Idempotent:
- * skips patterns that already have a `lazy_id`.
+ * pattern: function params, variable declarator ids, and statement-level
+ * assignment LHS. Walks into non-lazy outer patterns to
+ * find nested lazy ones, e.g. `{ pair: &[a, b] }` allocates an id for the inner
+ * `&[a, b]`. Idempotent: skips patterns that already have a `lazy_id`.
  *
  * Also stamps `metadata.has_lazy_descendants = true` on every function-like
  * node whose subtree contains any lazy pattern, so `apply_lazy_transforms`

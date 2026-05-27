@@ -11,7 +11,6 @@ import {
 	CREATE_REF_PROP_INTERNAL_NAME,
 	createHookSafeHelper,
 	create_generated_identifier,
-	componentToFunctionDeclaration,
 	createJsxTransform,
 	error,
 	is_component_like_element,
@@ -146,10 +145,6 @@ const vue_platform = {
 				ctx?.errors,
 				ctx?.comments,
 			);
-		},
-		componentToFunction(component, ctx, helper_state) {
-			ctx.needs_define_vapor_component = true;
-			return component_to_vapor_component_declaration(component, ctx, helper_state);
 		},
 		injectImports(program, ctx) {
 			inject_vue_imports(program, ctx);
@@ -386,43 +381,6 @@ function mark_type_only_host_ref_attribute(attr) {
 			metadata: { ...(attr.name.metadata || {}), disable_verification: true },
 		},
 	};
-}
-
-/**
- * @param {any} component
- * @param {any} transform_context
- * @param {any} helper_state
- * @returns {any}
- */
-function component_to_vapor_component_declaration(component, transform_context, helper_state) {
-	const fn = componentToFunctionDeclaration(component, transform_context, helper_state);
-	const generated_helpers = helper_state?.helpers || [];
-	const generated_statics = helper_state?.statics || [];
-	const call = create_define_vapor_component_call(
-		function_declaration_to_expression(fn),
-		generated_helpers,
-		generated_statics,
-	);
-
-	if (component.default || !component.id) {
-		return call;
-	}
-
-	const component_id = create_generated_identifier(component.id.name);
-	const fn_id = fn.type === 'FunctionDeclaration' ? fn.id : null;
-	component_id.metadata = {
-		...component_id.metadata,
-		...(fn_id?.metadata || {}),
-		path: component_id.metadata?.path || [],
-	};
-	/** @type {any} */ (component_id.metadata).hover = create_component_hover_replacement(fn.params);
-
-	const declaration = builders.declaration('const', [builders.declarator(component_id, call)]);
-	Object.assign(/** @type {any} */ (declaration.metadata), {
-		generated_helpers,
-		generated_statics,
-	});
-	return declaration;
 }
 
 /**
@@ -1023,29 +981,6 @@ function function_declaration_to_expression(fn) {
 			...(fn.metadata || {}),
 			path: fn.metadata?.path || [],
 		},
-	};
-}
-
-const VUE_COMPONENT_HOVER_LABEL_REGEX = /(function|\((property|method)\))/;
-
-/**
- * @param {any[]} [params]
- * @returns {(content: string) => string}
- */
-function create_component_hover_replacement(params) {
-	const lazy_param_regexes = (params || [])
-		.filter((param) => param.type === 'Identifier' && /^__lazy\d+$/.test(param.name))
-		.map((param) => new RegExp(`\\b${param.name}\\s*:\\s*`, 'g'));
-
-	return (content) => {
-		let next = content.replace(VUE_COMPONENT_HOVER_LABEL_REGEX, (_, fn, kind) => {
-			if (fn === 'function') return 'component';
-			return `(component ${kind})`;
-		});
-		for (const regex of lazy_param_regexes) {
-			next = next.replace(regex, '&');
-		}
-		return next;
 	};
 }
 

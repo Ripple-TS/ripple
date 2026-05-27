@@ -2,7 +2,7 @@
  * @param {any[]} body_nodes
  * @returns {any | null}
  */
-export function find_first_top_level_await_in_component_body(body_nodes) {
+export function find_first_top_level_await_in_tsrx_function_body(body_nodes) {
 	for (const node of body_nodes) {
 		const found = find_first_top_level_await(node, false);
 		if (found) return found;

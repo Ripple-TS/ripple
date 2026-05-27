@@ -11,7 +11,6 @@ import type {
 	JsxTransformContext,
 	JsxTransformOptions,
 	JsxTransformResult,
-	componentToFunctionDeclaration,
 	createJsxTransform,
 } from './jsx-platform';
 
@@ -23,7 +22,7 @@ export type {
 	JsxTransformOptions,
 	JsxTransformResult,
 };
-export { createJsxTransform, componentToFunctionDeclaration };
+export { createJsxTransform };
 
 /**
  * Compile error interface
@@ -80,7 +79,6 @@ interface BaseNodeMetaData {
 	forceMapping?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
-	lazy_param_is_component?: boolean;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
 		generated: AST.Identifier | AST.Literal;
@@ -88,8 +86,7 @@ interface BaseNodeMetaData {
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
-	// needed for volar tokens to recognize component functions
-	is_component?: boolean;
+	native_tsrx_function?: boolean;
 	is_method?: boolean;
 	tracked?: boolean;
 	has_lazy_descendants?: boolean;
@@ -204,7 +201,6 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
-		Component: Component;
 		Tsx: Tsx;
 		Tsrx: Tsrx;
 		TsxCompat: TsxCompat;
@@ -317,25 +313,6 @@ declare module 'estree' {
 		innerComments?: AST.Comment[] | undefined;
 		leadingComments?: AST.Comment[] | undefined;
 		trailingComments?: AST.Comment[] | undefined;
-	}
-
-	/**
-	 * TSRX custom interfaces and types section
-	 */
-	interface Component extends AST.BaseNode {
-		type: 'Component';
-		// null is for anonymous components, e.g. `component(props) => {}`
-		id: AST.Identifier | null;
-		params: AST.Pattern[];
-		body: AST.Node[];
-		css: CSS.StyleSheet | null;
-		metadata: BaseNodeMetaData & {
-			arrow?: boolean;
-			topScopedClasses?: TopScopedClasses;
-			styleClasses?: StyleClasses;
-		};
-		default: boolean;
-		typeParameters?: AST.TSTypeParameterDeclaration;
 	}
 
 	interface Tsx extends AST.BaseNode {
@@ -463,28 +440,14 @@ declare module 'estree' {
 		loc?: AST.SourceLocation;
 	}
 
-	/**
-	 * TSRX's extended Declaration type that includes Component
-	 * Use this instead of Declaration when you need Component support
-	 */
-	export type TSRXDeclaration = AST.Declaration | Component | AST.TSDeclareFunction;
+	export type TSRXDeclaration = AST.Declaration | AST.TSDeclareFunction;
 
-	/**
-	 * TSRX's extended ExportNamedDeclaration with Component support
-	 */
 	interface TSRXExportNamedDeclaration extends Omit<AST.ExportNamedDeclaration, 'declaration'> {
 		declaration?: TSRXDeclaration | null | undefined;
 	}
 
-	/**
-	 * TSRX's extended Program with Component support
-	 */
 	interface TSRXProgram extends Omit<Program, 'body'> {
-		body: (Program['body'][number] | Component | FunctionExpression)[];
-	}
-
-	interface TSRXProperty extends Omit<AST.Property, 'value'> {
-		value: AST.Property['value'] | Component;
+		body: (Program['body'][number] | FunctionExpression)[];
 	}
 
 	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute | AST.RefAttribute;
@@ -1213,7 +1176,6 @@ export type DeclarationKind =
 	| 'function'
 	| 'param'
 	| 'rest_param'
-	| 'component'
 	| 'import'
 	| 'module'
 	| 'using'
@@ -1381,7 +1343,7 @@ export interface BaseState {
 
 	/** Common For All */
 	to_ts: boolean;
-	component?: AST.Component;
+	component?: AST.Function;
 }
 
 export interface AnalysisState extends BaseState {

@@ -592,7 +592,6 @@ export function get_comment_handlers(source, comments, index = 0) {
 								if (
 									parent.type === 'BlockStatement' ||
 									parent.type === 'Program' ||
-									parent.type === 'Component' ||
 									parent.type === 'ClassBody'
 								) {
 									node_array = parent.body;
@@ -783,8 +782,6 @@ export function get_comment_handlers(source, comments, index = 0) {
 									const isStatementContext =
 										parent.type === 'BlockStatement' || parent.type === 'Program';
 
-									// Don't apply for Component - let Prettier handle comment attachment there
-									// Component bodies have different comment handling via metadata.elementLeadingComments
 									if (!isStatementContext) {
 										return;
 									}

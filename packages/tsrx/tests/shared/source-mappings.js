@@ -78,8 +78,7 @@ export function runSharedSourceMappingTests({
 			expect_maps(`async function C() { return <> await foo(); </>; }`);
 		});
 
-		// Class methods: segments.js reads node.value.metadata.is_component,
-		// so every FunctionExpression needs metadata defaulted on it.
+		// Class methods should still have defaulted FunctionExpression metadata.
 		it('class method', () =>
 			expect_maps(`class Foo { bar() { return 1; } } function C() { return <></>; }`));
 		it('class async method', () =>
@@ -510,6 +509,21 @@ function C() { return <>
 			expect_class_keyword_mapping(`export default class {
 	value = 1;
 }`);
+		});
+
+		it('maps native TSRX function keywords as function keywords', () => {
+			const source = `export function App() { return <div />; }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_function_offset = source.indexOf('function');
+			const generated_function_offset = result.code.indexOf('function');
+			const mapping = find_exact_mapping(
+				result.mappings,
+				source_function_offset,
+				generated_function_offset,
+				'function'.length,
+			);
+
+			expect(mapping).toBeDefined();
 		});
 	});
 
