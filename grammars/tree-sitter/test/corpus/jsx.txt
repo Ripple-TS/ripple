@@ -2,7 +2,7 @@
 Dynamic Component
 ==================
 
-component App() {
+fragment App() {
   let Current = track(() => ComponentA);
   <@Current />
 }
@@ -10,7 +10,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -34,7 +34,7 @@ component App() {
 Dynamic Element
 ==================
 
-component App() {
+fragment App() {
   let tag = track('div');
   <@tag>{'content'}</@tag>
 }
@@ -42,7 +42,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -72,14 +72,14 @@ component App() {
 JSX Attributes
 ==================
 
-component App() {
+fragment App() {
   <div class="container" id={id} {...props} />
 }
 
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -104,14 +104,14 @@ component App() {
 Ref Attribute
 ==================
 
-component App() {
+fragment App() {
   <div {ref (node) => console.log(node)}>{'content'}</div>
 }
 
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -144,7 +144,7 @@ component App() {
 JSX Member Expression
 ==================
 
-component App() {
+fragment App() {
   <Namespace.Component />
   <obj.trackedProp />
 }
@@ -152,7 +152,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -174,7 +174,7 @@ component App() {
 JSX Fragment
 ==================
 
-component App() {
+fragment App() {
   <><span>{'one'}</span><span>{'two'}</span></>
   const title = <><span>{'hello'}</span></>;
 }
@@ -182,7 +182,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -387,7 +387,7 @@ export function Test(props) {
 Style Element
 ==================
 
-component App() {
+fragment App() {
   <div>{'content'}</div>
   <style>
     div { color: red; }
@@ -397,7 +397,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -417,6 +417,104 @@ component App() {
         (style_element
           (raw_text))))))
 
+============================
+Function Return Native Markup
+============================
+
+function MyApp() {
+  return <div />;
+}
+
+function WithFragment() {
+  return <>
+    <span>"ok"</span>
+    <style>
+      span { color: red; }
+    </style>
+  </>;
+}
+
+---
+
+(program
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters)
+      body: (statement_block
+        (return_statement
+          (jsx_self_closing_element
+            name: (jsx_non_namespaced_element_name
+              (identifier)))))))
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters)
+      body: (statement_block
+        (return_statement
+          (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            children: (jsx_text)
+            children: (style_element
+              (raw_text))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
+
+====================================
+Function Return Native Control Flow
+====================================
+
+function WithControlFlow(x) {
+  return <>
+    if (x) {
+      <div>"works"</div>
+    } else {
+      return null;
+    }
+  </>;
+}
+
+---
+
+(program
+  (expression_statement
+    (function_expression
+      name: (identifier)
+      parameters: (formal_parameters
+        (required_parameter
+          pattern: (identifier)))
+      body: (statement_block
+        (return_statement
+          (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (if_statement
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (statement_block
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_text)
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))))
+              alternative: (statement_block
+                (return_statement
+                  (null))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
+
 ==================
 Server Module
 ==================
@@ -425,7 +523,7 @@ module server {
   let data = fetchData();
 }
 
-component App() {
+fragment App() {
   <div>{'content'}</div>
 }
 
@@ -442,7 +540,7 @@ component App() {
             (call_expression
               function: (identifier)
               arguments: (arguments)))))))
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body

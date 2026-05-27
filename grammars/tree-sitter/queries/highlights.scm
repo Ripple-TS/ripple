@@ -1,5 +1,4 @@
 ; Keywords
-(component_declaration "component" @keyword)
 (fragment_declaration "fragment" @keyword)
 (module_declaration
   "module" @keyword
@@ -22,9 +21,6 @@
 ] @function.builtin
 
 ; Functions
-(component_declaration
-  name: (identifier) @function)
-
 (fragment_declaration
   name: (identifier) @function)
 

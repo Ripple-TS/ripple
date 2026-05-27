@@ -1,4 +1,5 @@
 #include <tree_sitter/parser.h>
+#include <string.h>
 #include <wctype.h>
 
 enum TokenType {
@@ -138,9 +139,52 @@ static bool scan_ternary_qmark(TSLexer *lexer) {
   return false;
 }
 
+static bool is_identifier_start(int32_t c) {
+  return c == '_' || c == '$' || iswalpha(c);
+}
+
+static bool is_identifier_continue(int32_t c) {
+  return is_identifier_start(c) || iswdigit(c);
+}
+
+static bool scan_identifier_for_jsx_statement_keyword(TSLexer *lexer) {
+  char word[16];
+  unsigned length = 0;
+
+  while (is_identifier_continue(lexer->lookahead)) {
+    if (length < sizeof(word) - 1) {
+      word[length++] = (char)lexer->lookahead;
+    }
+    advance(lexer);
+  }
+
+  word[length] = '\0';
+
+  return strcmp(word, "break") == 0 ||
+         strcmp(word, "class") == 0 ||
+         strcmp(word, "const") == 0 ||
+         strcmp(word, "continue") == 0 ||
+         strcmp(word, "debugger") == 0 ||
+         strcmp(word, "do") == 0 ||
+         strcmp(word, "else") == 0 ||
+         strcmp(word, "for") == 0 ||
+         strcmp(word, "function") == 0 ||
+         strcmp(word, "if") == 0 ||
+         strcmp(word, "let") == 0 ||
+         strcmp(word, "return") == 0 ||
+         strcmp(word, "switch") == 0 ||
+         strcmp(word, "throw") == 0 ||
+         strcmp(word, "try") == 0 ||
+         strcmp(word, "var") == 0 ||
+         strcmp(word, "while") == 0;
+}
+
 static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
-  for (bool has_content = false;; has_content = true) {
+  bool has_content = false;
+  bool has_non_whitespace_content = false;
+
+  for (;;) {
     lexer->mark_end(lexer);
     switch (lexer->lookahead) {
       case '<':
@@ -148,7 +192,21 @@ static bool scan_jsx_text(TSLexer *lexer) {
       case 0:
         return has_content;
       default:
+        if (is_identifier_start(lexer->lookahead)) {
+          bool is_statement_keyword = scan_identifier_for_jsx_statement_keyword(lexer);
+          if (is_statement_keyword && !has_non_whitespace_content) {
+            return false;
+          }
+          has_content = true;
+          has_non_whitespace_content = true;
+          break;
+        }
+
+        if (!iswspace(lexer->lookahead)) {
+          has_non_whitespace_content = true;
+        }
         advance(lexer);
+        has_content = true;
     }
   }
 }
@@ -177,4 +235,3 @@ bool tree_sitter_ripple_external_scanner_scan(void *payload, TSLexer *lexer,
 
   return false;
 }
-

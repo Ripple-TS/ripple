@@ -1,13 +1,8 @@
-; Functions / components
+; Functions / fragments
 (function_declaration) @function.around
 (function_declaration) @function.outer
 (function_declaration body: (statement_block) @function.inside)
 (function_declaration body: (statement_block) @function.inner)
-
-(component_declaration) @function.around
-(component_declaration) @function.outer
-(component_declaration body: (component_body) @function.inside)
-(component_declaration body: (component_body) @function.inner)
 
 (fragment_declaration) @function.around
 (fragment_declaration) @function.outer

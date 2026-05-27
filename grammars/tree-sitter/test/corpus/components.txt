@@ -1,15 +1,15 @@
-==================
-Component Declaration
-==================
+===============================
+Fragment Declaration With Props
+===============================
 
-component Button(props: { text: string }) {
+fragment Button(props: { text: string }) {
   <button>{props.text}</button>
 }
 
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter
@@ -38,11 +38,11 @@ component Button(props: { text: string }) {
               name: (jsx_element_name
                 (identifier)))))))))
 
-==================
-Export Component
-==================
+===============
+Export Fragment
+===============
 
-export component App() {
+export fragment App() {
   <div>{'Hello World'}</div>
 }
 
@@ -50,7 +50,7 @@ export component App() {
 
 (program
   (export_statement
-    (component_declaration
+    (fragment_declaration
       name: (identifier)
       parameters: (formal_parameters)
       body: (component_body
@@ -122,7 +122,7 @@ fragment ListItems(props: { items: Array<string> }) {
 Children Prop
 ==================
 
-component Card({ children }) {
+fragment Card({ children }) {
   <div class="card">
     {children}
   </div>
@@ -131,7 +131,7 @@ component Card({ children }) {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter

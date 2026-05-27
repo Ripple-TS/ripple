@@ -102,9 +102,6 @@
           "include": "#module-declaration"
         },
         {
-          "include": "#component-declaration"
-        },
-        {
           "include": "#fragment-declaration"
         },
         {
@@ -321,9 +318,6 @@
         },
         {
           "include": "#comment"
-        },
-        {
-          "include": "#component-expression"
         },
         {
           "include": "#function-expression"
@@ -1429,66 +1423,6 @@
               "include": "#expression"
             }
           ]
-        }
-      ]
-    },
-    "component-declaration": {
-      "name": "meta.function.js",
-      "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(?:(\\bexport)\\s+)?(?:(\\bdefault)\\s+)?(?:(\\bdeclare)\\s+)?(component\\b)(?:\\s*(\\*))?(?:(?:\\s+|(?<=\\*))([_$[:alpha:]][_$[:alnum:]]*))?\\s*",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.export.js"
-        },
-        "2": {
-          "name": "keyword.control.default.js"
-        },
-        "3": {
-          "name": "storage.modifier.js"
-        },
-        "4": {
-          "name": "storage.type.function.js"
-        },
-        "5": {
-          "name": "keyword.generator.asterisk.js"
-        },
-        "6": {
-          "name": "meta.definition.function.js entity.name.function.js"
-        }
-      },
-      "end": "(?=;|^\\s*$|(?:^\\s*(?:abstract|async|(?:\\bawait\\s+(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)\\b)|break|case|catch|class|const|continue|declare|do|else|enum|export|finally|function|for|goto|if|import|interface|let|module|namespace|pending|switch|return|throw|try|type|(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)|var|while)\\b))|(?<=\\})",
-      "patterns": [
-        {
-          "include": "#function-name"
-        },
-        {
-          "include": "#component-body"
-        }
-      ]
-    },
-    "component-expression": {
-      "name": "meta.function.expression.js",
-      "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(component\\b)(?:\\s*(\\*))?(?:(?:\\s+|(?<=\\*))([_$[:alpha:]][_$[:alnum:]]*))?\\s*",
-      "beginCaptures": {
-        "1": {
-          "name": "storage.type.function.js"
-        },
-        "2": {
-          "name": "keyword.generator.asterisk.js"
-        },
-        "3": {
-          "name": "meta.definition.function.js entity.name.function.js"
-        }
-      },
-      "end": "(?=;)|(?<=\\})",
-      "patterns": [
-        {
-          "include": "#function-name"
-        },
-        {
-          "include": "#single-line-comment-consuming-line-ending"
-        },
-        {
-          "include": "#component-body"
         }
       ]
     },
@@ -3757,7 +3691,7 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
-          "include": "#jsx-tsx-tag-fragment"
+          "include": "#jsx-tag-fragment"
         },
         {
           "include": "#expressionWithoutIdentifiers"
@@ -6259,7 +6193,7 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
-          "include": "#jsx-tsx-tag-fragment"
+          "include": "#jsx-tag-fragment"
         },
         {
           "include": "#jsx-tag-without-attributes"
@@ -6483,7 +6417,7 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
-          "include": "#jsx-tsx-tag-fragment"
+          "include": "#jsx-tag-fragment"
         },
         {
           "include": "#jsx-double-quoted-text-child"
@@ -6565,7 +6499,7 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
-          "include": "#jsx-tsx-tag-fragment"
+          "include": "#jsx-tag-fragment"
         },
         {
           "include": "#jsx-tag-without-attributes-in-expression"
@@ -6602,7 +6536,13 @@
           "include": "#jsx-tag-tsx-react"
         },
         {
-          "include": "#jsx-tsx-tag-fragment"
+          "include": "#jsx-tag-fragment"
+        },
+        {
+          "include": "#jsx-tag-without-attributes-in-expression"
+        },
+        {
+          "include": "#jsx-tag-in-expression"
         },
         {
           "include": "#expressionWithoutIdentifiers"
@@ -6975,6 +6915,33 @@
     "jsx-tsx-text": {
       "name": "string.unquoted.tsx.text.js",
       "match": "(?<=\\>)[^<>{}&]+(?=\\<)"
+    },
+    "jsx-tag-fragment": {
+      "name": "meta.tag.fragment.js",
+      "begin": "(<)(>)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "end": "(</)\\s*(>)",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "2": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "contentName": "meta.jsx.children.js",
+      "patterns": [
+        {
+          "include": "#jsx-children"
+        }
+      ]
     },
     "jsx-tsx-tag-fragment": {
       "name": "meta.tag.fragment.js",

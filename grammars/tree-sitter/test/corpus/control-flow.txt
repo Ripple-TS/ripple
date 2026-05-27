@@ -2,7 +2,7 @@
 For-of Loop
 ==================
 
-component List({ items }) {
+fragment List({ items }) {
   <ul>
     for (const item of items) {
       <li>{item.text}</li>
@@ -13,7 +13,7 @@ component List({ items }) {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter
@@ -27,9 +27,10 @@ component List({ items }) {
             open_tag: (jsx_opening_element
               name: (jsx_element_name
                 (identifier)))
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
+            children: (for_of_statement
+              (identifier)
+              right: (identifier)
+              body: (statement_block
                 (expression_statement
                   (jsx_element
                     open_tag: (jsx_opening_element
@@ -53,7 +54,7 @@ component List({ items }) {
 For-of with index and key
 ==================
 
-component List({ items }) {
+fragment List({ items }) {
   <ul>
     for (const item of items; index i; key item.id) {
       <li>{item.text}</li>
@@ -64,7 +65,7 @@ component List({ items }) {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter
@@ -78,9 +79,14 @@ component List({ items }) {
             open_tag: (jsx_opening_element
               name: (jsx_element_name
                 (identifier)))
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
+            children: (for_of_statement
+              (identifier)
+              right: (identifier)
+              (identifier)
+              (member_expression
+                object: (identifier)
+                property: (identifier))
+              body: (statement_block
                 (expression_statement
                   (jsx_element
                     open_tag: (jsx_opening_element
@@ -104,7 +110,7 @@ component List({ items }) {
 If Statement in Template
 ==================
 
-component App({ show }) {
+fragment App({ show }) {
   if (show) {
     <div>{'Visible'}</div>
   } else {
@@ -115,7 +121,7 @@ component App({ show }) {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter
@@ -158,7 +164,7 @@ component App({ show }) {
 Switch in Template
 ==================
 
-component Status({ status }) {
+fragment Status({ status }) {
   switch (status) {
     case 'loading':
       <p>{'Loading...'}</p>
@@ -174,7 +180,7 @@ component Status({ status }) {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters
       (required_parameter
@@ -235,7 +241,7 @@ component Status({ status }) {
 Try Pending Block
 ==================
 
-component SuspenseBoundary() {
+fragment SuspenseBoundary() {
   try {
     <AsyncComponent />
   } pending {
@@ -246,7 +252,7 @@ component SuspenseBoundary() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body
@@ -276,7 +282,7 @@ component SuspenseBoundary() {
 Try-Catch Error Boundary
 ==================
 
-component App() {
+fragment App() {
   try {
     <ComponentThatMayFail />
   } catch (e) {
@@ -287,7 +293,7 @@ component App() {
 ---
 
 (program
-  (component_declaration
+  (fragment_declaration
     name: (identifier)
     parameters: (formal_parameters)
     body: (component_body

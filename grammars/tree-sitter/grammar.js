@@ -70,7 +70,6 @@ module.exports = grammar({
 		[$.primary_expression, $.nested_type_identifier],
 		[$.arrow_function, $.type, $.type_identifier],
 		[$.primary_expression, $.arrow_function],
-		[$.component_declaration],
 		[$.fragment_declaration],
 		[$.computed_property_name, $.array],
 		[$.assignment_expression, $.initializer],
@@ -323,26 +322,10 @@ module.exports = grammar({
 		declaration: ($) =>
 			choice(
 				$.function_declaration,
-				$.component_declaration,
 				$.fragment_declaration,
 				$.class_declaration,
 				$.lexical_declaration,
 				$.variable_declaration,
-			),
-
-		component_declaration: ($) =>
-			prec.left(
-				PREC.DECLARATION,
-				seq(
-					optional('export'),
-					optional('default'),
-					'component',
-					optional(field('name', $.identifier)),
-					optional(field('type_parameters', $.type_parameters)),
-					field('parameters', $.formal_parameters),
-					optional($._type_annotation),
-					field('body', $.component_body),
-				),
 			),
 
 		fragment_declaration: ($) =>
@@ -372,6 +355,29 @@ module.exports = grammar({
 				$.function_declaration,
 				$.class_declaration,
 				$.expression_statement,
+				$.if_statement,
+				$.switch_statement,
+				$.for_statement,
+				$.for_in_statement,
+				$.for_of_statement,
+				$.while_statement,
+				$.do_statement,
+				$.try_statement,
+				$.return_statement,
+				$.throw_statement,
+				$.break_statement,
+				$.continue_statement,
+				$.debugger_statement,
+				$.empty_statement,
+				$.style_element,
+			),
+
+		_jsx_statement_child: ($) =>
+			choice(
+				$.variable_declaration,
+				$.lexical_declaration,
+				$.function_declaration,
+				$.class_declaration,
 				$.if_statement,
 				$.switch_statement,
 				$.for_statement,
@@ -913,6 +919,7 @@ module.exports = grammar({
 
 		_jsx_child: ($) =>
 			choice(
+				$._jsx_statement_child,
 				$.jsx_text,
 				$.jsx_element,
 				$.jsx_fragment,
@@ -938,7 +945,7 @@ module.exports = grammar({
 		private_property_identifier: ($) => /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
 
 		_reserved_identifier: ($) =>
-			choice('arguments', 'await', 'component', 'fragment', 'track', 'untrack'),
+			choice('arguments', 'await', 'fragment', 'track', 'untrack'),
 
 		comment: ($) => token(choice(seq('//', /.*/), seq('/*', /[^*]*\*+([^/*][^*]*\*+)*/, '/'))),
 

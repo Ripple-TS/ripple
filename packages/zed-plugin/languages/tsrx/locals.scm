@@ -4,7 +4,6 @@
   (function_declaration)
   (arrow_function)
   (function_expression)
-  (component_declaration)
   (fragment_declaration)
   (class_declaration)
   (for_statement)
@@ -15,9 +14,6 @@
 ] @local.scope
 
 ; Definitions
-(component_declaration
-  name: (identifier) @local.definition.function)
-
 (fragment_declaration
   name: (identifier) @local.definition.function)
 

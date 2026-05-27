@@ -8,10 +8,6 @@
         "named": true
       },
       {
-        "type": "component_declaration",
-        "named": true
-      },
-      {
         "type": "fragment_declaration",
         "named": true
       },
@@ -96,10 +92,6 @@
         "named": false
       },
       {
-        "type": "component",
-        "named": false
-      },
-      {
         "type": "fragment",
         "named": false
       },
@@ -156,10 +148,6 @@
       {
         "type": "class_expression",
         "named": true
-      },
-      {
-        "type": "component",
-        "named": false
       },
       {
         "type": "false",
@@ -1036,62 +1024,6 @@
       "types": [
         {
           "type": "component_statement",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "component_declaration",
-    "named": true,
-    "fields": {
-      "body": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "component_body",
-            "named": true
-          }
-        ]
-      },
-      "name": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "identifier",
-            "named": true
-          }
-        ]
-      },
-      "parameters": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "formal_parameters",
-            "named": true
-          }
-        ]
-      },
-      "type_parameters": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "type_parameters",
-            "named": true
-          }
-        ]
-      }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "type",
           "named": true
         }
       ]
@@ -2048,6 +1980,50 @@
         "required": false,
         "types": [
           {
+            "type": "break_statement",
+            "named": true
+          },
+          {
+            "type": "class_declaration",
+            "named": true
+          },
+          {
+            "type": "continue_statement",
+            "named": true
+          },
+          {
+            "type": "debugger_statement",
+            "named": true
+          },
+          {
+            "type": "do_statement",
+            "named": true
+          },
+          {
+            "type": "empty_statement",
+            "named": true
+          },
+          {
+            "type": "for_in_statement",
+            "named": true
+          },
+          {
+            "type": "for_of_statement",
+            "named": true
+          },
+          {
+            "type": "for_statement",
+            "named": true
+          },
+          {
+            "type": "function_declaration",
+            "named": true
+          },
+          {
+            "type": "if_statement",
+            "named": true
+          },
+          {
             "type": "jsx_element",
             "named": true
           },
@@ -2065,6 +2041,38 @@
           },
           {
             "type": "jsx_text",
+            "named": true
+          },
+          {
+            "type": "lexical_declaration",
+            "named": true
+          },
+          {
+            "type": "return_statement",
+            "named": true
+          },
+          {
+            "type": "style_element",
+            "named": true
+          },
+          {
+            "type": "switch_statement",
+            "named": true
+          },
+          {
+            "type": "throw_statement",
+            "named": true
+          },
+          {
+            "type": "try_statement",
+            "named": true
+          },
+          {
+            "type": "variable_declaration",
+            "named": true
+          },
+          {
+            "type": "while_statement",
             "named": true
           }
         ]
@@ -2166,6 +2174,50 @@
         "required": false,
         "types": [
           {
+            "type": "break_statement",
+            "named": true
+          },
+          {
+            "type": "class_declaration",
+            "named": true
+          },
+          {
+            "type": "continue_statement",
+            "named": true
+          },
+          {
+            "type": "debugger_statement",
+            "named": true
+          },
+          {
+            "type": "do_statement",
+            "named": true
+          },
+          {
+            "type": "empty_statement",
+            "named": true
+          },
+          {
+            "type": "for_in_statement",
+            "named": true
+          },
+          {
+            "type": "for_of_statement",
+            "named": true
+          },
+          {
+            "type": "for_statement",
+            "named": true
+          },
+          {
+            "type": "function_declaration",
+            "named": true
+          },
+          {
+            "type": "if_statement",
+            "named": true
+          },
+          {
             "type": "jsx_element",
             "named": true
           },
@@ -2183,6 +2235,38 @@
           },
           {
             "type": "jsx_text",
+            "named": true
+          },
+          {
+            "type": "lexical_declaration",
+            "named": true
+          },
+          {
+            "type": "return_statement",
+            "named": true
+          },
+          {
+            "type": "style_element",
+            "named": true
+          },
+          {
+            "type": "switch_statement",
+            "named": true
+          },
+          {
+            "type": "throw_statement",
+            "named": true
+          },
+          {
+            "type": "try_statement",
+            "named": true
+          },
+          {
+            "type": "variable_declaration",
+            "named": true
+          },
+          {
+            "type": "while_statement",
             "named": true
           }
         ]
@@ -2706,10 +2790,6 @@
           },
           {
             "type": "await",
-            "named": false
-          },
-          {
-            "type": "component",
             "named": false
           },
           {
@@ -4064,10 +4144,6 @@
     "type": "comment",
     "named": true,
     "extra": true
-  },
-  {
-    "type": "component",
-    "named": false
   },
   {
     "type": "const",
