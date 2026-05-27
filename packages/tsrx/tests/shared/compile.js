@@ -3318,7 +3318,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('useEffect(');
 			expect(code).not.toContain('<tsrx>');
-			if (name === 'react') {
+			if (name === 'react' || name === 'preact') {
 				expect(code).toContain('function App({ active }: { active: boolean })');
 				expect(code).toContain("return <span>{active ? 'active' : 'inactive'}</span>;");
 			} else {

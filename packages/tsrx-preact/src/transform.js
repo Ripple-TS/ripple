@@ -24,8 +24,7 @@ export const DEFAULT_SUSPENSE_SOURCE = 'preact/compat';
  * - `suspense` imports from `preact/compat` (overridable via `suspenseSource`).
  * - `rewriteClassAttr: false` — Preact accepts `class` natively.
  * - `acceptedTsxKinds` includes both `preact` and `react` for compat blocks.
- * - `requireUseServerForAwait: true` — top-level `await` in components
- *   requires a `"use server"` directive at module scope.
+ * - async function components are preserved as ordinary TypeScript functions.
  *
  * @type {JsxPlatform}
  */
@@ -46,7 +45,10 @@ const preact_platform = {
 		htmlProp: 'dangerouslySetInnerHTML',
 	},
 	validation: {
-		requireUseServerForAwait: true,
+		requireUseServerForAwait: false,
+	},
+	hooks: {
+		moduleScopedHookComponents: true,
 	},
 };
 

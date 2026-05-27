@@ -17,9 +17,8 @@ import {
  * }} SourceMappingHarness
  *
  * `rejectsComponentAwait`: does the platform refuse top-level `await` in a
- * component body (without any escape directive)? React returns an async
- * component and accepts it; Preact requires a `"use server"` directive to
- * allow it; Solid forbids it outright. When true, the shared `AwaitExpression`
+ * component body (without any escape directive)? React and Preact return async
+ * functions and accept it; Solid forbids it outright. When true, the shared `AwaitExpression`
  * test asserts the compiler throws rather than that it maps successfully.
  */
 

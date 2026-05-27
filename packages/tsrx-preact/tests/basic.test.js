@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-	runSharedAnonymousComponentTests,
-	runSharedClassComponentDeclarationTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
-	runSharedComponentParamsTests,
 	runSharedSwitchHelperHoistingTests,
 	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
@@ -15,32 +12,31 @@ runSharedSourceMappingTests({
 	compile,
 	compile_to_volar_mappings,
 	name: 'preact',
-	rejectsComponentAwait: true,
+	rejectsComponentAwait: false,
 });
 
-runSharedAnonymousComponentTests({ compile, name: 'preact' });
 runSharedTsxExpressionTsrxTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });
-runSharedClassComponentDeclarationTests({ compile, compile_to_volar_mappings, name: 'preact' });
-runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'preact' });
 runSharedSwitchHelperHoistingTests({
 	compile,
 	compile_to_volar_mappings,
 	name: 'preact',
-	clientHelperShape: 'local-cache',
+	clientHelperShape: 'module-function',
 });
 
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {
 		const { code } = compile(
-			`export component App() {
+			`export function App() {
+				return <>
 				try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
@@ -51,13 +47,15 @@ describe('@tsrx/preact basic', () => {
 
 	it('allows overriding the Suspense import source via compile options', () => {
 		const { code } = compile(
-			`export component App() {
+			`export function App() {
+				return <>
 				try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 			{ suspenseSource: 'preact-suspense' },
 		);
@@ -69,17 +67,21 @@ describe('@tsrx/preact basic', () => {
 
 	it('imports TsrxErrorBoundary from @tsrx/preact/error-boundary when try/catch is used', () => {
 		const { code } = compile(
-			`component ThrowingChild() {
+			`function ThrowingChild() {
+				return <>
 				<div>{'might throw'}</div>
-			}
+			
+				</>;}
 
-			export component App() {
+			export function App() {
+				return <>
 				try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
@@ -90,11 +92,13 @@ describe('@tsrx/preact basic', () => {
 
 	it('accepts <tsx:preact> blocks', () => {
 		const { code } = compile(
-			`export component App() {
+			`export function App() {
+				return <>
 				<tsx:preact>
 					<div>{'preact tsx'}</div>
 				</tsx:preact>
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
@@ -104,35 +108,42 @@ describe('@tsrx/preact basic', () => {
 	it('rejects unsupported tsx compat kinds with Preact-branded message', () => {
 		expect(() =>
 			compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					<tsx:solid>
 						<div>{'solid tsx'}</div>
 					</tsx:solid>
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			),
 		).toThrow(/Preact TSRX/);
 	});
 
-	it('rejects await without use server directive with Preact-branded message', () => {
-		expect(() =>
-			compile(
-				`export component App() {
+	it('supports async function components without requiring use server', () => {
+		const { code } = compile(
+			`export async function App() {
+					return <>
 					const data = await fetchData();
 					<div>{data}</div>
-				}`,
-				'App.tsrx',
-			),
-		).toThrow(/Preact components/);
+				
+				</>;}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('export async function App()');
+		expect(code).toContain('const data = await fetchData()');
 	});
 
 	it('applies for-control-flow keys to rendered elements', () => {
 		const { code } = compile(
-			`export component App({ items }: { items: { id: string, text: string }[] }) {
+			`export function App({ items }: { items: { id: string, text: string }[] }) {
+				return <>
 				for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
@@ -143,11 +154,13 @@ describe('@tsrx/preact basic', () => {
 
 	it('uses map_iterable for for-of over a Set without normalizing it', () => {
 		const { code } = compile(
-			`export component App({ items }: { items: Set<string> }) {
+			`export function App({ items }: { items: Set<string> }) {
+				return <>
 				for (const item of items) {
 					<li key={item}>{item}</li>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
@@ -163,22 +176,23 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`import { useState } from 'preact/hooks';
 
-			export component App({ items }: { items: Iterable<string> }) {
+			export function App({ items }: { items: Iterable<string> }) {
+				return <>
 				for (const item of items) {
 					const [open, setOpen] = useState(false);
 					<li key={item}>{open ? item : '-'}</li>
 				}
-			}`,
+			
+				</>;}`,
 			'App.tsrx',
 		);
 
 		expect(code).toContain('map_iterable as __map_iterable');
-		// Preact does not module-scope hook helpers, so the loop-scoped
-		// type alias references the runtime `IterationValue` helper.
-		expect(code).toContain('type IterationValue as __IterationValue');
 		expect(code).toContain("from '@tsrx/preact/runtime/iterable'");
+		expect(code).toContain('function App__StatementBodyHook1({ item })');
+		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item} />');
 		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
-		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
+		expect(code).not.toContain('type IterationValue as __IterationValue');
 		expect(code).not.toContain('Array.from(');
 		expect(code).not.toContain('Array.isArray(');
 		expect(code).not.toContain('IterationValue as type __IterationValue');
@@ -186,13 +200,15 @@ describe('@tsrx/preact basic', () => {
 
 	it('does not hoist render-time expressions across early returns', () => {
 		const { code } = compile(
-			`export component Test() {
+			`export function Test() {
+				return <>
 				<div>{Date.now()}</div>
 
 				if (Math.random() > 0.5) {
 					return;
 				}
-			}`,
+			
+				</>;}`,
 			'Test.tsrx',
 		);
 
@@ -203,44 +219,55 @@ describe('@tsrx/preact basic', () => {
 	});
 
 	it('preserves parent prop types in hook-bearing composite children', () => {
-		const { code } = compile(
-			`import { useState } from 'preact/hooks';
+		const source = `import { useState } from 'preact/hooks';
 			import type { PropsWithChildren } from 'ripple';
 
-			component Wrapper(props: PropsWithChildren<{}>) {
+			function Wrapper(props: PropsWithChildren<{}>) {
+				return <>
 				<section>{props.children}</section>
-			}
+			
+				</>;}
 
-			component Parent(props: { title: string }) {
+			function Parent(props: { title: string }) {
+				return <>
 				<Wrapper>
 					const [count] = useState(0);
 
 					<h1>{props.title}</h1>
 					<span>{count}</span>
 				</Wrapper>
-			}
+			
+				</>;}
 
-			component App() {
+			function App() {
+				return <>
 				<Parent title="Hello from props" />
-			}`,
-			'App.tsrx',
-		);
+			
+				</>;}`;
+		const { code } = compile(source, 'App.tsrx');
+		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('const _tsrx_StatementBodyHook1_props = props;');
-		expect(code).toContain(
+		expect(code).toContain('function Parent__StatementBodyHook1({ props })');
+		expect(code).toContain('<Parent__StatementBodyHook1 props={props} />');
+		expect(code).toContain('<h1>{props.title}</h1>');
+		expect(code).not.toContain(': any');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_props = props;');
+		expect(mappings.code).toContain(
 			'function StatementBodyHook1({ props }: { props: typeof _tsrx_StatementBodyHook1_props })',
 		);
-		expect(code).toContain('<h1>{props.title}</h1>');
-		expect(code).not.toContain('function StatementBodyHook1({ props })');
+		expect(mappings.code).toContain('<h1>{props.title}</h1>');
+		expect(mappings.code).not.toContain('props: any');
 	});
 
 	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					function refA(_node) {}
 					<div ref={refA}>{'hi'}</div>
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -251,10 +278,12 @@ describe('@tsrx/preact basic', () => {
 
 		it('passes a single Ripple {ref expr} through as ref={expr} with no helper import', () => {
 			const { code } = compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					function refA(_node) {}
 					<div {ref refA}>{'hi'}</div>
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -264,14 +293,18 @@ describe('@tsrx/preact basic', () => {
 
 		it('wraps named ref props and normalizes host spreads', () => {
 			const { code } = compile(
-				`export component Child(props) {
+				`export function Child(props) {
+					return <>
 					<input {...props} />
-				}
+				
+					</>;}
 
-				export component App() {
+				export function App() {
+					return <>
 					let input;
 					<Child input_ref={ref input} />
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -282,14 +315,18 @@ describe('@tsrx/preact basic', () => {
 
 		it('imports only create_ref_prop for component ref props without host spreads', () => {
 			const { code } = compile(
-				`export component Child(props) {
+				`export function Child(props) {
+					return <>
 					<span>{'child'}</span>
-				}
+				
+					</>;}
 
-				export component App() {
+				export function App() {
+					return <>
 					let input;
 					<Child input_ref={ref input} />
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -300,12 +337,14 @@ describe('@tsrx/preact basic', () => {
 
 		it('normalizes multiple host spreads once while merging one explicit ref', () => {
 			const { code } = compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					const first = {};
 					const second = {};
 					function cb(_node) {}
 					<input {...first} {...second} ref={cb} />
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -325,11 +364,13 @@ describe('@tsrx/preact basic', () => {
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(
-					`export component App() {
+					`export function App() {
+						return <>
 						function refA(_node) {}
 						function refB(_node) {}
 						<div ref={refA} ref={refB}>{'hi'}</div>
-					}`,
+					
+						</>;}`,
 					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
@@ -337,12 +378,14 @@ describe('@tsrx/preact basic', () => {
 
 		it('merges multiple {ref expr} keyword-form refs into a __mergeRefs call', () => {
 			const { code } = compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
 					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 
@@ -352,12 +395,14 @@ describe('@tsrx/preact basic', () => {
 
 		it('merges a single ref={expr} with multiple {ref expr} keyword-form refs', () => {
 			const { code } = compile(
-				`export component App() {
+				`export function App() {
+					return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
 					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
-				}`,
+				
+					</>;}`,
 				'App.tsrx',
 			);
 

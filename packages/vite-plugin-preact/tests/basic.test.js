@@ -5,7 +5,8 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('injects and serves a virtual css module for styled components', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export component App() {
+		const source = `export function App() {
+			return <>
 			<div>{'Hello world'}</div>
 
 			<style>
@@ -13,7 +14,8 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 					color: red;
 				}
 			</style>
-		}`;
+		
+			</>;}`;
 
 		const transformed = await plugin.transform(source, id);
 		const virtual_id = `${id}?tsrx-css&lang.css`;
@@ -29,9 +31,11 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('does not inject a virtual css module when no style block exists', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export component App() {
+		const source = `export function App() {
+			return <>
 			<div>{'Hello world'}</div>
-		}`;
+		
+			</>;}`;
 
 		const transformed = await plugin.transform(source, id);
 		const virtual_id = `${id}?tsrx-css&lang.css`;
@@ -45,10 +49,12 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('maps the JSX transform output back to the original tsrx source', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export component App() {
+		const source = `export function App() {
+			return <>
 			const message = 'Hello world';
 			<div>{message}</div>
-		}`;
+		
+			</>;}`;
 
 		const transformed = await plugin.transform(source, id);
 
