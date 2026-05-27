@@ -11,7 +11,7 @@ export const documentation_sections = [
 		use_cases:
 			'always, introduction, explain tsrx, compare jsx, language model context, runtime targets',
 		content:
-			'# TSRX Overview\n\nTSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.\n\nCore ideas:\n- Components are ordinary TypeScript functions that return TSRX.\n- TSRX opens in expression position, then template children are statement based inside the fragment.\n- control-flow statements can contain template output.\n- native TSRX can be returned directly as `<div />` or `<>...</>`; JSX-style values can use `<tsx>...</tsx>` when needed.\n- lazy destructuring uses &[] and &{} for by-reference bindings.\n\nThe core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.\n\nSource: website-tsrx/src/pages/specification.tsrx',
+			'# TSRX Overview\n\nTSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.\n\nCore ideas:\n- Components are ordinary TypeScript functions that return TSRX.\n- TSRX opens in expression position, then template children use a template statement list inside the fragment.\n- control-flow statements can contain template output.\n- native TSRX can be returned directly as `<div />` or `<>...</>`; JSX-style values can use `<tsx>...</tsx>` when needed.\n- lazy destructuring uses &[] and &{} for by-reference bindings.\n\nThe core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.\n\nSource: website-tsrx/src/pages/specification.tsrx',
 	},
 	{
 		slug: 'components',
@@ -19,7 +19,7 @@ export const documentation_sections = [
 		use_cases:
 			'components, functions, props, authoring .tsrx files, jsx return syntax',
 		content:
-			'# Function Components\n\nTSRX does not have a component declaration keyword. Author components as ordinary TypeScript functions and return TSRX from them.\n\n```tsx\nfunction Button(props: { label: string }) {\n  return <button>{props.label}</button>;\n}\n```\n\nInside the returned TSRX fragment, template elements and control flow are statement based.\n\nSource: website-tsrx/src/pages/specification.tsrx#components',
+			'# Function Components\n\nTSRX does not have a component declaration keyword. Author components as ordinary TypeScript functions and return TSRX from them.\n\n```tsx\nfunction Button(props: { label: string }) {\n  return <button>{props.label}</button>;\n}\n```\n\nInside the returned TSRX fragment, template elements and control flow share the same template statement list.\n\nSource: website-tsrx/src/pages/specification.tsrx#components',
 	},
 	{
 		slug: 'text-and-template-expressions',
@@ -35,7 +35,7 @@ export const documentation_sections = [
 		use_cases:
 			'fragments, tsrx tag, tsx tag, pass template as prop, return template from helper, render props, expression position jsx',
 		content:
-			'# Expression Values\n\nReturned TSRX opens in expression position. Inside the TSRX fragment, template elements are statements and control flow can emit UI.\n\n```tsx\nfunction App() {\n  const title = <>"Settings"</>;\n\n  return <Card title={title} />;\n}\n```\n\nNative TSRX expression fragments can contain setup statements and template control flow:\n\n```tsx\nfunction badge(label: string) {\n  return <>\n    const normalized = label.trim();\n    <span class="badge">{normalized}</span>\n  </>;\n}\n```\n\nUse fragments for assigning UI to variables, returning UI from helper functions, or passing UI as props.\n\nSpecification grammar:\n\n```text\nTsrxExpression :\n  <tsrx> TemplateChildrenopt </tsrx>\n\nTsxElement :\n  <tsx> TsxChildrenopt </tsx>\n\nTsxCompatElement :\n  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>\n\nTsxFragmentShorthand :\n  <> TsxChildrenopt </>\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#tsx-islands',
+			'# Expression Values\n\nReturned TSRX opens in expression position. Inside the TSRX fragment, template elements are statements and control flow can emit UI.\n\n```tsx\nfunction App() {\n  const title = <>"Settings"</>;\n\n  return <Card title={title} />;\n}\n```\n\nNative TSRX expression fragments can contain setup statements and template control flow:\n\n```tsx\nfunction badge(label: string) {\n  return <>\n    const normalized = label.trim();\n    <span class="badge">{normalized}</span>\n  </>;\n}\n```\n\nUse fragments for assigning UI to variables, returning UI from helper functions, or passing UI as props.\n\nSpecification grammar:\n\n```text\nTsrxExpression :\n  Element\n  <> TemplateChildrenopt </>\n  <tsrx> TemplateChildrenopt </tsrx>\n\nTsxElement :\n  <tsx> TsxChildrenopt </tsx>\n\nTsxCompatElement :\n  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#tsx-islands',
 	},
 	{
 		slug: 'control-flow',

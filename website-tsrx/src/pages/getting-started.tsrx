@@ -283,7 +283,7 @@ export function GettingStartedPage() {
 			<title>"TSRX | Getting Started"</title>
 			<meta
 				name="description"
-				content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore statement-based control flow."
+				content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
 			/>
 		</head>
 		<div class="app-shell">

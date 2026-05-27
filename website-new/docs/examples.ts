@@ -414,7 +414,7 @@ export default function SuspenseBoundary() {
 	{
 		title: 'Raw HTML',
 		code: `export default function App() {
-		  return <>
+  return <>
 	let source = \`
 <h1>My Blog Post</h1>
 <p>Hi! I like JS and Ripple.</p>
@@ -423,10 +423,10 @@ export default function SuspenseBoundary() {
 	<article>
 		{html source}
 	</article>
+  </>;
 }
 `,
-	
-		  </>;},
+	},
 	{
 		title: 'Reactive Variables',
 		code: `import { track } from 'ripple';

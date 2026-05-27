@@ -16,7 +16,7 @@ them all the way through to the compiled output.
 **Key characteristics:**
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
-- **Statement-based JSX**: JSX elements are statements, not expressions
+- **TSRX templates**: returned templates can contain elements, locals, and control flow
 - **Declarative control flow**: `if`, `for`, `switch`, `try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
@@ -322,8 +322,8 @@ function Icon() {
 
 TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
 `const node = <section />`, and `children={<Panel />}` all create TSRX values.
-Once the TSRX expression is open, its children use statement-based template
-syntax: elements, locals, `if`, `for...of`, `switch`, `try`, and `return` can
+Once the TSRX expression is open, its children use template statement syntax:
+elements, locals, `if`, `for...of`, `switch`, `try`, and `return` can
 appear directly inside the template body.
 
 ```tsrx

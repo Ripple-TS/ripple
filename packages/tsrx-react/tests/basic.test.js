@@ -822,7 +822,7 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('supports statement-based children inside elements', () => {
+	it('supports template statement children inside elements', () => {
 		const { code } = compile(
 			`function Child() { return <>
 				<div>
@@ -841,7 +841,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 	});
 
-	it('supports less-than comparisons in statement-based element children without whitespace', () => {
+	it('supports less-than comparisons in template statement element children without whitespace', () => {
 		const { code } = compile(
 			`function TodoList({ items }: { items: { text: string }[] }) { return <>
 				<ul>var a = 3

@@ -20,8 +20,8 @@ to [Inferno](https://github.com/infernojs/inferno),
 
 **Key Philosophy:** Ripple is TS-first with `.tsrx` as its default UI file
 extension. Components are ordinary TypeScript functions that return native TSRX
-expressions, so setup code stays familiar while template bodies can use
-statement-based control flow.
+expressions, so setup code stays familiar while template bodies can use inline
+control flow.
 
 > **`.tsrx` is also a standalone language:** the same source can now compile to
 > React, Solid, or Ripple via [TSRX](https://tsrx.dev) — a TypeScript language

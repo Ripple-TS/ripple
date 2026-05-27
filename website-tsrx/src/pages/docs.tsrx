@@ -20,7 +20,7 @@ const COMPONENT_HTML = highlight_tsrx(
 }`,
 );
 
-const STATEMENT_HTML = highlight_tsrx(
+const TEMPLATE_HTML = highlight_tsrx(
 	`function Greeting() {
   return <>
     <h1>"Hello World"</h1>
@@ -258,7 +258,7 @@ const LAZY_OBJ_VAR_HTML = highlight_tsrx(
 
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
-	{ id: 'jsx', label: 'Statement-based JSX' },
+	{ id: 'jsx', label: 'TSRX templates' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'scoping', label: 'Lexical scoping' },
 	{ id: 'children', label: 'Children' },
@@ -280,7 +280,7 @@ export function DocsPage() {
 			<title>{'TSRX | Docs'}</title>
 			<meta
 				name="description"
-				content="TSRX language reference: components, statement-based JSX, control flow, error boundaries, and more."
+				content="TSRX language reference: function components, returned templates, control flow, error boundaries, and more."
 			/>
 		</head>
 		<div class="app-shell">
@@ -336,18 +336,18 @@ export function DocsPage() {
 						</section>
 
 						<section class="doc-section" id="jsx">
-							<h2 class="section-heading">{'Statement-based JSX'}</h2>
+							<h2 class="section-heading">{'TSRX templates'}</h2>
 							<p class="section-body">
 								{'TSRX opens from ordinary JSX expression positions such as '}
 								<code class="inline-code">{'return <div />'}</code>
 								{' or '}
 								<code class="inline-code">{'return <>...</>'}</code>
-								{'. Once you are inside that template, JSX elements are statements: control flow, locals, and nested elements can appear directly in the returned tree. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
+								{'. Once you are inside that returned template, control flow, locals, and nested elements can appear directly in the tree. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
 								<code class="inline-code">{'{}'}</code>
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html STATEMENT_HTML}</code>
+								<code>{html TEMPLATE_HTML}</code>
 							</pre>
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}

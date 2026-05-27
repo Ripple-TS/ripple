@@ -72,7 +72,7 @@ TSRX is a TypeScript language extension for authoring declarative UI in .tsrx fi
 
 Core ideas:
 - Components are ordinary TypeScript functions that return TSRX.
-- TSRX opens in expression position, then template children are statement based inside the fragment.
+- TSRX opens in expression position, then template children use a template statement list inside the fragment.
 - control-flow statements can contain template output.
 - native TSRX can be returned directly as \`<div />\` or \`<>...</>\`; JSX-style values can use \`<tsx>...</tsx>\` when needed.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
@@ -95,7 +95,7 @@ function Button(props: { label: string }) {
 }
 \`\`\`
 
-Inside the returned TSRX fragment, template elements and control flow are statement based.
+Inside the returned TSRX fragment, template elements and control flow share the same template statement list.
 
 Source: website-tsrx/src/pages/specification.tsrx#components`,
 		},

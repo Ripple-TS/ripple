@@ -13,182 +13,95 @@ that surgically applies fine-grained state changes to the DOM.
 
 ## Defining a Ripple Component
 
-To define a component in Ripple, we can use the `component` keyword, in place of
-where we'd normally use a `function` keyword. Internally, Ripple's compiler will
-transform that into a function that it can call.
+Ripple components are ordinary TypeScript functions. Use a capitalized function
+name, accept props as the first parameter, and return TSRX the same way you would
+return JSX.
 
 ```ripple
 function Hello() {
-  return <>
-  <span>"Hello World!"</span>
+  return <span>"Hello World!"</span>;
+}
 
+export function App() {
+  return <Hello />;
+}
+```
+
+TSRX is the default UI expression form in `.tsrx` files. You can return a single
+element directly, or use a fragment when the template needs multiple statements.
+Once a TSRX expression is opened, its body is a template statement list:
+elements, local variables, control flow, and `<style>` blocks can sit next to
+each other.
+
+```ripple
+function MyComponent({ name }: { name: string | null }) {
+  return <>
+    const fallback = 'friend';
+
+    if (name) {
+      <p>"Hello, "{name}</p>
+    } else {
+      <p>"Hello, "{fallback}</p>
+    }
+
+    <style>
+      p { color: rebeccapurple; }
+    </style>
   </>;
 }
 ```
 
-::: info Notice Anything Missing? The lack of a return statement, unlike a
-(functional-style) JSX component isn't erroneous. As explained above, templates
-are statements rather than expressions, unlike JSX. We'll explore what you can do
-with that later!
-:::
+## TSRX Expressions
 
-## Caveat: Templates Must be within Components
-
-Unlike JSX, Ripple's regular templates are statement-based and can only appear
-within the body of a component. If you need UI in expression position, use the
-`<tsrx>...</tsrx>`, `<>...</>`, or `<tsx>...</tsx>` wrappers covered below. This
-design keeps normal component templates distinct from regular JavaScript logic
-while still providing an escape hatch when you need to store, return, or pass UI
-as a value.
+Because TSRX is expression-based at the point where it opens, UI can be returned,
+stored, or passed as a value anywhere a TypeScript expression is allowed. The
+inside of that value remains TSRX, so native text children and template control
+flow keep working.
 
 ```ripple
-// ❌ Wrong - Plain templates outside the component
-const element = <div>"Hello"</div>;  // Compilation error
-
-function regularFunction() {
-	return <span>"Not allowed"</span>;  // Compilation error
-}
-
-const myTemplate = (
-	<div>"Cannot assign JSX"</div>  // Compilation error
-);
-
-// ✅ Correct - Templates only inside components
-function MyComponent() {
-  return <>
-	// Template syntax is valid here
-  <div>"Hello World"</div>
-
-	// You can have JavaScript code mixed with templates
-	const message = "Dynamic content";
-	console.log("This JavaScript works");
-
-	<p>{message}</p>
-
-  </>;
-}
-
-// ✅ Correct - Helper functions can return data
-function getMessage() {
-	return "Hello from function";  // Return data, not JSX
-}
-
-function App() {
-  return <>
-	<div>{getMessage()}</div>  // Use function result in template
-
-  </>;
-}
-```
-
-## Using `<tsx>` and `<tsrx>` for Expression Values
-
-Use an expression island when UI needs to exist in expression position rather
-than as a normal template statement. Reach for `<tsrx>...</tsrx>` when you want
-native Ripple/TSRX template syntax, including double-quoted text children,
-setup statements, and template control flow. Use `<>...</>` or `<tsx>...</tsx>`
-when you want JSX-style children.
-
-```ripple
-// ✅ Correct - Store native TSRX in a variable
-function App() {
-  return <>
-  const title = <tsrx>
-    <span class="title">
-      "Settings"
-    </span>
-  </tsrx>;
-
-  <header>{title}</header>
-
-  </>;
-}
-
-// ✅ Correct - Return native TSRX from a helper function
 function createBadge(label: string) {
-  return <tsrx>
-    const normalized = label.trim();
-    <span class="badge">
-      {normalized}
-    </span>
-  </tsrx>;
+  return <span class="badge">{label}</span>;
 }
 
 function App() {
+  const title = <span class="title">"Settings"</span>;
+
   return <>
-  {createBadge('New')}
-
-  </>;
-}
-
-// ✅ Correct - Pass JSX-style values directly as props
-function Card(props: { title: any; children: any }) {
-  return <>
-  <section>
-    <h2>{props.title}</h2>
-    <div>{props.children}</div>
-  </section>
-
-  </>;
-}
-
-function App() {
-  return <>
-  <Card
-    title={<tsx>
-      <span>
-        Settings
-      </span>
-    </tsx>}
-    children={<tsx>
-      <p>
-        Card body
-      </p>
-    </tsx>}
-  />
-
+    <header>{title}</header>
+    {createBadge('New')}
   </>;
 }
 ```
 
-### `<tsrx>` vs `<tsx>` vs `<tsx:react>`
+Use fragments for statement-rich templates and single elements for compact return
+values. `<tsx:react>` remains the explicit escape hatch when you intentionally
+want React JSX semantics.
 
-- `<tsrx>` keeps native Ripple/TSRX template syntax and Ripple rendering semantics.
-- `<tsx>` and `<>...</>` are JSX-style expression islands.
-- `<tsx:react>` switches to React JSX semantics and requires compat setup.
+### TSRX vs React JSX
 
-Use `<tsrx>` when you want a Ripple renderable value written with normal TSRX
-template rules. Use `<tsx>` or fragment shorthand for JSX-style values. Use
-`<tsx:react>` only when you are intentionally embedding React.
+- `<div>"Text"</div>` is a TSRX expression with Ripple/TSRX text rules.
+- `<>...</>` opens a TSRX fragment; its children are statements.
+- `<tsx:react>...</tsx:react>` switches to React JSX semantics and requires
+  compat setup.
 
-## Early Returns in Components
+## Early Returns in Templates
 
-Ripple supports early exits from component/template execution via guard clauses.
-Use `return;` to stop evaluating the rest of the current render path after a
-condition is met.
+Functions are just functions, so a component can return `null`, a TSRX element,
+or any value accepted by the target runtime. Inside a TSRX fragment, `return`
+can be used as a guard to exit the surrounding function/render path.
 
 ```ripple
 function Profile({ user }) {
   return <>
-  if (!user) {
-    <p>"Please sign in to continue."</p>
-    return;
-  }
+    if (!user) {
+      return null;
+    }
 
-  <h1>{user.name}</h1>
-  <p>{user.email}</p>
-
+    <h1>{user.name}</h1>
+    <p>{user.email}</p>
   </>;
 }
 ```
-
-**Rules:**
-
-- Use only `return;` (without a value) inside component/template scopes.
-- `return` with a value (for example `return 'x'` or `return <div />`) is a
-  compile error.
-- `return` is not allowed at module top level.
-- `return` is a control-flow exit, not a JSX return value mechanism.
 
 ## Concept: Expressions
 
@@ -294,7 +207,7 @@ function TemplateScope() {
 - Variables declared in templates are scoped to that template block
 - Nested elements create nested scopes
 - Variables from outer scopes are accessible in inner scopes
-- Template variables don't leak to the component function scope
+- Template variables don't leak to the function scope
 
 ## Attribute Binding
 

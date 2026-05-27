@@ -39,7 +39,7 @@ const BAILOUT_HTML = highlight_tsrx(
 }`,
 );
 
-const STATEMENT_HTML = highlight_tsrx(
+const TEMPLATE_HTML = highlight_tsrx(
 	`function Greeting() {
   return <>
     <h1>"Hello World"</h1>
@@ -345,7 +345,7 @@ const LAZY_PROPS_HTML = highlight_tsrx(
 
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
-	{ id: 'jsx', label: 'Statement-based JSX' },
+	{ id: 'jsx', label: 'TSRX templates' },
 	{ id: 'text-expressions', label: 'Text expressions' },
 	{ id: 'raw-html', label: 'Raw HTML' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
@@ -370,7 +370,7 @@ export function FeaturesPage() {
 			<title>{'TSRX | Features'}</title>
 			<meta
 				name="description"
-				content="TSRX language features: components, statement-based JSX, control flow, error boundaries, and more."
+				content="TSRX language features: function components, returned templates, control flow, error boundaries, and more."
 			/>
 		</head>
 		<div class="app-shell">
@@ -442,8 +442,8 @@ export function FeaturesPage() {
 								{' exactly as you would in TSX. The compiler transforms returned TSRX into standard framework components for whichever target you\'re using.'}
 							</p>
 							<p class="section-body">
-								{'Since JSX in TSRX is statement-based (see '}
-								<a href="#jsx">{'Statement-based JSX'}</a>
+								{'Since returned TSRX templates have their own template rules (see '}
+								<a href="#jsx">{'TSRX templates'}</a>
 								{'), anything that needs ordinary JavaScript-only control flow can simply live in a plain inline function. Declare a '}
 								<code class="inline-code">{'const fn = () => { ... }'}</code>
 								{' next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression — it stays ordinary JavaScript, outside the returned template rules.'}
@@ -454,18 +454,18 @@ export function FeaturesPage() {
 						</section>
 
 						<section class="doc-section" id="jsx">
-							<h2 class="section-heading">{'Statement-based JSX'}</h2>
+							<h2 class="section-heading">{'TSRX templates'}</h2>
 							<p class="section-body">
 								{'TSRX opens from ordinary JSX expression positions such as '}
 								<code class="inline-code">{'return <div />'}</code>
 								{' or '}
 								<code class="inline-code">{'return <>...</>'}</code>
-								{'. Once you are inside that template, JSX elements are statements: control flow, locals, and nested elements can appear directly in the returned tree. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
+								{'. Once you are inside that returned template, control flow, locals, and nested elements can appear directly in the tree. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
 								<code class="inline-code">{'{}'}</code>
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html STATEMENT_HTML}</code>
+								<code>{html TEMPLATE_HTML}</code>
 							</pre>
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}
@@ -485,7 +485,7 @@ export function FeaturesPage() {
 						<section class="doc-section" id="text-expressions">
 							<h2 class="section-heading">{'Text expressions'}</h2>
 							<p class="section-body">
-								{'Because JSX is statement-based, unquoted bare text can\'t sit directly inside an element the way it does in React. Static text may be written as a direct double-quoted child. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
+								{'Because TSRX templates parse text deliberately, unquoted bare text can\'t sit directly inside an element the way it does in React. Static text may be written as a direct double-quoted child. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
 								<code class="inline-code">{'{ ... }'}</code>
 								{'.'}
 							</p>

@@ -77,16 +77,6 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 }`,
 	},
 	{
-		value: 'statement-jsx',
-		label: 'Statement-based JSX',
-		source: `function Greeting() {
-  return <>
-    <h1>"Hello World"</h1>
-    <p>"Welcome to TSRX."</p>
-  </>;
-}`,
-	},
-	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
