@@ -82,7 +82,7 @@ function join_compiled_output(code: string, css: string): string {
 	return `${code.trimEnd()}\n\n/* CSS */\n${css.trimEnd()}`;
 }
 
-export component CompilerDemo() {
+export function CompilerDemo() {
 	let source_ref: Tracked<HTMLElement> = track();
 	let output_ref: Tracked<HTMLElement> = track();
 
@@ -428,362 +428,365 @@ export component CompilerDemo() {
 		load_source(snippet.source);
 	});
 
-	<section class="demo-shell" id="demo">
-		<div class="demo-header">
-			<div>
-				<p class="demo-kicker">{'TSRX Playground'}</p>
-			</div>
-			<div class="demo-toolbar">
-				<label class="snippet-picker">
-					<select class="snippet-select" {ref bindValue(selected_snippet)}>
-						<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
-						for (const snippet of DEMO_SNIPPETS) {
-							if (is_snippet_available_for_target(snippet, selected_target.value)) {
-								<option value={snippet.value}>{snippet.label}</option>
+	return <>
+		<section class="demo-shell" id="demo">
+			<div class="demo-header">
+				<div>
+					<p class="demo-kicker">{'TSRX Playground'}</p>
+				</div>
+				<div class="demo-toolbar">
+					<label class="snippet-picker">
+						<select class="snippet-select" {ref bindValue(selected_snippet)}>
+							<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
+							for (const snippet of DEMO_SNIPPETS) {
+								if (is_snippet_available_for_target(snippet, selected_target.value)) {
+									<option value={snippet.value}>{snippet.label}</option>
+								}
 							}
+						</select>
+					</label>
+					<label class="target-picker">
+						<select class="target-select" {ref bindValue(selected_target)}>
+							for (const option of TARGET_OPTIONS) {
+								<option value={option.value}>{option.label}</option>
+							}
+						</select>
+					</label>
+				</div>
+			</div>
+
+			<div class={`demo-grid${editors_ready ? ' ready' : ''}`}>
+				<div
+					class={`panel panel-source${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}
+				>
+					<div class="panel-topline">
+						<span>{'TSRX input'}</span>
+						<span class="panel-topline-actions">
+							<span>{'.tsrx'}</span>
+							<button
+								type="button"
+								class="format-button"
+								onClick={() => {
+									void format_source();
+								}}
+								disabled={formatting || !editors_ready}
+								title="Format with Prettier"
+							>
+								{formatting ? 'Formatting…' : 'Format'}
+							</button>
+						</span>
+					</div>
+					<div class="panel-body editor-host" {ref bindNode(source_ref)} />
+				</div>
+
+				<div
+					class={`panel panel-output${active_mobile_panel.value === 'output' ? ' is-active' : ''}`}
+				>
+					<div class="panel-topline">
+						<span>{TARGET_LABELS[selected_target.value]}</span>
+					</div>
+					<div class="panel-body">
+						if (error_message) {
+							<div class="panel-error" role="alert">{error_message}</div>
 						}
-					</select>
-				</label>
-				<label class="target-picker">
-					<select class="target-select" {ref bindValue(selected_target)}>
-						for (const option of TARGET_OPTIONS) {
-							<option value={option.value}>{option.label}</option>
-						}
-					</select>
-				</label>
-			</div>
-		</div>
-
-		<div class={`demo-grid${editors_ready ? ' ready' : ''}`}>
-			<div class={`panel panel-source${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}>
-				<div class="panel-topline">
-					<span>{'TSRX input'}</span>
-					<span class="panel-topline-actions">
-						<span>{'.tsrx'}</span>
-						<button
-							type="button"
-							class="format-button"
-							onClick={() => {
-								void format_source();
-							}}
-							disabled={formatting || !editors_ready}
-							title="Format with Prettier"
-						>
-							{formatting ? 'Formatting…' : 'Format'}
-						</button>
-					</span>
-				</div>
-				<div class="panel-body editor-host" {ref bindNode(source_ref)} />
-			</div>
-
-			<div
-				class={`panel panel-output${active_mobile_panel.value === 'output' ? ' is-active' : ''}`}
-			>
-				<div class="panel-topline">
-					<span>{TARGET_LABELS[selected_target.value]}</span>
-				</div>
-				<div class="panel-body">
-					if (error_message) {
-						<div class="panel-error" role="alert">{error_message}</div>
-					}
-					<div class="editor-host" {ref bindNode(output_ref)} />
+						<div class="editor-host" {ref bindNode(output_ref)} />
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<div class="mobile-pane-toggle" aria-label="Switch visible panel">
-			<button
-				type="button"
-				class={`pane-button${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}
-				onClick={() => {
-					active_mobile_panel.value = 'input';
-				}}
-			>
-				{'input'}
-			</button>
-			<button
-				type="button"
-				class={`pane-button${active_mobile_panel.value === 'output' ? ' is-active' : ''}`}
-				onClick={() => {
-					active_mobile_panel.value = 'output';
-				}}
-			>
-				{'output'}
-			</button>
-		</div>
-	</section>
-
-	<style>
-		.demo-shell {
-			background: transparent;
-			box-shadow: none;
-			flex: 1;
-			display: flex;
-			flex-direction: column;
-			min-height: 0;
-		}
-
-		.demo-header {
-			display: flex;
-			justify-content: space-between;
-			gap: 1.25rem;
-			align-items: end;
-			width: min(1180px, calc(100vw - 2rem));
-			margin: 0 auto;
-			padding: 0 0 0.75rem;
-			flex-wrap: wrap;
-		}
-
-		.demo-kicker {
-			margin: 0 0 0.45rem;
-			font-size: 0.78rem;
-			letter-spacing: 0.18em;
-			text-transform: uppercase;
-			color: #6e44df;
-		}
-
-		.demo-header h2 {
-			margin: 0;
-			font-size: clamp(1.45rem, 2vw, 2.2rem);
-			max-width: 34rem;
-			color: #1a1640;
-		}
-
-		.demo-copy {
-			margin: 0.7rem 0 0;
-			max-width: 36rem;
-			font-size: 0.98rem;
-			line-height: 1.65;
-			color: rgba(26, 22, 64, 0.74);
-		}
-
-		.demo-toolbar {
-			display: flex;
-			gap: 0.75rem;
-			align-items: center;
-			justify-content: flex-end;
-			flex-wrap: wrap;
-		}
-
-		.snippet-picker,
-		.target-picker {
-			display: grid;
-			gap: 0;
-		}
-
-		.snippet-select,
-		.target-select {
-			min-width: 11rem;
-			padding: 0.75rem 3rem 0.75rem 1.2rem;
-			border: 1px solid rgba(94, 44, 255, 0.12);
-			border-radius: 0.9rem;
-			background-color: rgba(255, 255, 255, 0.92);
-			color: #1a1640;
-			appearance: none;
-			-webkit-appearance: none;
-			-moz-appearance: none;
-			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231a1640' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-			background-repeat: no-repeat;
-			background-size: 0.95rem;
-			background-position: right 1.2rem center;
-		}
-
-		.demo-status-row {
-			display: flex;
-			flex-direction: column;
-			gap: 0.25rem;
-			align-items: flex-end;
-		}
-
-		.demo-status,
-		.demo-updated {
-			font-size: 0.8rem;
-			color: rgba(26, 22, 64, 0.72);
-		}
-
-		.demo-status {
-			padding: 0.45rem 0.7rem;
-			background: rgba(111, 0, 255, 0.08);
-		}
-
-		.demo-grid {
-			display: grid;
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-			gap: 0;
-			flex: 1;
-			min-height: 0;
-		}
-
-		.mobile-pane-toggle {
-			display: none;
-		}
-
-		.panel {
-			min-width: 0;
-			min-height: 0;
-			background: #040a18;
-			overflow: hidden;
-			display: flex;
-			flex-direction: column;
-		}
-
-		.panel-topline {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			gap: 1rem;
-			padding: 0.4rem 1rem;
-			min-height: 2.5rem;
-			background: rgba(255, 255, 255, 0.03);
-			font-size: 0.78rem;
-			letter-spacing: 0.06em;
-			text-transform: uppercase;
-			color: rgba(214, 224, 255, 0.78);
-		}
-
-		.panel-topline-actions {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.6rem;
-		}
-
-		.format-button {
-			font: inherit;
-			font-size: 0.72rem;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
-			padding: 0.3rem 0.7rem;
-			border-radius: 999px;
-			border: 1px solid rgba(138, 152, 255, 0.32);
-			background: rgba(138, 152, 255, 0.12);
-			color: rgba(226, 231, 255, 0.92);
-			cursor: pointer;
-			transition:
-				background 120ms ease,
-				border-color 120ms ease,
-				color 120ms ease;
-		}
-
-		.format-button:hover:not(:disabled) {
-			background: rgba(138, 152, 255, 0.22);
-			border-color: rgba(138, 152, 255, 0.55);
-			color: #fff;
-		}
-
-		.format-button:disabled {
-			opacity: 0.45;
-			cursor: not-allowed;
-		}
-
-		.panel-body {
-			flex: 1;
-			min-height: 0;
-			display: flex;
-			flex-direction: column;
-		}
-
-		.panel-error {
-			padding: 0.8rem 1rem;
-			background: #e01174;
-			color: #fff;
-			font-size: 0.9rem;
-			line-height: 1.35;
-		}
-
-		.editor-host {
-			position: relative;
-			flex: 1;
-			min-height: 0;
-		}
-
-		:global(.editor-host .cm-scroller) {
-			scrollbar-width: thin;
-			scrollbar-color: rgba(140, 160, 255, 0.18) transparent;
-		}
-
-		:global(.editor-host .cm-scroller::-webkit-scrollbar) {
-			width: 6px;
-			height: 6px;
-		}
-
-		:global(.editor-host .cm-scroller::-webkit-scrollbar-track) {
-			background: transparent;
-		}
-
-		:global(.editor-host .cm-scroller::-webkit-scrollbar-thumb) {
-			background: rgba(140, 160, 255, 0.18);
-			border-radius: 3px;
-		}
-
-		:global(.editor-host .cm-scroller::-webkit-scrollbar-thumb:hover) {
-			background: rgba(140, 160, 255, 0.32);
-		}
-
-		:global(.editor-host .cm-scroller::-webkit-scrollbar-corner) {
-			background: transparent;
-		}
-
-		.demo-grid:not(.ready) :global(.cm-editor) {
-			opacity: 0;
-		}
-
-		@media (max-width: 980px) {
-			.demo-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.panel {
-				display: none;
-			}
-
-			.panel.is-active {
+			<div class="mobile-pane-toggle" aria-label="Switch visible panel">
+				<button
+					type="button"
+					class={`pane-button${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}
+					onClick={() => {
+						active_mobile_panel.value = 'input';
+					}}
+				>
+					{'input'}
+				</button>
+				<button
+					type="button"
+					class={`pane-button${active_mobile_panel.value === 'output' ? ' is-active' : ''}`}
+					onClick={() => {
+						active_mobile_panel.value = 'output';
+					}}
+				>
+					{'output'}
+				</button>
+			</div>
+		</section>
+		<style>
+			.demo-shell {
+				background: transparent;
+				box-shadow: none;
+				flex: 1;
 				display: flex;
+				flex-direction: column;
+				min-height: 0;
+			}
+
+			.demo-header {
+				display: flex;
+				justify-content: space-between;
+				gap: 1.25rem;
+				align-items: end;
+				width: min(1180px, calc(100vw - 2rem));
+				margin: 0 auto;
+				padding: 0 0 0.75rem;
+				flex-wrap: wrap;
+			}
+
+			.demo-kicker {
+				margin: 0 0 0.45rem;
+				font-size: 0.78rem;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: #6e44df;
+			}
+
+			.demo-header h2 {
+				margin: 0;
+				font-size: clamp(1.45rem, 2vw, 2.2rem);
+				max-width: 34rem;
+				color: #1a1640;
+			}
+
+			.demo-copy {
+				margin: 0.7rem 0 0;
+				max-width: 36rem;
+				font-size: 0.98rem;
+				line-height: 1.65;
+				color: rgba(26, 22, 64, 0.74);
 			}
 
 			.demo-toolbar {
-				justify-content: flex-start;
+				display: flex;
+				gap: 0.75rem;
+				align-items: center;
+				justify-content: flex-end;
+				flex-wrap: wrap;
+			}
+
+			.snippet-picker,
+			.target-picker {
+				display: grid;
+				gap: 0;
+			}
+
+			.snippet-select,
+			.target-select {
+				min-width: 11rem;
+				padding: 0.75rem 3rem 0.75rem 1.2rem;
+				border: 1px solid rgba(94, 44, 255, 0.12);
+				border-radius: 0.9rem;
+				background-color: rgba(255, 255, 255, 0.92);
+				color: #1a1640;
+				appearance: none;
+				-webkit-appearance: none;
+				-moz-appearance: none;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231a1640' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+				background-repeat: no-repeat;
+				background-size: 0.95rem;
+				background-position: right 1.2rem center;
 			}
 
 			.demo-status-row {
-				align-items: start;
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+				align-items: flex-end;
 			}
 
-			.panel-body {
-				min-height: 20rem;
+			.demo-status,
+			.demo-updated {
+				font-size: 0.8rem;
+				color: rgba(26, 22, 64, 0.72);
+			}
+
+			.demo-status {
+				padding: 0.45rem 0.7rem;
+				background: rgba(111, 0, 255, 0.08);
+			}
+
+			.demo-grid {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				gap: 0;
+				flex: 1;
+				min-height: 0;
 			}
 
 			.mobile-pane-toggle {
+				display: none;
+			}
+
+			.panel {
+				min-width: 0;
+				min-height: 0;
+				background: #040a18;
+				overflow: hidden;
 				display: flex;
-				position: sticky;
-				bottom: 0;
-				z-index: 5;
-				justify-content: center;
+				flex-direction: column;
+			}
+
+			.panel-topline {
+				display: flex;
+				justify-content: space-between;
 				align-items: center;
-				gap: 0.65rem;
-				padding: 0.65rem 0.75rem 0.8rem;
-				background: rgba(8, 14, 30, 0.96);
-				border-top: 1px solid rgba(255, 255, 255, 0.08);
+				gap: 1rem;
+				padding: 0.4rem 1rem;
+				min-height: 2.5rem;
+				background: rgba(255, 255, 255, 0.03);
+				font-size: 0.78rem;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+				color: rgba(214, 224, 255, 0.78);
 			}
 
-			.pane-button {
-				border: none;
+			.panel-topline-actions {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.6rem;
+			}
+
+			.format-button {
+				font: inherit;
+				font-size: 0.72rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				padding: 0.3rem 0.7rem;
+				border-radius: 999px;
+				border: 1px solid rgba(138, 152, 255, 0.32);
+				background: rgba(138, 152, 255, 0.12);
+				color: rgba(226, 231, 255, 0.92);
+				cursor: pointer;
+				transition:
+					background 120ms ease,
+					border-color 120ms ease,
+					color 120ms ease;
+			}
+
+			.format-button:hover:not(:disabled) {
+				background: rgba(138, 152, 255, 0.22);
+				border-color: rgba(138, 152, 255, 0.55);
+				color: #fff;
+			}
+
+			.format-button:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+
+			.panel-body {
+				flex: 1;
+				min-height: 0;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.panel-error {
+				padding: 0.8rem 1rem;
+				background: #e01174;
+				color: #fff;
+				font-size: 0.9rem;
+				line-height: 1.35;
+			}
+
+			.editor-host {
+				position: relative;
+				flex: 1;
+				min-height: 0;
+			}
+
+			:global(.editor-host .cm-scroller) {
+				scrollbar-width: thin;
+				scrollbar-color: rgba(140, 160, 255, 0.18) transparent;
+			}
+
+			:global(.editor-host .cm-scroller::-webkit-scrollbar) {
+				width: 6px;
+				height: 6px;
+			}
+
+			:global(.editor-host .cm-scroller::-webkit-scrollbar-track) {
 				background: transparent;
-				color: rgba(235, 240, 255, 0.65);
-				font-size: 0.96rem;
-				padding: 0.25rem 0.2rem;
-				text-transform: lowercase;
 			}
 
-			.pane-button.is-active {
-				color: #f2f5ff;
-				font-weight: 500;
+			:global(.editor-host .cm-scroller::-webkit-scrollbar-thumb) {
+				background: rgba(140, 160, 255, 0.18);
+				border-radius: 3px;
 			}
-		}
 
-		@media (max-width: 720px) {
-			.demo-shell {
-				padding: 0;
+			:global(.editor-host .cm-scroller::-webkit-scrollbar-thumb:hover) {
+				background: rgba(140, 160, 255, 0.32);
 			}
-		}
-	</style>
+
+			:global(.editor-host .cm-scroller::-webkit-scrollbar-corner) {
+				background: transparent;
+			}
+
+			.demo-grid:not(.ready) :global(.cm-editor) {
+				opacity: 0;
+			}
+
+			@media (max-width: 980px) {
+				.demo-grid {
+					grid-template-columns: 1fr;
+				}
+
+				.panel {
+					display: none;
+				}
+
+				.panel.is-active {
+					display: flex;
+				}
+
+				.demo-toolbar {
+					justify-content: flex-start;
+				}
+
+				.demo-status-row {
+					align-items: start;
+				}
+
+				.panel-body {
+					min-height: 20rem;
+				}
+
+				.mobile-pane-toggle {
+					display: flex;
+					position: sticky;
+					bottom: 0;
+					z-index: 5;
+					justify-content: center;
+					align-items: center;
+					gap: 0.65rem;
+					padding: 0.65rem 0.75rem 0.8rem;
+					background: rgba(8, 14, 30, 0.96);
+					border-top: 1px solid rgba(255, 255, 255, 0.08);
+				}
+
+				.pane-button {
+					border: none;
+					background: transparent;
+					color: rgba(235, 240, 255, 0.65);
+					font-size: 0.96rem;
+					padding: 0.25rem 0.2rem;
+					text-transform: lowercase;
+				}
+
+				.pane-button.is-active {
+					color: #f2f5ff;
+					font-weight: 500;
+				}
+			}
+
+			@media (max-width: 720px) {
+				.demo-shell {
+					padding: 0;
+				}
+			}
+		</style>
+	</>;
 }
