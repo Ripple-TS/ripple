@@ -82,8 +82,14 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
+	create_native_tsrx_render_function,
+	get_native_tsrx_function_body,
 	get_indexed_reactive_target,
+	is_native_tsrx_function_node,
+	is_native_tsrx_template_node,
+	is_tsrx_component_function,
 	rewrite_lazy_member_base,
+	strip_tsrx_style_elements,
 } from '../../utils.js';
 import is_reference from 'is-reference';
 
@@ -97,13 +103,14 @@ import is_reference from 'is-reference';
  */
 function apply_tsrx_css_scoping(nodes, state) {
 	const component = state.component;
-	if (!component?.css) {
+	const css = get_component_css(state);
+	if (!component || !css) {
 		return;
 	}
-	const css = /** @type {AST.CSS.StyleSheet} */ (component.css);
+	const stylesheet = /** @type {AST.CSS.StyleSheet} */ (css);
 
-	const style_classes = component.metadata.styleClasses ?? new Map();
-	const top_scoped_classes = component.metadata.topScopedClasses ?? new Map();
+	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
+	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
 
 	/**
 	 * @param {AST.Node} node
@@ -111,7 +118,7 @@ function apply_tsrx_css_scoping(nodes, state) {
 	 */
 	function visit_node(node) {
 		if (node.type === 'Element') {
-			pruneCss(css, node, style_classes, top_scoped_classes);
+			pruneCss(stylesheet, node, style_classes, top_scoped_classes);
 			for (const child of node.children) {
 				visit_node(child);
 			}
@@ -128,6 +135,23 @@ function apply_tsrx_css_scoping(nodes, state) {
 	for (const node of nodes) {
 		visit_node(node);
 	}
+}
+
+/**
+ * @param {TransformClientState} state
+ * @returns {AST.CSS.StyleSheet | null}
+ */
+function get_component_css(state) {
+	const component = /** @type {any} */ (state.component);
+	return component?.css ?? component?.metadata?.css ?? null;
+}
+
+/**
+ * @param {TransformClientState} state
+ * @returns {string | null}
+ */
+function get_component_css_hash(state) {
+	return get_component_css(state)?.hash ?? null;
 }
 
 /**
@@ -274,6 +298,10 @@ function visit_function(node, context) {
 		return b.empty;
 	}
 
+	if (is_tsrx_component_function(node, context)) {
+		return transform_native_tsrx_function(node, context);
+	}
+
 	const state = context.state;
 	const metadata = /** @type {AST.FunctionExpression['metadata']} */ (node.metadata);
 
@@ -306,11 +334,17 @@ function visit_function(node, context) {
 	});
 
 	let body = /** @type {AST.BlockStatement | AST.Expression} */ (
-		context.visit(node.body, {
-			...state,
-			// we are new context so tracking no longer applies
-			metadata: { ...state.metadata, tracking: false },
-		})
+		context.visit(
+			node.body,
+			SetStateForOutsideComponent(state, {
+				// we are new context so tracking no longer applies
+				metadata: { ...state.metadata, tracking: false },
+				component: undefined,
+				flush_node: null,
+				template: null,
+				jsx_to_tsrx_element: true,
+			}),
+		)
 	);
 
 	if (
@@ -326,6 +360,146 @@ function visit_function(node, context) {
 		params: transformed_params.map((param) => context.visit(param, state)),
 		body,
 	};
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.Element | AST.Tsrx | null}
+ */
+function get_native_tsrx_return_template_node(node) {
+	if (!node) return null;
+	if (is_native_tsrx_template_node(node)) {
+		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node));
+	}
+	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
+		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.argument));
+	}
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'ClassDeclaration' ||
+		node.type === 'ClassExpression'
+	) {
+		return null;
+	}
+	if (node.type === 'BlockStatement') {
+		for (const statement of node.body) {
+			const match = get_native_tsrx_return_template_node(statement);
+			if (match) return match;
+		}
+	}
+	if (node.type === 'IfStatement') {
+		return (
+			get_native_tsrx_return_template_node(node.consequent) ||
+			get_native_tsrx_return_template_node(node.alternate)
+		);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
+ * @param {TransformClientContext} context
+ * @returns {AST.Function | AST.Expression | AST.EmptyStatement}
+ */
+function transform_native_tsrx_function(node, context) {
+	node.metadata.native_tsrx_function = true;
+	let prop_statements;
+	const metadata = {};
+
+	if (context.state.to_ts) {
+		const body =
+			node.body?.type === 'BlockStatement'
+				? /** @type {AST.BlockStatement} */ (
+						context.visit(node.body, { ...context.state, component: node, metadata })
+					)
+				: /** @type {AST.Expression} */ (
+						context.visit(node.body, { ...context.state, component: node, metadata })
+					);
+		const params = node.params.map(
+			(param) =>
+				/** @type {AST.Pattern} */ (
+					context.visit(param, { ...context.state, component: node, metadata })
+				),
+		);
+		if (node.type === 'ArrowFunctionExpression') {
+			return { ...node, params, body };
+		}
+		return { ...node, params, body: /** @type {AST.BlockStatement} */ (body) };
+	}
+
+	/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
+	let props = b.id('__props');
+
+	if (node.params.length > 0) {
+		let props_param = node.params[0];
+
+		if (props_param.type === 'Identifier') {
+			delete props_param.typeAnnotation;
+			props = props_param;
+		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
+			delete props_param.typeAnnotation;
+			if (!props_param.lazy) {
+				props = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (
+					replace_lazy_param_pattern(props_param)
+				);
+			}
+		}
+	}
+
+	const render_scope_node = get_native_tsrx_return_template_node(node.body);
+	const component_scope =
+		(render_scope_node && context.state.scopes.get(render_scope_node)) ||
+		context.state.scopes.get(node) ||
+		context.state.scope;
+	const is_tsrx_element = context.state.is_tsrx_element;
+	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
+	const is_synthetic_children = node_id?.name === 'render_children';
+	const render_body = strip_tsrx_style_elements(get_native_tsrx_function_body(node));
+	const transformed_body = transform_body(render_body, {
+		...context,
+		state: {
+			...context.state,
+			flush_node: null,
+			component: is_synthetic_children ? context.state.component : node,
+			metadata,
+			scope: component_scope,
+			is_tsrx_element: false,
+			applyParentCssScope: is_synthetic_children ? context.state.applyParentCssScope : undefined,
+		},
+	});
+
+	const body_statements = is_tsrx_element
+		? transformed_body
+		: [
+				b.stmt(b.call('_$_.push_component')),
+				...transformed_body,
+				b.stmt(b.call('_$_.pop_component')),
+			];
+
+	const css = get_component_css({ ...context.state, component: node });
+	if (css) {
+		context.state.stylesheets.push(css);
+	}
+
+	const params = is_tsrx_element
+		? [b.id('__anchor'), b.id('__block')]
+		: node.params.length > 0
+			? [b.id('__anchor'), props, b.id('__block')]
+			: [b.id('__anchor'), b.id('_'), b.id('__block')];
+
+	const component_body = b.block([...(prop_statements ?? []), ...body_statements]);
+	const func =
+		node.type === 'FunctionDeclaration' && node_id
+			? b.function(node_id, params, component_body)
+			: node.type === 'ArrowFunctionExpression'
+				? b.arrow(params, component_body)
+				: b.function(node_id, params, component_body);
+
+	func.metadata.native_tsrx_function = true;
+
+	return func;
 }
 
 /**
@@ -711,7 +885,12 @@ function build_jsx_to_tsrx_element(node, context) {
 
 	apply_tsrx_css_scoping(children, state);
 
-	const children_component = b.component(b.id('render_children'), [], children);
+	const children_component = create_native_tsrx_render_function(
+		b.id('render_children'),
+		[],
+		children,
+		/** @type {AST.Node} */ (node),
+	);
 
 	return b.call(
 		'_$_.tsrx_element',
@@ -813,7 +992,7 @@ const visitors = {
 
 	Style(node, context) {
 		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
-		const hash = context.state.component?.css?.hash;
+		const hash = get_component_css_hash(context.state);
 		const value = hash ? `${hash} ${class_name}` : class_name;
 		return b.literal(value);
 	},
@@ -953,7 +1132,7 @@ const visitors = {
 			context.state.to_ts ||
 			(parent?.type === 'MemberExpression' && parent.property === node) ||
 			is_inside_call_expression(context) ||
-			!context.path.some((node) => node.type === 'Component') ||
+			!context.path.some((node) => is_native_tsrx_function_node(node)) ||
 			is_declared_function_within_component(callee, context)
 		) {
 			return context.next();
@@ -1510,7 +1689,7 @@ const visitors = {
 			const items = Array.isArray(result) ? result : [result];
 			for (const child of items) {
 				if (child == null || child.type === 'EmptyStatement') continue;
-				if (child.type === 'Component') {
+				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				} else {
 					children_filtered.push(child);
@@ -1519,7 +1698,12 @@ const visitors = {
 		}
 		apply_tsrx_css_scoping(children_filtered, state);
 
-		const children_component = b.component(b.id('render_children'), [], children_filtered);
+		const children_component = create_native_tsrx_render_function(
+			b.id('render_children'),
+			[],
+			children_filtered,
+			node,
+		);
 
 		const element = b.call(
 			'_$_.tsrx_element',
@@ -1565,7 +1749,12 @@ const visitors = {
 		});
 		apply_tsrx_css_scoping(children_filtered, state);
 
-		const children_component = b.component(b.id('render_children'), [], children_filtered);
+		const children_component = create_native_tsrx_render_function(
+			b.id('render_children'),
+			[],
+			children_filtered,
+			node,
+		);
 
 		const element = b.call(
 			'_$_.tsrx_element',
@@ -1600,6 +1789,21 @@ const visitors = {
 
 	Element(node, context) {
 		const { state, visit } = context;
+
+		if (state.to_ts) {
+			const fragment = /** @type {AST.Tsrx} */ (
+				/** @type {unknown} */ ({
+					type: 'Tsrx',
+					children: [node],
+					openingElement: { type: 'JSXOpeningFragment', metadata: { path: [] } },
+					closingElement: { type: 'JSXClosingFragment', metadata: { path: [] } },
+					selfClosing: false,
+					attributes: [],
+					metadata: { path: [] },
+				})
+			);
+			return build_tsrx_to_ts_expression(fragment, context);
+		}
 
 		if (context.state.inside_head) {
 			if (node.id.type === 'Identifier' && node.id.name === 'style') {
@@ -1665,10 +1869,7 @@ const visitors = {
 			const is_void = is_void_element(element_name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
-				state.applyParentCssScope ??
-				(node.metadata.scoped && state.component?.css
-					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
-					: null);
+				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
 
 			state.template?.push(`<${element_name}`);
 
@@ -2091,12 +2292,23 @@ const visitors = {
 								: /** @type {AST.Expression} */ (
 										visit(attr.value, { ...state, flush_node: null, metadata })
 									);
+						if (property.type === 'Identifier') {
+							const binding = state.scope.get(property.name);
+							if (
+								binding?.transform?.read &&
+								(binding.kind === 'lazy' || binding.kind === 'lazy_fallback')
+							) {
+								property = binding.transform.read(property);
+								metadata.tracking = true;
+							}
+						}
 
-						if (attr.name.name === 'class' && node.metadata.scoped && state.component?.css) {
+						const scoped_hash = get_component_css_hash(state);
+						if (attr.name.name === 'class' && node.metadata.scoped && scoped_hash) {
 							if (property.type === 'Literal') {
-								property = b.literal(`${state.component.css.hash} ${property.value}`);
+								property = b.literal(`${scoped_hash} ${property.value}`);
 							} else {
-								property = b.array([property, b.literal(state.component.css.hash)]);
+								property = b.array([property, b.literal(scoped_hash)]);
 							}
 						}
 
@@ -2170,7 +2382,7 @@ const visitors = {
 				}
 			}
 
-			if (node.metadata.scoped && state.component?.css) {
+			if (node.metadata.scoped && get_component_css(state)) {
 				const hasClassAttr = node.attributes.some(
 					(attr) =>
 						attr.type === 'Attribute' &&
@@ -2179,24 +2391,29 @@ const visitors = {
 				);
 				if (!hasClassAttr) {
 					const name = is_spreading ? '#class' : 'class';
-					const value = state.component.css.hash;
+					const value = /** @type {string} */ (get_component_css_hash(state));
 					props.push(b.prop('init', b.key(name), b.literal(value)));
 				}
 			}
 
 			for (const child of node.children) {
-				if (child.type === 'Component') {
+				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				}
 			}
 
 			const children_filtered = node.children.filter(
-				(child) => child.type !== 'EmptyStatement' && child.type !== 'Component',
+				(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);
 
 			if (children_filtered.length > 0) {
 				const component_scope = state.scopes.get(node);
-				const children_component = b.component(b.id('render_children'), [], children_filtered);
+				const children_component = create_native_tsrx_render_function(
+					b.id('render_children'),
+					[],
+					children_filtered,
+					node,
+				);
 
 				const children = b.call(
 					'_$_.tsrx_element',
@@ -2204,11 +2421,11 @@ const visitors = {
 						visit(children_component, {
 							...state,
 							...(apply_parent_css_scope ||
-							(is_dynamic_element && node.metadata.scoped && state.component?.css)
+							(is_dynamic_element && node.metadata.scoped && get_component_css(state))
 								? {
 										applyParentCssScope:
 											apply_parent_css_scope ||
-											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+											/** @type {string} */ (get_component_css_hash(state)),
 									}
 								: {}),
 							scope: /** @type {ScopeInterface} */ (component_scope),
@@ -2295,137 +2512,6 @@ const visitors = {
 				);
 			}
 		}
-	},
-
-	Component(node, context) {
-		let prop_statements;
-		const metadata = {};
-
-		if (context.state.to_ts) {
-			const body_statements = [
-				...transform_body(node.body, {
-					...context,
-					state: { ...context.state, component: node, metadata },
-				}),
-			];
-
-			const params = node.params.map(
-				(param) =>
-					/** @type {AST.Pattern} */ (context.visit(param, { ...context.state, metadata })),
-			);
-			const component_body = b.block(body_statements);
-			const func = node.id
-				? b.function(
-						node.id,
-						params,
-						component_body,
-						false,
-						undefined,
-						/** @type {AST.NodeWithLocation} */ (node),
-					)
-				: node.metadata?.arrow
-					? b.arrow(
-							params,
-							component_body,
-							false,
-							undefined,
-							/** @type {AST.NodeWithLocation} */ (node),
-						)
-					: b.function(
-							null,
-							params,
-							component_body,
-							false,
-							undefined,
-							/** @type {AST.NodeWithLocation} */ (node),
-						);
-			func.typeParameters = node.typeParameters;
-			// Mark that this function was originally a component
-			func.metadata = /** @type {AST.FunctionExpression['metadata']} */ ({
-				...node.metadata,
-				is_component: true,
-			});
-
-			if (func.type === 'FunctionExpression' && func.id) {
-				// metadata should be there as func.id === node.id
-				func.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
-					...func.id.metadata,
-					is_component: true,
-				});
-			}
-
-			return func;
-		}
-
-		/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
-		let props = b.id('__props');
-
-		if (node.params.length > 0) {
-			let props_param = node.params[0];
-
-			if (props_param.type === 'Identifier') {
-				delete props_param.typeAnnotation;
-				props = props_param;
-			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
-				delete props_param.typeAnnotation;
-				if (!props_param.lazy) {
-					// Non-lazy destructuring: use the pattern directly as the function param
-					props = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (
-						replace_lazy_param_pattern(props_param)
-					);
-				}
-				// Lazy destructuring: props stays as __props, bindings resolved via transforms
-			}
-		}
-
-		const component_scope = context.state.scopes.get(node) || context.state.scope;
-		const is_tsrx_element = context.state.is_tsrx_element;
-		const is_synthetic_children = node.id?.name === 'render_children';
-		const transformed_body = transform_body(node.body, {
-			...context,
-			state: {
-				...context.state,
-				flush_node: null,
-				component: is_synthetic_children ? context.state.component : node,
-				metadata,
-				scope: component_scope,
-				is_tsrx_element: false,
-				applyParentCssScope: is_synthetic_children ? context.state.applyParentCssScope : undefined,
-			},
-		});
-
-		// TSRXElement render functions don't need push/pop component context
-		// since they inherit context from where they're used
-		const body_statements = is_tsrx_element
-			? transformed_body
-			: [
-					b.stmt(b.call('_$_.push_component')),
-					...transformed_body,
-					b.stmt(b.call('_$_.pop_component')),
-				];
-
-		if (node.css !== null && node.css) {
-			context.state.stylesheets.push(node.css);
-		}
-
-		// TSRXElement render functions use simpler params: [__anchor, __block]
-		// Regular components use: [__anchor, props, __block] or [__anchor, _, __block]
-		const params = is_tsrx_element
-			? [b.id('__anchor'), b.id('__block')]
-			: node.params.length > 0
-				? [b.id('__anchor'), props, b.id('__block')]
-				: [b.id('__anchor'), b.id('_'), b.id('__block')];
-
-		const component_body = b.block([...(prop_statements ?? []), ...body_statements]);
-		const func = node.id
-			? b.function(node.id, params, component_body)
-			: node.metadata?.arrow
-				? b.arrow(params, component_body)
-				: b.function(null, params, component_body);
-
-		func.metadata.is_component = true;
-
-		return func;
 	},
 
 	AssignmentExpression(node, context) {
@@ -2897,6 +2983,26 @@ const visitors = {
 	},
 
 	ReturnStatement(node, context) {
+		if (
+			context.state.jsx_to_tsrx_element &&
+			node.argument &&
+			is_native_tsrx_template_node(node.argument)
+		) {
+			return b.return(
+				/** @type {AST.Expression} */ (
+					context.visit(
+						node.argument,
+						SetStateForOutsideComponent(context.state, {
+							component: undefined,
+							flush_node: null,
+							template: null,
+							jsx_to_tsrx_element: true,
+						}),
+					)
+				),
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+		}
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -3700,7 +3806,7 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(result);
-	} else if (node.type === 'Component') {
+	} else if (is_native_tsrx_function_node(node)) {
 		const component = visit(node, state);
 
 		state.init?.push(/** @type {AST.Statement} */ (component));
@@ -4237,7 +4343,7 @@ function transform_children(children, context) {
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
 			node.type === 'ReturnStatement' ||
-			node.type === 'Component'
+			is_native_tsrx_function_node(node)
 		) {
 			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
 			if (!state.to_ts) {
@@ -5797,7 +5903,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		);
 	}
 
-	// HMR: wrap all named components with _$_.hmr() and emit import.meta.hot.accept()
+	// HMR: wrap all named native TSRX functions with _$_.hmr() and emit import.meta.hot.accept()
 	if (hmr && !to_ts) {
 		const component_names = new Set(analysis.component_metadata.map((c) => c.id));
 
@@ -5805,9 +5911,8 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 		/** @type {{ name: string, export_type: 'default' | 'named' }[]} */
 		const exported_components = [];
 
-		// Walk the body to find components and inject HMR wrapping.
-		// After the walk, Component nodes become FunctionExpression nodes
-		// (via b.function() which creates FunctionExpression).
+		// Walk the body to find native TSRX functions and inject HMR wrapping.
+		// Function declarations become FunctionExpression nodes via b.function().
 		/** @type {AST.TSRXProgram['body']} */
 		const hmr_body = [];
 
@@ -5816,7 +5921,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 
 			if (node.type === 'ExportDefaultDeclaration') {
 				const decl = /** @type {AST.FunctionExpression} */ (node.declaration);
-				if (decl.metadata?.is_component && decl.id && component_names.has(decl.id.name)) {
+				if (decl.metadata?.native_tsrx_function && decl.id && component_names.has(decl.id.name)) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'default' });
 					// Replace ExportDefaultDeclaration with plain FunctionExpression (printed as function declaration)
@@ -5828,7 +5933,12 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 				}
 			} else if (node.type === 'ExportNamedDeclaration') {
 				const decl = /** @type {AST.FunctionExpression | null | undefined} */ (node.declaration);
-				if (decl && decl.metadata?.is_component && decl.id && component_names.has(decl.id.name)) {
+				if (
+					decl &&
+					decl.metadata?.native_tsrx_function &&
+					decl.id &&
+					component_names.has(decl.id.name)
+				) {
 					const name = decl.id.name;
 					exported_components.push({ name, export_type: 'named' });
 					// Replace ExportNamedDeclaration with plain FunctionExpression (printed as function declaration)
@@ -5849,7 +5959,7 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 				}
 			} else if (
 				node.type === 'FunctionExpression' &&
-				node.metadata?.is_component &&
+				node.metadata?.native_tsrx_function &&
 				node.id &&
 				component_names.has(node.id.name)
 			) {

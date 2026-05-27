@@ -51,7 +51,7 @@ describe('@tsrx/ripple Volar mappings cover declaration keywords', () => {
 
 describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
 	it('adds a verification-only mapping for the whole arrow function', () => {
-		const source = `component C() { const f = (x: number): number => x + 1; }`;
+		const source = `function C() { const f = (x: number): number => x + 1; return <></>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const source_arrow = '(x: number): number => x + 1';
 		const source_offset = source.indexOf(source_arrow);
@@ -73,11 +73,11 @@ describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
 describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				try {
 					<div>{'content'}</div>
 				} pending {}
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -89,11 +89,11 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 describe('@tsrx/ripple named ref props', () => {
 	it('wraps named ref props for components', () => {
 		const { code } = compile(
-			`component Child(props) {}
-			component App() {
+			`function Child(props) { return <></>; }
+			function App() { return <>
 				let input;
 				<Child input_ref={ref input} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -102,11 +102,11 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('wraps anonymous ref props for components', () => {
 		const { code } = compile(
-			`component Child(props) {}
-			component App() {
+			`function Child(props) { return <></>; }
+			function App() { return <>
 				let input;
 				<Child {ref input} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -115,10 +115,10 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('applies direct named ref props on host elements as refs', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				let input;
 				<input input_ref={ref input} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -128,12 +128,12 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('adds assignment setters for host ref attributes with identifiers and member expressions', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				let input;
 				let state = {};
 				<input ref={input} />
 				<input ref={state.input} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -143,13 +143,13 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('wraps ref forms on dynamic elements so runtime host spreads can apply them', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				let tag = track('input');
 				let input;
 				let state = {};
 				function fn() {}
 				<@tag ref={input} {ref state.other} input_ref={ref fn} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -162,10 +162,10 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('prints named ref props in Volar TypeScript output', () => {
 		const { code } = compile_to_volar_mappings(
-			`component App() {
+			`function App() { return <>
 				let input;
 				<input input_ref={ref input} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -178,7 +178,7 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('preserves child namespaces for nested host ref props in Volar TypeScript output', () => {
 		const { code } = compile_to_volar_mappings(
-			`component App() {
+			`function App() { return <>
 				let circle;
 				let div;
 				<svg>
@@ -187,7 +187,7 @@ describe('@tsrx/ripple named ref props', () => {
 						<div div_ref={ref div} />
 					</foreignObject>
 				</svg>
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -200,16 +200,16 @@ describe('@tsrx/ripple named ref props', () => {
 	});
 
 	it('does not map the generated named ref setter back to the source ref target', () => {
-		const source = `component Child(props: { inputRef?: any; otherRef?: any }) {
+		const source = `function Child(props: { inputRef?: any; otherRef?: any }) { return <>
 	<input />
-}
+</>; }
 
-component App() {
+function App() { return <>
 	let input: HTMLInputElement | undefined;
 	const state = { input: undefined as HTMLInputElement | undefined };
 	<input type="text" input_ref={ref input} />
 	<Child inputRef={ref input} otherRef={ref state.input} />
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 		const host_element_offset = source.indexOf('<input type="text"');
@@ -272,12 +272,12 @@ component App() {
 
 describe('@tsrx/ripple <tsrx> Volar output', () => {
 	it('prints JSX converted from nested tsrx inside tsx expression containers', () => {
-		const source = `component App() {
+		const source = `function App() { return <>
 	const content = <tsx>
 		<section>{<tsrx><div>{'inside'}</div></tsrx>}</section>
 	</tsx>;
 	{content}
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 		expect(result.code).toContain('<section>{<div>');
@@ -310,7 +310,7 @@ describe('@tsrx/ripple <tsrx> Volar output', () => {
 describe('@tsrx/ripple <tsx> expression values', () => {
 	it('passes plain identifier props directly in fragment shorthand values', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const placeholder = 'value';
 				return <><Some prop={placeholder} /></>;
@@ -324,7 +324,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('passes plain identifier props directly in tsx expression values', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const placeholder = 'value';
 				return <tsx><Some prop={placeholder} /></tsx>;
@@ -338,7 +338,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('passes plain identifier props directly in tsrx expression values', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const placeholder = 'value';
 				return <tsrx><Some prop={placeholder} /></tsrx>;
@@ -352,11 +352,11 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('passes plain identifier props directly in component bodies', () => {
 		const { code } = compile(
-			`component Some(props) {}
-			component Test() {
+			`function Some(props) { return <></>; }
+			function Test() { return <>
 				const placeholder = 'value';
 				<Some prop={placeholder} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -366,7 +366,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('passes plain non-tracked expression props directly', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const first = 'hello';
 				const second = 'world';
@@ -381,7 +381,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('wraps member expression props in getters', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const obj = { value: 'value' };
 				return <><Some prop={obj.value} /></>;
@@ -395,7 +395,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('wraps computed member expression props in getters', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function Test() {
 				const obj = { value: 'value' };
 				const key = 'value';
@@ -410,7 +410,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('wraps call expression props in getters', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function getValue() {
 				return 'value';
 			}
@@ -426,7 +426,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('wraps call expression props in fragment shorthand values in getters', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function getValue() {
 				return 'value';
 			}
@@ -442,13 +442,13 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('wraps call expression props in component bodies in getters', () => {
 		const { code } = compile(
-			`component Some(props) {}
+			`function Some(props) { return <></>; }
 			function getValue() {
 				return 'value';
 			}
-			component Test() {
+			function Test() { return <>
 				<Some prop={getValue()} />
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -459,12 +459,12 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 	it('wraps lazy tracked identifier props in fragment shorthand values in getters', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
-			component Some(props) {}
-			component Test() {
+			function Some(props) { return <></>; }
+			function Test() { return <>
 				let &[count] = track(0);
 				const content = <><Some prop={count} /></>;
 				{content}
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -475,7 +475,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 	it('wraps lazy tracked identifier props in function fragment returns in getters', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
-			component Some(props) {}
+			function Some(props) { return <></>; }
 			function Test() {
 				let &[count] = track(0);
 				return <><Some prop={count} /></>;
@@ -483,7 +483,6 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('return _$_.tsrx_element');
 		expect(code).toContain('get prop()');
 		expect(code).toContain('return lazy.value;');
 	});
@@ -491,12 +490,12 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 	it('wraps lazy tracked identifier props in getters', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
-			component Some(props) {}
-			component Test() {
+			function Some(props) { return <></>; }
+			function Test() { return <>
 				let &[count] = track(0);
 				const content = <tsx><Some prop={count} /></tsx>;
 				{content}
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -507,12 +506,12 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 	it('wraps lazy tracked expression props in getters', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
-			component Some(props) {}
-			component Test() {
+			function Some(props) { return <></>; }
+			function Test() { return <>
 				let &[count] = track(0);
 				const content = <tsrx><Some prop={count % 2 ? 'odd' : 'even'} /></tsrx>;
 				{content}
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -522,7 +521,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('lowers tsx values nested in template expressions', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				const primary = true;
 				<div>
 					{<tsx>
@@ -531,7 +530,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 							: ['second:', <strong>{'two'}</strong>, ':done']}
 					</tsx>}
 				</div>
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -542,14 +541,14 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				const condition = true;
 				const ternary_items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
 				const logical_items = condition && ['start:', ['one', 2], ':end'];
 
 				<div>{ternary_items}</div>
 				<div>{logical_items}</div>
-			}`,
+			</>; }`,
 			'App.tsrx',
 			{ mode: 'server' },
 		);
@@ -562,12 +561,12 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 	it('uses client expression anchors that can hydrate conditional array markers', () => {
 		const { code } = compile(
-			`component App() {
+			`function App() { return <>
 				const condition = true;
 				const items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
 
 				<div>{items}</div>
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 
@@ -579,34 +578,11 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 });
 
 describe('@tsrx/ripple nested function fragment returns', () => {
-	it('keeps special fragment returns inside component-local functions', () => {
-		const { code } = compile(
-			`export component App() {
-				<div>"App"</div>
-				function FragmentReturn() {
-					return <><div>fragment</div></>;
-				}
-				function TsxReturn() {
-					return <tsx><div>tsx</div></tsx>;
-				}
-				function TsrxReturn() {
-					return <tsrx><div>"tsrx"</div></tsrx>;
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).not.toContain('return;');
-		expect(code).toMatch(/function FragmentReturn\(\) {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/function TsxReturn\(\) {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/function TsrxReturn\(\) {\s+return _\$_.tsrx_element/);
-	});
-
 	it('keeps special fragment returns inside component prop arrow functions', () => {
 		const { code } = compile(
-			`component Child(props) {}
+			`function Child(props) { return <></>; }
 
-			export component App() {
+			export function App() { return <>
 				<Child
 					fragment={() => {
 						return <><div>fragment</div></>;
@@ -618,7 +594,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 						return <tsrx><div>"tsrx"</div></tsrx>;
 					}}
 				/>
-			}`,
+			</>; }`,
 			'App.tsrx',
 		);
 

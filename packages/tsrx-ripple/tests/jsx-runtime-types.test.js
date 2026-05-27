@@ -59,7 +59,7 @@ function get_variable_types(code) {
 describe('@tsrx/ripple Volar JSX expression types', () => {
 	it('types tsx and nested tsrx expression values as TSRXElement', () => {
 		const source = `
-component App() {
+function App() { return <>
 	const content = <tsx>
 		{<tsrx>
 			const nested = <tsx><span /></tsx>;
@@ -68,7 +68,7 @@ component App() {
 	</tsx>;
 
 	{content}
-}
+</>; }
 `;
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const types = get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);

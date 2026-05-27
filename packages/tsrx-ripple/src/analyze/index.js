@@ -32,7 +32,6 @@ import {
 	validateNesting,
 	validateTsrxLoopBreakStatement,
 	validateTsrxLoopReturnStatement,
-	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
 } from '@tsrx/core';
 const b = builders;
@@ -51,6 +50,11 @@ import {
 	build_lazy_array_rest,
 	build_lazy_array_set,
 	build_lazy_array_update,
+	collect_tsrx_stylesheet,
+	get_native_tsrx_function_body,
+	is_native_tsrx_template_node,
+	is_native_tsrx_function_node,
+	is_tsrx_component_function,
 } from '../utils.js';
 import is_reference from 'is-reference';
 
@@ -233,7 +237,6 @@ function mark_control_flow_has_template(path) {
 		const node = path[i];
 
 		if (
-			node.type === 'Component' ||
 			node.type === 'FunctionExpression' ||
 			node.type === 'ArrowFunctionExpression' ||
 			node.type === 'FunctionDeclaration'
@@ -262,7 +265,6 @@ function mark_control_flow_has_template(path) {
  */
 function is_function_or_class_boundary(node) {
 	return (
-		node.type === 'Component' ||
 		node.type === 'FunctionExpression' ||
 		node.type === 'ArrowFunctionExpression' ||
 		node.type === 'FunctionDeclaration' ||
@@ -1087,9 +1089,98 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
  */
 function visit_function(node, context) {
 	node.metadata = {
+		...node.metadata,
 		tracked: false,
 		path: [...context.path],
 	};
+
+	if (is_tsrx_component_function(node, context)) {
+		node.metadata.native_tsrx_function = true;
+		context.state.component = node;
+
+		if (node.params.length > 0) {
+			const props = node.params[0];
+
+			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
+				if (props.lazy) {
+					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
+				} else {
+					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
+				}
+			} else if (props.type === 'AssignmentPattern') {
+				error(
+					'Props are always an object, use destructured props with default values instead',
+					context.state.analysis.module.filename,
+					props,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
+			}
+		}
+
+		/** @type {AST.Element[]} */
+		const elements = [];
+		const metadata = {
+			styleClasses: /** @type {StyleClasses} */ (new Map()),
+		};
+		/** @type {TopScopedClasses} */
+		const topScopedClasses = new Map();
+		const render_body = get_native_tsrx_function_body(node);
+		const component_state = {
+			...context.state,
+			component: node,
+			elements,
+			function_depth: (context.state.function_depth ?? 0) + 1,
+			metadata,
+		};
+
+		context.next(component_state);
+
+		const css = collect_tsrx_stylesheet(render_body);
+		/** @type {any} */ (node).css = css;
+		/** @type {any} */ (node.metadata).css = css;
+
+		if (css !== null) {
+			analyzeCss(css);
+			for (const element of elements) {
+				pruneCss(css, element, metadata.styleClasses, topScopedClasses);
+			}
+			if (topScopedClasses.size > 0) {
+				/** @type {any} */ (node.metadata).topScopedClasses = topScopedClasses;
+			}
+		}
+
+		if (metadata.styleClasses.size > 0) {
+			/** @type {any} */ (node.metadata).styleClasses = metadata.styleClasses;
+
+			for (const [className, property] of metadata.styleClasses) {
+				if (!topScopedClasses.has(className)) {
+					const function_name =
+						node.type !== 'ArrowFunctionExpression' && node.id?.name
+							? node.id.name
+							: "this function's";
+					error(
+						`CSS class ".${className}" does not exist as a stand-alone class in ${function_name} <style> block`,
+						context.state.analysis.module.filename,
+						property,
+						context.state.collect ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+				}
+			}
+		}
+
+		if (node.type !== 'ArrowFunctionExpression' && node.id) {
+			context.state.analysis.component_metadata.push({
+				id: node.id.name,
+			});
+		}
+
+		if (node.metadata.tracked) {
+			mark_as_tracked(context.path);
+		}
+		return;
+	}
 
 	// Set up lazy transforms for any lazy destructured parameters
 	for (let i = 0; i < node.params.length; i++) {
@@ -1120,7 +1211,7 @@ function mark_as_tracked(path) {
 	for (let i = path.length - 1; i >= 0; i -= 1) {
 		const node = path[i];
 
-		if (node.type === 'Component') {
+		if (is_native_tsrx_function_node(node)) {
 			break;
 		}
 		if (
@@ -1157,7 +1248,7 @@ function error_return_keyword(node, context, message) {
  * @returns {boolean}
  */
 function is_children_template_expression(expression, context) {
-	const component = context.path.findLast((node) => node.type === 'Component');
+	const component = context.path.findLast((node) => is_native_tsrx_function_node(node));
 	const component_scope = component ? context.state.scopes.get(component) : null;
 	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
 }
@@ -1664,87 +1755,6 @@ const visitors = {
 		context.next();
 	},
 
-	Component(node, context) {
-		context.state.component = node;
-
-		if (node.params.length > 0) {
-			const props = node.params[0];
-
-			if (props.type === 'ObjectPattern' || props.type === 'ArrayPattern') {
-				// Lazy destructuring: &{...} or &[...] — set up lazy transforms
-				if (props.lazy) {
-					setup_lazy_transforms(props, b.id('__props'), context.state, true, false);
-				} else {
-					setup_nested_lazy_param_transforms(props, context, get_pattern_type_annotation(props));
-				}
-			} else if (props.type === 'AssignmentPattern') {
-				error(
-					'Props are always an object, use destructured props with default values instead',
-					context.state.analysis.module.filename,
-					props,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
-		}
-		/** @type {AST.Element[]} */
-		const elements = [];
-
-		// Track metadata for this component
-		const metadata = {
-			styleClasses: /** @type {StyleClasses} */ (new Map()),
-		};
-
-		/** @type {TopScopedClasses} */
-		const topScopedClasses = new Map();
-
-		context.next({
-			...context.state,
-			elements,
-			function_depth: (context.state.function_depth ?? 0) + 1,
-			metadata,
-		});
-
-		const css = node.css;
-
-		if (css !== null) {
-			// Analyze CSS to set global selector metadata
-			analyzeCss(css);
-
-			for (const node of elements) {
-				pruneCss(css, node, metadata.styleClasses, topScopedClasses);
-			}
-
-			if (topScopedClasses.size > 0) {
-				node.metadata.topScopedClasses = topScopedClasses;
-			}
-		}
-
-		if (metadata.styleClasses.size > 0) {
-			node.metadata.styleClasses = metadata.styleClasses;
-
-			for (const [className, property] of metadata.styleClasses) {
-				if (!topScopedClasses?.has(className)) {
-					error(
-						`CSS class ".${className}" does not exist as a stand-alone class in ${node.id?.name ? node.id.name : "this component's"} <style> block`,
-						context.state.analysis.module.filename,
-						property,
-						context.state.collect ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-				}
-			}
-		}
-
-		// Store component metadata in analysis
-		// Only add metadata if component has a name (not anonymous)
-		if (node.id) {
-			context.state.analysis.component_metadata.push({
-				id: node.id.name,
-			});
-		}
-	},
-
 	ForStatement(node, context) {
 		if (is_inside_component(context)) {
 			validateTsrxUnsupportedLoopStatement(
@@ -1874,18 +1884,6 @@ const visitors = {
 
 		if (declaration && declaration.type === 'FunctionDeclaration') {
 			exports.add(declaration.id.name);
-		} else if (declaration && declaration.type === 'Component') {
-			error(
-				'Not implemented: Exported component declaration not supported in server modules.',
-				context.state.analysis.module.filename,
-				/** @type {AST.Identifier} */ (declaration.id),
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-			// TODO: the client and server rendering doesn't currently support components
-			// If we're going to support this, we need to account also for anonymous object declaration
-			// and specifiers
-			// 	exports.add(/** @type {AST.Identifier} */ (declaration.id).name);
 		} else if (declaration && declaration.type === 'VariableDeclaration') {
 			for (const decl of declaration.declarations) {
 				if (decl.init !== undefined && decl.init !== null) {
@@ -2076,6 +2074,10 @@ const visitors = {
 			return context.next();
 		}
 
+		if (is_native_tsrx_template_node(node.argument)) {
+			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
+		}
+
 		if (is_inside_component_for_of(context.path)) {
 			validateTsrxLoopReturnStatement(
 				node,
@@ -2086,18 +2088,10 @@ const visitors = {
 			return;
 		}
 
-		validateTsrxReturnStatement(
-			node,
-			context.state.analysis.module.filename,
-			context.state.collect ? context.state.analysis.errors : undefined,
-			context.state.analysis.comments,
-		);
-
 		for (let i = context.path.length - 1; i >= 0; i--) {
 			const ancestor = context.path[i];
 
 			if (
-				ancestor.type === 'Component' ||
 				ancestor.type === 'FunctionExpression' ||
 				ancestor.type === 'ArrowFunctionExpression' ||
 				ancestor.type === 'FunctionDeclaration'
@@ -2150,7 +2144,6 @@ const visitors = {
 			const ancestor = context.path[i];
 
 			if (
-				ancestor.type === 'Component' ||
 				ancestor.type === 'FunctionExpression' ||
 				ancestor.type === 'ArrowFunctionExpression' ||
 				ancestor.type === 'FunctionDeclaration'
@@ -2369,7 +2362,7 @@ const visitors = {
 			if (!is_dom_element && state.elements) {
 				state.elements.push(node);
 				// Mark dynamic elements as scoped by default since we can't match CSS at compile time
-				if (state.component?.css) {
+				if (/** @type {any} */ (state.component)?.metadata?.css) {
 					node.metadata.scoped = true;
 				}
 			}
@@ -2536,7 +2529,11 @@ const visitors = {
 			/** @type {Set<string>} */
 			const child_component_names = new Set();
 			for (const child of node.children) {
-				if (child.type === 'Component' && child.id) {
+				if (
+					(child.type === 'FunctionDeclaration' || child.type === 'FunctionExpression') &&
+					is_native_tsrx_function_node(child) &&
+					child.id
+				) {
 					child_component_names.add(child.id.name);
 				}
 			}
@@ -2573,7 +2570,7 @@ const visitors = {
 			}
 
 			for (const child of node.children) {
-				if (child.type === 'Component') {
+				if (is_native_tsrx_function_node(child)) {
 					visit(child, state);
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(

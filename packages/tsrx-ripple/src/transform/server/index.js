@@ -44,6 +44,11 @@ import {
 	is_ripple_track_call,
 	is_ripple_import,
 	replace_lazy_param_pattern,
+	create_native_tsrx_render_function,
+	get_native_tsrx_function_body,
+	is_native_tsrx_function_node,
+	is_native_tsrx_template_node,
+	is_tsrx_component_function,
 	simple_hash,
 	strong_hash,
 	flatten_switch_consequent,
@@ -56,6 +61,7 @@ import {
 	build_index_update,
 	get_indexed_reactive_target,
 	rewrite_lazy_member_base,
+	strip_tsrx_style_elements,
 } from '../../utils.js';
 
 /**
@@ -68,13 +74,14 @@ import {
  */
 function apply_tsrx_css_scoping(nodes, state) {
 	const component = state.component;
-	if (!component?.css) {
+	const css = get_component_css(state);
+	if (!component || !css) {
 		return;
 	}
-	const css = /** @type {AST.CSS.StyleSheet} */ (component.css);
+	const stylesheet = /** @type {AST.CSS.StyleSheet} */ (css);
 
-	const style_classes = component.metadata.styleClasses ?? new Map();
-	const top_scoped_classes = component.metadata.topScopedClasses ?? new Map();
+	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
+	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
 
 	/**
 	 * @param {AST.Node} node
@@ -82,7 +89,7 @@ function apply_tsrx_css_scoping(nodes, state) {
 	 */
 	function visit_node(node) {
 		if (node.type === 'Element') {
-			pruneCss(css, node, style_classes, top_scoped_classes);
+			pruneCss(stylesheet, node, style_classes, top_scoped_classes);
 			for (const child of node.children) {
 				visit_node(child);
 			}
@@ -99,6 +106,23 @@ function apply_tsrx_css_scoping(nodes, state) {
 	for (const node of nodes) {
 		visit_node(node);
 	}
+}
+
+/**
+ * @param {TransformServerState} state
+ * @returns {AST.CSS.StyleSheet | null}
+ */
+function get_component_css(state) {
+	const component = /** @type {any} */ (state.component);
+	return component?.css ?? component?.metadata?.css ?? null;
+}
+
+/**
+ * @param {TransformServerState} state
+ * @returns {string | null}
+ */
+function get_component_css_hash(state) {
+	return get_component_css(state)?.hash ?? null;
 }
 
 /**
@@ -683,7 +707,7 @@ function transform_children(children, context) {
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
 			node.type === 'ReturnStatement' ||
-			node.type === 'Component'
+			is_native_tsrx_function_node(node)
 		) {
 			state.init?.push(
 				node.type === 'VariableDeclaration'
@@ -838,6 +862,116 @@ function transform_body(body, context) {
 	return /** @type {AST.Statement[]} */ (body_state.init);
 }
 
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {AST.Element | AST.Tsrx | null}
+ */
+function get_native_tsrx_return_template_node(node) {
+	if (!node) return null;
+	if (is_native_tsrx_template_node(node)) {
+		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node));
+	}
+	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
+		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.argument));
+	}
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'ClassDeclaration' ||
+		node.type === 'ClassExpression'
+	) {
+		return null;
+	}
+	if (node.type === 'BlockStatement') {
+		for (const statement of node.body) {
+			const match = get_native_tsrx_return_template_node(statement);
+			if (match) return match;
+		}
+	}
+	if (node.type === 'IfStatement') {
+		return (
+			get_native_tsrx_return_template_node(node.consequent) ||
+			get_native_tsrx_return_template_node(node.alternate)
+		);
+	}
+	return null;
+}
+
+/**
+ * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
+ * @param {TransformServerContext} context
+ * @returns {AST.Function | AST.Expression}
+ */
+function transform_native_tsrx_function(node, context) {
+	node.metadata.native_tsrx_function = true;
+	/** @type {AST.Pattern | null} */
+	let props_param_output = null;
+
+	if (node.params.length > 0) {
+		let props_param = node.params[0];
+
+		if (props_param.type === 'Identifier') {
+			delete props_param.typeAnnotation;
+			props_param_output = props_param;
+		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
+			delete props_param.typeAnnotation;
+			if (props_param.lazy) {
+				props_param_output = b.id('__props');
+			} else {
+				props_param_output = replace_lazy_param_pattern(props_param);
+			}
+		} else {
+			props_param_output = props_param;
+		}
+	}
+
+	/** @type {AST.Statement[]} */
+	const body_statements = [];
+	const css = get_component_css({ ...context.state, component: node });
+	if (css !== null) {
+		const hash_id = b.id(CSS_HASH_IDENTIFIER);
+		const hash = b.var(hash_id, b.literal(css.hash));
+		context.state.stylesheets.push(css);
+		body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
+	}
+
+	const render_body = strip_tsrx_style_elements(get_native_tsrx_function_body(node));
+	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
+	const render_scope_node = get_native_tsrx_return_template_node(node.body);
+	const component_scope =
+		(render_scope_node && context.state.scopes.get(render_scope_node)) ||
+		context.state.scopes.get(node) ||
+		context.state.scope;
+	body_statements.push(
+		b.stmt(b.call('_$_.push_component')),
+		...transform_body(render_body, {
+			...context,
+			state: {
+				...context.state,
+				component: node,
+				scope: component_scope,
+				applyParentCssScope:
+					node_id?.name === 'render_children' ? context.state.applyParentCssScope : undefined,
+			},
+		}),
+		b.stmt(b.call('_$_.pop_component')),
+	);
+
+	const component_params = props_param_output ? [props_param_output] : [];
+	const component_body = b.block(body_statements);
+
+	if (node.type === 'ArrowFunctionExpression') {
+		return b.arrow(component_params, component_body);
+	}
+
+	if (node.type === 'FunctionDeclaration' && node_id) {
+		return b.function_declaration(node_id, component_params, component_body);
+	}
+
+	return b.function(node_id, component_params, component_body);
+}
+
 /** @type {Visitors<AST.Node, TransformServerState>} */
 const visitors = {
 	_: (node, { next, state }) => {
@@ -884,68 +1018,6 @@ const visitors = {
 
 	RefExpression(node, context) {
 		return create_ref_prop_call(node, context);
-	},
-
-	Component(node, context) {
-		/** @type {AST.Pattern | null} */
-		let props_param_output = null;
-
-		if (node.params.length > 0) {
-			let props_param = node.params[0];
-
-			if (props_param.type === 'Identifier') {
-				delete props_param.typeAnnotation;
-				props_param_output = props_param;
-			} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
-				delete props_param.typeAnnotation;
-				if (props_param.lazy) {
-					// Lazy destructuring: use __props identifier, bindings resolved via transforms
-					props_param_output = b.id('__props');
-				} else {
-					props_param_output = replace_lazy_param_pattern(props_param);
-				}
-			} else {
-				props_param_output = props_param;
-			}
-		}
-
-		/** @type {AST.Statement[]} */
-		const body_statements = [];
-
-		if (node.css !== null) {
-			const hash_id = b.id(CSS_HASH_IDENTIFIER);
-			const hash = b.var(hash_id, b.literal(node.css.hash));
-			context.state.stylesheets.push(node.css);
-
-			// Register CSS hash during rendering
-			body_statements.push(hash, b.stmt(b.call(b.id('_$_.output_register_css'), hash_id)));
-		}
-
-		body_statements.push(
-			b.stmt(b.call('_$_.push_component')),
-			...transform_body(node.body, {
-				...context,
-				state: {
-					...context.state,
-					component: node,
-					applyParentCssScope:
-						node.id?.name === 'render_children' ? context.state.applyParentCssScope : undefined,
-				},
-			}),
-			b.stmt(b.call('_$_.pop_component')),
-		);
-
-		const component_params = props_param_output ? [props_param_output] : [];
-		const component_body = b.block(body_statements);
-
-		if (!node.id) {
-			return node.metadata?.arrow
-				? b.arrow(component_params, component_body)
-				: b.function(null, component_params, component_body);
-		}
-
-		// Named components return a FunctionDeclaration
-		return b.function_declaration(node.id, component_params, component_body);
 	},
 
 	CallExpression(node, context) {
@@ -1084,6 +1156,9 @@ const visitors = {
 	},
 
 	FunctionDeclaration(node, context) {
+		if (is_tsrx_component_function(node, context)) {
+			return transform_native_tsrx_function(node, context);
+		}
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
@@ -1109,6 +1184,9 @@ const visitors = {
 	},
 
 	FunctionExpression(node, context) {
+		if (is_tsrx_component_function(node, context)) {
+			return transform_native_tsrx_function(node, context);
+		}
 		if (!context.state.to_ts) {
 			delete node.returnType;
 			delete node.typeParameters;
@@ -1145,6 +1223,9 @@ const visitors = {
 	},
 
 	ArrowFunctionExpression(node, context) {
+		if (is_tsrx_component_function(node, context)) {
+			return transform_native_tsrx_function(node, context);
+		}
 		delete node.returnType;
 		delete node.typeParameters;
 		const params = node.params.map((param) => {
@@ -1362,10 +1443,7 @@ const visitors = {
 				: b.literal(/** @type {AST.Identifier} */ (node.id).name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
-				state.applyParentCssScope ??
-				(node.metadata.scoped && state.component?.css
-					? /** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash
-					: null);
+				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
 
 			state.init?.push(
 				b.stmt(
@@ -1548,11 +1626,9 @@ const visitors = {
 							...state,
 							init,
 							...(state.applyParentCssScope ||
-							(dynamic_name && node.metadata.scoped && state.component?.css)
+							(dynamic_name && node.metadata.scoped && get_component_css(state))
 								? {
-										applyParentCssScope:
-											state.applyParentCssScope ||
-											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
+										applyParentCssScope: state.applyParentCssScope || get_component_css_hash(state),
 									}
 								: {}),
 						},
@@ -1627,13 +1703,13 @@ const visitors = {
 			}
 
 			for (const child of node.children) {
-				if (child.type === 'Component') {
+				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
 				}
 			}
 
 			const children_filtered = node.children.filter(
-				(child) => child.type !== 'EmptyStatement' && child.type !== 'Component',
+				(child) => child.type !== 'EmptyStatement' && !is_native_tsrx_function_node(child),
 			);
 
 			if (children_filtered.length > 0) {
@@ -1641,19 +1717,26 @@ const visitors = {
 				const children = b.call(
 					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
-						visit(b.component(b.id('render_children'), [], children_filtered), {
-							...context.state,
-							...(apply_parent_css_scope ||
-							(is_element_dynamic(node) && node.metadata.scoped && state.component?.css)
-								? {
-										applyParentCssScope:
-											apply_parent_css_scope ||
-											/** @type {AST.CSS.StyleSheet} */ (state.component?.css).hash,
-									}
-								: {}),
-							scope: component_scope,
-							namespace: child_namespace,
-						})
+						visit(
+							create_native_tsrx_render_function(
+								b.id('render_children'),
+								[],
+								children_filtered,
+								node,
+							),
+							{
+								...context.state,
+								...(apply_parent_css_scope ||
+								(is_element_dynamic(node) && node.metadata.scoped && get_component_css(state))
+									? {
+											applyParentCssScope:
+												apply_parent_css_scope || get_component_css_hash(state) || undefined,
+										}
+									: {}),
+								scope: component_scope,
+								namespace: child_namespace,
+							},
+						)
 					),
 				);
 
@@ -1966,7 +2049,7 @@ const visitors = {
 
 	Style(node, context) {
 		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
-		const hash = context.state.component?.css?.hash;
+		const hash = get_component_css_hash(context.state);
 		const value = hash ? `${hash} ${class_name}` : class_name;
 		return b.literal(value);
 	},
