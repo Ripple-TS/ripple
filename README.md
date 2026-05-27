@@ -18,7 +18,7 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Lexical](https://github.com/facebook/lexical), and
 [Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
+**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default UI file
 extension. Components are ordinary TypeScript functions that return native TSRX
 expressions, so setup code stays familiar while template bodies can use
 statement-based control flow.
@@ -42,7 +42,7 @@ statement-based control flow.
   `RippleSet` imported from `'ripple'` with full reactivity
 - 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
-- 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
+- 🎨 **Scoped Styling**: Function-local CSS with automatic scoping
 
 ## 🚀 Quick Start
 
