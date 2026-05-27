@@ -77,7 +77,7 @@ describe('@tsrx/bun-plugin-solid', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App({ name }: { name: string }) {
+				`export function App({ name }: { name: string }) { return <>
 					<div>{name}</div>
 
 					<style>
@@ -85,7 +85,7 @@ describe('@tsrx/bun-plugin-solid', () => {
 							color: red;
 						}
 					</style>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });
@@ -114,9 +114,9 @@ describe('@tsrx/bun-plugin-solid', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App({ name }: { name: string }) {
+				`export function App({ name }: { name: string }) { return <>
 					<div>{name}</div>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin({ solid: { moduleName: 'custom-solid-web' } });
@@ -135,13 +135,13 @@ describe('@tsrx/bun-plugin-solid', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App() {
+				`export function App() { return <>
 					<div>{'Hello world'}</div>
 
 					<style>
 						.div { color: red; }
 					</style>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin({ emitCss: false });

@@ -72,8 +72,8 @@ import { builders as b } from '@tsrx/core';
  * - Component-level `await` is rejected outright (no `"use server"` escape).
  * - Control-flow statements become Solid's `<Show>` / `<For>` /
  *   `<Switch>/<Match>` / `<Errored>/<Loading>` instead of inline JSX.
- * - `component` declarations run once at setup, with early-return JSX
- *   hoisted into a reactive `<Show when={!cond}>`.
+ * - Uppercase native TSRX functions use Solid render-time control flow, so
+ *   branches stay reactive without reintroducing a TSRX-specific declaration.
  * - Element attributes support composite elements and lift a lone
  *   `{text ...}` child into a `textContent` attribute.
  * - `needs_show` / `needs_for` / etc. flags track which runtime
@@ -161,6 +161,15 @@ const solid_platform = {
 		// `transformElementAttributes` is never reached for Solid. Attribute
 		// lowering happens in Solid's local `transform_element_attributes`,
 		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
+		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
+			return rewrite_solid_host_children(
+				node,
+				walked_children,
+				raw_children,
+				attributes,
+				/** @type {any} */ (ctx),
+			);
+		},
 		transformElement: (inner, ctx, raw_children) =>
 			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
 	},
@@ -1061,7 +1070,7 @@ function try_statement_to_jsx_child(node, transform_context) {
 
 	if (!pending && !handler) {
 		error(
-			'Component try statements must have a `pending` or `catch` block.',
+			'Solid try statements must have a `pending` or `catch` block.',
 			transform_context.filename,
 			node,
 			transform_context.errors,
@@ -1212,6 +1221,57 @@ function inject_solid_imports(program, transform_context) {
 // =====================================================================
 // Element → JSX (with Solid-specific attribute handling)
 // =====================================================================
+
+/**
+ * @param {any} node
+ * @param {any[]} walked_children
+ * @param {any[]} raw_children
+ * @param {any[]} attributes
+ * @param {TransformContext} transform_context
+ * @returns {{ children: any[], selfClosing?: boolean } | null}
+ */
+function rewrite_solid_host_children(
+	node,
+	walked_children,
+	raw_children,
+	attributes,
+	transform_context,
+) {
+	const source_children = raw_children ?? walked_children;
+	if (
+		!is_component_like_element(node) &&
+		source_children.length === 1 &&
+		source_children[0]?.type === 'Text' &&
+		!has_text_content_attribute(attributes)
+	) {
+		const text_child = source_children[0];
+		attributes.push(
+			set_loc(
+				/** @type {any} */ ({
+					type: 'JSXAttribute',
+					name: {
+						type: 'JSXIdentifier',
+						name: 'textContent',
+						metadata: { path: [] },
+					},
+					value:
+						walked_children[0] && walked_children[0].type === 'JSXExpressionContainer'
+							? walked_children[0]
+							: to_jsx_expression_container(
+									to_text_expression(text_child.expression, text_child),
+									text_child,
+								),
+					shorthand: false,
+					metadata: { path: [] },
+				}),
+				text_child,
+			),
+		);
+		return { children: [], selfClosing: true };
+	}
+
+	return null;
+}
 
 /**
  * @param {any} node - walker-transformed Element whose `children` have

@@ -69,9 +69,17 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(result.errors).toEqual([]);
-			expect(result.code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
-			expect(result.code).toContain('bySwitch: (role) => {');
-			expect(result.code).toContain('return (() => {');
+			if (name === 'solid') {
+				expect(result.code).toContain('<Show when={isAdmin}');
+				expect(result.code).toContain('return ["Delete", "Edit"];');
+				expect(result.code).toContain('return ["View"];');
+				expect(result.code).toContain('<Switch fallback=');
+				expect(result.code).toContain("<Match when={role === 'admin'}>");
+			} else {
+				expect(result.code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
+				expect(result.code).toContain('bySwitch: (role) => {');
+				expect(result.code).toContain('return (() => {');
+			}
 		});
 
 		it('parses native TSRX callback returns in JSX props without semicolons', () => {
@@ -2011,7 +2019,11 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return;');
 			expect(code).toMatch(/function FragmentReturn\(\) {\s+return <div/);
 			expect(code).toMatch(/function TsxReturn\(\) {\s+return <div/);
-			expect(code).toContain('const App__static2 = <div>{"tsrx"}</div>;');
+			expect(code).toContain(
+				name === 'solid'
+					? 'const App__static2 = <div textContent={"tsrx"} />;'
+					: 'const App__static2 = <div>{"tsrx"}</div>;',
+			);
 			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static2/);
 			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
 		});
@@ -2043,7 +2055,11 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return;');
 			expect(code).toMatch(/fragment=\{\(\) => \{\s+return <div/);
 			expect(code).toMatch(/tsx=\{\(\) => \{\s+return <div/);
-			expect(code).toContain('const App__static1 = <div>{"tsrx"}</div>;');
+			expect(code).toContain(
+				name === 'solid'
+					? 'const App__static1 = <div textContent={"tsrx"} />;'
+					: 'const App__static1 = <div>{"tsrx"}</div>;',
+			);
 			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static1/);
 			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});
@@ -2611,17 +2627,32 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
-			expect(code).toContain('return ["View"];');
-			expect(code).toContain('bySwitch: (role) => {');
-			expect(code).toContain('return (() => {');
-			expect(code).toContain('switch (role)');
-			expect(code).toContain('byForOf: (items) => {');
-			expect(code).toContain('__map_iterable(items');
-			expect(code).toContain('return ["Empty"];');
-			expect(code).toContain('byTry: (load) => {');
-			expect(code).toContain('TsrxErrorBoundary');
-			expect(code).toContain('return ["Error"];');
+			if (name === 'solid') {
+				expect(code).toContain('<Show when={isAdmin}');
+				expect(code).toContain('return ["Delete", "Edit"];');
+				expect(code).toContain('return ["View"];');
+				expect(code).toContain('bySwitch: (role) => {');
+				expect(code).toContain('<Switch fallback=');
+				expect(code).toContain("<Match when={role === 'admin'}>");
+				expect(code).toContain('byForOf: (items) => {');
+				expect(code).toContain('<For each={items}');
+				expect(code).toContain('return ["Empty"];');
+				expect(code).toContain('byTry: (load) => {');
+				expect(code).toContain('<Errored fallback=');
+				expect(code).toContain('return ["Error"];');
+			} else {
+				expect(code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
+				expect(code).toContain('return ["View"];');
+				expect(code).toContain('bySwitch: (role) => {');
+				expect(code).toContain('return (() => {');
+				expect(code).toContain('switch (role)');
+				expect(code).toContain('byForOf: (items) => {');
+				expect(code).toContain('__map_iterable(items');
+				expect(code).toContain('return ["Empty"];');
+				expect(code).toContain('byTry: (load) => {');
+				expect(code).toContain('TsrxErrorBoundary');
+				expect(code).toContain('return ["Error"];');
+			}
 			expect(code).not.toContain('? (() =>');
 		});
 	});
@@ -2924,28 +2955,10 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain("name == null ? '' : name + ''");
 		});
 
-		it.runIf(name === 'solid')(
-			`[${name}] returns inline JSX for {'hello'} {text 'hello'} sibling combo`,
-			() => {
-				// Solid emits the JSX directly in `return` — no static
-				// hoisting like React/Preact — and both child forms collapse
-				// to the same `{'hello'}` after the static-string optimization.
-				const { code } = compile(
-					`export function App() { return <>
-						<b>{'hello'} {text 'hello'}</b>
-					</>; }`,
-					'App.tsrx',
-				);
-				expect(code).toContain("return <b>{'hello'}{'hello'}</b>");
-				expect(code).not.toContain('App__static');
-				expect(code).not.toContain('== null');
-			},
-		);
-
-		it.runIf(['react', 'preact'].includes(name))(
+		it.runIf(['react', 'preact', 'solid'].includes(name))(
 			`[${name}] hoists {'hello'} {text 'hello'} sibling combo to a static`,
 			() => {
-				// React/Preact hoist child-free static JSX to a module-level
+				// React/Preact/Solid hoist child-free static JSX to a module-level
 				// constant so the element identity is stable across renders.
 				// Both child forms collapse to `{'hello'}` after the
 				// static-string optimization, leaving the element fully

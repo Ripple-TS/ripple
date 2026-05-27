@@ -39,170 +39,181 @@ function text(selector: string): string | null {
 
 // ── Basic rendering ──
 
-component BasicApp() {
-	<div class="greeting">{'Hello world'}</div>
+function BasicApp() {
+	return <><div class="greeting">{'Hello world'}</div></>;
 }
 
-component Child(props: { text: string }) {
-	<span class="child">{props.text}</span>
+function Child(props: { text: string }) {
+	return <><span class="child">{props.text}</span></>;
 }
 
-component NestedApp() {
-	<div>
-		<Child text="nested" />
-	</div>
+function NestedApp() {
+	return <>
+		<div>
+			<Child text="nested" />
+		</div>
+	</>;
 }
 
-component ExplicitTextApp() {
-	const markup = '<span>Not HTML</span>';
-	const hidden = false;
-	const empty = null;
-	const missing = undefined;
-
-	<div class="explicit-text-markup">{text markup}</div>
-	<div class="explicit-text-boolean">{text hidden}</div>
-	<div class="explicit-text-null">{text empty}</div>
-	<div class="explicit-text-undefined">{text missing}</div>
+function ExplicitTextApp() {
+	return <>
+		const markup = '<span>Not HTML</span>';
+		const hidden = false;
+		const empty = null;
+		const missing = undefined;
+		<div class="explicit-text-markup">{text markup}</div>
+		<div class="explicit-text-boolean">{text hidden}</div>
+		<div class="explicit-text-null">{text empty}</div>
+		<div class="explicit-text-undefined">{text missing}</div>
+	</>;
 }
 
-component ExplicitHtmlApp() {
-	const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
-
-	<div class="explicit-html-child">{html markup()}</div>
-	<button
-		class="explicit-html-update"
-		onClick={() => {
-			setMarkup('<strong class="html-node">updated</strong>');
-		}}
-	>
-		{'update'}
-	</button>
+function ExplicitHtmlApp() {
+	return <>
+		const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
+		<div class="explicit-html-child">{html markup()}</div>
+		<button
+			class="explicit-html-update"
+			onClick={() => {
+				setMarkup('<strong class="html-node">updated</strong>');
+			}}
+		>
+			{'update'}
+		</button>
+	</>;
 }
 
-component SpreadHtmlApp() {
-	const [spreadProps, setSpreadProps] = createSignal({
-		innerHTML: '<em class="html-node">spread</em>',
-	});
-	const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
-
-	<div class="spread-html-child" {...spreadProps()}>{html markup()}</div>
-	<button
-		class="spread-html-update-spread"
-		onClick={() => {
-			setSpreadProps({ innerHTML: '<i class="html-node">spread update</i>' });
-		}}
-	>
-		{'spread'}
-	</button>
-	<button
-		class="spread-html-update-markup"
-		onClick={() => {
-			setMarkup('<strong class="html-node">updated</strong>');
-		}}
-	>
-		{'markup'}
-	</button>
+function SpreadHtmlApp() {
+	return <>
+		const [spreadProps, setSpreadProps] = createSignal({
+			innerHTML: '<em class="html-node">spread</em>',
+		});
+		const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
+		<div class="spread-html-child" {...spreadProps()}>{html markup()}</div>
+		<button
+			class="spread-html-update-spread"
+			onClick={() => {
+				setSpreadProps({ innerHTML: '<i class="html-node">spread update</i>' });
+			}}
+		>
+			{'spread'}
+		</button>
+		<button
+			class="spread-html-update-markup"
+			onClick={() => {
+				setMarkup('<strong class="html-node">updated</strong>');
+			}}
+		>
+			{'markup'}
+		</button>
+	</>;
 }
 
-component CallableBlockRuntimeApp() {
-	function readDeclaration() {
-		const marker = 'decl-outer';
-		let selected = marker;
-
-		{
-			const marker = 'decl-inner';
-			selected = marker;
-		}
-
-		return `${selected}/${marker}`;
-	}
-
-	const readArrow = () => {
-		const base = 10;
-		let total = base;
-
-		{
-			const base = 32;
-			total += base;
-		}
-
-		return total;
-	};
-
-	class MethodReader {
-		read() {
-			const marker = 'method-outer';
+function CallableBlockRuntimeApp() {
+	return <>
+		function readDeclaration() {
+			const marker = 'decl-outer';
 			let selected = marker;
 
 			{
-				const marker = 'method-inner';
+				const marker = 'decl-inner';
 				selected = marker;
 			}
 
 			return `${selected}/${marker}`;
 		}
-	}
+		const readArrow = () => {
+			const base = 10;
+			let total = base;
 
-	const reader = new MethodReader();
+			{
+				const base = 32;
+				total += base;
+			}
 
-	<section class="callable-block-runtime">
-		<p class="decl-block">{readDeclaration()}</p>
-		<p class="arrow-block">{readArrow()}</p>
-		<p class="method-block">{reader.read()}</p>
-	</section>
+			return total;
+		};
+		class MethodReader {
+			read() {
+				const marker = 'method-outer';
+				let selected = marker;
+
+				{
+					const marker = 'method-inner';
+					selected = marker;
+				}
+
+				return `${selected}/${marker}`;
+			}
+		}
+		const reader = new MethodReader();
+		<section class="callable-block-runtime">
+			<p class="decl-block">{readDeclaration()}</p>
+			<p class="arrow-block">{readArrow()}</p>
+			<p class="method-block">{reader.read()}</p>
+		</section>
+	</>;
 }
 
 // ── Reactive counter (signals) ──
 
-component CounterApp() {
-	const [count, setCount] = createSignal(0);
-	<p class="count">{count()}</p>
-	<button class="inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+function CounterApp() {
+	return <>
+		const [count, setCount] = createSignal(0);
+		<p class="count">{count()}</p>
+		<button class="inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+	</>;
 }
 
 // ── Refs on elements via {ref expr} assignment sugar ──
 
 let element_ref_captured: HTMLDivElement | null = null;
 
-component ElementRefApp() {
-	let el: HTMLDivElement | undefined;
-	<div {ref el} class="ref-target">"ref test"</div>
-	// Solid sets refs synchronously during rendering.
-	queueMicrotask(() => {
-		element_ref_captured = el ?? null;
-	});
+function ElementRefApp() {
+	return <>
+		let el: HTMLDivElement | undefined;
+		<div {ref el} class="ref-target">"ref test"</div>
+		// Solid sets refs synchronously during rendering.
+		queueMicrotask(() => {
+			element_ref_captured = el ?? null;
+		});
+	</>;
 }
 
 // ── Ref callback via plain ref={callback} on elements ──
 
 let callback_ref_captured: HTMLDivElement | null = null;
 
-component ElementRefCallbackApp() {
-	<div
-		ref={(node: HTMLDivElement) => {
-			callback_ref_captured = node;
-		}}
-		class="ref-callback"
-	>
-		"ref callback"
-	</div>
+function ElementRefCallbackApp() {
+	return <>
+		<div
+			ref={(node: HTMLDivElement) => {
+				callback_ref_captured = node;
+			}}
+			class="ref-callback"
+		>
+			"ref callback"
+		</div>
+	</>;
 }
 
 // ── Ref on composite components via prop forwarding ──
 
 let composite_ref_captured: HTMLInputElement | null = null;
 
-component InputComp(props: { type: string; ref?: (node: HTMLInputElement) => void }) {
-	<input type={props.type} ref={props.ref} />
+function InputComp(props: { type: string; ref?: (node: HTMLInputElement) => void }) {
+	return <><input type={props.type} ref={props.ref} /></>;
 }
 
-component CompositeRefApp() {
-	<InputComp
-		type="text"
-		ref={(node: HTMLInputElement) => {
-			composite_ref_captured = node;
-		}}
-	/>
+function CompositeRefApp() {
+	return <>
+		<InputComp
+			type="text"
+			ref={(node: HTMLInputElement) => {
+				composite_ref_captured = node;
+			}}
+		/>
+	</>;
 }
 
 // ── {ref expr} on composite components forwards through `props.ref` ──
@@ -212,15 +223,17 @@ component CompositeRefApp() {
 
 let spread_ref_captured: HTMLInputElement | null = null;
 
-component SpreadRefChild(props: { type: string }) {
-	<input {...props} />
+function SpreadRefChild(props: { type: string }) {
+	return <><input {...props} /></>;
 }
 
-component SpreadRefApp() {
-	function onMount(node: HTMLInputElement) {
-		spread_ref_captured = node;
-	}
-	<SpreadRefChild type="text" {ref onMount} />
+function SpreadRefApp() {
+	return <>
+		function onMount(node: HTMLInputElement) {
+			spread_ref_captured = node;
+		}
+		<SpreadRefChild type="text" {ref onMount} />
+	</>;
 }
 
 // ── Multiple {ref ...} on the same DOM element ──
@@ -230,14 +243,16 @@ component SpreadRefApp() {
 let multi_dom_a: HTMLInputElement | null = null;
 let multi_dom_b: HTMLInputElement | null = null;
 
-component MultiDomRefApp() {
-	function refA(node: HTMLInputElement) {
-		multi_dom_a = node;
-	}
-	function refB(node: HTMLInputElement) {
-		multi_dom_b = node;
-	}
-	<input type="text" {ref refA} {ref refB} />
+function MultiDomRefApp() {
+	return <>
+		function refA(node: HTMLInputElement) {
+			multi_dom_a = node;
+		}
+		function refB(node: HTMLInputElement) {
+			multi_dom_b = node;
+		}
+		<input type="text" {ref refA} {ref refB} />
+	</>;
 }
 
 // ── Mixing Ripple {ref expr} and TSX-style ref={expr} on the same element ──
@@ -248,14 +263,16 @@ component MultiDomRefApp() {
 let mixed_keyword_node: HTMLInputElement | null = null;
 let mixed_jsx_node: HTMLInputElement | null = null;
 
-component MixedDomRefApp() {
-	function keywordRef(node: HTMLInputElement) {
-		mixed_keyword_node = node;
-	}
-	function jsxRef(node: HTMLInputElement) {
-		mixed_jsx_node = node;
-	}
-	<input type="text" {ref keywordRef} ref={jsxRef} />
+function MixedDomRefApp() {
+	return <>
+		function keywordRef(node: HTMLInputElement) {
+			mixed_keyword_node = node;
+		}
+		function jsxRef(node: HTMLInputElement) {
+			mixed_jsx_node = node;
+		}
+		<input type="text" {ref keywordRef} ref={jsxRef} />
+	</>;
 }
 
 // ── Multiple {ref ...} on the same composite component ──
@@ -265,36 +282,40 @@ let multi_comp_a: HTMLInputElement | null = null;
 let multi_comp_b: HTMLInputElement | null = null;
 let multi_comp_c: HTMLInputElement | null = null;
 
-component MultiCompRefApp() {
-	function refA(node: HTMLInputElement) {
-		multi_comp_a = node;
-	}
-	function refB(node: HTMLInputElement) {
-		multi_comp_b = node;
-	}
-	function refC(node: HTMLInputElement) {
-		multi_comp_c = node;
-	}
-	<SpreadRefChild type="text" {ref refA} {ref refB} {ref refC} />
+function MultiCompRefApp() {
+	return <>
+		function refA(node: HTMLInputElement) {
+			multi_comp_a = node;
+		}
+		function refB(node: HTMLInputElement) {
+			multi_comp_b = node;
+		}
+		function refC(node: HTMLInputElement) {
+			multi_comp_c = node;
+		}
+		<SpreadRefChild type="text" {ref refA} {ref refB} {ref refC} />
+	</>;
 }
 
 // ── Deep ref propagation through nested composite components ──
 
 let deep_ref_captured: HTMLInputElement | null = null;
 
-component DeepInner(props: { type: string }) {
-	<input {...props} />
+function DeepInner(props: { type: string }) {
+	return <><input {...props} /></>;
 }
 
-component DeepOuter(props: { type: string }) {
-	<DeepInner {...props} />
+function DeepOuter(props: { type: string }) {
+	return <><DeepInner {...props} /></>;
 }
 
-component DeepRefApp() {
-	function onMount(node: HTMLInputElement) {
-		deep_ref_captured = node;
-	}
-	<DeepOuter type="text" {ref onMount} />
+function DeepRefApp() {
+	return <>
+		function onMount(node: HTMLInputElement) {
+			deep_ref_captured = node;
+		}
+		<DeepOuter type="text" {ref onMount} />
+	</>;
 }
 
 // ── Named ref props merged with native and anonymous refs ──
@@ -303,39 +324,41 @@ let named_direct_node: HTMLInputElement | null = null;
 let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
-component NamedDirectRefApp() {
-	function nativeRef(node: HTMLInputElement | null) {
-		named_direct_native_node = node;
-	}
-
-	function anonymousRef(node: HTMLInputElement | null) {
-		named_direct_anonymous_node = node;
-	}
-
-	<input
-		ref={nativeRef}
-		{ref anonymousRef}
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_direct_node = node;
-		}}
-		class="named-direct-ref"
-		type="text"
-	/>
+function NamedDirectRefApp() {
+	return <>
+		function nativeRef(node: HTMLInputElement | null) {
+			named_direct_native_node = node;
+		}
+		function anonymousRef(node: HTMLInputElement | null) {
+			named_direct_anonymous_node = node;
+		}
+		<input
+			ref={nativeRef}
+			{ref anonymousRef}
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_direct_node = node;
+			}}
+			class="named-direct-ref"
+			type="text"
+		/>
+	</>;
 }
 
 let named_forward_node: HTMLInputElement | null = null;
 
-component NamedForwardInput(props: { type: string; input_ref?: any }) {
-	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
+function NamedForwardInput(props: { type: string; input_ref?: any }) {
+	return <><input type={props.type} ref={props.input_ref} class="named-forward-ref" /></>;
 }
 
-component NamedForwardRefApp() {
-	<NamedForwardInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_forward_node = node;
-		}}
-	/>
+function NamedForwardRefApp() {
+	return <>
+		<NamedForwardInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_forward_node = node;
+			}}
+		/>
+	</>;
 }
 
 let named_spread_before_node: HTMLInputElement | null = null;
@@ -345,17 +368,19 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
-	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
+function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+	return <><input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" /></>;
 }
 
-component NamedSpreadBeforeRefApp() {
-	<NamedSpreadBeforeRefInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_spread_before_node = node;
-		}}
-	/>
+function NamedSpreadBeforeRefApp() {
+	return <>
+		<NamedSpreadBeforeRefInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_spread_before_node = node;
+			}}
+		/>
+	</>;
 }
 
 let named_spread_after_node: HTMLInputElement | null = null;
@@ -365,17 +390,19 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
-	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
+function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+	return <><input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" /></>;
 }
 
-component NamedSpreadAfterRefApp() {
-	<NamedSpreadAfterRefInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_spread_after_node = node;
-		}}
-	/>
+function NamedSpreadAfterRefApp() {
+	return <>
+		<NamedSpreadAfterRefInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_spread_after_node = node;
+			}}
+		/>
+	</>;
 }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
@@ -390,333 +417,354 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 	multi_spread_native_node = node;
 }
 
-component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
-	const first = { type: props.type, first_ref: props.first_ref };
-	const second = { second_ref: props.second_ref };
-
-	<input
-		{...first}
-		{...second}
-		ref={multiSpreadExplicitNativeRef}
-		class="multi-spread-explicit-ref"
-	/>
+function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	return <>
+		const first = { type: props.type, first_ref: props.first_ref };
+		const second = { second_ref: props.second_ref };
+		<input
+			{...first}
+			{...second}
+			ref={multiSpreadExplicitNativeRef}
+			class="multi-spread-explicit-ref"
+		/>
+	</>;
 }
 
-component MultiSpreadExplicitRefApp() {
-	<MultiSpreadExplicitRefInput
-		type="text"
-		first_ref={ref (node: HTMLInputElement | null) => {
-			multi_spread_first_node = node;
-		}}
-		second_ref={ref (node: HTMLInputElement | null) => {
-			multi_spread_second_node = node;
-		}}
-	/>
+function MultiSpreadExplicitRefApp() {
+	return <>
+		<MultiSpreadExplicitRefInput
+			type="text"
+			first_ref={ref (node: HTMLInputElement | null) => {
+				multi_spread_first_node = node;
+			}}
+			second_ref={ref (node: HTMLInputElement | null) => {
+				multi_spread_second_node = node;
+			}}
+		/>
+	</>;
 }
 
 const named_ref_object: { value: HTMLInputElement | null } = { value: null };
 
-component NamedRefObjectApp() {
-	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
+function NamedRefObjectApp() {
+	return <><NamedForwardInput type="text" input_ref={ref named_ref_object} /></>;
 }
 
 // ── If-statement with reactivity ──
 
-component IfReactiveApp() {
-	const [show, setShow] = createSignal(true);
-
-	if (show()) {
-		<span class="visible">{'shown'}</span>
-	} else {
-		<span class="hidden">{'hidden'}</span>
-	}
-
-	<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+function IfReactiveApp() {
+	return <>
+		const [show, setShow] = createSignal(true);
+		if (show()) {
+			<span class="visible">{'shown'}</span>
+		} else {
+			<span class="hidden">{'hidden'}</span>
+		}
+		<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+	</>;
 }
 
 // ── For-of loop with reactivity ──
 
-component ForReactiveApp() {
-	const [items, setItems] = createSignal(['a', 'b', 'c']);
-
-	for (const item of items(); index i) {
-		<li class="item">{item()}</li>
-	}
-
-	<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
-	<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
+function ForReactiveApp() {
+	return <>
+		const [items, setItems] = createSignal(['a', 'b', 'c']);
+		for (const item of items(); index i) {
+			<li class="item">{item()}</li>
+		}
+		<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
+		<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
+	</>;
 }
 
-component ForContinueApp() {
-	const items = ['a', '', 'c'];
-
-	for (const item of items) {
-		const item_value = (item as unknown as () => string)();
-		if (!item_value) continue;
-		<li class="continue-item">{item_value}</li>
-	}
+function ForContinueApp() {
+	return <>
+		const items = ['a', '', 'c'];
+		for (const item of items) {
+			const item_value = (item as unknown as () => string)();
+			if (!item_value) continue;
+			<li class="continue-item">{item_value}</li>
+		}
+	</>;
 }
 
-component ForContinueAfterPriorJsxApp() {
-	const items = ['a', '', 'c'];
-
-	for (const item of items) {
-		const item_value = (item as unknown as () => string)();
-		<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
-		if (!item_value) continue;
-		<span class="continue-after">{`after-${item_value}`}</span>
-	}
+function ForContinueAfterPriorJsxApp() {
+	return <>
+		const items = ['a', '', 'c'];
+		for (const item of items) {
+			const item_value = (item as unknown as () => string)();
+			<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
+			if (!item_value) continue;
+			<span class="continue-after">{`after-${item_value}`}</span>
+		}
+	</>;
 }
 
 // ── Switch with reactivity ──
 
-component SwitchReactiveApp() {
-	const [page, setPage] = createSignal('home');
-
-	switch (page()) {
-		case 'home':
-			<div class="page">{'Home'}</div>
-			break;
-		case 'about':
-			<div class="page">{'About'}</div>
-			break;
-		default:
-			<div class="page">{'404'}</div>
-			break;
-	}
-
-	<button class="go-about" onClick={() => setPage('about')}>{'about'}</button>
-	<button class="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
+function SwitchReactiveApp() {
+	return <>
+		const [page, setPage] = createSignal('home');
+		switch (page()) {
+			case 'home':
+				<div class="page">{'Home'}</div>
+				break;
+			case 'about':
+				<div class="page">{'About'}</div>
+				break;
+			default:
+				<div class="page">{'404'}</div>
+				break;
+		}
+		<button class="go-about" onClick={() => setPage('about')}>{'about'}</button>
+		<button class="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
+	</>;
 }
 
 // ── Composite children ──
 
-component Wrapper(props: { children?: any }) {
-	<div class="wrapper">{props.children}</div>
+function Wrapper(props: { children?: any }) {
+	return <><div class="wrapper">{props.children}</div></>;
 }
 
-component ChildrenApp() {
-	<Wrapper>
-		<span>{'inside wrapper'}</span>
-	</Wrapper>
+function ChildrenApp() {
+	return <>
+		<Wrapper>
+			<span>{'inside wrapper'}</span>
+		</Wrapper>
+	</>;
 }
 
 // ── If-statement children through composite ──
 
-component IfChildrenApp() {
-	const [show, setShow] = createSignal(false);
-
-	<Wrapper>
-		if (show()) {
-			<span class="inner-visible">{'inner shown'}</span>
-		}
-	</Wrapper>
-
-	<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+function IfChildrenApp() {
+	return <>
+		const [show, setShow] = createSignal(false);
+		<Wrapper>
+			if (show()) {
+				<span class="inner-visible">{'inner shown'}</span>
+			}
+		</Wrapper>
+		<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+	</>;
 }
 
 // ── Scoped CSS ──
 
-component StyledApp() {
-	<div class="styled">{'styled text'}</div>
-
-	<style>
-		.styled {
-			color: red;
-		}
-	</style>
+function StyledApp() {
+	return <>
+		<div class="styled">{'styled text'}</div>
+		<style>
+			.styled {
+				color: red;
+			}
+		</style>
+	</>;
 }
 
 // ── Try/catch: synchronous error boundary ──
 
-component ThrowingChild() {
-	throw new Error('sync boom');
-	<p>{'unreachable'}</p>
+function ThrowingChild() {
+	return <>
+		throw new Error('sync boom');
+		<p>{'unreachable'}</p>
+	</>;
 }
 
-component ErrorBoundaryApp() {
-	try {
-		<ThrowingChild />
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
-	}
+function ErrorBoundaryApp() {
+	return <>
+		try {
+			<ThrowingChild />
+		} catch (err) {
+			<p class="caught">{(err as Error).message}</p>
+		}
+	</>;
 }
 
 // ── Try/catch with reset: recover from error ──
 
-component MaybeThrow(props: { shouldThrow: boolean }) {
-	if (props.shouldThrow) {
-		throw new Error('conditional boom');
-	}
-	<p class="ok">{'no error'}</p>
+function MaybeThrow(props: { shouldThrow: boolean }) {
+	return <>
+		if (props.shouldThrow) {
+			throw new Error('conditional boom');
+		}
+		<p class="ok">{'no error'}</p>
+	</>;
 }
 
-component ErrorToggleApp() {
-	const [fail, setFail] = createSignal(false);
-
-	try {
-		<MaybeThrow shouldThrow={fail()} />
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
-		<button
-			class="reset"
-			onClick={() => {
-				setFail(false);
-				reset();
-			}}
-		>
-			{'reset'}
-		</button>
-	}
-
-	<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
+function ErrorToggleApp() {
+	return <>
+		const [fail, setFail] = createSignal(false);
+		try {
+			<MaybeThrow shouldThrow={fail()} />
+		} catch (err, reset) {
+			<p class="caught">{(err as Error).message}</p>
+			<button
+				class="reset"
+				onClick={() => {
+					setFail(false);
+					reset();
+				}}
+			>
+				{'reset'}
+			</button>
+		}
+		<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
+	</>;
 }
 
 // ── Try/pending: Loading boundary with lazy() ──
 
-component ResolvedChild(props: { value: string }) {
-	<p class="resolved">{props.value}</p>
+function ResolvedChild(props: { value: string }) {
+	return <><p class="resolved">{props.value}</p></>;
 }
 
-component SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
-	const LazyChild = lazy(props.loader);
-
-	try {
-		<LazyChild value="hello" />
-	} pending {
-		<p class="pending">{'loading...'}</p>
-	}
+function SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
+	return <>
+		const LazyChild = lazy(props.loader);
+		try {
+			<LazyChild value="hello" />
+		} pending {
+			<p class="pending">{'loading...'}</p>
+		}
+	</>;
 }
 
-component EmptyPendingSuspenseApp(props: {
+function EmptyPendingSuspenseApp(props: {
 	loader: () => Promise<{ default: typeof ResolvedChild }>;
 }) {
-	const LazyChild = lazy(props.loader);
-
-	try {
-		<LazyChild value="hello" />
-	} pending {}
+	return <>
+		const LazyChild = lazy(props.loader);
+		try {
+			<LazyChild value="hello" />
+		} pending {}
+	</>;
 }
 
 // ── Try/pending/catch: Loading + Errored ──
 
-component SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
-	const LazyChild = lazy(props.loader);
-
-	try {
-		<LazyChild value="hello" />
-	} pending {
-		<p class="pending">{'loading...'}</p>
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
-	}
+function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
+	return <>
+		const LazyChild = lazy(props.loader);
+		try {
+			<LazyChild value="hello" />
+		} pending {
+			<p class="pending">{'loading...'}</p>
+		} catch (err) {
+			<p class="caught">{(err as Error).message}</p>
+		}
+	</>;
 }
 
 // ── Nested try: inner catch handles inner error ──
 
-component InnerThrow() {
-	throw new Error('inner error');
-	<p>{'unreachable'}</p>
+function InnerThrow() {
+	return <>
+		throw new Error('inner error');
+		<p>{'unreachable'}</p>
+	</>;
 }
 
-component NestedTryApp() {
-	try {
-		<div class="outer">
-			try {
-				<InnerThrow />
-			} catch (err) {
-				<p class="inner-caught">{(err as Error).message}</p>
-			}
-		</div>
-	} catch (err) {
-		<p class="outer-caught">{(err as Error).message}</p>
-	}
+function NestedTryApp() {
+	return <>
+		try {
+			<div class="outer">
+				try {
+					<InnerThrow />
+				} catch (err) {
+					<p class="inner-caught">{(err as Error).message}</p>
+				}
+			</div>
+		} catch (err) {
+			<p class="outer-caught">{(err as Error).message}</p>
+		}
+	</>;
 }
 
 // ── If inside try body ──
 
-component IfInsideTryApp() {
-	const [show, setShow] = createSignal(true);
-
-	try {
-		if (show()) {
-			<p class="branch-a">{'visible'}</p>
-		} else {
-			<p class="branch-b">{'alternate'}</p>
+function IfInsideTryApp() {
+	return <>
+		const [show, setShow] = createSignal(true);
+		try {
+			if (show()) {
+				<p class="branch-a">{'visible'}</p>
+			} else {
+				<p class="branch-b">{'alternate'}</p>
+			}
+		} catch (err) {
+			<p class="caught">{'error'}</p>
 		}
-	} catch (err) {
-		<p class="caught">{'error'}</p>
-	}
-
-	<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+		<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+	</>;
 }
 
 // ── For-of inside try body ──
 
-component ForInsideTryApp() {
-	const [items, setItems] = createSignal(['x', 'y']);
-
-	try {
-		for (const item of items(); index i) {
-			<span class="try-item">{item()}</span>
+function ForInsideTryApp() {
+	return <>
+		const [items, setItems] = createSignal(['x', 'y']);
+		try {
+			for (const item of items(); index i) {
+				<span class="try-item">{item()}</span>
+			}
+		} catch (err) {
+			<p class="caught">{'error'}</p>
 		}
-	} catch (err) {
-		<p class="caught">{'error'}</p>
-	}
-
-	<button class="add" onClick={() => setItems([...items(), 'z'])}>{'add'}</button>
+		<button class="add" onClick={() => setItems([...items(), 'z'])}>{'add'}</button>
+	</>;
 }
 
 // ── Signal inside if-branch ──
 
-component SignalInIfApp() {
-	const [show, setShow] = createSignal(true);
-
-	if (show()) {
-		const [count, setCount] = createSignal(0);
-		<p class="sig-if-count">{count()}</p>
-		<button class="sig-if-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
-	} else {
-		<p class="sig-if-hidden">{'hidden'}</p>
-	}
-
-	<button class="sig-if-toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+function SignalInIfApp() {
+	return <>
+		const [show, setShow] = createSignal(true);
+		if (show()) {
+			const [count, setCount] = createSignal(0);
+			<p class="sig-if-count">{count()}</p>
+			<button class="sig-if-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
+		} else {
+			<p class="sig-if-hidden">{'hidden'}</p>
+		}
+		<button class="sig-if-toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+	</>;
 }
 
 // ── Signal inside both if-else branches ──
 
-component SignalInBothBranchesApp() {
-	const [mode, setMode] = createSignal('a');
-
-	if (mode() === 'a') {
-		const [x, setX] = createSignal(10);
-		<p class="branch-val">{x()}</p>
-		<button class="branch-inc" onClick={() => setX(x() + 1)}>{'inc'}</button>
-	} else {
-		const [y, setY] = createSignal(20);
-		<p class="branch-val">{y()}</p>
-		<button class="branch-inc" onClick={() => setY(y() + 1)}>{'inc'}</button>
-	}
-
-	<button class="branch-toggle" onClick={() => setMode(mode() === 'a' ? 'b' : 'a')}>
-		{'toggle'}
-	</button>
+function SignalInBothBranchesApp() {
+	return <>
+		const [mode, setMode] = createSignal('a');
+		if (mode() === 'a') {
+			const [x, setX] = createSignal(10);
+			<p class="branch-val">{x()}</p>
+			<button class="branch-inc" onClick={() => setX(x() + 1)}>{'inc'}</button>
+		} else {
+			const [y, setY] = createSignal(20);
+			<p class="branch-val">{y()}</p>
+			<button class="branch-inc" onClick={() => setY(y() + 1)}>{'inc'}</button>
+		}
+		<button class="branch-toggle" onClick={() => setMode(mode() === 'a' ? 'b' : 'a')}>
+			{'toggle'}
+		</button>
+	</>;
 }
 
 // ── Signal inside if closing over parent scope ──
 
-component SignalClosingOverScopeApp() {
-	const [multiplier, setMultiplier] = createSignal(2);
-
-	if (multiplier() > 0) {
-		const [base, setBase] = createSignal(5);
-		<p class="scope-result">{base() * multiplier()}</p>
-		<button class="scope-inc-base" onClick={() => setBase(base() + 1)}>{'inc base'}</button>
-	}
-
-	<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier() + 1)}>
-		{'inc multiplier'}
-	</button>
+function SignalClosingOverScopeApp() {
+	return <>
+		const [multiplier, setMultiplier] = createSignal(2);
+		if (multiplier() > 0) {
+			const [base, setBase] = createSignal(5);
+			<p class="scope-result">{base() * multiplier()}</p>
+			<button class="scope-inc-base" onClick={() => setBase(base() + 1)}>{'inc base'}</button>
+		}
+		<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier() + 1)}>
+			{'inc multiplier'}
+		</button>
+	</>;
 }
 
 // ── Signal inside for-of loop body ──
@@ -724,116 +772,118 @@ component SignalClosingOverScopeApp() {
 // a plain value, so branch-local uses of `item` outside JSX reactive positions
 // must call `item()` explicitly. This differs from the React runtime tests.
 
-component SignalInForApp() {
-	const [items, setItems] = createSignal(['a', 'b']);
-
-	for (const item of items(); index i) {
-		const item_value = (item as unknown as () => string)();
-		const [clicked, setClicked] = createSignal(false);
-		<div class="sig-for-item">
-			<span>{item_value + (clicked() ? '!' : '')}</span>
-			<button class={'sig-for-click-' + item_value} onClick={() => setClicked(true)}>
-				{'click'}
-			</button>
-		</div>
-	}
-
-	<button class="sig-for-add" onClick={() => setItems([...items(), 'c'])}>{'add'}</button>
+function SignalInForApp() {
+	return <>
+		const [items, setItems] = createSignal(['a', 'b']);
+		for (const item of items(); index i) {
+			const item_value = (item as unknown as () => string)();
+			const [clicked, setClicked] = createSignal(false);
+			<div class="sig-for-item">
+				<span>{item_value + (clicked() ? '!' : '')}</span>
+				<button class={'sig-for-click-' + item_value} onClick={() => setClicked(true)}>
+					{'click'}
+				</button>
+			</div>
+		}
+		<button class="sig-for-add" onClick={() => setItems([...items(), 'c'])}>{'add'}</button>
+	</>;
 }
 
 // ── Signal inside switch case ──
 
-component SignalInSwitchApp() {
-	const [page, setPage] = createSignal('home');
-
-	switch (page()) {
-		case 'home':
-			const [homeCount, setHomeCount] = createSignal(0);
-			<p class="sig-switch-val">{homeCount()}</p>
-			<button class="sig-switch-inc" onClick={() => setHomeCount(homeCount() + 1)}>{'inc'}</button>
-			break;
-		case 'about':
-			<p class="sig-switch-val">{'about page'}</p>
-			break;
-	}
-
-	<button class="sig-switch-go" onClick={() => setPage('about')}>{'about'}</button>
+function SignalInSwitchApp() {
+	return <>
+		const [page, setPage] = createSignal('home');
+		switch (page()) {
+			case 'home':
+				const [homeCount, setHomeCount] = createSignal(0);
+				<p class="sig-switch-val">{homeCount()}</p>
+				<button class="sig-switch-inc" onClick={() => setHomeCount(homeCount() + 1)}>
+					{'inc'}
+				</button>
+				break;
+			case 'about':
+				<p class="sig-switch-val">{'about page'}</p>
+				break;
+		}
+		<button class="sig-switch-go" onClick={() => setPage('about')}>{'about'}</button>
+	</>;
 }
 
 // ── Early return before signals with parent scope ──
 
-component EarlyReturnWithSignalsApp() {
-	const [count, setCount] = createSignal(0);
-	const [skip, setSkip] = createSignal(false);
-
-	if (skip()) {
-		return;
-	}
-
-	const [doubled, setDoubled] = createSignal(0);
-
-	<p class="early-count">{count()}</p>
-	<p class="early-doubled">{doubled()}</p>
-	<button
-		class="early-inc"
-		onClick={() => {
-			setCount(count() + 1);
-			setDoubled((count() + 1) * 2);
-		}}
-	>
-		{'inc'}
-	</button>
-	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
+function EarlyReturnWithSignalsApp() {
+	return <>
+		const [count, setCount] = createSignal(0);
+		const [skip, setSkip] = createSignal(false);
+		if (skip()) {
+			return;
+		}
+		const [doubled, setDoubled] = createSignal(0);
+		<p class="early-count">{count()}</p>
+		<p class="early-doubled">{doubled()}</p>
+		<button
+			class="early-inc"
+			onClick={() => {
+				setCount(count() + 1);
+				setDoubled((count() + 1) * 2);
+			}}
+		>
+			{'inc'}
+		</button>
+		<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
+	</>;
 }
 
-component TemplateBeforeEarlyReturnApp() {
-	const [guard, setGuard] = createSignal(false);
-
-	<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
-
-	if (guard()) {
-		<p class="template-return-guard">{'guard'}</p>
-		return;
-	}
-
-	<p class="template-return-rest">{'rest'}</p>
+function TemplateBeforeEarlyReturnApp() {
+	return <>
+		const [guard, setGuard] = createSignal(false);
+		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
+		if (guard()) {
+			<p class="template-return-guard">{'guard'}</p>
+			return;
+		}
+		<p class="template-return-rest">{'rest'}</p>
+	</>;
 }
 
 // ── Static structure inside control flow ──
 
-component StaticInBranchApp() {
-	const [show, setShow] = createSignal(true);
-
-	if (show()) {
-		<div class="branch-static">
-			<span>{'Always the same'}</span>
-		</div>
-	}
-
-	<button class="static-toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+function StaticInBranchApp() {
+	return <>
+		const [show, setShow] = createSignal(true);
+		if (show()) {
+			<div class="branch-static">
+				<span>{'Always the same'}</span>
+			</div>
+		}
+		<button class="static-toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
+	</>;
 }
 
 // ── Mixed static + dynamic siblings ──
 
-component MixedStaticDynamicApp() {
-	const [count, setCount] = createSignal(0);
-
-	<header class="static-header">
-		<h1>{'Static Title'}</h1>
-	</header>
-	<p class="dynamic-count">{count()}</p>
-	<footer class="static-footer">{'Static Footer'}</footer>
-
-	<button class="mixed-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
+function MixedStaticDynamicApp() {
+	return <>
+		const [count, setCount] = createSignal(0);
+		<header class="static-header">
+			<h1>{'Static Title'}</h1>
+		</header>
+		<p class="dynamic-count">{count()}</p>
+		<footer class="static-footer">{'Static Footer'}</footer>
+		<button class="mixed-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
+	</>;
 }
 
 // ── Fully static component ──
 
-component FullyStaticApp() {
-	<div class="all-static">
-		<h2>{'Title'}</h2>
-		<p>{'Paragraph'}</p>
-	</div>
+function FullyStaticApp() {
+	return <>
+		<div class="all-static">
+			<h2>{'Title'}</h2>
+			<p>{'Paragraph'}</p>
+		</div>
+	</>;
 }
 
 // ── Mid-template locals + interleaved statements inside element children ──
@@ -844,54 +894,62 @@ component FullyStaticApp() {
 
 const mid_template_log: string[] = [];
 
-component MidTemplateLocalsApp() {
-	<div class="mid-template-shell">
-		const [count, setCount] = createSignal(0);
+function MidTemplateLocalsApp() {
+	return <>
+		<div class="mid-template-shell">
+			const [count, setCount] = createSignal(0);
 
-		for (const item of ['a', 'b']; index i) {
-			<span class="mid-template-item">{item()}</span>
-		}
+			for (const item of ['a', 'b']; index i) {
+				<span class="mid-template-item">{item()}</span>
+			}
 
-		<p class="mid-template-count">{count()}</p>
-		<button class="mid-template-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
+			<p class="mid-template-count">{count()}</p>
+			<button class="mid-template-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
 
-		<div class="mid-template-side">
-			mid_template_log.push('ran');
+			<div class="mid-template-side">
+				mid_template_log.push('ran');
+			</div>
 		</div>
-	</div>
+	</>;
 }
 
 // ── Lazy destructuring: object in props ──
 
-component LazyPropsChild(&{ name, age }: { name: string; age: number }) {
-	<div class="lazy-props">
-		{name}
-		{' is '}
-		{age}
-	</div>
+function LazyPropsChild(&{ name, age }: { name: string; age: number }) {
+	return <>
+		<div class="lazy-props">
+			{name}
+			{' is '}
+			{age}
+		</div>
+	</>;
 }
 
-component LazyPropsApp() {
-	<LazyPropsChild name="Alice" age={30} />
+function LazyPropsApp() {
+	return <><LazyPropsChild name="Alice" age={30} /></>;
 }
 
 // ── Lazy destructuring: array in variable (signals) ──
 
-component LazyArrayApp() {
-	const [count, setCount] = createSignal(0);
-	<p class="lazy-count">{count()}</p>
-	<button class="lazy-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+function LazyArrayApp() {
+	return <>
+		const [count, setCount] = createSignal(0);
+		<p class="lazy-count">{count()}</p>
+		<button class="lazy-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+	</>;
 }
 
 // ── Lazy destructuring: object in variable ──
 
-component LazyObjVarApp() {
-	const &{ x, y } = usePosition();
-	<p class="lazy-pos">
-		{x}
-		{','}
-		{y}
-	</p>
+function LazyObjVarApp() {
+	return <>
+		const &{ x, y } = usePosition();
+		<p class="lazy-pos">
+			{x}
+			{','}
+			{y}
+		</p>
+	</>;
 }
 
 function usePosition() {
@@ -900,14 +958,16 @@ function usePosition() {
 
 // ── Lazy destructuring: combined props + variable ──
 
-component LazyCombinedApp(&{ label }: { label: string }) {
-	const [count, setCount] = createSignal(0);
-	<p class="lazy-combined">
-		{label}
-		{': '}
-		{count()}
-	</p>
-	<button class="lazy-combined-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+function LazyCombinedApp(&{ label }: { label: string }) {
+	return <>
+		const [count, setCount] = createSignal(0);
+		<p class="lazy-combined">
+			{label}
+			{': '}
+			{count()}
+		</p>
+		<button class="lazy-combined-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
+	</>;
 }
 
 // ── Tests ──
@@ -1409,7 +1469,7 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.scope-result')).toBe('18');
 	});
 
-	it('early return before signals passes scope correctly to continuation', async () => {
+	it('early return before signals behaves like an ordinary function guard', async () => {
 		await render(EarlyReturnWithSignalsApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
@@ -1419,11 +1479,11 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.early-doubled')).toBe('2');
 
 		await click('.early-skip');
-		expect(container.querySelector('.early-count')).toBeNull();
-		expect(container.querySelector('.early-doubled')).toBeNull();
+		expect(text('.early-count')).toBe('1');
+		expect(text('.early-doubled')).toBe('2');
 	});
 
-	it('early return after rendering a branch template skips the continuation', async () => {
+	it('early return after rendering a branch template is not a reactive branch', async () => {
 		await render(TemplateBeforeEarlyReturnApp);
 		expect(text('.template-return-toggle')).toBe('toggle');
 		expect(text('.template-return-rest')).toBe('rest');
@@ -1431,8 +1491,8 @@ describe('tsrx-solid runtime', () => {
 
 		await click('.template-return-toggle');
 		expect(text('.template-return-toggle')).toBe('toggle');
-		expect(text('.template-return-guard')).toBe('guard');
-		expect(container.querySelector('.template-return-rest')).toBeNull();
+		expect(container.querySelector('.template-return-guard')).toBeNull();
+		expect(text('.template-return-rest')).toBe('rest');
 	});
 
 	// ── Static structure ──
