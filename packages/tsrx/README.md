@@ -41,8 +41,9 @@ The TSRX website is the canonical source for language documentation:
 
 - [Getting Started](https://tsrx.dev/getting-started) — install TSRX for React,
   Preact, Solid, Vue, or Ripple and configure editor/AI tooling.
-- [Features](https://tsrx.dev/features) — examples of components, statement
-  templates, control flow, scoped styles, submodules, and lazy destructuring.
+- [Features](https://tsrx.dev/features) — examples of function components,
+  statement templates, control flow, scoped styles, submodules, and lazy
+  destructuring.
 - [Specification](https://tsrx.dev/specification) — the current grammar and
   parser-level semantics.
 
@@ -54,7 +55,7 @@ here and keeps package docs focused on the core parser API.
 - **`parseModule(source, filename, options?)`** — parse a TSRX module into an
   ESTree AST.
 - **Scope analysis** — `createScopes`, `Scope`, `ScopeRoot`, binding tracking
-  (`import`, `prop`, `let`, `const`, `function`, `component`, `for_pattern`, …).
+  (`import`, `prop`, `let`, `const`, `function`, `for_pattern`, …).
 - **AST utilities** — pattern walkers, identifier extraction, builders, location
   helpers, obfuscation helpers.
 - **CSS support** — `parseStyle`, `analyzeCss`, `renderStylesheets`.

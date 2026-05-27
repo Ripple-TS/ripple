@@ -13,7 +13,7 @@ TextMate grammars, such as WebStorm/IntelliJ and Sublime Text.
         directory.
      2. Go to `Settings` > `Editor` > `TextMate Bundles`, click the `+` icon, and
         select the `Ripple.tmbundle` directory.
-     3. All `.ripple` files should now have syntax highlighting.
+     3. All `.tsrx` files should now have syntax highlighting.
    - **Sublime Text**:
      1. Go to `Preferences` > `Browse Packages`, and move the `Ripple.tmbundle`
         directory into the opened folder.

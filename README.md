@@ -19,8 +19,9 @@ to [Inferno](https://github.com/infernojs/inferno),
 [Svelte 5](https://github.com/sveltejs/svelte).
 
 **Key Philosophy:** Ripple is TS-first with `.tsrx` as its default component file
-extension. This allows seamless TypeScript integration and a unique syntax that
-enhances both human and LLM developer experience.
+extension. Components are ordinary TypeScript functions that return native TSRX
+expressions, so setup code stays familiar while template bodies can use
+statement-based control flow.
 
 > **`.tsrx` is also a standalone language:** the same source can now compile to
 > React, Solid, or Ripple via [TSRX](https://tsrx.dev) — a TypeScript language
@@ -39,8 +40,7 @@ enhances both human and LLM developer experience.
   usage
 - 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
   `RippleSet` imported from `'ripple'` with full reactivity
-- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` component
-  extension
+- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` extension
 - 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
 - 🎨 **Scoped Styling**: Component-level CSS with automatic scoping
 
@@ -102,18 +102,15 @@ for:
 
 ### Components
 
-Define components with the `component` keyword. Unlike React, you don't return
-JSX—you write it directly:
+Define components as ordinary functions that return native TSRX:
 
-```jsx
-component Button(props: { text: string, onClick: () => void }) {
-  <button onClick={props.onClick}>
-    {props.text}
-  </button>
+```tsrx
+function Button(props: { text: string; onClick: () => void }) {
+  return <button onClick={props.onClick}>{props.text}</button>;
 }
 
-export component App() {
-  <Button text="Click me" onClick={() => console.log("Clicked!")} />
+export function App() {
+  return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
 }
 ```
 
@@ -124,43 +121,50 @@ export component App() {
 Create reactive state with `track` and use lazy destructuring (`&[]`) to access
 the value directly:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[count] = track(0);
 
-  <div>
-    <p>"Count: "{count}</p>
+  return <div>
+    <p>
+      "Count: "
+      {count}
+    </p>
     <button onClick={() => count++}>"Increment"</button>
-  </div>
+  </div>;
 }
 ```
 
 You can also pass around the tracked value object from the second argument:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[count, trackedCount] = track(0);
 
-  <div>{count}</div>
-  <IncrementButton {trackedCount} />
+  return <>
+    <div>{count}</div>
+    <IncrementButton {trackedCount} />
+  </>;
 }
 ```
 
 Alternatively, you can read and write tracked values directly using the `.value`
 property on the `Tracked<V>` object:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   const count = track(0);
 
-  <div>{count.value}</div>
-  <button onClick={() => count.value++}>"Increment"</button>
+  return <>
+    <div>{count.value}</div>
+    <button onClick={() => count.value++}>"Increment"</button>
+  </>;
 }
 ```
 
@@ -170,40 +174,59 @@ tracked values in data structures or passing them as `Tracked<T>` props.
 
 **Derived values** automatically update:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[count] = track(0);
   let &[double] = track(() => count * 2);
   let &[quadruple] = track(() => double * 2);
 
-  <div>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <p>"Quadruple: "{quadruple}</p>
+  return <div>
+    <p>
+      "Count: "
+      {count}
+    </p>
+    <p>
+      "Double: "
+      {double}
+    </p>
+    <p>
+      "Quadruple: "
+      {quadruple}
+    </p>
     <button onClick={() => count++}>"Increment"</button>
-  </div>
+  </div>;
 }
 ```
 
 **Reactive collections** with full reactivity:
 
-```jsx
+```tsrx
 import { RippleArray, RippleObject, RippleMap, RippleSet } from 'ripple';
 
-export component App() {
-  const items = new RippleArray(1, 2, 3);          // RippleArray
-  const obj = new RippleObject({ a: 1, b: 2 });    // RippleObject
-  const map = new RippleMap([['k', 'v']]);          // RippleMap
-  const set = new RippleSet([1, 2, 3]);             // RippleSet
+export function App() {
+  const items = new RippleArray(1, 2, 3); // RippleArray
+  const obj = new RippleObject({ a: 1, b: 2 }); // RippleObject
+  const map = new RippleMap([['k', 'v']]); // RippleMap
+  const set = new RippleSet([1, 2, 3]); // RippleSet
 
-  <div>
-    <p>"Items: "{items.join(', ')}</p>
-    <p>"Object: a="{obj.a}", b="{obj.b}", c="{obj.c}</p>
+  return <div>
+    <p>
+      "Items: "
+      {items.join(', ')}
+    </p>
+    <p>
+      "Object: a="
+      {obj.a}
+      ", b="
+      {obj.b}
+      ", c="
+      {obj.c}
+    </p>
     <button onClick={() => items.push(items.length + 1)}>"Add Item"</button>
-    <button onClick={() => obj.c = (obj.c ?? 0) + 1}>"Increment c"</button>
-  </div>
+    <button onClick={() => (obj.c = (obj.c ?? 0) + 1)}>"Increment c"</button>
+  </div>;
 }
 ```
 
@@ -213,21 +236,24 @@ export component App() {
 
 Pass the tracked ref (second element) across function boundaries:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
 function createDouble(&[count]) {
   return track(() => count * 2);
 }
 
-export component App() {
+export function App() {
   let &[count, countTracked] = track(0);
   const &[double] = createDouble(countTracked);
 
-  <div>
-    <p>"Double: "{double}</p>
+  return <div>
+    <p>
+      "Double: "
+      {double}
+    </p>
     <button onClick={() => count++}>"Increment"</button>
-  </div>
+  </div>;
 }
 ```
 
@@ -235,17 +261,17 @@ export component App() {
 
 ### Effects & Side Effects
 
-```jsx
+```tsrx
 import { track, effect } from 'ripple';
 
-export component App() {
+export function App() {
   let &[count] = track(0);
 
   effect(() => {
     console.log('Count changed:', count);
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  return <button onClick={() => count++}>"Increment"</button>;
 }
 ```
 
@@ -255,69 +281,82 @@ export component App() {
 
 **Conditionals:**
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[condition] = track(true);
 
-  <div>
+  return <div>
     if (condition) {
       <div>"True"</div>
     } else {
       <div>"False"</div>
     }
-    <button onClick={() => condition = !condition}>"Toggle"</button>
-  </div>
+    <button onClick={() => (condition = !condition)}>"Toggle"</button>
+  </div>;
 }
 ```
 
 **Loops:**
 
-```jsx
+```tsrx
 import { RippleArray } from 'ripple';
 
-export component App() {
-  const items = new RippleArray(
-    {id: 1, name: 'Item 1'},
-    {id: 2, name: 'Item 2'},
-    {id: 3, name: 'Item 3'}
-  );
+export function App() {
+  const items = new RippleArray({ id: 1, name: 'Item 1' }, {
+    id: 2,
+    name: 'Item 2',
+  }, { id: 3, name: 'Item 3' });
 
-  <div>
+  return <div>
     for (const item of items; index i; key item.id) {
-      <div>{item.name}" (index: "{i}")"</div>
+      <div>
+        {item.name}
+        " (index: "
+        {i}
+        ")"
+      </div>
     }
-    <button onClick={() => items.push({id: items.length + 1, name: `Item ${items.length + 1}`})}>"Add Item"</button>
-  </div>
+    <button
+      onClick={() => items.push({
+        id: items.length + 1,
+        name: `Item ${items.length + 1}`,
+      })}
+    >
+      "Add Item"
+    </button>
+  </div>;
 }
 ```
 
 **Error Boundaries:**
 
-```jsx
-component ComponentThatMayFail(props: { shouldFail: boolean }) {
+```tsrx
+function ComponentThatMayFail(props: { shouldFail: boolean }) {
   if (props.shouldFail) {
     throw new Error('Component failed!');
-    "This will never render"
   }
 
-  <div>"Component working fine"</div>
+  return <div>"Component working fine"</div>;
 }
 
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[shouldFail] = track(false);
 
-  <div>
+  return <div>
     try {
       <ComponentThatMayFail {shouldFail} />
     } catch (e) {
-      <div>"Error: "{e.message}</div>
+      <div>
+        "Error: "
+        {e.message}
+      </div>
     }
-    <button onClick={() => shouldFail = !shouldFail}>"Toggle Error"</button>
-  </div>
+    <button onClick={() => (shouldFail = !shouldFail)}>"Toggle Error"</button>
+  </div>;
 }
 ```
 
@@ -327,9 +366,9 @@ export component App() {
 
 Capture DOM elements with the `{ref fn}` syntax:
 
-```jsx
-export component App() {
-  <div {ref (node) => console.log(node)}>"Hello"</div>
+```tsrx
+export function App() {
+  return <div {ref (node) => console.log(node)}>"Hello"</div>;
 }
 ```
 
@@ -339,17 +378,20 @@ export component App() {
 
 Use React-style event handlers:
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[value] = track('');
 
-  <div>
+  return <div>
     <button onClick={() => console.log('Clicked')}>"Click"</button>
-    <input onInput={(e) => value = e.target.value} />
-    <p>"You typed: "{value}</p>
-  </div>
+    <input onInput={(e) => (value = e.target.value)} />
+    <p>
+      "You typed: "
+      {value}
+    </p>
+  </div>;
 }
 ```
 
@@ -359,32 +401,35 @@ export component App() {
 
 **Scoped CSS:**
 
-```jsx
-export component App() {
-  <div class="container">"Content"</div>
-
-  <style>
-    .container {
-      padding: 1rem;
-      background: lightblue;
-      border-radius: 8px;
-    }
-  </style>
+```tsrx
+export function App() {
+  return <>
+    <div class="container">"Content"</div>
+    <style>
+      .container {
+        padding: 1rem;
+        background: lightblue;
+        border-radius: 8px;
+      }
+    </style>
+  </>;
 }
 ```
 
 **Dynamic styles:**
 
-```jsx
+```tsrx
 import { track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[color] = track('red');
 
-  <div>
+  return <div>
     <div style={{ color, fontWeight: 'bold' }}>"Styled text"</div>
-    <button onClick={() => color = color === 'red' ? 'blue' : 'red'}>"Toggle Color"</button>
-  </div>
+    <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
+      "Toggle Color"
+    </button>
+  </div>;
 }
 ```
 
@@ -396,25 +441,30 @@ export component App() {
 
 Share state across the component tree:
 
-```jsx
+```tsrx
 import { Context, track } from 'ripple';
 
 const ThemeContext = new Context();
 
-component Child() {
+function Child() {
   const &[theme] = ThemeContext.get();
-  <div>"Theme: "{theme}</div>
+  return <div>
+    "Theme: "
+    {theme}
+  </div>;
 }
 
-export component App() {
+export function App() {
   let &[theme, themeTracked] = track('light');
 
   ThemeContext.set(themeTracked);
 
-  <div>
+  return <div>
     <Child />
-    <button onClick={() => theme = theme === 'light' ? 'dark' : 'light'}>"Toggle Theme"</button>
-  </div>
+    <button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+      "Toggle Theme"
+    </button>
+  </div>;
 }
 ```
 
@@ -424,24 +474,24 @@ export component App() {
 
 Render content outside the component hierarchy:
 
-```jsx
+```tsrx
 import { Portal, track } from 'ripple';
 
-export component App() {
+export function App() {
   let &[showModal] = track(false);
 
-  <div>
-    <button onClick={() => showModal = !showModal}>"Toggle Modal"</button>
+  return <div>
+    <button onClick={() => (showModal = !showModal)}>"Toggle Modal"</button>
 
     if (showModal) {
       <Portal target={document.body}>
         <div class="modal">
           <p>"Modal content"</p>
-          <button onClick={() => showModal = false}>"Close"</button>
+          <button onClick={() => (showModal = false)}>"Close"</button>
         </div>
       </Portal>
     }
-  </div>
+  </div>;
 }
 ```
 
