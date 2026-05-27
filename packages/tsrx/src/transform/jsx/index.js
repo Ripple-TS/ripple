@@ -277,8 +277,9 @@ export function createJsxTransform(platform) {
 				// platform hook (e.g. Solid's textContent optimization) can
 				// inspect the original Text / TSRXExpression nodes rather than
 				// their walker-lowered JSXExpressionContainer equivalents.
-				const raw_children = /** @type {any} */ ((node).children || []).map((child) =>
-					child && typeof child === 'object' ? { ...child } : child,
+				const raw_children = (((/** @type {any} */ (node).children) || [])).map(
+					(/** @type {any} */ child) =>
+						child && typeof child === 'object' ? { ...child } : child,
 				);
 				const inner = /** @type {any} */ (next() ?? node);
 				const hook = platform.hooks?.transformElement;
