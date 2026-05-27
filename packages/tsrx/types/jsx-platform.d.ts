@@ -54,6 +54,8 @@ export interface JsxTransformContext {
 	lazy_next_id: number;
 	current_css_hash: string | null;
 	inside_element_child?: boolean;
+	/** Full source text for source-aware diagnostics. */
+	source: string;
 	/** Source filename for diagnostics; null when the caller did not supply one. */
 	filename: string | null;
 	/** True when recoverable errors should be collected onto `errors` instead of thrown. */
@@ -153,6 +155,13 @@ export interface JsxPlatformHooks {
 	 * state behaves like normal component state.
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
+	/**
+	 * Wrap an uppercase JavaScript function that returns native TSRX as a target
+	 * component. Vue uses this to turn `function App() { return <></>; }` into a
+	 * `defineVaporComponent(function App() { ... })` binding while lowercase
+	 * TSRX-returning callbacks stay plain functions.
+	 */
+	wrapNativeFunctionComponent?: (fn: any, ctx: any, path: any[]) => any;
 	/**
 	 * Emit hook-isolation helper components as unique module-scope declarations
 	 * instead of lazily creating and caching them from the parent component body.

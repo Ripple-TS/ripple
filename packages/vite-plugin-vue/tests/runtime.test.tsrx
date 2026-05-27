@@ -44,69 +44,74 @@ function texts(selector: string): Array<string | null> {
 	return Array.from(container.querySelectorAll(selector), (node: Element) => node.textContent);
 }
 
-component BasicApp() {
-	<div class="greeting">{'Hello world'}</div>
+function BasicApp() {
+	return <><div class="greeting">{'Hello world'}</div></>;
 }
 
-component Child(props: { text: string }) {
-	<span class="child">{props.text}</span>
+function Child(props: { text: string }) {
+	return <><span class="child">{props.text}</span></>;
 }
 
-component NestedApp() {
-	<div>
-		<Child text="nested" />
-	</div>
+function NestedApp() {
+	return <>
+		<div>
+			<Child text="nested" />
+		</div>
+	</>;
 }
 
-component ExplicitTextApp() {
-	const markup = '<span>Not HTML</span>';
-	const hidden = false;
-	const empty = null;
-	const missing = undefined;
-
-	<div class="explicit-text-markup">{text markup}</div>
-	<div class="explicit-text-boolean">{text hidden}</div>
-	<div class="explicit-text-null">{text empty}</div>
-	<div class="explicit-text-undefined">{text missing}</div>
+function ExplicitTextApp() {
+	return <>
+		const markup = '<span>Not HTML</span>';
+		const hidden = false;
+		const empty = null;
+		const missing = undefined;
+		<div class="explicit-text-markup">{text markup}</div>
+		<div class="explicit-text-boolean">{text hidden}</div>
+		<div class="explicit-text-null">{text empty}</div>
+		<div class="explicit-text-undefined">{text missing}</div>
+	</>;
 }
 
-component ExplicitHtmlApp() {
-	const markup = ref('<span class="html-node">safe enough</span>');
-
-	<div class="explicit-html-target">{html markup.value}</div>
-	<button
-		class="explicit-html-update"
-		onClick={() => {
-			markup.value = '<strong class="html-node">updated</strong>';
-		}}
-	>
-		{'update'}
-	</button>
+function ExplicitHtmlApp() {
+	return <>
+		const markup = ref('<span class="html-node">safe enough</span>');
+		<div class="explicit-html-target">{html markup.value}</div>
+		<button
+			class="explicit-html-update"
+			onClick={() => {
+				markup.value = '<strong class="html-node">updated</strong>';
+			}}
+		>
+			{'update'}
+		</button>
+	</>;
 }
 
-component SpreadHtmlApp() {
-	const spreadProps = ref({
-		innerHTML: '<em class="html-node">spread</em>',
-	});
-	const markup = ref('<span class="html-node">safe enough</span>');
-
-	<div class="spread-html-child" {...spreadProps.value}>{html markup.value}</div>
-	<button
-		class="spread-html-update-spread"
-		onClick={() => {
-			spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
-		}}
-	>
-		{'spread'}
-	</button>
-	<button
-		class="spread-html-update-markup"
-		onClick={() => {
-			markup.value = '<strong class="html-node">updated</strong>';
-		}}
-	>
-		{'markup'}
-	</button>
+function SpreadHtmlApp() {
+	return <>
+		const spreadProps = ref({
+			innerHTML: '<em class="html-node">spread</em>',
+		});
+		const markup = ref('<span class="html-node">safe enough</span>');
+		<div class="spread-html-child" {...spreadProps.value}>{html markup.value}</div>
+		<button
+			class="spread-html-update-spread"
+			onClick={() => {
+				spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
+			}}
+		>
+			{'spread'}
+		</button>
+		<button
+			class="spread-html-update-markup"
+			onClick={() => {
+				markup.value = '<strong class="html-node">updated</strong>';
+			}}
+		>
+			{'markup'}
+		</button>
+	</>;
 }
 
 let element_ref_captured: HTMLDivElement | null = null;
@@ -117,100 +122,106 @@ let multi_dom_ref_a: HTMLInputElement | null = null;
 
 let multi_dom_ref_b: HTMLInputElement | null = null;
 
-component ElementRefApp() {
-	<div
-		ref={(node: HTMLDivElement) => {
-			element_ref_captured = node;
-		}}
-		class="ref-target"
-	>
-		"ref test"
-	</div>
+function ElementRefApp() {
+	return <>
+		<div
+			ref={(node: HTMLDivElement) => {
+				element_ref_captured = node;
+			}}
+			class="ref-target"
+		>
+			"ref test"
+		</div>
+	</>;
 }
 
-component KeywordRefCallbackApp() {
-	function capture(node: HTMLDivElement | null) {
-		keyword_ref_callback_captured = node;
-	}
-
-	<div {ref capture} class="keyword-ref-target">{'keyword ref'}</div>
+function KeywordRefCallbackApp() {
+	return <>
+		function capture(node: HTMLDivElement | null) {
+			keyword_ref_callback_captured = node;
+		}
+		<div {ref capture} class="keyword-ref-target">{'keyword ref'}</div>
+	</>;
 }
 
-component MultiDomRefApp() {
-	function captureA(node: HTMLInputElement | null) {
-		multi_dom_ref_a = node;
-	}
-
-	function captureB(node: HTMLInputElement | null) {
-		multi_dom_ref_b = node;
-	}
-
-	<input {ref captureA} {ref captureB} class="multi-dom-ref" type="text" />
+function MultiDomRefApp() {
+	return <>
+		function captureA(node: HTMLInputElement | null) {
+			multi_dom_ref_a = node;
+		}
+		function captureB(node: HTMLInputElement | null) {
+			multi_dom_ref_b = node;
+		}
+		<input {ref captureA} {ref captureB} class="multi-dom-ref" type="text" />
+	</>;
 }
 
 let combo_jsx_node: HTMLInputElement | null = null;
 let combo_keyword_node: HTMLInputElement | null = null;
 
-component ComboRefApp() {
-	function jsxRef(node: HTMLInputElement | null) {
-		combo_jsx_node = node;
-	}
-
-	function keywordRef(node: HTMLInputElement | null) {
-		combo_keyword_node = node;
-	}
-
-	<input ref={jsxRef} {ref keywordRef} class="combo-ref" type="text" />
+function ComboRefApp() {
+	return <>
+		function jsxRef(node: HTMLInputElement | null) {
+			combo_jsx_node = node;
+		}
+		function keywordRef(node: HTMLInputElement | null) {
+			combo_keyword_node = node;
+		}
+		<input ref={jsxRef} {ref keywordRef} class="combo-ref" type="text" />
+	</>;
 }
 
 const value_ref_object = ref<HTMLInputElement | null>(null);
 let value_ref_callback_node: HTMLInputElement | null = null;
 
-component ValueRefObjectApp() {
-	function callbackRef(node: HTMLInputElement | null) {
-		value_ref_callback_node = node;
-	}
-
-	<input {ref value_ref_object} {ref callbackRef} class="value-ref" type="text" />
+function ValueRefObjectApp() {
+	return <>
+		function callbackRef(node: HTMLInputElement | null) {
+			value_ref_callback_node = node;
+		}
+		<input {ref value_ref_object} {ref callbackRef} class="value-ref" type="text" />
+	</>;
 }
 
 let named_direct_node: HTMLInputElement | null = null;
 let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
-component NamedDirectRefApp() {
-	function nativeRef(node: HTMLInputElement | null) {
-		named_direct_native_node = node;
-	}
-
-	function anonymousRef(node: HTMLInputElement | null) {
-		named_direct_anonymous_node = node;
-	}
-
-	<input
-		ref={nativeRef}
-		{ref anonymousRef}
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_direct_node = node;
-		}}
-		class="named-direct-ref"
-		type="text"
-	/>
+function NamedDirectRefApp() {
+	return <>
+		function nativeRef(node: HTMLInputElement | null) {
+			named_direct_native_node = node;
+		}
+		function anonymousRef(node: HTMLInputElement | null) {
+			named_direct_anonymous_node = node;
+		}
+		<input
+			ref={nativeRef}
+			{ref anonymousRef}
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_direct_node = node;
+			}}
+			class="named-direct-ref"
+			type="text"
+		/>
+	</>;
 }
 
 let named_forward_node: HTMLInputElement | null = null;
 
-component NamedForwardInput(props: { type: string; input_ref?: any }) {
-	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
+function NamedForwardInput(props: { type: string; input_ref?: any }) {
+	return <><input type={props.type} ref={props.input_ref} class="named-forward-ref" /></>;
 }
 
-component NamedForwardRefApp() {
-	<NamedForwardInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_forward_node = node;
-		}}
-	/>
+function NamedForwardRefApp() {
+	return <>
+		<NamedForwardInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_forward_node = node;
+			}}
+		/>
+	</>;
 }
 
 let named_spread_before_node: HTMLInputElement | null = null;
@@ -220,17 +231,19 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
-	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
+function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+	return <><input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" /></>;
 }
 
-component NamedSpreadBeforeRefApp() {
-	<NamedSpreadBeforeRefInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_spread_before_node = node;
-		}}
-	/>
+function NamedSpreadBeforeRefApp() {
+	return <>
+		<NamedSpreadBeforeRefInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_spread_before_node = node;
+			}}
+		/>
+	</>;
 }
 
 let named_spread_after_node: HTMLInputElement | null = null;
@@ -240,17 +253,19 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
-	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
+function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+	return <><input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" /></>;
 }
 
-component NamedSpreadAfterRefApp() {
-	<NamedSpreadAfterRefInput
-		type="text"
-		input_ref={ref (node: HTMLInputElement | null) => {
-			named_spread_after_node = node;
-		}}
-	/>
+function NamedSpreadAfterRefApp() {
+	return <>
+		<NamedSpreadAfterRefInput
+			type="text"
+			input_ref={ref (node: HTMLInputElement | null) => {
+				named_spread_after_node = node;
+			}}
+		/>
+	</>;
 }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
@@ -265,613 +280,651 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 	multi_spread_native_node = node;
 }
 
-component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
-	const first = { type: props.type, first_ref: props.first_ref };
-	const second = { second_ref: props.second_ref };
-
-	<input
-		{...first}
-		{...second}
-		ref={multiSpreadExplicitNativeRef}
-		class="multi-spread-explicit-ref"
-	/>
+function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+	return <>
+		const first = { type: props.type, first_ref: props.first_ref };
+		const second = { second_ref: props.second_ref };
+		<input
+			{...first}
+			{...second}
+			ref={multiSpreadExplicitNativeRef}
+			class="multi-spread-explicit-ref"
+		/>
+	</>;
 }
 
-component MultiSpreadExplicitRefApp() {
-	<MultiSpreadExplicitRefInput
-		type="text"
-		first_ref={ref (node: HTMLInputElement | null) => {
-			multi_spread_first_node = node;
-		}}
-		second_ref={ref (node: HTMLInputElement | null) => {
-			multi_spread_second_node = node;
-		}}
-	/>
+function MultiSpreadExplicitRefApp() {
+	return <>
+		<MultiSpreadExplicitRefInput
+			type="text"
+			first_ref={ref (node: HTMLInputElement | null) => {
+				multi_spread_first_node = node;
+			}}
+			second_ref={ref (node: HTMLInputElement | null) => {
+				multi_spread_second_node = node;
+			}}
+		/>
+	</>;
 }
 
 const named_vue_ref_object = ref<HTMLInputElement | null>(null);
 
-component NamedRefObjectApp() {
-	<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
+function NamedRefObjectApp() {
+	return <><NamedForwardInput type="text" input_ref={ref named_vue_ref_object} /></>;
 }
 
-component CounterApp() {
-	const count = ref(0);
-	<p class="count">{count.value}</p>
-	<button class="inc" onClick={() => count.value++}>{'+'}</button>
+function CounterApp() {
+	return <>
+		const count = ref(0);
+		<p class="count">{count.value}</p>
+		<button class="inc" onClick={() => count.value++}>{'+'}</button>
+	</>;
 }
 
-component LazyParamChild(&{ count }: { count: number }) {
-	<p class="lazy-child-count">{count}</p>
+function LazyParamChild(&{ count }: { count: number }) {
+	return <><p class="lazy-child-count">{count}</p></>;
 }
 
-component LazyObjectDestructuringApp() {
-	const state = reactive({ count: 0 });
-	let &{ count } = state;
-
-	<p class="lazy-local-count">{count}</p>
-	<LazyParamChild count={state.count} />
-	<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
+function LazyObjectDestructuringApp() {
+	return <>
+		const state = reactive({ count: 0 });
+		let &{ count } = state;
+		<p class="lazy-local-count">{count}</p>
+		<LazyParamChild count={state.count} />
+		<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
+	</>;
 }
 
-component LazyArrayDestructuringApp() {
-	const values = reactive([1, 2]);
-	let &[first, second] = values;
-
-	<p class="lazy-array-counts">{`${first}-${second}`}</p>
-	<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
+function LazyArrayDestructuringApp() {
+	return <>
+		const values = reactive([1, 2]);
+		let &[first, second] = values;
+		<p class="lazy-array-counts">{`${first}-${second}`}</p>
+		<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
+	</>;
 }
 
-component EarlyReturnWithRefsApp() {
-	const count = ref(0);
-	const skip = ref(false);
-
-	<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
-
-	if (skip.value) {
-		return;
-	}
-
-	const doubled = ref(0);
-
-	<p class="early-count">{count.value}</p>
-	<p class="early-doubled">{doubled.value}</p>
-	<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
-	<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
+function EarlyReturnWithRefsApp() {
+	return <>
+		const count = ref(0);
+		const skip = ref(false);
+		<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
+		if (skip.value) {
+			return;
+		}
+		const doubled = ref(0);
+		<p class="early-count">{count.value}</p>
+		<p class="early-doubled">{doubled.value}</p>
+		<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
+		<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
+	</>;
 }
 let watch_fire_count = 0;
 let watch_effect_fire_count = 0;
 
-component ProvideChild() {
-	const value = inject('provide-test-key', 'default');
-	<span class="provide-child">{value}</span>
+function ProvideChild() {
+	return <>
+		const value = inject('provide-test-key', 'default');
+		<span class="provide-child">{value}</span>
+	</>;
 }
 
 // All four fixtures below have continuations with NO state primitives, so the
 // existing helper-split does NOT trigger. They exercise the bare-JSX /
 // provide / watch / watchEffect cases that should be made reactive by the
 // render-time-inlining fix.
-component BareJsxEarlyReturnApp() {
-	const skip = ref(true);
-
-	<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-
-	if (skip.value) {
-		return;
-	}
-
-	<p class="bare-continuation">{'visible'}</p>
-}
-
-component ProvideEarlyReturnApp() {
-	const skip = ref(true);
-
-	<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-
-	if (skip.value) {
-		return;
-	}
-
-	provide('provide-test-key', 'dark');
-	<ProvideChild />
-}
-
-component WatchEarlyReturnApp() {
-	const skip = ref(true);
-	const value = ref(0);
-
-	<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-	<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
-
-	if (skip.value) {
-		return;
-	}
-
-	watch(value, () => {
-		watch_fire_count++;
-	});
-	<p class="watch-value">{value.value}</p>
-}
-
-component WatchEffectEarlyReturnApp() {
-	const skip = ref(true);
-	const value = ref(0);
-
-	<button class="watch-effect-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-	<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
-
-	if (skip.value) {
-		return;
-	}
-
-	watchEffect(() => {
-		void value.value;
-		watch_effect_fire_count++;
-	});
-	<p class="watch-effect-value">{value.value}</p>
-}
-
-component IfReactiveApp() {
-	const show = ref(true);
-
-	if (show.value) {
-		<span class="visible">{'shown'}</span>
-	} else {
-		<span class="hidden">{'hidden'}</span>
-	}
-
-	<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
-}
-
-component ConditionalLocalStateApp() {
-	const count = ref(3);
-
-	<button class="outer-inc" onClick={() => count.value++}>
-		{'Outer: '}
-		{count.value}
-	</button>
-
-	if (count.value > 2) {
-		const newCount = ref(0);
-		<button class="inner-inc" onClick={() => newCount.value++}>
-			{'Inner: '}
-			{newCount.value}
-		</button>
-	}
-}
-
-component StatefulChild() {
-	const inner = ref(0);
-	<button class="stateful-child" onClick={() => inner.value++}>
-		{'Child: '}
-		{inner.value}
-	</button>
-}
-
-component StatefulChildHostApp() {
-	<div>
-		<StatefulChild />
-	</div>
-}
-
-component StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
-	const inner = ref(0);
-	<button class="stateful-child-prop" onClick={() => inner.value++}>
-		{'Child prop: '}
-		{inner.value}
-	</button>
-}
-
-component StatefulChildWithPropHostApp() {
-	const count = ref(3);
-	<div>
-		<StatefulChildWithProp {count} />
-	</div>
-}
-
-component ForReactiveApp() {
-	const items = ref(['a', 'b', 'c']);
-
-	for (const item of items.value) {
-		<li class="item" key={item}>{item}</li>
-	}
-
-	<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
-	<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
-}
-
-component ForContinueApp() {
-	const items = ref(['a', '', 'c']);
-
-	for (const item of items.value) {
-		if (!item) continue;
-		<li class="continue-item" key={item}>{item}</li>
-	}
-}
-
-component ForIndexReactiveApp() {
-	const items = ref(['a', 'b', 'c']);
-
-	for (const item of items.value; index i) {
-		<li class="indexed-item">{`${i}:${item}`}</li>
-	}
-
-	<button class="prepend" onClick={() => (items.value = ['z', ...items.value])}>{'prepend'}</button>
-	<button
-		class="drop-middle"
-		onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
-	>
-		{'drop middle'}
-	</button>
-	<button class="reverse" onClick={() => (items.value = [...items.value].reverse())}>
-		{'reverse'}
-	</button>
-}
-
-component KeyedRow(props: { item: { id: string; label: string } }) {
-	const count = ref(0);
-
-	<button class={`keyed-row row-${props.item.id}`} onClick={() => count.value++}>
-		{`${props.item.label}:${count.value}`}
-	</button>
-}
-
-component ForKeyedStateApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const item of items.value; key item.id) {
-		<KeyedRow {item} />
-	}
-
-	<button class="reverse-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-		{'reverse'}
-	</button>
-	<button
-		class="rename-beta"
-		onClick={() => (items.value = items.value.map(
-			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-		))}
-	>
-		{'rename'}
-	</button>
-}
-
-component ForJsxKeyedStateApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const item of items.value) {
-		<KeyedRow key={item.id} {item} />
-	}
-
-	<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-		{'reverse'}
-	</button>
-	<button
-		class="rename-jsx-keyed-beta"
-		onClick={() => (items.value = items.value.map(
-			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-		))}
-	>
-		{'rename'}
-	</button>
-}
-
-component ForIndexKeyedStateApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const item of items.value; index i; key item.id) {
-		<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
-	}
-
-	<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-		{'reverse'}
-	</button>
-}
-
-component ForJsxIndexKeyedApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const item of items.value; index i) {
-		<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
-	}
-
-	<button
-		class="reverse-jsx-index-keyed"
-		onClick={() => (items.value = [...items.value].reverse())}
-	>
-		{'reverse'}
-	</button>
-}
-
-component ForNestedIndexKeyedApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const item of items.value; index i; key item.id) {
-		<section class={`nested-index-keyed-row row-${item.id}`}>
-			<div>
-				<span>{`${i}:${item.label}`}</span>
-			</div>
-		</section>
-	}
-
-	<button
-		class="reverse-nested-index-keyed"
-		onClick={() => (items.value = [...items.value].reverse())}
-	>
-		{'reverse'}
-	</button>
-	<button
-		class="rename-nested-index-keyed-beta"
-		onClick={() => (items.value = items.value.map(
-			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-		))}
-	>
-		{'rename'}
-	</button>
-}
-
-component ForImplicitIndexKeyFragmentApp() {
-	const items = ref(['a', 'b', 'c']);
-
-	for (const item of items.value; index i) {
-		<span class="fragment-index-item">{`${i}:${item}`}</span>
-		<span class="fragment-value-item">{item}</span>
-	}
-
-	<button class="reverse-fragment-index" onClick={() => (items.value = [...items.value].reverse())}>
-		{'reverse'}
-	</button>
-}
-
-component DestructuredKeyedRow(props: { id: string; label: string }) {
-	const count = ref(0);
-
-	<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
-		{`${props.label}:${count.value}`}
-	</button>
-}
-
-component ForDestructuredKeyedStateApp() {
-	const items = ref([
-		{ id: 'a', label: 'Alpha' },
-		{ id: 'b', label: 'Beta' },
-		{ id: 'c', label: 'Gamma' },
-	]);
-
-	for (const { id, label } of items.value; key id) {
-		<DestructuredKeyedRow {id} {label} />
-	}
-
-	<button
-		class="reverse-destructured-keyed"
-		onClick={() => (items.value = [...items.value].reverse())}
-	>
-		{'reverse'}
-	</button>
-	<button
-		class="rename-destructured-keyed-beta"
-		onClick={() => (items.value = items.value.map(
-			(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-		))}
-	>
-		{'rename'}
-	</button>
-}
-
-component SwitchReactiveApp() {
-	const page = ref('home');
-
-	switch (page.value) {
-		case 'home':
-			<div class="page">{'Home'}</div>
-			break;
-		case 'about':
-			<div class="page">{'About'}</div>
-			break;
-		default:
-			<div class="page">{'404'}</div>
-			break;
-	}
-
-	<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
-	<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
-}
-
-component StyledApp() {
-	<div class="styled">{'styled text'}</div>
-
-	<style>
-		.styled {
-			color: red;
+function BareJsxEarlyReturnApp() {
+	return <>
+		const skip = ref(true);
+		<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+		if (skip.value) {
+			return;
 		}
-	</style>
+		<p class="bare-continuation">{'visible'}</p>
+	</>;
 }
 
-component ThrowingChild() {
-	throw new Error('sync boom');
-	<p>{'unreachable'}</p>
+function ProvideEarlyReturnApp() {
+	return <>
+		const skip = ref(true);
+		<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+		if (skip.value) {
+			return;
+		}
+		provide('provide-test-key', 'dark');
+		<ProvideChild />
+	</>;
 }
 
-component ErrorBoundaryApp() {
-	try {
-		<ThrowingChild />
-	} catch (err) {
-		<p class="caught">{(err as Error).message}</p>
-	}
+function WatchEarlyReturnApp() {
+	return <>
+		const skip = ref(true);
+		const value = ref(0);
+		<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+		<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
+		if (skip.value) {
+			return;
+		}
+		watch(value, () => {
+			watch_fire_count++;
+		});
+		<p class="watch-value">{value.value}</p>
+	</>;
 }
 
-component MaybeThrow(props: { shouldThrow: boolean }) {
-	if (props.shouldThrow) {
-		throw new Error('conditional boom');
-	}
-	<p class="ok">{'no error'}</p>
-}
-
-component ErrorToggleApp() {
-	const fail = ref(false);
-
-	try {
-		<MaybeThrow shouldThrow={fail.value} />
-	} catch (err, reset) {
-		<p class="caught">{(err as Error).message}</p>
-		<button
-			class="reset"
-			onClick={() => {
-				fail.value = false;
-				reset();
-			}}
-		>
-			{'reset'}
+function WatchEffectEarlyReturnApp() {
+	return <>
+		const skip = ref(true);
+		const value = ref(0);
+		<button class="watch-effect-toggle" onClick={() => (skip.value = !skip.value)}>
+			{'toggle'}
 		</button>
-	}
-
-	<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
+		<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
+		if (skip.value) {
+			return;
+		}
+		watchEffect(() => {
+			void value.value;
+			watch_effect_fire_count++;
+		});
+		<p class="watch-effect-value">{value.value}</p>
+	</>;
 }
 
-component InnerThrow() {
-	throw new Error('inner error');
-	<p>{'unreachable'}</p>
-}
-
-component NestedTryApp() {
-	try {
-		<div class="outer">
-			try {
-				<InnerThrow />
-			} catch (err) {
-				<p class="inner-caught">{(err as Error).message}</p>
-			}
-		</div>
-	} catch (err) {
-		<p class="outer-caught">{(err as Error).message}</p>
-	}
-}
-
-component IfInsideTryApp() {
-	const show = ref(true);
-
-	try {
+function IfReactiveApp() {
+	return <>
+		const show = ref(true);
 		if (show.value) {
-			<p class="branch-a">{'visible'}</p>
+			<span class="visible">{'shown'}</span>
 		} else {
-			<p class="branch-b">{'alternate'}</p>
+			<span class="hidden">{'hidden'}</span>
 		}
-	} catch (err) {
-		<p class="caught">{'error'}</p>
-	}
-
-	<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
+		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
+	</>;
 }
 
-component ForInsideTryApp() {
-	const items = ref(['x', 'y']);
+function ConditionalLocalStateApp() {
+	return <>
+		const count = ref(3);
+		<button class="outer-inc" onClick={() => count.value++}>
+			{'Outer: '}
+			{count.value}
+		</button>
+		if (count.value > 2) {
+			const newCount = ref(0);
+			<button class="inner-inc" onClick={() => newCount.value++}>
+				{'Inner: '}
+				{newCount.value}
+			</button>
+		}
+	</>;
+}
 
-	try {
+function StatefulChild() {
+	return <>
+		const inner = ref(0);
+		<button class="stateful-child" onClick={() => inner.value++}>
+			{'Child: '}
+			{inner.value}
+		</button>
+	</>;
+}
+
+function StatefulChildHostApp() {
+	return <>
+		<div>
+			<StatefulChild />
+		</div>
+	</>;
+}
+
+function StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
+	return <>
+		const inner = ref(0);
+		<button class="stateful-child-prop" onClick={() => inner.value++}>
+			{'Child prop: '}
+			{inner.value}
+		</button>
+	</>;
+}
+
+function StatefulChildWithPropHostApp() {
+	return <>
+		const count = ref(3);
+		<div>
+			<StatefulChildWithProp {count} />
+		</div>
+	</>;
+}
+
+function ForReactiveApp() {
+	return <>
+		const items = ref(['a', 'b', 'c']);
 		for (const item of items.value) {
-			<span class="try-item" key={item}>{item}</span>
+			<li class="item" key={item}>{item}</li>
 		}
-	} catch (err) {
-		<p class="caught">{'error'}</p>
-	}
-
-	<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
+		<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
+		<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
+	</>;
 }
 
-component SwitchInsideTryApp() {
-	const page = ref('home');
+function ForContinueApp() {
+	return <>
+		const items = ref(['a', '', 'c']);
+		for (const item of items.value) {
+			if (!item) continue;
+			<li class="continue-item" key={item}>{item}</li>
+		}
+	</>;
+}
 
-	try {
+function ForIndexReactiveApp() {
+	return <>
+		const items = ref(['a', 'b', 'c']);
+		for (const item of items.value; index i) {
+			<li class="indexed-item">{`${i}:${item}`}</li>
+		}
+		<button class="prepend" onClick={() => (items.value = ['z', ...items.value])}>
+			{'prepend'}
+		</button>
+		<button
+			class="drop-middle"
+			onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
+		>
+			{'drop middle'}
+		</button>
+		<button class="reverse" onClick={() => (items.value = [...items.value].reverse())}>
+			{'reverse'}
+		</button>
+	</>;
+}
+
+function KeyedRow(props: { item: { id: string; label: string } }) {
+	return <>
+		const count = ref(0);
+		<button class={`keyed-row row-${props.item.id}`} onClick={() => count.value++}>
+			{`${props.item.label}:${count.value}`}
+		</button>
+	</>;
+}
+
+function ForKeyedStateApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const item of items.value; key item.id) {
+			<KeyedRow {item} />
+		}
+		<button class="reverse-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+			{'reverse'}
+		</button>
+		<button
+			class="rename-beta"
+			onClick={() => (items.value = items.value.map(
+				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+			))}
+		>
+			{'rename'}
+		</button>
+	</>;
+}
+
+function ForJsxKeyedStateApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const item of items.value) {
+			<KeyedRow key={item.id} {item} />
+		}
+		<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+			{'reverse'}
+		</button>
+		<button
+			class="rename-jsx-keyed-beta"
+			onClick={() => (items.value = items.value.map(
+				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+			))}
+		>
+			{'rename'}
+		</button>
+	</>;
+}
+
+function ForIndexKeyedStateApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const item of items.value; index i; key item.id) {
+			<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+		}
+		<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
+			{'reverse'}
+		</button>
+	</>;
+}
+
+function ForJsxIndexKeyedApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const item of items.value; index i) {
+			<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+		}
+		<button
+			class="reverse-jsx-index-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>
+			{'reverse'}
+		</button>
+	</>;
+}
+
+function ForNestedIndexKeyedApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const item of items.value; index i; key item.id) {
+			<section class={`nested-index-keyed-row row-${item.id}`}>
+				<div>
+					<span>{`${i}:${item.label}`}</span>
+				</div>
+			</section>
+		}
+		<button
+			class="reverse-nested-index-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>
+			{'reverse'}
+		</button>
+		<button
+			class="rename-nested-index-keyed-beta"
+			onClick={() => (items.value = items.value.map(
+				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+			))}
+		>
+			{'rename'}
+		</button>
+	</>;
+}
+
+function ForImplicitIndexKeyFragmentApp() {
+	return <>
+		const items = ref(['a', 'b', 'c']);
+		for (const item of items.value; index i) {
+			<span class="fragment-index-item">{`${i}:${item}`}</span>
+			<span class="fragment-value-item">{item}</span>
+		}
+		<button
+			class="reverse-fragment-index"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>
+			{'reverse'}
+		</button>
+	</>;
+}
+
+function DestructuredKeyedRow(props: { id: string; label: string }) {
+	return <>
+		const count = ref(0);
+		<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
+			{`${props.label}:${count.value}`}
+		</button>
+	</>;
+}
+
+function ForDestructuredKeyedStateApp() {
+	return <>
+		const items = ref([
+			{ id: 'a', label: 'Alpha' },
+			{ id: 'b', label: 'Beta' },
+			{ id: 'c', label: 'Gamma' },
+		]);
+		for (const { id, label } of items.value; key id) {
+			<DestructuredKeyedRow {id} {label} />
+		}
+		<button
+			class="reverse-destructured-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>
+			{'reverse'}
+		</button>
+		<button
+			class="rename-destructured-keyed-beta"
+			onClick={() => (items.value = items.value.map(
+				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+			))}
+		>
+			{'rename'}
+		</button>
+	</>;
+}
+
+function SwitchReactiveApp() {
+	return <>
+		const page = ref('home');
 		switch (page.value) {
 			case 'home':
-				<p class="try-page">{'Home'}</p>
+				<div class="page">{'Home'}</div>
 				break;
 			case 'about':
-				<p class="try-page">{'About'}</p>
+				<div class="page">{'About'}</div>
 				break;
 			default:
-				<p class="try-page">{'404'}</p>
+				<div class="page">{'404'}</div>
 				break;
 		}
-	} catch (err) {
-		<p class="caught">{'error'}</p>
-	}
-
-	<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
-	<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
+		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+		<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
+	</>;
 }
 
-component AsyncResolvedChild(props: { value: string }) {
-	<p class="async-resolved">{props.value}</p>
+function StyledApp() {
+	return <>
+		<div class="styled">{'styled text'}</div>
+		<style>
+			.styled {
+				color: red;
+			}
+		</style>
+	</>;
 }
 
-component SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-
-	try {
-		<AsyncChild value="hello" />
-	} pending {
-		<p class="async-pending">{'loading...'}</p>
-	}
+function ThrowingChild() {
+	return <>
+		throw new Error('sync boom');
+		<p>{'unreachable'}</p>
+	</>;
 }
 
-component SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-
-	try {
-		<AsyncChild value="hello" />
-	} pending {
-		<p class="async-pending">{'loading...'}</p>
-	} catch (err) {
-		<p class="async-caught">{(err as Error).message}</p>
-	}
+function ErrorBoundaryApp() {
+	return <>
+		try {
+			<ThrowingChild />
+		} catch (err) {
+			<p class="caught">{(err as Error).message}</p>
+		}
+	</>;
 }
 
-component EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-
-	try {
-		<AsyncChild value="hello" />
-	} pending {}
+function MaybeThrow(props: { shouldThrow: boolean }) {
+	return <>
+		if (props.shouldThrow) {
+			throw new Error('conditional boom');
+		}
+		<p class="ok">{'no error'}</p>
+	</>;
 }
 
-component ThrowingSuspenseChild() {
-	throw new Error('pending catch boom');
-	<p>{'unreachable'}</p>
+function ErrorToggleApp() {
+	return <>
+		const fail = ref(false);
+		try {
+			<MaybeThrow shouldThrow={fail.value} />
+		} catch (err, reset) {
+			<p class="caught">{(err as Error).message}</p>
+			<button
+				class="reset"
+				onClick={() => {
+					fail.value = false;
+					reset();
+				}}
+			>
+				{'reset'}
+			</button>
+		}
+		<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
+	</>;
 }
 
-component SuspenseErrorApp() {
-	const prefix = 'caught: ';
+function InnerThrow() {
+	return <>
+		throw new Error('inner error');
+		<p>{'unreachable'}</p>
+	</>;
+}
 
-	try {
-		<ThrowingSuspenseChild />
-	} pending {
-		<p class="async-pending">{'loading...'}</p>
-	} catch (err) {
-		<p class="async-caught">
-			{prefix}
-			{(err as Error).message}
-		</p>
-	}
+function NestedTryApp() {
+	return <>
+		try {
+			<div class="outer">
+				try {
+					<InnerThrow />
+				} catch (err) {
+					<p class="inner-caught">{(err as Error).message}</p>
+				}
+			</div>
+		} catch (err) {
+			<p class="outer-caught">{(err as Error).message}</p>
+		}
+	</>;
+}
+
+function IfInsideTryApp() {
+	return <>
+		const show = ref(true);
+		try {
+			if (show.value) {
+				<p class="branch-a">{'visible'}</p>
+			} else {
+				<p class="branch-b">{'alternate'}</p>
+			}
+		} catch (err) {
+			<p class="caught">{'error'}</p>
+		}
+		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
+	</>;
+}
+
+function ForInsideTryApp() {
+	return <>
+		const items = ref(['x', 'y']);
+		try {
+			for (const item of items.value) {
+				<span class="try-item" key={item}>{item}</span>
+			}
+		} catch (err) {
+			<p class="caught">{'error'}</p>
+		}
+		<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
+	</>;
+}
+
+function SwitchInsideTryApp() {
+	return <>
+		const page = ref('home');
+		try {
+			switch (page.value) {
+				case 'home':
+					<p class="try-page">{'Home'}</p>
+					break;
+				case 'about':
+					<p class="try-page">{'About'}</p>
+					break;
+				default:
+					<p class="try-page">{'404'}</p>
+					break;
+			}
+		} catch (err) {
+			<p class="caught">{'error'}</p>
+		}
+		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+		<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
+	</>;
+}
+
+function AsyncResolvedChild(props: { value: string }) {
+	return <><p class="async-resolved">{props.value}</p></>;
+}
+
+function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	return <>
+		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		try {
+			<AsyncChild value="hello" />
+		} pending {
+			<p class="async-pending">{'loading...'}</p>
+		}
+	</>;
+}
+
+function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	return <>
+		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		try {
+			<AsyncChild value="hello" />
+		} pending {
+			<p class="async-pending">{'loading...'}</p>
+		} catch (err) {
+			<p class="async-caught">{(err as Error).message}</p>
+		}
+	</>;
+}
+
+function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
+	return <>
+		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		try {
+			<AsyncChild value="hello" />
+		} pending {}
+	</>;
+}
+
+function ThrowingSuspenseChild() {
+	return <>
+		throw new Error('pending catch boom');
+		<p>{'unreachable'}</p>
+	</>;
+}
+
+function SuspenseErrorApp() {
+	return <>
+		const prefix = 'caught: ';
+		try {
+			<ThrowingSuspenseChild />
+		} pending {
+			<p class="async-pending">{'loading...'}</p>
+		} catch (err) {
+			<p class="async-caught">
+				{prefix}
+				{(err as Error).message}
+			</p>
+		}
+	</>;
 }
 
 describe('tsrx-vue runtime', () => {

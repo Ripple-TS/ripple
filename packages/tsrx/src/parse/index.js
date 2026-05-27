@@ -145,6 +145,36 @@ function elementTemplateClosingTagPlugin(Base) {
 		return false;
 	}
 
+	/**
+	 * @param {any} parser
+	 */
+	function isOpeningTagAfterReturnKeyword(parser) {
+		if (parser.input.charCodeAt(parser.start + 1) === 47 /* '/' */) return false;
+
+		let index = parser.start - 1;
+		while (index >= 0) {
+			const ch = parser.input.charCodeAt(index);
+			if (ch === 32 /* ' ' */ || ch === 9 /* '\t' */) {
+				index--;
+				continue;
+			}
+			if (ch === 10 /* '\n' */ || ch === 13 /* '\r' */) return false;
+			break;
+		}
+
+		const end = index + 1;
+		const start = end - 'return'.length;
+		if (start < 0 || parser.input.slice(start, end) !== 'return') return false;
+		const before = start > 0 ? parser.input.charCodeAt(start - 1) : -1;
+		return !(
+			(before >= 48 /* '0' */ && before <= 57) ||
+			(before >= 65 /* 'A' */ && before <= 90) ||
+			(before >= 97 /* 'a' */ && before <= 122) ||
+			before === 36 /* '$' */ ||
+			before === 95 /* '_' */
+		);
+	}
+
 	return class extends Base {
 		/** @param {number} code */
 		// @ts-ignore — extending acorn's Parser with internal hooks
@@ -165,7 +195,13 @@ function elementTemplateClosingTagPlugin(Base) {
 		// @ts-ignore — extending acorn's Parser with internal hooks
 		canInsertSemicolon() {
 			const self = /** @type {any} */ (this);
-			if (self.type === jsxTagStart && inElementTemplateBodyAnywhere(self)) return true;
+			if (
+				self.type === jsxTagStart &&
+				inElementTemplateBodyAnywhere(self) &&
+				!isOpeningTagAfterReturnKeyword(self)
+			) {
+				return true;
+			}
 			// @ts-ignore
 			return super.canInsertSemicolon();
 		}

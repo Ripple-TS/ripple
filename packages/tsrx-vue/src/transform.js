@@ -67,6 +67,9 @@ const vue_platform = {
 			ctx.needs_define_vapor_component = true;
 			return wrap_helper_component(helper_fn, helper_id, source_node);
 		},
+		wrapNativeFunctionComponent(fn, ctx, path) {
+			return wrap_native_function_component(fn, ctx, path);
+		},
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},
@@ -399,6 +402,91 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
 		]),
 		source_node,
 	);
+}
+
+/**
+ * @param {any} fn
+ * @param {any} ctx
+ * @param {any[]} path
+ * @returns {any | null}
+ */
+function wrap_native_function_component(fn, ctx, path) {
+	const name = get_function_component_name(fn, path);
+	if (!name || !/^[A-Z]/.test(name)) {
+		return null;
+	}
+
+	ctx.needs_define_vapor_component = true;
+
+	const call = create_define_vapor_component_call(
+		function_declaration_to_expression(fn),
+		fn.metadata?.generated_helpers || [],
+		fn.metadata?.generated_statics || [],
+	);
+
+	if (fn.type !== 'FunctionDeclaration') {
+		return call;
+	}
+
+	const parent = path.at(-1);
+	if (parent?.type === 'ExportDefaultDeclaration' && parent.declaration === fn) {
+		return setLocation(call, fn, true);
+	}
+
+	if (!fn.id) {
+		return call;
+	}
+
+	return setLocation(
+		builders.declaration('const', [
+			builders.declarator(create_generated_identifier(fn.id.name), setLocation(call, fn, true)),
+		]),
+		fn,
+		true,
+	);
+}
+
+/**
+ * @param {any} fn
+ * @param {any[]} path
+ * @returns {string | null}
+ */
+function get_function_component_name(fn, path) {
+	if (fn.id?.type === 'Identifier') {
+		return fn.id.name;
+	}
+
+	const parent = path.at(-1);
+	if (parent?.type === 'VariableDeclarator' && parent.init === fn) {
+		return get_static_name(parent.id);
+	}
+
+	if (parent?.type === 'Property' && parent.value === fn) {
+		return get_static_name(parent.key);
+	}
+
+	if (parent?.type === 'AssignmentExpression' && parent.right === fn) {
+		return get_static_name(parent.left);
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {string | null}
+ */
+function get_static_name(node) {
+	if (node?.type === 'Identifier') {
+		return node.name;
+	}
+	if (node?.type === 'Literal' && typeof node.value === 'string') {
+		return node.value;
+	}
+	if (node?.type === 'MemberExpression' && !node.computed) {
+		return get_static_name(node.property);
+	}
+	return null;
 }
 
 /**

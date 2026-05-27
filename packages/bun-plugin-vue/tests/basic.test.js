@@ -138,7 +138,7 @@ describe('@tsrx/bun-plugin-vue', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App() {
+				`export function App() { return <>
 					<div>{'Hello world'}</div>
 
 					<style>
@@ -146,7 +146,7 @@ describe('@tsrx/bun-plugin-vue', () => {
 							color: red;
 						}
 					</style>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });
@@ -182,9 +182,9 @@ describe('@tsrx/bun-plugin-vue', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App({ name }: { name: string }) {
+				`export function App({ name }: { name: string }) { return <>
 					<div>{name}</div>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin(
@@ -212,9 +212,9 @@ describe('@tsrx/bun-plugin-vue', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export component App() {
+				`export function App() { return <>
 					<div>{'Hello world'}</div>
-				}`,
+				</>; }`,
 			);
 
 			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });

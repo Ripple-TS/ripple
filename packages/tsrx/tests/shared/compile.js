@@ -210,6 +210,27 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 			expect(code).toContain('onSelect={props.onSelect}');
 			expect(code).toContain('{"Selected"}');
 		});
+
+		it('preserves JSX-style returns in regular functions declared inside TSRX bodies', () => {
+			const { code } = compile(
+				`function App() {
+					return <>
+						function renderChild() {
+							return <>
+								<span class="nested-return">{'ok'}</span>
+							</>;
+						}
+
+						{renderChild()}
+					</>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('function renderChild()');
+			expect(code).toContain('nested-return');
+			expect(code).not.toContain('return;\n');
+		});
 	});
 }
 

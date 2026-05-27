@@ -37,6 +37,10 @@ import {
 } from '../../utils/builders.js';
 import * as b from '../../utils/builders.js';
 import { apply_lazy_transforms, preallocate_lazy_ids } from '../lazy.js';
+import {
+	find_first_top_level_await,
+	find_first_top_level_await_in_tsrx_function_body,
+} from '../await.js';
 import { prepare_stylesheet_for_render, annotate_with_hash, is_style_element } from '../scoping.js';
 import { is_function_or_component_node } from '../../utils/ast.js';
 import {
@@ -217,6 +221,7 @@ export function createJsxTransform(platform) {
 			lazy_next_id: 0,
 			current_css_hash: null,
 			filename: filename ?? null,
+			source,
 			collect,
 			errors: collect ? options?.errors : undefined,
 			comments: options?.comments,
@@ -991,6 +996,7 @@ function transform_native_tsrx_function(node, { next, state, path }) {
 		collect_function_scope_bindings(node),
 	);
 
+	validate_native_tsrx_function_await(node, state);
 	expand_native_tsrx_function_returns(node, state);
 
 	const inner = /** @type {any} */ (next() ?? node);
@@ -1010,7 +1016,123 @@ function transform_native_tsrx_function(node, { next, state, path }) {
 		inner.metadata.generated_statics = helper_state.statics;
 	}
 
+	const wrapped = state.platform.hooks?.wrapNativeFunctionComponent?.(inner, state, path);
+	if (wrapped) {
+		return wrapped;
+	}
+
 	return inner;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function validate_native_tsrx_function_await(node, transform_context) {
+	const await_node = find_first_top_level_await_in_native_tsrx_function(node);
+	if (!await_node) {
+		return;
+	}
+
+	const validator = transform_context.platform.hooks?.validateComponentAwait;
+	if (validator) {
+		validator(await_node, node, transform_context, false, transform_context.source || '');
+		return;
+	}
+
+	if (transform_context.platform.validation.requireUseServerForAwait) {
+		error(
+			'Top-level `await` in TSRX functions requires a module-level `"use server"` directive.',
+			transform_context.filename,
+			await_node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {any | null}
+ */
+function find_first_top_level_await_in_native_tsrx_function(node) {
+	if (
+		node.type === 'ArrowFunctionExpression' &&
+		node.body?.type !== 'BlockStatement' &&
+		node_contains_native_tsrx_template(node.body)
+	) {
+		return find_first_top_level_await(node.body, false);
+	}
+
+	const body = node.body?.type === 'BlockStatement' ? node.body.body || [] : [];
+	return find_first_top_level_await_in_native_tsrx_statements(body);
+}
+
+/**
+ * @param {any[]} statements
+ * @returns {any | null}
+ */
+function find_first_top_level_await_in_native_tsrx_statements(statements) {
+	for (const statement of statements) {
+		const found = find_first_top_level_await_in_native_tsrx_statement(statement);
+		if (found) return found;
+	}
+	return null;
+}
+
+/**
+ * @param {any} statement
+ * @returns {any | null}
+ */
+function find_first_top_level_await_in_native_tsrx_statement(statement) {
+	if (!statement || typeof statement !== 'object') return null;
+
+	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+		return find_first_top_level_await_in_tsrx_function_body(statement.argument.children || []);
+	}
+
+	if (
+		statement.type === 'ReturnStatement' &&
+		node_contains_native_tsrx_template(statement.argument)
+	) {
+		return find_first_top_level_await(statement.argument, false);
+	}
+
+	if (is_function_or_class_boundary(statement)) {
+		return null;
+	}
+
+	if (statement.type === 'BlockStatement') {
+		return find_first_top_level_await_in_native_tsrx_statements(statement.body || []);
+	}
+
+	if (statement.type === 'IfStatement') {
+		return (
+			find_first_top_level_await_in_native_tsrx_statement(statement.consequent) ||
+			find_first_top_level_await_in_native_tsrx_statement(statement.alternate)
+		);
+	}
+
+	if (statement.type === 'SwitchStatement') {
+		for (const switch_case of statement.cases || []) {
+			const found = find_first_top_level_await_in_native_tsrx_statements(
+				switch_case.consequent || [],
+			);
+			if (found) return found;
+		}
+		return null;
+	}
+
+	if (statement.type === 'TryStatement') {
+		return (
+			find_first_top_level_await_in_native_tsrx_statement(statement.block) ||
+			find_first_top_level_await_in_native_tsrx_statement(statement.handler?.body) ||
+			find_first_top_level_await_in_native_tsrx_statement(statement.finalizer)
+		);
+	}
+
+	return null;
 }
 
 /**

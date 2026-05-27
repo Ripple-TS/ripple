@@ -29,10 +29,10 @@ describe('@tsrx/vite-plugin-vue source maps', () => {
 		const plugin = get_main_plugin();
 		const dir = mkdtempSync(join(tmpdir(), 'tsrx-vue-'));
 		const real_path = join(dir, 'App.tsrx');
-		const source = `export component App() {
+		const source = `export function App() { return <>
 			const message = 'Hello world';
 			<div>{message}</div>
-		}`;
+		</>; }`;
 		writeFileSync(real_path, source);
 
 		const result = await call_load(plugin, real_path + '.tsx');
