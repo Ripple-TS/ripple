@@ -1,25 +1,25 @@
-component PlainTextPlugin(props: { contentEditable: any; placeholder: any }) {
+function PlainTextPlugin(props: { contentEditable: any; placeholder: any }) { return <>
 	<section class="tsrx-expression-prop-root">
 		<div class="tsrx-expression-content">{props.contentEditable}</div>
 		<div class="tsrx-expression-plugin-placeholder">{props.placeholder}</div>
 	</section>
-}
+</>; }
 
-component ContentEditable(props: {
+function ContentEditable(props: {
 	'aria-placeholder'?: string;
 	class?: string;
 	className?: string;
 	placeholder: any;
-}) {
+}) { return <>
 	const className = props.className ?? props.class ?? '';
 
 	<article class="tsrx-expression-editable">
 		<span class="tsrx-expression-editable-class">{className}</span>
 		<div class="tsrx-expression-inner-placeholder">{props.placeholder}</div>
 	</article>
-}
+</>; }
 
-export component TsrxInTsxExpressionApp() {
+export function TsrxInTsxExpressionApp() { return <>
 	const placeholder = 'shared placeholder';
 	const classes = {
 		contentEditable: 'editable-class',
@@ -46,4 +46,4 @@ export component TsrxInTsxExpressionApp() {
 	}
 
 	{renderPlugin()}
-}
+</>; }

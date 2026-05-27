@@ -41,6 +41,7 @@ import { find_first_top_level_await_in_component_body } from '../await.js';
 import {
 	prepare_stylesheet_for_render,
 	annotate_component_with_hash,
+	annotate_with_hash,
 	is_style_element,
 } from '../scoping.js';
 import {
@@ -272,6 +273,7 @@ export function createJsxTransform(platform) {
 			needs_fragment: false,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
+			stylesheets,
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
@@ -444,6 +446,10 @@ export function createJsxTransform(platform) {
 				}
 				return next(state);
 			},
+
+			FunctionDeclaration: collect_native_function_component_metadata,
+			FunctionExpression: collect_native_function_component_metadata,
+			ArrowFunctionExpression: collect_native_function_component_metadata,
 		});
 
 		const transformed = walk(/** @type {any} */ (ast), transform_context, {
@@ -554,9 +560,9 @@ export function createJsxTransform(platform) {
 			// If a plain JS function contains a hook-bearing <tsrx> expression,
 			// give it a temporary helper scope so extracted hook components can
 			// be emitted with stable identities just like component-body helpers.
-			FunctionDeclaration: transform_function_with_hook_helpers,
-			FunctionExpression: transform_function_with_hook_helpers,
-			ArrowFunctionExpression: transform_function_with_hook_helpers,
+			FunctionDeclaration: transform_function,
+			FunctionExpression: transform_function,
+			ArrowFunctionExpression: transform_function,
 
 			RefExpression(node) {
 				return create_ref_prop_call(node, transform_context);
@@ -564,6 +570,9 @@ export function createJsxTransform(platform) {
 
 			JSXOpeningElement(node, { next }) {
 				const visited = next() || node;
+				if (visited.metadata?.native_tsrx_pretransformed) {
+					return visited;
+				}
 				const is_component = is_component_like_jsx_name(visited.name);
 				const attrs = normalize_named_ref_attributes(
 					visited.attributes || [],
@@ -1308,6 +1317,99 @@ function create_helper_state(base_name) {
 
 /**
  * @param {any} node
+ * @param {{ next: (state?: TransformContext) => any, state: TransformContext }} context
+ * @returns {any}
+ */
+function collect_native_function_component_metadata(node, { next, state }) {
+	if (!function_has_native_tsrx_return(node)) {
+		return next(state);
+	}
+
+	node.metadata = {
+		...(node.metadata || {}),
+		is_component: true,
+		native_tsrx_component: true,
+	};
+
+	const css = collect_native_function_component_stylesheet(node);
+	if (css) {
+		node.metadata.native_tsrx_css = css;
+		apply_css_definition_metadata(get_function_css_container(node), css);
+		state.stylesheets.push(css);
+		annotate_native_function_with_hash(
+			node,
+			css.hash,
+			state.platform.jsx.rewriteClassAttr ? 'className' : 'class',
+			state.typeOnly,
+		);
+	}
+
+	return next(state);
+}
+
+/**
+ * @param {any} node
+ * @param {{ next: () => any, state: TransformContext }} context
+ * @returns {any}
+ */
+function transform_function(node, context) {
+	if (node.metadata?.native_tsrx_component || function_has_native_tsrx_return(node)) {
+		return transform_native_function_component(node, context);
+	}
+
+	return transform_function_with_hook_helpers(node, context);
+}
+
+/**
+ * @param {any} node
+ * @param {{ next: () => any, state: TransformContext }} context
+ * @returns {any}
+ */
+function transform_native_function_component(node, { next, state }) {
+	const helper_state =
+		state.helper_state || create_helper_state(get_function_helper_base_name(node));
+	const saved_helper_state = state.helper_state;
+	const saved_bindings = state.available_bindings;
+	const saved_css_hash = state.current_css_hash;
+
+	state.helper_state = helper_state;
+	state.available_bindings = merge_binding_maps(
+		saved_bindings,
+		collect_function_scope_bindings(node),
+	);
+	state.current_css_hash = node.metadata?.native_tsrx_css?.hash ?? saved_css_hash;
+
+	expand_native_tsrx_function_returns(node, state);
+
+	const inner = /** @type {any} */ (next() ?? node);
+
+	state.helper_state = saved_helper_state;
+	state.available_bindings = saved_bindings;
+	state.current_css_hash = saved_css_hash;
+
+	ensure_function_metadata(inner, { next: () => inner });
+	inner.metadata = {
+		...(inner.metadata || {}),
+		is_component: true,
+		native_tsrx_component: true,
+	};
+	if (!saved_helper_state && (helper_state.helpers.length || helper_state.statics.length)) {
+		inner.metadata.generated_helpers = helper_state.helpers;
+		inner.metadata.generated_statics = helper_state.statics;
+	}
+
+	if (inner.type === 'FunctionDeclaration' && inner.id) {
+		inner.id.metadata = /** @type {AST.Identifier['metadata']} */ ({
+			...inner.id.metadata,
+			is_component: true,
+		});
+	}
+
+	return inner;
+}
+
+/**
+ * @param {any} node
  * @param {{ next: () => any, state: TransformContext }} context
  * @returns {any}
  */
@@ -1357,8 +1459,486 @@ function get_function_helper_base_name(node) {
  */
 function collect_function_scope_bindings(node) {
 	const bindings = collect_param_bindings(node.params || []);
-	collect_descendant_declaration_bindings(node.body, bindings);
+	if (node.body?.type === 'BlockStatement') {
+		for (const statement of node.body.body || []) {
+			if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+				for (const child of get_tsrx_render_children(statement.argument)) {
+					collect_statement_bindings(child, bindings);
+				}
+			} else {
+				collect_statement_bindings(statement, bindings);
+			}
+		}
+	}
 	return bindings;
+}
+
+/**
+ * @param {Map<string, AST.Identifier>} outer
+ * @param {Map<string, AST.Identifier>} inner
+ * @returns {Map<string, AST.Identifier>}
+ */
+function merge_binding_maps(outer, inner) {
+	const merged = new Map(outer);
+	for (const [name, binding] of inner) {
+		merged.set(name, binding);
+	}
+	return merged;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function function_has_native_tsrx_return(node) {
+	if (!node) return false;
+
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		return node_contains_native_tsrx_template(node.body);
+	}
+
+	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
+	return statements_contain_native_tsrx_return(body);
+}
+
+/**
+ * @param {any[]} statements
+ * @returns {boolean}
+ */
+function statements_contain_native_tsrx_return(statements) {
+	return statements.some((statement) => statement_contains_native_tsrx_return(statement));
+}
+
+/**
+ * @param {any} statement
+ * @returns {boolean}
+ */
+function statement_contains_native_tsrx_return(statement) {
+	if (!statement || typeof statement !== 'object') return false;
+
+	if (statement.type === 'ReturnStatement') {
+		return node_contains_native_tsrx_template(statement.argument);
+	}
+
+	if (is_function_or_class_boundary(statement)) {
+		return false;
+	}
+
+	if (statement.type === 'BlockStatement') {
+		return statements_contain_native_tsrx_return(statement.body || []);
+	}
+
+	if (statement.type === 'IfStatement') {
+		return (
+			statement_contains_native_tsrx_return(statement.consequent) ||
+			statement_contains_native_tsrx_return(statement.alternate)
+		);
+	}
+
+	if (statement.type === 'SwitchStatement') {
+		return (statement.cases || []).some((/** @type {any} */ c) =>
+			statements_contain_native_tsrx_return(c.consequent || []),
+		);
+	}
+
+	if (statement.type === 'TryStatement') {
+		return (
+			statement_contains_native_tsrx_return(statement.block) ||
+			statement_contains_native_tsrx_return(statement.handler?.body) ||
+			statement_contains_native_tsrx_return(statement.finalizer)
+		);
+	}
+
+	for (const key of Object.keys(statement)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		const value = statement[key];
+		if (Array.isArray(value)) {
+			if (statements_contain_native_tsrx_return(value)) return true;
+		} else if (statement_contains_native_tsrx_return(value)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function node_contains_native_tsrx_template(node) {
+	if (!node || typeof node !== 'object') return false;
+	if (node.type === 'Element' || node.type === 'Tsrx') return true;
+
+	if (is_function_or_class_boundary(node)) {
+		return false;
+	}
+
+	if (Array.isArray(node)) {
+		return node.some(node_contains_native_tsrx_template);
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		if (node_contains_native_tsrx_template(node[key])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function collect_native_function_component_stylesheet(node) {
+	/** @type {any[]} */
+	const styles = [];
+	collect_style_elements(node.body, styles);
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		collect_style_elements(node.body, styles);
+	}
+
+	if (styles.length === 0) return null;
+	if (styles.length > 1) {
+		throw new Error('Components can only have one style tag');
+	}
+
+	return styles[0];
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} styles
+ * @returns {void}
+ */
+function collect_style_elements(node, styles) {
+	if (!node || typeof node !== 'object') return;
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			collect_style_elements(child, styles);
+		}
+		return;
+	}
+
+	if (is_style_element(node)) {
+		const stylesheet = node.children?.find(
+			(/** @type {any} */ child) => child.type === 'StyleSheet',
+		);
+		if (stylesheet) {
+			styles.push(stylesheet);
+		}
+		return;
+	}
+
+	if (is_function_or_class_boundary(node)) {
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		collect_style_elements(node[key], styles);
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {{ body: any[], metadata: any }}
+ */
+function get_function_css_container(node) {
+	const body =
+		node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement'
+			? [node.body]
+			: node.body?.body || [];
+	return { body, metadata: node.metadata || (node.metadata = { path: [] }) };
+}
+
+/**
+ * @param {any} node
+ * @param {string} hash
+ * @param {'class' | 'className'} jsx_class_attr_name
+ * @param {boolean} preserve_style_elements
+ * @returns {void}
+ */
+function annotate_native_function_with_hash(
+	node,
+	hash,
+	jsx_class_attr_name,
+	preserve_style_elements,
+) {
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		node.body = annotate_with_hash(node.body, hash, jsx_class_attr_name, preserve_style_elements);
+		if (!preserve_style_elements) {
+			node.body = strip_style_elements(node.body) || node.body;
+		}
+		return;
+	}
+
+	if (node.body?.type !== 'BlockStatement') return;
+
+	node.body.body = node.body.body.map((/** @type {any} */ statement) =>
+		annotate_with_hash(statement, hash, jsx_class_attr_name, preserve_style_elements),
+	);
+	if (!preserve_style_elements) {
+		node.body.body = strip_style_elements(node.body.body);
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function strip_style_elements(node) {
+	if (!node || typeof node !== 'object') return node;
+
+	if (Array.isArray(node)) {
+		return node
+			.filter((child) => !is_style_element(child))
+			.map((child) => strip_style_elements(child))
+			.filter(Boolean);
+	}
+
+	if (is_style_element(node)) {
+		return null;
+	}
+
+	if (is_function_or_class_boundary(node)) {
+		return node;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
+			continue;
+		}
+		const value = node[key];
+		if (Array.isArray(value)) {
+			node[key] = strip_style_elements(value);
+		} else if (value && typeof value === 'object') {
+			const stripped = strip_style_elements(value);
+			if (stripped) {
+				node[key] = stripped;
+			}
+		}
+	}
+
+	return node;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function expand_native_tsrx_function_returns(node, transform_context) {
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type === 'Tsrx') {
+		lower_style_directives_in_place(node.body, transform_context, []);
+		node.body = b.block(
+			mark_native_pretransformed_jsx(
+				build_render_statements(get_tsrx_render_children(node.body), true, transform_context),
+			),
+			node.body,
+		);
+		node.expression = false;
+		return;
+	}
+
+	if (node.body?.type !== 'BlockStatement') {
+		return;
+	}
+
+	node.body.body = expand_native_tsrx_return_statement_list(
+		node.body.body || [],
+		transform_context,
+	);
+}
+
+/**
+ * @param {any[]} statements
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function expand_native_tsrx_return_statement_list(statements, transform_context) {
+	return statements.flatMap((statement) =>
+		expand_native_tsrx_return_statement(statement, transform_context),
+	);
+}
+
+/**
+ * @param {any} statement
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function expand_native_tsrx_return_statement(statement, transform_context) {
+	if (!statement || typeof statement !== 'object') return [statement];
+
+	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+		lower_style_directives_in_place(statement.argument, transform_context, [statement]);
+		return mark_native_pretransformed_jsx(
+			build_render_statements(
+				get_tsrx_render_children(statement.argument),
+				true,
+				transform_context,
+			),
+		);
+	}
+
+	if (is_function_or_class_boundary(statement)) {
+		return [statement];
+	}
+
+	if (statement.type === 'BlockStatement') {
+		statement.body = expand_native_tsrx_return_statement_list(
+			statement.body || [],
+			transform_context,
+		);
+		return [statement];
+	}
+
+	if (statement.type === 'IfStatement') {
+		statement.consequent = expand_embedded_native_return_statement(
+			statement.consequent,
+			transform_context,
+		);
+		if (statement.alternate) {
+			statement.alternate = expand_embedded_native_return_statement(
+				statement.alternate,
+				transform_context,
+			);
+		}
+		return [statement];
+	}
+
+	if (statement.type === 'SwitchStatement') {
+		for (const switch_case of statement.cases || []) {
+			switch_case.consequent = expand_native_tsrx_return_statement_list(
+				switch_case.consequent || [],
+				transform_context,
+			);
+		}
+		return [statement];
+	}
+
+	if (statement.type === 'TryStatement') {
+		statement.block = expand_embedded_native_return_statement(statement.block, transform_context);
+		if (statement.handler?.body) {
+			statement.handler.body = expand_embedded_native_return_statement(
+				statement.handler.body,
+				transform_context,
+			);
+		}
+		if (statement.finalizer) {
+			statement.finalizer = expand_embedded_native_return_statement(
+				statement.finalizer,
+				transform_context,
+			);
+		}
+		return [statement];
+	}
+
+	return [statement];
+}
+
+/**
+ * @param {any} statement
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function expand_embedded_native_return_statement(statement, transform_context) {
+	const expanded = expand_native_tsrx_return_statement(statement, transform_context);
+	return expanded.length === 1 ? expanded[0] : b.block(expanded, statement);
+}
+
+/**
+ * @template T
+ * @param {T} node
+ * @param {Set<any>} [seen]
+ * @returns {T}
+ */
+function mark_native_pretransformed_jsx(node, seen = new Set()) {
+	if (node == null || typeof node !== 'object' || seen.has(node)) {
+		return node;
+	}
+	seen.add(node);
+
+	if (Array.isArray(node)) {
+		for (const item of node) mark_native_pretransformed_jsx(item, seen);
+		return node;
+	}
+
+	const as_node = /** @type {any} */ (node);
+	if (as_node.type === 'JSXOpeningElement') {
+		as_node.metadata = {
+			...(as_node.metadata || {}),
+			native_tsrx_pretransformed: true,
+		};
+	}
+
+	for (const key of Object.keys(as_node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		mark_native_pretransformed_jsx(as_node[key], seen);
+	}
+
+	return node;
+}
+
+/**
+ * @param {any} node
+ * @returns {any[]}
+ */
+function get_tsrx_render_children(node) {
+	return (node.children || []).filter(
+		(/** @type {any} */ child) =>
+			child &&
+			child.type !== 'EmptyStatement' &&
+			(child.type !== 'JSXText' || child.value.trim() !== ''),
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @param {any[]} path
+ * @returns {any}
+ */
+function lower_style_directives_in_place(node, transform_context, path) {
+	if (!node || typeof node !== 'object') return node;
+
+	if (Array.isArray(node)) {
+		return node.map((child) => lower_style_directives_in_place(child, transform_context, path));
+	}
+
+	if (node.type === 'Style') {
+		validate_style_directive(node, transform_context, path);
+		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
+		const value = transform_context.current_css_hash
+			? `${transform_context.current_css_hash} ${class_name}`
+			: class_name;
+		return b.literal(value, undefined, node);
+	}
+
+	if (is_function_or_class_boundary(node)) {
+		return node;
+	}
+
+	const next_path = [...path, node];
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		node[key] = lower_style_directives_in_place(node[key], transform_context, next_path);
+	}
+
+	return node;
 }
 
 /**

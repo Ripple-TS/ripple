@@ -6,7 +6,7 @@
 // identical across targets; the mounted DOM should be identical because
 // fall-through is defined by JavaScript `switch` semantics.
 
-export component AppFallthroughAll({ status }: { status: string }) {
+export function AppFallthroughAll({ status }: { status: string }) { return <>
 	const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
 	switch (status) {
 		case 'idle':
@@ -18,9 +18,9 @@ export component AppFallthroughAll({ status }: { status: string }) {
 		default:
 			<span class="span-default">{'Indeterminate'}</span>
 	}
-}
+</>; }
 
-export component AppBreakAfterActive({ status }: { status: string }) {
+export function AppBreakAfterActive({ status }: { status: string }) { return <>
 	const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
 	switch (status) {
 		case 'idle':
@@ -33,9 +33,9 @@ export component AppBreakAfterActive({ status }: { status: string }) {
 		default:
 			<span class="span-default">{'Indeterminate'}</span>
 	}
-}
+</>; }
 
-export component AppBreakAfterOffline({ status }: { status: string }) {
+export function AppBreakAfterOffline({ status }: { status: string }) { return <>
 	const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
 	switch (status) {
 		case 'idle':
@@ -48,4 +48,4 @@ export component AppBreakAfterOffline({ status }: { status: string }) {
 		default:
 			<span class="span-default">{'Indeterminate'}</span>
 	}
-}
+</>; }
