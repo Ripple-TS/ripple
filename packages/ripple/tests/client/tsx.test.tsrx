@@ -584,7 +584,7 @@ describe('tsx expression', () => {
 		}
 
 		function MakeFragment({ label }: { label: string }) {
-			return <tsrx>
+			return <>
 				<span class="label">{label}</span>
 				const test = <tsx>
 					{[1, 2, 3, 4].map(
@@ -594,7 +594,7 @@ describe('tsx expression', () => {
 					)}
 				</tsx>;
 				{test}
-			</tsrx>;
+			</>;
 		}
 
 		function App() {
@@ -626,9 +626,11 @@ describe('tsx expression', () => {
 			return <>
 				const content = <tsx>
 					<section class="outer">
-						{<tsrx>
-							<div class="inner">{'from tsrx'}</div>
-						</tsrx>}
+						{<>
+							<div class="inner">
+								{'from tsrx'}
+							</div>
+						</>}
 					</section>
 				</tsx>;
 				{content}
@@ -647,11 +649,13 @@ describe('tsx expression', () => {
 			return <>
 				const content = <tsx>
 					<div class="wrapper">
-						{<tsrx>
+						{<>
 							<section class="native">
-								<span class="nested-tsrx">{'inside nested tsrx'}</span>
+								<span class="nested-tsrx">
+									{'inside nested tsrx'}
+								</span>
 							</section>
-						</tsrx>}
+						</>}
 					</div>
 				</tsx>;
 				{content}
@@ -665,18 +669,16 @@ describe('tsx expression', () => {
 		expect(native.querySelector('.nested-tsrx').textContent).toBe('inside nested tsrx');
 	});
 
-	it('renders tsx declared inside tsrx nested from a top-level tsx value', () => {
+	it('renders tsx declared before a top-level tsx value', () => {
 		function App() {
 			return <>
+				const nested = <tsx>
+					<span class="nested-tsx">
+						{'inside nested tsx'}
+					</span>
+				</tsx>;
 				const content = <tsx>
-					{<tsrx>
-						const nested = <tsx>
-							<span class="nested-tsx">
-								{'inside nested tsx'}
-							</span>
-						</tsx>;
-						<div class="native">{nested}</div>
-					</tsrx>}
+					<div class="native">{nested}</div>
 				</tsx>;
 				{content}
 			</>;
@@ -791,9 +793,7 @@ describe('tsrx expression', () => {
 	it('renders native double-quoted text in an assigned fragment', () => {
 		function App() {
 			return <>
-				const el = <tsrx>
-					<div>"Hello world"</div>
-				</tsrx>;
+				const el = <><div>"Hello world"</div></>;
 				{el}
 			</>;
 		}
@@ -808,10 +808,10 @@ describe('tsrx expression', () => {
 	it('runs setup statements before native template output', () => {
 		function App() {
 			return <>
-				const el = <tsrx>
+				const el = <>
 					const label = 'from setup';
 					<div>{label}</div>
-				</tsrx>;
+				</>;
 				{el}
 			</>;
 		}
@@ -825,9 +825,7 @@ describe('tsrx expression', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
-				const el = <tsrx>
-					<div>{'count: ' + count}</div>
-				</tsrx>;
+				const el = <><div>{'count: ' + count}</div></>;
 				{el}
 				<button onClick={() => count++}>{'increment'}</button>
 			</>;
@@ -844,11 +842,11 @@ describe('tsrx expression', () => {
 	it('renders native control flow inside an assigned fragment', () => {
 		function App() {
 			return <>
-				const el = <tsrx>
+				const el = <>
 					if (true) {
 						<span>"visible"</span>
 					}
-				</tsrx>;
+				</>;
 				{el}
 			</>;
 		}
@@ -860,9 +858,7 @@ describe('tsrx expression', () => {
 
 	it('renders fragments returned from component functions outside components', () => {
 		function MakeFragment({ label }: { label: string }) {
-			return <tsrx>
-				<span>{label}</span>
-			</tsrx>;
+			return <><span>{label}</span></>;
 		}
 
 		function App() {

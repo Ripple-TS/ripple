@@ -155,8 +155,8 @@ function get_component_css_hash(state) {
 }
 
 /**
- * JSX parsed inside `<tsx>` treats `<tsx>`/`<tsrx>` as ordinary JSX tags. For
- * TypeScript output, convert those reserved tags back into TSRX nodes before
+ * JSX parsed inside `<tsx>` treats `<tsx>` as an ordinary JSX tag. For
+ * TypeScript output, convert that reserved tag back into a TSRX node before
  * visiting so nested islands use the same lowering path as top-level islands.
  *
  * @param {ESTreeJSX.JSXElement} node
@@ -165,7 +165,7 @@ function get_component_css_hash(state) {
  */
 function jsx_template_to_ts_node(node, context) {
 	const name = node.openingElement.name;
-	if (name.type !== 'JSXIdentifier' || (name.name !== 'tsx' && name.name !== 'tsrx')) {
+	if (name.type !== 'JSXIdentifier' || name.name !== 'tsx') {
 		return null;
 	}
 
@@ -1815,7 +1815,8 @@ const visitors = {
 
 		if (
 			state.regular_js ||
-			(!state.template_child &&
+			(!state.inside_head &&
+				!state.template_child &&
 				!node.metadata?.returned_tsrx_child &&
 				(is_native_tsrx_value_position(context.path) ||
 					(context.state.component === undefined &&

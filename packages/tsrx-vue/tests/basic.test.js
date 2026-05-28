@@ -104,25 +104,25 @@ describe('@tsrx/vue basic', () => {
 			`function Test() { return <>
 				<Page
 					params={{
-						menuAlt: (isAdmin) => <tsrx>
+						menuAlt: (isAdmin) => <>
 							if (isAdmin) {
 								return ['Delete', 'Edit'];
 							} else {
 								return ['View'];
 							}
-						</tsrx>,
-						direct: () => <tsrx>
+						</>,
+						direct: () => <>
 							return ['View'];
-						</tsrx>,
-						bySwitch: (role) => <tsrx>
+						</>,
+						bySwitch: (role) => <>
 							switch (role) {
 								case 'admin':
 									return ['Edit'];
 								default:
 									return ['View'];
 							}
-						</tsrx>,
-						byForOf: (items) => <tsrx>
+						</>,
+						byForOf: (items) => <>
 							for (const item of items) {
 								if (item.active) {
 									return [item.label];
@@ -130,14 +130,14 @@ describe('@tsrx/vue basic', () => {
 							}
 
 							return ['Empty'];
-						</tsrx>,
-						byTry: (load) => <tsrx>
+						</>,
+						byTry: (load) => <>
 							try {
 								return [load()];
 							} catch (error) {
 								return ['Error'];
 							}
-						</tsrx>,
+						</>,
 					}}
 				/>
 			</>; }`,

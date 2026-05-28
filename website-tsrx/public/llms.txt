@@ -358,9 +358,9 @@ expression container.
 ### Expression islands
 
 Because TSRX is the default JSX expression language, `<div />` and `<>...</>`
-produce native TSRX values. Use `<tsrx>...</tsrx>` when you want an explicit
-native TSRX island, and use `<tsx>...</tsx>` or `<tsx:kind>...</tsx:kind>`
-when a host needs JSX-compatible children instead of TSRX template children.
+produce native TSRX values. Use `<tsx>...</tsx>` or
+`<tsx:kind>...</tsx:kind>` when a host needs JSX-compatible children instead of
+TSRX template children.
 
 ```tsrx
 function App() {
@@ -371,10 +371,10 @@ function App() {
 ```
 
 ```tsrx
-const nativeTemplate = <tsrx>
+const nativeTemplate = <>
 	const label = name.trim();
 	<span>{label}</span>
-</tsrx>;
+</>;
 
 const jsxCompatible = <tsx>
 	<span>Settings</span>
@@ -755,7 +755,7 @@ function List<T>({ items, render }: Props<T>) {
 | Component function     | `function Name(props: T) { return <>...</>; }`   |
 | Exported component     | `export function Name(...) { return <div />; }`  |
 | Native TSRX value      | `const v = <div>"Hi"</div>;`                     |
-| Explicit TSRX island   | `const v = <tsrx><span>"Hi"</span></tsrx>;`      |
+| Native TSRX fragment   | `const v = <><span>"Hi"</span></>;`              |
 | JSX-compatible island  | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
 | Forced escaped text    | `<span>{text expr}</span>`                       |

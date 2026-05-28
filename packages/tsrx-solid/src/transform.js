@@ -242,7 +242,7 @@ function to_jsx_child(node, transform_context) {
 }
 
 /**
- * Lower a `<tsrx>` node's native TSRX template body to a Solid JSX expression.
+ * Lower a native TSRX fragment body to a Solid JSX expression.
  *
  * @param {any} node
  * @param {TransformContext} transform_context

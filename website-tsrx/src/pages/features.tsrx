@@ -50,7 +50,7 @@ const TEMPLATE_HTML = highlight_tsrx(
 
 const TSX_EXPR_HTML = highlight_tsrx(
 	`function App() {
-  const title = <tsrx><span class="title">"Settings"</span></tsrx>;
+  const title = <><span class="title">"Settings"</span></>;
 
   return <>
     <Card {title} />
@@ -469,7 +469,7 @@ export function FeaturesPage() {
 							</pre>
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}
-								<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
+								<code class="inline-code">{'<>...</>'}</code>
 								{'. Use '}
 								<code class="inline-code">{'<>...</>'}</code>
 								{' or '}
@@ -783,7 +783,7 @@ export function FeaturesPage() {
 								{' or a named prop like '}
 								<code class="inline-code">{'render={...}'}</code>
 								{'. If that function returns native TSRX, wrap it in '}
-								<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
+								<code class="inline-code">{'<>...</>'}</code>
 								{'. Use '}
 								<code class="inline-code">{'<>...</>'}</code>
 								{' or '}
@@ -995,7 +995,7 @@ export function FeaturesPage() {
 								{' or Preact with '}
 								<code class="inline-code">{'@tsrx/preact'}</code>
 								{', hooks that appear in conditional, loop, switch, try, or returned-template '}
-								<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
+								<code class="inline-code">{'<>...</>'}</code>
 								{' scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.'}
 							</p>
 							<p class="section-body">

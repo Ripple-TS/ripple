@@ -5663,8 +5663,7 @@ function printTsx(node, path, options, print) {
 }
 
 /**
- * Print a Tsrx node - renders native TSRX template children inside a fragment
- * or explicit <tsrx>...</tsrx> wrapper.
+ * Print a Tsrx node - renders native TSRX template children inside a fragment.
  * @param {AST.Tsrx} node - The Tsrx node
  * @param {AstPath<AST.Tsrx>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
@@ -5672,9 +5671,8 @@ function printTsx(node, path, options, print) {
  * @returns {Doc}
  */
 function printTsrx(node, path, options, print) {
-	const is_fragment = !node.openingElement?.name;
-	const tagName = is_fragment ? '<>' : '<tsrx>';
-	const closingTagName = is_fragment ? '</>' : '</tsrx>';
+	const tagName = '<>';
+	const closingTagName = '</>';
 	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
 
 	if (!hasChildren) {
@@ -5701,7 +5699,6 @@ function printTsrx(node, path, options, print) {
 	}
 
 	if (
-		is_fragment &&
 		printedChildren.length === 1 &&
 		['Element', 'Text', 'TSRXExpression'].includes(node.children[0]?.type)
 	) {

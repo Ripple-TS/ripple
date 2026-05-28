@@ -947,9 +947,9 @@ export function App() { return <>
 		});
 	});
 
-	describe(`[${name}] <tsrx> blocks preserve source locations`, () => {
-		it('keeps loc on native template elements inside tsrx blocks', () => {
-			const source = `function C() { return <> <tsrx><div>"hi"</div></tsrx> </>; }`;
+	describe(`[${name}] native fragments preserve source locations`, () => {
+		it('keeps loc on native template elements inside fragments', () => {
+			const source = `function C() { return <> <><div>"hi"</div></> </>; }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const div_offset = source.indexOf('<div>');
 			const has_div_mapping = result.mappings.some(
@@ -960,12 +960,12 @@ export function App() { return <>
 
 		it('does not crash for common native template fragment shapes', () => {
 			const sources = [
-				`class Foo { bar() { return <tsrx>{"Hello"}</tsrx>; } }`,
-				`class Foo { bar() { return <tsrx>"Hello"</tsrx>; } }`,
-				`class Foo { bar() { return <tsrx><div>"a"</div><div>"b"</div></tsrx>; } }`,
-				`class Foo { bar() { return <tsrx>const x = 1; <div>{x}</div></tsrx>; } }`,
-				`class Foo { bar() { return <tsrx>; <div>"ok"</div></tsrx>; } }`,
-				`class Foo { bar() { return <tsrx>if (true) { <div>"yes"</div> }</tsrx>; } }`,
+				`class Foo { bar() { return <>{"Hello"}</>; } }`,
+				`class Foo { bar() { return <>"Hello"</>; } }`,
+				`class Foo { bar() { return <><div>"a"</div><div>"b"</div></>; } }`,
+				`class Foo { bar() { return <>const x = 1; <div>{x}</div></>; } }`,
+				`class Foo { bar() { return <>; <div>"ok"</div></>; } }`,
+				`class Foo { bar() { return <>if (true) { <div>"yes"</div> }</>; } }`,
 			];
 			for (const source of sources) {
 				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();

@@ -20,7 +20,6 @@ const MODIFIED_PRODUCTIONS = [
 	'TsrxExpression :',
 	'  Element',
 	'  <> TemplateChildrenopt </>',
-	'  <tsrx> TemplateChildrenopt </tsrx>',
 	'',
 	'TsxExpression :',
 	'  <tsx> TsxChildrenopt </tsx>',
@@ -40,7 +39,6 @@ const EXPRESSION_ISLAND_GRAMMAR = [
 	'TsrxExpression :',
 	'  Element',
 	'  <> TemplateChildrenopt </>',
-	'  <tsrx> TemplateChildrenopt </tsrx>',
 	'',
 	'TsxElement :',
 	'  <tsx> TsxChildrenopt </tsx>',
@@ -91,7 +89,6 @@ const AST_NODE_MAPPING = [
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
 	'ref={ AssignmentExpression } -> RefAttribute',
-	'<tsrx> TemplateChildrenopt </tsrx> -> Tsrx',
 	'<tsx> TsxChildrenopt </tsx> -> Tsx',
 	'<> TemplateChildrenopt </> -> Tsrx',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
@@ -498,17 +495,15 @@ export function SpecificationPage() {
 						<section class="doc-section" id="tsx-islands">
 							<h2 class="section-heading">{'4.4 Expression Islands'}</h2>
 							<p class="section-body">
-								{'TSRX does not admit arbitrary template or JSX elements in expression position. When a tree must participate in ordinary expression evaluation, it must be written as an expression island. The <tsrx> form keeps native TSRX template children, while TSX islands use JSX-compatible children.'}
+								{'TSRX elements and fragments are expression values by default. Native fragments keep TSRX template children, while TSX islands use JSX-compatible children.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_ISLAND_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								{'The fragment shorthand form is equivalent to a '}
+								{'The fragment shorthand form uses native TSRX template children. Use '}
 								<code class="inline-code">{'<tsx>...</tsx>'}</code>
-								{' form in expression position. Native TSRX template islands use '}
-								<code class="inline-code">{'<tsrx>...</tsrx>'}</code>
-								{'. Compatibility islands through '}
+								{' for JSX-compatible children instead. Compatibility islands through '}
 								<code class="inline-code">{'<tsx:kind>'}</code>
 								{' are part of core TSRX syntax, although the meaning of '}
 								<code class="inline-code">{'kind'}</code>
@@ -566,8 +561,6 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									<code class="inline-code">{'<tsx />'}</code>
-									{' and '}
-									<code class="inline-code">{'<tsrx />'}</code>
 									{' and '}
 									<code class="inline-code">{'<tsx:kind />'}</code>
 									{' are not well-formed and must be rejected.'}
@@ -685,14 +678,14 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">{'A.4 Expression island nodes'}</h3>
 							<p class="section-body">
-								{'Expression-position islands use distinct node kinds so tools can distinguish ordinary template elements, native TSRX subtrees, and JSX-compatible subtrees. The <tsrx> form is represented as Tsrx, the TSX fragment shorthand is represented as Tsx, and compatibility islands with an explicit kind are represented as TsxCompat.'}
+								{'Expression-position islands use distinct node kinds so tools can distinguish ordinary template elements, native TSRX fragments, and JSX-compatible subtrees. The native fragment shorthand is represented as Tsrx, TSX islands are represented as Tsx, and compatibility islands with an explicit kind are represented as TsxCompat.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{TSX_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'Tsrx corresponds to <tsrx> ... </tsrx> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
+									{'Tsrx corresponds to <> ... </> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
 								</li>
 								<li>
 									{'Tsx corresponds to both <tsx> ... </tsx> and the fragment shorthand <> ... </> when those forms appear in expression position.'}

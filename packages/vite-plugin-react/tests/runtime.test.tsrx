@@ -1069,17 +1069,17 @@ function HookInSwitchWithScopeApp() {
 	</>;
 }
 
-// ── Hook inside expression-position <tsrx> from a regular function ──
+// ── Hook inside expression-position native fragments from a regular function ──
 
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 	if (!props.active) return null;
 
-	return <tsrx>
+	return <>
 		const [count, setCount] = useState(0);
 		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 			{props.label + ':' + count}
 		</button>
-	</tsrx>;
+	</>;
 }
 
 function TsrxExpressionHookApp() {
@@ -1825,7 +1825,7 @@ describe('tsrx-react runtime', () => {
 		expect(text('.switch-scope-val')).toBe('dark:info');
 	});
 
-	it('keeps <tsrx> expression hook state stable across regular function rerenders', async () => {
+	it('keeps <> expression hook state stable across regular function rerenders', async () => {
 		await render(TsrxExpressionHookApp);
 		expect(container.querySelector('.tsrx-expression-hook-count')).toBeNull();
 

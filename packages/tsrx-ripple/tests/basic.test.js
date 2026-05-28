@@ -270,23 +270,22 @@ function App() { return <>
 	});
 });
 
-describe('@tsrx/ripple <tsrx> Volar output', () => {
-	it('prints JSX converted from nested tsrx inside tsx expression containers', () => {
+describe('@tsrx/ripple native fragment Volar output', () => {
+	it('prints JSX converted from native fragment expression containers', () => {
 		const source = `function App() { return <>
-	const content = <tsx>
-		<section>{<tsrx><div>{'inside'}</div></tsrx>}</section>
-	</tsx>;
+	const content = <section>{<div>{'inside'}</div>}</section>;
 	{content}
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(result.code).toContain('<section>{<div>');
-		expect(result.code).not.toContain('<tsrx>');
+		expect(result.code).toContain('<section>');
+		expect(result.code).toContain('<div>');
+		expect(result.code).toContain("'inside';");
 		expect(result.code).not.toContain('<tsx>');
 	});
 
 	it('returns children before and after setup statements', () => {
-		const source = `class Foo { bar() { return <tsrx><div>"before"</div> const x = 1; <div>{x}</div></tsrx>; } }`;
+		const source = `class Foo { bar() { return <><div>"before"</div> const x = 1; <div>{x}</div></>; } }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\];/);
 		expect(match).not.toBeNull();
@@ -341,7 +340,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			`function Some(props) { return <></>; }
 			function Test() {
 				const placeholder = 'value';
-				return <tsrx><Some prop={placeholder} /></tsrx>;
+				return <><Some prop={placeholder} /></>;
 			}`,
 			'App.tsrx',
 		);
@@ -415,7 +414,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 				return 'value';
 			}
 			function Test() {
-				return <tsrx><Some prop={getValue()} /></tsrx>;
+				return <><Some prop={getValue()} /></>;
 			}`,
 			'App.tsrx',
 		);
@@ -509,7 +508,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			function Some(props) { return <></>; }
 			function Test() { return <>
 				let &[count] = track(0);
-				const content = <tsrx><Some prop={count % 2 ? 'odd' : 'even'} /></tsrx>;
+				const content = <><Some prop={count % 2 ? 'odd' : 'even'} /></>;
 				{content}
 			</>; }`,
 			'App.tsrx',
@@ -687,7 +686,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 						return <tsx><div>tsx</div></tsx>;
 					}}
 					tsrx={() => {
-						return <tsrx><div>"tsrx"</div></tsrx>;
+						return <><div>"tsrx"</div></>;
 					}}
 				/>
 			</>; }`,

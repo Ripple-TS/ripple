@@ -844,36 +844,36 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	_$_.pop_component();
 }
 
-export function TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
+export function TsxDeclaredBeforeTopLevelTsx() {
 	_$_.push_component();
 
 	var __r_26 = false;
 
+	const nested = _$_.tsrx_element(function render_children() {
+		_$_.regular_block(() => {
+			_$_.output_push('<span');
+			_$_.output_push(' class="nested-tsx"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('inside nested tsx');
+			}
+
+			_$_.output_push('</span>');
+		});
+	});
+
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
-			_$_.render_expression(_$_.tsrx_element(function render_children() {
-				const nested = _$_.tsrx_element(function render_children() {
-					_$_.output_push('<span');
-					_$_.output_push(' class="nested-tsx"');
-					_$_.output_push('>');
+			_$_.output_push('<div');
+			_$_.output_push(' class="native"');
+			_$_.output_push('>');
 
-					{
-						_$_.output_push('inside nested tsx');
-					}
+			{
+				_$_.render_expression(nested);
+			}
 
-					_$_.output_push('</span>');
-				});
-
-				_$_.output_push('<div');
-				_$_.output_push(' class="native"');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(nested);
-				}
-
-				_$_.output_push('</div>');
-			}));
+			_$_.output_push('</div>');
 		});
 	});
 

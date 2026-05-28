@@ -330,7 +330,8 @@ export function Panel({ title, children }: { title: string; children: any }) {
 **LLM DON'T:**
 - Do not invent a custom declaration form for components.
 - Do not claim TSRX templates are restricted to special declarations or bodies.
-- Do not require `<tsrx>...</tsrx>` just to store, pass, or return TSRX UI.
+- Use native TSRX elements or fragments directly when storing, passing, or
+  returning UI.
 
 ### TSRX Expressions
 

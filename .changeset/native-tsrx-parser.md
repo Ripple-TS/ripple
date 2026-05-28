@@ -22,3 +22,5 @@
 Parse tags and bare fragments as native TSRX by default, remove `component` keyword parsing, and compile/format/lint function components that return native TSRX across the React, Preact, Solid, Vue, and Ripple targets. Ripple component compilation now only renders TSRX reachable from returned values and supports string and `null` component returns.
 
 Ripple now also preserves directly called PascalCase helpers as ordinary functions while still compiling renderable component functions used as components or render entries.
+
+The old explicit TSRX wrapper tag is no longer special; TSRX elements and fragments are the default expression syntax, and the tag name is treated like any ordinary element name.

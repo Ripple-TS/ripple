@@ -22,7 +22,7 @@ export function runTsxExpressionTsrxRuntimeTests() {
 		return container.querySelector(selector)?.textContent ?? null;
 	}
 
-	describe('<tsrx> inside TSX expressions at runtime', () => {
+	describe('native fragments inside expression values at runtime', () => {
 		it('renders native TSRX passed through regular function JSX props', async () => {
 			await mount(TsrxInTsxExpressionApp);
 

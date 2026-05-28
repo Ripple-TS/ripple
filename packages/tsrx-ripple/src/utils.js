@@ -2067,22 +2067,12 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		const opening = node.openingElement;
 		const name = opening.name;
 
-		if (name.type === 'JSXIdentifier' && (name.name === 'tsx' || name.name === 'tsrx')) {
-			const children =
-				name.name === 'tsrx'
-					? /** @type {AST.Node[]} */ (
-							/** @type {AST.Node[]} */ (node.children)
-								.map((child) => jsx_to_ripple_node(child, inherited_path))
-								.flat()
-								.filter(Boolean)
-						)
-					: node.children;
-
+		if (name.type === 'JSXIdentifier' && name.name === 'tsx') {
 			return /** @type {AST.Node} */ (
 				/** @type {unknown} */ ({
 					...node,
-					type: name.name === 'tsx' ? 'Tsx' : 'Tsrx',
-					children,
+					type: 'Tsx',
+					children: node.children,
 					attributes: opening.attributes,
 					selfClosing: opening.selfClosing,
 				})

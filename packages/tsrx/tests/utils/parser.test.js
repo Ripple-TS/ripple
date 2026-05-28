@@ -78,6 +78,26 @@ describe('TSRX parser', () => {
 		expect(returned.children.map((child) => child.type)).toEqual(['IfStatement', 'Element']);
 	});
 
+	it('treats tsrx as a normal element name', () => {
+		const tag = 'tsrx';
+		const ast = parseModule(`const wrapper = <${tag}><div /></${tag}>;`, 'App.tsrx');
+
+		const value = ast.body[0].declarations[0].init;
+		expect(value.type).toBe('Element');
+		expect(value.id.name).toBe('tsrx');
+		expect(value.children[0].type).toBe('Element');
+	});
+
+	it('allows self-closing tsrx elements like any other element', () => {
+		const tag = 'tsrx';
+		const ast = parseModule(`const wrapper = <${tag} />;`, 'App.tsrx');
+
+		const value = ast.body[0].declarations[0].init;
+		expect(value.type).toBe('Element');
+		expect(value.id.name).toBe('tsrx');
+		expect(value.selfClosing).toBe(true);
+	});
+
 	it('keeps explicit TSX islands as TSX', () => {
 		const ast = parseModule('const x = <tsx><div>{value}</div><></></tsx>;', 'App.tsrx');
 

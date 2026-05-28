@@ -240,9 +240,11 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 	return <>
 		const content = <tsx>
 			<section class="outer">
-				{<tsrx>
-					<div class="inner">{'from tsrx'}</div>
-				</tsrx>}
+				{<>
+					<div class="inner">
+						{'from tsrx'}
+					</div>
+				</>}
 			</section>
 		</tsx>;
 		{content}
@@ -253,28 +255,28 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	return <>
 		const content = <tsx>
 			<div class="wrapper">
-				{<tsrx>
+				{<>
 					<section class="native">
-						<span class="nested-tsrx">{'inside nested tsrx'}</span>
+						<span class="nested-tsrx">
+							{'inside nested tsrx'}
+						</span>
 					</section>
-				</tsrx>}
+				</>}
 			</div>
 		</tsx>;
 		{content}
 	</>;
 }
 
-export function TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
+export function TsxDeclaredBeforeTopLevelTsx() {
 	return <>
+		const nested = <tsx>
+			<span class="nested-tsx">
+				{'inside nested tsx'}
+			</span>
+		</tsx>;
 		const content = <tsx>
-			{<tsrx>
-				const nested = <tsx>
-					<span class="nested-tsx">
-						{'inside nested tsx'}
-					</span>
-				</tsx>;
-				<div class="native">{nested}</div>
-			</tsrx>}
+			<div class="native">{nested}</div>
 		</tsx>;
 		{content}
 	</>;

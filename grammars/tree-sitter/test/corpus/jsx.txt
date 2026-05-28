@@ -240,10 +240,10 @@ Parenthesized JSX Arrow Return Attributes
 export function Test(props) {
   return <>
     <List
-      tsrxItem={(item) => (
-        <tsrx>
+      nativeItem={(item) => (
+        <div>
           <ItemView item={item} onSelect={props.onSelect} />
-        </tsrx>
+        </div>
       )}
       tsxItem={(item) => (
         <tsx>

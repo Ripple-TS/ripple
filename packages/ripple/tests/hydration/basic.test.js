@@ -176,10 +176,10 @@ describe('hydration > basic', () => {
 		expect(native?.querySelector('.nested-tsrx')?.textContent).toBe('inside nested tsrx');
 	});
 
-	it('hydrates tsx declared inside tsrx nested from a top-level tsx value', async () => {
+	it('hydrates tsx declared before a top-level tsx value', async () => {
 		await hydrateComponent(
-			ServerComponents.TsxDeclaredInsideNestedTsrxFromTopLevelTsx,
-			ClientComponents.TsxDeclaredInsideNestedTsrxFromTopLevelTsx,
+			ServerComponents.TsxDeclaredBeforeTopLevelTsx,
+			ClientComponents.TsxDeclaredBeforeTopLevelTsx,
 		);
 
 		const native = container.querySelector('.native');

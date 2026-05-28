@@ -249,12 +249,12 @@ function NamedRefObjectApp() {
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 	if (!props.active) return null;
 
-	return <tsrx>
+	return <>
 		const [count, setCount] = useState(0);
 		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 			{props.label + ':' + count}
 		</button>
-	</tsrx>;
+	</>;
 }
 
 function TsrxExpressionHookApp() {
@@ -414,7 +414,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(named_ref_object.current!.className).toBe('named-forward-ref');
 	});
 
-	it('keeps <tsrx> expression hook state stable across regular function rerenders', async () => {
+	it('keeps <> expression hook state stable across regular function rerenders', async () => {
 		await render(TsrxExpressionHookApp);
 		expect(container.querySelector('.tsrx-expression-hook-count')).toBeNull();
 

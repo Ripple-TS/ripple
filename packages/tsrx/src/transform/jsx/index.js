@@ -4380,7 +4380,7 @@ function to_jsx_child(node, transform_context) {
 }
 
 /**
- * Lower a `<tsrx>` node's native TSRX template body to a JSX expression.
+ * Lower a native TSRX fragment body to a JSX expression.
  * Unlike `<tsx>`, children have already been parsed and transformed through
  * the normal TSRX Element/Text/control-flow visitors.
  *
@@ -4436,7 +4436,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 }
 
 /**
- * Explicit return values inside expression-position `<tsrx>` templates are JavaScript
+ * Explicit return values inside expression-position native templates are JavaScript
  * values, so keep them out of platform render control flow.
  *
  * @param {any[]} body_nodes

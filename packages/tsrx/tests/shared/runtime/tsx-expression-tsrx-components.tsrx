@@ -32,18 +32,14 @@ export function TsrxInTsxExpressionApp() {
 		function renderPlugin() {
 			return <>
 				<PlainTextPlugin
-					contentEditable={<tsrx>
+					contentEditable={<>
 						<ContentEditable
 							aria-placeholder={placeholder}
 							class={classes.contentEditable}
-							placeholder={<tsrx>
-								<div class={classes.placeholder}>{placeholder}</div>
-							</tsrx>}
+							placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
 						/>
-					</tsrx>}
-					placeholder={<tsrx>
-						<div class={classes.placeholder}>{placeholder}</div>
-					</tsrx>}
+					</>}
+					placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
 				/>
 			</>;
 		}

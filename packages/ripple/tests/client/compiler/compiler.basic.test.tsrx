@@ -483,46 +483,36 @@ function App() { return <>
 		expect(track_result).not.toContain('lazy0');
 	});
 
-	it('lowers nested tsrx inside tsx in to_ts output', () => {
+	it('lowers native expression values in to_ts output', () => {
 		const source = `
 function App() { return <>
-	const content = <tsx>
-		{<tsrx>
-			const nested = <tsx>
-				<span class="nested-tsx">
-					{'inside nested tsx'}
-				</span>
-			</tsx>;
-			<div class="native">{nested}</div>
-		</tsrx>}
+	const nested = <tsx>
+		<span class="nested-tsx">
+			{'inside nested tsx'}
+		</span>
 	</tsx>;
+	const content = <div class="native">{nested}</div>;
 
 	{content}
 </>; }
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
-		expect(result).not.toContain('<tsrx>');
-		expect(result).not.toContain('</tsrx>');
 		expect(result).not.toContain('<tsx>');
 		expect(result).not.toContain('</tsx>');
 		expect(result).toContain('const nested = <>');
-		expect(result).toContain('children.push(<div class="native">');
+		expect(result).toContain('const content = <div class="native">');
 	});
 
-	it('maps identifiers from nested tsrx inside tsx in to_ts output', () => {
+	it('maps identifiers from native expression values in to_ts output', () => {
 		const source = `
 function App() { return <>
-	const content = <tsx>
-		{<tsrx>
-			const nested = <tsx>
-				<span class="nested-tsx">
-					{'inside nested tsx'}
-				</span>
-			</tsx>;
-			<div class="native">{nested}</div>
-		</tsrx>}
+	const nested = <tsx>
+		<span class="nested-tsx">
+			{'inside nested tsx'}
+		</span>
 	</tsx>;
+	const content = <div class="native">{nested}</div>;
 
 	{content}
 </>; }

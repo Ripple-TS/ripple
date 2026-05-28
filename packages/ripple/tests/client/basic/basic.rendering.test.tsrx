@@ -115,7 +115,7 @@ second"</pre>
 	it('does not render elements after an ASI return', () => {
 		function Basic() {
 			return;
-			<div>"should not render"</div>;
+			<div>"should not render"</div>
 		}
 
 		render(Basic);

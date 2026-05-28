@@ -57,14 +57,12 @@ function get_variable_types(code) {
 }
 
 describe('@tsrx/ripple Volar JSX expression types', () => {
-	it('types tsx and nested tsrx expression values as TSRXElement', () => {
+	it('types tsx and native expression values as TSRXElement', () => {
 		const source = `
 function App() { return <>
+	const nested = <div />;
 	const content = <tsx>
-		{<tsrx>
-			const nested = <tsx><span /></tsx>;
-			<div>{nested}</div>
-		</tsrx>}
+		<section>{nested}</section>
 	</tsx>;
 
 	{content}

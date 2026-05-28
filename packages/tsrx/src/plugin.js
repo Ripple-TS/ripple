@@ -359,9 +359,6 @@ export function TSRXPlugin(config) {
 					}
 					if (child?.type === 'JSXElement') {
 						const name = child.openingElement?.name;
-						if (name?.type === 'JSXIdentifier' && name.name === 'tsrx') {
-							continue;
-						}
 						const is_dynamic_name =
 							(name?.type === 'JSXIdentifier' && name.tracked) ||
 							(name?.type === 'JSXMemberExpression' &&
@@ -764,13 +761,13 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				// Inside `{<tsrx>...</tsrx>}` JSX expression container — strip
+				// Inside a native template JSX expression container — strip
 				// both the leaked `b_stat` and the container's `tc_expr`.
 				if (top === b_stat && second === tstc.tc_expr) {
 					ctx.length = ci - 1;
 					return;
 				}
-				// Statement-bodied `<tsrx>` attributes can leave the attribute's
+				// Statement-bodied native template attributes can leave the attribute's
 				// expression contexts above the still-open JSX tag context. Strip
 				// those so a following `/>` stays in JSX opening-tag mode.
 				if (
@@ -1123,16 +1120,17 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
-				// Callback props that return `<tsrx>...</tsrx>` without a semicolon can
+				// Callback props that return native templates without a semicolon can
 				// leave the attribute expression context above the still-open tag. Drop
 				// it before tokenizing `/>`, otherwise Acorn treats `/` as a regexp.
 				if (
 					code === CharCode.slash &&
 					this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan &&
-					this.curContext() === b_expr &&
-					this.context[this.context.length - 2] === tstc.tc_oTag
+					this.context.includes(tstc.tc_oTag)
 				) {
-					this.context.pop();
+					while (this.context.length > 0 && this.curContext() !== tstc.tc_oTag) {
+						this.context.pop();
+					}
 					this.exprAllowed = false;
 				}
 				if (code === CharCode.doubleQuote) {
@@ -2203,30 +2201,19 @@ export function TSRXPlugin(config) {
 			/**
 			 * Override jsx_parseElement to parse tags and bare fragments as native TSRX
 			 * by default. Explicit <tsx> and <tsx:*> islands keep ordinary TSX parsing
-			 * for their children, with <tsrx> available as an escape back to native TSRX.
+			 * for their children.
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
 				// Current token is jsxTagStart, this.end is position after '<'
 				const tag_name_start = this.end;
-				const char_after_tsrx = this.input.charCodeAt(tag_name_start + 4);
-				const is_tsrx_tag =
-					this.input.startsWith('tsrx', tag_name_start) &&
-					(tag_name_start + 4 >= this.input.length ||
-						char_after_tsrx === CharCode.greaterThan ||
-						char_after_tsrx === CharCode.slash ||
-						char_after_tsrx === CharCode.space ||
-						char_after_tsrx === CharCode.tab ||
-						char_after_tsrx === CharCode.lineFeed ||
-						char_after_tsrx === CharCode.carriageReturn);
-
 				const current_template_node = this.#path.findLast(
 					(n) =>
 						n.type === 'Element' || n.type === 'Tsx' || n.type === 'Tsrx' || n.type === 'TsxCompat',
 				);
 				const inside_tsx_island =
 					current_template_node?.type === 'Tsx' || current_template_node?.type === 'TsxCompat';
-				if (inside_tsx_island && !is_tsrx_tag) {
+				if (inside_tsx_island) {
 					if (this.input.charCodeAt(tag_name_start) === CharCode.at) {
 						this.#report_recoverable_error_range(
 							this.start,
@@ -2235,8 +2222,6 @@ export function TSRXPlugin(config) {
 						);
 					}
 					// Inside tsx/tsx:*, let acorn-jsx handle regular TSX tags normally.
-					// Nested <tsrx> still needs Ripple's native template parser so it
-					// can lower through the same path as <tsrx> in native template bodies.
 					return super.jsx_parseElement();
 				}
 
@@ -2295,11 +2280,6 @@ export function TSRXPlugin(config) {
 					!is_tsx_compat &&
 					open.name.type === 'JSXIdentifier' &&
 					open.name.name === 'tsx';
-				const is_tsrx =
-					!is_fragment &&
-					!is_tsx_compat &&
-					open.name.type === 'JSXIdentifier' &&
-					open.name.name === 'tsrx';
 				const is_dynamic_name =
 					!is_fragment &&
 					((open.name.type === 'JSXIdentifier' && open.name.tracked) ||
@@ -2326,15 +2306,6 @@ export function TSRXPlugin(config) {
 						this.raise(
 							open.start,
 							`TSX elements cannot be self-closing. '<tsx />' must have a closing tag '</tsx>'.`,
-						);
-					}
-				} else if (is_tsrx) {
-					/** @type {AST.Tsrx} */ (element).type = 'Tsrx';
-
-					if (open.selfClosing) {
-						this.raise(
-							open.start,
-							`TSRX elements cannot be self-closing. '<tsrx />' must have a closing tag '</tsrx>'.`,
 						);
 					}
 				} else if (is_fragment) {
@@ -2380,7 +2351,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (!is_tsx_compat && !is_tsx && !is_tsrx && !is_fragment) {
+				if (!is_tsx_compat && !is_tsx && !is_fragment) {
 					/** @type {AST.Element} */ (element).id = /** @type {AST.Identifier} */ (
 						convert_from_jsx(/** @type {ESTreeJSX.JSXIdentifier} */ (open.name))
 					);
@@ -2685,13 +2656,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (
-					element.closingElement &&
-					!is_tsx_compat &&
-					!is_tsx &&
-					!is_tsrx &&
-					element.closingElement.name
-				) {
+				if (element.closingElement && !is_tsx_compat && !is_tsx && element.closingElement.name) {
 					/** @type {unknown} */ (element.closingElement.name) = convert_from_jsx(
 						element.closingElement.name,
 					);
@@ -2778,8 +2743,8 @@ export function TSRXPlugin(config) {
 					if (this.type === tstt.jsxTagStart) {
 						this.next();
 					} else {
-						// A control-flow block inside <tsrx> can leave the tokenizer
-						// in normal JS mode, so `</tsrx>` may arrive as a relational
+						// A control-flow block inside a native template can leave the tokenizer
+						// in normal JS mode, so a closing tag may arrive as a relational
 						// `<` token. Re-enter JSX closing-tag parsing manually.
 						this.pos = startPos + 1;
 						this.type = tstt.jsxTagStart;

@@ -47,21 +47,21 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 				`function Test() { return <>
 					<Page
 						params={{
-							menuAlt: (isAdmin) => <tsrx>
+							menuAlt: (isAdmin) => <>
 								if (isAdmin) {
 									return [<>"Delete"</>, <>"Edit"</>];
 								} else {
 									return [<>"View"</>];
 								}
-							</tsrx>,
-							bySwitch: (role) => <tsrx>
+							</>,
+							bySwitch: (role) => <>
 								switch (role) {
 									case 'admin':
 										return [<>"Edit"</>];
 									default:
 										return [<>"View"</>];
 								}
-							</tsrx>,
+							</>,
 						}}
 					/>
 				</>; }`,
@@ -88,9 +88,9 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 					bar() {
 						return <List
 							render={(item) => {
-								return <tsrx>
+								return <>
 									<span>{item.name}</span>
-								</tsrx>
+								</>
 							}}
 						/>
 					}
@@ -99,7 +99,6 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(result.errors).toEqual([]);
-			expect(result.code).not.toContain('<tsrx>');
 			expect(result.code).toContain('item.name');
 		});
 
@@ -162,58 +161,53 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
  * @param {CompileHarness} harness
  */
 export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }) {
-	describe(`[${name}] <tsrx> inside TSX expressions`, () => {
+	describe(`[${name}] native fragments inside expression values`, () => {
 		it('lowers nested native TSRX templates inside regular function TSX props', () => {
 			const { code } = compile(
 				`function App3() {
 					return <>
 						<PlainTextPlugin
 							ErrorBoundary={LexicalErrorBoundary}
-							contentEditable={<tsrx>
+							contentEditable={<>
 								<ContentEditable
 									aria-placeholder={placeholder}
 									class={classes.contentEditable}
-									placeholder={<tsrx>
+									placeholder={<>
 										<div class={classes.placeholder}>{placeholder}</div>
-									</tsrx>}
+									</>}
 								/>
-							</tsrx>}
-							placeholder={<tsrx>
+							</>}
+							placeholder={<>
 								<div class={classes.placeholder}>{placeholder}</div>
-							</tsrx>}
+							</>}
 						/>
 					</>;
 				}`,
 				'App.tsrx',
 			);
-
-			expect(code).not.toContain('<tsrx>');
-			expect(code).not.toContain('</tsrx>');
 			expect(code).toContain('contentEditable={<ContentEditable');
 			expect(code).toContain(` ${classAttrName}={classes.contentEditable}`);
 			expect(code).toContain(`placeholder={<div ${classAttrName}={classes.placeholder}>`);
 		});
 
-		it('allows native shorthand attributes in tsrx blocks nested under TSX', () => {
+		it('allows native shorthand attributes in native fragment values', () => {
 			const { code } = compile(
 				`export function Test(props) {
 					return <>
 						<List
 							items={props.items}
 							renderItem={(item) =>
-								<tsrx>
+								<>
 									<ItemView {item} onSelect={props.onSelect}>
 										"Selected"
 									</ItemView>
-								</tsrx>
+								</>
 							}
 						/>
 					</>;
 				}`,
 				'App.tsrx',
 			);
-
-			expect(code).not.toContain('<tsrx>');
 			expect(code).toContain('item={item}');
 			expect(code).toContain('onSelect={props.onSelect}');
 			expect(code).toContain('{"Selected"}');
@@ -1821,7 +1815,7 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('supports dynamic element syntax in native tsrx templates', () => {
+		it('supports dynamic element syntax in native templates', () => {
 			expect(() =>
 				compile(
 					`export function App() { return <>
@@ -1833,13 +1827,13 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('supports dynamic element syntax in explicit tsrx templates', () => {
+		it('supports dynamic element syntax in native fragment values', () => {
 			expect(() =>
 				compile(
 					`class Foo {
 						bar() {
 							const tag = 'section';
-							return <tsrx><@tag id="x" /></tsrx>;
+							return <><@tag id="x" /></>;
 						}
 					}`,
 					'App.tsrx',
@@ -1847,13 +1841,12 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('supports dynamic element syntax in direct tsrx children of tsx blocks', () => {
+		it('keeps TSX fragments inside TSX blocks as JSX-compatible children', () => {
 			expect(() =>
 				compile(
 					`class Foo {
 						bar() {
-							const tag = 'section';
-							return <tsx><tsrx><@tag id="x" /></tsrx></tsx>;
+							return <tsx><><div id="x" /></></tsx>;
 						}
 					}`,
 					'App.tsrx',
@@ -1995,7 +1988,7 @@ export function optionalFn(bar: string, baz?: string) {
 						return <tsx><div>tsx</div></tsx>;
 					}
 					function TsrxReturn() {
-						return <tsrx><div>"tsrx"</div></tsrx>;
+						return <><div>"tsrx"</div></>;
 					}
 					function CompatReturn() {
 						return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
@@ -2034,7 +2027,7 @@ export function optionalFn(bar: string, baz?: string) {
 							return <tsx><div>tsx</div></tsx>;
 						}}
 						tsrx={() => {
-							return <tsrx><div>"tsrx"</div></tsrx>;
+							return <><div>"tsrx"</div></>;
 						}}
 						compat={() => {
 							return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
@@ -2063,16 +2056,14 @@ export function optionalFn(bar: string, baz?: string) {
 				function App() { return <>
 					<Card
 						children={() => {
-							return <tsrx>
+							return <>
 								<div>"Hello, World!"</div>
-							</tsrx>
+							</>
 						}}
 					/>
 				</>; }`,
 				'App.tsrx',
 			);
-
-			expect(code).not.toContain('<tsrx>');
 			expect(code).toContain('Hello, World!');
 		});
 
@@ -2098,27 +2089,26 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] <tsrx> template fragments`, () => {
+	describe(`[${name}] native fragment values`, () => {
 		it('lowers native TSRX template text in expression position', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <tsrx><div>"Hello"</div></tsrx>; } }`,
+				`class Foo { bar() { return <><div>"Hello"</div></>; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('{"Hello"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('parses compact native TSRX templates before a trailing newline at EOF', () => {
 			const { code } = compile(
 				[
 					`export function App() { return <>`,
-					`\tconst title = <tsrx><h1>"Hello There"</h1>{Test(1, 2)}</tsrx>;`,
+					`\tconst title = <><h1>"Hello There"</h1>{Test(1, 2)}</>;`,
 					`\t{title}`,
 					`</>; }`,
 					``,
 					`function Test(p1, p2) {`,
-					`\treturn <tsrx><div>"Hello"</div><div>{p1}</div><div>{p2}</div></tsrx>;`,
+					`\treturn <><div>"Hello"</div><div>{p1}</div><div>{p2}</div></>;`,
 					`}`,
 					``,
 				].join('\n'),
@@ -2126,52 +2116,48 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain('{"Hello"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('preserves statements before template output', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <tsrx>const label = 'Hi'; <div>{label}</div></tsrx>; } }`,
+				`class Foo { bar() { return <>const label = 'Hi'; <div>{label}</div></>; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain("const label = 'Hi';");
 			expect(code).toContain('{label}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('supports control flow inside native template fragments', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <tsrx>if (true) { <div>"yes"</div> }</tsrx>; } }`,
+				`class Foo { bar() { return <>if (true) { <div>"yes"</div> }</>; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('true');
 			expect(code).toContain('{"yes"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments in component JSX attribute values', () => {
 			const { code } = compile(
-				`function App() { return <> <Card content={<tsrx><span>"Title"</span></tsrx>} /> </>; }`,
+				`function App() { return <> <Card content={<><span>"Title"</span></>} /> </>; }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('{"Title"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers statement-bodied native TSRX templates in self-closing component attributes', () => {
 			const { code } = compile(
 				`function App() { return <>
 					<Card
-						content={<tsrx>
+						content={<>
 							if (foo) {
 								<div>
 									if (foo > 1) {}
 								</div>
 							}
-						</tsrx>}
+						</>}
 					/>
 				</>; }`,
 				'App.tsrx',
@@ -2179,37 +2165,33 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('foo');
 			expect(code).toContain('<Card');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments in JSX attribute values', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <Card content={<tsrx><span>"Title"</span></tsrx>} />; } }`,
+				`class Foo { bar() { return <Card content={<><span>"Title"</span></>} />; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('{"Title"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments in object property JSX attribute values', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <Card content={{ child: <tsrx><span>"Title"</span></tsrx> }} />; } }`,
+				`class Foo { bar() { return <Card content={{ child: <><span>"Title"</span></> }} />; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('{"Title"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments returned from render callback props', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <List render={() => { return <tsrx><span>"Item"</span></tsrx>; }} />; } }`,
+				`class Foo { bar() { return <List render={() => { return <><span>"Item"</span></>; }} />; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('{"Item"}');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments returned from callback props without semicolons', () => {
@@ -2218,9 +2200,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <List
 							render={(item) => {
-								return <tsrx>
+								return <>
 									<span>{item.name}</span>
-								</tsrx>
+								</>
 							}}
 						/>
 					}
@@ -2229,7 +2211,6 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain('item.name');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments in returned object props without semicolons', () => {
@@ -2239,9 +2220,9 @@ export function optionalFn(bar: string, baz?: string) {
 						return <List
 							render={(item) => {
 								return {
-									child: <tsrx>
+									child: <>
 										<span>{item.name}</span>
-									</tsrx>
+									</>
 								}
 							}}
 						/>
@@ -2251,7 +2232,6 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain('item.name');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX template fragments in nested render props without trailing commas', () => {
@@ -2261,9 +2241,9 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: () => <tsrx>
+									render: () => <>
 										<div>"nested"</div>
-									</tsrx>
+									</>
 								}
 							}}
 						/>
@@ -2274,9 +2254,9 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: () => <tsrx>
+									render: () => <>
 										<div>"nested trailing comma"</div>
-									</tsrx>,
+									</>,
 								},
 							}}
 						/>
@@ -2288,7 +2268,6 @@ export function optionalFn(bar: string, baz?: string) {
 				const { code } = compile(source, 'App.tsrx');
 
 				expect(code).toContain('nested');
-				expect(code).not.toContain('<tsrx>');
 			}
 		});
 
@@ -2299,9 +2278,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								render: () => <tsrx>
+								render: () => <>
 									<div>"top"</div>
-								</tsrx>,
+								</>,
 							}}
 						/>
 					}
@@ -2313,9 +2292,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								render: (icon: () => JSX.Element) => <tsrx>
+								render: (icon: () => JSX.Element) => <>
 									<div>"typed top"</div>
-								</tsrx>,
+								</>,
 							}}
 						/>
 					}
@@ -2327,9 +2306,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								render: () => <tsrx>
+								render: () => <>
 									return [<>View</>];
-								</tsrx>,
+								</>,
 							}}
 						/>
 					}
@@ -2342,7 +2321,6 @@ export function optionalFn(bar: string, baz?: string) {
 				const { code } = compile(source, 'App.tsrx');
 
 				expect(code).toContain(expected);
-				expect(code).not.toContain('<tsrx>');
 			}
 		});
 
@@ -2352,9 +2330,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <List
 							render={(item) => {
-								return <tsrx>
+								return <>
 									<span>{item.name}</span>
-								</tsrx> /* block comment */
+								</> /* block comment */
 							}}
 						/>
 					}
@@ -2363,9 +2341,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <List
 							render={(item) => {
-								return <tsrx>
+								return <>
 									<span>{item.name}</span>
-								</tsrx> // line comment
+								</> // line comment
 							}}
 						/>
 					}
@@ -2376,7 +2354,6 @@ export function optionalFn(bar: string, baz?: string) {
 				const { code } = compile(source, 'App.tsrx');
 
 				expect(code).toContain('item.name');
-				expect(code).not.toContain('<tsrx>');
 			}
 		});
 
@@ -2387,9 +2364,9 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: (icon: () => JSX.Element) => <tsrx>
+									render: (icon: () => JSX.Element) => <>
 										<div>"typed"</div>
-									</tsrx>,
+									</>,
 								},
 							}}
 						/>
@@ -2400,9 +2377,9 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+									render: (tag: string, className: string, icon: () => JSX.Element) => <>
 										<div>"typed trailing comma"</div>
-									</tsrx>,
+									</>,
 								},
 							}}
 						/>
@@ -2414,7 +2391,6 @@ export function optionalFn(bar: string, baz?: string) {
 				const { code } = compile(source, 'App.tsrx');
 
 				expect(code).toContain('typed');
-				expect(code).not.toContain('<tsrx>');
 			}
 		});
 
@@ -2425,13 +2401,13 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+									render: (tag: string, className: string, icon: () => JSX.Element) => <>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											if (icon) {
 												icon();
 											}
 										</@tag>
-									</tsrx>,
+									</>,
 								},
 							}}
 						/>
@@ -2443,7 +2419,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('className');
 			expect(code).toContain('has-icon');
 			expect(code).toContain('icon()');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('lowers native TSRX templates in complex nested params objects', () => {
@@ -2463,13 +2438,13 @@ export function optionalFn(bar: string, baz?: string) {
 									<tsx><span>Cut</span></tsx>,
 									<tsx><span>Delete</span></tsx>,
 								],
-								menuAlt: (isAdmin) => <tsrx>
+								menuAlt: (isAdmin) => <>
 									if (isAdmin) {
 										return [<>"Delete"</>, <>"Edit"</>];
 									} else {
 										return [<>"View"</>];
 									}
-								</tsrx>,
+								</>,
 								details: {
 									label: {
 										class: 'custom',
@@ -2478,13 +2453,13 @@ export function optionalFn(bar: string, baz?: string) {
 									leadingIcon: { children: <tsx>icon</tsx> },
 								},
 								details2: {
-									render: (tag: string, className: string, icon: () => JSX.Element) => <tsrx>
+									render: (tag: string, className: string, icon: () => JSX.Element) => <>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											if (icon) {
 												icon();
 											}
 										</@tag>
-									</tsrx>,
+									</>,
 								},
 							}}
 						/>
@@ -2497,7 +2472,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('isAdmin');
 			expect(code).toContain('className');
 			expect(code).toContain('has-icon');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('parses fragment arrays as object property values inside JSX attribute objects', () => {
@@ -2534,9 +2508,9 @@ export function optionalFn(bar: string, baz?: string) {
 				`function App() { return <>
 					<Page params={{
 						f: () => {
-							<tsrx>
+							<>
 								<div>"x"</div>
-							</tsrx>
+							</>
 						},
 					}} />
 				</>; }`,
@@ -2545,7 +2519,6 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('<div');
 			expect(code).toContain('"x"');
-			expect(code).not.toContain('<tsrx>');
 			expect(code).not.toContain('return null;');
 		});
 
@@ -2571,7 +2544,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('return items');
 			expect(code).toContain('Delete');
 			expect(code).toContain('View');
-			expect(code).not.toContain('<tsrx>');
 		});
 
 		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
@@ -2579,25 +2551,25 @@ export function optionalFn(bar: string, baz?: string) {
 				`function Test() { return <>
 					<Page
 						params={{
-							menuAlt: (isAdmin) => <tsrx>
+							menuAlt: (isAdmin) => <>
 								if (isAdmin) {
 									return [<>"Delete"</>, <>"Edit"</>];
 								} else {
 									return [<>"View"</>];
 								}
-							</tsrx>,
-							direct: () => <tsrx>
+							</>,
+							direct: () => <>
 								return [<>"View"</>];
-							</tsrx>,
-							bySwitch: (role) => <tsrx>
+							</>,
+							bySwitch: (role) => <>
 								switch (role) {
 									case 'admin':
 										return [<>"Edit"</>];
 									default:
 										return [<>"View"</>];
 								}
-							</tsrx>,
-							byForOf: (items) => <tsrx>
+							</>,
+							byForOf: (items) => <>
 								for (const item of items) {
 									if (item.active) {
 										return [<>{item.label}</>];
@@ -2605,14 +2577,14 @@ export function optionalFn(bar: string, baz?: string) {
 								}
 
 								return [<>"Empty"</>];
-							</tsrx>,
-							byTry: (load) => <tsrx>
+							</>,
+							byTry: (load) => <>
 								try {
 									return [<>{load()}</>];
 								} catch (error) {
 									return [<>"Error"</>];
 								}
-							</tsrx>,
+							</>,
 						}}
 					/>
 				</>; }`,
@@ -3326,24 +3298,23 @@ export function optionalFn(bar: string, baz?: string) {
 	});
 
 	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation constraints`, () => {
-		it('extracts hooks in expression-position <tsrx> into stable helper components', () => {
+		it('extracts hooks in expression-position native fragments into stable helper components', () => {
 			const { code } = compile(
 				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
 						function App({ active }: { active: boolean }) {
 							if (!active) return null;
 
-							return <tsrx>
+							return <>
 								useEffect(() => {
 									console.log(active);
 								}, [active]);
 								<span>{active ? 'active' : 'inactive'}</span>
-							</tsrx>;
+							</>;
 						}`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('useEffect(');
-			expect(code).not.toContain('<tsrx>');
 			if (name === 'react' || name === 'preact') {
 				expect(code).toContain('function App({ active }: { active: boolean })');
 				expect(code).toContain("return <span>{active ? 'active' : 'inactive'}</span>;");
@@ -3545,17 +3516,17 @@ export function optionalFn(bar: string, baz?: string) {
 			).toThrow(/useCustomNumber result is assigned to `key`/);
 		});
 
-		it('rejects assigning hook results to outer bindings inside <tsrx> expressions', () => {
+		it('rejects assigning hook results to outer bindings inside <> expressions', () => {
 			expect(() =>
 				compile(
 					`function App({ show }: { show: boolean }) {
 								let x: number | undefined;
-								return <tsrx>
+								return <>
 									if (show) {
 										[x] = useState(100);
 										<div>{x}</div>
 									}
-								</tsrx>;
+								</>;
 							}`,
 					'App.tsrx',
 				),
