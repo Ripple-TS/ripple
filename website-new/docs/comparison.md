@@ -20,6 +20,6 @@ title: Comparison to other frameworks
 
 ## vs Solid
 
-- Component definition with `component` keyword
+- Components are ordinary functions that return TSRX
 - Built-in collections (RippleArray, RippleSet)
-- Different templating approach within component bodies
+- Returned templates support statement-style control flow

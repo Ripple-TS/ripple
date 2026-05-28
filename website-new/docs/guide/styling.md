@@ -30,7 +30,7 @@ function MyComponent() {
 }
 ```
 
-::: info The `<style>` element must be top-level within a `component`.
+::: info The `<style>` element must be top-level within a returned TSRX template.
 :::
 
 ## Dynamic Classes
@@ -384,6 +384,6 @@ function App() {
 - **Dot notation:** `#style.className`
 - **Bracket notation:** `#style['className']` (static string only)
 - **No dynamic access:** `#style[variable]` is a compile error
-- **Components only:** `#style` can only be used inside a `component` body
+- **Returned templates only:** `#style` can only be used inside returned TSRX
 - **Props only:** `#style` cannot be used directly on DOM elements — pass it to a
   child component instead

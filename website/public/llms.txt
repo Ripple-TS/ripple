@@ -1894,9 +1894,9 @@ framework semantics should come from the detected target package and its docs.
 - Similar reactivity concepts but different syntax
 
 ### vs Solid
-- Component definition with `function` keyword
+- Components are ordinary functions that return TSRX
 - Built-in collections (RippleArray, RippleSet)
-- Different returned TSRX template syntax
+- Returned templates support statement-style control flow
 
 ## Best Practices
 
