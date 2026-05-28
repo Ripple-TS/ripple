@@ -1676,6 +1676,8 @@ const visitors = {
 				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
 			/** @type {AST.Expression | null} */
 			let inner_html_expression = null;
+			/** @type {AST.Identifier | null} */
+			let spread_attributes_id = null;
 
 			state.init?.push(
 				b.stmt(
@@ -1723,8 +1725,13 @@ const visitors = {
 						const name = attr.name.name;
 
 						if (name === 'innerHTML') {
-							inner_html_expression =
+							const expression =
 								attr.value === null ? b.literal('') : get_attribute_value_expression(attr, context);
+							if (is_spreading) {
+								spread_attributes?.push(b.prop('init', b.literal('innerHTML'), expression));
+							} else {
+								inner_html_expression = expression;
+							}
 							continue;
 						}
 
@@ -1818,13 +1825,15 @@ const visitors = {
 			}
 
 			if (spread_attributes !== null && spread_attributes.length > 0) {
+				spread_attributes_id = b.id(state.scope.generate('spread_attrs'));
+				state.init?.push(b.const(spread_attributes_id, b.object(spread_attributes)));
 				state.init?.push(
 					b.stmt(
 						b.call(
 							b.id('_$_.output_push'),
 							b.call(
 								'_$_.spread_attrs',
-								b.object(spread_attributes),
+								spread_attributes_id,
 								scoping_hash ? b.literal(scoping_hash) : undefined,
 							),
 						),
@@ -1856,6 +1865,39 @@ const visitors = {
 			if (!is_void) {
 				if (inner_html_expression !== null) {
 					push_inner_html_expression(inner_html_expression, state);
+				} else if (spread_attributes_id !== null) {
+					const spread_inner_html_id = b.id(state.scope.generate('spread_inner_html'));
+					state.init?.push(
+						b.const(spread_inner_html_id, b.call('_$_.spread_inner_html', spread_attributes_id)),
+					);
+
+					/** @type {AST.Statement[]} */
+					const init = [];
+					transform_children(
+						node.children,
+						/** @type {TransformServerContext} */ ({
+							visit,
+							state: {
+								...state,
+								init,
+								...(state.applyParentCssScope ||
+								(dynamic_name && node.metadata.scoped && get_component_css(state))
+									? {
+											applyParentCssScope:
+												state.applyParentCssScope || get_component_css_hash(state),
+										}
+									: {}),
+							},
+						}),
+					);
+
+					state.init?.push(
+						b.if(
+							b.binary('!==', spread_inner_html_id, b.void0),
+							b.block([b.stmt(b.call(b.id('_$_.output_push'), spread_inner_html_id))]),
+							init.length > 0 ? b.block(init) : null,
+						),
+					);
 				} else {
 					/** @type {AST.Statement[]} */
 					const init = [];

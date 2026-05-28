@@ -305,6 +305,56 @@ describe('basic server > attribute rendering', () => {
 		expect(div.classList.contains('bar')).toBe(false);
 	});
 
+	it('renders host innerHTML as content instead of an attribute', async () => {
+		function Basic() {
+			return <>
+				const html = '<span>Direct HTML</span>';
+				<code innerHTML={html} />
+			</>;
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+		const code = document.querySelector('code');
+
+		expect(code.innerHTML).toBe('<span>Direct HTML</span>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+		expect(body).toBeHtml('<code><span>Direct HTML</span></code>');
+	});
+
+	it('renders spread innerHTML as content instead of an attribute', async () => {
+		function Basic() {
+			return <>
+				const attributes = { innerHTML: '<span>Spread HTML</span>' };
+				<code {...attributes} />
+			</>;
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+		const code = document.querySelector('code');
+
+		expect(code.innerHTML).toBe('<span>Spread HTML</span>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+		expect(body).toBeHtml('<code><span>Spread HTML</span></code>');
+	});
+
+	it('uses the last innerHTML value when spreads and direct props are mixed', async () => {
+		function Basic() {
+			return <>
+				const attributes = { innerHTML: '<span>Spread HTML</span>' };
+				<code {...attributes} innerHTML="<em>Direct HTML</em>" />
+			</>;
+		}
+
+		const { body } = await render(Basic);
+		const { document } = parseHtml(body);
+		const code = document.querySelector('code');
+
+		expect(code.innerHTML).toBe('<em>Direct HTML</em>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+	});
+
 	it('render spread props without duplication', async () => {
 		function Basic() {
 			return <>

@@ -134,6 +134,9 @@ function set_attribute_helper(element, key, value, remove_listeners, prev) {
 	if (key === 'class') {
 		const is_html = element.namespaceURI === 'http://www.w3.org/1999/xhtml';
 		set_class(/** @type {HTMLElement} */ (element), value, undefined, is_html);
+	} else if (key === 'innerHTML') {
+		element.removeAttribute('innerhtml');
+		/** @type {HTMLElement} */ (element).innerHTML = value == null ? '' : String(value);
 	} else if (key === 'style') {
 		set_style(element, value, prev.style);
 	} else if (key === '#class') {

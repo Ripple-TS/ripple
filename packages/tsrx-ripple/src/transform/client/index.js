@@ -2012,13 +2012,18 @@ const visitors = {
 						const name = attr.name.name;
 
 						if (name === 'innerHTML') {
-							const id = state.flush_node?.();
 							const metadata = { tracking: false };
 							const expression =
 								attr.value === null
 									? b.literal('')
 									: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
 
+							if (is_spreading) {
+								spread_attributes?.push(b.prop('init', b.literal('innerHTML'), expression));
+								continue;
+							}
+
+							const id = state.flush_node?.();
 							if (metadata.tracking) {
 								local_updates.push({
 									operation: (key) =>

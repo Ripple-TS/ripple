@@ -26,6 +26,6 @@ Ripple now also preserves directly called PascalCase helpers as ordinary functio
 
 The old explicit TSRX wrapper tag is no longer special; TSRX elements and fragments are the default expression syntax, and the tag name is treated like any ordinary element name.
 
-Ripple now exports a typed `Fragment` helper from its public runtimes and supports `innerHTML` on both host elements and `Fragment`.
+Ripple now exports a typed `Fragment` helper from its public runtimes and supports `innerHTML` on both host elements and `Fragment`. Ripple also treats `innerHTML` from element spreads as rendered content instead of serializing it as an `innerhtml` attribute.
 
 The `{html ...}` template directive has been removed. Use each target's native raw HTML prop instead, such as `innerHTML` for Ripple/Solid/Vue or `dangerouslySetInnerHTML` for React/Preact.

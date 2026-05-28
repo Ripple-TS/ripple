@@ -1,6 +1,61 @@
 import { Fragment, flushSync, track } from 'ripple';
 
 describe('Fragment innerHTML', () => {
+	it('renders host innerHTML as content instead of an attribute', () => {
+		function App() {
+			return <>
+				const html = '<span>Host HTML</span>';
+				<code innerHTML={html} />
+			</>;
+		}
+
+		render(App);
+
+		const code = container.querySelector('code') as HTMLElement;
+		expect(code.innerHTML).toBe('<span>Host HTML</span>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+	});
+
+	it('renders spread innerHTML as content instead of an attribute', () => {
+		function App() {
+			return <>
+				let &[attrs] = track<{ innerHTML?: string }>({
+					innerHTML: '<span>Spread HTML</span>',
+				});
+				<code {...attrs} />
+				<button onClick={() => (attrs = { innerHTML: '<em>Updated HTML</em>' })}>{'Update'}</button>
+			</>;
+		}
+
+		render(App);
+
+		const code = container.querySelector('code') as HTMLElement;
+		expect(code.innerHTML).toBe('<span>Spread HTML</span>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+
+		const button = container.querySelector('button') as HTMLButtonElement;
+		button.click();
+		flushSync();
+
+		expect(code.innerHTML).toBe('<em>Updated HTML</em>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+	});
+
+	it('uses the last innerHTML value when spreads and direct props are mixed', () => {
+		function App() {
+			return <>
+				const attrs = { innerHTML: '<span>Spread HTML</span>' };
+				<code {...attrs} innerHTML="<em>Direct HTML</em>" />
+			</>;
+		}
+
+		render(App);
+
+		const code = container.querySelector('code') as HTMLElement;
+		expect(code.innerHTML).toBe('<em>Direct HTML</em>');
+		expect(code.hasAttribute('innerhtml')).toBe(false);
+	});
+
 	it('renders static innerHTML fragments', () => {
 		function App() {
 			return <>

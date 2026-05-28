@@ -1193,7 +1193,13 @@ export function spread_attrs(attrs, css_hash) {
 	for (name in attrs) {
 		var value = attrs[name];
 
-		if (name === 'children' || typeof value === 'function' || is_tsrx_element(value)) continue;
+		if (
+			name === 'children' ||
+			name === 'innerHTML' ||
+			typeof value === 'function' ||
+			is_tsrx_element(value)
+		)
+			continue;
 
 		if (is_ripple_object(value)) {
 			value = get(value);
@@ -1207,6 +1213,24 @@ export function spread_attrs(attrs, css_hash) {
 	}
 
 	return attr_str;
+}
+
+/**
+ * @param {Record<string, any>} attrs
+ * @returns {string | undefined}
+ */
+export function spread_inner_html(attrs) {
+	if (!Object.prototype.hasOwnProperty.call(attrs, 'innerHTML')) {
+		return undefined;
+	}
+
+	var value = attrs.innerHTML;
+
+	if (is_ripple_object(value)) {
+		value = get(value);
+	}
+
+	return String(value ?? '');
 }
 
 var empty_get_set = { get: undefined, set: undefined };
