@@ -74,4 +74,27 @@ function App() { return <>
 		expect(types.get('content')).toBe('TSRXElement');
 		expect(types.get('nested')).toBe('TSRXElement');
 	});
+
+	it('types statement-bodied native fragments without never[] child buckets', () => {
+		const source = `
+function ContentEditable(props: { placeholder: any }) {
+	return <>
+		const className = 'editable';
+		<article class={className}>
+			<div>{props.placeholder}</div>
+		</article>
+	</>;
+}
+
+function App() {
+	return <>
+		<ContentEditable placeholder={<><div>"Hello"</div></>} />
+	</>;
+}
+`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(code).toContain('children.push');
+		get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
+	});
 });

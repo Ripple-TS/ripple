@@ -287,7 +287,7 @@ describe('@tsrx/ripple native fragment Volar output', () => {
 	it('returns children before and after setup statements', () => {
 		const source = `class Foo { bar() { return <><div>"before"</div> const x = 1; <div>{x}</div></>; } }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
-		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\];/);
+		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\] as Array<any>;/);
 		expect(match).not.toBeNull();
 
 		const children_id = /** @type {RegExpMatchArray} */ (match)[1];

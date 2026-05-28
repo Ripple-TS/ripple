@@ -3433,7 +3433,18 @@ function build_tsrx_to_ts_expression(node, context) {
 	const has_children = inline_children.some(Boolean);
 	const children_id = has_children ? state.scope.generate('children') : null;
 	if (children_id !== null) {
-		body.push(b.const(b.id(children_id), b.array([])));
+		body.push(
+			b.const(
+				b.id(children_id),
+				b.ts_as(
+					b.array([]),
+					b.ts_type_reference(
+						b.id('Array'),
+						b.ts_type_parameter_instantiation([b.ts_keyword_type('any')]),
+					),
+				),
+			),
+		);
 	}
 	for (const statement of statements) {
 		const child = statement_to_tsrx_ts_expression(statement);
