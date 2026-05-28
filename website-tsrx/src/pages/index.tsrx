@@ -132,7 +132,7 @@ export function IndexPage() {
 						{'TSRX (TypeScript Render Extensions) is a way to write UI component code that stays readable and co-located. Structure, styling, and control flow live together, and the result stays fully backwards compatible with TypeScript.'}
 					</p>
 					<pre class="code-block">
-						<code>{html SNIPPET_HTML}</code>
+						<code innerHTML={SNIPPET_HTML} />
 					</pre>
 					<p class="section-body what-is-copy">
 						{'You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.'}
@@ -182,7 +182,7 @@ export function IndexPage() {
 						{'When structure, control flow, styling, and component shape live in the same file, the source reads closer to the interface it describes. That cuts down on ternaries, map chains, and render helpers. It also makes refactors and onboarding less brittle.'}
 					</p>
 					<pre class="code-block">
-						<code>{html COLOCATION_HTML}</code>
+						<code innerHTML={COLOCATION_HTML} />
 					</pre>
 					<p class="section-body">
 						{'Code is increasingly written, reviewed, and transformed with machine assistance. When UI structure is more explicit, editors, compilers, and code generation tools have a better surface to work with without changing the framework semantics underneath.'}
@@ -217,7 +217,7 @@ export function IndexPage() {
 						{'.'}
 					</p>
 					<pre class="code-block">
-						<code>{html REACT_HOOKS_HTML}</code>
+						<code innerHTML={REACT_HOOKS_HTML} />
 					</pre>
 
 					<p class="section-body">
@@ -228,14 +228,14 @@ export function IndexPage() {
 						{' everywhere and without losing type inference on the destructured names.'}
 					</p>
 					<pre class="code-block">
-						<code>{html SOLID_LAZY_HTML}</code>
+						<code innerHTML={SOLID_LAZY_HTML} />
 					</pre>
 
 					<p class="section-body">
 						{'Locals can live next to the JSX that uses them. Variables declared mid-template stay scoped to their surrounding block, so derived values sit beside the markup they feed instead of piling up at the top of the component. Concerns stay together; readers (and LLMs) do less bookkeeping to follow the data flow.'}
 					</p>
 					<pre class="code-block">
-						<code>{html INLINE_LOCALS_HTML}</code>
+						<code innerHTML={INLINE_LOCALS_HTML} />
 					</pre>
 				</section>
 

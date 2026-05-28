@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
 
-import { track } from 'ripple/server';
+import { Fragment, track } from 'ripple/server';
 
 export function StaticHtml() {
 	_$_.push_component();
@@ -12,15 +12,7 @@ export function StaticHtml() {
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
-
-		{
-			const html_value = String(html ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
-			_$_.output_push(html_value);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(html ?? ''));
 		_$_.output_push('</div>');
 	});
 
@@ -37,15 +29,7 @@ export function DynamicHtml() {
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
-
-		{
-			const html_value_1 = String(content ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
-			_$_.output_push(html_value_1);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(content ?? ''));
 		_$_.output_push('</div>');
 	});
 
@@ -62,15 +46,7 @@ export function EmptyHtml() {
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
-
-		{
-			const html_value_2 = String(html ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_2) + '-->');
-			_$_.output_push(html_value_2);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(html ?? ''));
 		_$_.output_push('</div>');
 	});
 
@@ -87,15 +63,7 @@ export function ComplexHtml() {
 	_$_.regular_block(() => {
 		_$_.output_push('<section');
 		_$_.output_push('>');
-
-		{
-			const html_value_3 = String(html ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_3) + '-->');
-			_$_.output_push(html_value_3);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(html ?? ''));
 		_$_.output_push('</section>');
 	});
 
@@ -115,16 +83,16 @@ export function MultipleHtml() {
 		_$_.output_push('>');
 
 		{
-			const html_value_4 = String(html1 ?? '');
+			const html_value = String(html1 ?? '');
 
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_4) + '-->');
-			_$_.output_push(html_value_4);
+			_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
+			_$_.output_push(html_value);
 			_$_.output_push('<!---->');
 
-			const html_value_5 = String(html2 ?? '');
+			const html_value_1 = String(html2 ?? '');
 
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_5) + '-->');
-			_$_.output_push(html_value_5);
+			_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
+			_$_.output_push(html_value_1);
 			_$_.output_push('<!---->');
 		}
 
@@ -214,15 +182,7 @@ export function HtmlInChildren() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
 						_$_.output_push('>');
-
-						{
-							const html_value_6 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_6) + '-->');
-							_$_.output_push(html_value_6);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_8 = true;
 						_$_.pop_component();
@@ -266,15 +226,7 @@ export function HtmlInChildrenWithSiblings() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_7 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_7) + '-->');
-							_$_.output_push(html_value_7);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_10 = true;
 						_$_.pop_component();
@@ -313,16 +265,16 @@ export function MultipleHtmlInChildren() {
 						_$_.output_push('>');
 
 						{
-							const html_value_8 = String(html1 ?? '');
+							const html_value_2 = String(html1 ?? '');
 
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_8) + '-->');
-							_$_.output_push(html_value_8);
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_2) + '-->');
+							_$_.output_push(html_value_2);
 							_$_.output_push('<!---->');
 
-							const html_value_9 = String(html2 ?? '');
+							const html_value_3 = String(html2 ?? '');
 
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_9) + '-->');
-							_$_.output_push(html_value_9);
+							_$_.output_push('<!--' + _$_.simple_hash(html_value_3) + '-->');
+							_$_.output_push(html_value_3);
 							_$_.output_push('<!---->');
 						}
 
@@ -350,15 +302,7 @@ export function HtmlWithComments() {
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
-
-		{
-			const html_value_10 = String(content ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_10) + '-->');
-			_$_.output_push(html_value_10);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(content ?? ''));
 		_$_.output_push('</div>');
 	});
 
@@ -375,15 +319,7 @@ export function HtmlWithEmptyComment() {
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
-
-		{
-			const html_value_11 = String(content ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_11) + '-->');
-			_$_.output_push(html_value_11);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(content ?? ''));
 		_$_.output_push('</div>');
 	});
 
@@ -411,15 +347,7 @@ export function HtmlWithCommentsInChildren() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
 						_$_.output_push('>');
-
-						{
-							const html_value_12 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_12) + '-->');
-							_$_.output_push(html_value_12);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_16 = true;
 						_$_.pop_component();
@@ -629,15 +557,7 @@ export function HtmlWithServerData() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
 						_$_.output_push('>');
-
-						{
-							const html_value_13 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_13) + '-->');
-							_$_.output_push(html_value_13);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_20 = true;
 						_$_.pop_component();
@@ -673,15 +593,7 @@ export function HtmlWithClientDefaults() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
 						_$_.output_push('>');
-
-						{
-							const html_value_14 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_14) + '-->');
-							_$_.output_push(html_value_14);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_22 = true;
 						_$_.pop_component();
@@ -717,15 +629,7 @@ export function HtmlWithUndefinedContent() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="vp-doc"');
 						_$_.output_push('>');
-
-						{
-							const html_value_15 = String(content ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_15) + '-->');
-							_$_.output_push(html_value_15);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(content ?? ''));
 						_$_.output_push('</div>');
 						__r_24 = true;
 						_$_.pop_component();
@@ -818,15 +722,7 @@ function CodeBlock({ code }) {
 			_$_.output_push('<div');
 			_$_.output_push(' class="content"');
 			_$_.output_push('>');
-
-			{
-				const html_value_16 = String(highlighted ?? '');
-
-				_$_.output_push('<!--' + _$_.simple_hash(html_value_16) + '-->');
-				_$_.output_push(html_value_16);
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push(String(highlighted ?? ''));
 			_$_.output_push('</div>');
 		}
 
@@ -1514,15 +1410,7 @@ export function ArticleWithHtmlChildThenSibling() {
 							_$_.output_push('<div');
 							_$_.output_push(' class="doc-content"');
 							_$_.output_push('>');
-
-							{
-								const html_value_17 = String(htmlContent ?? '');
-
-								_$_.output_push('<!--' + _$_.simple_hash(html_value_17) + '-->');
-								_$_.output_push(html_value_17);
-								_$_.output_push('<!---->');
-							}
-
+							_$_.output_push(String(htmlContent ?? ''));
 							_$_.output_push('</div>');
 							__r_43 = true;
 							_$_.pop_component();
@@ -1658,15 +1546,7 @@ export function InlineArticleWithHtmlChild() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_18 = String(htmlContent ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_18) + '-->');
-							_$_.output_push(html_value_18);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(htmlContent ?? ''));
 						_$_.output_push('</div>');
 						__r_46 = true;
 						_$_.pop_component();
@@ -1910,15 +1790,7 @@ export function DocsLayoutWithData() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_19 = String(htmlContent ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_19) + '-->');
-							_$_.output_push(html_value_19);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(htmlContent ?? ''));
 						_$_.output_push('</div>');
 						__r_52 = true;
 						_$_.pop_component();
@@ -1954,15 +1826,7 @@ export function DocsLayoutWithoutData() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_20 = String(htmlContent ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_20) + '-->');
-							_$_.output_push(html_value_20);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(htmlContent ?? ''));
 						_$_.output_push('</div>');
 						__r_54 = true;
 						_$_.pop_component();
@@ -2245,15 +2109,7 @@ export function DocsLayoutExactWithData() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_21 = String(htmlContent ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_21) + '-->');
-							_$_.output_push(html_value_21);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(htmlContent ?? ''));
 						_$_.output_push('</div>');
 						__r_57 = true;
 						_$_.pop_component();
@@ -2297,15 +2153,7 @@ export function DocsLayoutExactWithoutData() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_22 = String(htmlContent ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_22) + '-->');
-							_$_.output_push(html_value_22);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(htmlContent ?? ''));
 						_$_.output_push('</div>');
 						__r_59 = true;
 						_$_.pop_component();
@@ -2335,15 +2183,7 @@ export function TemplateWithHtmlContent() {
 			_$_.output_push('<template');
 			_$_.output_push(' id="t1"');
 			_$_.output_push('>');
-
-			{
-				const html_value_23 = String(JSON.stringify(data) ?? '');
-
-				_$_.output_push('<!--' + _$_.simple_hash(html_value_23) + '-->');
-				_$_.output_push(html_value_23);
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push(String(JSON.stringify(data) ?? ''));
 			_$_.output_push('</template>');
 			_$_.output_push('<p');
 			_$_.output_push(' class="content"');
@@ -2386,15 +2226,7 @@ export function TemplateWithHtmlAndSiblings() {
 			_$_.output_push('<template');
 			_$_.output_push(' id="data-template"');
 			_$_.output_push('>');
-
-			{
-				const html_value_24 = String(JSON.stringify(data) ?? '');
-
-				_$_.output_push('<!--' + _$_.simple_hash(html_value_24) + '-->');
-				_$_.output_push(html_value_24);
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push(String(JSON.stringify(data) ?? ''));
 			_$_.output_push('</template>');
 			_$_.output_push('<p');
 			_$_.output_push(' class="after-template"');
@@ -2428,15 +2260,7 @@ function LayoutWithTemplate({ children, data }) {
 			_$_.output_push('<template');
 			_$_.output_push(' id="page-data"');
 			_$_.output_push('>');
-
-			{
-				const html_value_25 = String(JSON.stringify(data) ?? '');
-
-				_$_.output_push('<!--' + _$_.simple_hash(html_value_25) + '-->');
-				_$_.output_push(html_value_25);
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push(String(JSON.stringify(data) ?? ''));
 			_$_.output_push('</template>');
 			_$_.output_push('<main');
 			_$_.output_push('>');
@@ -2476,15 +2300,7 @@ export function NestedTemplateInLayout() {
 						_$_.output_push('<div');
 						_$_.output_push(' class="doc-content"');
 						_$_.output_push('>');
-
-						{
-							const html_value_26 = String(doc.html ?? '');
-
-							_$_.output_push('<!--' + _$_.simple_hash(html_value_26) + '-->');
-							_$_.output_push(html_value_26);
-							_$_.output_push('<!---->');
-						}
-
+						_$_.output_push(String(doc.html ?? ''));
 						_$_.output_push('</div>');
 						__r_64 = true;
 						_$_.pop_component();
@@ -2553,15 +2369,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 			{
 				_$_.output_push('<code');
 				_$_.output_push('>');
-
-				{
-					const html_value_27 = String(html1 ?? '');
-
-					_$_.output_push('<!--' + _$_.simple_hash(html_value_27) + '-->');
-					_$_.output_push(html_value_27);
-					_$_.output_push('<!---->');
-				}
-
+				_$_.output_push(String(html1 ?? ''));
 				_$_.output_push('</code>');
 			}
 
@@ -2581,15 +2389,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 			{
 				_$_.output_push('<code');
 				_$_.output_push('>');
-
-				{
-					const html_value_28 = String(html2 ?? '');
-
-					_$_.output_push('<!--' + _$_.simple_hash(html_value_28) + '-->');
-					_$_.output_push(html_value_28);
-					_$_.output_push('<!---->');
-				}
-
+				_$_.output_push(String(html2 ?? ''));
 				_$_.output_push('</code>');
 			}
 
@@ -2609,15 +2409,7 @@ export function HtmlCodeBlocksWithSiblingChain() {
 			{
 				_$_.output_push('<code');
 				_$_.output_push('>');
-
-				{
-					const html_value_29 = String(html3 ?? '');
-
-					_$_.output_push('<!--' + _$_.simple_hash(html_value_29) + '-->');
-					_$_.output_push(html_value_29);
-					_$_.output_push('<!---->');
-				}
-
+				_$_.output_push(String(html3 ?? ''));
 				_$_.output_push('</code>');
 			}
 

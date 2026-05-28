@@ -21,7 +21,7 @@ export function HeadManagementPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/head-management"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

@@ -325,18 +325,12 @@ function get_descendant_elements(node, adjacent_only) {
 
 		// For template nodes and interpolation expressions
 		if (
-			(current_node.type === 'TSRXExpression' ||
-				current_node.type === 'Text' ||
-				current_node.type === 'Html') &&
-			/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression &&
-			typeof (
-				/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression
-			) === 'object'
+			(current_node.type === 'TSRXExpression' || current_node.type === 'Text') &&
+			/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression &&
+			typeof (/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression) ===
+				'object'
 		) {
-			visit(
-				/** @type {AST.TSRXExpression | AST.Html | AST.TextNode} */ (current_node).expression,
-				depth + 1,
-			);
+			visit(/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression, depth + 1);
 		}
 	}
 

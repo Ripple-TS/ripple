@@ -35,4 +35,14 @@ describe('runtime imports', () => {
 
 		expect(barrel_imports).toEqual([]);
 	});
+
+	it('exports Fragment from both public runtimes', async () => {
+		const [client, server] = await Promise.all([
+			import('../../src/runtime/index-client.js'),
+			import('../../src/runtime/index-server.js'),
+		]);
+
+		expect(typeof client.Fragment).toBe('function');
+		expect(typeof server.Fragment).toBe('function');
+	});
 });

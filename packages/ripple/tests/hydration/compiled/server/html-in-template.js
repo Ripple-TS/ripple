@@ -11,15 +11,7 @@ export function SimpleTemplateHtml() {
 		_$_.output_push('<template');
 		_$_.output_push(' id="data1"');
 		_$_.output_push('>');
-
-		{
-			const html_value = String(data ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
-			_$_.output_push(html_value);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(data ?? ''));
 		_$_.output_push('</template>');
 	});
 
@@ -37,15 +29,7 @@ export function TemplateWithJSON() {
 		_$_.output_push('<template');
 		_$_.output_push(' id="data2"');
 		_$_.output_push('>');
-
-		{
-			const html_value_1 = String(jsonData ?? '');
-
-			_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
-			_$_.output_push(html_value_1);
-			_$_.output_push('<!---->');
-		}
-
+		_$_.output_push(String(jsonData ?? ''));
 		_$_.output_push('</template>');
 	});
 
@@ -67,13 +51,7 @@ export function TemplateAroundIfBlock() {
 			_$_.output_push('<template');
 			_$_.output_push(' id="before"');
 			_$_.output_push('>');
-
-			{
-				_$_.output_push('<!--14v3bl2-->');
-				_$_.output_push('before');
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push('before');
 			_$_.output_push('</template>');
 			_$_.output_push('<!--[-->');
 
@@ -93,13 +71,7 @@ export function TemplateAroundIfBlock() {
 			_$_.output_push('<template');
 			_$_.output_push(' id="after"');
 			_$_.output_push('>');
-
-			{
-				_$_.output_push('<!--1qvtvs1-->');
-				_$_.output_push('after');
-				_$_.output_push('<!---->');
-			}
-
+			_$_.output_push('after');
 			_$_.output_push('</template>');
 		}
 

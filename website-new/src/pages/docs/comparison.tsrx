@@ -21,7 +21,7 @@ export function ComparisonPage() {
 			toc={doc.toc}
 			currentPath="/docs/comparison"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

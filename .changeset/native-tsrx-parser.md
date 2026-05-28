@@ -9,6 +9,7 @@
 "@tsrx/prettier-plugin": patch
 "@tsrx/react": patch
 "@tsrx/ripple": patch
+"ripple": patch
 "@tsrx/rspack-plugin-solid": patch
 "@tsrx/rspack-plugin-preact": patch
 "@tsrx/rspack-plugin-vue": patch
@@ -24,3 +25,7 @@ Parse tags and bare fragments as native TSRX by default, remove `component` keyw
 Ripple now also preserves directly called PascalCase helpers as ordinary functions while still compiling renderable component functions used as components or render entries.
 
 The old explicit TSRX wrapper tag is no longer special; TSRX elements and fragments are the default expression syntax, and the tag name is treated like any ordinary element name.
+
+Ripple now exports a typed `Fragment` helper from its public runtimes and supports `innerHTML` on both host elements and `Fragment`.
+
+The `{html ...}` template directive has been removed. Use each target's native raw HTML prop instead, such as `innerHTML` for Ripple/Solid/Vue or `dangerouslySetInnerHTML` for React/Preact.

@@ -1,3 +1,5 @@
+import { Fragment } from 'ripple';
+
 import { highlight } from '../lib/markdown.js';
 
 export function DocCodeBlock({ code, lang = 'text' }: { code: string; lang?: string }) {
@@ -6,7 +8,7 @@ export function DocCodeBlock({ code, lang = 'text' }: { code: string; lang?: str
 		<div class={`language-${lang}`}>
 			<button title="Copy Code" class="copy" />
 			<span class="lang">{lang}</span>
-			{html highlighted}
+			<Fragment innerHTML={highlighted} />
 		</div>
 	</>;
 }
@@ -23,7 +25,7 @@ export function DocCodeGroup({ code, lang = 'ripple' }: { code: string; lang?: s
 				<div class={`language-${lang}`}>
 					<button title="Copy Code" class="copy" />
 					<span class="lang">{lang}</span>
-					{html highlighted}
+					<Fragment innerHTML={highlighted} />
 				</div>
 			</div>
 		</div>

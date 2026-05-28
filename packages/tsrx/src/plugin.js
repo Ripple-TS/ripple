@@ -16,9 +16,6 @@ import {
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
-
-const HTML_ATTRIBUTE_VALUE_ERROR =
-	'`{html ...}` is not supported as an attribute value. Use a string literal or expression without `html`.';
 const DYNAMIC_ELEMENT_IN_TSX_ERROR =
 	'Dynamic element syntax (`<@...>`) is only supported in native TSRX templates.';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
@@ -238,6 +235,7 @@ export function TSRXPlugin(config) {
 			#functionBodyDepth = 0;
 			#allowExpressionContainerTrailingSemicolon = false;
 			#tsxIslandExpressionDepth = 0;
+			#jsxAttributeValueExpressionDepth = 0;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -387,26 +385,19 @@ export function TSRXPlugin(config) {
 				// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 				// but convert other expressions to native TSRX child nodes.
 				if (node.expression.type !== 'JSXEmptyExpression') {
-					/** @type {AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style} */ (
+					/** @type {AST.TSRXExpression | AST.TextNode | AST.Style} */ (
 						/** @type {unknown} */ (node)
-					).type = node.html
-						? 'Html'
-						: node.text
-							? 'Text'
-							: node.style
-								? 'Style'
-								: 'TSRXExpression';
+					).type = node.text ? 'Text' : node.style ? 'Style' : 'TSRXExpression';
 					if (node.style) {
 						/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
 							/** @type {AST.Literal} */ (node.expression);
 						delete (/** @type {any} */ (node).expression);
 					}
-					delete node.html;
 					delete node.text;
 					delete node.style;
 				}
 
-				return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | AST.Style | ESTreeJSX.JSXExpressionContainer} */ (
+				return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.TextNode | AST.Style | ESTreeJSX.JSXExpressionContainer} */ (
 					/** @type {unknown} */ (node)
 				);
 			}
@@ -1622,16 +1613,11 @@ export function TSRXPlugin(config) {
 					return this.finishNode(node, 'JSXExpressionContainer');
 				}
 
-				if (this.type === tt.name && this.value === 'html') {
-					node.html = true;
-					this.next();
-					if (this.type === tt.braceR) {
-						this.raise(
-							this.start,
-							'"html" is a TSRX keyword and must be used in the form {html some_content}',
-						);
-					}
-				} else if (this.type === tt.name && this.value === 'text') {
+				const is_attribute_value_expression = this.#jsxAttributeValueExpressionDepth > 0;
+				const is_bare_keyword_reference =
+					is_attribute_value_expression && this.lookahead().type === tt.braceR;
+
+				if (this.type === tt.name && this.value === 'text' && !is_bare_keyword_reference) {
 					node.text = true;
 					this.next();
 					if (this.type === tt.braceR) {
@@ -1768,27 +1754,6 @@ export function TSRXPlugin(config) {
 						/** @type {AST.RefAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
 						return /** @type {AST.RefAttribute} */ (this.finishNode(node, 'RefAttribute'));
-					} else if (this.type === tt.name && this.value === 'html') {
-						// {html ...}
-						// The support is purely for better error messages to avoid
-						// the parser throw an unexpected token error
-						const id = /** @type {AST.Identifier} */ (this.parseIdentNode());
-						id.tracked = false;
-						this.finishNode(id, 'Identifier');
-						this.next();
-						const value = this.type === tt.braceR ? id : this.parseMaybeAssign();
-						const report_end = this.type === tt.braceR ? this.end : (value.end ?? this.end);
-						this.#report_recoverable_error_range(
-							node.start ?? id.start ?? this.start,
-							report_end,
-							HTML_ATTRIBUTE_VALUE_ERROR,
-							DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
-						);
-						/** @type {AST.Attribute} */ (node).name = id;
-						/** @type {AST.Attribute} */ (node).value = value;
-						/** @type {AST.Attribute} */ (node).shorthand = false;
-						this.expect(tt.braceR);
-						return this.finishNode(node, 'Attribute');
 					} else if (this.type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
 						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
@@ -1829,14 +1794,6 @@ export function TSRXPlugin(config) {
 				const value = /** @type {ESTreeJSX.JSXAttribute['value'] | null} */ (
 					this.eat(tt.eq) ? this.jsx_parseAttributeValue() : null
 				);
-				if (value?.type === 'JSXExpressionContainer' && value.html) {
-					this.#report_recoverable_error_range(
-						value.start ?? node.start ?? this.start,
-						value.end ?? node.end ?? this.end,
-						HTML_ATTRIBUTE_VALUE_ERROR,
-						DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
-					);
-				}
 				/** @type {ESTreeJSX.JSXAttribute} */ (node).value = value;
 				return this.finishNode(node, 'JSXAttribute');
 			}
@@ -1932,7 +1889,12 @@ export function TSRXPlugin(config) {
 			jsx_parseAttributeValue() {
 				switch (this.type) {
 					case tt.braceL:
-						return this.jsx_parseExpressionContainer();
+						this.#jsxAttributeValueExpressionDepth++;
+						try {
+							return this.jsx_parseExpressionContainer();
+						} finally {
+							this.#jsxAttributeValueExpressionDepth--;
+						}
 					case tstt.jsxTagStart:
 					case tt.string:
 						return this.parseExprAtom();
@@ -2958,7 +2920,7 @@ export function TSRXPlugin(config) {
 					this.type === tt.braceL &&
 					this.context.some((c) => c === tstc.tc_expr)
 				) {
-					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.Html | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
+					return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 						/** @type {unknown} */ (this.#parseNativeTemplateExpressionContainer())
 					);
 				}

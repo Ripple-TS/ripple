@@ -21,7 +21,7 @@ export function BindingsPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/bindings"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

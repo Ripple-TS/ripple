@@ -1,30 +1,30 @@
-import { track } from 'ripple';
+import { Fragment, track } from 'ripple';
 
 export function StaticHtml() {
 	return <>
 		const html = '<p><strong>Bold</strong> text</p>';
-		<div>{html html}</div>
+		<div innerHTML={html} />
 	</>;
 }
 
 export function DynamicHtml() {
 	return <>
 		const content = '<p>Dynamic <span>HTML</span> content</p>';
-		<div>{html content}</div>
+		<div innerHTML={content} />
 	</>;
 }
 
 export function EmptyHtml() {
 	return <>
 		const html = '';
-		<div>{html html}</div>
+		<div innerHTML={html} />
 	</>;
 }
 
 export function ComplexHtml() {
 	return <>
 		const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
-		<section>{html html}</section>
+		<section innerHTML={html} />
 	</>;
 }
 
@@ -33,8 +33,8 @@ export function MultipleHtml() {
 		const html1 = '<p>First paragraph</p>';
 		const html2 = '<p>Second paragraph</p>';
 		<div>
-			{html html1}
-			{html html2}
+			<Fragment innerHTML={html1} />
+			<Fragment innerHTML={html2} />
 		</div>
 	</>;
 }
@@ -42,7 +42,7 @@ export function MultipleHtml() {
 export function HtmlWithReactivity() {
 	return <>
 		<div>
-			{html '<p>Count: 0</p>'}
+			<Fragment innerHTML="<p>Count: 0</p>" />
 			<button>{'Increment'}</button>
 		</div>
 	</>;
@@ -60,7 +60,7 @@ export function HtmlInChildren() {
 	return <>
 		const content = '<p><strong>Bold</strong> text</p>';
 		<HtmlWrapper>
-			<div class="vp-doc">{html content}</div>
+			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
 	</>;
 }
@@ -70,7 +70,7 @@ export function HtmlInChildrenWithSiblings() {
 		const content = '<p>Dynamic content</p>';
 		<HtmlWrapper>
 			<h1>{'Title'}</h1>
-			<div class="content">{html content}</div>
+			<div class="content" innerHTML={content} />
 		</HtmlWrapper>
 	</>;
 }
@@ -81,8 +81,8 @@ export function MultipleHtmlInChildren() {
 		const html2 = '<p>Second</p>';
 		<HtmlWrapper>
 			<div class="doc">
-				{html html1}
-				{html html2}
+				<Fragment innerHTML={html1} />
+				<Fragment innerHTML={html2} />
 			</div>
 		</HtmlWrapper>
 	</>;
@@ -91,14 +91,14 @@ export function MultipleHtmlInChildren() {
 export function HtmlWithComments() {
 	return <>
 		const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
-		<div>{html content}</div>
+		<div innerHTML={content} />
 	</>;
 }
 
 export function HtmlWithEmptyComment() {
 	return <>
 		const content = '<p>Before</p><!----><p>After</p>';
-		<div>{html content}</div>
+		<div innerHTML={content} />
 	</>;
 }
 
@@ -106,7 +106,7 @@ export function HtmlWithCommentsInChildren() {
 	return <>
 		const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
 		<HtmlWrapper>
-			<div class="vp-doc">{html content}</div>
+			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
 	</>;
 }
@@ -172,7 +172,7 @@ export function HtmlWithServerData() {
 				{ href: '#features', text: 'Features' },
 			]}
 		>
-			<div class="vp-doc">{html content}</div>
+			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
 	</>;
 }
@@ -181,7 +181,7 @@ export function HtmlWithClientDefaults() {
 	return <>
 		const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 		<DocLayout>
-			<div class="vp-doc">{html content}</div>
+			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
 	</>;
 }
@@ -190,7 +190,7 @@ export function HtmlWithUndefinedContent() {
 	return <>
 		const content: string | undefined = undefined;
 		<DocLayout>
-			<div class="vp-doc">{html content}</div>
+			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
 	</>;
 }
@@ -216,7 +216,7 @@ function CodeBlock({ code }: { code: string }) {
 				<button>{'Copy'}</button>
 				<span class="lang">{'js'}</span>
 			</div>
-			<div class="content">{html highlighted}</div>
+			<div class="content" innerHTML={highlighted} />
 		</div>
 	</>;
 }
@@ -370,7 +370,7 @@ export function ArticleWithHtmlChildThenSibling() {
 		const htmlContent = '<pre><code>const x = 1;</code></pre>';
 		<div class="content-container">
 			<ArticleWrapper>
-				<div class="doc-content">{html htmlContent}</div>
+				<div class="doc-content" innerHTML={htmlContent} />
 			</ArticleWrapper>
 			if (true) {
 				<div class="edit-link">
@@ -402,7 +402,7 @@ export function InlineArticleWithHtmlChild() {
 	return <>
 		const htmlContent = '<pre><code>const x = 1;</code></pre>';
 		<InlineArticleLayout>
-			<div class="doc-content">{html htmlContent}</div>
+			<div class="doc-content" innerHTML={htmlContent} />
 		</InlineArticleLayout>
 	</>;
 }
@@ -464,7 +464,7 @@ export function DocsLayoutWithData() {
 	return <>
 		const htmlContent = '<h1>Title</h1><p>Content</p>';
 		<DocsLayoutInner editPath="docs/styling.md" nextLink={{ href: '/next', text: 'Next' }}>
-			<div class="doc-content">{html htmlContent}</div>
+			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
 	</>;
 }
@@ -473,7 +473,7 @@ export function DocsLayoutWithoutData() {
 	return <>
 		const htmlContent: string | undefined = undefined;
 		<DocsLayoutInner>
-			<div class="doc-content">{html htmlContent}</div>
+			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
 	</>;
 }
@@ -557,7 +557,7 @@ export function DocsLayoutExactWithData() {
 				{ href: '#usage', text: 'Usage' },
 			]}
 		>
-			<div class="doc-content">{html htmlContent}</div>
+			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutExact>
 	</>;
 }
@@ -570,7 +570,7 @@ export function DocsLayoutExactWithoutData() {
 		const nextLink: { href: string; text: string } | null | undefined = undefined;
 		const toc: { href: string; text: string }[] | undefined = undefined;
 		<DocsLayoutExact {editPath} {prevLink} {nextLink} {toc}>
-			<div class="doc-content">{html htmlContent}</div>
+			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutExact>
 	</>;
 }
@@ -579,7 +579,7 @@ export function TemplateWithHtmlContent() {
 	return <>
 		const data = { title: 'Test', value: 42 };
 		<div>
-			<template id="t1">{html JSON.stringify(data)}</template>
+			<template id="t1" innerHTML={JSON.stringify(data)} />
 			<p class="content">{'Main content'}</p>
 		</div>
 	</>;
@@ -590,7 +590,7 @@ export function TemplateWithHtmlAndSiblings() {
 		const data = { name: 'Ripple', version: '1.0' };
 		<div class="wrapper">
 			<h1>{'Title'}</h1>
-			<template id="data-template">{html JSON.stringify(data)}</template>
+			<template id="data-template" innerHTML={JSON.stringify(data)} />
 			<p class="after-template">{'Content after template'}</p>
 		</div>
 	</>;
@@ -599,7 +599,7 @@ export function TemplateWithHtmlAndSiblings() {
 function LayoutWithTemplate({ children, data }: { children: any; data: object }) {
 	return <>
 		<div class="layout">
-			<template id="page-data">{html JSON.stringify(data)}</template>
+			<template id="page-data" innerHTML={JSON.stringify(data)} />
 			<main>{children}</main>
 		</div>
 	</>;
@@ -609,7 +609,7 @@ export function NestedTemplateInLayout() {
 	return <>
 		const doc = { title: 'Comparison', html: '<p>Content</p>' };
 		<LayoutWithTemplate data={doc}>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</LayoutWithTemplate>
 	</>;
 }
@@ -625,15 +625,15 @@ export function HtmlCodeBlocksWithSiblingChain() {
 			<p>{'Before first block'}</p>
 			<p>{'Before second block'}</p>
 			<pre class="code-block">
-				<code>{html html1}</code>
+				<code innerHTML={html1} />
 			</pre>
 			<p>{'Between one and two'}</p>
 			<pre class="code-block">
-				<code>{html html2}</code>
+				<code innerHTML={html2} />
 			</pre>
 			<p>{'Between two and three'}</p>
 			<pre class="code-block">
-				<code>{html html3}</code>
+				<code innerHTML={html3} />
 			</pre>
 		</section>
 	</>;

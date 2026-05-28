@@ -264,7 +264,7 @@ export interface JsxPlatformHooks {
 	 * default child-to-JSX conversion runs.
 	 *
 	 * This lets a target support target-native DOM content props such as
-	 * `textContent` / `innerHTML` without forking the whole element lowering.
+	 * `textContent` without forking the whole element lowering.
 	 * The hook may mutate `attrs` directly and either return a replacement
 	 * `children` array (plus optional `selfClosing` override) or `null` to fall
 	 * back to the default child handling.
@@ -387,8 +387,6 @@ export interface JsxPlatform {
 		 * explicit `ref={normalized.ref}` attribute.
 		 */
 		hostSpreadRefStrategy?: 'explicit-ref-attr';
-		/** Native host prop used when lowering a sole child `{html ...}`. */
-		htmlProp?: 'dangerouslySetInnerHTML' | 'innerHTML';
 	};
 
 	validation: {

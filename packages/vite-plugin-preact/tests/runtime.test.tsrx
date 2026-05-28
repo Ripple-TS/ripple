@@ -19,7 +19,7 @@ function ResolvedChild(props: { value: string }) {
 function ExplicitHtmlApp() {
 	return <>
 		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<div class="explicit-html-child">{html markup}</div>
+		<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
 		<button
 			class="explicit-html-update"
 			onClick={() => {
@@ -37,7 +37,7 @@ function SpreadHtmlApp() {
 			dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
 		});
 		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<div class="spread-html-child" {...spreadProps}>{html markup}</div>
+		<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
 		<button
 			class="spread-html-update-spread"
 			onClick={() => {

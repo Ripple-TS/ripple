@@ -764,11 +764,10 @@ function printRippleNode(node, path, options, print, args) {
 	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
 	const parentNode = /** @type {AST.Node | null} */ (path.getParentNode());
 
-	// For TSRXExpression, Text, and Html nodes, don't add leading comments here - they should be handled
+	// For TSRXExpression and Text nodes, don't add leading comments here - they should be handled
 	// as separate children within elements, not as part of the expression.
 	const shouldSkipLeadingComments =
-		parentNode?.type === 'Element' &&
-		(node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html');
+		parentNode?.type === 'Element' && (node.type === 'TSRXExpression' || node.type === 'Text');
 
 	// Handle leading comments
 	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
@@ -2319,14 +2318,6 @@ function printRippleNode(node, path, options, print, args) {
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
 			nodeContent = ['{text ', expressionDoc, '}'];
-			break;
-		}
-
-		case 'Html': {
-			const expressionDoc = suppressExpressionLeadingComments
-				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
-				: path.call(print, 'expression');
-			nodeContent = ['{html ', expressionDoc, '}'];
 			break;
 		}
 
@@ -5503,8 +5494,8 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return false;
 	}
 
-	// Always inline Html and Text nodes — they are explicit text/raw-markup child forms.
-	if (firstChild.type === 'Text' || firstChild.type === 'Html') {
+	// Always inline Text nodes — they are explicit text child forms.
+	if (firstChild.type === 'Text') {
 		return true;
 	}
 
@@ -6200,7 +6191,7 @@ function printElement(element, path, options, print) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html') &&
+				(child.type === 'TSRXExpression' || child.type === 'Text') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6389,10 +6380,7 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-		const isTextLikeChild =
-			currentChild.type === 'TSRXExpression' ||
-			currentChild.type === 'Text' ||
-			currentChild.type === 'Html';
+		const isTextLikeChild = currentChild.type === 'TSRXExpression' || currentChild.type === 'Text';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&
@@ -6505,18 +6493,16 @@ function printElement(element, path, options, print) {
 					? nextChild.leadingComments[0]
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
-			const isTextOrHtmlChild =
+			const isTextOrExpressionChild =
 				currentChild.type === 'TSRXExpression' ||
 				currentChild.type === 'Text' ||
-				currentChild.type === 'Html' ||
 				nextChild.type === 'TSRXExpression' ||
-				nextChild.type === 'Text' ||
-				nextChild.type === 'Html';
+				nextChild.type === 'Text';
 
 			if (whitespaceLinesCount > 0) {
 				finalChildren.push(hardline);
 				finalChildren.push(hardline);
-			} else if (!isTextOrHtmlChild && shouldAddBlankLine(currentChild, nextChild)) {
+			} else if (!isTextOrExpressionChild && shouldAddBlankLine(currentChild, nextChild)) {
 				finalChildren.push(hardline);
 				finalChildren.push(hardline);
 			} else {

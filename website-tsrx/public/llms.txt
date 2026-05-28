@@ -397,12 +397,12 @@ function Inbox({ name, count }: { name: string; count: number }) {
 }
 ```
 
-`{text expr}` forces escaped text rendering. `{html expr}` inserts trusted raw
-HTML; use it only with sanitized input.
+`{text expr}` forces escaped text rendering. Use each target framework's native
+raw HTML prop for trusted markup.
 
 ```tsrx
 function Article({ markup }: { markup: string }) {
-	return <><article>{html markup}</article></>;
+	return <article innerHTML={markup} />;
 }
 ```
 
@@ -666,15 +666,15 @@ lowers to loading primitives, and lazy destructuring preserves signal reads.
 ### Vue
 
 Vue output targets `vue-jsx-vapor` and `defineVaporComponent(...)`. It supports
-statement control flow, scoped styles, refs, `{text ...}`, `{html ...}`, and
-`try/pending` lowering through Vue suspense APIs. Component-level `await` is
-not supported for Vue TSRX.
+statement control flow, scoped styles, refs, `{text ...}`, host `innerHTML`,
+and `try/pending` lowering through Vue suspense APIs. Component-level `await`
+is not supported for Vue TSRX.
 
 ### Ripple
 
 Ripple is both a compiler target and a runtime. See the Ripple llms.txt
 (https://www.ripple-ts.com/llms.txt) for `track()`, `effect()`, `mount()`,
-`hydrate()`, collection primitives, raw HTML children, context, portals, and
+`hydrate()`, collection primitives, raw HTML props, context, portals, and
 transporting reactivity across function boundaries.
 
 ## Common patterns
@@ -759,7 +759,7 @@ function List<T>({ items, render }: Props<T>) {
 | JSX-compatible island  | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
 | Forced escaped text    | `<span>{text expr}</span>`                       |
-| Raw HTML               | `<article>{html markup}</article>`               |
+| Raw HTML               | `<article innerHTML={markup} />`                 |
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand         | `<Input {value} {onChange} />`                   |

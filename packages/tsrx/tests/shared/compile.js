@@ -123,36 +123,18 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).toContain('renderThing()');
 		});
 
-		it('reports named {html ...} attribute values with a diagnostic code', () => {
+		it('allows html identifiers as ordinary attribute values', () => {
 			const result = compile_to_volar_mappings(
-				`function App({ markup }: { markup: string }) { return <>
-					<Child body={html markup} />
+				`function Child(_: { body: string }) { return null; }
+				function App() { return <>
+					const html = '<strong>safe</strong>';
+					<Child body={html} />
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(diagnostic_codes(result)).toContain(
-				DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
-			);
-			expect(result.errors.map((error) => error.message)).toContain(
-				'`{html ...}` is not supported as an attribute value. Use a string literal or expression without `html`.',
-			);
-		});
-
-		it('reports anonymous {html ...} attributes with a diagnostic code', () => {
-			const result = compile_to_volar_mappings(
-				`function App({ markup }: { markup: string }) { return <>
-					<article {html markup} />
-				</>; }`,
-				'App.tsrx',
-			);
-
-			expect(diagnostic_codes(result)).toContain(
-				DIAGNOSTIC_CODES.HTML_DIRECTIVE_AS_ATTRIBUTE_VALUE,
-			);
-			expect(result.errors.map((error) => error.message)).toContain(
-				'`{html ...}` is not supported as an attribute value. Use a string literal or expression without `html`.',
-			);
+			expect(result.errors).toEqual([]);
+			expect(result.code).toContain('body={html}');
 		});
 	});
 }
@@ -2940,138 +2922,33 @@ export function optionalFn(bar: string, baz?: string) {
 		);
 	});
 
-	describe(`[${name}] {html expr} raw HTML`, () => {
-		const sole_child_pattern = /sole child of an element/;
-		const html_attribute_value_pattern = /not supported as an attribute value/;
-
-		it('lowers sole host child {html expr} to the native html prop', () => {
+	describe(`[${name}] native raw HTML props`, () => {
+		it('uses the target framework raw HTML prop directly', () => {
+			const html_attribute =
+				name === 'react' || name === 'preact'
+					? 'dangerouslySetInnerHTML={{ __html: markup }}'
+					: 'innerHTML={markup}';
 			const { code } = compile(
 				`export function App({ markup }: { markup: string }) { return <>
-						<article>{html markup}</article>
+						<article ${html_attribute} />
 					</>; }`,
 				'App.tsrx',
 			);
 
-			if (name === 'react' || name === 'preact') {
-				expect(code).toContain('dangerouslySetInnerHTML={{ __html: markup }}');
-			} else {
-				expect(code).toContain('innerHTML={markup}');
-			}
-			expect(code).not.toContain('{html markup}');
+			expect(code).toContain(html_attribute);
 		});
 
-		it('rejects {html expr} at the component body level', () => {
-			// Top-level `{html ...}` must hit the compile-time error rather
-			// than falling through `is_jsx_child` and silently landing in
-			// the function body as a raw Html AST node.
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						{html markup}
+		it('treats html as an ordinary expression identifier', () => {
+			const { code } = compile(
+				`export function App() { return <>
+						const html = '<strong>escaped</strong>';
+						<article>{html}</article>
 					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(sole_child_pattern);
-		});
+				'App.tsrx',
+			);
 
-		it('rejects child {html expr} on component elements', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						<Child>{html markup}</Child>
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(sole_child_pattern);
-		});
-
-		it('rejects child {html expr} when mixed with sibling children', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						<article>{html markup}<span>{'tail'}</span></article>
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(sole_child_pattern);
-		});
-
-		it('rejects target-native html content attribute conflicts', () => {
-			const conflicting_attribute =
-				name === 'react' || name === 'preact'
-					? 'dangerouslySetInnerHTML={{ __html: other }}'
-					: 'innerHTML={other}';
-
-			expect(() =>
-				compile(
-					`export function App({ markup, other }: { markup: string; other: string }) { return <>
-						<article ${conflicting_attribute}>{html markup}</article>
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(/lowers to/);
-		});
-
-		it('allows html content attributes that are unrelated on the current target', () => {
-			const unrelated_attribute =
-				name === 'solid'
-					? 'dangerouslySetInnerHTML={{ __html: other }}'
-					: name === 'vue'
-						? 'textContent={other}'
-						: 'innerHTML={other}';
-
-			expect(() =>
-				compile(
-					`export function App({ markup, other }: { markup: string; other: string }) { return <>
-						<article ${unrelated_attribute}>{html markup}</article>
-					</>; }`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('allows spread attributes with child {html expr}', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup, props }: { markup: string; props: Record<string, unknown> }) { return <>
-						<article {...props}>{html markup}</article>
-					</>; }`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('rejects anonymous host {html expr} attributes', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						<article {html markup} />
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(html_attribute_value_pattern);
-		});
-
-		it('rejects named component html props', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						<Child body={html markup} />
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(html_attribute_value_pattern);
-		});
-
-		it('rejects anonymous component html props', () => {
-			expect(() =>
-				compile(
-					`export function App({ markup }: { markup: string }) { return <>
-						<Child {html markup} />
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(html_attribute_value_pattern);
+			expect(code).toContain('html');
+			expect(code).not.toContain('{html ');
 		});
 	});
 

@@ -1,4 +1,4 @@
-import type { AddEventObject, RefKey, TSRXElement } from '#public';
+import type { AddEventObject, FragmentProps, RefKey, TSRXElement } from '#public';
 import type { Nullable } from '#helpers';
 
 /**
@@ -40,7 +40,7 @@ export function jsxs(
  * JSX Fragment component
  * Ripple fragments are renderable expression values.
  */
-export function Fragment(props: { children?: any }): TSRXElement;
+export function Fragment(props: FragmentProps): TSRXElement;
 
 export type ClassValue = string | import('clsx').ClassArray | import('clsx').ClassDictionary;
 

@@ -4222,10 +4222,6 @@
     "named": true
   },
   {
-    "type": "html",
-    "named": false
-  },
-  {
     "type": "identifier",
     "named": true
   },

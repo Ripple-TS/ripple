@@ -155,10 +155,10 @@ function App() {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('formats html interpolation inside native elements', async () => {
-		const input = `function App(){return <article>{html source}</article>}`;
+	it('formats raw HTML props inside native elements', async () => {
+		const input = `function App(){return <article innerHTML={source}/>}`;
 		const expected = `function App() {
-  return <article>{html source}</article>;
+  return <article innerHTML={source} />;
 }`;
 
 		const result = await format(input);

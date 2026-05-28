@@ -21,7 +21,7 @@ export function ReactivityPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/reactivity"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

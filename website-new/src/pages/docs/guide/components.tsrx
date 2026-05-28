@@ -21,7 +21,7 @@ export function ComponentsPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/components"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

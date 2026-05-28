@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { Fragment, track } from 'ripple';
 import type { Tracked, PropsNoChildren } from 'ripple';
 
 describe('basic client', () => {
@@ -120,6 +120,20 @@ second"</pre>
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml('<div><span>Server</span></div>');
+	});
+
+	it('renders Fragment innerHTML', async () => {
+		function Basic() {
+			return <>
+				const html = '<strong>Server Fragment HTML</strong>';
+				<Fragment innerHTML={html} />
+			</>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toContain('<strong>Server Fragment HTML</strong>');
+		expect(body).not.toContain('<fragment');
 	});
 
 	it('renders deeply nested tsx and tsrx expression values', async () => {

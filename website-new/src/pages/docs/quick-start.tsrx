@@ -21,7 +21,7 @@ export function QuickStartPage() {
 			toc={doc.toc}
 			currentPath="/docs/quick-start"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

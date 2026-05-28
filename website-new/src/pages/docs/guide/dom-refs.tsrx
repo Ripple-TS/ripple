@@ -21,7 +21,7 @@ export function DomRefsPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/dom-refs"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

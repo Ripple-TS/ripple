@@ -326,7 +326,7 @@ export function DocsPage() {
 								{' declarations. Props are typed with a single parameter, normal JavaScript setup can run before the return, and the returned TSRX template contains the rendered structure, control flow, and scoped styles.'}
 							</p>
 							<pre class="code-block">
-								<code>{html COMPONENT_HTML}</code>
+								<code innerHTML={COMPONENT_HTML} />
 							</pre>
 							<p class="section-body">
 								{'Export components with '}
@@ -347,7 +347,7 @@ export function DocsPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TEMPLATE_HTML}</code>
+								<code innerHTML={TEMPLATE_HTML} />
 							</pre>
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}
@@ -360,7 +360,7 @@ export function DocsPage() {
 								{':'}
 							</p>
 							<pre class="code-block">
-								<code>{html TSX_EXPR_HTML}</code>
+								<code innerHTML={TSX_EXPR_HTML} />
 							</pre>
 						</section>
 
@@ -376,7 +376,7 @@ export function DocsPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SHORTHAND_HTML}</code>
+								<code innerHTML={SHORTHAND_HTML} />
 							</pre>
 						</section>
 
@@ -386,7 +386,7 @@ export function DocsPage() {
 								{'Every returned TSRX template and nested element creates its own lexical scope. You can declare variables, compute derived values, or call functions inside an element\'s children — they\'re scoped to that block and won\'t leak into the surrounding function.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SCOPING_HTML}</code>
+								<code innerHTML={SCOPING_HTML} />
 							</pre>
 							<p class="section-body">
 								{'This applies to all block-like contexts: element children, component children, and control flow branches ('}
@@ -412,7 +412,7 @@ export function DocsPage() {
 								{' prop explicitly instead:'}
 							</p>
 							<pre class="code-block">
-								<code>{html CHILDREN_HTML}</code>
+								<code innerHTML={CHILDREN_HTML} />
 							</pre>
 						</section>
 
@@ -428,7 +428,7 @@ export function DocsPage() {
 								{' statements directly inside templates. No ternaries or wrapper components needed.'}
 							</p>
 							<pre class="code-block">
-								<code>{html IF_HTML}</code>
+								<code innerHTML={IF_HTML} />
 							</pre>
 						</section>
 
@@ -468,7 +468,7 @@ export function DocsPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html FOR_HTML}</code>
+								<code innerHTML={FOR_HTML} />
 							</pre>
 						</section>
 
@@ -482,7 +482,7 @@ export function DocsPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SWITCH_HTML}</code>
+								<code innerHTML={SWITCH_HTML} />
 							</pre>
 						</section>
 
@@ -496,7 +496,7 @@ export function DocsPage() {
 								{' to create error boundaries. If a child component throws, the catch block renders fallback UI.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TRY_HTML}</code>
+								<code innerHTML={TRY_HTML} />
 							</pre>
 						</section>
 
@@ -527,7 +527,7 @@ export function DocsPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html ASYNC_BOUNDARY_HTML}</code>
+								<code innerHTML={ASYNC_BOUNDARY_HTML} />
 							</pre>
 						</section>
 
@@ -539,7 +539,7 @@ export function DocsPage() {
 								{' block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the function return that defines them. A parent\'s scoped styles will not leak into child components.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SCOPED_STYLES_HTML}</code>
+								<code innerHTML={SCOPED_STYLES_HTML} />
 							</pre>
 							<p class="section-body">
 								{'To escape scoping and apply styles globally, wrap a selector in '}
@@ -560,7 +560,7 @@ export function DocsPage() {
 								{' attribute.'}
 							</p>
 							<pre class="code-block">
-								<code>{html STYLE_COMPOSITION_HTML}</code>
+								<code innerHTML={STYLE_COMPOSITION_HTML} />
 							</pre>
 							<p class="section-body">
 								{'The class referenced via '}
@@ -583,7 +583,7 @@ export function DocsPage() {
 								{', or another value according to the target component type.'}
 							</p>
 							<pre class="code-block">
-								<code>{html RETURN_HTML}</code>
+								<code innerHTML={RETURN_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'A function can also return TSRX directly from a plain JavaScript branch, just like TSX. The statement-template rules only apply after the returned TSRX expression has opened.'}
@@ -604,7 +604,7 @@ export function DocsPage() {
 								{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
 							</p>
 							<pre class="code-block">
-								<code>{html LAZY_PROPS_HTML}</code>
+								<code innerHTML={LAZY_PROPS_HTML} />
 							</pre>
 							<p class="section-body">
 								{'And '}
@@ -612,7 +612,7 @@ export function DocsPage() {
 								{' works equally well on the return value of hooks, stores, or context objects — each binding resolves lazily at the point of use:'}
 							</p>
 							<pre class="code-block">
-								<code>{html LAZY_OBJ_VAR_HTML}</code>
+								<code innerHTML={LAZY_OBJ_VAR_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.'}
@@ -630,7 +630,7 @@ export function DocsPage() {
 								{' scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.'}
 							</p>
 							<pre class="code-block">
-								<code>{html REACT_HOOKS_HTML}</code>
+								<code innerHTML={REACT_HOOKS_HTML} />
 							</pre>
 						</section>
 					</main>

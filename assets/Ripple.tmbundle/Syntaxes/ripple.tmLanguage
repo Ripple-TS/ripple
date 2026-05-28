@@ -5405,21 +5405,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>jsx-html-modifier</key>
-		<dict>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>storage.modifier.js</string>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>\b(html)(?=\s+[_$[:alpha:]])</string>
-			<key>name</key>
-			<string>storage.modifier.js</string>
-		</dict>
 		<key>jsx-ref-modifier</key>
 		<dict>
 			<key>captures</key>
@@ -6892,10 +6877,6 @@
 		<dict>
 			<key>patterns</key>
 			<array>
-				<dict>
-					<key>include</key>
-					<string>#jsx-html-modifier</string>
-				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-text-modifier</string>

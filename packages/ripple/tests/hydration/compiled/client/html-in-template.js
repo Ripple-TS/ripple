@@ -14,7 +14,7 @@ export function SimpleTemplateHtml(__anchor, _, __block) {
 	var fragment = root();
 	var template_1 = _$_.first_child_frag(fragment);
 
-	template_1.innerHTML = data;
+	template_1.innerHTML = data ?? template_1.innerHTML;
 	__r = true;
 	_$_.append(__anchor, fragment);
 	_$_.pop_component();
@@ -28,7 +28,7 @@ export function TemplateWithJSON(__anchor, _, __block) {
 	var fragment_1 = root_1();
 	var template_2 = _$_.first_child_frag(fragment_1);
 
-	template_2.innerHTML = jsonData;
+	template_2.innerHTML = jsonData ?? template_2.innerHTML;
 	__r_1 = true;
 	_$_.append(__anchor, fragment_1);
 	_$_.pop_component();
@@ -45,7 +45,7 @@ export function TemplateAroundIfBlock(__anchor, _, __block) {
 	{
 		var template_3 = _$_.child(div_1);
 
-		template_3.innerHTML = 'before';
+		template_3.innerHTML = "before" ?? template_3.innerHTML;
 
 		var node = _$_.sibling(template_3);
 
@@ -63,7 +63,7 @@ export function TemplateAroundIfBlock(__anchor, _, __block) {
 
 		var template_4 = _$_.sibling(node);
 
-		template_4.innerHTML = 'after';
+		template_4.innerHTML = "after" ?? template_4.innerHTML;
 		_$_.pop(div_1);
 	}
 

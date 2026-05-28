@@ -1678,15 +1678,16 @@ effect(() => {
 ### Raw HTML
 
 All text nodes are escaped by default in Ripple. To render trusted raw HTML
-strings, use the `{html}` directive as child content:
-`<article>{html source}</article>`.
+strings, use the native `innerHTML` prop:
+`<article innerHTML={source} />`.
 
-Ripple supports child-level `{html ...}` mixed with sibling children.
+When raw markup must sit beside normal children, import `Fragment` from
+`ripple` and render `<Fragment innerHTML={source} />`.
 
 ```tsrx
 function Article({ markup }: { markup: string }) {
   return <>
-  <article>{html markup}</article>
+  <article innerHTML={markup} />
 
   </>;
 }
@@ -1713,8 +1714,8 @@ export function Frame({ children }) {
 ```
 
 The `{text}` directive guarantees the expression is treated as text content.
-Like regular expressions, the value is HTML-escaped. Unlike `{html}`, the
-content is never parsed as HTML. The compiler can optimize `{text}` expressions
+Like regular expressions, the value is HTML-escaped, so the content is never
+parsed as HTML. The compiler can optimize `{text}` expressions
 more efficiently than general expressions that might need to handle component
 rendering.
 

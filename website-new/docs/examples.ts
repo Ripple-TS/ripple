@@ -420,9 +420,7 @@ export default function SuspenseBoundary() {
 <p>Hi! I like JS and Ripple.</p>
 \`
 
-	<article>
-		{html source}
-	</article>
+	<article innerHTML={source} />
   </>;
 }
 `,

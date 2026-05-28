@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`html directive > renders dynamic html 1`] = `
+exports[`Fragment innerHTML > renders dynamic innerHTML fragments 1`] = `
 <div>
   <!---->
   <div>
@@ -14,7 +14,7 @@ exports[`html directive > renders dynamic html 1`] = `
 </div>
 `;
 
-exports[`html directive > renders dynamic html 2`] = `
+exports[`Fragment innerHTML > renders dynamic innerHTML fragments 2`] = `
 <div>
   <!---->
   <div>
@@ -28,7 +28,7 @@ exports[`html directive > renders dynamic html 2`] = `
 </div>
 `;
 
-exports[`html directive > renders static html 1`] = `
+exports[`Fragment innerHTML > renders static innerHTML fragments 1`] = `
 <div>
   <!---->
   <div>

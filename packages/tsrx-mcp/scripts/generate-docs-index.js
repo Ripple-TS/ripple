@@ -102,8 +102,7 @@ Source: website-tsrx/src/pages/specification.tsrx#components`,
 		{
 			slug: 'text-and-template-expressions',
 			title: 'Text and Template Expressions',
-			use_cases:
-				'text children, quoted text, raw text errors, html, text directive, string literals',
+			use_cases: 'text children, quoted text, raw text errors, text directive, string literals',
 			content: `# Text and Template Expressions
 
 Raw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.
@@ -117,7 +116,7 @@ function Greeting({ name }: { name: string }) {
 }
 \`\`\`
 
-Single-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. Use \`{text expression}\` for explicit text and \`{html expression}\` only for trusted HTML.
+Single-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. Use \`{text expression}\` for explicit escaped text.
 
 Specification grammar:
 

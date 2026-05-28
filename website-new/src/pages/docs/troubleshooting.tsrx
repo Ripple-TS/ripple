@@ -21,7 +21,7 @@ export function TroubleshootingPage() {
 			toc={doc.toc}
 			currentPath="/docs/troubleshooting"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

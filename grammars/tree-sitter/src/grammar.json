@@ -5856,19 +5856,6 @@
                   "members": [
                     {
                       "type": "STRING",
-                      "value": "html"
-                    },
-                    {
-                      "type": "SYMBOL",
-                      "name": "expression"
-                    }
-                  ]
-                },
-                {
-                  "type": "SEQ",
-                  "members": [
-                    {
-                      "type": "STRING",
                       "value": "text"
                     },
                     {

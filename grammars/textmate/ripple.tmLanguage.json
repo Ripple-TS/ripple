@@ -6509,9 +6509,6 @@
     "non-jsx-expression": {
       "patterns": [
         {
-          "include": "#jsx-html-modifier"
-        },
-        {
           "include": "#jsx-text-modifier"
         },
         {
@@ -6706,15 +6703,6 @@
     "jsx-ref-modifier": {
       "name": "storage.modifier.js",
       "match": "\\b(ref)(?=\\s+(?:[_$[:alpha:]]|\\())",
-      "captures": {
-        "1": {
-          "name": "storage.modifier.js"
-        }
-      }
-    },
-    "jsx-html-modifier": {
-      "name": "storage.modifier.js",
-      "match": "\\b(html)(?=\\s+[_$[:alpha:]])",
       "captures": {
         "1": {
           "name": "storage.modifier.js"

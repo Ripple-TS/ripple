@@ -536,7 +536,6 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
-		node.type === 'Html' ||
 		node.type === 'Tsx' ||
 		node.type === 'Tsrx' ||
 		node.type === 'TsxCompat' ||
@@ -609,6 +608,133 @@ function should_wrap_node_in_regular_block(node) {
  */
 function is_head_element(node) {
 	return node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head';
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {TransformServerContext} context
+ * @returns {boolean}
+ */
+function is_ripple_fragment_element(node, context) {
+	if (node.id.type === 'Identifier') {
+		return node.id.name === 'Fragment' && is_ripple_import(node.id, context);
+	}
+
+	return (
+		node.id.type === 'MemberExpression' &&
+		node.id.property.type === 'Identifier' &&
+		node.id.property.name === 'Fragment' &&
+		is_ripple_import(node.id, context)
+	);
+}
+
+/**
+ * @param {AST.Element} node
+ * @returns {AST.Attribute | null}
+ */
+function get_inner_html_attribute(node) {
+	for (const attr of node.attributes) {
+		if (
+			attr.type === 'Attribute' &&
+			attr.name.type === 'Identifier' &&
+			attr.name.name === 'innerHTML'
+		) {
+			return attr;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.Attribute} attr
+ * @param {TransformServerContext} context
+ * @returns {AST.Expression}
+ */
+function get_attribute_value_expression(attr, context) {
+	if (attr.value === null) {
+		return b.literal('');
+	}
+
+	return /** @type {AST.Expression} */ (context.visit(attr.value, context.state));
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {TransformServerState} state
+ * @returns {void}
+ */
+function push_raw_html_expression(expression, state) {
+	if (expression.type === 'Literal') {
+		const value = String(expression.value ?? '');
+		const hash_value = simple_hash(value);
+		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
+		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(value))));
+		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
+		return;
+	}
+
+	const value_id = state.scope?.generate('html_value');
+	if (!value_id) {
+		return;
+	}
+
+	state.init?.push(
+		b.const(value_id, b.call(b.id('String'), b.logical('??', expression, b.literal('')))),
+	);
+	state.init?.push(
+		b.stmt(
+			b.call(
+				b.id('_$_.output_push'),
+				b.binary(
+					'+',
+					b.binary('+', b.literal('<!--'), b.call('_$_.simple_hash', b.id(value_id))),
+					b.literal('-->'),
+				),
+			),
+		),
+	);
+	state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.id(value_id))));
+	state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {TransformServerState} state
+ * @returns {void}
+ */
+function push_inner_html_expression(expression, state) {
+	if (expression.type === 'Literal') {
+		state.init?.push(
+			b.stmt(b.call(b.id('_$_.output_push'), b.literal(String(expression.value ?? '')))),
+		);
+		return;
+	}
+
+	state.init?.push(
+		b.stmt(
+			b.call(
+				b.id('_$_.output_push'),
+				b.call(b.id('String'), b.logical('??', expression, b.literal(''))),
+			),
+		),
+	);
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {TransformServerContext} context
+ * @returns {void}
+ */
+function visit_ripple_fragment_element(node, context) {
+	const inner_html = get_inner_html_attribute(node);
+
+	if (inner_html !== null) {
+		push_raw_html_expression(get_attribute_value_expression(inner_html, context), context.state);
+		return;
+	}
+
+	transform_children(node.children, context);
 }
 
 /**
@@ -1515,6 +1641,11 @@ const visitors = {
 			return expression;
 		}
 
+		if (is_ripple_fragment_element(node, context)) {
+			visit_ripple_fragment_element(node, context);
+			return;
+		}
+
 		const dynamic_name = state.dynamicElementName;
 		if (dynamic_name) {
 			state.dynamicElementName = undefined;
@@ -1543,6 +1674,8 @@ const visitors = {
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
+			/** @type {AST.Expression | null} */
+			let inner_html_expression = null;
 
 			state.init?.push(
 				b.stmt(
@@ -1588,6 +1721,12 @@ const visitors = {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
 						const name = attr.name.name;
+
+						if (name === 'innerHTML') {
+							inner_html_expression =
+								attr.value === null ? b.literal('') : get_attribute_value_expression(attr, context);
+							continue;
+						}
 
 						if (attr.value === null) {
 							handle_static_attr(name, true);
@@ -1715,27 +1854,32 @@ const visitors = {
 			}
 
 			if (!is_void) {
-				/** @type {AST.Statement[]} */
-				const init = [];
-				transform_children(
-					node.children,
-					/** @type {TransformServerContext} */ ({
-						visit,
-						state: {
-							...state,
-							init,
-							...(state.applyParentCssScope ||
-							(dynamic_name && node.metadata.scoped && get_component_css(state))
-								? {
-										applyParentCssScope: state.applyParentCssScope || get_component_css_hash(state),
-									}
-								: {}),
-						},
-					}),
-				);
+				if (inner_html_expression !== null) {
+					push_inner_html_expression(inner_html_expression, state);
+				} else {
+					/** @type {AST.Statement[]} */
+					const init = [];
+					transform_children(
+						node.children,
+						/** @type {TransformServerContext} */ ({
+							visit,
+							state: {
+								...state,
+								init,
+								...(state.applyParentCssScope ||
+								(dynamic_name && node.metadata.scoped && get_component_css(state))
+									? {
+											applyParentCssScope:
+												state.applyParentCssScope || get_component_css_hash(state),
+										}
+									: {}),
+							},
+						}),
+					);
 
-				if (init.length > 0) {
-					state.init?.push(b.block(init));
+					if (init.length > 0) {
+						state.init?.push(b.block(init));
+					}
 				}
 
 				if (!use_self_closing_syntax) {
@@ -2409,48 +2553,6 @@ const visitors = {
 			// Expression context: return tsrx_element(render_fn)
 			const render_fn = b.function(b.id('render_children'), [], b.block(init));
 			return b.call('_$_.tsrx_element', render_fn);
-		}
-	},
-
-	Html(node, { visit, state }) {
-		const expression = /** @type {AST.Expression} */ (visit(node.expression, state));
-
-		// For literal values, compute hash at build time
-		if (expression.type === 'Literal') {
-			const value = String(expression.value ?? '');
-			const hash_value = simple_hash(value);
-			// Push hash comment
-			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(`<!--${hash_value}-->`))));
-			// Push the HTML content
-			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(value))));
-			// Push empty comment as end marker
-			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
-		} else {
-			// For dynamic values, compute hash at runtime
-			// Create a variable to store the value
-			const value_id = state.scope?.generate('html_value');
-			if (value_id) {
-				state.init?.push(
-					b.const(value_id, b.call(b.id('String'), b.logical('??', expression, b.literal('')))),
-				);
-				// Compute hash at runtime using _$_.simple_hash and push as comment
-				state.init?.push(
-					b.stmt(
-						b.call(
-							b.id('_$_.output_push'),
-							b.binary(
-								'+',
-								b.binary('+', b.literal('<!--'), b.call('_$_.simple_hash', b.id(value_id))),
-								b.literal('-->'),
-							),
-						),
-					),
-				);
-				// Push the HTML content
-				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.id(value_id))));
-				// Push empty comment as end marker
-				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal('<!---->'))));
-			}
 		}
 	},
 

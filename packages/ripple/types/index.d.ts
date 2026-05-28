@@ -15,7 +15,15 @@ export type TSRXElement = {
 /** Type for implicit children fragments rendered with `{children}`. */
 export type Children = TSRXElement | Component | string | number | boolean | null | undefined;
 
+export type FragmentProps = {
+	children?: Children | Children[];
+	innerHTML?: string | null | undefined;
+	[key: string]: unknown;
+};
+
 export function tsrx_element(render: Function): TSRXElement;
+
+export function Fragment(props: FragmentProps): TSRXElement;
 
 export function mount(
 	component: Component,

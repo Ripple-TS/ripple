@@ -207,7 +207,6 @@ declare module 'estree' {
 		Tsrx: Tsrx;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
-		Html: Html;
 		Style: Style;
 		Element: Element;
 		Text: TextNode;
@@ -346,11 +345,6 @@ declare module 'estree' {
 		unclosed?: boolean;
 		openingElement: ESTreeJSX.JSXOpeningElement;
 		closingElement: ESTreeJSX.JSXClosingElement;
-	}
-
-	interface Html extends AST.BaseNode {
-		type: 'Html';
-		expression: AST.Expression;
 	}
 
 	interface Style extends AST.BaseExpression {
@@ -657,7 +651,6 @@ declare module 'estree-jsx' {
 	}
 
 	interface JSXExpressionContainer {
-		html?: boolean;
 		text?: boolean;
 		style?: boolean;
 	}

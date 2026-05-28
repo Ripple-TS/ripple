@@ -1193,7 +1193,6 @@ export namespace Parse {
 			exports?: AST.ExportSpecifier,
 		):
 			| AST.TSRXExpression
-			| AST.Html
 			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
 			| ESTreeJSX.JSXExpressionContainer

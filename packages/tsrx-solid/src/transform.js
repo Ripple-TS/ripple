@@ -36,8 +36,6 @@ import {
 	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
-	recoverInvalidHtmlChild as recover_invalid_html_child,
-	rewriteHostHtmlChildren as rewrite_host_html_children,
 	set_loc,
 	to_text_expression,
 } from '@tsrx/core';
@@ -226,8 +224,6 @@ function to_jsx_child(node, transform_context) {
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
-		case 'Html':
-			return recover_invalid_html_child(node, transform_context);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'ForOfStatement':
@@ -1324,22 +1320,6 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 		transform_context,
 		node,
 	);
-
-	const html_child_transform = rewrite_host_html_children(
-		node,
-		walked_children,
-		pre_walk_children ?? walked_children,
-		attributes,
-		transform_context,
-	);
-	if (html_child_transform) {
-		const openingElement = set_loc(
-			b.jsx_opening_element(name, attributes, true, node.openingElement?.typeArguments),
-			node.openingElement || node,
-		);
-
-		return set_loc(b.jsx_element_fresh(openingElement, null, []), node);
-	}
 
 	// Optimization: `<el>{text expr}</el>` with a single `{text ...}` child
 	// on a host (DOM) element lowers to `<el textContent={expr} />`. Solid

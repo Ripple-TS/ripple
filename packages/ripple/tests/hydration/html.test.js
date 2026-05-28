@@ -172,7 +172,7 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Footer');
 	});
 
-	it('hydrates article with {html} child then sibling (StylingPage pattern)', async () => {
+	it('hydrates article with innerHTML content then sibling (StylingPage pattern)', async () => {
 		await hydrateComponent(
 			ServerComponents.ArticleWithHtmlChildThenSibling,
 			ClientComponents.ArticleWithHtmlChildThenSibling,
@@ -183,7 +183,7 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Footer');
 	});
 
-	it('hydrates INLINE article with {html} child then sibling (exact DocsLayout)', async () => {
+	it('hydrates INLINE article with innerHTML content then sibling (exact DocsLayout)', async () => {
 		await hydrateComponent(
 			ServerComponents.InlineArticleWithHtmlChild,
 			ClientComponents.InlineArticleWithHtmlChild,
@@ -234,7 +234,7 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Footer');
 	});
 
-	it('hydrates template element with {html} content', async () => {
+	it('hydrates template element with innerHTML content', async () => {
 		await hydrateComponent(
 			ServerComponents.TemplateWithHtmlContent,
 			ClientComponents.TemplateWithHtmlContent,
@@ -244,7 +244,7 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('Main content');
 	});
 
-	it('hydrates template element with {html} and siblings', async () => {
+	it('hydrates template element with innerHTML and siblings', async () => {
 		await hydrateComponent(
 			ServerComponents.TemplateWithHtmlAndSiblings,
 			ClientComponents.TemplateWithHtmlAndSiblings,

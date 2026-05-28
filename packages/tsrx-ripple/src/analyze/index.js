@@ -2586,9 +2586,7 @@ const visitors = {
 					visit(child, state);
 				} else if (child.type !== 'EmptyStatement') {
 					implicit_children.push(
-						child.type === 'TSRXExpression' || child.type === 'Text' || child.type === 'Html'
-							? child.expression
-							: child,
+						child.type === 'TSRXExpression' || child.type === 'Text' ? child.expression : child,
 					);
 				}
 			}

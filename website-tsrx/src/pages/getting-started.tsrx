@@ -360,11 +360,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"React + Vite"</h2>
 							<p class="section-body">"Install the compiler and Vite plugin:"</p>
 							<pre class="code-block">
-								<code>{html INSTALL_HTML}</code>
+								<code innerHTML={INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Vite config:"</p>
 							<pre class="code-block">
-								<code>{html VITE_CONFIG_HTML}</code>
+								<code innerHTML={VITE_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"That's it — create any "
@@ -379,11 +379,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Preact + Vite"</h2>
 							<p class="section-body">"Install the Preact compiler and Vite plugin:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_INSTALL_HTML}</code>
+								<code innerHTML={PREACT_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Vite config:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_VITE_CONFIG_HTML}</code>
+								<code innerHTML={PREACT_VITE_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"The plugin compiles "
@@ -404,11 +404,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Preact + Rspack"</h2>
 							<p class="section-body">"Install the compiler and Rspack plugin:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_RSPACK_INSTALL_HTML}</code>
+								<code innerHTML={PREACT_RSPACK_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_RSPACK_CONFIG_HTML}</code>
+								<code innerHTML={PREACT_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"Like the React Rspack plugin, it chains "
@@ -427,11 +427,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"React + Rspack"</h2>
 							<p class="section-body">"Install the compiler and Rspack plugin:"</p>
 							<pre class="code-block">
-								<code>{html REACT_RSPACK_INSTALL_HTML}</code>
+								<code innerHTML={REACT_RSPACK_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 							<pre class="code-block">
-								<code>{html REACT_RSPACK_CONFIG_HTML}</code>
+								<code innerHTML={REACT_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"The plugin chains "
@@ -447,11 +447,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"React + Turbopack"</h2>
 							<p class="section-body">"Install the compiler and Turbopack helper:"</p>
 							<pre class="code-block">
-								<code>{html TURBOPACK_INSTALL_HTML}</code>
+								<code innerHTML={TURBOPACK_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then wrap your Next config with the helper:"</p>
 							<pre class="code-block">
-								<code>{html TURBOPACK_CONFIG_HTML}</code>
+								<code innerHTML={TURBOPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"The helper registers a Turbopack rule for "
@@ -469,11 +469,11 @@ export function GettingStartedPage() {
 								"Install the compiler, the Bun plugin, and the React runtime:"
 							</p>
 							<pre class="code-block">
-								<code>{html REACT_BUN_INSTALL_HTML}</code>
+								<code innerHTML={REACT_BUN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 							<pre class="code-block">
-								<code>{html REACT_BUN_CONFIG_HTML}</code>
+								<code innerHTML={REACT_BUN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/bun-plugin-react"</code>
@@ -493,11 +493,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Preact + Bun"</h2>
 							<p class="section-body">"Install the compiler, the Bun plugin, and Preact:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_BUN_INSTALL_HTML}</code>
+								<code innerHTML={PREACT_BUN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 							<pre class="code-block">
-								<code>{html PREACT_BUN_CONFIG_HTML}</code>
+								<code innerHTML={PREACT_BUN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/bun-plugin-preact"</code>
@@ -518,13 +518,13 @@ export function GettingStartedPage() {
 								" which runs Solid's JSX transform on the emitted TSX:"
 							</p>
 							<pre class="code-block">
-								<code>{html SOLID_INSTALL_HTML}</code>
+								<code innerHTML={SOLID_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
 								"Then wire both plugins into your Vite config (order matters — tsrxSolid first):"
 							</p>
 							<pre class="code-block">
-								<code>{html SOLID_VITE_CONFIG_HTML}</code>
+								<code innerHTML={SOLID_VITE_CONFIG_HTML} />
 							</pre>
 						</section>
 
@@ -532,11 +532,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Solid + Rspack"</h2>
 							<p class="section-body">"Install the Solid compiler and Rspack plugin:"</p>
 							<pre class="code-block">
-								<code>{html SOLID_RSPACK_INSTALL_HTML}</code>
+								<code innerHTML={SOLID_RSPACK_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 							<pre class="code-block">
-								<code>{html SOLID_RSPACK_CONFIG_HTML}</code>
+								<code innerHTML={SOLID_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"The plugin compiles "
@@ -558,11 +558,11 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Solid + Bun"</h2>
 							<p class="section-body">"Install the Solid compiler, the Bun plugin, and Solid:"</p>
 							<pre class="code-block">
-								<code>{html SOLID_BUN_INSTALL_HTML}</code>
+								<code innerHTML={SOLID_BUN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 							<pre class="code-block">
-								<code>{html SOLID_BUN_CONFIG_HTML}</code>
+								<code innerHTML={SOLID_BUN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/bun-plugin-solid"</code>
@@ -583,11 +583,11 @@ export function GettingStartedPage() {
 								plugin:"
 							</p>
 							<pre class="code-block">
-								<code>{html VUE_INSTALL_HTML}</code>
+								<code innerHTML={VUE_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then wire the Vue TSRX plugin into your Vite config:"</p>
 							<pre class="code-block">
-								<code>{html VUE_VITE_CONFIG_HTML}</code>
+								<code innerHTML={VUE_VITE_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/vite-plugin-vue"</code>
@@ -608,11 +608,11 @@ export function GettingStartedPage() {
 								"Install the Vue compiler, the Rspack plugin, the Vue runtime, and Vue Vapor JSX:"
 							</p>
 							<pre class="code-block">
-								<code>{html VUE_RSPACK_INSTALL_HTML}</code>
+								<code innerHTML={VUE_RSPACK_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then add the plugin to your Rspack config:"</p>
 							<pre class="code-block">
-								<code>{html VUE_RSPACK_CONFIG_HTML}</code>
+								<code innerHTML={VUE_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/rspack-plugin-vue"</code>
@@ -635,11 +635,11 @@ export function GettingStartedPage() {
 								"Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:"
 							</p>
 							<pre class="code-block">
-								<code>{html VUE_BUN_INSTALL_HTML}</code>
+								<code innerHTML={VUE_BUN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">"Then use the plugin in your Bun build script:"</p>
 							<pre class="code-block">
-								<code>{html VUE_BUN_CONFIG_HTML}</code>
+								<code innerHTML={VUE_BUN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">"@tsrx/bun-plugin-vue"</code>
@@ -687,7 +687,7 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"Prettier"</h2>
 							<p class="section-body">"Install Prettier and the TSRX plugin:"</p>
 							<pre class="code-block">
-								<code>{html PRETTIER_INSTALL_HTML}</code>
+								<code innerHTML={PRETTIER_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
 								"Add the TSRX Prettier plugin to your "
@@ -697,7 +697,7 @@ export function GettingStartedPage() {
 								" modules:"
 							</p>
 							<pre class="code-block">
-								<code>{html PRETTIER_CONFIG_HTML}</code>
+								<code innerHTML={PRETTIER_CONFIG_HTML} />
 							</pre>
 						</section>
 
@@ -705,7 +705,7 @@ export function GettingStartedPage() {
 							<h2 class="section-heading">"ESLint"</h2>
 							<p class="section-body">"Install ESLint and the TSRX plugin:"</p>
 							<pre class="code-block">
-								<code>{html ESLINT_INSTALL_HTML}</code>
+								<code innerHTML={ESLINT_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
 								"The recommended flat config is the simplest starting point for "
@@ -713,7 +713,7 @@ export function GettingStartedPage() {
 								" files:"
 							</p>
 							<pre class="code-block">
-								<code>{html ESLINT_CONFIG_HTML}</code>
+								<code innerHTML={ESLINT_CONFIG_HTML} />
 							</pre>
 						</section>
 
@@ -731,7 +731,7 @@ export function GettingStartedPage() {
 								" workflows."
 							</p>
 							<pre class="code-block">
-								<code>{html TYPESCRIPT_PLUGIN_INSTALL_HTML}</code>
+								<code innerHTML={TYPESCRIPT_PLUGIN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
 								"Then register it in your "
@@ -743,7 +743,7 @@ export function GettingStartedPage() {
 								":"
 							</p>
 							<pre class="code-block">
-								<code>{html TYPESCRIPT_PLUGIN_CONFIG_HTML}</code>
+								<code innerHTML={TYPESCRIPT_PLUGIN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
 								"The plugin turns TSRX into virtual TypeScript for diagnostics, navigation,
@@ -767,7 +767,7 @@ export function GettingStartedPage() {
 								":"
 							</p>
 							<pre class="code-block">
-								<code>{html TYPECHECK_SCRIPT_HTML}</code>
+								<code innerHTML={TYPECHECK_SCRIPT_HTML} />
 							</pre>
 							<p class="section-body">
 								"Then run "
@@ -847,7 +847,7 @@ export function GettingStartedPage() {
 								" as a stdio MCP server so the tool can inspect your project."
 							</p>
 							<pre class="code-block">
-								<code>{html MCP_CONFIG_HTML}</code>
+								<code innerHTML={MCP_CONFIG_HTML} />
 							</pre>
 							<h3 class="subsection-heading">"Codex"</h3>
 							<p class="section-body">
@@ -856,7 +856,7 @@ export function GettingStartedPage() {
 								":"
 							</p>
 							<pre class="code-block">
-								<code>{html MCP_CODEX_CONFIG_HTML}</code>
+								<code innerHTML={MCP_CODEX_CONFIG_HTML} />
 							</pre>
 							<h3 class="subsection-heading">"Gemini CLI"</h3>
 							<p class="section-body">
@@ -883,7 +883,7 @@ export function GettingStartedPage() {
 							<h3 class="subsection-heading">"Claude Code"</h3>
 							<p class="section-body">"For Claude Code, add it directly from the command line:"</p>
 							<pre class="code-block">
-								<code>{html MCP_CLAUDE_CODE_HTML}</code>
+								<code innerHTML={MCP_CLAUDE_CODE_HTML} />
 							</pre>
 							<p class="section-body">
 								"In an existing repo, start with "

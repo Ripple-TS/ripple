@@ -71,7 +71,7 @@ function ExplicitTextApp() {
 function ExplicitHtmlApp() {
 	return <>
 		const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
-		<div class="explicit-html-child">{html markup()}</div>
+		<div class="explicit-html-child" innerHTML={markup()} />
 		<button
 			class="explicit-html-update"
 			onClick={() => {
@@ -89,7 +89,7 @@ function SpreadHtmlApp() {
 			innerHTML: '<em class="html-node">spread</em>',
 		});
 		const [markup, setMarkup] = createSignal('<span class="html-node">safe enough</span>');
-		<div class="spread-html-child" {...spreadProps()}>{html markup()}</div>
+		<div class="spread-html-child" {...spreadProps()} innerHTML={markup()} />
 		<button
 			class="spread-html-update-spread"
 			onClick={() => {

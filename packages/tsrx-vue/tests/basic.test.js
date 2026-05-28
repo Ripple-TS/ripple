@@ -468,45 +468,28 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('<div>{');
 	});
 
-	it('lowers a sole {html expr} host child to innerHTML', () => {
+	it('preserves host innerHTML props', () => {
 		const { code } = compile(
 			`function App() { return <>
 				const markup = '<strong>safe enough</strong>';
-				<div class="target">{html markup}</div>
+				<div class="target" innerHTML={markup} />
 			</>; }`,
 			'App.tsrx',
 		);
 
 		expect(code).toContain('innerHTML={markup}');
-		expect(code).not.toContain('{html markup}');
 	});
 
-	it('rejects {html expr} on composite elements', () => {
-		expect(() =>
-			compile(
-				`function Child(props) { return <>
-					<div {...props} />
-				</>; }
-
-				function App() { return <>
-					const markup = '<strong>safe enough</strong>';
-					<Child>{html markup}</Child>
-				</>; }`,
-				'App.tsrx',
-			),
-		).toThrow(/only supported as the sole child of an element/);
-	});
-
-	it('rejects {html expr} when mixed with sibling children', () => {
+	it('rejects removed {html expr} syntax', () => {
 		expect(() =>
 			compile(
 				`function App() { return <>
 					const markup = '<strong>safe enough</strong>';
-					<div>{html markup}<span>{'tail'}</span></div>
+					<div>{html markup}</div>
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow(/only supported as the sole child of an element/);
+		).toThrow();
 	});
 
 	it('compiles a simple if block in component bodies', () => {

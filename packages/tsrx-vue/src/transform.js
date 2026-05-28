@@ -16,7 +16,6 @@ import {
 	is_component_like_element,
 	MERGE_REFS_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
-	rewriteHostHtmlChildren as rewrite_host_html_children,
 	setLocation,
 	toJsxAttribute,
 } from '@tsrx/core';
@@ -132,13 +131,7 @@ const vue_platform = {
 			return builders.arrow([], jsx_child_to_expression(try_content));
 		},
 		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
-			return rewrite_host_text_or_html_children(
-				node,
-				walked_children,
-				raw_children,
-				attributes,
-				ctx,
-			);
+			return rewrite_host_text_children(node, walked_children, raw_children, attributes);
 		},
 		validateComponentAwait(await_expression, _component, ctx) {
 			error(
@@ -1207,29 +1200,11 @@ function get_vue_attribute_expression(attr) {
  * @param {any[]} walked_children
  * @param {any[]} raw_children
  * @param {any[]} attributes
- * @param {any} [transform_context]
  * @returns {{ children: any[]; selfClosing?: boolean } | null}
  */
-function rewrite_host_text_or_html_children(
-	node,
-	walked_children,
-	raw_children,
-	attributes,
-	transform_context,
-) {
+function rewrite_host_text_children(node, walked_children, raw_children, attributes) {
 	const source_children = raw_children || walked_children;
 	const is_composite = is_component_like_element(node);
-
-	const html_child_transform = rewrite_host_html_children(
-		node,
-		walked_children,
-		raw_children,
-		attributes,
-		transform_context,
-	);
-	if (html_child_transform) {
-		return html_child_transform;
-	}
 
 	if (!is_composite && source_children.length === 1 && source_children[0]?.type === 'Text') {
 		return null;

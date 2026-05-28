@@ -849,6 +849,109 @@ function ripple_namespace_requires_block(name) {
 }
 
 /**
+ * @param {AST.Element} node
+ * @param {TransformClientContext | VisitorClientContext} context
+ * @returns {boolean}
+ */
+function is_ripple_fragment_element(node, context) {
+	if (node.id.type === 'Identifier') {
+		return node.id.name === 'Fragment' && is_ripple_import(node.id, context);
+	}
+
+	return (
+		node.id.type === 'MemberExpression' &&
+		node.id.property.type === 'Identifier' &&
+		node.id.property.name === 'Fragment' &&
+		is_ripple_import(node.id, context)
+	);
+}
+
+/**
+ * @param {AST.Element} node
+ * @returns {AST.Attribute | null}
+ */
+function get_inner_html_attribute(node) {
+	for (const attr of node.attributes) {
+		if (
+			attr.type === 'Attribute' &&
+			attr.name.type === 'Identifier' &&
+			attr.name.name === 'innerHTML'
+		) {
+			return attr;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.Attribute} attr
+ * @param {VisitorClientContext} context
+ * @returns {AST.Expression}
+ */
+function get_attribute_value_expression(attr, context) {
+	if (attr.value === null) {
+		return b.literal('');
+	}
+
+	return /** @type {AST.Expression} */ (
+		context.visit(attr.value, {
+			...context.state,
+			flush_node: null,
+			metadata: { tracking: false },
+		})
+	);
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {AST.Identifier} id
+ * @returns {AST.Expression}
+ */
+function normalize_inner_html_expression(expression, id) {
+	return b.logical('??', expression, b.member(id, 'innerHTML'));
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {VisitorClientContext} context
+ * @returns {void}
+ */
+function visit_ripple_fragment_element(node, context) {
+	const { state, visit } = context;
+	const inner_html = get_inner_html_attribute(node);
+
+	if (inner_html !== null) {
+		state.template?.push('<!>');
+		const id = state.flush_node?.(false);
+		const expression = get_attribute_value_expression(inner_html, context);
+
+		state.update?.push({
+			operation: () =>
+				b.stmt(
+					b.call(
+						'_$_.html',
+						id,
+						b.thunk(expression),
+						state.namespace === 'svg' && b.true,
+						state.namespace === 'mathml' && b.true,
+					),
+				),
+		});
+		return;
+	}
+
+	transform_children(
+		node.children,
+		/** @type {VisitorClientContext} */ ({
+			visit,
+			state,
+			root: false,
+		}),
+	);
+}
+
+/**
  * @param {TransformClientContext} context
  * @param {Partial<TransformClientState>} [more_state]
  * @return TransformClientContext
@@ -1829,6 +1932,11 @@ const visitors = {
 			return expression;
 		}
 
+		if (is_ripple_fragment_element(node, context)) {
+			visit_ripple_fragment_element(node, context);
+			return;
+		}
+
 		if (context.state.inside_head) {
 			if (node.id.type === 'Identifier' && node.id.name === 'style') {
 				state.template?.push(`<style>${sanitizeTemplateString(node.css)}</style>`);
@@ -1894,6 +2002,7 @@ const visitors = {
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
+			const inner_html_attribute = get_inner_html_attribute(node);
 
 			state.template?.push(`<${element_name}`);
 
@@ -1901,6 +2010,48 @@ const visitors = {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {
 						const name = attr.name.name;
+
+						if (name === 'innerHTML') {
+							const id = state.flush_node?.();
+							const metadata = { tracking: false };
+							const expression =
+								attr.value === null
+									? b.literal('')
+									: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
+
+							if (metadata.tracking) {
+								local_updates.push({
+									operation: (key) =>
+										b.stmt(
+											b.assignment(
+												'=',
+												b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+												normalize_inner_html_expression(
+													/** @type {AST.Expression} */ (key),
+													/** @type {AST.Identifier} */ (id),
+												),
+											),
+										),
+									expression,
+									identity: attr.value ?? b.literal(''),
+									initial: b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+								});
+							} else {
+								state.init?.push(
+									b.stmt(
+										b.assignment(
+											'=',
+											b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
+											normalize_inner_html_expression(
+												expression,
+												/** @type {AST.Identifier} */ (id),
+											),
+										),
+									),
+								);
+							}
+							continue;
+						}
 
 						if (attr.value === null) {
 							handle_static_attr(name, true);
@@ -2225,12 +2376,13 @@ const visitors = {
 
 			if (!is_void) {
 				const element_name = /** @type {AST.Identifier} */ (node.id).name;
+				const render_children = inner_html_attribute === null ? node.children : [];
 				// Special handling for <template> elements
-				if (element_name === 'template' && node.children.length > 0) {
-					transform_template_element(node, state, visit, child_namespace, init, update);
+				if (element_name === 'template' && render_children.length > 0) {
+					transform_template_element(node, state, visit, child_namespace);
 				} else {
 					transform_children(
-						node.children,
+						render_children,
 						/** @type {VisitorClientContext} */ ({
 							visit,
 							state: {
@@ -2251,7 +2403,7 @@ const visitors = {
 				// Template elements never need pop() since we don't traverse into them
 				const needs_pop =
 					element_name !== 'template' &&
-					node.children.some(
+					render_children.some(
 						(child) =>
 							child.type === 'IfStatement' ||
 							child.type === 'TryStatement' ||
@@ -2260,7 +2412,6 @@ const visitors = {
 							child.type === 'Tsx' ||
 							child.type === 'Tsrx' ||
 							child.type === 'TsxCompat' ||
-							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							((child.type === 'TSRXExpression' || child.type === 'Text') &&
@@ -3484,9 +3635,6 @@ function transform_ts_child(node, context) {
 
 	if (node.type === 'TSRXExpression' || node.type === 'Text') {
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
-	} else if (node.type === 'Html') {
-		// Do we need to do something special here?
-		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Element') {
 		/** @type {ESTreeJSX.JSXElement['children']} */
 		const children = [];
@@ -3958,7 +4106,6 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
-		node.type === 'Html' ||
 		node.type === 'Tsx' ||
 		node.type === 'Tsrx' ||
 		node.type === 'TsxCompat' ||
@@ -4114,7 +4261,6 @@ function collect_returns_from_children(children) {
  * - Control flow children (IfStatement, ForOfStatement, etc.)
  * - Dynamic text children (non-Literal Text nodes)
  * - Non-DOM element children (components)
- * - Html children
  * - Dynamic descendants (recursive)
  * @param {AST.Element} element
  * @returns {boolean}
@@ -4145,8 +4291,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'SwitchStatement' ||
 			child.type === 'Tsx' ||
 			child.type === 'Tsrx' ||
-			child.type === 'TsxCompat' ||
-			child.type === 'Html'
+			child.type === 'TsxCompat'
 		) {
 			return true;
 		}
@@ -4188,80 +4333,38 @@ function element_has_dynamic_content(element) {
  * @param {TransformClientState} state - The transform state
  * @param {(node: AST.Node, state?: TransformClientState) => AST.Node} visit - The visitor function
  * @param {'html' | 'svg' | 'mathml'} child_namespace - The namespace for child elements
- * @param {Array<AST.Statement>} init - Array to push initialization statements
- * @param {import('../../../types/index').UpdateList} update - Array to push update statements
  */
-function transform_template_element(node, state, visit, child_namespace, init, update) {
-	// For template elements, check if children contain {html} expressions
-	const has_html_child = node.children.some((child) => child.type === 'Html');
+function transform_template_element(node, state, visit, child_namespace) {
+	const child_state = /** @type {TransformClientState} */ ({
+		...state,
+		template: [],
+		init: [],
+		update: [],
+		namespace: child_namespace,
+		skip_children_traversal: true,
+	});
 
-	if (has_html_child && node.children.length === 1 && node.children[0].type === 'Html') {
-		// Single {html} expression - set innerHTML reactively
-		const html_node = /** @type {AST.Html} */ (node.children[0]);
+	transform_children(
+		node.children,
+		/** @type {VisitorClientContext} */ ({
+			visit,
+			state: child_state,
+			root: false,
+		}),
+	);
+
+	const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
+		child_state.template
+	);
+
+	if (template_array.length > 0) {
+		const content_html = join_template(template_array);
 		const id = state.flush_node?.();
-		const metadata = { tracking: false };
-		const expression = /** @type {AST.Expression} */ (
-			visit(html_node.expression, { ...state, metadata })
+		state.init?.push(
+			b.stmt(
+				b.assignment('=', b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'), content_html),
+			),
 		);
-
-		if (metadata.tracking) {
-			update.push({
-				operation: (/** @type {AST.Expression | undefined} */ key) =>
-					b.stmt(
-						b.assignment(
-							'=',
-							b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-							/** @type {AST.Expression} */ (key),
-						),
-					),
-				expression,
-				identity: html_node.expression,
-				initial: b.literal(''),
-			});
-		} else {
-			state.init?.push(
-				b.stmt(
-					b.assignment('=', b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'), expression),
-				),
-			);
-		}
-	} else {
-		// Static or mixed content - serialize to string and set innerHTML once
-		const child_state = /** @type {TransformClientState} */ ({
-			...state,
-			template: [],
-			init: [],
-			update: [],
-			namespace: child_namespace,
-			skip_children_traversal: true,
-		});
-
-		transform_children(
-			node.children,
-			/** @type {VisitorClientContext} */ ({
-				visit,
-				state: child_state,
-				root: false,
-			}),
-		);
-
-		const template_array = /** @type {NonNullable<TransformClientState['template']>} */ (
-			child_state.template
-		);
-
-		if (template_array.length > 0) {
-			const content_html = join_template(template_array);
-			const id = state.flush_node?.();
-			state.init?.push(
-				b.stmt(
-					b.assignment(
-						'=',
-						b.member(/** @type {AST.Identifier} */ (id), 'innerHTML'),
-						content_html,
-					),
-				),
-			);
-		}
 	}
 }
 
@@ -4323,7 +4426,6 @@ function transform_children(children, context) {
 				node.type === 'Tsx' ||
 				node.type === 'Tsrx' ||
 				node.type === 'TsxCompat' ||
-				node.type === 'Html' ||
 				(node.type === 'Element' &&
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
@@ -4529,13 +4631,12 @@ function transform_children(children, context) {
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
 			let is_create_text_only = false;
-			if (node.type === 'TSRXExpression' || node.type === 'Text' || node.type === 'Html') {
+			if (node.type === 'TSRXExpression' || node.type === 'Text') {
 				metadata = { tracking: false };
 				expression = /** @type {AST.Expression} */ (
 					visit(node.expression, { ...state, flush_node: null, metadata })
 				);
-				is_create_text_only =
-					node.type !== 'Html' && normalized.length === 1 && expression.type === 'Literal';
+				is_create_text_only = normalized.length === 1 && expression.type === 'Literal';
 			}
 
 			if (initial === null && root && !is_create_text_only) {
@@ -4604,10 +4705,10 @@ function transform_children(children, context) {
 				// We only need pop() when we actually DESCEND into the element, which happens when:
 				// - There are Element children (including DOM elements like <button>)
 				// - There are non-literal Text children (we navigate to set text content)
-				// - There are control flow / Html / component children
+				// - There are control flow / component children
 				//
 				// The Element visitor already adds pop() for non-literal text, control flow,
-				// Html, and component (non-DOM element) children. We need to ALSO add pop()
+				// and component (non-DOM element) children. We need to ALSO add pop()
 				// when there are DOM element children, which the Element visitor doesn't cover.
 				const next_node = normalized[node_idx + 1];
 				if (next_node && is_element_dom_element(node) && node.children.length > 0) {
@@ -4630,7 +4731,6 @@ function transform_children(children, context) {
 							child.type === 'Tsx' ||
 							child.type === 'Tsrx' ||
 							child.type === 'TsxCompat' ||
-							child.type === 'Html' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							((child.type === 'TSRXExpression' || child.type === 'Text') &&
@@ -4664,23 +4764,6 @@ function transform_children(children, context) {
 					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
-				});
-			} else if (node.type === 'Html') {
-				context.state.template?.push('<!>');
-				skipped = 0;
-
-				const id = flush_node(false);
-				state.update?.push({
-					operation: () =>
-						b.stmt(
-							b.call(
-								'_$_.html',
-								id,
-								b.thunk(/** @type {AST.Expression} */ (expression)),
-								state.namespace === 'svg' && b.true,
-								state.namespace === 'mathml' && b.true,
-							),
-						),
 				});
 			} else if (node.type === 'TSRXExpression') {
 				const expr = /** @type {AST.Expression} */ (expression);

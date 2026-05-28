@@ -80,8 +80,8 @@ const TEXT_KW_HTML = highlight_tsrx(
 const HTML_KW_HTML = highlight_tsrx(
 	`function Article({ markup }: { markup: string }) {
   return <>
-    // {html ...} inserts trusted markup as raw HTML.
-    <article>{html markup}</article>
+    // innerHTML inserts trusted markup as raw HTML.
+    <article innerHTML={markup} />
   </>;
 }`,
 );
@@ -434,7 +434,7 @@ export function FeaturesPage() {
 								{' declarations. Props are typed with a single parameter, normal JavaScript setup can run before the return, and the returned TSRX template contains the rendered structure, control flow, and scoped styles.'}
 							</p>
 							<pre class="code-block">
-								<code>{html COMPONENT_HTML}</code>
+								<code innerHTML={COMPONENT_HTML} />
 							</pre>
 							<p class="section-body">
 								{'Export components with '}
@@ -449,7 +449,7 @@ export function FeaturesPage() {
 								{' next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression — it stays ordinary JavaScript, outside the returned template rules.'}
 							</p>
 							<pre class="code-block">
-								<code>{html BAILOUT_HTML}</code>
+								<code innerHTML={BAILOUT_HTML} />
 							</pre>
 						</section>
 
@@ -465,7 +465,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TEMPLATE_HTML}</code>
+								<code innerHTML={TEMPLATE_HTML} />
 							</pre>
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}
@@ -478,7 +478,7 @@ export function FeaturesPage() {
 								{':'}
 							</p>
 							<pre class="code-block">
-								<code>{html TSX_EXPR_HTML}</code>
+								<code innerHTML={TSX_EXPR_HTML} />
 							</pre>
 						</section>
 
@@ -490,7 +490,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TEXT_EXPR_HTML}</code>
+								<code innerHTML={TEXT_EXPR_HTML} />
 							</pre>
 							<p class="section-body">
 								{'Adjacent '}
@@ -515,7 +515,7 @@ export function FeaturesPage() {
 								{') are escaped. Use this when the surrounding context could otherwise be ambiguous — for example when the expression might resolve to a JSX fragment, or when you want to guarantee text handling for untrusted input.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TEXT_KW_HTML}</code>
+								<code innerHTML={TEXT_KW_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'Omitting '}
@@ -527,21 +527,28 @@ export function FeaturesPage() {
 						<section class="doc-section" id="raw-html">
 							<h2 class="section-heading">{'Raw HTML'}</h2>
 							<p class="section-body">
-								{'The '}
-								<code class="inline-code">{'{html expr}'}</code>
-								{' directive is an escape hatch for inserting pre-rendered markup directly into the DOM, similar in spirit to Svelte\'s '}
-								<code class="inline-code">{'{@html ...}'}</code>
-								{'. Use it as child content: '}
-								<code class="inline-code">{'<article>{html source}</article>'}</code>
+								{'Use each target framework\'s native raw HTML prop when you need to insert pre-rendered markup directly into the DOM. In Ripple, Solid, and Vue that is '}
+								<code class="inline-code">{'innerHTML'}</code>
+								{'; in React and Preact it is '}
+								<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
 								{'.'}
 							</p>
 							<p class="section-body">
-								{'The html expression '}
-								<code class="inline-code">{'{html ...}'}</code>
-								{' must be the sole child of a host element. Ripple also supports child-level raw HTML mixed with sibling children.'}
+								{'For host elements, pass trusted markup as a prop: '}
+								<code class="inline-code">{'<article innerHTML={source} />'}</code>
+								{'.'}
+							</p>
+							<p class="section-body">
+								{'When raw markup needs to sit beside normal Ripple children, import '}
+								<code class="inline-code">{'Fragment'}</code>
+								{' from '}
+								<code class="inline-code">{'ripple'}</code>
+								{' and render '}
+								<code class="inline-code">{'<Fragment innerHTML={source} />'}</code>
+								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html HTML_KW_HTML}</code>
+								<code innerHTML={HTML_KW_HTML} />
 							</pre>
 
 							<table class="ref-target-table">
@@ -549,18 +556,18 @@ export function FeaturesPage() {
 									<tr>
 										<th>{'Framework'}</th>
 										<th>
-											{'Children use'}
+											{'Host prop'}
 											<br />
-											<code class="inline-code">{'<div>{html markup}</div>'}</code>
+											<code class="inline-code">{'<div innerHTML={markup} />'}</code>
 										</th>
-										<th>{'Sibling children'}</th>
+										<th>{'Fragment prop'}</th>
 										<th>{'Maps to'}</th>
 									</tr>
 								</thead>
 								<tbody>
 									<tr>
 										<td>{'React'}</td>
-										<td>{'✓ sole child'}</td>
+										<td>{'dangerouslySetInnerHTML'}</td>
 										<td>{'No'}</td>
 										<td>
 											<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
@@ -568,7 +575,7 @@ export function FeaturesPage() {
 									</tr>
 									<tr>
 										<td>{'Preact'}</td>
-										<td>{'✓ sole child'}</td>
+										<td>{'dangerouslySetInnerHTML'}</td>
 										<td>{'No'}</td>
 										<td>
 											<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
@@ -576,7 +583,7 @@ export function FeaturesPage() {
 									</tr>
 									<tr>
 										<td>{'Solid'}</td>
-										<td>{'✓ sole child'}</td>
+										<td>{'innerHTML'}</td>
 										<td>{'No'}</td>
 										<td>
 											<code class="inline-code">{'innerHTML'}</code>
@@ -584,7 +591,7 @@ export function FeaturesPage() {
 									</tr>
 									<tr>
 										<td>{'Vue'}</td>
-										<td>{'✓ sole child'}</td>
+										<td>{'innerHTML'}</td>
 										<td>{'No'}</td>
 										<td>
 											<code class="inline-code">{'innerHTML'}</code>
@@ -592,7 +599,7 @@ export function FeaturesPage() {
 									</tr>
 									<tr>
 										<td>{'Ripple'}</td>
-										<td>{'✓ with siblings'}</td>
+										<td>{'innerHTML'}</td>
 										<td>{'Yes'}</td>
 										<td>
 											<code class="inline-code">{'native'}</code>
@@ -602,9 +609,7 @@ export function FeaturesPage() {
 							</table>
 							<p class="section-body muted">
 								<strong>{'Security: '}</strong>
-								{'only use '}
-								<code class="inline-code">{'{html ...}'}</code>
-								{' with content you trust. Any string that originated from user input must be sanitised first — otherwise you\'re opening an XSS vector. If in doubt, stick with the default '}
+								{'only use raw HTML props with content you trust. Any string that originated from user input must be sanitised first — otherwise you\'re opening an XSS vector. If in doubt, stick with the default '}
 								<code class="inline-code">{'{ ... }'}</code>
 								{' container or '}
 								<code class="inline-code">{'{text ...}'}</code>
@@ -627,7 +632,7 @@ export function FeaturesPage() {
 								{' preserves that reactivity while keeping the ergonomic destructuring syntax:'}
 							</p>
 							<pre class="code-block">
-								<code>{html LAZY_PROPS_HTML}</code>
+								<code innerHTML={LAZY_PROPS_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.'}
@@ -646,7 +651,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SHORTHAND_HTML}</code>
+								<code innerHTML={SHORTHAND_HTML} />
 							</pre>
 						</section>
 
@@ -696,7 +701,7 @@ export function FeaturesPage() {
 								{' are useful for component APIs, and they also work on host elements: TSRX applies them as refs instead of emitting them as attributes.'}
 							</p>
 							<pre class="code-block">
-								<code>{html REFS_HTML}</code>
+								<code innerHTML={REFS_HTML} />
 							</pre>
 							<p class="section-body">
 								{'A ref value can be a callback, a mutable variable in named-ref form, or the target framework\'s ref object, such as React/Preact '}
@@ -714,7 +719,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html REFS_OBJECT_HTML}</code>
+								<code innerHTML={REFS_OBJECT_HTML} />
 							</pre>
 							<p class="section-body">
 								{'For reusable components, use a named ref prop when the component API needs a specific ref name. Refs can be forwarded explicitly or through '}
@@ -731,7 +736,7 @@ export function FeaturesPage() {
 								{' when a Vue component should expose an inner DOM ref.'}
 							</p>
 							<pre class="code-block">
-								<code>{html REFS_NAMED_HTML}</code>
+								<code innerHTML={REFS_NAMED_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'Named ref props are marked at runtime. Use '}
@@ -748,7 +753,7 @@ export function FeaturesPage() {
 								{'Every returned TSRX template and nested element creates its own lexical scope. You can declare variables, compute derived values, or call functions inside an element\'s children — they\'re scoped to that block and won\'t leak into the surrounding function.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SCOPING_HTML}</code>
+								<code innerHTML={SCOPING_HTML} />
 							</pre>
 							<p class="section-body">
 								{'This applies to all block-like contexts: element children, component children, and control flow branches ('}
@@ -774,7 +779,7 @@ export function FeaturesPage() {
 								{' prop explicitly instead:'}
 							</p>
 							<pre class="code-block">
-								<code>{html CHILDREN_HTML}</code>
+								<code innerHTML={CHILDREN_HTML} />
 							</pre>
 							<p class="section-body">
 								<strong>{'Render props: '}</strong>
@@ -791,7 +796,7 @@ export function FeaturesPage() {
 								{' for JSX-style values.'}
 							</p>
 							<pre class="code-block">
-								<code>{html RENDER_PROPS_HTML}</code>
+								<code innerHTML={RENDER_PROPS_HTML} />
 							</pre>
 						</section>
 
@@ -807,7 +812,7 @@ export function FeaturesPage() {
 								{' statements directly inside templates. No ternaries or wrapper components needed.'}
 							</p>
 							<pre class="code-block">
-								<code>{html IF_HTML}</code>
+								<code innerHTML={IF_HTML} />
 							</pre>
 						</section>
 
@@ -847,7 +852,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html FOR_HTML}</code>
+								<code innerHTML={FOR_HTML} />
 							</pre>
 						</section>
 
@@ -861,7 +866,7 @@ export function FeaturesPage() {
 								{'.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SWITCH_HTML}</code>
+								<code innerHTML={SWITCH_HTML} />
 							</pre>
 						</section>
 
@@ -875,7 +880,7 @@ export function FeaturesPage() {
 								{' to create error boundaries. If a child component throws, the catch block renders fallback UI.'}
 							</p>
 							<pre class="code-block">
-								<code>{html TRY_HTML}</code>
+								<code innerHTML={TRY_HTML} />
 							</pre>
 						</section>
 
@@ -925,7 +930,7 @@ export function FeaturesPage() {
 								{' is not supported inside component templates. Use an upstream async helper and render the resolved data.'}
 							</p>
 							<pre class="code-block">
-								<code>{html ASYNC_BOUNDARY_HTML}</code>
+								<code innerHTML={ASYNC_BOUNDARY_HTML} />
 							</pre>
 						</section>
 
@@ -937,7 +942,7 @@ export function FeaturesPage() {
 								{' block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the function return that defines them. A parent\'s scoped styles will not leak into child components.'}
 							</p>
 							<pre class="code-block">
-								<code>{html SCOPED_STYLES_HTML}</code>
+								<code innerHTML={SCOPED_STYLES_HTML} />
 							</pre>
 							<p class="section-body">
 								{'To escape scoping and apply styles globally, wrap a selector in '}
@@ -958,7 +963,7 @@ export function FeaturesPage() {
 								{' attribute.'}
 							</p>
 							<pre class="code-block">
-								<code>{html STYLE_COMPOSITION_HTML}</code>
+								<code innerHTML={STYLE_COMPOSITION_HTML} />
 							</pre>
 							<p class="section-body">
 								{'The class referenced via '}
@@ -981,7 +986,7 @@ export function FeaturesPage() {
 								{', or another value according to the target component type.'}
 							</p>
 							<pre class="code-block">
-								<code>{html RETURN_HTML}</code>
+								<code innerHTML={RETURN_HTML} />
 							</pre>
 							<p class="section-body muted">
 								{'A function can also return TSRX directly from a plain JavaScript branch, just like TSX. The statement-template rules only apply after the returned TSRX expression has opened.'}
@@ -1004,7 +1009,7 @@ export function FeaturesPage() {
 								{' and TSRX will emit an async component function when it appears in the returned template.'}
 							</p>
 							<pre class="code-block">
-								<code>{html REACT_HOOKS_HTML}</code>
+								<code innerHTML={REACT_HOOKS_HTML} />
 							</pre>
 						</section>
 					</main>

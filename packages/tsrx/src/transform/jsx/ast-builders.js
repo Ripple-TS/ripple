@@ -248,7 +248,6 @@ export function is_jsx_child(node) {
 		t === 'Element' ||
 		t === 'Text' ||
 		t === 'TSRXExpression' ||
-		t === 'Html' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
 		t === 'SwitchStatement' ||

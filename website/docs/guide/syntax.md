@@ -231,8 +231,8 @@ that evaluates to our desired value.
 ## Raw HTML
 
 By default, all text nodes in Ripple are escaped to prevent unintended script
-injections. If you'd like to render trusted HTML onto your page, you can use the
-HTML directive to opt-out:
+injections. If you'd like to render trusted HTML onto your page, use the native
+`innerHTML` prop:
 
 ```ripple
 export function App() {
@@ -242,7 +242,7 @@ export function App() {
 <p>Hi! I like JS and Ripple.</p>
 `;
 
-  <article>{html source}</article>
+  <article innerHTML={source} />
 
   </>;
 }
@@ -253,7 +253,7 @@ following example will not work, since closing tags by themselves are considered
 malformed HTML.
 
 ```ripple
-{html '<div>'}content{html '</div>'}
+<article innerHTML={'<div>content</div>'} />
 ```
 
 :::
@@ -285,7 +285,7 @@ export function Frame({ children }) {
 
 The `{text}` directive guarantees the expression is treated as text content. Like
 regular expressions, the value is HTML-escaped to prevent script injections.
-Unlike `{html}`, the content is never parsed as HTML.
+The content is never parsed as HTML.
 
 This is particularly useful when you have text alongside `{children}`, since the
 compiler can optimize `{text}` expressions more efficiently than general

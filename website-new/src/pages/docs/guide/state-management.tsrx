@@ -21,7 +21,7 @@ export function StateManagementPage() {
 			toc={doc.toc}
 			currentPath="/docs/guide/state-management"
 		>
-			<div class="doc-content">{html doc.html}</div>
+			<div class="doc-content" innerHTML={doc.html} />
 		</DocsLayout>
 	</>;
 }

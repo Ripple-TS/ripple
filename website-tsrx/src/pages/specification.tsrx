@@ -54,7 +54,6 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
 	'  { text AssignmentExpression }',
-	'  { html AssignmentExpression }',
 ].join('\n');
 
 const LAZY_GRAMMAR = [
@@ -85,7 +84,6 @@ const AST_NODE_MAPPING = [
 	'ElementStatement -> Element',
 	'{ AssignmentExpression } in template position -> TSRXExpression',
 	'{ text AssignmentExpression } in template position -> Text',
-	'{ html AssignmentExpression } in template position -> Html',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
 	'ref={ AssignmentExpression } -> RefAttribute',
@@ -133,12 +131,6 @@ const TEMPLATE_AST_SHAPE = [
 	'  type: \'Text\';',
 	'  expression: Expression;',
 	'}',
-	'',
-	'interface Html {',
-	'  type: \'Html\';',
-	'  expression: Expression;',
-	'}',
-	'',
 	'interface Attribute {',
 	'  type: \'Attribute\';',
 	'  name: Identifier;',
@@ -400,11 +392,9 @@ export function SpecificationPage() {
 							<p class="section-body">
 								{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
-								{' contributes a generic template-expression node. The keyword-prefixed forms '}
+								{' contributes a generic template-expression node. The keyword-prefixed form '}
 								<code class="inline-code">{'{text AssignmentExpression}'}</code>
-								{' and '}
-								<code class="inline-code">{'{html AssignmentExpression}'}</code>
-								{' request escaped-text and raw-markup handling respectively.'}
+								{' requests explicit escaped-text handling.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
@@ -430,13 +420,7 @@ export function SpecificationPage() {
 									{' and forces escaped text-node handling.'}
 								</li>
 								<li>
-									<code class="inline-code">{'{html AssignmentExpression}'}</code>
-									{' is represented by '}
-									<code class="inline-code">{'Html'}</code>
-									{' and requests host-defined raw-markup handling.'}
-								</li>
-								<li>
-									{'The text and html keywords are only distinguished in this braced template-expression position; elsewhere they remain ordinary identifiers.'}
+									{'The text keyword is only distinguished in this braced template-expression position; elsewhere it remains an ordinary identifier.'}
 								</li>
 							</ul>
 							<h3 class="appendix-heading">{'4.3.1 Whitespace'}</h3>
@@ -449,14 +433,10 @@ export function SpecificationPage() {
 									<code class="inline-code">{'{ AssignmentExpression }'}</code>
 									{', '}
 									<code class="inline-code">{'{text AssignmentExpression}'}</code>
-									{', and '}
-									<code class="inline-code">{'{html AssignmentExpression}'}</code>
 									{', whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as '}
 									<code class="inline-code">{'{ expr }'}</code>
 									{', '}
 									<code class="inline-code">{'{ text expr }'}</code>
-									{', and '}
-									<code class="inline-code">{'{ html expr }'}</code>
 									{' are well-formed.'}
 								</li>
 								<li>
@@ -555,8 +535,6 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									<code class="inline-code">{'{text }'}</code>
-									{' and '}
-									<code class="inline-code">{'{html }'}</code>
 									{' are not well-formed and must be rejected.'}
 								</li>
 								<li>
@@ -602,7 +580,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">{'Appendices'}</h2>
 							<p class="section-body">
-								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, Html, Style, TSModuleDeclaration, TSModuleBlock, Attribute, RefAttribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, Style, TSModuleDeclaration, TSModuleBlock, Attribute, RefAttribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
 							</p>
 							<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
 							<p class="section-body">
@@ -660,9 +638,6 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									{'Text wraps either a direct double-quoted static text child or the embedded ECMAScript expression from the explicit {text expr} form, and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
-								</li>
-								<li>
-									{'Html wraps the embedded ECMAScript expression from the explicit {html expr} form and marks it for host-defined raw-markup handling.'}
 								</li>
 								<li>
 									{'Attribute.value is null for boolean-style attributes with no initializer, while shorthand marks parser-recognized shorthand cases.'}

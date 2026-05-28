@@ -358,7 +358,7 @@ function App() {
 Use `<tsx:react>...</tsx:react>` only when intentionally switching to React JSX
 compat semantics.
 
-### Text children and expressions: `"..."`, `{ ... }`, `{text ...}`, `{html ...}`
+### Text children and expressions: `"..."`, `{ ... }`, `{text ...}`
 
 Double-quoted static text may appear directly as a child. Every expression
 container holds a single JS/TS expression — string, template literal, variable,
@@ -393,24 +393,26 @@ function Price({ amount }: { amount: number }) {
 }
 ```
 
-#### `{html expr}` — raw HTML
+#### Raw HTML
 
-To render trusted raw HTML strings, use the `{html}` directive as child content:
-`<article>{html source}</article>`.
+To render trusted raw HTML strings, use each target framework's native raw HTML
+prop. Ripple, Solid, and Vue use `innerHTML`; React and Preact use
+`dangerouslySetInnerHTML`.
 
-Except for Ripple, `{html ...}` must be the sole child of a host element.
-Ripple supports child-level `{html ...}` mixed with sibling children.
+Ripple also supports fragment-level raw markup via
+`<Fragment innerHTML={source} />` when markup needs to sit beside normal
+children.
 
 ```tsrx
 function Article({ markup }: { markup: string }) {
   return <>
-  <article>{html markup}</article>
+  <article innerHTML={markup} />
 
   </>;
 }
 ```
 
-**Security:** only use `{html ...}` with trusted / sanitized input — it is
+**Security:** only use raw HTML props with trusted / sanitized input — it is
 an XSS vector by design.
 
 ### Lazy destructuring — `&{ ... }` / `&[ ... ]`
@@ -922,8 +924,8 @@ Ripple is both a compiler target and a runtime. See the Ripple llms.txt
 - `track()` / `.value` / `&[]` reactive primitives
 - `effect()`, `untrack()`, `mount()`, `hydrate()`
 - `RippleArray`, `RippleObject`, `RippleMap`, `RippleSet`, `RippleDate`
-- `{html ...}` raw-HTML child (Ripple only)
-- Vue host-element `{html ...}` lowering and callback refs
+- `innerHTML` and `Fragment innerHTML` for trusted raw markup
+- Vue host-element `innerHTML` and callback refs
 - `Context` API, `Portal`, transporting reactivity across function boundaries
 
 ## Common patterns
@@ -1020,7 +1022,7 @@ function List<T>({ items, render }: Props<T>) {
 | TSRX fragment as value | `const v = <> const x = 1; <span>{x}</span> </>;` |
 | Text content | `<p>"literal"</p>`, `<p>{expr}</p>` |
 | Forced escaped text | `<span>{text expr}</span>` |
-| Raw HTML | `<article>{html markup}</article>` |
+| Raw HTML | `<article innerHTML={markup} />` |
 | Lazy prop destructure | `function C(&{ x, y }: Props) { return <>...</>; }` |
 | Lazy array destructure | `let &[count, set] = createSignal(0);` |
 | Prop shorthand | `<Input {value} {onChange} />` |
