@@ -354,9 +354,6 @@ export function TSRXPlugin(config) {
 			 */
 			#reportDynamicJsxElementsInTsx(children) {
 				for (const child of children) {
-					if (child?.type === 'Tsrx') {
-						continue;
-					}
 					if (child?.type === 'JSXElement') {
 						const name = child.openingElement?.name;
 						const is_dynamic_name =
@@ -519,25 +516,16 @@ export function TSRXPlugin(config) {
 			 */
 			#isReservedTemplateTagNameStart(index) {
 				const char_after_tsx = this.input.charCodeAt(index + 3);
-				const char_after_tsrx = this.input.charCodeAt(index + 4);
 				return (
-					(this.input.startsWith('tsx', index) &&
-						(index + 3 >= this.input.length ||
-							char_after_tsx === CharCode.greaterThan ||
-							char_after_tsx === CharCode.slash ||
-							char_after_tsx === CharCode.space ||
-							char_after_tsx === CharCode.tab ||
-							char_after_tsx === CharCode.lineFeed ||
-							char_after_tsx === CharCode.carriageReturn ||
-							char_after_tsx === CharCode.colon)) ||
-					(this.input.startsWith('tsrx', index) &&
-						(index + 4 >= this.input.length ||
-							char_after_tsrx === CharCode.greaterThan ||
-							char_after_tsrx === CharCode.slash ||
-							char_after_tsrx === CharCode.space ||
-							char_after_tsrx === CharCode.tab ||
-							char_after_tsrx === CharCode.lineFeed ||
-							char_after_tsrx === CharCode.carriageReturn))
+					this.input.startsWith('tsx', index) &&
+					(index + 3 >= this.input.length ||
+						char_after_tsx === CharCode.greaterThan ||
+						char_after_tsx === CharCode.slash ||
+						char_after_tsx === CharCode.space ||
+						char_after_tsx === CharCode.tab ||
+						char_after_tsx === CharCode.lineFeed ||
+						char_after_tsx === CharCode.carriageReturn ||
+						char_after_tsx === CharCode.colon)
 				);
 			}
 
@@ -2793,7 +2781,7 @@ export function TSRXPlugin(config) {
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
 									: this.getElementName(closingElement.name);
 						} else if (currentElement.type === 'Tsrx') {
-							openingTagName = 'tsrx';
+							openingTagName = '';
 							closingTagName =
 								closingElement.name?.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
@@ -2837,7 +2825,7 @@ export function TSRXPlugin(config) {
 												? 'tsx'
 												: null
 											: elem.type === 'Tsrx'
-												? 'tsrx'
+												? ''
 												: elem.id
 													? this.getElementName(elem.id)
 													: null;
@@ -2865,7 +2853,7 @@ export function TSRXPlugin(config) {
 						) {
 							const elementToCloseName =
 								elementToClose.type === 'Tsrx'
-									? 'tsrx'
+									? ''
 									: /** @type {AST.Element} */ (elementToClose).id
 										? this.getElementName(/** @type {AST.Element} */ (elementToClose).id)
 										: null;
