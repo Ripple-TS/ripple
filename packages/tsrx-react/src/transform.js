@@ -32,6 +32,7 @@ const react_platform = {
 	},
 	hooks: {
 		moduleScopedHookComponents: true,
+		componentBodyHookHelpers: true,
 	},
 };
 

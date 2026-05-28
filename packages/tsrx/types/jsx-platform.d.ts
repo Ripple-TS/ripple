@@ -170,6 +170,11 @@ export interface JsxPlatformHooks {
 	 */
 	moduleScopedHookComponents?: boolean;
 	/**
+	 * Split ordinary uppercase function component bodies when an early
+	 * conditional return would make later React/Preact hooks conditional.
+	 */
+	componentBodyHookHelpers?: boolean;
+	/**
 	 * Inject module-level imports after the main walk. Default: import
 	 * `Suspense` from `platform.imports.suspense` and `TsrxErrorBoundary`
 	 * from `platform.imports.errorBoundary` if the walk flagged them.

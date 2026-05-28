@@ -277,7 +277,7 @@ export function createJsxTransform(platform) {
 				// platform hook (e.g. Solid's textContent optimization) can
 				// inspect the original Text / TSRXExpression nodes rather than
 				// their walker-lowered JSXExpressionContainer equivalents.
-				const raw_children = (/** @type {any} */ (node).children || []).map(
+				const raw_children = /** @type {any} */ ((node).children || []).map(
 					(/** @type {any} */ child) => (child && typeof child === 'object' ? { ...child } : child),
 				);
 				const inner = /** @type {any} */ (next() ?? node);
@@ -723,6 +723,138 @@ function find_hook_safe_split_index(body_nodes, transform_context) {
 }
 
 /**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {boolean}
+ */
+function function_needs_component_body_hook_split(node, transform_context) {
+	return (
+		transform_context.platform.hooks?.componentBodyHookHelpers === true &&
+		node.body?.type === 'BlockStatement' &&
+		find_component_body_hook_split_index(node.body.body || [], transform_context) !== -1
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function rewrite_component_body_conditional_hook_splits(node, transform_context) {
+	if (
+		transform_context.platform.hooks?.componentBodyHookHelpers !== true ||
+		!should_extract_hook_helpers(transform_context) ||
+		node.body?.type !== 'BlockStatement'
+	) {
+		return;
+	}
+
+	const body = node.body.body || [];
+	const split_index = find_component_body_hook_split_index(body, transform_context);
+	if (split_index === -1) {
+		return;
+	}
+
+	const split_statement = body[split_index];
+	const continuation_body = body.slice(split_index + 1);
+	const helper = create_hook_safe_helper(
+		continuation_body,
+		undefined,
+		get_body_source_node(continuation_body) || split_statement,
+		transform_context,
+	);
+
+	node.body.body = [
+		...body.slice(0, split_index + 1),
+		...helper.setup_statements,
+		set_loc(b.return(helper.component_element), split_statement),
+	];
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {number}
+ */
+function find_component_body_hook_split_index(body_nodes, transform_context) {
+	for (let i = 0; i < body_nodes.length; i += 1) {
+		if (!is_component_body_conditional_return_statement(body_nodes[i])) {
+			continue;
+		}
+
+		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context, true)) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_component_body_conditional_return_statement(node) {
+	if (node?.type !== 'IfStatement') {
+		return false;
+	}
+
+	return (
+		statement_contains_component_body_return(node.consequent) ||
+		statement_contains_component_body_return(node.alternate)
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function statement_contains_component_body_return(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+
+	if (node.type === 'ReturnStatement') {
+		return true;
+	}
+
+	if (is_function_or_class_boundary(node)) {
+		return false;
+	}
+
+	if (Array.isArray(node)) {
+		return node.some(statement_contains_component_body_return);
+	}
+
+	if (node.type === 'BlockStatement') {
+		return (node.body || []).some(statement_contains_component_body_return);
+	}
+
+	if (node.type === 'IfStatement') {
+		return (
+			statement_contains_component_body_return(node.consequent) ||
+			statement_contains_component_body_return(node.alternate)
+		);
+	}
+
+	if (node.type === 'SwitchStatement') {
+		return (node.cases || []).some((/** @type {any} */ switch_case) =>
+			statement_contains_component_body_return(switch_case.consequent || []),
+		);
+	}
+
+	if (node.type === 'TryStatement') {
+		return (
+			statement_contains_component_body_return(node.block) ||
+			statement_contains_component_body_return(node.handler?.body) ||
+			statement_contains_component_body_return(node.finalizer)
+		);
+	}
+
+	return false;
+}
+
+/**
  * @param {any[]} body_nodes
  * @param {TransformContext} transform_context
  * @param {boolean} include_platform_setup
@@ -1000,6 +1132,7 @@ function transform_native_tsrx_function(node, { next, state, path }) {
 
 	validate_native_tsrx_function_await(node, state);
 	expand_native_tsrx_function_returns(node, state);
+	rewrite_component_body_conditional_hook_splits(node, state);
 
 	const inner = /** @type {any} */ (next() ?? node);
 
@@ -1143,10 +1276,12 @@ function find_first_top_level_await_in_native_tsrx_statement(statement) {
  * @returns {any}
  */
 function transform_function_with_hook_helpers(node, { next, state, path }) {
+	const has_hook_bearing_tsrx = function_contains_hook_bearing_tsrx(node, state);
+	const has_component_body_hook_split = function_needs_component_body_hook_split(node, state);
 	if (
 		state.helper_state ||
 		!is_uppercase_function_like(node, path) ||
-		!function_contains_hook_bearing_tsrx(node, state)
+		(!has_hook_bearing_tsrx && !has_component_body_hook_split)
 	) {
 		return ensure_function_metadata(node, { next });
 	}
@@ -1159,6 +1294,10 @@ function transform_function_with_hook_helpers(node, { next, state, path }) {
 	state.helper_state = helper_state;
 	state.hook_helpers_enabled = true;
 	state.available_bindings = collect_function_scope_bindings(node);
+
+	if (has_component_body_hook_split) {
+		rewrite_component_body_conditional_hook_splits(node, state);
+	}
 
 	const inner = /** @type {any} */ (next() ?? node);
 

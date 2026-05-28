@@ -796,8 +796,8 @@ describe('@tsrx/react basic', () => {
 	it('keeps hooks unconditional after switch-based early exits', () => {
 		const source = `import { useEffect } from 'react';
 
-			export function App() { return <>
-				const count = 0;
+				export function App() { return <>
+					const count = 0;
 
 				switch (count) {
 					case 0:
@@ -820,6 +820,31 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 		expect(code.indexOf('useEffect(')).toBeLessThan(code.indexOf('return <>'));
 		expect(mappings.errors).toEqual([]);
+	});
+
+	it('extracts component-body hooks after early null returns', () => {
+		const { code } = compile(
+			`import { useEffect } from 'react';
+
+				export function App({ x }: { x: boolean }) {
+					if (x) {
+						return null;
+					}
+
+					useEffect(() => {});
+
+					return null;
+				}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('useEffect(() => {});');
+		expect(code).toContain('return <App__StatementBodyHook1 />;');
+		expect(code.indexOf('function App__StatementBodyHook1')).toBeLessThan(
+			code.indexOf('export function App'),
+		);
+		expect(code.indexOf('useEffect(() => {});')).toBeLessThan(code.indexOf('export function App'));
 	});
 
 	it('supports template statement children inside elements', () => {

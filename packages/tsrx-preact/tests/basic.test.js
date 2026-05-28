@@ -198,6 +198,31 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
+	it('extracts component-body hooks after early null returns', () => {
+		const { code } = compile(
+			`import { useEffect } from 'preact/hooks';
+
+				export function App({ x }: { x: boolean }) {
+					if (x) {
+						return null;
+					}
+
+					useEffect(() => {});
+
+					return null;
+				}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('useEffect(() => {});');
+		expect(code).toContain('return <App__StatementBodyHook1 />;');
+		expect(code.indexOf('function App__StatementBodyHook1')).toBeLessThan(
+			code.indexOf('export function App'),
+		);
+		expect(code.indexOf('useEffect(() => {});')).toBeLessThan(code.indexOf('export function App'));
+	});
+
 	it('does not hoist render-time expressions across early returns', () => {
 		const { code } = compile(
 			`export function Test() {
