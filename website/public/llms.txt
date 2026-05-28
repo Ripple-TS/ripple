@@ -71,8 +71,8 @@ export function Panel({ title, children }: { title: string; children: any }) {
 - Keep `<style>` blocks inside the TSRX fragment/expression they style.
 
 **LLM DON'T:**
-- Do not use the removed `component` keyword.
-- Do not claim TSRX templates are restricted to special component bodies.
+- Do not invent a custom declaration form for components.
+- Do not claim TSRX templates are restricted to special declarations or bodies.
 - Do not require `<tsrx>...</tsrx>` just to store, pass, or return TSRX UI.
 
 ### TSRX Expressions
@@ -161,7 +161,7 @@ function AuthGate({ is_logged_in }) {
 
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
-- Do not translate new Ripple examples back to the removed component-body model.
+- Do not translate new Ripple examples away from ordinary function returns.
 
 ### Template Lexical Scoping
 
@@ -1896,7 +1896,7 @@ framework semantics should come from the detected target package and its docs.
 ### vs Solid
 - Component definition with `function` keyword
 - Built-in collections (RippleArray, RippleSet)
-- Different templating approach within component bodies
+- Different returned TSRX template syntax
 
 ## Best Practices
 

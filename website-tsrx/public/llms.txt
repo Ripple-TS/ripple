@@ -280,8 +280,8 @@ and a reactive block on Ripple.
 
 ### Components are functions
 
-TSRX does not use a `component` keyword. Components are ordinary JavaScript or
-TypeScript functions that return TSRX, just like TSX components return JSX.
+Components are ordinary JavaScript or TypeScript functions that return TSRX,
+just like TSX components return JSX.
 
 ```tsrx
 export function Button({ label, onClick }: { label: string; onClick: () => void }) {
@@ -314,9 +314,9 @@ function Icon() {
 
 **LLM DON'T:**
 
-- Do not write or suggest the removed `component` keyword form.
+- Do not invent a custom declaration form for components.
 - Do not warn users away from returned TSRX; returning TSRX is the component model.
-- Do not mix old `component` examples with function-based examples.
+- Do not mix special declaration examples with function-based examples.
 
 ### Expression outside, statements inside
 

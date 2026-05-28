@@ -323,8 +323,8 @@ export function Panel({ title, children }: { title: string; children: any }) {
 - Keep `<style>` blocks inside the TSRX fragment/expression they style.
 
 **LLM DON'T:**
-- Do not use the removed `component` keyword.
-- Do not claim TSRX templates are restricted to special component bodies.
+- Do not invent a custom declaration form for components.
+- Do not claim TSRX templates are restricted to special declarations or bodies.
 - Do not require `<tsrx>...</tsrx>` just to store, pass, or return TSRX UI.
 
 ### TSRX Expressions
@@ -634,16 +634,16 @@ function TodoList({ items }: { items: Todo[] }) {
   `<For keyed={(item) => expr}>`. On React this becomes the `key` prop.
   On Ripple it drives the runtime's keyed for-block.
 - `continue` — skips the current rendered iteration. This is the only
-  supported top-level loop control-flow statement inside a component
+  supported top-level loop control-flow statement inside a returned TSRX
   `for...of` body.
 
-Top-level `return` and `break` are not allowed inside component `for...of`
+Top-level `return` and `break` are not allowed inside returned TSRX `for...of`
 loops. Use `continue` for early item skips. Use a bare `return;` only for
 non-loop guard exits in the returned TSRX template, and use `break` only for `switch`
 cases.
 
 Component rendering supports `for...of` for lists. Regular `for` loops,
-`for...in`, `while`, and `do...while` are not supported in component template
+`for...in`, `while`, and `do...while` are not supported in returned TSRX template
 scope. Move imperative loops into a nested function, event handler, effect, or
 helper, where normal JavaScript control flow rules apply.
 
@@ -697,19 +697,19 @@ Async work is expressed with the target's own suspension primitive and wrapped
 with `try` / `pending` / `catch`.
 
 - **React + Preact**: use `lazy()` children, React/Preact suspense primitives,
-  or React's `use()` style APIs where available. Top-level template-body
+  or React's `use()` style APIs where available. Top-level returned-template
   `await` is supported and TSRX emits an async component-producing function.
 - **Solid**: use `lazy()` or a Solid resource that suspends under `<Loading>`.
-  Component bodies are synchronous; top-level template-body `await` is a
+  Returned TSRX templates are synchronous; top-level `await` is a
   compile-time error.
 - **Vue**: use suspending children such as `defineVaporAsyncComponent()`.
   TSRX lowers `pending` currently to Vue `<Suspense v-slots={{ default, fallback }}>`,
 	until support for VaporSuspense is added by the vue team.
-  Component-body `await` is not supported in Vue TSRX components.
+  Top-level `await` inside returned TSRX templates is not supported in Vue.
 - **Ripple**: use `trackAsync()` inside an upstream `try` / `pending`
-  boundary. Component bodies are synchronous; top-level template-body `await`
+  boundary. Returned TSRX templates are synchronous; top-level `await`
   is a compile-time error.
-- **React + Preact**: `for await...of` is not supported inside component
+- **React + Preact**: `for await...of` is not supported inside returned TSRX
   templates. Resolve async iterables in an upstream helper and render plain data
   in the template.
 
@@ -731,15 +731,15 @@ export function App() {
 ```
 
 **LLM DON'T:**
-- Do not write top-level template-body `await` in Solid, Vue, or Ripple
+- Do not write top-level `await` inside returned TSRX templates in Solid, Vue, or Ripple
   targets.
-- Do not use `for await...of` inside React or Preact component templates.
+- Do not use `for await...of` inside React or Preact returned TSRX templates.
 - Do not mark components `async`.
 
 ### Early returns
 
 Guard clauses can return `null` or another runtime-accepted value from the surrounding function.
-Use this for empty states and redirects instead of the old bare-return template-body model.
+Use this for empty states and redirects instead of the old bare-return-only model.
 
 ```tsrx
 function Dashboard({ user }: { user: User | null }) {
@@ -760,7 +760,7 @@ function Dashboard({ user }: { user: User | null }) {
 
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
-- Do not reintroduce the removed template-body model.
+- Do not translate examples away from ordinary function returns.
 
 ## Scoped Styles
 
@@ -844,7 +844,7 @@ branch-local or module-level bindings, but mutating a parent component/function
 binding across the generated component boundary is a compiler error. Move that
 state into an explicit child component when values need to cross the boundary.
 
-React additionally supports top-level template-body `await` and TSRX emits
+React additionally supports top-level `await` inside returned TSRX templates and TSRX emits
 an async component-producing function when it appears in the returned TSRX template.
 
 ```tsrx
@@ -904,9 +904,9 @@ supported directly — use `ErrorBoundary` / `Suspense` manually if needed.
 - Supports `{ref ...}` callback refs on host elements; repeated refs are
   merged into one callback
 - Use suspending children such as `defineVaporAsyncComponent()` for
-  `try/pending`; component-level `await` remains unsupported
+  `try/pending`; top-level `await` inside returned TSRX templates remains unsupported
 - Does not currently support composite refs, `finally` blocks, or top-level
-  template-body `await`
+  `await` inside returned TSRX templates
 
 ### Ripple (`ripple`)
 
