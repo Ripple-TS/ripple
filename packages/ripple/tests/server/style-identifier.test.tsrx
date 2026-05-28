@@ -4,19 +4,20 @@ import { compile } from '@tsrx/ripple';
 describe('{style} directive (server)', () => {
 	describe('basic usage with components', () => {
 		it('passes scoped class to a child component via {style}', async () => {
-			function Child({ className }: { className: string }) { return <>
-				<div class={className}>{'styled child'}</div>
-			</>; }
+			function Child({ className }: { className: string }) {
+				return <><div class={className}>{'styled child'}</div></>;
+			}
 
-			function Parent() { return <>
-				<Child className={style 'highlight'} />
-
-				<style>
-					.highlight {
-						color: red;
-					}
-				</style>
-			</>; }
+			function Parent() {
+				return <>
+					<Child className={style 'highlight'} />
+					<style>
+						.highlight {
+							color: red;
+						}
+					</style>
+				</>;
+			}
 
 			const { body } = await render(Parent);
 			const { document } = parseHtml(body);
@@ -30,23 +31,26 @@ describe('{style} directive (server)', () => {
 		});
 
 		it('passes multiple {style} classes to a child component', async () => {
-			function Child({ primary, secondary }: { primary: string; secondary: string }) { return <>
-				<div class={primary}>{'primary'}</div>
-				<span class={secondary}>{'secondary'}</span>
-			</>; }
+			function Child({ primary, secondary }: { primary: string; secondary: string }) {
+				return <>
+					<div class={primary}>{'primary'}</div>
+					<span class={secondary}>{'secondary'}</span>
+				</>;
+			}
 
-			function Parent() { return <>
-				<Child primary={style 'primary'} secondary={style 'secondary'} />
-
-				<style>
-					.primary {
-						color: blue;
-					}
-					.secondary {
-						color: gray;
-					}
-				</style>
-			</>; }
+			function Parent() {
+				return <>
+					<Child primary={style 'primary'} secondary={style 'secondary'} />
+					<style>
+						.primary {
+							color: blue;
+						}
+						.secondary {
+							color: gray;
+						}
+					</style>
+				</>;
+			}
 
 			const { body } = await render(Parent);
 			const { document } = parseHtml(body);
@@ -69,19 +73,20 @@ describe('{style} directive (server)', () => {
 
 	describe('parent styling applied to child', () => {
 		it('allows parent to style child elements via {style} prop', async () => {
-			function Button({ extraClass }: { extraClass?: string }) { return <>
-				<button class={extraClass ?? ''}>{'Click me'}</button>
-			</>; }
+			function Button({ extraClass }: { extraClass?: string }) {
+				return <><button class={extraClass ?? ''}>{'Click me'}</button></>;
+			}
 
-			function App() { return <>
-				<Button extraClass={style 'fancy'} />
-
-				<style>
-					.fancy {
-						background: gold;
-					}
-				</style>
-			</>; }
+			function App() {
+				return <>
+					<Button extraClass={style 'fancy'} />
+					<style>
+						.fancy {
+							background: gold;
+						}
+					</style>
+				</>;
+			}
 
 			const { body } = await render(App);
 			const { document } = parseHtml(body);
@@ -94,25 +99,27 @@ describe('{style} directive (server)', () => {
 		});
 
 		it('child can combine its own classes with parent {style} class', async () => {
-			function Card({ className }: { className?: string }) { return <>
-				<div class={['card-base', className ?? '']}>{'card content'}</div>
+			function Card({ className }: { className?: string }) {
+				return <>
+					<div class={['card-base', className ?? '']}>{'card content'}</div>
+					<style>
+						.card-base {
+							border: 1px solid black;
+						}
+					</style>
+				</>;
+			}
 
-				<style>
-					.card-base {
-						border: 1px solid black;
-					}
-				</style>
-			</>; }
-
-			function App() { return <>
-				<Card className={style 'themed'} />
-
-				<style>
-					.themed {
-						background: purple;
-					}
-				</style>
-			</>; }
+			function App() {
+				return <>
+					<Card className={style 'themed'} />
+					<style>
+						.themed {
+							background: purple;
+						}
+					</style>
+				</>;
+			}
 
 			const { body } = await render(App);
 			const { document } = parseHtml(body);
@@ -127,24 +134,25 @@ describe('{style} directive (server)', () => {
 		it(
 			'passes standalone class to child even when it also appears in descendant context',
 			async () => {
-				function Child({ cls }: { cls: string }) { return <>
-					<span class={cls}>{'text'}</span>
-				</>; }
+				function Child({ cls }: { cls: string }) {
+					return <><span class={cls}>{'text'}</span></>;
+				}
 
-				function App() { return <>
-					<div class="parent">
-						<Child cls={style 'dual'} />
-					</div>
-
-					<style>
-						.dual {
-							color: blue;
-						}
-						.parent .dual {
-							font-weight: bold;
-						}
-					</style>
-				</>; }
+				function App() {
+					return <>
+						<div class="parent">
+							<Child cls={style 'dual'} />
+						</div>
+						<style>
+							.dual {
+								color: blue;
+							}
+							.parent .dual {
+								font-weight: bold;
+							}
+						</style>
+					</>;
+				}
 
 				const { body } = await render(App);
 				const { document } = parseHtml(body);
@@ -159,22 +167,23 @@ describe('{style} directive (server)', () => {
 	});
 
 	it('passes scoped class to a dynamic child component via {style}', async () => {
-		function Child({ cls }: { cls: string }) { return <>
-			<span class={cls}>{'text'}</span>
-		</>; }
+		function Child({ cls }: { cls: string }) {
+			return <><span class={cls}>{'text'}</span></>;
+		}
 
-		function Parent() { return <>
-			let dynamic = track(() => Child);
-			<div class="wrapper">
-				<@dynamic cls={style 'text'} />
-			</div>
-
-			<style>
-				.text {
-					color: red;
-				}
-			</style>
-		</>; }
+		function Parent() {
+			return <>
+				let dynamic = track(() => Child);
+				<div class="wrapper">
+					<@dynamic cls={style 'text'} />
+				</div>
+				<style>
+					.text {
+						color: red;
+					}
+				</style>
+			</>;
+		}
 
 		const { body } = await render(Parent);
 		const { document } = parseHtml(body);
@@ -187,34 +196,38 @@ describe('{style} directive (server)', () => {
 	});
 
 	it('preserves caller scoped hash through wrapper children', async () => {
-		function Wrapper({ children }) { return <>
-			<div class="green">
-				{'Wrapper'}
-				{children}
-			</div>
+		function Wrapper({ children }) {
+			return <>
+				<div class="green">
+					{'Wrapper'}
+					{children}
+				</div>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>;
+		}
 
-			<style>
-				.green {
-					color: green;
-				}
-			</style>
-		</>; }
+		function Child() {
+			return <>
+				<div class="red">{'Child'}</div>
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			</>;
+		}
 
-		function Child() { return <>
-			<div class="red">{'Child'}</div>
-
-			<style>
-				.red {
-					color: red;
-				}
-			</style>
-		</>; }
-
-		function App() { return <>
-			<Wrapper>
-				<Child />
-			</Wrapper>
-		</>; }
+		function App() {
+			return <>
+				<Wrapper>
+					<Child />
+				</Wrapper>
+			</>;
+		}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -232,23 +245,23 @@ describe('{style} directive (server)', () => {
 	});
 
 	it('applies caller scoped hash to slotted children through dynamic components', async () => {
-		function Wrapper({ children }) { return <>
-			<section>{children}</section>
-		</>; }
+		function Wrapper({ children }) {
+			return <><section>{children}</section></>;
+		}
 
-		function App() { return <>
-			const DynamicWrapper = track(() => Wrapper);
-
-			<@DynamicWrapper>
-				<div class="green">{'Slotted child'}</div>
-			</@DynamicWrapper>
-
-			<style>
-				.green {
-					color: green;
-				}
-			</style>
-		</>; }
+		function App() {
+			return <>
+				const DynamicWrapper = track(() => Wrapper);
+				<@DynamicWrapper>
+					<div class="green">{'Slotted child'}</div>
+				</@DynamicWrapper>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>;
+		}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -283,19 +296,20 @@ export function App() { return <>
 		});
 
 		it('includes CSS hash in rendered HTML', async () => {
-			function Child({ cls }: { cls: string }) { return <>
-				<div class={cls}>{'hello'}</div>
-			</>; }
+			function Child({ cls }: { cls: string }) {
+				return <><div class={cls}>{'hello'}</div></>;
+			}
 
-			function App() { return <>
-				<Child cls={style 'styled'} />
-
-				<style>
-					.styled {
-						font-weight: bold;
-					}
-				</style>
-			</>; }
+			function App() {
+				return <>
+					<Child cls={style 'styled'} />
+					<style>
+						.styled {
+							font-weight: bold;
+						}
+					</style>
+				</>;
+			}
 
 			const { body, css } = await render(App);
 

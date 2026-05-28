@@ -944,8 +944,7 @@ module.exports = grammar({
 
 		private_property_identifier: ($) => /#[a-zA-Z_$][a-zA-Z0-9_$]*/,
 
-		_reserved_identifier: ($) =>
-			choice('arguments', 'await', 'fragment', 'track', 'untrack'),
+		_reserved_identifier: ($) => choice('arguments', 'await', 'fragment', 'track', 'untrack'),
 
 		comment: ($) => token(choice(seq('//', /.*/), seq('/*', /[^*]*\*+([^/*][^*]*\*+)*/, '/'))),
 

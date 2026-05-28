@@ -2,13 +2,14 @@ import { track } from 'ripple';
 
 describe('head elements', () => {
 	it('renders static title element', async () => {
-		function App() { return <>
-			<head>
-				<title>{'Static Test Title'}</title>
-			</head>
-
-			<div>{'Content'}</div>
-		</>; }
+		function App() {
+			return <>
+				<head>
+					<title>{'Static Test Title'}</title>
+				</head>
+				<div>{'Content'}</div>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);
@@ -18,16 +19,17 @@ describe('head elements', () => {
 	});
 
 	it('renders reactive title element', async () => {
-		function App() { return <>
-			let &[title] = track('Initial Title');
-
-			<head>
-				<title>{title}</title>
-			</head>
-			<div>
-				<span>{title}</span>
-			</div>
-		</>; }
+		function App() {
+			return <>
+				let &[title] = track('Initial Title');
+				<head>
+					<title>{title}</title>
+				</head>
+				<div>
+					<span>{title}</span>
+				</div>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);
@@ -37,13 +39,14 @@ describe('head elements', () => {
 	});
 
 	it('renders title with template literal', async () => {
-		function App() { return <>
-			let &[name] = track('World');
-
-			<head>
-				<title>{`Hello ${name}!`}</title>
-			</head>
-		</>; }
+		function App() {
+			return <>
+				let &[name] = track('World');
+				<head>
+					<title>{`Hello ${name}!`}</title>
+				</head>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);
@@ -52,17 +55,18 @@ describe('head elements', () => {
 	});
 
 	it('renders title with computed value', async () => {
-		function App() { return <>
-			let &[count] = track(0);
-			let prefix = 'Count: ';
-
-			<head>
-				<title>{prefix + count}</title>
-			</head>
-			<div>
-				<span>{count}</span>
-			</div>
-		</>; }
+		function App() {
+			return <>
+				let &[count] = track(0);
+				let prefix = 'Count: ';
+				<head>
+					<title>{prefix + count}</title>
+				</head>
+				<div>
+					<span>{count}</span>
+				</div>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);
@@ -71,12 +75,14 @@ describe('head elements', () => {
 	});
 
 	it('renders empty title', async () => {
-		function App() { return <>
-			<head>
-				<title>{''}</title>
-			</head>
-			<div>{'Empty title test'}</div>
-		</>; }
+		function App() {
+			return <>
+				<head>
+					<title>{''}</title>
+				</head>
+				<div>{'Empty title test'}</div>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);
@@ -85,14 +91,15 @@ describe('head elements', () => {
 	});
 
 	it('renders title with conditional content', async () => {
-		function App() { return <>
-			let &[showPrefix] = track(true);
-			let &[title] = track('Main Page');
-
-			<head>
-				<title>{showPrefix ? 'App - ' + title : title}</title>
-			</head>
-		</>; }
+		function App() {
+			return <>
+				let &[showPrefix] = track(true);
+				let &[title] = track('Main Page');
+				<head>
+					<title>{showPrefix ? 'App - ' + title : title}</title>
+				</head>
+			</>;
+		}
 
 		const { head, body } = await render(App);
 		const { document } = parseAsFullHtml(head, body);

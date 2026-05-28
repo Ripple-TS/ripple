@@ -50,7 +50,7 @@ export function App() {
   function children() {
     return <>
     <p>"Card content here"</p>
-  
+
     </>;
   }
 
@@ -207,7 +207,7 @@ export function App() {
     function HelloGreeting() {
       return <>
       <p>"Hello from inside!"</p>
-    
+
       </>;
     }
 
@@ -248,7 +248,7 @@ export function App() {
     function Footer() {
       return <>
       <button>"OK"</button>
-    
+
       </>;
     }
   </Outer>
@@ -256,7 +256,7 @@ export function App() {
   function Footer() {
     return <>
     <button>"OK"</button>
-  
+
     </>;
   }
 

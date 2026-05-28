@@ -2,14 +2,15 @@ import { RippleURL, flushSync } from 'ripple';
 
 describe('RippleURLSearchParams > RippleURL integration', () => {
 	it('integrates with RippleURL', () => {
-		function URLTest() { return <>
-			const url = RippleURL('https://example.com?foo=bar');
-			const params = url.searchParams;
-
-			<button onClick={() => params.append('baz', 'qux')}>{'add param'}</button>
-			<pre>{url.href}</pre>
-			<pre>{params.toString()}</pre>
-		</>; }
+		function URLTest() {
+			return <>
+				const url = RippleURL('https://example.com?foo=bar');
+				const params = url.searchParams;
+				<button onClick={() => params.append('baz', 'qux')}>{'add param'}</button>
+				<pre>{url.href}</pre>
+				<pre>{params.toString()}</pre>
+			</>;
+		}
 
 		render(URLTest);
 
@@ -30,14 +31,15 @@ describe('RippleURLSearchParams > RippleURL integration', () => {
 	});
 
 	it('handles empty search string in URL', () => {
-		function URLTest() { return <>
-			const url = RippleURL('https://example.com');
-			const params = url.searchParams;
-
-			<button onClick={() => params.append('foo', 'bar')}>{'add first param'}</button>
-			<pre>{url.href}</pre>
-			<pre>{params.size}</pre>
-		</>; }
+		function URLTest() {
+			return <>
+				const url = RippleURL('https://example.com');
+				const params = url.searchParams;
+				<button onClick={() => params.append('foo', 'bar')}>{'add first param'}</button>
+				<pre>{url.href}</pre>
+				<pre>{params.size}</pre>
+			</>;
+		}
 
 		render(URLTest);
 

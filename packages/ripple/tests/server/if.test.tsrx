@@ -1,94 +1,100 @@
 describe('if statements in SSR', () => {
 	it('renders if block when condition is true', async () => {
-		function App() { return <>
-			let condition = true;
-
-			if (condition) {
-				<div>{'If block'}</div>
-			}
-		</>; }
+		function App() {
+			return <>
+				let condition = true;
+				if (condition) {
+					<div>{'If block'}</div>
+				}
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>If block</div>');
 	});
 
 	it('renders else block when condition is false', async () => {
-		function App() { return <>
-			let condition = false;
-
-			if (condition) {
-				<div>{'If block'}</div>
-			} else {
-				<div>{'Else block'}</div>
-			}
-		</>; }
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					<div>{'If block'}</div>
+				} else {
+					<div>{'Else block'}</div>
+				}
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Else block</div>');
 	});
 
 	it('renders bare double-quoted text in if-else branches', async () => {
-		function App() { return <>
-			let condition = false;
-
-			if (condition) {
-				"Hello Ripple"
-			} else "Hello React"
-		</>; }
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					"Hello Ripple"
+				} else "Hello React"
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('Hello React');
 	});
 
 	it('renders else if block when condition is true', async () => {
-		function App() { return <>
-			let value = 'b';
-
-			if (value === 'a') {
-				<div>{'Case A'}</div>
-			} else if (value === 'b') {
-				<div>{'Case B'}</div>
-			} else {
-				<div>{'Default Case'}</div>
-			}
-		</>; }
+		function App() {
+			return <>
+				let value = 'b';
+				if (value === 'a') {
+					<div>{'Case A'}</div>
+				} else if (value === 'b') {
+					<div>{'Case B'}</div>
+				} else {
+					<div>{'Default Case'}</div>
+				}
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Case B</div>');
 	});
 
 	it('renders final else block in an if-else if-else chain', async () => {
-		function App() { return <>
-			let value = 'c';
-
-			if (value === 'a') {
-				<div>{'Case A'}</div>
-			} else if (value === 'b') {
-				<div>{'Case B'}</div>
-			} else {
-				<div>{'Default Case'}</div>
-			}
-		</>; }
+		function App() {
+			return <>
+				let value = 'c';
+				if (value === 'a') {
+					<div>{'Case A'}</div>
+				} else if (value === 'b') {
+					<div>{'Case B'}</div>
+				} else {
+					<div>{'Default Case'}</div>
+				}
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Default Case</div>');
 	});
 
 	it('renders nested if-else blocks correctly', async () => {
-		function App() { return <>
-			let outer = true;
-			let inner = false;
-
-			if (outer) {
-				if (inner) {
-					<div>{'Outer true, Inner true'}</div>
+		function App() {
+			return <>
+				let outer = true;
+				let inner = false;
+				if (outer) {
+					if (inner) {
+						<div>{'Outer true, Inner true'}</div>
+					} else {
+						<div>{'Outer true, Inner false'}</div>
+					}
 				} else {
-					<div>{'Outer true, Inner false'}</div>
+					<div>{'Outer false'}</div>
 				}
-			} else {
-				<div>{'Outer false'}</div>
-			}
-		</>; }
+			</>;
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Outer true, Inner false</div>');
