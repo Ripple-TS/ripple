@@ -20,6 +20,7 @@ const visitorKeys: Record<string, string[]> = {
 	TSRXExpression: ['expression'],
 	Style: ['value'],
 	StyleSheet: [],
+	ForOfStatement: ['left', 'right', 'body'],
 };
 
 /**
