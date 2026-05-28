@@ -76,6 +76,8 @@ interface BaseNodeMetaData {
 	has_continue?: boolean;
 	is_reactive?: boolean;
 	lone_return?: boolean;
+	regular_js?: boolean;
+	returned_tsrx_child?: boolean;
 	forceMapping?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
@@ -1340,6 +1342,7 @@ export interface BaseState {
 	ancestor_server_block: AST.TSModuleDeclaration | undefined;
 	inside_head?: boolean;
 	keep_component_style?: boolean;
+	regular_js?: boolean;
 
 	/** Common For All */
 	to_ts: boolean;

@@ -1,12 +1,12 @@
 import {
-	runSharedClassComponentDeclarationTests,
+	runSharedClassFunctionComponentTests,
 	runSharedComponentParamsTests,
 } from '@tsrx/core/test-harness/compile';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
 import { find_exact_mapping } from '../../tsrx/src/source-map-utils.js';
 
-runSharedClassComponentDeclarationTests({
+runSharedClassFunctionComponentTests({
 	compile,
 	compile_to_volar_mappings,
 	name: 'ripple',

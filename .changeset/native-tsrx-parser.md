@@ -19,4 +19,4 @@
 "@tsrx/vite-plugin-vue": patch
 ---
 
-Parse tags and bare fragments as native TSRX by default, remove `component` keyword parsing, and compile/format/lint function components that return native TSRX across the React, Preact, Solid, Vue, and Ripple targets.
+Parse tags and bare fragments as native TSRX by default, remove `component` keyword parsing, and compile/format/lint function components that return native TSRX across the React, Preact, Solid, Vue, and Ripple targets. Ripple component compilation now only renders TSRX reachable from returned values and supports string and `null` component returns.

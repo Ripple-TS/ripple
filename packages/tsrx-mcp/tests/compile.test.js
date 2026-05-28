@@ -371,11 +371,11 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('normalizes compiler failures into structured diagnostics', async () => {
 		const result = await compile_tsrx({
 			code: `function App() { return <>
-				<div></span>
+					<div>hi
 			</>; }`,
 			filename: 'App.tsrx',
-			target: 'react',
-			cwd: react_fixture,
+			target: 'ripple',
+			cwd: resolve(__dirname, 'fixtures/ripple-project'),
 		});
 
 		expect(result.ok).toBe(false);
@@ -393,11 +393,11 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('adds target-neutral advice for common tag authoring mistakes', async () => {
 		const result = await analyze_tsrx({
 			code: `function App() { return <>
-				<div></span>
+					<div>hi
 			</>; }`,
 			filename: 'App.tsrx',
-			target: 'react',
-			cwd: react_fixture,
+			target: 'ripple',
+			cwd: resolve(__dirname, 'fixtures/ripple-project'),
 		});
 
 		expect(result.ok).toBe(false);
@@ -424,8 +424,8 @@ describe('@tsrx/mcp compile helpers', () => {
 				<div>{i}</div>
 			</>; }`,
 			filename: 'App.tsrx',
-			target: 'react',
-			cwd: react_fixture,
+			target: 'ripple',
+			cwd: resolve(__dirname, 'fixtures/ripple-project'),
 		});
 
 		expect(while_loop.advice).toEqual(
@@ -743,7 +743,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		const filePath = join(temp_dir, 'Broken.tsrx');
 
 		try {
-			await writeFile(filePath, 'function Broken(){ return <><div></span></>; }', 'utf8');
+			await writeFile(filePath, 'function Broken(){ return <><div>hi</>; }', 'utf8');
 			const result = await validate_tsrx_file({
 				filePath,
 				cwd: react_fixture,

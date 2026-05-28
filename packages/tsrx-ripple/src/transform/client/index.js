@@ -364,11 +364,12 @@ function visit_function(node, context) {
 
 /**
  * @param {AST.Node | null | undefined} node
+ * @param {boolean} [allow_direct_template]
  * @returns {AST.Element | AST.Tsrx | null}
  */
-function get_native_tsrx_return_template_node(node) {
+function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
-	if (is_native_tsrx_template_node(node)) {
+	if (allow_direct_template && is_native_tsrx_template_node(node)) {
 		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node));
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
@@ -448,7 +449,10 @@ function transform_native_tsrx_function(node, context) {
 		}
 	}
 
-	const render_scope_node = get_native_tsrx_return_template_node(node.body);
+	const render_scope_node = get_native_tsrx_return_template_node(
+		node.body,
+		node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement',
+	);
 	const component_scope =
 		(render_scope_node && context.state.scopes.get(render_scope_node)) ||
 		context.state.scopes.get(node) ||
@@ -898,6 +902,7 @@ function build_jsx_to_tsrx_element(node, context) {
 			visit(children_component, {
 				...state,
 				flush_node: null,
+				regular_js: false,
 				namespace: state.namespace,
 				is_tsrx_element: true,
 				jsx_to_tsrx_element: true,
@@ -1621,12 +1626,13 @@ const visitors = {
 
 	TsxCompat(node, context) {
 		const { state, visit } = context;
+		const compat_state = { ...state, jsx_to_tsrx_element: false };
 
 		// to_ts mode: produce a JSX fragment
 		if (state.to_ts) {
 			const children = /** @type {AST.TsxCompat['children']} */ (
 				node.children
-					.map((child) => visit(/** @type {AST.Node} */ (child), state))
+					.map((child) => visit(/** @type {AST.Node} */ (child), compat_state))
 					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
 			);
 			return b.jsx_fragment(children);
@@ -1652,7 +1658,7 @@ const visitors = {
 								b.array(
 									/** @type {(AST.Expression | AST.SpreadElement | null)[]} */ (
 										normalized_children.map((child) =>
-											visit(/** @type {AST.Node} */ (child), state),
+											visit(/** @type {AST.Node} */ (child), compat_state),
 										)
 									),
 								),
@@ -1660,7 +1666,7 @@ const visitors = {
 						]),
 					)
 				: /** @type {AST.Expression} */ (
-						visit(/** @type {AST.Node} */ (normalized_children[0]), state)
+						visit(/** @type {AST.Node} */ (normalized_children[0]), compat_state)
 					),
 		);
 
@@ -1710,6 +1716,7 @@ const visitors = {
 			/** @type {AST.Expression} */ (
 				visit(children_component, {
 					...state,
+					regular_js: false,
 					namespace: state.namespace,
 					is_tsrx_element: true,
 					jsx_to_tsrx_element: true,
@@ -1761,6 +1768,7 @@ const visitors = {
 			/** @type {AST.Expression} */ (
 				visit(children_component, {
 					...state,
+					regular_js: false,
 					namespace: state.namespace,
 					is_tsrx_element: true,
 					jsx_to_tsrx_element: true,
@@ -1803,6 +1811,13 @@ const visitors = {
 				})
 			);
 			return build_tsrx_to_ts_expression(fragment, context);
+		}
+
+		if (state.regular_js) {
+			if (is_regular_js_statement_position(context.path)) {
+				return b.empty;
+			}
+			return build_native_tsrx_value_expression([node], node, context);
 		}
 
 		if (context.state.inside_head) {
@@ -2420,6 +2435,7 @@ const visitors = {
 					/** @type {AST.Expression} */ (
 						visit(children_component, {
 							...state,
+							regular_js: false,
 							...(apply_parent_css_scope ||
 							get_component_css(state) ||
 							(is_dynamic_element && node.metadata.scoped && get_component_css(state))
@@ -2624,6 +2640,10 @@ const visitors = {
 	},
 
 	ForOfStatement(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -2727,6 +2747,10 @@ const visitors = {
 	},
 
 	SwitchStatement(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		if (!is_inside_component(context)) {
 			if (context.state.to_ts) {
 				return transform_ts_child(node, SetContextForOutsideComponent(context));
@@ -2806,6 +2830,10 @@ const visitors = {
 	},
 
 	IfStatement(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true });
+		}
+
 		if (!is_inside_component(context)) {
 			if (context.state.to_ts) {
 				return transform_ts_child(node, SetContextForOutsideComponent(context));
@@ -3081,6 +3109,10 @@ const visitors = {
 	},
 
 	TryStatement(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		if (!is_inside_component(context)) {
 			if (context.state.to_ts) {
 				return transform_ts_child(node, SetContextForOutsideComponent(context));
@@ -3898,6 +3930,10 @@ function transform_ts_child(node, context) {
  * @returns {boolean}
  */
 function is_template_or_control_flow(node) {
+	if (node.metadata?.regular_js) {
+		return false;
+	}
+
 	return (
 		node.type === 'Element' ||
 		node.type === 'TSRXExpression' ||
@@ -3910,6 +3946,60 @@ function is_template_or_control_flow(node) {
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
 		node.type === 'SwitchStatement'
+	);
+}
+
+/**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_regular_js_statement_position(path) {
+	const parent = path.at(-1);
+	return (
+		parent?.type === 'BlockStatement' || parent?.type === 'Program' || parent?.type === 'SwitchCase'
+	);
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @param {AST.Node} source_node
+ * @param {TransformClientContext} context
+ * @returns {AST.CallExpression}
+ */
+function build_native_tsrx_value_expression(children, source_node, context) {
+	const { state, visit } = context;
+	const children_filtered = children
+		.filter((child) => {
+			return child != null && child.type !== 'EmptyStatement';
+		})
+		.map((child) => {
+			if (!child.metadata?.regular_js) return child;
+			const metadata = { ...child.metadata };
+			delete metadata.regular_js;
+			return { ...child, metadata };
+		});
+	apply_tsrx_css_scoping(children_filtered, state);
+
+	const children_component = create_native_tsrx_render_function(
+		b.id('render_children'),
+		[],
+		children_filtered,
+		source_node,
+	);
+
+	return b.call(
+		'_$_.tsrx_element',
+		/** @type {AST.Expression} */ (
+			visit(children_component, {
+				...state,
+				flush_node: null,
+				template: null,
+				regular_js: false,
+				namespace: state.namespace,
+				is_tsrx_element: true,
+				jsx_to_tsrx_element: true,
+			})
+		),
 	);
 }
 
@@ -4309,6 +4399,26 @@ function transform_children(children, context) {
 
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
 		const node = normalized[node_idx];
+
+		if (node.metadata?.regular_js && !state.to_ts) {
+			flush_pending_group();
+			const regular_node = /** @type {AST.Node} */ (
+				visit(node, {
+					...state,
+					flush_node: null,
+					template: null,
+					regular_js: true,
+				})
+			);
+			if (regular_node && regular_node.type !== 'EmptyStatement') {
+				state.init?.push(
+					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
+						? /** @type {AST.Statement} */ (regular_node)
+						: b.stmt(/** @type {AST.Expression} */ (regular_node)),
+				);
+			}
+			continue;
+		}
 
 		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
 			if (pending_group.length === 0) {

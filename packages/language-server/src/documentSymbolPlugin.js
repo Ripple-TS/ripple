@@ -478,14 +478,16 @@ function getChildSymbols(node, document) {
 	}
 
 	if (Array.isArray(body)) {
+		const statements = /** @type {AST.Statement[]} */ (body);
 		return [
-			...collectSymbolsFromStatements(body, document),
-			...body.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
+			...collectSymbolsFromStatements(statements, document),
+			...statements.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
 		];
 	} else if (Array.isArray(body?.body)) {
+		const statements = /** @type {AST.Statement[]} */ (body.body);
 		return [
-			...collectSymbolsFromStatements(body.body, document),
-			...body.body.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
+			...collectSymbolsFromStatements(statements, document),
+			...statements.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
 		];
 	}
 	return [];

@@ -3,9 +3,9 @@ import type { Tracked, PropsNoChildren } from 'ripple';
 
 describe('basic client', () => {
 	it('render static text', async () => {
-		function Basic() { return <>
-			<div>{'Hello World'}</div>
-		</>; }
+		function Basic() {
+			return <><div>{'Hello World'}</div></>;
+		}
 
 		const { head, body } = await render(Basic);
 
@@ -14,11 +14,12 @@ describe('basic client', () => {
 	});
 
 	it('renders explicit text interpolation as escaped text', async () => {
-		function Basic() { return <>
-			let markup = '<span>Not HTML</span>';
-
-			<div>{text markup}</div>
-		</>; }
+		function Basic() {
+			return <>
+				let markup = '<span>Not HTML</span>';
+				<div>{text markup}</div>
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -26,12 +27,14 @@ describe('basic client', () => {
 	});
 
 	it('renders direct double-quoted text children as text', async () => {
-		function Basic() { return <>
-			<div>"Rock &amp; &quot;Roll&quot;"</div>
-			<div>"line\nbreak"</div>
-			<pre>"first
+		function Basic() {
+			return <>
+				<div>"Rock &amp; &quot;Roll&quot;"</div>
+				<div>"line\nbreak"</div>
+				<pre>"first
 second"</pre>
-		</>; }
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -40,15 +43,68 @@ second"</pre>
 		);
 	});
 
-	it('renders inline tsrx fragments', async () => {
-		function Basic() { return <>
-			const content = <tsrx>
-				const label = 'Server';
-				<span>{label}</span>
-			</tsrx>;
+	it('does not render TSRX statements outside returned component templates', async () => {
+		function Basic() {
+			const ready = true;
 
-			<div>{content}</div>
-		</>; }
+			if (ready) {
+				<div class="leaked">"should not render"</div>
+			}
+
+			return <>"Hello world"</>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('Hello world');
+	});
+
+	it('renders primitive component return branches', async () => {
+		function Basic() {
+			const ready = false;
+
+			if (!ready) {
+				return 'Waiting';
+			}
+
+			return <>"Ready"</>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('Waiting');
+	});
+
+	it('renders components that return only a string', async () => {
+		function Basic() {
+			return 'Only text';
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('Only text');
+	});
+
+	it('renders components that return only null', async () => {
+		function Basic() {
+			return null;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('');
+	});
+
+	it('renders inline tsrx fragments', async () => {
+		function Basic() {
+			return <>
+				const content = <tsrx>
+					const label = 'Server';
+					<span>{label}</span>
+				</tsrx>;
+				<div>{content}</div>
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -72,12 +128,14 @@ second"</pre>
 			</tsrx>;
 		}
 
-		function Basic() { return <>
-			{<tsx>
-				{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
-			</tsx>}
-			{makeFragment('from helper')}
-		</>; }
+		function Basic() {
+			return <>
+				{<tsx>
+					{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
+				</tsx>}
+				{makeFragment('from helper')}
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -87,17 +145,18 @@ second"</pre>
 	});
 
 	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
-		function Basic() { return <>
-			const content = <tsx>
-				<section class="outer">
-					{<tsrx>
-						<div class="inner">{'from tsrx'}</div>
-					</tsrx>}
-				</section>
-			</tsx>;
-
-			{content}
-		</>; }
+		function Basic() {
+			return <>
+				const content = <tsx>
+					<section class="outer">
+						{<tsrx>
+							<div class="inner">{'from tsrx'}</div>
+						</tsrx>}
+					</section>
+				</tsx>;
+				{content}
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -105,19 +164,20 @@ second"</pre>
 	});
 
 	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
-		function Basic() { return <>
-			const content = <tsx>
-				<div class="wrapper">
-					{<tsrx>
-						<section class="native">
-							<span class="nested-tsrx">{'inside nested tsrx'}</span>
-						</section>
-					</tsrx>}
-				</div>
-			</tsx>;
-
-			{content}
-		</>; }
+		function Basic() {
+			return <>
+				const content = <tsx>
+					<div class="wrapper">
+						{<tsrx>
+							<section class="native">
+								<span class="nested-tsrx">{'inside nested tsrx'}</span>
+							</section>
+						</tsrx>}
+					</div>
+				</tsx>;
+				{content}
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -127,20 +187,21 @@ second"</pre>
 	});
 
 	it('renders tsx declared inside tsrx nested from a top-level tsx value', async () => {
-		function Basic() { return <>
-			const content = <tsx>
-				{<tsrx>
-					const nested = <tsx>
-						<span class="nested-tsx">
-							{'inside nested tsx'}
-						</span>
-					</tsx>;
-					<div class="native">{nested}</div>
-				</tsrx>}
-			</tsx>;
-
-			{content}
-		</>; }
+		function Basic() {
+			return <>
+				const content = <tsx>
+					{<tsrx>
+						const nested = <tsx>
+							<span class="nested-tsx">
+								{'inside nested tsx'}
+							</span>
+						</tsx>;
+						<div class="native">{nested}</div>
+					</tsrx>}
+				</tsx>;
+				{content}
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -150,20 +211,22 @@ second"</pre>
 	});
 
 	it('flattens nested primitive arrays inside mixed tsrx collections', async () => {
-		function Basic() { return <>
-			<div>
-				{<tsx>
-					{[
-						'start:',
-						['one', 2, true, null, false],
-						<strong>
-							{'!'}
-						</strong>,
-						':end',
-					]}
-				</tsx>}
-			</div>
-		</>; }
+		function Basic() {
+			return <>
+				<div>
+					{<tsx>
+						{[
+							'start:',
+							['one', 2, true, null, false],
+							<strong>
+								{'!'}
+							</strong>,
+							':end',
+						]}
+					</tsx>}
+				</div>
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -171,12 +234,13 @@ second"</pre>
 	});
 
 	it('flattens direct primitive array expressions', async () => {
-		function Basic() { return <>
-			const items = ['start:', ['one', 2], null, true, false, ':end'];
-
-			<div>{['start:', ['one', 2], null, true, false, ':end']}</div>
-			<div>{items}</div>
-		</>; }
+		function Basic() {
+			return <>
+				const items = ['start:', ['one', 2], null, true, false, ':end'];
+				<div>{['start:', ['one', 2], null, true, false, ':end']}</div>
+				<div>{items}</div>
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -184,16 +248,17 @@ second"</pre>
 	});
 
 	it('flattens conditional primitive array expressions', async () => {
-		function Basic() { return <>
-			const condition = true;
-			const ternary_items = condition
-				? ['start:', ['one', 2], null, true, false, ':end']
-				: ['fallback'];
-			const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
-
-			<div>{ternary_items}</div>
-			<div>{logical_items}</div>
-		</>; }
+		function Basic() {
+			return <>
+				const condition = true;
+				const ternary_items = condition
+					? ['start:', ['one', 2], null, true, false, ':end']
+					: ['fallback'];
+				const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+				<div>{ternary_items}</div>
+				<div>{logical_items}</div>
+			</>;
+		}
 
 		const { body } = await render(Basic);
 
@@ -201,14 +266,14 @@ second"</pre>
 	});
 
 	it('renders tracked state updates', async () => {
-		function Counter() { return <>
-			let &[count] = track(0);
-
-			count++;
-			count = count + 5;
-
-			<div>{count}</div>
-		</>; }
+		function Counter() {
+			return <>
+				let &[count] = track(0);
+				count++;
+				count = count + 5;
+				<div>{count}</div>
+			</>;
+		}
 
 		const { body } = await render(Counter);
 
@@ -219,17 +284,20 @@ second"</pre>
 		function Child({ count, ...rest }: PropsNoChildren<{
 			count: Tracked<number>;
 			class: { test: boolean };
-		}>) { return <>
-			<div {...rest}>{'Child Component'}</div>
-			<div>{count.value}</div>
-		</>; }
+		}>) {
+			return <>
+				<div {...rest}>{'Child Component'}</div>
+				<div>{count.value}</div>
+			</>;
+		}
 
-		function Parent() { return <>
-			const count = track(10);
-			let Dynamic = track(() => Child);
-
-			<@Dynamic {count} class={{ test: true }} />
-		</>; }
+		function Parent() {
+			return <>
+				const count = track(10);
+				let Dynamic = track(() => Child);
+				<@Dynamic {count} class={{ test: true }} />
+			</>;
+		}
 
 		const { body } = await render(Parent);
 
@@ -237,14 +305,14 @@ second"</pre>
 	});
 
 	it('renders tracked object properties', async () => {
-		function ObjCounter() { return <>
-			const obj = { count: track(2) };
-
-			obj.count.value += 3;
-			obj.count.value = obj.count.value + 1;
-
-			<div>{obj.count.value}</div>
-		</>; }
+		function ObjCounter() {
+			return <>
+				const obj = { count: track(2) };
+				obj.count.value += 3;
+				obj.count.value = obj.count.value + 1;
+				<div>{obj.count.value}</div>
+			</>;
+		}
 
 		const { body } = await render(ObjCounter);
 
@@ -252,13 +320,14 @@ second"</pre>
 	});
 
 	it('renders spread props with tracked values', async () => {
-		function SpreadProps() { return <>
-			let &[id] = track('unique-id');
-			let &[isActive] = track(true);
-			let &[styles] = track({ color: 'red', fontSize: '16px' });
-
-			<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
-		</>; }
+		function SpreadProps() {
+			return <>
+				let &[id] = track('unique-id');
+				let &[isActive] = track(true);
+				let &[styles] = track({ color: 'red', fontSize: '16px' });
+				<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
+			</>;
+		}
 
 		const { body } = await render(SpreadProps);
 
@@ -268,16 +337,16 @@ second"</pre>
 	});
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
-		function Assignments() { return <>
-			let &[count] = track(0);
-			const obj = { value: track(5) };
-
-			count += 10;
-			obj.value.value *= 2;
-
-			<div>{count}</div>
-			<div>{obj.value.value}</div>
-		</>; }
+		function Assignments() {
+			return <>
+				let &[count] = track(0);
+				const obj = { value: track(5) };
+				count += 10;
+				obj.value.value *= 2;
+				<div>{count}</div>
+				<div>{obj.value.value}</div>
+			</>;
+		}
 
 		const { body } = await render(Assignments);
 
@@ -285,17 +354,16 @@ second"</pre>
 	});
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
-		function Derived() { return <>
-			let &[base] = track(5);
-			let &[multiplier] = track(3);
-			let &[derived] = track(() => base * multiplier);
-
-			<div>{derived}</div>
-
-			base += 2;
-
-			<div>{derived}</div>
-		</>; }
+		function Derived() {
+			return <>
+				let &[base] = track(5);
+				let &[multiplier] = track(3);
+				let &[derived] = track(() => base * multiplier);
+				<div>{derived}</div>
+				base += 2;
+				<div>{derived}</div>
+			</>;
+		}
 
 		const { body } = await render(Derived);
 
@@ -303,18 +371,17 @@ second"</pre>
 	});
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
-		function NestedDerived() { return <>
-			let &[a] = track(2);
-			let &[b] = track(3);
-			let &[sum] = track(() => a + b);
-			let &[product] = track(() => sum * 2);
-
-			<div>{product}</div>
-
-			a = 4;
-
-			<div>{product}</div>
-		</>; }
+		function NestedDerived() {
+			return <>
+				let &[a] = track(2);
+				let &[b] = track(3);
+				let &[sum] = track(() => a + b);
+				let &[product] = track(() => sum * 2);
+				<div>{product}</div>
+				a = 4;
+				<div>{product}</div>
+			</>;
+		}
 
 		const { body } = await render(NestedDerived);
 
@@ -322,24 +389,24 @@ second"</pre>
 	});
 
 	it('handles lexical scopes correctly', async () => {
-		function LexicalScopes() { return <>
-			let &[x] = track(1);
-			<div>{x}</div>
-
-			<div>
-				let &[x] = track(10);
-				{x}
-			</div>
-
-			<div>
-				let &[x] = track(12);
-				{x}
-				<span>
-					let &[x] = track(15);
+		function LexicalScopes() {
+			return <>
+				let &[x] = track(1);
+				<div>{x}</div>
+				<div>
+					let &[x] = track(10);
 					{x}
-				</span>
-			</div>
-		</>; }
+				</div>
+				<div>
+					let &[x] = track(12);
+					{x}
+					<span>
+						let &[x] = track(15);
+						{x}
+					</span>
+				</div>
+			</>;
+		}
 
 		const { body } = await render(LexicalScopes);
 
@@ -347,51 +414,49 @@ second"</pre>
 	});
 
 	it('runs nested JavaScript blocks inside component-local callables', async () => {
-		function App() { return <>
-			function readFunction() {
-				const label = 'function outer';
-				let result = '';
-
-				{
-					const label = 'function inner';
-					result = label;
-				}
-
-				return `${result} / ${label}`;
-			}
-
-			const readArrow = () => {
-				const offset = 5;
-				let value = offset;
-
-				{
-					const offset = 17;
-					value += offset;
-				}
-
-				return value;
-			};
-
-			class Reader {
-				read() {
-					const label = 'method outer';
+		function App() {
+			return <>
+				function readFunction() {
+					const label = 'function outer';
 					let result = '';
 
 					{
-						const label = 'method inner';
+						const label = 'function inner';
 						result = label;
 					}
 
 					return `${result} / ${label}`;
 				}
-			}
+				const readArrow = () => {
+					const offset = 5;
+					let value = offset;
 
-			const reader = new Reader();
+					{
+						const offset = 17;
+						value += offset;
+					}
 
-			<div class="block-function">{readFunction()}</div>
-			<div class="block-arrow">{readArrow()}</div>
-			<div class="block-method">{reader.read()}</div>
-		</>; }
+					return value;
+				};
+				class Reader {
+					read() {
+						const label = 'method outer';
+						let result = '';
+
+						{
+							const label = 'method inner';
+							result = label;
+						}
+
+						return `${result} / ${label}`;
+					}
+				}
+				const reader = new Reader();
+				<div class="block-function">{readFunction()}</div>
+				<div class="block-arrow">{readArrow()}</div>
+				<div class="block-method">{reader.read()}</div>
+			</>;
+		}
 
 		const { body } = await render(App);
 

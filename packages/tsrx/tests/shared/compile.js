@@ -1182,11 +1182,7 @@ export function runSharedComponentParamsTests({ compile, compile_to_volar_mappin
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'> & Pick<CompileDiagnosticsHarness, 'compile_to_volar_mappings'>} harness
  */
-export function runSharedClassComponentDeclarationTests({
-	compile,
-	compile_to_volar_mappings,
-	name,
-}) {
+export function runSharedClassFunctionComponentTests({ compile, compile_to_volar_mappings, name }) {
 	describe(`[${name}] class function components`, () => {
 		it('allows an arrow function component as a class property', () => {
 			expect(() =>

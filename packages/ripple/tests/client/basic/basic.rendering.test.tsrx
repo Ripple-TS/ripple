@@ -59,6 +59,59 @@ second"</pre>
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
+	it('does not render TSRX statements outside returned component templates', () => {
+		function Basic() {
+			const ready = true;
+
+			if (ready) {
+				<div class="leaked">"should not render"</div>
+			}
+
+			return <>"Hello world"</>;
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('Hello world');
+		expect(container.querySelector('.leaked')).toBeNull();
+	});
+
+	it('renders primitive component return branches', () => {
+		function Basic() {
+			const ready = false;
+
+			if (!ready) {
+				return 'Waiting';
+			}
+
+			return <>"Ready"</>;
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('Waiting');
+	});
+
+	it('renders components that return only a string', () => {
+		function Basic() {
+			return 'Only text';
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('Only text');
+	});
+
+	it('renders components that return only null', () => {
+		function Basic() {
+			return null;
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('');
+	});
+
 	it('renders bare double-quoted text in if-else branches', () => {
 		function App() {
 			return <>

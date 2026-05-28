@@ -1756,7 +1756,7 @@ const visitors = {
 	},
 
 	ForStatement(node, context) {
-		if (is_inside_component(context)) {
+		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
 			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
@@ -1769,6 +1769,10 @@ const visitors = {
 	},
 
 	SwitchStatement(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -1801,6 +1805,10 @@ const visitors = {
 	},
 
 	ForOfStatement(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -1978,6 +1986,10 @@ const visitors = {
 	},
 
 	IfStatement(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -2163,6 +2175,10 @@ const visitors = {
 
 	TryStatement(node, context) {
 		const { state } = context;
+		if (state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...state, regular_js: true, component: undefined });
+		}
+
 		if (!is_inside_component(context)) {
 			return context.next();
 		}
@@ -2215,7 +2231,7 @@ const visitors = {
 	},
 
 	ForInStatement(node, context) {
-		if (is_inside_component(context)) {
+		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
 			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
@@ -2228,7 +2244,7 @@ const visitors = {
 	},
 
 	WhileStatement(node, context) {
-		if (is_inside_component(context)) {
+		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
 			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
@@ -2241,7 +2257,7 @@ const visitors = {
 	},
 
 	DoWhileStatement(node, context) {
-		if (is_inside_component(context)) {
+		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
 			validateTsrxUnsupportedLoopStatement(
 				node,
 				context.state.analysis.module.filename,
@@ -2283,11 +2299,19 @@ const visitors = {
 	},
 
 	Tsrx(_, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		mark_control_flow_has_template(context.path);
 		return context.next();
 	},
 
 	TsxCompat(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		mark_control_flow_has_template(context.path);
 
 		const configured_compat_kinds = context.state.configured_compat_kinds;
@@ -2305,6 +2329,10 @@ const visitors = {
 	},
 
 	Element(node, context) {
+		if (context.state.regular_js || node.metadata?.regular_js) {
+			return context.next({ ...context.state, regular_js: true, component: undefined });
+		}
+
 		if (!node.id) {
 			error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 		}
@@ -2605,12 +2633,20 @@ const visitors = {
 	},
 
 	TSRXExpression(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		mark_control_flow_has_template(context.path);
 
 		context.next();
 	},
 
 	Text(node, context) {
+		if (context.state.regular_js) {
+			return context.next();
+		}
+
 		mark_control_flow_has_template(context.path);
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {

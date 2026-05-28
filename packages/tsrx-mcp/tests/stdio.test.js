@@ -238,7 +238,7 @@ describe('@tsrx/mcp stdio server', () => {
 				name: 'compile-tsrx',
 				arguments: {
 					code: `function Broken() { return <>
-							<div></span>
+								<div>hi
 						</>; }`,
 					filename: 'Broken.tsrx',
 					cwd: react_fixture,
@@ -255,7 +255,7 @@ describe('@tsrx/mcp stdio server', () => {
 				name: 'analyze-tsrx',
 				arguments: {
 					code: `function Broken() { return <>
-								<div></span>
+									<div>hi
 							</>; }`,
 					filename: 'Broken.tsrx',
 					cwd: react_fixture,
