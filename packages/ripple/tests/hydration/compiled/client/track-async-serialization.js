@@ -39,6 +39,7 @@ const formatValue = function (...args) {
 export function AsyncWithServerCall(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r = false;
 	let lazy = _$_.track(0, __block, '2e21cbe9');
 	var fragment = root();
 	var button_1 = _$_.first_child_frag(fragment);
@@ -72,6 +73,7 @@ export function AsyncWithServerCall(__anchor, _, __block) {
 		}
 	);
 
+	__r = true;
 	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
@@ -79,6 +81,7 @@ export function AsyncWithServerCall(__anchor, _, __block) {
 export function AsyncSimpleValue(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	var fragment_1 = root_3();
 	var node_1 = _$_.first_child_frag(fragment_1);
 
@@ -105,6 +108,7 @@ export function AsyncSimpleValue(__anchor, _, __block) {
 		}
 	);
 
+	__r_1 = true;
 	_$_.append(__anchor, fragment_1);
 	_$_.pop_component();
 }
@@ -112,6 +116,7 @@ export function AsyncSimpleValue(__anchor, _, __block) {
 export function AsyncNumericValue(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_2 = false;
 	var fragment_2 = root_6();
 	var node_2 = _$_.first_child_frag(fragment_2);
 
@@ -138,6 +143,7 @@ export function AsyncNumericValue(__anchor, _, __block) {
 		}
 	);
 
+	__r_2 = true;
 	_$_.append(__anchor, fragment_2);
 	_$_.pop_component();
 }
@@ -145,6 +151,7 @@ export function AsyncNumericValue(__anchor, _, __block) {
 export function AsyncObjectValue(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_3 = false;
 	var fragment_3 = root_9();
 	var node_3 = _$_.first_child_frag(fragment_3);
 
@@ -184,6 +191,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 		}
 	);
 
+	__r_3 = true;
 	_$_.append(__anchor, fragment_3);
 	_$_.pop_component();
 }
@@ -191,6 +199,7 @@ export function AsyncObjectValue(__anchor, _, __block) {
 export function AsyncMultipleValues(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_4 = false;
 	var fragment_4 = root_12();
 	var node_4 = _$_.first_child_frag(fragment_4);
 
@@ -231,6 +240,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 		}
 	);
 
+	__r_4 = true;
 	_$_.append(__anchor, fragment_4);
 	_$_.pop_component();
 }
@@ -238,6 +248,7 @@ export function AsyncMultipleValues(__anchor, _, __block) {
 export function AsyncWithCatch(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_5 = false;
 	var fragment_5 = root_15();
 	var node_5 = _$_.first_child_frag(fragment_5);
 
@@ -275,6 +286,7 @@ export function AsyncWithCatch(__anchor, _, __block) {
 		}
 	);
 
+	__r_5 = true;
 	_$_.append(__anchor, fragment_5);
 	_$_.pop_component();
 }
@@ -282,6 +294,7 @@ export function AsyncWithCatch(__anchor, _, __block) {
 export function ChildWithError(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_6 = false;
 	var fragment_6 = root_19();
 	var node_6 = _$_.first_child_frag(fragment_6);
 
@@ -308,6 +321,7 @@ export function ChildWithError(__anchor, _, __block) {
 		}
 	);
 
+	__r_6 = true;
 	_$_.append(__anchor, fragment_6);
 	_$_.pop_component();
 }
@@ -315,6 +329,7 @@ export function ChildWithError(__anchor, _, __block) {
 export function ParentWithCatch(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_7 = false;
 	var fragment_7 = root_22();
 	var node_7 = _$_.first_child_frag(fragment_7);
 
@@ -341,6 +356,7 @@ export function ParentWithCatch(__anchor, _, __block) {
 		}
 	);
 
+	__r_7 = true;
 	_$_.append(__anchor, fragment_7);
 	_$_.pop_component();
 }
@@ -348,6 +364,7 @@ export function ParentWithCatch(__anchor, _, __block) {
 export function AsyncWithReactiveDependency(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_8 = false;
 	let lazy_9 = _$_.track(0, __block, 'c9d12acf');
 	var fragment_9 = root_25();
 	var button_2 = _$_.first_child_frag(fragment_9);
@@ -381,6 +398,7 @@ export function AsyncWithReactiveDependency(__anchor, _, __block) {
 		}
 	);
 
+	__r_8 = true;
 	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }

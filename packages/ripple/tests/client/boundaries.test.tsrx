@@ -14,19 +14,19 @@ describe('passing reactivity between boundaries tests', () => {
 			return double;
 		}
 
-		component App() {
-			let &[count, countTracked] = track(0);
-
-			const &[double] = createDouble(countTracked);
-
-			<div>{'Double: ' + double}</div>
-			<button
-				onClick={() => {
-					count++;
-				}}
-			>
-				{'Increment'}
-			</button>
+		function App() {
+			return <>
+				let &[count, countTracked] = track(0);
+				const &[double] = createDouble(countTracked);
+				<div>{'Double: ' + double}</div>
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'Increment'}
+				</button>
+			</>;
 		}
 
 		render(App);
@@ -63,19 +63,19 @@ describe('passing reactivity between boundaries tests', () => {
 			return { double };
 		}
 
-		component App() {
-			let count = track(0);
-
-			const { double } = createDouble({ count });
-
-			<div>{'Double: ' + double.value}</div>
-			<button
-				onClick={() => {
-					count.value++;
-				}}
-			>
-				{'Increment'}
-			</button>
+		function App() {
+			return <>
+				let count = track(0);
+				const { double } = createDouble({ count });
+				<div>{'Double: ' + double.value}</div>
+				<button
+					onClick={() => {
+						count.value++;
+					}}
+				>
+					{'Increment'}
+				</button>
+			</>;
 		}
 
 		render(App);

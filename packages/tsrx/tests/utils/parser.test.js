@@ -42,12 +42,6 @@ describe('TSRX parser', () => {
 		expect(value.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXFragment']);
 	});
 
-	it('does not parse component declarations as TSRX syntax', () => {
-		expect(() => parseModule('component App() { <div /> }', 'old.tsrx')).toThrow(
-			'Unexpected token',
-		);
-	});
-
 	it('allows component as a normal identifier', () => {
 		const ast = parseModule('const component = 1; export default component;', 'identifier.tsrx');
 

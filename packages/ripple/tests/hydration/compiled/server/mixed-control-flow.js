@@ -6,6 +6,8 @@ import { track, trackAsync } from 'ripple/server';
 export function MixedControlFlowStatic() {
 	_$_.push_component();
 
+	var __r = false;
+
 	const rows = [
 		{ id: 1, kind: 'a', enabled: true },
 		{ id: 2, kind: 'b', enabled: true },
@@ -103,12 +105,14 @@ export function MixedControlFlowStatic() {
 		_$_.output_push('</section>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function MixedControlFlowReactive() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track(true, '5ae53d26');
 	let lazy_1 = _$_.track('a', '5b53eda2');
 	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], '7890dad6');
@@ -240,12 +244,14 @@ export function MixedControlFlowReactive() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function MixedControlFlowAsyncPending() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const rows = [1, 2];
 	const state = 'slow';
 
@@ -321,12 +327,14 @@ export function MixedControlFlowAsyncPending() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 function AsyncRow({ label }) {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_3 = _$_.track_async(() => Promise.resolve(label), '10cc79a0');
 
 	_$_.regular_block(() => {
@@ -341,5 +349,6 @@ function AsyncRow({ label }) {
 		_$_.output_push('</div>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }

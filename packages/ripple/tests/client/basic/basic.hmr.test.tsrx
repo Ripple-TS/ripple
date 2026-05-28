@@ -19,8 +19,8 @@ describe('basic client > hmr', () => {
 	});
 
 	it('removes DOM when an HMR-wrapped root is unmounted', () => {
-		component App() {
-			<div class="hmr-root">{'hmr root'}</div>
+		function App() {
+			return <><div class="hmr-root">{'hmr root'}</div></>;
 		}
 
 		const cleanup = mount(hmr(App), { target: container });
@@ -37,18 +37,19 @@ describe('basic client > hmr', () => {
 	it('runs child teardowns when an HMR-wrapped root is unmounted', () => {
 		let teardown_count = 0;
 
-		component Child() {
-			effect(() => {
-				return () => {
-					teardown_count++;
-				};
-			});
-
-			<span class="hmr-child">{'child'}</span>
+		function Child() {
+			return <>
+				effect(() => {
+					return () => {
+						teardown_count++;
+					};
+				});
+				<span class="hmr-child">{'child'}</span>
+			</>;
 		}
 
-		component App() {
-			<Child />
+		function App() {
+			return <><Child /></>;
 		}
 
 		const cleanup = mount(hmr(App), { target: container });
@@ -75,10 +76,12 @@ describe('basic client > hmr', () => {
 		};
 
 		try {
-			component App() {
-				<div class="owned-root">
-					<span>{'child'}</span>
-				</div>
+			function App() {
+				return <>
+					<div class="owned-root">
+						<span>{'child'}</span>
+					</div>
+				</>;
 			}
 
 			const cleanup = mount(App, { target: container });

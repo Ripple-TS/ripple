@@ -4,7 +4,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global additional use cases', () => {
 	it('handles :global as modifier with dot notation', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="x">{'content'}</div>
 
 	<style>
@@ -12,7 +12,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.x {/);
@@ -20,7 +20,7 @@ export component Test() {
 
 	it('handles :global modifier in nested syntax', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="x">{'content'}</div>
 
 	<style>
@@ -30,7 +30,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('&.x {');
@@ -38,7 +38,7 @@ export component Test() {
 
 	it('handles :global with & nesting selector inside block', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="x">{'content'}</div>
 
 	<style>
@@ -48,7 +48,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('&.x {');
@@ -56,7 +56,7 @@ export component Test() {
 
 	it('handles :global with :is pseudo-class modifier', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -64,7 +64,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(html\.dark-mode \*\) {/);
@@ -72,7 +72,7 @@ export component Test() {
 
 	it('handles :global with & inside :global block', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="class">{'content'}</div>
 
 	<style>
@@ -82,7 +82,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -91,7 +91,7 @@ export component Test() {
 
 	it('handles :global(*) with & and descendant', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="class">{'content'}</div>
 
 	<style>
@@ -101,7 +101,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('* {');
@@ -110,7 +110,7 @@ export component Test() {
 
 	it('handles multiple :global selectors in list', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<x>{'content'}</x>
 	<y>{'content'}</y>
 
@@ -119,7 +119,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain(' x,  y {');
@@ -127,7 +127,7 @@ export component Test() {
 
 	it('handles :global block with nested selector list', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<y>{'content'}</y>
 	</div>
@@ -139,7 +139,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+/);
@@ -148,7 +148,7 @@ export component Test() {
 
 	it('handles keyframes inside :global block', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="x">{'animated'}</div>
 
 	<style>
@@ -174,7 +174,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@keyframes test-in {');
@@ -186,7 +186,7 @@ export component Test() {
 
 	it('handles global keyframes with no component elements', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -195,7 +195,7 @@ export component Test() {
 			100% { color: blue; }
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@keyframes orphan');
@@ -204,7 +204,7 @@ export component Test() {
 
 	it('handles :global with class modifier syntax', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="blue">{'might be programmatically added'}</div>
 	<span class="x blue">{'span content'}</span>
 
@@ -219,7 +219,7 @@ export component Test() {
 			background: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+\.blue {/);
@@ -229,7 +229,7 @@ export component Test() {
 
 	it('handles multiple :global() in descendant sequence', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<p>{'this may or may not be styled'}</p>
 
 	<style>
@@ -237,7 +237,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div > section > p');
@@ -246,7 +246,7 @@ export component Test() {
 
 	it('handles :is with :global and html context', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<x>
 		<y>
 			<z>{'content'}</z>
@@ -258,7 +258,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/x\.tsrx-[a-z0-9]+ :is\(html \*\) {/);
@@ -266,7 +266,7 @@ export component Test() {
 
 	it('handles :global block with :has inside', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<x>{'content'}</x>
 	</div>
@@ -285,7 +285,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.foo {');
@@ -296,7 +296,7 @@ export component Test() {
 
 	it('handles :not with :global in complex nesting', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<p class="foo">{'foo'}</p>
 	<p class="bar">
 		{'bar'}
@@ -340,7 +340,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain(':not(.foo)');
@@ -349,7 +349,7 @@ export component Test() {
 
 	it('handles sibling combinators with children and :global before scoped elements', () => {
 		const source = `
-export component Test({ children }) {
+export function Test({ children }) { return <>
 	<div>
 		<p class="before">{'before'}</p>
 
@@ -375,7 +375,7 @@ export component Test({ children }) {
 		/* should be unused as this is not a possibility */
 		:global(.x) + .bar { color: green; }
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
@@ -386,7 +386,7 @@ export component Test({ children }) {
 
 	it('handles sibling combinators with component and :global before scoped elements', () => {
 		const source = `
-export component Test({ children }) {
+export function Test({ children }) { return <>
 	<div>
 		<p class="before">{'before'}</p>
 
@@ -412,11 +412,11 @@ export component Test({ children }) {
 		/* should be unused as this is not a possibility */
 		:global(.x) + .bar { color: green; }
 	</style>
-}
+</>; }
 
-component Child1() {
+function Child1() { return <>
 	<div>{'child1'}</div>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
@@ -431,7 +431,7 @@ component Child1() {
 			const source = `
 import { track } from 'ripple';
 
-export component Test({ children }) {
+export function Test({ children }) { return <>
 	const DynamicComponent = track(() => Child1);
 	<div>
 		<p class="before">{'before'}</p>
@@ -458,11 +458,11 @@ export component Test({ children }) {
 		/* should be unused as this is not a possibility */
 		:global(.x) + .bar { color: green; }
 	</style>
-}
+</>; }
 
-component Child1() {
+function Child1() { return <>
 	<div>{'child1'}</div>
-}`;
+</>; }`;
 			const { css } = compile(source, 'test.tsrx');
 
 			expect(css).toMatch(/\.before\.tsrx-[a-z0-9]+ \+ \.foo:where\(\.tsrx-[a-z0-9]+\) {/);
@@ -478,7 +478,7 @@ component Child1() {
 			const source = `
 import { track } from 'ripple';
 
-export component Test({ children, classes }) {
+export function Test({ children, classes }) { return <>
 	const dynamicElement = track('div');
 	<div>
 		<p class="before">{'before'}</p>
@@ -505,7 +505,7 @@ export component Test({ children, classes }) {
 		/* should be unused as this is not a possibility */
 		:global(.x) + .bar { color: green; }
 	</style>
-}`;
+</>; }`;
 
 			const { css } = compile(source, 'test.tsrx');
 
@@ -518,7 +518,7 @@ export component Test({ children, classes }) {
 
 	it('handles :global with multiple global descendants', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="root">
 		<section class="whatever">
 			<p>{'hello'}</p>
@@ -530,7 +530,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/html body \.root\.tsrx-[a-z0-9]+ p:where\(\.tsrx-[a-z0-9]+\) {/);
@@ -538,7 +538,7 @@ export component Test() {
 
 	it('handles nested @media with :global blocks', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -556,7 +556,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@media (min-width: 768px) {');
@@ -566,7 +566,7 @@ export component Test() {
 
 	it('handles :has with complex combinators', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<g>
 		<h>
 			<i>{'content'}</i>
@@ -587,7 +587,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(
@@ -598,7 +598,7 @@ export component Test() {
 
 	it('handles :global with attribute selectors containing special characters', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<h1 data-title="Hello, world!">{'hello world'}</h1>
 	</div>
@@ -611,7 +611,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1\[data-title="Hello, world!"\]/);
@@ -620,7 +620,7 @@ export component Test() {
 
 	it('handles escaped commas in :global class names', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<h1 class="h1,h2,h3">{'hello world'}</h1>
 	</div>
@@ -630,7 +630,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ \.h1\\,h2\\,h3 {/);
@@ -641,7 +641,7 @@ export component Test() {
  */
 	it('handles :global with :is containing multiple selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<h1>{'hello world'}</h1>
 		<h2>{'subtitle'}</h2>
@@ -655,7 +655,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(h1, h2\)/);
@@ -664,7 +664,7 @@ export component Test() {
 
 	it('handles :global with :is containing compound selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<h1>{'hello world'}</h1>
 		<h2>{'subtitle'}</h2>
@@ -676,7 +676,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ h1 ~ :is\(h2, h3\)/);
@@ -684,7 +684,7 @@ export component Test() {
 
 	it('handles :global with pseudo-elements', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<h1 class="foo">{'hello world'}</h1>
 	</div>
@@ -697,7 +697,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		expect(() => compile(source, 'test.tsrx')).toThrow(
 			':global(...) can be at the start or end of a selector sequence, but not in the middle',
 		);

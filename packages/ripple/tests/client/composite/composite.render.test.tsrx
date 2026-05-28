@@ -2,15 +2,16 @@ import { RippleArray, flushSync, track, type Component } from 'ripple';
 
 describe('composite > render', () => {
 	it('renders composite components', () => {
-		component Button(&{ count }: { count: number }) {
-			<div>{count}</div>
+		function Button(&{ count }: { count: number }) {
+			return <><div>{count}</div></>;
 		}
 
-		component App() {
-			let &[count] = track(0);
-
-			<button onClick={() => count++}>{'Increment'}</button>
-			<Button {count} />
+		function App() {
+			return <>
+				let &[count] = track(0);
+				<button onClick={() => count++}>{'Increment'}</button>
+				<Button {count} />
+			</>;
 		}
 
 		render(App);
@@ -29,26 +30,28 @@ describe('composite > render', () => {
 	});
 
 	it('correct handles passing through component props and children', () => {
-		component Button({ A, B, children }: { A: () => void; B: () => void; children: () => void }) {
-			<div>
-				<A />
-				{children}
-				<B />
-			</div>
+		function Button({ A, B, children }: { A: () => void; B: () => void; children: () => void }) {
+			return <>
+				<div>
+					<A />
+					{children}
+					<B />
+				</div>
+			</>;
 		}
 
-		component App() {
-			component A() {
-				<div>{'I am A'}</div>
-			}
-
-			component B() {
-				<div>{'I am B'}</div>
-			}
-
-			<Button {A} {B}>
-				<div>{'other text'}</div>
-			</Button>
+		function App() {
+			return <>
+				function A() {
+					return <><div>{'I am A'}</div></>;
+				}
+				function B() {
+					return <><div>{'I am B'}</div></>;
+				}
+				<Button {A} {B}>
+					<div>{'other text'}</div>
+				</Button>
+			</>;
 		}
 
 		render(App);
@@ -57,14 +60,15 @@ describe('composite > render', () => {
 	});
 
 	it('render simple text as children', () => {
-		component App() {
-			let name = 'Click Me';
-
-			<Child class="my-button">{name}</Child>
+		function App() {
+			return <>
+				let name = 'Click Me';
+				<Child class="my-button">{name}</Child>
+			</>;
 		}
 
-		component Child({ children, ...rest }: { children: string; class: string }) {
-			<button {...rest}>{children}</button>
+		function Child({ children, ...rest }: { children: string; class: string }) {
+			return <><button {...rest}>{children}</button></>;
 		}
 
 		render(App);
@@ -72,18 +76,22 @@ describe('composite > render', () => {
 	});
 
 	it('renders explicit text around children', () => {
-		component Frame({ children }) {
-			<div class="frame">
-				{text 'before'}
-				{children}
-				{text 'after'}
-			</div>
+		function Frame({ children }) {
+			return <>
+				<div class="frame">
+					{text 'before'}
+					{children}
+					{text 'after'}
+				</div>
+			</>;
 		}
 
-		component App() {
-			<Frame>
-				<span class="middle">{'middle'}</span>
-			</Frame>
+		function App() {
+			return <>
+				<Frame>
+					<span class="middle">{'middle'}</span>
+				</Frame>
+			</>;
 		}
 
 		render(App);
@@ -104,33 +112,35 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
-		component App() {
-			component Wrapper({ children }) {
-				<div class="green">
-					{'Wrapper'}
-					{children}
-				</div>
-
-				<style>
-					.green {
-						color: green;
-					}
-				</style>
-			}
-
-			component Child() {
-				<div class="red">{'Child'}</div>
-
-				<style>
-					.red {
-						color: red;
-					}
-				</style>
-			}
-
-			<Wrapper>
-				<Child />
-			</Wrapper>
+		function App() {
+			return <>
+				function Wrapper({ children }) {
+					return <>
+						<div class="green">
+							{'Wrapper'}
+							{children}
+						</div>
+						<style>
+							.green {
+								color: green;
+							}
+						</style>
+					</>;
+				}
+				function Child() {
+					return <>
+						<div class="red">{'Child'}</div>
+						<style>
+							.red {
+								color: red;
+							}
+						</style>
+					</>;
+				}
+				<Wrapper>
+					<Child />
+				</Wrapper>
+			</>;
 		}
 
 		render(App);
@@ -150,18 +160,19 @@ describe('composite > render', () => {
 	});
 
 	it('handles generics', () => {
-		component ArrayTest() {
-			let items = new RippleArray<number>();
-			items.push.apply(items, [1, 2, 3, 4, 5]);
-
-			<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+		function ArrayTest() {
+			return <>
+				let items = new RippleArray<number>();
+				items.push.apply(items, [1, 2, 3, 4, 5]);
+				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+			</>;
 		}
 
 		render(ArrayTest);
 	});
 
 	it('should not render <undefined> tag when a passed in component is undefined', () => {
-		component Child(&{
+		function Child(&{
 			children,
 			NonExistent,
 			...props
@@ -170,15 +181,17 @@ describe('composite > render', () => {
 			NonExistent?: Component;
 			[key: string]: any;
 		}) {
-			<div {...props}>
-				{children}
-				// @ts-expect-error - intentionally testing behavior when a component is undefined
-				<NonExistent />
-			</div>
+			return <>
+				<div {...props}>
+					{children}
+					// @ts-expect-error - intentionally testing behavior when a component is undefined
+					<NonExistent />
+				</div>
+			</>;
 		}
 
-		component App() {
-			<Child />
+		function App() {
+			return <><Child /></>;
 		}
 
 		render(App);
@@ -193,34 +206,38 @@ describe('composite > render', () => {
 
 describe('scoped styles with children', () => {
 	it('generates correct CSS hashes for wrapper and child with empty style in App', () => {
-		component Wrapper(&{ children }: { children?: Component }) {
-			<div class="green">
-				{'Wrapper'}
-				{children}
-			</div>
-
-			<style>
-				.green {
-					color: green;
-				}
-			</style>
+		function Wrapper(&{ children }: { children?: Component }) {
+			return <>
+				<div class="green">
+					{'Wrapper'}
+					{children}
+				</div>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>;
 		}
 
-		component Child() {
-			<div class="red">{'Child'}</div>
-
-			<style>
-				.red {
-					color: red;
-				}
-			</style>
+		function Child() {
+			return <>
+				<div class="red">{'Child'}</div>
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			</>;
 		}
 
-		component App() {
-			<Wrapper>
-				<Child />
-			</Wrapper>
-			<style></style>
+		function App() {
+			return <>
+				<Wrapper>
+					<Child />
+				</Wrapper>
+				<style></style>
+			</>;
 		}
 
 		render(App);

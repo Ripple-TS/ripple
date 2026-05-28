@@ -3,8 +3,8 @@ import { flushSync, track } from 'ripple';
 
 describe('basic client > rendering & text', () => {
 	it('renders static text', () => {
-		component Basic() {
-			<div>{'Hello World'}</div>
+		function Basic() {
+			return <><div>{'Hello World'}</div></>;
 		}
 
 		expect(container).toBeDefined();
@@ -14,10 +14,11 @@ describe('basic client > rendering & text', () => {
 	});
 
 	it('renders semi-dynamic text', () => {
-		component Basic() {
-			let message = 'Hello World';
-
-			<div>{message}</div>
+		function Basic() {
+			return <>
+				let message = 'Hello World';
+				<div>{message}</div>
+			</>;
 		}
 
 		render(Basic);
@@ -26,10 +27,11 @@ describe('basic client > rendering & text', () => {
 	});
 
 	it('renders explicit text interpolation without creating HTML', () => {
-		component Basic() {
-			let markup = '<span>Not HTML</span>';
-
-			<div>{text markup}</div>
+		function Basic() {
+			return <>
+				let markup = '<span>Not HTML</span>';
+				<div>{text markup}</div>
+			</>;
 		}
 
 		render(Basic);
@@ -41,11 +43,13 @@ describe('basic client > rendering & text', () => {
 	});
 
 	it('renders direct double-quoted text children as text', () => {
-		component Basic() {
-			<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
-			<div class="backslash">"line\nbreak"</div>
-			<pre class="multiline">"first
+		function Basic() {
+			return <>
+				<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
+				<div class="backslash">"line\nbreak"</div>
+				<pre class="multiline">"first
 second"</pre>
+			</>;
 		}
 
 		render(Basic);
@@ -56,12 +60,13 @@ second"</pre>
 	});
 
 	it('renders bare double-quoted text in if-else branches', () => {
-		component App() {
-			let condition = false;
-
-			if (condition) {
-				"Hello Ripple"
-			} else "Hello React"
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					"Hello Ripple"
+				} else "Hello React"
+			</>;
 		}
 
 		render(App);
@@ -70,17 +75,18 @@ second"</pre>
 	});
 
 	it('renders dynamic text', () => {
-		component Basic() {
-			let &[message] = track('Hello World');
-
-			<button
-				onClick={() => {
-					message = 'Hello Ripple';
-				}}
-			>
-				{'Change Text'}
-			</button>
-			<div>{message}</div>
+		function Basic() {
+			return <>
+				let &[message] = track('Hello World');
+				<button
+					onClick={() => {
+						message = 'Hello Ripple';
+					}}
+				>
+					{'Change Text'}
+				</button>
+				<div>{message}</div>
+			</>;
 		}
 
 		render(Basic);
@@ -94,8 +100,8 @@ second"</pre>
 	});
 
 	it('renders empty string literal', () => {
-		component Basic() {
-			<div>{''}</div>
+		function Basic() {
+			return <><div>{''}</div></>;
 		}
 
 		render(Basic);
@@ -103,8 +109,8 @@ second"</pre>
 	});
 
 	it('renders empty template literal', () => {
-		component Basic() {
-			<div>{``}</div>
+		function Basic() {
+			return <><div>{``}</div></>;
 		}
 
 		render(Basic);
@@ -112,20 +118,22 @@ second"</pre>
 	});
 
 	it('renders tick template literal for nested children', () => {
-		component Child({ level, children }: { level: number; children: any }) {
-			if (level == 1) {
-				<h1>{children}</h1>
-			}
-			if (level == 2) {
-				<h2>{children}</h2>
-			}
-			if (level == 3) {
-				<h3>{children}</h3>
-			}
+		function Child({ level, children }: { level: number; children: any }) {
+			return <>
+				if (level == 1) {
+					<h1>{children}</h1>
+				}
+				if (level == 2) {
+					<h2>{children}</h2>
+				}
+				if (level == 3) {
+					<h3>{children}</h3>
+				}
+			</>;
 		}
 
-		component App() {
-			<Child level={1}>{`Heading 1`}</Child>
+		function App() {
+			return <><Child level={1}>{`Heading 1`}</Child></>;
 		}
 
 		render(App);
@@ -133,13 +141,14 @@ second"</pre>
 	});
 
 	it('renders simple JS expression logic correctly', () => {
-		component Example() {
-			let test: Record<number, string> = {};
-			let counter = 0;
-			test[counter++] = 'Test';
-
-			<div>{JSON.stringify(test)}</div>
-			<div>{JSON.stringify(counter)}</div>
+		function Example() {
+			return <>
+				let test: Record<number, string> = {};
+				let counter = 0;
+				test[counter++] = 'Test';
+				<div>{JSON.stringify(test)}</div>
+				<div>{JSON.stringify(counter)}</div>
+			</>;
 		}
 		render(Example);
 
@@ -147,30 +156,31 @@ second"</pre>
 	});
 
 	it('renders with mixed static and dynamic content', () => {
-		component Basic() {
-			let &[name] = track('World');
-			let &[count] = track(0);
-			const staticMessage = 'Welcome to Ripple!';
-
-			<div class="mixed-content">
-				<h1>{staticMessage}</h1>
-				<p class="greeting">{'Hello, ' + name + '!'}</p>
-				<p class="notifications">{'You have ' + count + ' notifications'}</p>
-				<button
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'Add Notification'}
-				</button>
-				<button
-					onClick={() => {
-						name = name === 'World' ? 'User' : 'World';
-					}}
-				>
-					{'Toggle Name'}
-				</button>
-			</div>
+		function Basic() {
+			return <>
+				let &[name] = track('World');
+				let &[count] = track(0);
+				const staticMessage = 'Welcome to Ripple!';
+				<div class="mixed-content">
+					<h1>{staticMessage}</h1>
+					<p class="greeting">{'Hello, ' + name + '!'}</p>
+					<p class="notifications">{'You have ' + count + ' notifications'}</p>
+					<button
+						onClick={() => {
+							count++;
+						}}
+					>
+						{'Add Notification'}
+					</button>
+					<button
+						onClick={() => {
+							name = name === 'World' ? 'User' : 'World';
+						}}
+					>
+						{'Toggle Name'}
+					</button>
+				</div>
+			</>;
 		}
 
 		render(Basic);
@@ -194,14 +204,16 @@ second"</pre>
 	});
 
 	it('basic operations', () => {
-		component App() {
-			let &[count] = track(0);
-			const a = count++;
-			const b = ++count;
-			<div>{a}</div>
-			<div>{b}</div>
-			<div>{5}</div>
-			<div>{count}</div>
+		function App() {
+			return <>
+				let &[count] = track(0);
+				const a = count++;
+				const b = ++count;
+				<div>{a}</div>
+				<div>{b}</div>
+				<div>{5}</div>
+				<div>{count}</div>
+			</>;
 		}
 
 		render(App);
@@ -209,36 +221,36 @@ second"</pre>
 	});
 
 	it('renders with conditional rendering using if statements', () => {
-		component Basic() {
-			let &[showContent] = track(false);
-			let &[userRole] = track('guest');
-
-			<button
-				onClick={() => {
-					showContent = !showContent;
-				}}
-			>
-				{'Toggle Content'}
-			</button>
-			<button
-				onClick={() => {
-					userRole = userRole === 'guest' ? 'admin' : 'guest';
-				}}
-			>
-				{'Toggle Role'}
-			</button>
-
-			<div class="content">
-				if (showContent) {
-					if (userRole === 'admin') {
-						<div class="admin-content">{'Admin content'}</div>
+		function Basic() {
+			return <>
+				let &[showContent] = track(false);
+				let &[userRole] = track('guest');
+				<button
+					onClick={() => {
+						showContent = !showContent;
+					}}
+				>
+					{'Toggle Content'}
+				</button>
+				<button
+					onClick={() => {
+						userRole = userRole === 'guest' ? 'admin' : 'guest';
+					}}
+				>
+					{'Toggle Role'}
+				</button>
+				<div class="content">
+					if (showContent) {
+						if (userRole === 'admin') {
+							<div class="admin-content">{'Admin content'}</div>
+						} else {
+							<div class="user-content">{'User content'}</div>
+						}
 					} else {
-						<div class="user-content">{'User content'}</div>
+						<div class="no-content">{'No content'}</div>
 					}
-				} else {
-					<div class="no-content">{'No content'}</div>
-				}
-			</div>
+				</div>
+			</>;
 		}
 
 		render(Basic);
@@ -266,12 +278,14 @@ second"</pre>
 	});
 
 	it('should handle lexical scopes correctly', () => {
-		component App() {
-			<section>
-				let sectionData = 'Nested scope variable';
+		function App() {
+			return <>
+				<section>
+					let sectionData = 'Nested scope variable';
 
-				{sectionData}
-			</section>
+					{sectionData}
+				</section>
+			</>;
 		}
 
 		render(App);
@@ -279,50 +293,48 @@ second"</pre>
 	});
 
 	it('runs nested JavaScript blocks inside component-local callables', () => {
-		component App() {
-			function readFunction() {
-				const label = 'function outer';
-				let result = '';
-
-				{
-					const label = 'function inner';
-					result = label;
-				}
-
-				return `${result} / ${label}`;
-			}
-
-			const readArrow = () => {
-				const offset = 5;
-				let value = offset;
-
-				{
-					const offset = 17;
-					value += offset;
-				}
-
-				return value;
-			};
-
-			class Reader {
-				read() {
-					const label = 'method outer';
+		function App() {
+			return <>
+				function readFunction() {
+					const label = 'function outer';
 					let result = '';
 
 					{
-						const label = 'method inner';
+						const label = 'function inner';
 						result = label;
 					}
 
 					return `${result} / ${label}`;
 				}
-			}
+				const readArrow = () => {
+					const offset = 5;
+					let value = offset;
 
-			const reader = new Reader();
+					{
+						const offset = 17;
+						value += offset;
+					}
 
-			<div class="block-function">{readFunction()}</div>
-			<div class="block-arrow">{readArrow()}</div>
-			<div class="block-method">{reader.read()}</div>
+					return value;
+				};
+				class Reader {
+					read() {
+						const label = 'method outer';
+						let result = '';
+
+						{
+							const label = 'method inner';
+							result = label;
+						}
+
+						return `${result} / ${label}`;
+					}
+				}
+				const reader = new Reader();
+				<div class="block-function">{readFunction()}</div>
+				<div class="block-arrow">{readArrow()}</div>
+				<div class="block-method">{reader.read()}</div>
+			</>;
 		}
 
 		render(App);
@@ -337,25 +349,27 @@ second"</pre>
 	});
 
 	it('should handle consecutive text nodes without duplication', () => {
-		component App() {
-			const Something = conditional('a');
+		function App() {
+			return <>
+				const Something = conditional('a');
+				<Something />
+				function conditional(item: 'a') {
+					let hello = 'Hello';
+					const obj = {
+						a: function A() {
+							return <>
+								<div>
+									{'a'}
+									{' '}
+									{hello}
+								</div>
+							</>;
+						},
+					};
 
-			<Something />
-
-			function conditional(item: 'a') {
-				let hello = 'Hello';
-				const obj = {
-					a: component() {
-						<div>
-							{'a'}
-							{' '}
-							{hello}
-						</div>
-					},
-				};
-
-				return obj[item];
-			}
+					return obj[item];
+				}
+			</>;
 		}
 
 		render(App);
@@ -364,14 +378,16 @@ second"</pre>
 	});
 
 	it('should handle multiple consecutive text expressions', () => {
-		component App() {
-			let name = 'World';
-			<div>
-				{'Hello'}
-				{' '}
-				{name}
-				{'!'}
-			</div>
+		function App() {
+			return <>
+				let name = 'World';
+				<div>
+					{'Hello'}
+					{' '}
+					{name}
+					{'!'}
+				</div>
+			</>;
 		}
 
 		render(App);

@@ -10,7 +10,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_accessibility({
 			target: 'react',
 			filename: 'App.tsrx',
-			code: `export component App() {
+			code: `export function App() { return <>
 				<form>
 					<button type="submit">"Add task"</button>
 					<input id={\`todo-\${todo.id}\`} type="checkbox" />
@@ -32,14 +32,14 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_accessibility({
 			target: 'react',
 			filename: 'App.tsrx',
-			code: `export component App() {
+			code: `export function App() { return <>
 				<form>
 					<label htmlFor="todo-input">{'Todo title'}</label>
 					<input id="todo-input" type="text" />
 					<input type="checkbox" aria-label="Mark task as complete" />
 					<button type="submit">{'Add task'}</button>
 				</form>
-			}`,
+			</>; }`,
 		});
 
 		expect(result.ok).toBe(true);
@@ -50,7 +50,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_styles({
 			target: 'react',
 			filename: 'App.tsrx',
-			code: `export component App() {
+			code: `export function App() { return <>
 				<main class="app-shell">
 					<p class="eyebrow">{'Daily Flow'}</p>
 				</main>
@@ -63,7 +63,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 						box-sizing: border-box;
 					}
 				</style>
-			}`,
+			</>; }`,
 		});
 
 		expect(result.ok).toBe(false);
@@ -84,7 +84,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_components({
 			target: 'react',
 			filename: 'App.tsrx',
-			code: `export component App() {
+			code: `export function App() { return <>
 				if (items.length === 0) {
 					<p>{'Empty'}</p>
 				} else {
@@ -100,7 +100,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 					case 'grid':
 						<section>${repeated_items}</section>
 				}
-			}`,
+			</>; }`,
 		});
 
 		expect(result.ok).toBe(true);

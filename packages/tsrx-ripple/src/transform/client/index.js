@@ -2407,7 +2407,7 @@ const visitors = {
 			);
 
 			if (children_filtered.length > 0) {
-				const component_scope = state.scopes.get(node);
+				const component_scope = state.scopes.get(node) || state.scope;
 				const children_component = create_native_tsrx_render_function(
 					b.id('render_children'),
 					[],
@@ -2421,6 +2421,7 @@ const visitors = {
 						visit(children_component, {
 							...state,
 							...(apply_parent_css_scope ||
+							get_component_css(state) ||
 							(is_dynamic_element && node.metadata.scoped && get_component_css(state))
 								? {
 										applyParentCssScope:

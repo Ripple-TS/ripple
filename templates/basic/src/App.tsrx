@@ -1,6 +1,6 @@
 import { track } from 'ripple';
 
-export component App() {
+export function App() { return <>
 	let &[count] = track(0);
 
 	<div class="app">
@@ -150,4 +150,4 @@ export component App() {
 			font-size: 0.88rem;
 		}
 	</style>
-}
+</>; }

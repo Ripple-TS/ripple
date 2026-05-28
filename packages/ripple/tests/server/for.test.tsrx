@@ -1,11 +1,12 @@
 describe('for statements in SSR', () => {
 	it('renders a simple static array', async () => {
-		component App() {
-			const items = ['Item 1', 'Item 2', 'Item 3'];
-
-			for (const item of items) {
-				<div class={item}>{item}</div>
-			}
+		function App() {
+			return <>
+				const items = ['Item 1', 'Item 2', 'Item 3'];
+				for (const item of items) {
+					<div class={item}>{item}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -15,26 +16,27 @@ describe('for statements in SSR', () => {
 	});
 
 	it('renders nested for...of loops', async () => {
-		component App() {
-			const groups = [
-				{
-					name: 'Group 1',
-					items: ['Item 1.1', 'Item 1.2'],
-				},
-				{
-					name: 'Group 2',
-					items: ['Item 2.1', 'Item 2.2'],
-				},
-			];
-
-			for (const group of groups) {
-				<h1>{group.name}</h1>
-				<ul>
-					for (const item of group.items) {
-						<li>{item}</li>
-					}
-				</ul>
-			}
+		function App() {
+			return <>
+				const groups = [
+					{
+						name: 'Group 1',
+						items: ['Item 1.1', 'Item 1.2'],
+					},
+					{
+						name: 'Group 2',
+						items: ['Item 2.1', 'Item 2.2'],
+					},
+				];
+				for (const group of groups) {
+					<h1>{group.name}</h1>
+					<ul>
+						for (const item of group.items) {
+							<li>{item}</li>
+						}
+					</ul>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -44,12 +46,13 @@ describe('for statements in SSR', () => {
 	});
 
 	it('renders an array with index', async () => {
-		component App() {
-			const items = ['Item 1', 'Item 2', 'Item 3'];
-
-			for (const item of items; index i) {
-				<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
-			}
+		function App() {
+			return <>
+				const items = ['Item 1', 'Item 2', 'Item 3'];
+				for (const item of items; index i) {
+					<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -59,16 +62,17 @@ describe('for statements in SSR', () => {
 	});
 
 	it('renders an array with key', async () => {
-		component App() {
-			const items = [
-				{ id: 1, name: 'Item' },
-				{ id: 2, name: 'Item' },
-				{ id: 3, name: 'Item' },
-			];
-
-			for (const item of items; key item.id) {
-				<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
-			}
+		function App() {
+			return <>
+				const items = [
+					{ id: 1, name: 'Item' },
+					{ id: 2, name: 'Item' },
+					{ id: 3, name: 'Item' },
+				];
+				for (const item of items; key item.id) {
+					<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -78,16 +82,17 @@ describe('for statements in SSR', () => {
 	});
 
 	it('renders an array with index and key', async () => {
-		component App() {
-			const items = [
-				{ id: 1, name: 'Item' },
-				{ id: 2, name: 'Item' },
-				{ id: 3, name: 'Item' },
-			];
-
-			for (const item of items; index i; key item.id) {
-				<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
-			}
+		function App() {
+			return <>
+				const items = [
+					{ id: 1, name: 'Item' },
+					{ id: 2, name: 'Item' },
+					{ id: 3, name: 'Item' },
+				];
+				for (const item of items; index i; key item.id) {
+					<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -97,13 +102,14 @@ describe('for statements in SSR', () => {
 	});
 
 	it('allows continue to skip a for...of iteration', async () => {
-		component App() {
-			const items = ['Item 1', '', 'Item 3'];
-
-			for (const item of items) {
-				if (!item) continue;
-				<div>{item}</div>
-			}
+		function App() {
+			return <>
+				const items = ['Item 1', '', 'Item 3'];
+				for (const item of items) {
+					if (!item) continue;
+					<div>{item}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -111,22 +117,23 @@ describe('for statements in SSR', () => {
 	});
 
 	it('allows ordinary function control flow inside for...of loops', async () => {
-		component App() {
-			const items = ['Item 1', '', 'Item 3'];
-
-			for (const item of items) {
-				function label(value) {
-					for (let i = 0; i < 1; i++) {
-						while (i < 0) {
-							break;
+		function App() {
+			return <>
+				const items = ['Item 1', '', 'Item 3'];
+				for (const item of items) {
+					function label(value) {
+						for (let i = 0; i < 1; i++) {
+							while (i < 0) {
+								break;
+							}
+							if (!value) return 'missing';
 						}
-						if (!value) return 'missing';
+						return value;
 					}
-					return value;
-				}
 
-				<div>{label(item)}</div>
-			}
+					<div>{label(item)}</div>
+				}
+			</>;
 		}
 
 		const { body } = await render(App);
@@ -136,30 +143,30 @@ describe('for statements in SSR', () => {
 	it('throws for return statements inside for...of loops', () => {
 		expect(
 			() => compile(
-				`component App(items) {
+				`function App(items) { return <>
 					for (const item of items) {
 						if (!item) return
 						<div>{item}</div>
 					}
-				}`,
+				</>; }`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('Return statements are not allowed inside component for...of loops');
+		).toThrow('Return statements are not allowed inside TSRX template for...of loops');
 	});
 
 	it('throws for break statements targeting for...of loops', () => {
 		expect(
 			() => compile(
-				`component App(items) {
+				`function App(items) { return <>
 					for (const item of items) {
 						if (!item) break
 						<div>{item}</div>
 					}
-				}`,
+				</>; }`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('Break statements are not allowed inside component for...of loops');
+		).toThrow('Break statements are not allowed inside TSRX template for...of loops');
 	});
 });

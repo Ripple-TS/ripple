@@ -1,6 +1,6 @@
 import { track, trackAsync } from 'ripple';
 
-export component MixedControlFlowStatic() {
+export function MixedControlFlowStatic() { return <>
 	const rows = [
 		{ id: 1, kind: 'a', enabled: true },
 		{ id: 2, kind: 'b', enabled: true },
@@ -28,9 +28,9 @@ export component MixedControlFlowStatic() {
 			}
 		}
 	</section>
-}
+</>; }
 
-export component MixedControlFlowReactive() {
+export function MixedControlFlowReactive() { return <>
 	let &[show] = track(true);
 	let &[mode] = track<'a' | 'b'>('a');
 	let &[items] = track([
@@ -84,9 +84,9 @@ export component MixedControlFlowReactive() {
 			}
 		</div>
 	}
-}
+</>; }
 
-export component MixedControlFlowAsyncPending() {
+export function MixedControlFlowAsyncPending() { return <>
 	const rows = [1, 2];
 	const state = 'slow';
 
@@ -106,9 +106,9 @@ export component MixedControlFlowAsyncPending() {
 			}
 		}
 	}
-}
+</>; }
 
-component AsyncRow({ label }: { label: string }) {
+function AsyncRow({ label }: { label: string }) { return <>
 	let &[value] = trackAsync(() => Promise.resolve(label));
 	<div class="resolved-row">{value}</div>
-}
+</>; }

@@ -2,7 +2,7 @@ import { RippleArray, RippleMap } from 'ripple';
 
 describe('generics', () => {
 	it('handles advanced generic ambiguity and edge cases', () => {
-		component App() {
+		function App() { return <>
 			// Ambiguous generics vs JSX / less-than parsing scenarios
 
 			// 7. Generic following optional chaining
@@ -209,7 +209,7 @@ describe('generics', () => {
 
 			// 33. Map of generic instance as key
 			const mm = new Map<RippleArray<number>, RippleArray<string>>();
-		}
+		</>; }
 
 		render(App);
 	});

@@ -18,7 +18,7 @@ function count_occurrences(string: string, sub_string: string): number {
 
 describe('compiler > Volar transform does not duplicate try blocks from functions', () => {
 	it('try inside an async function', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	async function doWork() {
 		try {
 			await fetch('/api');
@@ -27,7 +27,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 		}
 	}
 	<div onclick={doWork}>{"click"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
@@ -36,14 +36,14 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 	});
 
 	it('try inside an arrow function', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	const doWork = async () => {
 		try {
 			await fetch('/api');
 		} catch (e) {}
 	};
 	<div onclick={doWork}>{"click"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
@@ -51,7 +51,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 	});
 
 	it('try-catch-finally inside a function', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	async function save() {
 		try {
 			await fetch('/save');
@@ -62,7 +62,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 		}
 	}
 	<div onclick={save}>{"save"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
@@ -72,12 +72,12 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 
 	it('try at component top level is preserved', () => {
 		const source = `import { trackAsync } from 'ripple';
-export component App() {
+export function App() { return <>
 	try {
 		let &[data] = trackAsync(() => fetch('/api'));
 	} catch (e) {}
 	<div>{"hi"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
@@ -86,7 +86,7 @@ export component App() {
 
 	it('component-level try and function-level try coexist without duplication', () => {
 		const source = `import { trackAsync } from 'ripple';
-export component App() {
+export function App() { return <>
 	try {
 		let &[data] = trackAsync(() => fetch('/init'));
 	} catch (e) {}
@@ -97,7 +97,7 @@ export component App() {
 		} catch (e) {}
 	}
 	<div onclick={refresh}>{"click"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(2);
@@ -106,7 +106,7 @@ export component App() {
 	});
 
 	it('try in nested functions', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	function outer() {
 		async function inner() {
 			try {
@@ -115,7 +115,7 @@ export component App() {
 		}
 	}
 	<div>{"hi"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);
@@ -123,7 +123,7 @@ export component App() {
 	});
 
 	it('multiple functions with try blocks each appear once', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	async function load() {
 		try {
 			await fetch('/load');
@@ -135,7 +135,7 @@ export component App() {
 		} catch (e) {}
 	}
 	<div>{"hi"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(2);
@@ -143,7 +143,7 @@ export component App() {
 	});
 
 	it('try in object method', () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	const handlers = {
 		async onClick() {
 			try {
@@ -152,7 +152,7 @@ export component App() {
 		}
 	};
 	<div>{"hi"}</div>
-}`;
+</>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(count_occurrences(result, 'try {')).toBe(1);

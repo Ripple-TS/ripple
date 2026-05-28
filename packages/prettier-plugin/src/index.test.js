@@ -165,7 +165,10 @@ function App() {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('rejects the removed component keyword', async () => {
-		await expect(format('component App() { <div /> }')).rejects.toThrow();
+	it('formats returned TSRX fragments', async () => {
+		const result = await format('function App() { return <> <div /> </>; }');
+		expect(result).toBeWithNewline(`function App() {
+  return <><div /></>;
+}`);
 	});
 });

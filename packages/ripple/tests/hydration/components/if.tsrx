@@ -2,30 +2,30 @@ import { track } from 'ripple';
 
 // If block components for hydration testing
 
-export component IfTruthy() {
+export function IfTruthy() { return <>
 	const show = true;
 	if (show) {
 		<div class="shown">{'Visible'}</div>
 	}
-}
+</>; }
 
-export component IfFalsy() {
+export function IfFalsy() { return <>
 	const show = false;
 	if (show) {
 		<div class="shown">{'Visible'}</div>
 	}
-}
+</>; }
 
-export component IfElse() {
+export function IfElse() { return <>
 	const isLoggedIn = true;
 	if (isLoggedIn) {
 		<div class="logged-in">{'Welcome back!'}</div>
 	} else {
 		<div class="logged-out">{'Please log in'}</div>
 	}
-}
+</>; }
 
-export component ReactiveIf() {
+export function ReactiveIf() { return <>
 	let &[show] = track(true);
 	<button
 		class="toggle"
@@ -38,9 +38,9 @@ export component ReactiveIf() {
 	if (show) {
 		<div class="content">{'Content visible'}</div>
 	}
-}
+</>; }
 
-export component ReactiveIfElse() {
+export function ReactiveIfElse() { return <>
 	let &[isOn] = track(false);
 	<button
 		class="toggle"
@@ -55,9 +55,9 @@ export component ReactiveIfElse() {
 	} else {
 		<div class="off">{'OFF'}</div>
 	}
-}
+</>; }
 
-export component NestedIf() {
+export function NestedIf() { return <>
 	let &[outer] = track(true);
 	let &[inner] = track(true);
 	<button
@@ -84,9 +84,9 @@ export component NestedIf() {
 			}
 		</div>
 	}
-}
+</>; }
 
-export component IfElseIfChain() {
+export function IfElseIfChain() { return <>
 	let &[status] = track<'loading' | 'success' | 'error'>('loading');
 	<div>
 		<button
@@ -121,4 +121,4 @@ export component IfElseIfChain() {
 			<div class="state">{'Error occurred'}</div>
 		}
 	</div>
-}
+</>; }

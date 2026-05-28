@@ -197,13 +197,13 @@ const RIPPLE_SNIPPETS = [
 		sortText: '0-module-server',
 	},
 	{
-		label: 'component',
+		label: 'function component',
 		kind: CompletionItemKind.Snippet,
-		detail: 'Ripple Component',
+		detail: 'Ripple component function',
 		documentation: 'Create a new Ripple component',
-		insertText: 'component ${1:ComponentName}(${2:props}) {\n\t$0\n}',
+		insertText: 'function ${1:ComponentName}(${2:props}) {\n\treturn <>\n\t\t$0\n\t</>;\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-component',
+		sortText: '0-function-component',
 	},
 	{
 		label: 'track',

@@ -1,51 +1,51 @@
 import type { Children } from 'ripple';
 
-export component Layout(&{ children }: { children?: Children }) {
+export function Layout(&{ children }: { children?: Children }) { return <>
 	<div class="layout">{children}</div>
-}
+</>; }
 
-export component TextWrappedLayout(&{ children }: { children?: Children }) {
+export function TextWrappedLayout(&{ children }: { children?: Children }) { return <>
 	<div class="layout">
 		{text 'before'}
 		{children}
 		{text 'after'}
 	</div>
-}
+</>; }
 
-export component SingleChild() {
+export function SingleChild() { return <>
 	<div class="single">{'single'}</div>
-}
+</>; }
 
-export component MultiRootChild() {
+export function MultiRootChild() { return <>
 	<h1>{'title'}</h1>
 	<p>{'description'}</p>
-}
+</>; }
 
-export component EmptyLayout() {
+export function EmptyLayout() { return <>
 	<Layout />
-}
+</>; }
 
-export component LayoutWithSingleChild() {
+export function LayoutWithSingleChild() { return <>
 	<Layout>
 		<SingleChild />
 	</Layout>
-}
+</>; }
 
-export component LayoutWithMultipleChildren() {
+export function LayoutWithMultipleChildren() { return <>
 	<Layout>
 		<SingleChild />
 		<div class="extra">{'extra'}</div>
 	</Layout>
-}
+</>; }
 
-export component LayoutWithMultiRootChild() {
+export function LayoutWithMultiRootChild() { return <>
 	<Layout>
 		<MultiRootChild />
 	</Layout>
-}
+</>; }
 
-export component LayoutWithTextAroundChildren() {
+export function LayoutWithTextAroundChildren() { return <>
 	<TextWrappedLayout>
 		<SingleChild />
 	</TextWrappedLayout>
-}
+</>; }

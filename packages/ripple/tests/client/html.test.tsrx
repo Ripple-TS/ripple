@@ -2,10 +2,11 @@ import { flushSync, track } from 'ripple';
 
 describe('html directive', () => {
 	it('renders static html', () => {
-		component App() {
-			let str = '<div>Test</div>';
-
-			{html str}
+		function App() {
+			return <>
+				let str = '<div>Test</div>';
+				{html str}
+			</>;
 		}
 
 		render(App);
@@ -13,18 +14,18 @@ describe('html directive', () => {
 	});
 
 	it('renders dynamic html', () => {
-		component App() {
-			let &[str] = track('<div>Test</div>');
-
-			{html str}
-
-			<button
-				onClick={() => {
-					str = '<div>Updated</div>';
-				}}
-			>
-				{'Update'}
-			</button>
+		function App() {
+			return <>
+				let &[str] = track('<div>Test</div>');
+				{html str}
+				<button
+					onClick={() => {
+						str = '<div>Updated</div>';
+					}}
+				>
+					{'Update'}
+				</button>
+			</>;
 		}
 
 		render(App);
@@ -38,10 +39,11 @@ describe('html directive', () => {
 	});
 
 	it('renders the correct namespace for child svg element when html is surrounded by <svg>', () => {
-		component App() {
-			let str = '<circle r="45" cx="50" cy="50" fill="red" />';
-
-			<svg height="100" width="100">{html str}</svg>
+		function App() {
+			return <>
+				let str = '<circle r="45" cx="50" cy="50" fill="red" />';
+				<svg height="100" width="100">{html str}</svg>
+			</>;
 		}
 
 		render(App);
@@ -53,10 +55,11 @@ describe('html directive', () => {
 	it(
 		'renders the correct namespace for child math element when html is surrounded by <math>',
 		() => {
-			component App() {
-				let str = '<mi>x</mi><mo>+</mo><mi>y</mi>';
-
-				<math>{html str}</math>
+			function App() {
+				return <>
+					let str = '<mi>x</mi><mo>+</mo><mi>y</mi>';
+					<math>{html str}</math>
+				</>;
 			}
 
 			render(App);

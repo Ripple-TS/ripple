@@ -20,6 +20,7 @@ const formatValue = function (...args) {
 export function AsyncWithServerCall() {
 	_$_.push_component();
 
+	var __r = false;
 	let lazy = _$_.track(0, '2e21cbe9');
 
 	_$_.regular_block(() => {
@@ -74,11 +75,14 @@ export function AsyncWithServerCall() {
 		}
 	);
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function AsyncSimpleValue() {
 	_$_.push_component();
+
+	var __r_1 = false;
 
 	_$_.try_block(
 		() => {
@@ -120,11 +124,14 @@ export function AsyncSimpleValue() {
 		}
 	);
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function AsyncNumericValue() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.try_block(
 		() => {
@@ -166,11 +173,14 @@ export function AsyncNumericValue() {
 		}
 	);
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function AsyncObjectValue() {
 	_$_.push_component();
+
+	var __r_3 = false;
 
 	_$_.try_block(
 		() => {
@@ -229,11 +239,14 @@ export function AsyncObjectValue() {
 		}
 	);
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function AsyncMultipleValues() {
 	_$_.push_component();
+
+	var __r_4 = false;
 
 	_$_.try_block(
 		() => {
@@ -293,11 +306,14 @@ export function AsyncMultipleValues() {
 		}
 	);
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function AsyncWithCatch() {
 	_$_.push_component();
+
+	var __r_5 = false;
 
 	_$_.try_block(
 		() => {
@@ -355,11 +371,14 @@ export function AsyncWithCatch() {
 		}
 	);
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function ChildWithError() {
 	_$_.push_component();
+
+	var __r_6 = false;
 
 	_$_.try_block(
 		() => {
@@ -401,11 +420,14 @@ export function ChildWithError() {
 		}
 	);
 
+	__r_6 = true;
 	_$_.pop_component();
 }
 
 export function ParentWithCatch() {
 	_$_.push_component();
+
+	var __r_7 = false;
 
 	_$_.try_block(
 		() => {
@@ -442,12 +464,14 @@ export function ParentWithCatch() {
 		null
 	);
 
+	__r_7 = true;
 	_$_.pop_component();
 }
 
 export function AsyncWithReactiveDependency() {
 	_$_.push_component();
 
+	var __r_8 = false;
 	let lazy_9 = _$_.track(0, 'c9d12acf');
 
 	_$_.regular_block(() => {
@@ -502,5 +526,6 @@ export function AsyncWithReactiveDependency() {
 		}
 	);
 
+	__r_8 = true;
 	_$_.pop_component();
 }

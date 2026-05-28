@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function StaticForLoop() {
 	_$_.push_component();
 
+	var __r = false;
 	const items = ['Apple', 'Banana', 'Cherry'];
 
 	_$_.regular_block(() => {
@@ -32,12 +33,14 @@ export function StaticForLoop() {
 		_$_.output_push('</ul>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function ForLoopWithIndex() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	const items = ['A', 'B', 'C'];
 
 	_$_.regular_block(() => {
@@ -67,11 +70,14 @@ export function ForLoopWithIndex() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function KeyedForLoop() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	const items = [
 		{ id: 1, name: 'First' },
@@ -103,12 +109,14 @@ export function KeyedForLoop() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function ReactiveForLoopAdd() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy = _$_.track(['A', 'B'], 'e145678a');
 
 	_$_.regular_block(() => {
@@ -147,12 +155,14 @@ export function ReactiveForLoopAdd() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function ReactiveForLoopRemove() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
 
 	_$_.regular_block(() => {
@@ -191,12 +201,14 @@ export function ReactiveForLoopRemove() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopInteractive() {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_2 = _$_.track([0, 0, 0], '36f563df');
 
 	_$_.regular_block(() => {
@@ -244,12 +256,14 @@ export function ForLoopInteractive() {
 		_$_.output_push('</div>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function NestedForLoop() {
 	_$_.push_component();
 
+	var __r_6 = false;
 	const grid = [[1, 2], [3, 4]];
 
 	_$_.regular_block(() => {
@@ -298,12 +312,14 @@ export function NestedForLoop() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }
 
 export function EmptyForLoop() {
 	_$_.push_component();
 
+	var __r_7 = false;
 	const items = [];
 
 	_$_.regular_block(() => {
@@ -331,11 +347,14 @@ export function EmptyForLoop() {
 		_$_.output_push('</div>');
 	});
 
+	__r_7 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopComplexObjects() {
 	_$_.push_component();
+
+	var __r_8 = false;
 
 	const users = [
 		{ id: 1, name: 'Alice', role: 'Admin' },
@@ -384,11 +403,14 @@ export function ForLoopComplexObjects() {
 		_$_.output_push('</div>');
 	});
 
+	__r_8 = true;
 	_$_.pop_component();
 }
 
 export function KeyedForLoopReorder() {
 	_$_.push_component();
+
+	var __r_9 = false;
 
 	let lazy_3 = _$_.track(
 		[
@@ -436,12 +458,14 @@ export function KeyedForLoopReorder() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_9 = true;
 	_$_.pop_component();
 }
 
 export function KeyedForLoopUpdate() {
 	_$_.push_component();
 
+	var __r_10 = false;
 	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
 
 	_$_.regular_block(() => {
@@ -481,12 +505,14 @@ export function KeyedForLoopUpdate() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_10 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopMixedOperations() {
 	_$_.push_component();
 
+	var __r_11 = false;
 	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
 
 	_$_.regular_block(() => {
@@ -526,12 +552,14 @@ export function ForLoopMixedOperations() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_11 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopInsideIf() {
 	_$_.push_component();
 
+	var __r_12 = false;
 	let lazy_6 = _$_.track(true, '0528df30');
 	let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
 
@@ -590,12 +618,14 @@ export function ForLoopInsideIf() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_12 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopEmptyToPopulated() {
 	_$_.push_component();
 
+	var __r_13 = false;
 	let lazy_8 = _$_.track([], '525c5dbc');
 
 	_$_.regular_block(() => {
@@ -635,12 +665,14 @@ export function ForLoopEmptyToPopulated() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_13 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopPopulatedToEmpty() {
 	_$_.push_component();
 
+	var __r_14 = false;
 	let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
 
 	_$_.regular_block(() => {
@@ -680,12 +712,14 @@ export function ForLoopPopulatedToEmpty() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_14 = true;
 	_$_.pop_component();
 }
 
 export function NestedForLoopReactive() {
 	_$_.push_component();
 
+	var __r_15 = false;
 	let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
 
 	_$_.regular_block(() => {
@@ -758,11 +792,14 @@ export function NestedForLoopReactive() {
 		_$_.output_push('</div>');
 	});
 
+	__r_15 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopDeeplyNested() {
 	_$_.push_component();
+
+	var __r_16 = false;
 
 	const departments = [
 		{
@@ -860,12 +897,14 @@ export function ForLoopDeeplyNested() {
 		_$_.output_push('</div>');
 	});
 
+	__r_16 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopIndexUpdate() {
 	_$_.push_component();
 
+	var __r_17 = false;
 	let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
 
 	_$_.regular_block(() => {
@@ -908,11 +947,14 @@ export function ForLoopIndexUpdate() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_17 = true;
 	_$_.pop_component();
 }
 
 export function KeyedForLoopWithIndex() {
 	_$_.push_component();
+
+	var __r_18 = false;
 
 	let lazy_12 = _$_.track(
 		[
@@ -964,12 +1006,14 @@ export function KeyedForLoopWithIndex() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_18 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopWithSiblings() {
 	_$_.push_component();
 
+	var __r_19 = false;
 	let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
 
 	_$_.regular_block(() => {
@@ -1028,11 +1072,14 @@ export function ForLoopWithSiblings() {
 		_$_.output_push('</button>');
 	});
 
+	__r_19 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopItemState() {
 	_$_.push_component();
+
+	var __r_20 = false;
 
 	const initialItems = [
 		{ id: 1, text: 'Todo 1' },
@@ -1062,12 +1109,14 @@ export function ForLoopItemState() {
 		_$_.output_push('</div>');
 	});
 
+	__r_20 = true;
 	_$_.pop_component();
 }
 
 function TodoItem(props) {
 	_$_.push_component();
 
+	var __r_21 = false;
 	let lazy_14 = _$_.track(false, '4f2402a4');
 
 	_$_.regular_block(() => {
@@ -1095,12 +1144,14 @@ function TodoItem(props) {
 		_$_.output_push('</div>');
 	});
 
+	__r_21 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopSingleItem() {
 	_$_.push_component();
 
+	var __r_22 = false;
 	const items = ['Only'];
 
 	_$_.regular_block(() => {
@@ -1128,12 +1179,14 @@ export function ForLoopSingleItem() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_22 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopAddAtBeginning() {
 	_$_.push_component();
 
+	var __r_23 = false;
 	let lazy_15 = _$_.track(['B', 'C'], '1561403a');
 
 	_$_.regular_block(() => {
@@ -1173,12 +1226,14 @@ export function ForLoopAddAtBeginning() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_23 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopAddInMiddle() {
 	_$_.push_component();
 
+	var __r_24 = false;
 	let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
 
 	_$_.regular_block(() => {
@@ -1218,12 +1273,14 @@ export function ForLoopAddInMiddle() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_24 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopRemoveFromMiddle() {
 	_$_.push_component();
 
+	var __r_25 = false;
 	let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
 
 	_$_.regular_block(() => {
@@ -1263,12 +1320,14 @@ export function ForLoopRemoveFromMiddle() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_25 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopLargeList() {
 	_$_.push_component();
 
+	var __r_26 = false;
 	const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
 
 	_$_.regular_block(() => {
@@ -1300,12 +1359,14 @@ export function ForLoopLargeList() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_26 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopSwap() {
 	_$_.push_component();
 
+	var __r_27 = false;
 	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
 
 	_$_.regular_block(() => {
@@ -1345,12 +1406,14 @@ export function ForLoopSwap() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_27 = true;
 	_$_.pop_component();
 }
 
 export function ForLoopReverse() {
 	_$_.push_component();
 
+	var __r_28 = false;
 	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
 
 	_$_.regular_block(() => {
@@ -1390,5 +1453,6 @@ export function ForLoopReverse() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_28 = true;
 	_$_.pop_component();
 }

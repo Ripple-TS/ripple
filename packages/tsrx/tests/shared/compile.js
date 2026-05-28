@@ -1272,13 +1272,9 @@ export function runSharedCompileTests({ compile, name, classAttrName }) {
 	runSharedNestedLazyDestructuringTests({ compile, name });
 
 	describe(`[${name}] component export shapes`, () => {
-		// `component X()` maps to `function X()` identically on every target
-		// (react / preact / solid) — the keyword rewrite is done at the
-		// factory level, and export prefix preservation is a function of
-		// how the AST's `declaration` wrapper is left intact through the
-		// walk. Any future change that breaks one of these shapes on one
-		// target — e.g. double-exporting, stripping the default keyword —
-		// fails the suite that notices first.
+		// Function export prefix preservation should stay identical across
+		// targets. Any future change that double-exports, strips a default,
+		// or otherwise changes the declaration wrapper fails here first.
 
 		it('keeps plain components local unless explicitly exported', () => {
 			const { code } = compile(

@@ -1,9 +1,9 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 0);
+var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 1, 1);
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
-var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
+var root_1 = _$_.template(`<div class="content"><!></div>`, 1, 1);
 var root_4 = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<!>`, 1, 1);
 
@@ -12,7 +12,9 @@ import { track } from 'ripple';
 export function Layout(__anchor, { children }, __block) {
 	_$_.push_component();
 
-	var div_1 = root();
+	var __r = false;
+	var fragment = root();
+	var div_1 = _$_.first_child_frag(fragment);
 
 	{
 		var nav_1 = _$_.child(div_1);
@@ -26,15 +28,19 @@ export function Layout(__anchor, { children }, __block) {
 		}
 	}
 
-	_$_.append(__anchor, div_1);
+	_$_.pop(div_1);
+	__r = true;
+	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
 
 export function Content(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track(true, __block, '0bdb1500');
-	var div_2 = root_1();
+	var fragment_1 = root_1();
+	var div_2 = _$_.first_child_frag(fragment_1);
 
 	{
 		var node = _$_.child(div_2);
@@ -54,30 +60,35 @@ export function Content(__anchor, _, __block) {
 		_$_.pop(div_2);
 	}
 
-	_$_.append(__anchor, div_2);
+	__r_1 = true;
+	_$_.append(__anchor, fragment_1);
 	_$_.pop_component();
 }
 
 export function LayoutWithContent(__anchor, _, __block) {
 	_$_.push_component();
 
-	var fragment = root_3();
-	var node_1 = _$_.first_child_frag(fragment);
+	var __r_2 = false;
+	var fragment_2 = root_3();
+	var node_1 = _$_.first_child_frag(fragment_2);
 
 	Layout(
 		node_1,
 		{
 			children: _$_.tsrx_element(function render_children(__anchor, __block) {
-				var fragment_1 = root_4();
-				var node_2 = _$_.first_child_frag(fragment_1);
+				var __r_3 = false;
+				var fragment_3 = root_4();
+				var node_2 = _$_.first_child_frag(fragment_3);
 
 				Content(node_2, {}, _$_.active_block);
-				_$_.append(__anchor, fragment_1);
+				__r_3 = true;
+				_$_.append(__anchor, fragment_3);
 			})
 		},
 		_$_.active_block
 	);
 
-	_$_.append(__anchor, fragment);
+	__r_2 = true;
+	_$_.append(__anchor, fragment_2);
 	_$_.pop_component();
 }

@@ -6,6 +6,8 @@ import { Portal, track } from 'ripple/server';
 export function SimplePortal() {
 	_$_.push_component();
 
+	var __r = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push(' class="container"');
@@ -29,6 +31,9 @@ export function SimplePortal() {
 						target: typeof document !== 'undefined' ? document.body : null,
 						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
+
+							var __r_1 = false;
+
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');
 							_$_.output_push('>');
@@ -38,6 +43,7 @@ export function SimplePortal() {
 							}
 
 							_$_.output_push('</div>');
+							__r_1 = true;
 							_$_.pop_component();
 						})
 					}
@@ -52,12 +58,14 @@ export function SimplePortal() {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function ConditionalPortal() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	let lazy = _$_.track(true, '4f6df174');
 
 	_$_.regular_block(() => {
@@ -86,6 +94,9 @@ export function ConditionalPortal() {
 							target: typeof document !== 'undefined' ? document.body : null,
 							children: _$_.tsrx_element(function render_children() {
 								_$_.push_component();
+
+								var __r_3 = false;
+
 								_$_.output_push('<div');
 								_$_.output_push(' class="portal-content"');
 								_$_.output_push('>');
@@ -95,6 +106,7 @@ export function ConditionalPortal() {
 								}
 
 								_$_.output_push('</div>');
+								__r_3 = true;
 								_$_.pop_component();
 							})
 						}
@@ -112,11 +124,14 @@ export function ConditionalPortal() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function PortalWithMainContent() {
 	_$_.push_component();
+
+	var __r_4 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -141,6 +156,9 @@ export function PortalWithMainContent() {
 						target: typeof document !== 'undefined' ? document.body : null,
 						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
+
+							var __r_5 = false;
+
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');
 							_$_.output_push('>');
@@ -150,6 +168,7 @@ export function PortalWithMainContent() {
 							}
 
 							_$_.output_push('</div>');
+							__r_5 = true;
 							_$_.pop_component();
 						})
 					}
@@ -174,11 +193,14 @@ export function PortalWithMainContent() {
 		_$_.output_push('</div>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function NestedContentWithPortal() {
 	_$_.push_component();
+
+	var __r_6 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -211,6 +233,9 @@ export function NestedContentWithPortal() {
 						target: typeof document !== 'undefined' ? document.body : null,
 						children: _$_.tsrx_element(function render_children() {
 							_$_.push_component();
+
+							var __r_7 = false;
+
 							_$_.output_push('<div');
 							_$_.output_push(' class="portal-content"');
 							_$_.output_push('>');
@@ -220,6 +245,7 @@ export function NestedContentWithPortal() {
 							}
 
 							_$_.output_push('</div>');
+							__r_7 = true;
 							_$_.pop_component();
 						})
 					}
@@ -234,5 +260,6 @@ export function NestedContentWithPortal() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }

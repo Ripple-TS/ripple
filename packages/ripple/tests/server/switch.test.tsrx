@@ -1,6 +1,6 @@
 describe('SSR: switch statements', () => {
 	it('renders simple switch with literal cases', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'b';
 
 			switch (value) {
@@ -16,14 +16,14 @@ describe('SSR: switch statements', () => {
 				default:
 					<div>{'Default Case'}</div>
 			}
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Case B</div>');
 	});
 
 	it('renders a fall-through with an empty switch case', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'b';
 
 			switch (value) {
@@ -37,14 +37,14 @@ describe('SSR: switch statements', () => {
 				default:
 					<div>{'Default Case'}</div>
 			}
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Case B or C</div>');
 	});
 
 	it('renders a fall-through with a case that has elements', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'a';
 
 			switch (value) {
@@ -58,14 +58,14 @@ describe('SSR: switch statements', () => {
 				default:
 					<div>{'Default Case'}</div>
 			}
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Case A</div><div>Case B</div><div>Case C</div>');
 	});
 
 	it('renders a fall-through with a default case in the middle', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'x';
 
 			switch (value) {
@@ -80,14 +80,14 @@ describe('SSR: switch statements', () => {
 					<div>{'Case C'}</div>
 					break;
 			}
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Default Case</div><div>Case B</div>');
 	});
 
 	it('renders bare text nodes in switch fall-through cases without element wrappers', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'a';
 
 			<div>
@@ -99,14 +99,14 @@ describe('SSR: switch statements', () => {
 						{'Case B'}
 				}
 			</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div><span>before</span>Case ACase B</div>');
 	});
 
 	it('renders bare text nodes in switch cases without element wrappers', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'a';
 
 			<div>
@@ -120,7 +120,7 @@ describe('SSR: switch statements', () => {
 						break;
 				}
 			</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div><span>before</span>Case A</div>');

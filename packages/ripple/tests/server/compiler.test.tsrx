@@ -31,11 +31,11 @@ beforeAll(() => {
 	(global as any).count++;
 });
 
-component Test() {
+function Test() { return <>
 	let toggle: { value: boolean } | undefined;
 	toggle!.value = false;
 	toggle!.value++;
-}`;
+</>; }`;
 
 		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
@@ -50,13 +50,13 @@ component Test() {
 	it(
 		'compiles writes to unknown lazy array index 1 through lazy array helpers in SSR output',
 		() => {
-			const source = `component Child({ pair: &[first, second] }) {
+			const source = `function Child({ pair: &[first, second] }) { return <>
 	second = 10;
 	<div>{first}</div>
-}
-component App() {
+</>; }
+function App() { return <>
 	<Child pair={[0, 1]} />
-}`;
+</>; }`;
 			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
 			expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
@@ -65,13 +65,13 @@ component App() {
 	);
 
 	it('does not double-wrap member access on lazy array value bindings in SSR output', () => {
-		const source = `component Child({ pair: &[first] }) {
+		const source = `function Child({ pair: &[first] }) { return <>
 	let value = first[0];
 	<div>{value}</div>
-}
-component App() {
+</>; }
+function App() { return <>
 	<Child pair={[{ 0: 'x' }]} />
-}`;
+</>; }`;
 		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
 		expect(code).toContain('let value = _$_.lazy_array_get(lazy, 0)[0];');
@@ -80,13 +80,13 @@ component App() {
 
 	it('throws on indexed access through known tracked lazy destructures in SSR output', () => {
 		const source = `import { track } from 'ripple';
-component App() {
+function App() { return <>
 	let &[value, tracked_ref] = track({ 0: 'x' });
 	let nested = value[0];
 	tracked_ref[0] = { 0: 'y' };
 	let next = value[0];
 	<div>{nested}{next}</div>
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
 			/Use \.value or &\[\] lazy destructuring/,
@@ -95,7 +95,7 @@ component App() {
 
 	it('throws on known tracked indexed access in SSR output', () => {
 		const source = `import { track } from 'ripple';
-component App() {
+function App() { return <>
 	let tracked = track(0);
 	++tracked[0];
 	tracked[0]++;
@@ -103,7 +103,7 @@ component App() {
 	let value = tracked[0];
 	let ref = tracked[1];
 	<div>{value}</div>
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
 			/Use \.value or &\[\] lazy destructuring/,
@@ -114,15 +114,15 @@ component App() {
 		'compiles indexed access on unknown lazy tracked refs through lazy array helpers in SSR output',
 		() => {
 			const source = `import { track } from 'ripple';
-component Child({ pair: &[value, tracked_ref] }) {
+function Child({ pair: &[value, tracked_ref] }) { return <>
 	++tracked_ref[0];
 	tracked_ref[0]++;
 	<div>{value}</div>
-}
-component App() {
+</>; }
+function App() { return <>
 	let tracked = track(0);
 	<Child pair={tracked} />
-}`;
+</>; }`;
 			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
 			expect(code).toContain('_$_.lazy_array_get(lazy, 1)');
@@ -166,29 +166,29 @@ class PrintEvent implements BaseEvent {
 
 	it('throws error for interpolating children as text in SSR mode', () => {
 		const source = `
-export component Layout({ children }) {
+export function Layout({ children }) { return <>
 		<div>{children}</div>
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).not.toThrow();
 	});
 
 	it('throws error for interpolating props.children as text in SSR mode', () => {
 		const source = `
-export component Layout(props) {
+export function Layout(props) { return <>
 	<div>{props.children}</div>
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).not.toThrow();
 	});
 
 	it('compiles indented direct double-quoted text children in SSR mode', () => {
 		const source = `
-export default component A() {
+export default function A() { return <>
 	<div>
 		"Hello"
 	</div>
-}`;
+</>; }`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
@@ -198,9 +198,9 @@ export default component A() {
 
 	it('decodes JSX-style entities before server text escaping', () => {
 		const result = compile(
-			`component App() {
+			`function App() { return <>
 				<div>"Rock &amp; &quot;Roll&quot;"</div>
-			}`,
+			</>; }`,
 			'/src/App.tsrx',
 			{ mode: 'server' },
 		);
@@ -210,9 +210,9 @@ export default component A() {
 
 	it('emits anonymous component expressions as arrows in SSR output', () => {
 		const source = `
-const Inline = component(props) => {
+const Inline = (props) => <>
 	<div>{props.x}</div>
-}
+</>
 `;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
@@ -223,9 +223,9 @@ const Inline = component(props) => {
 
 	it('emits legacy anonymous component expressions as functions in SSR output', () => {
 		const source = `
-const Inline = component(props) {
+const Inline = function(props) { return <>
 	<div>{props.x}</div>
-}
+</>; }
 `;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
@@ -236,9 +236,9 @@ const Inline = component(props) {
 
 	it('throws error for calling children as a function in SSR mode', () => {
 		const source = `
-export component Layout({ children }) {
+export function Layout({ children }) { return <>
 	{children()}
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
 			'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
@@ -247,9 +247,9 @@ export component Layout({ children }) {
 
 	it('throws error for calling props.children as a function in SSR mode', () => {
 		const source = `
-export component Layout(props) {
+export function Layout(props) { return <>
 	{props.children()}
-}`;
+</>; }`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(
 			'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
@@ -258,17 +258,17 @@ export component Layout(props) {
 
 	it('merges explicit children prop with implicit children in SSR output', () => {
 		const source = `
-component Card(props) {
+function Card(props) { return <>
 	<div>{props.children}</div>
-}
+</>; }
 
-export component App() {
+export function App() { return <>
 	const fallback = 'fallback';
 
 	<Card children={fallback}>
 		<span>{'content'}</span>
 	</Card>
-}
+</>; }
 `;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
@@ -280,7 +280,7 @@ export component App() {
 
 	it('routes calls to functions with nested template returns through render_expression', () => {
 		const source = `
-component App() {
+function App() { return <>
 	function make(flag) {
 		if (flag) {
 			return <tsx><span>{'nested'}</span></tsx>;
@@ -290,7 +290,7 @@ component App() {
 	}
 
 	<div>{make(true)}</div>
-}
+</>; }
 `;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
@@ -301,7 +301,7 @@ component App() {
 
 	it('does not treat nested function template returns as outer function returns', () => {
 		const source = `
-component App() {
+function App() { return <>
 	function make() {
 		function nested() {
 			return <tsx><span>{'nested'}</span></tsx>;
@@ -311,7 +311,7 @@ component App() {
 	}
 
 	<div>{make()}</div>
-}
+</>; }
 `;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
@@ -370,10 +370,10 @@ module server {
 
 import { loadUser as getUser } from server;
 
-export component App() {
+export function App() { return <>
 	const user = getUser('1');
 	<div>{user.id}</div>
-}`;
+</>; }`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 		expect(result.code).toContain('const getUser = function (...args)');
@@ -440,15 +440,15 @@ module server {
 
 	it('wraps children in normalize_children for explicit children prop passed to component', () => {
 		const source = `
-component Card(props) {
+function Card(props) { return <>
 	<div>{props.children}</div>
-}
+</>; }
 
-export component App() {
+export function App() { return <>
 	const content = 'hello';
 
 	<Card children={content} />
-}
+</>; }
 `;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
@@ -458,15 +458,15 @@ export component App() {
 
 	it('passes spread through to component when spread may contain children', () => {
 		const source = `
-component Card(props) {
+function Card(props) { return <>
 	<div>{props.children}</div>
-}
+</>; }
 
-export component App() {
+export function App() { return <>
 	const props = { children: 'hello' };
 
 	<Card {...props} />
-}
+</>; }
 `;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;

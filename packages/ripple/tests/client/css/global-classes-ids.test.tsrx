@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with classes and IDs', () => {
 	it('handles :global with single class', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="foo">{'content'}</div>
 
 	<style>
@@ -11,7 +11,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.foo {');
@@ -20,7 +20,7 @@ export component Test() {
 
 	it('handles :global with chained classes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="foo bar">{'content'}</div>
 
 	<style>
@@ -36,7 +36,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.foo.bar {');
@@ -46,7 +46,7 @@ export component Test() {
 
 	it('handles local class inside :global selector', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="outer">
 		<span class="inner">{'content'}</span>
 	</div>
@@ -60,7 +60,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.outer \.inner\.tsrx-[a-z0-9]+ {/);
@@ -69,7 +69,7 @@ export component Test() {
 
 	it('handles :global with ID selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div id="app">
 		<div id="content">{'text'}</div>
 	</div>
@@ -87,7 +87,7 @@ export component Test() {
 			margin: 0;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('#app {');
@@ -98,7 +98,7 @@ export component Test() {
 
 	it('handles :global with class and ID combination', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div id="app" class="container">{'content'}</div>
 
 	<style>
@@ -114,7 +114,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('#app.container {');
@@ -124,7 +124,7 @@ export component Test() {
 
 	it('handles multiple classes with :global', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="a b c">{'content'}</div>
 
 	<style>
@@ -140,7 +140,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect((css.match(/\.a\.b\.c\.tsrx-[a-z0-9]+ {/g) || []).length).toBe(2);
@@ -149,7 +149,7 @@ export component Test() {
 
 	it('handles :global with class descendant selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="outer">
 		<div class="middle">
 			<div class="inner">{'content'}</div>
@@ -169,7 +169,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.outer \.middle\.tsrx-[a-z0-9]+ \.inner:where\(\.tsrx-[a-z0-9]+\)/);

@@ -2,17 +2,17 @@
 import { Portal, track } from 'ripple';
 
 // Simple portal with static content
-export component SimplePortal() {
+export function SimplePortal() { return <>
 	<div class="container">
 		<h1>{'Main Content'}</h1>
 		<Portal target={typeof document !== 'undefined' ? document.body : null}>
 			<div class="portal-content">{'Portal content'}</div>
 		</Portal>
 	</div>
-}
+</>; }
 
 // Portal with conditional rendering
-export component ConditionalPortal() {
+export function ConditionalPortal() { return <>
 	let &[show] = track(true);
 
 	<div class="container">
@@ -23,10 +23,10 @@ export component ConditionalPortal() {
 			</Portal>
 		}
 	</div>
-}
+</>; }
 
 // Component with portal that shouldn't break on initial load
-export component PortalWithMainContent() {
+export function PortalWithMainContent() { return <>
 	<div>
 		<div class="main-content">{'Main page content'}</div>
 		<Portal target={typeof document !== 'undefined' ? document.body : null}>
@@ -34,10 +34,10 @@ export component PortalWithMainContent() {
 		</Portal>
 		<div class="footer">{'Footer'}</div>
 	</div>
-}
+</>; }
 
 // Nested portals scenario
-export component NestedContentWithPortal() {
+export function NestedContentWithPortal() { return <>
 	<div class="outer">
 		<div class="inner">
 			<span>{'Nested content'}</span>
@@ -46,4 +46,4 @@ export component NestedContentWithPortal() {
 			<div class="portal-content">{'Portal content'}</div>
 		</Portal>
 	</div>
-}
+</>; }

@@ -99,7 +99,7 @@ describe('typescript-plugin language plugin integration', () => {
 		const virtual_code = create_virtual_code(
 			plugin,
 			file_name,
-			'component App() { <div>Hello</div> }',
+			'function App() { return <> <div>Hello</div> </>; }',
 		);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
@@ -113,7 +113,7 @@ describe('typescript-plugin language plugin integration', () => {
 		const virtual_code = create_virtual_code(
 			plugin,
 			file_name,
-			'component App() { <div>Hello Vue</div> }',
+			'function App() { return <> <div>Hello Vue</div> </>; }',
 		);
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);

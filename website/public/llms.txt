@@ -1442,9 +1442,9 @@ root.render(
 );
 ```
 
-The `<Ripple>` component accepts:
-- `component`: The Ripple component to render
-- `props` (optional): Props to pass to the Ripple component
+The `<Ripple>` bridge accepts:
+- Render target: The Ripple function to render
+- `props` (optional): Props to pass to the Ripple function
 
 #### React Context Integration
 

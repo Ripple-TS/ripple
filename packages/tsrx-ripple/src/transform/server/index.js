@@ -1713,7 +1713,8 @@ const visitors = {
 			);
 
 			if (children_filtered.length > 0) {
-				const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
+				const component_scope =
+					/** @type {ScopeInterface} */ (context.state.scopes.get(node)) || context.state.scope;
 				const children = b.call(
 					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
@@ -1727,6 +1728,7 @@ const visitors = {
 							{
 								...context.state,
 								...(apply_parent_css_scope ||
+								get_component_css(state) ||
 								(is_element_dynamic(node) && node.metadata.scoped && get_component_css(state))
 									? {
 											applyParentCssScope:

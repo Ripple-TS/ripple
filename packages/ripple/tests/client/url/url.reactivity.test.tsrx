@@ -2,14 +2,14 @@ import { RippleURL, flushSync } from 'ripple';
 
 describe('RippleURL > reactivity', () => {
 	it('handles protocol changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path');
 
 			<button onClick={() => (url.protocol = 'http:')}>{'Change Protocol'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.protocol}</pre>
 			<pre>{url.origin}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -30,14 +30,14 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles hostname changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path');
 
 			<button onClick={() => (url.hostname = 'newdomain.com')}>{'Change Hostname'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hostname}</pre>
 			<pre>{url.host}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -58,14 +58,14 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles port changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com:8080/path');
 
 			<button onClick={() => (url.port = '9090')}>{'Change Port'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.port}</pre>
 			<pre>{url.host}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -86,7 +86,7 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles host changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com:8080/path');
 
 			<button onClick={() => (url.host = 'newdomain.com:9090')}>{'Change Host'}</button>
@@ -94,7 +94,7 @@ describe('RippleURL > reactivity', () => {
 			<pre>{url.host}</pre>
 			<pre>{url.hostname}</pre>
 			<pre>{url.port}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -119,13 +119,13 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles pathname changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/old-path');
 
 			<button onClick={() => (url.pathname = '/new-path')}>{'Change Pathname'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.pathname}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -144,13 +144,13 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles search changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path?foo=bar');
 
 			<button onClick={() => (url.search = '?baz=qux')}>{'Change Search'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.search}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -173,13 +173,13 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles hash changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path#section1');
 
 			<button onClick={() => (url.hash = '#section2')}>{'Change Hash'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.hash}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -202,13 +202,13 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles username changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://user:pass@example.com/path');
 
 			<button onClick={() => (url.username = 'newuser')}>{'Change Username'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.username}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -231,13 +231,13 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles password changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://user:pass@example.com/path');
 
 			<button onClick={() => (url.password = 'newpass')}>{'Change Password'}</button>
 			<pre>{url.href}</pre>
 			<pre>{url.password}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -260,7 +260,7 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles href changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path?foo=bar#section');
 
 			<button onClick={() => (url.href = 'https://newdomain.com:9090/newpath?baz=qux#newsection')}>
@@ -273,7 +273,7 @@ describe('RippleURL > reactivity', () => {
 			<pre>{url.pathname}</pre>
 			<pre>{url.search}</pre>
 			<pre>{url.hash}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -306,14 +306,14 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles origin property reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com:8080/path');
 
 			<button onClick={() => (url.protocol = 'http:')}>{'Change Protocol'}</button>
 			<button onClick={() => (url.hostname = 'newdomain.com')}>{'Change Hostname'}</button>
 			<button onClick={() => (url.port = '9090')}>{'Change Port'}</button>
 			<pre>{url.origin}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -338,7 +338,7 @@ describe('RippleURL > reactivity', () => {
 		expect(container.querySelector('pre').textContent).toBe('http://newdomain.com:9090');
 	});
 	it('handles searchParams changes with reactivity', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path?foo=bar');
 			const params = url.searchParams;
 
@@ -347,7 +347,7 @@ describe('RippleURL > reactivity', () => {
 			<pre>{url.href}</pre>
 			<pre>{url.search}</pre>
 			<pre>{params.get('foo')}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -382,7 +382,7 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles search property updates reflected in searchParams', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path?foo=bar');
 			const params = url.searchParams;
 
@@ -392,7 +392,7 @@ describe('RippleURL > reactivity', () => {
 			<pre>{params.get('baz')}</pre>
 			<pre>{params.get('test')}</pre>
 			<pre>{params.size}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -417,7 +417,7 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles multiple URL property changes in sequence', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://example.com/path');
 
 			<button
@@ -433,7 +433,7 @@ describe('RippleURL > reactivity', () => {
 				{'Change All'}
 			</button>
 			<pre>{url.href}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 
@@ -452,7 +452,7 @@ describe('RippleURL > reactivity', () => {
 	});
 
 	it('handles href change updates all properties and searchParams', () => {
-		component URLTest() {
+		function URLTest() { return <>
 			const url = RippleURL('https://old.com/old?foo=bar#old');
 			const params = url.searchParams;
 
@@ -463,7 +463,7 @@ describe('RippleURL > reactivity', () => {
 			<pre>{params.get('baz')}</pre>
 			<pre>{params.size}</pre>
 			<pre>{url.pathname}</pre>
-		}
+		</>; }
 
 		render(URLTest);
 

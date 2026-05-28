@@ -321,13 +321,12 @@ function createSymbolForDeclaration(node, document, fallbackName) {
 	let name = id ? getIdentifierName(id) : null;
 
 	switch (type) {
-		case 'Component':
 		case 'FunctionDeclaration': {
 			const children = getChildSymbols(node, document);
 			if (!id || !name) {
 				if (fallbackName) {
 					name = fallbackName;
-					id = createFallbackIdentifierNode(node, type === 'Component' ? 'component' : 'function');
+					id = createFallbackIdentifierNode(node, 'function');
 				} else {
 					return children;
 				}
@@ -460,11 +459,7 @@ function createBindingPatternSymbols(pattern, kind, document, rangeNode = patter
  * @returns {SymbolInfo[]}
  */
 function getInitializerChildSymbols(node, document) {
-	if (
-		node.type === 'Component' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
-	) {
+	if (node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression') {
 		return getChildSymbols(node, document);
 	}
 
@@ -478,12 +473,70 @@ function getInitializerChildSymbols(node, document) {
  */
 function getChildSymbols(node, document) {
 	const body = /** @type {NodeWithBody} */ (node).body;
+	if (isTemplateNode(/** @type {AST.Node} */ (body))) {
+		return getTemplateChildSymbols(/** @type {AST.Node} */ (body), document);
+	}
+
 	if (Array.isArray(body)) {
-		return collectSymbolsFromStatements(body, document);
+		return [
+			...collectSymbolsFromStatements(body, document),
+			...body.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
+		];
 	} else if (Array.isArray(body?.body)) {
-		return collectSymbolsFromStatements(body.body, document);
+		return [
+			...collectSymbolsFromStatements(body.body, document),
+			...body.body.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
+		];
 	}
 	return [];
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {TextDocument} document
+ * @returns {SymbolInfo[]}
+ */
+function getReturnedTemplateSymbols(node, document) {
+	if (node.type !== 'ReturnStatement' || !node.argument) {
+		return [];
+	}
+
+	return getTemplateChildSymbols(/** @type {AST.Node} */ (node.argument), document);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function isTemplateNode(node) {
+	return (
+		!!node &&
+		(node.type === 'Tsrx' ||
+			node.type === 'Tsx' ||
+			node.type === 'Element' ||
+			node.type === 'JSXElement' ||
+			node.type === 'JSXFragment')
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {TextDocument} document
+ * @returns {SymbolInfo[]}
+ */
+function getTemplateChildSymbols(node, document) {
+	if (!isTemplateNode(node)) {
+		return [];
+	}
+
+	const children = Array.isArray(/** @type {{ children?: AST.Node[] }} */ (node).children)
+		? /** @type {{ children: AST.Node[] }} */ (node).children
+		: [];
+
+	return [
+		...collectSymbolsFromStatements(children, document),
+		...children.flatMap((child) => getTemplateChildSymbols(child, document)),
+	];
 }
 
 /**

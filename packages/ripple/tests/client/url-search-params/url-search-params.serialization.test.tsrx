@@ -2,12 +2,13 @@ import { RippleURL, RippleURLSearchParams, flushSync, track } from 'ripple';
 
 describe('RippleURLSearchParams > serialization', () => {
 	it('handles toString method with reactivity', () => {
-		component URLTest() {
-			const params = RippleURLSearchParams('foo=bar');
-			let &[string] = track(() => params.toString());
-
-			<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
-			<pre>{string}</pre>
+		function URLTest() {
+			return <>
+				const params = RippleURLSearchParams('foo=bar');
+				let &[string] = track(() => params.toString());
+				<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
+				<pre>{string}</pre>
+			</>;
 		}
 
 		render(URLTest);
@@ -25,12 +26,13 @@ describe('RippleURLSearchParams > serialization', () => {
 	});
 
 	it('handles special characters encoding', () => {
-		component URLTest() {
-			const params = RippleURLSearchParams();
-
-			<button onClick={() => params.set('key', 'value with spaces')}>{'add spaces'}</button>
-			<button onClick={() => params.set('special', '!@#$%^&*()')}>{'add special'}</button>
-			<pre>{params.toString()}</pre>
+		function URLTest() {
+			return <>
+				const params = RippleURLSearchParams();
+				<button onClick={() => params.set('key', 'value with spaces')}>{'add spaces'}</button>
+				<button onClick={() => params.set('special', '!@#$%^&*()')}>{'add special'}</button>
+				<pre>{params.toString()}</pre>
+			</>;
 		}
 
 		render(URLTest);

@@ -1,3 +1,3 @@
-export component Valid() {
-	<button>"Save"</button>
+export function Valid() {
+	return <><button>"Save"</button></>;
 }

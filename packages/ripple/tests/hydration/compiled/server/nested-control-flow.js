@@ -4,6 +4,8 @@ import * as _$_ from 'ripple/internal/server';
 export function ForIf() {
 	_$_.push_component();
 
+	var __r = false;
+
 	const items = [
 		{ id: 1, show: true, label: 'One' },
 		{ id: 2, show: true, label: 'Two' },
@@ -42,11 +44,14 @@ export function ForIf() {
 		_$_.output_push('</ul>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function ForSwitch() {
 	_$_.push_component();
+
+	var __r_1 = false;
 
 	const items = [
 		{ id: 1, kind: 'a' },
@@ -95,12 +100,14 @@ export function ForSwitch() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function IfSwitch() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const show = true;
 	const kind = 'a';
 
@@ -145,12 +152,14 @@ export function IfSwitch() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function IfSwitchHidden() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	const show = false;
 	const kind = 'a';
 
@@ -204,12 +213,14 @@ export function IfSwitchHidden() {
 		_$_.output_push('</div>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function ForIfSwitchSingle() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	const items = [{ id: 1, kind: 'a', show: true }];
 
 	_$_.regular_block(() => {
@@ -259,11 +270,14 @@ export function ForIfSwitchSingle() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function ForIfSwitchMulti() {
 	_$_.push_component();
+
+	var __r_5 = false;
 
 	const items = [
 		{ id: 1, kind: 'a', show: true },
@@ -317,11 +331,14 @@ export function ForIfSwitchMulti() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function ForIfSwitchWithDisabled() {
 	_$_.push_component();
+
+	var __r_6 = false;
 
 	const items = [
 		{ id: 1, kind: 'a', show: true },
@@ -376,12 +393,14 @@ export function ForIfSwitchWithDisabled() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }
 
 export function SwitchTry() {
 	_$_.push_component();
 
+	var __r_7 = false;
 	const kind = 'a';
 
 	_$_.regular_block(() => {
@@ -441,12 +460,14 @@ export function SwitchTry() {
 		_$_.output_push('</div>');
 	});
 
+	__r_7 = true;
 	_$_.pop_component();
 }
 
 export function ForSwitchTry() {
 	_$_.push_component();
 
+	var __r_8 = false;
 	const items = [{ id: 1, kind: 'a' }, { id: 2, kind: 'b' }];
 
 	_$_.regular_block(() => {
@@ -534,12 +555,14 @@ export function ForSwitchTry() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_8 = true;
 	_$_.pop_component();
 }
 
 export function ForIfTry() {
 	_$_.push_component();
 
+	var __r_9 = false;
 	const items = [{ id: 1, show: true }, { id: 2, show: true }];
 
 	_$_.regular_block(() => {
@@ -594,12 +617,14 @@ export function ForIfTry() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_9 = true;
 	_$_.pop_component();
 }
 
 export function ForIfSwitchTrySingle() {
 	_$_.push_component();
 
+	var __r_10 = false;
 	const items = [{ id: 1, kind: 'a', show: true }];
 
 	_$_.regular_block(() => {
@@ -693,11 +718,14 @@ export function ForIfSwitchTrySingle() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_10 = true;
 	_$_.pop_component();
 }
 
 export function ForIfSwitchTryMulti() {
 	_$_.push_component();
+
+	var __r_11 = false;
 
 	const items = [
 		{ id: 1, kind: 'a', show: true },
@@ -795,5 +823,6 @@ export function ForIfSwitchTryMulti() {
 		_$_.output_push('</ul>');
 	});
 
+	__r_11 = true;
 	_$_.pop_component();
 }

@@ -8,7 +8,7 @@ module server {
 
 import { formatValue } from server;
 
-export component AsyncWithServerCall() {
+export function AsyncWithServerCall() { return <>
 	let &[count] = track(0);
 
 	<button
@@ -25,27 +25,27 @@ export component AsyncWithServerCall() {
 	} pending {
 		<p class="loading">{'loading...'}</p>
 	}
-}
+</>; }
 
-export component AsyncSimpleValue() {
+export function AsyncSimpleValue() { return <>
 	try {
 		let &[data] = trackAsync(() => Promise.resolve('hydrated value'));
 		<p class="result">{data}</p>
 	} pending {
 		<p class="loading">{'loading...'}</p>
 	}
-}
+</>; }
 
-export component AsyncNumericValue() {
+export function AsyncNumericValue() { return <>
 	try {
 		let &[count] = trackAsync(() => Promise.resolve(42));
 		<span class="count">{count}</span>
 	} pending {
 		<span class="pending">{'...'}</span>
 	}
-}
+</>; }
 
-export component AsyncObjectValue() {
+export function AsyncObjectValue() { return <>
 	try {
 		let &[user] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
 		<div class="user">
@@ -55,9 +55,9 @@ export component AsyncObjectValue() {
 	} pending {
 		<div class="loading">{'loading user...'}</div>
 	}
-}
+</>; }
 
-export component AsyncMultipleValues() {
+export function AsyncMultipleValues() { return <>
 	try {
 		let &[first] = trackAsync(() => Promise.resolve('alpha'));
 		let &[second] = trackAsync(() => Promise.resolve('beta'));
@@ -68,9 +68,9 @@ export component AsyncMultipleValues() {
 	} pending {
 		<div class="loading">{'loading...'}</div>
 	}
-}
+</>; }
 
-export component AsyncWithCatch() {
+export function AsyncWithCatch() { return <>
 	try {
 		let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
 		<p class="result">{data}</p>
@@ -79,26 +79,26 @@ export component AsyncWithCatch() {
 	} catch (e) {
 		<p class="error">{(e as Error).message}</p>
 	}
-}
+</>; }
 
-export component ChildWithError() {
+export function ChildWithError() { return <>
 	try {
 		let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
 		<p class="result">{data}</p>
 	} pending {
 		<p class="pending">{'loading...'}</p>
 	}
-}
+</>; }
 
-export component ParentWithCatch() {
+export function ParentWithCatch() { return <>
 	try {
 		<ChildWithError />
 	} catch (e) {
 		<p class="parent-error">{(e as Error).message}</p>
 	}
-}
+</>; }
 
-export component AsyncWithReactiveDependency() {
+export function AsyncWithReactiveDependency() { return <>
 	let &[count] = track(0);
 
 	<button
@@ -115,4 +115,4 @@ export component AsyncWithReactiveDependency() {
 	} pending {
 		<p class="loading">{'loading...'}</p>
 	}
-}
+</>; }

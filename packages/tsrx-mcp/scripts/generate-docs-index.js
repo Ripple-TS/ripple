@@ -87,7 +87,7 @@ Source: website-tsrx/src/pages/specification.tsrx`,
 			use_cases: 'components, functions, props, authoring .tsrx files, jsx return syntax',
 			content: `# Function Components
 
-TSRX does not have a component declaration keyword. Author components as ordinary TypeScript functions and return TSRX from them.
+Author UI as ordinary TypeScript functions that return TSRX.
 
 \`\`\`tsx
 function Button(props: { label: string }) {

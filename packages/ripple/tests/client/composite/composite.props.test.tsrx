@@ -3,15 +3,16 @@ import { effect, flushSync, track } from 'ripple';
 
 describe('composite > props', () => {
 	it('correctly handles default prop values', () => {
-		component Child({ foo = 456 }) {
-			<div>{foo}</div>
+		function Child({ foo = 456 }) {
+			return <><div>{foo}</div></>;
 		}
 
-		component App() {
-			let &[foo] = track(123);
-
-			<Child />
-			<Child {foo} />
+		function App() {
+			return <>
+				let &[foo] = track(123);
+				<Child />
+				<Child {foo} />
+			</>;
 		}
 
 		render(App);
@@ -21,15 +22,16 @@ describe('composite > props', () => {
 	});
 
 	it('correctly handles default prop values #2', () => {
-		component Child({ foo = 456 }) {
-			<div>{foo}</div>
+		function Child({ foo = 456 }) {
+			return <><div>{foo}</div></>;
 		}
 
-		component App() {
-			let foo = 123;
-
-			<Child />
-			<Child {foo} />
+		function App() {
+			return <>
+				let foo = 123;
+				<Child />
+				<Child {foo} />
+			</>;
 		}
 
 		render(App);
@@ -39,15 +41,16 @@ describe('composite > props', () => {
 	});
 
 	it('correctly handles no props', () => {
-		component Child(props: { foo?: Tracked<number> }) {
-			<div>{props.foo?.value}</div>
+		function Child(props: { foo?: Tracked<number> }) {
+			return <><div>{props.foo?.value}</div></>;
 		}
 
-		component App() {
-			let foo = track(123);
-
-			<Child />
-			<Child {foo} />
+		function App() {
+			return <>
+				let foo = track(123);
+				<Child />
+				<Child {foo} />
+			</>;
 		}
 
 		render(App);
@@ -57,15 +60,16 @@ describe('composite > props', () => {
 	});
 
 	it('correctly handles no props #2', () => {
-		component Child({ foo }: { foo?: number }) {
-			<div>{foo}</div>
+		function Child({ foo }: { foo?: number }) {
+			return <><div>{foo}</div></>;
 		}
 
-		component App() {
-			let &[foo] = track(123);
-
-			<Child />
-			<Child {foo} />
+		function App() {
+			return <>
+				let &[foo] = track(123);
+				<Child />
+				<Child {foo} />
+			</>;
 		}
 
 		render(App);
@@ -77,20 +81,22 @@ describe('composite > props', () => {
 	it('mutating a tracked value prop should work as intended', () => {
 		const logs: number[] = [];
 
-		component Counter({ count }: { count: Tracked<number> }) {
-			effect(() => {
-				logs.push(count.value);
-			});
-
-			<button onClick={() => (count.value = count.value + 1)}>{'+'}</button>
+		function Counter({ count }: { count: Tracked<number> }) {
+			return <>
+				effect(() => {
+					logs.push(count.value);
+				});
+				<button onClick={() => (count.value = count.value + 1)}>{'+'}</button>
+			</>;
 		}
 
-		component App() {
-			const count = track(0);
-
-			<div>
-				<Counter {count} />
-			</div>
+		function App() {
+			return <>
+				const count = track(0);
+				<div>
+					<Counter {count} />
+				</div>
+			</>;
 		}
 
 		render(App);
@@ -106,27 +112,33 @@ describe('composite > props', () => {
 	});
 
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
-		component Button(&{ children, ...rest }: Props) {
-			<button {...rest}>{children}</button>
-			<style>
-				.on {
-					color: blue;
-				}
-				.off {
-					color: red;
-				}
-			</style>
+		function Button(&{ children, ...rest }: Props) {
+			return <>
+				<button {...rest}>{children}</button>
+				<style>
+					.on {
+						color: blue;
+					}
+					.off {
+						color: red;
+					}
+				</style>
+			</>;
 		}
 
-		component Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) {
-			const onClick = () => (pressed.value = !pressed.value);
-			<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
-			<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
+		function Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) {
+			return <>
+				const onClick = () => (pressed.value = !pressed.value);
+				<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
+				<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
+			</>;
 		}
 
-		component App() {
-			const pressed = track(true);
-			<Toggle {pressed} />
+		function App() {
+			return <>
+				const pressed = track(true);
+				<Toggle {pressed} />
+			</>;
 		}
 
 		render(App);
@@ -154,26 +166,30 @@ describe('composite > props', () => {
 			price: number;
 		}
 
-		component Product({ id, name, organizationName, description, imageUrl, price }: ProductInfo) {
-			<article class="no-padding">
-				<img class="responsive small" src={imageUrl} alt={name} />
-				<span>{id}</span>
-				<h5>{name}</h5>
-				<h3>{organizationName}</h3>
-				<p>{description}</p>
-				<price class="price">{price}</price>
-			</article>
+		function Product({ id, name, organizationName, description, imageUrl, price }: ProductInfo) {
+			return <>
+				<article class="no-padding">
+					<img class="responsive small" src={imageUrl} alt={name} />
+					<span>{id}</span>
+					<h5>{name}</h5>
+					<h3>{organizationName}</h3>
+					<p>{description}</p>
+					<price class="price">{price}</price>
+				</article>
+			</>;
 		}
 
-		component App() {
-			<Product
-				id="1"
-				name="Product 1"
-				organizationName="Org 1"
-				description="Description 1"
-				imageUrl="https://picsum.photos/300/200"
-				price={15}
-			/>
+		function App() {
+			return <>
+				<Product
+					id="1"
+					name="Product 1"
+					organizationName="Org 1"
+					description="Description 1"
+					imageUrl="https://picsum.photos/300/200"
+					price={15}
+				/>
+			</>;
 		}
 
 		render(App);

@@ -52,10 +52,10 @@ describe('vite-plugin-ripple source maps', () => {
 		await init_plugin(plugin, root);
 
 		const id = `${root}/App.tsrx`;
-		const source = `export component App() {
+		const source = `export function App() { return <>
 			let message = 'Hello world';
 			<div>{message}</div>
-		}`;
+		</>; }`;
 
 		const result = await call_transform(plugin, source, id);
 
@@ -73,7 +73,7 @@ describe('vite-plugin-ripple source maps', () => {
 		await init_plugin(plugin, root);
 
 		const id = `${root}/Styled.tsrx`;
-		const source = `export component Styled() {
+		const source = `export function Styled() { return <>
 			<div>{'Hello world'}</div>
 
 			<style>
@@ -81,7 +81,7 @@ describe('vite-plugin-ripple source maps', () => {
 					color: red;
 				}
 			</style>
-		}`;
+		</>; }`;
 
 		const result = await call_transform(plugin, source, id);
 

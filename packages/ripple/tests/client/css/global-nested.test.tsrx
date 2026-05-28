@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global nested blocks', () => {
 	it('handles nested global blocks', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<p>{'content'}</p>
 	</div>
@@ -31,7 +31,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -44,7 +44,7 @@ export component Test() {
 
 	it('handles :global with nesting selector', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="x">{'content'}</div>
 
 	<style>
@@ -66,7 +66,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('&.x {');
@@ -75,7 +75,7 @@ export component Test() {
 
 	it('handles global block with de-nested syntax', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div><p>{'content'}</p></div>
 
 	<style>
@@ -91,7 +91,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div {');
@@ -101,7 +101,7 @@ export component Test() {
 
 	it('handles global local nested combinations', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -117,7 +117,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.whatever {');
@@ -127,7 +127,7 @@ export component Test() {
 
 	it('handles :global with :is and :where pseudoclasses', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -141,7 +141,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span\) {/);

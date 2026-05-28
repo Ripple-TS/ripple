@@ -115,7 +115,7 @@ describe('@tsrx/mcp HTTP server', () => {
 	it('serves documentation and prompts over Streamable HTTP', async () => {
 		await with_http_client(async (client) => {
 			const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
-			expect(expect_text_content(docs.contents[0])).toContain('Component Declarations');
+			expect(expect_text_content(docs.contents[0])).toContain('Function Components');
 
 			const prompt = await client.getPrompt({
 				name: 'tsrx-task',
@@ -135,9 +135,9 @@ describe('@tsrx/mcp HTTP server', () => {
 			const result = await client.callTool({
 				name: 'compile-tsrx',
 				arguments: {
-					code: `export component Greeting({ name }: { name: string }) {
+					code: `export function Greeting({ name }: { name: string }) { return <>
 						<p>"Hello "{name}</p>
-					}`,
+					</>; }`,
 					filename: 'Greeting.tsrx',
 					target: 'react',
 				},

@@ -23,7 +23,7 @@ function delay() {
 	});
 }
 
-export component ReactQueryFixture() {
+export function ReactQueryFixture() { return <>
 	const [fetchCount, setFetchCount] = useState(0);
 
 	async function fetchProject(id: ProjectId): Promise<Project> {
@@ -48,4 +48,4 @@ export component ReactQueryFixture() {
 		{selectSummary}
 	/>
 	<output class="query-fetch-count">{fetchCount}</output>
-}
+</>; }

@@ -297,9 +297,9 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it('compiles TSRX with an explicit target', async () => {
 		const result = await compile_tsrx({
-			code: `export component App() {
+			code: `export function App() { return <>
 				<div>"Hello"</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
@@ -315,9 +315,9 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it('infers the target when compiling from a project cwd', async () => {
 		const result = await compile_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				<button>"Save"</button>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			cwd: react_fixture,
 		});
@@ -335,9 +335,9 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(detection.confidence).toBe('high');
 
 			const result = await compile_tsrx({
-				code: `export component App() {
+				code: `export function App() { return <>
 					<div>"Hello"</div>
-				}`,
+				</>; }`,
 				filename: 'App.tsrx',
 				cwd,
 			});
@@ -354,9 +354,9 @@ describe('@tsrx/mcp compile helpers', () => {
 		// compilation can silently accept it, so the MCP defaults to `collect`
 		// without enabling loose markup recovery.
 		const result = await compile_tsrx({
-			code: `component A() {
+			code: `function A() { return <>
 				<div>"hi"
-			}`,
+			</>; }`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',
 			cwd: react_fixture,
@@ -364,15 +364,15 @@ describe('@tsrx/mcp compile helpers', () => {
 
 		expect(result.ok).toBe(false);
 		expect(result.errors.length).toBeGreaterThan(0);
-		expect(result.errors[0].message).toMatch(/Unclosed tag/);
-		expect(result.errors[0].code).toBe(DIAGNOSTIC_CODES.UNCLOSED_TAG);
+		expect(result.errors[0].message).toMatch(/Expected closing tag/);
+		expect(result.errors[0].code).toBe(DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG);
 	});
 
 	it('normalizes compiler failures into structured diagnostics', async () => {
 		const result = await compile_tsrx({
-			code: `component App() {
-				return <div />;
-			}`,
+			code: `function App() { return <>
+				<div></span>
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
@@ -382,19 +382,19 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.errors).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					code: DIAGNOSTIC_CODES.JSX_RETURN_IN_COMPONENT,
+					code: DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG,
 					fileName: 'App.tsrx',
-					message: expect.stringContaining('JSX elements cannot be used as expressions'),
+					message: expect.stringContaining('Expected closing tag'),
 				}),
 			]),
 		);
 	});
 
-	it('adds target-neutral advice for common TSRX authoring mistakes', async () => {
+	it('adds target-neutral advice for common tag authoring mistakes', async () => {
 		const result = await analyze_tsrx({
-			code: `component App() {
-				return <div />;
-			}`,
+			code: `function App() { return <>
+				<div></span>
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
@@ -404,7 +404,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.advice).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					kind: 'jsx-return-in-component',
+					kind: 'mismatched-closing-tag',
 					severity: 'error',
 					documentation: expect.arrayContaining(['tsrx://docs/components.md']),
 				}),
@@ -414,37 +414,15 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 
-	it('adds control-flow advice for component loop diagnostics', async () => {
-		const loop_return = await analyze_tsrx({
-			code: `component App({ items }: { items: string[] }) {
-				for (const item of items) {
-					if (!item) return;
-					<div>{item}</div>
-				}
-			}`,
-			filename: 'App.tsrx',
-			target: 'react',
-			cwd: react_fixture,
-		});
-
-		expect(loop_return.advice).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({
-					kind: 'component-loop-control-flow',
-					severity: 'error',
-					documentation: expect.arrayContaining(['tsrx://docs/control-flow.md']),
-				}),
-			]),
-		);
-
+	it('adds control-flow advice for unsupported TSRX loop diagnostics', async () => {
 		const while_loop = await analyze_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				let i = 0;
 				while (i < 3) {
 					i++;
 				}
 				<div>{i}</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
@@ -461,43 +439,43 @@ describe('@tsrx/mcp compile helpers', () => {
 		);
 	});
 
-	it('uses compiler error codes for expression-position JSX advice', async () => {
+	it('allows JSX values inside returned TSRX fragments', async () => {
 		const result = await analyze_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				const title = <div />;
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
 		});
 
-		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.JSX_EXPRESSION_VALUE);
-		expect(result.advice.map((advice) => advice.kind)).toContain('jsx-expression-value');
-		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-return-in-component');
+		expect(result.ok).toBe(true);
+		expect(result.errors).toEqual([]);
+		expect(result.advice.map((advice) => advice.kind)).toContain('compile-clean');
 	});
 
 	it('uses compiler error codes for tag advice', async () => {
 		const result = await analyze_tsrx({
-			code: `component A() {
+			code: `function A() { return <>
 				<div>"hi"
-			}`,
+			</>; }`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',
 			cwd: react_fixture,
 		});
 
-		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.UNCLOSED_TAG);
+		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG);
 		expect(result.advice).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					kind: 'unclosed-tag',
+					kind: 'mismatched-closing-tag',
 					documentation: expect.arrayContaining(['tsrx://docs/components.md']),
 				}),
 			]),
 		);
 	});
 
-	it('flags React-style function components as function-component-syntax advice', async () => {
+	it('allows ordinary function components that return TSRX directly', async () => {
 		const result = await analyze_tsrx({
 			code: `function App() {
 				return <div />;
@@ -507,42 +485,43 @@ describe('@tsrx/mcp compile helpers', () => {
 			cwd: react_fixture,
 		});
 
-		expect(result.errors[0]?.code).toBe(DIAGNOSTIC_CODES.FUNCTION_COMPONENT_SYNTAX);
-		expect(result.advice.map((advice) => advice.kind)).toContain('function-component-syntax');
+		expect(result.ok).toBe(true);
+		expect(result.errors).toEqual([]);
+		expect(result.advice.map((advice) => advice.kind)).toContain('compile-clean');
 	});
 
 	it('does not flag a PascalCase utility function that returns no JSX', async () => {
 		// Regression: the function-component-shape check used to greedily match
 		// across function boundaries, so a PascalCase utility followed by any
-		// later JSX in the same file would falsely fire function-component-syntax.
+		// later JSX in the same file should not affect the utility's analysis.
 		const result = await analyze_tsrx({
 			code: `function FormatDate(value) {
 				return String(value);
 			}
-			export component App() {
+			export function App() { return <>
 				<div>"Hello"</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
 		});
 
-		expect(result.advice.map((advice) => advice.kind)).not.toContain('function-component-syntax');
+		expect(result.advice.map((advice) => advice.kind)).toContain('compile-clean');
 	});
 
-	it('does not flag jsx-return-in-component for a return-JSX outside the component body', async () => {
+	it('allows return-JSX text in comments outside returned TSRX', async () => {
 		// Comments that mention JSX returns should not trigger structured advice.
 		const result = await analyze_tsrx({
 			code: `// example from docs: return <div />
-			export component App() {
+			export function App() { return <>
 				<span>"Hello"</span>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
 			cwd: react_fixture,
 		});
 
-		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-return-in-component');
+		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-expression-value');
 	});
 
 	it('does not flag jsx-expression-value when JSX is already wrapped in <tsx>', async () => {
@@ -550,10 +529,10 @@ describe('@tsrx/mcp compile helpers', () => {
 		// <Letter` and any `return <Letter`, so the canonical wrapper `<tsx>`
 		// triggered the very advice that recommends wrapping in `<tsx>`.
 		const result = await analyze_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				const title = <tsx><span>"Title"</span></tsx>;
 				<div>{title}</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'ripple',
 			cwd: resolve(__dirname, 'fixtures/ripple-project'),
@@ -566,10 +545,10 @@ describe('@tsrx/mcp compile helpers', () => {
 		// The fragment shorthand is the documented default wrapper for
 		// expression-position JSX, so it must never trigger the wrap-it advice.
 		const result = await analyze_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				const title = <><span>"Title"</span></>;
 				<div>{title}</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'ripple',
 			cwd: resolve(__dirname, 'fixtures/ripple-project'),
@@ -581,10 +560,10 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('does not flag jsx-expression-value when JSX is wrapped in <tsx:Compat>', async () => {
 		// Same regression for the namespaced compat form, e.g. <tsx:react>.
 		const result = await analyze_tsrx({
-			code: `component App() {
+			code: `function App() { return <>
 				const widget = <tsx:react><Button>Save</Button></tsx:react>;
 				<div>{widget}</div>
-			}`,
+			</>; }`,
 			filename: 'App.tsrx',
 			target: 'ripple',
 			cwd: resolve(__dirname, 'fixtures/ripple-project'),
@@ -595,21 +574,21 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it('formats TSRX source with the official prettier plugin', async () => {
 		const result = await format_tsrx({
-			code: `export component App(){<button class="primary">"Save"</button>}`,
+			code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
 			filename: 'App.tsrx',
 		});
 
 		expect(result.ok).toBe(true);
 		expect(result.changed).toBe(true);
 		expect(result.formatted).toBe(
-			`export component App() {\n\t<button class=\"primary\">\"Save\"</button>\n}\n`,
+			`export function App() {\n\treturn <><button class=\"primary\">\"Save\"</button></>;\n}\n`,
 		);
 		expect(result.errors).toEqual([]);
 		expect(result.message).toMatch(/cwd was not supplied/);
 	});
 
 	it('can check whether TSRX source is already formatted', async () => {
-		const code = `export component App() {\n\t<button>\"Save\"</button>\n}\n`;
+		const code = `export function App() {\n\treturn <><button>\"Save\"</button></>;\n}\n`;
 		const result = await format_tsrx({
 			code,
 			filename: 'App.tsrx',
@@ -639,7 +618,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export component App(){<button class="primary">"Save"</button>}`,
+				code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
 				filename: filePath,
 			});
 
@@ -647,7 +626,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			// 4-space indent (no tabs), as configured.
 			expect(result.formatted).toBe(
-				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
+				`export function App() {\n    return <><button class="primary">"Save"</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
@@ -671,7 +650,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export component App(){<button class="primary">"Save"</button>}`,
+				code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
 				filename: 'src/App.tsrx',
 				cwd: temp_dir,
 			});
@@ -682,7 +661,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.message).toBe(null);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			expect(result.formatted).toBe(
-				`export component App() {\n    <button class="primary">"Save"</button>\n}\n`,
+				`export function App() {\n    return <><button class="primary">"Save"</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
@@ -701,7 +680,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export component App(){<button>"Save"</button>}`,
+				code: `export function App(){ return <><button>"Save"</button></>; }`,
 				filename: filePath,
 				useTabs: true,
 				tabWidth: 2,
@@ -709,7 +688,9 @@ describe('@tsrx/mcp compile helpers', () => {
 
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
-			expect(result.formatted).toBe(`export component App() {\n\t<button>"Save"</button>\n}\n`);
+			expect(result.formatted).toBe(
+				`export function App() {\n\treturn <><button>"Save"</button></>;\n}\n`,
+			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}
@@ -721,14 +702,16 @@ describe('@tsrx/mcp compile helpers', () => {
 
 		try {
 			const result = await format_tsrx({
-				code: `export component App(){<button>"Save"</button>}`,
+				code: `export function App(){ return <><button>"Save"</button></>; }`,
 				filename: filePath,
 			});
 
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(null);
 			// Built-in defaults: tabs, single quotes, width 100.
-			expect(result.formatted).toBe(`export component App() {\n\t<button>"Save"</button>\n}\n`);
+			expect(result.formatted).toBe(
+				`export function App() {\n\treturn <><button>"Save"</button></>;\n}\n`,
+			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}
@@ -760,7 +743,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		const filePath = join(temp_dir, 'Broken.tsrx');
 
 		try {
-			await writeFile(filePath, 'component Broken(){return <div />;}', 'utf8');
+			await writeFile(filePath, 'function Broken(){ return <><div></span></>; }', 'utf8');
 			const result = await validate_tsrx_file({
 				filePath,
 				cwd: react_fixture,
@@ -773,7 +756,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.analysis?.advice).toEqual(
 				expect.arrayContaining([
 					expect.objectContaining({
-						kind: 'jsx-return-in-component',
+						kind: 'mismatched-closing-tag',
 					}),
 				]),
 			);

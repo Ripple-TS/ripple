@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function ClickCounter() {
 	_$_.push_component();
 
+	var __r = false;
 	let lazy = _$_.track(0, 'a070e3a7');
 
 	_$_.regular_block(() => {
@@ -36,12 +37,14 @@ export function ClickCounter() {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function IncrementDecrement() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy_1 = _$_.track(0, '87fcabdd');
 
 	_$_.regular_block(() => {
@@ -81,12 +84,14 @@ export function IncrementDecrement() {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function MultipleEvents() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	let lazy_2 = _$_.track(0, '41b9f0b0');
 	let lazy_3 = _$_.track(0, '72789f75');
 
@@ -127,12 +132,14 @@ export function MultipleEvents() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function MultiStateUpdate() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_4 = _$_.track(0, '5a375160');
 	let lazy_5 = _$_.track('none', '3ceeb88c');
 
@@ -178,12 +185,14 @@ export function MultiStateUpdate() {
 		_$_.output_push('</div>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function ToggleButton() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_6 = _$_.track(false, 'be823ec7');
 
 	_$_.regular_block(() => {
@@ -205,11 +214,14 @@ export function ToggleButton() {
 		_$_.output_push('</div>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function ChildButton(props) {
 	_$_.push_component();
+
+	var __r_5 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<button');
@@ -223,12 +235,14 @@ export function ChildButton(props) {
 		_$_.output_push('</button>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function ParentWithChildButton() {
 	_$_.push_component();
 
+	var __r_6 = false;
 	let lazy_7 = _$_.track(0, 'dcc2e0f9');
 
 	_$_.regular_block(() => {
@@ -265,5 +279,6 @@ export function ParentWithChildButton() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }

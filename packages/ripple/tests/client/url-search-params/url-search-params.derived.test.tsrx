@@ -2,17 +2,18 @@ import { RippleURL, RippleURLSearchParams, flushSync, track } from 'ripple';
 
 describe('RippleURLSearchParams > derived', () => {
 	it('handles reactive computed properties based on search params', () => {
-		component URLTest() {
-			const params = RippleURLSearchParams('page=1&limit=10');
-			let &[page] = track(() => parseInt(params.get('page') || '1', 10));
-			let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
-			let &[offset] = track(() => (page - 1) * limit);
-
-			<button onClick={() => params.set('page', '2')}>{'next page'}</button>
-			<button onClick={() => params.set('page', '1')}>{'first page'}</button>
-			<pre>{`Page: ${page}`}</pre>
-			<pre>{`Limit: ${limit}`}</pre>
-			<pre>{`Offset: ${offset}`}</pre>
+		function URLTest() {
+			return <>
+				const params = RippleURLSearchParams('page=1&limit=10');
+				let &[page] = track(() => parseInt(params.get('page') || '1', 10));
+				let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
+				let &[offset] = track(() => (page - 1) * limit);
+				<button onClick={() => params.set('page', '2')}>{'next page'}</button>
+				<button onClick={() => params.set('page', '1')}>{'first page'}</button>
+				<pre>{`Page: ${page}`}</pre>
+				<pre>{`Limit: ${limit}`}</pre>
+				<pre>{`Offset: ${offset}`}</pre>
+			</>;
 		}
 
 		render(URLTest);
@@ -43,28 +44,32 @@ describe('RippleURLSearchParams > derived', () => {
 	});
 
 	it('maintains reactivity across multiple components', () => {
-		component ParentTest() {
-			const params = RippleURLSearchParams('count=0');
-
-			<ChildA {params} />
-			<ChildB {params} />
+		function ParentTest() {
+			return <>
+				const params = RippleURLSearchParams('count=0');
+				<ChildA {params} />
+				<ChildB {params} />
+			</>;
 		}
 
-		component ChildA({ params }: { params: RippleURLSearchParams }) {
-			<button
-				onClick={() => {
-					const current = parseInt(params.get('count') || '0', 10);
-					params.set('count', String(current + 1));
-				}}
-			>
-				{'increment'}
-			</button>
+		function ChildA({ params }: { params: RippleURLSearchParams }) {
+			return <>
+				<button
+					onClick={() => {
+						const current = parseInt(params.get('count') || '0', 10);
+						params.set('count', String(current + 1));
+					}}
+				>
+					{'increment'}
+				</button>
+			</>;
 		}
 
-		component ChildB({ params }: { params: RippleURLSearchParams }) {
-			let &[count] = track(() => params.get('count'));
-
-			<pre>{count}</pre>
+		function ChildB({ params }: { params: RippleURLSearchParams }) {
+			return <>
+				let &[count] = track(() => params.get('count'));
+				<pre>{count}</pre>
+			</>;
 		}
 
 		render(ParentTest);

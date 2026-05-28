@@ -9,7 +9,7 @@ var root_8 = _$_.template(`<div>pending b</div>`, 0);
 var root_6 = _$_.template(`<!>`, 1, 1);
 var root_2 = _$_.template(`<!>`, 1, 1);
 var root_1 = _$_.template(`<!>`, 1, 1);
-var root = _$_.template(`<section class="mixed-static"></section>`, 0);
+var root = _$_.template(`<section class="mixed-static"></section>`, 1, 1);
 var root_13 = _$_.template(`<p> </p>`, 0);
 var root_14 = _$_.template(`<p class="pending">pending a</p>`, 0);
 var root_12 = _$_.template(`<!>`, 1, 1);
@@ -26,12 +26,14 @@ var root_24 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
 var root_20 = _$_.template(`<!>`, 1, 1);
 var root_19 = _$_.template(`<!>`, 1, 1);
 var root_18 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
-var root_25 = _$_.template(`<div class="resolved-row"> </div>`, 0);
+var root_25 = _$_.template(`<div class="resolved-row"> </div>`, 1, 1);
 
 import { track, trackAsync } from 'ripple';
 
 export function MixedControlFlowStatic(__anchor, _, __block) {
 	_$_.push_component();
+
+	var __r = false;
 
 	const rows = [
 		{ id: 1, kind: 'a', enabled: true },
@@ -39,25 +41,26 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 		{ id: 3, kind: 'a', enabled: false }
 	];
 
-	var section_1 = root();
+	var fragment = root();
+	var section_1 = _$_.first_child_frag(fragment);
 
 	{
 		_$_.for_keyed(
 			section_1,
 			() => rows,
 			(__anchor, pattern) => {
-				var fragment = root_1();
-				var node = _$_.first_child_frag(fragment);
+				var fragment_1 = root_1();
+				var node = _$_.first_child_frag(fragment_1);
 
 				{
 					var consequent = (__anchor) => {
-						var fragment_1 = root_2();
-						var node_1 = _$_.first_child_frag(fragment_1);
+						var fragment_2 = root_2();
+						var node_1 = _$_.first_child_frag(fragment_2);
 
 						{
 							var switch_case_0 = (__anchor) => {
-								var fragment_2 = root_3();
-								var node_2 = _$_.first_child_frag(fragment_2);
+								var fragment_3 = root_3();
+								var node_2 = _$_.first_child_frag(fragment_3);
 
 								_$_.try(
 									node_2,
@@ -89,12 +92,12 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 									}
 								);
 
-								_$_.append(__anchor, fragment_2);
+								_$_.append(__anchor, fragment_3);
 							};
 
 							var switch_case_default = (__anchor) => {
-								var fragment_3 = root_6();
-								var node_3 = _$_.first_child_frag(fragment_3);
+								var fragment_4 = root_6();
+								var node_3 = _$_.first_child_frag(fragment_4);
 
 								_$_.try(
 									node_3,
@@ -126,7 +129,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 									}
 								);
 
-								_$_.append(__anchor, fragment_3);
+								_$_.append(__anchor, fragment_4);
 							};
 
 							_$_.switch(node_1, () => {
@@ -144,7 +147,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 							});
 						}
 
-						_$_.append(__anchor, fragment_1);
+						_$_.append(__anchor, fragment_2);
 					};
 
 					_$_.if(node, (__render) => {
@@ -152,7 +155,7 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 					});
 				}
 
-				_$_.append(__anchor, fragment);
+				_$_.append(__anchor, fragment_1);
 			},
 			4,
 			(pattern) => _$_.get(pattern).id
@@ -161,18 +164,20 @@ export function MixedControlFlowStatic(__anchor, _, __block) {
 		_$_.pop(section_1);
 	}
 
-	_$_.append(__anchor, section_1);
+	__r = true;
+	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
 
 export function MixedControlFlowReactive(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track(true, __block, '5ae53d26');
 	let lazy_1 = _$_.track('a', __block, '5b53eda2');
 	let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], __block, '7890dad6');
-	var fragment_4 = root_9();
-	var button_1 = _$_.first_child_frag(fragment_4);
+	var fragment_5 = root_9();
+	var button_1 = _$_.first_child_frag(fragment_5);
 
 	button_1.__click = () => {
 		_$_.set(lazy, !lazy.value);
@@ -201,13 +206,13 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 					div_5,
 					() => lazy_2.value,
 					(__anchor, pattern_1) => {
-						var fragment_5 = root_11();
-						var node_5 = _$_.first_child_frag(fragment_5);
+						var fragment_6 = root_11();
+						var node_5 = _$_.first_child_frag(fragment_6);
 
 						{
 							var switch_case_0_1 = (__anchor) => {
-								var fragment_6 = root_12();
-								var node_6 = _$_.first_child_frag(fragment_6);
+								var fragment_7 = root_12();
+								var node_6 = _$_.first_child_frag(fragment_7);
 
 								_$_.try(
 									node_6,
@@ -235,12 +240,12 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 									}
 								);
 
-								_$_.append(__anchor, fragment_6);
+								_$_.append(__anchor, fragment_7);
 							};
 
 							var switch_case_default_1 = (__anchor) => {
-								var fragment_7 = root_15();
-								var node_7 = _$_.first_child_frag(fragment_7);
+								var fragment_8 = root_15();
+								var node_7 = _$_.first_child_frag(fragment_8);
 
 								_$_.try(
 									node_7,
@@ -268,7 +273,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 									}
 								);
 
-								_$_.append(__anchor, fragment_7);
+								_$_.append(__anchor, fragment_8);
 							};
 
 							_$_.switch(node_5, () => {
@@ -286,7 +291,7 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 							});
 						}
 
-						_$_.append(__anchor, fragment_5);
+						_$_.append(__anchor, fragment_6);
 					},
 					4,
 					(pattern_1) => _$_.get(pattern_1).id
@@ -303,44 +308,46 @@ export function MixedControlFlowReactive(__anchor, _, __block) {
 		});
 	}
 
-	_$_.append(__anchor, fragment_4);
+	__r_1 = true;
+	_$_.append(__anchor, fragment_5);
 	_$_.pop_component();
 }
 
 export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const rows = [1, 2];
 	const state = 'slow';
-	var fragment_8 = root_18();
-	var div_6 = _$_.first_child_frag(fragment_8);
+	var fragment_9 = root_18();
+	var div_6 = _$_.first_child_frag(fragment_9);
 	var node_8 = _$_.sibling(div_6);
 
 	_$_.for(
 		node_8,
 		() => rows,
 		(__anchor, row) => {
-			var fragment_9 = root_19();
-			var node_9 = _$_.first_child_frag(fragment_9);
+			var fragment_10 = root_19();
+			var node_9 = _$_.first_child_frag(fragment_10);
 
 			{
 				var consequent_2 = (__anchor) => {
-					var fragment_10 = root_20();
-					var node_10 = _$_.first_child_frag(fragment_10);
+					var fragment_11 = root_20();
+					var node_10 = _$_.first_child_frag(fragment_11);
 
 					{
 						var switch_case_0_2 = (__anchor) => {
-							var fragment_11 = root_21();
-							var node_11 = _$_.first_child_frag(fragment_11);
+							var fragment_12 = root_21();
+							var node_11 = _$_.first_child_frag(fragment_12);
 
 							_$_.try(
 								node_11,
 								(__anchor) => {
-									var fragment_12 = root_22();
-									var node_12 = _$_.first_child_frag(fragment_12);
+									var fragment_13 = root_22();
+									var node_12 = _$_.first_child_frag(fragment_13);
 
 									AsyncRow(node_12, { label: `row-${row}` }, _$_.active_block);
-									_$_.append(__anchor, fragment_12);
+									_$_.append(__anchor, fragment_13);
 								},
 								null,
 								(__anchor) => {
@@ -359,7 +366,7 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 								}
 							);
 
-							_$_.append(__anchor, fragment_11);
+							_$_.append(__anchor, fragment_12);
 						};
 
 						var switch_case_default_2 = (__anchor) => {
@@ -383,7 +390,7 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 						});
 					}
 
-					_$_.append(__anchor, fragment_10);
+					_$_.append(__anchor, fragment_11);
 				};
 
 				_$_.if(node_9, (__render) => {
@@ -391,20 +398,23 @@ export function MixedControlFlowAsyncPending(__anchor, _, __block) {
 				});
 			}
 
-			_$_.append(__anchor, fragment_9);
+			_$_.append(__anchor, fragment_10);
 		},
 		0
 	);
 
-	_$_.append(__anchor, fragment_8);
+	__r_2 = true;
+	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }
 
 function AsyncRow(__anchor, { label }, __block) {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');
-	var div_9 = root_25();
+	var fragment_14 = root_25();
+	var div_9 = _$_.first_child_frag(fragment_14);
 
 	{
 		var expression_5 = _$_.child(div_9);
@@ -413,7 +423,8 @@ function AsyncRow(__anchor, { label }, __block) {
 		_$_.pop(div_9);
 	}
 
-	_$_.append(__anchor, div_9);
+	__r_3 = true;
+	_$_.append(__anchor, fragment_14);
 	_$_.pop_component();
 }
 

@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global basic tests', () => {
 	it('applies global selector to all elements', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -11,7 +11,7 @@ export component Test() {
 			color: red;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div {');
@@ -21,7 +21,7 @@ export component Test() {
 
 	it('applies global selector with class', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="foo">{'content'}</div>
 
 	<style>
@@ -33,7 +33,7 @@ export component Test() {
 			font-weight: bold;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div.foo {');
@@ -43,7 +43,7 @@ export component Test() {
 
 	it('mixes global and local selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<p class="foo">{'red/bold'}</p>
 	</div>
@@ -57,7 +57,7 @@ export component Test() {
 			font-weight: bold;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div .foo');
@@ -67,7 +67,7 @@ export component Test() {
 
 	it('handles global block syntax', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -81,7 +81,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('.x {');
@@ -91,7 +91,7 @@ export component Test() {
 
 	it('handles global with pseudo-classes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<button>{'click'}</button>
 
 	<style>
@@ -103,7 +103,7 @@ export component Test() {
 			outline: none;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('button:hover {');
@@ -113,7 +113,7 @@ export component Test() {
 
 	it('handles multiple global selectors in selector list', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'content'}</div>
 
 	<style>
@@ -123,7 +123,7 @@ export component Test() {
 			padding: 0;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('html,');
@@ -132,7 +132,7 @@ export component Test() {
 
 	it('scopes local selectors while keeping globals unscoped', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="styled-container">
 				<h1>{'Styled heading'}</h1>
 				<p class="text">{'Styled paragraph'}</p>
@@ -154,7 +154,7 @@ export component Test() {
 			font-size: 14px;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.styled-container\.tsrx-[a-z0-9]+/);

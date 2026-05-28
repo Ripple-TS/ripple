@@ -1,38 +1,46 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root = _$_.template(`<template id="data1"></template>`, 0);
-var root_1 = _$_.template(`<template id="data2"></template>`, 0);
+var root = _$_.template(`<template id="data1"></template>`, 1, 1);
+var root_1 = _$_.template(`<template id="data2"></template>`, 1, 1);
 var root_3 = _$_.template(`<span class="inside">inside</span>`, 0);
-var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 0);
+var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 1, 1);
 
 export function SimpleTemplateHtml(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r = false;
 	const data = 'test data';
-	var template_1 = root();
+	var fragment = root();
+	var template_1 = _$_.first_child_frag(fragment);
 
 	template_1.innerHTML = data;
-	_$_.append(__anchor, template_1);
+	__r = true;
+	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
 
 export function TemplateWithJSON(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	const jsonData = _$_.with_scope(__block, () => JSON.stringify({ message: 'hello', count: 42 }));
-	var template_2 = root_1();
+	var fragment_1 = root_1();
+	var template_2 = _$_.first_child_frag(fragment_1);
 
 	template_2.innerHTML = jsonData;
-	_$_.append(__anchor, template_2);
+	__r_1 = true;
+	_$_.append(__anchor, fragment_1);
 	_$_.pop_component();
 }
 
 export function TemplateAroundIfBlock(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const show = true;
-	var div_1 = root_2();
+	var fragment_2 = root_2();
+	var div_1 = _$_.first_child_frag(fragment_2);
 
 	{
 		var template_3 = _$_.child(div_1);
@@ -59,6 +67,7 @@ export function TemplateAroundIfBlock(__anchor, _, __block) {
 		_$_.pop(div_1);
 	}
 
-	_$_.append(__anchor, div_1);
+	__r_2 = true;
+	_$_.append(__anchor, fragment_2);
 	_$_.pop_component();
 }

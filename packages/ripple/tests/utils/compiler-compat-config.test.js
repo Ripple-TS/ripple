@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { compile } from '@tsrx/ripple';
 
 const source = `
-component App() {
+function App() { return <>
 	<tsx:react>
 		<div className="react-content">{'Hello'}</div>
 	</tsx:react>
-}
+</>; }
 `;
 
 describe('compiler tsx compat configuration', () => {

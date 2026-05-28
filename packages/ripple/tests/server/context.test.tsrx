@@ -4,23 +4,23 @@ describe('Context API', () => {
 	it('handles context override in nested components', async () => {
 		const MessageContext = Context('default');
 
-		component Inner() {
+		function Inner() { return <>
 			const msg = MessageContext.get();
 			<span>{msg}</span>
-		}
+		</>; }
 
-		component Middle() {
+		function Middle() { return <>
 			MessageContext.set('middle');
 			<div>
 				<Inner />
 			</div>
-		}
+		</>; }
 
-		component Outer() {
+		function Outer() { return <>
 			MessageContext.set('outer');
 			<Middle />
 			<Inner />
-		}
+		</>; }
 
 		const { body } = await render(Outer);
 

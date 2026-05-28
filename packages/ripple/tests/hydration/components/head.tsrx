@@ -1,16 +1,16 @@
 import { track } from 'ripple';
 
 // Static title
-export component StaticTitle() {
+export function StaticTitle() { return <>
 	<head>
 		<title>{'Static Test Title'}</title>
 	</head>
 
 	<div>{'Content'}</div>
-}
+</>; }
 
 // Reactive title
-export component ReactiveTitle() {
+export function ReactiveTitle() { return <>
 	let &[title] = track('Initial Title');
 
 	<head>
@@ -19,10 +19,10 @@ export component ReactiveTitle() {
 	<div>
 		<span>{title}</span>
 	</div>
-}
+</>; }
 
 // Multiple head elements
-export component MultipleHeadElements() {
+export function MultipleHeadElements() { return <>
 	<head>
 		<title>{'Page Title'}</title>
 		<meta name="description" content="Page description" />
@@ -30,10 +30,10 @@ export component MultipleHeadElements() {
 	</head>
 
 	<div>{'Page content'}</div>
-}
+</>; }
 
 // Head with reactive meta tags
-export component ReactiveMetaTags() {
+export function ReactiveMetaTags() { return <>
 	let &[description] = track('Initial description');
 
 	<head>
@@ -42,10 +42,10 @@ export component ReactiveMetaTags() {
 	</head>
 
 	<div>{description}</div>
-}
+</>; }
 
 // Title with template literal
-export component TitleWithTemplate() {
+export function TitleWithTemplate() { return <>
 	let &[name] = track('World');
 
 	<head>
@@ -53,18 +53,18 @@ export component TitleWithTemplate() {
 	</head>
 
 	<div>{name}</div>
-}
+</>; }
 
 // Empty title
-export component EmptyTitle() {
+export function EmptyTitle() { return <>
 	<head>
 		<title>{''}</title>
 	</head>
 	<div>{'Empty title test'}</div>
-}
+</>; }
 
 // Title with conditional content
-export component ConditionalTitle() {
+export function ConditionalTitle() { return <>
 	let &[showPrefix] = track(true);
 	let &[title] = track('Main Page');
 
@@ -73,10 +73,10 @@ export component ConditionalTitle() {
 	</head>
 
 	<div>{title}</div>
-}
+</>; }
 
 // Title with computed value
-export component ComputedTitle() {
+export function ComputedTitle() { return <>
 	let &[count] = track(0);
 	let prefix = 'Count: ';
 
@@ -86,10 +86,10 @@ export component ComputedTitle() {
 	<div>
 		<span>{count}</span>
 	</div>
-}
+</>; }
 
 // Multiple head blocks (edge case)
-export component MultipleHeadBlocks() {
+export function MultipleHeadBlocks() { return <>
 	<head>
 		<title>{'First Head'}</title>
 	</head>
@@ -99,13 +99,13 @@ export component MultipleHeadBlocks() {
 	<head>
 		<meta name="author" content="Test Author" />
 	</head>
-}
+</>; }
 
 // Head with style tag
-export component HeadWithStyle() {
+export function HeadWithStyle() { return <>
 	<head>
 		<title>{'Styled Page'}</title>
 	</head>
 
 	<div>{'Styled content'}</div>
-}
+</>; }

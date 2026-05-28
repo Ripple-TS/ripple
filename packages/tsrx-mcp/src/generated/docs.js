@@ -19,7 +19,7 @@ export const documentation_sections = [
 		use_cases:
 			'components, functions, props, authoring .tsrx files, jsx return syntax',
 		content:
-			'# Function Components\n\nTSRX does not have a component declaration keyword. Author components as ordinary TypeScript functions and return TSRX from them.\n\n```tsx\nfunction Button(props: { label: string }) {\n  return <button>{props.label}</button>;\n}\n```\n\nInside the returned TSRX fragment, template elements and control flow share the same template statement list.\n\nSource: website-tsrx/src/pages/specification.tsrx#components',
+			'# Function Components\n\nAuthor UI as ordinary TypeScript functions that return TSRX.\n\n```tsx\nfunction Button(props: { label: string }) {\n  return <button>{props.label}</button>;\n}\n```\n\nInside the returned TSRX fragment, template elements and control flow share the same template statement list.\n\nSource: website-tsrx/src/pages/specification.tsrx#components',
 	},
 	{
 		slug: 'text-and-template-expressions',

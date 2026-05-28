@@ -15,9 +15,11 @@ describe('client tracked numeric access', () => {
 	it('throws when tracked values are accessed through numeric properties', () => {
 		let value: any;
 
-		component Test() {
-			value = track(0);
-			<div />
+		function Test() {
+			return <>
+				value = track(0);
+				<div />
+			</>;
 		}
 
 		render(Test);
@@ -32,9 +34,11 @@ describe('client tracked numeric access', () => {
 	it('throws when derived values are accessed through numeric properties', () => {
 		let value: any;
 
-		component Test() {
-			value = track(() => 1);
-			<div />
+		function Test() {
+			return <>
+				value = track(() => 1);
+				<div />
+			</>;
 		}
 
 		render(Test);
@@ -50,10 +54,12 @@ describe('client tracked numeric access', () => {
 		let value: any;
 		let next: any;
 
-		component Test() {
-			value = track(0);
-			next = track(1);
-			<div />
+		function Test() {
+			return <>
+				value = track(0);
+				next = track(1);
+				<div />
+			</>;
 		}
 
 		render(Test);
@@ -72,10 +78,12 @@ describe('client tracked numeric access', () => {
 		let value: any;
 		let derived: any;
 
-		component Test() {
-			value = track(0);
-			derived = track(() => value.value + 1);
-			<div />
+		function Test() {
+			return <>
+				value = track(0);
+				derived = track(() => value.value + 1);
+				<div />
+			</>;
 		}
 
 		render(Test);
@@ -92,10 +100,12 @@ describe('client tracked numeric access', () => {
 		let value: any;
 		let derived: any;
 
-		component Test() {
-			value = track(0);
-			derived = track(() => value.value + 1);
-			<div />
+		function Test() {
+			return <>
+				value = track(0);
+				derived = track(() => value.value + 1);
+				<div />
+			</>;
 		}
 
 		render(Test);

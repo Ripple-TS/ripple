@@ -50,12 +50,13 @@ describe('MediaQuery', () => {
 	it('should be reactive if matchMedia changes', () => {
 		const media = '(min-width: 600px)';
 
-		component App() {
-			let &[medium] = MediaQuery(media);
-
-			<div>
-				<p>{medium}</p>
-			</div>
+		function App() {
+			return <>
+				let &[medium] = MediaQuery(media);
+				<div>
+					<p>{medium}</p>
+				</div>
+			</>;
 		}
 
 		render(App);
@@ -85,22 +86,23 @@ describe('MediaQuery', () => {
 	it('should have cleared event listeners after unmount', async () => {
 		const media = '(min-width: 600px)';
 
-		component App() {
-			let &[show] = track(true);
-
-			if (show) {
-				<Child />
-			}
-
-			<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+		function App() {
+			return <>
+				let &[show] = track(true);
+				if (show) {
+					<Child />
+				}
+				<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+			</>;
 		}
 
-		component Child() {
-			let &[medium] = MediaQuery(media);
-
-			<div>
-				<p>{medium}</p>
-			</div>
+		function Child() {
+			return <>
+				let &[medium] = MediaQuery(media);
+				<div>
+					<p>{medium}</p>
+				</div>
+			</>;
 		}
 
 		render(App);

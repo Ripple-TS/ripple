@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function IfWithChildren({ children }) {
 	_$_.push_component();
 
+	var __r = false;
 	let lazy = _$_.track(true, 'c64714b1');
 
 	_$_.regular_block(() => {
@@ -44,11 +45,14 @@ export function IfWithChildren({ children }) {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function ChildItem({ text: label }) {
 	_$_.push_component();
+
+	var __r_1 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -62,11 +66,14 @@ export function ChildItem({ text: label }) {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function TestIfWithChildren() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -76,6 +83,8 @@ export function TestIfWithChildren() {
 				{
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
+
+						var __r_3 = false;
 
 						{
 							const comp = ChildItem;
@@ -91,6 +100,7 @@ export function TestIfWithChildren() {
 							comp(...args);
 						}
 
+						__r_3 = true;
 						_$_.pop_component();
 					})
 				}
@@ -100,12 +110,14 @@ export function TestIfWithChildren() {
 		}
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function IfWithStaticChildren() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_1 = _$_.track(true, '3bba8f77');
 
 	_$_.regular_block(() => {
@@ -159,12 +171,14 @@ export function IfWithStaticChildren() {
 		_$_.output_push('</div>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function IfWithSiblingsAndChildren({ children }) {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_2 = _$_.track(true, 'a1b8fb4c');
 
 	_$_.regular_block(() => {
@@ -238,11 +252,14 @@ export function IfWithSiblingsAndChildren({ children }) {
 		_$_.output_push('</section>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function TestIfWithSiblingsAndChildren() {
 	_$_.push_component();
+
+	var __r_6 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -252,6 +269,8 @@ export function TestIfWithSiblingsAndChildren() {
 				{
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
+
+						var __r_7 = false;
 
 						{
 							const comp = ChildItem;
@@ -267,6 +286,7 @@ export function TestIfWithSiblingsAndChildren() {
 							comp(...args);
 						}
 
+						__r_7 = true;
 						_$_.pop_component();
 					})
 				}
@@ -276,12 +296,14 @@ export function TestIfWithSiblingsAndChildren() {
 		}
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }
 
 export function ElementWithChildrenThenIf() {
 	_$_.push_component();
 
+	var __r_8 = false;
 	let lazy_3 = _$_.track(true, '7cd4817b');
 
 	_$_.regular_block(() => {
@@ -347,12 +369,14 @@ export function ElementWithChildrenThenIf() {
 		_$_.output_push('</button>');
 	});
 
+	__r_8 = true;
 	_$_.pop_component();
 }
 
 export function DeepNestingThenIf() {
 	_$_.push_component();
 
+	var __r_9 = false;
 	let lazy_4 = _$_.track(true, '923116be');
 
 	_$_.regular_block(() => {
@@ -433,12 +457,14 @@ export function DeepNestingThenIf() {
 		_$_.output_push('</button>');
 	});
 
+	__r_9 = true;
 	_$_.pop_component();
 }
 
 export function DomElementChildrenThenSibling() {
 	_$_.push_component();
 
+	var __r_10 = false;
 	let lazy_5 = _$_.track('code', '33a1e97f');
 
 	_$_.regular_block(() => {
@@ -513,12 +539,14 @@ export function DomElementChildrenThenSibling() {
 		_$_.output_push('</div>');
 	});
 
+	__r_10 = true;
 	_$_.pop_component();
 }
 
 export function DomChildrenThenStaticSiblings() {
 	_$_.push_component();
 
+	var __r_11 = false;
 	let lazy_6 = _$_.track(0, '0ea64305');
 
 	_$_.regular_block(() => {
@@ -588,11 +616,14 @@ export function DomChildrenThenStaticSiblings() {
 		_$_.output_push('</button>');
 	});
 
+	__r_11 = true;
 	_$_.pop_component();
 }
 
 export function StaticListThenStaticSiblings() {
 	_$_.push_component();
+
+	var __r_12 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -698,5 +729,6 @@ export function StaticListThenStaticSiblings() {
 		_$_.output_push('</div>');
 	});
 
+	__r_12 = true;
 	_$_.pop_component();
 }

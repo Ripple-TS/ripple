@@ -5,18 +5,19 @@ describe('context', () => {
 	it('creates a reactive ref with initial value', () => {
 		const MyContext = Context<string | null>(null);
 
-		component Child() {
-			const value = MyContext.get();
-
-			<div>{value}</div>
+		function Child() {
+			return <>
+				const value = MyContext.get();
+				<div>{value}</div>
+			</>;
 		}
 
-		component TestContext() {
-			const value = MyContext.get();
-
-			MyContext.set('Hello from context!');
-
-			<Child />
+		function TestContext() {
+			return <>
+				const value = MyContext.get();
+				MyContext.set('Hello from context!');
+				<Child />
+			</>;
 		}
 
 		render(TestContext);
@@ -32,17 +33,16 @@ describe('context', () => {
 			return value * 2;
 		};
 
-		component App() {
-			MyContext.set(4);
-
-			<h3>{MyContext.get()}</h3>
-
-			<h4>
-				{'2x:'}
-				{doubleContext()}
-			</h4>
-
-			MyContext.set(8);
+		function App() {
+			return <>
+				MyContext.set(4);
+				<h3>{MyContext.get()}</h3>
+				<h4>
+					{'2x:'}
+					{doubleContext()}
+				</h4>
+				MyContext.set(8);
+			</>;
 		}
 
 		render(App);

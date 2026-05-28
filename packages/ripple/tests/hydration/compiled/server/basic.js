@@ -6,6 +6,8 @@ import { track } from 'ripple/server';
 export function StaticText() {
 	_$_.push_component();
 
+	var __r = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
@@ -17,11 +19,14 @@ export function StaticText() {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function MultipleElements() {
 	_$_.push_component();
+
+	var __r_1 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<h1');
@@ -56,11 +61,14 @@ export function MultipleElements() {
 		_$_.output_push('</span>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function NestedElements() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -89,11 +97,14 @@ export function NestedElements() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function WithAttributes() {
 	_$_.push_component();
+
+	var __r_3 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<input');
@@ -116,11 +127,14 @@ export function WithAttributes() {
 		_$_.output_push('</a>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function ChildComponent() {
 	_$_.push_component();
+
+	var __r_4 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<span');
@@ -134,11 +148,14 @@ export function ChildComponent() {
 		_$_.output_push('</span>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function ParentWithChild() {
 	_$_.push_component();
+
+	var __r_5 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -157,11 +174,14 @@ export function ParentWithChild() {
 		_$_.output_push('</div>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function FirstSibling() {
 	_$_.push_component();
+
+	var __r_6 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -175,11 +195,14 @@ export function FirstSibling() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }
 
 export function SecondSibling() {
 	_$_.push_component();
+
+	var __r_7 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -193,11 +216,14 @@ export function SecondSibling() {
 		_$_.output_push('</div>');
 	});
 
+	__r_7 = true;
 	_$_.pop_component();
 }
 
 export function SiblingComponents() {
 	_$_.push_component();
+
+	var __r_8 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -217,11 +243,14 @@ export function SiblingComponents() {
 		}
 	});
 
+	__r_8 = true;
 	_$_.pop_component();
 }
 
 export function Greeting(props) {
 	_$_.push_component();
+
+	var __r_9 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -234,11 +263,14 @@ export function Greeting(props) {
 		_$_.output_push('</div>');
 	});
 
+	__r_9 = true;
 	_$_.pop_component();
 }
 
 export function WithGreeting() {
 	_$_.push_component();
+
+	var __r_10 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -249,12 +281,14 @@ export function WithGreeting() {
 		}
 	});
 
+	__r_10 = true;
 	_$_.pop_component();
 }
 
 export function ExpressionContent() {
 	_$_.push_component();
 
+	var __r_11 = false;
 	const value = 42;
 	const label = 'computed';
 
@@ -280,11 +314,37 @@ export function ExpressionContent() {
 		_$_.output_push('</span>');
 	});
 
+	__r_11 = true;
 	_$_.pop_component();
 }
 
-function makeNestedTsxTsrxFragment(label) {
-	return _$_.tsrx_element(function render_children() {
+function NestedHelperItem({ item }) {
+	_$_.push_component();
+
+	var __r_12 = false;
+
+	_$_.regular_block(() => {
+		_$_.output_push('<div');
+		_$_.output_push(' class="helper-item"');
+		_$_.output_push('>');
+
+		{
+			_$_.output_push(_$_.escape(item));
+		}
+
+		_$_.output_push('</div>');
+	});
+
+	__r_12 = true;
+	_$_.pop_component();
+}
+
+function NestedTsxTsrxFragment({ label }) {
+	_$_.push_component();
+
+	var __r_13 = false;
+
+	_$_.regular_block(() => {
 		_$_.output_push('<span');
 		_$_.output_push(' class="label"');
 		_$_.output_push('>');
@@ -294,57 +354,67 @@ function makeNestedTsxTsrxFragment(label) {
 		}
 
 		_$_.output_push('</span>');
-
-		const test = _$_.tsrx_element(function render_children() {
-			_$_.render_expression([1, 2, 3, 4].map((item) => _$_.tsrx_element(function render_children() {
-				{
-					_$_.render_expression(_$_.tsrx_element(function render_children() {
-						_$_.output_push('<div');
-						_$_.output_push(' class="helper-item"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</div>');
-					}));
-				}
-			})));
-		});
-
-		_$_.render_expression(test);
 	});
+
+	_$_.regular_block(() => {
+		_$_.output_push('<!--[-->');
+
+		for (const item of [1, 2, 3, 4]) {
+			{
+				const comp = NestedHelperItem;
+				const args = [{ item }];
+
+				comp(...args);
+			}
+		}
+
+		_$_.output_push('<!--]-->');
+	});
+
+	__r_13 = true;
+	_$_.pop_component();
 }
 
 export function NestedTsxTsrxExpressionValues() {
 	_$_.push_component();
 
+	var __r_14 = false;
+
 	_$_.regular_block(() => {
-		_$_.render_expression(_$_.tsrx_element(function render_children() {
-			_$_.render_expression([1, 2, 3].map((item) => _$_.tsrx_element(function render_children() {
-				_$_.output_push('<div');
-				_$_.output_push(' class="app-item"');
-				_$_.output_push('>');
+		_$_.output_push('<!--[-->');
 
-				{
-					_$_.output_push(_$_.escape(item));
-				}
+		for (const item of [1, 2, 3]) {
+			_$_.output_push('<div');
+			_$_.output_push(' class="app-item"');
+			_$_.output_push('>');
 
-				_$_.output_push('</div>');
-			})));
-		}));
+			{
+				_$_.output_push(_$_.escape(item));
+			}
+
+			_$_.output_push('</div>');
+		}
+
+		_$_.output_push('<!--]-->');
 	});
 
 	_$_.regular_block(() => {
-		_$_.render_expression(makeNestedTsxTsrxFragment('from helper'));
+		{
+			const comp = NestedTsxTsrxFragment;
+			const args = [{ label: "from helper" }];
+
+			comp(...args);
+		}
 	});
 
+	__r_14 = true;
 	_$_.pop_component();
 }
 
 export function MixedTsrxCollectionText() {
 	_$_.push_component();
+
+	var __r_15 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -393,11 +463,14 @@ export function MixedTsrxCollectionText() {
 		_$_.output_push('</div>');
 	});
 
+	__r_15 = true;
 	_$_.pop_component();
 }
 
 export function MixedTsrxCollectionSplitServerText() {
 	_$_.push_component();
+
+	var __r_16 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -446,11 +519,14 @@ export function MixedTsrxCollectionSplitServerText() {
 		_$_.output_push('</div>');
 	});
 
+	__r_16 = true;
 	_$_.pop_component();
 }
 
 export function MixedTsrxCollectionSplitClientText() {
 	_$_.push_component();
+
+	var __r_17 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -499,11 +575,14 @@ export function MixedTsrxCollectionSplitClientText() {
 		_$_.output_push('</div>');
 	});
 
+	__r_17 = true;
 	_$_.pop_component();
 }
 
 export function MixedTsrxCollectionPrimitiveServerText() {
 	_$_.push_component();
+
+	var __r_18 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -539,11 +618,14 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 		_$_.output_push('</div>');
 	});
 
+	__r_18 = true;
 	_$_.pop_component();
 }
 
 export function MixedTsrxCollectionPrimitiveClientText() {
 	_$_.push_component();
+
+	var __r_19 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -579,6 +661,7 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 		_$_.output_push('</div>');
 	});
 
+	__r_19 = true;
 	_$_.pop_component();
 }
 
@@ -589,6 +672,7 @@ function createPrimitiveItems() {
 export function DynamicArrayFromCall() {
 	_$_.push_component();
 
+	var __r_20 = false;
 	const items = createPrimitiveItems();
 
 	_$_.regular_block(() => {
@@ -603,12 +687,14 @@ export function DynamicArrayFromCall() {
 		_$_.output_push('</div>');
 	});
 
+	__r_20 = true;
 	_$_.pop_component();
 }
 
 export function DynamicArrayFromTrack() {
 	_$_.push_component();
 
+	var __r_21 = false;
 	let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
 
 	_$_.regular_block(() => {
@@ -623,12 +709,14 @@ export function DynamicArrayFromTrack() {
 		_$_.output_push('</div>');
 	});
 
+	__r_21 = true;
 	_$_.pop_component();
 }
 
 export function DynamicArrayFromConditional() {
 	_$_.push_component();
 
+	var __r_22 = false;
 	const condition = true;
 
 	const items = condition
@@ -647,12 +735,14 @@ export function DynamicArrayFromConditional() {
 		_$_.output_push('</div>');
 	});
 
+	__r_22 = true;
 	_$_.pop_component();
 }
 
 export function DynamicArrayFromLogical() {
 	_$_.push_component();
 
+	var __r_23 = false;
 	const condition = true;
 	const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
 
@@ -668,11 +758,14 @@ export function DynamicArrayFromLogical() {
 		_$_.output_push('</div>');
 	});
 
+	__r_23 = true;
 	_$_.pop_component();
 }
 
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	_$_.push_component();
+
+	var __r_24 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -702,11 +795,14 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 		_$_.render_expression(content);
 	});
 
+	__r_24 = true;
 	_$_.pop_component();
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	_$_.push_component();
+
+	var __r_25 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -744,11 +840,14 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 		_$_.render_expression(content);
 	});
 
+	__r_25 = true;
 	_$_.pop_component();
 }
 
 export function TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
 	_$_.push_component();
+
+	var __r_26 = false;
 
 	const content = _$_.tsrx_element(function render_children() {
 		_$_.regular_block(() => {
@@ -782,11 +881,14 @@ export function TsxDeclaredInsideNestedTsrxFromTopLevelTsx() {
 		_$_.render_expression(content);
 	});
 
+	__r_26 = true;
 	_$_.pop_component();
 }
 
 function TextProp(__props) {
 	_$_.push_component();
+
+	var __r_27 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -800,12 +902,14 @@ function TextProp(__props) {
 		_$_.output_push('</div>');
 	});
 
+	__r_27 = true;
 	_$_.pop_component();
 }
 
 export function TextPropWithToggle() {
 	_$_.push_component();
 
+	var __r_28 = false;
 	let lazy_1 = _$_.track(false, '1ba81c3b');
 
 	_$_.regular_block(() => {
@@ -834,11 +938,14 @@ export function TextPropWithToggle() {
 		_$_.output_push('</button>');
 	});
 
+	__r_28 = true;
 	_$_.pop_component();
 }
 
 function StaticHeader() {
 	_$_.push_component();
+
+	var __r_29 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<h1');
@@ -876,12 +983,14 @@ function StaticHeader() {
 		_$_.output_push('</p>');
 	});
 
+	__r_29 = true;
 	_$_.pop_component();
 }
 
 export function StaticChildWithSiblings() {
 	_$_.push_component();
 
+	var __r_30 = false;
 	const foo = 'bar';
 
 	_$_.regular_block(() => {
@@ -917,11 +1026,14 @@ export function StaticChildWithSiblings() {
 		_$_.output_push('</span>');
 	});
 
+	__r_30 = true;
 	_$_.pop_component();
 }
 
 function Header() {
 	_$_.push_component();
+
+	var __r_31 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<h1');
@@ -955,11 +1067,14 @@ function Header() {
 		_$_.output_push('</p>');
 	});
 
+	__r_31 = true;
 	_$_.pop_component();
 }
 
 function Actions({ playgroundVisible = false }) {
 	_$_.push_component();
+
+	var __r_32 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1008,11 +1123,14 @@ function Actions({ playgroundVisible = false }) {
 		_$_.output_push('</div>');
 	});
 
+	__r_32 = true;
 	_$_.pop_component();
 }
 
 function Layout({ children }) {
 	_$_.push_component();
+
+	var __r_33 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<main');
@@ -1033,11 +1151,14 @@ function Layout({ children }) {
 		_$_.output_push('</main>');
 	});
 
+	__r_33 = true;
 	_$_.pop_component();
 }
 
 function Content() {
 	_$_.push_component();
+
+	var __r_34 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1058,11 +1179,14 @@ function Content() {
 		_$_.output_push('</div>');
 	});
 
+	__r_34 = true;
 	_$_.pop_component();
 }
 
 export function WebsiteIndex() {
 	_$_.push_component();
+
+	var __r_35 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -1072,6 +1196,8 @@ export function WebsiteIndex() {
 				{
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
+
+						var __r_36 = false;
 
 						{
 							const comp = Header;
@@ -1101,6 +1227,7 @@ export function WebsiteIndex() {
 							comp(...args);
 						}
 
+						__r_36 = true;
 						_$_.pop_component();
 					})
 				}
@@ -1110,11 +1237,14 @@ export function WebsiteIndex() {
 		}
 	});
 
+	__r_35 = true;
 	_$_.pop_component();
 }
 
 function LastChild() {
 	_$_.push_component();
+
+	var __r_37 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<footer');
@@ -1128,11 +1258,14 @@ function LastChild() {
 		_$_.output_push('</footer>');
 	});
 
+	__r_37 = true;
 	_$_.pop_component();
 }
 
 export function ComponentAsLastSibling() {
 	_$_.push_component();
+
+	var __r_38 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1168,11 +1301,14 @@ export function ComponentAsLastSibling() {
 		_$_.output_push('</div>');
 	});
 
+	__r_38 = true;
 	_$_.pop_component();
 }
 
 function InnerContent() {
 	_$_.push_component();
+
+	var __r_39 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -1200,11 +1336,14 @@ function InnerContent() {
 		_$_.output_push('</div>');
 	});
 
+	__r_39 = true;
 	_$_.pop_component();
 }
 
 export function NestedComponentAsLastSibling() {
 	_$_.push_component();
+
+	var __r_40 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<section');
@@ -1232,5 +1371,6 @@ export function NestedComponentAsLastSibling() {
 		_$_.output_push('</section>');
 	});
 
+	__r_40 = true;
 	_$_.pop_component();
 }

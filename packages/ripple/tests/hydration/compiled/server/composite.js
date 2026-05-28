@@ -4,6 +4,8 @@ import * as _$_ from 'ripple/internal/server';
 export function Layout(__props) {
 	_$_.push_component();
 
+	var __r = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push(' class="layout"');
@@ -16,11 +18,14 @@ export function Layout(__props) {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function TextWrappedLayout(__props) {
 	_$_.push_component();
+
+	var __r_1 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -36,11 +41,14 @@ export function TextWrappedLayout(__props) {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function SingleChild() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -54,11 +62,14 @@ export function SingleChild() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function MultiRootChild() {
 	_$_.push_component();
+
+	var __r_3 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<h1');
@@ -82,11 +93,14 @@ export function MultiRootChild() {
 		_$_.output_push('</p>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function EmptyLayout() {
 	_$_.push_component();
+
+	var __r_4 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -97,11 +111,14 @@ export function EmptyLayout() {
 		}
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function LayoutWithSingleChild() {
 	_$_.push_component();
+
+	var __r_5 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -112,6 +129,8 @@ export function LayoutWithSingleChild() {
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
+						var __r_6 = false;
+
 						{
 							const comp = SingleChild;
 							const args = [{}];
@@ -119,6 +138,7 @@ export function LayoutWithSingleChild() {
 							comp(...args);
 						}
 
+						__r_6 = true;
 						_$_.pop_component();
 					})
 				}
@@ -128,11 +148,14 @@ export function LayoutWithSingleChild() {
 		}
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function LayoutWithMultipleChildren() {
 	_$_.push_component();
+
+	var __r_7 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -142,6 +165,8 @@ export function LayoutWithMultipleChildren() {
 				{
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
+
+						var __r_8 = false;
 
 						{
 							const comp = SingleChild;
@@ -159,6 +184,7 @@ export function LayoutWithMultipleChildren() {
 						}
 
 						_$_.output_push('</div>');
+						__r_8 = true;
 						_$_.pop_component();
 					})
 				}
@@ -168,11 +194,14 @@ export function LayoutWithMultipleChildren() {
 		}
 	});
 
+	__r_7 = true;
 	_$_.pop_component();
 }
 
 export function LayoutWithMultiRootChild() {
 	_$_.push_component();
+
+	var __r_9 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -183,6 +212,8 @@ export function LayoutWithMultiRootChild() {
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
+						var __r_10 = false;
+
 						{
 							const comp = MultiRootChild;
 							const args = [{}];
@@ -190,6 +221,7 @@ export function LayoutWithMultiRootChild() {
 							comp(...args);
 						}
 
+						__r_10 = true;
 						_$_.pop_component();
 					})
 				}
@@ -199,11 +231,14 @@ export function LayoutWithMultiRootChild() {
 		}
 	});
 
+	__r_9 = true;
 	_$_.pop_component();
 }
 
 export function LayoutWithTextAroundChildren() {
 	_$_.push_component();
+
+	var __r_11 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -214,6 +249,8 @@ export function LayoutWithTextAroundChildren() {
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
+						var __r_12 = false;
+
 						{
 							const comp = SingleChild;
 							const args = [{}];
@@ -221,6 +258,7 @@ export function LayoutWithTextAroundChildren() {
 							comp(...args);
 						}
 
+						__r_12 = true;
 						_$_.pop_component();
 					})
 				}
@@ -230,5 +268,6 @@ export function LayoutWithTextAroundChildren() {
 		}
 	});
 
+	__r_11 = true;
 	_$_.pop_component();
 }

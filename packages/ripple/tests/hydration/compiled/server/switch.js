@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function SwitchStatic() {
 	_$_.push_component();
 
+	var __r = false;
 	const status = 'success';
 
 	_$_.regular_block(() => {
@@ -45,12 +46,14 @@ export function SwitchStatic() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function SwitchReactive() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track('a', '9b34d955');
 
 	_$_.regular_block(() => {
@@ -102,12 +105,14 @@ export function SwitchReactive() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function SwitchFallthrough() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const val = 1;
 
 	_$_.regular_block(() => {
@@ -139,12 +144,14 @@ export function SwitchFallthrough() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function SwitchNumericLevels() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_1 = _$_.track(1, '7581a7ab');
 
 	_$_.regular_block(() => {
@@ -197,12 +204,14 @@ export function SwitchNumericLevels() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function SwitchBlockScoped() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_2 = _$_.track(1, 'ca9f9852');
 
 	_$_.regular_block(() => {
@@ -255,12 +264,14 @@ export function SwitchBlockScoped() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function SwitchNoBreak() {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_3 = _$_.track(1, '6b7cb0ea');
 
 	_$_.regular_block(() => {
@@ -310,5 +321,6 @@ export function SwitchNoBreak() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }

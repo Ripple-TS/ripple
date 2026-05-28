@@ -6,6 +6,8 @@ import { track } from 'ripple/server';
 export function Layout({ children }) {
 	_$_.push_component();
 
+	var __r = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push(' class="layout"');
@@ -35,12 +37,14 @@ export function Layout({ children }) {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function Content() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track(true, '0bdb1500');
 
 	_$_.regular_block(() => {
@@ -69,11 +73,14 @@ export function Content() {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function LayoutWithContent() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -84,6 +91,8 @@ export function LayoutWithContent() {
 					children: _$_.tsrx_element(function render_children() {
 						_$_.push_component();
 
+						var __r_3 = false;
+
 						{
 							const comp = Content;
 							const args = [{}];
@@ -91,6 +100,7 @@ export function LayoutWithContent() {
 							comp(...args);
 						}
 
+						__r_3 = true;
 						_$_.pop_component();
 					})
 				}
@@ -100,5 +110,6 @@ export function LayoutWithContent() {
 		}
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }

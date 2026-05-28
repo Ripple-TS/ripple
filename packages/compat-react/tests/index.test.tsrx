@@ -9,13 +9,15 @@ import { RippleRoot } from '@ripple-ts/compat-react';
 describe('compat-react', () => {
 	describe('tsx:react integration', () => {
 		it('should render basic React JSX inside tsx:react tags', async () => {
-			component App() {
-				<div>
-					<h1>{'Hello from Ripple'}</h1>
-					<tsx:react>
-						<div className="react-content">Hello from React</div>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<h1>{'Hello from Ripple'}</h1>
+						<tsx:react>
+							<div className="react-content">Hello from React</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -31,15 +33,17 @@ describe('compat-react', () => {
 		});
 
 		it('should render React fragments inside tsx:react tags', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<>
-							<span className="first">First</span>
-							<span className="second">Second</span>
-						</>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<>
+								<span className="first">First</span>
+								<span className="second">Second</span>
+							</>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -55,16 +59,18 @@ describe('compat-react', () => {
 		});
 
 		it('should render nested React components', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<div className="wrapper">
-							<div className="inner">
-								<span className="content">Nested content</span>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<div className="wrapper">
+								<div className="inner">
+									<span className="content">Nested content</span>
+								</div>
 							</div>
-						</div>
-					</tsx:react>
-				</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -81,14 +87,16 @@ describe('compat-react', () => {
 		});
 
 		it('should mix Ripple and React content', async () => {
-			component App() {
-				<div class="container">
-					<div class="ripple">{'This is Ripple'}</div>
-					<tsx:react>
-						<div className="react">This is React</div>
-					</tsx:react>
-					<div class="ripple-2">{'Back to Ripple'}</div>
-				</div>
+			function App() {
+				return <>
+					<div class="container">
+						<div class="ripple">{'This is Ripple'}</div>
+						<tsx:react>
+							<div className="react">This is React</div>
+						</tsx:react>
+						<div class="ripple-2">{'Back to Ripple'}</div>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -107,16 +115,18 @@ describe('compat-react', () => {
 		});
 
 		it('should handle multiple tsx:react blocks', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<div className="react-1">React Block 1</div>
-					</tsx:react>
-					<div class="ripple-middle">{'Ripple in between'}</div>
-					<tsx:react>
-						<div className="react-2">React Block 2</div>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<div className="react-1">React Block 1</div>
+						</tsx:react>
+						<div class="ripple-middle">{'Ripple in between'}</div>
+						<tsx:react>
+							<div className="react-2">React Block 2</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -135,14 +145,16 @@ describe('compat-react', () => {
 		});
 
 		it('should handle React components with attributes', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<div className="react" id="test-id">
-							<span>Content</span>
-						</div>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<div className="react" id="test-id">
+								<span>Content</span>
+							</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -156,17 +168,19 @@ describe('compat-react', () => {
 		});
 
 		it('should handle nested fragments', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<>
-							<div className="outer">Outer</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
 							<>
-								<div className="inner">Inner</div>
+								<div className="outer">Outer</div>
+								<>
+									<div className="inner">Inner</div>
+								</>
 							</>
-						</>
-					</tsx:react>
-				</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -182,18 +196,20 @@ describe('compat-react', () => {
 		});
 
 		it('should handle complex nested structures', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<div className="list">
-							<ul>
-								<li>Item 1</li>
-								<li>Item 2</li>
-								<li>Item 3</li>
-							</ul>
-						</div>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<div className="list">
+								<ul>
+									<li>Item 1</li>
+									<li>Item 2</li>
+									<li>Item 3</li>
+								</ul>
+							</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -210,13 +226,15 @@ describe('compat-react', () => {
 		});
 
 		it('should handle empty fragments', async () => {
-			component App() {
-				<div>
-					<tsx:react>
-						<></>
-					</tsx:react>
-					<div class="after">{'After empty fragment'}</div>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<></>
+						</tsx:react>
+						<div class="after">{'After empty fragment'}</div>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -229,17 +247,19 @@ describe('compat-react', () => {
 		});
 
 		it('should work with Ripple reactivity', async () => {
-			component App() {
-				let &[count] = track(0);
-				<div>
-					<div class="ripple-count">{count}</div>
-					<button onClick={() => count++}>{'Increment'}</button>
-					<tsx:react>
-						<div className="react-message">
-							{'React content is static'}
-						</div>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					let &[count] = track(0);
+					<div>
+						<div class="ripple-count">{count}</div>
+						<button onClick={() => count++}>{'Increment'}</button>
+						<tsx:react>
+							<div className="react-message">
+								{'React content is static'}
+							</div>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -265,12 +285,14 @@ describe('compat-react', () => {
 				return 'This is rendered from a React component!';
 			}
 
-			component App() {
-				<div>
-					<tsx:react>
-						{renderReactText()}
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							{renderReactText()}
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -289,14 +311,16 @@ describe('compat-react', () => {
 				return useContext(SomeContext);
 			}
 
-			component App() {
-				<div>
-					<tsx:react>
-						<SomeContext.Provider value="Provided Value">
-							<ReactChild />
-						</SomeContext.Provider>
-					</tsx:react>
-				</div>
+			function App() {
+				return <>
+					<div>
+						<tsx:react>
+							<SomeContext.Provider value="Provided Value">
+								<ReactChild />
+							</SomeContext.Provider>
+						</tsx:react>
+					</div>
+				</>;
 			}
 
 			await act(async () => {
@@ -313,16 +337,18 @@ describe('compat-react', () => {
 				throw new Error('Test Error');
 			}
 
-			component App() {
-				try {
-					<div>
-						<tsx:react>
-							<ReactChild />
-						</tsx:react>
-					</div>
-				} catch (e) {
-					<div class="error">{'ReactChild had an error'}</div>
-				}
+			function App() {
+				return <>
+					try {
+						<div>
+							<tsx:react>
+								<ReactChild />
+							</tsx:react>
+						</div>
+					} catch (e) {
+						<div class="error">{'ReactChild had an error'}</div>
+					}
+				</>;
 			}
 
 			await act(async () => {
@@ -339,22 +365,26 @@ describe('compat-react', () => {
 				throw new Error('Test Error');
 			}
 
-			component RippleChild() {
-				<tsx:react>
-					<ReactChild />
-				</tsx:react>
+			function RippleChild() {
+				return <>
+					<tsx:react>
+						<ReactChild />
+					</tsx:react>
+				</>;
 			}
 
-			component App() {
-				try {
-					<div>
-						<tsx:react>
-							<Ripple component={RippleChild} />
-						</tsx:react>
-					</div>
-				} catch (e) {
-					<div class="error">{'ReactChild had an error'}</div>
-				}
+			function App() {
+				return <>
+					try {
+						<div>
+							<tsx:react>
+								<Ripple component={RippleChild} />
+							</tsx:react>
+						</div>
+					} catch (e) {
+						<div class="error">{'ReactChild had an error'}</div>
+					}
+				</>;
 			}
 
 			await act(async () => {
@@ -374,10 +404,12 @@ describe('compat-react', () => {
 				return jsx('div', { children: `Deep child, context value is: ${contextValue}` });
 			}
 
-			component RippleChild() {
-				<tsx:react>
-					<DeepReactChild />
-				</tsx:react>
+			function RippleChild() {
+				return <>
+					<tsx:react>
+						<DeepReactChild />
+					</tsx:react>
+				</>;
 			}
 
 			function ReactChild() {
@@ -386,12 +418,14 @@ describe('compat-react', () => {
 				});
 			}
 
-			component App() {
-				<tsx:react>
-					<DemoContext.Provider value={'Hello from Context!'}>
-						<ReactChild />
-					</DemoContext.Provider>
-				</tsx:react>
+			function App() {
+				return <>
+					<tsx:react>
+						<DemoContext.Provider value={'Hello from Context!'}>
+							<ReactChild />
+						</DemoContext.Provider>
+					</tsx:react>
+				</>;
 			}
 
 			await act(async () => {
@@ -411,23 +445,27 @@ describe('compat-react', () => {
 					return new Promise((resolve) => setTimeout(resolve, ms));
 				}
 
-				component AsyncRippleChild() {
-					const result = trackAsync(() => sleep(1000));
-					if (!trackPending(result)) {
-						<div class="async-content">{'Loaded!'}</div>
-					}
+				function AsyncRippleChild() {
+					return <>
+						const result = trackAsync(() => sleep(1000));
+						if (!trackPending(result)) {
+							<div class="async-content">{'Loaded!'}</div>
+						}
+					</>;
 				}
 
 				function ReactChild() {
 					return jsx(Ripple, { component: AsyncRippleChild });
 				}
 
-				component App() {
-					<tsx:react>
-						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild />
-						</Suspense>
-					</tsx:react>
+				function App() {
+					return <>
+						<tsx:react>
+							<Suspense fallback={<div className="loading">Loading...</div>}>
+								<ReactChild />
+							</Suspense>
+						</tsx:react>
+					</>;
 				}
 
 				await act(async () => {
@@ -463,30 +501,32 @@ describe('compat-react', () => {
 					return new Promise((resolve) => setTimeout(resolve, ms));
 				}
 
-				component AsyncRippleChild() {
-					const result = trackAsync(() => sleep(1000));
-
-					let &[count] = track(0);
-
-					if (!trackPending(result)) {
-						<div>
-							<div class="async-content">{'Loaded!'}</div>
-							<div class="count">{count}</div>
-							<button onClick={() => count++}>{'Increment'}</button>
-						</div>
-					}
+				function AsyncRippleChild() {
+					return <>
+						const result = trackAsync(() => sleep(1000));
+						let &[count] = track(0);
+						if (!trackPending(result)) {
+							<div>
+								<div class="async-content">{'Loaded!'}</div>
+								<div class="count">{count}</div>
+								<button onClick={() => count++}>{'Increment'}</button>
+							</div>
+						}
+					</>;
 				}
 
 				function ReactChild() {
 					return jsx(Ripple, { component: AsyncRippleChild });
 				}
 
-				component App() {
-					<tsx:react>
-						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild />
-						</Suspense>
-					</tsx:react>
+				function App() {
+					return <>
+						<tsx:react>
+							<Suspense fallback={<div className="loading">Loading...</div>}>
+								<ReactChild />
+							</Suspense>
+						</tsx:react>
+					</>;
 				}
 
 				await act(async () => {
@@ -534,16 +574,16 @@ describe('compat-react', () => {
 
 				let setPage: (page: number) => void;
 
-				component AsyncRippleChild(&{ page }: { page: number }) {
-					// Using trackAsync(() => ...) to create a reactive async operation
-					// that re-suspends when the tracked dependency (page) changes
-					const result = trackAsync(() => {
-						page;
-						return sleep(1000);
-					});
-					if (!trackPending(result)) {
-						<div class="content">{`Page ${page} loaded`}</div>
-					}
+				function AsyncRippleChild(&{ page }: { page: number }) {
+					return <>
+						const result = trackAsync(() => {
+							page;
+							return sleep(1000);
+						});
+						if (!trackPending(result)) {
+							<div class="content">{`Page ${page} loaded`}</div>
+						}
+					</>;
 				}
 
 				function ReactChild(props: { page: number }) {
@@ -553,17 +593,18 @@ describe('compat-react', () => {
 					});
 				}
 
-				component App() {
-					let &[page] = track(1);
-					setPage = (p: number) => {
-						page = p;
-					};
-
-					<tsx:react>
-						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild page={page} />
-						</Suspense>
-					</tsx:react>
+				function App() {
+					return <>
+						let &[page] = track(1);
+						setPage = (p: number) => {
+							page = p;
+						};
+						<tsx:react>
+							<Suspense fallback={<div className="loading">Loading...</div>}>
+								<ReactChild page={page} />
+							</Suspense>
+						</tsx:react>
+					</>;
 				}
 
 				await act(async () => {
@@ -617,13 +658,13 @@ describe('compat-react', () => {
 
 				let setPage: (page: number) => void;
 
-				component AsyncRippleChild(&{ page }: { page: number }) {
-					// Simple static await - no tracked dependencies
-					const result = trackAsync(() => sleep(1000));
-
-					if (!trackPending(result)) {
-						<div class="content">{`Page ${page} loaded`}</div>
-					}
+				function AsyncRippleChild(&{ page }: { page: number }) {
+					return <>
+						const result = trackAsync(() => sleep(1000));
+						if (!trackPending(result)) {
+							<div class="content">{`Page ${page} loaded`}</div>
+						}
+					</>;
 				}
 
 				function ReactChild(props: { page: number }) {
@@ -635,17 +676,18 @@ describe('compat-react', () => {
 					});
 				}
 
-				component App() {
-					let &[page] = track(1);
-					setPage = (p: number) => {
-						page = p;
-					};
-
-					<tsx:react>
-						<Suspense fallback={<div className="loading">Loading...</div>}>
-							<ReactChild page={page} />
-						</Suspense>
-					</tsx:react>
+				function App() {
+					return <>
+						let &[page] = track(1);
+						setPage = (p: number) => {
+							page = p;
+						};
+						<tsx:react>
+							<Suspense fallback={<div className="loading">Loading...</div>}>
+								<ReactChild page={page} />
+							</Suspense>
+						</tsx:react>
+					</>;
 				}
 
 				await act(async () => {
@@ -714,28 +756,32 @@ describe('compat-react', () => {
 						});
 					}
 
-					component AsyncRippleChild() {
-						const resultA = trackAsync(() => fetchA());
-						const resultB = trackAsync(() => fetchB());
-						if (!trackPending(resultA) && !trackPending(resultB)) {
-							<div class="content">{'Both loaded!'}</div>
-						}
+					function AsyncRippleChild() {
+						return <>
+							const resultA = trackAsync(() => fetchA());
+							const resultB = trackAsync(() => fetchB());
+							if (!trackPending(resultA) && !trackPending(resultB)) {
+								<div class="content">{'Both loaded!'}</div>
+							}
+						</>;
 					}
 
 					function ReactChild() {
 						return jsx(Ripple, { component: AsyncRippleChild });
 					}
 
-					component App() {
-						try {
-							<tsx:react>
-								<Suspense fallback={<div className="loading">Loading...</div>}>
-									<ReactChild />
-								</Suspense>
-							</tsx:react>
-						} catch (e) {
-							<div class="error">{'Caught error'}</div>
-						}
+					function App() {
+						return <>
+							try {
+								<tsx:react>
+									<Suspense fallback={<div className="loading">Loading...</div>}>
+										<ReactChild />
+									</Suspense>
+								</tsx:react>
+							} catch (e) {
+								<div class="error">{'Caught error'}</div>
+							}
+						</>;
 					}
 
 					await act(async () => {
@@ -794,8 +840,8 @@ describe('compat-react', () => {
 		});
 
 		it('should render a basic React app with RippleRoot', async () => {
-			component RippleComponent() {
-				<div>{'Hello from Ripple Component'}</div>
+			function RippleComponent() {
+				return <><div>{'Hello from Ripple Component'}</div></>;
 			}
 
 			function App() {

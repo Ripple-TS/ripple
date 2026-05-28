@@ -14,21 +14,22 @@ describe('basic client > collections', () => {
 	}
 
 	it('renders with simple reactive objects', () => {
-		component Basic() {
-			let &[user] = track({
-				name: 'John',
-				age: 25,
-			});
-
-			<div class="name">{user.name}</div>
-			<div class="age">{user.age}</div>
-			<button
-				onClick={() => {
-					user = { ...user, name: 'Jane', age: 30 };
-				}}
-			>
-				{'Update User'}
-			</button>
+		function Basic() {
+			return <>
+				let &[user] = track({
+					name: 'John',
+					age: 25,
+				});
+				<div class="name">{user.name}</div>
+				<div class="age">{user.age}</div>
+				<button
+					onClick={() => {
+						user = { ...user, name: 'Jane', age: 30 };
+					}}
+				>
+					{'Update User'}
+				</button>
+			</>;
 		}
 
 		render(Basic);
@@ -48,22 +49,23 @@ describe('basic client > collections', () => {
 	});
 
 	it('renders with nested reactive objects', () => {
-		component Basic() {
-			let &[user] = track({
-				name: track('John'),
-				age: track(25),
-			});
-
-			<div class="name">{user.name.value}</div>
-			<div class="age">{user.age.value}</div>
-			<button
-				onClick={() => {
-					user.name.value = 'Jane';
-					user.age.value = 30;
-				}}
-			>
-				{'Update User'}
-			</button>
+		function Basic() {
+			return <>
+				let &[user] = track({
+					name: track('John'),
+					age: track(25),
+				});
+				<div class="name">{user.name.value}</div>
+				<div class="age">{user.age.value}</div>
+				<button
+					onClick={() => {
+						user.name.value = 'Jane';
+						user.age.value = 30;
+					}}
+				>
+					{'Update User'}
+				</button>
+			</>;
 		}
 
 		render(Basic);
@@ -83,21 +85,21 @@ describe('basic client > collections', () => {
 	});
 
 	it('works as a reactive RippleArray when constructed using # syntactic sugar', () => {
-		component App() {
-			const array = new RippleArray(1, 2, 3);
-
-			<pre>{String(array[3])}</pre>
-			<pre>{array[0]}</pre>
-			<pre>{TRACKED_ARRAY in array}</pre>
-
-			<button
-				onClick={() => {
-					array.push(array.length + 1);
-					array[0] = array[0] + 1;
-				}}
-			>
-				{'Add'}
-			</button>
+		function App() {
+			return <>
+				const array = new RippleArray(1, 2, 3);
+				<pre>{String(array[3])}</pre>
+				<pre>{array[0]}</pre>
+				<pre>{TRACKED_ARRAY in array}</pre>
+				<button
+					onClick={() => {
+						array.push(array.length + 1);
+						array[0] = array[0] + 1;
+					}}
+				>
+					{'Add'}
+				</button>
+			</>;
 		}
 
 		render(App);
@@ -119,35 +121,36 @@ describe('basic client > collections', () => {
 	});
 
 	it('cleans up mixed tsrx collection sentinels and trailing text on rerender', () => {
-		component App() {
-			let &[primary] = track(true);
-
-			<div class="frame">
-				{<tsx>
-					{primary
-						? [
-								'first:',
-								<strong class="middle">
-									{'one'}
-								</strong>,
-								':tail',
-							]
-						: [
-								'second:',
-								<strong class="middle">
-									{'two'}
-								</strong>,
-								':done',
-							]}
-				</tsx>}
-			</div>
-			<button
-				onClick={() => {
-					primary = !primary;
-				}}
-			>
-				{'toggle'}
-			</button>
+		function App() {
+			return <>
+				let &[primary] = track(true);
+				<div class="frame">
+					{<tsx>
+						{primary
+							? [
+									'first:',
+									<strong class="middle">
+										{'one'}
+									</strong>,
+									':tail',
+								]
+							: [
+									'second:',
+									<strong class="middle">
+										{'two'}
+									</strong>,
+									':done',
+								]}
+					</tsx>}
+				</div>
+				<button
+					onClick={() => {
+						primary = !primary;
+					}}
+				>
+					{'toggle'}
+				</button>
+			</>;
 		}
 
 		render(App);
@@ -175,19 +178,21 @@ describe('basic client > collections', () => {
 	});
 
 	it('flattens nested primitive arrays inside mixed tsrx collections', () => {
-		component App() {
-			<div class="frame">
-				{<tsx>
-					{[
-						'start:',
-						['one', 2, true, null, false],
-						<strong>
-							{'!'}
-						</strong>,
-						':end',
-					]}
-				</tsx>}
-			</div>
+		function App() {
+			return <>
+				<div class="frame">
+					{<tsx>
+						{[
+							'start:',
+							['one', 2, true, null, false],
+							<strong>
+								{'!'}
+							</strong>,
+							':end',
+						]}
+					</tsx>}
+				</div>
+			</>;
 		}
 
 		render(App);
@@ -196,11 +201,12 @@ describe('basic client > collections', () => {
 	});
 
 	it('flattens direct primitive array expressions', () => {
-		component App() {
-			const items = ['start:', ['one', 2], null, true, false, ':end'];
-
-			<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
-			<div class="bound-frame">{items}</div>
+		function App() {
+			return <>
+				const items = ['start:', ['one', 2], null, true, false, ':end'];
+				<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
+				<div class="bound-frame">{items}</div>
+			</>;
 		}
 
 		render(App);
@@ -210,15 +216,16 @@ describe('basic client > collections', () => {
 	});
 
 	it('flattens conditional primitive array expressions', () => {
-		component App() {
-			const condition = true;
-			const ternary_items = condition
-				? ['start:', ['one', 2], null, true, false, ':end']
-				: ['fallback'];
-			const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
-
-			<div class="ternary-frame">{ternary_items}</div>
-			<div class="logical-frame">{logical_items}</div>
+		function App() {
+			return <>
+				const condition = true;
+				const ternary_items = condition
+					? ['start:', ['one', 2], null, true, false, ':end']
+					: ['fallback'];
+				const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+				<div class="ternary-frame">{ternary_items}</div>
+				<div class="logical-frame">{logical_items}</div>
+			</>;
 		}
 
 		render(App);

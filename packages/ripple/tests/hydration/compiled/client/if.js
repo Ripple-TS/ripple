@@ -20,13 +20,14 @@ var root_16 = _$_.template(`<div class="state">Loading...</div>`, 0);
 var root_18 = _$_.template(`<div class="state">Success!</div>`, 0);
 var root_19 = _$_.template(`<div class="state">Error occurred</div>`, 0);
 var root_17 = _$_.template(`<!>`, 1, 1);
-var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 0);
+var root_15 = _$_.template(`<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!></div>`, 1, 1);
 
 import { track } from 'ripple';
 
 export function IfTruthy(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r = false;
 	const show = true;
 	var fragment = root();
 	var node = _$_.first_child_frag(fragment);
@@ -43,6 +44,7 @@ export function IfTruthy(__anchor, _, __block) {
 		});
 	}
 
+	__r = true;
 	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
@@ -50,6 +52,7 @@ export function IfTruthy(__anchor, _, __block) {
 export function IfFalsy(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	const show = false;
 	var fragment_1 = root_2();
 	var node_1 = _$_.first_child_frag(fragment_1);
@@ -66,6 +69,7 @@ export function IfFalsy(__anchor, _, __block) {
 		});
 	}
 
+	__r_1 = true;
 	_$_.append(__anchor, fragment_1);
 	_$_.pop_component();
 }
@@ -73,6 +77,7 @@ export function IfFalsy(__anchor, _, __block) {
 export function IfElse(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const isLoggedIn = true;
 	var fragment_2 = root_4();
 	var node_2 = _$_.first_child_frag(fragment_2);
@@ -95,6 +100,7 @@ export function IfElse(__anchor, _, __block) {
 		});
 	}
 
+	__r_2 = true;
 	_$_.append(__anchor, fragment_2);
 	_$_.pop_component();
 }
@@ -102,6 +108,7 @@ export function IfElse(__anchor, _, __block) {
 export function ReactiveIf(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy = _$_.track(true, __block, '19a16ff0');
 	var fragment_3 = root_7();
 	var button_1 = _$_.first_child_frag(fragment_3);
@@ -124,6 +131,7 @@ export function ReactiveIf(__anchor, _, __block) {
 		});
 	}
 
+	__r_3 = true;
 	_$_.append(__anchor, fragment_3);
 	_$_.pop_component();
 }
@@ -131,6 +139,7 @@ export function ReactiveIf(__anchor, _, __block) {
 export function ReactiveIfElse(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_1 = _$_.track(false, __block, '41177f39');
 	var fragment_4 = root_9();
 	var button_2 = _$_.first_child_frag(fragment_4);
@@ -159,6 +168,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 		});
 	}
 
+	__r_4 = true;
 	_$_.append(__anchor, fragment_4);
 	_$_.pop_component();
 }
@@ -166,6 +176,7 @@ export function ReactiveIfElse(__anchor, _, __block) {
 export function NestedIf(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_2 = _$_.track(true, __block, '7894e1df');
 	let lazy_3 = _$_.track(true, __block, 'f21b8c26');
 	var fragment_5 = root_12();
@@ -214,6 +225,7 @@ export function NestedIf(__anchor, _, __block) {
 		});
 	}
 
+	__r_5 = true;
 	_$_.append(__anchor, fragment_5);
 	_$_.pop_component();
 }
@@ -221,8 +233,10 @@ export function NestedIf(__anchor, _, __block) {
 export function IfElseIfChain(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_6 = false;
 	let lazy_4 = _$_.track('loading', __block, '4c69c94a');
-	var div_9 = root_15();
+	var fragment_6 = root_15();
+	var div_9 = _$_.first_child_frag(fragment_6);
 
 	{
 		var button_5 = _$_.child(div_9);
@@ -253,8 +267,8 @@ export function IfElseIfChain(__anchor, _, __block) {
 			};
 
 			var alternate_3 = (__anchor) => {
-				var fragment_6 = root_17();
-				var node_8 = _$_.first_child_frag(fragment_6);
+				var fragment_7 = root_17();
+				var node_8 = _$_.first_child_frag(fragment_7);
 
 				{
 					var consequent_8 = (__anchor) => {
@@ -274,7 +288,7 @@ export function IfElseIfChain(__anchor, _, __block) {
 					});
 				}
 
-				_$_.append(__anchor, fragment_6);
+				_$_.append(__anchor, fragment_7);
 			};
 
 			_$_.if(node_7, (__render) => {
@@ -285,7 +299,8 @@ export function IfElseIfChain(__anchor, _, __block) {
 		_$_.pop(div_9);
 	}
 
-	_$_.append(__anchor, div_9);
+	__r_6 = true;
+	_$_.append(__anchor, fragment_6);
 	_$_.pop_component();
 }
 

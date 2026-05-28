@@ -7,9 +7,9 @@ describe('returns in prohibited scopes', () => {
 		expect(
 			() => compile(`
 				return;
-				component App() {
+				function App() { return <>
 					<div>{'hello'}</div>
-				}
+				</>; }
 			`, 'test.tsrx', {
 				mode: 'client',
 			}),
@@ -19,10 +19,12 @@ describe('returns in prohibited scopes', () => {
 
 describe('early return in client components', () => {
 	it('skips template content after direct return', () => {
-		component App() {
-			<div class="before">{'before'}</div>
-			return;
-			<div class="after">{'after'}</div>
+		function App() {
+			return <>
+				<div class="before">{'before'}</div>
+				return;
+				<div class="after">{'after'}</div>
+			</>;
 		}
 
 		render(App);
@@ -31,14 +33,15 @@ describe('early return in client components', () => {
 	});
 
 	it('skips rest of body when return condition is true', () => {
-		component App() {
-			let condition = true;
-
-			if (condition) {
-				<div class="guard">{'guard hit'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let condition = true;
+				if (condition) {
+					<div class="guard">{'guard hit'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -47,14 +50,15 @@ describe('early return in client components', () => {
 	});
 
 	it('renders rest of body when return condition is false', () => {
-		component App() {
-			let condition = false;
-
-			if (condition) {
-				<div class="guard">{'guard hit'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					<div class="guard">{'guard hit'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -63,21 +67,22 @@ describe('early return in client components', () => {
 	});
 
 	it('reactive: condition changes from false to true hides rest', () => {
-		component App() {
-			let &[condition] = track(false);
-
-			<button
-				onClick={() => {
-					condition = true;
-				}}
-			>
-				{'toggle'}
-			</button>
-			if (condition) {
-				<div class="guard">{'guard hit'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let &[condition] = track(false);
+				<button
+					onClick={() => {
+						condition = true;
+					}}
+				>
+					{'toggle'}
+				</button>
+				if (condition) {
+					<div class="guard">{'guard hit'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -92,21 +97,22 @@ describe('early return in client components', () => {
 	});
 
 	it('reactive: condition changes from true to false shows rest', () => {
-		component App() {
-			let &[condition] = track(true);
-
-			<button
-				onClick={() => {
-					condition = false;
-				}}
-			>
-				{'toggle'}
-			</button>
-			if (condition) {
-				<div class="guard">{'guard hit'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let &[condition] = track(true);
+				<button
+					onClick={() => {
+						condition = false;
+					}}
+				>
+					{'toggle'}
+				</button>
+				if (condition) {
+					<div class="guard">{'guard hit'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -121,18 +127,19 @@ describe('early return in client components', () => {
 	});
 
 	it('handles nested ifs with return', () => {
-		component App() {
-			let a = true;
-			let b = true;
-
-			if (a) {
-				<div class="a">{'a is true'}</div>
-				if (b) {
-					<div class="b">{'b is true'}</div>
-					return;
+		function App() {
+			return <>
+				let a = true;
+				let b = true;
+				if (a) {
+					<div class="a">{'a is true'}</div>
+					if (b) {
+						<div class="b">{'b is true'}</div>
+						return;
+					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -142,18 +149,19 @@ describe('early return in client components', () => {
 	});
 
 	it('renders rest when nested return condition is not fully met', () => {
-		component App() {
-			let a = true;
-			let b = false;
-
-			if (a) {
-				<div class="a">{'a is true'}</div>
-				if (b) {
-					<div class="b">{'b is true'}</div>
-					return;
+		function App() {
+			return <>
+				let a = true;
+				let b = false;
+				if (a) {
+					<div class="a">{'a is true'}</div>
+					if (b) {
+						<div class="b">{'b is true'}</div>
+						return;
+					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -163,18 +171,19 @@ describe('early return in client components', () => {
 	});
 
 	it('renders rest when outer condition is false', () => {
-		component App() {
-			let a = false;
-			let b = true;
-
-			if (a) {
-				<div class="a">{'a is true'}</div>
-				if (b) {
-					<div class="b">{'b is true'}</div>
-					return;
+		function App() {
+			return <>
+				let a = false;
+				let b = true;
+				if (a) {
+					<div class="a">{'a is true'}</div>
+					if (b) {
+						<div class="b">{'b is true'}</div>
+						return;
+					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -184,15 +193,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles content before and after the if-with-return', () => {
-		component App() {
-			let shouldReturn = true;
-
-			<div class="before">{'before'}</div>
-			if (shouldReturn) {
-				<div class="guard">{'guard'}</div>
-				return;
-			}
-			<div class="after">{'after'}</div>
+		function App() {
+			return <>
+				let shouldReturn = true;
+				<div class="before">{'before'}</div>
+				if (shouldReturn) {
+					<div class="guard">{'guard'}</div>
+					return;
+				}
+				<div class="after">{'after'}</div>
+			</>;
 		}
 
 		render(App);
@@ -202,15 +212,16 @@ describe('early return in client components', () => {
 	});
 
 	it('renders multiple elements after guard when condition is false', () => {
-		component App() {
-			let shouldReturn = false;
-
-			if (shouldReturn) {
-				<div class="guard">{'guard'}</div>
-				return;
-			}
-			<div class="first">{'first'}</div>
-			<div class="second">{'second'}</div>
+		function App() {
+			return <>
+				let shouldReturn = false;
+				if (shouldReturn) {
+					<div class="guard">{'guard'}</div>
+					return;
+				}
+				<div class="first">{'first'}</div>
+				<div class="second">{'second'}</div>
+			</>;
 		}
 
 		render(App);
@@ -220,19 +231,20 @@ describe('early return in client components', () => {
 	});
 
 	it('handles multiple sequential returns - first hits', () => {
-		component App() {
-			let a = true;
-			let b = true;
-
-			if (a) {
-				<div class="first">{'first guard'}</div>
-				return;
-			}
-			if (b) {
-				<div class="second">{'second guard'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let a = true;
+				let b = true;
+				if (a) {
+					<div class="first">{'first guard'}</div>
+					return;
+				}
+				if (b) {
+					<div class="second">{'second guard'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -242,19 +254,20 @@ describe('early return in client components', () => {
 	});
 
 	it('handles multiple sequential returns - second hits', () => {
-		component App() {
-			let a = false;
-			let b = true;
-
-			if (a) {
-				<div class="first">{'first guard'}</div>
-				return;
-			}
-			if (b) {
-				<div class="second">{'second guard'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let a = false;
+				let b = true;
+				if (a) {
+					<div class="first">{'first guard'}</div>
+					return;
+				}
+				if (b) {
+					<div class="second">{'second guard'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -264,19 +277,20 @@ describe('early return in client components', () => {
 	});
 
 	it('handles multiple sequential returns - none hit', () => {
-		component App() {
-			let a = false;
-			let b = false;
-
-			if (a) {
-				<div class="first">{'first guard'}</div>
-				return;
-			}
-			if (b) {
-				<div class="second">{'second guard'}</div>
-				return;
-			}
-			<div class="rest">{'rest'}</div>
+		function App() {
+			return <>
+				let a = false;
+				let b = false;
+				if (a) {
+					<div class="first">{'first guard'}</div>
+					return;
+				}
+				if (b) {
+					<div class="second">{'second guard'}</div>
+					return;
+				}
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -286,22 +300,23 @@ describe('early return in client components', () => {
 	});
 
 	it('handles deeply nested returns (3 levels)', () => {
-		component App() {
-			let a = true;
-			let b = true;
-			let c = true;
-
-			if (a) {
-				<div class="a">{'a'}</div>
-				if (b) {
-					<div class="b">{'b'}</div>
-					if (c) {
-						<div class="c">{'c'}</div>
-						return;
+		function App() {
+			return <>
+				let a = true;
+				let b = true;
+				let c = true;
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (c) {
+							<div class="c">{'c'}</div>
+							return;
+						}
 					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -312,22 +327,23 @@ describe('early return in client components', () => {
 	});
 
 	it('handles deeply nested returns (3 levels) - partial', () => {
-		component App() {
-			let a = true;
-			let b = true;
-			let c = false;
-
-			if (a) {
-				<div class="a">{'a'}</div>
-				if (b) {
-					<div class="b">{'b'}</div>
-					if (c) {
-						<div class="c">{'c'}</div>
-						return;
+		function App() {
+			return <>
+				let a = true;
+				let b = true;
+				let c = false;
+				if (a) {
+					<div class="a">{'a'}</div>
+					if (b) {
+						<div class="b">{'b'}</div>
+						if (c) {
+							<div class="c">{'c'}</div>
+							return;
+						}
 					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -338,20 +354,21 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with else-if chain - first condition', () => {
-		component App() {
-			let value = 1;
-
-			if (value === 1) {
-				<div class="one">{'one'}</div>
-				return;
-			} else if (value === 2) {
-				<div class="two">{'two'}</div>
-				return;
-			} else {
-				<div class="other">{'other'}</div>
-				return;
-			}
-			<div class="never">{'never reached'}</div>
+		function App() {
+			return <>
+				let value = 1;
+				if (value === 1) {
+					<div class="one">{'one'}</div>
+					return;
+				} else if (value === 2) {
+					<div class="two">{'two'}</div>
+					return;
+				} else {
+					<div class="other">{'other'}</div>
+					return;
+				}
+				<div class="never">{'never reached'}</div>
+			</>;
 		}
 
 		render(App);
@@ -362,20 +379,21 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with else-if chain - second condition', () => {
-		component App() {
-			let value = 2;
-
-			if (value === 1) {
-				<div class="one">{'one'}</div>
-				return;
-			} else if (value === 2) {
-				<div class="two">{'two'}</div>
-				return;
-			} else {
-				<div class="other">{'other'}</div>
-				return;
-			}
-			<div class="never">{'never reached'}</div>
+		function App() {
+			return <>
+				let value = 2;
+				if (value === 1) {
+					<div class="one">{'one'}</div>
+					return;
+				} else if (value === 2) {
+					<div class="two">{'two'}</div>
+					return;
+				} else {
+					<div class="other">{'other'}</div>
+					return;
+				}
+				<div class="never">{'never reached'}</div>
+			</>;
 		}
 
 		render(App);
@@ -386,20 +404,21 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with else-if chain - else condition', () => {
-		component App() {
-			let value = 3;
-
-			if (value === 1) {
-				<div class="one">{'one'}</div>
-				return;
-			} else if (value === 2) {
-				<div class="two">{'two'}</div>
-				return;
-			} else {
-				<div class="other">{'other'}</div>
-				return;
-			}
-			<div class="never">{'never reached'}</div>
+		function App() {
+			return <>
+				let value = 3;
+				if (value === 1) {
+					<div class="one">{'one'}</div>
+					return;
+				} else if (value === 2) {
+					<div class="two">{'two'}</div>
+					return;
+				} else {
+					<div class="other">{'other'}</div>
+					return;
+				}
+				<div class="never">{'never reached'}</div>
+			</>;
 		}
 
 		render(App);
@@ -410,16 +429,17 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with complex boolean expression - AND', () => {
-		component App() {
-			let a = true;
-			let b = true;
-			let c = true;
-
-			if (a && b && c) {
-				<div class="all">{'all true'}</div>
-				return;
-			}
-			<div class="not-all">{'not all true'}</div>
+		function App() {
+			return <>
+				let a = true;
+				let b = true;
+				let c = true;
+				if (a && b && c) {
+					<div class="all">{'all true'}</div>
+					return;
+				}
+				<div class="not-all">{'not all true'}</div>
+			</>;
 		}
 
 		render(App);
@@ -428,16 +448,17 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with complex boolean expression - OR', () => {
-		component App() {
-			let a = false;
-			let b = true;
-			let c = false;
-
-			if (a || b || c) {
-				<div class="any">{'at least one true'}</div>
-				return;
-			}
-			<div class="none">{'all false'}</div>
+		function App() {
+			return <>
+				let a = false;
+				let b = true;
+				let c = false;
+				if (a || b || c) {
+					<div class="any">{'at least one true'}</div>
+					return;
+				}
+				<div class="none">{'all false'}</div>
+			</>;
 		}
 
 		render(App);
@@ -446,16 +467,17 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with complex boolean expression - mixed', () => {
-		component App() {
-			let a = true;
-			let b = false;
-			let c = true;
-
-			if (a && !b || c) {
-				<div class="complex">{'complex condition met'}</div>
-				return;
-			}
-			<div class="simple">{'complex condition not met'}</div>
+		function App() {
+			return <>
+				let a = true;
+				let b = false;
+				let c = true;
+				if (a && !b || c) {
+					<div class="complex">{'complex condition met'}</div>
+					return;
+				}
+				<div class="simple">{'complex condition not met'}</div>
+			</>;
 		}
 
 		render(App);
@@ -464,14 +486,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with numeric comparison', () => {
-		component App() {
-			let num = 10;
-
-			if (num > 5) {
-				<div class="greater">{'greater than 5'}</div>
-				return;
-			}
-			<div class="less">{'5 or less'}</div>
+		function App() {
+			return <>
+				let num = 10;
+				if (num > 5) {
+					<div class="greater">{'greater than 5'}</div>
+					return;
+				}
+				<div class="less">{'5 or less'}</div>
+			</>;
 		}
 
 		render(App);
@@ -480,14 +503,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with string comparison', () => {
-		component App() {
-			let str = 'hello';
-
-			if (str === 'hello') {
-				<div class="greeting">{'greeting'}</div>
-				return;
-			}
-			<div class="other">{'not greeting'}</div>
+		function App() {
+			return <>
+				let str = 'hello';
+				if (str === 'hello') {
+					<div class="greeting">{'greeting'}</div>
+					return;
+				}
+				<div class="other">{'not greeting'}</div>
+			</>;
 		}
 
 		render(App);
@@ -496,14 +520,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with negated condition', () => {
-		component App() {
-			let flag = false;
-
-			if (!flag) {
-				<div class="false">{'flag is false'}</div>
-				return;
-			}
-			<div class="true">{'flag is true'}</div>
+		function App() {
+			return <>
+				let flag = false;
+				if (!flag) {
+					<div class="false">{'flag is false'}</div>
+					return;
+				}
+				<div class="true">{'flag is true'}</div>
+			</>;
 		}
 
 		render(App);
@@ -512,14 +537,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with ternary result', () => {
-		component App() {
-			let condition = true;
-
-			if (condition) {
-				<div class="ternary">{condition ? 'yes' : 'no'}</div>
-				return;
-			}
-			<div class="fallback">{'fallback'}</div>
+		function App() {
+			return <>
+				let condition = true;
+				if (condition) {
+					<div class="ternary">{condition ? 'yes' : 'no'}</div>
+					return;
+				}
+				<div class="fallback">{'fallback'}</div>
+			</>;
 		}
 
 		render(App);
@@ -528,17 +554,18 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return in nested element scope', () => {
-		component App() {
-			let show = true;
-
-			<div class="outer">
-				<span class="label">{'outer'}</span>
-				if (show) {
-					<p class="inner">{'inner'}</p>
-					return;
-				}
-				<p class="after">{'after'}</p>
-			</div>
+		function App() {
+			return <>
+				let show = true;
+				<div class="outer">
+					<span class="label">{'outer'}</span>
+					if (show) {
+						<p class="inner">{'inner'}</p>
+						return;
+					}
+					<p class="after">{'after'}</p>
+				</div>
+			</>;
 		}
 
 		render(App);
@@ -549,18 +576,19 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with multiple elements before and after', () => {
-		component App() {
-			let shouldReturn = true;
-
-			<h1 class="title">{'title'}</h1>
-			<p class="desc">{'description'}</p>
-			if (shouldReturn) {
-				<div class="guard">{'guard'}</div>
-				<span class="guard-span">{'guard span'}</span>
-				return;
-			}
-			<footer class="footer">{'footer'}</footer>
-			<nav class="nav">{'nav'}</nav>
+		function App() {
+			return <>
+				let shouldReturn = true;
+				<h1 class="title">{'title'}</h1>
+				<p class="desc">{'description'}</p>
+				if (shouldReturn) {
+					<div class="guard">{'guard'}</div>
+					<span class="guard-span">{'guard span'}</span>
+					return;
+				}
+				<footer class="footer">{'footer'}</footer>
+				<nav class="nav">{'nav'}</nav>
+			</>;
 		}
 
 		render(App);
@@ -573,13 +601,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return at the beginning of component', () => {
-		component App() {
-			if (true) {
-				<div class="early">{'early exit'}</div>
-				return;
-			}
-			<div class="never1">{'never reached'}</div>
-			<div class="never2">{'also never reached'}</div>
+		function App() {
+			return <>
+				if (true) {
+					<div class="early">{'early exit'}</div>
+					return;
+				}
+				<div class="never1">{'never reached'}</div>
+				<div class="never2">{'also never reached'}</div>
+			</>;
 		}
 
 		render(App);
@@ -589,13 +619,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return at the end of component', () => {
-		component App() {
-			<div class="first">{'first'}</div>
-			<div class="second">{'second'}</div>
-			if (true) {
-				<div class="third">{'third'}</div>
-				return;
-			}
+		function App() {
+			return <>
+				<div class="first">{'first'}</div>
+				<div class="second">{'second'}</div>
+				if (true) {
+					<div class="third">{'third'}</div>
+					return;
+				}
+			</>;
 		}
 
 		render(App);
@@ -605,16 +637,17 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with function call in condition', () => {
-		component App() {
-			function check() {
-				return true;
-			}
-
-			if (check()) {
-				<div class="func">{'function returned true'}</div>
-				return;
-			}
-			<div class="no-func">{'function returned false'}</div>
+		function App() {
+			return <>
+				function check() {
+					return true;
+				}
+				if (check()) {
+					<div class="func">{'function returned true'}</div>
+					return;
+				}
+				<div class="no-func">{'function returned false'}</div>
+			</>;
 		}
 
 		render(App);
@@ -623,15 +656,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with arithmetic in condition', () => {
-		component App() {
-			let x = 5;
-			let y = 3;
-
-			if (x + y > 7) {
-				<div class="greater">{'sum greater than 7'}</div>
-				return;
-			}
-			<div class="less">{'sum 7 or less'}</div>
+		function App() {
+			return <>
+				let x = 5;
+				let y = 3;
+				if (x + y > 7) {
+					<div class="greater">{'sum greater than 7'}</div>
+					return;
+				}
+				<div class="less">{'sum 7 or less'}</div>
+			</>;
 		}
 
 		render(App);
@@ -640,25 +674,23 @@ describe('early return in client components', () => {
 	});
 
 	it('handles multiple sibling returns at same level', () => {
-		component App() {
-			let mode = 'b';
-
-			if (mode === 'a') {
-				<div class="mode-a">{'mode A'}</div>
-				return;
-			}
-
-			if (mode === 'b') {
-				<div class="mode-b">{'mode B'}</div>
-				return;
-			}
-
-			if (mode === 'c') {
-				<div class="mode-c">{'mode C'}</div>
-				return;
-			}
-
-			<div class="default">{'default mode'}</div>
+		function App() {
+			return <>
+				let mode = 'b';
+				if (mode === 'a') {
+					<div class="mode-a">{'mode A'}</div>
+					return;
+				}
+				if (mode === 'b') {
+					<div class="mode-b">{'mode B'}</div>
+					return;
+				}
+				if (mode === 'c') {
+					<div class="mode-c">{'mode C'}</div>
+					return;
+				}
+				<div class="default">{'default mode'}</div>
+			</>;
 		}
 
 		render(App);
@@ -669,14 +701,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with array length check', () => {
-		component App() {
-			let items = [1, 2, 3];
-
-			if (items.length > 0) {
-				<div class="has-items">{'has items'}</div>
-				return;
-			}
-			<div class="empty">{'empty'}</div>
+		function App() {
+			return <>
+				let items = [1, 2, 3];
+				if (items.length > 0) {
+					<div class="has-items">{'has items'}</div>
+					return;
+				}
+				<div class="empty">{'empty'}</div>
+			</>;
 		}
 
 		render(App);
@@ -685,14 +718,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with object property check', () => {
-		component App() {
-			let obj = { value: 42 };
-
-			if (obj.value === 42) {
-				<div class="correct">{'correct value'}</div>
-				return;
-			}
-			<div class="wrong">{'wrong value'}</div>
+		function App() {
+			return <>
+				let obj = { value: 42 };
+				if (obj.value === 42) {
+					<div class="correct">{'correct value'}</div>
+					return;
+				}
+				<div class="wrong">{'wrong value'}</div>
+			</>;
 		}
 
 		render(App);
@@ -701,14 +735,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with typeof check', () => {
-		component App() {
-			let value = 'string';
-
-			if (typeof value === 'string') {
-				<div class="string">{'is string'}</div>
-				return;
-			}
-			<div class="not-string">{'not string'}</div>
+		function App() {
+			return <>
+				let value = 'string';
+				if (typeof value === 'string') {
+					<div class="string">{'is string'}</div>
+					return;
+				}
+				<div class="not-string">{'not string'}</div>
+			</>;
 		}
 
 		render(App);
@@ -717,14 +752,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with null check', () => {
-		component App() {
-			let value = null;
-
-			if (value === null) {
-				<div class="null">{'is null'}</div>
-				return;
-			}
-			<div class="not-null">{'not null'}</div>
+		function App() {
+			return <>
+				let value = null;
+				if (value === null) {
+					<div class="null">{'is null'}</div>
+					return;
+				}
+				<div class="not-null">{'not null'}</div>
+			</>;
 		}
 
 		render(App);
@@ -733,14 +769,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with undefined check', () => {
-		component App() {
-			let value = undefined;
-
-			if (value === undefined) {
-				<div class="undef">{'is undefined'}</div>
-				return;
-			}
-			<div class="not-undef">{'not undefined'}</div>
+		function App() {
+			return <>
+				let value = undefined;
+				if (value === undefined) {
+					<div class="undef">{'is undefined'}</div>
+					return;
+				}
+				<div class="not-undef">{'not undefined'}</div>
+			</>;
 		}
 
 		render(App);
@@ -749,14 +786,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with truthy/falsy values', () => {
-		component App() {
-			let value = 0;
-
-			if (value) {
-				<div class="truthy">{'truthy'}</div>
-				return;
-			}
-			<div class="falsy">{'falsy'}</div>
+		function App() {
+			return <>
+				let value = 0;
+				if (value) {
+					<div class="truthy">{'truthy'}</div>
+					return;
+				}
+				<div class="falsy">{'falsy'}</div>
+			</>;
 		}
 
 		render(App);
@@ -765,14 +803,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with empty string check', () => {
-		component App() {
-			let str = '';
-
-			if (str === '') {
-				<div class="empty">{'empty string'}</div>
-				return;
-			}
-			<div class="non-empty">{'non-empty string'}</div>
+		function App() {
+			return <>
+				let str = '';
+				if (str === '') {
+					<div class="empty">{'empty string'}</div>
+					return;
+				}
+				<div class="non-empty">{'non-empty string'}</div>
+			</>;
 		}
 
 		render(App);
@@ -781,16 +820,17 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with else branch that does not return', () => {
-		component App() {
-			let condition = false;
-
-			if (condition) {
-				<div class="true">{'condition true'}</div>
-				return;
-			} else {
-				<div class="false">{'condition false'}</div>
-			}
-			<div class="after">{'after if-else'}</div>
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					<div class="true">{'condition true'}</div>
+					return;
+				} else {
+					<div class="false">{'condition false'}</div>
+				}
+				<div class="after">{'after if-else'}</div>
+			</>;
 		}
 
 		render(App);
@@ -800,17 +840,18 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with else branch that also returns', () => {
-		component App() {
-			let condition = false;
-
-			if (condition) {
-				<div class="true">{'condition true'}</div>
-				return;
-			} else {
-				<div class="false">{'condition false'}</div>
-				return;
-			}
-			<div class="never">{'never reached'}</div>
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					<div class="true">{'condition true'}</div>
+					return;
+				} else {
+					<div class="false">{'condition false'}</div>
+					return;
+				}
+				<div class="never">{'never reached'}</div>
+			</>;
 		}
 
 		render(App);
@@ -820,14 +861,15 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with only if branch returning', () => {
-		component App() {
-			let condition = false;
-
-			if (condition) {
-				<div class="true">{'condition true'}</div>
-				return;
-			}
-			<div class="after">{'condition false or after'}</div>
+		function App() {
+			return <>
+				let condition = false;
+				if (condition) {
+					<div class="true">{'condition true'}</div>
+					return;
+				}
+				<div class="after">{'condition false or after'}</div>
+			</>;
 		}
 
 		render(App);
@@ -836,15 +878,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with comparison operators', () => {
-		component App() {
-			let a = 5;
-			let b = 10;
-
-			if (a < b) {
-				<div class="less">{'a less than b'}</div>
-				return;
-			}
-			<div class="not-less">{'a not less than b'}</div>
+		function App() {
+			return <>
+				let a = 5;
+				let b = 10;
+				if (a < b) {
+					<div class="less">{'a less than b'}</div>
+					return;
+				}
+				<div class="not-less">{'a not less than b'}</div>
+			</>;
 		}
 
 		render(App);
@@ -853,15 +896,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with strict equality', () => {
-		component App() {
-			let a = 5;
-			let b = 5;
-
-			if (a === b) {
-				<div class="equal">{'strict equality'}</div>
-				return;
-			}
-			<div class="not-equal">{'not strictly equal'}</div>
+		function App() {
+			return <>
+				let a = 5;
+				let b = 5;
+				if (a === b) {
+					<div class="equal">{'strict equality'}</div>
+					return;
+				}
+				<div class="not-equal">{'not strictly equal'}</div>
+			</>;
 		}
 
 		render(App);
@@ -870,15 +914,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with greater than or equal', () => {
-		component App() {
-			let a = 10;
-			let b = 10;
-
-			if (a >= b) {
-				<div class="gte">{'a >= b'}</div>
-				return;
-			}
-			<div class="lt">{'a < b'}</div>
+		function App() {
+			return <>
+				let a = 10;
+				let b = 10;
+				if (a >= b) {
+					<div class="gte">{'a >= b'}</div>
+					return;
+				}
+				<div class="lt">{'a < b'}</div>
+			</>;
 		}
 
 		render(App);
@@ -887,15 +932,16 @@ describe('early return in client components', () => {
 	});
 
 	it('handles return with not equal', () => {
-		component App() {
-			let a = 5;
-			let b = 10;
-
-			if (a != b) {
-				<div class="neq">{'a != b'}</div>
-				return;
-			}
-			<div class="eq">{'a == b'}</div>
+		function App() {
+			return <>
+				let a = 5;
+				let b = 10;
+				if (a != b) {
+					<div class="neq">{'a != b'}</div>
+					return;
+				}
+				<div class="eq">{'a == b'}</div>
+			</>;
 		}
 
 		render(App);
@@ -904,25 +950,26 @@ describe('early return in client components', () => {
 	});
 
 	it('reactive: nested return condition changes', () => {
-		component App() {
-			let &[a] = track(true);
-			let &[b] = track(true);
-
-			<button
-				onClick={() => {
-					b = false;
-				}}
-			>
-				{'toggle b'}
-			</button>
-			if (a) {
-				<div class="a">{'a is true'}</div>
-				if (b) {
-					<div class="b">{'b is true'}</div>
-					return;
+		function App() {
+			return <>
+				let &[a] = track(true);
+				let &[b] = track(true);
+				<button
+					onClick={() => {
+						b = false;
+					}}
+				>
+					{'toggle b'}
+				</button>
+				if (a) {
+					<div class="a">{'a is true'}</div>
+					if (b) {
+						<div class="b">{'b is true'}</div>
+						return;
+					}
 				}
-			}
-			<div class="rest">{'rest'}</div>
+				<div class="rest">{'rest'}</div>
+			</>;
 		}
 
 		render(App);
@@ -939,24 +986,25 @@ describe('early return in client components', () => {
 	});
 
 	it('reactive: return in nested element scope', () => {
-		component App() {
-			let &[show] = track(true);
-
-			<button
-				onClick={() => {
-					show = false;
-				}}
-			>
-				{'toggle'}
-			</button>
-			<div class="outer">
-				<span class="label">{'outer'}</span>
-				if (show) {
-					<p class="inner">{'inner'}</p>
-					return;
-				}
-				<p class="after">{'after'}</p>
-			</div>
+		function App() {
+			return <>
+				let &[show] = track(true);
+				<button
+					onClick={() => {
+						show = false;
+					}}
+				>
+					{'toggle'}
+				</button>
+				<div class="outer">
+					<span class="label">{'outer'}</span>
+					if (show) {
+						<p class="inner">{'inner'}</p>
+						return;
+					}
+					<p class="after">{'after'}</p>
+				</div>
+			</>;
 		}
 
 		render(App);
@@ -972,19 +1020,20 @@ describe('early return in client components', () => {
 
 	describe('nested return scenarios', () => {
 		it('nested return hides content after inner if inside outer if', () => {
-			component App() {
-				let a = true;
-				let b = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+						<div class="after-inner">{'after inner'}</div>
 					}
-					<div class="after-inner">{'after inner'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -995,19 +1044,20 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return shows content after inner if when inner condition is false', () => {
-			component App() {
-				let a = true;
-				let b = false;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let a = true;
+					let b = false;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+						<div class="after-inner">{'after inner'}</div>
 					}
-					<div class="after-inner">{'after inner'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1018,25 +1068,26 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return with sibling returns inside outer if', () => {
-			component App() {
-				let outer = true;
-				let a = false;
-				let b = true;
-
-				if (outer) {
-					<div class="outer">{'outer'}</div>
-					if (a) {
-						<div class="a">{'a'}</div>
-						return;
+			function App() {
+				return <>
+					let outer = true;
+					let a = false;
+					let b = true;
+					if (outer) {
+						<div class="outer">{'outer'}</div>
+						if (a) {
+							<div class="a">{'a'}</div>
+							return;
+						}
+						<div class="between">{'between'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+						<div class="after-b">{'after b'}</div>
 					}
-					<div class="between">{'between'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
-					}
-					<div class="after-b">{'after b'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1049,20 +1100,21 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return inside else branch', () => {
-			component App() {
-				let a = false;
-				let b = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-				} else {
-					<div class="else">{'else'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let a = false;
+					let b = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+					} else {
+						<div class="else">{'else'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
 					}
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1073,26 +1125,27 @@ describe('early return in client components', () => {
 		});
 
 		it('deeply nested returns (4 levels) - all true', () => {
-			component App() {
-				let a = true;
-				let b = true;
-				let c = true;
-				let d = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						if (c) {
-							<div class="c">{'c'}</div>
-							if (d) {
-								<div class="d">{'d'}</div>
-								return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					let c = true;
+					let d = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							if (c) {
+								<div class="c">{'c'}</div>
+								if (d) {
+									<div class="d">{'d'}</div>
+									return;
+								}
 							}
 						}
 					}
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1104,26 +1157,27 @@ describe('early return in client components', () => {
 		});
 
 		it('deeply nested returns (4 levels) - innermost false', () => {
-			component App() {
-				let a = true;
-				let b = true;
-				let c = true;
-				let d = false;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						if (c) {
-							<div class="c">{'c'}</div>
-							if (d) {
-								<div class="d">{'d'}</div>
-								return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					let c = true;
+					let d = false;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							if (c) {
+								<div class="c">{'c'}</div>
+								if (d) {
+									<div class="d">{'d'}</div>
+									return;
+								}
 							}
 						}
 					}
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1135,20 +1189,21 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return with else at outer level', () => {
-			component App() {
-				let a = true;
-				let b = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+					} else {
+						<div class="else">{'else'}</div>
 					}
-				} else {
-					<div class="else">{'else'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1159,20 +1214,21 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return with else at outer level - outer false', () => {
-			component App() {
-				let a = false;
-				let b = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let a = false;
+					let b = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
+					} else {
+						<div class="else">{'else'}</div>
 					}
-				} else {
-					<div class="else">{'else'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1183,24 +1239,25 @@ describe('early return in client components', () => {
 		});
 
 		it('nested return hides content at multiple intermediate levels', () => {
-			component App() {
-				let a = true;
-				let b = true;
-				let c = true;
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						if (c) {
-							<div class="c">{'c'}</div>
-							return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					let c = true;
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							if (c) {
+								<div class="c">{'c'}</div>
+								return;
+							}
+							<div class="after-c">{'after c'}</div>
 						}
-						<div class="after-c">{'after c'}</div>
+						<div class="after-b">{'after b'}</div>
 					}
-					<div class="after-b">{'after b'}</div>
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1213,25 +1270,26 @@ describe('early return in client components', () => {
 		});
 
 		it('reactive: nested return - outer condition changes to false shows rest', () => {
-			component App() {
-				let &[a] = track(true);
-				let b = true;
-
-				<button
-					onClick={() => {
-						a = false;
-					}}
-				>
-					{'toggle a'}
-				</button>
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let &[a] = track(true);
+					let b = true;
+					<button
+						onClick={() => {
+							a = false;
+						}}
+					>
+						{'toggle a'}
+					</button>
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
 					}
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1248,29 +1306,30 @@ describe('early return in client components', () => {
 		});
 
 		it('reactive: deeply nested return - innermost condition changes', () => {
-			component App() {
-				let a = true;
-				let b = true;
-				let &[c] = track(true);
-
-				<button
-					onClick={() => {
-						c = false;
-					}}
-				>
-					{'toggle c'}
-				</button>
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						if (c) {
-							<div class="c">{'c'}</div>
-							return;
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					let &[c] = track(true);
+					<button
+						onClick={() => {
+							c = false;
+						}}
+					>
+						{'toggle c'}
+					</button>
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							if (c) {
+								<div class="c">{'c'}</div>
+								return;
+							}
 						}
 					}
-				}
-				<div class="rest">{'rest'}</div>
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -1291,17 +1350,18 @@ describe('early return in client components', () => {
 
 	describe('semantic HTML edge cases', () => {
 		it('handles return inside ul element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<ul>
-					<li>{'first'}</li>
-					if (show) {
-						<li>{'second'}</li>
-						return;
-					}
-					<li>{'third'}</li>
-				</ul>
+			function App() {
+				return <>
+					let show = true;
+					<ul>
+						<li>{'first'}</li>
+						if (show) {
+							<li>{'second'}</li>
+							return;
+						}
+						<li>{'third'}</li>
+					</ul>
+				</>;
 			}
 
 			render(App);
@@ -1310,17 +1370,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside ol element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<ol>
-					<li>{'first'}</li>
-					if (show) {
-						<li>{'second'}</li>
-						return;
-					}
-					<li>{'third'}</li>
-				</ol>
+			function App() {
+				return <>
+					let show = true;
+					<ol>
+						<li>{'first'}</li>
+						if (show) {
+							<li>{'second'}</li>
+							return;
+						}
+						<li>{'third'}</li>
+					</ol>
+				</>;
 			}
 
 			render(App);
@@ -1329,17 +1390,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside select element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<select>
-					<option>{'first'}</option>
-					if (show) {
-						<option>{'second'}</option>
-						return;
-					}
-					<option>{'third'}</option>
-				</select>
+			function App() {
+				return <>
+					let show = true;
+					<select>
+						<option>{'first'}</option>
+						if (show) {
+							<option>{'second'}</option>
+							return;
+						}
+						<option>{'third'}</option>
+					</select>
+				</>;
 			}
 
 			render(App);
@@ -1348,25 +1410,26 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside tbody element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<table>
-					<tbody>
-						<tr>
-							<td>{'cell 1'}</td>
-						</tr>
-						if (show) {
+			function App() {
+				return <>
+					let show = true;
+					<table>
+						<tbody>
 							<tr>
-								<td>{'cell 2'}</td>
+								<td>{'cell 1'}</td>
 							</tr>
-							return;
-						}
-						<tr>
-							<td>{'cell 3'}</td>
-						</tr>
-					</tbody>
-				</table>
+							if (show) {
+								<tr>
+									<td>{'cell 2'}</td>
+								</tr>
+								return;
+							}
+							<tr>
+								<td>{'cell 3'}</td>
+							</tr>
+						</tbody>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1375,25 +1438,26 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside thead element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<table>
-					<thead>
-						<tr>
-							<th>{'header 1'}</th>
-						</tr>
-						if (show) {
+			function App() {
+				return <>
+					let show = true;
+					<table>
+						<thead>
 							<tr>
-								<th>{'header 2'}</th>
+								<th>{'header 1'}</th>
 							</tr>
-							return;
-						}
-						<tr>
-							<th>{'header 3'}</th>
-						</tr>
-					</thead>
-				</table>
+							if (show) {
+								<tr>
+									<th>{'header 2'}</th>
+								</tr>
+								return;
+							}
+							<tr>
+								<th>{'header 3'}</th>
+							</tr>
+						</thead>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1402,25 +1466,26 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside tfoot element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<table>
-					<tfoot>
-						<tr>
-							<td>{'footer 1'}</td>
-						</tr>
-						if (show) {
+			function App() {
+				return <>
+					let show = true;
+					<table>
+						<tfoot>
 							<tr>
-								<td>{'footer 2'}</td>
+								<td>{'footer 1'}</td>
 							</tr>
-							return;
-						}
-						<tr>
-							<td>{'footer 3'}</td>
-						</tr>
-					</tfoot>
-				</table>
+							if (show) {
+								<tr>
+									<td>{'footer 2'}</td>
+								</tr>
+								return;
+							}
+							<tr>
+								<td>{'footer 3'}</td>
+							</tr>
+						</tfoot>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1429,21 +1494,22 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside tr element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<table>
-					<tbody>
-						<tr>
-							<td>{'cell 1'}</td>
-							if (show) {
-								<td>{'cell 2'}</td>
-								return;
-							}
-							<td>{'cell 3'}</td>
-						</tr>
-					</tbody>
-				</table>
+			function App() {
+				return <>
+					let show = true;
+					<table>
+						<tbody>
+							<tr>
+								<td>{'cell 1'}</td>
+								if (show) {
+									<td>{'cell 2'}</td>
+									return;
+								}
+								<td>{'cell 3'}</td>
+							</tr>
+						</tbody>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1452,20 +1518,21 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside dl element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<dl>
-					<dt>{'term 1'}</dt>
-					<dd>{'definition 1'}</dd>
-					if (show) {
-						<dt>{'term 2'}</dt>
-						<dd>{'definition 2'}</dd>
-						return;
-					}
-					<dt>{'term 3'}</dt>
-					<dd>{'definition 3'}</dd>
-				</dl>
+			function App() {
+				return <>
+					let show = true;
+					<dl>
+						<dt>{'term 1'}</dt>
+						<dd>{'definition 1'}</dd>
+						if (show) {
+							<dt>{'term 2'}</dt>
+							<dd>{'definition 2'}</dd>
+							return;
+						}
+						<dt>{'term 3'}</dt>
+						<dd>{'definition 3'}</dd>
+					</dl>
+				</>;
 			}
 
 			render(App);
@@ -1474,17 +1541,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside figure element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<figure>
-					<img src="test.jpg" alt="test" />
-					if (show) {
-						<figcaption>{'caption 1'}</figcaption>
-						return;
-					}
-					<figcaption>{'caption 2'}</figcaption>
-				</figure>
+			function App() {
+				return <>
+					let show = true;
+					<figure>
+						<img src="test.jpg" alt="test" />
+						if (show) {
+							<figcaption>{'caption 1'}</figcaption>
+							return;
+						}
+						<figcaption>{'caption 2'}</figcaption>
+					</figure>
+				</>;
 			}
 
 			render(App);
@@ -1493,18 +1561,19 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside fieldset element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<fieldset>
-					<legend>{'legend'}</legend>
-					<input type="text" />
-					if (show) {
-						<input type="checkbox" />
-						return;
-					}
-					<input type="radio" />
-				</fieldset>
+			function App() {
+				return <>
+					let show = true;
+					<fieldset>
+						<legend>{'legend'}</legend>
+						<input type="text" />
+						if (show) {
+							<input type="checkbox" />
+							return;
+						}
+						<input type="radio" />
+					</fieldset>
+				</>;
 			}
 
 			render(App);
@@ -1513,19 +1582,20 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside optgroup element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<select>
-					<optgroup label="group1">
-						<option>{'opt1'}</option>
-						if (show) {
-							<option>{'opt2'}</option>
-							return;
-						}
-						<option>{'opt3'}</option>
-					</optgroup>
-				</select>
+			function App() {
+				return <>
+					let show = true;
+					<select>
+						<optgroup label="group1">
+							<option>{'opt1'}</option>
+							if (show) {
+								<option>{'opt2'}</option>
+								return;
+							}
+							<option>{'opt3'}</option>
+						</optgroup>
+					</select>
+				</>;
 			}
 
 			render(App);
@@ -1534,18 +1604,19 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside details element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<details>
-					<summary>{'summary'}</summary>
-					<p>{'content 1'}</p>
-					if (show) {
-						<p>{'content 2'}</p>
-						return;
-					}
-					<p>{'content 3'}</p>
-				</details>
+			function App() {
+				return <>
+					let show = true;
+					<details>
+						<summary>{'summary'}</summary>
+						<p>{'content 1'}</p>
+						if (show) {
+							<p>{'content 2'}</p>
+							return;
+						}
+						<p>{'content 3'}</p>
+					</details>
+				</>;
 			}
 
 			render(App);
@@ -1554,18 +1625,19 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside picture element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<picture>
-					<source srcset="large.jpg" media="(min-width: 800px)" />
-					if (show) {
-						<source srcset="medium.jpg" media="(min-width: 400px)" />
-						return;
-					}
-					<source srcset="small.jpg" />
-					<img src="fallback.jpg" alt="fallback" />
-				</picture>
+			function App() {
+				return <>
+					let show = true;
+					<picture>
+						<source srcset="large.jpg" media="(min-width: 800px)" />
+						if (show) {
+							<source srcset="medium.jpg" media="(min-width: 400px)" />
+							return;
+						}
+						<source srcset="small.jpg" />
+						<img src="fallback.jpg" alt="fallback" />
+					</picture>
+				</>;
 			}
 
 			render(App);
@@ -1574,17 +1646,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside menu element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<menu>
-					<li>{'item 1'}</li>
-					if (show) {
-						<li>{'item 2'}</li>
-						return;
-					}
-					<li>{'item 3'}</li>
-				</menu>
+			function App() {
+				return <>
+					let show = true;
+					<menu>
+						<li>{'item 1'}</li>
+						if (show) {
+							<li>{'item 2'}</li>
+							return;
+						}
+						<li>{'item 3'}</li>
+					</menu>
+				</>;
 			}
 
 			render(App);
@@ -1593,17 +1666,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside video element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<video>
-					<source src="video.mp4" type="video/mp4" />
-					if (show) {
-						<track src="captions.vtt" kind="captions" />
-						return;
-					}
-					<track src="chapters.vtt" kind="chapters" />
-				</video>
+			function App() {
+				return <>
+					let show = true;
+					<video>
+						<source src="video.mp4" type="video/mp4" />
+						if (show) {
+							<track src="captions.vtt" kind="captions" />
+							return;
+						}
+						<track src="chapters.vtt" kind="chapters" />
+					</video>
+				</>;
 			}
 
 			render(App);
@@ -1612,17 +1686,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside audio element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<audio>
-					<source src="audio.mp3" type="audio/mpeg" />
-					if (show) {
-						<track src="captions.vtt" kind="captions" />
-						return;
-					}
-					<track src="chapters.vtt" kind="chapters" />
-				</audio>
+			function App() {
+				return <>
+					let show = true;
+					<audio>
+						<source src="audio.mp3" type="audio/mpeg" />
+						if (show) {
+							<track src="captions.vtt" kind="captions" />
+							return;
+						}
+						<track src="chapters.vtt" kind="chapters" />
+					</audio>
+				</>;
 			}
 
 			render(App);
@@ -1631,17 +1706,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside form element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<form>
-					<input type="text" name="field1" />
-					if (show) {
-						<input type="text" name="field2" />
-						return;
-					}
-					<input type="text" name="field3" />
-				</form>
+			function App() {
+				return <>
+					let show = true;
+					<form>
+						<input type="text" name="field1" />
+						if (show) {
+							<input type="text" name="field2" />
+							return;
+						}
+						<input type="text" name="field3" />
+					</form>
+				</>;
 			}
 
 			render(App);
@@ -1650,17 +1726,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside main element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<main>
-					<h1>{'title'}</h1>
-					if (show) {
-						<p>{'content'}</p>
-						return;
-					}
-					<p>{'other content'}</p>
-				</main>
+			function App() {
+				return <>
+					let show = true;
+					<main>
+						<h1>{'title'}</h1>
+						if (show) {
+							<p>{'content'}</p>
+							return;
+						}
+						<p>{'other content'}</p>
+					</main>
+				</>;
 			}
 
 			render(App);
@@ -1669,17 +1746,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside article element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<article>
-					<h2>{'article title'}</h2>
-					if (show) {
-						<p>{'article content'}</p>
-						return;
-					}
-					<p>{'more content'}</p>
-				</article>
+			function App() {
+				return <>
+					let show = true;
+					<article>
+						<h2>{'article title'}</h2>
+						if (show) {
+							<p>{'article content'}</p>
+							return;
+						}
+						<p>{'more content'}</p>
+					</article>
+				</>;
 			}
 
 			render(App);
@@ -1688,17 +1766,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside section element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<section>
-					<h2>{'section title'}</h2>
-					if (show) {
-						<p>{'section content'}</p>
-						return;
-					}
-					<p>{'more content'}</p>
-				</section>
+			function App() {
+				return <>
+					let show = true;
+					<section>
+						<h2>{'section title'}</h2>
+						if (show) {
+							<p>{'section content'}</p>
+							return;
+						}
+						<p>{'more content'}</p>
+					</section>
+				</>;
 			}
 
 			render(App);
@@ -1707,17 +1786,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside aside element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<aside>
-					<h3>{'sidebar title'}</h3>
-					if (show) {
-						<p>{'sidebar content'}</p>
-						return;
-					}
-					<p>{'more sidebar'}</p>
-				</aside>
+			function App() {
+				return <>
+					let show = true;
+					<aside>
+						<h3>{'sidebar title'}</h3>
+						if (show) {
+							<p>{'sidebar content'}</p>
+							return;
+						}
+						<p>{'more sidebar'}</p>
+					</aside>
+				</>;
 			}
 
 			render(App);
@@ -1726,17 +1806,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside nav element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<nav>
-					<a href="/">{'home'}</a>
-					if (show) {
-						<a href="/about">{'about'}</a>
-						return;
-					}
-					<a href="/contact">{'contact'}</a>
-				</nav>
+			function App() {
+				return <>
+					let show = true;
+					<nav>
+						<a href="/">{'home'}</a>
+						if (show) {
+							<a href="/about">{'about'}</a>
+							return;
+						}
+						<a href="/contact">{'contact'}</a>
+					</nav>
+				</>;
 			}
 
 			render(App);
@@ -1745,17 +1826,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside header element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<header>
-					<h1>{'site title'}</h1>
-					if (show) {
-						<nav>{'nav'}</nav>
-						return;
-					}
-					<p>{'subtitle'}</p>
-				</header>
+			function App() {
+				return <>
+					let show = true;
+					<header>
+						<h1>{'site title'}</h1>
+						if (show) {
+							<nav>{'nav'}</nav>
+							return;
+						}
+						<p>{'subtitle'}</p>
+					</header>
+				</>;
 			}
 
 			render(App);
@@ -1764,17 +1846,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside footer element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<footer>
-					<p>{'copyright'}</p>
-					if (show) {
-						<a href="/privacy">{'privacy'}</a>
-						return;
-					}
-					<a href="/terms">{'terms'}</a>
-				</footer>
+			function App() {
+				return <>
+					let show = true;
+					<footer>
+						<p>{'copyright'}</p>
+						if (show) {
+							<a href="/privacy">{'privacy'}</a>
+							return;
+						}
+						<a href="/terms">{'terms'}</a>
+					</footer>
+				</>;
 			}
 
 			render(App);
@@ -1783,17 +1866,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside address element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<address>
-					<span>{'street'}</span>
-					if (show) {
-						<span>{'city'}</span>
-						return;
-					}
-					<span>{'country'}</span>
-				</address>
+			function App() {
+				return <>
+					let show = true;
+					<address>
+						<span>{'street'}</span>
+						if (show) {
+							<span>{'city'}</span>
+							return;
+						}
+						<span>{'country'}</span>
+					</address>
+				</>;
 			}
 
 			render(App);
@@ -1802,17 +1886,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside blockquote element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<blockquote>
-					<p>{'quote part 1'}</p>
-					if (show) {
-						<p>{'quote part 2'}</p>
-						return;
-					}
-					<p>{'quote part 3'}</p>
-				</blockquote>
+			function App() {
+				return <>
+					let show = true;
+					<blockquote>
+						<p>{'quote part 1'}</p>
+						if (show) {
+							<p>{'quote part 2'}</p>
+							return;
+						}
+						<p>{'quote part 3'}</p>
+					</blockquote>
+				</>;
 			}
 
 			render(App);
@@ -1821,17 +1906,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return inside pre element - skips sibling after return', () => {
-			component App() {
-				let show = true;
-
-				<pre>
-					<code>{'line 1\n'}</code>
-					if (show) {
-						<code>{'line 2\n'}</code>
-						return;
-					}
-					<code>{'line 3'}</code>
-				</pre>
+			function App() {
+				return <>
+					let show = true;
+					<pre>
+						<code>{'line 1\n'}</code>
+						if (show) {
+							<code>{'line 2\n'}</code>
+							return;
+						}
+						<code>{'line 3'}</code>
+					</pre>
+				</>;
 			}
 
 			render(App);
@@ -1840,21 +1926,22 @@ describe('early return in client components', () => {
 		});
 
 		it('handles deeply nested semantic structure with return', () => {
-			component App() {
-				let show = true;
-
-				<table>
-					<thead>
-						<tr>
-							<th>{'header'}</th>
-							if (show) {
-								<th>{'extra header'}</th>
-								return;
-							}
-							<th>{'another header'}</th>
-						</tr>
-					</thead>
-				</table>
+			function App() {
+				return <>
+					let show = true;
+					<table>
+						<thead>
+							<tr>
+								<th>{'header'}</th>
+								if (show) {
+									<th>{'extra header'}</th>
+									return;
+								}
+								<th>{'another header'}</th>
+							</tr>
+						</thead>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1863,23 +1950,24 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return in nested ul > li structure', () => {
-			component App() {
-				let show = true;
-
-				<ul>
-					<li>
-						<span>{'item 1'}</span>
-						if (show) {
+			function App() {
+				return <>
+					let show = true;
+					<ul>
+						<li>
+							<span>{'item 1'}</span>
+							if (show) {
+								<ul>
+									<li>{'nested 1'}</li>
+								</ul>
+								return;
+							}
 							<ul>
-								<li>{'nested 1'}</li>
+								<li>{'nested 2'}</li>
 							</ul>
-							return;
-						}
-						<ul>
-							<li>{'nested 2'}</li>
-						</ul>
-					</li>
-				</ul>
+						</li>
+					</ul>
+				</>;
 			}
 
 			render(App);
@@ -1888,23 +1976,24 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return in select > optgroup structure', () => {
-			component App() {
-				let show = true;
-
-				<select>
-					<optgroup label="group1">
-						<option>{'opt1'}</option>
-					</optgroup>
-					if (show) {
-						<optgroup label="group2">
-							<option>{'opt2'}</option>
+			function App() {
+				return <>
+					let show = true;
+					<select>
+						<optgroup label="group1">
+							<option>{'opt1'}</option>
 						</optgroup>
-						return;
-					}
-					<optgroup label="group3">
-						<option>{'opt3'}</option>
-					</optgroup>
-				</select>
+						if (show) {
+							<optgroup label="group2">
+								<option>{'opt2'}</option>
+							</optgroup>
+							return;
+						}
+						<optgroup label="group3">
+							<option>{'opt3'}</option>
+						</optgroup>
+					</select>
+				</>;
 			}
 
 			render(App);
@@ -1913,17 +2002,18 @@ describe('early return in client components', () => {
 		});
 
 		it('handles return when condition is false in semantic element', () => {
-			component App() {
-				let show = false;
-
-				<ul>
-					<li>{'first'}</li>
-					if (show) {
-						<li>{'second'}</li>
-						return;
-					}
-					<li>{'third'}</li>
-				</ul>
+			function App() {
+				return <>
+					let show = false;
+					<ul>
+						<li>{'first'}</li>
+						if (show) {
+							<li>{'second'}</li>
+							return;
+						}
+						<li>{'third'}</li>
+					</ul>
+				</>;
 			}
 
 			render(App);
@@ -1933,31 +2023,32 @@ describe('early return in client components', () => {
 		});
 
 		it('handles multiple returns in table structure', () => {
-			component App() {
-				let mode = 1;
-
-				<table>
-					<tbody>
-						<tr>
-							<td>{'row 1'}</td>
-						</tr>
-						if (mode === 1) {
+			function App() {
+				return <>
+					let mode = 1;
+					<table>
+						<tbody>
 							<tr>
-								<td>{'row 2'}</td>
+								<td>{'row 1'}</td>
 							</tr>
-							return;
-						}
-						if (mode === 2) {
+							if (mode === 1) {
+								<tr>
+									<td>{'row 2'}</td>
+								</tr>
+								return;
+							}
+							if (mode === 2) {
+								<tr>
+									<td>{'row 3'}</td>
+								</tr>
+								return;
+							}
 							<tr>
-								<td>{'row 3'}</td>
+								<td>{'row 4'}</td>
 							</tr>
-							return;
-						}
-						<tr>
-							<td>{'row 4'}</td>
-						</tr>
-					</tbody>
-				</table>
+						</tbody>
+					</table>
+				</>;
 			}
 
 			render(App);
@@ -1967,98 +2058,115 @@ describe('early return in client components', () => {
 	});
 
 	describe('return value validation', () => {
-		it('throws error for return with string value', () => {
+		it('allows return with string value', () => {
 			expect(() => {
-				compile(`component App() {
+				compile(
+					`function App() { return <>
 						if (true) {
 							<div>{'test'}</div>
 							return 'hello';
 						}
-					}`, 'test.tsrx', {
-					mode: 'client',
-				});
-			}).toThrow('Return statements inside components cannot have a return value.');
+					</>; }`,
+					'test.tsrx',
+					{
+						mode: 'client',
+					},
+				);
+			}).not.toThrow();
 		});
 
-		it('throws error for return with number value', () => {
+		it('allows return with number value', () => {
 			expect(() => {
-				compile(`component App() {
+				compile(
+					`function App() { return <>
 						if (true) {
 							<div>{'test'}</div>
 							return 42;
 						}
-					}`, 'test.tsrx', {
-					mode: 'client',
-				});
-			}).toThrow('Return statements inside components cannot have a return value.');
+					</>; }`,
+					'test.tsrx',
+					{
+						mode: 'client',
+					},
+				);
+			}).not.toThrow();
 		});
 
-		it('throws error for return with null value', () => {
+		it('allows return with null value', () => {
 			expect(() => {
-				compile(`component App() {
+				compile(
+					`function App() { return <>
 						if (true) {
 							<div>{'test'}</div>
 							return null;
 						}
-					}`, 'test.tsrx', {
-					mode: 'client',
-				});
-			}).toThrow('Return statements inside components cannot have a return value.');
+					</>; }`,
+					'test.tsrx',
+					{
+						mode: 'client',
+					},
+				);
+			}).not.toThrow();
 		});
 
-		it('throws error for return with undefined value', () => {
+		it('allows return with undefined value', () => {
 			expect(() => {
-				compile(`component App() {
+				compile(
+					`function App() { return <>
 						if (true) {
 							<div>{'test'}</div>
 							return undefined;
 						}
-					}`, 'test.tsrx', {
-					mode: 'client',
-				});
-			}).toThrow('Return statements inside components cannot have a return value.');
+					</>; }`,
+					'test.tsrx',
+					{
+						mode: 'client',
+					},
+				);
+			}).not.toThrow();
 		});
 
-		it('throws error for return with object value', () => {
+		it('allows return with object value', () => {
 			expect(() => {
 				compile(
-					`component App() {
+					`function App() { return <>
 						if (true) {
 							<div>{'test'}</div>
 							return { foo: 'bar' };
 						}
-					}`,
+					</>; }`,
 					'test.tsrx',
 					{ mode: 'client' },
 				);
-			}).toThrow('Return statements inside components cannot have a return value.');
+			}).not.toThrow();
 		});
 
-		it('throws error for return with variable', () => {
+		it('allows return with variable', () => {
 			expect(() => {
 				compile(
-					`component App() {
+					`function App() { return <>
 						let x = 5;
 						if (true) {
 							<div>{'test'}</div>
 							return x;
 						}
-					}`,
+					</>; }`,
 					'test.tsrx',
 					{ mode: 'client' },
 				);
-			}).toThrow('Return statements inside components cannot have a return value.');
+			}).not.toThrow();
 		});
 
 		it('accepts void return', () => {
-			component App() {
-				let show = true;
-
-				if (show) {
-					<div>{'test'}</div>
-					return;
-				}
-				<div>{'fallback'}</div>
+			function App() {
+				return <>
+					let show = true;
+					if (show) {
+						<div>{'test'}</div>
+						return;
+					}
+					<div>{'fallback'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2068,30 +2176,31 @@ describe('early return in client components', () => {
 
 	describe('deeply nested conditions with returns', () => {
 		it('handles return inside nested div > if > div > if chain', () => {
-			component App() {
-				let a = false;
-				let b = false;
-				let c = false;
-				let d = false;
-
-				<div class="outer">
-					if (a) {
-						<span class="a">{'branch a'}</span>
-					}
-					<div class="inner">
-						if (b) {
-							<span class="b">{'branch b'}</span>
+			function App() {
+				return <>
+					let a = false;
+					let b = false;
+					let c = false;
+					let d = false;
+					<div class="outer">
+						if (a) {
+							<span class="a">{'branch a'}</span>
 						}
-						if (c) {
-							return;
-						}
-						if (d) {
-							<span class="d">{'branch d'}</span>
-							return;
-						}
+						<div class="inner">
+							if (b) {
+								<span class="b">{'branch b'}</span>
+							}
+							if (c) {
+								return;
+							}
+							if (d) {
+								<span class="d">{'branch d'}</span>
+								return;
+							}
+						</div>
 					</div>
-				</div>
-				<div class="after">{'after'}</div>
+					<div class="after">{'after'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2104,30 +2213,31 @@ describe('early return in client components', () => {
 		});
 
 		it('nested: first return triggers, hides content after outer div', () => {
-			component App() {
-				let a = false;
-				let b = false;
-				let c = true;
-				let d = false;
-
-				<div class="outer">
-					if (a) {
-						<span class="a">{'branch a'}</span>
-					}
-					<div class="inner">
-						if (b) {
-							<span class="b">{'branch b'}</span>
+			function App() {
+				return <>
+					let a = false;
+					let b = false;
+					let c = true;
+					let d = false;
+					<div class="outer">
+						if (a) {
+							<span class="a">{'branch a'}</span>
 						}
-						if (c) {
-							return;
-						}
-						if (d) {
-							<span class="d">{'branch d'}</span>
-							return;
-						}
+						<div class="inner">
+							if (b) {
+								<span class="b">{'branch b'}</span>
+							}
+							if (c) {
+								return;
+							}
+							if (d) {
+								<span class="d">{'branch d'}</span>
+								return;
+							}
+						</div>
 					</div>
-				</div>
-				<div class="after">{'after'}</div>
+					<div class="after">{'after'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2137,30 +2247,31 @@ describe('early return in client components', () => {
 		});
 
 		it('nested: second return triggers with template, hides content after', () => {
-			component App() {
-				let a = true;
-				let b = true;
-				let c = false;
-				let d = true;
-
-				<div class="outer">
-					if (a) {
-						<span class="a">{'branch a'}</span>
-					}
-					<div class="inner">
-						if (b) {
-							<span class="b">{'branch b'}</span>
+			function App() {
+				return <>
+					let a = true;
+					let b = true;
+					let c = false;
+					let d = true;
+					<div class="outer">
+						if (a) {
+							<span class="a">{'branch a'}</span>
 						}
-						if (c) {
-							return;
-						}
-						if (d) {
-							<span class="d">{'branch d'}</span>
-							return;
-						}
+						<div class="inner">
+							if (b) {
+								<span class="b">{'branch b'}</span>
+							}
+							if (c) {
+								return;
+							}
+							if (d) {
+								<span class="d">{'branch d'}</span>
+								return;
+							}
+						</div>
 					</div>
-				</div>
-				<div class="after">{'after'}</div>
+					<div class="after">{'after'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2171,30 +2282,31 @@ describe('early return in client components', () => {
 		});
 
 		it('nested: both returns active, first wins', () => {
-			component App() {
-				let a = false;
-				let b = false;
-				let c = true;
-				let d = true;
-
-				<div class="outer">
-					if (a) {
-						<span class="a">{'branch a'}</span>
-					}
-					<div class="inner">
-						if (b) {
-							<span class="b">{'branch b'}</span>
+			function App() {
+				return <>
+					let a = false;
+					let b = false;
+					let c = true;
+					let d = true;
+					<div class="outer">
+						if (a) {
+							<span class="a">{'branch a'}</span>
 						}
-						if (c) {
-							return;
-						}
-						if (d) {
-							<span class="d">{'branch d'}</span>
-							return;
-						}
+						<div class="inner">
+							if (b) {
+								<span class="b">{'branch b'}</span>
+							}
+							if (c) {
+								return;
+							}
+							if (d) {
+								<span class="d">{'branch d'}</span>
+								return;
+							}
+						</div>
 					</div>
-				</div>
-				<div class="after">{'after'}</div>
+					<div class="after">{'after'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2205,47 +2317,47 @@ describe('early return in client components', () => {
 		});
 
 		it('nested reactive: toggling conditions updates DOM', () => {
-			component App() {
-				let &[a] = track(false);
-				let &[b] = track(false);
-				let &[c] = track(false);
-				let &[d] = track(false);
-
-				<button
-					class="toggle-c"
-					onClick={() => {
-						c = !c;
-					}}
-				>
-					{'toggle c'}
-				</button>
-				<button
-					class="toggle-d"
-					onClick={() => {
-						d = !d;
-					}}
-				>
-					{'toggle d'}
-				</button>
-
-				<div class="outer">
-					if (a) {
-						<span class="a">{'branch a'}</span>
-					}
-					<div class="inner">
-						if (b) {
-							<span class="b">{'branch b'}</span>
+			function App() {
+				return <>
+					let &[a] = track(false);
+					let &[b] = track(false);
+					let &[c] = track(false);
+					let &[d] = track(false);
+					<button
+						class="toggle-c"
+						onClick={() => {
+							c = !c;
+						}}
+					>
+						{'toggle c'}
+					</button>
+					<button
+						class="toggle-d"
+						onClick={() => {
+							d = !d;
+						}}
+					>
+						{'toggle d'}
+					</button>
+					<div class="outer">
+						if (a) {
+							<span class="a">{'branch a'}</span>
 						}
-						if (c) {
-							return;
-						}
-						if (d) {
-							<span class="d">{'branch d'}</span>
-							return;
-						}
+						<div class="inner">
+							if (b) {
+								<span class="b">{'branch b'}</span>
+							}
+							if (c) {
+								return;
+							}
+							if (d) {
+								<span class="d">{'branch d'}</span>
+								return;
+							}
+						</div>
 					</div>
-				</div>
-				<div class="after">{'after'}</div>
+					<div class="after">{'after'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2275,26 +2387,27 @@ describe('early return in client components', () => {
 		it(
 			'nested return with conditional parent nodes should be rendered when the would be parent is false',
 			() => {
-				component App() {
-					let a = true;
-					let &[b] = track(true);
-
-					<button
-						class="toggle"
-						onClick={() => {
-							b = !b;
-						}}
-					>
-						{'Toggle'}
-					</button>
-					if (a) {
-						<div class="a">{'a'}</div>
-						if (b) {
-							<div class="b">{'b'}</div>
-							return;
+				function App() {
+					return <>
+						let a = true;
+						let &[b] = track(true);
+						<button
+							class="toggle"
+							onClick={() => {
+								b = !b;
+							}}
+						>
+							{'Toggle'}
+						</button>
+						if (a) {
+							<div class="a">{'a'}</div>
+							if (b) {
+								<div class="b">{'b'}</div>
+								return;
+							}
 						}
-					}
-					<div class="rest">{'rest'}</div>
+						<div class="rest">{'rest'}</div>
+					</>;
 				}
 
 				render(App);
@@ -2323,35 +2436,33 @@ describe('early return in client components', () => {
 		);
 
 		it('reactive sibling returns cycle through first, second, and fallback branches', () => {
-			component App() {
-				let &[mode] = track('first');
-
-				<button
-					class="toggle"
-					onClick={() => {
-						if (mode === 'first') {
-							mode = 'second';
-						} else if (mode === 'second') {
-							mode = 'none';
-						} else {
-							mode = 'first';
-						}
-					}}
-				>
-					{'toggle'}
-				</button>
-
-				if (mode === 'first') {
-					<div class="first">{'first guard'}</div>
-					return;
-				}
-
-				if (mode === 'second') {
-					<div class="second">{'second guard'}</div>
-					return;
-				}
-
-				<div class="rest">{'rest'}</div>
+			function App() {
+				return <>
+					let &[mode] = track('first');
+					<button
+						class="toggle"
+						onClick={() => {
+							if (mode === 'first') {
+								mode = 'second';
+							} else if (mode === 'second') {
+								mode = 'none';
+							} else {
+								mode = 'first';
+							}
+						}}
+					>
+						{'toggle'}
+					</button>
+					if (mode === 'first') {
+						<div class="first">{'first guard'}</div>
+						return;
+					}
+					if (mode === 'second') {
+						<div class="second">{'second guard'}</div>
+						return;
+					}
+					<div class="rest">{'rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2379,37 +2490,35 @@ describe('early return in client components', () => {
 		});
 
 		it('reactive nested returns with tracked outer and inner flags transition correctly', () => {
-			component App() {
-				let &[a] = track(true);
-				let &[b] = track(true);
-
-				<button
-					class="toggle-a"
-					onClick={() => {
-						a = !a;
-					}}
-				>
-					{'toggle a'}
-				</button>
-
-				<button
-					class="toggle-b"
-					onClick={() => {
-						b = !b;
-					}}
-				>
-					{'toggle b'}
-				</button>
-
-				if (a) {
-					<div class="a">{'a'}</div>
-					if (b) {
-						<div class="b">{'b'}</div>
-						return;
+			function App() {
+				return <>
+					let &[a] = track(true);
+					let &[b] = track(true);
+					<button
+						class="toggle-a"
+						onClick={() => {
+							a = !a;
+						}}
+					>
+						{'toggle a'}
+					</button>
+					<button
+						class="toggle-b"
+						onClick={() => {
+							b = !b;
+						}}
+					>
+						{'toggle b'}
+					</button>
+					if (a) {
+						<div class="a">{'a'}</div>
+						if (b) {
+							<div class="b">{'b'}</div>
+							return;
+						}
 					}
-				}
-
-				<div class="rest">{a ? 'a-on rest' : 'a-off rest'}</div>
+					<div class="rest">{a ? 'a-on rest' : 'a-off rest'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2443,28 +2552,27 @@ describe('early return in client components', () => {
 		});
 
 		it('reactive else-if return chain transitions between return and non-return states', () => {
-			component App() {
-				let &[status] = track(0);
-
-				<button
-					class="toggle"
-					onClick={() => {
-						status = (status + 1) % 3;
-					}}
-				>
-					{'toggle'}
-				</button>
-
-				if (status === 0) {
-					<div class="zero">{'zero'}</div>
-					return;
-				} else if (status === 1) {
-					<div class="one">{'one'}</div>
-					return;
-				}
-
-				<div class="rest">{'rest'}</div>
-				<div class="tail">{'tail'}</div>
+			function App() {
+				return <>
+					let &[status] = track(0);
+					<button
+						class="toggle"
+						onClick={() => {
+							status = (status + 1) % 3;
+						}}
+					>
+						{'toggle'}
+					</button>
+					if (status === 0) {
+						<div class="zero">{'zero'}</div>
+						return;
+					} else if (status === 1) {
+						<div class="one">{'one'}</div>
+						return;
+					}
+					<div class="rest">{'rest'}</div>
+					<div class="tail">{'tail'}</div>
+				</>;
 			}
 
 			render(App);
@@ -2500,13 +2608,13 @@ describe('early return in client components', () => {
 describe('throw statements in if blocks', () => {
 	it('allows if statement with throw in then body', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let error = true;
 				if (error) {
 					throw new Error('Test error');
 				}
 				<div>{'no error'}</div>
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -2515,14 +2623,14 @@ describe('throw statements in if blocks', () => {
 
 	it('allows if statement with throw in else body', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let error = false;
 				if (error) {
 					<div>{'no error'}</div>
 				} else {
 					throw new Error('Test error');
 				}
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -2531,7 +2639,7 @@ describe('throw statements in if blocks', () => {
 
 	it('allows if statement with throw in both bodies', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let mode = 'error';
 				if (mode === 'a') {
 					<div>{'a'}</div>
@@ -2540,7 +2648,7 @@ describe('throw statements in if blocks', () => {
 				} else {
 					throw new Error('Unknown mode');
 				}
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -2549,7 +2657,7 @@ describe('throw statements in if blocks', () => {
 
 	it('allows nested if with throw', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let a = true;
 				let b = true;
 				if (a) {
@@ -2559,7 +2667,7 @@ describe('throw statements in if blocks', () => {
 					<div>{'a only'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -2568,13 +2676,13 @@ describe('throw statements in if blocks', () => {
 
 	it('allows throw with reactive condition', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let &[error] = track(false);
 				if (error) {
 					throw new Error('Error occurred');
 				}
 				<div>{'success'}</div>
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -2583,14 +2691,14 @@ describe('throw statements in if blocks', () => {
 
 	it('allows throw with template in then body and throw in else body', () => {
 		const code = `
-			export default component App() {
+			export default function App() { return <>
 				let error = true;
 				if (error) {
 					<div>{'error case'}</div>
 				} else {
 					throw new Error('No error');
 				}
-			}
+			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');

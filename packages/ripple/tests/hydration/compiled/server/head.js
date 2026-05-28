@@ -6,6 +6,8 @@ import { track } from 'ripple/server';
 export function StaticTitle() {
 	_$_.push_component();
 
+	var __r = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
@@ -17,8 +19,9 @@ export function StaticTitle() {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--c8908187-->');
+	_$_.output_push('<!--76c21c4e-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -34,6 +37,7 @@ export function StaticTitle() {
 export function ReactiveTitle() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track('Initial Title', 'cbca63e3');
 
 	_$_.regular_block(() => {
@@ -54,8 +58,9 @@ export function ReactiveTitle() {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--8af28792-->');
+	_$_.output_push('<!--78265d64-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -71,6 +76,8 @@ export function ReactiveTitle() {
 export function MultipleHeadElements() {
 	_$_.push_component();
 
+	var __r_2 = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
@@ -82,8 +89,9 @@ export function MultipleHeadElements() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--3a79945b-->');
+	_$_.output_push('<!--a7b97e5a-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -107,6 +115,7 @@ export function MultipleHeadElements() {
 export function ReactiveMetaTags() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_1 = _$_.track('Initial description', '38bfa3b2');
 
 	_$_.regular_block(() => {
@@ -120,8 +129,9 @@ export function ReactiveMetaTags() {
 		_$_.output_push('</div>');
 	});
 
+	__r_3 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--c9fd7b0f-->');
+	_$_.output_push('<!--fdf06c86-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -141,6 +151,7 @@ export function ReactiveMetaTags() {
 export function TitleWithTemplate() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_2 = _$_.track('World', 'f3925cd5');
 
 	_$_.regular_block(() => {
@@ -154,8 +165,9 @@ export function TitleWithTemplate() {
 		_$_.output_push('</div>');
 	});
 
+	__r_4 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--72f81455-->');
+	_$_.output_push('<!--4852577d-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -171,6 +183,8 @@ export function TitleWithTemplate() {
 export function EmptyTitle() {
 	_$_.push_component();
 
+	var __r_5 = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
@@ -182,8 +196,9 @@ export function EmptyTitle() {
 		_$_.output_push('</div>');
 	});
 
+	__r_5 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--35a7fe4a-->');
+	_$_.output_push('<!--19986e85-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -199,6 +214,7 @@ export function EmptyTitle() {
 export function ConditionalTitle() {
 	_$_.push_component();
 
+	var __r_6 = false;
 	let lazy_3 = _$_.track(true, 'ff71bf1f');
 	let lazy_4 = _$_.track('Main Page', '7cd7d671');
 
@@ -213,8 +229,9 @@ export function ConditionalTitle() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--453e9ed4-->');
+	_$_.output_push('<!--b2720318-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -230,6 +247,7 @@ export function ConditionalTitle() {
 export function ComputedTitle() {
 	_$_.push_component();
 
+	var __r_7 = false;
 	let lazy_5 = _$_.track(0, 'b6a48610');
 	let prefix = 'Count: ';
 
@@ -251,8 +269,9 @@ export function ComputedTitle() {
 		_$_.output_push('</div>');
 	});
 
+	__r_7 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--63888c83-->');
+	_$_.output_push('<!--8ed5e9bf-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -268,6 +287,8 @@ export function ComputedTitle() {
 export function MultipleHeadBlocks() {
 	_$_.push_component();
 
+	var __r_8 = false;
+
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
 		_$_.output_push('>');
@@ -279,8 +300,9 @@ export function MultipleHeadBlocks() {
 		_$_.output_push('</div>');
 	});
 
+	__r_8 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--43cf39fd-->');
+	_$_.output_push('<!--0264dbec-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 
@@ -289,7 +311,7 @@ export function MultipleHeadBlocks() {
 	}
 
 	_$_.output_push('</title>');
-	_$_.output_push('<!--e9abd92f-->');
+	_$_.output_push('<!--f4080c5e-->');
 	_$_.output_push('<meta');
 	_$_.output_push(' name="author"');
 	_$_.output_push(' content="Test Author"');
@@ -300,6 +322,8 @@ export function MultipleHeadBlocks() {
 
 export function HeadWithStyle() {
 	_$_.push_component();
+
+	var __r_9 = false;
 
 	_$_.regular_block(() => {
 		_$_.output_push('<div');
@@ -312,8 +336,9 @@ export function HeadWithStyle() {
 		_$_.output_push('</div>');
 	});
 
+	__r_9 = true;
 	_$_.set_output_target('head');
-	_$_.output_push('<!--d246667e-->');
+	_$_.output_push('<!--d1c770f8-->');
 	_$_.output_push('<title');
 	_$_.output_push('>');
 

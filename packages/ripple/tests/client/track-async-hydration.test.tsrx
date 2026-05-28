@@ -5,13 +5,15 @@ describe('trackAsync hydration from serialized data (client)', () => {
 		// This test verifies the client runtime can parse the serialized script tags
 		// The full hydration round-trip is tested in hydration tests
 
-		component App() {
-			try {
-				let &[data] = trackAsync(() => Promise.resolve('fallback'));
-				<p class="result">{data}</p>
-			} pending {
-				<p class="loading">{'loading...'}</p>
-			}
+		function App() {
+			return <>
+				try {
+					let &[data] = trackAsync(() => Promise.resolve('fallback'));
+					<p class="result">{data}</p>
+				} pending {
+					<p class="loading">{'loading...'}</p>
+				}
+			</>;
 		}
 
 		render(App);
@@ -29,13 +31,15 @@ describe('trackAsync hydration from serialized data (client)', () => {
 		let resolve_fn: (value: number) => void;
 		const promise = new Promise<number>((r) => (resolve_fn = r));
 
-		component App() {
-			try {
-				let &[value] = trackAsync(() => promise);
-				<span class="value">{value}</span>
-			} pending {
-				<span class="pending">{'waiting'}</span>
-			}
+		function App() {
+			return <>
+				try {
+					let &[value] = trackAsync(() => promise);
+					<span class="value">{value}</span>
+				} pending {
+					<span class="pending">{'waiting'}</span>
+				}
+			</>;
 		}
 
 		render(App);

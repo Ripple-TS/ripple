@@ -4,6 +4,7 @@ import * as _$_ from 'ripple/internal/server';
 export function SimpleTemplateHtml() {
 	_$_.push_component();
 
+	var __r = false;
 	const data = 'test data';
 
 	_$_.regular_block(() => {
@@ -22,12 +23,14 @@ export function SimpleTemplateHtml() {
 		_$_.output_push('</template>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function TemplateWithJSON() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	const jsonData = JSON.stringify({ message: 'hello', count: 42 });
 
 	_$_.regular_block(() => {
@@ -46,12 +49,14 @@ export function TemplateWithJSON() {
 		_$_.output_push('</template>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function TemplateAroundIfBlock() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const show = true;
 
 	_$_.regular_block(() => {
@@ -101,5 +106,6 @@ export function TemplateAroundIfBlock() {
 		_$_.output_push('</div>');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }

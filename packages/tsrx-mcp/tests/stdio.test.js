@@ -144,7 +144,7 @@ describe('@tsrx/mcp stdio server', () => {
 				uri: 'tsrx://docs/components.md',
 				mimeType: 'text/markdown',
 			});
-			expect(expect_text_content(docs.contents[0])).toContain('Component Declarations');
+			expect(expect_text_content(docs.contents[0])).toContain('Function Components');
 
 			const target = await client.readResource({ uri: 'tsrx://targets/react.md' });
 			expect(expect_text_content(target.contents[0])).toContain('React target layer');
@@ -183,7 +183,7 @@ describe('@tsrx/mcp stdio server', () => {
 			expect(expect_text_content(prompt.messages[0].content)).toContain('detect-target');
 
 			const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
-			expect(expect_text_content(docs.contents[0])).toContain('component Button');
+			expect(expect_text_content(docs.contents[0])).toContain('function Button');
 
 			const target = await client.callTool({
 				name: 'detect-target',
@@ -220,9 +220,9 @@ describe('@tsrx/mcp stdio server', () => {
 			const valid = await client.callTool({
 				name: 'compile-tsrx',
 				arguments: {
-					code: `export component Greeting({ name }: { name: string }) {
+					code: `export function Greeting({ name }: { name: string }) { return <>
 						<p>"Hello "{name}</p>
-					}`,
+					</>; }`,
 					filename: 'Greeting.tsrx',
 					cwd: react_fixture,
 				},
@@ -237,9 +237,9 @@ describe('@tsrx/mcp stdio server', () => {
 			const invalid = await client.callTool({
 				name: 'compile-tsrx',
 				arguments: {
-					code: `component Broken() {
-						return <div />;
-					}`,
+					code: `function Broken() { return <>
+							<div></span>
+						</>; }`,
 					filename: 'Broken.tsrx',
 					cwd: react_fixture,
 				},
@@ -249,16 +249,14 @@ describe('@tsrx/mcp stdio server', () => {
 					parse_json_text_content(expect_first_tool_content(invalid))
 				);
 			expect(invalid_output.ok).toBe(false);
-			expect(invalid_output.errors?.[0]?.message).toContain(
-				'JSX elements cannot be used as expressions',
-			);
+			expect(invalid_output.errors?.[0]?.message).toContain('Expected closing tag');
 
 			const analyzed = await client.callTool({
 				name: 'analyze-tsrx',
 				arguments: {
-					code: `component Broken() {
-							return <div />;
-						}`,
+					code: `function Broken() { return <>
+								<div></span>
+							</>; }`,
 					filename: 'Broken.tsrx',
 					cwd: react_fixture,
 				},
@@ -267,13 +265,13 @@ describe('@tsrx/mcp stdio server', () => {
 				/** @type {{ advice?: Array<{ kind?: unknown, documentation?: unknown }> }} */ (
 					parse_json_text_content(expect_first_tool_content(analyzed))
 				);
-			expect(analyzed_output.advice?.[0]?.kind).toBe('jsx-return-in-component');
+			expect(analyzed_output.advice?.[0]?.kind).toBe('mismatched-closing-tag');
 			expect(analyzed_output.advice?.[0]?.documentation).toContain('tsrx://docs/components.md');
 
 			const formatted = await client.callTool({
 				name: 'format-tsrx',
 				arguments: {
-					code: `export component Greeting({ name }: { name: string }){<p>"Hello "{name}</p>}`,
+					code: `export function Greeting({ name }: { name: string }){ return <><p>"Hello "{name}</p></>; }`,
 					filename: 'Greeting.tsrx',
 				},
 			});
@@ -283,7 +281,7 @@ describe('@tsrx/mcp stdio server', () => {
 				);
 			expect(formatted_output.ok).toBe(true);
 			expect(formatted_output.changed).toBe(true);
-			expect(formatted_output.formatted).toContain('export component Greeting');
+			expect(formatted_output.formatted).toContain('export function Greeting');
 			expect(formatted_output.formatted).toContain('"Hello "');
 			expect(formatted_output.formatted).toContain('{name}');
 

@@ -6,7 +6,7 @@ describe('await in control flow', () => {
 	});
 
 	// it('should handle await inside if statement', async () => {
-	// 	component App() {
+	// 	function App() { return <>
 	// 		let condition = true;
 	// 		let &[data] = track('loading');
 
@@ -25,7 +25,7 @@ describe('await in control flow', () => {
 	// });
 
 	// it('should handle await inside for...of loop', async () => {
-	// 	component App() {
+	// 	function App() { return <>
 	// 		const items = [1, 2, 3];
 	// 		let result = '';
 
@@ -42,7 +42,7 @@ describe('await in control flow', () => {
 	// });
 
 	// it('should handle await inside switch statement', async () => {
-	// 	component App() {
+	// 	function App() { return <>
 	// 		let value = 'b';
 
 	// 		switch (value) {

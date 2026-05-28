@@ -974,6 +974,10 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 			}
 
 			case 'TypeSelector': {
+				if (is_element_dynamic(/** @type {AST.Element} */ (element))) {
+					break;
+				}
+
 				if (
 					element.id.type === 'Identifier' &&
 					element.id.name.toLowerCase() !== name.toLowerCase() &&

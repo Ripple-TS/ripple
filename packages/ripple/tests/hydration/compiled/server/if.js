@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function IfTruthy() {
 	_$_.push_component();
 
+	var __r = false;
 	const show = true;
 
 	_$_.regular_block(() => {
@@ -26,12 +27,14 @@ export function IfTruthy() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function IfFalsy() {
 	_$_.push_component();
 
+	var __r_1 = false;
 	const show = false;
 
 	_$_.regular_block(() => {
@@ -52,12 +55,14 @@ export function IfFalsy() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function IfElse() {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const isLoggedIn = true;
 
 	_$_.regular_block(() => {
@@ -88,12 +93,14 @@ export function IfElse() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function ReactiveIf() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy = _$_.track(true, '19a16ff0');
 
 	_$_.regular_block(() => {
@@ -126,12 +133,14 @@ export function ReactiveIf() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function ReactiveIfElse() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_1 = _$_.track(false, '41177f39');
 
 	_$_.regular_block(() => {
@@ -174,12 +183,14 @@ export function ReactiveIfElse() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function NestedIf() {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_2 = _$_.track(true, '7894e1df');
 	let lazy_3 = _$_.track(true, 'f21b8c26');
 
@@ -240,12 +251,14 @@ export function NestedIf() {
 		_$_.output_push('<!--]-->');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }
 
 export function IfElseIfChain() {
 	_$_.push_component();
 
+	var __r_6 = false;
 	let lazy_4 = _$_.track('loading', '4c69c94a');
 
 	_$_.regular_block(() => {
@@ -326,5 +339,6 @@ export function IfElseIfChain() {
 		_$_.output_push('</div>');
 	});
 
+	__r_6 = true;
 	_$_.pop_component();
 }

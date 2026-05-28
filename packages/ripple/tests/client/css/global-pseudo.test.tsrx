@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with pseudo-classes', () => {
 	it('handles :global with :has()', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -17,7 +17,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:has\(span\)/);
@@ -26,7 +26,7 @@ export component Test() {
 
 	it('handles :global with :is()', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'one'}</span>
 		<p>{'two'}</p>
@@ -41,7 +41,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :is\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
@@ -52,7 +52,7 @@ export component Test() {
 
 	it('handles :global with :where()', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'one'}</span>
 		<p>{'two'}</p>
@@ -67,7 +67,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ :where\(span, p:where\(\.tsrx-[a-z0-9]+\)\) {/);
@@ -78,7 +78,7 @@ export component Test() {
 
 	it('handles :global with :not()', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -92,7 +92,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:not\(span\)/);
@@ -101,7 +101,7 @@ export component Test() {
 
 	it('handles nested pseudo-classes with :global', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -115,7 +115,7 @@ export component Test() {
 			color: blue;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+:is\(:where\(\.tsrx-[a-z0-9]+\):has\(span\)\) {/);
@@ -124,7 +124,7 @@ export component Test() {
 
 	it('handles :global with :nth-child and other structural pseudo-classes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'one'}</span>
 		<span>{'two'}</span>
@@ -144,7 +144,7 @@ export component Test() {
 			color: green;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('span:nth-child(2) {');

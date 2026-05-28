@@ -1,17 +1,17 @@
 describe('early return in SSR', () => {
 	it('skips template content after direct return', async () => {
-		component App() {
+		function App() { return <>
 			<div>{'before'}</div>
 			return;
 			<div>{'after'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>before</div>');
 	});
 
 	it('skips rest of body when return condition is true', async () => {
-		component App() {
+		function App() { return <>
 			let condition = true;
 
 			if (condition) {
@@ -19,14 +19,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>guard hit</div>');
 	});
 
 	it('renders rest of body when return condition is false', async () => {
-		component App() {
+		function App() { return <>
 			let condition = false;
 
 			if (condition) {
@@ -34,14 +34,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>rest</div>');
 	});
 
 	it('emits hydration markers for content guarded by early return flags', async () => {
-		component App() {
+		function App() { return <>
 			let condition = true;
 
 			if (condition) {
@@ -49,7 +49,7 @@ describe('early return in SSR', () => {
 			}
 
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		const open_markers = body.match(/<!--\[-->/g) || [];
@@ -61,7 +61,7 @@ describe('early return in SSR', () => {
 	});
 
 	it('handles nested ifs with return', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = true;
 
@@ -73,14 +73,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest renders only when !(a && b)'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a is true</div><div>b is true</div>');
 	});
 
 	it('renders rest when nested return condition is not fully met', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = false;
 
@@ -92,14 +92,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a is true</div><div>rest</div>');
 	});
 
 	it('renders rest when outer condition is false', async () => {
-		component App() {
+		function App() { return <>
 			let a = false;
 			let b = true;
 
@@ -111,14 +111,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>rest</div>');
 	});
 
 	it('handles content before and after the if-with-return', async () => {
-		component App() {
+		function App() { return <>
 			let shouldReturn = true;
 
 			<div>{'before'}</div>
@@ -127,14 +127,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'after'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>before</div><div>guard</div>');
 	});
 
 	it('renders multiple elements after guard when condition is false', async () => {
-		component App() {
+		function App() { return <>
 			let shouldReturn = false;
 
 			if (shouldReturn) {
@@ -143,14 +143,14 @@ describe('early return in SSR', () => {
 			}
 			<div>{'first'}</div>
 			<div>{'second'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>first</div><div>second</div>');
 	});
 
 	it('handles multiple sequential returns - first hits', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = true;
 
@@ -163,14 +163,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>first guard</div>');
 	});
 
 	it('handles multiple sequential returns - second hits', async () => {
-		component App() {
+		function App() { return <>
 			let a = false;
 			let b = true;
 
@@ -183,14 +183,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>second guard</div>');
 	});
 
 	it('handles multiple sequential returns - none hit', async () => {
-		component App() {
+		function App() { return <>
 			let a = false;
 			let b = false;
 
@@ -203,14 +203,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>rest</div>');
 	});
 
 	it('handles deeply nested returns (3 levels)', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = true;
 			let c = true;
@@ -226,14 +226,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div>');
 	});
 
 	it('handles deeply nested returns (3 levels) - partial', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = true;
 			let c = false;
@@ -249,14 +249,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a</div><div>b</div><div>rest</div>');
 	});
 
 	it('handles return with else-if chain - first condition', async () => {
-		component App() {
+		function App() { return <>
 			let value = 1;
 
 			if (value === 1) {
@@ -270,14 +270,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>one</div>');
 	});
 
 	it('handles return with else-if chain - second condition', async () => {
-		component App() {
+		function App() { return <>
 			let value = 2;
 
 			if (value === 1) {
@@ -291,14 +291,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>two</div>');
 	});
 
 	it('handles return with else-if chain - else condition', async () => {
-		component App() {
+		function App() { return <>
 			let value = 3;
 
 			if (value === 1) {
@@ -312,14 +312,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>other</div>');
 	});
 
 	it('handles return with complex boolean expression - AND', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = true;
 			let c = true;
@@ -329,14 +329,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not all true'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>all true</div>');
 	});
 
 	it('handles return with complex boolean expression - OR', async () => {
-		component App() {
+		function App() { return <>
 			let a = false;
 			let b = true;
 			let c = false;
@@ -346,14 +346,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'all false'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>at least one true</div>');
 	});
 
 	it('handles return with complex boolean expression - mixed', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = false;
 			let c = true;
@@ -363,14 +363,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'complex condition not met'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>complex condition met</div>');
 	});
 
 	it('handles return with numeric comparison', async () => {
-		component App() {
+		function App() { return <>
 			let num = 10;
 
 			if (num > 5) {
@@ -378,14 +378,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'5 or less'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>greater than 5</div>');
 	});
 
 	it('handles return with string comparison', async () => {
-		component App() {
+		function App() { return <>
 			let str = 'hello';
 
 			if (str === 'hello') {
@@ -393,14 +393,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not greeting'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>greeting</div>');
 	});
 
 	it('handles return with negated condition', async () => {
-		component App() {
+		function App() { return <>
 			let flag = false;
 
 			if (!flag) {
@@ -408,14 +408,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'flag is true'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>flag is false</div>');
 	});
 
 	it('handles return with ternary result', async () => {
-		component App() {
+		function App() { return <>
 			let condition = true;
 
 			if (condition) {
@@ -423,14 +423,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'fallback'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>yes</div>');
 	});
 
 	it('handles return in nested component scope', async () => {
-		component App() {
+		function App() { return <>
 			let show = true;
 
 			<div>
@@ -441,14 +441,14 @@ describe('early return in SSR', () => {
 				}
 				<p>{'after'}</p>
 			</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div><span>outer</span><p>inner</p></div>');
 	});
 
 	it('handles return with multiple elements before and after', async () => {
-		component App() {
+		function App() { return <>
 			let shouldReturn = true;
 
 			<h1>{'title'}</h1>
@@ -460,7 +460,7 @@ describe('early return in SSR', () => {
 			}
 			<footer>{'footer'}</footer>
 			<nav>{'nav'}</nav>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml(
@@ -469,49 +469,49 @@ describe('early return in SSR', () => {
 	});
 
 	it('handles return at the beginning of component', async () => {
-		component App() {
+		function App() { return <>
 			if (true) {
 				<div>{'early exit'}</div>
 				return;
 			}
 			<div>{'never reached'}</div>
 			<div>{'also never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>early exit</div>');
 	});
 
 	it('handles return at the end of component', async () => {
-		component App() {
+		function App() { return <>
 			<div>{'first'}</div>
 			<div>{'second'}</div>
 			if (true) {
 				<div>{'third'}</div>
 				return;
 			}
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>first</div><div>second</div><div>third</div>');
 	});
 
 	it('handles return with empty elements before (self-closing div)', async () => {
-		component App() {
+		function App() { return <>
 			<div />
 			if (true) {
 				<span>{'content'}</span>
 				return;
 			}
 			<p>{'after'}</p>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div></div><span>content</span>');
 	});
 
 	it('handles return with function call in condition', async () => {
-		component App() {
+		function App() { return <>
 			function check() {
 				return true;
 			}
@@ -521,14 +521,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'function returned false'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>function returned true</div>');
 	});
 
 	it('handles return with arithmetic in condition (corrected: 5+3=8 > 7)', async () => {
-		component App() {
+		function App() { return <>
 			let x = 5;
 			let y = 3;
 
@@ -537,14 +537,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'sum 7 or less'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>sum greater than 7</div>');
 	});
 
 	it('handles multiple sibling returns at same level', async () => {
-		component App() {
+		function App() { return <>
 			let mode = 'b';
 
 			if (mode === 'a') {
@@ -563,14 +563,14 @@ describe('early return in SSR', () => {
 			}
 
 			<div>{'default mode'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>mode B</div>');
 	});
 
 	it('handles return with array length check', async () => {
-		component App() {
+		function App() { return <>
 			let items = [1, 2, 3];
 
 			if (items.length > 0) {
@@ -578,14 +578,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'empty'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>has items</div>');
 	});
 
 	it('handles return with object property check', async () => {
-		component App() {
+		function App() { return <>
 			let obj = { value: 42 };
 
 			if (obj.value === 42) {
@@ -593,14 +593,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'wrong value'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>correct value</div>');
 	});
 
 	it('handles return with typeof check', async () => {
-		component App() {
+		function App() { return <>
 			let value = 'string';
 
 			if (typeof value === 'string') {
@@ -608,14 +608,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not string'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>is string</div>');
 	});
 
 	it('handles return with null check', async () => {
-		component App() {
+		function App() { return <>
 			let value = null;
 
 			if (value === null) {
@@ -623,14 +623,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not null'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>is null</div>');
 	});
 
 	it('handles return with undefined check', async () => {
-		component App() {
+		function App() { return <>
 			let value = undefined;
 
 			if (value === undefined) {
@@ -638,14 +638,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not undefined'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>is undefined</div>');
 	});
 
 	it('handles return with truthy/falsy values', async () => {
-		component App() {
+		function App() { return <>
 			let value = 0;
 
 			if (value) {
@@ -653,14 +653,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'falsy'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>falsy</div>');
 	});
 
 	it('handles return with empty string check', async () => {
-		component App() {
+		function App() { return <>
 			let str = '';
 
 			if (str === '') {
@@ -668,14 +668,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'non-empty string'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>empty string</div>');
 	});
 
 	it('handles return with instance check', async () => {
-		component App() {
+		function App() { return <>
 			let arr = [1, 2, 3];
 
 			if (arr instanceof Array) {
@@ -683,14 +683,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not array'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>is array</div>');
 	});
 
 	it('handles return with in operator', async () => {
-		component App() {
+		function App() { return <>
 			let obj = { a: 1, b: 2 };
 
 			if ('a' in obj) {
@@ -698,14 +698,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'no property a'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>has property a</div>');
 	});
 
 	it('handles return with switch-like pattern using else-if', async () => {
-		component App() {
+		function App() { return <>
 			let status = 'loading';
 
 			if (status === 'idle') {
@@ -725,14 +725,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>loading state</div>');
 	});
 
 	it('handles return with multiple nested levels and mixed conditions', async () => {
-		component App() {
+		function App() { return <>
 			let a = true;
 			let b = false;
 			let c = true;
@@ -753,14 +753,14 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'rest'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a</div><div>c</div><div>d</div>');
 	});
 
 	it('handles return with conditional rendering before guard', async () => {
-		component App() {
+		function App() { return <>
 			let showHeader = true;
 			let shouldReturn = true;
 
@@ -772,14 +772,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<footer>{'Footer'}</footer>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<h1>Header</h1><div>guard</div>');
 	});
 
 	it('handles return with else branch that does not return', async () => {
-		component App() {
+		function App() { return <>
 			let condition = false;
 
 			if (condition) {
@@ -789,14 +789,14 @@ describe('early return in SSR', () => {
 				<div>{'condition false'}</div>
 			}
 			<div>{'after if-else'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>condition false</div><div>after if-else</div>');
 	});
 
 	it('handles return with else branch that also returns', async () => {
-		component App() {
+		function App() { return <>
 			let condition = false;
 
 			if (condition) {
@@ -807,14 +807,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'never reached'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>condition false</div>');
 	});
 
 	it('handles return with only if branch returning', async () => {
-		component App() {
+		function App() { return <>
 			let condition = false;
 
 			if (condition) {
@@ -822,14 +822,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'condition false or after'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>condition false or after</div>');
 	});
 
 	it('handles return with deeply nested else-if chain', async () => {
-		component App() {
+		function App() { return <>
 			let x = 1;
 			let y = 2;
 
@@ -846,7 +846,7 @@ describe('early return in SSR', () => {
 				}
 			}
 			<div>{'x!=1'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>x=1, y=2</div>');
@@ -854,7 +854,7 @@ describe('early return in SSR', () => {
 
 	describe('nested return scenarios', () => {
 		it('nested return hides content after inner if inside outer if', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 
@@ -867,14 +867,14 @@ describe('early return in SSR', () => {
 					<div>{'after inner'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>b</div>');
 		});
 
 		it('nested return shows content after inner if when inner condition is false', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = false;
 
@@ -887,14 +887,14 @@ describe('early return in SSR', () => {
 					<div>{'after inner'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>after inner</div><div>rest</div>');
 		});
 
 		it('nested return with sibling returns inside outer if', async () => {
-			component App() {
+			function App() { return <>
 				let outer = true;
 				let a = false;
 				let b = true;
@@ -913,14 +913,14 @@ describe('early return in SSR', () => {
 					<div>{'after b'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>outer</div><div>between</div><div>b</div>');
 		});
 
 		it('nested return inside else branch', async () => {
-			component App() {
+			function App() { return <>
 				let a = false;
 				let b = true;
 
@@ -934,14 +934,14 @@ describe('early return in SSR', () => {
 					}
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>else</div><div>b</div>');
 		});
 
 		it('deeply nested returns (4 levels) - all true', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 				let c = true;
@@ -961,14 +961,14 @@ describe('early return in SSR', () => {
 					}
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div><div>d</div>');
 		});
 
 		it('deeply nested returns (4 levels) - innermost false', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 				let c = true;
@@ -988,14 +988,14 @@ describe('early return in SSR', () => {
 					}
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div><div>rest</div>');
 		});
 
 		it('nested return with else at outer level', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 
@@ -1009,14 +1009,14 @@ describe('early return in SSR', () => {
 					<div>{'else'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>b</div>');
 		});
 
 		it('nested return with else at outer level - outer false', async () => {
-			component App() {
+			function App() { return <>
 				let a = false;
 				let b = true;
 
@@ -1030,14 +1030,14 @@ describe('early return in SSR', () => {
 					<div>{'else'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>else</div><div>rest</div>');
 		});
 
 		it('nested return hides content at multiple intermediate levels', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 				let c = true;
@@ -1055,7 +1055,7 @@ describe('early return in SSR', () => {
 					<div>{'after b'}</div>
 				}
 				<div>{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toBeHtml('<div>a</div><div>b</div><div>c</div>');
@@ -1063,7 +1063,7 @@ describe('early return in SSR', () => {
 	});
 
 	it('handles return with comparison operators', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = 10;
 
@@ -1072,14 +1072,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'a not less than b'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a less than b</div>');
 	});
 
 	it('handles return with equality operators', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = '5';
 
@@ -1089,14 +1089,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not loosely equal'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>loose equality</div>');
 	});
 
 	it('handles return with strict equality', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = 5;
 
@@ -1105,14 +1105,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'not strictly equal'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>strict equality</div>');
 	});
 
 	it('handles return with greater than or equal', async () => {
-		component App() {
+		function App() { return <>
 			let a = 10;
 			let b = 10;
 
@@ -1121,14 +1121,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'a < b'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a >= b</div>');
 	});
 
 	it('handles return with less than or equal (escaped in HTML)', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = 10;
 
@@ -1137,14 +1137,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'a > b'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a &lt;= b</div>');
 	});
 
 	it('handles return with not equal', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = 10;
 
@@ -1153,14 +1153,14 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'a == b'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a != b</div>');
 	});
 
 	it('handles return with strict not equal', async () => {
-		component App() {
+		function App() { return <>
 			let a = 5;
 			let b = '5';
 
@@ -1170,7 +1170,7 @@ describe('early return in SSR', () => {
 				return;
 			}
 			<div>{'a === b'}</div>
-		}
+		</>; }
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>a !== b</div>');
@@ -1178,7 +1178,7 @@ describe('early return in SSR', () => {
 
 	describe('deeply nested conditions with returns', () => {
 		it('handles return inside nested div > if > div > if chain, all false', async () => {
-			component App() {
+			function App() { return <>
 				let a = false;
 				let b = false;
 				let c = false;
@@ -1202,7 +1202,7 @@ describe('early return in SSR', () => {
 					</div>
 				</div>
 				<div class="after">{'after'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toContain('class="outer"');
@@ -1214,7 +1214,7 @@ describe('early return in SSR', () => {
 		});
 
 		it('nested: first return (c) triggers, hides after', async () => {
-			component App() {
+			function App() { return <>
 				let a = false;
 				let b = false;
 				let c = true;
@@ -1238,7 +1238,7 @@ describe('early return in SSR', () => {
 					</div>
 				</div>
 				<div class="after">{'after'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toContain('class="outer"');
@@ -1248,7 +1248,7 @@ describe('early return in SSR', () => {
 		});
 
 		it('nested: second return (d) triggers with template, hides after', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = true;
 				let c = false;
@@ -1272,7 +1272,7 @@ describe('early return in SSR', () => {
 					</div>
 				</div>
 				<div class="after">{'after'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toContain('class="a"');
@@ -1282,7 +1282,7 @@ describe('early return in SSR', () => {
 		});
 
 		it('nested: both returns active, first (c) wins', async () => {
-			component App() {
+			function App() { return <>
 				let a = false;
 				let b = false;
 				let c = true;
@@ -1306,7 +1306,7 @@ describe('early return in SSR', () => {
 					</div>
 				</div>
 				<div class="after">{'after'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			expect(body).toContain('class="outer"');
@@ -1318,7 +1318,7 @@ describe('early return in SSR', () => {
 		it(
 			'nested outer/inner return guards render fallback paths when inner guard is false',
 			async () => {
-				component App() {
+				function App() { return <>
 					let a = true;
 					let b = false;
 
@@ -1332,7 +1332,7 @@ describe('early return in SSR', () => {
 					}
 
 					<div class="rest">{'rest'}</div>
-				}
+				</>; }
 
 				const { body } = await render(App);
 				expect(body).toBeHtml(
@@ -1342,7 +1342,7 @@ describe('early return in SSR', () => {
 		);
 
 		it('emits balanced hydration markers for nested sibling return guards', async () => {
-			component App() {
+			function App() { return <>
 				let a = true;
 				let b = false;
 				let c = true;
@@ -1361,7 +1361,7 @@ describe('early return in SSR', () => {
 				}
 
 				<div class="rest">{'rest'}</div>
-			}
+			</>; }
 
 			const { body } = await render(App);
 			const open_markers = body.match(/<!--\[-->/g) || [];

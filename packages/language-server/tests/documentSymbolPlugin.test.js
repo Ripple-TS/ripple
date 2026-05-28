@@ -27,7 +27,7 @@ class Store {
 	}
 }
 
-component App() {
+function App() { return <>
 	const count = 0;
 	function increment() {
 		const next = count + 1;
@@ -38,7 +38,7 @@ component App() {
 		return next;
 	};
 	<div>{count}</div>
-}
+</>; }
 `;
 
 		const { document, service, uri } = create_symbol_harness(source);
@@ -78,10 +78,10 @@ export class Store {
 		return this.value;
 	}
 }
-export component Card() {
+export function Card() { return <>
 	const title = 'Card';
 	<div>{title}</div>
-}
+</>; }
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'named-exports.tsrx');
@@ -111,10 +111,10 @@ export default class Store {
 		return this.value;
 	}
 }
-export default component Page() {
+export default function Page() { return <>
 	const title = 'Home';
 	<div>{title}</div>
-}
+</>; }
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'default-exports.tsrx');
@@ -141,10 +141,10 @@ export default class {
 		return this.value;
 	}
 }
-export default component () {
+export default function() { return <>
 	const hiddenComponent = 1;
 	<div>{hiddenComponent}</div>
-}
+</>; }
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'anonymous-default-exports.tsrx');
@@ -198,11 +198,11 @@ export { local, helper as renamedHelper };
 		const source = `const fixed = 1;
 let mutable = 2;
 var legacy = 3;
-component App() {
+function App() { return <>
 	let local = 4;
 	var oldLocal = 5;
 	<div>{local + oldLocal}</div>
-}
+</>; }
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'variable-kinds.tsrx');
@@ -219,11 +219,11 @@ component App() {
 	});
 
 	it('returns symbols for object and array binding patterns', async () => {
-		const source = `component App(props, items) {
+		const source = `function App(props, items) { return <>
 	const { alpha, beta: renamed, gamma = 1, nested: { delta }, ...rest } = props;
 	let [first, , second = 2, ...others] = items;
 	<div>{alpha + renamed + gamma + delta + rest + first + second + others}</div>
-}
+</>; }
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'binding-patterns.tsrx');
@@ -246,7 +246,7 @@ component App() {
 	});
 
 	it('keeps parent ranges wide enough to contain nested local symbols', async () => {
-		const source = `export component App() {
+		const source = `export function App() { return <>
 	const test = 'hello';
 	let { start, loc } = /** @type {AST.NodeWithLocation} */ (node);
 	try {
@@ -256,7 +256,7 @@ component App() {
 	} catch (err) {
 		<p class="error">{(err as Error).message}</p>
 	}
-}
+</>; }
 
 function helper() {
 	const inner = 1;
@@ -286,10 +286,10 @@ const withArrow = () => {
 	const insideArrow = 1;
 	return insideArrow;
 };
-const withComponent = component Inner() {
+const withComponent = function Inner() { return <>
 	const insideComponent = 1;
 	<div>{insideComponent}</div>
-};
+</>; };
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'initializer-children.tsrx');

@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with keyframes', () => {
 	it('handles -global- prefix for keyframes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'animated'}</div>
 
 	<style>
@@ -16,7 +16,7 @@ export component Test() {
 			animation: foo 1s;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@keyframes foo');
@@ -26,7 +26,7 @@ export component Test() {
 
 	it('handles scoped keyframes without -global- prefix', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'animated'}</div>
 
 	<style>
@@ -35,7 +35,7 @@ export component Test() {
 			100% { opacity: 1; }
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/@keyframes tsrx-[a-z0-9]+-foo/);
@@ -43,7 +43,7 @@ export component Test() {
 
 	it('handles mix of global and scoped keyframes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="global-anim">{'one'}</div>
 	<div class="scoped-anim">{'two'}</div>
 
@@ -66,7 +66,7 @@ export component Test() {
 			animation: slideIn 1s;
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@keyframes fadeIn');
@@ -78,7 +78,7 @@ export component Test() {
 
 	it('handles multiple animations with global keyframes', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>{'animated'}</div>
 
 	<style>
@@ -92,7 +92,7 @@ export component Test() {
 			100% { transform: scale(1); }
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@keyframes foo');
@@ -101,7 +101,7 @@ export component Test() {
 
 	it('handles animation property referencing keyframes (not marking as unused)', () => {
 		const source = `
-export component Parent() {
+export function Parent() { return <>
 	<div class="parent">
 		<Child />
 	</div>
@@ -123,9 +123,9 @@ export component Parent() {
 			animation: slideIn 1s;
 		}
 	</style>
-}
+</>; }
 
-component Child() {
+function Child() { return <>
 	<div class="child">{'Child content'}</div>
 
 	<style>
@@ -133,7 +133,7 @@ component Child() {
 			animation: fadeIn 3s; /* Uses global fadeIn from Parent */
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		// Parent should have scoped slideIn and global fadeIn

@@ -14,7 +14,7 @@ const deleteAction: ActionDetails = {
 	description: 'Disabled destructive action',
 };
 
-export component ReactAriaFixture() {
+export function ReactAriaFixture() { return <>
 	const [entries, setEntries] = useState<ActionLogEntry[]>([]);
 	const lastEntry = entries.at(-1);
 
@@ -35,4 +35,4 @@ export component ReactAriaFixture() {
 		<output class="last-pointer">{lastEntry ? lastEntry.pointerType : 'none'}</output>
 		<output class="action-count">{entries.length}</output>
 	</section>
-}
+</>; }

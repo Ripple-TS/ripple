@@ -38,9 +38,9 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 
 		tsrx_react_turbopack_loader.call(
 			context,
-			`export component App() {
+			`export function App() { return <>
 				<div>{'Hello world'}</div>
-			}`,
+			</>; }`,
 		);
 
 		const { err, output, map } = await promise;
@@ -58,9 +58,9 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 			context,
 			`'use client';
 
-			export component App() {
+			export function App() { return <>
 				<div>{'Hello world'}</div>
-			}`,
+			</>; }`,
 		);
 
 		const { err, output } = await promise;
@@ -74,7 +74,7 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 
 		tsrx_react_turbopack_loader.call(
 			context,
-			`export component App() {
+			`export function App() { return <>
 				<div>{'Hello world'}</div>
 
 				<style>
@@ -82,7 +82,7 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 						color: red;
 					}
 				</style>
-			}`,
+			</>; }`,
 		);
 
 		const { err, output, map } = await promise;
@@ -100,7 +100,7 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 			context,
 			`'use client';
 
-			export component App() {
+			export function App() { return <>
 				<div>{'Hello world'}</div>
 
 				<style>
@@ -108,7 +108,7 @@ describe('@tsrx/turbopack-plugin-react loader', () => {
 						color: red;
 					}
 				</style>
-			}`,
+			</>; }`,
 		);
 
 		const { err, output } = await promise;
@@ -127,7 +127,7 @@ describe('@tsrx/turbopack-plugin-react css loader', () => {
 
 		tsrx_react_turbopack_css_loader.call(
 			context,
-			`export component App() {
+			`export function App() { return <>
 				<div class="card">{'Hello world'}</div>
 
 				<style>
@@ -135,7 +135,7 @@ describe('@tsrx/turbopack-plugin-react css loader', () => {
 						color: red;
 					}
 				</style>
-			}`,
+			</>; }`,
 		);
 
 		const { err, output } = await promise;

@@ -2,7 +2,7 @@ import { track } from 'ripple';
 
 // Event handling components for hydration testing
 
-export component ClickCounter() {
+export function ClickCounter() { return <>
 	let &[count] = track(0);
 	<div>
 		<button
@@ -15,9 +15,9 @@ export component ClickCounter() {
 		</button>
 		<span class="count">{count}</span>
 	</div>
-}
+</>; }
 
-export component IncrementDecrement() {
+export function IncrementDecrement() { return <>
 	let &[count] = track(0);
 	<div>
 		<button
@@ -38,9 +38,9 @@ export component IncrementDecrement() {
 			{'+'}
 		</button>
 	</div>
-}
+</>; }
 
-export component MultipleEvents() {
+export function MultipleEvents() { return <>
 	let &[clicks] = track(0);
 	let &[hovers] = track(0);
 	<div>
@@ -58,9 +58,9 @@ export component MultipleEvents() {
 		<span class="clicks">{clicks}</span>
 		<span class="hovers">{hovers}</span>
 	</div>
-}
+</>; }
 
-export component MultiStateUpdate() {
+export function MultiStateUpdate() { return <>
 	let &[count] = track(0);
 	let &[lastAction] = track('none');
 
@@ -74,9 +74,9 @@ export component MultiStateUpdate() {
 		<span class="count">{count}</span>
 		<span class="action">{lastAction}</span>
 	</div>
-}
+</>; }
 
-export component ToggleButton() {
+export function ToggleButton() { return <>
 	let &[isOn] = track(false);
 	<div>
 		<button
@@ -88,13 +88,13 @@ export component ToggleButton() {
 			{isOn ? 'ON' : 'OFF'}
 		</button>
 	</div>
-}
+</>; }
 
-export component ChildButton(props: { onClick: () => void; label: string }) {
+export function ChildButton(props: { onClick: () => void; label: string }) { return <>
 	<button class="child-btn" onClick={props.onClick}>{props.label}</button>
-}
+</>; }
 
-export component ParentWithChildButton() {
+export function ParentWithChildButton() { return <>
 	let &[count] = track(0);
 	<div>
 		<ChildButton
@@ -105,4 +105,4 @@ export component ParentWithChildButton() {
 		/>
 		<span class="count">{count}</span>
 	</div>
-}
+</>; }

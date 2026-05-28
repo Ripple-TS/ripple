@@ -1,129 +1,135 @@
 import { track } from 'ripple';
 
-export component SwitchStatic() {
-	const status: string = 'success';
-	switch (status) {
-		case 'success':
-			<div class="status-success">{'Success'}</div>
-			break;
-		case 'error':
-			<div class="status-error">{'Error'}</div>
-			break;
-		default:
-			<div class="status-unknown">{'Unknown'}</div>
-	}
+export function SwitchStatic() {
+	return <>
+		const status: string = 'success';
+		switch (status) {
+			case 'success':
+				<div class="status-success">{'Success'}</div>
+				break;
+			case 'error':
+				<div class="status-error">{'Error'}</div>
+				break;
+			default:
+				<div class="status-unknown">{'Unknown'}</div>
+		}
+	</>;
 }
 
-export component SwitchReactive() {
-	let &[status] = track<'a' | 'b' | 'c'>('a');
-	<button
-		class="toggle"
-		onClick={() => {
-			if (status === 'a') status = 'b';
-			else if (status === 'b') status = 'c';
-			else status = 'a';
-		}}
-	>
-		{'Toggle'}
-	</button>
-	switch (status) {
-		case 'a':
-			<div class="case-a">{'Case A'}</div>
-			break;
-		case 'b':
-			<div class="case-b">{'Case B'}</div>
-			break;
-		default:
-			<div class="case-c">{'Case C'}</div>
-	}
+export function SwitchReactive() {
+	return <>
+		let &[status] = track<'a' | 'b' | 'c'>('a');
+		<button
+			class="toggle"
+			onClick={() => {
+				if (status === 'a') status = 'b';
+				else if (status === 'b') status = 'c';
+				else status = 'a';
+			}}
+		>
+			{'Toggle'}
+		</button>
+		switch (status) {
+			case 'a':
+				<div class="case-a">{'Case A'}</div>
+				break;
+			case 'b':
+				<div class="case-b">{'Case B'}</div>
+				break;
+			default:
+				<div class="case-c">{'Case C'}</div>
+		}
+	</>;
 }
 
-export component SwitchFallthrough() {
-	const val: number = 1;
-	switch (val) {
-		case 1:
-		case 2:
-			<div class="case-1-2">{'1 or 2'}</div>
-			break;
-		default:
-			<div class="case-other">{'Other'}</div>
-	}
+export function SwitchFallthrough() {
+	return <>
+		const val: number = 1;
+		switch (val) {
+			case 1:
+			case 2:
+				<div class="case-1-2">{'1 or 2'}</div>
+				break;
+			default:
+				<div class="case-other">{'Other'}</div>
+		}
+	</>;
 }
 
-export component SwitchNumericLevels() {
-	let &[level] = track<1 | 2 | 3>(1);
-	<button
-		class="level-toggle"
-		onClick={() => {
-			if (level === 1) level = 2;
-			else if (level === 2) level = 3;
-			else level = 1;
-		}}
-	>
-		{'Toggle Level'}
-	</button>
-	switch (level) {
-		case 1:
-			<div class="level-1">{'Level 1'}</div>
-			break;
-		case 2:
-			<div class="level-2">{'Level 2'}</div>
-			break;
-		case 3:
-			<div class="level-3">{'Level 3'}</div>
-			break;
-	}
+export function SwitchNumericLevels() {
+	return <>
+		let &[level] = track<1 | 2 | 3>(1);
+		<button
+			class="level-toggle"
+			onClick={() => {
+				if (level === 1) level = 2;
+				else if (level === 2) level = 3;
+				else level = 1;
+			}}
+		>
+			{'Toggle Level'}
+		</button>
+		switch (level) {
+			case 1:
+				<div class="level-1">{'Level 1'}</div>
+				break;
+			case 2:
+				<div class="level-2">{'Level 2'}</div>
+				break;
+			case 3:
+				<div class="level-3">{'Level 3'}</div>
+				break;
+		}
+	</>;
 }
 
-export component SwitchBlockScoped() {
-	let &[level] = track<1 | 2 | 3>(1);
-	<button
-		class="block-toggle"
-		onClick={() => {
-			if (level === 1) level = 2;
-			else if (level === 2) level = 3;
-			else level = 1;
-		}}
-	>
-		{'Toggle'}
-	</button>
-	switch (level) {
-		case 1: {
-			<div class="block-1">{'Block 1'}</div>
-			break;
+export function SwitchBlockScoped() {
+	return <>
+		let &[level] = track<1 | 2 | 3>(1);
+		<button
+			class="block-toggle"
+			onClick={() => {
+				if (level === 1) level = 2;
+				else if (level === 2) level = 3;
+				else level = 1;
+			}}
+		>
+			{'Toggle'}
+		</button>
+		switch (level) {
+			case 1:
+				<div class="block-1">{'Block 1'}</div>
+				break;
+			case 2:
+				<div class="block-2">{'Block 2'}</div>
+				break;
+			case 3:
+				<div class="block-3">{'Block 3'}</div>
+				break;
 		}
-		case 2: {
-			<div class="block-2">{'Block 2'}</div>
-			break;
-		}
-		case 3: {
-			<div class="block-3">{'Block 3'}</div>
-			break;
-		}
-	}
+	</>;
 }
 
-export component SwitchNoBreak() {
-	let &[level] = track<1 | 2 | 3>(1);
-	<button
-		class="nobreak-toggle"
-		onClick={() => {
-			if (level === 1) level = 2;
-			else if (level === 2) level = 3;
-			else level = 1;
-		}}
-	>
-		{'Toggle'}
-	</button>
-	switch (level) {
-		case 1: {
-			<div class="nobreak-1">{'NoBreak 1'}</div>
+export function SwitchNoBreak() {
+	return <>
+		let &[level] = track<1 | 2 | 3>(1);
+		<button
+			class="nobreak-toggle"
+			onClick={() => {
+				if (level === 1) level = 2;
+				else if (level === 2) level = 3;
+				else level = 1;
+			}}
+		>
+			{'Toggle'}
+		</button>
+		switch (level) {
+			case 1:
+				<div class="nobreak-1">{'NoBreak 1'}</div>
+			case 2:
+				<div class="nobreak-2">{'NoBreak 2'}</div>
+			case 3:
+				<div class="nobreak-3">{'NoBreak 3'}</div>
 		}
-		case 2: {
-			<div class="nobreak-2">{'NoBreak 2'}</div>
-		}
-		case 3: {
-			<div class="nobreak-3">{'NoBreak 3'}</div>
-		}
-	}
+	</>;
 }

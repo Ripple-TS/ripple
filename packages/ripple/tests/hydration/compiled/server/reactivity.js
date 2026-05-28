@@ -6,6 +6,7 @@ import { track } from 'ripple/server';
 export function TrackedState() {
 	_$_.push_component();
 
+	var __r = false;
 	let lazy = _$_.track(0, 'c1818584');
 
 	_$_.regular_block(() => {
@@ -20,12 +21,14 @@ export function TrackedState() {
 		_$_.output_push('</div>');
 	});
 
+	__r = true;
 	_$_.pop_component();
 }
 
 export function CounterWithInitial(props) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy_1 = _$_.track(props.initial, '03ea4348');
 
 	_$_.regular_block(() => {
@@ -47,11 +50,14 @@ export function CounterWithInitial(props) {
 		_$_.output_push('</div>');
 	});
 
+	__r_1 = true;
 	_$_.pop_component();
 }
 
 export function CounterWrapper() {
 	_$_.push_component();
+
+	var __r_2 = false;
 
 	_$_.regular_block(() => {
 		{
@@ -62,12 +68,14 @@ export function CounterWrapper() {
 		}
 	});
 
+	__r_2 = true;
 	_$_.pop_component();
 }
 
 export function ComputedValues() {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_2 = _$_.track(2, 'b78281db');
 	let lazy_3 = _$_.track(3, 'a0cf6c6d');
 	const sum = () => lazy_2.value + lazy_3.value;
@@ -84,12 +92,14 @@ export function ComputedValues() {
 		_$_.output_push('</div>');
 	});
 
+	__r_3 = true;
 	_$_.pop_component();
 }
 
 export function MultipleTracked() {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_4 = _$_.track(10, '843522de');
 	let lazy_5 = _$_.track(20, '1308996d');
 	let lazy_6 = _$_.track(30, '048c3fd0');
@@ -130,12 +140,14 @@ export function MultipleTracked() {
 		_$_.output_push('</div>');
 	});
 
+	__r_4 = true;
 	_$_.pop_component();
 }
 
 export function DerivedState() {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_7 = _$_.track('John', '6015eeca');
 	let lazy_8 = _$_.track('Doe', '4fa9a20e');
 	const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
@@ -152,5 +164,6 @@ export function DerivedState() {
 		_$_.output_push('</div>');
 	});
 
+	__r_5 = true;
 	_$_.pop_component();
 }

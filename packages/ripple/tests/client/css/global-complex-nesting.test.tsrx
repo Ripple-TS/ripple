@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with complex nesting', () => {
 	it('handles :global block with nested selectors', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>
 			<button>{'click'}</button>
@@ -23,7 +23,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).not.toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -33,7 +33,7 @@ export component Test() {
 
 	it('handles local block with :global nested inside', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -51,7 +51,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -61,7 +61,7 @@ export component Test() {
 
 	it('handles :global block with local nested inside', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>
 			<button>{'click'}</button>
@@ -77,7 +77,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div {');
@@ -88,7 +88,7 @@ export component Test() {
 
 	it('handles alternating :global and local nesting', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>
 			<button>
@@ -108,7 +108,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -119,7 +119,7 @@ export component Test() {
 
 	it('handles deeply nested :global blocks', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<span>
 			<button>{'click'}</button>
@@ -139,7 +139,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);
@@ -151,7 +151,7 @@ export component Test() {
 
 	it('handles :global with nesting combinator &', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div class="container">
 		<button class="active">{'click'}</button>
 	</div>
@@ -171,7 +171,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/\.container\.tsrx-[a-z0-9]+ {/);
@@ -182,7 +182,7 @@ export component Test() {
 
 	it('handles complex :global nesting with multiple levels', () => {
 		const source = `
-export component Test() {
+export function Test() { return <>
 	<div>
 		<nav>
 			<ul>
@@ -206,7 +206,7 @@ export component Test() {
 			}
 		}
 	</style>
-}`;
+</>; }`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ {/);

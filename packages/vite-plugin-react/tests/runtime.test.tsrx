@@ -43,49 +43,49 @@ function text(selector: string): string | null {
 
 // ── Basic rendering ──
 
-component BasicApp() {
+function BasicApp() { return <>
 	<div class="greeting">{'Hello world'}</div>
-}
+</>; }
 
-component DirectQuotedTextApp() {
+function DirectQuotedTextApp() { return <>
 	<div class="direct-quoted-entities">"Rock &amp; &quot;Roll&quot;"</div>
 	<div class="direct-quoted-backslash">"line\nbreak"</div>
 	<pre class="direct-quoted-multiline">"first
 second"</pre>
-}
+</>; }
 
-component DirectQuotedTextIfElseTrueApp() {
+function DirectQuotedTextIfElseTrueApp() { return <>
 	if (true) {
 		"Hello Ripple"
 	} else "Hello React"
-}
+</>; }
 
-component DirectQuotedTextIfElseFalseApp() {
+function DirectQuotedTextIfElseFalseApp() { return <>
 	if (false) {
 		"Hello Ripple"
 	} else "Hello React"
-}
+</>; }
 
-component DirectQuotedTextIfElseApp() {
+function DirectQuotedTextIfElseApp() { return <>
 	<div class="direct-quoted-if-then">
 		<DirectQuotedTextIfElseTrueApp />
 	</div>
 	<div class="direct-quoted-if-else">
 		<DirectQuotedTextIfElseFalseApp />
 	</div>
-}
+</>; }
 
-component Child(props: { text: string }) {
+function Child(props: { text: string }) { return <>
 	<span class="child">{props.text}</span>
-}
+</>; }
 
-component NestedApp() {
+function NestedApp() { return <>
 	<div>
 		<Child text="nested" />
 	</div>
-}
+</>; }
 
-component ExplicitTextApp() {
+function ExplicitTextApp() { return <>
 	const markup = '<span>Not HTML</span>';
 	const hidden = false;
 	const empty = null;
@@ -95,9 +95,9 @@ component ExplicitTextApp() {
 	<div class="explicit-text-boolean">{text hidden}</div>
 	<div class="explicit-text-null">{text empty}</div>
 	<div class="explicit-text-undefined">{text missing}</div>
-}
+</>; }
 
-component ExplicitHtmlApp() {
+function ExplicitHtmlApp() { return <>
 	const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
 
 	<div class="explicit-html-child">{html markup}</div>
@@ -109,9 +109,9 @@ component ExplicitHtmlApp() {
 	>
 		{'update'}
 	</button>
-}
+</>; }
 
-component SpreadHtmlApp() {
+function SpreadHtmlApp() { return <>
 	const [spreadProps, setSpreadProps] = useState({
 		dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
 	});
@@ -136,9 +136,9 @@ component SpreadHtmlApp() {
 	>
 		{'markup'}
 	</button>
-}
+</>; }
 
-component CallableBlockRuntimeApp() {
+function CallableBlockRuntimeApp() { return <>
 	function readDeclaration() {
 		const marker = 'decl-outer';
 		let selected = marker;
@@ -184,21 +184,21 @@ component CallableBlockRuntimeApp() {
 		<p class="arrow-block">{readArrow()}</p>
 		<p class="method-block">{reader.read()}</p>
 	</section>
-}
+</>; }
 
 // ── Reactive counter ──
 
-component CounterApp() {
+function CounterApp() { return <>
 	const [count, setCount] = useState(0);
 	<p class="count">{count}</p>
 	<button class="inc" onClick={() => setCount(count + 1)}>{'+'}</button>
-}
+</>; }
 
 // ── Refs on elements ──
 
 let element_ref_captured: HTMLDivElement | null = null;
 
-component ElementRefApp() {
+function ElementRefApp() { return <>
 	<div
 		{ref (node: HTMLDivElement) => {
 			element_ref_captured = node;
@@ -207,31 +207,31 @@ component ElementRefApp() {
 	>
 		{'ref test'}
 	</div>
-}
+</>; }
 
 // ── Ref on composite components via prop forwarding ──
 
 let composite_ref_captured: HTMLInputElement | null = null;
 
-component InputComp(props: { type: string; ref?: (node: HTMLInputElement) => void }) {
+function InputComp(props: { type: string; ref?: (node: HTMLInputElement) => void }) { return <>
 	<input type={props.type} ref={props.ref} />
-}
+</>; }
 
-component CompositeRefApp() {
+function CompositeRefApp() { return <>
 	<InputComp
 		type="text"
 		{ref (node: HTMLInputElement) => {
 			composite_ref_captured = node;
 		}}
 	/>
-}
+</>; }
 
 // ── Multiple ref callbacks combined into one ──
 
 let multi_ref1_node: HTMLDivElement | null = null;
 let multi_ref2_node: HTMLDivElement | null = null;
 
-component MultiRefApp() {
+function MultiRefApp() { return <>
 	function firstRef(node: HTMLDivElement) {
 		multi_ref1_node = node;
 	}
@@ -248,7 +248,7 @@ component MultiRefApp() {
 	>
 		{'multi ref'}
 	</div>
-}
+</>; }
 
 // ── Multiple `{ref expr}` keyword-form refs auto-merged by the compiler ──
 // React's runtime treats duplicate `ref` props as a normal prop collision,
@@ -260,7 +260,7 @@ let auto_merged_a: HTMLDivElement | null = null;
 let auto_merged_b: HTMLDivElement | null = null;
 let auto_merged_c: HTMLDivElement | null = null;
 
-component AutoMergedRefApp() {
+function AutoMergedRefApp() { return <>
 	function refA(node: HTMLDivElement) {
 		auto_merged_a = node;
 	}
@@ -272,7 +272,7 @@ component AutoMergedRefApp() {
 	}
 
 	<div {ref refA} {ref refB} {ref refC} class="auto-merged">{'auto merged'}</div>
-}
+</>; }
 
 // ── Mixing Ripple `{ref expr}` and TSX-style `ref={expr}` ──
 // At most one TSX-style `ref={expr}` is allowed; any number of
@@ -282,7 +282,7 @@ component AutoMergedRefApp() {
 let mixed_keyword_node: HTMLDivElement | null = null;
 let mixed_jsx_node: HTMLDivElement | null = null;
 
-component AutoMergedMixedRefApp() {
+function AutoMergedMixedRefApp() { return <>
 	function keywordRef(node: HTMLDivElement) {
 		mixed_keyword_node = node;
 	}
@@ -291,7 +291,7 @@ component AutoMergedMixedRefApp() {
 	}
 
 	<div {ref keywordRef} ref={jsxRef} class="auto-merged-mixed">{'mixed merged'}</div>
-}
+</>; }
 
 // ── Mix callback refs and ref objects under mergeRefs ──
 // `mergeRefs` accepts function refs and `{ current }` ref objects (e.g.
@@ -300,13 +300,13 @@ component AutoMergedMixedRefApp() {
 const ref_object: { current: HTMLDivElement | null } = { current: null };
 let auto_ref_obj_callback_node: HTMLDivElement | null = null;
 
-component AutoMergedRefObjectApp() {
+function AutoMergedRefObjectApp() { return <>
 	function callbackRef(node: HTMLDivElement) {
 		auto_ref_obj_callback_node = node;
 	}
 
 	<div ref={ref_object} {ref callbackRef} class="auto-merged-objects">{'object merged'}</div>
-}
+</>; }
 
 // ── React 19 cleanup contract through mergeRefs ──
 // `mergeRefs` always returns a cleanup function. Under React 19 the
@@ -329,7 +329,7 @@ function modernMountRef(_node: HTMLDivElement) {
 	};
 }
 
-component CleanupRefApp() {
+function CleanupRefApp() { return <>
 	const [show, setShow] = useState(true);
 
 	if (show) {
@@ -337,11 +337,11 @@ component CleanupRefApp() {
 	}
 
 	<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
-}
+</>; }
 
 // ── If-statement with reactivity ──
 
-component IfReactiveApp() {
+function IfReactiveApp() { return <>
 	const [show, setShow] = useState(true);
 
 	if (show) {
@@ -351,11 +351,11 @@ component IfReactiveApp() {
 	}
 
 	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-}
+</>; }
 
 // ── For-of loop with reactivity ──
 
-component ForReactiveApp() {
+function ForReactiveApp() { return <>
 	const [items, setItems] = useState(['a', 'b', 'c']);
 
 	for (const item of items) {
@@ -364,30 +364,30 @@ component ForReactiveApp() {
 
 	<button class="add" onClick={() => setItems([...items, 'd'])}>{'add'}</button>
 	<button class="remove" onClick={() => setItems(items.slice(1))}>{'remove'}</button>
-}
+</>; }
 
-component ForContinueApp() {
+function ForContinueApp() { return <>
 	const items = ['a', '', 'c'];
 
 	for (const item of items) {
 		if (!item) continue;
 		<li class="continue-item" key={item}>{item}</li>
 	}
-}
+</>; }
 
 // ── For-of over a Set ──
 
-component ForOverSetApp() {
+function ForOverSetApp() { return <>
 	const items = new Set<string>(['x', 'y', 'z']);
 
 	for (const item of items) {
 		<li class="set-item" key={item}>{item}</li>
 	}
-}
+</>; }
 
 // ── For-of over a Map ──
 
-component ForOverMapApp() {
+function ForOverMapApp() { return <>
 	const entries = new Map<string, number>([
 		['a', 1],
 		['b', 2],
@@ -397,11 +397,11 @@ component ForOverMapApp() {
 	for (const [key, value] of entries) {
 		<li class="map-item" {key}>{key + ':' + value}</li>
 	}
-}
+</>; }
 
 // ── For-of over a custom iterable ──
 
-component ForOverCustomIterableApp() {
+function ForOverCustomIterableApp() { return <>
 	function* iter() {
 		yield 'one';
 		yield 'two';
@@ -413,11 +413,11 @@ component ForOverCustomIterableApp() {
 	for (const item of items) {
 		<li class="generator-item" key={item}>{item}</li>
 	}
-}
+</>; }
 
 // ── Switch with reactivity ──
 
-component SwitchReactiveApp() {
+function SwitchReactiveApp() { return <>
 	const [page, setPage] = useState('home');
 
 	switch (page) {
@@ -434,23 +434,23 @@ component SwitchReactiveApp() {
 
 	<button class="go-about" onClick={() => setPage('about')}>{'about'}</button>
 	<button class="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
-}
+</>; }
 
 // ── Composite children ──
 
-component Wrapper(props: { children?: any }) {
+function Wrapper(props: { children?: any }) { return <>
 	<div class="wrapper">{props.children}</div>
-}
+</>; }
 
-component ChildrenApp() {
+function ChildrenApp() { return <>
 	<Wrapper>
 		<span>{'inside wrapper'}</span>
 	</Wrapper>
-}
+</>; }
 
 // ── If-statement children through composite ──
 
-component IfChildrenApp() {
+function IfChildrenApp() { return <>
 	const [show, setShow] = useState(false);
 
 	<Wrapper>
@@ -460,11 +460,11 @@ component IfChildrenApp() {
 	</Wrapper>
 
 	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-}
+</>; }
 
 // ── Scoped CSS ──
 
-component StyledApp() {
+function StyledApp() { return <>
 	<div class="styled">{'styled text'}</div>
 
 	<style>
@@ -472,18 +472,18 @@ component StyledApp() {
 			color: red;
 		}
 	</style>
-}
+</>; }
 
 // ── Ref forwarding through spread ──
 
 let spread_ref_captured: HTMLInputElement | null = null;
 
-component SpreadInput(props: { id: string; [key: string]: any }) {
+function SpreadInput(props: { id: string; [key: string]: any }) { return <>
 	const { id, ...rest } = props;
 	<input {id} {...rest} />
-}
+</>; }
 
-component SpreadRefApp() {
+function SpreadRefApp() { return <>
 	<SpreadInput
 		id="spread-input"
 		type="text"
@@ -491,7 +491,7 @@ component SpreadRefApp() {
 			spread_ref_captured = node;
 		}}
 	/>
-}
+</>; }
 
 let tsx_spread_ref_captured: HTMLInputElement | null = null;
 let tsx_explicit_ref_captured: HTMLInputElement | null = null;
@@ -516,11 +516,11 @@ class TsxSpreadRefRenderer {
 	}
 }
 
-component TsxSpreadRefApp() {
+function TsxSpreadRefApp() { return <>
 	const renderer = new TsxSpreadRefRenderer();
 
 	<div class="tsx-spread-ref">{renderer.render()}</div>
-}
+</>; }
 
 // ── Named ref props merged with native and anonymous refs ──
 
@@ -528,7 +528,7 @@ let named_direct_node: HTMLInputElement | null = null;
 let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
-component NamedDirectRefApp() {
+function NamedDirectRefApp() { return <>
 	function nativeRef(node: HTMLInputElement | null) {
 		named_direct_native_node = node;
 	}
@@ -546,22 +546,22 @@ component NamedDirectRefApp() {
 		class="named-direct-ref"
 		type="text"
 	/>
-}
+</>; }
 
 let named_forward_node: HTMLInputElement | null = null;
 
-component NamedForwardInput(props: { type: string; input_ref?: any }) {
+function NamedForwardInput(props: { type: string; input_ref?: any }) { return <>
 	<input type={props.type} ref={props.input_ref} class="named-forward-ref" />
-}
+</>; }
 
-component NamedForwardRefApp() {
+function NamedForwardRefApp() { return <>
 	<NamedForwardInput
 		type="text"
 		input_ref={ref (node: HTMLInputElement | null) => {
 			named_forward_node = node;
 		}}
 	/>
-}
+</>; }
 
 let named_spread_before_node: HTMLInputElement | null = null;
 let named_spread_before_native_node: HTMLInputElement | null = null;
@@ -570,18 +570,18 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-component NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
+function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) { return <>
 	<input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" />
-}
+</>; }
 
-component NamedSpreadBeforeRefApp() {
+function NamedSpreadBeforeRefApp() { return <>
 	<NamedSpreadBeforeRefInput
 		type="text"
 		input_ref={ref (node: HTMLInputElement | null) => {
 			named_spread_before_node = node;
 		}}
 	/>
-}
+</>; }
 
 let named_spread_after_node: HTMLInputElement | null = null;
 let named_spread_after_native_node: HTMLInputElement | null = null;
@@ -590,18 +590,18 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-component NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
+function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) { return <>
 	<input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" />
-}
+</>; }
 
-component NamedSpreadAfterRefApp() {
+function NamedSpreadAfterRefApp() { return <>
 	<NamedSpreadAfterRefInput
 		type="text"
 		input_ref={ref (node: HTMLInputElement | null) => {
 			named_spread_after_node = node;
 		}}
 	/>
-}
+</>; }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
 let multi_spread_second_node: HTMLInputElement | null = null;
@@ -615,7 +615,7 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 	multi_spread_native_node = node;
 }
 
-component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
+function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) { return <>
 	const first = { type: props.type, first_ref: props.first_ref };
 	const second = { second_ref: props.second_ref };
 
@@ -625,9 +625,9 @@ component MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; se
 		ref={multiSpreadExplicitNativeRef}
 		class="multi-spread-explicit-ref"
 	/>
-}
+</>; }
 
-component MultiSpreadExplicitRefApp() {
+function MultiSpreadExplicitRefApp() { return <>
 	<MultiSpreadExplicitRefInput
 		type="text"
 		first_ref={ref (node: HTMLInputElement | null) => {
@@ -637,17 +637,17 @@ component MultiSpreadExplicitRefApp() {
 			multi_spread_second_node = node;
 		}}
 	/>
-}
+</>; }
 
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
 
-component NamedRefObjectApp() {
+function NamedRefObjectApp() { return <>
 	<NamedForwardInput type="text" input_ref={ref named_ref_object} />
-}
+</>; }
 
 let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
 
-component NamedMutableUnmountApp() {
+function NamedMutableUnmountApp() { return <>
 	const [show, setShow] = useState(true);
 
 	if (show) {
@@ -659,33 +659,33 @@ component NamedMutableUnmountApp() {
 		/>
 	}
 	<button class="named-mutable-unmount-hide" onClick={() => setShow(false)}>{'hide'}</button>
-}
+</>; }
 
 // ── Try/catch: synchronous error boundary ──
 
-component ThrowingChild() {
+function ThrowingChild() { return <>
 	throw new Error('sync boom');
 	<p>{'unreachable'}</p>
-}
+</>; }
 
-component ErrorBoundaryApp() {
+function ErrorBoundaryApp() { return <>
 	try {
 		<ThrowingChild />
 	} catch (err: Error) {
 		<p class="caught">{err.message}</p>
 	}
-}
+</>; }
 
 // ── Try/catch with reactive toggle into/out of error ──
 
-component MaybeThrow(props: { shouldThrow: boolean }) {
+function MaybeThrow(props: { shouldThrow: boolean }) { return <>
 	if (props.shouldThrow) {
 		throw new Error('conditional boom');
 	}
 	<p class="ok">{'no error'}</p>
-}
+</>; }
 
-component ErrorToggleApp() {
+function ErrorToggleApp() { return <>
 	const [fail, setFail] = useState(false);
 
 	try {
@@ -704,32 +704,32 @@ component ErrorToggleApp() {
 	}
 
 	<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
-}
+</>; }
 
 // ── Try/pending: Suspense with use() ──
 
-component AsyncChild(props: { promise: Promise<string> }) {
+function AsyncChild(props: { promise: Promise<string> }) { return <>
 	const data = use(props.promise);
 	<p class="resolved">{data}</p>
-}
+</>; }
 
-component SuspenseApp(props: { promise: Promise<string> }) {
+function SuspenseApp(props: { promise: Promise<string> }) { return <>
 	try {
 		<AsyncChild promise={props.promise} />
 	} pending {
 		<p class="pending">{'loading...'}</p>
 	}
-}
+</>; }
 
-component EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
+function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) { return <>
 	try {
 		<AsyncChild promise={props.promise} />
 	} pending {}
-}
+</>; }
 
 // ── Try/pending/catch: Suspense + ErrorBoundary ──
 
-component SuspenseErrorApp(props: { promise: Promise<string> }) {
+function SuspenseErrorApp(props: { promise: Promise<string> }) { return <>
 	try {
 		<AsyncChild promise={props.promise} />
 	} pending {
@@ -737,11 +737,11 @@ component SuspenseErrorApp(props: { promise: Promise<string> }) {
 	} catch (err: Error) {
 		<p class="caught">{err.message}</p>
 	}
-}
+</>; }
 
 // ── Try/catch with reset: recover from error ──
 
-component ErrorResetApp(props: { promise: Promise<string> }) {
+function ErrorResetApp(props: { promise: Promise<string> }) { return <>
 	try {
 		<AsyncChild promise={props.promise} />
 	} pending {
@@ -750,16 +750,16 @@ component ErrorResetApp(props: { promise: Promise<string> }) {
 		<p class="caught">{err.message}</p>
 		<button class="retry" onClick={() => reset()}>{'retry'}</button>
 	}
-}
+</>; }
 
 // ── Nested try: inner catch handles inner error ──
 
-component InnerThrow() {
+function InnerThrow() { return <>
 	throw new Error('inner error');
 	<p>{'unreachable'}</p>
-}
+</>; }
 
-component NestedTryApp() {
+function NestedTryApp() { return <>
 	try {
 		<div class="outer">
 			try {
@@ -771,11 +771,11 @@ component NestedTryApp() {
 	} catch (err: Error) {
 		<p class="outer-caught">{err.message}</p>
 	}
-}
+</>; }
 
 // ── Try/pending with reactive promise swap ──
 
-component SwappableAsyncApp() {
+function SwappableAsyncApp() { return <>
 	const [promise, setPromise] = useState(() => Promise.resolve('first'));
 
 	try {
@@ -785,11 +785,11 @@ component SwappableAsyncApp() {
 	}
 
 	<button class="swap" onClick={() => setPromise(Promise.resolve('second'))}>{'swap'}</button>
-}
+</>; }
 
 // ── If inside try body ──
 
-component IfInsideTryApp() {
+function IfInsideTryApp() { return <>
 	const [show, setShow] = useState(true);
 
 	try {
@@ -803,11 +803,11 @@ component IfInsideTryApp() {
 	}
 
 	<button class="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-}
+</>; }
 
 // ── For-of inside try body ──
 
-component ForInsideTryApp() {
+function ForInsideTryApp() { return <>
 	const [items, setItems] = useState(['x', 'y']);
 
 	try {
@@ -819,11 +819,11 @@ component ForInsideTryApp() {
 	}
 
 	<button class="add" onClick={() => setItems([...items, 'z'])}>{'add'}</button>
-}
+</>; }
 
 // ── Hook inside if-branch ──
 
-component HookInIfApp() {
+function HookInIfApp() { return <>
 	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
 
 	if (show) {
@@ -835,11 +835,11 @@ component HookInIfApp() {
 	}
 
 	<button class="hook-if-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-}
+</>; }
 
 // ── Hook inside for-of loop ──
 
-component HookInForApp() {
+function HookInForApp() { return <>
 	const [items, setItems] = useState(['a', 'b']);
 
 	for (const item of items) {
@@ -854,11 +854,11 @@ component HookInForApp() {
 	}
 
 	<button class="hook-for-add" onClick={() => setItems([...items, 'c'])}>{'add'}</button>
-}
+</>; }
 
 // ── Hook inside switch case ──
 
-component HookInSwitchApp() {
+function HookInSwitchApp() { return <>
 	const [page, setPage] = useState('home');
 
 	switch (page) {
@@ -873,11 +873,11 @@ component HookInSwitchApp() {
 	}
 
 	<button class="hook-switch-go" onClick={() => setPage('about')}>{'about'}</button>
-}
+</>; }
 
 // ── Hook inside if-else both branches ──
 
-component HookInBothBranchesApp() {
+function HookInBothBranchesApp() { return <>
 	const [mode, setMode] = useState('a');
 
 	if (mode === 'a') {
@@ -893,11 +893,11 @@ component HookInBothBranchesApp() {
 	<button class="branch-toggle" onClick={() => setMode(mode === 'a' ? 'b' : 'a')}>
 		{'toggle'}
 	</button>
-}
+</>; }
 
 // ── Hook inside if-branch closing over parent scope ──
 
-component HookClosingOverScopeApp() {
+function HookClosingOverScopeApp() { return <>
 	const [multiplier, setMultiplier] = useState(2);
 
 	if (multiplier > 0) {
@@ -909,11 +909,11 @@ component HookClosingOverScopeApp() {
 	<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier + 1)}>
 		{'inc multiplier'}
 	</button>
-}
+</>; }
 
 // ── Hook inside element children (hooks in nested <div> body) ──
 
-component HookInsideElementApp() {
+function HookInsideElementApp() { return <>
 	const [label, setLabel] = useState('greeting');
 
 	<div class="outer">
@@ -931,11 +931,11 @@ component HookInsideElementApp() {
 	>
 		{'toggle'}
 	</button>
-}
+</>; }
 
 // ── Hook inside for-of closing over parent scope ──
 
-component HookInForClosingScopeApp() {
+function HookInForClosingScopeApp() { return <>
 	const [prefix, setPrefix] = useState('item');
 	const [items, setItems] = useState(['a', 'b']);
 
@@ -950,11 +950,11 @@ component HookInForClosingScopeApp() {
 	}
 
 	<button class="for-scope-prefix" onClick={() => setPrefix('thing')}>{'change prefix'}</button>
-}
+</>; }
 
 // ── Early return before hooks with parent scope ──
 
-component EarlyReturnWithHooksApp() {
+function EarlyReturnWithHooksApp() { return <>
 	const [count, setCount] = useState(0);
 	const [skip, setSkip] = useState(false);
 
@@ -976,11 +976,11 @@ component EarlyReturnWithHooksApp() {
 		{'inc'}
 	</button>
 	<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
-}
+</>; }
 
 // ── Hook inside switch closing over parent scope ──
 
-component HookInSwitchWithScopeApp() {
+function HookInSwitchWithScopeApp() { return <>
 	const [tab, setTab] = useState('counter');
 	const [theme, setTheme] = useState('light');
 
@@ -1001,7 +1001,7 @@ component HookInSwitchWithScopeApp() {
 	<button class="switch-scope-theme" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
 		{'switch theme'}
 	</button>
-}
+</>; }
 
 // ── Hook inside expression-position <tsrx> from a regular function ──
 
@@ -1016,7 +1016,7 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 	</tsrx>;
 }
 
-component TsrxExpressionHookApp() {
+function TsrxExpressionHookApp() { return <>
 	const [active, setActive] = useState(false);
 	const [label, setLabel] = useState('first');
 
@@ -1025,11 +1025,11 @@ component TsrxExpressionHookApp() {
 	</button>
 	<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
 	<TsrxExpressionHookPanel {active} {label} />
-}
+</>; }
 
 // ── Static hoisting: mixed static and dynamic siblings ──
 
-component StaticHoistMixedApp() {
+function StaticHoistMixedApp() { return <>
 	const [count, setCount] = useState(0);
 
 	<header class="static-header">
@@ -1039,11 +1039,11 @@ component StaticHoistMixedApp() {
 	<footer class="static-footer">{'Static Footer'}</footer>
 
 	<button class="hoist-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
-}
+</>; }
 
 // ── Static hoisting: static element inside control flow ──
 
-component StaticHoistInBranchApp() {
+function StaticHoistInBranchApp() { return <>
 	const [show, setShow] = useState(true);
 
 	if (show) {
@@ -1053,49 +1053,49 @@ component StaticHoistInBranchApp() {
 	}
 
 	<button class="hoist-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-}
+</>; }
 
 // ── Static hoisting: fully static component ──
 
-component FullyStaticApp() {
+function FullyStaticApp() { return <>
 	<div class="all-static">
 		<h2>{'Title'}</h2>
 		<p>{'Paragraph'}</p>
 	</div>
-}
+</>; }
 
 // ── Lazy destructuring: object in props ──
 
-component LazyPropsChild(&{ name, age }: { name: string; age: number }) {
+function LazyPropsChild(&{ name, age }: { name: string; age: number }) { return <>
 	<div class="lazy-props">
 		{name}
 		{' is '}
 		{age}
 	</div>
-}
+</>; }
 
-component LazyPropsApp() {
+function LazyPropsApp() { return <>
 	<LazyPropsChild name="Alice" age={30} />
-}
+</>; }
 
 // ── Lazy destructuring: array in variable ──
 
-component LazyArrayApp() {
+function LazyArrayApp() { return <>
 	const [count, setCount] = useState(0);
 	<p class="lazy-count">{count}</p>
 	<button class="lazy-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
-}
+</>; }
 
 // ── Lazy destructuring: object in variable ──
 
-component LazyObjVarApp() {
+function LazyObjVarApp() { return <>
 	const &{ x, y } = usePosition();
 	<p class="lazy-pos">
 		{x}
 		{','}
 		{y}
 	</p>
-}
+</>; }
 
 function usePosition() {
 	return { x: 10, y: 20 };
@@ -1103,7 +1103,7 @@ function usePosition() {
 
 // ── Lazy destructuring: combined props + variable ──
 
-component LazyCombinedApp(&{ label }: { label: string }) {
+function LazyCombinedApp(&{ label }: { label: string }) { return <>
 	const [count, setCount] = useState(0);
 	<p class="lazy-combined">
 		{label}
@@ -1111,7 +1111,7 @@ component LazyCombinedApp(&{ label }: { label: string }) {
 		{count}
 	</p>
 	<button class="lazy-combined-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
-}
+</>; }
 
 // ── Tests ──
 

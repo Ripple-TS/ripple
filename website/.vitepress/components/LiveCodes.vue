@@ -243,7 +243,7 @@ const getRippleRuntimeImports = async (
 const defaultContent = `
 import { track } from 'ripple';
 
-export default component Counter() {
+export default function Counter() { return <>
   let &[count] = track(0);
   let &[double] = track(() => count * 2);
 
@@ -277,7 +277,7 @@ export default component Counter() {
       background-color: #e0e0e0;
     }
   </style>
-}
+</>; }
 `.trimStart();
 
 const mountRoot =

@@ -2,28 +2,29 @@ import { compile } from '@tsrx/ripple';
 
 describe('basic client > styling', () => {
 	it('renders with styling scoped to component', () => {
-		component Basic() {
-			<div class="styled-container">
-				<h1>{'Styled heading'}</h1>
-				<p class="text">{'Styled paragraph'}</p>
-			</div>
+		function Basic() {
+			return <>
+				<div class="styled-container">
+					<h1>{'Styled heading'}</h1>
+					<p class="text">{'Styled paragraph'}</p>
+				</div>
+				<style>
+					.styled-container {
+						background-color: rgb(0, 0, 255);
+						padding: 16px;
+					}
 
-			<style>
-				.styled-container {
-					background-color: rgb(0, 0, 255);
-					padding: 16px;
-				}
+					h1 {
+						color: rgb(255, 255, 255);
+						font-size: 32px;
+					}
 
-				h1 {
-					color: rgb(255, 255, 255);
-					font-size: 32px;
-				}
-
-				.text {
-					color: rgb(200, 200, 200);
-					font-size: 14px;
-				}
-			</style>
+					.text {
+						color: rgb(200, 200, 200);
+						font-size: 14px;
+					}
+				</style>
+			</>;
 		}
 
 		render(Basic);
@@ -38,7 +39,7 @@ describe('basic client > styling', () => {
 	});
 
 	it('renders with keyframes in styling scoped to component', () => {
-		const source = `export component Basic() {
+		const source = `export function Basic() { return <>
 			<div>
 				<p>{'Styled paragraph'}</p>
 			</div>
@@ -54,7 +55,7 @@ describe('basic client > styling', () => {
 					animation-name: anim;
 				}
 			</style>
-		}`;
+		</>; }`;
 
 		const { css } = compile(source, 'test.tsrx');
 		const name = css.match(/@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/)[1];

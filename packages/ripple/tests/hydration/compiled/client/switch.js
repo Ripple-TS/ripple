@@ -30,6 +30,7 @@ import { track } from 'ripple';
 export function SwitchStatic(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r = false;
 	const status = 'success';
 	var fragment = root();
 	var node = _$_.first_child_frag(fragment);
@@ -72,6 +73,7 @@ export function SwitchStatic(__anchor, _, __block) {
 		});
 	}
 
+	__r = true;
 	_$_.append(__anchor, fragment);
 	_$_.pop_component();
 }
@@ -79,6 +81,7 @@ export function SwitchStatic(__anchor, _, __block) {
 export function SwitchReactive(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_1 = false;
 	let lazy = _$_.track('a', __block, '9b34d955');
 	var fragment_3 = root_4();
 	var button_1 = _$_.first_child_frag(fragment_3);
@@ -127,6 +130,7 @@ export function SwitchReactive(__anchor, _, __block) {
 		});
 	}
 
+	__r_1 = true;
 	_$_.append(__anchor, fragment_3);
 	_$_.pop_component();
 }
@@ -134,6 +138,7 @@ export function SwitchReactive(__anchor, _, __block) {
 export function SwitchFallthrough(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_2 = false;
 	const val = 1;
 	var fragment_6 = root_8();
 	var node_2 = _$_.first_child_frag(fragment_6);
@@ -168,6 +173,7 @@ export function SwitchFallthrough(__anchor, _, __block) {
 		});
 	}
 
+	__r_2 = true;
 	_$_.append(__anchor, fragment_6);
 	_$_.pop_component();
 }
@@ -175,6 +181,7 @@ export function SwitchFallthrough(__anchor, _, __block) {
 export function SwitchNumericLevels(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_3 = false;
 	let lazy_1 = _$_.track(1, __block, '7581a7ab');
 	var fragment_8 = root_11();
 	var button_2 = _$_.first_child_frag(fragment_8);
@@ -223,6 +230,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 		});
 	}
 
+	__r_3 = true;
 	_$_.append(__anchor, fragment_8);
 	_$_.pop_component();
 }
@@ -230,6 +238,7 @@ export function SwitchNumericLevels(__anchor, _, __block) {
 export function SwitchBlockScoped(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_4 = false;
 	let lazy_2 = _$_.track(1, __block, 'ca9f9852');
 	var fragment_12 = root_15();
 	var button_3 = _$_.first_child_frag(fragment_12);
@@ -278,6 +287,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 		});
 	}
 
+	__r_4 = true;
 	_$_.append(__anchor, fragment_12);
 	_$_.pop_component();
 }
@@ -285,6 +295,7 @@ export function SwitchBlockScoped(__anchor, _, __block) {
 export function SwitchNoBreak(__anchor, _, __block) {
 	_$_.push_component();
 
+	var __r_5 = false;
 	let lazy_3 = _$_.track(1, __block, '6b7cb0ea');
 	var fragment_16 = root_19();
 	var button_4 = _$_.first_child_frag(fragment_16);
@@ -331,6 +342,7 @@ export function SwitchNoBreak(__anchor, _, __block) {
 		});
 	}
 
+	__r_5 = true;
 	_$_.append(__anchor, fragment_16);
 	_$_.pop_component();
 }

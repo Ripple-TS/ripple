@@ -2,7 +2,7 @@
 // Each component tests one specific combination of for / if / switch.
 
 // ── for + if (2 items shown, 1 hidden) ────────────────────────────────────────
-export component ForIf() {
+export function ForIf() { return <>
 	const items = [
 		{ id: 1, show: true, label: 'One' },
 		{ id: 2, show: true, label: 'Two' },
@@ -16,10 +16,10 @@ export component ForIf() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + switch (3 items, alternating cases) ─────────────────────────────────
-export component ForSwitch() {
+export function ForSwitch() { return <>
 	const items = [
 		{ id: 1, kind: 'a' },
 		{ id: 2, kind: 'b' },
@@ -37,10 +37,10 @@ export component ForSwitch() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── if + switch (no for loop) ─────────────────────────────────────────────────
-export component IfSwitch() {
+export function IfSwitch() { return <>
 	const show = true;
 	const kind = 'a';
 
@@ -55,10 +55,10 @@ export component IfSwitch() {
 			}
 		}
 	</div>
-}
+</>; }
 
 // ── if + switch where if is false ─────────────────────────────────────────────
-export component IfSwitchHidden() {
+export function IfSwitchHidden() { return <>
 	const show = false;
 	const kind = 'a';
 
@@ -74,10 +74,10 @@ export component IfSwitchHidden() {
 		}
 		<p class="after">{'after'}</p>
 	</div>
-}
+</>; }
 
 // ── for + if + switch, single item (no inter-item cursor advance needed) ───────
-export component ForIfSwitchSingle() {
+export function ForIfSwitchSingle() { return <>
 	const items = [
 		{ id: 1, kind: 'a', show: true },
 	];
@@ -95,10 +95,10 @@ export component ForIfSwitchSingle() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + if + switch, two items shown (the cursor-advance regression) ─────────
-export component ForIfSwitchMulti() {
+export function ForIfSwitchMulti() { return <>
 	const items = [
 		{ id: 1, kind: 'a', show: true },
 		{ id: 2, kind: 'b', show: true },
@@ -117,10 +117,10 @@ export component ForIfSwitchMulti() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + if + switch, last item hidden (if=false path between items) ──────────
-export component ForIfSwitchWithDisabled() {
+export function ForIfSwitchWithDisabled() { return <>
 	const items = [
 		{ id: 1, kind: 'a', show: true },
 		{ id: 2, kind: 'b', show: false },
@@ -140,10 +140,10 @@ export component ForIfSwitchWithDisabled() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── switch + try (no for/if) ──────────────────────────────────────────────────
-export component SwitchTry() {
+export function SwitchTry() { return <>
 	const kind = 'a';
 
 	<div class="switch-try">
@@ -159,10 +159,10 @@ export component SwitchTry() {
 				<p class="default">{'Default'}</p>
 		}
 	</div>
-}
+</>; }
 
 // ── for + switch + try (no if) ────────────────────────────────────────────────
-export component ForSwitchTry() {
+export function ForSwitchTry() { return <>
 	const items = [
 		{ id: 1, kind: 'a' },
 		{ id: 2, kind: 'b' },
@@ -187,10 +187,10 @@ export component ForSwitchTry() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + if + try (no switch) ────────────────────────────────────────────────
-export component ForIfTry() {
+export function ForIfTry() { return <>
 	const items = [
 		{ id: 1, show: true },
 		{ id: 2, show: true },
@@ -207,10 +207,10 @@ export component ForIfTry() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + if + switch + try, single item ─────────────────────────────────────
-export component ForIfSwitchTrySingle() {
+export function ForIfSwitchTrySingle() { return <>
 	const items = [
 		{ id: 1, kind: 'a', show: true },
 	];
@@ -236,10 +236,10 @@ export component ForIfSwitchTrySingle() {
 			}
 		}
 	</ul>
-}
+</>; }
 
 // ── for + if + switch + try, multiple items (matches MixedControlFlowStatic) ──
-export component ForIfSwitchTryMulti() {
+export function ForIfSwitchTryMulti() { return <>
 	const items = [
 		{ id: 1, kind: 'a', show: true },
 		{ id: 2, kind: 'b', show: true },
@@ -266,4 +266,4 @@ export component ForIfSwitchTryMulti() {
 			}
 		}
 	</ul>
-}
+</>; }
