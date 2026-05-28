@@ -77,15 +77,6 @@ const TEXT_KW_HTML = highlight_tsrx(
 }`,
 );
 
-const HTML_KW_HTML = highlight_tsrx(
-	`function Article({ markup }: { markup: string }) {
-  return <>
-    // innerHTML inserts trusted markup as raw HTML.
-    <article innerHTML={markup} />
-  </>;
-}`,
-);
-
 const IF_HTML = highlight_tsrx(
 	`function StatusBadge({ status }: { status: string }) {
   return <>
@@ -347,7 +338,6 @@ const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'TSRX templates' },
 	{ id: 'text-expressions', label: 'Text expressions' },
-	{ id: 'raw-html', label: 'Raw HTML' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'refs', label: 'DOM refs' },
@@ -521,99 +511,6 @@ export function FeaturesPage() {
 								{'Omitting '}
 								<code class="inline-code">{'text'}</code>
 								{' is almost always what you want; reach for it only when you specifically need the escaping guarantee.'}
-							</p>
-						</section>
-
-						<section class="doc-section" id="raw-html">
-							<h2 class="section-heading">{'Raw HTML'}</h2>
-							<p class="section-body">
-								{'Use each target framework\'s native raw HTML prop when you need to insert pre-rendered markup directly into the DOM. In Ripple, Solid, and Vue that is '}
-								<code class="inline-code">{'innerHTML'}</code>
-								{'; in React and Preact it is '}
-								<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-								{'.'}
-							</p>
-							<p class="section-body">
-								{'For host elements, pass trusted markup as a prop: '}
-								<code class="inline-code">{'<article innerHTML={source} />'}</code>
-								{'.'}
-							</p>
-							<p class="section-body">
-								{'When raw markup needs to sit beside normal Ripple children, import '}
-								<code class="inline-code">{'Fragment'}</code>
-								{' from '}
-								<code class="inline-code">{'ripple'}</code>
-								{' and render '}
-								<code class="inline-code">{'<Fragment innerHTML={source} />'}</code>
-								{'.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={HTML_KW_HTML} />
-							</pre>
-
-							<table class="ref-target-table">
-								<thead>
-									<tr>
-										<th>{'Framework'}</th>
-										<th>
-											{'Host prop'}
-											<br />
-											<code class="inline-code">{'<div innerHTML={markup} />'}</code>
-										</th>
-										<th>{'Fragment prop'}</th>
-										<th>{'Maps to'}</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>{'React'}</td>
-										<td>{'dangerouslySetInnerHTML'}</td>
-										<td>{'No'}</td>
-										<td>
-											<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-										</td>
-									</tr>
-									<tr>
-										<td>{'Preact'}</td>
-										<td>{'dangerouslySetInnerHTML'}</td>
-										<td>{'No'}</td>
-										<td>
-											<code class="inline-code">{'dangerouslySetInnerHTML'}</code>
-										</td>
-									</tr>
-									<tr>
-										<td>{'Solid'}</td>
-										<td>{'innerHTML'}</td>
-										<td>{'No'}</td>
-										<td>
-											<code class="inline-code">{'innerHTML'}</code>
-										</td>
-									</tr>
-									<tr>
-										<td>{'Vue'}</td>
-										<td>{'innerHTML'}</td>
-										<td>{'No'}</td>
-										<td>
-											<code class="inline-code">{'innerHTML'}</code>
-										</td>
-									</tr>
-									<tr>
-										<td>{'Ripple'}</td>
-										<td>{'innerHTML'}</td>
-										<td>{'Yes'}</td>
-										<td>
-											<code class="inline-code">{'native'}</code>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-							<p class="section-body muted">
-								<strong>{'Security: '}</strong>
-								{'only use raw HTML props with content you trust. Any string that originated from user input must be sanitised first — otherwise you\'re opening an XSS vector. If in doubt, stick with the default '}
-								<code class="inline-code">{'{ ... }'}</code>
-								{' container or '}
-								<code class="inline-code">{'{text ...}'}</code>
-								{'.'}
 							</p>
 						</section>
 

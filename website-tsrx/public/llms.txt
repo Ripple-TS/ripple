@@ -759,7 +759,6 @@ function List<T>({ items, render }: Props<T>) {
 | JSX-compatible island  | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
 | Forced escaped text    | `<span>{text expr}</span>`                       |
-| Raw HTML               | `<article innerHTML={markup} />`                 |
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand         | `<Input {value} {onChange} />`                   |
