@@ -1813,11 +1813,19 @@ const visitors = {
 			return build_tsrx_to_ts_expression(fragment, context);
 		}
 
-		if (state.regular_js) {
+		if (
+			state.regular_js ||
+			(!state.template_child &&
+				!node.metadata?.returned_tsrx_child &&
+				(is_native_tsrx_value_position(context.path) ||
+					(context.state.component === undefined &&
+						is_native_tsrx_statement_position(context.path))))
+		) {
+			const expression = build_native_tsrx_value_expression([node], node, context);
 			if (is_regular_js_statement_position(context.path)) {
-				return b.empty;
+				return b.stmt(expression);
 			}
-			return build_native_tsrx_value_expression([node], node, context);
+			return expression;
 		}
 
 		if (context.state.inside_head) {
@@ -3957,6 +3965,43 @@ function is_regular_js_statement_position(path) {
 	const parent = path.at(-1);
 	return (
 		parent?.type === 'BlockStatement' || parent?.type === 'Program' || parent?.type === 'SwitchCase'
+	);
+}
+
+/**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_native_tsrx_statement_position(path) {
+	const parent = path.at(-1);
+	return (
+		parent?.type === 'BlockStatement' ||
+		parent?.type === 'Program' ||
+		parent?.type === 'SwitchCase' ||
+		parent?.type === 'IfStatement' ||
+		parent?.type === 'ForStatement' ||
+		parent?.type === 'ForInStatement' ||
+		parent?.type === 'ForOfStatement' ||
+		parent?.type === 'WhileStatement' ||
+		parent?.type === 'DoWhileStatement' ||
+		parent?.type === 'TryStatement' ||
+		parent?.type === 'SwitchStatement' ||
+		parent?.type === 'LabeledStatement'
+	);
+}
+
+/**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_native_tsrx_value_position(path) {
+	const parent = path.at(-1);
+	return !(
+		is_native_tsrx_statement_position(path) ||
+		parent?.type === 'Element' ||
+		parent?.type === 'Tsrx' ||
+		parent?.type === 'Tsx' ||
+		parent?.type === 'TsxCompat'
 	);
 }
 

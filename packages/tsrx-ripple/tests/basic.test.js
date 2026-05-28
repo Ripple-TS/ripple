@@ -539,6 +539,43 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).not.toContain('<tsx>');
 	});
 
+	it('lowers native element values outside components', () => {
+		const { code } = compile(`const test = <button>"Hello"</button>;`, 'App.tsrx');
+
+		expect(code).toContain('const test = _$_.tsrx_element');
+		expect(code).toContain('template(`<button>Hello</button>`');
+	});
+
+	it('lowers bare native element expression statements outside components', () => {
+		const { code } = compile(`<button>"Hello"</button>;`, 'App.tsrx');
+
+		expect(code).toContain('_$_.tsrx_element');
+		expect(code).toContain('template(`<button>Hello</button>`');
+	});
+
+	it('renders native element values assigned inside returned templates on the server', () => {
+		const { code } = compile(
+			`function App() { return <>
+				const test = <button>"Hello"</button>;
+				{test}
+			</>; }`,
+			'App.tsrx',
+			{ mode: 'server' },
+		);
+
+		expect(code).toContain('const test = _$_.tsrx_element');
+		expect(code).toContain('_$_.render_expression(test)');
+		expect(code).not.toContain('_$_.escape(test)');
+	});
+
+	it('keeps direct arrow component returns on the render path', () => {
+		const { code } = compile(`const App = () => <button>"Hello"</button>;`, 'App.tsrx');
+
+		expect(code).toContain('template(`<button>Hello</button>`');
+		expect(code).toContain('_$_.append(__anchor, fragment)');
+		expect(code).not.toContain('template(``');
+	});
+
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
 			`function App() { return <>

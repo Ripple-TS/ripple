@@ -351,14 +351,6 @@ function is_inside_tsx_context(path) {
 }
 
 /**
- * @param {AnalysisContext['path']} path
- * @returns {boolean}
- */
-function is_inside_tsrx_context(path) {
-	return path.some((node) => node?.type === 'Tsrx');
-}
-
-/**
  * Set up lazy destructuring transforms for bindings extracted from a lazy pattern.
  * Converts each destructured identifier into a binding that lazily accesses properties
  * on the source identifier (e.g., `a` → `source.a` for object, `a` → `source[0]` for array).
@@ -2335,14 +2327,6 @@ const visitors = {
 
 		if (!node.id) {
 			error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
-		}
-
-		if (!is_inside_component(context) && !is_inside_tsrx_context(context.path)) {
-			error(
-				'Elements cannot be used outside of components',
-				context.state.analysis.module.filename,
-				node,
-			);
 		}
 
 		const { state, visit, path } = context;

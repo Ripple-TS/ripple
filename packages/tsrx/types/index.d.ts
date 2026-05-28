@@ -1426,6 +1426,7 @@ export interface TransformClientState extends BaseState {
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 	is_tsrx_element?: boolean;
 	jsx_to_tsrx_element?: boolean;
+	template_child?: boolean;
 	ref_target_type?: AST.TypeNode;
 }
 

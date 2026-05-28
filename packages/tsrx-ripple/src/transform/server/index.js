@@ -216,6 +216,7 @@ function contains_template_value_node(node) {
 				return;
 			}
 			if (
+				node.type === 'Element' ||
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
 				node.type === 'Tsx' ||
@@ -346,9 +347,10 @@ function is_template_value_binding(expression, scope) {
 	}
 
 	const binding = scope.get(expression.name);
-	const initial = binding?.initial;
+	const initial = /** @type {AST.Node | null | undefined} */ (binding?.initial);
 	return (
 		binding?.metadata?.is_template_value === true ||
+		initial?.type === 'Element' ||
 		initial?.type === 'Tsx' ||
 		initial?.type === 'Tsrx'
 	);
@@ -553,6 +555,43 @@ function is_regular_js_statement_position(path) {
 	const parent = path.at(-1);
 	return (
 		parent?.type === 'BlockStatement' || parent?.type === 'Program' || parent?.type === 'SwitchCase'
+	);
+}
+
+/**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_native_tsrx_statement_position(path) {
+	const parent = path.at(-1);
+	return (
+		parent?.type === 'BlockStatement' ||
+		parent?.type === 'Program' ||
+		parent?.type === 'SwitchCase' ||
+		parent?.type === 'IfStatement' ||
+		parent?.type === 'ForStatement' ||
+		parent?.type === 'ForInStatement' ||
+		parent?.type === 'ForOfStatement' ||
+		parent?.type === 'WhileStatement' ||
+		parent?.type === 'DoWhileStatement' ||
+		parent?.type === 'TryStatement' ||
+		parent?.type === 'SwitchStatement' ||
+		parent?.type === 'LabeledStatement'
+	);
+}
+
+/**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_native_tsrx_value_position(path) {
+	const parent = path.at(-1);
+	return !(
+		is_native_tsrx_statement_position(path) ||
+		parent?.type === 'Element' ||
+		parent?.type === 'Tsrx' ||
+		parent?.type === 'Tsx' ||
+		parent?.type === 'TsxCompat'
 	);
 }
 
@@ -1461,11 +1500,19 @@ const visitors = {
 	Element(node, context) {
 		const { state, visit } = context;
 
-		if (state.regular_js) {
+		if (
+			state.regular_js ||
+			(!state.template_child &&
+				!node.metadata?.returned_tsrx_child &&
+				(is_native_tsrx_value_position(context.path) ||
+					(context.state.component === undefined &&
+						is_native_tsrx_statement_position(context.path))))
+		) {
+			const expression = build_template_node_to_tsrx_element(node, context);
 			if (is_regular_js_statement_position(context.path)) {
-				return b.empty;
+				return b.stmt(expression);
 			}
-			return build_template_node_to_tsrx_element(node, context);
+			return expression;
 		}
 
 		const dynamic_name = state.dynamicElementName;

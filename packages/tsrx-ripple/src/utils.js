@@ -328,7 +328,7 @@ export function get_native_tsrx_function_body(node) {
 			? [
 					...get_native_tsrx_template_children(
 						/** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.body)),
-					),
+					).map(mark_returned_template_child),
 					b.return(null, /** @type {AST.NodeWithLocation} */ (node.body)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
