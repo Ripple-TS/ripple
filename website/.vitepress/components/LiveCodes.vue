@@ -243,41 +243,45 @@ const getRippleRuntimeImports = async (
 const defaultContent = `
 import { track } from 'ripple';
 
-export default function Counter() { return <>
-  let &[count] = track(0);
-  let &[double] = track(() => count * 2);
+export default function Counter() {
+  return <>
+    let &[count] = track(0);
+    let &[double] = track(() => count * 2);
 
-  <div class="container">
-    <h2>"Counter"</h2>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
+    <div class="container">
+      <h2>"Counter"</h2>
+      <p>"Count: "{count}</p>
+      <p>"Double: "{double}</p>
 
-    <button onClick={() => count--}>"-"</button>
-    <button onClick={() => count++}>"+"</button>
-    if (count !== 0) {
-      <div><button onClick={() => count = 0}>"Reset"</button></div>
-    }
-  </div>
+      <button onClick={() => count--}>"-"</button>
+      <button onClick={() => count++}>"+"</button>
+      if (count !== 0) {
+        <div>
+          <button onClick={() => count = 0}>"Reset"</button>
+        </div>
+      }
+    </div>
 
-  <style>
-    .container {
-      text-align: center;
-    }
+    <style>
+      .container {
+        text-align: center;
+      }
 
-    button {
-      font-family: "Courier New", monospace;
-      font-size: 1em;
-      margin: 6px;
-      padding: 6px 12px;
-      border: none;
-      cursor: pointer;
-    }
+      button {
+        font-family: "Courier New", monospace;
+        font-size: 1em;
+        margin: 6px;
+        padding: 6px 12px;
+        border: none;
+        cursor: pointer;
+      }
 
-    button:hover {
-      background-color: #e0e0e0;
-    }
-  </style>
-</>; }
+      button:hover {
+        background-color: #e0e0e0;
+      }
+    </style>
+  </>;
+}
 `.trimStart();
 
 const mountRoot =
