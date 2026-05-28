@@ -7,9 +7,9 @@ export function Layout(&{ children }: { children?: Children }) {
 export function TextWrappedLayout(&{ children }: { children?: Children }) {
 	return <>
 		<div class="layout">
-			{text 'before'}
+			{'before'}
 			{children}
-			{text 'after'}
+			{'after'}
 		</div>
 	</>;
 }

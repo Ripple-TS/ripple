@@ -61,10 +61,10 @@ function ExplicitTextApp() {
 		const hidden = false;
 		const empty = null;
 		const missing = undefined;
-		<div class="explicit-text-markup">{text markup}</div>
-		<div class="explicit-text-boolean">{text hidden}</div>
-		<div class="explicit-text-null">{text empty}</div>
-		<div class="explicit-text-undefined">{text missing}</div>
+		<div class="explicit-text-markup">{String(markup)}</div>
+		<div class="explicit-text-boolean">{String(hidden)}</div>
+		<div class="explicit-text-null">{empty == null ? '' : String(empty)}</div>
+		<div class="explicit-text-undefined">{missing == null ? '' : String(missing)}</div>
 	</>;
 }
 

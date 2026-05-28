@@ -397,7 +397,7 @@ function Inbox({ name, count }: { name: string; count: number }) {
 }
 ```
 
-`{text expr}` forces escaped text rendering. Use each target framework's native
+Text expressions use normal `{expr}` syntax. Use each target framework's native
 raw HTML prop for trusted markup.
 
 ```tsrx
@@ -666,7 +666,7 @@ lowers to loading primitives, and lazy destructuring preserves signal reads.
 ### Vue
 
 Vue output targets `vue-jsx-vapor` and `defineVaporComponent(...)`. It supports
-statement control flow, scoped styles, refs, `{text ...}`, host `innerHTML`,
+statement control flow, scoped styles, refs, host `innerHTML`,
 and `try/pending` lowering through Vue suspense APIs. Component-level `await`
 is not supported for Vue TSRX.
 
@@ -758,7 +758,6 @@ function List<T>({ items, render }: Props<T>) {
 | Native TSRX fragment   | `const v = <><span>"Hi"</span></>;`              |
 | JSX-compatible island  | `const v = <tsx><span>Hi</span></tsx>;`          |
 | Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
-| Forced escaped text    | `<span>{text expr}</span>`                       |
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand         | `<Input {value} {onChange} />`                   |

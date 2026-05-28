@@ -194,76 +194,6 @@ describe('@tsrx/solid basic', () => {
 			);
 			expect(code).toMatch(/<Child ref=\{\[a,\s*b,\s*c\]\}/);
 		});
-
-		it('{text expr} as the only child of a host element lowers to textContent', () => {
-			// Setting `textContent` as a DOM property is cheaper than Solid's
-			// default `insert()`-based text-node binding, so hoist the single
-			// `{text ...}` child up to an attribute on the parent element.
-			const { code } = compile(
-				`function App({ name }: { name: string | null }) { return <>
-					<p>{text name}</p>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/<p\s+textContent=\{name == null \? '' : name \+ ''\}\s*\/>/);
-			expect(code).not.toContain('</p>');
-		});
-
-		it('does not hoist {text expr} when there are sibling children', () => {
-			// With siblings, setting `textContent` would clobber them.
-			const { code } = compile(
-				`function App({ name }: { name: string | null }) { return <>
-					<p>{text name}<span>{'!'}</span></p>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).not.toContain('textContent=');
-			expect(code).toContain('</p>');
-		});
-
-		it('does not hoist {text expr} on composite components', () => {
-			// `textContent` is a DOM primitive; on a composite component it
-			// would just be an opaque prop with no defined semantics.
-			const { code } = compile(
-				`function Label(props: { children?: any }) { return <>
-					<span>{props.children}</span>
-				</>; }
-
-				function App({ name }: { name: string | null }) { return <>
-					<Label>{text name}</Label>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).not.toContain('textContent=');
-			expect(code).toContain('<Label>');
-			expect(code).toContain('</Label>');
-		});
-
-		it('does not hoist {text expr} when the user already set textContent', () => {
-			const { code } = compile(
-				`function App({ name, fallback }: { name: string | null; fallback: string }) { return <>
-					<p textContent={fallback}>{text name}</p>
-				</>; }`,
-				'App.tsrx',
-			);
-			// User-supplied `textContent` wins; the child is left as a regular
-			// text binding so no duplicate attribute is emitted.
-			expect(code).toContain('textContent={fallback}');
-			expect(code).not.toMatch(/textContent=\{name == null/);
-		});
-
-		it('still hoists {text expr} alongside other attributes', () => {
-			const { code } = compile(
-				`function App({ name, id }: { name: string | null; id: string }) { return <>
-					<p class="greeting" id={id}>{text name}</p>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).toMatch(/textContent=\{name == null \? '' : name \+ ''\}/);
-			expect(code).toContain('class="greeting"');
-			expect(code).toContain('id={id}');
-			expect(code).not.toContain('</p>');
-		});
 	});
 
 	describe('control flow', () => {
@@ -624,7 +554,7 @@ describe('@tsrx/solid basic', () => {
 				`import { createSignal } from 'solid-js';
 				export function App() { return <>
 					let [count, setCount] = createSignal(0);
-					<button onClick={() => setCount(count + 1)}>{text count}</button>
+					<button onClick={() => setCount(count + 1)}>{count}</button>
 				</>; }`,
 				'App.tsrx',
 			);

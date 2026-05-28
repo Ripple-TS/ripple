@@ -387,13 +387,12 @@ export function TSRXPlugin(config) {
 				if (node.expression.type !== 'JSXEmptyExpression') {
 					/** @type {AST.TSRXExpression | AST.TextNode | AST.Style} */ (
 						/** @type {unknown} */ (node)
-					).type = node.text ? 'Text' : node.style ? 'Style' : 'TSRXExpression';
+					).type = node.style ? 'Style' : 'TSRXExpression';
 					if (node.style) {
 						/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
 							/** @type {AST.Literal} */ (node.expression);
 						delete (/** @type {any} */ (node).expression);
 					}
-					delete node.text;
 					delete node.style;
 				}
 
@@ -1613,20 +1612,7 @@ export function TSRXPlugin(config) {
 					return this.finishNode(node, 'JSXExpressionContainer');
 				}
 
-				const is_attribute_value_expression = this.#jsxAttributeValueExpressionDepth > 0;
-				const is_bare_keyword_reference =
-					is_attribute_value_expression && this.lookahead().type === tt.braceR;
-
-				if (this.type === tt.name && this.value === 'text' && !is_bare_keyword_reference) {
-					node.text = true;
-					this.next();
-					if (this.type === tt.braceR) {
-						this.raise(
-							this.start,
-							'"text" is a TSRX keyword and must be used in the form {text some_value}',
-						);
-					}
-				} else if (
+				if (
 					this.type === tt.name &&
 					this.value === 'style' &&
 					this.lookahead().type === tt.string

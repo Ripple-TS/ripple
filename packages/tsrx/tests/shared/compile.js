@@ -2841,31 +2841,10 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] {text expr} coercion`, () => {
-		it("coerces null / undefined / false to '' and stringifies the rest", () => {
-			const { code } = compile(
-				`export function App() { return <>
-					const markup = '<span>Not HTML</span>';
-					const hidden = false;
-					const empty = null;
-					const missing = undefined;
-
-					<div class="markup">{text markup}</div>
-					<div class="hidden">{text hidden}</div>
-					<div class="empty">{text empty}</div>
-					<div class="missing">{text missing}</div>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).toContain("markup == null ? '' : markup + ''");
-			expect(code).toContain("hidden == null ? '' : hidden + ''");
-			expect(code).toContain("empty == null ? '' : empty + ''");
-			expect(code).toContain("missing == null ? '' : missing + ''");
-		});
-
+	describe(`[${name}] text children`, () => {
 		it('skips the null-coerce ternary for direct double-quoted text children', () => {
 			// `"hello"` is statically known to be a non-null string, so the
-			// `expr == null ? '' : expr + ''` wrapper is dead weight.
+			// text coercion wrapper is dead weight.
 			const { code } = compile(
 				`export function App() { return <>
 					<b>"hello"</b>
@@ -2876,46 +2855,40 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain("+ ''");
 		});
 
-		it('skips the null-coerce ternary for {text expr} when expr is a static string', () => {
-			// String literals and zero-interpolation template literals are
-			// statically known to be non-null strings, so the runtime
-			// coercion in `{text ...}` is a provable no-op.
+		it('treats text as an ordinary identifier in expression containers', () => {
 			const { code } = compile(
 				`export function App() { return <>
-					<b>{text 'hello'}</b>
-					<i>{text \`world\`}</i>
+					const text = 'hello';
+					<b>{text}</b>
 				</>; }`,
 				'App.tsrx',
 			);
-			expect(code).not.toContain('== null');
-			expect(code).not.toContain("+ ''");
+			expect(code).toContain('{text}');
 		});
 
-		it('keeps the ternary for {text expr} when expr is an identifier', () => {
-			const { code } = compile(
-				`export function App({ name }: { name: string | null }) { return <>
-					<b>{text name}</b>
-				</>; }`,
-				'App.tsrx',
-			);
-			expect(code).toContain("name == null ? '' : name + ''");
+		it('rejects the removed {text expr} modifier syntax', () => {
+			expect(() =>
+				compile(
+					`export function App() { return <>
+						<b>{text name}</b>
+					</>; }`,
+					'App.tsrx',
+				),
+			).toThrow();
 		});
 
 		it.runIf(['react', 'preact', 'solid'].includes(name))(
-			`[${name}] hoists {'hello'} {text 'hello'} sibling combo to a static`,
+			`[${name}] hoists direct text and static expression sibling combo to a static`,
 			() => {
 				// React/Preact/Solid hoist child-free static JSX to a module-level
 				// constant so the element identity is stable across renders.
-				// Both child forms collapse to `{'hello'}` after the
-				// static-string optimization, leaving the element fully
-				// static and eligible for hoisting.
 				const { code } = compile(
 					`export function App() { return <>
-						<b>{'hello'} {text 'hello'}</b>
+						<b>"hello" {'hello'}</b>
 					</>; }`,
 					'App.tsrx',
 				);
-				expect(code).toContain("const App__static1 = <b>{'hello'}{'hello'}</b>");
+				expect(code).toContain('const App__static1 = <b>{"hello"}{\'hello\'}</b>');
 				expect(code).toContain('return App__static1');
 				expect(code).not.toContain('== null');
 			},

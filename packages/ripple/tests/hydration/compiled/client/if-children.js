@@ -74,9 +74,9 @@ export function ChildItem(__anchor, { text: label }, __block) {
 	var div_4 = _$_.first_child_frag(fragment_1);
 
 	{
-		var expression_1 = _$_.child(div_4);
+		var expression_1 = _$_.child(div_4, true);
 
-		_$_.expression(expression_1, () => label);
+		expression_1.nodeValue = label;
 		_$_.pop(div_4);
 	}
 
@@ -394,9 +394,8 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 			var li_1 = _$_.child(ul_1);
 
 			{
-				var expression_3 = _$_.child(li_1);
+				var expression_3 = _$_.child(li_1, true);
 
-				_$_.expression(expression_3, () => 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value)));
 				_$_.pop(li_1);
 			}
 		}
@@ -411,6 +410,11 @@ export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
 	button_5.__click = () => _$_.update(lazy_6);
 	__r_11 = true;
 	_$_.next();
+
+	_$_.render(() => {
+		_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value)));
+	});
+
 	_$_.append(__anchor, fragment_11, true);
 	_$_.pop_component();
 }

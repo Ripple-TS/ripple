@@ -26,11 +26,11 @@ describe('basic client > rendering & text', () => {
 		expect(container).toMatchSnapshot();
 	});
 
-	it('renders explicit text interpolation without creating HTML', () => {
+	it('renders string interpolation without creating HTML', () => {
 		function Basic() {
 			return <>
 				let markup = '<span>Not HTML</span>';
-				<div>{text markup}</div>
+				<div>{markup}</div>
 			</>;
 		}
 

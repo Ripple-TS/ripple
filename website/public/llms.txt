@@ -1693,31 +1693,27 @@ function Article({ markup }: { markup: string }) {
 }
 ```
 
-### Explicit Text
+### Text Expressions
 
-Direct double-quoted children are static escaped text. By default, a
-`{expression}` in a template can render either text or a fragment. If you know
-the expression will always be text, use the `{text}` directive to make that
-explicit:
+Direct double-quoted children are static escaped text. Dynamic text is just a
+normal `{expression}`. When you need explicit string coercion, write it in
+JavaScript with `String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export function Frame({ children }) {
   return <>
 	<div class="frame">
-		{text 'before'}
+		{'before'}
 		{children}
-		{text 'after'}
+		{'after'}
 	</div>
 
   </>;
 }
 ```
 
-The `{text}` directive guarantees the expression is treated as text content.
-Like regular expressions, the value is HTML-escaped, so the content is never
-parsed as HTML. The compiler can optimize `{text}` expressions
-more efficiently than general expressions that might need to handle component
-rendering.
+Regular text expressions are HTML-escaped by the target renderer. The content is
+never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
 export function App() {
@@ -1725,14 +1721,11 @@ export function App() {
 	const markup = '<span>Not HTML</span>';
 
 	// Renders the literal string "<span>Not HTML</span>" as text
-	<div>{text markup}</div>
+	<div>{markup}</div>
 
   </>;
 }
 ```
-
-Note: `text` is a reserved keyword in Ripple expressions. You cannot use `text`
-as a variable name inside `{braces}`.
 
 ## TypeScript Integration
 

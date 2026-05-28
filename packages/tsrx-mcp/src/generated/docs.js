@@ -24,10 +24,9 @@ export const documentation_sections = [
 	{
 		slug: 'text-and-template-expressions',
 		title: 'Text and Template Expressions',
-		use_cases:
-			'text children, quoted text, raw text errors, text directive, string literals',
+		use_cases: 'text children, quoted text, raw text errors, string literals',
 		content:
-			'# Text and Template Expressions\n\nRaw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.\n\n```tsx\nfunction Greeting({ name }: { name: string }) {\n  return <>\n  <h1>"Hello"</h1>\n  <p>{name}</p>\n  </>;\n}\n```\n\nSingle-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. Use `{text expression}` for explicit escaped text.\n\nSpecification grammar:\n\n```text\nDoubleQuotedTextChild :\n  " JSXStringCharactersopt "\n\nTemplateExpression :\n  { AssignmentExpression }\n  { text AssignmentExpression }\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#templates',
+			'# Text and Template Expressions\n\nRaw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.\n\n```tsx\nfunction Greeting({ name }: { name: string }) {\n  return <>\n  <h1>"Hello"</h1>\n  <p>{name}</p>\n  </>;\n}\n```\n\nSingle-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. When you need explicit string coercion, write it in JavaScript with `String(value)`, `value + \'\'`, or a typed string value.\n\nSpecification grammar:\n\n```text\nDoubleQuotedTextChild :\n  " JSXStringCharactersopt "\n\nTemplateExpression :\n  { AssignmentExpression }\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#templates',
 	},
 	{
 		slug: 'tsx-expression-values',

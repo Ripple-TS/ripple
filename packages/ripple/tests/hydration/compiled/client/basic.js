@@ -192,13 +192,17 @@ export function Greeting(__anchor, props, __block) {
 	var div_3 = _$_.first_child_frag(fragment_9);
 
 	{
-		var expression = _$_.child(div_3);
+		var expression = _$_.child(div_3, true);
 
-		_$_.expression(expression, () => 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
 		_$_.pop(div_3);
 	}
 
 	__r_9 = true;
+
+	_$_.render(() => {
+		_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
+	});
+
 	_$_.append(__anchor, fragment_9);
 	_$_.pop_component();
 }
@@ -274,9 +278,9 @@ function NestedTsxTsrxFragment(__anchor, { label }, __block) {
 	var span_2 = _$_.first_child_frag(fragment_13);
 
 	{
-		var expression_4 = _$_.child(span_2);
+		var expression_4 = _$_.child(span_2, true);
 
-		_$_.expression(expression_4, () => label);
+		expression_4.nodeValue = label;
 		_$_.pop(span_2);
 	}
 
@@ -849,18 +853,18 @@ export function StaticChildWithSiblings(__anchor, _, __block) {
 	var span_3 = _$_.sibling(node_9);
 
 	{
-		var expression_27 = _$_.child(span_3);
+		var expression_27 = _$_.child(span_3, true);
 
-		_$_.expression(expression_27, () => foo);
+		expression_27.nodeValue = foo;
 		_$_.pop(span_3);
 	}
 
 	var span_4 = _$_.sibling(span_3);
 
 	{
-		var expression_28 = _$_.child(span_4);
+		var expression_28 = _$_.child(span_4, true);
 
-		_$_.expression(expression_28, () => foo);
+		expression_28.nodeValue = foo;
 		_$_.pop(span_4);
 	}
 

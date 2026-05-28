@@ -79,9 +79,9 @@ describe('composite > render', () => {
 		function Frame({ children }) {
 			return <>
 				<div class="frame">
-					{text 'before'}
+					{'before'}
 					{children}
-					{text 'after'}
+					{'after'}
 				</div>
 			</>;
 		}

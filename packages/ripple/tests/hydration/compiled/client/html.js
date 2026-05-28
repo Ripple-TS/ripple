@@ -821,9 +821,9 @@ function NavItem(__anchor, { href, text: label, active = false }, __block) {
 			var span_1 = _$_.child(a_4);
 
 			{
-				var expression_7 = _$_.child(span_1);
+				var expression_7 = _$_.child(span_1, true);
 
-				_$_.expression(expression_7, () => label);
+				expression_7.nodeValue = label;
 				_$_.pop(span_1);
 			}
 		}
@@ -851,9 +851,9 @@ function SidebarSection(__anchor, { title, children }, __block) {
 			var h2_2 = _$_.child(div_29);
 
 			{
-				var expression_8 = _$_.child(h2_2);
+				var expression_8 = _$_.child(h2_2, true);
 
-				_$_.expression(expression_8, () => title);
+				expression_8.nodeValue = title;
 				_$_.pop(h2_2);
 			}
 

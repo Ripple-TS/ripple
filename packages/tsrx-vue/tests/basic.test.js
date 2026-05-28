@@ -455,19 +455,6 @@ describe('@tsrx/vue basic', () => {
 		).toThrow(/only supported on host elements/);
 	});
 
-	it('supports {text expr} host children via string coercion', () => {
-		const { code } = compile(
-			`function App() { return <>
-				const markup = '<span>Not HTML</span>';
-				<div>{text markup}</div>
-			</>; }`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("markup == null ? '' : markup + ''");
-		expect(code).toContain('<div>{');
-	});
-
 	it('preserves host innerHTML props', () => {
 		const { code } = compile(
 			`function App() { return <>

@@ -68,15 +68,6 @@ const TEXT_EXPR_HTML = highlight_tsrx(
 }`,
 );
 
-const TEXT_KW_HTML = highlight_tsrx(
-	`function Price({ amount }: { amount: number }) {
-  return <>
-    // {text ...} forces text-node rendering.
-    <span>{text amount}</span>
-  </>;
-}`,
-);
-
 const IF_HTML = highlight_tsrx(
 	`function StatusBadge({ status }: { status: string }) {
   return <>
@@ -482,36 +473,6 @@ export function FeaturesPage() {
 							<pre class="code-block">
 								<code innerHTML={TEXT_EXPR_HTML} />
 							</pre>
-							<p class="section-body">
-								{'Adjacent '}
-								<code class="inline-code">{'{ ... }'}</code>
-								{' containers concatenate with adjacent double-quoted text when rendered, so you can mix static strings with dynamic values without extra wrapping elements. Expressions are re-evaluated whenever their dependencies change, so dynamic text updates automatically on reactive targets like Ripple and Solid.'}
-							</p>
-							<p class="section-body">
-								{'A bare '}
-								<code class="inline-code">{'{ expr }'}</code>
-								{' is polymorphic — the compiler picks the right output based on where it sits and what the expression evaluates to. For the rare case where you need to force text handling, TSRX reserves a '}
-								<code class="inline-code">{'text'}</code>
-								{' keyword that can appear as the first token inside a container:'}
-							</p>
-							<p class="section-body">
-								<strong>{'{text expr}'}</strong>
-								{' — forces the value to render as an escaped text node. The expression is coerced to a string and any HTML-special characters ('}
-								<code class="inline-code">{'<'}</code>
-								{', '}
-								<code class="inline-code">{'>'}</code>
-								{', '}
-								<code class="inline-code">{'&'}</code>
-								{') are escaped. Use this when the surrounding context could otherwise be ambiguous — for example when the expression might resolve to a JSX fragment, or when you want to guarantee text handling for untrusted input.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={TEXT_KW_HTML} />
-							</pre>
-							<p class="section-body muted">
-								{'Omitting '}
-								<code class="inline-code">{'text'}</code>
-								{' is almost always what you want; reach for it only when you specifically need the escaping guarantee.'}
-							</p>
 						</section>
 
 						<section class="doc-section" id="lazy-destructuring">

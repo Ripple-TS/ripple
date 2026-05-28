@@ -902,7 +902,6 @@ module.exports = grammar({
 						$.spread_element,
 						seq('...', $.expression),
 						seq('ref', choice($.identifier, $.arrow_function, $.function_expression)),
-						seq('text', $.expression),
 						$.style_directive,
 						repeat1($.component_statement),
 					),

@@ -1764,11 +1764,14 @@ export function ReactiveOuterInnerReturns(__anchor, _, __block) {
 		var div_39 = root_113();
 
 		{
-			var expression = _$_.child(div_39);
+			var expression = _$_.child(div_39, true);
 
-			_$_.expression(expression, () => lazy_4.value ? 'a-on rest' : 'a-off rest');
 			_$_.pop(div_39);
 		}
+
+		_$_.render(() => {
+			_$_.set_text(expression, lazy_4.value ? 'a-on rest' : 'a-off rest');
+		});
 
 		_$_.append(__anchor, div_39);
 	};

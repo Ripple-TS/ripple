@@ -185,15 +185,19 @@ export function ToggleButton(__anchor, _, __block) {
 		};
 
 		{
-			var expression_6 = _$_.child(button_6);
+			var expression_6 = _$_.child(button_6, true);
 
-			_$_.expression(expression_6, () => lazy_6.value ? 'ON' : 'OFF');
 			_$_.pop(button_6);
 		}
 	}
 
 	_$_.pop(div_5);
 	__r_4 = true;
+
+	_$_.render(() => {
+		_$_.set_text(expression_6, lazy_6.value ? 'ON' : 'OFF');
+	});
+
 	_$_.append(__anchor, fragment_4);
 	_$_.pop_component();
 }

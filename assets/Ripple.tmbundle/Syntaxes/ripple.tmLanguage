@@ -6114,21 +6114,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>jsx-text-modifier</key>
-		<dict>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>storage.modifier.js</string>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>\b(text)(?=\s+[_$[:alpha:]])</string>
-			<key>name</key>
-			<string>storage.modifier.js</string>
-		</dict>
 		<key>jsx-tsx-attribute-expression</key>
 		<dict>
 			<key>patterns</key>
@@ -6877,10 +6862,6 @@
 		<dict>
 			<key>patterns</key>
 			<array>
-				<dict>
-					<key>include</key>
-					<string>#jsx-text-modifier</string>
-				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx</string>

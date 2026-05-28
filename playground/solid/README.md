@@ -45,7 +45,7 @@ export function App() {
       <div>{'count is small: ' + count()}</div>
     }
     <button {ref buttonEl} onClick={() => setCount(count() + 1)}>
-      {text count()}
+      {count()}
     </button>
     <ul>
       for (const item of items; index i) {

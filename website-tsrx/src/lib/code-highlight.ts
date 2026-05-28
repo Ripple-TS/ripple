@@ -37,7 +37,7 @@ const KEYWORDS = new Set([
 
 const CONTROL_KEYWORDS = new Set(['break', 'continue', 'return']);
 const LITERALS = new Set(['false', 'null', 'true', 'undefined']);
-const TEMPLATE_KEYWORDS = new Set(['html', 'ref', 'style', 'text']);
+const TEMPLATE_KEYWORDS = new Set(['ref', 'style']);
 
 function escape_html(value: string): string {
 	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

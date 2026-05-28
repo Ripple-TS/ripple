@@ -13,11 +13,11 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>Hello World</div>');
 	});
 
-	it('renders explicit text interpolation as escaped text', async () => {
+	it('renders string interpolation as escaped text', async () => {
 		function Basic() {
 			return <>
 				let markup = '<span>Not HTML</span>';
-				<div>{text markup}</div>
+				<div>{markup}</div>
 			</>;
 		}
 

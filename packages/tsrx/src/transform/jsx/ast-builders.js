@@ -448,10 +448,9 @@ function is_static_string_expression(expression) {
  * a string `Literal` (`"hello"`, `'hello'`) or a `TemplateLiteral` with no
  * interpolations (`` `hello` ``) — the coercion is provably a no-op and
  * the literal is emitted as-is. This covers both direct double-quoted
- * children (`<b>"hello"</b>`) and inline literal arguments to the explicit
- * `{text ...}` intrinsic (`<b>{text 'hello'}</b>`). Identifiers and any
- * other expression type still get the ternary because the AST alone can't
- * prove they're non-null strings.
+ * children (`<b>"hello"</b>`). Identifiers and any other expression type
+ * still get the ternary because the AST alone can't prove they're non-null
+ * strings.
  *
  * @param {AST.Expression} expression
  * @param {any} [source_node]

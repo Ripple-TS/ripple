@@ -1016,6 +1016,19 @@ function setup_nested_lazy_param_transforms(pattern, context, type_annotation = 
 	const pattern_type_annotation = get_pattern_type_annotation(pattern) ?? type_annotation;
 
 	switch (pattern.type) {
+		case 'Identifier': {
+			if (pattern_type_annotation) {
+				const binding = context.state.scope.get(pattern.name);
+				if (binding?.node === pattern) {
+					binding.metadata = {
+						...(binding.metadata ?? {}),
+						typeAnnotation: pattern_type_annotation,
+					};
+				}
+			}
+			return;
+		}
+
 		case 'AssignmentPattern':
 			setup_nested_lazy_param_transforms(pattern.left, context, pattern_type_annotation);
 			return;

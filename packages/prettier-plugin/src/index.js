@@ -2317,7 +2317,7 @@ function printRippleNode(node, path, options, print, args) {
 			const expressionDoc = suppressExpressionLeadingComments
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
-			nodeContent = ['{text ', expressionDoc, '}'];
+			nodeContent = ['{', expressionDoc, '}'];
 			break;
 		}
 

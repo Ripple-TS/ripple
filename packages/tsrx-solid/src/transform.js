@@ -72,8 +72,8 @@ import { builders as b } from '@tsrx/core';
  *   `<Switch>/<Match>` / `<Errored>/<Loading>` instead of inline JSX.
  * - Uppercase native TSRX functions use Solid render-time control flow, so
  *   branches stay reactive without reintroducing a TSRX-specific declaration.
- * - Element attributes support composite elements and lift a lone
- *   `{text ...}` child into a `textContent` attribute.
+ * - Element attributes support composite elements and lift a lone direct text
+ *   child into a `textContent` attribute.
  * - `needs_show` / `needs_for` / etc. flags track which runtime
  *   primitives must be imported, injected by `inject_solid_imports`.
  *
@@ -1321,11 +1321,11 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 		node,
 	);
 
-	// Optimization: `<el>{text expr}</el>` with a single `{text ...}` child
-	// on a host (DOM) element lowers to `<el textContent={expr} />`. Solid
+	// Optimization: `<el>"text"</el>` with a single direct text child on a host
+	// (DOM) element lowers to `<el textContent={expr} />`. Solid
 	// writes `textContent` as a direct DOM property, which is cheaper than
 	// the `insert()`-based text node binding it would otherwise emit for
-	// child expressions. Only safe when `{text ...}` is the sole child and
+	// child expressions. Only safe when the direct text child is the sole child and
 	// the parent is a host element (composite components receive
 	// `textContent` as an opaque prop with no DOM semantics), and when the
 	// user hasn't already set `textContent` themselves.
@@ -1432,7 +1432,7 @@ function create_element_children(children, transform_context) {
 /**
  * Check if the user already supplied a `textContent` attribute on the
  * element, or if a spread attribute could supply one. If either is true the
- * compiler mustn't emit another `textContent` — the `{text expr}` →
+ * compiler mustn't emit another `textContent` — the direct-text →
  * `textContent={...}` optimization bails out. Spreads are treated as
  * potentially setting `textContent` because the spread's runtime shape
  * isn't knowable at compile time; emitting a second `textContent` attribute

@@ -53,7 +53,6 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
-	'  { text AssignmentExpression }',
 ].join('\n');
 
 const LAZY_GRAMMAR = [
@@ -83,7 +82,7 @@ const AST_NODE_MAPPING = [
 	'return TsrxExpression -> ReturnStatement(argument: Tsrx)',
 	'ElementStatement -> Element',
 	'{ AssignmentExpression } in template position -> TSRXExpression',
-	'{ text AssignmentExpression } in template position -> Text',
+	'DoubleQuotedTextChild -> Text',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
 	'ref={ AssignmentExpression } -> RefAttribute',
@@ -392,9 +391,7 @@ export function SpecificationPage() {
 							<p class="section-body">
 								{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
-								{' contributes a generic template-expression node. The keyword-prefixed form '}
-								<code class="inline-code">{'{text AssignmentExpression}'}</code>
-								{' requests explicit escaped-text handling.'}
+								{' contributes a generic template-expression node.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
@@ -414,13 +411,9 @@ export function SpecificationPage() {
 									{' in the current parser.'}
 								</li>
 								<li>
-									<code class="inline-code">{'{text AssignmentExpression}'}</code>
-									{' is represented by '}
-									<code class="inline-code">{'Text'}</code>
-									{' and forces escaped text-node handling.'}
-								</li>
-								<li>
-									{'The text keyword is only distinguished in this braced template-expression position; elsewhere it remains an ordinary identifier.'}
+									{'Identifiers named '}
+									<code class="inline-code">{'text'}</code>
+									{' are ordinary identifiers in braced template expressions.'}
 								</li>
 							</ul>
 							<h3 class="appendix-heading">{'4.3.1 Whitespace'}</h3>
@@ -431,12 +424,8 @@ export function SpecificationPage() {
 								<li>
 									{'Within '}
 									<code class="inline-code">{'{ AssignmentExpression }'}</code>
-									{', '}
-									<code class="inline-code">{'{text AssignmentExpression}'}</code>
 									{', whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as '}
 									<code class="inline-code">{'{ expr }'}</code>
-									{', '}
-									<code class="inline-code">{'{ text expr }'}</code>
 									{' are well-formed.'}
 								</li>
 								<li>
@@ -532,10 +521,6 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									{'A tag or fragment delimiter must not be split by intervening whitespace at the points described in 4.3.1.'}
-								</li>
-								<li>
-									<code class="inline-code">{'{text }'}</code>
-									{' are not well-formed and must be rejected.'}
 								</li>
 								<li>
 									<code class="inline-code">{'<tsx />'}</code>
@@ -637,7 +622,7 @@ export function SpecificationPage() {
 									{'TSRXExpression wraps the embedded ECMAScript expression from the ordinary {expr} template form.'}
 								</li>
 								<li>
-									{'Text wraps either a direct double-quoted static text child or the embedded ECMAScript expression from the explicit {text expr} form, and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
+									{'Text wraps a direct double-quoted static text child and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
 								</li>
 								<li>
 									{'Attribute.value is null for boolean-style attributes with no initializer, while shorthand marks parser-recognized shorthand cases.'}

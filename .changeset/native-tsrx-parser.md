@@ -29,3 +29,5 @@ The old explicit TSRX wrapper tag is no longer special; TSRX elements and fragme
 Ripple now exports a typed `Fragment` helper from its public runtimes and supports `innerHTML` on both host elements and `Fragment`. Ripple also treats `innerHTML` from element spreads as rendered content instead of serializing it as an `innerhtml` attribute.
 
 The `{html ...}` template directive has been removed. Use each target's native raw HTML prop instead, such as `innerHTML` for Ripple/Solid/Vue or `dangerouslySetInnerHTML` for React/Preact.
+
+The `{text ...}` template directive has also been removed. Text values now use ordinary `{expr}` containers, with explicit coercion written as JavaScript (`String(value)`, `value + ''`, or a typed string value). Ripple optimizes clearly string-shaped expressions and typed string props into text-node updates without requiring a TSRX-specific directive.

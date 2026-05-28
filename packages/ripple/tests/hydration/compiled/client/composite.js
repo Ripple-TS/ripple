@@ -42,8 +42,8 @@ export function TextWrappedLayout(__anchor, __props, __block) {
 	var div_2 = _$_.first_child_frag(fragment_1);
 
 	{
-		var text = _$_.child(div_2);
-		var expression_1 = _$_.sibling(text);
+		var expression_2 = _$_.child(div_2);
+		var expression_1 = _$_.sibling(expression_2);
 
 		_$_.expression(expression_1, () => __props.children);
 		_$_.pop(div_2);

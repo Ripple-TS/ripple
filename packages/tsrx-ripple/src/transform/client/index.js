@@ -155,6 +155,234 @@ function get_component_css_hash(state) {
 }
 
 /**
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @returns {AST.TypeNode | undefined}
+ */
+function unwrap_type_annotation(type_annotation) {
+	/** @type {any} */
+	let annotation = type_annotation;
+
+	while (annotation) {
+		if (annotation.type === 'TSTypeAnnotation') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		if (annotation.type === 'TSParenthesizedType') {
+			annotation = annotation.typeAnnotation;
+			continue;
+		}
+		break;
+	}
+
+	return annotation ?? undefined;
+}
+
+/**
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @returns {boolean}
+ */
+function is_string_type_annotation(type_annotation) {
+	const annotation = unwrap_type_annotation(type_annotation);
+	if (!annotation) return false;
+
+	if (annotation.type === 'TSStringKeyword') return true;
+	if (
+		annotation.type === 'TSLiteralType' &&
+		/** @type {any} */ (annotation.literal)?.type === 'Literal'
+	) {
+		return typeof (/** @type {any} */ (annotation.literal).value) === 'string';
+	}
+	if (annotation.type === 'TSUnionType') {
+		return annotation.types.every((type) => is_string_type_annotation(/** @type {any} */ (type)));
+	}
+
+	return false;
+}
+
+/**
+ * @param {AST.TypeNode | undefined | null} type_annotation
+ * @param {string} property_name
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_property_type_annotation(type_annotation, property_name) {
+	const annotation = unwrap_type_annotation(type_annotation);
+
+	if (annotation?.type === 'TSIntersectionType') {
+		for (const type of annotation.types) {
+			const property_type = get_property_type_annotation(type, property_name);
+			if (property_type) return property_type;
+		}
+		return undefined;
+	}
+
+	if (annotation?.type !== 'TSTypeLiteral') {
+		return undefined;
+	}
+
+	for (const member of annotation.members) {
+		if (member.type !== 'TSPropertySignature' || member.computed) continue;
+
+		const key = member.key;
+		const name =
+			key.type === 'Identifier'
+				? key.name
+				: key.type === 'Literal' && typeof key.value === 'string'
+					? key.value
+					: null;
+
+		if (name === property_name) {
+			return member.typeAnnotation?.typeAnnotation;
+		}
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {Binding | null | undefined} binding
+ * @returns {AST.TypeNode | undefined}
+ */
+function get_binding_type_annotation(binding) {
+	const node = binding?.node;
+	if (!node) return undefined;
+
+	return (
+		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation | AST.TypeNode }} */ (binding.metadata ?? {})
+			.typeAnnotation ??
+		/** @type {{ typeAnnotation?: AST.TSTypeAnnotation }} */ (node).typeAnnotation?.typeAnnotation
+	);
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @returns {string | null}
+ */
+function get_static_property_name(expression) {
+	if (expression.type !== 'MemberExpression' || expression.property.type === 'PrivateIdentifier') {
+		return null;
+	}
+
+	if (!expression.computed && expression.property.type === 'Identifier') {
+		return expression.property.name;
+	}
+
+	if (
+		expression.computed &&
+		expression.property.type === 'Literal' &&
+		typeof expression.property.value === 'string'
+	) {
+		return expression.property.value;
+	}
+
+	return null;
+}
+
+/**
+ * @param {AST.Expression | AST.Pattern} expression
+ * @returns {boolean}
+ */
+function is_string_literal_expression(expression) {
+	return expression.type === 'Literal' && typeof expression.value === 'string';
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {TransformClientState} state
+ * @param {Set<Binding>} [visited]
+ * @returns {boolean}
+ */
+function is_stringish_expression(expression, state, visited = new Set()) {
+	if (expression.type === 'ParenthesizedExpression' || expression.type === 'ChainExpression') {
+		return is_stringish_expression(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (expression.type === 'TSAsExpression' || expression.type === 'TSTypeAssertion') {
+		return (
+			is_string_type_annotation(/** @type {any} */ (expression.typeAnnotation)) ||
+			is_stringish_expression(/** @type {AST.Expression} */ (expression.expression), state, visited)
+		);
+	}
+
+	if (
+		expression.type === 'TSNonNullExpression' ||
+		expression.type === 'TSInstantiationExpression'
+	) {
+		return is_stringish_expression(
+			/** @type {AST.Expression} */ (expression.expression),
+			state,
+			visited,
+		);
+	}
+
+	if (is_string_literal_expression(expression) || expression.type === 'TemplateLiteral') {
+		return true;
+	}
+
+	if (
+		expression.type === 'CallExpression' &&
+		expression.callee.type === 'Identifier' &&
+		expression.callee.name === 'String'
+	) {
+		return true;
+	}
+
+	if (expression.type === 'BinaryExpression' && expression.operator === '+') {
+		const left = /** @type {AST.Expression} */ (expression.left);
+		const right = /** @type {AST.Expression} */ (expression.right);
+		return (
+			is_string_literal_expression(left) ||
+			is_string_literal_expression(right) ||
+			(is_stringish_expression(left, state, visited) &&
+				is_stringish_expression(right, state, visited))
+		);
+	}
+
+	if (expression.type === 'ConditionalExpression') {
+		return (
+			is_stringish_expression(expression.consequent, state, visited) &&
+			is_stringish_expression(expression.alternate, state, visited)
+		);
+	}
+
+	if (expression.type === 'Identifier') {
+		const binding = state.scope.get(expression.name);
+		if (!binding || binding.node === expression || visited.has(binding)) {
+			return false;
+		}
+		if (is_string_type_annotation(get_binding_type_annotation(binding))) {
+			return true;
+		}
+		if (binding.initial && !binding.reassigned && !binding.mutated && !binding.updated) {
+			visited.add(binding);
+			return is_stringish_expression(
+				/** @type {AST.Expression} */ (binding.initial),
+				state,
+				visited,
+			);
+		}
+		return false;
+	}
+
+	if (expression.type === 'MemberExpression' && expression.object.type === 'Identifier') {
+		const property_name = get_static_property_name(expression);
+		if (property_name === null) return false;
+
+		const binding = state.scope.get(expression.object.name);
+		const property_type = get_property_type_annotation(
+			get_binding_type_annotation(binding),
+			property_name,
+		);
+		return is_string_type_annotation(property_type);
+	}
+
+	return false;
+}
+
+/**
  * JSX parsed inside `<tsx>` treats `<tsx>` as an ordinary JSX tag. For
  * TypeScript output, convert that reserved tag back into a TSRX node before
  * visiting so nested islands use the same lowering path as top-level islands.
@@ -4632,6 +4860,7 @@ function transform_children(children, context) {
 		} else if (state.to_ts) {
 			transform_ts_child(node, /** @type {VisitorClientContext} */ ({ visit, state }));
 		} else {
+			/** @type {{ tracking: boolean } | undefined} */
 			let metadata;
 			/** @type {AST.Expression | undefined} */
 			let expression = undefined;
@@ -4688,6 +4917,64 @@ function transform_children(children, context) {
 			prev = flush_node;
 
 			const is_controlled = normalized.length === 1 && !root;
+			/**
+			 * @param {AST.Expression} identity
+			 * @param {AST.Expression} expr
+			 */
+			const render_text_expression = (identity, expr) => {
+				if (metadata?.tracking) {
+					skipped = 0;
+					state.template?.push(' ');
+					const id = flush_node(true);
+					state.update?.push({
+						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+						expression: expr,
+						identity,
+						initial: b.literal(' '),
+					});
+				} else if (normalized.length === 1) {
+					skipped++;
+					if (expr.type === 'Literal') {
+						if (
+							/** @type {NonNullable<TransformClientState['template']>} */ (state.template).length >
+							0
+						) {
+							state.template?.push(escape_html(expr.value));
+						} else {
+							const id = flush_node(true);
+							state.init?.push(b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.text', expr)));
+							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
+						}
+					} else {
+						const id = flush_node(true);
+						state.template?.push(' ');
+						// avoid set_text overhead for single text nodes
+						state.init?.push(
+							b.stmt(
+								b.assignment(
+									'=',
+									b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
+									expr,
+								),
+							),
+						);
+					}
+				} else {
+					skipped++;
+					if (expr.type === 'Literal') {
+						state.template?.push(escape_html(expr.value));
+					} else {
+						state.template?.push(' ');
+						const id = flush_node(true);
+						state.update?.push({
+							operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
+							expression: expr,
+							identity,
+							initial: b.literal(' '),
+						});
+					}
+				}
+			};
 
 			if (node.type === 'Element') {
 				if (is_element_dom_element(node)) {
@@ -4791,6 +5078,11 @@ function transform_children(children, context) {
 						state.template?.push(escape_html(expr.value));
 					}
 				} else if (
+					!is_children_template_expression(node.expression, state.scope) &&
+					is_stringish_expression(node.expression, state)
+				) {
+					render_text_expression(node.expression, expr);
+				} else if (
 					normalized.length === 1 &&
 					!is_children_template_expression(node.expression, state.scope)
 				) {
@@ -4815,61 +5107,7 @@ function transform_children(children, context) {
 					);
 				}
 			} else if (node.type === 'Text') {
-				if (metadata?.tracking) {
-					skipped = 0;
-					state.template?.push(' ');
-					const id = flush_node(true);
-					state.update?.push({
-						operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-						expression: /** @type {AST.Expression} */ (expression),
-						identity: node.expression,
-						initial: b.literal(' '),
-					});
-				} else if (normalized.length === 1) {
-					skipped++;
-					const expr = /** @type {AST.Expression} */ (expression);
-					if (expr.type === 'Literal') {
-						if (
-							/** @type {NonNullable<TransformClientState['template']>} */ (state.template).length >
-							0
-						) {
-							state.template?.push(escape_html(expr.value));
-						} else {
-							const id = flush_node(true);
-							state.init?.push(b.var(/** @type {AST.Identifier} */ (id), b.call('_$_.text', expr)));
-							state.final?.push(b.stmt(b.call('_$_.append', b.id('__anchor'), id)));
-						}
-					} else {
-						const id = flush_node(true);
-						state.template?.push(' ');
-						// avoid set_text overhead for single text nodes
-						state.init?.push(
-							b.stmt(
-								b.assignment(
-									'=',
-									b.member(/** @type {AST.Identifier} */ (id), b.id('nodeValue')),
-									expr,
-								),
-							),
-						);
-					}
-				} else {
-					skipped++;
-					// Handle Text nodes in fragments
-					const expr = /** @type {AST.Expression} */ (expression);
-					if (expr.type === 'Literal') {
-						state.template?.push(escape_html(expr.value));
-					} else {
-						state.template?.push(' ');
-						const id = flush_node(true);
-						state.update?.push({
-							operation: (key) => b.stmt(b.call('_$_.set_text', id, key)),
-							expression: /** @type {AST.Expression} */ (expression),
-							identity: node.expression,
-							initial: b.literal(' '),
-						});
-					}
-				}
+				render_text_expression(node.expression, /** @type {AST.Expression} */ (expression));
 			} else if (node.type === 'ForOfStatement') {
 				skipped = 0;
 				node.is_controlled = is_controlled;

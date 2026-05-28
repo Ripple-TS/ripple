@@ -117,11 +117,14 @@ export function ForLoopWithIndex(__anchor, _, __block) {
 				var li_2 = root_3();
 
 				{
-					var expression_1 = _$_.child(li_2);
+					var expression_1 = _$_.child(li_2, true);
 
-					_$_.expression(expression_1, () => `${i.value}: ${item}`);
 					_$_.pop(li_2);
 				}
+
+				_$_.render(() => {
+					_$_.set_text(expression_1, `${i.value}: ${item}`);
+				});
 
 				_$_.append(__anchor, li_2);
 			},
@@ -969,15 +972,27 @@ export function ForLoopIndexUpdate(__anchor, _, __block) {
 				var li_13 = root_40();
 
 				{
-					var expression_20 = _$_.child(li_13);
+					var expression_20 = _$_.child(li_13, true);
 
-					_$_.expression(expression_20, () => `[${i.value}] ${item}`);
 					_$_.pop(li_13);
 				}
 
-				_$_.render(() => {
-					_$_.set_class(li_13, `item-${i.value}`, void 0, true);
-				});
+				_$_.render(
+					(__prev) => {
+						var __a = `[${i.value}] ${item}`;
+
+						if (__prev.a !== __a) {
+							_$_.set_text(expression_20, __prev.a = __a);
+						}
+
+						var __b = `item-${i.value}`;
+
+						if (__prev.b !== __b) {
+							_$_.set_class(li_13, __prev.b = __b, void 0, true);
+						}
+					},
+					{ a: ' ', b: Symbol() }
+				);
 
 				_$_.append(__anchor, li_13);
 			},
@@ -1025,27 +1040,32 @@ export function KeyedForLoopWithIndex(__anchor, _, __block) {
 				var li_14 = root_42();
 
 				{
-					var expression_21 = _$_.child(li_14);
+					var expression_21 = _$_.child(li_14, true);
 
-					_$_.expression(expression_21, () => `[${i.value}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`);
 					_$_.pop(li_14);
 				}
 
 				_$_.render(
 					(__prev) => {
-						var __a = i.value;
+						var __a = `[${i.value}] ${_$_.get(pattern_6).id}: ${_$_.get(pattern_6).value}`;
 
 						if (__prev.a !== __a) {
-							_$_.set_attribute(li_14, 'data-index', __prev.a = __a);
+							_$_.set_text(expression_21, __prev.a = __a);
 						}
 
-						var __b = `item-${_$_.get(pattern_6).id}`;
+						var __b = i.value;
 
 						if (__prev.b !== __b) {
-							_$_.set_class(li_14, __prev.b = __b, void 0, true);
+							_$_.set_attribute(li_14, 'data-index', __prev.b = __b);
+						}
+
+						var __c = `item-${_$_.get(pattern_6).id}`;
+
+						if (__prev.c !== __c) {
+							_$_.set_class(li_14, __prev.c = __c, void 0, true);
 						}
 					},
-					{ a: void 0, b: Symbol() }
+					{ a: ' ', b: void 0, c: Symbol() }
 				);
 
 				_$_.append(__anchor, li_14);

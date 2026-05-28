@@ -1225,6 +1225,7 @@ export interface Binding {
 		lazy_array_index?: number;
 		lazy_array_source_tracked?: boolean;
 		lazy_array_rest?: boolean;
+		typeAnnotation?: AST.TypeNode;
 	} | null;
 	/** Kind of binding */
 	kind: BindingKind;

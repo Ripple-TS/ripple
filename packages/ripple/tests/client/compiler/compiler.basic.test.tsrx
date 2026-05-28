@@ -51,12 +51,13 @@ describe('compiler > basics', () => {
 		expect(get_returned_tsrx(ast.body[0]).children.at(-1).children[0].source).toEqual(style3);
 	});
 
-	it('parses explicit text interpolation and reserves the text keyword', () => {
+	it('parses text as an ordinary expression identifier', () => {
 		const source = `export function App() { return <>
 	const markup = '<span>Not HTML</span>';
+	const text = markup;
 
 	<div>{markup}</div>
-	<div>{text markup}</div>
+	<div>{text}</div>
 </>; }`;
 
 		const ast = parse(source);
@@ -64,26 +65,45 @@ describe('compiler > basics', () => {
 			(node: AST.Node) => node.type === 'Element',
 		) as AST.Element[];
 		const expression = elements[0].children[0] as AST.Node & { expression: AST.Expression };
-		const explicit_text = elements[1].children[0] as AST.TextNode;
+		const text_expression = elements[1].children[0] as AST.Node & { expression: AST.Expression };
 
 		expect(elements).toHaveLength(2);
 		expect(expression.type).toBe('TSRXExpression');
 		expect((expression.expression as AST.Identifier).name).toBe('markup');
-		expect(explicit_text.type).toBe('Text');
-		expect((explicit_text.expression as AST.Identifier).name).toBe('markup');
+		expect(text_expression.type).toBe('TSRXExpression');
+		expect((text_expression.expression as AST.Identifier).name).toBe('text');
 
 		const { code } = compile(source, 'text-directive.tsrx', { mode: 'client' });
 		expect(code).not.toContain('_$_.html');
 
 		const invalid_source = `export function App() { return <>
-	const text = 'plain';
+	const markup = 'plain';
 
-	<div>{text}</div>
+	<div>{text markup}</div>
 </>; }`;
 
-		expect(() => parse(invalid_source)).toThrow(
-			'"text" is a TSRX keyword and must be used in the form {text some_value}',
-		);
+		expect(() => parse(invalid_source)).toThrow();
+	});
+
+	it('optimizes string-shaped expressions as text nodes', () => {
+		const source = `export function App(
+	{ title, props }: { title: string; props: { label: string } },
+) { return <>
+	const element = <span />;
+
+	<div>{String(title)}</div>
+	<div>{title + ''}</div>
+	<div>{title as string}</div>
+	<div>{title}</div>
+	<div>{props.label}</div>
+	<div>{element}</div>
+</>; }`;
+
+		const { code } = compile(source, 'stringish-text.tsrx', { mode: 'client' });
+
+		expect(code).toContain('_$_.set_text');
+		expect(code).toContain('nodeValue = title');
+		expect(count_occurrences(code, '_$_.expression')).toBe(1);
 	});
 
 	it('parses backtick expressions inside TSRX fragments as template literals', () => {
