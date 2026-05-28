@@ -92,13 +92,36 @@ export function get_tsrx_component_function_name(node, context) {
  */
 export function is_tsrx_component_function(node, context) {
 	const name = get_tsrx_component_function_name(node, context);
+	const is_directly_called =
+		name !== null && has_direct_call_reference(name, /** @type {CommonContext} */ (context));
 	return (
 		is_native_tsrx_function_node(node) ||
-		(function_has_native_tsrx_return(node) && name !== null) ||
+		(function_has_native_tsrx_return(node) && name !== null && !is_directly_called) ||
 		(name !== null &&
 			is_component_like_function_name(name) &&
+			!is_directly_called &&
 			function_has_only_renderable_component_returns(node))
 	);
+}
+
+/**
+ * @param {string} name
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+function has_direct_call_reference(name, context) {
+	const binding = context.state.scope.get(name);
+	if (!binding) {
+		return false;
+	}
+
+	return binding.references.some(({ node, path }) => {
+		const parent = path.at(-1);
+		return (
+			(parent?.type === 'CallExpression' || parent?.type === 'NewExpression') &&
+			parent.callee === node
+		);
+	});
 }
 
 /**

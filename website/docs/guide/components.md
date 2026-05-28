@@ -4,6 +4,13 @@ title: Components in Ripple
 
 # Components
 
+## Detection
+
+Direct calls keep ordinary helper semantics. A PascalCase helper such as
+`StatusCode()` or `FormatName()` is left as a normal function when called
+directly; component compilation applies to functions used as components or render
+entries, and to functions that return native TSRX without being directly called.
+
 ## Lifecycle
 
 ::: details Glossary

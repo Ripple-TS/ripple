@@ -32,6 +32,11 @@ Components are ordinary TypeScript functions that return TSRX. Use a capitalized
 function name, accept props as the first parameter, and return either a single
 TSRX element or a fragment.
 
+Direct calls keep ordinary helper semantics. A PascalCase helper such as
+`StatusCode()` or `FormatName()` is left as a normal function when called
+directly; component compilation applies to functions used as components or render
+entries, and to functions that return native TSRX without being directly called.
+
 ```ripple
 function Button(props: { text: string; onClick: () => void }) {
   return <button onClick={props.onClick}>{props.text}</button>;

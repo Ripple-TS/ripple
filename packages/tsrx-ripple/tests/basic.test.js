@@ -576,6 +576,65 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).not.toContain('template(``');
 	});
 
+	it('keeps returned elements after comments on the render path', () => {
+		const { code } = compile(
+			`function App() {
+				return /* comment */ <div>"Commented"</div>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('template(`<div>Commented</div>`');
+		expect(code).toContain('_$_.append(__anchor, fragment)');
+	});
+
+	it('keeps directly called PascalCase numeric helpers as ordinary functions', () => {
+		const { code } = compile(
+			`function StatusCode() {
+				return 200;
+			}
+			const value = StatusCode();`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function StatusCode()');
+		expect(code).toContain('return 200;');
+		expect(code).toContain('const value = StatusCode();');
+		expect(code).not.toContain('function StatusCode(__anchor');
+		expect(code).not.toContain('template(`200`');
+	});
+
+	it('keeps directly called PascalCase template literal helpers as ordinary functions', () => {
+		const { code } = compile(
+			`function FormatName(first, last) {
+				return \`\${first} \${last}\`;
+			}
+			const label = FormatName("Ada", "Lovelace");`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function FormatName(first, last)');
+		expect(code).toContain('return `${first} ${last}`;');
+		expect(code).toContain('const label = FormatName("Ada", "Lovelace");');
+		expect(code).not.toContain('function FormatName(__anchor');
+	});
+
+	it('componentifies renderable-only PascalCase functions used as elements', () => {
+		const { code } = compile(
+			`function Label() {
+				return "Hi";
+			}
+			function App() {
+				return <Label />;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function Label(__anchor');
+		expect(code).toContain('template(`Hi`');
+		expect(code).toContain('Label(node, {}, _$_.active_block)');
+	});
+
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
 			`function App() { return <>

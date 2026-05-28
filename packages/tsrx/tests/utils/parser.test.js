@@ -11,6 +11,50 @@ describe('TSRX parser', () => {
 		expect(returned.selfClosing).toBe(true);
 	});
 
+	it('parses returned tags after comments as return arguments', () => {
+		const ast = parseModule('function MyApp() { return /* comment */ <div />; }', 'App.tsrx');
+
+		const returned = ast.body[0].body.body[0].argument;
+		expect(returned.type).toBe('Element');
+		expect(returned.id.name).toBe('div');
+	});
+
+	it('honors ASI for returned tags after a newline', () => {
+		const ast = parseModule(
+			`function MyApp() {
+				return
+				<div />;
+			}`,
+			'App.tsrx',
+		);
+
+		const body = ast.body[0].body.body;
+		expect(body[0].type).toBe('ReturnStatement');
+		expect(body[0].argument).toBeNull();
+		expect(body[1].type).toBe('Element');
+		expect(body[1].id.name).toBe('div');
+	});
+
+	it('parses mixed scalar and template return branches', () => {
+		const ast = parseModule(
+			`function MyApp() {
+				if (ready) {
+					return "Ready";
+				}
+				if (empty) {
+					return null;
+				}
+				return <div />;
+			}`,
+			'App.tsrx',
+		);
+
+		const [ready, empty, fallback] = ast.body[0].body.body;
+		expect(ready.consequent.body[0].argument.value).toBe('Ready');
+		expect(empty.consequent.body[0].argument.value).toBeNull();
+		expect(fallback.argument.type).toBe('Element');
+	});
+
 	it('parses bare fragments as native TSRX templates with statement children', () => {
 		const ast = parseModule(
 			`function bar(): JSX.Element | null {

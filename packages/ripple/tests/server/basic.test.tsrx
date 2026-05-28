@@ -95,6 +95,17 @@ second"</pre>
 		expect(body).toBeHtml('');
 	});
 
+	it('does not render elements after an ASI return', async () => {
+		function Basic() {
+			return;
+			<div>"should not render"</div>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml('');
+	});
+
 	it('renders inline tsrx fragments', async () => {
 		function Basic() {
 			return <>

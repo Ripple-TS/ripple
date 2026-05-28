@@ -112,6 +112,17 @@ second"</pre>
 		expect(container.textContent).toBe('');
 	});
 
+	it('does not render elements after an ASI return', () => {
+		function Basic() {
+			return;
+			<div>"should not render"</div>;
+		}
+
+		render(Basic);
+
+		expect(container.textContent).toBe('');
+	});
+
 	it('renders bare double-quoted text in if-else branches', () => {
 		function App() {
 			return <>
