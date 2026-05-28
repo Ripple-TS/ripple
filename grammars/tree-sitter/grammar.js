@@ -46,7 +46,6 @@ module.exports = grammar({
 		[$.primary_expression, $.pattern],
 		[$.array_pattern, $.array],
 		[$.object_pattern, $.object],
-		[$.expression, $.jsx_element_name],
 		[$.statement_block, $.object],
 		[$.method_definition, $.arrow_function],
 		[$.shorthand_property_identifier, $.shorthand_property_identifier_pattern],
