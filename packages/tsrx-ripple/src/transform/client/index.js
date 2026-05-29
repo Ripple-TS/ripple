@@ -978,7 +978,7 @@ function create_ref_value_call(source_argument, context) {
 
 	if (source.type === 'ArrayExpression') {
 		argument = b.array(
-			source.elements.map((element) => {
+			source.elements.map((/** @type {AST.Expression | AST.SpreadElement | null} */ element) => {
 				if (element === null) {
 					return null;
 				}

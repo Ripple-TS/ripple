@@ -731,12 +731,16 @@ describe('@tsrx/solid basic', () => {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
-			expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+			expect(code).toContain(
+				'let App__spread_props1 = __normalize_spread_props_for_ref_attr(first);',
+			);
+			expect(code).toContain(
+				'let App__spread_props2 = __normalize_spread_props_for_ref_attr(second);',
+			);
 			expect(code).toContain('{...App__spread_props1}');
 			expect(code).toContain('{...App__spread_props2}');
 			expect(code).toContain('ref={[App__spread_props1.ref, App__spread_props2.ref, cb]}');
-			expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+			expect(code.match(/__normalize_spread_props_for_ref_attr\(/g)).toHaveLength(2);
 			expect(code).not.toContain('create_ref_prop');
 			expect(code).not.toContain('__normalize_spread_props(first, cb)');
 			expect(code).not.toContain('__normalize_spread_props(second, cb)');

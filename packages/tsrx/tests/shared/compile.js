@@ -1848,7 +1848,7 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 			const declaration_offset = code.indexOf(
-				'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+				'let _tsrx_spread_props_1 = __normalize_spread_props_for_ref_attr(props);',
 			);
 			const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
 
