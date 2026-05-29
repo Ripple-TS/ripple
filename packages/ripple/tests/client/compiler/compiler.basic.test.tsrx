@@ -332,20 +332,16 @@ describe('compiler > basics', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 	});
 
-	it('calculates fragment hop count after return-guard grouping', () => {
+	it('calculates fragment hop count for sibling fragments', () => {
 		const source = `export function App() { return <>
-	let stop = false;
-	if (stop) {
-		return;
-	}
 	<div class="a">{'a'}</div>
 	<div class="b">{'b'}</div>
 </>; }`;
 
 		const { code } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
 
-		expect(code).toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*2\)/);
-		expect(code).not.toMatch(/_\$_\.template\(`<!><!>`,\s*1,\s*3\)/);
+		expect(code).toMatch(/_\$_\.template\([\s\S]*,\s*1,\s*2\)/);
+		expect(code).not.toMatch(/_\$_\.template\([\s\S]*,\s*1,\s*3\)/);
 	});
 
 	it('emits anonymous component expressions as arrows in client output', () => {
@@ -1016,7 +1012,7 @@ function App() { return <>
 		).toBeDefined();
 	});
 
-	it('allows return values inside returned TSRX fragments in Volar mappings', () => {
+	it('reports return statements inside returned TSRX fragments in Volar mappings', () => {
 		const result = compile_to_volar_mappings(
 			`function App() { return <>
 				return <div />;
@@ -1024,7 +1020,9 @@ function App() { return <>
 			'test.tsrx',
 		);
 
-		expect(result.errors).toEqual([]);
+		expect(result.errors.map((error) => error.message)).toContain(
+			'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.',
+		);
 	});
 
 	it('throws for unclosed tsx compat tags instead of hanging', () => {

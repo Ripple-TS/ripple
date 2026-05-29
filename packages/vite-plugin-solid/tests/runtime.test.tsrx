@@ -821,16 +821,17 @@ function SignalInSwitchApp() {
 	</>;
 }
 
-// ── Early return before signals with parent scope ──
+// ── Component guard return before signals with parent scope ──
 
 function EarlyReturnWithSignalsApp() {
+	const [count, setCount] = createSignal(0);
+	const [skip, setSkip] = createSignal(false);
+	if (skip()) {
+		return null;
+	}
+	const [doubled, setDoubled] = createSignal(0);
+
 	return <>
-		const [count, setCount] = createSignal(0);
-		const [skip, setSkip] = createSignal(false);
-		if (skip()) {
-			return;
-		}
-		const [doubled, setDoubled] = createSignal(0);
 		<p class="early-count">{count()}</p>
 		<p class="early-doubled">{doubled()}</p>
 		<button
@@ -850,11 +851,11 @@ function TemplateBeforeEarlyReturnApp() {
 	return <>
 		const [guard, setGuard] = createSignal(false);
 		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
-		if (guard()) {
+		if (!guard()) {
+			<p class="template-return-rest">{'rest'}</p>
+		} else {
 			<p class="template-return-guard">{'guard'}</p>
-			return;
 		}
-		<p class="template-return-rest">{'rest'}</p>
 	</>;
 }
 
@@ -1475,7 +1476,7 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.scope-result')).toBe('18');
 	});
 
-	it('early return before signals behaves like an ordinary function guard', async () => {
+	it('component guard return before signals behaves like an ordinary function guard', async () => {
 		await render(EarlyReturnWithSignalsApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
@@ -1489,7 +1490,7 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.early-doubled')).toBe('2');
 	});
 
-	it('early return after rendering a branch template is not a reactive branch', async () => {
+	it('conditional branch template updates reactively', async () => {
 		await render(TemplateBeforeEarlyReturnApp);
 		expect(text('.template-return-toggle')).toBe('toggle');
 		expect(text('.template-return-rest')).toBe('rest');
@@ -1497,8 +1498,8 @@ describe('tsrx-solid runtime', () => {
 
 		await click('.template-return-toggle');
 		expect(text('.template-return-toggle')).toBe('toggle');
-		expect(container.querySelector('.template-return-guard')).toBeNull();
-		expect(text('.template-return-rest')).toBe('rest');
+		expect(text('.template-return-guard')).toBe('guard');
+		expect(container.querySelector('.template-return-rest')).toBeNull();
 	});
 
 	// ── Static structure ──

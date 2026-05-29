@@ -1024,16 +1024,17 @@ function HookInForClosingScopeApp() {
 	</>;
 }
 
-// ── Early return before hooks with parent scope ──
+// ── Component guard return before hooks with parent scope ──
 
 function EarlyReturnWithHooksApp() {
+	const [count, setCount] = useState(0);
+	const [skip, setSkip] = useState(false);
+	if (skip) {
+		return null;
+	}
+	const [doubled, setDoubled] = useState(0);
+
 	return <>
-		const [count, setCount] = useState(0);
-		const [skip, setSkip] = useState(false);
-		if (skip) {
-			return;
-		}
-		const [doubled, setDoubled] = useState(0);
 		<p class="early-count">{count}</p>
 		<p class="early-doubled">{doubled}</p>
 		<button
@@ -1800,7 +1801,7 @@ describe('tsrx-react runtime', () => {
 		expect(container.querySelector('.for-scope-label')!.textContent).toBe('thing-a!');
 	});
 
-	it('early return before hooks passes scope correctly to continuation', async () => {
+	it('component guard return before hooks passes scope correctly to continuation', async () => {
 		await render(EarlyReturnWithHooksApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
