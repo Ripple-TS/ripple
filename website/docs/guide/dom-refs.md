@@ -4,18 +4,13 @@ title: Referencing DOM Elements in Ripple
 
 # DOM Refs
 
-Refs let you capture the DOM node behind an element. Ripple uses the same
-attribute shape as JSX:
+Refs let you capture the DOM node behind an element. Ripple uses the normal JSX
+attribute shape:
 
-| Syntax             | Use it for                                                       |
-| ------------------ | ---------------------------------------------------------------- |
-| `ref={value}`      | A native-like ref attribute on the current element or component. |
-| `ref={[a, b]}`     | Multiple refs for the same element.                              |
-| `inputRef={value}` | An ordinary prop that a component can forward explicitly.        |
-
-The `ref={expr}` form attaches a ref to the current template. Named props, such
-as `inputRef={expr}`, are regular string-keyed props; pass them into `ref={...}`
-inside the receiving component when you want to forward them.
+| Syntax         | Use it for                                   |
+| -------------- | -------------------------------------------- |
+| `ref={value}`  | One ref for the current element or component. |
+| `ref={[a, b]}` | Multiple refs for the same element.           |
 
 Ref values can be callbacks, `Tracked` values from `track()`, or mutable
 identifiers/member expressions. Mutable refs are assigned when the element mounts
@@ -109,24 +104,7 @@ export function App({ ms }) {
 }
 ```
 
-## Native-Like `ref={...}`
-
-Use `ref={value}` when you want the ref to look like the host runtime's native
-ref attribute. In Ripple it accepts the same values as `ref={value}`.
-
-```ripple
-export function App() {
-  return <>
-  let input: HTMLInputElement | undefined;
-  const state: { wrapper?: HTMLDivElement } = {};
-
-  <div ref={state.wrapper}>
-    <input ref={input} type="text" />
-  </div>
-
-  </>;
-}
-```
+## Multiple Refs
 
 Use an array when one DOM element needs more than one ref.
 
@@ -147,11 +125,35 @@ export function App() {
 }
 ```
 
-## Named Ref Props
+## Component Forwarding
 
-Named ref props are the preferred form for reusable component APIs because the
-component can decide where the ref lands. They can be forwarded explicitly or
-through a spread.
+Components receive `ref={...}` as a prop. Forward it explicitly or include it in
+a spread onto the host element that should be exposed.
+
+<Code console>
+
+```ripple
+function Input({ id, ...rest }) {
+  return <>
+  <input {id} {...rest} />
+
+  </>;
+}
+
+export function App() {
+  return <>
+  let input: HTMLInputElement | undefined;
+
+  <Input id="email" ref={input} />
+
+  </>;
+}
+```
+
+</Code>
+
+Named props such as `inputRef` are ordinary component API props. Pass them into
+`ref={...}` inside the receiving component when you want to forward them.
 
 <Code console>
 
@@ -178,71 +180,11 @@ export function App() {
 
 </Code>
 
-Named ref props also work directly on DOM elements. Ripple recognizes the ref
-value and does not emit the prop name as an attribute.
-
-```ripple
-export function App() {
-  return <>
-  let input: HTMLInputElement | undefined;
-
-  <input inputRef={input} type="text" />
-
-  </>;
-}
-```
-
-Anonymous `ref={...}` props are forwarded with a unique symbol key. That makes
-them easy to spread through a component, but impossible to inspect by a public
-prop name. Use a named ref prop when a component API should expose a specific ref
-slot.
-
-```ripple
-function Input({ id, ...rest }) {
-  return <>
-  <input {id} {...rest} />
-
-  </>;
-}
-
-export function App() {
-  return <>
-  let input: HTMLInputElement | undefined;
-
-  <Input id="email" ref={input} />
-
-  </>;
-}
-```
-
-## Inspecting Ref Props
-
-Named ref props are marked at runtime. Use `isRefProp(value)` when a component
-needs to distinguish a named ref prop from an ordinary prop.
-
-```ripple
-import { isRefProp } from 'ripple';
-
-function Field({ inputRef, ...rest }) {
-  return <>
-  if (isRefProp(inputRef)) {
-    console.log('received a ref prop');
-  }
-
-  <input ref={inputRef} {...rest} />
-
-  </>;
-}
-```
-
-Anonymous `ref={...}` props are intentionally not publicly inspectable because
-their keys are unique symbols.
-
 ## createRefKey
 
-Creates a unique object key that will be recognised as a ref when the object is
-spread onto an element. This allows programmatic assignment of refs without
-relying directly on template syntax.
+`createRefKey()` creates a unique object key that Ripple recognizes as a ref
+when the object is spread onto an element. This is useful when refs need to be
+assembled programmatically.
 
 <Code console>
 
@@ -274,10 +216,7 @@ export function App() {
     },
   };
 
-  // applied to an element
   <input type="text" {...props} />
-
-  // with composite component
   <Input {...props} />
 
   </>;

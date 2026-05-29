@@ -4,11 +4,17 @@ title: Referencing DOM Elements in Ripple
 
 # DOM Refs
 
-Ripple provides a consistent way to capture the underlying DOM element – refs.
-Specifically, using the syntax `ref={fn}` where `fn` is a function that captures
-the DOM element. If you're familiar with other frameworks, then this is identical
-to `{@attach fn}` in Svelte 5 and somewhat similar to `ref` in React. The hook
-function will receive the reference to the underlying DOM element.
+Refs let you capture the DOM node behind an element. Ripple uses the normal JSX
+attribute shape:
+
+| Syntax         | Use it for                                   |
+| -------------- | -------------------------------------------- |
+| `ref={value}`  | One ref for the current element or component. |
+| `ref={[a, b]}` | Multiple refs for the same element.           |
+
+Ref values can be callbacks, `Tracked` values from `track()`, or mutable
+identifiers/member expressions. Mutable refs are assigned when the element mounts
+and cleared when it unmounts.
 
 <Code console>
 
@@ -17,19 +23,39 @@ import { track } from 'ripple';
 
 export default function App() {
   return <>
-  let &[div] = track();
+  let div: HTMLDivElement | undefined;
+  const input = track<HTMLInputElement | null>(null);
+  const state: { button?: HTMLButtonElement } = {};
 
-  const divRef = (node) => {
-    div = node;
+  <div ref={div}>"Hello world"</div>
+  <input ref={input} type="text" />
+  <button ref={state.button}>"Save"</button>
+
+  </>;
+}
+```
+
+</Code>
+
+## Callback Refs
+
+Callback refs receive the DOM node when the element mounts. Return a cleanup
+function to run when the element is removed.
+
+<Code console>
+
+```ripple
+export function App() {
+  return <>
+  function setup(node: HTMLDivElement) {
     console.log('mounted', node);
 
     return () => {
-      div = undefined;
       console.log('unmounted', node);
     };
-  };
+  }
 
-  <div ref={divRef}>"Hello world"</div>
+  <div ref={setup}>"Hello world"</div>
 
   </>;
 }
@@ -42,17 +68,17 @@ You can also create callback refs inline.
 <Code console>
 
 ```ripple
-import { track } from 'ripple';
-
 export function App() {
   return <>
-  let &[div] = track();
+  let div: HTMLDivElement | undefined;
 
   <div
     ref={(node) => {
       div = node;
       console.log('mounted', node);
-      return () => (div = undefined);
+      return () => {
+        div = undefined;
+      };
     }}
   >
     "Hello world"
@@ -64,9 +90,8 @@ export function App() {
 
 </Code>
 
-You can also use function factories to define properties, these are functions that
-return functions that do the same thing. However, you can use this pattern to pass
-reactive properties.
+Function factories work well when a library returns the ref callback for you, or
+when the ref setup needs configuration.
 
 ```ripple
 import { fadeIn } from 'some-library';
@@ -79,49 +104,119 @@ export function App({ ms }) {
 }
 ```
 
-Lastly, you can use refs on composite components.
+## Multiple Refs
 
-```ripple
-<Image ref={(node) => console.log(node)} {...props} />
-```
-
-When passing refs to composite components, the receiving component can forward
-the prop with `ref={props.ref}` or include it in a spread onto a host element.
-
-## createRefKey
-
-Creates a unique object key that will be recognised as a ref when the object is
-spread onto an element. This allows programmatic assignment of refs without
-relying directly on the `ref={...}` template syntax.
-
-<Code console>
+Use an array when one DOM element needs more than one ref.
 
 ```ripple
 import { track } from 'ripple';
 
 export function App() {
   return <>
+  let input: HTMLInputElement | undefined;
+  const trackedInput = track<HTMLInputElement | null>(null);
+
+  <input
+    ref={[input, trackedInput, (node) => console.log(node)]}
+    type="text"
+  />
+
+  </>;
+}
+```
+
+## Component Forwarding
+
+Components receive `ref={...}` as a prop. Forward it explicitly or include it in
+a spread onto the host element that should be exposed.
+
+<Code console>
+
+```ripple
+function Input({ id, ...rest }) {
+  return <>
+  <input {id} {...rest} />
+
+  </>;
+}
+
+export function App() {
+  return <>
+  let input: HTMLInputElement | undefined;
+
+  <Input id="email" ref={input} />
+
+  </>;
+}
+```
+
+</Code>
+
+Named props such as `inputRef` are ordinary component API props. Pass them into
+`ref={...}` inside the receiving component when you want to forward them.
+
+<Code console>
+
+```ripple
+export function Field({ inputRef, ...rest }) {
+  return <>
+  <label>
+    "Search"
+    <input type="search" ref={inputRef} {...rest} />
+  </label>
+
+  </>;
+}
+
+export function App() {
+  return <>
+  let input: HTMLInputElement | undefined;
+
+  <Field inputRef={input} placeholder="Search docs" />
+
+  </>;
+}
+```
+
+</Code>
+
+## createRefKey
+
+`createRefKey()` creates a unique object key that Ripple recognizes as a ref
+when the object is spread onto an element. This is useful when refs need to be
+assembled programmatically.
+
+<Code console>
+
+```ripple
+import { createRefKey, track } from 'ripple';
+
+export function App() {
+  return <>
   let &[value] = track('');
+  let input: HTMLInputElement | undefined;
 
   const props = {
     id: 'example',
     value,
-    [createRefKey()]: (node) => {
-      const removeListener = node.addEventListener('input', (e) => {
-        value = e.target.value;
+    [createRefKey()]: (node: HTMLInputElement) => {
+      input = node;
+
+      const onInput = () => {
+        value = node.value;
         console.log(value);
-      });
+      };
+
+      node.addEventListener('input', onInput);
 
       return () => {
-        removeListener();
+        input = undefined;
+        node.removeEventListener('input', onInput);
       };
     },
   };
 
-  // applied to an element
   <input type="text" {...props} />
-
-  // with composite component
   <Input {...props} />
 
   </>;

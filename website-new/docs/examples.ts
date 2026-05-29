@@ -856,14 +856,14 @@ export default function App() {
 
 export default function App() {
   return <>
-  let div = track();
+  let &[div] = track();
 
   const divRef = (node) => {
-    @div = node;
+    div = node;
     console.log("mounted", node);
 
     return () => {
-      @div = undefined;
+      div = undefined;
       console.log("unmounted", node);
     };
   };
@@ -880,25 +880,27 @@ export default function App() {
 
 export default function App() {
   return <>
-  let value = track('');
+  let &[value] = track('');
 
   const props = {
     id: "example",
-    @value,
+    value,
     [createRefKey()]: (node) => {
-      const removeListener = node.addEventListener('input', (e) => {
-        @value = e.target.value;
-        console.log(@value);
-      });
+      const onInput = (e) => {
+        value = e.target.value;
+        console.log(value);
+      };
+
+      node.addEventListener('input', onInput);
 
       return () => {
-        removeListener();
+        node.removeEventListener('input', onInput);
       }
     }
   };
 
   <input type="text" {...props} />
-  <div>{@value}</div>
+  <div>{value}</div>
 
   </>;
 }

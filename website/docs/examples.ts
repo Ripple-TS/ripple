@@ -895,13 +895,15 @@ export default function App() {
     id: "example",
     value,
     [createRefKey()]: (node) => {
-      const removeListener = node.addEventListener('input', (e) => {
+      const onInput = (e) => {
         value = e.target.value;
         console.log(value);
-      });
+      };
+
+      node.addEventListener('input', onInput);
 
       return () => {
-        removeListener();
+        node.removeEventListener('input', onInput);
       }
     }
   };

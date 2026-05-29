@@ -925,17 +925,14 @@ Both examples above will render the same inline styles, however, it's recommende
 
 ### DOM References (Refs)
 
-Ripple supports three DOM ref forms:
+Ripple supports DOM refs with the normal JSX `ref` attribute shape:
 
-- `ref={expr}` — anonymous prop as a direct TSRX keyword ref.
-- `ref={expr}` — native-style direct ref attribute on the current element.
-- `anyName={expr}` — named ref prop
-
-All three styles can be used on components and elements.
-Named ref props are applied as refs instead of emitted as attributes.
+- `ref={expr}` — one ref for the current element or component.
+- `ref={[a, b]}` — multiple refs for the same element.
 
 Refs accept callbacks, `Tracked` values for reactive assignments, and mutable
-identifiers/member expressions and cross component boundaries.
+identifiers/member expressions. Mutable refs are assigned when the element
+mounts and cleared when it unmounts.
 
 ```ripple
 import { track } from 'ripple';
@@ -944,31 +941,28 @@ export function App() {
   return <>
   let div: HTMLDivElement | null | undefined;
   const input = track<HTMLInputElement | null>(null);
+  const state: { button?: HTMLButtonElement } = {};
 
-	// anonymous style
   <div ref={div}>"Hello world"</div>
-
-	// native-like style
   <input ref={input} type="text" />
-
-	// callback style
-  <button ref={(node) => console.log("mounted", node)}>"Log"</button>
+  <button ref={[state.button, (node) => console.log("mounted", node)]}>"Log"</button>
 
   </>;
 }
 ```
 
-Named refs are recommended for better Component and DOM composition:
+Components receive `ref={...}` as a prop. Forward it explicitly or include it in
+a spread onto the host element that should be exposed. Named props such as
+`inputRef` are ordinary component API props; pass them into `ref={...}` inside
+the receiving component when you want to forward them.
 
 ```ripple
-function Field({ inputRef, buttonRef ...rest }) {
+function Field({ inputRef, ...rest }) {
   return <>
-	// on DOM elements refs are registered without attributes added
-	<div class="wrapper" {...rest}>
-		<input inputRef={inputRef} {...rest} />
-		<button buttonRef={buttonRef}>"Reset"</button>
-	</div>
-	</div>
+  <label>
+    "Search"
+    <input ref={inputRef} type="search" {...rest} />
+  </label>
 
   </>;
 }
@@ -976,17 +970,14 @@ function Field({ inputRef, buttonRef ...rest }) {
 export function App() {
   return <>
   let input: HTMLInputElement | null | undefined;
-	let button = track<HTMLButtonElement | null>(null);
-	let wrapper: HTMLElement | null | undefined;
-  <Field inputRef={input} buttonRef={button} ref={(node) => wrapper = node} />
+  <Field inputRef={input} placeholder="Search docs" />
 
   </>;
 }
 ```
 
-Named ref props are marked at runtime. Use `isRefProp(value)` to detect one.
-Anonymous `ref={...}` props use unique symbol keys and are intentionally not
-publicly inspectable.
+Use `createRefKey()` when refs need to be assembled programmatically and applied
+through object spread.
 
 ## Built-in APIs
 

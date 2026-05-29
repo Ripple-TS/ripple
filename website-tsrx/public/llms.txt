@@ -428,40 +428,12 @@ function UserCard(&{ name, age }: { name: string; age: number }) {
 let &[count, setCount] = createSignal(0);
 ```
 
-### Prop shorthand and refs
+### Prop shorthand
 
 When a prop name matches the variable, use `{name}` instead of `name={name}`.
 
 ```tsrx
 <Input {value} {onChange} />
-```
-
-Refs support direct keyword refs, native-style refs, and named ref props.
-
-```tsrx
-function AutoFocus() {
-	return <>
-		function logNode(node: HTMLInputElement) {
-			console.log(node);
-		}
-		<input ref={logNode} logRef={logNode} type="text" />
-	</>;
-}
-```
-
-Named ref props are useful for component APIs:
-
-```tsrx
-function Form() {
-	return <>
-		let input: HTMLInputElement | undefined;
-		<Field inputRef={input} />
-	</>;
-}
-
-function Field(props) {
-	return <><input {...props} /></>;
-}
 ```
 
 ## Control Flow
@@ -666,9 +638,9 @@ lowers to loading primitives, and lazy destructuring preserves signal reads.
 ### Vue
 
 Vue output targets `vue-jsx-vapor` and `defineVaporComponent(...)`. It supports
-statement control flow, scoped styles, refs, host `innerHTML`,
-and `try/pending` lowering through Vue suspense APIs. Component-level `await`
-is not supported for Vue TSRX.
+statement control flow, scoped styles, host `innerHTML`, and `try/pending`
+lowering through Vue suspense APIs. Component-level `await` is not supported
+for Vue TSRX.
 
 ### Ripple
 
@@ -761,8 +733,6 @@ function List<T>({ items, render }: Props<T>) {
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand         | `<Input {value} {onChange} />`                   |
-| Callback ref           | `<input ref={(node) => ...} />`                  |
-| Named ref prop         | `<Field inputRef={input} />`                 |
 | Conditional rendering  | `if (cond) { ... } else { ... }`                 |
 | List rendering         | `for (const x of xs; index i; key x.id) { ... }` |
 | Multi-branch           | `switch (x) { case 'a': ... break; }`            |
