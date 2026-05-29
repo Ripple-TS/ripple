@@ -1,5 +1,13 @@
 # @tsrx/rspack-plugin-react
 
+## 0.0.43
+
+### Patch Changes
+
+- Updated dependencies
+  [[`054bd1e`](https://github.com/Ripple-TS/ripple/commit/054bd1e75347e395f6c096f8e293d1baf8e03549)]:
+  - @tsrx/react@0.2.17
+
 ## 0.0.42
 
 ### Patch Changes

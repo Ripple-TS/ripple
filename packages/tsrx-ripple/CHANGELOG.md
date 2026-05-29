@@ -1,5 +1,51 @@
 # @tsrx/ripple
 
+## 0.1.17
+
+### Patch Changes
+
+- [#1177](https://github.com/Ripple-TS/ripple/pull/1177)
+  [`054bd1e`](https://github.com/Ripple-TS/ripple/commit/054bd1e75347e395f6c096f8e293d1baf8e03549)
+  Thanks [@trueadm](https://github.com/trueadm)! - Parse tags and bare fragments
+  as native TSRX by default, remove `component` keyword parsing, and
+  compile/format/lint function components that return native TSRX across the
+  React, Preact, Solid, Vue, and Ripple targets. Ripple component compilation now
+  only renders TSRX reachable from returned values and supports string and `null`
+  component returns.
+
+  Ripple now also preserves directly called PascalCase helpers as ordinary
+  functions while still compiling renderable component functions used as
+  components or render entries.
+
+  The old explicit TSRX wrapper tag is no longer special; TSRX elements and
+  fragments are the default expression syntax, and the tag name is treated like
+  any ordinary element name.
+
+  Ripple now exports a typed `Fragment` helper from its public runtimes and
+  supports `innerHTML` on both host elements and `Fragment`. Ripple also treats
+  `innerHTML` from element spreads as rendered content instead of serializing it
+  as an `innerhtml` attribute.
+
+  The `{html ...}` template directive has been removed. Use each target's native
+  raw HTML prop instead, such as `innerHTML` for Ripple/Solid/Vue or
+  `dangerouslySetInnerHTML` for React/Preact.
+
+  The `{text ...}` template directive has also been removed. Text values now use
+  ordinary `{expr}` containers, with explicit coercion written as JavaScript
+  (`String(value)`, `value + ''`, or a typed string value). Ripple optimizes
+  clearly string-shaped expressions and typed string props into text-node updates
+  without requiring a TSRX-specific directive.
+
+- [#1177](https://github.com/Ripple-TS/ripple/pull/1177)
+  [`054bd1e`](https://github.com/Ripple-TS/ripple/commit/054bd1e75347e395f6c096f8e293d1baf8e03549)
+  Thanks [@trueadm](https://github.com/trueadm)! - Compile native TSRX functions
+  as value-producing functions and route component syntax through runtime
+  component helpers.
+
+- Updated dependencies
+  [[`054bd1e`](https://github.com/Ripple-TS/ripple/commit/054bd1e75347e395f6c096f8e293d1baf8e03549)]:
+  - @tsrx/core@0.1.17
+
 ## 0.1.16
 
 ### Patch Changes
