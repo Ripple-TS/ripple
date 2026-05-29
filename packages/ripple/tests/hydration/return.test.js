@@ -6,7 +6,10 @@ import * as ClientComponents from './compiled/client/return.js';
 
 describe('hydration > function returns', () => {
 	it('hydrates guard returns before TSRX output', async () => {
-		await hydrateComponent(ServerComponents.GuardReturnRenders, ClientComponents.GuardReturnRenders);
+		await hydrateComponent(
+			ServerComponents.GuardReturnRenders,
+			ClientComponents.GuardReturnRenders,
+		);
 		expect(container.querySelector('.ready')?.textContent).toBe('ready');
 	});
 

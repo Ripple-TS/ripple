@@ -181,7 +181,13 @@ export function get_statement_keyword_node(node, keyword) {
  * @param {AST.CommentWithLocation[]} [comments]
  */
 export function validate_tsrx_return_statement(node, filename, errors, comments) {
-	error(TSRX_RETURN_STATEMENT_ERROR, filename ?? null, get_return_keyword_node(node), errors, comments);
+	error(
+		TSRX_RETURN_STATEMENT_ERROR,
+		filename ?? null,
+		get_return_keyword_node(node),
+		errors,
+		comments,
+	);
 }
 
 /**

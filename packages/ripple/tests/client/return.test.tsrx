@@ -1,28 +1,25 @@
 import { describe, it, expect } from 'vitest';
 import { compile } from '@tsrx/ripple';
 
-const TSRX_RETURN_ERROR =
-	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
+const TSRX_RETURN_ERROR = 'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
 
 describe('returns in prohibited scopes', () => {
 	it('throws error when return is used in module scope', () => {
-		expect(() =>
-			compile(
-				`
+		expect(
+			() => compile(`
 				return;
 				function App() { return <>
 					<div>{'hello'}</div>
 				</>; }
-			`,
-				'test.tsrx',
-				{ mode: 'client' },
-			),
+			`, 'test.tsrx', {
+				mode: 'client',
+			}),
 		).toThrowError('Return statements are not allowed at the top level of a module.');
 	});
 
 	it('throws when return is used inside a TSRX fragment', () => {
-		expect(() =>
-			compile(
+		expect(
+			() => compile(
 				`
 				function App() {
 					return <>
@@ -40,8 +37,8 @@ describe('returns in prohibited scopes', () => {
 	});
 
 	it('throws when return is used inside a TSRX element', () => {
-		expect(() =>
-			compile(
+		expect(
+			() => compile(
 				`
 				function App() {
 					return <section>
@@ -59,8 +56,8 @@ describe('returns in prohibited scopes', () => {
 	});
 
 	it('allows returns inside regular functions declared in TSRX templates', () => {
-		expect(() =>
-			compile(
+		expect(
+			() => compile(
 				`
 				function App() {
 					return <>
