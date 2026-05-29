@@ -358,7 +358,7 @@ describe('refs', () => {
 	});
 
 	it(
-		'clears a plain let variable forwarded through a named ref prop when the host element unmounts',
+		'clears a plain let variable forwarded through a component ref prop when the host element unmounts',
 		() => {
 			let input: HTMLInputElement | null | undefined;
 			let previous: HTMLInputElement | undefined;
@@ -372,7 +372,7 @@ describe('refs', () => {
 					let &[show] = track(true);
 					if (show) {
 						<Child
-							input_ref={(node: HTMLInputElement | null) => {
+							ref={(node: HTMLInputElement | null) => {
 								input = node;
 								return () => {
 									input = null;
@@ -397,25 +397,33 @@ describe('refs', () => {
 		},
 	);
 
-	it('clears a named ref prop when a host spread changes it to a regular prop', () => {
+	it('clears a component ref prop when a host spread changes it to a regular prop', () => {
 		let input: HTMLInputElement | null | undefined;
 		let previous: HTMLInputElement | undefined;
 
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
 				let &[as_ref] = track(true);
-				<input type="text" value="keep" {...(as_ref ? { ref: props.input_ref } : { input_ref: 'regular prop' })} />
+				<input
+					type="text"
+					value="keep"
+					{...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })}
+				/>
 				<button class="toggle" onClick={() => (as_ref = false)}>{'toggle'}</button>
 			</>;
 		}
 
 		function App() {
-			return <><Child input_ref={(node: HTMLInputElement | null) => {
-				input = node;
-				return () => {
-					input = null;
-				};
-			}} /></>;
+			return <>
+				<Child
+					ref={(node: HTMLInputElement | null) => {
+						input = node;
+						return () => {
+							input = null;
+						};
+					}}
+				/>
+			</>;
 		}
 
 		render(App);
@@ -432,25 +440,33 @@ describe('refs', () => {
 		expect(previous.getAttribute('input_ref')).toBe('regular prop');
 	});
 
-	it('removes a regular spread attribute when the key changes to a named ref prop', () => {
+	it('removes a regular spread attribute when the key changes to a component ref prop', () => {
 		let input: HTMLInputElement | null | undefined;
 		let previous: HTMLInputElement | undefined;
 
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
 				let &[as_ref] = track(false);
-				<input type="text" value="keep" {...(as_ref ? { ref: props.input_ref } : { input_ref: 'regular prop' })} />
+				<input
+					type="text"
+					value="keep"
+					{...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })}
+				/>
 				<button class="toggle" onClick={() => (as_ref = true)}>{'toggle'}</button>
 			</>;
 		}
 
 		function App() {
-			return <><Child input_ref={(node: HTMLInputElement | null) => {
-				input = node;
-				return () => {
-					input = null;
-				};
-			}} /></>;
+			return <>
+				<Child
+					ref={(node: HTMLInputElement | null) => {
+						input = node;
+						return () => {
+							input = null;
+						};
+					}}
+				/>
+			</>;
 		}
 
 		render(App);
