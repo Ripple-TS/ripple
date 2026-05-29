@@ -598,9 +598,9 @@ function TodoList({ items }: { items: Todo[] }) {
   `for...of` body.
 
 Top-level `return` and `break` are not allowed inside returned TSRX `for...of`
-loops. Use `continue` for early item skips. Use a bare `return;` only for
-non-loop guard exits in the returned TSRX template, and use `break` only for `switch`
-cases.
+loops. Use `continue` for early item skips, and use `break` only for `switch`
+cases. `return` statements are not allowed anywhere inside a returned TSRX
+element or fragment body.
 
 Component rendering supports `for...of` for lists. Regular `for` loops,
 `for...in`, `while`, and `do...while` are not supported in returned TSRX template
@@ -696,18 +696,18 @@ export function App() {
 - Do not use `for await...of` inside React or Preact returned TSRX templates.
 - Do not mark components `async`.
 
-### Early returns
+### Guard returns
 
-Guard clauses can return `null` or another runtime-accepted value from the surrounding function.
-Use this for empty states and redirects instead of the old bare-return-only model.
+Guard clauses can return `null` or another runtime-accepted value from the surrounding
+function before TSRX opens. Use this for empty states and redirects.
 
 ```tsrx
 function Dashboard({ user }: { user: User | null }) {
-  return <>
-    if (!user) {
-      return null;
-    }
+  if (!user) {
+    return null;
+  }
 
+  return <>
     <h1>"Welcome, "{user.name}</h1>
     <p>"Here is your dashboard."</p>
   </>;
@@ -721,6 +721,7 @@ function Dashboard({ user }: { user: User | null }) {
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
 - Do not translate examples away from ordinary function returns.
+- Do not put `return` statements inside TSRX element or fragment bodies.
 
 ## Scoped Styles
 
@@ -812,15 +813,14 @@ an async component-producing function when it appears in the returned TSRX templ
 import { useState, useEffect } from 'react';
 
 function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
-  return <>
   if (!user) {
-    <p>"Please sign in."</p>
-    return;
+    return <p>"Please sign in."</p>;
   }
 
   // Hook after a guard — isolated safely by the compiler
   const [tab, setTab] = useState('overview');
 
+  return <>
   <h1>{user.name}</h1>
   <TabBar value={tab} onChange={setTab} />
 

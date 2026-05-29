@@ -99,30 +99,29 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('return <pre>{__lazy0.count}</pre>;');
 	});
 
-	it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
+	it('keeps regular callback returns with native TSRX values intact', () => {
 		const { code } = compile(
 			`function Test() { return <>
 				<Page
 					params={{
-						menuAlt: (isAdmin) => <>
+						menuAlt: (isAdmin) => {
 							if (isAdmin) {
 								return ['Delete', 'Edit'];
-							} else {
-								return ['View'];
 							}
-						</>,
-						direct: () => <>
 							return ['View'];
-						</>,
-						bySwitch: (role) => <>
+						},
+						direct: () => {
+							return ['View'];
+						},
+						bySwitch: (role) => {
 							switch (role) {
 								case 'admin':
 									return ['Edit'];
 								default:
 									return ['View'];
 							}
-						</>,
-						byForOf: (items) => <>
+						},
+						byForOf: (items) => {
 							for (const item of items) {
 								if (item.active) {
 									return [item.label];
@@ -130,14 +129,14 @@ describe('@tsrx/vue basic', () => {
 							}
 
 							return ['Empty'];
-						</>,
-						byTry: (load) => <>
+						},
+						byTry: (load) => {
 							try {
 								return [load()];
 							} catch (error) {
 								return ['Error'];
 							}
-						</>,
+						},
 					}}
 				/>
 			</>; }`,
@@ -145,18 +144,16 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('menuAlt: (isAdmin) => {');
-		expect(code).toContain("return isAdmin ? ['Delete', 'Edit'] : ['View'];");
+		expect(code).toContain("return ['Delete', 'Edit'];");
 		expect(code).toContain('direct: () => {');
 		expect(code).toContain("return ['View'];");
 		expect(code).toContain('bySwitch: (role) => {');
 		expect(code).toContain('switch (role)');
 		expect(code).toContain('byForOf: (items) => {');
-		expect(code).toContain('items.flatMap((item) => {');
+		expect(code).toContain('for (const item of items)');
 		expect(code).toContain("return ['Empty'];");
 		expect(code).toContain('byTry: (load) => {');
-		expect(code).toContain('<TsrxErrorBoundary');
 		expect(code).toContain("return ['Error'];");
-		expect(code).not.toContain('? (() =>');
 	});
 
 	it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
@@ -506,174 +503,43 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/return visible \? App__static\d+ : App__static\d+;/);
 	});
 
-	it('supports lone early returns in component-body if statements', () => {
-		const { code } = compile(
-			`function App() { return <>
-				const count = 0;
+	it('rejects return statements inside TSRX templates', () => {
+		expect(() =>
+			compile(
+				`function App() { return <>
+					const count = 0;
 
-				if (count > 1) {
-					<div>{'Count is more than one'}</div>
-				}
+					if (count > 2) {
+						return;
+					}
 
-				if (count > 2) {
-					return;
-				}
-
-				<button>{count}</button>
-			</>; }`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("const App__static1 = <div>{'Count is more than one'}</div>;");
-		// Vue renders the early-return condition reactively as a ternary
-		// inside the returned JSX, rather than emitting a setup-time
-		// `if (count > 2) { return ... }` block (which would not re-evaluate
-		// when `count` changes, since vapor `setup()` runs once).
-		expect(code).not.toContain('if (count > 2) {');
-		expect(code).toContain(
-			'return <>{count > 1 ? App__static1 : null}{count > 2 ? null : <button>{count}</button>}</>;',
-		);
+					<button>{count}</button>
+				</>; }`,
+				'App.tsrx',
+			),
+		).toThrow('Return statements are not allowed inside TSRX templates.');
 	});
 
-	it('inlines bare-JSX continuations after early-return as a render-time ternary', () => {
+	it('allows component-body guard returns before TSRX output', () => {
 		const { code } = compile(
 			`import { ref } from 'vue';
 
-			function App() { return <>
-				const skip = ref(true);
-
-				if (skip.value) {
-					return;
-				}
-
-				<p class="continuation">{'visible'}</p>
-			</>; }`,
-			'App.tsrx',
-		);
-
-		// The continuation is hoisted as a static and selected by a reactive
-		// ternary inside the returned fragment, so flipping `skip.value` after
-		// mount toggles the JSX. The setup-time `if` is gone.
-		expect(code).toContain('const App__static1 = <p class="continuation">{\'visible\'}</p>;');
-		expect(code).not.toContain('if (skip.value) {');
-		expect(code).toContain('return skip.value ? null : App__static1;');
-	});
-
-	it('helper-splits when the continuation has setup statements like provide', () => {
-		const { code } = compile(
-			`import { provide, ref } from 'vue';
-
-			function Child() { return <>
-				<span>{'x'}</span>
-			</>; }
-
-			function App() { return <>
-				const skip = ref(true);
-
-				if (skip.value) {
-					return;
-				}
-
-				provide('theme', 'dark');
-				<Child />
-			</>; }`,
-			'App.tsrx',
-		);
-
-		// `provide` is a setup-time side effect that must be scoped to the
-		// continuation's lifecycle, not the parent's. Render-time inlining
-		// would lift it unconditionally (descendants would always see the
-		// provide regardless of `skip.value`), so the continuation is moved
-		// into a `StatementBodyHook` helper whose setup runs only when the
-		// helper mounts. The same applies to `watch`, `watchEffect`,
-		// declarations, and any other non-render statement.
-		expect(code).toMatchSnapshot();
-	});
-
-	it('extracts ref-bearing continuations after lone early-return if statements', () => {
-		const { code } = compile(
-			`import { ref } from 'vue';
-
-			function App() { return <>
-				const count = ref(0);
+			function App() {
 				const skip = ref(false);
-
 				if (skip.value) {
-					return;
+					return null;
 				}
 
-				const doubled = ref(0);
-
-				<button onClick={() => {
-					count.value++;
-					doubled.value = count.value * 2;
-				}}>{count.value}</button>
-			</>; }`,
+				const count = ref(0);
+				return <><button>{count.value}</button></>;
+			}`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('const App__StatementBodyHook1 = defineVaporComponent(');
-		expect(code).not.toContain('App__StatementBodyHook2');
-		expect(code).toContain('function App__StatementBodyHook1({ count }');
-		expect(code).toContain('const doubled = ref(0);');
-		expect(code).toContain('skip.value');
-		expect(code).toContain('<App__StatementBodyHook1 count={count} />');
-		expect(code).not.toContain('App__Continue');
-	});
-
-	describe('if-continuation lift (client vs typeOnly)', () => {
-		// Switch fall-through hoisting is exercised by the shared
-		// `runSharedSwitchHelperHoistingTests` block above; this block stays
-		// Vue-local because it covers the *if + early-return continuation*
-		// lift with Vue-specific surface (`ref`-typed prop, the
-		// `defineVaporComponent` wrapper around the lazy initializer).
-		const if_source = `import { ref } from 'vue';
-
-			function App() { return <>
-				const count = ref(0);
-				const skip = ref(false);
-
-				if (skip.value) {
-					return;
-				}
-
-				const doubled = ref(0);
-
-				<button onClick={() => {
-					count.value++;
-					doubled.value = count.value * 2;
-				}}>{count.value}</button>
-			</>; }`;
-
-		it('hoists the if-continuation helper to module scope in the client transform', () => {
-			const { code } = compile(if_source, 'App.tsrx');
-
-			// Module-scoped declaration: a top-level `const StatementBodyHook =
-			// defineVaporComponent(function StatementBodyHook(...) { ... })`
-			// declared outside the App component body.
-			expect(code).toMatch(
-				/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\(\{ count \}/m,
-			);
-			// The lazy-cache `let App__StatementBodyHookN;` slot used by the
-			// local-scoped path is gone — hoisting removes the need for it.
-			expect(code).not.toContain('let App__StatementBodyHook');
-			// Component body just references the hoisted name directly.
-			expect(code).toContain('<App__StatementBodyHook1 count={count} />');
-			expect(code).not.toMatch(/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook/);
-		});
-
-		it('keeps the if-continuation helper inline in the typeOnly transform', () => {
-			const { code } = compile_to_volar_mappings(if_source, 'App.tsrx');
-
-			// Volar TSX still uses the original local-scoped shape: a
-			// module-level `let StatementBodyHook` slot and a per-render
-			// lazy `defineVaporComponent` initializer inside the App body.
-			expect(code).toContain('let App__StatementBodyHook1;');
-			expect(code).toMatch(
-				/const StatementBodyHook\d+\s*=\s*App__StatementBodyHook\d+\s*\?\?\s*\(App__StatementBodyHook\d+\s*=\s*defineVaporComponent\(/,
-			);
-			expect(code).toMatch(/<StatementBodyHook\d+ count=\{count\} \/>/);
-		});
+		expect(code).toContain('if (skip.value) {');
+		expect(code).toContain('return null;');
+		expect(code).toContain('const count = ref(0);');
+		expect(code).toContain('<button>{count.value}</button>');
 	});
 
 	it('compiles for...of statements in component bodies', () => {

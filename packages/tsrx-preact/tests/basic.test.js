@@ -223,24 +223,18 @@ describe('@tsrx/preact basic', () => {
 		expect(code.indexOf('useEffect(() => {});')).toBeLessThan(code.indexOf('export function App'));
 	});
 
-	it('does not hoist render-time expressions across early returns', () => {
+	it('does not hoist render-time expressions from template bodies', () => {
 		const { code } = compile(
 			`export function Test() {
 				return <>
 				<div>{Date.now()}</div>
-
-				if (Math.random() > 0.5) {
-					return;
-				}
 			
 				</>;}`,
 			'Test.tsrx',
 		);
 
 		expect(code).not.toContain('const Test__static1');
-		expect(code).toContain('if (Math.random() > 0.5) {');
-		expect(code.match(/return <div>\{Date\.now\(\)\}<\/div>;/g)).toHaveLength(2);
-		expect(code).not.toContain('return null;');
+		expect(code).toContain('return <div>{Date.now()}</div>;');
 	});
 
 	it('preserves parent prop types in hook-bearing composite children', () => {

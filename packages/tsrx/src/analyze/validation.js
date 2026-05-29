@@ -5,8 +5,8 @@
 
 import { error } from '../errors.js';
 
-export const TSRX_RETURN_VALUE_ERROR =
-	'Return statements inside TSRX template control-flow blocks cannot have a return value.';
+export const TSRX_RETURN_STATEMENT_ERROR =
+	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
 export const TSRX_LOOP_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX template for...of loops. Use continue instead.';
 export const TSRX_LOOP_BREAK_ERROR =
@@ -181,11 +181,7 @@ export function get_statement_keyword_node(node, keyword) {
  * @param {AST.CommentWithLocation[]} [comments]
  */
 export function validate_tsrx_return_statement(node, filename, errors, comments) {
-	if (node.argument === null) {
-		return;
-	}
-
-	error(TSRX_RETURN_VALUE_ERROR, filename ?? null, get_return_keyword_node(node), errors, comments);
+	error(TSRX_RETURN_STATEMENT_ERROR, filename ?? null, get_return_keyword_node(node), errors, comments);
 }
 
 /**

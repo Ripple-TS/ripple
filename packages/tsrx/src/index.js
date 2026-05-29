@@ -242,7 +242,7 @@ export {
 	TSRX_FOR_STATEMENT_ERROR,
 	TSRX_LOOP_BREAK_ERROR,
 	TSRX_LOOP_RETURN_ERROR,
-	TSRX_RETURN_VALUE_ERROR,
+	TSRX_RETURN_STATEMENT_ERROR,
 	TSRX_WHILE_STATEMENT_ERROR,
 	get_return_keyword_node as getReturnKeywordNode,
 	get_statement_keyword_node as getStatementKeywordNode,

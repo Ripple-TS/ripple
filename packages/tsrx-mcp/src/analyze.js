@@ -5,6 +5,7 @@ import {
 	TSRX_FOR_STATEMENT_ERROR,
 	TSRX_LOOP_BREAK_ERROR,
 	TSRX_LOOP_RETURN_ERROR,
+	TSRX_RETURN_STATEMENT_ERROR,
 	TSRX_WHILE_STATEMENT_ERROR,
 } from '@tsrx/core';
 import { compile_tsrx } from './compile.js';
@@ -89,6 +90,17 @@ function create_advice(input) {
 			title: 'Use continue inside TSRX for...of loops',
 			message:
 				'Top-level return and break statements are not valid inside a TSRX for...of loop. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+			documentation: ['tsrx://docs/control-flow.md'],
+		});
+	}
+
+	if (error_messages.has(TSRX_RETURN_STATEMENT_ERROR)) {
+		advice.push({
+			kind: 'tsrx-template-return',
+			severity: 'error',
+			title: 'Move returns outside TSRX templates',
+			message:
+				'Return statements are ordinary JavaScript control flow for functions, not template control flow. Use guard clauses before returning TSRX, or render conditionally inside the template.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

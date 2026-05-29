@@ -152,7 +152,7 @@ describe('for statements in SSR', () => {
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('Return statements are not allowed inside TSRX template for...of loops');
+		).toThrow('Return statements are not allowed inside TSRX templates.');
 	});
 
 	it('throws for break statements targeting for...of loops', () => {

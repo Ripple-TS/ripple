@@ -519,17 +519,19 @@ export function App() {
 }
 ```
 
-### Early returns
+### Guard returns
 
-Inside a returned TSRX template, `return` exits the surrounding function. This
-supports normal guard clauses such as `return null`.
+Use normal JavaScript guard clauses before returning TSRX. A `return` statement
+inside a TSRX element or fragment body is invalid; use conditional rendering
+inside the template instead.
 
 ```tsrx
 function Dashboard({ user }: { user: User | null }) {
+	if (!user) {
+		return null;
+	}
+
 	return <>
-		if (!user) {
-			return null;
-		}
 		<h1>
 			"Welcome, "
 			{user.name}

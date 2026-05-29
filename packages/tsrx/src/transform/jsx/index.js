@@ -5,6 +5,7 @@
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
 import { error } from '../../errors.js';
+import { validate_tsrx_return_statement } from '../../analyze/validation.js';
 import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
 import {
@@ -141,6 +142,45 @@ function is_function_or_class_boundary(node) {
 }
 
 /**
+ * @param {AST.Node[]} path
+ * @returns {boolean}
+ */
+function is_inside_tsrx_template(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const ancestor = path[i];
+
+		if (is_function_or_class_boundary(ancestor)) {
+			return false;
+		}
+
+		if (ancestor.type === 'Tsrx' || ancestor.type === 'Element') {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @param {AST.Node[]} path
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function validate_no_return_inside_tsrx_template(node, path, transform_context) {
+	if (!is_inside_tsrx_template(path)) {
+		return;
+	}
+
+	validate_tsrx_return_statement(
+		node,
+		transform_context.filename,
+		transform_context.errors,
+		transform_context.comments,
+	);
+}
+
+/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
  * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
  * native TSRX template nodes into a plain TSX module for that platform.
@@ -206,6 +246,17 @@ export function createJsxTransform(platform) {
 			FunctionDeclaration: collect_native_function_tsrx_metadata,
 			FunctionExpression: collect_native_function_tsrx_metadata,
 			ArrowFunctionExpression: collect_native_function_tsrx_metadata,
+		});
+
+		walk(/** @type {any} */ (ast), transform_context, {
+			ReturnStatement(node, { path, state, next }) {
+				validate_no_return_inside_tsrx_template(
+					/** @type {AST.ReturnStatement} */ (node),
+					path,
+					state,
+				);
+				return next(state);
+			},
 		});
 
 		const transformed = walk(/** @type {any} */ (ast), transform_context, {

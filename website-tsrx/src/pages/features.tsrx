@@ -111,19 +111,6 @@ const TRY_HTML = highlight_tsrx(
 }`,
 );
 
-const RETURN_HTML = highlight_tsrx(
-	`function Dashboard({ user }: { user: User | null }) {
-  return <>
-    if (!user) {
-      return null;
-    }
-
-    <h1>"Welcome, "{user.name}</h1>
-    <p>"Here is your dashboard."</p>
-  </>;
-}`,
-);
-
 const SWITCH_HTML = highlight_tsrx(
 	`function StatusMessage({ status }: { status: string }) {
   return <>
@@ -299,7 +286,6 @@ const NAV_ITEMS = [
 	{ id: 'async-boundaries', label: 'Async boundaries' },
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
-	{ id: 'early-return', label: 'Early returns' },
 	{ id: 'react-hooks', label: 'React & Preact Hooks' },
 ];
 
@@ -696,24 +682,6 @@ export function FeaturesPage() {
 							</p>
 						</section>
 
-						<section class="doc-section" id="early-return">
-							<h2 class="section-heading">{'Early returns'}</h2>
-							<p class="section-body">
-								{'Guard clauses are normal '}
-								<code class="inline-code">{'return'}</code>
-								{' statements. Inside returned TSRX they exit the surrounding function, so you can return '}
-								<code class="inline-code">{'null'}</code>
-								{', '}
-								<code class="inline-code">{'undefined'}</code>
-								{', or another value according to the target component type.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={RETURN_HTML} />
-							</pre>
-							<p class="section-body muted">
-								{'A function can also return TSRX directly from a plain JavaScript branch, just like TSX. The statement-template rules only apply after the returned TSRX expression has opened.'}
-							</p>
-						</section>
 						<section class="doc-section" id="react-hooks">
 							<h2 class="section-heading">{'React & Preact Hooks'}</h2>
 							<p class="section-body">

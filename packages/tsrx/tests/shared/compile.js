@@ -34,6 +34,9 @@ function diagnostic_codes(result) {
 	return result.errors.map((error) => error.code);
 }
 
+const TSRX_TEMPLATE_RETURN_ERROR =
+	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
+
 /**
  * Shared compile/editor diagnostics. These do not assert source-map structure;
  * they only verify that editor-facing compile entry points collect diagnostics.
@@ -42,26 +45,25 @@ function diagnostic_codes(result) {
  */
 export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
 	describe(`[${name}] compile diagnostics`, () => {
-		it('keeps return-value native TSRX templates clean in type-only output', () => {
+		it('keeps callback returns with native TSRX values clean in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() { return <>
 					<Page
 						params={{
-							menuAlt: (isAdmin) => <>
+							menuAlt: (isAdmin) => {
 								if (isAdmin) {
 									return [<>"Delete"</>, <>"Edit"</>];
-								} else {
-									return [<>"View"</>];
 								}
-							</>,
-							bySwitch: (role) => <>
+								return [<>"View"</>];
+							},
+							bySwitch: (role) => {
 								switch (role) {
 									case 'admin':
 										return [<>"Edit"</>];
 									default:
 										return [<>"View"</>];
 								}
-							</>,
+							},
 						}}
 					/>
 				</>; }`,
@@ -69,17 +71,24 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 
 			expect(result.errors).toEqual([]);
-			if (name === 'solid') {
-				expect(result.code).toContain('<Show when={isAdmin}');
-				expect(result.code).toContain('return ["Delete", "Edit"];');
-				expect(result.code).toContain('return ["View"];');
-				expect(result.code).toContain('<Switch fallback=');
-				expect(result.code).toContain("<Match when={role === 'admin'}>");
-			} else {
-				expect(result.code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
-				expect(result.code).toContain('bySwitch: (role) => {');
-				expect(result.code).toContain('return (() => {');
-			}
+			expect(result.code).toContain('return ["Delete", "Edit"];');
+			expect(result.code).toContain('return ["View"];');
+			expect(result.code).toContain('bySwitch: (role) => {');
+		});
+
+		it('reports return statements inside native TSRX templates', () => {
+			const result = compile_to_volar_mappings(
+				`function Test() { return <>
+					if (ready) {
+						return;
+					}
+					<div>{'ready'}</div>
+				</>; }`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(result.errors.map((error) => error.message)).toContain(TSRX_TEMPLATE_RETURN_ERROR);
 		});
 
 		it('parses native TSRX callback returns in JSX props without semicolons', () => {
@@ -1664,23 +1673,20 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('returns accumulated branch templates without an extra empty return', () => {
-			const { code } = compile(
-				`export function App() { return <>
-					if (x) {
-						<div>{"hello world"}</div>
-						return
-					}
+		it('rejects return statements inside TSRX template bodies', () => {
+			expect(() =>
+				compile(
+					`export function App() { return <>
+						if (x) {
+							<div>{"hello world"}</div>
+							return
+						}
 
-					<div>{"hello world 2"}</div>
-				</>; }`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('hello world');
-			expect(code).toContain('hello world 2');
-			expect(code).not.toMatch(/return\s*;\s*return/);
-			expect(code).not.toMatch(/return <div>\{"hello world"\}<\/div>;\s*return null;/);
+						<div>{"hello world 2"}</div>
+					</>; }`,
+					'App.tsrx',
+				),
+			).toThrow(TSRX_TEMPLATE_RETURN_ERROR);
 		});
 	});
 
@@ -2288,9 +2294,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								render: () => <>
+								render: () => {
 									return [<>View</>];
-								</>,
+								},
 							}}
 						/>
 					}
@@ -2420,13 +2426,12 @@ export function optionalFn(bar: string, baz?: string) {
 									<tsx><span>Cut</span></tsx>,
 									<tsx><span>Delete</span></tsx>,
 								],
-								menuAlt: (isAdmin) => <>
+								menuAlt: (isAdmin) => {
 									if (isAdmin) {
 										return [<>"Delete"</>, <>"Edit"</>];
-									} else {
-										return [<>"View"</>];
 									}
-								</>,
+									return [<>"View"</>];
+								},
 								details: {
 									label: {
 										class: 'custom',
@@ -2528,30 +2533,29 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('View');
 		});
 
-		it('keeps return-value branches in native TSRX callback props as plain conditionals', () => {
+		it('keeps regular callback returns with native TSRX values intact', () => {
 			const { code } = compile(
 				`function Test() { return <>
 					<Page
 						params={{
-							menuAlt: (isAdmin) => <>
+							menuAlt: (isAdmin) => {
 								if (isAdmin) {
 									return [<>"Delete"</>, <>"Edit"</>];
-								} else {
-									return [<>"View"</>];
 								}
-							</>,
-							direct: () => <>
 								return [<>"View"</>];
-							</>,
-							bySwitch: (role) => <>
+							},
+							direct: () => {
+								return [<>"View"</>];
+							},
+							bySwitch: (role) => {
 								switch (role) {
 									case 'admin':
 										return [<>"Edit"</>];
 									default:
 										return [<>"View"</>];
 								}
-							</>,
-							byForOf: (items) => <>
+							},
+							byForOf: (items) => {
 								for (const item of items) {
 									if (item.active) {
 										return [<>{item.label}</>];
@@ -2559,47 +2563,29 @@ export function optionalFn(bar: string, baz?: string) {
 								}
 
 								return [<>"Empty"</>];
-							</>,
-							byTry: (load) => <>
+							},
+							byTry: (load) => {
 								try {
 									return [<>{load()}</>];
 								} catch (error) {
 									return [<>"Error"</>];
 								}
-							</>,
+							},
 						}}
 					/>
 				</>; }`,
 				'App.tsrx',
 			);
 
-			if (name === 'solid') {
-				expect(code).toContain('<Show when={isAdmin}');
-				expect(code).toContain('return ["Delete", "Edit"];');
-				expect(code).toContain('return ["View"];');
-				expect(code).toContain('bySwitch: (role) => {');
-				expect(code).toContain('<Switch fallback=');
-				expect(code).toContain("<Match when={role === 'admin'}>");
-				expect(code).toContain('byForOf: (items) => {');
-				expect(code).toContain('<For each={items}');
-				expect(code).toContain('return ["Empty"];');
-				expect(code).toContain('byTry: (load) => {');
-				expect(code).toContain('<Errored fallback=');
-				expect(code).toContain('return ["Error"];');
-			} else {
-				expect(code).toContain('return isAdmin ? ["Delete", "Edit"] : ["View"];');
-				expect(code).toContain('return ["View"];');
-				expect(code).toContain('bySwitch: (role) => {');
-				expect(code).toContain('return (() => {');
-				expect(code).toContain('switch (role)');
-				expect(code).toContain('byForOf: (items) => {');
-				expect(code).toContain('__map_iterable(items');
-				expect(code).toContain('return ["Empty"];');
-				expect(code).toContain('byTry: (load) => {');
-				expect(code).toContain('TsrxErrorBoundary');
-				expect(code).toContain('return ["Error"];');
-			}
-			expect(code).not.toContain('? (() =>');
+			expect(code).toContain('return ["Delete", "Edit"];');
+			expect(code).toContain('return ["View"];');
+			expect(code).toContain('bySwitch: (role) => {');
+			expect(code).toContain('switch (role)');
+			expect(code).toContain('byForOf: (items) => {');
+			expect(code).toContain('for (const item of items)');
+			expect(code).toContain('return ["Empty"];');
+			expect(code).toContain('byTry: (load) => {');
+			expect(code).toContain('return ["Error"];');
 		});
 	});
 
@@ -2780,17 +2766,13 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(second_capture).toBeGreaterThan(assign_two);
 		});
 
-		it('preserves source order for interleaved JSX across early-return splits', () => {
-			// React/Preact extract typed continuation helpers after early returns
-			// when top-level hooks follow; Solid has no hook-order rule but still
-			// goes through the same capture path for interleaved mutations.
+		it('preserves source order for interleaved JSX before hook calls', () => {
 			const { code } = compile(
 				`function Card() { return <>
 					var a = "one"
 					<b>{"hello" + a}</b>
 					a = "two"
 					<b>{"hello" + a}</b>
-					if (true) return
 					const x = useState(0)
 					<div>{x}</div>
 				</>; }`,

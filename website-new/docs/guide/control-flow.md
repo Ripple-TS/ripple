@@ -29,10 +29,10 @@ export function Truthy({ x }) {
 
 </Code>
 
-## Early return (guard clauses)
+## Guard returns
 
-You can pair `if` blocks with `return;` to short-circuit the rest of the component
-body once a guard branch is hit.
+Use normal JavaScript guard clauses before returning TSRX when a component should
+render nothing or return another value.
 
 <Code>
 
@@ -40,14 +40,13 @@ body once a guard branch is hit.
 import { track } from 'ripple';
 
 export function AuthGate() {
-  return <>
   let &[is_logged_in] = track(false);
 
   if (!is_logged_in) {
-    <p>"Please sign in."</p>
-    return;
+    return <p>"Please sign in."</p>;
   }
 
+  return <>
   <h1>"Dashboard"</h1>
   <p>"Private content"</p>
 
@@ -57,8 +56,8 @@ export function AuthGate() {
 
 </Code>
 
-`return` in components is only valid as `return;`. Returning a value (including
-templates) is invalid.
+`return` is not valid inside a TSRX element or fragment body. Use `if`, `else`,
+ternaries, or extracted helper functions inside the template instead.
 
 ## Switch statements
 

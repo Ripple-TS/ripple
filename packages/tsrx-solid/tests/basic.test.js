@@ -374,16 +374,14 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('return null;');
 		});
 
-		it('early-return keeps non-JSX after statements in outer body', () => {
-			// Native TSRX functions are ordinary functions now: a bare early
-			// return emits a normal JavaScript guard before later setup.
+		it('component-body guard returns keep later setup in order', () => {
 			const { code } = compile(
 				`import { createSignal } from 'solid-js';
-					function App({ cond }: { cond: boolean }) { return <>
-					if (cond) return;
+					function App({ cond }: { cond: boolean }) {
+					if (cond) return null;
 					const [doubled, setDoubled] = createSignal(0);
-					<div>{doubled()}</div>
-				</>; }`,
+					return <><div>{doubled()}</div></>;
+				}`,
 				'App.tsrx',
 			);
 			const guard_idx = code.indexOf('if (cond)');
@@ -397,58 +395,20 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('<Show');
 		});
 
-		it('early-return keeps preceding JSX outside the guarded continuation', () => {
-			const { code } = compile(
-				`export default function A() { return <>
-					let early = true;
-					<>"Hello"</>
-					if (early) {
-						return
-					}
-					<>"World"</>
-				</>; }`,
-				'A.tsrx',
-			);
-
-			const if_idx = code.indexOf('if (early)');
-			const hello_idx = code.indexOf('return "Hello";');
-			const world_idx = code.indexOf('return <>{"Hello"}{"World"}</>;');
-			expect(if_idx).toBeGreaterThan(-1);
-			expect(hello_idx).toBeGreaterThan(-1);
-			expect(world_idx).toBeGreaterThan(-1);
-			expect(if_idx).toBeLessThan(hello_idx);
-			expect(hello_idx).toBeLessThan(world_idx);
-			expect(code).not.toContain('<Show');
-		});
-
-		it('nests sequential early-return continuations', () => {
-			const { code } = compile(
-				`export default function A() { return <>
-					let early = true
-					<>"Hello"</>
-					if (early) {
-						return
-					}
-					<>"World"</>
-					if (!early) {
-						return
-					}
-					<>"done"</>
-				</>; }`,
-				'A.tsrx',
-			);
-
-			const outer_if_idx = code.indexOf('if (early)');
-			const hello_idx = code.indexOf('return "Hello";');
-			const inner_if_idx = code.indexOf('if (!early)');
-			const world_idx = code.indexOf('return <>{"Hello"}{"World"}</>;');
-			const done_idx = code.indexOf('return <>{"Hello"}{"World"}{"done"}</>;');
-			expect(outer_if_idx).toBeGreaterThan(-1);
-			expect(hello_idx).toBeGreaterThan(-1);
-			expect(inner_if_idx).toBeGreaterThan(hello_idx);
-			expect(world_idx).toBeGreaterThan(inner_if_idx);
-			expect(done_idx).toBeGreaterThan(world_idx);
-			expect(code).not.toContain('<Show');
+		it('rejects return statements inside TSRX templates', () => {
+			expect(() =>
+				compile(
+					`export default function A() { return <>
+						let early = true;
+						<>"Hello"</>
+						if (early) {
+							return
+						}
+						<>"World"</>
+					</>; }`,
+					'A.tsrx',
+				),
+			).toThrow('Return statements are not allowed inside TSRX templates.');
 		});
 	});
 
@@ -626,19 +586,18 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
-	// Solid-specific: lazy params still need capture ordering around a
-	// native-function early return. The shared harness covers the same
+	// Solid-specific: lazy params still need capture ordering around
+	// interleaved JSX and statements. The shared harness covers the same
 	// interleave-capture behavior for `<div>`-wrapped and top-level bodies.
 	describe('interleaved statements and JSX children (Solid-specific)', () => {
-		it('preserves source order for interleaved JSX across an early-return guard', () => {
+		it('preserves source order for interleaved JSX with lazy params', () => {
 			const { code } = compile(
 				`function Card(&{ cond }: { cond: boolean }) { return <>
 					var a = "one"
 					<b>{"hello" + a}</b>
 					a = "two"
 					<b>{"hello" + a}</b>
-					if (cond) return
-					<div>{"done"}</div>
+					<div>{cond ? "done" : "skip"}</div>
 				</>; }`,
 				'Card.tsrx',
 			);
@@ -648,13 +607,10 @@ describe('@tsrx/solid basic', () => {
 			const first_capture = code.indexOf('_tsrx_child_0');
 			const assign_two = code.indexOf('a = "two"');
 			const second_capture = code.indexOf('_tsrx_child_1');
-			const guard = code.indexOf('if (__lazy0.cond)');
 			expect(first_capture).toBeGreaterThan(-1);
 			expect(assign_two).toBeGreaterThan(first_capture);
 			expect(second_capture).toBeGreaterThan(assign_two);
-			expect(guard).toBeGreaterThan(second_capture);
-			expect(code).toContain('return <>{_tsrx_child_0}{_tsrx_child_1}</>;');
-			expect(code).not.toContain('<Show');
+			expect(code).toContain('__lazy0.cond');
 		});
 	});
 

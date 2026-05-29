@@ -1,28 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`@tsrx/vue basic > helper-splits when the continuation has setup statements like provide 1`] = `
-"import { defineVaporComponent } from 'vue-jsx-vapor';
-import { provide, ref } from 'vue';
-
-const Child__static1 = <span>{'x'}</span>;
-
-const Child = defineVaporComponent(function Child() {
-	return Child__static1;
-});
-
-const App__StatementBodyHook1 = defineVaporComponent(function App__StatementBodyHook1() {
-	provide('theme', 'dark');
-
-	return <Child />;
-});
-
-const App = defineVaporComponent(function App() {
-	const skip = ref(true);
-
-	return skip.value ? null : <App__StatementBodyHook1 />;
-});"
-`;
-
 exports[`@tsrx/vue basic > wraps default component exports in defineVaporComponent 1`] = `
 "import { defineVaporComponent } from 'vue-jsx-vapor';
 
