@@ -252,9 +252,13 @@ describe('dynamic DOM elements', () => {
 				<@tag
 					id="dynamic-ref-combo"
 					type="text"
-					ref={[input, state.anonymous, (node: HTMLInputElement | null) => {
-						namedRefElement = node;
-					}]}
+					ref={[
+						input,
+						state.anonymous,
+						(node: HTMLInputElement | null) => {
+							namedRefElement = node;
+						},
+					]}
 				/>
 				effect(() => {
 					refAttrElement = input ?? null;
@@ -290,9 +294,13 @@ describe('dynamic DOM elements', () => {
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
 				<@dynamic
-					ref={[input, state.anonymous, (node: HTMLInputElement | null) => {
-						namedRefElement = node;
-					}]}
+					ref={[
+						input,
+						state.anonymous,
+						(node: HTMLInputElement | null) => {
+							namedRefElement = node;
+						},
+					]}
 				/>
 				effect(() => {
 					refAttrElement = input ?? null;

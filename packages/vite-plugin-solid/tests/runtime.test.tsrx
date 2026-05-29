@@ -327,9 +327,13 @@ function NamedDirectRefApp() {
 			named_direct_anonymous_node = node;
 		}
 		<input
-			ref={[nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
-				named_direct_node = node;
-			}]}
+			ref={[
+				nativeRef,
+				anonymousRef,
+				(node: HTMLInputElement | null) => {
+					named_direct_node = node;
+				},
+			]}
 			class="named-direct-ref"
 			type="text"
 		/>
@@ -390,11 +394,7 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 
 function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
 	return <>
-		<input
-			ref={[namedSpreadAfterNativeRef, input_ref]}
-			{...props}
-			class="named-spread-after-ref"
-		/>
+		<input ref={[namedSpreadAfterNativeRef, input_ref]} {...props} class="named-spread-after-ref" />
 	</>;
 }
 
@@ -451,7 +451,14 @@ function MultiSpreadExplicitRefApp() {
 const named_ref_object: { value: HTMLInputElement | null } = { value: null };
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={named_ref_object} /></>;
+	return <>
+		<NamedForwardInput
+			type="text"
+			input_ref={(node: HTMLInputElement | null) => {
+				named_ref_object.value = node;
+			}}
+		/>
+	</>;
 }
 
 // ── If-statement with reactivity ──
@@ -1171,7 +1178,7 @@ describe('tsrx-solid runtime', () => {
 		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('ref')).toBe(false);
 	});
 
-	it('assigns named ref props backed by value ref objects', async () => {
+	it('assigns explicitly adapted named ref props backed by value-like objects', async () => {
 		named_ref_object.value = null;
 		await render(NamedRefObjectApp);
 		expect(named_ref_object.value).toBeInstanceOf(HTMLInputElement);

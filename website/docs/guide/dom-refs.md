@@ -7,11 +7,11 @@ title: Referencing DOM Elements in Ripple
 Refs let you capture the DOM node behind an element. Ripple uses the same
 attribute shape as JSX:
 
-| Syntax                 | Use it for                                                       |
-| ---------------------- | ---------------------------------------------------------------- |
-| `ref={value}`          | A native-like ref attribute on the current element or component. |
-| `ref={[a, b]}`         | Multiple refs for the same element.                              |
-| `inputRef={value}`     | An ordinary prop that a component can forward explicitly.        |
+| Syntax             | Use it for                                                       |
+| ------------------ | ---------------------------------------------------------------- |
+| `ref={value}`      | A native-like ref attribute on the current element or component. |
+| `ref={[a, b]}`     | Multiple refs for the same element.                              |
+| `inputRef={value}` | An ordinary prop that a component can forward explicitly.        |
 
 The `ref={expr}` form attaches a ref to the current template. Named props, such
 as `inputRef={expr}`, are regular string-keyed props; pass them into `ref={...}`

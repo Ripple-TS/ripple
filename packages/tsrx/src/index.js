@@ -153,6 +153,7 @@ export {
 	is_component_like_element,
 	MERGE_REFS_INTERNAL_NAME,
 	merge_duplicate_refs as mergeDuplicateRefs,
+	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	plan_switch_lift as planSwitchLift,
 	return_value_body_to_expression as returnValueBodyToExpression,

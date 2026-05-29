@@ -33,9 +33,7 @@ describe('refs', () => {
 		let captured: HTMLInputElement | null = null;
 
 		function Child(props: PropsWithExtras<{}>) {
-			return <>
-				<input type="text" ref={props.input_ref} />
-			</>;
+			return <><input type="text" ref={props.input_ref} /></>;
 		}
 
 		function App() {

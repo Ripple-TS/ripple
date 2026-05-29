@@ -2222,13 +2222,13 @@ describe('lazy destructuring', () => {
 		it('rejects repeated ref={expr} attributes after the keyword removal', () => {
 			expect(() =>
 				compile(
-				`export function App() { return <>
+					`export function App() { return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
 				</>; }`,
-				'App.tsrx',
+					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});

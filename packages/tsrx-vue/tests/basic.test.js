@@ -346,10 +346,12 @@ describe('@tsrx/vue basic', () => {
 
 		expect(code).toContain("from '@tsrx/vue/ref'");
 		expect(code).toContain('{...{ input_ref: input }}');
-		expect(code).toContain('let Child__spread_props1 = __normalize_spread_props(props);');
+		expect(code).toContain(
+			'let Child__spread_props1 = __normalize_spread_props_for_ref_attr(props);',
+		);
 		expect(code).toContain('{...Child__spread_props1}');
 		expect(code).toContain('ref={Child__spread_props1.ref}');
-		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
+		expect(code.match(/__normalize_spread_props_for_ref_attr\(/g)).toHaveLength(1);
 	});
 
 	it('keeps component ref-like props ordinary without host spreads', () => {
@@ -382,7 +384,7 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 		const declaration_offset = code.indexOf(
-			'let _tsrx_spread_props_1 = __normalize_spread_props(props);',
+			'let _tsrx_spread_props_1 = __normalize_spread_props_for_ref_attr(props);',
 		);
 		const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
 
@@ -403,12 +405,16 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('let App__spread_props1 = __normalize_spread_props(first);');
-		expect(code).toContain('let App__spread_props2 = __normalize_spread_props(second);');
+		expect(code).toContain(
+			'let App__spread_props1 = __normalize_spread_props_for_ref_attr(first);',
+		);
+		expect(code).toContain(
+			'let App__spread_props2 = __normalize_spread_props_for_ref_attr(second);',
+		);
 		expect(code).toContain('{...App__spread_props1}');
 		expect(code).toContain('{...App__spread_props2}');
 		expect(code).toContain('ref={__mergeRefs(App__spread_props1.ref, App__spread_props2.ref, cb)}');
-		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(2);
+		expect(code.match(/__normalize_spread_props_for_ref_attr\(/g)).toHaveLength(2);
 		expect(code).not.toContain('create_ref_prop');
 		expect(code).not.toContain('__normalize_spread_props(first, cb)');
 		expect(code).not.toContain('__normalize_spread_props(second, cb)');

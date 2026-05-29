@@ -14,6 +14,7 @@ import {
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
+	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	returnValueBodyToExpression as return_value_body_to_expression,
 	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
@@ -53,6 +54,7 @@ import { builders as b } from '@tsrx/core';
  *   needs_errored: boolean,
  *   needs_loading: boolean,
  *   needs_normalize_spread_props: boolean,
+ *   needs_normalize_spread_props_for_ref_attr: boolean,
  * }} TransformContext
  */
 
@@ -1180,6 +1182,20 @@ function inject_solid_imports(program, transform_context) {
 		program.body.unshift(
 			b.import_declaration(
 				[b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME)],
+				'@tsrx/solid/ref',
+			),
+		);
+	}
+
+	if (transform_context.needs_normalize_spread_props_for_ref_attr) {
+		program.body.unshift(
+			b.import_declaration(
+				[
+					b.import_specifier(
+						'normalize_spread_props_for_ref_attr',
+						NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
+					),
+				],
 				'@tsrx/solid/ref',
 			),
 		);

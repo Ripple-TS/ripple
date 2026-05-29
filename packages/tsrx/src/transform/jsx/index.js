@@ -171,6 +171,7 @@ export function createJsxTransform(platform) {
 			needs_suspense: false,
 			needs_merge_refs: false,
 			needs_normalize_spread_props: false,
+			needs_normalize_spread_props_for_ref_attr: false,
 			needs_fragment: false,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
@@ -287,11 +288,7 @@ export function createJsxTransform(platform) {
 				return {
 					...visited,
 					attributes: merge_duplicate_refs(
-						normalize_host_ref_spreads(
-							visited.attributes || [],
-							!is_component,
-							transform_context,
-						),
+						normalize_host_ref_spreads(visited.attributes || [], !is_component, transform_context),
 						transform_context,
 					),
 				};
@@ -5079,6 +5076,10 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 		transform_context.needs_normalize_spread_props && platform.imports.refProp
 			? platform.imports.refProp
 			: null;
+	const normalize_spread_props_for_ref_attr_source =
+		transform_context.needs_normalize_spread_props_for_ref_attr && platform.imports.refProp
+			? platform.imports.refProp
+			: null;
 
 	/** @type {Map<string, any[]>} */
 	const ref_imports = new Map();
@@ -5096,6 +5097,17 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 			ref_imports,
 			normalize_spread_props_source,
 			b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME),
+		);
+	}
+
+	if (normalize_spread_props_for_ref_attr_source !== null) {
+		add_ref_import_specifier(
+			ref_imports,
+			normalize_spread_props_for_ref_attr_source,
+			b.import_specifier(
+				'normalize_spread_props_for_ref_attr',
+				NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
+			),
 		);
 	}
 
@@ -5581,8 +5593,15 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 			return [attr];
 		}
 
-		transform_context.needs_normalize_spread_props = true;
-		const normalized = b.call(NORMALIZE_SPREAD_PROPS_INTERNAL_NAME, attr.argument);
+		const normalize_helper = needs_synthetic_spread_ref
+			? NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME
+			: NORMALIZE_SPREAD_PROPS_INTERNAL_NAME;
+		if (needs_synthetic_spread_ref) {
+			transform_context.needs_normalize_spread_props_for_ref_attr = true;
+		} else {
+			transform_context.needs_normalize_spread_props = true;
+		}
+		const normalized = b.call(normalize_helper, attr.argument);
 
 		if (needs_synthetic_spread_ref) {
 			const normalized_id = create_generated_identifier(
@@ -5845,6 +5864,8 @@ function is_jsx_ref_attribute(attr) {
  */
 export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
 export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
+export const NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME =
+	'__normalize_spread_props_for_ref_attr';
 export const MAP_ITERABLE_INTERNAL_NAME = '__map_iterable';
 export const ITERATION_VALUE_INTERNAL_NAME = '__IterationValue';
 

@@ -238,6 +238,34 @@ export function normalize_spread_props(props, ...outer_refs) {
 }
 
 /**
+ * Normalize spread props for targets that read refs through an explicit
+ * `ref={normalized.ref}` attribute. The returned `ref` stays readable for that
+ * attribute but is non-enumerable so `{...normalized}` does not also pass it as
+ * a DOM prop.
+ *
+ * @param {Record<string | symbol, any> | null | undefined} props
+ * @param {...any} outer_refs
+ * @returns {Record<string | symbol, any> | null | undefined}
+ */
+export function normalize_spread_props_for_ref_attr(props, ...outer_refs) {
+	const next = normalize_spread_props(props, ...outer_refs);
+	if (next == null || !has_own_property.call(next, 'ref')) {
+		return next;
+	}
+
+	const ref = next.ref;
+	const without_ref = { ...next };
+	delete without_ref.ref;
+	Object.defineProperty(without_ref, 'ref', {
+		value: ref,
+		enumerable: false,
+		configurable: true,
+		writable: true,
+	});
+	return without_ref;
+}
+
+/**
  * @param {object} value
  * @param {'current' | 'value'} key
  * @returns {boolean}

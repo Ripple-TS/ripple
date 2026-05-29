@@ -168,7 +168,9 @@ describe('@tsrx/ripple named ref props', () => {
 			'App.tsrx',
 		);
 
-		expect(code).not.toContain("import { _$_RefProp__create } from 'ripple/compiler/internal/import';");
+		expect(code).not.toContain(
+			"import { _$_RefProp__create } from 'ripple/compiler/internal/import';",
+		);
 		expect(code).toContain('<input input_ref={input} />');
 	});
 

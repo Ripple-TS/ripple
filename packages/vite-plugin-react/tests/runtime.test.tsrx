@@ -319,7 +319,9 @@ function AutoMergedRefObjectApp() {
 		function callbackRef(node: HTMLDivElement) {
 			auto_ref_obj_callback_node = node;
 		}
-		<div ref={mergeRefs(ref_object, callbackRef)} class="auto-merged-objects">{'object merged'}</div>
+		<div ref={mergeRefs(ref_object, callbackRef)} class="auto-merged-objects">
+			{'object merged'}
+		</div>
 	</>;
 }
 

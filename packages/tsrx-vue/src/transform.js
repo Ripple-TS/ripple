@@ -14,6 +14,7 @@ import {
 	error,
 	is_component_like_element,
 	MERGE_REFS_INTERNAL_NAME,
+	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	setLocation,
 	toJsxAttribute,
@@ -1154,7 +1155,13 @@ function create_vue_named_ref_spread(attr) {
 	const attr_name = get_vue_attribute_name(attr);
 	const value = get_vue_attribute_expression(attr);
 	if (attr_name === null) return attr;
-	const prop = builders.prop('init', builders.key(attr_name), value ?? builders.literal(true), false, false);
+	const prop = builders.prop(
+		'init',
+		builders.key(attr_name),
+		value ?? builders.literal(true),
+		false,
+		false,
+	);
 	return builders.jsx_spread_attribute(builders.object([prop], attr), attr);
 }
 
@@ -1240,6 +1247,15 @@ function inject_vue_imports(program, transform_context) {
 			'@tsrx/vue/ref',
 			'normalize_spread_props',
 			NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
+		);
+	}
+
+	if (transform_context.needs_normalize_spread_props_for_ref_attr) {
+		ensure_named_import(
+			program,
+			'@tsrx/vue/ref',
+			'normalize_spread_props_for_ref_attr',
+			NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 		);
 	}
 }

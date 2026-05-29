@@ -37,3 +37,6 @@ export function normalize_spread_props<T extends Record<PropertyKey, any> | null
 	props: T,
 	...outer_refs: unknown[]
 ): T | Record<PropertyKey, any>;
+export function normalize_spread_props_for_ref_attr<
+	T extends Record<PropertyKey, any> | null | undefined,
+>(props: T, ...outer_refs: unknown[]): T | Record<PropertyKey, any>;

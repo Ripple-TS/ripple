@@ -423,7 +423,7 @@ describe('@tsrx/preact basic', () => {
 		it('rejects repeated ref={expr} attributes after the keyword removal', () => {
 			expect(() =>
 				compile(
-				`export function App() {
+					`export function App() {
 					return <>
 					function refA(_node) {}
 					function refB(_node) {}
@@ -431,7 +431,7 @@ describe('@tsrx/preact basic', () => {
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
 				
 					</>;}`,
-				'App.tsrx',
+					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});
