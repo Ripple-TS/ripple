@@ -85,6 +85,8 @@ export {
 
 export { composite } from './composite.js';
 
+export { render_component } from './component.js';
+
 export { for_block as for, for_block_keyed as for_keyed } from './for.js';
 
 export { if_block as if } from './if.js';
@@ -127,10 +129,17 @@ export { rpc } from './rpc.js';
 
 export { tsx_compat } from './compat.js';
 
+export { render_tsrx_element } from './component.js';
+
 export { TRY_BLOCK, HMR } from './constants.js';
 
 export { hmr } from './hmr.js';
 
 export { pop, next } from './hydration.js';
 
-export { tsrx_element, normalize_children } from '../../element.js';
+export {
+	TSRX_COMPONENT,
+	is_tsrx_element,
+	tsrx_element,
+	normalize_children,
+} from '../../element.js';

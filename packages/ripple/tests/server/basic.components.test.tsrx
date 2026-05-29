@@ -8,6 +8,15 @@ import type {
 } from 'ripple';
 
 describe('basic server > components & composition', () => {
+	async function render_expected_invalid_component(App: Component) {
+		const console_error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			return await render(App);
+		} finally {
+			console_error_spy.mockRestore();
+		}
+	}
+
 	it('renders with component composition and children', async () => {
 		function Card(props: PropsWithChildren<{}>) {
 			return <><div class="card">{props.children}</div></>;
@@ -83,6 +92,84 @@ describe('basic server > components & composition', () => {
 
 		expect(card).toBeTruthy();
 		expect(paragraph.textContent).toBe('Card content here');
+	});
+
+	it('renders direct component function calls as values', async () => {
+		function Test({ label }: { label: string }) {
+			return <><span>{label}</span></>;
+		}
+
+		function App() {
+			return <>{Test({ label: 'direct call' })}</>;
+		}
+
+		const { body } = await render(App);
+		const { document } = parseHtml(body);
+
+		expect(document.querySelector('span')?.textContent).toBe('direct call');
+	});
+
+	it('renders arrays and primitives returned from component calls', async () => {
+		function Test() {
+			const item = <span>{'A'}</span>;
+			return [item, 'B', null, undefined];
+		}
+
+		function App() {
+			return <><Test /></>;
+		}
+
+		const { body } = await render(App);
+
+		expect(body).toContain('<span>A</span>');
+		expect(body).toContain('B');
+	});
+
+	it('throws when a TSRXElement value is used as a component type', async () => {
+		function Test() {
+			return <><span>{'value'}</span></>;
+		}
+
+		function App() {
+			const El = Test({});
+			return <><El /></>;
+		}
+
+		const result = await render_expected_invalid_component(App);
+
+		expect(result.topLevelError?.message).toContain('Invalid component type');
+	});
+
+	it('throws when a non-TSRX function is used as a component type', async () => {
+		function Func() {
+			return undefined;
+		}
+
+		function App() {
+			return <><Func /></>;
+		}
+
+		const result = await render_expected_invalid_component(App);
+
+		expect(result.topLevelError?.message).toContain('Invalid component type');
+	});
+
+	it('throws when a compat-only function is used as a component type', async () => {
+		function CompatOnly() {
+			return <tsx>
+				<div>
+					{'compat'}
+				</div>
+			</tsx>;
+		}
+
+		function App() {
+			return <><CompatOnly /></>;
+		}
+
+		const result = await render_expected_invalid_component(App);
+
+		expect(result.topLevelError?.message).toContain('Invalid component type');
 	});
 
 	it('renders with nested components and prop passing', async () => {

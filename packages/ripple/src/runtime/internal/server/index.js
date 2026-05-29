@@ -38,7 +38,13 @@ import {
 import { clsx } from 'clsx';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
+import {
+	TSRX_COMPONENT,
+	is_tsrx_component,
+	is_tsrx_element,
+	normalize_children,
+	tsrx_element,
+} from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -64,7 +70,7 @@ export { simple_hash, strong_hash } from '@tsrx/core/runtime/hash';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
-export { tsrx_element, normalize_children };
+export { TSRX_COMPONENT, is_tsrx_element, tsrx_element, normalize_children };
 export { create_ref_prop };
 
 /** @extends Error */
@@ -96,12 +102,28 @@ function render_tsrx_collection(value) {
 		var item = value[i];
 
 		if (is_tsrx_element(item)) {
-			item.render({});
+			render_tsrx_element(item);
 		} else if (is_array(item)) {
 			render_tsrx_collection(item);
 		} else if (item != null) {
 			output_push(escape(item));
 		}
+	}
+}
+
+/**
+ * @param {import('../../element.js').TSRXElement} value
+ * @returns {void}
+ */
+export function render_tsrx_element(value) {
+	const result = value.render({});
+
+	if (is_tsrx_element(result)) {
+		render_tsrx_element(result);
+	} else if (is_array(result)) {
+		render_tsrx_collection(result);
+	} else if (result != null) {
+		output_push(escape(result));
 	}
 }
 
@@ -113,7 +135,7 @@ export function render_expression(value) {
 	output_push(BLOCK_OPEN);
 
 	if (is_tsrx_element(value)) {
-		value.render({});
+		render_tsrx_element(value);
 	} else if (is_array(value)) {
 		render_tsrx_collection(value);
 	} else {
@@ -121,6 +143,63 @@ export function render_expression(value) {
 	}
 
 	output_push(BLOCK_CLOSE);
+}
+
+/**
+ * @param {Function} fn
+ * @param {Props} props
+ * @returns {void}
+ */
+export function render_component(fn, props) {
+	if (!is_tsrx_component(fn)) {
+		throw_invalid_component_type(fn);
+	}
+
+	run_component(fn, props);
+}
+
+/**
+ * @param {Function} fn
+ * @param {Props} props
+ * @returns {void}
+ */
+export function root_component(fn, props) {
+	if (!is_tsrx_component(fn)) {
+		throw_invalid_component_type(fn);
+	}
+
+	run_component(fn, props);
+}
+
+/**
+ * @param {Function} fn
+ * @param {Props} props
+ * @returns {void}
+ */
+function run_component(fn, props) {
+	push_component();
+	try {
+		const value = fn(props);
+		if (is_tsrx_element(value)) {
+			render_tsrx_element(value);
+		} else {
+			render_expression(value);
+		}
+	} finally {
+		pop_component();
+	}
+}
+
+/**
+ * @param {any} value
+ * @returns {never}
+ */
+function throw_invalid_component_type(value) {
+	if (is_tsrx_element(value)) {
+		throw new TypeError('Invalid component type: received a TSRXElement value.');
+	}
+
+	throw new TypeError('Invalid component type: expected a TSRX component function.');
 }
 
 /**
@@ -532,7 +611,7 @@ export class Output {
 			// and append them into the head immediately
 			return;
 		}
-		this.#css.add(hash);
+		this.#root.#css.add(hash);
 	}
 
 	/**
@@ -654,11 +733,11 @@ export class Output {
 }
 
 /**
- * @param {RenderComponent} component
+ * @param {RenderComponent} render_component
  * @param {BaseRenderOptions} [passed_in_options]
  * @returns {Promise<RenderResult | RenderStreamResult>}
  */
-export async function render(component, passed_in_options = {}) {
+export async function render(render_component, passed_in_options = {}) {
 	/** @type {BaseRenderOptions} */
 	var options = {
 		...(passed_in_options.stream ? { closeStream: true } : {}),
@@ -685,7 +764,7 @@ export async function render(component, passed_in_options = {}) {
 			if (options.stream) {
 				output._setStream(options.stream);
 			}
-			component({});
+			root_component(render_component, {});
 			output._decrementPending();
 			output._finishSyncRun();
 
@@ -711,14 +790,14 @@ export async function render(component, passed_in_options = {}) {
 				output._finishSyncRun();
 			}
 			if (options.rootBoundary?.catch) {
-				options.rootBoundary.catch({ error, reset: noop });
+				root_component(options.rootBoundary.catch, { error, reset: noop });
 			} else {
 				console.error(error);
 			}
 		},
 		() => {
 			if (options.rootBoundary?.pending) {
-				options.rootBoundary.pending({});
+				root_component(options.rootBoundary.pending, {});
 			}
 		},
 	);

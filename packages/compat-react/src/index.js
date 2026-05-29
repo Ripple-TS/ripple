@@ -33,6 +33,7 @@ import {
 	is_destroyed,
 	queue_post_block_flush_callback,
 	schedule_update,
+	render_component,
 } from 'ripple/internal/client';
 import { Context } from 'ripple';
 
@@ -421,7 +422,7 @@ export function Ripple({ component, props }) {
 
 			boundary_block = branch(
 				() => {
-					component(anchor, proxied_props);
+					render_component(component, anchor, proxied_props);
 				},
 				TRY_BLOCK,
 				state,

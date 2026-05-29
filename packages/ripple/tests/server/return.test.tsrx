@@ -20,7 +20,7 @@ describe('returns in prohibited SSR scopes', () => {
 				'test.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrowError(TSRX_RETURN_ERROR);
+		).toThrow(TSRX_RETURN_ERROR);
 	});
 
 	it('throws when return is used inside a TSRX element', () => {
@@ -39,7 +39,7 @@ describe('returns in prohibited SSR scopes', () => {
 				'test.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrowError(TSRX_RETURN_ERROR);
+		).toThrow(TSRX_RETURN_ERROR);
 	});
 
 	it('allows returns inside regular functions declared in TSRX templates', () => {

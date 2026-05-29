@@ -1,7 +1,7 @@
 import { RippleArray, effect, track, untrack } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
-const EFFECT_BODY_REGEX = /_\$\_\.effect\(\(\) => \{([\s\S]*?)\n\t\}\);/;
+const EFFECT_BODY_REGEX = /_\$\_\.effect\(\(\) => \{([\s\S]*?)\n\t\t\}\);/;
 
 describe('compiler > assignments', () => {
 	it('properly handles JS assignments, reads and updates to array indices', () => {

@@ -1,4 +1,5 @@
 const TSRX_ELEMENT = Symbol.for('ripple.element');
+export const TSRX_COMPONENT = Symbol.for('ripple.component');
 
 /**
  * @typedef {{
@@ -28,6 +29,14 @@ export function is_tsrx_element(value) {
 
 /**
  * @param {any} value
+ * @returns {value is Function}
+ */
+export function is_tsrx_component(value) {
+	return typeof value === 'function' && value[TSRX_COMPONENT] === true;
+}
+
+/**
+ * @param {any} value
  * @returns {any}
  */
 export function normalize_children(value) {
@@ -35,5 +44,5 @@ export function normalize_children(value) {
 		return value;
 	}
 
-	return tsrx_element(value);
+	return tsrx_element(() => value({}));
 }

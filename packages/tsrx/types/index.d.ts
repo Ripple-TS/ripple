@@ -153,6 +153,12 @@ declare module 'estree' {
 		};
 	}
 
+	interface ReturnStatement {
+		metadata: BaseNodeMetaData & {
+			invalid_tsrx_template_return?: boolean;
+		};
+	}
+
 	type Accessibility = 'public' | 'protected' | 'private'; // missing in acorn-typescript types
 	interface MethodDefinition {
 		typeParameters?: TSTypeParameterDeclaration;
@@ -1373,6 +1379,7 @@ export interface TransformServerState extends BaseState {
 	template_child?: boolean;
 	skip_regular_blocks?: boolean;
 	in_regular_block?: boolean;
+	is_tsrx_element?: boolean;
 	jsx_to_tsrx_element?: boolean;
 }
 

@@ -1,4 +1,4 @@
-import { output_push, noop } from './internal/server/index.js';
+import { TSRX_COMPONENT, output_push, noop, tsrx_element } from './internal/server/index.js';
 
 export { Fragment } from '../jsx-runtime.js';
 export { Context } from './internal/server/context.js';
@@ -74,7 +74,11 @@ export const bindOffsetHeight = noop;
  * However, we need to output a marker comment so hydration can work correctly.
  */
 export function Portal() {
-	// Portals are client-only, but we need to output a marker for hydration
-	// Output an empty HTML comment as a placeholder
-	output_push('<!--portal-->');
+	return tsrx_element(function render_portal() {
+		// Portals are client-only, but we need to output a marker for hydration
+		// Output an empty HTML comment as a placeholder
+		output_push('<!--portal-->');
+	});
 }
+
+Portal[TSRX_COMPONENT] = true;

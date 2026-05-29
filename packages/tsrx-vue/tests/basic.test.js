@@ -99,7 +99,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('return <pre>{__lazy0.count}</pre>;');
 	});
 
-	it('keeps regular callback returns with native TSRX values intact', () => {
+	it('keeps return-value branches in component callback props as plain conditionals', () => {
 		const { code } = compile(
 			`function Test() { return <>
 				<Page
@@ -108,7 +108,6 @@ describe('@tsrx/vue basic', () => {
 							if (isAdmin) {
 								return ['Delete', 'Edit'];
 							}
-							return ['View'];
 						},
 						direct: () => {
 							return ['View'];
@@ -144,6 +143,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('menuAlt: (isAdmin) => {');
+		expect(code).toContain('if (isAdmin)');
 		expect(code).toContain("return ['Delete', 'Edit'];");
 		expect(code).toContain('direct: () => {');
 		expect(code).toContain("return ['View'];");

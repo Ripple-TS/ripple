@@ -16,6 +16,7 @@ import {
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
+import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
 const DYNAMIC_ELEMENT_IN_TSX_ERROR =
 	'Dynamic element syntax (`<@...>`) is only supported in native TSRX templates.';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
@@ -881,6 +882,74 @@ export function TSRXPlugin(config) {
 					return;
 				}
 				this.raise(position, message);
+			}
+
+			/**
+			 * @param {AST.Node} node
+			 * @param {boolean} [inside_nested_function]
+			 * @param {boolean} [inside_loop]
+			 */
+			#report_invalid_template_return_statements(
+				node,
+				inside_nested_function = false,
+				inside_loop = false,
+			) {
+				if (!node || typeof node !== 'object') {
+					return;
+				}
+
+				if (
+					node.type === 'FunctionDeclaration' ||
+					node.type === 'FunctionExpression' ||
+					node.type === 'ArrowFunctionExpression'
+				) {
+					inside_nested_function = true;
+				}
+
+				if (
+					node.type === 'ForStatement' ||
+					node.type === 'ForInStatement' ||
+					node.type === 'ForOfStatement' ||
+					node.type === 'WhileStatement' ||
+					node.type === 'DoWhileStatement'
+				) {
+					inside_loop = true;
+				}
+
+				if (!inside_nested_function && !inside_loop && node.type === 'ReturnStatement') {
+					node.metadata = {
+						...node.metadata,
+						invalid_tsrx_template_return: true,
+					};
+					this.#report_broken_markup_error(
+						/** @type {AST.NodeWithLocation} */ (node).start ?? this.start,
+						TSRX_RETURN_STATEMENT_ERROR,
+						DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
+					);
+					return;
+				}
+
+				if (Array.isArray(node)) {
+					for (const child of node) {
+						this.#report_invalid_template_return_statements(
+							child,
+							inside_nested_function,
+							inside_loop,
+						);
+					}
+					return;
+				}
+
+				for (const key of Object.keys(node)) {
+					if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+						continue;
+					}
+					this.#report_invalid_template_return_statements(
+						node[key],
+						inside_nested_function,
+						inside_loop,
+					);
+				}
 			}
 
 			/**
@@ -2763,6 +2832,7 @@ export function TSRXPlugin(config) {
 				} else {
 					skipWhitespace(this);
 					const node = this.parseStatement(null);
+					this.#report_invalid_template_return_statements(node);
 					body.push(node);
 
 					// Ensure we're not in JSX context before recursing

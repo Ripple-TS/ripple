@@ -35,7 +35,7 @@ describe('@tsrx/preact basic', () => {
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -54,7 +54,7 @@ describe('@tsrx/preact basic', () => {
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 			{ suspenseSource: 'preact-suspense' },
@@ -70,7 +70,7 @@ describe('@tsrx/preact basic', () => {
 			`function ThrowingChild() {
 				return <>
 				<div>{'might throw'}</div>
-			
+
 				</>;}
 
 			export function App() {
@@ -80,7 +80,7 @@ describe('@tsrx/preact basic', () => {
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -97,7 +97,7 @@ describe('@tsrx/preact basic', () => {
 				<tsx:preact>
 					<div>{'preact tsx'}</div>
 				</tsx:preact>
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -113,7 +113,7 @@ describe('@tsrx/preact basic', () => {
 					<tsx:solid>
 						<div>{'solid tsx'}</div>
 					</tsx:solid>
-				
+
 					</>;}`,
 				'App.tsrx',
 			),
@@ -126,7 +126,7 @@ describe('@tsrx/preact basic', () => {
 					return <>
 					const data = await fetchData();
 					<div>{data}</div>
-				
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -142,7 +142,7 @@ describe('@tsrx/preact basic', () => {
 				for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -159,7 +159,7 @@ describe('@tsrx/preact basic', () => {
 				for (const item of items) {
 					<li key={item}>{item}</li>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -182,7 +182,7 @@ describe('@tsrx/preact basic', () => {
 					const [open, setOpen] = useState(false);
 					<li key={item}>{open ? item : '-'}</li>
 				}
-			
+
 				</>;}`,
 			'App.tsrx',
 		);
@@ -228,7 +228,7 @@ describe('@tsrx/preact basic', () => {
 			`export function Test() {
 				return <>
 				<div>{Date.now()}</div>
-			
+
 				</>;}`,
 			'Test.tsrx',
 		);
@@ -244,7 +244,7 @@ describe('@tsrx/preact basic', () => {
 			function Wrapper(props: PropsWithChildren<{}>) {
 				return <>
 				<section>{props.children}</section>
-			
+
 				</>;}
 
 			function Parent(props: { title: string }) {
@@ -255,13 +255,13 @@ describe('@tsrx/preact basic', () => {
 					<h1>{props.title}</h1>
 					<span>{count}</span>
 				</Wrapper>
-			
+
 				</>;}
 
 			function App() {
 				return <>
 				<Parent title="Hello from props" />
-			
+
 				</>;}`;
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -285,7 +285,7 @@ describe('@tsrx/preact basic', () => {
 					return <>
 					function refA(_node) {}
 					<div ref={refA}>{'hi'}</div>
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -301,7 +301,7 @@ describe('@tsrx/preact basic', () => {
 					return <>
 					function refA(_node) {}
 					<div ref={refA}>{'hi'}</div>
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -315,14 +315,14 @@ describe('@tsrx/preact basic', () => {
 				`export function Child(props) {
 					return <>
 					<input {...props} />
-				
+
 					</>;}
 
 				export function App() {
 					return <>
 					let input;
 					<Child input_ref={input} />
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -337,14 +337,14 @@ describe('@tsrx/preact basic', () => {
 				`export function Child(props) {
 					return <>
 					<span>{'child'}</span>
-				
+
 					</>;}
 
 				export function App() {
 					return <>
 					let input;
 					<Child input_ref={input} />
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -362,7 +362,7 @@ describe('@tsrx/preact basic', () => {
 					const second = {};
 					function cb(_node) {}
 					<input {...first} {...second} ref={cb} />
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -392,7 +392,7 @@ describe('@tsrx/preact basic', () => {
 						function refA(_node) {}
 						function refB(_node) {}
 						<div ref={refA} ref={refB}>{'hi'}</div>
-					
+
 						</>;}`,
 					'App.tsrx',
 				),
@@ -409,7 +409,7 @@ describe('@tsrx/preact basic', () => {
 					function refB(_node) {}
 					function refC(_node) {}
 					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
-				
+
 					</>;}`,
 				'App.tsrx',
 			);
@@ -427,7 +427,7 @@ describe('@tsrx/preact basic', () => {
 					function refB(_node) {}
 					function refC(_node) {}
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
-				
+
 					</>;}`,
 					'App.tsrx',
 				),

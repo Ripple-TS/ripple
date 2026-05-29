@@ -6,6 +6,7 @@ import { hydrate_next, hydrating } from './hydration.js';
 import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
+import { render_component } from './component.js';
 
 /**
  * @typedef {((anchor: Node, props: Record<string, any>, block: Block | null) => void)} ComponentFunction
@@ -41,9 +42,10 @@ export function composite(get_component, node, props) {
 			if (typeof component === 'function') {
 				// Handle as regular component
 				b = branch(() => {
-					var block = active_block;
-					/** @type {ComponentFunction} */ (component)(anchor, props, block);
+					render_component(component, anchor, props);
 				});
+			} else if (is_tsrx_element(component)) {
+				throw new TypeError('Invalid component type: received a TSRXElement value.');
 			} else if (component != null) {
 				// Custom element - only create if component is not null/undefined
 				const ns = top_element_to_ns(component, active_namespace);

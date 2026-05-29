@@ -14,7 +14,7 @@ describe('returns in prohibited scopes', () => {
 			`, 'test.tsrx', {
 				mode: 'client',
 			}),
-		).toThrowError('Return statements are not allowed at the top level of a module.');
+		).toThrow('Return statements are not allowed at the top level of a module.');
 	});
 
 	it('throws when return is used inside a TSRX fragment', () => {
@@ -33,7 +33,7 @@ describe('returns in prohibited scopes', () => {
 				'test.tsrx',
 				{ mode: 'client' },
 			),
-		).toThrowError(TSRX_RETURN_ERROR);
+		).toThrow(TSRX_RETURN_ERROR);
 	});
 
 	it('throws when return is used inside a TSRX element', () => {
@@ -52,7 +52,7 @@ describe('returns in prohibited scopes', () => {
 				'test.tsrx',
 				{ mode: 'client' },
 			),
-		).toThrowError(TSRX_RETURN_ERROR);
+		).toThrow(TSRX_RETURN_ERROR);
 	});
 
 	it('allows returns inside regular functions declared in TSRX templates', () => {

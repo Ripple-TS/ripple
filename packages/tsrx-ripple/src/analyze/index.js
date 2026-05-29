@@ -309,13 +309,18 @@ function is_inside_component_for_of(path) {
  * @param {AnalysisContext['path']} path
  * @returns {boolean}
  */
-function is_inside_tsrx_template(path) {
+function is_inside_template_child(path) {
 	for (let i = path.length - 1; i >= 0; i -= 1) {
 		const node = path[i];
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'Tsrx' || node.type === 'Element') {
+		if (
+			node.type === 'Element' ||
+			node.type === 'Tsrx' ||
+			node.type === 'Tsx' ||
+			node.type === 'TsxCompat'
+		) {
 			return true;
 		}
 	}
@@ -1401,7 +1406,7 @@ const visitors = {
 
 		// Lazy bindings from track() calls (read_unwraps) are inherently reactive —
 		// propagate tracking so that control flow (if/for/switch)
-		// and early returns create reactive blocks
+		// and template control flow can create reactive blocks
 		if (
 			!node.tracked &&
 			binding?.read_unwraps &&
@@ -2013,16 +2018,6 @@ const visitors = {
 	ReturnStatement(node, context) {
 		const parent = context.path.at(-1);
 
-		if (is_inside_tsrx_template(context.path)) {
-			validateTsrxReturnStatement(
-				node,
-				context.state.analysis.module.filename,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-			return context.next();
-		}
-
 		if (!is_inside_component(context)) {
 			if (parent?.type === 'Program') {
 				error_return_keyword(
@@ -2046,6 +2041,18 @@ const visitors = {
 				context.state.collect ? context.state.analysis.errors : undefined,
 				context.state.analysis.comments,
 			);
+			return;
+		}
+
+		if (is_inside_template_child(context.path)) {
+			if (!node.metadata?.invalid_tsrx_template_return) {
+				validateTsrxReturnStatement(
+					node,
+					context.state.analysis.module.filename,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
+			}
 			return;
 		}
 

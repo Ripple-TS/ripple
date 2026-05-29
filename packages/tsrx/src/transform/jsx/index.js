@@ -5,7 +5,6 @@
 import { walk } from 'zimmerframe';
 import { print } from 'esrap';
 import { error } from '../../errors.js';
-import { validate_tsrx_return_statement } from '../../analyze/validation.js';
 import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
 import {
@@ -142,45 +141,6 @@ function is_function_or_class_boundary(node) {
 }
 
 /**
- * @param {AST.Node[]} path
- * @returns {boolean}
- */
-function is_inside_tsrx_template(path) {
-	for (let i = path.length - 1; i >= 0; i -= 1) {
-		const ancestor = path[i];
-
-		if (is_function_or_class_boundary(ancestor)) {
-			return false;
-		}
-
-		if (ancestor.type === 'Tsrx' || ancestor.type === 'Element') {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * @param {AST.ReturnStatement} node
- * @param {AST.Node[]} path
- * @param {TransformContext} transform_context
- * @returns {void}
- */
-function validate_no_return_inside_tsrx_template(node, path, transform_context) {
-	if (!is_inside_tsrx_template(path)) {
-		return;
-	}
-
-	validate_tsrx_return_statement(
-		node,
-		transform_context.filename,
-		transform_context.errors,
-		transform_context.comments,
-	);
-}
-
-/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
  * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
  * native TSRX template nodes into a plain TSX module for that platform.
@@ -246,17 +206,6 @@ export function createJsxTransform(platform) {
 			FunctionDeclaration: collect_native_function_tsrx_metadata,
 			FunctionExpression: collect_native_function_tsrx_metadata,
 			ArrowFunctionExpression: collect_native_function_tsrx_metadata,
-		});
-
-		walk(/** @type {any} */ (ast), transform_context, {
-			ReturnStatement(node, { path, state, next }) {
-				validate_no_return_inside_tsrx_template(
-					/** @type {AST.ReturnStatement} */ (node),
-					path,
-					state,
-				);
-				return next(state);
-			},
 		});
 
 		const transformed = walk(/** @type {any} */ (ast), transform_context, {
@@ -497,16 +446,12 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	// any JSX is constructed, and every JSX child would observe the final
 	// state of mutable variables.
 	const interleaved = is_interleaved_body(body_nodes);
-	const capture_static_early_return_nodes =
-		!interleaved &&
-		!transform_context.platform.hooks?.isTopLevelSetupCall &&
-		body_nodes.filter(is_returning_if_statement).length > 1;
 	let capture_index = 0;
 
 	for (let i = 0; i < body_nodes.length; i += 1) {
 		const child = body_nodes[i];
 
-		if (is_bare_return_statement(child)) {
+		if (is_loop_skip_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
 			has_terminal_return = true;
@@ -519,95 +464,17 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			continue;
 		}
 
-		if (is_returning_if_statement(child)) {
-			const branch_has_hooks = body_contains_top_level_hook_call(
-				get_if_consequent_body(child),
-				transform_context,
-				true,
-			);
-			const continuation_has_hooks = body_contains_top_level_hook_call(
-				body_nodes.slice(i + 1),
-				transform_context,
-				true,
-			);
-
-			if (capture_static_early_return_nodes) {
-				capture_index = capture_static_early_return_render_nodes(
-					render_nodes,
-					statements,
-					capture_index,
-					transform_context,
+		if (is_loop_skip_if_statement(child)) {
+			if (transform_context.platform.hooks?.isTopLevelSetupCall) {
+				const continuation_body = body_nodes.slice(i + 1);
+				const continuation_has_setup_statements = continuation_body.some(
+					(node) =>
+						!is_loop_skip_return_statement(node) &&
+						!is_loop_skip_if_statement(node) &&
+						!is_jsx_child(node),
 				);
-			}
 
-			if (
-				should_extract_hook_helpers(transform_context) &&
-				(branch_has_hooks || continuation_has_hooks)
-			) {
-				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
-					statements.push(
-						...create_setup_once_helper_split_returning_if_statements(
-							child,
-							body_nodes.slice(i + 1),
-							render_nodes,
-							transform_context,
-						),
-					);
-					transform_context.available_bindings = saved_bindings;
-					return statements;
-				}
-
-				statements.push(
-					...create_component_helper_split_returning_if_statements(
-						child,
-						body_nodes.slice(i + 1),
-						render_nodes,
-						transform_context,
-					),
-				);
-				transform_context.available_bindings = saved_bindings;
-				return statements;
-			}
-
-			if (is_lone_return_if_statement(child)) {
-				// On platforms where setup runs once (Vue Vapor), an early
-				// `if (cond) return;` placed at setup level is non-reactive:
-				// `cond` is evaluated only when setup runs and never again.
-				// Inline the rest of the body as a render-time ternary so the
-				// conditional re-evaluates when `cond` changes after mount.
-				// React/Preact/Solid re-run the component body on every render,
-				// so the old setup-time early return is already reactive there
-				// and we keep it to avoid gratuitous output changes.
-				if (transform_context.platform.hooks?.isTopLevelSetupCall) {
-					const continuation_body = body_nodes.slice(i + 1);
-
-					// Render-time inlining unconditionally lifts continuation
-					// statements (provide/watch/declarations/etc.) into the
-					// parent setup, which would run them regardless of the
-					// early-return condition — wrong when the user wrote them
-					// after `if (cond) return;`. Fall back to helper-split if
-					// the continuation has any non-render statements so they
-					// stay scoped to the helper's lifecycle.
-					const continuation_has_setup_statements = continuation_body.some(
-						(node) =>
-							!is_bare_return_statement(node) &&
-							!is_returning_if_statement(node) &&
-							!is_jsx_child(node),
-					);
-
-					if (continuation_has_setup_statements) {
-						statements.push(
-							...create_setup_once_helper_split_returning_if_statements(
-								child,
-								continuation_body,
-								render_nodes,
-								transform_context,
-							),
-						);
-						transform_context.available_bindings = saved_bindings;
-						return statements;
-					}
-
+				if (!continuation_has_setup_statements) {
 					const continuation_statements = build_render_statements(
 						continuation_body,
 						false,
@@ -637,13 +504,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 					break;
 				}
-
-				statements.push(create_component_lone_return_if_statement(child, render_nodes));
-				continue;
 			}
 
 			statements.push(
-				create_component_returning_if_statement(child, render_nodes, transform_context),
+				create_component_loop_skip_if_statement(child, render_nodes, transform_context),
 			);
 			continue;
 		}
@@ -706,38 +570,11 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 }
 
 /**
- * React-specific wrapper around the core `isInterleavedBody` helper that
- * ignores bare `return` / lone return-if statements. Those are rewriting
- * signals rather than user-visible side effects, so JSX children around
- * them don't need capturing.
- *
  * @param {any[]} body_nodes
  * @returns {boolean}
  */
 function is_interleaved_body(body_nodes) {
-	const filtered = body_nodes.filter(
-		(child) => !is_bare_return_statement(child) && !is_lone_return_if_statement(child),
-	);
-	return is_interleaved_body_core(filtered, is_jsx_child);
-}
-
-/**
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {number}
- */
-function find_hook_safe_split_index(body_nodes, transform_context) {
-	for (let i = 0; i < body_nodes.length; i += 1) {
-		if (!is_lone_return_if_statement(body_nodes[i])) {
-			continue;
-		}
-
-		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context, true)) {
-			return i;
-		}
-	}
-
-	return -1;
+	return is_interleaved_body_core(body_nodes, is_jsx_child);
 }
 
 /**
@@ -2217,59 +2054,6 @@ function is_bare_component_invocation(node) {
 }
 
 /**
- * Static JSX that appears before multiple early-return guards is otherwise
- * cloned into every generated return. Capture it once at its source position
- * and reuse the reference, matching the interleaved-statement capture path
- * without moving dynamic render-time expressions across guards.
- *
- * @param {any[]} render_nodes
- * @param {any[]} statements
- * @param {number} capture_index
- * @param {TransformContext} transform_context
- * @returns {number}
- */
-function capture_static_early_return_render_nodes(
-	render_nodes,
-	statements,
-	capture_index,
-	transform_context,
-) {
-	for (let i = 0; i < render_nodes.length; i += 1) {
-		const node = render_nodes[i];
-		if (!is_static_early_return_capture_node(node, transform_context)) {
-			continue;
-		}
-
-		const { declaration, reference } = captureJsxChild(node, capture_index++);
-		statements.push(declaration);
-		render_nodes[i] = reference;
-	}
-
-	return capture_index;
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function is_static_early_return_capture_node(node, transform_context) {
-	if (node?.type !== 'JSXElement' && node?.type !== 'JSXFragment') {
-		return false;
-	}
-	if (!is_hoist_safe_jsx_node(node)) {
-		return false;
-	}
-	if (
-		transform_context.platform.hooks?.canHoistStaticNode &&
-		!transform_context.platform.hooks.canHoistStaticNode(node, transform_context)
-	) {
-		return false;
-	}
-	return !references_scope_bindings(node, transform_context.available_bindings);
-}
-
-/**
  * @param {AST.Program} program
  * @returns {AST.Program}
  */
@@ -2348,48 +2132,6 @@ function get_generated_component_metadata_list(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
- */
-function is_bare_return_statement(node) {
-	return node?.type === 'ReturnStatement' && node.argument == null;
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_lone_return_if_statement(node) {
-	if (node?.type !== 'IfStatement' || node.alternate) {
-		return false;
-	}
-
-	const consequent_body = get_if_consequent_body(node);
-
-	return consequent_body.length === 1 && is_bare_return_statement(consequent_body[0]);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_returning_if_statement(node) {
-	if (node?.type !== 'IfStatement' || node.alternate) {
-		return false;
-	}
-
-	return get_if_consequent_body(node).some(is_bare_return_statement);
-}
-
-/**
- * @param {any} node
- * @returns {any[]}
- */
-function get_if_consequent_body(node) {
-	return node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-}
-
-/**
  * @param {any[]} render_nodes
  * @param {any} source_node
  * @param {boolean} [map_render_node_locations]
@@ -2409,23 +2151,37 @@ function create_component_return_statement(
 
 /**
  * @param {any} node
- * @param {any[]} render_nodes
- * @returns {any}
+ * @returns {boolean}
  */
-function create_component_lone_return_if_statement(node, render_nodes) {
-	const consequent_body = get_if_consequent_body(node);
-
-	return set_loc(
-		b.if(
-			node.test,
-			set_loc(
-				b.block([create_component_return_statement(render_nodes, consequent_body[0], false)]),
-				node.consequent,
-			),
-			null,
-		),
-		node,
+function is_loop_skip_return_statement(node) {
+	return (
+		node?.type === 'ReturnStatement' &&
+		node.argument == null &&
+		node.metadata?.generated_loop_continue_return === true
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_loop_skip_if_statement(node) {
+	return get_loop_skip_if_consequent_body(node) !== null;
+}
+
+/**
+ * @param {any} node
+ * @returns {any[] | null}
+ */
+function get_loop_skip_if_consequent_body(node) {
+	if (node?.type !== 'IfStatement' || node.alternate) {
+		return null;
+	}
+
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+	return consequent_body.some(is_loop_skip_return_statement) ? consequent_body : null;
 }
 
 /**
@@ -2434,8 +2190,8 @@ function create_component_lone_return_if_statement(node, render_nodes) {
  * @param {TransformContext} transform_context
  * @returns {any}
  */
-function create_component_returning_if_statement(node, render_nodes, transform_context) {
-	const consequent_body = get_if_consequent_body(node);
+function create_component_loop_skip_if_statement(node, render_nodes, transform_context) {
+	const consequent_body = /** @type {any[]} */ (get_loop_skip_if_consequent_body(node));
 	const branch_statements = build_render_statements(consequent_body, true, transform_context);
 	prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
 
@@ -2443,16 +2199,96 @@ function create_component_returning_if_statement(node, render_nodes, transform_c
 }
 
 /**
- * Build a `return <combined-render-fragment>;` statement, prepending any
- * `render_nodes` collected before the control-flow construct so they don't
- * get dropped on the lift path.
- *
+ * @param {any[]} statements
  * @param {any[]} render_nodes
- * @param {any} jsx_child
+ * @returns {void}
+ */
+function prepend_render_nodes_to_return_statements(statements, render_nodes) {
+	if (render_nodes.length === 0) {
+		return;
+	}
+
+	for (const statement of statements) {
+		prepend_render_nodes_to_return_statement(statement, render_nodes, false);
+	}
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} render_nodes
+ * @param {boolean} inside_nested_function
+ * @returns {void}
+ */
+function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nested_function) {
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression'
+	) {
+		inside_nested_function = true;
+	}
+
+	if (!inside_nested_function && node.type === 'ReturnStatement') {
+		node.argument = combine_render_return_argument(render_nodes, node.argument);
+		return;
+	}
+
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			prepend_render_nodes_to_return_statement(child, render_nodes, inside_nested_function);
+		}
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		prepend_render_nodes_to_return_statement(node[key], render_nodes, inside_nested_function);
+	}
+}
+
+/**
+ * @param {any[]} render_nodes
+ * @param {any} return_argument
  * @returns {any}
  */
-function combined_return_statement(render_nodes, jsx_child) {
-	return b.return(combine_render_return_argument(render_nodes, jsx_child));
+function combine_render_return_argument(render_nodes, return_argument) {
+	const combined = render_nodes.map((node) => clone_expression_node(node, false));
+
+	if (return_argument != null && !is_null_literal(return_argument)) {
+		combined.push(return_argument_to_render_node(return_argument));
+	}
+
+	return build_return_expression(combined) || create_null_literal();
+}
+
+/**
+ * @param {any} argument
+ * @returns {any}
+ */
+function return_argument_to_render_node(argument) {
+	if (
+		argument?.type === 'JSXElement' ||
+		argument?.type === 'JSXFragment' ||
+		argument?.type === 'JSXExpressionContainer'
+	) {
+		return argument;
+	}
+
+	return to_jsx_expression_container(argument);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_null_literal(node) {
+	return node?.type === 'Literal' && node.value == null;
 }
 
 /**
@@ -2474,51 +2310,6 @@ function build_array_normalization_decls(source_id, source_expr) {
 	const source_normalize_decl = b.stmt(b.assignment('=', clone_identifier(source_id), normalized));
 
 	return { source_decl, source_normalize_decl };
-}
-
-/**
- * @param {any} node
- * @param {any[]} continuation_body
- * @param {any[]} render_nodes
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function create_component_helper_split_returning_if_statements(
-	node,
-	continuation_body,
-	render_nodes,
-	transform_context,
-) {
-	const consequent_body = get_if_consequent_body(node);
-	const return_index = consequent_body.findIndex(is_bare_return_statement);
-	const branch_body =
-		return_index === -1 ? consequent_body : consequent_body.slice(0, return_index);
-	const branch_helper = create_hook_safe_helper(
-		branch_body,
-		undefined,
-		node.consequent,
-		transform_context,
-	);
-	const continuation_helper = create_hook_safe_helper(
-		continuation_body,
-		undefined,
-		node,
-		transform_context,
-	);
-
-	const branch_block = set_loc(
-		b.block([
-			...branch_helper.setup_statements,
-			combined_return_statement(render_nodes, branch_helper.component_element),
-		]),
-		node.consequent,
-	);
-
-	return [
-		set_loc(b.if(node.test, branch_block, null), node),
-		...continuation_helper.setup_statements,
-		combined_return_statement(render_nodes, continuation_helper.component_element),
-	];
 }
 
 /**
@@ -2782,142 +2573,6 @@ function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, u
 
 /**
  * @param {any} node
- * @param {any[]} continuation_body
- * @param {any[]} render_nodes
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function create_setup_once_helper_split_returning_if_statements(
-	node,
-	continuation_body,
-	render_nodes,
-	transform_context,
-) {
-	const consequent_body = get_if_consequent_body(node);
-	const return_index = consequent_body.findIndex(is_bare_return_statement);
-	const branch_body =
-		return_index === -1 ? consequent_body : consequent_body.slice(0, return_index);
-	const branch_helper = branch_body.length
-		? create_hook_safe_helper(branch_body, undefined, node.consequent, transform_context)
-		: { setup_statements: [], component_element: create_null_literal() };
-	const continuation_helper = continuation_body.length
-		? create_hook_safe_helper(continuation_body, undefined, node, transform_context)
-		: { setup_statements: [], component_element: create_null_literal() };
-
-	return [
-		...branch_helper.setup_statements,
-		...continuation_helper.setup_statements,
-		b.return(
-			combine_render_return_argument(
-				render_nodes,
-				set_loc(
-					b.conditional(
-						node.test,
-						branch_helper.component_element,
-						continuation_helper.component_element,
-					),
-					node,
-				),
-			),
-		),
-	];
-}
-
-/**
- * @param {any[]} statements
- * @param {any[]} render_nodes
- * @returns {void}
- */
-function prepend_render_nodes_to_return_statements(statements, render_nodes) {
-	if (render_nodes.length === 0) {
-		return;
-	}
-
-	for (const statement of statements) {
-		prepend_render_nodes_to_return_statement(statement, render_nodes, false);
-	}
-}
-
-/**
- * @param {any} node
- * @param {any[]} render_nodes
- * @param {boolean} inside_nested_function
- * @returns {void}
- */
-function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nested_function) {
-	if (!node || typeof node !== 'object') {
-		return;
-	}
-
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
-	) {
-		inside_nested_function = true;
-	}
-
-	if (!inside_nested_function && node.type === 'ReturnStatement') {
-		node.argument = combine_render_return_argument(render_nodes, node.argument);
-		return;
-	}
-
-	if (Array.isArray(node)) {
-		for (const child of node) {
-			prepend_render_nodes_to_return_statement(child, render_nodes, inside_nested_function);
-		}
-		return;
-	}
-
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		prepend_render_nodes_to_return_statement(node[key], render_nodes, inside_nested_function);
-	}
-}
-
-/**
- * @param {any[]} render_nodes
- * @param {any} return_argument
- * @returns {any}
- */
-function combine_render_return_argument(render_nodes, return_argument) {
-	const combined = render_nodes.map((node) => clone_expression_node(node, false));
-
-	if (return_argument != null && !is_null_literal(return_argument)) {
-		combined.push(return_argument_to_render_node(return_argument));
-	}
-
-	return build_return_expression(combined) || create_null_literal();
-}
-
-/**
- * @param {any} argument
- * @returns {any}
- */
-function return_argument_to_render_node(argument) {
-	if (
-		argument?.type === 'JSXElement' ||
-		argument?.type === 'JSXFragment' ||
-		argument?.type === 'JSXExpressionContainer'
-	) {
-		return argument;
-	}
-
-	return to_jsx_expression_container(argument);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_null_literal(node) {
-	return node?.type === 'Literal' && node.value == null;
-}
-
-/**
- * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
  */
@@ -3037,10 +2692,7 @@ function child_contains_return_semantics(node) {
 		return false;
 	}
 
-	if (
-		(node.type === 'ReturnStatement' && node.argument == null) ||
-		is_lone_return_if_statement(node)
-	) {
+	if (node.type === 'ReturnStatement') {
 		return true;
 	}
 
@@ -4468,7 +4120,12 @@ function find_key_expression_in_body(body_nodes) {
  * @returns {any}
  */
 function continue_to_bare_return(source_node) {
-	return set_loc(b.return(null), source_node);
+	const node = set_loc(b.return(null), source_node);
+	node.metadata = {
+		...(node.metadata || {}),
+		generated_loop_continue_return: true,
+	};
+	return node;
 }
 
 /**
@@ -5373,7 +5030,7 @@ function build_switch_with_lift(switch_node, transform_context) {
 			let has_terminal = false;
 
 			for (const child of own_body) {
-				if (is_bare_return_statement(child)) {
+				if (is_loop_skip_return_statement(child)) {
 					case_body.push(create_component_return_statement(render_nodes, child));
 					has_terminal = true;
 					break;

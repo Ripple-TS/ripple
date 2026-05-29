@@ -92,24 +92,28 @@ second"</pre>
 		expect(container.textContent).toBe('Waiting');
 	});
 
-	it('renders components that return only a string', () => {
+	it('throws when mounting a plain function that returns only a string', () => {
 		function Basic() {
 			return 'Only text';
 		}
 
-		render(Basic);
-
-		expect(container.textContent).toBe('Only text');
+		expect(() => render(Basic)).toThrow('Invalid component type');
 	});
 
-	it('renders components that return only null', () => {
+	it('throws when mounting a plain function that returns only null', () => {
 		function Basic() {
 			return null;
 		}
 
-		render(Basic);
+		expect(() => render(Basic)).toThrow('Invalid component type');
+	});
 
-		expect(container.textContent).toBe('');
+	it('throws when mounting a plain function that returns only undefined', () => {
+		function Basic() {
+			return undefined;
+		}
+
+		expect(() => render(Basic)).toThrow('Invalid component type');
 	});
 
 	it('does not render elements after an ASI return', () => {

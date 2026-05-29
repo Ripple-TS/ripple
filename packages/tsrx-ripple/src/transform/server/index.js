@@ -50,6 +50,7 @@ import {
 	create_native_tsrx_render_function,
 	get_native_tsrx_function_body,
 	is_native_tsrx_function_node,
+	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
 	is_tsrx_component_function,
 	simple_hash,
@@ -62,7 +63,11 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
+	create_tsrx_component_marker_statement,
+	create_tsrx_component_marker_statements,
+	generate_local_name,
 	get_indexed_reactive_target,
+	mark_native_tsrx_function_declarations,
 	rewrite_lazy_member_base,
 	strip_tsrx_style_elements,
 } from '../../utils.js';
@@ -827,7 +832,7 @@ function build_return_guard(flags) {
 }
 
 /**
- * Collects all unique return statements from the direct children of a body
+ * Collects all unique valid return statements from the direct children of a body.
  * @param {AST.Node[]} children
  * @returns {AST.ReturnStatement[]}
  */
@@ -835,8 +840,13 @@ function collect_returns_from_children(children) {
 	/** @type {AST.ReturnStatement[]} */
 	const returns = [];
 	const seen = new Set();
-	for (const node of children) {
-		if (node.type === 'ReturnStatement') {
+	for (let index = 0; index < children.length; index++) {
+		const node = children[index];
+		if (
+			node.type === 'ReturnStatement' &&
+			index !== children.length - 1 &&
+			!node.metadata?.invalid_tsrx_template_return
+		) {
 			if (!seen.has(node)) {
 				seen.add(node);
 				returns.push(node);
@@ -844,7 +854,7 @@ function collect_returns_from_children(children) {
 		}
 		if (node.metadata?.returns) {
 			for (const ret of node.metadata.returns) {
-				if (!seen.has(ret)) {
+				if (!ret.metadata?.invalid_tsrx_template_return && !seen.has(ret)) {
 					seen.add(ret);
 					returns.push(ret);
 				}
@@ -852,6 +862,48 @@ function collect_returns_from_children(children) {
 		}
 	}
 	return returns;
+}
+
+/**
+ * @param {AST.ReturnStatement[]} returns
+ * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
+ * @returns {string[]}
+ */
+function get_unique_return_flag_names(returns, return_flags) {
+	/** @type {string[]} */
+	const names = [];
+	for (const ret of returns) {
+		const info = return_flags.get(ret);
+		if (info && !names.includes(info.name)) {
+			names.push(info.name);
+		}
+	}
+	return names;
+}
+
+/**
+ * @param {AST.Statement} statement
+ * @returns {boolean}
+ */
+function should_guard_regular_js_statement(statement) {
+	return (
+		statement.type !== 'VariableDeclaration' &&
+		statement.type !== 'FunctionDeclaration' &&
+		statement.type !== 'ClassDeclaration' &&
+		statement.type !== 'TSTypeAliasDeclaration' &&
+		statement.type !== 'TSInterfaceDeclaration'
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_dead_native_tsrx_expression_statement(node) {
+	return (
+		is_native_tsrx_template_node(node) ||
+		(node.type === 'ExpressionStatement' && is_native_tsrx_template_node(node.expression))
+	);
 }
 
 /**
@@ -905,27 +957,33 @@ function transform_variable_declaration(node, context) {
 function transform_children(children, context) {
 	const { visit, state } = context;
 	const normalized = normalize_children(children, context);
+	const effective_normalized = normalized.filter(
+		(node) => !(node.metadata?.regular_js && is_dead_native_tsrx_expression_statement(node)),
+	);
 	const should_wrap_in_regular_block =
 		state.component !== undefined && !state.skip_regular_blocks && !state.in_regular_block;
 
-	const all_returns = collect_returns_from_children(normalized);
+	const all_returns = collect_returns_from_children(effective_normalized);
 	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
 	const return_flags = new Map([...(state.return_flags || [])]);
 	/** @type {AST.ReturnStatement[]} */
 	const new_returns = [];
 	for (const ret of all_returns) {
 		if (!return_flags.has(ret)) {
-			return_flags.set(ret, { name: state.scope.generate('__r'), tracked: false });
 			new_returns.push(ret);
 		}
 	}
 
-	for (const ret of new_returns) {
-		const info = /** @type {{ name: string, tracked: boolean }} */ (return_flags.get(ret));
+	if (new_returns.length > 0) {
+		const return_guard_scope =
+			(state.component && state.scopes.get(state.component)) || state.scope;
+		const info = { name: generate_local_name(return_guard_scope, 'return_guard'), tracked: false };
+		for (const ret of new_returns) {
+			return_flags.set(ret, info);
+		}
 		state.init?.push(b.var(b.id(info.name), b.false));
 	}
 
-	// Track accumulated return flags as we process children
 	/** @type {string[]} */
 	let accumulated_flags = [];
 
@@ -934,10 +992,9 @@ function transform_children(children, context) {
 	 */
 	const push_return_flags = (returns) => {
 		if (!returns) return;
-		for (const ret of returns) {
-			const info = return_flags.get(ret);
-			if (info && !accumulated_flags.includes(info.name)) {
-				accumulated_flags.push(info.name);
+		for (const name of get_unique_return_flag_names(returns, return_flags)) {
+			if (!accumulated_flags.includes(name)) {
+				accumulated_flags.push(name);
 			}
 		}
 	};
@@ -957,14 +1014,21 @@ function transform_children(children, context) {
 	/** @param {AST.Node} node */
 	const process_node = (node, local_state = state) => {
 		if (node.metadata?.regular_js && !state.to_ts) {
+			if (is_dead_native_tsrx_expression_statement(node)) {
+				return;
+			}
 			const regular_node = /** @type {AST.Node} */ (
 				visit(node, { ...local_state, regular_js: true, template_child: false })
 			);
 			if (regular_node && regular_node.type !== 'EmptyStatement') {
-				state.init?.push(
+				const statement =
 					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
 						? /** @type {AST.Statement} */ (regular_node)
-						: b.stmt(/** @type {AST.Expression} */ (regular_node)),
+						: b.stmt(/** @type {AST.Expression} */ (regular_node));
+				state.init?.push(
+					accumulated_flags.length > 0 && should_guard_regular_js_statement(statement)
+						? b.if(build_return_guard(accumulated_flags), statement)
+						: statement,
 				);
 			}
 			return;
@@ -1140,7 +1204,7 @@ function transform_body(body, context) {
 
 	transform_children(body, { ...context, state: body_state });
 
-	return /** @type {AST.Statement[]} */ (body_state.init);
+	return mark_native_tsrx_function_declarations(/** @type {AST.Statement[]} */ (body_state.init));
 }
 
 /**
@@ -1187,6 +1251,7 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
  */
 function transform_native_tsrx_function(node, context) {
 	node.metadata.native_tsrx_function = true;
+	const is_tsrx_element = context.state.is_tsrx_element;
 	/** @type {AST.Pattern | null} */
 	let props_param_output = null;
 
@@ -1242,32 +1307,51 @@ function transform_native_tsrx_function(node, context) {
 		insert_style_ref_setup_statements(raw_render_body, style_ref_setup),
 	);
 	body_statements.push(
-		b.stmt(b.call('_$_.push_component')),
 		...transform_body(render_body, {
 			...context,
 			state: {
 				...context.state,
 				component: node,
 				scope: component_scope,
+				is_tsrx_element: false,
+				regular_js: false,
 				applyParentCssScope:
 					node_id?.name === 'render_children' ? context.state.applyParentCssScope : undefined,
 			},
 		}),
-		b.stmt(b.call('_$_.pop_component')),
 	);
 
-	const component_params = props_param_output ? [props_param_output] : [];
-	const component_body = b.block(body_statements);
+	const value_params = [...node.params];
+	if (props_param_output && value_params.length > 0) {
+		value_params[0] = props_param_output;
+	}
+	const component_params = is_tsrx_element ? [] : value_params;
+	const component_body = is_tsrx_element
+		? b.block(body_statements)
+		: b.block([
+				b.return(
+					b.call(
+						'_$_.tsrx_element',
+						b.function(b.id('render_children'), [], b.block(body_statements)),
+					),
+				),
+			]);
 
 	if (node.type === 'ArrowFunctionExpression') {
-		return b.arrow(component_params, component_body);
+		const fn = b.arrow(component_params, component_body);
+		fn.metadata.native_tsrx_function = true;
+		return fn;
 	}
 
 	if (node.type === 'FunctionDeclaration' && node_id) {
-		return b.function_declaration(node_id, component_params, component_body);
+		const fn = b.function_declaration(node_id, component_params, component_body);
+		fn.metadata.native_tsrx_function = true;
+		return fn;
 	}
 
-	return b.function(node_id, component_params, component_body);
+	const fn = b.function(node_id, component_params, component_body);
+	fn.metadata.native_tsrx_function = true;
+	return fn;
 }
 
 /** @type {Visitors<AST.Node, TransformServerState>} */
@@ -1510,10 +1594,13 @@ const visitors = {
 		const statements = [];
 
 		for (const statement of node.body) {
-			statements.push(/** @type {AST.Statement} */ (context.visit(statement)));
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+				statements,
+			);
 		}
 
-		return b.block(statements);
+		return b.block(mark_native_tsrx_function_declarations(statements));
 	},
 
 	ArrowFunctionExpression(node, context) {
@@ -2065,6 +2152,9 @@ const visitors = {
 			for (const child of node.children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
+					if (child.type === 'FunctionDeclaration' && child.id) {
+						state.init?.push(create_tsrx_component_marker_statement(child.id));
+					}
 				}
 			}
 
@@ -2121,7 +2211,7 @@ const visitors = {
 				: null;
 			const comp_id = b.id('comp');
 			const args_id = b.id('args');
-			const comp_call = b.call(comp_id, b.spread(args_id));
+			const comp_call = b.call('_$_.render_component', comp_id, b.spread(args_id));
 			const comp_call_statement = b.stmt(comp_call);
 
 			/** @type {AST.Statement[]} */
@@ -2316,6 +2406,14 @@ const visitors = {
 
 	ReturnStatement(node, context) {
 		if (!is_inside_component(context)) {
+			if (node.argument) {
+				return b.return(
+					/** @type {AST.Expression} */ (
+						context.visit(node.argument, { ...context.state, template_child: false })
+					),
+					/** @type {AST.NodeWithLocation} */ (node),
+				);
+			}
 			return context.next();
 		}
 		const info = context.state.return_flags?.get(node);
@@ -2559,6 +2657,10 @@ const visitors = {
 
 	TSRXExpression(node, context) {
 		const { visit, state } = context;
+		const is_static_native_tsrx_call = is_static_native_tsrx_function_call(
+			/** @type {AST.Expression} */ (node.expression),
+			context,
+		);
 		const is_children_expression =
 			is_children_template_expression(node.expression, state.scope) ||
 			contains_template_value_node(/** @type {AST.Node} */ (node.expression)) ||
@@ -2580,6 +2682,8 @@ const visitors = {
 			state.init?.push(
 				b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(expression.value)))),
 			);
+		} else if (is_static_native_tsrx_call) {
+			state.init?.push(b.stmt(b.call('_$_.render_tsrx_element', expression)));
 		} else if (is_children_expression || is_collection_expression) {
 			state.init?.push(b.stmt(b.call('_$_.render_expression', expression)));
 		} else {
@@ -2820,6 +2924,14 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 	}
 
 	body.push(...program.body);
+
+	for (let i = 0; i < body.length; i++) {
+		const markers = create_tsrx_component_marker_statements(body[i]);
+		if (markers.length > 0) {
+			body.splice(i + 1, 0, ...markers);
+			i += markers.length;
+		}
+	}
 
 	program.body = body;
 

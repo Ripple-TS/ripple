@@ -116,6 +116,76 @@ describe('basic client > components & composition', () => {
 		expect(paragraph.textContent).toBe('Card content here');
 	});
 
+	it('renders direct component function calls as values', () => {
+		function Test({ label }: { label: string }) {
+			return <><span>{label}</span></>;
+		}
+
+		function App() {
+			return <>{Test({ label: 'direct call' })}</>;
+		}
+
+		render(App);
+
+		expect(container.querySelector('span')?.textContent).toBe('direct call');
+	});
+
+	it('renders arrays and primitives returned from component calls', () => {
+		function Test() {
+			const item = <span>{'A'}</span>;
+			return [item, 'B', null, undefined];
+		}
+
+		function App() {
+			return <><Test /></>;
+		}
+
+		render(App);
+
+		expect(container.textContent).toBe('AB');
+	});
+
+	it('throws when a TSRXElement value is used as a component type', () => {
+		function Test() {
+			return <><span>{'value'}</span></>;
+		}
+
+		function App() {
+			const El = Test({});
+			return <><El /></>;
+		}
+
+		expect(() => render(App)).toThrow('Invalid component type');
+	});
+
+	it('throws when a non-TSRX function is used as a component type', () => {
+		function Func() {
+			return undefined;
+		}
+
+		function App() {
+			return <><Func /></>;
+		}
+
+		expect(() => render(App)).toThrow('Invalid component type');
+	});
+
+	it('throws when a compat-only function is used as a component type', () => {
+		function CompatOnly() {
+			return <tsx>
+				<div>
+					{'compat'}
+				</div>
+			</tsx>;
+		}
+
+		function App() {
+			return <><CompatOnly /></>;
+		}
+
+		expect(() => render(App)).toThrow('Invalid component type');
+	});
+
 	it('renders with nested components and prop passing', () => {
 		function Button(props: PropsWithExtras<{
 			variant: string;

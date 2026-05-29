@@ -324,7 +324,7 @@ function C() { return <>
 		// (Already covered by 'class with generic extends'/'class with generic implements'.)
 	});
 
-	describe(`[${name}] raw source maps cover one-line early-return if statements`, () => {
+	describe(`[${name}] raw source maps cover one-line guarded return if statements`, () => {
 		it('maps the if keyword in plain functions', () => {
 			const source = `function f(x) {
 	if (x) return true
@@ -384,7 +384,7 @@ function C() { return <>
 		});
 	});
 
-	describe(`[${name}] raw source maps cover class-like early-return if statements`, () => {
+	describe(`[${name}] raw source maps cover class-like guarded return if statements`, () => {
 		/**
 		 * @param {string} source
 		 * @param {number} line
@@ -777,31 +777,6 @@ function C() { return <>
 						mapping.lengths[0] === result.errors[1].end - result.errors[1].pos,
 				),
 			).toBeDefined();
-		});
-	});
-
-	describe(`[${name}] component return mappings`, () => {
-		it('maps generated bare returns back to source returns', () => {
-			const source = `function App() { return <>
-	return;
-	const value = 'after';
-	<div>{value}</div>
-</>; }`;
-			const result = compile_to_volar_mappings(source, 'App.tsrx');
-			const source_return_offset = source.indexOf('return;', source.indexOf('return <>'));
-			const generated_return_offset = result.code.indexOf('return');
-			const return_mapping = result.mappings.find(
-				(
-					/** @type {{ sourceOffsets: number[], lengths: number[], generatedOffsets: number[], generatedLengths: number[] }} */ mapping,
-				) =>
-					mapping.sourceOffsets[0] === source_return_offset &&
-					mapping.lengths[0] === 'return'.length &&
-					mapping.generatedOffsets[0] === generated_return_offset &&
-					mapping.generatedLengths[0] === 'return'.length,
-			);
-
-			expect(generated_return_offset).toBeGreaterThan(-1);
-			expect(return_mapping).toBeDefined();
 		});
 	});
 

@@ -1,7 +1,16 @@
 import { Fragment, track } from 'ripple';
-import type { Tracked, PropsNoChildren } from 'ripple';
+import type { Component, Tracked, PropsNoChildren } from 'ripple';
 
 describe('basic client', () => {
+	async function render_expected_invalid_root(App: Component) {
+		const console_error_spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			return await render(App);
+		} finally {
+			console_error_spy.mockRestore();
+		}
+	}
+
 	it('render static text', async () => {
 		function Basic() {
 			return <><div>{'Hello World'}</div></>;
@@ -75,25 +84,38 @@ second"</pre>
 		expect(body).toBeHtml('Waiting');
 	});
 
-	it('renders components that return only a string', async () => {
+	it('returns a top-level error for a plain root function that returns only a string', async () => {
 		function Basic() {
 			return 'Only text';
 		}
 
-		const { body } = await render(Basic);
+		const result = await render_expected_invalid_root(Basic);
 
-		expect(body).toBeHtml('Only text');
+		expect(result.topLevelError?.message).toContain('Invalid component type');
 	});
 
-	it('renders components that return only null', async () => {
+	it('returns a top-level error for a plain root function that returns only null', async () => {
 		function Basic() {
 			return null;
 		}
 
-		const { body } = await render(Basic);
+		const result = await render_expected_invalid_root(Basic);
 
-		expect(body).toBeHtml('');
+		expect(result.topLevelError?.message).toContain('Invalid component type');
 	});
+
+	it(
+		'returns a top-level error for a plain root function that returns only undefined',
+		async () => {
+			function Basic() {
+				return undefined;
+			}
+
+			const result = await render_expected_invalid_root(Basic);
+
+			expect(result.topLevelError?.message).toContain('Invalid component type');
+		},
+	);
 
 	it('does not render elements after an ASI return', async () => {
 		function Basic() {

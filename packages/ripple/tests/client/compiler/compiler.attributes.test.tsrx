@@ -80,7 +80,7 @@ describe('compiler > attributes', () => {
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
 		// Extract the props object from the generated code and test it's valid JavaScript
-		const match = result.code.match(/Child\([^,]+,\s*(\{[^}]+\})/);
+		const match = result.code.match(/_\$_.render_component\(Child,\s*[^,]+,\s*(\{[^}]+\})/);
 		expect(match).toBeTruthy();
 
 		const propsObject = match?.[1];

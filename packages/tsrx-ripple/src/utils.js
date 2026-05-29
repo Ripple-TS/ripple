@@ -40,6 +40,133 @@ export function is_native_tsrx_function_node(node) {
 }
 
 /**
+ * @param {AST.Expression} target
+ * @returns {AST.Statement}
+ */
+export function create_tsrx_component_marker_statement(target) {
+	return b.stmt(b.assignment('=', b.member(target, b.id('_$_.TSRX_COMPONENT'), true), b.true));
+}
+
+/**
+ * @param {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} statements
+ * @returns {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>}
+ */
+export function mark_native_tsrx_function_declarations(statements) {
+	/** @type {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} */
+	const marked = [];
+	for (const statement of statements) {
+		marked.push(statement, ...create_tsrx_component_marker_statements(statement));
+	}
+	return marked;
+}
+
+/**
+ * Generate a name that is unique inside the current transform scope without
+ * reserving it for the entire module.
+ * @param {ScopeInterface} scope
+ * @param {string} preferred_name
+ * @returns {string}
+ */
+export function generate_local_name(scope, preferred_name) {
+	preferred_name = preferred_name.replace(/[^a-zA-Z0-9_$]/g, '_').replace(/^[0-9]/, '_');
+	let name = preferred_name;
+	let n = 1;
+
+	while (scope.references.has(name) || scope.declarations.has(name) || is_reserved(name)) {
+		name = `${preferred_name}_${n++}`;
+	}
+
+	scope.references.set(name, []);
+	return name;
+}
+
+/**
+ * @param {AST.Statement | AST.Directive | AST.ModuleDeclaration} statement
+ * @returns {AST.Statement[]}
+ */
+export function create_tsrx_component_marker_statements(statement) {
+	const declaration =
+		statement.type === 'ExportDefaultDeclaration' || statement.type === 'ExportNamedDeclaration'
+			? statement.declaration
+			: statement;
+
+	if (
+		(declaration?.type === 'FunctionDeclaration' || declaration?.type === 'FunctionExpression') &&
+		declaration.metadata?.native_tsrx_function &&
+		declaration.id
+	) {
+		return [create_tsrx_component_marker_statement(declaration.id)];
+	}
+
+	if (declaration?.type === 'VariableDeclaration') {
+		return declaration.declarations.flatMap((declarator) =>
+			declarator.id.type === 'Identifier'
+				? create_tsrx_component_marker_statements_for_value(declarator.id, declarator.init)
+				: [],
+		);
+	}
+
+	return [];
+}
+
+/**
+ * @param {AST.Expression} target
+ * @param {AST.Expression | null | undefined} value
+ * @returns {AST.Statement[]}
+ */
+function create_tsrx_component_marker_statements_for_value(target, value) {
+	if (is_native_tsrx_function_node(value)) {
+		return [create_tsrx_component_marker_statement(target)];
+	}
+
+	if (value?.type === 'ObjectExpression') {
+		return value.properties.flatMap((property) => {
+			if (property.type !== 'Property') {
+				return [];
+			}
+
+			const property_target = create_static_property_marker_target(target, property);
+			return property_target === null
+				? []
+				: create_tsrx_component_marker_statements_for_value(
+						property_target,
+						/** @type {AST.Expression} */ (property.value),
+					);
+		});
+	}
+
+	if (value?.type === 'ArrayExpression') {
+		return value.elements.flatMap((element, index) =>
+			element === null || element.type === 'SpreadElement'
+				? []
+				: create_tsrx_component_marker_statements_for_value(
+						b.member(target, b.literal(index), true),
+						element,
+					),
+		);
+	}
+
+	return [];
+}
+
+/**
+ * @param {AST.Expression} target
+ * @param {AST.Property} property
+ * @returns {AST.MemberExpression | null}
+ */
+function create_static_property_marker_target(target, property) {
+	if (property.computed) {
+		return property.key.type === 'Literal'
+			? b.member(target, /** @type {AST.Literal} */ (property.key), true)
+			: null;
+	}
+
+	return property.key.type === 'Identifier'
+		? b.member(target, property.key)
+		: b.member(target, /** @type {AST.Expression} */ (property.key), true);
+}
+
+/**
  * @param {AST.Node | null | undefined} node
  * @param {CommonContext} context
  * @returns {string | null}
@@ -91,45 +218,7 @@ export function get_tsrx_component_function_name(node, context) {
  * @returns {boolean}
  */
 export function is_tsrx_component_function(node, context) {
-	const name = get_tsrx_component_function_name(node, context);
-	const is_directly_called =
-		name !== null && has_direct_call_reference(name, /** @type {CommonContext} */ (context));
-	return (
-		is_native_tsrx_function_node(node) ||
-		(function_has_native_tsrx_return(node) && name !== null && !is_directly_called) ||
-		(name !== null &&
-			is_component_like_function_name(name) &&
-			!is_directly_called &&
-			function_has_only_renderable_component_returns(node))
-	);
-}
-
-/**
- * @param {string} name
- * @param {CommonContext} context
- * @returns {boolean}
- */
-function has_direct_call_reference(name, context) {
-	const binding = context.state.scope.get(name);
-	if (!binding) {
-		return false;
-	}
-
-	return binding.references.some(({ node, path }) => {
-		const parent = path.at(-1);
-		return (
-			(parent?.type === 'CallExpression' || parent?.type === 'NewExpression') &&
-			parent.callee === node
-		);
-	});
-}
-
-/**
- * @param {string} name
- * @returns {boolean}
- */
-function is_component_like_function_name(name) {
-	return name === 'default' || /^[A-Z]/.test(name);
+	return is_native_tsrx_function_node(node) || function_contains_native_tsrx_template(node);
 }
 
 /**
@@ -160,6 +249,116 @@ export function function_has_native_tsrx_return(node) {
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
 	return statements_contain_native_tsrx_return(body);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+export function function_contains_native_tsrx_template(node) {
+	if (
+		!node ||
+		(node.type !== 'FunctionDeclaration' &&
+			node.type !== 'FunctionExpression' &&
+			node.type !== 'ArrowFunctionExpression')
+	) {
+		return false;
+	}
+
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		return node_contains_native_tsrx_template(node.body, true);
+	}
+
+	return node_contains_native_tsrx_template(node.body, true);
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+export function is_static_native_tsrx_function_call(expression, context) {
+	const unwrapped = unwrap_template_expression(expression);
+
+	if (
+		unwrapped.type !== 'CallExpression' ||
+		unwrapped.callee.type !== 'Identifier' ||
+		unwrapped.arguments.length !== 0
+	) {
+		return false;
+	}
+
+	const binding = context.state.scope.get(unwrapped.callee.name);
+	const component_scope =
+		(context.state.component && context.state.scopes.get(context.state.component)) || null;
+	if (binding === null || component_scope === null) {
+		return false;
+	}
+
+	let scope = binding.scope;
+	let is_inside_component_scope = false;
+	while (scope !== null) {
+		if (scope === component_scope) {
+			is_inside_component_scope = true;
+			break;
+		}
+		scope = scope.parent;
+	}
+	if (!is_inside_component_scope) {
+		return false;
+	}
+
+	const initial = /** @type {AST.Node | null | undefined} */ (binding.initial);
+	return is_native_tsrx_function_node(initial) || function_contains_native_tsrx_template(initial);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @param {boolean} root
+ * @returns {boolean}
+ */
+function node_contains_native_tsrx_template(node, root = false) {
+	if (!node || typeof node !== 'object') return false;
+	if (is_native_tsrx_template_node(node)) return true;
+
+	if (
+		!root &&
+		(node.type === 'FunctionDeclaration' ||
+			node.type === 'FunctionExpression' ||
+			node.type === 'ArrowFunctionExpression' ||
+			node.type === 'ClassDeclaration' ||
+			node.type === 'ClassExpression')
+	) {
+		return false;
+	}
+
+	for (const key in node) {
+		if (
+			key === 'metadata' ||
+			key === 'parent' ||
+			key === 'loc' ||
+			key === 'start' ||
+			key === 'end' ||
+			key === 'type'
+		) {
+			continue;
+		}
+
+		const value = /** @type {any} */ (node)[key];
+		if (Array.isArray(value)) {
+			if (value.some((child) => node_contains_native_tsrx_template(child, false))) {
+				return true;
+			}
+		} else if (
+			value &&
+			typeof value === 'object' &&
+			node_contains_native_tsrx_template(value, false)
+		) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -352,21 +551,31 @@ export function get_native_tsrx_function_body(node) {
 					...get_native_tsrx_template_children(
 						/** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.body)),
 					).map(mark_returned_template_child),
-					b.return(null, /** @type {AST.NodeWithLocation} */ (node.body)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	return expand_native_tsrx_return_statements(body);
+	return expand_native_tsrx_return_statements(body, true);
 }
 
 /**
  * @param {AST.Statement[]} statements
+ * @param {boolean} [omit_final_control_return]
  * @returns {AST.Node[]}
  */
-export function expand_native_tsrx_return_statements(statements) {
-	return statements.flatMap((statement) => expand_native_tsrx_return_statement(statement));
+export function expand_native_tsrx_return_statements(
+	statements,
+	omit_final_control_return = false,
+) {
+	return statements.flatMap((statement, index) =>
+		expand_native_tsrx_return_statement(
+			statement,
+			omit_final_control_return &&
+				index === statements.length - 1 &&
+				statement.type === 'ReturnStatement',
+		),
+	);
 }
 
 /**
@@ -488,9 +697,10 @@ function create_return_argument_child(argument, statement) {
 
 /**
  * @param {AST.Statement} statement
+ * @param {boolean} [omit_control_return]
  * @returns {AST.Node[]}
  */
-function expand_native_tsrx_return_statement(statement) {
+function expand_native_tsrx_return_statement(statement, omit_control_return = false) {
 	if (statement.metadata?.returned_tsrx_child) {
 		return [statement];
 	}
@@ -504,7 +714,9 @@ function expand_native_tsrx_return_statement(statement) {
 			...get_native_tsrx_template_children(
 				/** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (statement.argument)),
 			).map(mark_returned_template_child),
-			b.return(null, /** @type {AST.NodeWithLocation} */ (statement)),
+			...(omit_control_return
+				? []
+				: [b.return(null, /** @type {AST.NodeWithLocation} */ (statement))]),
 		];
 	}
 
@@ -519,8 +731,14 @@ function expand_native_tsrx_return_statement(statement) {
 				/** @type {AST.Expression} */ (statement.argument),
 				/** @type {AST.ReturnStatement} */ (statement),
 			),
-			b.return(null, /** @type {AST.NodeWithLocation} */ (statement)),
+			...(omit_control_return
+				? []
+				: [b.return(null, /** @type {AST.NodeWithLocation} */ (statement))]),
 		];
+	}
+
+	if (omit_control_return && statement.type === 'ReturnStatement') {
+		return [];
 	}
 
 	if (statement.type === 'FunctionDeclaration' || statement.type === 'ClassDeclaration') {

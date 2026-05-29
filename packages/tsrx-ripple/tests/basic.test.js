@@ -259,7 +259,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -273,7 +273,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -287,7 +287,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -301,7 +301,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('Some(node, { prop: placeholder }, _$_.active_block);');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -316,7 +316,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('Some(node, { prop: first + second }, _$_.active_block);');
+		expect(code).toContain('_$_.render_component(Some, node, { prop: first + second });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -513,7 +513,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		const { code } = compile(`const App = () => <button>"Hello"</button>;`, 'App.tsrx');
 
 		expect(code).toContain('template(`<button>Hello</button>`');
-		expect(code).toContain('_$_.append(__anchor, fragment)');
+		expect(code).toContain('_$_.append(__anchor, button_1)');
 		expect(code).not.toContain('template(``');
 	});
 
@@ -526,7 +526,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		);
 
 		expect(code).toContain('template(`<div>Commented</div>`');
-		expect(code).toContain('_$_.append(__anchor, fragment)');
+		expect(code).toContain('_$_.append(__anchor, div_1)');
 	});
 
 	it('keeps directly called PascalCase numeric helpers as ordinary functions', () => {
@@ -560,7 +560,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).not.toContain('function FormatName(__anchor');
 	});
 
-	it('componentifies renderable-only PascalCase functions used as elements', () => {
+	it('does not componentify renderable-only PascalCase functions without native TSRX', () => {
 		const { code } = compile(
 			`function Label() {
 				return "Hi";
@@ -571,9 +571,10 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function Label(__anchor');
-		expect(code).toContain('template(`Hi`');
-		expect(code).toContain('Label(node, {}, _$_.active_block)');
+		expect(code).toContain('function Label()');
+		expect(code).toContain('return "Hi";');
+		expect(code).toContain('_$_.render_component(Label, node, {})');
+		expect(code).not.toContain('Label[_$_.TSRX_COMPONENT]');
 	});
 
 	it('uses server render_expression for conditional array expression values', () => {
@@ -635,9 +636,232 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			'App.tsrx',
 		);
 
-		expect(code).not.toContain('return;');
 		expect(code).toMatch(/fragment: \(\) => {\s+return _\$_.tsrx_element/);
 		expect(code).toMatch(/tsx: \(\) => {\s+return _\$_.tsrx_element/);
 		expect(code).toMatch(/tsrx: \(\) => {\s+return _\$_.tsrx_element/);
+	});
+
+	it('allows return-value branches inside nested component prop functions', () => {
+		const source = `function Page(props) { return <></>; }
+
+			export function Test() { return <>
+				<Page
+					params={{
+						menuAlt: (isAdmin) => {
+							if (isAdmin) {
+								return [<>"Delete"</>, <>"Edit"</>];
+							} else {
+								return [<>"View"</>];
+							}
+						},
+						bySwitch: (role) => {
+							switch (role) {
+								case 'admin':
+									return [<>"Edit"</>];
+								default:
+									return [<>"View"</>];
+							}
+						},
+					}}
+				/>
+		</>; }`;
+		const { code } = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(code).toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toContain("case 'admin':");
+		expect(code).toMatch(/_\$_.expression\(expression.*\(\) => \[/s);
+		expect(server.code).toContain('_$_.render_expression([');
+	});
+
+	it('allows any returns inside nested component prop functions', () => {
+		const source = `function Page(props) { return <></>; }
+
+			export function Test() { return <>
+				<Page fn={() => {
+					if (true) {
+						return;
+					}
+					return undefined;
+				}} />
+			</>; }`;
+		const { code } = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+		const tsx = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(code).toContain('return;');
+		expect(code).toContain('return undefined;');
+		expect(server.code).toContain('return;');
+		expect(server.code).toContain('return undefined;');
+		expect(tsx.code).toContain('return;');
+		expect(tsx.code).toContain('return undefined;');
+		expect(code).not.toContain('Return statements are not allowed');
+	});
+
+	it('uses one return guard for multiple component return branches', () => {
+		const source = `function Test({ done }) {
+			if (done.value) {
+				return <p>"Done"</p>;
+			} else if (done.value === 'test') {
+				return <p>"Not done"</p>;
+			}
+
+			const loop = () => <>
+				for (const item of items) {
+					<div>{item}</div>
+				}
+			</>;
+
+			return loop();
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+		const tsx = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(client.code).toContain('var return_guard = false;');
+		expect(client.code).toContain('_$_.for(');
+		expect(client.code).toContain('_$_.render_tsrx_element(loop(),');
+		expect(client.code).not.toContain('_$_.expression(expression_2, loop)');
+		expect(client.code).not.toContain('return_guard_1');
+		expect(client.code).not.toContain('!return_guard &&');
+		expect(server.code).toContain('var return_guard = false;');
+		expect(server.code).toContain('for (const item of items)');
+		expect(server.code).toContain('_$_.render_tsrx_element(loop())');
+		expect(server.code).not.toContain('_$_.render_expression(loop())');
+		expect(server.code).not.toContain('return_guard_1');
+		expect(server.code).not.toContain('!return_guard &&');
+		expect(tsx.code).toContain('if (done.value)');
+		expect(tsx.code).toContain('return;');
+	});
+
+	it('keeps return guard names local to each compiled function', () => {
+		const source = `function First(flag) {
+			if (flag) {
+				return <p>"first"</p>;
+			}
+			<span>"fallback"</span>
+		}
+
+		function Second(flag) {
+			if (flag) {
+				return <p>"second"</p>;
+			}
+			<span>"fallback"</span>
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code.match(/var return_guard = false;/g)).toHaveLength(2);
+		expect(client.code).not.toContain('return_guard_1');
+		expect(server.code.match(/var return_guard = false;/g)).toHaveLength(2);
+		expect(server.code).not.toContain('return_guard_1');
+	});
+
+	it('still avoids user return_guard bindings inside a compiled function', () => {
+		const source = `function Test(return_guard) {
+			if (return_guard) {
+				return <p>"done"</p>;
+			}
+			<span>{return_guard}</span>
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('var return_guard_1 = false;');
+		expect(server.code).toContain('var return_guard_1 = false;');
+	});
+});
+
+describe('@tsrx/ripple unified function and component compilation', () => {
+	const expect_value_function = (source) => {
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('return _$_.tsrx_element(function render_children');
+		expect(server.code).toContain('return _$_.tsrx_element(function render_children');
+		expect(client.code).not.toContain('function Test(__anchor');
+		expect(server.code).not.toContain('_$_.push_component()');
+		expect(server.code).not.toContain('_$_.pop_component()');
+	};
+
+	it('compiles native template returns as value-producing functions', () => {
+		expect_value_function(`function Test() { return <p />; }`);
+	});
+
+	it('compiles template variables and alternate returns as renderable values', () => {
+		expect_value_function(`function Test(flag) {
+			const alt = <p />;
+			if (flag === 'array') return [alt, 'text'];
+			if (flag === 'null') return null;
+			if (flag === 'undefined') return undefined;
+			return alt;
+		}`);
+	});
+
+	it('drops dead native template statements after ASI returns', () => {
+		const source = `function Test() {
+			return;
+			<div>{"should not render"}</div>
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('return;');
+		expect(client.code).not.toContain('should not render');
+		expect(client.code).not.toContain('return_guard');
+		expect(server.code).toContain('return;');
+		expect(server.code).not.toContain('should not render');
+		expect(server.code).not.toContain('return_guard');
+	});
+
+	it('guards regular statements after conditional component returns', () => {
+		const source = `function Test(flag) {
+			if (flag) return;
+			sideEffect();
+			return <p />;
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('if (!return_guard) _$_.with_scope(__block, sideEffect)');
+		expect(server.code).toContain('if (!return_guard) sideEffect();');
+	});
+
+	it('does not use direct calls to disqualify native template functions', () => {
+		const source = `function Test() { return <p />; }
+			function App() { return <>{Test()}</>; }`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('function Test()');
+		expect(client.code).toContain('() => _$_.with_scope(__block, Test)');
+		expect(client.code).not.toContain('Test(__anchor');
+		expect(server.code).toContain('_$_.render_expression(Test())');
+	});
+
+	it('emits component calls through the runtime component helper', () => {
+		const source = `function Test() { return <p />; }
+			function App() { return <><Test /></>; }`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('_$_.render_component(Test, node, {})');
+		expect(server.code).toContain('_$_.render_component(comp, ...args)');
+	});
+
+	it('does not classify plain or compat-only functions as native TSRX functions', () => {
+		const source = `function App() { return <>
+			function Plain() { return 'plain'; }
+			function Compat() { return <tsx><div /></tsx>; }
+		</>; }`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain("return 'plain';");
+		expect(client.code).not.toContain('Plain[_$_.TSRX_COMPONENT]');
+		expect(client.code).not.toContain('Compat[_$_.TSRX_COMPONENT]');
+		expect(server.code).not.toContain('Plain[_$_.TSRX_COMPONENT]');
+		expect(server.code).not.toContain('Compat[_$_.TSRX_COMPONENT]');
 	});
 });

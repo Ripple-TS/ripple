@@ -62,7 +62,7 @@ describe('TSRX parser', () => {
 					if (x) {
 						<div>"works"</div>
 					} else {
-						return null;
+						<span>"empty"</span>
 					}
 
 					<style>
@@ -76,6 +76,21 @@ describe('TSRX parser', () => {
 		const returned = ast.body[0].body.body[0].argument;
 		expect(returned.type).toBe('Tsrx');
 		expect(returned.children.map((child) => child.type)).toEqual(['IfStatement', 'Element']);
+	});
+
+	it('rejects return statements inside native TSRX templates', () => {
+		expect(() =>
+			parseModule(
+				`function bar() {
+					return <>
+						if (x) {
+							return null;
+						}
+					</>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow('Return statements are not allowed inside TSRX templates.');
 	});
 
 	it('treats tsrx as a normal element name', () => {

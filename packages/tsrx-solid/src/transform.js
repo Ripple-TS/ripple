@@ -323,18 +323,6 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	let has_terminal_return = false;
 	let capture_index = 0;
 	for (const child of body_nodes) {
-		if (is_bare_return_statement(child)) {
-			statements.push(
-				set_loc(
-					b.return(children.length > 0 ? build_return_expression(children) : create_null_literal()),
-					child,
-				),
-			);
-			children.length = 0;
-			has_terminal_return = true;
-			continue;
-		}
-
 		if (child?.type === 'ReturnStatement' && child.argument != null) {
 			statements.push(child);
 			has_terminal_return = true;
@@ -384,50 +372,15 @@ function body_to_jsx_child(body_nodes, transform_context) {
 }
 
 /**
- * Lower render-continuation bodies that may contain additional early-return
- * guards. Sequential guards need to nest the remaining continuation instead
- * of rendering later children beside a `<Show>` for the guard itself.
- *
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function body_to_early_return_jsx_child(body_nodes, transform_context) {
-	const early_idx = body_nodes.findIndex((node) => get_returning_if_info(node) !== null);
-	if (early_idx === -1) {
-		return body_to_jsx_child(body_nodes, transform_context);
-	}
-
-	const early_if = /** @type {any} */ (body_nodes[early_idx]);
-	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
-		get_returning_if_info(early_if)
-	);
-	const before = body_nodes.slice(0, early_idx);
-	const after = body_nodes.slice(early_idx + 1);
-	const branch_has_content_before_return = early_info.return_index > 0;
-	const children = [...before];
-
-	if (branch_has_content_before_return) {
-		transform_context.needs_show = true;
-		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
-		const fallback_body =
-			after.length > 0 ? body_to_early_return_jsx_child(after, transform_context) : null;
-		children.push(build_show_element(early_if.test, branch_body, fallback_body));
-	} else if (after.length > 0) {
-		transform_context.needs_show = true;
-		const show_body = body_to_early_return_jsx_child(after, transform_context);
-		children.push(build_show_element(negate_expression(early_if.test), show_body, null));
-	}
-
-	return body_to_jsx_child(children, transform_context);
-}
-
-/**
  * @param {any} node
  * @returns {boolean}
  */
 function is_bare_return_statement(node) {
-	return node?.type === 'ReturnStatement' && node.argument == null;
+	return (
+		node?.type === 'ReturnStatement' &&
+		node.argument == null &&
+		node.metadata?.generated_loop_continue_return === true
+	);
 }
 
 /**
@@ -700,20 +653,6 @@ function get_returning_if_info(node) {
 	}
 
 	return null;
-}
-
-/**
- * Build a logical-negation (`!expr`) expression.
- *
- * @param {any} expr
- * @returns {any}
- */
-function negate_expression(expr) {
-	if (expr?.type === 'UnaryExpression' && expr.operator === '!') {
-		return clone_expression_node(expr.argument);
-	}
-
-	return b.unary('!', clone_expression_node(expr));
 }
 
 /**

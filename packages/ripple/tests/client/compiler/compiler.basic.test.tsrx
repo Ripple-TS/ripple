@@ -352,7 +352,10 @@ const Inline = (props) => <>
 `;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
 
-		expect(result).toContain('const Inline = (__anchor, props, __block) => {');
+		expect(result).toContain('const Inline = (props) => {');
+		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
+		expect(result).toContain('(props) => {');
+		expect(result).toContain('return _$_.tsrx_element(function render_children');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('function (__anchor');
 	});
@@ -365,7 +368,10 @@ const Inline = function(props) { return <>
 `;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
 
-		expect(result).toContain('const Inline = function (__anchor, props, __block) {');
+		expect(result).toContain('const Inline = function (props) {');
+		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
+		expect(result).toContain('function (props) {');
+		expect(result).toContain('return _$_.tsrx_element(function render_children');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('const Inline = (__anchor, props, __block) => {');
 	});
@@ -1020,9 +1026,7 @@ function App() { return <>
 			'test.tsrx',
 		);
 
-		expect(result.errors.map((error) => error.message)).toContain(
-			'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.',
-		);
+		expect(result.errors.map((error) => error.code)).toEqual(['tsrx-template-return-statement']);
 	});
 
 	it('throws for unclosed tsx compat tags instead of hanging', () => {

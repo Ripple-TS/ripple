@@ -45,7 +45,7 @@ const TSRX_TEMPLATE_RETURN_ERROR =
  */
 export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name }) {
 	describe(`[${name}] compile diagnostics`, () => {
-		it('keeps callback returns with native TSRX values clean in type-only output', () => {
+		it('keeps callback returns around native TSRX values clean in type-only output', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() { return <>
 					<Page
@@ -54,7 +54,6 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 								if (isAdmin) {
 									return [<>"Delete"</>, <>"Edit"</>];
 								}
-								return [<>"View"</>];
 							},
 							bySwitch: (role) => {
 								switch (role) {

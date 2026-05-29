@@ -217,6 +217,9 @@ const Inline = (props) => <>
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = (props) => {');
+		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
+		expect(result).toContain('(props) => {');
+		expect(result).toContain('return _$_.tsrx_element(function render_children');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('function (props');
 	});
@@ -230,6 +233,9 @@ const Inline = function(props) { return <>
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = function (props) {');
+		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
+		expect(result).toContain('function (props) {');
+		expect(result).toContain('return _$_.tsrx_element(function render_children');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('const Inline = (props) => {');
 	});
@@ -389,9 +395,7 @@ module server {
 
 server.loadUser();`;
 
-		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError(
-			/Import server exports/,
-		);
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow(/Import server exports/);
 	});
 
 	it('throws error for unsupported exported object pattern in server module', () => {
@@ -402,7 +406,7 @@ module server {
 		export const { fn1, fn2 } = obj;
 }`;
 
-		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow();
 	});
 
 	it('throws error for unsupported exported array pattern in server module', () => {
@@ -413,7 +417,7 @@ module server {
 		export const [fnarr1, fnarr2] = arr;
 }`;
 
-		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow();
 	});
 
 	it('throws error for unsupported exported member expression via object in server module', () => {
@@ -424,7 +428,7 @@ module server {
 		export const objProp = obj.fn1;
 }`;
 
-		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow();
 	});
 
 	it('throws error for unsupported exported member expression via array in server module', () => {
@@ -435,7 +439,7 @@ module server {
 		export const arrIndex0 = arr[0];
 }`;
 
-		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrowError();
+		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).toThrow();
 	});
 
 	it('wraps children in normalize_children for explicit children prop passed to component', () => {

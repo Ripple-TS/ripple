@@ -26,9 +26,28 @@ function find_enclosing_branch(block) {
 }
 
 /**
+ * @param {any} value
+ * @param {ChildNode} anchor
+ * @param {Block | null} block
+ * @returns {void}
+ */
+export function render_value(value, anchor, block) {
+	if (is_tsrx_element(value)) {
+		render_tsrx_element(value, anchor, block);
+	} else if (is_array(value)) {
+		render_tsrx_collection(value, anchor, block);
+	} else if (value != null) {
+		var text = value + '';
+		if (text !== '') {
+			render_tsrx_collection_text(text, anchor, true);
+		}
+	}
+}
+
+/**
  * @param {any[]} value
  * @param {ChildNode} anchor
- * @param {Block} block
+ * @param {Block | null} block
  * @returns {void}
  */
 function render_tsrx_collection(value, anchor, block) {
@@ -49,7 +68,7 @@ function render_tsrx_collection(value, anchor, block) {
 /**
  * @param {any[]} value
  * @param {ChildNode} anchor
- * @param {Block} block
+ * @param {Block | null} block
  * @returns {void}
  */
 function render_tsrx_collection_items(value, anchor, block) {
@@ -57,7 +76,7 @@ function render_tsrx_collection_items(value, anchor, block) {
 		var item = value[i];
 
 		if (is_tsrx_element(item)) {
-			item.render(anchor, block);
+			render_tsrx_element(item, anchor, block);
 		} else if (is_array(item)) {
 			render_tsrx_collection_items(item, anchor, block);
 		} else if (item != null) {
@@ -67,13 +86,36 @@ function render_tsrx_collection_items(value, anchor, block) {
 }
 
 /**
- * @param {string} value
+ * @param {import('../../element.js').TSRXElement} value
  * @param {ChildNode} anchor
+ * @param {Block | null} block
  * @returns {void}
  */
-function render_tsrx_collection_text(value, anchor) {
+function render_tsrx_element(value, anchor, block) {
+	var result = value.render(anchor, block);
+
+	if (is_tsrx_element(result)) {
+		render_tsrx_element(result, anchor, block);
+	} else if (is_array(result)) {
+		render_tsrx_collection(result, anchor, block);
+	} else if (result != null) {
+		render_tsrx_collection_text(result + '', anchor, true);
+	}
+}
+
+/**
+ * @param {string} value
+ * @param {ChildNode} anchor
+ * @param {boolean} [assign=false]
+ * @returns {void}
+ */
+function render_tsrx_collection_text(value, anchor, assign = false) {
 	if (!hydrating) {
-		anchor.before(create_text(value));
+		var text = create_text(value);
+		anchor.before(text);
+		if (assign) {
+			assign_nodes(text, text);
+		}
 		return;
 	}
 
@@ -91,12 +133,18 @@ function render_tsrx_collection_text(value, anchor) {
 				if (remaining !== '') {
 					var remaining_text = create_text(remaining);
 					/** @type {ChildNode} */ (node).after(remaining_text);
+					if (assign) {
+						assign_nodes(node, node);
+					}
 					set_hydrate_node(remaining_text);
 					return;
 				}
 			}
 		}
 
+		if (assign) {
+			assign_nodes(node, node);
+		}
 		set_hydrate_node(get_next_sibling(node) ?? anchor);
 		return;
 	}
@@ -109,6 +157,9 @@ function render_tsrx_collection_text(value, anchor) {
 		anchor.before(new_text);
 	}
 
+	if (assign) {
+		assign_nodes(new_text, new_text);
+	}
 	set_hydrate_node(node ?? anchor);
 }
 
@@ -138,7 +189,10 @@ export function expression(node, get_value) {
 		var next_value = get_value();
 		var next_is_collection = is_array(next_value);
 		var next_is_element = next_is_collection || is_tsrx_element(next_value);
-		var is_hydration_marker = hydrating && anchor.nodeType === COMMENT_NODE;
+		var is_hydration_marker =
+			hydrating &&
+			anchor.nodeType === COMMENT_NODE &&
+			/** @type {Comment} */ (anchor).data === HYDRATION_START;
 
 		if (is_hydration_marker) {
 			end ??= ensure_expression_end(anchor);
@@ -187,7 +241,7 @@ export function expression(node, get_value) {
 				if (next_is_collection) {
 					render_tsrx_collection(next_value, end ?? anchor, block);
 				} else {
-					next_value.render(end ?? anchor, block);
+					render_tsrx_element(next_value, end ?? anchor, block);
 				}
 			});
 

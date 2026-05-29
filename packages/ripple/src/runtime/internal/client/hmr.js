@@ -5,8 +5,10 @@ import { HMR } from './constants.js';
 import { hydrate_node, hydrating } from './hydration.js';
 import { branch, destroy_block, render } from './blocks.js';
 import { active_block, get, set, tracked } from './runtime.js';
+import { render_component } from './component.js';
+import { TSRX_COMPONENT, tsrx_element } from '../../element.js';
 
-/** @typedef {(anchor: Node, props: any, block: Block | null) => void} Component */
+/** @typedef {(props?: any) => any} Component */
 
 /** @typedef {Component & { [HMR]: { fn: Component; current: Tracked | undefined; update: (incoming: ComponentWrapper) => void; } }} ComponentWrapper */
 
@@ -23,54 +25,65 @@ export function hmr(fn) {
 	var current;
 
 	/**
-	 * @param {Node} anchor
 	 * @param {any} props
-	 * @param {Block | null} [block]
 	 */
-	function wrapper(anchor, props, block = active_block) {
-		if (current === undefined) {
-			current = wrapper[HMR].current;
+	function wrapper(props) {
+		/**
+		 * @param {Node} anchor
+		 * @param {Block | null} [block]
+		 * @returns {void}
+		 */
+		function render_children(anchor, block = active_block) {
+			if (current === undefined) {
+				current = wrapper[HMR].current;
+			}
+			/** @type {Node} */
+			var target = anchor;
+
+			if (current === undefined) {
+				current = tracked(fn, /** @type {Block} */ (block));
+				wrapper[HMR].current = current;
+			}
+			var component = {};
+
+			/** @type {Block | null} */
+			var effect = null;
+
+			render(
+				() => {
+					var next_component = get(/** @type {Tracked} */ (current));
+
+					if (component === next_component) {
+						return;
+					}
+
+					component = next_component;
+
+					if (effect) {
+						destroy_block(effect);
+					}
+
+					effect = branch(() => {
+						render_component(
+							/** @type {Function} */ (component),
+							/** @type {ChildNode} */ (target),
+							props,
+						);
+					});
+				},
+				null,
+				RENDER_BLOCK,
+			);
+
+			if (hydrating) {
+				target = /** @type {Node} */ (hydrate_node);
+			}
 		}
-		/** @type {Node} */
-		var target = anchor;
 
-		if (current === undefined) {
-			current = tracked(fn, /** @type {Block} */ (block));
-			wrapper[HMR].current = current;
-		}
-		var component = {};
-
-		/** @type {Block | null} */
-		var effect = null;
-
-		render(
-			() => {
-				var next_component = get(/** @type {Tracked} */ (current));
-
-				if (component === next_component) {
-					return;
-				}
-
-				component = next_component;
-
-				if (effect) {
-					destroy_block(effect);
-				}
-
-				effect = branch(() => {
-					/** @type {Function} */ (component)(target, props, active_block);
-				});
-			},
-			null,
-			RENDER_BLOCK,
-		);
-
-		if (hydrating) {
-			target = /** @type {Node} */ (hydrate_node);
-		}
-
-		return wrapper;
+		return tsrx_element(render_children);
 	}
+
+	wrapper[TSRX_COMPONENT] = true;
 
 	wrapper[HMR] = {
 		fn,

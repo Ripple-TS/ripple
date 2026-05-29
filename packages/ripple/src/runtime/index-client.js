@@ -1,4 +1,4 @@
-/** @import { Block, CompatOptions, RootBoundaryOptions } from '#client' */
+/** @import { CompatOptions, RootBoundaryOptions } from '#client' */
 
 import { destroy_block, root } from './internal/client/blocks.js';
 import { handle_root_events } from './internal/client/events.js';
@@ -7,7 +7,7 @@ import {
 	get_next_sibling,
 	init_operations,
 } from './internal/client/operations.js';
-import { active_block } from './internal/client/runtime.js';
+import { render_component } from './internal/client/component.js';
 import { create_anchor } from './internal/client/utils.js';
 import { try_block } from './internal/client/try.js';
 import { remove_ssr_css } from './internal/client/css.js';
@@ -39,34 +39,34 @@ function get_default_compat() {
 
 /**
  * @param {Node} anchor
- * @param {(anchor: Node) => void} render_component
+ * @param {(anchor: Node) => void} render_content
  * @param {RootBoundaryOptions | undefined} boundary
  * @returns {void}
  */
-function render_root_boundary(anchor, render_component, boundary) {
+function render_root_boundary(anchor, render_content, boundary) {
 	const Pending = boundary?.pending;
 	const Catch = boundary?.catch;
 
 	try_block(
 		anchor,
 		(component_anchor) => {
-			render_component(component_anchor);
+			render_content(component_anchor);
 		},
 		Catch
 			? (catch_anchor, error, reset) => {
-					Catch(catch_anchor, { error, reset: reset ?? (() => {}) }, active_block);
+					render_component(Catch, catch_anchor, { error, reset: reset ?? (() => {}) });
 				}
 			: null,
 		(pending_anchor) => {
 			if (Pending) {
-				Pending(pending_anchor, {}, active_block);
+				render_component(Pending, pending_anchor, {});
 			}
 		},
 	);
 }
 
 /**
- * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
+ * @param {Function} component
  * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
  * @returns {() => void}
  */
@@ -92,7 +92,7 @@ export function mount(component, options) {
 		render_root_boundary(
 			anchor,
 			(component_anchor) => {
-				component(component_anchor, props, active_block);
+				render_component(component, component_anchor, props);
 			},
 			options.rootBoundary,
 		);
@@ -105,7 +105,7 @@ export function mount(component, options) {
 }
 
 /**
- * @param {(anchor: Node, props: Record<string, any>, active_block: Block | null) => void} component
+ * @param {Function} component
  * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
  * @returns {() => void}
  */
@@ -138,7 +138,7 @@ export function hydrate(component, options) {
 			render_root_boundary(
 				/** @type {Comment} */ (anchor),
 				(component_anchor) => {
-					component(component_anchor, props, active_block);
+					render_component(component, component_anchor, props);
 				},
 				options.rootBoundary,
 			);

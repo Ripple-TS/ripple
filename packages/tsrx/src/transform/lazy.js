@@ -445,7 +445,7 @@ function replace_lazy_in_pattern(pattern, is_top = true) {
  *
  * Also stamps `metadata.has_lazy_descendants = true` on every function-like
  * node whose subtree contains any lazy pattern, so `apply_lazy_transforms`
- * can take a constant-time early-return path for purely non-lazy functions.
+ * can take a constant-time fast path for purely non-lazy functions.
  *
  * @param {any} root
  * @param {LazyContext} context
@@ -570,7 +570,7 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 			return node;
 		}
 
-		// Past the early-return: either we have active lazy bindings, lazy
+		// Past the fast path: either we have active lazy bindings, lazy
 		// params to replace, defaults referencing outer lazy, or the body
 		// contains lazy descendants the BlockStatement handler will collect.
 		// In every case the body needs to be walked.
