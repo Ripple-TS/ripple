@@ -236,13 +236,14 @@ const REACT_HOOKS_HTML = highlight_tsrx(
 	`import { useState, useEffect } from 'react';
 
 function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
-  return <>
-    if (!user) {
-      return null;
-    }
+  if (!user) {
+    return null;
+  }
 
+  const [tab, setTab] = useState('overview');
+
+  return <>
     // Hooks inside TSRX template branches are isolated safely.
-    const [tab, setTab] = useState('overview');
 
     <h1>{user.name}</h1>
     <TabBar value={tab} onChange={setTab} />
@@ -542,11 +543,17 @@ export function FeaturesPage() {
 								<code class="inline-code">{'continue'}</code>
 								{' inside a template '}
 								<code class="inline-code">{'for...of'}</code>
-								{' body to skip the current item. Top-level '}
+								{' body to skip the current item. '}
 								<code class="inline-code">{'return'}</code>
-								{' and '}
+								{' statements are invalid anywhere inside a TSRX element or fragment body. '}
 								<code class="inline-code">{'break'}</code>
-								{' statements are not allowed there, because loop rendering lowers to target-specific callbacks or blocks. Nested functions inside the loop keep ordinary JavaScript control flow.'}
+								{' is not allowed in '}
+								<code class="inline-code">{'for...of'}</code>
+								{' template loop bodies; use '}
+								<code class="inline-code">{'break'}</code>
+								{' only for '}
+								<code class="inline-code">{'switch'}</code>
+								{' cases. Nested functions keep ordinary JavaScript control flow.'}
 							</p>
 							<p class="section-body">
 								{'Other JavaScript loops are not template rendering constructs: regular '}

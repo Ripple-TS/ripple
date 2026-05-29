@@ -124,8 +124,6 @@ function formatPlistValue(value, depth) {
  * @returns {number}
  */
 function comparePlistKeys(left, right) {
-	if (left[0] === 'jsx-tag-tsx' && right[0] === 'jsx-tag-tsrx') return -1;
-	if (left[0] === 'jsx-tag-tsrx' && right[0] === 'jsx-tag-tsx') return 1;
 	return left[0].localeCompare(right[0]);
 }
 

@@ -178,22 +178,21 @@ function List({ items }: { items: string[] }) {
   return <>
   if (items.length === 0) {
     <p>"No items"</p>
-    return null;
+  } else {
+    <ul>
+      for (const item of items; index i; key item) {
+        if (!item) continue;
+        <li>{item}</li>
+      }
+    </ul>
   }
-
-  <ul>
-    for (const item of items; index i; key item) {
-      if (!item) continue;
-      <li>{item}</li>
-    }
-  </ul>
   </>;
 }
 \`\`\`
 
-Use normal function returns for guard exits. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
+Use normal function returns for guard exits before TSRX opens. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
 
-Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. Top-level \`return\` and \`break\` are invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
+\`return\` statements are invalid anywhere inside returned TSRX element or fragment bodies. Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
 
 TSRX rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in TSRX template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
 

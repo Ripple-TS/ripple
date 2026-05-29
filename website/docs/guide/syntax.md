@@ -84,19 +84,20 @@ want React JSX semantics.
 - `<tsx:react>...</tsx:react>` switches to React JSX semantics and requires
   compat setup.
 
-## Early Returns in Templates
+## Guard Returns Before Templates
 
 Functions are just functions, so a component can return `null`, a TSRX element,
-or any value accepted by the target runtime. Inside a TSRX fragment, `return`
-can be used as a guard to exit the surrounding function/render path.
+or any value accepted by the target runtime before a TSRX expression opens.
+Inside a TSRX element or fragment body, use conditional rendering instead of
+`return`.
 
 ```ripple
 function Profile({ user }) {
-  return <>
-    if (!user) {
-      return null;
-    }
+  if (!user) {
+    return null;
+  }
 
+  return <>
     <h1>{user.name}</h1>
     <p>{user.email}</p>
   </>;

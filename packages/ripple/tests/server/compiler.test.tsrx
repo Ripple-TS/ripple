@@ -221,7 +221,7 @@ const Inline = (props) => <>
 		expect(result).not.toContain('function (props');
 	});
 
-	it('emits legacy anonymous component expressions as functions in SSR output', () => {
+	it('emits function-expression components as functions in SSR output', () => {
 		const source = `
 const Inline = function(props) { return <>
 	<div>{props.x}</div>

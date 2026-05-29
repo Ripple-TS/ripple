@@ -31,7 +31,8 @@ describe('@tsrx/mcp documentation index', () => {
 		const content = find_documentation_section('control-flow')?.content ?? '';
 
 		expect(content).toContain('continue');
-		expect(content).toContain('Top-level `return` and `break` are invalid');
+		expect(content).toContain('`return` statements are invalid anywhere');
+		expect(content).toContain('`break` is invalid inside TSRX `for...of` loops');
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});
 

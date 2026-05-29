@@ -1026,7 +1026,7 @@ function HookInForClosingScopeApp() {
 
 // ── Component guard return before hooks with parent scope ──
 
-function EarlyReturnWithHooksApp() {
+function GuardReturnWithHooksApp() {
 	const [count, setCount] = useState(0);
 	const [skip, setSkip] = useState(false);
 	if (skip) {
@@ -1802,7 +1802,7 @@ describe('tsrx-react runtime', () => {
 	});
 
 	it('component guard return before hooks passes scope correctly to continuation', async () => {
-		await render(EarlyReturnWithHooksApp);
+		await render(GuardReturnWithHooksApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
 

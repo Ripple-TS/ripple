@@ -788,16 +788,8 @@ function Parent() {
   <style>
     .wrapper { padding: 20px; }      // Only applies to THIS component's .wrapper
     .child-class {
-  return <>
-  return <>
-  return <>
-  return <>
-  return <> color: red; 
-  </>;
-  </>;
-  </>;
-  </>;
-  </>;}     // Will NOT work - can't reach into Child
+      color: red;
+    }     // Will NOT work - can't reach into Child
   </style>
 
   </>;

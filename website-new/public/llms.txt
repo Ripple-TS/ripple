@@ -597,10 +597,9 @@ function TodoList({ items }: { items: Todo[] }) {
   supported top-level loop control-flow statement inside a returned TSRX
   `for...of` body.
 
-Top-level `return` and `break` are not allowed inside returned TSRX `for...of`
-loops. Use `continue` for early item skips, and use `break` only for `switch`
-cases. `return` statements are not allowed anywhere inside a returned TSRX
-element or fragment body.
+`return` statements are not allowed anywhere inside a returned TSRX element or
+fragment body. `break` is not allowed inside returned TSRX `for...of` loops; use
+`continue` for early item skips, and use `break` only for `switch` cases.
 
 Component rendering supports `for...of` for lists. Regular `for` loops,
 `for...in`, `while`, and `do...while` are not supported in returned TSRX template
