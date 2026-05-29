@@ -947,45 +947,6 @@ export function FeaturesPage() {
 				font-size: 0.92em;
 			}
 
-			.ref-target-table {
-				margin: 1rem 0 0;
-				width: 100%;
-				border-collapse: collapse;
-				font-size: 0.95rem;
-				color: rgba(26, 22, 64, 0.85);
-				border: 1px solid rgba(94, 44, 255, 0.18);
-				border-radius: 6px;
-				overflow: hidden;
-			}
-
-			.ref-target-table th,
-			.ref-target-table td {
-				padding: 0.55rem 0.75rem;
-				text-align: left;
-				border-bottom: 1px solid rgba(94, 44, 255, 0.12);
-				vertical-align: top;
-			}
-
-			.ref-target-table thead th {
-				background: rgba(94, 44, 255, 0.06);
-				font-weight: 600;
-				color: #1a1640;
-				border-bottom: 1px solid rgba(94, 44, 255, 0.2);
-			}
-
-			.ref-target-table tbody tr:last-child td {
-				border-bottom: none;
-			}
-
-			.ref-target-table tbody td:first-child {
-				font-weight: 600;
-				color: #1a1640;
-			}
-
-			.ref-target-table .inline-code {
-				font-size: 0.85em;
-			}
-
 			.code-block {
 				margin: 0.75rem 0 0;
 				padding: 1.25rem 1.4rem;
