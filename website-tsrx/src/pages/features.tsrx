@@ -149,48 +149,6 @@ const SHORTHAND_HTML = highlight_tsrx(
 <Input {value} {onChange} />`,
 );
 
-const REFS_HTML = highlight_tsrx(
-	`function AutoFocus() {
-  return <>
-    function logNode(node: HTMLInputElement) {
-      console.log(node);
-    }
-
-    <input ref={logNode} logRef={logNode} type="text" />
-  </>;
-}`,
-);
-
-const REFS_OBJECT_HTML = highlight_tsrx(
-	`import { track } from 'ripple';
-
-function SearchBox() {
-  const inputRef = track<HTMLInputElement>();
-
-  return <>
-    <input ref={inputRef} type="search" />
-    <button onClick={() => inputRef.value?.focus()}>"Focus"</button>
-  </>;
-}`,
-);
-
-const REFS_NAMED_HTML = highlight_tsrx(
-	`function Field(props) {
-  return <>
-    // The named ref prop is normalized into the real DOM ref.
-    <input {...props} />
-  </>;
-}
-
-function Form() {
-  return <>
-    let input: HTMLInputElement | undefined;
-
-    <Field inputRef={input} />
-  </>;
-}`,
-);
-
 const SCOPING_HTML = highlight_tsrx(
 	`function App() {
   const name = 'World';
@@ -331,7 +289,6 @@ const NAV_ITEMS = [
 	{ id: 'text-expressions', label: 'Text expressions' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
-	{ id: 'refs', label: 'DOM refs' },
 	{ id: 'scoping', label: 'Lexical scoping' },
 	{ id: 'children', label: 'Children & render props' },
 	{ id: 'if', label: 'Conditional rendering' },
@@ -511,98 +468,6 @@ export function FeaturesPage() {
 							<pre class="code-block">
 								<code innerHTML={SHORTHAND_HTML} />
 							</pre>
-						</section>
-
-						<section class="doc-section" id="refs">
-							<h2 class="section-heading">{'DOM refs'}</h2>
-							<p class="section-body">
-								{'Use refs when you need the DOM node. There are three forms:'}
-							</p>
-							<table class="ref-target-table">
-								<thead>
-									<tr>
-										<th>{'Syntax'}</th>
-										<th>{'Use it for'}</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>
-											<code class="inline-code">{'ref={value}'}</code>
-										</td>
-										<td>{'A direct ref on the current element.'}</td>
-									</tr>
-									<tr>
-										<td>
-											<code class="inline-code">{'ref={value}'}</code>
-										</td>
-										<td>{'The native-style ref attribute.'}</td>
-									</tr>
-									<tr>
-										<td>
-											<code class="inline-code">{'inputRef={value}'}</code>
-										</td>
-										<td>{'A named ref prop that can be forwarded through components.'}</td>
-									</tr>
-								</tbody>
-							</table>
-							<p class="section-body">
-								{'The '}
-								<code class="inline-code">{'ref={expr}'}</code>
-								{' and '}
-								<code class="inline-code">{'ref={expr}'}</code>
-								{' forms attach a ref directly to the current element.'}
-							</p>
-							<p class="section-body">
-								{'Named ref props '}
-								<code class="inline-code">{'anyName={expr}'}</code>
-								{' are useful for component APIs, and they also work on host elements: TSRX applies them as refs instead of emitting them as attributes.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={REFS_HTML} />
-							</pre>
-							<p class="section-body">
-								{'A ref value can be a callback, a mutable variable in named-ref form, or the target framework\'s ref object, such as React/Preact '}
-								<code class="inline-code">{'useRef()'}</code>
-								{', Vue '}
-								<code class="inline-code">{'ref()'}</code>
-								{', or a Ripple '}
-								<code class="inline-code">{'Tracked'}</code>
-								{'. Ripple and Solid also support mutable variables on direct host refs. You may combine one '}
-								<code class="inline-code">{'ref={...}'}</code>
-								{' with any number of anonymous or named '}
-								<code class="inline-code">{'ref={...}'}</code>
-								{' expressions on one host element; TSRX merges them. Solid also accepts an array in '}
-								<code class="inline-code">{'ref={...}'}</code>
-								{'.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={REFS_OBJECT_HTML} />
-							</pre>
-							<p class="section-body">
-								{'For reusable components, use a named ref prop when the component API needs a specific ref name. Refs can be forwarded explicitly or through '}
-								<code class="inline-code">{'{...props}'}</code>
-								{', and mutable variables can be used as ref values.'}
-							</p>
-							<p class="section-body">
-								{'Vue keeps '}
-								<code class="inline-code">{'ref={...}'}</code>
-								{' on components as Vue\'s native component ref; it is not forwarded to a DOM element inside the component. Use a named '}
-								<code class="inline-code">{'inputRef={input}'}</code>
-								{' or anonymous '}
-								<code class="inline-code">{'ref={input}'}</code>
-								{' when a Vue component should expose an inner DOM ref.'}
-							</p>
-							<pre class="code-block">
-								<code innerHTML={REFS_NAMED_HTML} />
-							</pre>
-							<p class="section-body muted">
-								{'Named ref props are marked at runtime. Use '}
-								<code class="inline-code">{'isRefProp(value)'}</code>
-								{' to detect one; anonymous '}
-								<code class="inline-code">{'ref={...}'}</code>
-								{' props are intentionally not publicly inspectable because their prop keys are unique symbols.'}
-							</p>
 						</section>
 
 						<section class="doc-section" id="scoping">
