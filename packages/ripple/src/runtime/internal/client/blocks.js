@@ -18,6 +18,7 @@ import {
 } from './constants.js';
 import { next_sibling } from './operations.js';
 import { apply_element_spread } from './render.js';
+import { is_array } from '@tsrx/core/runtime/language-helpers';
 import {
 	active_block,
 	active_component,
@@ -99,18 +100,19 @@ export function branch(fn, flags = 0, state = null) {
 }
 
 /**
- * Wire up a `{ref expr}` attribute. `expr` may be:
+ * Wire up a `ref={expr}` attribute. `expr` may be:
  *   - a callback function — invoked with the element on mount; if it returns
  *     a function, that function runs as the cleanup on unmount.
  *   - a `Tracked` (e.g. from `track()`) — `tracked.value` is set to the
  *     element on mount and reset to `null` on unmount.
  *   - a plain mutable var (`let foo;`) — the element is assigned to the
  *     variable on mount and reset to `null` on unmount.
+ *   - an array of any of the above.
  *
  * `get_fn` is invoked through `untrack` so the surrounding render block
  * doesn't subscribe to whatever the thunk happens to read. The supported
- * shape is to pass the ref slot itself (`{ref tracker}`); a foot-gun like
- * `{ref tracker.value}` would otherwise read the cell reactively and cause
+ * shape is to pass the ref slot itself (`ref={tracker}`); a foot-gun like
+ * `ref={tracker.value}` would otherwise read the cell reactively and cause
  * spurious re-runs.
  *
  * @param {Element} element
@@ -134,7 +136,14 @@ export function ref(element, get_fn, set_fn) {
 				e = null;
 			}
 
-			if (typeof ref_value === 'function') {
+			if (is_array(ref_value)) {
+				e = branch(() => {
+					for (var i = 0; i < ref_value.length; i++) {
+						let current = ref_value[i];
+						ref(element, () => current);
+					}
+				});
+			} else if (typeof ref_value === 'function') {
 				e = branch(() => {
 					effect(() => ref_value(element));
 				});

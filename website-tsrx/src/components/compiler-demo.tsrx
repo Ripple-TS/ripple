@@ -436,7 +436,7 @@ export function CompilerDemo() {
 				</div>
 				<div class="demo-toolbar">
 					<label class="snippet-picker">
-						<select class="snippet-select" {ref bindValue(selected_snippet)}>
+						<select class="snippet-select" ref={bindValue(selected_snippet)}>
 							<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
 							for (const snippet of DEMO_SNIPPETS) {
 								if (is_snippet_available_for_target(snippet, selected_target.value)) {
@@ -446,7 +446,7 @@ export function CompilerDemo() {
 						</select>
 					</label>
 					<label class="target-picker">
-						<select class="target-select" {ref bindValue(selected_target)}>
+						<select class="target-select" ref={bindValue(selected_target)}>
 							for (const option of TARGET_OPTIONS) {
 								<option value={option.value}>{option.label}</option>
 							}
@@ -476,7 +476,7 @@ export function CompilerDemo() {
 							</button>
 						</span>
 					</div>
-					<div class="panel-body editor-host" {ref bindNode(source_ref)} />
+					<div class="panel-body editor-host" ref={bindNode(source_ref)} />
 				</div>
 
 				<div
@@ -489,7 +489,7 @@ export function CompilerDemo() {
 						if (error_message) {
 							<div class="panel-error" role="alert">{error_message}</div>
 						}
-						<div class="editor-host" {ref bindNode(output_ref)} />
+						<div class="editor-host" ref={bindNode(output_ref)} />
 					</div>
 				</div>
 			</div>

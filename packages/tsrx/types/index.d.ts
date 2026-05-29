@@ -211,8 +211,6 @@ declare module 'estree' {
 		Element: Element;
 		Text: TextNode;
 		Attribute: Attribute;
-		RefAttribute: RefAttribute;
-		RefExpression: RefExpression;
 		SpreadAttribute: SpreadAttribute;
 		ParenthesizedExpression: ParenthesizedExpression;
 		ScriptContent: ScriptContent;
@@ -220,7 +218,6 @@ declare module 'estree' {
 
 	interface ExpressionMap {
 		Style: Style;
-		RefExpression: RefExpression;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -418,18 +415,6 @@ declare module 'estree' {
 		};
 	}
 
-	interface RefAttribute extends AST.BaseNode {
-		type: 'RefAttribute';
-		argument: AST.Expression;
-		loc?: AST.SourceLocation;
-	}
-
-	interface RefExpression extends AST.BaseNode {
-		type: 'RefExpression';
-		argument: AST.Expression;
-		loc?: AST.SourceLocation;
-	}
-
 	interface SpreadAttribute extends AST.BaseNode {
 		type: 'SpreadAttribute';
 		argument: AST.Expression;
@@ -446,7 +431,7 @@ declare module 'estree' {
 		body: (Program['body'][number] | FunctionExpression)[];
 	}
 
-	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute | AST.RefAttribute;
+	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute;
 
 	export type TSRXStatement = AST.Statement | TSESTree.Statement;
 

@@ -85,7 +85,6 @@ const AST_NODE_MAPPING = [
 	'DoubleQuotedTextChild -> Text',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
-	'ref={ AssignmentExpression } -> RefAttribute',
 	'<tsx> TsxChildrenopt </tsx> -> Tsx',
 	'<> TemplateChildrenopt </> -> Tsrx',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
@@ -113,7 +112,7 @@ const TEMPLATE_AST_SHAPE = [
 	'interface Element {',
 	'  type: \'Element\';',
 	'  id: Identifier | MemberExpression;',
-	'  attributes: Array<Attribute | SpreadAttribute | RefAttribute>;',
+	'  attributes: Array<Attribute | SpreadAttribute>;',
 	'  children: Node[];',
 	'  openingElement: JSXOpeningElement;',
 	'  closingElement: JSXClosingElement;',
@@ -135,11 +134,6 @@ const TEMPLATE_AST_SHAPE = [
 	'  name: Identifier;',
 	'  value: Expression | null;',
 	'  shorthand?: boolean;',
-	'}',
-	'',
-	'interface RefAttribute {',
-	'  type: \'RefAttribute\';',
-	'  argument: Expression;',
 	'}',
 	'',
 	'interface SpreadAttribute {',
@@ -565,7 +559,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">{'Appendices'}</h2>
 							<p class="section-body">
-								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, Style, TSModuleDeclaration, TSModuleBlock, Attribute, RefAttribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, Style, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
 							</p>
 							<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
 							<p class="section-body">
@@ -628,7 +622,7 @@ export function SpecificationPage() {
 									{'Attribute.value is null for boolean-style attributes with no initializer, while shorthand marks parser-recognized shorthand cases.'}
 								</li>
 								<li>
-									{'RefAttribute.argument and SpreadAttribute.argument each preserve the original ECMAScript expression payload carried by the attribute form.'}
+									{'SpreadAttribute.argument preserves the original ECMAScript expression payload carried by the attribute form.'}
 								</li>
 								<li>
 									{'Current implementations may additionally attach style-element-specific details such as captured stylesheet source text or styleScopeHash when the element is a raw '}

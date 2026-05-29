@@ -2,6 +2,7 @@ import {
 	has_own_property,
 	get_descriptor,
 	has_prototype_accessor,
+	is_array,
 } from '@tsrx/core/runtime/language-helpers';
 
 const REF_VALUE = Symbol();
@@ -65,6 +66,25 @@ function is_ref_prop(value) {
  * @returns {void | (() => void)}
  */
 export function apply_ref_value(ref_value, node, set_ref_value) {
+	if (is_array(ref_value)) {
+		/** @type {Array<() => void>} */
+		const cleanups = [];
+		for (const item of ref_value) {
+			const cleanup = apply_ref_value(item, node);
+			if (typeof cleanup === 'function') {
+				cleanups.push(cleanup);
+			} else if (typeof item === 'function' && node !== null) {
+				cleanups.push(() => item(null));
+			}
+		}
+		if (cleanups.length > 0) {
+			return () => {
+				for (const cleanup of cleanups) cleanup();
+			};
+		}
+		return;
+	}
+
 	if (typeof ref_value === 'function') {
 		return ref_value(node);
 	}

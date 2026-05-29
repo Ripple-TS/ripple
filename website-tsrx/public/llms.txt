@@ -444,7 +444,7 @@ function AutoFocus() {
 		function logNode(node: HTMLInputElement) {
 			console.log(node);
 		}
-		<input {ref logNode} logRef={ref logNode} type="text" />
+		<input ref={logNode} logRef={logNode} type="text" />
 	</>;
 }
 ```
@@ -455,7 +455,7 @@ Named ref props are useful for component APIs:
 function Form() {
 	return <>
 		let input: HTMLInputElement | undefined;
-		<Field inputRef={ref input} />
+		<Field inputRef={input} />
 	</>;
 }
 
@@ -761,8 +761,8 @@ function List<T>({ items, render }: Props<T>) {
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |
 | Prop shorthand         | `<Input {value} {onChange} />`                   |
-| Callback ref           | `<input {ref (node) => ...} />`                  |
-| Named ref prop         | `<Field inputRef={ref input} />`                 |
+| Callback ref           | `<input ref={(node) => ...} />`                  |
+| Named ref prop         | `<Field inputRef={input} />`                 |
 | Conditional rendering  | `if (cond) { ... } else { ... }`                 |
 | List rendering         | `for (const x of xs; index i; key x.id) { ... }` |
 | Multi-branch           | `switch (x) { case 'a': ... break; }`            |

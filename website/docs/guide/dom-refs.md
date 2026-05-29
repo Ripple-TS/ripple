@@ -4,19 +4,18 @@ title: Referencing DOM Elements in Ripple
 
 # DOM Refs
 
-Refs let you capture the DOM node behind an element. Ripple supports three ref
-forms:
+Refs let you capture the DOM node behind an element. Ripple uses the same
+attribute shape as JSX:
 
 | Syntax                 | Use it for                                                       |
 | ---------------------- | ---------------------------------------------------------------- |
-| `{ref value}`          | A direct TSRX keyword ref on the current element or component.   |
 | `ref={value}`          | A native-like ref attribute on the current element or component. |
-| `inputRef={ref value}` | A named ref prop that can be forwarded through components.       |
+| `ref={[a, b]}`         | Multiple refs for the same element.                              |
+| `inputRef={value}`     | An ordinary prop that a component can forward explicitly.        |
 
-The direct `{ref expr}` and `ref={expr}` forms attach a ref to the current
-template. Named refs, such as `inputRef={ref expr}`, are regular string-keyed
-props that carry ref behavior with them. On DOM elements, Ripple applies named ref
-props as refs instead of emitting them as attributes.
+The `ref={expr}` form attaches a ref to the current template. Named props, such
+as `inputRef={expr}`, are regular string-keyed props; pass them into `ref={...}`
+inside the receiving component when you want to forward them.
 
 Ref values can be callbacks, `Tracked` values from `track()`, or mutable
 identifiers/member expressions. Mutable refs are assigned when the element mounts
@@ -33,9 +32,9 @@ export default function App() {
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
 
-  <div {ref div}>"Hello world"</div>
+  <div ref={div}>"Hello world"</div>
   <input ref={input} type="text" />
-  <button {ref state.button}>"Save"</button>
+  <button ref={state.button}>"Save"</button>
 
   </>;
 }
@@ -61,7 +60,7 @@ export function App() {
     };
   }
 
-  <div {ref setup}>"Hello world"</div>
+  <div ref={setup}>"Hello world"</div>
 
   </>;
 }
@@ -79,7 +78,7 @@ export function App() {
   let div: HTMLDivElement | undefined;
 
   <div
-    {ref (node) => {
+    ref={(node) => {
       div = node;
       console.log('mounted', node);
       return () => {
@@ -104,7 +103,7 @@ import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
   return <>
-  <div {ref fadeIn({ ms })}>"Hello world"</div>
+  <div ref={fadeIn({ ms })}>"Hello world"</div>
 
   </>;
 }
@@ -113,7 +112,7 @@ export function App({ ms }) {
 ## Native-Like `ref={...}`
 
 Use `ref={value}` when you want the ref to look like the host runtime's native
-ref attribute. In Ripple it accepts the same values as `{ref value}`.
+ref attribute. In Ripple it accepts the same values as `ref={value}`.
 
 ```ripple
 export function App() {
@@ -129,8 +128,7 @@ export function App() {
 }
 ```
 
-You can combine one `ref={...}` with any number of `{ref ...}` or named
-`anyName={ref ...}` props on the same DOM element. Ripple applies all of them.
+Use an array when one DOM element needs more than one ref.
 
 ```ripple
 import { track } from 'ripple';
@@ -141,9 +139,7 @@ export function App() {
   const trackedInput = track<HTMLInputElement | null>(null);
 
   <input
-    ref={input}
-    {ref trackedInput}
-    logRef={ref (node) => console.log(node)}
+    ref={[input, trackedInput, (node) => console.log(node)]}
     type="text"
   />
 
@@ -174,7 +170,7 @@ export function App() {
   return <>
   let input: HTMLInputElement | undefined;
 
-  <Field inputRef={ref input} placeholder="Search docs" />
+  <Field inputRef={input} placeholder="Search docs" />
 
   </>;
 }
@@ -190,13 +186,13 @@ export function App() {
   return <>
   let input: HTMLInputElement | undefined;
 
-  <input inputRef={ref input} type="text" />
+  <input inputRef={input} type="text" />
 
   </>;
 }
 ```
 
-Anonymous `{ref ...}` props are forwarded with a unique symbol key. That makes
+Anonymous `ref={...}` props are forwarded with a unique symbol key. That makes
 them easy to spread through a component, but impossible to inspect by a public
 prop name. Use a named ref prop when a component API should expose a specific ref
 slot.
@@ -213,7 +209,7 @@ export function App() {
   return <>
   let input: HTMLInputElement | undefined;
 
-  <Input id="email" {ref input} />
+  <Input id="email" ref={input} />
 
   </>;
 }
@@ -239,7 +235,7 @@ function Field({ inputRef, ...rest }) {
 }
 ```
 
-Anonymous `{ref ...}` props are intentionally not publicly inspectable because
+Anonymous `ref={...}` props are intentionally not publicly inspectable because
 their keys are unique symbols.
 
 ## createRefKey

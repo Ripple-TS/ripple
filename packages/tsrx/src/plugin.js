@@ -1597,21 +1597,6 @@ export function TSRXPlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
 
-				if (this.type === tt.name && this.value === 'ref') {
-					const ref_node = /** @type {AST.RefExpression} */ (this.startNode());
-					this.next();
-					if (this.type === tt.braceR) {
-						this.raise(
-							this.start,
-							'"ref" is a TSRX keyword and must be used in the form {ref item}',
-						);
-					}
-					ref_node.argument = this.parseMaybeAssign();
-					node.expression = /** @type {any} */ (this.finishNode(ref_node, 'RefExpression'));
-					this.expect(tt.braceR);
-					return this.finishNode(node, 'JSXExpressionContainer');
-				}
-
 				if (
 					this.type === tt.name &&
 					this.value === 'style' &&
@@ -1729,18 +1714,7 @@ export function TSRXPlugin(config) {
 						this.unexpected();
 					}
 
-					if (this.value === 'ref') {
-						this.next();
-						if (this.type === tt.braceR) {
-							this.raise(
-								this.start,
-								'"ref" is a Ripple keyword and must be used in the form {ref fn}',
-							);
-						}
-						/** @type {AST.RefAttribute} */ (node).argument = this.parseMaybeAssign();
-						this.expect(tt.braceR);
-						return /** @type {AST.RefAttribute} */ (this.finishNode(node, 'RefAttribute'));
-					} else if (this.type === tt.ellipsis) {
+					if (this.type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
 						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);

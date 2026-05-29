@@ -4,20 +4,16 @@
 
 import {
 	createJsxTransform,
-	createElementRefTargetType,
 	error,
-	addRefTargetTypeToRefPropAttributes as add_ref_target_type_to_ref_prop_attributes,
 	mergeDuplicateRefs,
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
-	isRefPropExpression as is_ref_prop_expression,
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
-	CREATE_REF_PROP_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	returnValueBodyToExpression as return_value_body_to_expression,
 	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
@@ -1180,20 +1176,13 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  */
 function inject_solid_imports(program, transform_context) {
-	if (transform_context.needs_ref_prop || transform_context.needs_normalize_spread_props) {
-		const specifiers = [];
-
-		if (transform_context.needs_ref_prop) {
-			specifiers.push(b.import_specifier('create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME));
-		}
-
-		if (transform_context.needs_normalize_spread_props) {
-			specifiers.push(
-				b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME),
-			);
-		}
-
-		program.body.unshift(b.import_declaration(specifiers, '@tsrx/solid/ref'));
+	if (transform_context.needs_normalize_spread_props) {
+		program.body.unshift(
+			b.import_declaration(
+				[b.import_specifier('normalize_spread_props', NORMALIZE_SPREAD_PROPS_INTERNAL_NAME)],
+				'@tsrx/solid/ref',
+			),
+		);
 	}
 
 	const needed = [];
@@ -1456,15 +1445,11 @@ function has_text_content_attribute(attributes) {
 /**
  * Transform a list of raw attributes into JSX attributes.
  *
- * Per-attribute conversion (RefAttribute → `ref={expr}`, SpreadAttribute →
- * `{...expr}`, plain Attribute → JSXAttribute, JSXAttribute pass-through)
+ * Per-attribute conversion (SpreadAttribute → `{...expr}`, plain Attribute →
+ * JSXAttribute, JSXAttribute pass-through)
  * is delegated to `@tsrx/core`'s shared {@link toJsxAttribute}. The list
- * is then run through {@link mergeDuplicateRefs} so multiple ref attributes
- * on the same element — whether from `{ref expr}` or TSX-style `ref={expr}` —
- * collapse to a single `ref={[a, b, ...]}` array (the strategy chosen by
- * Solid's `multiRefStrategy: 'array'`). Solid's runtime iterates array refs
- * natively, so this works on both DOM elements and composite components
- * (when the child spreads `props` or forwards `props.ref`).
+ * is then run through {@link mergeDuplicateRefs} so compiler-synthesized
+ * host-spread refs can compose with an explicit `ref={...}`.
  *
  * @param {any[]} raw_attrs
  * @param {boolean} is_composite
@@ -1477,66 +1462,14 @@ function transform_element_attributes(raw_attrs, is_composite, transform_context
 	/** @type {any[]} */
 	const result = [];
 
-	for (const attr of normalize_solid_named_ref_attributes(
-		raw_attrs,
-		!is_composite,
-		transform_context,
-	)) {
+	for (const attr of raw_attrs) {
 		if (!attr) continue;
 		result.push(toJsxAttribute(attr, /** @type {any} */ (transform_context)));
-	}
-	if (transform_context.typeOnly) {
-		add_ref_target_type_to_ref_prop_attributes(
-			result,
-			!is_composite ? createElementRefTargetType(element) : null,
-		);
 	}
 	return mergeDuplicateRefs(
 		normalize_solid_host_ref_spreads(result, !is_composite, transform_context),
 		/** @type {any} */ (transform_context),
 	);
-}
-
-/**
- * @param {any[]} attrs
- * @param {boolean} is_host
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function normalize_solid_named_ref_attributes(attrs, is_host, transform_context) {
-	if (!is_host) return attrs;
-
-	return attrs.map((attr) => {
-		if (
-			!attr ||
-			attr.type !== 'Attribute' ||
-			attr.name?.type !== 'Identifier' ||
-			attr.name.name === 'ref' ||
-			!(
-				attr.value?.type === 'RefExpression' ||
-				is_ref_prop_expression(attr.value) ||
-				(attr.value?.type === 'JSXExpressionContainer' &&
-					is_ref_prop_expression(attr.value.expression))
-			)
-		) {
-			return attr;
-		}
-
-		if (transform_context.typeOnly) {
-			return {
-				...attr,
-				name: {
-					...attr.name,
-					metadata: { ...(attr.name.metadata || {}), disable_verification: true },
-				},
-			};
-		}
-
-		return {
-			...attr,
-			name: { ...attr.name, name: 'ref' },
-		};
-	});
 }
 
 /**
@@ -1576,7 +1509,7 @@ function normalize_solid_host_ref_spreads(attrs, is_host, transform_context) {
 				attr,
 			);
 			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
-			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
+			/** @type {any} */ (ref_attr.metadata).synthetic_ref = true;
 			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
 			return [spread, ref_attr];

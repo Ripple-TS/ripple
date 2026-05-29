@@ -44,7 +44,7 @@ export function App() {
     } else {
       <div>{'count is small: ' + count()}</div>
     }
-    <button {ref buttonEl} onClick={() => setCount(count() + 1)}>
+    <button ref={buttonEl} onClick={() => setCount(count() + 1)}>
       {count()}
     </button>
     <ul>

@@ -8,7 +8,6 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	contains_component_jsx,
-	CREATE_REF_PROP_INTERNAL_NAME,
 	createHookSafeHelper,
 	create_generated_identifier,
 	createJsxTransform,
@@ -72,8 +71,8 @@ const vue_platform = {
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},
-		preprocessElementAttributes(attrs, ctx, element) {
-			return preprocess_ref_attributes(attrs, element, ctx);
+		preprocessElementAttributes(attrs, ctx) {
+			return preprocess_ref_attributes(attrs, ctx);
 		},
 		transformElementAttributes(attrs, ctx, element) {
 			const result = attrs.map((attr) => toJsxAttribute(attr, ctx));
@@ -1101,32 +1100,19 @@ function is_vue_setup_call(call_expression) {
 }
 
 /**
- * Reject `{ref expr}` on composite (component-like) elements: Vue component
- * refs resolve to the component instance, not the rendered DOM node, so
- * Ripple-style component refs don't have a meaningful DOM target. Multi-ref
- * merging itself is handled by the shared `merge_duplicate_refs` pass via
- * the platform's `multiRefStrategy: 'merge-refs'` config.
+ * Vue's JSX transform treats some prop names ending in `ref` as template-ref
+ * sugar on components. Keep those as ordinary runtime props by hiding the
+ * static prop name behind an object spread before Vue sees the JSX. Type-only
+ * virtual TSX skips that spread so Volar can offer completions on the real
+ * component prop name.
  *
  * @param {any[]} attrs
- * @param {any} element
  * @param {any} transform_context
  * @returns {any[]}
  */
-function preprocess_ref_attributes(attrs, element, transform_context) {
-	if (!is_component_like_element(element)) {
-		return attrs;
-	}
+function preprocess_ref_attributes(attrs, transform_context) {
 	const result = [];
 	for (const attr of attrs) {
-		if (attr?.type === 'RefAttribute') {
-			error(
-				'`{ref ...}` on the Vue target is only supported on host elements. Vue component refs resolve to component instances rather than the rendered DOM node, so Ripple-style component refs are not supported here.',
-				transform_context?.filename ?? null,
-				attr,
-				transform_context?.errors,
-				transform_context?.comments,
-			);
-		}
 		if (!transform_context.typeOnly && is_vue_named_ref_attribute(attr)) {
 			result.push(create_vue_named_ref_spread(attr));
 			continue;
@@ -1137,12 +1123,6 @@ function preprocess_ref_attributes(attrs, element, transform_context) {
 }
 
 /**
- * Vue's JSX transform treats prop names ending in `ref` as template-ref
- * sugar on components. Keep named TSRX refs as ordinary runtime props by
- * hiding the static prop name behind an object spread before Vue sees the JSX.
- * Type-only virtual TSX skips that spread so Volar can offer completions on
- * the real component prop name.
- *
  * @param {any} attr
  * @returns {boolean}
  */
@@ -1153,11 +1133,17 @@ function is_vue_named_ref_attribute(attr) {
 		attr_name &&
 		attr_name !== 'ref' &&
 		(attr?.type === 'Attribute' || attr?.type === 'JSXAttribute') &&
-		(value?.type === 'RefExpression' ||
-			(value?.type === 'CallExpression' &&
-				value.callee?.type === 'Identifier' &&
-				value.callee.name === CREATE_REF_PROP_INTERNAL_NAME))
+		value &&
+		is_vue_ref_prop_name(attr_name)
 	);
+}
+
+/**
+ * @param {string} name
+ * @returns {boolean}
+ */
+function is_vue_ref_prop_name(name) {
+	return /(?:^|[-_])ref$/i.test(name) || /Ref$/.test(name);
 }
 
 /**
@@ -1168,7 +1154,7 @@ function create_vue_named_ref_spread(attr) {
 	const attr_name = get_vue_attribute_name(attr);
 	const value = get_vue_attribute_expression(attr);
 	if (attr_name === null) return attr;
-	const prop = builders.prop('init', builders.key(attr_name), value, false, false);
+	const prop = builders.prop('init', builders.key(attr_name), value ?? builders.literal(true), false, false);
 	return builders.jsx_spread_attribute(builders.object([prop], attr), attr);
 }
 
@@ -1246,10 +1232,6 @@ function inject_vue_imports(program, transform_context) {
 
 	if (transform_context.needs_merge_refs) {
 		ensure_named_import(program, '@tsrx/vue/ref', 'mergeRefs', MERGE_REFS_INTERNAL_NAME);
-	}
-
-	if (transform_context.needs_ref_prop) {
-		ensure_named_import(program, '@tsrx/vue/ref', 'create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME);
 	}
 
 	if (transform_context.needs_normalize_spread_props) {

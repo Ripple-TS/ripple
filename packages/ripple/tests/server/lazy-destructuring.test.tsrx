@@ -291,7 +291,7 @@ describe('lazy destructuring', () => {
 				tracked.value = tracked.value + 1;
 				let value = tracked.value;
 				let ref = tracked;
-				<pre>{`${value}-${ref === tracked}`}</pre>
+				<pre>{`${value}-$ref={=== tracked}`}</pre>
 			</>;
 		}
 

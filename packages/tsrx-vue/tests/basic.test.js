@@ -202,11 +202,11 @@ describe('@tsrx/vue basic', () => {
 		expect(css).toContain('color: red;');
 	});
 
-	it('{ref fn} on a DOM element compiles to ref={fn}', () => {
+	it('ref={fn} on a DOM element compiles to ref={fn}', () => {
 		const { code } = compile(
 			`function App() { return <>
 				function capture(node: HTMLDivElement) {}
-				<div {ref capture}>{'x'}</div>
+				<div ref={capture}>{'x'}</div>
 			</>; }`,
 			'App.tsrx',
 		);
@@ -241,11 +241,11 @@ describe('@tsrx/vue basic', () => {
 		const named_vue_ref_object = ref<HTMLInputElement | null>(null);
 
 		function App() { return <>
-			<NamedForwardInput type="text" input_ref={ref named_vue_ref_object} />
+			<NamedForwardInput type="text" input_ref={named_vue_ref_object} />
 		</>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx');
-		const source_prop_offset = source.indexOf('input_ref={ref');
-		const generated_prop_offset = result.code.indexOf('input_ref={__create_ref_prop');
+		const source_prop_offset = source.indexOf('input_ref={named_vue_ref_object');
+		const generated_prop_offset = result.code.indexOf('input_ref={named_vue_ref_object');
 		const prop_mapping = result.mappings.find(
 			(mapping) =>
 				mapping.sourceOffsets[0] === source_prop_offset &&
@@ -254,9 +254,9 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(result.code).toContain(
-			'<NamedForwardInput type="text" input_ref={__create_ref_prop(() => named_vue_ref_object, (v) => named_vue_ref_object = v)} />',
+			'<NamedForwardInput type="text" input_ref={named_vue_ref_object} />',
 		);
-		expect(result.code).not.toContain('input_ref: __create_ref_prop');
+		expect(result.code).not.toContain('create_ref_prop');
 		expect(prop_mapping?.data.completion).toBe(true);
 		expect(prop_mapping?.data.verification).toBe(true);
 	});
@@ -298,48 +298,37 @@ describe('@tsrx/vue basic', () => {
 		expect(find_generated_mapping(generated_outer_name_offset)).toBeUndefined();
 	});
 
-	it('rejects {ref ...} on composite components', () => {
-		expect(() =>
-			compile(
-				`function Child(props) { return <>
+	it('allows ref={...} on composite components as normal Vue JSX', () => {
+		const { code } = compile(
+			`function Child(props) { return <>
 					<input {...props} />
 				</>; }
 
 				function App() { return <>
 					function inputRef(node: HTMLInputElement | null) {}
-					<Child {ref inputRef} />
+					<Child ref={inputRef} />
 				</>; }`,
-				'App.tsrx',
-			),
-		).toThrow(/only supported on host elements/);
-	});
-
-	it('multiple {ref ...} on the same DOM element compile to mergeRefs(...)', () => {
-		const { code } = compile(
-			`function App() { return <>
-				function a(node: HTMLInputElement | null) {}
-				function b(node: HTMLInputElement | null) {}
-				<input {ref a} {ref b} />
-			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('ref={__mergeRefs(a, b)}');
-		expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/vue/ref'");
+		expect(code).toContain('ref={inputRef}');
 	});
 
-	it('combines a single ref={expr} with multiple {ref expr} keyword-form refs via mergeRefs', () => {
+	it('preserves explicit mergeRefs calls', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`import { mergeRefs } from '@tsrx/vue/ref';
+
+			function App() { return <>
 				function a(node: HTMLInputElement | null) {}
 				function b(node: HTMLInputElement | null) {}
 				function c(node: HTMLInputElement | null) {}
-				<input ref={a} {ref b} {ref c} />
+				<input ref={mergeRefs(a, b, c)} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('ref={__mergeRefs(a, b, c)}');
+		expect(code).toContain('ref={mergeRefs(a, b, c)}');
+		expect(code).not.toContain('__mergeRefs');
 	});
 
 	it('allows named ref props through components and normalizes host spreads', () => {
@@ -350,20 +339,20 @@ describe('@tsrx/vue basic', () => {
 
 			function App() { return <>
 				let input;
-				<Child input_ref={ref input} />
+				<Child input_ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
 		expect(code).toContain("from '@tsrx/vue/ref'");
-		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).toContain('{...{ input_ref: input }}');
 		expect(code).toContain('let Child__spread_props1 = __normalize_spread_props(props);');
 		expect(code).toContain('{...Child__spread_props1}');
 		expect(code).toContain('ref={Child__spread_props1.ref}');
 		expect(code.match(/__normalize_spread_props\(/g)).toHaveLength(1);
 	});
 
-	it('imports only create_ref_prop for component ref props without host spreads', () => {
+	it('keeps component ref-like props ordinary without host spreads', () => {
 		const { code } = compile(
 			`function Child(props) { return <>
 				<span>{'child'}</span>
@@ -371,13 +360,13 @@ describe('@tsrx/vue basic', () => {
 
 			function App() { return <>
 				let input;
-				<Child input_ref={ref input} />
+				<Child input_ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain("from '@tsrx/vue/ref'");
-		expect(code).toContain('{...{ input_ref: __create_ref_prop(() => input, (v) => input = v) }}');
+		expect(code).not.toContain("from '@tsrx/vue/ref'");
+		expect(code).toContain('{...{ input_ref: input }}');
 		expect(code).not.toContain('normalize_spread_props');
 	});
 
@@ -438,7 +427,7 @@ describe('@tsrx/vue basic', () => {
 		).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 	});
 
-	it('rejects multiple {ref ...} on the same composite component', () => {
+	it('rejects multiple ref={...} on the same composite component', () => {
 		expect(() =>
 			compile(
 				`function Child(props) { return <>
@@ -448,11 +437,11 @@ describe('@tsrx/vue basic', () => {
 				function App() { return <>
 					function a(node: HTMLInputElement | null) {}
 					function b(node: HTMLInputElement | null) {}
-					<Child {ref a} {ref b} />
+					<Child ref={a} ref={b} />
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow(/only supported on host elements/);
+		).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 	});
 
 	it('preserves host innerHTML props', () => {

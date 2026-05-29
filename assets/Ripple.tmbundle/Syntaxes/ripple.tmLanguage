@@ -5195,10 +5195,6 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#jsx-ref-modifier</string>
-				</dict>
-				<dict>
-					<key>include</key>
 					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
@@ -5404,21 +5400,6 @@
 					<string>#jsx-attribute-expression</string>
 				</dict>
 			</array>
-		</dict>
-		<key>jsx-ref-modifier</key>
-		<dict>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>storage.modifier.js</string>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>\b(ref)(?=\s+(?:[_$[:alpha:]]|\())</string>
-			<key>name</key>
-			<string>storage.modifier.js</string>
 		</dict>
 		<key>jsx-string-double-quoted</key>
 		<dict>
@@ -6121,10 +6102,6 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-style-directive</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-ref-modifier</string>
 				</dict>
 				<dict>
 					<key>include</key>

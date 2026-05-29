@@ -368,7 +368,7 @@ export function createCompletionPlugin() {
 			completionProvider: {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
-				// '{' - {style}, {ref}, and other TSRX directive snippets
+				// '{' - {style} and other TSRX directive snippets
 				triggerCharacters: ['<', '{'],
 				resolveProvider: false,
 			},

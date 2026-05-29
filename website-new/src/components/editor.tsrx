@@ -68,7 +68,7 @@ export function Editor() {
 				<div class="editor-tab">{'Examples.tsrx'}</div>
 			</div>
 			<div class="editor-content">
-				<pre class="editor-code" {ref bindNode(nodeRef)}>
+				<pre class="editor-code" ref={bindNode(nodeRef)}>
 					if (loading) {
 						<span class="editor-loader">{'Loading...'}</span>
 					}

@@ -927,9 +927,9 @@ Both examples above will render the same inline styles, however, it's recommende
 
 Ripple supports three DOM ref forms:
 
-- `{ref expr}` — anonymous prop as a direct TSRX keyword ref.
+- `ref={expr}` — anonymous prop as a direct TSRX keyword ref.
 - `ref={expr}` — native-style direct ref attribute on the current element.
-- `anyName={ref expr}` — named ref prop
+- `anyName={expr}` — named ref prop
 
 All three styles can be used on components and elements.
 Named ref props are applied as refs instead of emitted as attributes.
@@ -946,13 +946,13 @@ export function App() {
   const input = track<HTMLInputElement | null>(null);
 
 	// anonymous style
-  <div {ref div}>"Hello world"</div>
+  <div ref={div}>"Hello world"</div>
 
 	// native-like style
   <input ref={input} type="text" />
 
 	// callback style
-  <button {ref (node) => console.log("mounted", node)}>"Log"</button>
+  <button ref={(node) => console.log("mounted", node)}>"Log"</button>
 
   </>;
 }
@@ -978,14 +978,14 @@ export function App() {
   let input: HTMLInputElement | null | undefined;
 	let button = track<HTMLButtonElement | null>(null);
 	let wrapper: HTMLElement | null | undefined;
-  <Field inputRef={ref input} buttonRef={ref button} {ref (node) => wrapper = node} />
+  <Field inputRef={input} buttonRef={button} ref={(node) => wrapper = node} />
 
   </>;
 }
 ```
 
 Named ref props are marked at runtime. Use `isRefProp(value)` to detect one.
-Anonymous `{ref ...}` props use unique symbol keys and are intentionally not
+Anonymous `ref={...}` props use unique symbol keys and are intentionally not
 publicly inspectable.
 
 ## Built-in APIs

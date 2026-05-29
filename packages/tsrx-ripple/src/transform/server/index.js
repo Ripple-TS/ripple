@@ -12,7 +12,6 @@
 
 import {
 	builders,
-	clone_expression_node,
 	escape,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
@@ -1226,10 +1225,6 @@ const visitors = {
 		return context.next();
 	},
 
-	RefExpression(node, context) {
-		return create_ref_prop_call(node, context);
-	},
-
 	CallExpression(node, context) {
 		const { state } = context;
 
@@ -1741,15 +1736,6 @@ const visitors = {
 						}
 
 						if (name === 'ref') {
-							continue;
-						}
-
-						const attr_value = /** @type {any} */ (attr.value);
-						if (
-							attr_value.type === 'RefExpression' ||
-							(attr_value.type === 'JSXExpressionContainer' &&
-								attr_value.expression?.type === 'RefExpression')
-						) {
 							continue;
 						}
 
@@ -2690,30 +2676,6 @@ const visitors = {
 		return { ...node, body: statements };
 	},
 };
-
-/**
- * @param {AST.RefExpression} node
- * @param {TransformServerContext} context
- * @returns {AST.CallExpression}
- */
-function create_ref_prop_call(node, context) {
-	const { state, visit } = context;
-	const argument = /** @type {AST.Expression} */ (visit(node.argument, state));
-	/** @type {AST.Expression[]} */
-	const args = [b.thunk(argument)];
-	const arg_type = node.argument.type;
-
-	if (arg_type === 'Identifier' || arg_type === 'MemberExpression') {
-		args.push(
-			b.arrow(
-				[b.id('v')],
-				b.assignment('=', /** @type {AST.Pattern} */ (clone_expression_node(argument)), b.id('v')),
-			),
-		);
-	}
-
-	return b.call('_$_.create_ref_prop', ...args);
-}
 
 /**
  * @param {string} filename

@@ -141,7 +141,6 @@ export { escape, escape_script as escapeScript } from './utils/escaping.js';
 
 // Transform
 export {
-	add_ref_target_type_to_ref_prop_attributes as addRefTargetTypeToRefPropAttributes,
 	add_jsx_setup_declaration as addJsxSetupDeclaration,
 	clone_switch_helper_invocation as cloneSwitchHelperInvocation,
 	collect_param_bindings as collectParamBindings,
@@ -150,11 +149,8 @@ export {
 	create_element_ref_target_type as createElementRefTargetType,
 	create_element_ref_target_type_for_name as createElementRefTargetTypeForName,
 	createJsxTransform,
-	CREATE_REF_PROP_INTERNAL_NAME,
 	extract_jsx_setup_declarations as extractJsxSetupDeclarations,
 	is_component_like_element,
-	is_ref_expression_attribute_value as isRefExpressionAttributeValue,
-	is_ref_prop_expression as isRefPropExpression,
 	MERGE_REFS_INTERNAL_NAME,
 	merge_duplicate_refs as mergeDuplicateRefs,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,

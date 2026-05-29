@@ -928,8 +928,8 @@ function C() { return <>
 		});
 	});
 
-	describe(`[${name}] named ref prop setters do not duplicate mappings`, () => {
-		it('maps mutable ref targets only to the getter side', () => {
+	describe(`[${name}] named ref-like props use ordinary attribute mappings`, () => {
+		it('maps named ref-like prop values once', () => {
 			const source = `function Child(props: { inputRef?: any; otherRef?: any }) { return <>
 	<input />
 </>; }
@@ -938,31 +938,22 @@ function App() { return <>
 	let host_input: HTMLInputElement | undefined;
 	let child_input: HTMLInputElement | undefined;
 	const state = { input: undefined as HTMLInputElement | undefined };
-	<input type="text" hostRef={ref host_input} />
-	<Child inputRef={ref child_input} otherRef={ref state.input} />
+	<input type="text" hostRef={host_input} />
+	<Child inputRef={child_input} otherRef={state.input} />
 </>; }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-			const host_element_offset = source.indexOf('<input type="text"');
-			const host_ref_name_offset = source.indexOf('hostRef', host_element_offset);
-			const host_ref_container_offset = source.indexOf('{ref host_input}', host_element_offset);
-			const generated_host_element_offset = result.code.indexOf('<input type="text"');
-			const generated_host_ref_name_offset = result.code.indexOf(
-				'hostRef',
-				generated_host_element_offset,
-			);
-			const generated_host_ref_offset = result.code.indexOf(
-				'create_ref_prop',
-				generated_host_element_offset,
-			);
-			const ref_container_offset = source.indexOf('{ref host_input}');
-			const ref_input_offset = source.indexOf('ref host_input') + 'ref '.length;
-			const ref_state_container_offset = source.indexOf('{ref state.input}');
-			const ref_state_offset = source.indexOf('ref state.input') + 'ref '.length;
+			const host_ref_offset = source.indexOf('host_input', source.indexOf('hostRef='));
+			const child_ref_offset = source.indexOf('child_input', source.indexOf('inputRef='));
+			const ref_state_offset = source.indexOf('state.input', source.indexOf('otherRef='));
 			const ref_state_input_offset = ref_state_offset + 'state.'.length;
-			const generated_input_getter = result.code.indexOf(
+			const generated_host_ref_offset = result.code.indexOf(
 				'host_input',
-				result.code.indexOf('() => host_input'),
+				result.code.indexOf('hostRef='),
+			);
+			const generated_child_ref_offset = result.code.indexOf(
+				'child_input',
+				result.code.indexOf('inputRef='),
 			);
 			const generated_state_getter = result.code.indexOf(
 				'state.input',
@@ -974,49 +965,21 @@ function App() { return <>
 					(mapping) => mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
 				);
 
-			const input_mappings = find_mappings(ref_input_offset, 'host_input'.length);
+			const host_mappings = find_mappings(host_ref_offset, 'host_input'.length);
+			const child_mappings = find_mappings(child_ref_offset, 'child_input'.length);
 			const state_mappings = find_mappings(ref_state_offset, 'state'.length);
 			const state_input_mappings = find_mappings(ref_state_input_offset, 'input'.length);
-			const host_ref_name_mappings = find_mappings(host_ref_name_offset, 'hostRef'.length);
-			const container_mappings = result.mappings.filter(
-				(mapping) =>
-					mapping.sourceOffsets[0] === ref_container_offset ||
-					mapping.sourceOffsets[0] === ref_state_container_offset,
-			);
-			const host_wrapper_mappings = result.mappings.filter((mapping) => {
-				const generated_start = mapping.generatedOffsets[0];
-				const generated_end = generated_start + mapping.generatedLengths[0];
-				return (
-					(mapping.sourceOffsets[0] === host_element_offset ||
-						mapping.sourceOffsets[0] === host_ref_container_offset) &&
-					generated_start <= generated_host_ref_offset &&
-					generated_host_ref_offset < generated_end
-				);
-			});
 
 			expect(result.errors).toEqual([]);
-			expect(result.code).toContain(
-				"hostRef={__create_ref_prop<HTMLElementTagNameMap['input']>(() => host_input, (v) => host_input = v)}",
-			);
-			expect(result.code).toContain(
-				'inputRef={__create_ref_prop(() => child_input, (v) => child_input = v)}',
-			);
-			expect(result.code).toContain(
-				'otherRef={__create_ref_prop(() => state.input, (v) => state.input = v)}',
-			);
-			expect(result.code).toContain('() => host_input, (v) => host_input = v');
-			expect(result.code).toContain('() => state.input, (v) => state.input = v');
-			expect(result.code).toContain('hostRef={');
-			expect(container_mappings).toEqual([]);
-			expect(host_wrapper_mappings).toEqual([]);
-			expect(host_ref_name_mappings).toHaveLength(1);
-			expect(host_ref_name_mappings[0].generatedOffsets[0]).toBe(generated_host_ref_name_offset);
-			expect(host_ref_name_mappings[0].data.verification).toBe(false);
-			expect(host_ref_name_mappings[0].data.semantic).toBe(true);
-			expect(input_mappings).toHaveLength(1);
+			expect(result.code).toContain('hostRef={host_input}');
+			expect(result.code).toContain('inputRef={child_input}');
+			expect(result.code).toContain('otherRef={state.input}');
+			expect(host_mappings).toHaveLength(1);
+			expect(child_mappings).toHaveLength(1);
 			expect(state_mappings).toHaveLength(1);
 			expect(state_input_mappings).toHaveLength(1);
-			expect(input_mappings[0].generatedOffsets[0]).toBe(generated_input_getter);
+			expect(host_mappings[0].generatedOffsets[0]).toBe(generated_host_ref_offset);
+			expect(child_mappings[0].generatedOffsets[0]).toBe(generated_child_ref_offset);
 			expect(state_mappings[0].generatedOffsets[0]).toBe(generated_state_getter);
 			expect(state_input_mappings[0].generatedOffsets[0]).toBe(
 				generated_state_getter + 'state.'.length,

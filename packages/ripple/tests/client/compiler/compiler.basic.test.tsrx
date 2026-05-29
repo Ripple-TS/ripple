@@ -404,7 +404,7 @@ function App() { return <>
 	// 	const set = RippleSet([1, 2, 3]);
 	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
-	// 	<div {ref () => {}} />
+	// 	<div ref={() => {}} />
 	// }
 	// `;
 	// 			const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -428,7 +428,7 @@ function App() { return <>
 	// 	const set = RippleSet([1, 2, 3]);
 	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
-	// 	<div {ref () => {}} />
+	// 	<div ref={() => {}} />
 	// }
 	// `;
 	// 			const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -454,7 +454,7 @@ function App() { return <>
 	// 	const set = RippleSet([1, 2, 3]);
 	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
-	// 	<div {ref () => {}} />
+	// 	<div ref={() => {}} />
 	// }
 	// `;
 	// 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;

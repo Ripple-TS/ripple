@@ -33,7 +33,7 @@ export function App() {
   <div>
     <input
       type="text"
-      {ref bindValue(nameTracked)}
+      ref={bindValue(nameTracked)}
       placeholder="Enter your name"
     />
     <p>
@@ -62,7 +62,7 @@ export function App() {
   let &[age, ageTracked] = track(0);
 
   <div>
-    <input type="number" {ref bindValue(ageTracked)} min="0" max="120" />
+    <input type="number" ref={bindValue(ageTracked)} min="0" max="120" />
     <p>
       "Age: "
       {age}
@@ -89,7 +89,7 @@ export function App() {
   let &[selectedFruit, selectedFruitTracked] = track('apple');
 
   <div>
-    <select {ref bindValue(selectedFruitTracked)}>
+    <select ref={bindValue(selectedFruitTracked)}>
       <option value="apple">"Apple"</option>
       <option value="banana">"Banana"</option>
       <option value="cherry">"Cherry"</option>
@@ -119,7 +119,7 @@ export function App() {
   let &[selectedColors, selectedColorsTracked] = track(['red', 'blue']);
 
   <div>
-    <select multiple {ref bindValue(selectedColorsTracked)} style="height: 100px">
+    <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
       <option value="red">"Red"</option>
       <option value="green">"Green"</option>
       <option value="blue">"Blue"</option>
@@ -153,7 +153,7 @@ export function App() {
 
   <div>
     <label>
-      <input type="checkbox" {ref bindChecked(agreedTracked)} />
+      <input type="checkbox" ref={bindChecked(agreedTracked)} />
       " I agree to the terms and conditions"
     </label>
     <p>
@@ -198,8 +198,8 @@ export function App() {
     <label>
       <input
         type="checkbox"
-        {ref bindChecked(checkedTracked)}
-        {ref bindIndeterminate(indeterminateTracked)}
+        ref={bindChecked(checkedTracked)}
+        ref={bindIndeterminate(indeterminateTracked)}
       />
       " Select All"
     </label>
@@ -258,19 +258,19 @@ export function App() {
 
   <div>
     <label>
-      <input type="checkbox" value="reading" {ref bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="reading" ref={bindGroup(hobbiesTracked)} />
       " Reading"
     </label>
     <label>
-      <input type="checkbox" value="gaming" {ref bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="gaming" ref={bindGroup(hobbiesTracked)} />
       " Gaming"
     </label>
     <label>
-      <input type="checkbox" value="sports" {ref bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="sports" ref={bindGroup(hobbiesTracked)} />
       " Sports"
     </label>
     <label>
-      <input type="checkbox" value="cooking" {ref bindGroup(hobbiesTracked)} />
+      <input type="checkbox" value="cooking" ref={bindGroup(hobbiesTracked)} />
       " Cooking"
     </label>
     <p>
@@ -300,15 +300,15 @@ export function App() {
 
   <div>
     <label>
-      <input type="radio" name="size" value="small" {ref bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="small" ref={bindGroup(sizeTracked)} />
       " Small"
     </label>
     <label>
-      <input type="radio" name="size" value="medium" {ref bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="medium" ref={bindGroup(sizeTracked)} />
       " Medium"
     </label>
     <label>
-      <input type="radio" name="size" value="large" {ref bindGroup(sizeTracked)} />
+      <input type="radio" name="size" value="large" ref={bindGroup(sizeTracked)} />
       " Large"
     </label>
     <p>"Selected size: "{size}</p>
@@ -377,8 +377,8 @@ export function App() {
   <div>
     <input
       type="file"
-      {ref bindFiles(filesTracked)}
-      {ref bindNode(inputTracked)}
+      ref={bindFiles(filesTracked)}
+      ref={bindNode(inputTracked)}
       multiple
     />
 
@@ -446,8 +446,8 @@ export function App() {
 
   <div>
     <div
-      {ref bindClientWidth(widthTracked)}
-      {ref bindClientHeight(heightTracked)}
+      ref={bindClientWidth(widthTracked)}
+      ref={bindClientHeight(heightTracked)}
       style={{
         resize: 'both',
         overflow: 'auto',
@@ -493,8 +493,8 @@ export function App() {
 
   <div>
     <div
-      {ref bindOffsetWidth(widthTracked)}
-      {ref bindOffsetHeight(heightTracked)}
+      ref={bindOffsetWidth(widthTracked)}
+      ref={bindOffsetHeight(heightTracked)}
       style={{
         border: '10px solid green',
         padding: '20px',
@@ -539,7 +539,7 @@ export function App() {
 
   <div>
     <div
-      {ref bindContentRect(rectTracked)}
+      ref={bindContentRect(rectTracked)}
       style={{
         resize: 'both',
         overflow: 'auto',
@@ -575,7 +575,7 @@ export function App() {
 
   <div>
     <div
-      {ref bindContentBoxSize(sizeTracked)}
+      ref={bindContentBoxSize(sizeTracked)}
       style={{
         border: '5px solid orange',
         padding: '15px',
@@ -617,7 +617,7 @@ export function App() {
 
   <div>
     <div
-      {ref bindBorderBoxSize(sizeTracked)}
+      ref={bindBorderBoxSize(sizeTracked)}
       style={{
         border: '5px solid teal',
         padding: '15px',
@@ -658,7 +658,7 @@ export function App() {
 
   <div>
     <div
-      {ref bindDevicePixelContentBoxSize(sizeTracked)}
+      ref={bindDevicePixelContentBoxSize(sizeTracked)}
       style={{
         border: '3px solid crimson',
         padding: '10px',
@@ -703,7 +703,7 @@ export function App() {
   <div>
     <div
       contentEditable={true}
-      {ref bindInnerHTML(contentTracked)}
+      ref={bindInnerHTML(contentTracked)}
       style={{
         border: '1px solid gray',
         padding: '10px',
@@ -736,7 +736,7 @@ export function App() {
   <div>
     <div
       contentEditable={true}
-      {ref bindInnerText(textTracked)}
+      ref={bindInnerText(textTracked)}
       style={{
         border: '1px solid gray',
         padding: '10px',
@@ -768,7 +768,7 @@ export function App() {
   <div>
     <div
       contentEditable={true}
-      {ref bindTextContent(textTracked)}
+      ref={bindTextContent(textTracked)}
       style={{
         border: '1px solid gray',
         padding: '10px',
@@ -809,7 +809,7 @@ export function App() {
 
   <div>
     <div
-      {ref bindNode(divElementTracked)}
+      ref={bindNode(divElementTracked)}
       tabIndex={0}
       style={{
         border: '2px solid navy',
@@ -830,8 +830,8 @@ export function App() {
 
 ## Combining Multiple Bindings
 
-You can use multiple bindings on the same element by applying multiple `{ref}`
-attributes:
+You can use multiple bindings on the same element with one array-valued `ref`
+attribute:
 
 <Code>
 
@@ -853,9 +853,11 @@ export function App() {
   <div>
     <input
       type="text"
-      {ref bindValue(textTracked)}
-      {ref bindClientWidth(widthTracked)}
-      {ref bindNode(inputElementTracked)}
+      ref={[
+        bindValue(textTracked),
+        bindClientWidth(widthTracked),
+        bindNode(inputElementTracked),
+      ]}
       placeholder="Type something..."
       style="width: 300px"
     />
@@ -884,5 +886,5 @@ export function App() {
 4. **Type safety**: For number inputs, `bindValue` automatically converts values
    to numbers.
 
-5. **Multiple refs**: You can apply multiple `{ref}` attributes to the same
-   element for different bindings.
+5. **Multiple refs**: Use an array-valued `ref` to apply several bindings to the same
+   element.

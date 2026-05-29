@@ -279,7 +279,7 @@ describe('try block', () => {
 					let &[value, valueTracked] = track(1);
 					try {
 						let &[loaded] = trackAsync(() => Promise.resolve(value + 1));
-						<input type="number" {ref bindValue(valueTracked)} />
+						<input type="number" ref={bindValue(valueTracked)} />
 						<span>{loaded}</span>
 					} pending {
 						<p>{'loading...'}</p>

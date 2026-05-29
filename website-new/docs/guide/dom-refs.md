@@ -5,7 +5,7 @@ title: Referencing DOM Elements in Ripple
 # DOM Refs
 
 Ripple provides a consistent way to capture the underlying DOM element – refs.
-Specifically, using the syntax `{ref fn}` where `fn` is a function that captures
+Specifically, using the syntax `ref={fn}` where `fn` is a function that captures
 the DOM element. If you're familiar with other frameworks, then this is identical
 to `{@attach fn}` in Svelte 5 and somewhat similar to `ref` in React. The hook
 function will receive the reference to the underlying DOM element.
@@ -29,7 +29,7 @@ export default function App() {
     };
   };
 
-  <div {ref divRef}>"Hello world"</div>
+  <div ref={divRef}>"Hello world"</div>
 
   </>;
 }
@@ -37,7 +37,7 @@ export default function App() {
 
 </Code>
 
-You can also create `{ref}` functions inline.
+You can also create callback refs inline.
 
 <Code console>
 
@@ -49,7 +49,7 @@ export function App() {
   let &[div] = track();
 
   <div
-    {ref (node) => {
+    ref={(node) => {
       div = node;
       console.log('mounted', node);
       return () => (div = undefined);
@@ -73,7 +73,7 @@ import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
   return <>
-  <div {ref fadeIn({ ms })}>"Hello world"</div>
+  <div ref={fadeIn({ ms })}>"Hello world"</div>
 
   </>;
 }
@@ -82,18 +82,17 @@ export function App({ ms }) {
 Lastly, you can use refs on composite components.
 
 ```ripple
-<Image {ref (node) => console.log(node)} {...props} />
+<Image ref={(node) => console.log(node)} {...props} />
 ```
 
-When passing refs to composite components (rather than HTML elements) as shown
-above, they will be passed a `Symbol` property, as they are not named. This still
-means that it can be spread to HTML template elements later on and still work.
+When passing refs to composite components, the receiving component can forward
+the prop with `ref={props.ref}` or include it in a spread onto a host element.
 
 ## createRefKey
 
 Creates a unique object key that will be recognised as a ref when the object is
 spread onto an element. This allows programmatic assignment of refs without
-relying directly on the `{ref ...}` template syntax.
+relying directly on the `ref={...}` template syntax.
 
 <Code console>
 

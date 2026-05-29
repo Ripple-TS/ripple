@@ -2135,23 +2135,11 @@
       "required": false,
       "types": [
         {
-          "type": "arrow_function",
-          "named": true
-        },
-        {
           "type": "component_statement",
           "named": true
         },
         {
           "type": "expression",
-          "named": true
-        },
-        {
-          "type": "function_expression",
-          "named": true
-        },
-        {
-          "type": "identifier",
           "named": true
         },
         {
@@ -4311,10 +4299,6 @@
   },
   {
     "type": "readonly",
-    "named": false
-  },
-  {
-    "type": "ref",
     "named": false
   },
   {

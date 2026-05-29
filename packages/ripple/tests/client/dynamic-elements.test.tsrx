@@ -221,7 +221,7 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let tag = track('article');
 				<@tag
-					{ref (node: HTMLElement) => {
+					ref={(node: HTMLElement) => {
 						capturedElement = node;
 					}}
 					id="ref-test"
@@ -239,7 +239,7 @@ describe('dynamic DOM elements', () => {
 		expect(capturedElement!.textContent).toBe('Element with ref');
 	});
 
-	it('handles ref={...}, {ref ...}, and named ref props on dynamic DOM elements', () => {
+	it('handles multiple ref targets on dynamic DOM elements', () => {
 		let refAttrElement: HTMLInputElement | null = null;
 		let anonymousRefElement: HTMLInputElement | null = null;
 		let namedRefElement: HTMLInputElement | null = null;
@@ -252,11 +252,9 @@ describe('dynamic DOM elements', () => {
 				<@tag
 					id="dynamic-ref-combo"
 					type="text"
-					ref={input}
-					{ref state.anonymous}
-					input_ref={ref (node: HTMLInputElement | null) => {
+					ref={[input, state.anonymous, (node: HTMLInputElement | null) => {
 						namedRefElement = node;
-					}}
+					}]}
 				/>
 				effect(() => {
 					refAttrElement = input ?? null;
@@ -277,7 +275,7 @@ describe('dynamic DOM elements', () => {
 		expect(element!.hasAttribute('input_ref')).toBe(false);
 	});
 
-	it('forwards dynamic ref forms through a dynamic component that spreads props', () => {
+	it('forwards multiple dynamic refs through a dynamic component that spreads props', () => {
 		let refAttrElement: HTMLInputElement | null = null;
 		let anonymousRefElement: HTMLInputElement | null = null;
 		let namedRefElement: HTMLInputElement | null = null;
@@ -292,11 +290,9 @@ describe('dynamic DOM elements', () => {
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
 				<@dynamic
-					ref={input}
-					{ref state.anonymous}
-					input_ref={ref (node: HTMLInputElement | null) => {
+					ref={[input, state.anonymous, (node: HTMLInputElement | null) => {
 						namedRefElement = node;
-					}}
+					}]}
 				/>
 				effect(() => {
 					refAttrElement = input ?? null;
@@ -708,7 +704,7 @@ describe('dynamic DOM elements', () => {
 					onClick={() => {
 						active = !active;
 					}}
-					{ref (el: HTMLElement) => {
+					ref={(el: HTMLElement) => {
 						capturedElement = el;
 						refCallCount++;
 					}}
@@ -759,7 +755,7 @@ describe('dynamic DOM elements', () => {
 					onClick={() => {
 						active = !active;
 					}}
-					{ref (el: HTMLElement) => {
+					ref={(el: HTMLElement) => {
 						capturedElement = el;
 					}}
 				>
@@ -803,7 +799,7 @@ describe('dynamic DOM elements', () => {
 					onClick={() => {
 						active = !active;
 					}}
-					{ref (el: HTMLElement) => {
+					ref={(el: HTMLElement) => {
 						capturedElement = el;
 						refCallCount++;
 						return () => {

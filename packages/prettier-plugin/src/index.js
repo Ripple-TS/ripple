@@ -1690,14 +1690,6 @@ function printRippleNode(node, path, options, print, args) {
 			}
 			break;
 		}
-		case 'RefAttribute':
-			nodeContent = ['{ref ', path.call(print, 'argument'), '}'];
-			break;
-
-		case 'RefExpression':
-			nodeContent = ['ref ', path.call(print, 'argument')];
-			break;
-
 		case 'SpreadAttribute': {
 			/** @type {Doc[]} */
 			const parts = ['{...', path.call(print, 'argument'), '}'];

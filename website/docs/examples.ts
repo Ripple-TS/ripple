@@ -877,7 +877,7 @@ export default function App() {
     };
   };
 
-	<div {ref divRef}>"Hello world"</div>
+	<div ref={divRef}>"Hello world"</div>
 
   </>;
 }

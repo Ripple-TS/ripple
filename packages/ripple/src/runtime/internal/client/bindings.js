@@ -717,7 +717,7 @@ export function bindFiles(maybe_tracked, set_func = undefined) {
 }
 
 /**
- * Syntactic sugar for binding a HTMLElement with {ref fn}
+ * Syntactic sugar for binding a HTMLElement with ref={fn}
  * @param {unknown} maybe_tracked
  * @param {SetFunction | undefined} set_func
  * @returns {(node: HTMLElement) => void}

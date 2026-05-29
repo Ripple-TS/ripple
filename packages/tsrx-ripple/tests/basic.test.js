@@ -87,17 +87,17 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 });
 
 describe('@tsrx/ripple named ref props', () => {
-	it('wraps named ref props for components', () => {
+	it('keeps named ref-like props ordinary for components', () => {
 		const { code } = compile(
 			`function Child(props) { return <></>; }
 			function App() { return <>
 				let input;
-				<Child input_ref={ref input} />
+				<Child input_ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('input_ref: _$_.create_ref_prop(() => input, (v) => input = v)');
+		expect(code).toContain('input_ref: input');
 	});
 
 	it('wraps anonymous ref props for components', () => {
@@ -105,25 +105,25 @@ describe('@tsrx/ripple named ref props', () => {
 			`function Child(props) { return <></>; }
 			function App() { return <>
 				let input;
-				<Child {ref input} />
+				<Child ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('[ref]: _$_.create_ref_prop(() => input, (v) => input = v)');
+		expect(code).toContain('ref: _$_.create_ref_prop(() => input, (v) => input = v)');
 	});
 
-	it('applies direct named ref props on host elements as refs', () => {
+	it('keeps named ref-like props ordinary on host elements', () => {
 		const { code } = compile(
 			`function App() { return <>
 				let input;
-				<input input_ref={ref input} />
+				<input input_ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.ref(input_1, () => _$_.create_ref_prop');
-		expect(code).not.toContain('input_ref');
+		expect(code).toContain('input_ref');
+		expect(code).not.toContain('_$_.create_ref_prop');
 	});
 
 	it('adds assignment setters for host ref attributes with identifiers and member expressions', () => {
@@ -148,32 +148,28 @@ describe('@tsrx/ripple named ref props', () => {
 				let input;
 				let state = {};
 				function fn() {}
-				<@tag ref={input} {ref state.other} input_ref={ref fn} />
+				<@tag ref={[input, state.other]} input_ref={fn} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('ref: _$_.create_ref_prop(() => input, (v) => input = v)');
-		expect(code).toContain(
-			'[ref_1]: _$_.create_ref_prop(() => state.other, (v) => state.other = v)',
-		);
-		expect(code).toContain('input_ref: _$_.create_ref_prop(() => fn, (v) => fn = v)');
+		expect(code).toContain('ref: _$_.create_ref_prop(() => [');
+		expect(code).toContain('_$_.create_ref_prop(() => input, (v) => input = v)');
+		expect(code).toContain('_$_.create_ref_prop(() => state.other, (v) => state.other = v)');
+		expect(code).toContain('input_ref: fn');
 	});
 
 	it('prints named ref props in Volar TypeScript output', () => {
 		const { code } = compile_to_volar_mappings(
 			`function App() { return <>
 				let input;
-				<input input_ref={ref input} />
+				<input input_ref={input} />
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain("import { _$_RefProp__create } from 'ripple/compiler/internal/import';");
-		expect(code).toContain(
-			"<input input_ref={_$_RefProp__create<HTMLElementTagNameMap['input']>(() => input, (v) => input = v)} />",
-		);
-		expect(code).not.toContain('input_ref={ref input}');
+		expect(code).not.toContain("import { _$_RefProp__create } from 'ripple/compiler/internal/import';");
+		expect(code).toContain('<input input_ref={input} />');
 	});
 
 	it('preserves child namespaces for nested host ref props in Volar TypeScript output', () => {
@@ -182,24 +178,20 @@ describe('@tsrx/ripple named ref props', () => {
 				let circle;
 				let div;
 				<svg>
-					<circle circle_ref={ref circle} />
+					<circle circle_ref={circle} />
 					<foreignObject>
-						<div div_ref={ref div} />
+						<div div_ref={div} />
 					</foreignObject>
 				</svg>
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain(
-			"<circle circle_ref={_$_RefProp__create<SVGElementTagNameMap['circle']>(() => circle, (v) => circle = v)} />",
-		);
-		expect(code).toContain(
-			"<div div_ref={_$_RefProp__create<HTMLElementTagNameMap['div']>(() => div, (v) => div = v)} />",
-		);
+		expect(code).toContain('<circle circle_ref={circle} />');
+		expect(code).toContain('<div div_ref={div} />');
 	});
 
-	it('does not map the generated named ref setter back to the source ref target', () => {
+	it('maps named ref-like prop values as ordinary props', () => {
 		const source = `function Child(props: { inputRef?: any; otherRef?: any }) { return <>
 	<input />
 </>; }
@@ -207,66 +199,14 @@ describe('@tsrx/ripple named ref props', () => {
 function App() { return <>
 	let input: HTMLInputElement | undefined;
 	const state = { input: undefined as HTMLInputElement | undefined };
-	<input type="text" input_ref={ref input} />
-	<Child inputRef={ref input} otherRef={ref state.input} />
+	<input type="text" input_ref={input} />
+	<Child inputRef={input} otherRef={state.input} />
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		const host_element_offset = source.indexOf('<input type="text"');
-		const host_ref_container_offset = source.indexOf('{ref input}', host_element_offset);
-		const generated_host_element_offset = result.code.indexOf('<input type="text"');
-		const generated_host_ref_offset = result.code.indexOf(
-			'RefProp__create',
-			generated_host_element_offset,
-		);
-		const ref_container_offset = source.indexOf('{ref input}');
-		const ref_input_offset = source.indexOf('ref input') + 'ref '.length;
-		const ref_state_container_offset = source.indexOf('{ref state.input}');
-		const ref_state_offset = source.indexOf('ref state.input') + 'ref '.length;
-		const ref_state_input_offset = ref_state_offset + 'state.'.length;
-		const generated_input_getter = result.code.indexOf('input', result.code.indexOf('() => input'));
-		const generated_state_getter = result.code.indexOf(
-			'state.input',
-			result.code.indexOf('otherRef'),
-		);
-
-		const find_mappings = (source_offset, length) =>
-			result.mappings.filter(
-				(mapping) => mapping.sourceOffsets[0] === source_offset && mapping.lengths[0] === length,
-			);
-
-		const input_mappings = find_mappings(ref_input_offset, 'input'.length);
-		const state_mappings = find_mappings(ref_state_offset, 'state'.length);
-		const state_input_mappings = find_mappings(ref_state_input_offset, 'input'.length);
-		const container_mappings = result.mappings.filter(
-			(mapping) =>
-				mapping.sourceOffsets[0] === ref_container_offset ||
-				mapping.sourceOffsets[0] === ref_state_container_offset,
-		);
-		const host_wrapper_mappings = result.mappings.filter((mapping) => {
-			const generated_start = mapping.generatedOffsets[0];
-			const generated_end = generated_start + mapping.generatedLengths[0];
-			return (
-				(mapping.sourceOffsets[0] === host_element_offset ||
-					mapping.sourceOffsets[0] === host_ref_container_offset) &&
-				generated_start <= generated_host_ref_offset &&
-				generated_host_ref_offset < generated_end
-			);
-		});
-
 		expect(result.errors).toEqual([]);
-		expect(result.code).toContain('() => input, (v) => input = v');
-		expect(result.code).toContain('() => state.input, (v) => state.input = v');
-		expect(container_mappings).toEqual([]);
-		expect(host_wrapper_mappings).toEqual([]);
-		expect(input_mappings).toHaveLength(1);
-		expect(state_mappings).toHaveLength(1);
-		expect(state_input_mappings).toHaveLength(1);
-		expect(input_mappings[0].generatedOffsets[0]).toBe(generated_input_getter);
-		expect(state_mappings[0].generatedOffsets[0]).toBe(generated_state_getter);
-		expect(state_input_mappings[0].generatedOffsets[0]).toBe(
-			generated_state_getter + 'state.'.length,
-		);
+		expect(result.code).toContain('input_ref={input}');
+		expect(result.code).toContain('otherRef={state.input}');
 	});
 });
 

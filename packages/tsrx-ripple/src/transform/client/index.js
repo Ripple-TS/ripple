@@ -42,7 +42,6 @@ import {
 	getOriginalEventName,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
-	isRefExpressionAttributeValue as is_ref_expression_attribute_value,
 	normalizeEventName,
 	shouldPreserveComment,
 	formatComment,
@@ -963,15 +962,6 @@ function set_hidden_import_from_ripple(name, context, is_obfuscated = false) {
 }
 
 /**
- * @param {AST.RefExpression} node
- * @param {VisitorClientContext} context
- * @returns {AST.CallExpression}
- */
-function create_ref_prop_call(node, context) {
-	return create_ref_value_call(node.argument, context);
-}
-
-/**
  * @param {any} source_argument
  * @param {VisitorClientContext} context
  * @returns {AST.CallExpression}
@@ -983,12 +973,37 @@ function create_ref_value_call(source_argument, context) {
 		source_argument.type === 'JSXExpressionContainer'
 			? source_argument.expression
 			: source_argument;
-	const argument = /** @type {AST.Expression} */ (
-		visit(source, { ...state, flush_node: null, metadata })
-	);
+	let argument;
+	let add_setter = true;
+
+	if (source.type === 'ArrayExpression') {
+		argument = b.array(
+			source.elements.map((element) => {
+				if (element === null) {
+					return null;
+				}
+				if (element.type === 'SpreadElement') {
+					return b.spread(
+						/** @type {AST.Expression} */ (
+							visit(element.argument, { ...state, flush_node: null, metadata })
+						),
+					);
+				}
+				return create_ref_value_call(element, context);
+			}),
+		);
+		add_setter = false;
+	} else {
+		argument = /** @type {AST.Expression} */ (
+			visit(source, { ...state, flush_node: null, metadata })
+		);
+	}
+
 	/** @type {AST.Expression[]} */
 	const args = [b.thunk(argument)];
-	add_ref_setter_arg(args, source, argument);
+	if (add_setter) {
+		add_ref_setter_arg(args, source, argument);
+	}
 
 	const call = b.call(
 		state.to_ts ? set_hidden_import_from_ripple('createRefProp', context) : '_$_.create_ref_prop',
@@ -1013,6 +1028,16 @@ function create_element_ref_target_type(node, state) {
 	const namespace =
 		element_name === 'svg' ? 'svg' : element_name === 'math' ? 'mathml' : state.namespace;
 	return create_element_ref_target_type_for_name(element_name, namespace);
+}
+
+/**
+ * @param {any} source_argument
+ * @returns {any}
+ */
+function get_ref_source_argument(source_argument) {
+	return source_argument.type === 'JSXExpressionContainer'
+		? source_argument.expression
+		: source_argument;
 }
 
 /**
@@ -1800,13 +1825,6 @@ const visitors = {
 
 	JSXExpressionContainer(node, context) {
 		if (context.state.to_ts) {
-			if (node.expression?.type === 'RefExpression') {
-				return /** @type {any} */ ({
-					type: 'JSXExpressionContainer',
-					expression: create_ref_prop_call(node.expression, context),
-					metadata: { path: [] },
-				});
-			}
 			if (node.expression?.type === 'JSXElement') {
 				const tsx_template_node = jsx_template_to_ts_node(node.expression, context);
 				if (tsx_template_node !== null) {
@@ -1821,10 +1839,6 @@ const visitors = {
 			return context.next();
 		}
 		return context.visit(node.expression);
-	},
-
-	RefExpression(node, context) {
-		return create_ref_prop_call(node, context);
 	},
 
 	JSXEmptyExpression(node, context) {
@@ -2294,26 +2308,16 @@ const visitors = {
 						if (name === 'ref') {
 							const id = state.flush_node?.();
 							const metadata = { tracking: false };
-							const ref_value = /** @type {AST.Expression} */ (
-								visit(attr.value, { ...state, metadata })
-							);
+							const source = get_ref_source_argument(attr.value);
+							const ref_value =
+								source.type === 'ArrayExpression'
+									? create_ref_value_call(attr.value, context)
+									: /** @type {AST.Expression} */ (visit(attr.value, { ...state, metadata }));
 							const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(ref_value)];
-							add_ref_setter_arg(ref_args, attr.value, ref_value);
+							if (source.type !== 'ArrayExpression') {
+								add_ref_setter_arg(ref_args, attr.value, ref_value);
+							}
 							state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
-							continue;
-						}
-
-						const attr_value = /** @type {any} */ (attr.value);
-						if (
-							attr_value.type === 'RefExpression' ||
-							(attr_value.type === 'JSXExpressionContainer' &&
-								attr_value.expression?.type === 'RefExpression')
-						) {
-							const id = state.flush_node?.();
-							const ref_expression =
-								attr_value.type === 'RefExpression' ? attr_value : attr_value.expression;
-							const ref_value = create_ref_prop_call(ref_expression, context);
-							state.init?.push(b.stmt(b.call('_$_.ref', id, b.thunk(ref_value))));
 							continue;
 						}
 
@@ -2491,31 +2495,6 @@ const visitors = {
 					spread_attributes?.push(
 						b.spread(/** @type {AST.Expression} */ (visit(attr.argument, state))),
 					);
-				} else if (attr.type === 'RefAttribute') {
-					const id = state.flush_node?.();
-					const metadata = { tracking: false };
-					const argument = /** @type {AST.Expression} */ (
-						visit(attr.argument, { ...state, metadata })
-					);
-
-					/** @type {AST.Expression[]} */
-					const ref_args = [/** @type {AST.Expression} */ (id), b.thunk(argument)];
-
-					// Emit a setter only when the argument is a syntactically
-					// valid assignment target — `Identifier` or
-					// `MemberExpression`. The runtime value of either shape
-					// can be a function, a Tracked, or a plain value; `ref()`
-					// decides at mount which path to take (function → call;
-					// Tracked → assign `.value`; plain → call setter). Other
-					// argument shapes (callbacks, call results,
-					// literals) can't be assignment targets — even though
-					// the setter would never be invoked at runtime for
-					// those (function/Tracked dispatch wins), strict module
-					// parsers like rolldown still reject `(v) => (foo() = v)`
-					// at parse time.
-					add_ref_setter_arg(ref_args, attr.argument, argument);
-
-					state.init?.push(b.stmt(b.call('_$_.ref', ...ref_args)));
 				}
 			}
 
@@ -2778,12 +2757,6 @@ const visitors = {
 								})
 							),
 						),
-					);
-				} else if (attr.type === 'RefAttribute') {
-					const ref_id = state.scope.generate('ref');
-					state.init?.push(b.var(ref_id, b.call('_$_.ref_prop')));
-					props.push(
-						b.prop('init', b.id(ref_id), create_ref_value_call(attr.argument, context), true),
 					);
 				} else {
 					throw new Error('TODO');
@@ -3888,23 +3861,6 @@ function transform_ts_child(node, context) {
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
 					attr.value
 				);
-				const ref_target_type = is_ref_expression_attribute_value(attr_value)
-					? create_element_ref_target_type(node, state)
-					: null;
-				const value =
-					attr_value === null
-						? // <div attr>, not adding `name` for loc because `jsx_name` below
-							// will take care of the mapping JSXAttribute's JSXIdentifier
-							b.literal(true)
-						: // reset init, update, final to avoid adding attr value to the component body
-							visit(
-								attr_value,
-								SetStateForOutsideComponent(
-									state,
-									ref_target_type ? { ref_target_type } : undefined,
-								),
-							);
-
 				// Handle both regular identifiers and tracked identifiers
 				/** @type {string} */
 				let prop_name;
@@ -3921,13 +3877,27 @@ function transform_ts_child(node, context) {
 					name_node = attr.name;
 					prop_name = attr.name.name || 'unknown';
 				}
+				const ref_target_type =
+					prop_name === 'ref' ? create_element_ref_target_type(node, state) : null;
+				const value =
+					attr_value === null
+						? // <div attr>, not adding `name` for loc because `jsx_name` below
+							// will take care of the mapping JSXAttribute's JSXIdentifier
+							b.literal(true)
+						: // reset init, update, final to avoid adding attr value to the component body
+							visit(
+								attr_value,
+								SetStateForOutsideComponent(
+									state,
+									ref_target_type ? { ref_target_type } : undefined,
+								),
+							);
 
 				const jsx_name = b.jsx_id(prop_name, /** @type {AST.NodeWithLocation} */ (name_node));
 				if (prop_name === 'children') {
 					has_children_props = true;
 				}
 
-				const is_ref_expression_value = attr_value?.type === 'RefExpression';
 				const jsx_attr = b.jsx_attribute(
 					jsx_name,
 					// match the source code usage of expressions for literals
@@ -3936,25 +3906,23 @@ function transform_ts_child(node, context) {
 						? /** @type {AST.Literal} */ (value)
 						: b.jsx_expression_container(
 								/** @type {AST.Expression} */ (value),
-								is_ref_expression_value
-									? undefined
-									: attr_value === null
-										? /** @type {AST.NodeWithLocation} */ (value)
-										: // account location for opening and closing braces around the expression
-											/** @type {AST.NodeWithLocation} */ ({
-												start: attr_value.start - 1,
-												end: attr_value.end + 1,
-												loc: {
-													start: {
-														line: attr_value.loc.start.line,
-														column: attr_value.loc.start.column - 1,
-													},
-													end: {
-														line: attr_value.loc.end.line,
-														column: attr_value.loc.end.column + 1,
-													},
+								attr_value === null
+									? /** @type {AST.NodeWithLocation} */ (value)
+									: // account location for opening and closing braces around the expression
+										/** @type {AST.NodeWithLocation} */ ({
+											start: attr_value.start - 1,
+											end: attr_value.end + 1,
+											loc: {
+												start: {
+													line: attr_value.loc.start.line,
+													column: attr_value.loc.start.column - 1,
 												},
-											}),
+												end: {
+													line: attr_value.loc.end.line,
+													column: attr_value.loc.end.column + 1,
+												},
+											},
+										}),
 							),
 					attr.shorthand ?? false,
 					/** @type {AST.NodeWithLocation} */ (attr),
@@ -3966,15 +3934,6 @@ function transform_ts_child(node, context) {
 					/** @type {AST.Expression} */ (argument),
 					/** @type {AST.NodeWithLocation} */ (attr),
 				);
-			} else if (attr.type === 'RefAttribute') {
-				const createRefKeyAlias = set_hidden_import_from_ripple('createRefKey', context);
-				const argument = visit(attr.argument, state);
-				const wrapper = b.object([
-					b.prop('init', b.call(createRefKeyAlias), /** @type {AST.Expression} */ (argument), true),
-				]);
-				// This ensures @ts-expect-error comments stay on the correct line
-				wrapper.metadata.printInline = true;
-				return b.jsx_spread_attribute(wrapper, /** @type {AST.NodeWithLocation} */ (attr));
 			} else {
 				// Should not happen
 				throw new Error(`Unexpected attribute type: ${/** @type {AST.Attribute} */ (attr).type}`);
@@ -4510,7 +4469,7 @@ function element_has_dynamic_content(element) {
 			if (attr.name.tracked) {
 				return true;
 			}
-		} else if (attr.type === 'SpreadAttribute' || attr.type === 'RefAttribute') {
+		} else if (attr.type === 'SpreadAttribute') {
 			return true;
 		}
 	}

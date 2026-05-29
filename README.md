@@ -369,11 +369,11 @@ export function App() {
 
 ### DOM Refs
 
-Capture DOM elements with the `{ref fn}` syntax:
+Capture DOM elements with the `ref={fn}` syntax:
 
 ```tsrx
 export function App() {
-  return <div {ref (node) => console.log(node)}>"Hello"</div>;
+  return <div ref={(node) => console.log(node)}>"Hello"</div>;
 }
 ```
 

@@ -125,11 +125,11 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('className');
 		});
 
-		it('{ref expr} on a DOM element compiles to ref={expr}', () => {
+		it('ref={expr} on a DOM element compiles to ref={expr}', () => {
 			const { code } = compile(
 				`function App() { return <>
 					let el;
-					<input {ref el} />
+					<input ref={el} />
 				</>; }`,
 				'App.tsrx',
 			);
@@ -139,18 +139,18 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('__ref_el');
 		});
 
-		it('{ref fn} on a DOM element passes the function through', () => {
+		it('ref={fn} on a DOM element passes the function through', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function divRef(node: HTMLDivElement) {}
-					<div {ref divRef} />
+					<div ref={divRef} />
 				</>; }`,
 				'App.tsrx',
 			);
 			expect(code).toMatch(/ref=\{divRef\}/);
 		});
 
-		it('{ref expr} on a composite component compiles to ref={expr}', () => {
+		it('ref={expr} on a composite component compiles to ref={expr}', () => {
 			const { code } = compile(
 				`function Child(props) { return <>
 					<input {...props} />
@@ -158,7 +158,7 @@ describe('@tsrx/solid basic', () => {
 
 				function App() { return <>
 					function childRef(node: HTMLInputElement) {}
-					<Child {ref childRef} />
+					<Child ref={childRef} />
 				</>; }`,
 				'App.tsrx',
 			);
@@ -168,12 +168,12 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/<Child ref=\{childRef\}/);
 		});
 
-		it('multiple {ref ...} on the same DOM element compile to a ref array', () => {
+		it('array ref={...} on the same DOM element stays a ref array', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function a(node: HTMLInputElement) {}
 					function b(node: HTMLInputElement) {}
-					<input {ref a} {ref b} />
+					<input ref={[a, b]} />
 				</>; }`,
 				'App.tsrx',
 			);
@@ -182,13 +182,13 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/ref=\{\[a,\s*b\]\}/);
 		});
 
-		it('multiple {ref ...} on a composite component compile to a ref array', () => {
+		it('array ref={...} on a composite component stays a ref array', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function a(node: HTMLInputElement) {}
 					function b(node: HTMLInputElement) {}
 					function c(node: HTMLInputElement) {}
-					<Child {ref a} {ref b} {ref c} />
+					<Child ref={[a, b, c]} />
 				</>; }`,
 				'App.tsrx',
 			);
@@ -658,11 +658,11 @@ describe('@tsrx/solid basic', () => {
 	});
 
 	describe('ref attributes', () => {
-		it('passes a single {ref expr} through as ref={expr} with no array wrapper', () => {
+		it('passes a single ref={expr} through as ref={expr} with no array wrapper', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function refA(_node) {}
-					<div {ref refA}>{'hi'}</div>
+					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
 			);
@@ -684,7 +684,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('[refA');
 		});
 
-		it('wraps named ref props and normalizes host spreads', () => {
+		it('keeps named ref-like props ordinary while normalizing host spreads', () => {
 			const { code } = compile(
 				`function Child(props) { return <>
 					<input {...props} />
@@ -692,17 +692,17 @@ describe('@tsrx/solid basic', () => {
 
 				function App() { return <>
 					let input;
-					<Child input_ref={ref input} />
+					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain("from '@tsrx/solid/ref'");
-			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).toContain('input_ref={input}');
 			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
-		it('imports only create_ref_prop for component ref props without host spreads', () => {
+		it('keeps named ref-like props ordinary without host spreads', () => {
 			const { code } = compile(
 				`function Child(props) { return <>
 					<span>{'child'}</span>
@@ -710,13 +710,13 @@ describe('@tsrx/solid basic', () => {
 
 				function App() { return <>
 					let input;
-					<Child input_ref={ref input} />
+					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain("from '@tsrx/solid/ref'");
-			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain("from '@tsrx/solid/ref'");
+			expect(code).toContain('input_ref={input}');
 			expect(code).not.toContain('normalize_spread_props');
 		});
 
@@ -742,19 +742,18 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('__normalize_spread_props(second, cb)');
 		});
 
-		it('normalizes named ref props on host elements before lowering attributes', () => {
+		it('keeps named ref-like props as ordinary props on host elements', () => {
 			const { code } = compile(
 				`function App() { return <>
 					let input;
-					<input input_ref={ref input} />
+					<input input_ref={input} />
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain("from '@tsrx/solid/ref'");
-			expect(code).toContain('ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain("from '@tsrx/solid/ref'");
 			expect(code).not.toContain('normalize_spread_props');
-			expect(code).not.toContain('input_ref=');
+			expect(code).toContain('input_ref={input}');
 		});
 
 		it('rejects multiple ref={expr} attributes on the same element', () => {
@@ -770,13 +769,13 @@ describe('@tsrx/solid basic', () => {
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});
 
-		it('collapses multiple {ref expr} keyword-form refs into a Solid-native array literal', () => {
+		it('passes Solid-native ref arrays through', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
+					<div ref={[refA, refB, refC]}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
 			);
@@ -784,13 +783,13 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('ref={[refA, refB, refC]}');
 		});
 
-		it('combines a single TSX-style ref={expr} with multiple {ref expr} keyword-form refs', () => {
+		it('passes Solid-native ref arrays through with existing JSX syntax', () => {
 			const { code } = compile(
 				`function App() { return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
+					<div ref={[refA, refB, refC]}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
 			);

@@ -1,6 +1,7 @@
 import { lazy } from 'preact/compat';
 import { act } from 'preact/test-utils';
 import { useState } from 'preact/hooks';
+import { mergeRefs } from '@tsrx/preact/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
@@ -129,11 +130,9 @@ function NamedDirectRefApp() {
 			named_direct_anonymous_node = node;
 		}
 		<input
-			ref={nativeRef}
-			{ref anonymousRef}
-			input_ref={ref (node: HTMLInputElement | null) => {
+			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
-			}}
+			})}
 			class="named-direct-ref"
 			type="text"
 		/>
@@ -150,7 +149,7 @@ function NamedForwardRefApp() {
 	return <>
 		<NamedForwardInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_forward_node = node;
 			}}
 		/>
@@ -164,15 +163,21 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
-	return <><input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" /></>;
+function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			{...props}
+			ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
+			class="named-spread-before-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadBeforeRefApp() {
 	return <>
 		<NamedSpreadBeforeRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_before_node = node;
 			}}
 		/>
@@ -186,15 +191,21 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
-	return <><input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" /></>;
+function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
+			{...props}
+			class="named-spread-after-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadAfterRefApp() {
 	return <>
 		<NamedSpreadAfterRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_after_node = node;
 			}}
 		/>
@@ -215,8 +226,8 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
 	return <>
-		const first = { type: props.type, first_ref: props.first_ref };
-		const second = { second_ref: props.second_ref };
+		const first = { type: props.type, ref: props.first_ref };
+		const second = { ref: props.second_ref };
 		<input
 			{...first}
 			{...second}
@@ -230,10 +241,10 @@ function MultiSpreadExplicitRefApp() {
 	return <>
 		<MultiSpreadExplicitRefInput
 			type="text"
-			first_ref={ref (node: HTMLInputElement | null) => {
+			first_ref={(node: HTMLInputElement | null) => {
 				multi_spread_first_node = node;
 			}}
-			second_ref={ref (node: HTMLInputElement | null) => {
+			second_ref={(node: HTMLInputElement | null) => {
 				multi_spread_second_node = node;
 			}}
 		/>
@@ -243,7 +254,7 @@ function MultiSpreadExplicitRefApp() {
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={ref named_ref_object} /></>;
+	return <><NamedForwardInput type="text" input_ref={named_ref_object} /></>;
 }
 
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
@@ -355,7 +366,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		]);
 	});
 
-	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+	it('merges explicit callback refs with native refs', async () => {
 		named_direct_node = null;
 		named_direct_native_node = null;
 		named_direct_anonymous_node = null;
@@ -373,7 +384,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(named_forward_node!.className).toBe('named-forward-ref');
 	});
 
-	it('merges named spread refs with native ref after the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref after the spread', async () => {
 		named_spread_before_node = null;
 		named_spread_before_native_node = null;
 		await render(NamedSpreadBeforeRefApp);
@@ -381,7 +392,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(named_spread_before_node).toBe(named_spread_before_native_node);
 	});
 
-	it('merges named spread refs with native ref before the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref before the spread', async () => {
 		named_spread_after_node = null;
 		named_spread_after_native_node = null;
 		await render(NamedSpreadAfterRefApp);
@@ -389,7 +400,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(named_spread_after_node).toBe(named_spread_after_native_node);
 	});
 
-	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+	it('merges ref props from multiple host spreads with one explicit ref', async () => {
 		multi_spread_first_node = null;
 		multi_spread_second_node = null;
 		multi_spread_native_node = null;
@@ -399,12 +410,7 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(multi_spread_first_node).toBe(multi_spread_second_node);
 		expect(multi_spread_first_node).toBe(multi_spread_native_node);
 		expect(multi_spread_native_calls).toBe(1);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
-			false,
-		);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
-			false,
-		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('ref')).toBe(false);
 	});
 
 	it('assigns named ref props backed by Preact-style ref objects', async () => {

@@ -2543,8 +2543,6 @@ const visitors = {
 					}
 				} else if (attr.type === 'SpreadAttribute') {
 					visit(attr.argument, state);
-				} else if (attr.type === 'RefAttribute') {
-					visit(attr.argument, state);
 				}
 			}
 			/** @type {(AST.Node | AST.Expression)[]} */

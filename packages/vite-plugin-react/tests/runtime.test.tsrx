@@ -1,5 +1,6 @@
 import type { MockInstance } from 'vitest';
 import { useState, use } from 'react';
+import { mergeRefs } from '@tsrx/react/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
@@ -214,7 +215,7 @@ let element_ref_captured: HTMLDivElement | null = null;
 function ElementRefApp() {
 	return <>
 		<div
-			{ref (node: HTMLDivElement) => {
+			ref={(node: HTMLDivElement) => {
 				element_ref_captured = node;
 			}}
 			class="ref-target"
@@ -236,7 +237,7 @@ function CompositeRefApp() {
 	return <>
 		<InputComp
 			type="text"
-			{ref (node: HTMLInputElement) => {
+			ref={(node: HTMLInputElement) => {
 				composite_ref_captured = node;
 			}}
 		/>
@@ -257,7 +258,7 @@ function MultiRefApp() {
 			multi_ref2_node = node;
 		}
 		<div
-			{ref (node: HTMLDivElement) => {
+			ref={(node: HTMLDivElement) => {
 				firstRef(node);
 				secondRef(node);
 			}}
@@ -268,11 +269,9 @@ function MultiRefApp() {
 	</>;
 }
 
-// ── Multiple `{ref expr}` keyword-form refs auto-merged by the compiler ──
+// ── Explicitly merged refs ──
 // React's runtime treats duplicate `ref` props as a normal prop collision,
-// so multiple TSX-style `ref={...}` attributes are a compile error. The
-// Ripple `{ref expr}` keyword form is the supported way to combine refs;
-// the compiler folds them into a single `mergeRefs(...)` call.
+// so callers compose multiple refs with the target helper.
 
 let auto_merged_a: HTMLDivElement | null = null;
 let auto_merged_b: HTMLDivElement | null = null;
@@ -289,14 +288,9 @@ function AutoMergedRefApp() {
 		function refC(node: HTMLDivElement) {
 			auto_merged_c = node;
 		}
-		<div {ref refA} {ref refB} {ref refC} class="auto-merged">{'auto merged'}</div>
+		<div ref={mergeRefs(refA, refB, refC)} class="auto-merged">{'auto merged'}</div>
 	</>;
 }
-
-// ── Mixing Ripple `{ref expr}` and TSX-style `ref={expr}` ──
-// At most one TSX-style `ref={expr}` is allowed; any number of
-// `{ref expr}` keyword-form refs may sit alongside it. Both should fire
-// with the same node.
 
 let mixed_keyword_node: HTMLDivElement | null = null;
 let mixed_jsx_node: HTMLDivElement | null = null;
@@ -309,7 +303,7 @@ function AutoMergedMixedRefApp() {
 		function jsxRef(node: HTMLDivElement) {
 			mixed_jsx_node = node;
 		}
-		<div {ref keywordRef} ref={jsxRef} class="auto-merged-mixed">{'mixed merged'}</div>
+		<div ref={mergeRefs(keywordRef, jsxRef)} class="auto-merged-mixed">{'mixed merged'}</div>
 	</>;
 }
 
@@ -325,7 +319,7 @@ function AutoMergedRefObjectApp() {
 		function callbackRef(node: HTMLDivElement) {
 			auto_ref_obj_callback_node = node;
 		}
-		<div ref={ref_object} {ref callbackRef} class="auto-merged-objects">{'object merged'}</div>
+		<div ref={mergeRefs(ref_object, callbackRef)} class="auto-merged-objects">{'object merged'}</div>
 	</>;
 }
 
@@ -354,7 +348,7 @@ function CleanupRefApp() {
 	return <>
 		const [show, setShow] = useState(true);
 		if (show) {
-			<div ref={legacyMountRef} {ref modernMountRef} class="cleanup-target">{'x'}</div>
+			<div ref={mergeRefs(legacyMountRef, modernMountRef)} class="cleanup-target">{'x'}</div>
 		}
 		<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
 	</>;
@@ -517,7 +511,7 @@ function SpreadRefApp() {
 		<SpreadInput
 			id="spread-input"
 			type="text"
-			{ref (node: HTMLInputElement) => {
+			ref={(node: HTMLInputElement) => {
 				spread_ref_captured = node;
 			}}
 		/>
@@ -569,11 +563,9 @@ function NamedDirectRefApp() {
 			named_direct_anonymous_node = node;
 		}
 		<input
-			ref={nativeRef}
-			{ref anonymousRef}
-			input_ref={ref (node: HTMLInputElement | null) => {
+			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
-			}}
+			})}
 			class="named-direct-ref"
 			type="text"
 		/>
@@ -590,7 +582,7 @@ function NamedForwardRefApp() {
 	return <>
 		<NamedForwardInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_forward_node = node;
 			}}
 		/>
@@ -604,15 +596,21 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
-	return <><input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" /></>;
+function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			{...props}
+			ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
+			class="named-spread-before-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadBeforeRefApp() {
 	return <>
 		<NamedSpreadBeforeRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_before_node = node;
 			}}
 		/>
@@ -626,15 +624,21 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
-	return <><input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" /></>;
+function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
+			{...props}
+			class="named-spread-after-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadAfterRefApp() {
 	return <>
 		<NamedSpreadAfterRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_after_node = node;
 			}}
 		/>
@@ -655,8 +659,8 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
 	return <>
-		const first = { type: props.type, first_ref: props.first_ref };
-		const second = { second_ref: props.second_ref };
+		const first = { type: props.type, ref: props.first_ref };
+		const second = { ref: props.second_ref };
 		<input
 			{...first}
 			{...second}
@@ -670,10 +674,10 @@ function MultiSpreadExplicitRefApp() {
 	return <>
 		<MultiSpreadExplicitRefInput
 			type="text"
-			first_ref={ref (node: HTMLInputElement | null) => {
+			first_ref={(node: HTMLInputElement | null) => {
 				multi_spread_first_node = node;
 			}}
-			second_ref={ref (node: HTMLInputElement | null) => {
+			second_ref={(node: HTMLInputElement | null) => {
 				multi_spread_second_node = node;
 			}}
 		/>
@@ -683,7 +687,7 @@ function MultiSpreadExplicitRefApp() {
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={ref named_ref_object} /></>;
+	return <><NamedForwardInput type="text" input_ref={named_ref_object} /></>;
 }
 
 let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
@@ -696,7 +700,9 @@ function NamedMutableUnmountApp() {
 				type="text"
 				class="named-mutable-unmount"
 				defaultValue="keep"
-				input_ref={ref named_mutable_unmount_slot}
+				ref={(node: HTMLInputElement | null) => {
+					named_mutable_unmount_slot = node;
+				}}
 			/>
 		}
 		<button class="named-mutable-unmount-hide" onClick={() => setShow(false)}>{'hide'}</button>
@@ -1310,7 +1316,7 @@ describe('tsrx-react runtime', () => {
 		expect(multi_ref1_node!.textContent).toBe('multi ref');
 	});
 
-	it('auto-merges multiple {ref expr} keyword-form refs via mergeRefs', async () => {
+	it('supports explicitly merged refs via mergeRefs', async () => {
 		auto_merged_a = null;
 		auto_merged_b = null;
 		auto_merged_c = null;
@@ -1321,7 +1327,7 @@ describe('tsrx-react runtime', () => {
 		expect(auto_merged_a!.textContent).toBe('auto merged');
 	});
 
-	it('auto-merges mixed Ripple {ref expr} and TSX-style ref={expr}', async () => {
+	it('supports explicitly merged callback refs', async () => {
 		mixed_keyword_node = null;
 		mixed_jsx_node = null;
 		await render(AutoMergedMixedRefApp);
@@ -1367,7 +1373,7 @@ describe('tsrx-react runtime', () => {
 		expect(tsx_spread_ref_captured!.id).toBe('tsx-spread-ref-input');
 	});
 
-	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+	it('merges explicit callback refs with native refs', async () => {
 		named_direct_node = null;
 		named_direct_native_node = null;
 		named_direct_anonymous_node = null;
@@ -1385,7 +1391,7 @@ describe('tsrx-react runtime', () => {
 		expect(named_forward_node!.className).toBe('named-forward-ref');
 	});
 
-	it('merges named spread refs with native ref after the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref after the spread', async () => {
 		named_spread_before_node = null;
 		named_spread_before_native_node = null;
 		await render(NamedSpreadBeforeRefApp);
@@ -1393,7 +1399,7 @@ describe('tsrx-react runtime', () => {
 		expect(named_spread_before_node).toBe(named_spread_before_native_node);
 	});
 
-	it('merges named spread refs with native ref before the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref before the spread', async () => {
 		named_spread_after_node = null;
 		named_spread_after_native_node = null;
 		await render(NamedSpreadAfterRefApp);
@@ -1401,7 +1407,7 @@ describe('tsrx-react runtime', () => {
 		expect(named_spread_after_node).toBe(named_spread_after_native_node);
 	});
 
-	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+	it('merges ref props from multiple host spreads with one explicit ref', async () => {
 		multi_spread_first_node = null;
 		multi_spread_second_node = null;
 		multi_spread_native_node = null;
@@ -1411,12 +1417,7 @@ describe('tsrx-react runtime', () => {
 		expect(multi_spread_first_node).toBe(multi_spread_second_node);
 		expect(multi_spread_first_node).toBe(multi_spread_native_node);
 		expect(multi_spread_native_calls).toBe(1);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
-			false,
-		);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
-			false,
-		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('ref')).toBe(false);
 	});
 
 	it('assigns named ref props backed by React-style ref objects', async () => {

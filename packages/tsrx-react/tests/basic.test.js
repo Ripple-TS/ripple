@@ -1142,24 +1142,23 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('transforms {ref fn} on elements to ref={fn}', () => {
+	it('transforms ref={fn} on elements to ref={fn}', () => {
 		const source = `export function App() { return <>
 			function divRef(node) {
 				console.log(node);
 			}
 
-			<div {ref divRef}>{'Hello'}</div>
+			<div ref={divRef}>{'Hello'}</div>
 		</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
 		expect(code).toContain('ref={divRef}');
-		expect(code).not.toContain('{ref divRef}');
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('transforms {ref fn} on composite components to ref={fn}', () => {
+	it('transforms ref={fn} on composite components to ref={fn}', () => {
 		const source = `function Child(props) { return <>
 			const { ...rest } = props;
 			<input {...rest} />
@@ -1170,7 +1169,7 @@ describe('@tsrx/react basic', () => {
 				console.log(node);
 			}
 
-			<Child {ref childRef} />
+			<Child ref={childRef} />
 		</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
@@ -1181,11 +1180,11 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('transforms {ref fn} alongside other attributes', () => {
+	it('transforms ref={fn} alongside other attributes', () => {
 		const source = `export function App() { return <>
 			function inputRef(node) {}
 
-			<input type="text" {ref inputRef} class="field" />
+			<input type="text" ref={inputRef} class="field" />
 		</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
@@ -2117,11 +2116,11 @@ describe('lazy destructuring', () => {
 			expect(code).not.toContain('@tsrx/react/ref');
 		});
 
-		it('passes a single Ripple {ref expr} through as ref={expr} with no helper import', () => {
+		it('passes a single Ripple ref={expr} through as ref={expr} with no helper import', () => {
 			const { code } = compile(
 				`export function App() { return <>
 					function refA(_node) {}
-					<div {ref refA}>{'hi'}</div>
+					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
 			);
@@ -2130,7 +2129,7 @@ describe('lazy destructuring', () => {
 			expect(code).not.toContain('__mergeRefs');
 		});
 
-		it('wraps named ref props and normalizes host spreads', () => {
+		it('keeps named ref-like props ordinary while normalizing host spreads', () => {
 			const { code } = compile(
 				`export function Child(props) { return <>
 					<input {...props} />
@@ -2138,17 +2137,17 @@ describe('lazy destructuring', () => {
 
 				export function App() { return <>
 					let input;
-					<Child input_ref={ref input} />
+					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain("from '@tsrx/react/ref'");
-			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).toContain('input_ref={input}');
 			expect(code).toContain('{...__normalize_spread_props(props)}');
 		});
 
-		it('imports only create_ref_prop for component ref props without host spreads', () => {
+		it('keeps named ref-like props ordinary without host spreads', () => {
 			const { code } = compile(
 				`export function Child(props) { return <>
 					<span>{'child'}</span>
@@ -2156,13 +2155,13 @@ describe('lazy destructuring', () => {
 
 				export function App() { return <>
 					let input;
-					<Child input_ref={ref input} />
+					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain("from '@tsrx/react/ref'");
-			expect(code).toContain('input_ref={__create_ref_prop(() => input, (v) => input = v)}');
+			expect(code).not.toContain("from '@tsrx/react/ref'");
+			expect(code).toContain('input_ref={input}');
 			expect(code).not.toContain('normalize_spread_props');
 		});
 
@@ -2203,33 +2202,35 @@ describe('lazy destructuring', () => {
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});
 
-		it('merges multiple {ref expr} keyword-form refs into a __mergeRefs call', () => {
+		it('preserves explicit mergeRefs calls', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`import { mergeRefs } from '@tsrx/react/ref';
+
+				export function App() { return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					<div {ref refA} {ref refB} {ref refC}>{'hi'}</div>
+					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('ref={__mergeRefs(refA, refB, refC)}');
-			expect(code).toContain("import { mergeRefs as __mergeRefs } from '@tsrx/react/ref'");
+			expect(code).toContain('ref={mergeRefs(refA, refB, refC)}');
+			expect(code).not.toContain('__mergeRefs');
 		});
 
-		it('merges a single ref={expr} with multiple {ref expr} keyword-form refs', () => {
-			const { code } = compile(
+		it('rejects repeated ref={expr} attributes after the keyword removal', () => {
+			expect(() =>
+				compile(
 				`export function App() { return <>
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					<div ref={refA} {ref refB} {ref refC}>{'hi'}</div>
+					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
-			);
-
-			expect(code).toContain('ref={__mergeRefs(refA, refB, refC)}');
+				),
+			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
 		});
 	});
 });

@@ -36,7 +36,6 @@ export interface JsxTransformContext {
 	needs_error_boundary: boolean;
 	needs_suspense: boolean;
 	needs_merge_refs: boolean;
-	needs_ref_prop: boolean;
 	needs_normalize_spread_props: boolean;
 	needs_fragment: boolean;
 	needs_for_of_iterable: boolean;
@@ -192,9 +191,7 @@ export interface JsxPlatformHooks {
 	transformElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**
 	 * Rewrite or normalize raw Ripple attributes before the shared
-	 * `to_jsx_attribute()` mapping runs. Targets can use this to merge multiple
-	 * keyword attributes, such as collapsing repeated `{ref ...}` entries into a
-	 * single `RefAttribute` backed by an array expression.
+	 * `to_jsx_attribute()` mapping runs.
 	 */
 	preprocessElementAttributes?: (attrs: any[], ctx: any, element: any) => any[];
 	/**
@@ -340,8 +337,7 @@ export interface JsxPlatform {
 		 */
 		mergeRefs?: string;
 		/**
-		 * Module to import named-ref-prop helpers from when compiling
-		 * `prop={ref expr}` or normalizing host spreads containing named refs.
+		 * Module to import host-spread normalization helpers from.
 		 */
 		refProp?: string;
 		/**

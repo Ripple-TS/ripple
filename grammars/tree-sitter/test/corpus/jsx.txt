@@ -105,7 +105,7 @@ Ref Attribute
 ==================
 
 fragment App() {
-  <div {ref (node) => console.log(node)}>{'content'}</div>
+  <div ref={(node) => console.log(node)}>{'content'}</div>
 }
 
 ---
@@ -121,17 +121,19 @@ fragment App() {
             open_tag: (jsx_opening_element
               name: (jsx_element_name
                 (identifier))
-              attribute: (jsx_expression
-                (arrow_function
-                  parameters: (formal_parameters
-                    (required_parameter
-                      pattern: (identifier)))
-                  body: (call_expression
-                    function: (member_expression
-                      object: (identifier)
-                      property: (identifier))
-                    arguments: (arguments
-                      (identifier))))))
+              attribute: (jsx_attribute
+                name: (identifier)
+                value: (jsx_expression
+                  (arrow_function
+                    parameters: (formal_parameters
+                      (required_parameter
+                        pattern: (identifier)))
+                    body: (call_expression
+                      function: (member_expression
+                        object: (identifier)
+                        property: (identifier))
+                      arguments: (arguments
+                        (identifier)))))))
             children: (jsx_expression
               (component_statement
                 (expression_statement

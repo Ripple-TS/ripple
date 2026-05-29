@@ -192,7 +192,7 @@ describe('server dynamic DOM elements', () => {
 			return <>
 				let tag = track('article');
 				<@tag
-					{ref (node: HTMLElement) => {
+					ref={(node: HTMLElement) => {
 						capturedElement = node;
 					}}
 					id="ref-test"

@@ -165,14 +165,14 @@ function CounterApp() {
 	</>;
 }
 
-// ── Refs on elements via {ref expr} assignment sugar ──
+// ── Refs on elements via ref={expr} assignment sugar ──
 
 let element_ref_captured: HTMLDivElement | null = null;
 
 function ElementRefApp() {
 	return <>
 		let el: HTMLDivElement | undefined;
-		<div {ref el} class="ref-target">"ref test"</div>
+		<div ref={el} class="ref-target">"ref test"</div>
 		// Solid sets refs synchronously during rendering.
 		queueMicrotask(() => {
 			element_ref_captured = el ?? null;
@@ -216,9 +216,9 @@ function CompositeRefApp() {
 	</>;
 }
 
-// ── {ref expr} on composite components forwards through `props.ref` ──
+// ── ref={expr} on composite components forwards through `props.ref` ──
 // Solid's spread runtime applies `props.ref` automatically when the child
-// spreads `{...props}` onto a DOM element, so `{ref fn}` on a composite
+// spreads `{...props}` onto a DOM element, so `ref={fn}` on a composite
 // travels down without any explicit plumbing in the child.
 
 let spread_ref_captured: HTMLInputElement | null = null;
@@ -232,13 +232,12 @@ function SpreadRefApp() {
 		function onMount(node: HTMLInputElement) {
 			spread_ref_captured = node;
 		}
-		<SpreadRefChild type="text" {ref onMount} />
+		<SpreadRefChild type="text" ref={onMount} />
 	</>;
 }
 
-// ── Multiple {ref ...} on the same DOM element ──
-// The compiler collects them into `ref={[a, b]}`; Solid's applyRef
-// iterates array refs and invokes each with the element.
+// ── Multiple refs on the same DOM element ──
+// Solid's applyRef iterates array refs and invokes each with the element.
 
 let multi_dom_a: HTMLInputElement | null = null;
 let multi_dom_b: HTMLInputElement | null = null;
@@ -251,14 +250,9 @@ function MultiDomRefApp() {
 		function refB(node: HTMLInputElement) {
 			multi_dom_b = node;
 		}
-		<input type="text" {ref refA} {ref refB} />
+		<input type="text" ref={[refA, refB]} />
 	</>;
 }
-
-// ── Mixing Ripple {ref expr} and TSX-style ref={expr} on the same element ──
-// Multiple TSX-style `ref={...}` on one element is a compile error;
-// combining a single `ref={...}` with any number of `{ref expr}` is the
-// supported way to attach multiple refs.
 
 let mixed_keyword_node: HTMLInputElement | null = null;
 let mixed_jsx_node: HTMLInputElement | null = null;
@@ -271,11 +265,11 @@ function MixedDomRefApp() {
 		function jsxRef(node: HTMLInputElement) {
 			mixed_jsx_node = node;
 		}
-		<input type="text" {ref keywordRef} ref={jsxRef} />
+		<input type="text" ref={[keywordRef, jsxRef]} />
 	</>;
 }
 
-// ── Multiple {ref ...} on the same composite component ──
+// ── Multiple ref={...} on the same composite component ──
 // Each ref sees the same underlying DOM node once the child spreads props.
 
 let multi_comp_a: HTMLInputElement | null = null;
@@ -293,7 +287,7 @@ function MultiCompRefApp() {
 		function refC(node: HTMLInputElement) {
 			multi_comp_c = node;
 		}
-		<SpreadRefChild type="text" {ref refA} {ref refB} {ref refC} />
+		<SpreadRefChild type="text" ref={[refA, refB, refC]} />
 	</>;
 }
 
@@ -314,7 +308,7 @@ function DeepRefApp() {
 		function onMount(node: HTMLInputElement) {
 			deep_ref_captured = node;
 		}
-		<DeepOuter type="text" {ref onMount} />
+		<DeepOuter type="text" ref={onMount} />
 	</>;
 }
 
@@ -333,11 +327,9 @@ function NamedDirectRefApp() {
 			named_direct_anonymous_node = node;
 		}
 		<input
-			ref={nativeRef}
-			{ref anonymousRef}
-			input_ref={ref (node: HTMLInputElement | null) => {
+			ref={[nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
-			}}
+			}]}
 			class="named-direct-ref"
 			type="text"
 		/>
@@ -354,7 +346,7 @@ function NamedForwardRefApp() {
 	return <>
 		<NamedForwardInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_forward_node = node;
 			}}
 		/>
@@ -368,15 +360,21 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-function NamedSpreadBeforeRefInput(props: { type: string; input_ref?: any }) {
-	return <><input {...props} ref={namedSpreadBeforeNativeRef} class="named-spread-before-ref" /></>;
+function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			{...props}
+			ref={[input_ref, namedSpreadBeforeNativeRef]}
+			class="named-spread-before-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadBeforeRefApp() {
 	return <>
 		<NamedSpreadBeforeRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_before_node = node;
 			}}
 		/>
@@ -390,15 +388,21 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-function NamedSpreadAfterRefInput(props: { type: string; input_ref?: any }) {
-	return <><input ref={namedSpreadAfterNativeRef} {...props} class="named-spread-after-ref" /></>;
+function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
+	return <>
+		<input
+			ref={[namedSpreadAfterNativeRef, input_ref]}
+			{...props}
+			class="named-spread-after-ref"
+		/>
+	</>;
 }
 
 function NamedSpreadAfterRefApp() {
 	return <>
 		<NamedSpreadAfterRefInput
 			type="text"
-			input_ref={ref (node: HTMLInputElement | null) => {
+			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_after_node = node;
 			}}
 		/>
@@ -419,8 +423,8 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
 	return <>
-		const first = { type: props.type, first_ref: props.first_ref };
-		const second = { second_ref: props.second_ref };
+		const first = { type: props.type, ref: props.first_ref };
+		const second = { ref: props.second_ref };
 		<input
 			{...first}
 			{...second}
@@ -434,10 +438,10 @@ function MultiSpreadExplicitRefApp() {
 	return <>
 		<MultiSpreadExplicitRefInput
 			type="text"
-			first_ref={ref (node: HTMLInputElement | null) => {
+			first_ref={(node: HTMLInputElement | null) => {
 				multi_spread_first_node = node;
 			}}
-			second_ref={ref (node: HTMLInputElement | null) => {
+			second_ref={(node: HTMLInputElement | null) => {
 				multi_spread_second_node = node;
 			}}
 		/>
@@ -447,7 +451,7 @@ function MultiSpreadExplicitRefApp() {
 const named_ref_object: { value: HTMLInputElement | null } = { value: null };
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={ref named_ref_object} /></>;
+	return <><NamedForwardInput type="text" input_ref={named_ref_object} /></>;
 }
 
 // ── If-statement with reactivity ──
@@ -1051,7 +1055,7 @@ describe('tsrx-solid runtime', () => {
 
 	// ── Refs ──
 
-	it('supports {ref el} assignment sugar on elements', async () => {
+	it('supports ref={el} assignment sugar on elements', async () => {
 		element_ref_captured = null;
 		await render(ElementRefApp);
 		await flush();
@@ -1075,7 +1079,7 @@ describe('tsrx-solid runtime', () => {
 	});
 
 	it(
-		'{ref expr} on a composite component forwards through {...props} to the DOM element',
+		'ref={expr} on a composite component forwards through {...props} to the DOM element',
 		async () => {
 			spread_ref_captured = null;
 			await render(SpreadRefApp);
@@ -1084,7 +1088,7 @@ describe('tsrx-solid runtime', () => {
 		},
 	);
 
-	it('supports multiple {ref ...} on the same DOM element', async () => {
+	it('supports multiple ref={...} on the same DOM element', async () => {
 		multi_dom_a = null;
 		multi_dom_b = null;
 		await render(MultiDomRefApp);
@@ -1093,7 +1097,7 @@ describe('tsrx-solid runtime', () => {
 		expect(multi_dom_a).toBe(multi_dom_b);
 	});
 
-	it('mixes Ripple {ref expr} and TSX-style ref={expr} on the same DOM element', async () => {
+	it('mixes Ripple ref={expr} and TSX-style ref={expr} on the same DOM element', async () => {
 		mixed_keyword_node = null;
 		mixed_jsx_node = null;
 		await render(MixedDomRefApp);
@@ -1101,7 +1105,7 @@ describe('tsrx-solid runtime', () => {
 		expect(mixed_keyword_node).toBe(mixed_jsx_node);
 	});
 
-	it('supports multiple {ref ...} on the same composite component', async () => {
+	it('supports multiple ref={...} on the same composite component', async () => {
 		multi_comp_a = null;
 		multi_comp_b = null;
 		multi_comp_c = null;
@@ -1113,14 +1117,14 @@ describe('tsrx-solid runtime', () => {
 		expect(multi_comp_b).toBe(multi_comp_c);
 	});
 
-	it('{ref expr} propagates through nested composite components', async () => {
+	it('ref={expr} propagates through nested composite components', async () => {
 		deep_ref_captured = null;
 		await render(DeepRefApp);
 		expect(deep_ref_captured).toBeInstanceOf(HTMLInputElement);
 		expect(deep_ref_captured!.type).toBe('text');
 	});
 
-	it('merges direct named ref props with native ref and anonymous {ref}', async () => {
+	it('merges explicit callback refs with native refs', async () => {
 		named_direct_node = null;
 		named_direct_native_node = null;
 		named_direct_anonymous_node = null;
@@ -1138,7 +1142,7 @@ describe('tsrx-solid runtime', () => {
 		expect(named_forward_node!.className).toBe('named-forward-ref');
 	});
 
-	it('merges named spread refs with native ref after the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref after the spread', async () => {
 		named_spread_before_node = null;
 		named_spread_before_native_node = null;
 		await render(NamedSpreadBeforeRefApp);
@@ -1146,7 +1150,7 @@ describe('tsrx-solid runtime', () => {
 		expect(named_spread_before_node).toBe(named_spread_before_native_node);
 	});
 
-	it('merges named spread refs with native ref before the spread', async () => {
+	it('merges explicitly forwarded ref props with native ref before the spread', async () => {
 		named_spread_after_node = null;
 		named_spread_after_native_node = null;
 		await render(NamedSpreadAfterRefApp);
@@ -1154,7 +1158,7 @@ describe('tsrx-solid runtime', () => {
 		expect(named_spread_after_node).toBe(named_spread_after_native_node);
 	});
 
-	it('merges named refs from multiple host spreads with one explicit ref', async () => {
+	it('merges ref props from multiple host spreads with one explicit ref', async () => {
 		multi_spread_first_node = null;
 		multi_spread_second_node = null;
 		multi_spread_native_node = null;
@@ -1164,12 +1168,7 @@ describe('tsrx-solid runtime', () => {
 		expect(multi_spread_first_node).toBe(multi_spread_second_node);
 		expect(multi_spread_first_node).toBe(multi_spread_native_node);
 		expect(multi_spread_native_calls).toBe(1);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('first_ref')).toBe(
-			false,
-		);
-		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('second_ref')).toBe(
-			false,
-		);
+		expect(container.querySelector('.multi-spread-explicit-ref')!.hasAttribute('ref')).toBe(false);
 	});
 
 	it('assigns named ref props backed by value ref objects', async () => {

@@ -6478,9 +6478,6 @@
           "include": "#jsx-style-directive"
         },
         {
-          "include": "#jsx-ref-modifier"
-        },
-        {
           "include": "#jsx-tag-tsx"
         },
         {
@@ -6696,15 +6693,6 @@
           "include": "#string"
         }
       ]
-    },
-    "jsx-ref-modifier": {
-      "name": "storage.modifier.js",
-      "match": "\\b(ref)(?=\\s+(?:[_$[:alpha:]]|\\())",
-      "captures": {
-        "1": {
-          "name": "storage.modifier.js"
-        }
-      }
     },
     "jsx-tag-attributes-illegal": {
       "name": "invalid.illegal.attribute.js",
@@ -7021,9 +7009,6 @@
       "patterns": [
         {
           "include": "#jsx-style-directive"
-        },
-        {
-          "include": "#jsx-ref-modifier"
         },
         {
           "include": "#jsx-tag-tsx"

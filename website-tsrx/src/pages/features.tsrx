@@ -156,7 +156,7 @@ const REFS_HTML = highlight_tsrx(
       console.log(node);
     }
 
-    <input {ref logNode} logRef={ref logNode} type="text" />
+    <input ref={logNode} logRef={logNode} type="text" />
   </>;
 }`,
 );
@@ -186,7 +186,7 @@ function Form() {
   return <>
     let input: HTMLInputElement | undefined;
 
-    <Field inputRef={ref input} />
+    <Field inputRef={input} />
   </>;
 }`,
 );
@@ -528,7 +528,7 @@ export function FeaturesPage() {
 								<tbody>
 									<tr>
 										<td>
-											<code class="inline-code">{'{ref value}'}</code>
+											<code class="inline-code">{'ref={value}'}</code>
 										</td>
 										<td>{'A direct ref on the current element.'}</td>
 									</tr>
@@ -540,7 +540,7 @@ export function FeaturesPage() {
 									</tr>
 									<tr>
 										<td>
-											<code class="inline-code">{'inputRef={ref value}'}</code>
+											<code class="inline-code">{'inputRef={value}'}</code>
 										</td>
 										<td>{'A named ref prop that can be forwarded through components.'}</td>
 									</tr>
@@ -548,14 +548,14 @@ export function FeaturesPage() {
 							</table>
 							<p class="section-body">
 								{'The '}
-								<code class="inline-code">{'{ref expr}'}</code>
+								<code class="inline-code">{'ref={expr}'}</code>
 								{' and '}
 								<code class="inline-code">{'ref={expr}'}</code>
 								{' forms attach a ref directly to the current element.'}
 							</p>
 							<p class="section-body">
 								{'Named ref props '}
-								<code class="inline-code">{'anyName={ref expr}'}</code>
+								<code class="inline-code">{'anyName={expr}'}</code>
 								{' are useful for component APIs, and they also work on host elements: TSRX applies them as refs instead of emitting them as attributes.'}
 							</p>
 							<pre class="code-block">
@@ -571,7 +571,7 @@ export function FeaturesPage() {
 								{'. Ripple and Solid also support mutable variables on direct host refs. You may combine one '}
 								<code class="inline-code">{'ref={...}'}</code>
 								{' with any number of anonymous or named '}
-								<code class="inline-code">{'{ref ...}'}</code>
+								<code class="inline-code">{'ref={...}'}</code>
 								{' expressions on one host element; TSRX merges them. Solid also accepts an array in '}
 								<code class="inline-code">{'ref={...}'}</code>
 								{'.'}
@@ -588,9 +588,9 @@ export function FeaturesPage() {
 								{'Vue keeps '}
 								<code class="inline-code">{'ref={...}'}</code>
 								{' on components as Vue\'s native component ref; it is not forwarded to a DOM element inside the component. Use a named '}
-								<code class="inline-code">{'inputRef={ref input}'}</code>
+								<code class="inline-code">{'inputRef={input}'}</code>
 								{' or anonymous '}
-								<code class="inline-code">{'{ref input}'}</code>
+								<code class="inline-code">{'ref={input}'}</code>
 								{' when a Vue component should expose an inner DOM ref.'}
 							</p>
 							<pre class="code-block">
@@ -600,7 +600,7 @@ export function FeaturesPage() {
 								{'Named ref props are marked at runtime. Use '}
 								<code class="inline-code">{'isRefProp(value)'}</code>
 								{' to detect one; anonymous '}
-								<code class="inline-code">{'{ref ...}'}</code>
+								<code class="inline-code">{'ref={...}'}</code>
 								{' props are intentionally not publicly inspectable because their prop keys are unique symbols.'}
 							</p>
 						</section>

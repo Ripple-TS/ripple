@@ -449,14 +449,14 @@ When a prop name matches the variable, use the shorthand:
 <Input {value} {onChange} />
 ```
 
-### DOM refs — `{ref expr}`, `ref={...}`, and named ref props
+### DOM refs — `ref={expr}`, `ref={...}`, and named ref props
 
 Use refs when you need the DOM node. TSRX has three forms:
 
-- **Keyword form `{ref expr}`** — a direct ref on the current element or component.
+- **Keyword form `ref={expr}`** — a direct ref on the current element or component.
 - **Native-style attribute `ref={expr}`** — the target runtime's native ref
   attribute. At most one `ref={...}` attribute is allowed on one element.
-- **Named ref prop `inputRef={ref expr}`** — a string-keyed ref prop that are
+- **Named ref prop `inputRef={expr}`** — a string-keyed ref prop that are
 	great for component and element composition. On host elements TSRX
   applies named ref props as refs instead of emitting them as attributes.
 
@@ -473,7 +473,7 @@ What `expr` can be — and how it is interpreted — depends on the target:
 
 ```tsrx
 // Callback ref — every target.
-<input {ref (node) => node?.focus()} />
+<input ref={(node) => node?.focus()} />
 ```
 
 ```tsrx
@@ -481,7 +481,7 @@ What `expr` can be — and how it is interpreted — depends on the target:
 function AutoFocus() {
   return <>
   let input: HTMLInputElement | undefined;
-  <input ref={input} {ref input} myOtherRef={ref input} type="text" />
+  <input ref={input} ref={input} myOtherRef={input} type="text" />
 
   </>;
 }
@@ -493,7 +493,7 @@ function AutoFocus() {
 function Form() {
   return <>
   let input: HTMLInputElement | undefined;
-  <Field inputRef={ref input} />
+  <Field inputRef={input} />
 
   </>;
 }
@@ -515,14 +515,14 @@ function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
   function logNode(node: HTMLInputElement | null) { console.log(node); }
 
-  <input ref={inputRef} {ref logNode} logRef={ref logNode} type="text" />
+  <input ref={inputRef} ref={logNode} logRef={logNode} type="text" />
 
   </>;
 }
 ```
 
 **Combining refs**: you may combine one `ref={...}` with any number of
-anonymous or named `{ref ...}` expressions on one host element. React,
+anonymous or named `ref={...}` expressions on one host element. React,
 Preact, and Vue use the target `ref` helper (`@tsrx/<target>/ref`) to merge
 callbacks and ref objects. Solid emits a native ref array such as
 `ref={[a, b]}`. Ripple applies refs through its block runtime.
@@ -531,11 +531,11 @@ callbacks and ref objects. Solid emits a native ref array such as
 cross component boundaries when the child forwards or spreads props onto a
 host element. Vue is special: `ref={...}` on a Vue component remains Vue's
 native component ref and is not forwarded to the child's DOM element. Use a
-named ref prop such as `inputRef={ref input}` when a Vue component should
+named ref prop such as `inputRef={input}` when a Vue component should
 expose an inner DOM ref.
 
 **Runtime inspection**: named ref props are marked at runtime. Use
-`isRefProp(value)` to detect a named ref prop. Anonymous `{ref ...}` props are
+`isRefProp(value)` to detect a named ref prop. Anonymous `ref={...}` props are
 not publicly inspectable because their prop keys are unique symbols.
 
 ### Lexical template scoping
@@ -897,7 +897,7 @@ supported directly — use `ErrorBoundary` / `Suspense` manually if needed.
 - Lowers `pending` blocks to Vue `<Suspense>` with `v-slots`; empty
   `pending {}` produces no fallback slot.  This will be replace with VaporSuspense
 	once it's released.
-- Supports `{ref ...}` callback refs on host elements; repeated refs are
+- Supports `ref={...}` callback refs on host elements; repeated refs are
   merged into one callback
 - Use suspending children such as `defineVaporAsyncComponent()` for
   `try/pending`; top-level `await` inside returned TSRX templates remains unsupported
@@ -1013,11 +1013,11 @@ function List<T>({ items, render }: Props<T>) {
 | Lazy prop destructure | `function C(&{ x, y }: Props) { return <>...</>; }` |
 | Lazy array destructure | `let &[count, set] = createSignal(0);` |
 | Prop shorthand | `<Input {value} {onChange} />` |
-| Callback ref | `<input {ref (node) => ...} />` |
+| Callback ref | `<input ref={(node) => ...} />` |
 | Direct mutable ref (Solid/Ripple) | `<input ref={varName} />` |
-| Named mutable ref prop | `<Field inputRef={ref input} />` |
+| Named mutable ref prop | `<Field inputRef={input} />` |
 | Reactive/object ref | `<input ref={useRefValue} />` |
-| Multiple host refs | `<input ref={obj} {ref a} {ref b} />` |
+| Multiple host refs | `<input ref={obj} ref={a} ref={b} />` |
 | Conditional rendering | `if (cond) { ... } else { ... }` |
 | List rendering | `for (const x of xs; index i; key x.id) { ... }` |
 | Multi-branch | `switch (x) { case 'a': ... break; }` |

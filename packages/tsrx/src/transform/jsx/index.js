@@ -170,7 +170,6 @@ export function createJsxTransform(platform) {
 			needs_error_boundary: false,
 			needs_suspense: false,
 			needs_merge_refs: false,
-			needs_ref_prop: false,
 			needs_normalize_spread_props: false,
 			needs_fragment: false,
 			needs_for_of_iterable: false,
@@ -279,31 +278,20 @@ export function createJsxTransform(platform) {
 			FunctionExpression: transform_function,
 			ArrowFunctionExpression: transform_function,
 
-			RefExpression(node) {
-				return create_ref_prop_call(node, transform_context);
-			},
-
 			JSXOpeningElement(node, { next }) {
 				const visited = /** @type {any} */ (next() || node);
 				if (visited.metadata?.native_tsrx_pretransformed) {
 					return visited;
 				}
 				const is_component = is_component_like_jsx_name(visited.name);
-				const attrs = normalize_named_ref_attributes(
-					visited.attributes || [],
-					!is_component,
-					transform_context,
-				);
-				if (transform_context.typeOnly) {
-					add_ref_target_type_to_ref_prop_attributes(
-						attrs,
-						!is_component ? create_element_ref_target_type(visited) : null,
-					);
-				}
 				return {
 					...visited,
 					attributes: merge_duplicate_refs(
-						normalize_host_ref_spreads(attrs, !is_component, transform_context),
+						normalize_host_ref_spreads(
+							visited.attributes || [],
+							!is_component,
+							transform_context,
+						),
 						transform_context,
 					),
 				};
@@ -5087,8 +5075,6 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 		transform_context.needs_merge_refs && platform.imports.mergeRefs
 			? platform.imports.mergeRefs
 			: null;
-	const ref_prop_source =
-		transform_context.needs_ref_prop && platform.imports.refProp ? platform.imports.refProp : null;
 	const normalize_spread_props_source =
 		transform_context.needs_normalize_spread_props && platform.imports.refProp
 			? platform.imports.refProp
@@ -5102,14 +5088,6 @@ function inject_try_imports(program, transform_context, platform, suspense_sourc
 			ref_imports,
 			merge_refs_source,
 			b.import_specifier('mergeRefs', MERGE_REFS_INTERNAL_NAME),
-		);
-	}
-
-	if (ref_prop_source !== null) {
-		add_ref_import_specifier(
-			ref_imports,
-			ref_prop_source,
-			b.import_specifier('create_ref_prop', CREATE_REF_PROP_INTERNAL_NAME),
 		);
 	}
 
@@ -5527,13 +5505,13 @@ function to_jsx_expression_container(expression, source_node = expression) {
  * the default "map over `to_jsx_attribute`" via
  * `hooks.transformElementAttributes`. Whether or not the hook is used,
  * the result is run through `merge_duplicate_refs` so platforms with a
- * `multiRefStrategy` get duplicate-`ref` handling for free.
+ * `multiRefStrategy` can compose an explicit `ref={...}` with compiler-
+ * synthesized refs created for host spreads.
  *
  * Before lowering, the raw attribute list is validated to reject elements
  * with more than one TSX-style `ref={...}` attribute — that shape produces
  * duplicate JSX props which the JSX runtime collapses to last-wins (and
- * which TypeScript can't type cleanly). Multiple Ripple `{ref expr}`
- * keyword-form refs remain valid and merge into a single ref attribute.
+ * which TypeScript can't type cleanly).
  *
  * @param {any[]} attrs
  * @param {TransformContext} transform_context
@@ -5543,7 +5521,6 @@ function to_jsx_expression_container(expression, source_node = expression) {
 function transform_element_attributes_dispatch(attrs, transform_context, element) {
 	validate_at_most_one_ref_attribute(attrs, transform_context);
 	const is_component = is_component_like_element(element);
-	attrs = normalize_named_ref_attributes(attrs, !is_component, transform_context);
 	const preprocess = transform_context.platform.hooks?.preprocessElementAttributes;
 	if (preprocess) {
 		attrs = preprocess(attrs, transform_context, element);
@@ -5552,41 +5529,10 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
 	const result = hook
 		? hook(attrs, transform_context, element)
 		: attrs.map((/** @type {any} */ a) => to_jsx_attribute(a, transform_context));
-	if (transform_context.typeOnly) {
-		add_ref_target_type_to_ref_prop_attributes(
-			result,
-			!is_component ? create_element_ref_target_type(element) : null,
-		);
-	}
 	return merge_duplicate_refs(
 		normalize_host_ref_spreads(result, !is_component, transform_context),
 		transform_context,
 	);
-}
-
-/**
- * @param {any[]} attrs
- * @param {AST.TypeNode | null} ref_target_type
- * @returns {void}
- */
-export function add_ref_target_type_to_ref_prop_attributes(attrs, ref_target_type) {
-	if (!ref_target_type) return;
-	for (const attr of attrs) {
-		const expression =
-			attr?.type === 'JSXAttribute' &&
-			attr.value?.type === 'JSXExpressionContainer' &&
-			attr.value.expression?.type !== 'JSXEmptyExpression'
-				? attr.value.expression
-				: null;
-		if (
-			expression?.type === 'CallExpression' &&
-			expression.callee?.type === 'Identifier' &&
-			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME &&
-			!expression.typeArguments
-		) {
-			expression.typeArguments = b.ts_type_parameter_instantiation([ref_target_type]);
-		}
-	}
 }
 
 /**
@@ -5612,48 +5558,6 @@ function is_component_like_jsx_name(name) {
 	if (name.type === 'JSXIdentifier') return /^[A-Z]/.test(name.name);
 	if (name.type === 'JSXMemberExpression') return true;
 	return false;
-}
-
-/**
- * @param {any[]} attrs
- * @param {boolean} is_host
- * @param {TransformContext} transform_context
- * @returns {any[]}
- */
-function normalize_named_ref_attributes(attrs, is_host, transform_context) {
-	if (!is_host) return attrs;
-
-	return attrs.map((attr) => {
-		if (!is_named_ref_attribute(attr)) {
-			return attr;
-		}
-
-		if (transform_context.typeOnly) {
-			return mark_type_only_named_ref_attribute(attr);
-		}
-
-		return {
-			...attr,
-			metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
-			name: attr.name?.type === 'JSXIdentifier' ? { ...attr.name, name: 'ref' } : b.id('ref'),
-		};
-	});
-}
-
-/**
- * @param {any} attr
- * @returns {any}
- */
-function mark_type_only_named_ref_attribute(attr) {
-	return {
-		...attr,
-		name: attr.name
-			? {
-					...attr.name,
-					metadata: { ...(attr.name.metadata || {}), disable_verification: true },
-				}
-			: attr.name,
-	};
 }
 
 /**
@@ -5695,7 +5599,7 @@ function normalize_host_ref_spreads(attrs, is_host, transform_context) {
 				attr,
 			);
 			ref_attr.metadata = { ...(ref_attr.metadata || {}) };
-			/** @type {any} */ (ref_attr.metadata).from_ref_keyword = true;
+			/** @type {any} */ (ref_attr.metadata).synthetic_ref = true;
 			add_jsx_setup_declaration(spread, b.let(clone_identifier(normalized_id), normalized));
 
 			return [spread, ref_attr];
@@ -5785,43 +5689,9 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
 }
 
 /**
- * @param {any} attr
- * @returns {boolean}
- */
-function is_named_ref_attribute(attr) {
-	return !!(
-		attr &&
-		(attr.type === 'Attribute' || attr.type === 'JSXAttribute') &&
-		attr.name &&
-		((attr.name.type === 'Identifier' && attr.name.name !== 'ref') ||
-			(attr.name.type === 'JSXIdentifier' && attr.name.name !== 'ref')) &&
-		(attr.value?.type === 'RefExpression' ||
-			is_ref_prop_expression(attr.value) ||
-			(attr.value?.type === 'JSXExpressionContainer' &&
-				is_ref_prop_expression(attr.value.expression)))
-	);
-}
-
-/**
- * @param {any} expression
- * @returns {boolean}
- */
-export function is_ref_prop_expression(expression) {
-	return (
-		expression?.type === 'RefExpression' ||
-		(expression?.type === 'CallExpression' &&
-			expression.callee?.type === 'Identifier' &&
-			expression.callee.name === CREATE_REF_PROP_INTERNAL_NAME)
-	);
-}
-
-/**
  * Reject elements with more than one TSX-style `ref={...}` attribute.
- * Ripple's `{ref expr}` keyword form is parsed as a `RefAttribute` node
- * and is excluded from the count — multiple keyword-form refs are a Ripple
- * feature that compose via the merge pass. This validator runs over the
- * raw, pre-lowering attribute list so each shape is still distinguishable
- * by `type`. Ripple `Element` attributes have type `Attribute` with an
+ * This validator runs over the raw, pre-lowering attribute list so each
+ * shape is still distinguishable by `type`. Ripple `Element` attributes have type `Attribute` with an
  * `Identifier` name (the parser normalizes `JSXAttribute`/`JSXIdentifier`
  * for non-Tsx elements); inside `<tsx:react>` compat blocks they retain
  * the original `JSXAttribute`/`JSXIdentifier` shape, so we accept both.
@@ -5857,7 +5727,7 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 		}
 		error(
 			'Element has multiple `ref={...}` attributes; an element may have at most one. ' +
-				"Use Ripple's `{ref expr}` keyword form to combine multiple refs on one element.",
+				'Use a single array-valued ref such as `ref={[a, b]}` where the target framework supports multiple refs.',
 			transform_context?.filename ?? null,
 			node,
 			transform_context?.errors,
@@ -5867,11 +5737,9 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 }
 
 /**
- * Collapse multiple `ref` JSXAttributes on a single element into one. Both
- * Ripple's `{ref expr}` keyword form and TSX-style `ref={expr}` are handled
- * because they have already been normalized to `JSXAttribute` named `ref`
- * by `to_jsx_attribute` (Ripple) or the parser (TSX-style). The shape of
- * the merged value depends on `platform.jsx.multiRefStrategy`:
+ * Collapse an explicit `ref={...}` plus compiler-synthesized spread refs into
+ * one attribute. The shape of the merged value depends on
+ * `platform.jsx.multiRefStrategy`:
  *
  * - `'merge-refs'` — emit `ref={__mergeRefs(a, b, ...)}` and flag
  *   `needs_merge_refs` so an import is injected later. React and Preact
@@ -5897,7 +5765,7 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 	for (const attr of jsx_attrs) {
 		if (!is_jsx_ref_attribute(attr)) continue;
 		count += 1;
-		if (!attr.metadata?.from_ref_keyword) tsx_form_count += 1;
+		if (!attr.metadata?.synthetic_ref) tsx_form_count += 1;
 	}
 	if (count <= 1) return jsx_attrs;
 	// Two or more genuine `ref={...}` (TSX-form) attributes are already a
@@ -5918,7 +5786,7 @@ export function merge_duplicate_refs(jsx_attrs, transform_context) {
 			// Inherit loc from the (at most one) `ref={expr}`-form attribute so
 			// the kept `ref` keyword in the generated `ref={__mergeRefs(...)}`
 			// retains a source mapping back to its original `ref=` keyword.
-			if (!source_attr && !attr.metadata?.from_ref_keyword) {
+			if (!source_attr && !attr.metadata?.synthetic_ref) {
 				source_attr = attr;
 			}
 		} else {
@@ -5976,7 +5844,6 @@ function is_jsx_ref_attribute(attr) {
  * identifiers and avoids shadowing user-declared `mergeRefs` symbols.
  */
 export const MERGE_REFS_INTERNAL_NAME = '__mergeRefs';
-export const CREATE_REF_PROP_INTERNAL_NAME = '__create_ref_prop';
 export const NORMALIZE_SPREAD_PROPS_INTERNAL_NAME = '__normalize_spread_props';
 export const MAP_ITERABLE_INTERNAL_NAME = '__map_iterable';
 export const ITERATION_VALUE_INTERNAL_NAME = '__IterationValue';
@@ -5998,17 +5865,6 @@ const MATHML_REF_TAG_NAMES = new Set(
 		' ',
 	),
 );
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-export function is_ref_expression_attribute_value(value) {
-	return (
-		value?.type === 'RefExpression' ||
-		(value?.type === 'JSXExpressionContainer' && value.expression?.type === 'RefExpression')
-	);
-}
 
 /**
  * @param {any} element
@@ -6098,27 +5954,6 @@ function create_tag_name_map_ref_type(map_name, tag_name) {
 export function to_jsx_attribute(attr, transform_context) {
 	if (!attr) return attr;
 	if (attr.type === 'JSXAttribute') {
-		if (
-			attr.value?.type === 'JSXExpressionContainer' &&
-			attr.value.expression?.type === 'RefExpression'
-		) {
-			return {
-				...attr,
-				value: to_jsx_expression_container(
-					create_ref_prop_call(attr.value.expression, transform_context),
-				),
-				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
-			};
-		}
-		if (
-			attr.value?.type === 'JSXExpressionContainer' &&
-			is_ref_prop_expression(attr.value.expression)
-		) {
-			return {
-				...attr,
-				metadata: { ...(attr.metadata || {}), from_ref_keyword: true },
-			};
-		}
 		return attr;
 	}
 	if (attr.type === 'JSXSpreadAttribute') {
@@ -6133,26 +5968,6 @@ export function to_jsx_attribute(attr, transform_context) {
 			attr,
 		);
 	}
-	if (attr.type === 'RefAttribute') {
-		// `{ref expr}` and the generated `ref={expr}` have different shapes,
-		// so the source-to-generated mapping is imprecise — but pointing
-		// editors at the `{ref expr}` span is still useful for hover/jump,
-		// matching how shorthand `{name}` → `name={name}` carries loc.
-		// `from_ref_keyword` lets `merge_duplicate_refs` tell this form apart
-		// from genuine `ref={...}` attributes without inferring it from
-		// whether `name.loc` happens to be present.
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXAttribute',
-				name: { type: 'JSXIdentifier', name: 'ref', metadata: { path: [] } },
-				value: to_jsx_expression_container(attr.argument),
-				shorthand: false,
-				metadata: { path: [], from_ref_keyword: true },
-			}),
-			attr,
-		);
-	}
-
 	// Platforms that expect React-style DOM attrs (React) rewrite `class` to
 	// `className`; Preact and Solid accept `class` natively and keep it.
 	let attr_name = attr.name;
@@ -6171,28 +5986,15 @@ export function to_jsx_attribute(attr, transform_context) {
 		attr_name && attr_name.type === 'Identifier' ? identifier_to_jsx_name(attr_name) : attr_name;
 
 	let value = attr.value;
-	const is_ref_expression_value =
-		value?.type === 'RefExpression' ||
-		is_ref_prop_expression(value) ||
-		(value?.type === 'JSXExpressionContainer' && is_ref_prop_expression(value.expression));
 	if (value) {
 		if (value.type === 'Literal' && typeof value.value === 'string') {
 			// Keep string literal as attribute string.
-		} else if (value.type === 'RefExpression') {
-			value = to_jsx_expression_container(create_ref_prop_call(value, transform_context));
 		} else if (value.type !== 'JSXExpressionContainer') {
 			value = to_jsx_expression_container(value);
-		} else if (value.expression?.type === 'RefExpression') {
-			value = to_jsx_expression_container(
-				create_ref_prop_call(value.expression, transform_context),
-			);
 		}
 	}
 
 	const jsx_attribute = build_jsx_attribute(name, value || null, attr.shorthand === true);
-	if (is_ref_expression_value) {
-		/** @type {any} */ (jsx_attribute.metadata).from_ref_keyword = true;
-	}
 
 	if (value_has_unmappable_jsx_loc(value)) {
 		/** @type {any} */ (jsx_attribute.metadata).has_unmappable_value = true;
@@ -6212,26 +6014,6 @@ function value_has_unmappable_jsx_loc(value) {
 		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
 		!value.expression.loc
 	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function create_ref_prop_call(node, transform_context) {
-	transform_context.needs_ref_prop = true;
-
-	const argument = node.argument;
-	const args = [b.thunk(argument)];
-
-	if (argument.type === 'Identifier' || argument.type === 'MemberExpression') {
-		args.push(
-			b.arrow([b.id('v')], b.assignment('=', clone_expression_node(argument, false), b.id('v'))),
-		);
-	}
-
-	return b.call(CREATE_REF_PROP_INTERNAL_NAME, ...args);
 }
 
 /**
