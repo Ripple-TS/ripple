@@ -1472,11 +1472,6 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'Style': {
-			nodeContent = ['style ', path.call(print, 'value')];
-			break;
-		}
-
 		case 'StyleSheet': {
 			// StyleSheet nodes inside <style> elements. When CSS is empty/whitespace-only,
 			// return empty string so the element collapses to <style></style>.

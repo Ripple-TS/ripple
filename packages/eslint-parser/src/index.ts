@@ -18,7 +18,6 @@ const visitorKeys: Record<string, string[]> = {
 	Attribute: ['name', 'value'],
 	Text: ['expression'],
 	TSRXExpression: ['expression'],
-	Style: ['value'],
 	StyleSheet: [],
 	ForOfStatement: ['left', 'right', 'body'],
 };

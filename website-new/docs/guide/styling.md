@@ -205,15 +205,16 @@ function Child() {
 
 </Code>
 
-## Passing Scoped Classes to Child Components (`#style`)
+## Passing Scoped Classes to Child Components (`<style ref>`)
 
 Scoped styles only apply to DOM elements within the same component. If you want a
-parent to influence how a child component looks, you can pass scoped class names
-as props using the `#style` identifier.
+parent to influence how a child component looks, expose the scoped class map from
+the component's `<style>` block with a ref and pass entries from that map as
+props.
 
-`#style.className` produces a string containing both the CSS scope hash and the
-class name (e.g. `"ripple-abc123 highlight"`), which the child applies to its own
-elements via the `class` attribute.
+Each map entry contains both the CSS scope hash and the class name (for example
+`"ripple-abc123 highlight"`), which the child applies to its own elements via the
+`class` attribute.
 
 ### Basic Usage
 
@@ -226,10 +227,11 @@ function Child({ className }: { className: string }) {
 }
 
 function Parent() {
+  let styles;
   return <>
-  <Child className={#style.highlight} />
+  <Child className={styles.highlight} />
 
-  <style>
+  <style ref={(s) => styles = s}>
     .highlight {
       color: red;
     }
@@ -251,10 +253,11 @@ function Child({ primary, secondary }: { primary: string; secondary: string }) {
 }
 
 function Parent() {
+  let styles;
   return <>
-  <Child primary={#style.primary} secondary={#style.secondary} />
+  <Child primary={styles.primary} secondary={styles.secondary} />
 
-  <style>
+  <style ref={(s) => styles = s}>
     .primary {
       color: blue;
     }
@@ -269,7 +272,7 @@ function Parent() {
 
 ### With Dynamic Components
 
-`#style` also works when rendering dynamic components with `<@Component />`:
+Style refs also work when rendering dynamic components with `<@Component />`:
 
 ```ripple
 import { track } from 'ripple';
@@ -282,11 +285,12 @@ function Child({ cls }: { cls: string }) {
 }
 
 function Parent() {
+  let styles;
   return <>
   let &[Dynamic] = track(() => Child);
-  <@Dynamic cls={#style.text} />
+  <@Dynamic cls={styles.text} />
 
-  <style>
+  <style ref={(s) => styles = s}>
     .text {
       color: red;
     }
@@ -316,10 +320,11 @@ function Card({ className }: { className?: string }) {
 }
 
 function App() {
+  let styles;
   return <>
-  <Card className={#style.themed} />
+  <Card className={styles.themed} />
 
-  <style>
+  <style ref={(s) => styles = s}>
     .themed {
       background: purple;
     }
@@ -331,22 +336,23 @@ function App() {
 
 ### Standalone Requirement
 
-A class referenced via `#style` must exist as a **standalone** selector in the
+Classes exposed by a style ref map come from **standalone** selectors in the
 `<style>` block. Classes that only appear inside compound, descendant, or
-combinator selectors cannot be passed.
+combinator selectors are not exported on the map.
 
 If a class appears both standalone and in a descendant selector, it can still be
-used with `#style`:
+used through the style ref map:
 
 ```ripple
 function App() {
+  let styles;
   return <>
   <div class="parent">
-    <Child cls={#style.dual} />
+    <Child cls={styles.dual} />
   </div>
 
-  <style>
-    /* ✅ Standalone rule — makes .dual valid for #style */
+  <style ref={(s) => styles = s}>
+    /* Standalone rule — exposes styles.dual */
     .dual {
       color: blue;
     }
@@ -366,10 +372,11 @@ The following will **not** work because the class has no standalone rule:
 ```ripple
 // ❌ .nested only exists in a descendant selector
 function App() {
+  let styles;
   return <>
-  <Child cls={#style.nested} />
+  <Child cls={styles.nested} />
 
-  <style>
+  <style ref={(s) => styles = s}>
     .wrapper .nested {
       color: red;
     }
@@ -379,11 +386,5 @@ function App() {
 }
 ```
 
-### Syntax Rules
-
-- **Dot notation:** `#style.className`
-- **Bracket notation:** `#style['className']` (static string only)
-- **No dynamic access:** `#style[variable]` is a compile error
-- **Returned templates only:** `#style` can only be used inside returned TSRX
-- **Props only:** `#style` cannot be used directly on DOM elements — pass it to a
-  child component instead
+The map is available wherever you assign it, so declare the variable before the
+returned template when you need to read it earlier in the markup.

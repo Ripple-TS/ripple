@@ -168,6 +168,11 @@ export {
 	tsx_with_ts_locations as tsxWithTsLocations,
 } from './transform/jsx/helpers.js';
 export {
+	collect_style_ref_attributes as collectStyleRefAttributes,
+	create_style_class_map as createStyleClassMap,
+	create_style_ref_setup_statements as createStyleRefSetupStatements,
+} from './transform/style-ref.js';
+export {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,

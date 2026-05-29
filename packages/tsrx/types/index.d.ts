@@ -24,6 +24,18 @@ export type {
 };
 export { createJsxTransform };
 
+export function collectStyleRefAttributes(node: any, refs?: any[]): any[];
+export function createStyleClassMap(component: any, css: any): AST.ObjectExpression;
+export function createStyleRefSetupStatements(
+	refAttributes: any[],
+	styleMap: AST.Expression,
+	options?: {
+		allowMutableRefTarget?: boolean;
+		createTempIdentifier?: () => AST.Identifier;
+		visitExpression?: (expression: AST.Expression) => AST.Expression;
+	},
+): AST.Statement[];
+
 /**
  * Compile error interface
  */
@@ -207,7 +219,6 @@ declare module 'estree' {
 		Tsrx: Tsrx;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
-		Style: Style;
 		Element: Element;
 		Text: TextNode;
 		Attribute: Attribute;
@@ -217,7 +228,6 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		Style: Style;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -342,12 +352,6 @@ declare module 'estree' {
 		unclosed?: boolean;
 		openingElement: ESTreeJSX.JSXOpeningElement;
 		closingElement: ESTreeJSX.JSXClosingElement;
-	}
-
-	interface Style extends AST.BaseExpression {
-		type: 'Style';
-		value: AST.Literal;
-		loc?: AST.SourceLocation;
 	}
 
 	export interface TSRXExpression extends AST.BaseExpression {

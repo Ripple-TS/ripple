@@ -234,10 +234,11 @@ const STYLE_COMPOSITION_HTML = highlight_tsrx(
 }
 
 function App() {
+  let styles;
   return <>
-    <Badge className={style 'highlight'} />
+    <Badge className={styles.highlight} />
 
-    <style>
+    <style ref={(s) => styles = s}>
       .highlight { background: #e8f5e9; color: #2e7d32; }
     </style>
   </>;
@@ -677,11 +678,11 @@ export function FeaturesPage() {
 						<section class="doc-section" id="style-composition">
 							<h2 class="section-heading">{'Style composition'}</h2>
 							<p class="section-body">
-								{'Because scoped styles don\'t cross component boundaries, TSRX provides '}
-								<code class="inline-code">{'{style "className"}'}</code>
-								{' for passing scoped class names to child components as props. '}
-								<code class="inline-code">{'{style "highlight"}'}</code>
-								{' produces a string containing both the scope hash and the class name, which the child applies via its '}
+								{'Because scoped styles don\'t cross component boundaries, a '}
+								<code class="inline-code">{'<style ref>'}</code>
+								{' callback can expose a class map for passing scoped class names to child components as props. '}
+								<code class="inline-code">{'styles.highlight'}</code>
+								{' contains both the scope hash and the class name, which the child applies via its '}
 								<code class="inline-code">{'class'}</code>
 								{' attribute.'}
 							</p>
@@ -689,11 +690,9 @@ export function FeaturesPage() {
 								<code innerHTML={STYLE_COMPOSITION_HTML} />
 							</pre>
 							<p class="section-body">
-								{'The class referenced via '}
-								<code class="inline-code">{'{style}'}</code>
-								{' must exist as a standalone selector in the component\'s '}
+								{'Classes exposed on the ref map come from standalone selectors in the component\'s '}
 								<code class="inline-code">{'<style>'}</code>
-								{' block. Classes that only appear in compound or descendant selectors cannot be passed.'}
+								{' block. Classes that only appear in compound or descendant selectors are not exported on the map.'}
 							</p>
 						</section>
 

@@ -5191,10 +5191,6 @@
 			<array>
 				<dict>
 					<key>include</key>
-					<string>#jsx-style-directive</string>
-				</dict>
-				<dict>
-					<key>include</key>
 					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
@@ -5462,30 +5458,6 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-entities</string>
-				</dict>
-			</array>
-		</dict>
-		<key>jsx-style-directive</key>
-		<dict>
-			<key>begin</key>
-			<string>\b(style)(?=\s+(?:'|\"))</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>keyword.control.ripple.js</string>
-				</dict>
-			</dict>
-			<key>end</key>
-			<string>(?=\s*\})</string>
-			<key>name</key>
-			<string>meta.style-directive.js</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#string</string>
 				</dict>
 			</array>
 		</dict>
@@ -6099,10 +6071,6 @@
 		<dict>
 			<key>patterns</key>
 			<array>
-				<dict>
-					<key>include</key>
-					<string>#jsx-style-directive</string>
-				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx</string>

@@ -177,16 +177,6 @@ function generateImportEdit(documentText, importName) {
  */
 const RIPPLE_SNIPPETS = [
 	{
-		label: '{style}',
-		kind: CompletionItemKind.Snippet,
-		detail: 'Scoped CSS class reference',
-		documentation:
-			'Produces a scoped CSS class string for passing to child components.\nThe class must be defined as a standalone selector in <style>.\n\nUsage: <Child cls={style "highlight"} />',
-		insertText: 'style "${1:className}"',
-		insertTextFormat: InsertTextFormat.Snippet,
-		sortText: '0-style',
-	},
-	{
 		label: 'module server',
 		kind: CompletionItemKind.Snippet,
 		detail: 'Server-only submodule (module level)',
@@ -368,7 +358,7 @@ export function createCompletionPlugin() {
 			completionProvider: {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
-				// '{' - {style} and other TSRX directive snippets
+				// '{' - expression and statement snippets
 				triggerCharacters: ['<', '{'],
 				resolveProvider: false,
 			},

@@ -2145,10 +2145,6 @@
         {
           "type": "spread_element",
           "named": true
-        },
-        {
-          "type": "style_directive",
-          "named": true
         }
       ]
     }
@@ -3233,21 +3229,6 @@
     }
   },
   {
-    "type": "style_directive",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "string",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "style_element",
     "named": true,
     "fields": {},
@@ -4323,10 +4304,6 @@
   },
   {
     "type": "string",
-    "named": false
-  },
-  {
-    "type": "style",
     "named": false
   },
   {

@@ -533,18 +533,19 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
 		});
 
-		it('rejects {style} directly on DOM elements', () => {
-			expect(() =>
-				compile(
-					`export function App() { return <>
-						<div class={style 'root'}>{'hi'}</div>
-						<style>
-							.root { color: blue; }
-						</style>
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(/cannot be used directly on DOM elements/);
+		it('supports style refs for scoped class maps', () => {
+			const { code } = compile(
+				`export function App() { return <>
+					let styles;
+					<div class={styles.root}>{'hi'}</div>
+					<style ref={(s) => styles = s}>
+						.root { color: blue; }
+					</style>
+				</>; }`,
+				'App.tsrx',
+			);
+			expect(code).toContain('styles.root');
+			expect(code).toContain('root');
 		});
 	});
 

@@ -226,13 +226,19 @@ Source: website-tsrx/src/pages/specification.tsrx#lazy`,
 			slug: 'style-and-server',
 			title: 'Style and Server Extensions',
 			use_cases:
-				'style directive, scoped css, module server, submodule imports, compile-time identifiers',
+				'style refs, scoped css, module server, submodule imports, compile-time identifiers',
 			content: `# Style and Server Extensions
 
-\`{style "className"}\` is an attribute-value directive for scoped CSS class names declared in the current module.
+Use \`<style ref>\` to expose scoped CSS class names declared in the current module.
 
 \`\`\`tsx
-<Child className={style "card"} />
+let styles;
+return <>
+  <Child className={styles.card} />
+  <style ref={(s) => styles = s}>
+    .card { padding: 1rem; }
+  </style>
+</>;
 \`\`\`
 
 \`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.

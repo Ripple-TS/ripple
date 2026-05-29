@@ -62,8 +62,8 @@ const LAZY_GRAMMAR = [
 ].join('\n');
 
 const STYLE_GRAMMAR = [
-	'StyleAttributeExpression :',
-	'  { style StringLiteral }',
+	'StyleElement :',
+	'  <style JSXAttributesopt> CSSSource </style>',
 ].join('\n');
 
 const SERVER_EXTENSION_GRAMMAR = [
@@ -88,7 +88,6 @@ const AST_NODE_MAPPING = [
 	'<tsx> TsxChildrenopt </tsx> -> Tsx',
 	'<> TemplateChildrenopt </> -> Tsrx',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
-	'{ style StringLiteral } in attribute position -> Style',
 	'module Identifier { ModuleItemListopt } -> TSModuleDeclaration',
 	'import ImportClause from Identifier -> ImportDeclaration with Identifier source',
 ].join('\n');
@@ -176,11 +175,6 @@ const TSX_AST_SHAPE = [
 ].join('\n');
 
 const SPECIAL_AST_SHAPE = [
-	'interface Style {',
-	'  type: \'Style\';',
-	'  value: Literal;',
-	'}',
-	'',
 	'interface TSModuleDeclaration {',
 	'  type: \'TSModuleDeclaration\';',
 	'  id: Identifier;',
@@ -212,7 +206,7 @@ const NAV_ITEMS = [
 	{ id: 'templates', label: 'Template Elements' },
 	{ id: 'tsx-islands', label: 'Expression Islands' },
 	{ id: 'lazy', label: 'Lazy Destructuring' },
-	{ id: 'style', label: 'Style Syntax' },
+	{ id: 'style', label: 'Style Elements' },
 	{ id: 'server-profile', label: 'Server Extensions' },
 	{ id: 'early-errors', label: 'Early Errors' },
 	{ id: 'host-defined', label: 'Host-defined Semantics' },
@@ -290,7 +284,7 @@ export function SpecificationPage() {
 							<div class="status-panel">
 								<p class="status-chip">{'First-edition scope'}</p>
 								<p class="section-body compact">
-									{'The current draft fixes the syntax and early-error surface for TSRX return expressions, statement-oriented template elements, expression islands, lazy destructuring, raw style elements, {style} attribute values, and proposal-aligned submodule declarations.'}
+									{'The current draft fixes the syntax and early-error surface for TSRX return expressions, statement-oriented template elements, expression islands, lazy destructuring, raw style elements, and proposal-aligned submodule declarations.'}
 								</p>
 							</div>
 						</section>
@@ -347,7 +341,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="lexical">
 							<h2 class="section-heading">{'3 Modified Lexical Conventions'}</h2>
 							<p class="section-body">
-								{'TSRX introduces the {style} attribute directive, the whitespace-sensitive lazy-pattern introducers &{ and &[, and module declarations that can be imported by identifier source.'}
+								{'TSRX introduces the whitespace-sensitive lazy-pattern introducers &{ and &[, and module declarations that can be imported by identifier source.'}
 							</p>
 							<p class="section-body">
 								{'The ampersand introducer is part of the syntax of the lazy pattern itself. Implementations must not treat & { or & [ as lazy pattern forms.'}
@@ -487,7 +481,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="style">
 							<h2 class="section-heading">{'4.6 Style Elements and Style Identifiers'}</h2>
 							<p class="section-body">
-								{'The syntax of raw style elements and {style} attribute values is part of core TSRX. The host is responsible for the meaning of selector scoping, generated class names, selector eligibility, and stylesheet registration.'}
+								{'The syntax of raw style elements is part of core TSRX. The host is responsible for the meaning of selector scoping, generated class names, selector eligibility, style refs, and stylesheet registration.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{STYLE_GRAMMAR}</code>
@@ -524,9 +518,6 @@ export function SpecificationPage() {
 								</li>
 								<li>{'Opening and closing tags for expression islands must match.'}</li>
 								<li>
-									{'{style StringLiteral} must only be used as a whole element attribute value.'}
-								</li>
-								<li>
 									{'In hosts that enable server-oriented submodules, server exports must be imported before use, for example import { load } from server.'}
 								</li>
 								<li>
@@ -544,7 +535,7 @@ export function SpecificationPage() {
 							<ul class="spec-list">
 								<li>{'How functions returning TSRX lower into executable host code.'}</li>
 								<li>{'How lazy destructuring is realized at runtime.'}</li>
-								<li>{'How {style} names resolve to generated or scoped class names.'}</li>
+								<li>{'How style refs expose generated or scoped class names.'}</li>
 								<li>
 									{'How compatibility kinds are configured for '}
 									<code class="inline-code">{'<tsx:kind>'}</code>
@@ -559,7 +550,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">{'Appendices'}</h2>
 							<p class="section-body">
-								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, Style, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
 							</p>
 							<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
 							<p class="section-body">
@@ -592,7 +583,7 @@ export function SpecificationPage() {
 									{'Default exports are represented through the ordinary ESTree ExportDefaultDeclaration wrapping the function declaration or expression.'}
 								</li>
 								<li>
-									{'Implementation metadata may additionally record topScopedClasses and styleClasses for downstream analysis.'}
+									{'Implementation metadata may additionally record topScopedClasses for downstream style-ref analysis.'}
 								</li>
 							</ul>
 							<h3 class="appendix-heading">{'A.3 Template and attribute nodes'}</h3>
@@ -664,7 +655,6 @@ export function SpecificationPage() {
 								<code>{SPECIAL_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
-								<li>{'Style corresponds to the {style StringLiteral} attribute directive.'}</li>
 								<li>{'TSModuleDeclaration represents module Identifier { ... } submodules.'}</li>
 								<li>
 									{'ImportDeclaration.source may be an Identifier for imports from a declared submodule.'}

@@ -42,6 +42,11 @@ import {
 	find_first_top_level_await_in_tsrx_function_body,
 } from '../await.js';
 import { prepare_stylesheet_for_render, annotate_with_hash, is_style_element } from '../scoping.js';
+import {
+	collect_style_ref_attributes,
+	create_style_class_map,
+	create_style_ref_setup_statements,
+} from '../style-ref.js';
 import { is_function_or_component_node } from '../../utils/ast.js';
 import {
 	is_interleaved_body as is_interleaved_body_core,
@@ -182,7 +187,6 @@ export function createJsxTransform(platform) {
 			hook_helpers_enabled: false,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
-			current_css_hash: null,
 			filename: filename ?? null,
 			source,
 			collect,
@@ -214,7 +218,19 @@ export function createJsxTransform(platform) {
 			},
 
 			Tsrx(node, { next, path, state }) {
-				const inner = with_tsrx_fragment_styles(node, state, () => next() ?? node);
+				/** @type {{ css: any, style_refs: any[] } | null} */
+				let style_context = null;
+				const inner = with_tsrx_fragment_styles(node, state, (context) => {
+					style_context = context;
+					return next() ?? node;
+				});
+				for (const statement of create_tsrx_style_ref_setup_statements(
+					node,
+					style_context,
+					state,
+				)) {
+					add_jsx_setup_declaration(inner, statement);
+				}
 				const in_jsx_child = in_jsx_child_context(path);
 				return /** @type {any} */ (
 					wrap_jsx_setup_declarations(
@@ -259,15 +275,6 @@ export function createJsxTransform(platform) {
 			TSRXExpression(node, { next }) {
 				const inner = /** @type {any} */ (next() ?? node);
 				return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
-			},
-
-			Style(node, { state, path }) {
-				validate_style_directive(node, state, path);
-				const class_name = typeof node.value.value === 'string' ? node.value.value : '';
-				const value = state.current_css_hash
-					? `${state.current_css_hash} ${class_name}`
-					: class_name;
-				return b.literal(value, undefined, /** @type {any} */ (node));
 			},
 
 			// Default .metadata on every function-like node so downstream consumers
@@ -336,9 +343,10 @@ export function createJsxTransform(platform) {
  *
  * @param {any} component
  * @param {any} css
+ * @param {boolean} [export_top_scoped_classes]
  * @returns {void}
  */
-function apply_css_definition_metadata(component, css) {
+function apply_css_definition_metadata(component, css, export_top_scoped_classes = false) {
 	analyze_css(css);
 
 	const metadata = component.metadata || (component.metadata = { path: [] });
@@ -346,8 +354,19 @@ function apply_css_definition_metadata(component, css) {
 	const top_scoped_classes = metadata.topScopedClasses || new Map();
 	const elements = collect_css_prunable_elements(component.body || component.children || []);
 
-	for (const element of elements) {
-		prune_css(css, element, style_classes, top_scoped_classes);
+	const prune = () => {
+		for (const element of elements) {
+			prune_css(css, element, style_classes, top_scoped_classes);
+		}
+	};
+
+	prune();
+
+	if (export_top_scoped_classes) {
+		for (const [class_name, class_info] of top_scoped_classes) {
+			style_classes.set(class_name, class_info.selector ?? class_info);
+		}
+		prune();
 	}
 
 	if (top_scoped_classes.size > 0) {
@@ -1068,7 +1087,6 @@ function transform_native_tsrx_function(node, { next, state, path }) {
 		state.helper_state || create_helper_state(get_function_helper_base_name(node, path));
 	const saved_helper_state = state.helper_state;
 	const saved_bindings = state.available_bindings;
-	const saved_css_hash = state.current_css_hash;
 	const saved_hook_helpers_enabled = state.hook_helpers_enabled;
 
 	state.helper_state = helper_state;
@@ -1086,7 +1104,6 @@ function transform_native_tsrx_function(node, { next, state, path }) {
 
 	state.helper_state = saved_helper_state;
 	state.available_bindings = saved_bindings;
-	state.current_css_hash = saved_css_hash;
 	state.hook_helpers_enabled = saved_hook_helpers_enabled;
 
 	ensure_function_metadata(inner, { next: () => inner });
@@ -1503,13 +1520,14 @@ function collect_tsrx_stylesheet(node) {
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
- * @returns {string | null}
+ * @returns {{ css: any, style_refs: any[] } | null}
  */
 function prepare_tsrx_fragment_styles(node, transform_context) {
 	const css = collect_tsrx_stylesheet(node);
 	if (!css) return null;
 
-	apply_css_definition_metadata(node, css);
+	const style_refs = collect_style_ref_attributes(node);
+	apply_css_definition_metadata(node, css, style_refs.length > 0);
 	transform_context.stylesheets.push(css);
 	annotate_tsrx_with_hash(
 		node,
@@ -1517,27 +1535,54 @@ function prepare_tsrx_fragment_styles(node, transform_context) {
 		transform_context.platform.jsx.rewriteClassAttr ? 'className' : 'class',
 		transform_context.typeOnly,
 	);
-	return css.hash;
+	return { css, style_refs };
 }
 
 /**
  * @template T
  * @param {any} node
  * @param {TransformContext} transform_context
- * @param {() => T} callback
+ * @param {(style_context: { css: any, style_refs: any[] } | null) => T} callback
  * @returns {T}
  */
 function with_tsrx_fragment_styles(node, transform_context, callback) {
-	const css_hash = prepare_tsrx_fragment_styles(node, transform_context);
-	const saved_css_hash = transform_context.current_css_hash;
-	if (css_hash) {
-		transform_context.current_css_hash = css_hash;
+	const style_context = prepare_tsrx_fragment_styles(node, transform_context);
+	return callback(style_context);
+}
+
+/**
+ * @param {any} fragment
+ * @param {{ css: any, style_refs: any[] } | null} style_context
+ * @param {TransformContext} transform_context
+ * @returns {AST.Statement[]}
+ */
+function create_tsrx_style_ref_setup_statements(fragment, style_context, transform_context) {
+	if (!style_context || style_context.style_refs.length === 0) {
+		return [];
 	}
-	try {
-		return callback();
-	} finally {
-		transform_context.current_css_hash = saved_css_hash;
+
+	return create_style_ref_setup_statements(
+		style_context.style_refs,
+		create_style_class_map(fragment, style_context.css),
+		{
+			allowMutableRefTarget: transform_context.platform.jsx.multiRefStrategy === 'array',
+			createTempIdentifier: () =>
+				create_generated_identifier(create_style_ref_temp_name(transform_context)),
+		},
+	);
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function create_style_ref_temp_name(transform_context) {
+	if (transform_context.helper_state) {
+		return create_helper_name(transform_context.helper_state, 'style_ref');
 	}
+
+	transform_context.local_statement_component_index += 1;
+	return `_tsrx_style_ref_${transform_context.local_statement_component_index}`;
 }
 
 /**
@@ -1641,9 +1686,11 @@ function strip_style_elements(node) {
 function expand_native_tsrx_function_returns(node, transform_context) {
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type === 'Tsrx') {
 		const body = node.body;
-		const statements = with_tsrx_fragment_styles(body, transform_context, () => {
-			lower_style_directives_in_place(body, transform_context, []);
-			return build_render_statements(get_tsrx_render_children(body), true, transform_context);
+		const statements = with_tsrx_fragment_styles(body, transform_context, (style_context) => {
+			return [
+				...create_tsrx_style_ref_setup_statements(body, style_context, transform_context),
+				...build_render_statements(get_tsrx_render_children(body), true, transform_context),
+			];
 		});
 		node.body = b.block(mark_native_pretransformed_jsx(statements), body);
 		node.expression = false;
@@ -1681,11 +1728,11 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 
 	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
 		const fragment = statement.argument;
-		return with_tsrx_fragment_styles(fragment, transform_context, () => {
-			lower_style_directives_in_place(fragment, transform_context, [statement]);
-			return mark_native_pretransformed_jsx(
-				build_render_statements(get_tsrx_render_children(fragment), true, transform_context),
-			);
+		return with_tsrx_fragment_styles(fragment, transform_context, (style_context) => {
+			return mark_native_pretransformed_jsx([
+				...create_tsrx_style_ref_setup_statements(fragment, style_context, transform_context),
+				...build_render_statements(get_tsrx_render_children(fragment), true, transform_context),
+			]);
 		});
 	}
 
@@ -1801,43 +1848,6 @@ function get_tsrx_render_children(node) {
 			child.type !== 'EmptyStatement' &&
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
 	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {any[]} path
- * @returns {any}
- */
-function lower_style_directives_in_place(node, transform_context, path) {
-	if (!node || typeof node !== 'object') return node;
-
-	if (Array.isArray(node)) {
-		return node.map((child) => lower_style_directives_in_place(child, transform_context, path));
-	}
-
-	if (node.type === 'Style') {
-		validate_style_directive(node, transform_context, path);
-		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
-		const value = transform_context.current_css_hash
-			? `${transform_context.current_css_hash} ${class_name}`
-			: class_name;
-		return b.literal(value, undefined, node);
-	}
-
-	if (is_function_or_class_boundary(node)) {
-		return node;
-	}
-
-	const next_path = [...path, node];
-	for (const key of Object.keys(node)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		node[key] = lower_style_directives_in_place(node[key], transform_context, next_path);
-	}
-
-	return node;
 }
 
 /**
@@ -4054,108 +4064,6 @@ function get_body_source_node(body_nodes) {
 	}
 
 	return first;
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {any[]} path
- */
-function validate_style_directive(node, transform_context, path) {
-	const { attribute, element } = get_style_attribute_context(node, path);
-
-	if (!attribute) {
-		error(
-			'`{style "class_name"}` can only be used as an element attribute value.',
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-	}
-
-	if (element && is_dom_style_target(element)) {
-		error(
-			'`{style "class_name"}` cannot be used directly on DOM elements. Pass the class to a child component instead.',
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-	}
-
-	if (!transform_context.current_css_hash) {
-		error(
-			'`{style "class_name"}` requires a <style> block in the current TSRX fragment.',
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-	}
-}
-
-/**
- * @param {any} node
- * @param {any[]} path
- * @returns {{ attribute: any, element: any }}
- */
-function get_style_attribute_context(node, path) {
-	const parent = path.at(-1);
-	const attribute =
-		parent?.type === 'Attribute' && parent.value === node
-			? parent
-			: path
-					.findLast((ancestor) => ancestor?.type === 'Element')
-					?.attributes?.find(
-						(/** @type {any} */ attr) =>
-							attr?.type === 'Attribute' &&
-							(attr.value === node || node_contains(attr.value, node)),
-					);
-	const element = path.findLast(
-		(ancestor) =>
-			ancestor?.type === 'Element' &&
-			(!attribute || ancestor.attributes?.some((/** @type {any} */ attr) => attr === attribute)),
-	);
-
-	return { attribute: attribute ?? null, element: element ?? null };
-}
-
-/**
- * @param {any} root
- * @param {any} target
- * @returns {boolean}
- */
-function node_contains(root, target) {
-	if (!root || typeof root !== 'object') {
-		return false;
-	}
-	if (root === target) {
-		return true;
-	}
-	if (Array.isArray(root)) {
-		return root.some((child) => node_contains(child, target));
-	}
-	for (const key of Object.keys(root)) {
-		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-			continue;
-		}
-		if (node_contains(root[key], target)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @param {any} element
- * @returns {boolean}
- */
-function is_dom_style_target(element) {
-	if (!element?.id || is_dynamic_element_id(element.id)) {
-		return false;
-	}
-	return element.id.type === 'Identifier' && /^[a-z]/.test(element.id.name);
 }
 
 /**

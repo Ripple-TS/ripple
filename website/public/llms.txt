@@ -810,12 +810,12 @@ function Child() {
 }
 ```
 
-#### Style Composition via `{style}`
+#### Style Composition via `<style ref>`
 
-Because scoped classes don't cross component boundaries, TSRX provides
-`{style "className"}` — an attribute-value directive that expands to a string
-containing both the scope hash and the class name. Pass it to a child, which
-applies it via its regular `class` attribute.
+Because scoped classes don't cross component boundaries, a `<style ref>` callback
+can expose a class map. Each standalone class maps to a string containing both
+the scope hash and the class name. Pass those values to children through normal
+props.
 
 ```ripple
 function Badge({ className }: { className?: string }) {
@@ -829,9 +829,10 @@ function Badge({ className }: { className?: string }) {
 }
 
 function App() {
+  let styles;
   return <>
-  <Badge className={style "highlight"} />
-  <style>
+  <Badge className={styles.highlight} />
+  <style ref={(s) => styles = s}>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>
 
@@ -839,9 +840,9 @@ function App() {
 }
 ```
 
-The class referenced via `{style}` must appear as a standalone selector in
-the surrounding component's `<style>`. Classes that only appear as part of
-compound/descendant selectors cannot be passed.
+Style ref maps expose standalone selectors from the surrounding component's
+`<style>`. Classes that only appear as part of compound/descendant selectors are
+not exported on the map.
 
 #### Global Styles with `:global()`
 

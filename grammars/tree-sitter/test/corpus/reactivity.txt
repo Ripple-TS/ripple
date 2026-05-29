@@ -1,12 +1,12 @@
 ==================
-Ripple Server Module Import And Style Directive
+Ripple Server Module Import And JSX Attribute
 ==================
 
 module server {
   export const data = () => null;
 }
 import { data as serverData } from server;
-const element = <Child className={style 'button'} />;
+const element = <Child className={"button"} />;
 
 ---
 
@@ -40,5 +40,6 @@ const element = <Child className={style 'button'} />;
           attribute: (jsx_attribute
             name: (identifier)
             value: (jsx_expression
-              (style_directive
-                (string)))))))))
+              (component_statement
+                (expression_statement
+                  (string))))))))))

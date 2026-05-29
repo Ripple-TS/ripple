@@ -1,17 +1,18 @@
 import { track } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
-describe('{style} directive (server)', () => {
+describe('style refs (server)', () => {
 	describe('basic usage with components', () => {
-		it('passes scoped class to a child component via {style}', async () => {
+		it('passes scoped classes to a child component via a style ref', async () => {
 			function Child({ className }: { className: string }) {
 				return <><div class={className}>{'styled child'}</div></>;
 			}
 
 			function Parent() {
+				let styles;
 				return <>
-					<Child className={style 'highlight'} />
-					<style>
+					<Child className={styles.highlight} />
+					<style ref={(s) => (styles = s)}>
 						.highlight {
 							color: red;
 						}
@@ -30,7 +31,7 @@ describe('{style} directive (server)', () => {
 			expect(classes.some((cls: string) => cls === 'highlight')).toBe(true);
 		});
 
-		it('passes multiple {style} classes to a child component', async () => {
+		it('passes multiple style ref classes to a child component', async () => {
 			function Child({ primary, secondary }: { primary: string; secondary: string }) {
 				return <>
 					<div class={primary}>{'primary'}</div>
@@ -39,9 +40,10 @@ describe('{style} directive (server)', () => {
 			}
 
 			function Parent() {
+				let styles;
 				return <>
-					<Child primary={style 'primary'} secondary={style 'secondary'} />
-					<style>
+					<Child primary={styles.primary} secondary={styles.secondary} />
+					<style ref={(s) => (styles = s)}>
 						.primary {
 							color: blue;
 						}
@@ -72,15 +74,16 @@ describe('{style} directive (server)', () => {
 	});
 
 	describe('parent styling applied to child', () => {
-		it('allows parent to style child elements via {style} prop', async () => {
+		it('allows parent to style child elements via a style ref prop', async () => {
 			function Button({ extraClass }: { extraClass?: string }) {
 				return <><button class={extraClass ?? ''}>{'Click me'}</button></>;
 			}
 
 			function App() {
+				let styles;
 				return <>
-					<Button extraClass={style 'fancy'} />
-					<style>
+					<Button extraClass={styles.fancy} />
+					<style ref={(s) => (styles = s)}>
 						.fancy {
 							background: gold;
 						}
@@ -98,7 +101,7 @@ describe('{style} directive (server)', () => {
 			expect(classes.some((cls: string) => cls === 'fancy')).toBe(true);
 		});
 
-		it('child can combine its own classes with parent {style} class', async () => {
+		it('child can combine its own classes with a parent style ref class', async () => {
 			function Card({ className }: { className?: string }) {
 				return <>
 					<div class={['card-base', className ?? '']}>{'card content'}</div>
@@ -111,9 +114,10 @@ describe('{style} directive (server)', () => {
 			}
 
 			function App() {
+				let styles;
 				return <>
-					<Card className={style 'themed'} />
-					<style>
+					<Card className={styles.themed} />
+					<style ref={(s) => (styles = s)}>
 						.themed {
 							background: purple;
 						}
@@ -131,53 +135,52 @@ describe('{style} directive (server)', () => {
 			expect(classes.some((cls: string) => cls === 'themed')).toBe(true);
 		});
 
-		it(
-			'passes standalone class to child even when it also appears in descendant context',
-			async () => {
-				function Child({ cls }: { cls: string }) {
-					return <><span class={cls}>{'text'}</span></>;
-				}
+		it('passes a standalone class even when it also appears in descendant context', async () => {
+			function Child({ cls }: { cls: string }) {
+				return <><span class={cls}>{'text'}</span></>;
+			}
 
-				function App() {
-					return <>
-						<div class="parent">
-							<Child cls={style 'dual'} />
-						</div>
-						<style>
-							.dual {
-								color: blue;
-							}
-							.parent .dual {
-								font-weight: bold;
-							}
-						</style>
-					</>;
-				}
+			function App() {
+				let styles;
+				return <>
+					<div class="parent">
+						<Child cls={styles.dual} />
+					</div>
+					<style ref={(s) => (styles = s)}>
+						.dual {
+							color: blue;
+						}
+						.parent .dual {
+							font-weight: bold;
+						}
+					</style>
+				</>;
+			}
 
-				const { body } = await render(App);
-				const { document } = parseHtml(body);
+			const { body } = await render(App);
+			const { document } = parseHtml(body);
 
-				const span = document.querySelector('span');
-				expect(span).toBeTruthy();
-				const classes = Array.from(span.classList);
-				expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
-				expect(classes.some((cls: string) => cls === 'dual')).toBe(true);
-			},
-		);
+			const span = document.querySelector('span');
+			expect(span).toBeTruthy();
+			const classes = Array.from(span.classList);
+			expect(classes.some((cls: string) => cls.startsWith('tsrx-'))).toBe(true);
+			expect(classes.some((cls: string) => cls === 'dual')).toBe(true);
+		});
 	});
 
-	it('passes scoped class to a dynamic child component via {style}', async () => {
+	it('passes scoped classes to a dynamic child component via a style ref', async () => {
 		function Child({ cls }: { cls: string }) {
 			return <><span class={cls}>{'text'}</span></>;
 		}
 
 		function Parent() {
+			let styles;
 			return <>
 				let dynamic = track(() => Child);
 				<div class="wrapper">
-					<@dynamic cls={style 'text'} />
+					<@dynamic cls={styles.text} />
 				</div>
-				<style>
+				<style ref={(s) => (styles = s)}>
 					.text {
 						color: red;
 					}
@@ -274,24 +277,27 @@ describe('{style} directive (server)', () => {
 	});
 
 	describe('server compiler output', () => {
-		it('inlines scoped class strings', () => {
+		it('emits style class maps', () => {
 			const source = `
 function Child({ cls }: { cls: string }) { return <>
 	<div class={cls}>{'text'}</div>
 </>; }
-export function App() { return <>
-	<Child cls={style 'highlight'} />
+export function App() {
+	let styles;
+	return <>
+		<Child cls={styles.highlight} />
 
-	<style>
-		.highlight {
-			color: red;
-		}
-	</style>
-</>; }`;
+		<style ref={(s) => styles = s}>
+			.highlight {
+				color: red;
+			}
+		</style>
+	</>;
+}`;
 			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
 			expect(code).toContain('highlight');
-			expect(code).toMatch(/tsrx-[a-z0-9]+/);
+			expect(code).toMatch(/tsrx-[a-z0-9]+ highlight/);
 			expect(code).toContain('register_css');
 		});
 
@@ -301,9 +307,10 @@ export function App() { return <>
 			}
 
 			function App() {
+				let styles;
 				return <>
-					<Child cls={style 'styled'} />
-					<style>
+					<Child cls={styles.styled} />
+					<style ref={(s) => (styles = s)}>
 						.styled {
 							font-weight: bold;
 						}

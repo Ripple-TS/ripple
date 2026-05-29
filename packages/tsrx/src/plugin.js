@@ -385,18 +385,11 @@ export function TSRXPlugin(config) {
 				// Keep JSXEmptyExpression as-is (for prettier to handle comments)
 				// but convert other expressions to native TSRX child nodes.
 				if (node.expression.type !== 'JSXEmptyExpression') {
-					/** @type {AST.TSRXExpression | AST.TextNode | AST.Style} */ (
-						/** @type {unknown} */ (node)
-					).type = node.style ? 'Style' : 'TSRXExpression';
-					if (node.style) {
-						/** @type {AST.Style} */ (/** @type {unknown} */ (node)).value =
-							/** @type {AST.Literal} */ (node.expression);
-						delete (/** @type {any} */ (node).expression);
-					}
-					delete node.style;
+					/** @type {AST.TSRXExpression | AST.TextNode} */ (/** @type {unknown} */ (node)).type =
+						'TSRXExpression';
 				}
 
-				return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.TextNode | AST.Style | ESTreeJSX.JSXExpressionContainer} */ (
+				return /** @type {ESTreeJSX.JSXEmptyExpression | AST.TSRXExpression | AST.TextNode | ESTreeJSX.JSXExpressionContainer} */ (
 					/** @type {unknown} */ (node)
 				);
 			}
@@ -1597,26 +1590,8 @@ export function TSRXPlugin(config) {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
 				this.next();
 
-				if (
-					this.type === tt.name &&
-					this.value === 'style' &&
-					this.lookahead().type === tt.string
-				) {
-					node.style = true;
-					this.next();
-				}
-
 				node.expression =
 					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
-				if (
-					node.style &&
-					(node.expression.type !== 'Literal' || typeof node.expression.value !== 'string')
-				) {
-					this.raise(
-						/** @type {number} */ (node.expression.start),
-						'"style" is a TSRX keyword and must be used in the form {style "class_name"}',
-					);
-				}
 				if (this.#allowExpressionContainerTrailingSemicolon && this.type === tt.semi) {
 					if (this.#collect) {
 						this.#report_recoverable_error(
@@ -2242,14 +2217,6 @@ export function TSRXPlugin(config) {
 						if (attr.value !== null) {
 							if (attr.value.type === 'JSXExpressionContainer') {
 								const expression = attr.value.expression;
-								if (attr.value.style) {
-									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).type = 'Style';
-									/** @type {AST.Style} */ (/** @type {unknown} */ (attr.value)).value =
-										/** @type {AST.Literal} */ (expression);
-									delete (/** @type {any} */ (attr.value).expression);
-									delete (/** @type {any} */ (attr.value).style);
-									continue;
-								}
 								if (expression.type === 'Literal') {
 									expression.was_expression = true;
 								}

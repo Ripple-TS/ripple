@@ -39,6 +39,9 @@ import {
 	object,
 	renderCssResult,
 	pruneCss,
+	collectStyleRefAttributes,
+	createStyleClassMap,
+	createStyleRefSetupStatements,
 	getOriginalEventName,
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
@@ -151,6 +154,78 @@ function get_component_css(state) {
  */
 function get_component_css_hash(state) {
 	return get_component_css(state)?.hash ?? null;
+}
+
+/**
+ * @param {AST.Node[]} body
+ * @param {AST.Statement[]} setup
+ * @returns {AST.Node[]}
+ */
+function insert_style_ref_setup_statements(body, setup) {
+	if (setup.length === 0) {
+		return body;
+	}
+
+	let inserted = false;
+
+	/** @param {AST.Node[]} nodes */
+	const insert_in_list = (nodes) => {
+		const index = nodes.findIndex((node) => node.metadata?.returned_tsrx_child);
+		if (index !== -1) {
+			inserted = true;
+			return [
+				...nodes.slice(0, index),
+				...setup.map((statement) => clone_expression_node(statement, false)),
+				...nodes.slice(index),
+			];
+		}
+
+		return nodes.map(insert_in_statement);
+	};
+
+	/** @param {AST.Node} node */
+	const insert_in_statement = (node) => {
+		if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration') {
+			return node;
+		}
+		if (node.type === 'BlockStatement') {
+			node.body = /** @type {AST.Statement[]} */ (insert_in_list(node.body || []));
+			return node;
+		}
+		if (node.type === 'IfStatement') {
+			node.consequent = /** @type {AST.Statement} */ (insert_in_statement(node.consequent));
+			if (node.alternate) {
+				node.alternate = /** @type {AST.Statement} */ (insert_in_statement(node.alternate));
+			}
+			return node;
+		}
+		if (node.type === 'SwitchStatement') {
+			for (const switch_case of node.cases || []) {
+				switch_case.consequent = /** @type {AST.Statement[]} */ (
+					insert_in_list(switch_case.consequent || [])
+				);
+			}
+			return node;
+		}
+		if (node.type === 'TryStatement') {
+			node.block = /** @type {AST.BlockStatement} */ (insert_in_statement(node.block));
+			if (node.handler?.body) {
+				node.handler.body = /** @type {AST.BlockStatement} */ (
+					insert_in_statement(node.handler.body)
+				);
+			}
+			if (node.finalizer) {
+				node.finalizer = /** @type {AST.BlockStatement} */ (insert_in_statement(node.finalizer));
+			}
+		}
+		return node;
+	};
+
+	const result = insert_in_list(body);
+	if (inserted) {
+		return result;
+	}
+	return [...setup, ...body];
 }
 
 /**
@@ -687,7 +762,21 @@ function transform_native_tsrx_function(node, context) {
 	const is_tsrx_element = context.state.is_tsrx_element;
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
 	const is_synthetic_children = node_id?.name === 'render_children';
-	const render_body = strip_tsrx_style_elements(get_native_tsrx_function_body(node));
+	const raw_render_body = get_native_tsrx_function_body(node);
+	const css = get_component_css({ ...context.state, component: node });
+	const style_ref_setup = css
+		? createStyleRefSetupStatements(
+				collectStyleRefAttributes(raw_render_body),
+				createStyleClassMap(node, css),
+				{
+					allowMutableRefTarget: true,
+					createTempIdentifier: () => b.id(component_scope.generate('style_ref')),
+				},
+			)
+		: [];
+	const render_body = strip_tsrx_style_elements(
+		insert_style_ref_setup_statements(raw_render_body, style_ref_setup),
+	);
 	const transformed_body = transform_body(render_body, {
 		...context,
 		state: {
@@ -709,7 +798,6 @@ function transform_native_tsrx_function(node, context) {
 				b.stmt(b.call('_$_.pop_component')),
 			];
 
-	const css = get_component_css({ ...context.state, component: node });
 	if (css) {
 		context.state.stylesheets.push(css);
 	}
@@ -1349,13 +1437,6 @@ const visitors = {
 				return build_getter(node, context);
 			}
 		}
-	},
-
-	Style(node, context) {
-		const class_name = typeof node.value.value === 'string' ? node.value.value : '';
-		const hash = get_component_css_hash(context.state);
-		const value = hash ? `${hash} ${class_name}` : class_name;
-		return b.literal(value);
 	},
 
 	ImportDeclaration(node, context) {

@@ -901,14 +901,11 @@ module.exports = grammar({
 						$.expression,
 						$.spread_element,
 						seq('...', $.expression),
-						$.style_directive,
 						repeat1($.component_statement),
 					),
 				),
 				'}',
 			),
-
-		style_directive: ($) => seq('style', $.string),
 
 		_jsx_attribute_value: ($) =>
 			choice($.string, $.jsx_expression, $.jsx_element, $.jsx_fragment, $.jsx_self_closing_element),

@@ -52,7 +52,6 @@ export interface JsxTransformContext {
 	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
 	lazy_next_id: number;
-	current_css_hash: string | null;
 	inside_element_child?: boolean;
 	/** Full source text for source-aware diagnostics. */
 	source: string;

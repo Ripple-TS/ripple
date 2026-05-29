@@ -124,16 +124,18 @@ fragment App() {
               attribute: (jsx_attribute
                 name: (identifier)
                 value: (jsx_expression
-                  (arrow_function
-                    parameters: (formal_parameters
-                      (required_parameter
-                        pattern: (identifier)))
-                    body: (call_expression
-                      function: (member_expression
-                        object: (identifier)
-                        property: (identifier))
-                      arguments: (arguments
-                        (identifier)))))))
+                  (component_statement
+                    (expression_statement
+                      (arrow_function
+                        parameters: (formal_parameters
+                          (required_parameter
+                            pattern: (identifier)))
+                        body: (call_expression
+                          function: (member_expression
+                            object: (identifier)
+                            property: (identifier))
+                          arguments: (arguments
+                            (identifier)))))))))
             children: (jsx_expression
               (component_statement
                 (expression_statement

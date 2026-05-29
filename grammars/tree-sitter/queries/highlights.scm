@@ -8,10 +8,6 @@
 (lazy_object_pattern "&" @operator)
 (lazy_array_pattern "&" @operator)
 
-(style_directive
-  "style" @keyword
-  (string) @string)
-
 ; Reserved identifiers
 [
   "track"

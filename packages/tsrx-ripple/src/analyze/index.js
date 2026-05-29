@@ -9,7 +9,6 @@
 	Visitors,
 	Binding,
 	TopScopedClasses,
-	StyleClasses,
 } from '../../types/index';
  */
 /**
@@ -25,6 +24,7 @@ import {
 	extractPaths,
 	analyzeCss,
 	pruneCss,
+	collectStyleRefAttributes,
 	error,
 	getReturnKeywordNode,
 	isEventAttribute,
@@ -1125,9 +1125,8 @@ function visit_function(node, context) {
 
 		/** @type {AST.Element[]} */
 		const elements = [];
-		const metadata = {
-			styleClasses: /** @type {StyleClasses} */ (new Map()),
-		};
+		const metadata = {};
+		const styleClasses = new Map();
 		/** @type {TopScopedClasses} */
 		const topScopedClasses = new Map();
 		const render_body = get_native_tsrx_function_body(node);
@@ -1147,31 +1146,20 @@ function visit_function(node, context) {
 
 		if (css !== null) {
 			analyzeCss(css);
-			for (const element of elements) {
-				pruneCss(css, element, metadata.styleClasses, topScopedClasses);
+			const prune = () => {
+				for (const element of elements) {
+					pruneCss(css, element, styleClasses, topScopedClasses);
+				}
+			};
+			prune();
+			if (collectStyleRefAttributes(render_body).length > 0) {
+				for (const [className, classInfo] of topScopedClasses) {
+					styleClasses.set(className, classInfo.selector ?? classInfo);
+				}
+				prune();
 			}
 			if (topScopedClasses.size > 0) {
 				/** @type {any} */ (node.metadata).topScopedClasses = topScopedClasses;
-			}
-		}
-
-		if (metadata.styleClasses.size > 0) {
-			/** @type {any} */ (node.metadata).styleClasses = metadata.styleClasses;
-
-			for (const [className, property] of metadata.styleClasses) {
-				if (!topScopedClasses.has(className)) {
-					const function_name =
-						node.type !== 'ArrowFunctionExpression' && node.id?.name
-							? node.id.name
-							: "this function's";
-					error(
-						`CSS class ".${className}" does not exist as a stand-alone class in ${function_name} <style> block`,
-						context.state.analysis.module.filename,
-						property,
-						context.state.collect ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-				}
 			}
 		}
 
@@ -1256,37 +1244,6 @@ function is_children_template_expression(expression, context) {
 	const component = context.path.findLast((node) => is_native_tsrx_function_node(node));
 	const component_scope = component ? context.state.scopes.get(component) : null;
 	return is_children_template_expression_in_scope(expression, context.state.scope, component_scope);
-}
-
-/**
- * `Element` analysis visits attribute values manually, so zimmerframe's path
- * can be `[... Element]` instead of `[... Element, Attribute]`.
- *
- * @param {AST.Node} node
- * @param {AST.Node[]} path
- * @returns {{ attribute: AST.Attribute | null, element: AST.Element | null }}
- */
-function get_style_attribute_context(node, path) {
-	const parent = path.at(-1);
-	const attribute =
-		parent?.type === 'Attribute' && parent.value === node
-			? parent
-			: /** @type {AST.Element | undefined} */ (
-					path.findLast((ancestor) => ancestor.type === 'Element')
-				)?.attributes.find((attr) => attr.type === 'Attribute' && attr.value === node);
-
-	const element = /** @type {AST.Element | undefined} */ (
-		path.findLast(
-			(ancestor) =>
-				ancestor.type === 'Element' &&
-				(!attribute || ancestor.attributes.some((attr) => attr === attribute)),
-		)
-	);
-
-	return {
-		attribute: /** @type {AST.Attribute | null} */ (attribute ?? null),
-		element: /** @type {AST.Element | null} */ (element ?? null),
-	};
 }
 
 /** @type {Visitors<AST.Node, AnalysisState>} */
@@ -1665,47 +1622,6 @@ const visitors = {
 			setup_lazy_transforms(pattern, lazy_id, state, true, !!init_is_track);
 			// Store the generated identifier name on the pattern for the transform phase
 			pattern.metadata = { ...pattern.metadata, lazy_id: lazy_id.name };
-		}
-
-		context.next();
-	},
-
-	Style(node, context) {
-		const component = is_inside_component(context, true);
-		const style_context = get_style_attribute_context(node, context.path);
-
-		if (!component) {
-			error(
-				'`{style "class_name"}` can only be used within a component',
-				context.state.analysis.module.filename,
-				node,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
-		if (!style_context.attribute) {
-			error(
-				'`{style "class_name"}` can only be used as an element attribute value.',
-				context.state.analysis.module.filename,
-				node,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
-		if (style_context.element && is_element_dom_element(style_context.element)) {
-			error(
-				'`{style "class_name"}` cannot be used directly on DOM elements. Pass the class to a child component instead.',
-				context.state.analysis.module.filename,
-				node,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
-		if (typeof node.value.value === 'string') {
-			context.state.metadata.styleClasses?.set(node.value.value, node.value);
 		}
 
 		context.next();

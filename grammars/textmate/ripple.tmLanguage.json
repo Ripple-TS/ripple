@@ -6475,9 +6475,6 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
-          "include": "#jsx-style-directive"
-        },
-        {
           "include": "#jsx-tag-tsx"
         },
         {
@@ -6676,21 +6673,6 @@
       "patterns": [
         {
           "include": "#statements"
-        }
-      ]
-    },
-    "jsx-style-directive": {
-      "name": "meta.style-directive.js",
-      "begin": "\\b(style)(?=\\s+(?:'|\\\"))",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.ripple.js"
-        }
-      },
-      "end": "(?=\\s*\\})",
-      "patterns": [
-        {
-          "include": "#string"
         }
       ]
     },
@@ -7007,9 +6989,6 @@
     },
     "jsx-tsx-attribute-expression": {
       "patterns": [
-        {
-          "include": "#jsx-style-directive"
-        },
         {
           "include": "#jsx-tag-tsx"
         },

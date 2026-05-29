@@ -5826,10 +5826,6 @@
                   ]
                 },
                 {
-                  "type": "SYMBOL",
-                  "name": "style_directive"
-                },
-                {
                   "type": "REPEAT1",
                   "content": {
                     "type": "SYMBOL",
@@ -5846,19 +5842,6 @@
         {
           "type": "STRING",
           "value": "}"
-        }
-      ]
-    },
-    "style_directive": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "style"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "string"
         }
       ]
     },

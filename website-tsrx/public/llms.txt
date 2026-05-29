@@ -566,8 +566,8 @@ function Card() {
 }
 ```
 
-Use `:global(...)` to opt out of scoping. Use `{style "className"}` to pass a
-scoped class name across a component boundary.
+Use `:global(...)` to opt out of scoping. Use `<style ref>` to expose scoped
+class names for passing across component boundaries.
 
 ```tsrx
 function Badge({ className }: { className?: string }) {
@@ -582,9 +582,10 @@ function Badge({ className }: { className?: string }) {
 }
 
 function App() {
+	let styles;
 	return <>
-		<Badge className={style 'highlight'} />
-		<style>
+		<Badge className={styles.highlight} />
+		<style ref={(s) => styles = s}>
 			.highlight {
 				background: #e8f5e9;
 				color: #2e7d32;
@@ -741,7 +742,7 @@ function List<T>({ items, render }: Props<T>) {
 | Guard exit             | `if (!user) { return null; }`                    |
 | Scoped style           | `<style> .x { ... } </style>`                    |
 | Escape scoping         | `:global(.class)`                                |
-| Cross-component class  | `<Child className={style "foo"} />`              |
+| Cross-component class  | `<Child className={styles.foo} />`               |
 | Dynamic element        | `<@tag />` with a tracked/stateful `tag`         |
 
 ## Resources

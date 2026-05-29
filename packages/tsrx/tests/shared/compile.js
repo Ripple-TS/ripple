@@ -1684,8 +1684,8 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] style directive restrictions`, () => {
-		it('rejects {style} inside element child expressions', () => {
+	describe(`[${name}] removed style directive syntax`, () => {
+		it('does not parse {style} inside element child expressions', () => {
 			expect(() =>
 				compile(
 					`export function App() { return <>
@@ -1696,10 +1696,10 @@ export function optionalFn(bar: string, baz?: string) {
 					</>; }`,
 					'App.tsrx',
 				),
-			).toThrow(/can only be used as an element attribute value/);
+			).toThrow();
 		});
 
-		it('rejects {style} directly on DOM elements', () => {
+		it('does not parse {style} in attributes', () => {
 			expect(() =>
 				compile(
 					`export function App() { return <>
@@ -1710,7 +1710,7 @@ export function optionalFn(bar: string, baz?: string) {
 					</>; }`,
 					'App.tsrx',
 				),
-			).toThrow(/cannot be used directly on DOM elements/);
+			).toThrow();
 		});
 
 		it('does not parse the removed #style syntax', () => {
@@ -3078,7 +3078,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
-		it('passes {style} through a composite component prop', () => {
+		it('passes style ref classes through a composite component prop', () => {
 			// `className` here is a prop on a composite component, not a DOM
 			// attribute — every target passes prop names through unchanged,
 			// so the assertion is cross-platform regardless of the host-
@@ -3093,9 +3093,10 @@ export function optionalFn(bar: string, baz?: string) {
 				</>; }
 
 				export function App() { return <>
-					<Badge className={style 'highlight'} />
+					let styles;
+					<Badge className={styles.highlight} />
 
-					<style>
+					<style ref={(s) => styles = s}>
 						.highlight { background: green; }
 					</style>
 				</>; }`,
@@ -3105,19 +3106,21 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).not.toBe('');
 			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
-			expect(code).toMatch(new RegExp(`className=["']${app_hash} highlight["']`));
+			expect(code).toContain(`${app_hash} highlight`);
+			expect(code).toContain('className={styles.highlight}');
 		});
 
-		it('passes {style} through a composite component prop when the element has children', () => {
+		it('passes style ref classes through a composite component prop when the element has children', () => {
 			const { code, css, cssHash } = compile(
 				`function Child({ className }: { className?: string }) { return <>
 						<span class={className}>"hello world"</span>
 					</>; }
 
 					export function App() { return <>
-						<Child className={style 'container'}>"hello world"</Child>
+						let styles;
+						<Child className={styles.container}>"hello world"</Child>
 
-						<style>
+						<style ref={(s) => styles = s}>
 							.container { color: red; }
 						</style>
 					</>; }`,
@@ -3127,15 +3130,17 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).not.toBe('');
 			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} container`));
 			expect(app_hash).toBeTruthy();
-			expect(code).toMatch(new RegExp(`className=["']${app_hash} container["']`));
+			expect(code).toContain(`${app_hash} container`);
+			expect(code).toContain('className={styles.container}');
 		});
 
-		it('passes hyphenated {style} class names through a composite component prop', () => {
+		it('passes hyphenated style ref class names through a composite component prop', () => {
 			const { code, css, cssHash } = compile(
 				`export function App() { return <>
-						<Child cls={style 'accent-tone'} />
+					let styles;
+					<Child cls={styles['accent-tone']} />
 
-					<style>
+					<style ref={(s) => styles = s}>
 						.accent-tone { color: red; }
 					</style>
 				</>; }`,
