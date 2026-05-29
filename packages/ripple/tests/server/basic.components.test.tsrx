@@ -140,21 +140,21 @@ describe('basic server > components & composition', () => {
 		expect(result.topLevelError?.message).toContain('Invalid component type');
 	});
 
-	it('throws when a non-TSRX function is used as a component type', async () => {
+	it('allows a plain function as a component type', async () => {
 		function Func() {
-			return undefined;
+			return 'plain';
 		}
 
 		function App() {
 			return <><Func /></>;
 		}
 
-		const result = await render_expected_invalid_component(App);
+		const { body } = await render(App);
 
-		expect(result.topLevelError?.message).toContain('Invalid component type');
+		expect(body).toBeHtml('plain');
 	});
 
-	it('throws when a compat-only function is used as a component type', async () => {
+	it('allows a compat-only function as a component type', async () => {
 		function CompatOnly() {
 			return <tsx>
 				<div>
@@ -167,9 +167,9 @@ describe('basic server > components & composition', () => {
 			return <><CompatOnly /></>;
 		}
 
-		const result = await render_expected_invalid_component(App);
+		const { body } = await render(App);
 
-		expect(result.topLevelError?.message).toContain('Invalid component type');
+		expect(body).toBeHtml('<div>compat</div>');
 	});
 
 	it('renders with nested components and prop passing', async () => {

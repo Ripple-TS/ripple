@@ -158,19 +158,21 @@ describe('basic client > components & composition', () => {
 		expect(() => render(App)).toThrow('Invalid component type');
 	});
 
-	it('throws when a non-TSRX function is used as a component type', () => {
+	it('allows a plain function as a component type', () => {
 		function Func() {
-			return undefined;
+			return 'plain';
 		}
 
 		function App() {
 			return <><Func /></>;
 		}
 
-		expect(() => render(App)).toThrow('Invalid component type');
+		render(App);
+
+		expect(container.textContent).toBe('plain');
 	});
 
-	it('throws when a compat-only function is used as a component type', () => {
+	it('allows a compat-only function as a component type', () => {
 		function CompatOnly() {
 			return <tsx>
 				<div>
@@ -183,7 +185,9 @@ describe('basic client > components & composition', () => {
 			return <><CompatOnly /></>;
 		}
 
-		expect(() => render(App)).toThrow('Invalid component type');
+		render(App);
+
+		expect(container.textContent).toBe('compat');
 	});
 
 	it('renders with nested components and prop passing', () => {

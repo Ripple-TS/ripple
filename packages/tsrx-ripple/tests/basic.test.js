@@ -560,7 +560,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).not.toContain('function FormatName(__anchor');
 	});
 
-	it('does not componentify renderable-only PascalCase functions without native TSRX', () => {
+	it('keeps renderable-only PascalCase functions as plain functions', () => {
 		const { code } = compile(
 			`function Label() {
 				return "Hi";
@@ -574,7 +574,6 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 		expect(code).toContain('function Label()');
 		expect(code).toContain('return "Hi";');
 		expect(code).toContain('_$_.render_component(Label, node, {})');
-		expect(code).not.toContain('Label[_$_.TSRX_COMPONENT]');
 	});
 
 	it('uses server render_expression for conditional array expression values', () => {
@@ -778,8 +777,8 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('return _$_.tsrx_element(function render_children');
-		expect(server.code).toContain('return _$_.tsrx_element(function render_children');
+		expect(client.code).toContain('return _$_.tsrx_element((__anchor, __block) =>');
+		expect(server.code).toContain('return _$_.tsrx_element(() =>');
 		expect(client.code).not.toContain('function Test(__anchor');
 		expect(server.code).not.toContain('_$_.push_component()');
 		expect(server.code).not.toContain('_$_.pop_component()');
@@ -859,9 +858,9 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
 		expect(client.code).toContain("return 'plain';");
-		expect(client.code).not.toContain('Plain[_$_.TSRX_COMPONENT]');
-		expect(client.code).not.toContain('Compat[_$_.TSRX_COMPONENT]');
-		expect(server.code).not.toContain('Plain[_$_.TSRX_COMPONENT]');
-		expect(server.code).not.toContain('Compat[_$_.TSRX_COMPONENT]');
+		expect(client.code).not.toContain('Plain(__anchor');
+		expect(client.code).not.toContain('Compat(__anchor');
+		expect(server.code).not.toContain('Plain(__output');
+		expect(server.code).not.toContain('Compat(__output');
 	});
 });

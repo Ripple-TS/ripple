@@ -4,601 +4,17 @@ import * as _$_ from 'ripple/internal/server';
 import { track } from 'ripple/server';
 
 export function StaticForLoop() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		const items = ['Apple', 'Banana', 'Cherry'];
 
-	var __r = false;
-	const items = ['Apple', 'Banana', 'Cherry'];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of items) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r = true;
-	_$_.pop_component();
-}
-
-export function ForLoopWithIndex() {
-	_$_.push_component();
-
-	var __r_1 = false;
-	const items = ['A', 'B', 'C'];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var i = 0;
-
-			for (const item of items) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(`${i}: ${item}`));
-				}
-
-				_$_.output_push('</li>');
-				i++;
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_1 = true;
-	_$_.pop_component();
-}
-
-export function KeyedForLoop() {
-	_$_.push_component();
-
-	var __r_2 = false;
-
-	const items = [
-		{ id: 1, name: 'First' },
-		{ id: 2, name: 'Second' },
-		{ id: 3, name: 'Third' }
-	];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of items) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item.name));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_2 = true;
-	_$_.pop_component();
-}
-
-export function ReactiveForLoopAdd() {
-	_$_.push_component();
-
-	var __r_3 = false;
-	let lazy = _$_.track(['A', 'B'], 'e145678a');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="add"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Add');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy.value) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_3 = true;
-	_$_.pop_component();
-}
-
-export function ReactiveForLoopRemove() {
-	_$_.push_component();
-
-	var __r_4 = false;
-	let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="remove"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Remove');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_1.value) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_4 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopInteractive() {
-	_$_.push_component();
-
-	var __r_5 = false;
-	let lazy_2 = _$_.track([0, 0, 0], '36f563df');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var i = 0;
-
-			for (const count of lazy_2.value) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `item-${i}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<span');
-					_$_.output_push(' class="value"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(count));
-					}
-
-					_$_.output_push('</span>');
-					_$_.output_push('<button');
-					_$_.output_push(' class="increment"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('+');
-					}
-
-					_$_.output_push('</button>');
-				}
-
-				_$_.output_push('</div>');
-				i++;
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_5 = true;
-	_$_.pop_component();
-}
-
-export function NestedForLoop() {
-	_$_.push_component();
-
-	var __r_6 = false;
-	const grid = [[1, 2], [3, 4]];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(' class="grid"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var rowIndex = 0;
-
-			for (const row of grid) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					var colIndex = 0;
-
-					for (const cell of row) {
-						_$_.output_push('<span');
-						_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(cell));
-						}
-
-						_$_.output_push('</span>');
-						colIndex++;
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</div>');
-				rowIndex++;
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_6 = true;
-	_$_.pop_component();
-}
-
-export function EmptyForLoop() {
-	_$_.push_component();
-
-	var __r_7 = false;
-	const items = [];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(' class="container"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of items) {
-				_$_.output_push('<span');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_7 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopComplexObjects() {
-	_$_.push_component();
-
-	var __r_8 = false;
-
-	const users = [
-		{ id: 1, name: 'Alice', role: 'Admin' },
-		{ id: 2, name: 'Bob', role: 'User' }
-	];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const user of users) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `user-${user.id}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<span');
-					_$_.output_push(' class="name"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(user.name));
-					}
-
-					_$_.output_push('</span>');
-					_$_.output_push('<span');
-					_$_.output_push(' class="role"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(user.role));
-					}
-
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('</div>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_8 = true;
-	_$_.pop_component();
-}
-
-export function KeyedForLoopReorder() {
-	_$_.push_component();
-
-	var __r_9 = false;
-
-	let lazy_3 = _$_.track(
-		[
-			{ id: 1, name: 'First' },
-			{ id: 2, name: 'Second' },
-			{ id: 3, name: 'Third' }
-		],
-		'e7abc6a3'
-	);
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="reorder"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Reorder');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_3.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item.id}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item.name));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_9 = true;
-	_$_.pop_component();
-}
-
-export function KeyedForLoopUpdate() {
-	_$_.push_component();
-
-	var __r_10 = false;
-	let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="update"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Update');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_4.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item.id}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item.name));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_10 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopMixedOperations() {
-	_$_.push_component();
-
-	var __r_11 = false;
-	let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="shuffle"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Shuffle');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_5.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_11 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopInsideIf() {
-	_$_.push_component();
-
-	var __r_12 = false;
-	let lazy_6 = _$_.track(true, '0528df30');
-	let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="toggle"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Toggle List');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="add"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Add Item');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<!--[-->');
-
-		if (lazy_6.value) {
+		_$_.regular_block(() => {
 			_$_.output_push('<ul');
-			_$_.output_push(' class="list"');
 			_$_.output_push('>');
 
 			{
 				_$_.output_push('<!--[-->');
 
-				for (const item of lazy_7.value) {
+				for (const item of items) {
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -613,846 +29,1308 @@ export function ForLoopInsideIf() {
 			}
 
 			_$_.output_push('</ul>');
-		}
-
-		_$_.output_push('<!--]-->');
+		});
 	});
-
-	__r_12 = true;
-	_$_.pop_component();
 }
 
-export function ForLoopEmptyToPopulated() {
-	_$_.push_component();
+export function ForLoopWithIndex() {
+	return _$_.tsrx_element(() => {
+		const items = ['A', 'B', 'C'];
 
-	var __r_13 = false;
-	let lazy_8 = _$_.track([], '525c5dbc');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="populate"');
-		_$_.output_push('>');
+			{
+				_$_.output_push('<!--[-->');
 
-		{
-			_$_.output_push('Populate');
-		}
+				var i = 0;
 
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push(' class="list"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_8.value) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_13 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopPopulatedToEmpty() {
-	_$_.push_component();
-
-	var __r_14 = false;
-	let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="clear"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Clear');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push(' class="list"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_9.value) {
-				_$_.output_push('<li');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
-	});
-
-	__r_14 = true;
-	_$_.pop_component();
-}
-
-export function NestedForLoopReactive() {
-	_$_.push_component();
-
-	var __r_15 = false;
-	let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="add-row"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Add Row');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="update-cell"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Update Cell');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(' class="grid"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var rowIndex = 0;
-
-			for (const row of lazy_10.value) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					var colIndex = 0;
-
-					for (const cell of row) {
-						_$_.output_push('<span');
-						_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(cell));
-						}
-
-						_$_.output_push('</span>');
-						colIndex++;
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</div>');
-				rowIndex++;
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_15 = true;
-	_$_.pop_component();
-}
-
-export function ForLoopDeeplyNested() {
-	_$_.push_component();
-
-	var __r_16 = false;
-
-	const departments = [
-		{
-			id: 'd1',
-			name: 'Engineering',
-			teams: [
-				{ id: 't1', name: 'Frontend', members: ['Alice', 'Bob'] },
-				{ id: 't2', name: 'Backend', members: ['Charlie'] }
-			]
-		},
-
-		{
-			id: 'd2',
-			name: 'Design',
-			teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }]
-		}
-	];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(' class="org"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const dept of departments) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `dept-${dept.id}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<h2');
-					_$_.output_push(' class="dept-name"');
+				for (const item of items) {
+					_$_.output_push('<li');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(dept.name));
+						_$_.output_push(_$_.escape(`${i}: ${item}`));
 					}
 
-					_$_.output_push('</h2>');
-					_$_.output_push('<!--[-->');
+					_$_.output_push('</li>');
+					i++;
+				}
 
-					for (const team of dept.teams) {
-						_$_.output_push('<div');
-						_$_.output_push(_$_.attr('class', `team-${team.id}`));
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function KeyedForLoop() {
+	return _$_.tsrx_element(() => {
+		const items = [
+			{ id: 1, name: 'First' },
+			{ id: 2, name: 'Second' },
+			{ id: 3, name: 'Third' }
+		];
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of items) {
+					_$_.output_push('<li');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item.name));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ReactiveForLoopAdd() {
+	return _$_.tsrx_element(() => {
+		let lazy = _$_.track(['A', 'B'], 'e145678a');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="add"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Add');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy.value) {
+					_$_.output_push('<li');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ReactiveForLoopRemove() {
+	return _$_.tsrx_element(() => {
+		let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="remove"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Remove');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_1.value) {
+					_$_.output_push('<li');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ForLoopInteractive() {
+	return _$_.tsrx_element(() => {
+		let lazy_2 = _$_.track([0, 0, 0], '36f563df');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				var i = 0;
+
+				for (const count of lazy_2.value) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `item-${i}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<span');
+						_$_.output_push(' class="value"');
 						_$_.output_push('>');
 
 						{
-							_$_.output_push('<h3');
-							_$_.output_push(' class="team-name"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(team.name));
-							}
-
-							_$_.output_push('</h3>');
-							_$_.output_push('<ul');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<!--[-->');
-
-								for (const member of team.members) {
-									_$_.output_push('<li');
-									_$_.output_push(' class="member"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push(_$_.escape(member));
-									}
-
-									_$_.output_push('</li>');
-								}
-
-								_$_.output_push('<!--]-->');
-							}
-
-							_$_.output_push('</ul>');
+							_$_.output_push(_$_.escape(count));
 						}
 
-						_$_.output_push('</div>');
+						_$_.output_push('</span>');
+						_$_.output_push('<button');
+						_$_.output_push(' class="increment"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('+');
+						}
+
+						_$_.output_push('</button>');
+					}
+
+					_$_.output_push('</div>');
+					i++;
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+}
+
+export function NestedForLoop() {
+	return _$_.tsrx_element(() => {
+		const grid = [[1, 2], [3, 4]];
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="grid"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				var rowIndex = 0;
+
+				for (const row of grid) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<!--[-->');
+
+						var colIndex = 0;
+
+						for (const cell of row) {
+							_$_.output_push('<span');
+							_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(cell));
+							}
+
+							_$_.output_push('</span>');
+							colIndex++;
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</div>');
+					rowIndex++;
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+}
+
+export function EmptyForLoop() {
+	return _$_.tsrx_element(() => {
+		const items = [];
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="container"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of items) {
+					_$_.output_push('<span');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</span>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+}
+
+export function ForLoopComplexObjects() {
+	return _$_.tsrx_element(() => {
+		const users = [
+			{ id: 1, name: 'Alice', role: 'Admin' },
+			{ id: 2, name: 'Bob', role: 'User' }
+		];
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const user of users) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `user-${user.id}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<span');
+						_$_.output_push(' class="name"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape(user.name));
+						}
+
+						_$_.output_push('</span>');
+						_$_.output_push('<span');
+						_$_.output_push(' class="role"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape(user.role));
+						}
+
+						_$_.output_push('</span>');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+}
+
+export function KeyedForLoopReorder() {
+	return _$_.tsrx_element(() => {
+		let lazy_3 = _$_.track(
+			[
+				{ id: 1, name: 'First' },
+				{ id: 2, name: 'Second' },
+				{ id: 3, name: 'Third' }
+			],
+			'e7abc6a3'
+		);
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="reorder"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Reorder');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_3.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item.id}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item.name));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function KeyedForLoopUpdate() {
+	return _$_.tsrx_element(() => {
+		let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="update"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Update');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_4.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item.id}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item.name));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ForLoopMixedOperations() {
+	return _$_.tsrx_element(() => {
+		let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="shuffle"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Shuffle');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_5.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ForLoopInsideIf() {
+	return _$_.tsrx_element(() => {
+		let lazy_6 = _$_.track(true, '0528df30');
+		let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="toggle"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Toggle List');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="add"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Add Item');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<!--[-->');
+
+			if (lazy_6.value) {
+				_$_.output_push('<ul');
+				_$_.output_push(' class="list"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<!--[-->');
+
+					for (const item of lazy_7.value) {
+						_$_.output_push('<li');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape(item));
+						}
+
+						_$_.output_push('</li>');
 					}
 
 					_$_.output_push('<!--]-->');
 				}
 
-				_$_.output_push('</div>');
+				_$_.output_push('</ul>');
 			}
 
 			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
+		});
 	});
+}
 
-	__r_16 = true;
-	_$_.pop_component();
+export function ForLoopEmptyToPopulated() {
+	return _$_.tsrx_element(() => {
+		let lazy_8 = _$_.track([], '525c5dbc');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="populate"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Populate');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push(' class="list"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_8.value) {
+					_$_.output_push('<li');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function ForLoopPopulatedToEmpty() {
+	return _$_.tsrx_element(() => {
+		let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="clear"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Clear');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push(' class="list"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_9.value) {
+					_$_.output_push('<li');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
+	});
+}
+
+export function NestedForLoopReactive() {
+	return _$_.tsrx_element(() => {
+		let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="add-row"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Add Row');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="update-cell"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('Update Cell');
+			}
+
+			_$_.output_push('</button>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="grid"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				var rowIndex = 0;
+
+				for (const row of lazy_10.value) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<!--[-->');
+
+						var colIndex = 0;
+
+						for (const cell of row) {
+							_$_.output_push('<span');
+							_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(cell));
+							}
+
+							_$_.output_push('</span>');
+							colIndex++;
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</div>');
+					rowIndex++;
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
+}
+
+export function ForLoopDeeplyNested() {
+	return _$_.tsrx_element(() => {
+		const departments = [
+			{
+				id: 'd1',
+				name: 'Engineering',
+				teams: [
+					{ id: 't1', name: 'Frontend', members: ['Alice', 'Bob'] },
+					{ id: 't2', name: 'Backend', members: ['Charlie'] }
+				]
+			},
+
+			{
+				id: 'd2',
+				name: 'Design',
+				teams: [{ id: 't3', name: 'UX', members: ['Diana', 'Eve', 'Frank'] }]
+			}
+		];
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="org"');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const dept of departments) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `dept-${dept.id}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<h2');
+						_$_.output_push(' class="dept-name"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape(dept.name));
+						}
+
+						_$_.output_push('</h2>');
+						_$_.output_push('<!--[-->');
+
+						for (const team of dept.teams) {
+							_$_.output_push('<div');
+							_$_.output_push(_$_.attr('class', `team-${team.id}`));
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('<h3');
+								_$_.output_push(' class="team-name"');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push(_$_.escape(team.name));
+								}
+
+								_$_.output_push('</h3>');
+								_$_.output_push('<ul');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('<!--[-->');
+
+									for (const member of team.members) {
+										_$_.output_push('<li');
+										_$_.output_push(' class="member"');
+										_$_.output_push('>');
+
+										{
+											_$_.output_push(_$_.escape(member));
+										}
+
+										_$_.output_push('</li>');
+									}
+
+									_$_.output_push('<!--]-->');
+								}
+
+								_$_.output_push('</ul>');
+							}
+
+							_$_.output_push('</div>');
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
 }
 
 export function ForLoopIndexUpdate() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
 
-	var __r_17 = false;
-	let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="prepend"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="prepend"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Prepend');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var i = 0;
-
-			for (const item of lazy_11.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${i}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(`[${i}] ${item}`));
-				}
-
-				_$_.output_push('</li>');
-				i++;
+			{
+				_$_.output_push('Prepend');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				var i = 0;
+
+				for (const item of lazy_11.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${i}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(`[${i}] ${item}`));
+					}
+
+					_$_.output_push('</li>');
+					i++;
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_17 = true;
-	_$_.pop_component();
 }
 
 export function KeyedForLoopWithIndex() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_12 = _$_.track(
+			[
+				{ id: 'a', value: 'Alpha' },
+				{ id: 'b', value: 'Beta' },
+				{ id: 'c', value: 'Gamma' }
+			],
+			'3467975a'
+		);
 
-	var __r_18 = false;
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="reorder"');
+			_$_.output_push('>');
 
-	let lazy_12 = _$_.track(
-		[
-			{ id: 'a', value: 'Alpha' },
-			{ id: 'b', value: 'Beta' },
-			{ id: 'c', value: 'Gamma' }
-		],
-		'3467975a'
-	);
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="reorder"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Rotate');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			var i = 0;
-
-			for (const item of lazy_12.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('data-index', i, false));
-				_$_.output_push(_$_.attr('class', `item-${item.id}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(`[${i}] ${item.id}: ${item.value}`));
-				}
-
-				_$_.output_push('</li>');
-				i++;
+			{
+				_$_.output_push('Rotate');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				var i = 0;
+
+				for (const item of lazy_12.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('data-index', i, false));
+					_$_.output_push(_$_.attr('class', `item-${item.id}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(`[${i}] ${item.id}: ${item.value}`));
+					}
+
+					_$_.output_push('</li>');
+					i++;
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_18 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopWithSiblings() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
 
-	var __r_19 = false;
-	let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(' class="wrapper"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<header');
-			_$_.output_push(' class="before"');
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(' class="wrapper"');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push('Before');
-			}
-
-			_$_.output_push('</header>');
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_13.value) {
-				_$_.output_push('<div');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
+				_$_.output_push('<header');
+				_$_.output_push(' class="before"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(item));
+					_$_.output_push('Before');
 				}
 
-				_$_.output_push('</div>');
+				_$_.output_push('</header>');
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_13.value) {
+					_$_.output_push('<div');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+				_$_.output_push('<footer');
+				_$_.output_push(' class="after"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('After');
+				}
+
+				_$_.output_push('</footer>');
 			}
 
-			_$_.output_push('<!--]-->');
-			_$_.output_push('<footer');
-			_$_.output_push(' class="after"');
+			_$_.output_push('</div>');
+		});
+
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="add"');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push('After');
+				_$_.output_push('Add');
 			}
 
-			_$_.output_push('</footer>');
-		}
-
-		_$_.output_push('</div>');
+			_$_.output_push('</button>');
+		});
 	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="add"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Add');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	__r_19 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopItemState() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		const initialItems = [
+			{ id: 1, text: 'Todo 1' },
+			{ id: 2, text: 'Todo 2' },
+			{ id: 3, text: 'Todo 3' }
+		];
 
-	var __r_20 = false;
-
-	const initialItems = [
-		{ id: 1, text: 'Todo 1' },
-		{ id: 2, text: 'Todo 2' },
-		{ id: 3, text: 'Todo 3' }
-	];
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of initialItems) {
-				{
-					const comp = TodoItem;
-					const args = [{ id: item.id, text: item.text }];
-
-					comp(...args);
-				}
-			}
-
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</div>');
-	});
-
-	__r_20 = true;
-	_$_.pop_component();
-}
-
-function TodoItem(props) {
-	_$_.push_component();
-
-	var __r_21 = false;
-	let lazy_14 = _$_.track(false, '4f2402a4');
-
-	_$_.regular_block(() => {
-		_$_.output_push('<div');
-		_$_.output_push(_$_.attr('class', `todo-${props.id}`));
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<input');
-			_$_.output_push(' type="checkbox"');
-			_$_.output_push(_$_.attr('checked', lazy_14.value, true));
-			_$_.output_push(' class="checkbox"');
-			_$_.output_push(' />');
-			_$_.output_push('<span');
-			_$_.output_push(_$_.attr('class', lazy_14.value ? 'completed' : 'pending'));
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(props.text));
+				_$_.output_push('<!--[-->');
+
+				for (const item of initialItems) {
+					{
+						const comp = TodoItem;
+						const args = [{ id: item.id, text: item.text }];
+
+						_$_.render_component(comp, ...args);
+					}
+				}
+
+				_$_.output_push('<!--]-->');
 			}
 
-			_$_.output_push('</span>');
-		}
-
-		_$_.output_push('</div>');
+			_$_.output_push('</div>');
+		});
 	});
+}
 
-	__r_21 = true;
-	_$_.pop_component();
+function TodoItem(props) {
+	return _$_.tsrx_element(() => {
+		let lazy_14 = _$_.track(false, '4f2402a4');
+
+		_$_.regular_block(() => {
+			_$_.output_push('<div');
+			_$_.output_push(_$_.attr('class', `todo-${props.id}`));
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<input');
+				_$_.output_push(' type="checkbox"');
+				_$_.output_push(_$_.attr('checked', lazy_14.value, true));
+				_$_.output_push(' class="checkbox"');
+				_$_.output_push(' />');
+				_$_.output_push('<span');
+				_$_.output_push(_$_.attr('class', lazy_14.value ? 'completed' : 'pending'));
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(props.text));
+				}
+
+				_$_.output_push('</span>');
+			}
+
+			_$_.output_push('</div>');
+		});
+	});
 }
 
 export function ForLoopSingleItem() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		const items = ['Only'];
 
-	var __r_22 = false;
-	const items = ['Only'];
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
+			{
+				_$_.output_push('<!--[-->');
 
-		{
-			_$_.output_push('<!--[-->');
+				for (const item of items) {
+					_$_.output_push('<li');
+					_$_.output_push(' class="single"');
+					_$_.output_push('>');
 
-			for (const item of items) {
-				_$_.output_push('<li');
-				_$_.output_push(' class="single"');
-				_$_.output_push('>');
+					{
+						_$_.output_push(_$_.escape(item));
+					}
 
-				{
-					_$_.output_push(_$_.escape(item));
+					_$_.output_push('</li>');
 				}
 
-				_$_.output_push('</li>');
+				_$_.output_push('<!--]-->');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_22 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopAddAtBeginning() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_15 = _$_.track(['B', 'C'], '1561403a');
 
-	var __r_23 = false;
-	let lazy_15 = _$_.track(['B', 'C'], '1561403a');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="prepend"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="prepend"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Prepend A');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_15.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
+			{
+				_$_.output_push('Prepend A');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_15.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_23 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopAddInMiddle() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
 
-	var __r_24 = false;
-	let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="insert"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="insert"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Insert B');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_16.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
+			{
+				_$_.output_push('Insert B');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_16.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_24 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopRemoveFromMiddle() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
 
-	var __r_25 = false;
-	let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="remove-middle"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="remove-middle"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Remove B');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_17.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
+			{
+				_$_.output_push('Remove B');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_17.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_25 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopLargeList() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
 
-	var __r_26 = false;
-	const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push(' class="large-list"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push(' class="large-list"');
-		_$_.output_push('>');
+			{
+				_$_.output_push('<!--[-->');
 
-		{
-			_$_.output_push('<!--[-->');
+				var i = 0;
 
-			var i = 0;
+				for (const item of items) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${i}`));
+					_$_.output_push('>');
 
-			for (const item of items) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${i}`));
-				_$_.output_push('>');
+					{
+						_$_.output_push(_$_.escape(item));
+					}
 
-				{
-					_$_.output_push(_$_.escape(item));
+					_$_.output_push('</li>');
+					i++;
 				}
 
-				_$_.output_push('</li>');
-				i++;
+				_$_.output_push('<!--]-->');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
-
-		_$_.output_push('</ul>');
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_26 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopSwap() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
 
-	var __r_27 = false;
-	let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="swap"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="swap"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Swap First and Last');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_18.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
+			{
+				_$_.output_push('Swap First and Last');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_18.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_27 = true;
-	_$_.pop_component();
 }
 
 export function ForLoopReverse() {
-	_$_.push_component();
+	return _$_.tsrx_element(() => {
+		let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
 
-	var __r_28 = false;
-	let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
+		_$_.regular_block(() => {
+			_$_.output_push('<button');
+			_$_.output_push(' class="reverse"');
+			_$_.output_push('>');
 
-	_$_.regular_block(() => {
-		_$_.output_push('<button');
-		_$_.output_push(' class="reverse"');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('Reverse');
-		}
-
-		_$_.output_push('</button>');
-	});
-
-	_$_.regular_block(() => {
-		_$_.output_push('<ul');
-		_$_.output_push('>');
-
-		{
-			_$_.output_push('<!--[-->');
-
-			for (const item of lazy_19.value) {
-				_$_.output_push('<li');
-				_$_.output_push(_$_.attr('class', `item-${item}`));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(item));
-				}
-
-				_$_.output_push('</li>');
+			{
+				_$_.output_push('Reverse');
 			}
 
-			_$_.output_push('<!--]-->');
-		}
+			_$_.output_push('</button>');
+		});
 
-		_$_.output_push('</ul>');
+		_$_.regular_block(() => {
+			_$_.output_push('<ul');
+			_$_.output_push('>');
+
+			{
+				_$_.output_push('<!--[-->');
+
+				for (const item of lazy_19.value) {
+					_$_.output_push('<li');
+					_$_.output_push(_$_.attr('class', `item-${item}`));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</li>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
+
+			_$_.output_push('</ul>');
+		});
 	});
-
-	__r_28 = true;
-	_$_.pop_component();
 }

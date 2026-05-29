@@ -40,24 +40,17 @@ export function is_native_tsrx_function_node(node) {
 }
 
 /**
- * @param {AST.Expression} target
- * @returns {AST.Statement}
+ * @param {AST.TSRXStatement} statement
+ * @returns {boolean}
  */
-export function create_tsrx_component_marker_statement(target) {
-	return b.stmt(b.assignment('=', b.member(target, b.id('_$_.TSRX_COMPONENT'), true), b.true));
-}
-
-/**
- * @param {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} statements
- * @returns {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>}
- */
-export function mark_native_tsrx_function_declarations(statements) {
-	/** @type {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} */
-	const marked = [];
-	for (const statement of statements) {
-		marked.push(statement, ...create_tsrx_component_marker_statements(statement));
-	}
-	return marked;
+export function should_guard_regular_js_statement(statement) {
+	return (
+		statement.type !== 'VariableDeclaration' &&
+		statement.type !== 'FunctionDeclaration' &&
+		statement.type !== 'ClassDeclaration' &&
+		statement.type !== 'TSTypeAliasDeclaration' &&
+		statement.type !== 'TSInterfaceDeclaration'
+	);
 }
 
 /**
@@ -78,92 +71,6 @@ export function generate_local_name(scope, preferred_name) {
 
 	scope.references.set(name, []);
 	return name;
-}
-
-/**
- * @param {AST.Statement | AST.Directive | AST.ModuleDeclaration} statement
- * @returns {AST.Statement[]}
- */
-export function create_tsrx_component_marker_statements(statement) {
-	const declaration =
-		statement.type === 'ExportDefaultDeclaration' || statement.type === 'ExportNamedDeclaration'
-			? statement.declaration
-			: statement;
-
-	if (
-		(declaration?.type === 'FunctionDeclaration' || declaration?.type === 'FunctionExpression') &&
-		declaration.metadata?.native_tsrx_function &&
-		declaration.id
-	) {
-		return [create_tsrx_component_marker_statement(declaration.id)];
-	}
-
-	if (declaration?.type === 'VariableDeclaration') {
-		return declaration.declarations.flatMap((declarator) =>
-			declarator.id.type === 'Identifier'
-				? create_tsrx_component_marker_statements_for_value(declarator.id, declarator.init)
-				: [],
-		);
-	}
-
-	return [];
-}
-
-/**
- * @param {AST.Expression} target
- * @param {AST.Expression | null | undefined} value
- * @returns {AST.Statement[]}
- */
-function create_tsrx_component_marker_statements_for_value(target, value) {
-	if (is_native_tsrx_function_node(value)) {
-		return [create_tsrx_component_marker_statement(target)];
-	}
-
-	if (value?.type === 'ObjectExpression') {
-		return value.properties.flatMap((property) => {
-			if (property.type !== 'Property') {
-				return [];
-			}
-
-			const property_target = create_static_property_marker_target(target, property);
-			return property_target === null
-				? []
-				: create_tsrx_component_marker_statements_for_value(
-						property_target,
-						/** @type {AST.Expression} */ (property.value),
-					);
-		});
-	}
-
-	if (value?.type === 'ArrayExpression') {
-		return value.elements.flatMap((element, index) =>
-			element === null || element.type === 'SpreadElement'
-				? []
-				: create_tsrx_component_marker_statements_for_value(
-						b.member(target, b.literal(index), true),
-						element,
-					),
-		);
-	}
-
-	return [];
-}
-
-/**
- * @param {AST.Expression} target
- * @param {AST.Property} property
- * @returns {AST.MemberExpression | null}
- */
-function create_static_property_marker_target(target, property) {
-	if (property.computed) {
-		return property.key.type === 'Literal'
-			? b.member(target, /** @type {AST.Literal} */ (property.key), true)
-			: null;
-	}
-
-	return property.key.type === 'Identifier'
-		? b.member(target, property.key)
-		: b.member(target, /** @type {AST.Expression} */ (property.key), true);
 }
 
 /**
@@ -295,6 +202,7 @@ export function is_static_native_tsrx_function_call(expression, context) {
 		return false;
 	}
 
+	/** @type {ScopeInterface | null} */
 	let scope = binding.scope;
 	let is_inside_component_scope = false;
 	while (scope !== null) {
@@ -937,13 +845,12 @@ function strip_style_element_children(node, inside_head) {
 }
 
 /**
- * @param {AST.Identifier | null} id
  * @param {AST.Pattern[]} params
  * @param {AST.Node[]} children
  * @param {AST.Node} [source_node]
- * @returns {AST.FunctionExpression}
+ * @returns {AST.ArrowFunctionExpression}
  */
-export function create_native_tsrx_render_function(id, params, children, source_node) {
+export function create_native_tsrx_render_function(params, children, source_node) {
 	const fragment = /** @type {AST.Tsrx} */ (
 		/** @type {unknown} */ ({
 			type: 'Tsrx',
@@ -955,8 +862,7 @@ export function create_native_tsrx_render_function(id, params, children, source_
 			metadata: { path: [] },
 		})
 	);
-	const fn = b.function(
-		id,
+	const fn = b.arrow(
 		params,
 		b.block(
 			[b.return(/** @type {any} */ (fragment))],
@@ -967,6 +873,7 @@ export function create_native_tsrx_render_function(id, params, children, source_
 		/** @type {AST.NodeWithLocation | undefined} */ (source_node),
 	);
 	fn.metadata.native_tsrx_function = true;
+	fn.metadata.synthetic_children = true;
 	return fn;
 }
 

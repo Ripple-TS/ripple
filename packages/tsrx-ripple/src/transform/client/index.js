@@ -84,8 +84,6 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
-	create_tsrx_component_marker_statement,
-	create_tsrx_component_marker_statements,
 	create_native_tsrx_render_function,
 	generate_local_name,
 	get_native_tsrx_function_body,
@@ -94,8 +92,8 @@ import {
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
 	is_tsrx_component_function,
-	mark_native_tsrx_function_declarations,
 	rewrite_lazy_member_base,
+	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
 } from '../../utils.js';
 import is_reference from 'is-reference';
@@ -738,7 +736,7 @@ function transform_native_tsrx_function(node, context) {
 		return { ...node, params, body: /** @type {AST.BlockStatement} */ (body) };
 	}
 
-	/** @type {AST.Identifier | AST.ObjectPattern | AST.ArrayPattern} */
+	/** @type {AST.Pattern} */
 	let props = b.id('__props');
 
 	if (node.params.length > 0) {
@@ -750,12 +748,10 @@ function transform_native_tsrx_function(node, context) {
 		} else if (props_param.type === 'ObjectPattern' || props_param.type === 'ArrayPattern') {
 			delete props_param.typeAnnotation;
 			if (!props_param.lazy) {
-				props = /** @type {AST.ObjectPattern | AST.ArrayPattern} */ (
-					replace_lazy_param_pattern(props_param)
-				);
+				props = replace_lazy_param_pattern(props_param);
 			}
 		} else {
-			props = /** @type {AST.Identifier} */ (props_param);
+			props = props_param;
 		}
 	}
 
@@ -768,7 +764,7 @@ function transform_native_tsrx_function(node, context) {
 		context.state.scopes.get(node) ||
 		context.state.scope;
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
-	const is_synthetic_children = node_id?.name === 'render_children';
+	const is_synthetic_children = node.metadata?.synthetic_children === true;
 	const raw_render_body = get_native_tsrx_function_body(node);
 	const css = get_component_css({ ...context.state, component: node });
 	const style_ref_setup = css
@@ -813,8 +809,7 @@ function transform_native_tsrx_function(node, context) {
 				b.return(
 					b.call(
 						'_$_.tsrx_element',
-						b.function(
-							b.id('render_children'),
+						b.arrow(
 							[b.id('__anchor'), b.id('__block')],
 							b.block([...(prop_statements ?? []), ...transformed_body]),
 						),
@@ -1346,7 +1341,6 @@ function build_jsx_to_tsrx_element(node, context) {
 	apply_tsrx_css_scoping(children, state);
 
 	const children_component = create_native_tsrx_render_function(
-		b.id('render_children'),
 		[],
 		children,
 		/** @type {AST.Node} */ (node),
@@ -2135,9 +2129,6 @@ const visitors = {
 				if (child == null || child.type === 'EmptyStatement') continue;
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
-					if (child.type === 'FunctionDeclaration' && child.id) {
-						state.init?.push(create_tsrx_component_marker_statement(child.id));
-					}
 				} else {
 					children_filtered.push(child);
 				}
@@ -2145,12 +2136,7 @@ const visitors = {
 		}
 		apply_tsrx_css_scoping(children_filtered, state);
 
-		const children_component = create_native_tsrx_render_function(
-			b.id('render_children'),
-			[],
-			children_filtered,
-			node,
-		);
+		const children_component = create_native_tsrx_render_function([], children_filtered, node);
 
 		const element = b.call(
 			'_$_.tsrx_element',
@@ -2197,12 +2183,7 @@ const visitors = {
 		});
 		apply_tsrx_css_scoping(children_filtered, state);
 
-		const children_component = create_native_tsrx_render_function(
-			b.id('render_children'),
-			[],
-			children_filtered,
-			node,
-		);
+		const children_component = create_native_tsrx_render_function([], children_filtered, node);
 
 		const element = b.call(
 			'_$_.tsrx_element',
@@ -2876,9 +2857,6 @@ const visitors = {
 			for (const child of node.children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
-					if (child.type === 'FunctionDeclaration' && child.id) {
-						state.init?.push(create_tsrx_component_marker_statement(child.id));
-					}
 				}
 			}
 
@@ -2888,12 +2866,7 @@ const visitors = {
 
 			if (children_filtered.length > 0) {
 				const component_scope = state.scopes.get(node) || state.scope;
-				const children_component = create_native_tsrx_render_function(
-					b.id('render_children'),
-					[],
-					children_filtered,
-					node,
-				);
+				const children_component = create_native_tsrx_render_function([], children_filtered, node);
 
 				const children = b.call(
 					'_$_.tsrx_element',
@@ -3698,7 +3671,7 @@ const visitors = {
 			);
 		}
 
-		return b.block(mark_native_tsrx_function_declarations(statements));
+		return b.block(statements);
 	},
 
 	TSModuleBlock(node, context) {
@@ -4482,20 +4455,6 @@ function get_unique_return_infos(returns, return_flags) {
 }
 
 /**
- * @param {AST.Statement} statement
- * @returns {boolean}
- */
-function should_guard_regular_js_statement(statement) {
-	return (
-		statement.type !== 'VariableDeclaration' &&
-		statement.type !== 'FunctionDeclaration' &&
-		statement.type !== 'ClassDeclaration' &&
-		statement.type !== 'TSTypeAliasDeclaration' &&
-		statement.type !== 'TSInterfaceDeclaration'
-	);
-}
-
-/**
  * @param {AST.Node} node
  * @returns {boolean}
  */
@@ -4574,12 +4533,7 @@ function build_native_tsrx_value_expression(children, source_node, context) {
 		});
 	apply_tsrx_css_scoping(children_filtered, state);
 
-	const children_component = create_native_tsrx_render_function(
-		b.id('render_children'),
-		[],
-		children_filtered,
-		source_node,
-	);
+	const children_component = create_native_tsrx_render_function([], children_filtered, source_node);
 
 	return b.call(
 		'_$_.tsrx_element',
@@ -5469,7 +5423,7 @@ function transform_body(body, { visit, state }) {
 		.../** @type {AST.Statement[]} */ (body_state.init),
 		.../** @type {NonNullable<TransformClientState['final']>} */ (body_state.final),
 	];
-	return mark_native_tsrx_function_declarations(init);
+	return init;
 }
 
 /**
@@ -6537,16 +6491,6 @@ export function transform_client(filename, source, analysis, to_ts, minify_css, 
 				b.call('_$_.delegate', b.array(Array.from(state.events).map((name) => b.literal(name)))),
 			),
 		);
-	}
-
-	if (!to_ts) {
-		for (let i = 0; i < body.length; i++) {
-			const markers = create_tsrx_component_marker_statements(body[i]);
-			if (markers.length > 0) {
-				body.splice(i + 1, 0, ...markers);
-				i += markers.length;
-			}
-		}
 	}
 
 	// HMR: wrap all named native TSRX functions with _$_.hmr() and emit import.meta.hot.accept()

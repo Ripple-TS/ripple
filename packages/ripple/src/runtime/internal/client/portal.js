@@ -6,7 +6,7 @@ import { handle_root_events } from './events.js';
 import { create_text } from './operations.js';
 import { active_block } from './runtime.js';
 import { hydrating, hydrate_node, set_hydrating, set_hydrate_node } from './hydration.js';
-import { TSRX_COMPONENT, is_tsrx_element, tsrx_element } from '../../element.js';
+import { is_tsrx_element, tsrx_element } from '../../element.js';
 
 /**
  * @param {{ target: Element, children: import('../../element.js').TSRXElement }} props
@@ -90,5 +90,3 @@ export function Portal(props) {
 		}
 	});
 }
-
-Portal[TSRX_COMPONENT] = true;

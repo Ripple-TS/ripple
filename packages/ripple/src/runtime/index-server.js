@@ -1,4 +1,4 @@
-import { TSRX_COMPONENT, output_push, noop, tsrx_element } from './internal/server/index.js';
+import { output_push, noop, tsrx_element } from './internal/server/index.js';
 
 export { Fragment } from '../jsx-runtime.js';
 export { Context } from './internal/server/context.js';
@@ -80,5 +80,3 @@ export function Portal() {
 		output_push('<!--portal-->');
 	});
 }
-
-Portal[TSRX_COMPONENT] = true;

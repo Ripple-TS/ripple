@@ -885,19 +885,20 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {AST.Node} node
+			 * @param {AST.Node | AST.Node[] | unknown} maybe_node
 			 * @param {boolean} [inside_nested_function]
 			 * @param {boolean} [inside_loop]
 			 */
 			#report_invalid_template_return_statements(
-				node,
+				maybe_node,
 				inside_nested_function = false,
 				inside_loop = false,
 			) {
-				if (!node || typeof node !== 'object') {
+				if (!maybe_node || typeof maybe_node !== 'object') {
 					return;
 				}
 
+				let node = /** @type {AST.Node} */ (maybe_node);
 				if (
 					node.type === 'FunctionDeclaration' ||
 					node.type === 'FunctionExpression' ||
@@ -921,7 +922,7 @@ export function TSRXPlugin(config) {
 						...node.metadata,
 						invalid_tsrx_template_return: true,
 					};
-					this.#report_broken_markup_error(
+					this.#report_recoverable_error(
 						/** @type {AST.NodeWithLocation} */ (node).start ?? this.start,
 						TSRX_RETURN_STATEMENT_ERROR,
 						DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
@@ -930,7 +931,7 @@ export function TSRXPlugin(config) {
 				}
 
 				if (Array.isArray(node)) {
-					for (const child of node) {
+					for (const child of /** @type {AST.Node[]} */ (node)) {
 						this.#report_invalid_template_return_statements(
 							child,
 							inside_nested_function,
@@ -945,7 +946,7 @@ export function TSRXPlugin(config) {
 						continue;
 					}
 					this.#report_invalid_template_return_statements(
-						node[key],
+						/** @type {Record<string, unknown>} */ (node)[key],
 						inside_nested_function,
 						inside_loop,
 					);

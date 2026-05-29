@@ -27,324 +27,306 @@ var root_19 = _$_.template(`<button class="nobreak-toggle">Toggle</button><!>`, 
 
 import { track } from 'ripple';
 
-export function SwitchStatic(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchStatic() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		const status = 'success';
+		var fragment = root();
+		var node = _$_.first_child_frag(fragment);
 
-	var __r = false;
-	const status = 'success';
-	var fragment = root();
-	var node = _$_.first_child_frag(fragment);
+		{
+			var switch_case_0 = (__anchor) => {
+				var fragment_1 = root_1();
 
-	{
-		var switch_case_0 = (__anchor) => {
-			var fragment_1 = root_1();
+				_$_.append(__anchor, fragment_1);
+			};
 
-			_$_.append(__anchor, fragment_1);
-		};
+			var switch_case_1 = (__anchor) => {
+				var fragment_2 = root_2();
 
-		var switch_case_1 = (__anchor) => {
-			var fragment_2 = root_2();
+				_$_.append(__anchor, fragment_2);
+			};
 
-			_$_.append(__anchor, fragment_2);
-		};
+			var switch_case_default = (__anchor) => {
+				var div_1 = root_3();
 
-		var switch_case_default = (__anchor) => {
-			var div_1 = root_3();
+				_$_.append(__anchor, div_1);
+			};
 
-			_$_.append(__anchor, div_1);
-		};
+			_$_.switch(node, () => {
+				var result = [];
 
-		_$_.switch(node, () => {
-			var result = [];
+				switch (status) {
+					case 'success':
+						result.push(switch_case_0);
+						return result;
 
-			switch (status) {
-				case 'success':
-					result.push(switch_case_0);
-					return result;
+					case 'error':
+						result.push(switch_case_1);
+						return result;
 
-				case 'error':
-					result.push(switch_case_1);
-					return result;
+					default:
+						result.push(switch_case_default);
+						return result;
+				}
+			});
+		}
 
-				default:
-					result.push(switch_case_default);
-					return result;
-			}
-		});
-	}
-
-	__r = true;
-	_$_.append(__anchor, fragment);
-	_$_.pop_component();
+		_$_.append(__anchor, fragment);
+	});
 }
 
-export function SwitchReactive(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchReactive() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy = _$_.track('a', __block, '9b34d955');
+		var fragment_3 = root_4();
+		var button_1 = _$_.first_child_frag(fragment_3);
 
-	var __r_1 = false;
-	let lazy = _$_.track('a', __block, '9b34d955');
-	var fragment_3 = root_4();
-	var button_1 = _$_.first_child_frag(fragment_3);
-
-	button_1.__click = () => {
-		if (lazy.value === 'a') _$_.set(lazy, 'b'); else if (lazy.value === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
-	};
-
-	var node_1 = _$_.sibling(button_1);
-
-	{
-		var switch_case_0_1 = (__anchor) => {
-			var fragment_4 = root_5();
-
-			_$_.append(__anchor, fragment_4);
+		button_1.__click = () => {
+			if (lazy.value === 'a') _$_.set(lazy, 'b'); else if (lazy.value === 'b') _$_.set(lazy, 'c'); else _$_.set(lazy, 'a');
 		};
 
-		var switch_case_1_1 = (__anchor) => {
-			var fragment_5 = root_6();
+		var node_1 = _$_.sibling(button_1);
 
-			_$_.append(__anchor, fragment_5);
-		};
+		{
+			var switch_case_0_1 = (__anchor) => {
+				var fragment_4 = root_5();
 
-		var switch_case_default_1 = (__anchor) => {
-			var div_2 = root_7();
+				_$_.append(__anchor, fragment_4);
+			};
 
-			_$_.append(__anchor, div_2);
-		};
+			var switch_case_1_1 = (__anchor) => {
+				var fragment_5 = root_6();
 
-		_$_.switch(node_1, () => {
-			var result = [];
+				_$_.append(__anchor, fragment_5);
+			};
 
-			switch (lazy.value) {
-				case 'a':
-					result.push(switch_case_0_1);
-					return result;
+			var switch_case_default_1 = (__anchor) => {
+				var div_2 = root_7();
 
-				case 'b':
-					result.push(switch_case_1_1);
-					return result;
+				_$_.append(__anchor, div_2);
+			};
 
-				default:
-					result.push(switch_case_default_1);
-					return result;
-			}
-		});
-	}
+			_$_.switch(node_1, () => {
+				var result = [];
 
-	__r_1 = true;
-	_$_.append(__anchor, fragment_3);
-	_$_.pop_component();
+				switch (lazy.value) {
+					case 'a':
+						result.push(switch_case_0_1);
+						return result;
+
+					case 'b':
+						result.push(switch_case_1_1);
+						return result;
+
+					default:
+						result.push(switch_case_default_1);
+						return result;
+				}
+			});
+		}
+
+		_$_.append(__anchor, fragment_3);
+	});
 }
 
-export function SwitchFallthrough(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchFallthrough() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		const val = 1;
+		var fragment_6 = root_8();
+		var node_2 = _$_.first_child_frag(fragment_6);
 
-	var __r_2 = false;
-	const val = 1;
-	var fragment_6 = root_8();
-	var node_2 = _$_.first_child_frag(fragment_6);
+		{
+			var switch_case_0_2 = (__anchor) => {
+				var fragment_7 = root_9();
 
-	{
-		var switch_case_0_2 = (__anchor) => {
-			var fragment_7 = root_9();
+				_$_.append(__anchor, fragment_7);
+			};
 
-			_$_.append(__anchor, fragment_7);
-		};
+			var switch_case_default_2 = (__anchor) => {
+				var div_3 = root_10();
 
-		var switch_case_default_2 = (__anchor) => {
-			var div_3 = root_10();
+				_$_.append(__anchor, div_3);
+			};
 
-			_$_.append(__anchor, div_3);
-		};
+			_$_.switch(node_2, () => {
+				var result = [];
 
-		_$_.switch(node_2, () => {
-			var result = [];
+				switch (val) {
+					case 1:
 
-			switch (val) {
-				case 1:
+					case 2:
+						result.push(switch_case_0_2);
+						return result;
 
-				case 2:
-					result.push(switch_case_0_2);
-					return result;
+					default:
+						result.push(switch_case_default_2);
+						return result;
+				}
+			});
+		}
 
-				default:
-					result.push(switch_case_default_2);
-					return result;
-			}
-		});
-	}
-
-	__r_2 = true;
-	_$_.append(__anchor, fragment_6);
-	_$_.pop_component();
+		_$_.append(__anchor, fragment_6);
+	});
 }
 
-export function SwitchNumericLevels(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchNumericLevels() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_1 = _$_.track(1, __block, '7581a7ab');
+		var fragment_8 = root_11();
+		var button_2 = _$_.first_child_frag(fragment_8);
 
-	var __r_3 = false;
-	let lazy_1 = _$_.track(1, __block, '7581a7ab');
-	var fragment_8 = root_11();
-	var button_2 = _$_.first_child_frag(fragment_8);
-
-	button_2.__click = () => {
-		if (lazy_1.value === 1) _$_.set(lazy_1, 2); else if (lazy_1.value === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
-	};
-
-	var node_3 = _$_.sibling(button_2);
-
-	{
-		var switch_case_0_3 = (__anchor) => {
-			var fragment_9 = root_12();
-
-			_$_.append(__anchor, fragment_9);
+		button_2.__click = () => {
+			if (lazy_1.value === 1) _$_.set(lazy_1, 2); else if (lazy_1.value === 2) _$_.set(lazy_1, 3); else _$_.set(lazy_1, 1);
 		};
 
-		var switch_case_1_2 = (__anchor) => {
-			var fragment_10 = root_13();
+		var node_3 = _$_.sibling(button_2);
 
-			_$_.append(__anchor, fragment_10);
-		};
+		{
+			var switch_case_0_3 = (__anchor) => {
+				var fragment_9 = root_12();
 
-		var switch_case_2 = (__anchor) => {
-			var fragment_11 = root_14();
+				_$_.append(__anchor, fragment_9);
+			};
 
-			_$_.append(__anchor, fragment_11);
-		};
+			var switch_case_1_2 = (__anchor) => {
+				var fragment_10 = root_13();
 
-		_$_.switch(node_3, () => {
-			var result = [];
+				_$_.append(__anchor, fragment_10);
+			};
 
-			switch (lazy_1.value) {
-				case 1:
-					result.push(switch_case_0_3);
-					return result;
+			var switch_case_2 = (__anchor) => {
+				var fragment_11 = root_14();
 
-				case 2:
-					result.push(switch_case_1_2);
-					return result;
+				_$_.append(__anchor, fragment_11);
+			};
 
-				case 3:
-					result.push(switch_case_2);
-					return result;
-			}
-		});
-	}
+			_$_.switch(node_3, () => {
+				var result = [];
 
-	__r_3 = true;
-	_$_.append(__anchor, fragment_8);
-	_$_.pop_component();
+				switch (lazy_1.value) {
+					case 1:
+						result.push(switch_case_0_3);
+						return result;
+
+					case 2:
+						result.push(switch_case_1_2);
+						return result;
+
+					case 3:
+						result.push(switch_case_2);
+						return result;
+				}
+			});
+		}
+
+		_$_.append(__anchor, fragment_8);
+	});
 }
 
-export function SwitchBlockScoped(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchBlockScoped() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_2 = _$_.track(1, __block, 'ca9f9852');
+		var fragment_12 = root_15();
+		var button_3 = _$_.first_child_frag(fragment_12);
 
-	var __r_4 = false;
-	let lazy_2 = _$_.track(1, __block, 'ca9f9852');
-	var fragment_12 = root_15();
-	var button_3 = _$_.first_child_frag(fragment_12);
-
-	button_3.__click = () => {
-		if (lazy_2.value === 1) _$_.set(lazy_2, 2); else if (lazy_2.value === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
-	};
-
-	var node_4 = _$_.sibling(button_3);
-
-	{
-		var switch_case_0_4 = (__anchor) => {
-			var fragment_13 = root_16();
-
-			_$_.append(__anchor, fragment_13);
+		button_3.__click = () => {
+			if (lazy_2.value === 1) _$_.set(lazy_2, 2); else if (lazy_2.value === 2) _$_.set(lazy_2, 3); else _$_.set(lazy_2, 1);
 		};
 
-		var switch_case_1_3 = (__anchor) => {
-			var fragment_14 = root_17();
+		var node_4 = _$_.sibling(button_3);
 
-			_$_.append(__anchor, fragment_14);
-		};
+		{
+			var switch_case_0_4 = (__anchor) => {
+				var fragment_13 = root_16();
 
-		var switch_case_2_1 = (__anchor) => {
-			var fragment_15 = root_18();
+				_$_.append(__anchor, fragment_13);
+			};
 
-			_$_.append(__anchor, fragment_15);
-		};
+			var switch_case_1_3 = (__anchor) => {
+				var fragment_14 = root_17();
 
-		_$_.switch(node_4, () => {
-			var result = [];
+				_$_.append(__anchor, fragment_14);
+			};
 
-			switch (lazy_2.value) {
-				case 1:
-					result.push(switch_case_0_4);
-					return result;
+			var switch_case_2_1 = (__anchor) => {
+				var fragment_15 = root_18();
 
-				case 2:
-					result.push(switch_case_1_3);
-					return result;
+				_$_.append(__anchor, fragment_15);
+			};
 
-				case 3:
-					result.push(switch_case_2_1);
-					return result;
-			}
-		});
-	}
+			_$_.switch(node_4, () => {
+				var result = [];
 
-	__r_4 = true;
-	_$_.append(__anchor, fragment_12);
-	_$_.pop_component();
+				switch (lazy_2.value) {
+					case 1:
+						result.push(switch_case_0_4);
+						return result;
+
+					case 2:
+						result.push(switch_case_1_3);
+						return result;
+
+					case 3:
+						result.push(switch_case_2_1);
+						return result;
+				}
+			});
+		}
+
+		_$_.append(__anchor, fragment_12);
+	});
 }
 
-export function SwitchNoBreak(__anchor, _, __block) {
-	_$_.push_component();
+export function SwitchNoBreak() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_3 = _$_.track(1, __block, '6b7cb0ea');
+		var fragment_16 = root_19();
+		var button_4 = _$_.first_child_frag(fragment_16);
 
-	var __r_5 = false;
-	let lazy_3 = _$_.track(1, __block, '6b7cb0ea');
-	var fragment_16 = root_19();
-	var button_4 = _$_.first_child_frag(fragment_16);
-
-	button_4.__click = () => {
-		if (lazy_3.value === 1) _$_.set(lazy_3, 2); else if (lazy_3.value === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
-	};
-
-	var node_5 = _$_.sibling(button_4);
-
-	{
-		var switch_case_0_5 = (__anchor) => {
-			var div_4 = root_20();
-
-			_$_.append(__anchor, div_4);
+		button_4.__click = () => {
+			if (lazy_3.value === 1) _$_.set(lazy_3, 2); else if (lazy_3.value === 2) _$_.set(lazy_3, 3); else _$_.set(lazy_3, 1);
 		};
 
-		var switch_case_1_4 = (__anchor) => {
-			var div_5 = root_21();
+		var node_5 = _$_.sibling(button_4);
 
-			_$_.append(__anchor, div_5);
-		};
+		{
+			var switch_case_0_5 = (__anchor) => {
+				var div_4 = root_20();
 
-		var switch_case_2_2 = (__anchor) => {
-			var div_6 = root_22();
+				_$_.append(__anchor, div_4);
+			};
 
-			_$_.append(__anchor, div_6);
-		};
+			var switch_case_1_4 = (__anchor) => {
+				var div_5 = root_21();
 
-		_$_.switch(node_5, () => {
-			var result = [];
+				_$_.append(__anchor, div_5);
+			};
 
-			switch (lazy_3.value) {
-				case 1:
-					result.push(switch_case_0_5);
+			var switch_case_2_2 = (__anchor) => {
+				var div_6 = root_22();
 
-				case 2:
-					result.push(switch_case_1_4);
+				_$_.append(__anchor, div_6);
+			};
 
-				case 3:
-					result.push(switch_case_2_2);
-					return result;
-			}
-		});
-	}
+			_$_.switch(node_5, () => {
+				var result = [];
 
-	__r_5 = true;
-	_$_.append(__anchor, fragment_16);
-	_$_.pop_component();
+				switch (lazy_3.value) {
+					case 1:
+						result.push(switch_case_0_5);
+
+					case 2:
+						result.push(switch_case_1_4);
+
+					case 3:
+						result.push(switch_case_2_2);
+						return result;
+				}
+			});
+		}
+
+		_$_.append(__anchor, fragment_16);
+	});
 }
 
 _$_.delegate(['click']);

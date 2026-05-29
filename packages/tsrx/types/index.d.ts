@@ -104,6 +104,7 @@ interface FunctionMetaData extends BaseNodeMetaData {
 	is_method?: boolean;
 	tracked?: boolean;
 	has_lazy_descendants?: boolean;
+	synthetic_children?: boolean;
 }
 
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output
@@ -156,6 +157,7 @@ declare module 'estree' {
 	interface ReturnStatement {
 		metadata: BaseNodeMetaData & {
 			invalid_tsrx_template_return?: boolean;
+			generated_loop_continue_return?: boolean;
 		};
 	}
 

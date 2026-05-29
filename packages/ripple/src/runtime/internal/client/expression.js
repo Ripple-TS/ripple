@@ -121,6 +121,10 @@ function render_tsrx_collection_text(value, anchor, assign = false) {
 
 	var node = hydrate_node;
 
+	if (node?.nodeType === COMMENT_NODE && /** @type {Comment} */ (node).data === HYDRATION_START) {
+		node = get_next_sibling(node);
+	}
+
 	if (node?.nodeType === TEXT_NODE) {
 		var current_value = /** @type {Text} */ (node).nodeValue ?? '';
 

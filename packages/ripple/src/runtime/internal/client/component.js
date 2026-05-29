@@ -1,6 +1,6 @@
 /** @import { Block } from '#client' */
 
-import { is_tsrx_component, is_tsrx_element } from '../../element.js';
+import { is_tsrx_element } from '../../element.js';
 import { render_value } from './expression.js';
 import { active_block, pop_component, push_component } from './runtime.js';
 
@@ -12,7 +12,7 @@ import { active_block, pop_component, push_component } from './runtime.js';
  * @returns {void}
  */
 export function render_component(fn, anchor, props, block = active_block) {
-	if (!is_tsrx_component(fn)) {
+	if (typeof fn !== 'function' || is_tsrx_element(fn)) {
 		throw_invalid_component_type(fn);
 	}
 
@@ -51,5 +51,5 @@ function throw_invalid_component_type(value) {
 		throw new TypeError('Invalid component type: received a TSRXElement value.');
 	}
 
-	throw new TypeError('Invalid component type: expected a TSRX component function.');
+	throw new TypeError('Invalid component type: expected a component function.');
 }

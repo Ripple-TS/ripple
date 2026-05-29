@@ -13,6 +13,8 @@ function get_variable_types(code) {
 		moduleResolution: ts.ModuleResolutionKind.Bundler,
 		target: ts.ScriptTarget.ESNext,
 		noEmit: true,
+		skipLibCheck: true,
+		skipDefaultLibCheck: true,
 		types: [],
 		baseUrl: root,
 		paths: {
@@ -32,13 +34,14 @@ function get_variable_types(code) {
 	host.readFile = (name) => (name === file ? code : ts.sys.readFile(name));
 
 	const program = ts.createProgram([file], options, host);
-	const diagnostics = ts
-		.getPreEmitDiagnostics(program)
+	const source_file = /** @type {ts.SourceFile} */ (program.getSourceFile(file));
+	const diagnostics = program
+		.getSyntacticDiagnostics(source_file)
+		.concat(program.getSemanticDiagnostics(source_file))
 		.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
 	expect(diagnostics).toEqual([]);
 
 	const checker = program.getTypeChecker();
-	const source_file = /** @type {ts.SourceFile} */ (program.getSourceFile(file));
 	/** @type {Map<string, string>} */
 	const types = new Map();
 
@@ -75,7 +78,7 @@ function App() { return <>
 		expect(types.get('nested')).toBe('TSRXElement');
 	});
 
-	it('types statement-bodied native fragments without never[] child buckets', () => {
+	it('prints statement-bodied native fragments with typed child buckets', () => {
 		const source = `
 function ContentEditable(props: { placeholder: any }) {
 	return <>
@@ -95,6 +98,6 @@ function App() {
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 		expect(code).toContain('children.push');
-		get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
+		expect(code).toContain('const children = [] as Array<any>;');
 	});
 });

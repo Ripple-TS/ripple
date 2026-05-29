@@ -137,9 +137,4 @@ export { hmr } from './hmr.js';
 
 export { pop, next } from './hydration.js';
 
-export {
-	TSRX_COMPONENT,
-	is_tsrx_element,
-	tsrx_element,
-	normalize_children,
-} from '../../element.js';
+export { is_tsrx_element, tsrx_element, normalize_children } from '../../element.js';

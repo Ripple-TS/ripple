@@ -217,9 +217,8 @@ const Inline = (props) => <>
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = (props) => {');
-		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
 		expect(result).toContain('(props) => {');
-		expect(result).toContain('return _$_.tsrx_element(function render_children');
+		expect(result).toContain('return _$_.tsrx_element(() =>');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('function (props');
 	});
@@ -233,9 +232,8 @@ const Inline = function(props) { return <>
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = function (props) {');
-		expect(result).toContain('Inline[_$_.TSRX_COMPONENT] = true;');
 		expect(result).toContain('function (props) {');
-		expect(result).toContain('return _$_.tsrx_element(function render_children');
+		expect(result).toContain('return _$_.tsrx_element(() =>');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('const Inline = (props) => {');
 	});

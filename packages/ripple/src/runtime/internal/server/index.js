@@ -38,13 +38,7 @@ import {
 import { clsx } from 'clsx';
 import { create_ref_prop } from '@tsrx/core/runtime/ref';
 import { BLOCK_CLOSE, BLOCK_OPEN } from '../../../constants.js';
-import {
-	TSRX_COMPONENT,
-	is_tsrx_component,
-	is_tsrx_element,
-	normalize_children,
-	tsrx_element,
-} from '../../element.js';
+import { is_tsrx_element, normalize_children, tsrx_element } from '../../element.js';
 import {
 	is_tag_valid_with_parent,
 	is_tag_valid_with_ancestor,
@@ -70,7 +64,7 @@ export { simple_hash, strong_hash } from '@tsrx/core/runtime/hash';
 export { context } from './context.js';
 export { try_block, component_block, regular_block } from './blocks.js';
 export { array_slice };
-export { TSRX_COMPONENT, is_tsrx_element, tsrx_element, normalize_children };
+export { is_tsrx_element, tsrx_element, normalize_children };
 export { create_ref_prop };
 
 /** @extends Error */
@@ -151,20 +145,7 @@ export function render_expression(value) {
  * @returns {void}
  */
 export function render_component(fn, props) {
-	if (!is_tsrx_component(fn)) {
-		throw_invalid_component_type(fn);
-	}
-
-	run_component(fn, props);
-}
-
-/**
- * @param {Function} fn
- * @param {Props} props
- * @returns {void}
- */
-export function root_component(fn, props) {
-	if (!is_tsrx_component(fn)) {
+	if (typeof fn !== 'function' || is_tsrx_element(fn)) {
 		throw_invalid_component_type(fn);
 	}
 
@@ -199,7 +180,7 @@ function throw_invalid_component_type(value) {
 		throw new TypeError('Invalid component type: received a TSRXElement value.');
 	}
 
-	throw new TypeError('Invalid component type: expected a TSRX component function.');
+	throw new TypeError('Invalid component type: expected a component function.');
 }
 
 /**
@@ -733,11 +714,11 @@ export class Output {
 }
 
 /**
- * @param {RenderComponent} render_component
+ * @param {RenderComponent} component
  * @param {BaseRenderOptions} [passed_in_options]
  * @returns {Promise<RenderResult | RenderStreamResult>}
  */
-export async function render(render_component, passed_in_options = {}) {
+export async function render(component, passed_in_options = {}) {
 	/** @type {BaseRenderOptions} */
 	var options = {
 		...(passed_in_options.stream ? { closeStream: true } : {}),
@@ -764,7 +745,7 @@ export async function render(render_component, passed_in_options = {}) {
 			if (options.stream) {
 				output._setStream(options.stream);
 			}
-			root_component(render_component, {});
+			render_component(component, {});
 			output._decrementPending();
 			output._finishSyncRun();
 
@@ -790,14 +771,14 @@ export async function render(render_component, passed_in_options = {}) {
 				output._finishSyncRun();
 			}
 			if (options.rootBoundary?.catch) {
-				root_component(options.rootBoundary.catch, { error, reset: noop });
+				render_component(options.rootBoundary.catch, { error, reset: noop });
 			} else {
 				console.error(error);
 			}
 		},
 		() => {
 			if (options.rootBoundary?.pending) {
-				root_component(options.rootBoundary.pending, {});
+				render_component(options.rootBoundary.pending, {});
 			}
 		},
 	);

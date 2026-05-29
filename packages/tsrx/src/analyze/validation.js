@@ -4,6 +4,7 @@
  */
 
 import { error } from '../errors.js';
+import { DIAGNOSTIC_CODES } from '../diagnostics.js';
 
 export const TSRX_RETURN_STATEMENT_ERROR =
 	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
@@ -187,6 +188,7 @@ export function validate_tsrx_return_statement(node, filename, errors, comments)
 		get_return_keyword_node(node),
 		errors,
 		comments,
+		DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
 	);
 }
 

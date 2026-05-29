@@ -1,5 +1,4 @@
 const TSRX_ELEMENT = Symbol.for('ripple.element');
-export const TSRX_COMPONENT = Symbol.for('ripple.component');
 
 /**
  * @typedef {{
@@ -25,14 +24,6 @@ export function tsrx_element(render) {
  */
 export function is_tsrx_element(value) {
 	return value != null && value[TSRX_ELEMENT] === true;
-}
-
-/**
- * @param {any} value
- * @returns {value is Function}
- */
-export function is_tsrx_component(value) {
-	return typeof value === 'function' && value[TSRX_COMPONENT] === true;
 }
 
 /**

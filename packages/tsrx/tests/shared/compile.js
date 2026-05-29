@@ -67,6 +67,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 					/>
 				</>; }`,
 				'App.tsrx',
+				{ loose: true },
 			);
 
 			expect(result.errors).toEqual([]);
@@ -84,7 +85,6 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 					<div>{'ready'}</div>
 				</>; }`,
 				'App.tsrx',
-				{ loose: true },
 			);
 
 			expect(result.errors.map((error) => error.message)).toContain(TSRX_TEMPLATE_RETURN_ERROR);

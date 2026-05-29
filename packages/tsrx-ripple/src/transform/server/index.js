@@ -63,12 +63,10 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
-	create_tsrx_component_marker_statement,
-	create_tsrx_component_marker_statements,
 	generate_local_name,
 	get_indexed_reactive_target,
-	mark_native_tsrx_function_declarations,
 	rewrite_lazy_member_base,
+	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
 } from '../../utils.js';
 
@@ -234,7 +232,7 @@ function build_jsx_to_tsrx_element(node, context) {
 		}),
 	);
 
-	return b.call('_$_.tsrx_element', b.function(b.id('render_children'), [], b.block(init)));
+	return b.call('_$_.tsrx_element', b.arrow([], b.block(init)));
 }
 
 /**
@@ -280,7 +278,7 @@ function build_template_node_to_tsrx_element(node, context) {
 		}),
 	);
 
-	return b.call('_$_.tsrx_element', b.function(b.id('render_children'), [], b.block(init)));
+	return b.call('_$_.tsrx_element', b.arrow([], b.block(init)));
 }
 
 /**
@@ -882,20 +880,6 @@ function get_unique_return_flag_names(returns, return_flags) {
 }
 
 /**
- * @param {AST.Statement} statement
- * @returns {boolean}
- */
-function should_guard_regular_js_statement(statement) {
-	return (
-		statement.type !== 'VariableDeclaration' &&
-		statement.type !== 'FunctionDeclaration' &&
-		statement.type !== 'ClassDeclaration' &&
-		statement.type !== 'TSTypeAliasDeclaration' &&
-		statement.type !== 'TSInterfaceDeclaration'
-	);
-}
-
-/**
  * @param {AST.Node} node
  * @returns {boolean}
  */
@@ -1204,7 +1188,7 @@ function transform_body(body, context) {
 
 	transform_children(body, { ...context, state: body_state });
 
-	return mark_native_tsrx_function_declarations(/** @type {AST.Statement[]} */ (body_state.init));
+	return /** @type {AST.Statement[]} */ (body_state.init);
 }
 
 /**
@@ -1316,7 +1300,9 @@ function transform_native_tsrx_function(node, context) {
 				is_tsrx_element: false,
 				regular_js: false,
 				applyParentCssScope:
-					node_id?.name === 'render_children' ? context.state.applyParentCssScope : undefined,
+					node.metadata?.synthetic_children === true
+						? context.state.applyParentCssScope
+						: undefined,
 			},
 		}),
 	);
@@ -1328,14 +1314,7 @@ function transform_native_tsrx_function(node, context) {
 	const component_params = is_tsrx_element ? [] : value_params;
 	const component_body = is_tsrx_element
 		? b.block(body_statements)
-		: b.block([
-				b.return(
-					b.call(
-						'_$_.tsrx_element',
-						b.function(b.id('render_children'), [], b.block(body_statements)),
-					),
-				),
-			]);
+		: b.block([b.return(b.call('_$_.tsrx_element', b.arrow([], b.block(body_statements))))]);
 
 	if (node.type === 'ArrowFunctionExpression') {
 		const fn = b.arrow(component_params, component_body);
@@ -1600,7 +1579,7 @@ const visitors = {
 			);
 		}
 
-		return b.block(mark_native_tsrx_function_declarations(statements));
+		return b.block(statements);
 	},
 
 	ArrowFunctionExpression(node, context) {
@@ -2152,9 +2131,6 @@ const visitors = {
 			for (const child of node.children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
-					if (child.type === 'FunctionDeclaration' && child.id) {
-						state.init?.push(create_tsrx_component_marker_statement(child.id));
-					}
 				}
 			}
 
@@ -2168,28 +2144,20 @@ const visitors = {
 				const children = b.call(
 					'_$_.tsrx_element',
 					/** @type {AST.Expression} */ (
-						visit(
-							create_native_tsrx_render_function(
-								b.id('render_children'),
-								[],
-								children_filtered,
-								node,
-							),
-							{
-								...context.state,
-								regular_js: false,
-								...(apply_parent_css_scope ||
-								get_component_css(state) ||
-								(is_element_dynamic(node) && node.metadata.scoped && get_component_css(state))
-									? {
-											applyParentCssScope:
-												apply_parent_css_scope || get_component_css_hash(state) || undefined,
-										}
-									: {}),
-								scope: component_scope,
-								namespace: child_namespace,
-							},
-						)
+						visit(create_native_tsrx_render_function([], children_filtered, node), {
+							...context.state,
+							regular_js: false,
+							...(apply_parent_css_scope ||
+							get_component_css(state) ||
+							(is_element_dynamic(node) && node.metadata.scoped && get_component_css(state))
+								? {
+										applyParentCssScope:
+											apply_parent_css_scope || get_component_css_hash(state) || undefined,
+									}
+								: {}),
+							scope: component_scope,
+							namespace: child_namespace,
+						})
 					),
 				);
 
@@ -2732,7 +2700,7 @@ const visitors = {
 			}
 		} else {
 			// Expression context: return tsrx_element(render_fn)
-			const render_fn = b.function(b.id('render_children'), [], b.block(init));
+			const render_fn = b.arrow([], b.block(init));
 			return b.call('_$_.tsrx_element', render_fn);
 		}
 	},
@@ -2765,7 +2733,7 @@ const visitors = {
 			}
 		} else {
 			// Expression context: return tsrx_element(render_fn)
-			const render_fn = b.function(b.id('render_children'), [], b.block(init));
+			const render_fn = b.arrow([], b.block(init));
 			return b.call('_$_.tsrx_element', render_fn);
 		}
 	},
@@ -2924,14 +2892,6 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 	}
 
 	body.push(...program.body);
-
-	for (let i = 0; i < body.length; i++) {
-		const markers = create_tsrx_component_marker_statements(body[i]);
-		if (markers.length > 0) {
-			body.splice(i + 1, 0, ...markers);
-			i += markers.length;
-		}
-	}
 
 	program.body = body;
 

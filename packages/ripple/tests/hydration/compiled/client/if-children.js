@@ -2,14 +2,14 @@
 import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
-var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 1, 1);
-var root_2 = _$_.template(`<div class="item"> </div>`, 1, 1);
+var root = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
+var root_2 = _$_.template(`<div class="item"> </div>`, 0);
 var root_4 = _$_.template(`<!><!>`, 1, 2);
 var root_3 = _$_.template(`<!>`, 1, 1);
 var root_6 = _$_.template(`<div class="content"><span>Static child 1</span><span>Static child 2</span></div>`, 0);
-var root_5 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 1, 1);
+var root_5 = _$_.template(`<div class="container"><div role="button" class="header">Toggle</div><!></div>`, 0);
 var root_8 = _$_.template(`<div class="items"><!></div>`, 0);
-var root_7 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 1, 1);
+var root_7 = _$_.template(`<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!></section>`, 0);
 var root_10 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<!>`, 1, 1);
 var root_12 = _$_.template(`<div class="conditional">Conditional content</div>`, 0);
@@ -18,434 +18,380 @@ var root_14 = _$_.template(`<footer class="footer">Footer</footer>`, 0);
 var root_13 = _$_.template(`<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!></section><button class="btn">Toggle</button>`, 1, 2);
 var root_16 = _$_.template(`<pre class="code">const x = 1;</pre>`, 0);
 var root_17 = _$_.template(`<div class="preview">Preview content</div>`, 0);
-var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 1, 1);
+var root_15 = _$_.template(`<div class="tabs"><div class="tab-list"><button class="tab">Code</button><button class="tab">Preview</button></div><div class="panel"><!></div></div>`, 0);
 var root_18 = _$_.template(`<div class="container"><ul class="list"><li class="item"> </li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>`, 1, 2);
-var root_19 = _$_.template(`<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>`, 1, 1);
+var root_19 = _$_.template(`<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>`, 0);
 
 import { track } from 'ripple';
 
-export function IfWithChildren(__anchor, { children }, __block) {
-	_$_.push_component();
-
-	var __r = false;
-	let lazy = _$_.track(true, __block, 'c64714b1');
-	var fragment = root();
-	var div_2 = _$_.first_child_frag(fragment);
-
-	{
-		var div_1 = _$_.child(div_2);
-
-		div_1.__click = () => _$_.set(lazy, !lazy.value);
-
-		var node = _$_.sibling(div_1);
+export function IfWithChildren({ children }) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy = _$_.track(true, __block, 'c64714b1');
+		var div_1 = root();
 
 		{
-			var consequent = (__anchor) => {
-				var div_3 = root_1();
+			var div_2 = _$_.child(div_1);
 
-				{
-					var expression = _$_.child(div_3);
+			div_2.__click = () => _$_.set(lazy, !lazy.value);
 
-					_$_.expression(expression, () => children);
-					_$_.pop(div_3);
-				}
-
-				_$_.append(__anchor, div_3);
-			};
-
-			_$_.if(node, (__render) => {
-				if (lazy.value) __render(consequent);
-			});
-		}
-
-		_$_.pop(div_2);
-	}
-
-	__r = true;
-	_$_.append(__anchor, fragment);
-	_$_.pop_component();
-}
-
-export function ChildItem(__anchor, { text: label }, __block) {
-	_$_.push_component();
-
-	var __r_1 = false;
-	var fragment_1 = root_2();
-	var div_4 = _$_.first_child_frag(fragment_1);
-
-	{
-		var expression_1 = _$_.child(div_4, true);
-
-		expression_1.nodeValue = label;
-		_$_.pop(div_4);
-	}
-
-	__r_1 = true;
-	_$_.append(__anchor, fragment_1);
-	_$_.pop_component();
-}
-
-export function TestIfWithChildren(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_2 = false;
-	var fragment_2 = root_3();
-	var node_1 = _$_.first_child_frag(fragment_2);
-
-	IfWithChildren(
-		node_1,
-		{
-			children: _$_.tsrx_element(function render_children(__anchor, __block) {
-				var __r_3 = false;
-				var fragment_3 = root_4();
-				var node_2 = _$_.first_child_frag(fragment_3);
-
-				ChildItem(node_2, { text: "Item 1" }, _$_.active_block);
-
-				var node_3 = _$_.sibling(node_2);
-
-				ChildItem(node_3, { text: "Item 2" }, _$_.active_block);
-				__r_3 = true;
-				_$_.append(__anchor, fragment_3);
-			})
-		},
-		_$_.active_block
-	);
-
-	__r_2 = true;
-	_$_.append(__anchor, fragment_2);
-	_$_.pop_component();
-}
-
-export function IfWithStaticChildren(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_4 = false;
-	let lazy_1 = _$_.track(true, __block, '3bba8f77');
-	var fragment_4 = root_5();
-	var div_6 = _$_.first_child_frag(fragment_4);
-
-	{
-		var div_5 = _$_.child(div_6);
-
-		div_5.__click = () => _$_.set(lazy_1, !lazy_1.value);
-
-		var node_4 = _$_.sibling(div_5);
-
-		{
-			var consequent_1 = (__anchor) => {
-				var div_7 = root_6();
-
-				_$_.append(__anchor, div_7);
-			};
-
-			_$_.if(node_4, (__render) => {
-				if (lazy_1.value) __render(consequent_1);
-			});
-		}
-
-		_$_.pop(div_6);
-	}
-
-	__r_4 = true;
-	_$_.append(__anchor, fragment_4);
-	_$_.pop_component();
-}
-
-export function IfWithSiblingsAndChildren(__anchor, { children }, __block) {
-	_$_.push_component();
-
-	var __r_5 = false;
-	let lazy_2 = _$_.track(true, __block, 'a1b8fb4c');
-	var fragment_5 = root_7();
-	var section_1 = _$_.first_child_frag(fragment_5);
-
-	{
-		var div_8 = _$_.child(section_1);
-
-		div_8.__click = () => _$_.set(lazy_2, !lazy_2.value);
-		_$_.pop(div_8);
-
-		var node_5 = _$_.sibling(div_8);
-
-		{
-			var consequent_2 = (__anchor) => {
-				var div_9 = root_8();
-
-				{
-					var expression_2 = _$_.child(div_9);
-
-					_$_.expression(expression_2, () => children);
-					_$_.pop(div_9);
-				}
-
-				_$_.append(__anchor, div_9);
-			};
-
-			_$_.if(node_5, (__render) => {
-				if (lazy_2.value) __render(consequent_2);
-			});
-		}
-
-		_$_.pop(section_1);
-	}
-
-	__r_5 = true;
-	_$_.append(__anchor, fragment_5);
-	_$_.pop_component();
-}
-
-export function TestIfWithSiblingsAndChildren(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_6 = false;
-	var fragment_6 = root_9();
-	var node_6 = _$_.first_child_frag(fragment_6);
-
-	IfWithSiblingsAndChildren(
-		node_6,
-		{
-			children: _$_.tsrx_element(function render_children(__anchor, __block) {
-				var __r_7 = false;
-				var fragment_7 = root_10();
-				var node_7 = _$_.first_child_frag(fragment_7);
-
-				ChildItem(node_7, { text: "Item A" }, _$_.active_block);
-
-				var node_8 = _$_.sibling(node_7);
-
-				ChildItem(node_8, { text: "Item B" }, _$_.active_block);
-				__r_7 = true;
-				_$_.append(__anchor, fragment_7);
-			})
-		},
-		_$_.active_block
-	);
-
-	__r_6 = true;
-	_$_.append(__anchor, fragment_6);
-	_$_.pop_component();
-}
-
-export function ElementWithChildrenThenIf(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_8 = false;
-	let lazy_3 = _$_.track(true, __block, '7cd4817b');
-	var fragment_8 = root_11();
-	var div_11 = _$_.first_child_frag(fragment_8);
-
-	{
-		var div_10 = _$_.child(div_11);
-
-		_$_.pop(div_10);
-
-		var node_9 = _$_.sibling(div_10);
-
-		{
-			var consequent_3 = (__anchor) => {
-				var div_12 = root_12();
-
-				_$_.append(__anchor, div_12);
-			};
-
-			_$_.if(node_9, (__render) => {
-				if (lazy_3.value) __render(consequent_3);
-			});
-		}
-
-		_$_.pop(div_11);
-	}
-
-	var button_1 = _$_.sibling(div_11);
-
-	button_1.__click = () => _$_.set(lazy_3, !lazy_3.value);
-	__r_8 = true;
-	_$_.next();
-	_$_.append(__anchor, fragment_8, true);
-	_$_.pop_component();
-}
-
-export function DeepNestingThenIf(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_9 = false;
-	let lazy_4 = _$_.track(true, __block, '923116be');
-	var fragment_9 = root_13();
-	var section_2 = _$_.first_child_frag(fragment_9);
-
-	{
-		var article_1 = _$_.child(section_2);
-
-		_$_.pop(article_1);
-
-		var node_10 = _$_.sibling(article_1);
-
-		{
-			var consequent_4 = (__anchor) => {
-				var footer_1 = root_14();
-
-				_$_.append(__anchor, footer_1);
-			};
-
-			_$_.if(node_10, (__render) => {
-				if (lazy_4.value) __render(consequent_4);
-			});
-		}
-
-		_$_.pop(section_2);
-	}
-
-	var button_2 = _$_.sibling(section_2);
-
-	button_2.__click = () => _$_.set(lazy_4, !lazy_4.value);
-	__r_9 = true;
-	_$_.next();
-	_$_.append(__anchor, fragment_9, true);
-	_$_.pop_component();
-}
-
-export function DomElementChildrenThenSibling(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_10 = false;
-	let lazy_5 = _$_.track('code', __block, '33a1e97f');
-	var fragment_10 = root_15();
-	var div_14 = _$_.first_child_frag(fragment_10);
-
-	{
-		var div_13 = _$_.child(div_14);
-
-		{
-			var button_3 = _$_.child(div_13);
-
-			button_3.__click = () => _$_.set(lazy_5, 'code');
-
-			var button_4 = _$_.sibling(button_3);
-
-			button_4.__click = () => _$_.set(lazy_5, 'preview');
-		}
-
-		_$_.pop(div_13);
-
-		var div_15 = _$_.sibling(div_13);
-
-		{
-			var node_11 = _$_.child(div_15);
+			var node = _$_.sibling(div_2);
 
 			{
-				var consequent_5 = (__anchor) => {
-					var pre_1 = root_16();
+				var consequent = (__anchor) => {
+					var div_3 = root_1();
 
-					_$_.append(__anchor, pre_1);
+					{
+						var expression = _$_.child(div_3);
+
+						_$_.expression(expression, () => children);
+						_$_.pop(div_3);
+					}
+
+					_$_.append(__anchor, div_3);
 				};
 
-				var alternate = (__anchor) => {
-					var div_16 = root_17();
-
-					_$_.append(__anchor, div_16);
-				};
-
-				_$_.if(node_11, (__render) => {
-					if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
+				_$_.if(node, (__render) => {
+					if (lazy.value) __render(consequent);
 				});
 			}
 
-			_$_.pop(div_15);
+			_$_.pop(div_1);
 		}
-	}
 
-	_$_.pop(div_14);
-	__r_10 = true;
-
-	_$_.render(
-		(__prev) => {
-			var __a = lazy_5.value === 'code' ? 'true' : 'false';
-
-			if (__prev.a !== __a) {
-				_$_.set_attribute(button_3, 'aria-selected', __prev.a = __a);
-			}
-
-			var __b = lazy_5.value === 'preview' ? 'true' : 'false';
-
-			if (__prev.b !== __b) {
-				_$_.set_attribute(button_4, 'aria-selected', __prev.b = __b);
-			}
-		},
-		{ a: void 0, b: void 0 }
-	);
-
-	_$_.append(__anchor, fragment_10);
-	_$_.pop_component();
+		_$_.append(__anchor, div_1);
+	});
 }
 
-export function DomChildrenThenStaticSiblings(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_11 = false;
-	let lazy_6 = _$_.track(0, __block, '0ea64305');
-	var fragment_11 = root_18();
-	var div_17 = _$_.first_child_frag(fragment_11);
-
-	{
-		var ul_1 = _$_.child(div_17);
+export function ChildItem({ text: label }) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_4 = root_2();
 
 		{
-			var li_1 = _$_.child(ul_1);
+			var expression_1 = _$_.child(div_4, true);
+
+			expression_1.nodeValue = label;
+			_$_.pop(div_4);
+		}
+
+		_$_.append(__anchor, div_4);
+	});
+}
+
+export function TestIfWithChildren() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var fragment = root_3();
+		var node_1 = _$_.first_child_frag(fragment);
+
+		_$_.render_component(IfWithChildren, node_1, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var fragment_1 = root_4();
+				var node_2 = _$_.first_child_frag(fragment_1);
+
+				_$_.render_component(ChildItem, node_2, { text: "Item 1" });
+
+				var node_3 = _$_.sibling(node_2);
+
+				_$_.render_component(ChildItem, node_3, { text: "Item 2" });
+				_$_.append(__anchor, fragment_1);
+			})
+		});
+
+		_$_.append(__anchor, fragment);
+	});
+}
+
+export function IfWithStaticChildren() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_1 = _$_.track(true, __block, '3bba8f77');
+		var div_5 = root_5();
+
+		{
+			var div_6 = _$_.child(div_5);
+
+			div_6.__click = () => _$_.set(lazy_1, !lazy_1.value);
+
+			var node_4 = _$_.sibling(div_6);
 
 			{
-				var expression_3 = _$_.child(li_1, true);
+				var consequent_1 = (__anchor) => {
+					var div_7 = root_6();
 
-				_$_.pop(li_1);
+					_$_.append(__anchor, div_7);
+				};
+
+				_$_.if(node_4, (__render) => {
+					if (lazy_1.value) __render(consequent_1);
+				});
+			}
+
+			_$_.pop(div_5);
+		}
+
+		_$_.append(__anchor, div_5);
+	});
+}
+
+export function IfWithSiblingsAndChildren({ children }) {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_2 = _$_.track(true, __block, 'a1b8fb4c');
+		var section_1 = root_7();
+
+		{
+			var div_8 = _$_.child(section_1);
+
+			div_8.__click = () => _$_.set(lazy_2, !lazy_2.value);
+			_$_.pop(div_8);
+
+			var node_5 = _$_.sibling(div_8);
+
+			{
+				var consequent_2 = (__anchor) => {
+					var div_9 = root_8();
+
+					{
+						var expression_2 = _$_.child(div_9);
+
+						_$_.expression(expression_2, () => children);
+						_$_.pop(div_9);
+					}
+
+					_$_.append(__anchor, div_9);
+				};
+
+				_$_.if(node_5, (__render) => {
+					if (lazy_2.value) __render(consequent_2);
+				});
+			}
+
+			_$_.pop(section_1);
+		}
+
+		_$_.append(__anchor, section_1);
+	});
+}
+
+export function TestIfWithSiblingsAndChildren() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var fragment_2 = root_9();
+		var node_6 = _$_.first_child_frag(fragment_2);
+
+		_$_.render_component(IfWithSiblingsAndChildren, node_6, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var fragment_3 = root_10();
+				var node_7 = _$_.first_child_frag(fragment_3);
+
+				_$_.render_component(ChildItem, node_7, { text: "Item A" });
+
+				var node_8 = _$_.sibling(node_7);
+
+				_$_.render_component(ChildItem, node_8, { text: "Item B" });
+				_$_.append(__anchor, fragment_3);
+			})
+		});
+
+		_$_.append(__anchor, fragment_2);
+	});
+}
+
+export function ElementWithChildrenThenIf() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_3 = _$_.track(true, __block, '7cd4817b');
+		var fragment_4 = root_11();
+		var div_11 = _$_.first_child_frag(fragment_4);
+
+		{
+			var div_10 = _$_.child(div_11);
+
+			_$_.pop(div_10);
+
+			var node_9 = _$_.sibling(div_10);
+
+			{
+				var consequent_3 = (__anchor) => {
+					var div_12 = root_12();
+
+					_$_.append(__anchor, div_12);
+				};
+
+				_$_.if(node_9, (__render) => {
+					if (lazy_3.value) __render(consequent_3);
+				});
+			}
+
+			_$_.pop(div_11);
+		}
+
+		var button_1 = _$_.sibling(div_11);
+
+		button_1.__click = () => _$_.set(lazy_3, !lazy_3.value);
+		_$_.next();
+		_$_.append(__anchor, fragment_4, true);
+	});
+}
+
+export function DeepNestingThenIf() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_4 = _$_.track(true, __block, '923116be');
+		var fragment_5 = root_13();
+		var section_2 = _$_.first_child_frag(fragment_5);
+
+		{
+			var article_1 = _$_.child(section_2);
+
+			_$_.pop(article_1);
+
+			var node_10 = _$_.sibling(article_1);
+
+			{
+				var consequent_4 = (__anchor) => {
+					var footer_1 = root_14();
+
+					_$_.append(__anchor, footer_1);
+				};
+
+				_$_.if(node_10, (__render) => {
+					if (lazy_4.value) __render(consequent_4);
+				});
+			}
+
+			_$_.pop(section_2);
+		}
+
+		var button_2 = _$_.sibling(section_2);
+
+		button_2.__click = () => _$_.set(lazy_4, !lazy_4.value);
+		_$_.next();
+		_$_.append(__anchor, fragment_5, true);
+	});
+}
+
+export function DomElementChildrenThenSibling() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_5 = _$_.track('code', __block, '33a1e97f');
+		var div_13 = root_15();
+
+		{
+			var div_14 = _$_.child(div_13);
+
+			{
+				var button_3 = _$_.child(div_14);
+
+				button_3.__click = () => _$_.set(lazy_5, 'code');
+
+				var button_4 = _$_.sibling(button_3);
+
+				button_4.__click = () => _$_.set(lazy_5, 'preview');
+			}
+
+			_$_.pop(div_14);
+
+			var div_15 = _$_.sibling(div_14);
+
+			{
+				var node_11 = _$_.child(div_15);
+
+				{
+					var consequent_5 = (__anchor) => {
+						var pre_1 = root_16();
+
+						_$_.append(__anchor, pre_1);
+					};
+
+					var alternate = (__anchor) => {
+						var div_16 = root_17();
+
+						_$_.append(__anchor, div_16);
+					};
+
+					_$_.if(node_11, (__render) => {
+						if (lazy_5.value === 'code') __render(consequent_5); else __render(alternate, false);
+					});
+				}
+
+				_$_.pop(div_15);
 			}
 		}
 
-		_$_.pop(ul_1);
-	}
+		_$_.render(
+			(__prev) => {
+				var __a = lazy_5.value === 'code' ? 'true' : 'false';
 
-	_$_.pop(div_17);
+				if (__prev.a !== __a) {
+					_$_.set_attribute(button_3, 'aria-selected', __prev.a = __a);
+				}
 
-	var button_5 = _$_.sibling(div_17);
+				var __b = lazy_5.value === 'preview' ? 'true' : 'false';
 
-	button_5.__click = () => _$_.update(lazy_6);
-	__r_11 = true;
-	_$_.next();
+				if (__prev.b !== __b) {
+					_$_.set_attribute(button_4, 'aria-selected', __prev.b = __b);
+				}
+			},
+			{ a: void 0, b: void 0 }
+		);
 
-	_$_.render(() => {
-		_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value)));
+		_$_.append(__anchor, div_13);
 	});
-
-	_$_.append(__anchor, fragment_11, true);
-	_$_.pop_component();
 }
 
-export function StaticListThenStaticSiblings(__anchor, _, __block) {
-	_$_.push_component();
-
-	var __r_12 = false;
-	var fragment_12 = root_19();
-	var div_18 = _$_.first_child_frag(fragment_12);
-
-	{
-		var ul_2 = _$_.child(div_18);
+export function DomChildrenThenStaticSiblings() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		let lazy_6 = _$_.track(0, __block, '0ea64305');
+		var fragment_6 = root_18();
+		var div_17 = _$_.first_child_frag(fragment_6);
 
 		{
-			var li_2 = _$_.child(ul_2);
+			var ul_1 = _$_.child(div_17);
 
-			_$_.pop(li_2);
+			{
+				var li_1 = _$_.child(ul_1);
 
-			var li_3 = _$_.sibling(li_2);
+				{
+					var expression_3 = _$_.child(li_1, true);
 
-			_$_.pop(li_3);
+					_$_.pop(li_1);
+				}
+			}
+
+			_$_.pop(ul_1);
 		}
 
-		_$_.pop(ul_2);
-	}
+		_$_.pop(div_17);
 
-	_$_.pop(div_18);
-	__r_12 = true;
-	_$_.append(__anchor, fragment_12);
-	_$_.pop_component();
+		var button_5 = _$_.sibling(div_17);
+
+		button_5.__click = () => _$_.update(lazy_6);
+		_$_.next();
+
+		_$_.render(() => {
+			_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value)));
+		});
+
+		_$_.append(__anchor, fragment_6, true);
+	});
+}
+
+export function StaticListThenStaticSiblings() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var div_18 = root_19();
+
+		{
+			var ul_2 = _$_.child(div_18);
+
+			{
+				var li_2 = _$_.child(ul_2);
+
+				_$_.pop(li_2);
+
+				var li_3 = _$_.sibling(li_2);
+
+				_$_.pop(li_3);
+			}
+
+			_$_.pop(ul_2);
+		}
+
+		_$_.append(__anchor, div_18);
+	});
 }
 
 _$_.delegate(['click']);

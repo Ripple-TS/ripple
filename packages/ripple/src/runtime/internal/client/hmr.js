@@ -6,7 +6,7 @@ import { hydrate_node, hydrating } from './hydration.js';
 import { branch, destroy_block, render } from './blocks.js';
 import { active_block, get, set, tracked } from './runtime.js';
 import { render_component } from './component.js';
-import { TSRX_COMPONENT, tsrx_element } from '../../element.js';
+import { tsrx_element } from '../../element.js';
 
 /** @typedef {(props?: any) => any} Component */
 
@@ -82,8 +82,6 @@ export function hmr(fn) {
 
 		return tsrx_element(render_children);
 	}
-
-	wrapper[TSRX_COMPONENT] = true;
 
 	wrapper[HMR] = {
 		fn,
