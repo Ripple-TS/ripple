@@ -661,6 +661,27 @@ function ErrorBoundary() {
 }
 ```
 
+The `catch` block receives a `reset` function as its second argument. Calling
+`reset()` clears the error state and re-renders the children:
+
+```ripple
+function RetryBoundary() {
+  return <>
+  <div>
+    try {
+      <ComponentThatMightFail />
+    } catch (e, reset) {
+      <div>
+        <p>"Error: "{e.message}</p>
+        <button onClick={() => reset()}>"Try again"</button>
+      </div>
+    }
+  </div>
+
+  </>;
+}
+```
+
 ### Children Components
 
 Use the `children` prop for component composition. Use the `Children` type to accept one or more children. If you need to pass additional child components such as `Header`, `Footer`, or `InlineComp`, define them in scope and pass them as explicit props on the component element. Do not declare `function Foo() {
