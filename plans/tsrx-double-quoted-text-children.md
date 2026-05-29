@@ -63,7 +63,7 @@ Rationale:
    - Prefer printing eligible static text shorthand with double quotes regardless
      of the `singleQuote` option, because the feature syntax itself is
      double-quote-only.
-   - Keep `{text ...}` and non-static expressions in their existing forms.
+   - Keep non-static expressions in their existing forms.
 
 4. Tests.
    - Parser coverage for `<p>"hello"</p>` and

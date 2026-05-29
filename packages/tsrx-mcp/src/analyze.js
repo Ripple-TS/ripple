@@ -89,7 +89,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Use continue inside TSRX for...of loops',
 			message:
-				'Top-level return and break statements are not valid inside a TSRX for...of loop. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+				'Return statements are not valid inside TSRX templates, and break statements are not valid inside TSRX for...of loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

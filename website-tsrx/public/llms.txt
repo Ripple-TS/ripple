@@ -323,8 +323,9 @@ function Icon() {
 TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
 `const node = <section />`, and `children={<Panel />}` all create TSRX values.
 Once the TSRX expression is open, its children use template statement syntax:
-elements, locals, `if`, `for...of`, `switch`, `try`, and `return` can
-appear directly inside the template body.
+elements, locals, `if`, `for...of`, `switch`, and `try` can appear directly
+inside the template body. `return` statements are only valid before the TSRX
+expression opens.
 
 ```tsrx
 function Greeting({ name }: { name?: string }) {
@@ -612,11 +613,13 @@ body `await` is supported by the target pipeline.
 import { useEffect, useState } from 'react';
 
 function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
+	if (!user) {
+		return null;
+	}
+
+	const [tab, setTab] = useState('overview');
+
 	return <>
-		if (!user) {
-			return null;
-		}
-		const [tab, setTab] = useState('overview');
 		<h1>{user.name}</h1>
 		<TabBar value={tab} onChange={setTab} />
 		<ul>

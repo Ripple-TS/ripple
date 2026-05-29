@@ -355,7 +355,7 @@ function LazyArrayDestructuringApp() {
 	</>;
 }
 
-function EarlyReturnWithRefsApp() {
+function ConditionalRefsApp() {
 	return <>
 		const count = ref(0);
 		const skip = ref(false);
@@ -379,7 +379,7 @@ function ProvideChild() {
 	</>;
 }
 
-function BareJsxEarlyReturnApp() {
+function BareJsxConditionalApp() {
 	return <>
 		const skip = ref(true);
 		<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
@@ -389,7 +389,7 @@ function BareJsxEarlyReturnApp() {
 	</>;
 }
 
-function ProvideEarlyReturnApp() {
+function ProvideConditionalApp() {
 	return <>
 		const skip = ref(true);
 		<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
@@ -400,7 +400,7 @@ function ProvideEarlyReturnApp() {
 	</>;
 }
 
-function WatchEarlyReturnApp() {
+function WatchConditionalApp() {
 	return <>
 		const skip = ref(true);
 		const value = ref(0);
@@ -415,7 +415,7 @@ function WatchEarlyReturnApp() {
 	</>;
 }
 
-function WatchEffectEarlyReturnApp() {
+function WatchEffectConditionalApp() {
 	return <>
 		const skip = ref(true);
 		const value = ref(0);
@@ -1168,7 +1168,7 @@ describe('tsrx-vue runtime', () => {
 	});
 
 	it('conditional ref branch passes scope correctly to rendered body', async () => {
-		await render(EarlyReturnWithRefsApp);
+		await render(ConditionalRefsApp);
 		expect(text('.early-skip')).toBe('skip');
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
@@ -1187,7 +1187,7 @@ describe('tsrx-vue runtime', () => {
 	});
 
 	it('renders bare-JSX branch reactively after condition flips', async () => {
-		await render(BareJsxEarlyReturnApp);
+		await render(BareJsxConditionalApp);
 		expect(container.querySelector('.bare-continuation')).toBeNull();
 
 		await click('.bare-toggle');
@@ -1197,7 +1197,7 @@ describe('tsrx-vue runtime', () => {
 	});
 
 	it('calls provide in the branch after a reactive condition flips', async () => {
-		await render(ProvideEarlyReturnApp);
+		await render(ProvideConditionalApp);
 		expect(container.querySelector('.provide-child')).toBeNull();
 
 		await click('.provide-toggle');
@@ -1208,7 +1208,7 @@ describe('tsrx-vue runtime', () => {
 
 	it('registers watch in the branch after a reactive condition flips', async () => {
 		watch_fire_count = 0;
-		await render(WatchEarlyReturnApp);
+		await render(WatchConditionalApp);
 		expect(container.querySelector('.watch-value')).toBeNull();
 
 		await click('.watch-toggle');
@@ -1224,7 +1224,7 @@ describe('tsrx-vue runtime', () => {
 
 	it('registers watchEffect in the branch after a reactive condition flips', async () => {
 		watch_effect_fire_count = 0;
-		await render(WatchEffectEarlyReturnApp);
+		await render(WatchEffectConditionalApp);
 		expect(container.querySelector('.watch-effect-value')).toBeNull();
 
 		await click('.watch-effect-toggle');

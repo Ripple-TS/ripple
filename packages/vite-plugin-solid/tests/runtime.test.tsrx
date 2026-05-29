@@ -823,7 +823,7 @@ function SignalInSwitchApp() {
 
 // ── Component guard return before signals with parent scope ──
 
-function EarlyReturnWithSignalsApp() {
+function GuardReturnWithSignalsApp() {
 	const [count, setCount] = createSignal(0);
 	const [skip, setSkip] = createSignal(false);
 	if (skip()) {
@@ -847,7 +847,7 @@ function EarlyReturnWithSignalsApp() {
 	</>;
 }
 
-function TemplateBeforeEarlyReturnApp() {
+function ConditionalBranchTemplateApp() {
 	return <>
 		const [guard, setGuard] = createSignal(false);
 		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
@@ -1477,7 +1477,7 @@ describe('tsrx-solid runtime', () => {
 	});
 
 	it('component guard return before signals behaves like an ordinary function guard', async () => {
-		await render(EarlyReturnWithSignalsApp);
+		await render(GuardReturnWithSignalsApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
 
@@ -1491,7 +1491,7 @@ describe('tsrx-solid runtime', () => {
 	});
 
 	it('conditional branch template updates reactively', async () => {
-		await render(TemplateBeforeEarlyReturnApp);
+		await render(ConditionalBranchTemplateApp);
 		expect(text('.template-return-toggle')).toBe('toggle');
 		expect(text('.template-return-rest')).toBe('rest');
 		expect(container.querySelector('.template-return-guard')).toBeNull();

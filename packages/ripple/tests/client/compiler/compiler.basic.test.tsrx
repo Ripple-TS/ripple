@@ -360,7 +360,7 @@ const Inline = (props) => <>
 		expect(result).not.toContain('function (__anchor');
 	});
 
-	it('emits legacy anonymous component expressions as functions in client output', () => {
+	it('emits function-expression components as functions in client output', () => {
 		const source = `
 const Inline = function(props) { return <>
 	<div>{props.x}</div>
@@ -798,7 +798,7 @@ export function App() { return <>
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('allows component declarations inside composite children', () => {
+	it('allows component functions inside composite children', () => {
 		const source = `
 export function App() { return <>
 	<ark.div class="host-class" data-value="42">
