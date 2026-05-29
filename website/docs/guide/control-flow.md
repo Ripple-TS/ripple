@@ -261,6 +261,28 @@ export function ErrorBoundary() {
 }
 ```
 
+The `catch` block also receives a `reset` function as its second argument.
+Calling `reset()` clears the error state and re-renders the children, which is
+useful for building retry UIs:
+
+```ripple
+export function RetryBoundary() {
+  return <>
+  <div>
+    try {
+      <ComponentThatMightFail />
+    } catch (e, reset) {
+      <div>
+        <p>"Error: "{e.message}</p>
+        <button onClick={() => reset()}>"Try again"</button>
+      </div>
+    }
+  </div>
+
+  </>;
+}
+```
+
 ## Dynamic Elements
 
 You can render dynamic HTML elements by storing the tag name in a tracked variable
