@@ -7,8 +7,8 @@ title: Referencing DOM Elements in Ripple
 Refs let you capture the DOM node behind an element. Ripple uses the normal JSX
 attribute shape:
 
-| Syntax         | Use it for                                   |
-| -------------- | -------------------------------------------- |
+| Syntax         | Use it for                                    |
+| -------------- | --------------------------------------------- |
 | `ref={value}`  | One ref for the current element or component. |
 | `ref={[a, b]}` | Multiple refs for the same element.           |
 
