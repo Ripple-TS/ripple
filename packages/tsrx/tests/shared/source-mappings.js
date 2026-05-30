@@ -158,6 +158,45 @@ export function runSharedSourceMappingTests({
 				expect(mapping?.data.completion).toBe(true);
 			}
 		});
+		it('exposes template style blocks as CSS embedded mappings', () => {
+			const source = `function C() { return <>
+	<div class="logo" />
+	<style>
+		.logo { display: block; }
+	</style>
+</>; }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const css_mapping = result.cssMappings.find((mapping) =>
+				mapping.data?.customData?.content?.includes('.logo { display: block; }'),
+			);
+
+			expect(css_mapping).toBeDefined();
+			expect(css_mapping?.data.customData.embeddedId).toMatch(/^style-/);
+		});
+		it('keeps assigned style blocks anchored in type-only output', () => {
+			const source = `function C() {
+	const styles = <style>
+		.logo { display: block; }
+	</style>;
+
+	return <> <div class={styles.logo} /> </>;
+}`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const source_offset = source.indexOf('<style>') + 1;
+			const mapping = result.mappings.find((entry) => {
+				const start = entry.sourceOffsets[0];
+				const end = start + entry.lengths[0];
+				return source_offset >= start && source_offset < end;
+			});
+
+			expect(result.code).toContain('<style></style>');
+			expect(result.code).toContain('const styles = {');
+			expect(result.code).not.toContain('(<style></style>,');
+			expect(result.code).toContain("'logo'");
+			expect(mapping).toBeDefined();
+			expect(mapping?.data.completion).toBe(true);
+			expect(mapping?.data.verification).toBe(false);
+		});
 		it('keeps class attribute source mappings narrowed to the attribute name', () => {
 			const source = `function C() { return <> <div class="app" /> </>; }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });

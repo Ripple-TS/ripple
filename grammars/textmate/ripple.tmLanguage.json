@@ -6316,6 +6316,15 @@
         }
       ]
     },
+    "jsx-tag-style-in-expression": {
+      "begin": "(?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?=(<)\\s*(style)\\b(?![^>]*/>)(?=[^>]*>))",
+      "end": "(?!(<)\\s*(style)\\b(?![^>]*/>)(?=[^>]*>))",
+      "patterns": [
+        {
+          "include": "#jsx-tag-style"
+        }
+      ]
+    },
     "jsx-tag": {
       "name": "meta.tag.js",
       "begin": "(?=(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?<!-))(?=((<\\s*)|(\\s+))(?!\\?)|\\/?>))",
@@ -6475,6 +6484,9 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
+          "include": "#jsx-tag-style-in-expression"
+        },
+        {
           "include": "#jsx-tag-tsx"
         },
         {
@@ -6502,6 +6514,9 @@
     },
     "non-jsx-expression": {
       "patterns": [
+        {
+          "include": "#jsx-tag-style-in-expression"
+        },
         {
           "include": "#jsx-tag-tsx"
         },

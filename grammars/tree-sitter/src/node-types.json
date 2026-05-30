@@ -496,6 +496,10 @@
           {
             "type": "expression",
             "named": true
+          },
+          {
+            "type": "style_element",
+            "named": true
           }
         ]
       }
@@ -1880,6 +1884,10 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        },
+        {
+          "type": "style_element",
           "named": true
         }
       ]

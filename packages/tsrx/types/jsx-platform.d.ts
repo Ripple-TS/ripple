@@ -42,6 +42,7 @@ export interface JsxTransformContext {
 	needs_for_of_iterable: boolean;
 	needs_iteration_value_type: boolean;
 	stylesheets: AST.CSS.StyleSheet[];
+	type_only_style_anchors: AST.Statement[];
 	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;
@@ -154,13 +155,6 @@ export interface JsxPlatformHooks {
 	 * state behaves like normal component state.
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
-	/**
-	 * Wrap an uppercase JavaScript function that returns native TSRX as a target
-	 * component. Vue uses this to turn `function App() { return <></>; }` into a
-	 * `defineVaporComponent(function App() { ... })` binding while lowercase
-	 * TSRX-returning callbacks stay plain functions.
-	 */
-	wrapNativeFunctionComponent?: (fn: any, ctx: any, path: any[]) => any;
 	/**
 	 * Emit hook-isolation helper components as unique module-scope declarations
 	 * instead of lazily creating and caching them from the parent component body.

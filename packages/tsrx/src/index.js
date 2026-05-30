@@ -162,7 +162,6 @@ export {
 	validate_at_most_one_ref_attribute as validateAtMostOneRefAttribute,
 } from './transform/jsx/index.js';
 export {
-	ensure_function_metadata as ensureFunctionMetadata,
 	in_jsx_child_context as inJsxChildContext,
 	tsx_node_to_jsx_expression as tsxNodeToJsxExpression,
 	tsx_with_ts_locations as tsxWithTsLocations,

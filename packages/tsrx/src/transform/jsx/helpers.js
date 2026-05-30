@@ -18,6 +18,23 @@ export function in_jsx_child_context(path) {
 }
 
 /**
+ * Match Ripple's transform path metadata shape: every node seen by the walker
+ * carries its current ancestor path for downstream CSS pruning and mapping
+ * helpers.
+ *
+ * @param {any} node
+ * @param {any[]} path
+ * @returns {void}
+ */
+export function set_node_path_metadata(node, path) {
+	if (!node.metadata) {
+		node.metadata = { path: [...path] };
+	} else {
+		node.metadata.path = [...path];
+	}
+}
+
+/**
  * Flatten a `<tsx>` / fragment node's children into a single expression. In a
  * JSX-child position, a JSXExpressionContainer `{expr}` is valid and must stay
  * wrapped. In an expression position (e.g. `return ...`), `{expr}` parses as
@@ -47,25 +64,6 @@ export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
 		children,
 		metadata: { path: [] },
 	});
-}
-
-/**
- * Default `node.metadata` to `{ path: [] }` if missing, then continue the
- * walk. Use as the `FunctionDeclaration` / `FunctionExpression` /
- * `ArrowFunctionExpression` visitor in a zimmerframe walk so that downstream
- * consumers don't trip on an undefined metadata object.
- *
- * Ripple's analyze phase does this via `visit_function`; the tsrx-* targets
- * have no analyze phase, so we default metadata during the main walk.
- *
- * @param {any} node
- * @param {{ next: () => any }} ctx
- */
-export function ensure_function_metadata(node, { next }) {
-	if (!node.metadata) {
-		node.metadata = { path: [] };
-	}
-	return next();
 }
 
 /**

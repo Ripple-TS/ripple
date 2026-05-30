@@ -177,7 +177,44 @@ function build_style_class_map_expression(node, context) {
 
 	analyzeCss(stylesheet);
 	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet));
-	return createStyleClassMapFromStylesheet(stylesheet);
+	const class_map = createStyleClassMapFromStylesheet(stylesheet);
+	if (!context.state.to_ts) {
+		return class_map;
+	}
+
+	add_type_only_style_anchor(node, context);
+	return class_map;
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {TransformClientContext} context
+ * @returns {void}
+ */
+function add_type_only_style_anchor(node, context) {
+	const style_anchor = b.jsx_element(clone_expression_node(node, true), [], []);
+	disable_style_anchor_verification(style_anchor);
+
+	const anchor_id = b.id(context.state.scope.generate('style_anchor'));
+	context.state.hoisted.push(b.const(anchor_id, style_anchor), b.stmt(b.id(anchor_id.name)));
+}
+
+/**
+ * @param {ESTreeJSX.JSXElement} element
+ */
+function disable_style_anchor_verification(element) {
+	if (element.openingElement?.name) {
+		element.openingElement.name.metadata = {
+			...(element.openingElement.name.metadata || {}),
+			disable_verification: true,
+		};
+	}
+	if (element.closingElement?.name) {
+		element.closingElement.name.metadata = {
+			...(element.closingElement.name.metadata || {}),
+			disable_verification: true,
+		};
+	}
 }
 
 /**
@@ -4137,6 +4174,9 @@ function transform_ts_child(node, context) {
 
 		/** @type {ESTreeJSX.JSXElement} */
 		const jsxElement = b.jsx_element(node, attributes, children);
+		if (element_name === 'style') {
+			disable_style_anchor_verification(jsxElement);
+		}
 
 		// For unclosed elements, push the JSXElement directly without wrapping in ExpressionStatement
 		// This keeps it in the AST for mappings but avoids adding a semicolon

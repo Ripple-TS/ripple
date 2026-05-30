@@ -421,6 +421,26 @@ fragment App() {
         (style_element
           (raw_text))))))
 
+========================
+Style Element Expression
+========================
+
+const styles = <style>
+  .modular {
+    color: green;
+  }
+</style>;
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (style_element
+          (raw_text))))))
+
 ============================
 Function Return Native Markup
 ============================

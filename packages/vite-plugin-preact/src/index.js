@@ -48,6 +48,20 @@ export function tsrxPreact(options = {}) {
 	/** @type {Map<string, string>} */
 	const css_cache = new Map();
 
+	/**
+	 * @param {string} source
+	 * @param {string} id
+	 * @returns {void}
+	 */
+	function update_css_cache(source, id) {
+		const { css } = compile(source, id, compile_options);
+		if (css) {
+			css_cache.set(id, css);
+		} else {
+			css_cache.delete(id);
+		}
+	}
+
 	return /** @type {TsrxPreactPlugin} */ ({
 		name: '@tsrx/vite-plugin-preact',
 		enforce: 'pre',
@@ -97,6 +111,18 @@ export function tsrxPreact(options = {}) {
 			);
 
 			return { code: result.code, map: result.map };
+		},
+
+		async handleHotUpdate(ctx) {
+			if (!TSRX_EXTENSION_PATTERN.test(ctx.file)) return;
+
+			update_css_cache(await ctx.read(), ctx.file);
+
+			const css_mod = ctx.server.moduleGraph.getModuleById('\0' + ctx.file + CSS_QUERY);
+			if (!css_mod) return ctx.modules;
+
+			ctx.server.moduleGraph.invalidateModule(css_mod);
+			return [...ctx.modules, css_mod];
 		},
 	});
 }
