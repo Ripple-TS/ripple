@@ -119,7 +119,7 @@ export function annotate_with_hash(
 			return node;
 		}
 		if (!is_style_element(node) && !is_composite_element(node)) {
-			add_hash_class(node, hash);
+			add_hash_class(node, hash, jsx_class_attr_name);
 		}
 		if (Array.isArray(node.children)) {
 			node.children = node.children
@@ -184,13 +184,14 @@ export function annotate_component_with_hash(
 }
 
 /**
- * Ensure the element carries a `class` attribute containing the scoping hash.
+ * Ensure the element carries a class attribute containing the scoping hash.
  *
  * @param {any} element
  * @param {string} hash
+ * @param {'class' | 'className'} [class_attr_name='class']
  * @returns {void}
  */
-export function add_hash_class(element, hash) {
+export function add_hash_class(element, hash, class_attr_name = 'class') {
 	const attrs = element.attributes || (element.attributes = []);
 	const existing = attrs.find(
 		(/** @type {any} */ a) =>
@@ -203,7 +204,7 @@ export function add_hash_class(element, hash) {
 	if (!existing) {
 		attrs.push({
 			type: 'Attribute',
-			name: b.id('class'),
+			name: b.id(class_attr_name),
 			value: { type: 'Literal', value: hash, raw: JSON.stringify(hash) },
 		});
 		return;
@@ -247,18 +248,6 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 		/** @type {any} */ (hash_literal).raw = JSON.stringify(hash);
 		attrs.push(b.jsx_attribute(b.jsx_id(jsx_class_attr_name), hash_literal));
 		return;
-	}
-
-	if (existing.name.name !== jsx_class_attr_name) {
-		existing.name = {
-			type: 'JSXIdentifier',
-			name: jsx_class_attr_name,
-			metadata: {
-				...(existing.name.metadata || { path: [] }),
-				source_name: existing.name.name,
-				source_length: existing.name.name.length,
-			},
-		};
 	}
 
 	const value = existing.value;

@@ -94,10 +94,22 @@ const SPECIAL_CASES_AFTER_HTML = highlight_tsrx(
   </style>;
 
   return <>
+    // Ripple, Solid, and Vue host elements
     <article innerHTML={contentHtml} />
+
+    // Ripple and Solid fragment output
     <Fragment innerHTML={contentHtml} />
+
+    // React and Preact host elements
+    <article dangerouslySetInnerHTML={{ __html: contentHtml }} />
+
     <input ref={inputRef} />
+
+    // Ripple, Preact, Solid, and Vue component props
     <Child class={styles.card} />
+
+    // React component props
+    <Child className={styles.card} />
   </>;
 }`,
 );
@@ -116,6 +128,25 @@ const SCOPED_STYLE_HTML = highlight_tsrx(
       }
     </style>
   </>;
+}`,
+);
+
+const MODULE_STYLE_HTML = highlight_tsrx(
+	`const styles = <style>
+  .card { padding: 1rem; }
+  .title { font-weight: 700; }
+</style>;
+
+function ArticleCard({ title }: Props) {
+  return <article class={styles.card}>
+    <h2 class={styles.title}>{title}</h2>
+  </article>;
+}
+
+function ReactArticleCard({ title }: Props) {
+  return <article className={styles.card}>
+    <h2 className={styles.title}>{title}</h2>
+  </article>;
 }`,
 );
 
@@ -254,15 +285,38 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={SPECIAL_CASES_BEFORE_HTML} />
 						</pre>
 						<p>
-							{'Those are now regular props. Raw HTML uses '}
+							{'Those are now regular props. Ripple, Solid, and Vue use '}
 							<code>{'innerHTML'}</code>
-							{' on DOM elements, or '}
+							{' on DOM elements. Ripple and Solid can also use '}
 							<code>{'<Fragment innerHTML={...} />'}</code>
-							{' when you want to insert HTML without a wrapper element. Refs use '}
+							{' when you want to insert HTML without a wrapper element. React and Preact use '}
+							<code>{'dangerouslySetInnerHTML'}</code>
+							{'. Refs use '}
 							<code>{'ref={...}'}</code>
 							{', and scoped classes can be shared with children through '}
 							<code>{'const styles = <style>...</style>'}</code>
 							{'.'}
+						</p>
+						<p>
+							{'React TSRX does not rewrite an authored '}
+							<code>{'class'}</code>
+							{' prop into '}
+							<code>{'className'}</code>
+							{'. Use '}
+							<code>{'className'}</code>
+							{' when your React component expects it; the compiler will not hide that difference for you.'}
+						</p>
+						<p>
+							{'For scoped styles on React host elements, TSRX still emits '}
+							<code>{'className'}</code>
+							{' for the generated CSS hash. That is generated output, not a rewrite of a class you wrote yourself.'}
+						</p>
+						<p>
+							{'Removing the old '}
+							<code>{'class'}</code>
+							{' to '}
+							<code>{'className'}</code>
+							{' magic makes generated code easier for humans and LLMs to predict.'}
 						</p>
 						<p>
 							{'The style expression is just a value. Put it before the returned content, then pass '}
@@ -281,6 +335,14 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						</p>
 						<pre class="code-block">
 							<code innerHTML={SCOPED_STYLE_HTML} />
+						</pre>
+						<p>
+							{'When you move styles into a value before the returned template, the model is intentionally more like '}
+							<code>{'StyleX'}</code>
+							{' and other popular CSS-in-JS solutions: you get a declarative class map, and you pass those class names explicitly where you need them.'}
+						</p>
+						<pre class="code-block">
+							<code innerHTML={MODULE_STYLE_HTML} />
 						</pre>
 						<p>
 							{'This is optional. If your team prefers Tailwind, CSS modules, vanilla CSS, or a design system class API, keep using that. TSRX does not require colocated '}

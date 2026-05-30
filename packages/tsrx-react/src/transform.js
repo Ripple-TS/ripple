@@ -5,9 +5,8 @@ import { createJsxTransform } from '@tsrx/core';
 /**
  * React platform descriptor consumed by `createJsxTransform`. Each field
  * configures one React-specific decision the shared transformer would
- * otherwise have to branch on (import sources, `class`→`className` rewrite,
- * accepted `<tsx:kind>` values, `use server` validation, error message
- * prefix).
+ * otherwise have to branch on (import sources, accepted `<tsx:kind>` values,
+ * `use server` validation, error message prefix).
  *
  * @type {JsxPlatform}
  */
@@ -22,7 +21,8 @@ const react_platform = {
 		forOfIterableHelper: '@tsrx/react/runtime/iterable',
 	},
 	jsx: {
-		rewriteClassAttr: true,
+		rewriteClassAttr: false,
+		classAttrName: 'className',
 		acceptedTsxKinds: ['react'],
 		multiRefStrategy: 'merge-refs',
 	},

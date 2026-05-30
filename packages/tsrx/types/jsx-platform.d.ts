@@ -354,10 +354,15 @@ export interface JsxPlatform {
 
 	jsx: {
 		/**
-		 * Rewrite Ripple's `class` attribute to React's `className`. React: true.
-		 * Preact and Solid accept `class` natively, so: false.
+		 * Rewrite Ripple's `class` attribute to `className` for legacy targets
+		 * that require it. First-party targets keep authored `class`.
 		 */
 		rewriteClassAttr: boolean;
+		/**
+		 * Attribute name to use when TSRX injects scoped CSS classes. This does
+		 * not rewrite authored attributes.
+		 */
+		classAttrName?: 'class' | 'className';
 		/**
 		 * Accepted values of `kind` in `<tsx:kind>` compat blocks. React accepts
 		 * only `'react'`. Preact accepts both `'preact'` and `'react'`.

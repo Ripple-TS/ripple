@@ -286,7 +286,12 @@ just like TSX components return JSX.
 ```tsrx
 export function Button({ label, onClick }: { label: string; onClick: () => void }) {
 	return <>
+		// Ripple, Preact, Solid, and Vue host elements:
 		<button class="btn" {onClick}>{label}</button>
+
+		// React host elements:
+		// <button className="btn" {onClick}>{label}</button>
+
 		<style>
 			.btn {
 				padding: 0.5rem 1rem;
@@ -311,6 +316,7 @@ function Icon() {
 - Use `export function` for public components.
 - Keep setup logic before the return when it is plain JavaScript.
 - Put rendered structure, template control flow, and scoped `<style>` blocks inside the returned TSRX expression.
+- Use module-scope `<style>` expressions for reusable class maps.
 
 **LLM DON'T:**
 
@@ -571,9 +577,11 @@ function Card() {
 
 Use `:global(...)` to opt out of scoping. Assign a `<style>` expression to a
 variable to expose scoped class names for passing across component boundaries.
+React keeps authored attributes as written, so use `className` for React host
+elements and React component props. Other TSRX targets commonly use `class`.
 
 ```tsrx
-function Badge({ className }: { className?: string }) {
+function Badge({ class: className }: { class?: string }) {
 	return <>
 		<span class={'badge ' + (className ?? '')}>"New"</span>
 		<style>
@@ -592,9 +600,41 @@ function App() {
 		}
 	</style>;
 
-	return <Badge className={styles.highlight} />;
+	return <Badge class={styles.highlight} />;
 }
 ```
+
+Style expressions can also live at module scope. Use this for StyleX-like or
+CSS-in-JS-like reusable class maps when the styles should be declared before the
+components that reference them:
+
+```tsrx
+const articleStyles = <style>
+	.card {
+		padding: 1rem;
+	}
+
+	.title {
+		font-weight: 700;
+	}
+</style>;
+
+export function ArticleCard({ title }: { title: string }) {
+	// Ripple, Preact, Solid, and Vue host elements:
+	return <article class={articleStyles.card}>
+		<h2 class={articleStyles.title}>{title}</h2>
+	</article>;
+
+	// React host elements:
+	// return <article className={articleStyles.card}>
+	// 	<h2 className={articleStyles.title}>{title}</h2>
+	// </article>;
+}
+```
+
+Inline `<style>` blocks inside a returned TSRX template are scoped to that
+returned template. Module-scope style expressions are reusable class maps and
+are not tied to one returned fragment.
 
 ## Target-specific behavior
 
@@ -745,7 +785,7 @@ function List<T>({ items, render }: Props<T>) {
 | Guard exit             | `if (!user) { return null; }`                    |
 | Scoped style           | `<style> .x { ... } </style>`                    |
 | Escape scoping         | `:global(.class)`                                |
-| Cross-component class  | `<Child className={styles.foo} />`               |
+| Cross-component class  | `<Child class={styles.foo} />`; React uses `className` |
 | Dynamic element        | `<@tag />` with a tracked/stateful `tag`         |
 
 ## Resources

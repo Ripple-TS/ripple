@@ -235,7 +235,7 @@ const styles = <style>
   .card { padding: 1rem; }
 </style>;
 
-return <Child className={styles.card} />;
+return <Child class={styles.card} />;
 \`\`\`
 
 \`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.

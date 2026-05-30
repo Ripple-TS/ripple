@@ -45,6 +45,6 @@ export function ReactQueryFixture() {
 			{fetchProject}
 			{selectSummary}
 		/>
-		<output class="query-fetch-count">{fetchCount}</output>
+		<output className="query-fetch-count">{fetchCount}</output>
 	</>;
 }

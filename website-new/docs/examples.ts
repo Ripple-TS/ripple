@@ -125,7 +125,7 @@ export default function App() {
 
 	const props = {
     message: "A clickable card",
-    className: "clickable",
+    class: "clickable",
     onClick: () => { alert("Card clicked!") }
   };
 	<Card {...props} /> // props spread
@@ -133,9 +133,9 @@ export default function App() {
 		  </>;
 		}
 
-function Card(props: { message: string, className?: string, onClick?: () => void }) {
+function Card(props: { message: string, class?: string, onClick?: () => void }) {
   return <>
-	<div class={\`card \${props.className}\`} onclick={props.onClick || (() => {})}>
+	<div class={\`card \${props.class}\`} onclick={props.onClick || (() => {})}>
 		<p>{props.message}</p>
 	</div>
 	<style>

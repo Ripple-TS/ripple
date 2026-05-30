@@ -218,7 +218,7 @@ Each map entry contains both the CSS scope hash and the class name (for example
 ### Basic Usage
 
 ```ripple
-function Child({ className }: { className: string }) {
+function Child({ class: className }: { class: string }) {
   return <>
   <div class={className}>"styled child"</div>
 
@@ -232,7 +232,7 @@ function Parent() {
     }
   </style>;
 
-  return <Child className={styles.highlight} />;
+  return <Child class={styles.highlight} />;
 }
 ```
 
@@ -295,7 +295,7 @@ A child component can combine classes it receives from a parent with its own
 scoped classes:
 
 ```ripple
-function Card({ className }: { className?: string }) {
+function Card({ class: className }: { class?: string }) {
   return <>
   <div class={['card-base', className ?? '']}>"card content"</div>
 
@@ -315,7 +315,7 @@ function App() {
     }
   </style>;
 
-  return <Card className={styles.themed} />;
+  return <Card class={styles.themed} />;
 }
 ```
 

@@ -169,7 +169,7 @@ const SCOPED_STYLES_HTML = highlight_tsrx(
 );
 
 const STYLE_COMPOSITION_HTML = highlight_tsrx(
-	`function Badge({ className }: { className?: string }) {
+	`function Badge({ class: className }: { class?: string }) {
   return <>
     <span class={'badge ' + (className ?? '')}>"New"</span>
 
@@ -184,7 +184,7 @@ function App() {
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
 
-  return <Badge className={styles.highlight} />;
+  return <Badge class={styles.highlight} />;
 }`,
 );
 

@@ -6,6 +6,7 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
  *   compile: (source: string, filename?: string, options?: any) => { code: string, css: string, cssHash: string | null, errors: Array<{ message: string, code?: string }> },
  *   name: string,
  *   classAttrName: 'class' | 'className',
+ *   generatedClassAttrName?: 'class' | 'className',
  * }} CompileHarness
  *
  * @typedef {{
@@ -13,9 +14,9 @@ import { DIAGNOSTIC_CODES } from '../../src/diagnostics.js';
  *   name: string,
  * }} CompileDiagnosticsHarness
  *
- * `classAttrName`: the DOM-element class attribute shape the platform emits.
- * React rewrites `class` → `className`; Preact and Solid keep `class`. Shared
- * tests that assert on a scope-hash class string parameterize it via this.
+ * `classAttrName`: the authored DOM-element class attribute shape the platform emits.
+ * `generatedClassAttrName`: the class attribute shape the platform uses when
+ * injecting scoped CSS hashes.
  */
 
 /**
@@ -1247,7 +1248,18 @@ export function runSharedClassFunctionComponentTests({ compile, compile_to_volar
  *
  * @param {CompileHarness} harness
  */
-export function runSharedCompileTests({ compile, name, classAttrName }) {
+export function runSharedCompileTests({
+	compile,
+	name,
+	classAttrName,
+	generatedClassAttrName = classAttrName,
+}) {
+	const componentClassAttrName = name === 'react' ? 'className' : 'class';
+	const componentClassParam =
+		componentClassAttrName === 'className'
+			? '{ className }: { className?: string }'
+			: '{ class: className }: { class?: string }';
+
 	runSharedComponentLoopControlFlowTests({ compile, name });
 	runSharedNestedLazyDestructuringTests({ compile, name });
 
@@ -2403,7 +2415,7 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('className');
+			expect(code).toContain(`${classAttrName}={`);
 			expect(code).toContain('has-icon');
 			expect(code).toContain('icon()');
 		});
@@ -2456,7 +2468,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(code).toContain('Welcome');
 			expect(code).toContain('isAdmin');
-			expect(code).toContain('className');
+			expect(code).toContain(`${classAttrName}={`);
 			expect(code).toContain('has-icon');
 		});
 
@@ -2966,7 +2978,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(css).not.toBe('');
 			expect(code).toContain("{'Hello world'}");
-			expect(code).toContain(`${classAttrName}="${cssHash}"`);
+			expect(code).toContain(`${generatedClassAttrName}="${cssHash}"`);
 			expect(css).toContain(`.div.${cssHash}`);
 			expect(css).toContain('color: red;');
 		});
@@ -2975,16 +2987,16 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code, css, cssHash } = compile(
 				`function Card() { return <>
 					<tsx>
-						<div class="card">
+							<div ${generatedClassAttrName}="card">
+								<h2>{'Scoped title'}</h2>
+								<p>{'Styles here do not leak out.'}</p>
+							</div>
+						</tsx>
+
+						<div ${generatedClassAttrName}="card">
 							<h2>{'Scoped title'}</h2>
 							<p>{'Styles here do not leak out.'}</p>
 						</div>
-					</tsx>
-
-					<div class="card">
-						<h2>{'Scoped title'}</h2>
-						<p>{'Styles here do not leak out.'}</p>
-					</div>
 
 					<style>
 						.card {
@@ -3001,23 +3013,23 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
+			expect(count_substring(code, `${generatedClassAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('applies the scope hash inside fragment shorthand', () => {
 			const { code, css, cssHash } = compile(
 				`function Card() { return <>
 					<>
-						<div class="card">
+							<div ${generatedClassAttrName}="card">
+								<h2>{'Scoped title'}</h2>
+								<p>{'Styles here do not leak out.'}</p>
+							</div>
+						</>
+
+						<div ${generatedClassAttrName}="card">
 							<h2>{'Scoped title'}</h2>
 							<p>{'Styles here do not leak out.'}</p>
 						</div>
-					</>
-
-					<div class="card">
-						<h2>{'Scoped title'}</h2>
-						<p>{'Styles here do not leak out.'}</p>
-					</div>
 
 					<style>
 						.card {
@@ -3034,7 +3046,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			expect(count_substring(code, `${classAttrName}="card ${cssHash}"`)).toBe(2);
+			expect(count_substring(code, `${generatedClassAttrName}="card ${cssHash}"`)).toBe(2);
 		});
 
 		it('does not apply scoped css hashes to composite components', () => {
@@ -3055,17 +3067,15 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(css).not.toBe('');
-			expect(code).toContain(`<div ${classAttrName}="${cssHash}">{'Styled content'}</div>`);
+			expect(code).toContain(
+				`<div ${generatedClassAttrName}="${cssHash}">{'Styled content'}</div>`,
+			);
 			expect(code).not.toMatch(/<Child\s+class(Name)?="/);
 		});
 
 		it('passes style expression classes through a composite component prop', () => {
-			// `className` here is a prop on a composite component, not a DOM
-			// attribute — every target passes prop names through unchanged,
-			// so the assertion is cross-platform regardless of the host-
-			// element class attribute shape.
 			const { code, css, cssHash } = compile(
-				`function Badge({ className }: { className?: string }) { return <>
+				`function Badge(${componentClassParam}) { return <>
 					<span class={['badge', className ?? '']}>{'New'}</span>
 
 					<style>
@@ -3079,7 +3089,7 @@ export function optionalFn(bar: string, baz?: string) {
 					</style>;
 
 					return <>
-					<Badge className={styles.highlight} />
+					<Badge ${componentClassAttrName}={styles.highlight} />
 				</>; }`,
 				'App.tsrx',
 			);
@@ -3088,12 +3098,12 @@ export function optionalFn(bar: string, baz?: string) {
 			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} highlight`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toContain(`${app_hash} highlight`);
-			expect(code).toContain('className={styles.highlight}');
+			expect(code).toContain(`${componentClassAttrName}={styles.highlight}`);
 		});
 
 		it('passes style expression classes through a composite component prop when the element has children', () => {
 			const { code, css, cssHash } = compile(
-				`function Child({ className }: { className?: string }) { return <>
+				`function Child(${componentClassParam}) { return <>
 						<span class={className}>"hello world"</span>
 					</>; }
 
@@ -3103,7 +3113,7 @@ export function optionalFn(bar: string, baz?: string) {
 						</style>;
 
 						return <>
-						<Child className={styles.container}>"hello world"</Child>
+						<Child ${componentClassAttrName}={styles.container}>"hello world"</Child>
 					</>; }`,
 				'App.tsrx',
 			);
@@ -3112,7 +3122,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const app_hash = cssHash.split(' ').find((h) => code.includes(`${h} container`));
 			expect(app_hash).toBeTruthy();
 			expect(code).toContain(`${app_hash} container`);
-			expect(code).toContain('className={styles.container}');
+			expect(code).toContain(`${componentClassAttrName}={styles.container}`);
 		});
 
 		it('passes hyphenated style expression class names through a composite component prop', () => {

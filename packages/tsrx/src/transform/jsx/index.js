@@ -1431,7 +1431,8 @@ function prepare_tsrx_fragment_styles(node, transform_context) {
 	annotate_tsrx_with_hash(
 		node,
 		css.hash,
-		transform_context.platform.jsx.rewriteClassAttr ? 'className' : 'class',
+		transform_context.platform.jsx.classAttrName ??
+			(transform_context.platform.jsx.rewriteClassAttr ? 'className' : 'class'),
 		transform_context.typeOnly,
 	);
 	return { css, style_refs };
@@ -5669,8 +5670,8 @@ export function to_jsx_attribute(attr, transform_context) {
 			attr,
 		);
 	}
-	// Platforms that expect React-style DOM attrs (React) rewrite `class` to
-	// `className`; Preact and Solid accept `class` natively and keep it.
+	// Keep this legacy hook for targets that need React-style DOM attrs. The
+	// current first-party targets preserve authored `class`.
 	let attr_name = attr.name;
 	if (
 		transform_context.platform.jsx.rewriteClassAttr &&

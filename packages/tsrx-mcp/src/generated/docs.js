@@ -57,7 +57,7 @@ export const documentation_sections = [
 		use_cases:
 			'style expressions, scoped css, module server, submodule imports, compile-time identifiers',
 		content:
-			'# Style and Server Extensions\n\nAssign a `<style>` expression to expose scoped CSS class names declared in the current module.\n\n```tsx\nconst styles = <style>\n  .card { padding: 1rem; }\n</style>;\n\nreturn <Child className={styles.card} />;\n```\n\n`module server { ... }` declares a server-oriented submodule in the Ripple host profile. Import exported functions with `import { load } from server` before use.\n\nSpecification grammar:\n\n```text\nStyleElement :\n  <style JSXAttributesopt> CSSSource </style>\n\nSubmoduleDeclaration :\n  module Identifier { ModuleItemListopt }\n\nSubmoduleImportDeclaration :\n  import ImportClause from Identifier ;\n\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
+			'# Style and Server Extensions\n\nAssign a `<style>` expression to expose scoped CSS class names declared in the current module.\n\n```tsx\nconst styles = <style>\n  .card { padding: 1rem; }\n</style>;\n\nreturn <Child class={styles.card} />;\n```\n\n`module server { ... }` declares a server-oriented submodule in the Ripple host profile. Import exported functions with `import { load } from server` before use.\n\nSpecification grammar:\n\n```text\nStyleElement :\n  <style JSXAttributesopt> CSSSource </style>\n\nSubmoduleDeclaration :\n  module Identifier { ModuleItemListopt }\n\nSubmoduleImportDeclaration :\n  import ImportClause from Identifier ;\n\n```\n\nSource: website-tsrx/src/pages/specification.tsrx#style',
 	},
 	{
 		slug: 'target-integration',

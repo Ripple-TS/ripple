@@ -8,7 +8,11 @@ const COMPONENT_HTML = highlight_tsrx(
   onClick: () => void;
 }) {
   return <>
+    // Ripple, Preact, Solid, and Vue host elements:
     <button class="btn" {onClick}>{label}</button>
+
+    // React host elements:
+    // <button className="btn" {onClick}>{label}</button>
 
     <style>
       .btn {
@@ -218,7 +222,7 @@ const SCOPED_STYLES_HTML = highlight_tsrx(
 );
 
 const STYLE_COMPOSITION_HTML = highlight_tsrx(
-	`function Badge({ className }: { className?: string }) {
+	`function Badge({ class: className }: { class?: string }) {
   return <>
     <span class={'badge ' + (className ?? '')}>"New"</span>
 
@@ -233,7 +237,30 @@ function App() {
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
 
-  return <Badge className={styles.highlight} />;
+  // Ripple, Preact, Solid, and Vue component props:
+  return <Badge class={styles.highlight} />;
+
+  // React component props:
+  // return <Badge className={styles.highlight} />;
+}`,
+);
+
+const MODULE_STYLE_COMPOSITION_HTML = highlight_tsrx(
+	`const articleStyles = <style>
+  .card { padding: 1rem; }
+  .title { font-weight: 700; }
+</style>;
+
+export function ArticleCard({ title }: { title: string }) {
+  // Ripple, Preact, Solid, and Vue host elements:
+  return <article class={articleStyles.card}>
+    <h2 class={articleStyles.title}>{title}</h2>
+  </article>;
+
+  // React host elements:
+  // return <article className={articleStyles.card}>
+  //   <h2 className={articleStyles.title}>{title}</h2>
+  // </article>;
 }`,
 );
 
@@ -678,6 +705,13 @@ export function FeaturesPage() {
 								<code class="inline-code">{':global()'}</code>
 								{'. This lets you reach into child components or target elements outside the current scope.'}
 							</p>
+							<p class="section-body muted">
+								{'React note: TSRX keeps authored attributes as written. Use '}
+								<code class="inline-code">{'className'}</code>
+								{' on React host elements and React component props, just like ordinary JSX. Compiler-injected scoped style hashes still use React\'s '}
+								<code class="inline-code">{'className'}</code>
+								{' output when needed.'}
+							</p>
 						</section>
 
 						<section class="doc-section" id="style-composition">
@@ -689,10 +723,20 @@ export function FeaturesPage() {
 								<code class="inline-code">{'styles.highlight'}</code>
 								{' contains both the scope hash and the class name, which the child applies via its '}
 								<code class="inline-code">{'class'}</code>
-								{' attribute.'}
+								{' prop. React components use '}
+								<code class="inline-code">{'className'}</code>
+								{' instead, matching React\'s normal prop names.'}
 							</p>
 							<pre class="code-block">
 								<code innerHTML={STYLE_COMPOSITION_HTML} />
+							</pre>
+							<p class="section-body">
+								{'You can also create the style expression at module scope and reference the generated class map from any component in the file. This gives teams moving from StyleX-like patterns a declarative, reusable class map without putting the '}
+								<code class="inline-code">{'<style>'}</code>
+								{' block inside the returned template.'}
+							</p>
+							<pre class="code-block">
+								<code innerHTML={MODULE_STYLE_COMPOSITION_HTML} />
 							</pre>
 							<p class="section-body">
 								{'Classes exposed on the map come from standalone selectors in the '}

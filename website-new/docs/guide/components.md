@@ -284,10 +284,10 @@ See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
 <div {...properties}>"Content"</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {className}>"Content"</div>
+<div {onClick} {id}>"Content"</div>
 
 // Equivalent to:
-<div {onClick} {className}>"Content"</div>
+<div onClick={onClick} id={id}>"Content"</div>
 ```
 
 ## Portal Component

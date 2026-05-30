@@ -15,8 +15,13 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: false,
 });
 
-runSharedTsxExpressionTsrxTests({ compile, name: 'react', classAttrName: 'className' });
-runSharedCompileTests({ compile, name: 'react', classAttrName: 'className' });
+runSharedTsxExpressionTsrxTests({ compile, name: 'react', classAttrName: 'class' });
+runSharedCompileTests({
+	compile,
+	name: 'react',
+	classAttrName: 'class',
+	generatedClassAttrName: 'className',
+});
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
 runSharedSwitchHelperHoistingTests({
 	compile,
@@ -213,7 +218,7 @@ describe('@tsrx/react basic', () => {
 
 	// `does not apply scoped css hashes to composite components`
 	// additionally asserted the Volar mapping had no errors and its code
-	// omitted `<Child className=`. Keep the mapping-assertion piece here
+	// omitted a generated class prop on `<Child>`. Keep the mapping-assertion piece here
 	// since the shared harness only runs `compile` for this class of test.
 	it('does not apply scoped css hashes to composite components (Volar mappings)', () => {
 		const source = `function Child() { return <>
@@ -232,7 +237,7 @@ describe('@tsrx/react basic', () => {
 			</>; }`;
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(mappings.code).not.toContain('<Child className=');
+		expect(mappings.code).not.toMatch(/<Child\s+class(Name)?=/);
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -256,6 +261,24 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain(`className="${cssHash}"`);
 		expect(code).toContain(`App__static1 = <div className="${cssHash}">`);
 		expect(css).toContain(`.div.${cssHash}`);
+	});
+
+	it('does not rewrite authored class attributes when scoped css applies', () => {
+		const { code, cssHash } = compile(
+			`export function App() { return <>
+				<div class="content">{'hello'}</div>
+
+				<style>
+					.content {
+						color: red;
+					}
+				</style>
+			</>; }`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`class="content ${cssHash}"`);
+		expect(code).not.toContain(`className="content ${cssHash}"`);
 	});
 
 	it('renders component-body if statements as React expressions', () => {
@@ -903,10 +926,10 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain("const dom = 'section';");
 		expect(code).toContain('const DynamicElement = dom;');
-		expect(code).toContain('<DynamicElement className="box">');
+		expect(code).toContain('<DynamicElement class="box">');
 		expect(code).toContain("<span>{'hello'}</span>");
 		expect(code).toContain('return DynamicElement');
-		expect(code).toContain('? <DynamicElement className="box">');
+		expect(code).toContain('? <DynamicElement class="box">');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -922,7 +945,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('function App(props) {');
 		expect(code).toContain('const DynamicElement = props.as;');
-		expect(code).toContain('<DynamicElement className="box">');
+		expect(code).toContain('<DynamicElement class="box">');
 		expect(code).toContain("<span>{'hello'}</span>");
 		expect(mappings.errors).toEqual([]);
 	});
@@ -999,7 +1022,7 @@ describe('@tsrx/react basic', () => {
 
 		expect(code).toContain('ref={inputRef}');
 		expect(code).toContain('type="text"');
-		expect(code).toContain('className="field"');
+		expect(code).toContain('class="field"');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -1157,11 +1180,11 @@ describe('@tsrx/react basic', () => {
 	it('applies scoped CSS hashes inside try blocks', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() { return <>
-				try {
-					<div class="content">{'hello'}</div>
-				} catch (err) {
-					<p class="error">{'error'}</p>
-				}
+					try {
+						<div className="content">{'hello'}</div>
+					} catch (err) {
+						<p className="error">{'error'}</p>
+					}
 
 				<style>
 					.content { color: blue; }
