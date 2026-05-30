@@ -5191,6 +5191,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-style-in-expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
@@ -5801,6 +5805,20 @@
 							<string>#jsx-tag-attributes</string>
 						</dict>
 					</array>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-tag-style-in-expression</key>
+		<dict>
+			<key>begin</key>
+			<string>(?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*(?=(&lt;)\s*(style)\b(?![^&gt;]*/&gt;)(?=[^&gt;]*&gt;))</string>
+			<key>end</key>
+			<string>(?!(&lt;)\s*(style)\b(?![^&gt;]*/&gt;)(?=[^&gt;]*&gt;))</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-style</string>
 				</dict>
 			</array>
 		</dict>
@@ -6807,6 +6825,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-style-in-expression</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx</string>

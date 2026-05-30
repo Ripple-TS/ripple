@@ -349,6 +349,7 @@ module.exports = grammar({
 				$.jsx_element,
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
+				prec(2, $.style_element),
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -368,7 +369,6 @@ module.exports = grammar({
 				$.continue_statement,
 				$.debugger_statement,
 				$.empty_statement,
-				$.style_element,
 			),
 
 		_jsx_statement_child: ($) =>
@@ -377,6 +377,7 @@ module.exports = grammar({
 				$.lexical_declaration,
 				$.function_declaration,
 				$.class_declaration,
+				prec(2, $.style_element),
 				$.if_statement,
 				$.switch_statement,
 				$.for_statement,
@@ -391,16 +392,18 @@ module.exports = grammar({
 				$.continue_statement,
 				$.debugger_statement,
 				$.empty_statement,
-				$.style_element,
 			),
 
 		style_element: ($) =>
-			seq(
-				'<style',
-				repeat($._jsx_attribute),
-				'>',
-				optional(alias($._style_content, $.raw_text)),
-				'</style>',
+			prec(
+				1,
+				seq(
+					'<style',
+					repeat($._jsx_attribute),
+					'>',
+					optional(alias($._style_content, $.raw_text)),
+					'</style>',
+				),
 			),
 
 		_style_content: ($) => /[^<]+/,
@@ -595,7 +598,7 @@ module.exports = grammar({
 						),
 					),
 					'=',
-					field('right', $.expression),
+					field('right', choice($.expression, $.style_element)),
 				),
 			),
 
@@ -1070,7 +1073,7 @@ module.exports = grammar({
 
 		parenthesized_type: ($) => seq('(', $.type, ')'),
 
-		initializer: ($) => seq('=', $.expression),
+		initializer: ($) => seq('=', choice($.expression, $.style_element)),
 
 		_semicolon: ($) => choice($._automatic_semicolon, ';'),
 	},
