@@ -1,5 +1,22 @@
 # @tsrx/react
 
+## 0.2.18
+
+### Patch Changes
+
+- [`5c0b0ff`](https://github.com/Ripple-TS/ripple/commit/5c0b0ff031ddfb319bb048d627e2d2a2a49c1f1d)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add support for reusable style
+  element expressions and update React/Preact target behavior.
+
+  Style elements can now be assigned to variables and used as class maps, while
+  inline style blocks inside returned TSRX stay scoped to that fragment. React and
+  Preact also preserve authored class attributes and handle conditional hooks from
+  function component bodies with the new function-based TSRX model.
+
+- Updated dependencies
+  [[`5c0b0ff`](https://github.com/Ripple-TS/ripple/commit/5c0b0ff031ddfb319bb048d627e2d2a2a49c1f1d)]:
+  - @tsrx/core@0.1.18
+
 ## 0.2.17
 
 ### Patch Changes
