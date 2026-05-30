@@ -1,5 +1,18 @@
 # @tsrx/core
 
+## 0.1.20
+
+### Patch Changes
+
+- [#1185](https://github.com/Ripple-TS/ripple/pull/1185)
+  [`0ea87fb`](https://github.com/Ripple-TS/ripple/commit/0ea87fb3cbef21c3c00d63cc2a1f3c9f34d01c24)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the reserved `<tsx>`
+  expression wrapper and use TSRX fragments as the native expression form.
+
+  Plain `<tsx>` is now treated as an ordinary element. Tooling now uses the
+  `TsrxFragment` AST node for native fragments and updates formatting, linting,
+  symbols, transforms, and generated docs around the simplified syntax.
+
 ## 0.1.19
 
 ### Patch Changes
