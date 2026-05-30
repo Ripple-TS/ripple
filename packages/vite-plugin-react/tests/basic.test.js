@@ -55,4 +55,55 @@ describe('@tsrx/vite-plugin-react basic', () => {
 		expect(/** @type {any} */ (transformed.map).sources).toEqual([id]);
 		expect(/** @type {any} */ (transformed.map).sourcesContent).toEqual([source]);
 	});
+
+	it('refreshes virtual css during hot updates', async () => {
+		const plugin = tsrxReact();
+		const id = '/virtual/App.tsrx';
+		const css_module = { id: `\0${id}?tsrx-css&lang.css` };
+		/** @type {Array<typeof css_module>} */
+		const invalidated = [];
+		const source = `export function App() { return <>
+			<div className="content">{'Hello world'}</div>
+			<style>
+				.content {
+					color: red;
+				}
+			</style>
+		</>; }`;
+		const updated_source = `export function App() { return <>
+			<div className="content">{'Hello world'}</div>
+			<style>
+				:where(.content) {
+					color: blue;
+				}
+			</style>
+		</>; }`;
+
+		await plugin.transform(source, id);
+		const handle_hot_update = /** @type {(ctx: any) => Promise<any[]>} */ (plugin.handleHotUpdate);
+		const modules = await handle_hot_update({
+			file: id,
+			modules: [{ id }],
+			read: async () => updated_source,
+			server: {
+				moduleGraph: {
+					/** @param {string} module_id */
+					getModuleById(module_id) {
+						return module_id === css_module.id ? css_module : undefined;
+					},
+					/** @param {typeof css_module} module */
+					invalidateModule(module) {
+						invalidated.push(module);
+					},
+				},
+			},
+		});
+
+		const css = plugin.load(css_module.id);
+		expect(css).toContain(':where(.content.');
+		expect(css).toContain('color: blue;');
+		expect(css).not.toContain('color: red;');
+		expect(invalidated).toEqual([css_module]);
+		expect(modules).toContain(css_module);
+	});
 });
