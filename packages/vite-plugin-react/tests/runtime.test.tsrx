@@ -532,14 +532,14 @@ class TsxSpreadRefRenderer {
 			},
 		};
 
-		return <tsx>
+		return <tsx:react>
 			<input
 				{...props}
 				ref={(node: HTMLInputElement | null) => {
 					tsx_explicit_ref_captured = node;
 				}}
 			/>
-		</tsx>;
+		</tsx:react>;
 	}
 }
 
@@ -1367,7 +1367,7 @@ describe('tsrx-react runtime', () => {
 		expect(spread_ref_captured!.id).toBe('spread-input');
 	});
 
-	it('merges spread and explicit refs inside tsx expression blocks', async () => {
+	it('merges spread and explicit refs inside React compat expression blocks', async () => {
 		tsx_spread_ref_captured = null;
 		tsx_explicit_ref_captured = null;
 		await render(TsxSpreadRefApp);

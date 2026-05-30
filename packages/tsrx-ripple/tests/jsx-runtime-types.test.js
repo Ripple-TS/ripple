@@ -64,9 +64,9 @@ describe('@tsrx/ripple Volar JSX expression types', () => {
 		const source = `
 function App() { return <>
 	const nested = <div />;
-	const content = <tsx>
+	const content = <>
 		<section>{nested}</section>
-	</tsx>;
+	</>;
 
 	{content}
 </>; }

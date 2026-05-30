@@ -156,11 +156,7 @@ describe('basic server > components & composition', () => {
 
 	it('allows a compat-only function as a component type', async () => {
 		function CompatOnly() {
-			return <tsx>
-				<div>
-					{'compat'}
-				</div>
-			</tsx>;
+			return <><div>{'compat'}</div></>;
 		}
 
 		function App() {

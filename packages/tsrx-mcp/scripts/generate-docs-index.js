@@ -74,7 +74,7 @@ Core ideas:
 - Components are ordinary TypeScript functions that return TSRX.
 - TSRX opens in expression position, then template children use a template statement list inside the fragment.
 - control-flow statements can contain template output.
-- native TSRX can be returned directly as \`<div />\` or \`<>...</>\`; JSX-style values can use \`<tsx>...</tsx>\` when needed.
+- native TSRX can be returned directly as \`<div />\` or \`<>...</>\`; host-specific JSX-style values can use compatibility islands such as \`<tsx:react>...</tsx:react>\`.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
@@ -130,7 +130,7 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 			slug: 'tsx-expression-values',
 			title: 'Expression Values',
 			use_cases:
-				'fragments, tsrx tag, tsx tag, pass template as prop, return template from helper, render props, expression position jsx',
+				'fragments, tsrx tag, tsx compat tag, pass template as prop, return template from helper, render props, expression position jsx',
 			content: `# Expression Values
 
 Returned TSRX opens in expression position. Inside the TSRX fragment, template elements are statements and control flow can emit UI.

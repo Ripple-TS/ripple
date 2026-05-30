@@ -104,100 +104,84 @@ export function NestedTsxTsrxExpressionValues() {
 
 export function MixedTsrxCollectionText() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			{[
 				'alpha ',
-				<strong class="middle">
-					{'beta'}
-				</strong>,
+				<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'delta ',
-					<em class="tail">
-						{'epsilon'}
-					</em>,
+					<em class="tail">{'epsilon'}</em>,
 					' zeta',
 				],
 			]}
-		</tsx>;
+		</>;
 		<div class="mixed-collection">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionSplitServerText() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			{[
 				'alpha ',
-				<strong class="middle">
-					{'beta'}
-				</strong>,
+				<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'delta ',
-					<em class="tail">
-						{'epsilon'}
-					</em>,
+					<em class="tail">{'epsilon'}</em>,
 					' zeta',
 				],
 			]}
-		</tsx>;
+		</>;
 		<div class="mixed-collection-split">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionSplitClientText() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			{[
 				'alpha ',
-				<strong class="middle">
-					{'beta'}
-				</strong>,
+				<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'changed ',
-					<em class="tail">
-						{'epsilon'}
-					</em>,
+					<em class="tail">{'epsilon'}</em>,
 					' zeta',
 				],
 			]}
-		</tsx>;
+		</>;
 		<div class="mixed-collection-split">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionPrimitiveServerText() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			{[
 				'count: ',
 				1,
 				' / ',
 				true,
-				<span class="primitive-tail">
-					{' ok'}
-				</span>,
+				<span class="primitive-tail">{' ok'}</span>,
 			]}
-		</tsx>;
+		</>;
 		<div class="mixed-collection-primitive">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionPrimitiveClientText() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			{[
 				'count: ',
 				2,
 				' / ',
 				false,
-				<span class="primitive-tail">
-					{' ok'}
-				</span>,
+				<span class="primitive-tail">{' ok'}</span>,
 			]}
-		</tsx>;
+		</>;
 		<div class="mixed-collection-primitive">{content}</div>
 	</>;
 }
@@ -238,46 +222,34 @@ export function DynamicArrayFromLogical() {
 
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			<section class="outer">
-				{<>
-					<div class="inner">
-						{'from tsrx'}
-					</div>
-				</>}
+				{<><div class="inner">{'from tsrx'}</div></>}
 			</section>
-		</tsx>;
+		</>;
 		{content}
 	</>;
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	return <>
-		const content = <tsx>
+		const content = <>
 			<div class="wrapper">
 				{<>
 					<section class="native">
-						<span class="nested-tsrx">
-							{'inside nested tsrx'}
-						</span>
+						<span class="nested-tsrx">{'inside nested tsrx'}</span>
 					</section>
 				</>}
 			</div>
-		</tsx>;
+		</>;
 		{content}
 	</>;
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() {
 	return <>
-		const nested = <tsx>
-			<span class="nested-tsx">
-				{'inside nested tsx'}
-			</span>
-		</tsx>;
-		const content = <tsx>
-			<div class="native">{nested}</div>
-		</tsx>;
+		const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
+		const content = <><div class="native">{nested}</div></>;
 		{content}
 	</>;
 }

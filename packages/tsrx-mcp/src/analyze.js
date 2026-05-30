@@ -78,7 +78,7 @@ function create_advice(input) {
 			severity: 'info',
 			title: 'Wrap expression-position JSX',
 			message:
-				'When JSX is needed as a value, wrap it in a fragment `<>...</>` or `<tsx>...</tsx>` so TSRX knows it is an expression rather than a template statement.',
+				'When JSX is needed as a value, wrap native TSRX in a fragment `<>...</>` or use a host compatibility island such as `<tsx:react>...</tsx:react>`.',
 			documentation: ['tsrx://docs/tsx-expression-values.md'],
 		});
 	}

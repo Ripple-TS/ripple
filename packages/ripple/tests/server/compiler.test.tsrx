@@ -287,7 +287,7 @@ export function App() { return <>
 function App() { return <>
 	function make(flag) {
 		if (flag) {
-			return <tsx><span>{'nested'}</span></tsx>;
+			return <><span>{'nested'}</span></>;
 		}
 
 		return null;
@@ -308,7 +308,7 @@ function App() { return <>
 function App() { return <>
 	function make() {
 		function nested() {
-			return <tsx><span>{'nested'}</span></tsx>;
+			return <><span>{'nested'}</span></>;
 		}
 
 		return nested;

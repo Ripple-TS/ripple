@@ -52,13 +52,13 @@ export function App() {
         <li>{'item ' + i() + ': ' + item}</li>
       }
     </ul>
-    <tsx>
+    <>
       <hr />
       <p>
         Fragment content via
-        {' <tsx>...</tsx>'}
+        {' <>...</>'}
       </p>
-    </tsx>
+    </>
     <style>
       h1 {
         color: #2c4f7c;

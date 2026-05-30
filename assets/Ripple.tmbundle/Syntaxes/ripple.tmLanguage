@@ -2893,10 +2893,6 @@
 			<array>
 				<dict>
 					<key>include</key>
-					<string>#jsx-tag-tsx</string>
-				</dict>
-				<dict>
-					<key>include</key>
 					<string>#jsx-tag-tsx-react</string>
 				</dict>
 				<dict>
@@ -5165,10 +5161,6 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#jsx-tag-tsx</string>
-				</dict>
-				<dict>
-					<key>include</key>
 					<string>#jsx-tag-tsx-react</string>
 				</dict>
 				<dict>
@@ -5192,10 +5184,6 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5238,10 +5226,6 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5822,72 +5806,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>jsx-tag-tsx</key>
-		<dict>
-			<key>begin</key>
-			<string>(?:[ \t]*)(&lt;)(tsx)(?![^&gt;]*/&gt;)(?=\s*&gt;)</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.tag.begin.js</string>
-				</dict>
-				<key>2</key>
-				<dict>
-					<key>name</key>
-					<string>entity.name.tag.js</string>
-				</dict>
-			</dict>
-			<key>end</key>
-			<string>(&lt;/)\s*(tsx)\s*(&gt;)</string>
-			<key>endCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.tag.begin.js</string>
-				</dict>
-				<key>2</key>
-				<dict>
-					<key>name</key>
-					<string>entity.name.tag.js</string>
-				</dict>
-				<key>3</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.tag.end.js</string>
-				</dict>
-			</dict>
-			<key>name</key>
-			<string>tsx.tag.js</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>begin</key>
-					<string>(&gt;)</string>
-					<key>beginCaptures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.tag.end.js</string>
-						</dict>
-					</dict>
-					<key>contentName</key>
-					<string>meta.tsx.children.js</string>
-					<key>end</key>
-					<string>(?=&lt;/tsx&gt;)</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#jsx-tsx-children</string>
-						</dict>
-					</array>
-				</dict>
-			</array>
-		</dict>
 		<key>jsx-tag-tsx-react</key>
 		<dict>
 			<key>begin</key>
@@ -6089,10 +6007,6 @@
 		<dict>
 			<key>patterns</key>
 			<array>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-tsx</string>
-				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-tsx-react</string>
@@ -6828,10 +6742,6 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-tsx</string>
 				</dict>
 				<dict>
 					<key>include</key>

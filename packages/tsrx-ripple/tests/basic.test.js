@@ -223,7 +223,7 @@ describe('@tsrx/ripple native fragment Volar output', () => {
 		expect(result.code).toContain('<section>');
 		expect(result.code).toContain('<div>');
 		expect(result.code).toContain("'inside';");
-		expect(result.code).not.toContain('<tsx>');
+		expect(result.code).not.toContain('<tsx');
 	});
 
 	it('returns children before and after setup statements', () => {
@@ -248,7 +248,7 @@ describe('@tsrx/ripple native fragment Volar output', () => {
 	});
 });
 
-describe('@tsrx/ripple <tsx> expression values', () => {
+describe('@tsrx/ripple <> expression values', () => {
 	it('passes plain identifier props directly in fragment shorthand values', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }
@@ -268,7 +268,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			`function Some(props) { return <></>; }
 			function Test() {
 				const placeholder = 'value';
-				return <tsx><Some prop={placeholder} /></tsx>;
+				return <><Some prop={placeholder} /></>;
 			}`,
 			'App.tsrx',
 		);
@@ -340,7 +340,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			function Test() {
 				const obj = { value: 'value' };
 				const key = 'value';
-				return <tsx><Some prop={obj[key]} /></tsx>;
+				return <><Some prop={obj[key]} /></>;
 			}`,
 			'App.tsrx',
 		);
@@ -434,7 +434,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			function Some(props) { return <></>; }
 			function Test() { return <>
 				let &[count] = track(0);
-				const content = <tsx><Some prop={count} /></tsx>;
+				const content = <><Some prop={count} /></>;
 				{content}
 			</>; }`,
 			'App.tsrx',
@@ -465,11 +465,11 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 			`function App() { return <>
 				const primary = true;
 				<div>
-					{<tsx>
+					{<>
 						{primary
 							? ['first:', <strong>{'one'}</strong>, ':tail']
 							: ['second:', <strong>{'two'}</strong>, ':done']}
-					</tsx>}
+					</>}
 				</div>
 			</>; }`,
 			'App.tsrx',
@@ -477,7 +477,7 @@ describe('@tsrx/ripple <tsx> expression values', () => {
 
 		expect(code).toContain('_$_.tsrx_element');
 		expect(code).toContain('? [');
-		expect(code).not.toContain('<tsx>');
+		expect(code).not.toContain('<>');
 	});
 
 	it('lowers native element values outside components', () => {
@@ -622,10 +622,10 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			export function App() { return <>
 				<Child
 					fragment={() => {
-						return <><div>fragment</div></>;
+						return <><div>"fragment"</div></>;
 					}}
 					tsx={() => {
-						return <tsx><div>tsx</div></tsx>;
+						return <><div>"tsx"</div></>;
 					}}
 					tsrx={() => {
 						return <><div>"tsrx"</div></>;
@@ -852,7 +852,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 	it('does not classify plain or compat-only functions as native TSRX functions', () => {
 		const source = `function App() { return <>
 			function Plain() { return 'plain'; }
-			function Compat() { return <tsx><div /></tsx>; }
+			function Compat() { return <><div /></>; }
 		</>; }`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });

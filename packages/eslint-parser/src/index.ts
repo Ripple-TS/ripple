@@ -11,8 +11,7 @@ interface ParseResult {
 
 const visitorKeys: Record<string, string[]> = {
 	Program: ['body'],
-	Tsrx: ['children'],
-	Tsx: ['children'],
+	TsrxFragment: ['children'],
 	TsxCompat: ['children'],
 	Element: ['id', 'attributes', 'children'],
 	Attribute: ['name', 'value'],

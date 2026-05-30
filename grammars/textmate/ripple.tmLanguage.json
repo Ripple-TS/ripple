@@ -3682,9 +3682,6 @@
     "expression-inside-possibly-arrow-parens": {
       "patterns": [
         {
-          "include": "#jsx-tag-tsx"
-        },
-        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -3790,7 +3787,6 @@
         }
       ]
     },
-
     "expression-operators": {
       "patterns": [
         {
@@ -6181,9 +6177,6 @@
           "include": "#jsx-tag-style"
         },
         {
-          "include": "#jsx-tag-tsx"
-        },
-        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6411,9 +6404,6 @@
           "include": "#jsx-tag-style"
         },
         {
-          "include": "#jsx-tag-tsx"
-        },
-        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6487,9 +6477,6 @@
           "include": "#jsx-tag-style-in-expression"
         },
         {
-          "include": "#jsx-tag-tsx"
-        },
-        {
           "include": "#jsx-tag-tsx-react"
         },
         {
@@ -6516,9 +6503,6 @@
       "patterns": [
         {
           "include": "#jsx-tag-style-in-expression"
-        },
-        {
-          "include": "#jsx-tag-tsx"
         },
         {
           "include": "#jsx-tag-tsx-react"
@@ -6694,47 +6678,6 @@
     "jsx-tag-attributes-illegal": {
       "name": "invalid.illegal.attribute.js",
       "match": "\\S+"
-    },
-    "jsx-tag-tsx": {
-      "name": "tsx.tag.js",
-      "begin": "(?:[ \\t]*)(<)(tsx)(?![^>]*/>)(?=\\s*>)",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "entity.name.tag.js"
-        }
-      },
-      "end": "(</)\\s*(tsx)\\s*(>)",
-      "endCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "entity.name.tag.js"
-        },
-        "3": {
-          "name": "punctuation.definition.tag.end.js"
-        }
-      },
-      "patterns": [
-        {
-          "begin": "(>)",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.end.js"
-            }
-          },
-          "end": "(?=</tsx>)",
-          "contentName": "meta.tsx.children.js",
-          "patterns": [
-            {
-              "include": "#jsx-tsx-children"
-            }
-          ]
-        }
-      ]
     },
     "jsx-tag-tsx-react": {
       "name": "tsx.tag.js",
@@ -7004,9 +6947,6 @@
     },
     "jsx-tsx-attribute-expression": {
       "patterns": [
-        {
-          "include": "#jsx-tag-tsx"
-        },
         {
           "include": "#jsx-tag-tsx-react"
         },

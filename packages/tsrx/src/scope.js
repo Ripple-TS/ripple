@@ -114,7 +114,7 @@ export function create_scopes(ast, root, parent, error_options) {
 			next({ scope });
 		},
 
-		Tsrx(node, { state, next }) {
+		TsrxFragment(node, { state, next }) {
 			const scope = state.scope.child();
 			scopes.set(node, scope);
 
@@ -192,13 +192,13 @@ export function create_scopes(ast, root, parent, error_options) {
 			for (const declarator of node.declarations) {
 				/** @type {Binding[]} */
 				const bindings = [];
-				const initial = /** @type {AST.Expression | AST.Tsx | AST.Tsrx | null} */ (declarator.init);
+				const initial = /** @type {AST.Expression | AST.TsrxFragment | null} */ (declarator.init);
 
 				state.scope.declarators.set(declarator, bindings);
 
 				for (const id of extract_identifiers(declarator.id)) {
 					const binding = state.scope.declare(id, 'normal', node.kind, initial);
-					if (initial?.type === 'Tsx' || initial?.type === 'Tsrx') {
+					if (initial?.type === 'TsrxFragment') {
 						binding.metadata = {
 							...(binding.metadata ?? {}),
 							is_template_value: true,

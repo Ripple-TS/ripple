@@ -841,12 +841,12 @@ function C() { return <>
 		});
 	});
 
-	describe(`[${name}] <tsx> blocks preserve source locations`, () => {
-		it('keeps loc on the JSX inside single-child tsx blocks', () => {
+	describe(`[${name}] native fragments preserve source locations`, () => {
+		it('keeps loc on the element inside single-child native fragments', () => {
 			// Regression: previously `strip_locations` recursively deleted loc on
 			// the entire tsx block subtree, destroying Volar mappings for the
 			// inner JSX. Mappings for the inner <div> should still resolve.
-			const source = `function C() { return <> <tsx><div>hi</div></tsx> </>; }`;
+			const source = `function C() { return <> <><div>"hi"</div></> </>; }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const div_offset = source.indexOf('<div>');
 			const has_div_mapping = result.mappings.some(
@@ -855,35 +855,31 @@ function C() { return <>
 			expect(has_div_mapping).toBe(true);
 		});
 
-		it('keeps loc inside multi-child tsx blocks (fragment wrapped)', () => {
-			const source = `function C() { return <> <tsx><div>a</div><div>b</div></tsx> </>; }`;
+		it('keeps loc inside multi-child native fragments', () => {
+			const source = `function C() { return <> <><div>"a"</div><div>"b"</div></> </>; }`;
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 		});
 
-		it('does not crash for the canonical <tsx> and <> unwrap cases', () => {
+		it('does not crash for the canonical <> and <> unwrap cases', () => {
 			// Covers the same shapes asserted in the shared compile harness
-			// (`<tsx> and fragment unwrapping`), but as a source-map no-crash
+			// (`<> and fragment unwrapping`), but as a source-map no-crash
 			// sanity sweep to catch regressions at the Volar-mapping layer
 			// rather than the compiled-output layer.
 			const sources = [
-				`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`,
 				`class Foo { bar() { return <>{'Hello'}</>; } }`,
-				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
-				`class Foo { bar() { return <tsx>plain</tsx>; } }`,
+				`class Foo { bar() { return <>{'Hello'}</>; } }`,
+				`class Foo { bar() { const x = 1; return <>{x}</>; } }`,
+				`class Foo { bar() { return <>"plain"</>; } }`,
 			];
 			for (const source of sources) {
 				expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 			}
 		});
 
-		it('handles a tsx block whose single child is a JSXExpressionContainer', () => {
-			// The parser emits JSXExpressionContainer (not TSRXExpression) when
-			// `{...}` appears inside a <tsx> block. Its `loc` points at `{...}`,
-			// but esrap prints `{` and `}` without location markers — so the
-			// factory's JSXExpressionContainer visitor must add them.
+		it('handles a native fragment whose single child is an expression container', () => {
 			const source = `class Foo {
 	bar() {
-		return <tsx>{'Hello'}</tsx>;
+		return <>{'Hello'}</>;
 	}
 }`;
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();

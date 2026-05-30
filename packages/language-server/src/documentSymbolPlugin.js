@@ -513,8 +513,7 @@ function getReturnedTemplateSymbols(node, document) {
 function isTemplateNode(node) {
 	return (
 		!!node &&
-		(node.type === 'Tsrx' ||
-			node.type === 'Tsx' ||
+		(node.type === 'TsrxFragment' ||
 			node.type === 'Element' ||
 			node.type === 'JSXElement' ||
 			node.type === 'JSXFragment')

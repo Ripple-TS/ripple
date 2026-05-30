@@ -365,9 +365,9 @@ expression container.
 ### Expression islands
 
 Because TSRX is the default JSX expression language, `<div />` and `<>...</>`
-produce native TSRX values. Use `<tsx>...</tsx>` or
-`<tsx:kind>...</tsx:kind>` when a host needs JSX-compatible children instead of
-TSRX template children.
+produce native TSRX values. Use compatibility islands such as
+`<tsx:react>...</tsx:react>` when a host needs JSX-compatible children instead
+of TSRX template children.
 
 ```tsrx
 function App() {
@@ -383,9 +383,9 @@ const nativeTemplate = <>
 	<span>{label}</span>
 </>;
 
-const jsxCompatible = <tsx>
+const reactCompatible = <tsx:react>
 	<span>Settings</span>
-</tsx>;
+</tsx:react>;
 ```
 
 ### Text, escaped text, and raw HTML
@@ -791,7 +791,7 @@ function List<T>({ items, render }: Props<T>) {
 | Exported component     | `export function Name(...) { return <div />; }`  |
 | Native TSRX value      | `const v = <div>"Hi"</div>;`                     |
 | Native TSRX fragment   | `const v = <><span>"Hi"</span></>;`              |
-| JSX-compatible island  | `const v = <tsx><span>Hi</span></tsx>;`          |
+| JSX-compatible island  | `const v = <tsx:react><span>Hi</span></tsx:react>;` |
 | Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
 | Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`           |

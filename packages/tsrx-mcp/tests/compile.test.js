@@ -524,13 +524,13 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-expression-value');
 	});
 
-	it('does not flag jsx-expression-value when JSX is already wrapped in <tsx>', async () => {
+	it('does not flag jsx-expression-value when JSX is already wrapped in <>', async () => {
 		// Regression: the jsx-expression-value heuristic matched any `const x =
-		// <Letter` and any `return <Letter`, so the canonical wrapper `<tsx>`
-		// triggered the very advice that recommends wrapping in `<tsx>`.
+		// <Letter` and any `return <Letter`, so the canonical wrapper `<>`
+		// triggered the very advice that recommends wrapping in `<>`.
 		const result = await analyze_tsrx({
 			code: `function App() { return <>
-				const title = <tsx><span>"Title"</span></tsx>;
+				const title = <><span>"Title"</span></>;
 				<div>{title}</div>
 			</>; }`,
 			filename: 'App.tsrx',

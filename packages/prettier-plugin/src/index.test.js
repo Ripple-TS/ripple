@@ -78,13 +78,13 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('keeps explicit tsx blocks expression based', async () => {
-		const input = `function App(){return <tsx><div>Hello world</div>{value}</tsx>}`;
+	it('keeps native fragments expression based', async () => {
+		const input = `function App(){return <><div>"Hello world"</div>{value}</>}`;
 		const expected = `function App() {
-  return <tsx>
-    <div>Hello world</div>
+  return <>
+    <div>"Hello world"</div>
     {value}
-  </tsx>;
+  </>;
 }`;
 
 		const result = await format(input);

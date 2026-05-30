@@ -448,14 +448,14 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
-	describe('<tsx> fragments', () => {
-		it('<tsx>...</tsx> with multiple children compiles to fragment', () => {
+	describe('<> fragments', () => {
+		it('<>...</> with multiple children compiles to fragment', () => {
 			const { code } = compile(
 				`function App() { return <>
-					<tsx>
+					<>
 						<h1>{'a'}</h1>
 						<h2>{'b'}</h2>
-					</tsx>
+					</>
 				</>; }`,
 				'App.tsrx',
 			);

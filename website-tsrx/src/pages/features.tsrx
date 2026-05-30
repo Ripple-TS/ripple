@@ -444,12 +444,9 @@ export function FeaturesPage() {
 							<p class="section-body">
 								{'When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in '}
 								<code class="inline-code">{'<>...</>'}</code>
-								{'. Use '}
-								<code class="inline-code">{'<>...</>'}</code>
-								{' or '}
-								<code class="inline-code">{'<tsx>...</tsx>'}</code>
-								{' when you want JSX-style children instead'}
-								{':'}
+								{'. Compatibility islands such as '}
+								<code class="inline-code">{'<tsx:react>...</tsx:react>'}</code>
+								{' are available for hosts that need JSX-style children instead:'}
 							</p>
 							<pre class="code-block">
 								<code innerHTML={TSX_EXPR_HTML} />
@@ -554,11 +551,9 @@ export function FeaturesPage() {
 								<code class="inline-code">{'render={...}'}</code>
 								{'. If that function returns native TSRX, wrap it in '}
 								<code class="inline-code">{'<>...</>'}</code>
-								{'. Use '}
-								<code class="inline-code">{'<>...</>'}</code>
-								{' or '}
-								<code class="inline-code">{'<tsx>...</tsx>'}</code>
-								{' for JSX-style values.'}
+								{'. Use compatibility islands such as '}
+								<code class="inline-code">{'<tsx:react>...</tsx:react>'}</code>
+								{' for host-specific JSX-style values.'}
 							</p>
 							<pre class="code-block">
 								<code innerHTML={RENDER_PROPS_HTML} />

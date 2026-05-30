@@ -228,7 +228,7 @@ describe('basic client > errors', () => {
 		}).toThrow('Do...while loops are not supported in TSRX templates.');
 	});
 
-	it('should allow JSX fragments in TSRX templates as <tsx> shorthand', () => {
+	it('should allow JSX fragments in TSRX templates as <> shorthand', () => {
 		const code = `
 			export default function SafeProfile() { return <>
 				<b><>{111}</></b>
@@ -243,7 +243,7 @@ describe('basic client > errors', () => {
 	it('should allow JSX fragments inside tsx blocks', () => {
 		const code = `
 			export default function SafeProfile() { return <>
-				<tsx><>{111}</></tsx>
+				<><>{111}</></>
 			</>; }
 		`;
 

@@ -119,7 +119,7 @@ describe('compiler > basics', () => {
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration).children[0] as any;
 
-		expect(fragment.type).toBe('Tsrx');
+		expect(fragment.type).toBe('TsrxFragment');
 		expect(fragment.children[0].type).toBe('ExpressionStatement');
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toBe('333');
@@ -140,7 +140,7 @@ describe('compiler > basics', () => {
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration).children[0] as any;
 
-		expect(fragment.type).toBe('Tsrx');
+		expect(fragment.type).toBe('TsrxFragment');
 		expect(fragment.children.map((child: any) => child.type)).toEqual([
 			'ExpressionStatement',
 		]);
@@ -379,7 +379,7 @@ const Inline = function(props) { return <>
 function App() { return <>
 	function make(flag) {
 		if (flag) {
-			return <tsx><span>{'nested'}</span></tsx>;
+			return <><span>{'nested'}</span></>;
 		}
 
 		return null;
@@ -506,11 +506,11 @@ function App() { return <>
 	it('lowers native expression values in to_ts output', () => {
 		const source = `
 function App() { return <>
-	const nested = <tsx>
+	const nested = <>
 		<span class="nested-tsx">
 			{'inside nested tsx'}
 		</span>
-	</tsx>;
+	</>;
 	const content = <div class="native">{nested}</div>;
 
 	{content}
@@ -518,9 +518,8 @@ function App() { return <>
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
-		expect(result).not.toContain('<tsx>');
-		expect(result).not.toContain('</tsx>');
-		expect(result).toContain('const nested = <>');
+		expect(result).toContain('const nested = <span class="nested-tsx">');
+		expect(result).toContain('return <>{children}</>;');
 		expect(result).toContain('const content = <div class="native">');
 	});
 
@@ -557,11 +556,11 @@ function App() { return <>
 	it('maps identifiers from native expression values in to_ts output', () => {
 		const source = `
 function App() { return <>
-	const nested = <tsx>
+	const nested = <>
 		<span class="nested-tsx">
 			{'inside nested tsx'}
 		</span>
-	</tsx>;
+	</>;
 	const content = <div class="native">{nested}</div>;
 
 	{content}

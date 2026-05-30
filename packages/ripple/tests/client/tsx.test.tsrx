@@ -1,10 +1,10 @@
 import { flushSync, track } from 'ripple';
 
 describe('tsx expression', () => {
-	it('renders an empty <tsx></tsx> element', () => {
+	it('renders an empty <></> element', () => {
 		function App() {
 			return <>
-				<tsx></tsx>
+				<></>
 			</>;
 		}
 		render(App);
@@ -21,10 +21,10 @@ describe('tsx expression', () => {
 		expect(container.textContent).toBe('');
 	});
 
-	it('renders an empty <tsx></tsx> assigned to a variable', () => {
+	it('renders an empty <></> assigned to a variable', () => {
 		function App() {
 			return <>
-				const el = <tsx></tsx>;
+				const el = <></>;
 				{el}
 			</>;
 		}
@@ -46,9 +46,7 @@ describe('tsx expression', () => {
 	it('renders a basic fragment shorthand element', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					<div>hello world</div>
-				</tsx>;
+				const el = <><div>"hello world"</div></>;
 				{el}
 			</>;
 		}
@@ -60,13 +58,11 @@ describe('tsx expression', () => {
 	it('applies scoped classes inside tsx blocks and fragment shorthand', () => {
 		function App() {
 			return <>
-				<tsx>
+				<>
 					<div class="card">
-						<h2>
-							{'tsx block'}
-						</h2>
+						<h2>{'tsx block'}</h2>
 					</div>
-				</tsx>
+				</>
 				<>
 					<div class="card">
 						<h2>{'fragment shorthand'}</h2>
@@ -108,9 +104,7 @@ describe('tsx expression', () => {
 	it('renders a tsx element assigned to a variable', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					<span class="test">content</span>
-				</tsx>;
+				const el = <><span class="test">"content"</span></>;
 				{el}
 			</>;
 		}
@@ -123,10 +117,10 @@ describe('tsx expression', () => {
 	it('renders a tsx element with multiple children', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					<div>first</div>
-					<div>second</div>
-				</tsx>;
+				const el = <>
+					<div>"first"</div>
+					<div>"second"</div>
+				</>;
 				{el}
 			</>;
 		}
@@ -140,11 +134,11 @@ describe('tsx expression', () => {
 	it('renders a tsx element with nested elements', () => {
 		function App() {
 			return <>
-				const el = <tsx>
+				const el = <>
 					<div class="outer">
-						<span class="inner">nested</span>
+						<span class="inner">"nested"</span>
 					</div>
-				</tsx>;
+				</>;
 				{el}
 			</>;
 		}
@@ -159,9 +153,7 @@ describe('tsx expression', () => {
 	it('renders a tsx element inline in a parent element', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					<span>inline</span>
-				</tsx>;
+				const el = <><span>"inline"</span></>;
 				<div class="parent">{el}</div>
 			</>;
 		}
@@ -176,11 +168,11 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
-				const el = <tsx>
+				const el = <>
 					<div>
 						{'count: ' + count}
 					</div>
-				</tsx>;
+				</>;
 				{el}
 				<button onClick={() => count++}>{'increment'}</button>
 			</>;
@@ -197,9 +189,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[show] = track(true);
-				const el = <tsx>
-					<div class="tsx-content">visible</div>
-				</tsx>;
+				const el = <><div class="tsx-content">"visible"</div></>;
 				if (show) {
 					{el}
 				}
@@ -219,15 +209,13 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx element passed as children prop', () => {
-		function Child(&{ children }: { children: any }) {
+		function Child(&{ children }) {
 			return <><div class="wrapper">{children}</div></>;
 		}
 
 		function App() {
 			return <>
-				const el = <tsx>
-					<span>from tsx</span>
-				</tsx>;
+				const el = <><span>"from tsx"</span></>;
 				<Child children={el} />
 			</>;
 		}
@@ -241,9 +229,7 @@ describe('tsx expression', () => {
 	it('renders tsx element with text content only', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					just text
-				</tsx>;
+				const el = <>"just text"</>;
 				{el}
 			</>;
 		}
@@ -255,9 +241,9 @@ describe('tsx expression', () => {
 	it('renders tsx element with static attributes', () => {
 		function App() {
 			return <>
-				const el = <tsx>
-					<div id="my-id" class="my-class" data-testid="test" aria-label="label">content</div>
-				</tsx>;
+				const el = <>
+					<div id="my-id" class="my-class" data-testid="test" aria-label="label">"content"</div>
+				</>;
 				{el}
 			</>;
 		}
@@ -274,9 +260,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[name] = track('initial');
-				const el = <tsx>
-					<div id={name} class={'cls-' + name}>content</div>
-				</tsx>;
+				const el = <><div id={name} class={'cls-' + name}>"content"</div></>;
 				{el}
 				<button onClick={() => (name = 'updated')}>{'update'}</button>
 			</>;
@@ -297,11 +281,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[clicked] = track(false);
-				const el = <tsx>
-					<button onClick={() => (clicked = true)}>
-						{'click me'}
-					</button>
-				</tsx>;
+				const el = <><button onClick={() => (clicked = true)}>{'click me'}</button></>;
 				{el}
 				<div class="status">{clicked ? 'clicked' : 'not clicked'}</div>
 			</>;
@@ -319,11 +299,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[isDisabled] = track(true);
-				const el = <tsx>
-					<button disabled={isDisabled}>
-						{'btn'}
-					</button>
-				</tsx>;
+				const el = <><button disabled={isDisabled}>{'btn'}</button></>;
 				{el}
 				<button class="toggle" onClick={() => (isDisabled = !isDisabled)}>{'toggle'}</button>
 			</>;
@@ -341,9 +317,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[color] = track('red');
-				const el = <tsx>
-					<div style={'color: ' + color}>styled</div>
-				</tsx>;
+				const el = <><div style={'color: ' + color}>"styled"</div></>;
 				{el}
 				<button onClick={() => (color = 'blue')}>{'change color'}</button>
 			</>;
@@ -361,7 +335,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[index] = track(0);
-				const el = <tsx>
+				const el = <>
 					<div
 						id={'item-' + index}
 						class={'item pos-' + index}
@@ -370,7 +344,7 @@ describe('tsx expression', () => {
 					>
 						{'Item ' + index}
 					</div>
-				</tsx>;
+				</>;
 				{el}
 				<button onClick={() => index++}>{'next'}</button>
 			</>;
@@ -392,18 +366,12 @@ describe('tsx expression', () => {
 	});
 
 	it('renders fragment shorthand passed directly as component prop', () => {
-		function Wrapper(&{ content }: { content: any }) {
+		function Wrapper(&{ content }) {
 			return <><div class="wrapper">{content}</div></>;
 		}
 
 		function App() {
-			return <>
-				<Wrapper
-					content={<tsx>
-						<span class="inner">direct prop</span>
-					</tsx>}
-				/>
-			</>;
+			return <><Wrapper content={<><span class="inner">"direct prop"</span></>} /></>;
 		}
 
 		render(App);
@@ -414,7 +382,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders fragment shorthand passed directly as children prop', () => {
-		function Card(&{ title, children }: { title: any; children: any }) {
+		function Card(&{ title, children }) {
 			return <>
 				<div class="card">
 					<h2 class="card-title">{title}</h2>
@@ -426,12 +394,8 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Card
-					title={<tsx>
-						<span class="bold">Title</span>
-					</tsx>}
-					children={<tsx>
-						<p>Card content here</p>
-					</tsx>}
+					title={<><span class="bold">"Title"</span></>}
+					children={<><p>"Card content here"</p></>}
 				/>
 			</>;
 		}
@@ -443,10 +407,8 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx from function defined outside component', () => {
-		function createBadge(label: string) {
-			return <tsx>
-				<span class="badge">{label}</span>
-			</tsx>;
+		function createBadge(label) {
+			return <><span class="badge">{label}</span></>;
 		}
 
 		function App() {
@@ -462,10 +424,8 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx from function with multiple elements', () => {
-		function createListItem(item: string) {
-			return <tsx>
-				<li class="list-item">{item}</li>
-			</tsx>;
+		function createListItem(item) {
+			return <><li class="list-item">{item}</li></>;
 		}
 
 		function App() {
@@ -488,7 +448,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx from factory function passed to component', () => {
-		function List(&{ renderItem, items }: { renderItem: (item: string) => any; items: string[] }) {
+		function List(&{ renderItem, items }) {
 			return <>
 				<ul class="list">
 					for (const item of items) {
@@ -498,12 +458,12 @@ describe('tsx expression', () => {
 			</>;
 		}
 
-		function itemRenderer(item: string) {
-			return <tsx>
+		function itemRenderer(item) {
+			return <>
 				<li>
 					<span class="item-content">{item}</span>
 				</li>
-			</tsx>;
+			</>;
 		}
 
 		function App() {
@@ -519,15 +479,15 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx from function with reactive state', () => {
-		function createCounter(label: string, getCount: () => number) {
-			return <tsx>
+		function createCounter(label, getCount) {
+			return <>
 				<div class="counter-display">
 					<span class="label">{label}</span>
 					<span class="count">
 						{getCount()}
 					</span>
 				</div>
-			</tsx>;
+			</>;
 		}
 
 		function App() {
@@ -549,19 +509,17 @@ describe('tsx expression', () => {
 	});
 
 	it('renders nested tsx from multiple functions', () => {
-		function createIcon(name: string) {
-			return <tsx>
-				<i class={'icon icon-' + name}></i>
-			</tsx>;
+		function createIcon(name) {
+			return <><i class={'icon icon-' + name} /></>;
 		}
 
-		function createButton(icon: string, label: string) {
-			return <tsx>
+		function createButton(icon, label) {
+			return <>
 				<button class="icon-button">
 					{createIcon(icon)}
 					<span class="btn-label">{label}</span>
 				</button>
-			</tsx>;
+			</>;
 		}
 
 		function App() {
@@ -579,29 +537,21 @@ describe('tsx expression', () => {
 	});
 
 	it('renders deeply nested tsx and tsrx expression values', () => {
-		function HelperItem({ item }: { item: number }) {
+		function HelperItem({ item }) {
 			return <><div class="helper-item">{item}</div></>;
 		}
 
-		function MakeFragment({ label }: { label: string }) {
+		function MakeFragment({ label }) {
 			return <>
 				<span class="label">{label}</span>
-				const test = <tsx>
-					{[1, 2, 3, 4].map(
-						(item) => <tsx>
-							<HelperItem item={item} />
-						</tsx>,
-					)}
-				</tsx>;
+				const test = <>{[1, 2, 3, 4].map((item) => <><HelperItem {item} /></>)}</>;
 				{test}
 			</>;
 		}
 
 		function App() {
 			return <>
-				{<tsx>
-					{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
-				</tsx>}
+				{<>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</>}
 				<MakeFragment label="from helper" />
 			</>;
 		}
@@ -624,15 +574,11 @@ describe('tsx expression', () => {
 	it('renders tsrx nested directly inside a top-level tsx expression value', () => {
 		function App() {
 			return <>
-				const content = <tsx>
+				const content = <>
 					<section class="outer">
-						{<>
-							<div class="inner">
-								{'from tsrx'}
-							</div>
-						</>}
+						{<><div class="inner">{'from tsrx'}</div></>}
 					</section>
-				</tsx>;
+				</>;
 				{content}
 			</>;
 		}
@@ -647,17 +593,15 @@ describe('tsx expression', () => {
 	it('renders nested elements from tsrx inside a top-level tsx value', () => {
 		function App() {
 			return <>
-				const content = <tsx>
+				const content = <>
 					<div class="wrapper">
 						{<>
 							<section class="native">
-								<span class="nested-tsrx">
-									{'inside nested tsrx'}
-								</span>
+								<span class="nested-tsrx">{'inside nested tsrx'}</span>
 							</section>
 						</>}
 					</div>
-				</tsx>;
+				</>;
 				{content}
 			</>;
 		}
@@ -672,14 +616,8 @@ describe('tsx expression', () => {
 	it('renders tsx declared before a top-level tsx value', () => {
 		function App() {
 			return <>
-				const nested = <tsx>
-					<span class="nested-tsx">
-						{'inside nested tsx'}
-					</span>
-				</tsx>;
-				const content = <tsx>
-					<div class="native">{nested}</div>
-				</tsx>;
+				const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
+				const content = <><div class="native">{nested}</div></>;
 				{content}
 			</>;
 		}
@@ -692,7 +630,7 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx as prop with fallback in component', () => {
-		function Alert(&{ icon, message }: { icon?: any; message: string }) {
+		function Alert(&{ icon, message }) {
 			return <>
 				<div class="alert">
 					{icon}
@@ -704,12 +642,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Alert message="No icon" />
-				<Alert
-					icon={<tsx>
-						<span class="custom-icon">✓</span>
-					</tsx>}
-					message="Custom icon"
-				/>
+				<Alert icon={<><span class="custom-icon">"✓"</span></>} message="Custom icon" />
 			</>;
 		}
 
@@ -721,10 +654,8 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx stored in array via function', () => {
-		function createItem(className: string, content: string) {
-			return <tsx>
-				<div class={className}>{content}</div>
-			</tsx>;
+		function createItem(className, content) {
+			return <><div class={className}>{content}</div></>;
 		}
 
 		function App() {
@@ -750,19 +681,13 @@ describe('tsx expression', () => {
 	});
 
 	it('renders tsx conditionally from function', () => {
-		function createContent(type: string) {
+		function createContent(type) {
 			if (type === 'success') {
-				return <tsx>
-					<div class="success">Success!</div>
-				</tsx>;
+				return <><div class="success">"Success!"</div></>;
 			} else if (type === 'error') {
-				return <tsx>
-					<div class="error">Error!</div>
-				</tsx>;
+				return <><div class="error">"Error!"</div></>;
 			}
-			return <tsx>
-				<div class="default">Default</div>
-			</tsx>;
+			return <><div class="default">"Default"</div></>;
 		}
 
 		function App() {
@@ -857,7 +782,7 @@ describe('tsrx expression', () => {
 	});
 
 	it('renders fragments returned from component functions outside components', () => {
-		function MakeFragment({ label }: { label: string }) {
+		function MakeFragment({ label }) {
 			return <><span>{label}</span></>;
 		}
 

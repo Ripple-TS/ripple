@@ -1,7 +1,7 @@
 const MODIFIED_PRODUCTIONS = [
 	'PrimaryExpression :',
 	'  TsrxExpression',
-	'  TsxExpression',
+	'  TsxCompatExpression',
 	'',
 	'TemplateStatementListItem :',
 	'  ElementStatement',
@@ -21,8 +21,7 @@ const MODIFIED_PRODUCTIONS = [
 	'  Element',
 	'  <> TemplateChildrenopt </>',
 	'',
-	'TsxExpression :',
-	'  <tsx> TsxChildrenopt </tsx>',
+	'TsxCompatExpression :',
 	'  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>',
 ].join('\n');
 
@@ -39,9 +38,6 @@ const EXPRESSION_ISLAND_GRAMMAR = [
 	'TsrxExpression :',
 	'  Element',
 	'  <> TemplateChildrenopt </>',
-	'',
-	'TsxElement :',
-	'  <tsx> TsxChildrenopt </tsx>',
 	'',
 	'TsxCompatElement :',
 	'  <tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName>',
@@ -79,14 +75,13 @@ const AST_NODE_MAPPING = [
 	'Informative grammar-to-node correspondence',
 	'',
 	'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression -> ESTree function nodes',
-	'return TsrxExpression -> ReturnStatement(argument: Tsrx)',
+	'return TsrxExpression -> ReturnStatement(argument: TsrxFragment)',
 	'ElementStatement -> Element',
 	'{ AssignmentExpression } in template position -> TSRXExpression',
 	'DoubleQuotedTextChild -> Text',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
-	'<tsx> TsxChildrenopt </tsx> -> Tsx',
-	'<> TemplateChildrenopt </> -> Tsrx',
+	'<> TemplateChildrenopt </> -> TsrxFragment',
 	'<tsx: IdentifierName> TsxChildrenopt </tsx: IdentifierName> -> TsxCompat',
 	'module Identifier { ModuleItemListopt } -> TSModuleDeclaration',
 	'import ImportClause from Identifier -> ImportDeclaration with Identifier source',
@@ -103,7 +98,7 @@ const FUNCTION_AST_SHAPE = [
 	'',
 	'interface ReturnStatement {',
 	'  type: \'ReturnStatement\';',
-	'  argument: Expression | Tsrx | Tsx | null;',
+	'  argument: Expression | TsrxFragment | TsxCompat | null;',
 	'}',
 ].join('\n');
 
@@ -142,20 +137,10 @@ const TEMPLATE_AST_SHAPE = [
 ].join('\n');
 
 const TSX_AST_SHAPE = [
-	'interface Tsrx {',
-	'  type: \'Tsrx\';',
+	'interface TsrxFragment {',
+	'  type: \'TsrxFragment\';',
 	'  attributes: Array<any>;',
 	'  children: Node[];',
-	'  openingElement: JSXOpeningElement;',
-	'  closingElement: JSXClosingElement;',
-	'  selfClosing?: boolean;',
-	'  unclosed?: boolean;',
-	'}',
-	'',
-	'interface Tsx {',
-	'  type: \'Tsx\';',
-	'  attributes: Array<any>;',
-	'  children: JSXChild[];',
 	'  openingElement: JSXOpeningElement;',
 	'  closingElement: JSXClosingElement;',
 	'  selfClosing?: boolean;',
@@ -306,7 +291,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="rationale">
 							<h2 class="section-heading">{'Rationale'}</h2>
 							<p class="section-body">
-								{'TSRX exists to define a predictable syntax for component-oriented source code without forcing all tree-shaped UI through JSX expression containers. In TSRX, a JSX expression opens a statement-oriented template, while expression-position UI values inside that template remain explicit through TSRX or TSX islands.'}
+								{'TSRX exists to define a predictable syntax for component-oriented source code without forcing all tree-shaped UI through JSX expression containers. In TSRX, a JSX expression opens a statement-oriented template, while expression-position UI values inside that template remain explicit through native TSRX fragments or host compatibility islands.'}
 							</p>
 							<ul class="spec-list">
 								<li>{'Returned TSRX templates may contain element statements directly.'}</li>
@@ -438,7 +423,7 @@ export function SpecificationPage() {
 									{'Whitespace and comments are not admitted within a single tag name or compatibility discriminator. Source texts such as '}
 									<code class="inline-code">{'<Foo . Bar>'}</code>
 									{' or '}
-									<code class="inline-code">{'<tsx : react>'}</code>
+									<code class="inline-code">{'<tsx: react>'}</code>
 									{' do not form a single TSRX tag name.'}
 								</li>
 								<li>
@@ -453,17 +438,15 @@ export function SpecificationPage() {
 						<section class="doc-section" id="tsx-islands">
 							<h2 class="section-heading">{'4.4 Expression Islands'}</h2>
 							<p class="section-body">
-								{'TSRX elements and fragments are expression values by default. Native fragments keep TSRX template children, while TSX islands use JSX-compatible children.'}
+								{'TSRX elements and fragments are expression values by default. Native fragments keep TSRX template children, while compatibility islands use JSX-compatible children.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_ISLAND_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								{'The fragment shorthand form uses native TSRX template children. Use '}
-								<code class="inline-code">{'<tsx>...</tsx>'}</code>
-								{' for JSX-compatible children instead. Compatibility islands through '}
+								{'The fragment shorthand form uses native TSRX template children. Compatibility islands through '}
 								<code class="inline-code">{'<tsx:kind>'}</code>
-								{' are part of core TSRX syntax, although the meaning of '}
+								{' use JSX-compatible children instead and are part of core TSRX syntax, although the meaning of '}
 								<code class="inline-code">{'kind'}</code>
 								{' is host-defined.'}
 							</p>
@@ -506,16 +489,14 @@ export function SpecificationPage() {
 									{'A template or JSX element other than an expression island must not appear as a generic ECMAScript expression.'}
 								</li>
 								<li>
-									{'A JSX fragment must not appear in template position outside a TSX island context.'}
+									{'A JSX fragment must not appear in template position outside a compatibility island context.'}
 								</li>
 								<li>
 									{'A tag or fragment delimiter must not be split by intervening whitespace at the points described in 4.3.1.'}
 								</li>
 								<li>
-									<code class="inline-code">{'<tsx />'}</code>
-									{' and '}
 									<code class="inline-code">{'<tsx:kind />'}</code>
-									{' are not well-formed and must be rejected.'}
+									{' is not well-formed and must be rejected.'}
 								</li>
 								<li>{'Opening and closing tags for expression islands must match.'}</li>
 								<li>
@@ -551,7 +532,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">{'Appendices'}</h2>
 							<p class="section-body">
-								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as Tsrx, Tsx, TsxCompat, Element, TSRXExpression, Text, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as TsrxFragment, TsxCompat, Element, TSRXExpression, Text, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
 							</p>
 							<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
 							<p class="section-body">
@@ -562,7 +543,7 @@ export function SpecificationPage() {
 							</pre>
 							<h3 class="appendix-heading">{'A.2 Function return nodes'}</h3>
 							<p class="section-body">
-								{'Functions remain ordinary ESTree function nodes. TSRX-specific structure begins at the ReturnStatement argument when that argument is a Tsrx or Tsx node.'}
+								{'Functions remain ordinary ESTree function nodes. TSRX-specific structure begins at the ReturnStatement argument when that argument is a TsrxFragment or TsxCompat node.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_AST_SHAPE}</code>
@@ -575,7 +556,7 @@ export function SpecificationPage() {
 									{'The function body remains a BlockStatement; TSRX content is represented where it appears, typically as a ReturnStatement argument.'}
 								</li>
 								<li>
-									{'A returned native fragment or element is represented by a Tsrx node whose children store template statements in source order.'}
+									{'A returned native fragment is represented by a TsrxFragment node whose children store template statements in source order.'}
 								</li>
 								<li>
 									{'Raw style elements inside a returned TSRX template carry parsed stylesheet metadata for downstream analysis and target-specific style emission.'}
@@ -624,23 +605,20 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">{'A.4 Expression island nodes'}</h3>
 							<p class="section-body">
-								{'Expression-position islands use distinct node kinds so tools can distinguish ordinary template elements, native TSRX fragments, and JSX-compatible subtrees. The native fragment shorthand is represented as Tsrx, TSX islands are represented as Tsx, and compatibility islands with an explicit kind are represented as TsxCompat.'}
+								{'Expression-position islands use distinct node kinds so tools can distinguish ordinary template elements, native TSRX fragments, and JSX-compatible subtrees. The native fragment shorthand is represented as TsrxFragment, and compatibility islands with an explicit kind are represented as TsxCompat.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{TSX_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'Tsrx corresponds to <> ... </> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
-								</li>
-								<li>
-									{'Tsx corresponds to both <tsx> ... </tsx> and the fragment shorthand <> ... </> when those forms appear in expression position.'}
+									{'TsrxFragment corresponds to <> ... </> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
 								</li>
 								<li>
 									{'TsxCompat corresponds to <tsx:kind> ... </tsx:kind>, and the kind field stores the compatibility discriminator exactly as parsed.'}
 								</li>
 								<li>
-									{'Tsx and TsxCompat children arrays follow the JSX child model inherited from the ESTree JSX node family rather than TSRX template-child normalization.'}
+									{'TsxCompat children arrays follow the JSX child model inherited from the ESTree JSX node family rather than TSRX template-child normalization.'}
 								</li>
 								<li>
 									{'openingElement, closingElement, selfClosing, and unclosed serve the same recovery and source-preservation role as on Element nodes.'}

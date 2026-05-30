@@ -250,9 +250,9 @@ export function Test(props) {
         </div>
       )}
       tsxItem={(item) => (
-        <tsx>
+        <tsx:react>
           <ItemView item={item} onSelect={props.onSelect} />
-        </tsx>
+        </tsx:react>
       )}
       fragmentItem={(item) => (
         <>
@@ -329,7 +329,9 @@ export function Test(props) {
                           (jsx_element
                             open_tag: (jsx_opening_element
                               name: (jsx_element_name
-                                (identifier)))
+                                (jsx_namespace_name
+                                  (identifier)
+                                  (identifier))))
                             children: (jsx_text)
                             children: (jsx_self_closing_element
                               name: (jsx_non_namespaced_element_name
@@ -351,7 +353,9 @@ export function Test(props) {
                             children: (jsx_text)
                             close_tag: (jsx_closing_element
                               name: (jsx_element_name
-                                (identifier))))))))))
+                                (jsx_namespace_name
+                                  (identifier)
+                                  (identifier)))))))))))
               attribute: (jsx_attribute
                 name: (identifier)
                 value: (jsx_expression

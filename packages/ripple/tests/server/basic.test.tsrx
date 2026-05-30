@@ -150,24 +150,16 @@ second"</pre>
 		function makeFragment(label: string) {
 			return <>
 				<span class="label">{label}</span>
-				const test = <tsx>
-					{[1, 2, 3, 4].map(
-						(item) => <tsx>
-							{<>
-								<div class="helper-item">{item}</div>
-							</>}
-						</tsx>,
-					)}
-				</tsx>;
+				const test = <>
+					{[1, 2, 3, 4].map((item) => <>{<><div class="helper-item">{item}</div></>}</>)}
+				</>;
 				{test}
 			</>;
 		}
 
 		function Basic() {
 			return <>
-				{<tsx>
-					{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
-				</tsx>}
+				{<>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</>}
 				{makeFragment('from helper')}
 			</>;
 		}
@@ -182,15 +174,11 @@ second"</pre>
 	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
 		function Basic() {
 			return <>
-				const content = <tsx>
+				const content = <>
 					<section class="outer">
-						{<>
-							<div class="inner">
-								{'from tsrx'}
-							</div>
-						</>}
+						{<><div class="inner">{'from tsrx'}</div></>}
 					</section>
-				</tsx>;
+				</>;
 				{content}
 			</>;
 		}
@@ -203,17 +191,15 @@ second"</pre>
 	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
 		function Basic() {
 			return <>
-				const content = <tsx>
+				const content = <>
 					<div class="wrapper">
 						{<>
 							<section class="native">
-								<span class="nested-tsrx">
-									{'inside nested tsrx'}
-								</span>
+								<span class="nested-tsrx">{'inside nested tsrx'}</span>
 							</section>
 						</>}
 					</div>
-				</tsx>;
+				</>;
 				{content}
 			</>;
 		}
@@ -228,14 +214,8 @@ second"</pre>
 	it('renders tsx declared before a top-level tsx value', async () => {
 		function Basic() {
 			return <>
-				const nested = <tsx>
-					<span class="nested-tsx">
-						{'inside nested tsx'}
-					</span>
-				</tsx>;
-				const content = <tsx>
-					<div class="native">{nested}</div>
-				</tsx>;
+				const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
+				const content = <><div class="native">{nested}</div></>;
 				{content}
 			</>;
 		}
@@ -251,16 +231,14 @@ second"</pre>
 		function Basic() {
 			return <>
 				<div>
-					{<tsx>
+					{<>
 						{[
 							'start:',
 							['one', 2, true, null, false],
-							<strong>
-								{'!'}
-							</strong>,
+							<strong>{'!'}</strong>,
 							':end',
 						]}
-					</tsx>}
+					</>}
 				</div>
 			</>;
 		}

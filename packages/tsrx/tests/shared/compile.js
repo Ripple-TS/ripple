@@ -1745,40 +1745,32 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] <tsx> and fragment unwrapping`, () => {
-		// All of these exercise the shared `tsx_node_to_jsx_expression`
-		// helper in @tsrx/core/transform/jsx/helpers.js — the unwrap / wrap
-		// rules for `<tsx>` blocks and `<>` shorthand are platform-agnostic.
-		// Tests are wrapped in `class Foo { bar() { return ...; } }` to put
-		// the Tsx node in an expression position where unwrap rules apply
-		// (vs. a JSX-child position, which is covered by its own cases).
-
-		it('unwraps a tsx block with a single JSXElement child', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>hi</div></tsx>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return <div>hi</div>;');
-			expect(code).not.toContain('<tsx>');
+	describe(`[${name}] <> and fragment unwrapping`, () => {
+		// Expression-position native fragments unwrap when they only contain a
+		// single render expression and wrap when they need to preserve siblings.
+		it('unwraps a native fragment with a single element child', () => {
+			const { code } = compile(`class Foo { bar() { return <><div>"hi"</div></>; } }`, 'App.tsrx');
+			expect(code).toContain('{"hi"}');
+			expect(code).not.toContain('<tsx');
 		});
 
-		it('preserves JSX spread attributes inside tsx blocks', () => {
+		it('preserves component spread attributes inside native fragments', () => {
 			const { code } = compile(
-				`class Foo { bar() { const props = {}; return <tsx><Bar {...props} /></tsx>; } }`,
+				`class Foo { bar() { const props = {}; return <><Bar {...props} /></>; } }`,
 				'App.tsrx',
 			);
 			expect(code).toContain('return <Bar {...props} />;');
-			expect(code).not.toContain('<tsx>');
+			expect(code).not.toContain('<tsx');
 		});
 
-		it('rejects dynamic attribute names inside tsx blocks', () => {
+		it('rejects dynamic attribute names inside native fragments', () => {
 			expect(() =>
 				compile(
 					`function Some(props) { return <></>; }
 					class Foo {
 						bar() {
 							const placeholder = 'value';
-							return <tsx><Some @prop={placeholder} /></tsx>;
+							return <><Some @prop={placeholder} /></>;
 						}
 					}`,
 					'App.tsrx',
@@ -1786,18 +1778,18 @@ export function optionalFn(bar: string, baz?: string) {
 			).toThrow(/not attribute names/);
 		});
 
-		it('rejects dynamic element syntax inside tsx blocks', () => {
+		it('supports dynamic element syntax inside native fragments', () => {
 			expect(() =>
 				compile(
 					`class Foo {
 						bar() {
 							const tag = 'section';
-							return <tsx><@tag id="x" /></tsx>;
+							return <><@tag id="x" /></>;
 						}
 					}`,
 					'App.tsrx',
 				),
-			).toThrow(/only supported in native TSRX templates/);
+			).not.toThrow();
 		});
 
 		it('supports dynamic element syntax inside native fragment shorthand values', () => {
@@ -1841,11 +1833,12 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 
 		it('keeps TSX fragments inside TSX blocks as JSX-compatible children', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			expect(() =>
 				compile(
 					`class Foo {
 						bar() {
-							return <tsx><><div id="x" /></></tsx>;
+							return <tsx:${compat_kind}><><div id="x" /></></tsx:${compat_kind}>;
 						}
 					}`,
 					'App.tsrx',
@@ -1853,13 +1846,14 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('declares normalized host spread refs inside tsx expression blocks', () => {
+		it('declares normalized host spread refs inside compat expression blocks', () => {
+			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
 				`class Foo {
 					bar() {
 						const props = {};
 						function cb(_node) {}
-						return <tsx><input {...props} ref={cb} /></tsx>;
+						return <tsx:${compat_kind}><input {...props} ref={cb} /></tsx:${compat_kind}>;
 					}
 				}`,
 				'App.tsrx',
@@ -1872,53 +1866,50 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(declaration_offset).toBeGreaterThan(-1);
 			expect(spread_offset).toBeGreaterThan(declaration_offset);
 			expect(code).toContain('_tsrx_spread_props_1.ref');
-			expect(code).not.toContain('<tsx>');
+			expect(code).not.toContain('<tsx');
 		});
 
-		it('unwraps a tsx block containing a single expression to the expression', () => {
-			// Regression: previously `<tsx>{'Hello'}</tsx>` was compiled to
+		it('unwraps a native fragment containing a single expression to the expression', () => {
+			// Regression: previously `<>{'Hello'}</>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`
 			// opens a block/object literal. The JSXExpressionContainer must
 			// be unwrapped to its inner expression in expression position.
-			const { code } = compile(`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`, 'App.tsrx');
+			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
 			expect(code).toContain("return 'Hello';");
 			expect(code).not.toContain("return {'Hello'}");
 		});
 
-		it('unwraps a tsx block containing a single identifier expression', () => {
-			const { code } = compile(
-				`class Foo { bar() { const x = 1; return <tsx>{x}</tsx>; } }`,
-				'App.tsrx',
-			);
+		it('unwraps a native fragment containing a single identifier expression', () => {
+			const { code } = compile(`class Foo { bar() { const x = 1; return <>{x}</>; } }`, 'App.tsrx');
 			expect(code).toContain('return x;');
 			expect(code).not.toContain('return {x}');
 		});
 
-		it('wraps tsx text-only content in a fragment so it remains valid JSX', () => {
-			const { code } = compile(`class Foo { bar() { return <tsx>plain text</tsx>; } }`, 'App.tsrx');
-			expect(code).toContain('return <>plain text</>;');
+		it('unwraps text-only native fragments to strings', () => {
+			const { code } = compile(`class Foo { bar() { return <>"plain text"</>; } }`, 'App.tsrx');
+			expect(code).toContain('return "plain text";');
 		});
 
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
 				`export function Button() { return <>
-					const x = <tsx>Hello world</tsx>
+					const x = <>"Hello world"</>
 
 					{x}
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('const x = <>Hello world</>;');
+			expect(code).toContain('const x = "Hello world";');
 			expect(code).toContain('return x;');
 		});
 
 		it('parses backtick text inside fragments as JSX text', () => {
 			const { code } = compile(
 				`function a() {
-					return <tsx>
+					return <>
 						\`333\`
-					</tsx>;
+					</>;
 				}`,
 				'App.tsrx',
 			);
@@ -1929,11 +1920,11 @@ export function optionalFn(bar: string, baz?: string) {
 		it('parses backtick text around JSX elements inside fragments', () => {
 			const { code } = compile(
 				`function a() {
-					return <tsx>
+					return <>
 						\`
 						<b></b>
 						\`
-					</tsx>;
+					</>;
 				}`,
 				'App.tsrx',
 			);
@@ -1942,50 +1933,49 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('<b></b>');
 		});
 
-		it('wraps multiple tsx children in a fragment', () => {
+		it('wraps multiple native fragment children in a fragment', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>a</div><div>b</div></tsx>; } }`,
+				`class Foo { bar() { return <><div>"a"</div><div>"b"</div></>; } }`,
 				'App.tsrx',
 			);
-			expect(code).toContain('return <><div>a</div><div>b</div></>;');
+			expect(code).toContain('{"a"}');
+			expect(code).toContain('{"b"}');
 		});
 
-		it('preserves a tsx block whose single child is already a fragment', () => {
-			const { code } = compile(`class Foo { bar() { return <tsx><>{'x'}</></tsx>; } }`, 'App.tsrx');
-			expect(code).toContain("return <>{'x'}</>;");
+		it('unwraps a native fragment whose single child is already a fragment', () => {
+			const { code } = compile(`class Foo { bar() { return <><>{'x'}</></>; } }`, 'App.tsrx');
+			expect(code).toContain("return 'x';");
 		});
 
-		it('unwraps an explicit tsx block with a single expression', () => {
-			const { code } = compile(`class Foo { bar() { return <tsx>{'Hello'}</tsx>; } }`, 'App.tsrx');
+		it('unwraps an explicit native fragment with a single expression', () => {
+			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
 			expect(code).toContain("return 'Hello';");
 		});
 
-		it('unwraps an explicit tsx block with a single element', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>hi</div></tsx>; } }`,
-				'App.tsrx',
-			);
-			expect(code).toContain('return <div>hi</div>;');
+		it('unwraps an explicit native fragment with a single element', () => {
+			const { code } = compile(`class Foo { bar() { return <><div>"hi"</div></>; } }`, 'App.tsrx');
+			expect(code).toContain('{"hi"}');
 		});
 
-		it('keeps an explicit tsx block with multiple children', () => {
+		it('keeps an explicit native fragment with multiple children', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <tsx><div>a</div><div>b</div></tsx>; } }`,
+				`class Foo { bar() { return <><div>"a"</div><div>"b"</div></>; } }`,
 				'App.tsrx',
 			);
-			expect(code).toContain('return <><div>a</div><div>b</div></>;');
+			expect(code).toContain('{"a"}');
+			expect(code).toContain('{"b"}');
 		});
 
 		it('keeps special fragment returns inside component-local functions', () => {
 			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
 				`export function App() {
-					function FragmentReturn() {
-						return <tsx><div>fragment</div></tsx>;
-					}
-					function TsxReturn() {
-						return <tsx><div>tsx</div></tsx>;
-					}
+						function FragmentReturn() {
+							return <><div>"fragment"</div></>;
+						}
+						function TsxReturn() {
+							return <><div>"tsx"</div></>;
+						}
 					function TsrxReturn() {
 						return <><div>"tsrx"</div></>;
 					}
@@ -2001,14 +1991,14 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('return;');
-			expect(code).toMatch(/function FragmentReturn\(\) {\s+return <div/);
-			expect(code).toMatch(/function TsxReturn\(\) {\s+return <div/);
-			expect(code).toContain(
+			expect(code).toMatch(/function FragmentReturn\(\) {\s+return App__static/);
+			expect(code).toMatch(/function TsxReturn\(\) {\s+return App__static/);
+			expect(code).toMatch(
 				name === 'solid'
-					? 'const App__static2 = <div textContent={"tsrx"} />;'
-					: 'const App__static2 = <div>{"tsrx"}</div>;',
+					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
+					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
 			);
-			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static2/);
+			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static/);
 			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
 		});
 
@@ -2017,14 +2007,14 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`function Child(props) { return <></>; }
 
-				export function App() { return <>
-					<Child
-						fragment={() => {
-							return <tsx><div>fragment</div></tsx>;
-						}}
-						tsx={() => {
-							return <tsx><div>tsx</div></tsx>;
-						}}
+					export function App() { return <>
+						<Child
+							fragment={() => {
+								return <><div>"fragment"</div></>;
+							}}
+							tsx={() => {
+								return <><div>"tsx"</div></>;
+							}}
 						tsrx={() => {
 							return <><div>"tsrx"</div></>;
 						}}
@@ -2037,14 +2027,14 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('return;');
-			expect(code).toMatch(/fragment=\{\(\) => \{\s+return <div/);
-			expect(code).toMatch(/tsx=\{\(\) => \{\s+return <div/);
-			expect(code).toContain(
+			expect(code).toMatch(/fragment=\{\(\) => \{\s+return App__static/);
+			expect(code).toMatch(/tsx=\{\(\) => \{\s+return App__static/);
+			expect(code).toMatch(
 				name === 'solid'
-					? 'const App__static1 = <div textContent={"tsrx"} />;'
-					: 'const App__static1 = <div>{"tsrx"}</div>;',
+					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
+					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
 			);
-			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static1/);
+			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static/);
 			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});
 
@@ -2066,25 +2056,26 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('Hello, World!');
 		});
 
-		it('keeps expression child arrays in fragment, tsx, and compat callback props', () => {
+		it('keeps expression child arrays in fragment, native, and compat callback props', () => {
 			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
 				`function Child(props) { return <></>; }
 
-				export function App() { return <>
-					<Child
-						fragment={() => <tsx>{[<>Delete</>, <>Edit</>]}</tsx>}
-						tsx={() => <tsx>{[<>Delete</>, <>Edit</>]}</tsx>}
-						compat={() => <tsx:${compat_kind}>{[<>Delete</>, <>Edit</>]}</tsx:${compat_kind}>}
-					/>
-				</>; }`,
+					export function App() { return <>
+						<Child
+							fragment={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
+							native={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
+							compat={() => <tsx:${compat_kind}>{[<>Delete</>, <>Edit</>]}</tsx:${compat_kind}>}
+						/>
+					</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('fragment={() => [<>Delete</>, <>Edit</>]}');
-			expect(code).toContain('tsx={() => [<>Delete</>, <>Edit</>]}');
+			expect(code).toContain('fragment={() => {');
+			expect(code).toContain('native={() => {');
+			expect(code).toContain('return ["Delete", "Edit"];');
 			expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
-			expect(code).not.toContain('<tsx>');
+			expect(code).not.toContain('<tsx');
 		});
 	});
 
@@ -2305,9 +2296,9 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								render: () => {
-									return [<>View</>];
-								},
+									render: () => {
+										return [<>"View"</>];
+									},
 							}}
 						/>
 					}
@@ -2425,31 +2416,31 @@ export function optionalFn(bar: string, baz?: string) {
 				`class Foo {
 					bar() {
 						return <Page
-							params={{
-								title: 'Welcome',
-								header: {
-									class: 'foo',
-									children: <tsx><h1>Big things are coming!</h1></tsx>,
-								},
-								content: <tsx><p>Lorem ipsum...</p></tsx>,
-								menuItems: [
-									<tsx><span>Copy</span></tsx>,
-									<tsx><span>Cut</span></tsx>,
-									<tsx><span>Delete</span></tsx>,
-								],
+								params={{
+									title: 'Welcome',
+									header: {
+										class: 'foo',
+										children: <><h1>"Big things are coming!"</h1></>,
+									},
+									content: <><p>"Lorem ipsum..."</p></>,
+									menuItems: [
+										<><span>"Copy"</span></>,
+										<><span>"Cut"</span></>,
+										<><span>"Delete"</span></>,
+									],
 								menuAlt: (isAdmin) => {
 									if (isAdmin) {
 										return [<>"Delete"</>, <>"Edit"</>];
 									}
 									return [<>"View"</>];
 								},
-								details: {
-									label: {
-										class: 'custom',
-										children: [<tsx>Shipping & returns</tsx>],
+									details: {
+										label: {
+											class: 'custom',
+											children: [<>"Shipping & returns"</>],
+										},
+										leadingIcon: { children: <>"icon"</> },
 									},
-									leadingIcon: { children: <tsx>icon</tsx> },
-								},
 								details2: {
 									render: (tag: string, className: string, icon: () => JSX.Element) => <>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
@@ -2478,15 +2469,15 @@ export function optionalFn(bar: string, baz?: string) {
 					bar() {
 						return <Page
 							params={{
-								menuItems: [
-									<><span>Copy</span></>,
-									<><span>Cut</span></>,
-									<><span>Delete</span></>,
-								],
-								details: {
-									label: {
-										children: [<>Shipping & returns</>],
-									},
+									menuItems: [
+										<><span>"Copy"</span></>,
+										<><span>"Cut"</span></>,
+										<><span>"Delete"</span></>,
+									],
+									details: {
+										label: {
+											children: [<>"Shipping & returns"</>],
+										},
 								},
 							}}
 						/>
@@ -2919,10 +2910,10 @@ export function optionalFn(bar: string, baz?: string) {
 	});
 
 	describe(`[${name}] JSX fragment shorthand in element context`, () => {
-		// Distinct from the `<tsx> and fragment unwrapping` block — those
-		// cases put `<tsx>` / `<>` in an *expression* position (return value).
+		// Distinct from the `<> and fragment unwrapping` block — those
+		// cases put `<>` / `<>` in an *expression* position (return value).
 		// These put `<>` inside another element, as a prop value, or inside
-		// a `<tsx>` block at a JSX-child position.
+		// a `<>` block at a JSX-child position.
 
 		it('collapses a single-child fragment inside an element', () => {
 			const { code } = compile(
@@ -2932,14 +2923,14 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 			expect(code).toContain('<b>{111}</b>');
-			expect(code).not.toContain('<tsx>');
+			expect(code).not.toContain('<>');
 		});
 
 		it('allows JSX fragments inside tsx blocks without throwing', () => {
 			expect(() =>
 				compile(
 					`export function App() { return <>
-						<tsx><>{111}</></tsx>
+						<><>{111}</></>
 					</>; }`,
 					'App.tsrx',
 				),
@@ -2959,7 +2950,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 			expect(code).toContain('<Child content={');
 			expect(code).toContain("<span>{'hello'}</span>");
-			expect(code).not.toContain('<tsx>');
+			expect(code).not.toContain('<>');
 		});
 	});
 
@@ -2983,15 +2974,15 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).toContain('color: red;');
 		});
 
-		it('applies the scope hash inside a <tsx> block', () => {
+		it('applies the scope hash inside a <> block', () => {
 			const { code, css, cssHash } = compile(
 				`function Card() { return <>
-					<tsx>
+					<>
 							<div ${generatedClassAttrName}="card">
 								<h2>{'Scoped title'}</h2>
 								<p>{'Styles here do not leak out.'}</p>
 							</div>
-						</tsx>
+						</>
 
 						<div ${generatedClassAttrName}="card">
 							<h2>{'Scoped title'}</h2>

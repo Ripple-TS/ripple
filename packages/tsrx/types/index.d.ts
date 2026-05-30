@@ -236,8 +236,7 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
-		Tsx: Tsx;
-		Tsrx: Tsrx;
+		TsrxFragment: TsrxFragment;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Element: Element;
@@ -249,7 +248,7 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
-		Tsrx: Tsrx;
+		TsrxFragment: TsrxFragment;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -345,18 +344,8 @@ declare module 'estree' {
 		trailingComments?: AST.Comment[] | undefined;
 	}
 
-	interface Tsx extends AST.BaseNode {
-		type: 'Tsx';
-		attributes: Array<any>;
-		children: ESTreeJSX.JSXElement['children'];
-		selfClosing?: boolean;
-		unclosed?: boolean;
-		openingElement: ESTreeJSX.JSXOpeningElement;
-		closingElement: ESTreeJSX.JSXClosingElement;
-	}
-
-	interface Tsrx extends AST.BaseExpression {
-		type: 'Tsrx';
+	interface TsrxFragment extends AST.BaseExpression {
+		type: 'TsrxFragment';
 		attributes: Array<any>;
 		children: AST.Node[];
 		selfClosing?: boolean;
@@ -461,7 +450,7 @@ declare module 'estree' {
 
 	export type TSRXStatement = AST.Statement | TSESTree.Statement;
 
-	export type NodeWithChildren = AST.Element | AST.Tsx | AST.Tsrx | AST.TsxCompat;
+	export type NodeWithChildren = AST.Element | AST.TsrxFragment | AST.TsxCompat;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {
@@ -1222,8 +1211,7 @@ export interface Binding {
 		| AST.ClassDeclaration
 		| AST.ImportDeclaration
 		| AST.TSModuleDeclaration
-		| AST.Tsx
-		| AST.Tsrx;
+		| AST.TsrxFragment;
 	/** Whether this binding has been reassigned */
 	reassigned: boolean;
 	/** Whether this binding has been mutated (property access) */
@@ -1323,8 +1311,7 @@ export interface ScopeInterface {
 			| AST.ClassDeclaration
 			| AST.ImportDeclaration
 			| AST.TSModuleDeclaration
-			| AST.Tsx
-			| AST.Tsrx,
+			| AST.TsrxFragment,
 	): Binding;
 	/** Get binding by name */
 	get(name: string): Binding | null;

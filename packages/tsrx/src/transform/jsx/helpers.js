@@ -5,9 +5,9 @@ import tsx from 'esrap/languages/tsx';
 
 /**
  * Zimmerframe provides `path` as the ancestor chain (in original pre-transform
- * types, since visitors run bottom-up). A Tsx node whose parent is a ripple
- * `Element` will render as a JSX child of that element; anywhere else it
- * renders as a standalone expression (e.g. a return value).
+ * types, since visitors run bottom-up). A native template node whose parent is
+ * a ripple `Element` will render as a JSX child of that element; anywhere else
+ * it renders as a standalone expression (e.g. a return value).
  *
  * @param {any[]} path
  * @returns {boolean}
@@ -35,7 +35,7 @@ export function set_node_path_metadata(node, path) {
 }
 
 /**
- * Flatten a `<tsx>` / fragment node's children into a single expression. In a
+ * Flatten a JSX-compatible island's children into a single expression. In a
  * JSX-child position, a JSXExpressionContainer `{expr}` is valid and must stay
  * wrapped. In an expression position (e.g. `return ...`), `{expr}` parses as
  * a block/object literal, so unwrap to `expr`.

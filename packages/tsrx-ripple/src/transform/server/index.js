@@ -76,8 +76,8 @@ import {
 } from '../../utils.js';
 
 /**
- * Re-run CSS pruning on JSX converted from a `<tsx>` block so server output
- * applies the same scoped metadata as regular Ripple template elements.
+ * Re-run CSS pruning on JSX converted into Ripple template nodes so server
+ * output applies the same scoped metadata as regular Ripple template elements.
  *
  * @param {AST.Node[]} nodes
  * @param {TransformServerState} state
@@ -285,29 +285,24 @@ function build_jsx_to_tsrx_element(node, context) {
 }
 
 /**
- * @param {AST.Element | AST.Tsx | AST.Tsrx} node
+ * @param {AST.Element | AST.TsrxFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
 function build_template_node_to_tsrx_element(node, context) {
 	const { visit, state, path } = context;
 	const children =
-		node.type === 'Tsx'
-			? node.children
-					.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
-					.flat()
-					.filter((child) => child != null)
-			: node.type === 'Tsrx'
-				? node.children.filter((child) => child != null && child.type !== 'EmptyStatement')
-				: [
-						{
-							...node,
-							metadata: {
-								...node.metadata,
-								regular_js: undefined,
-							},
+		node.type === 'TsrxFragment'
+			? node.children.filter((child) => child != null && child.type !== 'EmptyStatement')
+			: [
+					{
+						...node,
+						metadata: {
+							...node.metadata,
+							regular_js: undefined,
 						},
-					];
+					},
+				];
 
 	apply_tsrx_css_scoping(children, state);
 
@@ -346,9 +341,11 @@ function contains_template_value_node(node) {
 				node.type === 'Element' ||
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
-				node.type === 'Tsx' ||
-				node.type === 'Tsrx' ||
-				node.type === 'TsxCompat'
+				node.type === 'TsrxFragment' ||
+				node.type === 'TsxCompat' ||
+				(node.type === 'CallExpression' &&
+					node.callee.type === 'Identifier' &&
+					node.callee.name === '_$_.tsrx_element')
 			) {
 				found = true;
 				return;
@@ -460,7 +457,12 @@ function is_template_value_call(expression, scope) {
 		return false;
 	}
 
-	return function_returns_template_value(scope.get(expression.callee.name)?.initial);
+	const binding = scope.get(expression.callee.name);
+	return (
+		binding?.metadata?.is_template_value === true ||
+		is_native_tsrx_function_node(binding?.initial) ||
+		function_returns_template_value(binding?.initial)
+	);
 }
 
 /**
@@ -478,8 +480,7 @@ function is_template_value_binding(expression, scope) {
 	return (
 		binding?.metadata?.is_template_value === true ||
 		initial?.type === 'Element' ||
-		initial?.type === 'Tsx' ||
-		initial?.type === 'Tsrx'
+		initial?.type === 'TsrxFragment'
 	);
 }
 
@@ -663,8 +664,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
-		node.type === 'Tsx' ||
-		node.type === 'Tsrx' ||
+		node.type === 'TsrxFragment' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -715,8 +715,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'Tsrx' ||
-		parent?.type === 'Tsx' ||
+		parent?.type === 'TsrxFragment' ||
 		parent?.type === 'TsxCompat'
 	);
 }
@@ -963,7 +962,7 @@ function transform_variable_declaration(node, context) {
 
 		const declarator_init = /** @type {AST.Node | null | undefined} */ (declarator.init);
 		const init =
-			declarator_init?.type === 'Tsx' || declarator_init?.type === 'Tsrx'
+			declarator_init?.type === 'TsrxFragment'
 				? build_template_node_to_tsrx_element(declarator_init, context)
 				: declarator_init
 					? /** @type {AST.Expression} */ (
@@ -1243,15 +1242,15 @@ function transform_body(body, context) {
 /**
  * @param {AST.Node | null | undefined} node
  * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | AST.Tsrx | null}
+ * @returns {AST.Element | AST.TsrxFragment | null}
  */
 function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
 	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node));
+		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node));
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.argument));
+		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -1563,6 +1562,15 @@ const visitors = {
 
 	FunctionDeclaration(node, context) {
 		if (is_tsrx_component_function(node, context)) {
+			if (node.id) {
+				const binding = context.state.scope.get(node.id.name);
+				if (binding) {
+					binding.metadata = {
+						...(binding.metadata ?? {}),
+						is_template_value: true,
+					};
+				}
+			}
 			return transform_native_tsrx_function(node, context);
 		}
 		if (!context.state.to_ts) {
@@ -2735,41 +2743,7 @@ const visitors = {
 		}
 	},
 
-	Tsx(node, { visit, state, path }) {
-		const converted_children = node.children
-			.map((child) => jsx_to_ripple_node(/** @type {AST.Node} */ (child), path))
-			.flat()
-			.filter((child) => child != null);
-		apply_tsrx_css_scoping(converted_children, state);
-
-		/** @type {AST.Statement[]} */
-		const init = [];
-		transform_children(
-			converted_children,
-			/** @type {TransformServerContext} */ ({
-				visit,
-				state: {
-					...state,
-					init,
-					regular_js: false,
-					jsx_to_tsrx_element: true,
-				},
-			}),
-		);
-
-		if (state.template_child) {
-			// Template body: push children statements inline
-			if (init.length > 0) {
-				state.init?.push(b.block(init));
-			}
-		} else {
-			// Expression context: return tsrx_element(render_fn)
-			const render_fn = b.arrow([], b.block(init));
-			return b.call('_$_.tsrx_element', render_fn);
-		}
-	},
-
-	Tsrx(node, { visit, state }) {
+	TsrxFragment(node, { visit, state }) {
 		const children = node.children.filter(
 			(child) => child != null && child.type !== 'EmptyStatement',
 		);

@@ -20,7 +20,7 @@ describe('@tsrx/mcp documentation index', () => {
 	it('includes generated specification grammar in language sections', () => {
 		expect(find_documentation_section('components')?.content ?? '').toContain('function Button');
 		expect(find_documentation_section('tsx-expression-values')?.content ?? '').toContain(
-			'TsxElement',
+			'TsxCompatElement',
 		);
 		expect(find_documentation_section('tsx-expression-values')?.content ?? '').toContain(
 			'TsrxExpression',

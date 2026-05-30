@@ -23,6 +23,15 @@ const SINGLE_ELEMENT_RETURN_HTML = highlight_tsrx(
 }`,
 );
 
+const NATIVE_EXPRESSION_VALUE_HTML = highlight_tsrx(
+	`function Profile({ user }: { user: User }) {
+  const displayName = user.name.trim();
+  const title = <strong>{displayName}</strong>;
+
+  return <Card {title} />;
+}`,
+);
+
 const STATEMENT_CONTROL_FLOW_HTML = highlight_tsrx(
 	`function Dashboard({ items }: Props) {
   return <>
@@ -238,6 +247,23 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						<pre class="code-block">
 							<code innerHTML={SINGLE_ELEMENT_RETURN_HTML} />
 						</pre>
+						<p>
+							{'We also removed the plain '}
+							<code>{'<tsx>'}</code>
+							{' island. TSRX itself is expression-based now: native elements and native fragments can be assigned, passed as props, or returned directly. The old '}
+							<code>{'<tsrx>'}</code>
+							{' wrapper is not needed either because TSRX is already the default in '}
+							<code>{'.tsrx'}</code>
+							{' files.'}
+						</p>
+						<pre class="code-block">
+							<code innerHTML={NATIVE_EXPRESSION_VALUE_HTML} />
+						</pre>
+						<p>
+							{'Native fragments offer the same benefits '}
+							<code>{'<tsx>'}</code>
+							{' was meant to provide. Keeping multiple ways to do the same thing did not add much once one path was clearer, more consistent, and easier for tools to explain.'}
+						</p>
 						<p>
 							{'When you return a fragment, its body is statement-driven: you can declare values, branch with '}
 							<code>{'if'}</code>

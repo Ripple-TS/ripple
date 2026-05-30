@@ -242,8 +242,7 @@ export function is_jsx_child(node) {
 		t === 'JSXFragment' ||
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
-		t === 'Tsx' ||
-		t === 'Tsrx' ||
+		t === 'TsrxFragment' ||
 		t === 'TsxCompat' ||
 		t === 'Element' ||
 		t === 'Text' ||
@@ -256,8 +255,8 @@ export function is_jsx_child(node) {
 }
 
 /**
- * The parser represents `<>{expr}</>` / `<tsx>{expr}</tsx>` as a Tsx node,
- * and expression-position lowering unwraps that to the inner expression.
+ * Expression-position lowering unwraps single-expression native fragments to
+ * the inner expression.
  * When such a node appears directly in a component or statement render body,
  * the unwrapped expression is still render output rather than an executable
  * statement.

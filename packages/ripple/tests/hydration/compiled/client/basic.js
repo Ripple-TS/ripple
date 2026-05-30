@@ -41,10 +41,10 @@ var root_36 = _$_.template(`<div class="dynamic-array-track"> </div>`, 0);
 var root_37 = _$_.template(`<div class="dynamic-array-conditional"> </div>`, 0);
 var root_38 = _$_.template(`<div class="dynamic-array-logical"> </div>`, 0);
 var root_40 = _$_.template(`<div class="inner">from tsrx</div>`, 0);
-var root_39 = _$_.template(`<section class="outer"> </section>`, 0);
+var root_39 = _$_.template(`<section class="outer"><!></section>`, 0);
 var root_41 = _$_.template(`<!>`, 1, 1);
 var root_43 = _$_.template(`<section class="native"><span class="nested-tsrx">inside nested tsrx</span></section>`, 0);
-var root_42 = _$_.template(`<div class="wrapper"> </div>`, 0);
+var root_42 = _$_.template(`<div class="wrapper"><!></div>`, 0);
 var root_44 = _$_.template(`<!>`, 1, 1);
 var root_45 = _$_.template(`<span class="nested-tsx">inside nested tsx</span>`, 0);
 var root_46 = _$_.template(`<div class="native"><!></div>`, 0);
@@ -295,17 +295,17 @@ export function MixedTsrxCollectionText() {
 			_$_.expression(expression_6, () => [
 				'alpha ',
 				_$_.tsrx_element((__anchor, __block) => {
-					var strong = root_17();
+					var strong_1 = root_17();
 
-					_$_.append(__anchor, strong);
+					_$_.append(__anchor, strong_1);
 				}),
 				' gamma ',
 				[
 					'delta ',
 					_$_.tsrx_element((__anchor, __block) => {
-						var em = root_18();
+						var em_1 = root_18();
 
-						_$_.append(__anchor, em);
+						_$_.append(__anchor, em_1);
 					}),
 					' zeta'
 				]
@@ -336,17 +336,17 @@ export function MixedTsrxCollectionSplitServerText() {
 			_$_.expression(expression_8, () => [
 				'alpha ',
 				_$_.tsrx_element((__anchor, __block) => {
-					var strong_1 = root_21();
+					var strong_2 = root_21();
 
-					_$_.append(__anchor, strong_1);
+					_$_.append(__anchor, strong_2);
 				}),
 				' gamma ',
 				[
 					'delta ',
 					_$_.tsrx_element((__anchor, __block) => {
-						var em_1 = root_22();
+						var em_2 = root_22();
 
-						_$_.append(__anchor, em_1);
+						_$_.append(__anchor, em_2);
 					}),
 					' zeta'
 				]
@@ -377,17 +377,17 @@ export function MixedTsrxCollectionSplitClientText() {
 			_$_.expression(expression_10, () => [
 				'alpha ',
 				_$_.tsrx_element((__anchor, __block) => {
-					var strong_2 = root_25();
+					var strong_3 = root_25();
 
-					_$_.append(__anchor, strong_2);
+					_$_.append(__anchor, strong_3);
 				}),
 				' gamma ',
 				[
 					'changed ',
 					_$_.tsrx_element((__anchor, __block) => {
-						var em_2 = root_26();
+						var em_3 = root_26();
 
-						_$_.append(__anchor, em_2);
+						_$_.append(__anchor, em_3);
 					}),
 					' zeta'
 				]

@@ -74,7 +74,7 @@ describe('TSRX parser', () => {
 		);
 
 		const returned = ast.body[0].body.body[0].argument;
-		expect(returned.type).toBe('Tsrx');
+		expect(returned.type).toBe('TsrxFragment');
 		expect(returned.children.map((child) => child.type)).toEqual(['IfStatement', 'Element']);
 	});
 
@@ -113,12 +113,21 @@ describe('TSRX parser', () => {
 		expect(value.selfClosing).toBe(true);
 	});
 
-	it('keeps explicit TSX islands as TSX', () => {
-		const ast = parseModule('const x = <tsx><div>{value}</div><></></tsx>;', 'App.tsrx');
+	it('parses native fragments as TsrxFragment nodes', () => {
+		const ast = parseModule('const x = <><div>{value}</div><></></>;', 'App.tsrx');
 
 		const value = ast.body[0].declarations[0].init;
-		expect(value.type).toBe('Tsx');
-		expect(value.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXFragment']);
+		expect(value.type).toBe('TsrxFragment');
+		expect(value.children.map((child) => child.type)).toEqual(['Element', 'TsrxFragment']);
+	});
+
+	it('treats plain tsx tags like ordinary elements', () => {
+		const ast = parseModule('const x = <tsx><div>"value"</div></tsx>;', 'App.tsrx');
+
+		const value = ast.body[0].declarations[0].init;
+		expect(value.type).toBe('Element');
+		expect(value.id.name).toBe('tsx');
+		expect(value.children[0].type).toBe('Element');
 	});
 
 	it('allows component as a normal identifier', () => {

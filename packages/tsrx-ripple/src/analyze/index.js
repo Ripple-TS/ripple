@@ -84,7 +84,7 @@ const mutating_method_names = new Set([
 ]);
 
 const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
 /**
  * @param {AST.MemberExpression} node
@@ -251,8 +251,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
-			node.type === 'Tsx' ||
-			node.type === 'Tsrx' ||
+			node.type === 'TsrxFragment' ||
 			node.type === 'TsxCompat'
 		) {
 			node.metadata.has_template = true;
@@ -315,12 +314,7 @@ function is_inside_template_child(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (
-			node.type === 'Element' ||
-			node.type === 'Tsrx' ||
-			node.type === 'Tsx' ||
-			node.type === 'TsxCompat'
-		) {
+		if (node.type === 'Element' || node.type === 'TsrxFragment' || node.type === 'TsxCompat') {
 			return true;
 		}
 	}
@@ -370,7 +364,7 @@ function mark_control_flow_has_continue(path) {
  * @returns {boolean}
  */
 function is_inside_tsx_context(path) {
-	return path.some((node) => node?.type === 'TsxCompat' || node?.type === 'Tsx');
+	return path.some((node) => node?.type === 'TsxCompat');
 }
 
 /**
@@ -1519,9 +1513,7 @@ const visitors = {
 		const callee = node.callee;
 
 		if (
-			!context.path.some(
-				(path_node) => path_node.type === 'TsxCompat' || path_node.type === 'Tsx',
-			) &&
+			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
 			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
 		) {
 			error(
@@ -2249,12 +2241,7 @@ const visitors = {
 		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 	},
 
-	Tsx(_, context) {
-		mark_control_flow_has_template(context.path);
-		return context.next();
-	},
-
-	Tsrx(_, context) {
+	TsrxFragment(_, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}

@@ -91,13 +91,11 @@ describe('basic server > attribute rendering', () => {
 	it('applies scoped classes inside tsx blocks and fragment shorthand', async () => {
 		function App() {
 			return <>
-				<tsx>
+				<>
 					<div class="card">
-						<h2>
-							{'tsx block'}
-						</h2>
+						<h2>{'tsx block'}</h2>
 					</div>
-				</tsx>
+				</>
 				<>
 					<div class="card">
 						<h2>{'fragment shorthand'}</h2>

@@ -208,11 +208,7 @@ function get_await_keyword_start(await_node, source) {
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
-		case 'Tsx':
-			// We're inside a JSX child position by construction; keep `{expr}`
-			// containers wrapped. See helpers.js.
-			return tsx_node_to_jsx_expression(node, true);
-		case 'Tsrx':
+		case 'TsrxFragment':
 			return tsrx_node_to_jsx_expression(node, transform_context, true);
 		case 'TsxCompat':
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
@@ -1107,7 +1103,7 @@ function create_jsx_element(tag_name, attributes, children) {
 }
 
 const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
 /**
  * Inject `import { Show, For, Switch, Match, Errored, Loading } from 'solid-js'`
@@ -1628,7 +1624,7 @@ function build_return_expression(render_nodes) {
 function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	if (node.kind !== 'solid') {
 		error(
-			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or <tsx:solid>.`,
+			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx:solid>.`,
 			transform_context.filename,
 			node,
 			transform_context.errors,

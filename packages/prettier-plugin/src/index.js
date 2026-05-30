@@ -2253,12 +2253,8 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTsxCompat(node, path, options, print);
 			break;
 
-		case 'Tsrx':
+		case 'TsrxFragment':
 			nodeContent = printTsrx(node, path, options, print);
-			break;
-
-		case 'Tsx':
-			nodeContent = printTsx(node, path, options, print);
 			break;
 
 		case 'JSXElement':
@@ -2694,9 +2690,8 @@ function printArrowFunction(node, path, options, print, args) {
  */
 function isTemplateExpression(node) {
 	return (
-		node.type === 'Tsx' ||
 		node.type === 'TsxCompat' ||
-		node.type === 'Tsrx' ||
+		node.type === 'TsrxFragment' ||
 		node.type === 'JSXElement' ||
 		node.type === 'JSXFragment'
 	);
@@ -5583,67 +5578,9 @@ function createElementLevelCommentPartsTrimmed(comments) {
 }
 
 /**
- * Print a Tsx node - renders Ripple template children inside <tsx>...</tsx>
- * or fragment shorthand <>...</> when the original source used a fragment.
- * @param {AST.Tsx} node - The Tsx node
- * @param {AstPath<AST.Tsx>} path - The AST path
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
- * @returns {Doc}
- */
-function printTsx(node, path, options, print) {
-	const is_fragment = !node.openingElement?.name;
-	const tagName = is_fragment ? '<>' : '<tsx>';
-	const closingTagName = is_fragment ? '</>' : '</tsx>';
-
-	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-
-	if (!hasChildren) {
-		return [tagName, closingTagName];
-	}
-
-	// Print children - these are Ripple template children (Element, Text, etc.)
-	const printedChildren = [];
-
-	for (let i = 0; i < node.children.length; i++) {
-		const child = node.children[i];
-
-		if (child.type === 'JSXText') {
-			const text = child.value.trim();
-			if (!text) continue;
-			printedChildren.push(text);
-		} else {
-			const printedChild = path.call(print, 'children', i);
-			printedChildren.push(printedChild);
-		}
-	}
-
-	if (printedChildren.length === 0) {
-		return [tagName, closingTagName];
-	}
-
-	if (!is_fragment || printedChildren.length > 1) {
-		return group([
-			tagName,
-			indent([hardline, join(hardline, printedChildren)]),
-			hardline,
-			closingTagName,
-		]);
-	}
-
-	// Use softline to allow single-line when content fits
-	return group([
-		tagName,
-		indent([softline, join(softline, printedChildren)]),
-		softline,
-		closingTagName,
-	]);
-}
-
-/**
- * Print a Tsrx node - renders native TSRX template children inside a fragment.
- * @param {AST.Tsrx} node - The Tsrx node
- * @param {AstPath<AST.Tsrx>} path - The AST path
+ * Print a TsrxFragment node - renders native TSRX template children inside a fragment.
+ * @param {AST.TsrxFragment} node - The TsrxFragment node
+ * @param {AstPath<AST.TsrxFragment>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}

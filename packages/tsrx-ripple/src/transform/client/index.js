@@ -104,8 +104,8 @@ import {
 import is_reference from 'is-reference';
 
 /**
- * Re-run CSS pruning on JSX converted from a `<tsx>` block so it receives the
- * same scoped metadata as normal Ripple template elements before codegen.
+ * Re-run CSS pruning on JSX converted into Ripple template nodes so it receives
+ * the same scoped metadata as normal Ripple template elements before codegen.
  *
  * @param {AST.Node[]} nodes
  * @param {TransformClientState} state
@@ -518,31 +518,6 @@ function is_stringish_expression(expression, state, visited = new Set()) {
 }
 
 /**
- * JSX parsed inside `<tsx>` treats `<tsx>` as an ordinary JSX tag. For
- * TypeScript output, convert that reserved tag back into a TSRX node before
- * visiting so nested islands use the same lowering path as top-level islands.
- *
- * @param {ESTreeJSX.JSXElement} node
- * @param {VisitorClientContext} context
- * @returns {AST.Node | null}
- */
-function jsx_template_to_ts_node(node, context) {
-	const name = node.openingElement.name;
-	if (name.type !== 'JSXIdentifier' || name.name !== 'tsx') {
-		return null;
-	}
-
-	const converted = jsx_to_ripple_node(
-		/** @type {AST.Node} */ (/** @type {unknown} */ (node)),
-		context.path,
-	);
-	if (converted === null || Array.isArray(converted)) {
-		return null;
-	}
-	return /** @type {AST.Node} */ (converted);
-}
-
-/**
  * @param {AST.ImportDeclaration} node
  * @returns {string | null}
  */
@@ -728,15 +703,15 @@ function visit_function(node, context) {
 /**
  * @param {AST.Node | null | undefined} node
  * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | AST.Tsrx | null}
+ * @returns {AST.Element | AST.TsrxFragment | null}
  */
 function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
 	if (!node) return null;
 	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node));
+		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node));
 	}
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.argument));
+		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
 	}
 	if (
 		node.type === 'FunctionDeclaration' ||
@@ -1970,17 +1945,6 @@ const visitors = {
 
 	JSXExpressionContainer(node, context) {
 		if (context.state.to_ts) {
-			if (node.expression?.type === 'JSXElement') {
-				const tsx_template_node = jsx_template_to_ts_node(node.expression, context);
-				if (tsx_template_node !== null) {
-					return b.jsx_expression_container(
-						/** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
-							context.visit(tsx_template_node, context.state)
-						),
-						/** @type {AST.NodeWithLocation} */ (node),
-					);
-				}
-			}
 			return context.next();
 		}
 		return context.visit(node.expression);
@@ -2054,10 +2018,6 @@ const visitors = {
 
 	JSXElement(node, context) {
 		if (context.state.to_ts) {
-			const tsx_template_node = jsx_template_to_ts_node(node, context);
-			if (tsx_template_node !== null) {
-				return context.visit(tsx_template_node, context.state);
-			}
 			return context.next();
 		}
 		if (context.state.jsx_to_tsrx_element) {
@@ -2165,70 +2125,7 @@ const visitors = {
 		);
 	},
 
-	Tsx(node, context) {
-		const { state, visit, path } = context;
-
-		// to_ts mode: produce a JSX fragment
-		if (state.to_ts) {
-			const children = /** @type {AST.Tsx['children']} */ (
-				node.children
-					.map((child) => visit(/** @type {AST.Node} */ (child), state))
-					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
-			);
-			return b.jsx_fragment(children);
-		}
-
-		/** @type {AST.Node[]} */
-		const children_filtered = [];
-		for (const raw_child of node.children) {
-			const result = jsx_to_ripple_node(/** @type {AST.Node} */ (raw_child), path);
-			const items = Array.isArray(result) ? result : [result];
-			for (const child of items) {
-				if (child == null || child.type === 'EmptyStatement') continue;
-				if (is_native_tsrx_function_node(child)) {
-					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
-				} else {
-					children_filtered.push(child);
-				}
-			}
-		}
-		apply_tsrx_css_scoping(children_filtered, state);
-
-		const children_component = create_native_tsrx_render_function([], children_filtered, node);
-
-		const element = b.call(
-			'_$_.tsrx_element',
-			/** @type {AST.Expression} */ (
-				visit(children_component, {
-					...state,
-					regular_js: false,
-					namespace: state.namespace,
-					is_tsrx_element: true,
-					jsx_to_tsrx_element: true,
-				})
-			),
-		);
-
-		// Template body context: push to template and schedule init
-		if (state.flush_node) {
-			state.template?.push('<!>');
-
-			const id = state.flush_node(false);
-
-			const call = b.call('_$_.expression', id, b.thunk(element));
-			state.init?.push(
-				state.namespace !== DEFAULT_NAMESPACE
-					? b.stmt(b.call('_$_.with_ns', b.literal(state.namespace), b.thunk(call)))
-					: b.stmt(call),
-			);
-			return;
-		}
-
-		// Expression context: return the tsrx_element directly as an expression value
-		return element;
-	},
-
-	Tsrx(node, context) {
+	TsrxFragment(node, context) {
 		const { state, visit } = context;
 
 		// to_ts mode: produce a JSX fragment from native TSRX children.
@@ -2294,9 +2191,9 @@ const visitors = {
 		}
 
 		if (state.to_ts) {
-			const fragment = /** @type {AST.Tsrx} */ (
+			const fragment = /** @type {AST.TsrxFragment} */ (
 				/** @type {unknown} */ ({
-					type: 'Tsrx',
+					type: 'TsrxFragment',
 					children: [node],
 					openingElement: { type: 'JSXOpeningFragment', metadata: { path: [] } },
 					closingElement: { type: 'JSXClosingFragment', metadata: { path: [] } },
@@ -2771,8 +2668,7 @@ const visitors = {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
-							child.type === 'Tsx' ||
-							child.type === 'Tsrx' ||
+							child.type === 'TsrxFragment' ||
 							child.type === 'TsxCompat' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
@@ -3910,7 +3806,7 @@ function build_tsrx_ts_return_expression(children) {
  * remain inline JSX; fragments with setup statements need an IIFE so declarations
  * stay in statement position.
  *
- * @param {AST.Tsrx} node
+ * @param {AST.TsrxFragment} node
  * @param {VisitorClientContext} context
  * @returns {TsrxTsExpression}
  */
@@ -4377,19 +4273,7 @@ function transform_ts_child(node, context) {
 		);
 
 		state.init?.push(b.stmt(b.jsx_fragment(children)));
-	} else if (node.type === 'Tsx') {
-		const children = /** @type {AST.Tsx['children']} */ (
-			node.children
-				.map((child) => visit(/** @type {AST.Node} */ (child), state))
-				.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
-		);
-
-		const result = b.jsx_fragment(children);
-		if (!state.init) {
-			return result;
-		}
-		state.init.push(b.stmt(result));
-	} else if (node.type === 'Tsrx') {
+	} else if (node.type === 'TsrxFragment') {
 		const result = build_tsrx_to_ts_expression(node, context);
 		if (!state.init) {
 			return result;
@@ -4450,8 +4334,7 @@ function is_template_or_control_flow(node) {
 		node.type === 'Element' ||
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
-		node.type === 'Tsx' ||
-		node.type === 'Tsrx' ||
+		node.type === 'TsrxFragment' ||
 		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
@@ -4583,8 +4466,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'Tsrx' ||
-		parent?.type === 'Tsx' ||
+		parent?.type === 'TsrxFragment' ||
 		parent?.type === 'TsxCompat'
 	);
 }
@@ -4662,8 +4544,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
-			child.type === 'Tsx' ||
-			child.type === 'Tsrx' ||
+			child.type === 'TsrxFragment' ||
 			child.type === 'TsxCompat'
 		) {
 			return true;
@@ -4808,8 +4689,7 @@ function transform_children(children, context) {
 				node.type === 'TryStatement' ||
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
-				node.type === 'Tsx' ||
-				node.type === 'Tsrx' ||
+				node.type === 'TsrxFragment' ||
 				node.type === 'TsxCompat' ||
 				(node.type === 'Element' &&
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
@@ -5176,8 +5056,7 @@ function transform_children(children, context) {
 							child.type === 'TryStatement' ||
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
-							child.type === 'Tsx' ||
-							child.type === 'Tsrx' ||
+							child.type === 'TsrxFragment' ||
 							child.type === 'TsxCompat' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
@@ -5204,7 +5083,7 @@ function transform_children(children, context) {
 						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
-			} else if (node.type === 'TsxCompat' || node.type === 'Tsx' || node.type === 'Tsrx') {
+			} else if (node.type === 'TsxCompat' || node.type === 'TsrxFragment') {
 				skipped = 0;
 
 				visit(node, {

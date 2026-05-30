@@ -125,23 +125,19 @@ describe('basic client > collections', () => {
 			return <>
 				let &[primary] = track(true);
 				<div class="frame">
-					{<tsx>
+					{<>
 						{primary
 							? [
 									'first:',
-									<strong class="middle">
-										{'one'}
-									</strong>,
+									<strong class="middle">{'one'}</strong>,
 									':tail',
 								]
 							: [
 									'second:',
-									<strong class="middle">
-										{'two'}
-									</strong>,
+									<strong class="middle">{'two'}</strong>,
 									':done',
 								]}
-					</tsx>}
+					</>}
 				</div>
 				<button
 					onClick={() => {
@@ -181,16 +177,14 @@ describe('basic client > collections', () => {
 		function App() {
 			return <>
 				<div class="frame">
-					{<tsx>
+					{<>
 						{[
 							'start:',
 							['one', 2, true, null, false],
-							<strong>
-								{'!'}
-							</strong>,
+							<strong>{'!'}</strong>,
 							':end',
 						]}
-					</tsx>}
+					</>}
 				</div>
 			</>;
 		}

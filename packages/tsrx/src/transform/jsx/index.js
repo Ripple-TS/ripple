@@ -62,7 +62,7 @@ const HOOK_OUTER_ASSIGNMENT_ERROR =
 const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
 	'Hook callbacks inside conditional or repeated TSRX scopes must not mutate bindings declared outside the generated hook component.';
 const TEMPLATE_FRAGMENT_ERROR =
-	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only within <tsx>...</tsx>.';
+	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
 /**
  * @param {AST.Node} node
@@ -213,15 +213,7 @@ export function createJsxTransform(platform) {
 				return next();
 			},
 
-			Tsx(node, { next, path }) {
-				const inner = /** @type {any} */ (next() ?? node);
-				const in_jsx_child = in_jsx_child_context(path);
-				return /** @type {any} */ (
-					wrap_jsx_setup_declarations(tsx_node_to_jsx_expression(inner, in_jsx_child), in_jsx_child)
-				);
-			},
-
-			Tsrx(node, { next, path, state, visit }) {
+			TsrxFragment(node, { next, path, state, visit }) {
 				const parent = /** @type {AST.ArrowFunctionExpression} */ (path.at(-1));
 				if (parent?.metadata?.native_tsrx && parent.body === node) {
 					return /** @type {any} */ (visit(create_native_tsrx_render_block(node, state), state));
@@ -1016,7 +1008,7 @@ function transform_block_statement(node, { next, visit, state, path }) {
  * @returns {any}
  */
 function transform_return_statement(node, { next, visit, state, path }) {
-	if (get_active_native_tsrx_function(path) && node.argument?.type === 'Tsrx') {
+	if (get_active_native_tsrx_function(path) && node.argument?.type === 'TsrxFragment') {
 		return visit(create_native_tsrx_render_block(node.argument, state), state);
 	}
 
@@ -1080,7 +1072,7 @@ function transform_native_tsrx_function(node, { next, state }) {
 	if (
 		inner !== node &&
 		node.type === 'ArrowFunctionExpression' &&
-		node.body?.type === 'Tsrx' &&
+		node.body?.type === 'TsrxFragment' &&
 		inner.body?.type === 'BlockStatement'
 	) {
 		inner.expression = false;
@@ -1163,7 +1155,7 @@ function find_native_await_in_list(statements) {
 function find_native_await_in_statement(statement) {
 	if (!statement || typeof statement !== 'object') return null;
 
-	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
 		return find_first_top_level_await_in_tsrx_function_body(statement.argument.children || []);
 	}
 
@@ -1258,7 +1250,7 @@ function transform_function_with_hook_helpers(node, { next, state }) {
  * @returns {string}
  */
 function get_function_helper_base_name(node) {
-	return get_function_like_name(node) || 'Tsrx';
+	return get_function_like_name(node) || 'TsrxFragment';
 }
 
 /**
@@ -1337,7 +1329,7 @@ function collect_function_scope_bindings(node) {
 	const bindings = collect_param_bindings(node.params || []);
 	if (node.body?.type === 'BlockStatement') {
 		for (const statement of node.body.body || []) {
-			if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+			if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
 				for (const child of get_tsrx_render_children(statement.argument)) {
 					collect_statement_bindings(child, bindings);
 				}
@@ -1446,7 +1438,7 @@ function statement_contains_native_tsrx_return(statement) {
  */
 function node_contains_native_tsrx_template(node) {
 	if (!node || typeof node !== 'object') return false;
-	if (node.type === 'Element' || node.type === 'Tsrx') return true;
+	if (node.type === 'Element' || node.type === 'TsrxFragment') return true;
 
 	if (is_function_or_class_boundary(node)) {
 		return false;
@@ -1637,7 +1629,7 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (is_function_or_class_boundary(node) || node.type === 'Tsrx') {
+	if (is_function_or_class_boundary(node) || node.type === 'TsrxFragment') {
 		return;
 	}
 
@@ -1756,8 +1748,7 @@ function is_style_expression_position(path) {
 	const parent = path.at(-1);
 	return !(
 		parent?.type === 'Element' ||
-		parent?.type === 'Tsrx' ||
-		parent?.type === 'Tsx' ||
+		parent?.type === 'TsrxFragment' ||
 		parent?.type === 'TsxCompat' ||
 		parent?.type === 'BlockStatement' ||
 		parent?.type === 'Program' ||
@@ -1845,7 +1836,7 @@ function expand_native_tsrx_return_statement_list(statements, transform_context)
 function expand_native_tsrx_return_statement(statement, transform_context) {
 	if (!statement || typeof statement !== 'object') return [statement];
 
-	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'Tsrx') {
+	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
 		return create_native_tsrx_render_statements(statement.argument, transform_context);
 	}
 
@@ -2045,7 +2036,7 @@ function node_contains_hook_bearing_tsrx(node, transform_context) {
 		return node.some((child) => node_contains_hook_bearing_tsrx(child, transform_context));
 	}
 
-	if (node.type === 'Tsrx') {
+	if (node.type === 'TsrxFragment') {
 		return body_contains_top_level_hook_call(node.children || [], transform_context, true);
 	}
 
@@ -2092,7 +2083,7 @@ function should_extract_hook_helpers(transform_context) {
  */
 function create_module_scoped_hook_component_id(helper_id, transform_context) {
 	return create_generated_identifier(
-		`${transform_context.helper_state?.base_name || 'Tsrx'}__${helper_id.name}`,
+		`${transform_context.helper_state?.base_name || 'TsrxFragment'}__${helper_id.name}`,
 	);
 }
 
@@ -4014,11 +4005,7 @@ function get_body_source_node(body_nodes) {
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
-		case 'Tsx':
-			// We're inside a JSX child position by construction, so keep a
-			// JSXExpressionContainer wrapper for bare `{expr}` children.
-			return tsx_node_to_jsx_expression(node, true);
-		case 'Tsrx':
+		case 'TsrxFragment':
 			return tsrx_node_to_jsx_expression(node, transform_context, true);
 		case 'TsxCompat':
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
@@ -4052,8 +4039,8 @@ function to_jsx_child(node, transform_context) {
 
 /**
  * Lower a native TSRX fragment body to a JSX expression.
- * Unlike `<tsx>`, children have already been parsed and transformed through
- * the normal TSRX Element/Text/control-flow visitors.
+ * Children have already been parsed and transformed through the normal TSRX
+ * Element/Text/control-flow visitors.
  *
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -5529,7 +5516,7 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
  * This validator runs over the raw, pre-lowering attribute list so each
  * shape is still distinguishable by `type`. Ripple `Element` attributes have type `Attribute` with an
  * `Identifier` name (the parser normalizes `JSXAttribute`/`JSXIdentifier`
- * for non-Tsx elements); inside `<tsx:react>` compat blocks they retain
+ * for native elements); inside `<tsx:react>` compat blocks they retain
  * the original `JSXAttribute`/`JSXIdentifier` shape, so we accept both.
  *
  * @param {any[]} raw_attrs
@@ -5942,7 +5929,7 @@ function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child
 	if (!platform.jsx.acceptedTsxKinds.includes(node.kind)) {
 		const accepted = platform.jsx.acceptedTsxKinds.map((k) => `<tsx:${k}>`).join(', ');
 		error(
-			`${platform.name} TSRX does not support <tsx:${node.kind}> blocks. Use <tsx> or one of: ${accepted}.`,
+			`${platform.name} TSRX does not support <tsx:${node.kind}> blocks. Use one of: ${accepted}.`,
 			transform_context.filename,
 			node,
 			transform_context.errors,

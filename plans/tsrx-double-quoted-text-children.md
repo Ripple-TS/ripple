@@ -48,8 +48,8 @@ Rationale:
      position.
    - Emit the existing `Text` node shape with a `Literal` expression.
    - Preserve source location/range on both the `Text` node and inner literal.
-   - Do not apply this inside `<tsx>` or `<tsx:*>`, where JSX text semantics
-     should remain unchanged.
+   - Do not apply this inside `<tsx:*>` compatibility islands, where JSX text
+     semantics should remain unchanged.
 
 2. Render-target verification.
    - Ripple client/server should reuse existing `Text` lowering and child
@@ -71,7 +71,7 @@ Rationale:
    - Escaping coverage such as `<p>"She said \"hi\""</p>`.
    - Negative or unchanged-behavior coverage for single quotes and backticks
      outside braces.
-   - Ensure no behavior change inside `<tsx>` / `<tsx:*>` blocks.
+   - Ensure no behavior change inside `<tsx:*>` compatibility islands.
    - Target output coverage for Ripple client/server plus React, Preact, Solid,
      and Vue where relevant.
    - Prettier format and round-trip coverage.

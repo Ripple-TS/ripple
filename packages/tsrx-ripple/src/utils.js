@@ -133,7 +133,7 @@ export function is_tsrx_component_function(node, context) {
  * @returns {boolean}
  */
 export function is_native_tsrx_template_node(node) {
-	return !!(node && (node.type === 'Element' || node.type === 'Tsrx'));
+	return !!(node && (node.type === 'Element' || node.type === 'TsrxFragment'));
 }
 
 /**
@@ -441,11 +441,11 @@ function statement_contains_native_tsrx_return(statement) {
 }
 
 /**
- * @param {AST.Element | AST.Tsrx} node
+ * @param {AST.Element | AST.TsrxFragment} node
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node) {
-	return node.type === 'Tsrx' ? node.children || [] : [node];
+	return node.type === 'TsrxFragment' ? node.children || [] : [node];
 }
 
 /**
@@ -457,7 +457,7 @@ export function get_native_tsrx_function_body(node) {
 		return is_native_tsrx_template_node(node.body)
 			? [
 					...get_native_tsrx_template_children(
-						/** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (node.body)),
+						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
 					).map(mark_returned_template_child),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
@@ -620,7 +620,7 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 	if (statement.type === 'ReturnStatement' && is_native_tsrx_template_node(statement.argument)) {
 		return [
 			...get_native_tsrx_template_children(
-				/** @type {AST.Element | AST.Tsrx} */ (/** @type {unknown} */ (statement.argument)),
+				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (statement.argument)),
 			).map(mark_returned_template_child),
 			...(omit_control_return
 				? []
@@ -851,9 +851,9 @@ function strip_style_element_children(node, inside_head) {
  * @returns {AST.ArrowFunctionExpression}
  */
 export function create_native_tsrx_render_function(params, children, source_node) {
-	const fragment = /** @type {AST.Tsrx} */ (
+	const fragment = /** @type {AST.TsrxFragment} */ (
 		/** @type {unknown} */ ({
-			type: 'Tsrx',
+			type: 'TsrxFragment',
 			children,
 			openingElement: { type: 'JSXOpeningFragment', metadata: { path: [] } },
 			closingElement: { type: 'JSXClosingFragment', metadata: { path: [] } },
@@ -1755,7 +1755,7 @@ export function is_children_template_expression(expression, scope, component_sco
  * @returns {boolean}
  */
 function is_template_fragment_node(node) {
-	return node?.type === 'Tsx' || node?.type === 'Tsrx' || node?.type === 'TsxCompat';
+	return node?.type === 'TsrxFragment' || node?.type === 'TsxCompat';
 }
 
 /**
@@ -2182,7 +2182,7 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 
 /**
  * Converts a JSX AST node (JSXElement, JSXText, etc.) to a Ripple AST node
- * (Element, Text, TSRXExpression) for processing inside `<tsx>` blocks.
+ * (Element, Text, TSRXExpression) for JSX-to-template lowering.
  * @param {AST.Node} node
  * @param {AST.Node[]} [inherited_path=[]]
  * @returns {AST.Node | AST.Node[] | null}
@@ -2191,18 +2191,6 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 	if (node.type === 'JSXElement') {
 		const opening = node.openingElement;
 		const name = opening.name;
-
-		if (name.type === 'JSXIdentifier' && name.name === 'tsx') {
-			return /** @type {AST.Node} */ (
-				/** @type {unknown} */ ({
-					...node,
-					type: 'Tsx',
-					children: node.children,
-					attributes: opening.attributes,
-					selfClosing: opening.selfClosing,
-				})
-			);
-		}
 
 		/** @type {AST.Identifier | AST.MemberExpression} */
 		let id;
