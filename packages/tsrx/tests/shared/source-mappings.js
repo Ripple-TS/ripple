@@ -158,6 +158,21 @@ export function runSharedSourceMappingTests({
 				expect(mapping?.data.completion).toBe(true);
 			}
 		});
+		it('exposes template style blocks as CSS embedded mappings', () => {
+			const source = `function C() { return <>
+	<div class="logo" />
+	<style>
+		.logo { display: block; }
+	</style>
+</>; }`;
+			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+			const css_mapping = result.cssMappings.find((mapping) =>
+				mapping.data?.customData?.content?.includes('.logo { display: block; }'),
+			);
+
+			expect(css_mapping).toBeDefined();
+			expect(css_mapping?.data.customData.embeddedId).toMatch(/^style-/);
+		});
 		it('keeps class attribute source mappings narrowed to the attribute name', () => {
 			const source = `function C() { return <> <div class="app" /> </>; }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });

@@ -3,7 +3,7 @@
 import { walk } from 'zimmerframe';
 import is_reference from 'is-reference';
 import {
-	builders,
+	builders as b,
 	addJsxSetupDeclaration,
 	clone_expression_node,
 	clone_identifier,
@@ -66,9 +66,6 @@ const vue_platform = {
 			ctx.needs_define_vapor_component = true;
 			return wrap_helper_component(helper_fn, helper_id, source_node);
 		},
-		wrapNativeFunctionComponent(fn, ctx, path) {
-			return wrap_native_function_component(fn, ctx, path);
-		},
 		canHoistStaticNode(node) {
 			return !contains_component_jsx(node);
 		},
@@ -109,7 +106,7 @@ const vue_platform = {
 				? create_fallback_component_renderer(fallback_component, fallback_fn)
 				: fallback_fn;
 			const default_slot = ctx.typeOnly
-				? builders.arrow([], jsx_child_to_expression(raw_try_content))
+				? b.arrow([], jsx_child_to_expression(raw_try_content))
 				: create_sync_error_boundary_slot(
 						raw_try_content,
 						fallback_fn,
@@ -128,7 +125,7 @@ const vue_platform = {
 			return boundary;
 		},
 		createErrorBoundaryContent(try_content) {
-			return builders.arrow([], jsx_child_to_expression(try_content));
+			return b.arrow([], jsx_child_to_expression(try_content));
 		},
 		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
 			return rewrite_host_text_children(node, walked_children, raw_children, attributes);
@@ -143,6 +140,7 @@ const vue_platform = {
 			);
 		},
 		injectImports(program, ctx) {
+			wrap_native_function_components(program, ctx);
 			inject_vue_imports(program, ctx);
 		},
 	},
@@ -157,7 +155,7 @@ export const transform = createJsxTransform(vue_platform);
  */
 function create_vapor_pending_boundary(try_content, fallback_content) {
 	return create_vapor_pending_boundary_from_default_slot(
-		builders.arrow([], jsx_child_to_expression(try_content)),
+		b.arrow([], jsx_child_to_expression(try_content)),
 		fallback_content,
 	);
 }
@@ -169,21 +167,18 @@ function create_vapor_pending_boundary(try_content, fallback_content) {
  */
 function create_vapor_pending_boundary_from_default_slot(default_slot, fallback_content) {
 	const fallback_expression = jsx_child_to_expression(fallback_content);
-	const slots_properties = [
-		builders.init('_', builders.literal(1)),
-		builders.init('default', default_slot),
-	];
+	const slots_properties = [b.init('_', b.literal(1)), b.init('default', default_slot)];
 
 	if (fallback_expression.type !== 'Literal' || fallback_expression.value !== null) {
-		slots_properties.push(builders.init('fallback', builders.arrow([], fallback_expression)));
+		slots_properties.push(b.init('fallback', b.arrow([], fallback_expression)));
 	}
 
-	const slots = builders.object(slots_properties);
+	const slots = b.object(slots_properties);
 
-	const boundary = builders.jsx_element_fresh(
-		builders.jsx_opening_element(
-			builders.jsx_id('Suspense'),
-			[builders.jsx_attribute(builders.jsx_id('v-slots'), to_jsx_expression_container(slots))],
+	const boundary = b.jsx_element_fresh(
+		b.jsx_opening_element(
+			b.jsx_id('Suspense'),
+			[b.jsx_attribute(b.jsx_id('v-slots'), to_jsx_expression_container(slots))],
 			true,
 		),
 		null,
@@ -236,34 +231,21 @@ function create_sync_error_boundary_slot(
 	const fallback_expression = fallback_component
 		? create_fallback_component_element(fallback_component, fallback_fn, [
 				error_id,
-				builders.arrow([], builders.block([])),
+				b.arrow([], b.block([])),
 			])
-		: builders.call(
-				builders.parenthesized(fallback_fn),
-				clone_identifier(error_id),
-				builders.arrow([], builders.block([])),
-			);
-	const try_block = setLocation(
-		builders.block([builders.return(content_expression)]),
-		source_block,
-		true,
-	);
+		: b.call(b.parenthesized(fallback_fn), clone_identifier(error_id), b.arrow([], b.block([])));
+	const try_block = setLocation(b.block([b.return(content_expression)]), source_block, true);
 	const try_statement = setLocation(
-		builders.try(
+		b.try(
 			try_block,
-			{
-				type: 'CatchClause',
-				param: error_id,
-				body: builders.block([builders.return(fallback_expression)]),
-				metadata: { path: [] },
-			},
+			b.catch_clause(error_id, null, b.block([b.return(fallback_expression)])),
 			null,
 			null,
 		),
 		source_try,
 		true,
 	);
-	return builders.arrow([], builders.block([try_statement]));
+	return b.arrow([], b.block([try_statement]));
 }
 
 /**
@@ -272,11 +254,9 @@ function create_sync_error_boundary_slot(
  * @returns {any}
  */
 function create_fallback_component_renderer(fallback_component, fallback_fn) {
-	return builders.arrow(
+	return b.arrow(
 		fallback_fn.params.map((/** @type {any} */ param) => clone_expression_node(param, false)),
-		builders.block([
-			builders.return(create_fallback_component_element(fallback_component, fallback_fn)),
-		]),
+		b.block([b.return(create_fallback_component_element(fallback_component, fallback_fn))]),
 	);
 }
 
@@ -331,17 +311,14 @@ function jsx_child_to_expression(child) {
  * @returns {any}
  */
 function create_vapor_error_boundary(content, fallback_fn) {
-	return builders.jsx_element_fresh(
-		builders.jsx_opening_element(
-			builders.jsx_id('TsrxErrorBoundary'),
+	return b.jsx_element_fresh(
+		b.jsx_opening_element(
+			b.jsx_id('TsrxErrorBoundary'),
 			[
-				builders.jsx_attribute(
-					builders.jsx_id('fallback'),
-					to_jsx_expression_container(fallback_fn),
-				),
-				builders.jsx_attribute(
-					builders.jsx_id('content'),
-					to_jsx_expression_container(builders.arrow([], jsx_child_to_expression(content))),
+				b.jsx_attribute(b.jsx_id('fallback'), to_jsx_expression_container(fallback_fn)),
+				b.jsx_attribute(
+					b.jsx_id('content'),
+					to_jsx_expression_container(b.arrow([], jsx_child_to_expression(content))),
 				),
 			],
 			true,
@@ -370,13 +347,9 @@ function mark_type_only_host_ref_attribute(attr) {
 		return attr;
 	}
 
-	return {
-		...attr,
-		name: {
-			...attr.name,
-			metadata: { ...(attr.name.metadata || {}), disable_verification: true },
-		},
-	};
+	const name = b.jsx_id(attr.name.name, attr.name);
+	name.metadata = { ...(attr.name.metadata || {}), disable_verification: true };
+	return b.jsx_attribute(name, attr.value, attr.shorthand, attr);
 }
 
 /**
@@ -387,8 +360,8 @@ function mark_type_only_host_ref_attribute(attr) {
  */
 function wrap_helper_component(helper_fn, helper_id, source_node) {
 	return setLocation(
-		builders.declaration('const', [
-			builders.declarator(
+		b.declaration('const', [
+			b.declarator(
 				clone_identifier(helper_id),
 				create_define_vapor_component_call(function_declaration_to_expression(helper_fn), [], []),
 			),
@@ -398,32 +371,63 @@ function wrap_helper_component(helper_fn, helper_id, source_node) {
 }
 
 /**
+ * @param {any} program
+ * @param {any} ctx
+ * @returns {void}
+ */
+function wrap_native_function_components(program, ctx) {
+	const wrapped = walk(program, ctx, {
+		FunctionDeclaration(node, { next, path, state }) {
+			const inner = next() ?? node;
+			return wrap_native_function_component(inner, state, path) ?? inner;
+		},
+		FunctionExpression(node, { next, path, state }) {
+			const inner = next() ?? node;
+			return wrap_native_function_component(inner, state, path) ?? inner;
+		},
+		ArrowFunctionExpression(node, { next, path, state }) {
+			const inner = next() ?? node;
+			return wrap_native_function_component(inner, state, path) ?? inner;
+		},
+	});
+	program.body = wrapped.body;
+}
+
+/**
  * @param {any} fn
  * @param {any} ctx
  * @param {any[]} path
  * @returns {any | null}
  */
 function wrap_native_function_component(fn, ctx, path) {
-	const name = get_function_component_name(fn, path);
+	if (!fn.metadata?.native_tsrx_function) {
+		return null;
+	}
+
+	const parent = path.at(-1);
+	const name = get_function_component_name(fn, parent);
 	if (!name || !/^[A-Z]/.test(name)) {
 		return null;
 	}
 
 	ctx.needs_define_vapor_component = true;
 
-	const call = create_define_vapor_component_call(
-		function_declaration_to_expression(fn),
-		fn.metadata?.generated_helpers || [],
-		fn.metadata?.generated_statics || [],
+	const call = setLocation(
+		create_define_vapor_component_call(
+			function_declaration_to_expression(fn),
+			fn.metadata?.generated_helpers || [],
+			fn.metadata?.generated_statics || [],
+		),
+		fn,
+		true,
 	);
 
 	if (fn.type !== 'FunctionDeclaration') {
 		return call;
 	}
 
-	const parent = path.at(-1);
 	if (parent?.type === 'ExportDefaultDeclaration' && parent.declaration === fn) {
-		return setLocation(call, fn, true);
+		return call;
 	}
 
 	if (!fn.id) {
@@ -431,9 +435,7 @@ function wrap_native_function_component(fn, ctx, path) {
 	}
 
 	return setLocation(
-		builders.declaration('const', [
-			builders.declarator(create_generated_identifier(fn.id.name), setLocation(call, fn, true)),
-		]),
+		b.declaration('const', [b.declarator(create_generated_identifier(fn.id.name), call)]),
 		fn,
 		true,
 	);
@@ -441,15 +443,14 @@ function wrap_native_function_component(fn, ctx, path) {
 
 /**
  * @param {any} fn
- * @param {any[]} path
+ * @param {any} parent
  * @returns {string | null}
  */
-function get_function_component_name(fn, path) {
+function get_function_component_name(fn, parent) {
 	if (fn.id?.type === 'Identifier') {
 		return fn.id.name;
 	}
 
-	const parent = path.at(-1);
 	if (parent?.type === 'VariableDeclarator' && parent.init === fn) {
 		return get_static_name(parent.id);
 	}
@@ -489,7 +490,7 @@ function get_static_name(node) {
  * @returns {any}
  */
 function create_define_vapor_component_call(fn_expression, generated_helpers, generated_statics) {
-	const call = builders.call('defineVaporComponent', fn_expression);
+	const call = b.call('defineVaporComponent', fn_expression);
 	Object.assign(/** @type {any} */ (call.metadata), {
 		generated_helpers,
 		generated_statics,
@@ -538,25 +539,22 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
 	}
 
 	const attributes = [
-		builders.jsx_attribute(
-			builders.jsx_id('in'),
-			to_jsx_expression_container(clone_expression_node(node.right)),
-		),
+		b.jsx_attribute(b.jsx_id('in'), to_jsx_expression_container(clone_expression_node(node.right))),
 	];
 
 	if (key_expression) {
 		attributes.push(
-			builders.jsx_attribute(
-				builders.jsx_id('getKey'),
+			b.jsx_attribute(
+				b.jsx_id('getKey'),
 				to_jsx_expression_container(create_loop_callback(loop_params, key_expression, true)),
 			),
 		);
 	}
 
 	return to_jsx_expression_container(
-		builders.jsx_element_fresh(
-			builders.jsx_opening_element(builders.jsx_id('VaporFor'), attributes),
-			builders.jsx_closing_element(builders.jsx_id('VaporFor')),
+		b.jsx_element_fresh(
+			b.jsx_opening_element(b.jsx_id('VaporFor'), attributes),
+			b.jsx_closing_element(b.jsx_id('VaporFor')),
 			[to_jsx_expression_container(create_loop_callback(slot.params, slot.body, slot.expression))],
 		),
 	);
@@ -570,12 +568,9 @@ function render_for_of_as_vapor_for(node, loop_params, body_statements, transfor
  */
 function render_for_of_as_flat_map(node, loop_params, rendered) {
 	return to_jsx_expression_container(
-		builders.call(
-			builders.member(clone_expression_node(node.right), 'flatMap'),
-			builders.arrow(
-				loop_params,
-				builders.block([builders.return(to_array_render_expression(rendered))]),
-			),
+		b.call(
+			b.member(clone_expression_node(node.right), 'flatMap'),
+			b.arrow(loop_params, b.block([b.return(to_array_render_expression(rendered))])),
 		),
 	);
 }
@@ -616,11 +611,11 @@ function expression_can_skip_rendering(node) {
  */
 function to_array_render_expression(node) {
 	if (node?.type === 'Literal' && node.value === null) {
-		return builders.array([]);
+		return b.array([]);
 	}
 
 	if (node?.type === 'ConditionalExpression') {
-		return builders.conditional(
+		return b.conditional(
 			node.test,
 			to_array_render_expression(node.consequent),
 			to_array_render_expression(node.alternate),
@@ -628,14 +623,10 @@ function to_array_render_expression(node) {
 	}
 
 	if (node?.type === 'LogicalExpression' && node.operator === '&&') {
-		return builders.conditional(
-			node.left,
-			to_array_render_expression(node.right),
-			builders.array([]),
-		);
+		return b.conditional(node.left, to_array_render_expression(node.right), b.array([]));
 	}
 
-	return builders.array([node]);
+	return b.array([node]);
 }
 
 /**
@@ -693,7 +684,7 @@ function strip_top_level_jsx_keys(node) {
  * @returns {any}
  */
 function create_loop_callback(loop_params, body, expression) {
-	const callback = builders.arrow(
+	const callback = b.arrow(
 		loop_params.map((param) => clone_expression_node(param)),
 		body,
 	);
@@ -1013,12 +1004,7 @@ function create_property_member_expression(object, key) {
  * @returns {any}
  */
 function create_index_member_expression(object, index) {
-	return create_member_expression(
-		clone_expression_node(object),
-		builders.literal(index),
-		true,
-		object,
-	);
+	return create_member_expression(clone_expression_node(object), b.literal(index), true, object);
 }
 
 /**
@@ -1037,7 +1023,7 @@ function create_value_member_expression(identifier) {
  * @returns {any}
  */
 function create_member_expression(object, property, computed, source_node) {
-	return builders.member(object, property, computed, false, source_node);
+	return b.member(object, property, computed, false, source_node);
 }
 
 /**
@@ -1046,23 +1032,13 @@ function create_member_expression(object, property, computed, source_node) {
  */
 function function_declaration_to_expression(fn) {
 	if (fn.type === 'ArrowFunctionExpression') {
-		return {
-			...fn,
-			metadata: {
-				...(fn.metadata || {}),
-				path: fn.metadata?.path || [],
-			},
-		};
+		return fn;
 	}
 
-	return {
-		...fn,
-		type: 'FunctionExpression',
-		metadata: {
-			...(fn.metadata || {}),
-			path: fn.metadata?.path || [],
-		},
-	};
+	const expression = b.function(fn.id, fn.params, fn.body, fn.async, fn.typeParameters, fn);
+	expression.generator = fn.generator;
+	expression.metadata = { ...(fn.metadata || {}), path: fn.metadata?.path || [] };
+	return expression;
 }
 
 const VUE_SETUP_CALLS = new Set([
@@ -1155,14 +1131,8 @@ function create_vue_named_ref_spread(attr) {
 	const attr_name = get_vue_attribute_name(attr);
 	const value = get_vue_attribute_expression(attr);
 	if (attr_name === null) return attr;
-	const prop = builders.prop(
-		'init',
-		builders.key(attr_name),
-		value ?? builders.literal(true),
-		false,
-		false,
-	);
-	return builders.jsx_spread_attribute(builders.object([prop], attr), attr);
+	const prop = b.prop('init', b.key(attr_name), value ?? b.literal(true), false, false);
+	return b.jsx_spread_attribute(b.object([prop], attr), attr);
 }
 
 /**
@@ -1212,7 +1182,7 @@ function rewrite_host_text_children(node, walked_children, raw_children, attribu
  * @returns {any}
  */
 function to_jsx_expression_container(expression, source_node = expression) {
-	return builders.jsx_expression_container(expression, source_node);
+	return b.jsx_expression_container(expression, source_node);
 }
 
 /**
@@ -1288,7 +1258,7 @@ function ensure_named_import(program, source, name, local = name) {
 		return;
 	}
 
-	program.body.unshift(builders.imports([[name, local, 'value']], source));
+	program.body.unshift(b.imports([[name, local, 'value']], source));
 }
 
 /**
@@ -1297,11 +1267,5 @@ function ensure_named_import(program, source, name, local = name) {
  * @returns {any}
  */
 function create_import_specifier(name, local = name) {
-	return {
-		type: 'ImportSpecifier',
-		imported: builders.id(name),
-		local: builders.id(local),
-		importKind: 'value',
-		metadata: { path: [] },
-	};
+	return b.import_specifier(name, local, 'value');
 }

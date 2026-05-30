@@ -155,13 +155,6 @@ export interface JsxPlatformHooks {
 	 */
 	wrapHelperComponent?: (helperFn: any, helperId: any, ctx: any, sourceNode: any) => any;
 	/**
-	 * Wrap an uppercase JavaScript function that returns native TSRX as a target
-	 * component. Vue uses this to turn `function App() { return <></>; }` into a
-	 * `defineVaporComponent(function App() { ... })` binding while lowercase
-	 * TSRX-returning callbacks stay plain functions.
-	 */
-	wrapNativeFunctionComponent?: (fn: any, ctx: any, path: any[]) => any;
-	/**
 	 * Emit hook-isolation helper components as unique module-scope declarations
 	 * instead of lazily creating and caching them from the parent component body.
 	 * React enables this so generated branches stay compatible with the React

@@ -102,11 +102,15 @@ interface BaseNodeMetaData {
 }
 
 interface FunctionMetaData extends BaseNodeMetaData {
+	native_tsrx?: boolean;
 	native_tsrx_function?: boolean;
+	hook_split?: boolean;
 	is_method?: boolean;
 	tracked?: boolean;
 	has_lazy_descendants?: boolean;
 	synthetic_children?: boolean;
+	generated_helpers?: any[];
+	generated_statics?: any[];
 }
 
 // Strip parent, loc, and range from TSESTree nodes to match @sveltejs/acorn-typescript output
@@ -160,6 +164,13 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData & {
 			invalid_tsrx_template_return?: boolean;
 			generated_loop_continue_return?: boolean;
+		};
+	}
+
+	interface BlockStatement {
+		metadata: BaseNodeMetaData & {
+			hook_split_block?: boolean;
+			native_return_block?: boolean;
 		};
 	}
 
@@ -238,6 +249,7 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
+		Tsrx: Tsrx;
 		Text: TextNode;
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
@@ -343,7 +355,7 @@ declare module 'estree' {
 		closingElement: ESTreeJSX.JSXClosingElement;
 	}
 
-	interface Tsrx extends AST.BaseNode {
+	interface Tsrx extends AST.BaseExpression {
 		type: 'Tsrx';
 		attributes: Array<any>;
 		children: AST.Node[];
@@ -646,6 +658,12 @@ declare module 'estree-jsx' {
 	interface JSXElement {
 		metadata: BaseNodeMetaData & {
 			ts_name?: string;
+		};
+	}
+
+	interface JSXOpeningElement {
+		metadata: BaseNodeMetaData & {
+			native_tsrx_pretransformed?: boolean;
 		};
 	}
 
