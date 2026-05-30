@@ -1,5 +1,19 @@
 # @tsrx/vite-plugin-react
 
+## 0.0.51
+
+### Patch Changes
+
+- [#1181](https://github.com/Ripple-TS/ripple/pull/1181)
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Refresh virtual TSRX CSS
+  modules during Vite hot updates.
+
+- Updated dependencies
+  [[`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc),
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)]:
+  - @tsrx/react@0.2.19
+
 ## 0.0.50
 
 ### Patch Changes

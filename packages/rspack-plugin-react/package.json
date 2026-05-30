@@ -3,7 +3,7 @@
   "description": "Rspack plugin for @tsrx/react",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "type": "module",
   "publishConfig": {
     "access": "public"

@@ -1,5 +1,25 @@
 # @tsrx/react
 
+## 0.2.19
+
+### Patch Changes
+
+- [#1181](https://github.com/Ripple-TS/ripple/pull/1181)
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Map style expression
+  assignments (`const styles = <style>…</style>`) to their source range in Volar
+  type-only output so hovering the `<style>` tags shows intellisense.
+
+- [#1181](https://github.com/Ripple-TS/ripple/pull/1181)
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve template style
+  blocks as embedded CSS regions in Volar type-only output.
+
+- Updated dependencies
+  [[`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc),
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)]:
+  - @tsrx/core@0.1.19
+
 ## 0.2.18
 
 ### Patch Changes

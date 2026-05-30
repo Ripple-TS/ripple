@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.21
+
+### Patch Changes
+
+- [#1181](https://github.com/Ripple-TS/ripple/pull/1181)
+  [`0574e73`](https://github.com/Ripple-TS/ripple/commit/0574e73830a549f515cef6aa8c0a1e38c79b06cc)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Highlight TSRX style
+  expressions as embedded CSS in expression contexts.
+
+- Updated dependencies []:
+  - @tsrx/typescript-plugin@0.3.71
+  - @ripple-ts/language-server@0.3.71
+
 ## 2.0.20
 
 ### Patch Changes
