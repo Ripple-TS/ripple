@@ -526,6 +526,25 @@ export function App() {
 }
 ```
 
+The `catch` block also receives a `reset` function as its second argument.
+Calling `reset()` clears the error state and re-renders the children, which is
+useful for building retry UIs:
+
+```tsrx
+export function RetryBoundary() {
+	return <>
+		try {
+			<ComponentThatMightFail />
+		} catch (e, reset) {
+			<div>
+				<p>"Error: "{e.message}</p>
+				<button onClick={() => reset()}>"Try again"</button>
+			</div>
+		}
+	</>;
+}
+```
+
 ### Guard returns
 
 Use normal JavaScript guard clauses before returning TSRX. A `return` statement
