@@ -524,6 +524,36 @@ function App() { return <>
 		expect(result).toContain('const content = <div class="native">');
 	});
 
+	it('keeps assigned style blocks anchored in to_ts output', () => {
+		const source = `
+function App() { return <>
+	const styles = <style>
+		.logo { display: block; }
+	</style>;
+
+	<div class={styles.logo} />
+</>; }
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
+		const source_offset = source.indexOf('<style>') + 1;
+		const mapping = result.mappings.find((mapping: {
+			sourceOffsets: number[];
+			lengths: number[];
+		}) => {
+			const start = mapping.sourceOffsets[0];
+			const end = start + mapping.lengths[0];
+			return source_offset >= start && source_offset < end;
+		});
+
+		expect(result.code).toContain('<style></style>');
+		expect(result.code).toContain('const styles = {');
+		expect(result.code).not.toContain('(<style></style>,');
+		expect(result.code).toContain('\'logo\'');
+		expect(mapping).toBeDefined();
+		expect(mapping?.data.completion).toBe(true);
+		expect(mapping?.data.verification).toBe(false);
+	});
+
 	it('maps identifiers from native expression values in to_ts output', () => {
 		const source = `
 function App() { return <>

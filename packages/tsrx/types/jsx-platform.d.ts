@@ -42,6 +42,7 @@ export interface JsxTransformContext {
 	needs_for_of_iterable: boolean;
 	needs_iteration_value_type: boolean;
 	stylesheets: AST.CSS.StyleSheet[];
+	type_only_style_anchors: AST.Statement[];
 	module_scoped_hook_components: boolean;
 	helper_state: {
 		base_name: string;

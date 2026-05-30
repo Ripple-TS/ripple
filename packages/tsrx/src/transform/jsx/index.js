@@ -169,6 +169,8 @@ export function createJsxTransform(platform) {
 		const collect = !!(options?.collect || options?.loose);
 		/** @type {any[]} */
 		const stylesheets = [];
+		/** @type {AST.Statement[]} */
+		const type_only_style_anchors = [];
 
 		/** @type {TransformContext} */
 		const transform_context = {
@@ -183,6 +185,7 @@ export function createJsxTransform(platform) {
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
 			stylesheets,
+			type_only_style_anchors,
 			module_scoped_hook_components:
 				options?.moduleScopedHookComponents ?? !!platform.hooks?.moduleScopedHookComponents,
 			helper_state: null,
@@ -255,7 +258,7 @@ export function createJsxTransform(platform) {
 					if (stylesheet) {
 						analyze_css(stylesheet);
 						state.stylesheets.push(stylesheet);
-						return /** @type {any} */ (create_style_class_map_from_stylesheet(stylesheet));
+						return /** @type {any} */ (create_style_expression_value(node, stylesheet, state));
 					}
 				}
 
@@ -312,7 +315,11 @@ export function createJsxTransform(platform) {
 			},
 		});
 
-		const expanded = expand_component_helpers(/** @type {AST.Program} */ (transformed));
+		const transformed_program = /** @type {AST.Program} */ (transformed);
+		if (type_only_style_anchors.length > 0) {
+			transformed_program.body.unshift(...type_only_style_anchors);
+		}
+		const expanded = expand_component_helpers(transformed_program);
 		if (platform.hooks?.injectImports) {
 			platform.hooks.injectImports(expanded, transform_context, suspense_source);
 		} else {
@@ -1532,6 +1539,64 @@ function create_tsrx_style_ref_setup_statements(fragment, style_context, transfo
 				create_generated_identifier(create_style_ref_temp_name(transform_context)),
 		},
 	);
+}
+
+/**
+ * @param {any} node
+ * @param {any} stylesheet
+ * @param {TransformContext} transform_context
+ * @returns {AST.Expression}
+ */
+function create_style_expression_value(node, stylesheet, transform_context) {
+	const class_map = create_style_class_map_from_stylesheet(stylesheet);
+	if (!transform_context.typeOnly) {
+		return class_map;
+	}
+
+	add_type_only_style_anchor(node, transform_context);
+	return class_map;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ */
+function add_type_only_style_anchor(node, transform_context) {
+	const style_anchor = b.jsx_element(clone_expression_node(node, true), [], []);
+	disable_style_anchor_verification(style_anchor);
+
+	const anchor_id = create_generated_identifier(create_style_anchor_name(transform_context));
+	transform_context.type_only_style_anchors.push(
+		b.const(anchor_id, style_anchor),
+		b.stmt(clone_identifier(anchor_id)),
+	);
+}
+
+/**
+ * @param {TransformContext} transform_context
+ * @returns {string}
+ */
+function create_style_anchor_name(transform_context) {
+	transform_context.local_statement_component_index += 1;
+	return `_tsrx_style_anchor_${transform_context.local_statement_component_index}`;
+}
+
+/**
+ * @param {ESTreeJSX.JSXElement} element
+ */
+function disable_style_anchor_verification(element) {
+	if (element.openingElement?.name) {
+		element.openingElement.name.metadata = {
+			...(element.openingElement.name.metadata || {}),
+			disable_verification: true,
+		};
+	}
+	if (element.closingElement?.name) {
+		element.closingElement.name.metadata = {
+			...(element.closingElement.name.metadata || {}),
+			disable_verification: true,
+		};
+	}
 }
 
 /**
@@ -2807,7 +2872,11 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 				node.closingElement || node,
 			);
 
-	return set_loc(b.jsx_element_fresh(openingElement, closingElement, children), node);
+	const element = set_loc(b.jsx_element_fresh(openingElement, closingElement, children), node);
+	if (transform_context.typeOnly && is_style_element(node)) {
+		disable_style_anchor_verification(element);
+	}
+	return element;
 }
 
 /**
