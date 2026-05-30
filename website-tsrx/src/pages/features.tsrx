@@ -123,6 +123,21 @@ const TRY_HTML = highlight_tsrx(
 }`,
 );
 
+const TRY_RESET_HTML = highlight_tsrx(
+	`export function RetryBoundary() {
+  return <>
+    try {
+      <ComponentThatMightFail />
+    } catch (e, reset) {
+      <div>
+        <p>"Error: "{e.message}</p>
+        <button onClick={() => reset()}>"Try again"</button>
+      </div>
+    }
+  </>;
+}`,
+);
+
 const SWITCH_HTML = highlight_tsrx(
 	`function StatusMessage({ status }: { status: string }) {
   return <>
@@ -637,6 +652,18 @@ export function FeaturesPage() {
 							</p>
 							<pre class="code-block">
 								<code innerHTML={TRY_HTML} />
+							</pre>
+							<p class="section-body">
+								{'The '}
+								<code class="inline-code">{'catch'}</code>
+								{' block also receives a '}
+								<code class="inline-code">{'reset'}</code>
+								{' function as its second argument. Calling '}
+								<code class="inline-code">{'reset()'}</code>
+								{' clears the error state and re-renders the children, which is useful for building retry UIs:'}
+							</p>
+							<pre class="code-block">
+								<code innerHTML={TRY_RESET_HTML} />
 							</pre>
 						</section>
 
