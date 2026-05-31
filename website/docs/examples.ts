@@ -730,7 +730,12 @@ export default function App() {
     console.log(untrack(() => quadruple));
 	})
 
-	return <></>;
+	return <>
+		<p>"Count: "{count}</p>
+		<p>"Double: "{double}</p>
+		<p>"Quadruple: "{quadruple}</p>
+		<button onClick={() => { count++; }}>"Increment Count"</button>
+  </>;
 }
 `,
 	},
@@ -756,7 +761,7 @@ export default function App() {
     <button onClick={() => message = 'Clicked!'}>"Click me"</button>
     <input onInput={(e) => message = e.target.value} />
     <p>{message}</p>
-  </div>
+  </div>;
 }
 `,
 	},
@@ -765,7 +770,6 @@ export default function App() {
 		code: `import { track } from 'ripple';
 
 export default function App() {
-
   let &[div] = track();
 
   const divRef = (node) => {
