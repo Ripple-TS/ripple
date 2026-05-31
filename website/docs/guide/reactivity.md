@@ -87,7 +87,7 @@ import { track, effect, untrack } from 'ripple';
 export function App() {
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 4);
+  let &[quadruple] = track(() => double * 2);
 
   return <>
     <p>"Count: "{count}</p>
@@ -122,7 +122,7 @@ import { track, effect, untrack } from 'ripple';
 
 let &[count] = track(0);
 let &[double] = track(() => count * 2);
-let &[quadruple] = track(() => double * 4);
+let &[quadruple] = track(() => double * 2);
 
 effect(() => {
   // This effect will never fire again, as we've untracked the only dependency it has
@@ -370,7 +370,7 @@ import { track, effect, untrack } from 'ripple';
 export function App() {
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 4);
+  let &[quadruple] = track(() => double * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has

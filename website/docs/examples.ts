@@ -1,23 +1,22 @@
 export const examples: Array<{ title: string; code: string }> = [
 	{
 		title: 'Hello World',
-		code:
-`export default function App() {
+		code: `
+export default function App() {
 	return <div>"Hello World"</div>
 }`,
 	},
 	{
 		title: 'Dynamic Content',
-		code:
-`export default function App() {
+		code: `
+export default function App() {
 	const message = "Hello Ripple!";
 	return <div>{message}</div>
 }`,
 	},
 	{
 		title: 'Styling',
-		code:
-`import { track } from 'ripple';
+		code: `import { track } from 'ripple';
 
 export default function App() {
   return <>
@@ -76,8 +75,8 @@ function DynamicClasses() {
 	},
 	{
 		title: 'Components',
-		code:
-`function Card() {
+		code: `
+function Card() {
 	return <>
 		<div class="card">
 			<p>"Card content here"</p>
@@ -102,8 +101,8 @@ export default function App() {
 	},
 	{
 		title: 'Props',
-		code:
-`export default function App() {
+		code: `
+export default function App() {
 	return <>
 		<Card message="A Card" />
 
@@ -294,8 +293,8 @@ export default function App() {
 	},
 	{
 		title: 'For Loops',
-		code:
-`function List({ items }) {
+		code: `
+function List({ items }) {
 	return <ul>
 		for (const item of items) {
 			<li>{item}</li>
@@ -322,8 +321,8 @@ export default function App() {
 	},
 	{
 		title: 'Try Catch',
-		code:
-`const reportError = (e) => {
+		code: `
+const reportError = (e) => {
 	console.warn(e);
 }
 
@@ -368,8 +367,8 @@ export default function SuspenseBoundary() {
 	},
 	{
 		title: 'Raw HTML',
-		code:
-`export default function App() {
+		code: `
+export default function App() {
 	let source = \`
 		<h1>My Blog Post</h1>
 		<p>Hi! I like JS and Ripple.</p>
@@ -726,7 +725,7 @@ function basic() {
 export default function App() {
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 4);
+  let &[quadruple] = track(() => double * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
