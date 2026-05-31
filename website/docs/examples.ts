@@ -638,16 +638,14 @@ function createQuad(&[count]) {
 
 export default function App() {
   let &[count, countTrack] = track(0);
-
   const &[double] = createDouble(countTrack);
+	const &[quad] = createQuad(countTrack);
 
 	return <>
+		<p>"Count: "{count}</p>
 		<p>"Double: "{double}</p>
-
-		const &[quad] = createQuad(countTrack);
 		<p>"Quadruple: "{quad}</p>
-
-		<button onClick={() => { count++; }}>"Increment"</button>
+		<button onClick={() => { count++; }}>"Increment Count"</button>
   </>;
 }
 `,
