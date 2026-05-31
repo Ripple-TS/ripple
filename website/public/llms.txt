@@ -1312,7 +1312,7 @@ export function App() {
 		let &[month] = track(() => date.getMonth());
 		<p>"Assigned usage: Year "{year}", Month "{month}</p>
 
-		<button onClick={() => date.setFullYear(2027)}>"Change to 2026"</button>
+		<button onClick={() => date.setFullYear(2027)}>"Change to 2027"</button>
 		<button onClick={() => date.setMonth(11)}>"Change to December"</button>
   </>;
 }
