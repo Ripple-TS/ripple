@@ -37,9 +37,8 @@ The statement rules apply to the template body, not to CSS text inside
 
 ```ripple
 function MyComponent({ name }: { name: string | null }) {
+  const fallback = 'friend';
   return <>
-    const fallback = 'friend';
-
     if (name) {
       <p>"Hello, "{name}</p>
     } else {
@@ -158,8 +157,7 @@ similar to block statements in regular JavaScript.
 
 ```ripple
 function TemplateScope() {
-  return <>
-  <div>
+  return <div>
     // Variable declarations inside templates
     const message = 'Hello from template scope';
     let count = 42;
@@ -189,8 +187,6 @@ function TemplateScope() {
     debugger;
     // You can even put debugger statements
   </div>
-
-  </>;
 }
 ```
 
@@ -236,15 +232,11 @@ injections. If you'd like to render trusted HTML onto your page, use the native
 
 ```ripple
 export function App() {
-  return <>
   let source = `
-<h1>My Blog Post</h1>
-<p>Hi! I like JS and Ripple.</p>
-`;
-
-  <article innerHTML={source} />
-
-  </>;
+    <h1>My Blog Post</h1>
+    <p>Hi! I like JS and Ripple.</p>
+  `;
+  return <article innerHTML={source} />
 }
 ```
 
@@ -271,14 +263,13 @@ JavaScript with `String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export function Frame({ children }) {
-  return <>
-  <div class="frame">
-    {'before'}
-    {children}
-    {'after'}
-  </div>
-
-  </>;
+  return (
+    <div class="frame">
+      "before"
+      {children}
+      "after"
+    </div>
+  )
 }
 ```
 
@@ -287,12 +278,8 @@ never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
 export function App() {
-  return <>
   const markup = '<span>Not HTML</span>';
-
   // Renders the literal string "<span>Not HTML</span>" as text
-  <div>{markup}</div>
-
-  </>;
+  return <div>{markup}</div>
 }
 ```

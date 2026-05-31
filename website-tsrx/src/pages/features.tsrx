@@ -82,7 +82,7 @@ const TEXT_EXPR_HTML = highlight_tsrx(
 
 const IF_HTML = highlight_tsrx(
 	`function StatusBadge({ status }: { status: string }) {
-  return <>
+  return (
     <div>
       if (status === 'active') {
         <span class="badge active">"Online"</span>
@@ -92,20 +92,20 @@ const IF_HTML = highlight_tsrx(
         <span class="badge">"Offline"</span>
       }
     </div>
-  </>;
+  );
 }`,
 );
 
 const FOR_HTML = highlight_tsrx(
 	`function TodoList({ items }: { items: Todo[] }) {
-  return <>
+  return (
     <ul>
       for (const item of items; index i; key item.id) {
         if (item.hidden) continue;
         <li>{i + 1}". "{item.text}</li>
       }
     </ul>
-  </>;
+  );
 }`,
 );
 
@@ -167,13 +167,13 @@ const SCOPING_HTML = highlight_tsrx(
 	`function App() {
   const name = 'World';
 
-  return <>
+  return (
     <div>
       // This is a new scope - you can declare variables here
       const greeting = 'Hello, ' + name + '!';
       <h1>{greeting}</h1>
     </div>
-  </>;
+  );
 }`,
 );
 
@@ -194,9 +194,7 @@ const RENDER_PROPS_HTML = highlight_tsrx(
     <li>{item.label}</li>
   </>;
 
-  return <>
-    <List items={items} render={renderItem} />
-  </>;
+  return <List items={items} render={renderItem} />
 }`,
 );
 
@@ -310,12 +308,12 @@ function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
 
 const LAZY_PROPS_HTML = highlight_tsrx(
 	`function UserCard(&{ name, age }: { name: string; age: number }) {
-  return <>
+  return (
     <div>
       <h2>{name}</h2>
       <p>"Age: "{age}</p>
     </div>
-  </>;
+  );
 }`,
 );
 

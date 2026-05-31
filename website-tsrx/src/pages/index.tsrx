@@ -33,18 +33,18 @@ const REACT_HOOKS_HTML = highlight_tsrx(
 
 const SOLID_LAZY_HTML = highlight_tsrx(
 	`function Counter(&{ count, label }: Props) {
-  return <>
+  return (
     <section>
       <h2>{label}</h2>
       <p>"Count: "{count}</p>
     </section>
-  </>;
+  );
 }`,
 );
 
 const INLINE_LOCALS_HTML = highlight_tsrx(
 	`function Cart({ items }: { items: Item[] }) {
-  return <>
+  return (
     <div>
       <h2>"Your cart"</h2>
 
@@ -54,7 +54,7 @@ const INLINE_LOCALS_HTML = highlight_tsrx(
       <p>"Subtotal: $"{subtotal}</p>
       <p>"Save: $"{(subtotal * discount).toFixed(2)}</p>
     </div>
-  </>;
+  );
 }`,
 );
 
