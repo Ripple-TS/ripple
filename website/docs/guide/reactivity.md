@@ -82,7 +82,7 @@ Tracked derived values are also `Tracked<T>` objects, except that you pass a
 function to `track` rather than a value:
 
 ```ts
-import { track, effect, untrack } from 'ripple';
+import { track } from 'ripple';
 
 export function App() {
   let &[count] = track(10);
