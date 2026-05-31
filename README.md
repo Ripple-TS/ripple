@@ -133,10 +133,7 @@ export function App() {
   let &[count] = track(0);
 
   return <div>
-    <p>
-      "Count: "
-      {count}
-    </p>
+    <p>"Count: "{count}</p>
     <button onClick={() => count++}>"Increment"</button>
   </div>;
 }
@@ -188,18 +185,9 @@ export function App() {
   let &[quadruple] = track(() => double * 2);
 
   return <div>
-    <p>
-      "Count: "
-      {count}
-    </p>
-    <p>
-      "Double: "
-      {double}
-    </p>
-    <p>
-      "Quadruple: "
-      {quadruple}
-    </p>
+    <p>"Count: "{count}</p>
+    <p>"Double: "{double}</p>
+    <p>"Quadruple: "{quadruple}</p>
     <button onClick={() => count++}>"Increment"</button>
   </div>;
 }
@@ -217,18 +205,8 @@ export function App() {
   const set = new RippleSet([1, 2, 3]); // RippleSet
 
   return <div>
-    <p>
-      "Items: "
-      {items.join(', ')}
-    </p>
-    <p>
-      "Object: a="
-      {obj.a}
-      ", b="
-      {obj.b}
-      ", c="
-      {obj.c}
-    </p>
+    <p>"Items: "{items.join(', ')}</p>
+    <p>"Object: a="{obj.a}", b="{obj.b}", c="{obj.c}</p>
     <button onClick={() => items.push(items.length + 1)}>"Add Item"</button>
     <button onClick={() => (obj.c = (obj.c ?? 0) + 1)}>"Increment c"</button>
   </div>;
@@ -253,10 +231,7 @@ export function App() {
   const &[double] = createDouble(countTracked);
 
   return <div>
-    <p>
-      "Double: "
-      {double}
-    </p>
+    <p>"Double: "{double}</p>
     <button onClick={() => count++}>"Increment"</button>
   </div>;
 }
@@ -316,12 +291,7 @@ export function App() {
 
   return <div>
     for (const item of items; index i; key item.id) {
-      <div>
-        {item.name}
-        " (index: "
-        {i}
-        ")"
-      </div>
+      <div>{item.name}" (index: "{i}")"</div>
     }
     <button
       onClick={() => items.push({
@@ -355,10 +325,7 @@ export function App() {
     try {
       <ComponentThatMayFail {shouldFail} />
     } catch (e) {
-      <div>
-        "Error: "
-        {e.message}
-      </div>
+      <div>"Error: "{e.message}</div>
     }
     <button onClick={() => (shouldFail = !shouldFail)}>"Toggle Error"</button>
   </div>;
@@ -392,10 +359,7 @@ export function App() {
   return <div>
     <button onClick={() => console.log('Clicked')}>"Click"</button>
     <input onInput={(e) => (value = e.target.value)} />
-    <p>
-      "You typed: "
-      {value}
-    </p>
+    <p>"You typed: "{value}</p>
   </div>;
 }
 ```
@@ -463,10 +427,7 @@ const ThemeContext = new Context();
 
 function Child() {
   const &[theme] = ThemeContext.get();
-  return <div>
-    "Theme: "
-    {theme}
-  </div>;
+  return <div>"Theme: "{theme}</div>;
 }
 
 export function App() {
