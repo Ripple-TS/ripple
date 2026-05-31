@@ -162,11 +162,7 @@ index.
 
 ```ripple
 for (const item of items; index i) {
-  <div>
-    {item.label}
-    " at index "
-    {i}
-  </div>
+  <div>{item.label}" at index "{i}</div>
 }
 ```
 
@@ -174,11 +170,7 @@ You can also provide a `key` for efficient list updates and reconciliation:
 
 ```ripple
 for (const item of items; index i; key item.id) {
-  <div>
-    {item.label}
-    " at index "
-    {i}
-  </div>
+  <div>{item.label}" at index "{i}</div>
 }
 ```
 
@@ -201,11 +193,7 @@ export function Numbers() {
   const array = new RippleArray(1, 2, 3);
   return <>
     for (const item of array; index i) {
-      <div>
-        {item}
-        " at index "
-        {i}
-      </div>
+      <div>{item}" at index "{i}</div>
     }
 
     <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
