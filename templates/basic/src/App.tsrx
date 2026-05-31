@@ -2,7 +2,6 @@ import { track } from 'ripple';
 
 export function App() {
 	return <>
-		let &[count] = track(0);
 		<div class="app">
 			<div class="card">
 				<img
@@ -14,6 +13,7 @@ export function App() {
 				<p class="subtitle">{'The elegant TypeScript UI framework.'}</p>
 
 				<div class="counter">
+					let &[count] = track(0);
 					<button onClick={() => count--}>{'-'}</button>
 					<span class="count">{count}</span>
 					<button onClick={() => count++}>{'+'}</button>
