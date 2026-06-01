@@ -748,6 +748,27 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).toContain('function useComponent(component: Component)');
 	});
 
+	it('preserves Component as type-only import when used as both decorator and type', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { Component } from 'ripple';
+
+			@Component
+			function Label() {
+				return "Hi";
+			}
+
+			function useComponent(component: Component) {
+				return component;
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).not.toContain('@Component');
+		expect(code).toContain('Component');
+		expect(code).toContain('function useComponent(component: Component)');
+	});
+
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
 			`function App() { return <>

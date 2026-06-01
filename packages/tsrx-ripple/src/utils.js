@@ -182,11 +182,21 @@ export function strip_static_component_import_specifiers(node, context) {
 		return node;
 	}
 
-	const specifiers = node.specifiers.filter(
-		(specifier) => !is_static_component_import_specifier(specifier, node, context),
-	);
+	let changed = false;
+	const specifiers = [];
 
-	if (specifiers.length === node.specifiers.length) {
+	for (const specifier of node.specifiers) {
+		if (is_static_component_import_specifier(specifier, node, context)) {
+			changed = true;
+			if (context.state.to_ts) {
+				specifiers.push({ ...specifier, importKind: 'type' });
+			}
+		} else {
+			specifiers.push(specifier);
+		}
+	}
+
+	if (!changed) {
 		return node;
 	}
 
