@@ -301,10 +301,7 @@ export function App() {
     } pending {
       <p>"Loading..."</p>
     } catch (e) {
-      <p>
-        "Error: "
-        {e.message}
-      </p>
+      <p>"Error: "{e.message}</p>
     }
   </>;
 }
@@ -334,10 +331,7 @@ export function CitySearch() {
     const city = await track(() => fetchCity(query));
 
     // Only renders once city has resolved for the current query
-    <p>
-      "Showing: "
-      {query}
-    </p>
+    <p>"Showing: "{query}</p>
     <CityCard {city} />
   </>;
 }

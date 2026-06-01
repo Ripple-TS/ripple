@@ -133,8 +133,7 @@ Named props such as `inputRef` are ordinary component API props. Pass them into
 ```ripple
 export function Field({ inputRef, ...rest }) {
   return <label>
-    "Search"
-    <input type="search" ref={inputRef} {...rest} />
+    "Search"<input type="search" ref={inputRef} {...rest} />
   </label>
 }
 

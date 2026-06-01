@@ -169,10 +169,7 @@ function TemplateScope() {
     const isEven = count % 2 === 0;
 
     <h1>{message}</h1>
-    <p>
-      "Count is: "
-      {count}
-    </p>
+    <p>"Count is: "{count}</p>
 
     if (isEven) {
       <span>"Count is even"</span>

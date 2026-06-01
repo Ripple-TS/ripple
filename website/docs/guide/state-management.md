@@ -48,9 +48,7 @@ export function App() {
     <button onClick={() => {
       count++;
       count2++;
-    }}>
-      "Click Me"
-    </button>
+    }}>"Click Me"</button>
 
     // context's reactive property count gets updated
     <pre>"Context: "{count}</pre>

@@ -529,15 +529,11 @@ export function App() {
   const set = new RippleSet([1, 2, 3]);
   return <>
     // direct usage
-    <p>
-      "Direct usage: set contains 2: "{set.has(2)}
-    </p>
+    <p>"Direct usage: set contains 2: "{set.has(2)}</p>
 
     // reactive assignment
     let &[has] = track(() => set.has(2));
-    <p>
-      "Assigned usage: set contains 2: "{has}
-    </p>
+    <p>"Assigned usage: set contains 2: "{has}</p>
 
     <button onClick={() => set.delete(2)}>"Delete 2"</button>
     <button onClick={() => set.add(2)}>"Add 2"</button>
@@ -570,15 +566,11 @@ export function App() {
   const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
   return <>
     // direct usage
-    <p>
-      "Direct usage: map has an item with key 2: "{map.has(2)}
-    </p>
+    <p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
 
     // reactive assignment
     let &[has] = track(() => map.has(2));
-    <p>
-      "Assigned usage: map has an item with key 2: "{has}
-    </p>
+    <p>"Assigned usage: map has an item with key 2: "{has}</p>
 
     <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
     <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
@@ -613,19 +605,13 @@ export function App() {
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
   return <>
     // direct usage
-    <p>
-      "Direct usage: Current year is "{date.getFullYear()}
-    </p>
-    <p>
-      "ISO String: "date.toISOString()}
-    </p>
+    <p>"Direct usage: Current year is "{date.getFullYear()}</p>
+    <p>"ISO String: "date.toISOString()}</p>
 
     // reactive assignment
     let &[year] = track(() => date.getFullYear());
     let &[month] = track(() => date.getMonth());
-    <p>
-      "Assigned usage: Year "{year}", Month "{month}
-    </p>
+    <p>"Assigned usage: Year "{year}", Month "{month}</p>
 
     <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
     <button onClick={() => date.setMonth(11)}>"Change to December"</button>
