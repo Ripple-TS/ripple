@@ -1280,6 +1280,8 @@ function rewrite_early_return_guard_body(body, transform_context) {
 		transform_context.needs_show = true;
 		const show_body = body_to_component_early_return_jsx_child(after_jsx, transform_context);
 		next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
+	} else {
+		return null;
 	}
 
 	return next_body;

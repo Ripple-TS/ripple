@@ -393,6 +393,26 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('if (cond)');
 		});
 
+		it('component-body guard without a render tail stays conditional', () => {
+			const { code } = compile(
+				`function App(
+					{ cond, items, setup }: { cond: boolean; items: string[]; setup: () => void }
+				) {
+					for (const item of items) {
+						return <><span>{item}</span></>;
+					}
+					if (cond) return null;
+					setup();
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<For each={items}>');
+			expect(code).toContain('<Show when={cond}');
+			expect(code).toContain('setup();');
+			expect(code).not.toContain('if (cond)');
+		});
+
 		it('component-body if/else returns lower to reactive <Show>', () => {
 			const { code } = compile(
 				`function App({ cond }: { cond: boolean }) {
