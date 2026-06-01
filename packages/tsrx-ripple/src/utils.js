@@ -468,7 +468,7 @@ export function get_native_tsrx_function_body(node) {
 }
 
 /**
- * @param {AST.Statement[]} statements
+ * @param {AST.TSRXStatement[]} statements
  * @param {boolean} [omit_final_control_return]
  * @returns {AST.Node[]}
  */
@@ -504,8 +504,8 @@ export function expand_native_tsrx_return_statements(
 }
 
 /**
- * @param {AST.Statement} statement
- * @returns {AST.Statement}
+ * @param {AST.TSRXStatement} statement
+ * @returns {AST.TSRXStatement}
  */
 function mark_regular_js_statement(statement) {
 	statement.metadata = {
@@ -529,19 +529,18 @@ function mark_returned_template_child(node) {
 }
 
 /**
- * @param {AST.Statement} statement
+ * @param {AST.TSRXStatement} statement
  * @returns {boolean}
  */
 function is_native_tsrx_statement(statement) {
 	return (
 		is_native_tsrx_template_node(statement) ||
-		(statement.type === 'ExpressionStatement' &&
-			is_native_tsrx_template_node(statement.expression))
+		(statement.type === 'ExpressionStatement' && is_native_tsrx_template_node(statement.expression))
 	);
 }
 
 /**
- * @param {AST.Statement} statement
+ * @param {AST.TSRXStatement} statement
  * @returns {AST.Element | AST.TsrxFragment | null}
  */
 function get_native_tsrx_statement_template(statement) {
@@ -650,7 +649,7 @@ function create_return_argument_child(argument, statement) {
 }
 
 /**
- * @param {AST.Statement} statement
+ * @param {AST.TSRXStatement} statement
  * @param {boolean} [omit_control_return]
  * @returns {AST.Node[]}
  */
@@ -749,7 +748,7 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 }
 
 /**
- * @param {AST.Statement} statement
+ * @param {AST.TSRXStatement} statement
  * @returns {AST.Statement}
  */
 function expand_embedded_native_tsrx_return_statement(statement) {

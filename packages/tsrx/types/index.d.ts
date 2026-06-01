@@ -448,7 +448,16 @@ declare module 'estree' {
 
 	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute;
 
-	export type TSRXStatement = AST.Statement | TSESTree.Statement;
+	export type TSRXStatement =
+		| AST.Statement
+		| AST.Element
+		| AST.TsrxFragment
+		| AST.TsxCompat
+		| AST.TSDeclareFunction
+		| AST.TSEnumDeclaration
+		| AST.TSInterfaceDeclaration
+		| AST.TSModuleDeclaration
+		| AST.TSTypeAliasDeclaration;
 
 	export type NodeWithChildren = AST.Element | AST.TsrxFragment | AST.TsxCompat;
 
