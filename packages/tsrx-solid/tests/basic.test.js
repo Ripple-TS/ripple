@@ -470,6 +470,26 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
+		it('component-body switch with final return lowers non-returning cases', () => {
+			const { code } = compile(
+				`function App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'a':
+							<span>{'A'}</span>
+							break;
+					}
+					return <><em>{'rest'}</em></>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toContain("<Match when={kind === 'a'}>");
+			expect(code).toContain("{'A'}");
+			expect(code).toContain("{'rest'}");
+			expect(code).not.toContain('switch (kind)');
+		});
+
 		it('component-body for-of returns lower to reactive <For>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: string[] }) {
@@ -483,6 +503,21 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('<For each={items}>');
 			expect(code).toContain('(item) => <div>{item}</div>');
 			expect(code).not.toContain('for (const item of items)');
+		});
+
+		it('component-body for-of preserves index and key while lowering', () => {
+			const { code } = compile(
+				`function App({ items }: { items: { id: string; name: string }[] }) {
+					for (const item of items; index i; key item.id) {
+						return <><div>{i() + item.name}</div></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<For each={items}');
+			expect(code).toMatch(/keyed=\{\(item\) =>\s*item\.id\}/);
+			expect(code).toContain('(item, i) => <div>{i() + item.name}</div>');
 		});
 
 		it('component-body try/pending/catch returns lower to reactive boundaries', () => {

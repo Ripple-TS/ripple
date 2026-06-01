@@ -1335,7 +1335,7 @@ function lower_solid_component_statement_list(statements) {
 		const statement = statements[index];
 		const return_nodes = return_statement_to_render_nodes(statement);
 		if (return_nodes) {
-			return { nodes: [...nodes, ...return_nodes], terminal: true, changed };
+			return { nodes: [...nodes, ...return_nodes], terminal: true, changed: true };
 		}
 
 		const rest = statements.slice(index + 1);
@@ -1388,16 +1388,16 @@ function lower_solid_component_control_statement(statement, rest) {
 		) {
 			return null;
 		}
+		const next_for = b.for_of(
+			statement.left,
+			statement.right,
+			b.block(lowered_body.nodes, statement.body),
+			statement.await,
+		);
+		next_for.index = statement.index;
+		next_for.key = statement.key;
 		return {
-			node: set_loc(
-				b.for_of(
-					statement.left,
-					statement.right,
-					b.block(lowered_body.nodes, statement.body),
-					statement.await,
-				),
-				statement,
-			),
+			node: set_loc(next_for, statement),
 			terminal: false,
 		};
 	}
@@ -1499,7 +1499,9 @@ function lower_solid_component_switch_statement(node, rest) {
 		const lowered = lower_solid_component_statement_list(switch_case.consequent || []);
 		return { switch_case, lowered };
 	});
-	let changed = lowered_cases.some((entry) => entry.lowered.changed || entry.lowered.terminal);
+	let changed =
+		!!rest_result?.changed ||
+		lowered_cases.some((entry) => entry.lowered.changed || entry.lowered.terminal);
 
 	if (!changed) {
 		return null;
