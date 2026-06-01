@@ -1535,7 +1535,14 @@ function lower_solid_component_try_statement(node, rest) {
 		? lower_solid_component_statement_list(node.pending.body || [])
 		: null;
 
-	if (!try_body.changed && !try_body.terminal && !catch_body?.changed && !catch_body?.terminal) {
+	if (
+		!try_body.changed &&
+		!try_body.terminal &&
+		!catch_body?.changed &&
+		!catch_body?.terminal &&
+		!pending_body?.changed &&
+		!pending_body?.terminal
+	) {
 		return null;
 	}
 

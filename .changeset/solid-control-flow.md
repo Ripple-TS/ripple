@@ -1,4 +1,5 @@
 ---
+"@tsrx/core": patch
 "@tsrx/solid": patch
 ---
 

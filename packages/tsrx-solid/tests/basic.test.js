@@ -484,6 +484,30 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('try {');
 		});
 
+		it('component-body try lowers when only pending returns render output', () => {
+			const { code } = compile(
+				`function App(
+					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
+				) {
+					try {
+						setup();
+					} pending {
+						return <><div>{'loading'}</div></>;
+					} catch (err) {
+						recover(err);
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toContain('setup();');
+			expect(code).toContain('recover(err);');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
+			expect(code).not.toContain('try {');
+		});
+
 		it('rejects return statements inside TSRX templates', () => {
 			expect(() =>
 				compile(
