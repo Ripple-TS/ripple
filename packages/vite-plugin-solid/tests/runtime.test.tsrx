@@ -532,6 +532,20 @@ function SwitchReactiveApp() {
 	</>;
 }
 
+function SwitchBreakTrailingReturnApp() {
+	const [kind, setKind] = createSignal('skip');
+	switch (kind()) {
+		case 'skip':
+			break;
+		case 'done':
+			return <><p class="switch-break-result">{'done'}</p></>;
+	}
+	return <>
+		<p class="switch-break-rest">{'rest'}</p>
+		<button class="switch-break-done" onClick={() => setKind('done')}>{'done'}</button>
+	</>;
+}
+
 // ── Composite children ──
 
 function Wrapper(props: { children?: any }) {
@@ -1256,6 +1270,16 @@ describe('tsrx-solid runtime', () => {
 
 		await click('.go-unknown');
 		expect(text('.page')).toBe('404');
+	});
+
+	it('renders trailing component output for switch break cases', async () => {
+		await render(SwitchBreakTrailingReturnApp);
+		expect(text('.switch-break-rest')).toBe('rest');
+		expect(container.querySelector('.switch-break-result')).toBeNull();
+
+		await click('.switch-break-done');
+		expect(text('.switch-break-result')).toBe('done');
+		expect(container.querySelector('.switch-break-rest')).toBeNull();
 	});
 
 	// ── Composite children ──

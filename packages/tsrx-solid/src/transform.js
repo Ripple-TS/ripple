@@ -1486,32 +1486,55 @@ function lower_solid_component_if_statement(node, rest) {
  * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
  */
 function lower_solid_component_switch_statement(node, rest) {
-	let changed = false;
 	let has_default = false;
 	let consumes_rest = false;
 	let all_cases_terminal = node.cases.length > 0;
 
-	const cases = node.cases.map((/** @type {any} */ switch_case) => {
+	const rest_result = rest.length > 0 ? lower_solid_component_statement_list(rest) : null;
+	/** @type {Array<{ switch_case: any, lowered: { nodes: any[], terminal: boolean, changed: boolean } }>} */
+	const lowered_cases = node.cases.map((/** @type {any} */ switch_case) => {
 		if (switch_case.test === null) {
 			has_default = true;
 		}
 		const lowered = lower_solid_component_statement_list(switch_case.consequent || []);
-		changed ||= lowered.changed || lowered.terminal;
-		all_cases_terminal &&= lowered.terminal;
-		const consequent = lowered.terminal ? [...lowered.nodes, b.break] : lowered.nodes;
-		return set_loc(b.switch_case(switch_case.test, consequent), switch_case);
+		return { switch_case, lowered };
 	});
+	let changed = lowered_cases.some((entry) => entry.lowered.changed || entry.lowered.terminal);
 
 	if (!changed) {
 		return null;
 	}
 
-	if (!has_default && rest.length > 0) {
-		const rest_result = lower_solid_component_statement_list(rest);
+	const cases = lowered_cases.map((entry, index) => {
+		const { switch_case, lowered } = entry;
+		let case_terminal = lowered.terminal;
+		const consequent = lowered.terminal ? [...lowered.nodes, b.break] : lowered.nodes;
+		let next_consequent = consequent;
+
+		if (!lowered.terminal && rest_result) {
+			const merged = merge_switch_rest_into_exiting_case(
+				consequent,
+				rest_result.nodes,
+				index === lowered_cases.length - 1,
+			);
+			if (merged !== consequent) {
+				next_consequent = merged;
+				case_terminal = rest_result.terminal;
+			}
+		}
+
+		all_cases_terminal &&= case_terminal;
+
+		return set_loc(b.switch_case(switch_case.test, next_consequent), switch_case);
+	});
+
+	if (!has_default && rest_result) {
 		cases.push(b.switch_case(null, rest_result.nodes));
 		has_default = true;
 		consumes_rest = true;
-		all_cases_terminal = rest_result.terminal;
+		all_cases_terminal &&= rest_result.terminal;
+	} else if (rest_result) {
+		consumes_rest = true;
 	}
 
 	return {
@@ -1519,6 +1542,37 @@ function lower_solid_component_switch_statement(node, rest) {
 		terminal: all_cases_terminal && has_default,
 		consumesRest: consumes_rest,
 	};
+}
+
+/**
+ * @param {any[]} case_nodes
+ * @param {any[]} rest_nodes
+ * @param {boolean} is_last_case
+ * @returns {any[]}
+ */
+function merge_switch_rest_into_exiting_case(case_nodes, rest_nodes, is_last_case) {
+	const break_index = case_nodes.findIndex((node) => node?.type === 'BreakStatement');
+	if (break_index !== -1) {
+		return [
+			...case_nodes.slice(0, break_index),
+			...clone_switch_rest_nodes(rest_nodes),
+			...case_nodes.slice(break_index),
+		];
+	}
+
+	if (is_last_case) {
+		return [...case_nodes, ...clone_switch_rest_nodes(rest_nodes), b.break];
+	}
+
+	return case_nodes;
+}
+
+/**
+ * @param {any[]} nodes
+ * @returns {any[]}
+ */
+function clone_switch_rest_nodes(nodes) {
+	return nodes.map((node) => clone_expression_node(node, false));
 }
 
 /**

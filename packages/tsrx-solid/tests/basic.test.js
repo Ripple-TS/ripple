@@ -449,6 +449,27 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('switch (kind)');
 		});
 
+		it('component-body switch break cases include trailing render fallback', () => {
+			const { code } = compile(
+				`function App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'skip':
+							break;
+						case 'a':
+							return <><span>{'A'}</span></>;
+					}
+					return <><em>{'rest'}</em></>;
+				}`,
+				'App.tsrx',
+			);
+			const rest_static = code.match(/const (App__static\d+) = <em>\{'rest'\}<\/em>;/)?.[1];
+
+			expect(rest_static).toBeTruthy();
+			expect(code).toContain(`fallback={${rest_static}}`);
+			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
+		});
+
 		it('component-body for-of returns lower to reactive <For>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: string[] }) {
