@@ -119,6 +119,52 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('keeps single-line text and expression children inline when they fit', async () => {
+		const input = `export function App() {
+  let [count] = track(0);
+  return <div>
+    <p>"Count: "{count}</p>
+    <p>"Count: "{count}</p>
+    <button onClick={() => count++}>"Increment"</button>
+  </div>;
+}`;
+		const expected = `export function App() {
+  let [count] = track(0);
+  return <div>
+    <p>"Count: "{count}</p>
+    <p>"Count: "{count}</p>
+    <button onClick={() => count++}>"Increment"</button>
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('preserves multiline text and expression children', async () => {
+		const input = `export function App() {
+  let [count] = track(0);
+  return <div>
+    <p>
+      "Count: "
+      {count}
+    </p>
+  </div>;
+}`;
+		const expected = `export function App() {
+  let [count] = track(0);
+  return <div>
+    <p>
+      "Count: "
+      {count}
+    </p>
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats async component functions that await before returning TSRX', async () => {
 		const input = `export async function App(){const data=await fetchData();return <pre>{data}</pre>}`;
 		const expected = `export async function App() {

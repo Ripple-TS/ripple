@@ -5565,6 +5565,39 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 }
 
 /**
+ * Check whether a child can participate in compact inline TSRX content.
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+function isInlineableTextOrExpressionChild(child) {
+	if (!child || (child.type !== 'Text' && child.type !== 'TSRXExpression')) {
+		return false;
+	}
+
+	if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
+		return false;
+	}
+
+	const expression = /** @type {{ expression?: AST.Node & AST.NodeWithMaybeComments }} */ (child)
+		.expression;
+	return !expression || !hasComment(expression);
+}
+
+/**
+ * @param {AST.Element} node
+ * @returns {boolean}
+ */
+function shouldTryInlineMultipleTextChildren(node) {
+	return (
+		wasOriginallySingleLine(node) &&
+		Array.isArray(node.children) &&
+		node.children.length > 1 &&
+		node.children.some((child) => child.type === 'Text') &&
+		node.children.every(isInlineableTextOrExpressionChild)
+	);
+}
+
+/**
  * Get leading comments from element metadata
  * @param {AST.Element} node - The element node
  * @returns {AST.Comment[]}
@@ -6521,6 +6554,11 @@ function printElement(element, path, options, print) {
 
 	const closingTag = ['</', tagName, '>'];
 	let elementOutput;
+	const shouldTryInlineMultipleChildren =
+		!openingTagAlwaysBreaks &&
+		fallbackCommentParts.length === 0 &&
+		closingElementComments.length === 0 &&
+		shouldTryInlineMultipleTextChildren(node);
 
 	if (finalChildren.length === 1) {
 		const child = finalChildren[0];
@@ -6555,6 +6593,12 @@ function printElement(element, path, options, print) {
 		} else {
 			elementOutput = [openingTag, indent([hardline, ...finalChildren]), hardline, closingTag];
 		}
+	} else if (shouldTryInlineMultipleChildren) {
+		const inlineChildren = path.map(print, 'children');
+		elementOutput = conditionalGroup([
+			group([openingTag, ...inlineChildren, closingTag]),
+			[openingTag, indent([hardline, ...finalChildren]), hardline, closingTag],
+		]);
 	} else {
 		elementOutput = group([openingTag, indent([hardline, ...finalChildren]), hardline, closingTag]);
 	}
