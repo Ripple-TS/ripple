@@ -124,8 +124,202 @@ export function get_tsrx_component_function_name(node, context) {
  * @param {CommonContext} context
  * @returns {boolean}
  */
+export function has_ripple_component_decorator(node, context) {
+	if (
+		!node ||
+		(node.type !== 'FunctionDeclaration' &&
+			node.type !== 'FunctionExpression' &&
+			node.type !== 'ArrowFunctionExpression')
+	) {
+		return false;
+	}
+
+	const decorators = /** @type {any} */ (node).decorators;
+	return (
+		Array.isArray(decorators) &&
+		decorators.some((decorator) =>
+			is_ripple_component_decorator_expression(decorator.expression, context),
+		)
+	);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @param {CommonContext} context
+ * @returns {void}
+ */
+export function strip_ripple_component_decorators(node, context) {
+	const decorators = /** @type {any} */ (node)?.decorators;
+	if (!Array.isArray(decorators) || decorators.length === 0) return;
+
+	const next_decorators = decorators.filter(
+		(decorator) => !is_ripple_component_decorator_expression(decorator.expression, context),
+	);
+
+	if (next_decorators.length === 0) {
+		delete (/** @type {any} */ (node).decorators);
+	} else {
+		/** @type {any} */ (node).decorators = next_decorators;
+	}
+}
+
+/**
+ * @param {AST.ImportDeclaration} node
+ * @param {CommonContext} context
+ * @returns {AST.ImportDeclaration | AST.EmptyStatement}
+ */
+export function strip_static_component_import_specifiers(node, context) {
+	if (node.source.type !== 'Literal' || node.source.value !== 'ripple') {
+		return node;
+	}
+
+	const specifiers = node.specifiers.filter(
+		(specifier) => !is_static_component_import_specifier(specifier, node, context),
+	);
+
+	if (specifiers.length === node.specifiers.length) {
+		return node;
+	}
+
+	if (specifiers.length === 0) {
+		return b.empty;
+	}
+
+	return { ...node, specifiers };
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
 export function is_tsrx_component_function(node, context) {
-	return is_native_tsrx_function_node(node) || function_contains_native_tsrx_template(node);
+	return (
+		is_native_tsrx_function_node(node) ||
+		has_ripple_component_decorator(node, context) ||
+		function_has_native_tsrx_return(node)
+	);
+}
+
+/**
+ * @param {AST.Expression | null | undefined} expression
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+function is_ripple_component_decorator_expression(expression, context) {
+	if (!expression) return false;
+
+	if (expression.type === 'CallExpression') {
+		return is_ripple_component_decorator_expression(
+			/** @type {AST.Expression} */ (expression.callee),
+			context,
+		);
+	}
+
+	if (expression.type === 'Identifier') {
+		return is_ripple_component_import_identifier(expression.name, context);
+	}
+
+	if (
+		expression.type === 'MemberExpression' &&
+		!expression.computed &&
+		expression.object.type === 'Identifier' &&
+		expression.property.type === 'Identifier' &&
+		expression.property.name === 'Component'
+	) {
+		return is_ripple_namespace_import_identifier(expression.object.name, context);
+	}
+
+	return false;
+}
+
+/**
+ * @param {string} local_name
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+function is_ripple_component_import_identifier(local_name, context) {
+	const binding = context.state.scope.get(local_name);
+	const declaration = binding?.initial;
+	if (
+		binding?.declaration_kind !== 'import' ||
+		!declaration ||
+		declaration.type !== 'ImportDeclaration' ||
+		declaration.source.type !== 'Literal' ||
+		declaration.source.value !== 'ripple' ||
+		declaration.importKind === 'type'
+	) {
+		return false;
+	}
+
+	return declaration.specifiers.some(
+		(specifier) =>
+			specifier.type === 'ImportSpecifier' &&
+			specifier.local.name === local_name &&
+			/** @type {any} */ (specifier).importKind !== 'type' &&
+			get_imported_name(specifier) === 'Component',
+	);
+}
+
+/**
+ * @param {string} local_name
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+function is_ripple_namespace_import_identifier(local_name, context) {
+	const binding = context.state.scope.get(local_name);
+	const declaration = binding?.initial;
+	return !!(
+		binding?.declaration_kind === 'import' &&
+		declaration &&
+		declaration.type === 'ImportDeclaration' &&
+		declaration.source.type === 'Literal' &&
+		declaration.source.value === 'ripple' &&
+		declaration.importKind !== 'type' &&
+		declaration.specifiers.some(
+			(specifier) =>
+				specifier.type === 'ImportNamespaceSpecifier' && specifier.local.name === local_name,
+		)
+	);
+}
+
+/**
+ * @param {AST.ImportSpecifier} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported.type === 'Identifier') return imported.name;
+	if (imported.type === 'Literal')
+		return typeof imported.value === 'string' ? imported.value : null;
+	return null;
+}
+
+/**
+ * @param {AST.ImportDeclaration['specifiers'][number]} specifier
+ * @param {AST.ImportDeclaration} declaration
+ * @param {CommonContext} context
+ * @returns {boolean}
+ */
+function is_static_component_import_specifier(specifier, declaration, context) {
+	if (
+		declaration.importKind === 'type' ||
+		specifier.type !== 'ImportSpecifier' ||
+		/** @type {any} */ (specifier).importKind === 'type' ||
+		get_imported_name(specifier) !== 'Component'
+	) {
+		return false;
+	}
+
+	const binding = context.state.scope.get(specifier.local.name);
+	if (!binding) return false;
+
+	return (
+		binding.references.length > 0 &&
+		binding.references.every((reference) =>
+			reference.path.some((node) => /** @type {any} */ (node).type === 'Decorator'),
+		)
+	);
 }
 
 /**
@@ -156,27 +350,6 @@ export function function_has_native_tsrx_return(node) {
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
 	return statements_contain_native_tsrx_return(body);
-}
-
-/**
- * @param {AST.Node | null | undefined} node
- * @returns {boolean}
- */
-export function function_contains_native_tsrx_template(node) {
-	if (
-		!node ||
-		(node.type !== 'FunctionDeclaration' &&
-			node.type !== 'FunctionExpression' &&
-			node.type !== 'ArrowFunctionExpression')
-	) {
-		return false;
-	}
-
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return node_contains_native_tsrx_template(node.body, true);
-	}
-
-	return node_contains_native_tsrx_template(node.body, true);
 }
 
 /**
@@ -217,170 +390,7 @@ export function is_static_native_tsrx_function_call(expression, context) {
 	}
 
 	const initial = /** @type {AST.Node | null | undefined} */ (binding.initial);
-	return is_native_tsrx_function_node(initial) || function_contains_native_tsrx_template(initial);
-}
-
-/**
- * @param {AST.Node | null | undefined} node
- * @param {boolean} root
- * @returns {boolean}
- */
-function node_contains_native_tsrx_template(node, root = false) {
-	if (!node || typeof node !== 'object') return false;
-	if (is_native_tsrx_template_node(node)) return true;
-
-	if (
-		!root &&
-		(node.type === 'FunctionDeclaration' ||
-			node.type === 'FunctionExpression' ||
-			node.type === 'ArrowFunctionExpression' ||
-			node.type === 'ClassDeclaration' ||
-			node.type === 'ClassExpression')
-	) {
-		return false;
-	}
-
-	for (const key in node) {
-		if (
-			key === 'metadata' ||
-			key === 'parent' ||
-			key === 'loc' ||
-			key === 'start' ||
-			key === 'end' ||
-			key === 'type'
-		) {
-			continue;
-		}
-
-		const value = /** @type {any} */ (node)[key];
-		if (Array.isArray(value)) {
-			if (value.some((child) => node_contains_native_tsrx_template(child, false))) {
-				return true;
-			}
-		} else if (
-			value &&
-			typeof value === 'object' &&
-			node_contains_native_tsrx_template(value, false)
-		) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * @param {AST.Node | null | undefined} node
- * @returns {boolean}
- */
-function function_has_only_renderable_component_returns(node) {
-	if (
-		!node ||
-		(node.type !== 'FunctionDeclaration' &&
-			node.type !== 'FunctionExpression' &&
-			node.type !== 'ArrowFunctionExpression')
-	) {
-		return false;
-	}
-
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return is_renderable_component_return_argument(
-			/** @type {AST.Expression | null | undefined} */ (node.body),
-		);
-	}
-
-	/** @type {(AST.Expression | null | undefined)[]} */
-	const returns = [];
-	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	collect_component_return_arguments(body, returns);
-	return returns.length > 0 && returns.every(is_renderable_component_return_argument);
-}
-
-/**
- * @param {AST.Node[] | null | undefined} statements
- * @param {(AST.Expression | null | undefined)[]} returns
- * @returns {void}
- */
-function collect_component_return_arguments(statements, returns) {
-	if (!statements) return;
-	for (const statement of statements) {
-		collect_component_return_argument(statement, returns);
-	}
-}
-
-/**
- * @param {AST.Node | null | undefined} node
- * @param {(AST.Expression | null | undefined)[]} returns
- * @returns {void}
- */
-function collect_component_return_argument(node, returns) {
-	if (!node || typeof node !== 'object') return;
-
-	if (node.type === 'ReturnStatement') {
-		returns.push(node.argument);
-		return;
-	}
-
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'ClassDeclaration' ||
-		node.type === 'ClassExpression'
-	) {
-		return;
-	}
-
-	if (node.type === 'BlockStatement') {
-		collect_component_return_arguments(node.body, returns);
-		return;
-	}
-
-	if (node.type === 'IfStatement') {
-		collect_component_return_argument(node.consequent, returns);
-		collect_component_return_argument(node.alternate, returns);
-		return;
-	}
-
-	if (node.type === 'SwitchStatement') {
-		for (const switch_case of node.cases || []) {
-			collect_component_return_arguments(switch_case.consequent || [], returns);
-		}
-		return;
-	}
-
-	if (node.type === 'TryStatement') {
-		collect_component_return_argument(node.block, returns);
-		collect_component_return_argument(node.handler?.body, returns);
-		collect_component_return_argument(node.finalizer, returns);
-	}
-}
-
-/**
- * @param {AST.Expression | null | undefined} argument
- * @returns {boolean}
- */
-function is_renderable_component_return_argument(argument) {
-	if (!argument) return true;
-	if (is_native_tsrx_template_node(argument)) return true;
-	if (argument.type === 'Literal') {
-		return (
-			argument.value === null ||
-			typeof argument.value === 'string' ||
-			typeof argument.value === 'number' ||
-			typeof argument.value === 'bigint'
-		);
-	}
-	if (argument.type === 'Identifier' && argument.name === 'undefined') return true;
-	if (argument.type === 'UnaryExpression' && argument.operator === 'void') return true;
-	if (argument.type === 'TemplateLiteral') return true;
-	if (argument.type === 'ConditionalExpression') {
-		return (
-			is_renderable_component_return_argument(argument.consequent) &&
-			is_renderable_component_return_argument(argument.alternate)
-		);
-	}
-	return false;
+	return is_tsrx_component_function(initial, context);
 }
 
 /**

@@ -22,6 +22,18 @@ import { COMMENT_NODE, HYDRATION_START } from '../constants.js';
 
 // Re-export JSX runtime functions for jsxImportSource: "ripple"
 export { jsx, jsxs, Fragment } from '../jsx-runtime.js';
+
+/**
+ * Static marker consumed by the Ripple compiler when used as `@Component`.
+ * The runtime fallback returns the function unchanged.
+ * @template {Function} T
+ * @param {T} value
+ * @returns {T}
+ */
+export function Component(value) {
+	return value;
+}
+
 export {
 	UNINITIALIZED,
 	TRACKED_UPDATED,

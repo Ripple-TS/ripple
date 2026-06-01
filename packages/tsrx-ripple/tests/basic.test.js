@@ -576,6 +576,178 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).toContain('_$_.render_component(Label, node, {})');
 	});
 
+	it('uses @Component imported from ripple as a static component marker', () => {
+		const source = `import { Component } from 'ripple';
+
+			@Component
+			function Label() {
+				return "Hi";
+			}
+
+			@Component
+			function Empty() {
+				return null;
+			}
+
+			function App() {
+				return <>
+					<Label />
+					<Empty />
+				</>;
+			}`;
+		const { code } = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(code).not.toContain('@Component');
+		expect(code).not.toContain("import { Component } from 'ripple'");
+		expect(code).toContain('function Label()');
+		expect(code).toContain('function Empty()');
+		expect(code).toContain('return _$_.tsrx_element');
+		expect(code).toContain('var expression = _$_.text("Hi");');
+		expect(code).toContain('_$_.render_component(Label, node, {})');
+		expect(code).toContain('_$_.render_component(Empty, node_1, {})');
+		expect(server.code).not.toContain('@Component');
+		expect(server.code).not.toContain("import { Component } from 'ripple'");
+		expect(server.code).toContain("_$_.output_push('Hi');");
+		expect(server.code).toContain('_$_.render_component(comp, ...args);');
+	});
+
+	it('supports aliased @Component imports from ripple', () => {
+		const { code } = compile(
+			`import { Component as RippleComponent } from 'ripple';
+
+			@RippleComponent
+			function Label() {
+				return "Hi";
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).not.toContain('@RippleComponent');
+		expect(code).not.toContain('RippleComponent');
+		expect(code).toContain('function Label()');
+		expect(code).toContain('return _$_.tsrx_element');
+		expect(code).toContain('var expression = _$_.text("Hi");');
+	});
+
+	it('uses @Component to enable component control flow for renderable returns', () => {
+		const source = `import { Component } from 'ripple';
+
+			@Component
+			function Label({ ready }) {
+				if (!ready) {
+					return null;
+				}
+
+				try {
+					return "Ready";
+				} catch (error) {
+					return "Failed";
+				}
+			}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('return _$_.tsrx_element');
+		expect(client.code).toContain('_$_.if(');
+		expect(client.code).toContain('_$_.try(');
+		expect(server.code).toContain('return _$_.tsrx_element');
+		expect(server.code).toContain('_$_.regular_block');
+		expect(server.code).toContain('_$_.try_block');
+	});
+
+	it('does not treat unrelated function decorators as component markers', () => {
+		const { code } = compile(
+			`function Component(value) {
+				return value;
+			}
+
+			@Component
+			function Label() {
+				return "Hi";
+			}
+
+			const value = Label();`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('function Label()');
+		expect(code).toContain('return "Hi";');
+		expect(code).toContain('const value = Label();');
+		expect(code).not.toContain('return _$_.tsrx_element');
+	});
+
+	it('does not treat non-returned TSRX as a component signal', () => {
+		const source = `function Build(value) {
+			const node = <span>"Ignored"</span>;
+
+			if (value) {
+				console.log(node);
+			}
+
+			try {
+				console.log("ok");
+			} catch (error) {
+				console.log(error);
+			}
+
+			return "done";
+		}
+
+		const result = Build(true);`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('function Build(value)');
+		expect(client.code).toContain('return "done";');
+		expect(client.code).toContain('const result = Build(true);');
+		expect(client.code).not.toContain('return _$_.tsrx_element');
+		expect(client.code).not.toContain('_$_.if(');
+		expect(client.code).not.toContain('_$_.try(');
+		expect(server.code).toContain('function Build(value)');
+		expect(server.code).toContain('return "done";');
+		expect(server.code).not.toContain('return _$_.tsrx_element');
+		expect(server.code).not.toContain('_$_.try_block');
+	});
+
+	it('does not treat local function calls with non-returned TSRX as static component calls', () => {
+		const source = `function App() { return <>
+			const getLabel = () => {
+				const node = <span>"ignored"</span>;
+
+				if (node) {
+					return "label";
+				}
+
+				return "fallback";
+			};
+
+			<div>{getLabel()}</div>
+		</>; }`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('_$_.expression(expression, getLabel)');
+		expect(client.code).not.toContain('_$_.render_tsrx_element(getLabel()');
+		expect(server.code).toContain('_$_.escape(getLabel())');
+		expect(server.code).not.toContain('_$_.render_tsrx_element(getLabel())');
+	});
+
+	it('preserves Component imports used outside static decorators in TypeScript output', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { Component } from 'ripple';
+
+			function useComponent(component: Component) {
+				return component;
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).toContain("import { Component } from 'ripple';");
+		expect(code).toContain('function useComponent(component: Component)');
+	});
+
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
 			`function App() { return <>
@@ -640,7 +812,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		expect(code).toMatch(/tsrx: \(\) => {\s+return _\$_.tsrx_element/);
 	});
 
-	it('allows return-value branches inside nested component prop functions', () => {
+	it('keeps return-value branches inside nested component prop functions as ordinary callbacks', () => {
 		const source = `function Page(props) { return <></>; }
 
 			export function Test() { return <>
@@ -667,11 +839,15 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(code).toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/menuAlt: \(isAdmin\) => {\s+if \(isAdmin\)/);
+		expect(code).toMatch(/bySwitch: \(role\) => {\s+switch \(role\)/);
+		expect(code).toContain('return [');
+		expect(code).toContain('_$_.tsrx_element');
 		expect(code).toContain("case 'admin':");
-		expect(code).toMatch(/_\$_.expression\(expression.*\(\) => \[/s);
-		expect(server.code).toContain('_$_.render_expression([');
+		expect(code).not.toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
+		expect(code).not.toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(server.code).toContain('_$_.tsrx_element');
+		expect(server.code).not.toContain('_$_.render_expression([');
 	});
 
 	it('allows any returns inside nested component prop functions', () => {
@@ -788,18 +964,31 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect_value_function(`function Test() { return <p />; }`);
 	});
 
-	it('compiles template variables and alternate returns as renderable values', () => {
-		expect_value_function(`function Test(flag) {
+	it('keeps template variables and alternate returns as ordinary renderable values', () => {
+		const source = `function Test(flag) {
 			const alt = <p />;
 			if (flag === 'array') return [alt, 'text'];
 			if (flag === 'null') return null;
 			if (flag === 'undefined') return undefined;
 			return alt;
-		}`);
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('const alt = _$_.tsrx_element');
+		expect(client.code).toContain("return [alt, 'text'];");
+		expect(client.code).toContain('return alt;');
+		expect(client.code).not.toContain('return _$_.tsrx_element((__anchor, __block) =>');
+		expect(server.code).toContain('const alt = _$_.tsrx_element');
+		expect(server.code).toContain("return [alt, 'text'];");
+		expect(server.code).not.toContain('return _$_.tsrx_element(() =>');
 	});
 
-	it('drops dead native template statements after ASI returns', () => {
-		const source = `function Test() {
+	it('drops dead native template statements after ASI returns in explicit components', () => {
+		const source = `import { Component } from 'ripple';
+
+		@Component
+		function Test() {
 			return;
 			<div>{"should not render"}</div>
 		}`;

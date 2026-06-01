@@ -34,16 +34,31 @@ TSRX element or a fragment.
 
 Direct calls keep ordinary helper semantics. A PascalCase helper such as
 `StatusCode()` or `FormatName()` is left as a normal function when called
-directly; component compilation applies to functions used as components or render
-entries, and to functions that return native TSRX without being directly called.
+directly; uppercase names are a convention, not a component signal. Ripple gives
+component control-flow semantics to functions that return native TSRX directly,
+or to functions marked with `@Component` from `ripple`. Creating a TSRX value
+inside a helper does not change how the rest of that helper behaves. Use
+`@Component` imported from `ripple` as a static compiler marker when a Ripple
+component intentionally returns renderable non-TSRX values such as `null`,
+strings, numbers, or conditionals of those values.
 
 ```ripple
+import { Component } from 'ripple';
+
 function Button(props: { text: string; onClick: () => void }) {
   return <button onClick={props.onClick}>{props.text}</button>;
 }
 
+@Component
+function EmptyState() {
+  return "Nothing here yet.";
+}
+
 export function App() {
-  return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
+  return <>
+    <Button text="Click me" onClick={() => console.log('Clicked!')} />
+    <EmptyState />
+  </>;
 }
 ```
 
@@ -73,6 +88,8 @@ export function Panel({ title, children }: { title: string; children: any }) {
 - Use `export function` for public components.
 - Return `<div />` directly for compact UI.
 - Return `<>...</>` when the template includes multiple statements.
+- Use `@Component` from `ripple` for Ripple components that return strings,
+  numbers, `null`, or other renderable non-TSRX values.
 - Keep inline `<style>` blocks inside the TSRX fragment/expression they style.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -81,6 +98,7 @@ export function Panel({ title, children }: { title: string; children: any }) {
 **LLM DON'T:**
 - Do not invent a custom declaration form for components.
 - Do not claim TSRX templates are restricted to special declarations or bodies.
+- Do not use `@Component` unless it is imported from `ripple`.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
   inside `<style>` blocks.
 - Use native TSRX elements or fragments directly when storing, passing, or

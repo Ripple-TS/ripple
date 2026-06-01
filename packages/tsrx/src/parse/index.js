@@ -95,6 +95,45 @@ export function skipWhitespace(parser) {
 }
 
 /**
+ * TypeScript supports class decorators through @sveltejs/acorn-typescript, but
+ * Ripple also uses a static function decorator as a component marker.
+ *
+ * @param {typeof acorn.Parser} Parser
+ * @returns {typeof acorn.Parser}
+ */
+function functionDecoratorPlugin(Parser) {
+	const { tokTypes: tt } = acorn;
+	return class FunctionDecoratorParser extends Parser {
+		canHaveLeadingDecorator() {
+			const parser = /** @type {any} */ (this);
+			return (
+				// @ts-expect-error Added by @sveltejs/acorn-typescript.
+				super.canHaveLeadingDecorator() ||
+				parser.match(tt._function) ||
+				(parser.isContextual('async') && parser.lookahead().type === tt._function)
+			);
+		}
+
+		/**
+		 * @param {any} node
+		 * @param {any} statement
+		 * @param {any} allowExpressionBody
+		 * @param {any} isAsync
+		 * @param {any} forInit
+		 */
+		parseFunction(node, statement, allowExpressionBody, isAsync, forInit) {
+			// @ts-expect-error Added by Acorn.
+			const fn = super.parseFunction(node, statement, allowExpressionBody, isAsync, forInit);
+			const parser = /** @type {any} */ (this);
+			if (parser.decoratorStack?.[parser.decoratorStack.length - 1]?.length) {
+				parser.takeDecorators(fn);
+			}
+			return fn;
+		}
+	};
+}
+
+/**
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
@@ -222,6 +261,7 @@ export function createParser(...plugins) {
 		/** @type {unknown} */ (
 			acorn.Parser.extend(
 				tsPlugin({ jsx: true }),
+				functionDecoratorPlugin,
 				...plugins.map((p) => /** @type {AcornPlugin} */ (/** @type {unknown} */ (p))),
 				elementTemplateClosingTagPlugin,
 			)

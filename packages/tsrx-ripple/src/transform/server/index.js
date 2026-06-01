@@ -63,6 +63,8 @@ import {
 	flatten_switch_consequent,
 	get_ripple_namespace_call_name,
 	strip_class_typescript_syntax,
+	strip_ripple_component_decorators,
+	strip_static_component_import_specifiers,
 	strip_typescript_expression_wrappers,
 	jsx_to_ripple_node,
 	build_index_read,
@@ -1283,6 +1285,7 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
  */
 function transform_native_tsrx_function(node, context) {
 	node.metadata.native_tsrx_function = true;
+	strip_ripple_component_decorators(node, context);
 	const is_tsrx_element = context.state.is_tsrx_element;
 	/** @type {AST.Pattern | null} */
 	let props_param_output = null;
@@ -2588,12 +2591,15 @@ const visitors = {
 			return b.empty;
 		}
 
-		return /** @type {AST.ImportDeclaration} */ ({
-			...node,
-			specifiers: node.specifiers
-				.filter((spec) => /** @type {AST.ImportSpecifier} */ (spec).importKind !== 'type')
-				.map((spec) => context.visit(spec)),
-		});
+		return strip_static_component_import_specifiers(
+			/** @type {AST.ImportDeclaration} */ ({
+				...node,
+				specifiers: node.specifiers
+					.filter((spec) => /** @type {AST.ImportSpecifier} */ (spec).importKind !== 'type')
+					.map((spec) => context.visit(spec)),
+			}),
+			context,
+		);
 	},
 
 	TryStatement(node, context) {

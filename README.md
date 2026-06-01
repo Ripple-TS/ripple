@@ -116,8 +116,21 @@ export function App() {
 
 Direct calls keep ordinary helper semantics. A PascalCase helper such as
 `StatusCode()` or `FormatName()` is left as a normal function when called
-directly; component compilation applies to functions used as components or render
-entries, and to functions that return native TSRX without being directly called.
+directly; uppercase names are a convention, not a component signal. Ripple gives
+component control-flow semantics to functions that return native TSRX directly, or
+to functions marked with `@Component` from `ripple`. Creating a TSRX value inside
+a helper does not change how the rest of that helper behaves. When a Ripple
+component intentionally returns a renderable value such as `null` or a string, use
+`@Component` so the compiler does not have to guess.
+
+```ts
+import { Component } from 'ripple';
+
+@Component
+function EmptyState() {
+  return 'Nothing here yet.';
+}
+```
 
 **[→ Component Guide](https://www.ripple-ts.com/docs/guide/components)**
 

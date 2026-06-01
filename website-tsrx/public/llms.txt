@@ -716,6 +716,12 @@ Ripple is both a compiler target and a runtime. See the Ripple llms.txt
 (https://www.ripple-ts.com/llms.txt) for `track()`, `effect()`, `mount()`,
 `hydrate()`, collection primitives, raw HTML props, context, portals, and
 transporting reactivity across function boundaries.
+Ripple also supports `@Component` imported from `ripple` as a static component
+marker for functions that intentionally return renderable non-TSRX values such
+as strings, numbers, `null`, or conditionals of those values. Uppercase names
+are only a naming convention; Ripple component control-flow semantics apply to
+functions that return TSRX directly or use `@Component`, not to helpers that
+merely create TSRX values internally.
 
 ## Common patterns
 

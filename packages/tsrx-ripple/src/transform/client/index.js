@@ -99,6 +99,8 @@ import {
 	is_style_element,
 	rewrite_lazy_member_base,
 	should_guard_regular_js_statement,
+	strip_ripple_component_decorators,
+	strip_static_component_import_specifiers,
 	strip_tsrx_style_elements,
 } from '../../utils.js';
 import is_reference from 'is-reference';
@@ -744,6 +746,7 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
  */
 function transform_native_tsrx_function(node, context) {
 	node.metadata.native_tsrx_function = true;
+	strip_ripple_component_decorators(node, context);
 	let prop_statements;
 	const metadata = {};
 	const is_tsrx_element = context.state.is_tsrx_element;
@@ -1510,14 +1513,18 @@ const visitors = {
 			return b.empty;
 		}
 
-		return /** @type {AST.ImportDeclaration} */ ({
-			...node,
-			specifiers: node.specifiers
-				.filter(
-					(spec) => state.to_ts || /** @type {AST.ImportSpecifier} */ (spec).importKind !== 'type',
-				)
-				.map((spec) => context.visit(spec)),
-		});
+		return strip_static_component_import_specifiers(
+			/** @type {AST.ImportDeclaration} */ ({
+				...node,
+				specifiers: node.specifiers
+					.filter(
+						(spec) =>
+							state.to_ts || /** @type {AST.ImportSpecifier} */ (spec).importKind !== 'type',
+					)
+					.map((spec) => context.visit(spec)),
+			}),
+			context,
+		);
 	},
 
 	TSNonNullExpression(node, context) {

@@ -1,6 +1,18 @@
 import { output_push, noop, tsrx_element } from './internal/server/index.js';
 
 export { Fragment } from '../jsx-runtime.js';
+
+/**
+ * Static marker consumed by the Ripple compiler when used as `@Component`.
+ * The runtime fallback returns the function unchanged.
+ * @template {Function} T
+ * @param {T} value
+ * @returns {T}
+ */
+export function Component(value) {
+	return value;
+}
+
 export { Context } from './internal/server/context.js';
 export {
 	untrack,

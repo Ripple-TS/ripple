@@ -27,6 +27,20 @@ export function App() {
 }
 ```
 
+If a Ripple component deliberately returns a renderable non-TSRX value, such as
+`null` or a string, mark it with `@Component` imported from `ripple`. This is a
+static compiler signal; uppercase names are only a convention. A helper that
+creates a TSRX value without returning TSRX directly stays an ordinary helper.
+
+```ripple
+import { Component } from 'ripple';
+
+@Component
+function EmptyState() {
+  return "Nothing here yet.";
+}
+```
+
 TSRX is the default UI expression form in `.tsrx` files. You can return a single
 element directly, or use a fragment when the template needs multiple statements.
 Once a TSRX expression is opened, its body is a template statement list:
