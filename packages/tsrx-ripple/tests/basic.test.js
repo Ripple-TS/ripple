@@ -729,7 +729,7 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(client.code).toContain('_$_.expression(expression, getLabel)');
 		expect(client.code).not.toContain('_$_.render_tsrx_element(getLabel()');
-		expect(server.code).toContain('_$_.escape(getLabel())');
+		expect(server.code).toContain('_$_.render_expression(getLabel())');
 		expect(server.code).not.toContain('_$_.render_tsrx_element(getLabel())');
 	});
 

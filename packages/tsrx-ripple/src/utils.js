@@ -183,13 +183,15 @@ export function strip_static_component_import_specifiers(node, context) {
 	}
 
 	let changed = false;
+	/** @type {AST.ImportDeclaration['specifiers']} */
 	const specifiers = [];
 
 	for (const specifier of node.specifiers) {
 		if (is_static_component_import_specifier(specifier, node, context)) {
 			changed = true;
 			if (context.state.to_ts) {
-				specifiers.push({ ...specifier, importKind: 'type' });
+				const import_specifier = /** @type {AST.ImportSpecifier} */ (specifier);
+				specifiers.push({ ...import_specifier, importKind: 'type' });
 			}
 		} else {
 			specifiers.push(specifier);
