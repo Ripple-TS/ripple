@@ -1,5 +1,17 @@
 import { track } from 'ripple';
 
+function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
+	return <div>
+		if (status === 'active') {
+			<span class="badge active">"Online"</span>
+		} else if (status === 'idle') {
+			<span class="badge idle">"Away"</span>
+		} else {
+			<span class="badge">"Offline"</span>
+		}
+	</div>;
+}
+
 export function App() {
 	return <>
 		<div class="app">
@@ -10,33 +22,33 @@ export function App() {
 					class="logo"
 				/>
 
-				<p class="subtitle">{'The elegant TypeScript UI framework.'}</p>
+				<p class="subtitle">"The elegant TypeScript UI framework."</p>
 
 				<div class="counter">
 					let &[count] = track(0);
-					<button onClick={() => count--}>{'-'}</button>
+					<button onClick={() => count--}>"-"</button>
 					<span class="count">{count}</span>
-					<button onClick={() => count++}>{'+'}</button>
+					<button onClick={() => count++}>"+"</button>
 				</div>
 
 				<div class="links">
 					<a href="https://www.ripple-ts.com/" target="_blank" class="link-btn docs">
-						{'Docs'}
+						"Docs"
 					</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple"
 						target="_blank"
 						class="link-btn github"
 					>
-						{'GitHub'}
+						"GitHub"
 					</a>
 				</div>
 
-				<p class="info">{'This is a basic Ripple application template.'}</p>
+				<p class="info">"This is a basic Ripple application template."</p>
 				<p class="edit-hint">
-					{'Edit '}
-					<code>{'src/App.tsrx'}</code>
-					{' to get started.'}
+					"Edit "
+					<code>"src/App.tsrx"</code>
+					" to get started."
 				</p>
 			</div>
 		</div>

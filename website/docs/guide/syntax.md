@@ -263,13 +263,11 @@ JavaScript with `String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export function Frame({ children }) {
-  return (
-    <div class="frame">
-      "before"
-      {children}
-      "after"
-    </div>
-  )
+  return <div class="frame">
+    "before"
+    {children}
+    "after"
+  </div>;
 }
 ```
 

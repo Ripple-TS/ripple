@@ -219,11 +219,9 @@ function Footer() {
 }
 
 export default function App() {
-  return (
-		<Card Header={CustomHeader} Footer={Footer}>
-			<p>"Card content here"</p>
-		</Card>
-	)
+  return <Card Header={CustomHeader} Footer={Footer}>
+		<p>"Card content here"</p>
+	</Card>
 }
 `,
 	},

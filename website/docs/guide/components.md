@@ -123,7 +123,7 @@ function Card({
       <hr />
       <Footer />
     }
-  </fieldset>
+  </fieldset>;
 }
 
 function CustomHeader() {
@@ -138,11 +138,9 @@ function CustomFooter() {
 }
 
 export function App() {
-  return (
-    <Card Header={CustomHeader} Footer={CustomFooter}>
-      <p>"Card content here"</p>
-    </Card>
-  )
+  return <Card Header={CustomHeader} Footer={CustomFooter}>
+    <p>"Card content here"</p>
+  </Card>;
 }
 ```
 
@@ -180,7 +178,7 @@ export function App() {
 
     // It can be passed as a prop to <Inner>, which is also in this scope
     <Inner Greeting={HelloGreeting} />
-  </Outer>
+  </Outer>;
 }
 ```
 
@@ -255,6 +253,6 @@ export function App() {
         <p>"This content escapes the normal component tree."</p>
       </div>
     </Portal>
-  </div>
+  </div>;
 }
 ```
