@@ -1,17 +1,5 @@
 import { track } from 'ripple';
 
-function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
-	return <div>
-		if (status === 'active') {
-			<span class="badge active">"Online"</span>
-		} else if (status === 'idle') {
-			<span class="badge idle">"Away"</span>
-		} else {
-			<span class="badge">"Offline"</span>
-		}
-	</div>;
-}
-
 export function App() {
 	return <>
 		<div class="app">
