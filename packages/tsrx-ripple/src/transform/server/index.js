@@ -68,6 +68,7 @@ import {
 	build_index_read,
 	build_index_write,
 	build_index_update,
+	expression_contains_call,
 	generate_local_name,
 	get_indexed_reactive_target,
 	rewrite_lazy_member_base,
@@ -2711,6 +2712,9 @@ const visitors = {
 			state.scope,
 			context,
 		);
+		const is_runtime_expression = expression_contains_call(
+			/** @type {AST.Expression} */ (node.expression),
+		);
 		let expression = /** @type {AST.Expression} */ (
 			visit(node.expression, {
 				...state,
@@ -2724,7 +2728,7 @@ const visitors = {
 			);
 		} else if (is_static_native_tsrx_call) {
 			state.init?.push(b.stmt(b.call('_$_.render_tsrx_element', expression)));
-		} else if (is_children_expression || is_collection_expression) {
+		} else if (is_children_expression || is_collection_expression || is_runtime_expression) {
 			state.init?.push(b.stmt(b.call('_$_.render_expression', expression)));
 		} else {
 			state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.call('_$_.escape', expression))));

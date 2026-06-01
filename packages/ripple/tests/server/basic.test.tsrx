@@ -105,6 +105,110 @@ second"</pre>
 		expect(body).toBeHtml('');
 	});
 
+	it('does not stringify adjacent call-containing expression children', async () => {
+		function child(label: string) {
+			return <><span>{label}</span></>;
+		}
+
+		function empty() {
+			return null;
+		}
+
+		const Constructed = function Constructed(label: string) {
+			return child(label);
+		} as unknown as {
+			new (label: string): ReturnType<typeof child>;
+		};
+
+		const factory = child;
+
+		function tag(_strings: TemplateStringsArray) {
+			return child('tagged');
+		}
+
+		const lookup = {
+			member: child('member'),
+		};
+
+		function getKey(): keyof typeof lookup {
+			return 'member';
+		}
+
+		function touch() {
+			return null;
+		}
+
+		let assigned;
+
+		function Basic() {
+			return <>
+				<div>
+					{'call:'}
+					{child('call')}
+				</div>
+				<div>
+					{'new:'}
+					{new Constructed('new')}
+				</div>
+				<div>
+					{'chain:'}
+					{factory?.('chain')}
+				</div>
+				<div>
+					{'ts-wrapper:'}
+					{child('ts-wrapper')!}
+				</div>
+				<div>
+					{'array:'}
+					{[child('array')]}
+				</div>
+				<div>
+					{'assignment:'}
+					{assigned = child('assignment')}
+				</div>
+				<div>
+					{'logical:'}
+					{true && child('logical')}
+				</div>
+				<div>
+					{'conditional:'}
+					{true ? child('conditional') : ''}
+				</div>
+				<div>
+					{'member:'}
+					{lookup[getKey()]}
+				</div>
+				<div>
+					{'object:'}
+					{{
+						[Symbol.for('ripple.element')]: true,
+						render() {
+							return child('object');
+						},
+					}}
+				</div>
+				<div>
+					{'sequence:'}
+					{(touch(), child('sequence'))}
+				</div>
+				<div>
+					{'tagged:'}
+					{tag`tagged`}
+				</div>
+				<div>
+					{'unary:'}
+					{void empty()}
+				</div>
+			</>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml(
+			'<div>call:<span>call</span></div><div>new:<span>new</span></div><div>chain:<span>chain</span></div><div>ts-wrapper:<span>ts-wrapper</span></div><div>array:<span>array</span></div><div>assignment:<span>assignment</span></div><div>logical:<span>logical</span></div><div>conditional:<span>conditional</span></div><div>member:<span>member</span></div><div>object:<span>object</span></div><div>sequence:<span>sequence</span></div><div>tagged:<span>tagged</span></div><div>unary:</div>',
+		);
+	});
+
 	it('does not render elements after an ASI return', async () => {
 		function Basic() {
 			return;
