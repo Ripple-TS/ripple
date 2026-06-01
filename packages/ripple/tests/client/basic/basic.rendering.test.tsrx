@@ -122,6 +122,122 @@ second"</pre>
 		expect(container.textContent).toBe('');
 	});
 
+	it('does not stringify adjacent call-containing expression children', () => {
+		function child(label: string) {
+			return <><span>{label}</span></>;
+		}
+
+		function empty() {
+			return null;
+		}
+
+		const Constructed = function Constructed(label: string) {
+			return child(label);
+		} as unknown as {
+			new (label: string): ReturnType<typeof child>;
+		};
+
+		const factory = child;
+
+		function tag(_strings: TemplateStringsArray) {
+			return child('tagged');
+		}
+
+		const lookup = {
+			member: child('member'),
+		};
+
+		function getKey(): keyof typeof lookup {
+			return 'member';
+		}
+
+		function touch() {
+			return null;
+		}
+
+		let assigned;
+
+		function Basic() {
+			return <>
+				<div>
+					{'call:'}
+					{child('call')}
+				</div>
+				<div>
+					{'new:'}
+					{new Constructed('new')}
+				</div>
+				<div>
+					{'chain:'}
+					{factory?.('chain')}
+				</div>
+				<div>
+					{'ts-wrapper:'}
+					{child('ts-wrapper')!}
+				</div>
+				<div>
+					{'array:'}
+					{[child('array')]}
+				</div>
+				<div>
+					{'assignment:'}
+					{assigned = child('assignment')}
+				</div>
+				<div>
+					{'logical:'}
+					{true && child('logical')}
+				</div>
+				<div>
+					{'conditional:'}
+					{true ? child('conditional') : ''}
+				</div>
+				<div>
+					{'member:'}
+					{lookup[getKey()]}
+				</div>
+				<div>
+					{'object:'}
+					{{
+						[Symbol.for('ripple.element')]: true,
+						render() {
+							return child('object');
+						},
+					}}
+				</div>
+				<div>
+					{'sequence:'}
+					{(touch(), child('sequence'))}
+				</div>
+				<div>
+					{'tagged:'}
+					{tag`tagged`}
+				</div>
+				<div>
+					{'unary:'}
+					{void empty()}
+				</div>
+			</>;
+		}
+
+		render(Basic);
+
+		expect([...container.querySelectorAll('div')].map((div) => div.textContent)).toEqual([
+			'call:call',
+			'new:new',
+			'chain:chain',
+			'ts-wrapper:ts-wrapper',
+			'array:array',
+			'assignment:assignment',
+			'logical:logical',
+			'conditional:conditional',
+			'member:member',
+			'object:object',
+			'sequence:sequence',
+			'tagged:tagged',
+			'unary:',
+		]);
+	});
+
 	it('does not render elements after an ASI return', () => {
 		function Basic() {
 			return;

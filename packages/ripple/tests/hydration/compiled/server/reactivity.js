@@ -71,7 +71,7 @@ export function ComputedValues() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(sum()));
+				_$_.render_expression(sum());
 			}
 
 			_$_.output_push('</div>');
@@ -135,7 +135,7 @@ export function DerivedState() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(fullName()));
+				_$_.render_expression(fullName());
 			}
 
 			_$_.output_push('</div>');

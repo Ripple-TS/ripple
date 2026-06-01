@@ -165,6 +165,35 @@ function App() {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('keeps TypeScript assertion expressions parenthesized before non-null assertions', async () => {
+		const input = `function App(){return <div>{(child("value") as any)!}{(child("ok") satisfies any)!}</div>}`;
+		const expected = `function App() {
+  return <div>
+    {(child("value") as any)!}
+    {(child("ok") satisfies any)!}
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats construct signatures inside chained type assertions', async () => {
+		const input = `const Constructed = function Constructed(label: string) {
+  return child(label);
+} as unknown as {
+  new (label: string): ReturnType<typeof child>;
+};`;
+		const expected = `const Constructed = function Constructed(label: string) {
+  return child(label);
+} as unknown as {
+  new (label: string): ReturnType<typeof child>;
+};`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats returned TSRX fragments', async () => {
 		const result = await format('function App() { return <> <div /> </>; }');
 		expect(result).toBeWithNewline(`function App() {

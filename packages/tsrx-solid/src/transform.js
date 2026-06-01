@@ -2,6 +2,7 @@
 /** @import * as ESTreeJSX from 'estree-jsx' */
 /** @import { JsxTransformContext } from '@tsrx/core/types' */
 
+import { walk } from 'zimmerframe';
 import {
 	createJsxTransform,
 	error,
@@ -9,6 +10,8 @@ import {
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
+	collectParamBindings as collect_param_bindings,
+	collectStatementBindings as collect_statement_bindings,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
 	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isInterleavedBody as is_interleaved_body_core,
@@ -1102,6 +1105,724 @@ function create_jsx_element(tag_name, attributes, children) {
 	};
 }
 
+// =====================================================================
+// Native function component control-flow splitting
+// =====================================================================
+
+/**
+ * Solid components run their function body once at setup time, so a plain
+ * JavaScript `if (props.visible) return <A />` only observes the initial prop
+ * value. Native TSRX functions that are component-shaped need their render
+ * control flow lowered back into Solid's JSX control components.
+ *
+ * The shared factory has already expanded `return <>...</>` into normal JSX
+ * returns by the time imports are injected. This pass folds those returns back
+ * into render children, then reuses the local `<Show>/<For>/<Switch>/<Errored>`
+ * builders.
+ *
+ * @param {AST.Program} program
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function rewrite_solid_native_component_control_flow(program, transform_context) {
+	const rewritten = walk(/** @type {any} */ (program), transform_context, {
+		FunctionDeclaration(node, { next, path, state }) {
+			const inner = /** @type {any} */ (next() ?? node);
+			rewrite_solid_native_component_function(inner, path.at(-1), state);
+			return inner;
+		},
+		FunctionExpression(node, { next, path, state }) {
+			const inner = /** @type {any} */ (next() ?? node);
+			rewrite_solid_native_component_function(inner, path.at(-1), state);
+			return inner;
+		},
+		ArrowFunctionExpression(node, { next, path, state }) {
+			const inner = /** @type {any} */ (next() ?? node);
+			rewrite_solid_native_component_function(inner, path.at(-1), state);
+			return inner;
+		},
+	});
+
+	program.body = /** @type {AST.Program} */ (rewritten).body;
+}
+
+/**
+ * @param {any} fn
+ * @param {any} parent
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function rewrite_solid_native_component_function(fn, parent, transform_context) {
+	if (!fn?.metadata?.native_tsrx_function || fn.body?.type !== 'BlockStatement') {
+		return;
+	}
+
+	const name = get_function_like_name(fn, parent);
+	if (!name || !/^[A-Z]/.test(name)) {
+		return;
+	}
+
+	const source_body = fn.body.body || [];
+	const early_body = rewrite_early_return_guard_body(source_body, transform_context);
+	const effective_body =
+		early_body ??
+		(() => {
+			const lowered = lower_solid_component_statement_list(source_body);
+			return lowered.changed ? lowered.nodes : null;
+		})();
+
+	if (effective_body === null) {
+		return;
+	}
+
+	const saved_bindings = transform_context.available_bindings;
+	const body_bindings = collect_param_bindings(fn.params || []);
+	for (const node of source_body) {
+		collect_statement_bindings(node, body_bindings);
+	}
+	transform_context.available_bindings = body_bindings;
+
+	try {
+		fn.body = b.block(
+			solid_component_body_nodes_to_function_statements(effective_body, transform_context),
+			fn.body,
+		);
+	} finally {
+		transform_context.available_bindings = saved_bindings;
+	}
+}
+
+/**
+ * Preserve the old Solid setup-once behavior for early guard returns: setup
+ * statements after the guard stay in the outer function, while render output is
+ * lifted into a reactive `<Show>`.
+ *
+ * @param {any[]} body
+ * @param {TransformContext} transform_context
+ * @returns {any[] | null}
+ */
+function rewrite_early_return_guard_body(body, transform_context) {
+	const early_idx = body.findIndex((node) => get_component_returning_if_info(node) !== null);
+	if (early_idx === -1) {
+		return null;
+	}
+
+	const early_if = body[early_idx];
+	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
+		get_component_returning_if_info(early_if)
+	);
+	const before = body.slice(0, early_idx);
+	const after = body.slice(early_idx + 1);
+	const lowered_after = lower_solid_component_statement_list(after);
+	const effective_after = lowered_after.changed ? lowered_after.nodes : after;
+	const branch_has_content_before_return = early_info.consequent_body.length > 0;
+	const early_interleaved = is_interleaved_body([...before, ...after]);
+
+	/** @type {any[]} */
+	const before_non_jsx = [];
+	/** @type {any[]} */
+	const before_jsx = [];
+	/** @type {any[]} */
+	const after_non_jsx = [];
+	/** @type {any[]} */
+	const after_jsx = [];
+	let early_capture_index = 0;
+
+	/**
+	 * @param {any[]} nodes
+	 * @param {any[]} outer
+	 * @param {any[]} jsx_bucket
+	 */
+	const collect = (nodes, outer, jsx_bucket) => {
+		for (const child of nodes) {
+			const return_nodes = return_statement_to_render_nodes(child);
+			if (return_nodes) {
+				jsx_bucket.push(...return_nodes);
+				continue;
+			}
+
+			if (is_jsx_child(child)) {
+				if (get_component_returning_if_info(child) !== null) {
+					jsx_bucket.push(child);
+					continue;
+				}
+				if (early_interleaved) {
+					const jsx = to_jsx_child(child, transform_context);
+					outer.push(...extract_jsx_setup_declarations(jsx));
+					if (is_capturable_jsx_child(jsx)) {
+						const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
+						outer.push(declaration);
+						jsx_bucket.push(reference);
+					} else {
+						jsx_bucket.push(jsx);
+					}
+				} else {
+					jsx_bucket.push(child);
+				}
+			} else {
+				outer.push(child);
+			}
+		}
+	};
+
+	collect(before, before_non_jsx, before_jsx);
+	collect(effective_after, after_non_jsx, after_jsx);
+
+	const next_body = [...before_non_jsx, ...before_jsx, ...after_non_jsx];
+
+	if (branch_has_content_before_return) {
+		transform_context.needs_show = true;
+		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
+		const fallback_body =
+			after_jsx.length > 0
+				? body_to_component_early_return_jsx_child(after_jsx, transform_context)
+				: null;
+		next_body.push(build_show_element(early_if.test, branch_body, fallback_body));
+	} else if (after_jsx.length > 0) {
+		transform_context.needs_show = true;
+		const show_body = body_to_component_early_return_jsx_child(after_jsx, transform_context);
+		next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
+	} else {
+		return null;
+	}
+
+	return next_body;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function body_to_component_early_return_jsx_child(body_nodes, transform_context) {
+	const early_idx = body_nodes.findIndex((node) => get_component_returning_if_info(node) !== null);
+	if (early_idx === -1) {
+		return body_to_jsx_child(body_nodes, transform_context);
+	}
+
+	const early_if = body_nodes[early_idx];
+	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
+		get_component_returning_if_info(early_if)
+	);
+	const before = body_nodes.slice(0, early_idx);
+	const after = body_nodes.slice(early_idx + 1);
+	const branch_has_content_before_return = early_info.consequent_body.length > 0;
+	const children = [...before];
+
+	if (branch_has_content_before_return) {
+		transform_context.needs_show = true;
+		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
+		const fallback_body =
+			after.length > 0 ? body_to_component_early_return_jsx_child(after, transform_context) : null;
+		children.push(build_show_element(early_if.test, branch_body, fallback_body));
+	} else if (after.length > 0) {
+		transform_context.needs_show = true;
+		const show_body = body_to_component_early_return_jsx_child(after, transform_context);
+		children.push(build_show_element(negate_expression(early_if.test), show_body, null));
+	}
+
+	return body_to_jsx_child(children, transform_context);
+}
+
+/**
+ * @param {any[]} statements
+ * @returns {{ nodes: any[], terminal: boolean, changed: boolean }}
+ */
+function lower_solid_component_statement_list(statements) {
+	/** @type {any[]} */
+	const nodes = [];
+	let changed = false;
+
+	for (let index = 0; index < statements.length; index += 1) {
+		const statement = statements[index];
+		const return_nodes = return_statement_to_render_nodes(statement);
+		if (return_nodes) {
+			return { nodes: [...nodes, ...return_nodes], terminal: true, changed: true };
+		}
+
+		const rest = statements.slice(index + 1);
+		const lowered = lower_solid_component_control_statement(statement, rest);
+		if (lowered) {
+			nodes.push(lowered.node);
+			changed = true;
+			if (lowered.consumesRest || lowered.terminal) {
+				return {
+					nodes,
+					terminal: lowered.terminal,
+					changed,
+				};
+			}
+			continue;
+		}
+
+		nodes.push(statement);
+	}
+
+	return { nodes, terminal: false, changed };
+}
+
+/**
+ * @param {any} statement
+ * @param {any[]} rest
+ * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ */
+function lower_solid_component_control_statement(statement, rest) {
+	if (statement?.type === 'IfStatement') {
+		return lower_solid_component_if_statement(statement, rest);
+	}
+
+	if (statement?.type === 'SwitchStatement') {
+		return lower_solid_component_switch_statement(statement, rest);
+	}
+
+	if (statement?.type === 'TryStatement') {
+		return lower_solid_component_try_statement(statement, rest);
+	}
+
+	if (statement?.type === 'ForOfStatement') {
+		const body =
+			statement.body?.type === 'BlockStatement' ? statement.body.body || [] : [statement.body];
+		const lowered_body = lower_solid_component_statement_list(body);
+		if (
+			!lowered_body.changed &&
+			!lowered_body.terminal &&
+			!body.some(is_render_expression_statement)
+		) {
+			return null;
+		}
+		const next_for = b.for_of(
+			statement.left,
+			statement.right,
+			b.block(lowered_body.nodes, statement.body),
+			statement.await,
+		);
+		next_for.index = statement.index;
+		next_for.key = statement.key;
+		return {
+			node: set_loc(next_for, statement),
+			terminal: false,
+		};
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} rest
+ * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ */
+function lower_solid_component_if_statement(node, rest) {
+	const consequent = lower_solid_component_statement_list(get_statement_body(node.consequent));
+	const alternate = node.alternate
+		? lower_solid_component_statement_list(get_statement_body(node.alternate))
+		: null;
+
+	if (!consequent.terminal && !alternate?.terminal && !consequent.changed && !alternate?.changed) {
+		return null;
+	}
+
+	const rest_result = lower_solid_component_statement_list(rest);
+
+	if (consequent.terminal && alternate?.terminal) {
+		return {
+			node: set_loc(
+				b.if(
+					node.test,
+					b.block(consequent.nodes, node.consequent),
+					b.block(alternate.nodes, node.alternate),
+				),
+				node,
+			),
+			terminal: true,
+			consumesRest: true,
+		};
+	}
+
+	if (consequent.terminal) {
+		return {
+			node: set_loc(
+				b.if(
+					node.test,
+					b.block(consequent.nodes, node.consequent),
+					b.block([...(alternate?.nodes || []), ...rest_result.nodes], node.alternate || node),
+				),
+				node,
+			),
+			terminal: rest_result.terminal || rest.length === 0,
+			consumesRest: true,
+		};
+	}
+
+	if (alternate?.terminal) {
+		return {
+			node: set_loc(
+				b.if(
+					node.test,
+					b.block([...consequent.nodes, ...rest_result.nodes], node.consequent),
+					b.block(alternate.nodes, node.alternate),
+				),
+				node,
+			),
+			terminal: rest_result.terminal || rest.length === 0,
+			consumesRest: true,
+		};
+	}
+
+	return {
+		node: set_loc(
+			b.if(
+				node.test,
+				b.block(consequent.nodes, node.consequent),
+				node.alternate ? b.block(alternate?.nodes || [], node.alternate) : null,
+			),
+			node,
+		),
+		terminal: false,
+	};
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} rest
+ * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ */
+function lower_solid_component_switch_statement(node, rest) {
+	let has_default = false;
+	let consumes_rest = false;
+	let all_cases_terminal = node.cases.length > 0;
+
+	const rest_result = rest.length > 0 ? lower_solid_component_statement_list(rest) : null;
+	/** @type {Array<{ switch_case: any, lowered: { nodes: any[], terminal: boolean, changed: boolean } }>} */
+	const lowered_cases = node.cases.map((/** @type {any} */ switch_case) => {
+		if (switch_case.test === null) {
+			has_default = true;
+		}
+		const lowered = lower_solid_component_statement_list(switch_case.consequent || []);
+		return { switch_case, lowered };
+	});
+	let changed =
+		!!rest_result?.changed ||
+		lowered_cases.some((entry) => entry.lowered.changed || entry.lowered.terminal);
+
+	if (!changed) {
+		return null;
+	}
+
+	const cases = lowered_cases.map((entry, index) => {
+		const { switch_case, lowered } = entry;
+		let case_terminal = lowered.terminal;
+		const consequent = lowered.terminal ? [...lowered.nodes, b.break] : lowered.nodes;
+		let next_consequent = consequent;
+
+		if (!lowered.terminal && rest_result) {
+			const merged = merge_switch_rest_into_exiting_case(
+				consequent,
+				rest_result.nodes,
+				index === lowered_cases.length - 1,
+			);
+			if (merged !== consequent) {
+				next_consequent = merged;
+				case_terminal = rest_result.terminal;
+			}
+		}
+
+		all_cases_terminal &&= case_terminal;
+
+		return set_loc(b.switch_case(switch_case.test, next_consequent), switch_case);
+	});
+
+	if (!has_default && rest_result) {
+		cases.push(b.switch_case(null, rest_result.nodes));
+		has_default = true;
+		consumes_rest = true;
+		all_cases_terminal &&= rest_result.terminal;
+	} else if (rest_result) {
+		consumes_rest = true;
+	}
+
+	return {
+		node: set_loc(b.switch(node.discriminant, cases), node),
+		terminal: all_cases_terminal && has_default,
+		consumesRest: consumes_rest,
+	};
+}
+
+/**
+ * @param {any[]} case_nodes
+ * @param {any[]} rest_nodes
+ * @param {boolean} is_last_case
+ * @returns {any[]}
+ */
+function merge_switch_rest_into_exiting_case(case_nodes, rest_nodes, is_last_case) {
+	const break_index = case_nodes.findIndex((node) => node?.type === 'BreakStatement');
+	if (break_index !== -1) {
+		return [
+			...case_nodes.slice(0, break_index),
+			...clone_switch_rest_nodes(rest_nodes),
+			...case_nodes.slice(break_index),
+		];
+	}
+
+	if (is_last_case) {
+		return [...case_nodes, ...clone_switch_rest_nodes(rest_nodes), b.break];
+	}
+
+	return case_nodes;
+}
+
+/**
+ * @param {any[]} nodes
+ * @returns {any[]}
+ */
+function clone_switch_rest_nodes(nodes) {
+	return nodes.map((node) => clone_expression_node(node, false));
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} rest
+ * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
+ */
+function lower_solid_component_try_statement(node, rest) {
+	const try_body = lower_solid_component_statement_list(node.block?.body || []);
+	const catch_body = node.handler?.body
+		? lower_solid_component_statement_list(node.handler.body.body || [])
+		: null;
+	const pending_body = node.pending
+		? lower_solid_component_statement_list(node.pending.body || [])
+		: null;
+
+	if (
+		!try_body.changed &&
+		!try_body.terminal &&
+		!catch_body?.changed &&
+		!catch_body?.terminal &&
+		!pending_body?.changed &&
+		!pending_body?.terminal
+	) {
+		return null;
+	}
+
+	const handler =
+		node.handler && catch_body
+			? b.catch_clause(
+					node.handler.param,
+					node.handler.resetParam,
+					b.block(catch_body.nodes, node.handler.body),
+					node.handler,
+				)
+			: node.handler;
+	const pending = node.pending ? b.block(pending_body?.nodes || [], node.pending) : null;
+	const finalizer = node.finalizer;
+
+	return {
+		node: set_loc(b.try(b.block(try_body.nodes, node.block), handler, finalizer, pending), node),
+		terminal: try_body.terminal && (!handler || !!catch_body?.terminal),
+	};
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {AST.Statement[]}
+ */
+function solid_component_body_nodes_to_function_statements(body_nodes, transform_context) {
+	const statements = [];
+	const render_nodes = [];
+	const interleaved = is_interleaved_body(body_nodes);
+	let capture_index = 0;
+
+	for (const child of body_nodes) {
+		const expression_statement = render_expression_statement_to_node(child);
+		if (expression_statement) {
+			render_nodes.push(expression_statement);
+			continue;
+		}
+
+		if (is_jsx_child(child)) {
+			const jsx = to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
+		} else if (is_bare_render_expression(child)) {
+			render_nodes.push(to_jsx_expression_container(child, child));
+		} else {
+			statements.push(child);
+		}
+	}
+
+	if (render_nodes.length > 0) {
+		statements.push(b.return(build_return_expression(render_nodes) || create_null_literal()));
+	}
+
+	return statements;
+}
+
+/**
+ * @param {any} node
+ * @returns {{ consequent_body: any[], return_index: number } | null}
+ */
+function get_component_returning_if_info(node) {
+	if (!node || node.type !== 'IfStatement' || node.alternate) return null;
+	const consequent_body = get_statement_body(node.consequent);
+	const return_index = consequent_body.findIndex((child) =>
+		return_statement_to_render_nodes(child),
+	);
+	if (return_index === -1) {
+		return null;
+	}
+
+	return {
+		consequent_body: [
+			...consequent_body.slice(0, return_index),
+			.../** @type {any[]} */ (return_statement_to_render_nodes(consequent_body[return_index])),
+		],
+		return_index,
+	};
+}
+
+/**
+ * @param {any} statement
+ * @returns {any[] | null}
+ */
+function return_statement_to_render_nodes(statement) {
+	if (!statement || statement.type !== 'ReturnStatement') {
+		return null;
+	}
+
+	if (!statement.argument || is_nullish_render_return(statement.argument)) {
+		return [];
+	}
+
+	return [statement.argument];
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_nullish_render_return(node) {
+	return (
+		(node.type === 'Literal' && node.value == null) ||
+		(node.type === 'Identifier' && node.name === 'undefined') ||
+		(node.type === 'UnaryExpression' && node.operator === 'void')
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {any[]}
+ */
+function get_statement_body(node) {
+	if (!node) return [];
+	if (node.type === 'BlockStatement') return node.body || [];
+	return [node];
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_render_expression_statement(node) {
+	return render_expression_statement_to_node(node) !== null;
+}
+
+/**
+ * @param {any} node
+ * @returns {any | null}
+ */
+function render_expression_statement_to_node(node) {
+	if (node?.type !== 'ExpressionStatement') {
+		return null;
+	}
+
+	const expression = node.expression;
+	if (
+		expression?.type === 'JSXElement' ||
+		expression?.type === 'JSXFragment' ||
+		expression?.type === 'JSXExpressionContainer'
+	) {
+		return expression;
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} fn
+ * @param {any} parent
+ * @returns {string | null}
+ */
+function get_function_like_name(fn, parent) {
+	if (fn.id?.type === 'Identifier') {
+		return fn.id.name;
+	}
+
+	if (parent?.type === 'VariableDeclarator' && parent.init === fn) {
+		return get_static_binding_name(parent.id);
+	}
+
+	if (parent?.type === 'Property' && parent.value === fn) {
+		return get_static_property_name(parent.key);
+	}
+
+	if (parent?.type === 'MethodDefinition' && parent.value === fn) {
+		return get_static_property_name(parent.key);
+	}
+
+	if (parent?.type === 'AssignmentExpression' && parent.right === fn) {
+		return get_static_binding_name(parent.left);
+	}
+
+	return null;
+}
+
+/**
+ * @param {any} node
+ * @returns {string | null}
+ */
+function get_static_binding_name(node) {
+	if (node?.type === 'Identifier') {
+		return node.name;
+	}
+	if (node?.type === 'MemberExpression' && !node.computed) {
+		return get_static_property_name(node.property);
+	}
+	return null;
+}
+
+/**
+ * @param {any} key
+ * @returns {string | null}
+ */
+function get_static_property_name(key) {
+	if (key?.type === 'Identifier') {
+		return key.name;
+	}
+	if (key?.type === 'Literal' && typeof key.value === 'string') {
+		return key.value;
+	}
+	return null;
+}
+
+/**
+ * @param {any} expr
+ * @returns {any}
+ */
+function negate_expression(expr) {
+	if (expr?.type === 'UnaryExpression' && expr.operator === '!') {
+		return clone_expression_node(expr.argument);
+	}
+
+	return b.unary('!', clone_expression_node(expr));
+}
+
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 
@@ -1113,6 +1834,8 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  */
 function inject_solid_imports(program, transform_context) {
+	rewrite_solid_native_component_control_flow(program, transform_context);
+
 	if (transform_context.needs_normalize_spread_props) {
 		program.body.unshift(
 			b.import_declaration(

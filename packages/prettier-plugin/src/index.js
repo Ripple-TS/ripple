@@ -1497,9 +1497,10 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
-			nodeContent = willBreak(typeAnnotation)
-				? [path.call(print, 'expression'), ' as', indent([line, typeAnnotation])]
-				: [path.call(print, 'expression'), ' as ', typeAnnotation];
+			nodeContent =
+				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
+					? [path.call(print, 'expression'), ' as', indent([line, typeAnnotation])]
+					: [path.call(print, 'expression'), ' as ', typeAnnotation];
 			break;
 		}
 
@@ -1508,14 +1509,19 @@ function printRippleNode(node, path, options, print, args) {
 				(typePath) => print(typePath, { preferInlineSimpleUnionType: true }),
 				'typeAnnotation',
 			);
-			nodeContent = willBreak(typeAnnotation)
-				? [path.call(print, 'expression'), ' satisfies', indent([line, typeAnnotation])]
-				: [path.call(print, 'expression'), ' satisfies ', typeAnnotation];
+			nodeContent =
+				node.typeAnnotation.type !== 'TSTypeLiteral' && willBreak(typeAnnotation)
+					? [path.call(print, 'expression'), ' satisfies', indent([line, typeAnnotation])]
+					: [path.call(print, 'expression'), ' satisfies ', typeAnnotation];
 			break;
 		}
 
 		case 'TSNonNullExpression': {
-			nodeContent = [path.call(print, 'expression'), '!'];
+			const expression = path.call(print, 'expression');
+			const needsParens =
+				node.expression.type === 'TSAsExpression' ||
+				node.expression.type === 'TSSatisfiesExpression';
+			nodeContent = needsParens ? ['(', expression, ')!'] : [expression, '!'];
 			break;
 		}
 
@@ -2118,6 +2124,10 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TSCallSignatureDeclaration':
 			nodeContent = printTSCallSignatureDeclaration(node, path, options, print);
+			break;
+
+		case 'TSConstructSignatureDeclaration':
+			nodeContent = printTSConstructSignatureDeclaration(node, path, options, print);
 			break;
 
 		case 'TSEnumMember':
@@ -5164,6 +5174,45 @@ function printTSCallSignatureDeclaration(node, path, options, print) {
 	const parts = [];
 
 	// Add TypeScript generics/type parameters if present
+	if (node.typeParameters) {
+		const type_params = path.call(print, 'typeParameters');
+		if (Array.isArray(type_params)) {
+			parts.push(...type_params);
+		} else {
+			parts.push(type_params);
+		}
+	}
+
+	parts.push('(');
+	if (node.parameters && node.parameters.length > 0) {
+		const params = path.map(print, 'parameters');
+		for (let i = 0; i < params.length; i++) {
+			if (i > 0) parts.push(', ');
+			parts.push(params[i]);
+		}
+	}
+	parts.push(')');
+
+	if (node.typeAnnotation) {
+		parts.push(': ');
+		parts.push(path.call(print, 'typeAnnotation'));
+	}
+
+	return parts;
+}
+
+/**
+ * Print a TypeScript construct signature in an interface or type literal
+ * @param {AST.TSConstructSignatureDeclaration} node - The construct signature node
+ * @param {AstPath<AST.TSConstructSignatureDeclaration>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
+function printTSConstructSignatureDeclaration(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = ['new '];
+
 	if (node.typeParameters) {
 		const type_params = path.call(print, 'typeParameters');
 		if (Array.isArray(type_params)) {

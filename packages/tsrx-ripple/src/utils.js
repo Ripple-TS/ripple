@@ -1629,7 +1629,9 @@ export function normalize_children(children, context) {
 				(child.type === 'TSRXExpression' &&
 					is_children_template_expression(child.expression, context.state.scope)) ||
 				(prev_child.type === 'TSRXExpression' &&
-					is_children_template_expression(prev_child.expression, context.state.scope))
+					is_children_template_expression(prev_child.expression, context.state.scope)) ||
+				expression_contains_call(child.expression) ||
+				expression_contains_call(prev_child.expression)
 			) {
 				continue;
 			}
@@ -1653,6 +1655,100 @@ export function normalize_children(children, context) {
 	}
 
 	return normalized;
+}
+
+/**
+ * @param {AST.Expression} expression
+ * @returns {boolean}
+ */
+export function expression_contains_call(expression) {
+	switch (expression.type) {
+		case 'CallExpression':
+			if (
+				expression.callee.type === 'Identifier' &&
+				expression.callee.name === 'String' &&
+				!expression.optional
+			) {
+				return expression.arguments.some((argument) => {
+					if (argument.type === 'SpreadElement') {
+						return true;
+					}
+					return expression_contains_call(argument);
+				});
+			}
+			return true;
+
+		case 'NewExpression':
+			return true;
+
+		case 'ChainExpression':
+		case 'ParenthesizedExpression':
+		case 'TSAsExpression':
+		case 'TSInstantiationExpression':
+		case 'TSNonNullExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSTypeAssertion':
+			return expression_contains_call(/** @type {AST.Expression} */ (expression.expression));
+
+		case 'ArrayExpression':
+			return expression.elements.some(
+				(element) =>
+					element !== null &&
+					(element.type === 'SpreadElement'
+						? expression_contains_call(/** @type {AST.Expression} */ (element.argument))
+						: expression_contains_call(/** @type {AST.Expression} */ (element))),
+			);
+
+		case 'AssignmentExpression':
+		case 'BinaryExpression':
+		case 'LogicalExpression':
+			return (
+				expression_contains_call(/** @type {AST.Expression} */ (expression.left)) ||
+				expression_contains_call(expression.right)
+			);
+
+		case 'ConditionalExpression':
+			return (
+				expression_contains_call(expression.test) ||
+				expression_contains_call(expression.consequent) ||
+				expression_contains_call(expression.alternate)
+			);
+
+		case 'MemberExpression':
+			return (
+				expression_contains_call(/** @type {AST.Expression} */ (expression.object)) ||
+				(expression.computed &&
+					expression_contains_call(/** @type {AST.Expression} */ (expression.property)))
+			);
+
+		case 'ObjectExpression':
+			return expression.properties.some((property) => {
+				if (property.type === 'SpreadElement') {
+					return expression_contains_call(/** @type {AST.Expression} */ (property.argument));
+				}
+				return (
+					(property.computed &&
+						expression_contains_call(/** @type {AST.Expression} */ (property.key))) ||
+					expression_contains_call(/** @type {AST.Expression} */ (property.value))
+				);
+			});
+
+		case 'SequenceExpression':
+			return expression.expressions.some(expression_contains_call);
+
+		case 'TaggedTemplateExpression':
+			return true;
+
+		case 'TemplateLiteral':
+			return expression.expressions.some(expression_contains_call);
+
+		case 'UnaryExpression':
+		case 'UpdateExpression':
+			return expression.argument !== null && expression_contains_call(expression.argument);
+
+		default:
+			return false;
+	}
 }
 
 /**

@@ -1412,6 +1412,7 @@ function statement_contains_native_tsrx_return(statement) {
 	if (statement.type === 'TryStatement') {
 		return (
 			statement_contains_native_tsrx_return(statement.block) ||
+			statement_contains_native_tsrx_return(statement.pending) ||
 			statement_contains_native_tsrx_return(statement.handler?.body) ||
 			statement_contains_native_tsrx_return(statement.finalizer)
 		);
@@ -1881,6 +1882,9 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 
 	if (statement.type === 'TryStatement') {
 		const block = expand_embedded_native_return_statement(statement.block, transform_context);
+		const pending = statement.pending
+			? expand_embedded_native_return_statement(statement.pending, transform_context)
+			: statement.pending;
 		const handler_body = statement.handler?.body
 			? expand_embedded_native_return_statement(statement.handler.body, transform_context)
 			: statement.handler?.body;
@@ -1889,6 +1893,7 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 			: statement.finalizer;
 		if (
 			block === statement.block &&
+			pending === statement.pending &&
 			handler_body === statement.handler?.body &&
 			finalizer === statement.finalizer
 		) {
@@ -1903,7 +1908,7 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 						statement.handler,
 					)
 				: statement.handler;
-		return [set_loc(b.try(block, handler, finalizer, statement.pending ?? null), statement)];
+		return [set_loc(b.try(block, handler, finalizer, pending ?? null), statement)];
 	}
 
 	return [statement];

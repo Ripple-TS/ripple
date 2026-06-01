@@ -532,6 +532,20 @@ function SwitchReactiveApp() {
 	</>;
 }
 
+function SwitchBreakTrailingReturnApp() {
+	const [kind, setKind] = createSignal('skip');
+	switch (kind()) {
+		case 'skip':
+			break;
+		case 'done':
+			return <><p class="switch-break-result">{'done'}</p></>;
+	}
+	return <>
+		<p class="switch-break-rest">{'rest'}</p>
+		<button class="switch-break-done" onClick={() => setKind('done')}>{'done'}</button>
+	</>;
+}
+
 // ── Composite children ──
 
 function Wrapper(props: { children?: any }) {
@@ -1258,6 +1272,16 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.page')).toBe('404');
 	});
 
+	it('renders trailing component output for switch break cases', async () => {
+		await render(SwitchBreakTrailingReturnApp);
+		expect(text('.switch-break-rest')).toBe('rest');
+		expect(container.querySelector('.switch-break-result')).toBeNull();
+
+		await click('.switch-break-done');
+		expect(text('.switch-break-result')).toBe('done');
+		expect(container.querySelector('.switch-break-rest')).toBeNull();
+	});
+
 	// ── Composite children ──
 
 	it('passes children through composite components', async () => {
@@ -1476,7 +1500,7 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.scope-result')).toBe('18');
 	});
 
-	it('component guard return before signals behaves like an ordinary function guard', async () => {
+	it('component guard return before signals updates reactively', async () => {
 		await render(GuardReturnWithSignalsApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
@@ -1486,8 +1510,8 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.early-doubled')).toBe('2');
 
 		await click('.early-skip');
-		expect(text('.early-count')).toBe('1');
-		expect(text('.early-doubled')).toBe('2');
+		expect(container.querySelector('.early-count')).toBeNull();
+		expect(container.querySelector('.early-doubled')).toBeNull();
 	});
 
 	it('conditional branch template updates reactively', async () => {
