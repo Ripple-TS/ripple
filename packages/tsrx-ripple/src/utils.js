@@ -134,7 +134,7 @@ export function has_ripple_component_decorator(node, context) {
 		return false;
 	}
 
-	const decorators = /** @type {any} */ (node).decorators;
+	const decorators = node.decorators;
 	return (
 		Array.isArray(decorators) &&
 		decorators.some((decorator) =>
@@ -149,7 +149,16 @@ export function has_ripple_component_decorator(node, context) {
  * @returns {void}
  */
 export function strip_ripple_component_decorators(node, context) {
-	const decorators = /** @type {any} */ (node)?.decorators;
+	if (
+		!node ||
+		(node.type !== 'FunctionDeclaration' &&
+			node.type !== 'FunctionExpression' &&
+			node.type !== 'ArrowFunctionExpression')
+	) {
+		return;
+	}
+
+	const decorators = node.decorators;
 	if (!Array.isArray(decorators) || decorators.length === 0) return;
 
 	const next_decorators = decorators.filter(
@@ -157,9 +166,9 @@ export function strip_ripple_component_decorators(node, context) {
 	);
 
 	if (next_decorators.length === 0) {
-		delete (/** @type {any} */ (node).decorators);
+		delete node.decorators;
 	} else {
-		/** @type {any} */ (node).decorators = next_decorators;
+		node.decorators = next_decorators;
 	}
 }
 
@@ -317,7 +326,7 @@ function is_static_component_import_specifier(specifier, declaration, context) {
 	return (
 		binding.references.length > 0 &&
 		binding.references.every((reference) =>
-			reference.path.some((node) => /** @type {any} */ (node).type === 'Decorator'),
+			reference.path.some((node) => node.type === 'Decorator'),
 		)
 	);
 }

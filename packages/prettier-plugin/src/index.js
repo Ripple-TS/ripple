@@ -2782,11 +2782,10 @@ function printFunctionParameters(path, options, print) {
 		}
 	});
 
-	const hasNotParameterDecorator = parameters.every(
-		(node) =>
-			!(/** @type {AST.Identifier} */ (node).decorators) ||
-			/** @type {AST.Identifier} */ (node).decorators.length === 0,
-	);
+	const hasNotParameterDecorator = parameters.every((node) => {
+		const decorators = /** @type {AST.Identifier} */ (node).decorators;
+		return !decorators || decorators.length === 0;
+	});
 
 	if (shouldHugParameters && hasNotParameterDecorator) {
 		return ['(', ...printed, ')'];

@@ -138,6 +138,16 @@ declare module 'estree' {
 		innerComments?: Comment[] | undefined;
 	}
 
+	interface Decorator extends AST.BaseNode {
+		type: 'Decorator';
+		expression: AST.Expression;
+		metadata: BaseNodeMetaData;
+	}
+
+	interface BaseFunction {
+		decorators?: Decorator[];
+	}
+
 	interface FunctionDeclaration extends FunctionLikeTS {
 		metadata: FunctionMetaData;
 	}
@@ -204,7 +214,7 @@ declare module 'estree' {
 			is_component?: boolean;
 		};
 		typeAnnotation?: TSTypeAnnotation | undefined;
-		decorators: TSESTree.Decorator[];
+		decorators?: Decorator[];
 		optional: boolean;
 	}
 
@@ -236,6 +246,7 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
+		Decorator: Decorator;
 		TsrxFragment: TsrxFragment;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;

@@ -7,9 +7,10 @@ export { Fragment } from '../jsx-runtime.js';
  * The runtime fallback returns the function unchanged.
  * @template {Function} T
  * @param {T} value
+ * @param {{ kind: 'function' }} [_context]
  * @returns {T}
  */
-export function Component(value) {
+export function Component(value, _context) {
 	return value;
 }
 

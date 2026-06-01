@@ -3,7 +3,11 @@ export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsr
 
 export type Component<T = Record<string, any>> = (props: T) => void;
 
-export function Component<T extends Function>(value: T, context?: unknown): T;
+export interface FunctionDecoratorContext {
+	kind: 'function';
+}
+
+export function Component<T extends Function>(value: T, context?: FunctionDecoratorContext): T;
 
 declare const TSRX_ELEMENT: unique symbol;
 declare const REF_KEY: unique symbol;

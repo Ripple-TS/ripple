@@ -55,6 +55,38 @@ describe('TSRX parser', () => {
 		expect(fallback.argument.type).toBe('Element');
 	});
 
+	it('parses function decorators as generic decorator nodes', () => {
+		const ast = parseModule(
+			`@logged
+			@decorators.memo("value")
+			function Example() {
+				return null;
+			}`,
+			'App.tsrx',
+		);
+
+		const fn = ast.body[0];
+		expect(fn.type).toBe('FunctionDeclaration');
+		expect(fn.decorators).toHaveLength(2);
+		expect(fn.decorators[0]).toMatchObject({
+			type: 'Decorator',
+			expression: {
+				type: 'Identifier',
+				name: 'logged',
+			},
+		});
+		expect(fn.decorators[1]).toMatchObject({
+			type: 'Decorator',
+			expression: {
+				type: 'CallExpression',
+				callee: {
+					type: 'MemberExpression',
+					computed: false,
+				},
+			},
+		});
+	});
+
 	it('parses bare fragments as native TSRX templates with statement children', () => {
 		const ast = parseModule(
 			`function bar(): JSX.Element | null {

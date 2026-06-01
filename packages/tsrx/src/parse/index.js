@@ -95,8 +95,9 @@ export function skipWhitespace(parser) {
 }
 
 /**
- * TypeScript supports class decorators through @sveltejs/acorn-typescript, but
- * Ripple also uses a static function decorator as a component marker.
+ * Parse possible TC39 function decorators as generic Decorator nodes attached
+ * to the function. Target transforms can decide whether a decorator has any
+ * framework-specific meaning.
  *
  * @param {typeof acorn.Parser} Parser
  * @returns {typeof acorn.Parser}
