@@ -814,6 +814,29 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect(server.code).not.toContain('return_guard');
 	});
 
+	it('renders bare component syntax for normal value-returning functions', () => {
+		const source = `function Person({ disabled, children }) {
+			if (disabled) return null;
+
+			return children;
+		}
+
+		export function App() {
+			<Person>
+				<div>"hello"</div>
+			</Person>
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('_$_.render_component(Person, node, {');
+		expect(client.code).toContain('children: _$_.tsrx_element');
+		expect(client.code).toContain('template(`<div>hello</div>`');
+		expect(server.code).toContain('_$_.render_component(comp, ...args)');
+		expect(server.code).toContain('children: _$_.tsrx_element');
+		expect(server.code).toContain("_$_.output_push('hello')");
+	});
+
 	it('guards regular statements after conditional component returns', () => {
 		const source = `function Test(flag) {
 			if (flag) return;

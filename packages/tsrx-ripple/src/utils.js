@@ -476,14 +476,31 @@ export function expand_native_tsrx_return_statements(
 	statements,
 	omit_final_control_return = false,
 ) {
-	return statements.flatMap((statement, index) =>
-		expand_native_tsrx_return_statement(
-			statement,
-			omit_final_control_return &&
-				index === statements.length - 1 &&
-				statement.type === 'ReturnStatement',
-		),
-	);
+	/** @type {AST.Node[]} */
+	const expanded = [];
+	let after_unconditional_return = false;
+
+	for (let index = 0; index < statements.length; index++) {
+		const statement = statements[index];
+		if (after_unconditional_return && is_native_tsrx_statement(statement)) {
+			continue;
+		}
+
+		expanded.push(
+			...expand_native_tsrx_return_statement(
+				statement,
+				omit_final_control_return &&
+					index === statements.length - 1 &&
+					statement.type === 'ReturnStatement',
+			),
+		);
+
+		if (statement.type === 'ReturnStatement') {
+			after_unconditional_return = true;
+		}
+	}
+
+	return expanded;
 }
 
 /**
@@ -509,6 +526,35 @@ function mark_returned_template_child(node) {
 		returned_tsrx_child: true,
 	};
 	return node;
+}
+
+/**
+ * @param {AST.Statement} statement
+ * @returns {boolean}
+ */
+function is_native_tsrx_statement(statement) {
+	return (
+		is_native_tsrx_template_node(statement) ||
+		(statement.type === 'ExpressionStatement' &&
+			is_native_tsrx_template_node(statement.expression))
+	);
+}
+
+/**
+ * @param {AST.Statement} statement
+ * @returns {AST.Element | AST.TsrxFragment | null}
+ */
+function get_native_tsrx_statement_template(statement) {
+	if (is_native_tsrx_template_node(statement)) {
+		return /** @type {AST.Element | AST.TsrxFragment} */ (statement);
+	}
+	if (
+		statement.type === 'ExpressionStatement' &&
+		is_native_tsrx_template_node(statement.expression)
+	) {
+		return /** @type {AST.Element | AST.TsrxFragment} */ (statement.expression);
+	}
+	return null;
 }
 
 /**
@@ -611,6 +657,11 @@ function create_return_argument_child(argument, statement) {
 function expand_native_tsrx_return_statement(statement, omit_control_return = false) {
 	if (statement.metadata?.returned_tsrx_child) {
 		return [statement];
+	}
+
+	const template_statement = get_native_tsrx_statement_template(statement);
+	if (template_statement) {
+		return get_native_tsrx_template_children(template_statement).map(mark_returned_template_child);
 	}
 
 	if (!node_contains_component_return(statement)) {
