@@ -81,31 +81,27 @@ const TEXT_EXPR_HTML = highlight_tsrx(
 );
 
 const IF_HTML = highlight_tsrx(
-	`function StatusBadge({ status }: { status: string }) {
-  return <>
-    <div>
-      if (status === 'active') {
-        <span class="badge active">"Online"</span>
-      } else if (status === 'idle') {
-        <span class="badge idle">"Away"</span>
-      } else {
-        <span class="badge">"Offline"</span>
-      }
-    </div>
-  </>;
+	`function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
+  return <div>
+    if (status === 'active') {
+      <span class="badge active">"Online"</span>
+    } else if (status === 'idle') {
+      <span class="badge idle">"Away"</span>
+    } else {
+      <span class="badge">"Offline"</span>
+    }
+  </div>;
 }`,
 );
 
 const FOR_HTML = highlight_tsrx(
 	`function TodoList({ items }: { items: Todo[] }) {
-  return <>
-    <ul>
-      for (const item of items; index i; key item.id) {
-        if (item.hidden) continue;
-        <li>{i + 1}". "{item.text}</li>
-      }
-    </ul>
-  </>;
+  return <ul>
+    for (const item of items; index i; key item.id) {
+      if (item.hidden) continue;
+      <li>{i + 1}". "{item.text}</li>
+    }
+  </ul>;
 }`,
 );
 
@@ -167,13 +163,11 @@ const SCOPING_HTML = highlight_tsrx(
 	`function App() {
   const name = 'World';
 
-  return <>
-    <div>
-      // This is a new scope - you can declare variables here
-      const greeting = 'Hello, ' + name + '!';
-      <h1>{greeting}</h1>
-    </div>
-  </>;
+  return <div>
+    // This is a new scope - you can declare variables here
+    const greeting = 'Hello, ' + name + '!';
+    <h1>{greeting}</h1>
+  </div>;
 }`,
 );
 
@@ -194,9 +188,7 @@ const RENDER_PROPS_HTML = highlight_tsrx(
     <li>{item.label}</li>
   </>;
 
-  return <>
-    <List items={items} render={renderItem} />
-  </>;
+  return <List items={items} render={renderItem} />
 }`,
 );
 
@@ -310,12 +302,10 @@ function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
 
 const LAZY_PROPS_HTML = highlight_tsrx(
 	`function UserCard(&{ name, age }: { name: string; age: number }) {
-  return <>
-    <div>
-      <h2>{name}</h2>
-      <p>"Age: "{age}</p>
-    </div>
-  </>;
+  return <div>
+    <h2>{name}</h2>
+    <p>"Age: "{age}</p>
+  </div>;
 }`,
 );
 

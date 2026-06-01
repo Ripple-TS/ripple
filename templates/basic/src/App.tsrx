@@ -2,7 +2,6 @@ import { track } from 'ripple';
 
 export function App() {
 	return <>
-		let &[count] = track(0);
 		<div class="app">
 			<div class="card">
 				<img
@@ -11,32 +10,33 @@ export function App() {
 					class="logo"
 				/>
 
-				<p class="subtitle">{'The elegant TypeScript UI framework.'}</p>
+				<p class="subtitle">"The elegant TypeScript UI framework."</p>
 
 				<div class="counter">
-					<button onClick={() => count--}>{'-'}</button>
+					let &[count] = track(0);
+					<button onClick={() => count--}>"-"</button>
 					<span class="count">{count}</span>
-					<button onClick={() => count++}>{'+'}</button>
+					<button onClick={() => count++}>"+"</button>
 				</div>
 
 				<div class="links">
 					<a href="https://www.ripple-ts.com/" target="_blank" class="link-btn docs">
-						{'Docs'}
+						"Docs"
 					</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple"
 						target="_blank"
 						class="link-btn github"
 					>
-						{'GitHub'}
+						"GitHub"
 					</a>
 				</div>
 
-				<p class="info">{'This is a basic Ripple application template.'}</p>
+				<p class="info">"This is a basic Ripple application template."</p>
 				<p class="edit-hint">
-					{'Edit '}
-					<code>{'src/App.tsrx'}</code>
-					{' to get started.'}
+					"Edit "
+					<code>"src/App.tsrx"</code>
+					" to get started."
 				</p>
 			</div>
 		</div>

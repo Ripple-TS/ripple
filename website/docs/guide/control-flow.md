@@ -14,16 +14,13 @@ with.
 
 ```ripple
 export function Truthy({ x }) {
-  return <>
-  <div>
+  return <div>
     if (x) {
       <span>"x is truthy"</span>
     } else {
       <span>"x is falsy"</span>
     }
   </div>
-
-  </>;
 }
 ```
 
@@ -47,9 +44,8 @@ export function AuthGate() {
   }
 
   return <>
-  <h1>"Dashboard"</h1>
-  <p>"Private content"</p>
-
+    <h1>"Dashboard"</h1>
+    <p>"Private content"</p>
   </>;
 }
 ```
@@ -68,8 +64,7 @@ with both static and reactive values.
 
 ```ripple
 export function StatusIndicator({ status }) {
-  return <>
-  <div>
+  return <div>
     switch (status) {
       case: 'init':
         // fall-through to the next
@@ -86,8 +81,6 @@ export function StatusIndicator({ status }) {
         <p>"Unknown status"</p>
     }
   </div>
-
-  </>;
 }
 ```
 
@@ -101,31 +94,29 @@ You can also use reactive values with switch statements.
 import { track } from 'ripple';
 
 export function InteractiveStatus() {
-  return <>
   let &[status] = track('loading');
+  return <>
+    <button onClick={() => (status = 'success')}>"Success"</button>
+    <button onClick={() => (status = 'error')}>"Error"</button>
 
-  <button onClick={() => (status = 'success')}>"Success"</button>
-  <button onClick={() => (status = 'error')}>"Error"</button>
-
-  <div>
-    switch (status) {
-      case 'init':
-        <p>"Init"</p>
-      // fall-through to the next
-      case 'loading':
-        <p>"Loading..."</p>
-        break;
-      case 'success':
-        <p>"Success!"</p>
-        break;
-      case 'error':
-        <p>"Error!"</p>
-        break;
-      default:
-        <p>"Unknown status"</p>
-    }
-  </div>
-
+    <div>
+      switch (status) {
+        case 'init':
+          <p>"Init"</p>
+        // fall-through to the next
+        case 'loading':
+          <p>"Loading..."</p>
+          break;
+        case 'success':
+          <p>"Success!"</p>
+          break;
+        case 'error':
+          <p>"Error!"</p>
+          break;
+        default:
+          <p>"Unknown status"</p>
+      }
+    </div>
   </>;
 }
 ```
@@ -141,20 +132,18 @@ You can render collections using a `for...of` loop.
 ```ripple
 function ListView({ title, items }) {
   return <>
-  <h2>{title}</h2>
-  <ul>
-    for (const item of items) {
-      <li>{item.text}</li>
-    }
-  </ul>
-
+    <h2>{title}</h2>
+    <ul>
+      for (const item of items) {
+        <li>{item.text}</li>
+      }
+    </ul>
   </>;
 }
 
 // usage
 export default function App() {
-  return <>
-  <ListView
+  return <ListView
     title="My List"
     items={[
       { text: 'Item 1' },
@@ -162,8 +151,6 @@ export default function App() {
       { text: 'Item 3' },
     ]}
   />
-
-  </>;
 }
 ```
 
@@ -175,11 +162,7 @@ index.
 
 ```ripple
 for (const item of items; index i) {
-  <div>
-    {item.label}
-    " at index "
-    {i}
-  </div>
+  <div>{item.label}" at index "{i}</div>
 }
 ```
 
@@ -187,11 +170,7 @@ You can also provide a `key` for efficient list updates and reconciliation:
 
 ```ripple
 for (const item of items; index i; key item.id) {
-  <div>
-    {item.label}
-    " at index "
-    {i}
-  </div>
+  <div>{item.label}" at index "{i}</div>
 }
 ```
 
@@ -211,19 +190,13 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 import { RippleArray } from 'ripple';
 
 export function Numbers() {
-  return <>
   const array = new RippleArray(1, 2, 3);
+  return <>
+    for (const item of array; index i) {
+      <div>{item}" at index "{i}</div>
+    }
 
-  for (const item of array; index i) {
-    <div>
-      {item}
-      " at index "
-      {i}
-    </div>
-  }
-
-  <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
-
+    <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
   </>;
 }
 ```
@@ -246,8 +219,7 @@ encounters an error in the `try` block, you can easily render a fallback in the
 import { reportError } from 'some-library';
 
 export function ErrorBoundary() {
-  return <>
-  <div>
+  return <div>
     try {
       <ComponentThatFails />
     } catch (e) {
@@ -256,8 +228,6 @@ export function ErrorBoundary() {
       <div>"An error occurred! "{e.message}</div>
     }
   </div>
-
-  </>;
 }
 ```
 
@@ -267,8 +237,7 @@ useful for building retry UIs:
 
 ```ripple
 export function RetryBoundary() {
-  return <>
-  <div>
+  return <div>
     try {
       <ComponentThatMightFail />
     } catch (e, reset) {
@@ -278,8 +247,6 @@ export function RetryBoundary() {
       </div>
     }
   </div>
-
-  </>;
 }
 ```
 
@@ -292,14 +259,12 @@ and using the `<@tagName>` syntax:
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let &[tag] = track('div');
-
-  <@tag class="dynamic">"Hello World"</@tag>
-  <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
-    "Toggle Element"
-  </button>
-
+  return <>
+    <@tag class="dynamic">"Hello World"</@tag>
+    <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
+      "Toggle Element"
+    </button>
   </>;
 }
 ```
@@ -313,16 +278,15 @@ until the promise resolves.
 ```ripple
 function UserProfile({ id }: { id: number }) {
   return <>
-  // Renders immediately
-  <h1>"Loading profile..."</h1>
+    // Renders immediately
+    <h1>"Loading profile..."</h1>
 
-  // Suspends here until resolved
-  const user = await fetchUser(id);
+    // Suspends here until resolved
+    const user = await fetchUser(id);
 
-  // Renders after resolution
-  <h1>{user.name}</h1>
-  <p>{user.email}</p>
-
+    // Renders after resolution
+    <h1>{user.name}</h1>
+    <p>{user.email}</p>
   </>;
 }
 ```
@@ -332,17 +296,13 @@ Wrap the component in a `try/pending` block to handle the suspended state:
 ```ripple
 export function App() {
   return <>
-  try {
-    <UserProfile id={1} />
-  } pending {
-    <p>"Loading..."</p>
-  } catch (e) {
-    <p>
-      "Error: "
-      {e.message}
-    </p>
-  }
-
+    try {
+      <UserProfile id={1} />
+    } pending {
+      <p>"Loading..."</p>
+    } catch (e) {
+      <p>"Error: "{e.message}</p>
+    }
   </>;
 }
 ```
@@ -362,22 +322,17 @@ nearest `try/pending` boundary.
 import { track } from 'ripple';
 
 export function CitySearch() {
-  return <>
   let &[query] = track('');
+  return <>
+    // Renders immediately, never suspended
+    <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
 
-  // Renders immediately, never suspended
-  <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
+    // Re-runs and re-suspends whenever query changes
+    const city = await track(() => fetchCity(query));
 
-  // Re-runs and re-suspends whenever query changes
-  const city = await track(() => fetchCity(query));
-
-  // Only renders once city has resolved for the current query
-  <p>
-    "Showing: "
-    {query}
-  </p>
-  <CityCard {city} />
-
+    // Only renders once city has resolved for the current query
+    <p>"Showing: "{query}</p>
+    <CityCard {city} />
   </>;
 }
 ```

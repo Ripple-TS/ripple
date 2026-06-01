@@ -374,7 +374,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('return null;');
 		});
 
-		it('component-body guard returns keep later setup in order', () => {
+		it('component-body guard returns lower to reactive <Show> after setup', () => {
 			const { code } = compile(
 				`import { createSignal } from 'solid-js';
 					function App({ cond }: { cond: boolean }) {
@@ -384,15 +384,207 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			const guard_idx = code.indexOf('if (cond)');
 			const signal_idx = code.indexOf('createSignal(0)');
-			const return_idx = code.indexOf('return <div>{doubled()}</div>;');
-			expect(guard_idx).toBeGreaterThan(-1);
+			const show_idx = code.indexOf('<Show when={!cond}');
 			expect(signal_idx).toBeGreaterThan(-1);
-			expect(return_idx).toBeGreaterThan(-1);
-			expect(guard_idx).toBeLessThan(signal_idx);
-			expect(signal_idx).toBeLessThan(return_idx);
-			expect(code).not.toContain('<Show');
+			expect(show_idx).toBeGreaterThan(-1);
+			expect(signal_idx).toBeLessThan(show_idx);
+			expect(code).toContain("import { Show } from 'solid-js'");
+			expect(code).not.toContain('if (cond)');
+		});
+
+		it('component-body guard without a render tail stays conditional', () => {
+			const { code } = compile(
+				`function App(
+					{ cond, items, setup }: { cond: boolean; items: string[]; setup: () => void }
+				) {
+					for (const item of items) {
+						return <><span>{item}</span></>;
+					}
+					if (cond) return null;
+					setup();
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<For each={items}>');
+			expect(code).toContain('<Show when={cond}');
+			expect(code).toContain('setup();');
+			expect(code).not.toContain('if (cond)');
+		});
+
+		it('component-body guard preserves switch trailing render fallback', () => {
+			const { code } = compile(
+				`function App({ hidden, kind }: { hidden: boolean; kind: string }) {
+					if (hidden) return null;
+					switch (kind) {
+						case 'skip':
+							break;
+						case 'done':
+							return <><p>{'done'}</p></>;
+					}
+					return <><span>{'rest'}</span></>;
+				}`,
+				'App.tsrx',
+			);
+			const rest_static = code.match(/const (App__static\d+) = <span>\{'rest'\}<\/span>;/)?.[1];
+
+			expect(rest_static).toBeTruthy();
+			expect(code).toContain('<Show when={!hidden}>');
+			expect(code).toContain(`fallback={${rest_static}}`);
+			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
+		});
+
+		it('component-body if/else returns lower to reactive <Show>', () => {
+			const { code } = compile(
+				`function App({ cond }: { cond: boolean }) {
+					if (cond) {
+						return <><div>{'yes'}</div></>;
+					} else {
+						return <><span>{'no'}</span></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Show when={cond} fallback=');
+			expect(code).toContain("{'yes'}");
+			expect(code).toContain("{'no'}");
+			expect(code).not.toContain('if (cond)');
+		});
+
+		it('component-body switch returns lower to reactive <Switch>/<Match>', () => {
+			const { code } = compile(
+				`function App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'a':
+							return <><div>{'A'}</div></>;
+						default:
+							return <><span>{'?'}</span></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toContain("<Match when={kind === 'a'}>");
+			expect(code).not.toContain('switch (kind)');
+		});
+
+		it('component-body switch break cases include trailing render fallback', () => {
+			const { code } = compile(
+				`function App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'skip':
+							break;
+						case 'a':
+							return <><span>{'A'}</span></>;
+					}
+					return <><em>{'rest'}</em></>;
+				}`,
+				'App.tsrx',
+			);
+			const rest_static = code.match(/const (App__static\d+) = <em>\{'rest'\}<\/em>;/)?.[1];
+
+			expect(rest_static).toBeTruthy();
+			expect(code).toContain(`fallback={${rest_static}}`);
+			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
+		});
+
+		it('component-body switch with final return lowers non-returning cases', () => {
+			const { code } = compile(
+				`function App({ kind }: { kind: string }) {
+					switch (kind) {
+						case 'a':
+							<span>{'A'}</span>
+							break;
+					}
+					return <><em>{'rest'}</em></>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Switch fallback=');
+			expect(code).toContain("<Match when={kind === 'a'}>");
+			expect(code).toContain("{'A'}");
+			expect(code).toContain("{'rest'}");
+			expect(code).not.toContain('switch (kind)');
+		});
+
+		it('component-body for-of returns lower to reactive <For>', () => {
+			const { code } = compile(
+				`function App({ items }: { items: string[] }) {
+					for (const item of items) {
+						return <><div>{item}</div></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<For each={items}>');
+			expect(code).toContain('(item) => <div>{item}</div>');
+			expect(code).not.toContain('for (const item of items)');
+		});
+
+		it('component-body for-of preserves index and key while lowering', () => {
+			const { code } = compile(
+				`function App({ items }: { items: { id: string; name: string }[] }) {
+					for (const item of items; index i; key item.id) {
+						return <><div>{i() + item.name}</div></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<For each={items}');
+			expect(code).toMatch(/keyed=\{\(item\) =>\s*item\.id\}/);
+			expect(code).toContain('(item, i) => <div>{i() + item.name}</div>');
+		});
+
+		it('component-body try/pending/catch returns lower to reactive boundaries', () => {
+			const { code } = compile(
+				`function App() {
+					try {
+						return <><div>{'ready'}</div></>;
+					} pending {
+						return <><div>{'loading'}</div></>;
+					} catch (err) {
+						return <><div>{'error'}</div></>;
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
+			expect(code).not.toContain('try {');
+		});
+
+		it('component-body try lowers when only pending returns render output', () => {
+			const { code } = compile(
+				`function App(
+					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
+				) {
+					try {
+						setup();
+					} pending {
+						return <><div>{'loading'}</div></>;
+					} catch (err) {
+						recover(err);
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toContain('setup();');
+			expect(code).toContain('recover(err);');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
+			expect(code).not.toContain('try {');
 		});
 
 		it('rejects return statements inside TSRX templates', () => {

@@ -10,22 +10,20 @@ TSRX template using the `<style>` element.
 ```ripple
 function MyComponent() {
   return <>
-  <div class="container">
-    <h1>"Hello World"</h1>
-  </div>
+    <div class="container">
+      <h1>"Hello World"</h1>
+    </div>
 
-  <style>
-    .container {
-      background: blue;
-      padding: 1rem;
-    }
-
-    h1 {
-      color: white;
-      font-size: 2rem;
-    }
-  </style>
-
+    <style>
+      .container {
+        background: blue;
+        padding: 1rem;
+      }
+      h1 {
+        color: white;
+        font-size: 2rem;
+      }
+    </style>
   </>;
 }
 ```
@@ -74,21 +72,20 @@ function App() {
   let &[color] = track('red');
 
   return <>
-  <div class="notice" style={{ '--notice-color': color }}>
-    "Styled text"
-  </div>
-  <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
-    "Toggle Color"
-  </button>
+    <div class="notice" style={{ '--notice-color': color }}>
+      "Styled text"
+    </div>
+    <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
+      "Toggle Color"
+    </button>
 
-  <style>
-    .notice {
-      color: var(--notice-color);
-      font-weight: bold;
-      background-color: gray;
-    }
-  </style>
-
+    <style>
+      .notice {
+        color: var(--notice-color);
+        font-weight: bold;
+        background-color: gray;
+      }
+    </style>
   </>;
 }
 ```
@@ -103,48 +100,44 @@ styles, use the `:global()` pseudo-class or `:global` block:
 ```ripple
 export function App() {
   return <>
-  <div class="container">
-    <Child />
-  </div>
+    <div class="container">
+      <Child />
+    </div>
 
-  <style>
-    /* Scoped to Parent only */
-    .container {
-      padding: 1rem;
-    }
-
-    /* Global - Not Recommended - applies to any .highlight in any component */
-    :global(.highlight) {
-      color: red;
-      font-weight: bold;
-    }
-
-    /* Global: - Recommended - scoped parent with global child selector */
-    .container :global(.nested) {
-      margin-left: 2rem;
-    }
-
-    /* Global block - everything inside is global */
-    div :global {
-      .header {
-        font-size: 3rem;
+    <style>
+      /* Scoped to Parent only */
+      .container {
+        padding: 1rem;
       }
-    }
-  </style>
 
+      /* Global - Not Recommended - applies to any .highlight in any component */
+      :global(.highlight) {
+        color: red;
+        font-weight: bold;
+      }
+
+      /* Global: - Recommended - scoped parent with global child selector */
+      .container :global(.nested) {
+        margin-left: 2rem;
+      }
+
+      /* Global block - everything inside is global */
+      div :global {
+        .header {
+          font-size: 3rem;
+        }
+      }
+    </style>
   </>;
 }
 
 function Child() {
-  return <>
   // The div should have its font-size at 2rem from parent
-  <div>
+  return <div>
     <h2 class="header">"This is a header with font-size 3rem"</h2>
     <span class="highlight">"This will be red and bold"</span>
     <p class="nested">"This will have left margin"</p>
   </div>
-
-  </>;
 }
 ```
 
@@ -160,49 +153,47 @@ across components, prefix the animation name with `-global-`:
 ```ripple
 export function App() {
   return <>
-  <div class="parent">
-    <Child />
-  </div>
+    <div class="parent">
+      <Child />
+    </div>
 
-  <style>
-    /* Scoped keyframe - only usable within Parent */
-    @keyframes slideIn {
-      from {
-        transform: translateX(-100%);
+    <style>
+      /* Scoped keyframe - only usable within Parent */
+      @keyframes slideIn {
+        from {
+          transform: translateX(-100%);
+        }
+        to {
+          transform: translateX(0);
+        }
       }
-      to {
-        transform: translateX(0);
-      }
-    }
 
-    /* Global keyframe - usable in any component */
-    @keyframes -global-fadeIn {
-      0% {
-        opacity: 0;
+      /* Global keyframe - usable in any component */
+      @keyframes -global-fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
       }
-      100% {
-        opacity: 1;
+
+      .parent {
+        animation: slideIn 1s;
       }
-    }
-
-    .parent {
-      animation: slideIn 1s;
-    }
-  </style>
-
+    </style>
   </>;
 }
 
 function Child() {
   return <>
-  <div class="child">"Child content"</div>
+    <div class="child">"Child content"</div>
 
-  <style>
-    .child {
-      animation: fadeIn 1s; /* Uses global fadeIn from Parent */
-    }
-  </style>
-
+    <style>
+      .child {
+        animation: fadeIn 1s; /* Uses global fadeIn from Parent */
+      }
+    </style>
   </>;
 }
 ```
@@ -223,10 +214,7 @@ Each map entry contains both the CSS scope hash and the class name (for example
 
 ```ripple
 function Child({ class: className }: { class: string }) {
-  return <>
-  <div class={className}>"styled child"</div>
-
-  </>;
+  return <div class={className}>"styled child"</div>
 }
 
 function Parent() {
@@ -245,9 +233,8 @@ You can pass multiple classes:
 ```ripple
 function Child({ primary, secondary }: { primary: string; secondary: string }) {
   return <>
-  <div class={primary}>"primary"</div>
-  <span class={secondary}>"secondary"</span>
-
+    <div class={primary}>"primary"</div>
+    <span class={secondary}>"secondary"</span>
   </>;
 }
 
@@ -273,10 +260,7 @@ Style expression maps also work when rendering dynamic components with `<@Compon
 import { track } from 'ripple';
 
 function Child({ cls }: { cls: string }) {
-  return <>
-  <span class={cls}>"text"</span>
-
-  </>;
+  return <span class={cls}>"text"</span>
 }
 
 function Parent() {
@@ -286,10 +270,8 @@ function Parent() {
     }
   </style>;
 
-  return <>
   let &[Dynamic] = track(() => Child);
-  <@Dynamic cls={styles.text} />
-  </>;
+  return <@Dynamic cls={styles.text} />
 }
 ```
 
@@ -301,14 +283,13 @@ scoped classes:
 ```ripple
 function Card({ class: className }: { class?: string }) {
   return <>
-  <div class={['card-base', className ?? '']}>"card content"</div>
+    <div class={['card-base', className ?? '']}>"card content"</div>
 
-  <style>
-    .card-base {
-      border: 1px solid black;
-    }
-  </style>
-
+    <style>
+      .card-base {
+        border: 1px solid black;
+      }
+    </style>
   </>;
 }
 
@@ -346,11 +327,9 @@ function App() {
     }
   </style>;
 
-  return <>
-  <div class="parent">
+  return <div class="parent">
     <Child cls={styles.dual} />
   </div>
-  </>;
 }
 ```
 

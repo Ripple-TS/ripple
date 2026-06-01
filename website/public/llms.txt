@@ -174,9 +174,7 @@ function AuthGate({ is_logged_in }) {
     return null;
   }
 
-  return <>
-    <h1>"Dashboard"</h1>
-  </>;
+  return <h1>"Dashboard"</h1>
 }
 ```
 
@@ -196,8 +194,7 @@ function AuthGate({ is_logged_in }) {
 
 ```ripple
 function TemplateScope() {
-  return <>
-  <div>
+  return <div>
     // Variable declarations inside templates
     const message = "Hello from template scope";
     let count = 42;
@@ -223,9 +220,7 @@ function TemplateScope() {
 
     // You can even put debugger statements
     debugger;
-  </div>
-
-  </>;
+  </div>;
 }
 ```
 
@@ -249,17 +244,14 @@ You use `track` to create a single tracked value. The `track` function creates a
 import { track } from 'ripple';
 
 export function Counter() {
-  return <>
   let &[count] = track(0);
   let &[double] = track(() => count * 2);  // Derived reactive value
 
-  <div>
+  return <div>
     <p>"Count: "{count}</p>
     <p>"Double: "{double}</p>
     <button onClick={() => count++}>"Increment"</button>
-  </div>
-
-  </>;
+  </div>;
 }
 ```
 
@@ -304,10 +296,7 @@ items[0].value++;  // reactively updates
 
 // Passing tracked objects as props — the child receives the Tracked<T> object
 function Child(props: { count: Tracked<number> }) {
-  return <>
-  <div>{props.count.value}</div>
-
-  </>;
+  return <div>{props.count.value}</div>
 }
 
 // Using &[value, trackedValue] gives you both:
@@ -362,7 +351,6 @@ The optional get and set parameters of the `track` function let you customize ho
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let &[count] = track(0,
     (current) => {
       console.log(current);
@@ -378,7 +366,7 @@ export function App() {
     }
   );
 
-  </>;
+  return <button onClick={()=>count++}>{count}</button>;
 }
 ```
 
@@ -411,10 +399,9 @@ const &{ a, ...rest } = props;
 ```ripple
 function Child(&{ count, className, children }: Props) {
   return <>
-  // count, className, children are lazily read from __props
-  <button class={className}>{children}</button>
-  <pre>"Count is: "{count}</pre>
-
+		// count, className, children are lazily read from __props
+		<button class={className}>{children}</button>
+		<pre>"Count is: "{count}</pre>
   </>;
 }
 ```
@@ -455,14 +442,13 @@ function createDouble(&[count]) {
 }
 
 export function App() {
-  return <>
   let &[count, countTracked] = track(0);
 
   const &[double] = createDouble(countTracked);
 
-  <div>"Double: "{double}</div>
-  <button onClick={() => { count++; }}>"Increment"</button>
-
+  return <>
+  	<div>"Double: "{double}</div>
+  	<button onClick={() => { count++; }}>"Increment"</button>
   </>;
 }
 ```
@@ -475,35 +461,25 @@ Ripple has built-in support for dynamic components, a way to render different co
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let &[swapMe, swapMeTracked] = track(() => Child1);
 
-  <Child swapMe={swapMeTracked} />
+  return <>
+  	<Child swapMe={swapMeTracked} />
 
-  <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>"Swap Component"</button>
-
+  	<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>"Swap Component"</button>
   </>;
 }
 
 function Child(&{ swapMe }: {swapMe: Tracked<Component>}) {
-  return <>
-  <@swapMe />
-
-  </>;
+  return <@swapMe />
 }
 
 function Child1(props) {
-  return <>
-  <pre>"I am child 1"</pre>
-
-  </>;
+  return <pre>"I am child 1"</pre>
 }
 
 function Child2(props) {
-  return <>
-  <pre>"I am child 2"</pre>
-
-  </>;
+  return <pre>"I am child 2"</pre>
 }
 ```
 
@@ -519,16 +495,13 @@ function Child2(props) {
 #### If Statements
 ```ripple
 function Conditional({ isVisible }) {
-  return <>
-  <div>
-    if (isVisible) {
-      <span>"Visible content"</span>
-    } else {
-      <span>"Hidden state"</span>
-    }
-  </div>
-
-  </>;
+  return <div>
+		if (isVisible) {
+			<span>"Visible content"</span>
+		} else {
+			<span>"Hidden state"</span>
+		}
+	</div>;
 }
 ```
 
@@ -546,24 +519,23 @@ The `switch` statement evaluates an expression and matches its value against a s
 ```ripple
 function StatusIndicator({ status }) {
   return <>
-  // The switch statement evaluates the 'status' prop
-  switch (status) {
-		case: 'init':
-			// fall-through to the next
-    case 'loading':
-      <p>"Loading..."</p>
-      break; // break is mandatory
-    case 'success':
-      <p>"Success!"</p>
-      break;
-    case 'error':
-      <p>"Error!"</p>
-      break;
-    default:
-      <p>"Unknown status"</p>
-      // No break needed for default
-  }
-
+		// The switch statement evaluates the 'status' prop
+		switch (status) {
+			case: 'init':
+				// fall-through to the next
+			case 'loading':
+				<p>"Loading..."</p>
+				break; // break is mandatory
+			case 'success':
+				<p>"Success!"</p>
+				break;
+			case 'error':
+				<p>"Error!"</p>
+				break;
+			default:
+				<p>"Unknown status"</p>
+				// No break needed for default
+		}
   </>;
 }
 ```
@@ -574,30 +546,29 @@ function StatusIndicator({ status }) {
 import { track } from 'ripple';
 
 function InteractiveStatus() {
-  return <>
   let &[status] = track('loading'); // Reactive state
 
   <button onClick={() => status = 'success'}>"Set to Success"</button>
   <button onClick={() => status = 'error'}>"Set to Error"</button>
 
-  // This switch block will update automatically when 'status' changes
-  switch (status) {
-		case 'init':
-			<p>"Status: Init"</p>
-			// fall-through to the next
-    case 'loading':
-      <p>"Status: Loading..."</p>
-      break;
-    case 'success':
-      <p>"Status: Success!"</p>
-      break;
-    case 'error':
-      <p>"Status: Error!"</p>
-      break;
-    default:
-      <p>"Status: Unknown"</p>
-  }
-
+  return <>
+		// This switch block will update automatically when 'status' changes
+		switch (status) {
+			case 'init':
+				<p>"Status: Init"</p>
+				// fall-through to the next
+			case 'loading':
+				<p>"Status: Loading..."</p>
+				break;
+			case 'success':
+				<p>"Status: Success!"</p>
+				break;
+			case 'error':
+				<p>"Status: Error!"</p>
+				break;
+			default:
+				<p>"Status: Unknown"</p>
+		}
   </>;
 }
 ```
@@ -605,14 +576,11 @@ function InteractiveStatus() {
 #### For Loops
 ```ripple
 function List({ items }) {
-  return <>
-  <ul>
-    for (const item of items) {
-      <li>{item.text}</li>
-    }
-  </ul>
-
-  </>;
+  return <ul>
+			for (const item of items) {
+				<li>{item.text}</li>
+			}
+		</ul>
 }
 ```
 
@@ -620,13 +588,12 @@ function List({ items }) {
 ```ripple
 function ListView({ title, items }) {
   return <>
-  <h2>{title}</h2>
-  <ul>
-    for (const item of items; index i) {
-      <li>{item.text}" at index "{i}</li>
-    }
-  </ul>
-
+		<h2>{title}</h2>
+		<ul>
+			for (const item of items; index i) {
+				<li>{item.text}" at index "{i}</li>
+			}
+		</ul>
   </>;
 }
 ```
@@ -635,13 +602,12 @@ function ListView({ title, items }) {
 ```ripple
 function ListView({ title, items }) {
   return <>
-  <h2>{title}</h2>
-  <ul>
-    for (const item of items; index i; key item.id) {
-      <li>{item.text}" at index "{i}</li>
-    }
-  </ul>
-
+		<h2>{title}</h2>
+		<ul>
+			for (const item of items; index i; key item.id) {
+				<li>{item.text}" at index "{i}</li>
+			}
+		</ul>
   </>;
 }
 ```
@@ -655,12 +621,11 @@ function ListView({ title, items }) {
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let &[tag] = track('div');
 
-  <@tag class="dynamic">"Hello World"</@tag>
-  <button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
-
+  return <>
+		<@tag class="dynamic">"Hello World"</@tag>
+		<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
   </>;
 }
 ```
@@ -668,16 +633,13 @@ export function App() {
 #### Try-Catch (Error Boundaries)
 ```ripple
 function ErrorBoundary() {
-  return <>
-  <div>
-    try {
-      <ComponentThatMightFail />
-    } catch (e) {
-      <div>"Error: "{e.message}</div>
-    }
-  </div>
-
-  </>;
+  return <div>
+		try {
+			<ComponentThatMightFail />
+		} catch (e) {
+			<div>"Error: "{e.message}</div>
+		}
+	</div>;
 }
 ```
 
@@ -686,19 +648,16 @@ The `catch` block receives a `reset` function as its second argument. Calling
 
 ```ripple
 function RetryBoundary() {
-  return <>
-  <div>
-    try {
-      <ComponentThatMightFail />
-    } catch (e, reset) {
-      <div>
-        <p>"Error: "{e.message}</p>
-        <button onClick={() => reset()}>"Try again"</button>
-      </div>
-    }
-  </div>
-
-  </>;
+  return <div>
+		try {
+			<ComponentThatMightFail />
+		} catch (e, reset) {
+			<div>
+				<p>"Error: "{e.message}</p>
+				<button onClick={() => reset()}>"Try again"</button>
+			</div>
+		}
+	</div>
 }
 ```
 
@@ -712,22 +671,16 @@ Use the `children` prop for component composition. Use the `Children` type to ac
 import type { Children, Component } from 'ripple';
 
 function Card(props: { children: Children; Footer?: Component }) {
-  return <>
-  <div class="card">
-    {props.children}
-    if (props.Footer) {
-      <props.Footer />
-    }
-  </div>
-
-  </>;
+  return <div class="card">
+			{props.children}
+			if (props.Footer) {
+				<props.Footer />
+			}
+		</div>
 }
 
 function Footer() {
-  return <>
-  <button>"OK"</button>
-
-  </>;
+  return <button>"OK"</button>
 }
 
 // Usage
@@ -746,16 +699,14 @@ Events follow React-style naming (`onClick`, `onPointerMove`, etc.):
 import { track } from 'ripple';
 
 function EventExample() {
-  return <>
   let &[message] = track("");
 
-  <div>
-    <button onClick={() => message = "Clicked!"}>"Click me"</button>
-    <input onInput={(e) => message = e.target.value} />
-    <p>{message}</p>
-  </div>
-
-  </>;
+  return <div>
+		<button onClick={() => message = "Clicked!"}>"Click me"</button>
+		<input onInput={(e) => message = e.target.value} />
+		<p>{message}</p>
+	</div>;
+  );
 }
 ```
 
@@ -772,7 +723,6 @@ This method guarantees the proper execution order with respect to attribute-base
 import { on, effect } from 'ripple';
 
 export function App() {
-  return <>
   effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
@@ -783,7 +733,7 @@ export function App() {
     return removeListener;
   });
 
-  </>;
+  return <></>;
 }
 ```
 
@@ -800,21 +750,20 @@ read them from static CSS with `var(--name)`.
 ```ripple
 function StyledComponent() {
   return <>
-  <div class="container">
-    <h1>"Styled Content"</h1>
-  </div>
+		<div class="container">
+			<h1>"Styled Content"</h1>
+		</div>
 
-  <style>
-    .container {
-      background: blue;
-      padding: 1rem;
-    }
-    h1 {
-      color: white;
-      font-size: 2rem;
-    }
-  </style>
-
+		<style>
+			.container {
+				background: blue;
+				padding: 1rem;
+			}
+			h1 {
+				color: white;
+				font-size: 2rem;
+			}
+		</style>
   </>;
 }
 ```
@@ -828,25 +777,21 @@ Styles defined in a `<style>` block are **automatically scoped** to the returned
 ```ripple
 function Parent() {
   return <>
-  <div class="wrapper">
-    <Child />  // .wrapper styles will NOT affect elements inside Child
-  </div>
+		<div class="wrapper">
+			<Child />  // .wrapper styles will NOT affect elements inside Child
+		</div>
 
-  <style>
-    .wrapper { padding: 20px; }      // Only applies to THIS component's .wrapper
-    .child-class {
-      color: red;
-    }     // Will NOT work - can't reach into Child
-  </style>
-
+		<style>
+			.wrapper { padding: 20px; }      // Only applies to THIS component's .wrapper
+			.child-class {
+				color: red;
+			}     // Will NOT work - can't reach into Child
+		</style>
   </>;
 }
 
 function Child() {
-  return <>
-  <div class="child-class">"I won't be red"</div>
-
-  </>;
+  return <div class="child-class">"I won't be red"</div>;
 }
 ```
 
@@ -860,11 +805,10 @@ children through normal props.
 ```ripple
 function Badge({ class: className }: { class?: string }) {
   return <>
-  <span class={`badge ${className ?? ''}`}>"New"</span>
-  <style>
-    .badge { padding: 0.25rem 0.5rem; }
-  </style>
-
+		<span class={`badge ${className ?? ''}`}>"New"</span>
+		<style>
+			.badge { padding: 0.25rem 0.5rem; }
+		</style>
   </>;
 }
 
@@ -911,20 +855,19 @@ To escape scoping and apply styles globally (or to reach into child components),
 ```ripple
 function Parent() {
   return <>
-  <div class="wrapper">
-    <Child />
-  </div>
+		<div class="wrapper">
+			<Child />
+		</div>
 
-  <style>
-    .wrapper { padding: 20px; }              // Scoped to this component
+		<style>
+			.wrapper { padding: 20px; }              // Scoped to this component
 
-    :global(.child-class) { color: red; }   // Applies globally - will reach Child
+			:global(.child-class) { color: red; }   // Applies globally - will reach Child
 
-    .wrapper :global(.nested) {             // Scoped .wrapper, global .nested
-      font-weight: bold;
-    }
-  </style>
-
+			.wrapper :global(.nested) {             // Scoped .wrapper, global .nested
+				font-weight: bold;
+			}
+		</style>
   </>;
 }
 ```
@@ -964,24 +907,23 @@ Styles in `<style>` blocks are static CSS. When a value needs to change at runti
 import { track } from 'ripple';
 
 function App() {
-  return <>
   let &[color] = track('red');
 
-  <div class="notice" style={{ '--notice-color': color }}>
-    "Styled text"
-  </div>
-  <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
-    "Toggle Color"
-  </button>
+  return <>
+		<div class="notice" style={{ '--notice-color': color }}>
+			"Styled text"
+		</div>
+		<button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
+			"Toggle Color"
+		</button>
 
-  <style>
-    .notice {
-      color: var(--notice-color);
-      font-weight: bold;
-      background-color: gray;
-    }
-  </style>
-
+		<style>
+			.notice {
+				color: var(--notice-color);
+				font-weight: bold;
+				background-color: gray;
+			}
+		</style>
   </>;
 }
 ```
@@ -1001,15 +943,14 @@ mounts and cleared when it unmounts.
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let div: HTMLDivElement | null | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
 
-  <div ref={div}>"Hello world"</div>
-  <input ref={input} type="text" />
-  <button ref={[state.button, (node) => console.log("mounted", node)]}>"Log"</button>
-
+  return <>
+		<div ref={div}>"Hello world"</div>
+		<input ref={input} type="text" />
+		<button ref={[state.button, (node) => console.log("mounted", node)]}>"Log"</button>
   </>;
 }
 ```
@@ -1021,21 +962,15 @@ the receiving component when you want to forward them.
 
 ```ripple
 function Field({ inputRef, ...rest }) {
-  return <>
-  <label>
-    "Search"
-    <input ref={inputRef} type="search" {...rest} />
-  </label>
-
-  </>;
+  return <label>
+			"Search"
+			<input ref={inputRef} type="search" {...rest} />
+		</label>
 }
 
 export function App() {
-  return <>
   let input: HTMLInputElement | null | undefined;
-  <Field inputRef={input} placeholder="Search docs" />
-
-  </>;
+  return <Field inputRef={input} placeholder="Search docs" />;
 }
 ```
 
@@ -1106,16 +1041,13 @@ const html = render(App, {
 import { track, effect } from 'ripple';
 
 export function App() {
-  return <>
-  let &[count] = track(0);
+	let &[count] = track(0);
 
   effect(() => {
     console.log("Count changed:", count);
   });
 
-  <button onClick={() => count++}>"Increment"</button>
-
-  </>;
+  return <button onClick={() => count++}>"Increment"</button>;
 }
 ```
 
@@ -1127,7 +1059,6 @@ The `tick()` function returns a Promise that resolves after all pending reactive
 import { tick, track, effect } from 'ripple';
 
 export function App() {
-  return <>
   let &[count] = track(0);
 
   effect(() => {
@@ -1143,9 +1074,7 @@ export function App() {
     });
   });
 
-  <button onClick={() => count++}>"Increment"</button>
-
-  </>;
+  return <button onClick={() => count++}>"Increment"</button>;
 }
 ```
 
@@ -1168,7 +1097,6 @@ const context  = new Context({});
 const context2 = new Context();
 
 export function App() {
-  return <>
   // get reference to the object
   const obj = context.get();
   // set your reactive value
@@ -1180,14 +1108,14 @@ export function App() {
   // context2 now contains a tracked variable
   context2.set(count2Tracked);
 
-  <button onClick={() => { objCount++; count2++ }}>
-    "Click Me"
-  </button>
+	return <>
+		<button onClick={() => { objCount++; count2++ }}>
+			"Click Me"
+		</button>
 
-  // context's reactive property count gets updated
-  <pre>"Context: "{objCount}</pre>
-  <pre>"Context2: "{count2}</pre>
-
+		// context's reactive property count gets updated
+		<pre>"Context: "{objCount}</pre>
+		<pre>"Context2: "{count2}</pre>
   </>;
 }
 ```
@@ -1200,18 +1128,16 @@ import { Context } from 'ripple';
 const MyContext = new Context(null);
 
 function Child() {
-  return <>
   // Context is read in the Child component
   const value = MyContext.get();
 
   // value is "Hello from context!"
   console.log(value);
 
-  </>;
+  return <p>"Value in Child: "{value}</p>;
 }
 
 function Parent() {
-  return <>
   const value = MyContext.get();
 
   // Context is read in the Parent component, but hasn't yet
@@ -1222,9 +1148,7 @@ function Parent() {
   // Context is set in the Parent component
   MyContext.set("Hello from context!");
 
-  <Child />
-
-  </>;
+  return <Child />
 }
 ```
 
@@ -1276,18 +1200,15 @@ Usage Example:
 import { RippleArray } from 'ripple';
 
 export function App() {
-  return <>
   const items = new RippleArray(1, 2, 3);
 
-  <div>
+  return <div>
     <p>"Length: "{items.length}</p>  // Reactive length
     for (const item of items) {
       <div>{item}</div>
     }
     <button onClick={() => items.push(items.length + 1)}>"Add"</button>
-  </div>
-
-  </>;
+  </div>;
 }
 ```
 
@@ -1308,15 +1229,14 @@ Usage Example:
 import { RippleObject } from 'ripple';
 
 export function App() {
-  return <>
   const obj = new RippleObject({a: 0})
 
   obj.a = 0;
 
-  <pre>"obj.a is: "{obj.a}</pre>
-  <pre>"obj.b is: "{obj.b}</pre>
-  <button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
-
+	return <>
+		<pre>"obj.a is: "{obj.a}</pre>
+		<pre>"obj.b is: "{obj.b}</pre>
+		<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
   </>;
 }
 ```
@@ -1327,16 +1247,13 @@ export function App() {
 import { RippleSet } from 'ripple';
 
 function SetExample() {
-  return <>
   const mySet = new RippleSet([1, 2, 3]);
 
-  <div>
+  return <div>
     <p>"Size: "{mySet.size}</p>  // Reactive size
     <p>"Has 2: "{mySet.has(2)}</p>
     <button onClick={() => mySet.add(4)}>"Add 4"</button>
-  </div>
-
-  </>;
+  </div>;
 }
 ```
 
@@ -1356,19 +1273,18 @@ RippleMap's reactive methods or properties can be used directly or assigned to r
 import { RippleMap, track } from 'ripple';
 
 export function App() {
-  return <>
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
-  // direct usage
-  <p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
+	return <>
+		// direct usage
+		<p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
 
-  // reactive assignment
-  let &[has] = track(() => map.has(2));
-  <p>"Assigned usage: map has an item with key 2: "{has}</p>
+		// reactive assignment
+		let &[has] = track(() => map.has(2));
+		<p>"Assigned usage: map has an item with key 2: "{has}</p>
 
-  <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
-  <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
-
+		<button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
+		<button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
   </>;
 }
 ```
@@ -1389,21 +1305,20 @@ RippleDate's reactive methods or properties can be used directly or assigned to 
 import { RippleDate, track } from 'ripple';
 
 export function App() {
-  return <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
-  // direct usage
-  <p>"Direct usage: Current year is "{date.getFullYear()}</p>
-  <p>"ISO String: "{date.toISOString()}</p>
+	return <>
+		// direct usage
+		<p>"Direct usage: Current year is "{date.getFullYear()}</p>
+		<p>"ISO String: "{date.toISOString()}</p>
 
-  // reactive assignment
-  let &[year] = track(() => date.getFullYear());
-  let &[month] = track(() => date.getMonth());
-  <p>"Assigned usage: Year "{year}", Month "{month}</p>
+		// reactive assignment
+		let &[year] = track(() => date.getFullYear());
+		let &[month] = track(() => date.getMonth());
+		<p>"Assigned usage: Year "{year}", Month "{month}</p>
 
-  <button onClick={() => date.setFullYear(2027)}>"Change to 2026"</button>
-  <button onClick={() => date.setMonth(11)}>"Change to December"</button>
-
+		<button onClick={() => date.setFullYear(2027)}>"Change to 2027"</button>
+		<button onClick={() => date.setMonth(11)}>"Change to December"</button>
   </>;
 }
 ```
@@ -1418,20 +1333,16 @@ The `Portal` component allows you to render (teleport) content anywhere in the D
 import { Portal } from 'ripple';
 
 export function App() {
-  return <>
-  <div class="app">
-    <h1>"My App"</h1>
-
-    {/* This will render inside document.body, not inside the .app div */}
-    <Portal target={document.body}>
-      <div class="modal">
-        <h2>"I am rendered in document.body!"</h2>
-        <p>"This content escapes the normal component tree."</p>
-      </div>
-    </Portal>
-  </div>
-
-  </>;
+  return <div class="app">
+			<h1>"My App"</h1>
+			{/* This will render inside document.body, not inside the .app div */}
+			<Portal target={document.body}>
+				<div class="modal">
+					<h2>"I am rendered in document.body!"</h2>
+					<p>"This content escapes the normal component tree."</p>
+				</div>
+			</Portal>
+		</div>;
 }
 ```
 
@@ -1472,10 +1383,7 @@ When raw markup must sit beside normal children, import `Fragment` from
 
 ```tsrx
 function Article({ markup }: { markup: string }) {
-  return <>
-  <article innerHTML={markup} />
-
-  </>;
+  return <article innerHTML={markup} />;
 }
 ```
 
@@ -1487,14 +1395,11 @@ JavaScript with `String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export function Frame({ children }) {
-  return <>
-	<div class="frame">
-		{'before'}
-		{children}
-		{'after'}
-	</div>
-
-  </>;
+  return <div class="frame">
+			"before"
+			{children}
+			"after"
+		</div>;
 }
 ```
 
@@ -1503,13 +1408,10 @@ never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
 export function App() {
-  return <>
 	const markup = '<span>Not HTML</span>';
 
 	// Renders the literal string "<span>Not HTML</span>" as text
-	<div>{markup}</div>
-
-  </>;
+  return <div>{markup}</div>;
 }
 ```
 

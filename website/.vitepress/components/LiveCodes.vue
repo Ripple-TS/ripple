@@ -244,10 +244,9 @@ const defaultContent = `
 import { track } from 'ripple';
 
 export default function Counter() {
+  let &[count] = track(0);
+  let &[double] = track(() => count * 2);
   return <>
-    let &[count] = track(0);
-    let &[double] = track(() => count * 2);
-
     <div class="container">
       <h2>"Counter"</h2>
       <p>"Count: "{count}</p>

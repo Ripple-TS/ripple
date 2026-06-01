@@ -81,17 +81,15 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		label: 'Conditional rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
-  return <>
-    <div>
-      if (status === 'active') {
-        <span class="badge active">"Online"</span>
-      } else if (status === 'idle') {
-        <span class="badge idle">"Away"</span>
-      } else {
-        <span class="badge">"Offline"</span>
-      }
-    </div>
-  </>;
+  return <div>
+    if (status === 'active') {
+      <span class="badge active">"Online"</span>
+    } else if (status === 'idle') {
+      <span class="badge idle">"Away"</span>
+    } else {
+      <span class="badge">"Offline"</span>
+    }
+  </div>;
 }`,
 	},
 	{
@@ -99,13 +97,11 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		label: 'List rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function TodoList({ items }: { items: { text: string }[] }) {
-  return <>
-    <ul>
-      for (const item of items; index i) {
-        <li>{i + 1}". "{item.text}</li>
-      }
-    </ul>
-  </>;
+  return <ul>
+    for (const item of items; index i) {
+      <li>{i + 1}". "{item.text}</li>
+    }
+  </ul>;
 }`,
 	},
 	{

@@ -251,7 +251,7 @@ export function ExpressionContent() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(label.toUpperCase()));
+				_$_.render_expression(label.toUpperCase());
 			}
 
 			_$_.output_push('</span>');

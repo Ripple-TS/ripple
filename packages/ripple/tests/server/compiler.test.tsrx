@@ -196,6 +196,78 @@ export default function A() { return <>
 		expect(result).not.toContain(`"Hello";`);
 	});
 
+	it('does not merge adjacent call-containing children into stringified text in SSR output', () => {
+		const setup = `function child(label) {
+	return <><span>{label}</span></>;
+}
+function Constructed(label) {
+	return child(label);
+}
+const factory = child;
+function identity(value) {
+	return value;
+}
+function empty() {
+	return null;
+}
+let assigned;
+const lookup = { member: child('member') };
+function getKey() {
+	return 'member';
+}
+function touch() {
+	return null;
+}
+function tag() {
+	return child('tagged');
+}
+const values = { member: 0 };`;
+
+		const cases = [
+			{ name: 'call expression', expression: 'child(\'call\')' },
+			{ name: 'new expression', expression: 'new Constructed(\'new\')' },
+			{ name: 'chain expression', expression: 'factory?.(\'chain\')' },
+			{ name: 'parenthesized expression', expression: '(child(\'parenthesized\'))' },
+			{ name: 'TS as expression', expression: 'child(\'as\') as any' },
+			{ name: 'TS non-null expression', expression: 'child(\'non-null\')!' },
+			{ name: 'TS satisfies expression', expression: 'child(\'satisfies\') satisfies any' },
+			{
+				name: 'TS instantiation expression',
+				expression: 'identity<typeof child>(child)(\'instantiation\')',
+			},
+			{ name: 'array expression', expression: '[child(\'array\')]' },
+			{ name: 'assignment expression', expression: 'assigned = child(\'assignment\')' },
+			{ name: 'binary expression', expression: 'empty() + \'\'' },
+			{ name: 'logical expression', expression: 'true && child(\'logical\')' },
+			{ name: 'conditional expression', expression: 'true ? child(\'conditional\') : \'\'' },
+			{ name: 'member expression', expression: 'lookup[getKey()]' },
+			{
+				name: 'object expression',
+				expression: '{ [Symbol.for(\'ripple.element\')]: true, render() { return child(\'object\'); } }',
+			},
+			{ name: 'sequence expression', expression: '(touch(), child(\'sequence\'))' },
+			{ name: 'tagged template expression', expression: 'tag`tagged`' },
+			{ name: 'template literal', expression: '`${empty()}`' },
+			{ name: 'unary expression', expression: 'void empty()' },
+			{ name: 'update expression', expression: 'values[getKey()]++' },
+		];
+
+		for (const test_case of cases) {
+			const source = `${setup}
+export function App() {
+	return <>
+		<div>{'${test_case.name}:'}{${test_case.expression}}</div>
+	</>;
+}`;
+
+			const { code } = compile(source, `${test_case.name}.tsrx`, { mode: 'server' });
+
+			if (code.includes('String(')) {
+				throw new Error(`${test_case.name} was merged into a stringified text expression:\n${code}`);
+			}
+		}
+	});
+
 	it('decodes JSX-style entities before server text escaping', () => {
 		const result = compile(
 			`function App() { return <>
@@ -320,8 +392,8 @@ function App() { return <>
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
-		expect(result).toContain('_$_.output_push(_$_.escape(make()))');
-		expect(result).not.toContain('_$_.render_expression(make())');
+		expect(result).toContain('_$_.render_expression(make())');
+		expect(result).not.toContain('_$_.render_tsrx_element(make())');
 	});
 });
 

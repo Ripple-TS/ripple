@@ -13,12 +13,11 @@ as a direct double-quoted child; JavaScript expressions should use {braces}.
 ```ripple
 export function TextBrace() {
   return <>
-  // ✔️ valid
-  <p>"Hello world!"</p>
+    // ✔️ valid
+    <p>"Hello world!"</p>
 
-  // ❌ invalid
-  // <p>Hello world!</p>
-
+    // ❌ invalid
+    // <p>Hello world!</p>
   </>;
 }
 ```
@@ -47,18 +46,17 @@ self-closing syntax.
 ```ripple
 export function Bracey() {
   return <>
-  // ✔️ valid
-  <input />
-  <img />
-  <hr />
-  <br />
+    // ✔️ valid
+    <input />
+    <img />
+    <hr />
+    <br />
 
-  // ❌ invalid
-  // <input>
-  // <img>
-  // <hr>
-  // <br>
-
+    // ❌ invalid
+    // <input>
+    // <img>
+    // <hr>
+    // <br>
   </>;
 }
 ```
