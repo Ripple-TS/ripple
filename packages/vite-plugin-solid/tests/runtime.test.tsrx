@@ -1476,7 +1476,7 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.scope-result')).toBe('18');
 	});
 
-	it('component guard return before signals behaves like an ordinary function guard', async () => {
+	it('component guard return before signals updates reactively', async () => {
 		await render(GuardReturnWithSignalsApp);
 		expect(text('.early-count')).toBe('0');
 		expect(text('.early-doubled')).toBe('0');
@@ -1486,8 +1486,8 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.early-doubled')).toBe('2');
 
 		await click('.early-skip');
-		expect(text('.early-count')).toBe('1');
-		expect(text('.early-doubled')).toBe('2');
+		expect(container.querySelector('.early-count')).toBeNull();
+		expect(container.querySelector('.early-doubled')).toBeNull();
 	});
 
 	it('conditional branch template updates reactively', async () => {
