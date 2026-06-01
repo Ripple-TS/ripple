@@ -413,6 +413,29 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('if (cond)');
 		});
 
+		it('component-body guard preserves switch trailing render fallback', () => {
+			const { code } = compile(
+				`function App({ hidden, kind }: { hidden: boolean; kind: string }) {
+					if (hidden) return null;
+					switch (kind) {
+						case 'skip':
+							break;
+						case 'done':
+							return <><p>{'done'}</p></>;
+					}
+					return <><span>{'rest'}</span></>;
+				}`,
+				'App.tsrx',
+			);
+			const rest_static = code.match(/const (App__static\d+) = <span>\{'rest'\}<\/span>;/)?.[1];
+
+			expect(rest_static).toBeTruthy();
+			expect(code).toContain('<Show when={!hidden}>');
+			expect(code).toContain(`fallback={${rest_static}}`);
+			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
+		});
+
 		it('component-body if/else returns lower to reactive <Show>', () => {
 			const { code } = compile(
 				`function App({ cond }: { cond: boolean }) {

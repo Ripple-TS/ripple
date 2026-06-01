@@ -1213,6 +1213,8 @@ function rewrite_early_return_guard_body(body, transform_context) {
 	);
 	const before = body.slice(0, early_idx);
 	const after = body.slice(early_idx + 1);
+	const lowered_after = lower_solid_component_statement_list(after);
+	const effective_after = lowered_after.changed ? lowered_after.nodes : after;
 	const branch_has_content_before_return = early_info.consequent_body.length > 0;
 	const early_interleaved = is_interleaved_body([...before, ...after]);
 
@@ -1264,7 +1266,7 @@ function rewrite_early_return_guard_body(body, transform_context) {
 	};
 
 	collect(before, before_non_jsx, before_jsx);
-	collect(after, after_non_jsx, after_jsx);
+	collect(effective_after, after_non_jsx, after_jsx);
 
 	const next_body = [...before_non_jsx, ...before_jsx, ...after_non_jsx];
 
