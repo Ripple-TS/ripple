@@ -62,13 +62,19 @@
     "component-statements": {
       "patterns": [
         {
+          "include": "#tsrx-template-fence"
+        },
+        {
+          "include": "#tsrx-template-directive"
+        },
+        {
           "include": "#jsx"
         },
         {
           "include": "#declaration"
         },
         {
-          "include": "#component-control-statement"
+          "include": "#control-statement"
         },
         {
           "include": "#component-decl-block"
@@ -203,86 +209,271 @@
         }
       ]
     },
-    "component-control-statement": {
+    "tsrx-template-fence": {
+      "name": "punctuation.section.embedded.tsrx",
+      "match": "^[ \\t]*(---)[ \\t]*$",
+      "captures": {
+        "1": {
+          "name": "punctuation.section.embedded.tsrx"
+        }
+      }
+    },
+    "tsrx-template-setup-section": {
+      "name": "meta.embedded.setup.tsrx",
+      "contentName": "source.js.embedded.ripple-isolated",
+      "begin": "(?=^[ \\t]*(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|return|switch|throw|try|type|using|var|while)\\b|[a-z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
+      "end": "(?=^[ \\t]*(?:---[ \\t]*$|</|<[A-Za-z]|<>))",
       "patterns": [
         {
-          "include": "#tsrx-render-statement"
-        },
-        {
-          "include": "#component-switch-statement"
-        },
-        {
-          "include": "#for-loop"
-        },
-        {
-          "name": "keyword.control.trycatch.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(catch|finally|pending|throw|try)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(break|continue|goto)\\s+([_$[:alpha:]][_$[:alnum:]]*)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))",
-          "captures": {
-            "1": {
-              "name": "keyword.control.loop.js"
-            },
-            "2": {
-              "name": "entity.name.label.js"
-            }
-          }
-        },
-        {
-          "name": "keyword.control.loop.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(break|continue|do|goto|while)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(return)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))",
-          "beginCaptures": {
-            "0": {
-              "name": "keyword.control.flow.js"
-            }
-          },
-          "end": "(?=[;}]|$|;|^\\s*$|(?:^\\s*(?:abstract|async|(?:\\bawait\\s+(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)\\b)|break|case|catch|class|const|continue|declare|do|else|enum|export|finally|function|for|goto|if|import|interface|let|module|namespace|pending|switch|return|throw|try|type|(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)|var|while)\\b))",
-          "patterns": [
-            {
-              "include": "#expression"
-            }
-          ]
-        },
-        {
-          "name": "keyword.control.switch.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(case|default|switch)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "include": "#component-if-statement"
-        },
-        {
-          "name": "keyword.control.conditional.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(else|if)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "name": "keyword.control.with.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(with)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "name": "keyword.control.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(package)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
-        },
-        {
-          "name": "keyword.other.debugger.js",
-          "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(debugger)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
+          "include": "#component-statements"
         }
       ]
     },
-    "tsrx-render-statement": {
-      "begin": "(^\\s*)(=>)",
-      "beginCaptures": {
-        "2": {
-          "name": "keyword.control.flow.js"
-        }
-      },
-      "end": "(?=[;}]|$|;|^\\s*$|(?:^\\s*(?:abstract|async|(?:\\bawait\\s+(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)\\b)|break|case|catch|class|const|continue|declare|do|else|enum|export|finally|function|for|goto|if|import|interface|let|module|namespace|pending|switch|return|throw|try|type|(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)|var|while)\\b))",
+    "tsrx-template-directive": {
       "patterns": [
         {
+          "include": "#tsrx-template-conditional-directive"
+        },
+        {
+          "include": "#tsrx-template-loop-directive"
+        },
+        {
+          "include": "#tsrx-template-switch-directive"
+        },
+        {
+          "include": "#tsrx-template-try-directive"
+        },
+        {
+          "include": "#tsrx-template-at-branch-directive"
+        },
+        {
+          "name": "keyword.control.directive.tsrx",
+          "match": "(@)(if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]])",
+          "captures": {
+            "0": {
+              "name": "keyword.control.directive.tsrx"
+            },
+            "1": {
+              "name": "keyword.control.directive.tsrx"
+            }
+          }
+        }
+      ]
+    },
+    "tsrx-template-child-directive": {
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive"
+        },
+        {
+          "include": "#tsrx-template-branch-directive"
+        }
+      ]
+    },
+    "tsrx-template-conditional-directive": {
+      "name": "meta.directive.if.tsrx",
+      "begin": "(@)(if)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-loop-directive": {
+      "name": "meta.directive.for.tsrx",
+      "begin": "(@)(for)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-switch-directive": {
+      "name": "meta.directive.switch.tsrx",
+      "begin": "(@)(switch)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-try-directive": {
+      "name": "meta.directive.try.tsrx",
+      "begin": "(@)(try)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-at-branch-directive": {
+      "name": "meta.directive.branch.tsrx",
+      "begin": "(@)(else|pending|catch|finally|case|default)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-branch-directive": {
+      "name": "meta.directive.branch.tsrx",
+      "begin": "(?<![_$[:alnum:]])(else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{))",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-directive-header": {
+      "name": "meta.directive.header.tsrx",
+      "begin": "\\(",
+      "beginCaptures": {
+        "0": {
+          "name": "meta.brace.round.js"
+        }
+      },
+      "end": "\\)",
+      "endCaptures": {
+        "0": {
+          "name": "meta.brace.round.js"
+        }
+      },
+      "patterns": [
+        {
+          "name": "storage.type.js",
+          "match": "(?<![_$[:alnum:]])(const|let|var)(?![_$[:alnum:]])"
+        },
+        {
+          "name": "keyword.operator.expression.js",
+          "match": "(?<![_$[:alnum:]])(of|in|key|index)(?![_$[:alnum:]])"
+        },
+        {
           "include": "#expression"
+        },
+        {
+          "include": "#punctuation-semicolon"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-directive-block": {
+      "name": "meta.directive.block.tsrx",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#jsx-children"
         }
       ]
     },
@@ -2839,105 +3030,6 @@
         }
       ]
     },
-    "component-switch-statement": {
-      "name": "switch-statement.expr.js",
-      "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(?=\\bswitch\\s*\\()",
-      "end": "\\}",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.block.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comment"
-        },
-        {
-          "name": "switch-expression.expr.js",
-          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(switch)\\s*(\\()",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.switch.js"
-            },
-            "2": {
-              "name": "meta.brace.round.js"
-            }
-          },
-          "end": "\\)",
-          "endCaptures": {
-            "0": {
-              "name": "meta.brace.round.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#expression"
-            }
-          ]
-        },
-        {
-          "name": "switch-block.expr.js",
-          "begin": "\\{",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.block.js"
-            }
-          },
-          "end": "(?=\\})",
-          "patterns": [
-            {
-              "name": "case-clause.expr.js",
-              "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(case|default(?=:))(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))",
-              "beginCaptures": {
-                "1": {
-                  "name": "keyword.control.switch.js"
-                }
-              },
-              "end": "(?=:)",
-              "patterns": [
-                {
-                  "include": "#expression"
-                }
-              ]
-            },
-            {
-              "begin": "(:)\\s*(\\{)",
-              "beginCaptures": {
-                "1": {
-                  "name": "case-clause.expr.js punctuation.definition.section.case-statement.js"
-                },
-                "2": {
-                  "name": "meta.block.js punctuation.definition.block.js"
-                }
-              },
-              "end": "\\}",
-              "endCaptures": {
-                "0": {
-                  "name": "meta.block.js punctuation.definition.block.js"
-                }
-              },
-              "contentName": "meta.block.js",
-              "patterns": [
-                {
-                  "include": "#statements"
-                }
-              ]
-            },
-            {
-              "match": "(:)",
-              "captures": {
-                "0": {
-                  "name": "case-clause.expr.js punctuation.definition.section.case-statement.js"
-                }
-              }
-            },
-            {
-              "include": "#component-statements"
-            }
-          ]
-        }
-      ]
-    },
     "for-loop": {
       "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))for(?=((\\s+|(\\s*\\/\\*([^\\*]|(\\*[^\\/]))*\\*\\/\\s*))await)?\\s*(\\/\\*([^\\*]|(\\*[^\\/]))*\\*\\/\\s*)?(\\())",
       "beginCaptures": {
@@ -3073,67 +3165,6 @@
             },
             {
               "include": "#statements"
-            }
-          ]
-        }
-      ]
-    },
-    "component-if-statement": {
-      "patterns": [
-        {
-          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(?=\\bif\\s*(\\(([^\\(\\)]|(\\(([^\\(\\)]|\\([^\\(\\)]*\\))*\\)))*\\))\\s*(?!\\{))",
-          "end": "(?=;|$|\\})",
-          "patterns": [
-            {
-              "include": "#comment"
-            },
-            {
-              "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(if)\\s*(\\()",
-              "beginCaptures": {
-                "1": {
-                  "name": "keyword.control.conditional.js"
-                },
-                "2": {
-                  "name": "meta.brace.round.js"
-                }
-              },
-              "end": "\\)",
-              "endCaptures": {
-                "0": {
-                  "name": "meta.brace.round.js"
-                }
-              },
-              "patterns": [
-                {
-                  "include": "#expression"
-                }
-              ]
-            },
-            {
-              "name": "string.regexp.js",
-              "begin": "(?<=\\))\\s*\\/(?![\\/*])(?=(?:[^\\/\\\\\\[]|\\\\.|\\[([^\\]\\\\]|\\\\.)*\\])+\\/([dgimsuvy]+|(?![\\/\\*])|(?=\\/\\*))(?!\\s*[a-zA-Z0-9_$]))",
-              "beginCaptures": {
-                "0": {
-                  "name": "punctuation.definition.string.begin.js"
-                }
-              },
-              "end": "(/)([dgimsuvy]*)",
-              "endCaptures": {
-                "1": {
-                  "name": "punctuation.definition.string.end.js"
-                },
-                "2": {
-                  "name": "keyword.other.js"
-                }
-              },
-              "patterns": [
-                {
-                  "include": "#regexp"
-                }
-              ]
-            },
-            {
-              "include": "#component-statements"
             }
           ]
         }
@@ -6418,6 +6449,15 @@
           "include": "#jsx-evaluated-code"
         },
         {
+          "include": "#tsrx-template-fence"
+        },
+        {
+          "include": "#tsrx-template-setup-section"
+        },
+        {
+          "include": "#tsrx-template-child-directive"
+        },
+        {
           "include": "#jsx-tag-style"
         },
         {
@@ -6427,12 +6467,6 @@
           "include": "#jsx-tag-fragment"
         },
         {
-          "include": "#jsx-double-quoted-text-child"
-        },
-        {
-          "include": "#jsx-children-statements"
-        },
-        {
           "include": "#jsx-tag-without-attributes"
         },
         {
@@ -6440,53 +6474,15 @@
         },
         {
           "include": "#jsx-entities"
+        },
+        {
+          "include": "#jsx-text"
         }
       ]
     },
-    "jsx-double-quoted-text-child": {
-      "name": "meta.jsx.text.quoted.js",
-      "begin": "\"",
-      "end": "\"",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.jsx.text.begin.js"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.jsx.text.end.js"
-        }
-      },
-      "contentName": "string.unquoted.jsx.text.js",
-      "patterns": [
-        {
-          "include": "#jsx-entities"
-        }
-      ]
-    },
-    "jsx-children-statements": {
-      "patterns": [
-        {
-          "begin": "(?=\\s*=>|\\w|\\$|//|/\\*)",
-          "end": "(?=<[a-zA-Z]|</)",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.begin.ripple-ts"
-            }
-          },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.end.ripple-ts"
-            }
-          },
-          "contentName": "source.js.embedded.ripple-isolated",
-          "patterns": [
-            {
-              "include": "#component-statements"
-            }
-          ]
-        }
-      ]
+    "jsx-text": {
+      "name": "string.unquoted.jsx.text.js",
+      "match": "(?:(?!^[ \\t]*---[ \\t]*$)(?!@(?:if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]]))(?!(?:\\r?\\n)?[ \\t]*(?:else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))[^<>{}&])+"
     },
     "jsx-attribute-expression": {
       "patterns": [
@@ -6560,7 +6556,10 @@
       },
       "patterns": [
         {
-          "include": "#jsx-attribute-expression"
+          "include": "#jsx-evaluated-code"
+        },
+        {
+          "include": "#expression"
         }
       ]
     },
