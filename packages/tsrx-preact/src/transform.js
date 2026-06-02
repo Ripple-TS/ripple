@@ -48,7 +48,6 @@ const preact_platform = {
 	},
 	hooks: {
 		moduleScopedHookComponents: true,
-		componentBodyHookHelpers: true,
 	},
 };
 

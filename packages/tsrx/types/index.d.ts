@@ -104,7 +104,6 @@ interface BaseNodeMetaData {
 interface FunctionMetaData extends BaseNodeMetaData {
 	native_tsrx?: boolean;
 	native_tsrx_function?: boolean;
-	hook_split?: boolean;
 	is_method?: boolean;
 	tracked?: boolean;
 	has_lazy_descendants?: boolean;
@@ -177,7 +176,6 @@ declare module 'estree' {
 
 	interface BlockStatement {
 		metadata: BaseNodeMetaData & {
-			hook_split_block?: boolean;
 			native_return_block?: boolean;
 		};
 	}

@@ -733,11 +733,14 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(code).toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toContain('menuAlt: (isAdmin) => {');
+		expect(code).toContain('if (isAdmin)');
+		expect(code).toContain('bySwitch: (role) => {');
 		expect(code).toContain("case 'admin':");
-		expect(code).toMatch(/_\$_.expression\(expression.*\(\) => \[/s);
-		expect(server.code).toContain('_$_.render_expression([');
+		expect(code).toContain('return [');
+		expect(code).not.toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
+		expect(code).not.toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(server.code).toContain('return [');
 	});
 
 	it('allows any returns inside nested component prop functions', () => {
@@ -764,7 +767,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		expect(code).not.toContain('Return statements are not allowed');
 	});
 
-	it('uses one return guard for multiple component return branches', () => {
+	it('keeps component-body branches as ordinary JavaScript outside returned fragments', () => {
 		const source = `function Test({ done }) {
 			if (done.value) {
 				return <p>"Done"</p>;
@@ -784,35 +787,40 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 		const tsx = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(client.code).toContain('var return_guard = false;');
+		expect(client.code).toContain('if (done.value)');
+		expect(client.code).toContain('return _$_.tsrx_element');
 		expect(client.code).toContain('_$_.for(');
-		expect(client.code).toContain('_$_.render_tsrx_element(loop(),');
+		expect(client.code).toContain('return loop();');
+		expect(client.code).not.toContain('_$_.render_tsrx_element(loop(),');
 		expect(client.code).not.toContain('_$_.expression(expression_2, loop)');
-		expect(client.code).not.toContain('return_guard_1');
 		expect(client.code).not.toContain('!return_guard &&');
-		expect(server.code).toContain('var return_guard = false;');
+		expect(server.code).toContain('if (done.value)');
 		expect(server.code).toContain('for (const item of items)');
-		expect(server.code).toContain('_$_.render_tsrx_element(loop())');
+		expect(server.code).toContain('return loop();');
+		expect(server.code).not.toContain('_$_.render_tsrx_element(loop())');
 		expect(server.code).not.toContain('_$_.render_expression(loop())');
-		expect(server.code).not.toContain('return_guard_1');
 		expect(server.code).not.toContain('!return_guard &&');
 		expect(tsx.code).toContain('if (done.value)');
-		expect(tsx.code).toContain('return;');
+		expect(tsx.code).toContain('return loop();');
 	});
 
 	it('keeps return guard names local to each compiled function', () => {
 		const source = `function First(flag) {
-			if (flag) {
-				return <p>"first"</p>;
-			}
-			<span>"fallback"</span>
+			return <>
+				if (flag) {
+					return <p>"first"</p>;
+				}
+				<span>"fallback"</span>
+			</>;
 		}
 
 		function Second(flag) {
-			if (flag) {
-				return <p>"second"</p>;
-			}
-			<span>"fallback"</span>
+			return <>
+				if (flag) {
+					return <p>"second"</p>;
+				}
+				<span>"fallback"</span>
+			</>;
 		}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -825,10 +833,12 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 
 	it('still avoids user return_guard bindings inside a compiled function', () => {
 		const source = `function Test(return_guard) {
-			if (return_guard) {
-				return <p>"done"</p>;
-			}
-			<span>{return_guard}</span>
+			return <>
+				if (return_guard) {
+					return <p>"done"</p>;
+				}
+				<span>{return_guard}</span>
+			</>;
 		}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -855,16 +865,25 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 	});
 
 	it('compiles template variables and alternate returns as renderable values', () => {
-		expect_value_function(`function Test(flag) {
+		const source = `function Test(flag) {
 			const alt = <p />;
 			if (flag === 'array') return [alt, 'text'];
 			if (flag === 'null') return null;
 			if (flag === 'undefined') return undefined;
 			return alt;
-		}`);
+		}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('const alt = _$_.tsrx_element');
+		expect(client.code).toContain("if (flag === 'array') return [alt, 'text'];");
+		expect(client.code).toContain('return alt;');
+		expect(server.code).toContain('const alt = _$_.tsrx_element');
+		expect(server.code).toContain('return alt;');
+		expect(client.code).not.toContain('function Test(__anchor');
 	});
 
-	it('drops dead native template statements after ASI returns', () => {
+	it('leaves native template statements after ASI returns as unreachable JavaScript', () => {
 		const source = `function Test() {
 			return;
 			<div>{"should not render"}</div>
@@ -873,14 +892,14 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
 		expect(client.code).toContain('return;');
-		expect(client.code).not.toContain('should not render');
+		expect(client.code).toContain('should not render');
 		expect(client.code).not.toContain('return_guard');
 		expect(server.code).toContain('return;');
-		expect(server.code).not.toContain('should not render');
+		expect(server.code).toContain('should not render');
 		expect(server.code).not.toContain('return_guard');
 	});
 
-	it('guards regular statements after conditional component returns', () => {
+	it('keeps regular statements after actual JavaScript returns on the setup path', () => {
 		const source = `function Test(flag) {
 			if (flag) return;
 			sideEffect();
@@ -889,8 +908,11 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('if (!return_guard) _$_.with_scope(__block, sideEffect)');
-		expect(server.code).toContain('if (!return_guard) sideEffect();');
+		expect(client.code).toContain('if (flag) return;');
+		expect(client.code).toContain('_$_.with_scope(__block, sideEffect)');
+		expect(client.code).not.toContain('if (!return_guard)');
+		expect(server.code).toContain('if (flag) return;');
+		expect(server.code).toContain('sideEffect();');
 	});
 
 	it('does not use direct calls to disqualify native template functions', () => {

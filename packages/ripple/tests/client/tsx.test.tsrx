@@ -682,12 +682,15 @@ describe('tsx expression', () => {
 
 	it('renders tsx conditionally from function', () => {
 		function createContent(type) {
-			if (type === 'success') {
-				return <><div class="success">"Success!"</div></>;
-			} else if (type === 'error') {
-				return <><div class="error">"Error!"</div></>;
-			}
-			return <><div class="default">"Default"</div></>;
+			return <>
+				if (type === 'success') {
+					=> <div class="success">"Success!"</div>
+				} else if (type === 'error') {
+					=> <div class="error">"Error!"</div>
+				} else {
+					=> <div class="default">"Default"</div>
+				}
+			</>;
 		}
 
 		function App() {

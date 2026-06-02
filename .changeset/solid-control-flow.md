@@ -3,4 +3,4 @@
 "@tsrx/solid": patch
 ---
 
-Restore reactive Solid control-flow lowering for native TSRX component bodies.
+Keep reactive Solid control-flow lowering scoped to explicit TSRX templates.

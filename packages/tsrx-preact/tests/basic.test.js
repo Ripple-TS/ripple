@@ -198,7 +198,7 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
-	it('extracts component-body hooks after early null returns', () => {
+	it('leaves component-body hooks after early null returns untouched', () => {
 		const { code } = compile(
 			`import { useEffect } from 'preact/hooks';
 
@@ -214,13 +214,10 @@ describe('@tsrx/preact basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).not.toContain('function App__StatementBodyHook1()');
 		expect(code).toContain('useEffect(() => {});');
-		expect(code).toContain('return <App__StatementBodyHook1 />;');
-		expect(code.indexOf('function App__StatementBodyHook1')).toBeLessThan(
-			code.indexOf('export function App'),
-		);
-		expect(code.indexOf('useEffect(() => {});')).toBeLessThan(code.indexOf('export function App'));
+		expect(code).toContain('if (x)');
+		expect(code).toContain('return null;');
 	});
 
 	it('does not hoist render-time expressions from template bodies', () => {

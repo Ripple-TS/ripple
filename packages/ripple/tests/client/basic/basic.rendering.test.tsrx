@@ -59,12 +59,13 @@ second"</pre>
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
-	it('does not render TSRX statements outside returned component templates', () => {
+	it('does not render JavaScript statements outside returned component templates', () => {
 		function Basic() {
 			const ready = true;
 
 			if (ready) {
-				<div class="leaked">"should not render"</div>
+				const leaked = 'should not render';
+				void leaked;
 			}
 
 			return <>"Hello world"</>;
@@ -78,13 +79,13 @@ second"</pre>
 
 	it('renders primitive component return branches', () => {
 		function Basic() {
-			const ready = false;
-
-			if (!ready) {
-				return 'Waiting';
-			}
-
-			return <>"Ready"</>;
+			return <>
+				const ready = false;
+				if (!ready) {
+					return 'Waiting';
+				}
+				"Ready"
+			</>;
 		}
 
 		render(Basic);
@@ -238,10 +239,11 @@ second"</pre>
 		]);
 	});
 
-	it('does not render elements after an ASI return', () => {
+	it('does not render unreachable statements after an ASI return', () => {
 		function Basic() {
 			return;
-			<div>"should not render"</div>
+			const leaked = 'should not render';
+			void leaked;
 		}
 
 		render(Basic);

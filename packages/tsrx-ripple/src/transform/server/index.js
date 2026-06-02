@@ -55,6 +55,7 @@ import {
 	expand_tsrx_template_return_statements,
 	get_first_tsrx_render_child_expression,
 	get_native_tsrx_function_body,
+	get_native_tsrx_function_template_node,
 	is_native_tsrx_function_node,
 	is_tsrx_render_statement,
 	is_static_native_tsrx_function_call,
@@ -1245,43 +1246,6 @@ function transform_body(body, context) {
 }
 
 /**
- * @param {AST.Node | null | undefined} node
- * @param {boolean} [allow_direct_template]
- * @returns {AST.Element | AST.TsrxFragment | null}
- */
-function get_native_tsrx_return_template_node(node, allow_direct_template = false) {
-	if (!node) return null;
-	if (allow_direct_template && is_native_tsrx_template_node(node)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node));
-	}
-	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
-		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
-	}
-	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression' ||
-		node.type === 'ClassDeclaration' ||
-		node.type === 'ClassExpression'
-	) {
-		return null;
-	}
-	if (node.type === 'BlockStatement') {
-		for (const statement of node.body) {
-			const match = get_native_tsrx_return_template_node(statement);
-			if (match) return match;
-		}
-	}
-	if (node.type === 'IfStatement') {
-		return (
-			get_native_tsrx_return_template_node(node.consequent) ||
-			get_native_tsrx_return_template_node(node.alternate)
-		);
-	}
-	return null;
-}
-
-/**
  * @param {AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression} node
  * @param {TransformServerContext} context
  * @returns {AST.Function | AST.Expression}
@@ -1323,10 +1287,7 @@ function transform_native_tsrx_function(node, context) {
 
 	const raw_render_body = get_native_tsrx_function_body(node);
 	const node_id = node.type !== 'ArrowFunctionExpression' ? (node.id ?? null) : null;
-	const render_scope_node = get_native_tsrx_return_template_node(
-		node.body,
-		node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement',
-	);
+	const render_scope_node = get_native_tsrx_function_template_node(node);
 	const component_scope =
 		(render_scope_node && context.state.scopes.get(render_scope_node)) ||
 		context.state.scopes.get(node) ||

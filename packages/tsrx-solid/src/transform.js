@@ -71,8 +71,8 @@ import { builders as b } from '@tsrx/core';
  * - Component-level `await` is rejected outright (no `"use server"` escape).
  * - Control-flow statements become Solid's `<Show>` / `<For>` /
  *   `<Switch>/<Match>` / `<Errored>/<Loading>` instead of inline JSX.
- * - Uppercase native TSRX functions use Solid render-time control flow, so
- *   branches stay reactive without reintroducing a TSRX-specific declaration.
+ * - Native TSRX fragments use Solid render-time control flow, so branches stay
+ *   reactive without component-name heuristics.
  * - Element attributes support composite elements and lift a lone direct text
  *   child into a `textContent` attribute.
  * - `needs_show` / `needs_for` / etc. flags track which runtime
@@ -1105,93 +1105,6 @@ function create_jsx_element(tag_name, attributes, children) {
 	};
 }
 
-// =====================================================================
-// Native function component control-flow splitting
-// =====================================================================
-
-/**
- * Solid components run their function body once at setup time, so a plain
- * JavaScript `if (props.visible) return <A />` only observes the initial prop
- * value. Native TSRX functions that are component-shaped need their render
- * control flow lowered back into Solid's JSX control components.
- *
- * The shared factory has already expanded `return <>...</>` into normal JSX
- * returns by the time imports are injected. This pass folds those returns back
- * into render children, then reuses the local `<Show>/<For>/<Switch>/<Errored>`
- * builders.
- *
- * @param {AST.Program} program
- * @param {TransformContext} transform_context
- * @returns {void}
- */
-function rewrite_solid_native_component_control_flow(program, transform_context) {
-	const rewritten = walk(/** @type {any} */ (program), transform_context, {
-		FunctionDeclaration(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			rewrite_solid_native_component_function(inner, path.at(-1), state);
-			return inner;
-		},
-		FunctionExpression(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			rewrite_solid_native_component_function(inner, path.at(-1), state);
-			return inner;
-		},
-		ArrowFunctionExpression(node, { next, path, state }) {
-			const inner = /** @type {any} */ (next() ?? node);
-			rewrite_solid_native_component_function(inner, path.at(-1), state);
-			return inner;
-		},
-	});
-
-	program.body = /** @type {AST.Program} */ (rewritten).body;
-}
-
-/**
- * @param {any} fn
- * @param {any} parent
- * @param {TransformContext} transform_context
- * @returns {void}
- */
-function rewrite_solid_native_component_function(fn, parent, transform_context) {
-	if (!fn?.metadata?.native_tsrx_function || fn.body?.type !== 'BlockStatement') {
-		return;
-	}
-
-	const name = get_function_like_name(fn, parent);
-	if (!name || !/^[A-Z]/.test(name)) {
-		return;
-	}
-
-	const source_body = fn.body.body || [];
-	const early_body = rewrite_early_return_guard_body(source_body, transform_context);
-	const effective_body =
-		early_body ??
-		(() => {
-			const lowered = lower_solid_component_statement_list(source_body);
-			return lowered.changed ? lowered.nodes : null;
-		})();
-
-	if (effective_body === null) {
-		return;
-	}
-
-	const saved_bindings = transform_context.available_bindings;
-	const body_bindings = collect_param_bindings(fn.params || []);
-	for (const node of source_body) {
-		collect_statement_bindings(node, body_bindings);
-	}
-	transform_context.available_bindings = body_bindings;
-
-	try {
-		fn.body = b.block(
-			solid_component_body_nodes_to_function_statements(effective_body, transform_context),
-			fn.body,
-		);
-	} finally {
-		transform_context.available_bindings = saved_bindings;
-	}
-}
-
 /**
  * Preserve the old Solid setup-once behavior for early guard returns: setup
  * statements after the guard stay in the outer function, while render output is
@@ -1834,8 +1747,6 @@ const TEMPLATE_FRAGMENT_ERROR =
  * @param {TransformContext} transform_context
  */
 function inject_solid_imports(program, transform_context) {
-	rewrite_solid_native_component_control_flow(program, transform_context);
-
 	if (transform_context.needs_normalize_spread_props) {
 		program.body.unshift(
 			b.import_declaration(
