@@ -28,51 +28,49 @@ pnpm add -D '@ripple-ts/vite-plugin'  # For Vite integration
 
 ### Component Definition
 
-Components are ordinary TypeScript functions that return TSRX. Use a capitalized
-function name, accept props as the first parameter, and return either a single
-TSRX element or a fragment.
+Components are ordinary TypeScript values. Prefer an arrow function whose body
+is a single TSRX fragment, accept props as the first parameter, and keep setup
+logic, rendered elements, control flow, and scoped styles in that fragment.
 
 Direct calls keep ordinary helper semantics. A PascalCase helper such as
 `StatusCode()` or `FormatName()` is left as a normal function when called
-directly; component compilation applies to functions used as components or render
-entries, and to functions that return native TSRX without being directly called.
+directly; using a value as `<Name />` makes it a component.
 
 ```ripple
-function Button(props: { text: string; onClick: () => void }) {
-  return <button onClick={props.onClick}>{props.text}</button>;
-}
+const Button = (props: { text: string; onClick: () => void }) => <>
+  <button onClick={props.onClick}>{props.text}</button>
+</>;
 
-export function App() {
-  return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
-}
+export const App = () => <>
+  <Button text="Click me" onClick={() => console.log('Clicked!')} />
+</>;
 ```
 
-Use a fragment when the body needs statements, control flow, locals, or scoped
-styles. Opening a TSRX expression is expression-based; inside it, TSRX uses a
-template statement list.
+Opening a TSRX expression is expression-based; inside it, TSRX uses a template
+statement list.
 
 ```ripple
-export function Panel({ title, children }: { title: string; children: any }) {
-  return <>
-    const heading = title.trim();
+export const Panel = ({ title, children }: { title: string; children: any }) => <>
+  const heading = title.trim();
 
-    <section class="panel">
-      <h2>{heading}</h2>
-      <div>{children}</div>
-    </section>
+  <section class="panel">
+    <h2>{heading}</h2>
+    <div>{children}</div>
+  </section>
 
-    <style>
-      .panel { padding: 1rem; }
-    </style>
-  </>;
-}
+  <style>
+    .panel { padding: 1rem; }
+  </style>
+</>;
 ```
 
 **LLM DO:**
-- Use `function Name(props: Props) { return ... }` for UI building blocks.
-- Use `export function` for public components.
-- Return `<div />` directly for compact UI.
-- Return `<>...</>` when the template includes multiple statements.
+- Use `const Name = (props: Props) => <>...</>;` for UI building blocks.
+- Use `export const Name = (...) => <>...</>;` for public components.
+- Put setup logic, rendered structure, control flow, and scoped styles inside
+  the component's single TSRX fragment body.
+- Use `=>` for rendered output inside `if`, `for...of`, `switch`, `try`,
+  `pending`, and `catch` blocks.
 - Keep inline `<style>` blocks inside the TSRX fragment/expression they style.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -83,8 +81,7 @@ export function Panel({ title, children }: { title: string; children: any }) {
 - Do not claim TSRX templates are restricted to special declarations or bodies.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
   inside `<style>` blocks.
-- Use native TSRX elements or fragments directly when storing, passing, or
-  returning UI.
+- Do not place bare TSRX elements directly inside control-flow blocks; use `=>`.
 
 ### TSRX Expressions
 
@@ -98,14 +95,12 @@ function createBadge(label: string) {
   return <span class="badge">{label}</span>;
 }
 
-function App() {
+const App = () => <>
   const title = <span class="title">"Settings"</span>;
 
-  return <>
-    <header>{title}</header>
-    {createBadge('New')}
-  </>;
-}
+  <header>{title}</header>
+  {createBadge('New')}
+</>;
 ```
 
 ### ⚠️ Critical: Text Content Must Be Explicit
@@ -146,37 +141,39 @@ closing quote.
 
 ### Guard Returns
 
-Functions are just functions. A Ripple component can return `null`, a TSRX
-element, or any value accepted by the runtime before the returned TSRX expression
-opens. `return` statements are not valid inside TSRX element or fragment bodies.
+Functions are just functions. A Ripple component can use `return` for true
+function exits, including inside its TSRX fragment body. Use `=>` when a
+control-flow branch should render into the current template instead of exiting
+the function.
 
 ```ripple
-function AuthGate({ is_logged_in }) {
+const AuthGate = ({ is_logged_in }) => <>
   if (!is_logged_in) {
     return null;
   }
 
-  return <h1>"Dashboard"</h1>
-}
+  <h1>"Dashboard"</h1>
+</>;
 ```
 
 **LLM DO:**
 - Use `return null;` for empty/fallback component output.
 - Use ordinary function returns when a helper creates UI.
 - Keep statement-rich UI inside a TSRX fragment.
+- Use `return` inside a TSRX fragment only for actual function exits.
 
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
-- Do not translate new Ripple examples away from ordinary function returns.
-- Do not put `return` statements inside TSRX element or fragment bodies.
+- Do not translate component examples away from arrow-fragment bodies.
+- Do not use `return` for rendered branch output; use `=>`.
 
 ### Template Lexical Scoping
 
 **Unique Feature**: Ripple templates act as lexical scopes, allowing you to declare variables, call functions, and execute JavaScript statements directly within JSX elements - similar to block statements in regular JavaScript.
 
 ```ripple
-function TemplateScope() {
-  return <div>
+const TemplateScope = () => <>
+  <div>
     // Variable declarations inside templates
     const message = "Hello from template scope";
     let count = 42;
@@ -191,7 +188,7 @@ function TemplateScope() {
     <p>"Count is: "{count}</p>
 
     if (isEven) {
-      <span>"Count is even"</span>
+      => <span>"Count is even"</span>
     }
 
     // Nested scopes work too
@@ -202,8 +199,8 @@ function TemplateScope() {
 
     // You can even put debugger statements
     debugger;
-  </div>;
-}
+  </div>
+</>;
 ```
 
 **Key Benefits:**
@@ -225,16 +222,16 @@ You use `track` to create a single tracked value. The `track` function creates a
 ```ripple
 import { track } from 'ripple';
 
-export function Counter() {
+export const Counter = () => <>
   let &[count] = track(0);
   let &[double] = track(() => count * 2);  // Derived reactive value
 
-  return <div>
+  <div>
     <p>"Count: "{count}</p>
     <p>"Double: "{double}</p>
     <button onClick={() => count++}>"Increment"</button>
-  </div>;
-}
+  </div>
+</>;
 ```
 
 **IMPORTANT:** You must use `track()` with lazy destructuring `&[...]` to create reactive variables:
@@ -277,9 +274,9 @@ const items = [track(1), track(2), track(3)];
 items[0].value++;  // reactively updates
 
 // Passing tracked objects as props — the child receives the Tracked<T> object
-function Child(props: { count: Tracked<number> }) {
-  return <div>{props.count.value}</div>
-}
+const Child = (props: { count: Tracked<number> }) => <>
+  <div>{props.count.value}</div>
+</>;
 
 // Using &[value, trackedValue] gives you both:
 let &[count, countTracked] = track(0);
@@ -332,7 +329,7 @@ The optional get and set parameters of the `track` function let you customize ho
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   let &[count] = track(0,
     (current) => {
       console.log(current);
@@ -348,8 +345,8 @@ export function App() {
     }
   );
 
-  return <button onClick={()=>count++}>{count}</button>;
-}
+  <button onClick={() => count++}>{count}</button>
+</>;
 ```
 
 > Note: If no value is returned from either `get` or `set`, `undefined` is either exposed (for get) or stored (for set). Also, if only supplying the `set`, the `get` parameter must be set to `undefined`.
@@ -379,13 +376,11 @@ const &{ a, ...rest } = props;
 **Component props** — use `&{...}` to lazily destructure props, preserving reactivity:
 
 ```ripple
-function Child(&{ count, className, children }: Props) {
-  return <>
+const Child = (&{ count, className, children }: Props) => <>
 		// count, className, children are lazily read from __props
 		<button class={className}>{children}</button>
 		<pre>"Count is: "{count}</pre>
-  </>;
-}
+</>;
 ```
 
 **Function parameters** — works in regular functions too:
@@ -423,16 +418,14 @@ function createDouble(&[count]) {
   return double;
 }
 
-export function App() {
+export const App = () => <>
   let &[count, countTracked] = track(0);
 
   const &[double] = createDouble(countTracked);
 
-  return <>
   	<div>"Double: "{double}</div>
   	<button onClick={() => { count++; }}>"Increment"</button>
-  </>;
-}
+</>;
 ```
 
 #### Dynamic Component Transport Pattern
@@ -442,27 +435,25 @@ Ripple has built-in support for dynamic components, a way to render different co
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   let &[swapMe, swapMeTracked] = track(() => Child1);
 
-  return <>
   	<Child swapMe={swapMeTracked} />
 
   	<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>"Swap Component"</button>
-  </>;
-}
+</>;
 
-function Child(&{ swapMe }: {swapMe: Tracked<Component>}) {
-  return <@swapMe />
-}
+const Child = (&{ swapMe }: {swapMe: Tracked<Component>}) => <>
+  <@swapMe />
+</>;
 
-function Child1(props) {
-  return <pre>"I am child 1"</pre>
-}
+const Child1 = () => <>
+  <pre>"I am child 1"</pre>
+</>;
 
-function Child2(props) {
-  return <pre>"I am child 2"</pre>
-}
+const Child2 = () => <>
+  <pre>"I am child 2"</pre>
+</>;
 ```
 
 **Transport Rules:**
@@ -476,15 +467,15 @@ function Child2(props) {
 
 #### If Statements
 ```ripple
-function Conditional({ isVisible }) {
-  return <div>
+const Conditional = ({ isVisible }) => <>
+  <div>
 		if (isVisible) {
-			<span>"Visible content"</span>
+			=> <span>"Visible content"</span>
 		} else {
-			<span>"Hidden state"</span>
+			=> <span>"Hidden state"</span>
 		}
-	</div>;
-}
+	</div>
+</>;
 ```
 
 #### Switch Statements
@@ -499,27 +490,25 @@ Switch statements in Ripple provide a powerful way to conditionally render conte
 The `switch` statement evaluates an expression and matches its value against a series of `case` clauses.
 
 ```ripple
-function StatusIndicator({ status }) {
-  return <>
+const StatusIndicator = ({ status }) => <>
 		// The switch statement evaluates the 'status' prop
 		switch (status) {
 			case: 'init':
 				// fall-through to the next
 			case 'loading':
-				<p>"Loading..."</p>
+				=> <p>"Loading..."</p>
 				break; // break is mandatory
 			case 'success':
-				<p>"Success!"</p>
+				=> <p>"Success!"</p>
 				break;
 			case 'error':
-				<p>"Error!"</p>
+				=> <p>"Error!"</p>
 				break;
 			default:
-				<p>"Unknown status"</p>
+				=> <p>"Unknown status"</p>
 				// No break needed for default
 		}
-  </>;
-}
+</>;
 ```
 
 `switch` statements can also react to changes in `Tracked` variables. When the tracked variable changes, the `switch` statement will re-evaluate and render the appropriate `case`.
@@ -527,71 +516,65 @@ function StatusIndicator({ status }) {
 ```ripple
 import { track } from 'ripple';
 
-function InteractiveStatus() {
+const InteractiveStatus = () => <>
   let &[status] = track('loading'); // Reactive state
 
   <button onClick={() => status = 'success'}>"Set to Success"</button>
   <button onClick={() => status = 'error'}>"Set to Error"</button>
 
-  return <>
 		// This switch block will update automatically when 'status' changes
 		switch (status) {
 			case 'init':
-				<p>"Status: Init"</p>
+				=> <p>"Status: Init"</p>
 				// fall-through to the next
 			case 'loading':
-				<p>"Status: Loading..."</p>
+				=> <p>"Status: Loading..."</p>
 				break;
 			case 'success':
-				<p>"Status: Success!"</p>
+				=> <p>"Status: Success!"</p>
 				break;
 			case 'error':
-				<p>"Status: Error!"</p>
+				=> <p>"Status: Error!"</p>
 				break;
 			default:
-				<p>"Status: Unknown"</p>
+				=> <p>"Status: Unknown"</p>
 		}
-  </>;
-}
+</>;
 ```
 
 #### For Loops
 ```ripple
-function List({ items }) {
-  return <ul>
+const List = ({ items }) => <>
+  <ul>
 			for (const item of items) {
-				<li>{item.text}</li>
+				=> <li>{item.text}</li>
 			}
 		</ul>
-}
+</>;
 ```
 
 #### For Loops with index
 ```ripple
-function ListView({ title, items }) {
-  return <>
+const ListView = ({ title, items }) => <>
 		<h2>{title}</h2>
 		<ul>
 			for (const item of items; index i) {
-				<li>{item.text}" at index "{i}</li>
+				=> <li>{item.text}" at index "{i}</li>
 			}
 		</ul>
-  </>;
-}
+</>;
 ```
 
 #### For Loops with key
 ```ripple
-function ListView({ title, items }) {
-  return <>
+const ListView = ({ title, items }) => <>
 		<h2>{title}</h2>
 		<ul>
 			for (const item of items; index i; key item.id) {
-				<li>{item.text}" at index "{i}</li>
+				=> <li>{item.text}" at index "{i}</li>
 			}
 		</ul>
-  </>;
-}
+</>;
 ```
 
 **Key Usage Guidelines:**
@@ -602,68 +585,65 @@ function ListView({ title, items }) {
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   let &[tag] = track('div');
 
-  return <>
 		<@tag class="dynamic">"Hello World"</@tag>
 		<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
-  </>;
-}
+</>;
 ```
 
 #### Try-Catch (Error Boundaries)
 ```ripple
-function ErrorBoundary() {
-  return <div>
+const ErrorBoundary = () => <>
+  <div>
 		try {
-			<ComponentThatMightFail />
+			=> <ComponentThatMightFail />
 		} catch (e) {
-			<div>"Error: "{e.message}</div>
+			=> <div>"Error: "{e.message}</div>
 		}
-	</div>;
-}
+	</div>
+</>;
 ```
 
 The `catch` block receives a `reset` function as its second argument. Calling
 `reset()` clears the error state and re-renders the children:
 
 ```ripple
-function RetryBoundary() {
-  return <div>
+const RetryBoundary = () => <>
+  <div>
 		try {
-			<ComponentThatMightFail />
+			=> <ComponentThatMightFail />
 		} catch (e, reset) {
-			<div>
+			=> <div>
 				<p>"Error: "{e.message}</p>
 				<button onClick={() => reset()}>"Try again"</button>
 			</div>
 		}
 	</div>
-}
+</>;
 ```
 
 ### Children Components
 
-Use the `children` prop for component composition. Use the `Children` type to accept one or more children. If you need to pass additional child components such as `Header`, `Footer`, or `InlineComp`, define them in scope and pass them as explicit props on the component element. Do not declare `function Foo() {
-  return <>
-  </>;}` directly inside another component's child content.
+Use the `children` prop for component composition. Use the `Children` type to accept one or more children. If you need to pass additional child components such as `Header`, `Footer`, or `InlineComp`, define them in scope and pass them as explicit props on the component element. Do not declare `const Foo = () => <>
+</>;` directly inside another component's child content.
 
 ```ripple
 import type { Children, Component } from 'ripple';
 
-function Card(props: { children: Children; Footer?: Component }) {
-  return <div class="card">
+const Card = (props: { children: Children; Footer?: Component }) => <>
+  <div class="card">
 			{props.children}
 			if (props.Footer) {
-				<props.Footer />
+				=> <props.Footer />
 			}
 		</div>
-}
+</>;
 
-function Footer() {
-  return <button>"OK"</button>
-}
+const Footer = () => <>
+  <button>"OK"</button>
+</>;
 
 // Usage
 <Card Footer={Footer}>
@@ -680,16 +660,15 @@ Events follow React-style naming (`onClick`, `onPointerMove`, etc.):
 ```ripple
 import { track } from 'ripple';
 
-function EventExample() {
+const EventExample = () => <>
   let &[message] = track("");
 
-  return <div>
+  <div>
 		<button onClick={() => message = "Clicked!"}>"Click me"</button>
 		<input onInput={(e) => message = e.target.value} />
 		<p>{message}</p>
-	</div>;
-  );
-}
+	</div>
+</>;
 ```
 
 For capture phase events, add `Capture` suffix:
@@ -704,7 +683,7 @@ This method guarantees the proper execution order with respect to attribute-base
 ```ripple
 import { on, effect } from 'ripple';
 
-export function App() {
+export const App = () => <>
   effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
@@ -715,8 +694,8 @@ export function App() {
     return removeListener;
   });
 
-  return <></>;
-}
+  <></>
+</>;
 ```
 
 ### Styling
@@ -730,8 +709,7 @@ runtime values: set them on an element with `style={{ '--name': value }}` and
 read them from static CSS with `var(--name)`.
 
 ```ripple
-function StyledComponent() {
-  return <>
+const StyledComponent = () => <>
 		<div class="container">
 			<h1>"Styled Content"</h1>
 		</div>
@@ -746,8 +724,7 @@ function StyledComponent() {
 				font-size: 2rem;
 			}
 		</style>
-  </>;
-}
+</>;
 ```
 
 #### Style Scoping
@@ -757,8 +734,7 @@ Styles defined in a `<style>` block are **automatically scoped** to the returned
 **Important**: Scoped styles of a parent component do NOT apply to child components. Each component's styles are isolated. This means:
 
 ```ripple
-function Parent() {
-  return <>
+const Parent = () => <>
 		<div class="wrapper">
 			<Child />  // .wrapper styles will NOT affect elements inside Child
 		</div>
@@ -769,12 +745,11 @@ function Parent() {
 				color: red;
 			}     // Will NOT work - can't reach into Child
 		</style>
-  </>;
-}
+</>;
 
-function Child() {
-  return <div class="child-class">"I won't be red"</div>;
-}
+const Child = () => <>
+  <div class="child-class">"I won't be red"</div>
+</>;
 ```
 
 #### Style Composition via Style Expressions
@@ -785,22 +760,20 @@ string containing both the scope hash and the class name. Pass those values to
 children through normal props.
 
 ```ripple
-function Badge({ class: className }: { class?: string }) {
-  return <>
+const Badge = ({ class: className }: { class?: string }) => <>
 		<span class={`badge ${className ?? ''}`}>"New"</span>
 		<style>
 			.badge { padding: 0.25rem 0.5rem; }
 		</style>
-  </>;
-}
+</>;
 
-function App() {
+const App = () => <>
   const styles = <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
 
-  return <Badge class={styles.highlight} />;
-}
+  <Badge class={styles.highlight} />
+</>;
 ```
 
 Style expressions can also live at module scope. Use this for StyleX-like or
@@ -814,12 +787,12 @@ const articleStyles = <style>
   .title { font-weight: 700; }
 </style>;
 
-export function ArticleCard({ title }: { title: string }) {
+export const ArticleCard = ({ title }: { title: string }) => <>
   // Ripple host elements:
-  return <article class={articleStyles.card}>
+  <article class={articleStyles.card}>
     <h2 class={articleStyles.title}>{title}</h2>
-  </article>;
-}
+  </article>
+</>;
 ```
 
 Inline `<style>` blocks inside a returned TSRX template are scoped to that
@@ -835,8 +808,7 @@ exported on the map.
 To escape scoping and apply styles globally (or to reach into child components), use the `:global()` modifier:
 
 ```ripple
-function Parent() {
-  return <>
+const Parent = () => <>
 		<div class="wrapper">
 			<Child />
 		</div>
@@ -850,8 +822,7 @@ function Parent() {
 				font-weight: bold;
 			}
 		</style>
-  </>;
-}
+</>;
 ```
 
 The `:global()` modifier can wrap:
@@ -888,10 +859,9 @@ Styles in `<style>` blocks are static CSS. When a value needs to change at runti
 ```ripple
 import { track } from 'ripple';
 
-function App() {
+const App = () => <>
   let &[color] = track('red');
 
-  return <>
 		<div class="notice" style={{ '--notice-color': color }}>
 			"Styled text"
 		</div>
@@ -906,8 +876,7 @@ function App() {
 				background-color: gray;
 			}
 		</style>
-  </>;
-}
+</>;
 ```
 
 ### DOM References (Refs)
@@ -924,17 +893,15 @@ mounts and cleared when it unmounts.
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   let div: HTMLDivElement | null | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
 
-  return <>
 		<div ref={div}>"Hello world"</div>
 		<input ref={input} type="text" />
 		<button ref={[state.button, (node) => console.log("mounted", node)]}>"Log"</button>
-  </>;
-}
+</>;
 ```
 
 Components receive `ref={...}` as a prop. Forward it explicitly or include it in
@@ -943,17 +910,17 @@ a spread onto the host element that should be exposed. Named props such as
 the receiving component when you want to forward them.
 
 ```ripple
-function Field({ inputRef, ...rest }) {
-  return <label>
+const Field = ({ inputRef, ...rest }) => <>
+  <label>
 			"Search"
 			<input ref={inputRef} type="search" {...rest} />
 		</label>
-}
+</>;
 
-export function App() {
+export const App = () => <>
   let input: HTMLInputElement | null | undefined;
-  return <Field inputRef={input} placeholder="Search docs" />;
-}
+  <Field inputRef={input} placeholder="Search docs" />
+</>;
 ```
 
 Use `createRefKey()` when refs need to be assembled programmatically and applied
@@ -1022,15 +989,15 @@ const html = render(App, {
 ```ripple
 import { track, effect } from 'ripple';
 
-export function App() {
+export const App = () => <>
 	let &[count] = track(0);
 
   effect(() => {
     console.log("Count changed:", count);
   });
 
-  return <button onClick={() => count++}>"Increment"</button>;
-}
+  <button onClick={() => count++}>"Increment"</button>
+</>;
 ```
 
 ### After Update tick()
@@ -1040,7 +1007,7 @@ The `tick()` function returns a Promise that resolves after all pending reactive
 ```ripple
 import { tick, track, effect } from 'ripple';
 
-export function App() {
+export const App = () => <>
   let &[count] = track(0);
 
   effect(() => {
@@ -1056,8 +1023,8 @@ export function App() {
     });
   });
 
-  return <button onClick={() => count++}>"Increment"</button>;
-}
+  <button onClick={() => count++}>"Increment"</button>
+</>;
 ```
 
 ### Context
@@ -1078,7 +1045,7 @@ import { Context, track } from 'ripple';
 const context  = new Context({});
 const context2 = new Context();
 
-export function App() {
+export const App = () => <>
   // get reference to the object
   const obj = context.get();
   // set your reactive value
@@ -1090,7 +1057,6 @@ export function App() {
   // context2 now contains a tracked variable
   context2.set(count2Tracked);
 
-	return <>
 		<button onClick={() => { objCount++; count2++ }}>
 			"Click Me"
 		</button>
@@ -1098,8 +1064,7 @@ export function App() {
 		// context's reactive property count gets updated
 		<pre>"Context: "{objCount}</pre>
 		<pre>"Context2: "{count2}</pre>
-  </>;
-}
+</>;
 ```
 
 Passing data between components:
@@ -1109,17 +1074,17 @@ import { Context } from 'ripple';
 
 const MyContext = new Context(null);
 
-function Child() {
+const Child = () => <>
   // Context is read in the Child component
   const value = MyContext.get();
 
   // value is "Hello from context!"
   console.log(value);
 
-  return <p>"Value in Child: "{value}</p>;
-}
+  <p>"Value in Child: "{value}</p>
+</>;
 
-function Parent() {
+const Parent = () => <>
   const value = MyContext.get();
 
   // Context is read in the Parent component, but hasn't yet
@@ -1130,8 +1095,8 @@ function Parent() {
   // Context is set in the Parent component
   MyContext.set("Hello from context!");
 
-  return <Child />
-}
+  <Child />
+</>;
 ```
 
 ### Reactive Collections
@@ -1181,17 +1146,17 @@ Usage Example:
 ```ripple
 import { RippleArray } from 'ripple';
 
-export function App() {
+export const App = () => <>
   const items = new RippleArray(1, 2, 3);
 
-  return <div>
+  <div>
     <p>"Length: "{items.length}</p>  // Reactive length
     for (const item of items) {
-      <div>{item}</div>
+      => <div>{item}</div>
     }
     <button onClick={() => items.push(items.length + 1)}>"Add"</button>
-  </div>;
-}
+  </div>
+</>;
 ```
 
 #### Reactive Object
@@ -1210,17 +1175,15 @@ Usage Example:
 ```ripple
 import { RippleObject } from 'ripple';
 
-export function App() {
+export const App = () => <>
   const obj = new RippleObject({a: 0})
 
   obj.a = 0;
 
-	return <>
 		<pre>"obj.a is: "{obj.a}</pre>
 		<pre>"obj.b is: "{obj.b}</pre>
 		<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
-  </>;
-}
+</>;
 ```
 
 #### Reactive Set
@@ -1228,15 +1191,15 @@ export function App() {
 ```ripple
 import { RippleSet } from 'ripple';
 
-function SetExample() {
+const SetExample = () => <>
   const mySet = new RippleSet([1, 2, 3]);
 
-  return <div>
+  <div>
     <p>"Size: "{mySet.size}</p>  // Reactive size
     <p>"Has 2: "{mySet.has(2)}</p>
     <button onClick={() => mySet.add(4)}>"Add 4"</button>
-  </div>;
-}
+  </div>
+</>;
 ```
 
 #### Reactive Map
@@ -1254,10 +1217,9 @@ RippleMap's reactive methods or properties can be used directly or assigned to r
 ```ripple
 import { RippleMap, track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
-	return <>
 		// direct usage
 		<p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
 
@@ -1267,8 +1229,7 @@ export function App() {
 
 		<button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
 		<button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
-  </>;
-}
+</>;
 ```
 
 #### Reactive Date
@@ -1286,10 +1247,9 @@ RippleDate's reactive methods or properties can be used directly or assigned to 
 ```ripple
 import { RippleDate, track } from 'ripple';
 
-export function App() {
+export const App = () => <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
-	return <>
 		// direct usage
 		<p>"Direct usage: Current year is "{date.getFullYear()}</p>
 		<p>"ISO String: "{date.toISOString()}</p>
@@ -1301,8 +1261,7 @@ export function App() {
 
 		<button onClick={() => date.setFullYear(2027)}>"Change to 2027"</button>
 		<button onClick={() => date.setMonth(11)}>"Change to December"</button>
-  </>;
-}
+</>;
 ```
 
 ## Advanced Features
@@ -1314,8 +1273,8 @@ The `Portal` component allows you to render (teleport) content anywhere in the D
 ```ripple
 import { Portal } from 'ripple';
 
-export function App() {
-  return <div class="app">
+export const App = () => <>
+  <div class="app">
 			<h1>"My App"</h1>
 			{/* This will render inside document.body, not inside the .app div */}
 			<Portal target={document.body}>
@@ -1324,8 +1283,8 @@ export function App() {
 					<p>"This content escapes the normal component tree."</p>
 				</div>
 			</Portal>
-		</div>;
-}
+		</div>
+</>;
 ```
 
 ### Untracking Reactivity
@@ -1364,9 +1323,9 @@ When raw markup must sit beside normal children, import `Fragment` from
 `ripple` and render `<Fragment innerHTML={source} />`.
 
 ```tsrx
-function Article({ markup }: { markup: string }) {
-  return <article innerHTML={markup} />;
-}
+const Article = ({ markup }: { markup: string }) => <>
+  <article innerHTML={markup} />
+</>;
 ```
 
 ### Text Expressions
@@ -1376,25 +1335,25 @@ normal `{expression}`. When you need explicit string coercion, write it in
 JavaScript with `String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
-export function Frame({ children }) {
-  return <div class="frame">
+export const Frame = ({ children }) => <>
+  <div class="frame">
 			"before"
 			{children}
 			"after"
-		</div>;
-}
+		</div>
+</>;
 ```
 
 Regular text expressions are HTML-escaped by the target renderer. The content is
 never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
-export function App() {
+export const App = () => <>
 	const markup = '<span>Not HTML</span>';
 
 	// Renders the literal string "<span>Not HTML</span>" as text
-  return <div>{markup}</div>;
-}
+  <div>{markup}</div>
+</>;
 ```
 
 ## TypeScript Integration
@@ -1409,12 +1368,10 @@ interface Props {
   children?: Component;
 }
 
-function MyComponent(props: Props) {
-  return <>
+const MyComponent = (props: Props) => <>
   // Component implementation
 
-  </>;
-}
+</>;
 ```
 
 ### Context Types
