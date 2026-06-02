@@ -148,8 +148,10 @@ describe('RippleArray > static', () => {
 						} pending {
 							=> <div>{'Loading...'}</div>
 						} catch (e) {
-							=> <pre>{'Error: ' + (e as Error).message}</pre>
-							=> <pre>{'No items'}</pre>
+							=> <>
+								<pre>{'Error: ' + (e as Error).message}</pre>
+								<pre>{'No items'}</pre>
+							</>
 						}
 					</>;
 				}

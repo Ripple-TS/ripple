@@ -383,11 +383,11 @@ function wrap_native_function_components(program, ctx) {
 		},
 		FunctionExpression(node, { next, path, state }) {
 			const inner = next() ?? node;
-			return wrap_native_function_component(inner, state, path) ?? inner;
+			return wrap_native_function_component(inner, state, path, node) ?? inner;
 		},
 		ArrowFunctionExpression(node, { next, path, state }) {
 			const inner = next() ?? node;
-			return wrap_native_function_component(inner, state, path) ?? inner;
+			return wrap_native_function_component(inner, state, path, node) ?? inner;
 		},
 	});
 	program.body = wrapped.body;
@@ -397,15 +397,16 @@ function wrap_native_function_components(program, ctx) {
  * @param {any} fn
  * @param {any} ctx
  * @param {any[]} path
+ * @param {any} [original_fn]
  * @returns {any | null}
  */
-function wrap_native_function_component(fn, ctx, path) {
+function wrap_native_function_component(fn, ctx, path, original_fn = fn) {
 	if (!fn.metadata?.native_tsrx_function) {
 		return null;
 	}
 
 	const parent = path.at(-1);
-	const name = get_function_component_name(fn, parent);
+	const name = get_function_component_name(fn, parent, original_fn);
 	if (!name || !/^[A-Z]/.test(name)) {
 		return null;
 	}
@@ -444,22 +445,29 @@ function wrap_native_function_component(fn, ctx, path) {
 /**
  * @param {any} fn
  * @param {any} parent
+ * @param {any} original_fn
  * @returns {string | null}
  */
-function get_function_component_name(fn, parent) {
+function get_function_component_name(fn, parent, original_fn = fn) {
 	if (fn.id?.type === 'Identifier') {
 		return fn.id.name;
 	}
 
-	if (parent?.type === 'VariableDeclarator' && parent.init === fn) {
+	if (
+		parent?.type === 'VariableDeclarator' &&
+		(parent.init === fn || parent.init === original_fn)
+	) {
 		return get_static_name(parent.id);
 	}
 
-	if (parent?.type === 'Property' && parent.value === fn) {
+	if (parent?.type === 'Property' && (parent.value === fn || parent.value === original_fn)) {
 		return get_static_name(parent.key);
 	}
 
-	if (parent?.type === 'AssignmentExpression' && parent.right === fn) {
+	if (
+		parent?.type === 'AssignmentExpression' &&
+		(parent.right === fn || parent.right === original_fn)
+	) {
 		return get_static_name(parent.left);
 	}
 

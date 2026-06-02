@@ -221,6 +221,8 @@ function to_jsx_child(node, transform_context) {
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
+		case 'TsrxRenderStatement':
+			return tsrx_render_statement_to_jsx_child(node, transform_context);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'ForOfStatement':
@@ -328,7 +330,17 @@ function body_to_jsx_child(body_nodes, transform_context) {
 			continue;
 		}
 
-		if (is_jsx_child(child)) {
+		if (child?.type === 'TsrxRenderStatement') {
+			const jsx = tsrx_render_statement_to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				children.push(reference);
+			} else {
+				children.push(jsx);
+			}
+		} else if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
@@ -380,6 +392,30 @@ function is_bare_return_statement(node) {
 		node.argument == null &&
 		node.metadata?.generated_loop_continue_return === true
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_statement_render_child(node) {
+	return !!(
+		node &&
+		(node.type === 'TsrxRenderStatement' || is_jsx_child(node) || is_bare_render_expression(node))
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {any}
+ */
+function tsrx_render_statement_to_jsx_child(node, transform_context) {
+	const argument = node.argument ?? create_null_literal();
+	if (is_jsx_child(argument)) {
+		return to_jsx_child(argument, transform_context);
+	}
+	return to_jsx_expression_container(argument, node);
 }
 
 /**
@@ -448,7 +484,11 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 			continue;
 		}
 
-		if (is_jsx_child(child)) {
+		if (child?.type === 'TsrxRenderStatement') {
+			const jsx = tsrx_render_statement_to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
+			children.push(jsx);
+		} else if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			statements.push(...extract_jsx_setup_declarations(jsx));
 			children.push(jsx);
@@ -566,7 +606,7 @@ function is_null_literal(node) {
  * @returns {boolean}
  */
 function is_interleaved_body(body_nodes) {
-	return is_interleaved_body_core(body_nodes, is_jsx_child);
+	return is_interleaved_body_core(body_nodes, is_statement_render_child);
 }
 
 /**
@@ -1154,7 +1194,21 @@ function rewrite_early_return_guard_body(body, transform_context) {
 				continue;
 			}
 
-			if (is_jsx_child(child)) {
+			if (child.type === 'TsrxRenderStatement') {
+				if (early_interleaved) {
+					const jsx = tsrx_render_statement_to_jsx_child(child, transform_context);
+					outer.push(...extract_jsx_setup_declarations(jsx));
+					if (is_capturable_jsx_child(jsx)) {
+						const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
+						outer.push(declaration);
+						jsx_bucket.push(reference);
+					} else {
+						jsx_bucket.push(jsx);
+					}
+				} else {
+					jsx_bucket.push(child);
+				}
+			} else if (is_jsx_child(child)) {
 				if (get_component_returning_if_info(child) !== null) {
 					jsx_bucket.push(child);
 					continue;
@@ -1553,7 +1607,17 @@ function solid_component_body_nodes_to_function_statements(body_nodes, transform
 			continue;
 		}
 
-		if (is_jsx_child(child)) {
+		if (child?.type === 'TsrxRenderStatement') {
+			const jsx = tsrx_render_statement_to_jsx_child(child, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
+		} else if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {

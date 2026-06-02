@@ -1352,6 +1352,33 @@ export function runSharedCompileTests({
 		});
 	});
 
+	describe(`[${name}] render statements`, () => {
+		it('lowers explicit render statements in arrow fragment components', () => {
+			const { code } = compile(
+				`export const App = ({ show, items }: { show: boolean; items: string[] }) => <>
+					if (show) {
+						=> <p>{'yes'}</p>
+					}
+
+					<List>
+						=> items.map((item) => item)
+					</List>
+				</>;`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export const App =');
+			if (name === 'solid') {
+				expect(code).toContain('<Show when={show}>');
+			} else {
+				expect(code).toContain('show ?');
+			}
+			expect(code).toContain("<p>{'yes'}</p>");
+			expect(code).toContain('<List>{(() => {');
+			expect(code).toContain('return items.map((item) => item);');
+		});
+	});
+
 	describe(`[${name}] component try pending fallbacks`, () => {
 		it('allows empty pending blocks as null fallbacks', () => {
 			const { code } = compile(
