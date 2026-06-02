@@ -433,7 +433,7 @@ export function CompilerDemo() {
 							<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
 							for (const snippet of DEMO_SNIPPETS) {
 								if (is_snippet_available_for_target(snippet, selected_target.value)) {
-									<option value={snippet.value}>{snippet.label}</option>
+									=> <option value={snippet.value}>{snippet.label}</option>
 								}
 							}
 						</select>
@@ -441,7 +441,7 @@ export function CompilerDemo() {
 					<label class="target-picker">
 						<select class="target-select" ref={bindValue(selected_target)}>
 							for (const option of TARGET_OPTIONS) {
-								<option value={option.value}>{option.label}</option>
+								=> <option value={option.value}>{option.label}</option>
 							}
 						</select>
 					</label>
@@ -480,7 +480,7 @@ export function CompilerDemo() {
 					</div>
 					<div class="panel-body">
 						if (error_message) {
-							<div class="panel-error" role="alert">{error_message}</div>
+							=> <div class="panel-error" role="alert">{error_message}</div>
 						}
 						<div class="editor-host" ref={bindNode(output_ref)} />
 					</div>

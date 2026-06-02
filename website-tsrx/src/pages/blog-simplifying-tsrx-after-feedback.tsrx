@@ -39,16 +39,16 @@ const STATEMENT_CONTROL_FLOW_HTML = highlight_tsrx(
 
     <ul>
       for (const item of visibleItems; key item.id) {
-        <li>{item.label}</li>
+        => <li>{item.label}</li>
       }
     </ul>
 
     try {
-      <ActivityFeed />
+      => <ActivityFeed />
     } pending {
-      <p>"Loading activity..."</p>
+      => <p>"Loading activity..."</p>
     } catch (error) {
-      <p>"Could not load activity."</p>
+      => <p>"Could not load activity."</p>
     }
   </>;
 }`,
@@ -66,25 +66,31 @@ const OLD_RETURN_MAGIC_HTML = highlight_tsrx(
 
 const NORMAL_RETURN_HTML = highlight_tsrx(
 	`function Profile({ user }: { user: User | null }) {
-  if (!user) {
-    return null;
-  }
+  return <>
+    if (!user) {
+      return null;
+    }
 
-  return <h1>{user.name}</h1>;
+    <h1>{user.name}</h1>
+  </>;
 }`,
 );
 
 const REACT_PREACT_HOOKS_HTML = highlight_tsrx(
 	`function Profile({ user }: { user: User | null }) {
-  if (!user) {
-    return null;
-  }
+  return <>
+    if (!user) {
+      return null;
+    }
 
-  useEffect(() => {
-    trackProfile(user.id);
-  }, [user.id]);
+    if (user.showActivity) {
+      const [tab, setTab] = useState('overview');
 
-  return <ProfileCard {user} />;
+      => <ActivityTabs value={tab} onChange={setTab} />
+    }
+
+    <ProfileCard {user} />
+  </>;
 }`,
 );
 
@@ -270,7 +276,9 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code>{'if'}</code>
 							{', loop with '}
 							<code>{'for...of'}</code>
-							{', and emit UI in order.'}
+							{', and emit direct UI in order. Inside control-flow blocks, rendered branch output is marked with '}
+							<code>{'=>'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code innerHTML={STATEMENT_CONTROL_FLOW_HTML} />
@@ -280,7 +288,9 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code>{'for...of'}</code>
 							{', async boundaries can still use '}
 							<code>{'try / pending / catch'}</code>
-							{', and the template still reads in the order the UI is produced.'}
+							{', and '}
+							<code>{'=>'}</code>
+							{' keeps rendered branch output explicit.'}
 						</p>
 
 						<h2>{'No more return magic inside templates'}</h2>
@@ -293,17 +303,21 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={OLD_RETURN_MAGIC_HTML} />
 						</pre>
 						<p>
-							{'Now guard returns live before TSRX opens, just like normal TypeScript and JSX. Inside template '}
+							{'Now '}
+							<code>{'return'}</code>
+							{' is just normal TypeScript: it exits the enclosing function, even from inside a returned template. Inside template '}
 							<code>{'for...of'}</code>
 							{' loops, '}
 							<code>{'continue'}</code>
-							{' still skips the current item.'}
+							{' still skips the current item, and branches that render into the current template use '}
+							<code>{'=>'}</code>
+							{'.'}
 						</p>
 						<pre class="code-block">
 							<code innerHTML={NORMAL_RETURN_HTML} />
 						</pre>
 						<p>
-							{'React and Preact still get one useful target-specific compiler pass here. If a guard return appears before a hook, TSRX can keep the source simple while compiling the hook path into a shape that preserves hook ordering.'}
+							{'React and Preact still get one useful target-specific compiler pass here. Hooks that appear inside returned TSRX branches or loops can be isolated into generated child components when the compiler can do so safely.'}
 						</p>
 						<pre class="code-block">
 							<code innerHTML={REACT_PREACT_HOOKS_HTML} />

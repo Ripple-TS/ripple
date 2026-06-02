@@ -4,6 +4,7 @@ const MODIFIED_PRODUCTIONS = [
 	'',
 	'TemplateStatementListItem :',
 	'  ElementStatement',
+	'  TsrxRenderStatement',
 	'  LazyAssignmentStatement',
 	'',
 	'BindingAtom :',
@@ -42,6 +43,11 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
+	'',
+	'TsrxRenderStatement :',
+	'  => AssignmentExpression ;',
+	'  => TsrxExpression ;',
+	'  => ;',
 ].join('\n');
 
 const LAZY_GRAMMAR = [
@@ -70,6 +76,7 @@ const AST_NODE_MAPPING = [
 	'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression -> ESTree function nodes',
 	'return TsrxExpression -> ReturnStatement(argument: TsrxFragment)',
 	'ElementStatement -> Element',
+	'=> AssignmentExpression -> TsrxRenderStatement(argument: Expression)',
 	'{ AssignmentExpression } in template position -> TSRXExpression',
 	'DoubleQuotedTextChild -> Text',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
@@ -115,6 +122,12 @@ const TEMPLATE_AST_SHAPE = [
 	'  type: \'Text\';',
 	'  expression: Expression;',
 	'}',
+	'',
+	'interface TsrxRenderStatement {',
+	'  type: \'TsrxRenderStatement\';',
+	'  argument: Expression | Element | TsrxFragment | null;',
+	'}',
+	'',
 	'interface Attribute {',
 	'  type: \'Attribute\';',
 	'  name: Identifier;',
@@ -229,14 +242,14 @@ export function SpecificationPage() {
 							>
 								<option value="">{'Jump to section'}</option>
 								for (const item of NAV_ITEMS) {
-									<option value={item.id}>{item.label}</option>
+									=> <option value={item.id}>{item.label}</option>
 								}
 							</select>
 						</label>
 						<nav>
 							<p class="side-nav-heading">{'Draft Spec'}</p>
 							for (const item of NAV_ITEMS) {
-								<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+								=> <a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
 							}
 						</nav>
 					</aside>
@@ -339,12 +352,16 @@ export function SpecificationPage() {
 						<section class="doc-section" id="templates">
 							<h2 class="section-heading">{'4.3 Template Elements'}</h2>
 							<p class="section-body">
-								{'Within a returned TSRX template, element forms are admitted as template statements rather than as generic expressions. This statement-oriented model is normative. A tree that contributes directly to a template body is not interchangeable with an ordinary expression value.'}
+								{'Within a returned TSRX template, element forms are admitted as template statements rather than as generic expressions. Direct element, text, and expression children are valid at ordinary template depth, while render output inside control-flow blocks is marked explicitly with '}
+								<code class="inline-code">{'=>'}</code>
+								{'. This statement-oriented model is normative. A tree that contributes directly to a template body is not interchangeable with an ordinary expression value.'}
 							</p>
 							<p class="section-body">
 								{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
-								{' contributes a generic template-expression node.'}
+								{' contributes a generic template-expression node. '}
+								<code class="inline-code">{'=>'}</code>
+								{' contributes a render statement whose value is yielded from the current lexical template block.'}
 							</p>
 							<pre class="code-block plain">
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
@@ -462,6 +479,23 @@ export function SpecificationPage() {
 									{'In hosts that enable server-oriented submodules, server exports must be imported before use, for example import { load } from server.'}
 								</li>
 								<li>
+									{'Direct TSRX elements, fragments, text, and expression output inside control-flow block bodies must be marked with '}
+									<code class="inline-code">{'=>'}</code>
+									{' or use '}
+									<code class="inline-code">{'return'}</code>
+									{' when the enclosing function should exit. Raw '}
+									<code class="inline-code">{'<style>'}</code>
+									{' blocks are additive stylesheet declarations and do not require '}
+									<code class="inline-code">{'=>'}</code>
+									{'.'}
+								</li>
+								<li>
+									<code class="inline-code">{'=>'}</code>
+									{' render statements must not be mixed with direct TSRX elements, text, or expression output in the same template body. Use one style for that lexical body; raw '}
+									<code class="inline-code">{'<style>'}</code>
+									{' blocks remain additive.'}
+								</li>
+								<li>
 									{'Host profiles may restrict which submodule names are supported and may impose additional restrictions on referenced bindings.'}
 								</li>
 								<li>{'Element statements must not appear outside a TSRX template body.'}</li>
@@ -544,6 +578,13 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									{'Text wraps a direct double-quoted static text child and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
+								</li>
+								<li>
+									{'TsrxRenderStatement corresponds to '}
+									<code class="inline-code">{'=>'}</code>
+									{' in template statement position. Its argument is the rendered value for the current lexical template block; '}
+									<code class="inline-code">{'return'}</code>
+									{' remains the ordinary function-return statement.'}
 								</li>
 								<li>
 									{'Attribute.value is null for boolean-style attributes with no initializer, while shorthand marks parser-recognized shorthand cases.'}
