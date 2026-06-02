@@ -26,6 +26,18 @@ export const simple_hash = simpleHash;
 export const strong_hash = strongHash;
 
 /**
+ * @param {unknown} node
+ * @returns {node is AST.TsrxRenderStatement}
+ */
+export function is_tsrx_render_statement(node) {
+	return (
+		typeof node === 'object' &&
+		node !== null &&
+		/** @type {{ type?: string }} */ (node).type === 'TsrxRenderStatement'
+	);
+}
+
+/**
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
@@ -506,8 +518,10 @@ export function expand_tsrx_template_return_statements(nodes) {
 export function get_first_tsrx_render_child_expression(children) {
 	const filtered = children.filter((child) => child.type !== 'EmptyStatement');
 	for (const child of filtered) {
-		if (child.type === 'TsrxRenderStatement' && child.argument !== null) {
-			return /** @type {AST.Expression} */ (child.argument);
+		if (is_tsrx_render_statement(child)) {
+			if (child.argument !== null) {
+				return child.argument;
+			}
 		}
 	}
 
@@ -521,7 +535,7 @@ export function get_first_tsrx_render_child_expression(children) {
  * @returns {AST.Node[]}
  */
 function select_tsrx_render_statement_output(nodes) {
-	const render_index = nodes.findIndex((node) => node.type === 'TsrxRenderStatement');
+	const render_index = nodes.findIndex(is_tsrx_render_statement);
 	if (render_index === -1) {
 		return nodes;
 	}
@@ -559,7 +573,7 @@ function expand_tsrx_template_return_statement(node) {
 		return [node];
 	}
 
-	if (node.type === 'TsrxRenderStatement') {
+	if (is_tsrx_render_statement(node)) {
 		const argument = node.argument;
 		if (is_native_tsrx_template_node(argument)) {
 			node.argument = null;
@@ -713,7 +727,7 @@ function mark_returned_template_child(node) {
  */
 function mark_returned_template_children(nodes) {
 	return nodes.map((node) =>
-		node.type === 'ReturnStatement' || node.type === 'TsrxRenderStatement'
+		node.type === 'ReturnStatement' || is_tsrx_render_statement(node)
 			? node
 			: mark_returned_template_child(node),
 	);

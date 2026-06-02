@@ -95,6 +95,7 @@ import {
 	get_native_tsrx_function_body,
 	get_indexed_reactive_target,
 	is_native_tsrx_function_node,
+	is_tsrx_render_statement,
 	is_static_native_tsrx_function_call,
 	is_native_tsrx_template_node,
 	is_tsrx_component_function,
@@ -3490,6 +3491,11 @@ const visitors = {
 		return context.next();
 	},
 
+	/**
+	 * @param {AST.TsrxRenderStatement} node
+	 * @param {VisitorClientContext} context
+	 * @returns {AST.Statement}
+	 */
 	TsrxRenderStatement(node, context) {
 		if (context.state.to_ts) {
 			return b.empty;
@@ -4449,7 +4455,7 @@ function collect_returns_from_children(children) {
 	for (let index = 0; index < children.length; index++) {
 		const node = children[index];
 		if (
-			(node.type === 'TsrxRenderStatement' ||
+			(is_tsrx_render_statement(node) ||
 				(node.type === 'ReturnStatement' && index !== children.length - 1)) &&
 			!node.metadata?.invalid_tsrx_template_return
 		) {
@@ -4960,12 +4966,12 @@ function transform_children(children, context) {
 			node.type === 'TSTypeAliasDeclaration' ||
 			node.type === 'TSInterfaceDeclaration' ||
 			node.type === 'ReturnStatement' ||
-			node.type === 'TsrxRenderStatement' ||
+			is_tsrx_render_statement(node) ||
 			is_native_tsrx_function_node(node)
 		) {
 			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
 			if (!state.to_ts) {
-				if (node.type === 'ReturnStatement' || node.type === 'TsrxRenderStatement') {
+				if (node.type === 'ReturnStatement' || is_tsrx_render_statement(node)) {
 					const info = return_flags.get(node);
 					if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
 						accumulated_return_flags.push(info);

@@ -2832,7 +2832,11 @@ export function TSRXPlugin(config) {
 						this.semicolon();
 					}
 
-					return this.finishNode(node, 'TsrxRenderStatement');
+					return /** @type {AST.Statement} */ (
+						/** @type {unknown} */ (
+							this.finishNode(/** @type {any} */ (node), 'TsrxRenderStatement')
+						)
+					);
 				}
 
 				return super.parseStatement(context, topLevel, exports);
@@ -2842,14 +2846,17 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseReturnStatement']}
 			 */
 			parseReturnStatement(node) {
-				if (!this.allowReturn) {
+				const return_node = /** @type {AST.ReturnStatement} */ (/** @type {unknown} */ (node));
+				if (
+					!(/** @type {{ allowReturn?: boolean }} */ (/** @type {unknown} */ (this)).allowReturn)
+				) {
 					this.raise(this.start, "'return' outside of function");
 				}
 
 				this.next();
 
 				if (this.eat(tt.semi) || this.insertSemicolon()) {
-					node.argument = null;
+					return_node.argument = null;
 				} else if (
 					this.#functionBodyDepth === 0 &&
 					this.#path.some((node) => this.#isNativeTemplateNode(node)) &&
@@ -2868,17 +2875,19 @@ export function TSRXPlugin(config) {
 						this.context.push(tstc.tc_oTag);
 					}
 					this.next();
-					node.argument = this.parseElement();
-					if (node.argument === null) {
+					return_node.argument = /** @type {AST.Expression} */ (
+						/** @type {unknown} */ (this.parseElement())
+					);
+					if (return_node.argument === null) {
 						this.unexpected();
 					}
 					this.semicolon();
 				} else {
-					node.argument = this.parseExpression();
+					return_node.argument = /** @type {AST.Expression} */ (this.parseExpression());
 					this.semicolon();
 				}
 
-				return this.finishNode(node, 'ReturnStatement');
+				return this.finishNode(return_node, 'ReturnStatement');
 			}
 
 			/**

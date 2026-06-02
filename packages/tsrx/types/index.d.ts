@@ -170,7 +170,9 @@ declare module 'estree' {
 	interface TsrxRenderStatement extends AST.BaseStatement {
 		type: 'TsrxRenderStatement';
 		argument: AST.Expression | null;
-		metadata: BaseNodeMetaData;
+		metadata: BaseNodeMetaData & {
+			invalid_tsrx_template_return?: boolean;
+		};
 	}
 
 	interface BlockStatement {
@@ -243,6 +245,7 @@ declare module 'estree' {
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
 		TsrxFragment: TsrxFragment;
+		TsrxRenderStatement: TsrxRenderStatement;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Element: Element;
@@ -454,7 +457,7 @@ declare module 'estree' {
 
 	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute;
 
-	export type TSRXStatement = AST.Statement | TSESTree.Statement;
+	export type TSRXStatement = AST.Statement | TSESTree.Statement | AST.TsrxRenderStatement;
 
 	export type NodeWithChildren = AST.Element | AST.TsrxFragment | AST.TsxCompat;
 
@@ -1390,7 +1393,10 @@ export interface TransformServerState extends BaseState {
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	dev?: boolean;
-	return_flags?: Map<AST.ReturnStatement | AST.TsrxRenderStatement, { name: string; tracked: boolean }>;
+	return_flags?: Map<
+		AST.ReturnStatement | AST.TsrxRenderStatement,
+		{ name: string; tracked: boolean }
+	>;
 	template_child?: boolean;
 	skip_regular_blocks?: boolean;
 	in_regular_block?: boolean;
@@ -1428,7 +1434,10 @@ export interface TransformClientState extends BaseState {
 	errors: CompileError[];
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
-	return_flags?: Map<AST.ReturnStatement | AST.TsrxRenderStatement, { name: string; tracked: boolean }>;
+	return_flags?: Map<
+		AST.ReturnStatement | AST.TsrxRenderStatement,
+		{ name: string; tracked: boolean }
+	>;
 	is_tsrx_element?: boolean;
 	jsx_to_tsrx_element?: boolean;
 	template_child?: boolean;

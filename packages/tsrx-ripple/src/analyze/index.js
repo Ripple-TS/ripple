@@ -54,6 +54,7 @@ import {
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
+	is_tsrx_render_statement,
 	is_tsrx_component_function,
 } from '../utils.js';
 import is_reference from 'is-reference';
@@ -171,7 +172,7 @@ function is_return_argument_output_child(nodes, index) {
  * @returns {void}
  */
 function validate_tsrx_render_statement_children(children, context) {
-	const render_index = children.findIndex((child) => child.type === 'TsrxRenderStatement');
+	const render_index = children.findIndex(is_tsrx_render_statement);
 	if (render_index === -1) {
 		return;
 	}
@@ -2158,6 +2159,11 @@ const visitors = {
 		}
 	},
 
+	/**
+	 * @param {AST.TsrxRenderStatement} node
+	 * @param {AnalysisContext} context
+	 * @returns {void}
+	 */
 	TsrxRenderStatement(node, context) {
 		mark_control_flow_has_template(context.path);
 		if (is_native_tsrx_template_node(node.argument)) {
