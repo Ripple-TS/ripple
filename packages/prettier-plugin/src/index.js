@@ -2682,6 +2682,12 @@ function printArrowFunction(node, path, options, print, args) {
 		if (shouldBreakBody) {
 			parts.push(' =>', indent([hardline, bodyContent]));
 		} else {
+			if (isTemplateExpression(node.body)) {
+				return conditionalGroup([
+					group([...parts, ' => ', bodyContent]),
+					group([...parts, ' =>', indent([hardline, bodyContent])]),
+				]);
+			}
 			parts.push(
 				' =>',
 				group(indent(line), { id: groupId }),
@@ -2710,10 +2716,17 @@ function isTemplateExpression(node) {
 /**
  * Check whether a braced attribute expression should close on its own line.
  * @param {AST.Node} node - The expression inside the attribute braces
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {AST.NodeWithLocation} [attributeNode] - The full attribute node
  * @returns {boolean}
  */
-function shouldBreakAttributeExpressionClosingBrace(node) {
-	return node.type === 'ArrowFunctionExpression' && node.body && isTemplateExpression(node.body);
+function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode) {
+	return (
+		node.type === 'ArrowFunctionExpression' &&
+		node.body &&
+		isTemplateExpression(node.body) &&
+		sourceSpanExceedsPrintWidth(attributeNode ?? /** @type {AST.NodeWithLocation} */ (node), options)
+	);
 }
 
 /**
@@ -2930,9 +2943,6 @@ function sourceSpanExceedsPrintWidth(node, options) {
  * @returns {boolean}
  */
 function shouldBreakArrowExpressionBody(node, options, args) {
-	if (args?.isInAttribute && isTemplateExpression(node)) {
-		return true;
-	}
 	return (
 		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
 		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
@@ -5032,6 +5042,16 @@ function printVariableDeclarator(node, path, options, print) {
 			}
 		}
 
+		if (isTemplateExpression(node.init)) {
+			const groupId = Symbol('declaration');
+			return group([
+				group(id),
+				' =',
+				group(indent(line), { id: groupId }),
+				indentIfBreak(init, { groupId }),
+			]);
+		}
+
 		// Default: simple inline format with space
 		// Use group to allow breaking if needed - but keep inline when it fits
 		return group([id, ' = ', init]);
@@ -6067,7 +6087,7 @@ function printJSXAttribute(attr, path, options, print) {
 			'value',
 			'expression',
 		);
-		if (shouldBreakAttributeExpressionClosingBrace(expression)) {
+		if (shouldBreakAttributeExpressionClosingBrace(expression, options, attr)) {
 			return [name, '={', exprDoc, hardline, '}'];
 		}
 		return [name, '={', exprDoc, '}'];
@@ -6275,9 +6295,12 @@ function printElement(element, path, options, print) {
 				const attrDoc = print(attrPath);
 				parts.push(attrDoc);
 				const attr_node = /** @type {AST.Attribute | AST.SpreadAttribute} */ (attrPath.node);
+				const attr_value = attr_node.type === 'Attribute' ? attr_node.value : null;
+				const is_template_arrow_attribute =
+					attr_value?.type === 'ArrowFunctionExpression' && isTemplateExpression(attr_value.body);
 				if (
 					!hasBreakingAttribute &&
-					(willBreak(attrDoc) ||
+					((willBreak(attrDoc) && !is_template_arrow_attribute) ||
 						(attr_node.type === 'Attribute' && is_attribute_value_breakable(attr_node.value)))
 				) {
 					hasBreakingAttribute = true;
@@ -6650,8 +6673,8 @@ function printAttribute(node, path, options, print) {
 			parts.push('={');
 			// Pass inline context for attribute values (keep objects compact)
 			parts.push(path.call((attrPath) => print(attrPath, { isInAttribute: true }), 'value'));
-			if (shouldBreakAttributeExpressionClosingBrace(node.value)) {
-				parts.push(hardline);
+			if (shouldBreakAttributeExpressionClosingBrace(node.value, options, node)) {
+				parts.push(ifBreak(hardline, ''));
 			}
 			parts.push('}');
 		}

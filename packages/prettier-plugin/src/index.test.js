@@ -14,12 +14,256 @@ expect.extend({
 
 		return {
 			pass,
-			message: () => `Expected:\n${expectedWithNewline}\nReceived:\n${received}`,
+			message: () => {
+				const { matcherHint, EXPECTED_COLOR, RECEIVED_COLOR } = this.utils;
+
+				/**
+				 * @param {string} str
+				 * @param {(str: string) => string} colorFn
+				 */
+				const formatWithColor = (str, colorFn) => {
+					return colorFn(str);
+				};
+
+				// Just apply color without modifying the string
+				return (
+					matcherHint('toBeWithNewline') +
+					'\n\nExpected:\n' +
+					formatWithColor(expectedWithNewline, EXPECTED_COLOR) +
+					'\nReceived:\n' +
+					formatWithColor(received, RECEIVED_COLOR)
+				);
+			},
 		};
 	},
 });
 
 describe('prettier-plugin', () => {
+	it('should format a simple function', async () => {
+		const input = `export function Test(){let count=0;<div>{"Hello"}</div>}`;
+		const expected = `export function Test() {
+  let count = 0;
+  <div>{'Hello'}</div>
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should format tsrx expression fragments', async () => {
+		const input = `function App(){const content=<>const label="Hi";<div>"Hello" {label}</div>{content}</>;}`;
+		const expected = `function App() {
+  const content = <>
+    const label = 'Hi';
+    <div>"Hello"{label}</div>
+    {content}
+  </>;
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps ordinary single-expression blocks expanded', async () => {
+		const input = `function Test(){ {value} }`;
+		const expected = `function Test() {
+  {
+    value;
+  }
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should keep sibling children in tsrx expression fragments on separate lines', async () => {
+		const input = `function Test(p1,p2){return <><div>"Hello"</div><div>{p1}</div><div>{p2}</div></>}`;
+		const expected = `function Test(p1, p2) {
+  return <>
+    <div>"Hello"</div>
+    <div>{p1}</div>
+    <div>{p2}</div>
+  </>;
+}`;
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps fitting tsrx arrow returns inline in declarations and attributes', async () => {
+		const input = `function Test(props){const func=(item)=><><Item {item}/></>;<List renderItem={(item)=><><Item {item}/></>} />}`;
+		const expected = `function Test(props) {
+  const func = (item) => <><Item {item} /></>;
+  <List renderItem={(item) => <><Item {item} /></>} />
+}`;
+
+		const result = await format(input, { printWidth: 60 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('breaks non-fitting tsrx arrow returns after the arrow in declarations and attributes - printWidth: 60', async () => {
+		const input = `function Test(props) {
+  const func = (item) => <><ItemView {item} onSelect={props.onSelect} /></>;
+  <List
+    items={props.items}
+    renderItem={(item) => <><ItemView {item} onSelect={props.onSelect} /></>}
+  />
+}`;
+		const expected = `function Test(props) {
+  const func = (item) =>
+    <><ItemView {item} onSelect={props.onSelect} /></>;
+  <List
+    items={props.items}
+    renderItem={(item) =>
+      <><ItemView {item} onSelect={props.onSelect} /></>
+    }
+  />
+}`;
+		const result = await format(input, { singleQuote: true, printWidth: 60 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('breaks non-fitting tsrx arrow returns after the arrow in declarations and attributes - printWidth: 80', async () => {
+		const input = `function Test(props) {
+  const func = (item) => <><ItemView {item} onSelect={props.onSelect} /></>;
+  <List
+    items={props.items}
+    renderItem={(item) => <><ItemView {item} onSelect={props.onSelect} /></>}
+  />
+}`;
+		const expected = `function Test(props) {
+  const func = (item) => <><ItemView {item} onSelect={props.onSelect} /></>;
+  <List
+    items={props.items}
+    renderItem={(item) => <><ItemView {item} onSelect={props.onSelect} /></>}
+  />
+}`;
+		const result = await format(input, { singleQuote: true, printWidth: 80 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps fitting single-child fragments inline and expands non-fitting single-child fragments', async () => {
+		const input = `function Test(){const short=<><span>"Ready"</span></>;const long=<><ReallyLongComponentName first={alpha} second={beta} third={gamma}/></>;}`;
+		const expected = `function Test() {
+  const short = <><span>"Ready"</span></>;
+  const long = <>
+    <ReallyLongComponentName
+      first={alpha}
+      second={beta}
+      third={gamma}
+    />
+  </>;
+}`;
+
+		const result = await format(input, { printWidth: 60 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('expands multi-child fragments while keeping fitting openers on the first line', async () => {
+		const input = `function Test(){const short=<><div>"A"</div><div>"B"</div></>;const thisNameIsRidiculouslyLongEnoughToMissThePrintWidth=<><div>"A"</div><div>"B"</div></>;}`;
+		const expected = `function Test() {
+  const short = <>
+    <div>"A"</div>
+    <div>"B"</div>
+  </>;
+  const thisNameIsRidiculouslyLongEnoughToMissThePrintWidth =
+    <>
+      <div>"A"</div>
+      <div>"B"</div>
+    </>;
+}`;
+
+		const result = await format(input, { printWidth: 60 });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should preserve comments before expressions after nested tsx and tsrx blocks', async () => {
+		const expected = `function App() {
+  const content = <>
+    <span class="nested-tsx">{'inside nested tsx'}</span>
+    <div class="native">{nested}</div>
+    // const content =
+    //   <div>{hey()}</div>
+    // ;
+    {content}
+  </>;
+  return content;
+}`;
+		const result = await format(expected, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should format whitespace correctly', async () => {
+		const input = `export function Test(){
+  return <>
+        let count=0
+        // comment
+        <div>{"Hello"}</div>
+        <div>
+          let two=2
+          {"Hello"}
+        </div>
+  </>;
+    }`;
+		const expected = `export function Test() {
+  return <>
+    let count = 0;
+    // comment
+    <div>{'Hello'}</div>
+    <div>
+      let two = 2;
+      {'Hello'}
+    </div>
+  </>;
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should format whitespace correctly #2', async () => {
+		const input = `export function Test(){
+    return <>
+        let count=0
+          const x = () => {
+            console.log("test");
+            if (x) {
+              console.log('test');
+              return null;
+            }
+            if (y) {
+              return null;
+            }
+            return x;
+          }
+        <div>{"Hello"}</div>
+        <div>
+          let two=2
+          {"Hello"}
+        </div>
+    </>;
+    }`;
+		const expected = `export function Test() {
+  return <>
+    let count = 0;
+    const x = () => {
+      console.log('test');
+      if (x) {
+        console.log('test');
+        return null;
+      }
+      if (y) {
+        return null;
+      }
+      return x;
+    };
+    <div>{'Hello'}</div>
+    <div>
+      let two = 2;
+      {'Hello'}
+    </div>
+  </>;
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('registers .tsrx as a supported file extension', () => {
 		const ripple_language = languages?.[0];
 
