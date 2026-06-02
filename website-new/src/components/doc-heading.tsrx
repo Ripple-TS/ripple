@@ -12,22 +12,25 @@ export function DocHeading({
 	return <>
 		switch (level) {
 			case 1:
-				<h1 {id} class="doc-h1">
+				=> <h1 {id} class="doc-h1">
 					{children}
 					<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
 				</h1>
+				break;
 			case 2:
-				<h2 {id} class="doc-h2">
+				=> <h2 {id} class="doc-h2">
 					{children}
 					<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
 				</h2>
+				break;
 			case 3:
-				<h3 {id} class="doc-h3">
+				=> <h3 {id} class="doc-h3">
 					{children}
 					<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
 				</h3>
+				break;
 			case 4:
-				<h4 {id} class="doc-h4">
+				=> <h4 {id} class="doc-h4">
 					{children}
 					<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
 				</h4>

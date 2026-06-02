@@ -71,10 +71,11 @@ export async function generate_docs_index() {
 TSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.
 
 Core ideas:
-- Components are ordinary TypeScript functions that return TSRX.
+- Components are ordinary TypeScript values; prefer arrow functions whose body is a single TSRX fragment.
 - TSRX opens in expression position, then template children use a template statement list inside the fragment.
-- control-flow statements can contain template output.
-- native TSRX can be returned directly as \`<div />\` or \`<>...</>\`.
+- Top-level fragment children can contain setup code, rendered elements, and statement control flow.
+- Control-flow blocks render with \`=>\`; \`return\` remains a real function exit.
+- Native TSRX can be returned directly as \`<div />\` or \`<>...</>\`.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
@@ -90,12 +91,12 @@ Source: website-tsrx/src/pages/specification.tsrx`,
 Author UI as ordinary TypeScript functions that return TSRX.
 
 \`\`\`tsx
-function Button(props: { label: string }) {
-  return <button>{props.label}</button>;
-}
+const Button = (props: { label: string }) => <>
+  <button>{props.label}</button>
+</>;
 \`\`\`
 
-Inside the returned TSRX fragment, template elements and control flow share the same template statement list.
+Inside the fragment body, template elements and control flow share the same template statement list. Keep setup locals, guard exits, and rendered structure inside the fragment when they should participate in TSRX semantics.
 
 Source: website-tsrx/src/pages/specification.tsrx#components`,
 		},
@@ -108,12 +109,10 @@ Source: website-tsrx/src/pages/specification.tsrx#components`,
 Raw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.
 
 \`\`\`tsx
-function Greeting({ name }: { name: string }) {
-  return <>
+const Greeting = ({ name }: { name: string }) => <>
   <h1>"Hello"</h1>
   <p>{name}</p>
-  </>;
-}
+</>;
 \`\`\`
 
 Single-quoted strings and template literals remain JavaScript expressions, so they must be inside braces. When you need explicit string coercion, write it in JavaScript with \`String(value)\`, \`value + ''\`, or a typed string value.
@@ -136,22 +135,20 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 Returned TSRX opens in expression position. Inside the TSRX fragment, template elements are statements and control flow can emit UI.
 
 \`\`\`tsx
-function App() {
+const App = () => <>
   const title = <>"Settings"</>;
 
-  return <Card title={title} />;
-}
+  <Card title={title} />
+</>;
 \`\`\`
 
 Native TSRX expression fragments can contain setup statements and template control flow:
 
 \`\`\`tsx
-function badge(label: string) {
-  return <>
-    const normalized = label.trim();
-    <span class="badge">{normalized}</span>
-  </>;
-}
+const badge = (label: string) => <>
+  const normalized = label.trim();
+  <span class="badge">{normalized}</span>
+</>;
 \`\`\`
 
 Use fragments for assigning UI to variables, returning UI from helper functions, or passing UI as props.
@@ -174,25 +171,23 @@ Source: website-tsrx/src/pages/specification.tsrx#expression-values`,
 Standard JavaScript control flow can contain template statements inside returned TSRX fragments and nested element children.
 
 \`\`\`tsx
-function List({ items }: { items: string[] }) {
-  return <>
+const List = ({ items }: { items: string[] }) => <>
   if (items.length === 0) {
-    <p>"No items"</p>
+    => <p>"No items"</p>
   } else {
-    <ul>
+    => <ul>
       for (const item of items; index i; key item) {
         if (!item) continue;
-        <li>{item}</li>
+        => <li>{item}</li>
       }
     </ul>
   }
-  </>;
-}
+</>;
 \`\`\`
 
-Use normal function returns for guard exits before TSRX opens. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
+Use \`return\` for true function exits, including guard exits inside the component fragment. Use \`=>\` when a control-flow branch should render a value into the current lexical TSRX block.
 
-\`return\` statements are invalid anywhere inside returned TSRX element or fragment bodies. Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
+Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
 
 TSRX rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in TSRX template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
 

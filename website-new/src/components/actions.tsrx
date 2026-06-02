@@ -52,7 +52,7 @@ export function Actions({ playgroundVisible = false }: { playgroundVisible: bool
 			</a>
 
 			if (playgroundVisible) {
-				<a href="/playground" class="discord-link">
+				=> <a href="/playground" class="discord-link">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="24"

@@ -533,14 +533,14 @@ function SwitchReactiveApp() {
 }
 
 function SwitchBreakTrailingReturnApp() {
-	const [kind, setKind] = createSignal('skip');
-	switch (kind()) {
-		case 'skip':
-			break;
-		case 'done':
-			return <><p class="switch-break-result">{'done'}</p></>;
-	}
 	return <>
+		const [kind, setKind] = createSignal('skip');
+		switch (kind()) {
+			case 'skip':
+				break;
+			case 'done':
+				return <><p class="switch-break-result">{'done'}</p></>;
+		}
 		<p class="switch-break-rest">{'rest'}</p>
 		<button class="switch-break-done" onClick={() => setKind('done')}>{'done'}</button>
 	</>;
@@ -838,14 +838,13 @@ function SignalInSwitchApp() {
 // ── Component guard return before signals with parent scope ──
 
 function GuardReturnWithSignalsApp() {
-	const [count, setCount] = createSignal(0);
-	const [skip, setSkip] = createSignal(false);
-	if (skip()) {
-		return null;
-	}
-	const [doubled, setDoubled] = createSignal(0);
-
 	return <>
+		const [count, setCount] = createSignal(0);
+		const [skip, setSkip] = createSignal(false);
+		if (skip()) {
+			return null;
+		}
+		const [doubled, setDoubled] = createSignal(0);
 		<p class="early-count">{count()}</p>
 		<p class="early-doubled">{doubled()}</p>
 		<button

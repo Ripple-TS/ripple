@@ -1027,14 +1027,13 @@ function HookInForClosingScopeApp() {
 // ── Component guard return before hooks with parent scope ──
 
 function GuardReturnWithHooksApp() {
-	const [count, setCount] = useState(0);
-	const [skip, setSkip] = useState(false);
-	if (skip) {
-		return null;
-	}
-	const [doubled, setDoubled] = useState(0);
-
 	return <>
+		const [count, setCount] = useState(0);
+		const [skip, setSkip] = useState(false);
+		if (skip) {
+			return null;
+		}
+		const [doubled, setDoubled] = useState(0);
 		<p class="early-count">{count}</p>
 		<p class="early-doubled">{doubled}</p>
 		<button

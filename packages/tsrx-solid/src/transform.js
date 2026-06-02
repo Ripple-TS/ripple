@@ -310,6 +310,11 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
  * @returns {any}
  */
 function body_to_jsx_child(body_nodes, transform_context) {
+	const lowered_body = lower_solid_component_statement_list(body_nodes);
+	if (lowered_body.changed || lowered_body.terminal) {
+		body_nodes = lowered_body.nodes;
+	}
+
 	// When non-JSX statements are interleaved with JSX children, preserve
 	// source order by capturing each JSX child into a const at its textual
 	// position. Otherwise all statements would run before any JSX is

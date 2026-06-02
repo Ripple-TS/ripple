@@ -44,7 +44,7 @@ export function DocsLayout({
 									<div>{children}</div>
 								</article>
 								if (editPath) {
-									<div class="edit-link">
+									=> <div class="edit-link">
 										<a
 											href={`https://github.com/Ripple-TS/ripple/edit/main/website/${editPath}`}
 											target="_blank"
@@ -68,17 +68,17 @@ export function DocsLayout({
 									</div>
 								}
 								if (prevLink || nextLink) {
-									<nav class="prev-next">
+									=> <nav class="prev-next">
 										if (prevLink) {
-											<a href={prevLink.href} class="pager prev">
+											=> <a href={prevLink.href} class="pager prev">
 												<span class="desc">{'Previous page'}</span>
 												<span class="title">{prevLink.text}</span>
 											</a>
 										} else {
-											<span />
+											=> <span />
 										}
 										if (nextLink) {
-											<a href={nextLink.href} class="pager next">
+											=> <a href={nextLink.href} class="pager next">
 												<span class="desc">{'Next page'}</span>
 												<span class="title">{nextLink.text}</span>
 											</a>
@@ -90,39 +90,41 @@ export function DocsLayout({
 						</div>
 						<aside class="aside">
 							if (toc.length > 0) {
-								<div class="aside-curtain" />
-								<div class="aside-container">
-									<div class="aside-content">
-										<div class="DocumentAside">
-											<nav
-												class="DocumentAsideOutline has-outline"
-												aria-labelledby="doc-outline-aria-label"
-											>
-												<div class="outline-content">
-													<div class="outline-marker" />
-													<div
-														class="outline-title"
-														id="doc-outline-aria-label"
-														role="heading"
-														aria-level="2"
-													>
-														{'Features'}
+								=> <>
+									<div class="aside-curtain" />
+									<div class="aside-container">
+										<div class="aside-content">
+											<div class="DocumentAside">
+												<nav
+													class="DocumentAsideOutline has-outline"
+													aria-labelledby="doc-outline-aria-label"
+												>
+													<div class="outline-content">
+														<div class="outline-marker" />
+														<div
+															class="outline-title"
+															id="doc-outline-aria-label"
+															role="heading"
+															aria-level="2"
+														>
+															{'Features'}
+														</div>
+														<ul class="DocumentOutlineItem root">
+															for (const item of toc) {
+																=> <li>
+																	<a class="outline-link" href={item.href} title={item.text}>
+																		{item.text}
+																	</a>
+																</li>
+															}
+														</ul>
 													</div>
-													<ul class="DocumentOutlineItem root">
-														for (const item of toc) {
-															<li>
-																<a class="outline-link" href={item.href} title={item.text}>
-																	{item.text}
-																</a>
-															</li>
-														}
-													</ul>
-												</div>
-											</nav>
-											<div class="aside-spacer" />
+												</nav>
+												<div class="aside-spacer" />
+											</div>
 										</div>
 									</div>
-								</div>
+								</>
 							}
 						</aside>
 					</div>

@@ -519,6 +519,72 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			continue;
 		}
 
+		const component_returning_if_body = get_component_returning_if_consequent_body(child);
+		if (component_returning_if_body !== null) {
+			if (transform_context.platform.hooks?.controlFlow?.ifStatement) {
+				const jsx = to_jsx_child(
+					set_loc(
+						b.if(child.test, child.consequent, set_loc(b.block(body_nodes.slice(i + 1)), child)),
+						child,
+					),
+					transform_context,
+				);
+				statements.push(...extract_jsx_setup_declarations(jsx));
+				if (interleaved && is_capturable_jsx_child(jsx)) {
+					const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+					statements.push(declaration);
+					render_nodes.push(reference);
+				} else {
+					render_nodes.push(jsx);
+				}
+				break;
+			}
+
+			const branch_statements = build_render_statements(
+				component_returning_if_body,
+				true,
+				transform_context,
+			);
+			prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
+
+			const continuation_statements = build_component_continuation_statements(
+				body_nodes.slice(i + 1),
+				transform_context,
+			);
+			prepend_render_nodes_to_return_statements(continuation_statements, render_nodes);
+
+			statements.push(
+				set_loc(
+					b.if(
+						child.test,
+						set_loc(b.block(branch_statements), child.consequent),
+						set_loc(b.block(continuation_statements), child),
+					),
+					child,
+				),
+			);
+			render_nodes.length = 0;
+			has_terminal_return = true;
+			break;
+		}
+
+		const component_returning_switch = create_component_returning_switch_statement(
+			child,
+			body_nodes.slice(i + 1),
+		);
+		if (component_returning_switch !== null) {
+			const jsx = to_jsx_child(component_returning_switch, transform_context);
+			statements.push(...extract_jsx_setup_declarations(jsx));
+			if (interleaved && is_capturable_jsx_child(jsx)) {
+				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
+				statements.push(declaration);
+				render_nodes.push(reference);
+			} else {
+				render_nodes.push(jsx);
+			}
+			break;
+		}
+
 		if (
 			child.type === 'ForOfStatement' &&
 			!child.await &&
@@ -2063,6 +2129,45 @@ function get_loop_skip_if_consequent_body(node) {
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 
 	return consequent_body.some(is_loop_skip_return_statement) ? consequent_body : null;
+}
+
+/**
+ * @param {any} node
+ * @returns {any[] | null}
+ */
+function get_component_returning_if_consequent_body(node) {
+	if (node?.type !== 'IfStatement' || node.alternate) {
+		return null;
+	}
+
+	const consequent_body =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+
+	return consequent_body.some(is_real_return_statement) ? consequent_body : null;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_real_return_statement(node) {
+	return node?.type === 'ReturnStatement' && !is_loop_skip_return_statement(node);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function build_component_continuation_statements(body_nodes, transform_context) {
+	if (
+		should_extract_hook_helpers(transform_context) &&
+		body_contains_top_level_hook_call(body_nodes, transform_context, true)
+	) {
+		return hook_safe_render_statements(body_nodes, undefined, transform_context);
+	}
+
+	return build_render_statements(body_nodes, true, transform_context);
 }
 
 /**
@@ -4728,6 +4833,69 @@ function summarize_switch_case_body(consequent) {
 		}
 	}
 	return { own_body, has_terminator };
+}
+
+/**
+ * @param {any} node
+ * @param {any[]} continuation_body
+ * @returns {any | null}
+ */
+function create_component_returning_switch_statement(node, continuation_body) {
+	if (node?.type !== 'SwitchStatement' || continuation_body.length === 0) {
+		return null;
+	}
+
+	const cases = node.cases || [];
+	if (
+		!cases.some((/** @type {any} */ switch_case) =>
+			(switch_case.consequent || []).some(is_real_return_statement),
+		)
+	) {
+		return null;
+	}
+
+	let has_default = false;
+	const next_cases = cases.map((/** @type {any} */ switch_case, /** @type {number} */ index) => {
+		if (switch_case.test === null) {
+			has_default = true;
+		}
+
+		const consequent = [];
+		let has_terminator = false;
+		for (const child of switch_case.consequent || []) {
+			if (child.type === 'BreakStatement') {
+				consequent.push(...clone_continuation_body(continuation_body), child);
+				has_terminator = true;
+				break;
+			}
+
+			consequent.push(child);
+			if (is_real_return_statement(child) || is_loop_skip_return_statement(child)) {
+				has_terminator = true;
+				break;
+			}
+		}
+
+		if (!has_terminator && index === cases.length - 1) {
+			consequent.push(...clone_continuation_body(continuation_body), b.break);
+		}
+
+		return set_loc(b.switch_case(switch_case.test, consequent), switch_case);
+	});
+
+	if (!has_default) {
+		next_cases.push(b.switch_case(null, clone_continuation_body(continuation_body)));
+	}
+
+	return set_loc(b.switch(node.discriminant, next_cases), node);
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any[]}
+ */
+function clone_continuation_body(body_nodes) {
+	return body_nodes.map((node) => clone_expression_node(node, false));
 }
 
 /**

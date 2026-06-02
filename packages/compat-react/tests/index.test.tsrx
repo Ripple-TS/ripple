@@ -340,13 +340,13 @@ describe('compat-react', () => {
 			function App() {
 				return <>
 					try {
-						<div>
+						=> <div>
 							<tsx:react>
 								<ReactChild />
 							</tsx:react>
 						</div>
 					} catch (e) {
-						<div class="error">{'ReactChild had an error'}</div>
+						=> <div class="error">{'ReactChild had an error'}</div>
 					}
 				</>;
 			}
@@ -376,13 +376,13 @@ describe('compat-react', () => {
 			function App() {
 				return <>
 					try {
-						<div>
+						=> <div>
 							<tsx:react>
 								<Ripple component={RippleChild} />
 							</tsx:react>
 						</div>
 					} catch (e) {
-						<div class="error">{'ReactChild had an error'}</div>
+						=> <div class="error">{'ReactChild had an error'}</div>
 					}
 				</>;
 			}
@@ -449,7 +449,7 @@ describe('compat-react', () => {
 					return <>
 						const result = trackAsync(() => sleep(1000));
 						if (!trackPending(result)) {
-							<div class="async-content">{'Loaded!'}</div>
+							=> <div class="async-content">{'Loaded!'}</div>
 						}
 					</>;
 				}
@@ -506,7 +506,7 @@ describe('compat-react', () => {
 						const result = trackAsync(() => sleep(1000));
 						let &[count] = track(0);
 						if (!trackPending(result)) {
-							<div>
+							=> <div>
 								<div class="async-content">{'Loaded!'}</div>
 								<div class="count">{count}</div>
 								<button onClick={() => count++}>{'Increment'}</button>
@@ -581,7 +581,7 @@ describe('compat-react', () => {
 							return sleep(1000);
 						});
 						if (!trackPending(result)) {
-							<div class="content">{`Page ${page} loaded`}</div>
+							=> <div class="content">{`Page ${page} loaded`}</div>
 						}
 					</>;
 				}
@@ -662,7 +662,7 @@ describe('compat-react', () => {
 					return <>
 						const result = trackAsync(() => sleep(1000));
 						if (!trackPending(result)) {
-							<div class="content">{`Page ${page} loaded`}</div>
+							=> <div class="content">{`Page ${page} loaded`}</div>
 						}
 					</>;
 				}
@@ -761,7 +761,7 @@ describe('compat-react', () => {
 							const resultA = trackAsync(() => fetchA());
 							const resultB = trackAsync(() => fetchB());
 							if (!trackPending(resultA) && !trackPending(resultB)) {
-								<div class="content">{'Both loaded!'}</div>
+								=> <div class="content">{'Both loaded!'}</div>
 							}
 						</>;
 					}
@@ -773,13 +773,13 @@ describe('compat-react', () => {
 					function App() {
 						return <>
 							try {
-								<tsx:react>
+								=> <tsx:react>
 									<Suspense fallback={<div className="loading">Loading...</div>}>
 										<ReactChild />
 									</Suspense>
 								</tsx:react>
 							} catch (e) {
-								<div class="error">{'Caught error'}</div>
+								=> <div class="error">{'Caught error'}</div>
 							}
 						</>;
 					}

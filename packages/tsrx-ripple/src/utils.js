@@ -145,7 +145,10 @@ export function is_tsrx_component_function(node, context) {
  * @returns {boolean}
  */
 export function is_native_tsrx_template_node(node) {
-	return !!(node && (node.type === 'Element' || node.type === 'TsrxFragment'));
+	return !!(
+		node &&
+		(node.type === 'Element' || node.type === 'TsrxFragment' || node.type === 'TsxCompat')
+	);
 }
 
 /**
@@ -206,7 +209,7 @@ export function is_static_native_tsrx_function_call(expression, context) {
 }
 
 /**
- * @param {AST.Element | AST.TsrxFragment} node
+ * @param {AST.Element | AST.TsrxFragment | AST.TsxCompat} node
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node) {
