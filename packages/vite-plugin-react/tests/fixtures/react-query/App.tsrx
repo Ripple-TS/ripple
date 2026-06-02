@@ -39,6 +39,7 @@ export function ReactQueryFixture() {
 				tagCount: project.tags.length,
 			};
 		}
+		---
 		<QueryFixtureShell
 			initialProjectId="alpha"
 			alternateProjectId="beta"

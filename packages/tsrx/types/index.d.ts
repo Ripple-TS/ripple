@@ -83,6 +83,8 @@ interface BaseNodeMetaData {
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
+	tsrxDirective?: 'if' | 'for' | 'switch' | 'try';
+	directiveStart?: number;
 	elementLeadingComments?: AST.Comment[];
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
@@ -174,6 +176,12 @@ declare module 'estree' {
 		};
 	}
 
+	interface TsrxTemplateFence extends AST.BaseStatement {
+		type: 'TsrxTemplateFence';
+		value: '---';
+		metadata: BaseNodeMetaData;
+	}
+
 	interface BlockStatement {
 		metadata: BaseNodeMetaData & {
 			native_return_block?: boolean;
@@ -244,6 +252,7 @@ declare module 'estree' {
 	interface NodeMap {
 		TsrxFragment: TsrxFragment;
 		TsrxRenderStatement: TsrxRenderStatement;
+		TsrxTemplateFence: TsrxTemplateFence;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Element: Element;
@@ -455,7 +464,11 @@ declare module 'estree' {
 
 	export type TSRXAttribute = AST.Attribute | AST.SpreadAttribute;
 
-	export type TSRXStatement = AST.Statement | TSESTree.Statement | AST.TsrxRenderStatement;
+	export type TSRXStatement =
+		| AST.Statement
+		| TSESTree.Statement
+		| AST.TsrxRenderStatement
+		| AST.TsrxTemplateFence;
 
 	export type NodeWithChildren = AST.Element | AST.TsrxFragment | AST.TsxCompat;
 

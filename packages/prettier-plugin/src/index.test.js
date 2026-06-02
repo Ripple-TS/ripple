@@ -98,6 +98,30 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('preserves template fences and directives', async () => {
+		const input = `function App(){return <>
+const items=[1,2,3];
+---
+@if(items.length){<div>{items.length}</div>}
+@for(const item of items; key item){<span>{item}</span>}
+</>}`;
+		const expected = `function App() {
+  return <>
+    const items = [1, 2, 3];
+    ---
+    @if (items.length) {
+      <div>{items.length}</div>
+    }
+    @for (const item of items; key item) {
+      <span>{item}</span>
+    }
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('preserves fragment shorthand for simple returned TSRX expressions', async () => {
 		const input = `const App=()=> <><span>{"Ready"}</span></>;`;
 		const expected = `const App = () => <><span>{"Ready"}</span></>;`;

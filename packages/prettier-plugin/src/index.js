@@ -1894,6 +1894,10 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'TsrxTemplateFence':
+			nodeContent = '---';
+			break;
+
 		case 'BinaryExpression': {
 			// Check if we're in an assignment/declaration context where parent handles indentation
 			const parent = path.getParentNode();
@@ -3311,6 +3315,15 @@ function extractAndPrintLeadingComments(node) {
 }
 
 /**
+ * @param {AST.Node} node
+ * @param {'if' | 'for' | 'switch' | 'try'} directive
+ * @returns {string}
+ */
+function getTemplateDirectivePrefix(node, directive) {
+	return node.metadata?.tsrxDirective === directive ? '@' : '';
+}
+
+/**
  * Print an if statement
  * @param {AST.IfStatement} node - The if statement node
  * @param {AstPath<AST.IfStatement>} path - The AST path
@@ -3327,7 +3340,13 @@ function printIfStatement(node, path, options, print) {
 	const consequent = path.call(print, 'consequent');
 
 	// Use group to allow breaking the test when it doesn't fit
-	const testDoc = group(['if (', indent([softline, test]), softline, ')']);
+	const testDoc = group([
+		getTemplateDirectivePrefix(node, 'if'),
+		'if (',
+		indent([softline, test]),
+		softline,
+		')',
+	]);
 
 	// Check if consequent is a block statement or another if statement
 	const consequentIsBlock = node.consequent.type === 'BlockStatement';
@@ -3380,6 +3399,7 @@ function printIfStatement(node, path, options, print) {
 function printForInStatement(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+	parts.push(getTemplateDirectivePrefix(node, 'for'));
 	parts.push('for (');
 	parts.push(path.call(print, 'left'));
 	parts.push(' in ');
@@ -3402,7 +3422,8 @@ function printForInStatement(node, path, options, print) {
 function printForOfStatement(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
-	parts.push('for (');
+	parts.push(getTemplateDirectivePrefix(node, 'for'));
+	parts.push(node.await ? 'for await (' : 'for (');
 	parts.push(path.call(print, 'left'));
 	parts.push(' of ');
 	parts.push(path.call(print, 'right'));
@@ -3435,6 +3456,7 @@ function printForOfStatement(node, path, options, print) {
 function printForStatement(node, path, options, print) {
 	/** @type {Doc[]} */
 	const parts = [];
+	parts.push(getTemplateDirectivePrefix(node, 'for'));
 	parts.push('for (');
 
 	// Handle init part
@@ -3754,6 +3776,7 @@ function printTryStatement(node, path, options, print) {
 	// Print leading comments from block node before 'try' keyword
 	parts.push(...extractAndPrintLeadingComments(blockNode));
 
+	parts.push(getTemplateDirectivePrefix(node, 'try'));
 	parts.push('try ');
 	parts.push(block);
 
@@ -4483,7 +4506,13 @@ function printSwitchStatement(node, path, options, print) {
 	// Print leading comments from discriminant node before 'switch' keyword
 	parts.push(...extractAndPrintLeadingComments(discriminantNode));
 
-	const discriminantDoc = group(['switch (', indent([softline, discriminant]), softline, ')']);
+	const discriminantDoc = group([
+		getTemplateDirectivePrefix(node, 'switch'),
+		'switch (',
+		indent([softline, discriminant]),
+		softline,
+		')',
+	]);
 
 	parts.push(discriminantDoc);
 

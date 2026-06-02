@@ -59,7 +59,7 @@ second"</pre>
 
 function DirectQuotedTextIfElseTrueApp() {
 	return <>
-		if (true) {
+		@if (true) {
 			"Hello Ripple"
 		} else "Hello React"
 	</>;
@@ -67,7 +67,7 @@ function DirectQuotedTextIfElseTrueApp() {
 
 function DirectQuotedTextIfElseFalseApp() {
 	return <>
-		if (false) {
+		@if (false) {
 			"Hello Ripple"
 		} else "Hello React"
 	</>;
@@ -349,7 +349,8 @@ function modernMountRef(_node: HTMLDivElement) {
 function CleanupRefApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<div ref={mergeRefs(legacyMountRef, modernMountRef)} class="cleanup-target">{'x'}</div>
 		}
 		<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
@@ -361,7 +362,8 @@ function CleanupRefApp() {
 function IfReactiveApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<span class="visible">{'shown'}</span>
 		} else {
 			<span class="hidden">{'hidden'}</span>
@@ -375,7 +377,8 @@ function IfReactiveApp() {
 function ForReactiveApp() {
 	return <>
 		const [items, setItems] = useState(['a', 'b', 'c']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="item" key={item}>{item}</li>
 		}
 		<button class="add" onClick={() => setItems([...items, 'd'])}>{'add'}</button>
@@ -386,7 +389,8 @@ function ForReactiveApp() {
 function ForContinueApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			if (!item) continue;
 			<li class="continue-item" key={item}>{item}</li>
 		}
@@ -398,7 +402,8 @@ function ForContinueApp() {
 function ForOverSetApp() {
 	return <>
 		const items = new Set<string>(['x', 'y', 'z']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="set-item" key={item}>{item}</li>
 		}
 	</>;
@@ -413,7 +418,8 @@ function ForOverMapApp() {
 			['b', 2],
 			['c', 3],
 		]);
-		for (const [key, value] of entries) {
+		---
+		@for (const [key, value] of entries) {
 			<li class="map-item" {key}>{key + ':' + value}</li>
 		}
 	</>;
@@ -429,7 +435,8 @@ function ForOverCustomIterableApp() {
 			yield 'three';
 		}
 		const items = iter();
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="generator-item" key={item}>{item}</li>
 		}
 	</>;
@@ -440,7 +447,8 @@ function ForOverCustomIterableApp() {
 function SwitchReactiveApp() {
 	return <>
 		const [page, setPage] = useState('home');
-		switch (page) {
+		---
+		@switch (page) {
 			case 'home':
 				<div class="page">{'Home'}</div>
 				break;
@@ -475,8 +483,9 @@ function ChildrenApp() {
 function IfChildrenApp() {
 	return <>
 		const [show, setShow] = useState(false);
+		---
 		<Wrapper>
-			if (show) {
+			@if (show) {
 				<span class="inner-visible">{'inner shown'}</span>
 			}
 		</Wrapper>
@@ -697,7 +706,8 @@ let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
 function NamedMutableUnmountApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<input
 				type="text"
 				class="named-mutable-unmount"
@@ -722,7 +732,7 @@ function ThrowingChild() {
 
 function ErrorBoundaryApp() {
 	return <>
-		try {
+		@try {
 			<ThrowingChild />
 		} catch (err: Error) {
 			<p class="caught">{err.message}</p>
@@ -737,6 +747,7 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 		if (props.shouldThrow) {
 			throw new Error('conditional boom');
 		}
+		---
 		<p class="ok">{'no error'}</p>
 	</>;
 }
@@ -744,7 +755,8 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 function ErrorToggleApp() {
 	return <>
 		const [fail, setFail] = useState(false);
-		try {
+		---
+		@try {
 			<MaybeThrow shouldThrow={fail} />
 		} catch (err: Error, reset: () => void) {
 			<p class="caught">{err.message}</p>
@@ -773,7 +785,7 @@ function AsyncChild(props: { promise: Promise<string> }) {
 
 function SuspenseApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -783,7 +795,7 @@ function SuspenseApp(props: { promise: Promise<string> }) {
 
 function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {}
 	</>;
@@ -793,7 +805,7 @@ function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
 
 function SuspenseErrorApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -807,7 +819,7 @@ function SuspenseErrorApp(props: { promise: Promise<string> }) {
 
 function ErrorResetApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -829,9 +841,9 @@ function InnerThrow() {
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err: Error) {
 					<p class="inner-caught">{err.message}</p>
@@ -848,7 +860,8 @@ function NestedTryApp() {
 function SwappableAsyncApp() {
 	return <>
 		const [promise, setPromise] = useState(() => Promise.resolve('first'));
-		try {
+		---
+		@try {
 			<AsyncChild {promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -862,8 +875,9 @@ function SwappableAsyncApp() {
 function IfInsideTryApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		try {
-			if (show) {
+		---
+		@try {
+			@if (show) {
 				<p class="branch-a">{'visible'}</p>
 			} else {
 				<p class="branch-b">{'alternate'}</p>
@@ -880,8 +894,9 @@ function IfInsideTryApp() {
 function ForInsideTryApp() {
 	return <>
 		const [items, setItems] = useState(['x', 'y']);
-		try {
-			for (const item of items) {
+		---
+		@try {
+			@for (const item of items) {
 				<span class="try-item" key={item}>{item}</span>
 			}
 		} catch (err: Error) {
@@ -898,7 +913,8 @@ function HookInIfApp() {
 		const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(
 			true,
 		);
-		if (show) {
+		---
+		@if (show) {
 			const [count, setCount] = useState(0);
 			<p class="hook-if-count">{count}</p>
 			<button class="hook-if-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
@@ -914,7 +930,8 @@ function HookInIfApp() {
 function HookInForApp() {
 	return <>
 		const [items, setItems] = useState(['a', 'b']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const [clicked, setClicked] = useState(false);
 			<div class="hook-for-item" key={item}>
 				<span>
@@ -933,7 +950,8 @@ function HookInForApp() {
 function HookInSwitchApp() {
 	return <>
 		const [page, setPage] = useState('home');
-		switch (page) {
+		---
+		@switch (page) {
 			case 'home':
 				const [homeCount, setHomeCount] = useState(0);
 				<p class="hook-switch-val">{homeCount}</p>
@@ -952,7 +970,8 @@ function HookInSwitchApp() {
 function HookInBothBranchesApp() {
 	return <>
 		const [mode, setMode] = useState('a');
-		if (mode === 'a') {
+		---
+		@if (mode === 'a') {
 			const [x, setX] = useState(10);
 			<p class="branch-val">{x}</p>
 			<button class="branch-inc" onClick={() => setX(x + 1)}>{'inc'}</button>
@@ -972,7 +991,8 @@ function HookInBothBranchesApp() {
 function HookClosingOverScopeApp() {
 	return <>
 		const [multiplier, setMultiplier] = useState(2);
-		if (multiplier > 0) {
+		---
+		@if (multiplier > 0) {
 			const [base, setBase] = useState(5);
 			<p class="scope-result">{base * multiplier}</p>
 			<button class="scope-inc-base" onClick={() => setBase(base + 1)}>{'inc base'}</button>
@@ -988,9 +1008,10 @@ function HookClosingOverScopeApp() {
 function HookInsideElementApp() {
 	return <>
 		const [label, setLabel] = useState('greeting');
+		---
 		<div class="outer">
 			<h2>{label}</h2>
-			if (label === 'greeting') {
+			@if (label === 'greeting') {
 				const [msg, setMsg] = useState('Hello');
 				<p class="inner-msg">{msg}</p>
 				<button class="inner-update" onClick={() => setMsg('Hi there')}>{'update'}</button>
@@ -1011,7 +1032,8 @@ function HookInForClosingScopeApp() {
 	return <>
 		const [prefix, setPrefix] = useState('item');
 		const [items, setItems] = useState(['a', 'b']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const [active, setActive] = useState(false);
 			<div class="for-scope-item" key={item}>
 				<span class="for-scope-label">{prefix + '-' + item + (active ? '!' : '')}</span>
@@ -1034,6 +1056,7 @@ function GuardReturnWithHooksApp() {
 			return null;
 		}
 		const [doubled, setDoubled] = useState(0);
+		---
 		<p class="early-count">{count}</p>
 		<p class="early-doubled">{doubled}</p>
 		<button
@@ -1055,7 +1078,8 @@ function HookInSwitchWithScopeApp() {
 	return <>
 		const [tab, setTab] = useState('counter');
 		const [theme, setTheme] = useState('light');
-		switch (tab) {
+		---
+		@switch (tab) {
 			case 'counter':
 				const [n, setN] = useState(0);
 				<p class="switch-scope-val">{theme + ':' + n}</p>
@@ -1084,6 +1108,7 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 			{props.label + ':' + count}
 		</button>
@@ -1094,6 +1119,7 @@ function TsrxExpressionHookApp() {
 	return <>
 		const [active, setActive] = useState(false);
 		const [label, setLabel] = useState('first');
+		---
 		<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
 			{active ? 'hide' : 'show'}
 		</button>
@@ -1107,6 +1133,7 @@ function TsrxExpressionHookApp() {
 function StaticHoistMixedApp() {
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<header class="static-header">
 			<h1>{'Static Title'}</h1>
 		</header>
@@ -1121,7 +1148,8 @@ function StaticHoistMixedApp() {
 function StaticHoistInBranchApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<div class="branch-static">
 				<span>{'Always the same'}</span>
 			</div>

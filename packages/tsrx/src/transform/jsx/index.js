@@ -438,6 +438,7 @@ function build_component_statements(body_nodes, transform_context) {
  * @returns {any[]}
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
+	body_nodes = without_template_fences(body_nodes);
 	const statements = [];
 	const render_nodes = [];
 	let has_terminal_return = false;
@@ -2723,6 +2724,22 @@ function is_statement_render_child(node) {
 
 /**
  * @param {any} node
+ * @returns {boolean}
+ */
+function is_template_fence(node) {
+	return node?.type === 'TsrxTemplateFence';
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any[]}
+ */
+function without_template_fences(body_nodes) {
+	return body_nodes.filter((node) => !is_template_fence(node));
+}
+
+/**
+ * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
  */
@@ -2758,6 +2775,7 @@ function statement_body_to_jsx_child(body_nodes, transform_context) {
  * @returns {ESTreeJSX.JSXExpressionContainer}
  */
 function hook_safe_statement_body_to_jsx_child(body_nodes, transform_context) {
+	body_nodes = without_template_fences(body_nodes);
 	const source_node = get_body_source_node(body_nodes);
 	const helper = create_hook_safe_helper(body_nodes, undefined, source_node, transform_context);
 
@@ -2790,6 +2808,7 @@ function create_local_statement_component_name(transform_context) {
  * @returns {any[]}
  */
 function hook_safe_render_statements(body_nodes, key_expression, transform_context) {
+	body_nodes = without_template_fences(body_nodes);
 	const source_node = get_body_source_node(body_nodes);
 	const helper = create_hook_safe_helper(
 		body_nodes,
@@ -3511,6 +3530,7 @@ export function create_hook_safe_helper(
 	preallocated_helper_id,
 	options = {},
 ) {
+	body_nodes = without_template_fences(body_nodes);
 	validate_hook_safe_body_does_not_assign_hook_results_to_outer_bindings(
 		body_nodes,
 		transform_context,
@@ -3834,6 +3854,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	const children = (node.children || []).filter(
 		(/** @type {any} */ child) =>
 			child &&
+			!is_template_fence(child) &&
 			child.type !== 'EmptyStatement' &&
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
 	);
@@ -3886,6 +3907,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
  * @returns {any | null}
  */
 export function return_value_body_to_expression(body_nodes, source_node, transform_context) {
+	body_nodes = without_template_fences(body_nodes);
 	if (!body_contains_top_level_return_value(body_nodes)) return null;
 
 	if (body_nodes.length === 1) {

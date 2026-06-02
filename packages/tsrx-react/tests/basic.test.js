@@ -73,7 +73,7 @@ describe('@tsrx/react basic', () => {
 			const { code, css, cssHash } = compile(
 				`export function MyApp() {
 					return <>
-						if (x) {
+						@if (x) {
 							<div>"works"</div>
 						} else {
 							<span>"idle"</span>
@@ -100,6 +100,7 @@ describe('@tsrx/react basic', () => {
 			const { code } = compile(
 				`export const MyApp = () => <>
 					const value = 1;
+					---
 					<div>{value}</div>
 				</>;`,
 				'App.tsrx',
@@ -116,7 +117,7 @@ describe('@tsrx/react basic', () => {
 
 				export function MyApp() {
 					return <>
-						if (x) {
+						@if (x) {
 							const [value] = useState(0);
 							<div>{value}</div>
 						}
@@ -135,6 +136,7 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`export async function App() { return <>
 				const data = await fetchData();
+				---
 				<div>{data}</div>
 			</>; }`,
 			'App.tsrx',
@@ -150,6 +152,7 @@ describe('@tsrx/react basic', () => {
 
 			export async function App() { return <>
 				const data = await fetchData();
+				---
 				<div>{data}</div>
 			</>; }`,
 			'App.tsrx',
@@ -164,7 +167,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export async function App({ items }: { items: AsyncIterable<string> }) { return <>
-					for await (const item of items) {
+					@for await (const item of items) {
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -179,7 +182,7 @@ describe('@tsrx/react basic', () => {
 				`'use server';
 
 				export async function App({ items }: { items: AsyncIterable<string> }) { return <>
-					for await (const item of items) {
+					@for await (const item of items) {
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -192,6 +195,7 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const load = async () => await fetchData();
+				---
 				<button onClick={load}>{'Load'}</button>
 			</>; }`,
 			'App.tsrx',
@@ -204,7 +208,7 @@ describe('@tsrx/react basic', () => {
 	it('applies for-control-flow keys to rendered elements', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: { id: string, text: string }[] }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
 			</>; }`,
@@ -244,7 +248,7 @@ describe('@tsrx/react basic', () => {
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() { return <>
-				if (true) {
+				@if (true) {
 					<div>{'inside'}</div>
 				}
 
@@ -286,7 +290,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const count = 2;
 
-				if (count > 1) {
+				---
+				@if (count > 1) {
 					<div>{'Count is more than one'}</div>
 				}
 
@@ -307,7 +312,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const ready = false;
 
-				if (ready) {
+				---
+				@if (ready) {
 					<div>{'Ready'}</div>
 				} else {
 					<div>{'Loading'}</div>
@@ -326,7 +332,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [1, 2, 3];
 
-				for (const item of items; index i) {
+				---
+				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
 			</>; }`,
@@ -346,7 +353,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [1, 2, 3];
 
-				for (const item of items; index i; key item) {
+				---
+				@for (const item of items; index i; key item) {
 					<div>{item}</div>
 				}
 			</>; }`,
@@ -362,7 +370,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [{ id: 'a', inner: 'x' }];
 
-				for (const item of items; key item.id) {
+				---
+				@for (const item of items; key item.id) {
 					<div key={item.inner}>{item.id}</div>
 				}
 			</>; }`,
@@ -377,7 +386,7 @@ describe('@tsrx/react basic', () => {
 	it('uses map_iterable for for-of over a Set without normalizing it', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: Set<string> }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					<li key={item}>{item}</li>
 				}
 			</>; }`,
@@ -395,7 +404,7 @@ describe('@tsrx/react basic', () => {
 	it('uses map_iterable for for-of over a Map without normalizing it', () => {
 		const { code } = compile(
 			`export function App({ entries }: { entries: Map<string, number> }) { return <>
-				for (const [key, value] of entries) {
+				@for (const [key, value] of entries) {
 					<li key={key}>{key + ':' + value}</li>
 				}
 			</>; }`,
@@ -412,7 +421,7 @@ describe('@tsrx/react basic', () => {
 			`import { useState } from 'react';
 
 			export function App({ items }: { items: Iterable<string> }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					const [open, setOpen] = useState(false);
 					<li key={item}>{open ? item : '-'}</li>
 				}
@@ -434,7 +443,7 @@ describe('@tsrx/react basic', () => {
 			`import { useState } from 'react';
 
 			export function App({ items }: { items: Iterable<string> }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					const [open, setOpen] = useState(false);
 					<li key={item}>{open ? item : '-'}</li>
 				}
@@ -453,7 +462,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
-					if (count > 2) {
+					@if (count > 2) {
 						return;
 					}
 
@@ -627,12 +636,12 @@ describe('@tsrx/react basic', () => {
 
 				<h1>
 					{'Hello World'}
-					if (count > 1) {
+					@if (count > 1) {
 						<span>{'Counted'}</span>
 					}
 				</h1>
 
-				if (count > 1) {
+				@if (count > 1) {
 					<div>
 						const [x] = useState(1);
 
@@ -646,7 +655,7 @@ describe('@tsrx/react basic', () => {
 
 				<button onClick={() => setCount(count + 1)}>{count}</button>
 
-				for (const item of items; index i) {
+				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
 			</>; }`;
@@ -692,7 +701,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const count = 0;
 
-				switch (count) {
+				---
+				@switch (count) {
 					case 0:
 						<div>{'Zero'}</div>
 						break;
@@ -850,7 +860,7 @@ describe('@tsrx/react basic', () => {
 
 					<h1>
 						{'Hello World'}
-						if (count > 1) {
+						@if (count > 1) {
 							return;
 						}
 						<span>{'After'}</span>
@@ -865,7 +875,7 @@ describe('@tsrx/react basic', () => {
 		const source = `import { useState } from 'react';
 
 			function App() { return <>
-				if (true) {
+				@if (true) {
 					<div>
 						const [x] = useState(1);
 
@@ -950,7 +960,7 @@ describe('@tsrx/react basic', () => {
 
 		export function App() { return <>
 			<Wrapper>
-				if (true) {
+				@if (true) {
 					<span>{'visible'}</span>
 				}
 			</Wrapper>
@@ -1026,7 +1036,7 @@ describe('@tsrx/react basic', () => {
 			</>; }
 
 			export function App() { return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
@@ -1046,7 +1056,7 @@ describe('@tsrx/react basic', () => {
 	it('transforms try/pending into Suspense wrapper', () => {
 		const { code } = compile(
 			`export function App() { return <>
-				try {
+				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
@@ -1066,7 +1076,7 @@ describe('@tsrx/react basic', () => {
 	it('transforms try/pending/catch into ErrorBoundary wrapping Suspense', () => {
 		const { code } = compile(
 			`export function App() { return <>
-				try {
+				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
@@ -1088,7 +1098,7 @@ describe('@tsrx/react basic', () => {
 	it('transforms catch with reset parameter', () => {
 		const { code } = compile(
 			`export function App() { return <>
-				try {
+				@try {
 					<div>{'content'}</div>
 				} catch (err, reset) {
 					<button onClick={reset}>{'retry'}</button>
@@ -1108,7 +1118,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
-					try {
+					@try {
 						<div>{'content'}</div>
 					} catch (err) {
 						<p>{'error'}</p>
@@ -1125,7 +1135,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
-					try {
+					@try {
 						const x = 1;
 					} pending {
 						<p>{'loading'}</p>
@@ -1140,7 +1150,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
-					try {
+					@try {
 						<div>{'content'}</div>
 					} pending {
 						const x = 1;
@@ -1156,7 +1166,7 @@ describe('@tsrx/react basic', () => {
 			`import { use } from 'react';
 
 			export function App() { return <>
-				try {
+				@try {
 					const data = use(fetchData());
 					<div>{data}</div>
 				} pending {
@@ -1173,7 +1183,7 @@ describe('@tsrx/react basic', () => {
 	it('applies scoped CSS hashes inside try blocks', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() { return <>
-					try {
+					@try {
 						<div className="content">{'hello'}</div>
 					} catch (err) {
 						<p className="error">{'error'}</p>
@@ -1200,7 +1210,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const [count, setCount] = useState(0);
 					<div>{count}</div>
 				}
@@ -1224,7 +1235,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const foo = getFoo();
-				if (foo) {
+				---
+				@if (foo) {
 					const [count] = useState(0);
 					<div>{foo.trim()}{count}</div>
 				}
@@ -1254,7 +1266,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const [a] = useState(1);
 					<div>{a}</div>
 				} else {
@@ -1277,7 +1290,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const items = [1, 2, 3];
-				for (const item of items) {
+				---
+				@for (const item of items) {
 					const [active, setActive] = useState(false);
 					<div key={item}>{active ? 'yes' : 'no'}</div>
 				}
@@ -1305,7 +1319,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const page = 'home';
-				switch (page) {
+				---
+				@switch (page) {
 					case 'home':
 						const [count] = useState(0);
 						<div>{count}</div>
@@ -1326,7 +1341,8 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const x = 42;
 					<div>{x}</div>
 				}
@@ -1343,7 +1359,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const mode = 'a';
-				if (mode === 'a') {
+				---
+				@if (mode === 'a') {
 					<div>{'a'}</div>
 				} else if (mode === 'b') {
 					const [x] = useState(0);
@@ -1367,7 +1384,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const [val] = React.useState(0);
 					<div>{val}</div>
 				}
@@ -1384,7 +1402,8 @@ describe('@tsrx/react basic', () => {
 
 			export function App() { return <>
 				const items = ['a', 'b'];
-				for (const item of items) {
+				---
+				@for (const item of items) {
 					const [active] = useState(false);
 					<div key={item}>{active ? 'yes' : 'no'}</div>
 				}
@@ -1404,7 +1423,7 @@ describe('@tsrx/react basic', () => {
 
 			export function Component({ items }: { items: string[] }) { return <>
 				<ul>
-					for (const item of items; index index) {
+					@for (const item of items; index index) {
 						const state = useState(0);
 						<li>{item}</li>
 					}
@@ -1424,7 +1443,7 @@ describe('@tsrx/react basic', () => {
 			`import { useState } from 'react';
 
 			export function App({ items }: { items: { id: string; label: string }[] }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					const [active] = useState(false);
 					<div>{active ? item.label : item.id}</div>
 				}
@@ -1442,7 +1461,7 @@ describe('@tsrx/react basic', () => {
 			`import { useState } from 'react';
 
 			export function App({ items }: { items: { id: string; inner: string }[] }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					const [active] = useState(false);
 					<div key={item.inner}>{active ? item.inner : item.id}</div>
 				}
@@ -1470,9 +1489,9 @@ describe('@tsrx/react basic', () => {
 				<section class="feature-card">
 					<h2>{title}</h2>
 
-					if (ready) {
+					@if (ready) {
 						<ul>
-							for (const item of items; index index) {
+							@for (const item of items; index index) {
 								<li>{item}</li>
 							}
 						</ul>
@@ -1792,11 +1811,12 @@ describe('lazy destructuring', () => {
 
 			export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const localVar = 'hello';
 					<div>{localVar}</div>
 				}
-				if (show) {
+				@if (show) {
 					const [val] = useState(0);
 					<span>{val}</span>
 				}

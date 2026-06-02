@@ -36,6 +36,7 @@ const CharCode = Object.freeze({
 	slash: 47,
 	colon: 58,
 	semicolon: 59,
+	hyphen: 45,
 	lessThan: 60,
 	equals: 61,
 	greaterThan: 62,
@@ -342,6 +343,90 @@ export function TSRXPlugin(config) {
 				return (
 					node?.type === 'Element' || node?.type === 'TsrxFragment' || node?.type === 'TsxCompat'
 				);
+			}
+
+			#isAtTemplateFence() {
+				const index = this.start;
+				if (this.input.charCodeAt(index) !== CharCode.hyphen) return false;
+				if (this.input.slice(index, index + 3) !== '---') return false;
+
+				for (let i = index - 1; i >= 0; i--) {
+					const ch = this.input.charCodeAt(i);
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) break;
+					if (ch !== CharCode.space && ch !== CharCode.tab) return false;
+				}
+
+				let after = index + 3;
+				while (after < this.input.length) {
+					const ch = this.input.charCodeAt(after);
+					if (ch === CharCode.space || ch === CharCode.tab) {
+						after++;
+						continue;
+					}
+					return ch === CharCode.lineFeed || ch === CharCode.carriageReturn;
+				}
+
+				return true;
+			}
+
+			#consumeTemplateFence() {
+				let index = this.start + 3;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch !== CharCode.space && ch !== CharCode.tab) break;
+					index++;
+				}
+				this.pos = index;
+				this.next();
+			}
+
+			#parseTemplateFence() {
+				const node = /** @type {AST.Node & { value: string }} */ (
+					this.startNodeAt(this.start, this.startLoc)
+				);
+				const end = this.start + 3;
+				node.value = '---';
+				node.metadata = { path: [] };
+				return this.finishNodeAt(
+					node,
+					'TsrxTemplateFence',
+					end,
+					acorn.getLineInfo(this.input, end),
+				);
+			}
+
+			#isTemplateDirectiveToken() {
+				return (
+					this.#functionBodyDepth === 0 &&
+					this.#isNativeTemplateNode(this.#path.at(-1)) &&
+					this.input.charCodeAt(this.start) === CharCode.at
+				);
+			}
+
+			#parseTemplateDirectiveStatement() {
+				const directive_start = this.start;
+				this.next();
+
+				const directive =
+					this.type === tt._if
+						? 'if'
+						: this.type === tt._for
+							? 'for'
+							: this.type === tt._switch
+								? 'switch'
+								: this.type === tt._try
+									? 'try'
+									: null;
+
+				if (directive === null) {
+					this.raise(directive_start, 'Expected `if`, `for`, `switch`, or `try` after `@`');
+				}
+
+				const node = this.parseStatement(null);
+				node.metadata ??= { path: [] };
+				node.metadata.tsrxDirective = directive;
+				node.metadata.directiveStart = directive_start;
+				return node;
 			}
 
 			/**
@@ -2480,6 +2565,12 @@ export function TSRXPlugin(config) {
 					);
 					return;
 				}
+				if (this.#isAtTemplateFence()) {
+					body.push(this.#parseTemplateFence());
+					this.#consumeTemplateFence();
+					this.parseTemplateBody(body);
+					return;
+				}
 				if (
 					current_template_node?.type === 'TsrxFragment' &&
 					!current_template_node.openingElement.name &&
@@ -2646,6 +2737,12 @@ export function TSRXPlugin(config) {
 					}
 				} else {
 					skipWhitespace(this);
+					if (this.#isAtTemplateFence()) {
+						body.push(this.#parseTemplateFence());
+						this.#consumeTemplateFence();
+						this.parseTemplateBody(body);
+						return;
+					}
 					const node = this.parseStatement(null);
 					body.push(node);
 
@@ -2723,6 +2820,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseStatement']}
 			 */
 			parseStatement(context, topLevel, exports) {
+				if (this.#isTemplateDirectiveToken()) {
+					return this.#parseTemplateDirectiveStatement();
+				}
+
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
