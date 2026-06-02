@@ -941,6 +941,45 @@ export function App() { return <>
 		expect(result).not.toContain('children={() =>');
 	});
 
+	it('uses direct TSRX render expressions for component children in Volar mappings', () => {
+		const source = `
+function OtherComponent({ children }: { children: string }) {
+	return <div>{children}</div>;
+}
+
+export const App = () => <>
+	try {
+		=> <ComponentThatSuspends />
+	} pending {
+		=> <div>"Loading"</div>
+	}
+	<OtherComponent>
+		=> 'I like TSRX'
+	</OtherComponent>
+</>;
+`;
+		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
+		const source_offset = source.indexOf('\'I like TSRX\'');
+		const generated_offset = result.code.indexOf('\'I like TSRX\'');
+
+		expect(result.code).toContain('<OtherComponent children={\'I like TSRX\'}');
+		expect(result.code).not.toContain('children={() =>');
+		expect(
+			result.mappings.find(
+				(mapping: {
+					sourceOffsets: number[];
+					generatedOffsets: number[];
+					lengths: number[];
+					generatedLengths: number[];
+				}) =>
+					mapping.sourceOffsets[0] === source_offset &&
+						mapping.generatedOffsets[0] === generated_offset &&
+						mapping.lengths[0] === '\'I like TSRX\''.length &&
+						mapping.generatedLengths[0] === '\'I like TSRX\''.length,
+			),
+		).toBeDefined();
+	});
+
 	it('merges explicit children prop with implicit children in client output', () => {
 		const source = `
 function Card(props) { return <>
@@ -1117,7 +1156,7 @@ function App() { return <>
 		).toBeDefined();
 	});
 
-	it('reports return statements inside returned TSRX fragments in Volar mappings', () => {
+	it('allows return statements inside returned TSRX fragments in Volar mappings', () => {
 		const result = compile_to_volar_mappings(
 			`function App() { return <>
 				return <div />;
@@ -1125,7 +1164,7 @@ function App() { return <>
 			'test.tsrx',
 		);
 
-		expect(result.errors.map((error) => error.code)).toEqual(['tsrx-template-return-statement']);
+		expect(result.errors).toEqual([]);
 	});
 
 	it('throws for unclosed tsx compat tags instead of hanging', () => {

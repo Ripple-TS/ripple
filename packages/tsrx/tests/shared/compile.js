@@ -35,9 +35,6 @@ function diagnostic_codes(result) {
 	return result.errors.map((error) => error.code);
 }
 
-const TSRX_TEMPLATE_RETURN_ERROR =
-	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
-
 /**
  * Shared compile/editor diagnostics. These do not assert source-map structure;
  * they only verify that editor-facing compile entry points collect diagnostics.
@@ -77,7 +74,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).toContain('bySwitch: (role) => {');
 		});
 
-		it('reports return statements inside native TSRX templates', () => {
+		it('allows return statements inside native TSRX templates', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() { return <>
 					if (ready) {
@@ -88,7 +85,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 				'App.tsrx',
 			);
 
-			expect(result.errors.map((error) => error.message)).toContain(TSRX_TEMPLATE_RETURN_ERROR);
+			expect(result.errors).toEqual([]);
 		});
 
 		it('parses native TSRX callback returns in JSX props without semicolons', () => {
@@ -1684,7 +1681,7 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('rejects return statements inside TSRX template bodies', () => {
+		it('allows return statements inside TSRX template bodies', () => {
 			expect(() =>
 				compile(
 					`export function App() { return <>
@@ -1697,7 +1694,7 @@ export function optionalFn(bar: string, baz?: string) {
 					</>; }`,
 					'App.tsrx',
 				),
-			).toThrow(TSRX_TEMPLATE_RETURN_ERROR);
+			).not.toThrow();
 		});
 	});
 

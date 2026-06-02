@@ -70,6 +70,34 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('formats TSRX render statements', async () => {
+		const input = `function App(){return <>if(ready){=><div>"Ready"</div><span>"Skipped"</span>}<span>"After"</span></>}`;
+		const expected = `function App() {
+  return <>
+    if (ready) {
+      => <div>"Ready"</div>
+      <span>"Skipped"</span>
+    }
+    <span>"After"</span>
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats TSRX render statements in component children', async () => {
+		const input = `function App(){return <OtherComponent>=> 'I like TSRX'</OtherComponent>;}`;
+		const expected = `function App() {
+  return <OtherComponent>
+    => "I like TSRX"
+  </OtherComponent>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('preserves fragment shorthand for simple returned TSRX expressions', async () => {
 		const input = `const App=()=> <><span>{"Ready"}</span></>;`;
 		const expected = `const App = () => <><span>{"Ready"}</span></>;`;

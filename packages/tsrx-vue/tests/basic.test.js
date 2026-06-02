@@ -503,7 +503,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/return visible \? App__static\d+ : App__static\d+;/);
 	});
 
-	it('rejects return statements inside TSRX templates', () => {
+	it('allows return statements inside TSRX templates', () => {
 		expect(() =>
 			compile(
 				`function App() { return <>
@@ -517,7 +517,7 @@ describe('@tsrx/vue basic', () => {
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('allows component-body guard returns before TSRX output', () => {

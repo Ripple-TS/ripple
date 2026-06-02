@@ -1883,6 +1883,17 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
+		case 'TsrxRenderStatement': {
+			/** @type {Doc[]} */
+			const parts = ['=>'];
+			if (node.argument) {
+				parts.push(' ');
+				parts.push(path.call(print, 'argument'));
+			}
+			nodeContent = parts;
+			break;
+		}
+
 		case 'BinaryExpression': {
 			// Check if we're in an assignment/declaration context where parent handles indentation
 			const parent = path.getParentNode();

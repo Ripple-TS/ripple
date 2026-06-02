@@ -167,6 +167,12 @@ declare module 'estree' {
 		};
 	}
 
+	interface TsrxRenderStatement extends AST.BaseStatement {
+		type: 'TsrxRenderStatement';
+		argument: AST.Expression | null;
+		metadata: BaseNodeMetaData;
+	}
+
 	interface BlockStatement {
 		metadata: BaseNodeMetaData & {
 			hook_split_block?: boolean;
@@ -1384,7 +1390,7 @@ export interface TransformServerState extends BaseState {
 	dynamicElementName?: AST.TemplateLiteral;
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	dev?: boolean;
-	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	return_flags?: Map<AST.ReturnStatement | AST.TsrxRenderStatement, { name: string; tracked: boolean }>;
 	template_child?: boolean;
 	skip_regular_blocks?: boolean;
 	in_regular_block?: boolean;
@@ -1422,7 +1428,7 @@ export interface TransformClientState extends BaseState {
 	errors: CompileError[];
 	applyParentCssScope?: AST.CSS.StyleSheet['hash'];
 	skip_children_traversal: boolean;
-	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
+	return_flags?: Map<AST.ReturnStatement | AST.TsrxRenderStatement, { name: string; tracked: boolean }>;
 	is_tsrx_element?: boolean;
 	jsx_to_tsrx_element?: boolean;
 	template_child?: boolean;

@@ -913,6 +913,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-render-statement</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#component-switch-statement</string>
 				</dict>
 				<dict>
@@ -5263,7 +5267,7 @@
 			<array>
 				<dict>
 					<key>begin</key>
-					<string>(?=\w|\$|//|/\*)</string>
+					<string>(?=\s*=&gt;|\w|\$|//|/\*)</string>
 					<key>beginCaptures</key>
 					<dict>
 						<key>0</key>
@@ -9519,6 +9523,28 @@
 			<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))this\b(?!\$)</string>
 			<key>name</key>
 			<string>variable.language.this.js</string>
+		</dict>
+		<key>tsrx-render-statement</key>
+		<dict>
+			<key>begin</key>
+			<string>(^\s*)(=&gt;)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.flow.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?=[;}]|$|;|^\s*$|(?:^\s*(?:abstract|async|(?:\bawait\s+(?:\busing(?=\s+(?!in\b|of\b(?!\s*(?:of\b|=)))[_$[:alpha:]])\b)\b)|break|case|catch|class|const|continue|declare|do|else|enum|export|finally|function|for|goto|if|import|interface|let|module|namespace|pending|switch|return|throw|try|type|(?:\busing(?=\s+(?!in\b|of\b(?!\s*(?:of\b|=)))[_$[:alpha:]])\b)|var|while)\b))</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#expression</string>
+				</dict>
+			</array>
 		</dict>
 		<key>type</key>
 		<dict>

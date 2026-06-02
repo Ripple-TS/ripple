@@ -305,6 +305,58 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).not.toContain('get prop()');
 	});
 
+	it('uses TSRX render statements as component children props', () => {
+		const source = `function Card(props) { return <div>{props.children}</div>; }
+			function App() {
+				return <Card>
+					=> () => {}
+				</Card>;
+			}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('children: _$_.normalize_children(() => {})');
+		expect(client.code).not.toContain('children: _$_.tsrx_element');
+		expect(server.code).toContain('children: _$_.normalize_children(() => {})');
+		expect(server.code).not.toContain('children: _$_.tsrx_element');
+	});
+
+	it('supports children shortcuts that return native templates', () => {
+		const source = `function Card(props) { return <div>{props.children}</div>; }
+			function App() {
+				return <Card>
+					=> () => <span>"hello"</span>
+				</Card>;
+			}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('children: _$_.normalize_children(() => {');
+		expect(client.code).toContain('template(`<span>hello</span>`');
+		expect(server.code).toContain('children: _$_.normalize_children(() => {');
+		expect(server.code).toContain("_$_.output_push('<span')");
+	});
+
+	it('uses the first direct TSRX render statement as the component children prop', () => {
+		const source = `function Card(props) { return <div>{props.children}</div>; }
+			function App() {
+				return <Card>
+					<span>"stale"</span>
+					=> [1, 2, 3]
+					=> null
+				</Card>;
+			}`;
+		const client = compile(source, 'App.tsrx');
+		const server = compile(source, 'App.tsrx', { mode: 'server' });
+
+		expect(client.code).toContain('children: _$_.normalize_children([1, 2, 3])');
+		expect(client.code).not.toContain('children: _$_.normalize_children(null)');
+		expect(client.code).not.toContain('stale');
+		expect(server.code).toContain('children: _$_.normalize_children([1, 2, 3])');
+		expect(server.code).not.toContain('children: _$_.normalize_children(null)');
+		expect(server.code).not.toContain('stale');
+	});
+
 	it('passes plain non-tracked expression props directly', () => {
 		const { code } = compile(
 			`function Some(props) { return <></>; }

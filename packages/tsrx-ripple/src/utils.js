@@ -455,11 +455,11 @@ export function get_native_tsrx_template_children(node) {
 export function get_native_tsrx_function_body(node) {
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
 		return is_native_tsrx_template_node(node.body)
-			? [
-					...get_native_tsrx_template_children(
+			? mark_returned_template_children(
+					get_native_tsrx_template_children(
 						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
-					).map(mark_returned_template_child),
-				]
+					),
+				)
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
 	}
 
@@ -487,6 +487,202 @@ export function expand_native_tsrx_return_statements(
 }
 
 /**
+ * Expands renderable return arguments inside an already-open TSRX template body
+ * into template children followed by the original return statement. Keeping the
+ * original return object preserves analyzer metadata used by return guards.
+ * @param {AST.Node[]} nodes
+ * @returns {AST.Node[]}
+ */
+export function expand_tsrx_template_return_statements(nodes) {
+	return select_tsrx_render_statement_output(nodes).flatMap((node) =>
+		expand_tsrx_template_return_statement(node),
+	);
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @returns {AST.Expression | null}
+ */
+export function get_first_tsrx_render_child_expression(children) {
+	const filtered = children.filter((child) => child.type !== 'EmptyStatement');
+	for (const child of filtered) {
+		if (child.type === 'TsrxRenderStatement' && child.argument !== null) {
+			return /** @type {AST.Expression} */ (child.argument);
+		}
+	}
+
+	return null;
+}
+
+/**
+ * A direct `=>` chooses the output for its TSRX block. Earlier direct template
+ * children are not rendered, but setup statements remain available to the yield.
+ * @param {AST.Node[]} nodes
+ * @returns {AST.Node[]}
+ */
+function select_tsrx_render_statement_output(nodes) {
+	const render_index = nodes.findIndex((node) => node.type === 'TsrxRenderStatement');
+	if (render_index === -1) {
+		return nodes;
+	}
+
+	return nodes.filter(
+		(node, index) => index >= render_index || !is_direct_tsrx_render_output_node(node),
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_direct_tsrx_render_output_node(node) {
+	if (node.metadata?.regular_js) {
+		return false;
+	}
+
+	return (
+		node.type === 'Element' ||
+		node.type === 'TSRXExpression' ||
+		node.type === 'Text' ||
+		node.type === 'TsrxFragment' ||
+		node.type === 'TsxCompat' ||
+		(node.type === 'ExpressionStatement' && is_native_tsrx_template_node(node.expression))
+	);
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {AST.Node[]}
+ */
+function expand_tsrx_template_return_statement(node) {
+	if (node.metadata?.returned_tsrx_child) {
+		return [node];
+	}
+
+	if (node.type === 'TsrxRenderStatement') {
+		const argument = node.argument;
+		if (is_native_tsrx_template_node(argument)) {
+			node.argument = null;
+			const children = get_native_tsrx_template_children(
+				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (argument)),
+			).map(mark_returned_template_child);
+			return [...children, node];
+		}
+
+		if (
+			should_render_return_argument(/** @type {AST.Expression | null | undefined} */ (argument))
+		) {
+			node.argument = null;
+			const child = create_return_argument_child(/** @type {AST.Expression} */ (argument), node);
+			return [child, node];
+		}
+
+		return [node];
+	}
+
+	if (node.type === 'ReturnStatement') {
+		const argument = node.argument;
+		if (is_native_tsrx_template_node(argument)) {
+			node.argument = null;
+			const children = get_native_tsrx_template_children(
+				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (argument)),
+			).map(mark_returned_template_child);
+			return [...children, node];
+		}
+
+		if (
+			should_render_return_argument(/** @type {AST.Expression | null | undefined} */ (argument))
+		) {
+			node.argument = null;
+			const child = create_return_argument_child(/** @type {AST.Expression} */ (argument), node);
+			return [child, node];
+		}
+
+		return [node];
+	}
+
+	if (
+		node.type === 'FunctionDeclaration' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'ClassDeclaration' ||
+		node.type === 'ClassExpression'
+	) {
+		return [node];
+	}
+
+	if (node.type === 'BlockStatement') {
+		node.body = /** @type {AST.Statement[]} */ (
+			expand_tsrx_template_return_statements(node.body || [])
+		);
+		return [node];
+	}
+
+	if (node.type === 'IfStatement') {
+		node.consequent = expand_embedded_tsrx_template_return_statement(node.consequent);
+		if (node.alternate) {
+			node.alternate = expand_embedded_tsrx_template_return_statement(node.alternate);
+		}
+		return [node];
+	}
+
+	if (node.type === 'SwitchStatement') {
+		for (const switch_case of node.cases || []) {
+			switch_case.consequent = /** @type {AST.Statement[]} */ (
+				expand_tsrx_template_return_statements(switch_case.consequent || [])
+			);
+		}
+		return [node];
+	}
+
+	if (node.type === 'TryStatement') {
+		node.block = /** @type {AST.BlockStatement} */ (
+			expand_embedded_tsrx_template_return_statement(node.block)
+		);
+		if (node.handler?.body) {
+			node.handler.body = /** @type {AST.BlockStatement} */ (
+				expand_embedded_tsrx_template_return_statement(node.handler.body)
+			);
+		}
+		if (node.finalizer) {
+			node.finalizer = /** @type {AST.BlockStatement} */ (
+				expand_embedded_tsrx_template_return_statement(node.finalizer)
+			);
+		}
+		return [node];
+	}
+
+	if (
+		node.type === 'ForStatement' ||
+		node.type === 'ForInStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'WhileStatement' ||
+		node.type === 'DoWhileStatement'
+	) {
+		node.body = expand_embedded_tsrx_template_return_statement(
+			/** @type {AST.Statement} */ (node.body),
+		);
+		return [node];
+	}
+
+	return [node];
+}
+
+/**
+ * @param {AST.Statement} statement
+ * @returns {AST.Statement}
+ */
+function expand_embedded_tsrx_template_return_statement(statement) {
+	const expanded = expand_tsrx_template_return_statement(statement);
+	return expanded.length === 1
+		? /** @type {AST.Statement} */ (expanded[0])
+		: b.block(
+				/** @type {AST.Statement[]} */ (expanded),
+				/** @type {AST.NodeWithLocation} */ (statement),
+			);
+}
+
+/**
  * @param {AST.Statement} statement
  * @returns {AST.Statement}
  */
@@ -509,6 +705,18 @@ function mark_returned_template_child(node) {
 		returned_tsrx_child: true,
 	};
 	return node;
+}
+
+/**
+ * @param {AST.Node[]} nodes
+ * @returns {AST.Node[]}
+ */
+function mark_returned_template_children(nodes) {
+	return nodes.map((node) =>
+		node.type === 'ReturnStatement' || node.type === 'TsrxRenderStatement'
+			? node
+			: mark_returned_template_child(node),
+	);
 }
 
 /**
@@ -586,7 +794,7 @@ function should_render_return_argument(argument) {
 
 /**
  * @param {AST.Expression} argument
- * @param {AST.ReturnStatement} statement
+ * @param {AST.Node} statement
  * @returns {AST.TSRXExpression}
  */
 function create_return_argument_child(argument, statement) {
@@ -619,9 +827,13 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 
 	if (statement.type === 'ReturnStatement' && is_native_tsrx_template_node(statement.argument)) {
 		return [
-			...get_native_tsrx_template_children(
-				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (statement.argument)),
-			).map(mark_returned_template_child),
+			...mark_returned_template_children(
+				get_native_tsrx_template_children(
+					/** @type {AST.Element | AST.TsrxFragment} */ (
+						/** @type {unknown} */ (statement.argument)
+					),
+				),
+			),
 			...(omit_control_return
 				? []
 				: [b.return(null, /** @type {AST.NodeWithLocation} */ (statement))]),

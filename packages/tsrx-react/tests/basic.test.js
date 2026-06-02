@@ -449,7 +449,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
-	it('rejects return statements inside TSRX templates', () => {
+	it('allows return statements inside TSRX templates', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
@@ -461,7 +461,7 @@ describe('@tsrx/react basic', () => {
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('extracts module-scoped helpers after component-body guard returns', () => {
@@ -849,7 +849,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('<tsx>');
 	});
 
-	it('rejects return statements inside element child statement bodies', () => {
+	it('allows return statements inside element child statement bodies', () => {
 		expect(() =>
 			compile(
 				`function App() { return <>
@@ -865,7 +865,7 @@ describe('@tsrx/react basic', () => {
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('extracts hook-bearing element child statement bodies into module components', () => {

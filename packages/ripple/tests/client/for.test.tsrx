@@ -17,6 +17,29 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('uses TSRX render statements as the selected output for a loop block', () => {
+		function App() {
+			return <>
+				const items = [1, 2, 3];
+				for (const item of items) {
+					<div class="stale">{item}</div>
+					=> <div class="selected">{item}</div>
+				}
+			</>;
+		}
+
+		render(App);
+
+		expect(container.querySelectorAll('.stale')).toHaveLength(0);
+		expect(
+			Array.from(container.querySelectorAll('.selected')).map((el) => el.textContent),
+		).toEqual([
+			'1',
+			'2',
+			'3',
+		]);
+	});
+
 	it('allows continue to skip an iteration', () => {
 		function App() {
 			return <>

@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { compile } from '@tsrx/ripple';
 
-const TSRX_RETURN_ERROR = 'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
-
-describe('returns in prohibited scopes', () => {
+describe('returns in restricted scopes', () => {
 	it('throws error when return is used in module scope', () => {
 		expect(
 			() => compile(`
@@ -15,44 +13,6 @@ describe('returns in prohibited scopes', () => {
 				mode: 'client',
 			}),
 		).toThrow('Return statements are not allowed at the top level of a module.');
-	});
-
-	it('throws when return is used inside a TSRX fragment', () => {
-		expect(
-			() => compile(
-				`
-				function App() {
-					return <>
-						if (ready) {
-							return;
-						}
-						<div>{'ready'}</div>
-					</>;
-				}
-			`,
-				'test.tsrx',
-				{ mode: 'client' },
-			),
-		).toThrow(TSRX_RETURN_ERROR);
-	});
-
-	it('throws when return is used inside a TSRX element', () => {
-		expect(
-			() => compile(
-				`
-				function App() {
-					return <section>
-						if (ready) {
-							return null;
-						}
-						<div>{'ready'}</div>
-					</section>;
-				}
-			`,
-				'test.tsrx',
-				{ mode: 'client' },
-			),
-		).toThrow(TSRX_RETURN_ERROR);
 	});
 
 	it('allows returns inside regular functions declared in TSRX templates', () => {
@@ -73,9 +33,75 @@ describe('returns in prohibited scopes', () => {
 			),
 		).not.toThrow();
 	});
+
+	it('compiles TSRX render statements inside templates', () => {
+		expect(
+			() => compile(
+				`
+				function App() {
+					return <>
+						if (ready) {
+							=> <div>"yielded"</div>
+						}
+						<span>"after"</span>
+					</>;
+				}
+			`,
+				'test.tsrx',
+				{ mode: 'client' },
+			),
+		).not.toThrow();
+	});
 });
 
 describe('function returns in client components', () => {
+	it('renders TSRX render statements and skips later siblings in the same block', () => {
+		function App() {
+			const ready = true;
+			return <>
+				if (ready) {
+					=> <div class="yielded">"yielded"</div>
+					<span class="inner">"inner"</span>
+				}
+				<span class="outer">"outer"</span>
+			</>;
+		}
+
+		render(App);
+		expect(container.querySelector('.yielded')?.textContent).toBe('yielded');
+		expect(container.querySelector('.inner')).toBeNull();
+		expect(container.querySelector('.outer')?.textContent).toBe('outer');
+	});
+
+	it('renders top-level TSRX render statements and skips later fragment siblings', () => {
+		function App() {
+			return <>
+				=> <div class="yielded">"yielded"</div>
+				<span class="after">"after"</span>
+			</>;
+		}
+
+		render(App);
+		expect(container.querySelector('.yielded')?.textContent).toBe('yielded');
+		expect(container.querySelector('.after')).toBeNull();
+	});
+
+	it('renders TSRX return arguments and skips later siblings', () => {
+		function App() {
+			const ready = true;
+			return <>
+				if (ready) {
+					return <div class="returned">"returned"</div>;
+				}
+				<span class="after">"after"</span>
+			</>;
+		}
+
+		render(App);
+		expect(container.querySelector('.returned')?.textContent).toBe('returned');
+		expect(container.querySelector('.after')).toBeNull();
+	});
+
 	it('allows guard returns before TSRX output', () => {
 		function App() {
 			const ready = true;

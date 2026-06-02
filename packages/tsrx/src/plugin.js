@@ -16,7 +16,6 @@ import {
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
-import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
 const DYNAMIC_ELEMENT_IN_TSX_ERROR =
 	'Dynamic element syntax (`<@...>`) is only supported in native TSRX templates.';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
@@ -848,75 +847,6 @@ export function TSRXPlugin(config) {
 					return;
 				}
 				this.raise(position, message);
-			}
-
-			/**
-			 * @param {AST.Node | AST.Node[] | unknown} maybe_node
-			 * @param {boolean} [inside_nested_function]
-			 * @param {boolean} [inside_loop]
-			 */
-			#report_invalid_template_return_statements(
-				maybe_node,
-				inside_nested_function = false,
-				inside_loop = false,
-			) {
-				if (!maybe_node || typeof maybe_node !== 'object') {
-					return;
-				}
-
-				let node = /** @type {AST.Node} */ (maybe_node);
-				if (
-					node.type === 'FunctionDeclaration' ||
-					node.type === 'FunctionExpression' ||
-					node.type === 'ArrowFunctionExpression'
-				) {
-					inside_nested_function = true;
-				}
-
-				if (
-					node.type === 'ForStatement' ||
-					node.type === 'ForInStatement' ||
-					node.type === 'ForOfStatement' ||
-					node.type === 'WhileStatement' ||
-					node.type === 'DoWhileStatement'
-				) {
-					inside_loop = true;
-				}
-
-				if (!inside_nested_function && !inside_loop && node.type === 'ReturnStatement') {
-					node.metadata = {
-						...node.metadata,
-						invalid_tsrx_template_return: true,
-					};
-					this.#report_recoverable_error(
-						/** @type {AST.NodeWithLocation} */ (node).start ?? this.start,
-						TSRX_RETURN_STATEMENT_ERROR,
-						DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
-					);
-					return;
-				}
-
-				if (Array.isArray(node)) {
-					for (const child of /** @type {AST.Node[]} */ (node)) {
-						this.#report_invalid_template_return_statements(
-							child,
-							inside_nested_function,
-							inside_loop,
-						);
-					}
-					return;
-				}
-
-				for (const key of Object.keys(node)) {
-					if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
-						continue;
-					}
-					this.#report_invalid_template_return_statements(
-						/** @type {Record<string, unknown>} */ (node)[key],
-						inside_nested_function,
-						inside_loop,
-					);
-				}
 			}
 
 			/**
@@ -2717,7 +2647,6 @@ export function TSRXPlugin(config) {
 				} else {
 					skipWhitespace(this);
 					const node = this.parseStatement(null);
-					this.#report_invalid_template_return_statements(node);
 					body.push(node);
 
 					// Ensure we're not in JSX context before recursing
@@ -2877,7 +2806,79 @@ export function TSRXPlugin(config) {
 					}
 				}
 
+				if (
+					this.#functionBodyDepth === 0 &&
+					this.type === tt.arrow &&
+					this.#isNativeTemplateNode(this.#path.at(-1))
+				) {
+					const node = /** @type {AST.TsrxRenderStatement} */ (
+						/** @type {unknown} */ (this.startNode())
+					);
+					this.next();
+
+					if (this.type === tstt.jsxTagStart) {
+						this.next();
+						node.argument = /** @type {AST.Expression | null} */ (
+							/** @type {unknown} */ (this.parseElement())
+						);
+						if (node.argument === null) {
+							this.unexpected();
+						}
+						this.semicolon();
+					} else if (this.eat(tt.semi) || this.insertSemicolon()) {
+						node.argument = null;
+					} else {
+						node.argument = /** @type {AST.Expression} */ (this.parseExpression());
+						this.semicolon();
+					}
+
+					return this.finishNode(node, 'TsrxRenderStatement');
+				}
+
 				return super.parseStatement(context, topLevel, exports);
+			}
+
+			/**
+			 * @type {Parse.Parser['parseReturnStatement']}
+			 */
+			parseReturnStatement(node) {
+				if (!this.allowReturn) {
+					this.raise(this.start, "'return' outside of function");
+				}
+
+				this.next();
+
+				if (this.eat(tt.semi) || this.insertSemicolon()) {
+					node.argument = null;
+				} else if (
+					this.#functionBodyDepth === 0 &&
+					this.#path.some((node) => this.#isNativeTemplateNode(node)) &&
+					(this.type === tstt.jsxTagStart ||
+						(this.input.charCodeAt(this.start) === CharCode.lessThan &&
+							this.input.charCodeAt(this.start + 1) !== CharCode.slash))
+				) {
+					if (this.type !== tstt.jsxTagStart) {
+						const startPos = this.start;
+						const startLoc = this.startLoc;
+						this.pos = startPos + 1;
+						this.type = tstt.jsxTagStart;
+						this.start = startPos;
+						this.startLoc = startLoc;
+						this.exprAllowed = false;
+						this.context.push(tstc.tc_oTag);
+					}
+					this.next();
+					node.argument = this.parseElement();
+					if (node.argument === null) {
+						this.unexpected();
+					}
+					this.semicolon();
+				} else {
+					node.argument = this.parseExpression();
+					this.semicolon();
+				}
+
+				return this.finishNode(node, 'ReturnStatement');
 			}
 
 			/**

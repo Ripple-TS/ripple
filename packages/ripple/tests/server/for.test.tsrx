@@ -15,6 +15,23 @@ describe('for statements in SSR', () => {
 		);
 	});
 
+	it('uses TSRX render statements as the selected output for a loop block', async () => {
+		function App() {
+			return <>
+				const items = [1, 2, 3];
+				for (const item of items) {
+					<div class="stale">{item}</div>
+					=> <div class="selected">{item}</div>
+				}
+			</>;
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml(
+			'<div class="selected">1</div><div class="selected">2</div><div class="selected">3</div>',
+		);
+	});
+
 	it('renders nested for...of loops', async () => {
 		function App() {
 			return <>
@@ -152,7 +169,7 @@ describe('for statements in SSR', () => {
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).toThrow('Return statements are not allowed inside TSRX template for...of loops.');
 	});
 
 	it('throws for break statements targeting for...of loops', () => {

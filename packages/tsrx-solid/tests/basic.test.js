@@ -587,7 +587,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('try {');
 		});
 
-		it('rejects return statements inside TSRX templates', () => {
+		it('allows return statements inside TSRX templates', () => {
 			expect(() =>
 				compile(
 					`export default function A() { return <>
@@ -600,7 +600,7 @@ describe('@tsrx/solid basic', () => {
 					</>; }`,
 					'A.tsrx',
 				),
-			).toThrow('Return statements are not allowed inside TSRX templates.');
+			).not.toThrow();
 		});
 	});
 

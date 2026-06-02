@@ -19,6 +19,44 @@ describe('TSRX parser', () => {
 		expect(returned.id.name).toBe('div');
 	});
 
+	it('rejects removed lexical return syntax', () => {
+		expect(() => parseModule('function MyApp() { return* <div />; }', 'App.tsrx')).toThrow();
+	});
+
+	it('parses TSRX render statements', () => {
+		const ast = parseModule(
+			`function MyApp() {
+				return <>
+					if (ready) {
+						=> <div />;
+					}
+				</>;
+			}`,
+			'App.tsrx',
+		);
+
+		const statement = ast.body[0].body.body[0].argument.children[0].consequent.body[0];
+		expect(statement.type).toBe('TsrxRenderStatement');
+		expect(statement.argument.type).toBe('Element');
+		expect(statement.argument.id.name).toBe('div');
+	});
+
+	it('parses TSRX render statements in component children', () => {
+		const ast = parseModule(
+			`function MyApp() {
+				return <OtherComponent>
+					=> 'I like TSRX'
+				</OtherComponent>;
+			}`,
+			'App.tsrx',
+		);
+
+		const statement = ast.body[0].body.body[0].argument.children[0];
+		expect(statement.type).toBe('TsrxRenderStatement');
+		expect(statement.argument.type).toBe('Literal');
+		expect(statement.argument.value).toBe('I like TSRX');
+	});
+
 	it('honors ASI for returned tags after a newline', () => {
 		const ast = parseModule(
 			`function MyApp() {
@@ -78,19 +116,42 @@ describe('TSRX parser', () => {
 		expect(returned.children.map((child) => child.type)).toEqual(['IfStatement', 'Element']);
 	});
 
-	it('rejects return statements inside native TSRX templates', () => {
-		expect(() =>
-			parseModule(
-				`function bar() {
-					return <>
-						if (x) {
-							return null;
-						}
-					</>;
-				}`,
-				'App.tsrx',
-			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+	it('parses return statements inside native TSRX templates', () => {
+		const ast = parseModule(
+			`function bar() {
+				return <>
+					if (x) {
+						return null;
+					}
+				</>;
+			}`,
+			'App.tsrx',
+		);
+
+		const returned = ast.body[0].body.body[0].argument;
+		const statement = returned.children[0].consequent.body[0];
+		expect(statement.type).toBe('ReturnStatement');
+		expect(statement.argument.value).toBeNull();
+	});
+
+	it('parses returned tags after native TSRX siblings in control flow', () => {
+		const ast = parseModule(
+			`function bar() {
+				return <>
+					if (x) {
+						<div>{'Foo'}</div> // no longer renders
+						return <div>"Never happens"</div> // early returns renders
+					}
+				</>;
+			}`,
+			'App.tsrx',
+		);
+
+		const returned = ast.body[0].body.body[0].argument;
+		const statement = returned.children[0].consequent.body[1];
+		expect(statement.type).toBe('ReturnStatement');
+		expect(statement.argument.type).toBe('Element');
+		expect(statement.argument.id.name).toBe('div');
 	});
 
 	it('treats tsrx as a normal element name', () => {

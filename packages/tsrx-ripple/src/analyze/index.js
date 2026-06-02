@@ -32,7 +32,6 @@ import {
 	validateNesting,
 	validateTsrxLoopBreakStatement,
 	validateTsrxLoopReturnStatement,
-	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
 } from '@tsrx/core';
 const b = builders;
@@ -288,6 +287,18 @@ function is_loop_statement(node) {
 }
 
 /**
+ * @param {AST.Expression | null | undefined} argument
+ * @returns {boolean}
+ */
+function has_renderable_return_argument(argument) {
+	if (!argument) return false;
+	if (argument.type === 'Literal' && argument.value === null) return false;
+	if (argument.type === 'Identifier' && argument.name === 'undefined') return false;
+	if (argument.type === 'UnaryExpression' && argument.operator === 'void') return false;
+	return true;
+}
+
+/**
  * @param {AnalysisContext['path']} path
  * @returns {boolean}
  */
@@ -298,23 +309,6 @@ function is_inside_component_for_of(path) {
 			return false;
 		}
 		if (node.type === 'ForOfStatement') {
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * @param {AnalysisContext['path']} path
- * @returns {boolean}
- */
-function is_inside_template_child(path) {
-	for (let i = path.length - 1; i >= 0; i -= 1) {
-		const node = path[i];
-		if (is_function_or_class_boundary(node)) {
-			return false;
-		}
-		if (node.type === 'Element' || node.type === 'TsrxFragment' || node.type === 'TsxCompat') {
 			return true;
 		}
 	}
@@ -1951,6 +1945,7 @@ const visitors = {
 		if (
 			consequent_body.length === 1 &&
 			consequent_body[0].type === 'ReturnStatement' &&
+			!has_renderable_return_argument(consequent_body[0].argument) &&
 			!node.alternate
 		) {
 			node.metadata.lone_return = true;
@@ -2036,18 +2031,6 @@ const visitors = {
 			return;
 		}
 
-		if (is_inside_template_child(context.path)) {
-			if (!node.metadata?.invalid_tsrx_template_return) {
-				validateTsrxReturnStatement(
-					node,
-					context.state.analysis.module.filename,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
-			return;
-		}
-
 		for (let i = context.path.length - 1; i >= 0; i--) {
 			const ancestor = context.path[i];
 
@@ -2071,6 +2054,14 @@ const visitors = {
 			}
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
+		}
+	},
+
+	TsrxRenderStatement(node, context) {
+		if (is_native_tsrx_template_node(node.argument)) {
+			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
+		} else if (node.argument) {
+			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
 		}
 	},
 

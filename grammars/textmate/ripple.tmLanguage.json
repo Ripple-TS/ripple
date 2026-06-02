@@ -206,6 +206,9 @@
     "component-control-statement": {
       "patterns": [
         {
+          "include": "#tsrx-render-statement"
+        },
+        {
           "include": "#component-switch-statement"
         },
         {
@@ -266,6 +269,20 @@
         {
           "name": "keyword.other.debugger.js",
           "match": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(debugger)(?![_$[:alnum:]])(?:(?=\\.\\.\\.)|(?!\\.))"
+        }
+      ]
+    },
+    "tsrx-render-statement": {
+      "begin": "(^\\s*)(=>)",
+      "beginCaptures": {
+        "2": {
+          "name": "keyword.control.flow.js"
+        }
+      },
+      "end": "(?=[;}]|$|;|^\\s*$|(?:^\\s*(?:abstract|async|(?:\\bawait\\s+(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)\\b)|break|case|catch|class|const|continue|declare|do|else|enum|export|finally|function|for|goto|if|import|interface|let|module|namespace|pending|switch|return|throw|try|type|(?:\\busing(?=\\s+(?!in\\b|of\\b(?!\\s*(?:of\\b|=)))[_$[:alpha:]])\\b)|var|while)\\b))",
+      "patterns": [
+        {
+          "include": "#expression"
         }
       ]
     },
@@ -6450,7 +6467,7 @@
     "jsx-children-statements": {
       "patterns": [
         {
-          "begin": "(?=\\w|\\$|//|/\\*)",
+          "begin": "(?=\\s*=>|\\w|\\$|//|/\\*)",
           "end": "(?=<[a-zA-Z]|</)",
           "beginCaptures": {
             "0": {
