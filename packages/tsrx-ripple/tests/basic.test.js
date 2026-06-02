@@ -321,6 +321,19 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(server.code).not.toContain('children: _$_.tsrx_element');
 	});
 
+	it('prints TSRX render statement component children in Volar TypeScript output', () => {
+		const source = `function Card(props: { children: string }) { return <div>{props.children}</div>; }
+			function App() {
+				return <Card>
+					=> 'I like TSRX'
+				</Card>;
+			}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(result.errors).toEqual([]);
+		expect(result.code).toContain("children={'I like TSRX'}");
+	});
+
 	it('supports children shortcuts that return native templates', () => {
 		const source = `function Card(props) { return <div>{props.children}</div>; }
 			function App() {

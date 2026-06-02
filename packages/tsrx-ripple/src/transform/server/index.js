@@ -2452,6 +2452,16 @@ const visitors = {
 	 * @returns {AST.Statement}
 	 */
 	TsrxRenderStatement(node, context) {
+		if (context.state.to_ts) {
+			return b.return(
+				node.argument
+					? /** @type {AST.Expression} */ (
+							context.visit(node.argument, { ...context.state, template_child: false })
+						)
+					: undefined,
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+		}
 		const info = context.state.return_flags?.get(node);
 		if (info) {
 			return b.stmt(b.assignment('=', b.id(info.name), b.true));
