@@ -46,6 +46,8 @@ export function TemplateAroundIfBlock() {
 				_$_.output_push('<!--[-->');
 
 				if (show) {
+					var return_guard = false;
+
 					_$_.output_push('<span');
 					_$_.output_push(' class="inside"');
 					_$_.output_push('>');
@@ -55,6 +57,7 @@ export function TemplateAroundIfBlock() {
 					}
 
 					_$_.output_push('</span>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');

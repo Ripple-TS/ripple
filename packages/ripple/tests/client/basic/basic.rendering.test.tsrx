@@ -254,8 +254,10 @@ second"</pre>
 			return <>
 				let condition = false;
 				if (condition) {
-					"Hello Ripple"
-				} else "Hello React"
+					=> 'Hello Ripple'
+				} else {
+					=> 'Hello React'
+				}
 			</>;
 		}
 
@@ -311,13 +313,13 @@ second"</pre>
 		function Child({ level, children }: { level: number; children: any }) {
 			return <>
 				if (level == 1) {
-					<h1>{children}</h1>
+					=> <h1>{children}</h1>
 				}
 				if (level == 2) {
-					<h2>{children}</h2>
+					=> <h2>{children}</h2>
 				}
 				if (level == 3) {
-					<h3>{children}</h3>
+					=> <h3>{children}</h3>
 				}
 			</>;
 		}
@@ -432,12 +434,12 @@ second"</pre>
 				<div class="content">
 					if (showContent) {
 						if (userRole === 'admin') {
-							<div class="admin-content">{'Admin content'}</div>
+							=> <div class="admin-content">{'Admin content'}</div>
 						} else {
-							<div class="user-content">{'User content'}</div>
+							=> <div class="user-content">{'User content'}</div>
 						}
 					} else {
-						<div class="no-content">{'No content'}</div>
+						=> <div class="no-content">{'No content'}</div>
 					}
 				</div>
 			</>;

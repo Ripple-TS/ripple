@@ -892,8 +892,8 @@ function collect_returns_from_children(children) {
 	for (let index = 0; index < children.length; index++) {
 		const node = children[index];
 		if (
-			(node.type === 'ReturnStatement' || node.type === 'TsrxRenderStatement') &&
-			index !== children.length - 1 &&
+			(node.type === 'TsrxRenderStatement' ||
+				(node.type === 'ReturnStatement' && index !== children.length - 1)) &&
 			!node.metadata?.invalid_tsrx_template_return
 		) {
 			if (!seen.has(node)) {

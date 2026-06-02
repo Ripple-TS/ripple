@@ -842,7 +842,7 @@ describe('dynamic DOM elements', () => {
 				let &[b] = track(true);
 				<div>
 					if (b) {
-						{'Inside if'}
+						=> 'Inside if'
 					}
 				</div>
 				<button onClick={() => (b = !b)}>{'Toggle b'}</button>

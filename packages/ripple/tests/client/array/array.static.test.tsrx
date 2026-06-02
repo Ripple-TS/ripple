@@ -41,9 +41,9 @@ describe('RippleArray > static', () => {
 			function Parent() {
 				return <>
 					try {
-						<ArrayTest />
+						=> <ArrayTest />
 					} pending {
-						<div>{'Loading placeholder...'}</div>
+						=> <div>{'Loading placeholder...'}</div>
 					}
 				</>;
 			}
@@ -82,9 +82,9 @@ describe('RippleArray > static', () => {
 			function Parent() {
 				return <>
 					try {
-						<ArrayTest />
+						=> <ArrayTest />
 					} pending {
-						<div>{'Loading placeholder...'}</div>
+						=> <div>{'Loading placeholder...'}</div>
 					}
 				</>;
 			}
@@ -125,9 +125,9 @@ describe('RippleArray > static', () => {
 				function Parent() {
 					return <>
 						try {
-							<ArrayTest />
+							=> <ArrayTest />
 						} pending {
-							<div>{'Loading placeholder...'}</div>
+							=> <div>{'Loading placeholder...'}</div>
 						}
 					</>;
 				}
@@ -140,16 +140,16 @@ describe('RippleArray > static', () => {
 						try {
 							let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
-							<ul>
+							=> <ul>
 								for (const item of items) {
-									<li>{item}</li>
+									=> <li>{item}</li>
 								}
 							</ul>
 						} pending {
-							<div>{'Loading...'}</div>
+							=> <div>{'Loading...'}</div>
 						} catch (e) {
-							<pre>{'Error: ' + (e as Error).message}</pre>
-							<pre>{'No items'}</pre>
+							=> <pre>{'Error: ' + (e as Error).message}</pre>
+							=> <pre>{'No items'}</pre>
 						}
 					</>;
 				}
@@ -235,9 +235,9 @@ describe('RippleArray > static', () => {
 				function Parent() {
 					return <>
 						try {
-							<ArrayTest />
+							=> <ArrayTest />
 						} pending {
-							<div>{'Loading placeholder...'}</div>
+							=> <div>{'Loading placeholder...'}</div>
 						}
 					</>;
 				}

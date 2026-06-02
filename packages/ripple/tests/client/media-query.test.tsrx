@@ -90,7 +90,7 @@ describe('MediaQuery', () => {
 			return <>
 				let &[show] = track(true);
 				if (show) {
-					<Child />
+					=> <Child />
 				}
 				<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
 			</>;

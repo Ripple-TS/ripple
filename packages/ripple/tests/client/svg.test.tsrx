@@ -58,7 +58,7 @@ describe('SVG namespace handling', () => {
 					stroke="currentColor"
 				>
 					for (const pathData of d) {
-						<path d={pathData} />
+						=> <path d={pathData} />
 					}
 				</svg>
 			</>;
@@ -107,7 +107,7 @@ describe('SVG namespace handling', () => {
 				>
 					<circle cx="12" cy="12" r="10" />
 					for (const pathData of dynamicPaths) {
-						<path d={pathData} />
+						=> <path d={pathData} />
 					}
 					<rect x="4" y="4" width="16" height="16" />
 				</svg>
@@ -143,7 +143,7 @@ describe('SVG namespace handling', () => {
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
 					<g fill="blue">
 						for (const item of items) {
-							<rect x={item.x} y={item.y} width={item.width} height={item.height} />
+							=> <rect x={item.x} y={item.y} width={item.width} height={item.height} />
 						}
 					</g>
 				</svg>
@@ -179,7 +179,7 @@ describe('SVG namespace handling', () => {
 				const paths = ['M10 10 L20 20'];
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" class={className}>
 					for (const pathData of paths) {
-						<path d={pathData} class="dynamic-path" />
+						=> <path d={pathData} class="dynamic-path" />
 					}
 					<circle cx="50" cy="50" r="10" class={className} />
 				</svg>
@@ -253,9 +253,9 @@ describe('SVG namespace handling', () => {
 				let isDiamond = true;
 				<SVG>
 					if (isDiamond) {
-						<polygon points="0,0 30,0 15,10" />
+						=> <polygon points="0,0 30,0 15,10" />
 					} else {
-						<polygon points="0,0 30,0 15,10" />
+						=> <polygon points="0,0 30,0 15,10" />
 					}
 				</SVG>
 			</>;
@@ -408,7 +408,7 @@ describe('SVG namespace handling', () => {
 						class="dynamic-svg"
 					>
 						for (const path of d) {
-							<path d={path} />
+							=> <path d={path} />
 						}
 					</svg>
 
@@ -480,10 +480,10 @@ describe('SVG namespace handling', () => {
 					for (const [tag, attrs] of iconNodes) {
 						switch (tag) {
 							case 'path':
-								<path {...attrs} />
+								=> <path {...attrs} />
 								break;
 							case 'circle':
-								<circle {...attrs} />
+								=> <circle {...attrs} />
 								break;
 						}
 					}

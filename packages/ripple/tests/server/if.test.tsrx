@@ -4,7 +4,7 @@ describe('if statements in SSR', () => {
 			return <>
 				let condition = true;
 				if (condition) {
-					<div>{'If block'}</div>
+					=> <div>{'If block'}</div>
 				}
 			</>;
 		}
@@ -18,9 +18,9 @@ describe('if statements in SSR', () => {
 			return <>
 				let condition = false;
 				if (condition) {
-					<div>{'If block'}</div>
+					=> <div>{'If block'}</div>
 				} else {
-					<div>{'Else block'}</div>
+					=> <div>{'Else block'}</div>
 				}
 			</>;
 		}
@@ -34,8 +34,10 @@ describe('if statements in SSR', () => {
 			return <>
 				let condition = false;
 				if (condition) {
-					"Hello Ripple"
-				} else "Hello React"
+					=> 'Hello Ripple'
+				} else {
+					=> 'Hello React'
+				}
 			</>;
 		}
 
@@ -48,11 +50,11 @@ describe('if statements in SSR', () => {
 			return <>
 				let value = 'b';
 				if (value === 'a') {
-					<div>{'Case A'}</div>
+					=> <div>{'Case A'}</div>
 				} else if (value === 'b') {
-					<div>{'Case B'}</div>
+					=> <div>{'Case B'}</div>
 				} else {
-					<div>{'Default Case'}</div>
+					=> <div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -66,11 +68,11 @@ describe('if statements in SSR', () => {
 			return <>
 				let value = 'c';
 				if (value === 'a') {
-					<div>{'Case A'}</div>
+					=> <div>{'Case A'}</div>
 				} else if (value === 'b') {
-					<div>{'Case B'}</div>
+					=> <div>{'Case B'}</div>
 				} else {
-					<div>{'Default Case'}</div>
+					=> <div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -86,12 +88,12 @@ describe('if statements in SSR', () => {
 				let inner = false;
 				if (outer) {
 					if (inner) {
-						<div>{'Outer true, Inner true'}</div>
+						=> <div>{'Outer true, Inner true'}</div>
 					} else {
-						<div>{'Outer true, Inner false'}</div>
+						=> <div>{'Outer true, Inner false'}</div>
 					}
 				} else {
-					<div>{'Outer false'}</div>
+					=> <div>{'Outer false'}</div>
 				}
 			</>;
 		}

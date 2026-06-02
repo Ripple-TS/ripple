@@ -37,7 +37,7 @@ describe('basic client > components & composition', () => {
 			return <>
 				<div class="card">
 					if (props.children) {
-						{props.children}
+						=> props.children
 					}
 				</div>
 			</>;
@@ -66,7 +66,7 @@ describe('basic client > components & composition', () => {
 			return <>
 				<div class="card">
 					if (props.children) {
-						{props.children}
+						=> props.children
 					}
 				</div>
 			</>;

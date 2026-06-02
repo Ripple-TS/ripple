@@ -15,6 +15,8 @@ export function StaticForLoop() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -23,6 +25,7 @@ export function StaticForLoop() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -47,6 +50,8 @@ export function ForLoopWithIndex() {
 				var i = 0;
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -55,6 +60,7 @@ export function ForLoopWithIndex() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 					i++;
 				}
 
@@ -82,6 +88,8 @@ export function KeyedForLoop() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -90,6 +98,7 @@ export function KeyedForLoop() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -124,6 +133,8 @@ export function ReactiveForLoopAdd() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -132,6 +143,7 @@ export function ReactiveForLoopAdd() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -166,6 +178,8 @@ export function ReactiveForLoopRemove() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_1.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -174,6 +188,7 @@ export function ReactiveForLoopRemove() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -198,6 +213,8 @@ export function ForLoopInteractive() {
 				var i = 0;
 
 				for (const count of lazy_2.value) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `item-${i}`));
 					_$_.output_push('>');
@@ -224,6 +241,7 @@ export function ForLoopInteractive() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 					i++;
 				}
 
@@ -250,6 +268,8 @@ export function NestedForLoop() {
 				var rowIndex = 0;
 
 				for (const row of grid) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
 					_$_.output_push('>');
@@ -260,6 +280,8 @@ export function NestedForLoop() {
 						var colIndex = 0;
 
 						for (const cell of row) {
+							var return_guard_1 = false;
+
 							_$_.output_push('<span');
 							_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
 							_$_.output_push('>');
@@ -269,6 +291,7 @@ export function NestedForLoop() {
 							}
 
 							_$_.output_push('</span>');
+							return_guard_1 = true;
 							colIndex++;
 						}
 
@@ -276,6 +299,7 @@ export function NestedForLoop() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 					rowIndex++;
 				}
 
@@ -300,6 +324,8 @@ export function EmptyForLoop() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<span');
 					_$_.output_push('>');
 
@@ -308,6 +334,7 @@ export function EmptyForLoop() {
 					}
 
 					_$_.output_push('</span>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -333,6 +360,8 @@ export function ForLoopComplexObjects() {
 				_$_.output_push('<!--[-->');
 
 				for (const user of users) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `user-${user.id}`));
 					_$_.output_push('>');
@@ -359,6 +388,7 @@ export function ForLoopComplexObjects() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -400,6 +430,8 @@ export function KeyedForLoopReorder() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_3.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item.id}`));
 					_$_.output_push('>');
@@ -409,6 +441,7 @@ export function KeyedForLoopReorder() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -443,6 +476,8 @@ export function KeyedForLoopUpdate() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_4.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item.id}`));
 					_$_.output_push('>');
@@ -452,6 +487,7 @@ export function KeyedForLoopUpdate() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -486,6 +522,8 @@ export function ForLoopMixedOperations() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_5.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -495,6 +533,7 @@ export function ForLoopMixedOperations() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -538,6 +577,8 @@ export function ForLoopInsideIf() {
 			_$_.output_push('<!--[-->');
 
 			if (lazy_6.value) {
+				var return_guard = false;
+
 				_$_.output_push('<ul');
 				_$_.output_push(' class="list"');
 				_$_.output_push('>');
@@ -546,6 +587,8 @@ export function ForLoopInsideIf() {
 					_$_.output_push('<!--[-->');
 
 					for (const item of lazy_7.value) {
+						var return_guard_1 = false;
+
 						_$_.output_push('<li');
 						_$_.output_push('>');
 
@@ -554,12 +597,14 @@ export function ForLoopInsideIf() {
 						}
 
 						_$_.output_push('</li>');
+						return_guard_1 = true;
 					}
 
 					_$_.output_push('<!--]-->');
 				}
 
 				_$_.output_push('</ul>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -592,6 +637,8 @@ export function ForLoopEmptyToPopulated() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_8.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -600,6 +647,7 @@ export function ForLoopEmptyToPopulated() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -635,6 +683,8 @@ export function ForLoopPopulatedToEmpty() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_9.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -643,6 +693,7 @@ export function ForLoopPopulatedToEmpty() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -692,6 +743,8 @@ export function NestedForLoopReactive() {
 				var rowIndex = 0;
 
 				for (const row of lazy_10.value) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
 					_$_.output_push('>');
@@ -702,6 +755,8 @@ export function NestedForLoopReactive() {
 						var colIndex = 0;
 
 						for (const cell of row) {
+							var return_guard_1 = false;
+
 							_$_.output_push('<span');
 							_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
 							_$_.output_push('>');
@@ -711,6 +766,7 @@ export function NestedForLoopReactive() {
 							}
 
 							_$_.output_push('</span>');
+							return_guard_1 = true;
 							colIndex++;
 						}
 
@@ -718,6 +774,7 @@ export function NestedForLoopReactive() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 					rowIndex++;
 				}
 
@@ -757,6 +814,8 @@ export function ForLoopDeeplyNested() {
 				_$_.output_push('<!--[-->');
 
 				for (const dept of departments) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `dept-${dept.id}`));
 					_$_.output_push('>');
@@ -774,6 +833,8 @@ export function ForLoopDeeplyNested() {
 						_$_.output_push('<!--[-->');
 
 						for (const team of dept.teams) {
+							var return_guard_1 = false;
+
 							_$_.output_push('<div');
 							_$_.output_push(_$_.attr('class', `team-${team.id}`));
 							_$_.output_push('>');
@@ -795,6 +856,8 @@ export function ForLoopDeeplyNested() {
 									_$_.output_push('<!--[-->');
 
 									for (const member of team.members) {
+										var return_guard_2 = false;
+
 										_$_.output_push('<li');
 										_$_.output_push(' class="member"');
 										_$_.output_push('>');
@@ -804,6 +867,7 @@ export function ForLoopDeeplyNested() {
 										}
 
 										_$_.output_push('</li>');
+										return_guard_2 = true;
 									}
 
 									_$_.output_push('<!--]-->');
@@ -813,12 +877,14 @@ export function ForLoopDeeplyNested() {
 							}
 
 							_$_.output_push('</div>');
+							return_guard_1 = true;
 						}
 
 						_$_.output_push('<!--]-->');
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -855,6 +921,8 @@ export function ForLoopIndexUpdate() {
 				var i = 0;
 
 				for (const item of lazy_11.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${i}`));
 					_$_.output_push('>');
@@ -864,6 +932,7 @@ export function ForLoopIndexUpdate() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 					i++;
 				}
 
@@ -908,6 +977,8 @@ export function KeyedForLoopWithIndex() {
 				var i = 0;
 
 				for (const item of lazy_12.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('data-index', i, false));
 					_$_.output_push(_$_.attr('class', `item-${item.id}`));
@@ -918,6 +989,7 @@ export function KeyedForLoopWithIndex() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 					i++;
 				}
 
@@ -951,6 +1023,8 @@ export function ForLoopWithSiblings() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_13.value) {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -960,6 +1034,7 @@ export function ForLoopWithSiblings() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1007,12 +1082,16 @@ export function ForLoopItemState() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of initialItems) {
+					var return_guard = false;
+
 					{
 						const comp = TodoItem;
 						const args = [{ id: item.id, text: item.text }];
 
 						_$_.render_component(comp, ...args);
 					}
+
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1066,6 +1145,8 @@ export function ForLoopSingleItem() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(' class="single"');
 					_$_.output_push('>');
@@ -1075,6 +1156,7 @@ export function ForLoopSingleItem() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1109,6 +1191,8 @@ export function ForLoopAddAtBeginning() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_15.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -1118,6 +1202,7 @@ export function ForLoopAddAtBeginning() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1152,6 +1237,8 @@ export function ForLoopAddInMiddle() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_16.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -1161,6 +1248,7 @@ export function ForLoopAddInMiddle() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1195,6 +1283,8 @@ export function ForLoopRemoveFromMiddle() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_17.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -1204,6 +1294,7 @@ export function ForLoopRemoveFromMiddle() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1229,6 +1320,8 @@ export function ForLoopLargeList() {
 				var i = 0;
 
 				for (const item of items) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${i}`));
 					_$_.output_push('>');
@@ -1238,6 +1331,7 @@ export function ForLoopLargeList() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 					i++;
 				}
 
@@ -1273,6 +1367,8 @@ export function ForLoopSwap() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_18.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -1282,6 +1378,7 @@ export function ForLoopSwap() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1316,6 +1413,8 @@ export function ForLoopReverse() {
 				_$_.output_push('<!--[-->');
 
 				for (const item of lazy_19.value) {
+					var return_guard = false;
+
 					_$_.output_push('<li');
 					_$_.output_push(_$_.attr('class', `item-${item}`));
 					_$_.output_push('>');
@@ -1325,6 +1424,7 @@ export function ForLoopReverse() {
 					}
 
 					_$_.output_push('</li>');
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');

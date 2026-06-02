@@ -11,6 +11,8 @@ export function IfTruthy() {
 			_$_.output_push('<!--[-->');
 
 			if (show) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="shown"');
 				_$_.output_push('>');
@@ -20,6 +22,7 @@ export function IfTruthy() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -35,6 +38,8 @@ export function IfFalsy() {
 			_$_.output_push('<!--[-->');
 
 			if (show) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="shown"');
 				_$_.output_push('>');
@@ -44,6 +49,7 @@ export function IfFalsy() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -59,6 +65,8 @@ export function IfElse() {
 			_$_.output_push('<!--[-->');
 
 			if (isLoggedIn) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="logged-in"');
 				_$_.output_push('>');
@@ -68,7 +76,10 @@ export function IfElse() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			} else {
+				var return_guard_1 = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="logged-out"');
 				_$_.output_push('>');
@@ -78,6 +89,7 @@ export function IfElse() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard_1 = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -105,6 +117,8 @@ export function ReactiveIf() {
 			_$_.output_push('<!--[-->');
 
 			if (lazy.value) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="content"');
 				_$_.output_push('>');
@@ -114,6 +128,7 @@ export function ReactiveIf() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -141,6 +156,8 @@ export function ReactiveIfElse() {
 			_$_.output_push('<!--[-->');
 
 			if (lazy_1.value) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="on"');
 				_$_.output_push('>');
@@ -150,7 +167,10 @@ export function ReactiveIfElse() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			} else {
+				var return_guard_1 = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="off"');
 				_$_.output_push('>');
@@ -160,6 +180,7 @@ export function ReactiveIfElse() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard_1 = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -200,6 +221,8 @@ export function NestedIf() {
 			_$_.output_push('<!--[-->');
 
 			if (lazy_2.value) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="outer-content"');
 				_$_.output_push('>');
@@ -209,6 +232,8 @@ export function NestedIf() {
 					_$_.output_push('<!--[-->');
 
 					if (lazy_3.value) {
+						var return_guard_1 = false;
+
 						_$_.output_push('<span');
 						_$_.output_push(' class="inner-content"');
 						_$_.output_push('>');
@@ -218,12 +243,14 @@ export function NestedIf() {
 						}
 
 						_$_.output_push('</span>');
+						return_guard_1 = true;
 					}
 
 					_$_.output_push('<!--]-->');
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -270,6 +297,8 @@ export function IfElseIfChain() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy_4.value === 'loading') {
+					var return_guard = false;
+
 					_$_.output_push('<div');
 					_$_.output_push(' class="state"');
 					_$_.output_push('>');
@@ -279,10 +308,13 @@ export function IfElseIfChain() {
 					}
 
 					_$_.output_push('</div>');
+					return_guard = true;
 				} else {
 					_$_.output_push('<!--[-->');
 
 					if (lazy_4.value === 'success') {
+						var return_guard_1 = false;
+
 						_$_.output_push('<div');
 						_$_.output_push(' class="state"');
 						_$_.output_push('>');
@@ -292,7 +324,10 @@ export function IfElseIfChain() {
 						}
 
 						_$_.output_push('</div>');
+						return_guard_1 = true;
 					} else {
+						var return_guard_2 = false;
+
 						_$_.output_push('<div');
 						_$_.output_push(' class="state"');
 						_$_.output_push('>');
@@ -302,6 +337,7 @@ export function IfElseIfChain() {
 						}
 
 						_$_.output_push('</div>');
+						return_guard_2 = true;
 					}
 
 					_$_.output_push('<!--]-->');

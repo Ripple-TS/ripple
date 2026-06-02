@@ -1,28 +1,28 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/client';
 
-var root_4 = _$_.template(`<div> </div>`, 0);
-var root_5 = _$_.template(`<div>pending a</div>`, 0);
+var root_4 = _$_.template(`<div> </div>`, 1, 1);
+var root_5 = _$_.template(`<div>pending a</div>`, 1, 1);
 var root_3 = _$_.template(`<!>`, 1, 1);
-var root_7 = _$_.template(`<div> </div>`, 0);
-var root_8 = _$_.template(`<div>pending b</div>`, 0);
+var root_7 = _$_.template(`<div> </div>`, 1, 1);
+var root_8 = _$_.template(`<div>pending b</div>`, 1, 1);
 var root_6 = _$_.template(`<!>`, 1, 1);
 var root_2 = _$_.template(`<!>`, 1, 1);
 var root_1 = _$_.template(`<!>`, 1, 1);
 var root = _$_.template(`<section class="mixed-static"></section>`, 0);
-var root_13 = _$_.template(`<p> </p>`, 0);
-var root_14 = _$_.template(`<p class="pending">pending a</p>`, 0);
+var root_13 = _$_.template(`<p> </p>`, 1, 1);
+var root_14 = _$_.template(`<p class="pending">pending a</p>`, 1, 1);
 var root_12 = _$_.template(`<!>`, 1, 1);
-var root_16 = _$_.template(`<p> </p>`, 0);
-var root_17 = _$_.template(`<p class="pending">pending b</p>`, 0);
+var root_16 = _$_.template(`<p> </p>`, 1, 1);
+var root_17 = _$_.template(`<p class="pending">pending b</p>`, 1, 1);
 var root_15 = _$_.template(`<!>`, 1, 1);
 var root_11 = _$_.template(`<!>`, 1, 1);
-var root_10 = _$_.template(`<div class="mixed-reactive-list"></div>`, 0);
+var root_10 = _$_.template(`<div class="mixed-reactive-list"></div>`, 1, 1);
 var root_9 = _$_.template(`<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!>`, 1, 4);
 var root_22 = _$_.template(`<!>`, 1, 1);
-var root_23 = _$_.template(`<div> </div>`, 0);
+var root_23 = _$_.template(`<div> </div>`, 1, 1);
 var root_21 = _$_.template(`<!>`, 1, 1);
-var root_24 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
+var root_24 = _$_.template(`<div class="unexpected">unexpected</div>`, 1, 1);
 var root_20 = _$_.template(`<!>`, 1, 1);
 var root_19 = _$_.template(`<!>`, 1, 1);
 var root_18 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
@@ -61,13 +61,17 @@ export function MixedControlFlowStatic() {
 									_$_.try(
 										node_2,
 										(__anchor) => {
-											var div_1 = root_4();
+											var return_guard = false;
+											var fragment_3 = root_4();
+											var div_1 = _$_.first_child_frag(fragment_3);
 
 											{
 												var expression = _$_.child(div_1, true);
 
 												_$_.pop(div_1);
 											}
+
+											return_guard = true;
 
 											_$_.render(
 												(__prev) => {
@@ -86,17 +90,21 @@ export function MixedControlFlowStatic() {
 												{ a: ' ', b: Symbol() }
 											);
 
-											_$_.append(__anchor, div_1);
+											_$_.append(__anchor, fragment_3);
 										},
 										null,
 										(__anchor) => {
-											var div_2 = root_5();
+											var return_guard_1 = false;
+											var fragment_4 = root_5();
+											var div_2 = _$_.first_child_frag(fragment_4);
+
+											return_guard_1 = true;
 
 											_$_.render(() => {
 												_$_.set_class(div_2, `pending pending-${_$_.get(pattern).id}`, void 0, true);
 											});
 
-											_$_.append(__anchor, div_2);
+											_$_.append(__anchor, fragment_4);
 										}
 									);
 
@@ -104,19 +112,23 @@ export function MixedControlFlowStatic() {
 								};
 
 								var switch_case_default = (__anchor) => {
-									var fragment_3 = root_6();
-									var node_3 = _$_.first_child_frag(fragment_3);
+									var fragment_5 = root_6();
+									var node_3 = _$_.first_child_frag(fragment_5);
 
 									_$_.try(
 										node_3,
 										(__anchor) => {
-											var div_3 = root_7();
+											var return_guard_2 = false;
+											var fragment_6 = root_7();
+											var div_3 = _$_.first_child_frag(fragment_6);
 
 											{
 												var expression_1 = _$_.child(div_3, true);
 
 												_$_.pop(div_3);
 											}
+
+											return_guard_2 = true;
 
 											_$_.render(
 												(__prev) => {
@@ -135,21 +147,25 @@ export function MixedControlFlowStatic() {
 												{ a: ' ', b: Symbol() }
 											);
 
-											_$_.append(__anchor, div_3);
+											_$_.append(__anchor, fragment_6);
 										},
 										null,
 										(__anchor) => {
-											var div_4 = root_8();
+											var return_guard_3 = false;
+											var fragment_7 = root_8();
+											var div_4 = _$_.first_child_frag(fragment_7);
+
+											return_guard_3 = true;
 
 											_$_.render(() => {
 												_$_.set_class(div_4, `pending pending-${_$_.get(pattern).id}`, void 0, true);
 											});
 
-											_$_.append(__anchor, div_4);
+											_$_.append(__anchor, fragment_7);
 										}
 									);
 
-									_$_.append(__anchor, fragment_3);
+									_$_.append(__anchor, fragment_5);
 								};
 
 								_$_.switch(node_1, () => {
@@ -193,8 +209,8 @@ export function MixedControlFlowReactive() {
 		let lazy = _$_.track(true, __block, '5ae53d26');
 		let lazy_1 = _$_.track('a', __block, '5b53eda2');
 		let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], __block, '7890dad6');
-		var fragment_4 = root_9();
-		var button_1 = _$_.first_child_frag(fragment_4);
+		var fragment_8 = root_9();
+		var button_1 = _$_.first_child_frag(fragment_8);
 
 		button_1.__click = () => {
 			_$_.set(lazy, !lazy.value);
@@ -216,31 +232,37 @@ export function MixedControlFlowReactive() {
 
 		{
 			var consequent_1 = (__anchor) => {
-				var div_5 = root_10();
+				var return_guard = false;
+				var fragment_9 = root_10();
+				var div_5 = _$_.first_child_frag(fragment_9);
 
 				{
 					_$_.for_keyed(
 						div_5,
 						() => lazy_2.value,
 						(__anchor, pattern_1) => {
-							var fragment_5 = root_11();
-							var node_5 = _$_.first_child_frag(fragment_5);
+							var fragment_10 = root_11();
+							var node_5 = _$_.first_child_frag(fragment_10);
 
 							{
 								var switch_case_0_1 = (__anchor) => {
-									var fragment_6 = root_12();
-									var node_6 = _$_.first_child_frag(fragment_6);
+									var fragment_11 = root_12();
+									var node_6 = _$_.first_child_frag(fragment_11);
 
 									_$_.try(
 										node_6,
 										(__anchor) => {
-											var p_1 = root_13();
+											var return_guard_1 = false;
+											var fragment_12 = root_13();
+											var p_1 = _$_.first_child_frag(fragment_12);
 
 											{
 												var expression_2 = _$_.child(p_1, true);
 
 												_$_.pop(p_1);
 											}
+
+											return_guard_1 = true;
 
 											_$_.render(
 												(__prev) => {
@@ -259,33 +281,39 @@ export function MixedControlFlowReactive() {
 												{ a: ' ', b: Symbol() }
 											);
 
-											_$_.append(__anchor, p_1);
+											_$_.append(__anchor, fragment_12);
 										},
 										null,
 										(__anchor) => {
-											var p_2 = root_14();
+											var return_guard_2 = false;
+											var fragment_13 = root_14();
 
-											_$_.append(__anchor, p_2);
+											return_guard_2 = true;
+											_$_.append(__anchor, fragment_13);
 										}
 									);
 
-									_$_.append(__anchor, fragment_6);
+									_$_.append(__anchor, fragment_11);
 								};
 
 								var switch_case_default_1 = (__anchor) => {
-									var fragment_7 = root_15();
-									var node_7 = _$_.first_child_frag(fragment_7);
+									var fragment_14 = root_15();
+									var node_7 = _$_.first_child_frag(fragment_14);
 
 									_$_.try(
 										node_7,
 										(__anchor) => {
-											var p_3 = root_16();
+											var return_guard_3 = false;
+											var fragment_15 = root_16();
+											var p_2 = _$_.first_child_frag(fragment_15);
 
 											{
-												var expression_3 = _$_.child(p_3, true);
+												var expression_3 = _$_.child(p_2, true);
 
-												_$_.pop(p_3);
+												_$_.pop(p_2);
 											}
+
+											return_guard_3 = true;
 
 											_$_.render(
 												(__prev) => {
@@ -298,23 +326,25 @@ export function MixedControlFlowReactive() {
 													var __b = `item item-${_$_.get(pattern_1).id}`;
 
 													if (__prev.b !== __b) {
-														_$_.set_class(p_3, __prev.b = __b, void 0, true);
+														_$_.set_class(p_2, __prev.b = __b, void 0, true);
 													}
 												},
 												{ a: ' ', b: Symbol() }
 											);
 
-											_$_.append(__anchor, p_3);
+											_$_.append(__anchor, fragment_15);
 										},
 										null,
 										(__anchor) => {
-											var p_4 = root_17();
+											var return_guard_4 = false;
+											var fragment_16 = root_17();
 
-											_$_.append(__anchor, p_4);
+											return_guard_4 = true;
+											_$_.append(__anchor, fragment_16);
 										}
 									);
 
-									_$_.append(__anchor, fragment_7);
+									_$_.append(__anchor, fragment_14);
 								};
 
 								_$_.switch(node_5, () => {
@@ -332,7 +362,7 @@ export function MixedControlFlowReactive() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_5);
+							_$_.append(__anchor, fragment_10);
 						},
 						4,
 						(pattern_1) => _$_.get(pattern_1).id
@@ -341,7 +371,8 @@ export function MixedControlFlowReactive() {
 					_$_.pop(div_5);
 				}
 
-				_$_.append(__anchor, div_5);
+				return_guard = true;
+				_$_.append(__anchor, fragment_9);
 			};
 
 			_$_.if(node_4, (__render) => {
@@ -349,7 +380,7 @@ export function MixedControlFlowReactive() {
 			});
 		}
 
-		_$_.append(__anchor, fragment_4);
+		_$_.append(__anchor, fragment_8);
 	});
 }
 
@@ -357,39 +388,43 @@ export function MixedControlFlowAsyncPending() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const rows = [1, 2];
 		const state = 'slow';
-		var fragment_8 = root_18();
-		var div_6 = _$_.first_child_frag(fragment_8);
+		var fragment_17 = root_18();
+		var div_6 = _$_.first_child_frag(fragment_17);
 		var node_8 = _$_.sibling(div_6);
 
 		_$_.for(
 			node_8,
 			() => rows,
 			(__anchor, row) => {
-				var fragment_9 = root_19();
-				var node_9 = _$_.first_child_frag(fragment_9);
+				var fragment_18 = root_19();
+				var node_9 = _$_.first_child_frag(fragment_18);
 
 				{
 					var consequent_2 = (__anchor) => {
-						var fragment_10 = root_20();
-						var node_10 = _$_.first_child_frag(fragment_10);
+						var fragment_19 = root_20();
+						var node_10 = _$_.first_child_frag(fragment_19);
 
 						{
 							var switch_case_0_2 = (__anchor) => {
-								var fragment_11 = root_21();
-								var node_11 = _$_.first_child_frag(fragment_11);
+								var fragment_20 = root_21();
+								var node_11 = _$_.first_child_frag(fragment_20);
 
 								_$_.try(
 									node_11,
 									(__anchor) => {
-										var fragment_12 = root_22();
-										var node_12 = _$_.first_child_frag(fragment_12);
+										var return_guard = false;
+										var fragment_21 = root_22();
+										var node_12 = _$_.first_child_frag(fragment_21);
 
 										_$_.render_component(AsyncRow, node_12, { label: `row-${row}` });
-										_$_.append(__anchor, fragment_12);
+										return_guard = true;
+										_$_.append(__anchor, fragment_21);
 									},
 									null,
 									(__anchor) => {
-										var div_7 = root_23();
+										var return_guard_1 = false;
+										var fragment_22 = root_23();
+										var div_7 = _$_.first_child_frag(fragment_22);
 
 										_$_.set_class(div_7, `pending-row pending-row-${row}`, void 0, true);
 
@@ -400,17 +435,20 @@ export function MixedControlFlowAsyncPending() {
 											_$_.pop(div_7);
 										}
 
-										_$_.append(__anchor, div_7);
+										return_guard_1 = true;
+										_$_.append(__anchor, fragment_22);
 									}
 								);
 
-								_$_.append(__anchor, fragment_11);
+								_$_.append(__anchor, fragment_20);
 							};
 
 							var switch_case_default_2 = (__anchor) => {
-								var div_8 = root_24();
+								var return_guard_2 = false;
+								var fragment_23 = root_24();
 
-								_$_.append(__anchor, div_8);
+								return_guard_2 = true;
+								_$_.append(__anchor, fragment_23);
 							};
 
 							_$_.switch(node_10, () => {
@@ -428,7 +466,7 @@ export function MixedControlFlowAsyncPending() {
 							});
 						}
 
-						_$_.append(__anchor, fragment_10);
+						_$_.append(__anchor, fragment_19);
 					};
 
 					_$_.if(node_9, (__render) => {
@@ -436,28 +474,28 @@ export function MixedControlFlowAsyncPending() {
 					});
 				}
 
-				_$_.append(__anchor, fragment_9);
+				_$_.append(__anchor, fragment_18);
 			},
 			0
 		);
 
-		_$_.append(__anchor, fragment_8);
+		_$_.append(__anchor, fragment_17);
 	});
 }
 
 function AsyncRow({ label }) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');
-		var div_9 = root_25();
+		var div_8 = root_25();
 
 		{
-			var expression_5 = _$_.child(div_9);
+			var expression_5 = _$_.child(div_8);
 
 			_$_.expression(expression_5, () => lazy_3.value);
-			_$_.pop(div_9);
+			_$_.pop(div_8);
 		}
 
-		_$_.append(__anchor, div_9);
+		_$_.append(__anchor, div_8);
 	});
 }
 

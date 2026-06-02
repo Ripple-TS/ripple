@@ -42,13 +42,12 @@ describe('returns in restricted SSR scopes', () => {
 });
 
 describe('function returns in SSR components', () => {
-	it('renders TSRX render statements and skips later siblings in the same block', async () => {
+	it('renders TSRX render statements inside control blocks alongside outer siblings', async () => {
 		function App() {
 			const ready = true;
 			return <>
 				if (ready) {
 					=> <div class="yielded">"yielded"</div>
-					<span class="inner">"inner"</span>
 				}
 				<span class="outer">"outer"</span>
 			</>;
@@ -58,16 +57,42 @@ describe('function returns in SSR components', () => {
 		expect(body).toBeHtml('<div class="yielded">yielded</div><span class="outer">outer</span>');
 	});
 
-	it('renders top-level TSRX render statements and skips later element siblings', async () => {
-		function App() {
-			return <section>
-				=> <div class="yielded">"yielded"</div>
-				<span class="after">"after"</span>
-			</section>;
-		}
+	it('throws when control-flow blocks contain direct TSRX children', () => {
+		expect(
+			() => compile(
+				`
+				function App() {
+					return <>
+						const items = [1, 2, 3];
+						for (const item of items) {
+							<div>{item}</div>
+						}
+					</>;
+				}
+			`,
+				'test.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+	});
 
-		const { body } = await render(App);
-		expect(body).toBeHtml('<section><div class="yielded">yielded</div></section>');
+	it('throws when top-level TSRX render statements are mixed with element children', () => {
+		expect(
+			() => compile(
+				`
+				function App() {
+					return <section>
+						=> <div>"yielded"</div>
+						<span>"after"</span>
+					</section>;
+				}
+			`,
+				'test.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow(
+			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+		);
 	});
 
 	it('renders TSRX return arguments and skips later siblings', async () => {

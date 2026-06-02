@@ -12,7 +12,7 @@ export function ForIf() {
 		<ul class="for-if">
 			for (const item of items; key item.id) {
 				if (item.show) {
-					<li class={`item item-${item.id}`}>{item.label}</li>
+					=> <li class={`item item-${item.id}`}>{item.label}</li>
 				}
 			}
 		</ul>
@@ -31,10 +31,10 @@ export function ForSwitch() {
 			for (const item of items; key item.id) {
 				switch (item.kind) {
 					case 'a':
-						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+						=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 						break;
 					default:
-						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
+						=> <li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 				}
 			}
 		</ul>
@@ -50,10 +50,10 @@ export function IfSwitch() {
 			if (show) {
 				switch (kind) {
 					case 'a':
-						<p class="case-a">{'Case A'}</p>
+						=> <p class="case-a">{'Case A'}</p>
 						break;
 					default:
-						<p class="case-default">{'Default'}</p>
+						=> <p class="case-default">{'Default'}</p>
 				}
 			}
 		</div>
@@ -69,10 +69,10 @@ export function IfSwitchHidden() {
 			if (show) {
 				switch (kind) {
 					case 'a':
-						<p class="case-a">{'Case A'}</p>
+						=> <p class="case-a">{'Case A'}</p>
 						break;
 					default:
-						<p class="case-default">{'Default'}</p>
+						=> <p class="case-default">{'Default'}</p>
 				}
 			}
 			<p class="after">{'after'}</p>
@@ -91,10 +91,10 @@ export function ForIfSwitchSingle() {
 				if (item.show) {
 					switch (item.kind) {
 						case 'a':
-							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 							break;
 						default:
-							<li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
 					}
 				}
 			}
@@ -114,10 +114,10 @@ export function ForIfSwitchMulti() {
 				if (item.show) {
 					switch (item.kind) {
 						case 'a':
-							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 							break;
 						default:
-							<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 					}
 				}
 			}
@@ -138,10 +138,10 @@ export function ForIfSwitchWithDisabled() {
 				if (item.show) {
 					switch (item.kind) {
 						case 'a':
-							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 							break;
 						default:
-							<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 					}
 				}
 			}
@@ -157,13 +157,13 @@ export function SwitchTry() {
 			switch (kind) {
 				case 'a':
 					try {
-						<p class="resolved-a">{'A resolved'}</p>
+						=> <p class="resolved-a">{'A resolved'}</p>
 					} pending {
-						<p class="pending-a">{'A pending'}</p>
+						=> <p class="pending-a">{'A pending'}</p>
 					}
 					break;
 				default:
-					<p class="default">{'Default'}</p>
+					=> <p class="default">{'Default'}</p>
 			}
 		</div>
 	</>;
@@ -181,16 +181,16 @@ export function ForSwitchTry() {
 				switch (item.kind) {
 					case 'a':
 						try {
-							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 						} pending {
-							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+							=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 						break;
 					default:
 						try {
-							<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
+							=> <li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 						} pending {
-							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+							=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 				}
 			}
@@ -209,9 +209,9 @@ export function ForIfTry() {
 			for (const item of items; key item.id) {
 				if (item.show) {
 					try {
-						<li class={`item item-${item.id}`}>{`item-${item.id}`}</li>
+						=> <li class={`item item-${item.id}`}>{`item-${item.id}`}</li>
 					} pending {
-						<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+						=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 					}
 				}
 			}
@@ -231,16 +231,16 @@ export function ForIfSwitchTrySingle() {
 					switch (item.kind) {
 						case 'a':
 							try {
-								<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+								=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 							} pending {
-								<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+								=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 							}
 							break;
 						default:
 							try {
-								<li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
+								=> <li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
 							} pending {
-								<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+								=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 							}
 					}
 				}
@@ -262,16 +262,16 @@ export function ForIfSwitchTryMulti() {
 					switch (item.kind) {
 						case 'a':
 							try {
-								<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+								=> <li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 							} pending {
-								<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+								=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 							}
 							break;
 						default:
 							try {
-								<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
+								=> <li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 							} pending {
-								<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
+								=> <li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 							}
 					}
 				}

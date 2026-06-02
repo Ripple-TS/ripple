@@ -75,6 +75,8 @@ export function ConditionalPortal() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy.value) {
+					var return_guard = false;
+
 					{
 						const comp = Portal;
 
@@ -101,6 +103,8 @@ export function ConditionalPortal() {
 							_$_.render_component(comp, ...args);
 						}
 					}
+
+					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');

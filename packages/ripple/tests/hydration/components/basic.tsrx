@@ -88,7 +88,7 @@ function NestedTsxTsrxFragment({ label }: { label: string }) {
 	return <>
 		<span class="label">{label}</span>
 		for (const item of [1, 2, 3, 4]) {
-			<NestedHelperItem {item} />
+			=> <NestedHelperItem {item} />
 		}
 	</>;
 }
@@ -96,7 +96,7 @@ function NestedTsxTsrxFragment({ label }: { label: string }) {
 export function NestedTsxTsrxExpressionValues() {
 	return <>
 		for (const item of [1, 2, 3]) {
-			<div class="app-item">{item}</div>
+			=> <div class="app-item">{item}</div>
 		}
 		<NestedTsxTsrxFragment label="from helper" />
 	</>;
@@ -300,7 +300,7 @@ function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) 
 			<a href="https://github.com" class="github-link">{'GitHub'}</a>
 			<a href="https://discord.com" class="discord-link">{'Discord'}</a>
 			if (playgroundVisible) {
-				<a href="/playground" class="playground-link">{'Playground'}</a>
+				=> <a href="/playground" class="playground-link">{'Playground'}</a>
 			}
 		</div>
 	</>;

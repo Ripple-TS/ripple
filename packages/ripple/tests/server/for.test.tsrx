@@ -4,7 +4,7 @@ describe('for statements in SSR', () => {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
 				for (const item of items) {
-					<div class={item}>{item}</div>
+					=> <div class={item}>{item}</div>
 				}
 			</>;
 		}
@@ -15,21 +15,20 @@ describe('for statements in SSR', () => {
 		);
 	});
 
-	it('uses TSRX render statements as the selected output for a loop block', async () => {
-		function App() {
-			return <>
-				const items = [1, 2, 3];
-				for (const item of items) {
-					<div class="stale">{item}</div>
-					=> <div class="selected">{item}</div>
-				}
-			</>;
-		}
-
-		const { body } = await render(App);
-		expect(body).toBeHtml(
-			'<div class="selected">1</div><div class="selected">2</div><div class="selected">3</div>',
-		);
+	it('throws when loop blocks mix direct TSRX output with render statements', () => {
+		expect(
+			() => compile(
+				`function App() { return <>
+					const items = [1, 2, 3];
+					for (const item of items) {
+						<div class="stale">{item}</div>
+						=> <div class="selected">{item}</div>
+					}
+				</>; }`,
+				'App.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
 	});
 
 	it('renders nested for...of loops', async () => {
@@ -46,12 +45,14 @@ describe('for statements in SSR', () => {
 					},
 				];
 				for (const group of groups) {
-					<h1>{group.name}</h1>
-					<ul>
-						for (const item of group.items) {
-							<li>{item}</li>
-						}
-					</ul>
+					=> <>
+						<h1>{group.name}</h1>
+						<ul>
+							for (const item of group.items) {
+								=> <li>{item}</li>
+							}
+						</ul>
+					</>
 				}
 			</>;
 		}
@@ -67,7 +68,7 @@ describe('for statements in SSR', () => {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
 				for (const item of items; index i) {
-					<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
+					=> <div class={`${item} ${i}`}>{`${item} ${i}`}</div>
 				}
 			</>;
 		}
@@ -87,7 +88,7 @@ describe('for statements in SSR', () => {
 					{ id: 3, name: 'Item' },
 				];
 				for (const item of items; key item.id) {
-					<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
+					=> <div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
 				}
 			</>;
 		}
@@ -107,7 +108,7 @@ describe('for statements in SSR', () => {
 					{ id: 3, name: 'Item' },
 				];
 				for (const item of items; index i; key item.id) {
-					<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
+					=> <div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
 				}
 			</>;
 		}
@@ -124,7 +125,7 @@ describe('for statements in SSR', () => {
 				const items = ['Item 1', '', 'Item 3'];
 				for (const item of items) {
 					if (!item) continue;
-					<div>{item}</div>
+					=> <div>{item}</div>
 				}
 			</>;
 		}
@@ -148,7 +149,7 @@ describe('for statements in SSR', () => {
 						return value;
 					}
 
-					<div>{label(item)}</div>
+					=> <div>{label(item)}</div>
 				}
 			</>;
 		}
@@ -163,7 +164,7 @@ describe('for statements in SSR', () => {
 				`function App(items) { return <>
 					for (const item of items) {
 						if (!item) return
-						<div>{item}</div>
+						=> <div>{item}</div>
 					}
 				</>; }`,
 				'App.tsrx',
@@ -178,7 +179,7 @@ describe('for statements in SSR', () => {
 				`function App(items) { return <>
 					for (const item of items) {
 						if (!item) break
-						<div>{item}</div>
+						=> <div>{item}</div>
 					}
 				</>; }`,
 				'App.tsrx',

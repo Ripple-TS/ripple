@@ -12,6 +12,7 @@ export function SwitchStatic() {
 
 			switch (status) {
 				case 'success':
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="status-success"');
 					_$_.output_push('>');
@@ -19,9 +20,11 @@ export function SwitchStatic() {
 						_$_.output_push('Success');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 					break;
 
 				case 'error':
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="status-error"');
 					_$_.output_push('>');
@@ -29,9 +32,11 @@ export function SwitchStatic() {
 						_$_.output_push('Error');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 					break;
 
 				default:
+					var return_guard_2 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="status-unknown"');
 					_$_.output_push('>');
@@ -39,6 +44,7 @@ export function SwitchStatic() {
 						_$_.output_push('Unknown');
 					}
 					_$_.output_push('</div>');
+					return_guard_2 = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -67,6 +73,7 @@ export function SwitchReactive() {
 
 			switch (lazy.value) {
 				case 'a':
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="case-a"');
 					_$_.output_push('>');
@@ -74,9 +81,11 @@ export function SwitchReactive() {
 						_$_.output_push('Case A');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 					break;
 
 				case 'b':
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="case-b"');
 					_$_.output_push('>');
@@ -84,9 +93,11 @@ export function SwitchReactive() {
 						_$_.output_push('Case B');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 					break;
 
 				default:
+					var return_guard_2 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="case-c"');
 					_$_.output_push('>');
@@ -94,6 +105,7 @@ export function SwitchReactive() {
 						_$_.output_push('Case C');
 					}
 					_$_.output_push('</div>');
+					return_guard_2 = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -112,6 +124,7 @@ export function SwitchFallthrough() {
 				case 1:
 
 				case 2:
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="case-1-2"');
 					_$_.output_push('>');
@@ -119,9 +132,11 @@ export function SwitchFallthrough() {
 						_$_.output_push('1 or 2');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 					break;
 
 				default:
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="case-other"');
 					_$_.output_push('>');
@@ -129,6 +144,7 @@ export function SwitchFallthrough() {
 						_$_.output_push('Other');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -157,6 +173,7 @@ export function SwitchNumericLevels() {
 
 			switch (lazy_1.value) {
 				case 1:
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="level-1"');
 					_$_.output_push('>');
@@ -164,9 +181,11 @@ export function SwitchNumericLevels() {
 						_$_.output_push('Level 1');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 					break;
 
 				case 2:
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="level-2"');
 					_$_.output_push('>');
@@ -174,9 +193,11 @@ export function SwitchNumericLevels() {
 						_$_.output_push('Level 2');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 					break;
 
 				case 3:
+					var return_guard_2 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="level-3"');
 					_$_.output_push('>');
@@ -184,6 +205,7 @@ export function SwitchNumericLevels() {
 						_$_.output_push('Level 3');
 					}
 					_$_.output_push('</div>');
+					return_guard_2 = true;
 					break;
 			}
 
@@ -213,6 +235,7 @@ export function SwitchBlockScoped() {
 
 			switch (lazy_2.value) {
 				case 1:
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="block-1"');
 					_$_.output_push('>');
@@ -220,9 +243,11 @@ export function SwitchBlockScoped() {
 						_$_.output_push('Block 1');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 					break;
 
 				case 2:
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="block-2"');
 					_$_.output_push('>');
@@ -230,9 +255,11 @@ export function SwitchBlockScoped() {
 						_$_.output_push('Block 2');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 					break;
 
 				case 3:
+					var return_guard_2 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="block-3"');
 					_$_.output_push('>');
@@ -240,6 +267,7 @@ export function SwitchBlockScoped() {
 						_$_.output_push('Block 3');
 					}
 					_$_.output_push('</div>');
+					return_guard_2 = true;
 					break;
 			}
 
@@ -269,6 +297,7 @@ export function SwitchNoBreak() {
 
 			switch (lazy_3.value) {
 				case 1:
+					var return_guard = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="nobreak-1"');
 					_$_.output_push('>');
@@ -276,8 +305,10 @@ export function SwitchNoBreak() {
 						_$_.output_push('NoBreak 1');
 					}
 					_$_.output_push('</div>');
+					return_guard = true;
 
 				case 2:
+					var return_guard_1 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="nobreak-2"');
 					_$_.output_push('>');
@@ -285,8 +316,10 @@ export function SwitchNoBreak() {
 						_$_.output_push('NoBreak 2');
 					}
 					_$_.output_push('</div>');
+					return_guard_1 = true;
 
 				case 3:
+					var return_guard_2 = false;
 					_$_.output_push('<div');
 					_$_.output_push(' class="nobreak-3"');
 					_$_.output_push('>');
@@ -294,6 +327,7 @@ export function SwitchNoBreak() {
 						_$_.output_push('NoBreak 3');
 					}
 					_$_.output_push('</div>');
+					return_guard_2 = true;
 			}
 
 			_$_.output_push('<!--]-->');

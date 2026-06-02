@@ -55,13 +55,12 @@ describe('returns in restricted scopes', () => {
 });
 
 describe('function returns in client components', () => {
-	it('renders TSRX render statements and skips later siblings in the same block', () => {
+	it('renders TSRX render statements inside control blocks alongside outer siblings', () => {
 		function App() {
 			const ready = true;
 			return <>
 				if (ready) {
 					=> <div class="yielded">"yielded"</div>
-					<span class="inner">"inner"</span>
 				}
 				<span class="outer">"outer"</span>
 			</>;
@@ -69,21 +68,62 @@ describe('function returns in client components', () => {
 
 		render(App);
 		expect(container.querySelector('.yielded')?.textContent).toBe('yielded');
-		expect(container.querySelector('.inner')).toBeNull();
 		expect(container.querySelector('.outer')?.textContent).toBe('outer');
 	});
 
-	it('renders top-level TSRX render statements and skips later fragment siblings', () => {
-		function App() {
-			return <>
-				=> <div class="yielded">"yielded"</div>
-				<span class="after">"after"</span>
-			</>;
-		}
+	it('throws when control-flow blocks contain direct TSRX children', () => {
+		expect(
+			() => compile(
+				`
+				function App() {
+					return <>
+						const items = [1, 2, 3];
+						for (const item of items) {
+							<div>{item}</div>
+						}
+					</>;
+				}
+			`,
+				'test.tsrx',
+				{ mode: 'client' },
+			),
+		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+	});
 
-		render(App);
-		expect(container.querySelector('.yielded')?.textContent).toBe('yielded');
-		expect(container.querySelector('.after')).toBeNull();
+	it('throws when top-level TSRX render statements are mixed with fragment children', () => {
+		expect(
+			() => compile(
+				`
+				function App() {
+					return <>
+						=> <div>"yielded"</div>
+						<span>"after"</span>
+					</>;
+				}
+			`,
+				'test.tsrx',
+				{ mode: 'client' },
+			),
+		).toThrow(
+			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+		);
+	});
+
+	it('throws when top-level TSRX render statements are mixed with fragment text', () => {
+		expect(
+			() => compile(`
+				function App() {
+					return <>
+						=> <div>"yielded"</div>
+						"after"
+					</>;
+				}
+			`, 'test.tsrx', {
+				mode: 'client',
+			}),
+		).toThrow(
+			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+		);
 	});
 
 	it('renders TSRX return arguments and skips later siblings', () => {

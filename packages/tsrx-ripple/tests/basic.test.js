@@ -75,7 +75,7 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 		const { code } = compile(
 			`function App() { return <>
 				try {
-					<div>{'content'}</div>
+					=> <div>{'content'}</div>
 				} pending {}
 			</>; }`,
 			'App.tsrx',
@@ -341,7 +341,6 @@ describe('@tsrx/ripple <> expression values', () => {
 		const source = `function Card(props) { return <div>{props.children}</div>; }
 			function App() {
 				return <Card>
-					<span>"stale"</span>
 					=> [1, 2, 3]
 					=> null
 				</Card>;
@@ -351,10 +350,25 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(client.code).toContain('children: _$_.normalize_children([1, 2, 3])');
 		expect(client.code).not.toContain('children: _$_.normalize_children(null)');
-		expect(client.code).not.toContain('stale');
 		expect(server.code).toContain('children: _$_.normalize_children([1, 2, 3])');
 		expect(server.code).not.toContain('children: _$_.normalize_children(null)');
-		expect(server.code).not.toContain('stale');
+	});
+
+	it('throws when component children mix templates with TSRX render statements', () => {
+		const source = `function Card(props) { return <div>{props.children}</div>; }
+			function App() {
+				return <Card>
+					<span>"stale"</span>
+					=> [1, 2, 3]
+				</Card>;
+			}`;
+
+		expect(() => compile(source, 'App.tsrx')).toThrow(
+			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+		);
+		expect(() => compile(source, 'App.tsrx', { mode: 'server' })).toThrow(
+			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+		);
 	});
 
 	it('passes plain non-tracked expression props directly', () => {
@@ -760,7 +774,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 
 			const loop = () => <>
 				for (const item of items) {
-					<div>{item}</div>
+					=> <div>{item}</div>
 				}
 			</>;
 

@@ -536,7 +536,7 @@ function select_tsrx_render_statement_output(nodes) {
  * @returns {boolean}
  */
 function is_direct_tsrx_render_output_node(node) {
-	if (node.metadata?.regular_js) {
+	if (node.metadata?.regular_js || node.metadata?.returned_tsrx_child) {
 		return false;
 	}
 

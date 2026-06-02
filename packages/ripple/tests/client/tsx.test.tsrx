@@ -191,7 +191,7 @@ describe('tsx expression', () => {
 				let &[show] = track(true);
 				const el = <><div class="tsx-content">"visible"</div></>;
 				if (show) {
-					{el}
+					=> el
 				}
 				<button onClick={() => (show = !show)}>{'toggle'}</button>
 			</>;
@@ -433,7 +433,7 @@ describe('tsx expression', () => {
 				const items = ['Apple', 'Banana', 'Cherry'];
 				<ul>
 					for (const item of items) {
-						{createListItem(item)}
+						=> createListItem(item)
 					}
 				</ul>
 			</>;
@@ -452,7 +452,7 @@ describe('tsx expression', () => {
 			return <>
 				<ul class="list">
 					for (const item of items) {
-						{renderItem(item)}
+						=> renderItem(item)
 					}
 				</ul>
 			</>;
@@ -667,7 +667,7 @@ describe('tsx expression', () => {
 				];
 				<div class="container">
 					for (const item of items) {
-						{createItem(item.className, item.content)}
+						=> createItem(item.className, item.content)
 					}
 				</div>
 			</>;
@@ -769,7 +769,7 @@ describe('tsrx expression', () => {
 			return <>
 				const el = <>
 					if (true) {
-						<span>"visible"</span>
+						=> <span>"visible"</span>
 					}
 				</>;
 				{el}

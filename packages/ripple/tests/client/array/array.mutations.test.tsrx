@@ -271,7 +271,7 @@ describe('RippleArray > mutations', () => {
 					{'double all'}
 				</button>
 				for (const item of items) {
-					<pre>{item}</pre>
+					=> <pre>{item}</pre>
 				}
 			</>;
 		}

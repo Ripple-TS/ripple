@@ -7,12 +7,12 @@ var root_2 = _$_.template(`<p>should not render</p>`, 1, 1);
 var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 var root_6 = _$_.template(`<!>`, 1, 1);
-var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_7 = _$_.template(`<p class="loading">loading...</p>`, 1, 1);
 var root_5 = _$_.template(`<!>`, 1, 1);
-var root_9 = _$_.template(`<li> </li>`, 0);
+var root_9 = _$_.template(`<li> </li>`, 1, 1);
 var root_8 = _$_.template(`<ul class="items"></ul>`, 0);
 var root_11 = _$_.template(`<!>`, 1, 1);
-var root_12 = _$_.template(`<div class="loading">loading async content</div>`, 0);
+var root_12 = _$_.template(`<div class="loading">loading async content</div>`, 1, 1);
 var root_10 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_13 = _$_.template(`<div class="resolved"> </div>`, 0);
 
@@ -99,17 +99,21 @@ export function AsyncListInTryPending() {
 		_$_.try(
 			node,
 			(__anchor) => {
+				var return_guard = false;
 				var fragment_2 = root_6();
 				var node_1 = _$_.first_child_frag(fragment_2);
 
 				_$_.render_component(AsyncList, node_1, {});
+				return_guard = true;
 				_$_.append(__anchor, fragment_2);
 			},
 			null,
 			(__anchor) => {
-				var p_5 = root_7();
+				var return_guard_1 = false;
+				var fragment_3 = root_7();
 
-				_$_.append(__anchor, p_5);
+				return_guard_1 = true;
+				_$_.append(__anchor, fragment_3);
 			}
 		);
 
@@ -127,7 +131,9 @@ function AsyncList() {
 				ul_1,
 				() => lazy_2.value,
 				(__anchor, item) => {
-					var li_1 = root_9();
+					var return_guard = false;
+					var fragment_4 = root_9();
+					var li_1 = _$_.first_child_frag(fragment_4);
 
 					{
 						var expression_3 = _$_.child(li_1);
@@ -136,7 +142,8 @@ function AsyncList() {
 						_$_.pop(li_1);
 					}
 
-					_$_.append(__anchor, li_1);
+					return_guard = true;
+					_$_.append(__anchor, fragment_4);
 				},
 				4
 			);
@@ -150,43 +157,47 @@ function AsyncList() {
 
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_3 = root_10();
-		var div_1 = _$_.first_child_frag(fragment_3);
+		var fragment_5 = root_10();
+		var div_1 = _$_.first_child_frag(fragment_5);
 		var node_2 = _$_.sibling(div_1);
 
 		_$_.try(
 			node_2,
 			(__anchor) => {
-				var fragment_4 = root_11();
-				var node_3 = _$_.first_child_frag(fragment_4);
+				var return_guard = false;
+				var fragment_6 = root_11();
+				var node_3 = _$_.first_child_frag(fragment_6);
 
 				_$_.render_component(AsyncContent, node_3, {});
-				_$_.append(__anchor, fragment_4);
+				return_guard = true;
+				_$_.append(__anchor, fragment_6);
 			},
 			null,
 			(__anchor) => {
-				var div_2 = root_12();
+				var return_guard_1 = false;
+				var fragment_7 = root_12();
 
-				_$_.append(__anchor, div_2);
+				return_guard_1 = true;
+				_$_.append(__anchor, fragment_7);
 			}
 		);
 
-		_$_.append(__anchor, fragment_3);
+		_$_.append(__anchor, fragment_5);
 	});
 }
 
 function AsyncContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
-		var div_3 = root_13();
+		var div_2 = root_13();
 
 		{
-			var expression_4 = _$_.child(div_3);
+			var expression_4 = _$_.child(div_2);
 
 			_$_.expression(expression_4, () => lazy_3.value);
-			_$_.pop(div_3);
+			_$_.pop(div_2);
 		}
 
-		_$_.append(__anchor, div_3);
+		_$_.append(__anchor, div_2);
 	});
 }

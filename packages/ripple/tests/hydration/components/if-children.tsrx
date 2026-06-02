@@ -9,7 +9,7 @@ export function IfWithChildren({ children }: { children: any }) {
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
 			if (expanded) {
-				<div class="content">{children}</div>
+				=> <div class="content">{children}</div>
 			}
 		</div>
 	</>;
@@ -35,7 +35,7 @@ export function IfWithStaticChildren() {
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
 			if (expanded) {
-				<div class="content">
+				=> <div class="content">
 					<span>{'Static child 1'}</span>
 					<span>{'Static child 2'}</span>
 				</div>
@@ -59,7 +59,7 @@ export function IfWithSiblingsAndChildren({ children }: { children: any }) {
 				</div>
 			</div>
 			if (expanded) {
-				<div class="items">{children}</div>
+				=> <div class="items">{children}</div>
 			}
 		</section>
 	</>;
@@ -87,7 +87,7 @@ export function ElementWithChildrenThenIf() {
 				</div>
 			</div>
 			if (show) {
-				<div class="conditional">{'Conditional content'}</div>
+				=> <div class="conditional">{'Conditional content'}</div>
 			}
 		</div>
 		<button class="toggle" onClick={() => (show = !show)}>{'Toggle'}</button>
@@ -108,7 +108,7 @@ export function DeepNestingThenIf() {
 				</div>
 			</article>
 			if (visible) {
-				<footer class="footer">{'Footer'}</footer>
+				=> <footer class="footer">{'Footer'}</footer>
 			}
 		</section>
 		<button class="btn" onClick={() => (visible = !visible)}>{'Toggle'}</button>
@@ -140,9 +140,9 @@ export function DomElementChildrenThenSibling() {
 			</div>
 			<div class="panel">
 				if (activeTab === 'code') {
-					<pre class="code">{'const x = 1;'}</pre>
+					=> <pre class="code">{'const x = 1;'}</pre>
 				} else {
-					<div class="preview">{'Preview content'}</div>
+					=> <div class="preview">{'Preview content'}</div>
 				}
 			</div>
 		</div>

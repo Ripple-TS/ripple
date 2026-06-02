@@ -7,7 +7,7 @@ describe('for statements', () => {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
 				for (const item of items) {
-					<div class={item}>{item}</div>
+					=> <div class={item}>{item}</div>
 				}
 			</>;
 		}
@@ -17,27 +17,20 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
-	it('uses TSRX render statements as the selected output for a loop block', () => {
-		function App() {
-			return <>
-				const items = [1, 2, 3];
-				for (const item of items) {
-					<div class="stale">{item}</div>
-					=> <div class="selected">{item}</div>
-				}
-			</>;
-		}
-
-		render(App);
-
-		expect(container.querySelectorAll('.stale')).toHaveLength(0);
+	it('throws when loop blocks mix direct TSRX output with render statements', () => {
 		expect(
-			Array.from(container.querySelectorAll('.selected')).map((el) => el.textContent),
-		).toEqual([
-			'1',
-			'2',
-			'3',
-		]);
+			() => compile(
+				`function App() { return <>
+					const items = [1, 2, 3];
+					for (const item of items) {
+						<div class="stale">{item}</div>
+						=> <div class="selected">{item}</div>
+					}
+				</>; }`,
+				'App.tsrx',
+				{ mode: 'client' },
+			),
+		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
 	});
 
 	it('allows continue to skip an iteration', () => {
@@ -46,7 +39,7 @@ describe('for statements', () => {
 				const items = ['Item 1', '', 'Item 3'];
 				for (const item of items) {
 					if (!item) continue;
-					<div class="item">{item}</div>
+					=> <div class="item">{item}</div>
 				}
 			</>;
 		}
@@ -70,7 +63,7 @@ describe('for statements', () => {
 						skipped.push('skip');
 						continue;
 					}
-					<div class="item">{item}</div>
+					=> <div class="item">{item}</div>
 				}
 			</>;
 		}
@@ -95,7 +88,7 @@ describe('for statements', () => {
 						skipped.push('skip');
 						continue;
 					}
-					<div class="item">{item}</div>
+					=> <div class="item">{item}</div>
 				}
 			</>; }`,
 			'App.tsrx',
@@ -112,7 +105,7 @@ describe('for statements', () => {
 			return <>
 				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
 				for (const item of items) {
-					<div class={item}>{item}</div>
+					=> <div class={item}>{item}</div>
 				}
 				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
 			</>;
@@ -135,7 +128,7 @@ describe('for statements', () => {
 				const items = new RippleArray(1, 2, 3);
 				<div>
 					for (const item of items) {
-						<div>
+						=> <div>
 							<div>{item}</div>
 							const some_text = item;
 							<div>{some_text}</div>
@@ -164,7 +157,7 @@ describe('for statements', () => {
 				const items = new RippleArray('a', 'b', 'c');
 				<div>
 					for (let item of items; index i) {
-						<div>{i + ' : ' + item}</div>
+						=> <div>{i + ' : ' + item}</div>
 					}
 				</div>
 				<button onClick={() => items.push(String.fromCharCode(97 + items.length))}>
@@ -200,7 +193,7 @@ describe('for statements', () => {
 					{ id: 3, text: 'Item 3' },
 				]);
 				for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					=> <div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {
@@ -239,7 +232,7 @@ describe('for statements', () => {
 					{'Add'}
 				</button>
 				for (const item of items; key item.id) {
-					<div class="item">{item.label}</div>
+					=> <div class="item">{item.label}</div>
 				}
 				<p class="count">{count}</p>
 			</>;
@@ -271,7 +264,7 @@ describe('for statements', () => {
 				let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
 				<div>
 					for (let item of items; index idx; key item.id) {
-						<span class="item">{idx + ':' + item.text}</span>
+						=> <span class="item">{idx + ':' + item.text}</span>
 					}
 				</div>
 				<button
@@ -307,7 +300,7 @@ describe('for statements', () => {
 					{ id: 3, text: 'Item 3' },
 				]);
 				for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					=> <div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {
@@ -345,7 +338,7 @@ describe('for statements', () => {
 				let &[items] = track(objects.slice());
 				<div>
 					for (const item of items) {
-						<span class="item">{item.text}</span>
+						=> <span class="item">{item.text}</span>
 					}
 				</div>
 				<button

@@ -84,6 +84,10 @@ const mutating_method_names = new Set([
 
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
+const TSRX_RENDER_MIXED_CHILDREN_ERROR =
+	'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body. Use either `=>` or ordinary TSRX children.';
+const CONTROL_FLOW_TSRX_OUTPUT_ERROR =
+	'TSRX elements and text inside control flow blocks must be rendered with `=>`. Use `=> <...>` to render from the block.';
 
 /**
  * @param {AST.MemberExpression} node
@@ -128,6 +132,100 @@ function get_module_declaration_name(node) {
  */
 function is_submodule_declaration(node) {
 	return node.type === 'TSModuleDeclaration' && node.metadata?.module_keyword === 'module';
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_direct_tsrx_output_child(node) {
+	if (node.metadata?.regular_js || node.type === 'EmptyStatement') {
+		return false;
+	}
+
+	return (
+		node.type === 'Element' ||
+		node.type === 'TSRXExpression' ||
+		node.type === 'Text' ||
+		node.type === 'TsrxFragment' ||
+		node.type === 'TsxCompat' ||
+		(node.type === 'ExpressionStatement' && is_native_tsrx_template_node(node.expression))
+	);
+}
+
+/**
+ * @param {AST.Node[]} nodes
+ * @param {number} index
+ * @returns {boolean}
+ */
+function is_return_argument_output_child(nodes, index) {
+	return (
+		nodes[index]?.metadata?.returned_tsrx_child === true &&
+		nodes[index + 1]?.type === 'ReturnStatement'
+	);
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @param {AnalysisContext} context
+ * @returns {void}
+ */
+function validate_tsrx_render_statement_children(children, context) {
+	const render_index = children.findIndex((child) => child.type === 'TsrxRenderStatement');
+	if (render_index === -1) {
+		return;
+	}
+
+	const output_index = children.findIndex(
+		(child, index) =>
+			is_direct_tsrx_output_child(child) && !is_return_argument_output_child(children, index),
+	);
+	if (output_index === -1) {
+		return;
+	}
+
+	const conflict =
+		output_index > render_index
+			? children[output_index]
+			: /** @type {AST.Node} */ (children[render_index]);
+	error(
+		TSRX_RENDER_MIXED_CHILDREN_ERROR,
+		context.state.analysis.module.filename,
+		conflict,
+		context.state.collect ? context.state.analysis.errors : undefined,
+		context.state.analysis.comments,
+	);
+}
+
+/**
+ * @param {AST.Node[]} statements
+ * @param {AnalysisContext} context
+ * @returns {void}
+ */
+function validate_control_flow_tsrx_output(statements, context) {
+	for (let index = 0; index < statements.length; index++) {
+		const statement = statements[index];
+		if (
+			is_direct_tsrx_output_child(statement) &&
+			!is_return_argument_output_child(statements, index)
+		) {
+			error(
+				CONTROL_FLOW_TSRX_OUTPUT_ERROR,
+				context.state.analysis.module.filename,
+				statement,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+		}
+	}
+}
+
+/**
+ * @param {AST.Statement} statement
+ * @returns {AST.Node[]}
+ */
+function get_control_flow_body_statements(statement) {
+	return statement.type === 'BlockStatement' ? statement.body : [statement];
 }
 
 /**
@@ -1720,6 +1818,7 @@ const visitors = {
 				has_template: false,
 			};
 
+			validate_control_flow_tsrx_output(switch_case.consequent, context);
 			context.visit(switch_case, context.state);
 
 			if (!node.metadata.has_template) {
@@ -1797,6 +1896,7 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 		};
+		validate_control_flow_tsrx_output(get_control_flow_body_statements(node.body), context);
 		context.next();
 
 		if (!node.metadata.has_template) {
@@ -1937,10 +2037,10 @@ const visitors = {
 			/** @type {AST.TrackedNode} */ (node.test).tracked = true;
 		}
 
-		context.visit(node.consequent, context.state);
-
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		validate_control_flow_tsrx_output(consequent_body, context);
+		context.visit(node.consequent, context.state);
 
 		if (
 			consequent_body.length === 1 &&
@@ -1973,6 +2073,7 @@ const visitors = {
 			node.metadata.has_template = false;
 			node.metadata.has_throw = false;
 			node.metadata.has_continue = false;
+			validate_control_flow_tsrx_output(get_control_flow_body_statements(node.alternate), context);
 			context.visit(node.alternate, context.state);
 
 			if (
@@ -2058,6 +2159,7 @@ const visitors = {
 	},
 
 	TsrxRenderStatement(node, context) {
+		mark_control_flow_has_template(context.path);
 		if (is_native_tsrx_template_node(node.argument)) {
 			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
 		} else if (node.argument) {
@@ -2128,6 +2230,7 @@ const visitors = {
 				has_template: false,
 			};
 
+			validate_control_flow_tsrx_output(node.block.body, context);
 			context.visit(node.block, state);
 
 			if (!node.metadata.has_template) {
@@ -2145,6 +2248,7 @@ const visitors = {
 				has_template: false,
 			};
 
+			validate_control_flow_tsrx_output(node.pending.body || [], context);
 			context.visit(node.pending, state);
 
 			if ((node.pending.body || []).length > 0 && !node.metadata.has_template) {
@@ -2157,14 +2261,17 @@ const visitors = {
 				);
 			}
 		} else {
+			validate_control_flow_tsrx_output(node.block.body, context);
 			context.visit(node.block, state);
 		}
 
 		if (node.handler) {
+			validate_control_flow_tsrx_output(node.handler.body.body, context);
 			context.visit(node.handler, state);
 		}
 
 		if (node.finalizer) {
+			validate_control_flow_tsrx_output(node.finalizer.body, context);
 			context.visit(node.finalizer, state);
 		}
 	},
@@ -2232,12 +2339,13 @@ const visitors = {
 		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 	},
 
-	TsrxFragment(_, context) {
+	TsrxFragment(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}
 
 		mark_control_flow_has_template(context.path);
+		validate_tsrx_render_statement_children(node.children ?? [], context);
 		return context.next();
 	},
 
@@ -2277,6 +2385,7 @@ const visitors = {
 		const attribute_names = new Set();
 
 		mark_control_flow_has_template(path);
+		validate_tsrx_render_statement_children(node.children ?? [], context);
 
 		if (
 			!is_dom_element &&

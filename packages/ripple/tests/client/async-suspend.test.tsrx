@@ -25,9 +25,9 @@ describe('async suspense', () => {
 			return <>
 				let &[count, countTracked] = track(0);
 				try {
-					<Child {countTracked} />
+					=> <Child {countTracked} />
 				} pending {
-					<div class="pending">{'pending...'}</div>
+					=> <div class="pending">{'pending...'}</div>
 				}
 				<button onClick={() => count++}>{'Increment'}</button>
 			</>;
@@ -86,12 +86,12 @@ describe('async suspense', () => {
 				<button onClick={() => (show = false)}>{'Hide'}</button>
 				if (show) {
 					try {
-						<Child />
+						=> <Child />
 					} pending {
-						<div class="pending">{'loading...'}</div>
+						=> <div class="pending">{'loading...'}</div>
 					}
 				} else {
-					<div class="hidden">{'hidden'}</div>
+					=> <div class="hidden">{'hidden'}</div>
 				}
 			</>;
 		}
@@ -144,11 +144,11 @@ describe('async suspense', () => {
 				let &[query] = track('a');
 				try {
 					let &[value] = trackAsync(() => createRequest(query));
-					<div class="value">{value}</div>
+					=> <div class="value">{value}</div>
 				} pending {
-					<div class="pending">{'loading...'}</div>
+					=> <div class="pending">{'loading...'}</div>
 				} catch (error) {
-					<div class="error">{String(error)}</div>
+					=> <div class="error">{String(error)}</div>
 				}
 				<button
 					onClick={() => {
@@ -213,7 +213,7 @@ describe('async suspense', () => {
 					});
 					<ul>
 						for (let item of filtered) {
-							<li>{item}</li>
+							=> <li>{item}</li>
 						}
 					</ul>
 					<pre>{JSON.stringify(items)}</pre>
@@ -224,10 +224,10 @@ describe('async suspense', () => {
 				return <>
 					let &[query, queryTracked] = track('');
 					try {
-						<FilteredList {queryTracked} />
+						=> <FilteredList {queryTracked} />
 					} pending {
 						pending_render_count += 1;
-						<p class="pending">{'loading...'}</p>
+						=> <p class="pending">{'loading...'}</p>
 					}
 					<button onClick={() => (query = 'a')}>{'Search'}</button>
 				</>;
@@ -288,16 +288,17 @@ describe('async suspense', () => {
 						return items.filter((item: string) => item.includes(query));
 					});
 
-					<ul>
-						for (let item of filtered) {
-							<li>{item}</li>
-						}
-					</ul>
-
-					<pre>{JSON.stringify(items)}</pre>
+					=> <>
+						<ul>
+							for (let item of filtered) {
+								=> <li>{item}</li>
+							}
+						</ul>
+						<pre>{JSON.stringify(items)}</pre>
+					</>
 				} pending {
 					pending_render_count += 1;
-					<p class="pending">{'loading...'}</p>
+					=> <p class="pending">{'loading...'}</p>
 				}
 				<button onClick={() => (query = 'a')}>{'Search'}</button>
 			</>;
@@ -373,9 +374,9 @@ describe('async suspense', () => {
 				return <>
 					let &[count] = track(2);
 					try {
-						<Child {count} />
+						=> <Child {count} />
 					} pending {
-						<div class="pending">{'Loading...'}</div>
+						=> <div class="pending">{'Loading...'}</div>
 					}
 					<button onClick={() => count++}>{'Increment'}</button>
 				</>;
@@ -466,9 +467,9 @@ describe('async suspense', () => {
 				return <>
 					let &[count] = track(2);
 					try {
-						<Child {count} />
+						=> <Child {count} />
 					} pending {
-						<div class="pending">{'Loading...'}</div>
+						=> <div class="pending">{'Loading...'}</div>
 					}
 					<button onClick={() => count++}>{'Increment'}</button>
 				</>;
@@ -550,9 +551,9 @@ describe('async suspense', () => {
 				let &[count] = track(0);
 				<button onClick={() => count++}>{count}</button>
 				try {
-					<Child {count} />
+					=> <Child {count} />
 				} pending {
-					<div class="pending">{'Loading...'}</div>
+					=> <div class="pending">{'Loading...'}</div>
 				}
 			</>;
 		}
@@ -585,12 +586,12 @@ describe('async suspense', () => {
 			function Child({ itemsTracked }: { itemsTracked: Tracked<string[]> }) {
 				return <>
 					try {
-						<div class="child-content">
+						=> <div class="child-content">
 							{'child: '}
 							{itemsTracked.value.join(', ')}
 						</div>
 					} pending {
-						<div class="child-pending">{'child loading...'}</div>
+						=> <div class="child-pending">{'child loading...'}</div>
 					}
 				</>;
 			}
@@ -606,13 +607,15 @@ describe('async suspense', () => {
 							});
 						});
 
-						<div class="parent-content">
-							{'parent: '}
-							{items.join(', ')}
-						</div>
-						<Child {itemsTracked} />
+						=> <>
+							<div class="parent-content">
+								{'parent: '}
+								{items.join(', ')}
+							</div>
+							<Child {itemsTracked} />
+						</>
 					} pending {
-						<div class="parent-pending">{'parent loading...'}</div>
+						=> <div class="parent-pending">{'parent loading...'}</div>
 					}
 					<button onClick={() => (query = 'next')}>{'Change'}</button>
 				</>;

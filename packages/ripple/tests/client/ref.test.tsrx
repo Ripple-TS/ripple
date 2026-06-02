@@ -228,7 +228,7 @@ describe('refs', () => {
 			return <>
 				let &[show] = track(true);
 				if (show) {
-					<div ref={div}>{'Hello cleanup'}</div>
+					=> <div ref={div}>{'Hello cleanup'}</div>
 				}
 				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
 			</>;
@@ -273,7 +273,7 @@ describe('refs', () => {
 			return <>
 				let &[show] = track(true);
 				if (show) {
-					<Child ref={input} />
+					=> <Child ref={input} />
 				}
 				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
 			</>;
@@ -369,7 +369,7 @@ describe('refs', () => {
 				return <>
 					let &[show] = track(true);
 					if (show) {
-						<Child
+						=> <Child
 							ref={(node: HTMLInputElement | null) => {
 								input = node;
 								return () => {
@@ -492,7 +492,7 @@ describe('refs', () => {
 				captured = tracker;
 				toggle = show;
 				if (show.value) {
-					<div ref={tracker}>{'Hello World'}</div>
+					=> <div ref={tracker}>{'Hello World'}</div>
 				}
 			</>;
 		}

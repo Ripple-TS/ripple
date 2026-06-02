@@ -13,16 +13,16 @@ export function MixedControlFlowStatic() {
 					switch (row.kind) {
 						case 'a':
 							try {
-								<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
+								=> <div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
 							} pending {
-								<div class={`pending pending-${row.id}`}>{'pending a'}</div>
+								=> <div class={`pending pending-${row.id}`}>{'pending a'}</div>
 							}
 							break;
 						default:
 							try {
-								<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
+								=> <div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
 							} pending {
-								<div class={`pending pending-${row.id}`}>{'pending b'}</div>
+								=> <div class={`pending pending-${row.id}`}>{'pending b'}</div>
 							}
 					}
 				}
@@ -64,21 +64,21 @@ export function MixedControlFlowReactive() {
 			{'Add Item'}
 		</button>
 		if (show) {
-			<div class="mixed-reactive-list">
+			=> <div class="mixed-reactive-list">
 				for (const item of items; key item.id) {
 					switch (mode) {
 						case 'a':
 							try {
-								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
+								=> <p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
 							} pending {
-								<p class="pending">{'pending a'}</p>
+								=> <p class="pending">{'pending a'}</p>
 							}
 							break;
 						default:
 							try {
-								<p class={`item item-${item.id}`}>{`B:${item.label}`}</p>
+								=> <p class={`item item-${item.id}`}>{`B:${item.label}`}</p>
 							} pending {
-								<p class="pending">{'pending b'}</p>
+								=> <p class="pending">{'pending b'}</p>
 							}
 					}
 				}
@@ -97,13 +97,13 @@ export function MixedControlFlowAsyncPending() {
 				switch (state) {
 					case 'slow':
 						try {
-							<AsyncRow label={`row-${row}`} />
+							=> <AsyncRow label={`row-${row}`} />
 						} pending {
-							<div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
+							=> <div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
 						}
 						break;
 					default:
-						<div class="unexpected">{'unexpected'}</div>
+						=> <div class="unexpected">{'unexpected'}</div>
 				}
 			}
 		}

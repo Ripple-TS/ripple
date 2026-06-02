@@ -9,16 +9,16 @@ describe('switch statements', () => {
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
 				switch (value) {
 					case 'a':
-						<div>{'Case A'}</div>
+						=> <div>{'Case A'}</div>
 						break;
 					case 'b':
-						<div>{'Case B'}</div>
+						=> <div>{'Case B'}</div>
 						break;
 					case 'c':
-						<div>{'Case C'}</div>
+						=> <div>{'Case C'}</div>
 						break;
 					default:
-						<div>{'Default Case'}</div>
+						=> <div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -43,13 +43,13 @@ describe('switch statements', () => {
 				<button onClick={() => count++}>{'Increment'}</button>
 				switch (count) {
 					case 1:
-						<div>{'Count is 1'}</div>
+						=> <div>{'Count is 1'}</div>
 						break;
 					case 2:
-						<div>{'Count is 2'}</div>
+						=> <div>{'Count is 2'}</div>
 						break;
 					default:
-						<div>{'Count is other'}</div>
+						=> <div>{'Count is other'}</div>
 				}
 			</>;
 		}
@@ -75,7 +75,7 @@ describe('switch statements', () => {
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				switch (value) {
 					default:
-						<div>{'Default for ' + value}</div>
+						=> <div>{'Default for ' + value}</div>
 				}
 			</>;
 		}
@@ -97,14 +97,14 @@ describe('switch statements', () => {
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				switch (value) {
 					case 'a':
-						<div>{'Case A'}</div>
+						=> <div>{'Case A'}</div>
 						break;
 					case 'b':
 					case 'c':
-						<div>{'Case B or C'}</div>
+						=> <div>{'Case B or C'}</div>
 						break;
 					default:
-						<div>{'Default Case'}</div>
+						=> <div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -142,19 +142,19 @@ describe('switch statements', () => {
 				switch (status) {
 					case 'active':
 						message = 'Currently active.';
-						<div>{'Status: ' + message}</div>
+						=> <div>{'Status: ' + message}</div>
 						break;
 					case 'pending':
 						message = 'Waiting for completion.';
-						<div>{'Status: ' + message}</div>
+						=> <div>{'Status: ' + message}</div>
 						break;
 					case 'completed':
 						message = 'Task finished!';
-						<div class="success">{'Status: ' + message}</div>
+						=> <div class="success">{'Status: ' + message}</div>
 						break;
 					default:
 						message = 'An error occurred.';
-						<div class="error">{'Status: ' + message}</div>
+						=> <div class="error">{'Status: ' + message}</div>
 				}
 			</>;
 		}
@@ -191,19 +191,23 @@ describe('switch statements', () => {
 						switch (status) {
 							case -1:
 							case 0:
-								<p>{' Idle'}</p>
+								=> <p>{' Idle'}</p>
 							case 1:
-								<p>{' Loading'}</p>
+								=> <p>{' Loading'}</p>
 							case 2:
-								<p>{' Success'}</p>
+								=> <p>{' Success'}</p>
 								break;
 							default:
-								<p>{' Unknown status'}</p>
-								<p>{' Unknown 2'}</p>
+								=> <>
+									<p>{' Unknown status'}</p>
+									<p>{' Unknown 2'}</p>
+								</>
 							case 3:
-								<p>{' Error'}</p>
-								<p>{' Error 2'}</p>
-								<p>{' Error 3'}</p>
+								=> <>
+									<p>{' Error'}</p>
+									<p>{' Error 2'}</p>
+									<p>{' Error 3'}</p>
+								</>
 								break;
 						}
 					</div>
@@ -264,7 +268,7 @@ describe('switch statements', () => {
 					<div>
 						switch (value) {
 							case 'a':
-								<div>{' Case A'}</div>
+								=> <div>{' Case A'}</div>
 								break;
 							// NOTE: This should be the default in the middle of the cases
 							// However, jsdom (and other node-based dom libs) has a bug
@@ -272,12 +276,12 @@ describe('switch statements', () => {
 							// The browser works correctly.
 							// So, we're just using a defined case in the middle to simulate default.
 							case 'x':
-								<div>{' Default Case for ' + value}</div>
+								=> <div>{' Default Case for ' + value}</div>
 							case 'b':
-								<div>{' Case B'}</div>
+								=> <div>{' Case B'}</div>
 								break;
 							case 'c':
-								<div>{' Case C'}</div>
+								=> <div>{' Case C'}</div>
 						}
 					</div>
 				</>;
@@ -327,9 +331,9 @@ describe('switch statements', () => {
 					<span>{'before'}</span>
 					switch (value) {
 						case 'a':
-							{'Case A'}
+							=> 'Case A'
 						case 'b':
-							{'Case B'}
+							=> 'Case B'
 					}
 				</div>
 			</>;
@@ -347,10 +351,10 @@ describe('switch statements', () => {
 					<span>{'before'}</span>
 					switch (value) {
 						case 'a':
-							{'Case A'}
+							=> 'Case A'
 							break;
 						case 'b':
-							{'Case B'}
+							=> 'Case B'
 							break;
 					}
 				</div>
@@ -376,13 +380,13 @@ describe('switch statements', () => {
 				</button>
 				switch (level) {
 					case 1:
-						<div class="level">{'Level 1'}</div>
+						=> <div class="level">{'Level 1'}</div>
 						break;
 					case 2:
-						<div class="level">{'Level 2'}</div>
+						=> <div class="level">{'Level 2'}</div>
 						break;
 					case 3:
-						<div class="level">{'Level 3'}</div>
+						=> <div class="level">{'Level 3'}</div>
 						break;
 				}
 			</>;

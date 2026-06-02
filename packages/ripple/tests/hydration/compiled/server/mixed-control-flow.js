@@ -30,6 +30,9 @@ export function MixedControlFlowStatic() {
 								_$_.try_block(
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard = false;
+
 										_$_.output_push('<div');
 										_$_.output_push(_$_.attr('class', `row row-${row.id} kind-a`));
 										_$_.output_push('>');
@@ -39,11 +42,15 @@ export function MixedControlFlowStatic() {
 										}
 
 										_$_.output_push('</div>');
+										return_guard = true;
 										_$_.output_push('<!--]-->');
 									},
 									null,
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_1 = false;
+
 										_$_.output_push('<div');
 										_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
 										_$_.output_push('>');
@@ -53,6 +60,7 @@ export function MixedControlFlowStatic() {
 										}
 
 										_$_.output_push('</div>');
+										return_guard_1 = true;
 										_$_.output_push('<!--]-->');
 									}
 								);
@@ -62,6 +70,9 @@ export function MixedControlFlowStatic() {
 								_$_.try_block(
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_2 = false;
+
 										_$_.output_push('<div');
 										_$_.output_push(_$_.attr('class', `row row-${row.id} kind-b`));
 										_$_.output_push('>');
@@ -71,11 +82,15 @@ export function MixedControlFlowStatic() {
 										}
 
 										_$_.output_push('</div>');
+										return_guard_2 = true;
 										_$_.output_push('<!--]-->');
 									},
 									null,
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_3 = false;
+
 										_$_.output_push('<div');
 										_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
 										_$_.output_push('>');
@@ -85,6 +100,7 @@ export function MixedControlFlowStatic() {
 										}
 
 										_$_.output_push('</div>');
+										return_guard_3 = true;
 										_$_.output_push('<!--]-->');
 									}
 								);
@@ -150,6 +166,8 @@ export function MixedControlFlowReactive() {
 			_$_.output_push('<!--[-->');
 
 			if (lazy.value) {
+				var return_guard = false;
+
 				_$_.output_push('<div');
 				_$_.output_push(' class="mixed-reactive-list"');
 				_$_.output_push('>');
@@ -165,6 +183,9 @@ export function MixedControlFlowReactive() {
 								_$_.try_block(
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_1 = false;
+
 										_$_.output_push('<p');
 										_$_.output_push(_$_.attr('class', `item item-${item.id}`));
 										_$_.output_push('>');
@@ -174,11 +195,15 @@ export function MixedControlFlowReactive() {
 										}
 
 										_$_.output_push('</p>');
+										return_guard_1 = true;
 										_$_.output_push('<!--]-->');
 									},
 									null,
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_2 = false;
+
 										_$_.output_push('<p');
 										_$_.output_push(' class="pending"');
 										_$_.output_push('>');
@@ -188,6 +213,7 @@ export function MixedControlFlowReactive() {
 										}
 
 										_$_.output_push('</p>');
+										return_guard_2 = true;
 										_$_.output_push('<!--]-->');
 									}
 								);
@@ -197,6 +223,9 @@ export function MixedControlFlowReactive() {
 								_$_.try_block(
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_3 = false;
+
 										_$_.output_push('<p');
 										_$_.output_push(_$_.attr('class', `item item-${item.id}`));
 										_$_.output_push('>');
@@ -206,11 +235,15 @@ export function MixedControlFlowReactive() {
 										}
 
 										_$_.output_push('</p>');
+										return_guard_3 = true;
 										_$_.output_push('<!--]-->');
 									},
 									null,
 									() => {
 										_$_.output_push('<!--[-->');
+
+										var return_guard_4 = false;
+
 										_$_.output_push('<p');
 										_$_.output_push(' class="pending"');
 										_$_.output_push('>');
@@ -220,6 +253,7 @@ export function MixedControlFlowReactive() {
 										}
 
 										_$_.output_push('</p>');
+										return_guard_4 = true;
 										_$_.output_push('<!--]-->');
 									}
 								);
@@ -232,6 +266,7 @@ export function MixedControlFlowReactive() {
 				}
 
 				_$_.output_push('</div>');
+				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -271,6 +306,8 @@ export function MixedControlFlowAsyncPending() {
 								() => {
 									_$_.output_push('<!--[-->');
 
+									var return_guard = false;
+
 									{
 										const comp = AsyncRow;
 										const args = [{ label: `row-${row}` }];
@@ -278,11 +315,15 @@ export function MixedControlFlowAsyncPending() {
 										_$_.render_component(comp, ...args);
 									}
 
+									return_guard = true;
 									_$_.output_push('<!--]-->');
 								},
 								null,
 								() => {
 									_$_.output_push('<!--[-->');
+
+									var return_guard_1 = false;
+
 									_$_.output_push('<div');
 									_$_.output_push(_$_.attr('class', `pending-row pending-row-${row}`));
 									_$_.output_push('>');
@@ -292,12 +333,14 @@ export function MixedControlFlowAsyncPending() {
 									}
 
 									_$_.output_push('</div>');
+									return_guard_1 = true;
 									_$_.output_push('<!--]-->');
 								}
 							);
 							break;
 
 						default:
+							var return_guard_2 = false;
 							_$_.output_push('<div');
 							_$_.output_push(' class="unexpected"');
 							_$_.output_push('>');
@@ -305,6 +348,7 @@ export function MixedControlFlowAsyncPending() {
 								_$_.output_push('unexpected');
 							}
 							_$_.output_push('</div>');
+							return_guard_2 = true;
 					}
 
 					_$_.output_push('<!--]-->');
