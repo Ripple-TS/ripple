@@ -28,9 +28,9 @@ describe('returns in restricted SSR scopes', () => {
 				function App() {
 					return <>
 						if (ready) {
-							=> <div>"yielded"</div>
-						}
-						<span>"after"</span>
+								=> <div>yielded</div>
+							}
+							<span>after</span>
 					</>;
 				}
 			`,
@@ -47,9 +47,9 @@ describe('function returns in SSR components', () => {
 			const ready = true;
 			return <>
 				if (ready) {
-					=> <div class="yielded">"yielded"</div>
-				}
-				<span class="outer">"outer"</span>
+						=> <div class="yielded">yielded</div>
+					}
+					<span class="outer">outer</span>
 			</>;
 		}
 
@@ -73,7 +73,7 @@ describe('function returns in SSR components', () => {
 				'test.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+			).toThrow('TSRX elements and text inside JavaScript control flow blocks must use template directives.');
 	});
 
 	it('throws when top-level TSRX render statements are mixed with element children', () => {
@@ -82,8 +82,8 @@ describe('function returns in SSR components', () => {
 				`
 				function App() {
 					return <section>
-						=> <div>"yielded"</div>
-						<span>"after"</span>
+							=> <div>yielded</div>
+							<span>after</span>
 					</section>;
 				}
 			`,
@@ -100,9 +100,9 @@ describe('function returns in SSR components', () => {
 			const ready = true;
 			return <>
 				if (ready) {
-					return <div class="returned">"returned"</div>;
-				}
-				<span class="after">"after"</span>
+						return <div class="returned">returned</div>;
+					}
+					<span class="after">after</span>
 			</>;
 		}
 

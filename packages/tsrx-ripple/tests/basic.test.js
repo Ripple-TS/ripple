@@ -336,11 +336,11 @@ describe('@tsrx/ripple <> expression values', () => {
 
 	it('supports children shortcuts that return native templates', () => {
 		const source = `function Card(props) { return <div>{props.children}</div>; }
-			function App() {
-				return <Card>
-					=> () => <span>"hello"</span>
-				</Card>;
-			}`;
+				function App() {
+					return <Card>
+						=> () => <span>hello</span>
+					</Card>;
+				}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
@@ -560,14 +560,14 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('lowers native element values outside components', () => {
-		const { code } = compile(`const test = <button>"Hello"</button>;`, 'App.tsrx');
+			const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('const test = _$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
 	});
 
 	it('lowers bare native element expression statements outside components', () => {
-		const { code } = compile(`<button>"Hello"</button>;`, 'App.tsrx');
+			const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('_$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
@@ -576,7 +576,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('renders native element values assigned inside returned templates on the server', () => {
 		const { code } = compile(
 			`function App() { return <>
-				const test = <button>"Hello"</button>;
+					const test = <button>Hello</button>;
 				{test}
 			</>; }`,
 			'App.tsrx',
@@ -589,7 +589,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('keeps direct arrow component returns on the render path', () => {
-		const { code } = compile(`const App = () => <button>"Hello"</button>;`, 'App.tsrx');
+			const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('template(`<button>Hello</button>`');
 		expect(code).toContain('_$_.append(__anchor, button_1)');
@@ -599,7 +599,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('keeps returned elements after comments on the render path', () => {
 		const { code } = compile(
 			`function App() {
-				return /* comment */ <div>"Commented"</div>;
+					return /* comment */ <div>Commented</div>;
 			}`,
 			'App.tsrx',
 		);

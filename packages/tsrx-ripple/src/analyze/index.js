@@ -88,7 +88,7 @@ const TEMPLATE_FRAGMENT_ERROR =
 const TSRX_RENDER_MIXED_CHILDREN_ERROR =
 	'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body. Use either `=>` or ordinary TSRX children.';
 const CONTROL_FLOW_TSRX_OUTPUT_ERROR =
-	'TSRX elements and text inside control flow blocks must be rendered with `=>`. Use `=> <...>` to render from the block.';
+	'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.';
 
 /**
  * @param {AST.MemberExpression} node
@@ -201,9 +201,14 @@ function validate_tsrx_render_statement_children(children, context) {
 /**
  * @param {AST.Node[]} statements
  * @param {AnalysisContext} context
+ * @param {boolean} [allow_direct_output]
  * @returns {void}
  */
-function validate_control_flow_tsrx_output(statements, context) {
+function validate_control_flow_tsrx_output(statements, context, allow_direct_output = false) {
+	if (allow_direct_output) {
+		return;
+	}
+
 	for (let index = 0; index < statements.length; index++) {
 		const statement = statements[index];
 		if (
@@ -1819,7 +1824,11 @@ const visitors = {
 				has_template: false,
 			};
 
-			validate_control_flow_tsrx_output(switch_case.consequent, context);
+				validate_control_flow_tsrx_output(
+					switch_case.consequent,
+					context,
+					node.metadata?.tsrxDirective === 'switch',
+				);
 			context.visit(switch_case, context.state);
 
 			if (!node.metadata.has_template) {
@@ -1897,7 +1906,11 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 		};
-		validate_control_flow_tsrx_output(get_control_flow_body_statements(node.body), context);
+			validate_control_flow_tsrx_output(
+				get_control_flow_body_statements(node.body),
+				context,
+				node.metadata?.tsrxDirective === 'for',
+			);
 		context.next();
 
 		if (!node.metadata.has_template) {
@@ -2040,7 +2053,11 @@ const visitors = {
 
 		const consequent_body =
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-		validate_control_flow_tsrx_output(consequent_body, context);
+		validate_control_flow_tsrx_output(
+			consequent_body,
+			context,
+			node.metadata?.tsrxDirective === 'if',
+		);
 		context.visit(node.consequent, context.state);
 
 		if (
@@ -2074,7 +2091,11 @@ const visitors = {
 			node.metadata.has_template = false;
 			node.metadata.has_throw = false;
 			node.metadata.has_continue = false;
-			validate_control_flow_tsrx_output(get_control_flow_body_statements(node.alternate), context);
+			validate_control_flow_tsrx_output(
+				get_control_flow_body_statements(node.alternate),
+				context,
+				node.metadata?.tsrxDirective === 'if',
+			);
 			context.visit(node.alternate, context.state);
 
 			if (
@@ -2236,7 +2257,11 @@ const visitors = {
 				has_template: false,
 			};
 
-			validate_control_flow_tsrx_output(node.block.body, context);
+			validate_control_flow_tsrx_output(
+				node.block.body,
+				context,
+				node.metadata?.tsrxDirective === 'try',
+			);
 			context.visit(node.block, state);
 
 			if (!node.metadata.has_template) {
@@ -2254,7 +2279,11 @@ const visitors = {
 				has_template: false,
 			};
 
-			validate_control_flow_tsrx_output(node.pending.body || [], context);
+			validate_control_flow_tsrx_output(
+				node.pending.body || [],
+				context,
+				node.metadata?.tsrxDirective === 'try',
+			);
 			context.visit(node.pending, state);
 
 			if ((node.pending.body || []).length > 0 && !node.metadata.has_template) {
@@ -2267,17 +2296,29 @@ const visitors = {
 				);
 			}
 		} else {
-			validate_control_flow_tsrx_output(node.block.body, context);
+			validate_control_flow_tsrx_output(
+				node.block.body,
+				context,
+				node.metadata?.tsrxDirective === 'try',
+			);
 			context.visit(node.block, state);
 		}
 
 		if (node.handler) {
-			validate_control_flow_tsrx_output(node.handler.body.body, context);
+			validate_control_flow_tsrx_output(
+				node.handler.body.body,
+				context,
+				node.metadata?.tsrxDirective === 'try',
+			);
 			context.visit(node.handler, state);
 		}
 
 		if (node.finalizer) {
-			validate_control_flow_tsrx_output(node.finalizer.body, context);
+			validate_control_flow_tsrx_output(
+				node.finalizer.body,
+				context,
+				node.metadata?.tsrxDirective === 'try',
+			);
 			context.visit(node.finalizer, state);
 		}
 	},

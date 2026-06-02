@@ -26,20 +26,20 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>&lt;span>Not HTML&lt;/span></div>');
 	});
 
-	it('renders direct double-quoted text children as text', async () => {
+	it('renders direct JSX text children as text', async () => {
 		function Basic() {
 			return <>
-				<div>"Rock &amp; &quot;Roll&quot;"</div>
-				<div>"line\nbreak"</div>
-				<pre>"first
-second"</pre>
+				<div>Rock &amp; &quot;Roll&quot;</div>
+				<div>line break</div>
+				<pre>first
+second</pre>
 			</>;
 		}
 
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml(
-			'<div>Rock &amp; "Roll"</div><div>line\\nbreak</div><pre>first\nsecond</pre>',
+				'<div>Rock &amp; "Roll"</div><div>line break</div><pre>first\nsecond</pre>',
 		);
 	});
 
@@ -52,7 +52,7 @@ second"</pre>
 				void leaked;
 			}
 
-			return <>"Hello world"</>;
+			return <>Hello world</>;
 		}
 
 		const { body } = await render(Basic);
@@ -67,7 +67,7 @@ second"</pre>
 				if (!ready) {
 					return 'Waiting';
 				}
-				"Ready"
+				Ready
 			</>;
 		}
 

@@ -1184,11 +1184,12 @@ function App() { return <>
 		expect(result.errors).toEqual([]);
 	});
 
-	it('throws for unclosed tsx compat tags outside loose mode', () => {
+	it('collects unclosed tsx compat tag errors outside loose mode', () => {
 		const source = `export function App() { return <tsx:react>1; }`;
 
-		expect(() => compile(source, 'test.tsrx', { collect: true })).toThrow(
-			'Not implemented: TsxCompat',
+		const result = compile(source, 'test.tsrx', { collect: true });
+		expect(result.errors.map((error) => error.message)).toContain(
+			"Unclosed tag '<tsx:react>'. Expected '</tsx:react>' before end of template.",
 		);
 	});
 

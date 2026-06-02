@@ -28,7 +28,7 @@ describe('for statements in SSR', () => {
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+			).toThrow('TSRX elements and text inside JavaScript control flow blocks must use template directives.');
 	});
 
 	it('renders nested for...of loops', async () => {

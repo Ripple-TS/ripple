@@ -255,7 +255,7 @@ export function get_native_tsrx_function_template_node(node) {
 export function get_native_tsrx_function_body(node) {
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
 		return is_native_tsrx_template_node(node.body)
-			? mark_returned_template_children(
+			? split_template_children_at_fence(
 					get_native_tsrx_template_children(
 						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
 					),
@@ -274,7 +274,7 @@ export function get_native_tsrx_function_body(node) {
 
 	const setup = body.slice(0, render_index).map(mark_regular_js_statement);
 	const render_statement = /** @type {AST.ReturnStatement} */ (body[render_index]);
-	const render_children = mark_returned_template_children(
+	const render_children = split_template_children_at_fence(
 		get_native_tsrx_template_children(
 			/** @type {AST.Element | AST.TsrxFragment} */ (
 				/** @type {unknown} */ (render_statement.argument)
@@ -536,6 +536,21 @@ function mark_returned_template_children(nodes) {
 			? node
 			: mark_returned_template_child(node),
 	);
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @returns {AST.Node[]}
+ */
+function split_template_children_at_fence(children) {
+	const fence_index = children.findIndex((child) => child.type === 'TsrxTemplateFence');
+	if (fence_index === -1) {
+		return mark_returned_template_children(children);
+	}
+
+	const setup = children.slice(0, fence_index).map(mark_regular_js_statement);
+	const render = mark_returned_template_children(children.slice(fence_index + 1));
+	return [...setup, ...render];
 }
 
 /**

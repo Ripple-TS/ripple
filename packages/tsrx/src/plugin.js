@@ -33,6 +33,8 @@ const CharCode = Object.freeze({
 	openParen: 40,
 	closeParen: 41,
 	asterisk: 42,
+	plus: 43,
+	dot: 46,
 	slash: 47,
 	colon: 58,
 	semicolon: 59,
@@ -40,6 +42,8 @@ const CharCode = Object.freeze({
 	lessThan: 60,
 	equals: 61,
 	greaterThan: 62,
+	percent: 37,
+	exclamation: 33,
 	at: 64,
 	digit0: 48,
 	digit9: 57,
@@ -59,6 +63,30 @@ const CharCode = Object.freeze({
 const argument_clash_first_positions = new WeakMap();
 /** @type {WeakMap<Record<string, boolean>, Set<string>>} */
 const argument_clash_reported_names = new WeakMap();
+const TEMPLATE_STATEMENT_KEYWORDS = new Set([
+	'await',
+	'break',
+	'class',
+	'const',
+	'continue',
+	'debugger',
+	'do',
+	'export',
+	'for',
+	'function',
+	'if',
+	'import',
+	'interface',
+	'let',
+	'return',
+	'switch',
+	'throw',
+	'try',
+	'type',
+	'using',
+	'var',
+	'while',
+]);
 
 /**
  * @param {Record<string, boolean>} check_clashes
@@ -393,6 +421,142 @@ export function TSRXPlugin(config) {
 					end,
 					acorn.getLineInfo(this.input, end),
 				);
+			}
+
+			#isLikelyTemplateStatementStart() {
+				const start = this.start;
+				const ch = this.input.charCodeAt(start);
+				if (ch === CharCode.at) return true;
+				if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
+					return true;
+				}
+				if (
+					(ch === CharCode.plus && this.input.charCodeAt(start + 1) === CharCode.plus) ||
+					(ch === CharCode.hyphen && this.input.charCodeAt(start + 1) === CharCode.hyphen) ||
+					(ch === CharCode.ampersand &&
+						(this.input.charCodeAt(start + 1) === CharCode.openBrace ||
+							this.input.charCodeAt(start + 1) === CharCode.openBracket))
+				) {
+					return true;
+				}
+
+				const keyword = this.input.slice(start).match(/^[A-Za-z_$][\w$]*/)?.[0] ?? '';
+				if (keyword && TEMPLATE_STATEMENT_KEYWORDS.has(keyword)) {
+					return true;
+				}
+
+				if (!keyword) return false;
+
+				let index = start + keyword.length;
+				while (index < this.input.length) {
+					const next = this.input.charCodeAt(index);
+					if (next === CharCode.space || next === CharCode.tab) {
+						index++;
+						continue;
+					}
+					if (
+						next === CharCode.openParen ||
+						next === CharCode.equals ||
+						next === CharCode.openBracket
+					) {
+						return true;
+					}
+					if (
+						(next === CharCode.plus &&
+							(this.input.charCodeAt(index + 1) === CharCode.plus ||
+								this.input.charCodeAt(index + 1) === CharCode.equals)) ||
+						(next === CharCode.hyphen &&
+							(this.input.charCodeAt(index + 1) === CharCode.hyphen ||
+								this.input.charCodeAt(index + 1) === CharCode.equals)) ||
+						(next === CharCode.asterisk && this.input.charCodeAt(index + 1) === CharCode.equals) ||
+						(next === CharCode.slash && this.input.charCodeAt(index + 1) === CharCode.equals) ||
+						(next === CharCode.percent && this.input.charCodeAt(index + 1) === CharCode.equals)
+					) {
+						return true;
+					}
+					if (
+						next === CharCode.exclamation &&
+						(this.input.charCodeAt(index + 1) === CharCode.dot ||
+							this.input.charCodeAt(index + 1) === CharCode.openBracket ||
+							this.input.charCodeAt(index + 1) === CharCode.equals)
+					) {
+						return true;
+					}
+					if (next === CharCode.dot) {
+						return true;
+					}
+					return false;
+				}
+
+				return false;
+			}
+
+			#isRawTextChildStart() {
+				const current_template_node = this.#path.findLast(
+					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
+				);
+				if (!current_template_node || current_template_node.type === 'TsxCompat') return false;
+				if (this.#functionBodyDepth !== 0) return false;
+
+				const ch = this.input.charCodeAt(this.start);
+				if (
+					ch === CharCode.lessThan ||
+					ch === CharCode.openBrace ||
+					ch === CharCode.closeBrace ||
+					ch === CharCode.at
+				) {
+					return false;
+				}
+				if (ch === CharCode.equals && this.input.charCodeAt(this.start + 1) === CharCode.greaterThan) {
+					return false;
+				}
+				if (/\s/.test(this.input[this.start] ?? '')) {
+					return false;
+				}
+				return !this.#isLikelyTemplateStatementStart();
+			}
+
+			#parseRawTextChild() {
+				const start = this.start;
+				let index = start;
+				let text = '';
+				let chunk_start = start;
+
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
+						break;
+					}
+					if (ch === CharCode.ampersand) {
+						text += this.input.slice(chunk_start, index);
+						this.pos = index;
+						text += this.jsx_readEntity();
+						index = this.pos;
+						chunk_start = index;
+						continue;
+					}
+					index++;
+				}
+
+				text += this.input.slice(chunk_start, index);
+				text = text.replace(/[ \t]*\r?\n[ \t]*$/, '');
+				const endLoc = acorn.getLineInfo(this.input, index);
+				const expression = /** @type {AST.Literal} */ (this.startNodeAt(start, this.startLoc));
+				expression.value = text;
+				expression.raw = JSON.stringify(text);
+
+				const node = /** @type {AST.TextNode} */ (this.startNodeAt(start, this.startLoc));
+				node.raw = this.input.slice(start, index);
+				node.expression = this.finishNodeAt(expression, 'Literal', index, endLoc);
+
+				if (text.match(regex_newline_characters)) {
+					this.curLine = endLoc.line;
+					this.lineStart = index - endLoc.column;
+				}
+				this.pos = index;
+				this.next();
+
+				return this.finishNodeAt(node, 'Text', index, endLoc);
 			}
 
 			#isTemplateDirectiveToken() {
@@ -1155,15 +1319,16 @@ export function TSRXPlugin(config) {
 					}
 					this.exprAllowed = false;
 				}
-				if (code === CharCode.doubleQuote) {
-					const is_double_quoted_text_child = this.#isDoubleQuotedTextChildStart();
-					this.#allowDoubleQuotedTextChildAfterBrace = false;
-					if (is_double_quoted_text_child) {
-						return this.#readDoubleQuotedTextChildToken();
+					if (code === CharCode.doubleQuote) {
+						const is_raw_quoted_text_child = this.#isDoubleQuotedTextChildStart();
+						this.#allowDoubleQuotedTextChildAfterBrace = false;
+						if (is_raw_quoted_text_child) {
+							this.pos++;
+							return this.finishToken(tt.name, '"');
+						}
+					} else {
+						this.#allowDoubleQuotedTextChildAfterBrace = false;
 					}
-				} else {
-					this.#allowDoubleQuotedTextChildAfterBrace = false;
-				}
 
 				if (code !== CharCode.lessThan) {
 					this.#allowTagStartAfterDoubleQuotedText = false;
@@ -2571,19 +2736,24 @@ export function TSRXPlugin(config) {
 					this.parseTemplateBody(body);
 					return;
 				}
-				if (
-					current_template_node?.type === 'TsrxFragment' &&
-					!current_template_node.openingElement.name &&
-					((this.type === tstt.jsxTagStart && this.input.slice(this.pos, this.pos + 2) === '/>') ||
+					if (
+						current_template_node?.type === 'TsrxFragment' &&
+						!current_template_node.openingElement.name &&
+						((this.type === tstt.jsxTagStart && this.input.slice(this.pos, this.pos + 2) === '/>') ||
 						(this.input.charCodeAt(this.start) === CharCode.lessThan &&
 							this.input.slice(this.start + 1, this.start + 3) === '/>'))
 				) {
-					this.exprAllowed = false;
-					return;
-				}
-				if (this.type === tt.braceL) {
-					body.push(this.#parseNativeTemplateExpressionContainer());
-				} else if (
+						this.exprAllowed = false;
+						return;
+					}
+					if (this.#isRawTextChildStart()) {
+						body.push(this.#parseRawTextChild());
+						this.parseTemplateBody(body);
+						return;
+					}
+					if (this.type === tt.braceL) {
+						body.push(this.#parseNativeTemplateExpressionContainer());
+					} else if (
 					this.type === tt.string &&
 					this.input.charCodeAt(this.start) === CharCode.doubleQuote
 				) {
