@@ -102,16 +102,21 @@ for:
 
 ### Components
 
-Define components as arrow functions whose body is a native TSRX fragment:
+Define components as arrow functions. Return a single root element directly, or
+use a native TSRX fragment when the component body needs setup code, control flow,
+or multiple root children:
 
 ```tsrx
-const Button = (props: { text: string; onClick: () => void }) => <>
-  <button onClick={props.onClick}>{props.text}</button>
-</>;
+const Button = (props: { text: string; onClick: () => void }) => <button
+  onClick={props.onClick}
+>
+  {props.text}
+</button>;
 
-export const App = () => <>
-  <Button text="Click me" onClick={() => console.log('Clicked!')} />
-</>;
+export const App = () => <Button
+  text="Click me"
+  onClick={() => console.log('Clicked!')}
+/>;
 ```
 
 Direct calls keep ordinary helper semantics. A PascalCase helper such as
@@ -355,9 +360,7 @@ export const App = () => <>
 Capture DOM elements with the `ref={fn}` syntax:
 
 ```tsrx
-export const App = () => <>
-  <div ref={(node) => console.log(node)}>"Hello"</div>
-</>;
+export const App = () => <div ref={(node) => console.log(node)}>"Hello"</div>;
 ```
 
 **[→ DOM Refs Guide](https://www.ripple-ts.com/docs/guide/dom-refs)**
