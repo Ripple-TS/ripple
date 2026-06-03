@@ -1,5 +1,22 @@
 # @tsrx/mcp
 
+## 0.0.34
+
+### Patch Changes
+
+- [#1198](https://github.com/Ripple-TS/ripple/pull/1198)
+  [`1de66b8`](https://github.com/Ripple-TS/ripple/commit/1de66b8f851849597b6078dab7af2699e49b0e21)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the unused namespaced
+  TSX island feature and React bridge package.
+
+- Updated dependencies
+  [[`e738e11`](https://github.com/Ripple-TS/ripple/commit/e738e1153694f56f35cfcab8982d897d7199d85a),
+  [`1de66b8`](https://github.com/Ripple-TS/ripple/commit/1de66b8f851849597b6078dab7af2699e49b0e21),
+  [`de2daa9`](https://github.com/Ripple-TS/ripple/commit/de2daa9c45d3d13249a41667e208b1d223fa5594),
+  [`e00f596`](https://github.com/Ripple-TS/ripple/commit/e00f5961d5668c054435c8a366ef2a6da6e4a381)]:
+  - @tsrx/prettier-plugin@0.3.73
+  - @tsrx/core@0.1.21
+
 ## 0.0.33
 
 ### Patch Changes

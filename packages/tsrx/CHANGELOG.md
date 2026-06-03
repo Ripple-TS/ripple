@@ -1,5 +1,19 @@
 # @tsrx/core
 
+## 0.1.21
+
+### Patch Changes
+
+- [#1198](https://github.com/Ripple-TS/ripple/pull/1198)
+  [`1de66b8`](https://github.com/Ripple-TS/ripple/commit/1de66b8f851849597b6078dab7af2699e49b0e21)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the unused namespaced
+  TSX island feature and React bridge package.
+
+- [#1189](https://github.com/Ripple-TS/ripple/pull/1189)
+  [`e00f596`](https://github.com/Ripple-TS/ripple/commit/e00f5961d5668c054435c8a366ef2a6da6e4a381)
+  Thanks [@trueadm](https://github.com/trueadm)! - Restore reactive Solid
+  control-flow lowering for native TSRX component bodies.
+
 ## 0.1.20
 
 ### Patch Changes

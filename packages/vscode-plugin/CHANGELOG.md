@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.23
+
+### Patch Changes
+
+- [#1198](https://github.com/Ripple-TS/ripple/pull/1198)
+  [`1de66b8`](https://github.com/Ripple-TS/ripple/commit/1de66b8f851849597b6078dab7af2699e49b0e21)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the unused namespaced
+  TSX island feature and React bridge package.
+
+- Updated dependencies
+  [[`1de66b8`](https://github.com/Ripple-TS/ripple/commit/1de66b8f851849597b6078dab7af2699e49b0e21)]:
+  - @tsrx/typescript-plugin@0.3.73
+  - @ripple-ts/language-server@0.3.73
+
 ## 2.0.22
 
 ### Patch Changes
