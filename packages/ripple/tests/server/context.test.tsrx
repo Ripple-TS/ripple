@@ -6,14 +6,20 @@ describe('Context API', () => {
 
 		function Inner() {
 			return <>
-				const msg = MessageContext.get();
+				---
+					const msg = MessageContext.get();
+				---
+
 				<span>{msg}</span>
 			</>;
 		}
 
 		function Middle() {
 			return <>
-				MessageContext.set('middle');
+				---
+					MessageContext.set('middle');
+				---
+
 				<div>
 					<Inner />
 				</div>
@@ -22,7 +28,10 @@ describe('Context API', () => {
 
 		function Outer() {
 			return <>
-				MessageContext.set('outer');
+				---
+					MessageContext.set('outer');
+				---
+
 				<Middle />
 				<Inner />
 			</>;

@@ -52,10 +52,12 @@ ruleTester.run('no-lazy-destructuring-in-modules', rule, {
 				import { track, effect } from 'ripple';
 				function Counter() {
 					return <>
+					---
 					let &[count] = track(0);
 					effect(() => {
 						console.log(count);
 					});
+					---
 					<div>{count}</div>
 					</>;
 				}

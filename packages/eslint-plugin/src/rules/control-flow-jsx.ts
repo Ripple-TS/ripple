@@ -81,6 +81,10 @@ const rule: Rule.RuleModule = {
 				if (insideComponent === 0) return;
 
 				const hasJSX = containsJSX(node.body);
+				const isRenderControlFlow = Boolean(
+					(node as AST.ForOfStatement & { metadata?: { tsrx_render_control_flow?: boolean } })
+						.metadata?.tsrx_render_control_flow,
+				);
 
 				if (insideEffect > 0) {
 					if (hasJSX) {
@@ -89,7 +93,7 @@ const rule: Rule.RuleModule = {
 							messageId: 'noJsxInEffectLoop',
 						});
 					}
-				} else if (nonComponentFunctionDepth > 0) {
+				} else if (nonComponentFunctionDepth > 0 || !isRenderControlFlow) {
 					return;
 				} else {
 					if (!hasJSX) {

@@ -4,8 +4,11 @@ describe('RippleURLSearchParams > RippleURL integration', () => {
 	it('integrates with RippleURL', () => {
 		function URLTest() {
 			return <>
-				const url = RippleURL('https://example.com?foo=bar');
-				const params = url.searchParams;
+				---
+					const url = RippleURL('https://example.com?foo=bar');
+					const params = url.searchParams;
+				---
+
 				<button onClick={() => params.append('baz', 'qux')}>{'add param'}</button>
 				<pre>{url.href}</pre>
 				<pre>{params.toString()}</pre>
@@ -33,8 +36,11 @@ describe('RippleURLSearchParams > RippleURL integration', () => {
 	it('handles empty search string in URL', () => {
 		function URLTest() {
 			return <>
-				const url = RippleURL('https://example.com');
-				const params = url.searchParams;
+				---
+					const url = RippleURL('https://example.com');
+					const params = url.searchParams;
+				---
+
 				<button onClick={() => params.append('foo', 'bar')}>{'add first param'}</button>
 				<pre>{url.href}</pre>
 				<pre>{params.size}</pre>

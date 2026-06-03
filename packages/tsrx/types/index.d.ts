@@ -239,6 +239,7 @@ declare module 'estree' {
 		TsrxFragment: TsrxFragment;
 		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
+		TSRXCodeBlock: TSRXCodeBlock;
 		Element: Element;
 		Text: TextNode;
 		Attribute: Attribute;
@@ -368,6 +369,12 @@ declare module 'estree' {
 	export interface TSRXExpression extends AST.BaseExpression {
 		type: 'TSRXExpression';
 		expression: AST.Expression;
+		loc?: AST.SourceLocation;
+	}
+
+	export interface TSRXCodeBlock extends AST.BaseNode {
+		type: 'TSRXCodeBlock';
+		body: AST.Node[];
 		loc?: AST.SourceLocation;
 	}
 

@@ -20,9 +20,12 @@ export function Layout({ children }: { children: any }) {
 // A child component with an if block (the key source of deep hydrate_node)
 export function Content() {
 	return <>
-		let &[visible] = track(true);
+		---
+			let &[visible] = track(true);
+		---
+
 		<div class="content">
-			if (visible) {
+			@if (visible) {
 				<p class="text">{'Hello world'}</p>
 			}
 		</div>

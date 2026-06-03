@@ -3,24 +3,33 @@
 
 export function SimpleTemplateHtml() {
 	return <>
-		const data = 'test data';
+		---
+			const data = 'test data';
+		---
+
 		<template id="data1" innerHTML={data} />
 	</>;
 }
 
 export function TemplateWithJSON() {
 	return <>
-		const jsonData = JSON.stringify({ message: 'hello', count: 42 });
+		---
+			const jsonData = JSON.stringify({ message: 'hello', count: 42 });
+		---
+
 		<template id="data2" innerHTML={jsonData} />
 	</>;
 }
 
 export function TemplateAroundIfBlock() {
 	return <>
-		const show = true;
+		---
+			const show = true;
+		---
+
 		<div>
 			<template id="before" innerHTML="before" />
-			if (show) {
+			@if (show) {
 				<span class="inside">{'inside'}</span>
 			}
 			<template id="after" innerHTML="after" />

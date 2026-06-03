@@ -48,7 +48,10 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`async function App() { return <>
+						---
 							const data = await fetchData();
+						---
+
 							<div>{data}</div>
 						</>; }`,
 					'App.tsrx',
@@ -62,7 +65,10 @@ describe('@tsrx/solid basic', () => {
 					`'use server';
 
 						async function App() { return <>
-							const data = await fetchData();
+							---
+								const data = await fetchData();
+							---
+
 							<div>{data}</div>
 						</>; }`,
 					'App.tsrx',
@@ -74,7 +80,7 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`async function App({ items }: { items: AsyncIterable<string> }) { return <>
-							for await (const item of items) {
+							@for (const item of items) {
 								<div>{item}</div>
 							}
 					</>; }`,
@@ -85,7 +91,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('reports for await...of errors at the await keyword', () => {
 			const source = `async function App({ items }: { items: AsyncIterable<string> }) { return <>
-					for await (const item of items) {
+					@for await (const item of items) {
 						<div>{item}</div>
 					}
 			</>; }`;
@@ -106,7 +112,9 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`function App() { return <>
-						const load = async () => await fetchData();
+						---
+							const load = async () => await fetchData();
+						---
 						<button onClick={load}>{'Load'}</button>
 					</>; }`,
 					'App.tsrx',
@@ -128,7 +136,10 @@ describe('@tsrx/solid basic', () => {
 		it('ref={expr} on a DOM element compiles to ref={expr}', () => {
 			const { code } = compile(
 				`function App() { return <>
-					let el;
+					---
+						let el;
+					---
+
 					<input ref={el} />
 				</>; }`,
 				'App.tsrx',
@@ -142,7 +153,10 @@ describe('@tsrx/solid basic', () => {
 		it('ref={fn} on a DOM element passes the function through', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function divRef(node: HTMLDivElement) {}
+					---
+						function divRef(node: HTMLDivElement) {}
+					---
+
 					<div ref={divRef} />
 				</>; }`,
 				'App.tsrx',
@@ -157,7 +171,10 @@ describe('@tsrx/solid basic', () => {
 				</>; }
 
 				function App() { return <>
-					function childRef(node: HTMLInputElement) {}
+					---
+						function childRef(node: HTMLInputElement) {}
+					---
+
 					<Child ref={childRef} />
 				</>; }`,
 				'App.tsrx',
@@ -171,8 +188,11 @@ describe('@tsrx/solid basic', () => {
 		it('array ref={...} on the same DOM element stays a ref array', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function a(node: HTMLInputElement) {}
-					function b(node: HTMLInputElement) {}
+					---
+						function a(node: HTMLInputElement) {}
+						function b(node: HTMLInputElement) {}
+					---
+
 					<input ref={[a, b]} />
 				</>; }`,
 				'App.tsrx',
@@ -185,9 +205,12 @@ describe('@tsrx/solid basic', () => {
 		it('array ref={...} on a composite component stays a ref array', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function a(node: HTMLInputElement) {}
-					function b(node: HTMLInputElement) {}
-					function c(node: HTMLInputElement) {}
+					---
+						function a(node: HTMLInputElement) {}
+						function b(node: HTMLInputElement) {}
+						function c(node: HTMLInputElement) {}
+					---
+
 					<Child ref={[a, b, c]} />
 				</>; }`,
 				'App.tsrx',
@@ -200,7 +223,7 @@ describe('@tsrx/solid basic', () => {
 		it('simple if → <Show when>', () => {
 			const { code } = compile(
 				`function App({ n }: { n: number }) { return <>
-					if (n > 0) {
+					@if (n > 0) {
 						<div>{'positive'}</div>
 					}
 				</>; }`,
@@ -213,7 +236,7 @@ describe('@tsrx/solid basic', () => {
 		it('if/else → <Show when fallback>', () => {
 			const { code } = compile(
 				`function App({ n }: { n: number }) { return <>
-					if (n > 0) {
+					@if (n > 0) {
 						<div>{'pos'}</div>
 					} else {
 						<div>{'neg'}</div>
@@ -227,7 +250,7 @@ describe('@tsrx/solid basic', () => {
 		it('if/else-if/else → <Switch>/<Match>', () => {
 			const { code } = compile(
 				`function App({ n }: { n: number }) { return <>
-					if (n > 10) {
+					@if (n > 10) {
 						<span>{'big'}</span>
 					} else if (n > 5) {
 						<span>{'mid'}</span>
@@ -246,7 +269,7 @@ describe('@tsrx/solid basic', () => {
 		it('for-of → <For each>{(item, i) => ...}', () => {
 			const { code } = compile(
 				`function App({ items }: { items: number[] }) { return <>
-					for (const item of items; index i) {
+					@for (const item of items; index i) {
 						<li>{item}</li>
 					}
 				</>; }`,
@@ -260,7 +283,7 @@ describe('@tsrx/solid basic', () => {
 		it('for-of with `key` clause → <For keyed={...}>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: { id: string; name: string }[] }) { return <>
-					for (const item of items; key item.id) {
+					@for (const item of items; key item.id) {
 						<li>{item.name}</li>
 					}
 				</>; }`,
@@ -276,7 +299,7 @@ describe('@tsrx/solid basic', () => {
 		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
 			const { code } = compile(
 				`function App() { return <>
-					try {
+					@try {
 						<div>{'content'}</div>
 					} catch (err, reset) {
 						<div>{'error'}</div>
@@ -291,7 +314,7 @@ describe('@tsrx/solid basic', () => {
 		it('try/pending/catch → <Errored><Loading>...', () => {
 			const { code } = compile(
 				`function App() { return <>
-					try {
+					@try {
 						<div>{'ready'}</div>
 					} pending {
 						<div>{'loading'}</div>
@@ -309,7 +332,7 @@ describe('@tsrx/solid basic', () => {
 		it('switch statement → <Switch>/<Match> using ===', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) { return <>
-					switch (kind) {
+					@switch (kind) {
 						case 'a': <span>{'A'}</span>; break;
 						case 'b': <span>{'B'}</span>; break;
 						default: <span>{'?'}</span>;
@@ -331,13 +354,18 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function FeatureCard({ items }: { items: string[] }) { return <>
 					<ul>
+						---
 						const [state, setState] = createSignal();
-						for (const item of items; index i) {
+						---
+
+						@for (const item of items; index i) {
 							<li>{item}</li>
 						}
 						<div>
-							console.log('logged');
-							debugger;
+							---
+								console.log('logged');
+								debugger;
+							---
 						</div>
 					</ul>
 				</>; }`,
@@ -360,9 +388,11 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function Child() { return <>
 					<div>
-						const x = 1;
+						---
+							const x = 1;
 
-						console.log(x);
+							console.log(x);
+						---
 					</div>
 				</>; }`,
 				'Child.tsrx',
@@ -398,10 +428,10 @@ describe('@tsrx/solid basic', () => {
 				`function App(
 					{ cond, items, setup }: { cond: boolean; items: string[]; setup: () => void }
 				) {
-					for (const item of items) {
+					@for (const item of items) {
 						return <><span>{item}</span></>;
 					}
-					if (cond) return null;
+					@if (cond) return null;
 					setup();
 				}`,
 				'App.tsrx',
@@ -417,7 +447,7 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ hidden, kind }: { hidden: boolean; kind: string }) {
 					if (hidden) return null;
-					switch (kind) {
+					@switch (kind) {
 						case 'skip':
 							break;
 						case 'done':
@@ -439,7 +469,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body if/else returns lower to reactive <Show>', () => {
 			const { code } = compile(
 				`function App({ cond }: { cond: boolean }) {
-					if (cond) {
+					@if (cond) {
 						return <><div>{'yes'}</div></>;
 					} else {
 						return <><span>{'no'}</span></>;
@@ -457,7 +487,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch returns lower to reactive <Switch>/<Match>', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					switch (kind) {
+					@switch (kind) {
 						case 'a':
 							return <><div>{'A'}</div></>;
 						default:
@@ -475,7 +505,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch break cases include trailing render fallback', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					switch (kind) {
+					@switch (kind) {
 						case 'skip':
 							break;
 						case 'a':
@@ -496,7 +526,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch with final return lowers non-returning cases', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					switch (kind) {
+					@switch (kind) {
 						case 'a':
 							<span>{'A'}</span>
 							break;
@@ -516,7 +546,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body for-of returns lower to reactive <For>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: string[] }) {
-					for (const item of items) {
+					@for (const item of items) {
 						return <><div>{item}</div></>;
 					}
 				}`,
@@ -531,7 +561,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body for-of preserves index and key while lowering', () => {
 			const { code } = compile(
 				`function App({ items }: { items: { id: string; name: string }[] }) {
-					for (const item of items; index i; key item.id) {
+					@for (const item of items; index i; key item.id) {
 						return <><div>{i() + item.name}</div></>;
 					}
 				}`,
@@ -546,7 +576,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body try/pending/catch returns lower to reactive boundaries', () => {
 			const { code } = compile(
 				`function App() {
-					try {
+					@try {
 						return <><div>{'ready'}</div></>;
 					} pending {
 						return <><div>{'loading'}</div></>;
@@ -568,8 +598,10 @@ describe('@tsrx/solid basic', () => {
 				`function App(
 					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
 				) {
-					try {
-						setup();
+					@try {
+						---
+							setup();
+						---
 					} pending {
 						return <><div>{'loading'}</div></>;
 					} catch (err) {
@@ -591,12 +623,19 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`export default function A() { return <>
-						let early = true;
-						<>"Hello"</>
-						if (early) {
-							return
-						}
-						<>"World"</>
+						---
+							let early = true;
+						---
+
+						<>Hello</>
+
+						---
+							if (early) {
+								return;
+							}
+						---
+
+						<>World</>
 					</>; }`,
 					'A.tsrx',
 				),
@@ -611,7 +650,7 @@ describe('@tsrx/solid basic', () => {
 		// bare component invocations — a Solid-specific optimization decision
 		// that doesn't apply to React's `App__static` hoisting policy.
 		const switch_source = `export function App({ status }: { status: string }) { return <>
-			switch (status) {
+			@switch (status) {
 				case "idle":
 					<span>{'Online'}</span>
 				case "active":
@@ -707,7 +746,10 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`import { createSignal } from 'solid-js';
 				export function App() { return <>
-					let [count, setCount] = createSignal(0);
+					---
+						let [count, setCount] = createSignal(0);
+					---
+
 					<button onClick={() => setCount(count + 1)}>{count}</button>
 				</>; }`,
 				'App.tsrx',
@@ -740,9 +782,12 @@ describe('@tsrx/solid basic', () => {
 		it('transforms lazy params in nested functions inside components', () => {
 			const { code } = compile(
 				`export function App(&{ outer }: { outer: string }) { return <>
-					function greet(&{ name }: { name: string }) {
-						return 'hi ' + name + ' from ' + outer;
-					}
+					---
+						function greet(&{ name }: { name: string }) {
+							return 'hi ' + name + ' from ' + outer;
+						}
+					---
+
 					<div>{greet}</div>
 				</>; }`,
 				'App.tsrx',
@@ -756,7 +801,10 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`import { createSignal } from 'solid-js';
 				export function App() { return <>
-					const [count, setCount] = createSignal(0);
+					---
+						const [count, setCount] = createSignal(0);
+					---
+
 					<button onClick={() => setCount(count + 1)}>{count}</button>
 				</>; }`,
 				'App.tsrx',
@@ -786,9 +834,16 @@ describe('@tsrx/solid basic', () => {
 		it('preserves source order for interleaved JSX with lazy params', () => {
 			const { code } = compile(
 				`function Card(&{ cond }: { cond: boolean }) { return <>
-					var a = "one"
+					---
+						var a = "one"
+					---
+
 					<b>{"hello" + a}</b>
-					a = "two"
+
+					---
+						a = "two"
+					---
+
 					<b>{"hello" + a}</b>
 					<div>{cond ? "done" : "skip"}</div>
 				</>; }`,
@@ -811,7 +866,9 @@ describe('@tsrx/solid basic', () => {
 		it('passes a single ref={expr} through as ref={expr} with no array wrapper', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function refA(_node) {}
+					---
+						function refA(_node) {}
+					---
 					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -824,7 +881,10 @@ describe('@tsrx/solid basic', () => {
 		it('passes a single TSX-style ref={expr} through as ref={expr} with no array wrapper', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function refA(_node) {}
+					---
+						function refA(_node) {}
+					---
+
 					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -841,7 +901,10 @@ describe('@tsrx/solid basic', () => {
 				</>; }
 
 				function App() { return <>
-					let input;
+					---
+						let input;
+					---
+
 					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
@@ -859,7 +922,10 @@ describe('@tsrx/solid basic', () => {
 				</>; }
 
 				function App() { return <>
-					let input;
+					---
+						let input;
+					---
+
 					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
@@ -873,9 +939,12 @@ describe('@tsrx/solid basic', () => {
 		it('normalizes multiple host spreads once while merging one explicit ref', () => {
 			const { code } = compile(
 				`function App() { return <>
-					const first = {};
-					const second = {};
-					function cb(_node) {}
+					---
+						const first = {};
+						const second = {};
+						function cb(_node) {}
+					---
+
 					<input {...first} {...second} ref={cb} />
 				</>; }`,
 				'App.tsrx',
@@ -899,7 +968,10 @@ describe('@tsrx/solid basic', () => {
 		it('keeps named ref-like props as ordinary props on host elements', () => {
 			const { code } = compile(
 				`function App() { return <>
-					let input;
+					---
+						let input;
+					---
+
 					<input input_ref={input} />
 				</>; }`,
 				'App.tsrx',
@@ -914,8 +986,11 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`function App() { return <>
-						function refA(_node) {}
-						function refB(_node) {}
+						---
+							function refA(_node) {}
+							function refB(_node) {}
+						---
+
 						<div ref={refA} ref={refB}>{'hi'}</div>
 					</>; }`,
 					'App.tsrx',
@@ -926,9 +1001,12 @@ describe('@tsrx/solid basic', () => {
 		it('passes Solid-native ref arrays through', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function refA(_node) {}
-					function refB(_node) {}
-					function refC(_node) {}
+					---
+						function refA(_node) {}
+						function refB(_node) {}
+						function refC(_node) {}
+					---
+
 					<div ref={[refA, refB, refC]}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -940,9 +1018,12 @@ describe('@tsrx/solid basic', () => {
 		it('passes Solid-native ref arrays through with existing JSX syntax', () => {
 			const { code } = compile(
 				`function App() { return <>
-					function refA(_node) {}
-					function refB(_node) {}
-					function refC(_node) {}
+					---
+						function refA(_node) {}
+						function refB(_node) {}
+						function refC(_node) {}
+					---
+
 					<div ref={[refA, refB, refC]}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',

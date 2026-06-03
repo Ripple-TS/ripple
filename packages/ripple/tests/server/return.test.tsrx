@@ -10,8 +10,10 @@ describe('returns in prohibited SSR scopes', () => {
 				`
 				function App() {
 					return <>
-						if (ready) {
+						@if (ready) {
+							---
 							return;
+							---
 						}
 						<div>{'ready'}</div>
 					</>;
@@ -29,8 +31,10 @@ describe('returns in prohibited SSR scopes', () => {
 				`
 				function App() {
 					return <section>
-						if (ready) {
+						@if (ready) {
+							---
 							return null;
+							---
 						}
 						<div>{'ready'}</div>
 					</section>;
@@ -48,9 +52,11 @@ describe('returns in prohibited SSR scopes', () => {
 				`
 				function App() {
 					return <>
+						---
 						function label() {
 							return 'ready';
 						}
+						---
 						<div>{label()}</div>
 					</>;
 				}

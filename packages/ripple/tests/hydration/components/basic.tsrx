@@ -73,8 +73,11 @@ export function WithGreeting() {
 
 export function ExpressionContent() {
 	return <>
-		const value = 42;
-		const label = 'computed';
+		---
+			const value = 42;
+			const label = 'computed';
+		---
+
 		<div>{value}</div>
 		<span>{label.toUpperCase()}</span>
 	</>;
@@ -87,7 +90,7 @@ function NestedHelperItem({ item }: { item: number }) {
 function NestedTsxTsrxFragment({ label }: { label: string }) {
 	return <>
 		<span class="label">{label}</span>
-		for (const item of [1, 2, 3, 4]) {
+		@for (const item of [1, 2, 3, 4]) {
 			<NestedHelperItem {item} />
 		}
 	</>;
@@ -95,7 +98,7 @@ function NestedTsxTsrxFragment({ label }: { label: string }) {
 
 export function NestedTsxTsrxExpressionValues() {
 	return <>
-		for (const item of [1, 2, 3]) {
+		@for (const item of [1, 2, 3]) {
 			<div class="app-item">{item}</div>
 		}
 		<NestedTsxTsrxFragment label="from helper" />
@@ -104,84 +107,99 @@ export function NestedTsxTsrxExpressionValues() {
 
 export function MixedTsrxCollectionText() {
 	return <>
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'delta ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
-				],
-			]}
-		</>;
+		---
+			const content = <>
+				{[
+					'alpha ',
+					<strong class="middle">{'beta'}</strong>,
+					' gamma ',
+					[
+						'delta ',
+						<em class="tail">{'epsilon'}</em>,
+						' zeta',
+					],
+				]}
+			</>;
+		---
+
 		<div class="mixed-collection">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionSplitServerText() {
 	return <>
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'delta ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
-				],
-			]}
-		</>;
+		---
+			const content = <>
+				{[
+					'alpha ',
+					<strong class="middle">{'beta'}</strong>,
+					' gamma ',
+					[
+						'delta ',
+						<em class="tail">{'epsilon'}</em>,
+						' zeta',
+					],
+				]}
+			</>;
+		---
+
 		<div class="mixed-collection-split">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionSplitClientText() {
 	return <>
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'changed ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
-				],
-			]}
-		</>;
+		---
+			const content = <>
+				{[
+					'alpha ',
+					<strong class="middle">{'beta'}</strong>,
+					' gamma ',
+					[
+						'changed ',
+						<em class="tail">{'epsilon'}</em>,
+						' zeta',
+					],
+				]}
+			</>;
+		---
+
 		<div class="mixed-collection-split">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionPrimitiveServerText() {
 	return <>
-		const content = <>
-			{[
-				'count: ',
-				1,
-				' / ',
-				true,
-				<span class="primitive-tail">{' ok'}</span>,
-			]}
-		</>;
+		---
+			const content = <>
+				{[
+					'count: ',
+					1,
+					' / ',
+					true,
+					<span class="primitive-tail">{' ok'}</span>,
+				]}
+			</>;
+		---
+
 		<div class="mixed-collection-primitive">{content}</div>
 	</>;
 }
 
 export function MixedTsrxCollectionPrimitiveClientText() {
 	return <>
-		const content = <>
-			{[
-				'count: ',
-				2,
-				' / ',
-				false,
-				<span class="primitive-tail">{' ok'}</span>,
-			]}
-		</>;
+		---
+			const content = <>
+				{[
+					'count: ',
+					2,
+					' / ',
+					false,
+					<span class="primitive-tail">{' ok'}</span>,
+				]}
+			</>;
+		---
+
 		<div class="mixed-collection-primitive">{content}</div>
 	</>;
 }
@@ -192,64 +210,85 @@ function createPrimitiveItems() {
 
 export function DynamicArrayFromCall() {
 	return <>
-		const items = createPrimitiveItems();
+		---
+			const items = createPrimitiveItems();
+		---
+
 		<div class="dynamic-array-call">{items}</div>
 	</>;
 }
 
 export function DynamicArrayFromTrack() {
 	return <>
-		let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
+		---
+			let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
+		---
+
 		<div class="dynamic-array-track">{items}</div>
 	</>;
 }
 
 export function DynamicArrayFromConditional() {
 	return <>
-		const condition = true;
-		const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];
+		---
+			const condition = true;
+			const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];
+		---
+
 		<div class="dynamic-array-conditional">{items}</div>
 	</>;
 }
 
 export function DynamicArrayFromLogical() {
 	return <>
-		const condition = true;
-		const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
+		---
+			const condition = true;
+			const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
+		---
+
 		<div class="dynamic-array-logical">{items}</div>
 	</>;
 }
 
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	return <>
-		const content = <>
-			<section class="outer">
-				{<><div class="inner">{'from tsrx'}</div></>}
-			</section>
-		</>;
+		---
+			const content = <>
+				<section class="outer">
+					{<><div class="inner">{'from tsrx'}</div></>}
+				</section>
+			</>;
+		---
+
 		{content}
 	</>;
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	return <>
-		const content = <>
-			<div class="wrapper">
-				{<>
-					<section class="native">
-						<span class="nested-tsrx">{'inside nested tsrx'}</span>
-					</section>
-				</>}
-			</div>
-		</>;
+		---
+			const content = <>
+				<div class="wrapper">
+					{<>
+						<section class="native">
+							<span class="nested-tsrx">{'inside nested tsrx'}</span>
+						</section>
+					</>}
+				</div>
+			</>;
+		---
+
 		{content}
 	</>;
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() {
 	return <>
-		const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
-		const content = <><div class="native">{nested}</div></>;
+		---
+			const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
+			const content = <><div class="native">{nested}</div></>;
+		---
+
 		{content}
 	</>;
 }
@@ -260,7 +299,10 @@ function TextProp(&{ children }: { children: string }) {
 
 export function TextPropWithToggle() {
 	return <>
-		let &[show] = track(false);
+		---
+			let &[show] = track(false);
+		---
+
 		<TextProp children={show ? 'hello' : ''} />
 		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 	</>;
@@ -277,7 +319,10 @@ function StaticHeader() {
 
 export function StaticChildWithSiblings() {
 	return <>
-		const foo = 'bar';
+		---
+			const foo = 'bar';
+		---
+
 		<StaticHeader />
 		<span class="sibling1">{foo}</span>
 		<span class="sibling2">{foo}</span>
@@ -299,7 +344,7 @@ function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) 
 		<div class="social-links">
 			<a href="https://github.com" class="github-link">{'GitHub'}</a>
 			<a href="https://discord.com" class="discord-link">{'Discord'}</a>
-			if (playgroundVisible) {
+			@if (playgroundVisible) {
 				<a href="/playground" class="playground-link">{'Playground'}</a>
 			}
 		</div>

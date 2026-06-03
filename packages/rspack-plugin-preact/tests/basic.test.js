@@ -44,7 +44,7 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 					color: red;
 				}
 			</style>
-		
+
 			</>;}`;
 
 		const { context, promise } = createLoaderContext(id);
@@ -61,7 +61,7 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 		const source = `export function App() {
 			return <>
 			<div>{'Hello world'}</div>
-		
+
 			</>;}`;
 
 		const { context, promise } = createLoaderContext(id);
@@ -84,14 +84,14 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 			} pending {
 				<div>{'Loading'}</div>
 			}
-		
+
 			</>;}
 
 		async function AsyncThing() {
 			return <>
 			await Promise.resolve();
 			<div>{'Done'}</div>
-		
+
 			</>;}`;
 
 		const { context, promise } = createLoaderContext(id, { suspenseSource: 'preact-suspense' });
@@ -115,7 +115,7 @@ describe('@tsrx/rspack-plugin-preact css-loader', () => {
 					color: red;
 				}
 			</style>
-		
+
 			</>;}`;
 
 		const { context, promise } = createLoaderContext(id);
@@ -132,7 +132,7 @@ describe('@tsrx/rspack-plugin-preact css-loader', () => {
 		const source = `export function App() {
 			return <>
 			<div>{'Hello world'}</div>
-		
+
 			</>;}`;
 
 		const { context, promise } = createLoaderContext(id);

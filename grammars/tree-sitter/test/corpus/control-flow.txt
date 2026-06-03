@@ -4,7 +4,7 @@ For-of Loop
 
 fragment List({ items }) {
   <ul>
-    for (const item of items) {
+    @for (const item of items) {
       <li>{item.text}</li>
     }
   </ul>
@@ -27,24 +27,25 @@ fragment List({ items }) {
             open_tag: (jsx_opening_element
               name: (jsx_element_name
                 (identifier)))
-            children: (for_of_statement
-              (identifier)
-              right: (identifier)
-              body: (statement_block
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (member_expression
-                            object: (identifier)
-                            property: (identifier)))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
+            children: (render_control_statement
+              (for_of_statement
+                (identifier)
+                right: (identifier)
+                body: (statement_block
+                  (expression_statement
+                    (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (member_expression
+                              object: (identifier)
+                              property: (identifier)))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))))))
             children: (jsx_text)
             close_tag: (jsx_closing_element
               name: (jsx_element_name
@@ -56,7 +57,7 @@ For-of with index and key
 
 fragment List({ items }) {
   <ul>
-    for (const item of items; index i; key item.id) {
+    @for (const item of items; index i; key item.id) {
       <li>{item.text}</li>
     }
   </ul>
@@ -79,28 +80,29 @@ fragment List({ items }) {
             open_tag: (jsx_opening_element
               name: (jsx_element_name
                 (identifier)))
-            children: (for_of_statement
-              (identifier)
-              right: (identifier)
-              (identifier)
-              (member_expression
-                object: (identifier)
-                property: (identifier))
-              body: (statement_block
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (member_expression
-                            object: (identifier)
-                            property: (identifier)))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
+            children: (render_control_statement
+              (for_of_statement
+                (identifier)
+                right: (identifier)
+                (identifier)
+                (member_expression
+                  object: (identifier)
+                  property: (identifier))
+                body: (statement_block
+                  (expression_statement
+                    (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (member_expression
+                              object: (identifier)
+                              property: (identifier)))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))))))
             children: (jsx_text)
             close_tag: (jsx_closing_element
               name: (jsx_element_name
@@ -111,7 +113,7 @@ If Statement in Template
 ==================
 
 fragment App({ show }) {
-  if (show) {
+  @if (show) {
     <div>{'Visible'}</div>
   } else {
     <div>{'Hidden'}</div>
@@ -130,42 +132,43 @@ fragment App({ show }) {
             (shorthand_property_identifier)))))
     body: (component_body
       (component_statement
-        (if_statement
-          condition: (parenthesized_expression
-            (identifier))
-          consequence: (statement_block
-            (expression_statement
-              (jsx_element
-                open_tag: (jsx_opening_element
-                  name: (jsx_element_name
-                    (identifier)))
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (string))))
-                close_tag: (jsx_closing_element
-                  name: (jsx_element_name
-                    (identifier))))))
-          alternative: (statement_block
-            (expression_statement
-              (jsx_element
-                open_tag: (jsx_opening_element
-                  name: (jsx_element_name
-                    (identifier)))
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (string))))
-                close_tag: (jsx_closing_element
-                  name: (jsx_element_name
-                    (identifier)))))))))))
+        (render_control_statement
+          (if_statement
+            condition: (parenthesized_expression
+              (identifier))
+            consequence: (statement_block
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))
+            alternative: (statement_block
+              (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))))))))
 
 ==================
 Switch in Template
 ==================
 
 fragment Status({ status }) {
-  switch (status) {
+  @switch (status) {
     case 'loading':
       <p>{'Loading...'}</p>
       break;
@@ -189,60 +192,144 @@ fragment Status({ status }) {
             (shorthand_property_identifier)))))
     body: (component_body
       (component_statement
-        (switch_statement
-          value: (parenthesized_expression
-            (identifier))
-          body: (switch_body
-            (switch_case
-              value: (string)
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier)))))
-              (break_statement))
-            (switch_case
-              value: (string)
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier)))))
-              (break_statement))
-            (switch_default
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+        (render_control_statement
+          (switch_statement
+            value: (parenthesized_expression
+              (identifier))
+            body: (switch_body
+              (switch_case
+                value: (string)
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
+                (break_statement))
+              (switch_case
+                value: (string)
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
+                (break_statement))
+              (switch_default
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))))))))
+
+==================
+Nested Render Controls
+==================
+
+fragment App({ showContent, userRole }) {
+  <div>
+    @if (showContent) {
+      @if (userRole === 'admin') {
+        <div>Admin content</div>
+      } else {
+        <div>User content</div>
+      }
+    } else {
+      <div>No content</div>
+    }
+  </div>
+}
+
+---
+
+(program
+  (fragment_declaration
+    (identifier)
+    (formal_parameters
+      (required_parameter
+        (object_pattern
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier))
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
+    (component_body
+      (component_statement
+        (expression_statement
+          (jsx_element
+            (jsx_opening_element
+              (jsx_element_name
+                (identifier)))
+            (render_control_statement
+              (if_statement
+                (parenthesized_expression
+                  (identifier))
+                (statement_block
+                  (render_control_statement
+                    (if_statement
+                      (parenthesized_expression
+                        (binary_expression
+                          (identifier)
+                          (string)))
+                      (statement_block
+                        (expression_statement
+                          (jsx_element
+                            (jsx_opening_element
+                              (jsx_element_name
+                                (identifier)))
+                            (jsx_text)
+                            (jsx_closing_element
+                              (jsx_element_name
+                                (identifier))))))
+                      (statement_block
+                        (expression_statement
+                          (jsx_element
+                            (jsx_opening_element
+                              (jsx_element_name
+                                (identifier)))
+                            (jsx_text)
+                            (jsx_closing_element
+                              (jsx_element_name
+                                (identifier)))))))))
+                (statement_block
+                  (expression_statement
+                    (jsx_element
+                      (jsx_opening_element
+                        (jsx_element_name
+                          (identifier)))
+                      (jsx_text)
+                      (jsx_closing_element
+                        (jsx_element_name
+                          (identifier))))))))
+            (jsx_text)
+            (jsx_closing_element
+              (jsx_element_name
+                (identifier)))))))))
 
 ==================
 Try Pending Block
 ==================
 
 fragment SuspenseBoundary() {
-  try {
+  @try {
     <AsyncComponent />
   } pending {
     <p>{'Loading...'}</p>
@@ -257,33 +344,34 @@ fragment SuspenseBoundary() {
     parameters: (formal_parameters)
     body: (component_body
       (component_statement
-        (try_statement
-          body: (statement_block
-            (expression_statement
-              (jsx_self_closing_element
-                name: (jsx_non_namespaced_element_name
-                  (identifier)))))
-          pending: (pending_clause
+        (render_control_statement
+          (try_statement
             body: (statement_block
               (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+                (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))))
+            pending: (pending_clause
+              body: (statement_block
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))))))))
 
 ==================
 Try-Catch Error Boundary
 ==================
 
 fragment App() {
-  try {
+  @try {
     <ComponentThatMayFail />
   } catch (e) {
     <div>{'Error: '}{e.message}</div>
@@ -298,30 +386,31 @@ fragment App() {
     parameters: (formal_parameters)
     body: (component_body
       (component_statement
-        (try_statement
-          body: (statement_block
-            (expression_statement
-              (jsx_self_closing_element
-                name: (jsx_non_namespaced_element_name
-                  (identifier)))))
-          handler: (catch_clause
-            parameter: (identifier)
+        (render_control_statement
+          (try_statement
             body: (statement_block
               (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (member_expression
-                          object: (identifier)
-                          property: (identifier)))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+                (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))))
+            handler: (catch_clause
+              parameter: (identifier)
+              body: (statement_block
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))))))))

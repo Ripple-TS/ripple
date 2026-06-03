@@ -503,7 +503,7 @@ Function Return Native Control Flow
 
 function WithControlFlow(x) {
   return <>
-    if (x) {
+    @if (x) {
       <div>"works"</div>
     } else {
       return null;
@@ -524,22 +524,23 @@ function WithControlFlow(x) {
         (return_statement
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (if_statement
-              condition: (parenthesized_expression
-                (identifier))
-              consequence: (statement_block
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier))))))
-              alternative: (statement_block
-                (return_statement
-                  (null))))
+            children: (render_control_statement
+              (if_statement
+                condition: (parenthesized_expression
+                  (identifier))
+                consequence: (statement_block
+                  (expression_statement
+                    (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_text)
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))))
+                alternative: (statement_block
+                  (return_statement
+                    (null)))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -549,9 +550,11 @@ Function Return Async Native Declaration
 
 function WithAsyncDeclaration() {
   return <>
-    async function load() {
-      return 1;
-    }
+    ---
+      async function load() {
+        return 1;
+      }
+    ---
     async work
   </>;
 }
@@ -567,12 +570,13 @@ function WithAsyncDeclaration() {
         (return_statement
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (function_declaration
-              name: (identifier)
-              parameters: (formal_parameters)
-              body: (statement_block
-                (return_statement
-                  (number))))
+            children: (native_code_block
+              (function_declaration
+                name: (identifier)
+                parameters: (formal_parameters)
+                body: (statement_block
+                  (return_statement
+                    (number)))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 

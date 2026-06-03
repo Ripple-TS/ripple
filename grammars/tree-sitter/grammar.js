@@ -200,7 +200,8 @@ module.exports = grammar({
 		lexical_declaration: ($) =>
 			seq(choice('let', 'const'), commaSep1($.variable_declarator), $._semicolon),
 
-		statement_block: ($) => seq('{', repeat($.statement), '}'),
+		statement_block: ($) =>
+			seq('{', repeat(choice($.native_code_block, $.render_control_statement, $.statement)), '}'),
 
 		if_statement: ($) =>
 			seq(
@@ -215,9 +216,20 @@ module.exports = grammar({
 
 		switch_body: ($) => seq('{', repeat(choice($.switch_case, $.switch_default)), '}'),
 
-		switch_case: ($) => seq('case', field('value', $.expression), ':', repeat($.statement)),
+		switch_case: ($) =>
+			seq(
+				'case',
+				field('value', $.expression),
+				':',
+				repeat(choice($.native_code_block, $.render_control_statement, $.statement)),
+			),
 
-		switch_default: ($) => seq('default', ':', repeat($.statement)),
+		switch_default: ($) =>
+			seq(
+				'default',
+				':',
+				repeat(choice($.native_code_block, $.render_control_statement, $.statement)),
+			),
 
 		for_statement: ($) =>
 			seq(
@@ -350,6 +362,8 @@ module.exports = grammar({
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
 				prec(2, $.style_element),
+				$.native_code_block,
+				$.render_control_statement,
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
@@ -372,27 +386,12 @@ module.exports = grammar({
 			),
 
 		_jsx_statement_child: ($) =>
-			choice(
-				$.variable_declaration,
-				$.lexical_declaration,
-				$.function_declaration,
-				$.class_declaration,
-				prec(2, $.style_element),
-				$.if_statement,
-				$.switch_statement,
-				$.for_statement,
-				$.for_in_statement,
-				$.for_of_statement,
-				$.while_statement,
-				$.do_statement,
-				$.try_statement,
-				$.return_statement,
-				$.throw_statement,
-				$.break_statement,
-				$.continue_statement,
-				$.debugger_statement,
-				$.empty_statement,
-			),
+			choice(prec(2, $.style_element), $.native_code_block, $.render_control_statement),
+
+		native_code_block: ($) => seq('---', repeat($.statement), '---'),
+
+		render_control_statement: ($) =>
+			seq('@', choice($.if_statement, $.switch_statement, $.for_of_statement, $.try_statement)),
 
 		style_element: ($) =>
 			prec(

@@ -53,7 +53,7 @@ export function ReactiveTitle() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--13811860-->');
+		_$_.output_push('<!--b1de3af9-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -80,7 +80,7 @@ export function MultipleHeadElements() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--478d48ee-->');
+		_$_.output_push('<!--17d54385-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -117,7 +117,7 @@ export function ReactiveMetaTags() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--36dd8c9f-->');
+		_$_.output_push('<!--22a72307-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -150,7 +150,7 @@ export function TitleWithTemplate() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--bf58d07e-->');
+		_$_.output_push('<!--f3e71b81-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -177,7 +177,7 @@ export function EmptyTitle() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--146bbd6b-->');
+		_$_.output_push('<!--ff156d5f-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -207,7 +207,7 @@ export function ConditionalTitle() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--79341264-->');
+		_$_.output_push('<!--ad796676-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -244,7 +244,7 @@ export function ComputedTitle() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--624d9ef2-->');
+		_$_.output_push('<!--70d84480-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -271,7 +271,7 @@ export function MultipleHeadBlocks() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--111100ce-->');
+		_$_.output_push('<!--1f389ba9-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 
@@ -280,7 +280,7 @@ export function MultipleHeadBlocks() {
 		}
 
 		_$_.output_push('</title>');
-		_$_.output_push('<!--423883ee-->');
+		_$_.output_push('<!--50ccd7e5-->');
 		_$_.output_push('<meta');
 		_$_.output_push(' name="author"');
 		_$_.output_push(' content="Test Author"');
@@ -303,7 +303,7 @@ export function HeadWithStyle() {
 		});
 
 		_$_.set_output_target('head');
-		_$_.output_push('<!--f3524d73-->');
+		_$_.output_push('<!--57335fad-->');
 		_$_.output_push('<title');
 		_$_.output_push('>');
 

@@ -32,9 +32,11 @@ beforeAll(() => {
 });
 
 function Test() { return <>
+	---
 	let toggle: { value: boolean } | undefined;
 	toggle!.value = false;
 	toggle!.value++;
+	---
 </>; }`;
 
 		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
@@ -51,7 +53,9 @@ function Test() { return <>
 		'compiles writes to unknown lazy array index 1 through lazy array helpers in SSR output',
 		() => {
 			const source = `function Child({ pair: &[first, second] }) { return <>
+	---
 	second = 10;
+	---
 	<div>{first}</div>
 </>; }
 function App() { return <>
@@ -66,7 +70,9 @@ function App() { return <>
 
 	it('does not double-wrap member access on lazy array value bindings in SSR output', () => {
 		const source = `function Child({ pair: &[first] }) { return <>
+	---
 	let value = first[0];
+	---
 	<div>{value}</div>
 </>; }
 function App() { return <>
@@ -81,10 +87,12 @@ function App() { return <>
 	it('throws on indexed access through known tracked lazy destructures in SSR output', () => {
 		const source = `import { track } from 'ripple';
 function App() { return <>
+	---
 	let &[value, tracked_ref] = track({ 0: 'x' });
 	let nested = value[0];
 	tracked_ref[0] = { 0: 'y' };
 	let next = value[0];
+	---
 	<div>{nested}{next}</div>
 </>; }`;
 
@@ -96,12 +104,14 @@ function App() { return <>
 	it('throws on known tracked indexed access in SSR output', () => {
 		const source = `import { track } from 'ripple';
 function App() { return <>
+	---
 	let tracked = track(0);
 	++tracked[0];
 	tracked[0]++;
 	tracked[0] = tracked[0] + 1;
 	let value = tracked[0];
 	let ref = tracked[1];
+	---
 	<div>{value}</div>
 </>; }`;
 
@@ -115,12 +125,16 @@ function App() { return <>
 		() => {
 			const source = `import { track } from 'ripple';
 function Child({ pair: &[value, tracked_ref] }) { return <>
+	---
 	++tracked_ref[0];
 	tracked_ref[0]++;
+	---
 	<div>{value}</div>
 </>; }
 function App() { return <>
+	---
 	let tracked = track(0);
+	---
 	<Child pair={tracked} />
 </>; }`;
 			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
@@ -186,7 +200,7 @@ export function Layout(props) { return <>
 		const source = `
 export default function A() { return <>
 	<div>
-		"Hello"
+		Hello
 	</div>
 </>; }`;
 
@@ -268,10 +282,10 @@ export function App() {
 		}
 	});
 
-	it('decodes JSX-style entities before server text escaping', () => {
+	it('escapes direct text children in SSR output', () => {
 		const result = compile(
 			`function App() { return <>
-				<div>"Rock &amp; &quot;Roll&quot;"</div>
+				<div>Rock & "Roll"</div>
 			</>; }`,
 			'/src/App.tsrx',
 			{ mode: 'server' },
@@ -339,7 +353,9 @@ function Card(props) { return <>
 </>; }
 
 export function App() { return <>
+	---
 	const fallback = 'fallback';
+	---
 
 	<Card children={fallback}>
 		<span>{'content'}</span>
@@ -357,6 +373,7 @@ export function App() { return <>
 	it('routes calls to functions with nested template returns through render_expression', () => {
 		const source = `
 function App() { return <>
+	---
 	function make(flag) {
 		if (flag) {
 			return <><span>{'nested'}</span></>;
@@ -364,6 +381,7 @@ function App() { return <>
 
 		return null;
 	}
+	---
 
 	<div>{make(true)}</div>
 </>; }
@@ -378,6 +396,7 @@ function App() { return <>
 	it('does not treat nested function template returns as outer function returns', () => {
 		const source = `
 function App() { return <>
+	---
 	function make() {
 		function nested() {
 			return <><span>{'nested'}</span></>;
@@ -385,6 +404,7 @@ function App() { return <>
 
 		return nested;
 	}
+	---
 
 	<div>{make()}</div>
 </>; }
@@ -447,7 +467,9 @@ module server {
 import { loadUser as getUser } from server;
 
 export function App() { return <>
+	---
 	const user = getUser('1');
+	---
 	<div>{user.id}</div>
 </>; }`;
 
@@ -519,7 +541,9 @@ function Card(props) { return <>
 </>; }
 
 export function App() { return <>
+	---
 	const content = 'hello';
+	---
 
 	<Card children={content} />
 </>; }
@@ -537,7 +561,9 @@ function Card(props) { return <>
 </>; }
 
 export function App() { return <>
+	---
 	const props = { children: 'hello' };
+	---
 
 	<Card {...props} />
 </>; }

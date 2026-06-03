@@ -3,188 +3,186 @@ import { RippleArray, RippleMap } from 'ripple';
 describe('composite > generics', () => {
 	it('handles advanced generic ambiguity and edge cases', () => {
 		function App() {
-			return <>
-				const maybe = {
-					factory: function <T>() {
+			const maybe = {
+				factory: function <T>() {
+					return {
+						make: function <U>() {
+							return 1;
+						},
+					};
+				},
+			};
+			const g = maybe?.factory<number>()?.make<boolean>();
+			// 8. Comparison operator (ensure '<' here NOT misparsed as generics)
+			let x = 10, y = 20;
+			const h =
+				x < y ? 'lt' : 'ge';
+			// 9. Chained comparisons with intervening generics
+			class Box<T> {
+				value: T;
+
+				constructor(value: T) {
+					this.value = value;
+				}
+
+				open<U>() {
+					return new Box<number>(1);
+				}
+			}
+			const limit = 100;
+			const i =
+				new Box<number>(2).value < limit ? 'ok' : 'no';
+			// 10. JSX / Element should still work
+			<div class="still-works">
+				<span>{'Test'}</span>
+			</div>
+			// 11. Generic function call vs Element: Identifier followed by generic args
+			function identity<T>(value: T): T {
+				return value;
+			}
+			const j = identity<number>(42);
+			// 12. Member + generic call immediately followed by another call
+			class Factory {
+				create<T>() {
+					return (value: T) => value;
+				}
+			}
+			const factory = new Factory();
+			const k = factory.create<number>()(123);
+			// 13. Multiple generic segments in chain
+			function foo<T>() {
+				return {
+					bar: function <U>() {
 						return {
-							make: function <U>() {
-								return 1;
+							baz: function <V>() {
+								return true;
 							},
 						};
 					},
 				};
-				const g = maybe?.factory<number>()?.make<boolean>();
-				// 8. Comparison operator (ensure '<' here NOT misparsed as generics)
-				let x = 10, y = 20;
-				const h =
-					x < y ? 'lt' : 'ge';
-				// 9. Chained comparisons with intervening generics
-				class Box<T> {
-					value: T;
+			}
+			const l = foo<number>().bar<string>().baz<boolean>();
+			// 14. Generic with constraint + default
+			type Extractor<T extends { id: number } = { id: number }> = (v: T) => number;
+			const m: Extractor = (v) => v.id;
+			// 15. Generic in angle after "new" + trailing call
+			class Wrapper<T> {
+				value: T;
 
-					constructor(value: T) {
-						this.value = value;
-					}
+				constructor() {
+					this.value = null as unknown as T;
+				}
 
-					open<U>() {
-						return new Box<number>(1);
-					}
+				unwrap<U>() {
+					return null as unknown as U;
 				}
-				const limit = 100;
-				const i =
-					new Box<number>(2).value < limit ? 'ok' : 'no';
-				// 10. JSX / Element should still work
-				<div class="still-works">
-					<span>{'Test'}</span>
-				</div>
-				// 11. Generic function call vs Element: Identifier followed by generic args
-				function identity<T>(value: T): T {
-					return value;
-				}
-				const j = identity<number>(42);
-				// 12. Member + generic call immediately followed by another call
-				class Factory {
-					create<T>() {
-						return (value: T) => value;
-					}
-				}
-				const factory = new Factory();
-				const k = factory.create<number>()(123);
-				// 13. Multiple generic segments in chain
-				function foo<T>() {
-					return {
-						bar: function <U>() {
-							return {
-								baz: function <V>() {
-									return true;
-								},
-							};
-						},
-					};
-				}
-				const l = foo<number>().bar<string>().baz<boolean>();
-				// 14. Generic with constraint + default
-				type Extractor<T extends { id: number } = { id: number }> = (v: T) => number;
-				const m: Extractor = (v) => v.id;
-				// 15. Generic in angle after "new" + trailing call
-				class Wrapper<T> {
-					value: T;
-
-					constructor() {
-						this.value = null as unknown as T;
-					}
-
-					unwrap<U>() {
-						return null as unknown as U;
-					}
-				}
-				const n = new Wrapper<number>().unwrap<string>();
-				// 16. Angle brackets inside type assertion vs generic call
-				function getUnknown(): unknown {
-					return new Map<string, number>([['a', 1]]);
-				}
-				getUnknown.factory = function <T>() {
-					return {
-						make: function <U>() {
-							return 2;
-						},
-					};
+			}
+			const n = new Wrapper<number>().unwrap<string>();
+			// 16. Angle brackets inside type assertion vs generic call
+			function getUnknown(): unknown {
+				return new Map<string, number>([['a', 1]]);
+			}
+			getUnknown.factory = function <T>() {
+				return {
+					make: function <U>() {
+						return 2;
+					},
 				};
-				const raw = getUnknown();
-				const o = (raw as Map<string, number>).get('a');
-				// 17. Generic with comma + trailing less-than comparison on next token
-				class Pair<T1, T2> {
-					first: T1;
+			};
+			const raw = getUnknown();
+			const o = (raw as Map<string, number>).get('a');
+			// 17. Generic with comma + trailing less-than comparison on next token
+			class Pair<T1, T2> {
+				first: T1;
 
-					second: T2;
+				second: T2;
 
-					constructor() {
-						this.first = null as unknown as T1;
-						this.second = null as unknown as T2;
-					}
+				constructor() {
+					this.first = null as unknown as T1;
+					this.second = null as unknown as T2;
 				}
-				const p = new Pair<number, string>();
-				const q =
-					1 < 2 ? p : null;
-				// 18. Nested generics with line breaks resembling JSX indentation
-				interface Node<T> {
-					value: T;
-				}
-				interface Edge<W> {
-					weight: W;
-				}
-				class Graph<N, E> {
-					nodes: N[];
+			}
+			const p = new Pair<number, string>();
+			const q =
+				1 < 2 ? p : null;
+			// 18. Nested generics with line breaks resembling JSX indentation
+			interface Node<T> {
+				value: T;
+			}
+			interface Edge<W> {
+				weight: W;
+			}
+			class Graph<N, E> {
+				nodes: N[];
 
-					edges: E[];
+				edges: E[];
 
-					constructor() {
-						this.nodes = [];
-						this.edges = [];
-					}
+				constructor() {
+					this.nodes = [];
+					this.edges = [];
 				}
-				const r = new Graph<Node<string>, Edge<number>>();
-				// 19. Ternary containing generics in both branches
-				let flag = true;
-				const s = flag ? new Box<number>(1) : new Box<string>('string');
-				// 20. Generic inside template expression
-				const t = `length=${new RippleArray<number>().length}`;
-				// 21. Optional chaining + generic + property access
-				const registry = new RippleMap<string, number>();
-				const u = registry.get('id')?.toString();
-				// 22. Generic call used as callee for another call
-				function make<T>() {
-					return (value: T) => value;
-				}
-				const v = make<number>()(10);
-				// 23. Generic followed by tagged template (ensure not confused with JSX)
-				function tagFn<T>(strings: TemplateStringsArray, ...values) {
-					return values[0];
-				}
-				const tagResult = tagFn`value`;
-				// 24. Sequence mixing: (a < b) + generic call in same statement
-				function compute<T>(x: T, y: T): T {
-					return y;
-				}
-				const w = x < y && compute<number>(x, y);
-				// Additional component focusing on edge crankers
+			}
+			const r = new Graph<Node<string>, Edge<number>>();
+			// 19. Ternary containing generics in both branches
+			let flag = true;
+			const s = flag ? new Box<number>(1) : new Box<string>('string');
+			// 20. Generic inside template expression
+			const t = `length=${new RippleArray<number>().length}`;
+			// 21. Optional chaining + generic + property access
+			const registry = new RippleMap<string, number>();
+			const u = registry.get('id')?.toString();
+			// 22. Generic call used as callee for another call
+			function make<T>() {
+				return (value: T) => value;
+			}
+			const v = make<number>()(10);
+			// 23. Generic followed by tagged template (ensure not confused with JSX)
+			function tagFn<T>(strings: TemplateStringsArray, ...values) {
+				return values[0];
+			}
+			const tagResult = tagFn`value`;
+			// 24. Sequence mixing: (a < b) + generic call in same statement
+			function compute<T>(x: T, y: T): T {
+				return y;
+			}
+			const w = x < y && compute<number>(x, y);
+			// Additional component focusing on edge crankers
 
-				// 28. Generic after parenthesized new expression
-				const aa = (new Box<number>(2)).open<string>();
-				// 29. Generic chain right after closing paren of IIFE
-				class Builder<Kind> {
-					finalize<Result>() {
-						return {
-							result: null as unknown as Result,
-						};
-					}
+			// 28. Generic after parenthesized new expression
+			const aa = (new Box<number>(2)).open<string>();
+			// 29. Generic chain right after closing paren of IIFE
+			class Builder<Kind> {
+				finalize<Result>() {
+					return {
+						result: null as unknown as Result,
+					};
 				}
-				const builder = new Builder<Number>();
-				const result = (function () {
-					return builder;
-				}() as Builder<Number>).finalize<boolean>();
-				// 30. Angle bracket start of conditional expression line
-				function adjust<T>(value: T): T {
-					return value;
-				}
-				const val =
-					new Wrapper<number>().value < 100 ? adjust<number>(10) : adjust<number>(20);
-				// 32. Generic with comments inside angle list
-				class Mapper<Key, Value> {
-					map: Map<Key, Value>;
+			}
+			const builder = new Builder<Number>();
+			const result = (function () {
+				return builder;
+			}() as Builder<Number>).finalize<boolean>();
+			// 30. Angle bracket start of conditional expression line
+			function adjust<T>(value: T): T {
+				return value;
+			}
+			const val =
+				new Wrapper<number>().value < 100 ? adjust<number>(10) : adjust<number>(20);
+			// 32. Generic with comments inside angle list
+			class Mapper<Key, Value> {
+				map: Map<Key, Value>;
 
-					constructor() {
-						this.map = new Map<Key, Value>();
-					}
+				constructor() {
+					this.map = new Map<Key, Value>();
 				}
-				const gg = new Mapper<
-					// key type
-					string /* value type */,
-					number
-				>();
-				// 33. Map of generic instance as key
-				const mm = new Map<RippleArray<number>, RippleArray<string>>();
-			</>;
+			}
+			const gg = new Mapper<
+				// key type
+				string /* value type */,
+				number
+			>();
+			// 33. Map of generic instance as key
+			const mm = new Map<RippleArray<number>, RippleArray<string>>();
 		}
 
 		render(App);

@@ -836,8 +836,21 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "statement"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "native_code_block"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "render_control_statement"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "statement"
+              }
+            ]
           }
         },
         {
@@ -972,8 +985,21 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "statement"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "native_code_block"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "render_control_statement"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "statement"
+              }
+            ]
           }
         }
       ]
@@ -992,8 +1018,21 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "statement"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "native_code_block"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "render_control_statement"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "statement"
+              }
+            ]
           }
         }
       ]
@@ -1854,6 +1893,14 @@
         },
         {
           "type": "SYMBOL",
+          "name": "native_code_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "render_control_statement"
+        },
+        {
+          "type": "SYMBOL",
           "name": "variable_declaration"
         },
         {
@@ -1934,22 +1981,6 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "SYMBOL",
-          "name": "variable_declaration"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "lexical_declaration"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "function_declaration"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "class_declaration"
-        },
-        {
           "type": "PREC",
           "value": 2,
           "content": {
@@ -1959,59 +1990,61 @@
         },
         {
           "type": "SYMBOL",
-          "name": "if_statement"
+          "name": "native_code_block"
         },
         {
           "type": "SYMBOL",
-          "name": "switch_statement"
+          "name": "render_control_statement"
+        }
+      ]
+    },
+    "native_code_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "---"
         },
         {
-          "type": "SYMBOL",
-          "name": "for_statement"
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "statement"
+          }
         },
         {
-          "type": "SYMBOL",
-          "name": "for_in_statement"
+          "type": "STRING",
+          "value": "---"
+        }
+      ]
+    },
+    "render_control_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
         },
         {
-          "type": "SYMBOL",
-          "name": "for_of_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "while_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "try_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "return_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "throw_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "break_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "continue_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "debugger_statement"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "empty_statement"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "if_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "switch_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "for_of_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "try_statement"
+            }
+          ]
         }
       ]
     },

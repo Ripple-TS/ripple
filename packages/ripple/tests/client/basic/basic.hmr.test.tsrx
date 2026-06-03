@@ -39,11 +39,14 @@ describe('basic client > hmr', () => {
 
 		function Child() {
 			return <>
-				effect(() => {
-					return () => {
-						teardown_count++;
-					};
-				});
+				---
+					effect(() => {
+						return () => {
+							teardown_count++;
+						};
+					});
+				---
+
 				<span class="hmr-child">{'child'}</span>
 			</>;
 		}

@@ -4,10 +4,13 @@ describe('composite > dynamic components', () => {
 	it('supports rendering composite components using <@component> syntax', () => {
 		function App() {
 			return <>
-				function basic() {
-					return <><div>{'Basic Component'}</div></>;
-				}
-				const tracked_basic = track(() => basic);
+				---
+					const basic = () => {
+						return <><div>{'Basic Component'}</div></>;
+					};
+					const tracked_basic = track(() => basic);
+				---
+
 				<@tracked_basic />
 			</>;
 		}
@@ -21,14 +24,17 @@ describe('composite > dynamic components', () => {
 	it('supports rendering composite components from object properties', () => {
 		function App() {
 			return <>
-				function basic() {
-					return <><div>{'Basic Component'}</div></>;
-				}
-				const tracked_basic = track(() => basic);
-				const obj = {
-					tracked_basic,
-				};
-				const comp = obj.tracked_basic;
+				---
+					const basic = () => {
+						return <><div>{'Basic Component'}</div></>;
+					};
+					const tracked_basic = track(() => basic);
+					const obj = {
+						tracked_basic,
+					};
+					const comp = obj.tracked_basic;
+				---
+
 				<@comp />
 			</>;
 		}
@@ -42,15 +48,18 @@ describe('composite > dynamic components', () => {
 	it('supports rendering composite components from tracked object properties', () => {
 		function App() {
 			return <>
-				function basic() {
-					return <><div>{'Basic Component'}</div></>;
-				}
-				const tracked_basic = track(() => basic);
-				const obj = {
-					tracked_basic,
-				};
-				let &[inner] = track(obj);
-				const comp = inner.tracked_basic;
+				---
+					const basic = () => {
+						return <><div>{'Basic Component'}</div></>;
+					};
+					const tracked_basic = track(() => basic);
+					const obj = {
+						tracked_basic,
+					};
+					let &[inner] = track(obj);
+					const comp = inner.tracked_basic;
+				---
+
 				<@comp />
 			</>;
 		}
@@ -72,7 +81,10 @@ describe('composite > dynamic components', () => {
 
 		function App() {
 			return <>
-				let &[thing] = track(() => Child1);
+				---
+					let &[thing] = track(() => Child1);
+				---
+
 				<div id="container">
 					<@thing />
 				</div>

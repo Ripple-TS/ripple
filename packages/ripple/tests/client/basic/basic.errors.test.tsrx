@@ -5,19 +5,22 @@ describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {
 		function Basic() {
 			return <>
-				let &[hasError] = track(false);
-				let &[errorMessage] = track('');
-				const triggerError = () => {
-					try {
-						throw new Error('Test error');
-					} catch (e) {
-						hasError = true;
-						errorMessage = (e as Error).message;
-					}
-				};
+				---
+					let &[hasError] = track(false);
+					let &[errorMessage] = track('');
+					const triggerError = () => {
+						try {
+							throw new Error('Test error');
+						} catch (e) {
+							hasError = true;
+							errorMessage = (e as Error).message;
+						}
+					};
+				---
+
 				<div>
 					<button onClick={triggerError}>{'Trigger Error'}</button>
-					if (hasError) {
+					@if (hasError) {
 						<div class="error">{'Error caught: ' + errorMessage}</div>
 					} else {
 						<div class="success">{'No error'}</div>
@@ -116,14 +119,17 @@ describe('basic client > errors', () => {
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
 		function Basic() {
 			return <>
-				let &[count] = track(0);
-				const &[doubled] = track(() => {
-					try {
-						count *= 2;
-					} catch (e) {
-						error = (e as Error).message;
-					}
-				});
+				---
+					let &[count] = track(0);
+					const &[doubled] = track(() => {
+						try {
+							count *= 2;
+						} catch (e) {
+							error = (e as Error).message;
+						}
+					});
+				---
+
 				<p>{doubled}</p>
 			</>;
 		}
@@ -138,16 +144,19 @@ describe('basic client > errors', () => {
 	it('errors on mutating tracked value inside untrack() in computed track() evaluation', () => {
 		function Basic() {
 			return <>
-				let &[count] = track(0);
-				const &[doubled] = track(() => {
-					try {
-						untrack(() => {
-							count *= 2;
-						});
-					} catch (e) {
-						error = (e as Error).message;
-					}
-				});
+				---
+					let &[count] = track(0);
+					const &[doubled] = track(() => {
+						try {
+							untrack(() => {
+								count *= 2;
+							});
+						} catch (e) {
+							error = (e as Error).message;
+						}
+					});
+				---
+
 				<p>{doubled}</p>
 			</>;
 		}
@@ -162,15 +171,18 @@ describe('basic client > errors', () => {
 	it('errors on mutating a tracked variable in track() getter', () => {
 		function Basic() {
 			return <>
-				let &[count] = track(0);
-				const &[doubled] = track(0, (value) => {
-					try {
-						count += 1;
-					} catch (e) {
-						error = (e as Error).message;
-					}
-					return value;
-				});
+				---
+					let &[count] = track(0);
+					const &[doubled] = track(0, (value) => {
+						try {
+							count += 1;
+						} catch (e) {
+							error = (e as Error).message;
+						}
+						return value;
+					});
+				---
+
 				<p>{doubled}</p>
 			</>;
 		}
@@ -185,11 +197,14 @@ describe('basic client > errors', () => {
 	it('should throw error for await inside client components', () => {
 		const code = `
 			export default async function App() { return <>
-				let data = 'initial';
-				if (true) {
-					await new Promise(r => setTimeout(r, 100));
-					data = 'loaded';
-				}
+				---
+					let data = 'initial';
+					if (true) {
+						await new Promise(r => setTimeout(r, 100));
+						data = 'loaded';
+					}
+				---
+
 				<div>{data}</div>
 			</>; }
 		`;
@@ -198,34 +213,40 @@ describe('basic client > errors', () => {
 		}).toThrow(/`await` is not allowed inside components\./);
 	});
 
-	it('should throw error for while loop inside a component', () => {
+	it('should allow while loop inside a native code block in a component', () => {
 		const code = `
 			export default function App() { return <>
-				let i = 0;
-				while (i < 10) {
-					i++;
-				}
+				---
+					let i = 0;
+					while (i < 10) {
+						i++;
+					}
+				---
+
 				<div>{i}</div>
 			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
-		}).toThrow('While loops are not supported in TSRX templates.');
+		}).not.toThrow();
 	});
 
-	it('should throw error for do...while loop inside a component', () => {
+	it('should allow do...while loop inside a native code block in a component', () => {
 		const code = `
 			export default function App() { return <>
-				let i = 0;
-				do {
-					i++;
-				} while (i < 10);
+				---
+					let i = 0;
+					do {
+						i++;
+					} while (i < 10);
+				---
+
 				<div>{i}</div>
 			</>; }
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
-		}).toThrow('Do...while loops are not supported in TSRX templates.');
+		}).not.toThrow();
 	});
 
 	it('should allow JSX fragments in TSRX templates as <> shorthand', () => {
@@ -255,13 +276,16 @@ describe('basic client > errors', () => {
 	it('should not throw error for while loop inside a function within a component', () => {
 		const code = `
 			export default function App() { return <>
-				const compute = () => {
-					let i = 0;
-					while (i < 10) {
-						i++;
-					}
-					return i;
-				};
+				---
+					const compute = () => {
+						let i = 0;
+						while (i < 10) {
+							i++;
+						}
+						return i;
+					};
+				---
+
 				<div>{compute()}</div>
 			</>; }
 		`;
@@ -273,13 +297,16 @@ describe('basic client > errors', () => {
 	it('should not throw error for do...while loop inside a function within a component', () => {
 		const code = `
 			export default function App() { return <>
-				const compute = () => {
-					let i = 0;
-					do {
-						i++;
-					} while (i < 10);
-					return i;
-				};
+				---
+					const compute = () => {
+						let i = 0;
+						do {
+							i++;
+						} while (i < 10);
+						return i;
+					};
+				---
+
 				<div>{compute()}</div>
 			</>; }
 		`;
@@ -291,7 +318,10 @@ describe('basic client > errors', () => {
 	it('should throw error for variables using the reserved _$_ prefix', () => {
 		const code = `
 			export default function App() { return <>
-				const _$_test = 'hello';
+				---
+					const _$_test = 'hello';
+				---
+
 				<div>{_$_test}</div>
 			</>; }
 		`;

@@ -4,10 +4,13 @@ describe('RippleURLSearchParams > derived', () => {
 	it('handles reactive computed properties based on search params', () => {
 		function URLTest() {
 			return <>
-				const params = RippleURLSearchParams('page=1&limit=10');
-				let &[page] = track(() => parseInt(params.get('page') || '1', 10));
-				let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
-				let &[offset] = track(() => (page - 1) * limit);
+				---
+					const params = RippleURLSearchParams('page=1&limit=10');
+					let &[page] = track(() => parseInt(params.get('page') || '1', 10));
+					let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
+					let &[offset] = track(() => (page - 1) * limit);
+				---
+
 				<button onClick={() => params.set('page', '2')}>{'next page'}</button>
 				<button onClick={() => params.set('page', '1')}>{'first page'}</button>
 				<pre>{`Page: ${page}`}</pre>
@@ -46,7 +49,10 @@ describe('RippleURLSearchParams > derived', () => {
 	it('maintains reactivity across multiple components', () => {
 		function ParentTest() {
 			return <>
-				const params = RippleURLSearchParams('count=0');
+				---
+					const params = RippleURLSearchParams('count=0');
+				---
+
 				<ChildA {params} />
 				<ChildB {params} />
 			</>;
@@ -67,7 +73,10 @@ describe('RippleURLSearchParams > derived', () => {
 
 		function ChildB({ params }: { params: RippleURLSearchParams }) {
 			return <>
-				let &[count] = track(() => params.get('count'));
+				---
+					let &[count] = track(() => params.get('count'));
+				---
+
 				<pre>{count}</pre>
 			</>;
 		}

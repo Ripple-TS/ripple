@@ -464,7 +464,7 @@ export function get_native_tsrx_function_body(node) {
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
-	return expand_native_tsrx_return_statements(body, true);
+	return expand_native_tsrx_return_statements(expand_tsrx_code_blocks(body), true);
 }
 
 /**
@@ -484,6 +484,27 @@ export function expand_native_tsrx_return_statements(
 				statement.type === 'ReturnStatement',
 		),
 	);
+}
+
+/**
+ * @param {AST.Node[]} nodes
+ * @returns {AST.Node[]}
+ */
+export function expand_tsrx_code_blocks(nodes) {
+	/** @type {AST.Node[]} */
+	const expanded = [];
+
+	for (const node of nodes || []) {
+		if (node?.type === 'TSRXCodeBlock') {
+			for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+				expanded.push(mark_regular_js_statement(/** @type {AST.Statement} */ (statement)));
+			}
+		} else {
+			expanded.push(node);
+		}
+	}
+
+	return expanded;
 }
 
 /**

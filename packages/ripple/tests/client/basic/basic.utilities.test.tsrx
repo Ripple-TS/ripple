@@ -7,13 +7,16 @@ describe('basic client > utilities', () => {
 
 		function Basic() {
 			return <>
-				let &[value] = track(0);
-				effect(() => {
-					untrack(() => {
-						value++;
-						tick().then(() => resolve());
+				---
+					let &[value] = track(0);
+					effect(() => {
+						untrack(() => {
+							value++;
+							tick().then(() => resolve());
+						});
 					});
-				});
+				---
+
 				<p>{value}</p>
 			</>;
 		}

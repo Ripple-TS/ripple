@@ -100,6 +100,14 @@
 (style_element
   (raw_text) @string.special)
 
+; Native code blocks
+(native_code_block
+  "---" @comment)
+
+; Render control prefixes
+(render_control_statement
+  "@" @keyword.control)
+
 ; Types
 (type_identifier) @type
 (predefined_type) @type.builtin

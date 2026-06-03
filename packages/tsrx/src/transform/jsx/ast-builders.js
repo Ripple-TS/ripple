@@ -237,6 +237,15 @@ export function contains_component_jsx(node) {
 export function is_jsx_child(node) {
 	if (!node) return false;
 	const t = node.type;
+	const is_plain_code_block_control_flow =
+		node.metadata?.tsrx_code_block_statement === true &&
+		(t === 'IfStatement' ||
+			t === 'ForOfStatement' ||
+			t === 'SwitchStatement' ||
+			t === 'TryStatement');
+	if (is_plain_code_block_control_flow) {
+		return false;
+	}
 	return (
 		t === 'JSXElement' ||
 		t === 'JSXFragment' ||

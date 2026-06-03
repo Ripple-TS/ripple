@@ -59,10 +59,10 @@ describe('TSRX parser', () => {
 		const ast = parseModule(
 			`function bar(): JSX.Element | null {
 				return <>
-					if (x) {
-						<div>"works"</div>
+					@if (x) {
+						<div>works</div>
 					} else {
-						<span>"empty"</span>
+						<span>empty</span>
 					}
 
 					<style>
@@ -76,6 +76,82 @@ describe('TSRX parser', () => {
 		const returned = ast.body[0].body.body[0].argument;
 		expect(returned.type).toBe('TsrxFragment');
 		expect(returned.children.map((child) => child.type)).toEqual(['IfStatement', 'Element']);
+		expect(returned.children[0].metadata.tsrx_render_control_flow).toBe(true);
+	});
+
+	it('parses raw text children without string delimiters', () => {
+		const ast = parseModule(
+			'const x = <div>This is some string in the html<SomeComponent /></div>;',
+			'App.tsrx',
+		);
+
+		const value = ast.body[0].declarations[0].init;
+		expect(value.children.map((child) => child.type)).toEqual(['JSXText', 'Element']);
+		expect(value.children[0].value).toBe('This is some string in the html');
+	});
+
+	it('parses fenced code blocks inside native templates', () => {
+		const ast = parseModule(
+			`const x = <div>
+				---
+					const a = 5;
+				---
+
+				<span>{a}</span>
+			</div>;`,
+			'App.tsrx',
+		);
+
+		const value = ast.body[0].declarations[0].init;
+		expect(value.children.map((child) => child.type)).toEqual(['TSRXCodeBlock', 'Element']);
+		expect(value.children[0].body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+	});
+
+	it('parses regular JS control flow inside fenced code blocks as ordinary JS', () => {
+		const ast = parseModule(
+			`const x = <div>
+				---
+					let total = 0;
+					if (values.length > 0) {
+						total += values[0];
+					}
+					for (const value of values) {
+						total += value;
+					}
+					switch (total) {
+						case 0:
+							total = 1;
+							break;
+						default:
+							total += 1;
+					}
+					try {
+						total += load();
+					} catch (error) {
+						total = -1;
+					}
+				---
+
+				<p>{total}</p>
+			</div>;`,
+			'App.tsrx',
+		);
+
+		const codeBlock = ast.body[0].declarations[0].init.children[0];
+		expect(codeBlock.type).toBe('TSRXCodeBlock');
+		expect(codeBlock.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'IfStatement',
+			'ForOfStatement',
+			'SwitchStatement',
+			'TryStatement',
+		]);
+		expect(codeBlock.body.every((child) => child.metadata?.tsrx_render_control_flow !== true)).toBe(
+			true,
+		);
+		expect(codeBlock.body[1].consequent.body.map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+		]);
 	});
 
 	it('rejects return statements inside native TSRX templates', () => {
@@ -83,9 +159,9 @@ describe('TSRX parser', () => {
 			parseModule(
 				`function bar() {
 					return <>
-						if (x) {
+						---
 							return null;
-						}
+						---
 					</>;
 				}`,
 				'App.tsrx',
@@ -122,7 +198,7 @@ describe('TSRX parser', () => {
 	});
 
 	it('treats plain tsx tags like ordinary elements', () => {
-		const ast = parseModule('const x = <tsx><div>"value"</div></tsx>;', 'App.tsrx');
+		const ast = parseModule('const x = <tsx><div>value</div></tsx>;', 'App.tsrx');
 
 		const value = ast.body[0].declarations[0].init;
 		expect(value.type).toBe('Element');

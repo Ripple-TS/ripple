@@ -2,19 +2,34 @@ describe('compiler > regex', () => {
 	it('renders without crashing using regex literals in method calls', () => {
 		function App() {
 			return <>
-				let text = 'Hello <span>world</span> and <div>content</div>';
+				---
+					let text = 'Hello <span>world</span> and <div>content</div>';
+				---
+
 				// Test various regex patterns in method calls that previously failed
-				let matchResult = text.match(/<span>/);
-				let replaceResult = text.replace(/<div>/g, '[DIV]');
-				let searchResult = text.search(/<span>/);
+				---
+					let matchResult = text.match(/<span>/);
+					let replaceResult = text.replace(/<div>/g, '[DIV]');
+					let searchResult = text.search(/<span>/);
+				---
+
 				// Test regex literals in variable assignments (should work)
-				let spanRegex = /<span>/g;
-				let divRegex = /<div.*?>/;
+				---
+					let spanRegex = /<span>/g;
+					let divRegex = /<div.*?>/;
+				---
+
 				// Test more complex regex patterns
-				let complexMatch = text.match(/<[^>]*>/g);
-				let htmlTags = text.replace(/<(\/*)(\w+)[^>]*>/g, '[$1$2]');
+				---
+					let complexMatch = text.match(/<[^>]*>/g);
+					let htmlTags = text.replace(/<(\/*)(\w+)[^>]*>/g, '[$1$2]');
+				---
+
 				// Test edge cases with multiple angle brackets
-				let multiAngle = '<<test>> <span>content</span>'.match(/<span>/);
+				---
+					let multiAngle = '<<test>> <span>content</span>'.match(/<span>/);
+				---
+
 				<div>
 					<span>{String(matchResult)}</span>
 					<span>{replaceResult}</span>
@@ -52,11 +67,17 @@ describe('compiler > regex', () => {
 	it('renders without crashing mixing regex and JSX syntax', () => {
 		function App() {
 			return <>
-				let htmlString = '<p>Paragraph</p><div>Content</div>';
+				---
+					let htmlString = '<p>Paragraph</p><div>Content</div>';
+				---
+
 				// Mix of regex parsing and legitimate JSX
-				let paragraphs = htmlString.match(/<p[^>]*>.*?<\/p>/g);
-				let cleaned = htmlString.replace(/<\/?[^>]+>/g, '');
-				let splitArray = htmlString.split(/<\/?\w+>/g).filter((s) => s.trim());
+				---
+					let paragraphs = htmlString.match(/<p[^>]*>.*?<\/p>/g);
+					let cleaned = htmlString.replace(/<\/?[^>]+>/g, '');
+					let splitArray = htmlString.split(/<\/?\w+>/g).filter((s) => s.trim());
+				---
+
 				<div class="container">
 					<span class="result">{String(paragraphs)}</span>
 					<span class="cleaned">{cleaned}</span>

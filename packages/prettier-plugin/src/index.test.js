@@ -53,11 +53,18 @@ describe('prettier-plugin', () => {
 	});
 
 	it('formats native fragments with statements inside returned TSRX', async () => {
-		const input = `function App(){return <>const items=[1,2,3];for(const item of items; index i; key item){<div>{i}{item}</div>}</>}`;
+		const input = `function App(){return <>
+---
+const items=[1,2,3];
+---
+@for(const item of items; index i; key item){<div>{i}{item}</div>}</>}`;
 		const expected = `function App() {
   return <>
-    const items = [1, 2, 3];
-    for (const item of items; index i; key item) {
+    ---
+      const items = [1, 2, 3];
+    ---
+
+    @for (const item of items; index i; key item) {
       <div>
         {i}
         {item}
@@ -79,11 +86,109 @@ describe('prettier-plugin', () => {
 	});
 
 	it('keeps native fragments expression based', async () => {
-		const input = `function App(){return <><div>"Hello world"</div>{value}</>}`;
+		const input = `function App(){return <><div>Hello world</div>{value}</>}`;
 		const expected = `function App() {
   return <>
-    <div>"Hello world"</div>
+    <div>Hello world</div>
     {value}
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats fenced code blocks inside native elements', async () => {
+		const input = `function App(){return <div>
+---
+const product=selectedProduct();const canCheckout=product.stock>0;
+---
+<p>{product.name}</p>@if(canCheckout){<button>Add to cart</button>}
+</div>}`;
+		const expected = `function App() {
+  return <div>
+    ---
+      const product = selectedProduct();
+      const canCheckout = product.stock > 0;
+    ---
+
+    <p>{product.name}</p>
+    @if (canCheckout) {
+      <button>Add to cart</button>
+    }
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('adds a blank line after fenced code blocks inside render controls', async () => {
+		const input = `function App(){return <div>@if(show){
+---
+const userContent=<div>User content</div>;
+---
+@if(userRole==="admin"){<div>Admin content</div>}else{<div>{userContent}</div>}}</div>}`;
+		const expected = `function App() {
+  return <div>
+    @if (show) {
+      ---
+        const userContent = <div>User content</div>;
+      ---
+
+      @if (userRole === "admin") {
+        <div>Admin content</div>
+      } else {
+        <div>{userContent}</div>
+      }
+    }
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps fragment initializers attached to variable declarations inside fenced code blocks', async () => {
+		const input = `export function MixedTsrxCollectionText() {
+  return <>
+    ---
+    const content =
+    <>
+      {[
+        'alpha ',
+        <strong class="middle">{'beta'}</strong>,
+        ' gamma ',
+        [
+          'delta ',
+          <em class="tail">{'epsilon'}</em>,
+          ' zeta',
+        ],
+      ]}
+    </>
+    ;
+    ---
+    <div class="mixed-collection">{content}</div>
+  </>;
+}`;
+		const expected = `export function MixedTsrxCollectionText() {
+  return <>
+    ---
+      const content = <>
+        {[
+          "alpha ",
+          <strong class="middle">{"beta"}</strong>,
+          " gamma ",
+          [
+            "delta ",
+            <em class="tail">{"epsilon"}</em>,
+            " zeta",
+          ],
+        ]}
+      </>;
+    ---
+
+    <div class="mixed-collection">{content}</div>
   </>;
 }`;
 
@@ -123,17 +228,17 @@ describe('prettier-plugin', () => {
 		const input = `export function App() {
   let [count] = track(0);
   return <div>
-    <p>"Count: "{count}</p>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <p>Count: {count}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>;
 }`;
 		const expected = `export function App() {
   let [count] = track(0);
   return <div>
-    <p>"Count: "{count}</p>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <p>Count: {count}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>;
 }`;
 
@@ -146,7 +251,7 @@ describe('prettier-plugin', () => {
   let [count] = track(0);
   return <div>
     <p>
-      "Count: "
+      Count:
       {count}
     </p>
   </div>;
@@ -155,7 +260,7 @@ describe('prettier-plugin', () => {
   let [count] = track(0);
   return <div>
     <p>
-      "Count: "
+      Count:
       {count}
     </p>
   </div>;

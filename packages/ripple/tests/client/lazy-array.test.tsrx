@@ -18,7 +18,10 @@ describe('lazy array destructuring', () => {
 
 		function App() {
 			return <>
-				let tracked = track(0);
+				---
+					let tracked = track(0);
+				---
+
 				<Child tr={tracked} />
 			</>;
 		}

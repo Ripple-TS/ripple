@@ -5,8 +5,11 @@ describe('try block with catch and pending (server)', () => {
 		function App() {
 			return <>
 				<span>{'before'}</span>
-				try {
-					let &[data] = trackAsync(() => Promise.resolve('resolved value'));
+				@try {
+					---
+						let &[data] = trackAsync(() => Promise.resolve('resolved value'));
+					---
+
 					<p>{data}</p>
 				} pending {}
 				<span>{'after'}</span>
@@ -23,15 +26,18 @@ describe('try block with catch and pending (server)', () => {
 	it('catch block works when component throws before await with pending block', async () => {
 		function ThrowingChild() {
 			return <>
-				throw new Error('sync error');
-				let &[data] = trackAsync(() => Promise.resolve('hello'));
+				---
+					throw new Error('sync error');
+					let &[data] = trackAsync(() => Promise.resolve('hello'));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} pending {
 					<p>{'loading...'}</p>
@@ -49,15 +55,18 @@ describe('try block with catch and pending (server)', () => {
 	it('catch block works when component throws after await with pending block', async () => {
 		function ThrowingAfterAwait() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('hello'));
-				throw new Error('error after await');
+				---
+					let &[data] = trackAsync(() => Promise.resolve('hello'));
+					throw new Error('error after await');
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<ThrowingAfterAwait />
 				} pending {
 					<p>{'loading...'}</p>
@@ -75,8 +84,11 @@ describe('try block with catch and pending (server)', () => {
 	it('catch block works with try/catch/pending when async body rejects', async () => {
 		function App() {
 			return <>
-				try {
-					let &[data] = trackAsync(() => Promise.reject(new Error('rejected')));
+				@try {
+					---
+						let &[data] = trackAsync(() => Promise.reject(new Error('rejected')));
+					---
+
 					<p>{data}</p>
 				} pending {
 					<p>{'loading...'}</p>
@@ -94,9 +106,12 @@ describe('try block with catch and pending (server)', () => {
 	it('removes pending content for nested try/pending blocks', async () => {
 		function App() {
 			return <>
-				try {
-					try {
-						let &[data] = trackAsync(() => Promise.resolve('resolved'));
+				@try {
+					@try {
+						---
+							let &[data] = trackAsync(() => Promise.resolve('resolved'));
+						---
+
 						<p>{data}</p>
 					} pending {
 						<p>{'inner loading...'}</p>
@@ -118,7 +133,7 @@ describe('trackAsync directly in component body (server)', () => {
 	it('resolves trackAsync used directly in a component', async () => {
 		function App() {
 			return <>
-				try {
+				@try {
 					<DataChild />
 				} catch (err) {
 					<p>{'error'}</p>
@@ -128,7 +143,10 @@ describe('trackAsync directly in component body (server)', () => {
 
 		function DataChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('from child'));
+				---
+					let &[data] = trackAsync(() => Promise.resolve('from child'));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
@@ -141,9 +159,12 @@ describe('trackAsync directly in component body (server)', () => {
 	it('resolves multiple trackAsync values in the same component', async () => {
 		function App() {
 			return <>
-				try {
-					let &[a] = trackAsync(() => Promise.resolve('hello'));
-					let &[b] = trackAsync(() => Promise.resolve('world'));
+				@try {
+					---
+						let &[a] = trackAsync(() => Promise.resolve('hello'));
+						let &[b] = trackAsync(() => Promise.resolve('world'));
+					---
+
 					<p>
 						{a}
 						{' '}
@@ -163,14 +184,17 @@ describe('trackAsync directly in component body (server)', () => {
 	it('renders catch when trackAsync rejects in a child component without its own try', async () => {
 		function RejectChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('child rejected')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('child rejected')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<RejectChild />
 				} catch (err) {
 					<p>{'parent caught it'}</p>
@@ -185,12 +209,15 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync resolves both values', async () => {
 		function App() {
 			return <>
-				try {
-					let &[name] = trackAsync(() => Promise.resolve('ripple'));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.resolve(n.toUpperCase());
-					});
+				@try {
+					---
+						let &[name] = trackAsync(() => Promise.resolve('ripple'));
+						let &[upper] = trackAsync(() => {
+							const n = name;
+							return Promise.resolve(n.toUpperCase());
+						});
+					---
+
 					<p>{upper}</p>
 				} catch (err) {
 					<p>{'error'}</p>
@@ -206,12 +233,15 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync catches when first rejects', async () => {
 		function App() {
 			return <>
-				try {
-					let &[name] = trackAsync(() => Promise.reject<string>(new Error('first failed')));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.resolve(n.toUpperCase());
-					});
+				@try {
+					---
+						let &[name] = trackAsync(() => Promise.reject<string>(new Error('first failed')));
+						let &[upper] = trackAsync(() => {
+							const n = name;
+							return Promise.resolve(n.toUpperCase());
+						});
+					---
+
 					<p>{upper}</p>
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -226,12 +256,15 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync catches when second rejects', async () => {
 		function App() {
 			return <>
-				try {
-					let &[name] = trackAsync(() => Promise.resolve('ripple'));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.reject(new Error('second failed'));
-					});
+				@try {
+					---
+						let &[name] = trackAsync(() => Promise.resolve('ripple'));
+						let &[upper] = trackAsync(() => {
+							const n = name;
+							return Promise.reject(new Error('second failed'));
+						});
+					---
+
 					<p>{upper}</p>
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -248,14 +281,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('inner try/catch catches error from its own child', async () => {
 		function ThrowingChild() {
 			return <>
-				throw new Error('inner error');
+				---
+					throw new Error('inner error');
+				---
+
 				<p>{'should not render'}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -265,7 +301,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Inner />
 				} catch (err) {
 					<p>{'outer caught'}</p>
@@ -281,14 +317,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('inner try/catch catches async rejection from its own child', async () => {
 		function AsyncChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('async inner error')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('async inner error')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<AsyncChild />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -298,7 +337,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Inner />
 				} catch (err) {
 					<p>{'outer caught'}</p>
@@ -314,14 +353,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('error propagates to outer catch when inner try has no catch', async () => {
 		function ThrowingChild() {
 			return <>
-				throw new Error('propagated error');
+				---
+					throw new Error('propagated error');
+				---
+
 				<p>{'should not render'}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} pending {
 					<p>{'loading...'}</p>
@@ -331,7 +373,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Inner />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -347,14 +389,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('async rejection propagates to outer catch when inner try has no catch', async () => {
 		function AsyncChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('async propagated')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('async propagated')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<AsyncChild />
 				} pending {
 					<p>{'loading...'}</p>
@@ -364,7 +409,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Inner />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -382,14 +427,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 		async () => {
 			function ThrowingChild() {
 				return <>
-					throw new Error('deep error');
+					---
+						throw new Error('deep error');
+					---
+
 					<p>{'should not render'}</p>
 				</>;
 			}
 
 			function Level3() {
 				return <>
-					try {
+					@try {
 						<ThrowingChild />
 					} pending {
 						<p>{'level3 loading'}</p>
@@ -399,7 +447,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 			function Level2() {
 				return <>
-					try {
+					@try {
 						<Level3 />
 					} pending {
 						<p>{'level2 loading'}</p>
@@ -409,7 +457,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 			function App() {
 				return <>
-					try {
+					@try {
 						<Level2 />
 					} catch (err: Error) {
 						<p>{err.message}</p>
@@ -425,21 +473,27 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('sibling components: one fails, the other does not affect catch', async () => {
 		function GoodChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('good'));
+				---
+					let &[data] = trackAsync(() => Promise.resolve('good'));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function BadChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('bad child')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('bad child')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<GoodChild />
 					<BadChild />
 				} catch (err: Error) {
@@ -456,26 +510,32 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('independent try/catch boundaries each handle their own errors', async () => {
 		function FailChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function SuccessChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('success'));
+				---
+					let &[data] = trackAsync(() => Promise.resolve('success'));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<FailChild />
 				} catch (err: Error) {
 					<p>{err.message}</p>
 				}
-				try {
+				@try {
 					<SuccessChild />
 				} catch (err) {
 					<p>{'should not catch'}</p>
@@ -492,14 +552,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('inner catch handles rejection, outer renders normally', async () => {
 		function AsyncChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('handled inside')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('handled inside')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<AsyncChild />
 				} catch (err: Error) {
 					<span>{err.message}</span>
@@ -524,7 +587,10 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('sync error in child after trackAsync routes to catch boundary', async () => {
 		function BrokenChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('loaded'));
+				---
+					let &[data] = trackAsync(() => Promise.resolve('loaded'));
+				---
+
 				throw new Error('sync after async');
 				<p>{data}</p>
 			</>;
@@ -532,7 +598,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<BrokenChild />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -551,14 +617,17 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('outer try with pending, inner try with catch: rejection goes to inner catch', async () => {
 		function AsyncChild() {
 			return <>
-				let &[data] = trackAsync(() => Promise.reject(new Error('inner rejection')));
+				---
+					let &[data] = trackAsync(() => Promise.reject(new Error('inner rejection')));
+				---
+
 				<p>{data}</p>
 			</>;
 		}
 
 		function Inner() {
 			return <>
-				try {
+				@try {
 					<AsyncChild />
 				} catch (err: Error) {
 					<p>{err.message}</p>
@@ -568,7 +637,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Inner />
 				} pending {
 					<p>{'outer loading'}</p>
@@ -584,7 +653,10 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it('deeply nested: async resolves through multiple component layers', async () => {
 		function DataFetcher() {
 			return <>
-				let &[data] = trackAsync(() => Promise.resolve('deep data'));
+				---
+					let &[data] = trackAsync(() => Promise.resolve('deep data'));
+				---
+
 				<span>{data}</span>
 			</>;
 		}
@@ -599,7 +671,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 
 		function App() {
 			return <>
-				try {
+				@try {
 					<Level1 />
 				} catch (err) {
 					<p>{'error'}</p>

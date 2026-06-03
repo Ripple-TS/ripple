@@ -4,9 +4,12 @@ describe('RippleURL > derived', () => {
 	it('handles reactive computed properties based on URL', () => {
 		function URLTest() {
 			return <>
-				const url = RippleURL('https://example.com/users/123?tab=profile');
-				let &[userId] = track(() => url.pathname.split('/').pop());
-				let &[activeTab] = track(() => url.searchParams.get('tab'));
+				---
+					const url = RippleURL('https://example.com/users/123?tab=profile');
+					let &[userId] = track(() => url.pathname.split('/').pop());
+					let &[activeTab] = track(() => url.searchParams.get('tab'));
+				---
+
 				<button onClick={() => (url.pathname = '/users/456')}>{'Change User'}</button>
 				<button onClick={() => url.searchParams.set('tab', 'settings')}>{'Change Tab'}</button>
 				<pre>{`User ID: ${userId}`}</pre>
@@ -41,7 +44,10 @@ describe('RippleURL > derived', () => {
 	it('maintains reactivity across multiple components', () => {
 		function ParentTest() {
 			return <>
-				const url = RippleURL('https://example.com/path?count=0');
+				---
+					const url = RippleURL('https://example.com/path?count=0');
+				---
+
 				<ChildA {url} />
 				<ChildB {url} />
 			</>;
@@ -62,7 +68,10 @@ describe('RippleURL > derived', () => {
 
 		function ChildB({ url }: { url: RippleURL }) {
 			return <>
-				let &[count] = track(() => url.searchParams.get('count'));
+				---
+					let &[count] = track(() => url.searchParams.get('count'));
+				---
+
 				<pre>{url.href}</pre>
 				<pre>{count}</pre>
 			</>;

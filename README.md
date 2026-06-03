@@ -268,11 +268,10 @@ export function App() {
   let &[condition] = track(true);
 
   return <div>
-    if (condition) {
-      <div>"True"</div>
-    } else {
-      <div>"False"</div>
-    }
+    if (condition)
+    {<div>"True"</div>}
+    else
+    {<div>"False"</div>}
     <button onClick={() => (condition = !condition)}>"Toggle"</button>
   </div>;
 }
@@ -313,7 +312,9 @@ function ComponentThatMayFail(props: { shouldFail: boolean }) {
     throw new Error('Component failed!');
   }
 
-  return <div>"Component working fine"</div>;
+  return <div>
+    "Component working fine"
+  </div>;
 }
 
 import { track } from 'ripple';
@@ -322,11 +323,10 @@ export function App() {
   let &[shouldFail] = track(false);
 
   return <div>
-    try {
-      <ComponentThatMayFail {shouldFail} />
-    } catch (e) {
-      <div>"Error: "{e.message}</div>
-    }
+    try
+    {<ComponentThatMayFail {shouldFail} />}
+    catch (e)
+    {<div>"Error: "{e.message}</div>}
     <button onClick={() => (shouldFail = !shouldFail)}>"Toggle Error"</button>
   </div>;
 }
@@ -459,14 +459,13 @@ export function App() {
   return <div>
     <button onClick={() => (showModal = !showModal)}>"Toggle Modal"</button>
 
-    if (showModal) {
-      <Portal target={document.body}>
-        <div class="modal">
-          <p>"Modal content"</p>
-          <button onClick={() => (showModal = false)}>"Close"</button>
-        </div>
-      </Portal>
-    }
+    if (showModal)
+    {<Portal target={document.body}>
+      <div class="modal">
+        <p>"Modal content"</p>
+        <button onClick={() => (showModal = false)}>"Close"</button>
+      </div>
+    </Portal>}
   </div>;
 }
 ```

@@ -15,28 +15,37 @@ export function RootCatch({ error, reset }: { error: Error; reset: () => void })
 
 export function RootThrows() {
 	return <>
-		throw new Error('root exploded');
+		---
+			throw new Error('root exploded');
+		---
+
 		<p>{'should not render'}</p>
 	</>;
 }
 
 export function RootAsyncDirect() {
 	return <>
-		let &[value] = trackAsync(() => Promise.resolve('root async value'));
+		---
+			let &[value] = trackAsync(() => Promise.resolve('root async value'));
+		---
+
 		<p class="root-async-value">{value}</p>
 	</>;
 }
 
 export function RootAsyncRejects() {
 	return <>
-		let &[value] = trackAsync(() => Promise.reject(new Error('root async failed')));
+		---
+			let &[value] = trackAsync(() => Promise.reject(new Error('root async failed')));
+		---
+
 		<p class="root-async-value">{value}</p>
 	</>;
 }
 
 export function AsyncListInTryPending() {
 	return <>
-		try {
+		@try {
 			<AsyncList />
 		} pending {
 			<p class="loading">{'loading...'}</p>
@@ -46,9 +55,12 @@ export function AsyncListInTryPending() {
 
 function AsyncList() {
 	return <>
-		let &[items] = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
+		---
+			let &[items] = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
+		---
+
 		<ul class="items">
-			for (let item of items) {
+			@for (let item of items) {
 				<li>{item}</li>
 			}
 		</ul>
@@ -58,7 +70,7 @@ function AsyncList() {
 export function AsyncTryWithLeadingSibling() {
 	return <>
 		<div class="before">{'before'}</div>
-		try {
+		@try {
 			<AsyncContent />
 		} pending {
 			<div class="loading">{'loading async content'}</div>
@@ -68,7 +80,10 @@ export function AsyncTryWithLeadingSibling() {
 
 function AsyncContent() {
 	return <>
-		let &[value] = trackAsync(() => Promise.resolve('ready'));
+		---
+			let &[value] = trackAsync(() => Promise.resolve('ready'));
+		---
+
 		<div class="resolved">{value}</div>
 	</>;
 }

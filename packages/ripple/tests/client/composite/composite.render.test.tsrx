@@ -8,7 +8,10 @@ describe('composite > render', () => {
 
 		function App() {
 			return <>
-				let &[count] = track(0);
+				---
+					let &[count] = track(0);
+				---
+
 				<button onClick={() => count++}>{'Increment'}</button>
 				<Button {count} />
 			</>;
@@ -42,12 +45,15 @@ describe('composite > render', () => {
 
 		function App() {
 			return <>
-				function A() {
-					return <><div>{'I am A'}</div></>;
-				}
-				function B() {
-					return <><div>{'I am B'}</div></>;
-				}
+				---
+					const A = () => {
+						return <><div>{'I am A'}</div></>;
+					};
+					const B = () => {
+						return <><div>{'I am B'}</div></>;
+					};
+				---
+
 				<Button {A} {B}>
 					<div>{'other text'}</div>
 				</Button>
@@ -62,7 +68,10 @@ describe('composite > render', () => {
 	it('render simple text as children', () => {
 		function App() {
 			return <>
-				let name = 'Click Me';
+				---
+					let name = 'Click Me';
+				---
+
 				<Child class="my-button">{name}</Child>
 			</>;
 		}
@@ -112,31 +121,33 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
+		function Wrapper({ children }) {
+			return <>
+				<div class="green">
+					{'Wrapper'}
+					{children}
+				</div>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>;
+		}
+
+		function Child() {
+			return <>
+				<div class="red">{'Child'}</div>
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			</>;
+		}
+
 		function App() {
 			return <>
-				function Wrapper({ children }) {
-					return <>
-						<div class="green">
-							{'Wrapper'}
-							{children}
-						</div>
-						<style>
-							.green {
-								color: green;
-							}
-						</style>
-					</>;
-				}
-				function Child() {
-					return <>
-						<div class="red">{'Child'}</div>
-						<style>
-							.red {
-								color: red;
-							}
-						</style>
-					</>;
-				}
 				<Wrapper>
 					<Child />
 				</Wrapper>
@@ -162,7 +173,10 @@ describe('composite > render', () => {
 	it('handles generics', () => {
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray<number>();
+				---
+					let items = new RippleArray<number>();
+				---
+
 				items.push.apply(items, [1, 2, 3, 4, 5]);
 				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
 			</>;

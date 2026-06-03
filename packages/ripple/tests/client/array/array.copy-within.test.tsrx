@@ -4,10 +4,13 @@ describe('RippleArray copyWithin', () => {
 	it('handles copyWithin operation with reactivity', () => {
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray(1, 2, 3, 4, 5);
-				let &[firstItem] = track(() => items[0]);
-				let &[thirdItem] = track(() => items[2]);
-				let &[fourthItem] = track(() => items[3]);
+				---
+					let items = new RippleArray(1, 2, 3, 4, 5);
+					let &[firstItem] = track(() => items[0]);
+					let &[thirdItem] = track(() => items[2]);
+					let &[fourthItem] = track(() => items[3]);
+				---
+
 				<button onClick={() => items.copyWithin(0, 3)}>{'copy end to start'}</button>
 				<button onClick={() => items.copyWithin(2, 0, 2)}>{'copy start to middle'}</button>
 				<pre>{JSON.stringify(items)}</pre>
@@ -50,9 +53,12 @@ describe('RippleArray copyWithin', () => {
 	it('handles copyWithin with negative indexes and reactivity', () => {
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray(1, 2, 3, 4, 5);
-				let &[secondItem] = track(() => items[1]);
-				let &[thirdItem] = track(() => items[2]);
+				---
+					let items = new RippleArray(1, 2, 3, 4, 5);
+					let &[secondItem] = track(() => items[1]);
+					let &[thirdItem] = track(() => items[2]);
+				---
+
 				<button onClick={() => items.copyWithin(-4, -2)}>{'copy with negative indexes'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{secondItem}</pre>
@@ -82,11 +88,14 @@ describe('RippleArray copyWithin', () => {
 	it('handles copyWithin with overlapping ranges', () => {
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray(1, 2, 3, 4, 5);
-				let &[entries] = track(() => Array.from(items.entries()));
+				---
+					let items = new RippleArray(1, 2, 3, 4, 5);
+					let &[entries] = track(() => Array.from(items.entries()));
+				---
+
 				<button onClick={() => items.copyWithin(2, 1, 4)}>{'copy with overlap'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				for (const [i, value] of entries) {
+				@for (const [i, value] of entries) {
 					<pre>{`items[${i}]: ${value}`}</pre>
 				}
 			</>;

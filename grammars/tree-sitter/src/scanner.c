@@ -239,6 +239,30 @@ static bool scan_identifier_for_jsx_statement_keyword(TSLexer *lexer) {
          strcmp(word, "while") == 0;
 }
 
+static bool scan_at_for_jsx_render_control(TSLexer *lexer) {
+  char word[16];
+
+  advance(lexer);
+  if (!is_identifier_start(lexer->lookahead)) return false;
+
+  scan_identifier_word(lexer, word, sizeof(word));
+  return strcmp(word, "for") == 0 ||
+         strcmp(word, "if") == 0 ||
+         strcmp(word, "switch") == 0 ||
+         strcmp(word, "try") == 0;
+}
+
+static bool scan_dash_for_jsx_code_block_fence(TSLexer *lexer) {
+  advance(lexer);
+  if (lexer->lookahead != '-') return false;
+
+  advance(lexer);
+  if (lexer->lookahead != '-') return false;
+
+  advance(lexer);
+  return true;
+}
+
 static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
   bool has_content = false;
@@ -251,6 +275,24 @@ static bool scan_jsx_text(TSLexer *lexer) {
       case '{':
       case 0:
         return has_content;
+      case '@': {
+        bool is_render_control = scan_at_for_jsx_render_control(lexer);
+        if (is_render_control && !has_non_whitespace_content) {
+          return false;
+        }
+        has_content = true;
+        has_non_whitespace_content = true;
+        break;
+      }
+      case '-': {
+        bool is_code_block_fence = scan_dash_for_jsx_code_block_fence(lexer);
+        if (is_code_block_fence && !has_non_whitespace_content) {
+          return false;
+        }
+        has_content = true;
+        has_non_whitespace_content = true;
+        break;
+      }
       default:
         if (is_identifier_start(lexer->lookahead)) {
           bool is_statement_keyword = scan_identifier_for_jsx_statement_keyword(lexer);

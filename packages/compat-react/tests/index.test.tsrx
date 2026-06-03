@@ -249,7 +249,10 @@ describe('compat-react', () => {
 		it('should work with Ripple reactivity', async () => {
 			function App() {
 				return <>
-					let &[count] = track(0);
+					---
+						let &[count] = track(0);
+					---
+
 					<div>
 						<div class="ripple-count">{count}</div>
 						<button onClick={() => count++}>{'Increment'}</button>
@@ -339,7 +342,7 @@ describe('compat-react', () => {
 
 			function App() {
 				return <>
-					try {
+					@try {
 						<div>
 							<tsx:react>
 								<ReactChild />
@@ -375,7 +378,7 @@ describe('compat-react', () => {
 
 			function App() {
 				return <>
-					try {
+					@try {
 						<div>
 							<tsx:react>
 								<Ripple component={RippleChild} />
@@ -447,8 +450,11 @@ describe('compat-react', () => {
 
 				function AsyncRippleChild() {
 					return <>
-						const result = trackAsync(() => sleep(1000));
-						if (!trackPending(result)) {
+						---
+							const result = trackAsync(() => sleep(1000));
+						---
+
+						@if (!trackPending(result)) {
 							<div class="async-content">{'Loaded!'}</div>
 						}
 					</>;
@@ -503,9 +509,12 @@ describe('compat-react', () => {
 
 				function AsyncRippleChild() {
 					return <>
-						const result = trackAsync(() => sleep(1000));
-						let &[count] = track(0);
-						if (!trackPending(result)) {
+						---
+							const result = trackAsync(() => sleep(1000));
+							let &[count] = track(0);
+						---
+
+						@if (!trackPending(result)) {
 							<div>
 								<div class="async-content">{'Loaded!'}</div>
 								<div class="count">{count}</div>
@@ -576,11 +585,14 @@ describe('compat-react', () => {
 
 				function AsyncRippleChild(&{ page }: { page: number }) {
 					return <>
-						const result = trackAsync(() => {
-							page;
-							return sleep(1000);
-						});
-						if (!trackPending(result)) {
+						---
+							const result = trackAsync(() => {
+								page;
+								return sleep(1000);
+							});
+						---
+
+						@if (!trackPending(result)) {
 							<div class="content">{`Page ${page} loaded`}</div>
 						}
 					</>;
@@ -595,10 +607,13 @@ describe('compat-react', () => {
 
 				function App() {
 					return <>
-						let &[page] = track(1);
-						setPage = (p: number) => {
-							page = p;
-						};
+						---
+							let &[page] = track(1);
+							setPage = (p: number) => {
+								page = p;
+							};
+						---
+
 						<tsx:react>
 							<Suspense fallback={<div className="loading">Loading...</div>}>
 								<ReactChild page={page} />
@@ -660,8 +675,11 @@ describe('compat-react', () => {
 
 				function AsyncRippleChild(&{ page }: { page: number }) {
 					return <>
-						const result = trackAsync(() => sleep(1000));
-						if (!trackPending(result)) {
+						---
+							const result = trackAsync(() => sleep(1000));
+						---
+
+						@if (!trackPending(result)) {
 							<div class="content">{`Page ${page} loaded`}</div>
 						}
 					</>;
@@ -678,10 +696,13 @@ describe('compat-react', () => {
 
 				function App() {
 					return <>
-						let &[page] = track(1);
-						setPage = (p: number) => {
-							page = p;
-						};
+						---
+							let &[page] = track(1);
+							setPage = (p: number) => {
+								page = p;
+							};
+						---
+
 						<tsx:react>
 							<Suspense fallback={<div className="loading">Loading...</div>}>
 								<ReactChild page={page} />
@@ -758,9 +779,12 @@ describe('compat-react', () => {
 
 					function AsyncRippleChild() {
 						return <>
-							const resultA = trackAsync(() => fetchA());
-							const resultB = trackAsync(() => fetchB());
-							if (!trackPending(resultA) && !trackPending(resultB)) {
+							---
+								const resultA = trackAsync(() => fetchA());
+								const resultB = trackAsync(() => fetchB());
+							---
+
+							@if (!trackPending(resultA) && !trackPending(resultB)) {
 								<div class="content">{'Both loaded!'}</div>
 							}
 						</>;
@@ -772,7 +796,7 @@ describe('compat-react', () => {
 
 					function App() {
 						return <>
-							try {
+							@try {
 								<tsx:react>
 									<Suspense fallback={<div className="loading">Loading...</div>}>
 										<ReactChild />

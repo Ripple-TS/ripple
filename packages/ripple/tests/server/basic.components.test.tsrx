@@ -24,9 +24,12 @@ describe('basic server > components & composition', () => {
 
 		function Basic() {
 			return <>
-				function children() {
-					return <><p>{'Card content here'}</p></>;
-				}
+				---
+					function children() {
+						return <><p>{'Card content here'}</p></>;
+					}
+				---
+
 				<Card {children} />
 			</>;
 		}
@@ -52,9 +55,12 @@ describe('basic server > components & composition', () => {
 
 		function Basic() {
 			return <>
-				function test() {
-					return <><p>{'Card content here'}</p></>;
-				}
+				---
+					function test() {
+						return <><p>{'Card content here'}</p></>;
+					}
+				---
+
 				<Card {test} />
 			</>;
 		}
@@ -77,9 +83,12 @@ describe('basic server > components & composition', () => {
 
 		function Basic() {
 			return <>
-				function children() {
-					return <><p>{'Card content here'}</p></>;
-				}
+				---
+					function children() {
+						return <><p>{'Card content here'}</p></>;
+					}
+				---
+
 				<Card {children} />
 			</>;
 		}
@@ -194,7 +203,10 @@ describe('basic server > components & composition', () => {
 
 		function Basic() {
 			return <>
-				let &[clicked] = track(false);
+				---
+					let &[clicked] = track(false);
+				---
+
 				<Card
 					title="Test Card"
 					content="This is a test card"
@@ -234,8 +246,11 @@ describe('basic server > components & composition', () => {
 
 		function Basic() {
 			return <>
-				let &[message, messageTracked] = track('Hello');
-				let &[number, numberTracked] = track(1);
+				---
+					let &[message, messageTracked] = track('Hello');
+					let &[number, numberTracked] = track(1);
+				---
+
 				<ChildComponent text={messageTracked} count={numberTracked} />
 				<button
 					onClick={() => {
@@ -279,9 +294,12 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				function children() {
-					return <><span>{'Click me!'}</span></>;
-				}
+				---
+					function children() {
+						return <><span>{'Click me!'}</span></>;
+					}
+				---
+
 				<div>
 					<h1>{'Component as Property Test'}</h1>
 					<UI.span />
@@ -314,7 +332,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				let content = '';
+				---
+					let content = '';
+				---
+
 				<Button>{''}</Button>
 				<Button>{content}</Button>
 			</>;
@@ -337,7 +358,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				let Content = track(() => Noop);
+				---
+					let Content = track(() => Noop);
+				---
+
 				<@Content />
 			</>;
 		}
@@ -369,7 +393,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1' };
+				---
+					const extra = { id: '1' };
+				---
+
 				<Card children="fallback text" {...extra} />
 			</>;
 		}
@@ -386,7 +413,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1' };
+				---
+					const extra = { id: '1' };
+				---
+
 				<Card {...extra} children="fallback text" />
 			</>;
 		}
@@ -403,7 +433,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1' };
+				---
+					const extra = { id: '1' };
+				---
+
 				<Card children="fallback text" {...extra}>
 					<span>{'template content'}</span>
 				</Card>
@@ -423,7 +456,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1' };
+				---
+					const extra = { id: '1' };
+				---
+
 				<Card {...extra} children="fallback text">
 					<span>{'template content'}</span>
 				</Card>
@@ -443,7 +479,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1', children: 'from spread' };
+				---
+					const extra = { id: '1', children: 'from spread' };
+				---
+
 				<Card
 					// @ts-ignore
 					children="explicit"
@@ -464,7 +503,10 @@ describe('basic server > components & composition', () => {
 
 		function App() {
 			return <>
-				const extra = { id: '1', children: 'from spread' };
+				---
+					const extra = { id: '1', children: 'from spread' };
+				---
+
 				<Card {...extra} children="explicit" />
 			</>;
 		}
@@ -482,9 +524,11 @@ describe('basic server > components & composition', () => {
 		function App() {
 			return <>
 				<Wrapper>
-					function Inner() {
-						return <><span class="inner">{'inner content'}</span></>;
-					}
+					---
+						function Inner() {
+							return <><span class="inner">{'inner content'}</span></>;
+						}
+					---
 
 					<Inner />
 				</Wrapper>
@@ -504,18 +548,19 @@ describe('basic server > components & composition', () => {
 		function App() {
 			return <>
 				<Wrapper>
-					function Z() {
-						return <><div class="z">{'I am Z'}</div></>;
-					}
-
-					function Child(&{ Z }: { Z: Component }) {
-						return <>
-							<div class="child">
-								{'Child Component: '}
-								<Z />
-							</div>
-						</>;
-					}
+					---
+						function Z() {
+							return <><div class="z">{'I am Z'}</div></>;
+						}
+						function Child(&{ Z }: { Z: Component }) {
+							return <>
+								<div class="child">
+									{'Child Component: '}
+									<Z />
+								</div>
+							</>;
+						}
+					---
 
 					<Child {Z} />
 				</Wrapper>

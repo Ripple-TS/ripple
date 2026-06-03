@@ -7,15 +7,21 @@ describe('context', () => {
 
 		function Child() {
 			return <>
-				const value = MyContext.get();
+				---
+					const value = MyContext.get();
+				---
+
 				<div>{value}</div>
 			</>;
 		}
 
 		function TestContext() {
 			return <>
-				const value = MyContext.get();
-				MyContext.set('Hello from context!');
+				---
+					const value = MyContext.get();
+					MyContext.set('Hello from context!');
+				---
+
 				<Child />
 			</>;
 		}
@@ -35,13 +41,18 @@ describe('context', () => {
 
 		function App() {
 			return <>
-				MyContext.set(4);
+				---
+					MyContext.set(4);
+				---
+
 				<h3>{MyContext.get()}</h3>
 				<h4>
 					{'2x:'}
 					{doubleContext()}
 				</h4>
-				MyContext.set(8);
+				---
+					MyContext.set(8);
+				---
 			</>;
 		}
 

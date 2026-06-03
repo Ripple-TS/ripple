@@ -17,7 +17,10 @@ describe('client tracked numeric access', () => {
 
 		function Test() {
 			return <>
-				value = track(0);
+				---
+					value = track(0);
+				---
+
 				<div />
 			</>;
 		}
@@ -36,7 +39,10 @@ describe('client tracked numeric access', () => {
 
 		function Test() {
 			return <>
-				value = track(() => 1);
+				---
+					value = track(() => 1);
+				---
+
 				<div />
 			</>;
 		}
@@ -56,8 +62,11 @@ describe('client tracked numeric access', () => {
 
 		function Test() {
 			return <>
-				value = track(0);
-				next = track(1);
+				---
+					value = track(0);
+					next = track(1);
+				---
+
 				<div />
 			</>;
 		}
@@ -80,8 +89,11 @@ describe('client tracked numeric access', () => {
 
 		function Test() {
 			return <>
-				value = track(0);
-				derived = track(() => value.value + 1);
+				---
+					value = track(0);
+					derived = track(() => value.value + 1);
+				---
+
 				<div />
 			</>;
 		}
@@ -102,8 +114,11 @@ describe('client tracked numeric access', () => {
 
 		function Test() {
 			return <>
-				value = track(0);
-				derived = track(() => value.value + 1);
+				---
+					value = track(0);
+					derived = track(() => value.value + 1);
+				---
+
 				<div />
 			</>;
 		}

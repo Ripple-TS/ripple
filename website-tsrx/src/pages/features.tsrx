@@ -376,16 +376,14 @@ export function FeaturesPage() {
 								}}
 							>
 								<option value="">{'Jump to section'}</option>
-								for (const item of NAV_ITEMS) {
-									<option value={item.id}>{item.label}</option>
-								}
+								for (const item of NAV_ITEMS)
+								{<option value={item.id}>{item.label}</option>}
 							</select>
 						</label>
 						<nav>
 							<p class="side-nav-heading">{'Features'}</p>
-							for (const item of NAV_ITEMS) {
-								<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
-							}
+							for (const item of NAV_ITEMS)
+							{<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>}
 						</nav>
 					</aside>
 

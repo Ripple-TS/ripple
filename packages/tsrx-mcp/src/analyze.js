@@ -29,11 +29,11 @@ import { compile_tsrx } from './compile.js';
  */
 
 /**
- * @param {{ compileResult: TSRXCompileSummary }} input
+ * @param {{ code?: string, compileResult: TSRXCompileSummary }} input
  * @returns {TSRXAdvice[]}
  */
 function create_advice(input) {
-	const { compileResult } = input;
+	const { code = '', compileResult } = input;
 	/** @type {TSRXAdvice[]} */
 	const advice = [];
 	const error_codes = new Set(compileResult.errors.map((error) => error.code).filter(Boolean));
@@ -109,7 +109,8 @@ function create_advice(input) {
 		error_messages.has(TSRX_FOR_STATEMENT_ERROR) ||
 		error_messages.has(TSRX_FOR_IN_STATEMENT_ERROR) ||
 		error_messages.has(TSRX_WHILE_STATEMENT_ERROR) ||
-		error_messages.has(TSRX_DO_WHILE_STATEMENT_ERROR)
+		error_messages.has(TSRX_DO_WHILE_STATEMENT_ERROR) ||
+		/@\s*(?:while|do)\b/.test(code)
 	) {
 		advice.push({
 			kind: 'unsupported-component-loop',
@@ -171,6 +172,7 @@ function create_advice(input) {
 export function analyze_tsrx_result(input) {
 	const { compileResult } = input;
 	const advice = create_advice({
+		code: input.code,
 		compileResult,
 	});
 

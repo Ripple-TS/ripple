@@ -10,7 +10,9 @@ export function App() {
 					class="logo"
 				/>
 
-				<p class="subtitle">"The elegant TypeScript UI framework."</p>
+				<p class="subtitle">
+					"The elegant TypeScript UI framework."
+				</p>
 
 				<div class="counter">
 					let &[count] = track(0);
@@ -32,7 +34,9 @@ export function App() {
 					</a>
 				</div>
 
-				<p class="info">"This is a basic Ripple application template."</p>
+				<p class="info">
+					"This is a basic Ripple application template."
+				</p>
 				<p class="edit-hint">
 					"Edit "
 					<code>"src/App.tsrx"</code>

@@ -64,6 +64,7 @@ import {
 	get_ripple_namespace_call_name,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
+	expand_tsrx_code_blocks,
 	jsx_to_ripple_node,
 	build_index_read,
 	build_index_write,
@@ -989,7 +990,7 @@ function transform_variable_declaration(node, context) {
  */
 function transform_children(children, context) {
 	const { visit, state } = context;
-	const normalized = normalize_children(children, context);
+	const normalized = normalize_children(expand_tsrx_code_blocks(children), context);
 	const effective_normalized = normalized.filter(
 		(node) => !(node.metadata?.regular_js && is_dead_native_tsrx_expression_statement(node)),
 	);
@@ -1228,6 +1229,7 @@ function transform_children(children, context) {
  */
 function transform_body(body, context) {
 	const { state } = context;
+	body = expand_tsrx_code_blocks(body);
 	/** @type {TransformServerState} */
 	const body_state = {
 		...state,
@@ -1630,14 +1632,14 @@ const visitors = {
 		/** @type {AST.Statement[]} */
 		const statements = [];
 
-		for (const statement of node.body) {
+		for (const statement of expand_tsrx_code_blocks(node.body)) {
 			push_statement(
 				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
 				statements,
 			);
 		}
 
-		return b.block(statements);
+		return b.block(statements, /** @type {AST.NodeWithLocation} */ (node));
 	},
 
 	ArrowFunctionExpression(node, context) {
@@ -2747,6 +2749,10 @@ const visitors = {
 		}
 	},
 
+	JSXText(node, { state }) {
+		state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(escape(node.value.trim())))));
+	},
+
 	TsrxFragment(node, { visit, state }) {
 		const children = node.children.filter(
 			(child) => child != null && child.type !== 'EmptyStatement',
@@ -2787,13 +2793,27 @@ const visitors = {
 	TSModuleBlock(node, context) {
 		/** @type {AST.Statement[]} */
 		const statements = [];
-		for (const statement of node.body) {
+		for (const statement of expand_tsrx_code_blocks(node.body)) {
 			push_statement(
 				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
 				statements,
 			);
 		}
 		return { ...node, body: statements };
+	},
+
+	TSRXCodeBlock(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (
+					context.visit(statement, { ...context.state, regular_js: true })
+				),
+				statements,
+			);
+		}
+		return statements;
 	},
 
 	TSModuleDeclaration(node, context) {

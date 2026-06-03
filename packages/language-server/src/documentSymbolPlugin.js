@@ -526,9 +526,17 @@ function isTemplateNode(node) {
  * @returns {SymbolInfo[]}
  */
 function getTemplateChildSymbols(node, document) {
-	if (!isTemplateNode(node)) {
-		return [];
+	if (node.type === 'TSRXCodeBlock') {
+		const statements = Array.isArray(/** @type {{ body?: AST.Statement[] }} */ (node).body)
+			? /** @type {{ body: AST.Statement[] }} */ (node).body
+			: [];
+		return [
+			...collectSymbolsFromStatements(statements, document),
+			...statements.flatMap((statement) => getReturnedTemplateSymbols(statement, document)),
+		];
 	}
+
+	if (!isTemplateNode(node)) return [];
 
 	const children = Array.isArray(/** @type {{ children?: AST.Node[] }} */ (node).children)
 		? /** @type {{ children: AST.Node[] }} */ (node).children

@@ -432,7 +432,9 @@ function Child1() { return <>
 import { track } from 'ripple';
 
 export function Test({ children }) { return <>
+	---
 	const DynamicComponent = track(() => Child1);
+	---
 	<div>
 		<p class="before">{'before'}</p>
 
@@ -479,7 +481,9 @@ function Child1() { return <>
 import { track } from 'ripple';
 
 export function Test({ children, classes }) { return <>
+	---
 	const dynamicElement = track('div');
+	---
 	<div>
 		<p class="before">{'before'}</p>
 		// Use Dynamic Element but it's the same with a regular one

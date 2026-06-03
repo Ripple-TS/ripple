@@ -10,7 +10,10 @@ import { formatValue } from server;
 
 export function AsyncWithServerCall() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<button
 			class="increment"
 			onClick={() => {
@@ -19,8 +22,11 @@ export function AsyncWithServerCall() {
 		>
 			{'increment'}
 		</button>
-		try {
-			let &[data] = trackAsync(() => formatValue(count));
+		@try {
+			---
+				let &[data] = trackAsync(() => formatValue(count));
+			---
+
 			<p class="result">{data}</p>
 		} pending {
 			<p class="loading">{'loading...'}</p>
@@ -30,8 +36,11 @@ export function AsyncWithServerCall() {
 
 export function AsyncSimpleValue() {
 	return <>
-		try {
-			let &[data] = trackAsync(() => Promise.resolve('hydrated value'));
+		@try {
+			---
+				let &[data] = trackAsync(() => Promise.resolve('hydrated value'));
+			---
+
 			<p class="result">{data}</p>
 		} pending {
 			<p class="loading">{'loading...'}</p>
@@ -41,8 +50,11 @@ export function AsyncSimpleValue() {
 
 export function AsyncNumericValue() {
 	return <>
-		try {
-			let &[count] = trackAsync(() => Promise.resolve(42));
+		@try {
+			---
+				let &[count] = trackAsync(() => Promise.resolve(42));
+			---
+
 			<span class="count">{count}</span>
 		} pending {
 			<span class="pending">{'...'}</span>
@@ -52,8 +64,11 @@ export function AsyncNumericValue() {
 
 export function AsyncObjectValue() {
 	return <>
-		try {
-			let &[user] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
+		@try {
+			---
+				let &[user] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
+			---
+
 			<div class="user">
 				<span class="name">{user.name}</span>
 				<span class="age">{user.age}</span>
@@ -66,9 +81,12 @@ export function AsyncObjectValue() {
 
 export function AsyncMultipleValues() {
 	return <>
-		try {
-			let &[first] = trackAsync(() => Promise.resolve('alpha'));
-			let &[second] = trackAsync(() => Promise.resolve('beta'));
+		@try {
+			---
+				let &[first] = trackAsync(() => Promise.resolve('alpha'));
+				let &[second] = trackAsync(() => Promise.resolve('beta'));
+			---
+
 			<div class="multi">
 				<span class="first">{first}</span>
 				<span class="second">{second}</span>
@@ -81,8 +99,11 @@ export function AsyncMultipleValues() {
 
 export function AsyncWithCatch() {
 	return <>
-		try {
-			let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
+		@try {
+			---
+				let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
+			---
+
 			<p class="result">{data}</p>
 		} pending {
 			<p class="loading">{'loading...'}</p>
@@ -94,8 +115,11 @@ export function AsyncWithCatch() {
 
 export function ChildWithError() {
 	return <>
-		try {
-			let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
+		@try {
+			---
+				let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
+			---
+
 			<p class="result">{data}</p>
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -105,7 +129,7 @@ export function ChildWithError() {
 
 export function ParentWithCatch() {
 	return <>
-		try {
+		@try {
 			<ChildWithError />
 		} catch (e) {
 			<p class="parent-error">{(e as Error).message}</p>
@@ -115,7 +139,10 @@ export function ParentWithCatch() {
 
 export function AsyncWithReactiveDependency() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<button
 			class="increment"
 			onClick={() => {
@@ -124,8 +151,11 @@ export function AsyncWithReactiveDependency() {
 		>
 			{'increment'}
 		</button>
-		try {
-			let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
+		@try {
+			---
+				let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
+			---
+
 			<p class="result">{data}</p>
 		} pending {
 			<p class="loading">{'loading...'}</p>

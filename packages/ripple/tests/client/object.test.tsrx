@@ -5,8 +5,11 @@ describe('RippleObject', () => {
 	it('makes new properties reactive', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: -1 });
-				obj.a = 0;
+				---
+					const obj = new RippleObject({ a: -1 });
+					obj.a = 0;
+				---
+
 				<pre>{obj.a}</pre>
 				<button
 					onClick={() => {
@@ -34,7 +37,10 @@ describe('RippleObject', () => {
 	it('makes existing object properties reactive', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: 0 });
+				---
+					const obj = new RippleObject({ a: 0 });
+				---
+
 				<pre>{obj.a}</pre>
 				<button
 					onClick={() => {
@@ -62,8 +68,11 @@ describe('RippleObject', () => {
 	it('checks if property exists via the has trap', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: -1, b: 1 });
-				obj.a = 0;
+				---
+					const obj = new RippleObject({ a: -1, b: 1 });
+					obj.a = 0;
+				---
+
 				<pre>{'a' in obj && 'b' in obj}</pre>
 			</>;
 		}
@@ -78,7 +87,10 @@ describe('RippleObject', () => {
 	it('deletes properties via the delete trap', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject<{ a?: number; b: number }>({ a: 0, b: 1 });
+				---
+					const obj = new RippleObject<{ a?: number; b: number }>({ a: 0, b: 1 });
+				---
+
 				<pre>{String(obj.a)}</pre>
 				<button
 					onClick={() => {
@@ -106,7 +118,10 @@ describe('RippleObject', () => {
 	it('checks if non-existent property is reactive when added later', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject<{ a?: number }>({});
+				---
+					const obj = new RippleObject<{ a?: number }>({});
+				---
+
 				<pre>{String(obj.a)}</pre>
 				<button
 					onClick={() => {
@@ -134,7 +149,10 @@ describe('RippleObject', () => {
 	it('checks that deeply nested objects are not proxied or reactive', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: { b: 1 } });
+				---
+					const obj = new RippleObject({ a: { b: 1 } });
+				---
+
 				<pre>{String(obj.a.b)}</pre>
 				<button
 					onClick={() => {
@@ -163,8 +181,10 @@ describe('RippleObject', () => {
 	it('checks if TRACKED_OBJECT symbol is present on RippleObject instances', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: 0 });
-				// @ts-expect-error TRACKED_OBJECT is internal
+				---
+					const obj = new RippleObject({ a: 0 });
+				---
+
 				expect(obj[TRACKED_OBJECT]).toBe(true);
 			</>;
 		}
@@ -173,7 +193,10 @@ describe('RippleObject', () => {
 	it('uses the hash syntax for creating RippleObject', () => {
 		function ObjectTest() {
 			return <>
-				const obj = new RippleObject({ a: 0, b: 1, c: { d: { e: 8 } } });
+				---
+					const obj = new RippleObject({ a: 0, b: 1, c: { d: { e: 8 } } });
+				---
+
 				<pre>{obj.a}</pre>
 				<pre>{TRACKED_OBJECT in obj}</pre>
 				<pre>{JSON.stringify(obj)}</pre>

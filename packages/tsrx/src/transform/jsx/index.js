@@ -440,6 +440,7 @@ function build_component_statements(body_nodes, transform_context) {
  * @returns {any[]}
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
+	body_nodes = expand_tsrx_code_blocks(body_nodes);
 	const statements = [];
 	const render_nodes = [];
 	let has_terminal_return = false;
@@ -576,6 +577,30 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 
 	transform_context.available_bindings = saved_bindings;
 	return statements;
+}
+
+/**
+ * @param {any[]} body_nodes
+ * @returns {any[]}
+ */
+function expand_tsrx_code_blocks(body_nodes) {
+	const expanded = [];
+	for (const node of body_nodes || []) {
+		if (node?.type === 'TSRXCodeBlock') {
+			for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+				if (statement && typeof statement === 'object') {
+					statement.metadata = {
+						...(statement.metadata || {}),
+						tsrx_code_block_statement: true,
+					};
+				}
+				expanded.push(statement);
+			}
+		} else {
+			expanded.push(node);
+		}
+	}
+	return expanded;
 }
 
 /**
@@ -4016,6 +4041,8 @@ function to_jsx_child(node, transform_context) {
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
+		case 'JSXText':
+			return transform_context.inside_element_child ? node : jsx_text_to_literal(node);
 		case 'Text':
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
@@ -4077,6 +4104,9 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 					to_jsx_child(child, transform_context),
 				);
 				expression = build_return_expression(render_nodes) || create_null_literal();
+				if (!in_jsx_child && expression?.type === 'JSXText') {
+					expression = jsx_text_to_literal(expression);
+				}
 			} finally {
 				transform_context.inside_element_child = saved_inside_element_child;
 			}
@@ -4096,6 +4126,23 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	}
 
 	return expression;
+}
+
+/**
+ * @param {ESTreeJSX.JSXText} node
+ * @returns {AST.Literal}
+ */
+function jsx_text_to_literal(node) {
+	const value = node.value.trim();
+	return set_loc(
+		/** @type {AST.Literal} */ ({
+			type: 'Literal',
+			value,
+			raw: JSON.stringify(value),
+			metadata: { path: [] },
+		}),
+		node,
+	);
 }
 
 /**
@@ -5244,7 +5291,7 @@ function build_switch_with_lift(switch_node, transform_context) {
 			const render_nodes = [];
 			let has_terminal = false;
 
-			for (const child of own_body) {
+			for (const child of expand_tsrx_code_blocks(own_body)) {
 				if (is_loop_skip_return_statement(child)) {
 					case_body.push(create_component_return_statement(render_nodes, child));
 					has_terminal = true;

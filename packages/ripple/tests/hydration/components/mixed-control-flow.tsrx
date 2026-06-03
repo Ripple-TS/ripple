@@ -2,28 +2,34 @@ import { track, trackAsync } from 'ripple';
 
 export function MixedControlFlowStatic() {
 	return <>
-		const rows = [
-			{ id: 1, kind: 'a', enabled: true },
-			{ id: 2, kind: 'b', enabled: true },
-			{ id: 3, kind: 'a', enabled: false },
-		];
+		---
+			const rows = [
+				{ id: 1, kind: 'a', enabled: true },
+				{ id: 2, kind: 'b', enabled: true },
+				{ id: 3, kind: 'a', enabled: false },
+			];
+		---
+
 		<section class="mixed-static">
-			for (const row of rows; key row.id) {
-				if (row.enabled) {
-					switch (row.kind) {
+			@for (const row of rows; key row.id) {
+				@if (row.enabled) {
+					@switch (row.kind) {
 						case 'a':
-							try {
-								<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
-							} pending {
-								<div class={`pending pending-${row.id}`}>{'pending a'}</div>
+							{
+								@try {
+									<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
+								} pending {
+									<div class={`pending pending-${row.id}`}>{'pending a'}</div>
+								}
 							}
 							break;
-						default:
-							try {
+						default: {
+							@try {
 								<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
 							} pending {
 								<div class={`pending pending-${row.id}`}>{'pending b'}</div>
 							}
+						}
 					}
 				}
 			}
@@ -33,12 +39,15 @@ export function MixedControlFlowStatic() {
 
 export function MixedControlFlowReactive() {
 	return <>
-		let &[show] = track(true);
-		let &[mode] = track<'a' | 'b'>('a');
-		let &[items] = track([
-			{ id: 1, label: 'One' },
-			{ id: 2, label: 'Two' },
-		]);
+		---
+			let &[show] = track(true);
+			let &[mode] = track<'a' | 'b'>('a');
+			let &[items] = track([
+				{ id: 1, label: 'One' },
+				{ id: 2, label: 'Two' },
+			]);
+		---
+
 		<button
 			class="toggle-show"
 			onClick={() => {
@@ -63,23 +72,26 @@ export function MixedControlFlowReactive() {
 		>
 			{'Add Item'}
 		</button>
-		if (show) {
+		@if (show) {
 			<div class="mixed-reactive-list">
-				for (const item of items; key item.id) {
-					switch (mode) {
+				@for (const item of items; key item.id) {
+					@switch (mode) {
 						case 'a':
-							try {
-								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
-							} pending {
-								<p class="pending">{'pending a'}</p>
+							{
+								@try {
+									<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
+								} pending {
+									<p class="pending">{'pending a'}</p>
+								}
 							}
 							break;
-						default:
-							try {
+						default: {
+							@try {
 								<p class={`item item-${item.id}`}>{`B:${item.label}`}</p>
 							} pending {
 								<p class="pending">{'pending b'}</p>
 							}
+						}
 					}
 				}
 			</div>
@@ -89,21 +101,27 @@ export function MixedControlFlowReactive() {
 
 export function MixedControlFlowAsyncPending() {
 	return <>
-		const rows = [1, 2];
-		const state = 'slow';
+		---
+			const rows = [1, 2];
+			const state = 'slow';
+		---
+
 		<div class="before">{'before'}</div>
-		for (const row of rows) {
-			if (row === 1) {
-				switch (state) {
+		@for (const row of rows) {
+			@if (row === 1) {
+				@switch (state) {
 					case 'slow':
-						try {
-							<AsyncRow label={`row-${row}`} />
-						} pending {
-							<div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
+						{
+							@try {
+								<AsyncRow label={`row-${row}`} />
+							} pending {
+								<div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
+							}
 						}
 						break;
-					default:
+					default: {
 						<div class="unexpected">{'unexpected'}</div>
+					}
 				}
 			}
 		}
@@ -112,7 +130,10 @@ export function MixedControlFlowAsyncPending() {
 
 function AsyncRow({ label }: { label: string }) {
 	return <>
-		let &[value] = trackAsync(() => Promise.resolve(label));
+		---
+			let &[value] = trackAsync(() => Promise.resolve(label));
+		---
+
 		<div class="resolved-row">{value}</div>
 	</>;
 }

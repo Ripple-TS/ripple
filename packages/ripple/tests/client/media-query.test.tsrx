@@ -52,7 +52,10 @@ describe('MediaQuery', () => {
 
 		function App() {
 			return <>
-				let &[medium] = MediaQuery(media);
+				---
+					let &[medium] = MediaQuery(media);
+				---
+
 				<div>
 					<p>{medium}</p>
 				</div>
@@ -88,8 +91,11 @@ describe('MediaQuery', () => {
 
 		function App() {
 			return <>
-				let &[show] = track(true);
-				if (show) {
+				---
+					let &[show] = track(true);
+				---
+
+				@if (show) {
 					<Child />
 				}
 				<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
@@ -98,7 +104,10 @@ describe('MediaQuery', () => {
 
 		function Child() {
 			return <>
-				let &[medium] = MediaQuery(media);
+				---
+					let &[medium] = MediaQuery(media);
+				---
+
 				<div>
 					<p>{medium}</p>
 				</div>

@@ -45,7 +45,7 @@ export function ReactiveTitle() {
 			}
 		}
 
-		_$_.head('13811860', (__anchor) => {
+		_$_.head('b1de3af9', (__anchor) => {
 			_$_.render(() => {
 				_$_.document.title = lazy.value;
 			});
@@ -59,7 +59,7 @@ export function MultipleHeadElements() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var div_3 = root_2();
 
-		_$_.head('478d48ee', (__anchor) => {
+		_$_.head('17d54385', (__anchor) => {
 			var fragment = root_3();
 
 			_$_.document.title = 'Page Title';
@@ -83,7 +83,7 @@ export function ReactiveMetaTags() {
 			_$_.pop(div_4);
 		}
 
-		_$_.head('36dd8c9f', (__anchor) => {
+		_$_.head('22a72307', (__anchor) => {
 			var meta_1 = root_5();
 
 			_$_.document.title = 'My Page';
@@ -107,7 +107,7 @@ export function TitleWithTemplate() {
 			_$_.pop(div_5);
 		}
 
-		_$_.head('bf58d07e', (__anchor) => {
+		_$_.head('f3e71b81', (__anchor) => {
 			_$_.render(() => {
 				_$_.document.title = `Hello ${lazy_2.value}!`;
 			});
@@ -121,7 +121,7 @@ export function EmptyTitle() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var div_6 = root_7();
 
-		_$_.head('146bbd6b', (__anchor) => {
+		_$_.head('ff156d5f', (__anchor) => {
 			_$_.document.title = '';
 		});
 
@@ -142,7 +142,7 @@ export function ConditionalTitle() {
 			_$_.pop(div_7);
 		}
 
-		_$_.head('79341264', (__anchor) => {
+		_$_.head('ad796676', (__anchor) => {
 			_$_.render(() => {
 				_$_.document.title = lazy_3.value ? 'App - ' + lazy_4.value : lazy_4.value;
 			});
@@ -169,7 +169,7 @@ export function ComputedTitle() {
 			}
 		}
 
-		_$_.head('624d9ef2', (__anchor) => {
+		_$_.head('70d84480', (__anchor) => {
 			_$_.render(() => {
 				_$_.document.title = prefix + lazy_5.value;
 			});
@@ -183,11 +183,11 @@ export function MultipleHeadBlocks() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var div_9 = root_10();
 
-		_$_.head('111100ce', (__anchor) => {
+		_$_.head('1f389ba9', (__anchor) => {
 			_$_.document.title = 'First Head';
 		});
 
-		_$_.head('423883ee', (__anchor) => {
+		_$_.head('50ccd7e5', (__anchor) => {
 			var meta_2 = root_11();
 
 			_$_.append(__anchor, meta_2);
@@ -201,7 +201,7 @@ export function HeadWithStyle() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var div_10 = root_12();
 
-		_$_.head('f3524d73', (__anchor) => {
+		_$_.head('57335fad', (__anchor) => {
 			_$_.document.title = 'Styled Page';
 		});
 

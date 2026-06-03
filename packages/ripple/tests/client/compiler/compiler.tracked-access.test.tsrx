@@ -8,8 +8,10 @@ describe('Compiler: Tracked Object Direct Access Checks', () => {
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count.__v);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(
@@ -21,8 +23,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let myTracked = track(0);
                 console.log(myTracked.a);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(
@@ -34,8 +38,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let myTracked = track(0);
                 console.log(myTracked.b);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(
@@ -47,8 +53,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let myTracked = track(0);
                 console.log(myTracked.c);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(
@@ -60,8 +68,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let myTracked = track(0);
                 console.log(myTracked.f);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(
@@ -73,8 +83,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let &[count] = track(0);
                 console.log(count);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -84,8 +96,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count.value);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -94,8 +108,10 @@ import { track } from 'ripple';
 	it('should not error on accessing __v of a non-tracked object', () => {
 		const code = `
             export default function App() { return <>
+                ---
                 let obj = { __v: 123 };
                 console.log(obj.__v);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -104,8 +120,10 @@ import { track } from 'ripple';
 	it('should not error on accessing __v of a non-tracked object (member expression)', () => {
 		const code = `
             export default function App() { return <>
+                ---
                 let data = { value: { __v: 456 } };
                 console.log(data.value.__v);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -116,9 +134,11 @@ import { track } from 'ripple';
 		() => {
 			const code = `
             export default function App() { return <>
+                ---
                 let config = { a: 'some_value', b: 'another_value' };
                 console.log(config.a);
                 console.log(config.b);
+                ---
             </>; }
         `;
 			expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -129,8 +149,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count[0]);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
@@ -140,8 +162,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 let raw = count[1];
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(reference_message);
@@ -151,8 +175,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 count[0] = 5;
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
@@ -162,9 +188,11 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count[0]);
                 let raw = count[1];
+                ---
             </>; }
         `;
 		const result = compile(code, 'test.tsrx', { loose: true });
@@ -181,8 +209,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let &[value, tracked_ref] = track(0);
                 tracked_ref[0]++;
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).toThrow(value_message);
@@ -192,8 +222,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let &[value, tracked_ref] = track(0);
                 console.log(value, tracked_ref.value);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -203,8 +235,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count.value);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -214,8 +248,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 count.value = 5;
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
@@ -225,8 +261,10 @@ import { track } from 'ripple';
 		const code = `
 import { track } from 'ripple';
             export default function App() { return <>
+                ---
                 let count = track(0);
                 console.log(count.length);
+                ---
             </>; }
         `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();

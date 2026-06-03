@@ -5,8 +5,11 @@ describe('basic client > events', () => {
 	it('renders with different event types', () => {
 		function Basic() {
 			return <>
-				let &[focusCount] = track(0);
-				let &[clickCount] = track(0);
+				---
+					let &[focusCount] = track(0);
+					let &[clickCount] = track(0);
+				---
+
 				<button
 					onFocus={() => {
 						focusCount++;
@@ -40,8 +43,11 @@ describe('basic client > events', () => {
 	it('renders with capture events', () => {
 		function Basic() {
 			return <>
-				let &[captureClicks] = track(0);
-				let &[bubbleClicks] = track(0);
+				---
+					let &[captureClicks] = track(0);
+					let &[bubbleClicks] = track(0);
+				---
+
 				<div
 					onClick={{
 						handleEvent: () => {
@@ -79,17 +85,20 @@ describe('basic client > events', () => {
 	it('renders with event listeners in spread props', () => {
 		function Basic() {
 			return <>
-				let &[count] = track(0);
-				const minus = {
-					onClick() {
-						count--;
-					},
-				};
-				const plus = {
-					onClick() {
-						count++;
-					},
-				};
+				---
+					let &[count] = track(0);
+					const minus = {
+						onClick() {
+							count--;
+						},
+					};
+					const plus = {
+						onClick() {
+							count++;
+						},
+					};
+				---
+
 				<div>
 					<button {...minus} class="minus">{'-'}</button>
 					<span class="count">{count}</span>
@@ -127,8 +136,11 @@ describe('basic client > events', () => {
 	it('removes event listeners from spread props when they are replaced by another prop', () => {
 		function Basic() {
 			return <>
-				let &[enabled] = track(true);
-				let &[count] = track(0);
+				---
+					let &[enabled] = track(true);
+					let &[count] = track(0);
+				---
+
 				<button class="target" {...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}>
 					{'target'}
 				</button>
@@ -158,18 +170,21 @@ describe('basic client > events', () => {
 	it('handles both delegated and non-delegated events in spread props', () => {
 		function Basic() {
 			return <>
-				let &[clickCount] = track(0);
-				let &[focusCount] = track(0);
-				const mixedHandler = {
-					onClick() {
-						// Delegated event
-						clickCount++;
-					},
-					onFocus() {
-						// Non-delegated event
-						focusCount++;
-					},
-				};
+				---
+					let &[clickCount] = track(0);
+					let &[focusCount] = track(0);
+					const mixedHandler = {
+						onClick() {
+							// Delegated event
+							clickCount++;
+						},
+						onFocus() {
+							// Non-delegated event
+							focusCount++;
+						},
+					};
+				---
+
 				<div>
 					<button {...mixedHandler} class="mixed-button">{'Test'}</button>
 					<span class="click-count">{clickCount}</span>
@@ -201,24 +216,27 @@ describe('basic client > events', () => {
 	it('renders with complex event handling and state updates', () => {
 		function Basic() {
 			return <>
-				let &[counter] = track(0);
-				let &[history] = track<string[]>([]);
-				let &[isEven] = track(true);
-				const handleIncrement = () => {
-					counter++;
-					history = [...history, `Inc to ${counter}`];
-					isEven = counter % 2 === 0;
-				};
-				const handleDecrement = () => {
-					counter--;
-					history = [...history, `Dec to ${counter}`];
-					isEven = counter % 2 === 0;
-				};
-				const handleReset = () => {
-					counter = 0;
-					history = [...history, 'Reset'];
-					isEven = true;
-				};
+				---
+					let &[counter] = track(0);
+					let &[history] = track<string[]>([]);
+					let &[isEven] = track(true);
+					const handleIncrement = () => {
+						counter++;
+						history = [...history, `Inc to ${counter}`];
+						isEven = counter % 2 === 0;
+					};
+					const handleDecrement = () => {
+						counter--;
+						history = [...history, `Dec to ${counter}`];
+						isEven = counter % 2 === 0;
+					};
+					const handleReset = () => {
+						counter = 0;
+						history = [...history, 'Reset'];
+						isEven = true;
+					};
+				---
+
 				<div class="counter">{counter}</div>
 				<div class="parity">{isEven ? 'Even' : 'Odd'}</div>
 				<div class="history-count">{history.length}</div>

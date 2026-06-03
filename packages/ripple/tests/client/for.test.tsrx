@@ -5,8 +5,11 @@ describe('for statements', () => {
 	it('renders a simple static array', () => {
 		function App() {
 			return <>
-				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items) {
+				---
+					const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
+
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 			</>;
@@ -20,10 +23,14 @@ describe('for statements', () => {
 	it('allows continue to skip an iteration', () => {
 		function App() {
 			return <>
-				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
-					if (!item) continue;
-					<div class="item">{item}</div>
+				---
+					const items = ['Item 1', '', 'Item 3'];
+				---
+
+				@for (const item of items) {
+					@if (item) {
+						<div class="item">{item}</div>
+					}
 				}
 			</>;
 		}
@@ -41,13 +48,20 @@ describe('for statements', () => {
 
 		function App() {
 			return <>
-				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
-					if (!item) {
-						skipped.push('skip');
-						continue;
+				---
+					const items = ['Item 1', '', 'Item 3'];
+				---
+
+				@for (const item of items) {
+					@if (!item) {
+						---
+							skipped.push('skip');
+						---
+
+						<></>
+					} else {
+						<div class="item">{item}</div>
 					}
-					<div class="item">{item}</div>
 				}
 			</>;
 		}
@@ -64,17 +78,23 @@ describe('for statements', () => {
 	it('does not emit JavaScript continue in for...of skip callbacks', () => {
 		const { code } = compile(
 			`function App() { return <>
-				const items = ['Item 1', '', 'Item 3'];
-				const skipped = [];
+					---
+						const items = ['Item 1', '', 'Item 3'];
+						const skipped = [];
+					---
 
-				for (const item of items) {
-					if (!item) {
-						skipped.push('skip');
-						continue;
+					@for (const item of items) {
+						@if (!item) {
+							---
+								skipped.push('skip');
+							---
+
+							<></>
+						} else {
+							<div class="item">{item}</div>
+						}
 					}
-					<div class="item">{item}</div>
-				}
-			</>; }`,
+				</>; }`,
 			'App.tsrx',
 			{ mode: 'client' },
 		);
@@ -87,8 +107,11 @@ describe('for statements', () => {
 	it('renders a simple dynamic array', () => {
 		function App() {
 			return <>
-				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
-				for (const item of items) {
+				---
+					const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
+				---
+
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
@@ -109,12 +132,18 @@ describe('for statements', () => {
 	it('correctly handles intermediate statements in for block', () => {
 		function App() {
 			return <>
-				const items = new RippleArray(1, 2, 3);
+				---
+					const items = new RippleArray(1, 2, 3);
+				---
+
 				<div>
-					for (const item of items) {
+					@for (const item of items) {
 						<div>
 							<div>{item}</div>
-							const some_text = item;
+							---
+								const some_text = item;
+							---
+
 							<div>{some_text}</div>
 						</div>
 					}
@@ -138,9 +167,12 @@ describe('for statements', () => {
 	it('correctly handles the index in a for...of loop', () => {
 		function App() {
 			return <>
-				const items = new RippleArray('a', 'b', 'c');
+				---
+					const items = new RippleArray('a', 'b', 'c');
+				---
+
 				<div>
-					for (let item of items; index i) {
+					@for (let item of items; index i) {
 						<div>{i + ' : ' + item}</div>
 					}
 				</div>
@@ -171,12 +203,15 @@ describe('for statements', () => {
 	it('correctly handles keyed for...of loops', () => {
 		function App() {
 			return <>
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				for (let item of items; index i; key item.id) {
+				---
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+				---
+
+				@for (let item of items; index i; key item.id) {
 					<div>{i + ':' + item.text}</div>
 				}
 				<button
@@ -204,10 +239,13 @@ describe('for statements', () => {
 	it('keyed for over derived updates sibling text nodes', () => {
 		function App() {
 			return <>
-				let &[count] = track(0);
-				let &[items] = track(
-					() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
-				);
+				---
+					let &[count] = track(0);
+					let &[items] = track(
+						() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
+					);
+				---
+
 				<button
 					onClick={() => {
 						count++;
@@ -215,7 +253,7 @@ describe('for statements', () => {
 				>
 					{'Add'}
 				</button>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div class="item">{item.label}</div>
 				}
 				<p class="count">{count}</p>
@@ -245,9 +283,14 @@ describe('for statements', () => {
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
 		function App() {
 			return <>
-				let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
+				---
+					let &[items] = track(
+						Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })),
+					);
+				---
+
 				<div>
-					for (let item of items; index idx; key item.id) {
+					@for (let item of items; index idx; key item.id) {
 						<span class="item">{idx + ':' + item.text}</span>
 					}
 				</div>
@@ -278,12 +321,15 @@ describe('for statements', () => {
 	it('handles updating with new objects with same key', () => {
 		function App() {
 			return <>
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				for (let item of items; index i; key item.id) {
+				---
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+				---
+
+				@for (let item of items; index i; key item.id) {
 					<div>{i + ':' + item.text}</div>
 				}
 				<button
@@ -319,9 +365,12 @@ describe('for statements', () => {
 
 		function App() {
 			return <>
-				let &[items] = track(objects.slice());
+				---
+					let &[items] = track(objects.slice());
+				---
+
 				<div>
-					for (const item of items) {
+					@for (const item of items) {
 						<span class="item">{item.text}</span>
 					}
 				</div>

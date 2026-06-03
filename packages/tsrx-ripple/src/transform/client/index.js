@@ -83,6 +83,7 @@ import {
 	ripple_import_requires_block,
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
+	expand_tsrx_code_blocks,
 	jsx_to_ripple_node,
 	tracked_get,
 	build_index_read,
@@ -3633,26 +3634,40 @@ const visitors = {
 		/** @type {AST.Statement[]} */
 		const statements = [];
 
-		for (const statement of node.body) {
+		for (const statement of expand_tsrx_code_blocks(node.body)) {
 			push_statement(
 				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
 				statements,
 			);
 		}
 
-		return b.block(statements);
+		return b.block(statements, /** @type {AST.NodeWithLocation} */ (node));
 	},
 
 	TSModuleBlock(node, context) {
 		/** @type {AST.Statement[]} */
 		const statements = [];
-		for (const statement of node.body) {
+		for (const statement of expand_tsrx_code_blocks(node.body)) {
 			push_statement(
 				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
 				statements,
 			);
 		}
 		return { ...node, body: statements };
+	},
+
+	TSRXCodeBlock(node, context) {
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (
+					context.visit(statement, { ...context.state, regular_js: true })
+				),
+				statements,
+			);
+		}
+		return statements;
 	},
 
 	TSModuleDeclaration(node, context) {
@@ -3878,13 +3893,41 @@ function build_tsrx_to_ts_expression(node, context) {
 }
 
 /**
+ * @param {string} value
+ * @param {AST.NodeWithLocation} node
+ * @returns {AST.Literal}
+ */
+function build_tsrx_ts_text_literal(value, node) {
+	return b.literal(value, JSON.stringify(value), node);
+}
+
+/**
  * @param {AST.Node} node
  * @param {TransformClientContext} context
  */
 function transform_ts_child(node, context) {
 	const { state, visit } = context;
 
-	if (node.type === 'TSRXExpression' || node.type === 'Text') {
+	if (node.type === 'JSXText') {
+		if (node.value.trim() === '') {
+			return;
+		}
+		state.init?.push(
+			b.stmt(build_tsrx_ts_text_literal(node.value, /** @type {AST.NodeWithLocation} */ (node))),
+		);
+	} else if (node.type === 'Text') {
+		const expression = /** @type {AST.Expression} */ (node.expression);
+		state.init?.push(
+			b.stmt(
+				expression.type === 'Literal' && typeof expression.value === 'string'
+					? build_tsrx_ts_text_literal(
+							expression.value,
+							/** @type {AST.NodeWithLocation} */ (expression),
+						)
+					: /** @type {AST.Expression} */ (visit(expression, { ...state })),
+			),
+		);
+	} else if (node.type === 'TSRXExpression') {
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Element') {
 		/** @type {ESTreeJSX.JSXElement['children']} */
@@ -4629,6 +4672,7 @@ function transform_template_element(node, state, visit, child_namespace) {
  */
 function transform_children(children, context) {
 	const { visit, state, root } = context;
+	children = expand_tsrx_code_blocks(children);
 	const normalized = normalize_children(children, {
 		...context,
 		state: { ...state, keep_component_style: state.to_ts ? true : state.keep_component_style },
@@ -5157,6 +5201,15 @@ function transform_children(children, context) {
 				}
 			} else if (node.type === 'Text') {
 				render_text_expression(node.expression, /** @type {AST.Expression} */ (expression));
+			} else if (node.type === 'JSXText') {
+				if (node.value.trim() !== '') {
+					const literal = b.literal(
+						node.value,
+						JSON.stringify(node.value),
+						/** @type {AST.NodeWithLocation} */ (node),
+					);
+					render_text_expression(literal, literal);
+				}
 			} else if (node.type === 'ForOfStatement') {
 				skipped = 0;
 				node.is_controlled = is_controlled;
@@ -5344,6 +5397,8 @@ function transform_continue_consequent_body(consequent_body, context) {
  * @returns {AST.Statement[]}
  */
 function transform_body(body, { visit, state }) {
+	body = expand_tsrx_code_blocks(body);
+
 	/** @type {TransformClientState} */
 	const body_state = {
 		...state,

@@ -53,6 +53,7 @@ import {
 	build_lazy_array_update,
 	collect_tsrx_stylesheet,
 	get_native_tsrx_function_body,
+	expand_tsrx_code_blocks,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
 	is_tsrx_component_function,
@@ -2248,6 +2249,15 @@ const visitors = {
 
 		mark_control_flow_has_template(context.path);
 		return context.next();
+	},
+
+	TSRXCodeBlock(node, context) {
+		for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+			context.visit(/** @type {AST.Node} */ (statement), {
+				...context.state,
+				regular_js: true,
+			});
+		}
 	},
 
 	TsxCompat(node, context) {

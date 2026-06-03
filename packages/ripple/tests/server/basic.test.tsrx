@@ -318,8 +318,10 @@ second"</pre>
 	it('renders tsx declared before a top-level tsx value', async () => {
 		function Basic() {
 			return <>
+				---
 				const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
 				const content = <><div class="native">{nested}</div></>;
+				---
 				{content}
 			</>;
 		}

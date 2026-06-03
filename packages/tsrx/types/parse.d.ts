@@ -1174,8 +1174,6 @@ export namespace Parse {
 
 		parseElement(): AST.Element | AST.TsrxFragment | AST.TsxCompat;
 
-		parseDoubleQuotedTextChild(): AST.TextNode;
-
 		parseTemplateBody(
 			body: (AST.Statement | AST.Node | ESTreeJSX.JSXText | ESTreeJSX.JSXElement['children'])[],
 		): void;
@@ -1193,7 +1191,6 @@ export namespace Parse {
 			exports?: AST.ExportSpecifier,
 		):
 			| AST.TSRXExpression
-			| AST.TextNode
 			| ESTreeJSX.JSXEmptyExpression
 			| ESTreeJSX.JSXExpressionContainer
 			| AST.ExpressionStatement

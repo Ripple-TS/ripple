@@ -1027,13 +1027,11 @@
 					<string>punctuation.definition.block.js</string>
 				</dict>
 			</dict>
-			<key>name</key>
-			<string>meta.block.js</string>
 			<key>patterns</key>
 			<array>
 				<dict>
 					<key>include</key>
-					<string>#component-statements</string>
+					<string>#render-control-component-statements</string>
 				</dict>
 			</array>
 		</dict>
@@ -1137,6 +1135,14 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-native-code-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-render-control-statement</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5237,11 +5243,11 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#jsx-double-quoted-text-child</string>
+					<string>#jsx-native-code-block</string>
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#jsx-children-statements</string>
+					<string>#jsx-render-control-statement</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5251,77 +5257,6 @@
 					<key>include</key>
 					<string>#jsx-tag</string>
 				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-entities</string>
-				</dict>
-			</array>
-		</dict>
-		<key>jsx-children-statements</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>begin</key>
-					<string>(?=\w|\$|//|/\*)</string>
-					<key>beginCaptures</key>
-					<dict>
-						<key>0</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.section.embedded.begin.ripple-ts</string>
-						</dict>
-					</dict>
-					<key>contentName</key>
-					<string>source.js.embedded.ripple-isolated</string>
-					<key>end</key>
-					<string>(?=&lt;[a-zA-Z]|&lt;/)</string>
-					<key>endCaptures</key>
-					<dict>
-						<key>0</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.section.embedded.end.ripple-ts</string>
-						</dict>
-					</dict>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#component-statements</string>
-						</dict>
-					</array>
-				</dict>
-			</array>
-		</dict>
-		<key>jsx-double-quoted-text-child</key>
-		<dict>
-			<key>begin</key>
-			<string>"</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>0</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.jsx.text.begin.js</string>
-				</dict>
-			</dict>
-			<key>contentName</key>
-			<string>string.unquoted.jsx.text.js</string>
-			<key>end</key>
-			<string>"</string>
-			<key>endCaptures</key>
-			<dict>
-				<key>0</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.jsx.text.end.js</string>
-				</dict>
-			</dict>
-			<key>name</key>
-			<string>meta.jsx.text.quoted.js</string>
-			<key>patterns</key>
-			<array>
 				<dict>
 					<key>include</key>
 					<string>#jsx-entities</string>
@@ -5382,6 +5317,192 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-attribute-expression</string>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-native-code-block</key>
+		<dict>
+			<key>begin</key>
+			<string>^([ \t]*)(---)[ \t]*$</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>comment.line.code-fence.tsrx</string>
+				</dict>
+			</dict>
+			<key>contentName</key>
+			<string>source.js.embedded.tsrx.native</string>
+			<key>end</key>
+			<string>^([ \t]*)(---)[ \t]*$</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>comment.line.code-fence.tsrx</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.embedded.block.tsrx.native</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#statements</string>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-render-control-prefix</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.conditional.js</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(@)(?=\s*if\b)</string>
+				</dict>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.switch.js</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(@)(?=\s*switch\b)</string>
+				</dict>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.loop.js</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(@)(?=\s*for\b)</string>
+				</dict>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.trycatch.js</string>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>(@)(?=\s*try\b)</string>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-render-control-statement</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(@)(?=\s*if\b)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.conditional.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>source.js.embedded.tsrx.render-control</string>
+					<key>end</key>
+					<string>(?=&lt;/|&lt;[a-zA-Z]|^[ \t]*---[ \t]*$)|(?&lt;=\})[ \t]*$</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#render-control-component-statements</string>
+						</dict>
+					</array>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>(@)(?=\s*switch\b)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.switch.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>source.js.embedded.tsrx.render-control</string>
+					<key>end</key>
+					<string>(?=&lt;/|&lt;[a-zA-Z]|^[ \t]*---[ \t]*$)|(?&lt;=\})[ \t]*$</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#render-control-component-statements</string>
+						</dict>
+					</array>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>(@)(?=\s*for\b)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.loop.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>source.js.embedded.tsrx.render-control</string>
+					<key>end</key>
+					<string>(?=&lt;/|&lt;[a-zA-Z]|^[ \t]*---[ \t]*$)|(?&lt;=\})[ \t]*$</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#render-control-component-statements</string>
+						</dict>
+					</array>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>(@)(?=\s*try\b)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>keyword.control.trycatch.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>source.js.embedded.tsrx.render-control</string>
+					<key>end</key>
+					<string>(?=&lt;/|&lt;[a-zA-Z]|^[ \t]*---[ \t]*$)|(?&lt;=\})[ \t]*$</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#render-control-component-statements</string>
+						</dict>
+					</array>
 				</dict>
 			</array>
 		</dict>
@@ -8728,6 +8849,86 @@
 				<dict>
 					<key>include</key>
 					<string>#regex-character-class</string>
+				</dict>
+			</array>
+		</dict>
+		<key>render-control-component-decl-block</key>
+		<dict>
+			<key>begin</key>
+			<string>\{</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\}</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#render-control-component-statements</string>
+				</dict>
+			</array>
+		</dict>
+		<key>render-control-component-statements</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-native-code-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#jsx-render-control-prefix</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#declaration</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#component-control-statement</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#render-control-component-decl-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#label</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#punctuation-semicolon</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#string</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#comment</string>
 				</dict>
 			</array>
 		</dict>

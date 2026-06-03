@@ -16,8 +16,11 @@ describe('passing reactivity between boundaries tests', () => {
 
 		function App() {
 			return <>
-				let &[count, countTracked] = track(0);
-				const &[double] = createDouble(countTracked);
+				---
+					let &[count, countTracked] = track(0);
+					const &[double] = createDouble(countTracked);
+				---
+
 				<div>{'Double: ' + double}</div>
 				<button
 					onClick={() => {
@@ -65,8 +68,11 @@ describe('passing reactivity between boundaries tests', () => {
 
 		function App() {
 			return <>
-				let count = track(0);
-				const { double } = createDouble({ count });
+				---
+					let count = track(0);
+					const { double } = createDouble({ count });
+				---
+
 				<div>{'Double: ' + double.value}</div>
 				<button
 					onClick={() => {

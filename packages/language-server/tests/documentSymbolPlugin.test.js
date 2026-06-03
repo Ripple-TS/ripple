@@ -28,6 +28,7 @@ class Store {
 }
 
 function App() { return <>
+	---
 	const count = 0;
 	function increment() {
 		const next = count + 1;
@@ -37,6 +38,7 @@ function App() { return <>
 		const next = 0;
 		return next;
 	};
+	---
 	<div>{count}</div>
 </>; }
 `;
@@ -79,7 +81,9 @@ export class Store {
 	}
 }
 export function Card() { return <>
+	---
 	const title = 'Card';
+	---
 	<div>{title}</div>
 </>; }
 `;
@@ -112,7 +116,9 @@ export default class Store {
 	}
 }
 export default function Page() { return <>
+	---
 	const title = 'Home';
+	---
 	<div>{title}</div>
 </>; }
 `;
@@ -142,7 +148,9 @@ export default class {
 	}
 }
 export default function() { return <>
+	---
 	const hiddenComponent = 1;
+	---
 	<div>{hiddenComponent}</div>
 </>; }
 `;
@@ -199,8 +207,10 @@ export { local, helper as renamedHelper };
 let mutable = 2;
 var legacy = 3;
 function App() { return <>
+	---
 	let local = 4;
 	var oldLocal = 5;
+	---
 	<div>{local + oldLocal}</div>
 </>; }
 `;
@@ -220,8 +230,10 @@ function App() { return <>
 
 	it('returns symbols for object and array binding patterns', async () => {
 		const source = `function App(props, items) { return <>
+	---
 	const { alpha, beta: renamed, gamma = 1, nested: { delta }, ...rest } = props;
 	let [first, , second = 2, ...others] = items;
+	---
 	<div>{alpha + renamed + gamma + delta + rest + first + second + others}</div>
 </>; }
 `;
@@ -247,9 +259,11 @@ function App() { return <>
 
 	it('keeps parent ranges wide enough to contain nested local symbols', async () => {
 		const source = `export function App() { return <>
+	---
 	const test = 'hello';
 	let { start, loc } = /** @type {AST.NodeWithLocation} */ (node);
-	try {
+	---
+	@try {
 		<AsyncProfile />
 	} pending {
 		<p class="pending">{'Loading profile...'}</p>
@@ -287,7 +301,9 @@ const withArrow = () => {
 	return insideArrow;
 };
 const withComponent = function Inner() { return <>
+	---
 	const insideComponent = 1;
+	---
 	<div>{insideComponent}</div>
 </>; };
 `;

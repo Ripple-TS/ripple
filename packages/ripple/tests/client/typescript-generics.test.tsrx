@@ -2,14 +2,19 @@ describe('generic patterns', () => {
 	it('tests simple generic function', () => {
 		function App() {
 			return <>
-				const e = new Map<string, Promise<number>>();
-				const a = new Array<number>();
-				const b = new Array<string>();
+				---
+					const e = new Map<string, Promise<number>>();
+					const a = new Array<number>();
+					const b = new Array<string>();
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				const someSource = new Array<number>(1, 2, 3);
-				const d = someSource.map<number>((x) => x * 2).filter<number>((x) => !!x);
+				---
+					const someSource = new Array<number>(1, 2, 3);
+					const d = someSource.map<number>((x) => x * 2).filter<number>((x) => !!x);
+				---
 			</>;
 		}
 
@@ -19,21 +24,26 @@ describe('generic patterns', () => {
 	it('tests member expression)', () => {
 		function App() {
 			return <>
-				class List<T> {
-					items: T[];
-					constructor() {
-						this.items = [];
+				---
+					class List<T> {
+						items: T[];
+						constructor() {
+							this.items = [];
+						}
 					}
-				}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				class Containers {
-					static List<T>() {
-						return new List<T>();
+				---
+					class Containers {
+						static List<T>() {
+							return new List<T>();
+						}
 					}
-				}
-				const c = Containers.List<string>();
+					const c = Containers.List<string>();
+				---
 			</>;
 		}
 
@@ -43,13 +53,15 @@ describe('generic patterns', () => {
 	it('tests simple generic function with return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return {
-						build: function <T>() {
-							return 'test';
-						},
-					};
-				}
+				---
+					function getBuilder() {
+						return {
+							build: function <T>() {
+								return 'test';
+							},
+						};
+					}
+				---
 			</>;
 		}
 
@@ -59,17 +71,22 @@ describe('generic patterns', () => {
 	it('tests simple generic function with return type and no arrow function', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return {
-						build<T>(): T {
-							return 'test' as unknown as T;
-						},
-					};
-				}
+				---
+					function getBuilder() {
+						return {
+							build<T>(): T {
+								return 'test' as unknown as T;
+							},
+						};
+					}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				const f = getBuilder().build<string>();
+				---
+					const f = getBuilder().build<string>();
+				---
 			</>;
 		}
 
@@ -79,15 +96,17 @@ describe('generic patterns', () => {
 	it('tests simple generic arrow function with return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return <T,>() => ({
-						build<T>(): T {
-							return 'test' as unknown as T;
-						},
-					});
-				}
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string>();
+				---
+					function getBuilder() {
+						return <T,>() => ({
+							build<T>(): T {
+								return 'test' as unknown as T;
+							},
+						});
+					}
+					type ResultType = string;
+					const f = getBuilder()<ResultType>().build<string>();
+				---
 			</>;
 		}
 
@@ -97,18 +116,24 @@ describe('generic patterns', () => {
 	it('tests simple generic arrow function with explicit return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return <T,>() => ({
-						build<U>(): U {
-							return 'test' as U;
-						},
-					});
-				}
+				---
+					function getBuilder() {
+						return <T,>() => ({
+							build<U>(): U {
+								return 'test' as U;
+							},
+						});
+					}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string>();
+				---
+					type ResultType = string;
+					const f = getBuilder()<ResultType>().build<string>();
+				---
+
 				<div>{f}</div>
 			</>;
 		}
@@ -119,24 +144,30 @@ describe('generic patterns', () => {
 	it('tests complex generic arrow function with return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return <T,>() => ({
-						build<V, T, U>(): { build: () => V; data: T; key: U } {
-							return {
-								build(): V {
-									return 'test' as V;
-								},
-								data: undefined as T,
-								key: undefined as U,
-							};
-						},
-					});
-				}
+				---
+					function getBuilder() {
+						return <T,>() => ({
+							build<V, T, U>(): { build: () => V; data: T; key: U } {
+								return {
+									build(): V {
+										return 'test' as V;
+									},
+									data: undefined as T,
+									key: undefined as U,
+								};
+							},
+						});
+					}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
+					type ResultType = string;
+					const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
+
 				<div>{f}</div>
 			</>;
 		}
@@ -147,24 +178,30 @@ describe('generic patterns', () => {
 	it('tests more complex generic arrow function with return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return <T,>() => ({
-						build<V, T, U>(): { build: () => V; data: T; key: U } {
-							return {
-								build(): V {
-									return 'test' as V;
-								},
-								data: undefined as T,
-								key: undefined as U,
-							};
-						},
-					});
-				}
+				---
+					function getBuilder() {
+						return <T,>() => ({
+							build<V, T, U>(): { build: () => V; data: T; key: U } {
+								return {
+									build(): V {
+										return 'test' as V;
+									},
+									data: undefined as T,
+									key: undefined as U,
+								};
+							},
+						});
+					}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
+					type ResultType = string;
+					const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
+
 				<div>{f}</div>
 			</>;
 		}
@@ -175,24 +212,30 @@ describe('generic patterns', () => {
 	it('tests most complex generic arrow function with return type', () => {
 		function App() {
 			return <>
-				function getBuilder() {
-					return <T,>() => ({
-						build<V, T, U>(): { build: () => V; data: T; key: U } {
-							return {
-								build(): V {
-									return 42 as V;
-								},
-								data: undefined as T,
-								key: undefined as U,
-							};
-						},
-					});
-				}
+				---
+					function getBuilder() {
+						return <T,>() => ({
+							build<V, T, U>(): { build: () => V; data: T; key: U } {
+								return {
+									build(): V {
+										return 42 as V;
+									},
+									data: undefined as T,
+									key: undefined as U,
+								};
+							},
+						});
+					}
+				---
+
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<number, object, string>();
+				---
+					type ResultType = string;
+					const f = getBuilder()<ResultType>().build<number, object, string>();
+				---
+
 				<div>{f}</div>
 			</>;
 		}

@@ -399,7 +399,7 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 				{
 					_$_.output_push('<!--[-->');
 
-					if (toc.length > 0) {
+					if (toc.length !== 0) {
 						_$_.output_push('<div');
 						_$_.output_push(' class="toc"');
 						_$_.output_push('>');
@@ -1781,7 +1781,7 @@ function DocsLayoutExact(
 							{
 								_$_.output_push('<!--[-->');
 
-								if (toc.length > 0) {
+								if (toc.length !== 0) {
 									_$_.output_push('<div');
 									_$_.output_push(' class="aside-content"');
 									_$_.output_push('>');

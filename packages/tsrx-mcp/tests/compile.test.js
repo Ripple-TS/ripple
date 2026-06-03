@@ -417,11 +417,12 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('adds control-flow advice for unsupported TSRX loop diagnostics', async () => {
 		const while_loop = await analyze_tsrx({
 			code: `function App() { return <>
-				let i = 0;
-				while (i < 3) {
-					i++;
+				---
+					let i = 0;
+				---
+				@while (i < 3) {
+					<div>{i}</div>
 				}
-				<div>{i}</div>
 			</>; }`,
 			filename: 'App.tsrx',
 			target: 'ripple',

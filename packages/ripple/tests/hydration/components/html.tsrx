@@ -2,36 +2,51 @@ import { Fragment, track } from 'ripple';
 
 export function StaticHtml() {
 	return <>
-		const html = '<p><strong>Bold</strong> text</p>';
+		---
+			const html = '<p><strong>Bold</strong> text</p>';
+		---
+
 		<div innerHTML={html} />
 	</>;
 }
 
 export function DynamicHtml() {
 	return <>
-		const content = '<p>Dynamic <span>HTML</span> content</p>';
+		---
+			const content = '<p>Dynamic <span>HTML</span> content</p>';
+		---
+
 		<div innerHTML={content} />
 	</>;
 }
 
 export function EmptyHtml() {
 	return <>
-		const html = '';
+		---
+			const html = '';
+		---
+
 		<div innerHTML={html} />
 	</>;
 }
 
 export function ComplexHtml() {
 	return <>
-		const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
+		---
+			const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
+		---
+
 		<section innerHTML={html} />
 	</>;
 }
 
 export function MultipleHtml() {
 	return <>
-		const html1 = '<p>First paragraph</p>';
-		const html2 = '<p>Second paragraph</p>';
+		---
+			const html1 = '<p>First paragraph</p>';
+			const html2 = '<p>Second paragraph</p>';
+		---
+
 		<div>
 			<Fragment innerHTML={html1} />
 			<Fragment innerHTML={html2} />
@@ -58,7 +73,10 @@ export function HtmlWrapper({ children }: { children: any }) {
 
 export function HtmlInChildren() {
 	return <>
-		const content = '<p><strong>Bold</strong> text</p>';
+		---
+			const content = '<p><strong>Bold</strong> text</p>';
+		---
+
 		<HtmlWrapper>
 			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
@@ -67,7 +85,10 @@ export function HtmlInChildren() {
 
 export function HtmlInChildrenWithSiblings() {
 	return <>
-		const content = '<p>Dynamic content</p>';
+		---
+			const content = '<p>Dynamic content</p>';
+		---
+
 		<HtmlWrapper>
 			<h1>{'Title'}</h1>
 			<div class="content" innerHTML={content} />
@@ -77,8 +98,11 @@ export function HtmlInChildrenWithSiblings() {
 
 export function MultipleHtmlInChildren() {
 	return <>
-		const html1 = '<p>First</p>';
-		const html2 = '<p>Second</p>';
+		---
+			const html1 = '<p>First</p>';
+			const html2 = '<p>Second</p>';
+		---
+
 		<HtmlWrapper>
 			<div class="doc">
 				<Fragment innerHTML={html1} />
@@ -90,21 +114,30 @@ export function MultipleHtmlInChildren() {
 
 export function HtmlWithComments() {
 	return <>
-		const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
+		---
+			const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
+		---
+
 		<div innerHTML={content} />
 	</>;
 }
 
 export function HtmlWithEmptyComment() {
 	return <>
-		const content = '<p>Before</p><!----><p>After</p>';
+		---
+			const content = '<p>Before</p><!----><p>After</p>';
+		---
+
 		<div innerHTML={content} />
 	</>;
 }
 
 export function HtmlWithCommentsInChildren() {
 	return <>
-		const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
+		---
+			const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
+		---
+
 		<HtmlWrapper>
 			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
@@ -132,12 +165,12 @@ export function DocLayout({
 				<article>
 					<div>{children}</div>
 				</article>
-				if (editPath) {
+				@if (editPath) {
 					<div class="edit-link">
 						<a href={`https://github.com/edit/${editPath}`}>{'Edit'}</a>
 					</div>
 				}
-				if (nextLink) {
+				@if (nextLink) {
 					<nav class="prev-next">
 						<a href={nextLink.href}>{nextLink.text}</a>
 					</nav>
@@ -145,10 +178,10 @@ export function DocLayout({
 				<DocFooter />
 			</div>
 			<aside>
-				if (toc.length > 0) {
+				@if (toc.length !== 0) {
 					<div class="toc">
 						<ul>
-							for (const item of toc) {
+							@for (const item of toc) {
 								<li>
 									<a href={item.href}>{item.text}</a>
 								</li>
@@ -163,7 +196,10 @@ export function DocLayout({
 
 export function HtmlWithServerData() {
 	return <>
-		const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
+		---
+			const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
+		---
+
 		<DocLayout
 			editPath="docs/introduction.md"
 			nextLink={{ href: '/docs/quick-start', text: 'Quick Start' }}
@@ -179,7 +215,10 @@ export function HtmlWithServerData() {
 
 export function HtmlWithClientDefaults() {
 	return <>
-		const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
+		---
+			const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
+		---
+
 		<DocLayout>
 			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
@@ -188,7 +227,10 @@ export function HtmlWithClientDefaults() {
 
 export function HtmlWithUndefinedContent() {
 	return <>
-		const content: string | undefined = undefined;
+		---
+			const content: string | undefined = undefined;
+		---
+
 		<DocLayout>
 			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
@@ -197,7 +239,7 @@ export function HtmlWithUndefinedContent() {
 
 function DynamicHeading({ level, children }: { level: number; children: any }) {
 	return <>
-		switch (level) {
+		@switch (level) {
 			case 1:
 				<h1 class="heading">{children}</h1>
 				break;
@@ -210,7 +252,10 @@ function DynamicHeading({ level, children }: { level: number; children: any }) {
 
 function CodeBlock({ code }: { code: string }) {
 	return <>
-		const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
+		---
+			const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
+		---
+
 		<div class="code-block">
 			<div class="header">
 				<button>{'Copy'}</button>
@@ -252,7 +297,7 @@ function NavItem({
 }) {
 	return <>
 		<div class={`nav-item${active ? ' active' : ''}`}>
-			if (active) {
+			@if (active) {
 				<div class="indicator" />
 			}
 			<a {href}>
@@ -264,13 +309,16 @@ function NavItem({
 
 function SidebarSection({ title, children }: { title: string; children: any }) {
 	return <>
-		let &[expanded] = track(true);
+		---
+			let &[expanded] = track(true);
+		---
+
 		<section class="sidebar-section">
 			<div class="section-header">
 				<h2>{title}</h2>
 				<button onClick={() => (expanded = !expanded)}>{'Toggle'}</button>
 			</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="section-items">{children}</div>
 			}
 		</section>
@@ -319,7 +367,7 @@ export function LayoutWithSidebarAndMain() {
 							<p>{'Welcome to the docs.'}</p>
 						</div>
 					</div>
-					if (true) {
+					@if (true) {
 						<div class="edit-link">
 							<a href="/edit">{'Edit'}</a>
 						</div>
@@ -350,12 +398,12 @@ export function ArticleWithChildrenThenSibling() {
 				<h1>{'Title'}</h1>
 				<p>{'Content goes here.'}</p>
 			</ArticleWrapper>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
 			}
-			if (true) {
+			@if (true) {
 				<nav class="prev-next">
 					<a href="/prev">{'Previous'}</a>
 				</nav>
@@ -367,12 +415,15 @@ export function ArticleWithChildrenThenSibling() {
 
 export function ArticleWithHtmlChildThenSibling() {
 	return <>
-		const htmlContent = '<pre><code>const x = 1;</code></pre>';
+		---
+			const htmlContent = '<pre><code>const x = 1;</code></pre>';
+		---
+
 		<div class="content-container">
 			<ArticleWrapper>
 				<div class="doc-content" innerHTML={htmlContent} />
 			</ArticleWrapper>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
@@ -388,7 +439,7 @@ function InlineArticleLayout({ children }: { children: any }) {
 			<article class="doc-content">
 				<div>{children}</div>
 			</article>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
@@ -400,7 +451,10 @@ function InlineArticleLayout({ children }: { children: any }) {
 
 export function InlineArticleWithHtmlChild() {
 	return <>
-		const htmlContent = '<pre><code>const x = 1;</code></pre>';
+		---
+			const htmlContent = '<pre><code>const x = 1;</code></pre>';
+		---
+
 		<InlineArticleLayout>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</InlineArticleLayout>
@@ -440,12 +494,12 @@ function DocsLayoutInner({
 								<article class="doc-content">
 									<div>{children}</div>
 								</article>
-								if (editPath) {
+								@if (editPath) {
 									<div class="edit-link">
 										<a href="/edit">{'Edit on GitHub'}</a>
 									</div>
 								}
-								if (nextLink) {
+								@if (nextLink) {
 									<nav class="prev-next">
 										<a href={nextLink.href}>{nextLink.text}</a>
 									</nav>
@@ -462,7 +516,10 @@ function DocsLayoutInner({
 
 export function DocsLayoutWithData() {
 	return <>
-		const htmlContent = '<h1>Title</h1><p>Content</p>';
+		---
+			const htmlContent = '<h1>Title</h1><p>Content</p>';
+		---
+
 		<DocsLayoutInner editPath="docs/styling.md" nextLink={{ href: '/next', text: 'Next' }}>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
@@ -471,7 +528,10 @@ export function DocsLayoutWithData() {
 
 export function DocsLayoutWithoutData() {
 	return <>
-		const htmlContent: string | undefined = undefined;
+		---
+			const htmlContent: string | undefined = undefined;
+		---
+
 		<DocsLayoutInner>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
@@ -503,21 +563,21 @@ function DocsLayoutExact({
 								<article class="doc-content">
 									<div>{children}</div>
 								</article>
-								if (editPath) {
+								@if (editPath) {
 									<div class="edit-link">
 										<a href={`/edit/${editPath}`}>{'Edit on GitHub'}</a>
 									</div>
 								}
-								if (prevLink || nextLink) {
+								@if (prevLink || nextLink) {
 									<nav class="prev-next">
-										if (prevLink) {
+										@if (prevLink) {
 											<a href={prevLink.href} class="pager prev">
 												<span class="title">{prevLink.text}</span>
 											</a>
 										} else {
 											<span />
 										}
-										if (nextLink) {
+										@if (nextLink) {
 											<a href={nextLink.href} class="pager next">
 												<span class="title">{nextLink.text}</span>
 											</a>
@@ -528,10 +588,10 @@ function DocsLayoutExact({
 							</div>
 						</div>
 						<aside class="aside">
-							if (toc.length > 0) {
+							@if (toc.length !== 0) {
 								<div class="aside-content">
 									<nav class="outline">
-										for (const item of toc) {
+										@for (const item of toc) {
 											<a href={item.href}>{item.text}</a>
 										}
 									</nav>
@@ -547,7 +607,10 @@ function DocsLayoutExact({
 
 export function DocsLayoutExactWithData() {
 	return <>
-		const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
+		---
+			const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
+		---
+
 		<DocsLayoutExact
 			editPath="docs/guide/styling.md"
 			prevLink={{ href: '/prev', text: 'Previous' }}
@@ -564,11 +627,14 @@ export function DocsLayoutExactWithData() {
 
 export function DocsLayoutExactWithoutData() {
 	return <>
-		const htmlContent: string | undefined = undefined;
-		const editPath: string | undefined = undefined;
-		const prevLink: { href: string; text: string } | null | undefined = undefined;
-		const nextLink: { href: string; text: string } | null | undefined = undefined;
-		const toc: { href: string; text: string }[] | undefined = undefined;
+		---
+			const htmlContent: string | undefined = undefined;
+			const editPath: string | undefined = undefined;
+			const prevLink: { href: string; text: string } | null | undefined = undefined;
+			const nextLink: { href: string; text: string } | null | undefined = undefined;
+			const toc: { href: string; text: string }[] | undefined = undefined;
+		---
+
 		<DocsLayoutExact {editPath} {prevLink} {nextLink} {toc}>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutExact>
@@ -577,7 +643,10 @@ export function DocsLayoutExactWithoutData() {
 
 export function TemplateWithHtmlContent() {
 	return <>
-		const data = { title: 'Test', value: 42 };
+		---
+			const data = { title: 'Test', value: 42 };
+		---
+
 		<div>
 			<template id="t1" innerHTML={JSON.stringify(data)} />
 			<p class="content">{'Main content'}</p>
@@ -587,7 +656,10 @@ export function TemplateWithHtmlContent() {
 
 export function TemplateWithHtmlAndSiblings() {
 	return <>
-		const data = { name: 'Ripple', version: '1.0' };
+		---
+			const data = { name: 'Ripple', version: '1.0' };
+		---
+
 		<div class="wrapper">
 			<h1>{'Title'}</h1>
 			<template id="data-template" innerHTML={JSON.stringify(data)} />
@@ -607,7 +679,10 @@ function LayoutWithTemplate({ children, data }: { children: any; data: object })
 
 export function NestedTemplateInLayout() {
 	return <>
-		const doc = { title: 'Comparison', html: '<p>Content</p>' };
+		---
+			const doc = { title: 'Comparison', html: '<p>Content</p>' };
+		---
+
 		<LayoutWithTemplate data={doc}>
 			<div class="doc-content" innerHTML={doc.html} />
 		</LayoutWithTemplate>
@@ -616,9 +691,12 @@ export function NestedTemplateInLayout() {
 
 export function HtmlCodeBlocksWithSiblingChain() {
 	return <>
-		const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
-		const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
-		const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
+		---
+			const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
+			const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
+			const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
+		---
+
 		<section class="readable-section">
 			<p>{'Ergonomics'}</p>
 			<h2>{'Sibling traversal pattern'}</h2>

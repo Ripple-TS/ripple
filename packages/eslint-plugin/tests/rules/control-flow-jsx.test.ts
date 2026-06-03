@@ -22,9 +22,11 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				function App() {
 					return <>
+					---
 					const items = ['Item 1', 'Item 2'];
+					---
 
-					for (const item of items) {
+					@for (const item of items) {
 						<div>{item}</div>
 					}
 					</>;
@@ -37,6 +39,7 @@ ruleTester.run('control-flow-jsx', rule, {
 				import { effect } from 'ripple';
 				function App() {
 					return <>
+					---
 					const items = ['Item 1', 'Item 2'];
 					effect(() => {
 						let sum = 0;
@@ -44,6 +47,7 @@ ruleTester.run('control-flow-jsx', rule, {
 							sum += item;
 						}
 					});
+					---
 					</>;
 				}
 			`,
@@ -53,8 +57,10 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				function App() {
 					return <>
+					---
 					const items = [1, 2, 3];
-					for (const item of items) {
+					---
+					@for (const item of items) {
 						<div>
 							<span>{item}</span>
 						</div>
@@ -69,6 +75,7 @@ ruleTester.run('control-flow-jsx', rule, {
 				import { RippleArray, track, effect, untrack } from 'ripple';
 				function App() {
 					return <>
+					---
 					const items = new RippleArray(1, 2, 3);
 					const &[sum] = track(0);
 					effect(() => {
@@ -79,6 +86,7 @@ ruleTester.run('control-flow-jsx', rule, {
 							});
 						}
 					});
+					---
 					</>;
 				}
 			`,
@@ -101,9 +109,13 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				function App() {
 					return <>
+					---
 					const items = ['Item 1', 'Item 2'];
-					for (const item of items) {
+					---
+					@for (const item of items) {
+						---
 						console.log(item);
+						---
 					}
 					</>;
 				}
@@ -120,12 +132,14 @@ ruleTester.run('control-flow-jsx', rule, {
 				import { effect } from 'ripple';
 				function App() {
 					return <>
+					---
 					const items = ['Item 1', 'Item 2'];
 					effect(() => {
 						for (const item of items) {
 							<div>{item}</div>
 						}
 					});
+					---
 					</>;
 				}
 			`,
@@ -141,6 +155,7 @@ ruleTester.run('control-flow-jsx', rule, {
 				import { effect } from 'ripple';
 				function App() {
 					return <>
+					---
 					const items = [1, 2, 3];
 					effect(() => {
 						for (const item of items) {
@@ -149,6 +164,7 @@ ruleTester.run('control-flow-jsx', rule, {
 							}
 						}
 					});
+					---
 					</>;
 				}
 			`,
@@ -163,10 +179,14 @@ ruleTester.run('control-flow-jsx', rule, {
 			code: `
 				function App() {
 					return <>
+					---
 					const items = [1, 2, 3];
-					for (const item of items) {
+					---
+					@for (const item of items) {
+						---
 						const double = item * 2;
 						console.log(double);
+						---
 					}
 					</>;
 				}

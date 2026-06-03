@@ -7,12 +7,15 @@ describe('async suspense', () => {
 
 		function Child({ countTracked }: { countTracked: Tracked<number> }) {
 			return <>
-				trackAsync(() => {
-					countTracked.value;
-					return new Promise<void>((resolve) => {
-						resolve_fn = resolve;
+				---
+					trackAsync(() => {
+						countTracked.value;
+						return new Promise<void>((resolve) => {
+							resolve_fn = resolve;
+						});
 					});
-				});
+				---
+
 				<div class="child-content">{'child content'}</div>
 				<div class="count">
 					{'count is: '}
@@ -23,8 +26,11 @@ describe('async suspense', () => {
 
 		function App() {
 			return <>
-				let &[count, countTracked] = track(0);
-				try {
+				---
+					let &[count, countTracked] = track(0);
+				---
+
+				@try {
 					<Child {countTracked} />
 				} pending {
 					<div class="pending">{'pending...'}</div>
@@ -71,21 +77,27 @@ describe('async suspense', () => {
 
 		function Child() {
 			return <>
-				let &[value] = trackAsync(
-					() => new Promise<string>((resolve) => {
-						resolve_value = resolve;
-					}),
-				);
+				---
+					let &[value] = trackAsync(
+						() => new Promise<string>((resolve) => {
+							resolve_value = resolve;
+						}),
+					);
+				---
+
 				<div class="value">{value}</div>
 			</>;
 		}
 
 		function App() {
 			return <>
-				let &[show] = track(true);
+				---
+					let &[show] = track(true);
+				---
+
 				<button onClick={() => (show = false)}>{'Hide'}</button>
-				if (show) {
-					try {
+				@if (show) {
+					@try {
 						<Child />
 					} pending {
 						<div class="pending">{'loading...'}</div>
@@ -141,9 +153,15 @@ describe('async suspense', () => {
 
 		function App() {
 			return <>
-				let &[query] = track('a');
-				try {
-					let &[value] = trackAsync(() => createRequest(query));
+				---
+					let &[query] = track('a');
+				---
+
+				@try {
+					---
+						let &[value] = trackAsync(() => createRequest(query));
+					---
+
 					<div class="value">{value}</div>
 				} pending {
 					<div class="pending">{'loading...'}</div>
@@ -202,17 +220,20 @@ describe('async suspense', () => {
 
 			function FilteredList({ queryTracked }: { queryTracked: Tracked<string> }) {
 				return <>
-					let &[query] = queryTracked;
-					let &[items] = trackAsync(
-						() => Promise.resolve(
-							!query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
-						),
-					);
-					let &[filtered] = track(() => {
-						return items.filter((item: string) => item.includes(query));
-					});
+					---
+						let &[query] = queryTracked;
+						let &[items] = trackAsync(
+							() => Promise.resolve(
+								!query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
+							),
+						);
+						let &[filtered] = track(() => {
+							return items.filter((item: string) => item.includes(query));
+						});
+					---
+
 					<ul>
-						for (let item of filtered) {
+						@for (let item of filtered) {
 							<li>{item}</li>
 						}
 					</ul>
@@ -222,11 +243,17 @@ describe('async suspense', () => {
 
 			function App() {
 				return <>
-					let &[query, queryTracked] = track('');
-					try {
+					---
+						let &[query, queryTracked] = track('');
+					---
+
+					@try {
 						<FilteredList {queryTracked} />
 					} pending {
-						pending_render_count += 1;
+						---
+							pending_render_count += 1;
+						---
+
 						<p class="pending">{'loading...'}</p>
 					}
 					<button onClick={() => (query = 'a')}>{'Search'}</button>
@@ -276,27 +303,34 @@ describe('async suspense', () => {
 
 		function App() {
 			return <>
-				let &[query] = track('');
-				try {
-					let &[items] = trackAsync(
-						() => Promise.resolve(
-							!query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
-						),
-					);
+				---
+					let &[query] = track('');
+				---
 
-					let &[filtered] = track(() => {
-						return items.filter((item: string) => item.includes(query));
-					});
+				@try {
+					---
+						let &[items] = trackAsync(
+							() => Promise.resolve(
+								!query ? ['apple', 'banana', 'cherry'] : ['avocado', 'blueberry', 'citrus'],
+							),
+						);
+						let &[filtered] = track(() => {
+							return items.filter((item: string) => item.includes(query));
+						});
+					---
 
 					<ul>
-						for (let item of filtered) {
+						@for (let item of filtered) {
 							<li>{item}</li>
 						}
 					</ul>
 
 					<pre>{JSON.stringify(items)}</pre>
 				} pending {
-					pending_render_count += 1;
+					---
+						pending_render_count += 1;
+					---
+
 					<p class="pending">{'loading...'}</p>
 				}
 				<button onClick={() => (query = 'a')}>{'Search'}</button>
@@ -341,28 +375,31 @@ describe('async suspense', () => {
 			let times_rendered = 0;
 			function Child(&{ count }: { count: number }) {
 				return <>
-					const &[double]: [number] = trackAsync(() => {
-						const result = count * 2;
+					---
+						const &[double]: [number] = trackAsync(() => {
+							const result = count * 2;
 
-						return new Promise<number>((resolve) => {
-							resolve_double = () => resolve(result);
+							return new Promise<number>((resolve) => {
+								resolve_double = () => resolve(result);
+							});
 						});
-					});
-					const &[quadruple]: [number] = trackAsync(() => {
-						const result = double * 2;
+						const &[quadruple]: [number] = trackAsync(() => {
+							const result = double * 2;
 
-						return new Promise<number>((resolve) => {
-							resolve_quadruple = () => resolve(result);
+							return new Promise<number>((resolve) => {
+								resolve_quadruple = () => resolve(result);
+							});
 						});
-					});
-					effect(() => {
-						double;
-						double_effect_runs += 1;
-					});
-					effect(() => {
-						quadruple;
-						quadruple_effect_runs += 1;
-					});
+						effect(() => {
+							double;
+							double_effect_runs += 1;
+						});
+						effect(() => {
+							quadruple;
+							quadruple_effect_runs += 1;
+						});
+					---
+
 					// this is to make the times_rendered render together with double
 					<div class="double">{double + (++times_rendered - times_rendered)}</div>
 					<div class="quadruple">{quadruple}</div>
@@ -371,8 +408,11 @@ describe('async suspense', () => {
 
 			function App() {
 				return <>
-					let &[count] = track(2);
-					try {
+					---
+						let &[count] = track(2);
+					---
+
+					@try {
 						<Child {count} />
 					} pending {
 						<div class="pending">{'Loading...'}</div>
@@ -434,28 +474,31 @@ describe('async suspense', () => {
 			let times_rendered = 0;
 			function Child(&{ count }: { count: number }) {
 				return <>
-					const &[double]: [number] = trackAsync(() => {
-						const result = count * 2;
+					---
+						const &[double]: [number] = trackAsync(() => {
+							const result = count * 2;
 
-						return new Promise<number>((resolve) => {
-							resolve_double = () => resolve(result);
+							return new Promise<number>((resolve) => {
+								resolve_double = () => resolve(result);
+							});
 						});
-					});
-					const &[quadruple]: [number] = trackAsync(() => {
-						const result = double * 2;
+						const &[quadruple]: [number] = trackAsync(() => {
+							const result = double * 2;
 
-						return new Promise<number>((resolve) => {
-							resolve_quadruple = () => resolve(result);
+							return new Promise<number>((resolve) => {
+								resolve_quadruple = () => resolve(result);
+							});
 						});
-					});
-					effect(() => {
-						double;
-						double_effect_runs += 1;
-					});
-					effect(() => {
-						quadruple;
-						quadruple_effect_runs += 1;
-					});
+						effect(() => {
+							double;
+							double_effect_runs += 1;
+						});
+						effect(() => {
+							quadruple;
+							quadruple_effect_runs += 1;
+						});
+					---
+
 					// this is to make the times_rendered render together with double
 					<div class="double">{double + (++times_rendered - times_rendered)}</div>
 					<div class="quadruple">{quadruple}</div>
@@ -464,8 +507,11 @@ describe('async suspense', () => {
 
 			function App() {
 				return <>
-					let &[count] = track(2);
-					try {
+					---
+						let &[count] = track(2);
+					---
+
+					@try {
 						<Child {count} />
 					} pending {
 						<div class="pending">{'Loading...'}</div>
@@ -525,20 +571,23 @@ describe('async suspense', () => {
 		let times_rendered = 0;
 		function Child(&{ count }: { count: number }) {
 			return <>
-				const &[double]: [number] = trackAsync(() => {
-					const result = count * 2;
+				---
+					const &[double]: [number] = trackAsync(() => {
+						const result = count * 2;
 
-					return new Promise<number>((resolve) => {
-						setTimeout(() => resolve(result), 0);
+						return new Promise<number>((resolve) => {
+							setTimeout(() => resolve(result), 0);
+						});
 					});
-				});
-				const &[quadruple]: [number] = trackAsync(() => {
-					const result = double * 2;
+					const &[quadruple]: [number] = trackAsync(() => {
+						const result = double * 2;
 
-					return new Promise<number>((resolve) => {
-						setTimeout(() => resolve(result), 0);
+						return new Promise<number>((resolve) => {
+							setTimeout(() => resolve(result), 0);
+						});
 					});
-				});
+				---
+
 				// this is to make the times_rendered render together with double
 				<div class="double">{double + (++times_rendered - times_rendered)}</div>
 				<div class="quadruple">{quadruple}</div>
@@ -547,9 +596,12 @@ describe('async suspense', () => {
 
 		function App() {
 			return <>
-				let &[count] = track(0);
+				---
+					let &[count] = track(0);
+				---
+
 				<button onClick={() => count++}>{count}</button>
-				try {
+				@try {
 					<Child {count} />
 				} pending {
 					<div class="pending">{'Loading...'}</div>
@@ -584,7 +636,7 @@ describe('async suspense', () => {
 
 			function Child({ itemsTracked }: { itemsTracked: Tracked<string[]> }) {
 				return <>
-					try {
+					@try {
 						<div class="child-content">
 							{'child: '}
 							{itemsTracked.value.join(', ')}
@@ -597,14 +649,19 @@ describe('async suspense', () => {
 
 			function App() {
 				return <>
-					let &[query] = track('initial');
-					try {
-						let &[items, itemsTracked] = trackAsync(() => {
-							const q = query;
-							return new Promise<string[]>((resolve) => {
-								resolve_fn = resolve;
+					---
+						let &[query] = track('initial');
+					---
+
+					@try {
+						---
+							let &[items, itemsTracked] = trackAsync(() => {
+								const q = query;
+								return new Promise<string[]>((resolve) => {
+									resolve_fn = resolve;
+								});
 							});
-						});
+						---
 
 						<div class="parent-content">
 							{'parent: '}
@@ -661,7 +718,10 @@ describe('async suspense', () => {
 	it('uses the root pending boundary when trackAsync has no local try/pending boundary', () => {
 		function App() {
 			return <>
-				let &[value] = trackAsync(() => Promise.resolve('test'));
+				---
+					let &[value] = trackAsync(() => Promise.resolve('test'));
+				---
+
 				<div>{value}</div>
 			</>;
 		}

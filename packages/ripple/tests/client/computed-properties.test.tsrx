@@ -4,9 +4,12 @@ describe('computed tracked properties', () => {
 	it('should update a property using assignment', () => {
 		function App() {
 			return <>
-				let obj = {
-					[0]: track(0),
-				};
+				---
+					let obj = {
+						[0]: track(0),
+					};
+				---
+
 				<div>{obj[0].value}</div>
 				<button
 					onClick={() => {
@@ -31,9 +34,12 @@ describe('computed tracked properties', () => {
 	it('should update a property using update expressions', () => {
 		function App() {
 			return <>
-				let obj = {
-					[0]: track(0),
-				};
+				---
+					let obj = {
+						[0]: track(0),
+					};
+				---
+
 				<div>{obj[0].value}</div>
 				<button
 					onClick={() => {

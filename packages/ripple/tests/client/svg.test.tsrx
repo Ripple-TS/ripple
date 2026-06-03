@@ -44,12 +44,15 @@ describe('SVG namespace handling', () => {
 	it('should render dynamic SVG paths with for loop (original issue)', () => {
 		function App() {
 			return <>
-				const d = [
-					'm14 12 4 4 4-4',
-					'M18 16V7',
-					'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
-					'M3.304 13h6.392',
-				];
+				---
+					const d = [
+						'm14 12 4 4 4-4',
+						'M18 16V7',
+						'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
+						'M3.304 13h6.392',
+					];
+				---
+
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -57,7 +60,7 @@ describe('SVG namespace handling', () => {
 					fill="none"
 					stroke="currentColor"
 				>
-					for (const pathData of d) {
+					@for (const pathData of d) {
 						<path d={pathData} />
 					}
 				</svg>
@@ -97,7 +100,10 @@ describe('SVG namespace handling', () => {
 	it('should handle mixed static and dynamic SVG elements', () => {
 		function App() {
 			return <>
-				const dynamicPaths = ['M12 2L2 7v10c0 5.55 3.84 10 9 11 5.16-1 9-5.45 9-11V7l-10-5z'];
+				---
+					const dynamicPaths = ['M12 2L2 7v10c0 5.55 3.84 10 9 11 5.16-1 9-5.45 9-11V7l-10-5z'];
+				---
+
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -106,7 +112,7 @@ describe('SVG namespace handling', () => {
 					stroke="currentColor"
 				>
 					<circle cx="12" cy="12" r="10" />
-					for (const pathData of dynamicPaths) {
+					@for (const pathData of dynamicPaths) {
 						<path d={pathData} />
 					}
 					<rect x="4" y="4" width="16" height="16" />
@@ -136,13 +142,16 @@ describe('SVG namespace handling', () => {
 	it('should handle nested SVG groups with for loops', () => {
 		function App() {
 			return <>
-				const items = [
-					{ x: '10', y: '10', width: '20', height: '20' },
-					{ x: '40', y: '40', width: '20', height: '20' },
-				];
+				---
+					const items = [
+						{ x: '10', y: '10', width: '20', height: '20' },
+						{ x: '40', y: '40', width: '20', height: '20' },
+					];
+				---
+
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
 					<g fill="blue">
-						for (const item of items) {
+						@for (const item of items) {
 							<rect x={item.x} y={item.y} width={item.width} height={item.height} />
 						}
 					</g>
@@ -175,10 +184,13 @@ describe('SVG namespace handling', () => {
 	it('should handle SVG class attributes correctly', () => {
 		function App() {
 			return <>
-				let className = 'svg-element';
-				const paths = ['M10 10 L20 20'];
+				---
+					let className = 'svg-element';
+					const paths = ['M10 10 L20 20'];
+				---
+
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" class={className}>
-					for (const pathData of paths) {
+					@for (const pathData of paths) {
 						<path d={pathData} class="dynamic-path" />
 					}
 					<circle cx="50" cy="50" r="10" class={className} />
@@ -250,9 +262,12 @@ describe('SVG namespace handling', () => {
 
 		function App() {
 			return <>
-				let isDiamond = true;
+				---
+					let isDiamond = true;
+				---
+
 				<SVG>
-					if (isDiamond) {
+					@if (isDiamond) {
 						<polygon points="0,0 30,0 15,10" />
 					} else {
 						<polygon points="0,0 30,0 15,10" />
@@ -307,7 +322,10 @@ describe('SVG namespace handling', () => {
 
 		function App() {
 			return <>
-				let &[dynTag] = track('polygon');
+				---
+					let &[dynTag] = track('polygon');
+				---
+
 				<SVG>
 					<@dynTag points="0,0 30,0 15,10" />
 				</SVG>
@@ -338,7 +356,10 @@ describe('SVG namespace handling', () => {
 
 		function App() {
 			return <>
-				let &[Component] = track(() => Polygon);
+				---
+					let &[Component] = track(() => Polygon);
+				---
+
 				<SVG>
 					<@Component points="0,0 30,0 15,10" />
 				</SVG>
@@ -357,7 +378,10 @@ describe('SVG namespace handling', () => {
 	it('should render SVG as a dynamic top element with any dynamic children elements', () => {
 		function SVG({ children }: PropsWithChildren<{}>) {
 			return <>
-				let &[tag] = track('svg');
+				---
+					let &[tag] = track('svg');
+				---
+
 				<@tag width={100} height={50} fill="red" viewBox="0 0 30 10" preserveAspectRatio="none">
 					{children}
 				</@tag>
@@ -366,14 +390,20 @@ describe('SVG namespace handling', () => {
 
 		function Polygon({ points }: PropsWithExtras<{ points: string }>) {
 			return <>
-				let &[dynTag] = track('polygon');
+				---
+					let &[dynTag] = track('polygon');
+				---
+
 				<@dynTag {points} />
 			</>;
 		}
 
 		function App() {
 			return <>
-				let &[Component] = track(() => Polygon);
+				---
+					let &[Component] = track(() => Polygon);
+				---
+
 				<SVG>
 					<@Component points="0,0 30,0 15,10" />
 				</SVG>
@@ -392,12 +422,15 @@ describe('SVG namespace handling', () => {
 	it('should compare static vs dynamic SVG rendering (original problem case)', () => {
 		function App() {
 			return <>
-				const d = [
-					'm14 12 4 4 4-4',
-					'M18 16V7',
-					'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
-					'M3.304 13h6.392',
-				];
+				---
+					const d = [
+						'm14 12 4 4 4-4',
+						'M18 16V7',
+						'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
+						'M3.304 13h6.392',
+					];
+				---
+
 				<div class="container">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -407,7 +440,7 @@ describe('SVG namespace handling', () => {
 						stroke="currentColor"
 						class="dynamic-svg"
 					>
-						for (const path of d) {
+						@for (const path of d) {
 							<path d={path} />
 						}
 					</svg>
@@ -471,14 +504,17 @@ describe('SVG namespace handling', () => {
 	it('should render dynamic SVG elements dispatched via a switch inside a for loop', () => {
 		function App() {
 			return <>
-				const iconNodes: [string, Record<string, string>][] = [
-					['path', { d: 'm14 12 4 4 4-4' }],
-					['circle', { cx: '12', cy: '12', r: '4' }],
-					['path', { d: 'M18 16V7' }],
-				];
+				---
+					const iconNodes: [string, Record<string, string>][] = [
+						['path', { d: 'm14 12 4 4 4-4' }],
+						['circle', { cx: '12', cy: '12', r: '4' }],
+						['path', { d: 'M18 16V7' }],
+					];
+				---
+
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-					for (const [tag, attrs] of iconNodes) {
-						switch (tag) {
+					@for (const [tag, attrs] of iconNodes) {
+						@switch (tag) {
 							case 'path':
 								<path {...attrs} />
 								break;

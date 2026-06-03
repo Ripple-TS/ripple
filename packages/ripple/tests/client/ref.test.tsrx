@@ -15,11 +15,16 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let input: HTMLInputElement | undefined;
+				---
+					let input: HTMLInputElement | undefined;
+				---
+
 				<input type="text" ref={input} />
-				effect(() => {
-					captured = input ?? null;
-				});
+				---
+					effect(() => {
+						captured = input ?? null;
+					});
+				---
 			</>;
 		}
 
@@ -51,7 +56,10 @@ describe('refs', () => {
 
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
-				const { input_ref, ...rest } = props;
+				---
+					const { input_ref, ...rest } = props;
+				---
+
 				<input type="text" ref={input_ref} {...rest} />
 			</>;
 		}
@@ -91,17 +99,23 @@ describe('refs', () => {
 
 		function Component() {
 			return <>
-				let items = RippleArray.from([1, 2, 3]);
-				function componentRef(node: Child) {
-					_node = node;
-				}
+				---
+					let items = RippleArray.from([1, 2, 3]);
+					function componentRef(node: Child) {
+						_node = node;
+					}
+				---
+
 				<Child ref={componentRef} {items} />
 			</>;
 		}
 
 		function Child(props: { items: RippleArray<number> }) {
 			return <>
-				const { items, ...rest } = props;
+				---
+					const { items, ...rest } = props;
+				---
+
 				<pre {...rest}>{JSON.stringify(items)}</pre>
 				<pre>{items.length}</pre>
 			</>;
@@ -118,15 +132,18 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let &[value] = track('test');
-				function inputRef(node: HTMLInputElement) {
-					logs.push('ref called');
-				}
-				const props = {
-					id: 'example',
-					value,
-					[createRefKey()]: inputRef,
-				};
+				---
+					let &[value] = track('test');
+					function inputRef(node: HTMLInputElement) {
+						logs.push('ref called');
+					}
+					const props = {
+						id: 'example',
+						value,
+						[createRefKey()]: inputRef,
+					};
+				---
+
 				<input type="text" {...props} />
 				<Input {...props} />
 			</>;
@@ -147,8 +164,11 @@ describe('refs', () => {
 
 		function Component() {
 			return <>
-				const tracker = track<HTMLDivElement | null>(null);
-				captured = tracker;
+				---
+					const tracker = track<HTMLDivElement | null>(null);
+					captured = tracker;
+				---
+
 				<div ref={tracker}>{'Hello World'}</div>
 			</>;
 		}
@@ -168,8 +188,11 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				const tracker = track<HTMLInputElement | null>(null);
-				captured = tracker;
+				---
+					const tracker = track<HTMLInputElement | null>(null);
+					captured = tracker;
+				---
+
 				<Child id="example" ref={tracker} />
 			</>;
 		}
@@ -185,14 +208,19 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let div: HTMLDivElement | undefined;
+				---
+					let div: HTMLDivElement | undefined;
+				---
+
 				<div ref={div}>{'Hello World'}</div>
-				// Read the captured element through an effect so the assertion
-				// observes the post-mount value (component setup runs before the
-				// element is created).
-				effect(() => {
-					captured = div ?? null;
-				});
+				---
+					// Read the captured element through an effect so the assertion
+					// observes the post-mount value (component setup runs before the
+					// element is created).
+					effect(() => {
+						captured = div ?? null;
+					});
+				---
 			</>;
 		}
 
@@ -207,11 +235,16 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let div: HTMLDivElement | undefined;
+				---
+					let div: HTMLDivElement | undefined;
+				---
+
 				<div ref={div}>{'Hello ref attr'}</div>
-				effect(() => {
-					captured = div ?? null;
-				});
+				---
+					effect(() => {
+						captured = div ?? null;
+					});
+				---
 			</>;
 		}
 
@@ -226,8 +259,11 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let &[show] = track(true);
-				if (show) {
+				---
+					let &[show] = track(true);
+				---
+
+				@if (show) {
 					<div ref={div}>{'Hello cleanup'}</div>
 				}
 				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
@@ -248,11 +284,16 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				const state: { input?: HTMLInputElement } = {};
+				---
+					const state: { input?: HTMLInputElement } = {};
+				---
+
 				<input type="text" ref={state.input} />
-				effect(() => {
-					captured = state.input ?? null;
-				});
+				---
+					effect(() => {
+						captured = state.input ?? null;
+					});
+				---
 			</>;
 		}
 
@@ -271,8 +312,11 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let &[show] = track(true);
-				if (show) {
+				---
+					let &[show] = track(true);
+				---
+
+				@if (show) {
 					<Child ref={input} />
 				}
 				<button class="toggle" onClick={() => (show = false)}>{'hide'}</button>
@@ -298,9 +342,12 @@ describe('refs', () => {
 
 			function App() {
 				return <>
-					let cb = (node: HTMLDivElement) => {
-						logs.push(`mount:${node.textContent}`);
-					};
+					---
+						let cb = (node: HTMLDivElement) => {
+							logs.push(`mount:${node.textContent}`);
+						};
+					---
+
 					<div ref={cb}>{'Hello'}</div>
 				</>;
 			}
@@ -318,9 +365,12 @@ describe('refs', () => {
 
 			function App() {
 				return <>
-					const tracker = track<HTMLDivElement | null>(null);
-					let slot = tracker;
-					captured = tracker;
+					---
+						const tracker = track<HTMLDivElement | null>(null);
+						let slot = tracker;
+						captured = tracker;
+					---
+
 					<div ref={slot}>{'Hello'}</div>
 				</>;
 			}
@@ -340,11 +390,16 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let input: HTMLInputElement | undefined;
+				---
+					let input: HTMLInputElement | undefined;
+				---
+
 				<Child id="example" ref={input} />
-				effect(() => {
-					captured = input ?? null;
-				});
+				---
+					effect(() => {
+						captured = input ?? null;
+					});
+				---
 			</>;
 		}
 
@@ -367,8 +422,11 @@ describe('refs', () => {
 
 			function App() {
 				return <>
-					let &[show] = track(true);
-					if (show) {
+					---
+						let &[show] = track(true);
+					---
+
+					@if (show) {
 						<Child
 							ref={(node: HTMLInputElement | null) => {
 								input = node;
@@ -401,7 +459,10 @@ describe('refs', () => {
 
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
-				let &[as_ref] = track(true);
+				---
+					let &[as_ref] = track(true);
+				---
+
 				<input
 					type="text"
 					value="keep"
@@ -444,7 +505,10 @@ describe('refs', () => {
 
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
-				let &[as_ref] = track(false);
+				---
+					let &[as_ref] = track(false);
+				---
+
 				<input
 					type="text"
 					value="keep"
@@ -487,11 +551,14 @@ describe('refs', () => {
 
 		function Component() {
 			return <>
-				const tracker = track<HTMLDivElement | null>(null);
-				const show = track(true);
-				captured = tracker;
-				toggle = show;
-				if (show.value) {
+				---
+					const tracker = track<HTMLDivElement | null>(null);
+					const show = track(true);
+					captured = tracker;
+					toggle = show;
+				---
+
+				@if (show.value) {
 					<div ref={tracker}>{'Hello World'}</div>
 				}
 			</>;
@@ -511,14 +578,17 @@ describe('refs', () => {
 
 		function App() {
 			return <>
-				let &[value] = track('test');
-				function inputRef(node: HTMLInputElement) {
-					logs.push('ref called');
-				}
-				const props = {
-					id: 'example',
-					value,
-				};
+				---
+					let &[value] = track('test');
+					function inputRef(node: HTMLInputElement) {
+						logs.push('ref called');
+					}
+					const props = {
+						id: 'example',
+						value,
+					};
+				---
+
 				<input type="text" ref={inputRef} {...props} />
 				<Input ref={inputRef} {...props} />
 			</>;

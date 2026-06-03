@@ -251,9 +251,8 @@ function SidebarGroup({
 					</svg>
 				</div>
 			</div>
-			if (expanded) {
-				<div class="items">{children}</div>
-			}
+			if (expanded)
+			{<div class="items">{children}</div>}
 		</section>
 		<style>
 			.SidebarItem.level-0 {
@@ -347,21 +346,22 @@ function SidebarItem({
 	hasActive?: boolean;
 }) {
 	return <>
-		const classes = `SidebarItem level-1 is-link${active ? ' is-active' : ''}${
-			hasActive ? ' has-active' : ''
-		}`;
+		const classes = `SidebarItem level-1 is-link$
+		{active ? ' is-active' : ''}
+		$
+		{hasActive ? ' has-active' : ''}
+		`;
 		<div class={classes}>
 			<div class="item">
 				<div class="indicator" />
-				if (external) {
-					<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
-						<p class="text">{label}</p>
-					</a>
-				} else {
-					<a {href} class="link link">
-						<p class="text">{label}</p>
-					</a>
-				}
+				if (external)
+				{<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
+					<p class="text">{label}</p>
+				</a>}
+				else
+				{<a {href} class="link link">
+					<p class="text">{label}</p>
+				</a>}
 			</div>
 		</div>
 		<style>

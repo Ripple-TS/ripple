@@ -51,8 +51,11 @@ describe('Portal', () => {
 	it('cleans up portal content when destroyed via conditional rendering', () => {
 		function TestPortal() {
 			return <>
-				let &[open] = track(true);
-				if (open) {
+				---
+					let &[open] = track(true);
+				---
+
+				@if (open) {
 					<Portal target={document.body}>
 						<div class="test-portal">{'Conditional content'}</div>
 					</Portal>
@@ -77,8 +80,11 @@ describe('Portal', () => {
 	it('opens and closes portal via conditional rendering', () => {
 		function TestPortal() {
 			return <>
-				let &[open] = track(false);
-				if (open) {
+				---
+					let &[open] = track(false);
+				---
+
+				@if (open) {
 					<Portal target={document.body}>
 						<div class="test-portal">
 							{'Content'}
@@ -86,7 +92,7 @@ describe('Portal', () => {
 						</div>
 					</Portal>
 				}
-				if (!open) {
+				@if (!open) {
 					<button onClick={() => (open = true)}>{'Open'}</button>
 				}
 			</>;
@@ -144,7 +150,10 @@ describe('Portal', () => {
 	it('handles portal with reactive content', () => {
 		function TestReactivePortal() {
 			return <>
-				let &[count] = track(0);
+				---
+					let &[count] = track(0);
+				---
+
 				<Portal target={document.body}>
 					<div class="test-portal">
 						{'Count: '}

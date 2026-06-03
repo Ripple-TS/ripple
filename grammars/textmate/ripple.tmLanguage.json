@@ -65,6 +65,12 @@
           "include": "#jsx"
         },
         {
+          "include": "#jsx-native-code-block"
+        },
+        {
+          "include": "#jsx-render-control-statement"
+        },
+        {
           "include": "#declaration"
         },
         {
@@ -3143,7 +3149,6 @@
       ]
     },
     "component-decl-block": {
-      "name": "meta.block.js",
       "begin": "\\{",
       "beginCaptures": {
         "0": {
@@ -3158,7 +3163,7 @@
       },
       "patterns": [
         {
-          "include": "#component-statements"
+          "include": "#render-control-component-statements"
         }
       ]
     },
@@ -6410,10 +6415,10 @@
           "include": "#jsx-tag-fragment"
         },
         {
-          "include": "#jsx-double-quoted-text-child"
+          "include": "#jsx-native-code-block"
         },
         {
-          "include": "#jsx-children-statements"
+          "include": "#jsx-render-control-statement"
         },
         {
           "include": "#jsx-tag-without-attributes"
@@ -6426,48 +6431,180 @@
         }
       ]
     },
-    "jsx-double-quoted-text-child": {
-      "name": "meta.jsx.text.quoted.js",
-      "begin": "\"",
-      "end": "\"",
+    "jsx-native-code-block": {
+      "name": "meta.embedded.block.tsrx.native",
+      "begin": "^([ \\t]*)(---)[ \\t]*$",
       "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.jsx.text.begin.js"
+        "2": {
+          "name": "comment.line.code-fence.tsrx"
         }
       },
+      "end": "^([ \\t]*)(---)[ \\t]*$",
       "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.jsx.text.end.js"
+        "2": {
+          "name": "comment.line.code-fence.tsrx"
         }
       },
-      "contentName": "string.unquoted.jsx.text.js",
+      "contentName": "source.js.embedded.tsrx.native",
       "patterns": [
         {
-          "include": "#jsx-entities"
+          "include": "#statements"
         }
       ]
     },
-    "jsx-children-statements": {
+    "jsx-render-control-statement": {
       "patterns": [
         {
-          "begin": "(?=\\w|\\$|//|/\\*)",
-          "end": "(?=<[a-zA-Z]|</)",
+          "begin": "(@)(?=\\s*if\\b)",
           "beginCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.begin.ripple-ts"
+            "1": {
+              "name": "keyword.control.conditional.js"
             }
           },
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.section.embedded.end.ripple-ts"
-            }
-          },
-          "contentName": "source.js.embedded.ripple-isolated",
+          "end": "(?=</|<[a-zA-Z]|^[ \\t]*---[ \\t]*$)|(?<=\\})[ \\t]*$",
+          "contentName": "source.js.embedded.tsrx.render-control",
           "patterns": [
             {
-              "include": "#component-statements"
+              "include": "#render-control-component-statements"
             }
           ]
+        },
+        {
+          "begin": "(@)(?=\\s*switch\\b)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.switch.js"
+            }
+          },
+          "end": "(?=</|<[a-zA-Z]|^[ \\t]*---[ \\t]*$)|(?<=\\})[ \\t]*$",
+          "contentName": "source.js.embedded.tsrx.render-control",
+          "patterns": [
+            {
+              "include": "#render-control-component-statements"
+            }
+          ]
+        },
+        {
+          "begin": "(@)(?=\\s*for\\b)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.loop.js"
+            }
+          },
+          "end": "(?=</|<[a-zA-Z]|^[ \\t]*---[ \\t]*$)|(?<=\\})[ \\t]*$",
+          "contentName": "source.js.embedded.tsrx.render-control",
+          "patterns": [
+            {
+              "include": "#render-control-component-statements"
+            }
+          ]
+        },
+        {
+          "begin": "(@)(?=\\s*try\\b)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.trycatch.js"
+            }
+          },
+          "end": "(?=</|<[a-zA-Z]|^[ \\t]*---[ \\t]*$)|(?<=\\})[ \\t]*$",
+          "contentName": "source.js.embedded.tsrx.render-control",
+          "patterns": [
+            {
+              "include": "#render-control-component-statements"
+            }
+          ]
+        }
+      ]
+    },
+    "render-control-component-statements": {
+      "patterns": [
+        {
+          "include": "#jsx"
+        },
+        {
+          "include": "#jsx-native-code-block"
+        },
+        {
+          "include": "#jsx-render-control-prefix"
+        },
+        {
+          "include": "#declaration"
+        },
+        {
+          "include": "#component-control-statement"
+        },
+        {
+          "include": "#render-control-component-decl-block"
+        },
+        {
+          "include": "#label"
+        },
+        {
+          "include": "#expression"
+        },
+        {
+          "include": "#punctuation-semicolon"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "render-control-component-decl-block": {
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.js"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.js"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#render-control-component-statements"
+        }
+      ]
+    },
+    "jsx-render-control-prefix": {
+      "patterns": [
+        {
+          "match": "(@)(?=\\s*if\\b)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.conditional.js"
+            }
+          }
+        },
+        {
+          "match": "(@)(?=\\s*switch\\b)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.switch.js"
+            }
+          }
+        },
+        {
+          "match": "(@)(?=\\s*for\\b)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.loop.js"
+            }
+          }
+        },
+        {
+          "match": "(@)(?=\\s*try\\b)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.trycatch.js"
+            }
+          }
         }
       ]
     },

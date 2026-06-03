@@ -32,7 +32,10 @@ describe('head elements', () => {
 	it('renders reactive title element', () => {
 		function App() {
 			return <>
-				let &[title] = track('Initial Title');
+				---
+					let &[title] = track('Initial Title');
+				---
+
 				<head>
 					<title>{title}</title>
 				</head>
@@ -65,7 +68,10 @@ describe('head elements', () => {
 	it('renders title with template literal', () => {
 		function App() {
 			return <>
-				let &[name] = track('World');
+				---
+					let &[name] = track('World');
+				---
+
 				<head>
 					<title>{`Hello ${name}!`}</title>
 				</head>
@@ -95,8 +101,11 @@ describe('head elements', () => {
 	it('renders title with computed value', () => {
 		function App() {
 			return <>
-				let &[count] = track(0);
-				let prefix = 'Count: ';
+				---
+					let &[count] = track(0);
+					let prefix = 'Count: ';
+				---
+
 				<head>
 					<title>{prefix + count}</title>
 				</head>
@@ -128,7 +137,10 @@ describe('head elements', () => {
 	it('handles multiple title updates', () => {
 		function App() {
 			return <>
-				let &[step] = track(1);
+				---
+					let &[step] = track(1);
+				---
+
 				<head>
 					<title>{`Step ${step} of 3`}</title>
 				</head>
@@ -181,8 +193,11 @@ describe('head elements', () => {
 	it('renders title with conditional content', () => {
 		function App() {
 			return <>
-				let &[showPrefix] = track(true);
-				let &[title] = track('Main Page');
+				---
+					let &[showPrefix] = track(true);
+					let &[title] = track('Main Page');
+				---
+
 				<head>
 					<title>{showPrefix ? 'App - ' + title : title}</title>
 				</head>

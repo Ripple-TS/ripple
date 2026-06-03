@@ -16,10 +16,13 @@ describe('basic client > collections', () => {
 	it('renders with simple reactive objects', () => {
 		function Basic() {
 			return <>
-				let &[user] = track({
-					name: 'John',
-					age: 25,
-				});
+				---
+					let &[user] = track({
+						name: 'John',
+						age: 25,
+					});
+				---
+
 				<div class="name">{user.name}</div>
 				<div class="age">{user.age}</div>
 				<button
@@ -51,10 +54,13 @@ describe('basic client > collections', () => {
 	it('renders with nested reactive objects', () => {
 		function Basic() {
 			return <>
-				let &[user] = track({
-					name: track('John'),
-					age: track(25),
-				});
+				---
+					let &[user] = track({
+						name: track('John'),
+						age: track(25),
+					});
+				---
+
 				<div class="name">{user.name.value}</div>
 				<div class="age">{user.age.value}</div>
 				<button
@@ -87,7 +93,10 @@ describe('basic client > collections', () => {
 	it('works as a reactive RippleArray when constructed using # syntactic sugar', () => {
 		function App() {
 			return <>
-				const array = new RippleArray(1, 2, 3);
+				---
+					const array = new RippleArray(1, 2, 3);
+				---
+
 				<pre>{String(array[3])}</pre>
 				<pre>{array[0]}</pre>
 				<pre>{TRACKED_ARRAY in array}</pre>
@@ -123,7 +132,10 @@ describe('basic client > collections', () => {
 	it('cleans up mixed tsrx collection sentinels and trailing text on rerender', () => {
 		function App() {
 			return <>
-				let &[primary] = track(true);
+				---
+					let &[primary] = track(true);
+				---
+
 				<div class="frame">
 					{<>
 						{primary
@@ -197,7 +209,10 @@ describe('basic client > collections', () => {
 	it('flattens direct primitive array expressions', () => {
 		function App() {
 			return <>
-				const items = ['start:', ['one', 2], null, true, false, ':end'];
+				---
+					const items = ['start:', ['one', 2], null, true, false, ':end'];
+				---
+
 				<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
 				<div class="bound-frame">{items}</div>
 			</>;
@@ -212,11 +227,14 @@ describe('basic client > collections', () => {
 	it('flattens conditional primitive array expressions', () => {
 		function App() {
 			return <>
-				const condition = true;
-				const ternary_items = condition
-					? ['start:', ['one', 2], null, true, false, ':end']
-					: ['fallback'];
-				const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+				---
+					const condition = true;
+					const ternary_items = condition
+						? ['start:', ['one', 2], null, true, false, ':end']
+						: ['fallback'];
+					const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+				---
+
 				<div class="ternary-frame">{ternary_items}</div>
 				<div class="logical-frame">{logical_items}</div>
 			</>;

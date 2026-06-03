@@ -4,8 +4,11 @@ import { track } from 'ripple';
 
 export function IfTruthy() {
 	return <>
-		const show = true;
-		if (show) {
+		---
+			const show = true;
+		---
+
+		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
 	</>;
@@ -13,8 +16,11 @@ export function IfTruthy() {
 
 export function IfFalsy() {
 	return <>
-		const show = false;
-		if (show) {
+		---
+			const show = false;
+		---
+
+		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
 	</>;
@@ -22,8 +28,11 @@ export function IfFalsy() {
 
 export function IfElse() {
 	return <>
-		const isLoggedIn = true;
-		if (isLoggedIn) {
+		---
+			const isLoggedIn = true;
+		---
+
+		@if (isLoggedIn) {
 			<div class="logged-in">{'Welcome back!'}</div>
 		} else {
 			<div class="logged-out">{'Please log in'}</div>
@@ -33,7 +42,10 @@ export function IfElse() {
 
 export function ReactiveIf() {
 	return <>
-		let &[show] = track(true);
+		---
+			let &[show] = track(true);
+		---
+
 		<button
 			class="toggle"
 			onClick={() => {
@@ -42,7 +54,7 @@ export function ReactiveIf() {
 		>
 			{'Toggle'}
 		</button>
-		if (show) {
+		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
 	</>;
@@ -50,7 +62,10 @@ export function ReactiveIf() {
 
 export function ReactiveIfElse() {
 	return <>
-		let &[isOn] = track(false);
+		---
+			let &[isOn] = track(false);
+		---
+
 		<button
 			class="toggle"
 			onClick={() => {
@@ -59,7 +74,7 @@ export function ReactiveIfElse() {
 		>
 			{'Toggle'}
 		</button>
-		if (isOn) {
+		@if (isOn) {
 			<div class="on">{'ON'}</div>
 		} else {
 			<div class="off">{'OFF'}</div>
@@ -69,8 +84,11 @@ export function ReactiveIfElse() {
 
 export function NestedIf() {
 	return <>
-		let &[outer] = track(true);
-		let &[inner] = track(true);
+		---
+			let &[outer] = track(true);
+			let &[inner] = track(true);
+		---
+
 		<button
 			class="outer-toggle"
 			onClick={() => {
@@ -87,10 +105,10 @@ export function NestedIf() {
 		>
 			{'Inner'}
 		</button>
-		if (outer) {
+		@if (outer) {
 			<div class="outer-content">
 				{'Outer'}
-				if (inner) {
+				@if (inner) {
 					<span class="inner-content">{'Inner'}</span>
 				}
 			</div>
@@ -100,7 +118,10 @@ export function NestedIf() {
 
 export function IfElseIfChain() {
 	return <>
-		let &[status] = track<'loading' | 'success' | 'error'>('loading');
+		---
+			let &[status] = track<'loading' | 'success' | 'error'>('loading');
+		---
+
 		<div>
 			<button
 				class="success"
@@ -126,7 +147,7 @@ export function IfElseIfChain() {
 			>
 				{'Loading'}
 			</button>
-			if (status === 'loading') {
+			@if (status === 'loading') {
 				<div class="state">{'Loading...'}</div>
 			} else if (status === 'success') {
 				<div class="state">{'Success!'}</div>

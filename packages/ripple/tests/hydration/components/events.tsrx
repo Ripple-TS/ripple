@@ -4,7 +4,10 @@ import { track } from 'ripple';
 
 export function ClickCounter() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<div>
 			<button
 				class="increment"
@@ -21,7 +24,10 @@ export function ClickCounter() {
 
 export function IncrementDecrement() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<div>
 			<button
 				class="decrement"
@@ -46,8 +52,11 @@ export function IncrementDecrement() {
 
 export function MultipleEvents() {
 	return <>
-		let &[clicks] = track(0);
-		let &[hovers] = track(0);
+		---
+			let &[clicks] = track(0);
+			let &[hovers] = track(0);
+		---
+
 		<div>
 			<button
 				class="target"
@@ -68,12 +77,15 @@ export function MultipleEvents() {
 
 export function MultiStateUpdate() {
 	return <>
-		let &[count] = track(0);
-		let &[lastAction] = track('none');
-		const handleClick = () => {
-			count++;
-			lastAction = 'increment';
-		};
+		---
+			let &[count] = track(0);
+			let &[lastAction] = track('none');
+			const handleClick = () => {
+				count++;
+				lastAction = 'increment';
+			};
+		---
+
 		<div>
 			<button class="btn" onClick={handleClick}>{'Click'}</button>
 			<span class="count">{count}</span>
@@ -84,7 +96,10 @@ export function MultiStateUpdate() {
 
 export function ToggleButton() {
 	return <>
-		let &[isOn] = track(false);
+		---
+			let &[isOn] = track(false);
+		---
+
 		<div>
 			<button
 				class="toggle"
@@ -104,7 +119,10 @@ export function ChildButton(props: { onClick: () => void; label: string }) {
 
 export function ParentWithChildButton() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<div>
 			<ChildButton
 				onClick={() => {

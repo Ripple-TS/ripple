@@ -440,7 +440,7 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 					};
 
 					_$_.if(node_12, (__render) => {
-						if (toc.length > 0) __render(consequent_2);
+						if (toc.length !== 0) __render(consequent_2);
 					});
 				}
 
@@ -1432,7 +1432,7 @@ function DocsLayoutExact(
 								};
 
 								_$_.if(node_56, (__render) => {
-									if (toc.length > 0) __render(consequent_16);
+									if (toc.length !== 0) __render(consequent_16);
 								});
 							}
 

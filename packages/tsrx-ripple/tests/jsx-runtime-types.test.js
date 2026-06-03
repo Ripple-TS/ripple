@@ -63,10 +63,12 @@ describe('@tsrx/ripple Volar JSX expression types', () => {
 	it('types tsx and native expression values as TSRXElement', () => {
 		const source = `
 function App() { return <>
-	const nested = <div />;
-	const content = <>
-		<section>{nested}</section>
-	</>;
+	---
+		const nested = <div />;
+		const content = <>
+			<section>{nested}</section>
+		</>;
+	---
 
 	{content}
 </>; }
@@ -82,7 +84,10 @@ function App() { return <>
 		const source = `
 function ContentEditable(props: { placeholder: any }) {
 	return <>
-		const className = 'editable';
+		---
+			const className = 'editable';
+		---
+
 		<article class={className}>
 			<div>{props.placeholder}</div>
 		</article>
@@ -91,7 +96,11 @@ function ContentEditable(props: { placeholder: any }) {
 
 function App() {
 	return <>
-		<ContentEditable placeholder={<><div>"Hello"</div></>} />
+		---
+			const placeholder = <><div>Hello</div></>;
+		---
+
+		<ContentEditable placeholder={placeholder} />
 	</>;
 }
 `;
@@ -99,5 +108,27 @@ function App() {
 
 		expect(code).toContain('children.push');
 		expect(code).toContain('const children = [] as Array<any>;');
+	});
+
+	it('prints raw text children as strings in statement-bodied native fragments', () => {
+		const source = `
+function App() {
+	return <>
+		---
+			const show = true;
+		---
+
+		<button>Toggle Content</button>
+		@if (show) {
+			<div>Visible Content</div>
+		}
+	</>;
+}
+`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(code).toContain('"Toggle Content"');
+		expect(code).toContain('"Visible Content"');
+		get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
 	});
 });

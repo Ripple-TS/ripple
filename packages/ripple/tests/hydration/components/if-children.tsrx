@@ -5,10 +5,13 @@ import { track } from 'ripple';
 
 export function IfWithChildren({ children }: { children: any }) {
 	return <>
-		let &[expanded] = track(true);
+		---
+			let &[expanded] = track(true);
+		---
+
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="content">{children}</div>
 			}
 		</div>
@@ -31,10 +34,13 @@ export function TestIfWithChildren() {
 // Simpler variant - if block with static children
 export function IfWithStaticChildren() {
 	return <>
-		let &[expanded] = track(true);
+		---
+			let &[expanded] = track(true);
+		---
+
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="content">
 					<span>{'Static child 1'}</span>
 					<span>{'Static child 2'}</span>
@@ -47,7 +53,10 @@ export function IfWithStaticChildren() {
 // Variant with sibling elements before the if block (like SidebarGroup)
 export function IfWithSiblingsAndChildren({ children }: { children: any }) {
 	return <>
-		let &[expanded] = track(true);
+		---
+			let &[expanded] = track(true);
+		---
+
 		<section class="group">
 			<div class="item" role="button" onClick={() => (expanded = !expanded)}>
 				<div class="indicator" />
@@ -58,7 +67,7 @@ export function IfWithSiblingsAndChildren({ children }: { children: any }) {
 					</svg>
 				</div>
 			</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="items">{children}</div>
 			}
 		</section>
@@ -79,14 +88,17 @@ export function TestIfWithSiblingsAndChildren() {
 // before navigating to a dynamic sibling (if/for/switch)
 export function ElementWithChildrenThenIf() {
 	return <>
-		let &[show] = track(true);
+		---
+			let &[show] = track(true);
+		---
+
 		<div class="wrapper">
 			<div class="nested-parent">
 				<div class="nested-child">
 					<span class="deep">{'Deep content'}</span>
 				</div>
 			</div>
-			if (show) {
+			@if (show) {
 				<div class="conditional">{'Conditional content'}</div>
 			}
 		</div>
@@ -97,7 +109,10 @@ export function ElementWithChildrenThenIf() {
 // More complex: multiple levels of nesting before if sibling
 export function DeepNestingThenIf() {
 	return <>
-		let &[visible] = track(true);
+		---
+			let &[visible] = track(true);
+		---
+
 		<section class="outer">
 			<article class="middle">
 				<div class="inner">
@@ -107,7 +122,7 @@ export function DeepNestingThenIf() {
 					</p>
 				</div>
 			</article>
-			if (visible) {
+			@if (visible) {
 				<footer class="footer">{'Footer'}</footer>
 			}
 		</section>
@@ -120,7 +135,10 @@ export function DeepNestingThenIf() {
 // because we descend into the first element to get the button children.
 export function DomElementChildrenThenSibling() {
 	return <>
-		let &[activeTab] = track('code');
+		---
+			let &[activeTab] = track('code');
+		---
+
 		<div class="tabs">
 			<div class="tab-list">
 				<button
@@ -139,7 +157,7 @@ export function DomElementChildrenThenSibling() {
 				</button>
 			</div>
 			<div class="panel">
-				if (activeTab === 'code') {
+				@if (activeTab === 'code') {
 					<pre class="code">{'const x = 1;'}</pre>
 				} else {
 					<div class="preview">{'Preview content'}</div>
@@ -154,7 +172,10 @@ export function DomElementChildrenThenSibling() {
 // Pattern: <ul> with dynamic <li> children -> static <h2> -> static <p> -> next()
 export function DomChildrenThenStaticSiblings() {
 	return <>
-		let &[count] = track(0);
+		---
+			let &[count] = track(0);
+		---
+
 		<div class="container">
 			<ul class="list">
 				<li class="item">

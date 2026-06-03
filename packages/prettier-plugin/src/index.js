@@ -901,18 +901,22 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'IfStatement':
 			nodeContent = printIfStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'ForOfStatement':
 			nodeContent = printForOfStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'ForStatement':
 			nodeContent = printForStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'ForInStatement':
 			nodeContent = printForInStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'WhileStatement':
@@ -930,6 +934,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'TryStatement':
 			nodeContent = printTryStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'ArrayExpression': {
@@ -1633,6 +1638,7 @@ function printRippleNode(node, path, options, print, args) {
 
 		case 'SwitchStatement':
 			nodeContent = printSwitchStatement(node, path, options, print);
+			if (node.metadata?.tsrx_render_control_flow) nodeContent = ['@', nodeContent];
 			break;
 
 		case 'SwitchCase':
@@ -2276,7 +2282,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'JSXText':
-			nodeContent = node.value;
+			nodeContent = node.value.trim();
 			break;
 
 		case 'JSXEmptyExpression':
@@ -2298,6 +2304,18 @@ function printRippleNode(node, path, options, print, args) {
 				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
 				: path.call(print, 'expression');
 			nodeContent = ['{', expressionDoc, '}'];
+			break;
+		}
+
+		case 'TSRXCodeBlock': {
+			const body = Array.isArray(node.body) ? node.body : [];
+			const statements = body.map((_, i) => path.call(print, 'body', i));
+			nodeContent = [
+				'---',
+				body.length > 0 ? indent([hardline, join(hardline, statements)]) : '',
+				hardline,
+				'---',
+			];
 			break;
 		}
 
@@ -4713,6 +4731,12 @@ function shouldAddBlankLine(currentNode, nextNode) {
 		return true;
 	}
 
+	// Native TSRX code blocks are visually fenced sections. Keep the next render
+	// item separated whether the block appears in JSX children or inside render controls.
+	if (currentNode.type === 'TSRXCodeBlock') {
+		return true;
+	}
+
 	// Default behavior: preserve blank line if one or more existed originally
 	return originalBlankLines > 0;
 }
@@ -5570,7 +5594,10 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
  * @returns {boolean}
  */
 function isInlineableTextOrExpressionChild(child) {
-	if (!child || (child.type !== 'Text' && child.type !== 'TSRXExpression')) {
+	if (
+		!child ||
+		(child.type !== 'Text' && child.type !== 'JSXText' && child.type !== 'TSRXExpression')
+	) {
 		return false;
 	}
 
@@ -5584,6 +5611,44 @@ function isInlineableTextOrExpressionChild(child) {
 }
 
 /**
+ * @param {any} left
+ * @param {any} right
+ * @returns {boolean}
+ */
+function shouldPreserveInlineChildSpace(left, right) {
+	const leftValue = left?.type === 'JSXText' ? left.value : left?.raw;
+	const rightValue = right?.type === 'JSXText' ? right.value : right?.raw;
+	return (
+		(typeof leftValue === 'string' && /\s$/u.test(leftValue)) ||
+		(typeof rightValue === 'string' && /^\s/u.test(rightValue))
+	);
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {AstPath<AST.Element>} path
+ * @param {PrintFn} print
+ * @returns {Doc[]}
+ */
+function printInlineTextAndExpressionChildren(node, path, print) {
+	const parts = [];
+	const children = node.children.filter(
+		(child) => child.type !== 'JSXText' || child.value.trim() !== '',
+	);
+
+	for (let i = 0; i < children.length; i++) {
+		if (i > 0 && shouldPreserveInlineChildSpace(children[i - 1], children[i])) {
+			parts.push(' ');
+		}
+
+		const childIndex = node.children.indexOf(children[i]);
+		parts.push(path.call(print, 'children', childIndex));
+	}
+
+	return parts;
+}
+
+/**
  * @param {AST.Element} node
  * @returns {boolean}
  */
@@ -5592,7 +5657,7 @@ function shouldTryInlineMultipleTextChildren(node) {
 		wasOriginallySingleLine(node) &&
 		Array.isArray(node.children) &&
 		node.children.length > 1 &&
-		node.children.some((child) => child.type === 'Text') &&
+		node.children.some((child) => child.type === 'Text' || child.type === 'JSXText') &&
 		node.children.every(isInlineableTextOrExpressionChild)
 	);
 }
@@ -5687,7 +5752,11 @@ function printTsrx(node, path, options, print) {
 			printedChildren.push(text);
 		} else {
 			const printedChild = path.call(print, 'children', i);
-			printedChildren.push(printedChild);
+			printedChildren.push(
+				child.type === 'TSRXCodeBlock' && i < node.children.length - 1
+					? [printedChild, hardline]
+					: printedChild,
+			);
 		}
 	}
 
@@ -6505,7 +6574,10 @@ function printElement(element, path, options, print) {
 				nextChild.type === 'TSRXExpression' ||
 				nextChild.type === 'Text';
 
-			if (whitespaceLinesCount > 0) {
+			if (currentChild.type === 'TSRXCodeBlock') {
+				finalChildren.push(hardline);
+				finalChildren.push(hardline);
+			} else if (whitespaceLinesCount > 0) {
 				finalChildren.push(hardline);
 				finalChildren.push(hardline);
 			} else if (!isTextOrExpressionChild && shouldAddBlankLine(currentChild, nextChild)) {
@@ -6594,7 +6666,7 @@ function printElement(element, path, options, print) {
 			elementOutput = [openingTag, indent([hardline, ...finalChildren]), hardline, closingTag];
 		}
 	} else if (shouldTryInlineMultipleChildren) {
-		const inlineChildren = path.map(print, 'children');
+		const inlineChildren = printInlineTextAndExpressionChildren(node, path, print);
 		elementOutput = conditionalGroup([
 			group([openingTag, ...inlineChildren, closingTag]),
 			[openingTag, indent([hardline, ...finalChildren]), hardline, closingTag],
