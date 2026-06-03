@@ -42,6 +42,7 @@ describe('for statements', () => {
 				---
 				@for (const item of items) {
 					if (!item) continue;
+					---
 					<div class="item">{item}</div>
 				}
 			</>;
@@ -65,6 +66,7 @@ describe('for statements', () => {
 				@for (const item of items) {
 					if (!item) skipped.push('skip');
 					if (!item) continue;
+					---
 					<div class="item">{item}</div>
 				}
 			</>;
@@ -86,8 +88,9 @@ describe('for statements', () => {
 				const skipped = [];
 				---
 				@for (const item of items) {
-						if (!item) skipped.push('skip');
-						if (!item) continue;
+					if (!item) skipped.push('skip');
+					if (!item) continue;
+					---
 					<div class="item">{item}</div>
 				}
 			</>; }`,
@@ -130,8 +133,9 @@ describe('for statements', () => {
 				<div>
 					@for (const item of items) {
 						<div>
-							<div>{item}</div>
 							const some_text = item;
+							---
+							<div>{item}</div>
 							<div>{some_text}</div>
 						</div>
 					}

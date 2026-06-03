@@ -73,7 +73,7 @@ describe('@tsrx/react basic', () => {
 			const { code, css, cssHash } = compile(
 				`export function MyApp() {
 					return <>
-						if (x) {
+						@if (x) {
 							<div>"works"</div>
 						} else {
 							<span>"idle"</span>
@@ -100,6 +100,7 @@ describe('@tsrx/react basic', () => {
 			const { code } = compile(
 				`export const MyApp = () => <>
 					const value = 1;
+					---
 					<div>{value}</div>
 				</>;`,
 				'App.tsrx',
@@ -116,8 +117,9 @@ describe('@tsrx/react basic', () => {
 
 				export function MyApp() {
 					return <>
-						if (x) {
+						@if (x) {
 							const [value] = useState(0);
+							---
 							<div>{value}</div>
 						}
 					</>;
@@ -135,6 +137,7 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`export async function App() { return <>
 				const data = await fetchData();
+				---
 				<div>{data}</div>
 			</>; }`,
 			'App.tsrx',
@@ -150,6 +153,7 @@ describe('@tsrx/react basic', () => {
 
 			export async function App() { return <>
 				const data = await fetchData();
+				---
 				<div>{data}</div>
 			</>; }`,
 			'App.tsrx',
@@ -192,6 +196,7 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const load = async () => await fetchData();
+				---
 				<button onClick={load}>{'Load'}</button>
 			</>; }`,
 			'App.tsrx',
@@ -204,7 +209,7 @@ describe('@tsrx/react basic', () => {
 	it('applies for-control-flow keys to rendered elements', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: { id: string, text: string }[] }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
 			</>; }`,
@@ -244,7 +249,7 @@ describe('@tsrx/react basic', () => {
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() { return <>
-				if (true) {
+				@if (true) {
 					<div>{'inside'}</div>
 				}
 
@@ -286,7 +291,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const count = 2;
 
-				if (count > 1) {
+				---
+				@if (count > 1) {
 					<div>{'Count is more than one'}</div>
 				}
 
@@ -307,7 +313,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const ready = false;
 
-				if (ready) {
+				---
+				@if (ready) {
 					<div>{'Ready'}</div>
 				} else {
 					<div>{'Loading'}</div>
@@ -326,7 +333,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [1, 2, 3];
 
-				for (const item of items; index i) {
+				---
+				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
 			</>; }`,
@@ -346,7 +354,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [1, 2, 3];
 
-				for (const item of items; index i; key item) {
+				---
+				@for (const item of items; index i; key item) {
 					<div>{item}</div>
 				}
 			</>; }`,
@@ -362,7 +371,8 @@ describe('@tsrx/react basic', () => {
 			`export function App() { return <>
 				const items = [{ id: 'a', inner: 'x' }];
 
-				for (const item of items; key item.id) {
+				---
+				@for (const item of items; key item.id) {
 					<div key={item.inner}>{item.id}</div>
 				}
 			</>; }`,
@@ -377,7 +387,7 @@ describe('@tsrx/react basic', () => {
 	it('uses map_iterable for for-of over a Set without normalizing it', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: Set<string> }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					<li key={item}>{item}</li>
 				}
 			</>; }`,
@@ -395,7 +405,7 @@ describe('@tsrx/react basic', () => {
 	it('uses map_iterable for for-of over a Map without normalizing it', () => {
 		const { code } = compile(
 			`export function App({ entries }: { entries: Map<string, number> }) { return <>
-				for (const [key, value] of entries) {
+				@for (const [key, value] of entries) {
 					<li key={key}>{key + ':' + value}</li>
 				}
 			</>; }`,
@@ -412,8 +422,9 @@ describe('@tsrx/react basic', () => {
 			`import { useState } from 'react';
 
 			export function App({ items }: { items: Iterable<string> }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					const [open, setOpen] = useState(false);
+					---
 					<li key={item}>{open ? item : '-'}</li>
 				}
 			</>; }`,
@@ -905,6 +916,7 @@ describe('@tsrx/react basic', () => {
 		const source = `export function App() { return <>
 			const dom = 'section';
 
+			---
 			<@dom class="box">
 				<span>{'hello'}</span>
 			</@dom>
@@ -946,7 +958,7 @@ describe('@tsrx/react basic', () => {
 
 		export function App() { return <>
 			<Wrapper>
-				if (true) {
+				@if (true) {
 					<span>{'visible'}</span>
 				}
 			</Wrapper>
@@ -967,6 +979,7 @@ describe('@tsrx/react basic', () => {
 				console.log(node);
 			}
 
+			---
 			<div ref={divRef}>{'Hello'}</div>
 		</>; }`;
 
@@ -980,6 +993,7 @@ describe('@tsrx/react basic', () => {
 	it('transforms ref={fn} on composite components to ref={fn}', () => {
 		const source = `function Child(props) { return <>
 			const { ...rest } = props;
+			---
 			<input {...rest} />
 		</>; }
 
@@ -988,6 +1002,7 @@ describe('@tsrx/react basic', () => {
 				console.log(node);
 			}
 
+			---
 			<Child ref={childRef} />
 		</>; }`;
 
@@ -1003,6 +1018,7 @@ describe('@tsrx/react basic', () => {
 		const source = `export function App() { return <>
 			function inputRef(node) {}
 
+			---
 			<input type="text" ref={inputRef} class="field" />
 		</>; }`;
 
@@ -1022,7 +1038,7 @@ describe('@tsrx/react basic', () => {
 			</>; }
 
 			export function App() { return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
@@ -1466,9 +1482,9 @@ describe('@tsrx/react basic', () => {
 				<section class="feature-card">
 					<h2>{title}</h2>
 
-					if (ready) {
+					@if (ready) {
 						<ul>
-							for (const item of items; index index) {
+							@for (const item of items; index index) {
 								<li>{item}</li>
 							}
 						</ul>
@@ -1505,6 +1521,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const [count, setCount] = useState(0);
+				---
 				<div>{count}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1518,6 +1535,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const &{data, error} = useSWR("/api");
+				---
 				<div>{data}{error}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1535,6 +1553,7 @@ describe('lazy destructuring', () => {
 				val = 10;
 				val++;
 				++val;
+				---
 				<div>{val}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1549,6 +1568,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App(&{name}: Props) { return <>
 				const obj = {name};
+				---
 				<div>{obj}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1562,6 +1582,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App(&{name}: Props) { return <>
 				const fn = (name: string) => name.toUpperCase();
+				---
 				<div>{fn(name)}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1577,6 +1598,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const &[count] = useState(0);
+				---
 				<div>{"static"}</div>
 				<div>{count}</div>
 			</>; }`,
@@ -1607,6 +1629,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App(&{name}: Props) { return <>
 				const [count, setCount] = useState(0);
+				---
 				<div>{name}{count}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1623,6 +1646,7 @@ describe('lazy destructuring', () => {
 			`export function App() { return <>
 				const [count, setCount] = useState(0);
 				const handler = () => setCount(count + 1);
+				---
 				<div>{count}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1663,6 +1687,7 @@ describe('lazy destructuring', () => {
 				function greet(&{ name }: { name: string }) {
 					return 'hi ' + name + ' from ' + outer;
 				}
+				---
 				<div>{greet}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1677,6 +1702,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const [count] = useState(0);
+				---
 				<div>{count}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1691,6 +1717,7 @@ describe('lazy destructuring', () => {
 			`export function App() { return <>
 				const [count, setCount] = useState(0);
 				const inc = () => { setCount(count + 1); };
+				---
 				<button onClick={inc}>{count}</button>
 			</>; }`,
 			'App.tsrx',
@@ -1705,6 +1732,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`export function App() { return <>
 				const [count] = useState(0);
+				---
 				<p>{count}</p>
 			</>; }`,
 			'App.tsrx',
@@ -1788,12 +1816,15 @@ describe('lazy destructuring', () => {
 
 			export function App() { return <>
 				const show = true;
-				if (show) {
+				---
+				@if (show) {
 					const localVar = 'hello';
+					---
 					<div>{localVar}</div>
 				}
-				if (show) {
+				@if (show) {
 					const [val] = useState(0);
+					---
 					<span>{val}</span>
 				}
 			</>; }`,
@@ -1815,6 +1846,7 @@ describe('lazy destructuring', () => {
 			export function App() { return <>
 				<div>
 					useEffect(() => {}, []);
+					---
 					<span>{'ok'}</span>
 				</div>
 
@@ -1841,6 +1873,7 @@ describe('lazy destructuring', () => {
 						console.log(later);
 					}, [later]);
 
+					---
 					<span>{later}</span>
 				</div>
 
@@ -1896,6 +1929,7 @@ describe('lazy destructuring', () => {
 			const { code } = compile(
 				`export function App() { return <>
 					function refA(_node) {}
+					---
 					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -1910,6 +1944,7 @@ describe('lazy destructuring', () => {
 			const { code } = compile(
 				`export function App() { return <>
 					function refA(_node) {}
+					---
 					<div ref={refA}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -1927,6 +1962,7 @@ describe('lazy destructuring', () => {
 
 				export function App() { return <>
 					let input;
+					---
 					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
@@ -1945,6 +1981,7 @@ describe('lazy destructuring', () => {
 
 				export function App() { return <>
 					let input;
+					---
 					<Child input_ref={input} />
 				</>; }`,
 				'App.tsrx',
@@ -1961,6 +1998,7 @@ describe('lazy destructuring', () => {
 					const first = {};
 					const second = {};
 					function cb(_node) {}
+					---
 					<input {...first} {...second} ref={cb} />
 				</>; }`,
 				'App.tsrx',
@@ -1989,6 +2027,7 @@ describe('lazy destructuring', () => {
 					`export function App() { return <>
 						function refA(_node) {}
 						function refB(_node) {}
+						---
 						<div ref={refA} ref={refB}>{'hi'}</div>
 					</>; }`,
 					'App.tsrx',
@@ -2004,6 +2043,7 @@ describe('lazy destructuring', () => {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
+					---
 					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -2020,6 +2060,7 @@ describe('lazy destructuring', () => {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
+					---
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
 				</>; }`,
 					'App.tsrx',

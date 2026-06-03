@@ -65,6 +65,33 @@ function read_string(line: string, start: number): number {
 	return line.length;
 }
 
+function read_template_expression_end(line: string, start: number): number {
+	let index = start;
+	let brace_depth = 1;
+
+	while (index < line.length) {
+		const char = line[index];
+
+		if (char === '"' || char === "'" || char === '`') {
+			index = read_string(line, index);
+			continue;
+		}
+
+		if (char === '{') {
+			brace_depth++;
+		} else if (char === '}') {
+			brace_depth--;
+			if (brace_depth === 0) {
+				return index;
+			}
+		}
+
+		index++;
+	}
+
+	return line.length;
+}
+
 function read_identifier(line: string, start: number): number {
 	let index = start + 1;
 	while (index < line.length && /[\w$-]/.test(line[index])) {
@@ -106,7 +133,10 @@ function jsx_tag_enters_text(tag: string): boolean {
 	);
 }
 
-function read_jsx_tag(line: string, start: number): { html: string; next: number; enters_text: boolean } {
+function read_jsx_tag(
+	line: string,
+	start: number,
+): { html: string; next: number; enters_text: boolean } {
 	const next = read_jsx_tag_end(line, start);
 	const tag = line.slice(start, next);
 	let index = 0;
@@ -195,6 +225,52 @@ function highlight_css_line(line: string): string {
 	return html;
 }
 
+function highlight_template_string(line: string, start: number): { html: string; next: number } {
+	let index = start + 1;
+	let string_start = start;
+	let html = '';
+
+	while (index < line.length) {
+		if (line[index] === '\\') {
+			index += 2;
+			continue;
+		}
+
+		if (line[index] === '`') {
+			html += span('str', line.slice(string_start, index + 1));
+			return { html, next: index + 1 };
+		}
+
+		if (line[index] === '$' && line[index + 1] === '{') {
+			if (string_start < index) {
+				html += span('str', line.slice(string_start, index));
+			}
+
+			const expression_start = index + 2;
+			const expression_end = read_template_expression_end(line, expression_start);
+			html += span('br', '${');
+			html += highlight_code_line(line.slice(expression_start, expression_end));
+
+			if (expression_end < line.length) {
+				html += span('br', '}');
+				index = expression_end + 1;
+				string_start = index;
+			} else {
+				index = expression_end;
+				string_start = index;
+			}
+			continue;
+		}
+
+		index++;
+	}
+
+	if (string_start < line.length) {
+		html += span('str', line.slice(string_start));
+	}
+	return { html, next: line.length };
+}
+
 function highlight_code_line(line: string): string {
 	let index = 0;
 	let html = '';
@@ -239,11 +315,7 @@ function highlight_code_line(line: string): string {
 			}
 
 			let text_end = index + 1;
-			while (
-				text_end < line.length &&
-				line[text_end] !== '<' &&
-				line[text_end] !== '{'
-			) {
+			while (text_end < line.length && line[text_end] !== '<' && line[text_end] !== '{') {
 				text_end++;
 			}
 			html += escape_html(line.slice(index, text_end));
@@ -264,7 +336,15 @@ function highlight_code_line(line: string): string {
 			continue;
 		}
 
-		if (char === '"' || char === "'" || char === '`') {
+		if (char === '`') {
+			const template = highlight_template_string(line, index);
+			html += template.html;
+			index = template.next;
+			previous_keyword = '';
+			continue;
+		}
+
+		if (char === '"' || char === "'") {
 			const string_end = read_string(line, index);
 			html += span('str', line.slice(index, string_end));
 			index = string_end;
