@@ -2,37 +2,41 @@
 For-of Loop
 ==================
 
-fragment List({ items }) {
+const List = ({ items }) => <>
   <ul>
-    for (const item of items) {
+    @for (const item of items) {
       <li>{item.text}</li>
     }
   </ul>
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter
-        pattern: (object_pattern
-          (shorthand_property_identifier_pattern
-            (shorthand_property_identifier)))))
-    body: (component_body
-      (component_statement
-        (expression_statement
-          (jsx_element
-            open_tag: (jsx_opening_element
-              name: (jsx_element_name
-                (identifier)))
-            children: (for_of_statement
-              (identifier)
-              right: (identifier)
-              body: (statement_block
-                (expression_statement
-                  (jsx_element
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              children: (jsx_for_expression
+                (identifier)
+                right: (identifier)
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
                     open_tag: (jsx_opening_element
                       name: (jsx_element_name
                         (identifier)))
@@ -44,51 +48,57 @@ fragment List({ items }) {
                             property: (identifier)))))
                     close_tag: (jsx_closing_element
                       name: (jsx_element_name
-                        (identifier)))))))
-            children: (jsx_text)
-            close_tag: (jsx_closing_element
-              name: (jsx_element_name
-                (identifier)))))))))
+                        (identifier))))
+                  children: (jsx_text)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 For-of with index and key
 ==================
 
-fragment List({ items }) {
+const List = ({ items }) => <>
   <ul>
-    for (const item of items; index i; key item.id) {
+    @for (const item of items; index i; key item.id) {
       <li>{item.text}</li>
     }
   </ul>
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter
-        pattern: (object_pattern
-          (shorthand_property_identifier_pattern
-            (shorthand_property_identifier)))))
-    body: (component_body
-      (component_statement
-        (expression_statement
-          (jsx_element
-            open_tag: (jsx_opening_element
-              name: (jsx_element_name
-                (identifier)))
-            children: (for_of_statement
-              (identifier)
-              right: (identifier)
-              (identifier)
-              (member_expression
-                object: (identifier)
-                property: (identifier))
-              body: (statement_block
-                (expression_statement
-                  (jsx_element
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              children: (jsx_for_expression
+                (identifier)
+                right: (identifier)
+                (identifier)
+                (member_expression
+                  object: (identifier)
+                  property: (identifier))
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
                     open_tag: (jsx_opening_element
                       name: (jsx_element_name
                         (identifier)))
@@ -100,228 +110,257 @@ fragment List({ items }) {
                             property: (identifier)))))
                     close_tag: (jsx_closing_element
                       name: (jsx_element_name
-                        (identifier)))))))
-            children: (jsx_text)
-            close_tag: (jsx_closing_element
-              name: (jsx_element_name
-                (identifier)))))))))
+                        (identifier))))
+                  children: (jsx_text)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 If Statement in Template
 ==================
 
-fragment App({ show }) {
-  if (show) {
+const App = ({ show }) => <>
+  @if (show) {
     <div>{'Visible'}</div>
   } else {
     <div>{'Hidden'}</div>
   }
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter
-        pattern: (object_pattern
-          (shorthand_property_identifier_pattern
-            (shorthand_property_identifier)))))
-    body: (component_body
-      (component_statement
-        (if_statement
-          condition: (parenthesized_expression
-            (identifier))
-          consequence: (statement_block
-            (expression_statement
-              (jsx_element
-                open_tag: (jsx_opening_element
-                  name: (jsx_element_name
-                    (identifier)))
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (string))))
-                close_tag: (jsx_closing_element
-                  name: (jsx_element_name
-                    (identifier))))))
-          alternative: (statement_block
-            (expression_statement
-              (jsx_element
-                open_tag: (jsx_opening_element
-                  name: (jsx_element_name
-                    (identifier)))
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (string))))
-                close_tag: (jsx_closing_element
-                  name: (jsx_element_name
-                    (identifier)))))))))))
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text))
+              alternative: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 Switch in Template
 ==================
 
-fragment Status({ status }) {
-  switch (status) {
+const Status = ({ status }) => <>
+  @switch (status) {
     case 'loading':
       <p>{'Loading...'}</p>
-      break;
     case 'success':
       <p>{'Success!'}</p>
-      break;
     default:
       <p>{'Unknown'}</p>
   }
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters
-      (required_parameter
-        pattern: (object_pattern
-          (shorthand_property_identifier_pattern
-            (shorthand_property_identifier)))))
-    body: (component_body
-      (component_statement
-        (switch_statement
-          value: (parenthesized_expression
-            (identifier))
-          body: (switch_body
-            (switch_case
-              value: (string)
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier)))))
-              (break_statement))
-            (switch_case
-              value: (string)
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier)))))
-              (break_statement))
-            (switch_default
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_switch_expression
+              value: (parenthesized_expression
+                (identifier))
+              body: (jsx_switch_body
+                (jsx_switch_case
+                  value: (string)
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
+                (jsx_switch_case
+                  value: (string)
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
+                (jsx_switch_default
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 Try Pending Block
 ==================
 
-fragment SuspenseBoundary() {
-  try {
+const SuspenseBoundary = () => <>
+  @try {
     <AsyncComponent />
   } pending {
     <p>{'Loading...'}</p>
   }
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters)
-    body: (component_body
-      (component_statement
-        (try_statement
-          body: (statement_block
-            (expression_statement
-              (jsx_self_closing_element
-                name: (jsx_non_namespaced_element_name
-                  (identifier)))))
-          pending: (pending_clause
-            body: (statement_block
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters)
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))
+                children: (jsx_text))
+              pending: (jsx_pending_clause
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 Try-Catch Error Boundary
 ==================
 
-fragment App() {
-  try {
+const App = () => <>
+  @try {
     <ComponentThatMayFail />
   } catch (e) {
     <div>{'Error: '}{e.message}</div>
   }
-}
+</>;
 
 ---
 
 (program
-  (fragment_declaration
-    name: (identifier)
-    parameters: (formal_parameters)
-    body: (component_body
-      (component_statement
-        (try_statement
-          body: (statement_block
-            (expression_statement
-              (jsx_self_closing_element
-                name: (jsx_non_namespaced_element_name
-                  (identifier)))))
-          handler: (catch_clause
-            parameter: (identifier)
-            body: (statement_block
-              (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (member_expression
-                          object: (identifier)
-                          property: (identifier)))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))))))))
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters)
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))
+                children: (jsx_text))
+              handler: (jsx_catch_clause
+                parameter: (identifier)
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))

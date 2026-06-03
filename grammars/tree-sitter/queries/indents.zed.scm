@@ -4,6 +4,8 @@
   (component_body "}" @end)
   (class_body "}" @end)
   (switch_body "}" @end)
+  (jsx_switch_body "}" @end)
+  (jsx_template_block "}" @end)
   (object "}" @end)
   (object_pattern "}" @end)
   (array "]" @end)
@@ -13,6 +15,7 @@
   (parenthesized_expression ")" @end)
   (jsx_expression "}" @end)
   (style_element "</style>" @end)
+  (template_setup_section)
   (module_body "}" @end)
   (jsx_self_closing_element "/>" @end)
 ] @indent

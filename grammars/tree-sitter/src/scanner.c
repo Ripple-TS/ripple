@@ -221,16 +221,21 @@ static bool scan_identifier_for_jsx_statement_keyword(TSLexer *lexer) {
   }
 
   return strcmp(word, "break") == 0 ||
+         strcmp(word, "case") == 0 ||
+         strcmp(word, "catch") == 0 ||
          strcmp(word, "class") == 0 ||
          strcmp(word, "const") == 0 ||
          strcmp(word, "continue") == 0 ||
          strcmp(word, "debugger") == 0 ||
+         strcmp(word, "default") == 0 ||
          strcmp(word, "do") == 0 ||
          strcmp(word, "else") == 0 ||
+         strcmp(word, "finally") == 0 ||
          strcmp(word, "for") == 0 ||
          strcmp(word, "function") == 0 ||
          strcmp(word, "if") == 0 ||
          strcmp(word, "let") == 0 ||
+         strcmp(word, "pending") == 0 ||
          strcmp(word, "return") == 0 ||
          strcmp(word, "switch") == 0 ||
          strcmp(word, "throw") == 0 ||
@@ -249,8 +254,18 @@ static bool scan_jsx_text(TSLexer *lexer) {
     switch (lexer->lookahead) {
       case '<':
       case '{':
+      case '}':
+      case '@':
       case 0:
         return has_content;
+      case '-':
+        if (!has_non_whitespace_content) {
+          return has_content;
+        }
+        advance(lexer);
+        has_content = true;
+        has_non_whitespace_content = true;
+        break;
       default:
         if (is_identifier_start(lexer->lookahead)) {
           bool is_statement_keyword = scan_identifier_for_jsx_statement_keyword(lexer);

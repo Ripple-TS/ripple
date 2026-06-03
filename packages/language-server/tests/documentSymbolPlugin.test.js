@@ -27,7 +27,7 @@ class Store {
 	}
 }
 
-function App() { return <>
+const App = () => {
 	const count = 0;
 	function increment() {
 		const next = count + 1;
@@ -37,8 +37,8 @@ function App() { return <>
 		const next = 0;
 		return next;
 	};
-	<div>{count}</div>
-</>; }
+	return count;
+};
 `;
 
 		const { document, service, uri } = create_symbol_harness(source);
@@ -49,7 +49,7 @@ function App() { return <>
 			['Props', SymbolKind.Interface],
 			['config', SymbolKind.Constant],
 			['Store', SymbolKind.Class],
-			['App', SymbolKind.Function],
+			['App', SymbolKind.Constant],
 		]);
 		expect(child_names(symbols, 'Store')).toEqual(['value', 'read']);
 		expect(child_names(symbols, 'App')).toEqual(['count', 'increment', 'reset']);
@@ -78,10 +78,10 @@ export class Store {
 		return this.value;
 	}
 }
-export function Card() { return <>
+export const Card = () => {
 	const title = 'Card';
-	<div>{title}</div>
-</>; }
+	return title;
+};
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'named-exports.tsrx');
@@ -93,7 +93,7 @@ export function Card() { return <>
 			['named', SymbolKind.Constant],
 			['makeThing', SymbolKind.Function],
 			['Store', SymbolKind.Class],
-			['Card', SymbolKind.Function],
+			['Card', SymbolKind.Constant],
 		]);
 		expect(child_names(symbols, 'makeThing')).toEqual(['inner']);
 		expect(child_names(symbols, 'Store')).toEqual(['value', 'read']);
@@ -111,10 +111,10 @@ export default class Store {
 		return this.value;
 	}
 }
-export default function Page() { return <>
+export default function Page() {
 	const title = 'Home';
-	<div>{title}</div>
-</>; }
+	return title;
+}
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'default-exports.tsrx');
@@ -141,10 +141,10 @@ export default class {
 		return this.value;
 	}
 }
-export default function() { return <>
+export default function() {
 	const hiddenComponent = 1;
-	<div>{hiddenComponent}</div>
-</>; }
+	return hiddenComponent;
+}
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'anonymous-default-exports.tsrx');
@@ -198,11 +198,11 @@ export { local, helper as renamedHelper };
 		const source = `const fixed = 1;
 let mutable = 2;
 var legacy = 3;
-function App() { return <>
+const App = () => {
 	let local = 4;
 	var oldLocal = 5;
-	<div>{local + oldLocal}</div>
-</>; }
+	return local + oldLocal;
+};
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'variable-kinds.tsrx');
@@ -212,18 +212,18 @@ function App() { return <>
 			['fixed', SymbolKind.Constant],
 			['mutable', SymbolKind.Variable],
 			['legacy', SymbolKind.Variable],
-			['App', SymbolKind.Function],
+			['App', SymbolKind.Constant],
 		]);
 		expect(find_symbol(symbols, 'local')?.kind).toBe(SymbolKind.Variable);
 		expect(find_symbol(symbols, 'oldLocal')?.kind).toBe(SymbolKind.Variable);
 	});
 
 	it('returns symbols for object and array binding patterns', async () => {
-		const source = `function App(props, items) { return <>
+		const source = `const App = (props, items) => {
 	const { alpha, beta: renamed, gamma = 1, nested: { delta }, ...rest } = props;
 	let [first, , second = 2, ...others] = items;
-	<div>{alpha + renamed + gamma + delta + rest + first + second + others}</div>
-</>; }
+	return alpha + renamed + gamma + delta + rest + first + second + others;
+};
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'binding-patterns.tsrx');
@@ -246,17 +246,16 @@ function App() { return <>
 	});
 
 	it('keeps parent ranges wide enough to contain nested local symbols', async () => {
-		const source = `export function App() { return <>
+		const source = `export const App = () => {
 	const test = 'hello';
 	let { start, loc } = /** @type {AST.NodeWithLocation} */ (node);
 	try {
-		<AsyncProfile />
-	} pending {
-		<p class="pending">{'Loading profile...'}</p>
+		const profile = test;
+		return profile;
 	} catch (err) {
-		<p class="error">{(err as Error).message}</p>
+		return (err as Error).message;
 	}
-</>; }
+};
 
 function helper() {
 	const inner = 1;
@@ -286,10 +285,10 @@ const withArrow = () => {
 	const insideArrow = 1;
 	return insideArrow;
 };
-const withComponent = function Inner() { return <>
+const withComponent = () => {
 	const insideComponent = 1;
-	<div>{insideComponent}</div>
-</>; };
+	return insideComponent;
+};
 `;
 
 		const { service, uri } = create_symbol_harness(source, 'initializer-children.tsrx');

@@ -307,7 +307,6 @@ export function Test(props) {
                                       (member_expression
                                         object: (identifier)
                                         property: (identifier)))))))
-                            children: (jsx_text)
                             close_tag: (jsx_closing_element
                               name: (jsx_element_name
                                 (identifier))))))))))
@@ -341,9 +340,7 @@ export function Test(props) {
                                       (member_expression
                                         object: (identifier)
                                         property: (identifier)))))))
-                            children: (jsx_text)
                             close_tag: (jsx_closing_fragment)))))))))
-            children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
@@ -446,7 +443,6 @@ function WithFragment() {
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))
-            children: (jsx_text)
             children: (style_element
               (raw_text))
             children: (jsx_text)
@@ -458,10 +454,10 @@ Function Return Native Control Flow
 
 function WithControlFlow(x) {
   return <>
-    if (x) {
+    @if (x) {
       <div>"works"</div>
     } else {
-      return null;
+      {null}
     }
   </>;
 }
@@ -479,22 +475,28 @@ function WithControlFlow(x) {
         (return_statement
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (if_statement
+            children: (jsx_text)
+            children: (jsx_if_expression
               condition: (parenthesized_expression
                 (identifier))
-              consequence: (statement_block
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier))))))
-              alternative: (statement_block
-                (return_statement
-                  (null))))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text))
+              alternative: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (null))))
+                children: (jsx_text)))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -507,6 +509,7 @@ function WithAsyncDeclaration() {
     async function load() {
       return 1;
     }
+    ---
     async work
   </>;
 }
@@ -522,12 +525,14 @@ function WithAsyncDeclaration() {
         (return_statement
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (function_declaration
-              name: (identifier)
-              parameters: (formal_parameters)
-              body: (statement_block
-                (return_statement
-                  (number))))
+            children: (template_setup_section
+              statement: (function_declaration
+                name: (identifier)
+                parameters: (formal_parameters)
+                body: (statement_block
+                  (return_statement
+                    (number))))
+              fence: (template_fence))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 

@@ -191,7 +191,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'Ripple component function',
 		documentation: 'Create a new Ripple component',
-		insertText: 'function ${1:ComponentName}(${2:props}) {\n\treturn <>\n\t\t$0\n\t</>;\n}',
+		insertText: 'const ${1:ComponentName} = (${2:props}) => <>\n\t$0\n</>;',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-function-component',
 	},
@@ -237,7 +237,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'for...of loop',
 		documentation: 'Iterate over items in Ripple template',
-		insertText: 'for (const ${1:item} of ${2:items}) {\n\t<${3:li}>{${1:item}}</${3:li}>\n}',
+		insertText: '@for (const ${1:item} of ${2:items}) {\n\t<${3:li}>{${1:item}}</${3:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-of',
 	},
@@ -247,7 +247,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'for...of loop with index',
 		documentation: 'Iterate with index',
 		insertText:
-			'for (const ${1:item} of ${2:items}; index ${3:i}) {\n\t<${4:li}>{${1:item}}{" at "}{${3:i}}</${4:li}>\n}',
+			'@for (const ${1:item} of ${2:items}; index ${3:i}) {\n\t<${4:li}>{${1:item}} at {${3}}</${4:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-index',
 	},
@@ -257,7 +257,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'for...of loop with key',
 		documentation: 'Iterate with key for identity',
 		insertText:
-			'for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n}',
+			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-key',
 	},
@@ -267,7 +267,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'for...of loop with key',
 		documentation: 'Iterate with key for identity',
 		insertText:
-			"for (const ${1:item} of ${2:items}; index ${3:i}; key ${1:item}.${4:id}) {\n\t<${5:li}>{${1:item}.${6:text}}{' at index '}{${3}}</${5:li}>\n}",
+			'@for (const ${1:item} of ${2:items}; index ${3:i}; key ${1:item}.${4:id}) {\n\t<${5:li}>{${1:item}.${6:text}} at index {${3}}</${5:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-key-index',
 	},
@@ -276,7 +276,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'if...else statement',
 		documentation: 'Conditional rendering',
-		insertText: 'if (${1:condition}) {\n\t$2\n} else {\n\t$3\n}',
+		insertText: '@if (${1:condition}) {\n\t$2\n} else {\n\t$3\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-if-else',
 	},
@@ -286,7 +286,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'switch statement',
 		documentation: 'Switch-based conditional rendering',
 		insertText:
-			"switch (${1:value}) {\n\tcase ${2:'case1'}:\n\t\t$3\n\t\tbreak;\n\tcase ${4:'case2'}:\n\t\t$5\n\t\tbreak;\n\tdefault:\n\t\t$6\n}",
+			"@switch (${1:value}) {\n\tcase ${2:'case1'}:\n\t\t$3\n\tcase ${4:'case2'}:\n\t\t$5\n\tdefault:\n\t\t$6\n}",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-switch-case',
 	},
@@ -304,7 +304,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'try...pending block',
 		documentation: 'Handle async content with loading fallback',
-		insertText: "try {\n\t$1\n} pending {\n\t<div>{'Loading...'}</div>\n}",
+		insertText: '@try {\n\t$1\n} pending {\n\t<div>Loading...</div>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-try-pending',
 	},
@@ -359,7 +359,8 @@ export function createCompletionPlugin() {
 				// Trigger on Ripple-specific syntax:
 				// '<' - JSX/HTML tags
 				// '{' - expression and statement snippets
-				triggerCharacters: ['<', '{'],
+				// '@' - template control flow
+				triggerCharacters: ['<', '{', '@'],
 				resolveProvider: false,
 			},
 		},

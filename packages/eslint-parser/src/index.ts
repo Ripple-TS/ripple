@@ -11,21 +11,31 @@ interface ParseResult {
 
 const visitorKeys: Record<string, string[]> = {
 	Program: ['body'],
-	TsrxFragment: ['children'],
-	Element: ['id', 'attributes', 'children'],
-	Attribute: ['name', 'value'],
-	Text: ['expression'],
-	TSRXExpression: ['expression'],
+	JSXElement: ['openingElement', 'children', 'closingElement'],
+	JSXOpeningElement: ['name', 'attributes'],
+	JSXClosingElement: ['name'],
+	JSXFragment: ['openingFragment', 'children', 'closingFragment'],
+	JSXOpeningFragment: [],
+	JSXClosingFragment: [],
+	JSXExpressionContainer: ['expression'],
+	JSXAttribute: ['name', 'value'],
+	JSXSpreadAttribute: ['argument'],
+	JSXIdentifier: [],
+	JSXMemberExpression: ['object', 'property'],
+	JSXNamespacedName: ['namespace', 'name'],
+	JSXText: [],
+	JSXStyleElement: ['openingElement', 'children', 'closingElement'],
+	JSXIfExpression: ['test', 'consequent', 'alternate'],
+	JSXForExpression: ['init', 'test', 'update', 'left', 'right', 'body', 'index', 'key'],
+	JSXSwitchExpression: ['discriminant', 'cases'],
+	JSXTryExpression: ['block', 'handler', 'finalizer', 'pending'],
+	TsrxTemplateFence: [],
 	StyleSheet: [],
 	ForOfStatement: ['left', 'right', 'body'],
 };
 
 /**
- * The TSRX parser's AST contains some redundant references (e.g. `Element.attributes`
- * and `Element.openingElement.attributes`) that are useful for formatters/source-maps.
- * ESLint's traverser will visit both paths and can trigger duplicate rule reports.
- *
- * For ESLint, we prune JSX wrapper nodes to keep a single traversal path.
+ * Keep this hook for small ESLint-only AST normalizations.
  */
 function normalize_tsrx_ast_for_eslint(ast: any): void {
 	const seen = new Set<any>();
@@ -33,13 +43,6 @@ function normalize_tsrx_ast_for_eslint(ast: any): void {
 		if (!node || typeof node !== 'object') return;
 		if (seen.has(node)) return;
 		seen.add(node);
-
-		if (node.type === 'Element') {
-			// Avoid duplicate traversal of attributes/children through openingElement/closingElement.
-			// The Element node itself carries the data ESLint rules care about.
-			delete node.openingElement;
-			delete node.closingElement;
-		}
 
 		for (const key of Object.keys(node)) {
 			if (key === 'parent' || key === 'loc' || key === 'range') continue;

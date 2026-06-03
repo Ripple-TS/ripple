@@ -8,7 +8,7 @@
 import { getVirtualCode, is_ripple_document, createLogging } from './utils.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { SymbolKind } from '@volar/language-server';
-import { builders as b } from '@tsrx/core';
+import { builders as b, parseModule as parse_module } from '@tsrx/core';
 
 /**
  * @typedef {AST.Node & {
@@ -53,6 +53,11 @@ export function createDocumentSymbolPlugin() {
 
 					const { virtualCode, sourceMap, sourceUri } = getVirtualCode(document, context);
 					const { sourceAst, languageId, originalCode } = virtualCode || {};
+					const fallbackFileName = sourceUri?.fsPath ?? document.uri;
+
+					if (!virtualCode) {
+						return collectFallbackDocumentSymbols(document, fallbackFileName) ?? [];
+					}
 
 					if (languageId !== 'ripple') {
 						log(`Skipping symbols in the '${languageId}' context`);
@@ -63,13 +68,13 @@ export function createDocumentSymbolPlugin() {
 					const cachedSymbols = documentSymbolCache.get(cacheKey) ?? [];
 
 					if (virtualCode?.fatalErrors?.length || virtualCode?.isDotCompletionMode) {
-						return cachedSymbols;
+						return collectFallbackDocumentSymbols(document, fallbackFileName) ?? cachedSymbols;
 					}
 
 					// Successful virtual code should have both, but Volar's
 					// map lookup and the virtual code type still expose them as optional.
 					if (!sourceMap || !sourceAst) {
-						return [];
+						return collectFallbackDocumentSymbols(document, fallbackFileName) ?? [];
 					}
 
 					const sourceDocument = TextDocument.create(
@@ -92,6 +97,32 @@ export function createDocumentSymbolPlugin() {
 			};
 		},
 	};
+}
+
+/**
+ * @param {TextDocument} document
+ * @param {string} fileName
+ * @returns {DocumentSymbol[] | null}
+ */
+function collectFallbackDocumentSymbols(document, fileName) {
+	try {
+		const ast = /** @type {AST.Program} */ (parse_module(document.getText(), fileName));
+		return toDocumentSymbols(collectDocumentSymbols(ast, document));
+	} catch (error) {
+		logError(`Unable to collect fallback document symbols: ${/** @type {Error} */ (error).message}`);
+		return null;
+	}
+}
+
+/**
+ * @param {SymbolInfo[]} symbols
+ * @returns {DocumentSymbol[]}
+ */
+function toDocumentSymbols(symbols) {
+	return symbols.map(([symbol]) => ({
+		...symbol,
+		children: symbol.children?.length ? toDocumentSymbols(symbol.children) : undefined,
+	}));
 }
 
 /**
@@ -513,10 +544,9 @@ function getReturnedTemplateSymbols(node, document) {
 function isTemplateNode(node) {
 	return (
 		!!node &&
-		(node.type === 'TsrxFragment' ||
-			node.type === 'Element' ||
-			node.type === 'JSXElement' ||
-			node.type === 'JSXFragment')
+		(node.type === 'JSXElement' ||
+			node.type === 'JSXFragment' ||
+			node.type === 'JSXStyleElement')
 	);
 }
 

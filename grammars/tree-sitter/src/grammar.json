@@ -1930,9 +1930,60 @@
         }
       ]
     },
-    "_jsx_statement_child": {
+    "template_fence": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 1,
+        "content": {
+          "type": "STRING",
+          "value": "---"
+        }
+      }
+    },
+    "template_setup_section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "FIELD",
+            "name": "statement",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_template_setup_statement"
+            }
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "fence",
+          "content": {
+            "type": "SYMBOL",
+            "name": "template_fence"
+          }
+        }
+      ]
+    },
+    "_template_setup_statement": {
       "type": "CHOICE",
       "members": [
+        {
+          "type": "SYMBOL",
+          "name": "export_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "import_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "module_declaration"
+        },
         {
           "type": "SYMBOL",
           "name": "variable_declaration"
@@ -1950,12 +2001,8 @@
           "name": "class_declaration"
         },
         {
-          "type": "PREC",
-          "value": 2,
-          "content": {
-            "type": "SYMBOL",
-            "name": "style_element"
-          }
+          "type": "SYMBOL",
+          "name": "expression_statement"
         },
         {
           "type": "SYMBOL",
@@ -2012,6 +2059,599 @@
         {
           "type": "SYMBOL",
           "name": "empty_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "statement_block"
+        }
+      ]
+    },
+    "jsx_template_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "children",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_jsx_template_child"
+            }
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "_jsx_template_child": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PREC",
+          "value": 2,
+          "content": {
+            "type": "SYMBOL",
+            "name": "style_element"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_text"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_fragment"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_self_closing_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_if_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_for_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_switch_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_try_expression"
+        }
+      ]
+    },
+    "jsx_if_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "FIELD",
+          "name": "condition",
+          "content": {
+            "type": "SYMBOL",
+            "name": "parenthesized_expression"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "consequence",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "else"
+                },
+                {
+                  "type": "FIELD",
+                  "name": "alternative",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "jsx_template_block"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "jsx_for_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "STRING",
+          "value": "for"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "await"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "let"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "const"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "var"
+                    }
+                  ]
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "_destructuring_pattern"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "identifier"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "SYMBOL",
+              "name": "identifier"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "of"
+            },
+            {
+              "type": "STRING",
+              "value": "in"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "right",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": ";"
+                },
+                {
+                  "type": "STRING",
+                  "value": "index"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "identifier"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": ";"
+                },
+                {
+                  "type": "STRING",
+                  "value": "key"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "expression"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        }
+      ]
+    },
+    "jsx_switch_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "STRING",
+          "value": "switch"
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "SYMBOL",
+            "name": "parenthesized_expression"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_switch_body"
+          }
+        }
+      ]
+    },
+    "jsx_switch_body": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "jsx_switch_case"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "jsx_switch_default"
+              }
+            ]
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "jsx_switch_case": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "case"
+        },
+        {
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "children",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_jsx_template_child"
+            }
+          }
+        }
+      ]
+    },
+    "jsx_switch_default": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "default"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "children",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_jsx_template_child"
+            }
+          }
+        }
+      ]
+    },
+    "jsx_try_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@"
+        },
+        {
+          "type": "STRING",
+          "value": "try"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "pending",
+              "content": {
+                "type": "SYMBOL",
+                "name": "jsx_pending_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "handler",
+              "content": {
+                "type": "SYMBOL",
+                "name": "jsx_catch_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "finalizer",
+              "content": {
+                "type": "SYMBOL",
+                "name": "jsx_finally_clause"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "jsx_pending_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "pending"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        }
+      ]
+    },
+    "jsx_catch_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "catch"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "("
+                },
+                {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "FIELD",
+                      "name": "parameter",
+                      "content": {
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "SYMBOL",
+                            "name": "identifier"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "_destructuring_pattern"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "REPEAT",
+                      "content": {
+                        "type": "SEQ",
+                        "members": [
+                          {
+                            "type": "STRING",
+                            "value": ","
+                          },
+                          {
+                            "type": "FIELD",
+                            "name": "parameter",
+                            "content": {
+                              "type": "CHOICE",
+                              "members": [
+                                {
+                                  "type": "SYMBOL",
+                                  "name": "identifier"
+                                },
+                                {
+                                  "type": "SYMBOL",
+                                  "name": "_destructuring_pattern"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "STRING",
+                  "value": ")"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        }
+      ]
+    },
+    "jsx_finally_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "finally"
+        },
+        {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
         }
       ]
     },
@@ -5896,7 +6536,31 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "_jsx_statement_child"
+          "name": "template_setup_section"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_if_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_for_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_switch_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "jsx_try_expression"
+        },
+        {
+          "type": "PREC",
+          "value": 2,
+          "content": {
+            "type": "SYMBOL",
+            "name": "style_element"
+          }
         },
         {
           "type": "SYMBOL",
@@ -7389,56 +8053,250 @@
     }
   ],
   "conflicts": [
-    ["primary_expression", "pattern"],
-    ["array_pattern", "array"],
-    ["object_pattern", "object"],
-    ["statement_block", "object"],
-    ["method_definition", "arrow_function"],
-    ["shorthand_property_identifier", "shorthand_property_identifier_pattern"],
-    ["labeled_statement", "arrow_function", "property_name"],
-    ["primary_expression", "property_name"],
-    ["assignment_expression", "shorthand_property_identifier_pattern"],
-    ["import_statement"],
-    ["required_parameter", "primary_expression"],
-    ["pattern", "assignment_expression"],
-    ["jsx_element_name", "jsx_non_namespaced_element_name"],
-    ["primary_expression", "jsx_element_name"],
-    ["primary_expression", "jsx_member_name"],
-    ["rest_pattern", "primary_expression"],
-    ["variable_declaration", "lexical_declaration"],
-    ["field_definition", "method_definition"],
-    ["type", "type_identifier"],
-    ["class_declaration", "class_expression"],
-    ["primary_expression", "literal_type"],
-    ["primary_expression", "type", "type_identifier"],
-    ["primary_expression", "generic_type"],
-    ["primary_expression", "nested_type_identifier"],
-    ["arrow_function", "type", "type_identifier"],
-    ["primary_expression", "arrow_function"],
-    ["fragment_declaration"],
-    ["computed_property_name", "array"],
-    ["assignment_expression", "initializer"],
-    ["do_statement"],
-    ["component_statement", "primary_expression"],
-    ["function_declaration", "function_expression"],
-    ["required_parameter", "type", "type_identifier"],
-    ["statement_block", "object", "object_type"],
-    ["object", "object_type"],
-    ["method_definition", "property_signature"],
-    ["required_parameter", "primary_expression", "type", "type_identifier"],
-    ["pattern", "primary_expression", "type", "type_identifier"],
-    ["primary_expression", "jsx_element_name", "type_parameter"],
-    ["spread_element", "jsx_expression"],
-    ["if_statement"],
-    ["switch_default"],
-    ["switch_case"],
-    ["object_pattern", "object_type"],
-    ["object_pattern", "object", "object_type"],
-    ["pattern", "type", "type_identifier"],
-    ["array_type", "function_type"],
-    ["intersection_type", "function_type"],
-    ["union_type", "function_type"],
-    ["for_in_statement", "primary_expression"]
+    [
+      "primary_expression",
+      "pattern"
+    ],
+    [
+      "primary_expression",
+      "object"
+    ],
+    [
+      "array_pattern",
+      "array"
+    ],
+    [
+      "object_pattern",
+      "object"
+    ],
+    [
+      "statement_block",
+      "object"
+    ],
+    [
+      "statement_block",
+      "object",
+      "jsx_expression"
+    ],
+    [
+      "object",
+      "jsx_expression"
+    ],
+    [
+      "method_definition",
+      "arrow_function"
+    ],
+    [
+      "shorthand_property_identifier",
+      "shorthand_property_identifier_pattern"
+    ],
+    [
+      "primary_expression",
+      "shorthand_property_identifier",
+      "shorthand_property_identifier_pattern"
+    ],
+    [
+      "labeled_statement",
+      "arrow_function",
+      "property_name"
+    ],
+    [
+      "primary_expression",
+      "property_name"
+    ],
+    [
+      "assignment_expression",
+      "shorthand_property_identifier_pattern"
+    ],
+    [
+      "import_statement"
+    ],
+    [
+      "required_parameter",
+      "primary_expression"
+    ],
+    [
+      "pattern",
+      "assignment_expression"
+    ],
+    [
+      "jsx_element_name",
+      "jsx_non_namespaced_element_name"
+    ],
+    [
+      "primary_expression",
+      "jsx_element_name"
+    ],
+    [
+      "primary_expression",
+      "jsx_member_name"
+    ],
+    [
+      "primary_expression",
+      "jsx_element"
+    ],
+    [
+      "rest_pattern",
+      "primary_expression"
+    ],
+    [
+      "variable_declaration",
+      "lexical_declaration"
+    ],
+    [
+      "field_definition",
+      "method_definition"
+    ],
+    [
+      "type",
+      "type_identifier"
+    ],
+    [
+      "class_declaration",
+      "class_expression"
+    ],
+    [
+      "primary_expression",
+      "literal_type"
+    ],
+    [
+      "primary_expression",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "primary_expression",
+      "generic_type"
+    ],
+    [
+      "primary_expression",
+      "nested_type_identifier"
+    ],
+    [
+      "arrow_function",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "primary_expression",
+      "arrow_function"
+    ],
+    [
+      "fragment_declaration"
+    ],
+    [
+      "computed_property_name",
+      "array"
+    ],
+    [
+      "assignment_expression",
+      "initializer"
+    ],
+    [
+      "do_statement"
+    ],
+    [
+      "component_statement",
+      "primary_expression"
+    ],
+    [
+      "function_declaration",
+      "function_expression"
+    ],
+    [
+      "required_parameter",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "statement_block",
+      "object",
+      "object_type"
+    ],
+    [
+      "object",
+      "object_type"
+    ],
+    [
+      "method_definition",
+      "property_signature"
+    ],
+    [
+      "required_parameter",
+      "primary_expression",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "pattern",
+      "primary_expression",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "primary_expression",
+      "jsx_element_name",
+      "type_parameter"
+    ],
+    [
+      "spread_element",
+      "jsx_expression"
+    ],
+    [
+      "if_statement"
+    ],
+    [
+      "switch_default"
+    ],
+    [
+      "switch_case"
+    ],
+    [
+      "object_pattern",
+      "object_type"
+    ],
+    [
+      "object_pattern",
+      "object",
+      "object_type"
+    ],
+    [
+      "pattern",
+      "type",
+      "type_identifier"
+    ],
+    [
+      "array_type",
+      "function_type"
+    ],
+    [
+      "intersection_type",
+      "function_type"
+    ],
+    [
+      "union_type",
+      "function_type"
+    ],
+    [
+      "for_in_statement",
+      "primary_expression"
+    ],
+    [
+      "declaration",
+      "template_setup_section"
+    ],
+    [
+      "statement_block",
+      "jsx_expression"
+    ],
+    [
+      "statement_block",
+      "component_statement"
+    ],
+    [
+      "declaration",
+      "component_statement"
+    ]
   ],
   "precedences": [],
   "externals": [
@@ -7466,8 +8324,16 @@
     "_reserved_identifier",
     "_jsx_attribute",
     "_jsx_child",
-    "_jsx_attribute_value"
+    "_jsx_attribute_value",
+    "_template_setup_statement",
+    "_jsx_template_child"
   ],
-  "supertypes": ["statement", "declaration", "expression", "primary_expression", "pattern"],
+  "supertypes": [
+    "statement",
+    "declaration",
+    "expression",
+    "primary_expression",
+    "pattern"
+  ],
   "reserved": {}
 }

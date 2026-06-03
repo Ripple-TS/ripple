@@ -19,7 +19,7 @@ const rule: Rule.RuleModule = {
 	create(context) {
 		const reported_ranges = new Set<string>();
 
-		function report_onchange(node: AST.Attribute | ESTreeJSX.JSXAttribute) {
+		function report_onchange(node: ESTreeJSX.JSXAttribute) {
 			const range = node.range;
 			if (!range) {
 				return;
@@ -43,10 +43,6 @@ const rule: Rule.RuleModule = {
 		return {
 			// Check JSX attributes (standard JSX)
 			'JSXAttribute[name.name="onChange"]'(node: ESTreeJSX.JSXAttribute) {
-				report_onchange(node);
-			},
-			// Check Attribute nodes (Ripple parser)
-			'Attribute[name.name="onChange"]'(node: AST.Attribute) {
 				report_onchange(node);
 			},
 			// Check object properties (for spread props)

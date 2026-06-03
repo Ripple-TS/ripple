@@ -38,17 +38,27 @@ module.exports = grammar({
 		$._jsx_attribute,
 		$._jsx_child,
 		$._jsx_attribute_value,
+		$._template_setup_statement,
+		$._jsx_template_child,
 	],
 
 	word: ($) => $.identifier,
 
 	conflicts: ($) => [
 		[$.primary_expression, $.pattern],
+		[$.primary_expression, $.object],
 		[$.array_pattern, $.array],
 		[$.object_pattern, $.object],
 		[$.statement_block, $.object],
+		[$.statement_block, $.object, $.jsx_expression],
+		[$.object, $.jsx_expression],
 		[$.method_definition, $.arrow_function],
 		[$.shorthand_property_identifier, $.shorthand_property_identifier_pattern],
+		[
+			$.primary_expression,
+			$.shorthand_property_identifier,
+			$.shorthand_property_identifier_pattern,
+		],
 		[$.labeled_statement, $.arrow_function, $.property_name],
 		[$.primary_expression, $.property_name],
 		[$.assignment_expression, $.shorthand_property_identifier_pattern],
@@ -58,6 +68,7 @@ module.exports = grammar({
 		[$.jsx_element_name, $.jsx_non_namespaced_element_name],
 		[$.primary_expression, $.jsx_element_name],
 		[$.primary_expression, $.jsx_member_name],
+		[$.primary_expression, $.jsx_element],
 		[$.rest_pattern, $.primary_expression],
 		[$.variable_declaration, $.lexical_declaration],
 		[$.field_definition, $.method_definition],
@@ -93,6 +104,10 @@ module.exports = grammar({
 		[$.intersection_type, $.function_type],
 		[$.union_type, $.function_type],
 		[$.for_in_statement, $.primary_expression],
+		[$.declaration, $.template_setup_section],
+		[$.statement_block, $.jsx_expression],
+		[$.statement_block, $.component_statement],
+		[$.declaration, $.component_statement],
 	],
 
 	rules: {
@@ -371,13 +386,22 @@ module.exports = grammar({
 				$.empty_statement,
 			),
 
-		_jsx_statement_child: ($) =>
+		template_fence: () => token(prec(1, '---')),
+
+		template_setup_section: ($) =>
+			seq(repeat1(field('statement', $._template_setup_statement)), field('fence', $.template_fence)),
+
+		_template_setup_statement: ($) =>
 			choice(
+				$.export_statement,
+				$.import_statement,
+				$.declaration,
+				$.module_declaration,
 				$.variable_declaration,
 				$.lexical_declaration,
 				$.function_declaration,
 				$.class_declaration,
-				prec(2, $.style_element),
+				$.expression_statement,
 				$.if_statement,
 				$.switch_statement,
 				$.for_statement,
@@ -392,7 +416,88 @@ module.exports = grammar({
 				$.continue_statement,
 				$.debugger_statement,
 				$.empty_statement,
+				$.statement_block,
 			),
+
+		jsx_template_block: ($) => seq('{', repeat(field('children', $._jsx_template_child)), '}'),
+
+		_jsx_template_child: ($) =>
+			choice(
+				prec(2, $.style_element),
+				$.jsx_text,
+				$.jsx_element,
+				$.jsx_fragment,
+				$.jsx_self_closing_element,
+				$.jsx_expression,
+				$.jsx_if_expression,
+				$.jsx_for_expression,
+				$.jsx_switch_expression,
+				$.jsx_try_expression,
+			),
+
+		jsx_if_expression: ($) =>
+			seq(
+				'@',
+				'if',
+				field('condition', $.parenthesized_expression),
+				field('consequence', $.jsx_template_block),
+				optional(seq('else', field('alternative', $.jsx_template_block))),
+			),
+
+		jsx_for_expression: ($) =>
+			seq(
+				'@',
+				'for',
+				optional('await'),
+				'(',
+				choice(
+					seq(choice('let', 'const', 'var'), choice($._destructuring_pattern, $.identifier)),
+					$.identifier,
+				),
+				choice('of', 'in'),
+				field('right', $.expression),
+				optional(seq(';', 'index', $.identifier)),
+				optional(seq(';', 'key', $.expression)),
+				')',
+				field('body', $.jsx_template_block),
+			),
+
+		jsx_switch_expression: ($) =>
+			seq(
+				'@',
+				'switch',
+				field('value', $.parenthesized_expression),
+				field('body', $.jsx_switch_body),
+			),
+
+		jsx_switch_body: ($) =>
+			seq('{', repeat(choice($.jsx_switch_case, $.jsx_switch_default)), '}'),
+
+		jsx_switch_case: ($) =>
+			seq('case', field('value', $.expression), ':', repeat(field('children', $._jsx_template_child))),
+
+		jsx_switch_default: ($) => seq('default', ':', repeat(field('children', $._jsx_template_child))),
+
+		jsx_try_expression: ($) =>
+			seq(
+				'@',
+				'try',
+				field('body', $.jsx_template_block),
+				optional(field('pending', $.jsx_pending_clause)),
+				optional(field('handler', $.jsx_catch_clause)),
+				optional(field('finalizer', $.jsx_finally_clause)),
+			),
+
+		jsx_pending_clause: ($) => seq('pending', field('body', $.jsx_template_block)),
+
+		jsx_catch_clause: ($) =>
+			seq(
+				'catch',
+				optional(seq('(', commaSep1(field('parameter', choice($.identifier, $._destructuring_pattern))), ')')),
+				field('body', $.jsx_template_block),
+			),
+
+		jsx_finally_clause: ($) => seq('finally', field('body', $.jsx_template_block)),
 
 		style_element: ($) =>
 			prec(
@@ -913,7 +1018,12 @@ module.exports = grammar({
 
 		_jsx_child: ($) =>
 			choice(
-				$._jsx_statement_child,
+				$.template_setup_section,
+				$.jsx_if_expression,
+				$.jsx_for_expression,
+				$.jsx_switch_expression,
+				$.jsx_try_expression,
+				prec(2, $.style_element),
 				$.jsx_text,
 				$.jsx_element,
 				$.jsx_fragment,

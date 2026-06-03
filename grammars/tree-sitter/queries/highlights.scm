@@ -100,6 +100,25 @@
 (style_element
   (raw_text) @string.special)
 
+; Template sections
+(template_fence) @comment
+
+(jsx_if_expression
+  "@" @keyword.control
+  "if" @keyword.control)
+
+(jsx_for_expression
+  "@" @keyword.control
+  "for" @keyword.control)
+
+(jsx_switch_expression
+  "@" @keyword.control
+  "switch" @keyword.control)
+
+(jsx_try_expression
+  "@" @keyword.control
+  "try" @keyword.control)
+
 ; Types
 (type_identifier) @type
 (predefined_type) @type.builtin
