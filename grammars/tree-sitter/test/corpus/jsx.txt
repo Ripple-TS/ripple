@@ -511,7 +511,28 @@ const App = () => <>
 
 ---
 
-(program)
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters)
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (template_setup_section
+              fence: (template_fence))
+            children: (jsx_text)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            close_tag: (jsx_closing_fragment)))))))
 
 ==========================================
 Function Return Async Native Declaration
