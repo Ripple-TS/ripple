@@ -94,7 +94,7 @@ export function runSharedSourceMappingTests({
 		// TS wrapper nodes whose spans (e.g. angle-bracket delimiters around
 		// generics) are otherwise invisible to the source map.
 		it('generic call with type arguments', () =>
-			expect_maps(`function C() { return <> useState<string>(''); </>; }`));
+			expect_maps(`function C() { const x = useState<string>(''); return <>{x}</>; }`));
 		it('call argument with arrow-function return type', () =>
 			expect_maps(
 				`function C() { return <> const [itemElements] = useState((): Record<string, HTMLButtonElement | null> => ({})) </>; }`,

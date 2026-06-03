@@ -26,8 +26,6 @@ export function IfWithChildren({ children }) {
 				_$_.output_push('<!--[-->');
 
 				if (lazy.value) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="content"');
 					_$_.output_push('>');
@@ -37,7 +35,6 @@ export function IfWithChildren({ children }) {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -121,8 +118,6 @@ export function IfWithStaticChildren() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy_1.value) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="content"');
 					_$_.output_push('>');
@@ -147,7 +142,6 @@ export function IfWithStaticChildren() {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -216,8 +210,6 @@ export function IfWithSiblingsAndChildren({ children }) {
 				_$_.output_push('<!--[-->');
 
 				if (lazy_2.value) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="items"');
 					_$_.output_push('>');
@@ -227,7 +219,6 @@ export function IfWithSiblingsAndChildren({ children }) {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -310,8 +301,6 @@ export function ElementWithChildrenThenIf() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy_3.value) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="conditional"');
 					_$_.output_push('>');
@@ -321,7 +310,6 @@ export function ElementWithChildrenThenIf() {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -397,8 +385,6 @@ export function DeepNestingThenIf() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy_4.value) {
-					var return_guard = false;
-
 					_$_.output_push('<footer');
 					_$_.output_push(' class="footer"');
 					_$_.output_push('>');
@@ -408,7 +394,6 @@ export function DeepNestingThenIf() {
 					}
 
 					_$_.output_push('</footer>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -477,8 +462,6 @@ export function DomElementChildrenThenSibling() {
 					_$_.output_push('<!--[-->');
 
 					if (lazy_5.value === 'code') {
-						var return_guard = false;
-
 						_$_.output_push('<pre');
 						_$_.output_push(' class="code"');
 						_$_.output_push('>');
@@ -488,10 +471,7 @@ export function DomElementChildrenThenSibling() {
 						}
 
 						_$_.output_push('</pre>');
-						return_guard = true;
 					} else {
-						var return_guard_1 = false;
-
 						_$_.output_push('<div');
 						_$_.output_push(' class="preview"');
 						_$_.output_push('>');
@@ -501,7 +481,6 @@ export function DomElementChildrenThenSibling() {
 						}
 
 						_$_.output_push('</div>');
-						return_guard_1 = true;
 					}
 
 					_$_.output_push('<!--]-->');

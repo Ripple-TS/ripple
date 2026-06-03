@@ -54,7 +54,6 @@ export function ConditionalPortal() {
 
 			{
 				var consequent = (__anchor) => {
-					var return_guard = false;
 					var fragment = root_3();
 					var node_2 = _$_.first_child_frag(fragment);
 
@@ -70,7 +69,6 @@ export function ConditionalPortal() {
 						})
 					});
 
-					return_guard = true;
 					_$_.append(__anchor, fragment);
 				};
 

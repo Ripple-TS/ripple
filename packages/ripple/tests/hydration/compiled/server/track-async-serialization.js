@@ -37,7 +37,6 @@ export function AsyncWithServerCall() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_1 = _$_.track_async(() => formatValue(lazy.value), 'f0c2b41e');
 
 				_$_.regular_block(() => {
@@ -52,14 +51,11 @@ export function AsyncWithServerCall() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -73,7 +69,6 @@ export function AsyncWithServerCall() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -86,7 +81,6 @@ export function AsyncSimpleValue() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_2 = _$_.track_async(() => Promise.resolve('hydrated value'), '4e502c38');
 
 				_$_.regular_block(() => {
@@ -101,14 +95,11 @@ export function AsyncSimpleValue() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -122,7 +113,6 @@ export function AsyncSimpleValue() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -135,7 +125,6 @@ export function AsyncNumericValue() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_3 = _$_.track_async(() => Promise.resolve(42), '14891754');
 
 				_$_.regular_block(() => {
@@ -150,14 +139,11 @@ export function AsyncNumericValue() {
 					_$_.output_push('</span>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<span');
@@ -171,7 +157,6 @@ export function AsyncNumericValue() {
 					_$_.output_push('</span>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -184,7 +169,6 @@ export function AsyncObjectValue() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_4 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'f325448a');
 
 				_$_.regular_block(() => {
@@ -216,14 +200,11 @@ export function AsyncObjectValue() {
 					_$_.output_push('</div>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<div');
@@ -237,7 +218,6 @@ export function AsyncObjectValue() {
 					_$_.output_push('</div>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -250,7 +230,6 @@ export function AsyncMultipleValues() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_5 = _$_.track_async(() => Promise.resolve('alpha'), 'ab8199a0');
 				let lazy_6 = _$_.track_async(() => Promise.resolve('beta'), 'fb7ad40b');
 
@@ -283,14 +262,11 @@ export function AsyncMultipleValues() {
 					_$_.output_push('</div>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<div');
@@ -304,7 +280,6 @@ export function AsyncMultipleValues() {
 					_$_.output_push('</div>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -317,7 +292,6 @@ export function AsyncWithCatch() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_7 = _$_.track_async(() => Promise.reject(new Error('fetch failed')), '99982de5');
 
 				_$_.regular_block(() => {
@@ -332,13 +306,10 @@ export function AsyncWithCatch() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			(e) => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -352,13 +323,10 @@ export function AsyncWithCatch() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			},
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_2 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -372,7 +340,6 @@ export function AsyncWithCatch() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_2 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -385,7 +352,6 @@ export function ChildWithError() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_8 = _$_.track_async(() => Promise.reject(new Error('child error')), '1dea4c85');
 
 				_$_.regular_block(() => {
@@ -400,14 +366,11 @@ export function ChildWithError() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -421,7 +384,6 @@ export function ChildWithError() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -434,8 +396,6 @@ export function ParentWithCatch() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
-
 				_$_.regular_block(() => {
 					{
 						const comp = ChildWithError;
@@ -445,13 +405,10 @@ export function ParentWithCatch() {
 					}
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			(e) => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -465,7 +422,6 @@ export function ParentWithCatch() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			},
 			null
@@ -493,7 +449,6 @@ export function AsyncWithReactiveDependency() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
 				let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${lazy_9.value}`), 'cdd1adb8');
 
 				_$_.regular_block(() => {
@@ -508,14 +463,11 @@ export function AsyncWithReactiveDependency() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -529,7 +481,6 @@ export function AsyncWithReactiveDependency() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);

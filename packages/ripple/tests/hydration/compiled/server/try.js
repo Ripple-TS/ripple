@@ -111,8 +111,6 @@ export function AsyncListInTryPending() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
-
 				_$_.regular_block(() => {
 					{
 						const comp = AsyncList;
@@ -122,14 +120,11 @@ export function AsyncListInTryPending() {
 					}
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');
@@ -143,7 +138,6 @@ export function AsyncListInTryPending() {
 					_$_.output_push('</p>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);
@@ -163,8 +157,6 @@ function AsyncList() {
 				_$_.output_push('<!--[-->');
 
 				for (let item of lazy_2.value) {
-					var return_guard = false;
-
 					_$_.output_push('<li');
 					_$_.output_push('>');
 
@@ -173,7 +165,6 @@ function AsyncList() {
 					}
 
 					_$_.output_push('</li>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -202,8 +193,6 @@ export function AsyncTryWithLeadingSibling() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				var return_guard = false;
-
 				_$_.regular_block(() => {
 					{
 						const comp = AsyncContent;
@@ -213,14 +202,11 @@ export function AsyncTryWithLeadingSibling() {
 					}
 				});
 
-				return_guard = true;
 				_$_.output_push('<!--]-->');
 			},
 			null,
 			() => {
 				_$_.output_push('<!--[-->');
-
-				var return_guard_1 = false;
 
 				_$_.regular_block(() => {
 					_$_.output_push('<div');
@@ -234,7 +220,6 @@ export function AsyncTryWithLeadingSibling() {
 					_$_.output_push('</div>');
 				});
 
-				return_guard_1 = true;
 				_$_.output_push('<!--]-->');
 			}
 		);

@@ -50,6 +50,7 @@ const CharCode = Object.freeze({
 	uppercaseA: 65,
 	uppercaseZ: 90,
 	openBracket: 91,
+	closeBracket: 93,
 	backslash: 92,
 	underscore: 95,
 	backtick: 96,
@@ -227,6 +228,22 @@ function looks_like_generic_arrow(input, pos) {
 
 	return (
 		input.charCodeAt(i) === CharCode.equals && input.charCodeAt(i + 1) === CharCode.greaterThan
+	);
+}
+
+/**
+ * @param {string} input
+ * @param {number} pos
+ */
+function looks_like_array_destructuring_assignment(input, pos) {
+	if (input.charCodeAt(pos) !== CharCode.openBracket) return false;
+
+	let i = scan_balanced_from(input, pos, CharCode.openBracket, CharCode.closeBracket);
+	if (i === -1) return false;
+
+	i = skip_whitespace_from(input, i);
+	return (
+		input.charCodeAt(i) === CharCode.equals && input.charCodeAt(i + 1) !== CharCode.greaterThan
 	);
 }
 
@@ -431,6 +448,7 @@ export function TSRXPlugin(config) {
 				const ch = this.input.charCodeAt(start);
 				if (ch === CharCode.at) return true;
 				if (ch === CharCode.backtick) return true;
+				if (looks_like_array_destructuring_assignment(this.input, start)) return true;
 				if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
 					return true;
 				}
@@ -535,6 +553,12 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseRawTextChild() {
+				if (this.input.charCodeAt(this.start) === CharCode.doubleQuote) {
+					this.pos = this.start;
+					this.#readDoubleQuotedTextChildToken();
+					return this.parseDoubleQuotedTextChild();
+				}
+
 				const start = this.start;
 				let index = start;
 				let text = '';

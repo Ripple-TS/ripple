@@ -293,16 +293,12 @@ function NestedTsxTsrxFragment({ label }) {
 			_$_.output_push('<!--[-->');
 
 			for (const item of [1, 2, 3, 4]) {
-				var return_guard = false;
-
 				{
 					const comp = NestedHelperItem;
 					const args = [{ item }];
 
 					_$_.render_component(comp, ...args);
 				}
-
-				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -316,8 +312,6 @@ export function NestedTsxTsrxExpressionValues() {
 			_$_.output_push('<!--[-->');
 
 			for (const item of [1, 2, 3]) {
-				var return_guard = false;
-
 				_$_.output_push('<div');
 				_$_.output_push(' class="app-item"');
 				_$_.output_push('>');
@@ -327,7 +321,6 @@ export function NestedTsxTsrxExpressionValues() {
 				}
 
 				_$_.output_push('</div>');
-				return_guard = true;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -956,8 +949,6 @@ function Actions({ playgroundVisible = false }) {
 				_$_.output_push('<!--[-->');
 
 				if (playgroundVisible) {
-					var return_guard = false;
-
 					_$_.output_push('<a');
 					_$_.output_push(' href="/playground"');
 					_$_.output_push(' class="playground-link"');
@@ -968,7 +959,6 @@ function Actions({ playgroundVisible = false }) {
 					}
 
 					_$_.output_push('</a>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');

@@ -49,8 +49,6 @@ export function Content() {
 				_$_.output_push('<!--[-->');
 
 				if (lazy.value) {
-					var return_guard = false;
-
 					_$_.output_push('<p');
 					_$_.output_push(' class="text"');
 					_$_.output_push('>');
@@ -60,7 +58,6 @@ export function Content() {
 					}
 
 					_$_.output_push('</p>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');

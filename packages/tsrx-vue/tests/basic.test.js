@@ -68,8 +68,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('export const App = defineVaporComponent');
 		expect(code).toContain('show ?');
 		expect(code).toContain("<p>{'yes'}</p>");
-		expect(code).toContain('<List>{(() => {');
-		expect(code).toContain('return items.map((item) => item);');
+		expect(code).toContain('<List children={items.map((item) => item)} />');
 	});
 
 	it('merges defineVaporComponent into existing vue imports', () => {

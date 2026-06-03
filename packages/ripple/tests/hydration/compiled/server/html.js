@@ -340,8 +340,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 					_$_.output_push('<!--[-->');
 
 					if (editPath) {
-						var return_guard = false;
-
 						_$_.output_push('<div');
 						_$_.output_push(' class="edit-link"');
 						_$_.output_push('>');
@@ -359,15 +357,12 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 						}
 
 						_$_.output_push('</div>');
-						return_guard = true;
 					}
 
 					_$_.output_push('<!--]-->');
 					_$_.output_push('<!--[-->');
 
 					if (nextLink) {
-						var return_guard_1 = false;
-
 						_$_.output_push('<nav');
 						_$_.output_push(' class="prev-next"');
 						_$_.output_push('>');
@@ -385,7 +380,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 						}
 
 						_$_.output_push('</nav>');
-						return_guard_1 = true;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -406,8 +400,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 					_$_.output_push('<!--[-->');
 
 					if (toc.length > 0) {
-						var return_guard_2 = false;
-
 						_$_.output_push('<div');
 						_$_.output_push(' class="toc"');
 						_$_.output_push('>');
@@ -420,8 +412,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 								_$_.output_push('<!--[-->');
 
 								for (const item of toc) {
-									var return_guard_3 = false;
-
 									_$_.output_push('<li');
 									_$_.output_push('>');
 
@@ -438,7 +428,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 									}
 
 									_$_.output_push('</li>');
-									return_guard_3 = true;
 								}
 
 								_$_.output_push('<!--]-->');
@@ -448,7 +437,6 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 						}
 
 						_$_.output_push('</div>');
-						return_guard_2 = true;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -560,7 +548,6 @@ function DynamicHeading({ level, children }) {
 
 			switch (level) {
 				case 1:
-					var return_guard = false;
 					_$_.output_push('<h1');
 					_$_.output_push(' class="heading"');
 					_$_.output_push('>');
@@ -568,11 +555,9 @@ function DynamicHeading({ level, children }) {
 						_$_.render_expression(children);
 					}
 					_$_.output_push('</h1>');
-					return_guard = true;
 					break;
 
 				case 2:
-					var return_guard_1 = false;
 					_$_.output_push('<h2');
 					_$_.output_push(' class="heading"');
 					_$_.output_push('>');
@@ -580,7 +565,6 @@ function DynamicHeading({ level, children }) {
 						_$_.render_expression(children);
 					}
 					_$_.output_push('</h2>');
-					return_guard_1 = true;
 					break;
 			}
 
@@ -741,13 +725,10 @@ function NavItem({ href, text: label, active = false }) {
 				_$_.output_push('<!--[-->');
 
 				if (active) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="indicator"');
 					_$_.output_push('>');
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -811,8 +792,6 @@ function SidebarSection({ title, children }) {
 				_$_.output_push('<!--[-->');
 
 				if (lazy.value) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="section-items"');
 					_$_.output_push('>');
@@ -822,7 +801,6 @@ function SidebarSection({ title, children }) {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1045,8 +1023,6 @@ export function LayoutWithSidebarAndMain() {
 						_$_.output_push('<!--[-->');
 
 						if (true) {
-							var return_guard = false;
-
 							_$_.output_push('<div');
 							_$_.output_push(' class="edit-link"');
 							_$_.output_push('>');
@@ -1064,7 +1040,6 @@ export function LayoutWithSidebarAndMain() {
 							}
 
 							_$_.output_push('</div>');
-							return_guard = true;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -1169,8 +1144,6 @@ export function ArticleWithChildrenThenSibling() {
 				_$_.output_push('<!--[-->');
 
 				if (true) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="edit-link"');
 					_$_.output_push('>');
@@ -1188,15 +1161,12 @@ export function ArticleWithChildrenThenSibling() {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
 				_$_.output_push('<!--[-->');
 
 				if (true) {
-					var return_guard_1 = false;
-
 					_$_.output_push('<nav');
 					_$_.output_push(' class="prev-next"');
 					_$_.output_push('>');
@@ -1214,7 +1184,6 @@ export function ArticleWithChildrenThenSibling() {
 					}
 
 					_$_.output_push('</nav>');
-					return_guard_1 = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1265,8 +1234,6 @@ export function ArticleWithHtmlChildThenSibling() {
 				_$_.output_push('<!--[-->');
 
 				if (true) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="edit-link"');
 					_$_.output_push('>');
@@ -1284,7 +1251,6 @@ export function ArticleWithHtmlChildThenSibling() {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1329,8 +1295,6 @@ function InlineArticleLayout({ children }) {
 				_$_.output_push('<!--[-->');
 
 				if (true) {
-					var return_guard = false;
-
 					_$_.output_push('<div');
 					_$_.output_push(' class="edit-link"');
 					_$_.output_push('>');
@@ -1348,7 +1312,6 @@ function InlineArticleLayout({ children }) {
 					}
 
 					_$_.output_push('</div>');
-					return_guard = true;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -1508,8 +1471,6 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 									_$_.output_push('<!--[-->');
 
 									if (editPath) {
-										var return_guard = false;
-
 										_$_.output_push('<div');
 										_$_.output_push(' class="edit-link"');
 										_$_.output_push('>');
@@ -1527,15 +1488,12 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 										}
 
 										_$_.output_push('</div>');
-										return_guard = true;
 									}
 
 									_$_.output_push('<!--]-->');
 									_$_.output_push('<!--[-->');
 
 									if (nextLink) {
-										var return_guard_1 = false;
-
 										_$_.output_push('<nav');
 										_$_.output_push(' class="prev-next"');
 										_$_.output_push('>');
@@ -1553,7 +1511,6 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 										}
 
 										_$_.output_push('</nav>');
-										return_guard_1 = true;
 									}
 
 									_$_.output_push('<!--]-->');
@@ -1718,8 +1675,6 @@ function DocsLayoutExact(
 									_$_.output_push('<!--[-->');
 
 									if (editPath) {
-										var return_guard = false;
-
 										_$_.output_push('<div');
 										_$_.output_push(' class="edit-link"');
 										_$_.output_push('>');
@@ -1737,15 +1692,12 @@ function DocsLayoutExact(
 										}
 
 										_$_.output_push('</div>');
-										return_guard = true;
 									}
 
 									_$_.output_push('<!--]-->');
 									_$_.output_push('<!--[-->');
 
 									if (prevLink || nextLink) {
-										var return_guard_1 = false;
-
 										_$_.output_push('<nav');
 										_$_.output_push(' class="prev-next"');
 										_$_.output_push('>');
@@ -1754,8 +1706,6 @@ function DocsLayoutExact(
 											_$_.output_push('<!--[-->');
 
 											if (prevLink) {
-												var return_guard_2 = false;
-
 												_$_.output_push('<a');
 												_$_.output_push(_$_.attr('href', prevLink.href, false));
 												_$_.output_push(' class="pager prev"');
@@ -1774,22 +1724,16 @@ function DocsLayoutExact(
 												}
 
 												_$_.output_push('</a>');
-												return_guard_2 = true;
 											} else {
-												var return_guard_3 = false;
-
 												_$_.output_push('<span');
 												_$_.output_push('>');
 												_$_.output_push('</span>');
-												return_guard_3 = true;
 											}
 
 											_$_.output_push('<!--]-->');
 											_$_.output_push('<!--[-->');
 
 											if (nextLink) {
-												var return_guard_4 = false;
-
 												_$_.output_push('<a');
 												_$_.output_push(_$_.attr('href', nextLink.href, false));
 												_$_.output_push(' class="pager next"');
@@ -1808,14 +1752,12 @@ function DocsLayoutExact(
 												}
 
 												_$_.output_push('</a>');
-												return_guard_4 = true;
 											}
 
 											_$_.output_push('<!--]-->');
 										}
 
 										_$_.output_push('</nav>');
-										return_guard_1 = true;
 									}
 
 									_$_.output_push('<!--]-->');
@@ -1840,8 +1782,6 @@ function DocsLayoutExact(
 								_$_.output_push('<!--[-->');
 
 								if (toc.length > 0) {
-									var return_guard_5 = false;
-
 									_$_.output_push('<div');
 									_$_.output_push(' class="aside-content"');
 									_$_.output_push('>');
@@ -1855,8 +1795,6 @@ function DocsLayoutExact(
 											_$_.output_push('<!--[-->');
 
 											for (const item of toc) {
-												var return_guard_6 = false;
-
 												_$_.output_push('<a');
 												_$_.output_push(_$_.attr('href', item.href, false));
 												_$_.output_push('>');
@@ -1866,7 +1804,6 @@ function DocsLayoutExact(
 												}
 
 												_$_.output_push('</a>');
-												return_guard_6 = true;
 											}
 
 											_$_.output_push('<!--]-->');
@@ -1876,7 +1813,6 @@ function DocsLayoutExact(
 									}
 
 									_$_.output_push('</div>');
-									return_guard_5 = true;
 								}
 
 								_$_.output_push('<!--]-->');

@@ -3,7 +3,7 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<template id="data1"></template>`, 0);
 var root_1 = _$_.template(`<template id="data2"></template>`, 0);
-var root_3 = _$_.template(`<span class="inside">inside</span>`, 1, 1);
+var root_3 = _$_.template(`<span class="inside">inside</span>`, 0);
 var root_2 = _$_.template(`<div><template id="before"></template><!><template id="after"></template></div>`, 0);
 
 export function SimpleTemplateHtml() {
@@ -40,11 +40,9 @@ export function TemplateAroundIfBlock() {
 
 			{
 				var consequent = (__anchor) => {
-					var return_guard = false;
-					var fragment = root_3();
+					var span_1 = root_3();
 
-					return_guard = true;
-					_$_.append(__anchor, fragment);
+					_$_.append(__anchor, span_1);
 				};
 
 				_$_.if(node, (__render) => {

@@ -551,7 +551,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 		it('treats explicit break as a stop signal and leaves later cases independent', () => {
 			const { code } = compile(
 				`export function App({ kind }: { kind: string }) { return <>
-					switch (kind) {
+								@switch (kind) {
 						case "a":
 							<span>{'A'}</span>
 							break
@@ -760,7 +760,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 		it.runIf(name === 'solid')('routes default cases to <Switch fallback>', () => {
 			const { code } = compile(
 				`export function App({ kind }: { kind: string }) { return <>
-					switch (kind) {
+								@switch (kind) {
 						case "a":
 							<span>{'A'}</span>
 							break
@@ -941,7 +941,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			() => {
 				const { code } = compile(
 					`export function App() { return <>
-						for (const item of items; index i) {
+								@for (const item of items; index i) {
 							<div>{'one'}</div>
 							<div>{'two'}</div>
 						}
@@ -1043,7 +1043,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 				`export function App() { return <>
 					<Child
 						children={({ items }: { items: JSX.Element[] }) => <ul>
-							for (const item of items; index i) {
+								@for (const item of items; index i) {
 								<li key={i}>{item}</li>
 							}
 						</ul>}
@@ -1069,7 +1069,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 					<Child
 						children={({ items }: { items: JSX.Element[] }) => {
 							return <ul>
-								for (const item of items; index i) {
+								@for (const item of items; index i) {
 									<li key={i}>{item}</li>
 								}
 							</ul>;
@@ -1372,8 +1372,7 @@ export function runSharedCompileTests({
 				expect(code).toContain('show ?');
 			}
 			expect(code).toContain("<p>{'yes'}</p>");
-			expect(code).toContain('<List>{(() => {');
-			expect(code).toContain('return items.map((item) => item);');
+			expect(code).toContain('<List children={items.map((item) => item)} />');
 		});
 	});
 
@@ -2748,7 +2747,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App(&{name}: Props) { return <>
 					const items = ['a', 'b'];
-					for (const name of items) {
+							@for (const name of items) {
 						console.log(name);
 					}
 					<div>{name}</div>
@@ -3186,7 +3185,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows hook results that stay local to an extracted branch', () => {
 			const { code } = compile(
 				`export function App({ show }: { show: boolean }) { return <>
-							if (show) {
+							@if (show) {
 								const [x] = useState(100);
 								<div>{x}</div>
 							}
@@ -3204,7 +3203,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App({ show, value }: { show: boolean; value: string }) { return <>
 							const label = value.trim();
-							if (show) {
+							@if (show) {
 								useEffect(() => {
 									console.log(label);
 								}, [label]);
@@ -3222,7 +3221,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
 			const { code } = compile(
 				`export function App({ show, value }: { show: boolean; value: string }) { return <>
-							if (show) {
+							@if (show) {
 								let latest: string | undefined;
 								useEffect(() => {
 									latest = value;
@@ -3242,7 +3241,7 @@ export function optionalFn(bar: string, baz?: string) {
 				`let effectCount = 0;
 
 						export function App({ show }: { show: boolean }) { return <>
-							if (show) {
+							@if (show) {
 								useEffect(() => {
 									effectCount++;
 								}, []);
@@ -3261,7 +3260,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, value }: { show: boolean; value: string }) { return <>
 								let latest: string | undefined;
-								if (show) {
+								@if (show) {
 									useEffect(() => {
 										latest = value;
 									}, [value]);
@@ -3279,7 +3278,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let cleanupCount = 0;
-								if (show) {
+								@if (show) {
 									useEffect(() => {
 										return () => {
 											cleanupCount++;
@@ -3298,7 +3297,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
+								@if (show) {
 									[x] = useState(100);
 									<div>{x}</div>
 								}
@@ -3314,7 +3313,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
+								@if (show) {
 									const [state] = useState(100);
 									x = state;
 									<div>{state}</div>
@@ -3331,7 +3330,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let total = 0;
-								if (show) {
+								@if (show) {
 									total += useCustomNumber();
 									<div>{total}</div>
 								}
@@ -3347,7 +3346,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let total = 0;
-								if (show) {
+								@if (show) {
 									const delta = useCustomNumber();
 									total += delta;
 									<div>{total}</div>
@@ -3365,7 +3364,7 @@ export function optionalFn(bar: string, baz?: string) {
 					`export function App({ show }: { show: boolean }) { return <>
 								let key = 0;
 								const values: Record<number, string> = {};
-								if (show) {
+								@if (show) {
 									values[key = useCustomNumber()] = 'active';
 									<div>{values[key]}</div>
 								}
@@ -3381,8 +3380,8 @@ export function optionalFn(bar: string, baz?: string) {
 					`function App({ show }: { show: boolean }) {
 								let x: number | undefined;
 								return <>
-									if (show) {
-										[x] = useState(100);
+								@if (show) {
+									[x] = useState(100);
 										<div>{x}</div>
 									}
 								</>;
@@ -3401,7 +3400,7 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
 								let x: number | undefined;
-								switch (kind) {
+								@switch (kind) {
 									case 'a':
 										[x] = useState(100);
 										<div>{x}</div>
@@ -3420,7 +3419,7 @@ export function optionalFn(bar: string, baz?: string) {
 			it('allows switch case hook results that stay local', () => {
 				const { code } = compile(
 					`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
-							switch (kind) {
+								@switch (kind) {
 								case 'a':
 									const [x] = useState(100);
 									<div>{x}</div>
@@ -3445,7 +3444,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ items }: { items: number[] }) { return <>
 								let last: number | undefined;
-								for (const item of items; index i) {
+								@for (const item of items; index i) {
 									[last] = useState(item);
 									<div key={i}>{last}</div>
 								}
@@ -3461,8 +3460,8 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 								let x: number | undefined;
-								if (show) {
-									for (const x of items) {
+								@if (show) {
+									@for (const x of items) {
 										<div key={x}>{x}</div>
 									}
 									[x] = useState(0);
@@ -3477,8 +3476,8 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 							let x: number | undefined;
-							if (show) {
-								for (let x of items) {
+								@if (show) {
+								@for (let x of items) {
 									const [val] = useState(x);
 									<div key={x}>{val}</div>
 								}
@@ -3495,8 +3494,8 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
-									for (x of useState(0)) {
+								@if (show) {
+									@for (x of useState(0)) {
 										<div>{x}</div>
 									}
 								}
@@ -3512,8 +3511,8 @@ export function optionalFn(bar: string, baz?: string) {
 					`export function App({ show }: { show: boolean }) { return <>
 								let a: number | undefined;
 								let b: number | undefined;
-								if (show) {
-									for ([a, b] of [useState(0)]) {
+								@if (show) {
+									@for ([a, b] of [useState(0)]) {
 										<div>{a}{b}</div>
 									}
 								}
@@ -3528,8 +3527,8 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 								let x: number | undefined;
-								if (show) {
-									for (x of items) {
+								@if (show) {
+									@for (x of items) {
 										console.log(x);
 									}
 									[x] = useState(0);
@@ -3544,7 +3543,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) { return <>
-							for (const name of items) {
+							@for (const name of items) {
 								const [val] = useState(name);
 								<div key={name}>{val}</div>
 							}
@@ -3560,7 +3559,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('falls back to the existing transform for non-hook for-of loops', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: number[] }) { return <>
-							for (const item of items; index i) {
+								@for (const item of items; index i) {
 								<div key={i}>{item}</div>
 							}
 						</>; }`,
@@ -3580,7 +3579,7 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ load }: { load: () => number }) { return <>
 								let data: number | undefined;
-								try {
+								@try {
 									[data] = useState(load());
 									<div>{data}</div>
 								} catch (err) {
@@ -3598,7 +3597,7 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ load }: { load: () => number }) { return <>
 								let attempt: number | undefined;
-								try {
+								@try {
 									<div>{load()}</div>
 								} catch (err) {
 									[attempt] = useState(0);
@@ -3614,7 +3613,7 @@ export function optionalFn(bar: string, baz?: string) {
 			it('allows try-body hook results that stay local', () => {
 				const { code } = compile(
 					`export function App({ load }: { load: () => number }) { return <>
-							try {
+							@try {
 								const [data] = useState(load());
 								<div>{data}</div>
 							} catch (err) {
@@ -3631,8 +3630,8 @@ export function optionalFn(bar: string, baz?: string) {
 			it('try without hooks falls back to the existing transform', () => {
 				const { code } = compile(
 					`export function App({ load }: { load: () => number }) { return <>
-							try {
-								<div>{load()}</div>
+								@try {
+									<div>{load()}</div>
 							} catch (err) {
 								<div>{'error'}</div>
 							}
