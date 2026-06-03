@@ -64,6 +64,7 @@ const argument_clash_first_positions = new WeakMap();
 /** @type {WeakMap<Record<string, boolean>, Set<string>>} */
 const argument_clash_reported_names = new WeakMap();
 const TEMPLATE_STATEMENT_KEYWORDS = new Set([
+	'async',
 	'await',
 	'break',
 	'class',
@@ -423,13 +424,14 @@ export function TSRXPlugin(config) {
 				);
 			}
 
-			#isLikelyTemplateStatementStart() {
-				const start = this.start;
-				const ch = this.input.charCodeAt(start);
-				if (ch === CharCode.at) return true;
-				if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
-					return true;
-				}
+				#isLikelyTemplateStatementStart() {
+					const start = this.start;
+					const ch = this.input.charCodeAt(start);
+					if (ch === CharCode.at) return true;
+					if (ch === CharCode.backtick) return true;
+					if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
+						return true;
+					}
 				if (
 					(ch === CharCode.plus && this.input.charCodeAt(start + 1) === CharCode.plus) ||
 					(ch === CharCode.hyphen && this.input.charCodeAt(start + 1) === CharCode.hyphen) ||

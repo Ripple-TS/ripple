@@ -30,7 +30,9 @@ describe('for statements', () => {
 				'App.tsrx',
 				{ mode: 'client' },
 			),
-		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+			).toThrow(
+				'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+			);
 	});
 
 	it('allows continue to skip an iteration', () => {

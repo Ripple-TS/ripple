@@ -46,7 +46,7 @@ describe('tsx expression', () => {
 	it('renders a basic fragment shorthand element', () => {
 		function App() {
 			return <>
-				const el = <><div>"hello world"</div></>;
+				const el = <><div>hello world</div></>;
 				{el}
 			</>;
 		}
@@ -104,7 +104,7 @@ describe('tsx expression', () => {
 	it('renders a tsx element assigned to a variable', () => {
 		function App() {
 			return <>
-				const el = <><span class="test">"content"</span></>;
+				const el = <><span class="test">content</span></>;
 				{el}
 			</>;
 		}
@@ -118,8 +118,8 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <>
-					<div>"first"</div>
-					<div>"second"</div>
+					<div>first</div>
+					<div>second</div>
 				</>;
 				{el}
 			</>;
@@ -136,7 +136,7 @@ describe('tsx expression', () => {
 			return <>
 				const el = <>
 					<div class="outer">
-						<span class="inner">"nested"</span>
+						<span class="inner">nested</span>
 					</div>
 				</>;
 				{el}
@@ -153,7 +153,7 @@ describe('tsx expression', () => {
 	it('renders a tsx element inline in a parent element', () => {
 		function App() {
 			return <>
-				const el = <><span>"inline"</span></>;
+				const el = <><span>inline</span></>;
 				<div class="parent">{el}</div>
 			</>;
 		}
@@ -189,7 +189,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[show] = track(true);
-				const el = <><div class="tsx-content">"visible"</div></>;
+				const el = <><div class="tsx-content">visible</div></>;
 				if (show) {
 					=> el
 				}
@@ -215,7 +215,7 @@ describe('tsx expression', () => {
 
 		function App() {
 			return <>
-				const el = <><span>"from tsx"</span></>;
+				const el = <><span>from tsx</span></>;
 				<Child children={el} />
 			</>;
 		}
@@ -229,7 +229,7 @@ describe('tsx expression', () => {
 	it('renders tsx element with text content only', () => {
 		function App() {
 			return <>
-				const el = <>"just text"</>;
+				const el = <>just text</>;
 				{el}
 			</>;
 		}
@@ -242,7 +242,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <>
-					<div id="my-id" class="my-class" data-testid="test" aria-label="label">"content"</div>
+					<div id="my-id" class="my-class" data-testid="test" aria-label="label">content</div>
 				</>;
 				{el}
 			</>;
@@ -260,7 +260,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[name] = track('initial');
-				const el = <><div id={name} class={'cls-' + name}>"content"</div></>;
+				const el = <><div id={name} class={'cls-' + name}>content</div></>;
 				{el}
 				<button onClick={() => (name = 'updated')}>{'update'}</button>
 			</>;
@@ -317,7 +317,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[color] = track('red');
-				const el = <><div style={'color: ' + color}>"styled"</div></>;
+				const el = <><div style={'color: ' + color}>styled</div></>;
 				{el}
 				<button onClick={() => (color = 'blue')}>{'change color'}</button>
 			</>;
@@ -371,7 +371,7 @@ describe('tsx expression', () => {
 		}
 
 		function App() {
-			return <><Wrapper content={<><span class="inner">"direct prop"</span></>} /></>;
+				return <><Wrapper content={<><span class="inner">direct prop</span></>} /></>;
 		}
 
 		render(App);
@@ -394,8 +394,8 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Card
-					title={<><span class="bold">"Title"</span></>}
-					children={<><p>"Card content here"</p></>}
+						title={<><span class="bold">Title</span></>}
+						children={<><p>Card content here</p></>}
 				/>
 			</>;
 		}
@@ -642,7 +642,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Alert message="No icon" />
-				<Alert icon={<><span class="custom-icon">"✓"</span></>} message="Custom icon" />
+				<Alert icon={<><span class="custom-icon">✓</span></>} message="Custom icon" />
 			</>;
 		}
 
@@ -684,11 +684,11 @@ describe('tsx expression', () => {
 		function createContent(type) {
 			return <>
 				if (type === 'success') {
-					=> <div class="success">"Success!"</div>
+					=> <div class="success">Success!</div>
 				} else if (type === 'error') {
-					=> <div class="error">"Error!"</div>
+					=> <div class="error">Error!</div>
 				} else {
-					=> <div class="default">"Default"</div>
+					=> <div class="default">Default</div>
 				}
 			</>;
 		}
@@ -718,10 +718,10 @@ describe('tsx expression', () => {
 });
 
 describe('tsrx expression', () => {
-	it('renders native double-quoted text in an assigned fragment', () => {
+	it('renders native JSX text in an assigned fragment', () => {
 		function App() {
 			return <>
-				const el = <><div>"Hello world"</div></>;
+				const el = <><div>Hello world</div></>;
 				{el}
 			</>;
 		}
@@ -772,7 +772,7 @@ describe('tsrx expression', () => {
 			return <>
 				const el = <>
 					if (true) {
-						=> <span>"visible"</span>
+							=> <span>visible</span>
 					}
 				</>;
 				{el}

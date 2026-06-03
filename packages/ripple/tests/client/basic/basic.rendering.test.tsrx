@@ -42,20 +42,20 @@ describe('basic client > rendering & text', () => {
 		expect(div.querySelector('span')).toBeNull();
 	});
 
-	it('renders direct double-quoted text children as text', () => {
+	it('renders direct JSX text children as text', () => {
 		function Basic() {
 			return <>
-				<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
-				<div class="backslash">"line\nbreak"</div>
-				<pre class="multiline">"first
-second"</pre>
+				<div class="entities">Rock &amp; &quot;Roll&quot;</div>
+				<div class="backslash">line break</div>
+				<pre class="multiline">first
+second</pre>
 			</>;
 		}
 
 		render(Basic);
 
 		expect(container.querySelector('.entities').textContent).toBe('Rock & "Roll"');
-		expect(container.querySelector('.backslash').textContent).toBe('line\\nbreak');
+		expect(container.querySelector('.backslash').textContent).toBe('line break');
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
@@ -68,7 +68,7 @@ second"</pre>
 				void leaked;
 			}
 
-			return <>"Hello world"</>;
+			return <>Hello world</>;
 		}
 
 		render(Basic);
@@ -84,7 +84,7 @@ second"</pre>
 				if (!ready) {
 					return 'Waiting';
 				}
-				"Ready"
+				Ready
 			</>;
 		}
 

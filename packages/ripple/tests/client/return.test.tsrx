@@ -41,9 +41,9 @@ describe('returns in restricted scopes', () => {
 				function App() {
 					return <>
 						if (ready) {
-							=> <div>"yielded"</div>
+							=> <div>yielded</div>
 						}
-						<span>"after"</span>
+						<span>after</span>
 					</>;
 				}
 			`,
@@ -60,9 +60,9 @@ describe('function returns in client components', () => {
 			const ready = true;
 			return <>
 				if (ready) {
-					=> <div class="yielded">"yielded"</div>
+					=> <div class="yielded">yielded</div>
 				}
-				<span class="outer">"outer"</span>
+				<span class="outer">outer</span>
 			</>;
 		}
 
@@ -87,7 +87,9 @@ describe('function returns in client components', () => {
 				'test.tsrx',
 				{ mode: 'client' },
 			),
-		).toThrow('TSRX elements and text inside control flow blocks must be rendered with `=>`.');
+		).toThrow(
+			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+		);
 	});
 
 	it('throws when top-level TSRX render statements are mixed with fragment children', () => {
@@ -96,8 +98,8 @@ describe('function returns in client components', () => {
 				`
 				function App() {
 					return <>
-						=> <div>"yielded"</div>
-						<span>"after"</span>
+						=> <div>yielded</div>
+						<span>after</span>
 					</>;
 				}
 			`,
@@ -114,8 +116,8 @@ describe('function returns in client components', () => {
 			() => compile(`
 				function App() {
 					return <>
-						=> <div>"yielded"</div>
-						"after"
+						=> <div>yielded</div>
+						after
 					</>;
 				}
 			`, 'test.tsrx', {
@@ -131,9 +133,9 @@ describe('function returns in client components', () => {
 			const ready = true;
 			return <>
 				if (ready) {
-					return <div class="returned">"returned"</div>;
+					return <div class="returned">returned</div>;
 				}
-				<span class="after">"after"</span>
+				<span class="after">after</span>
 			</>;
 		}
 
