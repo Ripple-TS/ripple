@@ -22,4 +22,4 @@ title: Comparison to other frameworks
 
 - Components are ordinary functions that return TSRX
 - Built-in collections (RippleArray, RippleSet)
-- Returned templates support statement-style control flow
+- Returned templates support directive-prefixed template control flow

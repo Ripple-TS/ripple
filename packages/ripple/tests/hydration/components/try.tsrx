@@ -36,10 +36,10 @@ export function RootAsyncRejects() {
 
 export function AsyncListInTryPending() {
 	return <>
-		try {
-			=> <AsyncList />
+		@try {
+			<AsyncList />
 		} pending {
-			=> <p class="loading">{'loading...'}</p>
+			<p class="loading">{'loading...'}</p>
 		}
 	</>;
 }
@@ -48,8 +48,8 @@ function AsyncList() {
 	return <>
 		let &[items] = trackAsync(() => Promise.resolve(['alpha', 'beta', 'gamma']));
 		<ul class="items">
-			for (let item of items) {
-				=> <li>{item}</li>
+			@for (let item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -58,10 +58,10 @@ function AsyncList() {
 export function AsyncTryWithLeadingSibling() {
 	return <>
 		<div class="before">{'before'}</div>
-		try {
-			=> <AsyncContent />
+		@try {
+			<AsyncContent />
 		} pending {
-			=> <div class="loading">{'loading async content'}</div>
+			<div class="loading">{'loading async content'}</div>
 		}
 	</>;
 }

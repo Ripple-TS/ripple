@@ -251,8 +251,8 @@ function SidebarGroup({
 					</svg>
 				</div>
 			</div>
-			if (expanded) {
-				=> <div class="items">{children}</div>
+			@if (expanded) {
+				<div class="items">{children}</div>
 			}
 		</section>
 		<style>
@@ -353,12 +353,12 @@ function SidebarItem({
 		<div class={classes}>
 			<div class="item">
 				<div class="indicator" />
-				if (external) {
-					=> <a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
+				@if (external) {
+					<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
 						<p class="text">{label}</p>
 					</a>
 				} else {
-					=> <a {href} class="link link">
+					<a {href} class="link link">
 						<p class="text">{label}</p>
 					</a>
 				}

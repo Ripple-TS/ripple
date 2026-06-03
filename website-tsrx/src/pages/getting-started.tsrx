@@ -335,21 +335,21 @@ export function GettingStartedPage() {
 								}}
 							>
 								<option value="">{'Jump to section'}</option>
-								for (const group of NAV_GROUPS) {
-									=> <optgroup label={group.heading}>
-										for (const item of group.items) {
-											=> <option value={item.id}>{item.label}</option>
+								@for (const group of NAV_GROUPS) {
+									<optgroup label={group.heading}>
+										@for (const item of group.items) {
+											<option value={item.id}>{item.label}</option>
 										}
 									</optgroup>
 								}
 							</select>
 						</label>
 						<nav>
-							for (const group of NAV_GROUPS) {
-								=> <>
+							@for (const group of NAV_GROUPS) {
+								<>
 									<p class="side-nav-heading">{group.heading}</p>
-									for (const item of group.items) {
-										=> <a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+									@for (const item of group.items) {
+										<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
 									}
 								</>
 							}

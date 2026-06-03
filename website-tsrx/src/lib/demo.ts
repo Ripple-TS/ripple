@@ -10,14 +10,14 @@ export const DEFAULT_DEMO_SOURCE = `export const FeatureCard = ({
   <section class="feature-card">
     <h2>{title}</h2>
 
-    if (ready) {
-      => <ul>
-        for (const item of items; index index) {
-          => <li>{item}</li>
+    @if (ready) {
+      <ul>
+        @for (const item of items; index index) {
+          <li>{item}</li>
         }
       </ul>
     } else {
-      => <p>Loading output...</p>
+      <p>Loading output...</p>
     }
   </section>
 

@@ -23,12 +23,12 @@ describe('TSRX parser', () => {
 		expect(() => parseModule('function MyApp() { return* <div />; }', 'App.tsrx')).toThrow();
 	});
 
-	it('parses TSRX render statements', () => {
+	it('parses TSRX template directives with direct children', () => {
 		const ast = parseModule(
 			`function MyApp() {
 				return <>
-					if (ready) {
-						=> <div />;
+					@if (ready) {
+						<div />
 					}
 				</>;
 			}`,
@@ -36,25 +36,49 @@ describe('TSRX parser', () => {
 		);
 
 		const statement = ast.body[0].body.body[0].argument.children[0].consequent.body[0];
-		expect(statement.type).toBe('TsrxRenderStatement');
-		expect(statement.argument.type).toBe('Element');
-		expect(statement.argument.id.name).toBe('div');
+		expect(statement.type).toBe('Element');
+		expect(statement.id.name).toBe('div');
 	});
 
-	it('parses TSRX render statements in component children', () => {
+	it('rejects removed TSRX render marker syntax in control flow', () => {
+		expect(() =>
+			parseModule(
+				`function MyApp() {
+					return <>
+						@if (ready) {
+							=> <div />
+						}
+					</>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow();
+	});
+
+	it('rejects removed TSRX render marker syntax in component children', () => {
+		expect(() =>
+			parseModule(
+				`function MyApp() {
+					return <OtherComponent>
+						=> 'I like TSRX'
+					</OtherComponent>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow();
+	});
+
+	it('parses explicit expression children props', () => {
 		const ast = parseModule(
 			`function MyApp() {
-				return <OtherComponent>
-					=> 'I like TSRX'
-				</OtherComponent>;
+				return <OtherComponent children={'I like TSRX'} />;
 			}`,
 			'App.tsrx',
 		);
 
-		const statement = ast.body[0].body.body[0].argument.children[0];
-		expect(statement.type).toBe('TsrxRenderStatement');
-		expect(statement.argument.type).toBe('Literal');
-		expect(statement.argument.value).toBe('I like TSRX');
+		const attr = ast.body[0].body.body[0].argument.attributes[0];
+		expect(attr.type).toBe('Attribute');
+		expect(attr.name.name).toBe('children');
 	});
 
 	it('honors ASI for returned tags after a newline', () => {

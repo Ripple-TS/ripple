@@ -1883,17 +1883,6 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'TsrxRenderStatement': {
-			/** @type {Doc[]} */
-			const parts = ['=>'];
-			if (node.argument) {
-				parts.push(' ');
-				parts.push(path.call(print, 'argument'));
-			}
-			nodeContent = parts;
-			break;
-		}
-
 		case 'TsrxTemplateFence':
 			nodeContent = '---';
 			break;

@@ -11,7 +11,7 @@ TSRX template using the `<style>` element.
 function MyComponent() {
   return <>
   <div class="container">
-    <h1>"Hello World"</h1>
+    <h1>Hello World</h1>
   </div>
 
   <style>
@@ -139,9 +139,9 @@ function Child() {
   return <>
   // The div should have its font-size at 2rem from parent
   <div>
-    <h2 class="header">"This is a header with font-size 3rem"</h2>
-    <span class="highlight">"This will be red and bold"</span>
-    <p class="nested">"This will have left margin"</p>
+    <h2 class="header">This is a header with font-size 3rem</h2>
+    <span class="highlight">This will be red and bold</span>
+    <p class="nested">This will have left margin</p>
   </div>
 
   </>;
@@ -195,7 +195,7 @@ export function App() {
 
 function Child() {
   return <>
-  <div class="child">"Child content"</div>
+  <div class="child">Child content</div>
 
   <style>
     .child {
@@ -224,7 +224,7 @@ Each map entry contains both the CSS scope hash and the class name (for example
 ```ripple
 function Child({ class: className }: { class: string }) {
   return <>
-  <div class={className}>"styled child"</div>
+  <div class={className}>styled child</div>
 
   </>;
 }
@@ -245,8 +245,8 @@ You can pass multiple classes:
 ```ripple
 function Child({ primary, secondary }: { primary: string; secondary: string }) {
   return <>
-  <div class={primary}>"primary"</div>
-  <span class={secondary}>"secondary"</span>
+  <div class={primary}>primary</div>
+  <span class={secondary}>secondary</span>
 
   </>;
 }
@@ -274,7 +274,7 @@ import { track } from 'ripple';
 
 function Child({ cls }: { cls: string }) {
   return <>
-  <span class={cls}>"text"</span>
+  <span class={cls}>text</span>
 
   </>;
 }
@@ -301,7 +301,7 @@ scoped classes:
 ```ripple
 function Card({ class: className }: { class?: string }) {
   return <>
-  <div class={['card-base', className ?? '']}>"card content"</div>
+  <div class={['card-base', className ?? '']}>card content</div>
 
   <style>
     .card-base {

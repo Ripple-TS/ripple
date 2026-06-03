@@ -5,8 +5,8 @@ import { track } from 'ripple';
 export function IfTruthy() {
 	return <>
 		const show = true;
-		if (show) {
-			=> <div class="shown">{'Visible'}</div>
+		@if (show) {
+			<div class="shown">{'Visible'}</div>
 		}
 	</>;
 }
@@ -14,8 +14,8 @@ export function IfTruthy() {
 export function IfFalsy() {
 	return <>
 		const show = false;
-		if (show) {
-			=> <div class="shown">{'Visible'}</div>
+		@if (show) {
+			<div class="shown">{'Visible'}</div>
 		}
 	</>;
 }
@@ -23,10 +23,10 @@ export function IfFalsy() {
 export function IfElse() {
 	return <>
 		const isLoggedIn = true;
-		if (isLoggedIn) {
-			=> <div class="logged-in">{'Welcome back!'}</div>
+		@if (isLoggedIn) {
+			<div class="logged-in">{'Welcome back!'}</div>
 		} else {
-			=> <div class="logged-out">{'Please log in'}</div>
+			<div class="logged-out">{'Please log in'}</div>
 		}
 	</>;
 }
@@ -42,8 +42,8 @@ export function ReactiveIf() {
 		>
 			{'Toggle'}
 		</button>
-		if (show) {
-			=> <div class="content">{'Content visible'}</div>
+		@if (show) {
+			<div class="content">{'Content visible'}</div>
 		}
 	</>;
 }
@@ -59,10 +59,10 @@ export function ReactiveIfElse() {
 		>
 			{'Toggle'}
 		</button>
-		if (isOn) {
-			=> <div class="on">{'ON'}</div>
+		@if (isOn) {
+			<div class="on">{'ON'}</div>
 		} else {
-			=> <div class="off">{'OFF'}</div>
+			<div class="off">{'OFF'}</div>
 		}
 	</>;
 }
@@ -87,11 +87,11 @@ export function NestedIf() {
 		>
 			{'Inner'}
 		</button>
-		if (outer) {
-			=> <div class="outer-content">
+		@if (outer) {
+			<div class="outer-content">
 				{'Outer'}
-				if (inner) {
-					=> <span class="inner-content">{'Inner'}</span>
+				@if (inner) {
+					<span class="inner-content">{'Inner'}</span>
 				}
 			</div>
 		}
@@ -126,12 +126,12 @@ export function IfElseIfChain() {
 			>
 				{'Loading'}
 			</button>
-			if (status === 'loading') {
-				=> <div class="state">{'Loading...'}</div>
+			@if (status === 'loading') {
+				<div class="state">{'Loading...'}</div>
 			} else if (status === 'success') {
-				=> <div class="state">{'Success!'}</div>
+				<div class="state">{'Success!'}</div>
 			} else {
-				=> <div class="state">{'Error occurred'}</div>
+				<div class="state">{'Error occurred'}</div>
 			}
 		</div>
 	</>;

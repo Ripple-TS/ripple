@@ -87,16 +87,16 @@ function NestedHelperItem({ item }: { item: number }) {
 function NestedTsxTsrxFragment({ label }: { label: string }) {
 	return <>
 		<span class="label">{label}</span>
-		for (const item of [1, 2, 3, 4]) {
-			=> <NestedHelperItem {item} />
+		@for (const item of [1, 2, 3, 4]) {
+			<NestedHelperItem {item} />
 		}
 	</>;
 }
 
 export function NestedTsxTsrxExpressionValues() {
 	return <>
-		for (const item of [1, 2, 3]) {
-			=> <div class="app-item">{item}</div>
+		@for (const item of [1, 2, 3]) {
+			<div class="app-item">{item}</div>
 		}
 		<NestedTsxTsrxFragment label="from helper" />
 	</>;
@@ -299,8 +299,8 @@ function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) 
 		<div class="social-links">
 			<a href="https://github.com" class="github-link">{'GitHub'}</a>
 			<a href="https://discord.com" class="discord-link">{'Discord'}</a>
-			if (playgroundVisible) {
-				=> <a href="/playground" class="playground-link">{'Playground'}</a>
+			@if (playgroundVisible) {
+				<a href="/playground" class="playground-link">{'Playground'}</a>
 			}
 		</div>
 	</>;

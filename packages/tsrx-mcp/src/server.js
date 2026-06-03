@@ -600,7 +600,7 @@ export function createTSRXMcpServer(options = {}) {
 		{
 			title: 'Review TSRX Accessibility',
 			description:
-				'Reviews TSRX source for common accessibility issues before browser-based Axe validation, including missing button names, unlabeled form controls, and direct quoted text that may not render as accessible text.',
+				'Reviews TSRX source for common accessibility issues before browser-based Axe validation, including missing button names, unlabeled form controls, and quoted text that includes literal quote characters.',
 			inputSchema: {
 				code: z.string(),
 				filename: z.string().optional(),

@@ -2,4 +2,4 @@
 "@tsrx/ripple": patch
 ---
 
-Require TSRX output inside control-flow blocks to use `=>` render statements.
+Require rendered TSRX control-flow branches to use directive-prefixed template control flow instead of plain JavaScript blocks.

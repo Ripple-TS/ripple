@@ -26,18 +26,6 @@ export const simple_hash = simpleHash;
 export const strong_hash = strongHash;
 
 /**
- * @param {unknown} node
- * @returns {node is AST.TsrxRenderStatement}
- */
-export function is_tsrx_render_statement(node) {
-	return (
-		typeof node === 'object' &&
-		node !== null &&
-		/** @type {{ type?: string }} */ (node).type === 'TsrxRenderStatement'
-	);
-}
-
-/**
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
@@ -311,62 +299,7 @@ export function expand_native_tsrx_return_statements(
  * @returns {AST.Node[]}
  */
 export function expand_tsrx_template_return_statements(nodes) {
-	return select_tsrx_render_statement_output(nodes).flatMap((node) =>
-		expand_tsrx_template_return_statement(node),
-	);
-}
-
-/**
- * @param {AST.Node[]} children
- * @returns {AST.Expression | null}
- */
-export function get_first_tsrx_render_child_expression(children) {
-	const filtered = children.filter((child) => child.type !== 'EmptyStatement');
-	for (const child of filtered) {
-		if (is_tsrx_render_statement(child)) {
-			if (child.argument !== null) {
-				return child.argument;
-			}
-		}
-	}
-
-	return null;
-}
-
-/**
- * A direct `=>` chooses the output for its TSRX block. Earlier direct template
- * children are not rendered, but setup statements remain available to the yield.
- * @param {AST.Node[]} nodes
- * @returns {AST.Node[]}
- */
-function select_tsrx_render_statement_output(nodes) {
-	const render_index = nodes.findIndex(is_tsrx_render_statement);
-	if (render_index === -1) {
-		return nodes;
-	}
-
-	return nodes.filter(
-		(node, index) => index >= render_index || !is_direct_tsrx_render_output_node(node),
-	);
-}
-
-/**
- * @param {AST.Node} node
- * @returns {boolean}
- */
-function is_direct_tsrx_render_output_node(node) {
-	if (node.metadata?.regular_js || node.metadata?.returned_tsrx_child) {
-		return false;
-	}
-
-	return (
-		node.type === 'Element' ||
-		node.type === 'TSRXExpression' ||
-		node.type === 'Text' ||
-		node.type === 'TsrxFragment' ||
-		node.type === 'TsxCompat' ||
-		(node.type === 'ExpressionStatement' && is_native_tsrx_template_node(node.expression))
-	);
+	return nodes.flatMap((node) => expand_tsrx_template_return_statement(node));
 }
 
 /**
@@ -375,27 +308,6 @@ function is_direct_tsrx_render_output_node(node) {
  */
 function expand_tsrx_template_return_statement(node) {
 	if (node.metadata?.returned_tsrx_child) {
-		return [node];
-	}
-
-	if (is_tsrx_render_statement(node)) {
-		const argument = node.argument;
-		if (is_native_tsrx_template_node(argument)) {
-			node.argument = null;
-			const children = get_native_tsrx_template_children(
-				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (argument)),
-			).map(mark_returned_template_child);
-			return [...children, node];
-		}
-
-		if (
-			should_render_return_argument(/** @type {AST.Expression | null | undefined} */ (argument))
-		) {
-			node.argument = null;
-			const child = create_return_argument_child(/** @type {AST.Expression} */ (argument), node);
-			return [child, node];
-		}
-
 		return [node];
 	}
 
@@ -502,8 +414,8 @@ function expand_embedded_tsrx_template_return_statement(statement) {
 }
 
 /**
- * @param {AST.Statement} statement
- * @returns {AST.Statement}
+ * @param {AST.Node} statement
+ * @returns {AST.Node}
  */
 function mark_regular_js_statement(statement) {
 	statement.metadata = {
@@ -532,9 +444,7 @@ function mark_returned_template_child(node) {
  */
 function mark_returned_template_children(nodes) {
 	return nodes.map((node) =>
-		node.type === 'ReturnStatement' || is_tsrx_render_statement(node)
-			? node
-			: mark_returned_template_child(node),
+		node.type === 'ReturnStatement' ? node : mark_returned_template_child(node),
 	);
 }
 

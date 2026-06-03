@@ -39,16 +39,16 @@ const STATEMENT_CONTROL_FLOW_HTML = highlight_tsrx(
 
     <ul>
       for (const item of visibleItems; key item.id) {
-        => <li>{item.label}</li>
+        <li>{item.label}</li>
       }
     </ul>
 
     try {
-      => <ActivityFeed />
+      <ActivityFeed />
     } pending {
-      => <p>Loading activity...</p>
+      <p>Loading activity...</p>
     } catch (error) {
-      => <p>Could not load activity.</p>
+      <p>Could not load activity.</p>
     }
   </>;
 }`,
@@ -86,7 +86,7 @@ const REACT_PREACT_HOOKS_HTML = highlight_tsrx(
     if (user.showActivity) {
       const [tab, setTab] = useState('overview');
 
-      => <ActivityTabs value={tab} onChange={setTab} />
+      <ActivityTabs value={tab} onChange={setTab} />
     }
 
     <ProfileCard {user} />

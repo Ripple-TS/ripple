@@ -8,8 +8,8 @@ export function IfWithChildren({ children }: { children: any }) {
 		let &[expanded] = track(true);
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			if (expanded) {
-				=> <div class="content">{children}</div>
+			@if (expanded) {
+				<div class="content">{children}</div>
 			}
 		</div>
 	</>;
@@ -34,8 +34,8 @@ export function IfWithStaticChildren() {
 		let &[expanded] = track(true);
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			if (expanded) {
-				=> <div class="content">
+			@if (expanded) {
+				<div class="content">
 					<span>{'Static child 1'}</span>
 					<span>{'Static child 2'}</span>
 				</div>
@@ -58,8 +58,8 @@ export function IfWithSiblingsAndChildren({ children }: { children: any }) {
 					</svg>
 				</div>
 			</div>
-			if (expanded) {
-				=> <div class="items">{children}</div>
+			@if (expanded) {
+				<div class="items">{children}</div>
 			}
 		</section>
 	</>;
@@ -86,8 +86,8 @@ export function ElementWithChildrenThenIf() {
 					<span class="deep">{'Deep content'}</span>
 				</div>
 			</div>
-			if (show) {
-				=> <div class="conditional">{'Conditional content'}</div>
+			@if (show) {
+				<div class="conditional">{'Conditional content'}</div>
 			}
 		</div>
 		<button class="toggle" onClick={() => (show = !show)}>{'Toggle'}</button>
@@ -107,8 +107,8 @@ export function DeepNestingThenIf() {
 					</p>
 				</div>
 			</article>
-			if (visible) {
-				=> <footer class="footer">{'Footer'}</footer>
+			@if (visible) {
+				<footer class="footer">{'Footer'}</footer>
 			}
 		</section>
 		<button class="btn" onClick={() => (visible = !visible)}>{'Toggle'}</button>
@@ -139,10 +139,10 @@ export function DomElementChildrenThenSibling() {
 				</button>
 			</div>
 			<div class="panel">
-				if (activeTab === 'code') {
-					=> <pre class="code">{'const x = 1;'}</pre>
+				@if (activeTab === 'code') {
+					<pre class="code">{'const x = 1;'}</pre>
 				} else {
-					=> <div class="preview">{'Preview content'}</div>
+					<div class="preview">{'Preview content'}</div>
 				}
 			</div>
 		</div>

@@ -612,17 +612,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			}
 		}
 
-		if (child?.type === 'TsrxRenderStatement') {
-			const jsx = tsrx_render_statement_to_jsx_child(child, transform_context);
-			statements.push(...extract_jsx_setup_declarations(jsx));
-			if (interleaved && is_capturable_jsx_child(jsx)) {
-				const { declaration, reference } = captureJsxChild(jsx, capture_index++);
-				statements.push(declaration);
-				render_nodes.push(reference);
-			} else {
-				render_nodes.push(jsx);
-			}
-		} else if (is_jsx_child(child)) {
+		if (is_jsx_child(child)) {
 			const jsx = to_jsx_child(child, transform_context);
 			statements.push(...extract_jsx_setup_declarations(jsx));
 			if (interleaved && is_capturable_jsx_child(jsx)) {
@@ -2716,10 +2706,7 @@ function is_inline_element_child(node) {
  * @returns {boolean}
  */
 function is_statement_render_child(node) {
-	return !!(
-		node &&
-		(node.type === 'TsrxRenderStatement' || is_jsx_child(node) || is_bare_render_expression(node))
-	);
+	return !!(node && (is_jsx_child(node) || is_bare_render_expression(node)));
 }
 
 /**
@@ -2736,19 +2723,6 @@ function is_template_fence(node) {
  */
 function without_template_fences(body_nodes) {
 	return body_nodes.filter((node) => !is_template_fence(node));
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function tsrx_render_statement_to_jsx_child(node, transform_context) {
-	const argument = node.argument ?? create_null_literal();
-	if (is_jsx_child(argument)) {
-		return to_jsx_child(argument, transform_context);
-	}
-	return to_jsx_expression_container(argument, node);
 }
 
 /**
@@ -3816,8 +3790,6 @@ function to_jsx_child(node, transform_context) {
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
 			return to_jsx_expression_container(node.expression, node);
-		case 'TsrxRenderStatement':
-			return tsrx_render_statement_to_jsx_child(node, transform_context);
 		case 'IfStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.ifStatement ?? if_statement_to_jsx_child
@@ -5118,9 +5090,7 @@ function build_switch_with_lift(switch_node, transform_context) {
 					has_terminal = true;
 					break;
 				}
-				if (child.type === 'TsrxRenderStatement') {
-					render_nodes.push(tsrx_render_statement_to_jsx_child(child, transform_context));
-				} else if (is_jsx_child(child)) {
+				if (is_jsx_child(child)) {
 					render_nodes.push(to_jsx_child(child, transform_context));
 				} else if (is_bare_render_expression(child)) {
 					render_nodes.push(to_jsx_expression_container(child, child));

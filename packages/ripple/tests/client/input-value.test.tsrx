@@ -1646,8 +1646,8 @@ describe('use value()', () => {
 				]);
 				<div>
 					<select ref={bindValue(selected)}>
-						for (const option of options) {
-							=> <option value={option.id}>{option.text}</option>
+						@for (const option of options) {
+							<option value={option.id}>{option.text}</option>
 						}
 					</select>
 					<button onClick={() => options.push({ id: 5, text: 'Five' })}>{'Add'}</button>
@@ -1687,8 +1687,8 @@ describe('use value()', () => {
 					return () => clearTimeout(timeout);
 				});
 				<select ref={bindValue(selected)}>
-					for (const option of options) {
-						=> <option value={option.id}>{option.text}</option>
+					@for (const option of options) {
+						<option value={option.id}>{option.text}</option>
 					}
 				</select>
 			</>;

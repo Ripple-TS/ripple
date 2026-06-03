@@ -54,7 +54,6 @@ import {
 	get_native_tsrx_function_body,
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
-	is_tsrx_render_statement,
 	is_tsrx_component_function,
 } from '../utils.js';
 import is_reference from 'is-reference';
@@ -85,8 +84,6 @@ const mutating_method_names = new Set([
 
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
-const TSRX_RENDER_MIXED_CHILDREN_ERROR =
-	'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body. Use either `=>` or ordinary TSRX children.';
 const CONTROL_FLOW_TSRX_OUTPUT_ERROR =
 	'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.';
 
@@ -163,38 +160,6 @@ function is_return_argument_output_child(nodes, index) {
 	return (
 		nodes[index]?.metadata?.returned_tsrx_child === true &&
 		nodes[index + 1]?.type === 'ReturnStatement'
-	);
-}
-
-/**
- * @param {AST.Node[]} children
- * @param {AnalysisContext} context
- * @returns {void}
- */
-function validate_tsrx_render_statement_children(children, context) {
-	const render_index = children.findIndex(is_tsrx_render_statement);
-	if (render_index === -1) {
-		return;
-	}
-
-	const output_index = children.findIndex(
-		(child, index) =>
-			is_direct_tsrx_output_child(child) && !is_return_argument_output_child(children, index),
-	);
-	if (output_index === -1) {
-		return;
-	}
-
-	const conflict =
-		output_index > render_index
-			? children[output_index]
-			: /** @type {AST.Node} */ (children[render_index]);
-	error(
-		TSRX_RENDER_MIXED_CHILDREN_ERROR,
-		context.state.analysis.module.filename,
-		conflict,
-		context.state.collect ? context.state.analysis.errors : undefined,
-		context.state.analysis.comments,
 	);
 }
 
@@ -1824,11 +1789,11 @@ const visitors = {
 				has_template: false,
 			};
 
-				validate_control_flow_tsrx_output(
-					switch_case.consequent,
-					context,
-					node.metadata?.tsrxDirective === 'switch',
-				);
+			validate_control_flow_tsrx_output(
+				switch_case.consequent,
+				context,
+				node.metadata?.tsrxDirective === 'switch',
+			);
 			context.visit(switch_case, context.state);
 
 			if (!node.metadata.has_template) {
@@ -1906,11 +1871,11 @@ const visitors = {
 			...node.metadata,
 			has_template: false,
 		};
-			validate_control_flow_tsrx_output(
-				get_control_flow_body_statements(node.body),
-				context,
-				node.metadata?.tsrxDirective === 'for',
-			);
+		validate_control_flow_tsrx_output(
+			get_control_flow_body_statements(node.body),
+			context,
+			node.metadata?.tsrxDirective === 'for',
+		);
 		context.next();
 
 		if (!node.metadata.has_template) {
@@ -2085,6 +2050,12 @@ const visitors = {
 		}
 
 		if (node.alternate) {
+			if (node.metadata?.tsrxDirective === 'if' && node.alternate.type === 'IfStatement') {
+				node.alternate.metadata = {
+					...node.alternate.metadata,
+					tsrxDirective: 'if',
+				};
+			}
 			const saved_has_return = node.metadata.has_return;
 			const saved_returns = node.metadata.returns;
 			const saved_has_continue = node.metadata.has_continue;
@@ -2177,20 +2148,6 @@ const visitors = {
 			}
 			ancestor.metadata.returns.push(node);
 			ancestor.metadata.has_return = true;
-		}
-	},
-
-	/**
-	 * @param {AST.TsrxRenderStatement} node
-	 * @param {AnalysisContext} context
-	 * @returns {void}
-	 */
-	TsrxRenderStatement(node, context) {
-		mark_control_flow_has_template(context.path);
-		if (is_native_tsrx_template_node(node.argument)) {
-			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
-		} else if (node.argument) {
-			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
 		}
 	},
 
@@ -2392,7 +2349,6 @@ const visitors = {
 		}
 
 		mark_control_flow_has_template(context.path);
-		validate_tsrx_render_statement_children(node.children ?? [], context);
 		return context.next();
 	},
 
@@ -2432,7 +2388,6 @@ const visitors = {
 		const attribute_names = new Set();
 
 		mark_control_flow_has_template(path);
-		validate_tsrx_render_statement_children(node.children ?? [], context);
 
 		if (
 			!is_dom_element &&

@@ -3,18 +3,18 @@ describe('SSR: switch statements', () => {
 		function App() {
 			return <>
 				let value = 'b';
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						=> <div>{'Case A'}</div>
+						<div>Case A</div>
 						break;
 					case 'b':
-						=> <div>{'Case B'}</div>
+						<div>Case B</div>
 						break;
 					case 'c':
-						=> <div>{'Case C'}</div>
+						<div>{'Case C'}</div>
 						break;
 					default:
-						=> <div>{'Default Case'}</div>
+						<div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -27,16 +27,16 @@ describe('SSR: switch statements', () => {
 		function App() {
 			return <>
 				let value = 'b';
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						=> <div>{'Case A'}</div>
+						<div>Case A</div>
 						break;
 					case 'b':
 					case 'c':
-						=> <div>{'Case B or C'}</div>
+						<div>Case B or C</div>
 						break;
 					default:
-						=> <div>{'Default Case'}</div>
+						<div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -49,16 +49,16 @@ describe('SSR: switch statements', () => {
 		function App() {
 			return <>
 				let value = 'a';
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						=> <div>{'Case A'}</div>
+						<div>Case A</div>
 					case 'b':
-						=> <div>{'Case B'}</div>
+						<div>Case B</div>
 					case 'c':
-						=> <div>{'Case C'}</div>
+						<div>{'Case C'}</div>
 						break;
 					default:
-						=> <div>{'Default Case'}</div>
+						<div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -71,16 +71,16 @@ describe('SSR: switch statements', () => {
 		function App() {
 			return <>
 				let value = 'x';
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						=> <div>{'Case A'}</div>
+						<div>Case A</div>
 					default:
-						=> <div>{'Default Case'}</div>
+						<div>{'Default Case'}</div>
 					case 'b':
-						=> <div>{'Case B'}</div>
+						<div>Case B</div>
 						break;
 					case 'c':
-						=> <div>{'Case C'}</div>
+						<div>{'Case C'}</div>
 						break;
 				}
 			</>;
@@ -96,11 +96,11 @@ describe('SSR: switch statements', () => {
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
+					@switch (value) {
 						case 'a':
-							=> 'Case A'
+							Case A
 						case 'b':
-							=> 'Case B'
+							Case B
 					}
 				</div>
 			</>;
@@ -116,12 +116,12 @@ describe('SSR: switch statements', () => {
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
+					@switch (value) {
 						case 'a':
-							=> 'Case A'
+							Case A
 							break;
 						case 'b':
-							=> 'Case B'
+							Case B
 							break;
 					}
 				</div>

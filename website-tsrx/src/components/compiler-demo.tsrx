@@ -431,17 +431,17 @@ export function CompilerDemo() {
 					<label class="snippet-picker">
 						<select class="snippet-select" ref={bindValue(selected_snippet)}>
 							<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
-							for (const snippet of DEMO_SNIPPETS) {
-								if (is_snippet_available_for_target(snippet, selected_target.value)) {
-									=> <option value={snippet.value}>{snippet.label}</option>
+							@for (const snippet of DEMO_SNIPPETS) {
+								@if (is_snippet_available_for_target(snippet, selected_target.value)) {
+									<option value={snippet.value}>{snippet.label}</option>
 								}
 							}
 						</select>
 					</label>
 					<label class="target-picker">
 						<select class="target-select" ref={bindValue(selected_target)}>
-							for (const option of TARGET_OPTIONS) {
-								=> <option value={option.value}>{option.label}</option>
+							@for (const option of TARGET_OPTIONS) {
+								<option value={option.value}>{option.label}</option>
 							}
 						</select>
 					</label>
@@ -479,8 +479,8 @@ export function CompilerDemo() {
 						<span>{TARGET_LABELS[selected_target.value]}</span>
 					</div>
 					<div class="panel-body">
-						if (error_message) {
-							=> <div class="panel-error" role="alert">{error_message}</div>
+						@if (error_message) {
+							<div class="panel-error" role="alert">{error_message}</div>
 						}
 						<div class="editor-host" ref={bindNode(output_ref)} />
 					</div>

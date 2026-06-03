@@ -57,8 +57,8 @@ describe('SVG namespace handling', () => {
 					fill="none"
 					stroke="currentColor"
 				>
-					for (const pathData of d) {
-						=> <path d={pathData} />
+					@for (const pathData of d) {
+						<path d={pathData} />
 					}
 				</svg>
 			</>;
@@ -106,8 +106,8 @@ describe('SVG namespace handling', () => {
 					stroke="currentColor"
 				>
 					<circle cx="12" cy="12" r="10" />
-					for (const pathData of dynamicPaths) {
-						=> <path d={pathData} />
+					@for (const pathData of dynamicPaths) {
+						<path d={pathData} />
 					}
 					<rect x="4" y="4" width="16" height="16" />
 				</svg>
@@ -142,8 +142,8 @@ describe('SVG namespace handling', () => {
 				];
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
 					<g fill="blue">
-						for (const item of items) {
-							=> <rect x={item.x} y={item.y} width={item.width} height={item.height} />
+						@for (const item of items) {
+							<rect x={item.x} y={item.y} width={item.width} height={item.height} />
 						}
 					</g>
 				</svg>
@@ -178,8 +178,8 @@ describe('SVG namespace handling', () => {
 				let className = 'svg-element';
 				const paths = ['M10 10 L20 20'];
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" class={className}>
-					for (const pathData of paths) {
-						=> <path d={pathData} class="dynamic-path" />
+					@for (const pathData of paths) {
+						<path d={pathData} class="dynamic-path" />
 					}
 					<circle cx="50" cy="50" r="10" class={className} />
 				</svg>
@@ -252,10 +252,10 @@ describe('SVG namespace handling', () => {
 			return <>
 				let isDiamond = true;
 				<SVG>
-					if (isDiamond) {
-						=> <polygon points="0,0 30,0 15,10" />
+					@if (isDiamond) {
+						<polygon points="0,0 30,0 15,10" />
 					} else {
-						=> <polygon points="0,0 30,0 15,10" />
+						<polygon points="0,0 30,0 15,10" />
 					}
 				</SVG>
 			</>;
@@ -407,8 +407,8 @@ describe('SVG namespace handling', () => {
 						stroke="currentColor"
 						class="dynamic-svg"
 					>
-						for (const path of d) {
-							=> <path d={path} />
+						@for (const path of d) {
+							<path d={path} />
 						}
 					</svg>
 
@@ -478,12 +478,12 @@ describe('SVG namespace handling', () => {
 				];
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
 					for (const [tag, attrs] of iconNodes) {
-						switch (tag) {
+						@switch (tag) {
 							case 'path':
-								=> <path {...attrs} />
+								<path {...attrs} />
 								break;
 							case 'circle':
-								=> <circle {...attrs} />
+								<circle {...attrs} />
 								break;
 						}
 					}

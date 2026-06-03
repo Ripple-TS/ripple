@@ -69,8 +69,8 @@ export function Editor() {
 			</div>
 			<div class="editor-content">
 				<pre class="editor-code" ref={bindNode(nodeRef)}>
-					if (loading) {
-						=> <span class="editor-loader">{'Loading...'}</span>
+					@if (loading) {
+						<span class="editor-loader">{'Loading...'}</span>
 					}
 				</pre>
 			</div>

@@ -4,6 +4,9 @@
 "@tsrx/react": patch
 "@tsrx/solid": patch
 "@tsrx/vue": patch
+"@tsrx/ripple": patch
+"@tsrx/prettier-plugin": patch
+"@tsrx/mcp": patch
 ---
 
-Lower `=>` TSRX render statements in React, Preact, Solid, and Vue target compilers, including arrow-fragment component bodies and component children expression shortcuts.
+Remove the experimental `=>` TSRX render statement syntax in favor of directive-prefixed template control flow, and support JSX text directly in template switch cases.

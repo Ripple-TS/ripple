@@ -10,13 +10,13 @@ export function App() {
 					class="logo"
 				/>
 
-				<p class="subtitle">"The elegant TypeScript UI framework."</p>
+				<p class="subtitle">The elegant TypeScript UI framework.</p>
 
 				<div class="counter">
 					let &[count] = track(0);
-					<button onClick={() => count--}>"-"</button>
+					<button onClick={() => count--}>-</button>
 					<span class="count">{count}</span>
-					<button onClick={() => count++}>"+"</button>
+					<button onClick={() => count++}>+</button>
 				</div>
 
 				<div class="links">
@@ -32,10 +32,11 @@ export function App() {
 					</a>
 				</div>
 
-				<p class="info">"This is a basic Ripple application template."</p>
+				<p class="info">This is a basic Ripple application template.</p>
 				<p class="edit-hint">
 					"Edit "
-					<code>"src/App.tsrx"</code>
+					<code>src/App.tsrx</code>
+
 					" to get started."
 				</p>
 			</div>

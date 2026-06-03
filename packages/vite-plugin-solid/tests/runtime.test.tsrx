@@ -172,7 +172,7 @@ let element_ref_captured: HTMLDivElement | null = null;
 function ElementRefApp() {
 	return <>
 		let el: HTMLDivElement | undefined;
-		<div ref={el} class="ref-target">"ref test"</div>
+		<div ref={el} class="ref-target">ref test</div>
 		// Solid sets refs synchronously during rendering.
 		queueMicrotask(() => {
 			element_ref_captured = el ?? null;
@@ -192,7 +192,7 @@ function ElementRefCallbackApp() {
 			}}
 			class="ref-callback"
 		>
-			"ref callback"
+			ref callback
 		</div>
 	</>;
 }
@@ -466,7 +466,7 @@ function NamedRefObjectApp() {
 function IfReactiveApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		@if (show()) {
 			<span class="visible">{'shown'}</span>
 		} else {
 			<span class="hidden">{'hidden'}</span>
@@ -480,7 +480,7 @@ function IfReactiveApp() {
 function ForReactiveApp() {
 	return <>
 		const [items, setItems] = createSignal(['a', 'b', 'c']);
-		for (const item of items(); index i) {
+		@for (const item of items(); index i) {
 			<li class="item">{item()}</li>
 		}
 		<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
@@ -491,8 +491,9 @@ function ForReactiveApp() {
 function ForContinueApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		@for (const item of items) {
 			const item_value = (item as unknown as () => string)();
+
 			if (!item_value) continue;
 			<li class="continue-item">{item_value}</li>
 		}
@@ -502,9 +503,10 @@ function ForContinueApp() {
 function ForContinueAfterPriorJsxApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		@for (const item of items) {
 			const item_value = (item as unknown as () => string)();
 			<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
+
 			if (!item_value) continue;
 			<span class="continue-after">{`after-${item_value}`}</span>
 		}
@@ -516,7 +518,7 @@ function ForContinueAfterPriorJsxApp() {
 function SwitchReactiveApp() {
 	return <>
 		const [page, setPage] = createSignal('home');
-		switch (page()) {
+		@switch (page()) {
 			case 'home':
 				<div class="page">{'Home'}</div>
 				break;
@@ -535,7 +537,7 @@ function SwitchReactiveApp() {
 function SwitchBreakTrailingReturnApp() {
 	return <>
 		const [kind, setKind] = createSignal('skip');
-		switch (kind()) {
+		@switch (kind()) {
 			case 'skip':
 				break;
 			case 'done':
@@ -566,7 +568,7 @@ function IfChildrenApp() {
 	return <>
 		const [show, setShow] = createSignal(false);
 		<Wrapper>
-			if (show()) {
+			@if (show()) {
 				<span class="inner-visible">{'inner shown'}</span>
 			}
 		</Wrapper>
@@ -598,7 +600,7 @@ function ThrowingChild() {
 
 function ErrorBoundaryApp() {
 	return <>
-		try {
+		@try {
 			<ThrowingChild />
 		} catch (err) {
 			<p class="caught">{(err as Error).message}</p>
@@ -620,7 +622,7 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 function ErrorToggleApp() {
 	return <>
 		const [fail, setFail] = createSignal(false);
-		try {
+		@try {
 			<MaybeThrow shouldThrow={fail()} />
 		} catch (err, reset) {
 			<p class="caught">{(err as Error).message}</p>
@@ -647,7 +649,7 @@ function ResolvedChild(props: { value: string }) {
 function SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		@try {
 			<LazyChild value="hello" />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -660,7 +662,7 @@ function EmptyPendingSuspenseApp(props: {
 }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		@try {
 			<LazyChild value="hello" />
 		} pending {}
 	</>;
@@ -671,7 +673,7 @@ function EmptyPendingSuspenseApp(props: {
 function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		@try {
 			<LazyChild value="hello" />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -692,9 +694,9 @@ function InnerThrow() {
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err) {
 					<p class="inner-caught">{(err as Error).message}</p>
@@ -711,8 +713,8 @@ function NestedTryApp() {
 function IfInsideTryApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		try {
-			if (show()) {
+		@try {
+			@if (show()) {
 				<p class="branch-a">{'visible'}</p>
 			} else {
 				<p class="branch-b">{'alternate'}</p>
@@ -729,8 +731,8 @@ function IfInsideTryApp() {
 function ForInsideTryApp() {
 	return <>
 		const [items, setItems] = createSignal(['x', 'y']);
-		try {
-			for (const item of items(); index i) {
+		@try {
+			@for (const item of items(); index i) {
 				<span class="try-item">{item()}</span>
 			}
 		} catch (err) {
@@ -745,7 +747,7 @@ function ForInsideTryApp() {
 function SignalInIfApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		@if (show()) {
 			const [count, setCount] = createSignal(0);
 			<p class="sig-if-count">{count()}</p>
 			<button class="sig-if-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
@@ -761,7 +763,7 @@ function SignalInIfApp() {
 function SignalInBothBranchesApp() {
 	return <>
 		const [mode, setMode] = createSignal('a');
-		if (mode() === 'a') {
+		@if (mode() === 'a') {
 			const [x, setX] = createSignal(10);
 			<p class="branch-val">{x()}</p>
 			<button class="branch-inc" onClick={() => setX(x() + 1)}>{'inc'}</button>
@@ -781,7 +783,7 @@ function SignalInBothBranchesApp() {
 function SignalClosingOverScopeApp() {
 	return <>
 		const [multiplier, setMultiplier] = createSignal(2);
-		if (multiplier() > 0) {
+		@if (multiplier() > 0) {
 			const [base, setBase] = createSignal(5);
 			<p class="scope-result">{base() * multiplier()}</p>
 			<button class="scope-inc-base" onClick={() => setBase(base() + 1)}>{'inc base'}</button>
@@ -800,8 +802,9 @@ function SignalClosingOverScopeApp() {
 function SignalInForApp() {
 	return <>
 		const [items, setItems] = createSignal(['a', 'b']);
-		for (const item of items(); index i) {
+		@for (const item of items(); index i) {
 			const item_value = (item as unknown as () => string)();
+
 			const [clicked, setClicked] = createSignal(false);
 			<div class="sig-for-item">
 				<span>{item_value + (clicked() ? '!' : '')}</span>
@@ -819,7 +822,7 @@ function SignalInForApp() {
 function SignalInSwitchApp() {
 	return <>
 		const [page, setPage] = createSignal('home');
-		switch (page()) {
+		@switch (page()) {
 			case 'home':
 				const [homeCount, setHomeCount] = createSignal(0);
 				<p class="sig-switch-val">{homeCount()}</p>
@@ -864,7 +867,7 @@ function ConditionalBranchTemplateApp() {
 	return <>
 		const [guard, setGuard] = createSignal(false);
 		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
-		if (!guard()) {
+		@if (!guard()) {
 			<p class="template-return-rest">{'rest'}</p>
 		} else {
 			<p class="template-return-guard">{'guard'}</p>
@@ -877,7 +880,7 @@ function ConditionalBranchTemplateApp() {
 function StaticInBranchApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		@if (show()) {
 			<div class="branch-static">
 				<span>{'Always the same'}</span>
 			</div>
@@ -924,7 +927,7 @@ function MidTemplateLocalsApp() {
 		<div class="mid-template-shell">
 			const [count, setCount] = createSignal(0);
 
-			for (const item of ['a', 'b']; index i) {
+			@for (const item of ['a', 'b']; index i) {
 				<span class="mid-template-item">{item()}</span>
 			}
 

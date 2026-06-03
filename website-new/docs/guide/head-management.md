@@ -15,7 +15,7 @@ export function App() {
   let &[curr_step] = track(0);
 
   <head>
-    <title>"Step "{curr_step}</title>
+    <title>Step {curr_step}</title>
   </head>
 
   <button

@@ -198,7 +198,7 @@ function Child(&{ count, className, children }: Props) {
   return <>
   // count, className, children are lazily read from the props object
   <button class={className}>{children}</button>
-  <pre>"Count is: "{count}</pre>
+  <pre>Count is: {count}</pre>
 
   </>;
 }
@@ -251,7 +251,7 @@ export function App() {
 
   const &[double] = createDouble(countTracked);
 
-  <div>"Double: "{double}</div>
+  <div>Double: {double}</div>
   <button
     onClick={() => {
       count++;
@@ -307,14 +307,14 @@ function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
 
 function Child1(props) {
   return <>
-  <pre>"I am child 1"</pre>
+  <pre>I am child 1</pre>
 
   </>;
 }
 
 function Child2(props) {
   return <>
-  <pre>"I am child 2"</pre>
+  <pre>I am child 2</pre>
 
   </>;
 }
@@ -340,7 +340,7 @@ export function App() {
     console.log(count);
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 
   </>;
 }
@@ -377,7 +377,7 @@ export function App() {
     });
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 
   </>;
 }
@@ -485,10 +485,10 @@ export function App() {
       "Length: "
       {items.length}
     </p> // Reactive length
-    for (const item of items) {
+    @for (const item of items) {
       <div>{item}</div>
     }
-    <button onClick={() => items.push(items.length + 1)}>"Add"</button>
+    <button onClick={() => items.push(items.length + 1)}>Add</button>
   </div>
 
   </>;
@@ -582,8 +582,8 @@ export function App() {
     {has}
   </p>
 
-  <button onClick={() => set.delete(2)}>"Delete 2"</button>
-  <button onClick={() => set.add(2)}>"Add 2"</button>
+  <button onClick={() => set.delete(2)}>Delete 2</button>
+  <button onClick={() => set.add(2)}>Add 2</button>
 
   </>;
 }
@@ -627,8 +627,8 @@ export function App() {
     {has}
   </p>
 
-  <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
-  <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+  <button onClick={() => map.delete(2)}>Delete item with key 2</button>
+  <button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
 
   </>;
 }
@@ -681,8 +681,8 @@ export function App() {
     {month}
   </p>
 
-  <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
-  <button onClick={() => date.setMonth(11)}>"Change to December"</button>
+  <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
+  <button onClick={() => date.setMonth(11)}>Change to December</button>
 
   </>;
 }

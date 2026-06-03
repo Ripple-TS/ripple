@@ -31,14 +31,14 @@ import { track } from 'ripple';
 export function App() {
   return <>
   <div class="container">
-    <h1>"Welcome to Ripple!"</h1>
+    <h1>Welcome to Ripple!</h1>
 
     <div>
       let &[count] = track(0);
 
-      <button onClick={() => count--}>"-"</button>
+      <button onClick={() => count--}>-</button>
       <span class="count">{count}</span>
-      <button onClick={() => count++}>"+"</button>
+      <button onClick={() => count++}>+</button>
     </div>
   </div>
 

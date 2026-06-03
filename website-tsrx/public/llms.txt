@@ -17,7 +17,7 @@ them all the way through to the compiled output.
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **TSRX templates**: returned templates can contain elements, locals, and control flow
-- **Declarative control flow**: `if`, `for`, `switch`, `try` inside templates, with `=>` marking branch output
+- **Declarative control flow**: directive-prefixed `@if`, `@for`, `@switch`, and `@try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
 - **Scoped styles**: per-component `<style>` blocks with automatic class hashing
@@ -328,20 +328,19 @@ const icon = <svg aria-hidden="true" />;
 
 TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
 `const node = <section />`, and `children={<Panel />}` all create TSRX values.
-Once the TSRX expression is open, its children use template statement syntax:
-elements, locals, `if`, `for...of`, `switch`, and `try` can appear in the
-template body. At ordinary template depth, direct TSRX markup renders normally.
-Inside control-flow blocks, rendered output is explicit: use `=> <Element />` or
-`=> expression` to contribute to the current lexical block.
+Once the TSRX expression is open, its children use template syntax: elements,
+locals, JSX text, dynamic `{...}` expressions, and directive-prefixed
+`@if`, `@for`, `@switch`, and `@try` expressions can appear in the template
+body. Direct TSRX markup and direct directive-branch children render normally.
 `return` exits the enclosing function.
 
 ```tsrx
 const Greeting = ({ name }: { name?: string }) => <>
 	<div class="card">
-		if (name) {
-			=> <p>Hello, {name}</p>
+		@if (name) {
+			<p>Hello, {name}</p>
 		} else {
-			=> <p>Hello, stranger</p>
+			<p>Hello, stranger</p>
 		}
 	</div>
 </>;
@@ -433,7 +432,7 @@ When a prop name matches the variable, use `{name}` instead of `name={name}`.
 
 Composite components accept nested TSRX markup as children, just like elements.
 For expression children such as arrays, functions, strings, or computed render
-props, use the `=>` shortcut or pass `children={...}` explicitly.
+props, pass `children={...}` explicitly.
 
 ```tsrx
 <Card>
@@ -441,30 +440,27 @@ props, use the `=>` shortcut or pass `children={...}` explicitly.
 	<p>Content goes here.</p>
 </Card>
 
-<List>
-	=> items.map(renderItem)
-</List>
-
 <List children={items.map(renderItem)} />
 ```
 
 ## Control Flow
 
-Control-flow constructs are real JavaScript statements inside returned TSRX
-templates, not helper components. Render branch output with `=>`; use `return`
-when the branch should exit the enclosing function.
+Control-flow constructs are directive-prefixed template expressions inside
+returned TSRX templates, not helper components. Direct children inside each
+branch render into the current template; use `return` when the branch should
+exit the enclosing function.
 
 ### `if` / `else if` / `else`
 
 ```tsrx
 const StatusBadge = ({ status }: { status: string }) => <>
 	<div>
-		if (status === 'active') {
-			=> <span class="badge active">Online</span>
+		@if (status === 'active') {
+			<span class="badge active">Online</span>
 		} else if (status === 'idle') {
-			=> <span class="badge idle">Away</span>
+			<span class="badge idle">Away</span>
 		} else {
-			=> <span class="badge">Offline</span>
+			<span class="badge">Offline</span>
 		}
 	</div>
 </>;
@@ -475,9 +471,9 @@ const StatusBadge = ({ status }: { status: string }) => <>
 ```tsrx
 const TodoList = ({ items }: { items: Todo[] }) => <>
 	<ul>
-		for (const item of items; index i; key item.id) {
+		@for (const item of items; index i; key item.id) {
 			if (item.hidden) continue;
-			=> <li>
+			<li>
 				{i + 1}
 				". "
 				{item.text}
@@ -495,15 +491,15 @@ loops into a nested function.
 
 ```tsrx
 const StatusMessage = ({ status }: { status: string }) => <>
-	switch (status) {
+	@switch (status) {
 		case 'loading':
-			=> <p>Loading...</p>
+			<p>Loading...</p>
 			break;
 		case 'success':
-			=> <p class="success">Done!</p>
+			<p class="success">Done!</p>
 			break;
 		default:
-			=> <p>Unknown status.</p>
+			<p>Unknown status.</p>
 	}
 </>;
 ```
@@ -514,12 +510,12 @@ const StatusMessage = ({ status }: { status: string }) => <>
 const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
 export const App = () => <>
-	try {
-		=> <UserProfile id={1} />
+	@try {
+		<UserProfile id={1} />
 	} pending {
-		=> <p>Loading...</p>
+		<p>Loading...</p>
 	} catch (e) {
-		=> <p>Something went wrong.</p>
+		<p>Something went wrong.</p>
 	}
 </>;
 ```
@@ -530,10 +526,10 @@ useful for building retry UIs:
 
 ```tsrx
 export const RetryBoundary = () => <>
-	try {
-		=> <ComponentThatMightFail />
+	@try {
+		<ComponentThatMightFail />
 	} catch (e, reset) {
-		=> <div>
+		<div>
 			<p>
 				"Error: "
 				{e.message}
@@ -547,12 +543,12 @@ export const RetryBoundary = () => <>
 ### Guard returns
 
 Use normal JavaScript `return` statements for true function exits. Inside TSRX
-control-flow blocks, use `=>` when a branch should render into the current
-template instead of exiting the function.
+directive blocks, direct branch children render into the current template
+instead of exiting the function.
 
 ```tsrx
 const Dashboard = ({ user }: { user: User | null }) => <>
-	if (!user) {
+	@if (!user) {
 		return null;
 	}
 
@@ -670,7 +666,7 @@ body `await` is supported by the target pipeline.
 import { useEffect, useState } from 'react';
 
 const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <>
-	if (!user) {
+	@if (!user) {
 		return null;
 	}
 
@@ -679,12 +675,12 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
 	<h1>{user.name}</h1>
 	<TabBar value={tab} onChange={setTab} />
 	<ul>
-		for (const post of posts) {
+		@for (const post of posts) {
 			useEffect(() => {
 				console.log('viewed ' + post.title);
 			}, [post.title]);
 
-			=> <li>{post.title}</li>
+			<li>{post.title}</li>
 		}
 	</ul>
 </>;
@@ -699,7 +695,7 @@ lowers to loading primitives, and lazy destructuring preserves signal reads.
 ### Vue
 
 Vue output targets `vue-jsx-vapor` and `defineVaporComponent(...)`. It supports
-statement control flow, scoped styles, host `innerHTML`, and `try/pending`
+  directive-prefixed template control flow, scoped styles, host `innerHTML`, and `try/pending`
 lowering through Vue suspense APIs. Component-level `await` is not supported
 for Vue TSRX.
 
@@ -768,9 +764,9 @@ type Props<T> = {
 
 const List = <T,>({ items, render }: Props<T>) => <>
 	<ul>
-		for (const item of items) {
-			=> <li>{render(item)}</li>
-		}
+	@for (const item of items) {
+		<li>{render(item)}</li>
+	}
 	</ul>
 </>;
 ```
@@ -784,15 +780,15 @@ const List = <T,>({ items, render }: Props<T>) => <>
 | Native TSRX value      | `const v = <div>Hi</div>;`                            |
 | Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
 | Text content           | `<p>literal</p>`, `<p>{expr}</p>`                     |
-| Expression children    | `<List> => items.map(render) </List>`                  |
+| Expression children    | `<List children={items.map(render)} />`                |
 | Lazy prop destructure  | `const C = (&{ x, y }: Props) => <>...</>;`            |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`                 |
 | Prop shorthand         | `<Input {value} {onChange} />`                         |
-| Conditional rendering  | `if (cond) { => <Panel /> }`                           |
-| List rendering         | `for (const x of xs; index i; key x.id) { => <li /> }` |
-| Multi-branch           | `switch (x) { case 'a': => <A />; break; }`            |
-| Error boundary         | `try { => <Child /> } catch (e) { => <Fallback /> }`   |
-| Async boundary         | `try { => <Child /> } pending { => <Loading /> }`      |
+| Conditional rendering  | `@if (cond) { <Panel /> }`                             |
+| List rendering         | `@for (const x of xs; index i; key x.id) { <li /> }`   |
+| Multi-branch           | `@switch (x) { case 'a': <A />; break; }`              |
+| Error boundary         | `@try { <Child /> } catch (e) { <Fallback /> }`        |
+| Async boundary         | `@try { <Child /> } pending { <Loading /> }`           |
 | Guard exit             | `if (!user) { return null; }`                          |
 | Scoped style           | `<style> .x { ... } </style>`                          |
 | Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`           |

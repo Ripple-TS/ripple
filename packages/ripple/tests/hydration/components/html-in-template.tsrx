@@ -20,8 +20,8 @@ export function TemplateAroundIfBlock() {
 		const show = true;
 		<div>
 			<template id="before" innerHTML="before" />
-			if (show) {
-				=> <span class="inside">{'inside'}</span>
+			@if (show) {
+				<span class="inside">{'inside'}</span>
 			}
 			<template id="after" innerHTML="after" />
 		</div>

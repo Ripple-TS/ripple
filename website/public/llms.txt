@@ -69,8 +69,8 @@ export const Panel = ({ title, children }: { title: string; children: any }) => 
 - Use `export const Name = (...) => <>...</>;` for public components.
 - Put setup logic, rendered structure, control flow, and scoped styles inside
   the component's single TSRX fragment body.
-- Use `=>` for rendered output inside `if`, `for...of`, `switch`, `try`,
-  `pending`, and `catch` blocks.
+- Use directive-prefixed `@if`, `@for`, `@switch`, and `@try` blocks for
+  rendered template control flow.
 - Keep inline `<style>` blocks inside the TSRX fragment/expression they style.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -81,14 +81,15 @@ export const Panel = ({ title, children }: { title: string; children: any }) => 
 - Do not claim TSRX templates are restricted to special declarations or bodies.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
   inside `<style>` blocks.
-- Do not place bare TSRX elements directly inside control-flow blocks; use `=>`.
+- Do not place rendered TSRX elements inside plain JavaScript control-flow
+  statements; use directive-prefixed template control flow.
 
 ### TSRX Expressions
 
 TSRX is the default JSX-like expression form in `.tsrx` files. UI can be
 returned from functions, assigned to variables, or passed as props anywhere a
 TypeScript expression is allowed. The interior remains TSRX, so direct
-quote-delimited text children and statement control flow still work.
+JSX text children and directive-prefixed template control flow still work.
 
 ```ripple
 function createBadge(label: string) {
@@ -96,55 +97,32 @@ function createBadge(label: string) {
 }
 
 const App = () => <>
-  const title = <span class="title">"Settings"</span>;
+  const title = <span class="title">Settings</span>;
 
   <header>{title}</header>
   {createBadge('New')}
 </>;
 ```
 
-### ⚠️ Critical: Text Content Must Be Explicit
+### Text and Template Expressions
 
-**IMPORTANT**: Unlike HTML or JSX, Ripple elements cannot contain raw unquoted
-text content. Static text may be written as a direct double-quoted text child.
-Variables, single-quoted strings, template literals, and other JavaScript
-expressions must be wrapped in curly braces `{}`.
+Static text is ordinary JSX text. Variables, single-quoted strings, template
+literals, and other JavaScript expressions should be wrapped in curly braces
+`{}`.
 
 ```ripple
-// ❌ WRONG - Raw unquoted text not allowed
 <div>Hello World</div>
-<p>This will cause a compilation error</p>
-
-// ✅ CORRECT - Static text as direct double-quoted children
-<div>"Hello World"</div>
-<p>"This works correctly"</p>
-<p>"Use &quot; for a quote and &amp; for an ampersand"</p>
-
-// ✅ CORRECT - JavaScript strings in expressions
-<div>{'Hello World'}</div>
-<p>{"This works correctly"}</p>
-
-// ✅ CORRECT - Variables and expressions
+<p>{'Hello World'}</p>
 <div>{greeting}</div>
 <p>{`Dynamic content: ${value}`}</p>
 ```
 
-This is because Ripple needs to distinguish between JavaScript code and literal
-strings within the template syntax. The parser cannot determine if `Hello` is
-meant to be a string literal or a JavaScript identifier unless static text is
-explicitly double-quoted or dynamic content is wrapped in `{}`.
-
-Direct double-quoted text children use the same character-reference behavior as
-quoted JSX attribute values. Use entities such as `&quot;` and `&amp;` for literal
-characters that need escaping; backslashes are literal text and do not escape the
-closing quote.
-
 ### Guard Returns
 
 Functions are just functions. A Ripple component can use `return` for true
-function exits, including inside its TSRX fragment body. Use `=>` when a
-control-flow branch should render into the current template instead of exiting
-the function.
+function exits, including inside its TSRX fragment body. Use `@if`, `@for`,
+`@switch`, or `@try` when a control-flow branch should render into the current
+template instead of exiting the function.
 
 ```ripple
 const AuthGate = ({ is_logged_in }) => <>
@@ -152,7 +130,7 @@ const AuthGate = ({ is_logged_in }) => <>
     return null;
   }
 
-  <h1>"Dashboard"</h1>
+  <h1>Dashboard</h1>
 </>;
 ```
 
@@ -165,7 +143,7 @@ const AuthGate = ({ is_logged_in }) => <>
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
 - Do not translate component examples away from arrow-fragment bodies.
-- Do not use `return` for rendered branch output; use `=>`.
+- Do not use `return` for rendered branch output; use template control flow.
 
 ### Template Lexical Scoping
 
@@ -185,10 +163,10 @@ const TemplateScope = () => <>
     const isEven = count % 2 === 0;
 
     <h1>{message}</h1>
-    <p>"Count is: "{count}</p>
+    <p>Count is: {count}</p>
 
-    if (isEven) {
-      => <span>"Count is even"</span>
+    @if (isEven) {
+      <span>Count is even</span>
     }
 
     // Nested scopes work too
@@ -227,9 +205,9 @@ export const Counter = () => <>
   let &[double] = track(() => count * 2);  // Derived reactive value
 
   <div>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <p>Double: {double}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>
 </>;
 ```
@@ -379,7 +357,7 @@ const &{ a, ...rest } = props;
 const Child = (&{ count, className, children }: Props) => <>
 		// count, className, children are lazily read from __props
 		<button class={className}>{children}</button>
-		<pre>"Count is: "{count}</pre>
+		<pre>Count is: {count}</pre>
 </>;
 ```
 
@@ -423,8 +401,8 @@ export const App = () => <>
 
   const &[double] = createDouble(countTracked);
 
-  	<div>"Double: "{double}</div>
-  	<button onClick={() => { count++; }}>"Increment"</button>
+  	<div>Double: {double}</div>
+  	<button onClick={() => { count++; }}>Increment</button>
 </>;
 ```
 
@@ -440,7 +418,7 @@ export const App = () => <>
 
   	<Child swapMe={swapMeTracked} />
 
-  	<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>"Swap Component"</button>
+  	<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>Swap Component</button>
 </>;
 
 const Child = (&{ swapMe }: {swapMe: Tracked<Component>}) => <>
@@ -448,11 +426,11 @@ const Child = (&{ swapMe }: {swapMe: Tracked<Component>}) => <>
 </>;
 
 const Child1 = () => <>
-  <pre>"I am child 1"</pre>
+  <pre>I am child 1</pre>
 </>;
 
 const Child2 = () => <>
-  <pre>"I am child 2"</pre>
+  <pre>I am child 2</pre>
 </>;
 ```
 
@@ -469,10 +447,10 @@ const Child2 = () => <>
 ```ripple
 const Conditional = ({ isVisible }) => <>
   <div>
-		if (isVisible) {
-			=> <span>"Visible content"</span>
+		@if (isVisible) {
+			<span>Visible content</span>
 		} else {
-			=> <span>"Hidden state"</span>
+			<span>Hidden state</span>
 		}
 	</div>
 </>;
@@ -492,20 +470,20 @@ The `switch` statement evaluates an expression and matches its value against a s
 ```ripple
 const StatusIndicator = ({ status }) => <>
 		// The switch statement evaluates the 'status' prop
-		switch (status) {
-			case: 'init':
+		@switch (status) {
+			case 'init':
 				// fall-through to the next
 			case 'loading':
-				=> <p>"Loading..."</p>
+				<p>Loading...</p>
 				break; // break is mandatory
 			case 'success':
-				=> <p>"Success!"</p>
+				<p>Success!</p>
 				break;
 			case 'error':
-				=> <p>"Error!"</p>
+				<p>Error!</p>
 				break;
 			default:
-				=> <p>"Unknown status"</p>
+				<p>Unknown status</p>
 				// No break needed for default
 		}
 </>;
@@ -519,25 +497,25 @@ import { track } from 'ripple';
 const InteractiveStatus = () => <>
   let &[status] = track('loading'); // Reactive state
 
-  <button onClick={() => status = 'success'}>"Set to Success"</button>
-  <button onClick={() => status = 'error'}>"Set to Error"</button>
+  <button onClick={() => status = 'success'}>Set to Success</button>
+  <button onClick={() => status = 'error'}>Set to Error</button>
 
 		// This switch block will update automatically when 'status' changes
-		switch (status) {
+		@switch (status) {
 			case 'init':
-				=> <p>"Status: Init"</p>
+				<p>Status: Init</p>
 				// fall-through to the next
 			case 'loading':
-				=> <p>"Status: Loading..."</p>
+				<p>Status: Loading...</p>
 				break;
 			case 'success':
-				=> <p>"Status: Success!"</p>
+				<p>Status: Success!</p>
 				break;
 			case 'error':
-				=> <p>"Status: Error!"</p>
+				<p>Status: Error!</p>
 				break;
 			default:
-				=> <p>"Status: Unknown"</p>
+				<p>Status: Unknown</p>
 		}
 </>;
 ```
@@ -546,8 +524,8 @@ const InteractiveStatus = () => <>
 ```ripple
 const List = ({ items }) => <>
   <ul>
-			for (const item of items) {
-				=> <li>{item.text}</li>
+			@for (const item of items) {
+				<li>{item.text}</li>
 			}
 		</ul>
 </>;
@@ -558,8 +536,8 @@ const List = ({ items }) => <>
 const ListView = ({ title, items }) => <>
 		<h2>{title}</h2>
 		<ul>
-			for (const item of items; index i) {
-				=> <li>{item.text}" at index "{i}</li>
+			@for (const item of items; index i) {
+				<li>{item.text} at index {i}</li>
 			}
 		</ul>
 </>;
@@ -570,8 +548,8 @@ const ListView = ({ title, items }) => <>
 const ListView = ({ title, items }) => <>
 		<h2>{title}</h2>
 		<ul>
-			for (const item of items; index i; key item.id) {
-				=> <li>{item.text}" at index "{i}</li>
+			@for (const item of items; index i; key item.id) {
+				<li>{item.text} at index {i}</li>
 			}
 		</ul>
 </>;
@@ -588,8 +566,8 @@ import { track } from 'ripple';
 export const App = () => <>
   let &[tag] = track('div');
 
-		<@tag class="dynamic">"Hello World"</@tag>
-		<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>"Toggle Element"</button>
+		<@tag class="dynamic">Hello World</@tag>
+		<button onClick={() => tag = tag === 'div' ? 'span' : 'div'}>Toggle Element</button>
 </>;
 ```
 
@@ -597,10 +575,10 @@ export const App = () => <>
 ```ripple
 const ErrorBoundary = () => <>
   <div>
-		try {
-			=> <ComponentThatMightFail />
+		@try {
+			<ComponentThatMightFail />
 		} catch (e) {
-			=> <div>"Error: "{e.message}</div>
+			<div>Error: {e.message}</div>
 		}
 	</div>
 </>;
@@ -612,12 +590,12 @@ The `catch` block receives a `reset` function as its second argument. Calling
 ```ripple
 const RetryBoundary = () => <>
   <div>
-		try {
-			=> <ComponentThatMightFail />
+		@try {
+			<ComponentThatMightFail />
 		} catch (e, reset) {
-			=> <div>
-				<p>"Error: "{e.message}</p>
-				<button onClick={() => reset()}>"Try again"</button>
+			<div>
+				<p>Error: {e.message}</p>
+				<button onClick={() => reset()}>Try again</button>
 			</div>
 		}
 	</div>
@@ -635,19 +613,19 @@ import type { Children, Component } from 'ripple';
 const Card = (props: { children: Children; Footer?: Component }) => <>
   <div class="card">
 			{props.children}
-			if (props.Footer) {
-				=> <props.Footer />
+			@if (props.Footer) {
+				<props.Footer />
 			}
 		</div>
 </>;
 
 const Footer = () => <>
-  <button>"OK"</button>
+  <button>OK</button>
 </>;
 
 // Usage
 <Card Footer={Footer}>
-  <p>"Card content here"</p>
+  <p>Card content here</p>
 </Card>
 ```
 
@@ -664,7 +642,7 @@ const EventExample = () => <>
   let &[message] = track("");
 
   <div>
-		<button onClick={() => message = "Clicked!"}>"Click me"</button>
+		<button onClick={() => message = "Clicked!"}>Click me</button>
 		<input onInput={(e) => message = e.target.value} />
 		<p>{message}</p>
 	</div>
@@ -711,7 +689,7 @@ read them from static CSS with `var(--name)`.
 ```ripple
 const StyledComponent = () => <>
 		<div class="container">
-			<h1>"Styled Content"</h1>
+			<h1>Styled Content</h1>
 		</div>
 
 		<style>
@@ -748,7 +726,7 @@ const Parent = () => <>
 </>;
 
 const Child = () => <>
-  <div class="child-class">"I won't be red"</div>
+  <div class="child-class">I won't be red</div>
 </>;
 ```
 
@@ -761,7 +739,7 @@ children through normal props.
 
 ```ripple
 const Badge = ({ class: className }: { class?: string }) => <>
-		<span class={`badge ${className ?? ''}`}>"New"</span>
+		<span class={`badge ${className ?? ''}`}>New</span>
 		<style>
 			.badge { padding: 0.25rem 0.5rem; }
 		</style>
@@ -898,9 +876,9 @@ export const App = () => <>
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
 
-		<div ref={div}>"Hello world"</div>
+		<div ref={div}>Hello world</div>
 		<input ref={input} type="text" />
-		<button ref={[state.button, (node) => console.log("mounted", node)]}>"Log"</button>
+		<button ref={[state.button, (node) => console.log("mounted", node)]}>Log</button>
 </>;
 ```
 
@@ -996,7 +974,7 @@ export const App = () => <>
     console.log("Count changed:", count);
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 </>;
 ```
 
@@ -1023,7 +1001,7 @@ export const App = () => <>
     });
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 </>;
 ```
 
@@ -1062,8 +1040,8 @@ export const App = () => <>
 		</button>
 
 		// context's reactive property count gets updated
-		<pre>"Context: "{objCount}</pre>
-		<pre>"Context2: "{count2}</pre>
+		<pre>Context: {objCount}</pre>
+		<pre>Context2: {count2}</pre>
 </>;
 ```
 
@@ -1081,7 +1059,7 @@ const Child = () => <>
   // value is "Hello from context!"
   console.log(value);
 
-  <p>"Value in Child: "{value}</p>
+  <p>Value in Child: {value}</p>
 </>;
 
 const Parent = () => <>
@@ -1150,11 +1128,11 @@ export const App = () => <>
   const items = new RippleArray(1, 2, 3);
 
   <div>
-    <p>"Length: "{items.length}</p>  // Reactive length
-    for (const item of items) {
-      => <div>{item}</div>
+    <p>Length: {items.length}</p>  // Reactive length
+    @for (const item of items) {
+      <div>{item}</div>
     }
-    <button onClick={() => items.push(items.length + 1)}>"Add"</button>
+    <button onClick={() => items.push(items.length + 1)}>Add</button>
   </div>
 </>;
 ```
@@ -1180,9 +1158,9 @@ export const App = () => <>
 
   obj.a = 0;
 
-		<pre>"obj.a is: "{obj.a}</pre>
-		<pre>"obj.b is: "{obj.b}</pre>
-		<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>"Increment"</button>
+		<pre>obj.a is: {obj.a}</pre>
+		<pre>obj.b is: {obj.b}</pre>
+		<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>Increment</button>
 </>;
 ```
 
@@ -1195,9 +1173,9 @@ const SetExample = () => <>
   const mySet = new RippleSet([1, 2, 3]);
 
   <div>
-    <p>"Size: "{mySet.size}</p>  // Reactive size
-    <p>"Has 2: "{mySet.has(2)}</p>
-    <button onClick={() => mySet.add(4)}>"Add 4"</button>
+    <p>Size: {mySet.size}</p>  // Reactive size
+    <p>Has 2: {mySet.has(2)}</p>
+    <button onClick={() => mySet.add(4)}>Add 4</button>
   </div>
 </>;
 ```
@@ -1221,14 +1199,14 @@ export const App = () => <>
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 
 		// direct usage
-		<p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
+		<p>Direct usage: map has an item with key 2: {map.has(2)}</p>
 
 		// reactive assignment
 		let &[has] = track(() => map.has(2));
-		<p>"Assigned usage: map has an item with key 2: "{has}</p>
+		<p>Assigned usage: map has an item with key 2: {has}</p>
 
-		<button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
-		<button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+		<button onClick={() => map.delete(2)}>Delete item with key 2</button>
+		<button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
 </>;
 ```
 
@@ -1251,16 +1229,16 @@ export const App = () => <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
 		// direct usage
-		<p>"Direct usage: Current year is "{date.getFullYear()}</p>
-		<p>"ISO String: "{date.toISOString()}</p>
+		<p>Direct usage: Current year is {date.getFullYear()}</p>
+		<p>ISO String: {date.toISOString()}</p>
 
 		// reactive assignment
 		let &[year] = track(() => date.getFullYear());
 		let &[month] = track(() => date.getMonth());
-		<p>"Assigned usage: Year "{year}", Month "{month}</p>
+		<p>Assigned usage: Year {year}, Month {month}</p>
 
-		<button onClick={() => date.setFullYear(2027)}>"Change to 2027"</button>
-		<button onClick={() => date.setMonth(11)}>"Change to December"</button>
+		<button onClick={() => date.setFullYear(2027)}>Change to 2027</button>
+		<button onClick={() => date.setMonth(11)}>Change to December</button>
 </>;
 ```
 
@@ -1275,12 +1253,12 @@ import { Portal } from 'ripple';
 
 export const App = () => <>
   <div class="app">
-			<h1>"My App"</h1>
+			<h1>My App</h1>
 			{/* This will render inside document.body, not inside the .app div */}
 			<Portal target={document.body}>
 				<div class="modal">
-					<h2>"I am rendered in document.body!"</h2>
-					<p>"This content escapes the normal component tree."</p>
+					<h2>I am rendered in document.body!</h2>
+					<p>This content escapes the normal component tree.</p>
 				</div>
 			</Portal>
 		</div>
@@ -1304,13 +1282,13 @@ effect(() => {
 ### Prop Shortcuts
 ```ripple
 // Object spread
-<div {...properties}>"Content"</div>
+<div {...properties}>Content</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {id}>"Content"</div>
+<div {onClick} {id}>Content</div>
 
 // Equivalent to:
-<div onClick={onClick} id={id}>"Content"</div>
+<div onClick={onClick} id={id}>Content</div>
 ```
 
 ### Raw HTML
@@ -1330,16 +1308,16 @@ const Article = ({ markup }: { markup: string }) => <>
 
 ### Text Expressions
 
-Direct double-quoted children are static escaped text. Dynamic text is just a
-normal `{expression}`. When you need explicit string coercion, write it in
-JavaScript with `String(value)`, `value + ''`, or a typed string value.
+Static text is ordinary JSX text. Dynamic text is just a normal `{expression}`.
+When you need explicit string coercion, write it in JavaScript with
+`String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export const Frame = ({ children }) => <>
   <div class="frame">
-			"before"
+			before
 			{children}
-			"after"
+			after
 		</div>
 </>;
 ```
@@ -1523,12 +1501,12 @@ framework semantics should come from the detected target package and its docs.
 ### vs Solid
 - Components are ordinary functions that return TSRX
 - Built-in collections (RippleArray, RippleSet)
-- Returned templates support statement-style control flow
+- Returned templates support directive-prefixed template control flow
 
 ## Best Practices
 
 1. **Reactivity**: Use `track()` (imported from `'ripple'`) with `&[]` lazy destructuring to create reactive variables
-2. **Strings**: Use direct double-quoted children for static text, and `{...}` for JavaScript expressions
+2. **Strings**: Use JSX text for static text, and `{...}` for JavaScript expressions
 3. **Effects**: Use `effect()` (imported from `'ripple'`) for side effects, not direct reactive variable access
 4. **Components**: Keep components focused and use TypeScript interfaces for props
 5. **Styling**: Use scoped static `<style>` elements for component-specific styles and CSS custom properties for runtime style values

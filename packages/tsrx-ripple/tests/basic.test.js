@@ -74,8 +74,8 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(
 			`function App() { return <>
-				try {
-					=> <div>{'content'}</div>
+				@try {
+					<div>{'content'}</div>
 				} pending {}
 			</>; }`,
 			'App.tsrx',
@@ -305,12 +305,10 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(code).not.toContain('get prop()');
 	});
 
-	it('uses TSRX render statements as component children props', () => {
+	it('uses explicit function-valued children props', () => {
 		const source = `function Card(props) { return <div>{props.children}</div>; }
 			function App() {
-				return <Card>
-					=> () => {}
-				</Card>;
+				return <Card children={() => {}} />;
 			}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -321,12 +319,10 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(server.code).not.toContain('children: _$_.tsrx_element');
 	});
 
-	it('prints TSRX render statement component children in Volar TypeScript output', () => {
+	it('prints explicit children props in Volar TypeScript output', () => {
 		const source = `function Card(props: { children: string }) { return <div>{props.children}</div>; }
 			function App() {
-				return <Card>
-					=> 'I like TSRX'
-				</Card>;
+				return <Card children={'I like TSRX'} />;
 			}`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
@@ -334,12 +330,10 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(result.code).toContain("children={'I like TSRX'}");
 	});
 
-	it('supports children shortcuts that return native templates', () => {
+	it('supports function-valued children props that return native templates', () => {
 		const source = `function Card(props) { return <div>{props.children}</div>; }
 				function App() {
-					return <Card>
-						=> () => <span>hello</span>
-					</Card>;
+					return <Card children={() => <span>hello</span>} />;
 				}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -348,40 +342,6 @@ describe('@tsrx/ripple <> expression values', () => {
 		expect(client.code).toContain('template(`<span>hello</span>`');
 		expect(server.code).toContain('children: _$_.normalize_children(() => {');
 		expect(server.code).toContain("_$_.output_push('<span')");
-	});
-
-	it('uses the first direct TSRX render statement as the component children prop', () => {
-		const source = `function Card(props) { return <div>{props.children}</div>; }
-			function App() {
-				return <Card>
-					=> [1, 2, 3]
-					=> null
-				</Card>;
-			}`;
-		const client = compile(source, 'App.tsrx');
-		const server = compile(source, 'App.tsrx', { mode: 'server' });
-
-		expect(client.code).toContain('children: _$_.normalize_children([1, 2, 3])');
-		expect(client.code).not.toContain('children: _$_.normalize_children(null)');
-		expect(server.code).toContain('children: _$_.normalize_children([1, 2, 3])');
-		expect(server.code).not.toContain('children: _$_.normalize_children(null)');
-	});
-
-	it('throws when component children mix templates with TSRX render statements', () => {
-		const source = `function Card(props) { return <div>{props.children}</div>; }
-			function App() {
-				return <Card>
-					<span>"stale"</span>
-					=> [1, 2, 3]
-				</Card>;
-			}`;
-
-		expect(() => compile(source, 'App.tsrx')).toThrow(
-			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
-		);
-		expect(() => compile(source, 'App.tsrx', { mode: 'server' })).toThrow(
-			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
-		);
 	});
 
 	it('passes plain non-tracked expression props directly', () => {
@@ -560,14 +520,14 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('lowers native element values outside components', () => {
-			const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
+		const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('const test = _$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
 	});
 
 	it('lowers bare native element expression statements outside components', () => {
-			const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
+		const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('_$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
@@ -589,7 +549,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('keeps direct arrow component returns on the render path', () => {
-			const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
+		const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('template(`<button>Hello</button>`');
 		expect(code).toContain('_$_.append(__anchor, button_1)');
@@ -789,8 +749,8 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			}
 
 			const loop = () => <>
-				for (const item of items) {
-					=> <div>{item}</div>
+				@for (const item of items) {
+					<div>{item}</div>
 				}
 			</>;
 

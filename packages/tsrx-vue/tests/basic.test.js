@@ -53,16 +53,14 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatchSnapshot();
 	});
 
-	it('wraps arrow fragment component exports with render statements', () => {
+	it('wraps arrow fragment component exports with directive output', () => {
 		const { code } = compile(
 			`export const App = ({ show, items }: { show: boolean; items: string[] }) => <>
-				if (show) {
-					=> <p>{'yes'}</p>
+				@if (show) {
+					<p>{'yes'}</p>
 				}
 
-				<List>
-					=> items.map((item) => item)
-				</List>
+				<List children={items.map((item) => item)} />
 			</>;`,
 			'App.tsrx',
 		);

@@ -25,7 +25,9 @@ describe('@tsrx/mcp documentation index', () => {
 
 		expect(content).toContain('continue');
 		expect(content).toContain('Use `return` for true function exits');
-		expect(content).toContain('Use `=>` when a control-flow branch should render');
+		expect(content).toContain(
+			'Template control flow uses directive-prefixed `@if`, `@for`, `@switch`, and `@try`',
+		);
 		expect(content).toContain('`break` is invalid inside TSRX `for...of` loops');
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});

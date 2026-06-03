@@ -1352,17 +1352,15 @@ export function runSharedCompileTests({
 		});
 	});
 
-	describe(`[${name}] render statements`, () => {
-		it('lowers explicit render statements in arrow fragment components', () => {
+	describe(`[${name}] template directives`, () => {
+		it('lowers directive output in arrow fragment components', () => {
 			const { code } = compile(
 				`export const App = ({ show, items }: { show: boolean; items: string[] }) => <>
-					if (show) {
-						=> <p>{'yes'}</p>
+					@if (show) {
+						<p>{'yes'}</p>
 					}
 
-					<List>
-						=> items.map((item) => item)
-					</List>
+					<List children={items.map((item) => item)} />
 				</>;`,
 				'App.tsrx',
 			);

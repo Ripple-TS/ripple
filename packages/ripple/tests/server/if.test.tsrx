@@ -3,8 +3,8 @@ describe('if statements in SSR', () => {
 		function App() {
 			return <>
 				let condition = true;
-				if (condition) {
-					=> <div>{'If block'}</div>
+				@if (condition) {
+					<div>{'If block'}</div>
 				}
 			</>;
 		}
@@ -17,10 +17,10 @@ describe('if statements in SSR', () => {
 		function App() {
 			return <>
 				let condition = false;
-				if (condition) {
-					=> <div>{'If block'}</div>
+				@if (condition) {
+					<div>{'If block'}</div>
 				} else {
-					=> <div>{'Else block'}</div>
+					<div>{'Else block'}</div>
 				}
 			</>;
 		}
@@ -29,14 +29,14 @@ describe('if statements in SSR', () => {
 		expect(body).toBeHtml('<div>Else block</div>');
 	});
 
-	it('renders bare double-quoted text in if-else branches', async () => {
+	it('renders bare JSX text in if-else branches', async () => {
 		function App() {
 			return <>
 				let condition = false;
-				if (condition) {
-					=> 'Hello Ripple'
+				@if (condition) {
+					Hello Ripple
 				} else {
-					=> 'Hello React'
+					Hello React
 				}
 			</>;
 		}
@@ -49,12 +49,12 @@ describe('if statements in SSR', () => {
 		function App() {
 			return <>
 				let value = 'b';
-				if (value === 'a') {
-					=> <div>{'Case A'}</div>
+				@if (value === 'a') {
+					<div>Case A</div>
 				} else if (value === 'b') {
-					=> <div>{'Case B'}</div>
+					<div>Case B</div>
 				} else {
-					=> <div>{'Default Case'}</div>
+					<div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -67,12 +67,12 @@ describe('if statements in SSR', () => {
 		function App() {
 			return <>
 				let value = 'c';
-				if (value === 'a') {
-					=> <div>{'Case A'}</div>
+				@if (value === 'a') {
+					<div>Case A</div>
 				} else if (value === 'b') {
-					=> <div>{'Case B'}</div>
+					<div>Case B</div>
 				} else {
-					=> <div>{'Default Case'}</div>
+					<div>{'Default Case'}</div>
 				}
 			</>;
 		}
@@ -86,14 +86,14 @@ describe('if statements in SSR', () => {
 			return <>
 				let outer = true;
 				let inner = false;
-				if (outer) {
-					if (inner) {
-						=> <div>{'Outer true, Inner true'}</div>
+				@if (outer) {
+					@if (inner) {
+						<div>{'Outer true, Inner true'}</div>
 					} else {
-						=> <div>{'Outer true, Inner false'}</div>
+						<div>{'Outer true, Inner false'}</div>
 					}
 				} else {
-					=> <div>{'Outer false'}</div>
+					<div>{'Outer false'}</div>
 				}
 			</>;
 		}

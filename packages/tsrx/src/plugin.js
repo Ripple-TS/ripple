@@ -424,14 +424,16 @@ export function TSRXPlugin(config) {
 				);
 			}
 
-				#isLikelyTemplateStatementStart() {
-					const start = this.start;
-					const ch = this.input.charCodeAt(start);
-					if (ch === CharCode.at) return true;
-					if (ch === CharCode.backtick) return true;
-					if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
-						return true;
-					}
+			/**
+			 * @param {number} [start]
+			 */
+			#isLikelyTemplateStatementStart(start = this.start) {
+				const ch = this.input.charCodeAt(start);
+				if (ch === CharCode.at) return true;
+				if (ch === CharCode.backtick) return true;
+				if (ch === CharCode.equals && this.input.charCodeAt(start + 1) === CharCode.greaterThan) {
+					return true;
+				}
 				if (
 					(ch === CharCode.plus && this.input.charCodeAt(start + 1) === CharCode.plus) ||
 					(ch === CharCode.hyphen && this.input.charCodeAt(start + 1) === CharCode.hyphen) ||
@@ -493,6 +495,17 @@ export function TSRXPlugin(config) {
 				return false;
 			}
 
+			/**
+			 * @param {number} start
+			 */
+			#isRawTextBoundaryStart(start) {
+				const keyword = this.input.slice(start).match(/^[A-Za-z_$][\w$]*/)?.[0] ?? '';
+				if (keyword === 'case' || keyword === 'default') {
+					return true;
+				}
+				return this.#isLikelyTemplateStatementStart(start);
+			}
+
 			#isRawTextChildStart() {
 				const current_template_node = this.#path.findLast(
 					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
@@ -509,7 +522,10 @@ export function TSRXPlugin(config) {
 				) {
 					return false;
 				}
-				if (ch === CharCode.equals && this.input.charCodeAt(this.start + 1) === CharCode.greaterThan) {
+				if (
+					ch === CharCode.equals &&
+					this.input.charCodeAt(this.start + 1) === CharCode.greaterThan
+				) {
 					return false;
 				}
 				if (/\s/.test(this.input[this.start] ?? '')) {
@@ -528,6 +544,12 @@ export function TSRXPlugin(config) {
 					const ch = this.input.charCodeAt(index);
 					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
 						break;
+					}
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) {
+						const next = skip_whitespace_from(this.input, index + 1);
+						if (this.#isRawTextBoundaryStart(next)) {
+							break;
+						}
 					}
 					if (ch === CharCode.ampersand) {
 						text += this.input.slice(chunk_start, index);
@@ -1321,16 +1343,16 @@ export function TSRXPlugin(config) {
 					}
 					this.exprAllowed = false;
 				}
-					if (code === CharCode.doubleQuote) {
-						const is_raw_quoted_text_child = this.#isDoubleQuotedTextChildStart();
-						this.#allowDoubleQuotedTextChildAfterBrace = false;
-						if (is_raw_quoted_text_child) {
-							this.pos++;
-							return this.finishToken(tt.name, '"');
-						}
-					} else {
-						this.#allowDoubleQuotedTextChildAfterBrace = false;
+				if (code === CharCode.doubleQuote) {
+					const is_raw_quoted_text_child = this.#isDoubleQuotedTextChildStart();
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
+					if (is_raw_quoted_text_child) {
+						this.pos++;
+						return this.finishToken(tt.name, '"');
 					}
+				} else {
+					this.#allowDoubleQuotedTextChildAfterBrace = false;
+				}
 
 				if (code !== CharCode.lessThan) {
 					this.#allowTagStartAfterDoubleQuotedText = false;
@@ -2738,24 +2760,24 @@ export function TSRXPlugin(config) {
 					this.parseTemplateBody(body);
 					return;
 				}
-					if (
-						current_template_node?.type === 'TsrxFragment' &&
-						!current_template_node.openingElement.name &&
-						((this.type === tstt.jsxTagStart && this.input.slice(this.pos, this.pos + 2) === '/>') ||
+				if (
+					current_template_node?.type === 'TsrxFragment' &&
+					!current_template_node.openingElement.name &&
+					((this.type === tstt.jsxTagStart && this.input.slice(this.pos, this.pos + 2) === '/>') ||
 						(this.input.charCodeAt(this.start) === CharCode.lessThan &&
 							this.input.slice(this.start + 1, this.start + 3) === '/>'))
 				) {
-						this.exprAllowed = false;
-						return;
-					}
-					if (this.#isRawTextChildStart()) {
-						body.push(this.#parseRawTextChild());
-						this.parseTemplateBody(body);
-						return;
-					}
-					if (this.type === tt.braceL) {
-						body.push(this.#parseNativeTemplateExpressionContainer());
-					} else if (
+					this.exprAllowed = false;
+					return;
+				}
+				if (this.#isRawTextChildStart()) {
+					body.push(this.#parseRawTextChild());
+					this.parseTemplateBody(body);
+					return;
+				}
+				if (this.type === tt.braceL) {
+					body.push(this.#parseNativeTemplateExpressionContainer());
+				} else if (
 					this.type === tt.string &&
 					this.input.charCodeAt(this.start) === CharCode.doubleQuote
 				) {
@@ -2996,6 +3018,10 @@ export function TSRXPlugin(config) {
 					return this.#parseTemplateDirectiveStatement();
 				}
 
+				if (this.#functionBodyDepth === 0 && this.#isRawTextChildStart()) {
+					return this.#parseRawTextChild();
+				}
+
 				if (
 					context !== 'for' &&
 					context !== 'if' &&
@@ -3077,39 +3103,6 @@ export function TSRXPlugin(config) {
 							this.finishNode(node, 'ExpressionStatement')
 						);
 					}
-				}
-
-				if (
-					this.#functionBodyDepth === 0 &&
-					this.type === tt.arrow &&
-					this.#isNativeTemplateNode(this.#path.at(-1))
-				) {
-					const node = /** @type {AST.TsrxRenderStatement} */ (
-						/** @type {unknown} */ (this.startNode())
-					);
-					this.next();
-
-					if (this.type === tstt.jsxTagStart) {
-						this.next();
-						node.argument = /** @type {AST.Expression | null} */ (
-							/** @type {unknown} */ (this.parseElement())
-						);
-						if (node.argument === null) {
-							this.unexpected();
-						}
-						this.semicolon();
-					} else if (this.eat(tt.semi) || this.insertSemicolon()) {
-						node.argument = null;
-					} else {
-						node.argument = /** @type {AST.Expression} */ (this.parseExpression());
-						this.semicolon();
-					}
-
-					return /** @type {AST.Statement} */ (
-						/** @type {unknown} */ (
-							this.finishNode(/** @type {any} */ (node), 'TsrxRenderStatement')
-						)
-					);
 				}
 
 				return super.parseStatement(context, topLevel, exports);

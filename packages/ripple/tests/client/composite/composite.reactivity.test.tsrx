@@ -67,12 +67,12 @@ describe('composite > reactivity', () => {
 
 					<span class="count">{obj.count.value}</span>
 					<span>{' '}</span>
-					if (obj) {
-						=> <Button {obj} />
+					@if (obj) {
+						<Button {obj} />
 					}
 
-					if (obj) {
-						=> <OtherComponent {obj} />
+					@if (obj) {
+						<OtherComponent {obj} />
 					}
 				</div>
 			</>;

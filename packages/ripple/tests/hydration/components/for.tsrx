@@ -6,8 +6,8 @@ export function StaticForLoop() {
 	return <>
 		const items = ['Apple', 'Banana', 'Cherry'];
 		<ul>
-			for (const item of items) {
-				=> <li>{item}</li>
+			@for (const item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -17,8 +17,8 @@ export function ForLoopWithIndex() {
 	return <>
 		const items = ['A', 'B', 'C'];
 		<ul>
-			for (const item of items; index i) {
-				=> <li>{`${i}: ${item}`}</li>
+			@for (const item of items; index i) {
+				<li>{`${i}: ${item}`}</li>
 			}
 		</ul>
 	</>;
@@ -32,8 +32,8 @@ export function KeyedForLoop() {
 			{ id: 3, name: 'Third' },
 		];
 		<ul>
-			for (const item of items; key item.id) {
-				=> <li>{item.name}</li>
+			@for (const item of items; key item.id) {
+				<li>{item.name}</li>
 			}
 		</ul>
 	</>;
@@ -51,8 +51,8 @@ export function ReactiveForLoopAdd() {
 			{'Add'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li>{item}</li>
+			@for (const item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -70,8 +70,8 @@ export function ReactiveForLoopRemove() {
 			{'Remove'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li>{item}</li>
+			@for (const item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -81,8 +81,8 @@ export function ForLoopInteractive() {
 	return <>
 		let &[counts] = track([0, 0, 0]);
 		<div>
-			for (const count of counts; index i) {
-				=> <div class={`item-${i}`}>
+			@for (const count of counts; index i) {
+				<div class={`item-${i}`}>
 					<span class="value">{count}</span>
 					<button
 						class="increment"
@@ -107,10 +107,10 @@ export function NestedForLoop() {
 			[3, 4],
 		];
 		<div class="grid">
-			for (const row of grid; index rowIndex) {
-				=> <div class={`row-${rowIndex}`}>
-					for (const cell of row; index colIndex) {
-						=> <span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
+			@for (const row of grid; index rowIndex) {
+				<div class={`row-${rowIndex}`}>
+					@for (const cell of row; index colIndex) {
+						<span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
 					}
 				</div>
 			}
@@ -122,8 +122,8 @@ export function EmptyForLoop() {
 	return <>
 		const items: string[] = [];
 		<div class="container">
-			for (const item of items) {
-				=> <span>{item}</span>
+			@for (const item of items) {
+				<span>{item}</span>
 			}
 		</div>
 	</>;
@@ -136,8 +136,8 @@ export function ForLoopComplexObjects() {
 			{ id: 2, name: 'Bob', role: 'User' },
 		];
 		<div>
-			for (const user of users; key user.id) {
-				=> <div class={`user-${user.id}`}>
+			@for (const user of users; key user.id) {
+				<div class={`user-${user.id}`}>
 					<span class="name">{user.name}</span>
 					<span class="role">{user.role}</span>
 				</div>
@@ -163,8 +163,8 @@ export function KeyedForLoopReorder() {
 			{'Reorder'}
 		</button>
 		<ul>
-			for (const item of items; key item.id) {
-				=> <li class={`item-${item.id}`}>{item.name}</li>
+			@for (const item of items; key item.id) {
+				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
 	</>;
@@ -186,8 +186,8 @@ export function KeyedForLoopUpdate() {
 			{'Update'}
 		</button>
 		<ul>
-			for (const item of items; key item.id) {
-				=> <li class={`item-${item.id}`}>{item.name}</li>
+			@for (const item of items; key item.id) {
+				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
 	</>;
@@ -207,8 +207,8 @@ export function ForLoopMixedOperations() {
 			{'Shuffle'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -235,10 +235,10 @@ export function ForLoopInsideIf() {
 		>
 			{'Add Item'}
 		</button>
-		if (showList) {
-			=> <ul class="list">
-				for (const item of items) {
-					=> <li>{item}</li>
+		@if (showList) {
+			<ul class="list">
+				@for (const item of items) {
+					<li>{item}</li>
 				}
 			</ul>
 		}
@@ -258,8 +258,8 @@ export function ForLoopEmptyToPopulated() {
 			{'Populate'}
 		</button>
 		<ul class="list">
-			for (const item of items) {
-				=> <li>{item}</li>
+			@for (const item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -278,8 +278,8 @@ export function ForLoopPopulatedToEmpty() {
 			{'Clear'}
 		</button>
 		<ul class="list">
-			for (const item of items) {
-				=> <li>{item}</li>
+			@for (const item of items) {
+				<li>{item}</li>
 			}
 		</ul>
 	</>;
@@ -311,10 +311,10 @@ export function NestedForLoopReactive() {
 			{'Update Cell'}
 		</button>
 		<div class="grid">
-			for (const row of grid; index rowIndex) {
-				=> <div class={`row-${rowIndex}`}>
-					for (const cell of row; index colIndex) {
-						=> <span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
+			@for (const row of grid; index rowIndex) {
+				<div class={`row-${rowIndex}`}>
+					@for (const cell of row; index colIndex) {
+						<span class={`cell-${rowIndex}-${colIndex}`}>{cell}</span>
 					}
 				</div>
 			}
@@ -343,15 +343,15 @@ export function ForLoopDeeplyNested() {
 			},
 		];
 		<div class="org">
-			for (const dept of departments; key dept.id) {
-				=> <div class={`dept-${dept.id}`}>
+			@for (const dept of departments; key dept.id) {
+				<div class={`dept-${dept.id}`}>
 					<h2 class="dept-name">{dept.name}</h2>
-					for (const team of dept.teams; key team.id) {
-						=> <div class={`team-${team.id}`}>
+					@for (const team of dept.teams; key team.id) {
+						<div class={`team-${team.id}`}>
 							<h3 class="team-name">{team.name}</h3>
 							<ul>
-								for (const member of team.members) {
-									=> <li class="member">{member}</li>
+								@for (const member of team.members) {
+									<li class="member">{member}</li>
 								}
 							</ul>
 						</div>
@@ -375,8 +375,8 @@ export function ForLoopIndexUpdate() {
 			{'Prepend'}
 		</button>
 		<ul>
-			for (const item of items; index i) {
-				=> <li class={`item-${i}`}>{`[${i}] ${item}`}</li>
+			@for (const item of items; index i) {
+				<li class={`item-${i}`}>{`[${i}] ${item}`}</li>
 			}
 		</ul>
 	</>;
@@ -399,8 +399,8 @@ export function KeyedForLoopWithIndex() {
 			{'Rotate'}
 		</button>
 		<ul>
-			for (const item of items; index i; key item.id) {
-				=> <li class={`item-${item.id}`} data-index={i}>{`[${i}] ${item.id}: ${item.value}`}</li>
+			@for (const item of items; index i; key item.id) {
+				<li class={`item-${item.id}`} data-index={i}>{`[${i}] ${item.id}: ${item.value}`}</li>
 			}
 		</ul>
 	</>;
@@ -412,8 +412,8 @@ export function ForLoopWithSiblings() {
 		let &[items] = track(['A', 'B']);
 		<div class="wrapper">
 			<header class="before">{'Before'}</header>
-			for (const item of items) {
-				=> <div class={`item-${item}`}>{item}</div>
+			@for (const item of items) {
+				<div class={`item-${item}`}>{item}</div>
 			}
 			<footer class="after">{'After'}</footer>
 		</div>
@@ -437,8 +437,8 @@ export function ForLoopItemState() {
 			{ id: 3, text: 'Todo 3' },
 		];
 		<div>
-			for (const item of initialItems; key item.id) {
-				=> <TodoItem id={item.id} text={item.text} />
+			@for (const item of initialItems; key item.id) {
+				<TodoItem id={item.id} text={item.text} />
 			}
 		</div>
 	</>;
@@ -468,8 +468,8 @@ export function ForLoopSingleItem() {
 	return <>
 		const items = ['Only'];
 		<ul>
-			for (const item of items) {
-				=> <li class="single">{item}</li>
+			@for (const item of items) {
+				<li class="single">{item}</li>
 			}
 		</ul>
 	</>;
@@ -488,8 +488,8 @@ export function ForLoopAddAtBeginning() {
 			{'Prepend A'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -510,8 +510,8 @@ export function ForLoopAddInMiddle() {
 			{'Insert B'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -530,8 +530,8 @@ export function ForLoopRemoveFromMiddle() {
 			{'Remove B'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -542,8 +542,8 @@ export function ForLoopLargeList() {
 	return <>
 		const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
 		<ul class="large-list">
-			for (const item of items; index i) {
-				=> <li class={`item-${i}`}>{item}</li>
+			@for (const item of items; index i) {
+				<li class={`item-${i}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -564,8 +564,8 @@ export function ForLoopSwap() {
 			{'Swap First and Last'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;
@@ -584,8 +584,8 @@ export function ForLoopReverse() {
 			{'Reverse'}
 		</button>
 		<ul>
-			for (const item of items) {
-				=> <li class={`item-${item}`}>{item}</li>
+			@for (const item of items) {
+				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
 	</>;

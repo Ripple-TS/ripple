@@ -190,8 +190,8 @@ describe('tsx expression', () => {
 			return <>
 				let &[show] = track(true);
 				const el = <><div class="tsx-content">visible</div></>;
-				if (show) {
-					=> el
+				@if (show) {
+					{el}
 				}
 				<button onClick={() => (show = !show)}>{'toggle'}</button>
 			</>;
@@ -371,7 +371,7 @@ describe('tsx expression', () => {
 		}
 
 		function App() {
-				return <><Wrapper content={<><span class="inner">direct prop</span></>} /></>;
+			return <><Wrapper content={<><span class="inner">direct prop</span></>} /></>;
 		}
 
 		render(App);
@@ -394,8 +394,8 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Card
-						title={<><span class="bold">Title</span></>}
-						children={<><p>Card content here</p></>}
+					title={<><span class="bold">Title</span></>}
+					children={<><p>Card content here</p></>}
 				/>
 			</>;
 		}
@@ -432,8 +432,8 @@ describe('tsx expression', () => {
 			return <>
 				const items = ['Apple', 'Banana', 'Cherry'];
 				<ul>
-					for (const item of items) {
-						=> createListItem(item)
+					@for (const item of items) {
+						{createListItem(item)}
 					}
 				</ul>
 			</>;
@@ -451,8 +451,8 @@ describe('tsx expression', () => {
 		function List(&{ renderItem, items }) {
 			return <>
 				<ul class="list">
-					for (const item of items) {
-						=> renderItem(item)
+					@for (const item of items) {
+						{renderItem(item)}
 					}
 				</ul>
 			</>;
@@ -642,7 +642,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				<Alert message="No icon" />
-				<Alert icon={<><span class="custom-icon">✓</span></>} message="Custom icon" />
+				<Alert icon={<><span class="custom-icon">{'✓'}</span></>} message="Custom icon" />
 			</>;
 		}
 
@@ -666,8 +666,8 @@ describe('tsx expression', () => {
 					{ className: 'item-c', content: 'C' },
 				];
 				<div class="container">
-					for (const item of items) {
-						=> createItem(item.className, item.content)
+					@for (const item of items) {
+						{createItem(item.className, item.content)}
 					}
 				</div>
 			</>;
@@ -683,12 +683,12 @@ describe('tsx expression', () => {
 	it('renders tsx conditionally from function', () => {
 		function createContent(type) {
 			return <>
-				if (type === 'success') {
-					=> <div class="success">Success!</div>
+				@if (type === 'success') {
+					<div class="success">Success!</div>
 				} else if (type === 'error') {
-					=> <div class="error">Error!</div>
+					<div class="error">Error!</div>
 				} else {
-					=> <div class="default">Default</div>
+					<div class="default">Default</div>
 				}
 			</>;
 		}
@@ -771,8 +771,8 @@ describe('tsrx expression', () => {
 		function App() {
 			return <>
 				const el = <>
-					if (true) {
-							=> <span>visible</span>
+					@if (true) {
+						<span>visible</span>
 					}
 				</>;
 				{el}

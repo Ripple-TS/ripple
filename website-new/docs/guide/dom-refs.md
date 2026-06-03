@@ -27,9 +27,9 @@ export default function App() {
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
 
-  <div ref={div}>"Hello world"</div>
+  <div ref={div}>Hello world</div>
   <input ref={input} type="text" />
-  <button ref={state.button}>"Save"</button>
+  <button ref={state.button}>Save</button>
 
   </>;
 }
@@ -55,7 +55,7 @@ export function App() {
     };
   }
 
-  <div ref={setup}>"Hello world"</div>
+  <div ref={setup}>Hello world</div>
 
   </>;
 }
@@ -98,7 +98,7 @@ import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
   return <>
-  <div ref={fadeIn({ ms })}>"Hello world"</div>
+  <div ref={fadeIn({ ms })}>Hello world</div>
 
   </>;
 }

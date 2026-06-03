@@ -948,14 +948,12 @@ function OtherComponent({ children }: { children: string }) {
 }
 
 export const App = () => <>
-	try {
-		=> <ComponentThatSuspends />
+	@try {
+		<ComponentThatSuspends />
 	} pending {
-		=> <div>"Loading"</div>
+		<div>Loading</div>
 	}
-	<OtherComponent>
-		=> 'I like TSRX'
-	</OtherComponent>
+	<OtherComponent children={'I like TSRX'} />
 </>;
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
@@ -1189,7 +1187,7 @@ function App() { return <>
 
 		const result = compile(source, 'test.tsrx', { collect: true });
 		expect(result.errors.map((error) => error.message)).toContain(
-			"Unclosed tag '<tsx:react>'. Expected '</tsx:react>' before end of template.",
+			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of template.',
 		);
 	});
 

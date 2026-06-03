@@ -35,7 +35,7 @@ export function EventExample() {
   let &[message] = track('');
 
   <div>
-    <button onClick={() => (message = 'Clicked!')}>"Click me"</button>
+    <button onClick={() => (message = 'Clicked!')}>Click me</button>
     <input onInput={(e) => (message = e.target.value)} />
     <p>{message}</p>
   </div>
@@ -93,7 +93,7 @@ export function EventExample() {
       capture: true,
     }}
   >
-    <button onClick={() => order.push('inner-bubble')}>"Click"</button>
+    <button onClick={() => order.push('inner-bubble')}>Click</button>
     <p>{order.join(' → ')}</p>
   </div>
 

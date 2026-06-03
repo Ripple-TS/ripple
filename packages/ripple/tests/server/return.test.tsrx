@@ -21,14 +21,14 @@ describe('returns in restricted SSR scopes', () => {
 		).not.toThrow();
 	});
 
-	it('compiles TSRX render statements inside templates', () => {
+	it('compiles template directives inside templates', () => {
 		expect(
 			() => compile(
 				`
 				function App() {
 					return <>
-						if (ready) {
-								=> <div>yielded</div>
+						@if (ready) {
+								<div>yielded</div>
 							}
 							<span>after</span>
 					</>;
@@ -42,14 +42,14 @@ describe('returns in restricted SSR scopes', () => {
 });
 
 describe('function returns in SSR components', () => {
-	it('renders TSRX render statements inside control blocks alongside outer siblings', async () => {
+	it('renders template directive branches alongside outer siblings', async () => {
 		function App() {
 			const ready = true;
 			return <>
-				if (ready) {
-						=> <div class="yielded">yielded</div>
-					}
-					<span class="outer">outer</span>
+				@if (ready) {
+					<div class="yielded">yielded</div>
+				}
+				<span class="outer">outer</span>
 			</>;
 		}
 
@@ -73,25 +73,8 @@ describe('function returns in SSR components', () => {
 				'test.tsrx',
 				{ mode: 'server' },
 			),
-			).toThrow('TSRX elements and text inside JavaScript control flow blocks must use template directives.');
-	});
-
-	it('throws when top-level TSRX render statements are mixed with element children', () => {
-		expect(
-			() => compile(
-				`
-				function App() {
-					return <section>
-							=> <div>yielded</div>
-							<span>after</span>
-					</section>;
-				}
-			`,
-				'test.tsrx',
-				{ mode: 'server' },
-			),
 		).toThrow(
-			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
+			'TSRX elements and text inside JavaScript control flow blocks must use template directives.',
 		);
 	});
 
@@ -100,9 +83,9 @@ describe('function returns in SSR components', () => {
 			const ready = true;
 			return <>
 				if (ready) {
-						return <div class="returned">returned</div>;
-					}
-					<span class="after">after</span>
+					return <div class="returned">returned</div>;
+				}
+				<span class="after">after</span>
 			</>;
 		}
 

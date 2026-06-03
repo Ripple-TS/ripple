@@ -73,12 +73,12 @@ const TEXT_EXPR_HTML = highlight_tsrx(
 const IF_HTML = highlight_tsrx(
 	`const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => <>
   <div>
-    if (status === 'active') {
-      => <span class="badge active">Online</span>
+    @if (status === 'active') {
+      <span class="badge active">Online</span>
     } else if (status === 'idle') {
-      => <span class="badge idle">Away</span>
+      <span class="badge idle">Away</span>
     } else {
-      => <span class="badge">Offline</span>
+      <span class="badge">Offline</span>
     }
   </div>
 </>;`,
@@ -87,9 +87,9 @@ const IF_HTML = highlight_tsrx(
 const FOR_HTML = highlight_tsrx(
 	`const TodoList = ({ items }: { items: Todo[] }) => <>
   <ul>
-    for (const item of items; index i; key item.id) {
+    @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
-      => <li>{i + 1}. {item.text}</li>
+      <li>{i + 1}. {item.text}</li>
     }
   </ul>
 </>;`,
@@ -97,10 +97,10 @@ const FOR_HTML = highlight_tsrx(
 
 const TRY_HTML = highlight_tsrx(
 	`const SafeProfile = ({ userId }: { userId: string }) => <>
-  try {
-    => <UserProfile id={userId} />
+  @try {
+    <UserProfile id={userId} />
   } catch (error) {
-    => <div class="error">
+    <div class="error">
         <p>Something went wrong.</p>
       </div>
   }
@@ -109,10 +109,10 @@ const TRY_HTML = highlight_tsrx(
 
 const TRY_RESET_HTML = highlight_tsrx(
 	`export const RetryBoundary = () => <>
-  try {
-    => <ComponentThatMightFail />
+  @try {
+    <ComponentThatMightFail />
   } catch (e, reset) {
-    => <div>
+    <div>
         <p>Error: {e.message}</p>
         <button onClick={() => reset()}>Try again</button>
       </div>
@@ -122,15 +122,15 @@ const TRY_RESET_HTML = highlight_tsrx(
 
 const SWITCH_HTML = highlight_tsrx(
 	`const StatusMessage = ({ status }: { status: string }) => <>
-  switch (status) {
+  @switch (status) {
     case 'loading':
-      => <p>Loading...</p>
+      <p>Loading...</p>
       break;
     case 'success':
-      => <p class="success">Done!</p>
+      <p class="success">Done!</p>
       break;
     default:
-      => <p>Unknown status.</p>
+      <p>Unknown status.</p>
   }
 </>;`,
 );
@@ -162,12 +162,7 @@ const CHILDREN_HTML = highlight_tsrx(
   <p>Content goes here.</p>
 </Card>
 
-// Passing a function or array? Use =>:
-<List>
-  => items.map(renderItem)
-</List>
-
-// Or use the children prop explicitly:
+// Passing an array or function? Use the children prop:
 <List children={items.map(renderItem)} />`,
 );
 
@@ -185,12 +180,12 @@ const ASYNC_BOUNDARY_HTML = highlight_tsrx(
 	`const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
 export const App = () => <>
-  try {
-    => <UserProfile id={1} />
+  @try {
+    <UserProfile id={1} />
   } pending {
-    => <p>Loading...</p>
+    <p>Loading...</p>
   } catch (e) {
-    => <p>Something went wrong.</p>
+    <p>Something went wrong.</p>
   }
 </>;`,
 );
@@ -270,12 +265,12 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
   <TabBar value={tab} onChange={setTab} />
 
   <ul>
-    for (const post of posts) {
+    @for (const post of posts) {
       useEffect(() => {
         console.log('viewed ' + post.title);
       }, [post.title]);
 
-      => <li>{post.title}</li>
+      <li>{post.title}</li>
     }
   </ul>
 </>;`,
@@ -293,11 +288,9 @@ const LAZY_PROPS_HTML = highlight_tsrx(
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
 	{ id: 'jsx', label: 'TSRX templates' },
-	{ id: 'text-expressions', label: 'Text expressions' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'scoping', label: 'Lexical scoping' },
-	{ id: 'children', label: 'Children & render props' },
 	{ id: 'if', label: 'Conditional rendering' },
 	{ id: 'for', label: 'List rendering' },
 	{ id: 'switch', label: 'Switch statements' },
@@ -356,15 +349,15 @@ export const FeaturesPage = () => <>
 							}}
 						>
 							<option value="">{'Jump to section'}</option>
-							for (const item of NAV_ITEMS) {
-								=> <option value={item.id}>{item.label}</option>
+							@for (const item of NAV_ITEMS) {
+								<option value={item.id}>{item.label}</option>
 							}
 						</select>
 					</label>
 					<nav>
 						<p class="side-nav-heading">{'Features'}</p>
-						for (const item of NAV_ITEMS) {
-							=> <a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+						@for (const item of NAV_ITEMS) {
+							<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
 						}
 					</nav>
 				</aside>
@@ -409,13 +402,17 @@ export const FeaturesPage = () => <>
 							{'.'}
 						</p>
 						<p class="section-body muted">
-							{'Inside control-flow blocks, rendered output is marked explicitly with '}
-							<code class="inline-code">{'=>'}</code>
+							{'Template control flow uses directive-prefixed '}
+							<code class="inline-code">{'@if'}</code>
+							{', '}
+							<code class="inline-code">{'@for'}</code>
+							{', '}
+							<code class="inline-code">{'@switch'}</code>
+							{', and '}
+							<code class="inline-code">{'@try'}</code>
 							{'. '}
 							<code class="inline-code">{'return'}</code>
-							{' keeps its JavaScript meaning and exits the enclosing function; '}
-							<code class="inline-code">{'=>'}</code>
-							{' renders from the current lexical block.'}
+							{' keeps its JavaScript meaning and exits the enclosing function; direct children inside directive branches render into the current template.'}
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TEMPLATE_HTML} />
@@ -433,18 +430,6 @@ export const FeaturesPage = () => <>
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TSX_EXPR_HTML_SINGLE} />
-						</pre>
-					</section>
-
-					<section class="doc-section" id="text-expressions">
-						<h2 class="section-heading">{'Text expressions'}</h2>
-						<p class="section-body">
-							{'Static text is ordinary JSX text. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
-							<code class="inline-code">{'{ ... }'}</code>
-							{'.'}
-						</p>
-						<pre class="code-block">
-							<code innerHTML={TEXT_EXPR_HTML} />
 						</pre>
 					</section>
 
@@ -507,36 +492,6 @@ export const FeaturesPage = () => <>
 						</p>
 					</section>
 
-					<section class="doc-section" id="children">
-						<h2 class="section-heading">{'Children'}</h2>
-						<p class="section-body">
-							{'Composite components accept children as nested JSX — just like HTML elements. For ordinary nested markup, write elements directly. When you need the child value to be an array, function, string, or other expression, use '}
-							<code class="inline-code">{'=>'}</code>
-							{' as the component-children shortcut.'}
-						</p>
-						<p class="section-body">
-							{'You can also pass computed children with the '}
-							<code class="inline-code">{'children'}</code>
-							{' prop explicitly:'}
-						</p>
-						<pre class="code-block">
-							<code innerHTML={CHILDREN_HTML} />
-						</pre>
-						<p class="section-body">
-							<strong>{'Render props: '}</strong>
-							{'Render props are just function-valued props in TSRX. Pass them explicitly as '}
-							<code class="inline-code">{'children={...}'}</code>
-							{' or a named prop like '}
-							<code class="inline-code">{'render={...}'}</code>
-							{'. If that function returns native TSRX, wrap it in '}
-							<code class="inline-code">{'<>...</>'}</code>
-							{' when it needs statement-oriented children.'}
-						</p>
-						<pre class="code-block">
-							<code innerHTML={RENDER_PROPS_HTML} />
-						</pre>
-					</section>
-
 					<section class="doc-section" id="if">
 						<h2 class="section-heading">{'Conditional rendering'}</h2>
 						<p class="section-body">
@@ -546,9 +501,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">{'else if'}</code>
 							{' / '}
 							<code class="inline-code">{'else'}</code>
-							{' statements directly inside templates. Render branch output with '}
-							<code class="inline-code">{'=>'}</code>
-							{', or use '}
+							{' template expressions directly inside templates. Direct branch children render, or use '}
 							<code class="inline-code">{'return'}</code>
 							{' when the branch should exit the enclosing function.'}
 						</p>
@@ -575,9 +528,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">{'for...of'}</code>
 							{' body to skip the current item. '}
 							<code class="inline-code">{'return'}</code>
-							{' exits the enclosing function, while '}
-							<code class="inline-code">{'=>'}</code>
-							{' renders the current iteration. '}
+							{' exits the enclosing function, while direct children render the current iteration. '}
 							<code class="inline-code">{'break'}</code>
 							{' is not allowed in '}
 							<code class="inline-code">{'for...of'}</code>
@@ -610,9 +561,7 @@ export const FeaturesPage = () => <>
 						<p class="section-body">
 							{'Multi-branch rendering uses a standard '}
 							<code class="inline-code">{'switch'}</code>
-							{' statement. Render case output with '}
-							<code class="inline-code">{'=>'}</code>
-							{' and end fallthrough-sensitive cases with '}
+							{' template expression. Case children render directly; end fallthrough-sensitive cases with '}
 							<code class="inline-code">{'break'}</code>
 							{'.'}
 						</p>
@@ -628,9 +577,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">{'try'}</code>
 							{' / '}
 							<code class="inline-code">{'catch'}</code>
-							{' to create error boundaries. If a child component throws, the catch block renders fallback UI with '}
-							<code class="inline-code">{'=>'}</code>
-							{'.'}
+							{' to create error boundaries. If a child component throws, the catch block renders its fallback children.'}
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TRY_HTML} />
@@ -668,9 +615,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">{'pending'}</code>
 							{' and '}
 							<code class="inline-code">{'catch'}</code>
-							{' are optional and can be used independently. Mark the UI rendered by each branch with '}
-							<code class="inline-code">{'=>'}</code>
-							{'.'}
+							{' are optional and can be used independently. Each branch renders its direct template children.'}
 						</p>
 						<p class="section-body">
 							{'Async work itself is expressed using the target\'s own lazy-loading primitive — '}

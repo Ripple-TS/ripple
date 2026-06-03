@@ -251,14 +251,14 @@ second</pre>
 		expect(container.textContent).toBe('');
 	});
 
-	it('renders bare double-quoted text in if-else branches', () => {
+	it('renders bare JSX text in if-else branches', () => {
 		function App() {
 			return <>
 				let condition = false;
-				if (condition) {
-					=> 'Hello Ripple'
+				@if (condition) {
+					Hello Ripple
 				} else {
-					=> 'Hello React'
+					Hello React
 				}
 			</>;
 		}
@@ -314,14 +314,14 @@ second</pre>
 	it('renders tick template literal for nested children', () => {
 		function Child({ level, children }: { level: number; children: any }) {
 			return <>
-				if (level == 1) {
-					=> <h1>{children}</h1>
+				@if (level == 1) {
+					<h1>{children}</h1>
 				}
-				if (level == 2) {
-					=> <h2>{children}</h2>
+				@if (level == 2) {
+					<h2>{children}</h2>
 				}
-				if (level == 3) {
-					=> <h3>{children}</h3>
+				@if (level == 3) {
+					<h3>{children}</h3>
 				}
 			</>;
 		}
@@ -434,14 +434,14 @@ second</pre>
 					{'Toggle Role'}
 				</button>
 				<div class="content">
-					if (showContent) {
-						if (userRole === 'admin') {
-							=> <div class="admin-content">{'Admin content'}</div>
+					@if (showContent) {
+						@if (userRole === 'admin') {
+							<div class="admin-content">{'Admin content'}</div>
 						} else {
-							=> <div class="user-content">{'User content'}</div>
+							<div class="user-content">{'User content'}</div>
 						}
 					} else {
-						=> <div class="no-content">{'No content'}</div>
+						<div class="no-content">{'No content'}</div>
 					}
 				</div>
 			</>;

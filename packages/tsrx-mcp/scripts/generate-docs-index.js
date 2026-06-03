@@ -73,8 +73,8 @@ TSRX is a TypeScript language extension for authoring declarative UI in .tsrx fi
 Core ideas:
 - Components are ordinary TypeScript values; prefer arrow functions whose body is a single TSRX fragment.
 - TSRX opens in expression position, then template children use a template statement list inside the fragment.
-- Top-level fragment children can contain setup code, rendered elements, and statement control flow.
-- Control-flow blocks render with \`=>\`; \`return\` remains a real function exit.
+- Top-level fragment children can contain setup code, rendered elements, and template control flow.
+- \`@if\`, \`@for\`, \`@switch\`, and \`@try\` are template control-flow expressions; \`return\` remains a real function exit.
 - Native TSRX can be returned directly as \`<div />\` or \`<>...</>\`.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
@@ -103,14 +103,14 @@ Source: website-tsrx/src/pages/specification.tsrx#components`,
 		{
 			slug: 'text-and-template-expressions',
 			title: 'Text and Template Expressions',
-			use_cases: 'text children, quoted text, raw text errors, string literals',
+			use_cases: 'text children, jsx text, string literals, expression containers',
 			content: `# Text and Template Expressions
 
-Raw unquoted text children are not valid TSRX. Static text should be written as a direct double-quoted child, and dynamic values should be wrapped in braces.
+Static text is ordinary JSX text. Dynamic values should be wrapped in braces.
 
 \`\`\`tsx
 const Greeting = ({ name }: { name: string }) => <>
-  <h1>"Hello"</h1>
+  <h1>Hello</h1>
   <p>{name}</p>
 </>;
 \`\`\`
@@ -136,7 +136,7 @@ Returned TSRX opens in expression position. Inside the TSRX fragment, template e
 
 \`\`\`tsx
 const App = () => <>
-  const title = <>"Settings"</>;
+  const title = <>Settings</>;
 
   <Card title={title} />
 </>;
@@ -168,24 +168,24 @@ Source: website-tsrx/src/pages/specification.tsrx#expression-values`,
 				'if else, for loops, switch, try catch, conditional rendering, lists, guard returns',
 			content: `# Control Flow
 
-Standard JavaScript control flow can contain template statements inside returned TSRX fragments and nested element children.
+Template control flow uses directive-prefixed \`@if\`, \`@for\`, \`@switch\`, and \`@try\` blocks inside returned TSRX fragments and nested element children.
 
 \`\`\`tsx
 const List = ({ items }: { items: string[] }) => <>
-  if (items.length === 0) {
-    => <p>"No items"</p>
+  @if (items.length === 0) {
+    <p>No items</p>
   } else {
-    => <ul>
-      for (const item of items; index i; key item) {
+    <ul>
+      @for (const item of items; index i; key item) {
         if (!item) continue;
-        => <li>{item}</li>
+        <li>{item}</li>
       }
     </ul>
   }
 </>;
 \`\`\`
 
-Use \`return\` for true function exits, including guard exits inside the component fragment. Use \`=>\` when a control-flow branch should render a value into the current lexical TSRX block.
+Use \`return\` for true function exits, including guard exits inside the component fragment. Direct template children inside directive blocks render into the current lexical TSRX block.
 
 Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
 

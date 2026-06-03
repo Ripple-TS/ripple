@@ -70,15 +70,15 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('formats TSRX render statements', async () => {
-		const input = `function App(){return <>if(ready){=><div>"Ready"</div><span>"Skipped"</span>}<span>"After"</span></>}`;
+	it('formats template directives with direct output children', async () => {
+		const input = `function App(){return <>@if(ready){<div>Ready</div><span>Also ready</span>}<span>After</span></>}`;
 		const expected = `function App() {
   return <>
-    if (ready) {
-      => <div>"Ready"</div>
-      <span>"Skipped"</span>
+    @if (ready) {
+      <div>Ready</div>
+      <span>Also ready</span>
     }
-    <span>"After"</span>
+    <span>After</span>
   </>;
 }`;
 
@@ -86,12 +86,10 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('formats TSRX render statements in component children', async () => {
-		const input = `function App(){return <OtherComponent>=> 'I like TSRX'</OtherComponent>;}`;
+	it('formats explicit expression children props', async () => {
+		const input = `function App(){return <OtherComponent children={'I like TSRX'} />;}`;
 		const expected = `function App() {
-  return <OtherComponent>
-    => "I like TSRX"
-  </OtherComponent>;
+  return <OtherComponent children="I like TSRX" />;
 }`;
 
 		const result = await format(input);

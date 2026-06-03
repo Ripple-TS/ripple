@@ -36,8 +36,8 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			return <>
 				<div class="card">
-					if (props.children) {
-						=> props.children
+					@if (props.children) {
+						{props.children}
 					}
 				</div>
 			</>;
@@ -65,8 +65,8 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) {
 			return <>
 				<div class="card">
-					if (props.children) {
-						=> props.children
+					@if (props.children) {
+						{props.children}
 					}
 				</div>
 			</>;

@@ -34,14 +34,14 @@ describe('returns in restricted scopes', () => {
 		).not.toThrow();
 	});
 
-	it('compiles TSRX render statements inside templates', () => {
+	it('compiles template directives inside templates', () => {
 		expect(
 			() => compile(
 				`
 				function App() {
 					return <>
-						if (ready) {
-							=> <div>yielded</div>
+						@if (ready) {
+							<div>yielded</div>
 						}
 						<span>after</span>
 					</>;
@@ -55,12 +55,12 @@ describe('returns in restricted scopes', () => {
 });
 
 describe('function returns in client components', () => {
-	it('renders TSRX render statements inside control blocks alongside outer siblings', () => {
+	it('renders template directive branches alongside outer siblings', () => {
 		function App() {
 			const ready = true;
 			return <>
-				if (ready) {
-					=> <div class="yielded">yielded</div>
+				@if (ready) {
+					<div class="yielded">yielded</div>
 				}
 				<span class="outer">outer</span>
 			</>;
@@ -89,42 +89,6 @@ describe('function returns in client components', () => {
 			),
 		).toThrow(
 			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
-		);
-	});
-
-	it('throws when top-level TSRX render statements are mixed with fragment children', () => {
-		expect(
-			() => compile(
-				`
-				function App() {
-					return <>
-						=> <div>yielded</div>
-						<span>after</span>
-					</>;
-				}
-			`,
-				'test.tsrx',
-				{ mode: 'client' },
-			),
-		).toThrow(
-			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
-		);
-	});
-
-	it('throws when top-level TSRX render statements are mixed with fragment text', () => {
-		expect(
-			() => compile(`
-				function App() {
-					return <>
-						=> <div>yielded</div>
-						after
-					</>;
-				}
-			`, 'test.tsrx', {
-				mode: 'client',
-			}),
-		).toThrow(
-			'TSRX render statements cannot be mixed with direct TSRX elements or text in the same template body.',
 		);
 	});
 

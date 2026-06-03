@@ -41,7 +41,7 @@ export function App() {
       {name || 'stranger'}
       "!"
     </p>
-    <button onClick={() => (name = '')}>"Clear"</button>
+    <button onClick={() => (name = '')}>Clear</button>
   </div>
 
   </>;
@@ -68,7 +68,7 @@ export function App() {
       {age}
       " years old"
     </p>
-    <button onClick={() => (age = age + 1)}>"Increment"</button>
+    <button onClick={() => (age = age + 1)}>Increment</button>
   </div>
 
   </>;
@@ -90,10 +90,10 @@ export function App() {
 
   <div>
     <select ref={bindValue(selectedFruitTracked)}>
-      <option value="apple">"Apple"</option>
-      <option value="banana">"Banana"</option>
-      <option value="cherry">"Cherry"</option>
-      <option value="durian">"Durian"</option>
+      <option value="apple">Apple</option>
+      <option value="banana">Banana</option>
+      <option value="cherry">Cherry</option>
+      <option value="durian">Durian</option>
     </select>
     <p>
       "You selected: "
@@ -120,10 +120,10 @@ export function App() {
 
   <div>
     <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
-      <option value="red">"Red"</option>
-      <option value="green">"Green"</option>
-      <option value="blue">"Blue"</option>
-      <option value="yellow">"Yellow"</option>
+      <option value="red">Red</option>
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+      <option value="yellow">Yellow</option>
     </select>
     <p>
       "Selected colors: "
@@ -160,7 +160,7 @@ export function App() {
       "Status: "
       {agreed ? 'Agreed' : 'Not agreed'}
     </p>
-    <button disabled={!agreed}>"Submit"</button>
+    <button disabled={!agreed}>Submit</button>
   </div>
 
   </>;
@@ -279,7 +279,7 @@ export function App() {
     </p>
   </div>
 
-  <button onClick={() => (hobbies = ['reading'])}>"Reset"</button>
+  <button onClick={() => (hobbies = ['reading'])}>Reset</button>
 
   </>;
 }
@@ -309,12 +309,12 @@ export function App() {
     </label>
     <label>
       <input type="radio" name="size" value="large" ref={bindGroup(sizeTracked)} />
-      " Large"
+      Large
     </label>
-    <p>"Selected size: "{size}</p>
+    <p>Selected size: {size}</p>
   </div>
 
-  <button onClick={() => size = 'medium'}>"Reset to "medium"</button>
+  <button onClick={() => size = 'medium'}>Reset to medium</button>
   </>;
 }
 ```
@@ -383,7 +383,7 @@ export function App() {
 
     <div>
       if (files && files.length > 0) {
-        <p>"Selected files:"</p>
+        <p>Selected files:</p>
         <ul>
           for (const file of Array.from(files)) {
             <li>
@@ -395,12 +395,12 @@ export function App() {
           }
         </ul>
       } else {
-        <p>"No files selected"</p>
+        <p>No files selected</p>
       }
     </div>
 
-    <button onClick={clearFiles}>"Clear files"</button>
-    <button onClick={createSampleFile}>"Add sample file"</button>
+    <button onClick={clearFiles}>Clear files</button>
+    <button onClick={createSampleFile}>Add sample file</button>
   </div>
 
   </>;
@@ -707,7 +707,7 @@ export function App() {
         minHeight: '50px',
       }}
     />
-    <p>"Raw HTML:"</p>
+    <p>Raw HTML:</p>
     <pre>{content}</pre>
   </div>
 
@@ -822,7 +822,7 @@ export function App() {
     >
       "Click the button to focus this div"
     </div>
-    <button onClick={handleFocus}>"Focus Div"</button>
+    <button onClick={handleFocus}>Focus Div</button>
   </div>
 
   </>;
@@ -864,9 +864,9 @@ export function App() {
       placeholder="Type something..."
       style="width: 300px"
     />
-    <p>"Text: "{text}</p>
-    <p>"Width: "{width}"px"</p></p>
-    <button onClick={logInfo}>"Log Info"</button>
+    <p>Text: {text}</p>
+    <p>Width: {width}px</p></p>
+    <button onClick={logInfo}>Log Info</button>
   </div>
 
   </>;

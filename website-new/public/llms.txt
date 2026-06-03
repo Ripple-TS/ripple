@@ -323,8 +323,8 @@ export const Panel = ({ title, children }: { title: string; children: any }) => 
 - Use `export const Name = (...) => <>...</>;` for public components.
 - Put setup logic, rendered structure, control flow, and scoped styles inside
   the component's single TSRX fragment body.
-- Use `=>` for rendered output inside `if`, `for...of`, `switch`, `try`,
-  `pending`, and `catch` blocks.
+- Use directive-prefixed `@if`, `@for`, `@switch`, and `@try` blocks for
+  rendered template control flow.
 - Keep inline `<style>` blocks inside the TSRX fragment/expression they style.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -335,14 +335,15 @@ export const Panel = ({ title, children }: { title: string; children: any }) => 
 - Do not claim TSRX templates are restricted to special declarations or bodies.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
   inside `<style>` blocks.
-- Do not place bare TSRX elements directly inside control-flow blocks; use `=>`.
+- Do not place rendered TSRX elements inside plain JavaScript control-flow
+  statements; use directive-prefixed template control flow.
 
 ### TSRX Expressions
 
 TSRX is the default JSX-like expression form in `.tsrx` files. UI can be
 returned from functions, assigned to variables, or passed as props anywhere a
 TypeScript expression is allowed. The interior remains TSRX, so direct
-quote-delimited text children and statement control flow still work.
+JSX text children and directive-prefixed template control flow still work.
 
 ```ripple
 function createBadge(label: string) {
@@ -350,7 +351,7 @@ function createBadge(label: string) {
 }
 
 const App = () => <>
-  const title = <span class="title">"Settings"</span>;
+  const title = <span class="title">Settings</span>;
 
   <header>{title}</header>
   {createBadge('New')}
@@ -365,7 +366,7 @@ ternary, function call. Adjacent text and `{...}` containers concatenate:
 
 ```tsrx
 const Inbox = ({ name, count }: { name: string; count: number }) => <>
-  <p>"Hello, "{name}"!"</p>
+  <p>Hello, {name}!</p>
   <p>{`You have ${count} unread messages`}</p>
   <p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
 
@@ -409,7 +410,7 @@ forcing `props.count` everywhere.
 const UserCard = (&{ name, age }: { name: string; age: number }) => <>
   <div>
     <h2>{name}</h2>
-    <p>"Age: "{age}</p>
+    <p>Age: {age}</p>
   </div>
 
 </>;
@@ -417,7 +418,7 @@ const UserCard = (&{ name, age }: { name: string; age: number }) => <>
 // Lazy array destructuring — e.g. Solid's createSignal
 let &[count, setCount] = createSignal(0);
 <p>{count()}</p>
-<button onClick={() => setCount(count() + 1)}>"+"</button>
+<button onClick={() => setCount(count() + 1)}>+</button>
 ```
 
 - **React**: compiles to direct property access on the source object — no
@@ -523,8 +524,8 @@ computed value (array, function), use the `children` prop explicitly.
 ```tsrx
 // Nested children — works as JSX statements
 <Card>
-  <h2>"Title"</h2>
-  <p>"Content goes here."</p>
+  <h2>Title</h2>
+  <p>Content goes here.</p>
 </Card>
 
 // Passing a computed value — use the children prop
@@ -533,21 +534,21 @@ computed value (array, function), use the `children` prop explicitly.
 
 ## Control Flow
 
-All control-flow constructs are **real** JS statements inside templates —
-not helper components. Inside control-flow blocks, rendered output must use
-`=>`; a plain `return` is a real function exit.
+Template control-flow constructs use directive-prefixed `@if`, `@for`,
+`@switch`, and `@try` expressions. A plain `return` remains a real function
+exit.
 
 ### `if` / `else if` / `else`
 
 ```tsrx
 const StatusBadge = ({ status }: { status: string }) => <>
   <div>
-    if (status === 'active') {
-      => <span class="badge active">"Online"</span>
+    @if (status === 'active') {
+      <span class="badge active">Online</span>
     } else if (status === 'idle') {
-      => <span class="badge idle">"Away"</span>
+      <span class="badge idle">Away</span>
     } else {
-      => <span class="badge">"Offline"</span>
+      <span class="badge">Offline</span>
     }
   </div>
 
@@ -562,9 +563,9 @@ Use `continue` to skip an item before rendering it.
 ```tsrx
 const TodoList = ({ items }: { items: Todo[] }) => <>
   <ul>
-    for (const item of items; index i; key item.id) {
+    @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
-      => <li>{i + 1}". "{item.text}</li>
+      <li>{i + 1}. {item.text}</li>
     }
   </ul>
 
@@ -596,15 +597,15 @@ fall-through works.
 
 ```tsrx
 const StatusMessage = ({ status }: { status: string }) => <>
-  switch (status) {
+  @switch (status) {
     case 'loading':
-      => <p>"Loading..."</p>
+      <p>Loading...</p>
       break;
     case 'success':
-      => <p class="success">"Done!"</p>
+      <p class="success">Done!</p>
       break;
     default:
-      => <p>"Unknown status."</p>
+      <p>Unknown status.</p>
   }
 
 </>;
@@ -618,11 +619,11 @@ clauses are optional and composable.
 
 ```tsrx
 const SafeProfile = ({ userId }: { userId: string }) => <>
-  try {
-    => <UserProfile id={userId} />
+  @try {
+    <UserProfile id={userId} />
   } catch (error) {
-    => <div class="error">
-      <p>"Something went wrong."</p>
+    <div class="error">
+      <p>Something went wrong.</p>
     </div>
   }
 
@@ -655,12 +656,12 @@ with `try` / `pending` / `catch`.
 const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
 export const App = () => <>
-  try {
-    => <UserProfile id={1} />
+  @try {
+    <UserProfile id={1} />
   } pending {
-    => <p>"Loading..."</p>
+    <p>Loading...</p>
   } catch (e) {
-    => <p>"Something went wrong."</p>
+    <p>Something went wrong.</p>
   }
 
 </>;
@@ -683,8 +684,8 @@ const Dashboard = ({ user }: { user: User | null }) => <>
     return null;
   }
 
-  <h1>"Welcome, "{user.name}</h1>
-  <p>"Here is your dashboard."</p>
+  <h1>Welcome, {user.name}</h1>
+  <p>Here is your dashboard.</p>
 </>;
 ```
 
@@ -696,7 +697,7 @@ const Dashboard = ({ user }: { user: User | null }) => <>
 **LLM DON'T:**
 - Do not describe `return;` as the only legal guard form.
 - Do not translate component examples away from arrow-fragment bodies.
-- Do not use `return` for rendered branch output; use `=>`.
+- Do not use `return` for rendered branch output; use template control flow.
 
 ## Scoped Styles
 
@@ -713,8 +714,8 @@ read them from static CSS with `var(--name)`.
 ```tsrx
 const Card = ({ tone }: { tone: string }) => <>
   <div class="card" style={{ '--card-tone': tone }}>
-    <h2>"Scoped title"</h2>
-    <p>"Styles here won't leak out."</p>
+    <h2>Scoped title</h2>
+    <p>Styles here won't leak out.</p>
   </div>
 
   <style>
@@ -750,7 +751,7 @@ targets commonly use `class`.
 
 ```tsrx
 const Badge = ({ class: className }: { class?: string }) => <>
-  <span class={`badge ${className ?? ''}`}>"New"</span>
+  <span class={`badge ${className ?? ''}`}>New</span>
   <style>
     .badge { padding: 0.25rem 0.5rem; }
   </style>
@@ -818,7 +819,7 @@ import { useState, useEffect } from 'react';
 
 const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <>
   if (!user) {
-    return <p>"Please sign in."</p>;
+    return <p>Please sign in.</p>;
   }
 
   // Hook after a guard — isolated safely by the compiler
@@ -829,12 +830,12 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
 
   // Hook inside a loop — hook results stay local to the extracted item
   <ul>
-    for (const post of posts) {
+    @for (const post of posts) {
       useEffect(() => {
         console.log(`viewed ${post.title}`);
       }, [post.title]);
 
-      => <li>{post.title}</li>
+      <li>{post.title}</li>
     }
   </ul>
 
@@ -926,13 +927,13 @@ feeds. Each element body is its own scope, so locals don't leak.
 ```tsrx
 const Cart = ({ items }: { items: Item[] }) => <>
   <div>
-    <h2>"Your cart"</h2>
+    <h2>Your cart</h2>
 
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount = subtotal > 100 ? 0.1 : 0;
 
-    <p>"Subtotal: $"{subtotal}</p>
-    <p>"Save: $"{(subtotal * discount).toFixed(2)}</p>
+    <p>Subtotal: ${subtotal}</p>
+    <p>Save: ${(subtotal * discount).toFixed(2)}</p>
   </div>
 
 </>;
@@ -953,8 +954,8 @@ type Props<T> = {
 
 const List = <T,>({ items, render }: Props<T>) => <>
   <ul>
-    for (const item of items) {
-      => <li>{render(item)}</li>
+    @for (const item of items) {
+      <li>{render(item)}</li>
     }
   </ul>
 
@@ -967,9 +968,9 @@ const List = <T,>({ items, render }: Props<T>) => <>
 | --- | --- |
 | Component declaration | `const Name = (props: T) => <>...</>;` |
 | Exported component | `export const Name = (...) => <>...</>;` |
-| TSRX as value | `const v = <span>"Hi"</span>;` |
+| TSRX as value | `const v = <span>Hi</span>;` |
 | TSRX fragment as value | `const v = <> const x = 1; <span>{x}</span> </>;` |
-| Text content | `<p>"literal"</p>`, `<p>{expr}</p>` |
+| Text content | `<p>literal</p>`, `<p>{expr}</p>` |
 | Raw HTML | `<article innerHTML={markup} />` |
 | Lazy prop destructure | `const C = (&{ x, y }: Props) => <>...</>;` |
 | Lazy array destructure | `let &[count, set] = createSignal(0);` |
@@ -978,11 +979,11 @@ const List = <T,>({ items, render }: Props<T>) => <>
 | Direct mutable ref (Solid/Ripple) | `<input ref={varName} />` |
 | Reactive/object ref | `<input ref={useRefValue} />` |
 | Multiple host refs | `<input ref={[obj, a, b]} />` |
-| Conditional rendering | `if (cond) { => <Panel /> } else { => <Fallback /> }` |
-| List rendering | `for (const x of xs; index i; key x.id) { => <li /> }` |
-| Multi-branch | `switch (x) { case 'a': => <A />; break; }` |
-| Error boundary | `try { => <Child /> } catch (e) { => <Fallback /> }` |
-| Async boundary | `try { => <Child /> } pending { => <Loading /> }` |
+| Conditional rendering | `@if (cond) { <Panel /> } else { <Fallback /> }` |
+| List rendering | `@for (const x of xs; index i; key x.id) { <li /> }` |
+| Multi-branch | `@switch (x) { case 'a': <A />; break; }` |
+| Error boundary | `@try { <Child /> } catch (e) { <Fallback /> }` |
+| Async boundary | `@try { <Child /> } pending { <Loading /> }` |
 | Lazy child | `const C = lazy(() => import('./C.tsrx'));` |
 | Empty guard | `if (!user) { return null; }` |
 | Scoped style | `<style> .x { ... } </style>` |

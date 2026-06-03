@@ -129,11 +129,10 @@ function collect_direct_quoted_text_issues(code) {
 		issues.push({
 			kind: 'direct-quoted-text',
 			severity: match[1] === 'button' ? 'error' : 'warning',
-			title: 'Use expression text for visible TSRX text',
-			message:
-				'Direct quoted text inside TSRX elements can be treated as a JavaScript string statement instead of rendered text in some target output.',
+			title: 'Use JSX text for visible TSRX text',
+			message: 'Quoted text inside TSRX elements renders the quote characters as part of the text.',
 			snippet: line_snippet(match[0]),
-			recommendation: `Replace it with expression text, for example <${match[1]}>{'${match[3].replace(/'/g, "\\'")}'}</${match[1]}>.`,
+			recommendation: `Remove the extra quotes, for example <${match[1]}>${match[3]}</${match[1]}>.`,
 			documentation: ['tsrx://docs/text-and-template-expressions.md'],
 		});
 	}
@@ -160,7 +159,7 @@ export function review_tsrx_accessibility(input) {
 			has_attribute(attrs, 'aria-label') ||
 			has_attribute(attrs, 'aria-labelledby') ||
 			has_attribute(attrs, 'title') ||
-			(has_expression_text(inner) && !/^\s*\{\s*['"`]\s*['"`]\s*\}\s*$/.test(inner));
+			(has_visible_label_text(inner) && !/^\s*\{\s*['"`]\s*['"`]\s*\}\s*$/.test(inner));
 
 		if (!has_name || has_direct_quoted_text(inner)) {
 			issues.push({
@@ -171,7 +170,7 @@ export function review_tsrx_accessibility(input) {
 					'Buttons must expose a visible label or an aria-label. This is especially important for disabled submit buttons and icon-only controls.',
 				snippet: line_snippet(match[0]),
 				recommendation:
-					"Use visible expression text such as {'Add task'} or add aria-label for icon-only buttons.",
+					'Use visible JSX text such as Add task or add aria-label for icon-only buttons.',
 				documentation: ['tsrx://docs/text-and-template-expressions.md'],
 			});
 		}
@@ -227,7 +226,7 @@ export function review_tsrx_accessibility(input) {
 				? ['Run browser-based Axe or the benchmark validation loop.']
 				: [
 						'Fix error-severity issues before returning code.',
-						'Prefer expression text for visible labels.',
+						'Prefer JSX text for visible labels.',
 						'Run review-tsrx-accessibility again, then compile-tsrx and browser-based Axe.',
 					],
 	};
