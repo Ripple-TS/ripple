@@ -1,3 +1,3 @@
 export function Valid() {
-	return <><button>"Save"</button></>;
+	return <><button>Save</button></>;
 }

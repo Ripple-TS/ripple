@@ -108,7 +108,7 @@ import { track } from 'ripple';
 export function App() {
   let count = track(0);
 
-  return <div>{count}</div>;
+  return <button onClick={() => count++}>{count}</button>;
 }
 ```
 
@@ -133,9 +133,10 @@ This rule is auto-fixable with `--fix`.
 
 ### `ripple/control-flow-jsx` (error)
 
-Checks render control flow inside functions that return native TSRX. `for...of`
-loops in returned TSRX should render elements, while loops inside `effect()`
-callbacks should not render JSX.
+Checks render control flow inside functions that return native TSRX. Directive
+`@for` loops in returned TSRX should render elements, plain `for...of` loops that
+render JSX should use `@for`, and loops inside `effect()` callbacks should not
+render JSX.
 
 ### `ripple/no-lazy-destructuring-in-modules` (error)
 

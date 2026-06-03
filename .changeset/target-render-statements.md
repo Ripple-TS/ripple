@@ -5,6 +5,7 @@
 "@tsrx/solid": patch
 "@tsrx/vue": patch
 "@tsrx/ripple": patch
+"@tsrx/eslint-plugin": patch
 "@tsrx/prettier-plugin": patch
 "@tsrx/mcp": patch
 ---

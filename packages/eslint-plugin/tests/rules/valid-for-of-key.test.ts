@@ -14,53 +14,53 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('valid-for-of-key', rule, {
 	valid: [
-		// Valid: for...of with valid key (variable defined in loop)
+		// Valid: @for with valid key (variable defined in loop)
 		{
 			code: `
 				function App() {
 					return <>
 					const items = [{id: 1}, {id: 2}];
-					for (const item of items; key item.id) {
+					@for (const item of items; key item.id) {
 						<div>{item.id}</div>
 					}
 					</>;
 				}
 			`,
 		},
-		// Valid: for...of with valid key (variable defined in outer scope)
+		// Valid: @for with valid key (variable defined in outer scope)
 		{
 			code: `
 				function App() {
 					return <>
 					const items = [1, 2];
 					const globalId = 123;
-					for (const item of items; key globalId) {
+					@for (const item of items; key globalId) {
 						<div>{item}</div>
 					}
 					</>;
 				}
 			`,
 		},
-		// Valid: for...of without key
+		// Valid: @for without key
 		{
 			code: `
 				function App() {
 					return <>
 					const items = [1, 2];
-					for (const item of items) {
+					@for (const item of items) {
 						<div>{item}</div>
 					}
 					</>;
 				}
 			`,
 		},
-		// Valid: for...of with index and key
+		// Valid: @for with index and key
 		{
 			code: `
         function App() {
           return <>
           const items = [{id: 1}, {id: 2}];
-          for (const item of items; index i; key item.id) {
+          @for (const item of items; index i; key item.id) {
             <div>{item.id}</div>
           }
           </>;
@@ -75,7 +75,7 @@ ruleTester.run('valid-for-of-key', rule, {
 				function App() {
 					return <>
 					const items = [{id: 1}, {id: 2}];
-					for (const item of items; key unknownVariable) {
+					@for (const item of items; key unknownVariable) {
 						<div>{item.id}</div>
 					}
 					</>;
@@ -96,7 +96,7 @@ ruleTester.run('valid-for-of-key', rule, {
 				function App() {
 					return <>
 					const items = [{id: 1}, {id: 2}];
-					for (const item of items; key item.id + unknownVariable) {
+					@for (const item of items; key item.id + unknownVariable) {
 						<div>{item.id}</div>
 					}
 					</>;

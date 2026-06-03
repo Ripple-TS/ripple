@@ -17,14 +17,14 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('control-flow-jsx', rule, {
 	valid: [
-		// Valid: for...of with JSX in returned TSRX (outside effect)
+		// Valid: @for with JSX in returned TSRX (outside effect)
 		{
 			code: `
 				function App() {
 					return <>
 					const items = ['Item 1', 'Item 2'];
 
-					for (const item of items) {
+					@for (const item of items) {
 						<div>{item}</div>
 					}
 					</>;
@@ -48,13 +48,13 @@ ruleTester.run('control-flow-jsx', rule, {
 				}
 			`,
 		},
-		// Valid: nested JSX in for...of in returned TSRX
+		// Valid: nested JSX in @for in returned TSRX
 		{
 			code: `
 				function App() {
 					return <>
 					const items = [1, 2, 3];
-					for (const item of items) {
+					@for (const item of items) {
 						<div>
 							<span>{item}</span>
 						</div>
@@ -94,15 +94,30 @@ ruleTester.run('control-flow-jsx', rule, {
 				}
 			`,
 		},
-	],
-	invalid: [
-		// Invalid: for...of without JSX in returned TSRX
+		// Valid: ordinary setup for...of without JSX inside returned TSRX
 		{
 			code: `
 				function App() {
 					return <>
 					const items = ['Item 1', 'Item 2'];
+					const labels: string[] = [];
 					for (const item of items) {
+						labels.push(item.toUpperCase());
+					}
+					<ul>{labels.join(', ')}</ul>
+					</>;
+				}
+			`,
+		},
+	],
+	invalid: [
+		// Invalid: @for without JSX in returned TSRX
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					@for (const item of items) {
 						console.log(item);
 					}
 					</>;
@@ -111,6 +126,24 @@ ruleTester.run('control-flow-jsx', rule, {
 			errors: [
 				{
 					messageId: 'requireJsxInLoop',
+				},
+			],
+		},
+		// Invalid: plain for...of with JSX in returned TSRX
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					for (const item of items) {
+						<div>{item}</div>
+					}
+					</>;
+				}
+			`,
+			errors: [
+				{
+					messageId: 'requireDirectiveForRenderingLoop',
 				},
 			],
 		},
@@ -158,13 +191,13 @@ ruleTester.run('control-flow-jsx', rule, {
 				},
 			],
 		},
-		// Invalid: for...of without JSX in returned TSRX (even with other statements)
+		// Invalid: @for without JSX in returned TSRX (even with other statements)
 		{
 			code: `
 				function App() {
 					return <>
 					const items = [1, 2, 3];
-					for (const item of items) {
+					@for (const item of items) {
 						const double = item * 2;
 						console.log(double);
 					}

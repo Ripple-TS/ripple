@@ -87,9 +87,9 @@ function create_advice(input) {
 		advice.push({
 			kind: 'tsrx-loop-control-flow',
 			severity: 'error',
-			title: 'Use continue inside TSRX for...of loops',
+			title: 'Use continue inside TSRX @for loops',
 			message:
-				'Return statements are not valid inside TSRX templates, and break statements are not valid inside TSRX for...of loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+				'Return statements are not valid inside TSRX templates, and break statements are not valid inside TSRX @for loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}
@@ -114,9 +114,9 @@ function create_advice(input) {
 		advice.push({
 			kind: 'unsupported-component-loop',
 			severity: 'error',
-			title: 'Use for...of for component list rendering',
+			title: 'Use @for for component list rendering',
 			message:
-				'Component template scope supports for...of loops for rendering lists. Move regular for, for...in, while, and do...while loops into a nested function, event handler, effect, or helper.',
+				'Component template scope supports directive @for loops for rendering lists. Move regular for, for...in, while, and do...while loops into a nested function, event handler, effect, or helper.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

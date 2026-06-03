@@ -183,7 +183,7 @@ describe('@tsrx/mcp stdio server', () => {
 			expect(expect_text_content(prompt.messages[0].content)).toContain('detect-target');
 
 			const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
-			expect(expect_text_content(docs.contents[0])).toContain('function Button');
+			expect(expect_text_content(docs.contents[0])).toContain('const Button');
 
 			const target = await client.callTool({
 				name: 'detect-target',
@@ -221,7 +221,7 @@ describe('@tsrx/mcp stdio server', () => {
 				name: 'compile-tsrx',
 				arguments: {
 					code: `export function Greeting({ name }: { name: string }) { return <>
-						<p>"Hello "{name}</p>
+						<p>Hello {name}</p>
 					</>; }`,
 					filename: 'Greeting.tsrx',
 					cwd: react_fixture,
@@ -271,7 +271,7 @@ describe('@tsrx/mcp stdio server', () => {
 			const formatted = await client.callTool({
 				name: 'format-tsrx',
 				arguments: {
-					code: `export function Greeting({ name }: { name: string }){ return <><p>"Hello "{name}</p></>; }`,
+					code: `export function Greeting({ name }: { name: string }){ return <><p>Hello {name}</p></>; }`,
 					filename: 'Greeting.tsrx',
 				},
 			});
@@ -282,7 +282,7 @@ describe('@tsrx/mcp stdio server', () => {
 			expect(formatted_output.ok).toBe(true);
 			expect(formatted_output.changed).toBe(true);
 			expect(formatted_output.formatted).toContain('export function Greeting');
-			expect(formatted_output.formatted).toContain('"Hello "');
+			expect(formatted_output.formatted).toContain('Hello');
 			expect(formatted_output.formatted).toContain('{name}');
 
 			const validated = await client.callTool({

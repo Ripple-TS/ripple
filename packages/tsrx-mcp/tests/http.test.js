@@ -136,7 +136,7 @@ describe('@tsrx/mcp HTTP server', () => {
 				name: 'compile-tsrx',
 				arguments: {
 					code: `export function Greeting({ name }: { name: string }) { return <>
-						<p>"Hello "{name}</p>
+						<p>Hello {name}</p>
 					</>; }`,
 					filename: 'Greeting.tsrx',
 					target: 'react',

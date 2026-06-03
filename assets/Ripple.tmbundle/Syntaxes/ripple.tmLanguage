@@ -4924,7 +4924,45 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-double-quoted-text-child</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-text</string>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-double-quoted-text-child</key>
+		<dict>
+			<key>begin</key>
+			<string>"</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.jsx.text.begin.js</string>
+				</dict>
+			</dict>
+			<key>contentName</key>
+			<string>string.unquoted.jsx.text.js</string>
+			<key>end</key>
+			<string>"</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.jsx.text.end.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.jsx.text.quoted.js</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-entities</string>
 				</dict>
 			</array>
 		</dict>
@@ -5610,7 +5648,7 @@
 		<key>jsx-text</key>
 		<dict>
 			<key>match</key>
-			<string>(?:(?!^[ \t]*---[ \t]*$)(?!@(?:if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]]))(?!(?:\r?\n)?[ \t]*(?:else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))[^&lt;&gt;{}&amp;])+</string>
+			<string>(?:(?!^[ \t]*---[ \t]*$)(?!@(?:if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]]))(?!(?:\r?\n)?[ \t]*(?:else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))[^&lt;&gt;{}&amp;"])+</string>
 			<key>name</key>
 			<string>string.unquoted.jsx.text.js</string>
 		</dict>

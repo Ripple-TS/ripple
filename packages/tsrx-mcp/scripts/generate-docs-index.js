@@ -187,9 +187,9 @@ const List = ({ items }: { items: string[] }) => <>
 
 Use \`return\` for true function exits, including guard exits inside the component fragment. Direct template children inside directive blocks render into the current lexical TSRX block.
 
-Inside a TSRX \`for...of\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`for...of\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
+Inside a TSRX \`@for\` loop, \`continue\` skips the current rendered iteration and is the only supported top-level loop control-flow statement. \`break\` is invalid inside TSRX \`@for\` loops; use \`continue\` for item skips and \`break\` only for \`switch\` cases.
 
-TSRX rendering supports \`for...of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in TSRX template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
+TSRX rendering supports directive \`@for\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not supported in TSRX template scope. Move imperative loops into a nested function, event handler, effect, or helper where normal JavaScript control flow rules apply.
 
 Source: website-tsrx/src/pages/features.tsrx#for`,
 		},

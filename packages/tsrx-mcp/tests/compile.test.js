@@ -298,7 +298,7 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('compiles TSRX with an explicit target', async () => {
 		const result = await compile_tsrx({
 			code: `export function App() { return <>
-				<div>"Hello"</div>
+				<div>Hello</div>
 			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
@@ -316,7 +316,7 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('infers the target when compiling from a project cwd', async () => {
 		const result = await compile_tsrx({
 			code: `function App() { return <>
-				<button>"Save"</button>
+				<button>Save</button>
 			</>; }`,
 			filename: 'App.tsrx',
 			cwd: react_fixture,
@@ -336,7 +336,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 			const result = await compile_tsrx({
 				code: `export function App() { return <>
-					<div>"Hello"</div>
+					<div>Hello</div>
 				</>; }`,
 				filename: 'App.tsrx',
 				cwd,
@@ -355,7 +355,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		// without enabling loose markup recovery.
 		const result = await compile_tsrx({
 			code: `function A() { return <>
-				<div>"hi"
+				<div>hi
 			</>; }`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',
@@ -457,7 +457,7 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('uses compiler error codes for tag advice', async () => {
 		const result = await analyze_tsrx({
 			code: `function A() { return <>
-				<div>"hi"
+				<div>hi
 			</>; }`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',
@@ -499,7 +499,7 @@ describe('@tsrx/mcp compile helpers', () => {
 				return String(value);
 			}
 			export function App() { return <>
-				<div>"Hello"</div>
+				<div>Hello</div>
 			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
@@ -514,7 +514,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		const result = await analyze_tsrx({
 			code: `// example from docs: return <div />
 			export function App() { return <>
-				<span>"Hello"</span>
+				<span>Hello</span>
 			</>; }`,
 			filename: 'App.tsrx',
 			target: 'react',
@@ -530,7 +530,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		// triggered the very advice that recommends wrapping in `<>`.
 		const result = await analyze_tsrx({
 			code: `function App() { return <>
-				const title = <><span>"Title"</span></>;
+				const title = <><span>Title</span></>;
 				<div>{title}</div>
 			</>; }`,
 			filename: 'App.tsrx',
@@ -546,7 +546,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		// expression-position JSX, so it must never trigger the wrap-it advice.
 		const result = await analyze_tsrx({
 			code: `function App() { return <>
-				const title = <><span>"Title"</span></>;
+				const title = <><span>Title</span></>;
 				<div>{title}</div>
 			</>; }`,
 			filename: 'App.tsrx',
@@ -574,21 +574,21 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it('formats TSRX source with the official prettier plugin', async () => {
 		const result = await format_tsrx({
-			code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
+			code: `export function App(){ return <><button class="primary">Save</button></>; }`,
 			filename: 'App.tsrx',
 		});
 
 		expect(result.ok).toBe(true);
 		expect(result.changed).toBe(true);
 		expect(result.formatted).toBe(
-			`export function App() {\n\treturn <><button class=\"primary\">\"Save\"</button></>;\n}\n`,
+			`export function App() {\n\treturn <><button class=\"primary\">Save</button></>;\n}\n`,
 		);
 		expect(result.errors).toEqual([]);
 		expect(result.message).toMatch(/cwd was not supplied/);
 	});
 
 	it('can check whether TSRX source is already formatted', async () => {
-		const code = `export function App() {\n\treturn <><button>\"Save\"</button></>;\n}\n`;
+		const code = `export function App() {\n\treturn <><button>Save</button></>;\n}\n`;
 		const result = await format_tsrx({
 			code,
 			filename: 'App.tsrx',
@@ -618,7 +618,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
+				code: `export function App(){ return <><button class="primary">Save</button></>; }`,
 				filename: filePath,
 			});
 
@@ -626,7 +626,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			// 4-space indent (no tabs), as configured.
 			expect(result.formatted).toBe(
-				`export function App() {\n    return <><button class="primary">"Save"</button></>;\n}\n`,
+				`export function App() {\n    return <><button class="primary">Save</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
@@ -650,7 +650,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,
+				code: `export function App(){ return <><button class="primary">Save</button></>; }`,
 				filename: 'src/App.tsrx',
 				cwd: temp_dir,
 			});
@@ -661,7 +661,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.message).toBe(null);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			expect(result.formatted).toBe(
-				`export function App() {\n    return <><button class="primary">"Save"</button></>;\n}\n`,
+				`export function App() {\n    return <><button class="primary">Save</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
@@ -680,7 +680,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			);
 
 			const result = await format_tsrx({
-				code: `export function App(){ return <><button>"Save"</button></>; }`,
+				code: `export function App(){ return <><button>Save</button></>; }`,
 				filename: filePath,
 				useTabs: true,
 				tabWidth: 2,
@@ -689,7 +689,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
 			expect(result.formatted).toBe(
-				`export function App() {\n\treturn <><button>"Save"</button></>;\n}\n`,
+				`export function App() {\n\treturn <><button>Save</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
@@ -702,7 +702,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 		try {
 			const result = await format_tsrx({
-				code: `export function App(){ return <><button>"Save"</button></>; }`,
+				code: `export function App(){ return <><button>Save</button></>; }`,
 				filename: filePath,
 			});
 
@@ -710,7 +710,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.configPath).toBe(null);
 			// Built-in defaults: tabs, single quotes, width 100.
 			expect(result.formatted).toBe(
-				`export function App() {\n\treturn <><button>"Save"</button></>;\n}\n`,
+				`export function App() {\n\treturn <><button>Save</button></>;\n}\n`,
 			);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });

@@ -5528,19 +5528,28 @@ function printTSIndexedAccessType(node, path, options, print) {
  * @returns {Doc}
  */
 function printRawText(raw) {
-	const text = raw.trim().replace(/(?:\r\n|\r|\n)[^\S\r\n]+/gu, ' ');
+	const normalized = raw.replace(/(?:\r\n|\r|\n)[^\S\r\n]+/gu, ' ');
+	const text = normalized.trim();
 	if (!text) {
 		return '';
 	}
 
-	return fill(
-		text
-			.split(/([^\S\r\n]+)/u)
-			.filter(Boolean)
-			.map((part) => {
-				return /^[^\S\r\n]+$/u.test(part) ? line : replaceEndOfLine(part);
-			}),
-	);
+	/** @type {Doc[]} */
+	const parts = text
+		.split(/([^\S\r\n]+)/u)
+		.filter(Boolean)
+		.map((part) => {
+			return /^[^\S\r\n]+$/u.test(part) ? line : replaceEndOfLine(part);
+		});
+
+	if (/^[^\S\r\n]/u.test(normalized)) {
+		parts.unshift(line);
+	}
+	if (/[^\S\r\n]$/u.test(normalized)) {
+		parts.push(line);
+	}
+
+	return fill(parts);
 }
 
 /**

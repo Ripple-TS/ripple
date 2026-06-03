@@ -21,7 +21,7 @@ ruleTester.run('no-return-in-component', rule, {
 		{
 			code: `
 				function App() {
-					return <div>{"Hello"}</div>;
+					return <div>Hello</div>;
 				}
 			`,
 		},

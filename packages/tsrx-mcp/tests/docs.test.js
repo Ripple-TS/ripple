@@ -28,7 +28,7 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(content).toContain(
 			'Template control flow uses directive-prefixed `@if`, `@for`, `@switch`, and `@try`',
 		);
-		expect(content).toContain('`break` is invalid inside TSRX `for...of` loops');
+		expect(content).toContain('`break` is invalid inside TSRX `@for` loops');
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});
 

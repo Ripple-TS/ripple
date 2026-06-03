@@ -53,15 +53,42 @@ describe('prettier-plugin', () => {
 	});
 
 	it('formats native fragments with statements inside returned TSRX', async () => {
-		const input = `function App(){return <>const items=[1,2,3];for(const item of items; index i; key item){<div>{i}{item}</div>}</>}`;
+		const input = `function App(){return <>const items=[1,2,3];@for(const item of items; index i; key item){<div>{i}{item}</div>}</>}`;
 		const expected = `function App() {
   return <>
     const items = [1, 2, 3];
-    for (const item of items; index i; key item) {
+    @for (const item of items; index i; key item) {
       <div>
         {i}
         {item}
       </div>
+    }
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats raw JSX text in template switch cases', async () => {
+		const input = `function App(){return <>@switch(value){case 'a':
+Case A
+case 'b':
+Case B
+break;
+default:
+Fallback
+}</>}`;
+		const expected = `function App() {
+  return <>
+    @switch (value) {
+      case "a":
+        Case A
+      case "b":
+        Case B
+        break;
+      default:
+        Fallback
     }
   </>;
 }`;
@@ -129,10 +156,10 @@ const items=[1,2,3];
 	});
 
 	it('keeps native fragments expression based', async () => {
-		const input = `function App(){return <><div>"Hello world"</div>{value}</>}`;
+		const input = `function App(){return <><div>Hello world</div>{value}</>}`;
 		const expected = `function App() {
   return <>
-    <div>"Hello world"</div>
+    <div>Hello world</div>
     {value}
   </>;
 }`;
@@ -173,17 +200,17 @@ const items=[1,2,3];
 		const input = `export function App() {
   let [count] = track(0);
   return <div>
-    <p>"Count: "{count}</p>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <p>Count: {count}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>;
 }`;
 		const expected = `export function App() {
   let [count] = track(0);
   return <div>
-    <p>"Count: "{count}</p>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <p>Count: {count}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>;
 }`;
 
@@ -196,7 +223,7 @@ const items=[1,2,3];
   let [count] = track(0);
   return <div>
     <p>
-      "Count: "
+      Count:
       {count}
     </p>
   </div>;
@@ -205,7 +232,7 @@ const items=[1,2,3];
   let [count] = track(0);
   return <div>
     <p>
-      "Count: "
+      Count:
       {count}
     </p>
   </div>;

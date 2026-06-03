@@ -6,13 +6,13 @@ const rule: Rule.RuleModule = {
 	meta: {
 		type: 'problem',
 		docs: {
-			description:
-				'Require JSX in for...of loops within components, but disallow JSX in for...of loops within effects',
+			description: 'Validate TSRX @for rendering loops and disallow JSX in effect() loops',
 			recommended: true,
 		},
 		messages: {
 			requireJsxInLoop:
-				'For...of loops in returned TSRX should contain JSX elements. Use JSX to render items.',
+				'@for loops in returned TSRX should contain JSX elements. Use JSX to render items.',
+			requireDirectiveForRenderingLoop: 'Use @for when a TSRX for...of loop renders JSX elements.',
 			noJsxInEffectLoop:
 				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
 		},
@@ -81,6 +81,7 @@ const rule: Rule.RuleModule = {
 				if (insideComponent === 0) return;
 
 				const hasJSX = containsJSX(node.body);
+				const isTemplateFor = node.metadata?.tsrxDirective === 'for';
 
 				if (insideEffect > 0) {
 					if (hasJSX) {
@@ -92,10 +93,15 @@ const rule: Rule.RuleModule = {
 				} else if (nonComponentFunctionDepth > 0) {
 					return;
 				} else {
-					if (!hasJSX) {
+					if (isTemplateFor && !hasJSX) {
 						context.report({
 							node,
 							messageId: 'requireJsxInLoop',
+						});
+					} else if (!isTemplateFor && hasJSX) {
+						context.report({
+							node,
+							messageId: 'requireDirectiveForRenderingLoop',
 						});
 					}
 				}

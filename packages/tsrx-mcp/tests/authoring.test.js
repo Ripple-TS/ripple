@@ -85,18 +85,18 @@ describe('@tsrx/mcp authoring reviews', () => {
 			target: 'react',
 			filename: 'App.tsrx',
 			code: `export function App() { return <>
-				if (items.length === 0) {
-					<p>{'Empty'}</p>
+				@if (items.length === 0) {
+					<p>Empty</p>
 				} else {
 					<ul>
-						for (const item of items; key item.id) {
-							if (item.visible) {
+						@for (const item of items; key item.id) {
+							@if (item.visible) {
 								<li>{item.label}</li>
 							}
 						}
 					</ul>
 				}
-				switch (mode) {
+				@switch (mode) {
 					case 'grid':
 						<section>${repeated_items}</section>
 				}

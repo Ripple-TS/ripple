@@ -6476,13 +6476,37 @@
           "include": "#jsx-entities"
         },
         {
+          "include": "#jsx-double-quoted-text-child"
+        },
+        {
           "include": "#jsx-text"
+        }
+      ]
+    },
+    "jsx-double-quoted-text-child": {
+      "name": "meta.jsx.text.quoted.js",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.jsx.text.begin.js"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.jsx.text.end.js"
+        }
+      },
+      "contentName": "string.unquoted.jsx.text.js",
+      "patterns": [
+        {
+          "include": "#jsx-entities"
         }
       ]
     },
     "jsx-text": {
       "name": "string.unquoted.jsx.text.js",
-      "match": "(?:(?!^[ \\t]*---[ \\t]*$)(?!@(?:if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]]))(?!(?:\\r?\\n)?[ \\t]*(?:else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))[^<>{}&])+"
+      "match": "(?:(?!^[ \\t]*---[ \\t]*$)(?!@(?:if|else|for|switch|case|default|try|catch|pending|finally)(?![_$[:alnum:]]))(?!(?:\\r?\\n)?[ \\t]*(?:else|pending|catch|finally|case|default)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))[^<>{}&\"])+"
     },
     "jsx-attribute-expression": {
       "patterns": [
