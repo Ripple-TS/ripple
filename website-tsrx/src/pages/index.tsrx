@@ -20,6 +20,9 @@ const REACT_HOOKS_HTML = highlight_tsrx(
 	`const Profile = ({ userId }: { userId: string | null }) => <>
   @if (userId) {
     const user = useUser(userId);
+
+    ---
+
     <h1>{user.name}</h1>
   } else {
     <a href="/login">Sign in</a>
@@ -39,13 +42,12 @@ const SOLID_LAZY_HTML = highlight_tsrx(
 const INLINE_LOCALS_HTML = highlight_tsrx(
 	`const Cart = ({ items }: { items: Item[] }) => <>
   <div>
-    <h2>Your cart</h2>
-
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount = subtotal > 100 ? 0.1 : 0;
 
     ---
 
+    <h2>Your cart</h2>
     <p>Subtotal: \${subtotal}</p>
     <p>Save: \${(subtotal * discount).toFixed(2)}</p>
   </div>
@@ -57,6 +59,8 @@ const COLOCATION_HTML = highlight_tsrx(
   @for (const user of users) {
     const initials = user.name.slice(0, 2).toUpperCase();
     const role = user.admin ? 'Admin' : 'Member';
+
+    ---
 
     <div class="user-row">
       <span class="avatar">{initials}</span>
@@ -218,7 +222,7 @@ export const IndexPage = () => <>
 
 				<p class="section-body">
 					Solid props can be destructured eagerly. The 
-					<code class="inline-code">&amp;&#123; ... &#125;</code>
+					<code class="inline-code">{"&{ ... }"}</code>
 					 pattern compiles to lazy getters, so reads stay reactive without forcing 
 					<code class="inline-code">props.count</code>
 					 everywhere and without losing type inference on the destructured names.
@@ -408,6 +412,8 @@ export const IndexPage = () => <>
 		}
 
 		.alpha-notice-link {
+			display: inline-block;
+			margin: 0 0.18em;
 			color: #5e2cff;
 			text-decoration: underline;
 			text-underline-offset: 2px;
@@ -418,6 +424,8 @@ export const IndexPage = () => <>
 		}
 
 		.supporting-link {
+			display: inline-block;
+			margin: 0 0.18em;
 			color: #5e2cff;
 			font-weight: 500;
 			text-decoration: underline;
@@ -533,6 +541,10 @@ export const IndexPage = () => <>
 		:global(.code-block .str) {
 			color: #ce9178;
 		}
+		:global(.code-block .comment),
+		:global(.code-block .cmt) {
+			color: #808080;
+		}
 		:global(.code-block .val) {
 			color: #b5cea8;
 		}
@@ -583,9 +595,11 @@ export const IndexPage = () => <>
 		}
 
 		.inline-code {
+			display: inline-block;
 			background: rgba(94, 44, 255, 0.1);
 			color: #5e2cff;
-			padding: 0.12em 0.4em;
+			padding: 0.16em 0.48em;
+			margin: 0 0.18em;
 			border-radius: 4px;
 			font-size: 0.92em;
 		}

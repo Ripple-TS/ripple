@@ -105,6 +105,27 @@ describe('TSRX parser', () => {
 		expect(style.metadata.styleScopeHash).toBeUndefined();
 	});
 
+	it('parses multiline self-closing meta tags inside head', () => {
+		const returned = getReturned(`function App() { return <>
+			<head>
+				<title>Home</title>
+				<meta
+					name="description"
+					content="Page description"
+				/>
+			</head>
+		</>; }`);
+
+		const head = returned.children.find(
+			(child) => child.type === 'JSXElement' && child.openingElement.name.name === 'head',
+		);
+		const meta = head.children.find(
+			(child) => child.type === 'JSXElement' && child.openingElement.name.name === 'meta',
+		);
+		expect(meta.openingElement.selfClosing).toBe(true);
+		expect(meta.closingElement).toBeNull();
+	});
+
 	it('uses a template fence to split script setup and template output', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = 1

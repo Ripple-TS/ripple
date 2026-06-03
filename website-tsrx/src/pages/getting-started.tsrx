@@ -395,7 +395,7 @@ export function GettingStartedPage() {
 								 is imported from 
 								<code class="inline-code">preact/compat</code>
 								 by default; pass 
-								<code class="inline-code">&#123; suspenseSource: 'preact-suspense' &#125;</code>
+								<code class="inline-code">{"{ suspenseSource: 'preact-suspense' }"}</code>
 								 to 
 								<code class="inline-code">tsrxPreact()</code>
 								 if you want to avoid pulling in the full compat layer.
@@ -416,9 +416,9 @@ export function GettingStartedPage() {
 								Like the React Rspack plugin, it chains 
 								<code class="inline-code">builtin:swc-loader</code>
 								 for the final JSX transform and routes per-component 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks through Rspack's built-in CSS module type. You can also pass 
-								<code class="inline-code">&#123; suspenseSource: 'preact-suspense' &#125;</code>
+								<code class="inline-code">{"{ suspenseSource: 'preact-suspense' }"}</code>
 								 if you want to avoid the default 
 								<code class="inline-code">preact/compat</code>
 								 Suspense import.
@@ -439,7 +439,7 @@ export function GettingStartedPage() {
 								The plugin chains 
 								<code class="inline-code">builtin:swc-loader</code>
 								 for the final JSX transform and routes per-component 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks through Rspack's built-in CSS module type, so no extra loaders are required.
 							</p>
 						</section>
@@ -458,7 +458,7 @@ export function GettingStartedPage() {
 								The helper registers a Turbopack rule for 
 								<code class="inline-code">.tsrx</code>
 								 files, hands the compiled output back to Next as TSX, and routes component-local 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.
 							</p>
 						</section>
@@ -482,7 +482,7 @@ export function GettingStartedPage() {
 								 modules with 
 								<code class="inline-code">@tsrx/react</code>
 								 and then hands the generated TSX to Bun's automatic JSX pipeline. Component-local 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without extra loader setup.
 							</p>
 						</section>
@@ -502,7 +502,7 @@ export function GettingStartedPage() {
 								 follows the same Bun integration shape as React, but targets Preact's automatic JSX runtime and supports overriding the default 
 								<code class="inline-code">preact/compat</code>
 								 Suspense import with 
-								<code class="inline-code">&#123; suspenseSource: "preact-suspense" &#125;</code>
+								<code class="inline-code">{"{ suspenseSource: \"preact-suspense\" }"}</code>
 								 when needed.
 							</p>
 						</section>
@@ -545,7 +545,7 @@ export function GettingStartedPage() {
 								 with Solid's Babel preset for the final JSX transform. In development mode it also enables 
 								<code class="inline-code">solid-refresh/babel</code>
 								 automatically, while per-component 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks still flow through Rspack's built-in CSS module type.
 							</p>
 						</section>
@@ -567,7 +567,7 @@ export function GettingStartedPage() {
 								 modules with 
 								<code class="inline-code">@tsrx/solid</code>
 								 and runs Solid's Babel JSX transform inside the Bun plugin. Component-local 
-								<code class="inline-code">&lt;style&gt;</code>
+								<code class="inline-code">{"<style>"}</code>
 								 blocks are emitted as sibling virtual CSS modules.
 							</p>
 						</section>
@@ -1132,14 +1132,18 @@ export function GettingStartedPage() {
 			}
 
 			.inline-code {
+				display: inline-block;
 				background: rgba(94, 44, 255, 0.1);
 				color: #5e2cff;
-				padding: 0.12em 0.4em;
+				padding: 0.16em 0.48em;
+				margin: 0 0.18em;
 				border-radius: 4px;
 				font-size: 0.92em;
 			}
 
 			.inline-link {
+				display: inline-block;
+				margin: 0 0.18em;
 				color: #5e2cff;
 				text-decoration: underline;
 				text-underline-offset: 0.15em;
@@ -1203,8 +1207,9 @@ export function GettingStartedPage() {
 			:global(.code-block .str) {
 				color: #ce9178;
 			}
-			:global(.code-block .comment) {
-				color: #6a9955;
+			:global(.code-block .comment),
+			:global(.code-block .cmt) {
+				color: #808080;
 			}
 			:global(.code-block .val) {
 				color: #b5cea8;

@@ -35,6 +35,8 @@ const BAILOUT_HTML = highlight_tsrx(
     }
   };
 
+  ---
+
   <button onClick={increment}>Count: {count}</button>
 </>;`,
 );
@@ -50,6 +52,8 @@ const TSX_EXPR_HTML = highlight_tsrx(
 	`const App = () => <>
   const title = <><span class="title">Settings</span></>;
 
+  ---
+
   <Card {title} />
 </>;`,
 );
@@ -57,6 +61,8 @@ const TSX_EXPR_HTML = highlight_tsrx(
 const TSX_EXPR_HTML_SINGLE = highlight_tsrx(
 	`const App = () => <>
   const title = <span class="title">Settings</span>;
+
+  ---
 
   <Card {title} />
 </>;`,
@@ -89,6 +95,9 @@ const FOR_HTML = highlight_tsrx(
   <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
+
+      ---
+
       <li>{i + 1}. {item.text}</li>
     }
   </ul>
@@ -147,9 +156,14 @@ const SCOPING_HTML = highlight_tsrx(
 	`const App = () => <>
   const name = 'World';
 
+  ---
+
   <div>
     // This is a new scope - you can declare variables here
     const greeting = 'Hello, ' + name + '!';
+
+    ---
+
     <h1>{greeting}</h1>
   </div>
 </>;`,
@@ -171,6 +185,8 @@ const RENDER_PROPS_HTML = highlight_tsrx(
   const renderItem = (item: Item) => <>
     <li>{item.label}</li>
   </>;
+
+  ---
 
   <List items={items} render={renderItem} />
 </>;`,
@@ -222,6 +238,8 @@ const App = () => <>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
 
+  ---
+
   // Ripple, Preact, Solid, and Vue component props:
   <Badge class={styles.highlight} />
 
@@ -261,6 +279,8 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
 
   // Hooks inside TSRX template branches are isolated safely.
 
+  ---
+
   <h1>{user.name}</h1>
   <TabBar value={tab} onChange={setTab} />
 
@@ -269,6 +289,8 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
       useEffect(() => {
         console.log('viewed ' + post.title);
       }, [post.title]);
+
+      ---
 
       <li>{post.title}</li>
     }
@@ -375,14 +397,14 @@ export const FeaturesPage = () => <>
 						</pre>
 						<p class="section-body">
 							Export components with 
-							<code class="inline-code">export const Name = (...) =&gt; &lt;&gt;...&lt;/&gt;</code>
+							<code class="inline-code">{"export const Name = (...) => <>...</>"}</code>
 							. The compiler transforms TSRX into standard framework components for whichever target you're using.
 						</p>
 						<p class="section-body">
 							Since returned TSRX templates have their own template rules (see 
 							<a href="#jsx">TSRX templates</a>
 							), anything that needs ordinary JavaScript-only control flow can simply live in a plain inline function. Declare a 
-							<code class="inline-code">const fn = () =&gt; &#123; ... &#125;</code>
+							<code class="inline-code">{"const fn = () => { ... }"}</code>
 							 next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression — it stays ordinary JavaScript, outside the returned template rules.
 						</p>
 						<pre class="code-block">
@@ -394,11 +416,11 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">TSRX templates</h2>
 						<p class="section-body">
 							TSRX opens from ordinary JSX expression positions such as an arrow function body 
-							<code class="inline-code">() =&gt; &lt;&gt;...&lt;/&gt;</code>
+							<code class="inline-code">{"() => <>...</>"}</code>
 							 or a nested value 
-							<code class="inline-code">const node = &lt;div /&gt;</code>
+							<code class="inline-code">{"const node = <div />"}</code>
 							. Once you are inside a template, control flow, locals, nested elements, and JSX text can appear directly in the tree. Dynamic values and JavaScript expressions still use 
-							<code class="inline-code">&#123;&#125;</code>
+							<code class="inline-code">{"{}"}</code>
 							.
 						</p>
 						<p class="section-body muted">
@@ -419,7 +441,7 @@ export const FeaturesPage = () => <>
 						</pre>
 						<p class="section-body">
 							When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in 
-							<code class="inline-code">&lt;&gt;...&lt;/&gt;</code>
+							<code class="inline-code">{"<>...</>"}</code>
 							 when it needs statements or multiple elements:
 						</p>
 						<pre class="code-block">
@@ -437,14 +459,14 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Lazy destructuring</h2>
 						<p class="section-body">
 							TSRX adds two sigils — 
-							<code class="inline-code">&amp;&#123; ... &#125;</code>
+							<code class="inline-code">{"&{ ... }"}</code>
 							 for objects and 
-							<code class="inline-code">&amp;[ ... ]</code>
+							<code class="inline-code">{"&[ ... ]"}</code>
 							 for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.
 						</p>
 						<p class="section-body">
 							The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue). 
-							<code class="inline-code">&amp;&#123; ... &#125;</code>
+							<code class="inline-code">{"&{ ... }"}</code>
 							 preserves that reactivity while keeping the ergonomic destructuring syntax:
 						</p>
 						<pre class="code-block">
@@ -459,11 +481,11 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Prop shorthands</h2>
 						<p class="section-body">
 							When a prop name matches the variable you're passing, you can use the shorthand 
-							<code class="inline-code">&#123;name&#125;</code>
+							<code class="inline-code">{"{name}"}</code>
 							 instead of 
-							<code class="inline-code">name=&#123;name&#125;</code>
+							<code class="inline-code">{"name={name}"}</code>
 							. This works for any attribute or prop — including event handlers like 
-							<code class="inline-code">&#123;onClick&#125;</code>
+							<code class="inline-code">{"{onClick}"}</code>
 							.
 						</p>
 						<pre class="code-block">
@@ -650,7 +672,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Scoped styles</h2>
 						<p class="section-body">
 							Each returned TSRX template can include a 
-							<code class="inline-code">&lt;style&gt;</code>
+							<code class="inline-code">{"<style>"}</code>
 							 block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the component fragment that defines them. A parent's scoped styles will not leak into child components.
 						</p>
 						<pre class="code-block">
@@ -674,7 +696,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Style composition</h2>
 						<p class="section-body">
 							Because scoped styles don't cross component boundaries, assigning a 
-							<code class="inline-code">&lt;style&gt;</code>
+							<code class="inline-code">{"<style>"}</code>
 							 expression to a variable exposes a class map for passing scoped class names to child components as props. 
 							<code class="inline-code">styles.highlight</code>
 							 contains both the scope hash and the class name, which the child applies via its 
@@ -688,7 +710,7 @@ export const FeaturesPage = () => <>
 						</pre>
 						<p class="section-body">
 							You can also create the style expression at module scope and reference the generated class map from any component in the file. This gives teams moving from StyleX-like patterns a declarative, reusable class map without putting the 
-							<code class="inline-code">&lt;style&gt;</code>
+							<code class="inline-code">{"<style>"}</code>
 							 block inside the returned template.
 						</p>
 						<pre class="code-block">
@@ -696,7 +718,7 @@ export const FeaturesPage = () => <>
 						</pre>
 						<p class="section-body">
 							Classes exposed on the map come from standalone selectors in the 
-							<code class="inline-code">&lt;style&gt;</code>
+							<code class="inline-code">{"<style>"}</code>
 							 block. Classes that only appear in compound or descendant selectors are not exported on the map.
 						</p>
 					</section>
@@ -709,7 +731,7 @@ export const FeaturesPage = () => <>
 							 or Preact with 
 							<code class="inline-code">@tsrx/preact</code>
 							, hooks that appear in conditional, loop, switch, try, or returned-template 
-							<code class="inline-code">&lt;&gt;...&lt;/&gt;</code>
+							<code class="inline-code">{"<>...</>"}</code>
 							 scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.
 						</p>
 						<p class="section-body">
@@ -926,11 +948,18 @@ export const FeaturesPage = () => <>
 		}
 
 		.inline-code {
+			display: inline-block;
 			background: rgba(94, 44, 255, 0.1);
 			color: #5e2cff;
-			padding: 0.12em 0.4em;
+			padding: 0.16em 0.48em;
+			margin: 0 0.18em;
 			border-radius: 4px;
 			font-size: 0.92em;
+		}
+
+		.section-body a:not(.cta-link) {
+			display: inline-block;
+			margin: 0 0.18em;
 		}
 
 		.code-block {
@@ -999,8 +1028,9 @@ export const FeaturesPage = () => <>
 		:global(.code-block .css-br) {
 			color: #d4d4d4;
 		}
+		:global(.code-block .comment),
 		:global(.code-block .cmt) {
-			color: #6a9955;
+			color: #808080;
 		}
 
 		.site-footer {

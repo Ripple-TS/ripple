@@ -250,9 +250,9 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						</pre>
 						<p>
 							We also removed the plain 
-							<code>&lt;tsx&gt;</code>
+							<code>{"<tsx>"}</code>
 							 island. TSRX itself is expression-based now: native elements and native fragments can be assigned, passed as props, or returned directly. The old 
-							<code>&lt;tsrx&gt;</code>
+							<code>{"<tsrx>"}</code>
 							 wrapper is not needed either because TSRX is already the default in 
 							<code>.tsrx</code>
 							 files.
@@ -262,7 +262,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						</pre>
 						<p>
 							Native fragments offer the same benefits 
-							<code>&lt;tsx&gt;</code>
+							<code>{"<tsx>"}</code>
 							 was meant to provide. Keeping multiple ways to do the same thing did not add much once one path was clearer, more consistent, and easier for tools to explain.
 						</p>
 						<p>
@@ -322,13 +322,13 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							Those are now regular props. Ripple, Solid, and Vue use 
 							<code>innerHTML</code>
 							 on DOM elements. Ripple and Solid can also use 
-							<code>&lt;Fragment innerHTML=&#123;...&#125; /&gt;</code>
+							<code>{"<Fragment innerHTML={...} />"}</code>
 							 when you want to insert HTML without a wrapper element. React and Preact use 
 							<code>dangerouslySetInnerHTML</code>
 							. Refs use 
-							<code>ref=&#123;...&#125;</code>
+							<code>{"ref={...}"}</code>
 							, and scoped classes can be shared with children through 
-							<code>const styles = &lt;style&gt;...&lt;/style&gt;</code>
+							<code>{"const styles = <style>...</style>"}</code>
 							.
 						</p>
 						<p>
@@ -364,18 +364,18 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						<h2>Styling stays optional</h2>
 						<p>
 							The 
-							<code>&lt;style&gt;</code>
+							<code>{"<style>"}</code>
 							 block is still there, but its mental model is clearer: styles are scoped to the TSRX fragment that contains them, not to a separate component declaration form. It works the same way as before for colocated styles.
 						</p>
 						<p>
 							Inside 
-							<code>&lt;style&gt;</code>
+							<code>{"<style>"}</code>
 							, write static CSS. The TSRX rules for JavaScript statements and expressions inside elements do not apply there: no 
 							<code>if</code>
 							, 
 							<code>for</code>
 							, or 
-							<code>&#123;expr&#125;</code>
+							<code>{"{expr}"}</code>
 							. When a style value needs to change at runtime, set a CSS custom property on the element and read it with 
 							<code>var(...)</code>
 							.
@@ -393,7 +393,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						</pre>
 						<p>
 							This is optional. If your team prefers Tailwind, CSS modules, vanilla CSS, or a design system class API, keep using that. TSRX does not require colocated 
-							<code>&lt;style&gt;</code>
+							<code>{"<style>"}</code>
 							 blocks.
 						</p>
 						<pre class="code-block">
@@ -570,14 +570,18 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 			}
 
 			article a {
+				display: inline-block;
+				margin: 0 0.18em;
 				color: #5e2cff;
 				font-weight: 700;
 			}
 
 			article p code {
+				display: inline-block;
 				background: rgba(94, 44, 255, 0.1);
 				color: #5e2cff;
-				padding: 0.12em 0.4em;
+				padding: 0.16em 0.48em;
+				margin: 0 0.18em;
 				border-radius: 4px;
 				font-size: 0.92em;
 			}
@@ -648,8 +652,9 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 			:global(.code-block .css-br) {
 				color: #d4d4d4;
 			}
+			:global(.code-block .comment),
 			:global(.code-block .cmt) {
-				color: #6a9955;
+				color: #808080;
 			}
 
 			.site-footer {

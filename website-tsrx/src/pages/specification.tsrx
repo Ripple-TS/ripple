@@ -441,7 +441,7 @@ export function SpecificationPage() {
 							</p>
 							<p class="section-body">
 								Template position also admits JSX text children and braced expression forms. The ordinary form 
-								<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+								<code class="inline-code">{"{ AssignmentExpression }"}</code>
 								 contributes a JSXExpressionContainer node. A function exit remains an ordinary 
 								<code class="inline-code">return</code>
 								 statement.
@@ -454,11 +454,11 @@ export function SpecificationPage() {
 									A JSX text child is represented by 
 									<code class="inline-code">JSXText</code>
 									 and contributes escaped static text. Character references such as 
-									<code class="inline-code">&amp;quot;</code>
+									<code class="inline-code">{"&quot;"}</code>
 									 are decoded before the text value is stored.
 								</li>
 								<li>
-									<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+									<code class="inline-code">{"{ AssignmentExpression }"}</code>
 									 is the generic template-expression form and is represented by 
 									<code class="inline-code">JSXExpressionContainer</code>
 									 in the current parser.
@@ -476,27 +476,27 @@ export function SpecificationPage() {
 							<ul class="spec-list">
 								<li>
 									Within 
-									<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+									<code class="inline-code">{"{ AssignmentExpression }"}</code>
 									, whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as 
-									<code class="inline-code">&#123; expr &#125;</code>
+									<code class="inline-code">{"{ expr }"}</code>
 									 are well-formed.
 								</li>
 								<li>
 									A tag or fragment introducer must be written as a contiguous delimiter sequence. Implementations must not treat 
-									<code class="inline-code">&lt; div&gt;</code>
+									<code class="inline-code">{"< div>"}</code>
 									, 
-									<code class="inline-code">&lt; /div&gt;</code>
+									<code class="inline-code">{"< /div>"}</code>
 									, 
-									<code class="inline-code">&lt;/ div&gt;</code>
+									<code class="inline-code">{"</ div>"}</code>
 									, 
-									<code class="inline-code">&lt; &gt;</code>
+									<code class="inline-code">{"< >"}</code>
 									, or 
-									<code class="inline-code">&lt; / &gt;</code>
+									<code class="inline-code">{"< / >"}</code>
 									 as TSRX template delimiters.
 								</li>
 								<li>
 									Whitespace and comments are not admitted within a single tag name. Source texts such as 
-									<code class="inline-code">&lt;Foo . Bar&gt;</code>
+									<code class="inline-code">{"<Foo . Bar>"}</code>
 									 do not form a single TSRX tag name.
 								</li>
 								<li>
@@ -573,7 +573,7 @@ export function SpecificationPage() {
 									. Use 
 									<code class="inline-code">return</code>
 									 when the enclosing function should exit. Raw 
-									<code class="inline-code">&lt;style&gt;</code>
+									<code class="inline-code">{"<style>"}</code>
 									 blocks are additive stylesheet declarations and do not require 
 									a directive.
 								</li>
@@ -669,7 +669,7 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									Current implementations may additionally attach style-element-specific details such as captured stylesheet source text or styleScopeHash when the element is a raw 
-									<code class="inline-code">&lt;style&gt;</code>
+									<code class="inline-code">{"<style>"}</code>
 									 tag, but those details are not part of the general JSXElement shape described here.
 								</li>
 							</ul>
@@ -965,11 +965,18 @@ export function SpecificationPage() {
 			}
 
 			.inline-code {
+				display: inline-block;
 				background: rgba(94, 44, 255, 0.1);
 				color: #5e2cff;
-				padding: 0.12em 0.4em;
+				padding: 0.16em 0.48em;
+				margin: 0 0.18em;
 				border-radius: 4px;
 				font-size: 0.92em;
+			}
+
+			.section-body a:not(.cta-link) {
+				display: inline-block;
+				margin: 0 0.18em;
 			}
 
 			.status-panel {

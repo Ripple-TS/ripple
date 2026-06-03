@@ -39,6 +39,7 @@ const KEYWORDS = new Set([
 const CONTROL_KEYWORDS = new Set(['break', 'continue', 'return']);
 const LITERALS = new Set(['false', 'null', 'true', 'undefined']);
 const TEMPLATE_KEYWORDS = new Set(['html', 'ref', 'style']);
+const TEMPLATE_CONTROL_DIRECTIVES = new Set(['@if', '@for', '@switch', '@try']);
 
 function escape_html(value: string): string {
 	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -95,7 +96,17 @@ function read_jsx_tag_end(line: string, start: number): number {
 	return line.length;
 }
 
-function read_jsx_tag(line: string, start: number): { html: string; next: number } {
+function jsx_tag_enters_text(tag: string): boolean {
+	const trimmed = tag.trim();
+	return (
+		trimmed.startsWith('<') &&
+		!trimmed.startsWith('</') &&
+		trimmed !== '<>' &&
+		!trimmed.endsWith('/>')
+	);
+}
+
+function read_jsx_tag(line: string, start: number): { html: string; next: number; enters_text: boolean } {
 	const next = read_jsx_tag_end(line, start);
 	const tag = line.slice(start, next);
 	let index = 0;
@@ -158,7 +169,7 @@ function read_jsx_tag(line: string, start: number): { html: string; next: number
 		}
 	}
 
-	return { html, next };
+	return { html, next, enters_text: jsx_tag_enters_text(tag) };
 }
 
 function highlight_css_line(line: string): string {
@@ -188,14 +199,57 @@ function highlight_code_line(line: string): string {
 	let index = 0;
 	let html = '';
 	let previous_keyword = '';
+	let in_jsx_text = false;
+	let jsx_expression_depth = 0;
 
 	while (index < line.length) {
 		const char = line[index];
 		const next = line[index + 1];
 
+		if (line.trim() === '---') {
+			html += span('cmt', line);
+			break;
+		}
+
 		if (char === '/' && next === '/') {
 			html += span('cmt', line.slice(index));
 			break;
+		}
+
+		if (in_jsx_text) {
+			if (
+				char === '<' &&
+				(next === '/' || next === '>' || next === '@' || /[A-Za-z]/.test(next ?? ''))
+			) {
+				const tag = read_jsx_tag(line, index);
+				html += tag.html;
+				index = tag.next;
+				in_jsx_text = tag.enters_text;
+				previous_keyword = '';
+				continue;
+			}
+
+			if (char === '{') {
+				html += span('tbr', char);
+				index++;
+				in_jsx_text = false;
+				jsx_expression_depth = 1;
+				previous_keyword = '';
+				continue;
+			}
+
+			let text_end = index + 1;
+			while (
+				text_end < line.length &&
+				line[text_end] !== '<' &&
+				line[text_end] !== '{'
+			) {
+				text_end++;
+			}
+			html += escape_html(line.slice(index, text_end));
+			index = text_end;
+			previous_keyword = '';
+			continue;
 		}
 
 		if (
@@ -205,6 +259,7 @@ function highlight_code_line(line: string): string {
 			const tag = read_jsx_tag(line, index);
 			html += tag.html;
 			index = tag.next;
+			in_jsx_text = tag.enters_text;
 			previous_keyword = '';
 			continue;
 		}
@@ -226,6 +281,35 @@ function highlight_code_line(line: string): string {
 			index = number_end;
 			previous_keyword = '';
 			continue;
+		}
+
+		if (jsx_expression_depth > 0 && char === '{') {
+			html += span('tbr', char);
+			index++;
+			jsx_expression_depth++;
+			previous_keyword = '';
+			continue;
+		}
+
+		if (jsx_expression_depth > 0 && char === '}') {
+			html += span('tbr', char);
+			index++;
+			jsx_expression_depth--;
+			in_jsx_text = jsx_expression_depth === 0;
+			previous_keyword = '';
+			continue;
+		}
+
+		if (char === '@' && /[A-Za-z_]/.test(next ?? '')) {
+			const directive_end = read_identifier(line, index + 1);
+			const directive = line.slice(index, directive_end);
+
+			if (TEMPLATE_CONTROL_DIRECTIVES.has(directive)) {
+				html += span('kw', directive);
+				index = directive_end;
+				previous_keyword = directive.slice(1);
+				continue;
+			}
 		}
 
 		if (/[A-Za-z_$]/.test(char)) {
