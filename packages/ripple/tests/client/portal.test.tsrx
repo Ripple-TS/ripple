@@ -52,7 +52,7 @@ describe('Portal', () => {
 		function TestPortal() {
 			return <>
 				let &[open] = track(true);
-				if (open) {
+				@if (open) {
 					<Portal target={document.body}>
 						<div class="test-portal">{'Conditional content'}</div>
 					</Portal>
@@ -78,7 +78,7 @@ describe('Portal', () => {
 		function TestPortal() {
 			return <>
 				let &[open] = track(false);
-				if (open) {
+				@if (open) {
 					<Portal target={document.body}>
 						<div class="test-portal">
 							{'Content'}
@@ -86,7 +86,7 @@ describe('Portal', () => {
 						</div>
 					</Portal>
 				}
-				if (!open) {
+				@if (!open) {
 					<button onClick={() => (open = true)}>{'Open'}</button>
 				}
 			</>;

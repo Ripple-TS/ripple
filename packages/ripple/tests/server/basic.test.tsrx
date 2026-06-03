@@ -26,32 +26,33 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>&lt;span>Not HTML&lt;/span></div>');
 	});
 
-	it('renders direct double-quoted text children as text', async () => {
+	it('renders direct JSX text children as text', async () => {
 		function Basic() {
 			return <>
-				<div>"Rock &amp; &quot;Roll&quot;"</div>
-				<div>"line\nbreak"</div>
-				<pre>"first
-second"</pre>
+				<div>Rock &amp; &quot;Roll&quot;</div>
+				<div>line break</div>
+				<pre>first
+second</pre>
 			</>;
 		}
 
 		const { body } = await render(Basic);
 
 		expect(body).toBeHtml(
-			'<div>Rock &amp; "Roll"</div><div>line\\nbreak</div><pre>first\nsecond</pre>',
+			'<div>Rock &amp; "Roll"</div><div>line break</div><pre>first\nsecond</pre>',
 		);
 	});
 
-	it('does not render TSRX statements outside returned component templates', async () => {
+	it('does not render JavaScript statements outside returned component templates', async () => {
 		function Basic() {
 			const ready = true;
 
 			if (ready) {
-				<div class="leaked">"should not render"</div>
+				const leaked = 'should not render';
+				void leaked;
 			}
 
-			return <>"Hello world"</>;
+			return <>Hello world</>;
 		}
 
 		const { body } = await render(Basic);
@@ -61,13 +62,13 @@ second"</pre>
 
 	it('renders primitive component return branches', async () => {
 		function Basic() {
-			const ready = false;
-
-			if (!ready) {
-				return 'Waiting';
-			}
-
-			return <>"Ready"</>;
+			return <>
+				const ready = false;
+				if (!ready) {
+					return 'Waiting';
+				}
+				Ready
+			</>;
 		}
 
 		const { body } = await render(Basic);
@@ -209,10 +210,11 @@ second"</pre>
 		);
 	});
 
-	it('does not render elements after an ASI return', async () => {
+	it('does not render unreachable statements after an ASI return', async () => {
 		function Basic() {
 			return;
-			<div>"should not render"</div>
+			const leaked = 'should not render';
+			void leaked;
 		}
 
 		const { body } = await render(Basic);

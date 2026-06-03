@@ -7,12 +7,12 @@ describe('switch statements', () => {
 				let &[value] = track('b');
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						<div>{'Case A'}</div>
+						<div>Case A</div>
 						break;
 					case 'b':
-						<div>{'Case B'}</div>
+						<div>Case B</div>
 						break;
 					case 'c':
 						<div>{'Case C'}</div>
@@ -41,7 +41,7 @@ describe('switch statements', () => {
 			return <>
 				let &[count] = track(1);
 				<button onClick={() => count++}>{'Increment'}</button>
-				switch (count) {
+				@switch (count) {
 					case 1:
 						<div>{'Count is 1'}</div>
 						break;
@@ -73,7 +73,7 @@ describe('switch statements', () => {
 			return <>
 				let &[value] = track('x');
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
-				switch (value) {
+				@switch (value) {
 					default:
 						<div>{'Default for ' + value}</div>
 				}
@@ -95,13 +95,13 @@ describe('switch statements', () => {
 				let &[value] = track('a');
 				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				switch (value) {
+				@switch (value) {
 					case 'a':
-						<div>{'Case A'}</div>
+						<div>Case A</div>
 						break;
 					case 'b':
 					case 'c':
-						<div>{'Case B or C'}</div>
+						<div>Case B or C</div>
 						break;
 					default:
 						<div>{'Default Case'}</div>
@@ -139,7 +139,7 @@ describe('switch statements', () => {
 				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
 				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
 				<button onClick={() => (status = 'error')}>{'Error'}</button>
-				switch (status) {
+				@switch (status) {
 					case 'active':
 						message = 'Currently active.';
 						<div>{'Status: ' + message}</div>
@@ -188,7 +188,7 @@ describe('switch statements', () => {
 				return <>
 					let &[status] = track(0);
 					<div>
-						switch (status) {
+						@switch (status) {
 							case -1:
 							case 0:
 								<p>{' Idle'}</p>
@@ -198,12 +198,16 @@ describe('switch statements', () => {
 								<p>{' Success'}</p>
 								break;
 							default:
-								<p>{' Unknown status'}</p>
-								<p>{' Unknown 2'}</p>
+								<>
+									<p>{' Unknown status'}</p>
+									<p>{' Unknown 2'}</p>
+								</>
 							case 3:
-								<p>{' Error'}</p>
-								<p>{' Error 2'}</p>
-								<p>{' Error 3'}</p>
+								<>
+									<p>{' Error'}</p>
+									<p>{' Error 2'}</p>
+									<p>{' Error 3'}</p>
+								</>
 								break;
 						}
 					</div>
@@ -262,7 +266,7 @@ describe('switch statements', () => {
 					<button onClick={() => (value = 'c')}>{'Set C'}</button>
 					<button onClick={() => (value = 'x')}>{'Set X'}</button>
 					<div>
-						switch (value) {
+						@switch (value) {
 							case 'a':
 								<div>{' Case A'}</div>
 								break;
@@ -325,11 +329,11 @@ describe('switch statements', () => {
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
+					@switch (value) {
 						case 'a':
-							{'Case A'}
+							Case A
 						case 'b':
-							{'Case B'}
+							Case B
 					}
 				</div>
 			</>;
@@ -345,12 +349,12 @@ describe('switch statements', () => {
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
+					@switch (value) {
 						case 'a':
-							{'Case A'}
+							Case A
 							break;
 						case 'b':
-							{'Case B'}
+							Case B
 							break;
 					}
 				</div>
@@ -374,7 +378,7 @@ describe('switch statements', () => {
 				>
 					{'Toggle'}
 				</button>
-				switch (level) {
+				@switch (level) {
 					case 1:
 						<div class="level">{'Level 1'}</div>
 						break;

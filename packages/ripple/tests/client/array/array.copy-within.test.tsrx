@@ -86,7 +86,7 @@ describe('RippleArray copyWithin', () => {
 				let &[entries] = track(() => Array.from(items.entries()));
 				<button onClick={() => items.copyWithin(2, 1, 4)}>{'copy with overlap'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-				for (const [i, value] of entries) {
+				@for (const [i, value] of entries) {
 					<pre>{`items[${i}]: ${value}`}</pre>
 				}
 			</>;

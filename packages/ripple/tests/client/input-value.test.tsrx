@@ -1646,7 +1646,7 @@ describe('use value()', () => {
 				]);
 				<div>
 					<select ref={bindValue(selected)}>
-						for (const option of options) {
+						@for (const option of options) {
 							<option value={option.id}>{option.text}</option>
 						}
 					</select>
@@ -1687,7 +1687,7 @@ describe('use value()', () => {
 					return () => clearTimeout(timeout);
 				});
 				<select ref={bindValue(selected)}>
-					for (const option of options) {
+					@for (const option of options) {
 						<option value={option.id}>{option.text}</option>
 					}
 				</select>

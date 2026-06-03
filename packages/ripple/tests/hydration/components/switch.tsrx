@@ -3,7 +3,7 @@ import { track } from 'ripple';
 export function SwitchStatic() {
 	return <>
 		const status: string = 'success';
-		switch (status) {
+		@switch (status) {
 			case 'success':
 				<div class="status-success">{'Success'}</div>
 				break;
@@ -29,12 +29,12 @@ export function SwitchReactive() {
 		>
 			{'Toggle'}
 		</button>
-		switch (status) {
+		@switch (status) {
 			case 'a':
-				<div class="case-a">{'Case A'}</div>
+				<div class="case-a">Case A</div>
 				break;
 			case 'b':
-				<div class="case-b">{'Case B'}</div>
+				<div class="case-b">Case B</div>
 				break;
 			default:
 				<div class="case-c">{'Case C'}</div>
@@ -45,7 +45,7 @@ export function SwitchReactive() {
 export function SwitchFallthrough() {
 	return <>
 		const val: number = 1;
-		switch (val) {
+		@switch (val) {
 			case 1:
 			case 2:
 				<div class="case-1-2">{'1 or 2'}</div>
@@ -69,7 +69,7 @@ export function SwitchNumericLevels() {
 		>
 			{'Toggle Level'}
 		</button>
-		switch (level) {
+		@switch (level) {
 			case 1:
 				<div class="level-1">{'Level 1'}</div>
 				break;
@@ -96,7 +96,7 @@ export function SwitchBlockScoped() {
 		>
 			{'Toggle'}
 		</button>
-		switch (level) {
+		@switch (level) {
 			case 1:
 				<div class="block-1">{'Block 1'}</div>
 				break;
@@ -123,7 +123,7 @@ export function SwitchNoBreak() {
 		>
 			{'Toggle'}
 		</button>
-		switch (level) {
+		@switch (level) {
 			case 1:
 				<div class="nobreak-1">{'NoBreak 1'}</div>
 			case 2:

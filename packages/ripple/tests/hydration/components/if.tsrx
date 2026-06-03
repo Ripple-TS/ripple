@@ -5,7 +5,7 @@ import { track } from 'ripple';
 export function IfTruthy() {
 	return <>
 		const show = true;
-		if (show) {
+		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
 	</>;
@@ -14,7 +14,7 @@ export function IfTruthy() {
 export function IfFalsy() {
 	return <>
 		const show = false;
-		if (show) {
+		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
 	</>;
@@ -23,7 +23,7 @@ export function IfFalsy() {
 export function IfElse() {
 	return <>
 		const isLoggedIn = true;
-		if (isLoggedIn) {
+		@if (isLoggedIn) {
 			<div class="logged-in">{'Welcome back!'}</div>
 		} else {
 			<div class="logged-out">{'Please log in'}</div>
@@ -42,7 +42,7 @@ export function ReactiveIf() {
 		>
 			{'Toggle'}
 		</button>
-		if (show) {
+		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
 	</>;
@@ -59,7 +59,7 @@ export function ReactiveIfElse() {
 		>
 			{'Toggle'}
 		</button>
-		if (isOn) {
+		@if (isOn) {
 			<div class="on">{'ON'}</div>
 		} else {
 			<div class="off">{'OFF'}</div>
@@ -87,10 +87,10 @@ export function NestedIf() {
 		>
 			{'Inner'}
 		</button>
-		if (outer) {
+		@if (outer) {
 			<div class="outer-content">
 				{'Outer'}
-				if (inner) {
+				@if (inner) {
 					<span class="inner-content">{'Inner'}</span>
 				}
 			</div>
@@ -126,7 +126,7 @@ export function IfElseIfChain() {
 			>
 				{'Loading'}
 			</button>
-			if (status === 'loading') {
+			@if (status === 'loading') {
 				<div class="state">{'Loading...'}</div>
 			} else if (status === 'success') {
 				<div class="state">{'Success!'}</div>

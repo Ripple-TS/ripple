@@ -776,12 +776,12 @@ describe('basic client > attribute rendering', () => {
 				const buttonIds = [0, 1, 2, 3, 4];
 				<div>
 					<div class="delegated-buttons">
-						for (const i of buttonIds) {
+						@for (const i of buttonIds) {
 							<button onClick={makeDelegatedHandler(i)} class={`delegated-${i}`}>{`D${i}`}</button>
 						}
 					</div>
 					<div class="non-delegated-buttons">
-						for (const i of buttonIds) {
+						@for (const i of buttonIds) {
 							<button onClick={makeNonDelegatedHandler(i)} class={`non-delegated-${i}`}>
 								{`ND${i}`}
 							</button>

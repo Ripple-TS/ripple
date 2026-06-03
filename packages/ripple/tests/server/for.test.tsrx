@@ -3,7 +3,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 			</>;
@@ -12,6 +12,23 @@ describe('for statements in SSR', () => {
 		const { body } = await render(App);
 		expect(body).toBeHtml(
 			'<div class="Item 1">Item 1</div><div class="Item 2">Item 2</div><div class="Item 3">Item 3</div>',
+		);
+	});
+
+	it('throws when loop blocks use plain JavaScript control flow with direct TSRX output', () => {
+		expect(
+			() => compile(
+				`function App() { return <>
+					const items = [1, 2, 3];
+					for (const item of items) {
+						<div class="selected">{item}</div>
+					}
+				</>; }`,
+				'App.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow(
+			'TSRX elements and text inside JavaScript control flow blocks must use template directives.',
 		);
 	});
 
@@ -28,13 +45,15 @@ describe('for statements in SSR', () => {
 						items: ['Item 2.1', 'Item 2.2'],
 					},
 				];
-				for (const group of groups) {
-					<h1>{group.name}</h1>
-					<ul>
-						for (const item of group.items) {
-							<li>{item}</li>
-						}
-					</ul>
+				@for (const group of groups) {
+					<>
+						<h1>{group.name}</h1>
+						<ul>
+							@for (const item of group.items) {
+								<li>{item}</li>
+							}
+						</ul>
+					</>
 				}
 			</>;
 		}
@@ -49,7 +68,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items; index i) {
+				@for (const item of items; index i) {
 					<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
 				}
 			</>;
@@ -69,7 +88,7 @@ describe('for statements in SSR', () => {
 					{ id: 2, name: 'Item' },
 					{ id: 3, name: 'Item' },
 				];
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
 				}
 			</>;
@@ -89,7 +108,7 @@ describe('for statements in SSR', () => {
 					{ id: 2, name: 'Item' },
 					{ id: 3, name: 'Item' },
 				];
-				for (const item of items; index i; key item.id) {
+				@for (const item of items; index i; key item.id) {
 					<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
 				}
 			</>;
@@ -105,7 +124,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					if (!item) continue;
 					<div>{item}</div>
 				}
@@ -120,7 +139,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					function label(value) {
 						for (let i = 0; i < 1; i++) {
 							while (i < 0) {
@@ -144,23 +163,23 @@ describe('for statements in SSR', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-					for (const item of items) {
-						if (!item) return
+						@for (const item of items) {
+							if (!item) return
 						<div>{item}</div>
 					}
 				</>; }`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).toThrow('Return statements are not allowed inside TSRX template for...of loops.');
 	});
 
 	it('throws for break statements targeting for...of loops', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-					for (const item of items) {
-						if (!item) break
+						@for (const item of items) {
+							if (!item) break
 						<div>{item}</div>
 					}
 				</>; }`,

@@ -6,7 +6,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 			</>;
@@ -17,11 +17,28 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
+	it('throws when loop blocks use plain JavaScript control flow with direct TSRX output', () => {
+		expect(
+			() => compile(
+				`function App() { return <>
+					const items = [1, 2, 3];
+					for (const item of items) {
+						<div class="selected">{item}</div>
+					}
+				</>; }`,
+				'App.tsrx',
+				{ mode: 'client' },
+			),
+		).toThrow(
+			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+		);
+	});
+
 	it('allows continue to skip an iteration', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					if (!item) continue;
 					<div class="item">{item}</div>
 				}
@@ -42,7 +59,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
+				@for (const item of items) {
 					if (!item) {
 						skipped.push('skip');
 						continue;
@@ -67,11 +84,11 @@ describe('for statements', () => {
 				const items = ['Item 1', '', 'Item 3'];
 				const skipped = [];
 
-				for (const item of items) {
-					if (!item) {
-						skipped.push('skip');
-						continue;
-					}
+					@for (const item of items) {
+						if (!item) {
+							skipped.push('skip');
+							continue;
+						}
 					<div class="item">{item}</div>
 				}
 			</>; }`,
@@ -88,7 +105,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
-				for (const item of items) {
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
@@ -111,7 +128,7 @@ describe('for statements', () => {
 			return <>
 				const items = new RippleArray(1, 2, 3);
 				<div>
-					for (const item of items) {
+					@for (const item of items) {
 						<div>
 							<div>{item}</div>
 							const some_text = item;
@@ -140,7 +157,7 @@ describe('for statements', () => {
 			return <>
 				const items = new RippleArray('a', 'b', 'c');
 				<div>
-					for (let item of items; index i) {
+					@for (let item of items; index i) {
 						<div>{i + ' : ' + item}</div>
 					}
 				</div>
@@ -176,7 +193,7 @@ describe('for statements', () => {
 					{ id: 2, text: 'Item 2' },
 					{ id: 3, text: 'Item 3' },
 				]);
-				for (let item of items; index i; key item.id) {
+				@for (let item of items; index i; key item.id) {
 					<div>{i + ':' + item.text}</div>
 				}
 				<button
@@ -215,7 +232,7 @@ describe('for statements', () => {
 				>
 					{'Add'}
 				</button>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div class="item">{item.label}</div>
 				}
 				<p class="count">{count}</p>
@@ -247,7 +264,7 @@ describe('for statements', () => {
 			return <>
 				let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
 				<div>
-					for (let item of items; index idx; key item.id) {
+					@for (let item of items; index idx; key item.id) {
 						<span class="item">{idx + ':' + item.text}</span>
 					}
 				</div>
@@ -283,7 +300,7 @@ describe('for statements', () => {
 					{ id: 2, text: 'Item 2' },
 					{ id: 3, text: 'Item 3' },
 				]);
-				for (let item of items; index i; key item.id) {
+				@for (let item of items; index i; key item.id) {
 					<div>{i + ':' + item.text}</div>
 				}
 				<button
@@ -321,7 +338,7 @@ describe('for statements', () => {
 			return <>
 				let &[items] = track(objects.slice());
 				<div>
-					for (const item of items) {
+					@for (const item of items) {
 						<span class="item">{item.text}</span>
 					}
 				</div>

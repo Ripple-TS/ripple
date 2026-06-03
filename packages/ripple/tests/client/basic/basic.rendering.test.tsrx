@@ -42,32 +42,33 @@ describe('basic client > rendering & text', () => {
 		expect(div.querySelector('span')).toBeNull();
 	});
 
-	it('renders direct double-quoted text children as text', () => {
+	it('renders direct JSX text children as text', () => {
 		function Basic() {
 			return <>
-				<div class="entities">"Rock &amp; &quot;Roll&quot;"</div>
-				<div class="backslash">"line\nbreak"</div>
-				<pre class="multiline">"first
-second"</pre>
+				<div class="entities">Rock &amp; &quot;Roll&quot;</div>
+				<div class="backslash">line break</div>
+				<pre class="multiline">first
+second</pre>
 			</>;
 		}
 
 		render(Basic);
 
 		expect(container.querySelector('.entities').textContent).toBe('Rock & "Roll"');
-		expect(container.querySelector('.backslash').textContent).toBe('line\\nbreak');
+		expect(container.querySelector('.backslash').textContent).toBe('line break');
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
-	it('does not render TSRX statements outside returned component templates', () => {
+	it('does not render JavaScript statements outside returned component templates', () => {
 		function Basic() {
 			const ready = true;
 
 			if (ready) {
-				<div class="leaked">"should not render"</div>
+				const leaked = 'should not render';
+				void leaked;
 			}
 
-			return <>"Hello world"</>;
+			return <>Hello world</>;
 		}
 
 		render(Basic);
@@ -78,13 +79,13 @@ second"</pre>
 
 	it('renders primitive component return branches', () => {
 		function Basic() {
-			const ready = false;
-
-			if (!ready) {
-				return 'Waiting';
-			}
-
-			return <>"Ready"</>;
+			return <>
+				const ready = false;
+				if (!ready) {
+					return 'Waiting';
+				}
+				Ready
+			</>;
 		}
 
 		render(Basic);
@@ -238,10 +239,11 @@ second"</pre>
 		]);
 	});
 
-	it('does not render elements after an ASI return', () => {
+	it('does not render unreachable statements after an ASI return', () => {
 		function Basic() {
 			return;
-			<div>"should not render"</div>
+			const leaked = 'should not render';
+			void leaked;
 		}
 
 		render(Basic);
@@ -249,13 +251,15 @@ second"</pre>
 		expect(container.textContent).toBe('');
 	});
 
-	it('renders bare double-quoted text in if-else branches', () => {
+	it('renders bare JSX text in if-else branches', () => {
 		function App() {
 			return <>
 				let condition = false;
-				if (condition) {
-					"Hello Ripple"
-				} else "Hello React"
+				@if (condition) {
+					Hello Ripple
+				} else {
+					Hello React
+				}
 			</>;
 		}
 
@@ -310,13 +314,13 @@ second"</pre>
 	it('renders tick template literal for nested children', () => {
 		function Child({ level, children }: { level: number; children: any }) {
 			return <>
-				if (level == 1) {
+				@if (level == 1) {
 					<h1>{children}</h1>
 				}
-				if (level == 2) {
+				@if (level == 2) {
 					<h2>{children}</h2>
 				}
-				if (level == 3) {
+				@if (level == 3) {
 					<h3>{children}</h3>
 				}
 			</>;
@@ -430,8 +434,8 @@ second"</pre>
 					{'Toggle Role'}
 				</button>
 				<div class="content">
-					if (showContent) {
-						if (userRole === 'admin') {
+					@if (showContent) {
+						@if (userRole === 'admin') {
 							<div class="admin-content">{'Admin content'}</div>
 						} else {
 							<div class="user-content">{'User content'}</div>

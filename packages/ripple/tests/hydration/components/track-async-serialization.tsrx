@@ -19,7 +19,7 @@ export function AsyncWithServerCall() {
 		>
 			{'increment'}
 		</button>
-		try {
+		@try {
 			let &[data] = trackAsync(() => formatValue(count));
 			<p class="result">{data}</p>
 		} pending {
@@ -30,7 +30,7 @@ export function AsyncWithServerCall() {
 
 export function AsyncSimpleValue() {
 	return <>
-		try {
+		@try {
 			let &[data] = trackAsync(() => Promise.resolve('hydrated value'));
 			<p class="result">{data}</p>
 		} pending {
@@ -41,7 +41,7 @@ export function AsyncSimpleValue() {
 
 export function AsyncNumericValue() {
 	return <>
-		try {
+		@try {
 			let &[count] = trackAsync(() => Promise.resolve(42));
 			<span class="count">{count}</span>
 		} pending {
@@ -52,7 +52,7 @@ export function AsyncNumericValue() {
 
 export function AsyncObjectValue() {
 	return <>
-		try {
+		@try {
 			let &[user] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
 			<div class="user">
 				<span class="name">{user.name}</span>
@@ -66,7 +66,7 @@ export function AsyncObjectValue() {
 
 export function AsyncMultipleValues() {
 	return <>
-		try {
+		@try {
 			let &[first] = trackAsync(() => Promise.resolve('alpha'));
 			let &[second] = trackAsync(() => Promise.resolve('beta'));
 			<div class="multi">
@@ -81,7 +81,7 @@ export function AsyncMultipleValues() {
 
 export function AsyncWithCatch() {
 	return <>
-		try {
+		@try {
 			let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
 			<p class="result">{data}</p>
 		} pending {
@@ -94,7 +94,7 @@ export function AsyncWithCatch() {
 
 export function ChildWithError() {
 	return <>
-		try {
+		@try {
 			let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
 			<p class="result">{data}</p>
 		} pending {
@@ -105,7 +105,7 @@ export function ChildWithError() {
 
 export function ParentWithCatch() {
 	return <>
-		try {
+		@try {
 			<ChildWithError />
 		} catch (e) {
 			<p class="parent-error">{(e as Error).message}</p>
@@ -124,7 +124,7 @@ export function AsyncWithReactiveDependency() {
 		>
 			{'increment'}
 		</button>
-		try {
+		@try {
 			let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
 			<p class="result">{data}</p>
 		} pending {

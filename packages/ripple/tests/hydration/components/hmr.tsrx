@@ -22,7 +22,7 @@ export function Content() {
 	return <>
 		let &[visible] = track(true);
 		<div class="content">
-			if (visible) {
+			@if (visible) {
 				<p class="text">{'Hello world'}</p>
 			}
 		</div>

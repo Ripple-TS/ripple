@@ -132,12 +132,12 @@ export function DocLayout({
 				<article>
 					<div>{children}</div>
 				</article>
-				if (editPath) {
+				@if (editPath) {
 					<div class="edit-link">
 						<a href={`https://github.com/edit/${editPath}`}>{'Edit'}</a>
 					</div>
 				}
-				if (nextLink) {
+				@if (nextLink) {
 					<nav class="prev-next">
 						<a href={nextLink.href}>{nextLink.text}</a>
 					</nav>
@@ -145,10 +145,10 @@ export function DocLayout({
 				<DocFooter />
 			</div>
 			<aside>
-				if (toc.length > 0) {
+				@if (toc.length > 0) {
 					<div class="toc">
 						<ul>
-							for (const item of toc) {
+							@for (const item of toc) {
 								<li>
 									<a href={item.href}>{item.text}</a>
 								</li>
@@ -197,7 +197,7 @@ export function HtmlWithUndefinedContent() {
 
 function DynamicHeading({ level, children }: { level: number; children: any }) {
 	return <>
-		switch (level) {
+		@switch (level) {
 			case 1:
 				<h1 class="heading">{children}</h1>
 				break;
@@ -252,7 +252,7 @@ function NavItem({
 }) {
 	return <>
 		<div class={`nav-item${active ? ' active' : ''}`}>
-			if (active) {
+			@if (active) {
 				<div class="indicator" />
 			}
 			<a {href}>
@@ -270,7 +270,7 @@ function SidebarSection({ title, children }: { title: string; children: any }) {
 				<h2>{title}</h2>
 				<button onClick={() => (expanded = !expanded)}>{'Toggle'}</button>
 			</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="section-items">{children}</div>
 			}
 		</section>
@@ -319,7 +319,7 @@ export function LayoutWithSidebarAndMain() {
 							<p>{'Welcome to the docs.'}</p>
 						</div>
 					</div>
-					if (true) {
+					@if (true) {
 						<div class="edit-link">
 							<a href="/edit">{'Edit'}</a>
 						</div>
@@ -350,12 +350,12 @@ export function ArticleWithChildrenThenSibling() {
 				<h1>{'Title'}</h1>
 				<p>{'Content goes here.'}</p>
 			</ArticleWrapper>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
 			}
-			if (true) {
+			@if (true) {
 				<nav class="prev-next">
 					<a href="/prev">{'Previous'}</a>
 				</nav>
@@ -372,7 +372,7 @@ export function ArticleWithHtmlChildThenSibling() {
 			<ArticleWrapper>
 				<div class="doc-content" innerHTML={htmlContent} />
 			</ArticleWrapper>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
@@ -388,7 +388,7 @@ function InlineArticleLayout({ children }: { children: any }) {
 			<article class="doc-content">
 				<div>{children}</div>
 			</article>
-			if (true) {
+			@if (true) {
 				<div class="edit-link">
 					<a href="/edit">{'Edit'}</a>
 				</div>
@@ -440,12 +440,12 @@ function DocsLayoutInner({
 								<article class="doc-content">
 									<div>{children}</div>
 								</article>
-								if (editPath) {
+								@if (editPath) {
 									<div class="edit-link">
 										<a href="/edit">{'Edit on GitHub'}</a>
 									</div>
 								}
-								if (nextLink) {
+								@if (nextLink) {
 									<nav class="prev-next">
 										<a href={nextLink.href}>{nextLink.text}</a>
 									</nav>
@@ -503,21 +503,21 @@ function DocsLayoutExact({
 								<article class="doc-content">
 									<div>{children}</div>
 								</article>
-								if (editPath) {
+								@if (editPath) {
 									<div class="edit-link">
 										<a href={`/edit/${editPath}`}>{'Edit on GitHub'}</a>
 									</div>
 								}
-								if (prevLink || nextLink) {
+								@if (prevLink || nextLink) {
 									<nav class="prev-next">
-										if (prevLink) {
+										@if (prevLink) {
 											<a href={prevLink.href} class="pager prev">
 												<span class="title">{prevLink.text}</span>
 											</a>
 										} else {
 											<span />
 										}
-										if (nextLink) {
+										@if (nextLink) {
 											<a href={nextLink.href} class="pager next">
 												<span class="title">{nextLink.text}</span>
 											</a>
@@ -528,10 +528,10 @@ function DocsLayoutExact({
 							</div>
 						</div>
 						<aside class="aside">
-							if (toc.length > 0) {
+							@if (toc.length > 0) {
 								<div class="aside-content">
 									<nav class="outline">
-										for (const item of toc) {
+										@for (const item of toc) {
 											<a href={item.href}>{item.text}</a>
 										}
 									</nav>

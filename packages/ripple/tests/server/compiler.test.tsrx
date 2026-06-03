@@ -182,11 +182,11 @@ export function Layout(props) { return <>
 		expect(() => compile(source, 'test.tsrx', { mode: 'server' })).not.toThrow();
 	});
 
-	it('compiles indented direct double-quoted text children in SSR mode', () => {
+	it('compiles indented direct JSX text children in SSR mode', () => {
 		const source = `
 export default function A() { return <>
 	<div>
-		"Hello"
+		Hello
 	</div>
 </>; }`;
 
@@ -271,7 +271,7 @@ export function App() {
 	it('decodes JSX-style entities before server text escaping', () => {
 		const result = compile(
 			`function App() { return <>
-				<div>"Rock &amp; &quot;Roll&quot;"</div>
+				<div>Rock &amp; &quot;Roll&quot;</div>
 			</>; }`,
 			'/src/App.tsrx',
 			{ mode: 'server' },

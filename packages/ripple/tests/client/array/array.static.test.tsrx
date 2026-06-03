@@ -40,7 +40,7 @@ describe('RippleArray > static', () => {
 		it('handles static fromAsync method with reactivity', async () => {
 			function Parent() {
 				return <>
-					try {
+					@try {
 						<ArrayTest />
 					} pending {
 						<div>{'Loading placeholder...'}</div>
@@ -81,7 +81,7 @@ describe('RippleArray > static', () => {
 		it('handles static fromAsync method with mapping function', async () => {
 			function Parent() {
 				return <>
-					try {
+					@try {
 						<ArrayTest />
 					} pending {
 						<div>{'Loading placeholder...'}</div>
@@ -124,7 +124,7 @@ describe('RippleArray > static', () => {
 			async () => {
 				function Parent() {
 					return <>
-						try {
+						@try {
 							<ArrayTest />
 						} pending {
 							<div>{'Loading placeholder...'}</div>
@@ -137,19 +137,21 @@ describe('RippleArray > static', () => {
 						async function* throwingIterable() {
 							throw new Error('Async error');
 						}
-						try {
+						@try {
 							let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
 							<ul>
-								for (const item of items) {
+								@for (const item of items) {
 									<li>{item}</li>
 								}
 							</ul>
 						} pending {
 							<div>{'Loading...'}</div>
 						} catch (e) {
-							<pre>{'Error: ' + (e as Error).message}</pre>
-							<pre>{'No items'}</pre>
+							<>
+								<pre>{'Error: ' + (e as Error).message}</pre>
+								<pre>{'No items'}</pre>
+							</>
 						}
 					</>;
 				}
@@ -184,12 +186,14 @@ describe('RippleArray > static', () => {
 		it('errors on exceeding max array size', () => {
 			function ArrayTest() {
 				return <>
-					let error = null;
-					try {
-						new RippleArray(MAX_ARRAY_LENGTH + 1);
-					} catch (e) {
-						error = (e as Error).message;
-					}
+					const error = (() => {
+						try {
+							new RippleArray(MAX_ARRAY_LENGTH + 1);
+							return null;
+						} catch (e) {
+							return (e as Error).message;
+						}
+					})();
 					<pre>{error}</pre>
 				</>;
 			}
@@ -234,7 +238,7 @@ describe('RippleArray > static', () => {
 			async () => {
 				function Parent() {
 					return <>
-						try {
+						@try {
 							<ArrayTest />
 						} pending {
 							<div>{'Loading placeholder...'}</div>

@@ -17,7 +17,7 @@ describe('basic client > errors', () => {
 				};
 				<div>
 					<button onClick={triggerError}>{'Trigger Error'}</button>
-					if (hasError) {
+					@if (hasError) {
 						<div class="error">{'Error caught: ' + errorMessage}</div>
 					} else {
 						<div class="success">{'No error'}</div>
