@@ -297,6 +297,27 @@ const App = ({ ready }) => <>
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
+Directive Block With Lone Setup Fence
+==================
+
+const App = ({ ready }) => <>
+  @if (ready) {
+    ---
+    <p>Ready</p>
+  }
+  @try {
+    ---
+  } pending {
+    ---
+    <p>Loading</p>
+  }
+</>;
+
+---
+
+(program)
+
+==================
 Else If Chain
 ==================
 

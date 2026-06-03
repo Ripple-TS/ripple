@@ -3760,7 +3760,7 @@
       },
       "statement": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "break_statement",

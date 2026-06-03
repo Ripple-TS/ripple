@@ -500,6 +500,19 @@ function WithControlFlow(x) {
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
+==================
+Lone Template Fence
+==================
+
+const App = () => <>
+  ---
+  <div>Ready</div>
+</>;
+
+---
+
+(program)
+
 ==========================================
 Function Return Async Native Declaration
 ==========================================

@@ -391,7 +391,7 @@ module.exports = grammar({
 
 		template_setup_section: ($) =>
 			seq(
-				repeat1(field('statement', $._template_setup_statement)),
+				repeat(field('statement', $._template_setup_statement)),
 				field('fence', $.template_fence),
 			),
 
