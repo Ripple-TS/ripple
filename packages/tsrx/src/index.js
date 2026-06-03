@@ -9,7 +9,6 @@
 export { parse_module as parseModule } from './parse/parse-module.js';
 export {
 	get_comment_handlers as getCommentHandlers,
-	convert_from_jsx as convertFromJsx,
 	skipWhitespace,
 	isWhitespaceTextNode,
 	BINDING_TYPES,

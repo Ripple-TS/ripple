@@ -1172,9 +1172,7 @@ export namespace Parse {
 		 */
 		parseTopLevel(node: AST.Program): AST.Program;
 
-		parseElement(): AST.Element | AST.TsrxFragment;
-
-		parseDoubleQuotedTextChild(): AST.TextNode;
+		parseElement(): ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment;
 
 		parseTemplateBody(
 			body: (AST.Statement | AST.Node | ESTreeJSX.JSXText | ESTreeJSX.JSXElement['children'])[],
@@ -1192,10 +1190,10 @@ export namespace Parse {
 			topLevel?: boolean,
 			exports?: AST.ExportSpecifier,
 		):
-			| AST.TSRXExpression
-			| AST.TextNode
-			| ESTreeJSX.JSXEmptyExpression
 			| ESTreeJSX.JSXExpressionContainer
+			| ESTreeJSX.JSXElement
+			| ESTreeJSX.JSXFragment
+			| ESTreeJSX.JSXText
 			| AST.ExpressionStatement
 			| ReturnType<Parser['parseElement']>
 			| AST.Statement;

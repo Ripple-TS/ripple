@@ -38,32 +38,6 @@ export function DestructuringErrors() {
 	return this;
 }
 
-/**
- * Convert JSX node types to regular JavaScript node types
- * @param {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | AST.Node} node - The JSX node to convert
- * @returns {AST.Identifier | AST.MemberExpression | AST.Node} The converted node
- */
-export function convert_from_jsx(node) {
-	/** @type {AST.Identifier | AST.MemberExpression | AST.Node} */
-	let converted_node;
-	if (node.type === 'JSXIdentifier') {
-		converted_node = /** @type {AST.Identifier} */ (/** @type {unknown} */ (node));
-		converted_node.type = 'Identifier';
-	} else if (node.type === 'JSXMemberExpression') {
-		converted_node = /** @type {AST.MemberExpression} */ (/** @type {unknown} */ (node));
-		converted_node.type = 'MemberExpression';
-		converted_node.object = /** @type {AST.Identifier | AST.MemberExpression} */ (
-			convert_from_jsx(converted_node.object)
-		);
-		converted_node.property = /** @type {AST.Identifier} */ (
-			convert_from_jsx(converted_node.property)
-		);
-	} else {
-		converted_node = node;
-	}
-	return converted_node;
-}
-
 const regex_whitespace_only = /\s/;
 
 /**
@@ -95,11 +69,19 @@ export function skipWhitespace(parser) {
 }
 
 /**
- * @param {AST.Node | null | undefined} node
+ * @param {AST.Node | ESTreeJSX.JSXText | null | undefined} node
  * @returns {boolean}
  */
 export function isWhitespaceTextNode(node) {
-	if (!node || node.type !== 'Text') {
+	if (!node) {
+		return false;
+	}
+
+	if (node.type === 'JSXText') {
+		return /^\s*$/.test(node.value);
+	}
+
+	if (node.type !== 'Text') {
 		return false;
 	}
 
@@ -298,6 +280,81 @@ export function get_comment_handlers(source, comments, index = 0) {
 		return null;
 	}
 
+	/**
+	 * @param {any} node
+	 * @returns {node is (ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation}
+	 */
+	function isNativeTemplateNode(node) {
+		return (
+			(node?.type === 'JSXElement' || node?.type === 'JSXFragment') && node.metadata?.native_tsrx
+		);
+	}
+
+	/**
+	 * @param {any} node
+	 * @returns {node is ESTreeJSX.JSXElement & AST.NodeWithLocation}
+	 */
+	function isNativeTemplateElement(node) {
+		return node?.type === 'JSXElement' && node.metadata?.native_tsrx;
+	}
+
+	/**
+	 * @param {any} node
+	 * @returns {AST.Node[]}
+	 */
+	function getTemplateChildren(node) {
+		return Array.isArray(node?.children)
+			? /** @type {AST.Node[]} */ (/** @type {unknown} */ (node.children))
+			: [];
+	}
+
+	/**
+	 * @param {any} node
+	 * @returns {node is (ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation}
+	 */
+	function isEmptyTemplateNode(node) {
+		return isNativeTemplateNode(node) && getTemplateChildren(node).length === 0;
+	}
+
+	/**
+	 * @param {any} node
+	 * @returns {any}
+	 */
+	function getNodeMetadata(node) {
+		const target = /** @type {AST.Node} */ (/** @type {unknown} */ (node));
+		target.metadata ??= { path: [] };
+		return target.metadata;
+	}
+
+	/**
+	 * @param {any} node
+	 * @param {AST.CommentWithLocation} comment
+	 */
+	function pushInnerComment(node, comment) {
+		const target = /** @type {any} */ (node);
+		(target.innerComments ||= []).push(comment);
+	}
+
+	/**
+	 * @param {any} node
+	 * @returns {boolean}
+	 */
+	function hasInnerComments(node) {
+		return !!(/** @type {any} */ (node).innerComments?.length);
+	}
+
+	/**
+	 * @param {ESTreeJSX.JSXElement} node
+	 * @returns {string | null}
+	 */
+	function getJSXElementName(node) {
+		const name = node.openingElement?.name;
+		if (!name) return null;
+		if (name.type === 'JSXIdentifier') return name.name;
+		if (name.type === 'JSXNamespacedName') return `${name.namespace.name}:${name.name.name}`;
+		return null;
+	}
+
 	return {
 		/**
 		 * @type {Parse.Options['onComment']}
@@ -348,11 +405,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 				_(node, { next, path }) {
 					const metadata = /** @type {AST.Node} */ (node)?.metadata;
 
-					/**
-					 * Check if a comment is inside an attribute expression
-					 * of any ancestor Elements.
-					 * @returns {boolean}
-					 */
+					/** @returns {boolean} */
 					function isCommentInsideAttributeExpression() {
 						for (let i = path.length - 1; i >= 0; i--) {
 							const ancestor = path[i];
@@ -369,8 +422,6 @@ export function get_comment_handlers(source, comments, index = 0) {
 					}
 
 					/**
-					 * Check if a comment is inside any attribute of ancestor Elements,
-					 * but NOT if we're currently traversing inside that attribute.
 					 * @param {AST.CommentWithLocation} comment
 					 * @returns {boolean}
 					 */
@@ -381,10 +432,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 							if (ancestor.type === 'JSXAttribute' || ancestor.type === 'Attribute') {
 								return false;
 							}
-							if (ancestor && ancestor.type === 'Element') {
-								for (const attr of /** @type {(AST.Attribute & AST.NodeWithLocation)[]} */ (
-									ancestor.attributes
-								)) {
+							if (isNativeTemplateElement(ancestor)) {
+								for (const attr of ancestor.openingElement.attributes) {
 									if (comment.start >= attr.start && comment.end <= attr.end) {
 										return true;
 									}
@@ -395,23 +444,20 @@ export function get_comment_handlers(source, comments, index = 0) {
 					}
 
 					/**
-					 * If a comment is located between an empty Element's opening and closing tags,
-					 * attach it to the Element as `innerComments`.
 					 * @param {AST.CommentWithLocation} comment
-					 * @returns {AST.Element | null}
+					 * @returns {((ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment) & AST.NodeWithLocation) | null}
 					 */
 					function getEmptyElementInnerCommentTarget(comment) {
-						const element = /** @type {AST.Element | undefined} */ (
-							path.findLast((ancestor) => ancestor && ancestor.type === 'Element')
-						);
+						const element = path.findLast((ancestor) => isNativeTemplateNode(ancestor));
+						const openingEnd =
+							element?.type === 'JSXFragment'
+								? element.openingFragment?.end
+								: element?.openingElement?.end;
 						if (
 							!element ||
-							element.children.length > 0 ||
-							!element.closingElement ||
-							!(
-								comment.start >= /** @type {AST.NodeWithLocation} */ (element.openingElement).end &&
-								comment.end <= /** @type {AST.NodeWithLocation} */ (element).end
-							)
+							!isEmptyTemplateNode(element) ||
+							openingEnd === undefined ||
+							!(comment.start >= openingEnd && comment.end <= element.end)
 						) {
 							return null;
 						}
@@ -426,22 +472,16 @@ export function get_comment_handlers(source, comments, index = 0) {
 					// parent <style> element's content range so they don't leak to
 					// subsequent JS nodes.
 					if (node.type === 'StyleSheet') {
-						const styleElement = /** @type {AST.Element & AST.NodeWithLocation | undefined} */ (
-							path.findLast(
-								(ancestor) =>
-									ancestor &&
-									ancestor.type === 'Element' &&
-									ancestor.id &&
-									/** @type {AST.Identifier} */ (ancestor.id).name === 'style',
-							)
-						);
+						const styleElement =
+							/** @type {(ESTreeJSX.JSXElement & AST.NodeWithLocation) | undefined} */ (
+								path.findLast(
+									(ancestor) =>
+										isNativeTemplateElement(ancestor) && getJSXElementName(ancestor) === 'style',
+								)
+							);
 						if (styleElement) {
-							const cssStart =
-								/** @type {AST.NodeWithLocation} */ (styleElement.openingElement)?.end ??
-								styleElement.start;
-							const cssEnd =
-								/** @type {AST.NodeWithLocation} */ (styleElement.closingElement)?.start ??
-								styleElement.end;
+							const cssStart = styleElement.openingElement?.end ?? styleElement.start;
+							const cssEnd = styleElement.closingElement?.start ?? styleElement.end;
 							while (comments[0] && comments[0].start >= cssStart && comments[0].end <= cssEnd) {
 								comments.shift();
 							}
@@ -453,8 +493,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 						// For empty template elements, keep comments as `innerComments`.
 						// The Prettier plugin uses `innerComments` to preserve them and
 						// to avoid collapsing the element into self-closing syntax.
-						const isEmptyElement =
-							node.type === 'Element' && (!node.children || node.children.length === 0);
+						const isEmptyElement = isEmptyTemplateNode(node);
 						if (!isEmptyElement) {
 							while (
 								comments[0] &&
@@ -468,9 +507,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 								// before the child element is pushed to the parser's #path, causing
 								// comments inside the child to get the parent's containerId.
 								const commentStart = comments[0].start;
-								const isInsideChildElement = /** @type {AST.NodeWithChildren} */ (
-									node
-								).children?.some(
+								const isInsideChildElement = getTemplateChildren(node).some(
 									(child) =>
 										child &&
 										child.start !== undefined &&
@@ -506,7 +543,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 							/** @type {AST.CommentWithLocation} */ (comments[0]),
 						);
 						if (maybeInner) {
-							(maybeInner.innerComments ||= []).push(
+							pushInnerComment(
+								maybeInner,
 								/** @type {AST.CommentWithLocation} */ (comments.shift()),
 							);
 							continue;
@@ -536,17 +574,17 @@ export function get_comment_handlers(source, comments, index = 0) {
 							continue;
 						}
 
-						const ancestorElements = /** @type {(AST.Element & AST.NodeWithLocation)[]} */ (
-							path.filter((ancestor) => ancestor && ancestor.type === 'Element' && ancestor.loc)
-						).sort((a, b) => a.loc.start.line - b.loc.start.line);
+						const ancestorElements = path
+							.filter((ancestor) => isNativeTemplateNode(ancestor) && ancestor.loc)
+							.sort((a, b) => a.loc.start.line - b.loc.start.line);
 
 						const targetAncestor = ancestorElements.find(
 							(ancestor) => comment.loc.start.line < ancestor.loc.start.line,
 						);
 
 						if (targetAncestor) {
-							targetAncestor.metadata ??= { path: [] };
-							(targetAncestor.metadata.elementLeadingComments ||= []).push(comment);
+							const targetMetadata = getNodeMetadata(targetAncestor);
+							(targetMetadata.elementLeadingComments ||= []).push(comment);
 							continue;
 						}
 
@@ -595,8 +633,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 								return;
 							}
 						}
-						// Handle empty Element nodes the same way as empty BlockStatements
-						if (node.type === 'Element' && (!node.children || node.children.length === 0)) {
+						// Handle empty template nodes the same way as empty BlockStatements
+						if (isEmptyTemplateNode(node)) {
 							// Collect all comments that fall within this empty element
 							while (
 								comments[0] &&
@@ -604,9 +642,9 @@ export function get_comment_handlers(source, comments, index = 0) {
 								comments[0].end < /** @type {AST.NodeWithLocation} */ (node).end
 							) {
 								const comment = /** @type {AST.CommentWithLocation} */ (comments.shift());
-								(node.innerComments ||= []).push(comment);
+								pushInnerComment(node, comment);
 							}
-							if (node.innerComments && node.innerComments.length > 0) {
+							if (hasInnerComments(node)) {
 								return;
 							}
 						}
@@ -682,7 +720,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 
 										const maybeInner = getEmptyElementInnerCommentTarget(potentialComment);
 										if (maybeInner) {
-											(maybeInner.innerComments ||= []).push(
+											pushInnerComment(
+												maybeInner,
 												/** @type {AST.CommentWithLocation} */ (comments.shift()),
 											);
 											continue;
@@ -712,7 +751,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 
 										const maybeInner = getEmptyElementInnerCommentTarget(comment);
 										if (maybeInner) {
-											(maybeInner.innerComments ||= []).push(
+											pushInnerComment(
+												maybeInner,
 												/** @type {AST.CommentWithLocation} */ (comments.shift()),
 											);
 											continue;
@@ -727,7 +767,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 									/** @type {AST.CommentWithLocation} */ (comments[0]),
 								);
 								if (maybeInner) {
-									(maybeInner.innerComments ||= []).push(
+									pushInnerComment(
+										maybeInner,
 										/** @type {AST.CommentWithLocation} */ (comments.shift()),
 									);
 									return;
@@ -850,10 +891,8 @@ export function get_comment_handlers(source, comments, index = 0) {
 										const hasBlankLineAfter = /\n\s*\n/.test(sliceAfterComments);
 
 										if (hasBlankLineAfter) {
-											// Don't attach comments as trailing if next sibling is an Element
-											// and any comment falls within the Element's line range
-											// This means the comments are inside the Element (between opening and closing tags)
-											const nextIsElement = nextSibling.type === 'Element';
+											// Don't attach comments as trailing if they are inside the next template node.
+											const nextIsElement = isNativeTemplateNode(nextSibling);
 											const commentsInsideElement =
 												nextIsElement &&
 												nextSibling.loc &&

@@ -82,6 +82,8 @@ interface BaseNodeMetaData {
 	is_capitalized?: boolean;
 	commentContainerId?: number;
 	parenthesized?: boolean;
+	native_tsrx?: boolean;
+	templateMode?: 'script' | 'template';
 	elementLeadingComments?: AST.Comment[];
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
@@ -235,6 +237,7 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
+		TsrxTemplateFence: TsrxTemplateFence;
 		TsrxFragment: TsrxFragment;
 		TSRXExpression: TSRXExpression;
 		Element: Element;
@@ -254,6 +257,12 @@ declare module 'estree' {
 	}
 
 	// Missing estree type
+	interface TsrxTemplateFence extends AST.BaseStatement {
+		type: 'TsrxTemplateFence';
+		value: '---';
+		metadata: BaseNodeMetaData;
+	}
+
 	interface ParenthesizedExpression extends AST.BaseNode {
 		type: 'ParenthesizedExpression';
 		expression: AST.Expression;
