@@ -9,8 +9,9 @@ export function DocCallout({
 }) {
 	return <>
 		<div class={`${type} custom-block`}>
-			if (title)
-			{<p class="custom-block-title">{title}</p>}
+			@if (title) {
+				<p class="custom-block-title">{title}</p>
+			}
 			{children}
 		</div>
 	</>;

@@ -18,6 +18,23 @@ describe('head elements', () => {
 		expect(document.querySelector('div').textContent).toBe('Content');
 	});
 
+	it('renders naked title text', async () => {
+		function App() {
+			return <>
+				<head>
+					<title>Static Test Title</title>
+				</head>
+				<div>{'Content'}</div>
+			</>;
+		}
+
+		const { head, body } = await render(App);
+		const { document } = parseAsFullHtml(head, body);
+
+		expect(document.title).toBe('Static Test Title');
+		expect(document.querySelector('div').textContent).toBe('Content');
+	});
+
 	it('renders reactive title element', async () => {
 		function App() {
 			return <>

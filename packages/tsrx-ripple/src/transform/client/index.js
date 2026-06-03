@@ -1054,10 +1054,18 @@ function visit_title_element(node, context) {
 	const content = normalized[0];
 
 	const metadata = { tracking: false };
-	const visited = context.visit(content, { ...context.state, metadata });
-	const result = /** @type {AST.Expression} */ (
-		/** @type {{expression?: AST.Expression}} */ (visited).expression
-	);
+	const result =
+		content.type === 'JSXText'
+			? b.literal(
+					content.value.trim(),
+					JSON.stringify(content.value.trim()),
+					/** @type {AST.NodeWithLocation} */ (content),
+				)
+			: /** @type {AST.Expression} */ (
+					/** @type {{expression?: AST.Expression}} */ (
+						context.visit(content, { ...context.state, metadata })
+					).expression
+				);
 
 	if (metadata.tracking) {
 		context.state.init?.push(

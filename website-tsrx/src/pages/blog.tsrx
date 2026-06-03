@@ -1,7 +1,7 @@
 export function BlogPage() {
 	return <>
 		<head>
-			<title>{'TSRX Blog'}</title>
+			<title>TSRX Blog</title>
 			<meta
 				name="description"
 				content="Updates from the TSRX project: language changes, design notes, and release context."

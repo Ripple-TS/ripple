@@ -2365,7 +2365,9 @@ const visitors = {
 
 					if (
 						children.length !== 1 ||
-						(children[0].type !== 'TSRXExpression' && children[0].type !== 'Text')
+						(children[0].type !== 'TSRXExpression' &&
+							children[0].type !== 'Text' &&
+							children[0].type !== 'JSXText')
 					) {
 						// TODO: could transform children as something, e.g. Text Node, and avoid a fatal error
 						error(

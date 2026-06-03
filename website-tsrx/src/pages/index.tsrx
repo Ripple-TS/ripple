@@ -83,7 +83,7 @@ export function IndexPage() {
 	return <>
 		<head>
 			<title>
-				{'TSRX | A TypeScript language extension for building declarative UIs in an agentic era.'}
+				TSRX | A TypeScript language extension for building declarative UIs in an agentic era.
 			</title>
 			<meta
 				name="description"

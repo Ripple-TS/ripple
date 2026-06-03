@@ -3,7 +3,7 @@ import { CompilerDemo } from '../components/compiler-demo.tsrx';
 export function PlaygroundPage() {
 	return <>
 		<head>
-			<title>{'TSRX | Playground'}</title>
+			<title>TSRX | Playground</title>
 			<meta
 				name="description"
 				content="Try TSRX in the browser. Write component code and see the compiled code in real time."

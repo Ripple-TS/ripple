@@ -29,6 +29,22 @@ describe('head elements', () => {
 		expect(container.querySelector('div').textContent).toBe('Content');
 	});
 
+	it('renders naked title text', () => {
+		function App() {
+			return <>
+				<head>
+					<title>Static Test Title</title>
+				</head>
+				<div>{'Content'}</div>
+			</>;
+		}
+
+		render(App);
+
+		expect(document.title).toBe('Static Test Title');
+		expect(container.querySelector('div').textContent).toBe('Content');
+	});
+
 	it('renders reactive title element', () => {
 		function App() {
 			return <>

@@ -43,7 +43,7 @@ export function DocsLayout({
 								<article class="doc-content">
 									<div>{children}</div>
 								</article>
-								if (editPath) {
+								@if (editPath) {
 									<div class="edit-link">
 										<a
 											href={`https://github.com/Ripple-TS/ripple/edit/main/website/${editPath}`}
@@ -67,9 +67,9 @@ export function DocsLayout({
 										</a>
 									</div>
 								}
-								if (prevLink || nextLink) {
+								@if (prevLink || nextLink) {
 									<nav class="prev-next">
-										if (prevLink) {
+										@if (prevLink) {
 											<a href={prevLink.href} class="pager prev">
 												<span class="desc">{'Previous page'}</span>
 												<span class="title">{prevLink.text}</span>
@@ -77,7 +77,7 @@ export function DocsLayout({
 										} else {
 											<span />
 										}
-										if (nextLink) {
+										@if (nextLink) {
 											<a href={nextLink.href} class="pager next">
 												<span class="desc">{'Next page'}</span>
 												<span class="title">{nextLink.text}</span>
@@ -89,7 +89,7 @@ export function DocsLayout({
 							</div>
 						</div>
 						<aside class="aside">
-							if (toc.length > 0) {
+							@if (toc.length > 0) {
 								<div class="aside-curtain" />
 								<div class="aside-container">
 									<div class="aside-content">
@@ -109,7 +109,7 @@ export function DocsLayout({
 														{'Features'}
 													</div>
 													<ul class="DocumentOutlineItem root">
-														for (const item of toc) {
+														@for (const item of toc) {
 															<li>
 																<a class="outline-link" href={item.href} title={item.text}>
 																	{item.text}

@@ -182,7 +182,7 @@ const NAV_ITEMS = [
 export function SpecificationPage() {
 	return <>
 		<head>
-			<title>{'TSRX | Specification'}</title>
+			<title>TSRX | Specification</title>
 			<meta
 				name="description"
 				content="Draft TSRX language specification: TypeScript-compatible grammar extensions, TSRX return expressions, expression values, lazy destructuring, style identifiers, and host-defined server extensions."
@@ -228,14 +228,16 @@ export function SpecificationPage() {
 								}}
 							>
 								<option value="">{'Jump to section'}</option>
-								for (const item of NAV_ITEMS)
-								{<option value={item.id}>{item.label}</option>}
+								@for (const item of NAV_ITEMS) {
+									<option value={item.id}>{item.label}</option>
+								}
 							</select>
 						</label>
 						<nav>
 							<p class="side-nav-heading">{'Draft Spec'}</p>
-							for (const item of NAV_ITEMS)
-							{<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>}
+							@for (const item of NAV_ITEMS) {
+								<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+							}
 						</nav>
 					</aside>
 

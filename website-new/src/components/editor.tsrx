@@ -17,47 +17,50 @@ const CURSOR = '<span class="typing-cursor">|</span>';
 
 export function Editor() {
 	return <>
-		let nodeRef: Tracked<HTMLElement> = track();
-		let &[loading] = track(true);
-		let &[content] = track('');
-		effect(() => {
-			if (nodeRef.value) {
-				fetchMessage().then((message: string) => {
-					content = message;
+		---
+			let nodeRef: Tracked<HTMLElement> = track();
+			let &[loading] = track(true);
+			let &[content] = track('');
+			effect(() => {
+				if (nodeRef.value) {
+					fetchMessage().then((message: string) => {
+						content = message;
 
-					loading = false;
-				});
-			}
-		});
-		effect(() => {
-			if (!content) {
-				return;
-			}
-
-			let charIndex = 0;
-			let timeoutId: number;
-
-			function addChar() {
-				charIndex += STEP;
-
-				if (charIndex < content.length) {
-					nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
-					timeoutId = window.setTimeout(addChar, INTERVAL);
-				} else {
-					nodeRef.value.innerHTML = content;
+						loading = false;
+					});
 				}
-			}
+			});
+			effect(() => {
+				if (!content) {
+					return;
+				}
 
-			timeoutId = window.setTimeout(addChar, 1000);
+				let charIndex = 0;
+				let timeoutId: number;
 
-			if (charIndex >= content.length) {
-				window.clearTimeout(timeoutId);
-			}
+				function addChar() {
+					charIndex += STEP;
 
-			return () => {
-				window.clearTimeout(timeoutId);
-			};
-		});
+					if (charIndex < content.length) {
+						nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
+						timeoutId = window.setTimeout(addChar, INTERVAL);
+					} else {
+						nodeRef.value.innerHTML = content;
+					}
+				}
+
+				timeoutId = window.setTimeout(addChar, 1000);
+
+				if (charIndex >= content.length) {
+					window.clearTimeout(timeoutId);
+				}
+
+				return () => {
+					window.clearTimeout(timeoutId);
+				};
+			});
+		---
+
 		<div class="editor-mockup">
 			<div class="editor-header">
 				<div class="editor-dots">
@@ -69,7 +72,7 @@ export function Editor() {
 			</div>
 			<div class="editor-content">
 				<pre class="editor-code" ref={bindNode(nodeRef)}>
-					if (loading) {
+					@if (loading) {
 						<span class="editor-loader">{'Loading...'}</span>
 					}
 				</pre>
