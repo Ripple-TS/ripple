@@ -2077,6 +2077,22 @@
           "type": "CHOICE",
           "members": [
             {
+              "type": "FIELD",
+              "name": "children",
+              "content": {
+                "type": "SYMBOL",
+                "name": "jsx_text"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
               "type": "SYMBOL",
               "name": "template_setup_section"
             },
@@ -8368,6 +8384,9 @@
     [
       "jsx_template_block",
       "primary_expression"
+    ],
+    [
+      "jsx_template_block"
     ],
     [
       "statement_block",

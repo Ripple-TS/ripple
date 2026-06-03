@@ -106,6 +106,7 @@ module.exports = grammar({
 		[$.for_in_statement, $.primary_expression],
 		[$.declaration, $.template_setup_section],
 		[$.jsx_template_block, $.primary_expression],
+		[$.jsx_template_block],
 		[$.statement_block, $.jsx_expression],
 		[$.statement_block, $.component_statement],
 		[$.declaration, $.component_statement],
@@ -426,6 +427,7 @@ module.exports = grammar({
 		jsx_template_block: ($) =>
 			seq(
 				'{',
+				optional(field('children', $.jsx_text)),
 				optional($.template_setup_section),
 				repeat(field('children', $._jsx_template_child)),
 				'}',

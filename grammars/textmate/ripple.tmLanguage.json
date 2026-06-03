@@ -215,7 +215,7 @@
     "tsrx-template-setup-section": {
       "name": "meta.embedded.setup.tsrx",
       "contentName": "source.js.embedded.ripple-isolated",
-      "begin": "(?:\\r?\\n)?[ \\t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|return|switch|throw|try|type|using|var|while)\\b|[a-zA-Z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
+      "begin": "(?:\\r?\\n)?[ \\t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\\b|[a-zA-Z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
       "end": "(?=(?:\\r?\\n)?[ \\t]*---[ \\t]*$)",
       "patterns": [
         {

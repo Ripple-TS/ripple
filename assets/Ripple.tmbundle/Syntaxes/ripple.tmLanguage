@@ -8997,7 +8997,7 @@
 		<key>tsrx-template-setup-section</key>
 		<dict>
 			<key>begin</key>
-			<string>(?:\r?\n)?[ \t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|return|switch|throw|try|type|using|var|while)\b|[a-zA-Z_$][_$[:alnum:]]*\s*(?:[.=(]|=&gt;)))</string>
+			<string>(?:\r?\n)?[ \t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\b|[a-zA-Z_$][_$[:alnum:]]*\s*(?:[.=(]|=&gt;)))</string>
 			<key>contentName</key>
 			<string>source.js.embedded.ripple-isolated</string>
 			<key>end</key>

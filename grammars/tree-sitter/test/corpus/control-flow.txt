@@ -315,7 +315,61 @@ const App = ({ ready }) => <>
 
 ---
 
-(program)
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                (template_setup_section
+                  fence: (template_fence))
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
+            children: (jsx_text)
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                (template_setup_section
+                  fence: (template_fence))
+                children: (jsx_text))
+              pending: (jsx_pending_clause
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  (template_setup_section
+                    fence: (template_fence))
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_text)
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
 
 ==================
 Else If Chain
