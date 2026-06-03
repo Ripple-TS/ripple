@@ -713,6 +713,7 @@ export function TSRXPlugin(config) {
 					start,
 					end,
 					loc: { start: startLoc, end: endLoc },
+					metadata: { path: [] },
 				});
 			}
 
@@ -768,6 +769,7 @@ export function TSRXPlugin(config) {
 							start: acorn.getLineInfo(this.input, nameStart),
 							end: acorn.getLineInfo(this.input, nameEnd),
 						},
+						metadata: { path: [] },
 					},
 					start,
 					end,
@@ -775,6 +777,7 @@ export function TSRXPlugin(config) {
 						start: acorn.getLineInfo(this.input, start),
 						end: acorn.getLineInfo(this.input, end),
 					},
+					metadata: { path: [] },
 				});
 			}
 
