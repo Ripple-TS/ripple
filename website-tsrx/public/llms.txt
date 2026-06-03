@@ -17,7 +17,7 @@ them all the way through to the compiled output.
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **TSRX templates**: returned templates can contain elements, locals, and control flow
-- **Declarative control flow**: `if`, `for`, `switch`, `try` inside templates
+- **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
 - **Scoped styles**: per-component `<style>` blocks with automatic class hashing
@@ -278,44 +278,40 @@ and a reactive block on Ripple.
 
 ## Core Syntax
 
-### Components are functions
+### Components are arrow-fragment functions
 
-Components are ordinary JavaScript or TypeScript functions that return TSRX,
-just like TSX components return JSX.
+Components are ordinary JavaScript or TypeScript values. Prefer an arrow
+function whose body is a single TSRX fragment, so setup statements, template
+control flow, and scoped styles all live in one lexical body.
 
 ```tsrx
-export function Button({ label, onClick }: { label: string; onClick: () => void }) {
-	return <>
-		// Ripple, Preact, Solid, and Vue host elements:
-		<button class="btn" {onClick}>{label}</button>
+export const Button = ({ label, onClick }: { label: string; onClick: () => void }) => <>
+	<button class="btn" {onClick}>{label}</button>
+	// React host elements:
+	// <button className="btn" {onClick}>{label}</button>
 
-		// React host elements:
-		// <button className="btn" {onClick}>{label}</button>
-
-		<style>
-			.btn {
-				padding: 0.5rem 1rem;
-				border-radius: 4px;
-			}
-		</style>
-	</>;
-}
+	<style>
+		.btn {
+			padding: 0.5rem 1rem;
+			border-radius: 4px;
+		}
+	</style>
+</>;
 ```
 
-Single-element returns are valid too:
+Single-element TSRX expressions are valid values too, but component examples
+should still use the fragment-body form:
 
 ```tsrx
-function Icon() {
-	return <svg aria-hidden="true" />;
-}
+const icon = <svg aria-hidden="true" />;
 ```
 
 **LLM DO:**
 
-- Use `function Name(props: Props) { return <>...</>; }` for UI building blocks.
-- Use `export function` for public components.
-- Keep setup logic before the return when it is plain JavaScript.
-- Put rendered structure, template control flow, and scoped `<style>` blocks inside the returned TSRX expression.
+- Use `const Name = (props: Props) => <>...</>;` for UI building blocks.
+- Use `export const Name = (...) => <>...</>;` for public components.
+- Put setup logic, rendered structure, template control flow, and scoped
+  `<style>` blocks inside the component's TSRX fragment body.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
   runtime style values.
@@ -323,7 +319,7 @@ function Icon() {
 **LLM DON'T:**
 
 - Do not invent a custom declaration form for components.
-- Do not warn users away from returned TSRX; returning TSRX is the component model.
+- Do not warn users away from TSRX fragments; TSRX is the component body.
 - Do not mix special declaration examples with function-based examples.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
   inside `<style>` blocks.
@@ -332,39 +328,34 @@ function Icon() {
 
 TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
 `const node = <section />`, and `children={<Panel />}` all create TSRX values.
-Once the TSRX expression is open, its children use template statement syntax:
-elements, locals, `if`, `for...of`, `switch`, and `try` can appear directly
-inside the template body. `return` statements are only valid before the TSRX
-expression opens.
+Once the TSRX expression is open, its children use template syntax: elements,
+locals, JSX text, dynamic `{...}` expressions, and directive-prefixed
+`@if`, `@for`, `@switch`, and `@try` expressions can appear in the template
+body. Direct TSRX markup and direct directive-branch children render normally.
+`return` exits the enclosing function.
 
 ```tsrx
-function Greeting({ name }: { name?: string }) {
-	return <>
-		<div class="card">
-			if (name) {
-				<p>
-					"Hello, "
-					{name}
-				</p>
-			} else {
-				<p>"Hello, stranger"</p>
-			}
-		</div>
-	</>;
-}
+const Greeting = ({ name }: { name?: string }) => <>
+	<div class="card">
+		@if (name) {
+			<p>Hello, {name}</p>
+		} else {
+			<p>Hello, stranger</p>
+		}
+	</div>
+</>;
 ```
 
-Static text can be written as direct double-quoted children. Dynamic values and
-JavaScript expressions still use `{...}`.
+Static text is written as JSX text. Dynamic values and JavaScript expressions
+still use `{...}`.
 
 ```tsrx
-<div>"Hello World"</div>
-<div>{'Hello World'}</div>
+<div>Hello World</div>
+<div>Hello World</div>
 <div>{user.name}</div>
 ```
 
-Bare unquoted text is not valid TSRX text. Use a double-quoted text child or an
-expression container.
+Use JSX text for literal content and an expression container for computed values.
 
 ### Expression values
 
@@ -372,11 +363,11 @@ Because TSRX is the default JSX expression language, `<div />` and `<>...</>`
 produce native TSRX values.
 
 ```tsrx
-function App() {
-	const title = <span class="title">"Settings"</span>;
+const App = () => <>
+	const title = <span class="title">Settings</span>;
 
-	return <><Card {title} /></>;
-}
+	<Card {title} />
+</>;
 ```
 
 ```tsrx
@@ -389,26 +380,24 @@ const nativeTemplate = <>
 ### Text, escaped text, and raw HTML
 
 ```tsrx
-function Inbox({ name, count }: { name: string; count: number }) {
-	return <>
-		<p>
-			"Hello, "
-			{name}
-			"!"
-		</p>
-		<p>{'You have ' + count + ' unread messages'}</p>
-		<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
-	</>;
-}
+const Inbox = ({ name, count }: { name: string; count: number }) => <>
+	<p>
+		"Hello, "
+		{name}
+		"!"
+	</p>
+	<p>{'You have ' + count + ' unread messages'}</p>
+	<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
+</>;
 ```
 
 Text expressions use normal `{expr}` syntax. Use each target framework's native
 raw HTML prop for trusted markup.
 
 ```tsrx
-function Article({ markup }: { markup: string }) {
-	return <article innerHTML={markup} />;
-}
+const Article = ({ markup }: { markup: string }) => <>
+	<article innerHTML={markup} />
+</>;
 ```
 
 ### Lazy destructuring — `&{ ... }` / `&[ ... ]`
@@ -418,17 +407,15 @@ It preserves per-access reactivity for Ripple, Solid, and Vue while keeping
 React/Preact output as direct property access.
 
 ```tsrx
-function UserCard(&{ name, age }: { name: string; age: number }) {
-	return <>
-		<div>
-			<h2>{name}</h2>
-			<p>
-				"Age: "
-				{age}
-			</p>
-		</div>
-	</>;
-}
+const UserCard = (&{ name, age }: { name: string; age: number }) => <>
+	<div>
+		<h2>{name}</h2>
+		<p>
+			"Age: "
+			{age}
+		</p>
+	</div>
+</>;
 
 let &[count, setCount] = createSignal(0);
 ```
@@ -441,46 +428,59 @@ When a prop name matches the variable, use `{name}` instead of `name={name}`.
 <Input {value} {onChange} />
 ```
 
+### Children
+
+Composite components accept nested TSRX markup as children, just like elements.
+For expression children such as arrays, functions, strings, or computed render
+props, pass `children={...}` explicitly.
+
+```tsrx
+<Card>
+	<h2>Title</h2>
+	<p>Content goes here.</p>
+</Card>
+
+<List children={items.map(renderItem)} />
+```
+
 ## Control Flow
 
-Control-flow constructs are real JavaScript statements inside returned TSRX
-templates, not helper components.
+Control-flow constructs are directive-prefixed template expressions inside
+returned TSRX templates, not helper components. Direct children inside each
+branch render into the current template; use `return` when the branch should
+exit the enclosing function.
 
 ### `if` / `else if` / `else`
 
 ```tsrx
-function StatusBadge({ status }: { status: string }) {
-	return <>
-		<div>
-			if (status === 'active') {
-				<span class="badge active">"Online"</span>
-			} else if (status === 'idle') {
-				<span class="badge idle">"Away"</span>
-			} else {
-				<span class="badge">"Offline"</span>
-			}
-		</div>
-	</>;
-}
+const StatusBadge = ({ status }: { status: string }) => <>
+	<div>
+		@if (status === 'active') {
+			<span class="badge active">Online</span>
+		} else if (status === 'idle') {
+			<span class="badge idle">Away</span>
+		} else {
+			<span class="badge">Offline</span>
+		}
+	</div>
+</>;
 ```
 
 ### `for...of` with `index` and `key`
 
 ```tsrx
-function TodoList({ items }: { items: Todo[] }) {
-	return <>
-		<ul>
-			for (const item of items; index i; key item.id) {
-				if (item.hidden) continue;
-				<li>
-					{i + 1}
-					". "
-					{item.text}
-				</li>
-			}
-		</ul>
-	</>;
-}
+const TodoList = ({ items }: { items: Todo[] }) => <>
+	<ul>
+		@for (const item of items; index i; key item.id) {
+			if (item.hidden) continue;
+			<li>
+				{i + 1}
+				". "
+				{item.text}
+			</li>
+		}
+	</ul>
+</>;
 ```
 
 Regular `for`, `for...in`, `while`, and `do...while` are not template
@@ -490,20 +490,18 @@ loops into a nested function.
 ### `switch`
 
 ```tsrx
-function StatusMessage({ status }: { status: string }) {
-	return <>
-		switch (status) {
-			case 'loading':
-				<p>"Loading..."</p>
-				break;
-			case 'success':
-				<p class="success">"Done!"</p>
-				break;
-			default:
-				<p>"Unknown status."</p>
-		}
-	</>;
-}
+const StatusMessage = ({ status }: { status: string }) => <>
+	@switch (status) {
+		case 'loading':
+			<p>Loading...</p>
+			break;
+		case 'success':
+			<p class="success">Done!</p>
+			break;
+		default:
+			<p>Unknown status.</p>
+	}
+</>;
 ```
 
 ### `try` / `catch` / `pending`
@@ -511,17 +509,15 @@ function StatusMessage({ status }: { status: string }) {
 ```tsrx
 const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
-export function App() {
-	return <>
-		try {
-			<UserProfile id={1} />
-		} pending {
-			<p>"Loading..."</p>
-		} catch (e) {
-			<p>"Something went wrong."</p>
-		}
-	</>;
-}
+export const App = () => <>
+	@try {
+		<UserProfile id={1} />
+	} pending {
+		<p>Loading...</p>
+	} catch (e) {
+		<p>Something went wrong.</p>
+	}
+</>;
 ```
 
 The `catch` block also receives a `reset` function as its second argument.
@@ -529,40 +525,39 @@ Calling `reset()` clears the error state and re-renders the children, which is
 useful for building retry UIs:
 
 ```tsrx
-export function RetryBoundary() {
-	return <>
-		try {
-			<ComponentThatMightFail />
-		} catch (e, reset) {
-			<div>
-				<p>"Error: "{e.message}</p>
-				<button onClick={() => reset()}>"Try again"</button>
-			</div>
-		}
-	</>;
-}
+export const RetryBoundary = () => <>
+	@try {
+		<ComponentThatMightFail />
+	} catch (e, reset) {
+		<div>
+			<p>
+				"Error: "
+				{e.message}
+			</p>
+			<button onClick={() => reset()}>Try again</button>
+		</div>
+	}
+</>;
 ```
 
 ### Guard returns
 
-Use normal JavaScript guard clauses before returning TSRX. A `return` statement
-inside a TSRX element or fragment body is invalid; use conditional rendering
-inside the template instead.
+Use normal JavaScript `return` statements for true function exits. Inside TSRX
+directive blocks, direct branch children render into the current template
+instead of exiting the function.
 
 ```tsrx
-function Dashboard({ user }: { user: User | null }) {
-	if (!user) {
+const Dashboard = ({ user }: { user: User | null }) => <>
+	@if (!user) {
 		return null;
 	}
 
-	return <>
-		<h1>
-			"Welcome, "
-			{user.name}
-		</h1>
-		<p>"Here is your dashboard."</p>
-	</>;
-}
+	<h1>
+		"Welcome, "
+		{user.name}
+	</h1>
+	<p>Here is your dashboard.</p>
+</>;
 ```
 
 ## Scoped Styles
@@ -578,24 +573,22 @@ runtime values: set them on an element with `style={{ '--name': value }}` and
 read them from static CSS with `var(--name)`.
 
 ```tsrx
-function Card({ tone }: { tone: string }) {
-	return <>
-		<div class="card" style={{ '--card-tone': tone }}>
-			<h2>"Scoped title"</h2>
-			<p>"Styles here won't leak out."</p>
-		</div>
-		<style>
-			.card {
-				padding: 1.5rem;
-				border: 1px solid var(--card-tone);
-			}
+const Card = ({ tone }: { tone: string }) => <>
+	<div class="card" style={{ '--card-tone': tone }}>
+		<h2>Scoped title</h2>
+		<p>Styles here won't leak out.</p>
+	</div>
+	<style>
+		.card {
+			padding: 1.5rem;
+			border: 1px solid var(--card-tone);
+		}
 
-			h2 {
-				color: #333;
-			}
-		</style>
-	</>;
-}
+		h2 {
+			color: #333;
+		}
+	</style>
+</>;
 ```
 
 Use `:global(...)` to opt out of scoping. Assign a `<style>` expression to a
@@ -604,18 +597,16 @@ React keeps authored attributes as written, so use `className` for React host
 elements and React component props. Other TSRX targets commonly use `class`.
 
 ```tsrx
-function Badge({ class: className }: { class?: string }) {
-	return <>
-		<span class={'badge ' + (className ?? '')}>"New"</span>
-		<style>
-			.badge {
-				padding: 0.25rem 0.5rem;
-			}
-		</style>
-	</>;
-}
+const Badge = ({ class: className }: { class?: string }) => <>
+	<span class={'badge ' + (className ?? '')}>New</span>
+	<style>
+		.badge {
+			padding: 0.25rem 0.5rem;
+		}
+	</style>
+</>;
 
-function App() {
+const App = () => <>
 	const styles = <style>
 		.highlight {
 			background: #e8f5e9;
@@ -623,8 +614,8 @@ function App() {
 		}
 	</style>;
 
-	return <Badge class={styles.highlight} />;
-}
+	<Badge class={styles.highlight} />
+</>;
 ```
 
 Style expressions can also live at module scope. Use this for StyleX-like or
@@ -643,17 +634,17 @@ const articleStyles = <style>
 	}
 </style>;
 
-export function ArticleCard({ title }: { title: string }) {
+export const ArticleCard = ({ title }: { title: string }) => <>
 	// Ripple, Preact, Solid, and Vue host elements:
-	return <article class={articleStyles.card}>
+	<article class={articleStyles.card}>
 		<h2 class={articleStyles.title}>{title}</h2>
-	</article>;
+	</article>
 
 	// React host elements:
-	// return <article className={articleStyles.card}>
+	// <article className={articleStyles.card}>
 	// 	<h2 className={articleStyles.title}>{title}</h2>
-	// </article>;
-}
+	// </article>
+</>;
 ```
 
 Inline `<style>` blocks inside a returned TSRX template are scoped to that
@@ -674,27 +665,25 @@ body `await` is supported by the target pipeline.
 ```tsrx
 import { useEffect, useState } from 'react';
 
-function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) {
-	if (!user) {
+const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <>
+	@if (!user) {
 		return null;
 	}
 
 	const [tab, setTab] = useState('overview');
 
-	return <>
-		<h1>{user.name}</h1>
-		<TabBar value={tab} onChange={setTab} />
-		<ul>
-			for (const post of posts) {
-				useEffect(() => {
-					console.log('viewed ' + post.title);
-				}, [post.title]);
+	<h1>{user.name}</h1>
+	<TabBar value={tab} onChange={setTab} />
+	<ul>
+		@for (const post of posts) {
+			useEffect(() => {
+				console.log('viewed ' + post.title);
+			}, [post.title]);
 
-				<li>{post.title}</li>
-			}
-		</ul>
-	</>;
-}
+			<li>{post.title}</li>
+		}
+	</ul>
+</>;
 ```
 
 ### Solid
@@ -706,7 +695,7 @@ lowers to loading primitives, and lazy destructuring preserves signal reads.
 ### Vue
 
 Vue output targets `vue-jsx-vapor` and `defineVaporComponent(...)`. It supports
-statement control flow, scoped styles, host `innerHTML`, and `try/pending`
+  directive-prefixed template control flow, scoped styles, host `innerHTML`, and `try/pending`
 lowering through Vue suspense APIs. Component-level `await` is not supported
 for Vue TSRX.
 
@@ -725,44 +714,40 @@ If you want unconstrained JavaScript-only control flow, put it in a plain nested
 function and call it from an event handler or expression.
 
 ```tsrx
-export function Counter() {
-	return <>
-		let count = 0;
-		const increment = () => {
-			if (count >= 10) {
-				count = 0;
-			} else {
-				count += 1;
-			}
-		};
-		<button onClick={increment}>{'Count: ' + count}</button>
-	</>;
-}
+export const Counter = () => <>
+	let count = 0;
+	const increment = () => {
+		if (count >= 10) {
+			count = 0;
+		} else {
+			count += 1;
+		}
+	};
+	<button onClick={increment}>{'Count: ' + count}</button>
+</>;
 ```
 
 ### Scoped locals next to the JSX that uses them
 
 ```tsrx
-function Cart({ items }: { items: Item[] }) {
-	return <>
-		<div>
-			<h2>"Your cart"</h2>
+const Cart = ({ items }: { items: Item[] }) => <>
+	<div>
+		<h2>Your cart</h2>
 
-			const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-			const discount =
-				subtotal > 100 ? 0.1 : 0;
+		const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+		const discount =
+			subtotal > 100 ? 0.1 : 0;
 
-			<p>
-				"Subtotal: $"
-				{subtotal}
-			</p>
-			<p>
-				"Save: $"
-				{(subtotal * discount).toFixed(2)}
-			</p>
-		</div>
-	</>;
-}
+		<p>
+			"Subtotal: $"
+			{subtotal}
+		</p>
+		<p>
+			"Save: $"
+			{(subtotal * discount).toFixed(2)}
+		</p>
+	</div>
+</>;
 ```
 
 ## TypeScript
@@ -777,40 +762,39 @@ type Props<T> = {
 	render: (item: T) => any;
 };
 
-function List<T>({ items, render }: Props<T>) {
-	return <>
-		<ul>
-			for (const item of items) {
-				<li>{render(item)}</li>
-			}
-		</ul>
-	</>;
-}
+const List = <T,>({ items, render }: Props<T>) => <>
+	<ul>
+	@for (const item of items) {
+		<li>{render(item)}</li>
+	}
+	</ul>
+</>;
 ```
 
 ## Quick reference
 
-| Feature                | Syntax                                           |
-| ---------------------- | ------------------------------------------------ |
-| Component function     | `function Name(props: T) { return <>...</>; }`   |
-| Exported component     | `export function Name(...) { return <div />; }`  |
-| Native TSRX value      | `const v = <div>"Hi"</div>;`                     |
-| Native TSRX fragment   | `const v = <><span>"Hi"</span></>;`              |
-| Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`              |
-| Lazy prop destructure  | `function C(&{ x, y }: Props) { ... }`           |
-| Lazy array destructure | `let &[count, set] = createSignal(0);`           |
-| Prop shorthand         | `<Input {value} {onChange} />`                   |
-| Conditional rendering  | `if (cond) { ... } else { ... }`                 |
-| List rendering         | `for (const x of xs; index i; key x.id) { ... }` |
-| Multi-branch           | `switch (x) { case 'a': ... break; }`            |
-| Error boundary         | `try { ... } catch (e) { ... }`                  |
-| Async boundary         | `try { ... } pending { ... }`                    |
-| Guard exit             | `if (!user) { return null; }`                    |
-| Scoped style           | `<style> .x { ... } </style>`                    |
-| Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`     |
-| Escape scoping         | `:global(.class)`                                |
+| Feature                | Syntax                                                 |
+| ---------------------- | ------------------------------------------------------ |
+| Component function     | `const Name = (props: T) => <>...</>;`                 |
+| Exported component     | `export const Name = (...) => <>...</>;`               |
+| Native TSRX value      | `const v = <div>Hi</div>;`                            |
+| Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
+| Text content           | `<p>literal</p>`, `<p>{expr}</p>`                     |
+| Expression children    | `<List children={items.map(render)} />`                |
+| Lazy prop destructure  | `const C = (&{ x, y }: Props) => <>...</>;`            |
+| Lazy array destructure | `let &[count, set] = createSignal(0);`                 |
+| Prop shorthand         | `<Input {value} {onChange} />`                         |
+| Conditional rendering  | `@if (cond) { <Panel /> }`                             |
+| List rendering         | `@for (const x of xs; index i; key x.id) { <li /> }`   |
+| Multi-branch           | `@switch (x) { case 'a': <A />; break; }`              |
+| Error boundary         | `@try { <Child /> } catch (e) { <Fallback /> }`        |
+| Async boundary         | `@try { <Child /> } pending { <Loading /> }`           |
+| Guard exit             | `if (!user) { return null; }`                          |
+| Scoped style           | `<style> .x { ... } </style>`                          |
+| Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`           |
+| Escape scoping         | `:global(.class)`                                      |
 | Cross-component class  | `<Child class={styles.foo} />`; React uses `className` |
-| Dynamic element        | `<@tag />` with a tracked/stateful `tag`         |
+| Dynamic element        | `<@tag />` with a tracked/stateful `tag`               |
 
 ## Resources
 

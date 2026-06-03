@@ -1,7 +1,7 @@
 export function BlogPage() {
 	return <>
 		<head>
-			<title>{'TSRX Blog'}</title>
+			<title>TSRX Blog</title>
 			<meta
 				name="description"
 				content="Updates from the TSRX project: language changes, design notes, and release context."
@@ -14,49 +14,49 @@ export function BlogPage() {
 						<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 					</a>
 					<nav class="masthead-nav">
-						<a href="/getting-started">{'Getting Started'}</a>
-						<a href="/features">{'Features'}</a>
-						<a href="/specification">{'Specification'}</a>
-						<a href="/playground">{'Playground'}</a>
-						<a href="/blog" aria-current="page">{'Blog'}</a>
+						<a href="/getting-started">Getting Started</a>
+						<a href="/features">Features</a>
+						<a href="/specification">Specification</a>
+						<a href="/playground">Playground</a>
+						<a href="/blog" aria-current="page">Blog</a>
 						<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
-							{'Discord'}
+							Discord
 						</a>
 						<a
 							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							{'GitHub'}
+							GitHub
 						</a>
-						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
 					</nav>
 				</header>
 
 				<main class="blog-shell">
-					<h1>{'Blog'}</h1>
+					<h1>Blog</h1>
 
 					<section class="post-list" aria-label="Blog posts">
 						<article class="post-preview">
-							<p class="post-date">{'May 29, 2026'}</p>
+							<p class="post-date">May 29, 2026</p>
 							<h2>
 								<a href="/blog/simplifying-tsrx-after-feedback">
-									{'Simplifying TSRX after feedback'}
+									Simplifying TSRX after feedback
 								</a>
 							</h2>
 							<p>
-								{'We removed some early TSRX-only ideas and made the language feel closer to ordinary TypeScript and JSX.'}
+								We removed some early TSRX-only ideas and made the language feel closer to ordinary TypeScript and JSX.
 							</p>
 							<a class="read-link" href="/blog/simplifying-tsrx-after-feedback">
-								{'Read the post'}
+								Read the post
 							</a>
 						</article>
 					</section>
 				</main>
 
 				<footer class="site-footer">
-					<p>{'Released under the MIT License.'}</p>
-					<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
+					<p>Released under the MIT License.</p>
+					<p>Copyright © 2025-present Dominic Gannaway</p>
 				</footer>
 			</div>
 		</div>

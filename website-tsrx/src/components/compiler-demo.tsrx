@@ -425,14 +425,14 @@ export function CompilerDemo() {
 		<section class="demo-shell" id="demo">
 			<div class="demo-header">
 				<div>
-					<p class="demo-kicker">{'TSRX Playground'}</p>
+					<p class="demo-kicker">TSRX Playground</p>
 				</div>
 				<div class="demo-toolbar">
 					<label class="snippet-picker">
 						<select class="snippet-select" ref={bindValue(selected_snippet)}>
-							<option value={CUSTOM_SNIPPET_VALUE}>{'Custom Source'}</option>
-							for (const snippet of DEMO_SNIPPETS) {
-								if (is_snippet_available_for_target(snippet, selected_target.value)) {
+							<option value={CUSTOM_SNIPPET_VALUE}>Custom Source</option>
+							@for (const snippet of DEMO_SNIPPETS) {
+								@if (is_snippet_available_for_target(snippet, selected_target.value)) {
 									<option value={snippet.value}>{snippet.label}</option>
 								}
 							}
@@ -440,7 +440,7 @@ export function CompilerDemo() {
 					</label>
 					<label class="target-picker">
 						<select class="target-select" ref={bindValue(selected_target)}>
-							for (const option of TARGET_OPTIONS) {
+							@for (const option of TARGET_OPTIONS) {
 								<option value={option.value}>{option.label}</option>
 							}
 						</select>
@@ -453,9 +453,9 @@ export function CompilerDemo() {
 					class={`panel panel-source${active_mobile_panel.value === 'input' ? ' is-active' : ''}`}
 				>
 					<div class="panel-topline">
-						<span>{'TSRX input'}</span>
+						<span>TSRX input</span>
 						<span class="panel-topline-actions">
-							<span>{'.tsrx'}</span>
+							<span>.tsrx</span>
 							<button
 								type="button"
 								class="format-button"
@@ -479,7 +479,7 @@ export function CompilerDemo() {
 						<span>{TARGET_LABELS[selected_target.value]}</span>
 					</div>
 					<div class="panel-body">
-						if (error_message) {
+						@if (error_message) {
 							<div class="panel-error" role="alert">{error_message}</div>
 						}
 						<div class="editor-host" ref={bindNode(output_ref)} />
@@ -495,7 +495,7 @@ export function CompilerDemo() {
 						active_mobile_panel.value = 'input';
 					}}
 				>
-					{'input'}
+					input
 				</button>
 				<button
 					type="button"
@@ -504,7 +504,7 @@ export function CompilerDemo() {
 						active_mobile_panel.value = 'output';
 					}}
 				>
-					{'output'}
+					output
 				</button>
 			</div>
 		</section>

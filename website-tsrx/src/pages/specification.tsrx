@@ -1,10 +1,25 @@
 const MODIFIED_PRODUCTIONS = [
 	'PrimaryExpression :',
-	'  TsrxExpression',
+	'  JSXElement',
+	'  JSXFragment',
+	'  JSXStyleElement',
 	'',
-	'TemplateStatementListItem :',
-	'  ElementStatement',
-	'  LazyAssignmentStatement',
+	'TemplateChild :',
+	'  JSXText',
+	'  JSXElement',
+	'  JSXFragment',
+	'  JSXStyleElement',
+	'  JSXExpressionContainer',
+	'  JSXIfExpression',
+	'  JSXForExpression',
+	'  JSXSwitchExpression',
+	'  JSXTryExpression',
+	'',
+	'TemplateScriptItem :',
+	'  StatementListItem',
+	'',
+	'TemplateFence :',
+	'  ---',
 	'',
 	'BindingAtom :',
 	'  LazyObjectBindingPattern',
@@ -16,8 +31,7 @@ const MODIFIED_PRODUCTIONS = [
 	'LazyArrayBindingPattern :',
 	'  &[ BindingElementListopt ]',
 	'',
-	'TsrxExpression :',
-	'  Element',
+	'JSXFragment :',
 	'  <> TemplateChildrenopt </>',
 ].join('\n');
 
@@ -26,22 +40,39 @@ const FUNCTION_ENTRY_GRAMMAR = [
 	'  function BindingIdentifier ( FormalParametersopt ) { FunctionBody }',
 	'',
 	'ReturnStatement :',
-	'  return TsrxExpression ;',
+	'  return JSXElement ;',
+	'  return JSXFragment ;',
 	'  return Expression ;',
 ].join('\n');
 
 const EXPRESSION_VALUE_GRAMMAR = [
-	'TsrxExpression :',
-	'  Element',
-	'  <> TemplateChildrenopt </>',
+	'PrimaryExpression :',
+	'  JSXElement',
+	'  JSXFragment',
+	'  JSXStyleElement',
 ].join('\n');
 
 const TEMPLATE_EXPRESSION_GRAMMAR = [
-	'DoubleQuotedTextChild :',
-	'  " JSXStringCharactersopt "',
+	'JSXTextChild :',
+	'  JSXTextCharacters',
 	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
+	'',
+	'JSXIfExpression :',
+	'  @if ( Expression ) TemplateBlock',
+	'  @if ( Expression ) TemplateBlock else TemplateBlock',
+	'',
+	'JSXForExpression :',
+	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock',
+	'',
+	'JSXSwitchExpression :',
+	'  @switch ( Expression ) { JSXSwitchCaseListopt }',
+	'',
+	'JSXTryExpression :',
+	'  @try TemplateBlock pending TemplateBlock',
+	'  @try TemplateBlock catch ( CatchParameteropt ) TemplateBlock',
+	'  @try TemplateBlock finally TemplateBlock',
 ].join('\n');
 
 const LAZY_GRAMMAR = [
@@ -51,7 +82,7 @@ const LAZY_GRAMMAR = [
 ].join('\n');
 
 const STYLE_GRAMMAR = [
-	'StyleElement :',
+	'JSXStyleElement :',
 	'  <style JSXAttributesopt> CSSSource </style>',
 ].join('\n');
 
@@ -68,13 +99,20 @@ const AST_NODE_MAPPING = [
 	'Informative grammar-to-node correspondence',
 	'',
 	'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression -> ESTree function nodes',
-	'return TsrxExpression -> ReturnStatement(argument: TsrxFragment)',
-	'ElementStatement -> Element',
-	'{ AssignmentExpression } in template position -> TSRXExpression',
-	'DoubleQuotedTextChild -> Text',
-	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
-	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
-	'<> TemplateChildrenopt </> -> TsrxFragment',
+	'return JSXElement -> ReturnStatement(argument: JSXElement)',
+	'return JSXFragment -> ReturnStatement(argument: JSXFragment)',
+	'JSXElement -> ESTree JSXElement',
+	'JSXFragment -> ESTree JSXFragment',
+	'JSXText -> ESTree JSXText',
+	'{ AssignmentExpression } in template position -> JSXExpressionContainer',
+	'JSXAttributeName JSXAttributeInitializeropt -> JSXAttribute',
+	'{ ... AssignmentExpression } in attribute position -> JSXSpreadAttribute',
+	'<style> CSSSource </style> -> JSXStyleElement',
+	'--- -> TsrxTemplateFence',
+	'@if -> JSXIfExpression',
+	'@for -> JSXForExpression',
+	'@switch -> JSXSwitchExpression',
+	'@try -> JSXTryExpression',
 	'module Identifier { ModuleItemListopt } -> TSModuleDeclaration',
 	'import ImportClause from Identifier -> ImportDeclaration with Identifier source',
 ].join('\n');
@@ -90,53 +128,105 @@ const FUNCTION_AST_SHAPE = [
 	'',
 	'interface ReturnStatement {',
 	'  type: \'ReturnStatement\';',
-	'  argument: Expression | TsrxFragment | null;',
+	'  argument: Expression | null;',
 	'}',
 ].join('\n');
 
 const TEMPLATE_AST_SHAPE = [
-	'interface Element {',
-	'  type: \'Element\';',
-	'  id: Identifier | MemberExpression;',
-	'  attributes: Array<Attribute | SpreadAttribute>;',
-	'  children: Node[];',
+	'interface JSXElement {',
+	'  type: \'JSXElement\';',
 	'  openingElement: JSXOpeningElement;',
-	'  closingElement: JSXClosingElement;',
-	'  selfClosing?: boolean;',
-	'  unclosed?: boolean;',
+	'  closingElement: JSXClosingElement | null;',
+	'  children: JSXChild[];',
+	'  metadata?: { native_tsrx?: true };',
 	'}',
 	'',
-	'interface TSRXExpression {',
-	'  type: \'TSRXExpression\';',
-	'  expression: Expression;',
+	'interface JSXOpeningElement {',
+	'  type: \'JSXOpeningElement\';',
+	'  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;',
+	'  attributes: Array<JSXAttribute | JSXSpreadAttribute>;',
+	'  selfClosing: boolean;',
 	'}',
 	'',
-	'interface Text {',
-	'  type: \'Text\';',
-	'  expression: Expression;',
-	'}',
-	'interface Attribute {',
-	'  type: \'Attribute\';',
-	'  name: Identifier;',
-	'  value: Expression | null;',
-	'  shorthand?: boolean;',
+	'interface JSXExpressionContainer {',
+	'  type: \'JSXExpressionContainer\';',
+	'  expression: Expression | JSXEmptyExpression;',
 	'}',
 	'',
-	'interface SpreadAttribute {',
-	'  type: \'SpreadAttribute\';',
-	'  argument: Expression;',
+	'interface JSXText {',
+	'  type: \'JSXText\';',
+	'  value: string;',
 	'}',
 ].join('\n');
 
 const EXPRESSION_AST_SHAPE = [
-	'interface TsrxFragment {',
-	'  type: \'TsrxFragment\';',
-	'  attributes: Array<any>;',
-	'  children: Node[];',
+	'interface JSXFragment {',
+	'  type: \'JSXFragment\';',
+	'  openingFragment: JSXOpeningFragment;',
+	'  closingFragment: JSXClosingFragment;',
+	'  children: JSXChild[];',
+	'  metadata?: { native_tsrx?: true };',
+	'}',
+	'',
+	'type JSXChild =',
+	'  | JSXText',
+	'  | JSXExpressionContainer',
+	'  | JSXElement',
+	'  | JSXFragment',
+	'  | JSXStyleElement',
+	'  | JSXIfExpression',
+	'  | JSXForExpression',
+	'  | JSXSwitchExpression',
+	'  | JSXTryExpression',
+	'  | TsrxTemplateFence;',
+].join('\n');
+
+const TSRX_EXTENSION_AST_SHAPE = [
+	'interface TsrxTemplateFence {',
+	'  type: \'TsrxTemplateFence\';',
+	'  value: \'---\';',
+	'}',
+	'',
+	'interface JSXStyleElement {',
+	'  type: \'JSXStyleElement\';',
 	'  openingElement: JSXOpeningElement;',
-	'  closingElement: JSXClosingElement;',
-	'  selfClosing?: boolean;',
-	'  unclosed?: boolean;',
+	'  closingElement: JSXClosingElement | null;',
+	'  children: StyleSheet[];',
+	'  css?: string;',
+	'}',
+	'',
+	'interface JSXIfExpression {',
+	'  type: \'JSXIfExpression\';',
+	'  test: Expression;',
+	'  consequent: Statement;',
+	'  alternate: Statement | null;',
+	'}',
+	'',
+	'interface JSXForExpression {',
+	'  type: \'JSXForExpression\';',
+	'  body: Statement;',
+	'  init?: VariableDeclaration | Expression | null;',
+	'  test?: Expression | null;',
+	'  update?: Expression | null;',
+	'  left?: VariableDeclaration | Pattern;',
+	'  right?: Expression;',
+	'  await?: boolean;',
+	'  index?: Identifier | null;',
+	'  key?: Expression | null;',
+	'}',
+	'',
+	'interface JSXSwitchExpression {',
+	'  type: \'JSXSwitchExpression\';',
+	'  discriminant: Expression;',
+	'  cases: SwitchCase[];',
+	'}',
+	'',
+	'interface JSXTryExpression {',
+	'  type: \'JSXTryExpression\';',
+	'  block: BlockStatement;',
+	'  handler: CatchClause | null;',
+	'  finalizer: BlockStatement | null;',
+	'  pending?: BlockStatement | null;',
 	'}',
 ].join('\n');
 
@@ -182,7 +272,7 @@ const NAV_ITEMS = [
 export function SpecificationPage() {
 	return <>
 		<head>
-			<title>{'TSRX | Specification'}</title>
+			<title>TSRX | Specification</title>
 			<meta
 				name="description"
 				content="Draft TSRX language specification: TypeScript-compatible grammar extensions, TSRX return expressions, expression values, lazy destructuring, style identifiers, and host-defined server extensions."
@@ -195,29 +285,29 @@ export function SpecificationPage() {
 						<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 					</a>
 					<nav class="masthead-nav">
-						<a href="/getting-started">{'Getting Started'}</a>
-						<a href="/features">{'Features'}</a>
-						<a href="/specification" aria-current="page">{'Specification'}</a>
-						<a href="/playground">{'Playground'}</a>
-						<a href="/blog">{'Blog'}</a>
+						<a href="/getting-started">Getting Started</a>
+						<a href="/features">Features</a>
+						<a href="/specification" aria-current="page">Specification</a>
+						<a href="/playground">Playground</a>
+						<a href="/blog">Blog</a>
 						<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
-							{'Discord'}
+							Discord
 						</a>
 						<a
 							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							{'GitHub'}
+							GitHub
 						</a>
-						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
 					</nav>
 				</header>
 
 				<div class="docs-layout">
 					<aside class="side-nav">
 						<label class="side-nav-dropdown">
-							<span class="side-nav-dropdown-label">{'Jump to section'}</span>
+							<span class="side-nav-dropdown-label">Jump to section</span>
 							<select
 								class="side-nav-select"
 								onChange={(event) => {
@@ -227,15 +317,15 @@ export function SpecificationPage() {
 									}
 								}}
 							>
-								<option value="">{'Jump to section'}</option>
-								for (const item of NAV_ITEMS) {
+								<option value="">Jump to section</option>
+								@for (const item of NAV_ITEMS) {
 									<option value={item.id}>{item.label}</option>
 								}
 							</select>
 						</label>
 						<nav>
-							<p class="side-nav-heading">{'Draft Spec'}</p>
-							for (const item of NAV_ITEMS) {
+							<p class="side-nav-heading">Draft Spec</p>
+							@for (const item of NAV_ITEMS) {
 								<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
 							}
 						</nav>
@@ -243,80 +333,80 @@ export function SpecificationPage() {
 
 					<main class="docs-content">
 						<section class="doc-section" id="status">
-							<p class="section-kicker">{'Draft / April 22, 2026'}</p>
-							<h1 class="page-heading">{'TSRX'}</h1>
+							<p class="section-kicker">Draft / April 22, 2026</p>
+							<h1 class="page-heading">TSRX</h1>
 							<p class="section-body lead">
-								{'This page is the working language specification for TSRX. It is written for implementors of parsers, language tooling, compilers, and hosts that need a precise account of the syntax and static constraints of the language.'}
+								This page is the working language specification for TSRX. It is written for implementors of parsers, language tooling, compilers, and hosts that need a precise account of the syntax and static constraints of the language.
 							</p>
 							<div class="status-panel">
-								<p class="status-chip">{'First-edition scope'}</p>
+								<p class="status-chip">First-edition scope</p>
 								<p class="section-body compact">
-									{'The current draft fixes the syntax and early-error surface for TSRX return expressions, statement-oriented template elements, expression values, lazy destructuring, raw style elements, and proposal-aligned submodule declarations.'}
+									The current draft fixes the syntax and early-error surface for JSX-shaped TSRX return values, template children, expression values, lazy destructuring, raw style elements, and proposal-aligned submodule declarations.
 								</p>
 							</div>
 						</section>
 
 						<section class="doc-section" id="introduction">
-							<h2 class="section-heading">{'Introduction'}</h2>
+							<h2 class="section-heading">Introduction</h2>
 							<p class="section-body">
-								{'TSRX is a TypeScript-compatible syntax extension to ECMAScript for authoring component-oriented user interface programs. It extends the TypeScript source language with native TSRX return expressions, statement-oriented template elements, native TSRX expression values, lazy destructuring patterns, raw style elements, and style identifiers.'}
+								TSRX is a TypeScript-compatible syntax extension to ECMAScript for authoring component-oriented user interface programs. It extends the TypeScript source language with JSX-shaped template values, template control-flow directives, lazy destructuring patterns, raw style elements, and style identifiers.
 							</p>
 							<p class="section-body">
-								{'This specification defines the syntax of TSRX and the static constraints that a conforming implementation is expected to enforce. It does not propose incorporation of TSRX into the ECMAScript standard, and it does not require JavaScript engines or browsers to parse TSRX directly. Instead, it defines a source language intended for compilers, preprocessors, editors, formatters, and other tooling.'}
+								This specification defines the syntax of TSRX and the static constraints that a conforming implementation is expected to enforce. It does not propose incorporation of TSRX into the ECMAScript standard, and it does not require JavaScript engines or browsers to parse TSRX directly. Instead, it defines a source language intended for compilers, preprocessors, editors, formatters, and other tooling.
 							</p>
 							<p class="section-body">
-								{'Unless this document explicitly states otherwise, a construct that is valid in the TypeScript baseline grammar remains valid in TSRX source text. The grammar additions in this document are therefore additive and TypeScript-compatible.'}
+								Unless this document explicitly states otherwise, a construct that is valid in the TypeScript baseline grammar remains valid in TSRX source text. The grammar additions in this document are therefore additive and TypeScript-compatible.
 							</p>
 						</section>
 
 						<section class="doc-section" id="rationale">
-							<h2 class="section-heading">{'Rationale'}</h2>
+							<h2 class="section-heading">Rationale</h2>
 							<p class="section-body">
-								{'TSRX exists to define a predictable syntax for component-oriented source code without forcing all tree-shaped UI through JSX expression containers. In TSRX, a JSX expression opens a statement-oriented template, while expression-position UI values inside that template remain explicit through native TSRX elements or fragments.'}
+								TSRX exists to define a predictable syntax for component-oriented source code while preserving the familiar JSX AST shape. Elements, fragments, text, expression containers, attributes, and spread attributes use the standard JSX node family; TSRX adds only the nodes needed for fences, style blocks, and template control flow.
 							</p>
 							<ul class="spec-list">
-								<li>{'Returned TSRX templates may contain element statements directly.'}</li>
-								<li>{'Native TSRX values can be assigned, returned, or passed as props.'}</li>
+								<li>Returned TSRX templates are represented with JSXElement and JSXFragment nodes.</li>
+								<li>Native TSRX values can be assigned, returned, or passed as props using ordinary JSX-shaped nodes.</li>
 								<li>
-									{'Lazy destructuring is represented as source syntax rather than a host-specific library convention.'}
+									Lazy destructuring is represented as source syntax rather than a host-specific library convention.
 								</li>
 								<li>
-									{'Host features such as server execution and stylesheet composition can be specified cleanly on top of a shared grammar.'}
+									Host features such as server execution and stylesheet composition can be specified cleanly on top of a shared grammar.
 								</li>
 							</ul>
 						</section>
 
 						<section class="doc-section" id="conformance">
-							<h2 class="section-heading">{'1 Conformance'}</h2>
+							<h2 class="section-heading">1 Conformance</h2>
 							<p class="section-body">
-								{'An implementation of core TSRX conforms to this specification if it accepts TypeScript source text together with the additional TSRX constructs defined here, rejects source texts that violate the listed early-error rules, and documents any host-defined or profile-defined semantics that are not fixed by the core language.'}
+								An implementation of core TSRX conforms to this specification if it accepts TypeScript source text together with the additional TSRX constructs defined here, rejects source texts that violate the listed early-error rules, and documents any host-defined or profile-defined semantics that are not fixed by the core language.
 							</p>
 							<p class="section-body">
-								{'This specification distinguishes between core TSRX and host profiles. Core TSRX defines the syntax and static rules common to all conforming implementations. A host profile may add profile-specific constructs or strengthen restrictions on core constructs.'}
+								This specification distinguishes between core TSRX and host profiles. Core TSRX defines the syntax and static rules common to all conforming implementations. A host profile may add profile-specific constructs or strengthen restrictions on core constructs.
 							</p>
 						</section>
 
 						<section class="doc-section" id="notation">
-							<h2 class="section-heading">{'2 Notational Conventions'}</h2>
+							<h2 class="section-heading">2 Notational Conventions</h2>
 							<p class="section-body">
-								{'The syntactic and lexical grammar of ECMAScript are incorporated by reference as already extended by a TypeScript-compatible baseline grammar. When this document presents a modified production, it should be read as a delta against that baseline rather than as a complete restatement of the surrounding grammar.'}
+								The syntactic and lexical grammar of ECMAScript are incorporated by reference as already extended by a TypeScript-compatible baseline grammar. When this document presents a modified production, it should be read as a delta against that baseline rather than as a complete restatement of the surrounding grammar.
 							</p>
 						</section>
 
 						<section class="doc-section" id="lexical">
-							<h2 class="section-heading">{'3 Modified Lexical Conventions'}</h2>
+							<h2 class="section-heading">3 Modified Lexical Conventions</h2>
 							<p class="section-body">
-								{'TSRX introduces the whitespace-sensitive lazy-pattern introducers &{ and &[, and module declarations that can be imported by identifier source.'}
+								TSRX introduces the whitespace-sensitive lazy-pattern introducers &amp;&#123; and &amp;[, and module declarations that can be imported by identifier source.
 							</p>
 							<p class="section-body">
-								{'The ampersand introducer is part of the syntax of the lazy pattern itself. Implementations must not treat & { or & [ as lazy pattern forms.'}
+								The ampersand introducer is part of the syntax of the lazy pattern itself. Implementations must not treat &amp; &#123; or &amp; [ as lazy pattern forms.
 							</p>
 						</section>
 
 						<section class="doc-section" id="productions">
-							<h2 class="section-heading">{'4.1 Modified Productions'}</h2>
+							<h2 class="section-heading">4.1 Modified Productions</h2>
 							<p class="section-body">
-								{'The following productions define the normative core additions for the first edition. They are additive over the TypeScript-compatible baseline grammar used by TSRX implementations.'}
+								The following productions define the normative core additions for the first edition. They are additive over the TypeScript-compatible baseline grammar used by TSRX implementations.
 							</p>
 							<pre class="code-block plain">
 								<code>{MODIFIED_PRODUCTIONS}</code>
@@ -324,107 +414,117 @@ export function SpecificationPage() {
 						</section>
 
 						<section class="doc-section" id="components">
-							<h2 class="section-heading">{'4.2 Function Returns'}</h2>
+							<h2 class="section-heading">4.2 Function Returns</h2>
 							<p class="section-body">
-								{'TSRX does not define a component declaration form. Components are ordinary functions, and a function becomes a framework component by returning a TSRX expression from a normal return statement.'}
+								TSRX does not define a component declaration form. Components are ordinary functions, and a function becomes a framework component by returning a JSXElement or JSXFragment from a normal return statement.
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_ENTRY_GRAMMAR}</code>
 							</pre>
 							<p class="section-body muted">
-								{'Class methods, object methods, arrow functions, and function expressions all remain ordinary TypeScript constructs. Hosts may choose which returned TSRX functions are considered components.'}
+								Class methods, object methods, arrow functions, and function expressions all remain ordinary TypeScript constructs. Hosts may choose which returned TSRX functions are considered components.
 							</p>
 						</section>
 
 						<section class="doc-section" id="templates">
-							<h2 class="section-heading">{'4.3 Template Elements'}</h2>
+							<h2 class="section-heading">4.3 Template Elements</h2>
 							<p class="section-body">
-								{'Within a returned TSRX template, element forms are admitted as template statements rather than as generic expressions. This statement-oriented model is normative. A tree that contributes directly to a template body is not interchangeable with an ordinary expression value.'}
+								Within a returned TSRX template, direct element, fragment, style, text, and expression-container children use the standard JSX node family. Template control flow uses directive-prefixed 
+								<code class="inline-code">@if</code>
+								, 
+								<code class="inline-code">@for</code>
+								, 
+								<code class="inline-code">@switch</code>
+								, and 
+								<code class="inline-code">@try</code>
+								 blocks whose bodies render direct template children.
 							</p>
 							<p class="section-body">
-								{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
-								<code class="inline-code">{'{ AssignmentExpression }'}</code>
-								{' contributes a generic template-expression node.'}
+								Template position also admits JSX text children and braced expression forms. The ordinary form 
+								<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+								 contributes a JSXExpressionContainer node. A function exit remains an ordinary 
+								<code class="inline-code">return</code>
+								 statement.
 							</p>
 							<pre class="code-block plain">
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'A direct double-quoted text child is represented by '}
-									<code class="inline-code">{'Text'}</code>
-									{' with a string literal expression and contributes escaped static text. Its quoted contents use the same lexical rules as a quoted JSX attribute value: character references such as '}
-									<code class="inline-code">{'&quot;'}</code>
-									{' are decoded, and backslashes do not escape the closing quote.'}
+									A JSX text child is represented by 
+									<code class="inline-code">JSXText</code>
+									 and contributes escaped static text. Character references such as 
+									<code class="inline-code">&amp;quot;</code>
+									 are decoded before the text value is stored.
 								</li>
 								<li>
-									<code class="inline-code">{'{ AssignmentExpression }'}</code>
-									{' is the generic template-expression form and is represented by '}
-									<code class="inline-code">{'TSRXExpression'}</code>
-									{' in the current parser.'}
+									<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+									 is the generic template-expression form and is represented by 
+									<code class="inline-code">JSXExpressionContainer</code>
+									 in the current parser.
 								</li>
 								<li>
-									{'Identifiers named '}
-									<code class="inline-code">{'text'}</code>
-									{' are ordinary identifiers in braced template expressions.'}
+									Identifiers named 
+									<code class="inline-code">text</code>
+									 are ordinary identifiers in braced template expressions.
 								</li>
 							</ul>
-							<h3 class="appendix-heading">{'4.3.1 Whitespace'}</h3>
+							<h3 class="appendix-heading">4.3.1 Whitespace</h3>
 							<p class="section-body">
-								{'Whitespace in template syntax follows ordinary ECMAScript token-separation rules except at a small number of JSX-like boundaries where the delimiter itself is whitespace-sensitive.'}
+								Whitespace in template syntax follows ordinary ECMAScript token-separation rules except at a small number of JSX-like boundaries where the delimiter itself is whitespace-sensitive.
 							</p>
 							<ul class="spec-list">
 								<li>
-									{'Within '}
-									<code class="inline-code">{'{ AssignmentExpression }'}</code>
-									{', whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as '}
-									<code class="inline-code">{'{ expr }'}</code>
-									{' are well-formed.'}
+									Within 
+									<code class="inline-code">&#123; AssignmentExpression &#125;</code>
+									, whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as 
+									<code class="inline-code">&#123; expr &#125;</code>
+									 are well-formed.
 								</li>
 								<li>
-									{'A tag or fragment introducer must be written as a contiguous delimiter sequence. Implementations must not treat '}
-									<code class="inline-code">{'< div>'}</code>
-									{', '}
-									<code class="inline-code">{'< /div>'}</code>
-									{', '}
-									<code class="inline-code">{'</ div>'}</code>
-									{', '}
-									<code class="inline-code">{'< >'}</code>
-									{', or '}
-									<code class="inline-code">{'< / >'}</code>
-									{' as TSRX template delimiters.'}
+									A tag or fragment introducer must be written as a contiguous delimiter sequence. Implementations must not treat 
+									<code class="inline-code">&lt; div&gt;</code>
+									, 
+									<code class="inline-code">&lt; /div&gt;</code>
+									, 
+									<code class="inline-code">&lt;/ div&gt;</code>
+									, 
+									<code class="inline-code">&lt; &gt;</code>
+									, or 
+									<code class="inline-code">&lt; / &gt;</code>
+									 as TSRX template delimiters.
 								</li>
 								<li>
-									{'Whitespace and comments are not admitted within a single tag name. Source texts such as '}
-									<code class="inline-code">{'<Foo . Bar>'}</code>
-									{' do not form a single TSRX tag name.'}
+									Whitespace and comments are not admitted within a single tag name. Source texts such as 
+									<code class="inline-code">&lt;Foo . Bar&gt;</code>
+									 do not form a single TSRX tag name.
 								</li>
 								<li>
-									{'Indentation and line breaks between adjacent template statements are permitted as layout. They do not require explicit expression containers merely to separate one element statement from the next.'}
+									Indentation and line breaks between adjacent template children are permitted as layout. They do not require explicit expression containers merely to separate one element child from the next.
 								</li>
 							</ul>
 							<p class="section-body">
-								{'The raw style element is also part of this syntax. A style body is captured as raw text for host-defined stylesheet processing rather than being parsed as nested template children.'}
+								The raw style element is also part of this syntax. A style body is captured as raw text for host-defined stylesheet processing rather than being parsed as nested template children.
 							</p>
 						</section>
 
 						<section class="doc-section" id="expression-values">
-							<h2 class="section-heading">{'4.4 Expression Values'}</h2>
+							<h2 class="section-heading">4.4 Expression Values</h2>
 							<p class="section-body">
-								{'TSRX elements and fragments are expression values by default. A single element can be returned or assigned directly, while fragments keep TSRX template children for statement-rich UI values.'}
+								TSRX elements and fragments are expression values by default. A single element can be returned or assigned directly, while fragments keep TSRX template children for statement-rich UI values.
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_VALUE_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								{'Use a fragment when an expression value needs local declarations, control flow, or multiple emitted elements. Use a single element when the value is already compact.'}
+								Use a fragment when an expression value needs local declarations, control flow, or multiple emitted elements. Use a single element when the value is already compact.
 							</p>
 						</section>
 
 						<section class="doc-section" id="lazy">
-							<h2 class="section-heading">{'4.5 Lazy Destructuring'}</h2>
+							<h2 class="section-heading">4.5 Lazy Destructuring</h2>
 							<p class="section-body">
-								{'TSRX extends the baseline binding grammar with lazy array and object forms. The syntax is fixed by the language. The runtime observation model is not. Hosts may implement lazy bindings as deferred property reads, reactive accessors, or another equivalent mechanism, provided the syntactic and static constraints remain satisfied.'}
+								TSRX extends the baseline binding grammar with lazy array and object forms. The syntax is fixed by the language. The runtime observation model is not. Hosts may implement lazy bindings as deferred property reads, reactive accessors, or another equivalent mechanism, provided the syntactic and static constraints remain satisfied.
 							</p>
 							<pre class="code-block plain">
 								<code>{LAZY_GRAMMAR}</code>
@@ -432,9 +532,9 @@ export function SpecificationPage() {
 						</section>
 
 						<section class="doc-section" id="style">
-							<h2 class="section-heading">{'4.6 Style Elements and Style Identifiers'}</h2>
+							<h2 class="section-heading">4.6 Style Elements and Style Identifiers</h2>
 							<p class="section-body">
-								{'The syntax of raw style elements is part of core TSRX. The host is responsible for the meaning of selector scoping, generated class names, selector eligibility, style expression class maps, and stylesheet registration.'}
+								The syntax of raw style elements is part of core TSRX. The host is responsible for the meaning of selector scoping, generated class names, selector eligibility, style expression class maps, and stylesheet registration.
 							</p>
 							<pre class="code-block plain">
 								<code>{STYLE_GRAMMAR}</code>
@@ -442,9 +542,9 @@ export function SpecificationPage() {
 						</section>
 
 						<section class="doc-section" id="server-profile">
-							<h2 class="section-heading">{'4.7 Host-defined Server Extensions'}</h2>
+							<h2 class="section-heading">4.7 Host-defined Server Extensions</h2>
 							<p class="section-body">
-								{'Submodule declarations are documented in the first edition as a generic extension surface aligned with the TC39 module declarations proposal. Ripple currently defines one host profile for this surface: module server declarations and imports from server.'}
+								Submodule declarations are documented in the first edition as a generic extension surface aligned with the TC39 module declarations proposal. Ripple currently defines one host profile for this surface: module server declarations and imports from server.
 							</p>
 							<pre class="code-block plain">
 								<code>{SERVER_EXTENSION_GRAMMAR}</code>
@@ -452,157 +552,193 @@ export function SpecificationPage() {
 						</section>
 
 						<section class="doc-section" id="early-errors">
-							<h2 class="section-heading">{'5 Static Semantics: Early Errors'}</h2>
+							<h2 class="section-heading">5 Static Semantics: Early Errors</h2>
 							<ul class="spec-list">
 								<li>
-									{'A tag or fragment delimiter must not be split by intervening whitespace at the points described in 4.3.1.'}
+									A tag or fragment delimiter must not be split by intervening whitespace at the points described in 4.3.1.
 								</li>
-								<li>{'Opening and closing tags for TSRX elements and fragments must match.'}</li>
+								<li>Opening and closing tags for TSRX elements and fragments must match.</li>
 								<li>
-									{'In hosts that enable server-oriented submodules, server exports must be imported before use, for example import { load } from server.'}
+									In hosts that enable server-oriented submodules, server exports must be imported before use, for example import &#123; load &#125; from server.
 								</li>
 								<li>
-									{'Host profiles may restrict which submodule names are supported and may impose additional restrictions on referenced bindings.'}
+									Direct TSRX elements, fragments, text, and expression output inside control-flow block bodies must use template directives such as 
+									<code class="inline-code">@if</code>
+									, 
+									<code class="inline-code">@for</code>
+									, 
+									<code class="inline-code">@switch</code>
+									, or 
+									<code class="inline-code">@try</code>
+									. Use 
+									<code class="inline-code">return</code>
+									 when the enclosing function should exit. Raw 
+									<code class="inline-code">&lt;style&gt;</code>
+									 blocks are additive stylesheet declarations and do not require 
+									a directive.
 								</li>
-								<li>{'Element statements must not appear outside a TSRX template body.'}</li>
+								<li>
+									Host profiles may restrict which submodule names are supported and may impose additional restrictions on referenced bindings.
+								</li>
+								<li>TSRX template children must not appear outside a JSXElement or JSXFragment body.</li>
 							</ul>
 						</section>
 
 						<section class="doc-section" id="host-defined">
-							<h2 class="section-heading">{'6 Host-defined Semantics'}</h2>
+							<h2 class="section-heading">6 Host-defined Semantics</h2>
 							<p class="section-body">
-								{'The purpose of the core specification is to make parsers, tooling, and language consumers agree on what TSRX source text means as syntax. The purpose of host documentation is to explain how that syntax is executed, lowered, or bound to runtime facilities.'}
+								The purpose of the core specification is to make parsers, tooling, and language consumers agree on what TSRX source text means as syntax. The purpose of host documentation is to explain how that syntax is executed, lowered, or bound to runtime facilities.
 							</p>
 							<ul class="spec-list">
-								<li>{'How functions returning TSRX lower into executable host code.'}</li>
-								<li>{'How lazy destructuring is realized at runtime.'}</li>
-								<li>{'How style expressions expose generated or scoped class names.'}</li>
+								<li>How functions returning TSRX lower into executable host code.</li>
+								<li>How lazy destructuring is realized at runtime.</li>
+								<li>How style expressions expose generated or scoped class names.</li>
 								<li>
-									{'How submodule declarations and imports from identifier sources are compiled or executed by a host profile that enables them.'}
+									How submodule declarations and imports from identifier sources are compiled or executed by a host profile that enables them.
 								</li>
 							</ul>
 						</section>
 
 						<section class="doc-section" id="appendices">
-							<h2 class="section-heading">{'Appendices'}</h2>
+							<h2 class="section-heading">Appendices</h2>
 							<p class="section-body">
-								{'The current reference implementation exposes ESTree-compatible function nodes plus TSRX-specific nodes such as TsrxFragment, Element, TSRXExpression, Text, TSModuleDeclaration, TSModuleBlock, Attribute, and SpreadAttribute. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.'}
+								The current reference implementation exposes ESTree-compatible function nodes and standard JSX-shaped nodes such as JSXElement, JSXFragment, JSXExpressionContainer, JSXText, JSXAttribute, and JSXSpreadAttribute. TSRX-specific additions are limited to TsrxTemplateFence, JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, JSXTryExpression, TSModuleDeclaration, and TSModuleBlock. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.
 							</p>
-							<h3 class="appendix-heading">{'A.1 Grammar-to-node correspondence'}</h3>
+							<h3 class="appendix-heading">A.1 Grammar-to-node correspondence</h3>
 							<p class="section-body">
-								{'The reference parser follows the same broad editorial pattern used by the JSX specification: grammar productions define the accepted source forms, and a separate AST layer records those forms in a stable shape for downstream tools. The following correspondence summarizes the first-edition mappings.'}
+								The reference parser follows the same broad editorial pattern used by the JSX specification: grammar productions define the accepted source forms, and a separate AST layer records those forms in a stable shape for downstream tools. The following correspondence summarizes the first-edition mappings.
 							</p>
 							<pre class="code-block plain">
 								<code>{AST_NODE_MAPPING}</code>
 							</pre>
-							<h3 class="appendix-heading">{'A.2 Function return nodes'}</h3>
+							<h3 class="appendix-heading">A.2 Function return nodes</h3>
 							<p class="section-body">
-								{'Functions remain ordinary ESTree function nodes. TSRX-specific structure begins at the ReturnStatement argument when that argument is a TsrxFragment node.'}
+								Functions remain ordinary ESTree function nodes. TSRX structure begins at the ReturnStatement argument when that argument is a JSXElement or JSXFragment node with TSRX metadata.
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'The function id and params fields preserve the ordinary TypeScript function surface, including type annotations and lazy patterns after parsing.'}
+									The function id and params fields preserve the ordinary TypeScript function surface, including type annotations and lazy patterns after parsing.
 								</li>
 								<li>
-									{'The function body remains a BlockStatement; TSRX content is represented where it appears, typically as a ReturnStatement argument.'}
+									The function body remains a BlockStatement; TSRX content is represented where it appears, typically as a ReturnStatement argument.
 								</li>
 								<li>
-									{'A returned native fragment is represented by a TsrxFragment node whose children store template statements in source order.'}
+									A returned native fragment is represented by a JSXFragment node whose children store template children in source order.
 								</li>
 								<li>
-									{'Raw style elements inside a returned TSRX template carry parsed stylesheet metadata for downstream analysis and target-specific style emission.'}
+									Raw style elements inside a returned TSRX template carry parsed stylesheet metadata for downstream analysis and target-specific style emission.
 								</li>
 								<li>
-									{'Default exports are represented through the ordinary ESTree ExportDefaultDeclaration wrapping the function declaration or expression.'}
+									Default exports are represented through the ordinary ESTree ExportDefaultDeclaration wrapping the function declaration or expression.
 								</li>
 								<li>
-									{'Implementation metadata may additionally record topScopedClasses for downstream style-ref analysis.'}
+									Implementation metadata may additionally record topScopedClasses for downstream style-ref analysis.
 								</li>
 							</ul>
-							<h3 class="appendix-heading">{'A.3 Template and attribute nodes'}</h3>
+							<h3 class="appendix-heading">A.3 Template and attribute nodes</h3>
 							<p class="section-body">
-								{'Template statements are represented directly in the AST rather than through a JSX element wrapper. This appendix distinguishes the element node itself from the attribute nodes that refine its opening tag.'}
+								Template children reuse the JSX AST shape. This appendix distinguishes the element node itself from the JSX opening-tag and attribute nodes that refine it.
 							</p>
 							<pre class="code-block plain">
 								<code>{TEMPLATE_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'Element.id is an Identifier for ordinary tag names and a MemberExpression when the source used a namespaced or dotted element form.'}
+									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced names.
 								</li>
 								<li>
-									{'openingElement and closingElement preserve the original tag delimiters so formatters and source-mapping tools can recover the authored shape.'}
+									openingElement and closingElement preserve the original tag delimiters so formatters and source-mapping tools can recover the authored shape.
 								</li>
 								<li>
-									{'selfClosing and unclosed record parser state for self-closing syntax and loose-mode recovery.'}
+									JSXOpeningElement.selfClosing records self-closing syntax, while unclosed recovery metadata may be attached by the parser in loose scenarios.
 								</li>
 								<li>
-									{'TSRXExpression wraps the embedded ECMAScript expression from the ordinary {expr} template form.'}
+									JSXExpressionContainer wraps the embedded ECMAScript expression from the ordinary &#123;expr&#125; template form.
 								</li>
 								<li>
-									{'Text wraps a direct double-quoted static text child and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
+									JSXText records a raw text child. Static text children decode JSX character references before the text value is stored.
 								</li>
 								<li>
-									{'Attribute.value is null for boolean-style attributes with no initializer, while shorthand marks parser-recognized shorthand cases.'}
+									JSXAttribute.value is null for boolean-style attributes with no initializer. Shorthand attributes are represented as JSXAttribute nodes with parser metadata.
 								</li>
 								<li>
-									{'SpreadAttribute.argument preserves the original ECMAScript expression payload carried by the attribute form.'}
+									JSXSpreadAttribute.argument preserves the original ECMAScript expression payload carried by the attribute form.
 								</li>
 								<li>
-									{'Current implementations may additionally attach style-element-specific details such as captured stylesheet source text or styleScopeHash when the element is a raw '}
-									<code class="inline-code">{'<style>'}</code>
-									{' tag, but those details are not part of the general Element shape described here.'}
+									Current implementations may additionally attach style-element-specific details such as captured stylesheet source text or styleScopeHash when the element is a raw 
+									<code class="inline-code">&lt;style&gt;</code>
+									 tag, but those details are not part of the general JSXElement shape described here.
 								</li>
 							</ul>
-							<h3 class="appendix-heading">{'A.4 Expression value nodes'}</h3>
+							<h3 class="appendix-heading">A.4 Expression value nodes</h3>
 							<p class="section-body">
-								{'Expression-position TSRX values use distinct node kinds so tools can distinguish ordinary template elements and native TSRX fragments. The native fragment shorthand is represented as TsrxFragment.'}
+								Expression-position TSRX values use JSXElement, JSXFragment, and JSXStyleElement nodes. Native fragments use the standard JSXFragment shape.
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'TsrxFragment corresponds to <> ... </> when that form appears in expression position. Its children array follows the native TSRX template-child model.'}
+									JSXFragment corresponds to &lt;&gt; ... &lt;/&gt; when that form appears in expression position. Its children array follows the TSRX template-child model.
 								</li>
 								<li>
-									{'openingElement, closingElement, selfClosing, and unclosed serve the same recovery and source-preservation role as on Element nodes.'}
+									openingFragment and closingFragment preserve fragment delimiters for formatter and source-mapping tools.
+								</li>
+							</ul>
+							<h3 class="appendix-heading">A.5 TSRX extension nodes</h3>
+							<p class="section-body">
+								The following nodes are the current TSRX-specific additions. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
+							</p>
+							<pre class="code-block plain">
+								<code>{TSRX_EXTENSION_AST_SHAPE}</code>
+							</pre>
+							<ul class="spec-list">
+								<li>
+									The parser currently emits 
+									<code class="inline-code">JSXIfExpression</code>
+									, 
+									<code class="inline-code">JSXForExpression</code>
+									, 
+									<code class="inline-code">JSXSwitchExpression</code>
+									, and 
+									<code class="inline-code">JSXTryExpression</code>
+									 for template control flow.
 								</li>
 							</ul>
 							<h3 class="appendix-heading">
-								{'A.5 Submodules, special identifiers, and stylesheets'}
+								A.6 Submodules, special identifiers, and stylesheets
 							</h3>
 							<p class="section-body">
-								{'TSRX reuses TypeScript-compatible module declaration node shapes for submodules and extends ImportDeclaration sources so a source may be an Identifier. These nodes are intentionally narrow: most of their semantics come from surrounding grammar or from host-defined analysis, not from a wide intrinsic property surface.'}
+								TSRX reuses TypeScript-compatible module declaration node shapes for submodules and extends ImportDeclaration sources so a source may be an Identifier. These nodes are intentionally narrow: most of their semantics come from surrounding grammar or from host-defined analysis, not from a wide intrinsic property surface.
 							</p>
 							<pre class="code-block plain">
 								<code>{SPECIAL_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
-								<li>{'TSModuleDeclaration represents module Identifier { ... } submodules.'}</li>
+								<li>TSModuleDeclaration represents module Identifier &#123; ... &#125; submodules.</li>
 								<li>
-									{'ImportDeclaration.source may be an Identifier for imports from a declared submodule.'}
+									ImportDeclaration.source may be an Identifier for imports from a declared submodule.
 								</li>
 								<li>
-									{'Ripple records exported names from module server declarations for downstream RPC analysis.'}
+									Ripple records exported names from module server declarations for downstream RPC analysis.
 								</li>
 								<li>
-									{'CSSStyleSheet metadata is attached to raw style elements in returned TSRX templates and stores both the original stylesheet source text and the stable hash used by current host implementations for scoping.'}
+									CSSStyleSheet metadata is attached to raw style elements in returned TSRX templates and stores both the original stylesheet source text and the stable hash used by current host implementations for scoping.
 								</li>
 							</ul>
 							<p class="section-body">
-								{'The reference parser is built on Acorn with @sveltejs/acorn-typescript and extended by a custom TSRXPlugin. This is why the grammar in this draft is framed as additive over a TypeScript-compatible baseline rather than as a language unrelated to TypeScript source syntax.'}
+								The reference parser is built on Acorn with @sveltejs/acorn-typescript and extended by a custom TSRXPlugin. This is why the grammar in this draft is framed as additive over a TypeScript-compatible baseline rather than as a language unrelated to TypeScript source syntax.
 							</p>
 						</section>
 					</main>
 				</div>
 
 				<footer class="site-footer">
-					<p>{'Released under the MIT License.'}</p>
-					<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
+					<p>Released under the MIT License.</p>
+					<p>Copyright © 2025-present Dominic Gannaway</p>
 				</footer>
 			</div>
 		</div>
