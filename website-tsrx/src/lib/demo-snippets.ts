@@ -190,9 +190,7 @@ export const App = () => <>
 
 const App = () => <>
   const count = ref(0);
-
   ---
-
   <main>
     <h1>Hello from TSRX Vue</h1>
     <p>This is a minimal Vue-compatible TSRX snippet.</p>
@@ -215,9 +213,7 @@ export const App = () => <>
     { title: 'Runtime notes' },
     { title: 'Hydration deep dive' },
   ];
-
   ---
-
   <h1>Nested React Hooks</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
@@ -247,9 +243,7 @@ export const App = () => <>
     { title: 'Runtime notes' },
     { title: 'Hydration deep dive' },
   ];
-
   ---
-
   <h1>Nested Preact Hooks</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}

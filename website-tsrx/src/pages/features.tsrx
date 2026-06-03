@@ -34,9 +34,7 @@ const BAILOUT_HTML = highlight_tsrx(
       count += 1;
     }
   };
-
   ---
-
   <button onClick={increment}>Count: {count}</button>
 </>;`,
 );
@@ -45,17 +43,13 @@ const FENCE_HTML = highlight_tsrx(
 	`const ProductCard = ({ product }: { product: Product }) => <>
   const name = product.name.trim();
   const price = money(product.price);
-
   ---
-
   <article>
     <h2>{name}</h2>
 
     <footer>
       const hasDiscount = product.discount > 0;
-
       ---
-
       <strong>{price}</strong>
       @if (hasDiscount) {
         <span>Sale</span>
@@ -98,9 +92,7 @@ const FOR_HTML = highlight_tsrx(
   <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
-
       ---
-
       <li>{i + 1}. {item.text}</li>
     }
   </ul>
@@ -158,15 +150,11 @@ const SHORTHAND_HTML = highlight_tsrx(
 const SCOPING_HTML = highlight_tsrx(
 	`const App = () => <>
   const name = 'World';
-
   ---
-
   <div>
     // This is a new scope - you can declare variables here
     const greeting = 'Hello, ' + name + '!';
-
     ---
-
     <h1>{greeting}</h1>
   </div>
 </>;`,
@@ -188,9 +176,7 @@ const RENDER_PROPS_HTML = highlight_tsrx(
   const renderItem = (item: Item) => <>
     <li>{item.label}</li>
   </>;
-
   ---
-
   <List items={items} render={renderItem} />
 </>;`,
 );
@@ -240,9 +226,7 @@ const App = () => <>
   const styles = <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
-
   ---
-
   // Ripple, Preact, Solid, and Vue component props:
   <Badge class={styles.highlight} />
 
@@ -281,9 +265,7 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
   const [tab, setTab] = useState('overview');
 
   // Hooks inside TSRX template branches are isolated safely.
-
   ---
-
   <h1>{user.name}</h1>
   <TabBar value={tab} onChange={setTab} />
 
@@ -292,9 +274,7 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
       useEffect(() => {
         console.log('viewed ' + post.title);
       }, [post.title]);
-
       ---
-
       <li>{post.title}</li>
     }
   </ul>
@@ -393,25 +373,38 @@ export const FeaturesPage = () => <>
 				<main class="docs-content">
 					<section class="doc-section" id="components">
 						<h2 class="section-heading">Components</h2>
+						<p
+							class="section-body"
+						>A TSRX component is usually just a TypeScript arrow function that returns a fragment. Keep the setup code close to the markup, type props as the function parameter, and let the body read from top to bottom.</p>
 						<p class="section-body">
-							TSRX components are ordinary TypeScript values. The recommended shape is a
+							In practice, most components end up as
+							{' '}
 							<code class="inline-code">const</code>
-							arrow function whose body is a single TSRX fragment; props are typed with one parameter, and setup locals, control flow, rendered structure, and scoped styles all live inside that fragment.
+							{' '}
+							values with a
+							{' '}
+							<code class="inline-code">{'<>...</>'}</code>
+							{' '}
+							body. That gives you one place for local state, derived values, template control flow, rendered elements, and scoped styles.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={COMPONENT_HTML} />
 						</pre>
 						<p class="section-body">
-							Export components with
+							Export them like any other value:
+							{' '}
 							<code class="inline-code">{'export const Name = (...) => <>...</>'}</code>
-							. The compiler transforms TSRX into standard framework components for whichever target you're using.
+							. The compiler turns that into the right component shape for the target you're using.
 						</p>
 						<p class="section-body">
-							Use the script half of a template for setup code, then separate rendered children with
+							When a bit of logic should stay plain JavaScript rather than render into the template, put it in a normal function beside the markup. Use
+							{' '}
 							<code class="inline-code">---</code>
-							. Ordinary JavaScript-only control flow can also live in nested functions. Declare a
+							{' '}
+							to separate setup from rendered children, then call helpers from event handlers or expressions:
+							{' '}
 							<code class="inline-code">{'const fn = () => { ... }'}</code>
-							next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression.
+							.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={BAILOUT_HTML} />
@@ -421,7 +414,9 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Template fences</h2>
 						<p class="section-body">
 							The
+							{' '}
 							<code class="inline-code">---</code>
+							{' '}
 							fence works like frontmatter in Markdown or Astro: TypeScript code goes above it, rendered template children go below it. In TSRX this is optional and applies to each template scope, not just once at the top of the file.
 						</p>
 						<p
