@@ -13,8 +13,6 @@
 "@ripple-ts/vscode-plugin": patch
 "@ripple-ts/language-server": patch
 "@tsrx/mcp": patch
-"@ripple-ts/nvim-plugin": patch
-"@ripple-ts/zed-plugin": patch
 ---
 
 Remove the unused namespaced TSX island feature and React bridge package.
