@@ -9,7 +9,10 @@ describe('composite > props', () => {
 
 		function App() {
 			return <>
-				let &[foo] = track(123);
+				---
+					let &[foo] = track(123);
+				---
+
 				<Child />
 				<Child {foo} />
 			</>;
@@ -29,7 +32,10 @@ describe('composite > props', () => {
 
 		function App() {
 			return <>
-				let foo = 123;
+				---
+					let foo = 123;
+				---
+
 				<Child />
 				<Child {foo} />
 			</>;
@@ -49,7 +55,10 @@ describe('composite > props', () => {
 
 		function App() {
 			return <>
-				let foo = track(123);
+				---
+					let foo = track(123);
+				---
+
 				<Child />
 				<Child {foo} />
 			</>;
@@ -69,7 +78,10 @@ describe('composite > props', () => {
 
 		function App() {
 			return <>
-				let &[foo] = track(123);
+				---
+					let &[foo] = track(123);
+				---
+
 				<Child />
 				<Child {foo} />
 			</>;
@@ -99,7 +111,10 @@ describe('composite > props', () => {
 
 		function Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) {
 			return <>
-				const onClick = () => (pressed.value = !pressed.value);
+				---
+					const onClick = () => (pressed.value = !pressed.value);
+				---
+
 				<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 				<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
 			</>;
@@ -107,7 +122,10 @@ describe('composite > props', () => {
 
 		function App() {
 			return <>
-				const pressed = track(true);
+				---
+					const pressed = track(true);
+				---
+
 				<Toggle {pressed} />
 			</>;
 		}

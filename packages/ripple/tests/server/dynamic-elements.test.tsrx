@@ -5,7 +5,10 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {
 		function App() {
 			return <>
-				let tag = track('div');
+				---
+					let tag = track('div');
+				---
+
 				<@tag>{'Hello World'}</@tag>
 			</>;
 		}
@@ -20,8 +23,11 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element from a plain object with a tracked property', async () => {
 		function App() {
 			return <>
-				let obj = { tag: track('div') };
-				let tag = obj.tag;
+				---
+					let obj = { tag: track('div') };
+					let tag = obj.tag;
+				---
+
 				<@tag>{'Hello World'}</@tag>
 			</>;
 		}
@@ -34,8 +40,11 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element from a tracked object with a tracked property', async () => {
 		function App() {
 			return <>
-				let obj = track({ tag: track('div') });
-				let tag = obj.value.tag;
+				---
+					let obj = track({ tag: track('div') });
+					let tag = obj.value.tag;
+				---
+
 				<@tag>{'Hello World'}</@tag>
 			</>;
 		}
@@ -50,8 +59,11 @@ describe('server dynamic DOM elements', () => {
 		async () => {
 			function App() {
 				return <>
-					let obj = track({ tag: track('div') });
-					let tag = obj.value['tag'];
+					---
+						let obj = track({ tag: track('div') });
+						let tag = obj.value['tag'];
+					---
+
 					<@tag>{'Hello World'}</@tag>
 				</>;
 			}
@@ -65,7 +77,10 @@ describe('server dynamic DOM elements', () => {
 	it('renders self-closing dynamic element', async () => {
 		function App() {
 			return <>
-				let tag = track('input');
+				---
+					let tag = track('input');
+				---
+
 				<@tag type="text" value="test" />
 			</>;
 		}
@@ -78,8 +93,11 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with attributes', async () => {
 		function App() {
 			return <>
-				let tag = track('div');
-				let &[className] = track('test-class');
+				---
+					let tag = track('div');
+					let &[className] = track('test-class');
+				---
+
 				<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 			</>;
 		}
@@ -97,8 +115,11 @@ describe('server dynamic DOM elements', () => {
 	it('handles nested dynamic elements', async () => {
 		function App() {
 			return <>
-				let outerTag = track('div');
-				let innerTag = track('span');
+				---
+					let outerTag = track('div');
+					let innerTag = track('span');
+				---
+
 				<@outerTag class="outer">
 					<@innerTag class="inner">{'Nested content'}</@innerTag>
 				</@outerTag>
@@ -119,8 +140,11 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with class object', async () => {
 		function App() {
 			return <>
-				let tag = track('div');
-				let &[active] = track(true);
+				---
+					let tag = track('div');
+					let &[active] = track(true);
+				---
+
 				<@tag class={{ active: active, 'dynamic-element': true }}>
 					{'Element with class object'}
 				</@tag>
@@ -139,7 +163,10 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with style object', async () => {
 		function App() {
 			return <>
-				let tag = track('span');
+				---
+					let tag = track('span');
+				---
+
 				<@tag
 					style={{
 						color: 'red',
@@ -165,12 +192,15 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with spread attributes', async () => {
 		function App() {
 			return <>
-				let tag = track('section');
-				const attrs = {
-					id: 'spread-section',
-					'data-testid': 'spread-test',
-					class: 'spread-class',
-				};
+				---
+					let tag = track('section');
+					const attrs = {
+						id: 'spread-section',
+						'data-testid': 'spread-test',
+						class: 'spread-class',
+					};
+				---
+
 				<@tag {...attrs} data-extra="additional">{'Element with spread attributes'}</@tag>
 			</>;
 		}
@@ -190,7 +220,10 @@ describe('server dynamic DOM elements', () => {
 
 		function App() {
 			return <>
-				let tag = track('article');
+				---
+					let tag = track('article');
+				---
+
 				<@tag
 					ref={(node: HTMLElement) => {
 						capturedElement = node;
@@ -217,17 +250,20 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with createRefKey in spread', async () => {
 		function App() {
 			return <>
-				let tag = track('header');
-				function elementRef(node: HTMLElement) {
-					// Set an attribute on the element to prove ref was called
-					node.setAttribute('data-spread-ref-called', 'true');
-					node.setAttribute('data-spread-ref-tag', node.tagName.toLowerCase());
-				}
-				const dynamicProps = {
-					id: 'spread-ref-test',
-					class: 'ref-element',
-					[createRefKey()]: elementRef,
-				};
+				---
+					let tag = track('header');
+					function elementRef(node: HTMLElement) {
+						// Set an attribute on the element to prove ref was called
+						node.setAttribute('data-spread-ref-called', 'true');
+						node.setAttribute('data-spread-ref-tag', node.tagName.toLowerCase());
+					}
+					const dynamicProps = {
+						id: 'spread-ref-test',
+						class: 'ref-element',
+						[createRefKey()]: elementRef,
+					};
+				---
+
 				<@tag {...dynamicProps}>{'Element with spread ref'}</@tag>
 			</>;
 		}
@@ -247,7 +283,10 @@ describe('server dynamic DOM elements', () => {
 	it('applies scoped CSS to dynamic elements', async () => {
 		function App() {
 			return <>
-				let tag = track('div');
+				---
+					let tag = track('div');
+				---
+
 				<@tag class="test-class">{'Dynamic element'}</@tag>
 				<style>
 					.test-class {
@@ -275,7 +314,10 @@ describe('server dynamic DOM elements', () => {
 			id: string;
 		}>) {
 			return <>
-				const tag = track('button');
+				---
+					const tag = track('button');
+				---
+
 				<@tag {...rest}>{rest.class}</@tag>
 				<style>
 					.even {
@@ -290,7 +332,10 @@ describe('server dynamic DOM elements', () => {
 
 		function App() {
 			return <>
-				let &[count] = track(0);
+				---
+					let &[count] = track(0);
+				---
+
 				<DynamicButton class={count % 2 ? 'even' : 'odd'} id={count % 2 ? 'even' : 'odd'} />
 			</>;
 		}
@@ -314,7 +359,10 @@ describe('server dynamic DOM elements', () => {
 	it('adds scoping class to dynamic elements', async () => {
 		function App() {
 			return <>
-				let tag = track('div');
+				---
+					let tag = track('div');
+				---
+
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 				</@tag>
@@ -343,7 +391,10 @@ describe('server dynamic DOM elements', () => {
 			// but the tag selector will be marked as unused if it's not explicitly seen in the template.
 			function App() {
 				return <>
-					let tag = track('div');
+					---
+						let tag = track('div');
+					---
+
 					<@tag class="scoped">
 						<p>{'Scoped dynamic element'}</p>
 					</@tag>
@@ -382,7 +433,10 @@ describe('server dynamic DOM elements', () => {
 
 		function App() {
 			return <>
-				let tag = track('div');
+				---
+					let tag = track('div');
+				---
+
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 					<Child />
@@ -430,7 +484,10 @@ describe('server dynamic DOM elements', () => {
 
 		function App() {
 			return <>
-				let tag = track(() => Child);
+				---
+					let tag = track(() => Child);
+				---
+
 				<@tag />
 				<style>
 					.child {

@@ -133,8 +133,8 @@ export function App() {
   let &[count] = track(0);
 
   return <div>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
+    <p>Count: {count}</p>
+    <button onClick={() => count++}>Increment</button>
   </div>;
 }
 ```
@@ -268,10 +268,11 @@ export function App() {
   let &[condition] = track(true);
 
   return <div>
-    if (condition)
-    {<div>"True"</div>}
-    else
-    {<div>"False"</div>}
+    @if (condition) {
+      <div>"True"</div>
+    } else {
+      <div>"False"</div>
+    }
     <button onClick={() => (condition = !condition)}>"Toggle"</button>
   </div>;
 }
@@ -289,7 +290,7 @@ export function App() {
   }, { id: 3, name: 'Item 3' });
 
   return <div>
-    for (const item of items; index i; key item.id) {
+    @for (const item of items; index i; key item.id) {
       <div>{item.name}" (index: "{i}")"</div>
     }
     <button
@@ -298,7 +299,7 @@ export function App() {
         name: `Item ${items.length + 1}`,
       })}
     >
-      "Add Item"
+      Add Item
     </button>
   </div>;
 }
@@ -313,7 +314,7 @@ function ComponentThatMayFail(props: { shouldFail: boolean }) {
   }
 
   return <div>
-    "Component working fine"
+    Component working fine
   </div>;
 }
 
@@ -323,10 +324,11 @@ export function App() {
   let &[shouldFail] = track(false);
 
   return <div>
-    try
-    {<ComponentThatMayFail {shouldFail} />}
-    catch (e)
-    {<div>"Error: "{e.message}</div>}
+    @try {
+      <ComponentThatMayFail {shouldFail} />
+    } catch (e) {
+      <div>"Error: "{e.message}</div>
+    }
     <button onClick={() => (shouldFail = !shouldFail)}>"Toggle Error"</button>
   </div>;
 }
@@ -427,7 +429,7 @@ const ThemeContext = new Context();
 
 function Child() {
   const &[theme] = ThemeContext.get();
-  return <div>"Theme: "{theme}</div>;
+  return <div>Theme: {theme}</div>;
 }
 
 export function App() {
@@ -438,7 +440,7 @@ export function App() {
   return <div>
     <Child />
     <button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
-      "Toggle Theme"
+      Toggle Theme
     </button>
   </div>;
 }
@@ -457,15 +459,16 @@ export function App() {
   let &[showModal] = track(false);
 
   return <div>
-    <button onClick={() => (showModal = !showModal)}>"Toggle Modal"</button>
+    <button onClick={() => (showModal = !showModal)}>Toggle Modal</button>
 
-    if (showModal)
-    {<Portal target={document.body}>
-      <div class="modal">
-        <p>"Modal content"</p>
-        <button onClick={() => (showModal = false)}>"Close"</button>
-      </div>
-    </Portal>}
+    @if (showModal) {
+      <Portal target={document.body}>
+        <div class="modal">
+          <p>Modal content</p>
+          <button onClick={() => (showModal = false)}>Close</button>
+        </div>
+      </Portal>
+    }
   </div>;
 }
 ```

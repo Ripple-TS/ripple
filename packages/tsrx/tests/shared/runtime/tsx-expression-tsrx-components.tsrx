@@ -14,7 +14,10 @@ function ContentEditable(props: {
 	placeholder: any;
 }) {
 	return <>
-		const className = props.className ?? props.class ?? '';
+		---
+			const className = props.className ?? props.class ?? '';
+		---
+
 		<article class="tsrx-expression-editable">
 			<span class="tsrx-expression-editable-class">{className}</span>
 			<div class="tsrx-expression-inner-placeholder">{props.placeholder}</div>
@@ -24,13 +27,13 @@ function ContentEditable(props: {
 
 export function TsrxInTsxExpressionApp() {
 	return <>
-		const placeholder = 'shared placeholder';
-		const classes = {
-			contentEditable: 'editable-class',
-			placeholder: 'placeholder-class',
-		};
-		function renderPlugin() {
-			return <>
+		---
+			const placeholder = 'shared placeholder';
+			const classes = {
+				contentEditable: 'editable-class',
+				placeholder: 'placeholder-class',
+			};
+			const renderPlugin = () => <>
 				<PlainTextPlugin
 					contentEditable={<>
 						<ContentEditable
@@ -42,7 +45,8 @@ export function TsrxInTsxExpressionApp() {
 					placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
 				/>
 			</>;
-		}
+		---
+
 		{renderPlugin()}
 	</>;
 }

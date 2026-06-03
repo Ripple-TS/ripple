@@ -243,7 +243,7 @@ function to_jsx_child(node, transform_context) {
  * @returns {any}
  */
 function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
-	const children = (node.children || []).filter(
+	const children = expand_tsrx_code_blocks(node.children || []).filter(
 		(/** @type {any} */ child) =>
 			child &&
 			child.type !== 'EmptyStatement' &&
@@ -283,6 +283,24 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 }
 
 /**
+ * @param {any[]} body_nodes
+ * @returns {any[]}
+ */
+function expand_tsrx_code_blocks(body_nodes) {
+	const expanded = [];
+	for (const node of body_nodes || []) {
+		if (node?.type === 'TSRXCodeBlock') {
+			for (const statement of expand_tsrx_code_blocks(node.body || [])) {
+				expanded.push(statement);
+			}
+		} else {
+			expanded.push(node);
+		}
+	}
+	return expanded;
+}
+
+/**
  * Convert a list of body nodes to a Solid JSX child.
  *
  * If the body is purely JSX, returns the JSX node (or fragment) directly.
@@ -308,6 +326,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
  * @returns {any}
  */
 function body_to_jsx_child(body_nodes, transform_context) {
+	body_nodes = expand_tsrx_code_blocks(body_nodes);
 	// When non-JSX statements are interleaved with JSX children, preserve
 	// source order by capturing each JSX child into a const at its textual
 	// position. Otherwise all statements would run before any JSX is
@@ -395,6 +414,7 @@ function get_if_consequent_body(node) {
  * @returns {boolean}
  */
 function body_has_loop_skip(body_nodes) {
+	body_nodes = expand_tsrx_code_blocks(body_nodes);
 	return body_nodes.some(
 		(node) => is_bare_return_statement(node) || get_returning_if_info(node) !== null,
 	);
@@ -406,6 +426,7 @@ function body_has_loop_skip(body_nodes) {
  * @returns {any[]}
  */
 function loop_body_to_callback_statements(body_nodes, transform_context) {
+	body_nodes = expand_tsrx_code_blocks(body_nodes);
 	/** @type {any[]} */
 	const statements = [];
 	/** @type {any[]} */
@@ -1628,6 +1649,7 @@ function lower_solid_component_try_statement(node, rest) {
  * @returns {AST.Statement[]}
  */
 function solid_component_body_nodes_to_function_statements(body_nodes, transform_context) {
+	body_nodes = expand_tsrx_code_blocks(body_nodes);
 	const statements = [];
 	const render_nodes = [];
 	const interleaved = is_interleaved_body(body_nodes);

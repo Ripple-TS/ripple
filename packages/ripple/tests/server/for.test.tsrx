@@ -2,8 +2,11 @@ describe('for statements in SSR', () => {
 	it('renders a simple static array', async () => {
 		function App() {
 			return <>
-				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items) {
+				---
+					const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
+
+				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
 			</>;
@@ -18,20 +21,23 @@ describe('for statements in SSR', () => {
 	it('renders nested for...of loops', async () => {
 		function App() {
 			return <>
-				const groups = [
-					{
-						name: 'Group 1',
-						items: ['Item 1.1', 'Item 1.2'],
-					},
-					{
-						name: 'Group 2',
-						items: ['Item 2.1', 'Item 2.2'],
-					},
-				];
-				for (const group of groups) {
+				---
+					const groups = [
+						{
+							name: 'Group 1',
+							items: ['Item 1.1', 'Item 1.2'],
+						},
+						{
+							name: 'Group 2',
+							items: ['Item 2.1', 'Item 2.2'],
+						},
+					];
+				---
+
+				@for (const group of groups) {
 					<h1>{group.name}</h1>
 					<ul>
-						for (const item of group.items) {
+						@for (const item of group.items) {
 							<li>{item}</li>
 						}
 					</ul>
@@ -48,8 +54,11 @@ describe('for statements in SSR', () => {
 	it('renders an array with index', async () => {
 		function App() {
 			return <>
-				const items = ['Item 1', 'Item 2', 'Item 3'];
-				for (const item of items; index i) {
+				---
+					const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
+
+				@for (const item of items; index i) {
 					<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
 				}
 			</>;
@@ -64,12 +73,15 @@ describe('for statements in SSR', () => {
 	it('renders an array with key', async () => {
 		function App() {
 			return <>
-				const items = [
-					{ id: 1, name: 'Item' },
-					{ id: 2, name: 'Item' },
-					{ id: 3, name: 'Item' },
-				];
-				for (const item of items; key item.id) {
+				---
+					const items = [
+						{ id: 1, name: 'Item' },
+						{ id: 2, name: 'Item' },
+						{ id: 3, name: 'Item' },
+					];
+				---
+
+				@for (const item of items; key item.id) {
 					<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
 				}
 			</>;
@@ -84,12 +96,15 @@ describe('for statements in SSR', () => {
 	it('renders an array with index and key', async () => {
 		function App() {
 			return <>
-				const items = [
-					{ id: 1, name: 'Item' },
-					{ id: 2, name: 'Item' },
-					{ id: 3, name: 'Item' },
-				];
-				for (const item of items; index i; key item.id) {
+				---
+					const items = [
+						{ id: 1, name: 'Item' },
+						{ id: 2, name: 'Item' },
+						{ id: 3, name: 'Item' },
+					];
+				---
+
+				@for (const item of items; index i; key item.id) {
 					<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
 				}
 			</>;
@@ -104,10 +119,14 @@ describe('for statements in SSR', () => {
 	it('allows continue to skip a for...of iteration', async () => {
 		function App() {
 			return <>
-				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
-					if (!item) continue;
-					<div>{item}</div>
+				---
+					const items = ['Item 1', '', 'Item 3'];
+				---
+
+				@for (const item of items) {
+					@if (item) {
+						<div>{item}</div>
+					}
 				}
 			</>;
 		}
@@ -119,8 +138,8 @@ describe('for statements in SSR', () => {
 	it('allows ordinary function control flow inside for...of loops', async () => {
 		function App() {
 			return <>
-				const items = ['Item 1', '', 'Item 3'];
-				for (const item of items) {
+				---
+					const items = ['Item 1', '', 'Item 3'];
 					function label(value) {
 						for (let i = 0; i < 1; i++) {
 							while (i < 0) {
@@ -130,7 +149,9 @@ describe('for statements in SSR', () => {
 						}
 						return value;
 					}
+				---
 
+				@for (const item of items) {
 					<div>{label(item)}</div>
 				}
 			</>;
@@ -144,11 +165,11 @@ describe('for statements in SSR', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-					for (const item of items) {
-						if (!item) return
-						<div>{item}</div>
-					}
-				</>; }`,
+						@for (const item of items) {
+							@if (!item) return
+							<div>{item}</div>
+						}
+					</>; }`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),
@@ -159,11 +180,11 @@ describe('for statements in SSR', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-					for (const item of items) {
-						if (!item) break
-						<div>{item}</div>
-					}
-				</>; }`,
+						@for (const item of items) {
+							@if (!item) break
+							<div>{item}</div>
+						}
+					</>; }`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),

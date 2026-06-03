@@ -8,8 +8,11 @@
 
 export function AppFallthroughAll({ status }: { status: string }) {
 	return <>
-		const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
-		switch (status) {
+		---
+			const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
+		---
+
+		@switch (status) {
 			case 'idle':
 				<span class="span-idle">{obj.idle}</span>
 			case 'active':
@@ -24,8 +27,11 @@ export function AppFallthroughAll({ status }: { status: string }) {
 
 export function AppBreakAfterActive({ status }: { status: string }) {
 	return <>
-		const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
-		switch (status) {
+		---
+			const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
+		---
+
+		@switch (status) {
 			case 'idle':
 				<span class="span-idle">{obj.idle}</span>
 			case 'active':
@@ -41,8 +47,11 @@ export function AppBreakAfterActive({ status }: { status: string }) {
 
 export function AppBreakAfterOffline({ status }: { status: string }) {
 	return <>
-		const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
-		switch (status) {
+		---
+			const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
+		---
+
+		@switch (status) {
 			case 'idle':
 				<span class="span-idle">{obj.idle}</span>
 			case 'active':

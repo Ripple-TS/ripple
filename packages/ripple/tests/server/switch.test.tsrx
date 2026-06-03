@@ -2,8 +2,11 @@ describe('SSR: switch statements', () => {
 	it('renders simple switch with literal cases', async () => {
 		function App() {
 			return <>
-				let value = 'b';
-				switch (value) {
+				---
+					let value = 'b';
+				---
+
+				@switch (value) {
 					case 'a':
 						<div>{'Case A'}</div>
 						break;
@@ -26,8 +29,11 @@ describe('SSR: switch statements', () => {
 	it('renders a fall-through with an empty switch case', async () => {
 		function App() {
 			return <>
-				let value = 'b';
-				switch (value) {
+				---
+					let value = 'b';
+				---
+
+				@switch (value) {
 					case 'a':
 						<div>{'Case A'}</div>
 						break;
@@ -48,8 +54,11 @@ describe('SSR: switch statements', () => {
 	it('renders a fall-through with a case that has elements', async () => {
 		function App() {
 			return <>
-				let value = 'a';
-				switch (value) {
+				---
+					let value = 'a';
+				---
+
+				@switch (value) {
 					case 'a':
 						<div>{'Case A'}</div>
 					case 'b':
@@ -70,8 +79,11 @@ describe('SSR: switch statements', () => {
 	it('renders a fall-through with a default case in the middle', async () => {
 		function App() {
 			return <>
-				let value = 'x';
-				switch (value) {
+				---
+					let value = 'x';
+				---
+
+				@switch (value) {
 					case 'a':
 						<div>{'Case A'}</div>
 					default:
@@ -93,14 +105,19 @@ describe('SSR: switch statements', () => {
 	it('renders bare text nodes in switch fall-through cases without element wrappers', async () => {
 		function App() {
 			return <>
-				let value = 'a';
+				---
+					let value = 'a';
+				---
+
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
-						case 'a':
-							{'Case A'}
-						case 'b':
-							{'Case B'}
+					@switch (value) {
+						case 'a': {
+							<>{'Case A'}</>
+						}
+						case 'b': {
+							<>{'Case B'}</>
+						}
 					}
 				</div>
 			</>;
@@ -113,15 +130,18 @@ describe('SSR: switch statements', () => {
 	it('renders bare text nodes in switch cases without element wrappers', async () => {
 		function App() {
 			return <>
-				let value = 'a';
+				---
+					let value = 'a';
+				---
+
 				<div>
 					<span>{'before'}</span>
-					switch (value) {
+					@switch (value) {
 						case 'a':
-							{'Case A'}
+							<>{'Case A'}</>
 							break;
 						case 'b':
-							{'Case B'}
+							<>{'Case B'}</>
 							break;
 					}
 				</div>

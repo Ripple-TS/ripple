@@ -63,10 +63,13 @@ function NestedApp() {
 
 function ExplicitTextApp() {
 	return <>
-		const markup = '<span>Not HTML</span>';
-		const hidden = false;
-		const empty = null;
-		const missing = undefined;
+		---
+			const markup = '<span>Not HTML</span>';
+			const hidden = false;
+			const empty = null;
+			const missing = undefined;
+		---
+
 		<div class="explicit-text-markup">{String(markup)}</div>
 		<div class="explicit-text-boolean">{String(hidden)}</div>
 		<div class="explicit-text-null">{empty == null ? '' : String(empty)}</div>
@@ -76,7 +79,10 @@ function ExplicitTextApp() {
 
 function ExplicitHtmlApp() {
 	return <>
-		const markup = ref('<span class="html-node">safe enough</span>');
+		---
+			const markup = ref('<span class="html-node">safe enough</span>');
+		---
+
 		<div class="explicit-html-target" innerHTML={markup.value} />
 		<button
 			class="explicit-html-update"
@@ -91,10 +97,13 @@ function ExplicitHtmlApp() {
 
 function SpreadHtmlApp() {
 	return <>
-		const spreadProps = ref({
-			innerHTML: '<em class="html-node">spread</em>',
-		});
-		const markup = ref('<span class="html-node">safe enough</span>');
+		---
+			const spreadProps = ref({
+				innerHTML: '<em class="html-node">spread</em>',
+			});
+			const markup = ref('<span class="html-node">safe enough</span>');
+		---
+
 		<div class="spread-html-child" {...spreadProps.value} innerHTML={markup.value} />
 		<button
 			class="spread-html-update-spread"
@@ -138,21 +147,27 @@ function ElementRefApp() {
 
 function KeywordRefCallbackApp() {
 	return <>
-		function capture(node: HTMLDivElement | null) {
-			keyword_ref_callback_captured = node;
-		}
+		---
+			function capture(node: HTMLDivElement | null) {
+				keyword_ref_callback_captured = node;
+			}
+		---
+
 		<div ref={capture} class="keyword-ref-target">{'keyword ref'}</div>
 	</>;
 }
 
 function MultiDomRefApp() {
 	return <>
-		function captureA(node: HTMLInputElement | null) {
-			multi_dom_ref_a = node;
-		}
-		function captureB(node: HTMLInputElement | null) {
-			multi_dom_ref_b = node;
-		}
+		---
+			function captureA(node: HTMLInputElement | null) {
+				multi_dom_ref_a = node;
+			}
+			function captureB(node: HTMLInputElement | null) {
+				multi_dom_ref_b = node;
+			}
+		---
+
 		<input ref={mergeRefs(captureA, captureB)} class="multi-dom-ref" type="text" />
 	</>;
 }
@@ -162,12 +177,15 @@ let combo_keyword_node: HTMLInputElement | null = null;
 
 function ComboRefApp() {
 	return <>
-		function jsxRef(node: HTMLInputElement | null) {
-			combo_jsx_node = node;
-		}
-		function keywordRef(node: HTMLInputElement | null) {
-			combo_keyword_node = node;
-		}
+		---
+			function jsxRef(node: HTMLInputElement | null) {
+				combo_jsx_node = node;
+			}
+			function keywordRef(node: HTMLInputElement | null) {
+				combo_keyword_node = node;
+			}
+		---
+
 		<input ref={mergeRefs(jsxRef, keywordRef)} class="combo-ref" type="text" />
 	</>;
 }
@@ -177,9 +195,12 @@ let value_ref_callback_node: HTMLInputElement | null = null;
 
 function ValueRefObjectApp() {
 	return <>
-		function callbackRef(node: HTMLInputElement | null) {
-			value_ref_callback_node = node;
-		}
+		---
+			function callbackRef(node: HTMLInputElement | null) {
+				value_ref_callback_node = node;
+			}
+		---
+
 		<input ref={mergeRefs(value_ref_object, callbackRef)} class="value-ref" type="text" />
 	</>;
 }
@@ -190,12 +211,15 @@ let named_direct_anonymous_node: HTMLInputElement | null = null;
 
 function NamedDirectRefApp() {
 	return <>
-		function nativeRef(node: HTMLInputElement | null) {
-			named_direct_native_node = node;
-		}
-		function anonymousRef(node: HTMLInputElement | null) {
-			named_direct_anonymous_node = node;
-		}
+		---
+			function nativeRef(node: HTMLInputElement | null) {
+				named_direct_native_node = node;
+			}
+			function anonymousRef(node: HTMLInputElement | null) {
+				named_direct_anonymous_node = node;
+			}
+		---
+
 		<input
 			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
@@ -293,8 +317,11 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
 	return <>
-		const first = { type: props.type, ref: props.first_ref };
-		const second = { ref: props.second_ref };
+		---
+			const first = { type: props.type, ref: props.first_ref };
+			const second = { ref: props.second_ref };
+		---
+
 		<input
 			{...first}
 			{...second}
@@ -326,7 +353,10 @@ function NamedRefObjectApp() {
 
 function CounterApp() {
 	return <>
-		const count = ref(0);
+		---
+			const count = ref(0);
+		---
+
 		<p class="count">{count.value}</p>
 		<button class="inc" onClick={() => count.value++}>{'+'}</button>
 	</>;
@@ -338,8 +368,11 @@ function LazyParamChild(&{ count }: { count: number }) {
 
 function LazyObjectDestructuringApp() {
 	return <>
-		const state = reactive({ count: 0 });
-		let &{ count } = state;
+		---
+			const state = reactive({ count: 0 });
+			let &{ count } = state;
+		---
+
 		<p class="lazy-local-count">{count}</p>
 		<LazyParamChild count={state.count} />
 		<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
@@ -348,8 +381,11 @@ function LazyObjectDestructuringApp() {
 
 function LazyArrayDestructuringApp() {
 	return <>
-		const values = reactive([1, 2]);
-		let &[first, second] = values;
+		---
+			const values = reactive([1, 2]);
+			let &[first, second] = values;
+		---
+
 		<p class="lazy-array-counts">{`${first}-${second}`}</p>
 		<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
 	</>;
@@ -357,11 +393,17 @@ function LazyArrayDestructuringApp() {
 
 function ConditionalRefsApp() {
 	return <>
-		const count = ref(0);
-		const skip = ref(false);
+		---
+			const count = ref(0);
+			const skip = ref(false);
+		---
+
 		<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
-		if (!skip.value) {
-			const doubled = ref(0);
+		@if (!skip.value) {
+			---
+				const doubled = ref(0);
+			---
+
 			<p class="early-count">{count.value}</p>
 			<p class="early-doubled">{doubled.value}</p>
 			<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
@@ -374,16 +416,22 @@ let watch_effect_fire_count = 0;
 
 function ProvideChild() {
 	return <>
-		const value = inject('provide-test-key', 'default');
+		---
+			const value = inject('provide-test-key', 'default');
+		---
+
 		<span class="provide-child">{value}</span>
 	</>;
 }
 
 function BareJsxConditionalApp() {
 	return <>
-		const skip = ref(true);
+		---
+			const skip = ref(true);
+		---
+
 		<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-		if (!skip.value) {
+		@if (!skip.value) {
 			<p class="bare-continuation">{'visible'}</p>
 		}
 	</>;
@@ -391,10 +439,16 @@ function BareJsxConditionalApp() {
 
 function ProvideConditionalApp() {
 	return <>
-		const skip = ref(true);
+		---
+			const skip = ref(true);
+		---
+
 		<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-		if (!skip.value) {
-			provide('provide-test-key', 'dark');
+		@if (!skip.value) {
+			---
+				provide('provide-test-key', 'dark');
+			---
+
 			<ProvideChild />
 		}
 	</>;
@@ -402,14 +456,20 @@ function ProvideConditionalApp() {
 
 function WatchConditionalApp() {
 	return <>
-		const skip = ref(true);
-		const value = ref(0);
+		---
+			const skip = ref(true);
+			const value = ref(0);
+		---
+
 		<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
 		<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
-		if (!skip.value) {
-			watch(value, () => {
-				watch_fire_count++;
-			});
+		@if (!skip.value) {
+			---
+				watch(value, () => {
+					watch_fire_count++;
+				});
+			---
+
 			<p class="watch-value">{value.value}</p>
 		}
 	</>;
@@ -417,17 +477,23 @@ function WatchConditionalApp() {
 
 function WatchEffectConditionalApp() {
 	return <>
-		const skip = ref(true);
-		const value = ref(0);
+		---
+			const skip = ref(true);
+			const value = ref(0);
+		---
+
 		<button class="watch-effect-toggle" onClick={() => (skip.value = !skip.value)}>
 			{'toggle'}
 		</button>
 		<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
-		if (!skip.value) {
-			watchEffect(() => {
-				void value.value;
-				watch_effect_fire_count++;
-			});
+		@if (!skip.value) {
+			---
+				watchEffect(() => {
+					void value.value;
+					watch_effect_fire_count++;
+				});
+			---
+
 			<p class="watch-effect-value">{value.value}</p>
 		}
 	</>;
@@ -435,8 +501,11 @@ function WatchEffectConditionalApp() {
 
 function IfReactiveApp() {
 	return <>
-		const show = ref(true);
-		if (show.value) {
+		---
+			const show = ref(true);
+		---
+
+		@if (show.value) {
 			<span class="visible">{'shown'}</span>
 		} else {
 			<span class="hidden">{'hidden'}</span>
@@ -447,13 +516,19 @@ function IfReactiveApp() {
 
 function ConditionalLocalStateApp() {
 	return <>
-		const count = ref(3);
+		---
+			const count = ref(3);
+		---
+
 		<button class="outer-inc" onClick={() => count.value++}>
 			{'Outer: '}
 			{count.value}
 		</button>
-		if (count.value > 2) {
-			const newCount = ref(0);
+		@if (count.value > 2) {
+			---
+				const newCount = ref(0);
+			---
+
 			<button class="inner-inc" onClick={() => newCount.value++}>
 				{'Inner: '}
 				{newCount.value}
@@ -464,7 +539,10 @@ function ConditionalLocalStateApp() {
 
 function StatefulChild() {
 	return <>
-		const inner = ref(0);
+		---
+			const inner = ref(0);
+		---
+
 		<button class="stateful-child" onClick={() => inner.value++}>
 			{'Child: '}
 			{inner.value}
@@ -482,7 +560,10 @@ function StatefulChildHostApp() {
 
 function StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
 	return <>
-		const inner = ref(0);
+		---
+			const inner = ref(0);
+		---
+
 		<button class="stateful-child-prop" onClick={() => inner.value++}>
 			{'Child prop: '}
 			{inner.value}
@@ -492,7 +573,10 @@ function StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
 
 function StatefulChildWithPropHostApp() {
 	return <>
-		const count = ref(3);
+		---
+			const count = ref(3);
+		---
+
 		<div>
 			<StatefulChildWithProp {count} />
 		</div>
@@ -501,8 +585,11 @@ function StatefulChildWithPropHostApp() {
 
 function ForReactiveApp() {
 	return <>
-		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value) {
+		---
+			const items = ref(['a', 'b', 'c']);
+		---
+
+		@for (const item of items.value) {
 			<li class="item" key={item}>{item}</li>
 		}
 		<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
@@ -512,18 +599,25 @@ function ForReactiveApp() {
 
 function ForContinueApp() {
 	return <>
-		const items = ref(['a', '', 'c']);
-		for (const item of items.value) {
-			if (!item) continue;
-			<li class="continue-item" key={item}>{item}</li>
+		---
+			const items = ref(['a', '', 'c']);
+		---
+
+		@for (const item of items.value) {
+			@if (item) {
+				<li class="continue-item" key={item}>{item}</li>
+			}
 		}
 	</>;
 }
 
 function ForIndexReactiveApp() {
 	return <>
-		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value; index i) {
+		---
+			const items = ref(['a', 'b', 'c']);
+		---
+
+		@for (const item of items.value; index i) {
 			<li class="indexed-item">{`${i}:${item}`}</li>
 		}
 		<button class="prepend" onClick={() => (items.value = ['z', ...items.value])}>
@@ -543,7 +637,10 @@ function ForIndexReactiveApp() {
 
 function KeyedRow(props: { item: { id: string; label: string } }) {
 	return <>
-		const count = ref(0);
+		---
+			const count = ref(0);
+		---
+
 		<button class={`keyed-row row-${props.item.id}`} onClick={() => count.value++}>
 			{`${props.item.label}:${count.value}`}
 		</button>
@@ -552,12 +649,15 @@ function KeyedRow(props: { item: { id: string; label: string } }) {
 
 function ForKeyedStateApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const item of items.value; key item.id) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const item of items.value; key item.id) {
 			<KeyedRow {item} />
 		}
 		<button class="reverse-keyed" onClick={() => (items.value = [...items.value].reverse())}>
@@ -576,12 +676,15 @@ function ForKeyedStateApp() {
 
 function ForJsxKeyedStateApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const item of items.value) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const item of items.value) {
 			<KeyedRow key={item.id} {item} />
 		}
 		<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
@@ -600,12 +703,15 @@ function ForJsxKeyedStateApp() {
 
 function ForIndexKeyedStateApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const item of items.value; index i; key item.id) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const item of items.value; index i; key item.id) {
 			<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
 		}
 		<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
@@ -616,12 +722,15 @@ function ForIndexKeyedStateApp() {
 
 function ForJsxIndexKeyedApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const item of items.value; index i) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const item of items.value; index i) {
 			<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
 		}
 		<button
@@ -635,12 +744,15 @@ function ForJsxIndexKeyedApp() {
 
 function ForNestedIndexKeyedApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const item of items.value; index i; key item.id) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const item of items.value; index i; key item.id) {
 			<section class={`nested-index-keyed-row row-${item.id}`}>
 				<div>
 					<span>{`${i}:${item.label}`}</span>
@@ -666,8 +778,11 @@ function ForNestedIndexKeyedApp() {
 
 function ForImplicitIndexKeyFragmentApp() {
 	return <>
-		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value; index i) {
+		---
+			const items = ref(['a', 'b', 'c']);
+		---
+
+		@for (const item of items.value; index i) {
 			<span class="fragment-index-item">{`${i}:${item}`}</span>
 			<span class="fragment-value-item">{item}</span>
 		}
@@ -682,7 +797,10 @@ function ForImplicitIndexKeyFragmentApp() {
 
 function DestructuredKeyedRow(props: { id: string; label: string }) {
 	return <>
-		const count = ref(0);
+		---
+			const count = ref(0);
+		---
+
 		<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
 			{`${props.label}:${count.value}`}
 		</button>
@@ -691,12 +809,15 @@ function DestructuredKeyedRow(props: { id: string; label: string }) {
 
 function ForDestructuredKeyedStateApp() {
 	return <>
-		const items = ref([
-			{ id: 'a', label: 'Alpha' },
-			{ id: 'b', label: 'Beta' },
-			{ id: 'c', label: 'Gamma' },
-		]);
-		for (const { id, label } of items.value; key id) {
+		---
+			const items = ref([
+				{ id: 'a', label: 'Alpha' },
+				{ id: 'b', label: 'Beta' },
+				{ id: 'c', label: 'Gamma' },
+			]);
+		---
+
+		@for (const { id, label } of items.value; key id) {
 			<DestructuredKeyedRow {id} {label} />
 		}
 		<button
@@ -718,8 +839,11 @@ function ForDestructuredKeyedStateApp() {
 
 function SwitchReactiveApp() {
 	return <>
-		const page = ref('home');
-		switch (page.value) {
+		---
+			const page = ref('home');
+		---
+
+		@switch (page.value) {
 			case 'home':
 				<div class="page">{'Home'}</div>
 				break;
@@ -748,14 +872,17 @@ function StyledApp() {
 
 function ThrowingChild() {
 	return <>
-		throw new Error('sync boom');
+		---
+			throw new Error('sync boom');
+		---
+
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function ErrorBoundaryApp() {
 	return <>
-		try {
+		@try {
 			<ThrowingChild />
 		} catch (err) {
 			<p class="caught">{(err as Error).message}</p>
@@ -765,7 +892,7 @@ function ErrorBoundaryApp() {
 
 function MaybeThrow(props: { shouldThrow: boolean }) {
 	return <>
-		if (props.shouldThrow) {
+		@if (props.shouldThrow) {
 			throw new Error('conditional boom');
 		}
 		<p class="ok">{'no error'}</p>
@@ -774,8 +901,11 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 
 function ErrorToggleApp() {
 	return <>
-		const fail = ref(false);
-		try {
+		---
+			const fail = ref(false);
+		---
+
+		@try {
 			<MaybeThrow shouldThrow={fail.value} />
 		} catch (err, reset) {
 			<p class="caught">{(err as Error).message}</p>
@@ -795,16 +925,19 @@ function ErrorToggleApp() {
 
 function InnerThrow() {
 	return <>
-		throw new Error('inner error');
+		---
+			throw new Error('inner error');
+		---
+
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err) {
 					<p class="inner-caught">{(err as Error).message}</p>
@@ -818,9 +951,12 @@ function NestedTryApp() {
 
 function IfInsideTryApp() {
 	return <>
-		const show = ref(true);
-		try {
-			if (show.value) {
+		---
+			const show = ref(true);
+		---
+
+		@try {
+			@if (show.value) {
 				<p class="branch-a">{'visible'}</p>
 			} else {
 				<p class="branch-b">{'alternate'}</p>
@@ -834,9 +970,12 @@ function IfInsideTryApp() {
 
 function ForInsideTryApp() {
 	return <>
-		const items = ref(['x', 'y']);
-		try {
-			for (const item of items.value) {
+		---
+			const items = ref(['x', 'y']);
+		---
+
+		@try {
+			@for (const item of items.value) {
 				<span class="try-item" key={item}>{item}</span>
 			}
 		} catch (err) {
@@ -848,9 +987,12 @@ function ForInsideTryApp() {
 
 function SwitchInsideTryApp() {
 	return <>
-		const page = ref('home');
-		try {
-			switch (page.value) {
+		---
+			const page = ref('home');
+		---
+
+		@try {
+			@switch (page.value) {
 				case 'home':
 					<p class="try-page">{'Home'}</p>
 					break;
@@ -875,8 +1017,11 @@ function AsyncResolvedChild(props: { value: string }) {
 
 function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 	return <>
-		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		---
+			const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		---
+
+		@try {
 			<AsyncChild value="hello" />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
@@ -886,8 +1031,11 @@ function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 
 function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 	return <>
-		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		---
+			const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		---
+
+		@try {
 			<AsyncChild value="hello" />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
@@ -899,8 +1047,11 @@ function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }
 
 function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
 	return <>
-		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		---
+			const AsyncChild = defineVaporAsyncComponent(() => props.promise);
+		---
+
+		@try {
 			<AsyncChild value="hello" />
 		} pending {}
 	</>;
@@ -908,15 +1059,21 @@ function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedC
 
 function ThrowingSuspenseChild() {
 	return <>
-		throw new Error('pending catch boom');
+		---
+			throw new Error('pending catch boom');
+		---
+
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function SuspenseErrorApp() {
 	return <>
-		const prefix = 'caught: ';
-		try {
+		---
+			const prefix = 'caught: ';
+		---
+
+		@try {
 			<ThrowingSuspenseChild />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>

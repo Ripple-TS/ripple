@@ -19,7 +19,10 @@ function ResolvedChild(props: { value: string }) {
 
 function ExplicitHtmlApp() {
 	return <>
-		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+		---
+			const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+		---
+
 		<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
 		<button
 			class="explicit-html-update"
@@ -34,10 +37,13 @@ function ExplicitHtmlApp() {
 
 function SpreadHtmlApp() {
 	return <>
-		const [spreadProps, setSpreadProps] = useState({
-			dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
-		});
-		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+		---
+			const [spreadProps, setSpreadProps] = useState({
+				dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
+			});
+			const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+		---
+
 		<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
 		<button
 			class="spread-html-update-spread"
@@ -64,8 +70,11 @@ function EmptyPendingSuspenseApp(props: {
 	loader: () => Promise<{ default: typeof ResolvedChild }>;
 }) {
 	return <>
-		const LazyChild = lazy(props.loader);
-		try {
+		---
+			const LazyChild = lazy(props.loader);
+		---
+
+		@try {
 			<LazyChild value="hello" />
 		} pending {}
 	</>;
@@ -73,18 +82,25 @@ function EmptyPendingSuspenseApp(props: {
 
 function ForContinueApp() {
 	return <>
-		const items = ['a', '', 'c'];
-		for (const item of items) {
-			if (!item) continue;
-			<li class="continue-item" key={item}>{item}</li>
+		---
+			const items = ['a', '', 'c'];
+		---
+
+		@for (const item of items) {
+			@if (item) {
+				<li class="continue-item" key={item}>{item}</li>
+			}
 		}
 	</>;
 }
 
 function ForOverSetApp() {
 	return <>
-		const items = new Set<string>(['x', 'y', 'z']);
-		for (const item of items) {
+		---
+			const items = new Set<string>(['x', 'y', 'z']);
+		---
+
+		@for (const item of items) {
 			<li class="set-item" key={item}>{item}</li>
 		}
 	</>;
@@ -92,12 +108,15 @@ function ForOverSetApp() {
 
 function ForOverMapApp() {
 	return <>
-		const entries = new Map<string, number>([
-			['a', 1],
-			['b', 2],
-			['c', 3],
-		]);
-		for (const [key, value] of entries) {
+		---
+			const entries = new Map<string, number>([
+				['a', 1],
+				['b', 2],
+				['c', 3],
+			]);
+		---
+
+		@for (const [key, value] of entries) {
 			<li class="map-item" {key}>{key + ':' + value}</li>
 		}
 	</>;
@@ -105,13 +124,16 @@ function ForOverMapApp() {
 
 function ForOverCustomIterableApp() {
 	return <>
-		function* iter() {
-			yield 'one';
-			yield 'two';
-			yield 'three';
-		}
-		const items = iter();
-		for (const item of items) {
+		---
+			function* iter() {
+				yield 'one';
+				yield 'two';
+				yield 'three';
+			}
+			const items = iter();
+		---
+
+		@for (const item of items) {
 			<li class="generator-item" key={item}>{item}</li>
 		}
 	</>;
@@ -123,12 +145,15 @@ let named_direct_anonymous_node: HTMLInputElement | null = null;
 
 function NamedDirectRefApp() {
 	return <>
-		function nativeRef(node: HTMLInputElement | null) {
-			named_direct_native_node = node;
-		}
-		function anonymousRef(node: HTMLInputElement | null) {
-			named_direct_anonymous_node = node;
-		}
+		---
+			function nativeRef(node: HTMLInputElement | null) {
+				named_direct_native_node = node;
+			}
+			function anonymousRef(node: HTMLInputElement | null) {
+				named_direct_anonymous_node = node;
+			}
+		---
+
 		<input
 			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
@@ -226,8 +251,11 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
 	return <>
-		const first = { type: props.type, ref: props.first_ref };
-		const second = { ref: props.second_ref };
+		---
+			const first = { type: props.type, ref: props.first_ref };
+			const second = { ref: props.second_ref };
+		---
+
 		<input
 			{...first}
 			{...second}
@@ -261,7 +289,10 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 	if (!props.active) return null;
 
 	return <>
-		const [count, setCount] = useState(0);
+		---
+			const [count, setCount] = useState(0);
+		---
+
 		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 			{props.label + ':' + count}
 		</button>
@@ -270,8 +301,11 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 
 function TsrxExpressionHookApp() {
 	return <>
-		const [active, setActive] = useState(false);
-		const [label, setLabel] = useState('first');
+		---
+			const [active, setActive] = useState(false);
+			const [label, setLabel] = useState('first');
+		---
+
 		<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
 			{active ? 'hide' : 'show'}
 		</button>
