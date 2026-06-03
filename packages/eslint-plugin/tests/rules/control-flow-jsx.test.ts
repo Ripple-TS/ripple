@@ -109,6 +109,53 @@ ruleTester.run('control-flow-jsx', rule, {
 				}
 			`,
 		},
+		// Valid: plain setup for...of can delegate rendering to nested TSRX directives
+		{
+			code: `
+				function Icon({ paths }) {
+					return <svg>
+					for (const path of paths) {
+						@switch (path.type) {
+							case 'circle':
+								<circle cx={path.x} cy={path.y} r={path.r} />
+								break;
+							case 'line':
+								<line x1={path.x1} y1={path.y1} x2={path.x2} y2={path.y2} />
+								break;
+						}
+					}
+					</svg>;
+				}
+			`,
+		},
+		{
+			code: `
+				function App({ items }) {
+					return <>
+					for (const item of items) {
+						@if (item.visible) {
+							<div>{item.label}</div>
+						}
+					}
+					</>;
+				}
+			`,
+		},
+		{
+			code: `
+				function App({ items }) {
+					return <>
+					for (const item of items) {
+						@try {
+							<Row {item} />
+						} catch (error) {
+							<Fallback {error} />
+						}
+					}
+					</>;
+				}
+			`,
+		},
 	],
 	invalid: [
 		// Invalid: @for without JSX in returned TSRX

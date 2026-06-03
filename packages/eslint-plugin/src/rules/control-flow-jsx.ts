@@ -24,12 +24,20 @@ const rule: Rule.RuleModule = {
 		let nonComponentFunctionDepth = 0;
 		const functionStack: boolean[] = [];
 
-		function containsJSX(node: AST.Node, visited: Set<AST.Node> = new Set()): boolean {
+		function containsJSX(
+			node: AST.Node,
+			visited: Set<AST.Node> = new Set(),
+			options: { skipTemplateDirectiveSubtrees?: boolean } = {},
+		): boolean {
 			if (!node) return false;
 
 			// Avoid infinite loops from circular references
 			if (visited.has(node)) return false;
 			visited.add(node);
+
+			if (options.skipTemplateDirectiveSubtrees && node.metadata?.tsrxDirective) {
+				return false;
+			}
 
 			if (
 				node.type === ('JSXElement' as string) ||
@@ -49,11 +57,11 @@ const rule: Rule.RuleModule = {
 				if (value && typeof value === 'object') {
 					if (Array.isArray(value)) {
 						for (const item of value) {
-							if (item && typeof item === 'object' && containsJSX(item, visited)) {
+							if (item && typeof item === 'object' && containsJSX(item, visited, options)) {
 								return true;
 							}
 						}
-					} else if (value.type && containsJSX(value, visited)) {
+					} else if (value.type && containsJSX(value, visited, options)) {
 						return true;
 					}
 				}
@@ -82,6 +90,9 @@ const rule: Rule.RuleModule = {
 
 				const hasJSX = containsJSX(node.body);
 				const isTemplateFor = node.metadata?.tsrxDirective === 'for';
+				const hasNonDirectiveJSX = containsJSX(node.body, new Set(), {
+					skipTemplateDirectiveSubtrees: true,
+				});
 
 				if (insideEffect > 0) {
 					if (hasJSX) {
@@ -98,7 +109,7 @@ const rule: Rule.RuleModule = {
 							node,
 							messageId: 'requireJsxInLoop',
 						});
-					} else if (!isTemplateFor && hasJSX) {
+					} else if (!isTemplateFor && hasNonDirectiveJSX) {
 						context.report({
 							node,
 							messageId: 'requireDirectiveForRenderingLoop',
