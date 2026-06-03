@@ -77,7 +77,7 @@ The parser supports TSRX syntax including:
 - Template directives like `@if`, `@for`, `@switch`, and `@try`
 - Function components that return TSRX, TSX, or standard JavaScript values
 - `track()` reactive values (imported from `ripple`)
-- `@` unboxing operator
+- `&{}` and `&[]` lazy destructuring
 - Reactive collections
 - All standard JavaScript/TypeScript syntax
 

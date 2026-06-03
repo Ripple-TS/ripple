@@ -13,7 +13,7 @@ const NESTED_BOUNDARY_TYPES = new Set([
 	'StaticBlock',
 ]);
 
-export function isNativeTsrxNode(node: AST.Node | null | undefined): boolean {
+export function isNativeTsrxJsxNode(node: AST.Node | null | undefined): boolean {
 	return (
 		!!node &&
 		(node.type === ('JSXElement' as string) ||
@@ -31,7 +31,7 @@ export function functionReturnsNativeTsrx(node: AST.Node): boolean {
 		return false;
 	}
 
-	if (isNativeTsrxNode(body)) {
+	if (isNativeTsrxJsxNode(body)) {
 		return true;
 	}
 
@@ -47,7 +47,7 @@ function containsNativeTsrxReturn(node: AnyNode): boolean {
 		return false;
 	}
 
-	if (node.type === 'ReturnStatement' && isNativeTsrxNode(node.argument)) {
+	if (node.type === 'ReturnStatement' && isNativeTsrxJsxNode(node.argument)) {
 		return true;
 	}
 
