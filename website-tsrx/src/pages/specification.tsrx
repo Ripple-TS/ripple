@@ -38,8 +38,8 @@ const EXPRESSION_VALUE_GRAMMAR = [
 ].join('\n');
 
 const TEMPLATE_EXPRESSION_GRAMMAR = [
-	'DoubleQuotedTextChild :',
-	'  " JSXStringCharactersopt "',
+	'JSXTextChild :',
+	'  JSXTextCharacters',
 	'',
 	'TemplateExpression :',
 	'  { AssignmentExpression }',
@@ -78,7 +78,7 @@ const AST_NODE_MAPPING = [
 	'ElementStatement -> Element',
 	'=> AssignmentExpression -> TsrxRenderStatement(argument: Expression)',
 	'{ AssignmentExpression } in template position -> TSRXExpression',
-	'DoubleQuotedTextChild -> Text',
+	'JSXTextChild -> Text',
 	'JSXAttributeName JSXAttributeInitializeropt -> Attribute',
 	'{ ... AssignmentExpression } in attribute position -> SpreadAttribute',
 	'<> TemplateChildrenopt </> -> TsrxFragment',
@@ -357,7 +357,7 @@ export function SpecificationPage() {
 								{'. This statement-oriented model is normative. A tree that contributes directly to a template body is not interchangeable with an ordinary expression value.'}
 							</p>
 							<p class="section-body">
-								{'Template position also admits direct double-quoted static text children and braced expression forms. The ordinary form '}
+								{'Template position also admits JSX text children and braced expression forms. The ordinary form '}
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
 								{' contributes a generic template-expression node. '}
 								<code class="inline-code">{'=>'}</code>
@@ -368,11 +368,11 @@ export function SpecificationPage() {
 							</pre>
 							<ul class="spec-list">
 								<li>
-									{'A direct double-quoted text child is represented by '}
+									{'A JSX text child is represented by '}
 									<code class="inline-code">{'Text'}</code>
-									{' with a string literal expression and contributes escaped static text. Its quoted contents use the same lexical rules as a quoted JSX attribute value: character references such as '}
+									{' with a string literal expression and contributes escaped static text. Character references such as '}
 									<code class="inline-code">{'&quot;'}</code>
-									{' are decoded, and backslashes do not escape the closing quote.'}
+									{' are decoded before the literal expression is stored.'}
 								</li>
 								<li>
 									<code class="inline-code">{'{ AssignmentExpression }'}</code>
@@ -577,7 +577,7 @@ export function SpecificationPage() {
 									{'TSRXExpression wraps the embedded ECMAScript expression from the ordinary {expr} template form.'}
 								</li>
 								<li>
-									{'Text wraps a direct double-quoted static text child and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
+									{'Text wraps a JSX text child and marks it for escaped text handling. Static text children decode JSX character references before the literal expression is stored.'}
 								</li>
 								<li>
 									{'TsrxRenderStatement corresponds to '}

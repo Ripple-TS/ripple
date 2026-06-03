@@ -331,36 +331,32 @@ TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
 Once the TSRX expression is open, its children use template statement syntax:
 elements, locals, `if`, `for...of`, `switch`, and `try` can appear in the
 template body. At ordinary template depth, direct TSRX markup renders normally.
-Inside control-flow blocks, rendered output is explicit: use `=> <Element />`,
-`=> "text"`, or `=> expression` to contribute to the current lexical block.
+Inside control-flow blocks, rendered output is explicit: use `=> <Element />` or
+`=> expression` to contribute to the current lexical block.
 `return` exits the enclosing function.
 
 ```tsrx
 const Greeting = ({ name }: { name?: string }) => <>
 	<div class="card">
 		if (name) {
-			=> <p>
-				"Hello, "
-				{name}
-			</p>
+			=> <p>Hello, {name}</p>
 		} else {
-			=> <p>"Hello, stranger"</p>
+			=> <p>Hello, stranger</p>
 		}
 	</div>
 </>;
 ```
 
-Static text can be written as direct double-quoted children. Dynamic values and
-JavaScript expressions still use `{...}`.
+Static text is written as JSX text. Dynamic values and JavaScript expressions
+still use `{...}`.
 
 ```tsrx
-<div>"Hello World"</div>
+<div>Hello World</div>
 <div>{'Hello World'}</div>
 <div>{user.name}</div>
 ```
 
-Bare unquoted text is not valid TSRX text. Use a double-quoted text child or an
-expression container.
+Use JSX text for literal content and an expression container for computed values.
 
 ### Expression values
 
@@ -369,7 +365,7 @@ produce native TSRX values.
 
 ```tsrx
 const App = () => <>
-	const title = <span class="title">"Settings"</span>;
+	const title = <span class="title">Settings</span>;
 
 	<Card {title} />
 </>;
@@ -441,8 +437,8 @@ props, use the `=>` shortcut or pass `children={...}` explicitly.
 
 ```tsrx
 <Card>
-	<h2>"Title"</h2>
-	<p>"Content goes here."</p>
+	<h2>Title</h2>
+	<p>Content goes here.</p>
 </Card>
 
 <List>
@@ -464,11 +460,11 @@ when the branch should exit the enclosing function.
 const StatusBadge = ({ status }: { status: string }) => <>
 	<div>
 		if (status === 'active') {
-			=> <span class="badge active">"Online"</span>
+			=> <span class="badge active">Online</span>
 		} else if (status === 'idle') {
-			=> <span class="badge idle">"Away"</span>
+			=> <span class="badge idle">Away</span>
 		} else {
-			=> <span class="badge">"Offline"</span>
+			=> <span class="badge">Offline</span>
 		}
 	</div>
 </>;
@@ -501,13 +497,13 @@ loops into a nested function.
 const StatusMessage = ({ status }: { status: string }) => <>
 	switch (status) {
 		case 'loading':
-			=> <p>"Loading..."</p>
+			=> <p>Loading...</p>
 			break;
 		case 'success':
-			=> <p class="success">"Done!"</p>
+			=> <p class="success">Done!</p>
 			break;
 		default:
-			=> <p>"Unknown status."</p>
+			=> <p>Unknown status.</p>
 	}
 </>;
 ```
@@ -521,9 +517,9 @@ export const App = () => <>
 	try {
 		=> <UserProfile id={1} />
 	} pending {
-		=> <p>"Loading..."</p>
+		=> <p>Loading...</p>
 	} catch (e) {
-		=> <p>"Something went wrong."</p>
+		=> <p>Something went wrong.</p>
 	}
 </>;
 ```
@@ -542,7 +538,7 @@ export const RetryBoundary = () => <>
 				"Error: "
 				{e.message}
 			</p>
-			<button onClick={() => reset()}>"Try again"</button>
+			<button onClick={() => reset()}>Try again</button>
 		</div>
 	}
 </>;
@@ -564,7 +560,7 @@ const Dashboard = ({ user }: { user: User | null }) => <>
 		"Welcome, "
 		{user.name}
 	</h1>
-	<p>"Here is your dashboard."</p>
+	<p>Here is your dashboard.</p>
 </>;
 ```
 
@@ -583,8 +579,8 @@ read them from static CSS with `var(--name)`.
 ```tsrx
 const Card = ({ tone }: { tone: string }) => <>
 	<div class="card" style={{ '--card-tone': tone }}>
-		<h2>"Scoped title"</h2>
-		<p>"Styles here won't leak out."</p>
+		<h2>Scoped title</h2>
+		<p>Styles here won't leak out.</p>
 	</div>
 	<style>
 		.card {
@@ -606,7 +602,7 @@ elements and React component props. Other TSRX targets commonly use `class`.
 
 ```tsrx
 const Badge = ({ class: className }: { class?: string }) => <>
-	<span class={'badge ' + (className ?? '')}>"New"</span>
+	<span class={'badge ' + (className ?? '')}>New</span>
 	<style>
 		.badge {
 			padding: 0.25rem 0.5rem;
@@ -740,7 +736,7 @@ export const Counter = () => <>
 ```tsrx
 const Cart = ({ items }: { items: Item[] }) => <>
 	<div>
-		<h2>"Your cart"</h2>
+		<h2>Your cart</h2>
 
 		const subtotal = items.reduce((sum, item) => sum + item.price, 0);
 		const discount =
@@ -785,9 +781,9 @@ const List = <T,>({ items, render }: Props<T>) => <>
 | ---------------------- | ------------------------------------------------------ |
 | Component function     | `const Name = (props: T) => <>...</>;`                 |
 | Exported component     | `export const Name = (...) => <>...</>;`               |
-| Native TSRX value      | `const v = <div>"Hi"</div>;`                           |
-| Native TSRX fragment   | `const v = <><span>"Hi"</span></>;`                    |
-| Text content           | `<p>"literal"</p>`, `<p>{expr}</p>`                    |
+| Native TSRX value      | `const v = <div>Hi</div>;`                            |
+| Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
+| Text content           | `<p>literal</p>`, `<p>{expr}</p>`                     |
 | Expression children    | `<List> => items.map(render) </List>`                  |
 | Lazy prop destructure  | `const C = (&{ x, y }: Props) => <>...</>;`            |
 | Lazy array destructure | `let &[count, set] = createSignal(0);`                 |

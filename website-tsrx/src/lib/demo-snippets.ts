@@ -29,7 +29,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
         }
       </ul>
     } else {
-      => <p>"Loading output..."</p>
+      => <p>Loading output...</p>
     }
   </section>
 
@@ -79,11 +79,11 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => <>
   <div>
     if (status === 'active') {
-      => <span class="badge active">"Online"</span>
+      => <span class="badge active">Online</span>
     } else if (status === 'idle') {
-      => <span class="badge idle">"Away"</span>
+      => <span class="badge idle">Away</span>
     } else {
-      => <span class="badge">"Offline"</span>
+      => <span class="badge">Offline</span>
     }
   </div>
 </>;`,
@@ -95,7 +95,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `const TodoList = ({ items }: { items: { text: string }[] }) => <>
   <ul>
     for (const item of items; index i) {
-      => <li>{i + 1}". "{item.text}</li>
+      => <li>{i + 1}. {item.text}</li>
     }
   </ul>
 </>;`,
@@ -107,13 +107,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `const StatusMessage = ({ status }: { status: string }) => <>
   switch (status) {
     case 'loading':
-      => <p>"Loading..."</p>
+      => <p>Loading...</p>
       break;
     case 'success':
-      => <p class="success">"Done!"</p>
+      => <p class="success">Done!</p>
       break;
     default:
-      => <p>"Unknown status."</p>
+      => <p>Unknown status.</p>
   }
 </>;`,
 	},
@@ -126,7 +126,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
     => <UserProfile id={userId} />
   } catch (error) {
     => <div class="error">
-      <p>"Something went wrong."</p>
+      <p>Something went wrong.</p>
     </div>
   }
 </>;`,
@@ -141,7 +141,7 @@ export const App = () => <>
   try {
     => <AsyncProfile />
   } pending {
-    => <p class="pending">"Loading profile..."</p>
+    => <p class="pending">Loading profile...</p>
   }
 </>;`,
 	},
@@ -155,7 +155,7 @@ export const App = () => <>
   try {
     => <AsyncProfile />
   } pending {
-    => <p class="pending">"Loading profile..."</p>
+    => <p class="pending">Loading profile...</p>
   } catch (error) {
     => <p class="error">{(error as Error).message}</p>
   }
@@ -166,8 +166,8 @@ export const App = () => <>
 		label: 'Scoped styles',
 		source: `const Card = () => <>
   <div class="card">
-    <h2>"Scoped title"</h2>
-    <p>"Styles here do not leak out."</p>
+    <h2>Scoped title</h2>
+    <p>Styles here do not leak out.</p>
   </div>
 
   <style>
@@ -214,7 +214,7 @@ export const App = () => <>
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>"Nested React Hooks"</h1>
+  <h1>Nested React Hooks</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>
@@ -244,7 +244,7 @@ export const App = () => <>
     { title: 'Hydration deep dive' },
   ];
 
-  <h1>"Nested Preact Hooks"</h1>
+  <h1>Nested Preact Hooks</h1>
   <button onClick={() => setTab(tab === 'overview' ? 'recent' : 'overview')}>
     {tab}
   </button>

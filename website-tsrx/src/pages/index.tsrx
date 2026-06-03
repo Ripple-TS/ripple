@@ -4,9 +4,9 @@ const SNIPPET_HTML = highlight_tsrx(
 	`export const Greeting = ({ name }: { name?: string }) => <>
   <div class="card">
     if (name) {
-      => <p>"Hello, "{name}</p>
+      => <p>Hello, {name}</p>
     } else {
-      => <p>"Hello, stranger"</p>
+      => <p>Hello, stranger</p>
     }
   </div>
 
@@ -22,7 +22,7 @@ const REACT_HOOKS_HTML = highlight_tsrx(
     const user = useUser(userId);
     => <h1>{user.name}</h1>
   } else {
-    => <a href="/login">"Sign in"</a>
+    => <a href="/login">Sign in</a>
   }
 </>;`,
 );
@@ -31,7 +31,7 @@ const SOLID_LAZY_HTML = highlight_tsrx(
 	`const Counter = (&{ count, label }: Props) => <>
   <section>
     <h2>{label}</h2>
-    <p>"Count: "{count}</p>
+    <p>Count: {count}</p>
   </section>
 </>;`,
 );
@@ -39,13 +39,13 @@ const SOLID_LAZY_HTML = highlight_tsrx(
 const INLINE_LOCALS_HTML = highlight_tsrx(
 	`const Cart = ({ items }: { items: Item[] }) => <>
   <div>
-    <h2>"Your cart"</h2>
+    <h2>Your cart</h2>
 
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount = subtotal > 100 ? 0.1 : 0;
 
-    <p>"Subtotal: $"{subtotal}</p>
-    <p>"Save: $"{(subtotal * discount).toFixed(2)}</p>
+    <p>Subtotal: \${subtotal}</p>
+    <p>Save: \${(subtotal * discount).toFixed(2)}</p>
   </div>
 </>;`,
 );
@@ -67,7 +67,7 @@ const COLOCATION_HTML = highlight_tsrx(
 
         => <>
           <p class="bio">{short_bio}</p>
-          <button onClick={report}>"Viewed"</button>
+          <button onClick={report}>Viewed</button>
         </>
       }
     </div>

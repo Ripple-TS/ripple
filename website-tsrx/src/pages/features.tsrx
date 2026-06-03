@@ -35,20 +35,20 @@ const BAILOUT_HTML = highlight_tsrx(
     }
   };
 
-  <button onClick={increment}>"Count: "{count}</button>
+  <button onClick={increment}>Count: {count}</button>
 </>;`,
 );
 
 const TEMPLATE_HTML = highlight_tsrx(
 	`const Greeting = () => <>
-  <h1>"Hello World"</h1>
-  <p>"Welcome to TSRX."</p>
+  <h1>Hello World</h1>
+  <p>Welcome to TSRX.</p>
 </>;`,
 );
 
 const TSX_EXPR_HTML = highlight_tsrx(
 	`const App = () => <>
-  const title = <><span class="title">"Settings"</span></>;
+  const title = <><span class="title">Settings</span></>;
 
   <Card {title} />
 </>;`,
@@ -56,7 +56,7 @@ const TSX_EXPR_HTML = highlight_tsrx(
 
 const TSX_EXPR_HTML_SINGLE = highlight_tsrx(
 	`const App = () => <>
-  const title = <span class="title">"Settings"</span>;
+  const title = <span class="title">Settings</span>;
 
   <Card {title} />
 </>;`,
@@ -64,7 +64,7 @@ const TSX_EXPR_HTML_SINGLE = highlight_tsrx(
 
 const TEXT_EXPR_HTML = highlight_tsrx(
 	`const Inbox = ({ name, count }: { name: string; count: number }) => <>
-  <p>"Hello, "{name}"!"</p>
+  <p>Hello, {name}!</p>
   <p>{'You have ' + count + ' unread messages'}</p>
   <p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
 </>;`,
@@ -74,11 +74,11 @@ const IF_HTML = highlight_tsrx(
 	`const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => <>
   <div>
     if (status === 'active') {
-      => <span class="badge active">"Online"</span>
+      => <span class="badge active">Online</span>
     } else if (status === 'idle') {
-      => <span class="badge idle">"Away"</span>
+      => <span class="badge idle">Away</span>
     } else {
-      => <span class="badge">"Offline"</span>
+      => <span class="badge">Offline</span>
     }
   </div>
 </>;`,
@@ -89,7 +89,7 @@ const FOR_HTML = highlight_tsrx(
   <ul>
     for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
-      => <li>{i + 1}". "{item.text}</li>
+      => <li>{i + 1}. {item.text}</li>
     }
   </ul>
 </>;`,
@@ -101,7 +101,7 @@ const TRY_HTML = highlight_tsrx(
     => <UserProfile id={userId} />
   } catch (error) {
     => <div class="error">
-        <p>"Something went wrong."</p>
+        <p>Something went wrong.</p>
       </div>
   }
 </>;`,
@@ -113,8 +113,8 @@ const TRY_RESET_HTML = highlight_tsrx(
     => <ComponentThatMightFail />
   } catch (e, reset) {
     => <div>
-        <p>"Error: "{e.message}</p>
-        <button onClick={() => reset()}>"Try again"</button>
+        <p>Error: {e.message}</p>
+        <button onClick={() => reset()}>Try again</button>
       </div>
   }
 </>;`,
@@ -124,13 +124,13 @@ const SWITCH_HTML = highlight_tsrx(
 	`const StatusMessage = ({ status }: { status: string }) => <>
   switch (status) {
     case 'loading':
-      => <p>"Loading..."</p>
+      => <p>Loading...</p>
       break;
     case 'success':
-      => <p class="success">"Done!"</p>
+      => <p class="success">Done!</p>
       break;
     default:
-      => <p>"Unknown status."</p>
+      => <p>Unknown status.</p>
   }
 </>;`,
 );
@@ -158,8 +158,8 @@ const SCOPING_HTML = highlight_tsrx(
 const CHILDREN_HTML = highlight_tsrx(
 	`// Children as nested JSX - this works:
 <Card>
-  <h2>"Title"</h2>
-  <p>"Content goes here."</p>
+  <h2>Title</h2>
+  <p>Content goes here.</p>
 </Card>
 
 // Passing a function or array? Use =>:
@@ -188,9 +188,9 @@ export const App = () => <>
   try {
     => <UserProfile id={1} />
   } pending {
-    => <p>"Loading..."</p>
+    => <p>Loading...</p>
   } catch (e) {
-    => <p>"Something went wrong."</p>
+    => <p>Something went wrong.</p>
   }
 </>;`,
 );
@@ -198,8 +198,8 @@ export const App = () => <>
 const SCOPED_STYLES_HTML = highlight_tsrx(
 	`const Card = () => <>
   <div class="card">
-    <h2>"Scoped title"</h2>
-    <p>"Styles here won't leak out."</p>
+    <h2>Scoped title</h2>
+    <p>Styles here won't leak out.</p>
   </div>
 
   <style>
@@ -215,7 +215,7 @@ const SCOPED_STYLES_HTML = highlight_tsrx(
 
 const STYLE_COMPOSITION_HTML = highlight_tsrx(
 	`const Badge = ({ class: className }: { class?: string }) => <>
-  <span class={'badge ' + (className ?? '')}>"New"</span>
+  <span class={'badge ' + (className ?? '')}>New</span>
 
   <style>
     .badge { padding: 0.25rem 0.5rem; }
@@ -285,7 +285,7 @@ const LAZY_PROPS_HTML = highlight_tsrx(
 	`const UserCard = (&{ name, age }: { name: string; age: number }) => <>
   <div>
     <h2>{name}</h2>
-    <p>"Age: "{age}</p>
+    <p>Age: {age}</p>
   </div>
 </>;`,
 );
@@ -404,7 +404,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">{'() => <>...</>'}</code>
 							{' or a nested value '}
 							<code class="inline-code">{'const node = <div />'}</code>
-							{'. Once you are inside a template, control flow, locals, and nested elements can appear directly in the tree. Static text can be written as direct double-quoted children, while dynamic values and JavaScript expressions still use '}
+							{'. Once you are inside a template, control flow, locals, nested elements, and JSX text can appear directly in the tree. Dynamic values and JavaScript expressions still use '}
 							<code class="inline-code">{'{}'}</code>
 							{'.'}
 						</p>
@@ -439,7 +439,7 @@ export const FeaturesPage = () => <>
 					<section class="doc-section" id="text-expressions">
 						<h2 class="section-heading">{'Text expressions'}</h2>
 						<p class="section-body">
-							{'Because TSRX templates parse text deliberately, unquoted bare text can\'t sit directly inside an element the way it does in React. Static text may be written as a direct double-quoted child. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
+							{'Static text is ordinary JSX text. JavaScript string literals, template literals, variables, function calls, ternaries, and other dynamic values live inside expression containers '}
 							<code class="inline-code">{'{ ... }'}</code>
 							{'.'}
 						</p>
