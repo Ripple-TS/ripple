@@ -11,47 +11,43 @@
 
 # Ripple TS
 
-Ripple is a TypeScript UI framework that combines the best parts of React, Solid,
-and Svelte. Created by [@trueadm](https://github.com/trueadm), who has contributed
-to [Inferno](https://github.com/infernojs/inferno),
+Ripple is a TypeScript-first UI framework built around `.tsrx` files, fine-grained
+reactivity, scoped styles, and a small runtime. It pairs the authoring feel of
+JSX with template-native control flow and TypeScript setup that can live right
+beside the UI it feeds.
+
+Created by [@trueadm](https://github.com/trueadm), who has contributed to
+[Inferno](https://github.com/infernojs/inferno),
 [React](https://github.com/facebook/react),
 [Lexical](https://github.com/facebook/lexical), and
 [Svelte 5](https://github.com/sveltejs/svelte).
 
-**Key Philosophy:** Ripple is TS-first with `.tsrx` as its default UI file
-extension. Components are ordinary TypeScript functions that return native TSRX
-expressions, so setup code stays familiar while template bodies can use inline
-control flow.
+> `.tsrx` is also a standalone language. The shared TSRX compiler stack can target
+> React, Preact, Solid, Vue, and Ripple. Ripple is the runtime-focused target with
+> `track()`, reactive collections, server modules, hydration, and DOM helpers.
 
-> **`.tsrx` is also a standalone language:** the same source can now compile to
-> React, Solid, or Ripple via [TSRX](https://tsrx.dev) — a TypeScript language
-> extension that treats Ripple as one of several target runtimes. If you want the
-> authoring ergonomics without committing to Ripple's runtime, start there.
-
-📚 **[Ripple Docs](https://www.ripple-ts.com/docs)** | 🎮
-**[Ripple Playground](https://www.ripple-ts.com/playground)** | 🧩
+**[Ripple Docs](https://www.ripple-ts.com/docs)** |
+**[Ripple Playground](https://www.ripple-ts.com/playground)** |
 **[TSRX Website](https://tsrx.dev)**
 
 ## Features
 
-- ⚡ **Fine-grained Reactivity**: `track` with lazy destructuring for a unique
-  reactivity system
-- 🔥 **Performance**: Industry-leading rendering speed, bundle size, and memory
-  usage
-- 📦 **Reactive Collections**: `RippleArray`, `RippleObject`, `RippleMap`,
-  `RippleSet` imported from `'ripple'` with full reactivity
-- 🎯 **TypeScript First**: Complete type safety with the default `.tsrx` extension
-- 🛠️ **Developer Tools**: VSCode extension, Prettier, and ESLint support
-- 🎨 **Scoped Styling**: Function-local CSS with automatic scoping
+- Fine-grained reactivity with `track()` and lazy destructuring.
+- Reactive `RippleArray`, `RippleObject`, `RippleMap`, and `RippleSet`.
+- Template-native `@if`, `@for`, `@switch`, and `@try`.
+- Local TypeScript setup inside templates with the optional `---` fence.
+- Scoped `<style>` blocks with automatic class hashing.
+- Vite, editor, Prettier, ESLint, SSR, and hydration support.
 
-## 🚀 Quick Start
+## Quick Start
 
-### Using CLI (Recommended)
+### Using CLI
 
 ```bash
 npx create-ripple
 cd my-app
-npm install && npm run dev
+npm install
+npm run dev
 ```
 
 ### Using Template
@@ -59,20 +55,19 @@ npm install && npm run dev
 ```bash
 npx degit Ripple-TS/ripple/templates/basic my-app
 cd my-app
-npm install && npm run dev
+npm install
+npm run dev
 ```
 
-### Add to Existing Project
+### Add To Existing Project
 
 ```bash
 npm install ripple @ripple-ts/vite-plugin
 ```
 
-> **Note:** You can use `npm`, `pnpm`, `yarn`, or `bun` package managers.
+Use `npm`, `pnpm`, `yarn`, or `bun`, matching your project.
 
-**[→ Full Installation Guide](https://www.ripple-ts.com/docs/quick-start)**
-
-### Mounting Your App
+### Mounting
 
 ```ts
 // index.ts
@@ -80,417 +75,334 @@ import { mount } from 'ripple';
 import { App } from './App.tsrx';
 
 mount(App, {
-  props: { title: 'Hello world!' },
-  target: document.getElementById('root'),
+	props: { title: 'Hello world!' },
+	target: document.getElementById('root'),
 });
 ```
 
-## 🔧 VSCode Extension
-
-Install the
-[Ripple VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin)
-for:
-
-- Syntax highlighting
-- TypeScript integration
-- Real-time diagnostics
-- IntelliSense autocomplete
-
-**[→ Editor Setup Guide](https://www.ripple-ts.com/docs/quick-start#vs-code)**
-
-## Core Concepts
+## Core Syntax
 
 ### Components
 
-Define components as ordinary functions that return native TSRX:
+The recommended component shape is an arrow function whose body is one TSRX
+fragment. That gives every component a stable place for TypeScript setup,
+rendered children, directive control flow, and scoped styles.
 
 ```tsrx
-function Button(props: { text: string; onClick: () => void }) {
-  return <button onClick={props.onClick}>{props.text}</button>;
-}
+type ButtonProps = {
+	text: string;
+	onClick: () => void;
+};
 
-export function App() {
-  return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
-}
+export const Button = ({ text, onClick }: ButtonProps) => <>
+	<button class="button" {onClick}>{text}</button>
+</>;
+
+export const App = () => <>
+	<Button text="Click me" onClick={() => console.log('Clicked!')} />
+</>;
 ```
 
-Direct calls keep ordinary helper semantics. A PascalCase helper such as
-`StatusCode()` or `FormatName()` is left as a normal function when called
-directly; component compilation applies to functions used as components or render
-entries, and to functions that return native TSRX without being directly called.
+Single JSX elements are still valid TSRX values, but public examples should use
+the fragment-body component form unless the example is specifically about a small
+expression value.
 
-**[→ Component Guide](https://www.ripple-ts.com/docs/guide/components)**
+### Local TypeScript Fences
 
-### Reactivity
-
-Create reactive state with `track` and use lazy destructuring (`&[]`) to access
-the value directly:
-
-```tsrx
-import { track } from 'ripple';
-
-export function App() {
-  let &[count] = track(0);
-
-  return <div>
-    <p>"Count: "{count}</p>
-    <button onClick={() => count++}>"Increment"</button>
-  </div>;
-}
-```
-
-You can also pass around the tracked value object from the second argument:
+Inside a fragment, element body, or directive branch, `---` works like localized
+frontmatter: TypeScript setup goes above the fence, rendered template children go
+below it. The fence is optional. If it is absent, text such as `x = 123` between
+tags is JSX text, not JavaScript.
 
 ```tsrx
 import { track } from 'ripple';
 
-export function App() {
-  let &[count, trackedCount] = track(0);
-
-  return <>
-    <div>{count}</div>
-    <IncrementButton {trackedCount} />
-  </>;
-}
+export const Counter = () => <>
+	let &[count] = track(0);
+	const increment = () => count++;
+	---
+	<button onClick={increment}>Count: {count}</button>
+</>;
 ```
 
-Alternatively, you can read and write tracked values directly using the `.value`
-property on the `Tracked<V>` object:
+The same rule applies in nested scopes:
 
 ```tsrx
-import { track } from 'ripple';
-
-export function App() {
-  const count = track(0);
-
-  return <>
-    <div>{count.value}</div>
-    <button onClick={() => count.value++}>"Increment"</button>
-  </>;
-}
+export const Cart = ({ items }: { items: Item[] }) => <>
+	<div class="cart">
+		const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+		const discount = subtotal > 100 ? 0.1 : 0;
+		---
+		<p>Subtotal: ${subtotal}</p>
+		<p>Save: ${(subtotal * discount).toFixed(2)}</p>
+	</div>
+</>;
 ```
 
-Using `&[...]` is preferred in most cases for cleaner code, but `.value` is useful
-when you need to keep the `Tracked<V>` object around — for example, when storing
-tracked values in data structures or passing them as `Tracked<T>` props.
+JavaScript comments are allowed between template children and are not rendered.
 
-**Derived values** automatically update:
+### Text And Expressions
+
+Static text is JSX text. Dynamic values use normal JSX expression containers.
 
 ```tsrx
-import { track } from 'ripple';
-
-export function App() {
-  let &[count] = track(0);
-  let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 2);
-
-  return <div>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <p>"Quadruple: "{quadruple}</p>
-    <button onClick={() => count++}>"Increment"</button>
-  </div>;
-}
+export const Greeting = ({ name }: { name?: string }) => <>
+	@if (name) {
+		<p>Hello, {name}</p>
+	} else {
+		<p>Hello, stranger</p>
+	}
+</>;
 ```
-
-**Reactive collections** with full reactivity:
-
-```tsrx
-import { RippleArray, RippleObject, RippleMap, RippleSet } from 'ripple';
-
-export function App() {
-  const items = new RippleArray(1, 2, 3); // RippleArray
-  const obj = new RippleObject({ a: 1, b: 2 }); // RippleObject
-  const map = new RippleMap([['k', 'v']]); // RippleMap
-  const set = new RippleSet([1, 2, 3]); // RippleSet
-
-  return <div>
-    <p>"Items: "{items.join(', ')}</p>
-    <p>"Object: a="{obj.a}", b="{obj.b}", c="{obj.c}</p>
-    <button onClick={() => items.push(items.length + 1)}>"Add Item"</button>
-    <button onClick={() => (obj.c = (obj.c ?? 0) + 1)}>"Increment c"</button>
-  </div>;
-}
-```
-
-**[→ Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity)**
-
-### Transporting Reactivity
-
-Pass the tracked ref (second element) across function boundaries:
-
-```tsrx
-import { track } from 'ripple';
-
-function createDouble(&[count]) {
-  return track(() => count * 2);
-}
-
-export function App() {
-  let &[count, countTracked] = track(0);
-  const &[double] = createDouble(countTracked);
-
-  return <div>
-    <p>"Double: "{double}</p>
-    <button onClick={() => count++}>"Increment"</button>
-  </div>;
-}
-```
-
-**[→ Transporting Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#transporting-reactivity)**
-
-### Effects & Side Effects
-
-```tsrx
-import { track, effect } from 'ripple';
-
-export function App() {
-  let &[count] = track(0);
-
-  effect(() => {
-    console.log('Count changed:', count);
-  });
-
-  return <button onClick={() => count++}>"Increment"</button>;
-}
-```
-
-**[→ Effects & Reactivity Guide](https://www.ripple-ts.com/docs/guide/reactivity#effects)**
 
 ### Control Flow
 
-**Conditionals:**
+Rendered control flow uses directive-prefixed expressions:
+
+```tsrx
+import { RippleArray, track } from 'ripple';
+
+type Item = { id: number; name: string; done?: boolean };
+
+export const TodoList = () => <>
+	const items = new RippleArray<Item>(
+		{ id: 1, name: 'Plan the work' },
+		{ id: 2, name: 'Ship the work' },
+	);
+	let &[showDone] = track(true);
+	---
+	<ul>
+		@for (const item of items; index i; key item.id) {
+			if (!showDone && item.done) continue;
+			<li>
+				{i + 1}. {item.name}
+			</li>
+		}
+	</ul>
+</>;
+```
+
+Use ordinary `return` for real function exits in TypeScript setup. Use `@if` for
+conditional rendering.
+
+```tsrx
+export const Dashboard = ({ user }: { user: User | null }) => <>
+	if (!user) {
+		return null;
+	}
+	---
+	<h1>Welcome, {user.name}</h1>
+	<p>Here is your dashboard.</p>
+</>;
+```
+
+`@try` supports error and pending UI:
+
+```tsrx
+export const ProfilePanel = () => <>
+	@try {
+		<UserProfile />
+	} pending {
+		<p>Loading...</p>
+	} catch (error, reset) {
+		<div>
+			<p>Error: {error.message}</p>
+			<button onClick={() => reset()}>Try again</button>
+		</div>
+	}
+</>;
+```
+
+### Reactivity
+
+Create state with `track()` and lazy destructuring. Reads of lazy bindings stay
+reactive, and assignments write back to the tracked value.
+
+```tsrx
+import { effect, track, type Tracked } from 'ripple';
+
+export const Counter = () => <>
+	let &[count, trackedCount] = track(0);
+	let &[double] = track(() => count * 2);
+
+	effect(() => {
+		console.log('Count changed:', count);
+	});
+	---
+	<p>Count: {count}</p>
+	<p>Double: {double}</p>
+	<button onClick={() => count++}>Increment</button>
+	<CounterValue count={trackedCount} />
+</>;
+
+const CounterValue = ({ count }: { count: Tracked<number> }) => <>
+	<p>Shared value: {count.value}</p>
+</>;
+```
+
+`Tracked<T>` objects can also be read and written through `.value`, which is
+useful when passing reactive values through data structures or props.
+
+### Reactive Collections
+
+Use Ripple collections when collection operations should be reactive.
+
+```tsrx
+import { RippleArray, RippleMap, RippleObject, RippleSet } from 'ripple';
+
+export const Inventory = () => <>
+	const items = new RippleArray({ id: 1, name: 'Jacket' });
+	const totals = new RippleObject({ selected: 0 });
+	const prices = new RippleMap([[1, 120]]);
+	const selected = new RippleSet<number>();
+	---
+	<ul>
+		@for (const item of items; key item.id) {
+			<li>
+				{item.name}: ${prices.get(item.id)}
+			</li>
+		}
+	</ul>
+	<button onClick={() => selected.add(1)}>Select first item</button>
+	<p>Selected: {selected.size + totals.selected}</p>
+</>;
+```
+
+### DOM Refs And Events
+
+DOM refs use `ref`, and events use JSX-style event props.
 
 ```tsrx
 import { track } from 'ripple';
 
-export function App() {
-  let &[condition] = track(true);
-
-  return <div>
-    if (condition) {
-      <div>"True"</div>
-    } else {
-      <div>"False"</div>
-    }
-    <button onClick={() => (condition = !condition)}>"Toggle"</button>
-  </div>;
-}
+export const SearchBox = () => <>
+	let &[value] = track('');
+	let input: HTMLInputElement | undefined;
+	---
+	<label>
+		Search
+		<input
+			ref={input}
+			value={value}
+			onInput={(event) => {
+				value = event.currentTarget.value;
+			}}
+		/>
+	</label>
+	<button onClick={() => input?.focus()}>Focus</button>
+</>;
 ```
 
-**Loops:**
+### Scoped Styles
 
-```tsrx
-import { RippleArray } from 'ripple';
-
-export function App() {
-  const items = new RippleArray({ id: 1, name: 'Item 1' }, {
-    id: 2,
-    name: 'Item 2',
-  }, { id: 3, name: 'Item 3' });
-
-  return <div>
-    for (const item of items; index i; key item.id) {
-      <div>{item.name}" (index: "{i}")"</div>
-    }
-    <button
-      onClick={() => items.push({
-        id: items.length + 1,
-        name: `Item ${items.length + 1}`,
-      })}
-    >
-      "Add Item"
-    </button>
-  </div>;
-}
-```
-
-**Error Boundaries:**
-
-```tsrx
-function ComponentThatMayFail(props: { shouldFail: boolean }) {
-  if (props.shouldFail) {
-    throw new Error('Component failed!');
-  }
-
-  return <div>"Component working fine"</div>;
-}
-
-import { track } from 'ripple';
-
-export function App() {
-  let &[shouldFail] = track(false);
-
-  return <div>
-    try {
-      <ComponentThatMayFail {shouldFail} />
-    } catch (e) {
-      <div>"Error: "{e.message}</div>
-    }
-    <button onClick={() => (shouldFail = !shouldFail)}>"Toggle Error"</button>
-  </div>;
-}
-```
-
-**[→ Control Flow Guide](https://www.ripple-ts.com/docs/guide/control-flow)**
-
-### DOM Refs
-
-Capture DOM elements with the `ref={fn}` syntax:
-
-```tsrx
-export function App() {
-  return <div ref={(node) => console.log(node)}>"Hello"</div>;
-}
-```
-
-**[→ DOM Refs Guide](https://www.ripple-ts.com/docs/guide/dom-refs)**
-
-### Events
-
-Use React-style event handlers:
+`<style>` blocks are static CSS and are scoped to the template. Use CSS custom
+properties for runtime values.
 
 ```tsrx
 import { track } from 'ripple';
 
-export function App() {
-  let &[value] = track('');
-
-  return <div>
-    <button onClick={() => console.log('Clicked')}>"Click"</button>
-    <input onInput={(e) => (value = e.target.value)} />
-    <p>"You typed: "{value}</p>
-  </div>;
-}
+export const Notice = () => <>
+	let &[tone] = track('rebeccapurple');
+	---
+	<p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
+	<button onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}>
+		Toggle tone
+	</button>
+	<style>
+		.notice {
+			color: var(--notice-color);
+			font-weight: 700;
+		}
+	</style>
+</>;
 ```
 
-**[→ Events Guide](https://www.ripple-ts.com/docs/guide/events)**
-
-### Styling
-
-**Scoped CSS:**
+Module-scope style expressions can expose scoped class names:
 
 ```tsrx
-export function App() {
-  return <>
-    <div class="container">"Content"</div>
-    <style>
-      .container {
-        padding: 1rem;
-        background: lightblue;
-        border-radius: 8px;
-      }
-    </style>
-  </>;
-}
+const styles = <style>
+	.highlight {
+		background: #e8f5e9;
+	}
+</style>;
+
+export const Badge = () => <>
+	<span class={styles.highlight}>New</span>
+</>;
 ```
 
-`<style>` blocks contain static CSS. TSRX template rules for JavaScript statements
-and expressions do not apply inside them. For dynamic values, set CSS custom
-properties on elements and read them with `var(...)` from static CSS.
-
-**Dynamic CSS values:**
+### Context And Portals
 
 ```tsrx
-import { track } from 'ripple';
+import { Context, Portal, track, type Tracked } from 'ripple';
 
-export function App() {
-  let &[color] = track('red');
+const ThemeContext = new Context<Tracked<string>>();
 
-  return <>
-    <div class="notice" style={{ '--notice-color': color }}>"Styled text"</div>
-    <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
-      "Toggle Color"
-    </button>
-    <style>
-      .notice {
-        color: var(--notice-color);
-        font-weight: bold;
-      }
-    </style>
-  </>;
-}
+export const App = () => <>
+	let &[theme, themeTracked] = track('light');
+	ThemeContext.set(themeTracked);
+	---
+	<ThemeLabel />
+	<button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+		Toggle theme
+	</button>
+	<Portal target={document.body}>
+		<p>Portal content</p>
+	</Portal>
+</>;
+
+const ThemeLabel = () => <>
+	const theme = ThemeContext.get();
+	---
+	<p>Theme: {theme.value}</p>
+</>;
 ```
 
-**[→ Styling Guide](https://www.ripple-ts.com/docs/guide/styling)**
+### Server Modules
 
-## Advanced Features
-
-### Context API
-
-Share state across the component tree:
+Ripple supports `module server` in `.tsrx` files for server-oriented exports.
+Import from `server` inside the same file before calling the server function.
 
 ```tsrx
-import { Context, track } from 'ripple';
-
-const ThemeContext = new Context();
-
-function Child() {
-  const &[theme] = ThemeContext.get();
-  return <div>"Theme: "{theme}</div>;
+module server {
+	export async function loadMessage() {
+		return 'Loaded on the server';
+	}
 }
 
-export function App() {
-  let &[theme, themeTracked] = track('light');
+import { loadMessage } from server;
+import { effect, track } from 'ripple';
 
-  ThemeContext.set(themeTracked);
-
-  return <div>
-    <Child />
-    <button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
-      "Toggle Theme"
-    </button>
-  </div>;
-}
+export const Page = () => <>
+	let &[message] = track('Loading...');
+	effect(() => {
+		loadMessage().then((next) => {
+			message = next;
+		});
+	});
+	---
+	<p>{message}</p>
+</>;
 ```
 
-**[→ State Management Guide](https://www.ripple-ts.com/docs/guide/state-management#context)**
+## Editor Support
 
-### Portals
-
-Render content outside the component hierarchy:
-
-```tsrx
-import { Portal, track } from 'ripple';
-
-export function App() {
-  let &[showModal] = track(false);
-
-  return <div>
-    <button onClick={() => (showModal = !showModal)}>"Toggle Modal"</button>
-
-    if (showModal) {
-      <Portal target={document.body}>
-        <div class="modal">
-          <p>"Modal content"</p>
-          <button onClick={() => (showModal = false)}>"Close"</button>
-        </div>
-      </Portal>
-    }
-  </div>;
-}
-```
-
-**[→ Portal & Component Guide](https://www.ripple-ts.com/docs/guide/components#portal-component)**
+Install the
+[Ripple VSCode extension](https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin)
+for syntax highlighting, diagnostics, TypeScript integration, and completions.
 
 ## Resources
 
-- 📚 **[Full Documentation](https://www.ripple-ts.com/docs)** - Complete guide and
-  API reference
-- 🎮 **[Interactive Playground](https://www.ripple-ts.com/playground)** - Try
-  Ripple in your browser
-- 🧩 **[TSRX Website](https://tsrx.dev)** - Author `.tsrx` once, compile to React,
-  Solid, or Ripple
-- 🐛 **[GitHub Issues](https://github.com/Ripple-TS/ripple/issues)** - Report bugs
-  or request features
-- 💬 **[Discord Community](https://discord.gg/JBF2ySrh2W)** - Get help and discuss
-  Ripple
-- 📦 **[npm Package](https://www.npmjs.com/package/ripple)** - Install from npm
+- [Full Documentation](https://www.ripple-ts.com/docs)
+- [Interactive Playground](https://www.ripple-ts.com/playground)
+- [TSRX Website](https://tsrx.dev)
+- [GitHub Issues](https://github.com/Ripple-TS/ripple/issues)
+- [Discord Community](https://discord.gg/JBF2ySrh2W)
+- [npm Package](https://www.npmjs.com/package/ripple)
 
 ## Contributing
 
-Contributions are welcome! Please see our
-[contributing guidelines](CONTRIBUTING.md).
+Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

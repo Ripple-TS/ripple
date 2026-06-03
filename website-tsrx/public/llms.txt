@@ -16,7 +16,8 @@ them all the way through to the compiled output.
 **Key characteristics:**
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
-- **TSRX templates**: returned templates can contain elements, locals, and control flow
+- **JSX-shaped templates**: JSX elements, fragments, text, and expression containers use standard JSX node shapes
+- **Localized TypeScript fences**: `---` splits setup from rendered children in each element, fragment, or control-flow branch
 - **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
@@ -326,13 +327,13 @@ const icon = <svg aria-hidden="true" />;
 
 ### Expression outside, statements inside
 
-TSRX opens from JSX expression positions. `return <div />`, `return <>...</>`,
-`const node = <section />`, and `children={<Panel />}` all create TSRX values.
-Once the TSRX expression is open, its children use template syntax: elements,
-locals, JSX text, dynamic `{...}` expressions, and directive-prefixed
-`@if`, `@for`, `@switch`, and `@try` expressions can appear in the template
-body. Direct TSRX markup and direct directive-branch children render normally.
-`return` exits the enclosing function.
+TSRX opens from JSX expression positions: arrow expression bodies, assignments,
+props, helper returns, and children can all create TSRX values. Once the TSRX
+expression is open, its children use template syntax: elements, locals, JSX
+text, dynamic `{...}` expressions, optional localized `---` fences, and
+directive-prefixed `@if`, `@for`, `@switch`, and `@try` expressions can appear
+in the template body. Direct TSRX markup and direct directive-branch children
+render normally. `return` exits the enclosing function.
 
 ```tsrx
 const Greeting = ({ name }: { name?: string }) => <>
@@ -441,8 +442,8 @@ props, pass `children={...}` explicitly.
 
 ## Control Flow
 
-Control-flow constructs are directive-prefixed template expressions inside
-returned TSRX templates, not helper components. Direct children inside each
+Control-flow constructs are directive-prefixed template expressions inside TSRX
+templates, not helper components. Direct children inside each
 branch render into the current template; use `return` when the branch should
 exit the enclosing function.
 
@@ -558,9 +559,9 @@ const Dashboard = ({ user }: { user: User | null }) => <>
 
 ## Scoped Styles
 
-A returned TSRX template can include a `<style>` block. The compiler rewrites
-selectors with a unique hash so rules only apply to elements inside that
-returned template. Parent styles do not leak into child components.
+A TSRX template can include a `<style>` block. The compiler rewrites selectors
+with a unique hash so rules only apply to elements inside that template. Parent
+styles do not leak into child components.
 
 `<style>` blocks contain static CSS. TSRX template rules for JavaScript
 statements and expressions do not apply inside them, so do not put `{expr}`,
@@ -643,16 +644,16 @@ export const ArticleCard = ({ title }: { title: string }) => <>
 </>;
 ```
 
-Inline `<style>` blocks inside a returned TSRX template are scoped to that
-returned template. Module-scope style expressions are reusable class maps and
-are not tied to one returned fragment.
+Inline `<style>` blocks inside a TSRX template are scoped to that template.
+Module-scope style expressions are reusable class maps and are not tied to one
+returned fragment.
 
 ## Target-specific behavior
 
 ### React and Preact
 
-Hooks that appear inside returned TSRX template branches, loops, switches, try
-blocks, or expression values are isolated behind generated child components
+Hooks that appear inside TSRX template branches, loops, switches, try blocks,
+or expression values are isolated behind generated child components
 when safe. Hook results must stay local to the generated component; move shared
 state into an explicit child component when values need to cross the generated
 boundary. React and Preact can also emit async component functions when template

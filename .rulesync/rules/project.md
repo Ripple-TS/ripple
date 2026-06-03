@@ -17,8 +17,10 @@ truth for current work.
 
 Use the nearest live source rather than historical summaries:
 
-- `website/public/llms.txt` for current Ripple syntax, runtime APIs, and authoring
-  guidance
+- `website-tsrx/public/llms.txt` for current target-neutral TSRX syntax,
+  compiler-facing authoring guidance, and examples
+- `website/public/llms.txt` for Ripple runtime APIs, Ripple target behavior, and
+  Ripple-specific authoring guidance
 - `README.md` for project overview, positioning, and quick-start examples
 - `packages/*/README.md` for package-specific usage and public APIs
 - `vitest.config.js` for the current test projects and file globs
@@ -145,8 +147,8 @@ pnpm changeset:check
 
 ## Practical Guidance For Agents
 
-- Prefer the current docs in `website/public/llms.txt` over stale architectural
-  summaries.
+- Prefer the current docs in `website-tsrx/public/llms.txt` and
+  `website/public/llms.txt` over stale architectural summaries.
 - Avoid copying removed compiler APIs, old package layouts, or legacy `.ripple`
   examples into new guidance.
 - If you need exact behavior, read the owning package and its tests instead of

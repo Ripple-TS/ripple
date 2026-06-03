@@ -142,7 +142,6 @@ const App = () => <>
     <span class="badge">{normalized}</span>
   </>;
   ---
-
   <Card title={title}>{badge('New')}</Card>
 </>;
 \`\`\`
@@ -227,7 +226,9 @@ const styles = <style>
   .card { padding: 1rem; }
 </style>;
 
-return <Child class={styles.card} />;
+export const ChildCard = () => <>
+  <Child class={styles.card} />
+</>;
 \`\`\`
 
 \`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.

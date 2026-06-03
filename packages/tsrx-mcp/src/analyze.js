@@ -76,9 +76,10 @@ function create_advice(input) {
 		advice.push({
 			kind: 'jsx-expression-value',
 			severity: 'info',
-			title: 'Wrap expression-position JSX',
-			message: 'When JSX is needed as a value, wrap native TSRX in a fragment `<>...</>`.',
-			documentation: ['tsrx://docs/tsx-expression-values.md'],
+			title: 'Use JSX-shaped expression values',
+			message:
+				'TSRX expression values use JSX-shaped nodes. Use a JSXElement directly for one child, or a JSXFragment when the value needs multiple children, local setup, or template control flow.',
+			documentation: ['tsrx://docs/expression-values.md'],
 		});
 	}
 
@@ -88,7 +89,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Use continue inside TSRX for...of loops',
 			message:
-				'Return statements are not valid inside TSRX templates, and break statements are not valid inside TSRX for...of loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+				'Return statements are function control flow, not template output, and break statements are not valid inside TSRX @for loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}
@@ -97,7 +98,7 @@ function create_advice(input) {
 		advice.push({
 			kind: 'tsrx-template-return',
 			severity: 'error',
-			title: 'Move returns outside TSRX templates',
+			title: 'Put returns in TypeScript setup',
 			message:
 				'Return statements are ordinary JavaScript control flow for functions, not template control flow. Use guard clauses before returning TSRX, or render conditionally inside the template.',
 			documentation: ['tsrx://docs/control-flow.md'],
