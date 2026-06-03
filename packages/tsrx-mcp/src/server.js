@@ -305,9 +305,10 @@ function create_tsrx_task_prompt(options) {
 1. Identify whether the task is about target-neutral TSRX syntax, target runtime behavior, or both.
 ${project_context_step}
 3. For syntax uncertainty, use \`list-sections\`, \`get-documentation\`, or read \`tsrx://docs/{slug}.md\`.
-4. Keep core TSRX advice target-neutral: component functions, statement templates, control flow, TSX expression values, lazy destructuring, style identifiers, and submodule declarations.
+4. Keep core TSRX advice target-neutral: component functions, JSX expression values, localized \`---\` fences, JSX text, directive control flow, lazy destructuring, style identifiers, and submodule declarations.
 5. Use \`tsrx://targets/{target}.md\` as the handoff point for target-specific responsibilities.
-5a. In component template scope, render lists with \`for...of\`; use \`continue\` to skip an item; do not use \`return\` anywhere inside TSRX element or fragment bodies, do not use \`break\` inside \`for...of\` template loops, and do not use regular \`for\`, \`for...in\`, \`while\`, or \`do...while\` loops there.
+5a. In template output, render lists with \`@for (... of ...)\`; use \`continue\` to skip an item; use \`@if\`, \`@switch\`, and \`@try\` for rendering control flow; put TypeScript setup above a local \`---\` fence when a scope has setup before rendered children.
+5b. \`return\` is JavaScript function control flow, not template output. Use guard returns in TypeScript setup before rendered children, or render conditionally with \`@if\`. Do not use \`break\` inside \`@for\` template loops; use \`break\` only for \`@switch\` cases.
 ${file_validation_step}
 ${compile_step}
 ${authoring_step}
