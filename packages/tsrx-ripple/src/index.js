@@ -5,6 +5,7 @@ import { createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
 import { transform_client } from './transform/client/index.js';
 import { transform_server } from './transform/server/index.js';
+import { normalize_jsx_tsrx_templates } from './utils.js';
 
 /**
  * Parse Ripple source code to ESTree AST
@@ -33,6 +34,7 @@ export function compile(source, filename, options = {}) {
 		filename,
 		collect ? { ...options, collect, errors, comments } : undefined,
 	);
+	normalize_jsx_tsrx_templates(ast);
 	const analysis = analyze(
 		ast,
 		filename,
@@ -84,6 +86,7 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		errors,
 		comments,
 	});
+	normalize_jsx_tsrx_templates(ast);
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
 		collect: true,

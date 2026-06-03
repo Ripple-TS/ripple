@@ -89,6 +89,7 @@ describe('MediaQuery', () => {
 		function App() {
 			return <>
 				let &[show] = track(true);
+				---
 				@if (show) {
 					<Child />
 				}

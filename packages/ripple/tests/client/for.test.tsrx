@@ -6,6 +6,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
 				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
@@ -38,6 +39,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
+				---
 				@for (const item of items) {
 					if (!item) continue;
 					<div class="item">{item}</div>
@@ -59,6 +61,7 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
+				---
 				@for (const item of items) {
 					if (!item) {
 						skipped.push('skip');

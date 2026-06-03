@@ -67,6 +67,7 @@ describe('composite > reactivity', () => {
 
 					<span class="count">{obj.count.value}</span>
 					<span>{' '}</span>
+					---
 					@if (obj) {
 						<Button {obj} />
 					}

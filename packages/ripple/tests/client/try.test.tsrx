@@ -150,6 +150,7 @@ describe('try block with catch and pending', () => {
 		function App() {
 			return <>
 				let &[version] = track(0);
+				---
 				@try {
 					let &[data] = trackAsync(() => createRequest(version));
 					<p class="resolved">{data}</p>
@@ -214,6 +215,7 @@ describe('try block with catch and pending', () => {
 		function App() {
 			return <>
 				let &[version] = track(0);
+				---
 				@try {
 					let &[data] = trackAsync(() => {
 						version;

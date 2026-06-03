@@ -476,6 +476,71 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Native template elements start in script mode so component children can
+			 * define local setup before `---`. If the body only contains template
+			 * output so far, an `@if`/`@for`/`@switch`/`@try` continues that template
+			 * output instead of requiring a redundant fence inside every nested tag.
+			 * @param {AST.Node[]} body
+			 */
+			#canImplicitlyEnterTemplateOutput(body) {
+				return body.every((node) => {
+					switch (node.type) {
+						case 'JSXElement':
+						case 'JSXFragment':
+						case 'JSXStyleElement':
+						case 'JSXText':
+						case 'JSXExpressionContainer':
+						case 'JSXIfExpression':
+						case 'JSXForExpression':
+						case 'JSXSwitchExpression':
+						case 'JSXTryExpression':
+							return true;
+					}
+					return false;
+				});
+			}
+
+			#isImplicitTemplateRawTextStart() {
+				if (
+					this.type === tt.braceL ||
+					this.type === tt.braceR ||
+					this.type === tt.eof ||
+					this.type === tstt.jsxTagStart
+				) {
+					return false;
+				}
+
+				const label = this.type.keyword || this.type.label;
+				return !(
+					label === 'const' ||
+					label === 'let' ||
+					label === 'var' ||
+					label === 'function' ||
+					label === 'class' ||
+					label === 'if' ||
+					label === 'for' ||
+					label === 'switch' ||
+					label === 'try' ||
+					label === 'while' ||
+					label === 'do' ||
+					label === 'return' ||
+					label === 'throw' ||
+					label === 'break' ||
+					label === 'continue' ||
+					label === 'debugger' ||
+					label === 'await' ||
+					label === 'async' ||
+					label === 'import' ||
+					label === 'export' ||
+					label === 'type' ||
+					label === 'interface' ||
+					label === 'enum' ||
+					label === 'namespace' ||
+					label === 'module'
+				);
+			}
+
+			/**
 			 * @param {number} index
 			 */
 			#switchCaseBoundaryStart(index) {
@@ -697,9 +762,20 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				if (this.type === tstt.jsxTagStart) {
-					this.next();
-					if (this.value === '/') {
+				if (this.type === tstt.jsxTagStart || this.input.charCodeAt(this.start) === CharCode.lessThan) {
+					const startPos = this.start;
+					const startLoc = this.startLoc;
+					if (this.type === tstt.jsxTagStart) {
+						this.next();
+					} else {
+						this.pos = startPos + 1;
+						this.type = tstt.jsxTagStart;
+						this.start = startPos;
+						this.startLoc = startLoc;
+						this.exprAllowed = false;
+						this.next();
+					}
+					if (this.value === '/' || this.type === tt.slash) {
 						this.unexpected();
 					}
 					const node = this.parseElement();
@@ -2333,6 +2409,11 @@ export function TSRXPlugin(config) {
 
 				// Fragments (<>) produce JSXOpeningFragment with no `name` property
 				const is_fragment = !open.name;
+				const parent_template_node = this.#currentNativeTemplateNode();
+				const parent_is_template_output =
+					parent_template_node?.metadata?.templateMode === 'template';
+				node.metadata.templateMode =
+					is_fragment && parent_is_template_output ? 'template' : 'script';
 				if (!is_fragment && open.name.type === 'JSXNamespacedName') {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
 					const tagName = namespace_node.namespace.name + ':' + namespace_node.name.name;
@@ -2436,6 +2517,13 @@ export function TSRXPlugin(config) {
 				const is_template_output = current_template_node.metadata?.templateMode === 'template';
 
 				if (!is_template_output && this.type === tstt.jsxText) {
+					if (
+						String(this.value ?? '').trim() !== '' &&
+						this.#canImplicitlyEnterTemplateOutput(body)
+					) {
+						current_template_node.metadata ??= { path: [] };
+						current_template_node.metadata.templateMode = 'template';
+					}
 					while (this.curContext() === tstc.tc_expr) {
 						this.context.pop();
 					}
@@ -2460,6 +2548,18 @@ export function TSRXPlugin(config) {
 					if (this.type.label === 'break') {
 						throw new Error('`break` statements are not allowed in native templates');
 					}
+				}
+
+				if (
+					!is_template_output &&
+					this.#isJSXControlFlowDirectiveStart() &&
+					this.#canImplicitlyEnterTemplateOutput(body)
+				) {
+					current_template_node.metadata ??= { path: [] };
+					current_template_node.metadata.templateMode = 'template';
+					body.push(this.#parseJSXControlFlowExpression());
+					this.parseTemplateBody(body);
+					return;
 				}
 
 				if (this.type === tt.braceL) {
@@ -2616,8 +2716,21 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
+					if (
+						current_template_node.type !== 'JSXFragment' &&
+						this.#canImplicitlyEnterTemplateOutput(body) &&
+						this.#isImplicitTemplateRawTextStart()
+					) {
+						current_template_node.metadata ??= { path: [] };
+						current_template_node.metadata.templateMode = 'template';
+						body.push(this.#parseTemplateRawText());
+						this.parseTemplateBody(body);
+						return;
+					}
 					const node = this.parseStatement(null);
-					this.#report_invalid_template_return_statements(node);
+					if (current_template_node.metadata?.templateMode === 'template') {
+						this.#report_invalid_template_return_statements(node);
+					}
 					body.push(node);
 
 					// Ensure we're not in JSX context before recursing

@@ -19,6 +19,7 @@ export function AsyncWithServerCall() {
 		>
 			{'increment'}
 		</button>
+		---
 		@try {
 			let &[data] = trackAsync(() => formatValue(count));
 			<p class="result">{data}</p>

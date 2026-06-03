@@ -227,6 +227,7 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let &[show] = track(true);
+				---
 				@if (show) {
 					<div ref={div}>{'Hello cleanup'}</div>
 				}
@@ -272,6 +273,7 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let &[show] = track(true);
+				---
 				@if (show) {
 					<Child ref={input} />
 				}
@@ -368,6 +370,7 @@ describe('refs', () => {
 			function App() {
 				return <>
 					let &[show] = track(true);
+					---
 					@if (show) {
 						<Child
 							ref={(node: HTMLInputElement | null) => {
@@ -491,6 +494,7 @@ describe('refs', () => {
 				const show = track(true);
 				captured = tracker;
 				toggle = show;
+				---
 				@if (show.value) {
 					<div ref={tracker}>{'Hello World'}</div>
 				}

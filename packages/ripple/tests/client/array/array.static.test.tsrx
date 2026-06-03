@@ -137,6 +137,7 @@ describe('RippleArray > static', () => {
 						async function* throwingIterable() {
 							throw new Error('Async error');
 						}
+						---
 						@try {
 							let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 

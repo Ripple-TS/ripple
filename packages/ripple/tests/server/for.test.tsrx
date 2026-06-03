@@ -3,6 +3,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
 				@for (const item of items) {
 					<div class={item}>{item}</div>
 				}
@@ -45,6 +46,7 @@ describe('for statements in SSR', () => {
 						items: ['Item 2.1', 'Item 2.2'],
 					},
 				];
+				---
 				@for (const group of groups) {
 					<>
 						<h1>{group.name}</h1>
@@ -68,6 +70,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', 'Item 2', 'Item 3'];
+				---
 				@for (const item of items; index i) {
 					<div class={`${item} ${i}`}>{`${item} ${i}`}</div>
 				}
@@ -88,6 +91,7 @@ describe('for statements in SSR', () => {
 					{ id: 2, name: 'Item' },
 					{ id: 3, name: 'Item' },
 				];
+				---
 				@for (const item of items; key item.id) {
 					<div class={`${item.name} ${item.id}`}>{`${item.name} ${item.id}`}</div>
 				}
@@ -108,6 +112,7 @@ describe('for statements in SSR', () => {
 					{ id: 2, name: 'Item' },
 					{ id: 3, name: 'Item' },
 				];
+				---
 				@for (const item of items; index i; key item.id) {
 					<div class={`${item.name} ${item.id} ${i}`}>{`${item.name} ${item.id} ${i}`}</div>
 				}
@@ -124,6 +129,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
+				---
 				@for (const item of items) {
 					if (!item) continue;
 					<div>{item}</div>
@@ -139,6 +145,7 @@ describe('for statements in SSR', () => {
 		function App() {
 			return <>
 				const items = ['Item 1', '', 'Item 3'];
+				---
 				@for (const item of items) {
 					function label(value) {
 						for (let i = 0; i < 1; i++) {

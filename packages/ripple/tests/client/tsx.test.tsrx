@@ -190,6 +190,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[show] = track(true);
 				const el = <><div class="tsx-content">visible</div></>;
+				---
 				@if (show) {
 					{el}
 				}

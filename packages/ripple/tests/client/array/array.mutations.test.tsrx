@@ -270,6 +270,7 @@ describe('RippleArray > mutations', () => {
 				<button onClick={() => items.forEach((item, i) => (items[i] = item * 2))}>
 					{'double all'}
 				</button>
+				---
 				@for (const item of items) {
 					<pre>{item}</pre>
 				}

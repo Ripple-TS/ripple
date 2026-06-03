@@ -12,6 +12,7 @@ export function MixedControlFlowStatic() {
 				if (row.enabled) {
 					switch (row.kind) {
 						case 'a':
+							---
 							@try {
 								<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
 							} pending {

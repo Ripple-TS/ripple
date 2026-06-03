@@ -11,6 +11,7 @@ export function ForIf() {
 		];
 		<ul class="for-if">
 			for (const item of items; key item.id) {
+				---
 				@if (item.show) {
 					<li class={`item item-${item.id}`}>{item.label}</li>
 				}

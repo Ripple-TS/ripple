@@ -104,6 +104,7 @@ describe('RippleURLSearchParams > iteration', () => {
 			return <>
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
+				---
 				@for (const [key, value] of params) {
 					<pre>{`${key}=${value}`}</pre>
 				}

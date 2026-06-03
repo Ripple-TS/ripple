@@ -24,6 +24,7 @@ describe('async suspense', () => {
 		function App() {
 			return <>
 				let &[count, countTracked] = track(0);
+				---
 				@try {
 					<Child {countTracked} />
 				} pending {
@@ -84,6 +85,7 @@ describe('async suspense', () => {
 			return <>
 				let &[show] = track(true);
 				<button onClick={() => (show = false)}>{'Hide'}</button>
+				---
 				@if (show) {
 					@try {
 						<Child />
@@ -142,6 +144,7 @@ describe('async suspense', () => {
 		function App() {
 			return <>
 				let &[query] = track('a');
+				---
 				@try {
 					let &[value] = trackAsync(() => createRequest(query));
 					<div class="value">{value}</div>
@@ -223,6 +226,7 @@ describe('async suspense', () => {
 			function App() {
 				return <>
 					let &[query, queryTracked] = track('');
+					---
 					@try {
 						<FilteredList {queryTracked} />
 					} pending {
@@ -277,6 +281,7 @@ describe('async suspense', () => {
 		function App() {
 			return <>
 				let &[query] = track('');
+				---
 				@try {
 					let &[items] = trackAsync(
 						() => Promise.resolve(

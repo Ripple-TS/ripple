@@ -7,6 +7,7 @@ describe('switch statements', () => {
 				let &[value] = track('b');
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
+				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -41,6 +42,7 @@ describe('switch statements', () => {
 			return <>
 				let &[count] = track(1);
 				<button onClick={() => count++}>{'Increment'}</button>
+				---
 				@switch (count) {
 					case 1:
 						<div>{'Count is 1'}</div>
@@ -73,6 +75,7 @@ describe('switch statements', () => {
 			return <>
 				let &[value] = track('x');
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
+				---
 				@switch (value) {
 					default:
 						<div>{'Default for ' + value}</div>
@@ -95,6 +98,7 @@ describe('switch statements', () => {
 				let &[value] = track('a');
 				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
+				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -139,6 +143,7 @@ describe('switch statements', () => {
 				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
 				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
 				<button onClick={() => (status = 'error')}>{'Error'}</button>
+				---
 				@switch (status) {
 					case 'active':
 						message = 'Currently active.';
@@ -378,6 +383,7 @@ describe('switch statements', () => {
 				>
 					{'Toggle'}
 				</button>
+				---
 				@switch (level) {
 					case 1:
 						<div class="level">{'Level 1'}</div>

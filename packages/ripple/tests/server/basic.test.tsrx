@@ -43,6 +43,20 @@ second</pre>
 		);
 	});
 
+	it('renders assignment-looking child text without frontmatter as text', async () => {
+		function Basic() {
+			return <>
+				<div>
+					x = 123
+				</div>
+			</>;
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toContain('x = 123');
+	});
+
 	it('does not render JavaScript statements outside returned component templates', async () => {
 		function Basic() {
 			const ready = true;

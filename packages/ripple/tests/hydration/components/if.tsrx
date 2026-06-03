@@ -5,6 +5,7 @@ import { track } from 'ripple';
 export function IfTruthy() {
 	return <>
 		const show = true;
+		---
 		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
@@ -14,6 +15,7 @@ export function IfTruthy() {
 export function IfFalsy() {
 	return <>
 		const show = false;
+		---
 		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
@@ -23,6 +25,7 @@ export function IfFalsy() {
 export function IfElse() {
 	return <>
 		const isLoggedIn = true;
+		---
 		@if (isLoggedIn) {
 			<div class="logged-in">{'Welcome back!'}</div>
 		} else {
@@ -42,6 +45,7 @@ export function ReactiveIf() {
 		>
 			{'Toggle'}
 		</button>
+		---
 		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
@@ -59,6 +63,7 @@ export function ReactiveIfElse() {
 		>
 			{'Toggle'}
 		</button>
+		---
 		@if (isOn) {
 			<div class="on">{'ON'}</div>
 		} else {
@@ -87,6 +92,7 @@ export function NestedIf() {
 		>
 			{'Inner'}
 		</button>
+		---
 		@if (outer) {
 			<div class="outer-content">
 				{'Outer'}
