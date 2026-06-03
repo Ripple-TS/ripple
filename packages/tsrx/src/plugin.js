@@ -233,6 +233,9 @@ export function TSRXPlugin(config) {
 			#allowExpressionContainerTrailingSemicolon = false;
 			#jsxAttributeValueExpressionDepth = 0;
 			#scriptJSXElementDepth = 0;
+			#forceScriptJSXElementDepth = 0;
+			#templateControlFlowBlockDepth = 0;
+			#templateControlFlowTryDepth = 0;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -333,10 +336,53 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @param {boolean} [createNewLexicalScope]
+			 * @param {AST.BlockStatement} [node]
+			 * @param {boolean} [exitStrict]
+			 * @returns {AST.BlockStatement}
+			 */
+			#parseTemplateControlFlowBlock(createNewLexicalScope = true, node, exitStrict) {
+				node ??= /** @type {AST.BlockStatement} */ (this.startNode());
+				const body_start = this.start + 1;
+				node.body = [];
+				node.metadata = {
+					...node.metadata,
+					path: [],
+					native_tsrx_template_block: true,
+					templateMode: 'script',
+					hasTemplateFenceAhead: this.#hasTemplateFenceBeforeBlockClose(body_start),
+				};
+
+				this.expect(tt.braceL);
+				this.#parseNativeTemplateBody(node, node.body, {
+					enterScope: createNewLexicalScope,
+					pushPath: true,
+				});
+
+				if (exitStrict) {
+					this.strict = false;
+				}
+				this.exprAllowed = true;
+				if (
+					node.body.length > 0 &&
+					!node.metadata.hasTemplateFence &&
+					!this.#hasTemplateOutput(node.body)
+				) {
+					this.raise(
+						/** @type {AST.NodeWithLocation} */ (node).end ?? this.start,
+						'Template control flow blocks with only script statements must end with `---`.',
+					);
+				}
+				this.next();
+				return this.finishNode(node, 'BlockStatement');
+			}
+
+			/**
 			 * @param {AST.Node | undefined} node
 			 */
 			#isNativeTemplateNode(node) {
 				return (
+					node?.metadata?.native_tsrx_template_block ||
 					(node?.type === 'JSXElement' && node.metadata?.native_tsrx) ||
 					(node?.type === 'JSXFragment' && node.metadata?.native_tsrx) ||
 					(node?.type === 'JSXStyleElement' && node.metadata?.native_tsrx)
@@ -426,6 +472,122 @@ export function TSRXPlugin(config) {
 				}
 
 				return index;
+			}
+
+			#hasTemplateFenceAtIndex(index) {
+				let cursor = index;
+				while (cursor < this.input.length) {
+					const ch = this.input.charCodeAt(cursor);
+					if (ch !== CharCode.space && ch !== CharCode.tab) break;
+					cursor++;
+				}
+
+				if (!this.#isLineStartPosition(cursor)) return false;
+				if (
+					this.input.charCodeAt(cursor) !== CharCode.dash ||
+					this.input.charCodeAt(cursor + 1) !== CharCode.dash ||
+					this.input.charCodeAt(cursor + 2) !== CharCode.dash
+				) {
+					return false;
+				}
+
+				const after = this.input.charCodeAt(cursor + 3);
+				return (
+					after === CharCode.lineFeed ||
+					after === CharCode.carriageReturn ||
+					after === CharCode.space ||
+					after === CharCode.tab ||
+					Number.isNaN(after)
+				);
+			}
+
+			#hasTemplateFenceBeforeBlockClose(index) {
+				let depth = 0;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					const next = this.input.charCodeAt(index + 1);
+
+					if (ch === CharCode.singleQuote || ch === CharCode.doubleQuote) {
+						const quote = ch;
+						index++;
+						while (index < this.input.length) {
+							const current = this.input.charCodeAt(index);
+							if (
+								current === CharCode.backslash &&
+								this.input.charCodeAt(index - 1) !== CharCode.backslash
+							) {
+								index += 2;
+								continue;
+							}
+							if (current === quote) {
+								index++;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.backtick) {
+						index++;
+						while (index < this.input.length) {
+							const current = this.input.charCodeAt(index);
+							if (
+								current === CharCode.backslash &&
+								this.input.charCodeAt(index - 1) !== CharCode.backslash
+							) {
+								index += 2;
+								continue;
+							}
+							if (current === CharCode.backtick) {
+								index++;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.slash && next === CharCode.slash) {
+						index += 2;
+						while (
+							index < this.input.length &&
+							this.input.charCodeAt(index) !== CharCode.lineFeed &&
+							this.input.charCodeAt(index) !== CharCode.carriageReturn
+						) {
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.slash && next === CharCode.asterisk) {
+						index += 2;
+						while (index < this.input.length) {
+							if (
+								this.input.charCodeAt(index) === CharCode.asterisk &&
+								this.input.charCodeAt(index + 1) === CharCode.slash
+							) {
+								index += 2;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (depth === 0 && this.#hasTemplateFenceAtIndex(index)) {
+						return true;
+					}
+
+					if (ch === CharCode.openBrace) {
+						depth++;
+					} else if (ch === CharCode.closeBrace) {
+						if (depth === 0) return false;
+						depth--;
+					}
+					index++;
+				}
+				return false;
 			}
 
 			#parseTemplateFence() {
@@ -540,6 +702,61 @@ export function TSRXPlugin(config) {
 				);
 			}
 
+			#isSwitchCaseScriptStatementStart() {
+				let index = skip_whitespace_from(this.input, this.start);
+
+				const first = this.input.charCodeAt(index);
+				if (
+					!this.#isIdentifierChar(first) ||
+					(first >= CharCode.digit0 && first <= CharCode.digit9)
+				) {
+					return false;
+				}
+
+				const word_start = index;
+				index++;
+				while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+					index++;
+				}
+				const word = this.input.slice(word_start, index);
+				if (
+					word === 'const' ||
+					word === 'let' ||
+					word === 'var' ||
+					word === 'function' ||
+					word === 'class' ||
+					word === 'if' ||
+					word === 'for' ||
+					word === 'switch' ||
+					word === 'try' ||
+					word === 'throw'
+				) {
+					return true;
+				}
+
+				index = skip_whitespace_from(this.input, index);
+				if (this.input.charCodeAt(index) !== CharCode.equals) return false;
+				const next = this.input.charCodeAt(index + 1);
+				return next !== CharCode.equals && next !== CharCode.greaterThan;
+			}
+
+			#hasTemplateOutput(nodes) {
+				return nodes.some((node) => {
+					if (!node || node.type === 'TsrxTemplateFence') return false;
+					if (node.type === 'JSXText') return !isWhitespaceTextNode(node);
+					return (
+						node.type === 'JSXElement' ||
+						node.type === 'JSXFragment' ||
+						node.type === 'JSXStyleElement' ||
+						node.type === 'JSXExpressionContainer' ||
+						node.type === 'JSXIfExpression' ||
+						node.type === 'JSXForExpression' ||
+						node.type === 'JSXSwitchExpression' ||
+						node.type === 'JSXTryExpression'
+					);
+				});
+			}
+
 			/**
 			 * @param {number} index
 			 */
@@ -567,6 +784,15 @@ export function TSRXPlugin(config) {
 					!this.#isIdentifierChar(this.input.charCodeAt(wordStart + 7))
 				) {
 					return index;
+				}
+
+				for (const keyword of ['break', 'continue', 'return', 'throw']) {
+					if (
+						this.input.slice(wordStart, wordStart + keyword.length) === keyword &&
+						!this.#isIdentifierChar(this.input.charCodeAt(wordStart + keyword.length))
+					) {
+						return index;
+					}
 				}
 
 				return -1;
@@ -649,7 +875,7 @@ export function TSRXPlugin(config) {
 				const label = this.type.keyword || this.type.label;
 				if (label === 'if') {
 					return this.#finishJSXControlFlowExpression(
-						this.parseStatement(null),
+						this.#parseTemplateIfStatement(),
 						'JSXIfExpression',
 						start,
 						startLoc,
@@ -657,12 +883,18 @@ export function TSRXPlugin(config) {
 				}
 
 				if (label === 'for') {
-					const node = this.#finishJSXControlFlowExpression(
-						this.parseStatement(null),
-						'JSXForExpression',
-						start,
-						startLoc,
-					);
+					this.#templateControlFlowBlockDepth++;
+					let node;
+					try {
+						node = this.#finishJSXControlFlowExpression(
+							this.parseStatement(null),
+							'JSXForExpression',
+							start,
+							startLoc,
+						);
+					} finally {
+						this.#templateControlFlowBlockDepth--;
+					}
 					if (
 						/** @type {any} */ (node).statementType !== 'ForOfStatement' &&
 						/** @type {any} */ (node).statementType !== 'ForInStatement' &&
@@ -678,15 +910,45 @@ export function TSRXPlugin(config) {
 				}
 
 				if (label === 'try') {
-					return this.#finishJSXControlFlowExpression(
-						this.parseStatement(null),
-						'JSXTryExpression',
-						start,
-						startLoc,
-					);
+					this.#templateControlFlowTryDepth++;
+					try {
+						return this.#finishJSXControlFlowExpression(
+							this.parseStatement(null),
+							'JSXTryExpression',
+							start,
+							startLoc,
+						);
+					} finally {
+						this.#templateControlFlowTryDepth--;
+					}
 				}
 
 				this.raise(start, 'Expected `@if`, `@for`, `@switch`, or `@try`.');
+			}
+
+			#parseTemplateControlFlowStatement() {
+				if (this.type === tt.braceL) {
+					return this.#parseTemplateControlFlowBlock();
+				}
+				return this.parseStatement(null);
+			}
+
+			#parseTemplateIfStatement() {
+				const node = /** @type {AST.IfStatement} */ (this.startNode());
+				this.next();
+				node.test = this.parseParenExpression();
+				node.consequent = this.#parseTemplateControlFlowStatement();
+				node.alternate = null;
+
+				if (this.eat(tt._else)) {
+					const label = this.type.keyword || this.type.label;
+					node.alternate =
+						label === 'if'
+							? this.#parseTemplateIfStatement()
+							: this.#parseTemplateControlFlowStatement();
+				}
+
+				return this.finishNode(node, 'IfStatement');
 			}
 
 			/**
@@ -757,6 +1019,21 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
+				if (this.type === tstt.jsxText && this.#isSwitchCaseScriptStatementStart()) {
+					while (this.curContext() === tstc.tc_expr) {
+						this.context.pop();
+					}
+					this.pos = this.start;
+					this.startLoc = this.curPosition();
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+					}
+					this.exprAllowed = true;
+					this.next();
+					consequent.push(this.parseStatement(null));
+					return;
+				}
+
 				if (this.type === tstt.jsxText) {
 					consequent.push(/** @type {any} */ (this.#parseJSXSwitchCaseRawText()));
 					return;
@@ -788,6 +1065,17 @@ export function TSRXPlugin(config) {
 
 				if (this.#isJSXControlFlowDirectiveStart()) {
 					consequent.push(/** @type {any} */ (this.#parseJSXControlFlowExpression()));
+					return;
+				}
+
+				if (this.#isSwitchCaseScriptStatementStart()) {
+					consequent.push(this.parseStatement(null));
+					return;
+				}
+
+				const label = this.type.keyword || this.type.label;
+				if (label === 'break' || label === 'continue' || label === 'return' || label === 'throw') {
+					consequent.push(this.parseStatement(null));
 					return;
 				}
 
@@ -2119,6 +2407,77 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseTryStatement']}
 			 */
 			parseTryStatement(node) {
+				if (this.#templateControlFlowTryDepth > 0) {
+					this.#templateControlFlowTryDepth--;
+					try {
+						this.next();
+						node.block = this.#parseTemplateControlFlowBlock();
+						node.handler = null;
+
+						if (this.value === 'pending') {
+							this.next();
+							node.pending = this.#parseTemplateControlFlowBlock();
+						} else {
+							node.pending = null;
+						}
+
+						if (this.type === tt._catch) {
+							const clause = /** @type {AST.CatchClause} */ (this.startNode());
+							this.next();
+							if (this.eat(tt.parenL)) {
+								const param = this.parseBindingAtom();
+								const simple = param.type === 'Identifier';
+								this.enterScope(simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : 0);
+								this.checkLValPattern(
+									param,
+									simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : BINDING_TYPES.BIND_LEXICAL,
+								);
+								const type = this.tsTryParseTypeAnnotation();
+								if (type) {
+									param.typeAnnotation = type;
+									this.resetEndLocation(param);
+								}
+								clause.param = param;
+
+								if (this.eat(tt.comma)) {
+									const reset_param = this.parseBindingAtom();
+									this.checkLValSimple(reset_param, BINDING_TYPES.BIND_LEXICAL);
+									const reset_type = this.tsTryParseTypeAnnotation();
+									if (reset_type) {
+										reset_param.typeAnnotation = reset_type;
+										this.resetEndLocation(reset_param);
+									}
+									clause.resetParam = reset_param;
+								} else {
+									clause.resetParam = null;
+								}
+
+								this.expect(tt.parenR);
+							} else {
+								clause.param = null;
+								clause.resetParam = null;
+								this.enterScope(0);
+							}
+							clause.body = this.#parseTemplateControlFlowBlock(false);
+							this.exitScope();
+							node.handler = this.finishNode(clause, 'CatchClause');
+						}
+						node.finalizer = this.eat(tt._finally)
+							? this.#parseTemplateControlFlowBlock()
+							: null;
+
+						if (!node.handler && !node.finalizer && !node.pending) {
+							this.raise(
+								/** @type {AST.NodeWithLocation} */ (node).start,
+								'Missing catch or finally clause',
+							);
+						}
+						return this.finishNode(node, 'TryStatement');
+					} finally {
+						this.#templateControlFlowTryDepth++;
+					}
+				}
+
 				this.next();
 				node.block = this.parseBlock();
 				node.handler = null;
@@ -2355,7 +2714,10 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				if (this.#isInsideNativeTemplateScriptSection()) {
+				if (
+					this.#forceScriptJSXElementDepth > 0 ||
+					this.#isInsideNativeTemplateScriptSection()
+				) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
 						return /** @type {ESTreeJSX.JSXElement | AST.JSXStyleElement} */ (
@@ -2517,10 +2879,14 @@ export function TSRXPlugin(config) {
 				const is_template_output = current_template_node.metadata?.templateMode === 'template';
 
 				if (!is_template_output && this.type === tstt.jsxText) {
-					if (
+					const should_enter_template_text =
 						String(this.value ?? '').trim() !== '' &&
-						this.#canImplicitlyEnterTemplateOutput(body)
-					) {
+						!(
+							current_template_node.metadata?.native_tsrx_template_block &&
+							current_template_node.metadata?.hasTemplateFenceAhead
+						) &&
+						this.#canImplicitlyEnterTemplateOutput(body);
+					if (should_enter_template_text) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
 					}
@@ -2528,6 +2894,13 @@ export function TSRXPlugin(config) {
 						this.context.pop();
 					}
 					this.pos = this.start;
+					if (!should_enter_template_text) {
+						this.startLoc = this.curPosition();
+						if (this.curContext() !== b_stat) {
+							this.context.push(b_stat);
+						}
+						this.exprAllowed = true;
+					}
 					this.next();
 					this.parseTemplateBody(body);
 					return;
@@ -2537,6 +2910,7 @@ export function TSRXPlugin(config) {
 					body.push(this.#parseTemplateFence());
 					current_template_node.metadata ??= { path: [] };
 					current_template_node.metadata.templateMode = 'template';
+					current_template_node.metadata.hasTemplateFence = true;
 					this.parseTemplateBody(body);
 					return;
 				}
@@ -2713,11 +3087,16 @@ export function TSRXPlugin(config) {
 						body.push(this.#parseTemplateFence());
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
+						current_template_node.metadata.hasTemplateFence = true;
 						this.parseTemplateBody(body);
 						return;
 					}
 					if (
 						current_template_node.type !== 'JSXFragment' &&
+						!(
+							current_template_node.metadata?.native_tsrx_template_block &&
+							current_template_node.metadata?.hasTemplateFenceAhead
+						) &&
 						this.#canImplicitlyEnterTemplateOutput(body) &&
 						this.#isImplicitTemplateRawTextStart()
 					) {
@@ -2727,7 +3106,30 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
-					const node = this.parseStatement(null);
+					while (this.curContext() === tstc.tc_expr) {
+						this.context.pop();
+					}
+					let pushed_statement_context = false;
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+						pushed_statement_context = true;
+					}
+					this.exprAllowed = true;
+					const previous_path = this.#path;
+					this.#path = [];
+					this.#forceScriptJSXElementDepth++;
+					this.#functionBodyDepth++;
+					let node;
+					try {
+						node = this.parseStatement(null);
+					} finally {
+						this.#functionBodyDepth--;
+						this.#forceScriptJSXElementDepth--;
+						this.#path = previous_path;
+						if (pushed_statement_context && this.curContext() === b_stat) {
+							this.context.pop();
+						}
+					}
 					if (current_template_node.metadata?.templateMode === 'template') {
 						this.#report_invalid_template_return_statements(node);
 					}
@@ -2886,26 +3288,32 @@ export function TSRXPlugin(config) {
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
 
-				// Inside a JS function body, parse `{...}` as a regular block statement,
-				// even if the nearest `#path` entry is a native template — we're in a
-				// nested function callable, not in a template.
-				if (this.#functionBodyDepth === 0 && this.#isNativeTemplateNode(parent)) {
-					if (createNewLexicalScope === void 0) createNewLexicalScope = true;
-					if (node === void 0) node = /** @type {AST.BlockStatement} */ (this.startNode());
-
-					node.body = [];
-					this.expect(tt.braceL);
-					this.#parseNativeTemplateBody(node, node.body, {
-						enterScope: createNewLexicalScope,
-					});
-
-					if (exitStrict) {
-						this.strict = false;
+				if (
+					this.#functionBodyDepth === 0 &&
+					this.#isNativeTemplateNode(parent) &&
+					this.#templateControlFlowBlockDepth > 0
+				) {
+					this.#templateControlFlowBlockDepth--;
+					try {
+						return this.#parseTemplateControlFlowBlock(createNewLexicalScope, node, exitStrict);
+					} finally {
+						this.#templateControlFlowBlockDepth++;
 					}
-					this.exprAllowed = true;
+				}
 
-					this.next();
-					return this.finishNode(node, 'BlockStatement');
+				if (this.#functionBodyDepth > 0 && this.#isNativeTemplateNode(parent)) {
+					let pushed_statement_context = false;
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+						pushed_statement_context = true;
+					}
+					try {
+						return super.parseBlock(createNewLexicalScope, node, exitStrict);
+					} finally {
+						if (pushed_statement_context && this.curContext() === b_stat) {
+							this.context.pop();
+						}
+					}
 				}
 
 				return super.parseBlock(createNewLexicalScope, node, exitStrict);

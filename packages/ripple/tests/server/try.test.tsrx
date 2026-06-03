@@ -185,13 +185,11 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync resolves both values', async () => {
 		function App() {
 			return <>
-				@try {
-					let &[name] = trackAsync(() => Promise.resolve('ripple'));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.resolve(n.toUpperCase());
-					});
-					<p>{upper}</p>
+					@try {
+						let &[name] = trackAsync(() => Promise.resolve('ripple'));
+						let &[upper] = trackAsync(() => Promise.resolve(name.toUpperCase()));
+						---
+						<p>{upper}</p>
 				} catch (err) {
 					<p>{'error'}</p>
 				}
@@ -206,13 +204,11 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync catches when first rejects', async () => {
 		function App() {
 			return <>
-				@try {
-					let &[name] = trackAsync(() => Promise.reject<string>(new Error('first failed')));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.resolve(n.toUpperCase());
-					});
-					<p>{upper}</p>
+					@try {
+						let &[name] = trackAsync(() => Promise.reject(new Error('first failed')));
+						let &[upper] = trackAsync(() => Promise.resolve(name.toUpperCase()));
+						---
+						<p>{upper}</p>
 				} catch (err: Error) {
 					<p>{err.message}</p>
 				}
@@ -226,13 +222,11 @@ describe('trackAsync directly in component body (server)', () => {
 	it('chained trackAsync catches when second rejects', async () => {
 		function App() {
 			return <>
-				@try {
-					let &[name] = trackAsync(() => Promise.resolve('ripple'));
-					let &[upper] = trackAsync(() => {
-						const n = name;
-						return Promise.reject(new Error('second failed'));
-					});
-					<p>{upper}</p>
+					@try {
+						let &[name] = trackAsync(() => Promise.resolve('ripple'));
+						let &[upper] = trackAsync(() => Promise.reject(new Error('second failed')));
+						---
+						<p>{upper}</p>
 				} catch (err: Error) {
 					<p>{err.message}</p>
 				}

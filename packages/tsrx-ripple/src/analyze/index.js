@@ -259,6 +259,26 @@ function mark_control_flow_has_template(path) {
 }
 
 /**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function is_fenced_template_script_block(node) {
+	return (
+		node?.type === 'BlockStatement' &&
+		node.metadata?.native_tsrx_template_block &&
+		node.metadata?.hasTemplateFence
+	);
+}
+
+/**
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
+ */
+function is_script_only_control_flow_body(node) {
+	return is_fenced_template_script_block(node) || node?.metadata?.script_only === true;
+}
+
+/**
  * @param {AST.Node} node
  * @returns {boolean}
  */
@@ -1794,13 +1814,17 @@ const visitors = {
 		context.next();
 
 		if (!node.metadata.has_template) {
-			error(
-				'Component for...of loops must contain a template in their body. Move the for loop into an effect if it does not render anything.',
-				context.state.analysis.module.filename,
-				node.body,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
+			if (is_script_only_control_flow_body(node.body)) {
+				node.metadata.script_only = true;
+			} else {
+				error(
+					'Component for...of loops must contain a template in their body. Move the for loop into an effect if it does not render anything.',
+					context.state.analysis.module.filename,
+					node.body,
+					context.state.collect ? context.state.analysis.errors : undefined,
+					context.state.analysis.comments,
+				);
+			}
 		}
 	},
 
@@ -1944,11 +1968,13 @@ const visitors = {
 			node.metadata.lone_return = true;
 		}
 
+		const consequent_script_only = is_script_only_control_flow_body(node.consequent);
 		if (
 			!node.metadata.has_template &&
 			!node.metadata.has_return &&
 			!node.metadata.has_throw &&
-			!node.metadata.has_continue
+			!node.metadata.has_continue &&
+			!consequent_script_only
 		) {
 			error(
 				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
@@ -1959,6 +1985,7 @@ const visitors = {
 			);
 		}
 
+		let alternate_script_only = false;
 		if (node.alternate) {
 			const saved_has_return = node.metadata.has_return;
 			const saved_returns = node.metadata.returns;
@@ -1968,11 +1995,13 @@ const visitors = {
 			node.metadata.has_continue = false;
 			context.visit(node.alternate, context.state);
 
+			alternate_script_only = is_script_only_control_flow_body(node.alternate);
 			if (
 				!node.metadata.has_template &&
 				!node.metadata.has_return &&
 				!node.metadata.has_throw &&
-				!node.metadata.has_continue
+				!node.metadata.has_continue &&
+				!alternate_script_only
 			) {
 				error(
 					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
@@ -1992,6 +2021,17 @@ const visitors = {
 			if (saved_has_continue) {
 				node.metadata.has_continue = true;
 			}
+		}
+
+		if (
+			!node.metadata.has_template &&
+			!node.metadata.has_return &&
+			!node.metadata.has_throw &&
+			!node.metadata.has_continue &&
+			consequent_script_only &&
+			(!node.alternate || alternate_script_only)
+		) {
+			node.metadata.script_only = true;
 		}
 	},
 
@@ -2025,15 +2065,15 @@ const visitors = {
 		}
 
 		if (is_inside_template_child(context.path)) {
-			if (!node.metadata?.invalid_tsrx_template_return) {
+			if (node.metadata?.invalid_tsrx_template_return) {
 				validateTsrxReturnStatement(
 					node,
 					context.state.analysis.module.filename,
 					context.state.collect ? context.state.analysis.errors : undefined,
 					context.state.analysis.comments,
 				);
+				return;
 			}
-			return;
 		}
 
 		for (let i = context.path.length - 1; i >= 0; i--) {
@@ -2128,13 +2168,17 @@ const visitors = {
 			context.visit(node.block, state);
 
 			if (!node.metadata.has_template) {
-				error(
-					'Component try statements must contain a template in their main body. Move the try statement into an effect if it does not render anything.',
-					state.analysis.module.filename,
-					node.block,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
+				if (is_script_only_control_flow_body(node.block)) {
+					node.metadata.script_only = true;
+				} else {
+					error(
+						'Component try statements must contain a template in their main body. Move the try statement into an effect if it does not render anything.',
+						state.analysis.module.filename,
+						node.block,
+						context.state.collect ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+				}
 			}
 
 			node.metadata = {
@@ -2145,13 +2189,17 @@ const visitors = {
 			context.visit(node.pending, state);
 
 			if ((node.pending.body || []).length > 0 && !node.metadata.has_template) {
-				error(
-					'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
-					state.analysis.module.filename,
-					node.pending,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
+				if (is_script_only_control_flow_body(node.pending)) {
+					node.metadata.script_only = true;
+				} else {
+					error(
+						'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
+						state.analysis.module.filename,
+						node.pending,
+						context.state.collect ? context.state.analysis.errors : undefined,
+						context.state.analysis.comments,
+					);
+				}
 			}
 		} else {
 			context.visit(node.block, state);

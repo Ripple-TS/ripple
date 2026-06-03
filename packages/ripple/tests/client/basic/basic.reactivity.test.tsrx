@@ -6,16 +6,18 @@ describe('basic client > reactivity', () => {
 		function Basic() {
 			return <>
 				<div>
-					let obj = {
-						count: track(0),
-					};
+					let obj = Object.create(null);
+					obj.count = track(0);
+
+					---
 
 					<span>{obj.count.value}</span>
 				</div>
 				<div>
-					let b = {
-						count: track(0),
-					};
+					let b = Object.create(null);
+					b.count = track(0);
+
+					---
 
 					<button
 						onClick={() => {
@@ -55,16 +57,18 @@ describe('basic client > reactivity', () => {
 			return <>
 				const count = 'count';
 				<div>
-					let obj = {
-						count: track(0),
-					};
+					let obj = Object.create(null);
+					obj.count = track(0);
+
+					---
 
 					<span>{obj[count].value}</span>
 				</div>
 				<div>
-					let b = {
-						count: track(0),
-					};
+					let b = Object.create(null);
+					b.count = track(0);
+
+					---
 
 					<button
 						onClick={() => {

@@ -48,6 +48,25 @@ describe('if statements in SSR', () => {
 		expect(body).toBeHtml('Hello React');
 	});
 
+	it('runs script-only if bodies that end with frontmatter without rendering them', async () => {
+		let calls = 0;
+		function App() {
+			return <>
+				let condition = true;
+				---
+				@if (condition) {
+					calls++;
+					---
+				}
+				<div>{'done'}</div>
+			</>;
+		}
+
+		const { body } = await render(App);
+		expect(calls).toBe(1);
+		expect(body).toBeHtml('<div>done</div>');
+	});
+
 	it('renders else if block when condition is true', async () => {
 		function App() {
 			return <>

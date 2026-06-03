@@ -2918,6 +2918,34 @@ const visitors = {
 			flags |= IS_INDEXED;
 		}
 
+		if (node.metadata?.script_only && !node.metadata?.has_template) {
+			const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
+			const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+			const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
+				...context,
+				state: {
+					...context.state,
+					scope: body_scope,
+					namespace: context.state.namespace,
+					flush_node: null,
+				},
+			});
+
+			if (index) {
+				body.push(b.stmt(b.update('++', index)));
+				context.state.init?.push(b.var(index, b.literal(0)));
+			}
+
+			context.state.init?.push(
+				b.for_of(
+					/** @type {AST.VariableDeclaration} */ (context.visit(node.left)),
+					/** @type {AST.Expression} */ (context.visit(node.right)),
+					b.block(body),
+				),
+			);
+			return;
+		}
+
 		// do only if not controller
 		if (!is_controlled) {
 			context.state.template?.push('<!>');
@@ -3104,7 +3132,11 @@ const visitors = {
 			return context.next();
 		}
 
-		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+		if (
+			(node.metadata?.script_only || node.metadata?.has_continue) &&
+			!node.metadata?.has_template &&
+			!node.alternate
+		) {
 			const consequent_scope =
 				/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
 				context.state.scope;

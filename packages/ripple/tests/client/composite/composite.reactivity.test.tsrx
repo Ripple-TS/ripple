@@ -19,9 +19,10 @@ describe('composite > reactivity', () => {
 		function App() {
 			return <>
 				<div>
-					let obj = {
-						count: track(0),
-					};
+					let obj = Object.create(null);
+					obj.count = track(0);
+
+					---
 
 					<span class="count">{obj.count.value}</span>
 					<Button {obj} />
@@ -61,13 +62,13 @@ describe('composite > reactivity', () => {
 		function App() {
 			return <>
 				<div>
-					let obj = {
-						count: track(0),
-					};
+					let obj = Object.create(null);
+					obj.count = track(0);
+
+					---
 
 					<span class="count">{obj.count.value}</span>
 					<span>{' '}</span>
-					---
 					@if (obj) {
 						<Button {obj} />
 					}

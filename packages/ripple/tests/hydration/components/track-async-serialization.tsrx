@@ -54,7 +54,10 @@ export function AsyncNumericValue() {
 export function AsyncObjectValue() {
 	return <>
 		@try {
-			let &[user] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
+			let &[user] = trackAsync(() =>
+				Promise.resolve(Object.fromEntries([['name', 'Alice'], ['age', 30]])),
+			);
+			---
 			<div class="user">
 				<span class="name">{user.name}</span>
 				<span class="age">{user.age}</span>
@@ -117,6 +120,7 @@ export function ParentWithCatch() {
 export function AsyncWithReactiveDependency() {
 	return <>
 		let &[count] = track(0);
+		---
 		<button
 			class="increment"
 			onClick={() => {
@@ -126,7 +130,8 @@ export function AsyncWithReactiveDependency() {
 			{'increment'}
 		</button>
 		@try {
-			let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
+			let &[data] = trackAsync(() => Promise.resolve('count-' + count));
+			---
 			<p class="result">{data}</p>
 		} pending {
 			<p class="loading">{'loading...'}</p>

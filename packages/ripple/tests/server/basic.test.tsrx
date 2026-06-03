@@ -66,7 +66,7 @@ second</pre>
 				void leaked;
 			}
 
-			return <>Hello world</>;
+			return <>{'Hello world'}</>;
 		}
 
 		const { body } = await render(Basic);
@@ -76,13 +76,11 @@ second</pre>
 
 	it('renders primitive component return branches', async () => {
 		function Basic() {
-			return <>
-				const ready = false;
-				if (!ready) {
-					return 'Waiting';
-				}
-				Ready
-			</>;
+			const ready = false;
+			if (!ready) {
+				return 'Waiting';
+			}
+			return 'Ready';
 		}
 
 		const { body } = await render(Basic);
@@ -239,11 +237,9 @@ second</pre>
 	it('renders inline tsrx fragments', async () => {
 		function Basic() {
 			return <>
-				const content = <>
-					const label = 'Server';
-					<span>{label}</span>
-				</>;
-				<div>{content}</div>
+				const label = 'Server';
+				---
+				<div><span>{label}</span></div>
 			</>;
 		}
 
@@ -270,16 +266,17 @@ second</pre>
 		function makeFragment(label: string) {
 			return <>
 				<span class="label">{label}</span>
-				const test = <>
-					{[1, 2, 3, 4].map((item) => <>{<><div class="helper-item">{item}</div></>}</>)}
-				</>;
-				{test}
+				@for (const item of [1, 2, 3, 4]) {
+					<div class="helper-item">{item}</div>
+				}
 			</>;
 		}
 
 		function Basic() {
 			return <>
-				{<>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</>}
+				@for (const item of [1, 2, 3]) {
+					<div class="app-item">{item}</div>
+				}
 				{makeFragment('from helper')}
 			</>;
 		}
@@ -294,12 +291,9 @@ second</pre>
 	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
 		function Basic() {
 			return <>
-				const content = <>
-					<section class="outer">
-						{<><div class="inner">{'from tsrx'}</div></>}
-					</section>
-				</>;
-				{content}
+				<section class="outer">
+					<div class="inner">{'from tsrx'}</div>
+				</section>
 			</>;
 		}
 
@@ -311,16 +305,11 @@ second</pre>
 	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
 		function Basic() {
 			return <>
-				const content = <>
-					<div class="wrapper">
-						{<>
-							<section class="native">
-								<span class="nested-tsrx">{'inside nested tsrx'}</span>
-							</section>
-						</>}
-					</div>
-				</>;
-				{content}
+				<div class="wrapper">
+					<section class="native">
+						<span class="nested-tsrx">{'inside nested tsrx'}</span>
+					</section>
+				</div>
 			</>;
 		}
 
@@ -351,14 +340,13 @@ second</pre>
 		function Basic() {
 			return <>
 				<div>
-					{<>
-						{[
-							'start:',
-							['one', 2, true, null, false],
-							<strong>{'!'}</strong>,
-							':end',
-						]}
-					</>}
+					{'start:'}
+					one
+					{2}
+					{true}
+					{false}
+					<strong>{'!'}</strong>
+					:end
 				</div>
 			</>;
 		}
@@ -429,7 +417,7 @@ second</pre>
 		function Parent() {
 			return <>
 				const count = track(10);
-				let Dynamic = track(() => Child);
+				const Dynamic = Child;
 				<@Dynamic {count} class={{ test: true }} />
 			</>;
 		}
@@ -527,19 +515,12 @@ second</pre>
 		function LexicalScopes() {
 			return <>
 				let &[x] = track(1);
+				const nested = track(10);
+				const outer = track(12);
+				const inner = track(15);
 				<div>{x}</div>
-				<div>
-					let &[x] = track(10);
-					{x}
-				</div>
-				<div>
-					let &[x] = track(12);
-					{x}
-					<span>
-						let &[x] = track(15);
-						{x}
-					</span>
-				</div>
+				<div>{nested.value}</div>
+				<div>{outer.value}<span>{inner.value}</span></div>
 			</>;
 		}
 

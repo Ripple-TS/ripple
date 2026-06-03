@@ -214,14 +214,12 @@ describe('try block with catch and pending', () => {
 
 		function App() {
 			return <>
-				let &[version] = track(0);
-				---
-				@try {
-					let &[data] = trackAsync(() => {
-						version;
-						return createRequest(version);
-					});
-					<p class="resolved">{data}</p>
+					let &[version] = track(0);
+					---
+					@try {
+						let &[data] = trackAsync(() => (version, createRequest(version)));
+						---
+						<p class="resolved">{data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
 				} catch (err, reset) {
@@ -278,13 +276,15 @@ describe('try block', () => {
 	it(
 		'does not compile ref binds as async callbacks inside try/pending trackAsync branches',
 		async () => {
-			function App() {
-				return <>
-					let &[value, valueTracked] = track(1);
-					@try {
-						let &[loaded] = trackAsync(() => Promise.resolve(value + 1));
-						<>
-							<input type="number" ref={bindValue(valueTracked)} />
+				function App() {
+					return <>
+						let &[value, valueTracked] = track(1);
+						---
+						@try {
+							let &[loaded] = trackAsync(() => Promise.resolve(value + 1));
+							---
+							<>
+								<input type="number" ref={bindValue(valueTracked)} />
 							<span>{loaded}</span>
 						</>
 					} pending {
@@ -341,11 +341,12 @@ describe('try block', () => {
 	it(
 		'does not crash when async component with tracked state is used inside try/pending',
 		async () => {
-			function App() {
-				return <>
-					let &[query, queryTracked] = track('');
-					@try {
-						<FilteredList {queryTracked} />
+				function App() {
+					return <>
+						let &[query, queryTracked] = track('');
+						---
+						@try {
+							<FilteredList {queryTracked} />
 					} pending {
 						<p>{'loading...'}</p>
 					}
@@ -416,13 +417,15 @@ describe('try block', () => {
 		}
 
 		function App() {
-			return <>
-				let &[show] = track(true);
-				if (show) {
-					@try {
-						let &[data] = trackAsync(() => new Promise(() => {}));
-						<p class="resolved">{data}</p>
-					} pending {
+				return <>
+					let &[show] = track(true);
+					---
+					@if (show) {
+						@try {
+							let &[data] = trackAsync(() => new Promise(() => {}));
+							---
+							<p class="resolved">{data}</p>
+						} pending {
 						<PendingChild />
 					}
 				}
@@ -464,13 +467,15 @@ describe('try block', () => {
 		}
 
 		function App() {
-			return <>
-				let &[show] = track(true);
-				if (show) {
-					@try {
-						let &[data] = trackAsync(() => Promise.resolve('hello'));
-						<ResolvedChild {data} />
-					} pending {
+				return <>
+					let &[show] = track(true);
+					---
+					@if (show) {
+						@try {
+							let &[data] = trackAsync(() => Promise.resolve('hello'));
+							---
+							<ResolvedChild {data} />
+						} pending {
 						<p class="pending">{'loading...'}</p>
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
@@ -515,12 +520,14 @@ describe('try block', () => {
 		}
 
 		function App() {
-			return <>
-				let &[show] = track(true);
-				if (show) {
-					@try {
-						let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
-						<p class="resolved">{data}</p>
+				return <>
+					let &[show] = track(true);
+					---
+					@if (show) {
+						@try {
+							let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
+							---
+							<p class="resolved">{data}</p>
 					} pending {
 						<p class="pending">{'loading...'}</p>
 					} catch (err) {
@@ -631,17 +638,17 @@ describe('try block', () => {
 
 		function App() {
 			return <>
-				@try {
-					let &[name] = trackAsync(() => first_promise);
-					let &[length] = trackAsync(() => {
-						// Read name synchronously — throws ASYNC_DERIVED_READ_THROWN
-						// while name is still pending, triggering the deferred mechanism.
-						const n = name;
-						return new Promise<number>((resolve) => {
-							second_resolve = resolve;
-						}).then((val) => n.length + val);
-					});
-					<p class="resolved">
+					@try {
+						let &[name] = trackAsync(() => first_promise);
+						// Read name synchronously to trigger the deferred mechanism while it is pending.
+						let &[length] = trackAsync(() =>
+							(name,
+							new Promise((resolve) => (second_resolve = resolve)).then(
+								(val) => name.length + val,
+							)),
+						);
+						---
+						<p class="resolved">
 						{name}
 						{' has length '}
 						{length}
@@ -703,12 +710,13 @@ describe('try block', () => {
 				return <>
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() => {
-							const n = name;
-							return new Promise<number>((resolve) => {
-								second_resolve = resolve;
-							}).then((val) => n.length + val);
-						});
+						let &[length] = trackAsync(() =>
+							(name,
+							new Promise((resolve) => (second_resolve = resolve)).then(
+								(val) => name.length + val,
+							)),
+						);
+						---
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -763,12 +771,13 @@ describe('try block', () => {
 				return <>
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() => {
-							const n = name;
-							return new Promise<number>((resolve) => {
-								second_resolve = resolve;
-							}).then((val) => n.length + val);
-						});
+						let &[length] = trackAsync(() =>
+							(name,
+							new Promise((resolve) => (second_resolve = resolve)).then(
+								(val) => name.length + val,
+							)),
+						);
+						---
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -820,12 +829,10 @@ describe('try block', () => {
 				return <>
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() => {
-							const n = name;
-							return new Promise<number>((_, reject) => {
-								second_reject = reject;
-							});
-						});
+						let &[length] = trackAsync(() =>
+							(name, new Promise((_, reject) => (second_reject = reject))),
+						);
+						---
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -987,12 +994,8 @@ describe('try block', () => {
 				return <>
 					@try {
 						name = trackAsync(() => first_promise);
-						length = trackAsync(() => {
-							const n = name.value;
-							return new Promise<number>((resolve) => {
-								resolve(n.length);
-							});
-						});
+						length = trackAsync(() => (name.value, Promise.resolve(name.value.length)));
+						---
 						<p class="resolved">
 							{name.value}
 							{' has length '}
@@ -1054,18 +1057,13 @@ describe('try block', () => {
 		let b: any;
 		let c: any;
 		function App() {
-			return <>
-				@try {
-					a = trackAsync(() => a_promise);
-					b = trackAsync(() => {
-						const val = a.value;
-						return Promise.resolve(val.toUpperCase());
-					});
-					c = trackAsync(() => {
-						const val = b.value;
-						return Promise.resolve(val.length);
-					});
-					<p class="resolved">
+				return <>
+					@try {
+						a = trackAsync(() => a_promise);
+						b = trackAsync(() => (a.value, Promise.resolve(a.value.toUpperCase())));
+						c = trackAsync(() => (b.value, Promise.resolve(b.value.length)));
+						---
+						<p class="resolved">
 						{a.value}
 						{' → '}
 						{b.value}

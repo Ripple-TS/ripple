@@ -289,12 +289,13 @@ describe('async suspense', () => {
 						),
 					);
 
-					let &[filtered] = track(() => {
-						return items.filter((item: string) => item.includes(query));
-					});
+						let &[filtered] = track(() =>
+							items.filter((item: string) => item.includes(query)),
+						);
 
-					<>
-						<ul>
+						---
+						<>
+							<ul>
 							@for (let item of filtered) {
 								<li>{item}</li>
 							}
@@ -375,11 +376,12 @@ describe('async suspense', () => {
 				</>;
 			}
 
-			function App() {
-				return <>
-					let &[count] = track(2);
-					@try {
-						<Child {count} />
+				function App() {
+					return <>
+						let &[count] = track(2);
+						---
+						@try {
+							<Child {count} />
 					} pending {
 						<div class="pending">{'Loading...'}</div>
 					}
@@ -468,11 +470,12 @@ describe('async suspense', () => {
 				</>;
 			}
 
-			function App() {
-				return <>
-					let &[count] = track(2);
-					@try {
-						<Child {count} />
+				function App() {
+					return <>
+						let &[count] = track(2);
+						---
+						@try {
+							<Child {count} />
 					} pending {
 						<div class="pending">{'Loading...'}</div>
 					}
@@ -552,10 +555,11 @@ describe('async suspense', () => {
 		}
 
 		function App() {
-			return <>
-				let &[count] = track(0);
-				<button onClick={() => count++}>{count}</button>
-				@try {
+				return <>
+					let &[count] = track(0);
+					---
+					<button onClick={() => count++}>{count}</button>
+					@try {
 					<Child {count} />
 				} pending {
 					<div class="pending">{'Loading...'}</div>
@@ -604,14 +608,13 @@ describe('async suspense', () => {
 			function App() {
 				return <>
 					let &[query] = track('initial');
+					---
 					@try {
-						let &[items, itemsTracked] = trackAsync(() => {
-							const q = query;
-							return new Promise<string[]>((resolve) => {
-								resolve_fn = resolve;
-							});
-						});
+						let &[items, itemsTracked] = trackAsync(() =>
+							(query, new Promise((resolve) => (resolve_fn = resolve))),
+						);
 
+						---
 						<>
 							<div class="parent-content">
 								{'parent: '}

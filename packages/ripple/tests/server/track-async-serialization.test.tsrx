@@ -42,10 +42,13 @@ describe('trackAsync serialization (server)', () => {
 
 	it('serializes object trackAsync data correctly', async () => {
 		function App() {
-			return <>
-				@try {
-					let &[data] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
-					<p>{data.name}</p>
+				return <>
+					@try {
+						let &[data] = trackAsync(() =>
+							Promise.resolve(Object.fromEntries([['name', 'Alice'], ['age', 30]])),
+						);
+						---
+						<p>{data.name}</p>
 				} pending {
 					<p>{'...'}</p>
 				}
@@ -131,12 +134,15 @@ describe('trackAsync serialization (server)', () => {
 	});
 
 	it('serializes sync trackAsync throw using original cause message', async () => {
+		function loadData() {
+			throw new Error('sync failure');
+		}
+
 		function App() {
 			return <>
 				@try {
-					let &[data] = trackAsync(() => {
-						throw new Error('sync failure');
-					});
+					let &[data] = trackAsync(loadData);
+					---
 					<p class="result">{data}</p>
 				} pending {
 					<p class="loading">{'loading...'}</p>
@@ -156,12 +162,13 @@ describe('trackAsync serialization (server)', () => {
 	});
 
 	it('escapes serialized error payload to keep script tag safe', async () => {
+		const dangerous_message = '</script><div data-injected="1">boom</div>';
+
 		function App() {
 			return <>
 				@try {
-					let &[data] = trackAsync(
-						() => Promise.reject(new Error('</script><div data-injected="1">boom</div>')),
-					);
+					let &[data] = trackAsync(() => Promise.reject(new Error(dangerous_message)));
+					---
 					<p class="result">{data}</p>
 				} pending {
 					<p class="loading">{'loading...'}</p>

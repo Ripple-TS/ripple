@@ -2351,6 +2351,28 @@ const visitors = {
 		}
 		const body_scope = context.state.scopes.get(node.body);
 
+		if (node.metadata?.script_only && !node.metadata?.has_template) {
+			const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
+				...context,
+				state: { ...context.state, scope: /** @type {ScopeInterface} */ (body_scope) },
+			});
+
+			if (node.index) {
+				context.state.init?.push(b.var(node.index, b.literal(0)));
+				body.push(b.stmt(b.update('++', node.index)));
+			}
+
+			context.state.init?.push(
+				b.for_of(
+					/** @type {AST.VariableDeclaration} */ (context.visit(node.left)),
+					/** @type {AST.Expression} */
+					(context.visit(node.right)),
+					b.block(body),
+				),
+			);
+			return;
+		}
+
 		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 
 		const body = transform_body(/** @type {AST.BlockStatement} */ (node.body).body, {
@@ -2389,7 +2411,11 @@ const visitors = {
 			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 		const consequent_scope = context.state.scopes.get(node.consequent) || context.state.scope;
 
-		if (node.metadata?.has_continue && !node.metadata?.has_template && !node.alternate) {
+		if (
+			(node.metadata?.script_only || node.metadata?.has_continue) &&
+			!node.metadata?.has_template &&
+			!node.alternate
+		) {
 			context.state.init?.push(
 				b.if(
 					/** @type {AST.Expression} */ (context.visit(node.test)),

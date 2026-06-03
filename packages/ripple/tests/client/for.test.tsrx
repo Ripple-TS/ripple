@@ -63,10 +63,8 @@ describe('for statements', () => {
 				const items = ['Item 1', '', 'Item 3'];
 				---
 				@for (const item of items) {
-					if (!item) {
-						skipped.push('skip');
-						continue;
-					}
+					if (!item) skipped.push('skip');
+					if (!item) continue;
 					<div class="item">{item}</div>
 				}
 			</>;
@@ -88,10 +86,8 @@ describe('for statements', () => {
 				const skipped = [];
 
 					@for (const item of items) {
-						if (!item) {
-							skipped.push('skip');
-							continue;
-						}
+						if (!item) skipped.push('skip');
+						if (!item) continue;
 					<div class="item">{item}</div>
 				}
 			</>; }`,
@@ -106,10 +102,11 @@ describe('for statements', () => {
 
 	it('renders a simple dynamic array', () => {
 		function App() {
-			return <>
-				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
-				@for (const item of items) {
-					<div class={item}>{item}</div>
+				return <>
+					const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
+					---
+					@for (const item of items) {
+						<div class={item}>{item}</div>
 				}
 				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
 			</>;
@@ -191,13 +188,14 @@ describe('for statements', () => {
 	it('correctly handles keyed for...of loops', () => {
 		function App() {
 			return <>
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+					---
+					@for (let item of items; index i; key item.id) {
+						<div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {
@@ -225,11 +223,12 @@ describe('for statements', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
-				let &[items] = track(
-					() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
-				);
-				<button
-					onClick={() => {
+					let &[items] = track(
+						() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
+					);
+					---
+					<button
+						onClick={() => {
 						count++;
 					}}
 				>
@@ -298,13 +297,14 @@ describe('for statements', () => {
 	it('handles updating with new objects with same key', () => {
 		function App() {
 			return <>
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+					---
+					@for (let item of items; index i; key item.id) {
+						<div>{i + ':' + item.text}</div>
 				}
 				<button
 					onClick={() => {

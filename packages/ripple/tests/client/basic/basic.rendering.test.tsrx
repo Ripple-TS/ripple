@@ -59,6 +59,40 @@ second</pre>
 		expect(container.querySelector('.multiline').textContent).toBe('first\nsecond');
 	});
 
+	it('renders assignment-looking child text without frontmatter as text', () => {
+		function Basic() {
+			return <>
+				<div>
+					x = 123
+				</div>
+			</>;
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('div')?.textContent).toContain('x = 123');
+	});
+
+	it('runs script-only if bodies that end with frontmatter without rendering them', () => {
+		let calls = 0;
+		function Basic() {
+			return <>
+				let condition = true;
+				---
+				@if (condition) {
+					calls++;
+					---
+				}
+				<div>{'done'}</div>
+			</>;
+		}
+
+		render(Basic);
+
+		expect(calls).toBe(1);
+		expect(container.textContent).toBe('done');
+	});
+
 	it('does not render JavaScript statements outside returned component templates', () => {
 		function Basic() {
 			const ready = true;
@@ -68,7 +102,7 @@ second</pre>
 				void leaked;
 			}
 
-			return <>Hello world</>;
+			return <>{'Hello world'}</>;
 		}
 
 		render(Basic);
@@ -79,13 +113,11 @@ second</pre>
 
 	it('renders primitive component return branches', () => {
 		function Basic() {
-			return <>
-				const ready = false;
-				if (!ready) {
-					return 'Waiting';
-				}
-				Ready
-			</>;
+			const ready = false;
+			if (!ready) {
+				return 'Waiting';
+			}
+			return 'Ready';
 		}
 
 		render(Basic);
@@ -253,10 +285,11 @@ second</pre>
 
 	it('renders bare JSX text in if-else branches', () => {
 		function App() {
-			return <>
-				let condition = false;
-				@if (condition) {
-					Hello Ripple
+				return <>
+					let condition = false;
+					---
+					@if (condition) {
+						Hello Ripple
 				} else {
 					Hello React
 				}
@@ -473,10 +506,9 @@ second</pre>
 
 	it('should handle lexical scopes correctly', () => {
 		function App() {
+			let sectionData = 'Nested scope variable';
 			return <>
 				<section>
-					let sectionData = 'Nested scope variable';
-
 					{sectionData}
 				</section>
 			</>;

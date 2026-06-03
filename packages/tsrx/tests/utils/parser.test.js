@@ -372,6 +372,53 @@ describe('TSRX parser', () => {
 		expect(directive.alternate.body[0].value).toContain('Waiting');
 	});
 
+	it('parses script-only @if bodies that end with a template fence', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@if (ready) {
+				calls++;
+				---
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.consequent.body.map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+			'TsrxTemplateFence',
+		]);
+		expect(directive.consequent.body[0].expression.operator).toBe('++');
+	});
+
+	it('treats unfenced assignment-looking @if body content as JSXText', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@if (ready) {
+				x = 123
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.consequent.body.map((child) => child.type)).toEqual(['JSXText']);
+		expect(directive.consequent.body[0].value).toContain('x = 123');
+	});
+
+	it('does not treat closing-tag text inside directive script strings as markup', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@if (ready) {
+				const x = "</div><div>"
+				---
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.consequent.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+		]);
+		expect(directive.consequent.body[0].declarations[0].init.value).toBe('</div><div>');
+	});
+
 	it('parses @for as a JSXForExpression', () => {
 		const returned = getReturned(`function App() { return <ul>
 			---
@@ -387,6 +434,22 @@ describe('TSRX parser', () => {
 		expect(directive.right.name).toBe('items');
 		expect(directive.key.property.name).toBe('id');
 		expect(directive.body.body[0].type).toBe('JSXElement');
+	});
+
+	it('parses script-only @for bodies that end with a template fence', () => {
+		const returned = getReturned(`function App() { return <ul>
+			---
+			@for (const item of items) {
+				calls++;
+				---
+			}
+		</ul>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.body.body.map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+			'TsrxTemplateFence',
+		]);
 	});
 
 	it('parses @switch as a JSXSwitchExpression with JSX text case bodies', () => {
@@ -435,5 +498,24 @@ describe('TSRX parser', () => {
 		expect(directive.handler.param.name).toBe('error');
 		expect(directive.handler.resetParam.name).toBe('reset');
 		expect(directive.handler.body.body[0].value).toContain('Failed');
+	});
+
+	it('parses script-only @try bodies that end with a template fence', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@try {
+				calls++;
+				---
+			} pending {
+				Loading
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXTryExpression');
+		expect(directive.block.body.map((child) => child.type)).toEqual([
+			'ExpressionStatement',
+			'TsrxTemplateFence',
+		]);
+		expect(directive.pending.body[0].type).toBe('JSXText');
 	});
 });

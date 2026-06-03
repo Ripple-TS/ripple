@@ -147,16 +147,9 @@ describe('for statements in SSR', () => {
 				const items = ['Item 1', '', 'Item 3'];
 				---
 				@for (const item of items) {
-					function label(value) {
-						for (let i = 0; i < 1; i++) {
-							while (i < 0) {
-								break;
-							}
-							if (!value) return 'missing';
-						}
-						return value;
-					}
+					const label = (value) => value || 'missing';
 
+					---
 					<div>{label(item)}</div>
 				}
 			</>;

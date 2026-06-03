@@ -112,31 +112,35 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
+		function Wrapper({ children }) {
+			return <>
+				---
+				<div class="green">
+					{'Wrapper'}
+					{children}
+				</div>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>;
+		}
+
+		function Child() {
+			return <>
+				---
+				<div class="red">{'Child'}</div>
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			</>;
+		}
+
 		function App() {
 			return <>
-				function Wrapper({ children }) {
-					return <>
-						<div class="green">
-							{'Wrapper'}
-							{children}
-						</div>
-						<style>
-							.green {
-								color: green;
-							}
-						</style>
-					</>;
-				}
-				function Child() {
-					return <>
-						<div class="red">{'Child'}</div>
-						<style>
-							.red {
-								color: red;
-							}
-						</style>
-					</>;
-				}
 				<Wrapper>
 					<Child />
 				</Wrapper>

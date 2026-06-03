@@ -2296,6 +2296,33 @@ function jsx_member_expression_to_member_expression(jsx_member) {
  * @param {AST.Node[]} [inherited_path=[]]
  * @returns {AST.Node | AST.Node[] | null}
  */
+function decode_jsx_text_entities(value) {
+	return value.replace(/&(#x[0-9a-fA-F]+|#[0-9]+|amp|quot|apos|lt|gt);/g, (match, entity) => {
+		if (entity === 'amp') return '&';
+		if (entity === 'quot') return '"';
+		if (entity === 'apos') return "'";
+		if (entity === 'lt') return '<';
+		if (entity === 'gt') return '>';
+		if (entity.startsWith('#x')) {
+			const code_point = Number.parseInt(entity.slice(2), 16);
+			return Number.isNaN(code_point) ? match : String.fromCodePoint(code_point);
+		}
+		if (entity.startsWith('#')) {
+			const code_point = Number.parseInt(entity.slice(1), 10);
+			return Number.isNaN(code_point) ? match : String.fromCodePoint(code_point);
+		}
+		return match;
+	});
+}
+
+/**
+ * @param {string} value
+ */
+function normalize_jsx_text_value(value) {
+	const normalized = /[\r\n]/.test(value) ? value.trim() : value;
+	return decode_jsx_text_entities(normalized);
+}
+
 function jsx_to_ripple_fragment(node, inherited_path = []) {
 	const fragment = /** @type {AST.TsrxFragment} */ (
 		/** @type {unknown} */ ({
@@ -2325,9 +2352,19 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 			...inherited_path,
 			statement,
 		]);
+	} else if (statement.consequent) {
+		statement.consequent = normalize_jsx_tsrx_node(statement.consequent, [
+			...inherited_path,
+			statement,
+		]);
 	}
 	if (statement.alternate?.type === 'BlockStatement') {
 		statement.alternate.body = normalize_jsx_tsrx_children(statement.alternate.body || [], [
+			...inherited_path,
+			statement,
+		]);
+	} else if (statement.alternate) {
+		statement.alternate = normalize_jsx_tsrx_node(statement.alternate, [
 			...inherited_path,
 			statement,
 		]);
@@ -2477,6 +2514,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				name: name.name,
 				start: name.start,
 				end: name.end,
+				tracked: name.tracked === true,
 			});
 		} else if (name.type === 'JSXMemberExpression') {
 			// Convert JSXMemberExpression to MemberExpression
@@ -2503,24 +2541,45 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		const attributes = opening.attributes
 			.map((attr) => {
 				if (attr.type === 'JSXAttribute') {
+					const name =
+						attr.name.type === 'JSXIdentifier'
+							? attr.name.name
+							: attr.name.namespace.name + ':' + attr.name.name.name;
+					const shorthand_end_loc =
+						attr.loc?.end && attr.loc.end.column > 0
+							? { ...attr.loc.end, column: attr.loc.end.column - 1 }
+							: attr.loc?.end;
+					const value = attr.shorthand
+						? {
+								type: 'Identifier',
+								name,
+								start: attr.name.start,
+								end: attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
+								loc: {
+									start: attr.name.loc?.start ?? attr.loc?.start,
+									end: attr.name.loc?.end ?? shorthand_end_loc,
+								},
+							}
+						: attr.value
+							? attr.value.type === 'JSXExpressionContainer'
+								? attr.value.expression
+								: attr.value
+							: null;
 					return /** @type {AST.Node} */ ({
 						type: 'Attribute',
 						name: {
 							type: 'Identifier',
-							name:
-								attr.name.type === 'JSXIdentifier'
-									? attr.name.name
-									: attr.name.namespace.name + ':' + attr.name.name.name,
+							name,
 							tracked: false,
 							start: attr.name.start,
-							end: attr.name.end,
+							end: attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
+							loc: {
+								start: attr.name.loc?.start ?? attr.loc?.start,
+								end: attr.name.loc?.end ?? shorthand_end_loc,
+							},
 						},
-						value: attr.value
-							? attr.value.type === 'JSXExpressionContainer'
-								? attr.value.expression
-								: attr.value
-							: null,
-						shorthand: false,
+						value,
+						shorthand: attr.shorthand === true,
 						start: attr.start,
 						end: attr.end,
 					});
@@ -2566,13 +2625,14 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 	}
 
 	if (node.type === 'JSXText') {
-		if (node.value.trim() === '') return null;
+		const value = normalize_jsx_text_value(node.value);
+		if (value.trim() === '') return null;
 		return /** @type {AST.Node} */ ({
 			type: 'Text',
 			expression: {
 				type: 'Literal',
-				value: node.value,
-				raw: JSON.stringify(node.value),
+				value,
+				raw: JSON.stringify(value),
 				start: node.start,
 				end: node.end,
 			},
