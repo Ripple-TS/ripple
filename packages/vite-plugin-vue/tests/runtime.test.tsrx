@@ -140,7 +140,7 @@ function ElementRefApp() {
 			}}
 			class="ref-target"
 		>
-			"ref test"
+			ref test
 		</div>
 	</>;
 }
@@ -893,7 +893,9 @@ function ErrorBoundaryApp() {
 function MaybeThrow(props: { shouldThrow: boolean }) {
 	return <>
 		@if (props.shouldThrow) {
-			throw new Error('conditional boom');
+			---
+				throw new Error('conditional boom');
+			---
 		}
 		<p class="ok">{'no error'}</p>
 	</>;

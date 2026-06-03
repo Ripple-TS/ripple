@@ -229,18 +229,18 @@ describe('@tsrx/vue basic', () => {
 
 			function App() { return <>
 					<Child
-						fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
-							native={() => <>{[<>Delete</>, <>Edit</>]}</>}
-							compat={() => <tsx:vue>{[<>Delete</>, <>Edit</>]}</tsx:vue>}
+						fragment={() => <>{[<>{'Delete'}</>, <>{'Edit'}</>]}</>}
+							native={() => <>{[<>{'Delete'}</>, <>{'Edit'}</>]}</>}
+							compat={() => <tsx:vue>{[<>{'Delete'}</>, <>{'Edit'}</>]}</tsx:vue>}
 				/>
 			</>; }`,
 			'App.tsrx',
 		);
 
 		expect(code).toContain('fragment={() => {');
-		expect(code).toContain('return [Delete, Edit];');
+		expect(code).toContain("return ['Delete', 'Edit'];");
 		expect(code).toContain('native={() => {');
-		expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
+		expect(code).toContain("compat={() => [<>{'Delete'}</>, <>{'Edit'}</>]}");
 		expect(code).not.toContain('<tsx');
 	});
 

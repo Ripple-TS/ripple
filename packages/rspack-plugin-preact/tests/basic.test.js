@@ -79,7 +79,7 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 
 		export function App() {
 			return <>
-			try {
+			@try {
 				<AsyncThing />
 			} pending {
 				<div>{'Loading'}</div>
@@ -89,7 +89,10 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 
 		async function AsyncThing() {
 			return <>
-			await Promise.resolve();
+			---
+				await Promise.resolve();
+			---
+
 			<div>{'Done'}</div>
 
 			</>;}`;

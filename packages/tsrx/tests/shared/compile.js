@@ -2118,11 +2118,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return;');
 			expect(code).toMatch(/function FragmentReturn\(\) {\s+return App__static/);
 			expect(code).toMatch(/function TsxReturn\(\) {\s+return App__static/);
-			expect(code).toMatch(
-				name === 'solid'
-					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
-					: /const App__static\d+ = <div>tsrx<\/div>;/,
-			);
+			expect(code).toMatch(/const App__static\d+ = <div>tsrx<\/div>;/);
 			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static/);
 			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
 		});
@@ -2154,11 +2150,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return;');
 			expect(code).toMatch(/fragment=\{\(\) => \{\s+return App__static/);
 			expect(code).toMatch(/tsx=\{\(\) => \{\s+return App__static/);
-			expect(code).toMatch(
-				name === 'solid'
-					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
-					: /const App__static\d+ = <div>tsrx<\/div>;/,
-			);
+			expect(code).toMatch(/const App__static\d+ = <div>tsrx<\/div>;/);
 			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static/);
 			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});

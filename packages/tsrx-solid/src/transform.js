@@ -217,6 +217,8 @@ function to_jsx_child(node, transform_context) {
 			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
+		case 'JSXText':
+			return transform_context.inside_element_child ? node : jsx_text_to_literal(node);
 		case 'Text':
 			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
 		case 'TSRXExpression':
@@ -2111,7 +2113,13 @@ function create_element_children(children, transform_context) {
 		return [jsx_child_wrap(iife_if_arrow(body_jsx))];
 	}
 
-	return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+	const saved_inside_element_child = transform_context.inside_element_child;
+	transform_context.inside_element_child = true;
+	try {
+		return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+	} finally {
+		transform_context.inside_element_child = saved_inside_element_child;
+	}
 }
 
 /**
@@ -2330,6 +2338,23 @@ function to_jsx_expression_container(expression, source_node = expression) {
 			metadata: { path: [] },
 		}),
 		source_node,
+	);
+}
+
+/**
+ * @param {ESTreeJSX.JSXText} node
+ * @returns {AST.Literal}
+ */
+function jsx_text_to_literal(node) {
+	const value = node.value.trim();
+	return set_loc(
+		/** @type {AST.Literal} */ ({
+			type: 'Literal',
+			value,
+			raw: JSON.stringify(value),
+			metadata: { path: [] },
+		}),
+		node,
 	);
 }
 

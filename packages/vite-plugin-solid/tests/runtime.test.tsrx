@@ -190,7 +190,7 @@ function ElementRefApp() {
 			let el: HTMLDivElement | undefined;
 		---
 
-		<div ref={el} class="ref-target">"ref test"</div>
+		<div ref={el} class="ref-target">ref test</div>
 		---
 			// Solid sets refs synchronously during rendering.
 			queueMicrotask(() => {
@@ -212,7 +212,7 @@ function ElementRefCallbackApp() {
 			}}
 			class="ref-callback"
 		>
-			"ref callback"
+			ref callback
 		</div>
 	</>;
 }

@@ -8,8 +8,11 @@ describe('RippleArray > to* methods', () => {
 
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray(1, 2, 3, 4);
-				let &[reversed] = track(() => items.toReversed());
+				---
+					let items = new RippleArray(1, 2, 3, 4);
+					let &[reversed] = track(() => items.toReversed());
+				---
+
 				<button onClick={() => items.push(5)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(reversed)}</pre>
@@ -39,8 +42,11 @@ describe('RippleArray > to* methods', () => {
 
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray(3, 1, 4, 2);
-				let &[sorted] = track(() => items.toSorted());
+				---
+					let items = new RippleArray(3, 1, 4, 2);
+					let &[sorted] = track(() => items.toSorted());
+				---
+
 				<button onClick={() => items.push(0)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(sorted)}</pre>
@@ -70,8 +76,11 @@ describe('RippleArray > to* methods', () => {
 
 		function ArrayTest() {
 			return <>
-				let items = new RippleArray<string | number>(1, 2, 3, 4, 5);
-				let &[spliced] = track(() => items.toSpliced(1, 2, 'a', 'b'));
+				---
+					let items = new RippleArray<string | number>(1, 2, 3, 4, 5);
+					let &[spliced] = track(() => items.toSpliced(1, 2, 'a', 'b'));
+				---
+
 				<button onClick={() => (items[2] = 30)}>{'change item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(spliced)}</pre>

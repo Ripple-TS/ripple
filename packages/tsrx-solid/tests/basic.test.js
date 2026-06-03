@@ -80,7 +80,7 @@ describe('@tsrx/solid basic', () => {
 			expect(() =>
 				compile(
 					`async function App({ items }: { items: AsyncIterable<string> }) { return <>
-							@for (const item of items) {
+							@for await (const item of items) {
 								<div>{item}</div>
 							}
 					</>; }`,
@@ -428,10 +428,10 @@ describe('@tsrx/solid basic', () => {
 				`function App(
 					{ cond, items, setup }: { cond: boolean; items: string[]; setup: () => void }
 				) {
-					@for (const item of items) {
+					for (const item of items) {
 						return <><span>{item}</span></>;
 					}
-					@if (cond) return null;
+					if (cond) return null;
 					setup();
 				}`,
 				'App.tsrx',
@@ -447,7 +447,7 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ hidden, kind }: { hidden: boolean; kind: string }) {
 					if (hidden) return null;
-					@switch (kind) {
+					switch (kind) {
 						case 'skip':
 							break;
 						case 'done':
@@ -469,7 +469,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body if/else returns lower to reactive <Show>', () => {
 			const { code } = compile(
 				`function App({ cond }: { cond: boolean }) {
-					@if (cond) {
+					if (cond) {
 						return <><div>{'yes'}</div></>;
 					} else {
 						return <><span>{'no'}</span></>;
@@ -487,7 +487,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch returns lower to reactive <Switch>/<Match>', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					@switch (kind) {
+					switch (kind) {
 						case 'a':
 							return <><div>{'A'}</div></>;
 						default:
@@ -505,7 +505,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch break cases include trailing render fallback', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					@switch (kind) {
+					switch (kind) {
 						case 'skip':
 							break;
 						case 'a':
@@ -526,7 +526,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body switch with final return lowers non-returning cases', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) {
-					@switch (kind) {
+					switch (kind) {
 						case 'a':
 							<span>{'A'}</span>
 							break;
@@ -546,7 +546,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body for-of returns lower to reactive <For>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: string[] }) {
-					@for (const item of items) {
+					for (const item of items) {
 						return <><div>{item}</div></>;
 					}
 				}`,
@@ -561,7 +561,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body for-of preserves index and key while lowering', () => {
 			const { code } = compile(
 				`function App({ items }: { items: { id: string; name: string }[] }) {
-					@for (const item of items; index i; key item.id) {
+					for (const item of items; index i; key item.id) {
 						return <><div>{i() + item.name}</div></>;
 					}
 				}`,
@@ -576,7 +576,7 @@ describe('@tsrx/solid basic', () => {
 		it('component-body try/pending/catch returns lower to reactive boundaries', () => {
 			const { code } = compile(
 				`function App() {
-					@try {
+					try {
 						return <><div>{'ready'}</div></>;
 					} pending {
 						return <><div>{'loading'}</div></>;
@@ -598,10 +598,8 @@ describe('@tsrx/solid basic', () => {
 				`function App(
 					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
 				) {
-					@try {
-						---
-							setup();
-						---
+					try {
+						setup();
 					} pending {
 						return <><div>{'loading'}</div></>;
 					} catch (err) {
