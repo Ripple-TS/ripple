@@ -38,7 +38,22 @@ export function BlogPage() {
 
 					<section class="post-list" aria-label="Blog posts">
 						<article class="post-preview">
-							<p class="post-date">May 29, 2026</p>
+							<p class="post-date">{'June 3, 2026'}</p>
+							<h2>
+								<a href="/blog/explicit-render-flow-and-code-fences">
+									{'Explicit render flow & code fences'}
+								</a>
+							</h2>
+							<p>
+								{'Render controls now use @if, @switch, @try, and @for, while code fences separate template-local logic from rendered output.'}
+							</p>
+							<a class="read-link" href="/blog/explicit-render-flow-and-code-fences">
+								{'Read the post'}
+							</a>
+						</article>
+
+						<article class="post-preview">
+							<p class="post-date">{'May 29, 2026'}</p>
 							<h2>
 								<a href="/blog/simplifying-tsrx-after-feedback">
 									Simplifying TSRX after feedback
@@ -47,16 +62,18 @@ export function BlogPage() {
 							<p>
 								We removed some early TSRX-only ideas and made the language feel closer to ordinary TypeScript and JSX.
 							</p>
-							<a class="read-link" href="/blog/simplifying-tsrx-after-feedback">
-								Read the post
-							</a>
+							<a class="read-link" href="/blog/simplifying-tsrx-after-feedback">Read the post</a>
 						</article>
 					</section>
 				</main>
 
 				<footer class="site-footer">
-					<p>Released under the MIT License.</p>
-					<p>Copyright © 2025-present Dominic Gannaway</p>
+					<p>
+						Released under the MIT License.
+					</p>
+					<p>
+						Copyright © 2025-present Dominic Gannaway
+					</p>
 				</footer>
 			</div>
 		</div>

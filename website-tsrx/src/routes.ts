@@ -147,6 +147,10 @@ export const routes = [
 		path: '/blog/simplifying-tsrx-after-feedback',
 		entry: '/src/pages/blog-simplifying-tsrx-after-feedback.tsrx',
 	}),
+	new RenderRoute({
+		path: '/blog/explicit-render-flow-and-code-fences',
+		entry: '/src/pages/blog-explicit-render-flow-and-code-fences.tsrx',
+	}),
 	new RenderRoute({ path: '/specification', entry: '/src/pages/specification.tsrx' }),
 	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx' }),
 	new ServerRoute({
