@@ -84,8 +84,8 @@ describe('for statements', () => {
 			`function App() { return <>
 				const items = ['Item 1', '', 'Item 3'];
 				const skipped = [];
-
-					@for (const item of items) {
+				---
+				@for (const item of items) {
 						if (!item) skipped.push('skip');
 						if (!item) continue;
 					<div class="item">{item}</div>

@@ -95,6 +95,8 @@ function apply_tsrx_css_scoping(nodes, state) {
 	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
 	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
 
+	const restore_nodes = prepare_legacy_nodes_for_css_pruning(nodes);
+
 	/**
 	 * @param {AST.Node} node
 	 * @returns {void}
@@ -115,9 +117,69 @@ function apply_tsrx_css_scoping(nodes, state) {
 		}
 	}
 
-	for (const node of nodes) {
-		visit_node(node);
+	try {
+		for (const node of nodes) {
+			visit_node(node);
+		}
+	} finally {
+		restore_nodes();
 	}
+}
+
+/**
+ * Ripple still lowers JSX-shaped TSRX into internal Element nodes before its
+ * renderer runs. Keep that compatibility local by presenting those nodes to the
+ * shared CSS pruner as native JSX only during pruning.
+ *
+ * @param {AST.Node[]} nodes
+ * @returns {() => void}
+ */
+function prepare_legacy_nodes_for_css_pruning(nodes) {
+	/** @type {{ node: any, type: string, native_tsrx: unknown, had_native_tsrx: boolean }[]} */
+	const changed = [];
+	const seen = new Set();
+
+	/** @param {any} node */
+	function visit(node) {
+		if (!node || typeof node !== 'object' || seen.has(node)) {
+			return;
+		}
+		seen.add(node);
+
+		if (node.type === 'Element') {
+			node.metadata ??= { path: [] };
+			changed.push({
+				node,
+				type: node.type,
+				native_tsrx: node.metadata.native_tsrx,
+				had_native_tsrx: Object.prototype.hasOwnProperty.call(node.metadata, 'native_tsrx'),
+			});
+			node.type = 'JSXElement';
+			node.metadata.native_tsrx = true;
+		}
+
+		if (Array.isArray(node.children)) {
+			for (const child of node.children) {
+				visit(child);
+			}
+		}
+	}
+
+	for (const node of nodes) {
+		visit(node);
+	}
+
+	return () => {
+		for (let i = changed.length - 1; i >= 0; i--) {
+			const entry = changed[i];
+			entry.node.type = entry.type;
+			if (entry.had_native_tsrx) {
+				entry.node.metadata.native_tsrx = entry.native_tsrx;
+			} else {
+				delete entry.node.metadata.native_tsrx;
+			}
+		}
+	};
 }
 
 /**
@@ -876,6 +938,32 @@ function build_return_guard(flags) {
 }
 
 /**
+ * Builds a positive OR condition from return flag names.
+ * @param {string[]} flags
+ * @returns {AST.Expression}
+ */
+function build_positive_return_guard(flags) {
+	/** @type {AST.Expression} */
+	let condition = b.id(flags[0]);
+	for (let i = 1; i < flags.length; i++) {
+		condition = b.logical('||', condition, b.id(flags[i]));
+	}
+	return condition;
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
+ * @returns {string | null}
+ */
+function get_returned_child_flag_name(node, return_flags) {
+	const source = /** @type {AST.ReturnStatement | undefined} */ (
+		node.metadata?.returned_tsrx_return
+	);
+	return source ? (return_flags.get(source)?.name ?? null) : null;
+}
+
+/**
  * Collects all unique valid return statements from the direct children of a body.
  * @param {AST.Node[]} children
  * @returns {AST.ReturnStatement[]}
@@ -1107,14 +1195,17 @@ function transform_children(children, context) {
 	let pending_group = [];
 	/** @type {string[]} */
 	let pending_guard_flags = [];
+	let pending_guard_positive = false;
 
 	const flush_pending_group = () => {
 		if (pending_group.length === 0) return;
 
 		const group = pending_group;
 		const guard_flags = pending_guard_flags;
+		const guard_positive = pending_guard_positive;
 		pending_group = [];
 		pending_guard_flags = [];
+		pending_guard_positive = false;
 
 		/** @type {AST.Statement[]} */
 		const wrapped = [];
@@ -1128,7 +1219,9 @@ function transform_children(children, context) {
 		state.init = saved_init;
 		if (wrapped.length === 0) return;
 
-		const guard = build_return_guard(guard_flags);
+		const guard = guard_positive
+			? build_positive_return_guard(guard_flags)
+			: build_return_guard(guard_flags);
 		state.init?.push(
 			...wrap_regular_block([
 				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
@@ -1166,8 +1259,20 @@ function transform_children(children, context) {
 		}
 
 		if (accumulated_flags.length > 0 && should_wrap_node_in_regular_block(node)) {
+			const returned_child_flag = get_returned_child_flag_name(node, return_flags);
+			const guard_flags = returned_child_flag ? [returned_child_flag] : accumulated_flags;
+			const guard_positive = returned_child_flag !== null;
+			const guard_key = guard_flags.join(',');
+			const pending_guard_key = pending_guard_flags.join(',');
+			if (
+				pending_group.length > 0 &&
+				(pending_guard_positive !== guard_positive || pending_guard_key !== guard_key)
+			) {
+				flush_pending_group();
+			}
 			if (pending_group.length === 0) {
-				pending_guard_flags = [...accumulated_flags];
+				pending_guard_flags = [...guard_flags];
+				pending_guard_positive = guard_positive;
 			}
 			pending_group.push(node);
 
@@ -1501,14 +1606,14 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		if (context.state.jsx_to_tsrx_element) {
+		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
 		return context.next();
 	},
 
 	JSXFragment(node, context) {
-		if (context.state.jsx_to_tsrx_element) {
+		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
 		return context.next();

@@ -514,13 +514,17 @@ function mark_regular_js_statement(statement) {
 /**
  * @template {AST.Node} T
  * @param {T} node
+ * @param {AST.ReturnStatement} [statement]
  * @returns {T}
  */
-function mark_returned_template_child(node) {
+function mark_returned_template_child(node, statement) {
 	node.metadata = {
 		...node.metadata,
 		returned_tsrx_child: true,
 	};
+	if (statement) {
+		node.metadata.returned_tsrx_return = statement;
+	}
 	return node;
 }
 
@@ -631,10 +635,23 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 	}
 
 	if (statement.type === 'ReturnStatement' && is_native_tsrx_template_node(statement.argument)) {
+		const template_children = get_native_tsrx_template_children(
+			/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (statement.argument)),
+		);
+		const children = omit_control_return
+			? template_children.flatMap((child) =>
+					node_contains_component_return(child)
+						? expand_native_tsrx_return_statement(/** @type {AST.Statement} */ (child))
+						: [child],
+				)
+			: template_children;
 		return [
-			...get_native_tsrx_template_children(
-				/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (statement.argument)),
-			).map(mark_returned_template_child),
+			...children.map((child) =>
+				mark_returned_template_child(
+					child,
+					omit_control_return ? undefined : statement,
+				),
+			),
 			...(omit_control_return
 				? []
 				: [b.return(null, /** @type {AST.NodeWithLocation} */ (statement))]),
@@ -2345,7 +2362,20 @@ function jsx_to_ripple_fragment(node, inherited_path = []) {
 function jsx_control_expression_to_statement(node, inherited_path = []) {
 	const statement = { ...node, type: node.statementType };
 	delete statement.statementType;
+	const directive =
+		node.type === 'JSXIfExpression'
+			? 'if'
+			: node.type === 'JSXForExpression'
+				? 'for'
+				: node.type === 'JSXSwitchExpression'
+					? 'switch'
+					: node.type === 'JSXTryExpression'
+						? 'try'
+						: null;
 	statement.metadata = { ...(statement.metadata ?? {}), path: inherited_path };
+	if (directive) {
+		statement.metadata.tsrxDirective = directive;
+	}
 
 	if (statement.consequent?.type === 'BlockStatement') {
 		statement.consequent.body = normalize_jsx_tsrx_children(statement.consequent.body || [], [
@@ -2368,6 +2398,12 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 			...inherited_path,
 			statement,
 		]);
+		if (directive === 'if' && statement.alternate?.type === 'IfStatement') {
+			statement.alternate.metadata = {
+				...(statement.alternate.metadata ?? {}),
+				tsrxDirective: 'if',
+			};
+		}
 	}
 	if (statement.body?.type === 'BlockStatement') {
 		statement.body.body = normalize_jsx_tsrx_children(statement.body.body || [], [

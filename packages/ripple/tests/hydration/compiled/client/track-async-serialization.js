@@ -147,7 +147,7 @@ export function AsyncObjectValue() {
 		_$_.try(
 			node_3,
 			(__anchor) => {
-				let lazy_4 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve({ name: 'Alice', age: 30 })), __block, 'f325448a');
+				let lazy_4 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(Object.fromEntries([['name', 'Alice'], ['age', 30]]))), __block, 'f325448a');
 				var div_1 = root_10();
 
 				{
@@ -352,7 +352,7 @@ export function AsyncWithReactiveDependency() {
 		_$_.try(
 			node_9,
 			(__anchor) => {
-				let lazy_10 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(`count-${lazy_9.value}`)), __block, 'cdd1adb8');
+				let lazy_10 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('count-' + lazy_9.value)), __block, 'cdd1adb8');
 				var p_11 = root_26();
 
 				{

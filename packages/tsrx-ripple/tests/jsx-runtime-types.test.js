@@ -91,7 +91,7 @@ function ContentEditable(props: { placeholder: any }) {
 
 function App() {
 	return <>
-		<ContentEditable placeholder={<><div>"Hello"</div></>} />
+		<ContentEditable placeholder={<><div>Hello</div></>} />
 	</>;
 }
 `;

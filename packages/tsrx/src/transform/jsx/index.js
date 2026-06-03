@@ -150,7 +150,7 @@ function is_function_or_class_boundary(node) {
  * Any `<style>` element declared inside a TSRX fragment is collected, rendered
  * via `@tsrx/core`'s stylesheet renderer, and returned alongside the JS output
  * so a downstream plugin can inject it. The compiler also augments every
- * non-style Element in that fragment with the stylesheet's hash class so scoped
+ * non-style JSX element in that fragment with the stylesheet's hash class so scoped
  * selectors match correctly.
  *
  * @param {JsxPlatform} platform
@@ -4122,7 +4122,7 @@ function to_jsx_child(node, transform_context) {
 /**
  * Lower a native TSRX fragment body to a JSX expression.
  * Children have already been parsed and transformed through the normal TSRX
- * Element/Text/control-flow visitors.
+ * JSX element/text/control-flow visitors.
  *
  * @param {any} node
  * @param {TransformContext} transform_context

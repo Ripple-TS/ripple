@@ -180,11 +180,11 @@ export function App() {
 
 	it('parses backtick expressions inside TSRX fragments as template literals', () => {
 		const source = `let a = function() {
-			return <>
-				<>
-					\`333\`
-				</>
-			</>;
+				return <>
+					<>
+						{\`333\`}
+					</>
+				</>;
 		}`;
 
 		const ast = parse(source);
@@ -192,7 +192,7 @@ export function App() {
 		const fragment = get_returned_tsrx(declaration).children[0] as any;
 
 		expect(fragment.type).toBe('TsrxFragment');
-		expect(fragment.children[0].type).toBe('ExpressionStatement');
+		expect(fragment.children[0].type).toBe('TSRXExpression');
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toBe('333');
 	});
@@ -201,11 +201,11 @@ export function App() {
 		const source = `let a = function() {
 			return <>
 				<>
-					\`
-					<b></b>
-					\`
-				</>
-			</>;
+						{\`
+						<b></b>
+						\`}
+					</>
+				</>;
 		}`;
 
 		const ast = parse(source);
@@ -214,7 +214,7 @@ export function App() {
 
 		expect(fragment.type).toBe('TsrxFragment');
 		expect(fragment.children.map((child: any) => child.type)).toEqual([
-			'ExpressionStatement',
+			'TSRXExpression',
 		]);
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toContain('<b></b>');
@@ -960,7 +960,7 @@ export const App = () => <>
 		const source_offset = source.indexOf('\'I like TSRX\'');
 		const generated_offset = result.code.indexOf('\'I like TSRX\'');
 
-		expect(result.code).toContain('<OtherComponent children={\'I like TSRX\'}');
+		expect(result.code).toContain('<OtherComponent children=\'I like TSRX\'');
 		expect(result.code).not.toContain('children={() =>');
 		expect(
 			result.mappings.find(
@@ -1165,29 +1165,27 @@ function App() { return <>
 		expect(result.errors).toEqual([]);
 	});
 
-	it('throws for unclosed tsx compat tags instead of hanging', () => {
+	it('throws for removed tsx compat tags instead of hanging', () => {
 		const source = `export function App() { return <tsx:react>1; }`;
 
 		expect(() => compile(source, 'test.tsrx')).toThrow(
-			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of template.',
+			'Namespaced elements are not supported in TSRX templates: <tsx:react>.',
 		);
 	});
 
-	it('recovers unclosed tsx compat tags in loose mode', () => {
+	it('throws for removed tsx compat tags in loose mode', () => {
 		const source = `export function App() { return <tsx:react>1; }`;
 
-		expect(() => compile_to_volar_mappings(source, 'test.tsrx', { loose: true })).not.toThrow();
-
-		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
-		expect(result.errors).toEqual([]);
+		expect(() => compile_to_volar_mappings(source, 'test.tsrx', { loose: true })).toThrow(
+			'Namespaced elements are not supported in TSRX templates: <tsx:react>.',
+		);
 	});
 
-	it('collects unclosed tsx compat tag errors outside loose mode', () => {
+	it('throws for removed tsx compat tags outside loose mode', () => {
 		const source = `export function App() { return <tsx:react>1; }`;
 
-		const result = compile(source, 'test.tsrx', { collect: true });
-		expect(result.errors.map((error) => error.message)).toContain(
-			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of template.',
+		expect(() => compile(source, 'test.tsrx', { collect: true })).toThrow(
+			'Namespaced elements are not supported in TSRX templates: <tsx:react>.',
 		);
 	});
 
@@ -1217,7 +1215,7 @@ export function App({ items }: { items: string[] }) { return <>
 </>; }`;
 
 		const result = compile(source, 'test.tsrx', { collect: true });
-		expect(result.errors.map((error) => error.message)).toContain(
+		expect(result.errors.map((error) => error.message)).not.toContain(
 			'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 		);
 	});

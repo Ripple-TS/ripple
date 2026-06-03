@@ -231,6 +231,7 @@ describe('async suspense', () => {
 						<FilteredList {queryTracked} />
 					} pending {
 						pending_render_count += 1;
+						---
 						<p class="pending">{'loading...'}</p>
 					}
 					<button onClick={() => (query = 'a')}>{'Search'}</button>
@@ -304,6 +305,7 @@ describe('async suspense', () => {
 					</>
 				} pending {
 					pending_render_count += 1;
+					---
 					<p class="pending">{'loading...'}</p>
 				}
 				<button onClick={() => (query = 'a')}>{'Search'}</button>

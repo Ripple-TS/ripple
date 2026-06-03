@@ -122,6 +122,8 @@ function apply_tsrx_css_scoping(nodes, state) {
 	const style_classes = /** @type {any} */ (component.metadata).styleClasses ?? new Map();
 	const top_scoped_classes = /** @type {any} */ (component.metadata).topScopedClasses ?? new Map();
 
+	const restore_nodes = prepare_legacy_nodes_for_css_pruning(nodes);
+
 	/**
 	 * @param {AST.Node} node
 	 * @returns {void}
@@ -142,9 +144,69 @@ function apply_tsrx_css_scoping(nodes, state) {
 		}
 	}
 
-	for (const node of nodes) {
-		visit_node(node);
+	try {
+		for (const node of nodes) {
+			visit_node(node);
+		}
+	} finally {
+		restore_nodes();
 	}
+}
+
+/**
+ * Ripple still lowers JSX-shaped TSRX into internal Element nodes before its
+ * renderer runs. Keep that compatibility local by presenting those nodes to the
+ * shared CSS pruner as native JSX only during pruning.
+ *
+ * @param {AST.Node[]} nodes
+ * @returns {() => void}
+ */
+function prepare_legacy_nodes_for_css_pruning(nodes) {
+	/** @type {{ node: any, type: string, native_tsrx: unknown, had_native_tsrx: boolean }[]} */
+	const changed = [];
+	const seen = new Set();
+
+	/** @param {any} node */
+	function visit(node) {
+		if (!node || typeof node !== 'object' || seen.has(node)) {
+			return;
+		}
+		seen.add(node);
+
+		if (node.type === 'Element') {
+			node.metadata ??= { path: [] };
+			changed.push({
+				node,
+				type: node.type,
+				native_tsrx: node.metadata.native_tsrx,
+				had_native_tsrx: Object.prototype.hasOwnProperty.call(node.metadata, 'native_tsrx'),
+			});
+			node.type = 'JSXElement';
+			node.metadata.native_tsrx = true;
+		}
+
+		if (Array.isArray(node.children)) {
+			for (const child of node.children) {
+				visit(child);
+			}
+		}
+	}
+
+	for (const node of nodes) {
+		visit(node);
+	}
+
+	return () => {
+		for (let i = changed.length - 1; i >= 0; i--) {
+			const entry = changed[i];
+			entry.node.type = entry.type;
+			if (entry.had_native_tsrx) {
+				entry.node.metadata.native_tsrx = entry.native_tsrx;
+			} else {
+				delete entry.node.metadata.native_tsrx;
+			}
+		}
+	};
 }
 
 /**
@@ -1965,7 +2027,7 @@ const visitors = {
 		if (context.state.to_ts) {
 			return context.next();
 		}
-		if (context.state.jsx_to_tsrx_element) {
+		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
 		return context.next();
@@ -1975,7 +2037,7 @@ const visitors = {
 		if (context.state.to_ts) {
 			return context.next();
 		}
-		if (context.state.jsx_to_tsrx_element) {
+		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
 		return context.next();
@@ -2961,6 +3023,22 @@ const visitors = {
 
 		while (body_start < body_nodes.length) {
 			const child = body_nodes[body_start];
+			if (child.metadata?.regular_js && !child.metadata?.has_template) {
+				body.push(
+					...transform_body([child], {
+						...context,
+						state: {
+							...context.state,
+							scope: body_scope,
+							namespace: context.state.namespace,
+							flush_node: null,
+						},
+					}),
+				);
+				body_start++;
+				continue;
+			}
+
 			if (
 				child.type !== 'IfStatement' ||
 				!child.metadata?.has_continue ||
@@ -4240,6 +4318,35 @@ function build_return_guard(flags) {
 }
 
 /**
+ * Builds a positive OR condition from return flag info.
+ * @param {{ name: string, tracked: boolean }[]} flags
+ * @returns {AST.Expression}
+ */
+function build_positive_return_guard(flags) {
+	/** @param {{ name: string, tracked: boolean }} flag */
+	const read_flag = (flag) => (flag.tracked ? tracked_get(b.id(flag.name)) : b.id(flag.name));
+
+	/** @type {AST.Expression} */
+	let condition = read_flag(flags[0]);
+	for (let i = 1; i < flags.length; i++) {
+		condition = b.logical('||', condition, read_flag(flags[i]));
+	}
+	return condition;
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
+ * @returns {{ name: string, tracked: boolean } | null}
+ */
+function get_returned_child_info(node, return_flags) {
+	const source = /** @type {AST.ReturnStatement | undefined} */ (
+		node.metadata?.returned_tsrx_return
+	);
+	return source ? (return_flags.get(source) ?? null) : null;
+}
+
+/**
  * Collects all unique valid return statements from direct children.
  * @param {AST.Node[]} children
  * @returns {AST.ReturnStatement[]}
@@ -4628,6 +4735,7 @@ function transform_children(children, context) {
 	let pending_group = [];
 	/** @type {{ name: string, tracked: boolean }[]} */
 	let pending_guard_flags = [];
+	let pending_guard_positive = false;
 	let fragment_hop_count = 0;
 
 	let skipped = 0;
@@ -4636,9 +4744,11 @@ function transform_children(children, context) {
 		if (pending_group.length === 0) return;
 
 		const guard_flags = pending_guard_flags;
+		const guard_positive = pending_guard_positive;
 		const group_nodes = pending_group;
 		pending_group = [];
 		pending_guard_flags = [];
+		pending_guard_positive = false;
 
 		state.template?.push('<!>');
 		if (is_fragment) {
@@ -4680,7 +4790,9 @@ function transform_children(children, context) {
 		});
 
 		const content_id = state.scope.generate('content');
-		const guard_condition = build_return_guard(guard_flags);
+		const guard_condition = guard_positive
+			? build_positive_return_guard(guard_flags)
+			: build_return_guard(guard_flags);
 
 		/** @type {AST.Statement[]} */
 		const callback_body = [
@@ -4724,8 +4836,20 @@ function transform_children(children, context) {
 		}
 
 		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
+			const returned_child_info = get_returned_child_info(node, return_flags);
+			const guard_flags = returned_child_info ? [returned_child_info] : accumulated_return_flags;
+			const guard_positive = returned_child_info !== null;
+			const guard_key = guard_flags.map((flag) => flag.name).join(',');
+			const pending_guard_key = pending_guard_flags.map((flag) => flag.name).join(',');
+			if (
+				pending_group.length > 0 &&
+				(pending_guard_positive !== guard_positive || pending_guard_key !== guard_key)
+			) {
+				flush_pending_group();
+			}
 			if (pending_group.length === 0) {
-				pending_guard_flags = [...accumulated_return_flags];
+				pending_guard_flags = [...guard_flags];
+				pending_guard_positive = guard_positive;
 			}
 			pending_group.push(node);
 

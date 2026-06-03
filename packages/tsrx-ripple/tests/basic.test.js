@@ -222,12 +222,12 @@ describe('@tsrx/ripple native fragment Volar output', () => {
 
 		expect(result.code).toContain('<section>');
 		expect(result.code).toContain('<div>');
-		expect(result.code).toContain("'inside';");
+		expect(result.code).toContain("{'inside'}");
 		expect(result.code).not.toContain('<tsx');
 	});
 
 	it('returns children before and after setup statements', () => {
-		const source = `class Foo { bar() { return <><div>"before"</div> const x = 1; <div>{x}</div></>; } }`;
+		const source = `class Foo { bar() { return <><div>before</div> const x = 1; <div>{x}</div></>; } }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\] as Array<any>;/);
 		expect(match).not.toBeNull();
@@ -465,11 +465,9 @@ describe('@tsrx/ripple <> expression values', () => {
 			`function App() { return <>
 				const primary = true;
 				<div>
-					{<>
-						{primary
-							? ['first:', <strong>{'one'}</strong>, ':tail']
-							: ['second:', <strong>{'two'}</strong>, ':done']}
-					</>}
+					{primary
+						? ['first:', <strong>one</strong>, ':tail']
+						: ['second:', <strong>two</strong>, ':done']}
 				</div>
 			</>; }`,
 			'App.tsrx',
@@ -481,14 +479,14 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('lowers native element values outside components', () => {
-		const { code } = compile(`const test = <button>"Hello"</button>;`, 'App.tsrx');
+		const { code } = compile(`const test = <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('const test = _$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
 	});
 
 	it('lowers bare native element expression statements outside components', () => {
-		const { code } = compile(`<button>"Hello"</button>;`, 'App.tsrx');
+		const { code } = compile(`<button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('_$_.tsrx_element');
 		expect(code).toContain('template(`<button>Hello</button>`');
@@ -497,7 +495,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('renders native element values assigned inside returned templates on the server', () => {
 		const { code } = compile(
 			`function App() { return <>
-				const test = <button>"Hello"</button>;
+				const test = <button>Hello</button>;
 				{test}
 			</>; }`,
 			'App.tsrx',
@@ -510,7 +508,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	});
 
 	it('keeps direct arrow component returns on the render path', () => {
-		const { code } = compile(`const App = () => <button>"Hello"</button>;`, 'App.tsrx');
+		const { code } = compile(`const App = () => <button>Hello</button>;`, 'App.tsrx');
 
 		expect(code).toContain('template(`<button>Hello</button>`');
 		expect(code).toContain('_$_.append(__anchor, button_1)');
@@ -520,7 +518,7 @@ describe('@tsrx/ripple <> expression values', () => {
 	it('keeps returned elements after comments on the render path', () => {
 		const { code } = compile(
 			`function App() {
-				return /* comment */ <div>"Commented"</div>;
+				return /* comment */ <div>Commented</div>;
 			}`,
 			'App.tsrx',
 		);
@@ -622,13 +620,13 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 			export function App() { return <>
 				<Child
 					fragment={() => {
-						return <><div>"fragment"</div></>;
+						return <><div>fragment</div></>;
 					}}
 					tsx={() => {
-						return <><div>"tsx"</div></>;
+						return <><div>tsx</div></>;
 					}}
 					tsrx={() => {
-						return <><div>"tsrx"</div></>;
+						return <><div>tsrx</div></>;
 					}}
 				/>
 			</>; }`,
@@ -648,17 +646,17 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 					params={{
 						menuAlt: (isAdmin) => {
 							if (isAdmin) {
-								return [<>"Delete"</>, <>"Edit"</>];
+								return [<>Delete</>, <>Edit</>];
 							} else {
-								return [<>"View"</>];
+								return [<>View</>];
 							}
 						},
 						bySwitch: (role) => {
 							switch (role) {
 								case 'admin':
-									return [<>"Edit"</>];
+									return [<>Edit</>];
 								default:
-									return [<>"View"</>];
+									return [<>View</>];
 							}
 						},
 					}}
@@ -667,11 +665,13 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(code).toMatch(/menuAlt: \(isAdmin\) => {\s+return _\$_.tsrx_element/);
-		expect(code).toMatch(/bySwitch: \(role\) => {\s+return _\$_.tsrx_element/);
+		expect(code).toMatch(/menuAlt: \(isAdmin\) => \{/);
+		expect(code).toMatch(/bySwitch: \(role\) => \{/);
 		expect(code).toContain("case 'admin':");
-		expect(code).toMatch(/_\$_.expression\(expression.*\(\) => \[/s);
-		expect(server.code).toContain('_$_.render_expression([');
+		expect(code).toContain('return [');
+		expect(code).toContain('_$_.tsrx_element');
+		expect(server.code).toContain('return [');
+		expect(server.code).toContain('_$_.tsrx_element');
 	});
 
 	it('allows any returns inside nested component prop functions', () => {
@@ -701,13 +701,13 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 	it('uses one return guard for multiple component return branches', () => {
 		const source = `function Test({ done }) {
 			if (done.value) {
-				return <p>"Done"</p>;
+				return <p>Done</p>;
 			} else if (done.value === 'test') {
-				return <p>"Not done"</p>;
+				return <p>Not done</p>;
 			}
 
 			const loop = () => <>
-				for (const item of items) {
+				@for (const item of items) {
 					<div>{item}</div>
 				}
 			</>;
@@ -737,16 +737,16 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 	it('keeps return guard names local to each compiled function', () => {
 		const source = `function First(flag) {
 			if (flag) {
-				return <p>"first"</p>;
+				return <p>first</p>;
 			}
-			<span>"fallback"</span>
+			<span>fallback</span>
 		}
 
 		function Second(flag) {
 			if (flag) {
-				return <p>"second"</p>;
+				return <p>second</p>;
 			}
-			<span>"fallback"</span>
+			<span>fallback</span>
 		}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
@@ -760,7 +760,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 	it('still avoids user return_guard bindings inside a compiled function', () => {
 		const source = `function Test(return_guard) {
 			if (return_guard) {
-				return <p>"done"</p>;
+				return <p>done</p>;
 			}
 			<span>{return_guard}</span>
 		}`;
@@ -823,7 +823,9 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('if (!return_guard) _$_.with_scope(__block, sideEffect)');
+		expect(client.code).toContain('if (flag) return;');
+		expect(client.code).toContain('_$_.with_scope(__block, sideEffect);');
+		expect(client.code).not.toContain('if (!return_guard) _$_.with_scope(__block, sideEffect)');
 		expect(server.code).toContain('if (!return_guard) sideEffect();');
 	});
 

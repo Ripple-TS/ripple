@@ -15,7 +15,35 @@ import { normalize_jsx_tsrx_templates } from './utils.js';
  * @returns {AST.Program}
  */
 export function parse(source, filename, options) {
-	return parseModule(source, filename, options);
+	const ast = parseModule(source, filename, options);
+	normalize_jsx_tsrx_templates(ast);
+	strip_metadata_paths(ast);
+	return ast;
+}
+
+/**
+ * Public parse results should be JSON/stringify friendly. Internal transforms
+ * keep metadata.path through compile(), but parse() callers do not need the
+ * circular ancestor arrays.
+ * @param {any} node
+ * @param {WeakSet<object>} [seen]
+ * @returns {void}
+ */
+function strip_metadata_paths(node, seen = new WeakSet()) {
+	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	seen.add(node);
+	if (node.metadata?.path) {
+		delete node.metadata.path;
+	}
+	for (const key in node) {
+		if (key === 'parent') continue;
+		const value = node[key];
+		if (Array.isArray(value)) {
+			for (const child of value) strip_metadata_paths(child, seen);
+		} else if (value && typeof value === 'object') {
+			strip_metadata_paths(value, seen);
+		}
+	}
 }
 
 /**

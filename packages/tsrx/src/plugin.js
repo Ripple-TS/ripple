@@ -590,6 +590,185 @@ export function TSRXPlugin(config) {
 				return false;
 			}
 
+			/**
+			 * JSX element bodies also start in script mode, but text tokenization sees the
+			 * whole child run before we get to parse individual statements. Look ahead
+			 * for a local fence so `<div> const x = ... --- <span /> </div>` keeps the
+			 * setup code as script without letting strings such as "</div>" close the
+			 * scan early.
+			 * @param {number} index
+			 * @param {AST.Node} node
+			 */
+			#hasTemplateFenceBeforeElementClose(index, node) {
+				const element_name =
+					node.type === 'JSXFragment'
+						? ''
+						: node.type === 'JSXElement' || node.type === 'JSXStyleElement'
+							? this.getElementName(node.openingElement?.name)
+							: null;
+				if (element_name === null) return false;
+
+				/** @type {string[]} */
+				const tag_stack = [];
+
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					const next = this.input.charCodeAt(index + 1);
+
+					if (ch === CharCode.singleQuote || ch === CharCode.doubleQuote) {
+						const quote = ch;
+						index++;
+						while (index < this.input.length) {
+							const current = this.input.charCodeAt(index);
+							if (
+								current === CharCode.backslash &&
+								this.input.charCodeAt(index - 1) !== CharCode.backslash
+							) {
+								index += 2;
+								continue;
+							}
+							if (current === quote) {
+								index++;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.backtick) {
+						index++;
+						while (index < this.input.length) {
+							const current = this.input.charCodeAt(index);
+							if (
+								current === CharCode.backslash &&
+								this.input.charCodeAt(index - 1) !== CharCode.backslash
+							) {
+								index += 2;
+								continue;
+							}
+							if (current === CharCode.backtick) {
+								index++;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.slash && next === CharCode.slash) {
+						index += 2;
+						while (
+							index < this.input.length &&
+							this.input.charCodeAt(index) !== CharCode.lineFeed &&
+							this.input.charCodeAt(index) !== CharCode.carriageReturn
+						) {
+							index++;
+						}
+						continue;
+					}
+
+					if (ch === CharCode.slash && next === CharCode.asterisk) {
+						index += 2;
+						while (index < this.input.length) {
+							if (
+								this.input.charCodeAt(index) === CharCode.asterisk &&
+								this.input.charCodeAt(index + 1) === CharCode.slash
+							) {
+								index += 2;
+								break;
+							}
+							index++;
+						}
+						continue;
+					}
+
+					if (tag_stack.length === 0 && this.#hasTemplateFenceAtIndex(index)) {
+						return true;
+					}
+
+					if (ch === CharCode.lessThan) {
+						if (next === CharCode.slash) {
+							let name_start = index + 2;
+							while (
+								this.input.charCodeAt(name_start) === CharCode.space ||
+								this.input.charCodeAt(name_start) === CharCode.tab
+							) {
+								name_start++;
+							}
+							let name_end = name_start;
+							while (this.#isIdentifierChar(this.input.charCodeAt(name_end))) {
+								name_end++;
+							}
+							const close_name = this.input.slice(name_start, name_end);
+							const top = tag_stack[tag_stack.length - 1];
+							if (top && top === close_name) {
+								tag_stack.pop();
+								index = name_end;
+								continue;
+							}
+							if (tag_stack.length === 0 && close_name === element_name) {
+								return false;
+							}
+						} else if (
+							next === CharCode.greaterThan ||
+							this.#isIdentifierChar(next) ||
+							next === CharCode.at
+						) {
+							let cursor = index + 1;
+							let open_name = '';
+							if (next === CharCode.greaterThan) {
+								open_name = '';
+								cursor++;
+							} else {
+								if (next === CharCode.at) cursor++;
+								const name_start = cursor;
+								while (this.#isIdentifierChar(this.input.charCodeAt(cursor))) {
+									cursor++;
+								}
+								open_name = this.input.slice(name_start, cursor);
+							}
+
+							let self_closing = false;
+							let quote = 0;
+							while (cursor < this.input.length) {
+								const current = this.input.charCodeAt(cursor);
+								if (quote !== 0) {
+									if (
+										current === CharCode.backslash &&
+										this.input.charCodeAt(cursor - 1) !== CharCode.backslash
+									) {
+										cursor += 2;
+										continue;
+									}
+									if (current === quote) quote = 0;
+									cursor++;
+									continue;
+								}
+								if (current === CharCode.singleQuote || current === CharCode.doubleQuote) {
+									quote = current;
+									cursor++;
+									continue;
+								}
+								if (current === CharCode.greaterThan) {
+									self_closing = this.input.charCodeAt(cursor - 1) === CharCode.slash;
+									break;
+								}
+								cursor++;
+							}
+							if (!self_closing) {
+								tag_stack.push(open_name);
+							}
+							index = cursor + 1;
+							continue;
+						}
+					}
+
+					index++;
+				}
+				return false;
+			}
+
 			#parseTemplateFence() {
 				const start = this.#templateFenceStart();
 				if (start === -1) {
@@ -609,6 +788,50 @@ export function TSRXPlugin(config) {
 				this.next();
 
 				return this.finishNodeAt(node, 'TsrxTemplateFence', end, endLoc);
+			}
+
+			/**
+			 * @param {string} value
+			 */
+			#jsxTextContainsTemplateFence(value) {
+				let index = 0;
+				while (index < value.length) {
+					const line_start = index;
+					while (
+						index < value.length &&
+						(value.charCodeAt(index) === CharCode.space ||
+							value.charCodeAt(index) === CharCode.tab)
+					) {
+						index++;
+					}
+					if (
+						value.charCodeAt(index) === CharCode.dash &&
+						value.charCodeAt(index + 1) === CharCode.dash &&
+						value.charCodeAt(index + 2) === CharCode.dash
+					) {
+						const after = value.charCodeAt(index + 3);
+						if (
+							after === CharCode.lineFeed ||
+							after === CharCode.carriageReturn ||
+							after === CharCode.space ||
+							after === CharCode.tab ||
+							Number.isNaN(after)
+						) {
+							return true;
+						}
+					}
+					while (
+						index < value.length &&
+						value.charCodeAt(index) !== CharCode.lineFeed &&
+						value.charCodeAt(index) !== CharCode.carriageReturn
+					) {
+						index++;
+					}
+					if (index === line_start) index++;
+					if (value.charCodeAt(index) === CharCode.carriageReturn) index++;
+					if (value.charCodeAt(index) === CharCode.lineFeed) index++;
+				}
+				return false;
 			}
 
 			#parseTemplateRawText() {
@@ -672,7 +895,9 @@ export function TSRXPlugin(config) {
 					return false;
 				}
 
-				const label = this.type.keyword || this.type.label;
+				const label =
+					this.type.keyword ||
+					(typeof this.value === 'string' ? this.value : this.type.label);
 				return !(
 					label === 'const' ||
 					label === 'let' ||
@@ -1186,7 +1411,7 @@ export function TSRXPlugin(config) {
 				let index = this.pos;
 				let has_newline = false;
 
-				// Text-only template fragments can leave the tokenizer in JSX text mode.
+				// JSXText-only template fragments can leave the tokenizer in JSX text mode.
 				// Only unwind it for ASI before a following TSRX `{expr}` child;
 				// fragment props like `content={<></>}` still need the JSX context.
 				while (index < this.input.length) {
@@ -2879,12 +3104,15 @@ export function TSRXPlugin(config) {
 				const is_template_output = current_template_node.metadata?.templateMode === 'template';
 
 				if (!is_template_output && this.type === tstt.jsxText) {
+					const jsx_text_value = String(this.value ?? '');
+					const has_template_fence_ahead =
+						current_template_node.metadata?.native_tsrx_template_block
+							? current_template_node.metadata?.hasTemplateFenceAhead
+							: this.#jsxTextContainsTemplateFence(jsx_text_value) ||
+								this.#hasTemplateFenceBeforeElementClose(this.start, current_template_node);
 					const should_enter_template_text =
-						String(this.value ?? '').trim() !== '' &&
-						!(
-							current_template_node.metadata?.native_tsrx_template_block &&
-							current_template_node.metadata?.hasTemplateFenceAhead
-						) &&
+						jsx_text_value.trim() !== '' &&
+						!has_template_fence_ahead &&
 						this.#canImplicitlyEnterTemplateOutput(body);
 					if (should_enter_template_text) {
 						current_template_node.metadata ??= { path: [] };

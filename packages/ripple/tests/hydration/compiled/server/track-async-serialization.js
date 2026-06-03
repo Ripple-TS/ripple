@@ -169,7 +169,7 @@ export function AsyncObjectValue() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				let lazy_4 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'f325448a');
+				let lazy_4 = _$_.track_async(() => Promise.resolve(Object.fromEntries([['name', 'Alice'], ['age', 30]])), 'f325448a');
 
 				_$_.regular_block(() => {
 					_$_.output_push('<div');
@@ -449,7 +449,7 @@ export function AsyncWithReactiveDependency() {
 			() => {
 				_$_.output_push('<!--[-->');
 
-				let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${lazy_9.value}`), 'cdd1adb8');
+				let lazy_10 = _$_.track_async(() => Promise.resolve('count-' + lazy_9.value), 'cdd1adb8');
 
 				_$_.regular_block(() => {
 					_$_.output_push('<p');

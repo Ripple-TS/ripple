@@ -1,6 +1,6 @@
 import type { Rule } from 'eslint';
 import type * as AST from '@tsrx/core/types/estree';
-import { functionReturnsNativeTsrx, isNativeTsrxNode } from '../utils/tsrx.js';
+import { functionReturnsNativeTsrx } from '../utils/tsrx.js';
 
 const NESTED_BOUNDARY_TYPES = new Set([
 	'FunctionDeclaration',
@@ -17,12 +17,12 @@ const rule: Rule.RuleModule = {
 		type: 'problem',
 		docs: {
 			description:
-				'Require JSX in for...of loops within components, but disallow JSX in for...of loops within effects',
+				'Require template output in @for blocks, but disallow JSX output in effect loops',
 			recommended: true,
 		},
 		messages: {
 			requireJsxInLoop:
-				'For...of loops in returned TSRX should contain JSX elements. Use JSX to render items.',
+				'@for blocks in returned TSRX should contain template output. Render an element, text, expression, or nested template directive.',
 			noJsxInEffectLoop:
 				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
 		},
@@ -49,18 +49,20 @@ const rule: Rule.RuleModule = {
 				node.type === ('JSXElement' as string) ||
 				node.type === ('JSXFragment' as string) ||
 				node.type === ('JSXStyleElement' as string) ||
-				node.type === ('JSXExpressionContainer' as string) ||
 				node.type === ('JSXIfExpression' as string) ||
 				node.type === ('JSXForExpression' as string) ||
 				node.type === ('JSXSwitchExpression' as string) ||
-				node.type === ('JSXTryExpression' as string) ||
-				isNativeTsrxNode(node)
+				node.type === ('JSXTryExpression' as string)
 			) {
 				return true;
 			}
 
 			if (node.type === ('JSXText' as string)) {
 				return String((node as any).value ?? '').trim() !== '';
+			}
+
+			if (node.type === ('JSXExpressionContainer' as string)) {
+				return (node as any).expression?.type !== 'JSXEmptyExpression';
 			}
 
 			const keys = Object.keys(node);

@@ -81,14 +81,6 @@ export function isWhitespaceTextNode(node) {
 		return /^\s*$/.test(node.value);
 	}
 
-	if (node.type !== 'Text') {
-		return false;
-	}
-
-	const expr = node.expression;
-	if (expr && expr.type === 'Literal' && typeof expr.value === 'string') {
-		return /^\s*$/.test(expr.value);
-	}
 	return false;
 }
 
@@ -532,7 +524,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 						comments[0] &&
 						comments[0].start < /** @type {AST.NodeWithLocation} */ (node).start
 					) {
-						// Skip comments that are inside an attribute of an ancestor Element.
+						// Skip comments that are inside an attribute of an ancestor JSX element.
 						// Since zimmerframe visits children before attributes, we need to leave
 						// these comments for when the attribute nodes are visited.
 						if (
@@ -859,7 +851,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 									// check if there's also a blank line after the comment(s) before the next node
 									// If so, attach comments as trailing to preserve the grouping
 									// Only do this for statement-level contexts (BlockStatement, Program),
-									// not for Element children or other contexts
+									// not for JSX element children or other contexts
 									const isStatementContext =
 										parent.type === 'BlockStatement' || parent.type === 'Program';
 
@@ -902,7 +894,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 												nextSibling.loc &&
 												comments.some((c) => {
 													if (!c.loc) return false;
-													// Check if comment is on a line between Element's start and end lines
+													// Check if comment is on a line between the JSX element's start and end lines
 													return (
 														c.loc.start.line >= nextSibling.loc.start.line &&
 														c.loc.end.line <= nextSibling.loc.end.line

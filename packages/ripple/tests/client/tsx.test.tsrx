@@ -734,14 +734,18 @@ describe('tsrx expression', () => {
 		expect(div.textContent).toBe('Hello world');
 	});
 
-	it('runs setup statements before native template output', () => {
+	it('runs setup statements before component template output', () => {
+		function El() {
+			return <>
+				const label = 'from setup';
+				---
+				<div>{label}</div>
+			</>;
+		}
+
 		function App() {
 			return <>
-				const el = <>
-					const label = 'from setup';
-					<div>{label}</div>
-				</>;
-				{el}
+				<El />
 			</>;
 		}
 
@@ -768,15 +772,19 @@ describe('tsrx expression', () => {
 		expect(container.querySelector('div').textContent).toBe('count: 1');
 	});
 
-	it('renders native control flow inside an assigned fragment', () => {
+	it('renders native control flow inside a component fragment', () => {
+		function El() {
+			return <>
+				---
+				@if (true) {
+					<span>visible</span>
+				}
+			</>;
+		}
+
 		function App() {
 			return <>
-				const el = <>
-					@if (true) {
-						<span>visible</span>
-					}
-				</>;
-				{el}
+				<El />
 			</>;
 		}
 

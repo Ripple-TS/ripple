@@ -241,11 +241,11 @@ export interface JsxPlatformHooks {
 	 */
 	createErrorBoundaryContent?: (tryContent: any, ctx: any, node: any) => any | null;
 	/**
-	 * Lower a Ripple `Element` node to a JSXElement. Default is the
+	 * Customize lowering for a native JSX element. Default is the
 	 * factory's `to_jsx_element`. The hook receives the walker-transformed
 	 * node (`inner`, with children already lowered) plus the element's
 	 * raw pre-walk children — Solid uses the latter to detect a lone
-	 * `Text` child it can hoist to a `textContent` attribute before the
+	 * `JSXText` child it can hoist to a `textContent` attribute before the
 	 * generic text→JSXExpressionContainer transform runs.
 	 */
 	transformElement?: (inner: any, ctx: any, rawChildren: any[]) => any;

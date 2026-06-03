@@ -383,6 +383,7 @@ describe('try block', () => {
 				@try {
 					let &[items] = trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
 
+					---
 					@if (items.includes('not-in-list')) {
 						<p>{'not-in-list is in the list!'}</p>
 					} else {
@@ -702,6 +703,7 @@ describe('try block', () => {
 			function PendingTracker() {
 				return <>
 					pending_render_count++;
+					---
 					<p class="pending">{'loading...'}</p>
 				</>;
 			}
@@ -939,6 +941,7 @@ describe('try block', () => {
 				return <>
 					@try {
 						data = trackAsync(() => user_promise);
+						---
 						<p class="resolved">{data.value}</p>
 					} pending {
 						<p class="pending">{'loading...'}</p>
@@ -1142,6 +1145,7 @@ describe('try block', () => {
 				@try {
 					name = trackAsync(() => first_promise);
 					count = trackAsync(() => second_promise);
+					---
 					<p class="resolved">
 						{name.value}
 						{' count: '}
