@@ -19,7 +19,7 @@ return JSX.
 
 ```ripple
 function Hello() {
-  return <span>"Hello World!"</span>;
+  return <span>Hello World!</span>;
 }
 
 export function App() {
@@ -37,12 +37,13 @@ The statement rules apply to the template body, not to CSS text inside
 
 ```ripple
 function MyComponent({ name }: { name: string | null }) {
-  const fallback = 'friend';
   return <>
-    if (name) {
-      <p>"Hello, "{name}</p>
+    const fallback = 'friend';
+
+    @if (name) {
+      <p>Hello, {name}</p>
     } else {
-      <p>"Hello, "{fallback}</p>
+      <p>Hello, {fallback}</p>
     }
 
     <style>
@@ -65,7 +66,7 @@ function createBadge(label: string) {
 }
 
 function App() {
-  const title = <span class="title">"Settings"</span>;
+  const title = <span class="title">Settings</span>;
 
   return <>
     <header>{title}</header>
@@ -79,7 +80,7 @@ values.
 
 ### TSRX vs React JSX
 
-- `<div>"Text"</div>` is a TSRX expression with Ripple/TSRX text rules.
+- `<div>Text</div>` is a TSRX expression with Ripple/TSRX text rules.
 - `<>...</>` opens a TSRX fragment; its children are statements.
 
 ## Guard Returns Before Templates
@@ -111,22 +112,19 @@ then be converted to a string (if it is not already) to be inserted into the DOM
 ## Example: Displaying Text
 
 This is the first place we can notice the difference between Ripple and JSX.
-Static text can be written directly as a double-quoted child. Unquoted text is
-still invalid because Ripple templates are statements rather than expressions, so
-bare words in a template would be like writing text in the middle of your code.
-Variables, single-quoted strings, template literals, and other JavaScript
-expressions still use {braces}.
+Static text is ordinary JSX text. Variables, single-quoted strings, template
+literals, and other JavaScript expressions still use {braces}.
 
 ```ripple
-// ✅ Correct - Static text is a direct double-quoted child
-<span>"Hello World!"</span>
+// ✅ Correct - Static text is JSX text
+<span>Hello World!</span>
 
 // ✅ Correct - JavaScript expressions use braces
 <span>{'Hello World!'}</span>
 <span>{message}</span>
 
-// ❌ Wrong - Compilation error
-<span>Hello World!</span>
+// ❌ Wrong - Single-quoted strings are JavaScript expressions
+<span>'Hello World!'</span>
 ```
 
 ```js
@@ -139,12 +137,12 @@ let greet_text = Hello World!;
 ## Example: Text Interpolation
 
 The most basic form of data-binding is text interpolation. In the example below,
-we'll declare a `<span>` element as a statement. Direct double-quoted text can sit
-next to dynamic {braces}; JavaScript string and template expressions still go
-inside braces.
+we'll declare a `<span>` element as a statement. JSX text can sit next to
+dynamic {braces}; JavaScript string and template expressions still go inside
+braces.
 
 ```ripple
-<span>"Message: "{msg}</span>
+<span>Message: {msg}</span>
 <span>{`Message: ${msg}`}</span>
 <span>{'Message: ' + msg}</span>
 ```
@@ -157,7 +155,8 @@ similar to block statements in regular JavaScript.
 
 ```ripple
 function TemplateScope() {
-  return <div>
+  return <>
+  <div>
     // Variable declarations inside templates
     const message = 'Hello from template scope';
     let count = 42;
@@ -169,10 +168,13 @@ function TemplateScope() {
     const isEven = count % 2 === 0;
 
     <h1>{message}</h1>
-    <p>"Count is: "{count}</p>
+    <p>
+      "Count is: "
+      {count}
+    </p>
 
-    if (isEven) {
-      <span>"Count is even"</span>
+    @if (isEven) {
+      <span>Count is even</span>
     }
 
     // Nested scopes work too
@@ -184,6 +186,8 @@ function TemplateScope() {
     debugger;
     // You can even put debugger statements
   </div>
+
+  </>;
 }
 ```
 
@@ -210,7 +214,7 @@ but instead of quotes, we use {braces}, within which, we can write a JS expressi
 that evaluates to our desired value.
 
 ```ripple
-<span data-my-attr={attr_val}>"Hi there!"</span>
+<span data-my-attr={attr_val}>Hi there!</span>
 ```
 
 ::: info Plain attributes can still be used.
@@ -229,11 +233,15 @@ injections. If you'd like to render trusted HTML onto your page, use the native
 
 ```ripple
 export function App() {
+  return <>
   let source = `
-    <h1>My Blog Post</h1>
-    <p>Hi! I like JS and Ripple.</p>
-  `;
-  return <article innerHTML={source} />
+<h1>My Blog Post</h1>
+<p>Hi! I like JS and Ripple.</p>
+`;
+
+  <article innerHTML={source} />
+
+  </>;
 }
 ```
 
@@ -254,17 +262,20 @@ raw content, refer to [Styling](/docs/guide/styling#Global-Styles).
 
 ## Text Expressions
 
-Direct double-quoted children are static escaped text. Dynamic text is just a
-normal `{expression}`. When you need explicit string coercion, write it in
-JavaScript with `String(value)`, `value + ''`, or a typed string value.
+Static text is ordinary JSX text. Dynamic text is just a normal `{expression}`.
+When you need explicit string coercion, write it in JavaScript with
+`String(value)`, `value + ''`, or a typed string value.
 
 ```ripple
 export function Frame({ children }) {
-  return <div class="frame">
-    "before"
+  return <>
+  <div class="frame">
+    before
     {children}
-    "after"
-  </div>;
+    after
+  </div>
+
+  </>;
 }
 ```
 
@@ -273,8 +284,12 @@ never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
 export function App() {
+  return <>
   const markup = '<span>Not HTML</span>';
+
   // Renders the literal string "<span>Not HTML</span>" as text
-  return <div>{markup}</div>
+  <div>{markup}</div>
+
+  </>;
 }
 ```

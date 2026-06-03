@@ -17,7 +17,7 @@ them all the way through to the compiled output.
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **TSRX templates**: returned templates can contain elements, locals, and control flow
-- **Declarative control flow**: `if`, `for`, `switch`, `try` inside templates
+- **Declarative control flow**: directive-prefixed `@if`, `@for`, `@switch`, and `@try` inside templates
 - **Lexical template scoping**: declare locals next to the JSX that uses them
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
 - **Scoped styles**: per-component `<style>` blocks with automatic class hashing

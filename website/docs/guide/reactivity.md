@@ -84,18 +84,11 @@ function to `track` rather than a value:
 ```ts
 import { track } from 'ripple';
 
-export function App() {
-  let &[count] = track(10);
-  let &[double] = track(() => count * 2);
-  let &[quadruple] = track(() => double * 2);
+let &[count] = track(0);
+let &[double] = track(() => count * 2);
+let &[quadruple] = track(() => double * 2);
 
-  return <>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <p>"Quadruple: "{quadruple}</p>
-    <button onClick={() => count++}>"Increment Count"</button>
-  </>;
-}
+console.log(quadruple);
 ```
 
 Derived tracked values can also be written to for **optimistic state**. The
@@ -149,6 +142,7 @@ validating, or transforming values before they are exposed or stored.
 import { track } from 'ripple';
 
 export function App() {
+  return <>
   let &[count] = track(
     0,
     (current) => {
@@ -160,10 +154,12 @@ export function App() {
       if (typeof next === 'string') {
         next = Number(next);
       }
+
       return next;
     },
   );
-  return <button onClick={()=>count++}>{count}</button>
+
+  </>;
 }
 ```
 
@@ -200,9 +196,10 @@ reactivity:
 ```ripple
 function Child(&{ count, className, children }: Props) {
   return <>
-    // count, className, children are lazily read from the props object
-    <button class={className}>{children}</button>
-    <pre>"Count is: "{count}</pre>
+  // count, className, children are lazily read from the props object
+  <button class={className}>{children}</button>
+  <pre>Count is: {count}</pre>
+
   </>;
 }
 ```
@@ -249,12 +246,20 @@ function createDouble(&[count]) {
 }
 
 export function App() {
-  let &[count, countTracked] = track(0);
-  const &[double] = createDouble(countTracked);
   return <>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <button onClick={() => count++}>"Increment Count"</button>
+  let &[count, countTracked] = track(0);
+
+  const &[double] = createDouble(countTracked);
+
+  <div>Double: {double}</div>
+  <button
+    onClick={() => {
+      count++;
+    }}
+  >
+    "Increment"
+  </button>
+
   </>;
 }
 ```
@@ -281,26 +286,37 @@ UIs with minimal boilerplate.
 import { track } from 'ripple';
 
 export function App() {
-  let &[swapMe, swapMeTracked] = track(() => Child1);
   return <>
-    <Child swapMe={swapMeTracked} />
+  let &[swapMe, swapMeTracked] = track(() => Child1);
 
-    <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
-      "Swap Component"
-    </button>
+  <Child swapMe={swapMeTracked} />
+
+  <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
+    "Swap Component"
+  </button>
+
   </>;
 }
 
 function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
-  return <@swapMe />
+  return <>
+  <@swapMe />
+
+  </>;
 }
 
 function Child1(props) {
-  return <pre>"I am child 1"</pre>
+  return <>
+  <pre>I am child 1</pre>
+
+  </>;
 }
 
 function Child2(props) {
-  return <pre>"I am child 2"</pre>
+  return <>
+  <pre>I am child 2</pre>
+
+  </>;
 }
 ```
 
@@ -317,11 +333,16 @@ based on changes that happen upon updates. To do this, you can use `effect`:
 import { track, effect } from 'ripple';
 
 export function App() {
+  return <>
   let &[count] = track(0);
+
   effect(() => {
     console.log(count);
   });
-  return <button onClick={() => count++}>"Increment"</button>
+
+  <button onClick={() => count++}>Increment</button>
+
+  </>;
 }
 ```
 
@@ -340,6 +361,7 @@ DOM changes are complete before executing subsequent code, similar to Vue's
 import { tick, track, effect } from 'ripple';
 
 export function App() {
+  return <>
   let &[count] = track(0);
 
   effect(() => {
@@ -354,7 +376,10 @@ export function App() {
       console.log('after the update');
     });
   });
-  return <button onClick={() => count++}>"Increment"</button>
+
+  <button onClick={() => count++}>Increment</button>
+
+  </>;
 }
 ```
 
@@ -368,6 +393,7 @@ export function App() {
 import { track, effect, untrack } from 'ripple';
 
 export function App() {
+  return <>
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
   let &[quadruple] = track(() => double * 2);
@@ -376,11 +402,7 @@ export function App() {
     // This effect will never fire again, as we've untracked the only dependency it has
     console.log(untrack(() => quadruple));
   });
-  return <>
-    <p>"Count: "{count}</p>
-    <p>"Double: "{double}</p>
-    <p>"Quadruple: "{quadruple}</p>
-    <button onClick={() => count++}>"Increment Count"</button>
+
   </>;
 }
 ```
@@ -404,19 +426,17 @@ object, like arrays:
 import { track, effect } from 'ripple';
 
 export function App() {
-  let &[first, firstTracked] = track(1);
-  let &[second, secondTracked] = track(2);
-  const arr = [firstTracked, secondTracked];
+  return <>
+  let &[first] = track(1);
+  let &[second] = track(2);
+  const arr = [first, second];
 
-  const &[total] = track(() => arr.reduce((a, b) => a.value + b.value));
+  const &[total] = track(() => arr.reduce((a, b) => a + b, 0));
 
   effect(() => {
     console.log(total);
   });
-  return <>
-    <p>"First :"{first}", Second: "{second}", Total: "{total}</p>
-    <button onClick={()=>first++}>"Increment First"</button>
-    <button onClick={()=>second++}>"Increment Second"</button>
+
   </>;
 }
 ```
@@ -457,14 +477,21 @@ Usage Example:
 import { RippleArray } from 'ripple';
 
 export function App() {
+  return <>
   const items = new RippleArray(1, 2, 3);
-  return <div>
-    <p>"Length: "{items.length}</p> // Reactive length
-    for (const item of items) {
+
+  <div>
+    <p>
+      "Length: "
+      {items.length}
+    </p> // Reactive length
+    @for (const item of items) {
       <div>{item}</div>
     }
-    <button onClick={() => items.push(items.length + 1)}>"Add"</button>
+    <button onClick={() => items.push(items.length + 1)}>Add</button>
   </div>
+
+  </>;
 }
 ```
 
@@ -490,16 +517,29 @@ Usage Example:
 import { RippleObject } from 'ripple';
 
 export function App() {
-  const obj = new RippleObject({ a: 0 });
-  obj.a = 0;
   return <>
-    <pre>"obj.a is: "{obj.a}</pre>
-    <pre>"obj.b is: "{obj.b}</pre>
-    <button onClick={() => {
+  const obj = new RippleObject({ a: 0 });
+
+  obj.a = 0;
+
+  <pre>
+    "obj.a is: "
+    {obj.a}
+  </pre>
+  <pre>
+    "obj.b is: "
+    {obj.b}
+  </pre>
+  <button
+    onClick={() => {
       obj.a++;
       obj.b = obj.b ?? 5;
       obj.b++;
-    }}>"Increment"</button>
+    }}
+  >
+    "Increment"
+  </button>
+
   </>;
 }
 ```
@@ -526,17 +566,25 @@ reactive variables.
 import { RippleSet, track } from 'ripple';
 
 export function App() {
-  const set = new RippleSet([1, 2, 3]);
   return <>
-    // direct usage
-    <p>"Direct usage: set contains 2: "{set.has(2)}</p>
+  const set = new RippleSet([1, 2, 3]);
 
-    // reactive assignment
-    let &[has] = track(() => set.has(2));
-    <p>"Assigned usage: set contains 2: "{has}</p>
+  // direct usage
+  <p>
+    "Direct usage: set contains 2: "
+    {set.has(2)}
+  </p>
 
-    <button onClick={() => set.delete(2)}>"Delete 2"</button>
-    <button onClick={() => set.add(2)}>"Add 2"</button>
+  // reactive assignment
+  let &[has] = track(() => set.has(2));
+  <p>
+    "Assigned usage: set contains 2: "
+    {has}
+  </p>
+
+  <button onClick={() => set.delete(2)}>Delete 2</button>
+  <button onClick={() => set.add(2)}>Add 2</button>
+
   </>;
 }
 ```
@@ -563,17 +611,25 @@ reactive variables.
 import { RippleMap, track } from 'ripple';
 
 export function App() {
-  const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
   return <>
-    // direct usage
-    <p>"Direct usage: map has an item with key 2: "{map.has(2)}</p>
+  const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
 
-    // reactive assignment
-    let &[has] = track(() => map.has(2));
-    <p>"Assigned usage: map has an item with key 2: "{has}</p>
+  // direct usage
+  <p>
+    "Direct usage: map has an item with key 2: "
+    {map.has(2)}
+  </p>
 
-    <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
-    <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+  // reactive assignment
+  let &[has] = track(() => map.has(2));
+  <p>
+    "Assigned usage: map has an item with key 2: "
+    {has}
+  </p>
+
+  <button onClick={() => map.delete(2)}>Delete item with key 2</button>
+  <button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
+
   </>;
 }
 ```
@@ -602,19 +658,32 @@ etc.) are reactive and will update when the date is modified.
 import { RippleDate, track } from 'ripple';
 
 export function App() {
-  const date = new RippleDate(2025, 0, 1, 12, 0, 0);
   return <>
-    // direct usage
-    <p>"Direct usage: Current year is "{date.getFullYear()}</p>
-    <p>"ISO String: "date.toISOString()}</p>
+  const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
-    // reactive assignment
-    let &[year] = track(() => date.getFullYear());
-    let &[month] = track(() => date.getMonth());
-    <p>"Assigned usage: Year "{year}", Month "{month}</p>
+  // direct usage
+  <p>
+    "Direct usage: Current year is "
+    {date.getFullYear()}
+  </p>
+  <p>
+    "ISO String: "
+    {date.toISOString()}
+  </p>
 
-    <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
-    <button onClick={() => date.setMonth(11)}>"Change to December"</button>
+  // reactive assignment
+  let &[year] = track(() => date.getFullYear());
+  let &[month] = track(() => date.getMonth());
+  <p>
+    "Assigned usage: Year "
+    {year}
+    ", Month "
+    {month}
+  </p>
+
+  <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
+  <button onClick={() => date.setMonth(11)}>Change to December</button>
+
   </>;
 }
 ```

@@ -45,7 +45,7 @@ function DynamicStyleValues() {
   let &[color] = track('#3e95ff');
 
   <p class="notice" style={{ '--notice-color': color }}>
-		"Hello Ripple!"
+		Hello Ripple!
   </p>
 
   <style>
@@ -62,16 +62,16 @@ function DynamicClasses() {
   return <>
   let includeBaz = track(true);
   <p class={{ foo: true, bar: false, baz: @includeBaz }}> // becomes: class="foo baz"
-		"Hello Ripple!"
+		Hello Ripple!
   </p>
 
   <p class={['foo', {baz: false}, 0 && 'bar', [true && 'bat'] ]}> // becomes: class="foo bat"
-		"Hello Ripple!"
+		Hello Ripple!
   </p>
 
   let count = track(3);
   <p class={['foo', {bar: @count > 2}, @count > 3 && 'bat']}> // becomes: class="foo bar"
-		"Hello Ripple!"
+		Hello Ripple!
   </p>
 
   </>;
@@ -194,9 +194,9 @@ export default function App() {
   return <>
 	function InlineComp() {
 	  return <>
-		<p>I'm an inline component.</p>
-	
-	  </>;
+			<p>I'm an inline component.</p>
+
+		  </>;
 	}
 
 	<Composite PropComp={Separate} {InlineComp} />
@@ -231,9 +231,9 @@ export default function App() {
   return <>
 	function Footer() {
 	  return <>
-		<p>Card footer</p>
-	
-	  </>;
+			<p>Card footer</p>
+
+		  </>;
 	}
 
 	<Card Header={CustomHeader} {Footer}> // <- Header and Footer passed in as props
@@ -715,7 +715,7 @@ export default function App() {
   <Child {swapMe} />
 
   <button onClick={() => @swapMe = @swapMe === Child1 ? Child2 : Child1}>
-		"Swap Component"
+			Swap Component
 	</button>
 
   </>;

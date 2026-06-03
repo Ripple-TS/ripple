@@ -14,13 +14,16 @@ with.
 
 ```ripple
 export function Truthy({ x }) {
-  return <div>
-    if (x) {
-      <span>"x is truthy"</span>
+  return <>
+  <div>
+    @if (x) {
+      <span>x is truthy</span>
     } else {
-      <span>"x is falsy"</span>
+      <span>x is falsy</span>
     }
   </div>
+
+  </>;
 }
 ```
 
@@ -40,19 +43,20 @@ export function AuthGate() {
   let &[is_logged_in] = track(false);
 
   if (!is_logged_in) {
-    return <p>"Please sign in."</p>;
+    return <p>Please sign in.</p>;
   }
 
   return <>
-    <h1>"Dashboard"</h1>
-    <p>"Private content"</p>
+  <h1>Dashboard</h1>
+  <p>Private content</p>
+
   </>;
 }
 ```
 
 </Code>
 
-`return` is not valid inside a TSRX element or fragment body. Use `if`, `else`,
+`return` is a real function exit inside a TSRX element or fragment body. Use `@if`, `else`,
 ternaries, or extracted helper functions inside the template instead.
 
 ## Switch statements
@@ -64,23 +68,26 @@ with both static and reactive values.
 
 ```ripple
 export function StatusIndicator({ status }) {
-  return <div>
-    switch (status) {
+  return <>
+  <div>
+    @switch (status) {
       case: 'init':
         // fall-through to the next
       case 'loading':
-        <p>"Loading..."</p>
+        <p>Loading...</p>
         break;
       case 'success':
-        <p>"Success!"</p>
+        <p>Success!</p>
         break;
       case 'error':
-        <p>"Error!"</p>
+        <p>Error!</p>
         break;
       default:
-        <p>"Unknown status"</p>
+        <p>Unknown status</p>
     }
   </div>
+
+  </>;
 }
 ```
 
@@ -94,29 +101,31 @@ You can also use reactive values with switch statements.
 import { track } from 'ripple';
 
 export function InteractiveStatus() {
-  let &[status] = track('loading');
   return <>
-    <button onClick={() => (status = 'success')}>"Success"</button>
-    <button onClick={() => (status = 'error')}>"Error"</button>
+  let &[status] = track('loading');
 
-    <div>
-      switch (status) {
-        case 'init':
-          <p>"Init"</p>
-        // fall-through to the next
-        case 'loading':
-          <p>"Loading..."</p>
-          break;
-        case 'success':
-          <p>"Success!"</p>
-          break;
-        case 'error':
-          <p>"Error!"</p>
-          break;
-        default:
-          <p>"Unknown status"</p>
-      }
-    </div>
+  <button onClick={() => (status = 'success')}>Success</button>
+  <button onClick={() => (status = 'error')}>Error</button>
+
+  <div>
+    @switch (status) {
+      case 'init':
+        <p>Init</p>
+      // fall-through to the next
+      case 'loading':
+        <p>Loading...</p>
+        break;
+      case 'success':
+        <p>Success!</p>
+        break;
+      case 'error':
+        <p>Error!</p>
+        break;
+      default:
+        <p>Unknown status</p>
+    }
+  </div>
+
   </>;
 }
 ```
@@ -132,18 +141,20 @@ You can render collections using a `for...of` loop.
 ```ripple
 function ListView({ title, items }) {
   return <>
-    <h2>{title}</h2>
-    <ul>
-      for (const item of items) {
-        <li>{item.text}</li>
-      }
-    </ul>
+  <h2>{title}</h2>
+  <ul>
+    @for (const item of items) {
+      <li>{item.text}</li>
+    }
+  </ul>
+
   </>;
 }
 
 // usage
 export default function App() {
-  return <ListView
+  return <>
+  <ListView
     title="My List"
     items={[
       { text: 'Item 1' },
@@ -151,6 +162,8 @@ export default function App() {
       { text: 'Item 3' },
     ]}
   />
+
+  </>;
 }
 ```
 
@@ -161,16 +174,24 @@ index. The `label` index declares a variable that will used to assign the loop's
 index.
 
 ```ripple
-for (const item of items; index i) {
-  <div>{item.label}" at index "{i}</div>
+@for (const item of items; index i) {
+  <div>
+    {item.label}
+    at index
+    {i}
+  </div>
 }
 ```
 
 You can also provide a `key` for efficient list updates and reconciliation:
 
 ```ripple
-for (const item of items; index i; key item.id) {
-  <div>{item.label}" at index "{i}</div>
+@for (const item of items; index i; key item.id) {
+  <div>
+    {item.label}
+    at index
+    {i}
+  </div>
 }
 ```
 
@@ -190,13 +211,19 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 import { RippleArray } from 'ripple';
 
 export function Numbers() {
-  const array = new RippleArray(1, 2, 3);
   return <>
-    for (const item of array; index i) {
-      <div>{item}" at index "{i}</div>
-    }
+  const array = new RippleArray(1, 2, 3);
 
-    <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
+  @for (const item of array; index i) {
+    <div>
+      {item}
+      at index
+      {i}
+    </div>
+  }
+
+  <button onClick={() => array.push(array.length + 1)}>Add Item</button>
+
   </>;
 }
 ```
@@ -219,34 +246,18 @@ encounters an error in the `try` block, you can easily render a fallback in the
 import { reportError } from 'some-library';
 
 export function ErrorBoundary() {
-  return <div>
-    try {
+  return <>
+  <div>
+    @try {
       <ComponentThatFails />
     } catch (e) {
       reportError(e);
 
-      <div>"An error occurred! "{e.message}</div>
+      <div>An error occurred! {e.message}</div>
     }
   </div>
-}
-```
 
-The `catch` block also receives a `reset` function as its second argument.
-Calling `reset()` clears the error state and re-renders the children, which is
-useful for building retry UIs:
-
-```ripple
-export function RetryBoundary() {
-  return <div>
-    try {
-      <ComponentThatMightFail />
-    } catch (e, reset) {
-      <div>
-        <p>"Error: "{e.message}</p>
-        <button onClick={() => reset()}>"Try again"</button>
-      </div>
-    }
-  </div>
+  </>;
 }
 ```
 
@@ -259,12 +270,14 @@ and using the `<@tagName>` syntax:
 import { track } from 'ripple';
 
 export function App() {
-  let &[tag] = track('div');
   return <>
-    <@tag class="dynamic">"Hello World"</@tag>
-    <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
-      "Toggle Element"
-    </button>
+  let &[tag] = track('div');
+
+  <@tag class="dynamic">Hello World</@tag>
+  <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
+    "Toggle Element"
+  </button>
+
   </>;
 }
 ```
@@ -278,15 +291,16 @@ until the promise resolves.
 ```ripple
 function UserProfile({ id }: { id: number }) {
   return <>
-    // Renders immediately
-    <h1>"Loading profile..."</h1>
+  // Renders immediately
+  <h1>Loading profile...</h1>
 
-    // Suspends here until resolved
-    const user = await fetchUser(id);
+  // Suspends here until resolved
+  const user = await fetchUser(id);
 
-    // Renders after resolution
-    <h1>{user.name}</h1>
-    <p>{user.email}</p>
+  // Renders after resolution
+  <h1>{user.name}</h1>
+  <p>{user.email}</p>
+
   </>;
 }
 ```
@@ -296,13 +310,16 @@ Wrap the component in a `try/pending` block to handle the suspended state:
 ```ripple
 export function App() {
   return <>
-    try {
-      <UserProfile id={1} />
-    } pending {
-      <p>"Loading..."</p>
-    } catch (e) {
-      <p>"Error: "{e.message}</p>
-    }
+  @try {
+    <UserProfile id={1} />
+  } pending {
+    <p>Loading...</p>
+  } catch (e) {
+    <p>
+      Error: {e.message}
+    </p>
+  }
+
   </>;
 }
 ```
@@ -322,17 +339,21 @@ nearest `try/pending` boundary.
 import { track } from 'ripple';
 
 export function CitySearch() {
-  let &[query] = track('');
   return <>
-    // Renders immediately, never suspended
-    <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
+  let &[query] = track('');
 
-    // Re-runs and re-suspends whenever query changes
-    const city = await track(() => fetchCity(query));
+  // Renders immediately, never suspended
+  <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
 
-    // Only renders once city has resolved for the current query
-    <p>"Showing: "{query}</p>
-    <CityCard {city} />
+  // Re-runs and re-suspends whenever query changes
+  const city = await track(() => fetchCity(query));
+
+  // Only renders once city has resolved for the current query
+  <p>
+    Showing: {query}
+  </p>
+  <CityCard {city} />
+
   </>;
 }
 ```

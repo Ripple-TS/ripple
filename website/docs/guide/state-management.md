@@ -33,6 +33,7 @@ const context = new Context({});
 const context2 = new Context();
 
 export function App() {
+  return <>
   // get reference to the object
   const obj = context.get();
   // set your reactive value
@@ -44,15 +45,25 @@ export function App() {
   // context2 now contains a tracked variable
   context2.set(count2Tracked);
 
-  return <>
-    <button onClick={() => {
+  <button
+    onClick={() => {
       count++;
       count2++;
-    }}>"Click Me"</button>
+    }}
+  >
+    "Click Me"
+  </button>
 
-    // context's reactive property count gets updated
-    <pre>"Context: "{count}</pre>
-    <pre>"Context2: "{count2}</pre>
+  // context's reactive property count gets updated
+  <pre>
+    "Context: "
+    {count}
+  </pre>
+  <pre>
+    "Context2: "
+    {count2}
+  </pre>
+
   </>;
 }
 ```
@@ -69,16 +80,18 @@ import { Context } from 'ripple';
 const MyContext = new Context(null);
 
 function Child() {
+  return <>
   // Context is read in the Child component
   const value = MyContext.get();
 
   // value is "Hello from context!"
   console.log(value);
 
-  return <p>"Value in Child: "{value}</p>;
+  </>;
 }
 
 export function Parent() {
+  return <>
   const value = MyContext.get();
 
   // Context is read in the Parent component, but hasn't yet
@@ -89,7 +102,9 @@ export function Parent() {
   // Context is set in the Parent component
   MyContext.set('Hello from context!');
 
-  return <Child />
+  <Child />
+
+  </>;
 }
 ```
 
