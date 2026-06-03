@@ -181,6 +181,216 @@ const App = ({ show }) => <>
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
+Directive Block With Setup Fence
+==================
+
+const App = ({ ready }) => <>
+  @if (ready) {
+    const message = 'Ready';
+    ---
+    <p>{message}</p>
+  }
+  @try {
+    const item = loadItem();
+    ---
+    <Card>{item.name}</Card>
+  } catch (error) {
+    const fallback = error.message;
+    ---
+    <p>{fallback}</p>
+  }
+</>;
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                (template_setup_section
+                  statement: (variable_declaration
+                    (variable_declarator
+                      name: (identifier)
+                      (initializer
+                        (string))))
+                  fence: (template_fence))
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (identifier))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
+            children: (jsx_text)
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                (template_setup_section
+                  statement: (variable_declaration
+                    (variable_declarator
+                      name: (identifier)
+                      (initializer
+                        (call_expression
+                          function: (identifier)
+                          arguments: (arguments)))))
+                  fence: (template_fence))
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (member_expression
+                          object: (identifier)
+                          property: (identifier)))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text))
+              handler: (jsx_catch_clause
+                parameter: (identifier)
+                body: (jsx_template_block
+                  (template_setup_section
+                    statement: (variable_declaration
+                      (variable_declarator
+                        name: (identifier)
+                        (initializer
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    fence: (template_fence))
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (identifier))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
+
+==================
+Else If Chain
+==================
+
+const Status = ({ status }) => <>
+  @if (status === 'loading') {
+    <p>Loading...</p>
+  } else if (status === 'success') {
+    <p>Done</p>
+  } else if (status === 'error') {
+    <p>Error</p>
+  } else {
+    <p>Unknown</p>
+  }
+</>;
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (binary_expression
+                  left: (identifier)
+                  right: (string)))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text))
+              alternative: (jsx_else_if_clause
+                condition: (parenthesized_expression
+                  (binary_expression
+                    left: (identifier)
+                    right: (string)))
+                consequence: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_text)
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))
+                alternative: (jsx_else_if_clause
+                  condition: (parenthesized_expression
+                    (binary_expression
+                      left: (identifier)
+                      right: (string)))
+                  consequence: (jsx_template_block
+                    children: (jsx_text)
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_text)
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text))
+                  alternative: (jsx_template_block
+                    children: (jsx_text)
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_text)
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text)))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
+
+==================
 Switch in Template
 ==================
 

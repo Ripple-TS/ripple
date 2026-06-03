@@ -2074,6 +2074,18 @@
           "value": "{"
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "template_setup_section"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "REPEAT",
           "content": {
             "type": "FIELD",
@@ -2180,8 +2192,76 @@
                   "type": "FIELD",
                   "name": "alternative",
                   "content": {
-                    "type": "SYMBOL",
-                    "name": "jsx_template_block"
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "jsx_else_if_clause"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "jsx_template_block"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "jsx_else_if_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "FIELD",
+          "name": "condition",
+          "content": {
+            "type": "SYMBOL",
+            "name": "parenthesized_expression"
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "consequence",
+          "content": {
+            "type": "SYMBOL",
+            "name": "jsx_template_block"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "else"
+                },
+                {
+                  "type": "FIELD",
+                  "name": "alternative",
+                  "content": {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "jsx_else_if_clause"
+                      },
+                      {
+                        "type": "SYMBOL",
+                        "name": "jsx_template_block"
+                      }
+                    ]
                   }
                 }
               ]
@@ -8284,6 +8364,10 @@
     [
       "declaration",
       "template_setup_section"
+    ],
+    [
+      "jsx_template_block",
+      "primary_expression"
     ],
     [
       "statement_block",

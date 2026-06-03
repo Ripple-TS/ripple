@@ -105,6 +105,7 @@ module.exports = grammar({
 		[$.union_type, $.function_type],
 		[$.for_in_statement, $.primary_expression],
 		[$.declaration, $.template_setup_section],
+		[$.jsx_template_block, $.primary_expression],
 		[$.statement_block, $.jsx_expression],
 		[$.statement_block, $.component_statement],
 		[$.declaration, $.component_statement],
@@ -389,7 +390,10 @@ module.exports = grammar({
 		template_fence: () => token(prec(1, '---')),
 
 		template_setup_section: ($) =>
-			seq(repeat1(field('statement', $._template_setup_statement)), field('fence', $.template_fence)),
+			seq(
+				repeat1(field('statement', $._template_setup_statement)),
+				field('fence', $.template_fence),
+			),
 
 		_template_setup_statement: ($) =>
 			choice(
@@ -419,7 +423,13 @@ module.exports = grammar({
 				$.statement_block,
 			),
 
-		jsx_template_block: ($) => seq('{', repeat(field('children', $._jsx_template_child)), '}'),
+		jsx_template_block: ($) =>
+			seq(
+				'{',
+				optional($.template_setup_section),
+				repeat(field('children', $._jsx_template_child)),
+				'}',
+			),
 
 		_jsx_template_child: ($) =>
 			choice(
@@ -441,7 +451,19 @@ module.exports = grammar({
 				'if',
 				field('condition', $.parenthesized_expression),
 				field('consequence', $.jsx_template_block),
-				optional(seq('else', field('alternative', $.jsx_template_block))),
+				optional(
+					seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+				),
+			),
+
+		jsx_else_if_clause: ($) =>
+			seq(
+				'if',
+				field('condition', $.parenthesized_expression),
+				field('consequence', $.jsx_template_block),
+				optional(
+					seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+				),
 			),
 
 		jsx_for_expression: ($) =>

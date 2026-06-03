@@ -107,6 +107,9 @@
   "@" @keyword.control
   "if" @keyword.control)
 
+(jsx_else_if_clause
+  "if" @keyword.control)
+
 (jsx_for_expression
   "@" @keyword.control
   "for" @keyword.control)

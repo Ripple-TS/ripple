@@ -2125,6 +2125,46 @@
     }
   },
   {
+    "type": "jsx_else_if_clause",
+    "named": true,
+    "fields": {
+      "alternative": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_else_if_clause",
+            "named": true
+          },
+          {
+            "type": "jsx_template_block",
+            "named": true
+          }
+        ]
+      },
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          }
+        ]
+      },
+      "consequence": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_template_block",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "jsx_expression",
     "named": true,
     "fields": {},
@@ -2318,6 +2358,10 @@
         "multiple": false,
         "required": false,
         "types": [
+          {
+            "type": "jsx_else_if_clause",
+            "named": true
+          },
           {
             "type": "jsx_template_block",
             "named": true
@@ -2689,6 +2733,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "template_setup_section",
+          "named": true
+        }
+      ]
     }
   },
   {
