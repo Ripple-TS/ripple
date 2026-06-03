@@ -2501,7 +2501,10 @@ function printVariableDeclaration(node, path, options, print) {
 	const isForLoopInit =
 		(parentNode && parentNode.type === 'ForStatement' && parentNode.init === node) ||
 		(parentNode && parentNode.type === 'ForOfStatement' && parentNode.left === node) ||
-		(parentNode && parentNode.type === 'ForInStatement' && parentNode.left === node);
+		(parentNode && parentNode.type === 'ForInStatement' && parentNode.left === node) ||
+		(parentNode &&
+			parentNode.type === 'JSXForExpression' &&
+			(parentNode.left === node || parentNode.init === node));
 
 	const declarations = path.map(print, 'declarations');
 	const declarationParts = join(', ', declarations);
@@ -5553,6 +5556,23 @@ function shouldTryInlineMultipleTextChildren(node) {
 }
 
 /**
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+function isSimpleJSXExpressionChild(child) {
+	if (child?.type !== 'JSXExpressionContainer') {
+		return false;
+	}
+
+	const expression = child.expression;
+	return (
+		expression?.type === 'Identifier' ||
+		expression?.type === 'Literal' ||
+		expression?.type === 'TemplateLiteral'
+	);
+}
+
+/**
  * Get leading comments from element metadata
  * @param {ESTreeJSX.JSXElement} node - The element node
  * @returns {AST.Comment[]}
@@ -5779,9 +5799,19 @@ function printJSXElement(node, path, options, print) {
 	if (
 		childrenDocs.length === 1 &&
 		singleMeaningfulChild?.type === 'JSXExpressionContainer' &&
-		singleMeaningfulChild.expression.type === 'Identifier'
+		isSimpleJSXExpressionChild(/** @type {AST.Node} */ (singleMeaningfulChild))
 	) {
 		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
+	}
+	if (
+		childrenDocs.length > 1 &&
+		wasOriginallySingleLine(node) &&
+		meaningfulChildren.some((child) => child.type === 'JSXText') &&
+		meaningfulChildren.every(
+			(child) => child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
+		)
+	) {
+		return group([openingTag, ...childrenDocs, '</', tagName, '>']);
 	}
 
 	// Multiple children or complex children - format with line breaks
@@ -5843,6 +5873,18 @@ function printJSXFragment(node, path, options, print) {
 	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
 		return ['<>', childrenDocs[0], '</>'];
 	}
+	const meaningfulChildren = node.children.filter(
+		(child) => child.type !== 'JSXText' || child.value.trim(),
+	);
+	if (
+		childrenDocs.length === 1 &&
+		meaningfulChildren.length === 1 &&
+		meaningfulChildren[0].type === 'JSXElement' &&
+		wasOriginallySingleLine(node) &&
+		!willBreak(childrenDocs[0])
+	) {
+		return group(['<>', childrenDocs[0], '</>']);
+	}
 
 	// Multiple children or complex children - format with line breaks
 	const formattedChildren = [];
@@ -5889,6 +5931,10 @@ function printJSXAttribute(attr, path, options, print) {
 
 	if (attr.value.type === 'JSXExpressionContainer') {
 		const expression = attr.value.expression;
+		if (expression.type === 'Literal' && typeof expression.value === 'string') {
+			const quote = options.jsxSingleQuote ? "'" : '"';
+			return [name, '=', quote, /** @type {string} */ (expression.value), quote];
+		}
 		const exprDoc = path.call(
 			(valuePath) => print(valuePath, { isInAttribute: true }),
 			'value',
@@ -5926,6 +5972,22 @@ function printJSXMemberExpression(node) {
  * @returns {string}
  */
 function printMemberExpressionSimple(node, options, computed = false) {
+	if (node.type === 'JSXIdentifier') {
+		return node.name;
+	}
+
+	if (node.type === 'JSXMemberExpression') {
+		return (
+			printMemberExpressionSimple(node.object, options) +
+			'.' +
+			printMemberExpressionSimple(node.property, options, true)
+		);
+	}
+
+	if (node.type === 'JSXNamespacedName') {
+		return node.namespace.name + ':' + node.name.name;
+	}
+
 	if (node.type === 'Identifier') {
 		return (computed ? '' : node.tracked ? '@' : '') + node.name;
 	}

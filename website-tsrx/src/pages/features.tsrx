@@ -41,38 +41,41 @@ const BAILOUT_HTML = highlight_tsrx(
 </>;`,
 );
 
-const TEMPLATE_HTML = highlight_tsrx(
-	`const Greeting = () => <>
-  <h1>Hello World</h1>
-  <p>Welcome to TSRX.</p>
-</>;`,
-);
-
-const TSX_EXPR_HTML = highlight_tsrx(
-	`const App = () => <>
-  const title = <><span class="title">Settings</span></>;
+const FENCE_HTML = highlight_tsrx(
+	`const ProductCard = ({ product }: { product: Product }) => <>
+  const name = product.name.trim();
+  const price = money(product.price);
 
   ---
 
-  <Card {title} />
+  <article>
+    <h2>{name}</h2>
+
+    <footer>
+      const hasDiscount = product.discount > 0;
+
+      ---
+
+      <strong>{price}</strong>
+      @if (hasDiscount) {
+        <span>Sale</span>
+      }
+    </footer>
+  </article>
 </>;`,
 );
 
-const TSX_EXPR_HTML_SINGLE = highlight_tsrx(
-	`const App = () => <>
-  const title = <span class="title">Settings</span>;
+const COMMENTS_HTML = highlight_tsrx(
+	`const Menu = ({ showAdmin }: { showAdmin: boolean }) => <>
+  <nav>
+    // Comments can sit between template children.
+    <a href="/">Home</a>
 
-  ---
-
-  <Card {title} />
-</>;`,
-);
-
-const TEXT_EXPR_HTML = highlight_tsrx(
-	`const Inbox = ({ name, count }: { name: string; count: number }) => <>
-  <p>Hello, {name}!</p>
-  <p>You have {count} unread messages</p>
-  <p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
+    @if (showAdmin) {
+      // Branch comments are allowed too.
+      <a href="/admin">Admin</a>
+    }
+  </nav>
 </>;`,
 );
 
@@ -309,7 +312,8 @@ const LAZY_PROPS_HTML = highlight_tsrx(
 
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
-	{ id: 'jsx', label: 'TSRX templates' },
+	{ id: 'fences', label: 'Template fences' },
+	{ id: 'comments', label: 'JS comments' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
 	{ id: 'scoping', label: 'Lexical scoping' },
@@ -343,20 +347,19 @@ export const FeaturesPage = () => <>
 					<a href="/specification">Specification</a>
 					<a href="/playground">Playground</a>
 					<a href="/blog">Blog</a>
-					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
-						Discord
-					</a>
+					<a
+						href="https://discord.gg/HCYpT5QHQR"
+						target="_blank"
+						rel="noopener noreferrer"
+					>Discord</a>
 					<a
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						GitHub
-					</a>
+					>GitHub</a>
 					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
 				</nav>
 			</header>
-
 			<div class="docs-layout">
 				<aside class="side-nav">
 					<label class="side-nav-dropdown">
@@ -372,204 +375,182 @@ export const FeaturesPage = () => <>
 						>
 							<option value="">Jump to section</option>
 							@for (const item of NAV_ITEMS) {
-								<option value={item.id}>{item.label}</option>
+								<option value={item.id}>
+									{item.label}
+								</option>
 							}
 						</select>
 					</label>
 					<nav>
 						<p class="side-nav-heading">Features</p>
 						@for (const item of NAV_ITEMS) {
-							<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+							<a class="side-nav-link" href={`#${item.id}`}>
+								{item.label}
+							</a>
 						}
 					</nav>
 				</aside>
-
 				<main class="docs-content">
 					<section class="doc-section" id="components">
 						<h2 class="section-heading">Components</h2>
 						<p class="section-body">
-							TSRX components are ordinary TypeScript values. The recommended shape is a 
+							TSRX components are ordinary TypeScript values. The recommended shape is a
 							<code class="inline-code">const</code>
-							 arrow function whose body is a single TSRX fragment; props are typed with one parameter, and setup locals, control flow, rendered structure, and scoped styles all live inside that fragment.
+							arrow function whose body is a single TSRX fragment; props are typed with one parameter, and setup locals, control flow, rendered structure, and scoped styles all live inside that fragment.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={COMPONENT_HTML} />
 						</pre>
 						<p class="section-body">
-							Export components with 
-							<code class="inline-code">{"export const Name = (...) => <>...</>"}</code>
+							Export components with
+							<code class="inline-code">{'export const Name = (...) => <>...</>'}</code>
 							. The compiler transforms TSRX into standard framework components for whichever target you're using.
 						</p>
 						<p class="section-body">
-							Since returned TSRX templates have their own template rules (see 
-							<a href="#jsx">TSRX templates</a>
-							), anything that needs ordinary JavaScript-only control flow can simply live in a plain inline function. Declare a 
-							<code class="inline-code">{"const fn = () => { ... }"}</code>
-							 next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression — it stays ordinary JavaScript, outside the returned template rules.
+							Use the script half of a template for setup code, then separate rendered children with
+							<code class="inline-code">---</code>
+							. Ordinary JavaScript-only control flow can also live in nested functions. Declare a
+							<code class="inline-code">{'const fn = () => { ... }'}</code>
+							next to your template, write whatever JS/TS you like inside it, and call it from an event handler or expression.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={BAILOUT_HTML} />
 						</pre>
 					</section>
-
-					<section class="doc-section" id="jsx">
-						<h2 class="section-heading">TSRX templates</h2>
+					<section class="doc-section" id="fences">
+						<h2 class="section-heading">Template fences</h2>
 						<p class="section-body">
-							TSRX opens from ordinary JSX expression positions such as an arrow function body 
-							<code class="inline-code">{"() => <>...</>"}</code>
-							 or a nested value 
-							<code class="inline-code">{"const node = <div />"}</code>
-							. Once you are inside a template, control flow, locals, nested elements, and JSX text can appear directly in the tree. Dynamic values and JavaScript expressions still use 
-							<code class="inline-code">{"{}"}</code>
-							.
+							The
+							<code class="inline-code">---</code>
+							fence works like frontmatter in Markdown or Astro: TypeScript code goes above it, rendered template children go below it. In TSRX this is optional and applies to each template scope, not just once at the top of the file.
 						</p>
-						<p class="section-body muted">
-							Template control flow uses directive-prefixed 
-							<code class="inline-code">@if</code>
-							, 
-							<code class="inline-code">@for</code>
-							, 
-							<code class="inline-code">@switch</code>
-							, and 
-							<code class="inline-code">@try</code>
-							. 
-							<code class="inline-code">return</code>
-							 keeps its JavaScript meaning and exits the enclosing function; direct children inside directive branches render into the current template.
-						</p>
+						<p
+							class="section-body muted"
+						>The fence applies only to the current element, fragment, or control-flow branch. Nested element bodies get their own optional script section, so setup can stay close to the markup that uses it.</p>
 						<pre class="code-block">
-							<code innerHTML={TEMPLATE_HTML} />
-						</pre>
-						<p class="section-body">
-							When you need a native TSRX subtree as a value inside another expression — for example to assign it to a variable or pass it as a prop — wrap it in 
-							<code class="inline-code">{"<>...</>"}</code>
-							 when it needs statements or multiple elements:
-						</p>
-						<pre class="code-block">
-							<code innerHTML={TSX_EXPR_HTML} />
-						</pre>
-						<p class="section-body">
-							For values inside the component body, a single native TSRX element can still be assigned directly:
-						</p>
-						<pre class="code-block">
-							<code innerHTML={TSX_EXPR_HTML_SINGLE} />
+							<code innerHTML={FENCE_HTML} />
 						</pre>
 					</section>
-
+					<section class="doc-section" id="comments">
+						<h2 class="section-heading">JS comments</h2>
+						<p
+							class="section-body"
+						>JavaScript line comments are valid inside template children. They are comments, not rendered text, so you can annotate element bodies and control-flow branches without wrapping the note in braces.</p>
+						<pre class="code-block">
+							<code innerHTML={COMMENTS_HTML} />
+						</pre>
+					</section>
 					<section class="doc-section" id="lazy-destructuring">
 						<h2 class="section-heading">Lazy destructuring</h2>
 						<p class="section-body">
-							TSRX adds two sigils — 
-							<code class="inline-code">{"&{ ... }"}</code>
-							 for objects and 
-							<code class="inline-code">{"&[ ... ]"}</code>
-							 for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.
+							TSRX adds two sigils —
+							<code class="inline-code">{'&{ ... }'}</code>
+							for objects and
+							<code class="inline-code">{'&[ ... ]'}</code>
+							for arrays — that look like destructuring but defer the actual property access until each binding is read. Every reference to a lazy binding is compiled back to a property lookup on the source object, so downstream readers pick up the latest value without a manual getter.
 						</p>
 						<p class="section-body">
-							The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue). 
-							<code class="inline-code">{"&{ ... }"}</code>
-							 preserves that reactivity while keeping the ergonomic destructuring syntax:
+							The most common use is in component parameters. Regular object destructuring would snapshot each prop at call time and break any target runtime that relies on per-access reactivity (Ripple, Solid, Vue).
+							<code class="inline-code">{'&{ ... }'}</code>
+							preserves that reactivity while keeping the ergonomic destructuring syntax:
 						</p>
 						<pre class="code-block">
 							<code innerHTML={LAZY_PROPS_HTML} />
 						</pre>
-						<p class="section-body muted">
-							Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.
-						</p>
+						<p
+							class="section-body muted"
+						>Lazy destructuring is supported across every target. In React and Preact it compiles to direct property access on the source object; in Ripple, Solid, and Vue it preserves tracked, signal, or proxy-backed reactivity without needing a wrapper call.</p>
 					</section>
-
 					<section class="doc-section" id="prop-shorthands">
 						<h2 class="section-heading">Prop shorthands</h2>
 						<p class="section-body">
-							When a prop name matches the variable you're passing, you can use the shorthand 
-							<code class="inline-code">{"{name}"}</code>
-							 instead of 
-							<code class="inline-code">{"name={name}"}</code>
-							. This works for any attribute or prop — including event handlers like 
-							<code class="inline-code">{"{onClick}"}</code>
+							When a prop name matches the variable you're passing, you can use the shorthand
+							<code class="inline-code">{'{name}'}</code>
+							instead of
+							<code class="inline-code">{'name={name}'}</code>
+							. This works for any attribute or prop — including event handlers like
+							<code class="inline-code">{'{onClick}'}</code>
 							.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={SHORTHAND_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="scoping">
 						<h2 class="section-heading">Lexical scoping</h2>
-						<p class="section-body">
-							Every returned TSRX template and nested element creates its own lexical scope. You can declare variables, compute derived values, or call functions inside an element's children — they're scoped to that block and won't leak into the surrounding function.
-						</p>
+						<p
+							class="section-body"
+						>Every returned TSRX template and nested element creates its own lexical scope. You can declare variables, compute derived values, or call functions inside an element's children — they're scoped to that block and won't leak into the surrounding function.</p>
 						<pre class="code-block">
 							<code innerHTML={SCOPING_HTML} />
 						</pre>
 						<p class="section-body">
 							This applies to all block-like contexts: element children, component children, and control flow branches (
 							<code class="inline-code">if</code>
-							, 
+							,
 							<code class="inline-code">for</code>
-							, 
+							,
 							<code class="inline-code">switch</code>
-							, 
+							,
 							<code class="inline-code">try</code>
 							). Each one has its own scope.
 						</p>
 					</section>
-
 					<section class="doc-section" id="if">
 						<h2 class="section-heading">Conditional rendering</h2>
 						<p class="section-body">
-							Use standard 
+							Use standard
 							<code class="inline-code">if</code>
-							 / 
+							/
 							<code class="inline-code">else if</code>
-							 / 
+							/
 							<code class="inline-code">else</code>
-							 template expressions directly inside templates. Direct branch children render, or use 
+							template expressions directly inside templates. Direct branch children render, or use
 							<code class="inline-code">return</code>
-							 when the branch should exit the enclosing function.
+							when the branch should exit the enclosing function.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={IF_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="for">
 						<h2 class="section-heading">List rendering</h2>
 						<p class="section-body">
-							Render lists with 
+							Render lists with
 							<code class="inline-code">for...of</code>
-							 loops. TSRX extends the syntax with optional 
+							loops. TSRX extends the syntax with optional
 							<code class="inline-code">index</code>
-							 and 
+							and
 							<code class="inline-code">key</code>
-							 clauses so you don't need separate counters or key-extraction boilerplate.
+							clauses so you don't need separate counters or key-extraction boilerplate.
 						</p>
 						<p class="section-body">
-							Use 
+							Use
 							<code class="inline-code">continue</code>
-							 inside a template 
+							inside a template
 							<code class="inline-code">for...of</code>
-							 body to skip the current item. 
+							body to skip the current item.
 							<code class="inline-code">return</code>
-							 exits the enclosing function, while direct children render the current iteration. 
+							exits the enclosing function, while direct children render the current iteration.
 							<code class="inline-code">break</code>
-							 is not allowed in 
+							is not allowed in
 							<code class="inline-code">for...of</code>
-							 template loop bodies; use 
+							template loop bodies; use
 							<code class="inline-code">break</code>
-							 only for 
+							only for
 							<code class="inline-code">switch</code>
-							 cases. Nested functions keep ordinary JavaScript control flow.
+							cases. Nested functions keep ordinary JavaScript control flow.
 						</p>
 						<p class="section-body">
-							Other JavaScript loops are not template rendering constructs: regular 
+							Other JavaScript loops are not template rendering constructs: regular
 							<code class="inline-code">for</code>
-							, 
+							,
 							<code class="inline-code">for...in</code>
-							, 
+							,
 							<code class="inline-code">while</code>
-							, and 
+							, and
 							<code class="inline-code">do...while</code>
-							 are rejected in TSRX template scope. Move imperative loops into a nested function or effect, or render collections with 
+							are rejected in TSRX template scope. Move imperative loops into a nested function or effect, or render collections with
 							<code class="inline-code">for...of</code>
 							.
 						</p>
@@ -577,13 +558,12 @@ export const FeaturesPage = () => <>
 							<code innerHTML={FOR_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="switch">
 						<h2 class="section-heading">Switch statements</h2>
 						<p class="section-body">
-							Multi-branch rendering uses a standard 
+							Multi-branch rendering uses a standard
 							<code class="inline-code">switch</code>
-							 template expression. Case children render directly; end fallthrough-sensitive cases with 
+							template expression. Case children render directly; end fallthrough-sensitive cases with
 							<code class="inline-code">break</code>
 							.
 						</p>
@@ -591,153 +571,148 @@ export const FeaturesPage = () => <>
 							<code innerHTML={SWITCH_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="try">
 						<h2 class="section-heading">Error boundaries</h2>
 						<p class="section-body">
-							Wrap components in 
+							Wrap components in
 							<code class="inline-code">try</code>
-							 / 
+							/
 							<code class="inline-code">catch</code>
-							 to create error boundaries. If a child component throws, the catch block renders its fallback children.
+							to create error boundaries. If a child component throws, the catch block renders its fallback children.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TRY_HTML} />
 						</pre>
 						<p class="section-body">
-							The 
+							The
 							<code class="inline-code">catch</code>
-							 block also receives a 
+							block also receives a
 							<code class="inline-code">reset</code>
-							 function as its second argument. Calling 
+							function as its second argument. Calling
 							<code class="inline-code">reset()</code>
-							 clears the error state and re-renders the children, which is useful for building retry UIs:
+							clears the error state and re-renders the children, which is useful for building retry UIs:
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TRY_RESET_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="async-boundaries">
 						<h2 class="section-heading">Async boundaries</h2>
 						<p class="section-body">
-							Wrap a component subtree in 
+							Wrap a component subtree in
 							<code class="inline-code">try</code>
-							 / 
+							/
 							<code class="inline-code">pending</code>
-							 / 
+							/
 							<code class="inline-code">catch</code>
-							 to handle async children. While a lazy child or resource is in flight, the 
+							to handle async children. While a lazy child or resource is in flight, the
 							<code class="inline-code">pending</code>
-							 branch renders; when it resolves, the 
+							branch renders; when it resolves, the
 							<code class="inline-code">try</code>
-							 body takes over; if it rejects — or any child throws synchronously — 
+							body takes over; if it rejects — or any child throws synchronously —
 							<code class="inline-code">catch</code>
-							 runs. Both 
+							runs. Both
 							<code class="inline-code">pending</code>
-							 and 
+							and
 							<code class="inline-code">catch</code>
-							 are optional and can be used independently. Each branch renders its direct template children.
+							are optional and can be used independently. Each branch renders its direct template children.
 						</p>
 						<p class="section-body">
-							Async work itself is expressed using the target's own lazy-loading primitive — 
+							Async work itself is expressed using the target's own lazy-loading primitive —
 							<code class="inline-code">lazy()</code>
-							 from 
+							from
 							<code class="inline-code">react</code>
-							, 
+							,
 							<code class="inline-code">preact/compat</code>
-							, or 
+							, or
 							<code class="inline-code">solid-js</code>
-							, 
+							,
 							<code class="inline-code">defineVaporAsyncComponent()</code>
-							 on Vue Vapor, and 
+							on Vue Vapor, and
 							<code class="inline-code">trackAsync()</code>
-							 on Ripple. In Solid, Vue, and Ripple targets, returned TSRX templates are synchronous and do not allow inline 
+							on Ripple. In Solid, Vue, and Ripple targets, returned TSRX templates are synchronous and do not allow inline
 							<code class="inline-code">await</code>
-							. On React and Preact, template-body 
+							. On React and Preact, template-body
 							<code class="inline-code">await</code>
-							 is supported and TSRX emits an async component function.
+							is supported and TSRX emits an async component function.
 						</p>
 						<p class="section-body muted">
-							React/Preact note: 
+							React/Preact note:
 							<code class="inline-code">for await...of</code>
-							 is not supported inside component templates. Use an upstream async helper and render the resolved data.
+							is not supported inside component templates. Use an upstream async helper and render the resolved data.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={ASYNC_BOUNDARY_HTML} />
 						</pre>
 					</section>
-
 					<section class="doc-section" id="scoped-styles">
 						<h2 class="section-heading">Scoped styles</h2>
 						<p class="section-body">
-							Each returned TSRX template can include a 
-							<code class="inline-code">{"<style>"}</code>
-							 block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the component fragment that defines them. A parent's scoped styles will not leak into child components.
+							Each returned TSRX template can include a
+							<code class="inline-code">{'<style>'}</code>
+							block. Styles are automatically scoped — the compiler rewrites selectors with a unique hash so they only apply to elements inside the component fragment that defines them. A parent's scoped styles will not leak into child components.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={SCOPED_STYLES_HTML} />
 						</pre>
 						<p class="section-body">
-							To escape scoping and apply styles globally, wrap a selector in 
+							To escape scoping and apply styles globally, wrap a selector in
 							<code class="inline-code">:global()</code>
 							. This lets you reach into child components or target elements outside the current scope.
 						</p>
 						<p class="section-body muted">
-							React note: TSRX keeps authored attributes as written. Use 
+							React note: TSRX keeps authored attributes as written. Use
 							<code class="inline-code">className</code>
-							 on React host elements and React component props, just like ordinary JSX. Compiler-injected scoped style hashes still use React's 
+							on React host elements and React component props, just like ordinary JSX. Compiler-injected scoped style hashes still use React's
 							<code class="inline-code">className</code>
-							 output when needed.
+							output when needed.
 						</p>
 					</section>
-
 					<section class="doc-section" id="style-composition">
 						<h2 class="section-heading">Style composition</h2>
 						<p class="section-body">
-							Because scoped styles don't cross component boundaries, assigning a 
-							<code class="inline-code">{"<style>"}</code>
-							 expression to a variable exposes a class map for passing scoped class names to child components as props. 
+							Because scoped styles don't cross component boundaries, assigning a
+							<code class="inline-code">{'<style>'}</code>
+							expression to a variable exposes a class map for passing scoped class names to child components as props.
 							<code class="inline-code">styles.highlight</code>
-							 contains both the scope hash and the class name, which the child applies via its 
+							contains both the scope hash and the class name, which the child applies via its
 							<code class="inline-code">class</code>
-							 prop. React components use 
+							prop. React components use
 							<code class="inline-code">className</code>
-							 instead, matching React's normal prop names.
+							instead, matching React's normal prop names.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={STYLE_COMPOSITION_HTML} />
 						</pre>
 						<p class="section-body">
-							You can also create the style expression at module scope and reference the generated class map from any component in the file. This gives teams moving from StyleX-like patterns a declarative, reusable class map without putting the 
-							<code class="inline-code">{"<style>"}</code>
-							 block inside the returned template.
+							You can also create the style expression at module scope and reference the generated class map from any component in the file. This gives teams moving from StyleX-like patterns a declarative, reusable class map without putting the
+							<code class="inline-code">{'<style>'}</code>
+							block inside the returned template.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={MODULE_STYLE_COMPOSITION_HTML} />
 						</pre>
 						<p class="section-body">
-							Classes exposed on the map come from standalone selectors in the 
-							<code class="inline-code">{"<style>"}</code>
-							 block. Classes that only appear in compound or descendant selectors are not exported on the map.
+							Classes exposed on the map come from standalone selectors in the
+							<code class="inline-code">{'<style>'}</code>
+							block. Classes that only appear in compound or descendant selectors are not exported on the map.
 						</p>
 					</section>
-
 					<section class="doc-section" id="react-hooks">
 						<h2 class="section-heading">React &amp; Preact Hooks</h2>
 						<p class="section-body">
-							When targeting React with 
+							When targeting React with
 							<code class="inline-code">@tsrx/react</code>
-							 or Preact with 
+							or Preact with
 							<code class="inline-code">@tsrx/preact</code>
-							, hooks that appear in conditional, loop, switch, try, or returned-template 
-							<code class="inline-code">{"<>...</>"}</code>
-							 scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.
+							, hooks that appear in conditional, loop, switch, try, or returned-template
+							<code class="inline-code">{'<>...</>'}</code>
+							scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.
 						</p>
 						<p class="section-body">
-							Both targets also support template-body 
+							Both targets also support template-body
 							<code class="inline-code">await</code>
-							 and TSRX will emit an async component function when it appears in the returned template.
+							and TSRX will emit an async component function when it appears in the returned template.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={REACT_HOOKS_HTML} />
@@ -745,7 +720,6 @@ export const FeaturesPage = () => <>
 					</section>
 				</main>
 			</div>
-
 			<footer class="site-footer">
 				<p>Released under the MIT License.</p>
 				<p>Copyright © 2025-present Dominic Gannaway</p>

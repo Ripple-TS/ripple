@@ -70,6 +70,22 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('formats template for-of expressions without adding a semicolon before of', async () => {
+		const input = `const App=()=> <><ul>@for (const item of items) {<li>{item.label}</li>}</ul></>;`;
+		const expected = `const App = () => <>
+  <ul>
+    @for (const item of items) {
+      <li>
+        {item.label}
+      </li>
+    }
+  </ul>
+</>;`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('preserves fragment shorthand for simple returned TSRX expressions', async () => {
 		const input = `const App=()=> <><span>{"Ready"}</span></>;`;
 		const expected = `const App = () => <><span>{"Ready"}</span></>;`;
