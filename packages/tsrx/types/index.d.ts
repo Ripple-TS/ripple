@@ -95,6 +95,8 @@ interface BaseNodeMetaData {
 	forceMapping?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
+	rawTextTag?: string;
+	tsrx_render_control_flow?: boolean;
 	lazy_param_binding_mappings?: Array<{
 		source: AST.Identifier;
 		generated: AST.Identifier | AST.Literal;
@@ -374,7 +376,7 @@ declare module 'estree' {
 
 	export interface TSRXCodeBlock extends AST.BaseNode {
 		type: 'TSRXCodeBlock';
-		body: AST.Node[];
+		body: AST.Statement[];
 		loc?: AST.SourceLocation;
 	}
 
@@ -1439,6 +1441,8 @@ export interface TransformClientState extends BaseState {
 /** Override zimmerframe types and provide our own */
 type NodeOf<T extends string, X> = X extends { type: T } ? X : never;
 
+type VisitorReturn<V> = V | V[] | void;
+
 type SpecializedVisitors<T extends AST.Node | AST.CSS.Node, U> = {
 	[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
 };
@@ -1451,7 +1455,7 @@ export type CatchAllVisitor<T, U, V> = (
 	visit: VisitFn<V>,
 ) => V | void;
 
-export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
+export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => VisitorReturn<V>;
 
 export type Visitors<T extends AST.Node | AST.CSS.Node, U> = T['type'] extends '_'
 	? never

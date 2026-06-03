@@ -487,17 +487,18 @@ export function expand_native_tsrx_return_statements(
 }
 
 /**
- * @param {AST.Node[]} nodes
- * @returns {AST.Node[]}
+ * @template {AST.Node} T
+ * @param {T[]} nodes
+ * @returns {T[]}
  */
 export function expand_tsrx_code_blocks(nodes) {
-	/** @type {AST.Node[]} */
+	/** @type {T[]} */
 	const expanded = [];
 
 	for (const node of nodes || []) {
 		if (node?.type === 'TSRXCodeBlock') {
 			for (const statement of expand_tsrx_code_blocks(node.body || [])) {
-				expanded.push(mark_regular_js_statement(/** @type {AST.Statement} */ (statement)));
+				expanded.push(/** @type {T} */ (mark_regular_js_statement(statement)));
 			}
 		} else {
 			expanded.push(node);
