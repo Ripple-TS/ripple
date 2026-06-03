@@ -63,6 +63,43 @@ ruleTester.run('control-flow-jsx', rule, {
 				}
 			`,
 		},
+		// Valid: @for can render non-element template output
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					@for (const item of items) {
+						{item}
+					}
+					</>;
+				}
+			`,
+		},
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					@for (const item of items) {
+						No items
+					}
+					</>;
+				}
+			`,
+		},
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					@for (const item of items) {
+						<tsx:react>{item}</tsx:react>
+					}
+					</>;
+				}
+			`,
+		},
 		// Valid: for...of without JSX inside effect with untrack
 		{
 			code: `
@@ -184,6 +221,41 @@ ruleTester.run('control-flow-jsx', rule, {
 					const items = ['Item 1', 'Item 2'];
 					for (const item of items) {
 						<div>{item}</div>
+					}
+					</>;
+				}
+			`,
+			errors: [
+				{
+					messageId: 'requireDirectiveForRenderingLoop',
+				},
+			],
+		},
+		// Invalid: plain for...of with non-element template output in returned TSRX
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					for (const item of items) {
+						{item}
+					}
+					</>;
+				}
+			`,
+			errors: [
+				{
+					messageId: 'requireDirectiveForRenderingLoop',
+				},
+			],
+		},
+		{
+			code: `
+				function App() {
+					return <>
+					const items = ['Item 1', 'Item 2'];
+					for (const item of items) {
+						No items
 					}
 					</>;
 				}

@@ -134,9 +134,9 @@ This rule is auto-fixable with `--fix`.
 ### `ripple/control-flow-jsx` (error)
 
 Checks render control flow inside functions that return native TSRX. Directive
-`@for` loops in returned TSRX should render elements, plain `for...of` loops that
-render JSX should use `@for`, and loops inside `effect()` callbacks should not
-render JSX.
+`@for` loops in returned TSRX should render template output, plain `for...of`
+loops that render template output should use `@for`, and loops inside `effect()`
+callbacks should not render template output.
 
 ### `ripple/no-lazy-destructuring-in-modules` (error)
 

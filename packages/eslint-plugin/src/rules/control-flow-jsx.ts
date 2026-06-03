@@ -6,15 +6,16 @@ const rule: Rule.RuleModule = {
 	meta: {
 		type: 'problem',
 		docs: {
-			description: 'Validate TSRX @for rendering loops and disallow JSX in effect() loops',
+			description:
+				'Validate TSRX @for rendering loops and disallow template output in effect() loops',
 			recommended: true,
 		},
 		messages: {
 			requireJsxInLoop:
-				'@for loops in returned TSRX should contain JSX elements. Use JSX to render items.',
-			requireDirectiveForRenderingLoop: 'Use @for when a TSRX for...of loop renders JSX elements.',
+				'@for loops in returned TSRX should contain template output. Render an element, text, expression, or compat template.',
+			requireDirectiveForRenderingLoop: 'Use @for when a TSRX for...of loop renders output.',
 			noJsxInEffectLoop:
-				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
+				'For...of loops inside effect() should not contain template output. Effects are for side effects, not rendering.',
 		},
 		schema: [],
 	},
@@ -24,7 +25,7 @@ const rule: Rule.RuleModule = {
 		let nonComponentFunctionDepth = 0;
 		const functionStack: boolean[] = [];
 
-		function containsJSX(
+		function containsTemplateOutput(
 			node: AST.Node,
 			visited: Set<AST.Node> = new Set(),
 			options: { skipTemplateDirectiveSubtrees?: boolean } = {},
@@ -39,11 +40,7 @@ const rule: Rule.RuleModule = {
 				return false;
 			}
 
-			if (
-				node.type === ('JSXElement' as string) ||
-				node.type === ('JSXFragment' as string) ||
-				isNativeTsrxNode(node)
-			) {
+			if (isTemplateOutputNode(node)) {
 				return true;
 			}
 
@@ -57,11 +54,15 @@ const rule: Rule.RuleModule = {
 				if (value && typeof value === 'object') {
 					if (Array.isArray(value)) {
 						for (const item of value) {
-							if (item && typeof item === 'object' && containsJSX(item, visited, options)) {
+							if (
+								item &&
+								typeof item === 'object' &&
+								containsTemplateOutput(item, visited, options)
+							) {
 								return true;
 							}
 						}
-					} else if (value.type && containsJSX(value, visited, options)) {
+					} else if (value.type && containsTemplateOutput(value, visited, options)) {
 						return true;
 					}
 				}
@@ -88,14 +89,14 @@ const rule: Rule.RuleModule = {
 			ForOfStatement(node: AST.ForOfStatement) {
 				if (insideComponent === 0) return;
 
-				const hasJSX = containsJSX(node.body);
+				const hasOutput = containsTemplateOutput(node.body);
 				const isTemplateFor = node.metadata?.tsrxDirective === 'for';
-				const hasNonDirectiveJSX = containsJSX(node.body, new Set(), {
+				const hasNonDirectiveOutput = containsTemplateOutput(node.body, new Set(), {
 					skipTemplateDirectiveSubtrees: true,
 				});
 
 				if (insideEffect > 0) {
-					if (hasJSX) {
+					if (hasOutput) {
 						context.report({
 							node,
 							messageId: 'noJsxInEffectLoop',
@@ -104,12 +105,12 @@ const rule: Rule.RuleModule = {
 				} else if (nonComponentFunctionDepth > 0) {
 					return;
 				} else {
-					if (isTemplateFor && !hasJSX) {
+					if (isTemplateFor && !hasOutput) {
 						context.report({
 							node,
 							messageId: 'requireJsxInLoop',
 						});
-					} else if (!isTemplateFor && hasNonDirectiveJSX) {
+					} else if (!isTemplateFor && hasNonDirectiveOutput) {
 						context.report({
 							node,
 							messageId: 'requireDirectiveForRenderingLoop',
@@ -141,5 +142,26 @@ const rule: Rule.RuleModule = {
 		}
 	},
 };
+
+function isTemplateOutputNode(node: AST.Node): boolean {
+	if (
+		node.type === ('JSXText' as string) &&
+		typeof (node as any).value === 'string' &&
+		(node as any).value.trim() === ''
+	) {
+		return false;
+	}
+
+	return (
+		node.type === ('JSXElement' as string) ||
+		node.type === ('JSXFragment' as string) ||
+		node.type === ('JSXExpressionContainer' as string) ||
+		node.type === ('JSXText' as string) ||
+		node.type === 'Text' ||
+		node.type === 'TSRXExpression' ||
+		node.type === 'TsxCompat' ||
+		isNativeTsrxNode(node)
+	);
+}
 
 export default rule;
