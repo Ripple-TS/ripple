@@ -212,12 +212,14 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 		const hash_literal = b.literal(hash);
 		/** @type {any} */ (hash_literal).raw = JSON.stringify(hash);
 		attrs.push(b.jsx_attribute(b.jsx_id(jsx_class_attr_name), hash_literal));
+		element.attributes = attrs;
 		return;
 	}
 
 	const value = existing.value;
 	if (!value) {
 		existing.value = { type: 'Literal', value: hash, raw: JSON.stringify(hash) };
+		element.attributes = attrs;
 		return;
 	}
 
@@ -225,6 +227,7 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 		const merged = `${value.value} ${hash}`;
 		value.value = merged;
 		value.raw = JSON.stringify(merged);
+		element.attributes = attrs;
 		return;
 	}
 
@@ -232,4 +235,5 @@ function add_hash_class_to_jsx_element(element, hash, jsx_class_attr_name) {
 	existing.value = b.jsx_expression_container(
 		b.template([b.quasi('', false), b.quasi(` ${hash}`, true)], [expression]),
 	);
+	element.attributes = attrs;
 }

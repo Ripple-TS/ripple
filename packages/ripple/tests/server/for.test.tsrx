@@ -132,6 +132,7 @@ describe('for statements in SSR', () => {
 				---
 				@for (const item of items) {
 					if (!item) continue;
+					---
 					<div>{item}</div>
 				}
 			</>;
@@ -163,8 +164,9 @@ describe('for statements in SSR', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-						@for (const item of items) {
-							if (!item) return
+					@for (const item of items) {
+						if (!item) return;
+						---
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -178,8 +180,9 @@ describe('for statements in SSR', () => {
 		expect(
 			() => compile(
 				`function App(items) { return <>
-						@for (const item of items) {
-							if (!item) break
+					@for (const item of items) {
+						if (!item) break;
+						---
 						<div>{item}</div>
 					}
 				</>; }`,

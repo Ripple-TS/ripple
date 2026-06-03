@@ -9,6 +9,7 @@ describe('trackAsync serialization (server)', () => {
 			return <>
 				@try {
 					let &[data] = trackAsync(() => Promise.resolve('hello world'));
+					---
 					<p class="result">{data}</p>
 				} pending {
 					<p class="loading">{'loading...'}</p>
@@ -28,6 +29,7 @@ describe('trackAsync serialization (server)', () => {
 			return <>
 				@try {
 					let &[count] = trackAsync(() => Promise.resolve(42));
+					---
 					<span class="count">{count}</span>
 				} pending {
 					<span>{'...'}</span>
@@ -65,6 +67,7 @@ describe('trackAsync serialization (server)', () => {
 			return <>
 				@try {
 					let &[items] = trackAsync(() => Promise.resolve(['a', 'b', 'c']));
+					---
 					<ul>
 						@for (let item of items) {
 							<li>{item}</li>
@@ -86,6 +89,7 @@ describe('trackAsync serialization (server)', () => {
 			return <>
 				@try {
 					let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
+					---
 					<p class="result">{data}</p>
 				} pending {
 					<p class="loading">{'loading...'}</p>
@@ -108,6 +112,7 @@ describe('trackAsync serialization (server)', () => {
 			return <>
 				@try {
 					let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
+					---
 					<p class="result">{data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
@@ -194,6 +199,7 @@ describe('trackAsync serialization (server)', () => {
 				@try {
 					let &[a] = trackAsync(() => Promise.resolve('first'));
 					let &[b] = trackAsync(() => Promise.resolve('second'));
+					---
 					<p>{a}</p>
 					<p>{b}</p>
 				} pending {

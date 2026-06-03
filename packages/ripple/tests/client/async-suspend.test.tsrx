@@ -147,6 +147,7 @@ describe('async suspense', () => {
 				---
 				@try {
 					let &[value] = trackAsync(() => createRequest(query));
+					---
 					<div class="value">{value}</div>
 				} pending {
 					<div class="pending">{'loading...'}</div>

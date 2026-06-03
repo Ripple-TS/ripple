@@ -30,7 +30,7 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`export function App() {
 				return <>
-				try {
+				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
@@ -49,7 +49,7 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`export function App() {
 				return <>
-				try {
+				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
@@ -75,7 +75,7 @@ describe('@tsrx/preact basic', () => {
 
 			export function App() {
 				return <>
-				try {
+				@try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
@@ -110,6 +110,7 @@ describe('@tsrx/preact basic', () => {
 			`export async function App() {
 					return <>
 					const data = await fetchData();
+					---
 					<div>{data}</div>
 
 				</>;}`,
@@ -124,7 +125,7 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: { id: string, text: string }[] }) {
 				return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
 
@@ -141,7 +142,7 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`export function App({ items }: { items: Set<string> }) {
 				return <>
-				for (const item of items) {
+				@for (const item of items) {
 					<li key={item}>{item}</li>
 				}
 
@@ -163,8 +164,9 @@ describe('@tsrx/preact basic', () => {
 
 			export function App({ items }: { items: Iterable<string> }) {
 				return <>
-				for (const item of items) {
+				@for (const item of items) {
 					const [open, setOpen] = useState(false);
+					---
 					<li key={item}>{open ? item : '-'}</li>
 				}
 
@@ -237,6 +239,7 @@ describe('@tsrx/preact basic', () => {
 				<Wrapper>
 					const [count] = useState(0);
 
+					---
 					<h1>{props.title}</h1>
 					<span>{count}</span>
 				</Wrapper>
@@ -269,6 +272,7 @@ describe('@tsrx/preact basic', () => {
 				`export function App() {
 					return <>
 					function refA(_node) {}
+					---
 					<div ref={refA}>{'hi'}</div>
 
 					</>;}`,
@@ -285,6 +289,7 @@ describe('@tsrx/preact basic', () => {
 				`export function App() {
 					return <>
 					function refA(_node) {}
+					---
 					<div ref={refA}>{'hi'}</div>
 
 					</>;}`,
@@ -306,6 +311,7 @@ describe('@tsrx/preact basic', () => {
 				export function App() {
 					return <>
 					let input;
+					---
 					<Child input_ref={input} />
 
 					</>;}`,
@@ -328,6 +334,7 @@ describe('@tsrx/preact basic', () => {
 				export function App() {
 					return <>
 					let input;
+					---
 					<Child input_ref={input} />
 
 					</>;}`,
@@ -346,6 +353,7 @@ describe('@tsrx/preact basic', () => {
 					const first = {};
 					const second = {};
 					function cb(_node) {}
+					---
 					<input {...first} {...second} ref={cb} />
 
 					</>;}`,
@@ -376,6 +384,7 @@ describe('@tsrx/preact basic', () => {
 						return <>
 						function refA(_node) {}
 						function refB(_node) {}
+						---
 						<div ref={refA} ref={refB}>{'hi'}</div>
 
 						</>;}`,
@@ -393,6 +402,7 @@ describe('@tsrx/preact basic', () => {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
+					---
 					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
 
 					</>;}`,
@@ -411,6 +421,7 @@ describe('@tsrx/preact basic', () => {
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
+					---
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
 
 					</>;}`,

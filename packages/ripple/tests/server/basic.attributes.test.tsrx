@@ -57,9 +57,7 @@ describe('basic server > attribute rendering', () => {
 							{ eee: true, fff: false },
 						],
 					]}
-				>
-					{'Class Array'}
-				</div>
+				>Class Array</div>
 				<style>
 					.foo {
 						color: red;
@@ -515,9 +513,11 @@ describe('basic server > attribute rendering', () => {
 			return <>
 				let &[theme] = track('light');
 				let &[size] = track('medium');
-				<div class={`theme-${theme} size-${size}`} data-theme={theme} data-size={size}>
-					{'Multiple Dynamic Attributes'}
-				</div>
+				<div
+					class={`theme-${theme} size-${size}`}
+					data-theme={theme}
+					data-size={size}
+				>Multiple Dynamic Attributes</div>
 			</>;
 		}
 
@@ -539,9 +539,7 @@ describe('basic server > attribute rendering', () => {
 				<div
 					title={showTitle ? 'This is a title' : undefined}
 					aria-label={showAria ? 'Accessible label' : undefined}
-				>
-					{'Conditional Attributes'}
-				</div>
+				>Conditional Attributes</div>
 			</>;
 		}
 
@@ -582,7 +580,7 @@ describe('basic server > attribute rendering', () => {
 				<p class={value}>{'Colored parent value'}</p>
 				<div>
 					let &[nested] = track('nested-class');
-
+					---
 					<p class={nested}>{'Colored nested value'}</p>
 				</div>
 			</>;

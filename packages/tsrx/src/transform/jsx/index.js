@@ -1639,7 +1639,7 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (is_function_or_class_boundary(node) || is_native_tsrx_node(node)) {
+	if (is_function_or_class_boundary(node)) {
 		return;
 	}
 
@@ -2818,7 +2818,7 @@ function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, u
  * @returns {any}
  */
 function to_jsx_element(node, transform_context, raw_children = node.children || []) {
-	if (node.type === 'JSXElement') return node;
+	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !node.id) return node;
 	if (!node.id) {
 		report_jsx_fragment_in_tsrx_error(node, transform_context);
 		return set_loc(b.jsx_fragment(), node);
@@ -4033,7 +4033,7 @@ function is_native_tsrx_node(node) {
 		(node?.type === 'JSXElement' ||
 			node?.type === 'JSXFragment' ||
 			node?.type === 'JSXStyleElement') &&
-		node.metadata?.native_tsrx
+		(node.metadata?.native_tsrx || node.id)
 	);
 }
 
@@ -4080,6 +4080,16 @@ function is_for_of_control_node(node) {
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
+		case 'JSXElement':
+			if (is_native_tsrx_node(node)) {
+				return to_jsx_element(node, transform_context);
+			}
+			return node;
+		case 'JSXFragment':
+			if (is_native_tsrx_node(node)) {
+				return tsrx_node_to_jsx_expression(node, transform_context, true);
+			}
+			return node;
 		case 'JSXIfExpression':
 		case 'IfStatement':
 			return (

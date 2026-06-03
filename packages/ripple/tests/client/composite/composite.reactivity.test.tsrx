@@ -21,10 +21,10 @@ describe('composite > reactivity', () => {
 				<div>
 					let obj = Object.create(null);
 					obj.count = track(0);
-
 					---
-
-					<span class="count">{obj.count.value}</span>
+					<span class="count">
+						{obj.count.value}
+					</span>
 					<Button {obj} />
 				</div>
 			</>;
@@ -56,7 +56,11 @@ describe('composite > reactivity', () => {
 		}
 
 		function OtherComponent({ obj }: { obj: { count: Tracked<number> } }) {
-			return <><div class="count3">{obj.count.value}</div></>;
+			return <>
+				<div class="count3">
+					{obj.count.value}
+				</div>
+			</>;
 		}
 
 		function App() {
@@ -64,15 +68,14 @@ describe('composite > reactivity', () => {
 				<div>
 					let obj = Object.create(null);
 					obj.count = track(0);
-
 					---
-
-					<span class="count">{obj.count.value}</span>
+					<span class="count">
+						{obj.count.value}
+					</span>
 					<span>{' '}</span>
 					@if (obj) {
 						<Button {obj} />
 					}
-
 					@if (obj) {
 						<OtherComponent {obj} />
 					}
@@ -110,7 +113,7 @@ describe('composite > reactivity', () => {
 			return <>
 				<div>
 					let &[count] = track(0);
-
+					---
 					<button
 						onClick={() => {
 							count++;
@@ -161,7 +164,7 @@ describe('composite > reactivity', () => {
 			return <>
 				<div>
 					let &[count] = track(0);
-
+					---
 					<button
 						onClick={() => {
 							count++;
@@ -216,9 +219,7 @@ describe('composite > reactivity', () => {
 						b++;
 						c++;
 					}}
-				>
-					{'Increment all'}
-				</button>
+				>{'Increment all'}</button>
 			</>;
 		}
 
@@ -227,7 +228,9 @@ describe('composite > reactivity', () => {
 				effect(() => {
 					logs.push(`Child effect: ${a}, ${b}, ${c}`);
 				});
-				<div>{a + ' ' + b + ' ' + c}</div>
+				<div>
+					{a + ' ' + b + ' ' + c}
+				</div>
 			</>;
 		}
 
