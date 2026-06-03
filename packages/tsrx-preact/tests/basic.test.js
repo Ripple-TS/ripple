@@ -90,34 +90,19 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain("from '@tsrx/react/error-boundary'");
 	});
 
-	it('accepts <tsx:preact> blocks', () => {
-		const { code } = compile(
-			`export function App() {
-				return <>
-				<tsx:preact>
-					<div>{'preact tsx'}</div>
-				</tsx:preact>
-
-				</>;}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain("{'preact tsx'}");
-	});
-
-	it('rejects unsupported tsx compat kinds with Preact-branded message', () => {
+	it('rejects namespaced template tags', () => {
 		expect(() =>
 			compile(
 				`export function App() {
 					return <>
-					<tsx:solid>
-						<div>{'solid tsx'}</div>
-					</tsx:solid>
+					<foo:bar>
+						<div>{'namespaced'}</div>
+					</foo:bar>
 
 					</>;}`,
 				'App.tsrx',
 			),
-		).toThrow(/Preact TSRX/);
+		).toThrow(/Namespaced elements are not supported/);
 	});
 
 	it('supports async function components without requiring use server', () => {

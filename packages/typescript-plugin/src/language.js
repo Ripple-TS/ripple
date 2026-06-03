@@ -37,7 +37,7 @@ export const COMPILER_CANDIDATES = [
 		'@tsrx/ripple',
 		['node_modules', '@tsrx', 'ripple'],
 		['.tsrx'],
-		['@tsrx/ripple', 'ripple', '@ripple-ts/vite-plugin', '@ripple-ts/compat-react'],
+		['@tsrx/ripple', 'ripple', '@ripple-ts/vite-plugin'],
 	],
 	[
 		'@tsrx/react',

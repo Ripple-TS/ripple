@@ -433,17 +433,6 @@ export default defineConfig({
 			},
 			{
 				test: {
-					name: 'compat-react',
-					include: ['packages/compat-react/tests/**/*.test.tsrx'],
-					environment: 'jsdom',
-					setupFiles: ['packages/compat-react/tests/setup.js'],
-					globals: true,
-				},
-				plugins: [ripple({ excludeRippleExternalModules: true })],
-				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
-			},
-			{
-				test: {
 					name: 'ripple-hydration',
 					include: ['packages/ripple/tests/hydration/**/*.test.js'],
 					environment: 'jsdom',

@@ -358,11 +358,6 @@ export interface JsxPlatform {
 		 */
 		classAttrName?: 'class' | 'className';
 		/**
-		 * Accepted values of `kind` in `<tsx:kind>` compat blocks. React accepts
-		 * only `'react'`. Preact accepts both `'preact'` and `'react'`.
-		 */
-		acceptedTsxKinds: readonly string[];
-		/**
 		 * How to collapse multiple `ref` attributes on the same element into
 		 * one. React's and Preact's runtimes treat duplicate `ref` props as
 		 * a normal duplicate-prop collision (last wins), so they need a

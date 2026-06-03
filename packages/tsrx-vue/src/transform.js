@@ -39,7 +39,6 @@ const vue_platform = {
 	},
 	jsx: {
 		rewriteClassAttr: false,
-		acceptedTsxKinds: ['vue'],
 		multiRefStrategy: 'merge-refs',
 		hostSpreadRefStrategy: 'explicit-ref-attr',
 	},

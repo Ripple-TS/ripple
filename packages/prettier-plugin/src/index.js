@@ -2259,10 +2259,6 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printElement(node, path, options, print);
 			break;
 
-		case 'TsxCompat':
-			nodeContent = printTsxCompat(node, path, options, print);
-			break;
-
 		case 'TsrxFragment':
 			nodeContent = printTsrx(node, path, options, print);
 			break;
@@ -2699,12 +2695,7 @@ function printArrowFunction(node, path, options, print, args) {
  * @returns {boolean}
  */
 function isTemplateExpression(node) {
-	return (
-		node.type === 'TsxCompat' ||
-		node.type === 'TsrxFragment' ||
-		node.type === 'JSXElement' ||
-		node.type === 'JSXFragment'
-	);
+	return node.type === 'TsrxFragment' || node.type === 'JSXElement' || node.type === 'JSXFragment';
 }
 
 /**
@@ -5708,87 +5699,6 @@ function printTsrx(node, path, options, print) {
 		hardline,
 		closingTagName,
 	]);
-}
-
-/**
- * Print a TSX compatibility node
- * @param {AST.TsxCompat} node - The TSX compat node
- * @param {AstPath<AST.TsxCompat>} path - The AST path
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
- * @returns {Doc}
- */
-function printTsxCompat(node, path, options, print) {
-	const tagName = `<tsx:${node.kind}>`;
-	const closingTagName = `</tsx:${node.kind}>`;
-
-	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-
-	if (!hasChildren) {
-		return [tagName, closingTagName];
-	}
-
-	// Print JSXElement children - they remain as JSX
-	// Filter out whitespace-only JSXText nodes and merge adjacent text-like nodes
-	const finalChildren = [];
-	let accumulatedText = '';
-
-	for (let i = 0; i < node.children.length; i++) {
-		const child = node.children[i];
-
-		// Check if this is a text-like node (JSXText or Identifier in JSX context)
-		const isTextLike = child.type === 'JSXText';
-
-		if (isTextLike) {
-			// Get the text content
-			let text;
-			if (child.type === 'JSXText') {
-				text = child.value.trim();
-			}
-
-			if (text) {
-				if (accumulatedText) {
-					accumulatedText += ' ' + text;
-				} else {
-					accumulatedText = text;
-				}
-			}
-		} else {
-			// Before adding non-text node, flush accumulated text
-			if (accumulatedText) {
-				if (finalChildren.length > 0) {
-					finalChildren.push(hardline);
-				}
-				finalChildren.push(accumulatedText);
-				accumulatedText = '';
-			}
-
-			if (finalChildren.length > 0) {
-				finalChildren.push(hardline);
-			}
-
-			const printedChild = path.call(print, 'children', i);
-			finalChildren.push(printedChild);
-		}
-	}
-
-	// Don't forget any remaining accumulated text
-	if (accumulatedText) {
-		if (finalChildren.length > 0) {
-			finalChildren.push(hardline);
-		}
-		finalChildren.push(accumulatedText);
-	}
-
-	// Format the TsxCompat element
-	const elementOutput = group([
-		tagName,
-		indent([hardline, ...finalChildren]),
-		hardline,
-		closingTagName,
-	]);
-
-	return elementOutput;
 }
 
 /**

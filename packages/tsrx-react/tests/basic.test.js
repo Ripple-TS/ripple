@@ -680,17 +680,6 @@ describe('@tsrx/react basic', () => {
 		expect(function_identifier_mapping?.data.customData.hover).toBeUndefined();
 	});
 
-	it('supports loose-mode Volar parsing for React source', () => {
-		const source = `export function App() { return <>
-	<tsx:react>1</tsx:react>
-</>; }`;
-
-		expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
-
-		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
-		expect(result.errors).toEqual([]);
-	});
-
 	it('renders component-body switch statements as React expressions', () => {
 		const { code } = compile(
 			`export function App() { return <>

@@ -24,12 +24,9 @@ import {
 import { ENTRY_FILENAME } from './constants.js';
 import {
 	RESOLVED_ADAPTER_BROWSER_STUB_ID,
-	RESOLVED_VIRTUAL_COMPAT_ID,
 	SERVER_ONLY_ADAPTER_IDS,
-	VIRTUAL_COMPAT_ID,
 	create_adapter_browser_stub_source,
 	create_client_entry_source,
-	create_compat_virtual_module,
 	to_vite_root_import,
 	write_project_generated_file,
 } from './project-codegen.js';
@@ -1083,10 +1080,6 @@ export function ripple(inlineOptions = {}) {
 					return RESOLVED_VIRTUAL_HYDRATE_ID;
 				}
 
-				if (id === VIRTUAL_COMPAT_ID) {
-					return RESOLVED_VIRTUAL_COMPAT_ID;
-				}
-
 				// Skip non-package imports (relative/absolute paths)
 				if (id.startsWith('.') || id.startsWith('/') || id.includes(':')) {
 					return null;
@@ -1131,11 +1124,6 @@ export function ripple(inlineOptions = {}) {
 					return create_adapter_browser_stub_source();
 				}
 
-				if (id === RESOLVED_VIRTUAL_COMPAT_ID) {
-					const compat_config = await get_current_ripple_config();
-					return create_compat_virtual_module(compat_config);
-				}
-
 				// Handle virtual hydrate module
 				if (id === RESOLVED_VIRTUAL_HYDRATE_ID) {
 					const file = write_project_generated_file(
@@ -1162,16 +1150,10 @@ export function ripple(inlineOptions = {}) {
 					const ssr = opts?.ssr === true || this.environment.config.consumer === 'server';
 
 					const is_dev = config?.command === 'serve';
-					const current_ripple_config = await get_current_ripple_config();
-
 					let { code, css, map } = await compile(source_code, filename, {
 						mode: ssr ? 'server' : 'client',
 						dev: is_dev,
 						hmr: is_dev && !ssr,
-						compat_kinds:
-							current_ripple_config === null
-								? undefined
-								: Object.keys(current_ripple_config.compat),
 					});
 
 					// Track modules with `module server` declarations for RPC (client build only)

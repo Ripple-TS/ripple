@@ -251,8 +251,7 @@ function mark_control_flow_has_template(path) {
 			node.type === 'TryStatement' ||
 			node.type === 'IfStatement' ||
 			node.type === 'SwitchStatement' ||
-			node.type === 'TsrxFragment' ||
-			node.type === 'TsxCompat'
+			node.type === 'TsrxFragment'
 		) {
 			node.metadata.has_template = true;
 		}
@@ -314,7 +313,7 @@ function is_inside_template_child(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'Element' || node.type === 'TsrxFragment' || node.type === 'TsxCompat') {
+		if (node.type === 'Element' || node.type === 'TsrxFragment') {
 			return true;
 		}
 	}
@@ -357,14 +356,6 @@ function mark_control_flow_has_continue(path) {
 			node.metadata.has_continue = true;
 		}
 	}
-}
-
-/**
- * @param {AnalysisContext['path']} path
- * @returns {boolean}
- */
-function is_inside_tsx_context(path) {
-	return path.some((node) => node?.type === 'TsxCompat');
 }
 
 /**
@@ -1512,10 +1503,7 @@ const visitors = {
 
 		const callee = node.callee;
 
-		if (
-			!context.path.some((path_node) => path_node.type === 'TsxCompat') &&
-			is_children_template_expression(/** @type {AST.Expression} */ (callee), context)
-		) {
+		if (is_children_template_expression(/** @type {AST.Expression} */ (callee), context)) {
 			error(
 				'`children` cannot be called like a regular function. Render it with `{children}` or `{props.children}` instead.',
 				context.state.analysis.module.filename,
@@ -2218,11 +2206,6 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		const inside_tsx_compat = is_inside_tsx_context(context.path);
-
-		if (inside_tsx_compat) {
-			return context.next();
-		}
 		// TODO: could compile it as something to avoid a fatal error
 		error(
 			'Elements cannot be used as generic expressions, only as statements within a component',
@@ -2232,12 +2215,6 @@ const visitors = {
 	},
 
 	JSXFragment(node, context) {
-		const inside_tsx_compat = is_inside_tsx_context(context.path);
-
-		if (inside_tsx_compat) {
-			return context.next();
-		}
-
 		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 	},
 
@@ -2247,27 +2224,6 @@ const visitors = {
 		}
 
 		mark_control_flow_has_template(context.path);
-		return context.next();
-	},
-
-	TsxCompat(node, context) {
-		if (context.state.regular_js) {
-			return context.next();
-		}
-
-		mark_control_flow_has_template(context.path);
-
-		const configured_compat_kinds = context.state.configured_compat_kinds;
-		if (configured_compat_kinds !== undefined && !configured_compat_kinds.has(node.kind)) {
-			error(
-				`<tsx:${node.kind}> requires "${node.kind}" compat to be configured in ripple.config.ts.`,
-				context.state.analysis.module.filename,
-				node,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		return context.next();
 	},
 
@@ -2705,8 +2661,6 @@ export function analyze(ast, filename, options = {}) {
 			ancestor_server_block: undefined,
 			to_ts: options.to_ts ?? false,
 			collect,
-			configured_compat_kinds:
-				options.compat_kinds === undefined ? undefined : new Set(options.compat_kinds),
 			metadata: {},
 			mode: options.mode,
 			module: {

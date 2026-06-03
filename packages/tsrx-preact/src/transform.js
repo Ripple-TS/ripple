@@ -23,7 +23,6 @@ export const DEFAULT_SUSPENSE_SOURCE = 'preact/compat';
  * Differences from React:
  * - `suspense` imports from `preact/compat` (overridable via `suspenseSource`).
  * - `rewriteClassAttr: false` — Preact accepts `class` natively.
- * - `acceptedTsxKinds` includes both `preact` and `react` for compat blocks.
  * - async function components are preserved as ordinary TypeScript functions.
  *
  * @type {JsxPlatform}
@@ -40,7 +39,6 @@ const preact_platform = {
 	},
 	jsx: {
 		rewriteClassAttr: false,
-		acceptedTsxKinds: ['preact', 'react'],
 		multiRefStrategy: 'merge-refs',
 	},
 	validation: {

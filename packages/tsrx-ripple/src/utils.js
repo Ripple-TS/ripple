@@ -1851,7 +1851,7 @@ export function is_children_template_expression(expression, scope, component_sco
  * @returns {boolean}
  */
 function is_template_fragment_node(node) {
-	return node?.type === 'TsrxFragment' || node?.type === 'TsxCompat';
+	return node?.type === 'TsrxFragment';
 }
 
 /**

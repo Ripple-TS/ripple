@@ -32,7 +32,6 @@
     "vitest": "catalog:default"
   },
   "dependencies": {
-    "@ripple-ts/compat-react": "workspace:*",
     "tailwindcss": "catalog:peer"
   }
 }

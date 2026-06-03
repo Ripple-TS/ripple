@@ -862,8 +862,6 @@ module.exports = grammar({
 
 		jsx_closing_fragment: () => seq('</', '>'),
 
-		// In Ripple, namespaced TSX-compat elements like <tsx:react> cannot be self-closing
-		// so we disallow jsx_namespace_name here by using a narrowed name rule.
 		jsx_self_closing_element: ($) =>
 			seq(
 				'<',

@@ -59,16 +59,6 @@ export type BlockWithTryBoundaryAndCatch = Omit<BlockWithTryBoundary, 's'> & {
 	s: TryBoundaryState & { c: NonNullable<TryBoundaryState['c']> };
 };
 
-export type CompatApi = {
-	createRoot: () => void;
-	createComponent: (node: any, children_fn: () => any) => void;
-	jsx: (type: any, props: any) => any;
-};
-
-export type CompatOptions = {
-	[key: string]: CompatApi;
-};
-
 export type RootBoundaryOptions = {
 	pending?: (anchor: Node, props: Record<string, never>, block: Block | null) => void;
 	catch?: (anchor: Node, props: { error: unknown; reset: () => void }, block: Block | null) => void;

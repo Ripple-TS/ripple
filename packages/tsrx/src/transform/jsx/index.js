@@ -233,17 +233,6 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (wrap_jsx_setup_declarations(expression, in_jsx_child));
 			},
 
-			TsxCompat(node, { next, path, state }) {
-				const inner = /** @type {any} */ (next() ?? node);
-				const in_jsx_child = in_jsx_child_context(path);
-				return /** @type {any} */ (
-					wrap_jsx_setup_declarations(
-						tsx_compat_node_to_jsx_expression(inner, state, in_jsx_child),
-						in_jsx_child,
-					)
-				);
-			},
-
 			Element(node, { next, path, state }) {
 				if (is_style_element(node) && is_style_expression_position(path)) {
 					const stylesheet = get_style_element_stylesheet(node);
@@ -1750,7 +1739,6 @@ function is_style_expression_position(path) {
 	return !(
 		parent?.type === 'Element' ||
 		parent?.type === 'TsrxFragment' ||
-		parent?.type === 'TsxCompat' ||
 		parent?.type === 'BlockStatement' ||
 		parent?.type === 'Program' ||
 		parent?.type === 'SwitchCase'
@@ -4012,8 +4000,6 @@ function to_jsx_child(node, transform_context) {
 	switch (node.type) {
 		case 'TsrxFragment':
 			return tsrx_node_to_jsx_expression(node, transform_context, true);
-		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -5519,10 +5505,7 @@ function wrap_jsx_setup_declarations(expression, in_jsx_child) {
 /**
  * Reject elements with more than one TSX-style `ref={...}` attribute.
  * This validator runs over the raw, pre-lowering attribute list so each
- * shape is still distinguishable by `type`. Ripple `Element` attributes have type `Attribute` with an
- * `Identifier` name (the parser normalizes `JSXAttribute`/`JSXIdentifier`
- * for native elements); inside `<tsx:react>` compat blocks they retain
- * the original `JSXAttribute`/`JSXIdentifier` shape, so we accept both.
+ * shape is still distinguishable by `type`.
  *
  * @param {any[]} raw_attrs
  * @param {TransformContext} [transform_context]
@@ -5921,26 +5904,4 @@ function build_return_expression(render_nodes) {
 				}
 			: undefined,
 	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {boolean} [in_jsx_child]
- * @returns {any}
- */
-function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
-	const platform = transform_context.platform;
-	if (!platform.jsx.acceptedTsxKinds.includes(node.kind)) {
-		const accepted = platform.jsx.acceptedTsxKinds.map((k) => `<tsx:${k}>`).join(', ');
-		error(
-			`${platform.name} TSRX does not support <tsx:${node.kind}> blocks. Use one of: ${accepted}.`,
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-	}
-
-	return tsx_node_to_jsx_expression(node, in_jsx_child);
 }

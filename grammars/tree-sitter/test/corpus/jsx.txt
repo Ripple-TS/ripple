@@ -249,11 +249,6 @@ export function Test(props) {
           <ItemView item={item} onSelect={props.onSelect} />
         </div>
       )}
-      tsxItem={(item) => (
-        <tsx:react>
-          <ItemView item={item} onSelect={props.onSelect} />
-        </tsx:react>
-      )}
       fragmentItem={(item) => (
         <>
           <ItemView item={item} onSelect={props.onSelect} />
@@ -316,46 +311,6 @@ export function Test(props) {
                             close_tag: (jsx_closing_element
                               name: (jsx_element_name
                                 (identifier))))))))))
-              attribute: (jsx_attribute
-                name: (identifier)
-                value: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (arrow_function
-                        parameters: (formal_parameters
-                          (required_parameter
-                            pattern: (identifier)))
-                        body: (parenthesized_expression
-                          (jsx_element
-                            open_tag: (jsx_opening_element
-                              name: (jsx_element_name
-                                (jsx_namespace_name
-                                  (identifier)
-                                  (identifier))))
-                            children: (jsx_text)
-                            children: (jsx_self_closing_element
-                              name: (jsx_non_namespaced_element_name
-                                (identifier))
-                              attribute: (jsx_attribute
-                                name: (identifier)
-                                value: (jsx_expression
-                                  (component_statement
-                                    (expression_statement
-                                      (identifier)))))
-                              attribute: (jsx_attribute
-                                name: (identifier)
-                                value: (jsx_expression
-                                  (component_statement
-                                    (expression_statement
-                                      (member_expression
-                                        object: (identifier)
-                                        property: (identifier)))))))
-                            children: (jsx_text)
-                            close_tag: (jsx_closing_element
-                              name: (jsx_element_name
-                                (jsx_namespace_name
-                                  (identifier)
-                                  (identifier)))))))))))
               attribute: (jsx_attribute
                 name: (identifier)
                 value: (jsx_expression

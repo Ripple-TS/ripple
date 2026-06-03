@@ -1,4 +1,4 @@
-/** @import { CompatOptions, RootBoundaryOptions } from '#client' */
+/** @import { RootBoundaryOptions } from '#client' */
 
 import { destroy_block, root } from './internal/client/blocks.js';
 import { handle_root_events } from './internal/client/events.js';
@@ -28,14 +28,6 @@ export {
 	SUSPENSE_PENDING,
 	SUSPENSE_REJECTED,
 } from './internal/client/constants.js';
-
-/**
- * @returns {CompatOptions | undefined}
- */
-function get_default_compat() {
-	return /** @type {typeof globalThis & { __RIPPLE_COMPAT__?: CompatOptions }} */ (globalThis)
-		.__RIPPLE_COMPAT__;
-}
 
 /**
  * @param {Node} anchor
@@ -74,7 +66,6 @@ export function mount(component, options) {
 	init_operations();
 	remove_ssr_css();
 
-	const compat = get_default_compat();
 	const props = options.props || {};
 	const target = options.target;
 	const anchor = create_anchor();
@@ -96,7 +87,7 @@ export function mount(component, options) {
 			},
 			options.rootBoundary,
 		);
-	}, compat);
+	});
 
 	return () => {
 		cleanup_events();
@@ -113,7 +104,6 @@ export function hydrate(component, options) {
 	init_operations();
 	remove_ssr_css();
 
-	const compat = get_default_compat();
 	const props = options.props || {};
 	const target = options.target;
 	const was_hydrating = hydrating;
@@ -142,7 +132,7 @@ export function hydrate(component, options) {
 				},
 				options.rootBoundary,
 			);
-		}, compat);
+		});
 	} catch (e) {
 		throw e;
 	} finally {

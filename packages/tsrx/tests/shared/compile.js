@@ -1832,43 +1832,6 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('keeps TSX fragments inside TSX blocks as JSX-compatible children', () => {
-			const compat_kind = name === 'solid' ? 'solid' : 'react';
-			expect(() =>
-				compile(
-					`class Foo {
-						bar() {
-							return <tsx:${compat_kind}><><div id="x" /></></tsx:${compat_kind}>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('declares normalized host spread refs inside compat expression blocks', () => {
-			const compat_kind = name === 'solid' ? 'solid' : 'react';
-			const { code } = compile(
-				`class Foo {
-					bar() {
-						const props = {};
-						function cb(_node) {}
-						return <tsx:${compat_kind}><input {...props} ref={cb} /></tsx:${compat_kind}>;
-					}
-				}`,
-				'App.tsrx',
-			);
-			const declaration_offset = code.indexOf(
-				'let _tsrx_spread_props_1 = __normalize_spread_props_for_ref_attr(props);',
-			);
-			const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
-
-			expect(declaration_offset).toBeGreaterThan(-1);
-			expect(spread_offset).toBeGreaterThan(declaration_offset);
-			expect(code).toContain('_tsrx_spread_props_1.ref');
-			expect(code).not.toContain('<tsx');
-		});
-
 		it('unwraps a native fragment containing a single expression to the expression', () => {
 			// Regression: previously `<>{'Hello'}</>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`
@@ -1967,7 +1930,6 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 
 		it('keeps special fragment returns inside component-local functions', () => {
-			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
 				`export function App() {
 						function FragmentReturn() {
@@ -1978,9 +1940,6 @@ export function optionalFn(bar: string, baz?: string) {
 						}
 					function TsrxReturn() {
 						return <><div>"tsrx"</div></>;
-					}
-					function CompatReturn() {
-						return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
 					}
 
 					return <>
@@ -1999,11 +1958,9 @@ export function optionalFn(bar: string, baz?: string) {
 					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
 			);
 			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static/);
-			expect(code).toMatch(/function CompatReturn\(\) {\s+return <div/);
 		});
 
 		it('keeps special fragment returns inside component prop arrow functions', () => {
-			const compat_kind = name === 'solid' ? 'solid' : 'react';
 			const { code } = compile(
 				`function Child(props) { return <></>; }
 
@@ -2017,9 +1974,6 @@ export function optionalFn(bar: string, baz?: string) {
 							}}
 						tsrx={() => {
 							return <><div>"tsrx"</div></>;
-						}}
-						compat={() => {
-							return <tsx:${compat_kind}><div>compat</div></tsx:${compat_kind}>;
 						}}
 					/>
 				</>; }`,
@@ -2035,7 +1989,6 @@ export function optionalFn(bar: string, baz?: string) {
 					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
 			);
 			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static/);
-			expect(code).toMatch(/compat=\{\(\) => \{\s+return <div/);
 		});
 
 		it('parses semicolon-less native TSRX returns in component prop arrow functions', () => {
@@ -2056,8 +2009,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('Hello, World!');
 		});
 
-		it('keeps expression child arrays in fragment, native, and compat callback props', () => {
-			const compat_kind = name === 'solid' ? 'solid' : 'react';
+		it('keeps expression child arrays in fragment and native callback props', () => {
 			const { code } = compile(
 				`function Child(props) { return <></>; }
 
@@ -2065,7 +2017,6 @@ export function optionalFn(bar: string, baz?: string) {
 						<Child
 							fragment={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
 							native={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
-							compat={() => <tsx:${compat_kind}>{[<>Delete</>, <>Edit</>]}</tsx:${compat_kind}>}
 						/>
 					</>; }`,
 				'App.tsrx',
@@ -2074,8 +2025,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('fragment={() => {');
 			expect(code).toContain('native={() => {');
 			expect(code).toContain('return ["Delete", "Edit"];');
-			expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
-			expect(code).not.toContain('<tsx');
 		});
 	});
 

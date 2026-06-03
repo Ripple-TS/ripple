@@ -59,7 +59,6 @@ export interface CompileOptions {
 	minify_css?: boolean;
 	dev?: boolean;
 	hmr?: boolean;
-	compat_kinds?: string[];
 	/**
 	 * When true, non-fatal errors are collected on the result's `errors`
 	 * array instead of being thrown. Defaults to false (strict mode: throws).
@@ -237,7 +236,6 @@ declare module 'estree' {
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
 		TsrxFragment: TsrxFragment;
-		TsxCompat: TsxCompat;
 		TSRXExpression: TSRXExpression;
 		Element: Element;
 		Text: TextNode;
@@ -354,17 +352,6 @@ declare module 'estree' {
 		closingElement: ESTreeJSX.JSXClosingElement;
 	}
 
-	interface TsxCompat extends AST.BaseNode {
-		type: 'TsxCompat';
-		kind: string;
-		attributes: Array<any>;
-		children: ESTreeJSX.JSXElement['children'];
-		selfClosing?: boolean;
-		unclosed?: boolean;
-		openingElement: ESTreeJSX.JSXOpeningElement;
-		closingElement: ESTreeJSX.JSXClosingElement;
-	}
-
 	export interface TSRXExpression extends AST.BaseExpression {
 		type: 'TSRXExpression';
 		expression: AST.Expression;
@@ -450,7 +437,7 @@ declare module 'estree' {
 
 	export type TSRXStatement = AST.Statement | TSESTree.Statement;
 
-	export type NodeWithChildren = AST.Element | AST.TsrxFragment | AST.TsxCompat;
+	export type NodeWithChildren = AST.Element | AST.TsrxFragment;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {
@@ -1132,8 +1119,7 @@ export interface ParseOptions {
 /**
  * Analyze options
  */
-export interface AnalyzeOptions
-	extends ParseOptions, Pick<CompileOptions, 'mode' | 'compat_kinds'> {
+export interface AnalyzeOptions extends ParseOptions, Pick<CompileOptions, 'mode'> {
 	errors?: CompileError[];
 	to_ts?: boolean;
 }
@@ -1359,7 +1345,6 @@ export interface AnalysisState extends BaseState {
 	elements?: AST.Element[];
 	function_depth?: number;
 	collect?: boolean;
-	configured_compat_kinds?: Set<string>;
 	metadata: BaseStateMetaData & {
 		styleClasses?: StyleClasses;
 	};

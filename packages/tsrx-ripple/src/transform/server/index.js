@@ -343,7 +343,6 @@ function contains_template_value_node(node) {
 				node.type === 'JSXElement' ||
 				node.type === 'JSXFragment' ||
 				node.type === 'TsrxFragment' ||
-				node.type === 'TsxCompat' ||
 				(node.type === 'CallExpression' &&
 					node.callee.type === 'Identifier' &&
 					node.callee.name === '_$_.tsrx_element')
@@ -666,7 +665,6 @@ function is_template_or_control_flow(node) {
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
 		node.type === 'TsrxFragment' ||
-		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -716,8 +714,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'TsrxFragment' ||
-		parent?.type === 'TsxCompat'
+		parent?.type === 'TsrxFragment'
 	);
 }
 

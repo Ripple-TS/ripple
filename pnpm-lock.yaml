@@ -538,31 +538,6 @@ importers:
         specifier: catalog:default
         version: 4.1.6(@types/node@25.3.3)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.3)(jiti@2.6.1))
 
-  packages/compat-react:
-    dependencies:
-      react:
-        specifier: catalog:default
-        version: 19.2.4
-      react-dom:
-        specifier: catalog:default
-        version: 19.2.4(react@19.2.4)
-      ripple:
-        specifier: workspace:*
-        version: link:../ripple
-    devDependencies:
-      '@types/node':
-        specifier: catalog:default
-        version: 24.11.0
-      '@types/react':
-        specifier: catalog:default
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: catalog:default
-        version: 19.2.3(@types/react@19.2.14)
-      typescript:
-        specifier: catalog:default
-        version: 5.9.3
-
   packages/create-ripple:
     dependencies:
       '@ripple-ts/cli':
@@ -1329,9 +1304,6 @@ importers:
 
   playground/ripple:
     dependencies:
-      '@ripple-ts/compat-react':
-        specifier: workspace:*
-        version: link:../../packages/compat-react
       tailwindcss:
         specifier: catalog:peer
         version: 4.2.1

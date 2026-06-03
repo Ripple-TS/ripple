@@ -5,7 +5,7 @@ export const TARGET_CANDIDATES = [
 	{
 		target: 'ripple',
 		compilerPackage: '@tsrx/ripple',
-		signals: ['@tsrx/ripple', 'ripple', '@ripple-ts/vite-plugin', '@ripple-ts/compat-react'],
+		signals: ['@tsrx/ripple', 'ripple', '@ripple-ts/vite-plugin'],
 	},
 	{
 		target: 'react',

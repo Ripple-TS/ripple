@@ -243,7 +243,6 @@ export function is_jsx_child(node) {
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
 		t === 'TsrxFragment' ||
-		t === 'TsxCompat' ||
 		t === 'Element' ||
 		t === 'Text' ||
 		t === 'TSRXExpression' ||

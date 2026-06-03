@@ -156,7 +156,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain("return ['Error'];");
 	});
 
-	it('keeps expression child arrays in fragment, native, and compat callback props', () => {
+	it('keeps expression child arrays in fragment and native callback props', () => {
 		const { code } = compile(
 			`function Child(props) { return <>
 					<section />
@@ -166,7 +166,6 @@ describe('@tsrx/vue basic', () => {
 					<Child
 						fragment={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
 							native={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
-							compat={() => <tsx:vue>{[<>Delete</>, <>Edit</>]}</tsx:vue>}
 				/>
 			</>; }`,
 			'App.tsrx',
@@ -175,8 +174,6 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('fragment={() => {');
 		expect(code).toContain('return ["Delete", "Edit"];');
 		expect(code).toContain('native={() => {');
-		expect(code).toContain('compat={() => [<>Delete</>, <>Edit</>]}');
-		expect(code).not.toContain('<tsx');
 	});
 
 	it('emits scoped CSS and applies the scope hash to host elements', () => {
@@ -367,28 +364,6 @@ describe('@tsrx/vue basic', () => {
 		expect(code).not.toContain("from '@tsrx/vue/ref'");
 		expect(code).toContain('{...{ input_ref: input }}');
 		expect(code).not.toContain('normalize_spread_props');
-	});
-
-	it('declares normalized host spread refs inside compat expression blocks', () => {
-		const { code } = compile(
-			`class Foo {
-				bar() {
-					const props = {};
-					function cb(_node) {}
-					return <tsx:vue><input {...props} ref={cb} /></tsx:vue>;
-				}
-			}`,
-			'App.tsrx',
-		);
-		const declaration_offset = code.indexOf(
-			'let _tsrx_spread_props_1 = __normalize_spread_props_for_ref_attr(props);',
-		);
-		const spread_offset = code.indexOf('{..._tsrx_spread_props_1}');
-
-		expect(declaration_offset).toBeGreaterThan(-1);
-		expect(spread_offset).toBeGreaterThan(declaration_offset);
-		expect(code).toContain('_tsrx_spread_props_1.ref');
-		expect(code).not.toContain('<tsx');
 	});
 
 	it('normalizes multiple host spreads once while merging one explicit ref', () => {

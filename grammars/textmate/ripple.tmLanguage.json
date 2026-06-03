@@ -3682,9 +3682,6 @@
     "expression-inside-possibly-arrow-parens": {
       "patterns": [
         {
-          "include": "#jsx-tag-tsx-react"
-        },
-        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6177,9 +6174,6 @@
           "include": "#jsx-tag-style"
         },
         {
-          "include": "#jsx-tag-tsx-react"
-        },
-        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6404,9 +6398,6 @@
           "include": "#jsx-tag-style"
         },
         {
-          "include": "#jsx-tag-tsx-react"
-        },
-        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6477,9 +6468,6 @@
           "include": "#jsx-tag-style-in-expression"
         },
         {
-          "include": "#jsx-tag-tsx-react"
-        },
-        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6503,9 +6491,6 @@
       "patterns": [
         {
           "include": "#jsx-tag-style-in-expression"
-        },
-        {
-          "include": "#jsx-tag-tsx-react"
         },
         {
           "include": "#jsx-tag-fragment"
@@ -6679,91 +6664,6 @@
       "name": "invalid.illegal.attribute.js",
       "match": "\\S+"
     },
-    "jsx-tag-tsx-react": {
-      "name": "tsx.tag.js",
-      "begin": "(?:[ \\t]*)(<)\\s*(tsx)\\s*(:)\\s*(react)\\b(?![^>]*/>)(?=[^>]*>)",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "entity.name.tag.namespace.js"
-        },
-        "3": {
-          "name": "punctuation.separator.namespace.js"
-        },
-        "4": {
-          "name": "entity.name.tag.js"
-        }
-      },
-      "end": "(</)\\s*(tsx)\\s*(:)\\s*(react)\\s*(>)",
-      "endCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "entity.name.tag.namespace.js"
-        },
-        "3": {
-          "name": "punctuation.separator.namespace.js"
-        },
-        "4": {
-          "name": "entity.name.tag.js"
-        },
-        "5": {
-          "name": "punctuation.definition.tag.end.js"
-        }
-      },
-      "patterns": [
-        {
-          "begin": "(>)",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.end.js"
-            }
-          },
-          "end": "(?=</tsx:react>)",
-          "contentName": "meta.tsx.children.js",
-          "patterns": [
-            {
-              "include": "#jsx-tsx-children"
-            }
-          ]
-        },
-        {
-          "begin": "(?<=<tsx:react)(?![^>]*/>)",
-          "end": "(?=>)",
-          "patterns": [
-            {
-              "include": "#jsx-tag-attributes"
-            }
-          ]
-        }
-      ]
-    },
-    "jsx-tsx-children": {
-      "patterns": [
-        {
-          "include": "#jsx-evaluated-code"
-        },
-        {
-          "include": "#jsx-tsx-tag-fragment"
-        },
-        {
-          "include": "#jsx-tsx-tag"
-        },
-        {
-          "include": "#jsx-entities"
-        },
-        {
-          "include": "#jsx-tsx-text"
-        }
-      ]
-    },
-    "jsx-tsx-text": {
-      "name": "string.unquoted.tsx.text.js",
-      "match": "(?<=\\>)[^<>{}&]+(?=\\<)"
-    },
     "jsx-tag-fragment": {
       "name": "meta.tag.fragment.js",
       "begin": "(<)(>)",
@@ -6788,191 +6688,6 @@
       "patterns": [
         {
           "include": "#jsx-children"
-        }
-      ]
-    },
-    "jsx-tsx-tag-fragment": {
-      "name": "meta.tag.fragment.js",
-      "begin": "(<)(>)",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "punctuation.definition.tag.end.js"
-        }
-      },
-      "end": "(</)\\s*(>)",
-      "endCaptures": {
-        "1": {
-          "name": "punctuation.definition.tag.begin.js"
-        },
-        "2": {
-          "name": "punctuation.definition.tag.end.js"
-        }
-      },
-      "contentName": "meta.tsx.children.js",
-      "patterns": [
-        {
-          "include": "#jsx-tsx-children"
-        }
-      ]
-    },
-    "jsx-tsx-tag": {
-      "patterns": [
-        {
-          "name": "meta.tag.tsx.js",
-          "begin": "(<)([_$[:alpha:]][-_$[:alnum:].]*)(?=[^>]*/>)",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.begin.js"
-            },
-            "2": {
-              "name": "entity.name.tag.js"
-            }
-          },
-          "end": "/>",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.tag.end.js"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#jsx-tsx-tag-attributes"
-            }
-          ]
-        },
-        {
-          "name": "meta.tag.tsx.js",
-          "begin": "(<)([_$[:alpha:]][-_$[:alnum:].]*)(?![^>]*/>)",
-          "beginCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.begin.js"
-            },
-            "2": {
-              "name": "entity.name.tag.js"
-            }
-          },
-          "end": "(/>)|(?:(</)([_$[:alpha:]][-_$[:alnum:].]*)\\s*(>))",
-          "endCaptures": {
-            "1": {
-              "name": "punctuation.definition.tag.end.js"
-            },
-            "2": {
-              "name": "punctuation.definition.tag.begin.js"
-            },
-            "3": {
-              "name": "entity.name.tag.js"
-            },
-            "4": {
-              "name": "punctuation.definition.tag.end.js"
-            }
-          },
-          "patterns": [
-            {
-              "begin": "\\G(?![/>])",
-              "end": "(?=/?>)",
-              "patterns": [
-                {
-                  "include": "#jsx-tsx-tag-attributes"
-                }
-              ]
-            },
-            {
-              "begin": "(>)",
-              "beginCaptures": {
-                "1": {
-                  "name": "punctuation.definition.tag.end.js"
-                }
-              },
-              "end": "(?=</)",
-              "contentName": "meta.tsx.children.js",
-              "patterns": [
-                {
-                  "include": "#jsx-tsx-children"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "jsx-tsx-tag-attributes": {
-      "patterns": [
-        {
-          "begin": "\\b([_$[:alpha:]][-_$[:alnum:]]*)\\s*(=)\\s*",
-          "beginCaptures": {
-            "1": {
-              "name": "entity.other.attribute-name.js"
-            },
-            "2": {
-              "name": "keyword.operator.assignment.js"
-            }
-          },
-          "end": "(?=\\s|/?>)",
-          "patterns": [
-            {
-              "include": "#jsx-string-double-quoted"
-            },
-            {
-              "include": "#jsx-string-single-quoted"
-            },
-            {
-              "include": "#jsx-tsx-evaluated-code"
-            }
-          ]
-        }
-      ]
-    },
-    "jsx-tsx-evaluated-code": {
-      "contentName": "meta.embedded.expression.js source.js.embedded.ripple",
-      "begin": "\\{",
-      "end": "\\}",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.section.embedded.begin.js"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.section.embedded.end.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#jsx-tsx-attribute-expression"
-        }
-      ]
-    },
-    "jsx-tsx-attribute-expression": {
-      "patterns": [
-        {
-          "include": "#jsx-tag-tsx-react"
-        },
-        {
-          "include": "#jsx-tsx-tag-fragment"
-        },
-        {
-          "include": "#jsx-tsx-tag-in-expression"
-        },
-        {
-          "include": "#expressionWithoutIdentifiers"
-        },
-        {
-          "include": "#identifiers"
-        },
-        {
-          "include": "#expressionPunctuations"
-        }
-      ]
-    },
-    "jsx-tsx-tag-in-expression": {
-      "begin": "(?<!\\+\\+|--)(?<=[(={,?:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?!(<)\\s*[_$[:alpha:]][_$[:alnum:]]*(\\s+extends\\s+[^=>])|,)(?=(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?![sS][tT][yY][lL][eE]\\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?<!-))(?=((<\\s*)|(\\s+))(?!\\?)|/?>))",
-      "end": "(?!(<)\\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?<!\\.|-)(:))?((?![sS][tT][yY][lL][eE]\\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?<!-))(?=((<\\s*)|(\\s+))(?!\\?)|/?>))",
-      "patterns": [
-        {
-          "include": "#jsx-tsx-tag"
         }
       ]
     }

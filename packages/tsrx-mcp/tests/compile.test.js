@@ -557,21 +557,6 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-expression-value');
 	});
 
-	it('does not flag jsx-expression-value when JSX is wrapped in <tsx:Compat>', async () => {
-		// Same regression for the namespaced compat form, e.g. <tsx:react>.
-		const result = await analyze_tsrx({
-			code: `function App() { return <>
-				const widget = <tsx:react><Button>Save</Button></tsx:react>;
-				<div>{widget}</div>
-			</>; }`,
-			filename: 'App.tsrx',
-			target: 'ripple',
-			cwd: resolve(__dirname, 'fixtures/ripple-project'),
-		});
-
-		expect(result.advice.map((advice) => advice.kind)).not.toContain('jsx-expression-value');
-	});
-
 	it('formats TSRX source with the official prettier plugin', async () => {
 		const result = await format_tsrx({
 			code: `export function App(){ return <><button class="primary">"Save"</button></>; }`,

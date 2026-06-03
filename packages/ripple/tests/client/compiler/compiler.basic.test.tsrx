@@ -1128,28 +1128,11 @@ function App() { return <>
 		expect(result.errors.map((error) => error.code)).toEqual(['tsrx-template-return-statement']);
 	});
 
-	it('throws for unclosed tsx compat tags instead of hanging', () => {
-		const source = `export function App() { return <tsx:react>1; }`;
+	it('throws for namespaced template tags', () => {
+		const source = `export function App() { return <foo:bar></foo:bar>; }`;
 
 		expect(() => compile(source, 'test.tsrx')).toThrow(
-			'Unclosed tag \'<tsx:react>\'. Expected \'</tsx:react>\' before end of template.',
-		);
-	});
-
-	it('recovers unclosed tsx compat tags in loose mode', () => {
-		const source = `export function App() { return <tsx:react>1; }`;
-
-		expect(() => compile_to_volar_mappings(source, 'test.tsrx', { loose: true })).not.toThrow();
-
-		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
-		expect(result.errors).toEqual([]);
-	});
-
-	it('throws for unclosed tsx compat tags outside loose mode', () => {
-		const source = `export function App() { return <tsx:react>1; }`;
-
-		expect(() => compile(source, 'test.tsrx', { collect: true })).toThrow(
-			'Not implemented: TsxCompat',
+			'Namespaced elements are not supported in TSRX templates: <foo:bar>.',
 		);
 	});
 

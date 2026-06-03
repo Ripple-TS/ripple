@@ -127,8 +127,6 @@ export { expression } from './expression.js';
 
 export { rpc } from './rpc.js';
 
-export { tsx_compat } from './compat.js';
-
 export { render_tsrx_element } from './component.js';
 
 export { TRY_BLOCK, HMR } from './constants.js';

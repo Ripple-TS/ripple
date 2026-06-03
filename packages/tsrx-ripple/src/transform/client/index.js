@@ -1968,52 +1968,7 @@ const visitors = {
 		if (context.state.jsx_to_tsrx_element) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
-		const attributes = node.openingFragment.attributes;
-		const normalized_children = node.children.filter((child) => {
-			return child.type !== 'JSXText' || child.value.trim() !== '';
-		});
-
-		const props = b.object(
-			attributes.map((attr) => {
-				if (attr.type === 'JSXAttribute') {
-					return b.prop(
-						'init',
-						/** @type {AST.Expression} */ (context.visit(attr.name)),
-						attr.value
-							? /** @type {AST.Expression} */ (context.visit(attr.value))
-							: b.literal(true),
-					);
-				} else {
-					// attr.type === 'JSXSpreadAttribute'
-					return b.spread(/** @type {AST.Expression} */ (context.visit(attr.argument)));
-				}
-			}),
-		);
-
-		if (normalized_children.length > 0) {
-			props.properties.push(
-				b.prop(
-					'init',
-					b.id('children'),
-					normalized_children.length === 1
-						? /** @type {AST.Expression} */ (
-								context.visit(/** @type {AST.Node} */ (normalized_children[0]))
-							)
-						: b.array(
-								normalized_children.map(
-									(child) =>
-										/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (child))),
-								),
-							),
-				),
-			);
-		}
-
-		return b.call(
-			normalized_children.length > 1 ? '__compat.jsxs' : '__compat.jsx',
-			b.id('__compat.Fragment'),
-			props,
-		);
+		return context.next();
 	},
 
 	JSXElement(node, context) {
@@ -2023,106 +1978,7 @@ const visitors = {
 		if (context.state.jsx_to_tsrx_element) {
 			return build_jsx_to_tsrx_element(node, context);
 		}
-		const name = node.openingElement.name;
-		const attributes = node.openingElement.attributes;
-		const normalized_children = node.children.filter((child) => {
-			return child.type !== 'JSXText' || child.value.trim() !== '';
-		});
-
-		const props = b.object(
-			attributes.map((attr) => {
-				if (attr.type === 'JSXAttribute') {
-					return b.prop(
-						'init',
-						/** @type {AST.Expression} */ (context.visit(attr.name)),
-						attr.value
-							? /** @type {AST.Expression} */ (context.visit(attr.value))
-							: b.literal(true),
-					);
-				} else {
-					// attr.type === 'JSXSpreadAttribute'
-					return b.spread(/** @type {AST.Expression} */ (context.visit(attr.argument)));
-				}
-			}),
-		);
-
-		if (normalized_children.length > 0) {
-			props.properties.push(
-				b.prop(
-					'init',
-					b.id('children'),
-					normalized_children.length === 1
-						? /** @type {AST.Expression} */ (
-								context.visit(/** @type {AST.Node} */ (normalized_children[0]))
-							)
-						: b.array(
-								normalized_children.map(
-									(child) =>
-										/** @type {AST.Expression} */ (context.visit(/** @type {AST.Node} */ (child))),
-								),
-							),
-				),
-			);
-		}
-
-		return b.call(
-			normalized_children.length > 1 ? '__compat.jsxs' : '__compat.jsx',
-			name.type === 'JSXIdentifier' && name.name[0].toLowerCase() === name.name[0]
-				? b.literal(name.name)
-				: /** @type {AST.Expression} */ (context.visit(name)),
-			props,
-		);
-	},
-
-	TsxCompat(node, context) {
-		const { state, visit } = context;
-		const compat_state = { ...state, jsx_to_tsrx_element: false };
-
-		// to_ts mode: produce a JSX fragment
-		if (state.to_ts) {
-			const children = /** @type {AST.TsxCompat['children']} */ (
-				node.children
-					.map((child) => visit(/** @type {AST.Node} */ (child), compat_state))
-					.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
-			);
-			return b.jsx_fragment(children);
-		}
-
-		state.template?.push('<!>');
-
-		const normalized_children = node.children.filter((child) => {
-			return child.type !== 'JSXText' || child.value.trim() !== '';
-		});
-		const needs_fragment = normalized_children.length !== 1;
-		const id = state.flush_node?.();
-		const children_fn = b.arrow(
-			[b.id('__compat')],
-			needs_fragment
-				? b.call(
-						'__compat.jsxs',
-						b.id('__compat.Fragment'),
-						b.object([
-							b.prop(
-								'init',
-								b.id('children'),
-								b.array(
-									/** @type {(AST.Expression | AST.SpreadElement | null)[]} */ (
-										normalized_children.map((child) =>
-											visit(/** @type {AST.Node} */ (child), compat_state),
-										)
-									),
-								),
-							),
-						]),
-					)
-				: /** @type {AST.Expression} */ (
-						visit(/** @type {AST.Node} */ (normalized_children[0]), compat_state)
-					),
-		);
-
-		context.state.init?.push(
-			b.stmt(b.call('_$_.tsx_compat', b.literal(node.kind), id, children_fn)),
-		);
+		return context.next();
 	},
 
 	TsrxFragment(node, context) {
@@ -2669,7 +2525,6 @@ const visitors = {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							child.type === 'TsrxFragment' ||
-							child.type === 'TsxCompat' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							((child.type === 'TSRXExpression' || child.type === 'Text') &&
@@ -4265,14 +4120,6 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(/** @type {AST.Statement} */ (result));
-	} else if (node.type === 'TsxCompat') {
-		const children = /** @type {AST.TsxCompat['children']} */ (
-			node.children
-				.map((child) => visit(/** @type {AST.Node} */ (child), state))
-				.filter((child) => child.type !== 'JSXText' || child.value.trim() !== '')
-		);
-
-		state.init?.push(b.stmt(b.jsx_fragment(children)));
 	} else if (node.type === 'TsrxFragment') {
 		const result = build_tsrx_to_ts_expression(node, context);
 		if (!state.init) {
@@ -4335,7 +4182,6 @@ function is_template_or_control_flow(node) {
 		node.type === 'TSRXExpression' ||
 		node.type === 'Text' ||
 		node.type === 'TsrxFragment' ||
-		node.type === 'TsxCompat' ||
 		node.type === 'IfStatement' ||
 		node.type === 'ForOfStatement' ||
 		node.type === 'TryStatement' ||
@@ -4466,8 +4312,7 @@ function is_native_tsrx_value_position(path) {
 	return !(
 		is_native_tsrx_statement_position(path) ||
 		parent?.type === 'Element' ||
-		parent?.type === 'TsrxFragment' ||
-		parent?.type === 'TsxCompat'
+		parent?.type === 'TsrxFragment'
 	);
 }
 
@@ -4544,8 +4389,7 @@ function element_has_dynamic_content(element) {
 			child.type === 'TryStatement' ||
 			child.type === 'ForOfStatement' ||
 			child.type === 'SwitchStatement' ||
-			child.type === 'TsrxFragment' ||
-			child.type === 'TsxCompat'
+			child.type === 'TsrxFragment'
 		) {
 			return true;
 		}
@@ -4690,7 +4534,6 @@ function transform_children(children, context) {
 				node.type === 'ForOfStatement' ||
 				node.type === 'SwitchStatement' ||
 				node.type === 'TsrxFragment' ||
-				node.type === 'TsxCompat' ||
 				(node.type === 'Element' &&
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
@@ -5057,7 +4900,6 @@ function transform_children(children, context) {
 							child.type === 'ForOfStatement' ||
 							child.type === 'SwitchStatement' ||
 							child.type === 'TsrxFragment' ||
-							child.type === 'TsxCompat' ||
 							(child.type === 'Element' &&
 								(child.id.type !== 'Identifier' || !is_element_dom_element(child))) ||
 							((child.type === 'TSRXExpression' || child.type === 'Text') &&
@@ -5083,7 +4925,7 @@ function transform_children(children, context) {
 						state.init?.push(b.stmt(b.call('_$_.pop', id)));
 					}
 				}
-			} else if (node.type === 'TsxCompat' || node.type === 'TsrxFragment') {
+			} else if (node.type === 'TsrxFragment') {
 				skipped = 0;
 
 				visit(node, {

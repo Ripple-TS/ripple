@@ -1172,7 +1172,7 @@ export namespace Parse {
 		 */
 		parseTopLevel(node: AST.Program): AST.Program;
 
-		parseElement(): AST.Element | AST.TsrxFragment | AST.TsxCompat;
+		parseElement(): AST.Element | AST.TsrxFragment;
 
 		parseDoubleQuotedTextChild(): AST.TextNode;
 

@@ -19,7 +19,6 @@ function mount_after_ssr() {
 			}
 
 			return `
-import 'virtual:ripple-compat';
 import { hydrate } from 'ripple';
 
 const route_modules = import.meta.glob('/src/pages/*.tsrx');

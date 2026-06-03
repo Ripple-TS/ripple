@@ -17,8 +17,6 @@ import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
 import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
-const DYNAMIC_ELEMENT_IN_TSX_ERROR =
-	'Dynamic element syntax (`<@...>`) is only supported in native TSRX templates.';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
 	'Dynamic component / element syntax (`@`) is only supported on native TSRX element names, not attribute names.';
 
@@ -235,7 +233,6 @@ export function TSRXPlugin(config) {
 			#filename = null;
 			#functionBodyDepth = 0;
 			#allowExpressionContainerTrailingSemicolon = false;
-			#tsxIslandExpressionDepth = 0;
 			#jsxAttributeValueExpressionDepth = 0;
 
 			/**
@@ -340,35 +337,7 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Node | undefined} node
 			 */
 			#isNativeTemplateNode(node) {
-				return (
-					node?.type === 'Element' || node?.type === 'TsrxFragment' || node?.type === 'TsxCompat'
-				);
-			}
-
-			/**
-			 * @param {AST.Node[]} children
-			 */
-			#reportDynamicJsxElementsInTsx(children) {
-				for (const child of children) {
-					if (child?.type === 'JSXElement') {
-						const name = child.openingElement?.name;
-						const is_dynamic_name =
-							(name?.type === 'JSXIdentifier' && name.tracked) ||
-							(name?.type === 'JSXMemberExpression' &&
-								name.object.type === 'JSXIdentifier' &&
-								name.object.tracked);
-						if (is_dynamic_name) {
-							this.#report_recoverable_error_range(
-								/** @type {AST.NodeWithLocation} */ (name).start ?? child.start,
-								/** @type {AST.NodeWithLocation} */ (name).end ?? child.end,
-								DYNAMIC_ELEMENT_IN_TSX_ERROR,
-							);
-						}
-						this.#reportDynamicJsxElementsInTsx(/** @type {AST.Node[]} */ (child.children));
-					} else if (child?.type === 'TsxCompat') {
-						this.#reportDynamicJsxElementsInTsx(/** @type {AST.Node[]} */ (child.children));
-					}
-				}
+				return node?.type === 'Element' || node?.type === 'TsrxFragment';
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -392,149 +361,11 @@ export function TSRXPlugin(config) {
 				);
 			}
 
-			/**
-			 * @param {AST.TsxCompat} island
-			 * @param {AST.Node[]} body
-			 */
-			#parseTsxIslandBody(island, body) {
-				const tagName = `tsx:${island.kind}`;
-
-				this.exprAllowed = true;
-
-				while (true) {
-					if (this.type === tt.eof || this.pos >= this.input.length || this.type === tt.braceR) {
-						const displayTag = tagName || '';
-						this.#report_broken_markup_error(
-							this.start,
-							`Unclosed tag '<${displayTag}>'. Expected '</${displayTag}>' before end of template.`,
-						);
-						island.unclosed = true;
-						/** @type {AST.NodeWithLocation} */ (island).loc.end = {
-							.../** @type {AST.SourceLocation} */ (island.openingElement.loc).end,
-						};
-						island.end = island.openingElement.end;
-						return;
-					}
-
-					if (this.#isAtTsxIslandClosing()) {
-						this.exprAllowed = false;
-						return;
-					}
-
-					if (this.type === tt.braceL) {
-						body.push(this.#parseTsxIslandExpressionContainer());
-					} else if (this.type === tstt.jsxTagStart) {
-						body.push(super.jsx_parseElement());
-					} else {
-						const node = this.#parseTsxIslandText();
-						if (node) {
-							body.push(node);
-						}
-						this.#popTemplateLiteralTokenContext();
-						this.next();
-					}
-				}
-			}
-
-			#parseTsxIslandExpressionContainer() {
-				this.#tsxIslandExpressionDepth++;
-				try {
-					if (!this.#isAtReservedTemplateExpressionContainer()) {
-						return this.jsx_parseExpressionContainer();
-					}
-
-					const node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
-					this.next();
-					this.next();
-					const expression = /** @type {AST.Expression | ESTreeJSX.JSXEmptyExpression} */ (
-						/** @type {unknown} */ (this.parseElement())
-					);
-					node.expression = expression;
-					this.#popTokenContextsAfterTemplateExpressionElement(
-						/** @type {AST.TsrxFragment | AST.TsxCompat} */ (/** @type {unknown} */ (expression)),
-					);
-					this.expect(tt.braceR);
-					return this.finishNode(node, 'JSXExpressionContainer');
-				} finally {
-					this.#tsxIslandExpressionDepth--;
-				}
-			}
-
-			#isAtReservedTemplateExpressionContainer() {
-				if (this.type !== tt.braceL) {
-					return false;
-				}
-
-				let index = this.start + 1;
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					if (
-						ch === CharCode.space ||
-						ch === CharCode.tab ||
-						ch === CharCode.lineFeed ||
-						ch === CharCode.carriageReturn
-					) {
-						index++;
-					} else {
-						break;
-					}
-				}
-
-				if (this.input.charCodeAt(index) !== CharCode.lessThan) {
-					return false;
-				}
-
-				return this.#isReservedTemplateTagNameStart(index + 1);
-			}
-
-			/**
-			 * @param {number} index
-			 */
-			#isReservedTemplateTagNameStart(index) {
-				return this.input.startsWith('tsx:', index);
-			}
-
-			/**
-			 */
-			#isAtTsxIslandClosing() {
-				return this.input.slice(this.pos, this.pos + 5) === '/tsx:';
-			}
-
-			#parseTsxIslandText() {
-				const start = this.start;
-				this.pos = start;
-				let text = '';
-
-				while (this.pos < this.input.length) {
-					const ch = this.input.charCodeAt(this.pos);
-
-					// Stop at opening tag, expression, or the template-closing brace
-					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
-						break;
-					}
-
-					text += this.input[this.pos];
-					this.pos++;
-				}
-
-				if (!text) {
-					return null;
-				}
-
-				return /** @type {ESTreeJSX.JSXText} */ ({
-					type: 'JSXText',
-					value: text,
-					raw: text,
-					start,
-					end: this.pos,
-				});
-			}
-
-			#popTsxTokenContextBeforeTemplateExpressionChild() {
+			#popTemplateTokenContextBeforeExpressionChild() {
 				let index = this.pos;
 				let has_newline = false;
 
-				// Text-only compat islands can leave the tokenizer in JSX text mode.
+				// Text-only template fragments can leave the tokenizer in JSX text mode.
 				// Only unwind it for ASI before a following TSRX `{expr}` child;
 				// fragment props like `content={<></>}` still need the JSX context.
 				while (index < this.input.length) {
@@ -631,7 +462,7 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {AST.TsrxFragment | AST.TsxCompat} node
+			 * @param {AST.TsrxFragment} node
 			 * @returns {boolean}
 			 */
 			#hasDirectStatementChild(node) {
@@ -641,7 +472,7 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {AST.TsrxFragment | AST.TsxCompat} node
+			 * @param {AST.TsrxFragment} node
 			 */
 			#popTokenContextsAfterTemplateExpressionElement(node) {
 				const ctx = this.context;
@@ -735,13 +566,6 @@ export function TSRXPlugin(config) {
 			}
 
 			#isDoubleQuotedTextChildStart() {
-				const current_template_node = this.#path.findLast(
-					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
-				);
-				if (current_template_node?.type === 'TsxCompat') {
-					return false;
-				}
-
 				const parent = this.#path.at(-1);
 				if (!parent || (parent.type !== 'Element' && parent.type !== 'TsrxFragment')) {
 					return false;
@@ -1705,19 +1529,6 @@ export function TSRXPlugin(config) {
 					);
 
 				if (this.eat(tt.braceL)) {
-					const current_template_node = this.#path.findLast(
-						(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
-					);
-					if (current_template_node?.type === 'TsxCompat') {
-						if (this.type === tt.ellipsis) {
-							this.expect(tt.ellipsis);
-							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
-							this.expect(tt.braceR);
-							return this.finishNode(node, 'JSXSpreadAttribute');
-						}
-						this.unexpected();
-					}
-
 					if (this.type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
 						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
@@ -1939,19 +1750,13 @@ export function TSRXPlugin(config) {
 
 			/** @type {Parse.Parser['jsx_readToken']} */
 			jsx_readToken() {
-				const current_template_node = this.#path.findLast(
-					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
-				);
-				if (current_template_node?.type === 'TsxCompat') {
-					return super.jsx_readToken();
-				}
 				let out = '',
 					chunkStart = this.pos;
 
 				while (true) {
 					if (this.pos >= this.input.length) {
 						const inside_open_template = this.#path.findLast(
-							(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
+							(n) => n.type === 'Element' || n.type === 'TsrxFragment',
 						);
 						if (!inside_open_template) {
 							while (this.curContext() === tstc.tc_expr) {
@@ -2109,45 +1914,17 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * Override jsx_parseElement to parse tags and bare fragments as native TSRX
-			 * by default. Explicit <tsx:*> islands keep ordinary TSX parsing for
-			 * their children.
+			 * by default.
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				// Current token is jsxTagStart, this.end is position after '<'
-				const tag_name_start = this.end;
-				const current_template_node = this.#path.findLast(
-					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
-				);
-				const inside_tsx_island = current_template_node?.type === 'TsxCompat';
-				if (inside_tsx_island) {
-					if (this.input.charCodeAt(tag_name_start) === CharCode.at) {
-						this.#report_recoverable_error_range(
-							this.start,
-							tag_name_start + 1,
-							DYNAMIC_ELEMENT_IN_TSX_ERROR,
-						);
-					}
-					// Inside tsx/tsx:*, let acorn-jsx handle regular TSX tags normally.
-					return super.jsx_parseElement();
-				}
-
 				this.next();
 				const parsed = /** @type {import('estree-jsx').JSXElement} */ (
 					/** @type {unknown} */ (this.parseElement())
 				);
-				if (!inside_tsx_island) {
-					this.#popTokenContextsAfterTemplateExpressionElement(
-						/** @type {AST.TsrxFragment | AST.TsxCompat} */ (/** @type {unknown} */ (parsed)),
-					);
-				} else if (this.type === tt.braceR && this.curContext() === tstc.tc_expr) {
-					if (this.#tsxIslandExpressionDepth === 0) {
-						// Acorn still owns the surrounding JSX expression container.
-						// Keep a block-expression context for its closing `}` so the
-						// parent TSX tag continues tokenizing as JSX afterward.
-						this.context.push(b_expr);
-					}
-				}
+				this.#popTokenContextsAfterTemplateExpressionElement(
+					/** @type {AST.TsrxFragment} */ (/** @type {unknown} */ (parsed)),
+				);
 				return parsed;
 			}
 
@@ -2162,9 +1939,7 @@ export function TSRXPlugin(config) {
 				const start = this.start - 1;
 				const position = new acorn.Position(this.curLine, start - this.lineStart);
 
-				const element = /** @type {AST.Element | AST.TsrxFragment | AST.TsxCompat} */ (
-					this.startNode()
-				);
+				const element = /** @type {AST.Element | AST.TsrxFragment} */ (this.startNode());
 				element.start = start;
 				/** @type {AST.NodeWithLocation} */ (element).loc.start = position;
 				element.metadata = { path: [] };
@@ -2181,23 +1956,16 @@ export function TSRXPlugin(config) {
 
 				// Fragments (<>) produce JSXOpeningFragment with no `name` property
 				const is_fragment = !open.name;
-				const is_tsx_compat =
-					!is_fragment &&
-					open.name.type === 'JSXNamespacedName' &&
-					open.name.namespace.name === 'tsx';
-				if (is_tsx_compat) {
+				if (!is_fragment && open.name.type === 'JSXNamespacedName') {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
-					/** @type {AST.TsxCompat} */ (element).type = 'TsxCompat';
-					/** @type {AST.TsxCompat} */ (element).kind = namespace_node.name.name; // e.g., "react" from "tsx:react"
+					const tagName = namespace_node.namespace.name + ':' + namespace_node.name.name;
+					this.raise(
+						open.start,
+						`Namespaced elements are not supported in TSRX templates: <${tagName}>.`,
+					);
+				}
 
-					if (open.selfClosing) {
-						const tagName = namespace_node.namespace.name + ':' + namespace_node.name.name;
-						this.raise(
-							open.start,
-							`TSX compatibility elements cannot be self-closing. '<${tagName} />' must have a closing tag '</${tagName}>'.`,
-						);
-					}
-				} else if (is_fragment) {
+				if (is_fragment) {
 					/** @type {AST.TsrxFragment} */ (element).type = 'TsrxFragment';
 				} else {
 					element.type = 'Element';
@@ -2224,7 +1992,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (!is_tsx_compat && !is_fragment) {
+				if (!is_fragment) {
 					/** @type {AST.Element} */ (element).id = /** @type {AST.Identifier} */ (
 						convert_from_jsx(/** @type {ESTreeJSX.JSXIdentifier} */ (open.name))
 					);
@@ -2270,7 +2038,7 @@ export function TSRXPlugin(config) {
 						if (this.type !== tstt.jsxTagEnd) {
 							raise_error();
 						}
-						this.#popTsxTokenContextBeforeTemplateExpressionChild();
+						this.#popTemplateTokenContextBeforeExpressionChild();
 						this.next();
 					}
 				} else {
@@ -2422,43 +2190,7 @@ export function TSRXPlugin(config) {
 							enterScope: true,
 							resetFunctionBodyDepth: true,
 						});
-						if (/** @type {AST.TsxCompat} */ (element).type === 'TsxCompat') {
-							this.#reportDynamicJsxElementsInTsx(/** @type {AST.Element} */ (element).children);
-							this.#path.pop();
-
-							if (!element.unclosed) {
-								const raise_error = () => {
-									this.raise(
-										this.start,
-										`Expected closing tag '</tsx:${/** @type {AST.TsxCompat} */ (element).kind}>'`,
-									);
-								};
-
-								this.next();
-								// we should expect to see </tsx:kind>
-								if (this.value !== '/') {
-									raise_error();
-								}
-								this.next();
-								if (this.value !== 'tsx') {
-									raise_error();
-								}
-								this.next();
-								if (this.type.label !== ':') {
-									raise_error();
-								}
-								this.next();
-								if (this.value !== /** @type {AST.TsxCompat} */ (element).kind) {
-									raise_error();
-								}
-								this.next();
-								if (this.type !== tstt.jsxTagEnd) {
-									raise_error();
-								}
-								this.#popTsxTokenContextBeforeTemplateExpressionChild();
-								this.next();
-							}
-						} else if (
+						if (
 							/** @type {AST.TsrxFragment} */ (element).type === 'TsrxFragment' &&
 							this.#path[this.#path.length - 1] === element
 						) {
@@ -2502,7 +2234,7 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (element.closingElement && !is_tsx_compat && element.closingElement.name) {
+				if (element.closingElement && element.closingElement.name) {
 					/** @type {unknown} */ (element.closingElement.name) = convert_from_jsx(
 						element.closingElement.name,
 					);
@@ -2519,10 +2251,8 @@ export function TSRXPlugin(config) {
 				const inside_func =
 					this.context.some((n) => n.token === 'function') || this.scopeStack.length > 1;
 				const current_template_node = this.#path.findLast(
-					(n) => n.type === 'Element' || n.type === 'TsrxFragment' || n.type === 'TsxCompat',
+					(n) => n.type === 'Element' || n.type === 'TsrxFragment',
 				);
-				const inside_tsx_island =
-					current_template_node?.type === 'TsxCompat' ? current_template_node : null;
 
 				if (current_template_node?.type === 'TsrxFragment' && this.type === tstt.jsxText) {
 					while (this.curContext() === tstc.tc_expr) {
@@ -2543,13 +2273,6 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				if (inside_tsx_island) {
-					this.#parseTsxIslandBody(
-						/** @type {AST.TsxCompat} */ (inside_tsx_island),
-						/** @type {AST.Node[]} */ (/** @type {unknown} */ (body)),
-					);
-					return;
-				}
 				if (
 					current_template_node?.type === 'TsrxFragment' &&
 					!current_template_node.openingElement.name &&
@@ -2610,9 +2333,7 @@ export function TSRXPlugin(config) {
 						const currentElement = this.#path[this.#path.length - 1];
 						if (
 							!currentElement ||
-							(currentElement.type !== 'Element' &&
-								currentElement.type !== 'TsrxFragment' &&
-								currentElement.type !== 'TsxCompat')
+							(currentElement.type !== 'Element' && currentElement.type !== 'TsrxFragment')
 						) {
 							this.raise(this.start, 'Unexpected closing tag');
 						}
@@ -2622,13 +2343,7 @@ export function TSRXPlugin(config) {
 						/** @type {string | null} */
 						let closingTagName;
 
-						if (currentElement.type === 'TsxCompat') {
-							openingTagName = 'tsx:' + currentElement.kind;
-							closingTagName =
-								closingElement.name?.type === 'JSXNamespacedName'
-									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
-									: this.getElementName(closingElement.name);
-						} else if (currentElement.type === 'TsrxFragment') {
+						if (currentElement.type === 'TsrxFragment') {
 							openingTagName = '';
 							closingTagName =
 								closingElement.name?.type === 'JSXNamespacedName'
@@ -2656,22 +2371,12 @@ export function TSRXPlugin(config) {
 								const elem = this.#path[this.#path.length - 1];
 
 								// Stop at non-template boundaries.
-								if (
-									elem.type !== 'Element' &&
-									elem.type !== 'TsrxFragment' &&
-									elem.type !== 'TsxCompat'
-								) {
+								if (elem.type !== 'Element' && elem.type !== 'TsrxFragment') {
 									break;
 								}
 
 								const elemName =
-									elem.type === 'TsxCompat'
-										? 'tsx:' + elem.kind
-										: elem.type === 'TsrxFragment'
-											? ''
-											: elem.id
-												? this.getElementName(elem.id)
-												: null;
+									elem.type === 'TsrxFragment' ? '' : elem.id ? this.getElementName(elem.id) : null;
 
 								// Found matching opening tag
 								if (elemName === closingTagName) {

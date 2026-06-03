@@ -15,7 +15,7 @@
  * and the generated production server entry.
  */
 
-/** @import { CompatFactoryConfig, RippleConfigOptions, ResolvedRippleConfig } from '@ripple-ts/vite-plugin' */
+/** @import { RippleConfigOptions, ResolvedRippleConfig } from '@ripple-ts/vite-plugin' */
 
 import path from 'node:path';
 import fs from 'node:fs';
@@ -23,61 +23,6 @@ import { compile } from '@tsrx/ripple';
 import { DEFAULT_OUTDIR } from './constants.js';
 
 const RIPPLE_EXTENSION_PATTERN = /\.tsrx$/;
-
-/**
- * @param {unknown} entry
- * @returns {entry is CompatFactoryConfig}
- */
-function is_compat_descriptor(entry) {
-	return !!entry && typeof entry === 'object' && 'from' in entry;
-}
-
-/**
- * @param {unknown} entry
- * @returns {entry is { __ripple_compat__: CompatFactoryConfig }}
- */
-function is_compat_branded_entry(entry) {
-	return (
-		!!entry &&
-		(typeof entry === 'function' || typeof entry === 'object') &&
-		'__ripple_compat__' in entry &&
-		is_compat_descriptor(entry.__ripple_compat__)
-	);
-}
-
-/**
- * @param {string} kind
- * @param {unknown} entry
- * @returns {CompatFactoryConfig}
- */
-function normalize_compat_entry(kind, entry) {
-	if (is_compat_branded_entry(entry)) {
-		entry = entry.__ripple_compat__;
-	}
-
-	if (!is_compat_descriptor(entry)) {
-		throw new Error(
-			`[@ripple-ts/vite-plugin] ripple.config.ts compat.${kind} must be either a compat descriptor, a compat factory, or an invoked compat entry.`,
-		);
-	}
-
-	if (typeof entry.from !== 'string' || entry.from.length === 0) {
-		throw new Error(
-			`[@ripple-ts/vite-plugin] ripple.config.ts compat.${kind}.from must be a non-empty string.`,
-		);
-	}
-
-	if (entry.factory !== undefined && typeof entry.factory !== 'string') {
-		throw new Error(
-			`[@ripple-ts/vite-plugin] ripple.config.ts compat.${kind}.factory must be a string when provided.`,
-		);
-	}
-
-	return {
-		from: entry.from,
-		...(entry.factory ? { factory: entry.factory } : {}),
-	};
-}
 
 /**
  * @param {unknown} route
@@ -196,12 +141,6 @@ export function resolveRippleConfig(raw, options = {}) {
 		},
 		rootBoundary: raw.rootBoundary ?? {},
 		middlewares: raw.middlewares ?? [],
-		compat: Object.fromEntries(
-			Object.entries(raw.compat ?? {}).map(([kind, entry]) => [
-				kind,
-				normalize_compat_entry(kind, entry),
-			]),
-		),
 		platform: {
 			env: raw.platform?.env ?? {},
 		},

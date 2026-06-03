@@ -92,7 +92,6 @@ const solid_platform = {
 	},
 	jsx: {
 		rewriteClassAttr: false,
-		acceptedTsxKinds: ['solid'],
 		// Solid's runtime accepts an array of refs natively, so multiple
 		// `ref` attributes collapse to `ref={[a, b, ...]}` rather than
 		// going through a `mergeRefs` helper.
@@ -213,8 +212,6 @@ function to_jsx_child(node, transform_context) {
 	switch (node.type) {
 		case 'TsrxFragment':
 			return tsrx_node_to_jsx_expression(node, transform_context, true);
-		case 'TsxCompat':
-			return tsx_compat_node_to_jsx_expression(node, transform_context, true);
 		case 'Element':
 			return to_jsx_element(node, transform_context);
 		case 'Text':
@@ -2336,23 +2333,4 @@ function build_return_expression(render_nodes) {
 			? { start: first.start, end: last.end, loc: { start: first.loc.start, end: last.loc.end } }
 			: undefined,
 	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {boolean} [in_jsx_child]
- * @returns {any}
- */
-function tsx_compat_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
-	if (node.kind !== 'solid') {
-		error(
-			`Solid TSRX does not support <tsx:${node.kind}> blocks. Use <tsx:solid>.`,
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-	}
-	return tsx_node_to_jsx_expression(node, in_jsx_child);
 }

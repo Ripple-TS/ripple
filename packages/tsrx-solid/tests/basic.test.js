@@ -654,17 +654,17 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('<><h1>');
 		});
 
-		it('rejects <tsx:react> compat block', () => {
+		it('rejects namespaced template tags', () => {
 			expect(() =>
 				compile(
 					`function App() { return <>
-						<tsx:react>
+						<foo:bar>
 							<h1>a</h1>
-						</tsx:react>
+						</foo:bar>
 					</>; }`,
 					'App.tsrx',
 				),
-			).toThrow(/<tsx:react>/);
+			).toThrow(/Namespaced elements are not supported/);
 		});
 	});
 

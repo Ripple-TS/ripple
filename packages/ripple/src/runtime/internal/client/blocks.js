@@ -1,4 +1,4 @@
-/** @import { Block, Derived, CompatOptions, Component } from '#client' */
+/** @import { Block, Derived, Component } from '#client' */
 
 import {
 	BLOCK_HAS_RUN,
@@ -172,32 +172,10 @@ export function ref(element, get_fn, set_fn) {
 
 /**
  * @param {() => (void | (() => void))} fn
- * @param {CompatOptions} [compat]
  * @returns {Block}
  */
-export function root(fn, compat) {
-	var target_fn = fn;
-
-	if (compat != null) {
-		/** @type {Array<void | (() => void)>} */
-		var unmounts = [];
-		for (var key in compat) {
-			var api = compat[key];
-			unmounts.push(api.createRoot());
-		}
-		target_fn = () => {
-			var component_unmount = fn();
-
-			return () => {
-				component_unmount?.();
-				for (var unmount of unmounts) {
-					unmount?.();
-				}
-			};
-		};
-	}
-
-	return block(ROOT_BLOCK, target_fn, { compat, start: null, end: null }, create_component_ctx());
+export function root(fn) {
+	return block(ROOT_BLOCK, fn, { start: null, end: null }, create_component_ctx());
 }
 
 /**
