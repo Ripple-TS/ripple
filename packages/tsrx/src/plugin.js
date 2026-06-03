@@ -11,6 +11,7 @@ import {
 	BINDING_TYPES,
 	DestructuringErrors,
 } from './parse/index.js';
+import { parse_style } from './parse/style.js';
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
@@ -337,7 +338,8 @@ export function TSRXPlugin(config) {
 			#isNativeTemplateNode(node) {
 				return (
 					(node?.type === 'JSXElement' && node.metadata?.native_tsrx) ||
-					(node?.type === 'JSXFragment' && node.metadata?.native_tsrx)
+					(node?.type === 'JSXFragment' && node.metadata?.native_tsrx) ||
+					(node?.type === 'JSXStyleElement' && node.metadata?.native_tsrx)
 				);
 			}
 
@@ -345,9 +347,37 @@ export function TSRXPlugin(config) {
 				return this.#path.findLast((node) => this.#isNativeTemplateNode(node));
 			}
 
+			/**
+			 * @param {AST.Node | undefined} node
+			 * @param {string} name
+			 */
+			#isNativeElementNamed(node, name) {
+				return (
+					(node?.type === 'JSXElement' || node?.type === 'JSXStyleElement') &&
+					node.metadata?.native_tsrx &&
+					this.getElementName(node.openingElement?.name) === name
+				);
+			}
+
 			#isInsideNativeTemplateScriptSection() {
 				const node = this.#currentNativeTemplateNode();
 				return !!node && node.metadata?.templateMode !== 'template';
+			}
+
+			#isStyleOpeningTagStart() {
+				let index = this.start + 1;
+				if (this.input.charCodeAt(index) === CharCode.slash) return false;
+				if (this.input.slice(index, index + 'style'.length) !== 'style') return false;
+
+				const after = this.input.charCodeAt(index + 'style'.length);
+				return (
+					after === CharCode.greaterThan ||
+					after === CharCode.slash ||
+					after === CharCode.space ||
+					after === CharCode.tab ||
+					after === CharCode.lineFeed ||
+					after === CharCode.carriageReturn
+				);
 			}
 
 			/**
@@ -446,6 +476,249 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @param {number} index
+			 */
+			#switchCaseBoundaryStart(index) {
+				if (!this.#isLineStartPosition(index)) return -1;
+				let wordStart = index;
+				while (wordStart < this.input.length) {
+					const ch = this.input.charCodeAt(wordStart);
+					if (ch !== CharCode.space && ch !== CharCode.tab) break;
+					wordStart++;
+				}
+
+				const ch = this.input.charCodeAt(wordStart);
+				if (ch === CharCode.closeBrace) return index;
+
+				if (
+					this.input.slice(wordStart, wordStart + 4) === 'case' &&
+					!this.#isIdentifierChar(this.input.charCodeAt(wordStart + 4))
+				) {
+					return index;
+				}
+
+				if (
+					this.input.slice(wordStart, wordStart + 7) === 'default' &&
+					!this.#isIdentifierChar(this.input.charCodeAt(wordStart + 7))
+				) {
+					return index;
+				}
+
+				return -1;
+			}
+
+			/**
+			 * @param {number} ch
+			 */
+			#isIdentifierChar(ch) {
+				return (
+					(ch >= CharCode.uppercaseA && ch <= CharCode.uppercaseZ) ||
+					(ch >= CharCode.lowercaseA && ch <= CharCode.lowercaseZ) ||
+					(ch >= CharCode.digit0 && ch <= CharCode.digit9) ||
+					ch === CharCode.underscore ||
+					ch === CharCode.dollar
+				);
+			}
+
+			#parseJSXSwitchCaseRawText() {
+				const start = this.start;
+				let index = start;
+				while (index < this.input.length) {
+					const boundary = this.#switchCaseBoundaryStart(index);
+					if (boundary !== -1) {
+						index = boundary;
+						break;
+					}
+
+					const ch = this.input.charCodeAt(index);
+					if (
+						ch === CharCode.lessThan ||
+						ch === CharCode.openBrace ||
+						ch === CharCode.closeBrace ||
+						ch === CharCode.at
+					) {
+						break;
+					}
+					index++;
+				}
+
+				const endLoc = acorn.getLineInfo(this.input, index);
+				const node = /** @type {ESTreeJSX.JSXText} */ (this.startNodeAt(start, this.startLoc));
+				node.value = this.input.slice(start, index);
+				node.raw = node.value;
+
+				if (node.value.match(regex_newline_characters)) {
+					this.curLine = endLoc.line;
+					this.lineStart = index - endLoc.column;
+				}
+				this.pos = index;
+				this.next();
+
+				return this.finishNodeAt(node, 'JSXText', index, endLoc);
+			}
+
+			#isJSXControlFlowDirectiveStart() {
+				return this.input.charCodeAt(this.start) === CharCode.at;
+			}
+
+			/**
+			 * @param {AST.Node} node
+			 * @param {string} type
+			 * @param {number} start
+			 * @param {AST.Position} startLoc
+			 */
+			#finishJSXControlFlowExpression(node, type, start, startLoc) {
+				node.start = start;
+				/** @type {AST.NodeWithLocation} */ (node).loc.start = startLoc;
+				node.metadata ??= { path: [] };
+				/** @type {any} */ (node).statementType = node.type;
+				/** @type {any} */ (node).type = type;
+				return node;
+			}
+
+			#parseJSXControlFlowExpression() {
+				const start = this.start;
+				const startLoc = this.startLoc;
+				this.next();
+
+				const label = this.type.keyword || this.type.label;
+				if (label === 'if') {
+					return this.#finishJSXControlFlowExpression(
+						this.parseStatement(null),
+						'JSXIfExpression',
+						start,
+						startLoc,
+					);
+				}
+
+				if (label === 'for') {
+					const node = this.#finishJSXControlFlowExpression(
+						this.parseStatement(null),
+						'JSXForExpression',
+						start,
+						startLoc,
+					);
+					if (
+						/** @type {any} */ (node).statementType !== 'ForOfStatement' &&
+						/** @type {any} */ (node).statementType !== 'ForInStatement' &&
+						/** @type {any} */ (node).statementType !== 'ForStatement'
+					) {
+						this.raise(start, 'Expected `for` after `@`.');
+					}
+					return node;
+				}
+
+				if (label === 'switch') {
+					return this.#parseJSXSwitchExpression(start, startLoc);
+				}
+
+				if (label === 'try') {
+					return this.#finishJSXControlFlowExpression(
+						this.parseStatement(null),
+						'JSXTryExpression',
+						start,
+						startLoc,
+					);
+				}
+
+				this.raise(start, 'Expected `@if`, `@for`, `@switch`, or `@try`.');
+			}
+
+			/**
+			 * @param {number} start
+			 * @param {AST.Position} startLoc
+			 */
+			#parseJSXSwitchExpression(start, startLoc) {
+				const node = /** @type {AST.SwitchStatement} */ (this.startNodeAt(start, startLoc));
+				this.next();
+				node.discriminant = this.parseParenExpression();
+				node.cases = [];
+				this.expect(tt.braceL);
+				this.labels.push({ kind: 'switch' });
+				this.enterScope(0);
+
+				/** @type {AST.SwitchCase | undefined} */
+				let current;
+				let sawDefault = false;
+				while (this.type !== tt.braceR) {
+					if (this.type === tt._case || this.type === tt._default) {
+						const isCase = this.type === tt._case;
+						if (current) {
+							this.finishNode(current, 'SwitchCase');
+						}
+						current = /** @type {AST.SwitchCase} */ (this.startNode());
+						current.consequent = [];
+						node.cases.push(current);
+						this.next();
+						if (isCase) {
+							current.test = this.parseExpression();
+						} else {
+							if (sawDefault) {
+								this.raiseRecoverable(this.lastTokStart, 'Multiple default clauses');
+							}
+							sawDefault = true;
+							current.test = null;
+						}
+						this.expect(tt.colon);
+						continue;
+					}
+
+					if (!current) {
+						this.unexpected();
+					}
+					this.#parseJSXSwitchCaseConsequent(current.consequent);
+				}
+
+				this.exitScope();
+				if (current) {
+					this.finishNode(current, 'SwitchCase');
+				}
+				this.next();
+				this.labels.pop();
+				return this.#finishJSXControlFlowExpression(
+					this.finishNode(node, 'SwitchStatement'),
+					'JSXSwitchExpression',
+					start,
+					startLoc,
+				);
+			}
+
+			/**
+			 * @param {AST.Node[]} consequent
+			 */
+			#parseJSXSwitchCaseConsequent(consequent) {
+				if (this.type === tt.braceL) {
+					consequent.push(this.#parseNativeTemplateExpressionContainer());
+					return;
+				}
+
+				if (this.type === tstt.jsxText) {
+					consequent.push(/** @type {any} */ (this.#parseJSXSwitchCaseRawText()));
+					return;
+				}
+
+				if (this.type === tstt.jsxTagStart) {
+					this.next();
+					if (this.value === '/') {
+						this.unexpected();
+					}
+					const node = this.parseElement();
+					if (!node) {
+						this.unexpected();
+					}
+					consequent.push(/** @type {any} */ (node));
+					return;
+				}
+
+				if (this.#isJSXControlFlowDirectiveStart()) {
+					consequent.push(/** @type {any} */ (this.#parseJSXControlFlowExpression()));
+					return;
+				}
+
+				consequent.push(this.#parseJSXSwitchCaseRawText());
+			}
+
+			/**
 			 * @param {ESTreeJSX.JSXOpeningElement} openingElement
 			 * @returns {ESTreeJSX.JSXOpeningFragment}
 			 */
@@ -471,6 +744,66 @@ export function TSRXPlugin(config) {
 				closingFragment.type = 'JSXClosingFragment';
 				delete (/** @type {any} */ (closingFragment).name);
 				return closingFragment;
+			}
+
+			/**
+			 * @param {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} open
+			 * @param {AST.JSXStyleElement} node
+			 * @param {boolean} insideHead
+			 */
+			#parseStyleElement(open, node, insideHead) {
+				const contentStart = open.end;
+				const input = this.input.slice(contentStart);
+				const relativeCloseStart = input.indexOf('</style>');
+				const content = relativeCloseStart === -1 ? input : input.slice(0, relativeCloseStart);
+				const parsedCss = parse_style(content, { loose: this.#loose });
+
+				if (!insideHead) {
+					node.metadata.styleScopeHash = parsedCss.hash;
+				}
+
+				const newLines = content.match(regex_newline_characters)?.length;
+				if (newLines) {
+					this.curLine = open.loc.end.line + newLines;
+					this.lineStart = contentStart + content.lastIndexOf('\n') + 1;
+				}
+
+				if (relativeCloseStart !== -1) {
+					const closingStart = contentStart + content.length;
+					const closingLineInfo = acorn.getLineInfo(this.input, closingStart);
+					const closingStartLoc = new acorn.Position(closingLineInfo.line, closingLineInfo.column);
+
+					this.exprAllowed = false;
+					this.pos = closingStart + 1;
+					this.type = tstt.jsxTagStart;
+					this.start = closingStart;
+					this.startLoc = closingStartLoc;
+					this.next();
+					this.next();
+
+					const closingElement = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+						this.jsx_parseClosingElementAt(closingStart, closingStartLoc)
+					);
+					node.closingElement = closingElement;
+					this.exprAllowed = false;
+				} else {
+					this.#report_broken_markup_error(
+						open.end,
+						"Unclosed tag '<style>'. Expected '</style>' before end of template.",
+					);
+					node.unclosed = true;
+				}
+
+				node.css = content;
+				node.children = [/** @type {AST.Node} */ (/** @type {unknown} */ (parsedCss))];
+
+				const curContext = this.curContext();
+				const parent = this.#path.at(-1);
+				const insideTemplate = this.#isNativeTemplateNode(parent);
+
+				if (curContext === tstc.tc_expr && !insideTemplate) {
+					this.context.pop();
+				}
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -1550,32 +1883,33 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseAttribute']}
 			 */
 			jsx_parseAttribute() {
-				let node =
-					/** @type {AST.TSRXAttribute | ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
-						this.startNode()
-					);
+				let node = /** @type {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
+					this.startNode()
+				);
 
 				if (this.eat(tt.braceL)) {
 					if (this.type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
-						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
+						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
-						return this.finishNode(node, 'SpreadAttribute');
+						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else if (this.lookahead().type === tt.ellipsis) {
 						this.expect(tt.ellipsis);
-						/** @type {AST.SpreadAttribute} */ (node).argument = this.parseMaybeAssign();
+						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
-						return this.finishNode(node, 'SpreadAttribute');
+						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else {
-						const id = /** @type {AST.Identifier} */ (this.parseIdentNode());
+						const id = /** @type {ESTreeJSX.JSXIdentifier} */ (this.startNode());
+						const name = /** @type {AST.Identifier} */ (this.parseIdentNode());
+						id.name = name.name;
 						id.tracked = false;
-						this.finishNode(id, 'Identifier');
-						/** @type {AST.Attribute} */ (node).name = id;
-						/** @type {AST.Attribute} */ (node).value = id;
-						/** @type {AST.Attribute} */ (node).shorthand = true; // Mark as shorthand since name and value are the same
+						this.finishNodeAt(id, 'JSXIdentifier', name.end, name.loc.end);
+						/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
+						/** @type {any} */ (node).value = name;
+						/** @type {any} */ (node).shorthand = true;
 						this.next();
 						this.expect(tt.braceR);
-						return this.finishNode(node, 'Attribute');
+						return this.finishNode(node, 'JSXAttribute');
 					}
 				}
 				/** @type {ESTreeJSX.JSXAttribute} */ (node).name = this.jsx_parseNamespacedName();
@@ -1946,6 +2280,13 @@ export function TSRXPlugin(config) {
 			 */
 			jsx_parseElement() {
 				if (this.#isInsideNativeTemplateScriptSection()) {
+					if (this.#isStyleOpeningTagStart()) {
+						this.next();
+						return /** @type {ESTreeJSX.JSXElement | AST.JSXStyleElement} */ (
+							/** @type {unknown} */ (this.parseElement())
+						);
+					}
+
 					this.#scriptJSXElementDepth++;
 					try {
 						return super.jsx_parseElement();
@@ -1970,9 +2311,10 @@ export function TSRXPlugin(config) {
 				const start = this.start - 1;
 				const position = new acorn.Position(this.curLine, start - this.lineStart);
 
-				const node = /** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} */ (
-					/** @type {unknown} */ (this.startNode())
-				);
+				const node =
+					/** @type {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | AST.JSXStyleElement} */ (
+						/** @type {unknown} */ (this.startNode())
+					);
 				node.start = start;
 				/** @type {AST.NodeWithLocation} */ (node).loc.start = position;
 				node.metadata = {
@@ -1985,6 +2327,9 @@ export function TSRXPlugin(config) {
 				const open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
 					this.jsx_parseOpeningElementAt(start, position)
 				);
+				const tag_name = open.name ? this.getElementName(open.name) : null;
+				const is_style = tag_name === 'style';
+				const inside_head = this.#path.findLast((n) => this.#isNativeElementNamed(n, 'head'));
 
 				// Fragments (<>) produce JSXOpeningFragment with no `name` property
 				const is_fragment = !open.name;
@@ -2003,13 +2348,19 @@ export function TSRXPlugin(config) {
 						this.#toOpeningFragment(open);
 					/** @type {ESTreeJSX.JSXFragment} */ (node).closingFragment = null;
 				} else {
-					/** @type {ESTreeJSX.JSXElement} */ (node).type = 'JSXElement';
-					/** @type {ESTreeJSX.JSXElement} */ (node).openingElement = open;
-					/** @type {ESTreeJSX.JSXElement} */ (node).closingElement = null;
-					// Transitional convenience fields while transforms migrate to JSX shape.
-					/** @type {any} */ (node).id = open.name;
-					/** @type {any} */ (node).attributes = open.attributes;
-					/** @type {any} */ (node).selfClosing = open.selfClosing;
+					if (is_style) {
+						/** @type {AST.JSXStyleElement} */ (node).type = 'JSXStyleElement';
+						/** @type {AST.JSXStyleElement} */ (node).openingElement = open;
+						/** @type {AST.JSXStyleElement} */ (node).closingElement = null;
+					} else {
+						/** @type {ESTreeJSX.JSXElement} */ (node).type = 'JSXElement';
+						/** @type {ESTreeJSX.JSXElement} */ (node).openingElement = open;
+						/** @type {ESTreeJSX.JSXElement} */ (node).closingElement = null;
+						// Transitional convenience fields while transforms migrate to JSX shape.
+						/** @type {any} */ (node).id = open.name;
+						/** @type {any} */ (node).attributes = open.attributes;
+						/** @type {any} */ (node).selfClosing = open.selfClosing;
+					}
 				}
 
 				// Opening-tag parsing can tokenize comments that appear before the first
@@ -2028,6 +2379,9 @@ export function TSRXPlugin(config) {
 						this.pos--;
 						this.next();
 					}
+				} else if (is_style) {
+					this.#parseStyleElement(open, /** @type {AST.JSXStyleElement} */ (node), !!inside_head);
+					this.#path.pop();
 				} else {
 					this.#parseNativeTemplateBody(node, /** @type {AST.Node[]} */ (node.children), {
 						enterScope: true,
@@ -2111,7 +2465,9 @@ export function TSRXPlugin(config) {
 				if (this.type === tt.braceL) {
 					body.push(this.#parseNativeTemplateExpressionContainer());
 				} else if (is_template_output && this.type === tstt.jsxText) {
-					body.push(this.jsx_parseText());
+					body.push(this.#parseTemplateRawText());
+				} else if (is_template_output && this.#isJSXControlFlowDirectiveStart()) {
+					body.push(this.#parseJSXControlFlowExpression());
 				} else if (this.type === tt.braceR) {
 					// Leaving a native template body. We may still be in TSX/JSX tokenization
 					// context (e.g. after parsing markup), but the closing `}` is a JS token.

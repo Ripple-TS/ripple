@@ -198,7 +198,7 @@ export {
 export {
 	prepare_stylesheet_for_render as prepareStylesheetForRender,
 	is_style_element as isStyleElement,
-	is_composite_element as isCompositeElement,
+	is_composite_jsx_element as isCompositeElement,
 	annotate_with_hash as annotateWithHash,
 	annotate_component_with_hash as annotateComponentWithHash,
 	add_hash_class as addHashClass,

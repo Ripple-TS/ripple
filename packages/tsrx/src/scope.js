@@ -107,18 +107,28 @@ export function create_scopes(ast, root, parent, error_options) {
 			}
 		},
 
-		Element(node, { state, next }) {
-			const scope = state.scope.child();
-			scopes.set(node, scope);
+		JSXElement(node, { state, next }) {
+			if (node.metadata?.native_tsrx) {
+				const scope = state.scope.child();
+				scopes.set(node, scope);
 
-			next({ scope });
+				next({ scope });
+				return;
+			}
+
+			next();
 		},
 
-		TsrxFragment(node, { state, next }) {
-			const scope = state.scope.child();
-			scopes.set(node, scope);
+		JSXFragment(node, { state, next }) {
+			if (node.metadata?.native_tsrx) {
+				const scope = state.scope.child();
+				scopes.set(node, scope);
 
-			next({ scope });
+				next({ scope });
+				return;
+			}
+
+			next();
 		},
 
 		TSModuleDeclaration(node, { state, next }) {
@@ -169,6 +179,8 @@ export function create_scopes(ast, root, parent, error_options) {
 		ForInStatement: create_block_scope,
 		ForOfStatement: create_block_scope,
 		SwitchStatement: create_block_scope,
+		JSXForExpression: create_block_scope,
+		JSXSwitchExpression: create_block_scope,
 		BlockStatement(node, context) {
 			const parent = context.path.at(-1);
 			if (
@@ -192,13 +204,16 @@ export function create_scopes(ast, root, parent, error_options) {
 			for (const declarator of node.declarations) {
 				/** @type {Binding[]} */
 				const bindings = [];
-				const initial = /** @type {AST.Expression | AST.TsrxFragment | null} */ (declarator.init);
+				const initial = /** @type {AST.Expression | null} */ (declarator.init);
 
 				state.scope.declarators.set(declarator, bindings);
 
 				for (const id of extract_identifiers(declarator.id)) {
 					const binding = state.scope.declare(id, 'normal', node.kind, initial);
-					if (initial?.type === 'TsrxFragment') {
+					if (
+						(initial?.type === 'JSXElement' || initial?.type === 'JSXFragment') &&
+						initial.metadata?.native_tsrx
+					) {
 						binding.metadata = {
 							...(binding.metadata ?? {}),
 							is_template_value: true,

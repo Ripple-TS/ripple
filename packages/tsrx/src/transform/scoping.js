@@ -37,45 +37,14 @@ export function prepare_stylesheet_for_render(stylesheet) {
  * @returns {boolean}
  */
 export function is_style_element(node) {
-	return (
-		node &&
-		node.type === 'Element' &&
-		node.id &&
-		node.id.type === 'Identifier' &&
-		node.id.name === 'style'
-	);
+	return !!node && node.type === 'JSXStyleElement';
 }
 
 /**
  * @param {any} node
  * @returns {boolean}
  */
-export function is_composite_element(node) {
-	if (!node || node.type !== 'Element' || !node.id) {
-		return false;
-	}
-
-	if (node.id.type === 'Identifier') {
-		return /^[A-Z]/.test(node.id.name);
-	}
-
-	return node.id.type === 'MemberExpression';
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_style_jsx_element(node) {
-	const name = node?.openingElement?.name;
-	return node?.type === 'JSXElement' && name?.type === 'JSXIdentifier' && name.name === 'style';
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_composite_jsx_element(node) {
+export function is_composite_jsx_element(node) {
 	const name = node?.openingElement?.name;
 	if (node?.type !== 'JSXElement' || !name) {
 		return false;
@@ -89,7 +58,7 @@ function is_composite_jsx_element(node) {
 }
 
 /**
- * Recursively walk `Element` nodes within a TSRX fragment and add the hash
+ * Recursively walk native JSX nodes within a TSRX fragment and add the hash
  * class name so scope-qualified selectors (e.g. `.foo.hash`) match.
  *
  * @param {any} node
@@ -113,34 +82,26 @@ export function annotate_with_hash(
 		return node;
 	}
 
-	if (node.type === 'Element') {
-		if (preserve_style_elements && is_style_element(node)) {
-			node.children = [];
-			return node;
-		}
-		if (!is_style_element(node) && !is_composite_element(node)) {
-			add_hash_class(node, hash, jsx_class_attr_name);
+	if (node.type === 'JSXElement') {
+		if (!is_composite_jsx_element(node)) {
+			add_hash_class_to_jsx_element(node, hash, jsx_class_attr_name);
 		}
 		if (Array.isArray(node.children)) {
 			node.children = node.children
-				.filter((/** @type {any} */ child) => preserve_style_elements || !is_style_element(child))
 				.map((/** @type {any} */ child) =>
 					annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
-				);
+				)
+				.filter(Boolean);
 		}
 		return node;
 	}
 
-	if (node.type === 'JSXElement') {
-		if (!is_style_jsx_element(node) && !is_composite_jsx_element(node)) {
-			add_hash_class_to_jsx_element(node, hash, jsx_class_attr_name);
+	if (node.type === 'JSXStyleElement') {
+		if (preserve_style_elements) {
+			node.children = [];
+			return node;
 		}
-		if (Array.isArray(node.children)) {
-			node.children = node.children.map((/** @type {any} */ child) =>
-				annotate_with_hash(child, hash, jsx_class_attr_name, preserve_style_elements),
-			);
-		}
-		return node;
+		return null;
 	}
 
 	for (const key of Object.keys(node)) {
@@ -192,25 +153,28 @@ export function annotate_component_with_hash(
  * @returns {void}
  */
 export function add_hash_class(element, hash, class_attr_name = 'class') {
-	const attrs = element.attributes || (element.attributes = []);
+	const attrs = element.openingElement.attributes;
 	const existing = attrs.find(
 		(/** @type {any} */ a) =>
-			a.type === 'Attribute' &&
+			a.type === 'JSXAttribute' &&
 			a.name &&
-			a.name.type === 'Identifier' &&
+			a.name.type === 'JSXIdentifier' &&
 			(a.name.name === 'class' || a.name.name === 'className'),
 	);
 
 	if (!existing) {
-		attrs.push({
-			type: 'Attribute',
-			name: b.id(class_attr_name),
-			value: { type: 'Literal', value: hash, raw: JSON.stringify(hash) },
-		});
+		attrs.push(
+			b.jsx_attribute(b.jsx_id(class_attr_name), {
+				type: 'Literal',
+				value: hash,
+				raw: JSON.stringify(hash),
+			}),
+		);
 		return;
 	}
 
-	const value = existing.value;
+	const value =
+		existing.value?.type === 'JSXExpressionContainer' ? existing.value.expression : existing.value;
 	if (!value) {
 		existing.value = { type: 'Literal', value: hash, raw: JSON.stringify(hash) };
 		return;
@@ -224,8 +188,9 @@ export function add_hash_class(element, hash, class_attr_name = 'class') {
 	}
 
 	// Dynamic expression. Concatenate at runtime via template literal.
-	const expression = value.type === 'JSXExpressionContainer' ? value.expression : value;
-	existing.value = b.template([b.quasi('', false), b.quasi(` ${hash}`, true)], [expression]);
+	existing.value = b.jsx_expression_container(
+		b.template([b.quasi('', false), b.quasi(` ${hash}`, true)], [value]),
+	);
 }
 
 /**

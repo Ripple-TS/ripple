@@ -213,7 +213,11 @@ export function createJsxTransform(platform) {
 				return next();
 			},
 
-			TsrxFragment(node, { next, path, state, visit }) {
+			JSXFragment(node, { next, path, state, visit }) {
+				if (!node.metadata?.native_tsrx) {
+					return next() ?? node;
+				}
+
 				const parent = /** @type {AST.ArrowFunctionExpression} */ (path.at(-1));
 				if (parent?.metadata?.native_tsrx && parent.body === node) {
 					return /** @type {any} */ (visit(create_native_tsrx_render_block(node, state), state));
@@ -233,7 +237,11 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (wrap_jsx_setup_declarations(expression, in_jsx_child));
 			},
 
-			Element(node, { next, path, state }) {
+			JSXElement(node, { next, path, state }) {
+				if (!node.metadata?.native_tsrx) {
+					return next() ?? node;
+				}
+
 				if (is_style_element(node) && is_style_expression_position(path)) {
 					const stylesheet = get_style_element_stylesheet(node);
 					if (stylesheet) {
@@ -243,10 +251,8 @@ export function createJsxTransform(platform) {
 					}
 				}
 
-				// Capture raw children BEFORE the walker transforms them so a
-				// platform hook (e.g. Solid's textContent optimization) can
-				// inspect the original Text / TSRXExpression nodes rather than
-				// their walker-lowered JSXExpressionContainer equivalents.
+				// Capture raw children BEFORE the walker transforms them so platform
+				// hooks can inspect the original JSX child shape.
 				const raw_children = /** @type {any} */ (node.children || []).map(
 					(/** @type {any} */ child) => (child && typeof child === 'object' ? { ...child } : child),
 				);
@@ -256,16 +262,22 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (to_jsx_element(inner, state, raw_children));
 			},
 
-			Text(node, { next }) {
-				const inner = /** @type {any} */ (next() ?? node);
+			JSXStyleElement(node, { path, state }) {
+				if (is_style_expression_position(path)) {
+					const stylesheet = get_style_element_stylesheet(node);
+					if (stylesheet) {
+						analyze_css(stylesheet);
+						state.stylesheets.push(stylesheet);
+						return /** @type {any} */ (create_style_expression_value(node, stylesheet, state));
+					}
+				}
 				return /** @type {any} */ (
-					to_jsx_expression_container(to_text_expression(inner.expression, inner), inner)
+					b.jsx_element(
+						{ ...node, type: 'JSXElement' },
+						node.openingElement?.attributes ?? [],
+						[],
+					)
 				);
-			},
-
-			TSRXExpression(node, { next }) {
-				const inner = /** @type {any} */ (next() ?? node);
-				return /** @type {any} */ (to_jsx_expression_container(inner.expression, inner));
 			},
 
 			BlockStatement: transform_block_statement,
@@ -397,7 +409,7 @@ function collect_css_prunable_elements(value, elements = []) {
 		return elements;
 	}
 
-	if (value.type === 'Element') {
+	if (value.type === 'JSXElement' && value.metadata?.native_tsrx) {
 		if (!is_style_element(value)) {
 			elements.push(value);
 		}
@@ -449,6 +461,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	for (let i = 0; i < body_nodes.length; i += 1) {
 		const child = body_nodes[i];
 
+		if (child?.type === 'TsrxTemplateFence') {
+			continue;
+		}
+
 		if (is_loop_skip_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
@@ -467,6 +483,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				const continuation_body = body_nodes.slice(i + 1);
 				const continuation_has_setup_statements = continuation_body.some(
 					(node) =>
+						node?.type !== 'TsrxTemplateFence' &&
 						!is_loop_skip_return_statement(node) &&
 						!is_loop_skip_if_statement(node) &&
 						!is_jsx_child(node),
@@ -511,7 +528,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		}
 
 		if (
-			child.type === 'ForOfStatement' &&
+			is_for_of_control_node(child) &&
 			!child.await &&
 			should_extract_hook_helpers(transform_context) &&
 			!transform_context.platform.hooks?.isTopLevelSetupCall &&
@@ -522,7 +539,10 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				true,
 			)
 		) {
-			const hoisted = build_hoisted_for_of_with_hooks(child, transform_context);
+			const hoisted = build_hoisted_for_of_with_hooks(
+				jsx_control_expression_to_statement(child),
+				transform_context,
+			);
 			if (hoisted) {
 				statements.push(...hoisted.hoist_statements);
 				if (interleaved && is_capturable_jsx_child(hoisted.jsx_child)) {
@@ -656,7 +676,7 @@ function find_hook_split_index(body_nodes, transform_context) {
  * @returns {boolean}
  */
 function is_component_body_conditional_return_statement(node) {
-	if (node?.type !== 'IfStatement') {
+	if (!is_if_control_node(node)) {
 		return false;
 	}
 
@@ -691,20 +711,20 @@ function statement_contains_component_body_return(node) {
 		return (node.body || []).some(statement_contains_component_body_return);
 	}
 
-	if (node.type === 'IfStatement') {
+	if (is_if_control_node(node)) {
 		return (
 			statement_contains_component_body_return(node.consequent) ||
 			statement_contains_component_body_return(node.alternate)
 		);
 	}
 
-	if (node.type === 'SwitchStatement') {
+	if (is_switch_control_node(node)) {
 		return (node.cases || []).some((/** @type {any} */ switch_case) =>
 			statement_contains_component_body_return(switch_case.consequent || []),
 		);
 	}
 
-	if (node.type === 'TryStatement') {
+	if (is_try_control_node(node)) {
 		return (
 			statement_contains_component_body_return(node.block) ||
 			statement_contains_component_body_return(node.handler?.body) ||
@@ -997,7 +1017,7 @@ function transform_block_statement(node, { next, visit, state, path }) {
  * @returns {any}
  */
 function transform_return_statement(node, { next, visit, state, path }) {
-	if (get_active_native_tsrx_function(path) && node.argument?.type === 'TsrxFragment') {
+	if (get_active_native_tsrx_function(path) && is_native_tsrx_node(node.argument)) {
 		return visit(create_native_tsrx_render_block(node.argument, state), state);
 	}
 
@@ -1061,7 +1081,7 @@ function transform_native_tsrx_function(node, { next, state }) {
 	if (
 		inner !== node &&
 		node.type === 'ArrowFunctionExpression' &&
-		node.body?.type === 'TsrxFragment' &&
+		is_native_tsrx_node(node.body) &&
 		inner.body?.type === 'BlockStatement'
 	) {
 		inner.expression = false;
@@ -1144,7 +1164,7 @@ function find_native_await_in_list(statements) {
 function find_native_await_in_statement(statement) {
 	if (!statement || typeof statement !== 'object') return null;
 
-	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
+	if (statement.type === 'ReturnStatement' && is_native_tsrx_node(statement.argument)) {
 		return find_first_top_level_await_in_tsrx_function_body(statement.argument.children || []);
 	}
 
@@ -1163,14 +1183,14 @@ function find_native_await_in_statement(statement) {
 		return find_native_await_in_list(statement.body || []);
 	}
 
-	if (statement.type === 'IfStatement') {
+	if (is_if_control_node(statement)) {
 		return (
 			find_native_await_in_statement(statement.consequent) ||
 			find_native_await_in_statement(statement.alternate)
 		);
 	}
 
-	if (statement.type === 'SwitchStatement') {
+	if (is_switch_control_node(statement)) {
 		for (const switch_case of statement.cases || []) {
 			const found = find_native_await_in_list(switch_case.consequent || []);
 			if (found) return found;
@@ -1178,7 +1198,7 @@ function find_native_await_in_statement(statement) {
 		return null;
 	}
 
-	if (statement.type === 'TryStatement') {
+	if (is_try_control_node(statement)) {
 		return (
 			find_native_await_in_statement(statement.block) ||
 			find_native_await_in_statement(statement.handler?.body) ||
@@ -1239,7 +1259,7 @@ function transform_function_with_hook_helpers(node, { next, state }) {
  * @returns {string}
  */
 function get_function_helper_base_name(node) {
-	return get_function_like_name(node) || 'TsrxFragment';
+	return get_function_like_name(node) || 'TSRXTemplate';
 }
 
 /**
@@ -1318,7 +1338,7 @@ function collect_function_scope_bindings(node) {
 	const bindings = collect_param_bindings(node.params || []);
 	if (node.body?.type === 'BlockStatement') {
 		for (const statement of node.body.body || []) {
-			if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
+			if (statement.type === 'ReturnStatement' && is_native_tsrx_node(statement.argument)) {
 				for (const child of get_tsrx_render_children(statement.argument)) {
 					collect_statement_bindings(child, bindings);
 				}
@@ -1385,20 +1405,20 @@ function statement_contains_native_tsrx_return(statement) {
 		return statements_contain_native_tsrx_return(statement.body || []);
 	}
 
-	if (statement.type === 'IfStatement') {
+	if (is_if_control_node(statement)) {
 		return (
 			statement_contains_native_tsrx_return(statement.consequent) ||
 			statement_contains_native_tsrx_return(statement.alternate)
 		);
 	}
 
-	if (statement.type === 'SwitchStatement') {
+	if (is_switch_control_node(statement)) {
 		return (statement.cases || []).some((/** @type {any} */ c) =>
 			statements_contain_native_tsrx_return(c.consequent || []),
 		);
 	}
 
-	if (statement.type === 'TryStatement') {
+	if (is_try_control_node(statement)) {
 		return (
 			statement_contains_native_tsrx_return(statement.block) ||
 			statement_contains_native_tsrx_return(statement.pending) ||
@@ -1428,7 +1448,7 @@ function statement_contains_native_tsrx_return(statement) {
  */
 function node_contains_native_tsrx_template(node) {
 	if (!node || typeof node !== 'object') return false;
-	if (node.type === 'Element' || node.type === 'TsrxFragment') return true;
+	if (is_native_tsrx_node(node)) return true;
 
 	if (is_function_or_class_boundary(node)) {
 		return false;
@@ -1619,11 +1639,11 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (is_function_or_class_boundary(node) || node.type === 'TsrxFragment') {
+	if (is_function_or_class_boundary(node) || is_native_tsrx_node(node)) {
 		return;
 	}
 
-	if (node.type === 'Element') {
+	if (node.type === 'JSXElement' && node.metadata?.native_tsrx) {
 		collect_style_elements(node.children || [], styles);
 		return;
 	}
@@ -1633,20 +1653,20 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (node.type === 'IfStatement') {
+	if (is_if_control_node(node)) {
 		collect_style_elements(node.consequent, styles);
 		collect_style_elements(node.alternate, styles);
 		return;
 	}
 
-	if (node.type === 'SwitchStatement') {
+	if (is_switch_control_node(node)) {
 		for (const switch_case of node.cases || []) {
 			collect_style_elements(switch_case.consequent || [], styles);
 		}
 		return;
 	}
 
-	if (node.type === 'TryStatement') {
+	if (is_try_control_node(node)) {
 		collect_style_elements(node.block, styles);
 		collect_style_elements(node.handler?.body, styles);
 		collect_style_elements(node.finalizer, styles);
@@ -1698,7 +1718,7 @@ function strip_style_elements(node) {
 		return node;
 	}
 
-	if (node.type === 'Element') {
+	if (node.type === 'JSXElement' && node.metadata?.native_tsrx) {
 		node.children = strip_style_elements(node.children || []);
 		return node;
 	}
@@ -1708,20 +1728,20 @@ function strip_style_elements(node) {
 		return node;
 	}
 
-	if (node.type === 'IfStatement') {
+	if (is_if_control_node(node)) {
 		node.consequent = strip_style_elements(node.consequent);
 		if (node.alternate) node.alternate = strip_style_elements(node.alternate);
 		return node;
 	}
 
-	if (node.type === 'SwitchStatement') {
+	if (is_switch_control_node(node)) {
 		for (const switch_case of node.cases || []) {
 			switch_case.consequent = strip_style_elements(switch_case.consequent || []);
 		}
 		return node;
 	}
 
-	if (node.type === 'TryStatement') {
+	if (is_try_control_node(node)) {
 		node.block = strip_style_elements(node.block);
 		if (node.handler?.body) node.handler.body = strip_style_elements(node.handler.body);
 		if (node.finalizer) node.finalizer = strip_style_elements(node.finalizer);
@@ -1737,8 +1757,7 @@ function strip_style_elements(node) {
 function is_style_expression_position(path) {
 	const parent = path.at(-1);
 	return !(
-		parent?.type === 'Element' ||
-		parent?.type === 'TsrxFragment' ||
+		is_native_tsrx_node(parent) ||
 		parent?.type === 'BlockStatement' ||
 		parent?.type === 'Program' ||
 		parent?.type === 'SwitchCase'
@@ -1825,7 +1844,7 @@ function expand_native_tsrx_return_statement_list(statements, transform_context)
 function expand_native_tsrx_return_statement(statement, transform_context) {
 	if (!statement || typeof statement !== 'object') return [statement];
 
-	if (statement.type === 'ReturnStatement' && statement.argument?.type === 'TsrxFragment') {
+	if (statement.type === 'ReturnStatement' && is_native_tsrx_node(statement.argument)) {
 		return create_native_tsrx_render_statements(statement.argument, transform_context);
 	}
 
@@ -1838,7 +1857,7 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 		return body === statement.body ? [statement] : [b.block(body, statement)];
 	}
 
-	if (statement.type === 'IfStatement') {
+	if (is_if_control_node(statement)) {
 		const consequent = expand_embedded_native_return_statement(
 			statement.consequent,
 			transform_context,
@@ -1852,7 +1871,7 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 		return [set_loc(b.if(statement.test, consequent, alternate), statement)];
 	}
 
-	if (statement.type === 'SwitchStatement') {
+	if (is_switch_control_node(statement)) {
 		let changed = false;
 		const cases = (statement.cases || []).map((/** @type {any} */ switch_case) => {
 			const consequent = expand_native_tsrx_return_statement_list(
@@ -1868,7 +1887,7 @@ function expand_native_tsrx_return_statement(statement, transform_context) {
 		return changed ? [set_loc(b.switch(statement.discriminant, cases), statement)] : [statement];
 	}
 
-	if (statement.type === 'TryStatement') {
+	if (is_try_control_node(statement)) {
 		const block = expand_embedded_native_return_statement(statement.block, transform_context);
 		const pending = statement.pending
 			? expand_embedded_native_return_statement(statement.pending, transform_context)
@@ -2029,7 +2048,7 @@ function node_contains_hook_bearing_tsrx(node, transform_context) {
 		return node.some((child) => node_contains_hook_bearing_tsrx(child, transform_context));
 	}
 
-	if (node.type === 'TsrxFragment') {
+	if (is_native_tsrx_node(node)) {
 		return body_contains_top_level_hook_call(node.children || [], transform_context, true);
 	}
 
@@ -2076,7 +2095,7 @@ function should_extract_hook_helpers(transform_context) {
  */
 function create_module_scoped_hook_component_id(helper_id, transform_context) {
 	return create_generated_identifier(
-		`${transform_context.helper_state?.base_name || 'TsrxFragment'}__${helper_id.name}`,
+		`${transform_context.helper_state?.base_name || 'TSRXTemplate'}__${helper_id.name}`,
 	);
 }
 
@@ -2396,7 +2415,7 @@ function is_loop_skip_if_statement(node) {
  * @returns {any[] | null}
  */
 function get_loop_skip_if_consequent_body(node) {
-	if (node?.type !== 'IfStatement' || node.alternate) {
+	if (!is_if_control_node(node) || node.alternate) {
 		return null;
 	}
 
@@ -3115,7 +3134,13 @@ function collect_block_binding_names_from_statement(statement, names) {
 		return;
 	}
 
-	if (statement.type === 'ForOfStatement' || statement.type === 'ForInStatement') {
+	if (
+		statement.type === 'ForOfStatement' ||
+		statement.type === 'ForInStatement' ||
+		(statement.type === 'JSXForExpression' &&
+			(statement.statementType === 'ForOfStatement' ||
+				statement.statementType === 'ForInStatement'))
+	) {
 		if (statement.left?.type === 'VariableDeclaration' && statement.left.kind === 'var') {
 			for (const declaration of statement.left.declarations || []) {
 				collect_pattern_names(declaration.id, names);
@@ -3276,7 +3301,7 @@ function validate_hook_outer_assignments_in_node(
 		}
 	}
 
-	if (node.type === 'ForOfStatement') {
+	if (is_for_of_control_node(node)) {
 		if (
 			node.left &&
 			node.left.type !== 'VariableDeclaration' &&
@@ -3992,37 +4017,103 @@ function get_body_source_node(body_nodes) {
 
 /**
  * @param {any} node
+ * @returns {any}
+ */
+function jsx_control_expression_to_statement(node) {
+	if (!node?.statementType) return node;
+	return { ...node, type: node.statementType };
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_native_tsrx_node(node) {
+	return (
+		(node?.type === 'JSXElement' ||
+			node?.type === 'JSXFragment' ||
+			node?.type === 'JSXStyleElement') &&
+		node.metadata?.native_tsrx
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_if_control_node(node) {
+	return node?.type === 'IfStatement' || node?.type === 'JSXIfExpression';
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_switch_control_node(node) {
+	return node?.type === 'SwitchStatement' || node?.type === 'JSXSwitchExpression';
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_try_control_node(node) {
+	return node?.type === 'TryStatement' || node?.type === 'JSXTryExpression';
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_for_of_control_node(node) {
+	return (
+		node?.type === 'ForOfStatement' ||
+		(node?.type === 'JSXForExpression' && node.statementType === 'ForOfStatement')
+	);
+}
+
+/**
+ * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
  */
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
-		case 'TsrxFragment':
-			return tsrx_node_to_jsx_expression(node, transform_context, true);
-		case 'Element':
-			return to_jsx_element(node, transform_context);
-		case 'Text':
-			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
-		case 'TSRXExpression':
-			return to_jsx_expression_container(node.expression, node);
+		case 'JSXIfExpression':
 		case 'IfStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.ifStatement ?? if_statement_to_jsx_child
-			)(node, transform_context);
+			)(jsx_control_expression_to_statement(node), transform_context);
+		case 'JSXForExpression':
+			if (node.statementType !== 'ForOfStatement') {
+				error(
+					'TSRX `@for` currently supports `for...of` loops in template output.',
+					transform_context.filename,
+					node,
+					transform_context.errors,
+					transform_context.comments,
+				);
+				return to_jsx_expression_container(create_null_literal(), node);
+			}
+			return (
+				transform_context.platform.hooks?.controlFlow?.forOf ?? for_of_statement_to_jsx_child
+			)(jsx_control_expression_to_statement(node), transform_context);
 		case 'ForOfStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.forOf ?? for_of_statement_to_jsx_child
 			)(node, transform_context);
+		case 'JSXSwitchExpression':
 		case 'SwitchStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.switchStatement ??
 				switch_statement_to_jsx_child
-			)(node, transform_context);
+			)(jsx_control_expression_to_statement(node), transform_context);
+		case 'JSXTryExpression':
 		case 'TryStatement':
 			return (
 				transform_context.platform.hooks?.controlFlow?.tryStatement ?? try_statement_to_jsx_child
-			)(node, transform_context);
+			)(jsx_control_expression_to_statement(node), transform_context);
 		default:
 			return node;
 	}
@@ -4114,7 +4205,7 @@ function return_value_statement_to_expression(node, transform_context) {
 		return node.argument;
 	}
 
-	if (node?.type === 'IfStatement') {
+	if (is_if_control_node(node)) {
 		return return_value_if_statement_to_conditional_expression(node, transform_context);
 	}
 
@@ -4208,7 +4299,7 @@ function return_value_block_to_expression(node, transform_context) {
  * @returns {any | null}
  */
 function return_value_if_statement_to_conditional_expression(node, transform_context) {
-	if (!node || node.type !== 'IfStatement') return null;
+	if (!is_if_control_node(node)) return null;
 
 	const consequent = return_value_block_to_expression(node.consequent, transform_context);
 	if (!consequent) return null;
@@ -4248,14 +4339,14 @@ function if_statement_to_jsx_child(node, transform_context) {
  * @returns {any | null}
  */
 function render_if_statement_to_conditional_expression(node) {
-	if (!node || node.type !== 'IfStatement') return null;
+	if (!is_if_control_node(node)) return null;
 
 	const consequent = block_statement_to_return_expression(node.consequent);
 	if (!consequent) return null;
 
 	let alternate = create_null_literal();
 	if (node.alternate) {
-		if (node.alternate.type === 'IfStatement') {
+		if (is_if_control_node(node.alternate)) {
 			alternate = render_if_statement_to_conditional_expression(node.alternate);
 			if (!alternate) return null;
 		} else {
@@ -4292,25 +4383,11 @@ function block_statement_to_return_expression(block) {
 /**
  * Find the first `key` attribute expression in the top-level elements of a body.
  * Used to propagate keys from loop body elements to wrapper components.
- * Works on both pre-transform (Ripple Element) and post-transform (JSXElement) nodes.
- *
  * @param {any[]} body_nodes
  * @returns {any | undefined}
  */
 function find_key_expression_in_body(body_nodes) {
 	for (const node of body_nodes) {
-		// Pre-transform: Ripple Element node
-		if (node.type === 'Element') {
-			for (const attr of node.attributes || []) {
-				if (attr.type === 'Attribute') {
-					const attr_name = typeof attr.name === 'string' ? attr.name : attr.name?.name;
-					if (attr_name === 'key') {
-						return attr.value?.expression ?? attr.value;
-					}
-				}
-			}
-		}
-		// Post-transform: JSXElement node
 		if (node.type === 'JSXElement') {
 			for (const attr of node.openingElement?.attributes || []) {
 				if (
@@ -4386,8 +4463,11 @@ export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 function is_loop_statement(node) {
 	return (
 		node?.type === 'ForOfStatement' ||
+		(node?.type === 'JSXForExpression' && node.statementType === 'ForOfStatement') ||
 		node?.type === 'ForStatement' ||
+		(node?.type === 'JSXForExpression' && node.statementType === 'ForStatement') ||
 		node?.type === 'ForInStatement' ||
+		(node?.type === 'JSXForExpression' && node.statementType === 'ForInStatement') ||
 		node?.type === 'WhileStatement' ||
 		node?.type === 'DoWhileStatement'
 	);
@@ -4489,25 +4569,6 @@ function for_of_statement_to_jsx_child(node, transform_context) {
  */
 function apply_key_to_loop_body(body_nodes, key_expression) {
 	for (const node of body_nodes) {
-		if (node.type === 'Element') {
-			const attributes = node.attributes || (node.attributes = []);
-			const has_key = attributes.some((/** @type {any} */ attr) => {
-				const attr_name = typeof attr.name === 'string' ? attr.name : attr.name?.name;
-				return attr_name === 'key';
-			});
-
-			if (!has_key) {
-				attributes.push({
-					type: 'Attribute',
-					name: b.id('key'),
-					value: clone_expression_node(key_expression),
-					shorthand: false,
-					metadata: { path: [] },
-				});
-			}
-			return;
-		}
-
 		if (node.type === 'JSXElement') {
 			const attributes = node.openingElement?.attributes || [];
 			const has_key = attributes.some(
@@ -4537,7 +4598,7 @@ function apply_key_to_loop_body(body_nodes, key_expression) {
 function should_apply_key_to_loop_body(body_nodes) {
 	let keyable_children = 0;
 	for (const node of body_nodes) {
-		if (node.type === 'Element' || node.type === 'JSXElement') {
+		if (node.type === 'JSXElement') {
 			keyable_children += 1;
 		}
 	}
@@ -4972,7 +5033,7 @@ function create_render_if_statement(node, transform_context) {
 
 	let alternate = null;
 	if (node.alternate) {
-		if (node.alternate.type === 'IfStatement') {
+		if (is_if_control_node(node.alternate)) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
 			const alternate_body = node.alternate.body || [node.alternate];
@@ -5516,14 +5577,10 @@ export function validate_at_most_one_ref_attribute(raw_attrs, transform_context)
 	for (const attr of raw_attrs) {
 		if (!attr) continue;
 		const is_ref_attr =
-			(attr.type === 'Attribute' &&
-				attr.name &&
-				attr.name.type === 'Identifier' &&
-				attr.name.name === 'ref') ||
-			(attr.type === 'JSXAttribute' &&
-				attr.name &&
-				attr.name.type === 'JSXIdentifier' &&
-				attr.name.name === 'ref');
+			attr.type === 'JSXAttribute' &&
+			attr.name &&
+			attr.name.type === 'JSXIdentifier' &&
+			attr.name.name === 'ref';
 		if (!is_ref_attr) continue;
 		refs.push(attr.name);
 	}
@@ -5771,15 +5828,6 @@ export function to_jsx_attribute(attr, transform_context) {
 	}
 	if (attr.type === 'JSXSpreadAttribute') {
 		return attr;
-	}
-	if (attr.type === 'SpreadAttribute') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXSpreadAttribute',
-				argument: attr.argument,
-			}),
-			attr,
-		);
 	}
 	// Keep this legacy hook for targets that need React-style DOM attrs. The
 	// current first-party targets preserve authored `class`.

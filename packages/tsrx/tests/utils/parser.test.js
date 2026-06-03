@@ -77,6 +77,34 @@ describe('TSRX parser', () => {
 		expect(value.children[0].type).toBe('JSXElement');
 	});
 
+	it('parses style blocks as JSXStyleElement nodes', () => {
+		const returned = getReturned(`function App() { return <style>
+			.root {
+				color: red;
+			}
+		</style>; }`);
+
+		expect(returned.type).toBe('JSXStyleElement');
+		expect(returned.openingElement.name.name).toBe('style');
+		expect(returned.children.map((child) => child.type)).toEqual(['StyleSheet']);
+		expect(returned.css).toContain('color: red');
+		expect(returned.metadata.styleScopeHash).toBe(returned.children[0].hash);
+	});
+
+	it('does not add component style scope metadata to head styles', () => {
+		const returned = getReturned(`function App() { return <head>
+			<style>
+				body {
+					margin: 0;
+				}
+			</style>
+		</head>; }`);
+
+		const style = returned.children.find((child) => child.type === 'JSXStyleElement');
+		expect(style.children.map((child) => child.type)).toEqual(['StyleSheet']);
+		expect(style.metadata.styleScopeHash).toBeUndefined();
+	});
+
 	it('uses a template fence to split script setup and template output', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = 1
@@ -244,6 +272,40 @@ describe('TSRX parser', () => {
 		expect(scriptJsx.children[0].value).toBe('---');
 	});
 
+	it('parses style expressions in the script side of a template fence', () => {
+		const returned = getReturned(`function App() { return <section>
+			const styles = <style>
+				.card {
+					color: red;
+				}
+			</style>
+			---
+			<div class={styles.card} />
+		</section>; }`);
+
+		const style = returned.children[0].declarations[0].init;
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		expect(style.type).toBe('JSXStyleElement');
+		expect(style.children[0].type).toBe('StyleSheet');
+		expect(style.css).toContain('.card');
+	});
+
+	it('keeps fence and markup-looking text inside style content as CSS source', () => {
+		const returned = getReturned(`function App() { return <style>
+			.root::before {
+				content: "--- </div><div>";
+			}
+		</style>; }`);
+
+		expect(returned.type).toBe('JSXStyleElement');
+		expect(returned.css).toContain('--- </div><div>');
+		expect(returned.children[0].source).toContain('--- </div><div>');
+	});
+
 	it('treats fence-looking text after the fence as JSXText', () => {
 		const returned = getReturned(`function App() { return <div>
 			---
@@ -289,5 +351,89 @@ describe('TSRX parser', () => {
 			'JSXElement',
 		]);
 		expect(component.children[2].openingElement.name.name).toBe('button');
+	});
+
+	it('parses @if as a JSXIfExpression', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@if (ready) {
+				Ready
+			} else {
+				Waiting
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.type).toBe('JSXIfExpression');
+		expect(directive.statementType).toBe('IfStatement');
+		expect(directive.test.name).toBe('ready');
+		expect(directive.consequent.body[0].type).toBe('JSXText');
+		expect(directive.consequent.body[0].value).toContain('Ready');
+		expect(directive.alternate.body[0].value).toContain('Waiting');
+	});
+
+	it('parses @for as a JSXForExpression', () => {
+		const returned = getReturned(`function App() { return <ul>
+			---
+			@for (const item of items; key item.id) {
+				<li>{item.label}</li>
+			}
+		</ul>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.type).toBe('JSXForExpression');
+		expect(directive.statementType).toBe('ForOfStatement');
+		expect(directive.left.declarations[0].id.name).toBe('item');
+		expect(directive.right.name).toBe('items');
+		expect(directive.key.property.name).toBe('id');
+		expect(directive.body.body[0].type).toBe('JSXElement');
+	});
+
+	it('parses @switch as a JSXSwitchExpression with JSX text case bodies', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@switch (value) {
+				case 'a':
+					Case A
+				case 'b':
+					Case B
+				default:
+					Fallback
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXSwitchExpression');
+		expect(directive.type).toBe('JSXSwitchExpression');
+		expect(directive.statementType).toBe('SwitchStatement');
+		expect(directive.discriminant.name).toBe('value');
+		expect(directive.cases).toHaveLength(3);
+		expect(directive.cases[0].test.value).toBe('a');
+		expect(directive.cases[0].consequent[0].type).toBe('JSXText');
+		expect(directive.cases[0].consequent[0].value).toContain('Case A');
+		expect(directive.cases[2].test).toBeNull();
+		expect(directive.cases[2].consequent[0].value).toContain('Fallback');
+	});
+
+	it('parses @try as a JSXTryExpression', () => {
+		const returned = getReturned(`function App() { return <div>
+			---
+			@try {
+				<ComponentThatSuspends />
+			} pending {
+				Loading
+			} catch (error, reset) {
+				Failed
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXTryExpression');
+		expect(directive.type).toBe('JSXTryExpression');
+		expect(directive.statementType).toBe('TryStatement');
+		expect(directive.block.body[0].type).toBe('JSXElement');
+		expect(directive.pending.body[0].type).toBe('JSXText');
+		expect(directive.pending.body[0].value).toContain('Loading');
+		expect(directive.handler.param.name).toBe('error');
+		expect(directive.handler.resetParam.name).toBe('reset');
+		expect(directive.handler.body.body[0].value).toContain('Failed');
 	});
 });

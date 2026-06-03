@@ -133,9 +133,8 @@ function get_style_region_id(hash, fallback) {
 function visit_source_ast(ast, src_line_offsets, { regions, css_element_info }) {
 	let region_id = 0;
 	walk(ast, null, {
-		Element(node, context) {
-			// Check if this is a style element with CSS content
-			if (node.id?.type === 'Identifier' && node.id?.name === 'style' && node.css) {
+		JSXStyleElement(node, context) {
+			if (node.css) {
 				const openLoc = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
 					node.openingElement
 				).loc;
@@ -156,8 +155,10 @@ function visit_source_ast(ast, src_line_offsets, { regions, css_element_info }) 
 
 			context.next();
 		},
-		Attribute(node, context) {
-			const element = context.path?.findLast((n) => n.type === 'Element');
+		JSXAttribute(node, context) {
+			const element = context.path?.findLast(
+				(n) => n.type === 'JSXElement' && n.metadata?.native_tsrx,
+			);
 			if (element?.metadata?.css?.scopedClasses) {
 				// we don't need to check is_element_dom_element(node)
 				// since scopedClasses are added during pruning only to DOM elements

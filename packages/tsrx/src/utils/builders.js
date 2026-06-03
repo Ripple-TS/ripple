@@ -1200,7 +1200,7 @@ export function jsx_element_fresh(
 }
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @param {ESTreeJSX.JSXOpeningElement['attributes']} attributes
  * @param {ESTreeJSX.JSXElement['children']} children
  * @returns {ESTreeJSX.JSXElement}

@@ -129,26 +129,6 @@ export const printers = {
 				};
 			}
 
-			if (node.type === 'ScriptContent' && node.content) {
-				return async (textToDoc) => {
-					try {
-						// Format JS/TS using Prettier's textToDoc
-						const body = await textToDoc(node.content, {
-							parser: 'babel-ts',
-						});
-
-						// Return complete element with tags
-						// return ['<script>', indent([hardline, formattedContent]), hardline, '</script>'];
-						return body;
-					} catch (error) {
-						// If JS/TS has syntax errors, return original unformatted content
-						console.error('Error formatting JS/TS inside <script>:', error);
-						return node.content;
-						// return ['<script>', indent([hardline, node.content]), hardline, '</script>'];
-					}
-				};
-			}
-
 			return null;
 		},
 		/**
@@ -761,16 +741,9 @@ function printRippleNode(node, path, options, print, args) {
 
 	const isInlineContext = args && args.isInlineContext;
 	const suppressLeadingComments = args && args.suppressLeadingComments;
-	const suppressExpressionLeadingComments = args && args.suppressExpressionLeadingComments;
-	const parentNode = /** @type {AST.Node | null} */ (path.getParentNode());
 
-	// For TSRXExpression and Text nodes, don't add leading comments here - they should be handled
-	// as separate children within elements, not as part of the expression.
-	const shouldSkipLeadingComments =
-		parentNode?.type === 'Element' && (node.type === 'TSRXExpression' || node.type === 'Text');
-
-	// Handle leading comments
-	if (node.leadingComments && !shouldSkipLeadingComments && !suppressLeadingComments) {
+		// Handle leading comments
+		if (node.leadingComments && !suppressLeadingComments) {
 		for (let i = 0; i < node.leadingComments.length; i++) {
 			const comment = node.leadingComments[i];
 			const nextComment = node.leadingComments[i + 1];
@@ -899,17 +872,29 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSDeclareFunction(node, path, options, print);
 			break;
 
-		case 'IfStatement':
-			nodeContent = printIfStatement(node, path, options, print);
-			break;
+			case 'IfStatement':
+				nodeContent = printIfStatement(node, path, options, print);
+				break;
+			case 'JSXIfExpression':
+				nodeContent = ['@', printIfStatement(node, path, options, print)];
+				break;
 
-		case 'ForOfStatement':
-			nodeContent = printForOfStatement(node, path, options, print);
-			break;
+			case 'ForOfStatement':
+				nodeContent = printForOfStatement(node, path, options, print);
+				break;
+			case 'JSXForExpression':
+				if (node.statementType === 'ForInStatement') {
+					nodeContent = ['@', printForInStatement(node, path, options, print)];
+				} else if (node.statementType === 'ForStatement') {
+					nodeContent = ['@', printForStatement(node, path, options, print)];
+				} else {
+					nodeContent = ['@', printForOfStatement(node, path, options, print)];
+				}
+				break;
 
-		case 'ForStatement':
-			nodeContent = printForStatement(node, path, options, print);
-			break;
+			case 'ForStatement':
+				nodeContent = printForStatement(node, path, options, print);
+				break;
 
 		case 'ForInStatement':
 			nodeContent = printForInStatement(node, path, options, print);
@@ -928,9 +913,12 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printClassDeclaration(node, path, options, print);
 			break;
 
-		case 'TryStatement':
-			nodeContent = printTryStatement(node, path, options, print);
-			break;
+			case 'TryStatement':
+				nodeContent = printTryStatement(node, path, options, print);
+				break;
+			case 'JSXTryExpression':
+				nodeContent = ['@', printTryStatement(node, path, options, print)];
+				break;
 
 		case 'ArrayExpression': {
 			if (!node.elements || node.elements.length === 0) {
@@ -1631,9 +1619,12 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSInterfaceBody(node, path, options, print);
 			break;
 
-		case 'SwitchStatement':
-			nodeContent = printSwitchStatement(node, path, options, print);
-			break;
+			case 'SwitchStatement':
+				nodeContent = printSwitchStatement(node, path, options, print);
+				break;
+			case 'JSXSwitchExpression':
+				nodeContent = ['@', printSwitchStatement(node, path, options, print)];
+				break;
 
 		case 'SwitchCase':
 			nodeContent = printSwitchCase(node, path, options, print);
@@ -1691,14 +1682,7 @@ function printRippleNode(node, path, options, print, args) {
 			}
 			break;
 		}
-		case 'SpreadAttribute': {
-			/** @type {Doc[]} */
-			const parts = ['{...', path.call(print, 'argument'), '}'];
-			nodeContent = parts;
-			break;
-		}
-
-		case 'Identifier': {
+			case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
 			const trackedPrefix = node.tracked ? '@' : '';
 			let identifierContent;
@@ -2255,12 +2239,12 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'Element':
-			nodeContent = printElement(node, path, options, print);
+		case 'TsrxTemplateFence':
+			nodeContent = '---';
 			break;
 
-		case 'TsrxFragment':
-			nodeContent = printTsrx(node, path, options, print);
+		case 'JSXStyleElement':
+			nodeContent = printJSXElement(node, path, options, print);
 			break;
 
 		case 'JSXElement':
@@ -2285,28 +2269,12 @@ function printRippleNode(node, path, options, print, args) {
 			}
 			break;
 
-		case 'Attribute':
-			nodeContent = printAttribute(node, path, options, print);
+		case 'JSXAttribute':
+			nodeContent = printJSXAttribute(node, path, options, print);
 			break;
 
-		case 'TSRXExpression': {
-			const expressionDoc = suppressExpressionLeadingComments
-				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
-				: path.call(print, 'expression');
-			nodeContent = ['{', expressionDoc, '}'];
-			break;
-		}
-
-		case 'Text': {
-			if (typeof node.raw === 'string') {
-				nodeContent = printRawText(node.raw);
-				break;
-			}
-
-			const expressionDoc = suppressExpressionLeadingComments
-				? path.call((exprPath) => print(exprPath, { suppressLeadingComments: true }), 'expression')
-				: path.call(print, 'expression');
-			nodeContent = ['{', expressionDoc, '}'];
+		case 'JSXSpreadAttribute': {
+			nodeContent = ['{...', path.call(print, 'argument'), '}'];
 			break;
 		}
 
@@ -2695,7 +2663,7 @@ function printArrowFunction(node, path, options, print, args) {
  * @returns {boolean}
  */
 function isTemplateExpression(node) {
-	return node.type === 'TsrxFragment' || node.type === 'JSXElement' || node.type === 'JSXFragment';
+	return node.type === 'JSXElement' || node.type === 'JSXFragment';
 }
 
 /**
@@ -5516,8 +5484,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return false;
 	}
 
-	// Always inline Text nodes — they are explicit text child forms.
-	if (firstChild.type === 'Text') {
+	if (firstChild.type === 'JSXText') {
 		return true;
 	}
 
@@ -5527,7 +5494,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 
 	// Inline JSX expressions if they fit, but respect original multi-line formatting
 	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
-	if (firstChild.type === 'TSRXExpression' || firstChild.type === 'JSXExpressionContainer') {
+	if (firstChild.type === 'JSXExpressionContainer') {
 		if (wasOriginallySingleLine(parentNode)) {
 			return true;
 		}
@@ -5545,11 +5512,8 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return false;
 	}
 
-	if (firstChild.type === 'Element' && firstChild.selfClosing) {
-		return (
-			!(/** @type {AST.Element} */ (parentNode).attributes) ||
-			/** @type {AST.Element} */ (parentNode).attributes.length === 0
-		);
+	if (firstChild.type === 'JSXElement' && firstChild.openingElement?.selfClosing) {
+		return !parentNode.openingElement?.attributes?.length;
 	}
 
 	return false;
@@ -5561,7 +5525,7 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
  * @returns {boolean}
  */
 function isInlineableTextOrExpressionChild(child) {
-	if (!child || (child.type !== 'Text' && child.type !== 'TSRXExpression')) {
+	if (!child || (child.type !== 'JSXText' && child.type !== 'JSXExpressionContainer')) {
 		return false;
 	}
 
@@ -5575,7 +5539,7 @@ function isInlineableTextOrExpressionChild(child) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {ESTreeJSX.JSXElement} node
  * @returns {boolean}
  */
 function shouldTryInlineMultipleTextChildren(node) {
@@ -5583,14 +5547,14 @@ function shouldTryInlineMultipleTextChildren(node) {
 		wasOriginallySingleLine(node) &&
 		Array.isArray(node.children) &&
 		node.children.length > 1 &&
-		node.children.some((child) => child.type === 'Text') &&
+		node.children.some((child) => child.type === 'JSXText') &&
 		node.children.every(isInlineableTextOrExpressionChild)
 	);
 }
 
 /**
  * Get leading comments from element metadata
- * @param {AST.Element} node - The element node
+ * @param {ESTreeJSX.JSXElement} node - The element node
  * @returns {AST.Comment[]}
  */
 function getElementLeadingComments(node) {
@@ -5648,57 +5612,6 @@ function createElementLevelCommentPartsTrimmed(comments) {
 		parts.pop();
 	}
 	return parts;
-}
-
-/**
- * Print a TsrxFragment node - renders native TSRX template children inside a fragment.
- * @param {AST.TsrxFragment} node - The TsrxFragment node
- * @param {AstPath<AST.TsrxFragment>} path - The AST path
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
- * @returns {Doc}
- */
-function printTsrx(node, path, options, print) {
-	const tagName = '<>';
-	const closingTagName = '</>';
-	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-
-	if (!hasChildren) {
-		return [tagName, closingTagName];
-	}
-
-	const printedChildren = [];
-
-	for (let i = 0; i < node.children.length; i++) {
-		const child = node.children[i];
-
-		if (child.type === 'JSXText') {
-			const text = child.value.trim();
-			if (!text) continue;
-			printedChildren.push(text);
-		} else {
-			const printedChild = path.call(print, 'children', i);
-			printedChildren.push(printedChild);
-		}
-	}
-
-	if (printedChildren.length === 0) {
-		return [tagName, closingTagName];
-	}
-
-	if (
-		printedChildren.length === 1 &&
-		['Element', 'Text', 'TSRXExpression'].includes(node.children[0]?.type)
-	) {
-		return group([tagName, indent([softline, printedChildren[0]]), softline, closingTagName]);
-	}
-
-	return group([
-		tagName,
-		indent([hardline, join(hardline, printedChildren)]),
-		hardline,
-		closingTagName,
-	]);
 }
 
 /**
@@ -5762,7 +5675,7 @@ function printJSXElement(node, path, options, print) {
 						'attributes',
 						i,
 					);
-				} else if (attr.type === 'JSXSpreadAttribute' || attr.type === 'SpreadAttribute') {
+				} else if (attr.type === 'JSXSpreadAttribute') {
 					attrDoc = ['{...', path.call(print, 'openingElement', 'attributes', i, 'argument'), '}'];
 				}
 				if (!hasBreakingAttribute && attrDoc && willBreak(attrDoc)) {
@@ -5955,6 +5868,10 @@ function printJSXFragment(node, path, options, print) {
 function printJSXAttribute(attr, path, options, print) {
 	const name = /** @type {ESTreeJSX.JSXIdentifier} */ (attr.name).name;
 
+	if (attr.shorthand) {
+		return ['{', name, '}'];
+	}
+
 	if (!attr.value) {
 		return name;
 	}
@@ -6056,15 +5973,15 @@ function is_attribute_value_breakable(value, is_nested_in_object = false) {
 }
 
 /**
- * Print a Ripple Element node
- * @param {AST.Element} element - The element node
- * @param {AstPath<AST.Element>} path - The AST path
+ * Print a JSX element node
+ * @param {ESTreeJSX.JSXElement} element - The element node
+ * @param {AstPath<ESTreeJSX.JSXElement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
  */
 function printElement(element, path, options, print) {
-	const node = /** @type {AST.Element & AST.NodeWithLocation} */ (element);
+	const node = /** @type {ESTreeJSX.JSXElement & AST.NodeWithLocation} */ (element);
 	const tagName = printMemberExpressionSimple(node.id, options);
 	const openingElement = /** @type {any} */ (node.openingElement);
 	/** @type {Doc} */
@@ -6107,7 +6024,7 @@ function printElement(element, path, options, print) {
 		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
 		for (const child of node.children) {
 			if (
-				(child.type === 'TSRXExpression' || child.type === 'Text') &&
+				(child.type === 'JSXExpressionContainer' || child.type === 'JSXText') &&
 				Array.isArray(child.leadingComments)
 			) {
 				for (const comment of child.leadingComments) {
@@ -6184,11 +6101,14 @@ function printElement(element, path, options, print) {
 				parts.push(attrLineBreak);
 				const attrDoc = print(attrPath);
 				parts.push(attrDoc);
-				const attr_node = /** @type {AST.Attribute | AST.SpreadAttribute} */ (attrPath.node);
+				const attr_node = /** @type {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
+					attrPath.node
+				);
 				if (
 					!hasBreakingAttribute &&
 					(willBreak(attrDoc) ||
-						(attr_node.type === 'Attribute' && is_attribute_value_breakable(attr_node.value)))
+						(attr_node.type === 'JSXAttribute' &&
+							is_attribute_value_breakable(attr_node.value)))
 				) {
 					hasBreakingAttribute = true;
 				}
@@ -6296,7 +6216,8 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-		const isTextLikeChild = currentChild.type === 'TSRXExpression' || currentChild.type === 'Text';
+			const isTextLikeChild =
+				currentChild.type === 'JSXExpressionContainer' || currentChild.type === 'JSXText';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&
@@ -6410,10 +6331,10 @@ function printElement(element, path, options, print) {
 					: nextChild;
 			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
 			const isTextOrExpressionChild =
-				currentChild.type === 'TSRXExpression' ||
-				currentChild.type === 'Text' ||
-				nextChild.type === 'TSRXExpression' ||
-				nextChild.type === 'Text';
+				currentChild.type === 'JSXExpressionContainer' ||
+				currentChild.type === 'JSXText' ||
+				nextChild.type === 'JSXExpressionContainer' ||
+				nextChild.type === 'JSXText';
 
 			if (whitespaceLinesCount > 0) {
 				finalChildren.push(hardline);
@@ -6514,58 +6435,4 @@ function printElement(element, path, options, print) {
 	}
 
 	return leadingCommentParts.length > 0 ? [...leadingCommentParts, elementOutput] : elementOutput;
-}
-
-/**
- * Print a Ripple attribute node
- * @param {AST.Attribute} node - The attribute node
- * @param {AstPath<AST.Attribute>} path - The AST path
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
- * @returns {Doc[]}
- */
-function printAttribute(node, path, options, print) {
-	/** @type {Doc[]} */
-	const parts = [];
-
-	// Handle shorthand syntax: {id} instead of id={id}
-	// Check if either node.shorthand is true, OR if the value is an Identifier with the same name
-	const isShorthand =
-		node.shorthand ||
-		(node.value && node.value.type === 'Identifier' && node.value.name === node.name.name);
-
-	if (isShorthand) {
-		parts.push('{');
-		parts.push(node.name.name);
-		parts.push('}');
-		return parts;
-	}
-
-	parts.push(node.name.name);
-
-	if (node.value) {
-		if (node.value.type === 'Literal' && typeof node.value.value === 'string') {
-			// String literals don't need curly braces
-			// Use jsxSingleQuote option if available, otherwise use double quotes
-			parts.push('=');
-			const useJsxSingleQuote = options.jsxSingleQuote === true;
-			parts.push(
-				formatStringLiteral(node.value.value, {
-					...options,
-					singleQuote: useJsxSingleQuote,
-				}),
-			);
-		} else {
-			// All other values need curly braces: numbers, booleans, null, expressions, etc.
-			parts.push('={');
-			// Pass inline context for attribute values (keep objects compact)
-			parts.push(path.call((attrPath) => print(attrPath, { isInAttribute: true }), 'value'));
-			if (shouldBreakAttributeExpressionClosingBrace(node.value)) {
-				parts.push(hardline);
-			}
-			parts.push('}');
-		}
-	}
-
-	return parts;
 }

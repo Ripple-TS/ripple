@@ -1172,7 +1172,7 @@ export namespace Parse {
 		 */
 		parseTopLevel(node: AST.Program): AST.Program;
 
-		parseElement(): ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment;
+		parseElement(): ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | AST.JSXStyleElement;
 
 		parseTemplateBody(
 			body: (AST.Statement | AST.Node | ESTreeJSX.JSXText | ESTreeJSX.JSXElement['children'])[],
@@ -1193,6 +1193,7 @@ export namespace Parse {
 			| ESTreeJSX.JSXExpressionContainer
 			| ESTreeJSX.JSXElement
 			| ESTreeJSX.JSXFragment
+			| AST.JSXStyleElement
 			| ESTreeJSX.JSXText
 			| AST.ExpressionStatement
 			| ReturnType<Parser['parseElement']>
@@ -1668,7 +1669,7 @@ export namespace Parse {
 		 * Parse complete JSX element
 		 * @returns JSXElement or JSXFragment
 		 */
-		jsx_parseElement(): ESTreeJSX.JSXElement;
+		jsx_parseElement(): ESTreeJSX.JSXElement | AST.JSXStyleElement;
 
 		// ============================================================
 		// Try-Parse for Recovery

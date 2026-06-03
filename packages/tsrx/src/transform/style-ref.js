@@ -68,7 +68,7 @@ export function collect_style_ref_attributes(node, refs = []) {
 	}
 
 	if (is_style_element(node)) {
-		for (const attr of node.attributes || []) {
+		for (const attr of node.openingElement?.attributes || []) {
 			if (is_ref_attribute(attr) && attr.value) {
 				refs.push(attr);
 			}
@@ -224,10 +224,7 @@ function get_ref_attribute_expression(attr) {
  */
 function is_ref_attribute(attr) {
 	return (
-		(attr?.type === 'Attribute' && attr.name?.type === 'Identifier' && attr.name.name === 'ref') ||
-		(attr?.type === 'JSXAttribute' &&
-			attr.name?.type === 'JSXIdentifier' &&
-			attr.name.name === 'ref')
+		attr?.type === 'JSXAttribute' && attr.name?.type === 'JSXIdentifier' && attr.name.name === 'ref'
 	);
 }
 
@@ -236,12 +233,7 @@ function is_ref_attribute(attr) {
  * @returns {boolean}
  */
 function is_style_element(node) {
-	return !!(
-		node &&
-		node.type === 'Element' &&
-		node.id?.type === 'Identifier' &&
-		node.id.name === 'style'
-	);
+	return !!node && node.type === 'JSXStyleElement';
 }
 
 /**

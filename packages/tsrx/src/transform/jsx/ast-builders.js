@@ -242,10 +242,10 @@ export function is_jsx_child(node) {
 		t === 'JSXFragment' ||
 		t === 'JSXExpressionContainer' ||
 		t === 'JSXText' ||
-		t === 'TsrxFragment' ||
-		t === 'Element' ||
-		t === 'Text' ||
-		t === 'TSRXExpression' ||
+		t === 'JSXIfExpression' ||
+		t === 'JSXForExpression' ||
+		t === 'JSXSwitchExpression' ||
+		t === 'JSXTryExpression' ||
 		t === 'IfStatement' ||
 		t === 'ForOfStatement' ||
 		t === 'SwitchStatement' ||

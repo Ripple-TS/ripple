@@ -286,16 +286,22 @@ export function get_comment_handlers(source, comments, index = 0) {
 	 */
 	function isNativeTemplateNode(node) {
 		return (
-			(node?.type === 'JSXElement' || node?.type === 'JSXFragment') && node.metadata?.native_tsrx
+			(node?.type === 'JSXElement' ||
+				node?.type === 'JSXFragment' ||
+				node?.type === 'JSXStyleElement') &&
+			node.metadata?.native_tsrx
 		);
 	}
 
 	/**
 	 * @param {any} node
-	 * @returns {node is ESTreeJSX.JSXElement & AST.NodeWithLocation}
+	 * @returns {node is (ESTreeJSX.JSXElement | AST.JSXStyleElement) & AST.NodeWithLocation}
 	 */
 	function isNativeTemplateElement(node) {
-		return node?.type === 'JSXElement' && node.metadata?.native_tsrx;
+		return (
+			(node?.type === 'JSXElement' || node?.type === 'JSXStyleElement') &&
+			node.metadata?.native_tsrx
+		);
 	}
 
 	/**
@@ -344,7 +350,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 	}
 
 	/**
-	 * @param {ESTreeJSX.JSXElement} node
+	 * @param {ESTreeJSX.JSXElement | AST.JSXStyleElement} node
 	 * @returns {string | null}
 	 */
 	function getJSXElementName(node) {
@@ -411,9 +417,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 							const ancestor = path[i];
 							if (
 								ancestor &&
-								(ancestor.type === 'JSXAttribute' ||
-									ancestor.type === 'Attribute' ||
-									ancestor.type === 'JSXExpressionContainer')
+								(ancestor.type === 'JSXAttribute' || ancestor.type === 'JSXExpressionContainer')
 							) {
 								return true;
 							}
@@ -429,7 +433,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 						for (let i = path.length - 1; i >= 0; i--) {
 							const ancestor = path[i];
 							// we would definitely reach the attribute first before getting to the element
-							if (ancestor.type === 'JSXAttribute' || ancestor.type === 'Attribute') {
+							if (ancestor.type === 'JSXAttribute') {
 								return false;
 							}
 							if (isNativeTemplateElement(ancestor)) {

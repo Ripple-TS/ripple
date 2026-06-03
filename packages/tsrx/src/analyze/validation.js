@@ -134,11 +134,12 @@ const invalid_nestings = {
 };
 
 /**
- * @param {AST.Element} element
+ * @param {any} element
  * @returns {string | null}
  */
 function get_element_tag(element) {
-	return element.id.type === 'Identifier' ? element.id.name : null;
+	const name = element.openingElement?.name ?? element.id;
+	return name?.type === 'JSXIdentifier' || name?.type === 'Identifier' ? name.name : null;
 }
 
 /**
@@ -240,7 +241,7 @@ export function validate_tsrx_unsupported_loop_statement(node, filename, errors,
 }
 
 /**
- * @param {AST.Element} element
+ * @param {any} element
  * @param {AnalysisContext} context
  * @param {CompileError[]} [errors]
  */
@@ -253,7 +254,7 @@ export function validate_nesting(element, context, errors) {
 
 	for (let i = context.path.length - 1; i >= 0; i--) {
 		const parent = context.path[i];
-		if (parent.type === 'Element') {
+		if (parent.type === 'JSXElement' || parent.type === 'JSXStyleElement') {
 			const parent_tag = get_element_tag(parent);
 			if (parent_tag === null) {
 				continue;

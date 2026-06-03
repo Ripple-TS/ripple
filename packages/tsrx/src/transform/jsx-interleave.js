@@ -14,9 +14,8 @@
  * source position so mutations in following statements do not retroactively
  * change what earlier children rendered.
  *
- * The `is_jsx_child` predicate is target-specific — each target recognizes
- * a different set of JSX-bearing node types (Ripple `Element`, `Text`,
- * `TSRXExpression`, etc. plus plain JSX nodes).
+	 * The `is_jsx_child` predicate is target-specific — each target recognizes
+	 * its JSX-bearing child nodes and template-control expressions.
  *
  * @param {any[]} body_nodes
  * @param {(node: any) => boolean} is_jsx_child

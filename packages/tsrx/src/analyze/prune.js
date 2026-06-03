@@ -20,14 +20,57 @@ let style_identifier_classes;
 let top_scoped_classes;
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_native_jsx_element(node) {
+	return node?.type === 'JSXElement' && node.metadata?.native_tsrx;
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function get_element_name(node) {
+	return node.openingElement?.name ?? node.id;
+}
+
+/**
+ * @param {any} node
+ * @returns {any[]}
+ */
+function get_element_attributes(node) {
+	return node.openingElement?.attributes ?? node.attributes ?? [];
+}
+
+/**
+ * @param {any} attribute
+ * @returns {string | null}
+ */
+function get_attribute_name(attribute) {
+	const name = attribute.name;
+	if (name?.type === 'JSXIdentifier' || name?.type === 'Identifier') return name.name;
+	return null;
+}
+
+/**
+ * @param {any} attribute
+ * @returns {any}
+ */
+function get_attribute_value(attribute) {
+	const value = attribute.value;
+	return value?.type === 'JSXExpressionContainer' ? value.expression : value;
+}
+
+/**
  * Returns true if node is a DOM element (not a component).
  * @param {AST.Node} node
  * @returns {boolean}
  */
 function is_element_dom_element(node) {
-	const id = /** @type {AST.Element} */ (node).id;
+	const id = get_element_name(node);
 	return (
-		id.type === 'Identifier' &&
+		(id.type === 'Identifier' || id.type === 'JSXIdentifier') &&
 		id.name[0].toLowerCase() === id.name[0] &&
 		id.name !== 'children' &&
 		!id.tracked
@@ -36,11 +79,12 @@ function is_element_dom_element(node) {
 
 /**
  * Returns true if element is dynamic.
- * @param {AST.Element} node
+ * @param {any} node
  * @returns {boolean}
  */
 function is_element_dynamic(node) {
-	return node.id.type === 'Identifier' ? !!node.id.tracked : false;
+	const id = get_element_name(node);
+	return id?.type === 'Identifier' || id?.type === 'JSXIdentifier' ? !!id.tracked : false;
 }
 
 // CSS selector constants
@@ -220,7 +264,7 @@ function truncate(node) {
 /**
  * @param {AST.CSS.RelativeSelector[]} relative_selectors
  * @param {AST.CSS.Rule} rule
- * @param {AST.Element} element
+ * @param {any} element
  * @param {Direction} direction
  * @returns {boolean}
  */
@@ -271,12 +315,12 @@ function apply_selector(relative_selectors, rule, element, direction) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {any} node
  * @param {boolean} adjacent_only
- * @returns {AST.Element[]}
+ * @returns {any[]}
  */
 function get_ancestor_elements(node, adjacent_only) {
-	/** @type {AST.Element[]} */
+	/** @type {any[]} */
 	const ancestors = [];
 
 	const path = node.metadata.path;
@@ -285,7 +329,7 @@ function get_ancestor_elements(node, adjacent_only) {
 	while (i--) {
 		const parent = path[i];
 
-		if (parent.type === 'Element') {
+		if (is_native_jsx_element(parent)) {
 			ancestors.push(parent);
 			if (adjacent_only) {
 				break;
@@ -297,12 +341,12 @@ function get_ancestor_elements(node, adjacent_only) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {any} node
  * @param {boolean} adjacent_only
- * @returns {AST.Element[]}
+ * @returns {any[]}
  */
 function get_descendant_elements(node, adjacent_only) {
-	/** @type {AST.Element[]} */
+	/** @type {any[]} */
 	const descendants = [];
 
 	/**
@@ -311,26 +355,23 @@ function get_descendant_elements(node, adjacent_only) {
 	 * @returns {void}
 	 */
 	function visit(current_node, depth = 0) {
-		if (current_node.type === 'Element' && current_node !== node) {
+		if (is_native_jsx_element(current_node) && current_node !== node) {
 			descendants.push(current_node);
 			if (adjacent_only) return; // Only direct children for '>' combinator
 		}
 
-		// Visit children based on TSRX's template AST structure
-		if (/** @type {AST.Element} */ (current_node).children) {
-			for (const child of /** @type {AST.Element} */ (current_node).children) {
+		if (current_node.children) {
+			for (const child of current_node.children) {
 				visit(child, depth + 1);
 			}
 		}
 
-		// For template nodes and interpolation expressions
 		if (
-			(current_node.type === 'TSRXExpression' || current_node.type === 'Text') &&
-			/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression &&
-			typeof (/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression) ===
-				'object'
+			current_node.type === 'JSXExpressionContainer' &&
+			current_node.expression &&
+			typeof current_node.expression === 'object'
 		) {
-			visit(/** @type {AST.TSRXExpression | AST.TextNode} */ (current_node).expression, depth + 1);
+			visit(current_node.expression, depth + 1);
 		}
 	}
 
@@ -357,18 +398,19 @@ function can_render_dynamic_content(element, check_classes = false) {
 
 	// Either a dynamic element or component (only can tell at runtime)
 	// But dynamic elements should return false ideally
-	if (is_element_dynamic(/** @type {AST.Element} */ (element))) {
+	if (is_element_dynamic(element)) {
 		return true;
 	}
 
 	// Check for dynamic class attributes if requested (for class-based selectors)
-	if (check_classes && /** @type {AST.Element} */ (element).attributes) {
-		for (const attr of /** @type {AST.Element} */ (element).attributes) {
-			if (attr.type === 'Attribute' && attr.name.name === 'class') {
+	if (check_classes) {
+		for (const attr of get_element_attributes(element)) {
+			if (attr.type === 'JSXAttribute' && get_attribute_name(attr) === 'class') {
+				const value = get_attribute_value(attr);
 				// Check if class value is an expression (not a static string)
-				if (attr.value && typeof attr.value === 'object') {
+				if (value && typeof value === 'object') {
 					// If it's a CallExpression or other dynamic value, it's dynamic
-					if (attr.value.type !== 'Literal' && attr.value.type !== 'Text') {
+					if (value.type !== 'Literal') {
 						return true;
 					}
 				}
@@ -383,7 +425,7 @@ function can_render_dynamic_content(element, check_classes = false) {
  * @param {AST.Node} node
  * @param {Direction} direction
  * @param {boolean} adjacent_only
- * @returns {Map<AST.Element, boolean>}
+ * @returns {Map<any, boolean>}
  */
 function get_possible_element_siblings(node, direction, adjacent_only) {
 	const siblings = new Map();
@@ -415,7 +457,7 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 	for (let i = start; i !== end; i += step) {
 		const sibling = container[i];
 
-		if (sibling.type === 'Element') {
+		if (is_native_jsx_element(sibling)) {
 			siblings.set(sibling, true);
 			// Don't break for dynamic elements (children and dynamic components)
 			// as they can render dynamic content or might render nothing
@@ -427,10 +469,8 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 		// Stop at non-whitespace text nodes for adjacent selectors
 		else if (
 			adjacent_only &&
-			(sibling.type === 'TSRXExpression' || sibling.type === 'Text') &&
-			sibling.expression.type === 'Literal' &&
-			typeof sibling.expression.value === 'string' &&
-			sibling.expression.value.trim()
+			sibling.type === 'JSXText' &&
+			sibling.value.trim()
 		) {
 			break;
 		}
@@ -443,7 +483,7 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
  * @param {AST.CSS.RelativeSelector} relative_selector
  * @param {AST.CSS.RelativeSelector[]} rest_selectors
  * @param {AST.CSS.Rule} rule
- * @param {AST.Element} node
+ * @param {any} node
  * @param {Direction} direction
  * @returns {boolean}
  */
@@ -515,7 +555,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 
 									for (let i = search_start; i < search_end; i++) {
 										const subsequent = container[i];
-										if (subsequent.type === 'Element') {
+										if (is_native_jsx_element(subsequent)) {
 											if (apply_selector(remaining, rule, subsequent, direction)) {
 												sibling_matched = true;
 												break;
@@ -529,7 +569,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 					}
 					// Don't apply_selector for dynamic elements - they won't match regular element selectors
 				} else if (
-					possible_sibling.type === 'Element' &&
+					is_native_jsx_element(possible_sibling) &&
 					apply_selector(rest_selectors, rule, possible_sibling, direction)
 				) {
 					sibling_matched = true;
@@ -551,7 +591,7 @@ function apply_combinator(relative_selector, rest_selectors, rule, node, directi
 }
 /**
  * @param {AST.Node} node
- * @returns {AST.Element | null}
+ * @returns {any | null}
  */
 function get_element_parent(node) {
 	// Check if metadata and path exist
@@ -565,7 +605,7 @@ function get_element_parent(node) {
 	while (i--) {
 		const parent = path[i];
 
-		if (parent.type === 'Element') {
+		if (is_native_jsx_element(parent)) {
 			return parent;
 		}
 	}
@@ -664,11 +704,12 @@ function is_global(selector, rule) {
 }
 
 /**
- * @param {AST.Attribute} attribute
- * @returns {attribute is AST.Attribute & { value: AST.Literal & { value: string } }}
+ * @param {any} attribute
+ * @returns {boolean}
  */
 function is_text_attribute(attribute) {
-	return attribute.value?.type === 'Literal' && typeof attribute.value.value === 'string';
+	const value = get_attribute_value(attribute);
+	return value?.type === 'Literal' && typeof value.value === 'string';
 }
 
 /**
@@ -702,7 +743,7 @@ function test_attribute(operator, expected_value, case_insensitive, value) {
 }
 
 /**
- * @param {AST.Element} node
+ * @param {any} node
  * @param {string} name
  * @param {string | null} expected_value
  * @param {string | null} operator
@@ -710,18 +751,26 @@ function test_attribute(operator, expected_value, case_insensitive, value) {
  * @returns {boolean}
  */
 function attribute_matches(node, name, expected_value, operator, case_insensitive) {
-	for (const attribute of node.attributes) {
-		if (attribute.type === 'SpreadAttribute') return true;
+	for (const attribute of get_element_attributes(node)) {
+		if (attribute.type === 'JSXSpreadAttribute') return true;
 
-		if (attribute.type !== 'Attribute') continue;
+		if (attribute.type !== 'JSXAttribute') continue;
 
 		const lowerCaseName = name.toLowerCase();
-		if (![lowerCaseName, `$${lowerCaseName}`].includes(attribute.name.name.toLowerCase())) continue;
+		const attributeName = get_attribute_name(attribute);
+		if (!attributeName || ![lowerCaseName, `$${lowerCaseName}`].includes(attributeName.toLowerCase())) {
+			continue;
+		}
 
 		if (expected_value === null) return true;
 
 		if (is_text_attribute(attribute)) {
-			return test_attribute(operator, expected_value, case_insensitive, attribute.value.value);
+			return test_attribute(
+				operator,
+				expected_value,
+				case_insensitive,
+				get_attribute_value(attribute).value,
+			);
 		} else {
 			return true;
 		}
@@ -754,7 +803,7 @@ function is_outer_global(relative_selector) {
 /**
  * @param {AST.CSS.RelativeSelector} relative_selector
  * @param {AST.CSS.Rule} rule
- * @param {AST.Element} element
+ * @param {any} element
  * @param {Direction} direction
  * @return {boolean}
  */
@@ -879,8 +928,8 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 								selector.metadata.scoped = true;
 							}
 
-							/** @type {AST.Element | null} */
-							let el = element;
+								/** @type {any | null} */
+								let el = element;
 							while (el) {
 								el.metadata.scoped = true;
 								el = get_element_parent(el);
@@ -928,10 +977,12 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 				break;
 			}
 
-			case 'AttributeSelector': {
-				const whitelisted = whitelist_attribute_selector.get(
-					/** @type {AST.Identifier} */ (element.id).name.toLowerCase(),
-				);
+				case 'AttributeSelector': {
+					const element_name = get_element_name(element);
+					const whitelisted =
+						element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier'
+							? whitelist_attribute_selector.get(element_name.name.toLowerCase())
+							: undefined;
 				if (
 					!whitelisted?.includes(selector.name.toLowerCase()) &&
 					!attribute_matches(
@@ -967,16 +1018,17 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 				break;
 			}
 
-			case 'TypeSelector': {
-				if (is_element_dynamic(/** @type {AST.Element} */ (element))) {
-					break;
-				}
+				case 'TypeSelector': {
+					if (is_element_dynamic(element)) {
+						break;
+					}
 
-				if (
-					element.id.type === 'Identifier' &&
-					element.id.name.toLowerCase() !== name.toLowerCase() &&
-					name !== '*'
-				) {
+					const element_name = get_element_name(element);
+					if (
+						(element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier') &&
+						element_name.name.toLowerCase() !== name.toLowerCase() &&
+						name !== '*'
+					) {
 					return false;
 				}
 
@@ -1061,10 +1113,10 @@ function rule_has_animation(rule) {
 	return false;
 }
 
-/**
- * @param {AST.CSS.StyleSheet} css
- * @param {AST.Element} element
- * @param {StyleClasses} styleClasses
+	/**
+	 * @param {AST.CSS.StyleSheet} css
+	 * @param {any} element
+	 * @param {StyleClasses} styleClasses
  * @param {TopScopedClasses} topScopedClasses
  * @return {void}
  */
