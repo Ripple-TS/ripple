@@ -65,7 +65,7 @@ const TSX_EXPR_HTML_SINGLE = highlight_tsrx(
 const TEXT_EXPR_HTML = highlight_tsrx(
 	`const Inbox = ({ name, count }: { name: string; count: number }) => <>
   <p>Hello, {name}!</p>
-  <p>{'You have ' + count + ' unread messages'}</p>
+  <p>You have {count} unread messages</p>
   <p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
 </>;`,
 );

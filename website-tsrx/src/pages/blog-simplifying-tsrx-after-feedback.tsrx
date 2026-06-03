@@ -9,7 +9,7 @@ const OLD_COMPONENT_SYNTAX_HTML = highlight_tsrx(
   const displayName = user.name.trim();
 
   if (user.isAdmin) {
-    <p>{displayName}" can manage settings."</p>
+    <p>{displayName} can manage settings.</p>
   }
 
   const title = <tsx><strong>{displayName}</strong></tsx>;
@@ -46,9 +46,9 @@ const STATEMENT_CONTROL_FLOW_HTML = highlight_tsrx(
     try {
       <ActivityFeed />
     } pending {
-      <p>"Loading activity..."</p>
+      <p>Loading activity...</p>
     } catch (error) {
-      <p>"Could not load activity."</p>
+      <p>Could not load activity.</p>
     }
   </>;
 }`,

@@ -123,6 +123,28 @@ describe('TSRX parser', () => {
 		expect(returned.children[2].value).toContain('Hello');
 	});
 
+	it('treats unfenced keyword and symbol-looking element children as JSXText', () => {
+		const returned = getReturned(`function App() { return <div>
+			<code>const</code>
+			<code>@if</code>
+			<code>@tsrx/react</code>
+			<code>/mcp</code>
+			<a>#1177</a>
+		</div>; }`);
+
+		const elements = returned.children.filter((child) => child.type === 'JSXElement');
+		expect(elements[0].children[0].type).toBe('JSXText');
+		expect(elements[0].children[0].value).toBe('const');
+		expect(elements[1].children[0].type).toBe('JSXText');
+		expect(elements[1].children[0].value).toBe('@if');
+		expect(elements[2].children[0].type).toBe('JSXText');
+		expect(elements[2].children[0].value).toBe('@tsrx/react');
+		expect(elements[3].children[0].type).toBe('JSXText');
+		expect(elements[3].children[0].value).toBe('/mcp');
+		expect(elements[4].children[0].type).toBe('JSXText');
+		expect(elements[4].children[0].value).toBe('#1177');
+	});
+
 	it('allows JSX in the script side of a template fence', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = <div />

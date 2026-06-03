@@ -381,12 +381,8 @@ const nativeTemplate = <>
 
 ```tsrx
 const Inbox = ({ name, count }: { name: string; count: number }) => <>
-	<p>
-		"Hello, "
-		{name}
-		"!"
-	</p>
-	<p>{'You have ' + count + ' unread messages'}</p>
+	<p>Hello, {name}!</p>
+	<p>You have {count} unread messages</p>
 	<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
 </>;
 ```
@@ -723,7 +719,7 @@ export const Counter = () => <>
 			count += 1;
 		}
 	};
-	<button onClick={increment}>{'Count: ' + count}</button>
+	<button onClick={increment}>Count: {count}</button>
 </>;
 ```
 

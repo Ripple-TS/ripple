@@ -25,6 +25,7 @@ const CharCode = Object.freeze({
 	carriageReturn: 13,
 	space: 32,
 	doubleQuote: 34,
+	numberSign: 35,
 	dollar: 36,
 	ampersand: 38,
 	singleQuote: 39,
@@ -895,36 +896,7 @@ export function TSRXPlugin(config) {
 					return false;
 				}
 
-				const label =
-					this.type.keyword ||
-					(typeof this.value === 'string' ? this.value : this.type.label);
-				return !(
-					label === 'const' ||
-					label === 'let' ||
-					label === 'var' ||
-					label === 'function' ||
-					label === 'class' ||
-					label === 'if' ||
-					label === 'for' ||
-					label === 'switch' ||
-					label === 'try' ||
-					label === 'while' ||
-					label === 'do' ||
-					label === 'return' ||
-					label === 'throw' ||
-					label === 'break' ||
-					label === 'continue' ||
-					label === 'debugger' ||
-					label === 'await' ||
-					label === 'async' ||
-					label === 'import' ||
-					label === 'export' ||
-					label === 'type' ||
-					label === 'interface' ||
-					label === 'enum' ||
-					label === 'namespace' ||
-					label === 'module'
-				);
+				return !this.#isJSXControlFlowDirectiveStart();
 			}
 
 			#isSwitchCaseScriptStatementStart() {
@@ -1074,7 +1046,27 @@ export function TSRXPlugin(config) {
 			}
 
 			#isJSXControlFlowDirectiveStart() {
-				return this.input.charCodeAt(this.start) === CharCode.at;
+				if (this.input.charCodeAt(this.start) !== CharCode.at) return false;
+
+				let index = this.start + 1;
+				if (!this.#isIdentifierChar(this.input.charCodeAt(index))) return false;
+
+				const word_start = index;
+				index++;
+				while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+					index++;
+				}
+
+				const word = this.input.slice(word_start, index);
+				const next_non_whitespace = skip_whitespace_from(this.input, index);
+				const next = this.input.charCodeAt(next_non_whitespace);
+				return (
+					!this.#isIdentifierChar(this.input.charCodeAt(index)) &&
+					(word === 'try'
+						? next === CharCode.openBrace
+						: (word === 'if' || word === 'for' || word === 'switch') &&
+							next === CharCode.openParen)
+				);
 			}
 
 			/**
@@ -1956,6 +1948,21 @@ export function TSRXPlugin(config) {
 					}
 					this.exprAllowed = false;
 				}
+
+				if (
+					(code === CharCode.numberSign || code === CharCode.slash) &&
+					this.#functionBodyDepth === 0 &&
+					this.#isNativeTemplateNode(this.#path.at(-1)) &&
+					!(
+						code === CharCode.slash &&
+						(this.input.charCodeAt(this.pos - 1) === CharCode.lessThan ||
+							this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan)
+					)
+				) {
+					++this.pos;
+					return this.finishToken(tt.name, this.input.slice(this.start, this.pos));
+				}
+
 				if (code === CharCode.lessThan) {
 					// < character
 					const parent = this.#path.at(-1);
@@ -3325,6 +3332,7 @@ export function TSRXPlugin(config) {
 							current_template_node.metadata?.native_tsrx_template_block &&
 							current_template_node.metadata?.hasTemplateFenceAhead
 						) &&
+						!this.#hasTemplateFenceBeforeElementClose(this.start, current_template_node) &&
 						this.#canImplicitlyEnterTemplateOutput(body) &&
 						this.#isImplicitTemplateRawTextStart()
 					) {
