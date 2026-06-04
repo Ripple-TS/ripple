@@ -2800,6 +2800,10 @@ export function TSRXPlugin(config) {
 							this.pos = end;
 							this.curLine = endLoc.line;
 							this.lineStart = end - endLoc.column;
+							if (this.curContext()?.token === '{') {
+								this.context.pop();
+							}
+							this.exprAllowed = false;
 							this.next();
 							return this.finishNodeAt(node, 'JSXAttribute', end, endLoc);
 						}
@@ -3308,13 +3312,14 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * Override jsx_parseElement to parse tags and bare fragments as native TSRX
-			 * by default.
+			 * Override jsx_parseElement to use TSRX template parsing only where the
+			 * fragment/element body can contain TSRX-only syntax.
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
+					this.#functionBodyDepth > 1 ||
 					this.#isInsideNativeTemplateScriptSection() ||
 					(!this.#currentNativeTemplateNode() &&
 						this.input.charCodeAt(this.start + 1) !== CharCode.greaterThan &&
@@ -3549,9 +3554,10 @@ export function TSRXPlugin(config) {
 					}
 					this.pos = this.start;
 					if (!should_enter_template_text) {
-						while (this.curContext() === tstc.tc_expr) {
-							this.context.pop();
-						}
+						this.context = this.context.filter(
+							(context) =>
+								context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+						);
 						this.startLoc = this.curPosition();
 						if (this.curContext() !== b_stat) {
 							this.context.push(b_stat);
@@ -3889,7 +3895,7 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxTagStart) {
-					if (this.#functionBodyDepth > 0 || this.#forceScriptJSXElementDepth > 0) {
+					if (this.#functionBodyDepth > 1 || this.#forceScriptJSXElementDepth > 0) {
 						return /** @type {AST.Statement} */ (
 							/** @type {unknown} */ (super.parseStatement(context, topLevel, exports))
 						);
