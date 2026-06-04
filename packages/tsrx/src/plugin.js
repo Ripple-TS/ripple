@@ -715,9 +715,15 @@ export function TSRXPlugin(config) {
 					}
 
 					if (ch === CharCode.lessThan) {
+						// A closing tag (`</tag>`) always follows `<` with `/`; only a
+						// generic arrow (`<T>() => ...`) or type argument list (`foo<T>`)
+						// should be skipped here. Without the `/` guard, text like
+						// `hello</b>` looks like `o<...>` and the closing tag is swallowed,
+						// leaving the stack unbalanced so a later `---` fence is missed.
 						if (
-							looks_like_generic_arrow(this.input, index) ||
-							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))
+							next !== CharCode.slash &&
+							(looks_like_generic_arrow(this.input, index) ||
+								this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1)))
 						) {
 							const type_end = scan_balanced_from(
 								this.input,
@@ -1177,6 +1183,29 @@ export function TSRXPlugin(config) {
 					this.input.charCodeAt(this.pos - 2) === CharCode.lessThan
 				) {
 					return false;
+				}
+				// Just past a self-closing tag's `/>`: that element has no body, so any
+				// following raw text belongs to an enclosing template, not to it. With no
+				// enclosing template (e.g. a top-level `return <div />`), the trailing
+				// text is plain JS and must not be read as template raw text.
+				const opening = this.#openingNativeTemplateNode;
+				if (
+					opening &&
+					current_template_node === opening &&
+					/** @type {any} */ (opening).openingElement?.selfClosing &&
+					this.input.charCodeAt(this.pos - 1) === CharCode.greaterThan &&
+					this.input.charCodeAt(this.pos - 2) === CharCode.slash
+				) {
+					const enclosing = this.#path.findLast(
+						(node) => node !== opening && this.#isNativeTemplateNode(node),
+					);
+					if (!enclosing) {
+						return false;
+					}
+					return (
+						enclosing.metadata?.templateMode === 'template' ||
+						!this.#hasTemplateFenceBeforeElementClose(this.pos, enclosing)
+					);
 				}
 				return (
 					current_template_node.metadata?.templateMode === 'template' ||
@@ -3460,13 +3489,8 @@ export function TSRXPlugin(config) {
 			jsx_parseElement() {
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
-					(this.#functionBodyDepth > 1 &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
-					this.#isInsideNativeTemplateScriptSection() ||
-					(!this.#currentNativeTemplateNode() &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.greaterThan &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.at &&
-						!this.#isStyleOpeningTagStart())
+					(this.#functionBodyDepth > 1 && this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
+					this.#isInsideNativeTemplateScriptSection()
 				) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
@@ -3766,6 +3790,21 @@ export function TSRXPlugin(config) {
 				if (this.type === tt.braceL) {
 					body.push(this.#parseNativeTemplateExpressionContainer());
 				} else if (is_template_output && this.type === tstt.jsxText) {
+					// A nested element with its own script section can leak a JSX
+					// expression context, so the whitespace after its closing tag is
+					// mis-tokenized as a stale text token whose start was advanced onto the
+					// following `<`. Real JSX text never starts at `<`, so drop the leaked
+					// context and re-read the tag instead of emitting an empty node.
+					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
+						while (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
+						this.pos = this.start;
+						this.exprAllowed = true;
+						this.next();
+						this.parseTemplateBody(body);
+						return;
+					}
 					body.push(this.#parseTemplateRawText());
 				} else if (is_template_output && this.#isJSXControlFlowDirectiveStart()) {
 					body.push(this.#parseJSXControlFlowExpression());

@@ -224,6 +224,26 @@ describe('TSRX parser', () => {
 		expect(returned.children[0].declarations[0].init.type).toBe('JSXElement');
 	});
 
+	it('allows JSX text children in the script side of nested template elements', () => {
+		const returned = getReturned(`function App() { return <>
+			---
+			<section>
+				const x = <div>hello</div>
+				---
+				{x}
+			</section>
+		</>; }`);
+
+		const section = returned.children.find((child) => child.type === 'JSXElement');
+		expect(section.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(section.children[0].declarations[0].init.children[0].type).toBe('JSXText');
+		expect(section.children[0].declarations[0].init.children[0].value).toBe('hello');
+	});
+
 	it('does not treat closing-tag text inside script strings as markup', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = "</div><div>"
