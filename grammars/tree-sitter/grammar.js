@@ -494,13 +494,18 @@ module.exports = grammar({
 				field('body', $.jsx_switch_body),
 			),
 
-		jsx_switch_body: ($) =>
-			seq('{', repeat(choice($.jsx_switch_case, $.jsx_switch_default)), '}'),
+		jsx_switch_body: ($) => seq('{', repeat(choice($.jsx_switch_case, $.jsx_switch_default)), '}'),
 
 		jsx_switch_case: ($) =>
-			seq('case', field('value', $.expression), ':', repeat(field('children', $._jsx_template_child))),
+			seq(
+				'case',
+				field('value', $.expression),
+				':',
+				repeat(field('children', $._jsx_template_child)),
+			),
 
-		jsx_switch_default: ($) => seq('default', ':', repeat(field('children', $._jsx_template_child))),
+		jsx_switch_default: ($) =>
+			seq('default', ':', repeat(field('children', $._jsx_template_child))),
 
 		jsx_try_expression: ($) =>
 			seq(
@@ -517,7 +522,13 @@ module.exports = grammar({
 		jsx_catch_clause: ($) =>
 			seq(
 				'catch',
-				optional(seq('(', commaSep1(field('parameter', choice($.identifier, $._destructuring_pattern))), ')')),
+				optional(
+					seq(
+						'(',
+						commaSep1(field('parameter', choice($.identifier, $._destructuring_pattern))),
+						')',
+					),
+				),
 				field('body', $.jsx_template_block),
 			),
 

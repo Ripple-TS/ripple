@@ -558,7 +558,7 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.ok).toBe(true);
 		expect(result.changed).toBe(true);
 		expect(result.formatted).toBe(
-				`export const App = () => <button class=\"primary\">Save</button>;\n`,
+			`export const App = () => <button class=\"primary\">Save</button>;\n`,
 		);
 		expect(result.errors).toEqual([]);
 		expect(result.message).toMatch(/cwd was not supplied/);
@@ -665,9 +665,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(join(temp_dir, '.prettierrc'));
-			expect(result.formatted).toBe(
-				`export const App = () => <button>Save</button>;\n`,
-			);
+			expect(result.formatted).toBe(`export const App = () => <button>Save</button>;\n`);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}
@@ -686,9 +684,7 @@ describe('@tsrx/mcp compile helpers', () => {
 			expect(result.ok).toBe(true);
 			expect(result.configPath).toBe(null);
 			// Built-in defaults: tabs, single quotes, width 100.
-			expect(result.formatted).toBe(
-				`export const App = () => <button>Save</button>;\n`,
-			);
+			expect(result.formatted).toBe(`export const App = () => <button>Save</button>;\n`);
 		} finally {
 			await rm(temp_dir, { recursive: true, force: true });
 		}

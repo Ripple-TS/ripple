@@ -2029,10 +2029,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 	describe(`[${name}] JSX fragment values`, () => {
 		it('preserves JSX template text in expression position', () => {
-			const { code } = compile(
-				`class Foo { bar() { return <><div>Hello</div></>; } }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`class Foo { bar() { return <><div>Hello</div></>; } }`, 'App.tsrx');
 
 			expect(code).toContain('Hello');
 		});
@@ -2040,11 +2037,11 @@ export function optionalFn(bar: string, baz?: string) {
 		it('parses compact JSX templates before a trailing newline at EOF', () => {
 			const { code } = compile(
 				[
-						`export function App() { return <>`,
-						`\tconst title = <><h1>Hello There</h1>{Test(1, 2)}</>;`,
-						`\t---`,
-						`\t{title}`,
-						`</>; }`,
+					`export function App() { return <>`,
+					`\tconst title = <><h1>Hello There</h1>{Test(1, 2)}</>;`,
+					`\t---`,
+					`\t{title}`,
+					`</>; }`,
 					``,
 					`function Test(p1, p2) {`,
 					`\treturn <><div>Hello</div><div>{p1}</div><div>{p2}</div></>;`,
@@ -3073,7 +3070,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('passes hyphenated style expression class names through a composite component prop', () => {
 			const { code, css, cssHash } = compile(
-					`export function App() { return <>
+				`export function App() { return <>
 						const styles = <style>
 							.accent-tone { color: red; }
 						</style>;
@@ -3089,7 +3086,7 @@ export function optionalFn(bar: string, baz?: string) {
 	});
 
 	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation constraints`, () => {
-			it('extracts hooks in expression-position JSX fragments into stable helper components', () => {
+		it('extracts hooks in expression-position JSX fragments into stable helper components', () => {
 			const { code } = compile(
 				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
 							function App({ active }: { active: boolean }) { return <>

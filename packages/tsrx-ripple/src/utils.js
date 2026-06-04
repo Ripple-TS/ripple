@@ -647,10 +647,7 @@ function expand_native_tsrx_return_statement(statement, omit_control_return = fa
 			: template_children;
 		return [
 			...children.map((child) =>
-				mark_returned_template_child(
-					child,
-					omit_control_return ? undefined : statement,
-				),
+				mark_returned_template_child(child, omit_control_return ? undefined : statement),
 			),
 			...(omit_control_return
 				? []
@@ -2590,7 +2587,8 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 								type: 'Identifier',
 								name,
 								start: attr.name.start,
-								end: attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
+								end:
+									attr.name.end && attr.name.end > attr.name.start ? attr.name.end : attr.end - 1,
 								loc: {
 									start: attr.name.loc?.start ?? attr.loc?.start,
 									end: attr.name.loc?.end ?? shorthand_end_loc,

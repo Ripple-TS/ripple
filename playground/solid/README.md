@@ -37,20 +37,26 @@ export function App() {
   return <>
     <Child />
     <h1>{'Hello Solid World'}</h1>
-    if (count() > 5) {
-      <div>{'count is big: ' + count()}</div>
-    } else if (count() > 2) {
-      <div>{'count is medium: ' + count()}</div>
-    } else {
-      <div>{'count is small: ' + count()}</div>
-    }
+    if (count() > 5)
+    {<div>
+      {'count is big: ' + count()}
+    </div>}
+    else if (count() > 2)
+    {<div>
+      {'count is medium: ' + count()}
+    </div>}
+    else
+    {<div>
+      {'count is small: ' + count()}
+    </div>}
     <button ref={buttonEl} onClick={() => setCount(count() + 1)}>
       {count()}
     </button>
     <ul>
-      for (const item of items; index i) {
-        <li>{'item ' + i() + ': ' + item}</li>
-      }
+      for (const item of items; index i)
+      {<li>
+        {'item ' + i() + ': ' + item}
+      </li>}
     </ul>
     <>
       <hr />

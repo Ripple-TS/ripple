@@ -742,8 +742,8 @@ function printRippleNode(node, path, options, print, args) {
 	const isInlineContext = args && args.isInlineContext;
 	const suppressLeadingComments = args && args.suppressLeadingComments;
 
-		// Handle leading comments
-		if (node.leadingComments && !suppressLeadingComments) {
+	// Handle leading comments
+	if (node.leadingComments && !suppressLeadingComments) {
 		for (let i = 0; i < node.leadingComments.length; i++) {
 			const comment = node.leadingComments[i];
 			const nextComment = node.leadingComments[i + 1];
@@ -872,29 +872,29 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSDeclareFunction(node, path, options, print);
 			break;
 
-			case 'IfStatement':
-				nodeContent = printIfStatement(node, path, options, print);
-				break;
-			case 'JSXIfExpression':
-				nodeContent = ['@', printIfStatement(node, path, options, print)];
-				break;
+		case 'IfStatement':
+			nodeContent = printIfStatement(node, path, options, print);
+			break;
+		case 'JSXIfExpression':
+			nodeContent = ['@', printIfStatement(node, path, options, print)];
+			break;
 
-			case 'ForOfStatement':
-				nodeContent = printForOfStatement(node, path, options, print);
-				break;
-			case 'JSXForExpression':
-				if (node.statementType === 'ForInStatement') {
-					nodeContent = ['@', printForInStatement(node, path, options, print)];
-				} else if (node.statementType === 'ForStatement') {
-					nodeContent = ['@', printForStatement(node, path, options, print)];
-				} else {
-					nodeContent = ['@', printForOfStatement(node, path, options, print)];
-				}
-				break;
+		case 'ForOfStatement':
+			nodeContent = printForOfStatement(node, path, options, print);
+			break;
+		case 'JSXForExpression':
+			if (node.statementType === 'ForInStatement') {
+				nodeContent = ['@', printForInStatement(node, path, options, print)];
+			} else if (node.statementType === 'ForStatement') {
+				nodeContent = ['@', printForStatement(node, path, options, print)];
+			} else {
+				nodeContent = ['@', printForOfStatement(node, path, options, print)];
+			}
+			break;
 
-			case 'ForStatement':
-				nodeContent = printForStatement(node, path, options, print);
-				break;
+		case 'ForStatement':
+			nodeContent = printForStatement(node, path, options, print);
+			break;
 
 		case 'ForInStatement':
 			nodeContent = printForInStatement(node, path, options, print);
@@ -913,12 +913,12 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printClassDeclaration(node, path, options, print);
 			break;
 
-			case 'TryStatement':
-				nodeContent = printTryStatement(node, path, options, print);
-				break;
-			case 'JSXTryExpression':
-				nodeContent = ['@', printTryStatement(node, path, options, print)];
-				break;
+		case 'TryStatement':
+			nodeContent = printTryStatement(node, path, options, print);
+			break;
+		case 'JSXTryExpression':
+			nodeContent = ['@', printTryStatement(node, path, options, print)];
+			break;
 
 		case 'ArrayExpression': {
 			if (!node.elements || node.elements.length === 0) {
@@ -1619,12 +1619,12 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printTSInterfaceBody(node, path, options, print);
 			break;
 
-			case 'SwitchStatement':
-				nodeContent = printSwitchStatement(node, path, options, print);
-				break;
-			case 'JSXSwitchExpression':
-				nodeContent = ['@', printSwitchStatement(node, path, options, print)];
-				break;
+		case 'SwitchStatement':
+			nodeContent = printSwitchStatement(node, path, options, print);
+			break;
+		case 'JSXSwitchExpression':
+			nodeContent = ['@', printSwitchStatement(node, path, options, print)];
+			break;
 
 		case 'SwitchCase':
 			nodeContent = printSwitchCase(node, path, options, print);
@@ -1682,7 +1682,7 @@ function printRippleNode(node, path, options, print, args) {
 			}
 			break;
 		}
-			case 'Identifier': {
+		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
 			const trackedPrefix = node.tracked ? '@' : '';
 			let identifierContent;
@@ -5808,7 +5808,8 @@ function printJSXElement(node, path, options, print) {
 		wasOriginallySingleLine(node) &&
 		meaningfulChildren.some((child) => child.type === 'JSXText') &&
 		meaningfulChildren.every(
-			(child) => child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
+			(child) =>
+				child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
 		)
 	) {
 		return group([openingTag, ...childrenDocs, '</', tagName, '>']);
@@ -6169,8 +6170,7 @@ function printElement(element, path, options, print) {
 				if (
 					!hasBreakingAttribute &&
 					(willBreak(attrDoc) ||
-						(attr_node.type === 'JSXAttribute' &&
-							is_attribute_value_breakable(attr_node.value)))
+						(attr_node.type === 'JSXAttribute' && is_attribute_value_breakable(attr_node.value)))
 				) {
 					hasBreakingAttribute = true;
 				}
@@ -6278,8 +6278,8 @@ function printElement(element, path, options, print) {
 			}
 		}
 
-			const isTextLikeChild =
-				currentChild.type === 'JSXExpressionContainer' || currentChild.type === 'JSXText';
+		const isTextLikeChild =
+			currentChild.type === 'JSXExpressionContainer' || currentChild.type === 'JSXText';
 		const hasTextLeadingComments =
 			shouldLiftTextLevelComments &&
 			isTextLikeChild &&

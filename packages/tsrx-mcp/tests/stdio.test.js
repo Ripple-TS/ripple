@@ -220,7 +220,7 @@ describe('@tsrx/mcp stdio server', () => {
 			const valid = await client.callTool({
 				name: 'compile-tsrx',
 				arguments: {
-						code: `export const Greeting = ({ name }: { name: string }) => <p>Hello {name}</p>;`,
+					code: `export const Greeting = ({ name }: { name: string }) => <p>Hello {name}</p>;`,
 					filename: 'Greeting.tsrx',
 					cwd: react_fixture,
 				},
@@ -269,7 +269,7 @@ describe('@tsrx/mcp stdio server', () => {
 			const formatted = await client.callTool({
 				name: 'format-tsrx',
 				arguments: {
-						code: `export const Greeting=({ name }: { name: string })=> <p>Hello {name}</p>;`,
+					code: `export const Greeting=({ name }: { name: string })=> <p>Hello {name}</p>;`,
 					filename: 'Greeting.tsrx',
 				},
 			});
@@ -279,8 +279,8 @@ describe('@tsrx/mcp stdio server', () => {
 				);
 			expect(formatted_output.ok).toBe(true);
 			expect(formatted_output.changed).toBe(true);
-				expect(formatted_output.formatted).toContain('export const Greeting');
-				expect(formatted_output.formatted).toContain('Hello');
+			expect(formatted_output.formatted).toContain('export const Greeting');
+			expect(formatted_output.formatted).toContain('Hello');
 			expect(formatted_output.formatted).toContain('{name}');
 
 			const validated = await client.callTool({

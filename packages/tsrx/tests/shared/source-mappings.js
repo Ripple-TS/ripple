@@ -1022,7 +1022,7 @@ function C() { return <>
 			// not carry a source mapping — otherwise the editor shows duplicate
 			// hover/intellisense (one for the name, one for the value) on the
 			// same `{count}` span.
-const source = `function App() { return <>
+			const source = `function App() { return <>
 	const count = 0;
 	const Inner = (p: { count: number }) => null;
 	---

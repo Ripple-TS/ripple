@@ -10,7 +10,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_accessibility({
 			target: 'react',
 			filename: 'App.tsrx',
-				code: `export function App() { return <>
+			code: `export function App() { return <>
 				<form>
 					<button type="submit"></button>
 					<input id={\`todo-\${todo.id}\`} type="checkbox" />
@@ -20,10 +20,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 
 		expect(result.ok).toBe(false);
 		expect(result.issues.map((issue) => issue.kind)).toEqual(
-				expect.arrayContaining([
-					'button-accessible-name',
-					'input-accessible-name',
-				]),
+			expect.arrayContaining(['button-accessible-name', 'input-accessible-name']),
 		);
 	});
 
@@ -83,7 +80,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 		const result = review_tsrx_components({
 			target: 'react',
 			filename: 'App.tsrx',
-				code: `export function App() { return <>
+			code: `export function App() { return <>
 				@if (items.length === 0) {
 					<p>{'Empty'}</p>
 				} else {

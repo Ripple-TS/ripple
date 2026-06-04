@@ -91,7 +91,6 @@ import { track } from 'ripple';
 export const Counter = () => <>
   let &[count] = track(0);
   ---
-
   <button onClick={() => count++}>
     Increment
     <span>{count}</span>

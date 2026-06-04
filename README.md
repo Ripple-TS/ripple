@@ -12,9 +12,9 @@
 # Ripple TS
 
 Ripple is a TypeScript-first UI framework built around `.tsrx` files, fine-grained
-reactivity, scoped styles, and a small runtime. It pairs the authoring feel of
-JSX with template-native control flow and TypeScript setup that can live right
-beside the UI it feeds.
+reactivity, scoped styles, and a small runtime. It pairs the authoring feel of JSX
+with template-native control flow and TypeScript setup that can live right beside
+the UI it feeds.
 
 Created by [@trueadm](https://github.com/trueadm), who has contributed to
 [Inferno](https://github.com/infernojs/inferno),
@@ -75,8 +75,8 @@ import { mount } from 'ripple';
 import { App } from './App.tsrx';
 
 mount(App, {
-	props: { title: 'Hello world!' },
-	target: document.getElementById('root'),
+  props: { title: 'Hello world!' },
+  target: document.getElementById('root'),
 });
 ```
 
@@ -85,8 +85,8 @@ mount(App, {
 ### Components
 
 The recommended component shape is an arrow function whose body is one TSRX
-fragment. That gives every component a stable place for TypeScript setup,
-rendered children, directive control flow, and scoped styles.
+fragment. That gives every component a stable place for TypeScript setup, rendered
+children, directive control flow, and scoped styles.
 
 ```tsrx
 type ButtonProps = {
@@ -118,10 +118,10 @@ tags is JSX text, not JavaScript.
 import { track } from 'ripple';
 
 export const Counter = () => <>
-	let &[count] = track(0);
-	const increment = () => count++;
-	---
-	<button onClick={increment}>Count: {count}</button>
+  let &[count] = track(0);
+  const increment = () => count++;
+  ---
+  <button onClick={increment}>Count:{count}</button>
 </>;
 ```
 
@@ -129,13 +129,17 @@ The same rule applies in nested scopes:
 
 ```tsrx
 export const Cart = ({ items }: { items: Item[] }) => <>
-	<div class="cart">
-		const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-		const discount = subtotal > 100 ? 0.1 : 0;
-		---
-		<p>Subtotal: ${subtotal}</p>
-		<p>Save: ${(subtotal * discount).toFixed(2)}</p>
-	</div>
+  <div class="cart">
+    const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+    const discount =
+      subtotal > 100 ? 0.1 : 0;
+    ---
+    <p>Subtotal: ${subtotal}</p>
+    <p>
+      Save: $
+      {(subtotal * discount).toFixed(2)}
+    </p>
+  </div>
 </>;
 ```
 
@@ -147,11 +151,11 @@ Static text is JSX text. Dynamic values use normal JSX expression containers.
 
 ```tsrx
 export const Greeting = ({ name }: { name?: string }) => <>
-	@if (name) {
-		<p>Hello, {name}</p>
-	} else {
-		<p>Hello, stranger</p>
-	}
+  @if (name) {
+    <p>Hello,{name}</p>
+  } else {
+    <p>Hello, stranger</p>
+  }
 </>;
 ```
 
@@ -165,20 +169,23 @@ import { RippleArray, track } from 'ripple';
 type Item = { id: number; name: string; done?: boolean };
 
 export const TodoList = () => <>
-	const items = new RippleArray<Item>(
-		{ id: 1, name: 'Plan the work' },
-		{ id: 2, name: 'Ship the work' },
-	);
-	let &[showDone] = track(true);
-	---
-	<ul>
-		@for (const item of items; index i; key item.id) {
-			if (!showDone && item.done) continue;
-			<li>
-				{i + 1}. {item.name}
-			</li>
-		}
-	</ul>
+  const items = new RippleArray<Item>({ id: 1, name: 'Plan the work' }, {
+    id: 2,
+    name: 'Ship the work',
+  });
+  let &[showDone] = track(true);
+  ---
+  <ul>
+    @for (const item of items; index i; key item.id) {
+      if (!showDone && item.done) continue;
+
+      <li>
+        {i + 1}
+        .
+        {item.name}
+      </li>
+    }
+  </ul>
 </>;
 ```
 
@@ -187,12 +194,15 @@ conditional rendering.
 
 ```tsrx
 export const Dashboard = ({ user }: { user: User | null }) => <>
-	if (!user) {
-		return null;
-	}
-	---
-	<h1>Welcome, {user.name}</h1>
-	<p>Here is your dashboard.</p>
+  if (!user) {
+    return null;
+  }
+  ---
+  <h1>
+    Welcome,
+    {user.name}
+  </h1>
+  <p>Here is your dashboard.</p>
 </>;
 ```
 
@@ -200,16 +210,19 @@ export const Dashboard = ({ user }: { user: User | null }) => <>
 
 ```tsrx
 export const ProfilePanel = () => <>
-	@try {
-		<UserProfile />
-	} pending {
-		<p>Loading...</p>
-	} catch (error, reset) {
-		<div>
-			<p>Error: {error.message}</p>
-			<button onClick={() => reset()}>Try again</button>
-		</div>
-	}
+  @try {
+    <UserProfile />
+  } pending {
+    <p>Loading...</p>
+  } catch (error, reset) {
+    <div>
+      <p>
+        Error:
+        {error.message}
+      </p>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  }
 </>;
 ```
 
@@ -222,21 +235,23 @@ reactive, and assignments write back to the tracked value.
 import { effect, track, type Tracked } from 'ripple';
 
 export const Counter = () => <>
-	let &[count, trackedCount] = track(0);
-	let &[double] = track(() => count * 2);
-
-	effect(() => {
-		console.log('Count changed:', count);
-	});
-	---
-	<p>Count: {count}</p>
-	<p>Double: {double}</p>
-	<button onClick={() => count++}>Increment</button>
-	<CounterValue count={trackedCount} />
+  let &[count, trackedCount] = track(0);
+  let &[double] = track(() => count * 2);
+  effect(() => {
+    console.log('Count changed:', count);
+  });
+  ---
+  <p>Count:{count}</p>
+  <p>Double:{double}</p>
+  <button onClick={() => count++}>Increment</button>
+  <CounterValue count={trackedCount} />
 </>;
 
 const CounterValue = ({ count }: { count: Tracked<number> }) => <>
-	<p>Shared value: {count.value}</p>
+  <p>
+    Shared value:
+    {count.value}
+  </p>
 </>;
 ```
 
@@ -251,20 +266,25 @@ Use Ripple collections when collection operations should be reactive.
 import { RippleArray, RippleMap, RippleObject, RippleSet } from 'ripple';
 
 export const Inventory = () => <>
-	const items = new RippleArray({ id: 1, name: 'Jacket' });
-	const totals = new RippleObject({ selected: 0 });
-	const prices = new RippleMap([[1, 120]]);
-	const selected = new RippleSet<number>();
-	---
-	<ul>
-		@for (const item of items; key item.id) {
-			<li>
-				{item.name}: ${prices.get(item.id)}
-			</li>
-		}
-	</ul>
-	<button onClick={() => selected.add(1)}>Select first item</button>
-	<p>Selected: {selected.size + totals.selected}</p>
+  const items = new RippleArray({ id: 1, name: 'Jacket' });
+  const totals = new RippleObject({ selected: 0 });
+  const prices = new RippleMap([[1, 120]]);
+  const selected = new RippleSet<number>();
+  ---
+  <ul>
+    @for (const item of items; key item.id) {
+      <li>
+        {item.name}
+        : $
+        {prices.get(item.id)}
+      </li>
+    }
+  </ul>
+  <button onClick={() => selected.add(1)}>Select first item</button>
+  <p>
+    Selected:
+    {selected.size + totals.selected}
+  </p>
 </>;
 ```
 
@@ -276,20 +296,20 @@ DOM refs use `ref`, and events use JSX-style event props.
 import { track } from 'ripple';
 
 export const SearchBox = () => <>
-	let &[value] = track('');
-	let input: HTMLInputElement | undefined;
-	---
-	<label>
-		Search
-		<input
-			ref={input}
-			value={value}
-			onInput={(event) => {
-				value = event.currentTarget.value;
-			}}
-		/>
-	</label>
-	<button onClick={() => input?.focus()}>Focus</button>
+  let &[value] = track('');
+  let input: HTMLInputElement | undefined;
+  ---
+  <label>
+    Search
+    <input
+      ref={input}
+      value={value}
+      onInput={(event) => {
+        value = event.currentTarget.value;
+      }}
+    />
+  </label>
+  <button onClick={() => input?.focus()}>Focus</button>
 </>;
 ```
 
@@ -302,18 +322,18 @@ properties for runtime values.
 import { track } from 'ripple';
 
 export const Notice = () => <>
-	let &[tone] = track('rebeccapurple');
-	---
-	<p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
-	<button onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}>
-		Toggle tone
-	</button>
-	<style>
-		.notice {
-			color: var(--notice-color);
-			font-weight: 700;
-		}
-	</style>
+  let &[tone] = track('rebeccapurple');
+  ---
+  <p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
+  <button
+    onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}
+  >Toggle tone</button>
+  <style>
+    .notice {
+      color: var(--notice-color);
+      font-weight: 700;
+    }
+  </style>
 </>;
 ```
 
@@ -339,22 +359,25 @@ import { Context, Portal, track, type Tracked } from 'ripple';
 const ThemeContext = new Context<Tracked<string>>();
 
 export const App = () => <>
-	let &[theme, themeTracked] = track('light');
-	ThemeContext.set(themeTracked);
-	---
-	<ThemeLabel />
-	<button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
-		Toggle theme
-	</button>
-	<Portal target={document.body}>
-		<p>Portal content</p>
-	</Portal>
+  let &[theme, themeTracked] = track('light');
+  ThemeContext.set(themeTracked);
+  ---
+  <ThemeLabel />
+  <button
+    onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}
+  >Toggle theme</button>
+  <Portal target={document.body}>
+    <p>Portal content</p>
+  </Portal>
 </>;
 
 const ThemeLabel = () => <>
-	const theme = ThemeContext.get();
-	---
-	<p>Theme: {theme.value}</p>
+  const theme = ThemeContext.get();
+  ---
+  <p>
+    Theme:
+    {theme.value}
+  </p>
 </>;
 ```
 
@@ -365,23 +388,23 @@ Import from `server` inside the same file before calling the server function.
 
 ```tsrx
 module server {
-	export async function loadMessage() {
-		return 'Loaded on the server';
-	}
+  export async function loadMessage() {
+    return 'Loaded on the server';
+  }
 }
 
 import { loadMessage } from server;
 import { effect, track } from 'ripple';
 
 export const Page = () => <>
-	let &[message] = track('Loading...');
-	effect(() => {
-		loadMessage().then((next) => {
-			message = next;
-		});
-	});
-	---
-	<p>{message}</p>
+  let &[message] = track('Loading...');
+  effect(() => {
+    loadMessage().then((next) => {
+      message = next;
+    });
+  });
+  ---
+  <p>{message}</p>
 </>;
 ```
 

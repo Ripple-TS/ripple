@@ -273,11 +273,7 @@ export function createJsxTransform(platform) {
 					}
 				}
 				return /** @type {any} */ (
-					b.jsx_element(
-						{ ...node, type: 'JSXElement' },
-						node.openingElement?.attributes ?? [],
-						[],
-					)
+					b.jsx_element({ ...node, type: 'JSXElement' }, node.openingElement?.attributes ?? [], [])
 				);
 			},
 
@@ -442,6 +438,36 @@ function build_component_statements(body_nodes, transform_context) {
  * @returns {any[]}
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
+	const fence_index = body_nodes.findIndex((node) => node?.type === 'TsrxTemplateFence');
+	if (fence_index !== -1) {
+		const statements = [];
+		const saved_bindings = transform_context.available_bindings;
+		transform_context.available_bindings = new Map(saved_bindings);
+
+		for (const child of body_nodes.slice(0, fence_index)) {
+			if (
+				!child ||
+				child.type === 'EmptyStatement' ||
+				(child.type === 'JSXText' && child.value.trim() === '')
+			) {
+				continue;
+			}
+			statements.push(child);
+			collect_statement_bindings(child, transform_context.available_bindings);
+		}
+
+		statements.push(
+			...build_render_statements(
+				body_nodes.slice(fence_index + 1),
+				return_null_when_empty,
+				transform_context,
+			),
+		);
+
+		transform_context.available_bindings = saved_bindings;
+		return statements;
+	}
+
 	const statements = [];
 	const render_nodes = [];
 	let has_terminal_return = false;
@@ -1813,7 +1839,8 @@ function create_native_tsrx_statement_list_block(block, transform_context) {
 function create_native_tsrx_render_statements(fragment, transform_context) {
 	return with_tsrx_fragment_styles(fragment, transform_context, (style_context) => {
 		const target = style_context?.fragment ?? fragment;
-		const render_nodes = target.type === 'JSXFragment' ? get_tsrx_render_children(target) : [target];
+		const render_nodes =
+			target.type === 'JSXFragment' ? get_tsrx_render_children(target) : [target];
 		return [
 			...create_tsrx_style_ref_setup_statements(target, style_context, transform_context),
 			...build_render_statements(render_nodes, true, transform_context),

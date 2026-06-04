@@ -199,7 +199,7 @@ describe('@tsrx/solid basic', () => {
 	describe('control flow', () => {
 		it('simple if → <Show when>', () => {
 			const { code } = compile(
-					`function App({ n }: { n: number }) { return <>
+				`function App({ n }: { n: number }) { return <>
 						@if (n > 0) {
 						<div>{'positive'}</div>
 					}
@@ -212,7 +212,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('if/else → <Show when fallback>', () => {
 			const { code } = compile(
-					`function App({ n }: { n: number }) { return <>
+				`function App({ n }: { n: number }) { return <>
 						@if (n > 0) {
 						<div>{'pos'}</div>
 					} else {
@@ -226,7 +226,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('if/else-if/else → <Switch>/<Match>', () => {
 			const { code } = compile(
-					`function App({ n }: { n: number }) { return <>
+				`function App({ n }: { n: number }) { return <>
 						@if (n > 10) {
 						<span>{'big'}</span>
 					} else if (n > 5) {
@@ -245,7 +245,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('for-of → <For each>{(item, i) => ...}', () => {
 			const { code } = compile(
-					`function App({ items }: { items: number[] }) { return <>
+				`function App({ items }: { items: number[] }) { return <>
 						@for (const item of items; index i) {
 						<li>{item}</li>
 					}
@@ -259,7 +259,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('for-of with `key` clause → <For keyed={...}>', () => {
 			const { code } = compile(
-					`function App({ items }: { items: { id: string; name: string }[] }) { return <>
+				`function App({ items }: { items: { id: string; name: string }[] }) { return <>
 						@for (const item of items; key item.id) {
 						<li>{item.name}</li>
 					}
@@ -275,7 +275,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
 			const { code } = compile(
-					`function App() { return <>
+				`function App() { return <>
 						@try {
 						<div>{'content'}</div>
 					} catch (err, reset) {
@@ -290,7 +290,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('try/pending/catch → <Errored><Loading>...', () => {
 			const { code } = compile(
-					`function App() { return <>
+				`function App() { return <>
 						@try {
 						<div>{'ready'}</div>
 					} pending {
@@ -308,7 +308,7 @@ describe('@tsrx/solid basic', () => {
 
 		it('switch statement → <Switch>/<Match> using ===', () => {
 			const { code } = compile(
-					`function App({ kind }: { kind: string }) { return <>
+				`function App({ kind }: { kind: string }) { return <>
 						@switch (kind) {
 						case 'a': <span>{'A'}</span>; break;
 						case 'b': <span>{'B'}</span>; break;

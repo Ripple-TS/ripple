@@ -20,9 +20,7 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(find_documentation_section('expression-values')?.content ?? '').toContain(
 			'PrimaryExpression',
 		);
-		expect(find_documentation_section('expression-values')?.content ?? '').toContain(
-			'JSXElement',
-		);
+		expect(find_documentation_section('expression-values')?.content ?? '').toContain('JSXElement');
 		expect(find_documentation_section('expression-values')?.content ?? '').not.toContain('tsx:');
 		expect(find_documentation_section('expression-values')?.content ?? '').not.toContain(
 			legacy_expression_node,

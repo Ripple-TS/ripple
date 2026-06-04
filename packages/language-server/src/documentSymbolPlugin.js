@@ -109,7 +109,9 @@ function collectFallbackDocumentSymbols(document, fileName) {
 		const ast = /** @type {AST.Program} */ (parse_module(document.getText(), fileName));
 		return toDocumentSymbols(collectDocumentSymbols(ast, document));
 	} catch (error) {
-		logError(`Unable to collect fallback document symbols: ${/** @type {Error} */ (error).message}`);
+		logError(
+			`Unable to collect fallback document symbols: ${/** @type {Error} */ (error).message}`,
+		);
 		return null;
 	}
 }
@@ -544,9 +546,7 @@ function getReturnedTemplateSymbols(node, document) {
 function isTemplateNode(node) {
 	return (
 		!!node &&
-		(node.type === 'JSXElement' ||
-			node.type === 'JSXFragment' ||
-			node.type === 'JSXStyleElement')
+		(node.type === 'JSXElement' || node.type === 'JSXFragment' || node.type === 'JSXStyleElement')
 	);
 }
 

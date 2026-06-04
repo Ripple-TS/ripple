@@ -14,7 +14,7 @@
  *   end_column: number,
  *   code: string,
  *   metadata: {
-	 *     css?: AST.Node['metadata']['css']
+ *     css?: AST.Node['metadata']['css']
  *   },
  * }} CodePosition
  * @typedef {{

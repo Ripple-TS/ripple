@@ -467,11 +467,7 @@ function get_possible_element_siblings(node, direction, adjacent_only) {
 			}
 		}
 		// Stop at non-whitespace text nodes for adjacent selectors
-		else if (
-			adjacent_only &&
-			sibling.type === 'JSXText' &&
-			sibling.value.trim()
-		) {
+		else if (adjacent_only && sibling.type === 'JSXText' && sibling.value.trim()) {
 			break;
 		}
 	}
@@ -758,7 +754,10 @@ function attribute_matches(node, name, expected_value, operator, case_insensitiv
 
 		const lowerCaseName = name.toLowerCase();
 		const attributeName = get_attribute_name(attribute);
-		if (!attributeName || ![lowerCaseName, `$${lowerCaseName}`].includes(attributeName.toLowerCase())) {
+		if (
+			!attributeName ||
+			![lowerCaseName, `$${lowerCaseName}`].includes(attributeName.toLowerCase())
+		) {
 			continue;
 		}
 
@@ -928,8 +927,8 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 								selector.metadata.scoped = true;
 							}
 
-								/** @type {any | null} */
-								let el = element;
+							/** @type {any | null} */
+							let el = element;
 							while (el) {
 								el.metadata.scoped = true;
 								el = get_element_parent(el);
@@ -977,12 +976,12 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 				break;
 			}
 
-				case 'AttributeSelector': {
-					const element_name = get_element_name(element);
-					const whitelisted =
-						element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier'
-							? whitelist_attribute_selector.get(element_name.name.toLowerCase())
-							: undefined;
+			case 'AttributeSelector': {
+				const element_name = get_element_name(element);
+				const whitelisted =
+					element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier'
+						? whitelist_attribute_selector.get(element_name.name.toLowerCase())
+						: undefined;
 				if (
 					!whitelisted?.includes(selector.name.toLowerCase()) &&
 					!attribute_matches(
@@ -1018,17 +1017,17 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 				break;
 			}
 
-				case 'TypeSelector': {
-					if (is_element_dynamic(element)) {
-						break;
-					}
+			case 'TypeSelector': {
+				if (is_element_dynamic(element)) {
+					break;
+				}
 
-					const element_name = get_element_name(element);
-					if (
-						(element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier') &&
-						element_name.name.toLowerCase() !== name.toLowerCase() &&
-						name !== '*'
-					) {
+				const element_name = get_element_name(element);
+				if (
+					(element_name?.type === 'Identifier' || element_name?.type === 'JSXIdentifier') &&
+					element_name.name.toLowerCase() !== name.toLowerCase() &&
+					name !== '*'
+				) {
 					return false;
 				}
 
@@ -1113,10 +1112,10 @@ function rule_has_animation(rule) {
 	return false;
 }
 
-	/**
-	 * @param {AST.CSS.StyleSheet} css
-	 * @param {any} element
-	 * @param {StyleClasses} styleClasses
+/**
+ * @param {AST.CSS.StyleSheet} css
+ * @param {any} element
+ * @param {StyleClasses} styleClasses
  * @param {TopScopedClasses} topScopedClasses
  * @return {void}
  */

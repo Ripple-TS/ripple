@@ -214,7 +214,10 @@ function to_jsx_child(node, transform_context) {
 			}
 			return node;
 		case 'JSXIfExpression':
-			return if_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
+			return if_statement_to_jsx_child(
+				jsx_control_expression_to_statement(node),
+				transform_context,
+			);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
 		case 'JSXForExpression':
@@ -228,7 +231,10 @@ function to_jsx_child(node, transform_context) {
 				);
 				return to_jsx_expression_container(create_null_literal(), node);
 			}
-			return for_of_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
+			return for_of_statement_to_jsx_child(
+				jsx_control_expression_to_statement(node),
+				transform_context,
+			);
 		case 'ForOfStatement':
 			return for_of_statement_to_jsx_child(node, transform_context);
 		case 'JSXSwitchExpression':
@@ -239,7 +245,10 @@ function to_jsx_child(node, transform_context) {
 		case 'SwitchStatement':
 			return switch_statement_to_jsx_child(node, transform_context);
 		case 'JSXTryExpression':
-			return try_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
+			return try_statement_to_jsx_child(
+				jsx_control_expression_to_statement(node),
+				transform_context,
+			);
 		case 'TryStatement':
 			return try_statement_to_jsx_child(node, transform_context);
 		default:
