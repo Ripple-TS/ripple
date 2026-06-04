@@ -290,6 +290,43 @@ describe('TSRX parser', () => {
 		expect(returned.children[0].declarations[0].init.regex.pattern).toBe('---');
 	});
 
+	it('does not treat tag-looking text inside script regex literals as markup', () => {
+		const returned = getReturned(`function App() { return <div>
+			const x = /<span>/
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('Literal');
+		expect(returned.children[0].declarations[0].init.regex.pattern).toBe('<span>');
+	});
+
+	it('reads `<value> /…/` in the script section as a less-than against a regex', () => {
+		// `3</div>/` is the JS expression `3 < /div>/`, not a `</div>` closing tag, so
+		// the script section is valid and the `</div>`-looking text is part of a regex.
+		const returned = getReturned(`function App() { return <div>
+			const x = 3</div>/
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		const init = returned.children[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(init.left.value).toBe(3);
+		expect(init.right.regex.pattern).toBe('div>');
+	});
+
 	it('does not treat fence or closing-tag text inside template literals as syntax', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = \`</div>

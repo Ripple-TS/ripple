@@ -45,6 +45,7 @@ const CharCode = Object.freeze({
 	uppercaseA: 65,
 	uppercaseZ: 90,
 	openBracket: 91,
+	closeBracket: 93,
 	backslash: 92,
 	underscore: 95,
 	backtick: 96,
@@ -53,6 +54,27 @@ const CharCode = Object.freeze({
 	openBrace: 123,
 	closeBrace: 125,
 });
+
+/**
+ * Keywords after which a `/` begins a regex literal rather than division, used
+ * by the look-ahead scanners to track expression position in script content.
+ */
+const REGEX_PRECEDING_KEYWORDS = new Set([
+	'return',
+	'typeof',
+	'instanceof',
+	'in',
+	'of',
+	'new',
+	'delete',
+	'void',
+	'do',
+	'else',
+	'yield',
+	'await',
+	'case',
+	'throw',
+]);
 
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
@@ -637,6 +659,10 @@ export function TSRXPlugin(config) {
 
 				/** @type {string[]} */
 				const tag_stack = [];
+				// Tracks whether a `/` here would begin a regex literal (expression
+				// position) rather than division, so markup-looking text inside a script
+				// regex such as `/<span>/` is skipped instead of parsed as a tag.
+				let expr_allowed = true;
 
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
@@ -660,6 +686,7 @@ export function TSRXPlugin(config) {
 							}
 							index++;
 						}
+						expr_allowed = false;
 						continue;
 					}
 
@@ -680,6 +707,7 @@ export function TSRXPlugin(config) {
 							}
 							index++;
 						}
+						expr_allowed = false;
 						continue;
 					}
 
@@ -710,11 +738,41 @@ export function TSRXPlugin(config) {
 						continue;
 					}
 
+					if (ch === CharCode.slash) {
+						// A `/` in expression position opens a regex literal; skip its body so
+						// any `<tag>`, `</tag>`, or `---` inside it is not read as markup.
+						if (expr_allowed) {
+							const regex_end = this.#scanRegexLiteralEnd(index);
+							if (regex_end !== -1) {
+								index = regex_end;
+								expr_allowed = false;
+								continue;
+							}
+						}
+						expr_allowed = true;
+						index++;
+						continue;
+					}
+
 					if (tag_stack.length === 0 && this.#hasTemplateFenceAtIndex(index)) {
 						return true;
 					}
 
 					if (ch === CharCode.lessThan) {
+						// In expression position `<value> /…/` is a less-than comparison
+						// against a regex literal, not a closing tag: `3</div>/` means
+						// `3 < /div>/`. Only reinterpret when a value precedes the `<` (so it
+						// is an operator) and a valid single-line regex actually follows;
+						// `5</div>` (no second `/`) still reads as a closing tag.
+						if (next === CharCode.slash && !expr_allowed) {
+							const regex_end = this.#scanRegexLiteralEnd(index + 1);
+							if (regex_end !== -1) {
+								index = regex_end;
+								expr_allowed = false;
+								continue;
+							}
+						}
+
 						// A closing tag (`</tag>`) always follows `<` with `/`; only a
 						// generic arrow (`<T>() => ...`) or type argument list (`foo<T>`)
 						// should be skipped here. Without the `/` guard, text like
@@ -733,6 +791,7 @@ export function TSRXPlugin(config) {
 							);
 							if (type_end !== -1) {
 								index = type_end;
+								expr_allowed = false;
 								continue;
 							}
 						}
@@ -757,6 +816,7 @@ export function TSRXPlugin(config) {
 							if (top !== undefined && top === close_name) {
 								tag_stack.pop();
 								index = name_end;
+								expr_allowed = false;
 								continue;
 							}
 							if (tag_stack.length === 0 && close_name === element_name) {
@@ -812,10 +872,34 @@ export function TSRXPlugin(config) {
 								tag_stack.push(open_name);
 							}
 							index = cursor + 1;
+							expr_allowed = !self_closing;
 							continue;
 						}
 					}
 
+					if (this.#isIdentifierChar(ch) && !(ch >= CharCode.digit0 && ch <= CharCode.digit9)) {
+						const word_start = index;
+						index++;
+						while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+							index++;
+						}
+						expr_allowed = REGEX_PRECEDING_KEYWORDS.has(this.input.slice(word_start, index));
+						continue;
+					}
+
+					if (ch >= CharCode.digit0 && ch <= CharCode.digit9) {
+						index++;
+						while (
+							index < this.input.length &&
+							this.#isIdentifierChar(this.input.charCodeAt(index))
+						) {
+							index++;
+						}
+						expr_allowed = false;
+						continue;
+					}
+
+					expr_allowed = this.#nextExprAllowed(expr_allowed, ch);
 					index++;
 				}
 				return false;
@@ -1105,6 +1189,69 @@ export function TSRXPlugin(config) {
 
 			#canPrecedeTypeArgumentList(ch) {
 				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
+			}
+
+			/**
+			 * Scan a regex literal whose opening `/` is at `index`. Returns the index
+			 * just past the closing `/` and any flags, or -1 if it is not a valid
+			 * single-line regex literal (e.g. it runs into a newline first). Used by the
+			 * look-ahead fence scanners so that markup-looking text inside a script regex
+			 * (`/<span>/`, `/---/`) is not mistaken for real template syntax.
+			 * @param {number} index
+			 */
+			#scanRegexLiteralEnd(index) {
+				let i = index + 1;
+				let in_class = false;
+				while (i < this.input.length) {
+					const ch = this.input.charCodeAt(i);
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) return -1;
+					if (ch === CharCode.backslash) {
+						i += 2;
+						continue;
+					}
+					if (ch === CharCode.openBracket) {
+						in_class = true;
+					} else if (ch === CharCode.closeBracket) {
+						in_class = false;
+					} else if (ch === CharCode.slash && !in_class) {
+						i++;
+						while (i < this.input.length && this.#isIdentifierChar(this.input.charCodeAt(i))) {
+							i++;
+						}
+						return i;
+					}
+					i++;
+				}
+				return -1;
+			}
+
+			/**
+			 * Advance the expression-position flag used by the fence scanners after the
+			 * character (or token) at `index` has been consumed. `expr_allowed` is true
+			 * when a following `/` would begin a regex literal rather than division. The
+			 * scanners only need a coarse approximation: values close expression position,
+			 * operators and most punctuation reopen it.
+			 * @param {boolean} expr_allowed
+			 * @param {number} ch
+			 * @returns {boolean}
+			 */
+			#nextExprAllowed(expr_allowed, ch) {
+				if (
+					ch === CharCode.space ||
+					ch === CharCode.tab ||
+					ch === CharCode.lineFeed ||
+					ch === CharCode.carriageReturn
+				) {
+					return expr_allowed;
+				}
+				if (
+					ch === CharCode.closeParen ||
+					ch === CharCode.closeBracket ||
+					ch === CharCode.closeBrace
+				) {
+					return false;
+				}
+				return true;
 			}
 
 			#parseJSXSwitchCaseRawText() {
@@ -3490,6 +3637,8 @@ export function TSRXPlugin(config) {
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
 					(this.#functionBodyDepth > 1 && this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
+					(this.#jsxExpressionContainerDepth > 0 &&
+						this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
 					this.#isInsideNativeTemplateScriptSection()
 				) {
 					if (this.#isStyleOpeningTagStart()) {
