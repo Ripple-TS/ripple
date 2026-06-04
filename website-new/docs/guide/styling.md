@@ -74,6 +74,7 @@ function App() {
   let &[color] = track('red');
 
   return <>
+  ---
   <div class="notice" style={{ '--notice-color': color }}>
     Styled text
   </div>
@@ -288,6 +289,7 @@ function Parent() {
 
   return <>
   let &[Dynamic] = track(() => Child);
+  ---
   <@Dynamic cls={styles.text} />
   </>;
 }

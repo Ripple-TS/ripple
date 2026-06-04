@@ -44,6 +44,7 @@ export function App() {
   let &[count2, count2Tracked] = track(0);
   // context2 now contains a tracked variable
   context2.set(count2Tracked);
+  ---
 
   <button
     onClick={() => {
@@ -86,6 +87,7 @@ function Child() {
 
   // value is "Hello from context!"
   console.log(value);
+  ---
 
   </>;
 }
@@ -101,6 +103,7 @@ export function Parent() {
 
   // Context is set in the Parent component
   MyContext.set('Hello from context!');
+  ---
 
   <Child />
 
