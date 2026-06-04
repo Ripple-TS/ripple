@@ -327,6 +327,62 @@ describe('TSRX parser', () => {
 		expect(init.right.regex.pattern).toBe('div>');
 	});
 
+	it('treats a generic call in the script section as script, not markup', () => {
+		// `foo<T>(bar)` is a type-argument call, so the `<T>` must not be read as a tag
+		// that would expect a `</T>` close before the `---` fence.
+		const returned = getReturned(`function App() { return <div>
+			const x = foo<T>(bar)
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('CallExpression');
+		expect(returned.children[0].declarations[0].init.callee.name).toBe('foo');
+	});
+
+	it('treats a generic arrow function in the script section as script', () => {
+		// `<T>(x: T) => x` is a generic arrow, not a `<T>` element; reading it as markup
+		// previously recursed into a stack overflow.
+		const returned = getReturned(`function App() { return <div>
+			const id = <T>(x: T) => x
+			---
+			{id}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('ArrowFunctionExpression');
+	});
+
+	it('does not let a relational `>` inside an attribute break tag scanning', () => {
+		// The `>` in `value={foo > bar}` must not be mistaken for the end of the
+		// `<Comp ...>` opening tag. Here the element is template output, so the
+		// surrounding `const x = ` / `---` text is parsed as plain markup.
+		const returned = getReturned(`function App() { return <div>
+	const x = <Comp value={foo > bar} />
+	---
+	{x}
+</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].value).toContain('const x = ');
+		expect(returned.children[1].openingElement.name.name).toBe('Comp');
+		expect(returned.children[2].value).toContain('---');
+	});
+
 	it('does not treat fence or closing-tag text inside template literals as syntax', () => {
 		const returned = getReturned(`function App() { return <div>
 			const x = \`</div>
