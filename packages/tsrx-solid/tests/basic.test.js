@@ -555,14 +555,15 @@ describe('@tsrx/solid basic', () => {
 
 		it('component-body try/pending/catch returns lower to reactive boundaries', () => {
 			const { code } = compile(
-				`function App() {
-					@try {
-						return <><div>{'ready'}</div></>;
-					} pending {
-						return <><div>{'loading'}</div></>;
-					} catch (err) {
-						return <><div>{'error'}</div></>;
-					}
+				`function App() { return <>
+						@try {
+							return <><div>{'ready'}</div></>;
+						} pending {
+							return <><div>{'loading'}</div></>;
+						} catch (err) {
+							return <><div>{'error'}</div></>;
+						}
+					</>;
 				}`,
 				'App.tsrx',
 			);
@@ -578,14 +579,61 @@ describe('@tsrx/solid basic', () => {
 				`function App(
 					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
 				) {
-					@try {
+					return <>
+						@try {
+							setup();
+							---
+						} pending {
+							return <><div>{'loading'}</div></>;
+						} catch (err) {
+							recover(err);
+						}
+					</>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toContain('setup();');
+			expect(code).toContain('recover(err);');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
+			expect(code).not.toContain('try {');
+		});
+
+		it('component-body try/pending/catch direct returns lower to reactive boundaries', () => {
+			const { code } = compile(
+				`function App() {
+					return @try {
+						return <><div>{'ready'}</div></>;
+					} pending {
+						return <><div>{'loading'}</div></>;
+					} catch (err) {
+						return <><div>{'error'}</div></>;
+					};
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<Errored');
+			expect(code).toContain('<Loading fallback=');
+			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
+			expect(code).not.toContain('try {');
+		});
+
+		it('component-body try lowers when only pending direct returns render output', () => {
+			const { code } = compile(
+				`function App(
+					{ setup, recover }: { setup: () => void; recover: (err: unknown) => void }
+				) {
+					return @try {
 						setup();
 						---
 					} pending {
 						return <><div>{'loading'}</div></>;
 					} catch (err) {
 						recover(err);
-					}
+					};
 				}`,
 				'App.tsrx',
 			);
