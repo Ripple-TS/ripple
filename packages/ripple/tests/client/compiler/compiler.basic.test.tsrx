@@ -260,18 +260,12 @@ export function App() {
 			return <>
 				<div>
 					const a = 1;
-					<div>
-						const b = 1;
-					</div>
-					<div>
-						const b = 1;
-					</div>
+					<div>const b = 1;</div>
+					<div>const b = 1;</div>
 				</div>
 				<div>
 					const a = 2;
-					<div>
-						const b = 1;
-					</div>
+					<div>const b = 1;</div>
 				</div>
 			</>;
 		}
@@ -320,7 +314,6 @@ export function App() {
 					{b}
 					{'rest '}
 					{JSON.stringify(rest)}
-
 					<div />
 				</div>
 			</>;
@@ -874,7 +867,7 @@ export function App() { return <>
 		expect(() => compile_to_volar_mappings(source, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should not error on having js below markup in the same scope', () => {
+	it('should not error on having js above markup in the same scope', () => {
 		const code = `
 function Card(props) { return <>
 	<div class="card">
@@ -883,27 +876,27 @@ function Card(props) { return <>
 </>; }
 
 export function App() { return <>
-		function children() { return <>
-			<p>{'Card content here'}</p>
-		</>; }
-
-		<Card {children} />
-
+	function children() { return <>
+		<p>{'Card content here'}</p>
+	</>; }
 	const test = 5;
-
+	---
+	<Card {children} />
 	<div>{test}</div>
 </>; }
 `;
 		expect(() => compile(code, 'test.tsrx')).not.toThrow();
 	});
 
-	it('allows component functions inside composite children', () => {
+	it('allows component functions referenced by composite children', () => {
 		const source = `
 export function App() { return <>
+	function asChild({ children, href, ...rest }: { href: string; [key: string]: any }) { return <>
+		<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
+	</>; }
+	---
 	<ark.div class="host-class" data-value="42">
-		function asChild({ children, href, ...rest }: { href: string; [key: string]: any }) { return <>
-			<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
-		</>; }
+		<asChild href="/docs" />
 	</ark.div>
 </>; }
 `;
@@ -914,11 +907,11 @@ export function App() { return <>
 	it('allows parent element attributes referencing child-declared functions', () => {
 		const source = `
 export function App() { return <>
-	<Test {Z}>
-		function Z() { return <>
-			<div>{'hello'}</div>
-		</>; }
-	</Test>
+	function Z() { return <>
+		<div>{'hello'}</div>
+	</>; }
+	---
+	<Test {Z} />
 </>; }
 `;
 
@@ -931,6 +924,7 @@ export function App() { return <>
 	function asChild({ children, href, ...rest }: { href: string; [key: string]: any }) { return <>
 		<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
 	</>; }
+	---
 
 	<ark.div class="host-class" data-value="42" {asChild} />
 </>; }
@@ -1249,26 +1243,26 @@ export function App() { return <>
 		expect(result).toContain('_$_.normalize_children(');
 	});
 
-	it(
-		'parses a JS statement inside an element with no trailing whitespace before the closing tag',
-		() => {
-			const source = `function TodoList({ items }: { items: { text: string }[] }) { return <>
-  <ul>var a = "123"</ul>
-</>; }`;
-			const ast = parse(source);
-			const ul = get_returned_tsrx(ast.body[0]).children.find(
-				(n: AST.Node) => n.type === 'Element',
-			) as AST.Element;
-			expect((ul.id as AST.Identifier).name).toBe('ul');
-			expect(ul.children).toHaveLength(1);
-			const decl = ul.children[0] as unknown as AST.VariableDeclaration;
-			expect(decl.type).toBe('VariableDeclaration');
-			expect(decl.kind).toBe('var');
-			expect((decl.declarations[0].id as AST.Identifier).name).toBe('a');
-			expect((decl.declarations[0].init as AST.Literal).value).toBe('123');
-			expect((ul.closingElement?.name as ESTreeJSX.JSXIdentifier)?.name).toBe('ul');
-		},
-	);
+	it('parses a fenced JS statement inside an element before the closing tag', () => {
+		const source = `function TodoList({ items }: { items: { text: string }[] }) { return <>
+	  <ul>
+	    var a = "123"
+	    ---
+	  </ul>
+	</>; }`;
+		const ast = parse(source);
+		const ul = get_returned_tsrx(ast.body[0]).children.find(
+			(n: AST.Node) => n.type === 'Element',
+		) as AST.Element;
+		expect((ul.id as AST.Identifier).name).toBe('ul');
+		expect(ul.children).toHaveLength(1);
+		const decl = ul.children[0] as unknown as AST.VariableDeclaration;
+		expect(decl.type).toBe('VariableDeclaration');
+		expect(decl.kind).toBe('var');
+		expect((decl.declarations[0].id as AST.Identifier).name).toBe('a');
+		expect((decl.declarations[0].init as AST.Literal).value).toBe('123');
+		expect((ul.closingElement?.name as ESTreeJSX.JSXIdentifier)?.name).toBe('ul');
+	});
 
 	it('uses spread_props for spreads that may contain children', () => {
 		const source = `
@@ -1288,10 +1282,12 @@ export function App() { return <>
 		expect(result).toContain('_$_.spread_props(');
 	});
 
-	it('parses less-than comparisons at line start in element children without whitespace', () => {
+	it('parses less-than comparisons in fenced element setup code', () => {
 		const source = `function TodoList({ items }: { items: { text: string }[] }) { return <>
-	<ul>var a = 3
-	<4;</ul>
+	<ul>
+		var a = 3 < 4;
+		---
+	</ul>
 </>; }`;
 
 		const ast = parse(source);

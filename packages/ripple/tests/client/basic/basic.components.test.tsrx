@@ -643,11 +643,12 @@ describe('basic client > components & composition', () => {
 
 		function App() {
 			return <>
-				<Wrapper>
-					function Inner() {
-						return <><span class="inner">{'inner content'}</span></>;
-					}
+				function Inner() {
+					return <><span class="inner">{'inner content'}</span></>;
+				}
 
+				---
+				<Wrapper>
 					<Inner />
 				</Wrapper>
 			</>;
@@ -664,20 +665,21 @@ describe('basic client > components & composition', () => {
 
 		function App() {
 			return <>
+				function Z() {
+					return <><div class="z">{'I am Z'}</div></>;
+				}
+
+				function Child(&{ Z }: { Z: Component }) {
+					return <>
+						<div class="child">
+							{'Child Component: '}
+							<Z />
+						</div>
+					</>;
+				}
+
+				---
 				<Wrapper>
-					function Z() {
-						return <><div class="z">{'I am Z'}</div></>;
-					}
-
-					function Child(&{ Z }: { Z: Component }) {
-						return <>
-							<div class="child">
-								{'Child Component: '}
-								<Z />
-							</div>
-						</>;
-					}
-
 					<Child {Z} />
 				</Wrapper>
 			</>;

@@ -50,7 +50,11 @@ function BasicApp() {
 }
 
 function Child(props: { text: string }) {
-	return <><span class="child">{props.text}</span></>;
+	return <>
+		<span class="child">
+			{props.text}
+		</span>
+	</>;
 }
 
 function NestedApp() {
@@ -67,10 +71,18 @@ function ExplicitTextApp() {
 		const hidden = false;
 		const empty = null;
 		const missing = undefined;
-		<div class="explicit-text-markup">{String(markup)}</div>
-		<div class="explicit-text-boolean">{String(hidden)}</div>
-		<div class="explicit-text-null">{empty == null ? '' : String(empty)}</div>
-		<div class="explicit-text-undefined">{missing == null ? '' : String(missing)}</div>
+		<div class="explicit-text-markup">
+			{String(markup)}
+		</div>
+		<div class="explicit-text-boolean">
+			{String(hidden)}
+		</div>
+		<div class="explicit-text-null">
+			{empty == null ? '' : String(empty)}
+		</div>
+		<div class="explicit-text-undefined">
+			{missing == null ? '' : String(missing)}
+		</div>
 	</>;
 }
 
@@ -83,9 +95,7 @@ function ExplicitHtmlApp() {
 			onClick={() => {
 				markup.value = '<strong class="html-node">updated</strong>';
 			}}
-		>
-			{'update'}
-		</button>
+		>update</button>
 	</>;
 }
 
@@ -101,17 +111,13 @@ function SpreadHtmlApp() {
 			onClick={() => {
 				spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
 			}}
-		>
-			{'spread'}
-		</button>
+		>spread</button>
 		<button
 			class="spread-html-update-markup"
 			onClick={() => {
 				markup.value = '<strong class="html-node">updated</strong>';
 			}}
-		>
-			{'markup'}
-		</button>
+		>markup</button>
 	</>;
 }
 
@@ -130,9 +136,7 @@ function ElementRefApp() {
 				element_ref_captured = node;
 			}}
 			class="ref-target"
-		>
-			"ref test"
-		</div>
+		>ref test</div>
 	</>;
 }
 
@@ -327,7 +331,9 @@ function NamedRefObjectApp() {
 function CounterApp() {
 	return <>
 		const count = ref(0);
-		<p class="count">{count.value}</p>
+		<p class="count">
+			{count.value}
+		</p>
 		<button class="inc" onClick={() => count.value++}>{'+'}</button>
 	</>;
 }
@@ -362,8 +368,12 @@ function ConditionalRefsApp() {
 		<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
 		if (!skip.value) {
 			const doubled = ref(0);
-			<p class="early-count">{count.value}</p>
-			<p class="early-doubled">{doubled.value}</p>
+			<p class="early-count">
+				{count.value}
+			</p>
+			<p class="early-doubled">
+				{doubled.value}
+			</p>
 			<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
 			<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
 		}
@@ -410,7 +420,9 @@ function WatchConditionalApp() {
 			watch(value, () => {
 				watch_fire_count++;
 			});
-			<p class="watch-value">{value.value}</p>
+			<p class="watch-value">
+				{value.value}
+			</p>
 		}
 	</>;
 }
@@ -419,16 +431,19 @@ function WatchEffectConditionalApp() {
 	return <>
 		const skip = ref(true);
 		const value = ref(0);
-		<button class="watch-effect-toggle" onClick={() => (skip.value = !skip.value)}>
-			{'toggle'}
-		</button>
+		<button
+			class="watch-effect-toggle"
+			onClick={() => (skip.value = !skip.value)}
+		>{'toggle'}</button>
 		<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
 		if (!skip.value) {
 			watchEffect(() => {
 				void value.value;
 				watch_effect_fire_count++;
 			});
-			<p class="watch-effect-value">{value.value}</p>
+			<p class="watch-effect-value">
+				{value.value}
+			</p>
 		}
 	</>;
 }
@@ -526,27 +541,28 @@ function ForIndexReactiveApp() {
 		for (const item of items.value; index i) {
 			<li class="indexed-item">{`${i}:${item}`}</li>
 		}
-		<button class="prepend" onClick={() => (items.value = ['z', ...items.value])}>
-			{'prepend'}
-		</button>
+		<button
+			class="prepend"
+			onClick={() => (items.value = ['z', ...items.value])}
+		>{'prepend'}</button>
 		<button
 			class="drop-middle"
 			onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
-		>
-			{'drop middle'}
-		</button>
-		<button class="reverse" onClick={() => (items.value = [...items.value].reverse())}>
-			{'reverse'}
-		</button>
+		>{'drop middle'}</button>
+		<button
+			class="reverse"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>{'reverse'}</button>
 	</>;
 }
 
 function KeyedRow(props: { item: { id: string; label: string } }) {
 	return <>
 		const count = ref(0);
-		<button class={`keyed-row row-${props.item.id}`} onClick={() => count.value++}>
-			{`${props.item.label}:${count.value}`}
-		</button>
+		<button
+			class={`keyed-row row-${props.item.id}`}
+			onClick={() => count.value++}
+		>{`${props.item.label}:${count.value}`}</button>
 	</>;
 }
 
@@ -560,17 +576,16 @@ function ForKeyedStateApp() {
 		for (const item of items.value; key item.id) {
 			<KeyedRow {item} />
 		}
-		<button class="reverse-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-			{'reverse'}
-		</button>
+		<button
+			class="reverse-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>{'reverse'}</button>
 		<button
 			class="rename-beta"
 			onClick={() => (items.value = items.value.map(
 				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
 			))}
-		>
-			{'rename'}
-		</button>
+		>{'rename'}</button>
 	</>;
 }
 
@@ -584,17 +599,16 @@ function ForJsxKeyedStateApp() {
 		for (const item of items.value) {
 			<KeyedRow key={item.id} {item} />
 		}
-		<button class="reverse-jsx-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-			{'reverse'}
-		</button>
+		<button
+			class="reverse-jsx-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>{'reverse'}</button>
 		<button
 			class="rename-jsx-keyed-beta"
 			onClick={() => (items.value = items.value.map(
 				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
 			))}
-		>
-			{'rename'}
-		</button>
+		>{'rename'}</button>
 	</>;
 }
 
@@ -608,9 +622,10 @@ function ForIndexKeyedStateApp() {
 		for (const item of items.value; index i; key item.id) {
 			<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
 		}
-		<button class="reverse-index-keyed" onClick={() => (items.value = [...items.value].reverse())}>
-			{'reverse'}
-		</button>
+		<button
+			class="reverse-index-keyed"
+			onClick={() => (items.value = [...items.value].reverse())}
+		>{'reverse'}</button>
 	</>;
 }
 
@@ -627,9 +642,7 @@ function ForJsxIndexKeyedApp() {
 		<button
 			class="reverse-jsx-index-keyed"
 			onClick={() => (items.value = [...items.value].reverse())}
-		>
-			{'reverse'}
-		</button>
+		>{'reverse'}</button>
 	</>;
 }
 
@@ -650,17 +663,13 @@ function ForNestedIndexKeyedApp() {
 		<button
 			class="reverse-nested-index-keyed"
 			onClick={() => (items.value = [...items.value].reverse())}
-		>
-			{'reverse'}
-		</button>
+		>{'reverse'}</button>
 		<button
 			class="rename-nested-index-keyed-beta"
 			onClick={() => (items.value = items.value.map(
 				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
 			))}
-		>
-			{'rename'}
-		</button>
+		>{'rename'}</button>
 	</>;
 }
 
@@ -674,18 +683,17 @@ function ForImplicitIndexKeyFragmentApp() {
 		<button
 			class="reverse-fragment-index"
 			onClick={() => (items.value = [...items.value].reverse())}
-		>
-			{'reverse'}
-		</button>
+		>{'reverse'}</button>
 	</>;
 }
 
 function DestructuredKeyedRow(props: { id: string; label: string }) {
 	return <>
 		const count = ref(0);
-		<button class={`destructured-keyed-row row-${props.id}`} onClick={() => count.value++}>
-			{`${props.label}:${count.value}`}
-		</button>
+		<button
+			class={`destructured-keyed-row row-${props.id}`}
+			onClick={() => count.value++}
+		>{`${props.label}:${count.value}`}</button>
 	</>;
 }
 
@@ -702,17 +710,13 @@ function ForDestructuredKeyedStateApp() {
 		<button
 			class="reverse-destructured-keyed"
 			onClick={() => (items.value = [...items.value].reverse())}
-		>
-			{'reverse'}
-		</button>
+		>{'reverse'}</button>
 		<button
 			class="rename-destructured-keyed-beta"
 			onClick={() => (items.value = items.value.map(
 				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
 			))}
-		>
-			{'rename'}
-		</button>
+		>{'rename'}</button>
 	</>;
 }
 
@@ -758,7 +762,9 @@ function ErrorBoundaryApp() {
 		try {
 			<ThrowingChild />
 		} catch (err) {
-			<p class="caught">{(err as Error).message}</p>
+			<p class="caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }
@@ -778,16 +784,16 @@ function ErrorToggleApp() {
 		try {
 			<MaybeThrow shouldThrow={fail.value} />
 		} catch (err, reset) {
-			<p class="caught">{(err as Error).message}</p>
+			<p class="caught">
+				{(err as Error).message}
+			</p>
 			<button
 				class="reset"
 				onClick={() => {
 					fail.value = false;
 					reset();
 				}}
-			>
-				{'reset'}
-			</button>
+			>{'reset'}</button>
 		}
 		<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
 	</>;
@@ -796,22 +802,27 @@ function ErrorToggleApp() {
 function InnerThrow() {
 	return <>
 		throw new Error('inner error');
+		---
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err) {
-					<p class="inner-caught">{(err as Error).message}</p>
+					<p class="inner-caught">
+						{(err as Error).message}
+					</p>
 				}
 			</div>
 		} catch (err) {
-			<p class="outer-caught">{(err as Error).message}</p>
+			<p class="outer-caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }
@@ -870,7 +881,11 @@ function SwitchInsideTryApp() {
 }
 
 function AsyncResolvedChild(props: { value: string }) {
-	return <><p class="async-resolved">{props.value}</p></>;
+	return <>
+		<p class="async-resolved">
+			{props.value}
+		</p>
+	</>;
 }
 
 function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
@@ -892,7 +907,9 @@ function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
 		} catch (err) {
-			<p class="async-caught">{(err as Error).message}</p>
+			<p class="async-caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }

@@ -44,7 +44,11 @@ function BasicApp() {
 }
 
 function Child(props: { text: string }) {
-	return <><span class="child">{props.text}</span></>;
+	return <>
+		<span class="child">
+			{props.text}
+		</span>
+	</>;
 }
 
 function NestedApp() {
@@ -61,10 +65,18 @@ function ExplicitTextApp() {
 		const hidden = false;
 		const empty = null;
 		const missing = undefined;
-		<div class="explicit-text-markup">{String(markup)}</div>
-		<div class="explicit-text-boolean">{String(hidden)}</div>
-		<div class="explicit-text-null">{empty == null ? '' : String(empty)}</div>
-		<div class="explicit-text-undefined">{missing == null ? '' : String(missing)}</div>
+		<div class="explicit-text-markup">
+			{String(markup)}
+		</div>
+		<div class="explicit-text-boolean">
+			{String(hidden)}
+		</div>
+		<div class="explicit-text-null">
+			{empty == null ? '' : String(empty)}
+		</div>
+		<div class="explicit-text-undefined">
+			{missing == null ? '' : String(missing)}
+		</div>
 	</>;
 }
 
@@ -77,9 +89,7 @@ function ExplicitHtmlApp() {
 			onClick={() => {
 				setMarkup('<strong class="html-node">updated</strong>');
 			}}
-		>
-			{'update'}
-		</button>
+		>{'update'}</button>
 	</>;
 }
 
@@ -95,17 +105,13 @@ function SpreadHtmlApp() {
 			onClick={() => {
 				setSpreadProps({ innerHTML: '<i class="html-node">spread update</i>' });
 			}}
-		>
-			{'spread'}
-		</button>
+		>{'spread'}</button>
 		<button
 			class="spread-html-update-markup"
 			onClick={() => {
 				setMarkup('<strong class="html-node">updated</strong>');
 			}}
-		>
-			{'markup'}
-		</button>
+		>{'markup'}</button>
 	</>;
 }
 
@@ -148,9 +154,15 @@ function CallableBlockRuntimeApp() {
 		}
 		const reader = new MethodReader();
 		<section class="callable-block-runtime">
-			<p class="decl-block">{readDeclaration()}</p>
-			<p class="arrow-block">{readArrow()}</p>
-			<p class="method-block">{reader.read()}</p>
+			<p class="decl-block">
+				{readDeclaration()}
+			</p>
+			<p class="arrow-block">
+				{readArrow()}
+			</p>
+			<p class="method-block">
+				{reader.read()}
+			</p>
 		</section>
 	</>;
 }
@@ -160,7 +172,9 @@ function CallableBlockRuntimeApp() {
 function CounterApp() {
 	return <>
 		const [count, setCount] = createSignal(0);
-		<p class="count">{count()}</p>
+		<p class="count">
+			{count()}
+		</p>
 		<button class="inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
 	</>;
 }
@@ -172,11 +186,11 @@ let element_ref_captured: HTMLDivElement | null = null;
 function ElementRefApp() {
 	return <>
 		let el: HTMLDivElement | undefined;
-		<div ref={el} class="ref-target">"ref test"</div>
-		// Solid sets refs synchronously during rendering.
 		queueMicrotask(() => {
 			element_ref_captured = el ?? null;
 		});
+		---
+		<div ref={el} class="ref-target">{'ref test'}</div>
 	</>;
 }
 
@@ -191,9 +205,7 @@ function ElementRefCallbackApp() {
 				callback_ref_captured = node;
 			}}
 			class="ref-callback"
-		>
-			"ref callback"
-		</div>
+		>ref callback</div>
 	</>;
 }
 
@@ -466,7 +478,8 @@ function NamedRefObjectApp() {
 function IfReactiveApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		---
+		@if (show()) {
 			<span class="visible">{'shown'}</span>
 		} else {
 			<span class="hidden">{'hidden'}</span>
@@ -480,8 +493,11 @@ function IfReactiveApp() {
 function ForReactiveApp() {
 	return <>
 		const [items, setItems] = createSignal(['a', 'b', 'c']);
-		for (const item of items(); index i) {
-			<li class="item">{item()}</li>
+		---
+		@for (const item of items(); index i) {
+			<li class="item">
+				{item()}
+			</li>
 		}
 		<button class="add" onClick={() => setItems([...items(), 'd'])}>{'add'}</button>
 		<button class="remove" onClick={() => setItems(items().slice(1))}>{'remove'}</button>
@@ -491,9 +507,11 @@ function ForReactiveApp() {
 function ForContinueApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const item_value = (item as unknown as () => string)();
 			if (!item_value) continue;
+			---
 			<li class="continue-item">{item_value}</li>
 		}
 	</>;
@@ -502,11 +520,14 @@ function ForContinueApp() {
 function ForContinueAfterPriorJsxApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const item_value = (item as unknown as () => string)();
+			---
 			<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
-			if (!item_value) continue;
-			<span class="continue-after">{`after-${item_value}`}</span>
+			@if (item_value) {
+				<span class="continue-after">{`after-${item_value}`}</span>
+			}
 		}
 	</>;
 }
@@ -516,7 +537,8 @@ function ForContinueAfterPriorJsxApp() {
 function SwitchReactiveApp() {
 	return <>
 		const [page, setPage] = createSignal('home');
-		switch (page()) {
+		---
+		@switch (page()) {
 			case 'home':
 				<div class="page">{'Home'}</div>
 				break;
@@ -549,7 +571,11 @@ function SwitchBreakTrailingReturnApp() {
 // ── Composite children ──
 
 function Wrapper(props: { children?: any }) {
-	return <><div class="wrapper">{props.children}</div></>;
+	return <>
+		<div class="wrapper">
+			{props.children}
+		</div>
+	</>;
 }
 
 function ChildrenApp() {
@@ -565,8 +591,9 @@ function ChildrenApp() {
 function IfChildrenApp() {
 	return <>
 		const [show, setShow] = createSignal(false);
+		---
 		<Wrapper>
-			if (show()) {
+			@if (show()) {
 				<span class="inner-visible">{'inner shown'}</span>
 			}
 		</Wrapper>
@@ -592,16 +619,19 @@ function StyledApp() {
 function ThrowingChild() {
 	return <>
 		throw new Error('sync boom');
+		---
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function ErrorBoundaryApp() {
 	return <>
-		try {
+		@try {
 			<ThrowingChild />
 		} catch (err) {
-			<p class="caught">{(err as Error).message}</p>
+			<p class="caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }
@@ -613,6 +643,7 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 		if (props.shouldThrow) {
 			throw new Error('conditional boom');
 		}
+		---
 		<p class="ok">{'no error'}</p>
 	</>;
 }
@@ -620,19 +651,20 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 function ErrorToggleApp() {
 	return <>
 		const [fail, setFail] = createSignal(false);
-		try {
+		---
+		@try {
 			<MaybeThrow shouldThrow={fail()} />
 		} catch (err, reset) {
-			<p class="caught">{(err as Error).message}</p>
+			<p class="caught">
+				{(err as Error).message}
+			</p>
 			<button
 				class="reset"
 				onClick={() => {
 					setFail(false);
 					reset();
 				}}
-			>
-				{'reset'}
-			</button>
+			>{'reset'}</button>
 		}
 		<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
 	</>;
@@ -641,13 +673,18 @@ function ErrorToggleApp() {
 // ── Try/pending: Loading boundary with lazy() ──
 
 function ResolvedChild(props: { value: string }) {
-	return <><p class="resolved">{props.value}</p></>;
+	return <>
+		<p class="resolved">
+			{props.value}
+		</p>
+	</>;
 }
 
 function SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		---
+		@try {
 			<LazyChild value="hello" />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -660,7 +697,8 @@ function EmptyPendingSuspenseApp(props: {
 }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		---
+		@try {
 			<LazyChild value="hello" />
 		} pending {}
 	</>;
@@ -671,12 +709,15 @@ function EmptyPendingSuspenseApp(props: {
 function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof ResolvedChild }> }) {
 	return <>
 		const LazyChild = lazy(props.loader);
-		try {
+		---
+		@try {
 			<LazyChild value="hello" />
 		} pending {
 			<p class="pending">{'loading...'}</p>
 		} catch (err) {
-			<p class="caught">{(err as Error).message}</p>
+			<p class="caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }
@@ -686,22 +727,27 @@ function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof Resol
 function InnerThrow() {
 	return <>
 		throw new Error('inner error');
+		---
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err) {
-					<p class="inner-caught">{(err as Error).message}</p>
+					<p class="inner-caught">
+						{(err as Error).message}
+					</p>
 				}
 			</div>
 		} catch (err) {
-			<p class="outer-caught">{(err as Error).message}</p>
+			<p class="outer-caught">
+				{(err as Error).message}
+			</p>
 		}
 	</>;
 }
@@ -711,8 +757,9 @@ function NestedTryApp() {
 function IfInsideTryApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		try {
-			if (show()) {
+		---
+		@try {
+			@if (show()) {
 				<p class="branch-a">{'visible'}</p>
 			} else {
 				<p class="branch-b">{'alternate'}</p>
@@ -729,9 +776,12 @@ function IfInsideTryApp() {
 function ForInsideTryApp() {
 	return <>
 		const [items, setItems] = createSignal(['x', 'y']);
-		try {
-			for (const item of items(); index i) {
-				<span class="try-item">{item()}</span>
+		---
+		@try {
+			@for (const item of items(); index i) {
+				<span class="try-item">
+					{item()}
+				</span>
 			}
 		} catch (err) {
 			<p class="caught">{'error'}</p>
@@ -745,9 +795,13 @@ function ForInsideTryApp() {
 function SignalInIfApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		---
+		@if (show()) {
 			const [count, setCount] = createSignal(0);
-			<p class="sig-if-count">{count()}</p>
+			---
+			<p class="sig-if-count">
+				{count()}
+			</p>
 			<button class="sig-if-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
 		} else {
 			<p class="sig-if-hidden">{'hidden'}</p>
@@ -761,18 +815,26 @@ function SignalInIfApp() {
 function SignalInBothBranchesApp() {
 	return <>
 		const [mode, setMode] = createSignal('a');
-		if (mode() === 'a') {
+		---
+		@if (mode() === 'a') {
 			const [x, setX] = createSignal(10);
-			<p class="branch-val">{x()}</p>
+			---
+			<p class="branch-val">
+				{x()}
+			</p>
 			<button class="branch-inc" onClick={() => setX(x() + 1)}>{'inc'}</button>
 		} else {
 			const [y, setY] = createSignal(20);
-			<p class="branch-val">{y()}</p>
+			---
+			<p class="branch-val">
+				{y()}
+			</p>
 			<button class="branch-inc" onClick={() => setY(y() + 1)}>{'inc'}</button>
 		}
-		<button class="branch-toggle" onClick={() => setMode(mode() === 'a' ? 'b' : 'a')}>
-			{'toggle'}
-		</button>
+		<button
+			class="branch-toggle"
+			onClick={() => setMode(mode() === 'a' ? 'b' : 'a')}
+		>{'toggle'}</button>
 	</>;
 }
 
@@ -781,14 +843,19 @@ function SignalInBothBranchesApp() {
 function SignalClosingOverScopeApp() {
 	return <>
 		const [multiplier, setMultiplier] = createSignal(2);
-		if (multiplier() > 0) {
+		---
+		@if (multiplier() > 0) {
 			const [base, setBase] = createSignal(5);
-			<p class="scope-result">{base() * multiplier()}</p>
+			---
+			<p class="scope-result">
+				{base() * multiplier()}
+			</p>
 			<button class="scope-inc-base" onClick={() => setBase(base() + 1)}>{'inc base'}</button>
 		}
-		<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier() + 1)}>
-			{'inc multiplier'}
-		</button>
+		<button
+			class="scope-inc-mult"
+			onClick={() => setMultiplier(multiplier() + 1)}
+		>{'inc multiplier'}</button>
 	</>;
 }
 
@@ -800,14 +867,19 @@ function SignalClosingOverScopeApp() {
 function SignalInForApp() {
 	return <>
 		const [items, setItems] = createSignal(['a', 'b']);
-		for (const item of items(); index i) {
+		---
+		@for (const item of items(); index i) {
 			const item_value = (item as unknown as () => string)();
 			const [clicked, setClicked] = createSignal(false);
+			---
 			<div class="sig-for-item">
-				<span>{item_value + (clicked() ? '!' : '')}</span>
-				<button class={'sig-for-click-' + item_value} onClick={() => setClicked(true)}>
-					{'click'}
-				</button>
+				<span>
+					{item_value + (clicked() ? '!' : '')}
+				</span>
+				<button
+					class={'sig-for-click-' + item_value}
+					onClick={() => setClicked(true)}
+				>{'click'}</button>
 			</div>
 		}
 		<button class="sig-for-add" onClick={() => setItems([...items(), 'c'])}>{'add'}</button>
@@ -819,13 +891,20 @@ function SignalInForApp() {
 function SignalInSwitchApp() {
 	return <>
 		const [page, setPage] = createSignal('home');
-		switch (page()) {
+		---
+		@switch (page()) {
 			case 'home':
 				const [homeCount, setHomeCount] = createSignal(0);
-				<p class="sig-switch-val">{homeCount()}</p>
-				<button class="sig-switch-inc" onClick={() => setHomeCount(homeCount() + 1)}>
-					{'inc'}
-				</button>
+				---
+
+
+				<p class="sig-switch-val">
+					{homeCount()}
+				</p>
+				<button
+					class="sig-switch-inc"
+					onClick={() => setHomeCount(homeCount() + 1)}
+				>{'inc'}</button>
 				break;
 			case 'about':
 				<p class="sig-switch-val">{'about page'}</p>
@@ -846,17 +925,19 @@ function GuardReturnWithSignalsApp() {
 	const [doubled, setDoubled] = createSignal(0);
 
 	return <>
-		<p class="early-count">{count()}</p>
-		<p class="early-doubled">{doubled()}</p>
+		<p class="early-count">
+			{count()}
+		</p>
+		<p class="early-doubled">
+			{doubled()}
+		</p>
 		<button
 			class="early-inc"
 			onClick={() => {
 				setCount(count() + 1);
 				setDoubled((count() + 1) * 2);
 			}}
-		>
-			{'inc'}
-		</button>
+		>{'inc'}</button>
 		<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
 	</>;
 }
@@ -864,8 +945,9 @@ function GuardReturnWithSignalsApp() {
 function ConditionalBranchTemplateApp() {
 	return <>
 		const [guard, setGuard] = createSignal(false);
+		---
 		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
-		if (!guard()) {
+		@if (!guard()) {
 			<p class="template-return-rest">{'rest'}</p>
 		} else {
 			<p class="template-return-guard">{'guard'}</p>
@@ -878,7 +960,8 @@ function ConditionalBranchTemplateApp() {
 function StaticInBranchApp() {
 	return <>
 		const [show, setShow] = createSignal(true);
-		if (show()) {
+		---
+		@if (show()) {
 			<div class="branch-static">
 				<span>{'Always the same'}</span>
 			</div>
@@ -892,10 +975,13 @@ function StaticInBranchApp() {
 function MixedStaticDynamicApp() {
 	return <>
 		const [count, setCount] = createSignal(0);
+		---
 		<header class="static-header">
 			<h1>{'Static Title'}</h1>
 		</header>
-		<p class="dynamic-count">{count()}</p>
+		<p class="dynamic-count">
+			{count()}
+		</p>
 		<footer class="static-footer">{'Static Footer'}</footer>
 		<button class="mixed-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
 	</>;
@@ -924,17 +1010,18 @@ function MidTemplateLocalsApp() {
 	return <>
 		<div class="mid-template-shell">
 			const [count, setCount] = createSignal(0);
-
-			for (const item of ['a', 'b']; index i) {
-				<span class="mid-template-item">{item()}</span>
+			mid_template_log.push('ran');
+			---
+			@for (const item of ['a', 'b']; index i) {
+				<span class="mid-template-item">
+					{item()}
+				</span>
 			}
-
-			<p class="mid-template-count">{count()}</p>
+			<p class="mid-template-count">
+				{count()}
+			</p>
 			<button class="mid-template-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
-
-			<div class="mid-template-side">
-				mid_template_log.push('ran');
-			</div>
+			<div class="mid-template-side"></div>
 		</div>
 	</>;
 }
@@ -960,7 +1047,9 @@ function LazyPropsApp() {
 function LazyArrayApp() {
 	return <>
 		const [count, setCount] = createSignal(0);
-		<p class="lazy-count">{count()}</p>
+		<p class="lazy-count">
+			{count()}
+		</p>
 		<button class="lazy-inc" onClick={() => setCount(count() + 1)}>{'+'}</button>
 	</>;
 }
@@ -970,6 +1059,7 @@ function LazyArrayApp() {
 function LazyObjVarApp() {
 	return <>
 		const &{ x, y } = usePosition();
+		---
 		<p class="lazy-pos">
 			{x}
 			{','}
@@ -987,6 +1077,7 @@ function usePosition() {
 function LazyCombinedApp(&{ label }: { label: string }) {
 	return <>
 		const [count, setCount] = createSignal(0);
+		---
 		<p class="lazy-combined">
 			{label}
 			{': '}

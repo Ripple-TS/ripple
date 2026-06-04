@@ -52,24 +52,28 @@ function DirectQuotedTextApp() {
 	return <>
 		<div class="direct-quoted-entities">"Rock &amp; &quot;Roll&quot;"</div>
 		<div class="direct-quoted-backslash">"line\nbreak"</div>
-		<pre class="direct-quoted-multiline">"first
-second"</pre>
+		<pre class="direct-quoted-multiline">first
+second</pre>
 	</>;
 }
 
 function DirectQuotedTextIfElseTrueApp() {
 	return <>
-		if (true) {
-			"Hello Ripple"
-		} else "Hello React"
+		@if (true) {
+			{'Hello Ripple'}
+		} else {
+			{'Hello React'}
+		}
 	</>;
 }
 
 function DirectQuotedTextIfElseFalseApp() {
 	return <>
-		if (false) {
-			"Hello Ripple"
-		} else "Hello React"
+		@if (false) {
+			{'Hello Ripple'}
+		} else {
+			{'Hello React'}
+		}
 	</>;
 }
 
@@ -85,7 +89,11 @@ function DirectQuotedTextIfElseApp() {
 }
 
 function Child(props: { text: string }) {
-	return <><span class="child">{props.text}</span></>;
+	return <>
+		<span class="child">
+			{props.text}
+		</span>
+	</>;
 }
 
 function NestedApp() {
@@ -102,10 +110,18 @@ function ExplicitTextApp() {
 		const hidden = false;
 		const empty = null;
 		const missing = undefined;
-		<div class="explicit-text-markup">{String(markup)}</div>
-		<div class="explicit-text-boolean">{String(hidden)}</div>
-		<div class="explicit-text-null">{empty == null ? '' : String(empty)}</div>
-		<div class="explicit-text-undefined">{missing == null ? '' : String(missing)}</div>
+		<div class="explicit-text-markup">
+			{String(markup)}
+		</div>
+		<div class="explicit-text-boolean">
+			{String(hidden)}
+		</div>
+		<div class="explicit-text-null">
+			{empty == null ? '' : String(empty)}
+		</div>
+		<div class="explicit-text-undefined">
+			{missing == null ? '' : String(missing)}
+		</div>
 	</>;
 }
 
@@ -118,9 +134,7 @@ function ExplicitHtmlApp() {
 			onClick={() => {
 				setMarkup('<strong class="html-node">updated</strong>');
 			}}
-		>
-			{'update'}
-		</button>
+		>{'update'}</button>
 	</>;
 }
 
@@ -130,6 +144,7 @@ function SpreadHtmlApp() {
 			dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
 		});
 		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+		---
 		<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
 		<button
 			class="spread-html-update-spread"
@@ -138,17 +153,13 @@ function SpreadHtmlApp() {
 					dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
 				});
 			}}
-		>
-			{'spread'}
-		</button>
+		>{'spread'}</button>
 		<button
 			class="spread-html-update-markup"
 			onClick={() => {
 				setMarkup('<strong class="html-node">updated</strong>');
 			}}
-		>
-			{'markup'}
-		</button>
+		>{'markup'}</button>
 	</>;
 }
 
@@ -190,10 +201,17 @@ function CallableBlockRuntimeApp() {
 			}
 		}
 		const reader = new MethodReader();
+		---
 		<section class="callable-block-runtime">
-			<p class="decl-block">{readDeclaration()}</p>
-			<p class="arrow-block">{readArrow()}</p>
-			<p class="method-block">{reader.read()}</p>
+			<p class="decl-block">
+				{readDeclaration()}
+			</p>
+			<p class="arrow-block">
+				{readArrow()}
+			</p>
+			<p class="method-block">
+				{reader.read()}
+			</p>
 		</section>
 	</>;
 }
@@ -203,6 +221,7 @@ function CallableBlockRuntimeApp() {
 function CounterApp() {
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<p class="count">{count}</p>
 		<button class="inc" onClick={() => setCount(count + 1)}>{'+'}</button>
 	</>;
@@ -219,9 +238,7 @@ function ElementRefApp() {
 				element_ref_captured = node;
 			}}
 			class="ref-target"
-		>
-			{'ref test'}
-		</div>
+		>{'ref test'}</div>
 	</>;
 }
 
@@ -257,15 +274,14 @@ function MultiRefApp() {
 		function secondRef(node: HTMLDivElement) {
 			multi_ref2_node = node;
 		}
+		---
 		<div
 			ref={(node: HTMLDivElement) => {
 				firstRef(node);
 				secondRef(node);
 			}}
 			class="multi-ref"
-		>
-			{'multi ref'}
-		</div>
+		>{'multi ref'}</div>
 	</>;
 }
 
@@ -288,6 +304,7 @@ function AutoMergedRefApp() {
 		function refC(node: HTMLDivElement) {
 			auto_merged_c = node;
 		}
+		---
 		<div ref={mergeRefs(refA, refB, refC)} class="auto-merged">{'auto merged'}</div>
 	</>;
 }
@@ -303,6 +320,7 @@ function AutoMergedMixedRefApp() {
 		function jsxRef(node: HTMLDivElement) {
 			mixed_jsx_node = node;
 		}
+		---
 		<div ref={mergeRefs(keywordRef, jsxRef)} class="auto-merged-mixed">{'mixed merged'}</div>
 	</>;
 }
@@ -319,9 +337,11 @@ function AutoMergedRefObjectApp() {
 		function callbackRef(node: HTMLDivElement) {
 			auto_ref_obj_callback_node = node;
 		}
-		<div ref={mergeRefs(ref_object, callbackRef)} class="auto-merged-objects">
-			{'object merged'}
-		</div>
+		---
+		<div
+			ref={mergeRefs(ref_object, callbackRef)}
+			class="auto-merged-objects"
+		>{'object merged'}</div>
 	</>;
 }
 
@@ -349,7 +369,8 @@ function modernMountRef(_node: HTMLDivElement) {
 function CleanupRefApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<div ref={mergeRefs(legacyMountRef, modernMountRef)} class="cleanup-target">{'x'}</div>
 		}
 		<button class="cleanup-hide" onClick={() => setShow(false)}>{'hide'}</button>
@@ -361,7 +382,8 @@ function CleanupRefApp() {
 function IfReactiveApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<span class="visible">{'shown'}</span>
 		} else {
 			<span class="hidden">{'hidden'}</span>
@@ -375,7 +397,8 @@ function IfReactiveApp() {
 function ForReactiveApp() {
 	return <>
 		const [items, setItems] = useState(['a', 'b', 'c']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="item" key={item}>{item}</li>
 		}
 		<button class="add" onClick={() => setItems([...items, 'd'])}>{'add'}</button>
@@ -386,8 +409,10 @@ function ForReactiveApp() {
 function ForContinueApp() {
 	return <>
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			if (!item) continue;
+			---
 			<li class="continue-item" key={item}>{item}</li>
 		}
 	</>;
@@ -398,7 +423,8 @@ function ForContinueApp() {
 function ForOverSetApp() {
 	return <>
 		const items = new Set<string>(['x', 'y', 'z']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="set-item" key={item}>{item}</li>
 		}
 	</>;
@@ -413,8 +439,11 @@ function ForOverMapApp() {
 			['b', 2],
 			['c', 3],
 		]);
-		for (const [key, value] of entries) {
-			<li class="map-item" {key}>{key + ':' + value}</li>
+		---
+		@for (const [key, value] of entries) {
+			<li class="map-item" {key}>
+				{key + ':' + value}
+			</li>
 		}
 	</>;
 }
@@ -429,7 +458,8 @@ function ForOverCustomIterableApp() {
 			yield 'three';
 		}
 		const items = iter();
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			<li class="generator-item" key={item}>{item}</li>
 		}
 	</>;
@@ -440,7 +470,8 @@ function ForOverCustomIterableApp() {
 function SwitchReactiveApp() {
 	return <>
 		const [page, setPage] = useState('home');
-		switch (page) {
+		---
+		@switch (page) {
 			case 'home':
 				<div class="page">{'Home'}</div>
 				break;
@@ -459,7 +490,11 @@ function SwitchReactiveApp() {
 // ── Composite children ──
 
 function Wrapper(props: { children?: any }) {
-	return <><div class="wrapper">{props.children}</div></>;
+	return <>
+		<div class="wrapper">
+			{props.children}
+		</div>
+	</>;
 }
 
 function ChildrenApp() {
@@ -475,8 +510,9 @@ function ChildrenApp() {
 function IfChildrenApp() {
 	return <>
 		const [show, setShow] = useState(false);
+		---
 		<Wrapper>
-			if (show) {
+			@if (show) {
 				<span class="inner-visible">{'inner shown'}</span>
 			}
 		</Wrapper>
@@ -504,6 +540,7 @@ let spread_ref_captured: HTMLInputElement | null = null;
 function SpreadInput(props: { id: string; [key: string]: any }) {
 	return <>
 		const { id, ...rest } = props;
+		---
 		<input {id} {...rest} />
 	</>;
 }
@@ -534,6 +571,7 @@ function NamedDirectRefApp() {
 		function anonymousRef(node: HTMLInputElement | null) {
 			named_direct_anonymous_node = node;
 		}
+		---
 		<input
 			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
 				named_direct_node = node;
@@ -633,6 +671,7 @@ function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; sec
 	return <>
 		const first = { type: props.type, ref: props.first_ref };
 		const second = { ref: props.second_ref };
+		---
 		<input
 			{...first}
 			{...second}
@@ -667,7 +706,8 @@ let named_mutable_unmount_slot: HTMLInputElement | null | undefined;
 function NamedMutableUnmountApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<input
 				type="text"
 				class="named-mutable-unmount"
@@ -686,16 +726,19 @@ function NamedMutableUnmountApp() {
 function ThrowingChild() {
 	return <>
 		throw new Error('sync boom');
+		---
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function ErrorBoundaryApp() {
 	return <>
-		try {
+		@try {
 			<ThrowingChild />
 		} catch (err: Error) {
-			<p class="caught">{err.message}</p>
+			<p class="caught">
+				{err.message}
+			</p>
 		}
 	</>;
 }
@@ -707,6 +750,7 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 		if (props.shouldThrow) {
 			throw new Error('conditional boom');
 		}
+		---
 		<p class="ok">{'no error'}</p>
 	</>;
 }
@@ -714,19 +758,20 @@ function MaybeThrow(props: { shouldThrow: boolean }) {
 function ErrorToggleApp() {
 	return <>
 		const [fail, setFail] = useState(false);
-		try {
+		---
+		@try {
 			<MaybeThrow shouldThrow={fail} />
 		} catch (err: Error, reset: () => void) {
-			<p class="caught">{err.message}</p>
+			<p class="caught">
+				{err.message}
+			</p>
 			<button
 				class="reset"
 				onClick={() => {
 					setFail(false);
 					reset();
 				}}
-			>
-				{'reset'}
-			</button>
+			>{'reset'}</button>
 		}
 		<button class="trigger-error" onClick={() => setFail(true)}>{'break'}</button>
 	</>;
@@ -737,13 +782,14 @@ function ErrorToggleApp() {
 function AsyncChild(props: { promise: Promise<string> }) {
 	return <>
 		const data = use(props.promise);
+		---
 		<p class="resolved">{data}</p>
 	</>;
 }
 
 function SuspenseApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -753,7 +799,7 @@ function SuspenseApp(props: { promise: Promise<string> }) {
 
 function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {}
 	</>;
@@ -763,12 +809,14 @@ function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) {
 
 function SuspenseErrorApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
 		} catch (err: Error) {
-			<p class="caught">{err.message}</p>
+			<p class="caught">
+				{err.message}
+			</p>
 		}
 	</>;
 }
@@ -777,12 +825,14 @@ function SuspenseErrorApp(props: { promise: Promise<string> }) {
 
 function ErrorResetApp(props: { promise: Promise<string> }) {
 	return <>
-		try {
+		@try {
 			<AsyncChild promise={props.promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
 		} catch (err: Error, reset: () => void) {
-			<p class="caught">{err.message}</p>
+			<p class="caught">
+				{err.message}
+			</p>
 			<button class="retry" onClick={() => reset()}>{'retry'}</button>
 		}
 	</>;
@@ -793,22 +843,27 @@ function ErrorResetApp(props: { promise: Promise<string> }) {
 function InnerThrow() {
 	return <>
 		throw new Error('inner error');
+		---
 		<p>{'unreachable'}</p>
 	</>;
 }
 
 function NestedTryApp() {
 	return <>
-		try {
+		@try {
 			<div class="outer">
-				try {
+				@try {
 					<InnerThrow />
 				} catch (err: Error) {
-					<p class="inner-caught">{err.message}</p>
+					<p class="inner-caught">
+						{err.message}
+					</p>
 				}
 			</div>
 		} catch (err: Error) {
-			<p class="outer-caught">{err.message}</p>
+			<p class="outer-caught">
+				{err.message}
+			</p>
 		}
 	</>;
 }
@@ -818,7 +873,8 @@ function NestedTryApp() {
 function SwappableAsyncApp() {
 	return <>
 		const [promise, setPromise] = useState(() => Promise.resolve('first'));
-		try {
+		---
+		@try {
 			<AsyncChild {promise} />
 		} pending {
 			<p class="pending">{'loading...'}</p>
@@ -832,8 +888,9 @@ function SwappableAsyncApp() {
 function IfInsideTryApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		try {
-			if (show) {
+		---
+		@try {
+			@if (show) {
 				<p class="branch-a">{'visible'}</p>
 			} else {
 				<p class="branch-b">{'alternate'}</p>
@@ -850,8 +907,9 @@ function IfInsideTryApp() {
 function ForInsideTryApp() {
 	return <>
 		const [items, setItems] = useState(['x', 'y']);
-		try {
-			for (const item of items) {
+		---
+		@try {
+			@for (const item of items) {
 				<span class="try-item" key={item}>{item}</span>
 			}
 		} catch (err: Error) {
@@ -868,8 +926,10 @@ function HookInIfApp() {
 		const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(
 			true,
 		);
-		if (show) {
+		---
+		@if (show) {
 			const [count, setCount] = useState(0);
+			---
 			<p class="hook-if-count">{count}</p>
 			<button class="hook-if-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
 		} else {
@@ -884,8 +944,10 @@ function HookInIfApp() {
 function HookInForApp() {
 	return <>
 		const [items, setItems] = useState(['a', 'b']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const [clicked, setClicked] = useState(false);
+			---
 			<div class="hook-for-item" key={item}>
 				<span>
 					{item}
@@ -903,9 +965,20 @@ function HookInForApp() {
 function HookInSwitchApp() {
 	return <>
 		const [page, setPage] = useState('home');
-		switch (page) {
+		---
+		@switch (page) {
 			case 'home':
 				const [homeCount, setHomeCount] = useState(0);
+				---
+
+
+
+
+
+
+
+
+
 				<p class="hook-switch-val">{homeCount}</p>
 				<button class="hook-switch-inc" onClick={() => setHomeCount(homeCount + 1)}>{'inc'}</button>
 				break;
@@ -922,18 +995,22 @@ function HookInSwitchApp() {
 function HookInBothBranchesApp() {
 	return <>
 		const [mode, setMode] = useState('a');
-		if (mode === 'a') {
+		---
+		@if (mode === 'a') {
 			const [x, setX] = useState(10);
+			---
 			<p class="branch-val">{x}</p>
 			<button class="branch-inc" onClick={() => setX(x + 1)}>{'inc'}</button>
 		} else {
 			const [y, setY] = useState(20);
+			---
 			<p class="branch-val">{y}</p>
 			<button class="branch-inc" onClick={() => setY(y + 1)}>{'inc'}</button>
 		}
-		<button class="branch-toggle" onClick={() => setMode(mode === 'a' ? 'b' : 'a')}>
-			{'toggle'}
-		</button>
+		<button
+			class="branch-toggle"
+			onClick={() => setMode(mode === 'a' ? 'b' : 'a')}
+		>{'toggle'}</button>
 	</>;
 }
 
@@ -942,14 +1019,19 @@ function HookInBothBranchesApp() {
 function HookClosingOverScopeApp() {
 	return <>
 		const [multiplier, setMultiplier] = useState(2);
-		if (multiplier > 0) {
+		---
+		@if (multiplier > 0) {
 			const [base, setBase] = useState(5);
-			<p class="scope-result">{base * multiplier}</p>
+			---
+			<p class="scope-result">
+				{base * multiplier}
+			</p>
 			<button class="scope-inc-base" onClick={() => setBase(base + 1)}>{'inc base'}</button>
 		}
-		<button class="scope-inc-mult" onClick={() => setMultiplier(multiplier + 1)}>
-			{'inc multiplier'}
-		</button>
+		<button
+			class="scope-inc-mult"
+			onClick={() => setMultiplier(multiplier + 1)}
+		>{'inc multiplier'}</button>
 	</>;
 }
 
@@ -958,10 +1040,12 @@ function HookClosingOverScopeApp() {
 function HookInsideElementApp() {
 	return <>
 		const [label, setLabel] = useState('greeting');
+		---
 		<div class="outer">
 			<h2>{label}</h2>
-			if (label === 'greeting') {
+			@if (label === 'greeting') {
 				const [msg, setMsg] = useState('Hello');
+				---
 				<p class="inner-msg">{msg}</p>
 				<button class="inner-update" onClick={() => setMsg('Hi there')}>{'update'}</button>
 			}
@@ -969,9 +1053,7 @@ function HookInsideElementApp() {
 		<button
 			class="outer-toggle"
 			onClick={() => setLabel(label === 'greeting' ? 'farewell' : 'greeting')}
-		>
-			{'toggle'}
-		</button>
+		>toggle</button>
 	</>;
 }
 
@@ -981,13 +1063,18 @@ function HookInForClosingScopeApp() {
 	return <>
 		const [prefix, setPrefix] = useState('item');
 		const [items, setItems] = useState(['a', 'b']);
-		for (const item of items) {
+		---
+		@for (const item of items) {
 			const [active, setActive] = useState(false);
+			---
 			<div class="for-scope-item" key={item}>
-				<span class="for-scope-label">{prefix + '-' + item + (active ? '!' : '')}</span>
-				<button class={'for-scope-toggle-' + item} onClick={() => setActive(!active)}>
-					{'toggle'}
-				</button>
+				<span class="for-scope-label">
+					{prefix + '-' + item + (active ? '!' : '')}
+				</span>
+				<button
+					class={'for-scope-toggle-' + item}
+					onClick={() => setActive(!active)}
+				>{'toggle'}</button>
 			</div>
 		}
 		<button class="for-scope-prefix" onClick={() => setPrefix('thing')}>{'change prefix'}</button>
@@ -1013,9 +1100,7 @@ function GuardReturnWithHooksApp() {
 				setCount(count + 1);
 				setDoubled((count + 1) * 2);
 			}}
-		>
-			{'inc'}
-		</button>
+		>inc</button>
 		<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
 	</>;
 }
@@ -1026,25 +1111,36 @@ function HookInSwitchWithScopeApp() {
 	return <>
 		const [tab, setTab] = useState('counter');
 		const [theme, setTheme] = useState('light');
-		switch (tab) {
+		---
+		@switch (tab) {
 			case 'counter':
 				const [n, setN] = useState(0);
-				<p class="switch-scope-val">{theme + ':' + n}</p>
+				---
+
+
+
+
+
+
+				<p class="switch-scope-val">
+					{theme + ':' + n}
+				</p>
 				<button class="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
 				break;
 			case 'info':
-				<p class="switch-scope-val">{theme + ':info'}</p>
+				<p class="switch-scope-val">
+					{theme + ':info'}
+				</p>
 				break;
 		}
-		<button class="switch-scope-tab" onClick={() => setTab(tab === 'counter' ? 'info' : 'counter')}>
-			{'switch tab'}
-		</button>
+		<button
+			class="switch-scope-tab"
+			onClick={() => setTab(tab === 'counter' ? 'info' : 'counter')}
+		>{'switch tab'}</button>
 		<button
 			class="switch-scope-theme"
 			onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-		>
-			{'switch theme'}
-		</button>
+		>{'switch theme'}</button>
 	</>;
 }
 
@@ -1055,6 +1151,7 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 			{props.label + ':' + count}
 		</button>
@@ -1065,6 +1162,7 @@ function TsrxExpressionHookApp() {
 	return <>
 		const [active, setActive] = useState(false);
 		const [label, setLabel] = useState('first');
+		---
 		<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
 			{active ? 'hide' : 'show'}
 		</button>
@@ -1078,6 +1176,7 @@ function TsrxExpressionHookApp() {
 function StaticHoistMixedApp() {
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<header class="static-header">
 			<h1>{'Static Title'}</h1>
 		</header>
@@ -1092,7 +1191,8 @@ function StaticHoistMixedApp() {
 function StaticHoistInBranchApp() {
 	return <>
 		const [show, setShow] = useState(true);
-		if (show) {
+		---
+		@if (show) {
 			<div class="branch-static">
 				<span>{'Always the same'}</span>
 			</div>
@@ -1133,6 +1233,7 @@ function LazyPropsApp() {
 function LazyArrayApp() {
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<p class="lazy-count">{count}</p>
 		<button class="lazy-inc" onClick={() => setCount(count + 1)}>{'+'}</button>
 	</>;
@@ -1143,6 +1244,7 @@ function LazyArrayApp() {
 function LazyObjVarApp() {
 	return <>
 		const &{ x, y } = usePosition();
+		---
 		<p class="lazy-pos">
 			{x}
 			{','}
@@ -1160,6 +1262,7 @@ function usePosition() {
 function LazyCombinedApp(&{ label }: { label: string }) {
 	return <>
 		const [count, setCount] = useState(0);
+		---
 		<p class="lazy-combined">
 			{label}
 			{': '}

@@ -332,12 +332,14 @@ describe('@tsrx/solid basic', () => {
 				`function FeatureCard({ items }: { items: string[] }) { return <>
 					<ul>
 						const [state, setState] = createSignal();
-						for (const item of items; index i) {
+						---
+						@for (const item of items; index i) {
 							<li>{item}</li>
 						}
 						<div>
 							console.log('logged');
 							debugger;
+							---
 						</div>
 					</ul>
 				</>; }`,
@@ -361,8 +363,8 @@ describe('@tsrx/solid basic', () => {
 				`function Child() { return <>
 					<div>
 						const x = 1;
-
 						console.log(x);
+						---
 					</div>
 				</>; }`,
 				'Child.tsrx',
@@ -592,9 +594,11 @@ describe('@tsrx/solid basic', () => {
 				compile(
 					`export default function A() { return <>
 						let early = true;
-						<>"Hello"</>
-						if (early) {
-							return
+						---
+						<>Hello</>
+						@if (early) {
+							return;
+							---
 						}
 						<>"World"</>
 					</>; }`,

@@ -53,15 +53,15 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 						params={{
 							menuAlt: (isAdmin) => {
 								if (isAdmin) {
-									return [<>"Delete"</>, <>"Edit"</>];
+									return [<>Delete</>, <>Edit</>];
 								}
 							},
 							bySwitch: (role) => {
 								switch (role) {
 									case 'admin':
-										return [<>"Edit"</>];
+										return [<>Edit</>];
 									default:
-										return [<>"View"</>];
+										return [<>View</>];
 								}
 							},
 						}}
@@ -83,6 +83,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 					if (ready) {
 						return;
 					}
+					---
 					<div>{'ready'}</div>
 				</>; }`,
 				'App.tsrx',
@@ -201,7 +202,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 			);
 			expect(code).toContain('item={item}');
 			expect(code).toContain('onSelect={props.onSelect}');
-			expect(code).toContain('{"Selected"}');
+			expect(code).toContain('"Selected"');
 		});
 
 		it('preserves JSX-style returns in regular functions declared inside TSRX bodies', () => {
@@ -891,8 +892,9 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 		it('uses continue to skip a for...of iteration', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) { return <>
-					for (const item of items) {
+					@for (const item of items) {
 						if (!item) continue
+						---
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -907,9 +909,10 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 		it('keeps rendered content before continue branches', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) { return <>
-					for (const item of items) {
-						<span>{item}</span>
+					@for (const item of items) {
 						if (!item) continue
+						---
+						<span>{item}</span>
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -927,14 +930,14 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			() => {
 				const { code } = compile(
 					`export function App() { return <>
-						for (const item of items; index i; key i) {
+						@for (const item of items; index i; key i) {
 							<div>{'test'}</div>
 						}
 					</>; }`,
 					'App.tsrx',
 				);
 
-				expect(code).toContain("return <div key={i}>{'test'}</div>;");
+				expect(code).toContain("<div key={i}>{'test'}</div>");
 				expect(code).not.toContain('__static');
 			},
 		);
@@ -944,7 +947,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			() => {
 				const { code } = compile(
 					`export function App() { return <>
-						for (const item of items; index i) {
+						@for (const item of items; index i) {
 							<div>{'one'}</div>
 							<div>{'two'}</div>
 						}
@@ -962,7 +965,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 		it('allows ordinary function control flow inside for...of loops', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) { return <>
-					for (const item of items) {
+					@for (const item of items) {
 						function label(value: string) {
 							for (let i = 0; i < 1; i++) {
 								while (i < 0) {
@@ -972,7 +975,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 							}
 							return value
 						}
-
+						---
 						<div>{label(item)}</div>
 					}
 				</>; }`,
@@ -1441,9 +1444,11 @@ export function runSharedCompileTests({
 		it('accepts direct double-quoted text in if-else branches', () => {
 			const { code } = compile(
 				`export function App() { return <>
-					if (false) {
+					@if (false) {
 						"Hello Ripple"
-					} else "Hello React";
+					} else {
+						"Hello React"
+					}
 				</>; }`,
 				'App.tsrx',
 			);
@@ -1456,7 +1461,7 @@ export function runSharedCompileTests({
 		it('decodes entities in direct double-quoted text children like JSX attributes', () => {
 			const { code } = compile(
 				`export function App() { return <>
-					<p>"a&amp;b&quot;c"</p>
+					<p>a&amp;b&quot;c</p>
 				</>; }`,
 				'App.tsrx',
 			);
@@ -1468,12 +1473,12 @@ export function runSharedCompileTests({
 		it('treats backslashes in direct double-quoted text children as literal text', () => {
 			const { code } = compile(
 				`export function App() { return <>
-					<p>"line\\nbreak"</p>
+					<p>line\\nbreak</p>
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('"line\\\\nbreak"');
+			expect(code).toContain('line\\\\nbreak');
 		});
 
 		it('keeps double-quoted strings inside expression containers as JavaScript strings', () => {
@@ -1500,26 +1505,15 @@ break"}</p>
 			).toThrow(/Unterminated string constant/);
 		});
 
-		it('does not use JavaScript quote escapes in direct double-quoted text children', () => {
-			expect(() =>
-				compile(
-					`export function App() { return <>
-						<p>"adsa\\""</p>
-					</>; }`,
-					'App.tsrx',
-				),
-			).toThrow(/Unterminated double-quoted text child/);
-		});
-
 		it('keeps compact string comparisons in expression containers parseable', () => {
 			const { code } = compile(
 				`export function App({ value }: { value: string }) { return <>
-					<p>{"a"<value}</p>
+					<p>{a<value}</p>
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"a" < value}');
+			expect(code).toContain('{a < value}');
 		});
 
 		it('preserves regular function type parameters', () => {
@@ -1688,12 +1682,11 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(() =>
 				compile(
 					`export function App() { return <>
-						if (x) {
-							<div>{"hello world"}</div>
-							return
+						@if (x) {
+							return <div>hello world</div>;
 						}
 
-						<div>{"hello world 2"}</div>
+						<div>hello world 2</div>
 					</>; }`,
 					'App.tsrx',
 				),
@@ -1749,8 +1742,8 @@ export function optionalFn(bar: string, baz?: string) {
 		// Expression-position native fragments unwrap when they only contain a
 		// single render expression and wrap when they need to preserve siblings.
 		it('unwraps a native fragment with a single element child', () => {
-			const { code } = compile(`class Foo { bar() { return <><div>"hi"</div></>; } }`, 'App.tsrx');
-			expect(code).toContain('{"hi"}');
+			const { code } = compile(`class Foo { bar() { return <><div>hi</div></>; } }`, 'App.tsrx');
+			expect(code).toContain('hi');
 			expect(code).not.toContain('<tsx');
 		});
 
@@ -1811,6 +1804,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App() { return <>
 						const tag = 'section';
+						---
 						<@tag id="x" />
 					</>; }`,
 					'App.tsrx',
@@ -1849,21 +1843,22 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 
 		it('unwraps text-only native fragments to strings', () => {
-			const { code } = compile(`class Foo { bar() { return <>"plain text"</>; } }`, 'App.tsrx');
-			expect(code).toContain('return "plain text";');
+			const { code } = compile(`class Foo { bar() { return <>plain text</>; } }`, 'App.tsrx');
+			expect(code).toContain('plain text');
+			expect(code).not.toContain('return null;');
 		});
 
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
 				`export function Button() { return <>
-					const x = <>"Hello world"</>
+					const x = <>Hello world</>
 
 					{x}
 				</>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('const x = "Hello world";');
+			expect(code).toContain('const x = <>Hello world</>;');
 			expect(code).toContain('return x;');
 		});
 
@@ -1871,7 +1866,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`function a() {
 					return <>
-						\`333\`
+						`333`
 					</>;
 				}`,
 				'App.tsrx',
@@ -1884,9 +1879,9 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`function a() {
 					return <>
-						\`
+						`
 						<b></b>
-						\`
+						`
 					</>;
 				}`,
 				'App.tsrx',
@@ -1898,11 +1893,11 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('wraps multiple native fragment children in a fragment', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <><div>"a"</div><div>"b"</div></>; } }`,
+				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
 				'App.tsrx',
 			);
-			expect(code).toContain('{"a"}');
-			expect(code).toContain('{"b"}');
+			expect(code).toContain('a');
+			expect(code).toContain('b');
 		});
 
 		it('unwraps a native fragment whose single child is already a fragment', () => {
@@ -1916,35 +1911,35 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 
 		it('unwraps an explicit native fragment with a single element', () => {
-			const { code } = compile(`class Foo { bar() { return <><div>"hi"</div></>; } }`, 'App.tsrx');
-			expect(code).toContain('{"hi"}');
+			const { code } = compile(`class Foo { bar() { return <><div>hi</div></>; } }`, 'App.tsrx');
+			expect(code).toContain('hi');
 		});
 
 		it('keeps an explicit native fragment with multiple children', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <><div>"a"</div><div>"b"</div></>; } }`,
+				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
 				'App.tsrx',
 			);
-			expect(code).toContain('{"a"}');
-			expect(code).toContain('{"b"}');
+			expect(code).toContain('a');
+			expect(code).toContain('b');
 		});
 
 		it('keeps special fragment returns inside component-local functions', () => {
 			const { code } = compile(
 				`export function App() {
 						function FragmentReturn() {
-							return <><div>"fragment"</div></>;
+							return <><div>fragment</div></>;
 						}
 						function TsxReturn() {
-							return <><div>"tsx"</div></>;
+							return <><div>tsx</div></>;
 						}
-					function TsrxReturn() {
-						return <><div>"tsrx"</div></>;
-					}
+						function TsrxReturn() {
+							return <><div>tsrx</div></>;
+						}
 
-					return <>
-						<div>"App"</div>
-					</>;
+						return <>
+							<div>App</div>
+						</>;
 				}`,
 				'App.tsrx',
 			);
@@ -1967,13 +1962,13 @@ export function optionalFn(bar: string, baz?: string) {
 					export function App() { return <>
 						<Child
 							fragment={() => {
-								return <><div>"fragment"</div></>;
+								return <><div>fragment</div></>;
 							}}
 							tsx={() => {
-								return <><div>"tsx"</div></>;
+								return <><div>tsx</div></>;
 							}}
 						tsrx={() => {
-							return <><div>"tsrx"</div></>;
+							return <><div>tsrx</div></>;
 						}}
 					/>
 				</>; }`,
@@ -2015,8 +2010,8 @@ export function optionalFn(bar: string, baz?: string) {
 
 					export function App() { return <>
 						<Child
-							fragment={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
-							native={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
+							fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
+							native={() => <>{[<>Delete</>, <>Edit</>]}</>}
 						/>
 					</>; }`,
 				'App.tsrx',
@@ -2031,11 +2026,11 @@ export function optionalFn(bar: string, baz?: string) {
 	describe(`[${name}] native fragment values`, () => {
 		it('lowers native TSRX template text in expression position', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <><div>"Hello"</div></>; } }`,
+				`class Foo { bar() { return <><div>Hello</div></>; } }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Hello"}');
+			expect(code).toContain('Hello');
 		});
 
 		it('parses compact native TSRX templates before a trailing newline at EOF', () => {
@@ -2047,14 +2042,14 @@ export function optionalFn(bar: string, baz?: string) {
 					`</>; }`,
 					``,
 					`function Test(p1, p2) {`,
-					`\treturn <><div>"Hello"</div><div>{p1}</div><div>{p2}</div></>;`,
+					`\treturn <><div>Hello</div><div>{p1}</div><div>{p2}</div></>;`,
 					`}`,
 					``,
 				].join('\n'),
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Hello"}');
+			expect(code).toContain('Hello');
 		});
 
 		it('preserves statements before template output', () => {
@@ -2069,21 +2064,21 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('supports control flow inside native template fragments', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <>if (true) { <div>"yes"</div> }</>; } }`,
+				`class Foo { bar() { return <>@if (true) { <div>yes</div> }</>; } }`,
 				'App.tsrx',
 			);
 
 			expect(code).toContain('true');
-			expect(code).toContain('{"yes"}');
+			expect(code).toContain('yes');
 		});
 
 		it('lowers native TSRX template fragments in component JSX attribute values', () => {
 			const { code } = compile(
-				`function App() { return <> <Card content={<><span>"Title"</span></>} /> </>; }`,
+				`function App() { return <> <Card content={<><span>Title</span></>} /> </>; }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Title"}');
+			expect(code).toContain('Title');
 		});
 
 		it('lowers statement-bodied native TSRX templates in self-closing component attributes', () => {
@@ -2091,9 +2086,10 @@ export function optionalFn(bar: string, baz?: string) {
 				`function App() { return <>
 					<Card
 						content={<>
-							if (foo) {
+							@if (foo) {
 								<div>
-									if (foo > 1) {}
+									if (foo) {}
+									---
 								</div>
 							}
 						</>}
@@ -2108,29 +2104,29 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('lowers native TSRX template fragments in JSX attribute values', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <Card content={<><span>"Title"</span></>} />; } }`,
+				`class Foo { bar() { return <Card content={<><span>Title</span></>} />; } }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Title"}');
+			expect(code).toContain('Title');
 		});
 
 		it('lowers native TSRX template fragments in object property JSX attribute values', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <Card content={{ child: <><span>"Title"</span></> }} />; } }`,
+				`class Foo { bar() { return <Card content={{ child: <><span>Title</span></> }} />; } }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Title"}');
+			expect(code).toContain('Title');
 		});
 
 		it('lowers native TSRX template fragments returned from render callback props', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <List render={() => { return <><span>"Item"</span></>; }} />; } }`,
+				`class Foo { bar() { return <List render={() => { return <><span>Item</span></>; }} />; } }`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('{"Item"}');
+			expect(code).toContain('Item');
 		});
 
 		it('lowers native TSRX template fragments returned from callback props without semicolons', () => {
@@ -2181,7 +2177,7 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: () => <>
-										<div>"nested"</div>
+										<div>nested</div>
 									</>
 								}
 							}}
@@ -2194,7 +2190,7 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: () => <>
-										<div>"nested trailing comma"</div>
+										<div>nested trailing comma</div>
 									</>,
 								},
 							}}
@@ -2218,7 +2214,7 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								render: () => <>
-									<div>"top"</div>
+									<div>top</div>
 								</>,
 							}}
 						/>
@@ -2232,7 +2228,7 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								render: (icon: () => JSX.Element) => <>
-									<div>"typed top"</div>
+									<div>typed top</div>
 								</>,
 							}}
 						/>
@@ -2246,7 +2242,7 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 									render: () => {
-										return [<>"View"</>];
+										return [<>View</>];
 									},
 							}}
 						/>
@@ -2304,7 +2300,7 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: (icon: () => JSX.Element) => <>
-										<div>"typed"</div>
+										<div>typed</div>
 									</>,
 								},
 							}}
@@ -2317,7 +2313,7 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: (tag: string, className: string, icon: () => JSX.Element) => <>
-										<div>"typed trailing comma"</div>
+										<div>typed trailing comma</div>
 									</>,
 								},
 							}}
@@ -2345,6 +2341,7 @@ export function optionalFn(bar: string, baz?: string) {
 											if (icon) {
 												icon();
 											}
+											---
 										</@tag>
 									</>,
 								},
@@ -2369,24 +2366,24 @@ export function optionalFn(bar: string, baz?: string) {
 									title: 'Welcome',
 									header: {
 										class: 'foo',
-										children: <><h1>"Big things are coming!"</h1></>,
+										children: <><h1>Big things are coming!</h1></>,
 									},
-									content: <><p>"Lorem ipsum..."</p></>,
+									content: <><p>Lorem ipsum...</p></>,
 									menuItems: [
-										<><span>"Copy"</span></>,
-										<><span>"Cut"</span></>,
-										<><span>"Delete"</span></>,
+										<><span>Copy</span></>,
+										<><span>Cut</span></>,
+										<><span>Delete</span></>,
 									],
 								menuAlt: (isAdmin) => {
 									if (isAdmin) {
-										return [<>"Delete"</>, <>"Edit"</>];
+										return [<>Delete</>, <>Edit</>];
 									}
-									return [<>"View"</>];
+									return [<>View</>];
 								},
 									details: {
 										label: {
 											class: 'custom',
-											children: [<>"Shipping & returns"</>],
+											children: [<>Shipping & returns</>],
 										},
 										leadingIcon: { children: <>"icon"</> },
 									},
@@ -2396,6 +2393,7 @@ export function optionalFn(bar: string, baz?: string) {
 											if (icon) {
 												icon();
 											}
+											---
 										</@tag>
 									</>,
 								},
@@ -2419,13 +2417,13 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 									menuItems: [
-										<><span>"Copy"</span></>,
-										<><span>"Cut"</span></>,
-										<><span>"Delete"</span></>,
+										<><span>Copy</span></>,
+										<><span>Cut</span></>,
+										<><span>Delete</span></>,
 									],
 									details: {
 										label: {
-											children: [<>"Shipping & returns"</>],
+											children: [<>Shipping & returns</>],
 										},
 								},
 							}}
@@ -2447,7 +2445,7 @@ export function optionalFn(bar: string, baz?: string) {
 					<Page params={{
 						f: () => {
 							<>
-								<div>"x"</div>
+								<div>x</div>
 							</>
 						},
 					}} />
@@ -2456,7 +2454,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain('<div');
-			expect(code).toContain('"x"');
+			expect(code).toContain('x');
 			expect(code).not.toContain('return null;');
 		});
 
@@ -2491,19 +2489,19 @@ export function optionalFn(bar: string, baz?: string) {
 						params={{
 							menuAlt: (isAdmin) => {
 								if (isAdmin) {
-									return [<>"Delete"</>, <>"Edit"</>];
+									return [<>Delete</>, <>Edit</>];
 								}
-								return [<>"View"</>];
+								return [<>View</>];
 							},
 							direct: () => {
-								return [<>"View"</>];
+								return [<>View</>];
 							},
 							bySwitch: (role) => {
 								switch (role) {
 									case 'admin':
-										return [<>"Edit"</>];
+										return [<>Edit</>];
 									default:
-										return [<>"View"</>];
+										return [<>View</>];
 								}
 							},
 							byForOf: (items) => {
@@ -2513,13 +2511,13 @@ export function optionalFn(bar: string, baz?: string) {
 									}
 								}
 
-								return [<>"Empty"</>];
+								return [<>Empty</>];
 							},
 							byTry: (load) => {
 								try {
 									return [<>{load()}</>];
 								} catch (error) {
-									return [<>"Error"</>];
+									return [<>Error</>];
 								}
 							},
 						}}
@@ -2642,6 +2640,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App(&{ name }: { name: string }) { return <>
 					const name = 'override';
+					---
 					<div>{name}</div>
 				</>; }`,
 				'App.tsrx',
@@ -2658,6 +2657,7 @@ export function optionalFn(bar: string, baz?: string) {
 						const name = 'local';
 						return name;
 					};
+					---
 					<div>{name}</div>
 				</>; }`,
 				'App.tsrx',
@@ -2678,6 +2678,7 @@ export function optionalFn(bar: string, baz?: string) {
 					for (const name of items) {
 						console.log(name);
 					}
+					---
 					<div>{name}</div>
 				</>; }`,
 				'App.tsrx',
@@ -2691,50 +2692,45 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe(`[${name}] interleaved statements and JSX children`, () => {
-		// When a mutation sits between JSX siblings, each child has to be
-		// captured into a `_tsrx_child_N` const at its source position so
-		// later mutations in the outer body don't retroactively change what
-		// earlier children rendered. Uses `captureJsxChild` from @tsrx/core.
-
-		it('preserves source order when statements are interleaved with JSX children', () => {
+	describe(`[${name}] fenced setup statements and JSX children`, () => {
+		it('keeps element setup statements before rendered children', () => {
 			const { code } = compile(
 				`function Card() { return <>
 					<div class="card">
 						var a = "one"
-						<b>{"hello" + a}</b>
 						a = "two"
+						---
+						<b>{"hello" + a}</b>
 						<b>{"hello" + a}</b>
 					</div>
 				</>; }`,
 				'Card.tsrx',
 			);
-			const first_capture = code.indexOf('_tsrx_child_0');
 			const assign_two = code.indexOf('a = "two"');
-			const second_capture = code.indexOf('_tsrx_child_1');
-			expect(first_capture).toBeGreaterThan(-1);
-			expect(assign_two).toBeGreaterThan(first_capture);
-			expect(second_capture).toBeGreaterThan(assign_two);
+			const first_child = code.indexOf('<b>{"hello" + a}</b>');
+			expect(assign_two).toBeGreaterThan(-1);
+			expect(first_child).toBeGreaterThan(assign_two);
+			expect(code).not.toContain('_tsrx_child_');
 		});
 
-		it('preserves source order for interleaved JSX before hook calls', () => {
+		it('keeps component setup statements before rendered children with hook calls', () => {
 			const { code } = compile(
 				`function Card() { return <>
 					var a = "one"
-					<b>{"hello" + a}</b>
 					a = "two"
-					<b>{"hello" + a}</b>
 					const x = useState(0)
+					---
+					<b>{"hello" + a}</b>
+					<b>{"hello" + a}</b>
 					<div>{x}</div>
 				</>; }`,
 				'Card.tsrx',
 			);
-			const first_capture = code.indexOf('_tsrx_child_0');
 			const assign_two = code.indexOf('a = "two"');
-			const second_capture = code.indexOf('_tsrx_child_1');
-			expect(first_capture).toBeGreaterThan(-1);
-			expect(assign_two).toBeGreaterThan(first_capture);
-			expect(second_capture).toBeGreaterThan(assign_two);
+			const first_child = code.indexOf('<b>{"hello" + a}</b>');
+			expect(assign_two).toBeGreaterThan(-1);
+			expect(first_child).toBeGreaterThan(assign_two);
+			expect(code).not.toContain('_tsrx_child_');
 		});
 
 		it('does not capture JSX into temporaries when all statements precede JSX', () => {
@@ -2743,6 +2739,7 @@ export function optionalFn(bar: string, baz?: string) {
 					<div>
 						const a = "one"
 						const b = "two"
+						---
 						<span>{a}</span>
 						<span>{b}</span>
 					</div>
@@ -2753,24 +2750,22 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('_tsrx_child_');
 		});
 
-		it('preserves source order for interleaved statements at the component top level', () => {
-			// Same capture guarantee as the element-body case above, but with
-			// no wrapper element — tests the component-body interleave path.
+		it('keeps component setup statements before rendered children', () => {
 			const { code } = compile(
 				`function Card() { return <>
 					var a = "one"
-					<b>{"hello" + a}</b>
 					a = "two"
+					---
+					<b>{"hello" + a}</b>
 					<b>{"hello" + a}</b>
 				</>; }`,
 				'Card.tsrx',
 			);
-			const first_capture = code.indexOf('_tsrx_child_0');
 			const assign_two = code.indexOf('a = "two"');
-			const second_capture = code.indexOf('_tsrx_child_1');
-			expect(first_capture).toBeGreaterThan(-1);
-			expect(assign_two).toBeGreaterThan(first_capture);
-			expect(second_capture).toBeGreaterThan(assign_two);
+			const first_child = code.indexOf('<b>{"hello" + a}</b>');
+			expect(assign_two).toBeGreaterThan(-1);
+			expect(first_child).toBeGreaterThan(assign_two);
+			expect(code).not.toContain('_tsrx_child_');
 		});
 	});
 
@@ -2792,6 +2787,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App() { return <>
 					const text = 'hello';
+					---
 					<b>{text}</b>
 				</>; }`,
 				'App.tsrx',
@@ -2821,7 +2817,7 @@ export function optionalFn(bar: string, baz?: string) {
 					</>; }`,
 					'App.tsrx',
 				);
-				expect(code).toContain('const App__static1 = <b>{"hello"}{\'hello\'}</b>');
+				expect(code).toContain('const App__static1 = <b>"hello" {\'hello\'}</b>');
 				expect(code).toContain('return App__static1');
 				expect(code).not.toContain('== null');
 			},
@@ -2848,6 +2844,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App() { return <>
 						const html = '<strong>escaped</strong>';
+						---
 						<article>{html}</article>
 					</>; }`,
 				'App.tsrx',
@@ -2899,7 +2896,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 			expect(code).toContain('<Child content={');
 			expect(code).toContain("<span>{'hello'}</span>");
-			expect(code).not.toContain('<>');
+			expect(code).not.toContain('<tsx>');
 		});
 	});
 
@@ -3094,6 +3091,7 @@ export function optionalFn(bar: string, baz?: string) {
 								useEffect(() => {
 									console.log(active);
 								}, [active]);
+								---
 								<span>{active ? 'active' : 'inactive'}</span>
 							</>;
 						}`,
@@ -3113,8 +3111,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows hook results that stay local to an extracted branch', () => {
 			const { code } = compile(
 				`export function App({ show }: { show: boolean }) { return <>
-							if (show) {
+							@if (show) {
 								const [x] = useState(100);
+								---
 								<div>{x}</div>
 							}
 							<span>{'after'}</span>
@@ -3131,10 +3130,12 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App({ show, value }: { show: boolean; value: string }) { return <>
 							const label = value.trim();
-							if (show) {
+							---
+							@if (show) {
 								useEffect(() => {
 									console.log(label);
 								}, [label]);
+								---
 								<span>{label}</span>
 							}
 						</>; }`,
@@ -3149,11 +3150,12 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
 			const { code } = compile(
 				`export function App({ show, value }: { show: boolean; value: string }) { return <>
-							if (show) {
+							@if (show) {
 								let latest: string | undefined;
 								useEffect(() => {
 									latest = value;
 								}, [value]);
+								---
 								<span>{value}</span>
 							}
 						</>; }`,
@@ -3169,10 +3171,11 @@ export function optionalFn(bar: string, baz?: string) {
 				`let effectCount = 0;
 
 						export function App({ show }: { show: boolean }) { return <>
-							if (show) {
+							@if (show) {
 								useEffect(() => {
 									effectCount++;
 								}, []);
+								---
 								<span>{effectCount}</span>
 							}
 						</>; }`,
@@ -3188,10 +3191,12 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, value }: { show: boolean; value: string }) { return <>
 								let latest: string | undefined;
-								if (show) {
+								---
+								@if (show) {
 									useEffect(() => {
 										latest = value;
 									}, [value]);
+									---
 									<span>{value}</span>
 								}
 								console.log(latest);
@@ -3206,12 +3211,14 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let cleanupCount = 0;
-								if (show) {
+								---
+								@if (show) {
 									useEffect(() => {
 										return () => {
 											cleanupCount++;
 										};
 									}, []);
+									---
 									<span>{'visible'}</span>
 								}
 							</>; }`,
@@ -3225,8 +3232,10 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
+								---
+								@if (show) {
 									[x] = useState(100);
+									---
 									<div>{x}</div>
 								}
 								console.log(x);
@@ -3241,9 +3250,11 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
+								---
+								@if (show) {
 									const [state] = useState(100);
 									x = state;
+									---
 									<div>{state}</div>
 								}
 								console.log(x);
@@ -3258,8 +3269,10 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let total = 0;
-								if (show) {
+								---
+								@if (show) {
 									total += useCustomNumber();
+									---
 									<div>{total}</div>
 								}
 								console.log(total);
@@ -3274,9 +3287,11 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let total = 0;
-								if (show) {
+								---
+								@if (show) {
 									const delta = useCustomNumber();
 									total += delta;
+									---
 									<div>{total}</div>
 								}
 								console.log(total);
@@ -3292,8 +3307,10 @@ export function optionalFn(bar: string, baz?: string) {
 					`export function App({ show }: { show: boolean }) { return <>
 								let key = 0;
 								const values: Record<number, string> = {};
-								if (show) {
+								---
+								@if (show) {
 									values[key = useCustomNumber()] = 'active';
+									---
 									<div>{values[key]}</div>
 								}
 							</>; }`,
@@ -3307,9 +3324,11 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`function App({ show }: { show: boolean }) {
 								let x: number | undefined;
+								---
 								return <>
-									if (show) {
+									@if (show) {
 										[x] = useState(100);
+										---
 										<div>{x}</div>
 									}
 								</>;
@@ -3328,13 +3347,16 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
 								let x: number | undefined;
-								switch (kind) {
+								---
+								@switch (kind) {
 									case 'a':
 										[x] = useState(100);
+										---
 										<div>{x}</div>
 										break;
 									case 'b':
 										<span>{'b'}</span>
+										---
 										break;
 								}
 								console.log(x);
@@ -3347,9 +3369,10 @@ export function optionalFn(bar: string, baz?: string) {
 			it('allows switch case hook results that stay local', () => {
 				const { code } = compile(
 					`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
-							switch (kind) {
+							@switch (kind) {
 								case 'a':
 									const [x] = useState(100);
+									---
 									<div>{x}</div>
 									break;
 								case 'b':
@@ -3372,8 +3395,10 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ items }: { items: number[] }) { return <>
 								let last: number | undefined;
-								for (const item of items; index i) {
+								---
+								@for (const item of items; index i) {
 									[last] = useState(item);
+									---
 									<div key={i}>{last}</div>
 								}
 								console.log(last);
@@ -3388,11 +3413,12 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 								let x: number | undefined;
-								if (show) {
-									for (const x of items) {
+								---
+								@if (show) {
+									[x] = useState(0);
+									@for (const x of items) {
 										<div key={x}>{x}</div>
 									}
-									[x] = useState(0);
 								}
 							</>; }`,
 					'App.tsrx',
@@ -3404,9 +3430,11 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 							let x: number | undefined;
-							if (show) {
-								for (let x of items) {
+							---
+							@if (show) {
+								@for (let x of items) {
 									const [val] = useState(x);
+									---
 									<div key={x}>{val}</div>
 								}
 							}
@@ -3422,8 +3450,9 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show }: { show: boolean }) { return <>
 								let x: number | undefined;
-								if (show) {
-									for (x of useState(0)) {
+								---
+								@if (show) {
+									@for (x of useState(0)) {
 										<div>{x}</div>
 									}
 								}
@@ -3439,8 +3468,9 @@ export function optionalFn(bar: string, baz?: string) {
 					`export function App({ show }: { show: boolean }) { return <>
 								let a: number | undefined;
 								let b: number | undefined;
-								if (show) {
-									for ([a, b] of [useState(0)]) {
+								---
+								@if (show) {
+									@for ([a, b] of [useState(0)]) {
 										<div>{a}{b}</div>
 									}
 								}
@@ -3455,11 +3485,13 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
 								let x: number | undefined;
-								if (show) {
+								---
+								@if (show) {
 									for (x of items) {
 										console.log(x);
 									}
 									[x] = useState(0);
+									---
 									<div>{x}</div>
 								}
 							</>; }`,
@@ -3471,8 +3503,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) { return <>
-							for (const name of items) {
+							@for (const name of items) {
 								const [val] = useState(name);
+								---
 								<div key={name}>{val}</div>
 							}
 						</>; }`,
@@ -3487,7 +3520,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('falls back to the existing transform for non-hook for-of loops', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: number[] }) { return <>
-							for (const item of items; index i) {
+							@for (const item of items; index i) {
 								<div key={i}>{item}</div>
 							}
 						</>; }`,
@@ -3507,13 +3540,15 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ load }: { load: () => number }) { return <>
 								let data: number | undefined;
-								try {
+								---
+								@try {
 									[data] = useState(load());
+									console.log(data);
+									---
 									<div>{data}</div>
 								} catch (err) {
 									<div>{'error'}</div>
 								}
-								console.log(data);
 							</>; }`,
 						'App.tsrx',
 					),
@@ -3525,13 +3560,15 @@ export function optionalFn(bar: string, baz?: string) {
 					compile(
 						`export function App({ load }: { load: () => number }) { return <>
 								let attempt: number | undefined;
-								try {
+								---
+								@try {
 									<div>{load()}</div>
 								} catch (err) {
 									[attempt] = useState(0);
+									console.log(attempt);
+									---
 									<div>{attempt}</div>
 								}
-								console.log(attempt);
 							</>; }`,
 						'App.tsrx',
 					),
@@ -3541,8 +3578,9 @@ export function optionalFn(bar: string, baz?: string) {
 			it('allows try-body hook results that stay local', () => {
 				const { code } = compile(
 					`export function App({ load }: { load: () => number }) { return <>
-							try {
+							@try {
 								const [data] = useState(load());
+								---
 								<div>{data}</div>
 							} catch (err) {
 								<div>{'error'}</div>
@@ -3558,7 +3596,7 @@ export function optionalFn(bar: string, baz?: string) {
 			it('try without hooks falls back to the existing transform', () => {
 				const { code } = compile(
 					`export function App({ load }: { load: () => number }) { return <>
-							try {
+							@try {
 								<div>{load()}</div>
 							} catch (err) {
 								<div>{'error'}</div>
