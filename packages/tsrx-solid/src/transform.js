@@ -1949,22 +1949,7 @@ function to_jsx_element(node, transform_context) {
 	const walked_children = node.children || [];
 
 	if (!node.id) {
-		error(
-			TEMPLATE_FRAGMENT_ERROR,
-			transform_context.filename,
-			node,
-			transform_context.errors,
-			transform_context.comments,
-		);
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'JSXFragment',
-				openingFragment: { type: 'JSXOpeningFragment' },
-				closingFragment: { type: 'JSXClosingFragment' },
-				children: [],
-			}),
-			node,
-		);
+		return tsrx_node_to_jsx_expression(node, transform_context, true);
 	}
 
 	if (is_dynamic_element_id(node.id)) {

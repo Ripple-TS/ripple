@@ -2429,16 +2429,7 @@ const visitors = {
 	},
 
 	JSXElement(node, context) {
-		if (!node.metadata?.native_tsrx) {
-			return context.next();
-		}
-
-		// TODO: could compile it as something to avoid a fatal error
-		error(
-			'Elements cannot be used as generic expressions, only as statements within a component',
-			context.state.analysis.module.filename,
-			node,
-		);
+		return context.next();
 	},
 
 	JSXFragment(node, context) {

@@ -29,6 +29,26 @@ function getReturned(source) {
 	return found;
 }
 
+// Find the first JSXElement with the given tag name anywhere in the parsed tree.
+// Used for templates that live inside `{expr}` containers rather than a direct return.
+function findElement(source, tagName) {
+	const ast = parseModule(source, 'App.tsrx');
+	let found;
+	(function walk(node) {
+		if (found || !node || typeof node !== 'object') return;
+		if (Array.isArray(node)) return node.forEach(walk);
+		if (node.type === 'JSXElement' && node.openingElement?.name?.name === tagName) {
+			found = node;
+			return;
+		}
+		for (const key in node) {
+			if (key === 'loc' || key === 'start' || key === 'end') continue;
+			walk(node[key]);
+		}
+	})(ast);
+	return found;
+}
+
 describe('TSRX parser', () => {
 	it('parses returned tags as JSXElement nodes', () => {
 		const returned = getReturned('function MyApp() { return <div />; }');
@@ -404,6 +424,56 @@ describe('TSRX parser', () => {
 			'JSXElement',
 		]);
 		expect(directive.body.body[0].consequent.type).toBe('ContinueStatement');
+	});
+
+	it('parses a TSRX template returned from a `.map()` callback as a native template', () => {
+		// Elements inside `{expr}` containers are still TSRX, so the script section,
+		// `---` fence and `@for` directive must be parsed structurally rather than
+		// swallowed as JSX text.
+		const tr = findElement(
+			`export function App({ rows }) {
+				return <table>
+					{rows.map((row) => <tr>
+						const cells = row.cells;
+						---
+						@for (const cell of cells)
+						{<td>{cell}</td>}
+					</tr>)}
+				</table>;
+			}`,
+			'tr',
+		);
+
+		expect(tr.metadata.native_tsrx).toBe(true);
+		expect(tr.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXForExpression',
+		]);
+		const directive = tr.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.statementType).toBe('ForOfStatement');
+	});
+
+	it('parses a TSRX element in a conditional expression as a native template', () => {
+		const div = findElement(
+			`export function App({ show }) {
+				return <section>
+					{show ? <div>
+						const label = 'hi';
+						---
+						{label}
+					</div> : null}
+				</section>;
+			}`,
+			'div',
+		);
+
+		expect(div.metadata.native_tsrx).toBe(true);
+		expect(div.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
 	});
 
 	it('treats a generic call in the script section as script, not markup', () => {

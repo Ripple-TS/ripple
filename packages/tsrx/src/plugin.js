@@ -3634,10 +3634,12 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
+				// Elements inside `{expr}` containers (e.g. `{items.map((i) => <li>...)}`)
+				// are still TSRX, so they go through the native template path. Only force
+				// the plain script-JSX path when explicitly requested or when sitting in a
+				// template's script section, where `<div>` is an ordinary JS value.
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
-					(this.#jsxExpressionContainerDepth > 0 &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
 					this.#isInsideNativeTemplateScriptSection()
 				) {
 					if (this.#isStyleOpeningTagStart()) {
@@ -3936,6 +3938,14 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tt.braceL) {
+					// A `{expr}` child is template output, not script setup. Enter template
+					// output mode (mirroring the jsxText/control-flow branches) so elements
+					// nested in the expression (`{items.map((i) => <li>...)}`) are not treated
+					// as living in this element's script section.
+					if (!is_template_output && this.#canImplicitlyEnterTemplateOutput(body)) {
+						current_template_node.metadata ??= { path: [] };
+						current_template_node.metadata.templateMode = 'template';
+					}
 					body.push(this.#parseNativeTemplateExpressionContainer());
 				} else if (is_template_output && this.type === tstt.jsxText) {
 					// A nested element with its own script section can leak a JSX

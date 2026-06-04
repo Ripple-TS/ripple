@@ -2680,7 +2680,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		if (node.expression.type === 'JSXEmptyExpression') return null;
 		return /** @type {AST.Node} */ ({
 			type: 'TSRXExpression',
-			expression: node.expression,
+			expression: normalize_jsx_tsrx_node(node.expression, inherited_path),
 			metadata: {},
 			start: node.start,
 			end: node.end,
