@@ -328,17 +328,16 @@ describe('TSRX parser', () => {
 	});
 
 	it('parses array of objects in the template above the fence', () => {
-		const returned = getReturned(`	it('should handle nested SVG groups with for loops', () => {
-		function App() {
-			return <>
-				const items = [
-					{ x: '10', y: '10', width: '20', height: '20' },
-					{ x: '40', y: '40', width: '20', height: '20' },
-				];
-				---
-			</>;
-		}
-`);
+		const returned = getReturned(`
+			function App() {
+				return <>
+					const items = [
+						{ x: '10', y: '10', width: '20', height: '20' },
+						{ x: '40', y: '40', width: '20', height: '20' },
+					];
+					---
+				</>;
+			}`);
 
 		expect(returned.children.map((child) => child.type)).toEqual([
 			'VariableDeclaration',
