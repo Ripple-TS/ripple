@@ -3889,10 +3889,14 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxTagStart) {
-					this.next();
-					if (this.value === '/') {
-						this.unexpected();
+					if (this.#functionBodyDepth > 0 || this.#forceScriptJSXElementDepth > 0) {
+						return /** @type {AST.Statement} */ (
+							/** @type {unknown} */ (super.parseStatement(context, topLevel, exports))
+						);
 					}
+
+					this.next();
+					if (this.value === '/') this.unexpected();
 					const node = this.parseElement();
 
 					if (!node) {
