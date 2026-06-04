@@ -705,7 +705,15 @@ export function TSRXPlugin(config) {
 					}
 
 					if (ch === CharCode.lessThan) {
-						if (this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))) {
+						// A closing tag (`</tag>`) always follows `<` with `/`; only a
+						// generic type argument list (`foo<T>`) should be skipped here.
+						// Without the `/` guard, text like `hello</b>` looks like `o<...>`
+						// and the closing tag is swallowed, leaving the stack unbalanced
+						// so a later `---` fence is never recognized.
+						if (
+							next !== CharCode.slash &&
+							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))
+						) {
 							const type_end = scan_balanced_from(
 								this.input,
 								index,
