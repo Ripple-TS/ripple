@@ -705,11 +705,6 @@ export function TSRXPlugin(config) {
 					}
 
 					if (ch === CharCode.lessThan) {
-						// A closing tag (`</tag>`) always follows `<` with `/`; only a
-						// generic type argument list (`foo<T>`) should be skipped here.
-						// Without the `/` guard, text like `hello</b>` looks like `o<...>`
-						// and the closing tag is swallowed, leaving the stack unbalanced
-						// so a later `---` fence is never recognized.
 						if (
 							next !== CharCode.slash &&
 							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))
@@ -1168,6 +1163,25 @@ export function TSRXPlugin(config) {
 					this.input.charCodeAt(this.pos - 2) === CharCode.lessThan
 				) {
 					return false;
+				}
+				const opening = this.#openingNativeTemplateNode;
+				if (
+					opening &&
+					current_template_node === opening &&
+					/** @type {any} */ (opening).openingElement?.selfClosing &&
+					this.input.charCodeAt(this.pos - 1) === CharCode.greaterThan &&
+					this.input.charCodeAt(this.pos - 2) === CharCode.slash
+				) {
+					const enclosing = this.#path.findLast(
+						(node) => node !== opening && this.#isNativeTemplateNode(node),
+					);
+					if (!enclosing) {
+						return false;
+					}
+					return (
+						enclosing.metadata?.templateMode === 'template' ||
+						!this.#hasTemplateFenceBeforeElementClose(this.pos, enclosing)
+					);
 				}
 				return (
 					current_template_node.metadata?.templateMode === 'template' ||
@@ -3328,11 +3342,7 @@ export function TSRXPlugin(config) {
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
 					this.#functionBodyDepth > 1 ||
-					this.#isInsideNativeTemplateScriptSection() ||
-					(!this.#currentNativeTemplateNode() &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.greaterThan &&
-						this.input.charCodeAt(this.start + 1) !== CharCode.at &&
-						!this.#isStyleOpeningTagStart())
+					this.#isInsideNativeTemplateScriptSection()
 				) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
@@ -3611,6 +3621,16 @@ export function TSRXPlugin(config) {
 				if (this.type === tt.braceL) {
 					body.push(this.#parseNativeTemplateExpressionContainer());
 				} else if (is_template_output && this.type === tstt.jsxText) {
+					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
+						while (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
+						this.pos = this.start;
+						this.exprAllowed = true;
+						this.next();
+						this.parseTemplateBody(body);
+						return;
+					}
 					body.push(this.#parseTemplateRawText());
 				} else if (is_template_output && this.#isJSXControlFlowDirectiveStart()) {
 					body.push(this.#parseJSXControlFlowExpression());
