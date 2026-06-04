@@ -241,6 +241,56 @@ export function validate_tsrx_unsupported_loop_statement(node, filename, errors,
 }
 
 /**
+ * Returns `true` when `child` occupies a value slot of `parent` — i.e. it is
+ * being captured as a value (assigned to a binding, pushed into an array,
+ * passed as an argument, used as an operand, …) rather than rendered as a
+ * statement-position template child.
+ *
+ * Target analyzers use this to tell apart direct template output from a TSRX
+ * element that merely happens to be a value, so that a value-position element
+ * nested inside plain JavaScript control flow does not get mistaken for direct
+ * output that would require a `@for`/`@if`/`@switch`/`@try` directive.
+ * @param {AST.Node} parent
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+export function is_template_value_position(parent, child) {
+	switch (parent.type) {
+		case 'VariableDeclarator':
+			return parent.init === child;
+		case 'AssignmentExpression':
+			return parent.right === child;
+		case 'Property':
+		case 'PropertyDefinition':
+			return parent.value === child;
+		case 'ArrayExpression':
+			return /** @type {any[]} */ (parent.elements).includes(child);
+		case 'CallExpression':
+		case 'NewExpression':
+			return parent.callee === child || /** @type {any[]} */ (parent.arguments).includes(child);
+		case 'ConditionalExpression':
+			return parent.test === child || parent.consequent === child || parent.alternate === child;
+		case 'LogicalExpression':
+		case 'BinaryExpression':
+			return parent.left === child || parent.right === child;
+		case 'UnaryExpression':
+		case 'AwaitExpression':
+		case 'SpreadElement':
+		case 'YieldExpression':
+			return parent.argument === child;
+		case 'TemplateLiteral':
+		case 'SequenceExpression':
+			return /** @type {any[]} */ (parent.expressions).includes(child);
+		case 'TSAsExpression':
+		case 'TSNonNullExpression':
+		case 'TSSatisfiesExpression':
+			return parent.expression === child;
+		default:
+			return false;
+	}
+}
+
+/**
  * @param {any} element
  * @param {AnalysisContext} context
  * @param {CompileError[]} [errors]

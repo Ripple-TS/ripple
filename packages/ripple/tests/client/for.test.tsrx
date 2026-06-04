@@ -35,6 +35,28 @@ describe('for statements', () => {
 		);
 	});
 
+	it('allows TSRX assigned to a value inside plain JavaScript control flow', () => {
+		// A TSRX element in value position (assigned to a `const`, pushed into an
+		// array, etc.) is just a value, not direct template output, so it must not
+		// require a `@for`/`@if` directive even when nested in a plain JS loop.
+		expect(
+			() => compile(
+				`function App() { return <>
+					const items = [1, 2, 3];
+					const built = [];
+					for (const item of items) {
+						const el = <div class="selected">{item}</div>;
+						built.push(el);
+					}
+					---
+					<div>{'done'}</div>
+				</>; }`,
+				'App.tsrx',
+				{ mode: 'client' },
+			),
+		).not.toThrow();
+	});
+
 	it('allows continue to skip an iteration', () => {
 		function App() {
 			return <>

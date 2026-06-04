@@ -252,4 +252,5 @@ export {
 	validate_tsrx_return_statement as validateTsrxReturnStatement,
 	validate_tsrx_unsupported_loop_statement as validateTsrxUnsupportedLoopStatement,
 	validate_nesting as validateNesting,
+	is_template_value_position as isTemplateValuePosition,
 } from './analyze/validation.js';

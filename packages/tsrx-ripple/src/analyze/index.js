@@ -34,6 +34,7 @@ import {
 	validateTsrxLoopReturnStatement,
 	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
+	isTemplateValuePosition,
 } from '@tsrx/core';
 const b = builders;
 import { walk } from 'zimmerframe';
@@ -350,10 +351,19 @@ function expression_has_side_effects(node) {
 
 /**
  * @param {AnalysisContext['path']} path
+ * @param {AST.Node} node The visited template node (element/fragment/text/expression).
  */
-function mark_control_flow_has_template(path) {
+function mark_control_flow_has_template(path, node) {
+	let child = node;
 	for (let i = path.length - 1; i >= 0; i -= 1) {
 		const node = path[i];
+
+		// Once the chain crosses into a value slot, the originating template node
+		// is captured as a value rather than rendered, so it must not propagate
+		// `has_template` to any enclosing control-flow statement.
+		if (isTemplateValuePosition(node, child)) {
+			return;
+		}
 
 		if (
 			node.type === 'FunctionExpression' ||
@@ -373,6 +383,8 @@ function mark_control_flow_has_template(path) {
 		) {
 			node.metadata.has_template = true;
 		}
+
+		child = node;
 	}
 }
 
@@ -2437,12 +2449,16 @@ const visitors = {
 		error(TEMPLATE_FRAGMENT_ERROR, context.state.analysis.module.filename, node);
 	},
 
-	TsrxFragment(_, context) {
+	/**
+	 * @param {any} node
+	 * @param {AnalysisContext} context
+	 */
+	TsrxFragment(node, context) {
 		if (context.state.regular_js) {
 			return context.next();
 		}
 
-		mark_control_flow_has_template(context.path);
+		mark_control_flow_has_template(context.path, node);
 		return context.next();
 	},
 
@@ -2460,7 +2476,7 @@ const visitors = {
 		/** @type {Set<AST.Identifier>} */
 		const attribute_names = new Set();
 
-		mark_control_flow_has_template(path);
+		mark_control_flow_has_template(path, node);
 
 		if (
 			!is_dom_element &&
@@ -2743,7 +2759,7 @@ const visitors = {
 			return context.next();
 		}
 
-		mark_control_flow_has_template(context.path);
+		mark_control_flow_has_template(context.path, node);
 
 		context.next();
 	},
@@ -2753,7 +2769,7 @@ const visitors = {
 			return context.next();
 		}
 
-		mark_control_flow_has_template(context.path);
+		mark_control_flow_has_template(context.path, node);
 
 		if (is_children_template_expression(/** @type {AST.Expression} */ (node.expression), context)) {
 			error(
