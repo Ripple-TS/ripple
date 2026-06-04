@@ -58,7 +58,7 @@ describe('TSRX parser', () => {
 		expect(fallback.argument.type).toBe('JSXElement');
 	});
 
-	it('parses native fragments as JSXFragment nodes', () => {
+	it('parses fragments as JSXFragment nodes', () => {
 		const ast = parseModule('const x = <><div /></>;', 'App.tsrx');
 
 		const value = ast.body[0].declarations[0].init;

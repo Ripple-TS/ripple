@@ -48,42 +48,42 @@ function BasicApp() {
 	return <><div class="greeting">{'Hello world'}</div></>;
 }
 
-function DirectQuotedTextApp() {
+function JsxTextApp() {
 	return <>
-		<div class="direct-quoted-entities">"Rock &amp; &quot;Roll&quot;"</div>
-		<div class="direct-quoted-backslash">"line\nbreak"</div>
-		<pre class="direct-quoted-multiline">first
+		<div class="jsx-text-entities">Rock &amp; &quot;Roll&quot;</div>
+		<div class="jsx-text-backslash">line\nbreak</div>
+		<pre class="jsx-text-multiline">first
 second</pre>
 	</>;
 }
 
-function DirectQuotedTextIfElseTrueApp() {
+function JsxTextIfElseTrueApp() {
 	return <>
 		@if (true) {
-			{'Hello Ripple'}
+			Hello Ripple
 		} else {
-			{'Hello React'}
+			Hello React
 		}
 	</>;
 }
 
-function DirectQuotedTextIfElseFalseApp() {
+function JsxTextIfElseFalseApp() {
 	return <>
 		@if (false) {
-			{'Hello Ripple'}
+			Hello Ripple
 		} else {
-			{'Hello React'}
+			Hello React
 		}
 	</>;
 }
 
-function DirectQuotedTextIfElseApp() {
+function JsxTextIfElseApp() {
 	return <>
-		<div class="direct-quoted-if-then">
-			<DirectQuotedTextIfElseTrueApp />
+		<div class="jsx-text-if-then">
+			<JsxTextIfElseTrueApp />
 		</div>
-		<div class="direct-quoted-if-else">
-			<DirectQuotedTextIfElseFalseApp />
+		<div class="jsx-text-if-else">
+			<JsxTextIfElseFalseApp />
 		</div>
 	</>;
 }
@@ -1298,17 +1298,17 @@ describe('tsrx-react runtime', () => {
 		expect(text('.greeting')).toBe('Hello world');
 	});
 
-	it('renders direct double-quoted text children as text', async () => {
-		await render(DirectQuotedTextApp);
-		expect(text('.direct-quoted-entities')).toBe('Rock & "Roll"');
-		expect(text('.direct-quoted-backslash')).toBe('line\\nbreak');
-		expect(text('.direct-quoted-multiline')).toBe('first\nsecond');
+	it('renders JSX text children as text', async () => {
+		await render(JsxTextApp);
+		expect(text('.jsx-text-entities')).toBe('Rock & "Roll"');
+		expect(text('.jsx-text-backslash')).toBe('line\\nbreak');
+		expect(text('.jsx-text-multiline')).toBe('first\nsecond');
 	});
 
-	it('renders bare direct double-quoted text in if-else branches', async () => {
-		await render(DirectQuotedTextIfElseApp);
-		expect(text('.direct-quoted-if-then')).toBe('Hello Ripple');
-		expect(text('.direct-quoted-if-else')).toBe('Hello React');
+	it('renders bare JSX text in if-else branches', async () => {
+		await render(JsxTextIfElseApp);
+		expect(text('.jsx-text-if-then')).toBe('Hello Ripple');
+		expect(text('.jsx-text-if-else')).toBe('Hello React');
 	});
 
 	it('renders nested components', async () => {

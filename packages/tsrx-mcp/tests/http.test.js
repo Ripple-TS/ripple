@@ -135,9 +135,7 @@ describe('@tsrx/mcp HTTP server', () => {
 			const result = await client.callTool({
 				name: 'compile-tsrx',
 				arguments: {
-					code: `export function Greeting({ name }: { name: string }) { return <>
-						<p>"Hello "{name}</p>
-					</>; }`,
+					code: `export const Greeting = ({ name }: { name: string }) => <p>Hello {name}</p>;`,
 					filename: 'Greeting.tsrx',
 					target: 'react',
 				},

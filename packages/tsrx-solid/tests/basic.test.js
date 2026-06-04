@@ -199,8 +199,8 @@ describe('@tsrx/solid basic', () => {
 	describe('control flow', () => {
 		it('simple if → <Show when>', () => {
 			const { code } = compile(
-				`function App({ n }: { n: number }) { return <>
-					if (n > 0) {
+					`function App({ n }: { n: number }) { return <>
+						@if (n > 0) {
 						<div>{'positive'}</div>
 					}
 				</>; }`,
@@ -212,8 +212,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('if/else → <Show when fallback>', () => {
 			const { code } = compile(
-				`function App({ n }: { n: number }) { return <>
-					if (n > 0) {
+					`function App({ n }: { n: number }) { return <>
+						@if (n > 0) {
 						<div>{'pos'}</div>
 					} else {
 						<div>{'neg'}</div>
@@ -226,8 +226,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('if/else-if/else → <Switch>/<Match>', () => {
 			const { code } = compile(
-				`function App({ n }: { n: number }) { return <>
-					if (n > 10) {
+					`function App({ n }: { n: number }) { return <>
+						@if (n > 10) {
 						<span>{'big'}</span>
 					} else if (n > 5) {
 						<span>{'mid'}</span>
@@ -245,8 +245,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('for-of → <For each>{(item, i) => ...}', () => {
 			const { code } = compile(
-				`function App({ items }: { items: number[] }) { return <>
-					for (const item of items; index i) {
+					`function App({ items }: { items: number[] }) { return <>
+						@for (const item of items; index i) {
 						<li>{item}</li>
 					}
 				</>; }`,
@@ -259,8 +259,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('for-of with `key` clause → <For keyed={...}>', () => {
 			const { code } = compile(
-				`function App({ items }: { items: { id: string; name: string }[] }) { return <>
-					for (const item of items; key item.id) {
+					`function App({ items }: { items: { id: string; name: string }[] }) { return <>
+						@for (const item of items; key item.id) {
 						<li>{item.name}</li>
 					}
 				</>; }`,
@@ -275,8 +275,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
 			const { code } = compile(
-				`function App() { return <>
-					try {
+					`function App() { return <>
+						@try {
 						<div>{'content'}</div>
 					} catch (err, reset) {
 						<div>{'error'}</div>
@@ -290,8 +290,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('try/pending/catch → <Errored><Loading>...', () => {
 			const { code } = compile(
-				`function App() { return <>
-					try {
+					`function App() { return <>
+						@try {
 						<div>{'ready'}</div>
 					} pending {
 						<div>{'loading'}</div>
@@ -308,8 +308,8 @@ describe('@tsrx/solid basic', () => {
 
 		it('switch statement → <Switch>/<Match> using ===', () => {
 			const { code } = compile(
-				`function App({ kind }: { kind: string }) { return <>
-					switch (kind) {
+					`function App({ kind }: { kind: string }) { return <>
+						@switch (kind) {
 						case 'a': <span>{'A'}</span>; break;
 						case 'b': <span>{'B'}</span>; break;
 						default: <span>{'?'}</span>;
@@ -589,7 +589,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('try {');
 		});
 
-		it('rejects return statements inside TSRX templates', () => {
+		it('allows return statements in localized setup before a template fence', () => {
 			expect(() =>
 				compile(
 					`export default function A() { return <>
@@ -600,11 +600,11 @@ describe('@tsrx/solid basic', () => {
 							return;
 							---
 						}
-						<>"World"</>
+						<>World</>
 					</>; }`,
 					'A.tsrx',
 				),
-			).toThrow('Return statements are not allowed inside TSRX templates.');
+			).not.toThrow();
 		});
 	});
 
@@ -615,7 +615,7 @@ describe('@tsrx/solid basic', () => {
 		// bare component invocations — a Solid-specific optimization decision
 		// that doesn't apply to React's `App__static` hoisting policy.
 		const switch_source = `export function App({ status }: { status: string }) { return <>
-			switch (status) {
+			@switch (status) {
 				case "idle":
 					<span>{'Online'}</span>
 				case "active":

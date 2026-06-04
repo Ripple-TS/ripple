@@ -1,3 +1,1 @@
-export function Valid() {
-	return <><button>"Save"</button></>;
-}
+export const Valid = () => <button>Save</button>;

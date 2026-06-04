@@ -187,12 +187,8 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 						<header class="article-header">
 							<p class="eyebrow">June 3, 2026</p>
 							<h1>Explicit render flow & code fences</h1>
-							<p
-								class="lead"
-							>TSRX render controls now look like render controls, and template-local JavaScript has a clear place to live.</p>
 						</header>
-						<h2>How we came to where we are today</h2>
-						<p>This has been a journey. Ripple started with an idea we still believe in: let UI templates keep the power of JavaScript close to the markup that uses it. As TSRX grew out of that work, we also learned where that idea needed clearer boundaries, especially for codebases that have to scale across teams, tooling, and AI-assisted development.</p>
+						<p>Ripple started with an idea we still believe in: let UI templates keep the power of JavaScript close to the markup that uses it. As TSRX grew out of that work, we also learned where that idea needed clearer boundaries, especially for codebases that have to scale across teams, tooling, and AI-assisted development.</p>
 						<p>
 							The previous post,
 							<a href="/blog/simplifying-tsrx-after-feedback">Simplifying TSRX after feedback</a>
@@ -213,10 +209,12 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							We also heard loud and clear that forcing static text through
 							<code>""</code>
 							or
-							<code>{'{\'\'}'}</code>
+							<code>
+								{'{\'\'}'}
+							</code>
 							was annoying and unintuitive. JSX text is one of JSX's most useful affordances, and TSRX should preserve backwards compatibility with JSX instead of asking people to relearn something that already works. The same applies to composition: teams want to return a single element, a fragment with multiple elements, a render-control value, an array of elements, a scalar value, or the result of a component function call without each case feeling like a separate language feature.
 						</p>
-						<p>That is the spirit behind this update. TSRX keeps the parts that make templates expressive, but it becomes more honest about where template syntax begins, where JavaScript begins, and how values flow through the system.</p>
+						<p>That is the spirit behind this update. TSRX keeps the parts that make templates expressive, but it becomes more honest about where template syntax begins, where JavaScript begins, and how values flow through the system. Crucially though, TSRX is now expression based like JSX, not statement based, like it originally started life as. This also means that JSX is fully backwards compatible with TSRX.</p>
 						<h2>The new boundary</h2>
 						<p>
 							The new rule is simple. Native JavaScript control flow is still JavaScript. Render control flow is prefixed with
@@ -231,6 +229,7 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							<code>@for</code>
 							. When JavaScript statements are colocated inside an element or fragment, a single
 							<code>---</code>
+							(Astro style)
 							fence separates that logic from the rendered template below it.
 						</p>
 						<h2>The preferred shape</h2>
@@ -245,43 +244,32 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							<code>if</code>
 							above the fence is regular JavaScript control flow. The
 							<code>---</code>
-							line says: the setup is done; the template starts now. The
+							line says: the script is done; the template starts now. The
 							<code>@if</code>
-							branch can have its own fenced setup too, because render-control bodies are template scopes.
+							branch can have its own fenced script too, because render-control bodies are template scopes.
 						</p>
-						<h2>Function logic stays normal</h2>
-						<p>Code fences are only needed inside JSX elements and fragments. At the top of a component function, write normal TypeScript. Guard returns, normalization, validation, early exits, and helper calls do not need a fence because no template scope has opened yet.</p>
-						<pre class="code-block">
-							<code innerHTML={FUNCTION_SCOPE_LOGIC_HTML} />
-						</pre>
-						<p>
-							This distinction matters. Native
-							<code>if</code>
-							controls the function.
-							<code>@if</code>
-							controls what the template renders. Both can appear in one component, but they now look different because they do different jobs.
-						</p>
-						<pre class="code-block">
-							<code innerHTML={NATIVE_AND_RENDER_FLOW_HTML} />
-						</pre>
-						<h2>Fences are local</h2>
+						<h2>Fences are local to their element</h2>
 						<p>Each element, fragment, and render-control body is its own lexical scope. A scope may have one code fence, and that fence must be at the top before any rendered output. If a deeper part of the template needs its own local values, put those values at the top of that deeper scope.</p>
 						<pre class="code-block">
 							<code innerHTML={NESTED_FENCES_HTML} />
 						</pre>
 						<p>
-							This preserves one of TSRX's best ideas: logic can stay close to the markup that uses it. The fence just gives that colocated logic a predictable shape. If a scope starts to need multiple setup sections, wrap the later section in another
-							<code>{'<></>'}</code>
-							fragment or extract a component. In practice, keeping setup at the top nudges components toward clearer data flow.
+							This preserves one of TSRX's best ideas: logic can stay close to the markup that uses it. The fence just gives that colocated logic a predictable shape. If a scope starts to need multiple script sections, wrap the later section in another
+							<code>
+								{'<></>'}
+							</code>
+							fragment or extract a component. In practice, keeping script at the top nudges components toward clearer data flow.
 						</p>
-						<h2>Render controls can have setup too</h2>
-						<p>Render controls are template syntax, so their bodies can also start with fenced JavaScript. That makes complex branches and async boundaries easier to read without losing locality.</p>
+						<h2>Control flow can have fences too</h2>
+						<p>Control flow is template syntax, so their bodies can also start with fenced JavaScript. That makes complex branches and async boundaries easier to read without losing locality.</p>
 						<pre class="code-block">
 							<code innerHTML={CONTROL_FLOW_FENCE_HTML} />
 						</pre>
 						<p>
 							Expressions stay familiar as well. Inside
-							<code>{'{}'}</code>
+							<code>
+								{'{}'}
+							</code>
 							, write JavaScript expression syntax the same way you would in JSX or React: call a formatter, read a property, choose a value, or pass a computed prop.
 						</p>
 						<h2>Render flow is a value</h2>
@@ -307,31 +295,12 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 						</pre>
 						<p>
 							That removes a small but persistent source of friction.
-							<code>{'<div>Hello there!</div>'}</code>
+							<code>
+								{'<div>Hello there!</div>'}
+							</code>
 							now means what JSX users expect it to mean.
 						</p>
-						<h2>What counts as a component</h2>
-						<p>The component model keeps getting smaller: if a function returns something renderable, it can be used as a component. It does not matter whether the returned value is a single element, a fragment, a render control, an array of elements, a scalar value, or a template with fenced JavaScript inside it.</p>
-						<pre class="code-block">
-							<code innerHTML={COMPONENT_SCOPE_HTML} />
-						</pre>
-						<p>
-							You can use that function as
-							<code>{'<ProductCard />'}</code>
-							when you want component syntax, or call
-							<code>{'ProductCard({ product })'}</code>
-							directly when you want ordinary function semantics. The important part is that TSRX values are values, so precise types can describe what a function returns instead of relying on a special component declaration form.
-						</p>
-						<p>
-							That is the through-line of these changes. TSRX keeps the parts that are useful for rendering, but it stops borrowing native JavaScript syntax in places where that borrowing made code harder to explain.
-							<code>@if</code>
-							is visibly render-time branching.
-							<code>if</code>
-							is visibly JavaScript.
-							<code>---</code>
-							is the line between setup and output.
-						</p>
-						<h2>Why this matters</h2>
+						<h2>Conclusion</h2>
 						<p>The result is easier to scan, easier to type, and easier for tools to understand. Templates still have lexical scopes. Logic can still be colocated. Control flow still reads in the order the UI is produced. But the special parts are now marked as special, and ordinary JavaScript gets to remain ordinary JavaScript.</p>
 						<p>Thank you for bearing with us while TSRX found this shape. From now, we're ready to move into the beta phase and we do not anticipate more core syntax changes beyond major bug fixes. The focus shifts to hardening the compiler, runtime behavior, editor tooling, and documentation around this syntax.</p>
 					</article>

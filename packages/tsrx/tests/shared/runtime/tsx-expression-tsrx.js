@@ -22,8 +22,8 @@ export function runTsxExpressionTsrxRuntimeTests() {
 		return container.querySelector(selector)?.textContent ?? null;
 	}
 
-	describe('native fragments inside expression values at runtime', () => {
-		it('renders native TSRX passed through regular function JSX props', async () => {
+	describe('JSX fragments inside expression values at runtime', () => {
+		it('renders JSX passed through regular function JSX props', async () => {
 			await mount(TsrxInTsxExpressionApp);
 
 			expect(text('.tsrx-expression-editable-class')).toBe('editable-class');

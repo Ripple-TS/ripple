@@ -56,8 +56,8 @@ function get_duplicate_mapping_keys(mappings) {
 }
 
 describe('@tsrx/react basic', () => {
-	describe('native function components', () => {
-		it('compiles returned native TSRX from function declarations', () => {
+	describe('JSX function components', () => {
+		it('compiles returned JSX from function declarations', () => {
 			const { code } = compile(
 				`export function MyApp() {
 					return <div />;
@@ -69,14 +69,14 @@ describe('@tsrx/react basic', () => {
 			expect(code).toContain('return <div />;');
 		});
 
-		it('lowers statement children inside returned native fragments', () => {
+		it('lowers directive children inside returned JSX fragments', () => {
 			const { code, css, cssHash } = compile(
 				`export function MyApp() {
 					return <>
-						@if (x) {
-							<div>"works"</div>
-						} else {
-							<span>"idle"</span>
+							@if (x) {
+								<div>works</div>
+							} else {
+								<span>idle</span>
 						}
 
 						<style>
@@ -461,7 +461,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
-	it('rejects return statements inside TSRX templates', () => {
+	it('allows return statements in localized setup before a template fence', () => {
 		expect(() =>
 			compile(
 				`export function App() { return <>
@@ -474,7 +474,7 @@ describe('@tsrx/react basic', () => {
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('extracts module-scoped helpers after component-body guard returns', () => {
@@ -631,39 +631,39 @@ describe('@tsrx/react basic', () => {
 			function Child() { return <>
 				<div>
 					const x = 1;
-
 					console.log(x);
+					---
 				</div>
 			</>; }
 
 			export function App() { return <>
 				const [count, setCount] = useState(0);
 				const items = [1, 2, 3];
+				useEffect(() => {
+					console.log(count);
+				}, [count]);
+				---
 
 				<Child />
 
 				<h1>
 					{'Hello World'}
-					if (count > 1) {
+					@if (count > 1) {
 						<span>{'Counted'}</span>
 					}
 				</h1>
 
-				if (count > 1) {
+				@if (count > 1) {
 					<div>
 						const [x] = useState(1);
-
+						---
 						{'Count is more than ' + x}
 					</div>
 				}
 
-				useEffect(() => {
-					console.log(count);
-				}, [count]);
-
 				<button onClick={() => setCount(count + 1)}>{count}</button>
 
-				for (const item of items; index i) {
+				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
 			</>; }`;
@@ -674,7 +674,7 @@ describe('@tsrx/react basic', () => {
 		expect(get_duplicate_mapping_keys(mappings.mappings)).toEqual([]);
 	});
 
-	it('maps native TSRX functions to the function identifier', () => {
+	it('maps JSX functions to the function identifier', () => {
 		const source = `export function App() { return <>
 			<div>{'Hello world'}</div>
 		</>; }`;
@@ -693,12 +693,13 @@ describe('@tsrx/react basic', () => {
 		expect(function_identifier_mapping?.data.customData.hover).toBeUndefined();
 	});
 
-	it('renders component-body switch statements as React expressions', () => {
+	it('renders template switch directives as React expressions', () => {
 		const { code } = compile(
-			`export function App() { return <>
-				const count = 0;
+				`export function App() { return <>
+					const count = 0;
+					---
 
-				switch (count) {
+					@switch (count) {
 					case 0:
 						<div>{'Zero'}</div>
 						break;
@@ -854,7 +855,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('<tsx>');
 	});
 
-	it('rejects return statements inside element child statement bodies', () => {
+	it('allows return statements in element child setup before a template fence', () => {
 		expect(() =>
 			compile(
 				`function App() { return <>
@@ -872,7 +873,7 @@ describe('@tsrx/react basic', () => {
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('extracts hook-bearing element child statement bodies into module components', () => {

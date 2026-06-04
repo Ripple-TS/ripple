@@ -156,7 +156,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain("return ['Error'];");
 	});
 
-	it('keeps expression child arrays in fragment and native callback props', () => {
+	it('keeps expression child arrays in fragment and JSX callback props', () => {
 		const { code } = compile(
 			`function Child(props) { return <>
 					<section />
@@ -164,15 +164,16 @@ describe('@tsrx/vue basic', () => {
 
 			function App() { return <>
 					<Child
-						fragment={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
-							native={() => <>{[<>"Delete"</>, <>"Edit"</>]}</>}
+							fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
+							native={() => <>{[<>Delete</>, <>Edit</>]}</>}
 				/>
 			</>; }`,
 			'App.tsrx',
 		);
 
-		expect(code).toContain('fragment={() => {');
-		expect(code).toContain('return ["Delete", "Edit"];');
+		expect(code).toContain('fragment={() => <>');
+		expect(code).toContain('<>Delete</>');
+		expect(code).toContain('<>Edit</>');
 		expect(code).toContain('native={() => {');
 	});
 
@@ -449,7 +450,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles a simple if block in component bodies', () => {
 		const { code } = compile(
 			`function App({ visible }) { return <>
-				if (visible) {
+				@if (visible) {
 					<div>{'Visible'}</div>
 				}
 			</>; }`,
@@ -464,7 +465,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles if/else chains in component bodies', () => {
 		const { code } = compile(
 			`function App({ visible }) { return <>
-				if (visible) {
+				@if (visible) {
 					<div>{'Visible'}</div>
 				} else {
 					<div>{'Hidden'}</div>
@@ -478,21 +479,23 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toMatch(/return visible \? App__static\d+ : App__static\d+;/);
 	});
 
-	it('rejects return statements inside TSRX templates', () => {
+	it('allows return statements in localized setup before a template fence', () => {
 		expect(() =>
 			compile(
 				`function App() { return <>
 					const count = 0;
+					---
 
-					if (count > 2) {
+					@if (count > 2) {
 						return;
+						---
 					}
 
 					<button>{count}</button>
 				</>; }`,
 				'App.tsrx',
 			),
-		).toThrow('Return statements are not allowed inside TSRX templates.');
+		).not.toThrow();
 	});
 
 	it('allows component-body guard returns before TSRX output', () => {
@@ -520,7 +523,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles for...of statements in component bodies', () => {
 		const { code } = compile(
 			`function App({ items }) { return <>
-				for (const item of items) {
+				@for (const item of items) {
 					<div>{item}</div>
 				}
 			</>; }`,
@@ -535,7 +538,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles keyed for...of statements in component bodies', () => {
 		const { code } = compile(
 			`function App({ items }: { items: { id: string, text: string }[] }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
 			</>; }`,
@@ -549,7 +552,7 @@ describe('@tsrx/vue basic', () => {
 	it('does not rewrite shadowed loop params inside nested keyed slot functions', () => {
 		const { code } = compile(
 			`function App({ items, getNew, use }: { items: { id: string, text: string }[], getNew: () => unknown, use: (item: unknown) => void }) { return <>
-				for (const item of items; key item.id) {
+				@for (const item of items; key item.id) {
 					<button onClick={() => {
 						const item = getNew();
 						use(item);
@@ -568,7 +571,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles indexed keyed for...of statements in component bodies', () => {
 		const { code } = compile(
 			`function App({ items }: { items: { id: string, text: string }[] }) { return <>
-				for (const item of items; index i; key item.id) {
+				@for (const item of items; index i; key item.id) {
 					<div>{i}{item.text}</div>
 				}
 			</>; }`,
@@ -584,7 +587,7 @@ describe('@tsrx/vue basic', () => {
 	it('keeps explicit loop keys on single static for...of templates', () => {
 		const { code } = compile(
 			`function App({ items }: { items: string[] }) { return <>
-				for (const item of items; index i; key i) {
+				@for (const item of items; index i; key i) {
 					<div>{'test'}</div>
 				}
 			</>; }`,
@@ -592,7 +595,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
-		expect(code).toContain('{(item, i) => <div>');
+		expect(code).toContain('{(item, i) => App__static');
 		expect(code).toContain("<div>{'test'}</div>");
 		expect(code).not.toContain('<div key={i}>');
 		expect(code).not.toContain('<Fragment');
@@ -601,7 +604,7 @@ describe('@tsrx/vue basic', () => {
 	it('keeps implicit index keys on multi-child for...of templates', () => {
 		const { code } = compile(
 			`function App({ items }: { items: string[] }) { return <>
-				for (const item of items; index i) {
+				@for (const item of items; index i) {
 					<div>{'one'}</div>
 					<div>{'two'}</div>
 				}
@@ -619,7 +622,7 @@ describe('@tsrx/vue basic', () => {
 	it('falls back without injecting VaporFor for keyed destructuring patterns it cannot rewrite', () => {
 		const { code } = compile(
 			`function App({ items, keyName }: { items: Array<Record<string, string>>, keyName: string }) { return <>
-				for (const { [keyName]: label } of items) {
+				@for (const { [keyName]: label } of items) {
 					<div key={label}>{label}</div>
 				}
 			</>; }`,
@@ -634,7 +637,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles switch statements in component bodies', () => {
 		const { code } = compile(
 			`function App({ value }) { return <>
-				switch (value) {
+				@switch (value) {
 					case 'a':
 						<div>{'A'}</div>
 						break;
@@ -656,7 +659,7 @@ describe('@tsrx/vue basic', () => {
 	it('compiles switch statements with inline case statements before JSX', () => {
 		const { code } = compile(
 			`function App({ value }) { return <>
-					switch (value) {
+					@switch (value) {
 						case 'a':
 							const label = 'A';
 							<div>{label}</div>
