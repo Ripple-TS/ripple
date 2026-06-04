@@ -37,7 +37,6 @@ import {
 	is_dynamic_element_id,
 	is_jsx_child,
 	set_loc,
-	to_text_expression,
 } from '@tsrx/core';
 
 import { builders as b } from '@tsrx/core';
@@ -73,8 +72,8 @@ import { builders as b } from '@tsrx/core';
  *   `<Switch>/<Match>` / `<Errored>/<Loading>` instead of inline JSX.
  * - Uppercase native TSRX functions use Solid render-time control flow, so
  *   branches stay reactive without reintroducing a TSRX-specific declaration.
- * - Element attributes support composite elements and lift a lone direct text
- *   child into a `textContent` attribute.
+ * - Element attributes support composite elements and Solid's `class`
+ *   attribute spelling.
  * - `needs_show` / `needs_for` / etc. flags track which runtime
  *   primitives must be imported, injected by `inject_solid_imports`.
  *
@@ -159,15 +158,6 @@ const solid_platform = {
 		// `transformElementAttributes` is never reached for Solid. Attribute
 		// lowering happens in Solid's local `transform_element_attributes`,
 		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
-		transformElementChildren(node, walked_children, raw_children, attributes, ctx) {
-			return rewrite_solid_host_children(
-				node,
-				walked_children,
-				raw_children,
-				attributes,
-				/** @type {any} */ (ctx),
-			);
-		},
 		transformElement: (inner, ctx, raw_children) =>
 			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
 	},
@@ -210,25 +200,67 @@ function get_await_keyword_start(await_node, source) {
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
-		case 'TsrxFragment':
-			return tsrx_node_to_jsx_expression(node, transform_context, true);
-		case 'Element':
-			return to_jsx_element(node, transform_context);
-		case 'Text':
-			return to_jsx_expression_container(to_text_expression(node.expression, node), node);
-		case 'TSRXExpression':
-			return to_jsx_expression_container(node.expression, node);
+		case 'TsrxTemplateFence':
+			return null;
+		case 'JSXFragment':
+			if (node.metadata?.native_tsrx || node.id) {
+				return tsrx_node_to_jsx_expression(node, transform_context, true);
+			}
+			return node;
+		case 'JSXElement':
+			if (node.metadata?.native_tsrx || node.id) {
+				return to_jsx_element(node, transform_context);
+			}
+			return node;
+		case 'JSXIfExpression':
+			return if_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
 		case 'IfStatement':
 			return if_statement_to_jsx_child(node, transform_context);
+		case 'JSXForExpression':
+			if (node.statementType !== 'ForOfStatement') {
+				error(
+					'TSRX `@for` currently supports `for...of` loops in template output.',
+					transform_context.filename,
+					node,
+					transform_context.errors,
+					transform_context.comments,
+				);
+				return to_jsx_expression_container(create_null_literal(), node);
+			}
+			return for_of_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
 		case 'ForOfStatement':
 			return for_of_statement_to_jsx_child(node, transform_context);
+		case 'JSXSwitchExpression':
+			return switch_statement_to_jsx_child(
+				jsx_control_expression_to_statement(node),
+				transform_context,
+			);
 		case 'SwitchStatement':
 			return switch_statement_to_jsx_child(node, transform_context);
+		case 'JSXTryExpression':
+			return try_statement_to_jsx_child(jsx_control_expression_to_statement(node), transform_context);
 		case 'TryStatement':
 			return try_statement_to_jsx_child(node, transform_context);
 		default:
 			return node;
 	}
+}
+
+/**
+ * @param {any} node
+ * @returns {any}
+ */
+function jsx_control_expression_to_statement(node) {
+	if (!node?.statementType) return node;
+	return { ...node, type: node.statementType };
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_template_fence(node) {
+	return node?.type === 'TsrxTemplateFence';
 }
 
 /**
@@ -243,6 +275,7 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	const children = (node.children || []).filter(
 		(/** @type {any} */ child) =>
 			child &&
+			!is_template_fence(child) &&
 			child.type !== 'EmptyStatement' &&
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
 	);
@@ -319,6 +352,10 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	let has_terminal_return = false;
 	let capture_index = 0;
 	for (const child of body_nodes) {
+		if (is_template_fence(child)) {
+			continue;
+		}
+
 		if (child?.type === 'ReturnStatement' && child.argument != null) {
 			statements.push(child);
 			has_terminal_return = true;
@@ -428,6 +465,10 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	let has_terminal_return = false;
 
 	for (const child of body_nodes) {
+		if (is_template_fence(child)) {
+			continue;
+		}
+
 		if (is_bare_return_statement(child)) {
 			statements.push(flush_children_to_return(child));
 			has_terminal_return = true;
@@ -1232,6 +1273,10 @@ function rewrite_early_return_guard_body(body, transform_context) {
 	 */
 	const collect = (nodes, outer, jsx_bucket) => {
 		for (const child of nodes) {
+			if (is_template_fence(child)) {
+				continue;
+			}
+
 			const return_nodes = return_statement_to_render_nodes(child);
 			if (return_nodes) {
 				jsx_bucket.push(...return_nodes);
@@ -1332,6 +1377,11 @@ function lower_solid_component_statement_list(statements) {
 
 	for (let index = 0; index < statements.length; index += 1) {
 		const statement = statements[index];
+		if (is_template_fence(statement)) {
+			changed = true;
+			continue;
+		}
+
 		const return_nodes = return_statement_to_render_nodes(statement);
 		if (return_nodes) {
 			return { nodes: [...nodes, ...return_nodes], terminal: true, changed: true };
@@ -1631,6 +1681,10 @@ function solid_component_body_nodes_to_function_statements(body_nodes, transform
 	let capture_index = 0;
 
 	for (const child of body_nodes) {
+		if (is_template_fence(child)) {
+			continue;
+		}
+
 		const expression_statement = render_expression_statement_to_node(child);
 		if (expression_statement) {
 			render_nodes.push(expression_statement);
@@ -1879,75 +1933,15 @@ function inject_solid_imports(program, transform_context) {
 // =====================================================================
 
 /**
- * @param {any} node
- * @param {any[]} walked_children
- * @param {any[]} raw_children
- * @param {any[]} attributes
+ * @param {any} node - walker-transformed JSX element whose children have
+ *   already had nested template rewrites applied.
  * @param {TransformContext} transform_context
- * @returns {{ children: any[], selfClosing?: boolean } | null}
- */
-function rewrite_solid_host_children(
-	node,
-	walked_children,
-	raw_children,
-	attributes,
-	transform_context,
-) {
-	const source_children = raw_children ?? walked_children;
-	if (
-		!is_component_like_element(node) &&
-		source_children.length === 1 &&
-		source_children[0]?.type === 'Text' &&
-		!has_text_content_attribute(attributes)
-	) {
-		const text_child = source_children[0];
-		attributes.push(
-			set_loc(
-				/** @type {any} */ ({
-					type: 'JSXAttribute',
-					name: {
-						type: 'JSXIdentifier',
-						name: 'textContent',
-						metadata: { path: [] },
-					},
-					value:
-						walked_children[0] && walked_children[0].type === 'JSXExpressionContainer'
-							? walked_children[0]
-							: to_jsx_expression_container(
-									to_text_expression(text_child.expression, text_child),
-									text_child,
-								),
-					shorthand: false,
-					metadata: { path: [] },
-				}),
-				text_child,
-			),
-		);
-		return { children: [], selfClosing: true };
-	}
-
-	return null;
-}
-
-/**
- * @param {any} node - walker-transformed Element whose `children` have
- *   already had `Style` / `TSRXExpression` / nested `Element`
- *   walker rewrites applied.
- * @param {TransformContext} transform_context
- * @param {any[]} [pre_walk_children] - optional pre-walk children list
- *   from the `transformElement` hook. Only used to detect the
- *   "single `Text` child" shape for the `textContent` optimization —
- *   once detected we build the attribute from the original `Text.expression`.
- *   The factory's `Text` walker lowers `Text` → `JSXExpressionContainer`, so
- *   without these we'd miss the optimization. For rendering non-textContent
- *   children we keep using `node.children` (walker-transformed).
  * @returns {any}
  */
-function to_jsx_element(node, transform_context, pre_walk_children) {
-	if (node.type === 'JSXElement') return node;
+function to_jsx_element(node, transform_context) {
+	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !node.id) return node;
 
 	const walked_children = node.children || [];
-	const text_optimization_children = pre_walk_children ?? walked_children;
 
 	if (!node.id) {
 		error(
@@ -1981,57 +1975,8 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
 		node,
 	);
 
-	// Optimization: `<el>"text"</el>` with a single direct text child on a host
-	// (DOM) element lowers to `<el textContent={expr} />`. Solid
-	// writes `textContent` as a direct DOM property, which is cheaper than
-	// the `insert()`-based text node binding it would otherwise emit for
-	// child expressions. Only safe when the direct text child is the sole child and
-	// the parent is a host element (composite components receive
-	// `textContent` as an opaque prop with no DOM semantics), and when the
-	// user hasn't already set `textContent` themselves.
-	//
-	// We check `text_optimization_children` (pre-walk) rather than
-	// `walked_children` because the factory's `Text` walker has already
-	// lowered `Text` → `JSXExpressionContainer`, which wouldn't match.
-	let selfClosing = !!node.selfClosing;
-	let children;
-	if (
-		!is_composite &&
-		text_optimization_children.length === 1 &&
-		text_optimization_children[0] &&
-		text_optimization_children[0].type === 'Text' &&
-		!has_text_content_attribute(attributes)
-	) {
-		const text_child = text_optimization_children[0];
-		attributes.push(
-			set_loc(
-				/** @type {any} */ ({
-					type: 'JSXAttribute',
-					name: {
-						type: 'JSXIdentifier',
-						name: 'textContent',
-						metadata: { path: [] },
-					},
-					// preserves the walker's rewrites on the Text's inner expression
-					value:
-						walked_children[0] && walked_children[0].type === 'JSXExpressionContainer'
-							? walked_children[0]
-							: to_jsx_expression_container(
-									to_text_expression(text_child.expression, text_child),
-									text_child,
-								),
-					shorthand: false,
-					metadata: { path: [] },
-				}),
-				text_child,
-			),
-		);
-		children = [];
-		selfClosing = true;
-	} else {
-		// Use walker-transformed children in the emitted JSX.
-		children = create_element_children(walked_children, transform_context);
-	}
+	const selfClosing = !!node.selfClosing;
+	const children = create_element_children(walked_children, transform_context);
 
 	const openingElement = set_loc(
 		b.jsx_opening_element(name, attributes, selfClosing, node.openingElement?.typeArguments),
@@ -2069,7 +2014,8 @@ function to_jsx_element(node, transform_context, pre_walk_children) {
  * @returns {any[]}
  */
 function create_element_children(children, transform_context) {
-	if (children.length === 0) return [];
+	const visible_children = children.filter((/** @type {any} */ child) => !is_template_fence(child));
+	if (visible_children.length === 0) return [];
 
 	// If any child is a plain statement (VariableDeclaration, ExpressionStatement,
 	// DebuggerStatement, etc.) interleaved with JSX, we can't emit it as a JSX
@@ -2078,39 +2024,17 @@ function create_element_children(children, transform_context) {
 	// children list in an IIFE so the statements execute during render and
 	// their locals scope to the block, matching the authored intent of
 	// mid-template locals.
-	const has_non_jsx_child = children.some(
+	const has_non_jsx_child = visible_children.some(
 		(/** @type {any} */ child) => child && !is_jsx_child(child),
 	);
 	if (has_non_jsx_child) {
-		const body_jsx = body_to_jsx_child(children, transform_context);
+		const body_jsx = body_to_jsx_child(visible_children, transform_context);
 		return [jsx_child_wrap(iife_if_arrow(body_jsx))];
 	}
 
-	return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
-}
-
-/**
- * Check if the user already supplied a `textContent` attribute on the
- * element, or if a spread attribute could supply one. If either is true the
- * compiler mustn't emit another `textContent` — the direct-text →
- * `textContent={...}` optimization bails out. Spreads are treated as
- * potentially setting `textContent` because the spread's runtime shape
- * isn't knowable at compile time; emitting a second `textContent` attribute
- * would produce a duplicate-key conflict at runtime.
- *
- * @param {any[]} attributes
- * @returns {boolean}
- */
-function has_text_content_attribute(attributes) {
-	return attributes.some(
-		(/** @type {any} */ attr) =>
-			attr &&
-			((attr.type === 'JSXAttribute' &&
-				attr.name &&
-				attr.name.type === 'JSXIdentifier' &&
-				attr.name.name === 'textContent') ||
-				attr.type === 'JSXSpreadAttribute'),
-	);
+	return visible_children
+		.map((/** @type {any} */ child) => to_jsx_child(child, transform_context))
+		.filter(Boolean);
 }
 
 /**
