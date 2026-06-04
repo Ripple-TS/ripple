@@ -327,6 +327,30 @@ describe('TSRX parser', () => {
 		expect(init.right.regex.pattern).toBe('div>');
 	});
 
+	it('parses array of objects in the template above the fence', () => {
+		const returned = getReturned(`	it('should handle nested SVG groups with for loops', () => {
+		function App() {
+			return <>
+				const items = [
+					{ x: '10', y: '10', width: '20', height: '20' },
+					{ x: '40', y: '40', width: '20', height: '20' },
+				];
+				---
+			</>;
+		}
+`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+		]);
+		const init = returned.children[0].declarations[0].init;
+		expect(init.type).toBe('ArrayExpression');
+		expect(init.elements).toHaveLength(2);
+		expect(init.elements[0].type).toBe('ObjectExpression');
+		expect(init.elements[0].properties).toHaveLength(4);
+	});
+
 	it('treats a generic call in the script section as script, not markup', () => {
 		// `foo<T>(bar)` is a type-argument call, so the `<T>` must not be read as a tag
 		// that would expect a `</T>` close before the `---` fence.

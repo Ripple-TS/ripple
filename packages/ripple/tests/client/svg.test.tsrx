@@ -140,6 +140,7 @@ describe('SVG namespace handling', () => {
 					{ x: '10', y: '10', width: '20', height: '20' },
 					{ x: '40', y: '40', width: '20', height: '20' },
 				];
+				---
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
 					<g fill="blue">
 						@for (const item of items) {
