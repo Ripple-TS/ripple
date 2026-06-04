@@ -24,7 +24,6 @@ import {
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_component_jsx_name,
-	is_dynamic_element_id,
 	is_jsx_child,
 	jsx_name_to_expression,
 	set_loc,
@@ -239,6 +238,10 @@ export function createJsxTransform(platform) {
 			},
 
 			JSXElement(node, { next, path, state }) {
+				if (!node.metadata?.native_tsrx && is_dynamic_jsx_element(node)) {
+					return dynamic_element_to_jsx(node, state, in_jsx_child_context(path));
+				}
+
 				if (!node.metadata?.native_tsrx) {
 					return next() ?? node;
 				}
@@ -260,7 +263,9 @@ export function createJsxTransform(platform) {
 				const inner = /** @type {any} */ (next() ?? node);
 				const hook = platform.hooks?.transformElement;
 				if (hook) return /** @type {any} */ (hook(inner, state, raw_children));
-				return /** @type {any} */ (to_jsx_element(inner, state, raw_children));
+				return /** @type {any} */ (
+					to_jsx_element(inner, state, raw_children, in_jsx_child_context(path))
+				);
 			},
 
 			JSXStyleElement(node, { path, state }) {
@@ -2844,26 +2849,37 @@ function create_helper_props_type_literal_with_typeof_flags(bindings, aliases, u
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
+ * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function to_jsx_element(node, transform_context, raw_children = node.children || []) {
-	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !node.id) return node;
-	if (!node.id) {
+function to_jsx_element(
+	node,
+	transform_context,
+	raw_children = node.children || [],
+	in_jsx_child = false,
+) {
+	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !is_dynamic_jsx_element(node)) {
+		return node;
+	}
+
+	const source_opening = node.openingElement;
+	const source_name = source_opening?.name;
+	if (!source_name) {
 		report_jsx_fragment_in_tsrx_error(node, transform_context);
 		return set_loc(b.jsx_fragment(), node);
 	}
-	if (is_dynamic_element_id(node.id)) {
-		return dynamic_element_to_jsx_child(node, transform_context);
+	if (is_dynamic_jsx_element(node)) {
+		return dynamic_element_to_jsx(node, transform_context, in_jsx_child);
 	}
 
-	const name = identifier_to_jsx_name(node.id);
+	const name = clone_jsx_name(source_name);
 	const attributes = transform_element_attributes_dispatch(
-		node.attributes || [],
+		source_opening.attributes || [],
 		transform_context,
 		node,
 	);
 	const walked_children = node.children || [];
-	let selfClosing = !!node.selfClosing;
+	let selfClosing = !!source_opening.selfClosing;
 	let children;
 	const child_transform = transform_context.platform.hooks?.transformElementChildren?.(
 		node,
@@ -2889,7 +2905,7 @@ function to_jsx_element(node, transform_context, raw_children = node.children ||
 		name,
 		attributes,
 		selfClosing,
-		node.openingElement?.typeArguments,
+		source_opening.typeArguments,
 	);
 	const openingElement = has_unmappable_attribute
 		? opening_element_node
@@ -4062,8 +4078,31 @@ function is_native_tsrx_node(node) {
 		(node?.type === 'JSXElement' ||
 			node?.type === 'JSXFragment' ||
 			node?.type === 'JSXStyleElement') &&
-		(node.metadata?.native_tsrx || node.id)
+		node.metadata?.native_tsrx
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_dynamic_jsx_element(node) {
+	return !!(
+		node?.type === 'JSXElement' &&
+		(node.dynamic === true ||
+			node.openingElement?.dynamic === true ||
+			is_dynamic_jsx_name(node.openingElement?.name))
+	);
+}
+
+/**
+ * @param {any} name
+ * @returns {boolean}
+ */
+function is_dynamic_jsx_name(name) {
+	if (!name || typeof name !== 'object') return false;
+	if (name.dynamic === true) return true;
+	return name.type === 'JSXMemberExpression' && is_dynamic_jsx_name(name.object);
 }
 
 /**
@@ -4111,7 +4150,10 @@ function to_jsx_child(node, transform_context) {
 	switch (node.type) {
 		case 'JSXElement':
 			if (is_native_tsrx_node(node)) {
-				return to_jsx_element(node, transform_context);
+				return to_jsx_element(node, transform_context, node.children || [], true);
+			}
+			if (is_dynamic_jsx_element(node)) {
+				return dynamic_element_to_jsx(node, transform_context, true);
 			}
 			return node;
 		case 'JSXFragment':
@@ -5448,12 +5490,12 @@ function transform_element_attributes_dispatch(attrs, transform_context, element
  * @returns {boolean}
  */
 export function is_component_like_element(element) {
-	const id = element?.id;
-	if (!id) return false;
-	if (id.type === 'Identifier') return /^[A-Z]/.test(id.name);
-	if (id.type === 'JSXIdentifier') return /^[A-Z]/.test(id.name);
-	if (id.type === 'MemberExpression') return true;
-	if (id.type === 'JSXMemberExpression') return true;
+	const name = element?.openingElement?.name;
+	if (!name) return false;
+	if (name.type === 'Identifier') return /^[A-Z]/.test(name.name);
+	if (name.type === 'JSXIdentifier') return /^[A-Z]/.test(name.name);
+	if (name.type === 'MemberExpression') return true;
+	if (name.type === 'JSXMemberExpression') return true;
 	return false;
 }
 
@@ -5832,8 +5874,6 @@ function infer_ref_namespace(tag_name) {
  * @returns {string | null}
  */
 function get_element_ref_tag_name(element) {
-	const id = element?.id;
-	if (id?.type === 'Identifier') return id.name;
 	const name = element?.name;
 	if (name?.type === 'JSXIdentifier') return name.name;
 	if (element?.openingElement?.name?.type === 'JSXIdentifier') {
@@ -5920,25 +5960,29 @@ function value_has_unmappable_jsx_loc(value) {
 /**
  * @param {any} node
  * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXExpressionContainer}
+ * @param {boolean} in_jsx_child
+ * @returns {any}
  */
-function dynamic_element_to_jsx_child(node, transform_context) {
-	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(b.const(dynamic_id, jsx_name_to_expression(node.id)), node);
+function dynamic_element_to_jsx(node, transform_context, in_jsx_child) {
+	const source_name = node.openingElement?.name;
+	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), source_name || node);
+	const alias_declaration = set_loc(
+		b.const(dynamic_id, jsx_name_to_expression(source_name)),
+		source_name || node,
+	);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
-	return to_jsx_expression_container(
-		b.call(
-			b.arrow(
-				[],
-				b.block([
-					alias_declaration,
-					b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
-				]),
-			),
+	const expression = b.call(
+		b.arrow(
+			[],
+			b.block([
+				alias_declaration,
+				b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
+			]),
 		),
-		node,
 	);
+
+	return in_jsx_child ? to_jsx_expression_container(expression, node) : set_loc(expression, node);
 }
 
 /**
@@ -5949,11 +5993,11 @@ function dynamic_element_to_jsx_child(node, transform_context) {
  */
 function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
 	const attributes = transform_element_attributes_dispatch(
-		node.attributes || [],
+		node.openingElement?.attributes || [],
 		transform_context,
 		node,
 	);
-	const selfClosing = !!node.selfClosing;
+	const selfClosing = !!node.openingElement?.selfClosing;
 	const children = create_element_children(node.children || [], transform_context);
 	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
 
