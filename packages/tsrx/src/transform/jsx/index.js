@@ -4451,7 +4451,7 @@ function find_key_expression_in_body(body_nodes) {
  * @returns {any}
  */
 function continue_to_bare_return(source_node) {
-	const node = set_loc(b.return(null), source_node);
+	const node = set_loc(b.return(create_null_literal()), source_node);
 	node.metadata = {
 		...(node.metadata || {}),
 		generated_loop_continue_return: true,
@@ -4461,8 +4461,9 @@ function continue_to_bare_return(source_node) {
 
 /**
  * `continue` in a component `for...of` body means "skip this item". JSX targets
- * lower `for...of` to callbacks, so a raw ContinueStatement would be invalid JS;
- * a bare `return` from the callback preserves the item-skip behavior.
+ * lower `for...of` to callbacks, so a raw ContinueStatement would be invalid JS.
+ * Returning null from the callback preserves the item-skip behavior while still
+ * producing an explicit "render nothing" value for JSX runtimes.
  *
  * @param {any[] | any} node
  * @param {boolean} [is_root]

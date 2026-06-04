@@ -799,7 +799,7 @@ export function GettingStartedPage() {
 								For hosted MCP apps and connectors, use the public TSRX endpoint:
 							</p>
 							<p class="section-body">
-								<code class="inline-code">https://mcp.tsrx.dev/mcp</code>
+								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
 							</p>
 							<p class="section-body">
 								This is the best starting point for ChatGPT web and other clients that connect to an HTTP MCP server instead of launching a local command.
@@ -807,7 +807,7 @@ export function GettingStartedPage() {
 							<h3 class="subsection-heading">ChatGPT</h3>
 							<p class="section-body">
 								Add 
-								<code class="inline-code">https://mcp.tsrx.dev/mcp</code>
+								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
 								 when creating a custom app or connector from ChatGPT developer mode, then select that app from the tools menu in a chat.
 							</p>
 							<h3 class="subsection-heading">Self-hosting</h3>
