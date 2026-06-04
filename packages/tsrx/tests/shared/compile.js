@@ -138,6 +138,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 				`function Child(_: { body: string }) { return null; }
 				function App() { return <>
 					const html = '<strong>safe</strong>';
+					---
 					<Child body={html} />
 				</>; }`,
 				'App.tsrx',
@@ -217,6 +218,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 							</>;
 						}
 
+						---
 						{renderChild()}
 					</>;
 				}`,
@@ -299,6 +301,7 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 					const data = { outer: { inner: 5 } };
 					let &{ outer: &{ inner } } = data;
 					inner = 99;
+					---
 					<div>{data.outer.inner}</div>
 				</>; }`,
 				'App.tsrx',
@@ -317,6 +320,7 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 					let &{ pair: &[first, second] } = data;
 					first = 100;
 					second = 200;
+					---
 					<div>{data.pair[0]}{data.pair[1]}</div>
 				</>; }`,
 				'App.tsrx',
@@ -348,6 +352,7 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 					let &{ a: &{ b: &{ c } } } = data;
 					c += 10;
 					c *= 2;
+					---
 					<div>{data.a.b.c}</div>
 				</>; }`,
 				'App.tsrx',
@@ -410,6 +415,7 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 					const data = { outer: { inner: 5 } };
 					let { outer: &{ inner } } = data;
 					inner = 99;
+					---
 					<div>{data.outer.inner}</div>
 				</>; }`,
 				'App.tsrx',
@@ -1364,7 +1370,7 @@ export function runSharedCompileTests({
 		it('allows empty pending blocks as null fallbacks', () => {
 			const { code } = compile(
 				`export function App() { return <>
-					try {
+					@try {
 						<div>{'content'}</div>
 					} pending {}
 				</>; }`,
@@ -1582,6 +1588,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 					const reader = new Reader();
 
+					---
 					<output>{fromDeclaration()}{fromArrow()}{reader.value()}</output>
 				</>; }`,
 				'App.tsrx',
@@ -1608,6 +1615,7 @@ export function optionalFn(bar: string, baz?: string) {
 					}
 
 					const visible = 'render me';
+					---
 					{visible}
 				</>; }`,
 				'App.tsrx',
@@ -1630,6 +1638,7 @@ export function optionalFn(bar: string, baz?: string) {
 						<T,>(value: T) => value;
 					};
 
+					---
 					<div>{make}</div>
 				</>; }`,
 				'App.tsrx',
@@ -1674,6 +1683,7 @@ export function optionalFn(bar: string, baz?: string) {
 						}
 
 						const model = new Model();
+						---
 						<div>{getLabel()}{model.getValue()}</div>
 					</>; }`,
 					'App.tsrx',
@@ -1854,8 +1864,8 @@ export function optionalFn(bar: string, baz?: string) {
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
 				`export function Button() { return <>
-					const x = <>Hello world</>
-
+					const x = <>Hello world</>;
+					---
 					{x}
 				</>; }`,
 				'App.tsrx',
@@ -1929,21 +1939,20 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps special fragment returns inside component-local functions', () => {
 			const { code } = compile(
-				`export function App() {
-						function FragmentReturn() {
-							return <><div>fragment</div></>;
-						}
-						function TsxReturn() {
+				`export function App() { return <>
+							function FragmentReturn() {
+								return <><div>fragment</div></>;
+							}
+							function TsxReturn() {
 							return <><div>tsx</div></>;
 						}
-						function TsrxReturn() {
-							return <><div>tsrx</div></>;
-						}
+							function TsrxReturn() {
+								return <><div>tsrx</div></>;
+							}
 
-						return <>
+							---
 							<div>App</div>
-						</>;
-				}`,
+					</>; }`,
 				'App.tsrx',
 			);
 
@@ -2031,10 +2040,11 @@ export function optionalFn(bar: string, baz?: string) {
 		it('parses compact JSX templates before a trailing newline at EOF', () => {
 			const { code } = compile(
 				[
-					`export function App() { return <>`,
-					`\tconst title = <><h1>Hello There</h1>{Test(1, 2)}</>;`,
-					`\t{title}`,
-					`</>; }`,
+						`export function App() { return <>`,
+						`\tconst title = <><h1>Hello There</h1>{Test(1, 2)}</>;`,
+						`\t---`,
+						`\t{title}`,
+						`</>; }`,
 					``,
 					`function Test(p1, p2) {`,
 					`\treturn <><div>Hello</div><div>{p1}</div><div>{p2}</div></>;`,
@@ -3021,14 +3031,13 @@ export function optionalFn(bar: string, baz?: string) {
 					</style>
 				</>; }
 
-				export function App() {
-					const styles = <style>
-						.highlight { background: green; }
-					</style>;
-
-					return <>
-					<Badge ${componentClassAttrName}={styles.highlight} />
-				</>; }`,
+					export function App() { return <>
+						const styles = <style>
+							.highlight { background: green; }
+						</style>;
+						---
+						<Badge ${componentClassAttrName}={styles.highlight} />
+					</>; }`,
 				'App.tsrx',
 			);
 
@@ -3045,14 +3054,13 @@ export function optionalFn(bar: string, baz?: string) {
 							<span class={className}>hello world</span>
 					</>; }
 
-					export function App() {
-						const styles = <style>
-							.container { color: red; }
-						</style>;
-
-						return <>
-							<Child ${componentClassAttrName}={styles.container}>hello world</Child>
-					</>; }`,
+						export function App() { return <>
+							const styles = <style>
+								.container { color: red; }
+							</style>;
+							---
+								<Child ${componentClassAttrName}={styles.container}>hello world</Child>
+						</>; }`,
 				'App.tsrx',
 			);
 
@@ -3065,14 +3073,13 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('passes hyphenated style expression class names through a composite component prop', () => {
 			const { code, css, cssHash } = compile(
-				`export function App() {
-					const styles = <style>
-						.accent-tone { color: red; }
-					</style>;
-
-					return <>
-					<Child cls={styles['accent-tone']} />
-				</>; }`,
+					`export function App() { return <>
+						const styles = <style>
+							.accent-tone { color: red; }
+						</style>;
+						---
+						<Child cls={styles['accent-tone']} />
+					</>; }`,
 				'App.tsrx',
 			);
 
@@ -3085,17 +3092,15 @@ export function optionalFn(bar: string, baz?: string) {
 			it('extracts hooks in expression-position JSX fragments into stable helper components', () => {
 			const { code } = compile(
 				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-						function App({ active }: { active: boolean }) {
-							if (!active) return null;
+							function App({ active }: { active: boolean }) { return <>
+								if (!active) return null;
 
-							return <>
 								useEffect(() => {
 									console.log(active);
 								}, [active]);
 								---
 								<span>{active ? 'active' : 'inactive'}</span>
-							</>;
-						}`,
+							</>; }`,
 				'App.tsrx',
 			);
 

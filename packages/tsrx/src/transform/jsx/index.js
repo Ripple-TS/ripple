@@ -26,6 +26,7 @@ import {
 	is_component_jsx_name,
 	is_dynamic_element_id,
 	is_jsx_child,
+	jsx_name_to_expression,
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
@@ -1812,9 +1813,10 @@ function create_native_tsrx_statement_list_block(block, transform_context) {
 function create_native_tsrx_render_statements(fragment, transform_context) {
 	return with_tsrx_fragment_styles(fragment, transform_context, (style_context) => {
 		const target = style_context?.fragment ?? fragment;
+		const render_nodes = target.type === 'JSXFragment' ? get_tsrx_render_children(target) : [target];
 		return [
 			...create_tsrx_style_ref_setup_statements(target, style_context, transform_context),
-			...build_render_statements(get_tsrx_render_children(target), true, transform_context),
+			...build_render_statements(render_nodes, true, transform_context),
 		];
 	});
 }
@@ -5894,7 +5896,7 @@ function value_has_unmappable_jsx_loc(value) {
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
 	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(b.const(dynamic_id, clone_expression_node(node.id)), node);
+	const alias_declaration = set_loc(b.const(dynamic_id, jsx_name_to_expression(node.id)), node);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(

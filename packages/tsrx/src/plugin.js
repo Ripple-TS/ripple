@@ -233,10 +233,17 @@ export function TSRXPlugin(config) {
 			#functionBodyDepth = 0;
 			#allowExpressionContainerTrailingSemicolon = false;
 			#jsxAttributeValueExpressionDepth = 0;
+			#jsxExpressionContainerDepth = 0;
 			#scriptJSXElementDepth = 0;
 			#forceScriptJSXElementDepth = 0;
+			#suppressTemplateRawTextToken = false;
 			#templateControlFlowBlockDepth = 0;
 			#templateControlFlowTryDepth = 0;
+			/** @type {AST.Node | null} */
+			#openingNativeTemplateNode = null;
+			#closingNativeTemplateNode = false;
+			#readingJSXControlFlowDirectiveKeyword = false;
+			#readingJSXControlFlowHeader = false;
 
 			/**
 			 * @type {Parse.Parser['finishNode']}
@@ -374,7 +381,13 @@ export function TSRXPlugin(config) {
 						'Template control flow blocks with only script statements must end with `---`.',
 					);
 				}
-				this.next();
+				const previous_reading_header = this.#readingJSXControlFlowHeader;
+				this.#readingJSXControlFlowHeader = true;
+				try {
+					this.next();
+				} finally {
+					this.#readingJSXControlFlowHeader = previous_reading_header;
+				}
 				return this.finishNode(node, 'BlockStatement');
 			}
 
@@ -391,7 +404,10 @@ export function TSRXPlugin(config) {
 			}
 
 			#currentNativeTemplateNode() {
-				return this.#path.findLast((node) => this.#isNativeTemplateNode(node));
+				return (
+					this.#openingNativeTemplateNode ??
+					this.#path.findLast((node) => this.#isNativeTemplateNode(node))
+				);
 			}
 
 			/**
@@ -689,6 +705,19 @@ export function TSRXPlugin(config) {
 					}
 
 					if (ch === CharCode.lessThan) {
+						if (this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))) {
+							const type_end = scan_balanced_from(
+								this.input,
+								index,
+								CharCode.lessThan,
+								CharCode.greaterThan,
+							);
+							if (type_end !== -1) {
+								index = type_end;
+								continue;
+							}
+						}
+
 						if (next === CharCode.slash) {
 							let name_start = index + 2;
 							while (
@@ -937,6 +966,51 @@ export function TSRXPlugin(config) {
 				return next !== CharCode.equals && next !== CharCode.greaterThan;
 			}
 
+			#switchCaseLabelStart() {
+				let index = this.start;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (
+						ch !== CharCode.space &&
+						ch !== CharCode.tab &&
+						ch !== CharCode.lineFeed &&
+						ch !== CharCode.carriageReturn
+					) {
+						break;
+					}
+					index++;
+				}
+				if (!this.#isLineStartPosition(index)) return -1;
+				if (
+					this.input.slice(index, index + 4) === 'case' &&
+					!this.#isIdentifierChar(this.input.charCodeAt(index + 4))
+				) {
+					return index;
+				}
+				if (
+					this.input.slice(index, index + 7) === 'default' &&
+					!this.#isIdentifierChar(this.input.charCodeAt(index + 7))
+				) {
+					return index;
+				}
+				return -1;
+			}
+
+			#rewindToSwitchCaseLabel() {
+				const start = this.#switchCaseLabelStart();
+				if (start === -1) return false;
+				while (this.curContext() === tstc.tc_expr) {
+					this.context.pop();
+				}
+				this.pos = start;
+				this.start = start;
+				this.startLoc = acorn.getLineInfo(this.input, start);
+				this.exprAllowed = true;
+				this.#suppressTemplateRawTextToken = true;
+				this.next();
+				return true;
+			}
+
 			#hasTemplateOutput(nodes) {
 				return nodes.some((node) => {
 					if (!node || node.type === 'TsrxTemplateFence') return false;
@@ -1008,6 +1082,10 @@ export function TSRXPlugin(config) {
 				);
 			}
 
+			#canPrecedeTypeArgumentList(ch) {
+				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
+			}
+
 			#parseJSXSwitchCaseRawText() {
 				const start = this.start;
 				let index = start;
@@ -1045,28 +1123,98 @@ export function TSRXPlugin(config) {
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
 			}
 
-			#isJSXControlFlowDirectiveStart() {
-				if (this.input.charCodeAt(this.start) !== CharCode.at) return false;
+			#shouldReadTemplateRawTextToken() {
+				if (
+					this.#closingNativeTemplateNode ||
+					this.#readingJSXControlFlowDirectiveKeyword ||
+					this.#readingJSXControlFlowHeader ||
+					this.#jsxExpressionContainerDepth > 0
+				) {
+					return false;
+				}
+				const current_context_token = this.curContext()?.token;
+				if (current_context_token === '<tag' || current_context_token === '</tag') {
+					return false;
+				}
+				const current_template_node = this.#currentNativeTemplateNode();
+				if (!current_template_node || this.#isJSXControlFlowDirectiveAt(this.pos)) {
+					return false;
+				}
+				if (this.input.charCodeAt(this.pos - 1) === CharCode.lessThan) {
+					return false;
+				}
+				if (
+					this.input.charCodeAt(this.pos - 1) === CharCode.slash &&
+					this.input.charCodeAt(this.pos - 2) === CharCode.lessThan
+				) {
+					return false;
+				}
+				if (
+					this.input.charCodeAt(this.pos) === CharCode.slash &&
+					this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan
+				) {
+					return false;
+				}
+				if (
+					this.input.charCodeAt(this.pos) === CharCode.greaterThan &&
+					this.input.charCodeAt(this.pos - 1) === CharCode.slash &&
+					this.input.charCodeAt(this.pos - 2) === CharCode.lessThan
+				) {
+					return false;
+				}
+				return (
+					current_template_node.metadata?.templateMode === 'template' ||
+					!this.#hasTemplateFenceBeforeElementClose(this.pos, current_template_node)
+				);
+			}
 
-				let index = this.start + 1;
-				if (!this.#isIdentifierChar(this.input.charCodeAt(index))) return false;
-
-				const word_start = index;
-				index++;
-				while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+			#readTemplateRawTextToken() {
+				const start = this.pos;
+				let index = start;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
+						break;
+					}
 					index++;
 				}
 
-				const word = this.input.slice(word_start, index);
-				const next_non_whitespace = skip_whitespace_from(this.input, index);
+				const endLoc = acorn.getLineInfo(this.input, index);
+				const value = this.input.slice(start, index);
+				if (value.match(regex_newline_characters)) {
+					this.curLine = endLoc.line;
+					this.lineStart = index - endLoc.column;
+				}
+				this.pos = index;
+				return this.finishToken(tstt.jsxText, value);
+			}
+
+			#isJSXControlFlowDirectiveAt(index) {
+				if (this.input.charCodeAt(index) !== CharCode.at) return false;
+
+				let cursor = index + 1;
+				if (!this.#isIdentifierChar(this.input.charCodeAt(cursor))) return false;
+
+				const word_start = cursor;
+				cursor++;
+				while (this.#isIdentifierChar(this.input.charCodeAt(cursor))) {
+					cursor++;
+				}
+
+				const word = this.input.slice(word_start, cursor);
+				const next_non_whitespace = skip_whitespace_from(this.input, cursor);
 				const next = this.input.charCodeAt(next_non_whitespace);
 				return (
-					!this.#isIdentifierChar(this.input.charCodeAt(index)) &&
+					!this.#isIdentifierChar(this.input.charCodeAt(cursor)) &&
 					(word === 'try'
 						? next === CharCode.openBrace
 						: (word === 'if' || word === 'for' || word === 'switch') &&
 							next === CharCode.openParen)
 				);
+			}
+
+			#isJSXControlFlowDirectiveStart() {
+				return this.#isJSXControlFlowDirectiveAt(this.start);
 			}
 
 			/**
@@ -1087,7 +1235,16 @@ export function TSRXPlugin(config) {
 			#parseJSXControlFlowExpression() {
 				const start = this.start;
 				const startLoc = this.startLoc;
-				this.next();
+				const keywordStart = start + 1;
+				this.pos = keywordStart;
+				this.start = keywordStart;
+				this.startLoc = acorn.getLineInfo(this.input, keywordStart);
+				this.#readingJSXControlFlowDirectiveKeyword = true;
+				try {
+					this.nextToken();
+				} finally {
+					this.#readingJSXControlFlowDirectiveKeyword = false;
+				}
 
 				const label = this.type.keyword || this.type.label;
 				if (label === 'if') {
@@ -1102,6 +1259,8 @@ export function TSRXPlugin(config) {
 				if (label === 'for') {
 					this.#templateControlFlowBlockDepth++;
 					let node;
+					const previous_reading_header = this.#readingJSXControlFlowHeader;
+					this.#readingJSXControlFlowHeader = true;
 					try {
 						node = this.#finishJSXControlFlowExpression(
 							this.parseStatement(null),
@@ -1110,6 +1269,7 @@ export function TSRXPlugin(config) {
 							startLoc,
 						);
 					} finally {
+						this.#readingJSXControlFlowHeader = previous_reading_header;
 						this.#templateControlFlowBlockDepth--;
 					}
 					if (
@@ -1152,8 +1312,14 @@ export function TSRXPlugin(config) {
 
 			#parseTemplateIfStatement() {
 				const node = /** @type {AST.IfStatement} */ (this.startNode());
-				this.next();
-				node.test = this.parseParenExpression();
+				const previous_reading_header = this.#readingJSXControlFlowHeader;
+				this.#readingJSXControlFlowHeader = true;
+				try {
+					this.next();
+					node.test = this.parseParenExpression();
+				} finally {
+					this.#readingJSXControlFlowHeader = previous_reading_header;
+				}
 				node.consequent = this.#parseTemplateControlFlowStatement();
 				node.alternate = null;
 
@@ -1174,8 +1340,14 @@ export function TSRXPlugin(config) {
 			 */
 			#parseJSXSwitchExpression(start, startLoc) {
 				const node = /** @type {AST.SwitchStatement} */ (this.startNodeAt(start, startLoc));
-				this.next();
-				node.discriminant = this.parseParenExpression();
+				const previous_reading_header = this.#readingJSXControlFlowHeader;
+				this.#readingJSXControlFlowHeader = true;
+				try {
+					this.next();
+					node.discriminant = this.parseParenExpression();
+				} finally {
+					this.#readingJSXControlFlowHeader = previous_reading_header;
+				}
 				node.cases = [];
 				this.expect(tt.braceL);
 				this.labels.push({ kind: 'switch' });
@@ -1185,6 +1357,10 @@ export function TSRXPlugin(config) {
 				let current;
 				let sawDefault = false;
 				while (this.type !== tt.braceR) {
+					if (this.type === tstt.jsxText && this.#rewindToSwitchCaseLabel()) {
+						continue;
+					}
+
 					if (this.type === tt._case || this.type === tt._default) {
 						const isCase = this.type === tt._case;
 						if (current) {
@@ -1193,17 +1369,23 @@ export function TSRXPlugin(config) {
 						current = /** @type {AST.SwitchCase} */ (this.startNode());
 						current.consequent = [];
 						node.cases.push(current);
-						this.next();
-						if (isCase) {
-							current.test = this.parseExpression();
-						} else {
-							if (sawDefault) {
-								this.raiseRecoverable(this.lastTokStart, 'Multiple default clauses');
+						const previous_reading_header = this.#readingJSXControlFlowHeader;
+						this.#readingJSXControlFlowHeader = true;
+						try {
+							this.next();
+							if (isCase) {
+								current.test = this.parseExpression();
+							} else {
+								if (sawDefault) {
+									this.raiseRecoverable(this.lastTokStart, 'Multiple default clauses');
+								}
+								sawDefault = true;
+								current.test = null;
 							}
-							sawDefault = true;
-							current.test = null;
+							this.expect(tt.colon);
+						} finally {
+							this.#readingJSXControlFlowHeader = previous_reading_header;
 						}
-						this.expect(tt.colon);
 						continue;
 					}
 
@@ -1353,20 +1535,39 @@ export function TSRXPlugin(config) {
 					const closingStart = contentStart + content.length;
 					const closingLineInfo = acorn.getLineInfo(this.input, closingStart);
 					const closingStartLoc = new acorn.Position(closingLineInfo.line, closingLineInfo.column);
-
-					this.exprAllowed = false;
-					this.pos = closingStart + 1;
-					this.type = tstt.jsxTagStart;
-					this.start = closingStart;
-					this.startLoc = closingStartLoc;
-					this.next();
-					this.next();
-
+					const nameStart = closingStart + 2;
+					const nameEnd = nameStart + 'style'.length;
+					const nameStartInfo = acorn.getLineInfo(this.input, nameStart);
+					const nameEndInfo = acorn.getLineInfo(this.input, nameEnd);
+					const name = /** @type {ESTreeJSX.JSXIdentifier} */ (
+						this.startNodeAt(nameStart, new acorn.Position(nameStartInfo.line, nameStartInfo.column))
+					);
+					name.name = 'style';
+					name.tracked = false;
+					this.finishNodeAt(
+						name,
+						'JSXIdentifier',
+						nameEnd,
+						new acorn.Position(nameEndInfo.line, nameEndInfo.column),
+					);
+					const closingEnd = closingStart + '</style>'.length;
+					const closingEndInfo = acorn.getLineInfo(this.input, closingEnd);
 					const closingElement = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
-						this.jsx_parseClosingElementAt(closingStart, closingStartLoc)
+						this.startNodeAt(closingStart, closingStartLoc)
+					);
+					closingElement.name = name;
+					this.finishNodeAt(
+						closingElement,
+						'JSXClosingElement',
+						closingEnd,
+						new acorn.Position(closingEndInfo.line, closingEndInfo.column),
 					);
 					node.closingElement = closingElement;
 					this.exprAllowed = false;
+					this.pos = closingEnd;
+					this.curLine = closingEndInfo.line;
+					this.lineStart = closingEnd - closingEndInfo.column;
+					this.next();
 				} else {
 					this.#report_broken_markup_error(
 						open.end,
@@ -1922,10 +2123,48 @@ export function TSRXPlugin(config) {
 			 *
 			 * @type {Parse.Parser['readToken']}
 			 */
-			readToken(code) {
-				if (code === CharCode.lessThan && looks_like_generic_arrow(this.input, this.pos)) {
-					++this.pos;
-					return this.finishToken(tt.relational, '<');
+				readToken(code) {
+					const suppressTemplateRawTextToken = this.#suppressTemplateRawTextToken;
+					this.#suppressTemplateRawTextToken = false;
+					const context = this.curContext();
+					if (
+						context === tstc.tc_expr ||
+						context === tstc.tc_oTag ||
+						context === tstc.tc_cTag
+					) {
+						return super.readToken(code);
+					}
+					if (code === CharCode.lessThan) {
+						if (
+							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(this.pos - 1)) ||
+							looks_like_generic_arrow(this.input, this.pos)
+						) {
+							++this.pos;
+							return this.finishToken(tt.relational, '<');
+						}
+						const next = this.input.charCodeAt(this.pos + 1);
+						const isTagLikeAfterLt =
+							next === CharCode.slash ||
+							next === CharCode.greaterThan ||
+							next === CharCode.at ||
+							next === CharCode.dollar ||
+							next === CharCode.underscore ||
+							(next >= CharCode.uppercaseA && next <= CharCode.uppercaseZ) ||
+							(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ);
+						if (this.exprAllowed && isTagLikeAfterLt) {
+							++this.pos;
+							return this.finishToken(tstt.jsxTagStart);
+						}
+					}
+				if (
+					code !== CharCode.lessThan &&
+						code !== CharCode.greaterThan &&
+						code !== CharCode.openBrace &&
+						code !== CharCode.closeBrace &&
+						!suppressTemplateRawTextToken &&
+						this.#shouldReadTemplateRawTextToken()
+					) {
+						return this.#readTemplateRawTextToken();
 				}
 				return super.readToken(code);
 			}
@@ -2001,8 +2240,12 @@ export function TSRXPlugin(config) {
 							prevChar === CharCode.dollar ||
 							prevChar === CharCode.closeParen;
 
-						if (isIdentifierChar) {
-							return super.getTokenFromCode(code);
+						if (
+							isIdentifierChar &&
+							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(this.pos - 1))
+						) {
+							++this.pos;
+							return this.finishToken(tt.relational, '<');
 						}
 					}
 
@@ -2027,18 +2270,23 @@ export function TSRXPlugin(config) {
 							nextChar === CharCode.underscore ||
 							(nextChar >= CharCode.uppercaseA && nextChar <= CharCode.uppercaseZ) ||
 							(nextChar >= CharCode.lowercaseA && nextChar <= CharCode.lowercaseZ));
-					const prevAllowsTagStart =
-						prevNonWhitespaceChar === null ||
-						prevNonWhitespaceChar === CharCode.lineFeed || // '\n'
-						prevNonWhitespaceChar === CharCode.carriageReturn || // '\r'
-						prevNonWhitespaceChar === CharCode.openBrace ||
-						prevNonWhitespaceChar === CharCode.closeBrace ||
-						prevNonWhitespaceChar === CharCode.greaterThan;
+						const prevAllowsTagStart =
+							prevNonWhitespaceChar === null ||
+							prevNonWhitespaceChar === CharCode.lineFeed || // '\n'
+							prevNonWhitespaceChar === CharCode.carriageReturn || // '\r'
+							prevNonWhitespaceChar === CharCode.openBrace ||
+							prevNonWhitespaceChar === CharCode.closeBrace ||
+							prevNonWhitespaceChar === CharCode.greaterThan;
 
-					if (!inNativeTemplate && prevAllowsTagStart && isTagLikeAfterLt) {
-						++this.pos;
-						return this.finishToken(tstt.jsxTagStart);
-					}
+						if (!inNativeTemplate && this.exprAllowed && isTagLikeAfterLt) {
+							++this.pos;
+							return this.finishToken(tstt.jsxTagStart);
+						}
+
+						if (!inNativeTemplate && prevAllowsTagStart && isTagLikeAfterLt) {
+							++this.pos;
+							return this.finishToken(tstt.jsxTagStart);
+						}
 
 					if (inNativeTemplate) {
 						// Inside native template bodies, allow adjacent tags without requiring
@@ -2405,7 +2653,13 @@ export function TSRXPlugin(config) {
 				}
 
 				this.expect(tt.parenR);
-				node.body = /** @type {AST.BlockStatement} */ (this.parseStatement('for'));
+				const previous_reading_header = this.#readingJSXControlFlowHeader;
+				this.#readingJSXControlFlowHeader = false;
+				try {
+					node.body = /** @type {AST.BlockStatement} */ (this.parseStatement('for'));
+				} finally {
+					this.#readingJSXControlFlowHeader = previous_reading_header;
+				}
 				this.exitScope();
 				this.labels.pop();
 				return this.finishNode(node, isForIn ? 'ForInStatement' : 'ForOfStatement');
@@ -2428,21 +2682,26 @@ export function TSRXPlugin(config) {
 			 */
 			jsx_parseExpressionContainer() {
 				let node = /** @type {ESTreeJSX.JSXExpressionContainer} */ (this.startNode());
-				this.next();
-
-				node.expression =
-					this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
-				if (this.#allowExpressionContainerTrailingSemicolon && this.type === tt.semi) {
-					if (this.#collect) {
-						this.#report_recoverable_error(
-							this.start,
-							'TSRX expression containers do not use semicolons. Remove this semicolon.',
-							DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
-						);
-					}
+				this.#jsxExpressionContainerDepth++;
+				try {
 					this.next();
+
+					node.expression =
+						this.type === tt.braceR ? this.jsx_parseEmptyExpression() : this.parseExpression();
+					if (this.#allowExpressionContainerTrailingSemicolon && this.type === tt.semi) {
+						if (this.#collect) {
+							this.#report_recoverable_error(
+								this.start,
+								'TSRX expression containers do not use semicolons. Remove this semicolon.',
+								DIAGNOSTIC_CODES.TEMPLATE_EXPRESSION_TRAILING_SEMICOLON,
+							);
+						}
+						this.next();
+					}
+					this.expect(tt.braceR);
+				} finally {
+					this.#jsxExpressionContainerDepth--;
 				}
-				this.expect(tt.braceR);
 
 				return this.finishNode(node, 'JSXExpressionContainer');
 			}
@@ -2483,9 +2742,66 @@ export function TSRXPlugin(config) {
 					this.startNode()
 				);
 
+				if (this.type === tt.braceL) {
+					let name_start = skip_whitespace_from(this.input, this.start + 1);
+					const first = this.input.charCodeAt(name_start);
+					if (
+						this.#isIdentifierChar(first) &&
+						!(first >= CharCode.digit0 && first <= CharCode.digit9)
+					) {
+						let name_end = name_start + 1;
+						while (this.#isIdentifierChar(this.input.charCodeAt(name_end))) {
+							name_end++;
+						}
+						const brace_start = skip_whitespace_from(this.input, name_end);
+						if (this.input.charCodeAt(brace_start) === CharCode.closeBrace) {
+							const name_start_loc = acorn.getLineInfo(this.input, name_start);
+							const name_end_loc = acorn.getLineInfo(this.input, name_end);
+							const name_value = this.input.slice(name_start, name_end);
+							const id = /** @type {ESTreeJSX.JSXIdentifier} */ (
+								this.startNodeAt(name_start, name_start_loc)
+							);
+							id.name = name_value;
+							id.tracked = false;
+							this.finishNodeAt(id, 'JSXIdentifier', name_end, name_end_loc);
+								const name = /** @type {AST.Identifier} */ (
+									this.startNodeAt(name_start, name_start_loc)
+								);
+								name.name = name_value;
+								this.finishNodeAt(name, 'Identifier', name_end, name_end_loc);
+								const expression = /** @type {ESTreeJSX.JSXExpressionContainer} */ (
+									this.startNodeAt(this.start, this.startLoc)
+								);
+								expression.expression = name;
+								this.finishNodeAt(
+									expression,
+									'JSXExpressionContainer',
+									brace_start + 1,
+									acorn.getLineInfo(this.input, brace_start + 1),
+								);
+								/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
+								/** @type {any} */ (node).value = expression;
+								/** @type {any} */ (node).shorthand = true;
+
+							const end = brace_start + 1;
+							const endLoc = acorn.getLineInfo(this.input, end);
+							this.pos = end;
+							this.curLine = endLoc.line;
+							this.lineStart = end - endLoc.column;
+							this.next();
+							return this.finishNodeAt(node, 'JSXAttribute', end, endLoc);
+						}
+					}
+				}
+
 				if (this.eat(tt.braceL)) {
-					if (this.type === tt.ellipsis) {
-						this.expect(tt.ellipsis);
+					if (this.type === tt.ellipsis || this.input.slice(this.start, this.start + 3) === '...') {
+						if (this.type === tt.ellipsis) {
+							this.expect(tt.ellipsis);
+						} else {
+							this.pos = this.start + 3;
+							this.nextToken();
+						}
 						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
@@ -2495,13 +2811,36 @@ export function TSRXPlugin(config) {
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else {
-						const id = /** @type {ESTreeJSX.JSXIdentifier} */ (this.startNode());
-						const name = /** @type {AST.Identifier} */ (this.parseIdentNode());
-						id.name = name.name;
+						if (!(this.type === tt.name || this.type.keyword || this.type === tstt.jsxName)) {
+							this.unexpected();
+						}
+						const name_start = this.start;
+						const name_start_loc = this.startLoc;
+						const name_end = this.end;
+						const name_end_loc = this.endLoc;
+						const name_value = /** @type {string} */ (this.value);
+						const id = /** @type {ESTreeJSX.JSXIdentifier} */ (
+							this.startNodeAt(name_start, name_start_loc)
+						);
+						id.name = name_value;
 						id.tracked = false;
-						this.finishNodeAt(id, 'JSXIdentifier', name.end, name.loc.end);
-						/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
-						/** @type {any} */ (node).value = name;
+						this.finishNodeAt(id, 'JSXIdentifier', name_end, name_end_loc);
+							const name = /** @type {AST.Identifier} */ (
+								this.startNodeAt(name_start, name_start_loc)
+							);
+							name.name = name_value;
+							this.finishNodeAt(name, 'Identifier', name_end, name_end_loc);
+							const expression = /** @type {ESTreeJSX.JSXExpressionContainer} */ (
+								this.startNodeAt(node.start, /** @type {AST.NodeWithLocation} */ (node).loc.start)
+							);
+							expression.expression = name;
+							/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
+							/** @type {any} */ (node).value = this.finishNodeAt(
+								expression,
+								'JSXExpressionContainer',
+								this.end + 1,
+								this.endLoc,
+							);
 						/** @type {any} */ (node).shorthand = true;
 						this.next();
 						this.expect(tt.braceR);
@@ -2655,40 +2994,46 @@ export function TSRXPlugin(config) {
 
 						if (this.type === tt._catch) {
 							const clause = /** @type {AST.CatchClause} */ (this.startNode());
-							this.next();
-							if (this.eat(tt.parenL)) {
-								const param = this.parseBindingAtom();
-								const simple = param.type === 'Identifier';
-								this.enterScope(simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : 0);
-								this.checkLValPattern(
-									param,
-									simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : BINDING_TYPES.BIND_LEXICAL,
-								);
-								const type = this.tsTryParseTypeAnnotation();
-								if (type) {
-									param.typeAnnotation = type;
-									this.resetEndLocation(param);
-								}
-								clause.param = param;
-
-								if (this.eat(tt.comma)) {
-									const reset_param = this.parseBindingAtom();
-									this.checkLValSimple(reset_param, BINDING_TYPES.BIND_LEXICAL);
-									const reset_type = this.tsTryParseTypeAnnotation();
-									if (reset_type) {
-										reset_param.typeAnnotation = reset_type;
-										this.resetEndLocation(reset_param);
+							const previous_reading_header = this.#readingJSXControlFlowHeader;
+							this.#readingJSXControlFlowHeader = true;
+							try {
+								this.next();
+								if (this.eat(tt.parenL)) {
+									const param = this.parseBindingAtom();
+									const simple = param.type === 'Identifier';
+									this.enterScope(simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : 0);
+									this.checkLValPattern(
+										param,
+										simple ? BINDING_TYPES.BIND_SIMPLE_CATCH : BINDING_TYPES.BIND_LEXICAL,
+									);
+									const type = this.tsTryParseTypeAnnotation();
+									if (type) {
+										param.typeAnnotation = type;
+										this.resetEndLocation(param);
 									}
-									clause.resetParam = reset_param;
-								} else {
-									clause.resetParam = null;
-								}
+									clause.param = param;
 
-								this.expect(tt.parenR);
-							} else {
-								clause.param = null;
-								clause.resetParam = null;
-								this.enterScope(0);
+									if (this.eat(tt.comma)) {
+										const reset_param = this.parseBindingAtom();
+										this.checkLValSimple(reset_param, BINDING_TYPES.BIND_LEXICAL);
+										const reset_type = this.tsTryParseTypeAnnotation();
+										if (reset_type) {
+											reset_param.typeAnnotation = reset_type;
+											this.resetEndLocation(reset_param);
+										}
+										clause.resetParam = reset_param;
+									} else {
+										clause.resetParam = null;
+									}
+
+									this.expect(tt.parenR);
+								} else {
+									clause.param = null;
+									clause.resetParam = null;
+									this.enterScope(0);
+								}
+							} finally {
+								this.#readingJSXControlFlowHeader = previous_reading_header;
 							}
 							clause.body = this.#parseTemplateControlFlowBlock(false);
 							this.exitScope();
@@ -2776,11 +3121,11 @@ export function TSRXPlugin(config) {
 				return this.finishNode(node, 'TryStatement');
 			}
 
-			/** @type {Parse.Parser['jsx_readToken']} */
-			jsx_readToken() {
-				if (this.#scriptJSXElementDepth > 0) {
-					return super.jsx_readToken();
-				}
+				/** @type {Parse.Parser['jsx_readToken']} */
+				jsx_readToken() {
+					if (this.#scriptJSXElementDepth > 0 || this.#path.length === 0) {
+						return super.jsx_readToken();
+					}
 
 				let out = '',
 					chunkStart = this.pos;
@@ -2801,6 +3146,12 @@ export function TSRXPlugin(config) {
 					switch (ch) {
 						case CharCode.lessThan:
 						case CharCode.openBrace:
+							if (out || this.pos > chunkStart) {
+								return this.finishToken(
+									tstt.jsxText,
+									out + this.input.slice(chunkStart, this.pos),
+								);
+							}
 							// In JSX text mode, '<' and '{' always start a tag/expression container.
 							// `exprAllowed` can be false here due to surrounding parser state, but
 							// throwing breaks valid templates (e.g. sibling tags after a close).
@@ -2847,6 +3198,7 @@ export function TSRXPlugin(config) {
 								}
 
 								// Continue processing from current position
+								chunkStart = this.pos;
 								break;
 							} else if (this.input.charCodeAt(this.pos + 1) === CharCode.asterisk) {
 								// '/*'
@@ -2886,9 +3238,13 @@ export function TSRXPlugin(config) {
 								}
 
 								// Continue processing from current position
+								chunkStart = this.pos;
 								break;
 							}
-							// If not a comment, fall through to default case
+							if (this.#shouldReadTemplateRawTextToken()) {
+								++this.pos;
+								break;
+							}
 							this.#resetTokenStartToCurrentPosition();
 							this.context.push(b_stat);
 							this.exprAllowed = true;
@@ -2931,6 +3287,10 @@ export function TSRXPlugin(config) {
 							} else if (ch === CharCode.space || ch === CharCode.tab) {
 								++this.pos;
 							} else {
+								if (this.#shouldReadTemplateRawTextToken()) {
+									++this.pos;
+									break;
+								}
 								this.#resetTokenStartToCurrentPosition();
 								this.context.push(b_stat);
 								this.exprAllowed = true;
@@ -2946,9 +3306,13 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				if (
-					this.#forceScriptJSXElementDepth > 0 ||
-					this.#isInsideNativeTemplateScriptSection()
+					if (
+						this.#forceScriptJSXElementDepth > 0 ||
+						this.#isInsideNativeTemplateScriptSection() ||
+						(!this.#currentNativeTemplateNode() &&
+							this.input.charCodeAt(this.start + 1) !== CharCode.greaterThan &&
+						this.input.charCodeAt(this.start + 1) !== CharCode.at &&
+						!this.#isStyleOpeningTagStart())
 				) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
@@ -2974,6 +3338,55 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @type {Parse.Parser['jsx_parseOpeningElementAt']}
+			 */
+			jsx_parseOpeningElementAt(startPos, startLoc) {
+				const node = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+					this.startNodeAt(startPos, startLoc)
+				);
+				node.attributes = [];
+				const nodeName = this.jsx_parseElementName();
+				if (nodeName) node.name = nodeName;
+				if (this.match(tt.relational) || this.match(tt.bitShift)) {
+					const typeArguments = this.tsTryParseAndCatch(() =>
+						this.tsParseTypeArgumentsInExpression(),
+					);
+					if (typeArguments) node.typeArguments = typeArguments;
+				}
+				while (this.type !== tt.slash && this.type !== tstt.jsxTagEnd) {
+					node.attributes.push(this.jsx_parseAttribute());
+				}
+				node.selfClosing = this.eat(tt.slash);
+
+				const opening_template_node = this.#openingNativeTemplateNode;
+				let pushed_opening_template_node = false;
+				if (opening_template_node) {
+					if (nodeName) {
+						/** @type {any} */ (opening_template_node).type =
+							this.getElementName(nodeName) === 'style' ? 'JSXStyleElement' : 'JSXElement';
+						/** @type {any} */ (opening_template_node).openingElement = node;
+						/** @type {any} */ (opening_template_node).closingElement = null;
+					} else {
+						/** @type {any} */ (opening_template_node).type = 'JSXFragment';
+						/** @type {any} */ (opening_template_node).openingFragment =
+							this.#toOpeningFragment(node);
+						/** @type {any} */ (opening_template_node).closingFragment = null;
+					}
+					this.#path.push(opening_template_node);
+					pushed_opening_template_node = true;
+				}
+
+				try {
+					this.expect(tstt.jsxTagEnd);
+				} finally {
+					if (pushed_opening_template_node) {
+						this.#path.pop();
+					}
+				}
+				return this.finishNode(node, nodeName ? 'JSXOpeningElement' : 'JSXOpeningFragment');
+			}
+
+			/**
 			 * @type {Parse.Parser['parseElement']}
 			 */
 			parseElement() {
@@ -2994,9 +3407,16 @@ export function TSRXPlugin(config) {
 				};
 				node.children = [];
 
-				const open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
-					this.jsx_parseOpeningElementAt(start, position)
-				);
+				const previous_opening_native_template_node = this.#openingNativeTemplateNode;
+				this.#openingNativeTemplateNode = node;
+				let open;
+				try {
+					open = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+						this.jsx_parseOpeningElementAt(start, position)
+					);
+				} finally {
+					this.#openingNativeTemplateNode = previous_opening_native_template_node;
+				}
 				const tag_name = open.name ? this.getElementName(open.name) : null;
 				const is_style = tag_name === 'style';
 				const inside_head = this.#path.findLast((n) => this.#isNativeElementNamed(n, 'head'));
@@ -3049,11 +3469,6 @@ export function TSRXPlugin(config) {
 
 				if (!is_fragment && open.selfClosing) {
 					this.#path.pop();
-
-					if (this.type.label === '</>/<=/>=') {
-						this.pos--;
-						this.next();
-					}
 				} else if (is_style) {
 					this.#parseStyleElement(open, /** @type {AST.JSXStyleElement} */ (node), !!inside_head);
 					this.#path.pop();
@@ -3125,16 +3540,17 @@ export function TSRXPlugin(config) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
 					}
-					while (this.curContext() === tstc.tc_expr) {
-						this.context.pop();
-					}
 					this.pos = this.start;
 					if (!should_enter_template_text) {
+						while (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
 						this.startLoc = this.curPosition();
 						if (this.curContext() !== b_stat) {
 							this.context.push(b_stat);
 						}
 						this.exprAllowed = true;
+						this.#suppressTemplateRawTextToken = true;
 					}
 					this.next();
 					this.parseTemplateBody(body);
@@ -3210,10 +3626,16 @@ export function TSRXPlugin(config) {
 						// Consume '/'
 						this.next();
 
-						const closingElement =
-							/** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
-								this.jsx_parseClosingElementAt(startPos, startLoc)
-							);
+						let closingElement;
+						this.#closingNativeTemplateNode = true;
+						try {
+							closingElement =
+								/** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+									this.jsx_parseClosingElementAt(startPos, startLoc)
+								);
+						} finally {
+							this.#closingNativeTemplateNode = false;
+						}
 						this.exprAllowed = false;
 
 						// Validate that the closing tag matches the opening tag
@@ -3341,9 +3763,13 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
-					while (this.curContext() === tstc.tc_expr) {
-						this.context.pop();
-					}
+					const previous_context = this.context;
+					this.context = previous_context.filter(
+						(context) =>
+							context !== tstc.tc_expr &&
+							context !== tstc.tc_oTag &&
+							context !== tstc.tc_cTag,
+					);
 					let pushed_statement_context = false;
 					if (this.curContext() !== b_stat) {
 						this.context.push(b_stat);
@@ -3357,14 +3783,15 @@ export function TSRXPlugin(config) {
 					let node;
 					try {
 						node = this.parseStatement(null);
-					} finally {
-						this.#functionBodyDepth--;
-						this.#forceScriptJSXElementDepth--;
-						this.#path = previous_path;
-						if (pushed_statement_context && this.curContext() === b_stat) {
-							this.context.pop();
+						} finally {
+							this.#functionBodyDepth--;
+							this.#forceScriptJSXElementDepth--;
+							this.#path = previous_path;
+							if (pushed_statement_context && this.curContext() === b_stat) {
+								this.context.pop();
+							}
+							this.context = previous_context;
 						}
-					}
 					if (current_template_node.metadata?.templateMode === 'template') {
 						this.#report_invalid_template_return_statements(node);
 					}

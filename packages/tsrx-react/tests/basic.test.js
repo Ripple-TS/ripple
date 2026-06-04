@@ -168,7 +168,7 @@ describe('@tsrx/react basic', () => {
 		expect(() =>
 			compile(
 				`export async function App({ items }: { items: AsyncIterable<string> }) { return <>
-					for await (const item of items) {
+					@for await (const item of items) {
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -183,7 +183,7 @@ describe('@tsrx/react basic', () => {
 				`'use server';
 
 				export async function App({ items }: { items: AsyncIterable<string> }) { return <>
-					for await (const item of items) {
+					@for await (const item of items) {
 						<div>{item}</div>
 					}
 				</>; }`,
@@ -480,19 +480,20 @@ describe('@tsrx/react basic', () => {
 	it('extracts module-scoped helpers after component-body guard returns', () => {
 		const source = `import { useState, useEffect } from 'react';
 
-			export function App() {
-				const [count, setCount] = useState(0);
+				export function App() { return <>
+					const [count, setCount] = useState(0);
 
-				if (count > 2) {
-					return null;
-				}
+					if (count > 2) {
+						return null;
+					}
 
-				useEffect(() => {
-					console.log(count);
-				}, [count]);
+					useEffect(() => {
+						console.log(count);
+					}, [count]);
 
-				return <><button onClick={() => setCount(count + 1)}>{count}</button></>;
-			}`;
+					---
+					<button onClick={() => setCount(count + 1)}>{count}</button>
+				</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -521,19 +522,20 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-			export function App() {
-				const foo = getFoo();
+				export function App() { return <>
+					const foo = getFoo();
 
-				if (!foo) {
-					return <><div>{'Foo not found'}</div></>;
-				}
+					if (!foo) {
+						return <div>Foo not found</div>;
+					}
 
-				useEffect(() => {
-					console.log(foo);
-				}, [foo]);
+					useEffect(() => {
+						console.log(foo);
+					}, [foo]);
 
-				return <><div>{foo.trim()}</div></>;
-			}`;
+					---
+					<div>{foo.trim()}</div>
+				</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -566,19 +568,20 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-			export function App() {
-				const foo = getFoo();
+				export function App() { return <>
+					const foo = getFoo();
 
-				if (!foo) {
-					return <><div>{'Foo not found'}</div></>;
-				}
+					if (!foo) {
+						return <div>{'Foo not found'}</div>;
+					}
 
-				useEffect(() => {
-					console.log(foo);
-				}, [foo]);
+					useEffect(() => {
+						console.log(foo);
+					}, [foo]);
 
-				return <><div>{foo.trim()}</div></>;
-			}`,
+					---
+					<div>{foo.trim()}</div>
+				</>; }`,
 			'App.tsrx',
 		);
 
@@ -598,19 +601,20 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-			export function App() {
-				const foo = getFoo();
+				export function App() { return <>
+					const foo = getFoo();
 
-				if (!foo) {
-					return <><div>{'Foo not found'}</div></>;
-				}
+					if (!foo) {
+						return <div>{'Foo not found'}</div>;
+					}
 
-				useEffect(() => {
-					console.log(foo);
-				}, [foo]);
+					useEffect(() => {
+						console.log(foo);
+					}, [foo]);
 
-				return <><div>{foo.trim()}</div></>;
-			}`,
+					---
+					<div>{foo.trim()}</div>
+				</>; }`,
 			'App.tsrx',
 		);
 
@@ -695,7 +699,7 @@ describe('@tsrx/react basic', () => {
 
 	it('renders template switch directives as React expressions', () => {
 		const { code } = compile(
-				`export function App() { return <>
+			`export function App() { return <>
 					const count = 0;
 					---
 
@@ -719,20 +723,21 @@ describe('@tsrx/react basic', () => {
 	it('keeps hooks unconditional after switch-based component guard returns', () => {
 		const source = `import { useEffect } from 'react';
 
-				export function App() {
-					const count = 0;
+					export function App() { return <>
+						const count = 0;
 
-				switch (count) {
-					case 0:
-						return null;
+					switch (count) {
+						case 0:
+							return null;
 				}
 
 				useEffect(() => {
 					console.log(count);
 				}, [count]);
 
-				return <><div>{count}</div></>;
-			}`;
+					---
+					<div>{count}</div>
+				</>; }`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -749,15 +754,15 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
-				export function App({ x }: { x: boolean }) {
-					if (x) {
-						return null;
-					}
+					export function App({ x }: { x: boolean }) { return <>
+						if (x) {
+							return null;
+						}
 
-					useEffect(() => {});
+						useEffect(() => {});
 
-					return null;
-				}`,
+						---
+					</>; }`,
 			'App.tsrx',
 		);
 
@@ -1812,6 +1817,7 @@ describe('lazy destructuring', () => {
 			`export function App() { return <>
 				const [count] = useState(0);
 				const handler = (step = count) => step + 1;
+				---
 				<div>{count}</div>
 			</>; }`,
 			'App.tsrx',
@@ -1927,12 +1933,12 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
 
-			export function App() {
-				const [count, setCount] = useState(0);
+				export function App() { return <>
+					const [count, setCount] = useState(0);
 
-				if (count > 2) {
-					return null;
-				}
+					if (count > 2) {
+						return null;
+					}
 
 				const laterVar = 'after split';
 
@@ -1940,8 +1946,9 @@ describe('lazy destructuring', () => {
 					console.log(laterVar);
 				}, [laterVar]);
 
-				return <><div>{laterVar}</div></>;
-			}`,
+					---
+					<div>{laterVar}</div>
+				</>; }`,
 			'App.tsrx',
 		);
 

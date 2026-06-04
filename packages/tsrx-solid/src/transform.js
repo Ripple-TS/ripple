@@ -36,6 +36,7 @@ import {
 	is_bare_render_expression,
 	is_dynamic_element_id,
 	is_jsx_child,
+	jsx_name_to_expression,
 	set_loc,
 } from '@tsrx/core';
 
@@ -2151,7 +2152,7 @@ function is_solid_jsx_ref_attribute(attr) {
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
 	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(b.const(dynamic_id, clone_expression_node(node.id)), node);
+	const alias_declaration = set_loc(b.const(dynamic_id, jsx_name_to_expression(node.id)), node);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(
