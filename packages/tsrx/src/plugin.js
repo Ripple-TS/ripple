@@ -715,7 +715,10 @@ export function TSRXPlugin(config) {
 					}
 
 					if (ch === CharCode.lessThan) {
-						if (this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))) {
+						if (
+							looks_like_generic_arrow(this.input, index) ||
+							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1))
+						) {
 							const type_end = scan_balanced_from(
 								this.input,
 								index,
@@ -2189,6 +2192,17 @@ export function TSRXPlugin(config) {
 				const suppressTemplateRawTextToken = this.#suppressTemplateRawTextToken;
 				this.#suppressTemplateRawTextToken = false;
 				const context = this.curContext();
+				if (
+					code === CharCode.greaterThan &&
+					this.input.charCodeAt(this.pos - 1) === CharCode.equals
+				) {
+					const start = this.pos - 1;
+					const loc = acorn.getLineInfo(this.input, start);
+					this.start = start;
+					this.startLoc = loc;
+					this.pos++;
+					return this.finishToken(tt.arrow);
+				}
 				if (context === tstc.tc_expr || context === tstc.tc_oTag || context === tstc.tc_cTag) {
 					return super.readToken(code);
 				}
@@ -2232,6 +2246,18 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
+				if (
+					code === CharCode.greaterThan &&
+					this.input.charCodeAt(this.pos - 1) === CharCode.equals
+				) {
+					const start = this.pos - 1;
+					const loc = acorn.getLineInfo(this.input, start);
+					this.start = start;
+					this.startLoc = loc;
+					this.pos++;
+					return this.finishToken(tt.arrow);
+				}
+
 				// Callback props that return native templates without a semicolon can
 				// leave the attribute expression context above the still-open tag. Drop
 				// it before tokenizing `/>`, otherwise Acorn treats `/` as a regexp.
@@ -3242,6 +3268,24 @@ export function TSRXPlugin(config) {
 					let ch = this.input.charCodeAt(this.pos);
 
 					switch (ch) {
+						case CharCode.equals:
+							if (
+								!this.#shouldReadTemplateRawTextToken() &&
+								this.input.charCodeAt(this.pos + 1) === CharCode.greaterThan
+							) {
+								this.#resetTokenStartToCurrentPosition();
+								this.pos += 2;
+								return this.finishToken(tt.arrow);
+							}
+							if (this.#shouldReadTemplateRawTextToken()) {
+								++this.pos;
+								break;
+							}
+							this.#resetTokenStartToCurrentPosition();
+							this.context.push(b_stat);
+							this.exprAllowed = true;
+							return original.readToken.call(this, ch);
+
 						case CharCode.lessThan:
 						case CharCode.openBrace:
 							if (out || this.pos > chunkStart) {
@@ -3354,8 +3398,21 @@ export function TSRXPlugin(config) {
 						case CharCode.greaterThan:
 						case CharCode.closeBrace: {
 							if (
-								ch === CharCode.closeBrace &&
-								(this.#path.length === 0 || this.#isNativeTemplateNode(this.#path.at(-1)))
+								ch === CharCode.greaterThan &&
+								this.input.charCodeAt(this.pos - 1) === CharCode.equals &&
+								!this.#shouldReadTemplateRawTextToken()
+							) {
+								const start = this.pos - 1;
+								const loc = acorn.getLineInfo(this.input, start);
+								this.start = start;
+								this.startLoc = loc;
+								this.pos++;
+								return this.finishToken(tt.arrow);
+							}
+							if (
+								this.#isInsideNativeTemplateScriptSection() ||
+								(ch === CharCode.closeBrace &&
+									(this.#path.length === 0 || this.#isNativeTemplateNode(this.#path.at(-1))))
 							) {
 								this.#resetTokenStartToCurrentPosition();
 								return original.readToken.call(this, ch);
