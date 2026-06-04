@@ -174,7 +174,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain('fragment={() => <>');
 		expect(code).toContain('<>Delete</>');
 		expect(code).toContain('<>Edit</>');
-		expect(code).toContain('native={() => {');
+		expect(code).toContain('native={() => <>');
 	});
 
 	it('emits scoped CSS and applies the scope hash to host elements', () => {

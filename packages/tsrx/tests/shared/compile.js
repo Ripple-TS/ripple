@@ -1380,7 +1380,7 @@ export function runSharedCompileTests({
 		it('collects unclosed tag diagnostics without loose recovery silence', () => {
 			const result = compile(
 				`function App() { return <>
-					<div>"hi"
+					<div>hi
 				</>; }`,
 				'App.tsrx',
 				{ collect: true },
@@ -1395,7 +1395,7 @@ export function runSharedCompileTests({
 		it('keeps loose unclosed tag recovery silent', () => {
 			const result = compile(
 				`function App() { return <>
-					<div>"hi"
+					<div>hi
 				</>; }`,
 				'App.tsrx',
 				{ loose: true },
@@ -1427,7 +1427,7 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('"Hello"');
+			expect(code).toContain('Hello');
 			expect(code).not.toContain('"Hello";');
 			expect(code).not.toContain('return null;');
 		});
@@ -1440,7 +1440,9 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('"hello"');
+			expect(code).toContain('hello');
+			expect(code).not.toContain('hello;');
+			expect(code).not.toContain('return null;');
 		});
 
 		it('accepts JSX text in if-else branches', () => {
@@ -1460,7 +1462,7 @@ export function runSharedCompileTests({
 			expect(code).not.toContain('return null;');
 		});
 
-		it('decodes entities in JSX text children like JSX attributes', () => {
+		it('preserves entities in JSX text children for JSX runtime decoding', () => {
 			const { code } = compile(
 				`export function App() { return <>
 					<p>a&amp;b&quot;c</p>
@@ -1468,8 +1470,7 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('"a&b\\"c"');
-			expect(code).not.toContain('&quot;');
+			expect(code).toContain('a&amp;b&quot;c');
 		});
 
 		it('treats backslashes in JSX text children as literal text', () => {
@@ -1949,11 +1950,7 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return;');
 			expect(code).toMatch(/function FragmentReturn\(\) {\s+return App__static/);
 			expect(code).toMatch(/function TsxReturn\(\) {\s+return App__static/);
-			expect(code).toMatch(
-				name === 'solid'
-					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
-					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
-			);
+			expect(code).toMatch(/const App__static\d+ = <div[^>]*>tsrx<\/div>;/);
 			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static/);
 		});
 
@@ -1978,14 +1975,9 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('return;');
-			expect(code).toMatch(/fragment=\{\(\) => \{\s+return App__static/);
-			expect(code).toMatch(/tsx=\{\(\) => \{\s+return App__static/);
-			expect(code).toMatch(
-				name === 'solid'
-					? /const App__static\d+ = <div textContent=\{"tsrx"\} \/>;/
-					: /const App__static\d+ = <div>\{"tsrx"\}<\/div>;/,
-			);
-			expect(code).toMatch(/tsrx=\{\(\) => \{\s+return App__static/);
+			expect(code).toContain('return <><div>fragment</div></>;');
+			expect(code).toContain('return <><div>tsx</div></>;');
+			expect(code).toContain('return <><div>tsrx</div></>;');
 		});
 
 		it('parses semicolon-less JSX returns in component prop arrow functions', () => {
@@ -2057,7 +2049,11 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('preserves statements before template output', () => {
 			const { code } = compile(
-				`class Foo { bar() { return <>const label = 'Hi'; --- <div>{label}</div></>; } }`,
+				`class Foo { bar() { return <>
+					const label = 'Hi';
+					---
+					<div>{label}</div>
+				</>; } }`,
 				'App.tsrx',
 			);
 
@@ -3328,9 +3324,9 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(() =>
 				compile(
 					`function App({ show }: { show: boolean }) {
-								let x: number | undefined;
-								---
 								return <>
+									let x: number | undefined;
+									---
 									@if (show) {
 										[x] = useState(100);
 										---
@@ -3358,11 +3354,9 @@ export function optionalFn(bar: string, baz?: string) {
 										[x] = useState(100);
 										---
 										<div>{x}</div>
-										break;
 									case 'b':
-										<span>{'b'}</span>
 										---
-										break;
+										<span>{'b'}</span>
 								}
 								console.log(x);
 							</>; }`,
@@ -3379,10 +3373,9 @@ export function optionalFn(bar: string, baz?: string) {
 									const [x] = useState(100);
 									---
 									<div>{x}</div>
-									break;
 								case 'b':
+									---
 									<span>{'b'}</span>
-									break;
 							}
 						</>; }`,
 					'App.tsrx',
@@ -3421,6 +3414,7 @@ export function optionalFn(bar: string, baz?: string) {
 								---
 								@if (show) {
 									[x] = useState(0);
+									---
 									@for (const x of items) {
 										<div key={x}>{x}</div>
 									}

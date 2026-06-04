@@ -1144,7 +1144,7 @@ function HookInSwitchWithScopeApp() {
 	</>;
 }
 
-// ── Hook inside expression-position native fragments from a regular function ──
+// ── Hook inside expression-position JSX fragments from a regular function ──
 
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
 	if (!props.active) return null;

@@ -451,7 +451,7 @@ describe('@tsrx/mcp compile helpers', () => {
 	it('uses compiler error codes for tag advice', async () => {
 		const result = await analyze_tsrx({
 			code: `function A() { return <>
-				<div>"hi"
+				<div>hi
 			</>; }`,
 			filename: 'Unclosed.tsrx',
 			target: 'react',

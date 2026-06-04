@@ -44,19 +44,37 @@ export function runSharedSourceMappingTests({
 		// (like `new`, `return`, backticks, `[...]`) without location markers;
 		// segments.js calls get_mapping_from_node() on these directly.
 		it('NewExpression', () =>
-			expect_maps(`function C() { return <> const x = new Map(); --- </>; }`));
+			expect_maps(`function C() { return <>
+	const x = new Map();
+	---
+</>; }`));
 		it('computed MemberExpression', () =>
-			expect_maps(`function C() { return <> const x = foo[bar]; --- </>; }`));
+			expect_maps(`function C() { return <>
+	const x = foo[bar];
+	---
+</>; }`));
 		it('empty ObjectExpression', () =>
-			expect_maps(`function C() { return <> const x = {}; --- </>; }`));
+			expect_maps(`function C() { return <>
+	const x = {};
+	---
+</>; }`));
 		it('non-empty ObjectExpression', () =>
-			expect_maps(`function C() { return <> const x = { a: 1 }; --- </>; }`));
+			expect_maps(`function C() { return <>
+	const x = { a: 1 };
+	---
+</>; }`));
 		it('ReturnStatement', () =>
 			expect_maps(`function f() { return 1; } function C() { return <></>; }`));
 		it('ForStatement', () =>
-			expect_maps(`function C() { return <> for (let i = 0; i < 10; i++) {} --- </>; }`));
+			expect_maps(`function C() { return <>
+	for (let i = 0; i < 10; i++) {}
+	---
+</>; }`));
 		it('ForInStatement', () =>
-			expect_maps(`function C() { return <> for (const x in obj) {} --- </>; }`));
+			expect_maps(`function C() { return <>
+	for (const x in obj) {}
+	---
+</>; }`));
 		it('ForOfStatement', () =>
 			expect_maps(`const test = () => { for (const x of Object.keys({})) {}}`));
 		it('SwitchStatement', () =>
@@ -71,9 +89,15 @@ export function runSharedSourceMappingTests({
   }
 }`));
 		it('TemplateLiteral', () =>
-			expect_maps('function C() { return <> const x = `hello ${y}`; --- </>; }'));
+			expect_maps(`function C() { return <>
+	const x = \`hello \${y}\`;
+	---
+</>; }`));
 		it('TaggedTemplateExpression', () =>
-			expect_maps('function C() { return <> tag`hi`; --- </>; }'));
+			expect_maps(`function C() { return <>
+	tag\`hi\`;
+	---
+</>; }`));
 		// AwaitExpression inside an async function body.
 		it('AwaitExpression in async function body', () => {
 			expect_maps(`async function C() { return <> await foo(); </>; }`);
@@ -904,7 +928,11 @@ function C() { return <>
 				`class Foo { bar() { return <>{"Hello"}</>; } }`,
 				`class Foo { bar() { return <>Hello</>; } }`,
 				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
-				`class Foo { bar() { return <>const x = 1; --- <div>{x}</div></>; } }`,
+				`class Foo { bar() { return <>
+					const x = 1;
+					---
+					<div>{x}</div>
+				</>; } }`,
 				`class Foo { bar() { return <><div>ok</div></>; } }`,
 				`class Foo { bar() { return <>@if (true) { <div>yes</div> }</>; } }`,
 			];

@@ -212,8 +212,8 @@ function App() { return <>
 	});
 });
 
-describe('@tsrx/ripple native fragment Volar output', () => {
-	it('prints JSX converted from native fragment expression containers', () => {
+describe('@tsrx/ripple JSX fragment Volar output', () => {
+	it('prints JSX converted from fragment expression containers', () => {
 		const source = `function App() { return <>
 	const content = <section>{<div>{'inside'}</div>}</section>;
 	{content}
@@ -851,7 +851,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect(server.code).toContain('_$_.render_component(comp, ...args)');
 	});
 
-	it('does not classify plain or compat-only functions as native TSRX functions', () => {
+	it('does not classify plain functions as JSX-producing TSRX functions', () => {
 		const source = `function App() { return <>
 			function Plain() { return 'plain'; }
 			function Compat() { return <><div /></>; }

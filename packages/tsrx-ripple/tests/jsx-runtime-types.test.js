@@ -60,7 +60,7 @@ function get_variable_types(code) {
 }
 
 describe('@tsrx/ripple Volar JSX expression types', () => {
-	it('types tsx and native expression values as TSRXElement', () => {
+	it('types JSX expression values as TSRXElement', () => {
 		const source = `
 function App() { return <>
 	const nested = <div />;
@@ -78,7 +78,7 @@ function App() { return <>
 		expect(types.get('nested')).toBe('TSRXElement');
 	});
 
-	it('prints statement-bodied native fragments with typed child buckets', () => {
+	it('prints statement-bodied JSX fragments with typed child buckets', () => {
 		const source = `
 function ContentEditable(props: { placeholder: any }) {
 	return <>
