@@ -22,55 +22,6 @@ const Card = ({ count }: CardProps): JSX.Element => <>
 </>;`,
 );
 
-const FUNCTION_SCOPE_LOGIC_HTML = highlight_tsrx(
-	`const ProfileCard = ({ user }: ProfileCardProps): JSX.Element => {
-  const displayName = user.name.trim();
-
-  if (!displayName) {
-    return <p>Unknown user</p>;
-  }
-
-  return <>
-    const initials = getInitials(displayName);
-    ---
-    <article>
-      <h2>{displayName}</h2>
-      <p>{initials}</p>
-    </article>
-  </>;
-};`,
-);
-
-const NATIVE_AND_RENDER_FLOW_HTML = highlight_tsrx(
-	`const Dashboard = ({ items }: DashboardProps): JSX.Element => {
-  const visibleItems = items.filter((item) => !item.hidden);
-
-  if (visibleItems.length === 0) {
-    return <p>No items yet</p>;
-  }
-
-  return <section>
-    <h2>Items</h2>
-
-    @for (const item of visibleItems; key item.id) {
-      <article>
-        @if (item.isNew) {
-          <span>New</span>
-        }
-        @switch (item.priority) {
-          case 'high':
-            <strong>High priority</strong>
-            break;
-          default:
-            <span>Normal priority</span>
-        }
-        <h3>{item.label}</h3>
-      </article>
-    }
-  </section>;
-};`,
-);
-
 const NESTED_FENCES_HTML = highlight_tsrx(
 	`const OrderSummary = ({ order }: OrderSummaryProps): JSX.Element => <section>
   const visibleLines = order.lines.filter((line) => line.quantity > 0);
@@ -91,7 +42,7 @@ const NESTED_FENCES_HTML = highlight_tsrx(
 </section>;`,
 );
 
-const CONTROL_FLOW_FENCE_HTML = highlight_tsrx(
+const JSX_CONTROL_FLOW_FENCE_HTML = highlight_tsrx(
 	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => <>
   @try {
     const activity = result.value;
@@ -110,7 +61,7 @@ const CONTROL_FLOW_FENCE_HTML = highlight_tsrx(
 </>;`,
 );
 
-const ASSIGNED_RENDER_FLOW_HTML = highlight_tsrx(
+const ASSIGNED_JSX_CONTROL_FLOW_HTML = highlight_tsrx(
 	`const StatusBadge = ({ count }: StatusBadgeProps): JSX.Element => {
   const badge: JSX.Element = @if (count > 5) {
     <strong>High count: {count}</strong>
@@ -131,29 +82,13 @@ const EmptyState = ({ search }: EmptyStateProps): JSX.Element => <section>
 </section>;`,
 );
 
-const COMPONENT_SCOPE_HTML = highlight_tsrx(
-	`const ProductCard = ({ product }: ProductCardProps): JSX.Element => <article>
-  const price = formatCurrency(product.price);
-  const title = product.name.trim();
-  ---
-  <h2>{title}</h2>
-  @if (product.salePrice) {
-    const salePrice = formatCurrency(product.salePrice);
-    ---
-    <p>Now {salePrice}, usually {price}</p>
-  } else {
-    <p>{price}</p>
-  }
-</article>;`,
-);
-
-export function BlogExplicitRenderFlowAndCodeFencesPage() {
+export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 	return <>
 		<head>
-			<title>Explicit render flow & code fences | TSRX Blog</title>
+			<title>Explicit JSX control flow & code fences | TSRX Blog</title>
 			<meta
 				name="description"
-				content="TSRX is making render control flow explicit with @if, @switch, @try, and @for, and separating template-local logic with code fences."
+				content="TSRX is making JSX control flow explicit with @if, @switch, @try, and @for, and separating template-local logic with code fences."
 			/>
 		</head>
 		<div class="app-shell">
@@ -186,7 +121,7 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 					<article>
 						<header class="article-header">
 							<p class="eyebrow">June 3, 2026</p>
-							<h1>Explicit render flow & code fences</h1>
+							<h1>Explicit JSX control flow & code fences</h1>
 						</header>
 						<p>Ripple started with an idea we still believe in: let UI templates keep the power of JavaScript close to the markup that uses it. As TSRX grew out of that work, we also learned where that idea needed clearer boundaries, especially for codebases that have to scale across teams, tooling, and AI-assisted development.</p>
 						<p>
@@ -195,7 +130,7 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							, covered the first big correction: components became ordinary functions, returns became ordinary returns, and TSRX values became easier to store, pass, and type. That change moved TSRX closer to TypeScript and JSX. This post is about the next correction: making sure the specialized parts of TSRX no longer look like native JavaScript by accident.
 						</p>
 						<p>
-							The feedback was consistent. People could not always tell the difference between JavaScript that ran as normal component logic and JavaScript-shaped syntax that meant "render this UI." The old render controls looked too much like native
+							The feedback was consistent. People could not always tell the difference between JavaScript that ran as normal component logic and JavaScript-shaped syntax that meant "create this UI." The old controls flow looked too much like native
 							<code>if</code>
 							,
 							<code>switch</code>
@@ -209,15 +144,13 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							We also heard loud and clear that forcing static text through
 							<code>""</code>
 							or
-							<code>
-								{'{\'\'}'}
-							</code>
-							was annoying and unintuitive. JSX text is one of JSX's most useful affordances, and TSRX should preserve backwards compatibility with JSX instead of asking people to relearn something that already works. The same applies to composition: teams want to return a single element, a fragment with multiple elements, a render-control value, an array of elements, a scalar value, or the result of a component function call without each case feeling like a separate language feature.
+							<code>{'{\'\'}'}</code>
+							was annoying and unintuitive. JSX text is one of JSX's most useful affordances, and TSRX should preserve backwards compatibility with JSX instead of asking people to relearn something that already works. The same applies to composition: teams want to return a single element, a fragment with multiple elements, a JSX control flow value, an array of elements, a scalar value, or the result of a component function call without each case feeling like a separate language feature.
 						</p>
 						<p>That is the spirit behind this update. TSRX keeps the parts that make templates expressive, but it becomes more honest about where template syntax begins, where JavaScript begins, and how values flow through the system. Crucially though, TSRX is now expression based like JSX, not statement based, like it originally started life as. This also means that JSX is fully backwards compatible with TSRX.</p>
 						<h2>The new boundary</h2>
 						<p>
-							The new rule is simple. Native JavaScript control flow is still JavaScript. Render control flow is prefixed with
+							The new rule is simple. Native JavaScript control flow is still JavaScript. JSX control flow is prefixed with
 							<code>@</code>
 							:
 							<code>@if</code>
@@ -230,7 +163,7 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							. When JavaScript statements are colocated inside an element or fragment, a single
 							<code>---</code>
 							(Astro style)
-							fence separates that logic from the rendered template below it.
+							fence separates that logic from the template below it.
 						</p>
 						<h2>The preferred shape</h2>
 						<p>Any function syntax can still define a component, but the most ergonomic pattern is a const declaration with an arrow return and an explicit return type when you want one. It keeps the props type close to the parameter, keeps the result type visible, and makes the returned template the obvious center of the component.</p>
@@ -246,40 +179,36 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 							<code>---</code>
 							line says: the script is done; the template starts now. The
 							<code>@if</code>
-							branch can have its own fenced script too, because render-control bodies are template scopes.
+							branch can have its own fenced script too, because JSX control flow bodies are template scopes.
 						</p>
 						<h2>Fences are local to their element</h2>
-						<p>Each element, fragment, and render-control body is its own lexical scope. A scope may have one code fence, and that fence must be at the top before any rendered output. If a deeper part of the template needs its own local values, put those values at the top of that deeper scope.</p>
+						<p>Each element, fragment, and JSX control flow body is its own lexical scope. A scope may have one code fence, and that fence must be at the top before any template code. If a deeper part of the template needs its own local values, put those values at the top of that deeper scope.</p>
 						<pre class="code-block">
 							<code innerHTML={NESTED_FENCES_HTML} />
 						</pre>
 						<p>
 							This preserves one of TSRX's best ideas: logic can stay close to the markup that uses it. The fence just gives that colocated logic a predictable shape. If a scope starts to need multiple script sections, wrap the later section in another
-							<code>
-								{'<></>'}
-							</code>
+							<code>{'<></>'}</code>
 							fragment or extract a component. In practice, keeping script at the top nudges components toward clearer data flow.
 						</p>
-						<h2>Control flow can have fences too</h2>
-						<p>Control flow is template syntax, so their bodies can also start with fenced JavaScript. That makes complex branches and async boundaries easier to read without losing locality.</p>
+						<h2>JSX control flow can have fences too</h2>
+						<p>JSX control flow is template syntax, so their bodies can also start with fenced JavaScript. That makes complex branches and async boundaries easier to read without losing locality.</p>
 						<pre class="code-block">
-							<code innerHTML={CONTROL_FLOW_FENCE_HTML} />
+							<code innerHTML={JSX_CONTROL_FLOW_FENCE_HTML} />
 						</pre>
 						<p>
 							Expressions stay familiar as well. Inside
-							<code>
-								{'{}'}
-							</code>
+							<code>{'{}'}</code>
 							, write JavaScript expression syntax the same way you would in JSX or React: call a formatter, read a property, choose a value, or pass a computed prop.
 						</p>
-						<h2>Render flow is a value</h2>
+						<h2>JSX control flow is a value</h2>
 						<p>
-							Because render controls are explicitly template constructs, they can now be assigned directly to variables. You no longer need to wrap an
+							Because JSX control flow are explicitly template constructs, they can now be assigned directly to variables. You no longer need to wrap an
 							<code>if</code>
-							branch in a fragment just to capture the rendered result.
+							branch in a fragment.
 						</p>
 						<pre class="code-block">
-							<code innerHTML={ASSIGNED_RENDER_FLOW_HTML} />
+							<code innerHTML={ASSIGNED_JSX_CONTROL_FLOW_HTML} />
 						</pre>
 						<p>
 							This is also where precise types become more useful. A stored element can be annotated as
@@ -295,13 +224,11 @@ export function BlogExplicitRenderFlowAndCodeFencesPage() {
 						</pre>
 						<p>
 							That removes a small but persistent source of friction.
-							<code>
-								{'<div>Hello there!</div>'}
-							</code>
+							<code>{'<div>Hello there!</div>'}</code>
 							now means what JSX users expect it to mean.
 						</p>
 						<h2>Conclusion</h2>
-						<p>The result is easier to scan, easier to type, and easier for tools to understand. Templates still have lexical scopes. Logic can still be colocated. Control flow still reads in the order the UI is produced. But the special parts are now marked as special, and ordinary JavaScript gets to remain ordinary JavaScript.</p>
+						<p>The result is easier to scan, easier to type, and easier for tools to understand. Templates still have lexical scopes. Logic can still be colocated. JSX control flow still reads in the order the UI is produced. But the special parts are now marked as special, and ordinary JavaScript gets to remain ordinary JavaScript.</p>
 						<p>Thank you for bearing with us while TSRX found this shape. From now, we're ready to move into the beta phase and we do not anticipate more core syntax changes beyond major bug fixes. The focus shifts to hardening the compiler, runtime behavior, editor tooling, and documentation around this syntax.</p>
 					</article>
 				</main>
