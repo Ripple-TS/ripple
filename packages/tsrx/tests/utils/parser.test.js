@@ -3,7 +3,30 @@ import { parseModule } from '../../src/index.js';
 
 function getReturned(source) {
 	const ast = parseModule(source, 'App.tsrx');
-	return ast.body[0].body.body[0].argument;
+	const first = ast.body[0];
+	if (first?.type === 'FunctionDeclaration') {
+		return first.body.body[0].argument;
+	}
+	// Fallback for components declared below the top level (e.g. a `function App`
+	// nested inside a return of another function callback): walk to the first JSX-returning
+	// `return` statement anywhere in the tree.
+	let found;
+	(function walk(node) {
+		if (found || !node || typeof node !== 'object') return;
+		if (Array.isArray(node)) return node.forEach(walk);
+		if (
+			node.type === 'ReturnStatement' &&
+			(node.argument?.type === 'JSXFragment' || node.argument?.type === 'JSXElement')
+		) {
+			found = node.argument;
+			return;
+		}
+		for (const key in node) {
+			if (key === 'loc' || key === 'start' || key === 'end') continue;
+			walk(node[key]);
+		}
+	})(ast);
+	return found;
 }
 
 describe('TSRX parser', () => {
@@ -329,7 +352,7 @@ describe('TSRX parser', () => {
 
 	it('parses array of objects in the template above the fence', () => {
 		const returned = getReturned(`
-			it('should handle nested SVG groups with for loops', () => {
+			something(() => {
 				function App() {
 					return <>
 						const items = [
@@ -350,6 +373,37 @@ describe('TSRX parser', () => {
 		expect(init.elements).toHaveLength(2);
 		expect(init.elements[0].type).toBe('ObjectExpression');
 		expect(init.elements[0].properties).toHaveLength(4);
+	});
+
+	it('parses native control flow in a component nested below the top level', () => {
+		const returned = getReturned(`
+			something(() => {
+				function App() {
+					return <>
+						const items = ['a', '', 'c'];
+						---
+						@for (const item of items) {
+							if (!item) continue;
+							---
+							<li>{item}</li>
+						}
+					</>;
+				}
+			});`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXForExpression',
+		]);
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.statementType).toBe('ForOfStatement');
+		expect(directive.body.body.map((child) => child.type)).toEqual([
+			'IfStatement',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		expect(directive.body.body[0].consequent.type).toBe('ContinueStatement');
 	});
 
 	it('treats a generic call in the script section as script, not markup', () => {

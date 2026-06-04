@@ -3636,7 +3636,6 @@ export function TSRXPlugin(config) {
 			jsx_parseElement() {
 				if (
 					this.#forceScriptJSXElementDepth > 0 ||
-					(this.#functionBodyDepth > 1 && this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
 					(this.#jsxExpressionContainerDepth > 0 &&
 						this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
 					this.#isInsideNativeTemplateScriptSection()
@@ -4246,7 +4245,7 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxTagStart) {
-					if (this.#functionBodyDepth > 1 || this.#forceScriptJSXElementDepth > 0) {
+					if (this.#forceScriptJSXElementDepth > 0) {
 						return /** @type {AST.Statement} */ (
 							/** @type {unknown} */ (super.parseStatement(context, topLevel, exports))
 						);
@@ -4315,11 +4314,7 @@ export function TSRXPlugin(config) {
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
 
-				if (
-					this.#functionBodyDepth === 0 &&
-					this.#isNativeTemplateNode(parent) &&
-					this.#templateControlFlowBlockDepth > 0
-				) {
+				if (this.#isNativeTemplateNode(parent) && this.#templateControlFlowBlockDepth > 0) {
 					this.#templateControlFlowBlockDepth--;
 					try {
 						return this.#parseTemplateControlFlowBlock(createNewLexicalScope, node, exitStrict);
