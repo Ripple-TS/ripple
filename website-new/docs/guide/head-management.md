@@ -13,9 +13,10 @@ import { track } from 'ripple';
 export function App() {
   return <>
   let &[curr_step] = track(0);
+  ---
 
   <head>
-    <title>"Step "{curr_step}</title>
+    <title>Step {curr_step}</title>
   </head>
 
   <button
@@ -23,7 +24,7 @@ export function App() {
       curr_step++;
     }}
   >
-    "Next Step"
+    Next Step
   </button>
 
   </>;

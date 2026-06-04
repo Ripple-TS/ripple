@@ -26,10 +26,11 @@ export default function App() {
   let div: HTMLDivElement | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
+  ---
 
-  <div ref={div}>"Hello world"</div>
+  <div ref={div}>Hello world</div>
   <input ref={input} type="text" />
-  <button ref={state.button}>"Save"</button>
+  <button ref={state.button}>Save</button>
 
   </>;
 }
@@ -54,8 +55,9 @@ export function App() {
       console.log('unmounted', node);
     };
   }
+  ---
 
-  <div ref={setup}>"Hello world"</div>
+  <div ref={setup}>Hello world</div>
 
   </>;
 }
@@ -71,6 +73,7 @@ You can also create callback refs inline.
 export function App() {
   return <>
   let div: HTMLDivElement | undefined;
+  ---
 
   <div
     ref={(node) => {
@@ -81,7 +84,7 @@ export function App() {
       };
     }}
   >
-    "Hello world"
+    Hello world
   </div>
 
   </>;
@@ -98,7 +101,7 @@ import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
   return <>
-  <div ref={fadeIn({ ms })}>"Hello world"</div>
+  <div ref={fadeIn({ ms })}>Hello world</div>
 
   </>;
 }
@@ -115,6 +118,7 @@ export function App() {
   return <>
   let input: HTMLInputElement | undefined;
   const trackedInput = track<HTMLInputElement | null>(null);
+  ---
 
   <input
     ref={[input, trackedInput, (node) => console.log(node)]}
@@ -143,6 +147,7 @@ function Input({ id, ...rest }) {
 export function App() {
   return <>
   let input: HTMLInputElement | undefined;
+  ---
 
   <Input id="email" ref={input} />
 
@@ -161,7 +166,7 @@ Named props such as `inputRef` are ordinary component API props. Pass them into
 export function Field({ inputRef, ...rest }) {
   return <>
   <label>
-    "Search"
+    Search
     <input type="search" ref={inputRef} {...rest} />
   </label>
 
@@ -171,6 +176,7 @@ export function Field({ inputRef, ...rest }) {
 export function App() {
   return <>
   let input: HTMLInputElement | undefined;
+  ---
 
   <Field inputRef={input} placeholder="Search docs" />
 
@@ -215,6 +221,7 @@ export function App() {
       };
     },
   };
+  ---
 
   <input type="text" {...props} />
   <Input {...props} />

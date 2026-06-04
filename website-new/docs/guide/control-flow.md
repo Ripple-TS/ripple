@@ -16,10 +16,10 @@ with.
 export function Truthy({ x }) {
   return <>
   <div>
-    if (x) {
-      <span>"x is truthy"</span>
+    @if (x) {
+      <span>x is truthy</span>
     } else {
-      <span>"x is falsy"</span>
+      <span>x is falsy</span>
     }
   </div>
 
@@ -43,12 +43,12 @@ export function AuthGate() {
   let &[is_logged_in] = track(false);
 
   if (!is_logged_in) {
-    return <p>"Please sign in."</p>;
+    return <p>Please sign in.</p>;
   }
 
   return <>
-  <h1>"Dashboard"</h1>
-  <p>"Private content"</p>
+  <h1>Dashboard</h1>
+  <p>Private content</p>
 
   </>;
 }
@@ -56,7 +56,7 @@ export function AuthGate() {
 
 </Code>
 
-`return` is not valid inside a TSRX element or fragment body. Use `if`, `else`,
+`return` is a real function exit inside a TSRX element or fragment body. Use `@if`, `else`,
 ternaries, or extracted helper functions inside the template instead.
 
 ## Switch statements
@@ -70,20 +70,20 @@ with both static and reactive values.
 export function StatusIndicator({ status }) {
   return <>
   <div>
-    switch (status) {
+    @switch (status) {
       case: 'init':
         // fall-through to the next
       case 'loading':
-        <p>"Loading..."</p>
+        <p>Loading...</p>
         break;
       case 'success':
-        <p>"Success!"</p>
+        <p>Success!</p>
         break;
       case 'error':
-        <p>"Error!"</p>
+        <p>Error!</p>
         break;
       default:
-        <p>"Unknown status"</p>
+        <p>Unknown status</p>
     }
   </div>
 
@@ -103,26 +103,27 @@ import { track } from 'ripple';
 export function InteractiveStatus() {
   return <>
   let &[status] = track('loading');
+  ---
 
-  <button onClick={() => (status = 'success')}>"Success"</button>
-  <button onClick={() => (status = 'error')}>"Error"</button>
+  <button onClick={() => (status = 'success')}>Success</button>
+  <button onClick={() => (status = 'error')}>Error</button>
 
   <div>
-    switch (status) {
+    @switch (status) {
       case 'init':
-        <p>"Init"</p>
+        <p>Init</p>
       // fall-through to the next
       case 'loading':
-        <p>"Loading..."</p>
+        <p>Loading...</p>
         break;
       case 'success':
-        <p>"Success!"</p>
+        <p>Success!</p>
         break;
       case 'error':
-        <p>"Error!"</p>
+        <p>Error!</p>
         break;
       default:
-        <p>"Unknown status"</p>
+        <p>Unknown status</p>
     }
   </div>
 
@@ -143,7 +144,7 @@ function ListView({ title, items }) {
   return <>
   <h2>{title}</h2>
   <ul>
-    for (const item of items) {
+    @for (const item of items) {
       <li>{item.text}</li>
     }
   </ul>
@@ -174,10 +175,10 @@ index. The `label` index declares a variable that will used to assign the loop's
 index.
 
 ```ripple
-for (const item of items; index i) {
+@for (const item of items; index i) {
   <div>
     {item.label}
-    " at index "
+    at index
     {i}
   </div>
 }
@@ -186,10 +187,10 @@ for (const item of items; index i) {
 You can also provide a `key` for efficient list updates and reconciliation:
 
 ```ripple
-for (const item of items; index i; key item.id) {
+@for (const item of items; index i; key item.id) {
   <div>
     {item.label}
-    " at index "
+    at index
     {i}
   </div>
 }
@@ -213,16 +214,17 @@ import { RippleArray } from 'ripple';
 export function Numbers() {
   return <>
   const array = new RippleArray(1, 2, 3);
+  ---
 
-  for (const item of array; index i) {
+  @for (const item of array; index i) {
     <div>
       {item}
-      " at index "
+      at index
       {i}
     </div>
   }
 
-  <button onClick={() => array.push(array.length + 1)}>"Add Item"</button>
+  <button onClick={() => array.push(array.length + 1)}>Add Item</button>
 
   </>;
 }
@@ -248,12 +250,12 @@ import { reportError } from 'some-library';
 export function ErrorBoundary() {
   return <>
   <div>
-    try {
+    @try {
       <ComponentThatFails />
     } catch (e) {
       reportError(e);
 
-      <div>"An error occurred! "{e.message}</div>
+      <div>An error occurred! {e.message}</div>
     }
   </div>
 
@@ -272,10 +274,11 @@ import { track } from 'ripple';
 export function App() {
   return <>
   let &[tag] = track('div');
+  ---
 
-  <@tag class="dynamic">"Hello World"</@tag>
+  <@tag class="dynamic">Hello World</@tag>
   <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
-    "Toggle Element"
+    Toggle Element
   </button>
 
   </>;
@@ -284,20 +287,16 @@ export function App() {
 
 ## Async (Suspense boundaries) <Badge type="warning" text="Experimental" />
 
-Components can use `await` directly in their body — no `async` keyword needed.
-Everything before the first `await` renders immediately; everything after suspends
-until the promise resolves.
+Components can use `await` in localized TypeScript — no `async` keyword needed.
+The template renders once that setup has resolved, and the nearest `@try pending`
+branch can show a loading state while it waits.
 
 ```ripple
 function UserProfile({ id }: { id: number }) {
   return <>
-  // Renders immediately
-  <h1>"Loading profile..."</h1>
-
-  // Suspends here until resolved
   const user = await fetchUser(id);
+  ---
 
-  // Renders after resolution
   <h1>{user.name}</h1>
   <p>{user.email}</p>
 
@@ -310,14 +309,13 @@ Wrap the component in a `try/pending` block to handle the suspended state:
 ```ripple
 export function App() {
   return <>
-  try {
+  @try {
     <UserProfile id={1} />
   } pending {
-    <p>"Loading..."</p>
+    <p>Loading...</p>
   } catch (e) {
     <p>
-      "Error: "
-      {e.message}
+      Error: {e.message}
     </p>
   }
 
@@ -342,17 +340,21 @@ import { track } from 'ripple';
 export function CitySearch() {
   return <>
   let &[query] = track('');
+  ---
 
-  // Renders immediately, never suspended
   <input type="text" value={query} onInput={(e) => (query = e.target.value)} />
+  <AsyncCity {query} />
 
-  // Re-runs and re-suspends whenever query changes
+  </>;
+}
+
+function AsyncCity({ query }) {
+  return <>
   const city = await track(() => fetchCity(query));
+  ---
 
-  // Only renders once city has resolved for the current query
   <p>
-    "Showing: "
-    {query}
+    Showing: {query}
   </p>
   <CityCard {city} />
 
@@ -360,7 +362,7 @@ export function CitySearch() {
 }
 ```
 
-::: info Note When `query` changes, everything above the `await track` line stays
-visible. Only the content below re-suspends and shows `{pending}` until the new
-fetch resolves.
+::: info Note When `query` changes, `CitySearch` stays interactive while
+`AsyncCity` re-suspends to the nearest `{pending}` branch until the new fetch
+resolves.
 :::

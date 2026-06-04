@@ -198,7 +198,7 @@ function Child(&{ count, className, children }: Props) {
   return <>
   // count, className, children are lazily read from the props object
   <button class={className}>{children}</button>
-  <pre>"Count is: "{count}</pre>
+  <pre>Count is: {count}</pre>
 
   </>;
 }
@@ -251,13 +251,13 @@ export function App() {
 
   const &[double] = createDouble(countTracked);
 
-  <div>"Double: "{double}</div>
+  <div>Double: {double}</div>
   <button
     onClick={() => {
       count++;
     }}
   >
-    "Increment"
+    Increment
   </button>
 
   </>;
@@ -292,7 +292,7 @@ export function App() {
   <Child swapMe={swapMeTracked} />
 
   <button onClick={() => (swapMe = swapMe === Child1 ? Child2 : Child1)}>
-    "Swap Component"
+    Swap Component
   </button>
 
   </>;
@@ -307,14 +307,14 @@ function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
 
 function Child1(props) {
   return <>
-  <pre>"I am child 1"</pre>
+  <pre>I am child 1</pre>
 
   </>;
 }
 
 function Child2(props) {
   return <>
-  <pre>"I am child 2"</pre>
+  <pre>I am child 2</pre>
 
   </>;
 }
@@ -340,7 +340,7 @@ export function App() {
     console.log(count);
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 
   </>;
 }
@@ -377,7 +377,7 @@ export function App() {
     });
   });
 
-  <button onClick={() => count++}>"Increment"</button>
+  <button onClick={() => count++}>Increment</button>
 
   </>;
 }
@@ -482,13 +482,13 @@ export function App() {
 
   <div>
     <p>
-      "Length: "
+      Length: 
       {items.length}
     </p> // Reactive length
-    for (const item of items) {
+    @for (const item of items) {
       <div>{item}</div>
     }
-    <button onClick={() => items.push(items.length + 1)}>"Add"</button>
+    <button onClick={() => items.push(items.length + 1)}>Add</button>
   </div>
 
   </>;
@@ -523,11 +523,11 @@ export function App() {
   obj.a = 0;
 
   <pre>
-    "obj.a is: "
+    obj.a is: 
     {obj.a}
   </pre>
   <pre>
-    "obj.b is: "
+    obj.b is: 
     {obj.b}
   </pre>
   <button
@@ -537,7 +537,7 @@ export function App() {
       obj.b++;
     }}
   >
-    "Increment"
+    Increment
   </button>
 
   </>;
@@ -571,19 +571,19 @@ export function App() {
 
   // direct usage
   <p>
-    "Direct usage: set contains 2: "
+    Direct usage: set contains 2: 
     {set.has(2)}
   </p>
 
   // reactive assignment
   let &[has] = track(() => set.has(2));
   <p>
-    "Assigned usage: set contains 2: "
+    Assigned usage: set contains 2: 
     {has}
   </p>
 
-  <button onClick={() => set.delete(2)}>"Delete 2"</button>
-  <button onClick={() => set.add(2)}>"Add 2"</button>
+  <button onClick={() => set.delete(2)}>Delete 2</button>
+  <button onClick={() => set.add(2)}>Add 2</button>
 
   </>;
 }
@@ -616,19 +616,19 @@ export function App() {
 
   // direct usage
   <p>
-    "Direct usage: map has an item with key 2: "
+    Direct usage: map has an item with key 2: 
     {map.has(2)}
   </p>
 
   // reactive assignment
   let &[has] = track(() => map.has(2));
   <p>
-    "Assigned usage: map has an item with key 2: "
+    Assigned usage: map has an item with key 2: 
     {has}
   </p>
 
-  <button onClick={() => map.delete(2)}>"Delete item with key 2"</button>
-  <button onClick={() => map.set(2, 2)}>"Add key 2 with value 2"</button>
+  <button onClick={() => map.delete(2)}>Delete item with key 2</button>
+  <button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
 
   </>;
 }
@@ -663,11 +663,11 @@ export function App() {
 
   // direct usage
   <p>
-    "Direct usage: Current year is "
+    Direct usage: Current year is 
     {date.getFullYear()}
   </p>
   <p>
-    "ISO String: "
+    ISO String: 
     {date.toISOString()}
   </p>
 
@@ -675,14 +675,14 @@ export function App() {
   let &[year] = track(() => date.getFullYear());
   let &[month] = track(() => date.getMonth());
   <p>
-    "Assigned usage: Year "
+    Assigned usage: Year 
     {year}
-    ", Month "
+    , Month 
     {month}
   </p>
 
-  <button onClick={() => date.setFullYear(2026)}>"Change to 2026"</button>
-  <button onClick={() => date.setMonth(11)}>"Change to December"</button>
+  <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
+  <button onClick={() => date.setMonth(11)}>Change to December</button>
 
   </>;
 }

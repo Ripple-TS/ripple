@@ -33,9 +33,10 @@ import { track } from 'ripple';
 export function EventExample() {
   return <>
   let &[message] = track('');
+  ---
 
   <div>
-    <button onClick={() => (message = 'Clicked!')}>"Click me"</button>
+    <button onClick={() => (message = 'Clicked!')}>Click me</button>
     <input onInput={(e) => (message = e.target.value)} />
     <p>{message}</p>
   </div>
@@ -68,7 +69,7 @@ property when using an object as an event handler.
     handleEvent: (e) => console.log('clicked!'),
   }}
 >
-  "Click me"
+  Click me
 </button>
 ```
 
@@ -86,6 +87,7 @@ import { RippleArray } from 'ripple';
 export function EventExample() {
   return <>
   let order = new RippleArray();
+  ---
 
   <div
     onClick={{
@@ -93,7 +95,7 @@ export function EventExample() {
       capture: true,
     }}
   >
-    <button onClick={() => order.push('inner-bubble')}>"Click"</button>
+    <button onClick={() => order.push('inner-bubble')}>Click</button>
     <p>{order.join(' → ')}</p>
   </div>
 
@@ -116,6 +118,7 @@ import { track } from 'ripple';
 export function EventExample() {
   return <>
   let &[count] = track(0);
+  ---
 
   <button
     onClick={{
@@ -123,7 +126,7 @@ export function EventExample() {
       once: true,
     }}
   >
-    "Click me (only works once)"
+    Click me (only works once)
   </button>
   <p>{`Clicks: ${count}`}</p>
 
@@ -153,7 +156,7 @@ default.
     passive: true,
   }}
 >
-  "Scroll over me"
+  Scroll over me
 </div>
 ```
 
@@ -193,7 +196,7 @@ export function EventExample() {
       delegated: false, // Attach listener directly to this button
     }}
   >
-    "Click me"
+    Click me
   </button>
 
   </>;
@@ -214,6 +217,7 @@ import { track } from 'ripple';
 export function EventExample() {
   return <>
   let &[count] = track(0);
+  ---
 
   <div
     onMyCustomEvent={{
@@ -221,11 +225,9 @@ export function EventExample() {
       customName: 'MyCustomEvent',
     }}
   >
-    "Custom event target"
+    Custom event target
   </div>
-  <p>{`Event count: ${
-  return <>count
-  </>;}`}</p>
+  <p>Event count: {count}</p>
 
   </>;
 }
@@ -259,6 +261,7 @@ export function App() {
     // return the removeListener when the component unmounts
     return removeListener;
   });
+  ---
 
   </>;
 }

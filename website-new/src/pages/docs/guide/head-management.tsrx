@@ -13,6 +13,7 @@ import { load_doc } from server;
 export function HeadManagementPage() {
 	return <>
 		const doc = load_doc();
+		---
 		<DocsLayout
 			title={doc.title}
 			editPath={doc.editPath}

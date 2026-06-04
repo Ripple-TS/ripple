@@ -29,6 +29,7 @@ import { bindValue, track } from 'ripple';
 export function App() {
   return <>
   let &[name, nameTracked] = track('');
+  ---
 
   <div>
     <input
@@ -37,11 +38,11 @@ export function App() {
       placeholder="Enter your name"
     />
     <p>
-      "Hello, "
+      Hello, 
       {name || 'stranger'}
-      "!"
+      !
     </p>
-    <button onClick={() => (name = '')}>"Clear"</button>
+    <button onClick={() => (name = '')}>Clear</button>
   </div>
 
   </>;
@@ -60,15 +61,16 @@ import { bindValue, track } from 'ripple';
 export function App() {
   return <>
   let &[age, ageTracked] = track(0);
+  ---
 
   <div>
     <input type="number" ref={bindValue(ageTracked)} min="0" max="120" />
     <p>
-      "Age: "
+      Age: 
       {age}
-      " years old"
+       years old
     </p>
-    <button onClick={() => (age = age + 1)}>"Increment"</button>
+    <button onClick={() => (age = age + 1)}>Increment</button>
   </div>
 
   </>;
@@ -87,16 +89,17 @@ import { bindValue, track } from 'ripple';
 export function App() {
   return <>
   let &[selectedFruit, selectedFruitTracked] = track('apple');
+  ---
 
   <div>
     <select ref={bindValue(selectedFruitTracked)}>
-      <option value="apple">"Apple"</option>
-      <option value="banana">"Banana"</option>
-      <option value="cherry">"Cherry"</option>
-      <option value="durian">"Durian"</option>
+      <option value="apple">Apple</option>
+      <option value="banana">Banana</option>
+      <option value="cherry">Cherry</option>
+      <option value="durian">Durian</option>
     </select>
     <p>
-      "You selected: "
+      You selected: 
       {selectedFruit}
     </p>
   </div>
@@ -117,16 +120,17 @@ import { bindValue, track } from 'ripple';
 export function App() {
   return <>
   let &[selectedColors, selectedColorsTracked] = track(['red', 'blue']);
+  ---
 
   <div>
     <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
-      <option value="red">"Red"</option>
-      <option value="green">"Green"</option>
-      <option value="blue">"Blue"</option>
-      <option value="yellow">"Yellow"</option>
+      <option value="red">Red</option>
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+      <option value="yellow">Yellow</option>
     </select>
     <p>
-      "Selected colors: "
+      Selected colors: 
       {selectedColors.join(', ')}
     </p>
   </div>
@@ -150,17 +154,18 @@ import { bindChecked, track } from 'ripple';
 export function App() {
   return <>
   let &[agreed, agreedTracked] = track(false);
+  ---
 
   <div>
     <label>
       <input type="checkbox" ref={bindChecked(agreedTracked)} />
-      " I agree to the terms and conditions"
+       I agree to the terms and conditions
     </label>
     <p>
-      "Status: "
+      Status: 
       {agreed ? 'Agreed' : 'Not agreed'}
     </p>
-    <button disabled={!agreed}>"Submit"</button>
+    <button disabled={!agreed}>Submit</button>
   </div>
 
   </>;
@@ -193,6 +198,7 @@ export function App() {
   return <>
   let &[checked, checkedTracked] = track(false);
   let &[indeterminate, indeterminateTracked] = track(true);
+  ---
 
   <div>
     <label>
@@ -201,14 +207,14 @@ export function App() {
         ref={bindChecked(checkedTracked)}
         ref={bindIndeterminate(indeterminateTracked)}
       />
-      " Select All"
+       Select All
     </label>
     <p>
-      "Checked: "
+      Checked: 
       {checked ? 'Yes' : 'No'}
     </p>
     <p>
-      "Indeterminate: "
+      Indeterminate: 
       {indeterminate ? 'Yes' : 'No'}
     </p>
     <button
@@ -219,7 +225,7 @@ export function App() {
         }
       }}
     >
-      "Toggle Indeterminate"
+      Toggle Indeterminate
     </button>
   </div>
 
@@ -255,31 +261,32 @@ import { bindGroup, track } from 'ripple';
 export function App() {
   return <>
   let &[hobbies, hobbiesTracked] = track(['reading']);
+  ---
 
   <div>
     <label>
       <input type="checkbox" value="reading" ref={bindGroup(hobbiesTracked)} />
-      " Reading"
+       Reading
     </label>
     <label>
       <input type="checkbox" value="gaming" ref={bindGroup(hobbiesTracked)} />
-      " Gaming"
+       Gaming
     </label>
     <label>
       <input type="checkbox" value="sports" ref={bindGroup(hobbiesTracked)} />
-      " Sports"
+       Sports
     </label>
     <label>
       <input type="checkbox" value="cooking" ref={bindGroup(hobbiesTracked)} />
-      " Cooking"
+       Cooking
     </label>
     <p>
-      "Selected: "
+      Selected: 
       {hobbies.join(', ') || 'none'}
     </p>
   </div>
 
-  <button onClick={() => (hobbies = ['reading'])}>"Reset"</button>
+  <button onClick={() => (hobbies = ['reading'])}>Reset</button>
 
   </>;
 }
@@ -297,24 +304,25 @@ import { bindGroup, track } from 'ripple';
 export function App() {
   return <>
   let &[size, sizeTracked] = track('medium');
+  ---
 
   <div>
     <label>
       <input type="radio" name="size" value="small" ref={bindGroup(sizeTracked)} />
-      " Small"
+       Small
     </label>
     <label>
       <input type="radio" name="size" value="medium" ref={bindGroup(sizeTracked)} />
-      " Medium"
+       Medium
     </label>
     <label>
       <input type="radio" name="size" value="large" ref={bindGroup(sizeTracked)} />
-      " Large"
+      Large
     </label>
-    <p>"Selected size: "{size}</p>
+    <p>Selected size: {size}</p>
   </div>
 
-  <button onClick={() => size = 'medium'}>"Reset to "medium"</button>
+  <button onClick={() => size = 'medium'}>Reset to medium</button>
   </>;
 }
 ```
@@ -372,6 +380,7 @@ export function App() {
     }
     files = dt.files;
   };
+  ---
 
   <div>
     <input
@@ -382,25 +391,25 @@ export function App() {
     />
 
     <div>
-      if (files && files.length > 0) {
-        <p>"Selected files:"</p>
+      @if (files && files.length > 0) {
+        <p>Selected files:</p>
         <ul>
-          for (const file of Array.from(files)) {
+          @for (const file of Array.from(files)) {
             <li>
               {file.name}
-              " ("
+               (
               {file.size}
-              " bytes)"
+               bytes)
             </li>
           }
         </ul>
       } else {
-        <p>"No files selected"</p>
+        <p>No files selected</p>
       }
     </div>
 
-    <button onClick={clearFiles}>"Clear files"</button>
-    <button onClick={createSampleFile}>"Add sample file"</button>
+    <button onClick={clearFiles}>Clear files</button>
+    <button onClick={createSampleFile}>Add sample file</button>
   </div>
 
   </>;
@@ -442,6 +451,7 @@ export function App() {
   return <>
   let &[width, widthTracked] = track(0);
   let &[height, heightTracked] = track(0);
+  ---
 
   <div>
     <div
@@ -456,16 +466,16 @@ export function App() {
         minHeight: '100px',
       }}
     >
-      "Resize me! (drag bottom-right corner)"
+      Resize me! (drag bottom-right corner)
       <p>
-        "Client Width: "
+        Client Width: 
         {width}
-        "px"
+        px
       </p>
       <p>
-        "Client Height: "
+        Client Height: 
         {height}
-        "px"
+        px
       </p>
     </div>
   </div>
@@ -489,6 +499,7 @@ export function App() {
   return <>
   let &[width, widthTracked] = track(0);
   let &[height, heightTracked] = track(0);
+  ---
 
   <div>
     <div
@@ -501,17 +512,17 @@ export function App() {
         height: '150px',
       }}
     >
-      "Box with borders"
+      Box with borders
     </div>
     <p>
-      "Offset Width: "
+      Offset Width: 
       {width}
-      "px (includes borders)"
+      px (includes borders)
     </p>
     <p>
-      "Offset Height: "
+      Offset Height: 
       {height}
-      "px (includes borders)"
+      px (includes borders)
     </p>
   </div>
 
@@ -535,6 +546,7 @@ import { bindContentRect, track } from 'ripple';
 export function App() {
   return <>
   let &[rect, rectTracked] = track({ width: 0, height: 0, top: 0, left: 0 });
+  ---
 
   <div>
     <div
@@ -548,7 +560,7 @@ export function App() {
         minHeight: '100px',
       }}
     >
-      "Resize me!"
+      Resize me!
     </div>
     <pre>{JSON.stringify(rect, null, 2)}</pre>
   </div>
@@ -571,6 +583,7 @@ import { bindContentBoxSize, track } from 'ripple';
 export function App() {
   return <>
   let &[size, sizeTracked] = track([]);
+  ---
 
   <div>
     <div
@@ -582,15 +595,15 @@ export function App() {
         height: '100px',
       }}
     >
-      "Content box size"
+      Content box size
     </div>
     <pre>
-      "Block size: "
+      Block size: 
       {size[0]?.blockSize || 0}
       {'px\n'}
-      "Inline size: "
+      Inline size: 
       {size[0]?.inlineSize || 0}
-      "px"
+      px
     </pre>
   </div>
 
@@ -612,6 +625,7 @@ import { bindBorderBoxSize, track } from 'ripple';
 export function App() {
   return <>
   let &[size, sizeTracked] = track([]);
+  ---
 
   <div>
     <div
@@ -623,15 +637,15 @@ export function App() {
         height: '100px',
       }}
     >
-      "Border box size"
+      Border box size
     </div>
     <pre>
-      "Block size: "
+      Block size: 
       {size[0]?.blockSize || 0}
       {'px\n'}
-      "Inline size: "
+      Inline size: 
       {size[0]?.inlineSize || 0}
-      "px"
+      px
     </pre>
   </div>
 
@@ -653,6 +667,7 @@ import { bindDevicePixelContentBoxSize, track } from 'ripple';
 export function App() {
   return <>
   let &[size, sizeTracked] = track([]);
+  ---
 
   <div>
     <div
@@ -664,15 +679,15 @@ export function App() {
         height: '80px',
       }}
     >
-      "Device pixel content box"
+      Device pixel content box
     </div>
     <pre>
-      "Block size: "
+      Block size: 
       {size[0]?.blockSize || 0}
       {'px\n'}
-      "Inline size: "
+      Inline size: 
       {size[0]?.inlineSize || 0}
-      "px"
+      px
     </pre>
   </div>
 
@@ -696,6 +711,7 @@ import { bindInnerHTML, track } from 'ripple';
 export function App() {
   return <>
   let &[content, contentTracked] = track('<strong>Bold text</strong>');
+  ---
 
   <div>
     <div
@@ -707,7 +723,7 @@ export function App() {
         minHeight: '50px',
       }}
     />
-    <p>"Raw HTML:"</p>
+    <p>Raw HTML:</p>
     <pre>{content}</pre>
   </div>
 
@@ -729,6 +745,7 @@ import { bindInnerText, track } from 'ripple';
 export function App() {
   return <>
   let &[text, textTracked] = track('Edit me!');
+  ---
 
   <div>
     <div
@@ -741,7 +758,7 @@ export function App() {
       }}
     />
     <p>
-      "Text content: "
+      Text content: 
       {text}
     </p>
   </div>
@@ -764,6 +781,7 @@ import { bindTextContent, track } from 'ripple';
 export function App() {
   return <>
   let &[text, textTracked] = track('Type here');
+  ---
 
   <div>
     <div
@@ -777,7 +795,7 @@ export function App() {
       }}
     />
     <p>
-      "Text content: "
+      Text content: 
       {text}
     </p>
   </div>
@@ -809,6 +827,7 @@ export function App() {
       divElement.style.backgroundColor = 'lightblue';
     }
   };
+  ---
 
   <div>
     <div
@@ -820,9 +839,9 @@ export function App() {
         outline: 'none',
       }}
     >
-      "Click the button to focus this div"
+      Click the button to focus this div
     </div>
-    <button onClick={handleFocus}>"Focus Div"</button>
+    <button onClick={handleFocus}>Focus Div</button>
   </div>
 
   </>;
@@ -852,6 +871,7 @@ export function App() {
     console.log('Value:', text);
     console.log('Width:', width);
   };
+  ---
 
   <div>
     <input
@@ -864,9 +884,9 @@ export function App() {
       placeholder="Type something..."
       style="width: 300px"
     />
-    <p>"Text: "{text}</p>
-    <p>"Width: "{width}"px"</p></p>
-    <button onClick={logInfo}>"Log Info"</button>
+    <p>Text: {text}</p>
+    <p>Width: {width}px</p>
+    <button onClick={logInfo}>Log Info</button>
   </div>
 
   </>;

@@ -4,27 +4,6 @@ title: Troubleshooting in Ripple
 
 # Troubleshooting Common Errors
 
-## Unterminated regular expression
-
-While this may be caused by an actual unterminated regular expression, most of the
-time, it's caused by unquoted text in a template. Static text should be written
-as a direct double-quoted child; JavaScript expressions should use {braces}.
-
-```ripple
-export function TextBrace() {
-  return <>
-  // ✔️ valid
-  <p>"Hello world!"</p>
-
-  // ❌ invalid
-  // <p>Hello world!</p>
-
-  </>;
-}
-```
-
-Read more: [Syntax](/docs/guide/syntax)
-
 ## GitHub does not highlight .tsrx files
 
 GitHub does not currently recognize `.tsrx` files as their own language, so

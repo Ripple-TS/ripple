@@ -58,6 +58,7 @@ export function Editor() {
 				window.clearTimeout(timeoutId);
 			};
 		});
+		---
 		<div class="editor-mockup">
 			<div class="editor-header">
 				<div class="editor-dots">
@@ -69,7 +70,7 @@ export function Editor() {
 			</div>
 			<div class="editor-content">
 				<pre class="editor-code" ref={bindNode(nodeRef)}>
-					if (loading) {
+					@if (loading) {
 						<span class="editor-loader">{'Loading...'}</span>
 					}
 				</pre>

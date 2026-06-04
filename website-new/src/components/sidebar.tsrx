@@ -217,6 +217,7 @@ function SidebarGroup({
 }) {
 	return <>
 		let &[expanded] = track(true);
+		---
 		<section
 			class={`SidebarItem level-0 collapsible ${hasActive ? 'has-active' : ''} ${
 				expanded ? '' : 'collapsed'
@@ -251,7 +252,7 @@ function SidebarGroup({
 					</svg>
 				</div>
 			</div>
-			if (expanded) {
+			@if (expanded) {
 				<div class="items">{children}</div>
 			}
 		</section>
@@ -350,10 +351,11 @@ function SidebarItem({
 		const classes = `SidebarItem level-1 is-link${active ? ' is-active' : ''}${
 			hasActive ? ' has-active' : ''
 		}`;
+		---
 		<div class={classes}>
 			<div class="item">
 				<div class="indicator" />
-				if (external) {
+				@if (external) {
 					<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
 						<p class="text">{label}</p>
 					</a>

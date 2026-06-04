@@ -51,7 +51,7 @@ export function Actions({ playgroundVisible = false }: { playgroundVisible: bool
 				{'Docs'}
 			</a>
 
-			if (playgroundVisible) {
+			@if (playgroundVisible) {
 				<a href="/playground" class="discord-link">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

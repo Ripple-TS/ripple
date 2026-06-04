@@ -50,13 +50,13 @@ export function App() {
   return <>
   // Use implicitly...
   <Card>
-    <p>"Card content here"</p>
+    <p>Card content here</p>
   </Card>
 
   // or pass children explicitly as a prop.
   function children() {
     return <>
-    <p>"Card content here"</p>
+    <p>Card content here</p>
 
     </>;
   }
@@ -97,7 +97,7 @@ function Composite({ PropComp }: { PropComp: Component }) {
 
 function Separate() {
   return <>
-  <p>"I'm a separate component."</p>
+  <p>I'm a separate component.</p>
 
   </>;
 }
@@ -133,12 +133,12 @@ function Card({
 }) {
   return <>
   <fieldset>
-    if (Header) {
+    @if (Header) {
       <Header />
       <hr />
     }
     {children}
-    if (Footer) {
+    @if (Footer) {
       <hr />
       <Footer />
     }
@@ -149,15 +149,15 @@ function Card({
 
 function CustomHeader() {
   return <>
-  <h1>"Card Title"</h1>
+  <h1>Card Title</h1>
 
   </>;
 }
 
 function CustomFooter() {
   return <>
-  <button>"Cancel"</button>
-  <button>"OK"</button>
+  <button>Cancel</button>
+  <button>OK</button>
 
   </>;
 }
@@ -165,7 +165,7 @@ function CustomFooter() {
 export function App() {
   return <>
   <Card Header={CustomHeader} Footer={CustomFooter}>
-    <p>"Card content here"</p>
+    <p>Card content here</p>
   </Card>
 
   </>;
@@ -213,7 +213,7 @@ export function App() {
   <Outer>
     function HelloGreeting() {
       return <>
-      <p>"Hello from inside!"</p>
+      <p>Hello from inside!</p>
 
       </>;
     }
@@ -254,7 +254,7 @@ export function App() {
   <Outer {Footer}>
     function Footer() {
       return <>
-      <button>"OK"</button>
+      <button>OK</button>
 
       </>;
     }
@@ -262,7 +262,7 @@ export function App() {
 
   function Footer() {
     return <>
-    <button>"OK"</button>
+    <button>OK</button>
 
     </>;
   }
@@ -281,13 +281,13 @@ See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
 
 ```ripple
 // Object spread
-<div {...properties}>"Content"</div>
+<div {...properties}>Content</div>
 
 // Shorthand props (when variable name matches prop name)
-<div {onClick} {id}>"Content"</div>
+<div {onClick} {id}>Content</div>
 
 // Equivalent to:
-<div onClick={onClick} id={id}>"Content"</div>
+<div onClick={onClick} id={id}>Content</div>
 ```
 
 ## Portal Component
@@ -302,13 +302,13 @@ import { Portal } from 'ripple';
 export function App() {
   return <>
   <div class="app">
-    <h1>"My App"</h1>
+    <h1>My App</h1>
 
     {/* This will render inside document.body, not inside the .app div */}
     <Portal target={document.body}>
       <div class="modal">
-        <h2>"I am rendered in document.body!"</h2>
-        <p>"This content escapes the normal component tree."</p>
+        <h2>I am rendered in document.body!</h2>
+        <p>This content escapes the normal component tree.</p>
       </div>
     </Portal>
   </div>
