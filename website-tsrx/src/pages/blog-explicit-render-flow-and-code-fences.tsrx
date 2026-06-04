@@ -120,7 +120,7 @@ export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 					<a class="back-link" href="/blog">Back to blog</a>
 					<article>
 						<header class="article-header">
-							<p class="eyebrow">June 3, 2026</p>
+							<p class="eyebrow">June 5, 2026</p>
 							<h1>Explicit JSX control flow & code fences</h1>
 						</header>
 						<p>Ripple started with an idea we still believe in: let UI templates keep the power of JavaScript close to the markup that uses it. As TSRX grew out of that work, we also learned where that idea needed clearer boundaries, especially for codebases that have to scale across teams, tooling, and AI-assisted development.</p>
@@ -144,7 +144,9 @@ export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 							We also heard loud and clear that forcing static text through
 							<code>""</code>
 							or
-							<code>{'{\'\'}'}</code>
+							<code>
+								{'{\'\'}'}
+							</code>
 							was annoying and unintuitive. JSX text is one of JSX's most useful affordances, and TSRX should preserve backwards compatibility with JSX instead of asking people to relearn something that already works. The same applies to composition: teams want to return a single element, a fragment with multiple elements, a JSX control flow value, an array of elements, a scalar value, or the result of a component function call without each case feeling like a separate language feature.
 						</p>
 						<p>That is the spirit behind this update. TSRX keeps the parts that make templates expressive, but it becomes more honest about where template syntax begins, where JavaScript begins, and how values flow through the system. Crucially though, TSRX is now expression based like JSX, not statement based, like it originally started life as. This also means that JSX is fully backwards compatible with TSRX.</p>
@@ -188,7 +190,9 @@ export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 						</pre>
 						<p>
 							This preserves one of TSRX's best ideas: logic can stay close to the markup that uses it. The fence just gives that colocated logic a predictable shape. If a scope starts to need multiple script sections, wrap the later section in another
-							<code>{'<></>'}</code>
+							<code>
+								{'<></>'}
+							</code>
 							fragment or extract a component. In practice, keeping script at the top nudges components toward clearer data flow.
 						</p>
 						<h2>JSX control flow can have fences too</h2>
@@ -198,7 +202,9 @@ export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 						</pre>
 						<p>
 							Expressions stay familiar as well. Inside
-							<code>{'{}'}</code>
+							<code>
+								{'{}'}
+							</code>
 							, write JavaScript expression syntax the same way you would in JSX or React: call a formatter, read a property, choose a value, or pass a computed prop.
 						</p>
 						<h2>JSX control flow is a value</h2>
@@ -224,7 +230,9 @@ export function BlogExplicitJSXControlFlowAndCodeFencesPage() {
 						</pre>
 						<p>
 							That removes a small but persistent source of friction.
-							<code>{'<div>Hello there!</div>'}</code>
+							<code>
+								{'<div>Hello there!</div>'}
+							</code>
 							now means what JSX users expect it to mean.
 						</p>
 						<h2>Conclusion</h2>

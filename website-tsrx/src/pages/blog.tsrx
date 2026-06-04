@@ -36,7 +36,7 @@ export function BlogPage() {
 					<h1>Blog</h1>
 					<section class="post-list" aria-label="Blog posts">
 						<article class="post-preview">
-							<p class="post-date">June 3, 2026</p>
+							<p class="post-date">June 5, 2026</p>
 							<h2>
 								<a
 									href="/blog/explicit-render-flow-and-code-fences"
