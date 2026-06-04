@@ -3327,7 +3327,6 @@ export function TSRXPlugin(config) {
 						return;
 					}
 					if (
-						current_template_node.type !== 'JSXFragment' &&
 						!(
 							current_template_node.metadata?.native_tsrx_template_block &&
 							current_template_node.metadata?.hasTemplateFenceAhead

@@ -381,12 +381,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
 
 	if (statements.length === 0) {
 		if (children.length === 0) return create_null_literal();
-		if (children.length === 1) {
-			const only = children[0];
-			if (only.type === 'JSXExpressionContainer') return only.expression;
-			return only;
-		}
-		return build_return_expression(children);
+		return build_return_expression(children) || create_null_literal();
 	}
 
 	// Branch body has non-JSX statements: wrap everything in an arrow so the
@@ -2241,6 +2236,10 @@ function build_return_expression(render_nodes) {
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
 		if (only.type === 'JSXExpressionContainer') return only.expression;
+		if (only.type === 'JSXText') {
+			const value = (only.value ?? '').trim();
+			return b.literal(value, JSON.stringify(value), only);
+		}
 		return only;
 	}
 	const first = render_nodes[0];

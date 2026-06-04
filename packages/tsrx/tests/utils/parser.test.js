@@ -68,6 +68,47 @@ describe('TSRX parser', () => {
 		expect(value.children.map((child) => child.type)).toEqual(['JSXElement']);
 	});
 
+	it('treats unfenced fragment text as JSXText', () => {
+		const ast = parseModule(
+			`export const FeatureCard = () => <>
+				hello world
+			</>;`,
+			'App.tsrx',
+		);
+
+		const value = ast.body[0].declaration.declarations[0].init.body;
+		expect(value.type).toBe('JSXFragment');
+		expect(value.children.map((child) => child.type)).toEqual(['JSXText']);
+		expect(value.children[0].value).toContain('hello world');
+	});
+
+	it('keeps line comments out of unfenced fragment output', () => {
+		const ast = parseModule(
+			`export const FeatureCard = () => <>
+				// This is a JS comment, not text.
+				<div />
+			</>;`,
+			'App.tsrx',
+		);
+
+		const value = ast.body[0].declaration.declarations[0].init.body;
+		expect(value.children.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(value.children[0].openingElement.name.name).toBe('div');
+	});
+
+	it('treats unfenced JS-looking fragment content as JSXText', () => {
+		const ast = parseModule(
+			`export const FeatureCard = () => <>
+				const x = 1
+			</>;`,
+			'App.tsrx',
+		);
+
+		const value = ast.body[0].declaration.declarations[0].init.body;
+		expect(value.children.map((child) => child.type)).toEqual(['JSXText']);
+		expect(value.children[0].value).toContain('const x = 1');
+	});
+
 	it('keeps ordinary tag names as JSX identifiers', () => {
 		const ast = parseModule('const wrapper = <tsrx><div /></tsrx>;', 'App.tsrx');
 

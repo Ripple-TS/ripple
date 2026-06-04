@@ -5945,6 +5945,10 @@ function build_return_expression(render_nodes) {
 		if (only.type === 'JSXExpressionContainer') {
 			return only.expression;
 		}
+		if (only.type === 'JSXText') {
+			const value = (only.value ?? '').trim();
+			return b.literal(value, JSON.stringify(value), only);
+		}
 		return only;
 	}
 	const first = render_nodes[0];
