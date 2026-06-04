@@ -91,6 +91,8 @@
   "{" @punctuation.bracket
   "}" @punctuation.bracket)
 
+; Leave jsx_text uncaptured so text children use the editor's regular text color.
+
 ; Style elements
 (style_element
   "<style" @tag

@@ -4808,6 +4808,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-code</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-style</string>
 				</dict>
 				<dict>
@@ -4828,6 +4832,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-code-in-expression</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
@@ -4880,6 +4888,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-code</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-style</string>
 				</dict>
 				<dict>
@@ -4903,6 +4915,11 @@
 					<string>#jsx-text</string>
 				</dict>
 			</array>
+		</dict>
+		<key>jsx-code-text</key>
+		<dict>
+			<key>match</key>
+			<string>[^&lt;&gt;{}&amp;]+</string>
 		</dict>
 		<key>jsx-entities</key>
 		<dict>
@@ -4942,7 +4959,7 @@
 				</dict>
 			</dict>
 			<key>contentName</key>
-			<string>meta.embedded.expression.js source.js.embedded.ripple</string>
+			<string>meta.embedded.expression.js source.js.embedded.tsrx</string>
 			<key>end</key>
 			<string>\}</string>
 			<key>endCaptures</key>
@@ -5228,6 +5245,116 @@
 			<key>name</key>
 			<string>invalid.illegal.attribute.js</string>
 		</dict>
+		<key>jsx-tag-code</key>
+		<dict>
+			<key>begin</key>
+			<string>(?=(&lt;)\s*(code)\b(?=[\s&gt;/]))</string>
+			<key>end</key>
+			<string>(/&gt;)|(?:(&lt;/)\s*(code)\s*(&gt;))</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.end.js</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.begin.js</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.tag.js</string>
+				</dict>
+				<key>4</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.tag.end.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.tag.js</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(&lt;)\s*(code)\b(?=[\s&gt;/])</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.tag.begin.js</string>
+						</dict>
+						<key>2</key>
+						<dict>
+							<key>name</key>
+							<string>entity.name.tag.js</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>(?=[/]?&gt;)</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#comment</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#jsx-tag-attributes</string>
+						</dict>
+					</array>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>(&gt;)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.tag.end.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>meta.jsx.children.js</string>
+					<key>end</key>
+					<string>(?=&lt;/\s*code\s*&gt;)</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#jsx-evaluated-code</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#jsx-entities</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#jsx-code-text</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
+		<key>jsx-tag-code-in-expression</key>
+		<dict>
+			<key>begin</key>
+			<string>(?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*(?=(&lt;)\s*(code)\b(?=[\s&gt;/]))</string>
+			<key>end</key>
+			<string>(?!(&lt;)\s*(code)\b(?=[\s&gt;/]))</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-code</string>
+				</dict>
+			</array>
+		</dict>
 		<key>jsx-tag-fragment</key>
 		<dict>
 			<key>begin</key>
@@ -5484,8 +5611,6 @@
 		<dict>
 			<key>match</key>
 			<string>(?:(?!(?:\r?\n)?[ \t]*---[ \t]*$)(?![ \t]*@(?:if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:if|for|switch|try)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
-			<key>name</key>
-			<string>string.unquoted.jsx.text.js</string>
 		</dict>
 		<key>label</key>
 		<dict>
@@ -5905,6 +6030,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#jsx-tag-code-in-expression</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-style-in-expression</string>
@@ -8746,6 +8875,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#jsx-tag-code</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-style</string>
 				</dict>
 				<dict>
@@ -8997,11 +9130,11 @@
 		<key>tsrx-template-setup-section</key>
 		<dict>
 			<key>begin</key>
-			<string>(?:\r?\n)?[ \t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\b|[a-zA-Z_$][_$[:alnum:]]*\s*(?:[.=(]|=&gt;)))</string>
+			<string>^[ \t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\b|[a-zA-Z_$][_$[:alnum:]]*\s*(?:[.=(]|=&gt;)))</string>
 			<key>contentName</key>
-			<string>source.js.embedded.ripple-isolated</string>
+			<string>source.js.embedded.tsrx-isolated</string>
 			<key>end</key>
-			<string>(?=(?:\r?\n)?[ \t]*---[ \t]*$)</string>
+			<string>(?=^[ \t]*---[ \t]*$)</string>
 			<key>name</key>
 			<string>meta.embedded.setup.tsrx</string>
 			<key>patterns</key>

@@ -214,9 +214,9 @@
     },
     "tsrx-template-setup-section": {
       "name": "meta.embedded.setup.tsrx",
-      "contentName": "source.js.embedded.ripple-isolated",
-      "begin": "(?:\\r?\\n)?[ \\t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\\b|[a-zA-Z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
-      "end": "(?=(?:\\r?\\n)?[ \\t]*---[ \\t]*$)",
+      "contentName": "source.js.embedded.tsrx-isolated",
+      "begin": "^[ \\t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\\b|[a-zA-Z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
+      "end": "(?=^[ \\t]*---[ \\t]*$)",
       "patterns": [
         {
           "include": "#component-statements"
@@ -6206,6 +6206,9 @@
     "jsx": {
       "patterns": [
         {
+          "include": "#jsx-tag-code"
+        },
+        {
           "include": "#jsx-tag-style"
         },
         {
@@ -6285,6 +6288,77 @@
       "patterns": [
         {
           "include": "#jsx-tag"
+        }
+      ]
+    },
+    "jsx-tag-code": {
+      "name": "meta.tag.js",
+      "begin": "(?=(<)\\s*(code)\\b(?=[\\s>/]))",
+      "end": "(/>)|(?:(</)\\s*(code)\\s*(>))",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.end.js"
+        },
+        "2": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "3": {
+          "name": "entity.name.tag.js"
+        },
+        "4": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)\\s*(code)\\b(?=[\\s>/])",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.js"
+            },
+            "2": {
+              "name": "entity.name.tag.js"
+            }
+          },
+          "end": "(?=[/]?>)",
+          "patterns": [
+            {
+              "include": "#comment"
+            },
+            {
+              "include": "#jsx-tag-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.js"
+            }
+          },
+          "end": "(?=</\\s*code\\s*>)",
+          "contentName": "meta.jsx.children.js",
+          "patterns": [
+            {
+              "include": "#jsx-evaluated-code"
+            },
+            {
+              "include": "#jsx-entities"
+            },
+            {
+              "include": "#jsx-code-text"
+            }
+          ]
+        }
+      ]
+    },
+    "jsx-tag-code-in-expression": {
+      "begin": "(?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?=(<)\\s*(code)\\b(?=[\\s>/]))",
+      "end": "(?!(<)\\s*(code)\\b(?=[\\s>/]))",
+      "patterns": [
+        {
+          "include": "#jsx-tag-code"
         }
       ]
     },
@@ -6439,6 +6513,9 @@
           "include": "#tsrx-template-setup-section"
         },
         {
+          "include": "#jsx-tag-code"
+        },
+        {
           "include": "#jsx-tag-style"
         },
         {
@@ -6470,6 +6547,9 @@
           "include": "#tsrx-template-child-directive"
         },
         {
+          "include": "#jsx-tag-code"
+        },
+        {
           "include": "#jsx-tag-style"
         },
         {
@@ -6490,11 +6570,16 @@
       ]
     },
     "jsx-text": {
-      "name": "string.unquoted.jsx.text.js",
       "match": "(?:(?!(?:\\r?\\n)?[ \\t]*---[ \\t]*$)(?![ \\t]*@(?:if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:if|for|switch|try)(?![_$[:alnum:]]))|[^<>{}&@]))+"
+    },
+    "jsx-code-text": {
+      "match": "[^<>{}&]+"
     },
     "jsx-attribute-expression": {
       "patterns": [
+        {
+          "include": "#jsx-tag-code-in-expression"
+        },
         {
           "include": "#jsx-tag-style-in-expression"
         },
@@ -6521,6 +6606,9 @@
     "non-jsx-expression": {
       "patterns": [
         {
+          "include": "#jsx-tag-code-in-expression"
+        },
+        {
           "include": "#jsx-tag-style-in-expression"
         },
         {
@@ -6544,7 +6632,7 @@
       ]
     },
     "jsx-evaluated-code": {
-      "contentName": "meta.embedded.expression.js source.js.embedded.ripple",
+      "contentName": "meta.embedded.expression.js source.js.embedded.tsrx",
       "begin": "\\{",
       "end": "\\}",
       "beginCaptures": {

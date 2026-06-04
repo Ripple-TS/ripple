@@ -612,3 +612,44 @@ fragment App() {
             close_tag: (jsx_closing_element
               name: (jsx_element_name
                 (identifier)))))))))
+
+=================================
+Code Element Control Flow Text
+=================================
+
+fragment App() {
+  <p><code>if</code><code>@if</code></p>
+}
+
+---
+
+(program
+  (fragment_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (component_body
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier)))
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier)))))))))
