@@ -61,7 +61,7 @@ function DynamicStyleValues() {
 function DynamicClasses() {
   return <>
   let includeBaz = track(true);
-  <p class={{ foo: true, bar: false, baz: @includeBaz }}> // becomes: class="foo baz"
+  <p class={{ foo: true, bar: false, baz: includeBaz }}> // becomes: class="foo baz"
 		Hello Ripple!
   </p>
 
@@ -70,7 +70,7 @@ function DynamicClasses() {
   </p>
 
   let count = track(3);
-  <p class={['foo', {bar: @count > 2}, @count > 3 && 'bat']}> // becomes: class="foo bar"
+  <p class={['foo', {bar: count > 2}, count > 3 && 'bat']}> // becomes: class="foo bar"
 		Hello Ripple!
   </p>
 
@@ -298,9 +298,9 @@ export default function App() {
   return <>
 	let count = track(1);
 
-	<button onClick={() => @count++}>Increment</button>
+	<button onClick={() => count++}>Increment</button>
 
-	@switch (@count) {
+	@switch (count) {
 		case 1:
 			<div>Count is 1</div>
 			break;
@@ -425,15 +425,15 @@ export default function SuspenseBoundary() {
 export default function Counter() {
   return <>
 	let count = track(0);  // Reactive variable
-	let double = track(() => @count * 2);  // Derived reactive value
-	let quadruple = track(() => @double * 2);
+	let double = track(() => count * 2);  // Derived reactive value
+	let quadruple = track(() => double * 2);
 
 	<div class="container">
-		<p>Count: {@count}</p>
-		<p>Double: {@double}</p>
-		<p>Quadruple: {@quadruple}</p>
-		<button onClick={() => @count++}>Increment</button>
-		<button onClick={() => @count = 0}>Reset</button>
+		<p>Count: {count}</p>
+		<p>Double: {double}</p>
+		<p>Quadruple: {quadruple}</p>
+		<button onClick={() => count++}>Increment</button>
+		<button onClick={() => count = 0}>Reset</button>
 	</div>
 
 	<style>
@@ -458,13 +458,13 @@ export default function App() {
   let count = track(0);
 
   effect(() => {
-    console.log(@count);
-    if (@count > 0) {
+    console.log(count);
+    if (count > 0) {
       confetti();
     }
   });
 
-	<button onClick={() => @count++}>Increment</button>
+	<button onClick={() => count++}>Increment</button>
 
   </>;
 }
@@ -522,13 +522,13 @@ export default function App() {
 
   // reactive assignment
   let sum = track(() => arr.reduce((a, b) => a + b, 0));
-  <p>sum: {@sum}</p>
+  <p>sum: {sum}</p>
 
   let count = track(3);
-  const inc = () => @count++;
-  const dec = () => { if (@count > 0) @count-- };
+  const inc = () => count++;
+  const dec = () => { if (count > 0) count-- };
   <button onClick={() => { dec(); arr.pop(); }}>pop</button>
-  <button onClick={() => { inc(); arr.push(@count); }}>push</button>
+  <button onClick={() => { inc(); arr.push(count); }}>push</button>
 
   <style>
     button {
@@ -571,7 +571,7 @@ export default function App() {
 
   // reactive assignment
   let has = track(() => set.has(2));
-  <p>Assigned usage: set contains 2: {@has}</p>
+  <p>Assigned usage: set contains 2: {has}</p>
 
   <button onClick={() => set.delete(2)}>Delete 2</button>
   <button onClick={() => set.add(2)}>Add 2</button>
@@ -593,7 +593,7 @@ export default function App() {
 
   // reactive assignment
   let has = track(() => map.has(2));
-  <p>Assigned usage: map has an item with key 2: {@has}</p>
+  <p>Assigned usage: map has an item with key 2: {has}</p>
 
   <button onClick={() => map.delete(2)}>Delete item with key 2</button>
   <button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
@@ -648,9 +648,9 @@ export default function App() {
   );
 
   <div class="container">
-    <p>{@count}</p>
-	<button onClick={() => @count++}>Increment</button>
-	<button onClick={() => @count = 0}>Reset</button>
+    <p>{count}</p>
+	<button onClick={() => count++}>Increment</button>
+	<button onClick={() => count = 0}>Reset</button>
   </div>
 
 	<style>
@@ -714,7 +714,7 @@ export default function App() {
 
   <Child {swapMe} />
 
-  <button onClick={() => @swapMe = @swapMe === Child1 ? Child2 : Child1}>
+  <button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
 			Swap Component
 	</button>
 
@@ -723,7 +723,7 @@ export default function App() {
 
 function Child({ swapMe }: {swapMe: Tracked<Component>}) {
   return <>
-  <@swapMe />
+  <swapMe />
 
   </>;
 }
@@ -802,12 +802,12 @@ function basic() {
 export default function App() {
   return <>
   let count = track(10);
-  let double = track(() => @count * 2);
-  let quadruple = track(() => @double * 2);
+  let double = track(() => count * 2);
+  let quadruple = track(() => double * 2);
 
   effect(() => {
     // This effect will never fire again, as we've untracked the only dependency it has
-    console.log(untrack(() => @quadruple));
+    console.log(untrack(() => quadruple));
   })
 
   </>;
@@ -824,9 +824,9 @@ export default function App() {
 
   <div>
 		<p>Try resizing the window!</p>
-    <button onClick={() => @message = 'Clicked!'}>Click me</button>
-    <input onInput={(e) => @message = e.target.value} />
-    <p>{@message}</p>
+    <button onClick={() => message = 'Clicked!'}>Click me</button>
+    <input onInput={(e) => message = e.target.value} />
+    <p>{message}</p>
   </div>
 
   effect(() => {

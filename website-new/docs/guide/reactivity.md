@@ -158,6 +158,7 @@ export function App() {
       return next;
     },
   );
+  ---
 
   </>;
 }
@@ -250,6 +251,7 @@ export function App() {
   let &[count, countTracked] = track(0);
 
   const &[double] = createDouble(countTracked);
+  ---
 
   <div>Double: {double}</div>
   <button
@@ -288,6 +290,7 @@ import { track } from 'ripple';
 export function App() {
   return <>
   let &[swapMe, swapMeTracked] = track(() => Child1);
+  ---
 
   <Child swapMe={swapMeTracked} />
 
@@ -339,6 +342,7 @@ export function App() {
   effect(() => {
     console.log(count);
   });
+  ---
 
   <button onClick={() => count++}>Increment</button>
 
@@ -376,6 +380,7 @@ export function App() {
       console.log('after the update');
     });
   });
+  ---
 
   <button onClick={() => count++}>Increment</button>
 
@@ -402,6 +407,7 @@ export function App() {
     // This effect will never fire again, as we've untracked the only dependency it has
     console.log(untrack(() => quadruple));
   });
+  ---
 
   </>;
 }
@@ -436,6 +442,7 @@ export function App() {
   effect(() => {
     console.log(total);
   });
+  ---
 
   </>;
 }
@@ -479,6 +486,7 @@ import { RippleArray } from 'ripple';
 export function App() {
   return <>
   const items = new RippleArray(1, 2, 3);
+  ---
 
   <div>
     <p>
@@ -521,6 +529,7 @@ export function App() {
   const obj = new RippleObject({ a: 0 });
 
   obj.a = 0;
+  ---
 
   <pre>
     obj.a is: 
@@ -569,14 +578,14 @@ export function App() {
   return <>
   const set = new RippleSet([1, 2, 3]);
 
-  // direct usage
+  let &[has] = track(() => set.has(2));
+  ---
+
   <p>
     Direct usage: set contains 2: 
     {set.has(2)}
   </p>
 
-  // reactive assignment
-  let &[has] = track(() => set.has(2));
   <p>
     Assigned usage: set contains 2: 
     {has}
@@ -614,14 +623,14 @@ export function App() {
   return <>
   const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
 
-  // direct usage
+  let &[has] = track(() => map.has(2));
+  ---
+
   <p>
     Direct usage: map has an item with key 2: 
     {map.has(2)}
   </p>
 
-  // reactive assignment
-  let &[has] = track(() => map.has(2));
   <p>
     Assigned usage: map has an item with key 2: 
     {has}
@@ -661,7 +670,10 @@ export function App() {
   return <>
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 
-  // direct usage
+  let &[year] = track(() => date.getFullYear());
+  let &[month] = track(() => date.getMonth());
+  ---
+
   <p>
     Direct usage: Current year is 
     {date.getFullYear()}
@@ -671,9 +683,6 @@ export function App() {
     {date.toISOString()}
   </p>
 
-  // reactive assignment
-  let &[year] = track(() => date.getFullYear());
-  let &[month] = track(() => date.getMonth());
   <p>
     Assigned usage: Year 
     {year}

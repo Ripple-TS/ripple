@@ -48,19 +48,20 @@ function Card(props: { children: Children }) {
 
 export function App() {
   return <>
-  // Use implicitly...
-  <Card>
-    <p>Card content here</p>
-  </Card>
-
-  // or pass children explicitly as a prop.
   function children() {
     return <>
     <p>Card content here</p>
 
     </>;
   }
+  ---
 
+  // Use implicitly...
+  <Card>
+    <p>Card content here</p>
+  </Card>
+
+  // or pass children explicitly as a prop.
   <Card {children} />
 
   </>;
@@ -217,6 +218,7 @@ export function App() {
 
       </>;
     }
+    ---
 
     // It can be passed as a prop to <Inner>, which is also in this scope
     <Inner Greeting={HelloGreeting} />
@@ -258,6 +260,7 @@ export function App() {
 
       </>;
     }
+    ---
   </Outer>
 
   function Footer() {

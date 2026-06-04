@@ -71,7 +71,7 @@ export function StatusIndicator({ status }) {
   return <>
   <div>
     @switch (status) {
-      case: 'init':
+      case 'init':
         // fall-through to the next
       case 'loading':
         <p>Loading...</p>
@@ -254,6 +254,7 @@ export function ErrorBoundary() {
       <ComponentThatFails />
     } catch (e) {
       reportError(e);
+      ---
 
       <div>An error occurred! {e.message}</div>
     }

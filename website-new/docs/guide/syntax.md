@@ -4,9 +4,8 @@ title: Ripple Component Syntax
 
 # Component Syntax
 
-Ripple's syntax is a superset of JSX, with one notable difference: components and
-elements (which we'll call templates) are written as statements rather than
-expressions.
+Ripple's syntax is a superset of JSX, with a few additions for localized
+TypeScript, template-native control flow, and scoped styles.
 
 Ripple's compiler then transforms your components into optimized JavaScript code
 that surgically applies fine-grained state changes to the DOM.
@@ -150,9 +149,9 @@ braces.
 
 ## Concept: Templates as Lexical Scopes
 
-In Ripple, templates act as lexical scopes, allowing you to declare variables,
-call functions, and execute JavaScript statements directly within JSX elements -
-similar to block statements in regular JavaScript.
+In Ripple, templates act as lexical scopes. Add a `---` fence when an element,
+fragment, or control-flow branch needs TypeScript setup before its rendered
+children. The setup stays local to that template scope.
 
 ```ripple
 function TemplateScope() {
