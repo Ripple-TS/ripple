@@ -759,7 +759,7 @@ function printRippleNode(node, path, options, print, args) {
 					if (blankLinesBetween > 0) {
 						parts.push(hardline);
 					}
-				} else if (isLastComment) {
+				} else if (isLastComment && node.type !== 'JSXText') {
 					// Preserve a blank line between the last comment and the node if it existed
 					const blankLinesBetween = getBlankLinesBetweenNodes(comment, node);
 					if (blankLinesBetween > 0) {
@@ -2256,7 +2256,7 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'JSXText':
-			nodeContent = node.value;
+			nodeContent = printRawText(node.value);
 			break;
 
 		case 'JSXEmptyExpression':
@@ -5739,6 +5739,17 @@ function printJSXElement(node, path, options, print) {
 		const child = node.children[i];
 
 		if (child.type === 'JSXText') {
+			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
+				if (currentText) {
+					childrenDocs.push(currentText);
+					currentText = '';
+				}
+				const printedChild = path.call(print, 'children', i);
+				if (printedChild !== '') {
+					childrenDocs.push(printedChild);
+				}
+				continue;
+			}
 			// Accumulate text content, preserving spaces between words
 			const trimmed = child.value.trim();
 			if (trimmed) {
@@ -5856,6 +5867,13 @@ function printJSXFragment(node, path, options, print) {
 		const child = node.children[i];
 
 		if (child.type === 'JSXText') {
+			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
+				const printedChild = path.call(print, 'children', i);
+				if (printedChild !== '') {
+					childrenDocs.push(printedChild);
+				}
+				continue;
+			}
 			// Handle JSX text nodes - trim whitespace and only include if not empty
 			const text = child.value.trim();
 			if (text) {

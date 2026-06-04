@@ -52,12 +52,17 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('formats native fragments with statements inside returned TSRX', async () => {
-		const input = `function App(){return <>const items=[1,2,3];for(const item of items; index i; key item){<div>{i}{item}</div>}</>}`;
+	it('formats native fragments with setup and template control flow', async () => {
+		const input = `function App(){return <>
+const items=[1,2,3];
+---
+@for(const item of items; index i; key item){<div>{i}{item}</div>}
+</>}`;
 		const expected = `function App() {
   return <>
     const items = [1, 2, 3];
-    for (const item of items; index i; key item) {
+    ---
+    @for (const item of items; index i; key item) {
       <div>
         {i}
         {item}
@@ -80,6 +85,58 @@ describe('prettier-plugin', () => {
       </li>
     }
   </ul>
+</>;`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats line comments before template children', async () => {
+		const input = `const App=()=> <>
+// keep the status visible
+<span>Ready</span>
+</>;`;
+		const expected = `const App = () => <>
+  // keep the status visible
+  <span>Ready</span>
+</>;`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats line comments before template text in control flow', async () => {
+		const input = `const App=()=> <>
+@switch (value) {
+case 'a':
+// explain case a
+A
+default:
+Fallback
+}
+@try {
+// render the panel when ready
+<Panel />
+} catch (error) {
+// render plain text fallback
+Error
+}
+</>;`;
+		const expected = `const App = () => <>
+  @switch (value) {
+    case "a":
+      // explain case a
+      A
+    default:
+      Fallback
+  }
+  @try {
+    // render the panel when ready
+    <Panel />
+  } catch (error) {
+    // render plain text fallback
+    Error
+  }
 </>;`;
 
 		const result = await format(input);
