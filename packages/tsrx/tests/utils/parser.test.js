@@ -175,6 +175,30 @@ describe('TSRX parser', () => {
 		expect(returned.metadata.styleScopeHash).toBe(returned.children[0].hash);
 	});
 
+	it('parses module-scope style expressions followed by JavaScript statements', () => {
+		const source = `const styles = <style>
+			.card {
+				color: red;
+			}
+		</style>;
+
+		describe('card', () => {});
+		export function App() {
+			return <div class={styles.card} />;
+		}`;
+		const ast = parseModule(source, 'App.tsrx');
+		const style = ast.body[0].declarations[0].init;
+
+		expect(ast.body.map((node) => node.type)).toEqual([
+			'VariableDeclaration',
+			'ExpressionStatement',
+			'ExportNamedDeclaration',
+		]);
+		expect(style.type).toBe('JSXStyleElement');
+		expect(style.end).toBe(source.indexOf('</style>') + '</style>'.length);
+		expect(style.css).toContain('.card');
+	});
+
 	it('does not add component style scope metadata to head styles', () => {
 		const returned = getReturned(`function App() { return <head>
 			<style>

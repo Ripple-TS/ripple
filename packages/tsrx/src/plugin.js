@@ -1843,11 +1843,25 @@ export function TSRXPlugin(config) {
 						new acorn.Position(closingEndInfo.line, closingEndInfo.column),
 					);
 					node.closingElement = closingElement;
+					const parent = this.#path.at(-2);
+					const insideTemplate = this.#isNativeTemplateNode(parent);
+					if (this.curContext() === tstc.tc_expr && !insideTemplate) {
+						this.context.pop();
+					}
 					this.exprAllowed = false;
 					this.pos = closingEnd;
 					this.curLine = closingEndInfo.line;
 					this.lineStart = closingEnd - closingEndInfo.column;
-					this.next();
+					if (!insideTemplate && this.#path.at(-1) === node) {
+						this.#path.pop();
+						try {
+							this.next();
+						} finally {
+							this.#path.push(node);
+						}
+					} else {
+						this.next();
+					}
 				} else {
 					this.#report_broken_markup_error(
 						open.end,
@@ -1858,14 +1872,6 @@ export function TSRXPlugin(config) {
 
 				node.css = content;
 				node.children = [/** @type {AST.Node} */ (/** @type {unknown} */ (parsedCss))];
-
-				const curContext = this.curContext();
-				const parent = this.#path.at(-1);
-				const insideTemplate = this.#isNativeTemplateNode(parent);
-
-				if (curContext === tstc.tc_expr && !insideTemplate) {
-					this.context.pop();
-				}
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -3893,8 +3899,17 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				this.finishNode(node, node.type);
-				return node;
+				if (is_style && /** @type {AST.JSXStyleElement} */ (node).closingElement) {
+					const closing = /** @type {AST.JSXStyleElement} */ (node).closingElement;
+					return this.finishNodeAt(
+						node,
+						node.type,
+						/** @type {number} */ (closing.end),
+						closing.loc.end,
+					);
+				}
+
+				return this.finishNode(node, node.type);
 			}
 
 			/**

@@ -9,6 +9,7 @@ describe('composite > render', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
+				---
 				<button onClick={() => count++}>{'Increment'}</button>
 				<Button {count} />
 			</>;
@@ -48,6 +49,7 @@ describe('composite > render', () => {
 				function B() {
 					return <><div>{'I am B'}</div></>;
 				}
+				---
 				<Button {A} {B}>
 					<div>{'other text'}</div>
 				</Button>
@@ -63,6 +65,7 @@ describe('composite > render', () => {
 		function App() {
 			return <>
 				let name = 'Click Me';
+				---
 				<Child class="my-button">{name}</Child>
 			</>;
 		}
@@ -114,7 +117,6 @@ describe('composite > render', () => {
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
 		function Wrapper({ children }) {
 			return <>
-				---
 				<div class="green">
 					{'Wrapper'}
 					{children}
@@ -129,7 +131,6 @@ describe('composite > render', () => {
 
 		function Child() {
 			return <>
-				---
 				<div class="red">{'Child'}</div>
 				<style>
 					.red {
@@ -168,6 +169,7 @@ describe('composite > render', () => {
 			return <>
 				let items = new RippleArray<number>();
 				items.push.apply(items, [1, 2, 3, 4, 5]);
+				---
 				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
 			</>;
 		}
