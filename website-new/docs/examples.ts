@@ -617,7 +617,7 @@ export default function App() {
   // reactive assignment
   let year = track(() => date.getFullYear());
   let month = track(() => date.getMonth());
-  <p>Assigned usage: Year {@year}, Month {@month}</p>
+  <p>Assigned usage: Year {year}, Month {month}</p>
 
   <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
   <button onClick={() => date.setMonth(11)}>Change to December</button>
@@ -723,7 +723,7 @@ export default function App() {
 
 function Child({ swapMe }: {swapMe: Tracked<Component>}) {
   return <>
-  <swapMe />
+  < />
 
   </>;
 }
