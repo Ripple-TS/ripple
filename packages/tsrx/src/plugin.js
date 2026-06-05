@@ -921,6 +921,18 @@ export function TSRXPlugin(config) {
 				this.pos = end;
 				this.curLine = endLoc.line;
 				this.lineStart = end - endLoc.column;
+				const after_fence = skip_whitespace_from(this.input, end);
+				if (
+					this.input.charCodeAt(after_fence) === CharCode.lessThan &&
+					this.input.charCodeAt(after_fence + 1) !== CharCode.slash
+				) {
+					while (
+						this.curContext()?.token === '{' &&
+						this.context[this.context.length - 2] === tstc.tc_expr
+					) {
+						this.context.pop();
+					}
+				}
 				this.next();
 
 				return this.finishNodeAt(node, 'TsrxTemplateFence', end, endLoc);
