@@ -8,6 +8,7 @@ describe('composite > dynamic components', () => {
 					return <><div>{'Basic Component'}</div></>;
 				}
 				const tracked_basic = track(() => basic);
+				---
 				<@tracked_basic />
 			</>;
 		}
@@ -29,6 +30,7 @@ describe('composite > dynamic components', () => {
 					tracked_basic,
 				};
 				const comp = obj.tracked_basic;
+				---
 				<@comp />
 			</>;
 		}
@@ -51,6 +53,7 @@ describe('composite > dynamic components', () => {
 				};
 				let &[inner] = track(obj);
 				const comp = inner.tracked_basic;
+				---
 				<@comp />
 			</>;
 		}
@@ -73,12 +76,13 @@ describe('composite > dynamic components', () => {
 		function App() {
 			return <>
 				let &[thing] = track(() => Child1);
+				---
 				<div id="container">
 					<@thing />
 				</div>
-				<button onClick={() => (thing = thing === Child1 ? Child2 : Child1)}>
-					{'Change Child'}
-				</button>
+				<button
+					onClick={() => (thing = thing === Child1 ? Child2 : Child1)}
+				>{'Change Child'}</button>
 			</>;
 		}
 

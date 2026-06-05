@@ -2547,7 +2547,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				name: name.name,
 				start: name.start,
 				end: name.end,
-				tracked: name.tracked === true,
+				tracked: name.tracked === true || name.dynamic === true,
 			});
 		} else if (name.type === 'JSXMemberExpression') {
 			// Convert JSXMemberExpression to MemberExpression
@@ -2599,6 +2599,9 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 								? attr.value.expression
 								: attr.value
 							: null;
+					if (attr.value?.type === 'JSXExpressionContainer' && value) {
+						value.was_expression = true;
+					}
 					return /** @type {AST.Node} */ ({
 						type: 'Attribute',
 						name: {
@@ -2680,7 +2683,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		if (node.expression.type === 'JSXEmptyExpression') return null;
 		return /** @type {AST.Node} */ ({
 			type: 'TSRXExpression',
-			expression: node.expression,
+			expression: normalize_jsx_tsrx_node(node.expression, inherited_path),
 			metadata: {},
 			start: node.start,
 			end: node.end,

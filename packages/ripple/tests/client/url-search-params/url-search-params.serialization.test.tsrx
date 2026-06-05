@@ -4,8 +4,9 @@ describe('RippleURLSearchParams > serialization', () => {
 	it('handles toString method with reactivity', () => {
 		function URLTest() {
 			return <>
-				const params = RippleURLSearchParams('foo=bar');
+				const params = new RippleURLSearchParams('foo=bar');
 				let &[string] = track(() => params.toString());
+				---
 				<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
 				<pre>{string}</pre>
 			</>;
@@ -28,10 +29,13 @@ describe('RippleURLSearchParams > serialization', () => {
 	it('handles special characters encoding', () => {
 		function URLTest() {
 			return <>
-				const params = RippleURLSearchParams();
+				const params = new RippleURLSearchParams();
+				---
 				<button onClick={() => params.set('key', 'value with spaces')}>{'add spaces'}</button>
 				<button onClick={() => params.set('special', '!@#$%^&*()')}>{'add special'}</button>
-				<pre>{params.toString()}</pre>
+				<pre>
+					{params.toString()}
+				</pre>
 			</>;
 		}
 

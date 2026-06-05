@@ -3,7 +3,50 @@ import { parseModule } from '../../src/index.js';
 
 function getReturned(source) {
 	const ast = parseModule(source, 'App.tsrx');
-	return ast.body[0].body.body[0].argument;
+	const first = ast.body[0];
+	if (first?.type === 'FunctionDeclaration') {
+		return first.body.body[0].argument;
+	}
+	// Fallback for components declared below the top level (e.g. a `function App`
+	// nested inside a return of another function callback): walk to the first JSX-returning
+	// `return` statement anywhere in the tree.
+	let found;
+	(function walk(node) {
+		if (found || !node || typeof node !== 'object') return;
+		if (Array.isArray(node)) return node.forEach(walk);
+		if (
+			node.type === 'ReturnStatement' &&
+			(node.argument?.type === 'JSXFragment' || node.argument?.type === 'JSXElement')
+		) {
+			found = node.argument;
+			return;
+		}
+		for (const key in node) {
+			if (key === 'loc' || key === 'start' || key === 'end') continue;
+			walk(node[key]);
+		}
+	})(ast);
+	return found;
+}
+
+// Find the first JSXElement with the given tag name anywhere in the parsed tree.
+// Used for templates that live inside `{expr}` containers rather than a direct return.
+function findElement(source, tagName) {
+	const ast = parseModule(source, 'App.tsrx');
+	let found;
+	(function walk(node) {
+		if (found || !node || typeof node !== 'object') return;
+		if (Array.isArray(node)) return node.forEach(walk);
+		if (node.type === 'JSXElement' && node.openingElement?.name?.name === tagName) {
+			found = node;
+			return;
+		}
+		for (const key in node) {
+			if (key === 'loc' || key === 'start' || key === 'end') continue;
+			walk(node[key]);
+		}
+	})(ast);
+	return found;
 }
 
 describe('TSRX parser', () => {
@@ -132,6 +175,39 @@ describe('TSRX parser', () => {
 		expect(returned.metadata.styleScopeHash).toBe(returned.children[0].hash);
 	});
 
+	it('parses empty style blocks inside fragments', () => {
+		const returned = getReturned('function App() { return <><style></style></>; }');
+
+		expect(returned.type).toBe('JSXFragment');
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXStyleElement']);
+		expect(returned.children[0].css).toBe('');
+		expect(returned.children[0].children.map((child) => child.type)).toEqual(['StyleSheet']);
+	});
+
+	it('parses module-scope style expressions followed by JavaScript statements', () => {
+		const source = `const styles = <style>
+			.card {
+				color: red;
+			}
+		</style>;
+
+		describe('card', () => {});
+		export function App() {
+			return <div class={styles.card} />;
+		}`;
+		const ast = parseModule(source, 'App.tsrx');
+		const style = ast.body[0].declarations[0].init;
+
+		expect(ast.body.map((node) => node.type)).toEqual([
+			'VariableDeclaration',
+			'ExpressionStatement',
+			'ExportNamedDeclaration',
+		]);
+		expect(style.type).toBe('JSXStyleElement');
+		expect(style.end).toBe(source.indexOf('</style>') + '</style>'.length);
+		expect(style.css).toContain('.card');
+	});
+
 	it('does not add component style scope metadata to head styles', () => {
 		const returned = getReturned(`function App() { return <head>
 			<style>
@@ -183,6 +259,74 @@ describe('TSRX parser', () => {
 		]);
 		expect(returned.children[1].value).toBe('---');
 		expect(returned.children[2].value).toContain('Hello');
+	});
+
+	it('keeps locations aligned after replaying multiline template text', () => {
+		const source = `function App() {
+	return <>
+		---
+		<pre>
+			{x}
+		</pre>
+	</>;
+}
+foo();`;
+		const ast = parseModule(source, 'App.tsrx');
+		const returned = ast.body[0].body.body[0].argument;
+		const pre = returned.children.find((child) => child.type === 'JSXElement');
+		const expression = pre.children[0].expression;
+
+		expect(expression.start).toBe(source.indexOf('x}'));
+		expect(expression.loc.start).toEqual({ line: 5, column: 4 });
+		expect(ast.body[1].loc.start).toEqual({ line: 9, column: 0 });
+	});
+
+	it('parses switch cases with JSX children followed by break statements', () => {
+		const ast = parseModule(
+			`function App() { return <>
+				const iconNodes = [['path', { d: 'x' }], ['circle', { cx: '1' }]];
+				---
+				<svg>
+					@for (const [tag, attrs] of iconNodes) {
+						@switch (tag) {
+							case 'path':
+								<path {...attrs} />
+								break;
+							case 'circle':
+								<circle {...attrs} />
+								break;
+						}
+					}
+				</svg>
+			</>; }`,
+			'App.tsrx',
+		);
+		let switchExpression;
+		(function walk(node) {
+			if (switchExpression || !node || typeof node !== 'object') return;
+			if (Array.isArray(node)) return node.forEach(walk);
+			if (node.type === 'JSXSwitchExpression') {
+				switchExpression = node;
+				return;
+			}
+			for (const key in node) {
+				if (key === 'loc' || key === 'start' || key === 'end') continue;
+				walk(node[key]);
+			}
+		})(ast);
+
+		expect(switchExpression.cases).toHaveLength(2);
+		const spread = switchExpression.cases[0].consequent[0].openingElement.attributes[0];
+		expect(spread.argument.type).toBe('Identifier');
+		expect(spread.argument.name).toBe('attrs');
+		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual([
+			'JSXElement',
+			'BreakStatement',
+		]);
+		expect(switchExpression.cases[1].consequent.map((node) => node.type)).toEqual([
+			'JSXElement',
+			'BreakStatement',
+		]);
 	});
 
 	it('treats unfenced keyword and symbol-looking element children as JSXText', () => {
@@ -288,6 +432,227 @@ describe('TSRX parser', () => {
 		]);
 		expect(returned.children[0].declarations[0].init.type).toBe('Literal');
 		expect(returned.children[0].declarations[0].init.regex.pattern).toBe('---');
+	});
+
+	it('does not treat tag-looking text inside script regex literals as markup', () => {
+		const returned = getReturned(`function App() { return <div>
+			const x = /<span>/
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('Literal');
+		expect(returned.children[0].declarations[0].init.regex.pattern).toBe('<span>');
+	});
+
+	it('reads `<value> /…/` in the script section as a less-than against a regex', () => {
+		// `3</div>/` is the JS expression `3 < /div>/`, not a `</div>` closing tag, so
+		// the script section is valid and the `</div>`-looking text is part of a regex.
+		const returned = getReturned(`function App() { return <div>
+			const x = 3</div>/
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		const init = returned.children[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(init.left.value).toBe(3);
+		expect(init.right.regex.pattern).toBe('div>');
+	});
+
+	it('parses array of objects in the template above the fence', () => {
+		const returned = getReturned(`
+			something(() => {
+				function App() {
+					return <>
+						const items = [
+							{ x: '10', y: '10', width: '20', height: '20' },
+							{ x: '40', y: '40', width: '20', height: '20' },
+						];
+						---
+					</>;
+				}
+			});`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+		]);
+		const init = returned.children[0].declarations[0].init;
+		expect(init.type).toBe('ArrayExpression');
+		expect(init.elements).toHaveLength(2);
+		expect(init.elements[0].type).toBe('ObjectExpression');
+		expect(init.elements[0].properties).toHaveLength(4);
+	});
+
+	it('parses functions returning fragments in the template script section', () => {
+		const returned = getReturned(`
+			function App() {
+				return <>
+					function basic() {
+						return <><div>{'Basic Component'}</div></>;
+					}
+					---
+					<@basic />
+				</>;
+			}`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'FunctionDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		const declaration = returned.children[0];
+		expect(declaration.body.body[0].type).toBe('ReturnStatement');
+		expect(declaration.body.body[0].argument.type).toBe('JSXFragment');
+	});
+
+	it('parses native control flow in a component nested below the top level', () => {
+		const returned = getReturned(`
+			something(() => {
+				function App() {
+					return <>
+						const items = ['a', '', 'c'];
+						---
+						@for (const item of items) {
+							if (!item) continue;
+							---
+							<li>{item}</li>
+						}
+					</>;
+				}
+			});`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXForExpression',
+		]);
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.statementType).toBe('ForOfStatement');
+		expect(directive.body.body.map((child) => child.type)).toEqual([
+			'IfStatement',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		expect(directive.body.body[0].consequent.type).toBe('ContinueStatement');
+	});
+
+	it('parses a TSRX template returned from a `.map()` callback as a native template', () => {
+		// Elements inside `{expr}` containers are still TSRX, so the script section,
+		// `---` fence and `@for` directive must be parsed structurally rather than
+		// swallowed as JSX text.
+		const tr = findElement(
+			`export function App({ rows }) {
+				return <table>
+					{rows.map((row) => <tr>
+						const cells = row.cells;
+						---
+						@for (const cell of cells)
+						{<td>{cell}</td>}
+					</tr>)}
+				</table>;
+			}`,
+			'tr',
+		);
+
+		expect(tr.metadata.native_tsrx).toBe(true);
+		expect(tr.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXForExpression',
+		]);
+		const directive = tr.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.statementType).toBe('ForOfStatement');
+	});
+
+	it('parses a TSRX element in a conditional expression as a native template', () => {
+		const div = findElement(
+			`export function App({ show }) {
+				return <section>
+					{show ? <div>
+						const label = 'hi';
+						---
+						{label}
+					</div> : null}
+				</section>;
+			}`,
+			'div',
+		);
+
+		expect(div.metadata.native_tsrx).toBe(true);
+		expect(div.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+	});
+
+	it('treats a generic call in the script section as script, not markup', () => {
+		// `foo<T>(bar)` is a type-argument call, so the `<T>` must not be read as a tag
+		// that would expect a `</T>` close before the `---` fence.
+		const returned = getReturned(`function App() { return <div>
+			const x = foo<T>(bar)
+			---
+			{x}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('CallExpression');
+		expect(returned.children[0].declarations[0].init.callee.name).toBe('foo');
+	});
+
+	it('treats a generic arrow function in the script section as script', () => {
+		// `<T>(x: T) => x` is a generic arrow, not a `<T>` element; reading it as markup
+		// previously recursed into a stack overflow.
+		const returned = getReturned(`function App() { return <div>
+			const id = <T>(x: T) => x
+			---
+			{id}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].declarations[0].init.type).toBe('ArrowFunctionExpression');
+	});
+
+	it('does not let a relational `>` inside an attribute break tag scanning', () => {
+		// The `>` in `value={foo > bar}` must not be mistaken for the end of the
+		// `<Comp ...>` opening tag. Here the element is template output, so the
+		// surrounding `const x = ` / `---` text is parsed as plain markup.
+		const returned = getReturned(`function App() { return <div>
+	const x = <Comp value={foo > bar} />
+	---
+	{x}
+</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].value).toContain('const x = ');
+		expect(returned.children[1].openingElement.name.name).toBe('Comp');
+		expect(returned.children[2].value).toContain('---');
 	});
 
 	it('does not treat fence or closing-tag text inside template literals as syntax', () => {

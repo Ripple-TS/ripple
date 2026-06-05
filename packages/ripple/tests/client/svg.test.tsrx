@@ -50,6 +50,7 @@ describe('SVG namespace handling', () => {
 					'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
 					'M3.304 13h6.392',
 				];
+				---
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -98,6 +99,7 @@ describe('SVG namespace handling', () => {
 		function App() {
 			return <>
 				const dynamicPaths = ['M12 2L2 7v10c0 5.55 3.84 10 9 11 5.16-1 9-5.45 9-11V7l-10-5z'];
+				---
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -140,6 +142,7 @@ describe('SVG namespace handling', () => {
 					{ x: '10', y: '10', width: '20', height: '20' },
 					{ x: '40', y: '40', width: '20', height: '20' },
 				];
+				---
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
 					<g fill="blue">
 						@for (const item of items) {
@@ -177,6 +180,7 @@ describe('SVG namespace handling', () => {
 			return <>
 				let className = 'svg-element';
 				const paths = ['M10 10 L20 20'];
+				---
 				<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" class={className}>
 					@for (const pathData of paths) {
 						<path d={pathData} class="dynamic-path" />
@@ -251,6 +255,7 @@ describe('SVG namespace handling', () => {
 		function App() {
 			return <>
 				let isDiamond = true;
+				---
 				<SVG>
 					@if (isDiamond) {
 						<polygon points="0,0 30,0 15,10" />
@@ -308,6 +313,7 @@ describe('SVG namespace handling', () => {
 		function App() {
 			return <>
 				let &[dynTag] = track('polygon');
+				---
 				<SVG>
 					<@dynTag points="0,0 30,0 15,10" />
 				</SVG>
@@ -339,6 +345,7 @@ describe('SVG namespace handling', () => {
 		function App() {
 			return <>
 				let &[Component] = track(() => Polygon);
+				---
 				<SVG>
 					<@Component points="0,0 30,0 15,10" />
 				</SVG>
@@ -358,6 +365,7 @@ describe('SVG namespace handling', () => {
 		function SVG({ children }: PropsWithChildren<{}>) {
 			return <>
 				let &[tag] = track('svg');
+				---
 				<@tag width={100} height={50} fill="red" viewBox="0 0 30 10" preserveAspectRatio="none">
 					{children}
 				</@tag>
@@ -367,6 +375,7 @@ describe('SVG namespace handling', () => {
 		function Polygon({ points }: PropsWithExtras<{ points: string }>) {
 			return <>
 				let &[dynTag] = track('polygon');
+				---
 				<@dynTag {points} />
 			</>;
 		}
@@ -374,6 +383,7 @@ describe('SVG namespace handling', () => {
 		function App() {
 			return <>
 				let &[Component] = track(() => Polygon);
+				---
 				<SVG>
 					<@Component points="0,0 30,0 15,10" />
 				</SVG>
@@ -398,6 +408,7 @@ describe('SVG namespace handling', () => {
 					'm2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16',
 					'M3.304 13h6.392',
 				];
+				---
 				<div class="container">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -476,17 +487,18 @@ describe('SVG namespace handling', () => {
 					['circle', { cx: '12', cy: '12', r: '4' }],
 					['path', { d: 'M18 16V7' }],
 					];
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-						@for (const [tag, attrs] of iconNodes) {
-							@switch (tag) {
-								case 'path':
-									<path {...attrs} />
-								break;
-							case 'circle':
-								<circle {...attrs} />
-								break;
-						}
+				---
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+					@for (const [tag, attrs] of iconNodes) {
+						@switch (tag) {
+							case 'path':
+							<path {...attrs} />
+							break;
+						case 'circle':
+							<circle {...attrs} />
+							break;
 					}
+				}
 				</svg>
 			</>;
 		}

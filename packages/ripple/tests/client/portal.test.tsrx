@@ -147,6 +147,7 @@ describe('Portal', () => {
 		function TestReactivePortal() {
 			return <>
 				let &[count] = track(0);
+				---
 				<Portal target={document.body}>
 					<div class="test-portal">
 						{'Count: '}

@@ -99,6 +99,7 @@ describe('composite > reactivity', () => {
 		function Button(props: { count: number }) {
 			return <>
 				let &[count] = track(() => props.count);
+				---
 				<button
 					onClick={() => {
 						count++;
@@ -150,6 +151,7 @@ describe('composite > reactivity', () => {
 		function Button(&{ count }: { count: number }) {
 			return <>
 				let &[local_count] = track(() => count);
+				---
 				<button
 					onClick={() => {
 						local_count++;
@@ -212,6 +214,7 @@ describe('composite > reactivity', () => {
 						c,
 					}),
 				);
+				---
 				<Child {...obj} />
 				<button
 					onClick={() => {
@@ -228,6 +231,7 @@ describe('composite > reactivity', () => {
 				effect(() => {
 					logs.push(`Child effect: ${a}, ${b}, ${c}`);
 				});
+				---
 				<div>
 					{a + ' ' + b + ' ' + c}
 				</div>
@@ -252,11 +256,16 @@ describe('composite > reactivity', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
+				---
 				<CounterWrapper {count} up={() => count++} down={() => count--} />
 			</>;
 		}
 
-		function CounterWrapper(props: Props) {
+		function CounterWrapper(props: {
+			count: number;
+			up: () => void;
+			down: () => void;
+		}) {
 			return <>
 				<div>
 					<Counter {...props} />
@@ -264,7 +273,16 @@ describe('composite > reactivity', () => {
 			</>;
 		}
 
-		function Counter(&{ count, up, down, ...rest }: Props) {
+		function Counter(&{
+			count,
+			up,
+			down,
+			...rest
+		}: {
+			count: number;
+			up: () => void;
+			down: () => void;
+		}) {
 			return <>
 				<button onClick={() => up()}>{'UP'}</button>
 				<button onClick={() => down()}>{'DOWN'}</button>
@@ -295,6 +313,7 @@ describe('composite > reactivity', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
+				---
 				<CounterWrapper {count} up={() => count++} />
 			</>;
 		}
@@ -318,6 +337,7 @@ describe('composite > reactivity', () => {
 						more.another = 0;
 					}
 				});
+				---
 				<div>
 					<Counter {...props} double={more.double} another={more.another} extra={more.extra} />
 				</div>

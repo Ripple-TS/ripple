@@ -274,6 +274,30 @@ function App() {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('preserves dynamic component syntax', async () => {
+		const input = `function App(){return <>
+function Basic(){return <><div>{"Basic Component"}</div></>;}
+const obj={Basic};
+const comp=obj.Basic;
+---
+<@comp />
+</>}`;
+		const expected = `function App() {
+  return <>
+    function Basic() {
+      return <><div>{"Basic Component"}</div></>;
+    }
+    const obj = { Basic };
+    const comp = obj.Basic;
+    ---
+    <@comp />
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats raw HTML props inside native elements', async () => {
 		const input = `function App(){return <article innerHTML={source}/>}`;
 		const expected = `function App() {

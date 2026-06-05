@@ -45,6 +45,7 @@ const CharCode = Object.freeze({
 	uppercaseA: 65,
 	uppercaseZ: 90,
 	openBracket: 91,
+	closeBracket: 93,
 	backslash: 92,
 	underscore: 95,
 	backtick: 96,
@@ -53,6 +54,27 @@ const CharCode = Object.freeze({
 	openBrace: 123,
 	closeBrace: 125,
 });
+
+/**
+ * Keywords after which a `/` begins a regex literal rather than division, used
+ * by the look-ahead scanners to track expression position in script content.
+ */
+const REGEX_PRECEDING_KEYWORDS = new Set([
+	'return',
+	'typeof',
+	'instanceof',
+	'in',
+	'of',
+	'new',
+	'delete',
+	'void',
+	'do',
+	'else',
+	'yield',
+	'await',
+	'case',
+	'throw',
+]);
 
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
@@ -637,6 +659,10 @@ export function TSRXPlugin(config) {
 
 				/** @type {string[]} */
 				const tag_stack = [];
+				// Tracks whether a `/` here would begin a regex literal (expression
+				// position) rather than division, so markup-looking text inside a script
+				// regex such as `/<span>/` is skipped instead of parsed as a tag.
+				let expr_allowed = true;
 
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
@@ -660,6 +686,7 @@ export function TSRXPlugin(config) {
 							}
 							index++;
 						}
+						expr_allowed = false;
 						continue;
 					}
 
@@ -680,6 +707,7 @@ export function TSRXPlugin(config) {
 							}
 							index++;
 						}
+						expr_allowed = false;
 						continue;
 					}
 
@@ -710,11 +738,41 @@ export function TSRXPlugin(config) {
 						continue;
 					}
 
+					if (ch === CharCode.slash) {
+						// A `/` in expression position opens a regex literal; skip its body so
+						// any `<tag>`, `</tag>`, or `---` inside it is not read as markup.
+						if (expr_allowed) {
+							const regex_end = this.#scanRegexLiteralEnd(index);
+							if (regex_end !== -1) {
+								index = regex_end;
+								expr_allowed = false;
+								continue;
+							}
+						}
+						expr_allowed = true;
+						index++;
+						continue;
+					}
+
 					if (tag_stack.length === 0 && this.#hasTemplateFenceAtIndex(index)) {
 						return true;
 					}
 
 					if (ch === CharCode.lessThan) {
+						// In expression position `<value> /…/` is a less-than comparison
+						// against a regex literal, not a closing tag: `3</div>/` means
+						// `3 < /div>/`. Only reinterpret when a value precedes the `<` (so it
+						// is an operator) and a valid single-line regex actually follows;
+						// `5</div>` (no second `/`) still reads as a closing tag.
+						if (next === CharCode.slash && !expr_allowed && tag_stack.length === 0) {
+							const regex_end = this.#scanRegexLiteralEnd(index + 1);
+							if (regex_end !== -1) {
+								index = regex_end;
+								expr_allowed = false;
+								continue;
+							}
+						}
+
 						// A closing tag (`</tag>`) always follows `<` with `/`; only a
 						// generic arrow (`<T>() => ...`) or type argument list (`foo<T>`)
 						// should be skipped here. Without the `/` guard, text like
@@ -733,6 +791,7 @@ export function TSRXPlugin(config) {
 							);
 							if (type_end !== -1) {
 								index = type_end;
+								expr_allowed = false;
 								continue;
 							}
 						}
@@ -757,6 +816,7 @@ export function TSRXPlugin(config) {
 							if (top !== undefined && top === close_name) {
 								tag_stack.pop();
 								index = name_end;
+								expr_allowed = false;
 								continue;
 							}
 							if (tag_stack.length === 0 && close_name === element_name) {
@@ -771,7 +831,10 @@ export function TSRXPlugin(config) {
 							let open_name = '';
 							if (next === CharCode.greaterThan) {
 								open_name = '';
-								cursor++;
+								tag_stack.push(open_name);
+								index = cursor + 1;
+								expr_allowed = true;
+								continue;
 							} else {
 								if (next === CharCode.at) cursor++;
 								const name_start = cursor;
@@ -812,10 +875,34 @@ export function TSRXPlugin(config) {
 								tag_stack.push(open_name);
 							}
 							index = cursor + 1;
+							expr_allowed = !self_closing;
 							continue;
 						}
 					}
 
+					if (this.#isIdentifierChar(ch) && !(ch >= CharCode.digit0 && ch <= CharCode.digit9)) {
+						const word_start = index;
+						index++;
+						while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+							index++;
+						}
+						expr_allowed = REGEX_PRECEDING_KEYWORDS.has(this.input.slice(word_start, index));
+						continue;
+					}
+
+					if (ch >= CharCode.digit0 && ch <= CharCode.digit9) {
+						index++;
+						while (
+							index < this.input.length &&
+							this.#isIdentifierChar(this.input.charCodeAt(index))
+						) {
+							index++;
+						}
+						expr_allowed = false;
+						continue;
+					}
+
+					expr_allowed = this.#nextExprAllowed(expr_allowed, ch);
 					index++;
 				}
 				return false;
@@ -837,6 +924,18 @@ export function TSRXPlugin(config) {
 				this.pos = end;
 				this.curLine = endLoc.line;
 				this.lineStart = end - endLoc.column;
+				const after_fence = skip_whitespace_from(this.input, end);
+				if (
+					this.input.charCodeAt(after_fence) === CharCode.lessThan &&
+					this.input.charCodeAt(after_fence + 1) !== CharCode.slash
+				) {
+					while (
+						this.curContext()?.token === '{' &&
+						this.context[this.context.length - 2] === tstc.tc_expr
+					) {
+						this.context.pop();
+					}
+				}
 				this.next();
 
 				return this.finishNodeAt(node, 'TsrxTemplateFence', end, endLoc);
@@ -906,6 +1005,7 @@ export function TSRXPlugin(config) {
 					this.lineStart = index - endLoc.column;
 				}
 				this.pos = index;
+				this.#popTemplateLiteralTokenContext();
 				this.next();
 
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
@@ -1107,13 +1207,78 @@ export function TSRXPlugin(config) {
 				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
 			}
 
+			/**
+			 * Scan a regex literal whose opening `/` is at `index`. Returns the index
+			 * just past the closing `/` and any flags, or -1 if it is not a valid
+			 * single-line regex literal (e.g. it runs into a newline first). Used by the
+			 * look-ahead fence scanners so that markup-looking text inside a script regex
+			 * (`/<span>/`, `/---/`) is not mistaken for real template syntax.
+			 * @param {number} index
+			 */
+			#scanRegexLiteralEnd(index) {
+				let i = index + 1;
+				let in_class = false;
+				while (i < this.input.length) {
+					const ch = this.input.charCodeAt(i);
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) return -1;
+					if (ch === CharCode.backslash) {
+						i += 2;
+						continue;
+					}
+					if (ch === CharCode.openBracket) {
+						in_class = true;
+					} else if (ch === CharCode.closeBracket) {
+						in_class = false;
+					} else if (ch === CharCode.slash && !in_class) {
+						i++;
+						while (i < this.input.length && this.#isIdentifierChar(this.input.charCodeAt(i))) {
+							i++;
+						}
+						return i;
+					}
+					i++;
+				}
+				return -1;
+			}
+
+			/**
+			 * Advance the expression-position flag used by the fence scanners after the
+			 * character (or token) at `index` has been consumed. `expr_allowed` is true
+			 * when a following `/` would begin a regex literal rather than division. The
+			 * scanners only need a coarse approximation: values close expression position,
+			 * operators and most punctuation reopen it.
+			 * @param {boolean} expr_allowed
+			 * @param {number} ch
+			 * @returns {boolean}
+			 */
+			#nextExprAllowed(expr_allowed, ch) {
+				if (
+					ch === CharCode.space ||
+					ch === CharCode.tab ||
+					ch === CharCode.lineFeed ||
+					ch === CharCode.carriageReturn
+				) {
+					return expr_allowed;
+				}
+				if (
+					ch === CharCode.closeParen ||
+					ch === CharCode.closeBracket ||
+					ch === CharCode.closeBrace
+				) {
+					return false;
+				}
+				return true;
+			}
+
 			#parseJSXSwitchCaseRawText() {
 				const start = this.start;
 				let index = start;
+				let found_boundary = false;
 				while (index < this.input.length) {
 					const boundary = this.#switchCaseBoundaryStart(index);
 					if (boundary !== -1) {
 						index = boundary;
+						found_boundary = true;
 						break;
 					}
 
@@ -1139,6 +1304,17 @@ export function TSRXPlugin(config) {
 					this.lineStart = index - endLoc.column;
 				}
 				this.pos = index;
+				if (found_boundary) {
+					this.context = this.context.filter(
+						(context) =>
+							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+					);
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+					}
+					this.exprAllowed = true;
+					this.#suppressTemplateRawTextToken = true;
+				}
 				this.next();
 
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
@@ -1379,7 +1555,14 @@ export function TSRXPlugin(config) {
 				node.consequent = this.#parseTemplateControlFlowStatement();
 				node.alternate = null;
 
-				if (this.eat(tt._else)) {
+				if (this.type === tt._else) {
+					const previous_reading_header = this.#readingJSXControlFlowHeader;
+					this.#readingJSXControlFlowHeader = true;
+					try {
+						this.next();
+					} finally {
+						this.#readingJSXControlFlowHeader = previous_reading_header;
+					}
 					const label = this.type.keyword || this.type.label;
 					node.alternate =
 						label === 'if'
@@ -1497,7 +1680,10 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxText) {
-					consequent.push(/** @type {any} */ (this.#parseJSXSwitchCaseRawText()));
+					const text = this.#parseJSXSwitchCaseRawText();
+					if (!isWhitespaceTextNode(text)) {
+						consequent.push(/** @type {any} */ (text));
+					}
 					return;
 				}
 
@@ -1569,7 +1755,10 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				consequent.push(this.#parseJSXSwitchCaseRawText());
+				const text = this.#parseJSXSwitchCaseRawText();
+				if (!isWhitespaceTextNode(text)) {
+					consequent.push(text);
+				}
 			}
 
 			/**
@@ -1657,11 +1846,35 @@ export function TSRXPlugin(config) {
 						new acorn.Position(closingEndInfo.line, closingEndInfo.column),
 					);
 					node.closingElement = closingElement;
+					const parent = this.#path.at(-2);
+					const insideTemplate = this.#isNativeTemplateNode(parent);
+					if (this.curContext() === tstc.tc_expr && !insideTemplate) {
+						this.context.pop();
+					}
 					this.exprAllowed = false;
 					this.pos = closingEnd;
 					this.curLine = closingEndInfo.line;
 					this.lineStart = closingEnd - closingEndInfo.column;
-					this.next();
+					if (insideTemplate && relativeCloseStart === 0) {
+						// Acorn has already tokenized the adjacent </style>; TSRX synthesizes
+						// that close manually, so drop the stale style tag context.
+						if (this.curContext() === tstc.tc_oTag) {
+							this.context.pop();
+						}
+						if (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
+					}
+					if (!insideTemplate && this.#path.at(-1) === node) {
+						this.#path.pop();
+						try {
+							this.next();
+						} finally {
+							this.#path.push(node);
+						}
+					} else {
+						this.next();
+					}
 				} else {
 					this.#report_broken_markup_error(
 						open.end,
@@ -1672,14 +1885,6 @@ export function TSRXPlugin(config) {
 
 				node.css = content;
 				node.children = [/** @type {AST.Node} */ (/** @type {unknown} */ (parsedCss))];
-
-				const curContext = this.curContext();
-				const parent = this.#path.at(-1);
-				const insideTemplate = this.#isNativeTemplateNode(parent);
-
-				if (curContext === tstc.tc_expr && !insideTemplate) {
-					this.context.pop();
-				}
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -2919,6 +3124,7 @@ export function TSRXPlugin(config) {
 
 				if (this.eat(tt.braceL)) {
 					if (this.type === tt.ellipsis || this.input.slice(this.start, this.start + 3) === '...') {
+						this.#suppressTemplateRawTextToken = true;
 						if (this.type === tt.ellipsis) {
 							this.expect(tt.ellipsis);
 						} else {
@@ -2929,6 +3135,7 @@ export function TSRXPlugin(config) {
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else if (this.lookahead().type === tt.ellipsis) {
+						this.#suppressTemplateRawTextToken = true;
 						this.expect(tt.ellipsis);
 						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);
@@ -3487,11 +3694,7 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				if (
-					this.#forceScriptJSXElementDepth > 0 ||
-					(this.#functionBodyDepth > 1 && this.input.charCodeAt(this.start + 1) !== CharCode.at) ||
-					this.#isInsideNativeTemplateScriptSection()
-				) {
+				if (this.#forceScriptJSXElementDepth > 0 || this.#isInsideNativeTemplateScriptSection()) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
 						return /** @type {ESTreeJSX.JSXElement | AST.JSXStyleElement} */ (
@@ -3709,8 +3912,17 @@ export function TSRXPlugin(config) {
 					}
 				}
 
-				this.finishNode(node, node.type);
-				return node;
+				if (is_style && /** @type {AST.JSXStyleElement} */ (node).closingElement) {
+					const closing = /** @type {AST.JSXStyleElement} */ (node).closingElement;
+					return this.finishNodeAt(
+						node,
+						node.type,
+						/** @type {number} */ (closing.end),
+						closing.loc.end,
+					);
+				}
+
+				return this.finishNode(node, node.type);
 			}
 
 			/**
@@ -3726,6 +3938,8 @@ export function TSRXPlugin(config) {
 
 				if (!is_template_output && this.type === tstt.jsxText) {
 					const jsx_text_value = String(this.value ?? '');
+					const token_start = this.start;
+					const token_start_loc = this.startLoc;
 					const has_template_fence_ahead = current_template_node.metadata
 						?.native_tsrx_template_block
 						? current_template_node.metadata?.hasTemplateFenceAhead
@@ -3739,13 +3953,15 @@ export function TSRXPlugin(config) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
 					}
-					this.pos = this.start;
+					this.pos = token_start;
 					if (!should_enter_template_text) {
 						this.context = this.context.filter(
 							(context) =>
 								context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
 						);
-						this.startLoc = this.curPosition();
+						this.startLoc = token_start_loc;
+						this.curLine = token_start_loc.line;
+						this.lineStart = token_start - token_start_loc.column;
 						if (this.curContext() !== b_stat) {
 							this.context.push(b_stat);
 						}
@@ -3788,6 +4004,14 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tt.braceL) {
+					// A `{expr}` child is template output, not script setup. Enter template
+					// output mode (mirroring the jsxText/control-flow branches) so elements
+					// nested in the expression (`{items.map((i) => <li>...)}`) are not treated
+					// as living in this element's script section.
+					if (!is_template_output && this.#canImplicitlyEnterTemplateOutput(body)) {
+						current_template_node.metadata ??= { path: [] };
+						current_template_node.metadata.templateMode = 'template';
+					}
 					body.push(this.#parseNativeTemplateExpressionContainer());
 				} else if (is_template_output && this.type === tstt.jsxText) {
 					// A nested element with its own script section can leak a JSX
@@ -3805,7 +4029,10 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
-					body.push(this.#parseTemplateRawText());
+					const text = this.#parseTemplateRawText();
+					if (!isWhitespaceTextNode(text)) {
+						body.push(text);
+					}
 				} else if (is_template_output && this.#isJSXControlFlowDirectiveStart()) {
 					body.push(this.#parseJSXControlFlowExpression());
 				} else if (this.type === tt.braceR) {
@@ -3951,7 +4178,10 @@ export function TSRXPlugin(config) {
 				} else if (is_template_output && this.type === tt.eof) {
 					return;
 				} else if (is_template_output) {
-					body.push(this.#parseTemplateRawText());
+					const text = this.#parseTemplateRawText();
+					if (!isWhitespaceTextNode(text)) {
+						body.push(text);
+					}
 				} else {
 					skipWhitespace(this);
 					if (this.#templateFenceStart() !== -1) {
@@ -3973,7 +4203,10 @@ export function TSRXPlugin(config) {
 					) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
-						body.push(this.#parseTemplateRawText());
+						const text = this.#parseTemplateRawText();
+						if (!isWhitespaceTextNode(text)) {
+							body.push(text);
+						}
 						this.parseTemplateBody(body);
 						return;
 					}
@@ -4097,7 +4330,7 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxTagStart) {
-					if (this.#functionBodyDepth > 1 || this.#forceScriptJSXElementDepth > 0) {
+					if (this.#forceScriptJSXElementDepth > 0) {
 						return /** @type {AST.Statement} */ (
 							/** @type {unknown} */ (super.parseStatement(context, topLevel, exports))
 						);
@@ -4166,11 +4399,7 @@ export function TSRXPlugin(config) {
 			parseBlock(createNewLexicalScope, node, exitStrict) {
 				const parent = this.#path.at(-1);
 
-				if (
-					this.#functionBodyDepth === 0 &&
-					this.#isNativeTemplateNode(parent) &&
-					this.#templateControlFlowBlockDepth > 0
-				) {
+				if (this.#isNativeTemplateNode(parent) && this.#templateControlFlowBlockDepth > 0) {
 					this.#templateControlFlowBlockDepth--;
 					try {
 						return this.#parseTemplateControlFlowBlock(createNewLexicalScope, node, exitStrict);

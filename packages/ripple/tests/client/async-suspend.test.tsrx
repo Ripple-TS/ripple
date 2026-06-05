@@ -78,6 +78,7 @@ describe('async suspense', () => {
 						resolve_value = resolve;
 					}),
 				);
+				---
 				<div class="value">{value}</div>
 			</>;
 		}
@@ -296,7 +297,6 @@ describe('async suspense', () => {
 					);
 
 					let &[filtered] = track(() => items.filter((item: string) => item.includes(query)));
-
 					---
 					<>
 						<ul>

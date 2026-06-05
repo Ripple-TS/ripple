@@ -55,7 +55,7 @@ describe('compiler > basics', () => {
 		const source = `export function App() { return <>
 	const markup = '<span>Not HTML</span>';
 	const text = markup;
-
+	---
 	<div>{markup}</div>
 	<div>{text}</div>
 </>; }`;
@@ -78,7 +78,7 @@ describe('compiler > basics', () => {
 
 		const invalid_source = `export function App() { return <>
 	const markup = 'plain';
-
+	---
 	<div>{text markup}</div>
 </>; }`;
 
@@ -90,7 +90,7 @@ describe('compiler > basics', () => {
 	{ title, props }: { title: string; props: { label: string } },
 ) { return <>
 	const element = <span />;
-
+	---
 	<div>{String(title)}</div>
 	<div>{title + ''}</div>
 	<div>{title as string}</div>
@@ -232,6 +232,7 @@ export function App() {
 				bar = { def: 456 };
 				baz = { ghi: 789 };
 				baz['jkl'] = 987;
+				---
 			</>;
 		}
 
@@ -248,6 +249,7 @@ export function App() {
 					const x = 1 < 1;
 				}
 				let x = 5 < 10;
+				---
 				<div>{x}</div>
 			</>;
 		}
@@ -260,11 +262,13 @@ export function App() {
 			return <>
 				<div>
 					const a = 1;
+					---
 					<div>const b = 1;</div>
 					<div>const b = 1;</div>
 				</div>
 				<div>
 					const a = 2;
+					---
 					<div>const b = 1;</div>
 				</div>
 			</>;
@@ -296,6 +300,7 @@ export function App() {
 						b: 3,
 					},
 				};
+				---
 			</>;
 		}
 
@@ -307,6 +312,7 @@ export function App() {
 			return <>
 				const obj = { a: 1, b: 2, c: 3 };
 				const { a, b, ...rest } = obj;
+				---
 				<div>
 					{'a '}
 					{a}
@@ -327,6 +333,7 @@ export function App() {
 			return <>
 				const obj = { a: 1, b: 2, c: 3 };
 				const { a, b, ...rest } = obj;
+				---
 				{'a '}
 				{a}
 				{'b '}
@@ -374,6 +381,7 @@ export function App() {
 				}
 				let flag = true;
 				const s = flag ? new Box<number>(1) : new Box<string>('string');
+				---
 			</>;
 		}
 
@@ -385,11 +393,14 @@ export function App() {
 	<div>const code4 = 4
 
 	const code3 = 3
+	---
 		<div>
+			const code2 = 2
+			---
 			<div>
 				const code = 1
+				---
 			</div>
-			const code2 = 2
 		</div>
 	</div>
 </>; }`;
@@ -449,7 +460,7 @@ function App() { return <>
 
 		return null;
 	}
-
+	---
 	<div>{make(true)}</div>
 </>; }
 `;
@@ -535,14 +546,15 @@ function App() { return <>
 		const source = `
 import { RippleArray, RippleMap, RippleObject, RippleSet, createRefKey, effect, track, untrack } from 'ripple';
 function App() { return <>
-    let value = track('test');
-    function inputRef(node) {}
+	let value = track('test');
+	function inputRef(node) {}
 
-    const props = {
-            id: 'example',
-            value: value.value,
-            [createRefKey()]: inputRef,
-    };
+	const props = {
+					id: 'example',
+					value: value.value,
+					[createRefKey()]: inputRef,
+	};
+	---
 </>; }
 `;
 
@@ -557,6 +569,7 @@ import { track } from 'ripple';
 function App() { return <>
 	let &[value, ...rest] = track(0);
 	const x = value;
+	---
 </>; }
 `;
 		const track_result = compile_to_volar_mappings(track_source, 'test.tsrx').code;
@@ -577,14 +590,14 @@ function App() { return <>
 		</span>
 	</>;
 	const content = <div class="native">{nested}</div>;
-
+	---
 	{content}
 </>; }
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(result).toContain('const nested = <span class="nested-tsx">');
-		expect(result).toContain('return <>{children}</>;');
+		expect(result).toContain('return content;');
 		expect(result).toContain('const content = <div class="native">');
 	});
 
@@ -594,7 +607,7 @@ function App() { return <>
 	const styles = <style>
 		.logo { display: block; }
 	</style>;
-
+	---
 	<div class={styles.logo} />
 </>; }
 `;
@@ -627,7 +640,7 @@ function App() { return <>
 		</span>
 	</>;
 	const content = <div class="native">{nested}</div>;
-
+	---
 	{content}
 </>; }
 `;
@@ -851,7 +864,7 @@ export function App(props: Props) { return <>
 import { track } from 'ripple';
 export function App() { return <>
 	let &[level] = track(1);
-
+	---
 	<button
 		onClick={() => {
 			if (level === 1) level = 2;
@@ -954,7 +967,7 @@ export const App = () => <>
 		const source_offset = source.indexOf('\'I like TSRX\'');
 		const generated_offset = result.code.indexOf('\'I like TSRX\'');
 
-		expect(result.code).toContain('<OtherComponent children=\'I like TSRX\'');
+		expect(result.code).toContain('<OtherComponent children={\'I like TSRX\'}');
 		expect(result.code).not.toContain('children={() =>');
 		expect(
 			result.mappings.find(
@@ -980,7 +993,7 @@ function Card(props) { return <>
 
 export function App() { return <>
 	const fallback = 'fallback';
-
+  ---
 	<Card children={fallback}>
 		<span>{'content'}</span>
 	</Card>
@@ -1005,6 +1018,7 @@ class Test {
 
 export function App() { return <>
 	const test = new Test();
+	---
 	<div>{test.count}</div>
 </>; }
 `;
@@ -1024,6 +1038,7 @@ class Store {
 
 export function App() { return <>
 	const store = new Store();
+	---
 	<div>{store.count}</div>
 </>; }
 `;
@@ -1046,6 +1061,7 @@ function App() { return <>
 		const snapshot = untrack(() => count);
 		console.log(snapshot);
 	});
+	---
 </>; }
 `;
 
@@ -1062,6 +1078,7 @@ import { track } from 'ripple';
 export function App() { return <>
 	let test = track(false);
 	let test = 'hey';
+	---
 </>; }
 `;
 
@@ -1091,6 +1108,7 @@ import { loadUser } from server;
 function App() { return <>
 	const user = getUser();
 	const user2 = loadUser();
+	---
 	<div>{user.id}{user2.id}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
@@ -1149,12 +1167,9 @@ function App() { return <>
 	});
 
 	it('allows return statements inside returned TSRX fragments in Volar mappings', () => {
-		const result = compile_to_volar_mappings(
-			`function App() { return <>
+		const result = compile_to_volar_mappings(`function App() {
 				return <div />;
-			</>; }`,
-			'test.tsrx',
-		);
+			}`, 'test.tsrx');
 
 		expect(result.errors).toEqual([]);
 	});
@@ -1206,6 +1221,7 @@ export function App({ items }: { items: string[] }) { return <>
 			if (!item) continue
 		}
 	}
+	---
 </>; }`;
 
 		const result = compile(source, 'test.tsrx', { collect: true });
@@ -1233,7 +1249,7 @@ function Card(props) { return <>
 
 export function App() { return <>
 	const content = 'hello';
-
+	---
 	<Card children={content} />
 </>; }
 `;
@@ -1272,7 +1288,7 @@ function Card(props) { return <>
 
 export function App() { return <>
 	const props = { children: 'hello' };
-
+	---
 	<Card {...props} />
 </>; }
 `;

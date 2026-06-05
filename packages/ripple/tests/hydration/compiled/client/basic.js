@@ -12,47 +12,74 @@ var root_7 = _$_.template(`<div class="second">Second</div>`, 0);
 var root_8 = _$_.template(`<!><!>`, 1, 2);
 var root_9 = _$_.template(`<div> </div>`, 0);
 var root_10 = _$_.template(`<!>`, 1, 1);
-var root_11 = _$_.template(`<div> </div><span> </span>`, 1, 2);
+
+var root_11 = _$_.template(
+	`const value = 42;
+		const label = 'computed';<div> </div><span> </span>`,
+	1,
+	3
+);
+
 var root_12 = _$_.template(`<div class="helper-item"> </div>`, 0);
 var root_14 = _$_.template(`<!>`, 1, 1);
 var root_13 = _$_.template(`<span class="label"> </span><!>`, 1, 2);
 var root_16 = _$_.template(`<div class="app-item"> </div>`, 0);
 var root_15 = _$_.template(`<!><!>`, 1, 2);
-var root_17 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_18 = _$_.template(`<em class="tail">epsilon</em>`, 0);
-var root_19 = _$_.template(` `, 1, 1);
-var root_20 = _$_.template(`<div class="mixed-collection"><!></div>`, 0);
-var root_21 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_22 = _$_.template(`<em class="tail">epsilon</em>`, 0);
-var root_23 = _$_.template(` `, 1, 1);
-var root_24 = _$_.template(`<div class="mixed-collection-split"><!></div>`, 0);
-var root_25 = _$_.template(`<strong class="middle">beta</strong>`, 0);
-var root_26 = _$_.template(`<em class="tail">epsilon</em>`, 0);
-var root_27 = _$_.template(` `, 1, 1);
-var root_28 = _$_.template(`<div class="mixed-collection-split"><!></div>`, 0);
-var root_29 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
-var root_30 = _$_.template(` `, 1, 1);
-var root_31 = _$_.template(`<div class="mixed-collection-primitive"><!></div>`, 0);
-var root_32 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
-var root_33 = _$_.template(` `, 1, 1);
-var root_34 = _$_.template(`<div class="mixed-collection-primitive"><!></div>`, 0);
-var root_35 = _$_.template(`<div class="dynamic-array-call"> </div>`, 0);
-var root_36 = _$_.template(`<div class="dynamic-array-track"> </div>`, 0);
-var root_37 = _$_.template(`<div class="dynamic-array-conditional"> </div>`, 0);
-var root_38 = _$_.template(`<div class="dynamic-array-logical"> </div>`, 0);
-var root_40 = _$_.template(`<div class="inner">from tsrx</div>`, 0);
-var root_39 = _$_.template(`<section class="outer"> </section>`, 0);
-var root_41 = _$_.template(`<!>`, 1, 1);
-var root_43 = _$_.template(`<section class="native"><span class="nested-tsrx">inside nested tsrx</span></section>`, 0);
-var root_42 = _$_.template(`<div class="wrapper"> </div>`, 0);
-var root_44 = _$_.template(`<!>`, 1, 1);
-var root_45 = _$_.template(`<span class="nested-tsx">inside nested tsx</span>`, 0);
-var root_46 = _$_.template(`<div class="native"><!></div>`, 0);
-var root_47 = _$_.template(`<!>`, 1, 1);
+var root_18 = _$_.template(`<strong class="middle">beta</strong>`, 0);
+var root_19 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_20 = _$_.template(` `, 1, 1);
+var root_17 = _$_.template(`const content =<!>;<div class="mixed-collection"> </div>`, 1, 4);
+var root_22 = _$_.template(`<strong class="middle">beta</strong>`, 0);
+var root_23 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_24 = _$_.template(` `, 1, 1);
+var root_21 = _$_.template(`const content =<!>;<div class="mixed-collection-split"> </div>`, 1, 4);
+var root_26 = _$_.template(`<strong class="middle">beta</strong>`, 0);
+var root_27 = _$_.template(`<em class="tail">epsilon</em>`, 0);
+var root_28 = _$_.template(` `, 1, 1);
+var root_25 = _$_.template(`const content =<!>;<div class="mixed-collection-split"> </div>`, 1, 4);
+var root_30 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
+var root_31 = _$_.template(` `, 1, 1);
+var root_29 = _$_.template(`const content =<!>;<div class="mixed-collection-primitive"> </div>`, 1, 4);
+var root_33 = _$_.template(`<span class="primitive-tail"> ok</span>`, 0);
+var root_34 = _$_.template(` `, 1, 1);
+var root_32 = _$_.template(`const content =<!>;<div class="mixed-collection-primitive"> </div>`, 1, 4);
+var root_35 = _$_.template(`const items = createPrimitiveItems();<div class="dynamic-array-call"> </div>`, 1, 2);
+var root_36 = _$_.template(`let &amp;[items] = track(['start:', ['one', 2], true, null, false, ':end']);<div class="dynamic-array-track"> </div>`, 1, 2);
+
+var root_37 = _$_.template(
+	`const condition = true;
+		const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];<div class="dynamic-array-conditional"> </div>`,
+	1,
+	2
+);
+
+var root_38 = _$_.template(
+	`const condition = true;
+		const items = condition &amp;&amp; ['start:', ['one', 2], true, null, false, ':end'];<div class="dynamic-array-logical"> </div>`,
+	1,
+	2
+);
+
+var root_41 = _$_.template(`<div class="inner">from tsrx</div>`, 0);
+var root_40 = _$_.template(`<section class="outer"><!></section>`, 0);
+var root_39 = _$_.template(`const content =<!> `, 1, 3);
+var root_44 = _$_.template(`<section class="native"><span class="nested-tsrx">inside nested tsrx</span></section>`, 0);
+var root_43 = _$_.template(`<div class="wrapper"><!></div>`, 0);
+var root_42 = _$_.template(`const content =<!> `, 1, 3);
+var root_46 = _$_.template(`<span class="nested-tsx">inside nested tsx</span>`, 0);
+var root_47 = _$_.template(`<div class="native"> </div>`, 0);
+
+var root_45 = _$_.template(
+	`const nested =<!>;
+		const content =<!> `,
+	1,
+	5
+);
+
 var root_48 = _$_.template(`<div class="text-prop"><!></div>`, 0);
-var root_49 = _$_.template(`<!><button class="show-text">Show</button>`, 1, 2);
+var root_49 = _$_.template(`let &amp;[show] = track(false);<!><button class="show-text">Show</button>`, 1, 3);
 var root_50 = _$_.template(`<h1 class="sr-only">heading</h1><p class="subtitle">first paragraph</p><p class="subtitle">second paragraph</p>`, 1, 3);
-var root_51 = _$_.template(`<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 3);
+var root_51 = _$_.template(`const foo = 'bar';<!><span class="sibling1"> </span><span class="sibling2"> </span>`, 1, 4);
 var root_52 = _$_.template(`<h1 class="sr-only">Ripple</h1><img src="/images/logo.png" alt="Logo" class="logo"><p class="subtitle">the elegant TypeScript UI framework</p>`, 1, 3);
 var root_54 = _$_.template(`<a href="/playground" class="playground-link">Playground</a>`, 0);
 var root_53 = _$_.template(`<div class="social-links"><a href="https://github.com" class="github-link">GitHub</a><a href="https://discord.com" class="discord-link">Discord</a><!></div>`, 0);
@@ -184,10 +211,9 @@ export function WithGreeting() {
 
 export function ExpressionContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const value = 42;
-		const label = 'computed';
 		var fragment_4 = root_11();
-		var div_7 = _$_.first_child_frag(fragment_4);
+		var text = _$_.first_child_frag(fragment_4);
+		var div_7 = _$_.sibling(text);
 
 		{
 			var expression_1 = _$_.child(div_7);
@@ -205,7 +231,7 @@ export function ExpressionContent() {
 			_$_.pop(span_2);
 		}
 
-		_$_.next();
+		_$_.next(2);
 		_$_.append(__anchor, fragment_4, true);
 	});
 }
@@ -288,55 +314,18 @@ export function NestedTsxTsrxExpressionValues() {
 
 export function MixedTsrxCollectionText() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var fragment_8 = root_19();
-			var expression_6 = _$_.first_child_frag(fragment_8);
+		var fragment_8 = root_17();
+		var text_1 = _$_.first_child_frag(fragment_8);
+		var node_8 = _$_.sibling(text_1);
+
+		_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_9 = root_20();
+			var expression_6 = _$_.first_child_frag(fragment_9);
 
 			_$_.expression(expression_6, () => [
 				'alpha ',
 				_$_.tsrx_element((__anchor, __block) => {
-					var strong = root_17();
-
-					_$_.append(__anchor, strong);
-				}),
-				' gamma ',
-				[
-					'delta ',
-					_$_.tsrx_element((__anchor, __block) => {
-						var em = root_18();
-
-						_$_.append(__anchor, em);
-					}),
-					' zeta'
-				]
-			]);
-
-			_$_.append(__anchor, fragment_8);
-		});
-
-		var div_10 = root_20();
-
-		{
-			var expression_7 = _$_.child(div_10);
-
-			_$_.expression(expression_7, () => content);
-			_$_.pop(div_10);
-		}
-
-		_$_.append(__anchor, div_10);
-	});
-}
-
-export function MixedTsrxCollectionSplitServerText() {
-	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var fragment_9 = root_23();
-			var expression_8 = _$_.first_child_frag(fragment_9);
-
-			_$_.expression(expression_8, () => [
-				'alpha ',
-				_$_.tsrx_element((__anchor, __block) => {
-					var strong_1 = root_21();
+					var strong_1 = root_18();
 
 					_$_.append(__anchor, strong_1);
 				}),
@@ -344,7 +333,7 @@ export function MixedTsrxCollectionSplitServerText() {
 				[
 					'delta ',
 					_$_.tsrx_element((__anchor, __block) => {
-						var em_1 = root_22();
+						var em_1 = root_19();
 
 						_$_.append(__anchor, em_1);
 					}),
@@ -353,9 +342,57 @@ export function MixedTsrxCollectionSplitServerText() {
 			]);
 
 			_$_.append(__anchor, fragment_9);
-		});
+		}));
 
-		var div_11 = root_24();
+		var text_2 = _$_.sibling(node_8);
+		var div_10 = _$_.sibling(text_2);
+
+		{
+			var expression_7 = _$_.child(div_10);
+
+			_$_.expression(expression_7, () => content);
+			_$_.pop(div_10);
+		}
+
+		_$_.next();
+		_$_.append(__anchor, fragment_8, true);
+	});
+}
+
+export function MixedTsrxCollectionSplitServerText() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		var fragment_10 = root_21();
+		var text_3 = _$_.first_child_frag(fragment_10);
+		var node_9 = _$_.sibling(text_3);
+
+		_$_.expression(node_9, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_11 = root_24();
+			var expression_8 = _$_.first_child_frag(fragment_11);
+
+			_$_.expression(expression_8, () => [
+				'alpha ',
+				_$_.tsrx_element((__anchor, __block) => {
+					var strong_2 = root_22();
+
+					_$_.append(__anchor, strong_2);
+				}),
+				' gamma ',
+				[
+					'delta ',
+					_$_.tsrx_element((__anchor, __block) => {
+						var em_2 = root_23();
+
+						_$_.append(__anchor, em_2);
+					}),
+					' zeta'
+				]
+			]);
+
+			_$_.append(__anchor, fragment_11);
+		}));
+
+		var text_4 = _$_.sibling(node_9);
+		var div_11 = _$_.sibling(text_4);
 
 		{
 			var expression_9 = _$_.child(div_11);
@@ -364,39 +401,45 @@ export function MixedTsrxCollectionSplitServerText() {
 			_$_.pop(div_11);
 		}
 
-		_$_.append(__anchor, div_11);
+		_$_.next();
+		_$_.append(__anchor, fragment_10, true);
 	});
 }
 
 export function MixedTsrxCollectionSplitClientText() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var fragment_10 = root_27();
-			var expression_10 = _$_.first_child_frag(fragment_10);
+		var fragment_12 = root_25();
+		var text_5 = _$_.first_child_frag(fragment_12);
+		var node_10 = _$_.sibling(text_5);
+
+		_$_.expression(node_10, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_13 = root_28();
+			var expression_10 = _$_.first_child_frag(fragment_13);
 
 			_$_.expression(expression_10, () => [
 				'alpha ',
 				_$_.tsrx_element((__anchor, __block) => {
-					var strong_2 = root_25();
+					var strong_3 = root_26();
 
-					_$_.append(__anchor, strong_2);
+					_$_.append(__anchor, strong_3);
 				}),
 				' gamma ',
 				[
 					'changed ',
 					_$_.tsrx_element((__anchor, __block) => {
-						var em_2 = root_26();
+						var em_3 = root_27();
 
-						_$_.append(__anchor, em_2);
+						_$_.append(__anchor, em_3);
 					}),
 					' zeta'
 				]
 			]);
 
-			_$_.append(__anchor, fragment_10);
-		});
+			_$_.append(__anchor, fragment_13);
+		}));
 
-		var div_12 = root_28();
+		var text_6 = _$_.sibling(node_10);
+		var div_12 = _$_.sibling(text_6);
 
 		{
 			var expression_11 = _$_.child(div_12);
@@ -405,15 +448,20 @@ export function MixedTsrxCollectionSplitClientText() {
 			_$_.pop(div_12);
 		}
 
-		_$_.append(__anchor, div_12);
+		_$_.next();
+		_$_.append(__anchor, fragment_12, true);
 	});
 }
 
 export function MixedTsrxCollectionPrimitiveServerText() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var fragment_11 = root_30();
-			var expression_12 = _$_.first_child_frag(fragment_11);
+		var fragment_14 = root_29();
+		var text_7 = _$_.first_child_frag(fragment_14);
+		var node_11 = _$_.sibling(text_7);
+
+		_$_.expression(node_11, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_15 = root_31();
+			var expression_12 = _$_.first_child_frag(fragment_15);
 
 			_$_.expression(expression_12, () => [
 				'count: ',
@@ -421,16 +469,17 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 				' / ',
 				true,
 				_$_.tsrx_element((__anchor, __block) => {
-					var span_4 = root_29();
+					var span_4 = root_30();
 
 					_$_.append(__anchor, span_4);
 				})
 			]);
 
-			_$_.append(__anchor, fragment_11);
-		});
+			_$_.append(__anchor, fragment_15);
+		}));
 
-		var div_13 = root_31();
+		var text_8 = _$_.sibling(node_11);
+		var div_13 = _$_.sibling(text_8);
 
 		{
 			var expression_13 = _$_.child(div_13);
@@ -439,15 +488,20 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 			_$_.pop(div_13);
 		}
 
-		_$_.append(__anchor, div_13);
+		_$_.next();
+		_$_.append(__anchor, fragment_14, true);
 	});
 }
 
 export function MixedTsrxCollectionPrimitiveClientText() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var fragment_12 = root_33();
-			var expression_14 = _$_.first_child_frag(fragment_12);
+		var fragment_16 = root_32();
+		var text_9 = _$_.first_child_frag(fragment_16);
+		var node_12 = _$_.sibling(text_9);
+
+		_$_.expression(node_12, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_17 = root_34();
+			var expression_14 = _$_.first_child_frag(fragment_17);
 
 			_$_.expression(expression_14, () => [
 				'count: ',
@@ -455,16 +509,17 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 				' / ',
 				false,
 				_$_.tsrx_element((__anchor, __block) => {
-					var span_5 = root_32();
+					var span_5 = root_33();
 
 					_$_.append(__anchor, span_5);
 				})
 			]);
 
-			_$_.append(__anchor, fragment_12);
-		});
+			_$_.append(__anchor, fragment_17);
+		}));
 
-		var div_14 = root_34();
+		var text_10 = _$_.sibling(node_12);
+		var div_14 = _$_.sibling(text_10);
 
 		{
 			var expression_15 = _$_.child(div_14);
@@ -473,7 +528,8 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 			_$_.pop(div_14);
 		}
 
-		_$_.append(__anchor, div_14);
+		_$_.next();
+		_$_.append(__anchor, fragment_16, true);
 	});
 }
 
@@ -483,8 +539,9 @@ function createPrimitiveItems() {
 
 export function DynamicArrayFromCall() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const items = _$_.with_scope(__block, createPrimitiveItems);
-		var div_15 = root_35();
+		var fragment_18 = root_35();
+		var text_11 = _$_.first_child_frag(fragment_18);
+		var div_15 = _$_.sibling(text_11);
 
 		{
 			var expression_16 = _$_.child(div_15);
@@ -493,35 +550,34 @@ export function DynamicArrayFromCall() {
 			_$_.pop(div_15);
 		}
 
-		_$_.append(__anchor, div_15);
+		_$_.next();
+		_$_.append(__anchor, fragment_18, true);
 	});
 }
 
 export function DynamicArrayFromTrack() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], __block, 'b5de6402');
-		var div_16 = root_36();
+		var fragment_19 = root_36();
+		var text_12 = _$_.first_child_frag(fragment_19);
+		var div_16 = _$_.sibling(text_12);
 
 		{
 			var expression_17 = _$_.child(div_16);
 
-			_$_.expression(expression_17, () => lazy.value);
+			_$_.expression(expression_17, () => items);
 			_$_.pop(div_16);
 		}
 
-		_$_.append(__anchor, div_16);
+		_$_.next();
+		_$_.append(__anchor, fragment_19, true);
 	});
 }
 
 export function DynamicArrayFromConditional() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const condition = true;
-
-		const items = condition
-			? ['start:', ['one', 2], true, null, false, ':end']
-			: ['fallback'];
-
-		var div_17 = root_37();
+		var fragment_20 = root_37();
+		var text_13 = _$_.first_child_frag(fragment_20);
+		var div_17 = _$_.sibling(text_13);
 
 		{
 			var expression_18 = _$_.child(div_17);
@@ -530,15 +586,16 @@ export function DynamicArrayFromConditional() {
 			_$_.pop(div_17);
 		}
 
-		_$_.append(__anchor, div_17);
+		_$_.next();
+		_$_.append(__anchor, fragment_20, true);
 	});
 }
 
 export function DynamicArrayFromLogical() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const condition = true;
-		const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
-		var div_18 = root_38();
+		var fragment_21 = root_38();
+		var text_14 = _$_.first_child_frag(fragment_21);
+		var div_18 = _$_.sibling(text_14);
 
 		{
 			var expression_19 = _$_.child(div_18);
@@ -547,20 +604,25 @@ export function DynamicArrayFromLogical() {
 			_$_.pop(div_18);
 		}
 
-		_$_.append(__anchor, div_18);
+		_$_.next();
+		_$_.append(__anchor, fragment_21, true);
 	});
 }
 
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var section_1 = root_39();
+		var fragment_22 = root_39();
+		var text_15 = _$_.first_child_frag(fragment_22);
+		var node_13 = _$_.sibling(text_15);
+
+		_$_.expression(node_13, () => _$_.tsrx_element((__anchor, __block) => {
+			var section_1 = root_40();
 
 			{
 				var expression_20 = _$_.child(section_1);
 
 				_$_.expression(expression_20, () => _$_.tsrx_element((__anchor, __block) => {
-					var div_19 = root_40();
+					var div_19 = root_41();
 
 					_$_.append(__anchor, div_19);
 				}));
@@ -569,26 +631,32 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 			}
 
 			_$_.append(__anchor, section_1);
+		}));
+
+		var text_16 = _$_.sibling(node_13, true);
+
+		_$_.render(() => {
+			_$_.set_text(text_16, ";" + _$_.with_scope(__block, () => String(content)));
 		});
 
-		var fragment_13 = root_41();
-		var expression_21 = _$_.first_child_frag(fragment_13);
-
-		_$_.expression(expression_21, () => content);
-		_$_.append(__anchor, fragment_13);
+		_$_.append(__anchor, fragment_22);
 	});
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var div_20 = root_42();
+		var fragment_23 = root_42();
+		var text_17 = _$_.first_child_frag(fragment_23);
+		var node_14 = _$_.sibling(text_17);
+
+		_$_.expression(node_14, () => _$_.tsrx_element((__anchor, __block) => {
+			var div_20 = root_43();
 
 			{
-				var expression_22 = _$_.child(div_20);
+				var expression_21 = _$_.child(div_20);
 
-				_$_.expression(expression_22, () => _$_.tsrx_element((__anchor, __block) => {
-					var section_2 = root_43();
+				_$_.expression(expression_21, () => _$_.tsrx_element((__anchor, __block) => {
+					var section_2 = root_44();
 
 					_$_.append(__anchor, section_2);
 				}));
@@ -597,42 +665,53 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 			}
 
 			_$_.append(__anchor, div_20);
+		}));
+
+		var text_18 = _$_.sibling(node_14, true);
+
+		_$_.render(() => {
+			_$_.set_text(text_18, ";" + _$_.with_scope(__block, () => String(content)));
 		});
 
-		var fragment_14 = root_44();
-		var expression_23 = _$_.first_child_frag(fragment_14);
-
-		_$_.expression(expression_23, () => content);
-		_$_.append(__anchor, fragment_14);
+		_$_.append(__anchor, fragment_23);
 	});
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const nested = _$_.tsrx_element((__anchor, __block) => {
-			var span_6 = root_45();
+		var fragment_24 = root_45();
+		var text_19 = _$_.first_child_frag(fragment_24);
+		var node_15 = _$_.sibling(text_19);
+
+		_$_.expression(node_15, () => _$_.tsrx_element((__anchor, __block) => {
+			var span_6 = root_46();
 
 			_$_.append(__anchor, span_6);
-		});
+		}));
 
-		const content = _$_.tsrx_element((__anchor, __block) => {
-			var div_21 = root_46();
+		var text_20 = _$_.sibling(node_15);
+		var node_16 = _$_.sibling(text_20);
+
+		_$_.expression(node_16, () => _$_.tsrx_element((__anchor, __block) => {
+			var div_21 = root_47();
 
 			{
-				var expression_24 = _$_.child(div_21);
+				var expression_22 = _$_.child(div_21);
 
-				_$_.expression(expression_24, () => nested);
+				_$_.expression(expression_22, () => nested);
 				_$_.pop(div_21);
 			}
 
 			_$_.append(__anchor, div_21);
+		}));
+
+		var text_21 = _$_.sibling(node_16, true);
+
+		_$_.render(() => {
+			_$_.set_text(text_21, ";" + _$_.with_scope(__block, () => String(content)));
 		});
 
-		var fragment_15 = root_47();
-		var expression_25 = _$_.first_child_frag(fragment_15);
-
-		_$_.expression(expression_25, () => content);
-		_$_.append(__anchor, fragment_15);
+		_$_.append(__anchor, fragment_24);
 	});
 }
 
@@ -641,9 +720,9 @@ function TextProp(__props) {
 		var div_22 = root_48();
 
 		{
-			var expression_26 = _$_.child(div_22);
+			var expression_23 = _$_.child(div_22);
 
-			_$_.expression(expression_26, () => __props.children);
+			_$_.expression(expression_23, () => __props.children);
 			_$_.pop(div_22);
 		}
 
@@ -653,69 +732,65 @@ function TextProp(__props) {
 
 export function TextPropWithToggle() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		let lazy_1 = _$_.track(false, __block, '1ba81c3b');
-		var fragment_16 = root_49();
-		var node_8 = _$_.first_child_frag(fragment_16);
+		var fragment_25 = root_49();
+		var text_22 = _$_.first_child_frag(fragment_25);
+		var node_17 = _$_.sibling(text_22);
 
-		_$_.render_component(TextProp, node_8, {
-			get children() {
-				return _$_.normalize_children(lazy_1.value ? 'hello' : '');
-			}
-		});
+		_$_.render_component(TextProp, node_17, { children: _$_.normalize_children(show ? 'hello' : '') });
 
-		var button_1 = _$_.sibling(node_8);
+		var button_1 = _$_.sibling(node_17);
 
-		button_1.__click = () => _$_.set(lazy_1, true);
-		_$_.append(__anchor, fragment_16);
+		button_1.__click = () => show = true;
+		_$_.append(__anchor, fragment_25);
 	});
 }
 
 function StaticHeader() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_17 = root_50();
+		var fragment_26 = root_50();
 
 		_$_.next(2);
-		_$_.append(__anchor, fragment_17, true);
+		_$_.append(__anchor, fragment_26, true);
 	});
 }
 
 export function StaticChildWithSiblings() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		const foo = 'bar';
-		var fragment_18 = root_51();
-		var node_9 = _$_.first_child_frag(fragment_18);
+		var fragment_27 = root_51();
+		var text_23 = _$_.first_child_frag(fragment_27);
+		var node_18 = _$_.sibling(text_23);
 
-		_$_.render_component(StaticHeader, node_9, {});
+		_$_.render_component(StaticHeader, node_18, {});
 
-		var span_7 = _$_.sibling(node_9);
+		var span_7 = _$_.sibling(node_18);
 
 		{
-			var expression_27 = _$_.child(span_7, true);
+			var expression_24 = _$_.child(span_7);
 
-			expression_27.nodeValue = foo;
+			_$_.expression(expression_24, () => foo);
 			_$_.pop(span_7);
 		}
 
 		var span_8 = _$_.sibling(span_7);
 
 		{
-			var expression_28 = _$_.child(span_8, true);
+			var expression_25 = _$_.child(span_8);
 
-			expression_28.nodeValue = foo;
+			_$_.expression(expression_25, () => foo);
 			_$_.pop(span_8);
 		}
 
 		_$_.next();
-		_$_.append(__anchor, fragment_18, true);
+		_$_.append(__anchor, fragment_27, true);
 	});
 }
 
 function Header() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_19 = root_52();
+		var fragment_28 = root_52();
 
 		_$_.next(2);
-		_$_.append(__anchor, fragment_19, true);
+		_$_.append(__anchor, fragment_28, true);
 	});
 }
 
@@ -726,7 +801,7 @@ function Actions({ playgroundVisible = false }) {
 		{
 			var a_2 = _$_.child(div_23);
 			var a_1 = _$_.sibling(a_2);
-			var node_10 = _$_.sibling(a_1);
+			var node_19 = _$_.sibling(a_1);
 
 			{
 				var consequent = (__anchor) => {
@@ -735,7 +810,7 @@ function Actions({ playgroundVisible = false }) {
 					_$_.append(__anchor, a_3);
 				};
 
-				_$_.if(node_10, (__render) => {
+				_$_.if(node_19, (__render) => {
 					if (playgroundVisible) __render(consequent);
 				});
 			}
@@ -755,9 +830,9 @@ function Layout({ children }) {
 			var div_24 = _$_.child(main_1);
 
 			{
-				var expression_29 = _$_.child(div_24);
+				var expression_26 = _$_.child(div_24);
 
-				_$_.expression(expression_29, () => children);
+				_$_.expression(expression_26, () => children);
 				_$_.pop(div_24);
 			}
 		}
@@ -776,32 +851,32 @@ function Content() {
 
 export function WebsiteIndex() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_20 = root_57();
-		var node_11 = _$_.first_child_frag(fragment_20);
+		var fragment_29 = root_57();
+		var node_20 = _$_.first_child_frag(fragment_29);
 
-		_$_.render_component(Layout, node_11, {
+		_$_.render_component(Layout, node_20, {
 			children: _$_.tsrx_element((__anchor, __block) => {
-				var fragment_21 = root_58();
-				var node_12 = _$_.first_child_frag(fragment_21);
+				var fragment_30 = root_58();
+				var node_21 = _$_.first_child_frag(fragment_30);
 
-				_$_.render_component(Header, node_12, {});
+				_$_.render_component(Header, node_21, {});
 
-				var node_13 = _$_.sibling(node_12);
+				var node_22 = _$_.sibling(node_21);
 
-				_$_.render_component(Actions, node_13, { playgroundVisible: true });
+				_$_.render_component(Actions, node_22, { playgroundVisible: true });
 
-				var node_14 = _$_.sibling(node_13);
+				var node_23 = _$_.sibling(node_22);
 
-				_$_.render_component(Content, node_14, {});
+				_$_.render_component(Content, node_23, {});
 
-				var node_15 = _$_.sibling(node_14);
+				var node_24 = _$_.sibling(node_23);
 
-				_$_.render_component(Actions, node_15, { playgroundVisible: false });
-				_$_.append(__anchor, fragment_21);
+				_$_.render_component(Actions, node_24, { playgroundVisible: false });
+				_$_.append(__anchor, fragment_30);
 			})
 		});
 
-		_$_.append(__anchor, fragment_20);
+		_$_.append(__anchor, fragment_29);
 	});
 }
 
@@ -820,9 +895,9 @@ export function ComponentAsLastSibling() {
 		{
 			var h1_1 = _$_.child(div_26);
 			var p_1 = _$_.sibling(h1_1);
-			var node_16 = _$_.sibling(p_1);
+			var node_25 = _$_.sibling(p_1);
 
-			_$_.render_component(LastChild, node_16, {});
+			_$_.render_component(LastChild, node_25, {});
 			_$_.pop(div_26);
 		}
 
@@ -836,9 +911,9 @@ function InnerContent() {
 
 		{
 			var span_9 = _$_.child(div_27);
-			var node_17 = _$_.sibling(span_9);
+			var node_26 = _$_.sibling(span_9);
 
-			_$_.render_component(LastChild, node_17, {});
+			_$_.render_component(LastChild, node_26, {});
 			_$_.pop(div_27);
 		}
 
@@ -852,9 +927,9 @@ export function NestedComponentAsLastSibling() {
 
 		{
 			var h2_1 = _$_.child(section_3);
-			var node_18 = _$_.sibling(h2_1);
+			var node_27 = _$_.sibling(h2_1);
 
-			_$_.render_component(InnerContent, node_18, {});
+			_$_.render_component(InnerContent, node_27, {});
 			_$_.pop(section_3);
 		}
 

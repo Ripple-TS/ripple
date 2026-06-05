@@ -106,6 +106,7 @@ function App() {
 
 				return <>
 					let dynamic = track(() => Child);
+					---
 					<div class="wrapper">
 						<@dynamic cls={styles.text} />
 					</div>

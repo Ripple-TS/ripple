@@ -15,15 +15,28 @@ describe('compiler > regex', () => {
 				let htmlTags = text.replace(/<(\/*)(\w+)[^>]*>/g, '[$1$2]');
 				// Test edge cases with multiple angle brackets
 				let multiAngle = '<<test>> <span>content</span>'.match(/<span>/);
+				---
 				<div>
-					<span>{String(matchResult)}</span>
+					<span>
+						{String(matchResult)}
+					</span>
 					<span>{replaceResult}</span>
-					<span>{String(searchResult)}</span>
-					<span>{String(spanRegex)}</span>
-					<span>{String(divRegex)}</span>
-					<span>{String(complexMatch)}</span>
+					<span>
+						{String(searchResult)}
+					</span>
+					<span>
+						{String(spanRegex)}
+					</span>
+					<span>
+						{String(divRegex)}
+					</span>
+					<span>
+						{String(complexMatch)}
+					</span>
 					<span>{htmlTags}</span>
-					<span>{String(multiAngle)}</span>
+					<span>
+						{String(multiAngle)}
+					</span>
 				</div>
 			</>;
 		}
@@ -57,8 +70,11 @@ describe('compiler > regex', () => {
 				let paragraphs = htmlString.match(/<p[^>]*>.*?<\/p>/g);
 				let cleaned = htmlString.replace(/<\/?[^>]+>/g, '');
 				let splitArray = htmlString.split(/<\/?\w+>/g).filter((s) => s.trim());
+				---
 				<div class="container">
-					<span class="result">{String(paragraphs)}</span>
+					<span class="result">
+						{String(paragraphs)}
+					</span>
 					<span class="cleaned">{cleaned}</span>
 					<p>{'This is real JSX'}</p>
 					<div>

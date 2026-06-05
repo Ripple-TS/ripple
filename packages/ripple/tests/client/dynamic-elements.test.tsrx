@@ -6,6 +6,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('div');
+				---
 				<@tag>{'Hello World'}</@tag>
 			</>;
 		}
@@ -22,6 +23,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let obj = { tag: track('div') };
+				---
 				<obj.tag.value>{'Hello World'}</obj.tag.value>
 			</>;
 		}
@@ -37,6 +39,7 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let obj = track({ tag: track('div') });
 				let tag = obj.value.tag;
+				---
 				<@tag>{'Hello World'}</@tag>
 			</>;
 		}
@@ -54,6 +57,7 @@ describe('dynamic DOM elements', () => {
 				return <>
 					let obj = track({ tag: track('div') });
 					let tag = obj.value['tag'];
+					---
 					<@tag>{'Hello World'}</@tag>
 				</>;
 			}
@@ -69,13 +73,12 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let &[tag] = track('div');
+				---
 				<button
 					onClick={() => {
 						tag = 'span';
 					}}
-				>
-					{'Change Tag'}
-				</button>
+				>{'Change Tag'}</button>
 				<@tag id="dynamic">{'Hello World'}</@tag>
 			</>;
 		}
@@ -101,6 +104,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('input');
+				---
 				<@tag type="text" value="test" />
 			</>;
 		}
@@ -117,6 +121,7 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let tag = track('div');
 				let &[className] = track('test-class');
+				---
 				<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 			</>;
 		}
@@ -134,6 +139,7 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let outerTag = track('div');
 				let innerTag = track('span');
+				---
 				<@outerTag class="outer">
 					<@innerTag class="inner">{'Nested content'}</@innerTag>
 				</@outerTag>
@@ -155,9 +161,10 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let tag = track('div');
 				let &[active] = track(true);
-				<@tag class={{ active: active, 'dynamic-element': true }}>
-					{'Element with class object'}
-				</@tag>
+				---
+				<@tag
+					class={{ active: active, 'dynamic-element': true }}
+				>{'Element with class object'}</@tag>
 			</>;
 		}
 		render(App);
@@ -172,15 +179,14 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('span');
+				---
 				<@tag
 					style={{
 						color: 'red',
 						fontSize: '16px',
 						fontWeight: 'bold',
 					}}
-				>
-					{'Styled dynamic element'}
-				</@tag>
+				>{'Styled dynamic element'}</@tag>
 			</>;
 		}
 		render(App);
@@ -201,6 +207,7 @@ describe('dynamic DOM elements', () => {
 					'data-testid': 'spread-test',
 					class: 'spread-class',
 				};
+				---
 				<@tag {...attrs} data-extra="additional">{'Element with spread attributes'}</@tag>
 			</>;
 		}
@@ -220,14 +227,13 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('article');
+				---
 				<@tag
 					ref={(node: HTMLElement) => {
 						capturedElement = node;
 					}}
 					id="ref-test"
-				>
-					{'Element with ref'}
-				</@tag>
+				>{'Element with ref'}</@tag>
 			</>;
 		}
 		render(App);
@@ -249,6 +255,11 @@ describe('dynamic DOM elements', () => {
 				let tag = track('input');
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
+				effect(() => {
+					refAttrElement = input ?? null;
+					anonymousRefElement = state.anonymous ?? null;
+				});
+				---
 				<@tag
 					id="dynamic-ref-combo"
 					type="text"
@@ -260,10 +271,6 @@ describe('dynamic DOM elements', () => {
 						},
 					]}
 				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
 			</>;
 		}
 
@@ -293,6 +300,11 @@ describe('dynamic DOM elements', () => {
 				let dynamic = track(() => Child);
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
+				effect(() => {
+					refAttrElement = input ?? null;
+					anonymousRefElement = state.anonymous ?? null;
+				});
+				---
 				<@dynamic
 					ref={[
 						input,
@@ -302,10 +314,6 @@ describe('dynamic DOM elements', () => {
 						},
 					]}
 				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
 			</>;
 		}
 
@@ -335,6 +343,7 @@ describe('dynamic DOM elements', () => {
 					class: 'ref-element',
 					[createRefKey()]: elementRef,
 				};
+				---
 				<@tag {...dynamicProps}>{'Element with spread ref'}</@tag>
 			</>;
 		}
@@ -355,13 +364,12 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let tag = track('div');
 				let &[count] = track(0);
+				---
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 				<@tag
 					id={count % 2 ? 'even' : 'odd'}
 					class={count % 2 ? 'even-class' : 'odd-class'}
@@ -409,6 +417,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('div');
+				---
 				<@tag class="test-class">{'Dynamic element'}</@tag>
 				<style>
 					.test-class {
@@ -435,6 +444,7 @@ describe('dynamic DOM elements', () => {
 			return <>
 				let tag = track('button');
 				let &[count] = track(0);
+				---
 				<@tag
 					class={count % 2 ? 'even' : 'odd'}
 					id={count % 2 ? 'even' : 'odd'}
@@ -508,7 +518,10 @@ describe('dynamic DOM elements', () => {
 		}>) {
 			return <>
 				const tag = track('button');
-				<@tag {...rest}>{rest.class}</@tag>
+				---
+				<@tag {...rest}>
+					{rest.class}
+				</@tag>
 				<style>
 					.even {
 						background-color: green;
@@ -523,6 +536,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let &[count] = track(0);
+				---
 				<DynamicButton
 					class={count % 2 ? 'even' : 'odd'}
 					id={count % 2 ? 'even' : 'odd'}
@@ -568,6 +582,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('div');
+				---
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 				</@tag>
@@ -591,6 +606,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('div');
+				---
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 				</@tag>
@@ -627,6 +643,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track('div');
+				---
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 					<Child />
@@ -673,6 +690,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let tag = track(() => Child);
+				---
 				<@tag />
 				<style>
 					.child {
@@ -700,6 +718,7 @@ describe('dynamic DOM elements', () => {
 		function Button(props: any) {
 			return <>
 				const el = track('button');
+				---
 				<@el {...props} />
 			</>;
 		}
@@ -707,6 +726,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let &[active] = track(false);
+				---
 				<Button
 					data-active={String(active)}
 					onClick={() => {
@@ -716,9 +736,7 @@ describe('dynamic DOM elements', () => {
 						capturedElement = el;
 						refCallCount++;
 					}}
-				>
-					{'content'}
-				</Button>
+				>{'content'}</Button>
 			</>;
 		}
 
@@ -746,6 +764,7 @@ describe('dynamic DOM elements', () => {
 		function Button(props: any) {
 			return <>
 				const el = track('button');
+				---
 				<@el {...props} />
 			</>;
 		}
@@ -758,6 +777,7 @@ describe('dynamic DOM elements', () => {
 						'data-active': active,
 					}),
 				);
+				---
 				<Button
 					{...buttonProps}
 					onClick={() => {
@@ -795,6 +815,7 @@ describe('dynamic DOM elements', () => {
 		function Button(props: any) {
 			return <>
 				const el = track('button');
+				---
 				<@el {...props} />
 			</>;
 		}
@@ -802,6 +823,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let &[active] = track(false);
+				---
 				<Button
 					data-active={String(active)}
 					onClick={() => {
@@ -814,9 +836,7 @@ describe('dynamic DOM elements', () => {
 							cleanupCount++;
 						};
 					}}
-				>
-					{'content'}
-				</Button>
+				>{'content'}</Button>
 			</>;
 		}
 
@@ -840,6 +860,7 @@ describe('dynamic DOM elements', () => {
 		function App() {
 			return <>
 				let &[b] = track(true);
+				---
 				<div>
 					@if (b) {
 						Inside if

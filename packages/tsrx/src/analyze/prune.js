@@ -73,7 +73,8 @@ function is_element_dom_element(node) {
 		(id.type === 'Identifier' || id.type === 'JSXIdentifier') &&
 		id.name[0].toLowerCase() === id.name[0] &&
 		id.name !== 'children' &&
-		!id.tracked
+		!id.tracked &&
+		!id.dynamic
 	);
 }
 
@@ -84,7 +85,9 @@ function is_element_dom_element(node) {
  */
 function is_element_dynamic(node) {
 	const id = get_element_name(node);
-	return id?.type === 'Identifier' || id?.type === 'JSXIdentifier' ? !!id.tracked : false;
+	return id?.type === 'Identifier' || id?.type === 'JSXIdentifier'
+		? !!(id.tracked || id.dynamic)
+		: false;
 }
 
 // CSS selector constants
@@ -1123,6 +1126,10 @@ export function prune_css(css, element, styleClasses, topScopedClasses) {
 	css_hash = css.hash;
 	style_identifier_classes = styleClasses;
 	top_scoped_classes = topScopedClasses;
+
+	if (is_element_dynamic(element)) {
+		element.metadata.scoped = true;
+	}
 
 	/** @type {Visitors<AST.CSS.Node, null>} */
 	const visitors = {
