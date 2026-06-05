@@ -3,6 +3,7 @@ const MODIFIED_PRODUCTIONS = [
 	'  JSXElement',
 	'  JSXFragment',
 	'  JSXStyleElement',
+	'  JSXStatementContainer',
 	'  JSXIfExpression',
 	'  JSXForExpression',
 	'  JSXSwitchExpression',
@@ -52,10 +53,16 @@ const MODIFIED_PRODUCTIONS = [
 const FUNCTION_ENTRY_GRAMMAR = [
 	'FunctionDeclaration :',
 	'  function BindingIdentifier ( FormalParametersopt ) { FunctionBody }',
+	'  function BindingIdentifier ( FormalParametersopt ) JSXStatementContainer',
+	'',
+	'FunctionExpression :',
+	'  function BindingIdentifieropt ( FormalParametersopt ) { FunctionBody }',
+	'  function BindingIdentifieropt ( FormalParametersopt ) JSXStatementContainer',
 	'',
 	'ReturnStatement :',
 	'  return JSXElement ;',
 	'  return JSXFragment ;',
+	'  return JSXStatementContainer ;',
 	'  return Expression ;',
 ].join('\n');
 
@@ -64,6 +71,7 @@ const EXPRESSION_VALUE_GRAMMAR = [
 	'  JSXElement',
 	'  JSXFragment',
 	'  JSXStyleElement',
+	'  JSXStatementContainer',
 	'  JSXIfExpression',
 	'  JSXForExpression',
 	'  JSXSwitchExpression',
@@ -124,8 +132,10 @@ const AST_NODE_MAPPING = [
 	'Informative grammar-to-node correspondence',
 	'',
 	'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression -> ESTree function nodes',
+	'function ... @{ ... } -> ESTree function node with tsrxBody: JSXStatementContainer',
 	'return JSXElement -> ReturnStatement(argument: JSXElement)',
 	'return JSXFragment -> ReturnStatement(argument: JSXFragment)',
+	'return JSXStatementContainer -> ReturnStatement(argument: JSXStatementContainer)',
 	'JSXElement -> ESTree JSXElement',
 	'JSXFragment -> ESTree JSXFragment',
 	'JSXText -> ESTree JSXText',
@@ -148,6 +158,7 @@ const FUNCTION_AST_SHAPE = [
 	'  id: Identifier | null;',
 	'  params: Pattern[];',
 	'  body: BlockStatement;',
+	'  tsrxBody?: JSXStatementContainer;',
 	'  typeParameters?: TSTypeParameterDeclaration;',
 	'}',
 	'',
@@ -193,6 +204,16 @@ const EXPRESSION_AST_SHAPE = [
 	'  children: TemplateChild[];',
 	'  metadata?: { native_tsrx?: true };',
 	'}',
+	'',
+	'type TSRXExpressionValue =',
+	'  | JSXElement',
+	'  | JSXFragment',
+	'  | JSXStyleElement',
+	'  | JSXStatementContainer',
+	'  | JSXIfExpression',
+	'  | JSXForExpression',
+	'  | JSXSwitchExpression',
+	'  | JSXTryExpression;',
 	'',
 	'type TemplateOutput =',
 	'  | JSXElement',
@@ -292,7 +313,7 @@ const NAV_ITEMS = [
 	{ id: 'notation', label: 'Notational Conventions' },
 	{ id: 'lexical', label: 'Lexical Conventions' },
 	{ id: 'productions', label: 'Modified Productions' },
-	{ id: 'components', label: 'Function Returns' },
+	{ id: 'components', label: 'Function Bodies' },
 	{ id: 'templates', label: 'Template Elements' },
 	{ id: 'expression-values', label: 'Expression Values' },
 	{ id: 'lazy', label: 'Lazy Destructuring' },
@@ -448,15 +469,15 @@ export function SpecificationPage() {
 						</section>
 
 						<section class="doc-section" id="components">
-							<h2 class="section-heading">4.2 Function Returns</h2>
+							<h2 class="section-heading">4.2 Function Bodies and Returns</h2>
 							<p class="section-body">
-								TSRX does not define a component declaration form. Components are ordinary functions, and a function becomes a framework component by returning a JSXElement or JSXFragment from a normal return statement.
+								TSRX does not define a component declaration form. Components are ordinary functions. A function can return a TSRX expression from a normal return statement, or use the statement-container body shorthand when the whole body is TypeScript setup followed by one rendered output.
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_ENTRY_GRAMMAR}</code>
 							</pre>
 							<p class="section-body muted">
-								Class methods, object methods, arrow functions, and function expressions all remain ordinary TypeScript constructs. Hosts may choose which returned TSRX functions are considered components.
+								Class methods, object methods, arrow functions, and function expressions all remain ordinary TypeScript constructs. Hosts may choose which TSRX-producing functions are considered components.
 							</p>
 						</section>
 
@@ -474,7 +495,7 @@ export function SpecificationPage() {
 								 blocks whose bodies render template children.
 							</p>
 							<p class="section-body">
-								Plain JSX children are the default. When an element or fragment child needs local TypeScript statements before rendering, those statements must be contained in a JSX statement container written as 
+								Plain JSX children are the default. When an expression position, function body, element child, or fragment child needs local TypeScript statements before rendering, those statements must be contained in a JSX statement container written as 
 								<code class="inline-code">
 									{'@{...}'}
 								</code>
@@ -577,7 +598,7 @@ export function SpecificationPage() {
 								<code>{EXPRESSION_VALUE_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								Use a fragment when an expression value needs text, dynamic expression children, or multiple emitted elements. Use a JSX statement container inside an element or fragment when local declarations must precede that output. Use a single element when the value is already compact.
+								Use a fragment when an expression value needs text, dynamic expression children, or multiple emitted elements. Use a JSX statement container when local declarations must precede that output, including in arrow expression bodies and statement-container function bodies. Use a single element when the value is already compact.
 							</p>
 						</section>
 
@@ -622,6 +643,9 @@ export function SpecificationPage() {
 									A JSXStatementContainer or template control-flow block that contains TypeScript setup statements and rendered output must place those statements before the output node and must have exactly one output node.
 								</li>
 								<li>
+									A statement-container function body follows the same structural rule as any other JSXStatementContainer.
+								</li>
+								<li>
 									A standalone 
 									<code class="inline-code">JSXExpressionContainer</code>
 									 is not a template output node. Use a JSX fragment when a statement container or control-flow block needs to render text, expression containers, or multiple siblings.
@@ -663,9 +687,9 @@ export function SpecificationPage() {
 							<pre class="code-block plain">
 								<code>{AST_NODE_MAPPING}</code>
 							</pre>
-							<h3 class="appendix-heading">A.2 Function return nodes</h3>
+							<h3 class="appendix-heading">A.2 Function body and return nodes</h3>
 							<p class="section-body">
-								Functions remain ordinary ESTree function nodes. TSRX structure begins where a JSXElement, JSXFragment, JSXStyleElement, or JSX control-flow expression appears as an expression value, most commonly as a ReturnStatement argument.
+								Functions remain ordinary ESTree function nodes. TSRX structure begins where a JSXElement, JSXFragment, JSXStyleElement, JSXStatementContainer, or JSX control-flow expression appears as an expression value, most commonly as a ReturnStatement argument. The statement-container function body shorthand records the container on the function node without introducing a separate component node kind.
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_AST_SHAPE}</code>
@@ -675,7 +699,10 @@ export function SpecificationPage() {
 									The function id and params fields preserve the ordinary TypeScript function surface, including type annotations and lazy patterns after parsing.
 								</li>
 								<li>
-									The function body remains a BlockStatement; TSRX content is represented where it appears, typically as a ReturnStatement argument.
+									Ordinary function bodies remain BlockStatement nodes; TSRX content is represented where it appears, typically as a ReturnStatement argument.
+								</li>
+								<li>
+									The statement-container function body form stores its JSXStatementContainer in the optional tsrxBody field on the ordinary function node.
 								</li>
 								<li>
 									A returned native fragment is represented by a JSXFragment node whose children store template children in source order.
@@ -732,7 +759,7 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">A.4 Expression value nodes</h3>
 							<p class="section-body">
-								Expression-position TSRX values use JSXElement, JSXFragment, JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes. Native fragments use the standard JSXFragment shape.
+								Expression-position TSRX values use JSXElement, JSXFragment, JSXStyleElement, JSXStatementContainer, JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes. Native fragments use the standard JSXFragment shape.
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_AST_SHAPE}</code>
@@ -747,7 +774,7 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">A.5 TSRX extension nodes</h3>
 							<p class="section-body">
-								The following nodes are the TSRX-specific additions. Statement containers are represented by JSXStatementContainer nodes. Style blocks are represented as JSXStyleElement nodes. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
+								The following nodes are the TSRX-specific additions. Statement containers are represented by JSXStatementContainer nodes in expression, child, and function-body positions. Style blocks are represented as JSXStyleElement nodes. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
 							</p>
 							<pre class="code-block plain">
 								<code>{TSRX_EXTENSION_AST_SHAPE}</code>
