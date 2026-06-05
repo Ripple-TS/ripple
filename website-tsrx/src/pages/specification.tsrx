@@ -309,7 +309,7 @@ export function SpecificationPage() {
 			<title>TSRX | Specification</title>
 			<meta
 				name="description"
-				content="Draft TSRX language specification: TypeScript-compatible grammar extensions, TSRX return expressions, expression values, lazy destructuring, style identifiers, and host-defined server extensions."
+				content="Draft TSRX language specification: TypeScript-compatible JSX extensions, statement containers, control-flow expressions, lazy destructuring, style identifiers, and host-defined server extensions."
 			/>
 		</head>
 		<div class="app-shell">
@@ -367,7 +367,7 @@ export function SpecificationPage() {
 
 					<main class="docs-content">
 						<section class="doc-section" id="status">
-							<p class="section-kicker">Draft / April 22, 2026</p>
+							<p class="section-kicker">Draft / June 7, 2026</p>
 							<h1 class="page-heading">TSRX</h1>
 							<p class="section-body lead">
 								This page is the working language specification for TSRX. It is written for implementors of parsers, language tooling, compilers, and hosts that need a precise account of the syntax and static constraints of the language.
@@ -375,7 +375,7 @@ export function SpecificationPage() {
 							<div class="status-panel">
 								<p class="status-chip">First-edition scope</p>
 								<p class="section-body compact">
-									The current draft fixes the syntax and early-error surface for JSX-shaped TSRX return values, template children, expression values, lazy destructuring, raw style elements, and proposal-aligned submodule declarations.
+									The current draft fixes the syntax and early-error surface for JSX-shaped TSRX values, JSX statement containers, template control flow, lazy destructuring, raw style elements, and proposal-aligned submodule declarations.
 								</p>
 							</div>
 						</section>
@@ -383,7 +383,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="introduction">
 							<h2 class="section-heading">Introduction</h2>
 							<p class="section-body">
-								TSRX is a TypeScript-compatible syntax extension to ECMAScript for authoring component-oriented user interface programs. It extends the TypeScript source language with JSX-shaped template values, template control-flow directives, lazy destructuring patterns, raw style elements, and style identifiers.
+								TSRX is a TypeScript-compatible syntax extension to ECMAScript for authoring component-oriented user interface programs. It extends the TypeScript source language with JSX-shaped template values, JSX statement containers, template control-flow directives, lazy destructuring patterns, raw style elements, and style identifiers.
 							</p>
 							<p class="section-body">
 								This specification defines the syntax of TSRX and the static constraints that a conforming implementation is expected to enforce. It does not propose incorporation of TSRX into the ECMAScript standard, and it does not require JavaScript engines or browsers to parse TSRX directly. Instead, it defines a source language intended for compilers, preprocessors, editors, formatters, and other tooling.
@@ -396,7 +396,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="rationale">
 							<h2 class="section-heading">Rationale</h2>
 							<p class="section-body">
-								TSRX exists to define a predictable syntax for component-oriented source code while preserving the familiar JSX AST shape. Elements, fragments, text, expression containers, attributes, and spread attributes use the standard JSX node family; TSRX adds only the nodes needed for structural template scopes, style blocks, and template control flow.
+								TSRX exists to define a predictable syntax for component-oriented source code while preserving the familiar JSX AST shape. Elements, fragments, text, expression containers, attributes, and spread attributes use the standard JSX node family; TSRX adds only the nodes needed for statement containers, style blocks, and template control flow.
 							</p>
 							<ul class="spec-list">
 								<li>Returned TSRX templates are represented with JSXElement and JSXFragment nodes.</li>
@@ -463,7 +463,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="templates">
 							<h2 class="section-heading">4.3 Template Elements</h2>
 							<p class="section-body">
-								Within a returned TSRX template, direct element, fragment, style, text, and expression-container children use the standard JSX node family. Template control flow uses directive-prefixed 
+								Within a returned TSRX template, direct element, fragment, style, text, and expression-container children use the standard JSX node family. JavaScript line comments are permitted between template children and do not render. Template control flow uses directive-prefixed 
 								<code class="inline-code">@if</code>
 								, 
 								<code class="inline-code">@for</code>
@@ -471,15 +471,17 @@ export function SpecificationPage() {
 								<code class="inline-code">@switch</code>
 								, and 
 								<code class="inline-code">@try</code>
-								 blocks whose bodies render direct template children.
+								 blocks whose bodies render template children.
 							</p>
 							<p class="section-body">
-								A template scope may be plain JSX children. When a template scope contains TypeScript setup statements and rendered output, the setup statements must appear first and be followed by exactly one output node. That output node must be a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
+								Plain JSX children are the default. When an element or fragment child needs local TypeScript statements before rendering, those statements must be contained in a JSX statement container written as 
+								<code class="inline-code">@{...}</code>
+								. A statement container places setup statements first and then exactly one output node: a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
 							</p>
 							<p class="section-body">
-								Template position also admits JSX text children, JavaScript comments, and braced expression forms. Comments are ignored and do not render. The ordinary form 
+								Control-flow block bodies follow the same structural rule as statement containers: setup first, then one output node. The ordinary JSX form 
 								<code class="inline-code">{"{ AssignmentExpression }"}</code>
-								 contributes a JSXExpressionContainer node. A function exit remains an ordinary 
+								 contributes a JSXExpressionContainer node and is not itself a statement container. A function exit remains an ordinary 
 								<code class="inline-code">return</code>
 								 statement.
 							</p>
@@ -498,7 +500,13 @@ export function SpecificationPage() {
 									<code class="inline-code">{"{ AssignmentExpression }"}</code>
 									 is the generic template-expression form and is represented by 
 									<code class="inline-code">JSXExpressionContainer</code>
-									 in the current parser.
+									 .
+								</li>
+								<li>
+									<code class="inline-code">@{...}</code>
+									 is the template statement form and is represented by 
+									<code class="inline-code">JSXStatementContainer</code>
+									 .
 								</li>
 								<li>
 									Identifiers named 
@@ -517,6 +525,15 @@ export function SpecificationPage() {
 									, whitespace and line terminators are admitted wherever the embedded ECMAScript grammar permits them. Thus forms such as 
 									<code class="inline-code">{"{ expr }"}</code>
 									 are well-formed.
+								</li>
+								<li>
+									The statement-container introducer must be written as the contiguous sequence 
+									<code class="inline-code">@{</code>
+									. Whitespace between 
+									<code class="inline-code">@</code>
+									 and 
+									<code class="inline-code">{"{"}</code>
+									 does not form a JSXStatementContainer.
 								</li>
 								<li>
 									A tag or fragment introducer must be written as a contiguous delimiter sequence. Implementations must not treat 
@@ -548,13 +565,13 @@ export function SpecificationPage() {
 						<section class="doc-section" id="expression-values">
 							<h2 class="section-heading">4.4 Expression Values</h2>
 							<p class="section-body">
-								TSRX elements and fragments are expression values by default. A single element can be returned or assigned directly, while fragments keep TSRX template children for statement-rich UI values.
+								TSRX elements, fragments, style elements, and JSX control-flow expressions are expression values by default. A single element can be returned or assigned directly, and JSX control flow can be assigned directly when the branch or loop itself is the value.
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_VALUE_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								Use a fragment when an expression value needs local declarations, control flow, text, dynamic expression children, or multiple emitted elements. Use a single element when the value is already compact.
+								Use a fragment when an expression value needs text, dynamic expression children, or multiple emitted elements. Use a JSX statement container inside an element or fragment when local declarations must precede that output. Use a single element when the value is already compact.
 							</p>
 						</section>
 
@@ -596,12 +613,12 @@ export function SpecificationPage() {
 								</li>
 								<li>Opening and closing tags for TSRX elements and fragments must match.</li>
 								<li>
-									A template scope that contains TypeScript setup statements and rendered output must place those statements before the output node and must have exactly one output node.
+									A JSXStatementContainer or template control-flow block that contains TypeScript setup statements and rendered output must place those statements before the output node and must have exactly one output node.
 								</li>
 								<li>
 									A standalone 
 									<code class="inline-code">JSXExpressionContainer</code>
-									 is not a template output node. Use a JSX fragment when setup needs to render text, expression containers, or multiple siblings.
+									 is not a template output node. Use a JSX fragment when a statement container or control-flow block needs to render text, expression containers, or multiple siblings.
 								</li>
 								<li>
 									In hosts that enable server-oriented submodules, server exports must be imported before use, for example import &#123; load &#125; from server.
@@ -631,7 +648,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">Appendices</h2>
 							<p class="section-body">
-								The current reference implementation exposes ESTree-compatible function nodes and standard JSX-shaped nodes such as JSXElement, JSXFragment, JSXExpressionContainer, JSXText, JSXAttribute, and JSXSpreadAttribute. TSRX-specific additions are limited to JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, JSXTryExpression, TSModuleDeclaration, and TSModuleBlock. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.
+								The TSRX AST contract exposes ESTree-compatible function nodes and standard JSX-shaped nodes such as JSXElement, JSXFragment, JSXExpressionContainer, JSXText, JSXAttribute, and JSXSpreadAttribute. TSRX-specific additions are limited to JSXStatementContainer, JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, JSXTryExpression, TSModuleDeclaration, and TSModuleBlock. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract exposed to tooling.
 							</p>
 							<h3 class="appendix-heading">A.1 Grammar-to-node correspondence</h3>
 							<p class="section-body">
@@ -642,7 +659,7 @@ export function SpecificationPage() {
 							</pre>
 							<h3 class="appendix-heading">A.2 Function return nodes</h3>
 							<p class="section-body">
-								Functions remain ordinary ESTree function nodes. TSRX structure begins at the ReturnStatement argument when that argument is a JSXElement or JSXFragment node with TSRX metadata.
+								Functions remain ordinary ESTree function nodes. TSRX structure begins where a JSXElement, JSXFragment, JSXStyleElement, or JSX control-flow expression appears as an expression value, most commonly as a ReturnStatement argument.
 							</p>
 							<pre class="code-block plain">
 								<code>{FUNCTION_AST_SHAPE}</code>
@@ -656,6 +673,9 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									A returned native fragment is represented by a JSXFragment node whose children store template children in source order.
+								</li>
+								<li>
+									Local template setup is represented by JSXStatementContainer nodes rather than by placing ordinary statement nodes directly in JSXElement or JSXFragment children.
 								</li>
 								<li>
 									Raw style elements inside a returned TSRX template carry parsed stylesheet metadata for downstream analysis and target-specific style emission.
@@ -676,7 +696,9 @@ export function SpecificationPage() {
 							</pre>
 							<ul class="spec-list">
 								<li>
-									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced names.
+									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced names. Dynamic tags written with a leading 
+									<code class="inline-code">@</code>
+									 keep the JSX name shape and carry dynamic metadata.
 								</li>
 								<li>
 									openingElement and closingElement preserve the original tag delimiters so formatters and source-mapping tools can recover the authored shape.
@@ -704,7 +726,7 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">A.4 Expression value nodes</h3>
 							<p class="section-body">
-								Expression-position TSRX values use JSXElement, JSXFragment, and JSXStyleElement nodes. Native fragments use the standard JSXFragment shape.
+								Expression-position TSRX values use JSXElement, JSXFragment, JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes. Native fragments use the standard JSXFragment shape.
 							</p>
 							<pre class="code-block plain">
 								<code>{EXPRESSION_AST_SHAPE}</code>
@@ -719,14 +741,14 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">A.5 TSRX extension nodes</h3>
 							<p class="section-body">
-								The following nodes are the current TSRX-specific additions. Style blocks are represented as JSXStyleElement nodes. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
+								The following nodes are the TSRX-specific additions. Statement containers are represented by JSXStatementContainer nodes. Style blocks are represented as JSXStyleElement nodes. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
 							</p>
 							<pre class="code-block plain">
 								<code>{TSRX_EXTENSION_AST_SHAPE}</code>
 							</pre>
 							<ul class="spec-list">
 								<li>
-									The parser currently emits 
+									The AST contract emits 
 									<code class="inline-code">JSXIfExpression</code>
 									, 
 									<code class="inline-code">JSXForExpression</code>
@@ -735,6 +757,10 @@ export function SpecificationPage() {
 									, and 
 									<code class="inline-code">JSXTryExpression</code>
 									 for template control flow.
+								</li>
+								<li>
+									<code class="inline-code">JSXStatementContainer</code>
+									 is a template child, not a general ECMAScript statement node. Its output field is the one node produced by the container after setup.
 								</li>
 							</ul>
 							<h3 class="appendix-heading">
