@@ -655,6 +655,75 @@ foo();`;
 		expect(object.properties[0].value.typeParameters.type).toBe('TSTypeParameterDeclaration');
 	});
 
+	it('treats class methods and member calls with type arguments as script', () => {
+		const returned = getReturned(`function App() { return <div>
+			class List<T> {
+				items: T[];
+			}
+			class Containers {
+				static List<T>() {
+					return new List<T>();
+				}
+			}
+			const c = Containers.List<string>();
+			---
+			{c}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'ClassDeclaration',
+			'ClassDeclaration',
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		const method = returned.children[1].body.body[0];
+		expect(method.type).toBe('MethodDefinition');
+		expect(method.typeParameters.type).toBe('TSTypeParameterDeclaration');
+		const call = returned.children[2].declarations[0].init;
+		expect(call.type).toBe('CallExpression');
+		expect(call.typeArguments.type).toBe('TSTypeParameterInstantiation');
+	});
+
+	it('keeps whitespace-separated relational expressions out of the type-argument path', () => {
+		const returned = getReturned(`function App() { return <div>
+			const result = value < limit > floor;
+			---
+			{result}
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXExpressionContainer',
+		]);
+		const init = returned.children[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('>');
+	});
+
+	it('parses generic function expressions before output elements', () => {
+		const returned = getReturned(`function App() { return <div>
+			const label = 'value';
+			const builder = function <T>() {
+				return label as T;
+			};
+			---
+			<T>{builder<string>()}</T>
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		const builder = returned.children[1].declarations[0].init;
+		expect(builder.type).toBe('FunctionExpression');
+		expect(builder.typeParameters.type).toBe('TSTypeParameterDeclaration');
+		expect(returned.children[3].openingElement.name.name).toBe('T');
+	});
+
 	it('parses parenthesized conditional JSX spread attributes in template output', () => {
 		const returned = getReturned(`function App() { return <div>
 			let &[enabled] = track(true);
@@ -671,6 +740,27 @@ foo();`;
 		expect(spread.type).toBe('JSXSpreadAttribute');
 		expect(spread.argument.type).toBe('ConditionalExpression');
 		expect(spread.argument.test.name).toBe('enabled');
+	});
+
+	it('parses parenthesized conditional spreads that swap ref-shaped props', () => {
+		const returned = getReturned(`function App() { return <div>
+			let &[as_ref] = track(true);
+			const props = { ref: input };
+			---
+			<input {...(as_ref ? { ref: props.ref } : { input_ref: 'regular prop' })} />
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		const spread = returned.children[3].openingElement.attributes[0];
+		expect(spread.type).toBe('JSXSpreadAttribute');
+		expect(spread.argument.type).toBe('ConditionalExpression');
+		expect(spread.argument.consequent.properties[0].key.name).toBe('ref');
+		expect(spread.argument.alternate.properties[0].key.name).toBe('input_ref');
 	});
 
 	it('does not let a relational `>` inside an attribute break tag scanning', () => {
