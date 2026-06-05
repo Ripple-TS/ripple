@@ -543,6 +543,9 @@
     "expressionWithoutIdentifiers": {
       "patterns": [
         {
+          "include": "#tsrx-template-block-directive"
+        },
+        {
           "include": "#string"
         },
         {
@@ -3754,6 +3757,9 @@
     "expression-inside-possibly-arrow-parens": {
       "patterns": [
         {
+          "include": "#tsrx-template-block-directive"
+        },
+        {
           "include": "#jsx-tag-fragment"
         },
         {
@@ -6615,6 +6621,9 @@
     "jsx-attribute-expression": {
       "patterns": [
         {
+          "include": "#tsrx-template-block-directive"
+        },
+        {
           "include": "#jsx-tag-code-in-expression"
         },
         {
@@ -6642,6 +6651,9 @@
     },
     "non-jsx-expression": {
       "patterns": [
+        {
+          "include": "#tsrx-template-block-directive"
+        },
         {
           "include": "#jsx-tag-code-in-expression"
         },

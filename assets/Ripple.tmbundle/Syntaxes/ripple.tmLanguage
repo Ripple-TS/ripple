@@ -2548,6 +2548,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-fragment</string>
 				</dict>
 				<dict>
@@ -3039,6 +3043,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#string</string>
@@ -4834,6 +4842,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx-tag-code-in-expression</string>
 				</dict>
 				<dict>
@@ -6026,6 +6038,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#jsx-tag-code-in-expression</string>
