@@ -1,4 +1,4 @@
-// --- Code snippets ---
+// Code snippets
 
 import { highlight_tsrx } from '../lib/code-highlight.ts';
 
@@ -513,7 +513,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">List rendering</h2>
 						<p class="section-body">
 							Render lists with
-							<code class="inline-code">@for (... of ...)</code>
+							<code class="inline-code">{'@for (... of ...)'}</code>
 							loops. TSRX extends the syntax with optional
 							<code class="inline-code">index</code>
 							and
@@ -547,7 +547,7 @@ export const FeaturesPage = () => <>
 							, and
 							<code class="inline-code">do...while</code>
 							are rejected in TSRX template scope. Move imperative loops into a nested function or effect, or render collections with
-							<code class="inline-code">@for (... of ...)</code>
+							<code class="inline-code">{'@for (... of ...)'}</code>
 							.
 						</p>
 						<pre class="code-block">
@@ -818,7 +818,7 @@ export const FeaturesPage = () => <>
 			font-weight: 500;
 		}
 
-		/* --- Docs layout with side nav --- */
+		/* Docs layout with side nav */
 
 		.docs-layout {
 			display: grid;
@@ -884,7 +884,7 @@ export const FeaturesPage = () => <>
 			color: #5e2cff;
 		}
 
-		/* --- Content sections --- */
+		/* Content sections */
 
 		.docs-content {
 			min-width: 0;

@@ -1,4 +1,4 @@
-// --- Code snippets (hand-highlighted, matching homepage code-block style) ---
+// Code snippets (hand-highlighted, matching homepage code-block style)
 
 const INSTALL_HTML = [
 	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/vite-plugin-react</span>',

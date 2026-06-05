@@ -282,11 +282,6 @@ function highlight_code_line(line: string): string {
 		const char = line[index];
 		const next = line[index + 1];
 
-		if (line.trim() === '---') {
-			html += span('cmt', line);
-			break;
-		}
-
 		if (char === '/' && next === '/') {
 			html += span('cmt', line.slice(index));
 			break;
