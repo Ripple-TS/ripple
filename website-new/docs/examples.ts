@@ -615,8 +615,8 @@ export default function App() {
   <p>ISO String: {date.toISOString()}</p>
 
   // reactive assignment
-  let year = track(() => date.getFullYear());
-  let month = track(() => date.getMonth());
+  let &[year] = track(() => date.getFullYear());
+  let &[month] = track(() => date.getMonth());
   <p>Assigned usage: Year {year}, Month {month}</p>
 
   <button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
