@@ -632,7 +632,7 @@ export default function App() {
 
 export default function App() {
   return <>
-  let count = track(0,
+  let &[count] = track(0,
     (current) => {
       console.log(current);
       return current;
