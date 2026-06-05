@@ -990,6 +990,7 @@ export function TSRXPlugin(config) {
 					this.lineStart = index - endLoc.column;
 				}
 				this.pos = index;
+				this.#popTemplateLiteralTokenContext();
 				this.next();
 
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
