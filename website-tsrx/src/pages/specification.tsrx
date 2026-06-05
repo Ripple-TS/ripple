@@ -458,7 +458,7 @@ export function SpecificationPage() {
 								 blocks whose bodies render direct template children.
 							</p>
 							<p class="section-body">
-								A template scope may be plain JSX children, or it may contain TypeScript setup statements followed by exactly one output node. That output node must be a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
+								A template scope may be plain JSX children. When a template scope contains TypeScript setup statements and rendered output, the setup statements must appear first and be followed by exactly one output node. That output node must be a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
 							</p>
 							<p class="section-body">
 								Template position also admits JSX text children, JavaScript comments, and braced expression forms. Comments are ignored and do not render. The ordinary form 
@@ -580,7 +580,7 @@ export function SpecificationPage() {
 								</li>
 								<li>Opening and closing tags for TSRX elements and fragments must match.</li>
 								<li>
-									A template scope that contains TypeScript setup statements must place those statements before the output node and must have exactly one output node.
+									A template scope that contains TypeScript setup statements and rendered output must place those statements before the output node and must have exactly one output node.
 								</li>
 								<li>
 									A standalone 
