@@ -20,7 +20,7 @@ const REACT_HOOKS_HTML = highlight_tsrx(
 	`const Profile = ({ userId }: { userId: string | null }) => <>
   @if (userId) {
     const user = useUser(userId);
-    ---
+
     <h1>{user.name}</h1>
   } else {
     <a href="/login">Sign in</a>
@@ -42,10 +42,12 @@ const INLINE_LOCALS_HTML = highlight_tsrx(
   <div>
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount = subtotal > 100 ? 0.1 : 0;
-    ---
-    <h2>Your cart</h2>
-    <p>Subtotal: \${subtotal}</p>
-    <p>Save: \${(subtotal * discount).toFixed(2)}</p>
+
+    <>
+      <h2>Your cart</h2>
+      <p>Subtotal: \${subtotal}</p>
+      <p>Save: \${(subtotal * discount).toFixed(2)}</p>
+    </>
   </div>
 </>;`,
 );
@@ -55,7 +57,7 @@ const COLOCATION_HTML = highlight_tsrx(
   @for (const user of users) {
     const initials = user.name.slice(0, 2).toUpperCase();
     const role = user.admin ? 'Admin' : 'Member';
-    ---
+
     <div class="user-row">
       <span class="avatar">{initials}</span>
       <strong>{user.name}</strong>
@@ -64,7 +66,7 @@ const COLOCATION_HTML = highlight_tsrx(
       @if (showBio && user.bio) {
         const short_bio = user.bio.slice(0, 140);
         const report = () => console.log('viewed ' + user.name);
-        ---
+
         <div class="bio-detail">
           <p class="bio">{short_bio}</p>
           <button onClick={report}>Viewed</button>
@@ -161,11 +163,7 @@ export const IndexPage = () => <>
 				<p class="eyebrow">Benefits of TSRX</p>
 				<h2 class="section-heading">Co-location helps engineers and AI systems alike.</h2>
 				<p class="section-body">
-					When structure, control flow, styling, and component shape live in the same file, the source reads closer to the interface it describes. The
-					{' '}
-					<code class="inline-code">---</code>
-					{' '}
-					fence keeps that co-location legible: TypeScript setup stays above the line, rendered UI stays below it, and each nested block can make the same split locally. That cuts down on ternaries, map chains, and render helpers while making refactors and onboarding less brittle.
+					When structure, control flow, styling, and component shape live in the same file, the source reads closer to the interface it describes. TSRX keeps that co-location legible with a structural rule: TypeScript setup stays first, then the scope resolves to one output node. That cuts down on ternaries, map chains, and render helpers while making refactors and onboarding less brittle.
 				</p>
 				<pre class="code-block">
 					<code innerHTML={COLOCATION_HTML} />

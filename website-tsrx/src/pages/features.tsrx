@@ -34,26 +34,28 @@ const BAILOUT_HTML = highlight_tsrx(
       count += 1;
     }
   };
-  ---
+
   <button onClick={increment}>Count: {count}</button>
 </>;`,
 );
 
-const FENCE_HTML = highlight_tsrx(
+const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
 	`const ProductCard = ({ product }: { product: Product }) => <>
   const name = product.name.trim();
   const price = money(product.price);
-  ---
+
   <article>
     <h2>{name}</h2>
 
     <footer>
       const hasDiscount = product.discount > 0;
-      ---
-      <strong>{price}</strong>
-      @if (hasDiscount) {
-        <span>Sale</span>
-      }
+
+      <>
+        <strong>{price}</strong>
+        @if (hasDiscount) {
+          <span>Sale</span>
+        }
+      </>
     </footer>
   </article>
 </>;`,
@@ -92,7 +94,7 @@ const FOR_HTML = highlight_tsrx(
   <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
-      ---
+
       <li>{i + 1}. {item.text}</li>
     }
   </ul>
@@ -105,8 +107,8 @@ const TRY_HTML = highlight_tsrx(
     <UserProfile id={userId} />
   } catch (error) {
     <div class="error">
-        <p>Something went wrong.</p>
-      </div>
+      <p>Something went wrong.</p>
+    </div>
   }
 </>;`,
 );
@@ -117,9 +119,9 @@ const TRY_RESET_HTML = highlight_tsrx(
     <ComponentThatMightFail />
   } catch (e, reset) {
     <div>
-        <p>Error: {e.message}</p>
-        <button onClick={() => reset()}>Try again</button>
-      </div>
+      <p>Error: {e.message}</p>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
   }
 </>;`,
 );
@@ -150,11 +152,11 @@ const SHORTHAND_HTML = highlight_tsrx(
 const SCOPING_HTML = highlight_tsrx(
 	`const App = () => <>
   const name = 'World';
-  ---
+
   <div>
     // This is a new scope - you can declare variables here
     const greeting = 'Hello, ' + name + '!';
-    ---
+
     <h1>{greeting}</h1>
   </div>
 </>;`,
@@ -176,7 +178,7 @@ const RENDER_PROPS_HTML = highlight_tsrx(
   const renderItem = (item: Item) => <>
     <li>{item.label}</li>
   </>;
-  ---
+
   <List items={items} render={renderItem} />
 </>;`,
 );
@@ -226,12 +228,14 @@ const App = () => <>
   const styles = <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
-  ---
-  // Ripple, Preact, Solid, and Vue component props:
-  <Badge class={styles.highlight} />
 
-  // React component props:
-  // <Badge className={styles.highlight} />
+  <>
+    // Ripple, Preact, Solid, and Vue component props:
+    <Badge class={styles.highlight} />
+
+    // React component props:
+    // <Badge className={styles.highlight} />
+  </>
 </>;`,
 );
 
@@ -265,19 +269,20 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
   const [tab, setTab] = useState('overview');
 
   // Hooks inside TSRX template branches are isolated safely.
-  ---
-  <h1>{user.name}</h1>
-  <TabBar value={tab} onChange={setTab} />
+  <>
+    <h1>{user.name}</h1>
+    <TabBar value={tab} onChange={setTab} />
 
-  <ul>
-    @for (const post of posts) {
-      useEffect(() => {
-        console.log('viewed ' + post.title);
-      }, [post.title]);
-      ---
-      <li>{post.title}</li>
-    }
-  </ul>
+    <ul>
+      @for (const post of posts) {
+        useEffect(() => {
+          console.log('viewed ' + post.title);
+        }, [post.title]);
+
+        <li>{post.title}</li>
+      }
+    </ul>
+  </>
 </>;`,
 );
 
@@ -292,7 +297,7 @@ const LAZY_PROPS_HTML = highlight_tsrx(
 
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
-	{ id: 'fences', label: 'Template fences' },
+	{ id: 'template-structure', label: 'Template structure' },
 	{ id: 'comments', label: 'JS comments' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
@@ -399,31 +404,27 @@ export const FeaturesPage = () => <>
 						<p class="section-body">
 							When a bit of logic should stay plain JavaScript rather than render into the template, put it in a normal function beside the markup. Use
 							{' '}
-							<code class="inline-code">---</code>
-							{' '}
-							to separate setup from rendered children, then call helpers from event handlers or expressions:
-							{' '}
 							<code class="inline-code">{'const fn = () => { ... }'}</code>
+							{' '}
+							for ordinary control flow, then call helpers from event handlers or expressions:
+							{' '}
+							<code class="inline-code">{'onClick={fn}'}</code>
 							.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={BAILOUT_HTML} />
 						</pre>
 					</section>
-					<section class="doc-section" id="fences">
-						<h2 class="section-heading">Template fences</h2>
+					<section class="doc-section" id="template-structure">
+						<h2 class="section-heading">Template structure</h2>
 						<p class="section-body">
-							The
-							{' '}
-							<code class="inline-code">---</code>
-							{' '}
-							fence works like frontmatter in Markdown or Astro: TypeScript code goes above it, rendered template children go below it. In TSRX this is optional and applies to each template scope, not just once at the top of the file.
+							When a template scope mixes TypeScript setup with rendered output, setup comes first and the scope finishes with exactly one output node. That output can be a JSX element, a JSX fragment, or a JSX control-flow expression.
 						</p>
 						<p
 							class="section-body muted"
-						>The fence applies only to the current element, fragment, or control-flow branch. Nested element bodies get their own optional script section, so setup can stay close to the markup that uses it.</p>
+						>If the rendered part needs multiple siblings, text, or a dynamic value, wrap it in a fragment. The rule applies locally to each element, fragment, and control-flow branch, so setup can stay close to the markup that uses it.</p>
 						<pre class="code-block">
-							<code innerHTML={FENCE_HTML} />
+							<code innerHTML={TEMPLATE_STRUCTURE_HTML} />
 						</pre>
 					</section>
 					<section class="doc-section" id="comments">
@@ -481,28 +482,28 @@ export const FeaturesPage = () => <>
 						</pre>
 						<p class="section-body">
 							This applies to all block-like contexts: element children, component children, and control flow branches (
-							<code class="inline-code">if</code>
+							<code class="inline-code">@if</code>
 							,
-							<code class="inline-code">for</code>
+							<code class="inline-code">@for</code>
 							,
-							<code class="inline-code">switch</code>
+							<code class="inline-code">@switch</code>
 							,
-							<code class="inline-code">try</code>
+							<code class="inline-code">@try</code>
 							). Each one has its own scope.
 						</p>
 					</section>
 					<section class="doc-section" id="if">
 						<h2 class="section-heading">Conditional rendering</h2>
 						<p class="section-body">
-							Use standard
-							<code class="inline-code">if</code>
+							Use
+							<code class="inline-code">@if</code>
 							/
 							<code class="inline-code">else if</code>
 							/
 							<code class="inline-code">else</code>
-							template expressions directly inside templates. Direct branch children render, or use
-							<code class="inline-code">return</code>
-							when the branch should exit the enclosing function.
+							template expressions directly inside templates. Branches render their template output, while ordinary
+							<code class="inline-code">if</code>
+							statements in setup stay plain JavaScript.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={IF_HTML} />
@@ -512,7 +513,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">List rendering</h2>
 						<p class="section-body">
 							Render lists with
-							<code class="inline-code">for...of</code>
+							<code class="inline-code">@for (... of ...)</code>
 							loops. TSRX extends the syntax with optional
 							<code class="inline-code">index</code>
 							and
@@ -523,17 +524,17 @@ export const FeaturesPage = () => <>
 							Use
 							<code class="inline-code">continue</code>
 							inside a template
-							<code class="inline-code">for...of</code>
+							<code class="inline-code">@for</code>
 							body to skip the current item.
 							<code class="inline-code">return</code>
 							exits the enclosing function, while direct children render the current iteration.
 							<code class="inline-code">break</code>
 							is not allowed in
-							<code class="inline-code">for...of</code>
+							<code class="inline-code">@for</code>
 							template loop bodies; use
 							<code class="inline-code">break</code>
 							only for
-							<code class="inline-code">switch</code>
+							<code class="inline-code">@switch</code>
 							cases. Nested functions keep ordinary JavaScript control flow.
 						</p>
 						<p class="section-body">
@@ -546,7 +547,7 @@ export const FeaturesPage = () => <>
 							, and
 							<code class="inline-code">do...while</code>
 							are rejected in TSRX template scope. Move imperative loops into a nested function or effect, or render collections with
-							<code class="inline-code">for...of</code>
+							<code class="inline-code">@for (... of ...)</code>
 							.
 						</p>
 						<pre class="code-block">
@@ -556,8 +557,8 @@ export const FeaturesPage = () => <>
 					<section class="doc-section" id="switch">
 						<h2 class="section-heading">Switch statements</h2>
 						<p class="section-body">
-							Multi-branch rendering uses a standard
-							<code class="inline-code">switch</code>
+							Multi-branch rendering uses an
+							<code class="inline-code">@switch</code>
 							template expression. Case children render directly; end fallthrough-sensitive cases with
 							<code class="inline-code">break</code>
 							.
@@ -570,7 +571,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Error boundaries</h2>
 						<p class="section-body">
 							Wrap components in
-							<code class="inline-code">try</code>
+							<code class="inline-code">@try</code>
 							/
 							<code class="inline-code">catch</code>
 							to create error boundaries. If a child component throws, the catch block renders its fallback children.
@@ -595,7 +596,7 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Async boundaries</h2>
 						<p class="section-body">
 							Wrap a component subtree in
-							<code class="inline-code">try</code>
+							<code class="inline-code">@try</code>
 							/
 							<code class="inline-code">pending</code>
 							/
@@ -603,7 +604,7 @@ export const FeaturesPage = () => <>
 							to handle async children. While a lazy child or resource is in flight, the
 							<code class="inline-code">pending</code>
 							branch renders; when it resolves, the
-							<code class="inline-code">try</code>
+							<code class="inline-code">@try</code>
 							body takes over; if it rejects — or any child throws synchronously —
 							<code class="inline-code">catch</code>
 							runs. Both

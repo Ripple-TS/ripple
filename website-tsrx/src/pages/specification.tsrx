@@ -15,11 +15,28 @@ const MODIFIED_PRODUCTIONS = [
 	'  JSXSwitchExpression',
 	'  JSXTryExpression',
 	'',
+	'TemplateChildren :',
+	'  TemplateChildList',
+	'  TemplateScriptItemList TemplateOutput',
+	'',
+	'TemplateChildList :',
+	'  TemplateChild',
+	'  TemplateChildList TemplateChild',
+	'',
+	'TemplateScriptItemList :',
+	'  TemplateScriptItem',
+	'  TemplateScriptItemList TemplateScriptItem',
+	'',
 	'TemplateScriptItem :',
 	'  StatementListItem',
 	'',
-	'TemplateFence :',
-	'  ---',
+	'TemplateOutput :',
+	'  JSXElement',
+	'  JSXFragment',
+	'  JSXIfExpression',
+	'  JSXForExpression',
+	'  JSXSwitchExpression',
+	'  JSXTryExpression',
 	'',
 	'BindingAtom :',
 	'  LazyObjectBindingPattern',
@@ -56,8 +73,11 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'JSXTextChild :',
 	'  JSXTextCharacters',
 	'',
-	'TemplateExpression :',
+	'JSXExpressionContainer :',
 	'  { AssignmentExpression }',
+	'',
+	'TemplateBlock :',
+	'  { TemplateChildrenopt }',
 	'',
 	'JSXIfExpression :',
 	'  @if ( Expression ) TemplateBlock',
@@ -108,7 +128,7 @@ const AST_NODE_MAPPING = [
 	'JSXAttributeName JSXAttributeInitializeropt -> JSXAttribute',
 	'{ ... AssignmentExpression } in attribute position -> JSXSpreadAttribute',
 	'<style> CSSSource </style> -> JSXStyleElement',
-	'--- -> TsrxTemplateFence',
+	'TemplateScriptItem -> ordinary ESTree statement node in template children',
 	'@if -> JSXIfExpression',
 	'@for -> JSXForExpression',
 	'@switch -> JSXSwitchExpression',
@@ -137,7 +157,7 @@ const TEMPLATE_AST_SHAPE = [
 	'  type: \'JSXElement\';',
 	'  openingElement: JSXOpeningElement;',
 	'  closingElement: JSXClosingElement | null;',
-	'  children: JSXChild[];',
+	'  children: TemplateChild[];',
 	'  metadata?: { native_tsrx?: true };',
 	'}',
 	'',
@@ -164,29 +184,27 @@ const EXPRESSION_AST_SHAPE = [
 	'  type: \'JSXFragment\';',
 	'  openingFragment: JSXOpeningFragment;',
 	'  closingFragment: JSXClosingFragment;',
-	'  children: JSXChild[];',
+	'  children: TemplateChild[];',
 	'  metadata?: { native_tsrx?: true };',
 	'}',
 	'',
-	'type JSXChild =',
-	'  | JSXText',
-	'  | JSXExpressionContainer',
+	'type TemplateOutput =',
 	'  | JSXElement',
 	'  | JSXFragment',
-	'  | JSXStyleElement',
 	'  | JSXIfExpression',
 	'  | JSXForExpression',
 	'  | JSXSwitchExpression',
-	'  | JSXTryExpression',
-	'  | TsrxTemplateFence;',
+	'  | JSXTryExpression;',
+	'',
+	'type TemplateChild =',
+	'  | JSXText',
+	'  | JSXExpressionContainer',
+	'  | TemplateOutput',
+	'  | JSXStyleElement',
+	'  | StatementListItem;',
 ].join('\n');
 
 const TSRX_EXTENSION_AST_SHAPE = [
-	'interface TsrxTemplateFence {',
-	'  type: \'TsrxTemplateFence\';',
-	'  value: \'---\';',
-	'}',
-	'',
 	'interface JSXStyleElement {',
 	'  type: \'JSXStyleElement\';',
 	'  openingElement: JSXOpeningElement;',
@@ -362,7 +380,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="rationale">
 							<h2 class="section-heading">Rationale</h2>
 							<p class="section-body">
-								TSRX exists to define a predictable syntax for component-oriented source code while preserving the familiar JSX AST shape. Elements, fragments, text, expression containers, attributes, and spread attributes use the standard JSX node family; TSRX adds only the nodes needed for fences, style blocks, and template control flow.
+								TSRX exists to define a predictable syntax for component-oriented source code while preserving the familiar JSX AST shape. Elements, fragments, text, expression containers, attributes, and spread attributes use the standard JSX node family; TSRX adds only the nodes needed for structural template scopes, style blocks, and template control flow.
 							</p>
 							<ul class="spec-list">
 								<li>Returned TSRX templates are represented with JSXElement and JSXFragment nodes.</li>
@@ -440,7 +458,10 @@ export function SpecificationPage() {
 								 blocks whose bodies render direct template children.
 							</p>
 							<p class="section-body">
-								Template position also admits JSX text children and braced expression forms. The ordinary form 
+								A template scope may be plain JSX children, or it may contain TypeScript setup statements followed by exactly one output node. That output node must be a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
+							</p>
+							<p class="section-body">
+								Template position also admits JSX text children, JavaScript comments, and braced expression forms. Comments are ignored and do not render. The ordinary form 
 								<code class="inline-code">{"{ AssignmentExpression }"}</code>
 								 contributes a JSXExpressionContainer node. A function exit remains an ordinary 
 								<code class="inline-code">return</code>
@@ -517,7 +538,7 @@ export function SpecificationPage() {
 								<code>{EXPRESSION_VALUE_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								Use a fragment when an expression value needs local declarations, control flow, or multiple emitted elements. Use a single element when the value is already compact.
+								Use a fragment when an expression value needs local declarations, control flow, text, dynamic expression children, or multiple emitted elements. Use a single element when the value is already compact.
 							</p>
 						</section>
 
@@ -559,23 +580,15 @@ export function SpecificationPage() {
 								</li>
 								<li>Opening and closing tags for TSRX elements and fragments must match.</li>
 								<li>
-									In hosts that enable server-oriented submodules, server exports must be imported before use, for example import &#123; load &#125; from server.
+									A template scope that contains TypeScript setup statements must place those statements before the output node and must have exactly one output node.
 								</li>
 								<li>
-									Direct TSRX elements, fragments, text, and expression output inside control-flow block bodies must use template directives such as 
-									<code class="inline-code">@if</code>
-									, 
-									<code class="inline-code">@for</code>
-									, 
-									<code class="inline-code">@switch</code>
-									, or 
-									<code class="inline-code">@try</code>
-									. Use 
-									<code class="inline-code">return</code>
-									 when the enclosing function should exit. Raw 
-									<code class="inline-code">{"<style>"}</code>
-									 blocks are additive stylesheet declarations and do not require 
-									a directive.
+									A standalone 
+									<code class="inline-code">JSXExpressionContainer</code>
+									 is not a template output node. Use a JSX fragment when setup needs to render text, expression containers, or multiple siblings.
+								</li>
+								<li>
+									In hosts that enable server-oriented submodules, server exports must be imported before use, for example import &#123; load &#125; from server.
 								</li>
 								<li>
 									Host profiles may restrict which submodule names are supported and may impose additional restrictions on referenced bindings.
@@ -602,7 +615,7 @@ export function SpecificationPage() {
 						<section class="doc-section" id="appendices">
 							<h2 class="section-heading">Appendices</h2>
 							<p class="section-body">
-								The current reference implementation exposes ESTree-compatible function nodes and standard JSX-shaped nodes such as JSXElement, JSXFragment, JSXExpressionContainer, JSXText, JSXAttribute, and JSXSpreadAttribute. TSRX-specific additions are limited to TsrxTemplateFence, JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, JSXTryExpression, TSModuleDeclaration, and TSModuleBlock. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.
+								The current reference implementation exposes ESTree-compatible function nodes and standard JSX-shaped nodes such as JSXElement, JSXFragment, JSXExpressionContainer, JSXText, JSXAttribute, and JSXSpreadAttribute. TSRX-specific additions are limited to JSXStyleElement, JSXIfExpression, JSXForExpression, JSXSwitchExpression, JSXTryExpression, TSModuleDeclaration, and TSModuleBlock. The grammar in sections 4.1 through 4.7 is normative; the node shapes in this appendix are informative and describe the parser contract currently exposed to tooling.
 							</p>
 							<h3 class="appendix-heading">A.1 Grammar-to-node correspondence</h3>
 							<p class="section-body">
@@ -690,7 +703,7 @@ export function SpecificationPage() {
 							</ul>
 							<h3 class="appendix-heading">A.5 TSRX extension nodes</h3>
 							<p class="section-body">
-								The following nodes are the current TSRX-specific additions. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
+								The following nodes are the current TSRX-specific additions. Style blocks are represented as JSXStyleElement nodes. Control-flow directives are represented directly by JSXIfExpression, JSXForExpression, JSXSwitchExpression, and JSXTryExpression nodes.
 							</p>
 							<pre class="code-block plain">
 								<code>{TSRX_EXTENSION_AST_SHAPE}</code>
