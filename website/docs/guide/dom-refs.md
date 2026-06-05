@@ -26,9 +26,9 @@ export default function App() {
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
   return <>
-    <div ref={div}>"Hello world"</div>
+    <div ref={div}>Hello world</div>
     <input ref={input} type="text" />
-    <button ref={state.button}>"Save"</button>
+    <button ref={state.button}>Save</button>
   </>;
 }
 ```
@@ -51,7 +51,7 @@ export function App() {
       console.log('unmounted', node);
     };
   }
-  return <div ref={setup}>"Hello world"</div>
+  return <div ref={setup}>Hello world</div>
 }
 ```
 
@@ -73,7 +73,7 @@ export function App() {
       };
     }}
   >
-    "Hello world"
+    Hello world
   </div>
 }
 ```
@@ -87,7 +87,7 @@ when the ref setup needs configuration.
 import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
-  return <div ref={fadeIn({ ms })}>"Hello world"</div>
+  return <div ref={fadeIn({ ms })}>Hello world</div>
 }
 ```
 
@@ -133,7 +133,7 @@ Named props such as `inputRef` are ordinary component API props. Pass them into
 ```ripple
 export function Field({ inputRef, ...rest }) {
   return <label>
-    "Search"<input type="search" ref={inputRef} {...rest} />
+    Search<input type="search" ref={inputRef} {...rest} />
   </label>
 }
 

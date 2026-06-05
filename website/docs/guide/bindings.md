@@ -34,8 +34,8 @@ export function App() {
       ref={bindValue(nameTracked)}
       placeholder="Enter your name"
     />
-    <p>"Hello, "{name || 'stranger'}"!"</p>
-    <button onClick={() => (name = '')}>"Clear"</button>
+    <p>Hello, {name || 'stranger'}!</p>
+    <button onClick={() => (name = '')}>Clear</button>
   </div>
 }
 ```
@@ -53,8 +53,8 @@ export function App() {
   let &[age, ageTracked] = track(0);
   return <div>
     <input type="number" ref={bindValue(ageTracked)} min="0" max="120" />
-    <p>"Age: "{age}" years old"</p>
-    <button onClick={() => (age = age + 1)}>"Increment"</button>
+    <p>Age: {age} years old</p>
+    <button onClick={() => (age = age + 1)}>Increment</button>
   </div>
 }
 ```
@@ -72,12 +72,12 @@ export function App() {
   let &[selectedFruit, selectedFruitTracked] = track('apple');
   return <div>
     <select ref={bindValue(selectedFruitTracked)}>
-      <option value="apple">"Apple"</option>
-      <option value="banana">"Banana"</option>
-      <option value="cherry">"Cherry"</option>
-      <option value="durian">"Durian"</option>
+      <option value="apple">Apple</option>
+      <option value="banana">Banana</option>
+      <option value="cherry">Cherry</option>
+      <option value="durian">Durian</option>
     </select>
-    <p>"You selected: "{selectedFruit}</p>
+    <p>You selected: {selectedFruit}</p>
   </div>
 }
 ```
@@ -95,12 +95,12 @@ export function App() {
   let &[selectedColors, selectedColorsTracked] = track(['red', 'blue']);
   return <div>
     <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
-      <option value="red">"Red"</option>
-      <option value="green">"Green"</option>
-      <option value="blue">"Blue"</option>
-      <option value="yellow">"Yellow"</option>
+      <option value="red">Red</option>
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+      <option value="yellow">Yellow</option>
     </select>
-    <p>"Selected colors: "{selectedColors.join(', ')}</p>
+    <p>Selected colors: {selectedColors.join(', ')}</p>
   </div>
 }
 ```
@@ -122,10 +122,10 @@ export function App() {
   return <div>
     <label>
       <input type="checkbox" ref={bindChecked(agreedTracked)} />
-      " I agree to the terms and conditions"
+       I agree to the terms and conditions
     </label>
-    <p>"Status: "{agreed ? 'Agreed' : 'Not agreed'}</p>
-    <button disabled={!agreed}>"Submit"</button>
+    <p>Status: {agreed ? 'Agreed' : 'Not agreed'}</p>
+    <button disabled={!agreed}>Submit</button>
   </div>
 }
 ```
@@ -161,10 +161,10 @@ export function App() {
         type="checkbox"
         ref={[bindChecked(checkedTracked), bindIndeterminate(indeterminateTracked)]}
       />
-      " Select All"
+       Select All
     </label>
-    <p>"Checked: "{checked ? 'Yes' : 'No'}</p>
-    <p>"Indeterminate: "{indeterminate ? 'Yes' : 'No'}</p>
+    <p>Checked: {checked ? 'Yes' : 'No'}</p>
+    <p>Indeterminate: {indeterminate ? 'Yes' : 'No'}</p>
     <button
       onClick={() => {
         indeterminate = !indeterminate;
@@ -173,7 +173,7 @@ export function App() {
         }
       }}
     >
-      "Toggle Indeterminate"
+      Toggle Indeterminate
     </button>
   </div>
 }
@@ -210,22 +210,22 @@ export function App() {
   return <div>
     <label>
       <input type="checkbox" value="reading" ref={bindGroup(hobbiesTracked)} />
-      " Reading"
+       Reading
     </label>
     <label>
       <input type="checkbox" value="gaming" ref={bindGroup(hobbiesTracked)} />
-      " Gaming"
+       Gaming
     </label>
     <label>
       <input type="checkbox" value="sports" ref={bindGroup(hobbiesTracked)} />
-      " Sports"
+       Sports
     </label>
     <label>
       <input type="checkbox" value="cooking" ref={bindGroup(hobbiesTracked)} />
-      " Cooking"
+       Cooking
     </label>
-    <p>"Selected: "{hobbies.join(', ') || 'none'}</p>
-    <button onClick={() => (hobbies = ['reading'])}>"Reset"</button>
+    <p>Selected: {hobbies.join(', ') || 'none'}</p>
+    <button onClick={() => (hobbies = ['reading'])}>Reset</button>
   </div>
 }
 ```
@@ -245,18 +245,18 @@ export function App() {
   return <div>
     <label>
       <input type="radio" name="size" value="small" ref={bindGroup(sizeTracked)} />
-      " Small"
+       Small
     </label>
     <label>
       <input type="radio" name="size" value="medium" ref={bindGroup(sizeTracked)} />
-      " Medium"
+       Medium
     </label>
     <label>
       <input type="radio" name="size" value="large" ref={bindGroup(sizeTracked)} />
-      " Large"
+       Large
     </label>
-    <p>"Selected size: "{size}</p>
-    <button onClick={() => size = 'medium'}>"Reset to &quot;medium&quot;"</button>
+    <p>Selected size: {size}</p>
+    <button onClick={() => size = 'medium'}>Reset to &quot;medium&quot;</button>
   </div>
 }
 ```
@@ -322,20 +322,22 @@ export function App() {
     />
 
     <div>
-      if (files && files.length > 0) {
-        <p>"Selected files:"</p>
-        <ul>
-          for (const file of Array.from(files)) {
-            <li>{file.name}" ("{file.size}" bytes)"</li>
-          }
-        </ul>
+      @if (files && files.length > 0) {
+        <>
+          <p>Selected files:</p>
+          <ul>
+            @for (const file of Array.from(files)) {
+              <li>{file.name} ({file.size} bytes)</li>
+            }
+          </ul>
+        </>
       } else {
-        <p>"No files selected"</p>
+        <p>No files selected</p>
       }
     </div>
 
-    <button onClick={clearFiles}>"Clear files"</button>
-    <button onClick={createSampleFile}>"Add sample file"</button>
+    <button onClick={clearFiles}>Clear files</button>
+    <button onClick={createSampleFile}>Add sample file</button>
   </div>
 }
 ```
@@ -385,9 +387,9 @@ export function App() {
       minHeight: '100px',
     }}
   >
-    "Resize me! (drag bottom-right corner)"
-    <p>"Client Width: "{width}"px"</p>
-    <p>"Client Height: "{height}"px"</p>
+    Resize me! (drag bottom-right corner)
+    <p>Client Width: {width}px</p>
+    <p>Client Height: {height}px</p>
   </div>
 }
 ```
@@ -416,10 +418,10 @@ export function App() {
         height: '150px',
       }}
     >
-      "Box with borders"
+      Box with borders
     </div>
-    <p>"Offset Width: "{width}"px (includes borders)"</p>
-    <p>"Offset Height: "{height}"px (includes borders)"</p>
+    <p>Offset Width: {width}px (includes borders)</p>
+    <p>Offset Height: {height}px (includes borders)</p>
   </>
 }
 ```
@@ -452,7 +454,7 @@ export function App() {
         minHeight: '100px',
       }}
     >
-      "Resize me!"
+      Resize me!
     </div>
     <pre>{JSON.stringify(rect, null, 2)}</pre>
   </>
@@ -483,12 +485,12 @@ export function App() {
         height: '100px',
       }}
     >
-      "Content box size"
+      Content box size
     </div>
     <pre>
-      "Block size: "{size[0]?.blockSize || 0}"px"
+      Block size: {size[0]?.blockSize || 0}px
       <br />
-      "Inline size: "{size[0]?.inlineSize || 0}"px"
+      Inline size: {size[0]?.inlineSize || 0}px
     </pre>
   </>
 
@@ -519,12 +521,12 @@ export function App() {
         height: '100px',
       }}
     >
-      "Border box size"
+      Border box size
     </div>
     <pre>
-      "Block size: "{size[0]?.blockSize || 0}"px"
+      Block size: {size[0]?.blockSize || 0}px
       <br />
-      "Inline size: "{size[0]?.inlineSize || 0}"px"
+      Inline size: {size[0]?.inlineSize || 0}px
     </pre>
   </>
 }
@@ -554,12 +556,12 @@ export function App() {
         height: '80px',
       }}
     >
-      "Device pixel content box"
+      Device pixel content box
     </div>
     <pre>
-      "Block size: "{size[0]?.blockSize || 0}"px"
+      Block size: {size[0]?.blockSize || 0}px
       <br />
-      "Inline size: "{size[0]?.inlineSize || 0}"px"
+      Inline size: {size[0]?.inlineSize || 0}px
     </pre>
   </>
 }
@@ -591,7 +593,7 @@ export function App() {
         minHeight: '50px',
       }}
     />
-    <p>"Raw HTML:"</p>
+    <p>Raw HTML:</p>
     <pre>{content}</pre>
   </>
 
@@ -622,7 +624,7 @@ export function App() {
         minHeight: '50px'
       }}
     />
-    <p>"Text content: "{text}</p>
+    <p>Text content: {text}</p>
   </>
 }
 ```
@@ -652,7 +654,7 @@ export function App() {
         whiteSpace: 'pre-wrap'
       }}
     />
-    <p>"Text content: "{text}</p>
+    <p>Text content: {text}</p>
   </>
 
 }
@@ -691,9 +693,9 @@ export function App() {
         outline: 'none',
       }}
     >
-      "Click the button to focus this div"
+      Click the button to focus this div
     </div>
-    <button onClick={handleFocus}>"Focus Div"</button>
+    <button onClick={handleFocus}>Focus Div</button>
   </>
 }
 ```
@@ -732,9 +734,9 @@ export function App() {
       placeholder="Type something..."
       style="width: 300px"
     />
-    <p>"Text: "{text}</p>
-    <p>"Width: "{width}"px"</p>
-    <button onClick={logInfo}>"Log Info"</button>
+    <p>Text: {text}</p>
+    <p>Width: {width}px</p>
+    <button onClick={logInfo}>Log Info</button>
   </div>
 
 }

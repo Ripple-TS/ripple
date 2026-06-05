@@ -48,11 +48,11 @@ export function App() {
     <button onClick={() => {
       count++;
       count2++;
-    }}>"Click Me"</button>
+    }}>Click Me</button>
 
     // context's reactive property count gets updated
-    <pre>"Context: "{count}</pre>
-    <pre>"Context2: "{count2}</pre>
+    <pre>Context: {count}</pre>
+    <pre>Context2: {count2}</pre>
   </>;
 }
 ```
@@ -75,7 +75,7 @@ function Child() {
   // value is "Hello from context!"
   console.log(value);
 
-  return <p>"Value in Child: "{value}</p>;
+  return <p>Value in Child: {value}</p>;
 }
 
 export function Parent() {

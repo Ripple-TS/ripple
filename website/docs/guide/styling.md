@@ -11,7 +11,7 @@ TSRX template using the `<style>` element.
 function MyComponent() {
   return <>
     <div class="container">
-      <h1>"Hello World"</h1>
+      <h1>Hello World</h1>
     </div>
 
     <style>
@@ -32,8 +32,8 @@ function MyComponent() {
 :::
 
 `<style>` blocks contain static CSS. TSRX template rules for JavaScript
-statements and expressions do not apply inside them, so do not put `{expr}`,
-`if`, `for`, or declarations in a style block. Use CSS custom properties for
+expressions and directives do not apply inside them, so do not put `{expr}`,
+`@if`, `@for`, or declarations in a style block. Use CSS custom properties for
 runtime values.
 
 ## Dynamic Classes
@@ -47,16 +47,21 @@ Examples:
 ```ripple
 import { track } from 'ripple';
 
-let &[includeBaz] = track(true);
-<div class={{ foo: true, bar: false, baz: includeBaz }} />
-// becomes: class="foo baz"
+function App() {
+  let &[includeBaz] = track(true);
+  let &[count] = track(3);
 
-<div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
-// becomes: class="foo bat"
+  return <>
+    <div class={{ foo: true, bar: false, baz: includeBaz }} />
+    // becomes: class="foo baz"
 
-let &[count] = track(3);
-<div class={['foo', { bar: count > 2 }, count > 3 && 'bat']} />
-// becomes: class="foo bar"
+    <div class={['foo', { baz: false }, 0 && 'bar', [true && 'bat']]} />
+    // becomes: class="foo bat"
+
+    <div class={['foo', { bar: count > 2 }, count > 3 && 'bat']} />
+    // becomes: class="foo bar"
+  </>;
+}
 ```
 
 ## Dynamic CSS Values
@@ -73,10 +78,10 @@ function App() {
 
   return <>
     <div class="notice" style={{ '--notice-color': color }}>
-      "Styled text"
+      Styled text
     </div>
     <button onClick={() => (color = color === 'red' ? 'blue' : 'red')}>
-      "Toggle Color"
+      Toggle Color
     </button>
 
     <style>
@@ -134,9 +139,9 @@ export function App() {
 function Child() {
   // The div should have its font-size at 2rem from parent
   return <div>
-    <h2 class="header">"This is a header with font-size 3rem"</h2>
-    <span class="highlight">"This will be red and bold"</span>
-    <p class="nested">"This will have left margin"</p>
+    <h2 class="header">This is a header with font-size 3rem</h2>
+    <span class="highlight">This will be red and bold</span>
+    <p class="nested">This will have left margin</p>
   </div>
 }
 ```
@@ -187,7 +192,7 @@ export function App() {
 
 function Child() {
   return <>
-    <div class="child">"Child content"</div>
+    <div class="child">Child content</div>
 
     <style>
       .child {
@@ -214,7 +219,7 @@ Each map entry contains both the CSS scope hash and the class name (for example
 
 ```ripple
 function Child({ class: className }: { class: string }) {
-  return <div class={className}>"styled child"</div>
+  return <div class={className}>styled child</div>
 }
 
 function Parent() {
@@ -233,8 +238,8 @@ You can pass multiple classes:
 ```ripple
 function Child({ primary, secondary }: { primary: string; secondary: string }) {
   return <>
-    <div class={primary}>"primary"</div>
-    <span class={secondary}>"secondary"</span>
+    <div class={primary}>primary</div>
+    <span class={secondary}>secondary</span>
   </>;
 }
 
@@ -260,7 +265,7 @@ Style expression maps also work when rendering dynamic components with `<@Compon
 import { track } from 'ripple';
 
 function Child({ cls }: { cls: string }) {
-  return <span class={cls}>"text"</span>
+  return <span class={cls}>text</span>
 }
 
 function Parent() {
@@ -283,7 +288,7 @@ scoped classes:
 ```ripple
 function Card({ class: className }: { class?: string }) {
   return <>
-    <div class={['card-base', className ?? '']}>"card content"</div>
+    <div class={['card-base', className ?? '']}>card content</div>
 
     <style>
       .card-base {

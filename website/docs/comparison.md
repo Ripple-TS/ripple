@@ -6,7 +6,7 @@ title: Comparison to other frameworks
 
 ## vs React
 
-- No wrapper components for control flow - returned templates support inline `if`, `for`, and `switch`
+- No wrapper components for control flow - returned templates support inline `@if`, `@for`, `@switch`, and `@try`
 - Built-in reactivity with `track()` and `&[]` lazy destructuring instead of useState/useEffect
 - Scoped CSS without CSS-in-JS libraries
 - No virtual DOM - fine-grained reactivity
@@ -22,4 +22,4 @@ title: Comparison to other frameworks
 
 - Components are ordinary functions that return TSRX
 - Built-in collections (RippleArray, RippleSet)
-- Returned templates support statement-style control flow
+- Returned templates support directive-style control flow

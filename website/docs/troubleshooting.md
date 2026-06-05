@@ -6,18 +6,18 @@ title: Troubleshooting in Ripple
 
 ## Unterminated regular expression
 
-While this may be caused by an actual unterminated regular expression, most of the
-time, it's caused by unquoted text in a template. Static text should be written
-as a direct double-quoted child; JavaScript expressions should use {braces}.
+While this may be caused by an actual unterminated regular expression, it can
+also happen when JSX-like syntax is malformed. Static text is plain JSX text;
+JavaScript expressions should use {braces}.
 
 ```ripple
 export function TextBrace() {
   return <>
     // ✔️ valid
-    <p>"Hello world!"</p>
+    <p>Hello world!</p>
 
-    // ❌ invalid
-    // <p>Hello world!</p>
+    // ❌ invalid - expression braces need a complete JavaScript expression
+    // <p>{Hello world!}</p>
   </>;
 }
 ```
