@@ -26,18 +26,17 @@ self-closing syntax.
 ```ripple
 export function Bracey() {
   return <>
-  // ✔️ valid
-  <input />
-  <img />
-  <hr />
-  <br />
+    // ✔️ valid
+    <input />
+    <img />
+    <hr />
+    <br />
 
-  // ❌ invalid
-  // <input>
-  // <img>
-  // <hr>
-  // <br>
-
+    // ❌ invalid
+    // <input>
+    // <img>
+    // <hr>
+    // <br>
   </>;
 }
 ```

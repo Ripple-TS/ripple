@@ -22,16 +22,13 @@ and cleared when it unmounts.
 import { track } from 'ripple';
 
 export default function App() {
-  return <>
   let div: HTMLDivElement | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
-  ---
-
-  <div ref={div}>Hello world</div>
-  <input ref={input} type="text" />
-  <button ref={state.button}>Save</button>
-
+  return <>
+    <div ref={div}>Hello world</div>
+    <input ref={input} type="text" />
+    <button ref={state.button}>Save</button>
   </>;
 }
 ```
@@ -47,7 +44,6 @@ function to run when the element is removed.
 
 ```ripple
 export function App() {
-  return <>
   function setup(node: HTMLDivElement) {
     console.log('mounted', node);
 
@@ -55,11 +51,7 @@ export function App() {
       console.log('unmounted', node);
     };
   }
-  ---
-
-  <div ref={setup}>Hello world</div>
-
-  </>;
+  return <div ref={setup}>Hello world</div>
 }
 ```
 
@@ -71,11 +63,8 @@ You can also create callback refs inline.
 
 ```ripple
 export function App() {
-  return <>
   let div: HTMLDivElement | undefined;
-  ---
-
-  <div
+  return <div
     ref={(node) => {
       div = node;
       console.log('mounted', node);
@@ -86,8 +75,6 @@ export function App() {
   >
     Hello world
   </div>
-
-  </>;
 }
 ```
 
@@ -100,10 +87,7 @@ when the ref setup needs configuration.
 import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
-  return <>
-  <div ref={fadeIn({ ms })}>Hello world</div>
-
-  </>;
+  return <div ref={fadeIn({ ms })}>Hello world</div>
 }
 ```
 
@@ -115,17 +99,9 @@ Use an array when one DOM element needs more than one ref.
 import { track } from 'ripple';
 
 export function App() {
-  return <>
   let input: HTMLInputElement | undefined;
   const trackedInput = track<HTMLInputElement | null>(null);
-  ---
-
-  <input
-    ref={[input, trackedInput, (node) => console.log(node)]}
-    type="text"
-  />
-
-  </>;
+  return <input ref={[input, trackedInput, (node) => console.log(node)]} />
 }
 ```
 
@@ -138,20 +114,12 @@ a spread onto the host element that should be exposed.
 
 ```ripple
 function Input({ id, ...rest }) {
-  return <>
-  <input {id} {...rest} />
-
-  </>;
+  return <input {id} {...rest} />
 }
 
 export function App() {
-  return <>
   let input: HTMLInputElement | undefined;
-  ---
-
-  <Input id="email" ref={input} />
-
-  </>;
+  return <Input id="email" ref={input} />
 }
 ```
 
@@ -164,23 +132,14 @@ Named props such as `inputRef` are ordinary component API props. Pass them into
 
 ```ripple
 export function Field({ inputRef, ...rest }) {
-  return <>
-  <label>
-    Search
-    <input type="search" ref={inputRef} {...rest} />
+  return <label>
+    Search<input type="search" ref={inputRef} {...rest} />
   </label>
-
-  </>;
 }
 
 export function App() {
-  return <>
   let input: HTMLInputElement | undefined;
-  ---
-
-  <Field inputRef={input} placeholder="Search docs" />
-
-  </>;
+  return <Field inputRef={input} placeholder="Search docs" />
 }
 ```
 
@@ -198,7 +157,6 @@ assembled programmatically.
 import { createRefKey, track } from 'ripple';
 
 export function App() {
-  return <>
   let &[value] = track('');
   let input: HTMLInputElement | undefined;
 
@@ -221,19 +179,15 @@ export function App() {
       };
     },
   };
-  ---
 
-  <input type="text" {...props} />
-  <Input {...props} />
-
+  return <>
+    <input type="text" {...props} />
+    <Input {...props} />
   </>;
 }
 
 function Input({ id, value, ...rest }) {
-  return <>
-  <input type="text" {id} {value} {...rest} />
-
-  </>;
+  return <input type="text" {id} {value} {...rest} />
 }
 ```
 

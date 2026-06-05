@@ -71,8 +71,8 @@ export const routes = [
 				btoa(`<span class="line-number"> 1</span> <span class="export-keyword">import</span> <span class="brace">{</span> <span class="property">Button</span> <span class="brace">}</span> <span class="export-keyword">from</span> <span class="string">'./Button.tsrx'</span>;
 <span class="line-number"> 2</span> <span class="export-keyword">import</span> <span class="brace">{</span> <span class="property">track</span> <span class="brace">}</span> <span class="export-keyword">from</span> <span class="string">'ripple'</span>;
 <span class="line-number"> 3</span>
-<span class="line-number"> 4</span> <span class="export-keyword">export</span> <span class="keyword">function</span> <span class="function">TodoList</span><span class="brace">(</span><span class="brace">{</span> <span class="property">todos</span>, <span class="property">addTodo</span> <span class="brace">}</span>: <span class="component">Props</span><span class="brace">)</span> <span class="brace">{</span>
-<span class="line-number"> 5</span>   <span class="control-keyword">return</span> <span class="bracket">&lt;</span><span class="bracket">&gt;</span>
+<span class="line-number"> 4</span> <span class="export-keyword">export</span> <span class="keyword">function</span> <span class="function">TodoList</span><span class="brace">(</span><span class="brace">{</span> <span class="property">todos</span>, <span class="property">addTodo</span> <span class="brace">}</span>: <span class="component">Props</span><span class="brace">)</span> <span class="tsrx-syntax">@</span><span class="block-brace">{</span>
+<span class="line-number"> 5</span>   <span class="bracket">&lt;</span><span class="bracket">&gt;</span>
 <span class="line-number"> 6</span>     <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">"container"</span><span class="bracket">&gt;</span>
 <span class="line-number"> 7</span>       <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span>Todo List<span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
 <span class="line-number"> 8</span>       <span class="bracket">&lt;</span><span class="tag">ul</span><span class="bracket">&gt;</span>
@@ -94,14 +94,14 @@ export const routes = [
 <span class="line-number">24</span>         <span class="attribute">font-family</span>: <span class="string">"Arial"</span>, <span class="value">sans-serif</span>;
 <span class="line-number">25</span>       <span class="css-brace">}</span>
 <span class="line-number">26</span>     <span class="bracket">&lt;/</span><span class="tag">style</span><span class="bracket">&gt;</span>
-<span class="line-number">27</span>   <span class="bracket">&lt;/</span><span class="bracket">&gt;</span>;
+<span class="line-number">27</span>   <span class="bracket">&lt;/</span><span class="bracket">&gt;</span>
 <span class="line-number">28</span> <span class="brace">}</span>
 <span class="line-number">29</span>
-<span class="line-number">30</span> <span class="export-keyword">export</span> <span class="keyword">function</span> <span class="function">Counter</span><span class="brace">()</span> <span class="brace">{</span>
-<span class="line-number">31</span>   <span class="control-keyword">return</span> <span class="bracket">&lt;</span><span class="bracket">&gt;</span>
+<span class="line-number">30</span> <span class="export-keyword">export</span> <span class="keyword">function</span> <span class="function">Counter</span><span class="brace">()</span> <span class="tsrx-syntax">@</span><span class="block-brace">{</span>
+<span class="line-number">31</span>
 <span class="line-number">32</span>     <span class="keyword">let</span> <span class="ripple-syntax">&amp;</span><span class="brace">[</span><span class="property">count</span><span class="brace">]</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="value">0</span><span class="brace">)</span>;
 <span class="line-number">33</span>     <span class="keyword">let</span> <span class="ripple-syntax">&amp;</span><span class="brace">[</span><span class="property">double</span><span class="brace">]</span> <span class="operator">=</span> <span class="function">track</span><span class="brace">(</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span> <span class="operator">*</span> <span class="value">2</span><span class="brace">)</span>;
-<span class="line-number">34</span>     <span class="comment">---</span>
+<span class="line-number">34</span>
 <span class="line-number">35</span>
 <span class="line-number">36</span>     <span class="bracket">&lt;</span><span class="tag">div</span> <span class="attribute">class</span>=<span class="string">"counter"</span><span class="bracket">&gt;</span>
 <span class="line-number">37</span>       <span class="bracket">&lt;</span><span class="tag">h2</span><span class="bracket">&gt;</span>Counter<span class="bracket">&lt;/</span><span class="tag">h2</span><span class="bracket">&gt;</span>
@@ -111,8 +111,8 @@ export const routes = [
 <span class="line-number">41</span>       <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span><span class="operator">++</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="string">"Increment"</span> <span class="bracket">/&gt;</span>
 <span class="line-number">42</span>       <span class="bracket">&lt;</span><span class="component">Button</span> <span class="attribute">onClick</span>=<span class="template-brace">{</span><span class="brace">()</span> <span class="operator">=&gt;</span> <span class="property">count</span> <span class="operator">=</span> <span class="value">0</span><span class="template-brace">}</span> <span class="attribute">label</span>=<span class="string">"Reset"</span> <span class="bracket">/&gt;</span>
 <span class="line-number">43</span>     <span class="bracket">&lt;/</span><span class="tag">div</span><span class="bracket">&gt;</span>
-<span class="line-number">44</span>   <span class="bracket">&lt;/</span><span class="bracket">&gt;</span>;
-<span class="line-number">45</span> <span class="brace">}</span>`);
+<span class="line-number">44</span> <span class="brace">}</span>
+<span class="line-number">45</span>`);
 
 			return Response.json({
 				message: codeContent,

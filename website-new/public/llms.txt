@@ -279,26 +279,28 @@ and a reactive block on Ripple.
 
 ## Core Syntax
 
-### Components are arrow functions
+### Components are functions
 
-Components are ordinary JavaScript or TypeScript values. Prefer an arrow
-function whose body returns JSX directly. Use a single element when that is all
-you need, a fragment for real multiple-child output, and a statement container
-when setup statements belong with the template.
+Components are ordinary JavaScript or TypeScript functions. Prefer function
+declarations for exported components. Return a single element directly when that
+is all you need, and use a statement container when setup statements or multiple
+rendered siblings belong with the template.
 
 ```tsrx
-export const Button = ({ label, onClick }: { label: string; onClick: () => void }) => <>
-	<button class="btn" {onClick}>{label}</button>
-	// React host elements:
-	// <button className="btn" {onClick}>{label}</button>
+export function Button({ label, onClick }: { label: string; onClick: () => void }) @{
+	<>
+		<button class="btn" {onClick}>{label}</button>
+		// React host elements:
+		// <button className="btn" {onClick}>{label}</button>
 
-	<style>
-		.btn {
-			padding: 0.5rem 1rem;
-			border-radius: 4px;
-		}
-	</style>
-</>;
+		<style>
+			.btn {
+				padding: 0.5rem 1rem;
+				border-radius: 4px;
+			}
+		</style>
+	</>
+}
 ```
 
 Single-element TSRX expressions are valid component bodies too:
@@ -309,9 +311,9 @@ const icon = <svg aria-hidden="true" />;
 
 **LLM DO:**
 
-- Use `const Name = (props: Props) => <div />;` for single-root UI building blocks.
-- Use `export const Name = (...) => <>...</>;` when public components truly return multiple siblings.
-- Use `const Name = (...) => @{ ... };` when setup statements and rendered output share a template scope.
+- Use `function Name(props: Props) { return <div />; }` for single-root UI building blocks.
+- Use `export function Name(...) @{ ... }` when setup statements and rendered output share a template scope.
+- Use `export function Name(...) @{ <>...</> }` when public components render multiple siblings.
 - Put setup first inside `@{...}` and finish the container with one JSX element, JSX fragment, or JSX control-flow expression.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -319,9 +321,8 @@ const icon = <svg aria-hidden="true" />;
 
 **LLM DON'T:**
 
-- Do not invent a custom declaration form for components.
 - Do not wrap a statement container in an empty fragment just to make a component body.
-- Do not mix special declaration examples with function-based examples.
+- Do not mix old arrow-component recommendations with function-based examples.
 - Do not add a separate delimiter between setup and output; ordering provides the boundary.
 - Do not make a standalone `{expr}` expression container the single output after setup; wrap it in a fragment.
 - Do not put JavaScript statements, control flow, or `{expr}` interpolation
@@ -340,13 +341,13 @@ fragment in that output position. Branches that only exit may use normal
 statements such as `return`, `throw`, or `continue` where they are legal.
 
 ```tsrx
-const Greeting = ({ name }: { name?: string }) => @{
+function Greeting({ name }: { name?: string }) @{
 	const message = name ? `Hello, ${name}` : 'Hello, stranger';
 
 	<div class="card">
 		<p>{message}</p>
 	</div>
-};
+}
 ```
 
 Static text is written as JSX text. Dynamic values and JavaScript expressions
@@ -366,11 +367,11 @@ Because TSRX is the default JSX expression language, `<div />` and `<>...</>`
 produce native TSRX values.
 
 ```tsrx
-const App = () => @{
+function App() @{
 	const title = <span class="title">Settings</span>;
 
 	<Card {title} />
-};
+}
 ```
 
 ```tsrx
@@ -384,11 +385,13 @@ const nativeTemplate = @{
 ### Text, escaped text, and raw HTML
 
 ```tsrx
-const Inbox = ({ name, count }: { name: string; count: number }) => <>
-	<p>Hello, {name}!</p>
-	<p>You have {count} unread messages</p>
-	<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
-</>;
+function Inbox({ name, count }: { name: string; count: number }) {
+	return <>
+		<p>Hello, {name}!</p>
+		<p>You have {count} unread messages</p>
+		<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
+	</>;
+}
 ```
 
 Text expressions use normal `{expr}` syntax. Use each target framework's native
@@ -524,7 +527,7 @@ directive blocks, direct branch children render into the current template
 instead of exiting the function.
 
 ```tsrx
-const Dashboard = ({ user }: { user: User | null }) => @{
+function Dashboard({ user }: { user: User | null }) @{
 	if (!user) {
 		return null;
 	}
@@ -533,7 +536,7 @@ const Dashboard = ({ user }: { user: User | null }) => @{
 		<h1>Welcome, {user.name}</h1>
 		<p>Here is your dashboard.</p>
 	</>
-};
+}
 ```
 
 ## Scoped Styles
@@ -549,22 +552,24 @@ runtime values: set them on an element with `style={{ '--name': value }}` and
 read them from static CSS with `var(--name)`.
 
 ```tsrx
-const Card = ({ tone }: { tone: string }) => <>
-	<div class="card" style={{ '--card-tone': tone }}>
-		<h2>Scoped title</h2>
-		<p>Styles here won't leak out.</p>
-	</div>
-	<style>
-		.card {
-			padding: 1.5rem;
-			border: 1px solid var(--card-tone);
-		}
+function Card({ tone }: { tone: string }) @{
+	<>
+		<div class="card" style={{ '--card-tone': tone }}>
+			<h2>Scoped title</h2>
+			<p>Styles here won't leak out.</p>
+		</div>
+		<style>
+			.card {
+				padding: 1.5rem;
+				border: 1px solid var(--card-tone);
+			}
 
-		h2 {
-			color: #333;
-		}
-	</style>
-</>;
+			h2 {
+				color: #333;
+			}
+		</style>
+	</>
+}
 ```
 
 Use `:global(...)` to opt out of scoping. Assign a `<style>` expression to a
@@ -573,16 +578,18 @@ React keeps authored attributes as written, so use `className` for React host
 elements and React component props. Other TSRX targets commonly use `class`.
 
 ```tsrx
-const Badge = ({ class: className }: { class?: string }) => <>
-	<span class={'badge ' + (className ?? '')}>New</span>
-	<style>
-		.badge {
-			padding: 0.25rem 0.5rem;
-		}
-	</style>
-</>;
+function Badge({ class: className }: { class?: string }) @{
+	<>
+		<span class={'badge ' + (className ?? '')}>New</span>
+		<style>
+			.badge {
+				padding: 0.25rem 0.5rem;
+			}
+		</style>
+	</>
+}
 
-const App = () => @{
+function App() @{
 	const styles = <style>
 		.highlight {
 			background: #e8f5e9;
@@ -591,7 +598,7 @@ const App = () => @{
 	</style>;
 
 	<Badge class={styles.highlight} />
-};
+}
 ```
 
 Style expressions can also live at module scope. Use this for StyleX-like or
@@ -610,17 +617,19 @@ const articleStyles = <style>
 	}
 </style>;
 
-export const ArticleCard = ({ title }: { title: string }) => <>
-	// Ripple, Preact, Solid, and Vue host elements:
-	<article class={articleStyles.card}>
-		<h2 class={articleStyles.title}>{title}</h2>
-	</article>
+export function ArticleCard({ title }: { title: string }) {
+	return <>
+		// Ripple, Preact, Solid, and Vue host elements:
+		<article class={articleStyles.card}>
+			<h2 class={articleStyles.title}>{title}</h2>
+		</article>
 
-	// React host elements:
-	// <article className={articleStyles.card}>
-	// 	<h2 className={articleStyles.title}>{title}</h2>
-	// </article>
-</>;
+		// React host elements:
+		// <article className={articleStyles.card}>
+		// 	<h2 className={articleStyles.title}>{title}</h2>
+		// </article>
+	</>;
+}
 ```
 
 Inline `<style>` blocks inside a TSRX template are scoped to that template.
@@ -641,7 +650,7 @@ body `await` is supported by the target pipeline.
 ```tsrx
 import { useEffect, useState } from 'react';
 
-const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => @{
+function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) @{
 	if (!user) {
 		return null;
 	}
@@ -661,7 +670,7 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => @
 			}
 		</ul>
 	</>
-};
+}
 ```
 
 ### Solid
@@ -692,7 +701,7 @@ If you want unconstrained JavaScript-only control flow, put it in a plain nested
 function and call it from an event handler or expression.
 
 ```tsrx
-export const Counter = () => @{
+export function Counter() @{
 	let count = 0;
 	const increment = () => {
 		if (count >= 10) {
@@ -702,13 +711,13 @@ export const Counter = () => @{
 		}
 	};
 	<button onClick={increment}>Count: {count}</button>
-};
+}
 ```
 
 ### Scoped locals next to the JSX that uses them
 
 ```tsrx
-const Cart = ({ items }: { items: Item[] }) => @{
+function Cart({ items }: { items: Item[] }) @{
 	const subtotal = items.reduce((sum, item) => sum + item.price, 0);
 	const discount = subtotal > 100 ? 0.1 : 0;
 
@@ -717,7 +726,7 @@ const Cart = ({ items }: { items: Item[] }) => @{
 		<p>Subtotal: ${subtotal}</p>
 		<p>Save: ${(subtotal * discount).toFixed(2)}</p>
 	</div>
-};
+}
 ```
 
 ## TypeScript
@@ -744,11 +753,11 @@ const List = <T,>({ items, render }: Props<T>) =>
 
 | Feature                | Syntax                                                 |
 | ---------------------- | ------------------------------------------------------ |
-| Component function     | `const Name = (props: T) => <div />;`                  |
-| Multi-child component  | `export const Name = (...) => <>...</>;`               |
-| Statement container    | `const Name = (...) => @{ ... };`                      |
+| Component function     | `function Name(props: T) { return <div />; }`          |
+| Multi-child component  | `export function Name(...) @{ <>...</> }`              |
+| Statement container    | `function Name(...) @{ ... }`                          |
 | Native TSRX value      | `const v = <div>Hi</div>;`                            |
-| Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
+| JSX fragment           | `const v = <><span>Hi</span></>;`                     |
 | Text content           | `<p>literal</p>`, `<p>{expr}</p>`                     |
 | Expression children    | `<List children={items.map(render)} />`                |
 | Lazy prop destructure  | `const C = (&{ x, y }: Props) => <div />;`             |

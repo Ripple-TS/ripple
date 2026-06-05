@@ -11,18 +11,16 @@ module server {
 import { load_doc } from server;
 
 export function StateManagementPage() {
-	return <>
-		const doc = load_doc();
-		---
-		<DocsLayout
-			title={doc.title}
-			editPath={doc.editPath}
-			prevLink={doc.prev}
-			nextLink={doc.next}
-			toc={doc.toc}
-			currentPath="/docs/guide/state-management"
+	const doc = load_doc();
+
+	return <DocsLayout
+		title={doc.title}
+		editPath={doc.editPath}
+		prevLink={doc.prev}
+		nextLink={doc.next}
+		toc={doc.toc}
+		currentPath="/docs/guide/state-management"
 		>
-			<div class="doc-content" innerHTML={doc.html} />
-		</DocsLayout>
-	</>;
+		<div class="doc-content" innerHTML={doc.html} />
+	</DocsLayout>;
 }

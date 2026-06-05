@@ -28,35 +28,33 @@ same component file to React, Solid, or Ripple.
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
-  return <>
-  <div class="container">
-    <h1>Welcome to Ripple!</h1>
+export function App() @{
+  let &[count] = track(0);
 
-    <div>
-      let &[count] = track(0);
-      ---
+  <>
+    <div class="container">
+      <h1>Welcome to Ripple!</h1>
 
-      <button onClick={() => count--}>-</button>
-      <span class="count">{count}</span>
-      <button onClick={() => count++}>+</button>
+      <div>
+        <button onClick={() => count--}>-</button>
+        <span class="count">{count}</span>
+        <button onClick={() => count++}>+</button>
+      </div>
     </div>
-  </div>
 
-  <style>
-    .container {
-      text-align: center;
-      font-family: 'Arial', sans-serif;
-    }
+    <style>
+      .container {
+        text-align: center;
+        font-family: 'Arial', sans-serif;
+      }
 
-    button {
-      height: 2rem;
-      width: 2rem;
-      margin: 1rem;
-    }
-  </style>
-
-  </>;
+      button {
+        height: 2rem;
+        width: 2rem;
+        margin: 1rem;
+      }
+    </style>
+  </>
 }
 ```
 

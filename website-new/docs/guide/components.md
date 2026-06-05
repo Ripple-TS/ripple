@@ -22,7 +22,7 @@ entries, and to functions that return native TSRX without being directly called.
 
 Ripple's component lifecycle is akin to Vue/Svelte/Solid. The root scope of your
 component only runs once, akin to the "setup" scope in Vue/Svelte/Solid. However,
-all child scopes such as nested template scopes, and blocks like `if` and `for`,
+all child scopes such as statement containers, and blocks like `@if` and `@for`,
 may rerun if they contain reactive variables within them. Therefore, it is
 advisable to only write pure code within your components, and place side-effects
 within `effect()` to ensure they only run when intended.
@@ -38,33 +38,23 @@ if you destructured your props).
 import type { Children } from 'ripple';
 
 function Card(props: { children: Children }) {
-  return <>
-  <div class="card">
-    {props.children}
-  </div>
-
-  </>;
+  return <div class="card">{props.children}</div>
 }
 
-export function App() {
-  return <>
+export function App() @{
   function children() {
-    return <>
-    <p>Card content here</p>
-
-    </>;
+    return <p>Card content here</p>
   }
-  ---
 
-  // Use implicitly...
-  <Card>
-    <p>Card content here</p>
-  </Card>
+  <>
+    // Use implicitly...
+    <Card>
+      <p>Card content here</p>
+    </Card>
 
-  // or pass children explicitly as a prop.
-  <Card {children} />
-
-  </>;
+    // or pass children explicitly as a prop.
+    <Card {children} />
+  </>
 }
 ```
 
@@ -90,24 +80,15 @@ Define components in scope and pass them as explicit props:
 import type { Component } from 'ripple';
 
 function Composite({ PropComp }: { PropComp: Component }) {
-  return <>
-  <PropComp />
-
-  </>;
+  return <PropComp />
 }
 
 function Separate() {
-  return <>
-  <p>I'm a separate component.</p>
-
-  </>;
+  return <p>I'm a separate component.</p>
 }
 
 export function App() {
-  return <>
-  <Composite PropComp={Separate} />
-
-  </>;
+  return <Composite PropComp={Separate} />
 }
 ```
 
@@ -132,44 +113,38 @@ function Card({
   Header?: Component;
   Footer?: Component;
 }) {
-  return <>
-  <fieldset>
+  return <fieldset>
     @if (Header) {
-      <Header />
-      <hr />
+      <>
+        <Header />
+        <hr />
+      </>
     }
     {children}
     @if (Footer) {
-      <hr />
-      <Footer />
+      <>
+        <hr />
+        <Footer />
+      </>
     }
-  </fieldset>
-
-  </>;
+  </fieldset>;
 }
 
 function CustomHeader() {
-  return <>
-  <h1>Card Title</h1>
-
-  </>;
+  return <h1>Card Title</h1>
 }
 
 function CustomFooter() {
   return <>
-  <button>Cancel</button>
-  <button>OK</button>
-
+    <button>Cancel</button>
+    <button>OK</button>
   </>;
 }
 
 export function App() {
-  return <>
-  <Card Header={CustomHeader} Footer={CustomFooter}>
+  return <Card Header={CustomHeader} Footer={CustomFooter}>
     <p>Card content here</p>
-  </Card>
-
-  </>;
+  </Card>;
 }
 ```
 
@@ -192,39 +167,22 @@ Components declared inside a composite component element can be passed as props 
 import type { Component } from 'ripple';
 
 function Inner({ Greeting }: { Greeting: Component }) {
-  return <>
-  <div class="inner">
-    <Greeting />
-  </div>
-
-  </>;
+  return <div class="inner"><Greeting /></div>
 }
 
 function Outer({ children }: { children: Children }) {
-  return <>
-  <div class="outer">
-    {children}
-  </div>
-
-  </>;
+  return <div class="outer">{children}</div>
 }
 
 export function App() {
-  return <>
-  <Outer>
+  return <Outer>@{
     function HelloGreeting() {
-      return <>
-      <p>Hello from inside!</p>
-
-      </>;
+      return <p>Hello from inside!</p>
     }
-    ---
 
     // It can be passed as a prop to <Inner>, which is also in this scope
     <Inner Greeting={HelloGreeting} />
-  </Outer>
-
-  </>;
+  }</Outer>;
 }
 ```
 
@@ -239,40 +197,21 @@ the parent component itself — it only exists in the child scope:
 import type { Component } from 'ripple';
 
 function Outer({ Footer }: { Footer: Component }) {
-  return <>
   // Outer expects Footer as a prop
-  <div class="outer">
-    <Footer />
-  </div>
-
-  </>;
+  return <div class="outer"><Footer /></div>
 }
 
 export function App() {
-  return <>
   // ❌ WRONG — Footer is declared inside Outer's children,
   // but Outer cannot see it. Footer is not in scope for the
   // <Outer> component call.
-  <Outer {Footer}>
+  return <Outer {Footer}>@{
     function Footer() {
-      return <>
-      <button>OK</button>
-
-      </>;
+      return <button>OK</button>
     }
-    ---
-  </Outer>
 
-  function Footer() {
-    return <>
-    <button>OK</button>
-
-    </>;
-  }
-
-  <Outer {Footer} />
-
-  </>;
+    <p>Child content</p>
+  }</Outer>;
 }
 ```
 
@@ -303,10 +242,8 @@ for modals, tooltips, and notifications.
 import { Portal } from 'ripple';
 
 export function App() {
-  return <>
-  <div class="app">
+  return <div class="app">
     <h1>My App</h1>
-
     {/* This will render inside document.body, not inside the .app div */}
     <Portal target={document.body}>
       <div class="modal">
@@ -314,8 +251,6 @@ export function App() {
         <p>This content escapes the normal component tree.</p>
       </div>
     </Portal>
-  </div>
-
-  </>;
+  </div>;
 }
 ```

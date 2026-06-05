@@ -11,15 +11,14 @@ const toc = [
 const example_code = `
 import { track } from 'ripple';
 
-export function App() {
-  return <>
+export function App() @{
+  let &[count] = track(0);
+
+  <>
   <div class="container">
     <h1>Welcome to Ripple!</h1>
 
     <div>
-      let &[count] = track(0);
-      ---
-
       <button onClick={() => count--}>-</button>
       <span class="count">{count}</span>
       <button onClick={() => count++}>+</button>
@@ -39,7 +38,7 @@ export function App() {
     }
   </style>
 
-  </>;}`;
+  </>}`;
 
 export function IntroductionPage() {
 	return <>
