@@ -1270,10 +1270,12 @@ export function TSRXPlugin(config) {
 			#parseJSXSwitchCaseRawText() {
 				const start = this.start;
 				let index = start;
+				let found_boundary = false;
 				while (index < this.input.length) {
 					const boundary = this.#switchCaseBoundaryStart(index);
 					if (boundary !== -1) {
 						index = boundary;
+						found_boundary = true;
 						break;
 					}
 
@@ -1299,6 +1301,17 @@ export function TSRXPlugin(config) {
 					this.lineStart = index - endLoc.column;
 				}
 				this.pos = index;
+				if (found_boundary) {
+					this.context = this.context.filter(
+						(context) =>
+							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+					);
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+					}
+					this.exprAllowed = true;
+					this.#suppressTemplateRawTextToken = true;
+				}
 				this.next();
 
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
@@ -1664,7 +1677,10 @@ export function TSRXPlugin(config) {
 				}
 
 				if (this.type === tstt.jsxText) {
-					consequent.push(/** @type {any} */ (this.#parseJSXSwitchCaseRawText()));
+					const text = this.#parseJSXSwitchCaseRawText();
+					if (!isWhitespaceTextNode(text)) {
+						consequent.push(/** @type {any} */ (text));
+					}
 					return;
 				}
 
@@ -1736,7 +1752,10 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				consequent.push(this.#parseJSXSwitchCaseRawText());
+				const text = this.#parseJSXSwitchCaseRawText();
+				if (!isWhitespaceTextNode(text)) {
+					consequent.push(text);
+				}
 			}
 
 			/**
@@ -3889,6 +3908,8 @@ export function TSRXPlugin(config) {
 
 				if (!is_template_output && this.type === tstt.jsxText) {
 					const jsx_text_value = String(this.value ?? '');
+					const token_start = this.start;
+					const token_start_loc = this.startLoc;
 					const has_template_fence_ahead = current_template_node.metadata
 						?.native_tsrx_template_block
 						? current_template_node.metadata?.hasTemplateFenceAhead
@@ -3902,13 +3923,15 @@ export function TSRXPlugin(config) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
 					}
-					this.pos = this.start;
+					this.pos = token_start;
 					if (!should_enter_template_text) {
 						this.context = this.context.filter(
 							(context) =>
 								context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
 						);
-						this.startLoc = this.curPosition();
+						this.startLoc = token_start_loc;
+						this.curLine = token_start_loc.line;
+						this.lineStart = token_start - token_start_loc.column;
 						if (this.curContext() !== b_stat) {
 							this.context.push(b_stat);
 						}
@@ -3976,7 +3999,10 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
-					body.push(this.#parseTemplateRawText());
+					const text = this.#parseTemplateRawText();
+					if (!isWhitespaceTextNode(text)) {
+						body.push(text);
+					}
 				} else if (is_template_output && this.#isJSXControlFlowDirectiveStart()) {
 					body.push(this.#parseJSXControlFlowExpression());
 				} else if (this.type === tt.braceR) {
@@ -4122,7 +4148,10 @@ export function TSRXPlugin(config) {
 				} else if (is_template_output && this.type === tt.eof) {
 					return;
 				} else if (is_template_output) {
-					body.push(this.#parseTemplateRawText());
+					const text = this.#parseTemplateRawText();
+					if (!isWhitespaceTextNode(text)) {
+						body.push(text);
+					}
 				} else {
 					skipWhitespace(this);
 					if (this.#templateFenceStart() !== -1) {
@@ -4144,7 +4173,10 @@ export function TSRXPlugin(config) {
 					) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
-						body.push(this.#parseTemplateRawText());
+						const text = this.#parseTemplateRawText();
+						if (!isWhitespaceTextNode(text)) {
+							body.push(text);
+						}
 						this.parseTemplateBody(body);
 						return;
 					}

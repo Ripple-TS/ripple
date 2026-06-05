@@ -70,6 +70,32 @@ describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
 	});
 });
 
+describe('@tsrx/ripple Volar mappings normalize to_ts source locations', () => {
+	it('maps script tokens after multiline template children', () => {
+		const source = `function App() {
+	return <>
+		const x = 1;
+		---
+		<pre>
+			{x}
+		</pre>
+	</>;
+}
+expect(x).toBe(1);`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const source_expect_offset = source.indexOf('expect');
+		const generated_expect_offset = result.code.indexOf('expect');
+		const mapping = find_exact_mapping(
+			result.mappings,
+			source_expect_offset,
+			generated_expect_offset,
+			'expect'.length,
+		);
+
+		expect(mapping).toBeDefined();
+	});
+});
+
 describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(

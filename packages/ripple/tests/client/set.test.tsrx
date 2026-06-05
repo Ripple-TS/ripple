@@ -5,6 +5,7 @@ describe('RippleSet', () => {
 		function SetTest() {
 			return <>
 				let items = new RippleSet([1, 2, 3]);
+				---
 				<button onClick={() => items.add(4)}>{'add'}</button>
 				<button onClick={() => items.delete(2)}>{'delete'}</button>
 				<Child {items} />
@@ -13,8 +14,12 @@ describe('RippleSet', () => {
 
 		function Child({ items }: { items: RippleSet<number> }) {
 			return <>
-				<pre>{JSON.stringify(items)}</pre>
-				<pre>{items.size}</pre>
+				<pre>
+					{JSON.stringify(items)}
+				</pre>
+				<pre>
+					{items.size}
+				</pre>
 			</>;
 		}
 
@@ -40,6 +45,7 @@ describe('RippleSet', () => {
 		function SetTest() {
 			return <>
 				let items = new RippleSet([1, 2, 3]);
+				---
 				<button onClick={() => items.clear()}>{'clear'}</button>
 				<Child {items} />
 			</>;
@@ -47,8 +53,12 @@ describe('RippleSet', () => {
 
 		function Child({ items }: { items: RippleSet<number> }) {
 			return <>
-				<pre>{JSON.stringify(items)}</pre>
-				<pre>{items.size}</pre>
+				<pre>
+					{JSON.stringify(items)}
+				</pre>
+				<pre>
+					{items.size}
+				</pre>
 			</>;
 		}
 
@@ -68,6 +78,7 @@ describe('RippleSet', () => {
 			return <>
 				let items = new RippleSet([1, 2, 3]);
 				let &[hasValue] = track(() => items.has(2));
+				---
 				<button onClick={() => items.delete(2)}>{'delete'}</button>
 				<pre>{hasValue}</pre>
 			</>;
@@ -88,9 +99,12 @@ describe('RippleSet', () => {
 	it('creates empty RippleSet using RippleSet() shorthand syntax', () => {
 		function SetTest() {
 			return <>
-				let items = RippleSet();
+				let items = new RippleSet();
+				---
 				<button onClick={() => items.add(1)}>{'add'}</button>
-				<pre>{items.size}</pre>
+				<pre>
+					{items.size}
+				</pre>
 			</>;
 		}
 
@@ -108,10 +122,13 @@ describe('RippleSet', () => {
 	it('creates RippleSet with initial values using RippleSet() shorthand syntax', () => {
 		function SetTest() {
 			return <>
-				let items = RippleSet([1, 2, 3, 4]);
+				let items = new RippleSet([1, 2, 3, 4]);
 				let &[hasValue] = track(() => items.has(3));
+				---
 				<button onClick={() => items.delete(3)}>{'delete'}</button>
-				<pre>{items.size}</pre>
+				<pre>
+					{items.size}
+				</pre>
 				<pre>{hasValue}</pre>
 			</>;
 		}
@@ -132,13 +149,18 @@ describe('RippleSet', () => {
 	it('handles all operations with RippleSet() shorthand syntax', () => {
 		function SetTest() {
 			return <>
-				let items = RippleSet([10, 20, 30]);
+				let items = new RippleSet([10, 20, 30]);
 				let &[values] = track(() => Array.from(items.values()));
+				---
 				<button onClick={() => items.add(40)}>{'add'}</button>
 				<button onClick={() => items.delete(20)}>{'delete'}</button>
 				<button onClick={() => items.clear()}>{'clear'}</button>
-				<pre>{JSON.stringify(values)}</pre>
-				<pre>{items.size}</pre>
+				<pre>
+					{JSON.stringify(values)}
+				</pre>
+				<pre>
+					{items.size}
+				</pre>
 			</>;
 		}
 

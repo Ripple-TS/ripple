@@ -1,24 +1,23 @@
-import { describe, expect, it } from 'vitest';
+import type { Tracked } from 'ripple';
 import { flushSync, track } from 'ripple';
 
 describe('lazy array destructuring', () => {
 	it('updates unknown lazy array bindings through tracked values', () => {
-		function Child({ tr: &[count, tr] }) {
+		function Child({ tr: &[count, tr] }: { tr: [number, Tracked<number>] }) {
 			return <>
 				<button
 					onClick={() => {
 						count++;
 						tr[0]++;
 					}}
-				>
-					{count}
-				</button>
+				>{count}</button>
 			</>;
 		}
 
 		function App() {
 			return <>
 				let tracked = track(0);
+				---
 				<Child tr={tracked} />
 			</>;
 		}

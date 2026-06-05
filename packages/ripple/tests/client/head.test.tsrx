@@ -33,6 +33,7 @@ describe('head elements', () => {
 		function App() {
 			return <>
 				let &[title] = track('Initial Title');
+				---
 				<head>
 					<title>{title}</title>
 				</head>
@@ -41,9 +42,7 @@ describe('head elements', () => {
 						onClick={() => {
 							title = 'Updated Title';
 						}}
-					>
-						{'Update Title'}
-					</button>
+					>{'Update Title'}</button>
 					<span>{title}</span>
 				</div>
 			</>;
@@ -66,6 +65,7 @@ describe('head elements', () => {
 		function App() {
 			return <>
 				let &[name] = track('World');
+				---
 				<head>
 					<title>{`Hello ${name}!`}</title>
 				</head>
@@ -74,9 +74,7 @@ describe('head elements', () => {
 						onClick={() => {
 							name = 'Ripple';
 						}}
-					>
-						{'Change Name'}
-					</button>
+					>{'Change Name'}</button>
 				</div>
 			</>;
 		}
@@ -97,17 +95,18 @@ describe('head elements', () => {
 			return <>
 				let &[count] = track(0);
 				let prefix = 'Count: ';
+				---
 				<head>
-					<title>{prefix + count}</title>
+					<title>
+						{prefix + count}
+					</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
 							count++;
 						}}
-					>
-						{'Increment'}
-					</button>
+					>{'Increment'}</button>
 					<span>{count}</span>
 				</div>
 			</>;
@@ -129,6 +128,7 @@ describe('head elements', () => {
 		function App() {
 			return <>
 				let &[step] = track(1);
+				---
 				<head>
 					<title>{`Step ${step} of 3`}</title>
 				</head>
@@ -137,9 +137,7 @@ describe('head elements', () => {
 						onClick={() => {
 							step = step % 3 + 1;
 						}}
-					>
-						{'Next Step'}
-					</button>
+					>{'Next Step'}</button>
 				</div>
 			</>;
 		}
@@ -183,24 +181,23 @@ describe('head elements', () => {
 			return <>
 				let &[showPrefix] = track(true);
 				let &[title] = track('Main Page');
+				---
 				<head>
-					<title>{showPrefix ? 'App - ' + title : title}</title>
+					<title>
+						{showPrefix ? 'App - ' + title : title}
+					</title>
 				</head>
 				<div>
 					<button
 						onClick={() => {
 							showPrefix = !showPrefix;
 						}}
-					>
-						{'Toggle Prefix'}
-					</button>
+					>{'Toggle Prefix'}</button>
 					<button
 						onClick={() => {
 							title = title === 'Main Page' ? 'Settings' : 'Main Page';
 						}}
-					>
-						{'Change Page'}
-					</button>
+					>{'Change Page'}</button>
 				</div>
 			</>;
 		}

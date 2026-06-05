@@ -228,6 +228,71 @@ describe('TSRX parser', () => {
 		expect(returned.children[2].value).toContain('Hello');
 	});
 
+	it('keeps locations aligned after replaying multiline template text', () => {
+		const source = `function App() {
+	return <>
+		---
+		<pre>
+			{x}
+		</pre>
+	</>;
+}
+foo();`;
+		const ast = parseModule(source, 'App.tsrx');
+		const returned = ast.body[0].body.body[0].argument;
+		const pre = returned.children.find((child) => child.type === 'JSXElement');
+		const expression = pre.children[0].expression;
+
+		expect(expression.start).toBe(source.indexOf('x}'));
+		expect(expression.loc.start).toEqual({ line: 5, column: 4 });
+		expect(ast.body[1].loc.start).toEqual({ line: 9, column: 0 });
+	});
+
+	it('parses switch cases with JSX children followed by break statements', () => {
+		const ast = parseModule(
+			`function App() { return <>
+				const iconNodes = [['path', { d: 'x' }], ['circle', { cx: '1' }]];
+				---
+				<svg>
+					@for (const [tag, attrs] of iconNodes) {
+						@switch (tag) {
+							case 'path':
+								<path {...attrs} />
+								break;
+							case 'circle':
+								<circle {...attrs} />
+								break;
+						}
+					}
+				</svg>
+			</>; }`,
+			'App.tsrx',
+		);
+		let switchExpression;
+		(function walk(node) {
+			if (switchExpression || !node || typeof node !== 'object') return;
+			if (Array.isArray(node)) return node.forEach(walk);
+			if (node.type === 'JSXSwitchExpression') {
+				switchExpression = node;
+				return;
+			}
+			for (const key in node) {
+				if (key === 'loc' || key === 'start' || key === 'end') continue;
+				walk(node[key]);
+			}
+		})(ast);
+
+		expect(switchExpression.cases).toHaveLength(2);
+		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual([
+			'JSXElement',
+			'BreakStatement',
+		]);
+		expect(switchExpression.cases[1].consequent.map((node) => node.type)).toEqual([
+			'JSXElement',
+			'BreakStatement',
+		]);
+	});
+
 	it('treats unfenced keyword and symbol-looking element children as JSXText', () => {
 		const returned = getReturned(`function App() { return <div>
 			<code>const</code>
