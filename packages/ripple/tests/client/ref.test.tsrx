@@ -16,10 +16,11 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let input: HTMLInputElement | undefined;
-				<input type="text" ref={input} />
 				effect(() => {
 					captured = input ?? null;
 				});
+				---
+				<input type="text" ref={input} />
 			</>;
 		}
 
@@ -52,6 +53,7 @@ describe('refs', () => {
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
 				const { input_ref, ...rest } = props;
+				---
 				<input type="text" ref={input_ref} {...rest} />
 			</>;
 		}
@@ -95,6 +97,7 @@ describe('refs', () => {
 				function componentRef(node: Child) {
 					_node = node;
 				}
+				---
 				<Child ref={componentRef} {items} />
 			</>;
 		}
@@ -102,6 +105,7 @@ describe('refs', () => {
 		function Child(props: { items: RippleArray<number> }) {
 			return <>
 				const { items, ...rest } = props;
+				---
 				<pre {...rest}>{JSON.stringify(items)}</pre>
 				<pre>{items.length}</pre>
 			</>;
@@ -127,6 +131,7 @@ describe('refs', () => {
 					value,
 					[createRefKey()]: inputRef,
 				};
+				---
 				<input type="text" {...props} />
 				<Input {...props} />
 			</>;
@@ -149,6 +154,7 @@ describe('refs', () => {
 			return <>
 				const tracker = track<HTMLDivElement | null>(null);
 				captured = tracker;
+				---
 				<div ref={tracker}>{'Hello World'}</div>
 			</>;
 		}
@@ -170,6 +176,7 @@ describe('refs', () => {
 			return <>
 				const tracker = track<HTMLInputElement | null>(null);
 				captured = tracker;
+				---
 				<Child id="example" ref={tracker} />
 			</>;
 		}
@@ -186,13 +193,14 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let div: HTMLDivElement | undefined;
-				<div ref={div}>{'Hello World'}</div>
 				// Read the captured element through an effect so the assertion
 				// observes the post-mount value (component setup runs before the
 				// element is created).
 				effect(() => {
 					captured = div ?? null;
 				});
+				---
+				<div ref={div}>{'Hello World'}</div>
 			</>;
 		}
 
@@ -208,10 +216,11 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let div: HTMLDivElement | undefined;
-				<div ref={div}>{'Hello ref attr'}</div>
 				effect(() => {
 					captured = div ?? null;
 				});
+				---
+				<div ref={div}>{'Hello ref attr'}</div>
 			</>;
 		}
 
@@ -250,10 +259,11 @@ describe('refs', () => {
 		function App() {
 			return <>
 				const state: { input?: HTMLInputElement } = {};
-				<input type="text" ref={state.input} />
 				effect(() => {
 					captured = state.input ?? null;
 				});
+				---
+				<input type="text" ref={state.input} />
 			</>;
 		}
 
@@ -303,6 +313,7 @@ describe('refs', () => {
 					let cb = (node: HTMLDivElement) => {
 						logs.push(`mount:${node.textContent}`);
 					};
+					---
 					<div ref={cb}>{'Hello'}</div>
 				</>;
 			}
@@ -323,6 +334,7 @@ describe('refs', () => {
 					const tracker = track<HTMLDivElement | null>(null);
 					let slot = tracker;
 					captured = tracker;
+					---
 					<div ref={slot}>{'Hello'}</div>
 				</>;
 			}
@@ -343,10 +355,11 @@ describe('refs', () => {
 		function App() {
 			return <>
 				let input: HTMLInputElement | undefined;
-				<Child id="example" ref={input} />
 				effect(() => {
 					captured = input ?? null;
 				});
+				---
+				<Child id="example" ref={input} />
 			</>;
 		}
 
@@ -405,6 +418,7 @@ describe('refs', () => {
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
 				let &[as_ref] = track(true);
+				---
 				<input
 					type="text"
 					value="keep"
@@ -424,6 +438,7 @@ describe('refs', () => {
 						};
 					}}
 				/>
+				---
 			</>;
 		}
 
@@ -448,6 +463,7 @@ describe('refs', () => {
 		function Child(props: PropsWithExtras<{}>) {
 			return <>
 				let &[as_ref] = track(false);
+				---
 				<input
 					type="text"
 					value="keep"
@@ -467,6 +483,7 @@ describe('refs', () => {
 						};
 					}}
 				/>
+				---
 			</>;
 		}
 
@@ -523,6 +540,7 @@ describe('refs', () => {
 					id: 'example',
 					value,
 				};
+				---
 				<input type="text" ref={inputRef} {...props} />
 				<Input ref={inputRef} {...props} />
 			</>;

@@ -7,6 +7,7 @@ describe('RippleObject', () => {
 			return <>
 				const obj = new RippleObject({ a: -1 });
 				obj.a = 0;
+				---
 				<pre>{obj.a}</pre>
 				<button
 					onClick={() => {
@@ -35,6 +36,7 @@ describe('RippleObject', () => {
 		function ObjectTest() {
 			return <>
 				const obj = new RippleObject({ a: 0 });
+				---
 				<pre>{obj.a}</pre>
 				<button
 					onClick={() => {
@@ -64,6 +66,7 @@ describe('RippleObject', () => {
 			return <>
 				const obj = new RippleObject({ a: -1, b: 1 });
 				obj.a = 0;
+				---
 				<pre>{'a' in obj && 'b' in obj}</pre>
 			</>;
 		}
@@ -79,6 +82,7 @@ describe('RippleObject', () => {
 		function ObjectTest() {
 			return <>
 				const obj = new RippleObject<{ a?: number; b: number }>({ a: 0, b: 1 });
+				---
 				<pre>{String(obj.a)}</pre>
 				<button
 					onClick={() => {
@@ -107,6 +111,7 @@ describe('RippleObject', () => {
 		function ObjectTest() {
 			return <>
 				const obj = new RippleObject<{ a?: number }>({});
+				---
 				<pre>{String(obj.a)}</pre>
 				<button
 					onClick={() => {
@@ -135,6 +140,7 @@ describe('RippleObject', () => {
 		function ObjectTest() {
 			return <>
 				const obj = new RippleObject({ a: { b: 1 } });
+				---
 				<pre>{String(obj.a.b)}</pre>
 				<button
 					onClick={() => {
@@ -166,6 +172,7 @@ describe('RippleObject', () => {
 				const obj = new RippleObject({ a: 0 });
 				// @ts-expect-error TRACKED_OBJECT is internal
 				expect(obj[TRACKED_OBJECT]).toBe(true);
+				---
 			</>;
 		}
 	});
@@ -174,6 +181,7 @@ describe('RippleObject', () => {
 		function ObjectTest() {
 			return <>
 				const obj = new RippleObject({ a: 0, b: 1, c: { d: { e: 8 } } });
+				---
 				<pre>{obj.a}</pre>
 				<pre>{TRACKED_OBJECT in obj}</pre>
 				<pre>{JSON.stringify(obj)}</pre>

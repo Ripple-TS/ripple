@@ -8,32 +8,28 @@ describe('basic client > reactivity', () => {
 				<div>
 					let obj = Object.create(null);
 					obj.count = track(0);
-
 					---
-
-					<span>{obj.count.value}</span>
+					<span>
+						{obj.count.value}
+					</span>
 				</div>
 				<div>
 					let b = Object.create(null);
 					b.count = track(0);
-
 					---
-
 					<button
 						onClick={() => {
 							b.count.value--;
 						}}
-					>
-						{'-'}
-					</button>
-					<span class="count">{b.count.value}</span>
+					>{'-'}</button>
+					<span class="count">
+						{b.count.value}
+					</span>
 					<button
 						onClick={() => {
 							b.count.value++;
 						}}
-					>
-						{'+'}
-					</button>
+					>{'+'}</button>
 				</div>
 			</>;
 		}
@@ -56,35 +52,32 @@ describe('basic client > reactivity', () => {
 		function Basic() {
 			return <>
 				const count = 'count';
+				---
 				<div>
 					let obj = Object.create(null);
 					obj.count = track(0);
-
 					---
-
-					<span>{obj[count].value}</span>
+					<span>
+						{obj[count].value}
+					</span>
 				</div>
 				<div>
 					let b = Object.create(null);
 					b.count = track(0);
-
 					---
-
 					<button
 						onClick={() => {
 							b[count].value--;
 						}}
-					>
-						{'-'}
-					</button>
-					<span class="count">{b[count].value}</span>
+					>{'-'}</button>
+					<span class="count">
+						{b[count].value}
+					</span>
 					<button
 						onClick={() => {
 							b[count].value++;
 						}}
-					>
-						{'+'}
-					</button>
+					>{'+'}</button>
 				</div>
 			</>;
 		}
@@ -107,16 +100,19 @@ describe('basic client > reactivity', () => {
 		function Basic() {
 			return <>
 				let &[count] = track(5);
+				---
 				<div class="count">{count}</div>
-				<div class="doubled">{count * 2}</div>
-				<div class="is-even">{count % 2 === 0 ? 'Even' : 'Odd'}</div>
+				<div class="doubled">
+					{count * 2}
+				</div>
+				<div class="is-even">
+					{count % 2 === 0 ? 'Even' : 'Odd'}
+				</div>
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 			</>;
 		}
 
@@ -148,20 +144,6 @@ describe('basic client > reactivity', () => {
 				let second = track(0);
 				const arr = [first, second];
 				const total = track(() => arr.reduce((a, b) => a + b.value, 0));
-				<button
-					onClick={() => {
-						first.value++;
-					}}
-				>
-					{'first:' + first.value}
-				</button>
-				<button
-					onClick={() => {
-						second.value++;
-					}}
-				>
-					{'second: ' + second.value}
-				</button>
 				effect(() => {
 					let _arr: number[] = [];
 
@@ -176,10 +158,33 @@ describe('basic client > reactivity', () => {
 						logs.push('arr includes 1');
 					}
 				});
-				<div>{'Sum: ' + total.value}</div>
-				<div>{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}</div>
-				<div>{'Number to string: ' + arr.map((a) => String(a.value))}</div>
-				<div>{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}</div>
+				---
+				<button
+					onClick={() => {
+						first.value++;
+					}}
+				>
+					{'first:' + first.value}
+				</button>
+				<button
+					onClick={() => {
+						second.value++;
+					}}
+				>
+					{'second: ' + second.value}
+				</button>
+				<div>
+					{'Sum: ' + total.value}
+				</div>
+				<div>
+					{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}
+				</div>
+				<div>
+					{'Number to string: ' + arr.map((a) => String(a.value))}
+				</div>
+				<div>
+					{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}
+				</div>
 			</>;
 		}
 
@@ -218,14 +223,13 @@ describe('basic client > reactivity', () => {
 		function App() {
 			return <>
 				let &[count] = track(0, (v) => v + 1, (v) => v * 2);
+				---
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 			</>;
 		}
 
@@ -245,14 +249,13 @@ describe('basic client > reactivity', () => {
 		function App() {
 			return <>
 				let &[count] = track(1, (v) => v, (v) => v * 2);
+				---
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 			</>;
 		}
 
@@ -272,14 +275,13 @@ describe('basic client > reactivity', () => {
 		function App() {
 			return <>
 				let &[count] = track(0, (v) => v + 1, (v) => v);
+				---
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 			</>;
 		}
 
@@ -304,13 +306,12 @@ describe('basic client > reactivity', () => {
 					logs.push(prev, next);
 					return next;
 				});
+				---
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 			</>;
 		}
 
@@ -331,6 +332,7 @@ describe('basic client > reactivity', () => {
 					count += value;
 					return value;
 				});
+				---
 				<p>{doubled}</p>
 			</>;
 		}
@@ -349,6 +351,7 @@ describe('basic client > reactivity', () => {
 				effect(() => {
 					state.count = count;
 				});
+				---
 			</>;
 		}
 
@@ -381,6 +384,7 @@ describe('basic client > reactivity', () => {
 						state.finalValue = count;
 					});
 				});
+				---
 			</>;
 		}
 
@@ -400,7 +404,10 @@ describe('basic client > reactivity', () => {
 			return <>
 				const t = track({ a: 1, b: 2, c: 3 });
 				const doublet = track(t);
-				<pre>{t === doublet}</pre>
+				---
+				<pre>
+					{t === doublet}
+				</pre>
 			</>;
 		}
 

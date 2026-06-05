@@ -7,6 +7,7 @@ describe('basic client > events', () => {
 			return <>
 				let &[focusCount] = track(0);
 				let &[clickCount] = track(0);
+				---
 				<button
 					onFocus={() => {
 						focusCount++;
@@ -42,6 +43,7 @@ describe('basic client > events', () => {
 			return <>
 				let &[captureClicks] = track(0);
 				let &[bubbleClicks] = track(0);
+				---
 				<div
 					onClick={{
 						handleEvent: () => {
@@ -90,6 +92,7 @@ describe('basic client > events', () => {
 						count++;
 					},
 				};
+				---
 				<div>
 					<button {...minus} class="minus">{'-'}</button>
 					<span class="count">{count}</span>
@@ -129,6 +132,7 @@ describe('basic client > events', () => {
 			return <>
 				let &[enabled] = track(true);
 				let &[count] = track(0);
+				---
 				<button class="target" {...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}>
 					{'target'}
 				</button>
@@ -170,6 +174,7 @@ describe('basic client > events', () => {
 						focusCount++;
 					},
 				};
+				---
 				<div>
 					<button {...mixedHandler} class="mixed-button">{'Test'}</button>
 					<span class="click-count">{clickCount}</span>
@@ -219,6 +224,7 @@ describe('basic client > events', () => {
 					history = [...history, 'Reset'];
 					isEven = true;
 				};
+				---
 				<div class="counter">{counter}</div>
 				<div class="parity">{isEven ? 'Even' : 'Odd'}</div>
 				<div class="history-count">{history.length}</div>

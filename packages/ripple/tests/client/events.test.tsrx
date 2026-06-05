@@ -7,14 +7,13 @@ describe('on() event handler', () => {
 			return <>
 				let &[count1] = track(0);
 				let &[count2] = track(0);
+				---
 				<button
 					onClick={() => {
 						count1++;
 						count2++;
 					}}
-				>
-					{'Click me'}
-				</button>
+				>{'Click me'}</button>
 				<div class="count1">{count1}</div>
 				<div class="count2">{count2}</div>
 			</>;
@@ -45,6 +44,7 @@ describe('on() event handler', () => {
 					});
 					return remove;
 				};
+				---
 				<button ref={setupListener}>{'Click me'}</button>
 				<div class="count">{count}</div>
 			</>;
@@ -84,6 +84,7 @@ describe('on() event handler', () => {
 						remove2();
 					};
 				};
+				---
 				<button ref={setupListeners}>{'Test'}</button>
 				<div class="click-count">{clickCount}</div>
 				<div class="mousedown-count">{mousedownCount}</div>
@@ -137,8 +138,11 @@ describe('on() event handler', () => {
 						remove3();
 					};
 				};
+				---
 				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="order">{callOrder.join(',')}</div>
+				<div class="order">
+					{callOrder.join(',')}
+				</div>
 			</>;
 		}
 
@@ -183,6 +187,7 @@ describe('on() event handler', () => {
 						remove3();
 					};
 				};
+				---
 				<div>
 					<button class="test-btn" ref={setupListeners}>{'Click me'}</button>
 					<button
@@ -191,9 +196,7 @@ describe('on() event handler', () => {
 							removeHandler2?.();
 							removeHandler2 = undefined;
 						}}
-					>
-						{'Remove handler 2'}
-					</button>
+					>{'Remove handler 2'}</button>
 					<div class="h1">{handler1Called}</div>
 					<div class="h2">{handler2Called}</div>
 					<div class="h3">{handler3Called}</div>
@@ -258,10 +261,15 @@ describe('on() event handler', () => {
 							remove2();
 						};
 					};
+					---
 					<div>
 						<input type="checkbox" ref={setupListeners} />
-						<div class="checked">{checked ? 'true' : 'false'}</div>
-						<div class="indeterminate">{indeterminate ? 'true' : 'false'}</div>
+						<div class="checked">
+							{checked ? 'true' : 'false'}
+						</div>
+						<div class="indeterminate">
+							{indeterminate ? 'true' : 'false'}
+						</div>
 					</div>
 				</>;
 			}
@@ -297,6 +305,7 @@ describe('on() event handler', () => {
 					});
 					return remove;
 				};
+				---
 				<input ref={setupListener} />
 				<div class="focus-count">{focusCount}</div>
 			</>;
@@ -342,6 +351,7 @@ describe('on() event handler', () => {
 						remove3?.();
 					};
 				};
+				---
 				<div>
 					<button class="test-btn" ref={setupListeners}>{'Click me'}</button>
 					<button
@@ -352,9 +362,7 @@ describe('on() event handler', () => {
 							remove3?.();
 							remove1 = remove2 = remove3 = undefined;
 						}}
-					>
-						{'Remove all'}
-					</button>
+					>{'Remove all'}</button>
 					<div class="count">{count}</div>
 				</div>
 			</>;
@@ -403,6 +411,7 @@ describe('on() event handler', () => {
 						remove3?.();
 					};
 				};
+				---
 				<button ref={setupListeners}>{'Click me'}</button>
 				<div class="count">{count}</div>
 			</>;
@@ -445,6 +454,7 @@ describe('on() event handler', () => {
 						remove3?.();
 					};
 				};
+				---
 				<button ref={setupListeners}>{'Click me'}</button>
 				<div class="count">{count}</div>
 			</>;
@@ -485,10 +495,13 @@ describe('on() event handler', () => {
 				const setupChild = (node: HTMLButtonElement) => {
 					return on(node, 'click', childBubbleHandler);
 				};
+				---
 				<div ref={setupParent} class="parent">
 					<button ref={setupChild} class="child">{'Click me'}</button>
 				</div>
-				<div class="order">{callOrder.join(',')}</div>
+				<div class="order">
+					{callOrder.join(',')}
+				</div>
 			</>;
 		}
 
@@ -530,6 +543,7 @@ describe('on() event handler', () => {
 						permanentHandler?.();
 					};
 				};
+				---
 				<button ref={setupListeners}>{'Click me'}</button>
 				<div class="once-count">{count}</div>
 				<div class="permanent-count">{permanentCount}</div>
@@ -575,6 +589,7 @@ describe('on() event handler', () => {
 					});
 					return removeWindowListener;
 				});
+				---
 				<div>
 					<button class="test-btn">{'Click me'}</button>
 					<div class="window-count">{windowClickCount}</div>
@@ -611,6 +626,7 @@ describe('on() event handler', () => {
 					});
 					return removeDocumentListener;
 				});
+				---
 				<div>
 					<button class="test-btn">{'Click me'}</button>
 					<div class="document-count">{documentClickCount}</div>
@@ -647,6 +663,7 @@ describe('on() event handler', () => {
 					});
 					return removeBodyListener;
 				});
+				---
 				<div>
 					<button class="test-btn">{'Click me'}</button>
 					<div class="body-count">{bodyClickCount}</div>

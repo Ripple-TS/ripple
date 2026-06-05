@@ -634,6 +634,45 @@ foo();`;
 		expect(returned.children[0].declarations[0].init.type).toBe('ArrowFunctionExpression');
 	});
 
+	it('treats generic function expressions in the script section as script', () => {
+		const returned = getReturned(`function App() { return <div>
+			function getBuilder() {
+				return {
+					build: function <T>() {
+						return 'test';
+					},
+				};
+			}
+			---
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'FunctionDeclaration',
+			'TsrxTemplateFence',
+		]);
+		const object = returned.children[0].body.body[0].argument;
+		expect(object.properties[0].value.type).toBe('FunctionExpression');
+		expect(object.properties[0].value.typeParameters.type).toBe('TSTypeParameterDeclaration');
+	});
+
+	it('parses parenthesized conditional JSX spread attributes in template output', () => {
+		const returned = getReturned(`function App() { return <div>
+			let &[enabled] = track(true);
+			---
+			<button {...(enabled ? { onClick: fn } : { title: 'disabled' })}>target</button>
+		</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		const spread = returned.children[2].openingElement.attributes[0];
+		expect(spread.type).toBe('JSXSpreadAttribute');
+		expect(spread.argument.type).toBe('ConditionalExpression');
+		expect(spread.argument.test.name).toBe('enabled');
+	});
+
 	it('does not let a relational `>` inside an attribute break tag scanning', () => {
 		// The `>` in `value={foo > bar}` must not be mistaken for the end of the
 		// `<Comp ...>` opening tag. Here the element is template output, so the

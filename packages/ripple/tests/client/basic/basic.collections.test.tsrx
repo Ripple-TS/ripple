@@ -20,6 +20,7 @@ describe('basic client > collections', () => {
 					name: 'John',
 					age: 25,
 				});
+				---
 				<div class="name">{user.name}</div>
 				<div class="age">{user.age}</div>
 				<button
@@ -55,6 +56,7 @@ describe('basic client > collections', () => {
 					name: track('John'),
 					age: track(25),
 				});
+				---
 				<div class="name">{user.name.value}</div>
 				<div class="age">{user.age.value}</div>
 				<button
@@ -88,6 +90,7 @@ describe('basic client > collections', () => {
 		function App() {
 			return <>
 				const array = new RippleArray(1, 2, 3);
+				---
 				<pre>{String(array[3])}</pre>
 				<pre>{array[0]}</pre>
 				<pre>{TRACKED_ARRAY in array}</pre>
@@ -124,6 +127,7 @@ describe('basic client > collections', () => {
 		function App() {
 			return <>
 				let &[primary] = track(true);
+				---
 				<div class="frame">
 					{<>
 						{primary
@@ -198,6 +202,7 @@ describe('basic client > collections', () => {
 		function App() {
 			return <>
 				const items = ['start:', ['one', 2], null, true, false, ':end'];
+				---
 				<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
 				<div class="bound-frame">{items}</div>
 			</>;
@@ -217,6 +222,7 @@ describe('basic client > collections', () => {
 					? ['start:', ['one', 2], null, true, false, ':end']
 					: ['fallback'];
 				const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+				---
 				<div class="ternary-frame">{ternary_items}</div>
 				<div class="logical-frame">{logical_items}</div>
 			</>;

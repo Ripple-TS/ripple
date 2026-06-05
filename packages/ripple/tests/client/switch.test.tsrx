@@ -5,9 +5,9 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let &[value] = track('b');
+				---
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -41,8 +41,8 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let &[count] = track(1);
-				<button onClick={() => count++}>{'Increment'}</button>
 				---
+				<button onClick={() => count++}>{'Increment'}</button>
 				@switch (count) {
 					case 1:
 						<div>{'Count is 1'}</div>
@@ -74,8 +74,8 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let &[value] = track('x');
-				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				---
+				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				@switch (value) {
 					default:
 						<div>{'Default for ' + value}</div>
@@ -96,9 +96,9 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let &[value] = track('a');
+				---
 				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -140,10 +140,10 @@ describe('switch statements', () => {
 			return <>
 				let &[status] = track('active');
 				let &[message] = track('');
+				---
 				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
 				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
 				<button onClick={() => (status = 'error')}>{'Error'}</button>
-				---
 				@switch (status) {
 					case 'active':
 						message = 'Currently active.';
@@ -192,6 +192,7 @@ describe('switch statements', () => {
 			function App() {
 				return <>
 					let &[status] = track(0);
+					---
 					<div>
 						@switch (status) {
 							case -1:
@@ -266,6 +267,7 @@ describe('switch statements', () => {
 			function App() {
 				return <>
 					let &[value] = track('x');
+					---
 					<button onClick={() => (value = 'a')}>{'Set A'}</button>
 					<button onClick={() => (value = 'b')}>{'Set B'}</button>
 					<button onClick={() => (value = 'c')}>{'Set C'}</button>
@@ -332,6 +334,7 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let value = 'a';
+				---
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
@@ -352,6 +355,7 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let value = 'a';
+				---
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
@@ -374,6 +378,7 @@ describe('switch statements', () => {
 		function App() {
 			return <>
 				let &[level] = track(1);
+				---
 				<button
 					onClick={() => {
 						if (level === 1) level = 2;
@@ -383,7 +388,6 @@ describe('switch statements', () => {
 				>
 					{'Toggle'}
 				</button>
-				---
 				@switch (level) {
 					case 1:
 						<div class="level">{'Level 1'}</div>

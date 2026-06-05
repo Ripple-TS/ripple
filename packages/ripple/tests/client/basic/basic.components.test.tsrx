@@ -19,6 +19,7 @@ describe('basic client > components & composition', () => {
 				function children() {
 					return <><p>{'Card content here'}</p></>;
 				}
+				---
 				<Card {children} />
 			</>;
 		}
@@ -39,6 +40,7 @@ describe('basic client > components & composition', () => {
 					@if (props.children) {
 						{props.children}
 					}
+				---
 				</div>
 			</>;
 		}
@@ -48,6 +50,7 @@ describe('basic client > components & composition', () => {
 				function test() {
 					return <><p>{'Card content here'}</p></>;
 				}
+				---
 				<Card {test} />
 			</>;
 		}
@@ -68,6 +71,7 @@ describe('basic client > components & composition', () => {
 					@if (props.children) {
 						{props.children}
 					}
+				---
 				</div>
 			</>;
 		}
@@ -78,6 +82,7 @@ describe('basic client > components & composition', () => {
 				function TestSlot() {
 					return <><p>{'Card content here'}</p></>;
 				}
+				---
 				<Card test={TestSlot} />
 				<div>{test ? 'yes' : 'no'}</div>
 			</>;
@@ -103,6 +108,7 @@ describe('basic client > components & composition', () => {
 				function children() {
 					return <><p>{'Card content here'}</p></>;
 				}
+				---
 				<Card {children} />
 			</>;
 		}
@@ -213,6 +219,7 @@ describe('basic client > components & composition', () => {
 		function Basic() {
 			return <>
 				let &[clicked] = track(false);
+				---
 				<Card
 					title="Test Card"
 					content="This is a test card"
@@ -258,6 +265,7 @@ describe('basic client > components & composition', () => {
 			return <>
 				let &[message, messageTracked] = track('Hello');
 				let &[number, numberTracked] = track(1);
+				---
 				<ChildComponent text={messageTracked} count={numberTracked} />
 				<button
 					onClick={() => {
@@ -300,6 +308,7 @@ describe('basic client > components & composition', () => {
 		function Basic() {
 			return <>
 				let &[show] = track(false);
+				---
 				<TextProp children={show ? 'hello' : ''} />
 				<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
 			</>;
@@ -449,6 +458,7 @@ describe('basic client > components & composition', () => {
 				function children() {
 					return <><span>{'Click me!'}</span></>;
 				}
+				---
 				<div>
 					<h1>{'Component as Property Test'}</h1>
 					<UI.span />
@@ -481,6 +491,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				let content = '';
+				---
 				<Button>{''}</Button>
 				<Button>{content}</Button>
 			</>;
@@ -503,6 +514,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				let &[Content] = track(() => Noop);
+				---
 				<@Content />
 				<button onClick={() => (Content = Op)}>{'Show Op'}</button>
 			</>;
@@ -538,6 +550,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1' };
+				---
 				<Card children="fallback text" {...extra} />
 			</>;
 		}
@@ -554,6 +567,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1' };
+				---
 				<Card {...extra} children="fallback text" />
 			</>;
 		}
@@ -570,6 +584,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1' };
+				---
 				<Card children="fallback text" {...extra}>
 					<span>{'template content'}</span>
 				</Card>
@@ -589,6 +604,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1' };
+				---
 				<Card {...extra} children="fallback text">
 					<span>{'template content'}</span>
 				</Card>
@@ -608,6 +624,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1', children: 'from spread' };
+				---
 				<Card
 					// @ts-expect-error children specified more than once
 					children="explicit"
@@ -628,6 +645,7 @@ describe('basic client > components & composition', () => {
 		function App() {
 			return <>
 				const extra = { id: '1', children: 'from spread' };
+				---
 				<Card {...extra} children="explicit" />
 			</>;
 		}

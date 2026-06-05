@@ -6,6 +6,7 @@ describe('RippleArray > iteration', () => {
 			return <>
 				let items = new RippleArray('a', 'b', 'c');
 				let &[entries] = track(() => Array.from(items.entries()));
+				---
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(entries)}</pre>
@@ -35,6 +36,7 @@ describe('RippleArray > iteration', () => {
 			return <>
 				let items = new RippleArray('a', 'b', 'c');
 				let &[keys] = track(() => Array.from(items.keys()));
+				---
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(keys)}</pre>
@@ -62,6 +64,7 @@ describe('RippleArray > iteration', () => {
 			return <>
 				let items = new RippleArray('a', 'b', 'c');
 				let &[values] = track(() => Array.from(items.values()));
+				---
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(values)}</pre>
@@ -97,6 +100,7 @@ describe('RippleArray > iteration', () => {
 						});
 					}
 				});
+				---
 				<button onClick={() => items.push(4)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{sum}</pre>

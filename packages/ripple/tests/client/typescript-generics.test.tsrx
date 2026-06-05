@@ -5,11 +5,12 @@ describe('generic patterns', () => {
 				const e = new Map<string, Promise<number>>();
 				const a = new Array<number>();
 				const b = new Array<string>();
+				const someSource = new Array<number>(1, 2, 3);
+				const d = someSource.map<number>((x) => x * 2).filter<number>((x) => !!x);
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				const someSource = new Array<number>(1, 2, 3);
-				const d = someSource.map<number>((x) => x * 2).filter<number>((x) => !!x);
 			</>;
 		}
 
@@ -25,15 +26,16 @@ describe('generic patterns', () => {
 						this.items = [];
 					}
 				}
-				<div class="still-works">
-					<span>{'Test'}</span>
-				</div>
 				class Containers {
 					static List<T>() {
 						return new List<T>();
 					}
 				}
 				const c = Containers.List<string>();
+				---
+				<div class="still-works">
+					<span>{'Test'}</span>
+				</div>
 			</>;
 		}
 
@@ -50,6 +52,7 @@ describe('generic patterns', () => {
 						},
 					};
 				}
+				---
 			</>;
 		}
 
@@ -66,10 +69,11 @@ describe('generic patterns', () => {
 						},
 					};
 				}
+				const f = getBuilder().build<string>();
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				const f = getBuilder().build<string>();
 			</>;
 		}
 
@@ -88,6 +92,7 @@ describe('generic patterns', () => {
 				}
 				type ResultType = string;
 				const f = getBuilder()<ResultType>().build<string>();
+				---
 			</>;
 		}
 
@@ -104,11 +109,12 @@ describe('generic patterns', () => {
 						},
 					});
 				}
+				type ResultType = string;
+				const f = getBuilder()<ResultType>().build<string>();
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string>();
 				<div>{f}</div>
 			</>;
 		}
@@ -132,11 +138,12 @@ describe('generic patterns', () => {
 						},
 					});
 				}
+				type ResultType = string;
+				const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string, object, string>();
 				<div>{f}</div>
 			</>;
 		}
@@ -160,11 +167,12 @@ describe('generic patterns', () => {
 						},
 					});
 				}
+				type ResultType = string;
+				const f = getBuilder()<ResultType>().build<string, object, string>();
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<string, object, string>();
 				<div>{f}</div>
 			</>;
 		}
@@ -188,11 +196,12 @@ describe('generic patterns', () => {
 						},
 					});
 				}
+				type ResultType = string;
+				const f = getBuilder()<ResultType>().build<number, object, string>();
+				---
 				<div class="still-works">
 					<span>{'Test'}</span>
 				</div>
-				type ResultType = string;
-				const f = getBuilder()<ResultType>().build<number, object, string>();
 				<div>{f}</div>
 			</>;
 		}

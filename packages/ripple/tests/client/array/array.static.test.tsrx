@@ -7,6 +7,7 @@ describe('RippleArray > static', () => {
 			return <>
 				let itemsFrom = RippleArray.from([1, 2, 3], (x: number) => x * 2);
 				let itemsOf = RippleArray.of(4, 5, 6);
+				---
 				<button onClick={() => itemsFrom.push(8)}>{'add to from'}</button>
 				<button onClick={() => itemsOf.push(7)}>{'add to of'}</button>
 				<pre>{JSON.stringify(itemsFrom)}</pre>
@@ -43,6 +44,7 @@ describe('RippleArray > static', () => {
 					@try {
 						<ArrayTest />
 					} pending {
+					---
 						<div>{'Loading placeholder...'}</div>
 					}
 				</>;
@@ -51,6 +53,7 @@ describe('RippleArray > static', () => {
 			function ArrayTest() {
 				return <>
 					let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
+					---
 					<button
 						onClick={() => {
 							items.push(4);
@@ -84,6 +87,7 @@ describe('RippleArray > static', () => {
 					@try {
 						<ArrayTest />
 					} pending {
+					---
 						<div>{'Loading placeholder...'}</div>
 					}
 				</>;
@@ -92,6 +96,7 @@ describe('RippleArray > static', () => {
 			function ArrayTest() {
 				return <>
 					let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
+					---
 					<button
 						onClick={() => {
 							items.push(8);
@@ -127,6 +132,7 @@ describe('RippleArray > static', () => {
 						@try {
 							<ArrayTest />
 						} pending {
+						---
 							<div>{'Loading placeholder...'}</div>
 						}
 					</>;
@@ -173,6 +179,7 @@ describe('RippleArray > static', () => {
 			function ArrayTest() {
 				return <>
 					let items = new RippleArray(3);
+					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
 				</>;
@@ -195,6 +202,7 @@ describe('RippleArray > static', () => {
 							return (e as Error).message;
 						}
 					})();
+					---
 					<pre>{error}</pre>
 				</>;
 			}
@@ -208,6 +216,7 @@ describe('RippleArray > static', () => {
 			function ArrayTest() {
 				return <>
 					let items = RippleArray.from([4]);
+					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
 				</>;
@@ -223,6 +232,7 @@ describe('RippleArray > static', () => {
 			function ArrayTest() {
 				return <>
 					let items = RippleArray.of(5);
+					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
 				</>;
@@ -242,6 +252,7 @@ describe('RippleArray > static', () => {
 						@try {
 							<ArrayTest />
 						} pending {
+						---
 							<div>{'Loading placeholder...'}</div>
 						}
 					</>;
@@ -250,6 +261,7 @@ describe('RippleArray > static', () => {
 				function ArrayTest() {
 					return <>
 						let &[items] = trackAsync(() => RippleArray.fromAsync([6]));
+						---
 						<pre>{JSON.stringify(items)}</pre>
 						<pre>{items.length}</pre>
 					</>;

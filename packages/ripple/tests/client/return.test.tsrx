@@ -24,6 +24,7 @@ describe('returns in restricted scopes', () => {
 						function label() {
 							return 'ready';
 						}
+						---
 						<div>{label()}</div>
 					</>;
 				}
@@ -43,6 +44,7 @@ describe('returns in restricted scopes', () => {
 						@if (ready) {
 							<div>yielded</div>
 						}
+						---
 						<span>after</span>
 					</>;
 				}
@@ -62,6 +64,7 @@ describe('function returns in client components', () => {
 				@if (ready) {
 					<div class="yielded">yielded</div>
 				}
+				---
 				<span class="outer">outer</span>
 			</>;
 		}
@@ -71,25 +74,26 @@ describe('function returns in client components', () => {
 		expect(container.querySelector('.outer')?.textContent).toBe('outer');
 	});
 
-	it('throws when control-flow blocks contain direct TSRX children', () => {
-		expect(
-			() => compile(
-				`
+	it('treats plain control-flow blocks as text inside templates', () => {
+		const { code } = compile(
+			`
 				function App() {
 					return <>
 						const items = [1, 2, 3];
+						---
 						for (const item of items) {
 							<div>{item}</div>
 						}
 					</>;
 				}
 			`,
-				'test.tsrx',
-				{ mode: 'client' },
-			),
-		).toThrow(
-			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
+			'test.tsrx',
+			{ mode: 'client' },
 		);
+
+		expect(code).toContain('const items = [1, 2, 3];');
+		expect(code).not.toContain('"const items');
+		expect(code).toContain('"for (const item of items) "');
 	});
 
 	it('renders TSRX return arguments and skips later siblings', () => {
@@ -99,6 +103,7 @@ describe('function returns in client components', () => {
 				if (ready) {
 					return <div class="returned">returned</div>;
 				}
+				---
 				<span class="after">after</span>
 			</>;
 		}

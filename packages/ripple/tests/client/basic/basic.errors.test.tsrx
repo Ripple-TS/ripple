@@ -15,10 +15,13 @@ describe('basic client > errors', () => {
 						errorMessage = (e as Error).message;
 					}
 				};
+				---
 				<div>
 					<button onClick={triggerError}>{'Trigger Error'}</button>
 					@if (hasError) {
-						<div class="error">{'Error caught: ' + errorMessage}</div>
+						<div class="error">
+							{'Error caught: ' + errorMessage}
+						</div>
 					} else {
 						<div class="success">{'No error'}</div>
 					}
@@ -124,6 +127,7 @@ describe('basic client > errors', () => {
 						error = (e as Error).message;
 					}
 				});
+				---
 				<p>{doubled}</p>
 			</>;
 		}
@@ -148,6 +152,7 @@ describe('basic client > errors', () => {
 						error = (e as Error).message;
 					}
 				});
+				---
 				<p>{doubled}</p>
 			</>;
 		}
@@ -171,6 +176,7 @@ describe('basic client > errors', () => {
 					}
 					return value;
 				});
+				---
 				<p>{doubled}</p>
 			</>;
 		}
@@ -190,6 +196,7 @@ describe('basic client > errors', () => {
 					await new Promise(r => setTimeout(r, 100));
 					data = 'loaded';
 				}
+				---
 				<div>{data}</div>
 			</>; }
 		`;
@@ -205,6 +212,7 @@ describe('basic client > errors', () => {
 				while (i < 10) {
 					i++;
 				}
+				---
 				<div>{i}</div>
 			</>; }
 		`;
@@ -220,6 +228,7 @@ describe('basic client > errors', () => {
 				do {
 					i++;
 				} while (i < 10);
+				---
 				<div>{i}</div>
 			</>; }
 		`;
@@ -262,6 +271,7 @@ describe('basic client > errors', () => {
 					}
 					return i;
 				};
+				---
 				<div>{compute()}</div>
 			</>; }
 		`;
@@ -280,6 +290,7 @@ describe('basic client > errors', () => {
 					} while (i < 10);
 					return i;
 				};
+				---
 				<div>{compute()}</div>
 			</>; }
 		`;
@@ -292,6 +303,7 @@ describe('basic client > errors', () => {
 		const code = `
 			export default function App() { return <>
 				const _$_test = 'hello';
+				---
 				<div>{_$_test}</div>
 			</>; }
 		`;

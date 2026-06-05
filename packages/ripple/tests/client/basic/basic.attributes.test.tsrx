@@ -16,6 +16,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[active] = track(false);
+				---
 				<button
 					onClick={() => {
 						active = !active;
@@ -65,6 +66,7 @@ describe('basic client > attribute rendering', () => {
 						],
 					]}
 				>{'Class Array'}</div>
+				---
 				<style>
 					.foo {
 						color: red;
@@ -93,6 +95,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[active] = track(false);
+				---
 				<button
 					onClick={() => {
 						active = !active;
@@ -132,6 +135,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[selected] = track(1);
+				---
 				<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
 				<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
 				<style>
@@ -161,6 +165,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[count] = track(0);
+				---
 				<button
 					onClick={() => {
 						count++;
@@ -192,6 +197,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[color] = track('red');
+				---
 				<button
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
@@ -220,6 +226,7 @@ describe('basic client > attribute rendering', () => {
 		function Basic() {
 			return <>
 				let &[color] = track('red');
+				---
 				<button
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
@@ -251,6 +258,7 @@ describe('basic client > attribute rendering', () => {
 				function toggleColor() {
 					style = { ...style, color: style.color === 'red' ? 'blue' : 'red' };
 				}
+				---
 				<button onClick={toggleColor}>{'Change Color'}</button>
 				<div {style}>{'Dynamic Style'}</div>
 			</>;
@@ -278,6 +286,7 @@ describe('basic client > attribute rendering', () => {
 				function toggleColor() {
 					style.color = style.color === 'red' ? 'blue' : 'red';
 				}
+				---
 				<button onClick={toggleColor}>{'Change Color'}</button>
 				<div style={{ color: style.color, fontWeight: style.fontWeight }}>{'Dynamic Style'}</div>
 			</>;
@@ -305,6 +314,7 @@ describe('basic client > attribute rendering', () => {
 					style: { color: 'red', fontWeight: 'bold' },
 					class: ['foo', false && 'bar'],
 				};
+				---
 				<div {...attributes}>{'Attributes with style and class'}</div>
 			</>;
 		}
@@ -324,6 +334,7 @@ describe('basic client > attribute rendering', () => {
 		function App() {
 			return <>
 				const checkBoxProp = { name: 'car' };
+				---
 				<div>
 					<input {...checkBoxProp} type="checkbox" id="vehicle1" value="Bike" />
 				</div>
@@ -351,6 +362,7 @@ describe('basic client > attribute rendering', () => {
 			return <>
 				let &[disabled] = track(false);
 				let &[checked] = track(false);
+				---
 				<button
 					onClick={() => {
 						disabled = !disabled;
@@ -381,6 +393,7 @@ describe('basic client > attribute rendering', () => {
 			return <>
 				let &[theme] = track('light');
 				let &[size] = track('medium');
+				---
 				<button
 					onClick={() => {
 						theme = theme === 'light' ? 'dark' : 'light';
@@ -417,6 +430,7 @@ describe('basic client > attribute rendering', () => {
 			return <>
 				let &[showTitle] = track(false);
 				let &[showAria] = track(false);
+				---
 				<button
 					onClick={() => {
 						showTitle = !showTitle;
@@ -458,6 +472,7 @@ describe('basic client > attribute rendering', () => {
 					class: 'initial',
 					id: 'test-1',
 				});
+				---
 				<button
 					onClick={() => {
 						attrs = {
@@ -492,6 +507,7 @@ describe('basic client > attribute rendering', () => {
 		function App() {
 			return <>
 				let &[value] = track('parent-class');
+				---
 				<p class={value}>{'Colored parent value'}</p>
 				<div>
 					let &[nested] = track('nested-class');
@@ -550,6 +566,7 @@ describe('basic client > attribute rendering', () => {
 				const decrementHandler = () => {
 					count--;
 				};
+				---
 				<button
 					onClick={() => {
 						mode = mode === 'increment' ? 'decrement' : 'increment';
@@ -606,6 +623,7 @@ describe('basic client > attribute rendering', () => {
 				const handleBubbleClick = () => {
 					captureOrder.push('bubble');
 				};
+				---
 				<div onClick={handleCaptureClick} class="outer">
 					<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
 					<div class="order">
@@ -638,6 +656,7 @@ describe('basic client > attribute rendering', () => {
 				const handleBubbleClick = () => {
 					captureOrder.push('bubble');
 				};
+				---
 				<div onClickCapture={handleCaptureClick} class="outer">
 					<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
 					<div class="order">
@@ -670,6 +689,7 @@ describe('basic client > attribute rendering', () => {
 					},
 					customName: 'MyCustomEvent',
 				};
+				---
 				<div>
 					<div onMyCustomEvent={handleCustom} class="custom-target">{'Custom'}</div>
 					<div class="custom-count">{customEventCount}</div>
@@ -709,6 +729,7 @@ describe('basic client > attribute rendering', () => {
 					},
 					delegated: false,
 				};
+				---
 				<div>
 					<button onClick={delegatedHandler} class="delegated-btn">{'Delegated'}</button>
 					<button onClick={nonDelegatedHandler} class="non-delegated-btn">{'Non-Delegated'}</button>
@@ -756,6 +777,7 @@ describe('basic client > attribute rendering', () => {
 					delegated: false,
 				});
 				const buttonIds = [0, 1, 2, 3, 4];
+				---
 				<div>
 					<div class="delegated-buttons">
 						@for (const i of buttonIds) {
@@ -821,6 +843,7 @@ describe('basic client > attribute rendering', () => {
 						objectCount++;
 					},
 				};
+				---
 				<div>
 					<button onClick={functionHandler} class="function-btn">{'Function'}</button>
 					<button onClick={objectHandler} class="object-btn">{'Object'}</button>
@@ -882,6 +905,7 @@ describe('basic client > attribute rendering', () => {
 					},
 					delegated: false,
 				};
+				---
 				<div>
 					<div onWheel={passiveHandler} class="passive-target">{'Passive'}</div>
 					<div onWheel={nonPassiveHandler} class="non-passive-target">{'Non-Passive'}</div>
@@ -938,6 +962,7 @@ describe('basic client > attribute rendering', () => {
 				const regularHandler = () => {
 					regularCount++;
 				};
+				---
 				<div>
 					<button onClick={onceHandler} class="once-btn">{'Once'}</button>
 					<button onClick={regularHandler} class="regular-btn">{'Regular'}</button>

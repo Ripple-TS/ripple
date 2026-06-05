@@ -259,6 +259,7 @@ export function TSRXPlugin(config) {
 			#scriptJSXElementDepth = 0;
 			#forceScriptJSXElementDepth = 0;
 			#suppressTemplateRawTextToken = false;
+			#templateScriptParsingDepth = 0;
 			#parsingJSXSwitchCaseScriptStatementDepth = 0;
 			#templateControlFlowBlockDepth = 0;
 			#templateControlFlowTryDepth = 0;
@@ -485,6 +486,48 @@ export function TSRXPlugin(config) {
 					if (ch !== CharCode.space && ch !== CharCode.tab) return false;
 				}
 				return true;
+			}
+
+			#previousNonSpaceTabIndex(index) {
+				let cursor = index - 1;
+				while (
+					cursor >= 0 &&
+					(this.input.charCodeAt(cursor) === CharCode.space ||
+						this.input.charCodeAt(cursor) === CharCode.tab)
+				) {
+					cursor--;
+				}
+				return cursor;
+			}
+
+			/**
+			 * @param {number} end_index Inclusive index of the keyword's last character.
+			 * @param {string} keyword
+			 */
+			#keywordEndsAt(end_index, keyword) {
+				const start = end_index - keyword.length + 1;
+				if (start < 0) return false;
+				if (this.input.slice(start, end_index + 1) !== keyword) return false;
+				return !this.#isIdentifierChar(this.input.charCodeAt(start - 1));
+			}
+
+			/**
+			 * Returns true when a `<` at `index` can start TypeScript type
+			 * parameters/arguments in expression-like code rather than a JSX tag.
+			 * Most type argument lists are adjacent to the previous token (`foo<T>`,
+			 * `build<T>()`, `Map<K, V>`). The whitespace-separated form is valid for
+			 * anonymous generic function expressions (`function <T>() {}`); generic
+			 * arrows are handled separately by `looks_like_generic_arrow`.
+			 *
+			 * @param {number} index
+			 */
+			#canStartTypeParameterOrArgumentList(index) {
+				const previous = this.#previousNonSpaceTabIndex(index);
+				if (previous < 0) return false;
+				if (previous === index - 1) {
+					return this.#canPrecedeTypeArgumentList(this.input.charCodeAt(previous));
+				}
+				return this.#keywordEndsAt(previous, 'function');
 			}
 
 			/**
@@ -781,7 +824,7 @@ export function TSRXPlugin(config) {
 						if (
 							next !== CharCode.slash &&
 							(looks_like_generic_arrow(this.input, index) ||
-								this.#canPrecedeTypeArgumentList(this.input.charCodeAt(index - 1)))
+								this.#canStartTypeParameterOrArgumentList(index))
 						) {
 							const type_end = scan_balanced_from(
 								this.input,
@@ -1326,6 +1369,7 @@ export function TSRXPlugin(config) {
 					this.#readingJSXControlFlowDirectiveKeyword ||
 					this.#readingJSXControlFlowHeader ||
 					this.#parsingJSXSwitchCaseScriptStatementDepth > 0 ||
+					this.#templateScriptParsingDepth > 0 ||
 					this.#jsxExpressionContainerDepth > 0
 				) {
 					return false;
@@ -2437,17 +2481,21 @@ export function TSRXPlugin(config) {
 					this.pos++;
 					return this.finishToken(tt.arrow);
 				}
-				if (context === tstc.tc_expr || context === tstc.tc_oTag || context === tstc.tc_cTag) {
-					return super.readToken(code);
-				}
 				if (code === CharCode.lessThan) {
+					const next = this.input.charCodeAt(this.pos + 1);
 					if (
-						this.#canPrecedeTypeArgumentList(this.input.charCodeAt(this.pos - 1)) ||
-						looks_like_generic_arrow(this.input, this.pos)
+						next !== CharCode.slash &&
+						(looks_like_generic_arrow(this.input, this.pos) ||
+							this.#canStartTypeParameterOrArgumentList(this.pos))
 					) {
 						++this.pos;
 						return this.finishToken(tt.relational, '<');
 					}
+				}
+				if (context === tstc.tc_expr || context === tstc.tc_oTag || context === tstc.tc_cTag) {
+					return super.readToken(code);
+				}
+				if (code === CharCode.lessThan) {
 					const next = this.input.charCodeAt(this.pos + 1);
 					const isTagLikeAfterLt =
 						next === CharCode.slash ||
@@ -2533,40 +2581,25 @@ export function TSRXPlugin(config) {
 						this.#functionBodyDepth === 0 && this.#isNativeTemplateNode(parent);
 					/** @type {number | null} */
 					let prevNonWhitespaceChar = null;
+					const nextChar =
+						this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
 
 					// Check if this could be TypeScript generics instead of JSX
-					// TypeScript generics appear after: identifiers, closing parens, 'new' keyword
-					// For example: Array<T>, func<T>(), new Map<K,V>(), method<T>()
+					// TypeScript generics usually appear adjacent to an expression token,
+					// for example: Array<T>, func<T>(), new Map<K,V>(), method<T>().
 					// This check applies everywhere, not just inside components
 
 					// Look back to see what precedes the <
-					let lookback = this.pos - 1;
-
-					// Skip whitespace backwards
-					while (lookback >= 0) {
-						const ch = this.input.charCodeAt(lookback);
-						if (ch !== CharCode.space && ch !== CharCode.tab) break; // not space or tab
-						lookback--;
-					}
+					const lookback = this.#previousNonSpaceTabIndex(this.pos);
 
 					// Check what character/token precedes the <
 					if (lookback >= 0) {
 						const prevChar = this.input.charCodeAt(lookback);
 						prevNonWhitespaceChar = prevChar;
 
-						// If preceded by identifier character (letter, digit, _, $) or closing paren,
-						// this is likely TypeScript generics, not JSX
-						const isIdentifierChar =
-							(prevChar >= CharCode.uppercaseA && prevChar <= CharCode.uppercaseZ) ||
-							(prevChar >= CharCode.lowercaseA && prevChar <= CharCode.lowercaseZ) ||
-							(prevChar >= CharCode.digit0 && prevChar <= CharCode.digit9) ||
-							prevChar === CharCode.underscore ||
-							prevChar === CharCode.dollar ||
-							prevChar === CharCode.closeParen;
-
 						if (
-							isIdentifierChar &&
-							this.#canPrecedeTypeArgumentList(this.input.charCodeAt(this.pos - 1))
+							nextChar !== CharCode.slash &&
+							this.#canStartTypeParameterOrArgumentList(this.pos)
 						) {
 							++this.pos;
 							return this.finishToken(tt.relational, '<');
@@ -2578,8 +2611,6 @@ export function TSRXPlugin(config) {
 					// <Something>...</Something>\n\n<Child />
 					// <head><style>...</style></head>
 					// We only do this when '<' is in a tag-like position.
-					const nextChar =
-						this.pos + 1 < this.input.length ? this.input.charCodeAt(this.pos + 1) : -1;
 					const isWhitespaceAfterLt =
 						nextChar === CharCode.space ||
 						nextChar === CharCode.tab ||
@@ -3131,13 +3162,25 @@ export function TSRXPlugin(config) {
 							this.pos = this.start + 3;
 							this.nextToken();
 						}
-						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
+						this.#templateScriptParsingDepth++;
+						try {
+							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument =
+								this.parseMaybeAssign();
+						} finally {
+							this.#templateScriptParsingDepth--;
+						}
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else if (this.lookahead().type === tt.ellipsis) {
 						this.#suppressTemplateRawTextToken = true;
 						this.expect(tt.ellipsis);
-						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
+						this.#templateScriptParsingDepth++;
+						try {
+							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument =
+								this.parseMaybeAssign();
+						} finally {
+							this.#templateScriptParsingDepth--;
+						}
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else {
@@ -4224,12 +4267,12 @@ export function TSRXPlugin(config) {
 					const previous_path = this.#path;
 					this.#path = [];
 					this.#forceScriptJSXElementDepth++;
-					this.#functionBodyDepth++;
+					this.#templateScriptParsingDepth++;
 					let node;
 					try {
 						node = this.parseStatement(null);
 					} finally {
-						this.#functionBodyDepth--;
+						this.#templateScriptParsingDepth--;
 						this.#forceScriptJSXElementDepth--;
 						this.#path = previous_path;
 						if (pushed_statement_context && this.curContext() === b_stat) {

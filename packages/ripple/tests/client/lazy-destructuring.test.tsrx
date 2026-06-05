@@ -7,6 +7,7 @@ describe('lazy destructuring', () => {
 			return <>
 				let count = track(1);
 				let doubled = track(() => count.value * 2);
+				---
 				<div>{`${count.value}-${doubled.value}`}</div>
 				<button
 					onClick={() => {
@@ -34,6 +35,7 @@ describe('lazy destructuring', () => {
 			return <>
 				let &[a] = track(1);
 				let &[b] = track('hello');
+				---
 				<Inner {a} {b} />
 				<button
 					onClick={() => {
@@ -62,6 +64,7 @@ describe('lazy destructuring', () => {
 			return <>
 				let &[first] = track(10);
 				let &[second] = track(20);
+				---
 				<Inner {first} {second} />
 				<button
 					onClick={() => {
@@ -99,6 +102,7 @@ describe('lazy destructuring', () => {
 			return <>
 				const obj: { a: number; b?: number } = { a: 5 };
 				const &{ a, b = 99 } = obj;
+				---
 				<pre>{`${a}-${b}`}</pre>
 			</>;
 		}
@@ -128,6 +132,7 @@ describe('lazy destructuring', () => {
 		function Test() {
 			return <>
 				let &[count] = track(0);
+				---
 				<Inner {count} />
 				<button
 					onClick={() => {
@@ -150,6 +155,7 @@ describe('lazy destructuring', () => {
 		function Inner({ something: &[first, second] }: { something: Tracked<number> }) {
 			return <>
 				first = second.value + 1;
+				---
 				<pre>{`${first}-${second.value}`}</pre>
 			</>;
 		}
@@ -173,6 +179,7 @@ describe('lazy destructuring', () => {
 				return <>
 					const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
 					rest_length = 0;
+					---
 					<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
 				</>;
 			}
@@ -193,6 +200,7 @@ describe('lazy destructuring', () => {
 					return x + y;
 				}
 				const result = getInfo({ x: 3, y: 7 });
+				---
 				<pre>{result}</pre>
 			</>;
 		}
@@ -210,6 +218,7 @@ describe('lazy destructuring', () => {
 					return `${first}-${second.value}`;
 				}
 				const result = getInfo({ something });
+				---
 				<pre>{result}</pre>
 			</>;
 		}
@@ -233,6 +242,7 @@ describe('lazy destructuring', () => {
 						return `${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`;
 					}
 					const result = summarize({ values: [5, track(6), track(7)] });
+					---
 					<pre>{result}</pre>
 				</>;
 			}
@@ -249,6 +259,7 @@ describe('lazy destructuring', () => {
 				let &{ a, b } = obj;
 				a = 10;
 				b = 20;
+				---
 				<pre>{`${obj.a}-${obj.b}`}</pre>
 			</>;
 		}
@@ -264,6 +275,7 @@ describe('lazy destructuring', () => {
 				let &{ a, b } = obj;
 				a += 3;
 				b *= 2;
+				---
 				<pre>{`${obj.a}-${obj.b}`}</pre>
 			</>;
 		}
@@ -280,6 +292,7 @@ describe('lazy destructuring', () => {
 				count++;
 				count++;
 				count--;
+				---
 				<pre>{obj.count}</pre>
 			</>;
 		}
@@ -296,6 +309,7 @@ describe('lazy destructuring', () => {
 				}
 				const a = calc({ x: 5, y: 10 });
 				const b = calc({ x: 5 });
+				---
 				<pre>{`${a}-${b}`}</pre>
 			</>;
 		}
@@ -310,6 +324,7 @@ describe('lazy destructuring', () => {
 				const obj: { a: number; b?: number } = { a: 1 };
 				let &{ a, b = 50 } = obj;
 				b = 99;
+				---
 				<pre>{`${a}-${obj.b}`}</pre>
 			</>;
 		}
@@ -322,6 +337,7 @@ describe('lazy destructuring', () => {
 		function Test() {
 			return <>
 				let &[value, ...rest] = track(0);
+				---
 				<pre>{`${value}-${rest.length}-${(rest[0] as Tracked<number>).value === value}`}</pre>
 			</>;
 		}
@@ -335,6 +351,7 @@ describe('lazy destructuring', () => {
 			return <>
 				const source = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
 				const &[first, ...rest] = source;
+				---
 				<pre>{`${first}-${rest.join(',')}`}</pre>
 			</>;
 		}
@@ -354,6 +371,7 @@ describe('lazy destructuring', () => {
 					},
 				};
 				const &[first, ...rest] = source;
+				---
 				<pre>{`${first}-${rest.join(',')}`}</pre>
 			</>;
 		}
@@ -369,6 +387,7 @@ describe('lazy destructuring', () => {
 				let &{ count = 0 } = obj;
 				count++;
 				count++;
+				---
 				<pre>{obj.count}</pre>
 			</>;
 		}
@@ -382,6 +401,7 @@ describe('lazy destructuring', () => {
 			return <>
 				const obj = { user: { name: 'Alice', age: 30 } };
 				const &{ user } = obj;
+				---
 				<pre>{`${user.name}-${user.age}`}</pre>
 			</>;
 		}
@@ -395,6 +415,7 @@ describe('lazy destructuring', () => {
 			return <>
 				let count: number;
 				&[count] = track(0);
+				---
 				<div>{count}</div>
 				<button
 					onClick={() => {
@@ -419,6 +440,7 @@ describe('lazy destructuring', () => {
 				let value;
 				let tracked;
 				&[value, tracked] = track(42);
+				---
 				<div>{value}</div>
 				<button
 					onClick={() => {
@@ -446,6 +468,7 @@ describe('lazy destructuring', () => {
 				tracked.value = tracked.value + 1;
 				let value = tracked.value;
 				let ref = tracked;
+				---
 				<pre>{`${value}-${ref === tracked}`}</pre>
 			</>;
 		}
@@ -459,6 +482,7 @@ describe('lazy destructuring', () => {
 			return <>
 				++tracked_ref.value;
 				tracked_ref.value++;
+				---
 				<pre>{`${value}-${tracked_ref.value}`}</pre>
 			</>;
 		}
@@ -466,6 +490,7 @@ describe('lazy destructuring', () => {
 		function Test() {
 			return <>
 				let tracked = track(0);
+				---
 				<Child pair={tracked} />
 			</>;
 		}
@@ -480,6 +505,7 @@ describe('lazy destructuring', () => {
 				let a;
 				let b;
 				&{ a, b } = { a: 10, b: 20 };
+				---
 				<pre>{`${a}-${b}`}</pre>
 			</>;
 		}

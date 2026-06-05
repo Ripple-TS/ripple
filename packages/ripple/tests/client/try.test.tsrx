@@ -55,6 +55,7 @@ describe('try block with catch and pending', () => {
 				@try {
 					<ThrowingChild />
 				} pending {
+				---
 					<p>{'loading...'}</p>
 				} catch (err) {
 					<p>{'caught error'}</p>
@@ -65,6 +66,7 @@ describe('try block with catch and pending', () => {
 		function ThrowingChild() {
 			return <>
 				throw new Error('sync error');
+				---
 			</>;
 		}
 
@@ -82,6 +84,7 @@ describe('try block with catch and pending', () => {
 				@try {
 					<ThrowingAfterAsync />
 				} pending {
+				---
 					<p>{'loading...'}</p>
 				} catch (err) {
 					<p>{'caught error'}</p>
@@ -315,6 +318,7 @@ describe('try block', () => {
 				@try {
 					<AsyncChild />
 				} pending {
+				---
 					<p>{'loading...'}</p>
 				}
 			</>;
@@ -419,6 +423,7 @@ describe('try block', () => {
 						pending_effect_teardown_count++;
 					};
 				});
+				---
 				<p class="pending">{'loading...'}</p>
 			</>;
 		}
@@ -469,6 +474,7 @@ describe('try block', () => {
 						resolved_effect_teardown_count++;
 					};
 				});
+				---
 				<p class="resolved">{data}</p>
 			</>;
 		}
@@ -522,6 +528,7 @@ describe('try block', () => {
 						catch_effect_teardown_count++;
 					};
 				});
+				---
 				<p class="caught">{error.message}</p>
 			</>;
 		}
@@ -566,6 +573,7 @@ describe('try block', () => {
 		function ThrowingPending() {
 			return <>
 				throw new Error('pending exploded');
+				---
 				<p>{'should not render'}</p>
 			</>;
 		}
@@ -600,6 +608,7 @@ describe('try block', () => {
 		function ThrowingPending() {
 			return <>
 				throw new Error('pending exploded');
+				---
 				<p>{'should not render'}</p>
 			</>;
 		}
@@ -609,6 +618,7 @@ describe('try block', () => {
 				@try {
 					<Inner />
 				} catch (err) {
+				---
 					<p class="parent-caught">{(err as Error).message}</p>
 				}
 			</>;
@@ -890,6 +900,7 @@ describe('try block', () => {
 		function ThrowingChild() {
 			return <>
 				let &[data] = trackAsync(() => Promise.reject(new Error('async failed')));
+				---
 				<p class="resolved">{data}</p>
 			</>;
 		}
@@ -899,6 +910,7 @@ describe('try block', () => {
 				@try {
 					<Inner />
 				} catch (err) {
+				---
 					<p class="parent-caught">{(err as Error).message}</p>
 				}
 			</>;
@@ -909,6 +921,7 @@ describe('try block', () => {
 				@try {
 					<ThrowingChild />
 				} pending {
+				---
 					<p class="pending">{'loading...'}</p>
 				}
 			</>;
@@ -1225,6 +1238,7 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
+					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
@@ -1236,6 +1250,7 @@ describe('sync error while async deriveds are pending', () => {
 			function AsyncChild() {
 				return <>
 					data = trackAsync(() => user_promise);
+					---
 					<p class="async-resolved">{data.value}</p>
 				</>;
 			}
@@ -1243,6 +1258,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ThrowingChild() {
 				return <>
 					throw new Error('sync boom');
+					---
 				</>;
 			}
 
@@ -1298,6 +1314,7 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
+					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
@@ -1309,6 +1326,7 @@ describe('sync error while async deriveds are pending', () => {
 			function AsyncChild() {
 				return <>
 					data = trackAsync(() => user_promise);
+					---
 					<p class="async-resolved">{data.value}</p>
 				</>;
 			}
@@ -1316,6 +1334,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ThrowingChild() {
 				return <>
 					throw new Error('sync boom');
+					---
 				</>;
 			}
 
@@ -1379,6 +1398,7 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
+					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
@@ -1390,6 +1410,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ChildA() {
 				return <>
 					dataA = trackAsync(() => promise_a);
+					---
 					<p class="a">{dataA.value}</p>
 				</>;
 			}
@@ -1398,6 +1419,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ChildB() {
 				return <>
 					dataB = trackAsync(() => promise_b);
+					---
 					<p class="b">{dataB.value}</p>
 				</>;
 			}
@@ -1405,6 +1427,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ThrowingChild() {
 				return <>
 					throw new Error('sync boom');
+					---
 				</>;
 			}
 
@@ -1474,6 +1497,7 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
+					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
@@ -1485,6 +1509,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ChildA() {
 				return <>
 					dataA = trackAsync(() => promise_a);
+					---
 					<p class="a">{dataA.value}</p>
 				</>;
 			}
@@ -1493,6 +1518,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ChildB() {
 				return <>
 					dataB = trackAsync(() => promise_b);
+					---
 					<p class="b">{dataB.value}</p>
 				</>;
 			}
@@ -1500,6 +1526,7 @@ describe('sync error while async deriveds are pending', () => {
 			function ThrowingChild() {
 				return <>
 					throw new Error('sync boom');
+					---
 				</>;
 			}
 
@@ -1541,6 +1568,7 @@ describe('sync error while async deriveds are pending', () => {
 		function ThrowingChild() {
 			return <>
 				throw new Error('no catch here');
+				---
 				<p>{'should not render'}</p>
 			</>;
 		}
@@ -1550,6 +1578,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<Inner />
 				} catch (err) {
+				---
 					<p class="upstream-caught">{(err as Error).message}</p>
 				}
 			</>;
@@ -1560,6 +1589,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<ThrowingChild />
 				} pending {
+				---
 					<p class="inner-pending">{'loading...'}</p>
 				}
 			</>;
@@ -1578,6 +1608,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<Inner />
 				} catch (err) {
+				---
 					<p class="upstream-caught">{(err as Error).message}</p>
 				}
 			</>;
@@ -1616,6 +1647,7 @@ describe('sync error while async deriveds are pending', () => {
 					@try {
 						<Inner />
 					} catch (err) {
+					---
 						<p class="upstream-caught">{(err as Error).message}</p>
 					}
 				</>;
@@ -1654,6 +1686,7 @@ describe('sync error while async deriveds are pending', () => {
 		function ThrowingChild() {
 			return <>
 				throw new Error('deep error');
+				---
 				<p>{'should not render'}</p>
 			</>;
 		}
@@ -1663,6 +1696,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<Middle />
 				} catch (err) {
+				---
 					<p class="top-caught">{(err as Error).message}</p>
 				}
 			</>;
@@ -1673,6 +1707,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<Inner />
 				} pending {
+				---
 					<p class="mid-pending">{'loading...'}</p>
 				}
 			</>;
@@ -1683,6 +1718,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<ThrowingChild />
 				} pending {
+				---
 					<p class="inner-pending">{'loading...'}</p>
 				}
 			</>;
@@ -1699,6 +1735,7 @@ describe('sync error while async deriveds are pending', () => {
 		function ThrowingChild() {
 			return <>
 				throw new Error('unhandled error');
+				---
 				<p>{'should not render'}</p>
 			</>;
 		}
@@ -1708,6 +1745,7 @@ describe('sync error while async deriveds are pending', () => {
 				@try {
 					<ThrowingChild />
 				} pending {
+				---
 					<p class="pending">{'loading...'}</p>
 				}
 			</>;
@@ -1743,6 +1781,7 @@ describe('sync error while async deriveds are pending', () => {
 					@try {
 						<Inner />
 					} pending {
+					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
 				</>;
@@ -1802,6 +1841,7 @@ describe('sync error while async deriveds are pending', () => {
 					@try {
 						<Inner />
 					} pending {
+					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
 				</>;
@@ -1862,6 +1902,7 @@ describe('sync error while async deriveds are pending', () => {
 					@try {
 						<Inner />
 					} pending {
+					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
 				</>;

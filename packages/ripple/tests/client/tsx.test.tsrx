@@ -25,6 +25,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <></>;
+				---
 				{el}
 			</>;
 		}
@@ -36,6 +37,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <></>;
+				---
 				{el}
 			</>;
 		}
@@ -47,6 +49,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <><div>hello world</div></>;
+				---
 				{el}
 			</>;
 		}
@@ -105,6 +108,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <><span class="test">content</span></>;
+				---
 				{el}
 			</>;
 		}
@@ -121,6 +125,7 @@ describe('tsx expression', () => {
 					<div>first</div>
 					<div>second</div>
 				</>;
+				---
 				{el}
 			</>;
 		}
@@ -139,6 +144,7 @@ describe('tsx expression', () => {
 						<span class="inner">nested</span>
 					</div>
 				</>;
+				---
 				{el}
 			</>;
 		}
@@ -154,6 +160,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <><span>inline</span></>;
+				---
 				<div class="parent">{el}</div>
 			</>;
 		}
@@ -173,6 +180,7 @@ describe('tsx expression', () => {
 						{'count: ' + count}
 					</div>
 				</>;
+				---
 				{el}
 				<button onClick={() => count++}>{'increment'}</button>
 			</>;
@@ -217,6 +225,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <><span>from tsx</span></>;
+				---
 				<Child children={el} />
 			</>;
 		}
@@ -231,6 +240,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const el = <>just text</>;
+				---
 				{el}
 			</>;
 		}
@@ -245,6 +255,7 @@ describe('tsx expression', () => {
 				const el = <>
 					<div id="my-id" class="my-class" data-testid="test" aria-label="label">content</div>
 				</>;
+				---
 				{el}
 			</>;
 		}
@@ -262,6 +273,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[name] = track('initial');
 				const el = <><div id={name} class={'cls-' + name}>content</div></>;
+				---
 				{el}
 				<button onClick={() => (name = 'updated')}>{'update'}</button>
 			</>;
@@ -283,6 +295,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[clicked] = track(false);
 				const el = <><button onClick={() => (clicked = true)}>{'click me'}</button></>;
+				---
 				{el}
 				<div class="status">{clicked ? 'clicked' : 'not clicked'}</div>
 			</>;
@@ -301,6 +314,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[isDisabled] = track(true);
 				const el = <><button disabled={isDisabled}>{'btn'}</button></>;
+				---
 				{el}
 				<button class="toggle" onClick={() => (isDisabled = !isDisabled)}>{'toggle'}</button>
 			</>;
@@ -319,6 +333,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[color] = track('red');
 				const el = <><div style={'color: ' + color}>styled</div></>;
+				---
 				{el}
 				<button onClick={() => (color = 'blue')}>{'change color'}</button>
 			</>;
@@ -346,6 +361,7 @@ describe('tsx expression', () => {
 						{'Item ' + index}
 					</div>
 				</>;
+				---
 				{el}
 				<button onClick={() => index++}>{'next'}</button>
 			</>;
@@ -415,6 +431,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const badge = createBadge('New');
+				---
 				{badge}
 			</>;
 		}
@@ -432,6 +449,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const items = ['Apple', 'Banana', 'Cherry'];
+				---
 				<ul>
 					@for (const item of items) {
 						{createListItem(item)}
@@ -495,6 +513,7 @@ describe('tsx expression', () => {
 			return <>
 				let &[count] = track(0);
 				const counterElement = createCounter('Count:', () => count);
+				---
 				{counterElement}
 				<button onClick={() => count++}>{'increment'}</button>
 			</>;
@@ -526,6 +545,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				const btn = createButton('save', 'Save');
+				---
 				{btn}
 			</>;
 		}
@@ -546,6 +566,7 @@ describe('tsx expression', () => {
 			return <>
 				<span class="label">{label}</span>
 				const test = <>{[1, 2, 3, 4].map((item) => <><HelperItem {item} /></>)}</>;
+				---
 				{test}
 			</>;
 		}
@@ -580,6 +601,7 @@ describe('tsx expression', () => {
 						{<><div class="inner">{'from tsrx'}</div></>}
 					</section>
 				</>;
+				---
 				{content}
 			</>;
 		}
@@ -603,6 +625,7 @@ describe('tsx expression', () => {
 						</>}
 					</div>
 				</>;
+				---
 				{content}
 			</>;
 		}
@@ -619,6 +642,7 @@ describe('tsx expression', () => {
 			return <>
 				const nested = <><span class="nested-tsx">{'inside nested tsx'}</span></>;
 				const content = <><div class="native">{nested}</div></>;
+				---
 				{content}
 			</>;
 		}
@@ -666,6 +690,7 @@ describe('tsx expression', () => {
 					{ className: 'item-b', content: 'B' },
 					{ className: 'item-c', content: 'C' },
 				];
+				---
 				<div class="container">
 					@for (const item of items) {
 						{createItem(item.className, item.content)}
@@ -697,6 +722,7 @@ describe('tsx expression', () => {
 		function App() {
 			return <>
 				let &[status] = track('default');
+				---
 				{createContent(status)}
 				<button class="set-success" onClick={() => (status = 'success')}>{'Success'}</button>
 				<button class="set-error" onClick={() => (status = 'error')}>{'Error'}</button>
@@ -723,6 +749,7 @@ describe('tsrx expression', () => {
 		function App() {
 			return <>
 				const el = <><div>Hello world</div></>;
+				---
 				{el}
 			</>;
 		}
@@ -759,6 +786,7 @@ describe('tsrx expression', () => {
 			return <>
 				let &[count] = track(0);
 				const el = <><div>{'count: ' + count}</div></>;
+				---
 				{el}
 				<button onClick={() => count++}>{'increment'}</button>
 			</>;
@@ -775,7 +803,6 @@ describe('tsrx expression', () => {
 	it('renders native control flow inside a component fragment', () => {
 		function El() {
 			return <>
-				---
 				@if (true) {
 					<span>visible</span>
 				}
