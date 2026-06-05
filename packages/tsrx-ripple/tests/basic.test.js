@@ -331,6 +331,25 @@ describe('@tsrx/ripple JSX fragment Volar output', () => {
 		expect(declaration).toBeLessThan(second_push);
 		expect(second_push).toBeLessThan(returned_children);
 	});
+
+	it('wraps fenced setup expressions in an IIFE before returning template output', () => {
+		const source = `let logs: string[] = [];
+function Child(&{ a, b, c }: { a: number; b: number; c: number }) {
+	return <>
+		effect(() => {
+			logs.push(\`Child effect: \${a}, \${b}, \${c}\`);
+		});
+		---
+		<div>{a + ' ' + b + ' ' + c}</div>
+	</>;
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(result.code).toContain('return (() => {');
+		expect(result.code).toContain('effect(() => {');
+		expect(result.code).toContain('return <div>');
+		expect(result.code).not.toContain('<>effect(() =>');
+	});
 });
 
 describe('@tsrx/ripple <> expression values', () => {

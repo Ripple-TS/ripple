@@ -3767,28 +3767,51 @@ function build_tsrx_ts_return_expression(children) {
 }
 
 /**
- * Builds a TSX expression for Volar/TypeScript output. Pure template children can
- * remain inline JSX; fragments with setup statements need an IIFE so declarations
- * stay in statement position.
- *
- * @param {AST.TsrxFragment} node
- * @param {VisitorClientContext} context
- * @returns {TsrxTsExpression}
+ * @param {AST.Node | null | undefined} node
+ * @returns {boolean}
  */
-function build_tsrx_to_ts_expression(node, context) {
+function is_tsrx_ts_template_child(node) {
+	return !!(
+		node &&
+		(node.type === 'Element' ||
+			node.type === 'Text' ||
+			node.type === 'TSRXExpression' ||
+			node.type === 'TsrxFragment' ||
+			node.type === 'JSXElement' ||
+			node.type === 'JSXFragment' ||
+			node.metadata?.tsrxDirective)
+	);
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @param {VisitorClientContext} context
+ * @returns {TsrxTsStatement[]}
+ */
+function transform_tsrx_ts_children(children, context) {
 	const { state, visit } = context;
 	/** @type {TsrxTsStatement[]} */
 	const init = [];
 	const ts_state = { ...state, init };
 
-	for (const child of node.children) {
+	for (const child of children) {
 		if (child == null || child.type === 'EmptyStatement') continue;
 		transform_ts_child(
 			/** @type {AST.Node} */ (child),
 			/** @type {TransformClientContext} */ ({ visit, state: ts_state }),
 		);
 	}
-	const statements = init.filter((statement) => statement.type !== 'EmptyStatement');
+
+	return init.filter((statement) => statement.type !== 'EmptyStatement');
+}
+
+/**
+ * @param {TsrxTsStatement[]} statements
+ * @param {AST.TsrxFragment} loc_node
+ * @param {TransformClientState} state
+ * @returns {TsrxTsExpression}
+ */
+function build_tsrx_ts_expression_from_statements(statements, loc_node, state) {
 	const inline_children = statements.map(statement_to_tsrx_ts_expression);
 
 	if (inline_children.every(Boolean)) {
@@ -3835,11 +3858,58 @@ function build_tsrx_to_ts_expression(node, context) {
 				: /** @type {AST.Expression} */ (
 						b.jsx_fragment([b.jsx_expression_container(b.id(children_id))])
 					),
-			/** @type {AST.NodeWithLocation} */ (node),
+			/** @type {AST.NodeWithLocation} */ (loc_node),
 		),
 	);
 
 	return b.call(b.arrow([], b.block(body)));
+}
+
+/**
+ * Builds a TSX expression for Volar/TypeScript output. Pure template children can
+ * remain inline JSX; fragments with setup statements need an IIFE so declarations
+ * stay in statement position.
+ *
+ * @param {AST.TsrxFragment} node
+ * @param {VisitorClientContext} context
+ * @returns {TsrxTsExpression}
+ */
+function build_tsrx_to_ts_expression(node, context) {
+	if (node.metadata?.hasTemplateFence) {
+		const template_index = node.children.findIndex((child) => is_tsrx_ts_template_child(child));
+		if (template_index > 0) {
+			const setup_statements = transform_tsrx_ts_children(
+				/** @type {AST.Node[]} */ (node.children.slice(0, template_index)),
+				context,
+			);
+			if (setup_statements.length > 0) {
+				const template_statements = transform_tsrx_ts_children(
+					/** @type {AST.Node[]} */ (node.children.slice(template_index)),
+					context,
+				);
+				const template_expression = build_tsrx_ts_expression_from_statements(
+					template_statements,
+					node,
+					context.state,
+				);
+				return b.call(
+					b.arrow(
+						[],
+						b.block([
+							...setup_statements,
+							b.return(/** @type {AST.Expression} */ (template_expression), node),
+						]),
+					),
+				);
+			}
+		}
+	}
+
+	return build_tsrx_ts_expression_from_statements(
+		transform_tsrx_ts_children(/** @type {AST.Node[]} */ (node.children), context),
+		node,
+		context.state,
+	);
 }
 
 /**
