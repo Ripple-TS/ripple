@@ -1,7 +1,7 @@
 import { highlight_tsrx } from '../lib/code-highlight.ts';
 
 const SNIPPET_HTML = highlight_tsrx(
-	`export const Greeting = ({ name }: { name?: string }) => @{
+	`export function Greeting({ name }: { name?: string }) @{
   const message = name ? \`Hello, \${name}\` : 'Hello, stranger';
 
   <>
@@ -13,29 +13,32 @@ const SNIPPET_HTML = highlight_tsrx(
       .card { padding: 1rem; }
     </style>
   </>
-};`,
+}`,
 );
 
 const REACT_HOOKS_HTML = highlight_tsrx(
-	`const Profile = ({ userId }: { userId: string | null }) => @if (userId) {
-  const user = useUser(userId);
+	`function Profile({ userId }: { userId: string | null }) {
+  return @if (userId) {
+    const user = useUser(userId);
 
-  <h1>{user.name}</h1>
-} else {
-  <a href="/login">Sign in</a>
-};`,
+    <h1>{user.name}</h1>
+  } else {
+    <a href="/login">Sign in</a>
+  };
+}`,
 );
 
 const SOLID_LAZY_HTML = highlight_tsrx(
-	`const Counter = (&{ count, label }: Props) =>
-  <section>
+	`function Counter(&{ count, label }: Props) {
+  return <section>
     <h2>{label}</h2>
     <p>Count: {count}</p>
-  </section>;`,
+  </section>;
+}`,
 );
 
 const INLINE_LOCALS_HTML = highlight_tsrx(
-	`const Cart = ({ items }: { items: Item[] }) => @{
+	`function Cart({ items }: { items: Item[] }) @{
   const subtotal = items.reduce((sum, item) => sum + item.price, 0);
   const discount = subtotal > 100 ? 0.1 : 0;
 
@@ -44,30 +47,32 @@ const INLINE_LOCALS_HTML = highlight_tsrx(
     <p>Subtotal: \${subtotal}</p>
     <p>Save: \${(subtotal * discount).toFixed(2)}</p>
   </div>
-};`,
+}`,
 );
 
 const COLOCATION_HTML = highlight_tsrx(
-	`const UserList = ({ users, showBio }: Props) => @for (const user of users) {
-  const initials = user.name.slice(0, 2).toUpperCase();
-  const role = user.admin ? 'Admin' : 'Member';
+	`function UserList({ users, showBio }: Props) {
+  return @for (const user of users) {
+    const initials = user.name.slice(0, 2).toUpperCase();
+    const role = user.admin ? 'Admin' : 'Member';
 
-  <div class="user-row">
-    <span class="avatar">{initials}</span>
-    <strong>{user.name}</strong>
-    <span class="badge">{role}</span>
+    <div class="user-row">
+      <span class="avatar">{initials}</span>
+      <strong>{user.name}</strong>
+      <span class="badge">{role}</span>
 
-    @if (showBio && user.bio) {
-      const short_bio = user.bio.slice(0, 140);
-      const report = () => console.log('viewed ' + user.name);
+      @if (showBio && user.bio) {
+        const short_bio = user.bio.slice(0, 140);
+        const report = () => console.log('viewed ' + user.name);
 
-      <div class="bio-detail">
-        <p class="bio">{short_bio}</p>
-        <button onClick={report}>Viewed</button>
-      </div>
-    }
-  </div>
-};`,
+        <div class="bio-detail">
+          <p class="bio">{short_bio}</p>
+          <button onClick={report}>Viewed</button>
+        </div>
+      }
+    </div>
+  };
+}`,
 );
 
 export const IndexPage = () => <>
