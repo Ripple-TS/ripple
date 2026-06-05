@@ -843,24 +843,22 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
-	// Solid-specific: lazy params still need capture ordering around
-	// interleaved JSX and statements. The shared harness covers the same
-	// interleave-capture behavior for `<div>`-wrapped and top-level bodies.
-	describe('interleaved statements and JSX children are (Solid-specific)', () => {
-		it('interleaved JSX with lazy params are not allowed', () => {
-			expect(() =>
-				compile(
-					`function Card(&{ cond }: { cond: boolean }) { return <>
-						var a = "one"
-						---
-						<b>{"hello" + a}</b>
-						a = "two"
-						<b>{"hello" + a}</b>
-						<div>{cond ? "done" : "skip"}</div>
-					</>; }`,
-					'Card.tsrx',
-				),
-			).toThrow();
+	describe('JS after the fence is template text (Solid-specific)', () => {
+		it('renders a statement-looking line below the fence as literal text', () => {
+			const { code } = compile(
+				`function Card(&{ cond }: { cond: boolean }) { return <>
+					var a = "one"
+					---
+					<b>{"hello" + a}</b>
+					a = "two"
+					<b>{"hello" + a}</b>
+					<div>{cond ? "done" : "skip"}</div>
+				</>; }`,
+				'Card.tsrx',
+			);
+			// `a = "two"` is below the fence, so it is template text, not a statement.
+			expect(code).toContain('a = "two"');
+			expect(code).not.toContain('_tsrx_child_');
 		});
 	});
 
