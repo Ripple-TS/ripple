@@ -10,10 +10,10 @@ module server {
 
 import { load_doc } from server;
 
-export function DomRefsPage() @{
+export function DomRefsPage() {
 	const doc = load_doc();
 
-	<DocsLayout
+	return <DocsLayout
 		title={doc.title}
 		editPath={doc.editPath}
 		prevLink={doc.prev}
@@ -22,5 +22,5 @@ export function DomRefsPage() @{
 		currentPath="/docs/guide/dom-refs"
 	>
 		<div class="doc-content" innerHTML={doc.html} />
-	</DocsLayout>
+	</DocsLayout>;
 }

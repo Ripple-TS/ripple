@@ -174,15 +174,15 @@ function Outer({ children }: { children: Children }) {
   return <div class="outer">{children}</div>
 }
 
-export function App() {
-  return <Outer>@{
+export function App() @{
+  <Outer>@{
     function HelloGreeting() {
       return <p>Hello from inside!</p>
     }
 
     // It can be passed as a prop to <Inner>, which is also in this scope
     <Inner Greeting={HelloGreeting} />
-  }</Outer>;
+  }</Outer>
 }
 ```
 
@@ -201,17 +201,17 @@ function Outer({ Footer }: { Footer: Component }) {
   return <div class="outer"><Footer /></div>
 }
 
-export function App() {
+export function App() @{
   // ❌ WRONG — Footer is declared inside Outer's children,
   // but Outer cannot see it. Footer is not in scope for the
   // <Outer> component call.
-  return <Outer {Footer}>@{
+  <Outer {Footer}>@{
     function Footer() {
       return <button>OK</button>
     }
 
     <p>Child content</p>
-  }</Outer>;
+  }</Outer>
 }
 ```
 
