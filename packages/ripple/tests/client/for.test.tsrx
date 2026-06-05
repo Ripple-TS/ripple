@@ -37,26 +37,29 @@ describe('for statements', () => {
 		expect(code).toContain('for (const item of items)');
 	});
 
-	it('it treats regular js control flow as strings inside template without @ for control flows', () => {
-		// `const items` is in the script section (before `---`) so it is real JS,
-		// but the `for` is in the template region where only `@for` is a directive
-		// — so the plain `for` is emitted as a literal text string.
-		const { code } = compile(
-			`function App() { return <>
+	it(
+		'it treats regular js control flow as strings inside template without @ for control flows',
+		() => {
+			// `const items` is in the script section (before `---`) so it is real JS,
+			// but the `for` is in the template region where only `@for` is a directive
+			// — so the plain `for` is emitted as a literal text string.
+			const { code } = compile(
+				`function App() { return <>
 					const items = [1, 2, 3];
 					---
 					for (const item of items) {
 						<div class="selected">{item}</div>
 					}
 				</>; }`,
-			'App.tsrx',
-			{ mode: 'client' },
-		);
+				'App.tsrx',
+				{ mode: 'client' },
+			);
 
-		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).not.toContain('"const items');
-		expect(code).toContain('"for (const item of items) "');
-	});
+			expect(code).toContain('const items = [1, 2, 3];');
+			expect(code).not.toContain('"const items');
+			expect(code).toContain('"for (const item of items) "');
+		},
+	);
 
 	it('allows TSRX assigned to a value inside plain JavaScript control flow', () => {
 		// A TSRX element in value position (assigned to a `const`, pushed into an
@@ -102,7 +105,7 @@ describe('for statements', () => {
 	});
 
 	it('allows continue after setup statements to skip an iteration', () => {
-		const skipped = [];
+		const skipped: string[] = [];
 
 		function App() {
 			return <>
@@ -150,11 +153,11 @@ describe('for statements', () => {
 
 	it('renders a simple dynamic array', () => {
 		function App() {
-				return <>
-					const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
-					---
-					@for (const item of items) {
-						<div class={item}>{item}</div>
+			return <>
+				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
+				---
+				@for (const item of items) {
+					<div class={item}>{item}</div>
 				}
 				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
 			</>;
@@ -209,12 +212,14 @@ describe('for statements', () => {
 				---
 				<div>
 					@for (let item of items; index i) {
-						<div>{i + ' : ' + item}</div>
+						<div>
+							{i + ' : ' + item}
+						</div>
 					}
 				</div>
-				<button onClick={() => items.push(String.fromCharCode(97 + items.length))}>
-					{'Add Item'}
-				</button>
+				<button
+					onClick={() => items.push(String.fromCharCode(97 + items.length))}
+				>{'Add Item'}</button>
 				<button onClick={() => items.reverse()}>{'Reverse'}</button>
 			</>;
 		}
@@ -246,15 +251,15 @@ describe('for statements', () => {
 				]);
 				---
 				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					<div>
+						{i + ':' + item.text}
+					</div>
 				}
 				<button
 					onClick={() => {
 						items = items.toReversed();
 					}}
-				>
-					Reverse
-				</button>
+				>Reverse</button>
 			</>;
 		}
 
@@ -280,13 +285,13 @@ describe('for statements', () => {
 				---
 				<button
 					onClick={() => {
-					count++;
-				}}
-				>
-					Add
-				</button>
+						count++;
+					}}
+				>Add</button>
 				@for (const item of items; key item.id) {
-					<div class="item">{item.label}</div>
+					<div class="item">
+						{item.label}
+					</div>
 				}
 				<p class="count">{count}</p>
 			</>;
@@ -319,16 +324,16 @@ describe('for statements', () => {
 				---
 				<div>
 					@for (let item of items; index idx; key item.id) {
-						<span class="item">{idx + ':' + item.text}</span>
+						<span class="item">
+							{idx + ':' + item.text}
+						</span>
 					}
 				</div>
 				<button
 					onClick={() => {
 						items = items.toReversed();
 					}}
-				>
-					Reverse
-				</button>
+				>Reverse</button>
 			</>;
 		}
 
@@ -356,7 +361,9 @@ describe('for statements', () => {
 				]);
 				---
 				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
+					<div>
+						{i + ':' + item.text}
+					</div>
 				}
 				<button
 					onClick={() => {
@@ -370,9 +377,7 @@ describe('for statements', () => {
 							{ ...items[2], text: 'Item 3!' },
 						];
 					}}
-				>
-					Reverse
-				</button>
+				>Reverse</button>
 			</>;
 		}
 
@@ -395,16 +400,16 @@ describe('for statements', () => {
 				---
 				<div>
 					@for (const item of items) {
-						<span class="item">{item.text}</span>
+						<span class="item">
+							{item.text}
+						</span>
 					}
 				</div>
 				<button
 					onClick={() => {
 						items = objects.slice(15).reverse();
 					}}
-				>
-					Trim and reverse
-				</button>
+				>Trim and reverse</button>
 			</>;
 		}
 
