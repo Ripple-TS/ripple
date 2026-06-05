@@ -170,7 +170,9 @@ describe('composite > render', () => {
 				let items = new RippleArray<number>();
 				items.push.apply(items, [1, 2, 3, 4, 5]);
 				---
-				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+				<pre>
+					{items ? JSON.stringify(items) : 'Loading...'}
+				</pre>
 			</>;
 		}
 

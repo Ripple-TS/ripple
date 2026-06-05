@@ -78,9 +78,7 @@ describe('dynamic DOM elements', () => {
 					onClick={() => {
 						tag = 'span';
 					}}
-				>
-					{'Change Tag'}
-				</button>
+				>{'Change Tag'}</button>
 				<@tag id="dynamic">{'Hello World'}</@tag>
 			</>;
 		}
@@ -164,9 +162,9 @@ describe('dynamic DOM elements', () => {
 				let tag = track('div');
 				let &[active] = track(true);
 				---
-				<@tag class={{ active: active, 'dynamic-element': true }}>
-					{'Element with class object'}
-				</@tag>
+				<@tag
+					class={{ active: active, 'dynamic-element': true }}
+				>{'Element with class object'}</@tag>
 			</>;
 		}
 		render(App);
@@ -188,9 +186,7 @@ describe('dynamic DOM elements', () => {
 						fontSize: '16px',
 						fontWeight: 'bold',
 					}}
-				>
-					{'Styled dynamic element'}
-				</@tag>
+				>{'Styled dynamic element'}</@tag>
 			</>;
 		}
 		render(App);
@@ -237,9 +233,7 @@ describe('dynamic DOM elements', () => {
 						capturedElement = node;
 					}}
 					id="ref-test"
-				>
-					{'Element with ref'}
-				</@tag>
+				>{'Element with ref'}</@tag>
 			</>;
 		}
 		render(App);
@@ -261,6 +255,10 @@ describe('dynamic DOM elements', () => {
 				let tag = track('input');
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
+				effect(() => {
+					refAttrElement = input ?? null;
+					anonymousRefElement = state.anonymous ?? null;
+				});
 				---
 				<@tag
 					id="dynamic-ref-combo"
@@ -273,10 +271,6 @@ describe('dynamic DOM elements', () => {
 						},
 					]}
 				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
 			</>;
 		}
 
@@ -306,6 +300,10 @@ describe('dynamic DOM elements', () => {
 				let dynamic = track(() => Child);
 				let input: HTMLInputElement | undefined;
 				const state: { anonymous?: HTMLInputElement } = {};
+				effect(() => {
+					refAttrElement = input ?? null;
+					anonymousRefElement = state.anonymous ?? null;
+				});
 				---
 				<@dynamic
 					ref={[
@@ -316,10 +314,6 @@ describe('dynamic DOM elements', () => {
 						},
 					]}
 				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
 			</>;
 		}
 
@@ -375,9 +369,7 @@ describe('dynamic DOM elements', () => {
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 				<@tag
 					id={count % 2 ? 'even' : 'odd'}
 					class={count % 2 ? 'even-class' : 'odd-class'}
@@ -527,7 +519,9 @@ describe('dynamic DOM elements', () => {
 			return <>
 				const tag = track('button');
 				---
-				<@tag {...rest}>{rest.class}</@tag>
+				<@tag {...rest}>
+					{rest.class}
+				</@tag>
 				<style>
 					.even {
 						background-color: green;
@@ -742,9 +736,7 @@ describe('dynamic DOM elements', () => {
 						capturedElement = el;
 						refCallCount++;
 					}}
-				>
-					{'content'}
-				</Button>
+				>{'content'}</Button>
 			</>;
 		}
 
@@ -844,9 +836,7 @@ describe('dynamic DOM elements', () => {
 							cleanupCount++;
 						};
 					}}
-				>
-					{'content'}
-				</Button>
+				>{'content'}</Button>
 			</>;
 		}
 

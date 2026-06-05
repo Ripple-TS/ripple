@@ -5647,20 +5647,7 @@ function printJSXElement(node, path, options, print) {
 	const openingElement = node.openingElement;
 	const closingElement = node.closingElement;
 
-	/** @type {string} */
-	let tagName;
-	if (openingElement.name.type === 'JSXIdentifier') {
-		tagName = openingElement.name.name;
-	} else if (openingElement.name.type === 'JSXMemberExpression') {
-		// Handle Member expressions like React.Fragment
-		tagName = printJSXMemberExpression(openingElement.name);
-	} else if (openingElement.name.type === 'JSXNamespacedName') {
-		const namespace_name = openingElement.name.namespace.name;
-		const local_name = openingElement.name.name.name;
-		tagName = namespace_name + ':' + local_name;
-	} else {
-		tagName = 'Unknown';
-	}
+	const tagName = printJSXElementName(openingElement.name);
 
 	const isSelfClosing = openingElement.selfClosing;
 	const hasAttributes = openingElement.attributes && openingElement.attributes.length > 0;
@@ -5969,18 +5956,31 @@ function printJSXAttribute(attr, path, options, print) {
 }
 
 /**
- * Print a JSX member expression (e.g., React.Fragment)
- * @param {AST.Node} node - The JSX member expression or identifier
+ * Print a JSX element name.
+ * @param {AST.Node} node - The JSX element name node
  * @returns {string}
  */
-function printJSXMemberExpression(node) {
+function printJSXElementName(node) {
 	if (node.type === 'JSXIdentifier') {
-		return node.name;
+		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
 	}
 	if (node.type === 'JSXMemberExpression') {
-		return printJSXMemberExpression(node.object) + '.' + printJSXMemberExpression(node.property);
+		return printJSXElementName(node.object) + '.' + printJSXElementName(node.property);
+	}
+	if (node.type === 'JSXNamespacedName') {
+		const namespace_name = node.namespace.name;
+		const local_name = node.name.name;
+		return namespace_name + ':' + local_name;
 	}
 	return 'Unknown';
+}
+
+/**
+ * @param {ESTreeJSX.JSXIdentifier} node
+ * @returns {boolean}
+ */
+function isDynamicJSXIdentifier(node) {
+	return /** @type {{ dynamic?: boolean }} */ (node).dynamic === true;
 }
 
 /**
@@ -5992,7 +5992,7 @@ function printJSXMemberExpression(node) {
  */
 function printMemberExpressionSimple(node, options, computed = false) {
 	if (node.type === 'JSXIdentifier') {
-		return node.name;
+		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
 	}
 
 	if (node.type === 'JSXMemberExpression') {

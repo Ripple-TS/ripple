@@ -175,6 +175,15 @@ describe('TSRX parser', () => {
 		expect(returned.metadata.styleScopeHash).toBe(returned.children[0].hash);
 	});
 
+	it('parses empty style blocks inside fragments', () => {
+		const returned = getReturned('function App() { return <><style></style></>; }');
+
+		expect(returned.type).toBe('JSXFragment');
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXStyleElement']);
+		expect(returned.children[0].css).toBe('');
+		expect(returned.children[0].children.map((child) => child.type)).toEqual(['StyleSheet']);
+	});
+
 	it('parses module-scope style expressions followed by JavaScript statements', () => {
 		const source = `const styles = <style>
 			.card {

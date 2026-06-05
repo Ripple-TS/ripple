@@ -1855,6 +1855,16 @@ export function TSRXPlugin(config) {
 					this.pos = closingEnd;
 					this.curLine = closingEndInfo.line;
 					this.lineStart = closingEnd - closingEndInfo.column;
+					if (insideTemplate && relativeCloseStart === 0) {
+						// Acorn has already tokenized the adjacent </style>; TSRX synthesizes
+						// that close manually, so drop the stale style tag context.
+						if (this.curContext() === tstc.tc_oTag) {
+							this.context.pop();
+						}
+						if (this.curContext() === tstc.tc_expr) {
+							this.context.pop();
+						}
+					}
 					if (!insideTemplate && this.#path.at(-1) === node) {
 						this.#path.pop();
 						try {

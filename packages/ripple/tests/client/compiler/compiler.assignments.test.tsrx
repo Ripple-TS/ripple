@@ -62,6 +62,7 @@ describe('compiler > assignments', () => {
 				logs.push(--items2[i]);
 				logs.push(--items3[0]);
 				logs.push(--items3[i]);
+				---
 			</>;
 		}
 
@@ -107,10 +108,10 @@ describe('compiler > assignments', () => {
 		const source = `import { track, effect } from 'ripple';
 function App() { return <>
 	let &[count] = track(0);
-
 	effect(() => {
 		state.count = count;
 	});
+	---
 </>; }`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
@@ -130,6 +131,7 @@ function App() { return <>
 			state.postDecrement = count--;
 		});
 	});
+	---
 </>; }`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
@@ -141,10 +143,12 @@ function App() { return <>
 function Child({ tr: &[count, tr] }) { return <>
 	count++;
 	tr[0]++;
+	---
 	<div>{count}</div>
 </>; }
 function App() { return <>
 	let tracked = track(0);
+	---
 	<Child tr={tracked} />
 </>; }`;
 		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
@@ -160,6 +164,7 @@ function App() { return <>
 	it('compiles writes to unknown lazy array index 1 through lazy array helpers', () => {
 		const source = `function Child({ pair: &[first, second] }) { return <>
 	second = 10;
+	---
 	<div>{first}</div>
 </>; }
 function App() { return <>
@@ -174,6 +179,7 @@ function App() { return <>
 	it('does not double-wrap member access on lazy array value bindings', () => {
 		const source = `function Child({ pair: &[first] }) { return <>
 	let value = first[0];
+	---
 	<div>{value}</div>
 </>; }
 function App() { return <>
@@ -192,6 +198,7 @@ function App() { return <>
 	let nested = value[0];
 	tracked_ref[0] = { 0: 'y' };
 	let next = value[0];
+	---
 	<div>{nested}{next}</div>
 </>; }`;
 
@@ -208,6 +215,7 @@ function App() { return <>
 	tracked[0] = tracked[0] + 1;
 	let value = tracked[0];
 	let ref = tracked[1];
+	---
 	<div>{value}</div>
 </>; }`;
 
