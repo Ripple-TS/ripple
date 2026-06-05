@@ -11,7 +11,7 @@ Use `@if` blocks for inline conditional rendering inside TSRX templates.
 <Code>
 
 ```ripple
-export const Truthy = ({ x }) => {
+export function Truthy({ x }) {
   return <div>
     @if (x) {
       <span>x is truthy</span>
@@ -19,7 +19,7 @@ export const Truthy = ({ x }) => {
       <span>x is falsy</span>
     }
   </div>
-};
+}
 ```
 
 </Code>
@@ -34,7 +34,7 @@ render nothing or return another value.
 ```ripple
 import { track } from 'ripple';
 
-export const AuthGate = () => <>
+export function AuthGate() @{
   let &[is_logged_in] = track(false);
 
   if (!is_logged_in) {
@@ -45,14 +45,14 @@ export const AuthGate = () => <>
     <h1>Dashboard</h1>
     <p>Private content</p>
   </>
-</>;
+}
 ```
 
 </Code>
 
-`return` is a real function exit inside a TSRX element or fragment body. Use it
-for guard exits; use `@if`/`else`, ternaries, or extracted helper functions when
-you want to render inline.
+`return` is a real function exit inside a statement container. Use it for guard
+exits; use `@if`/`else`, ternaries, or extracted helper functions when you want
+to render inline.
 
 ## Switch statements
 
@@ -62,7 +62,7 @@ both static and reactive values.
 <Code>
 
 ```ripple
-export const StatusIndicator = ({ status }) => {
+export function StatusIndicator({ status }) {
   return <div>
     @switch (status) {
       case 'init':
@@ -80,7 +80,7 @@ export const StatusIndicator = ({ status }) => {
         <p>Unknown status</p>
     }
   </div>;
-};
+}
 ```
 
 </Code>
@@ -92,7 +92,7 @@ You can also use reactive values with switch statements.
 ```ripple
 import { track } from 'ripple';
 
-export const InteractiveStatus = () => <>
+export function InteractiveStatus() @{
   let &[status] = track('loading');
 
   <>
@@ -118,7 +118,7 @@ export const InteractiveStatus = () => <>
       }
     </div>
   </>
-</>;
+}
 ```
 
 </Code>
@@ -130,7 +130,7 @@ Use `@for (... of ...)` to render collections.
 <Code>
 
 ```ripple
-const ListView = ({ title, items }) => {
+function ListView({ title, items }) {
   return <>
     <h2>{title}</h2>
     <ul>
@@ -139,10 +139,11 @@ const ListView = ({ title, items }) => {
       }
     </ul>
   </>;
-};
+}
 
 // usage
-const App = () => <ListView
+function App() {
+  return <ListView
     title="My List"
     items={[
       { text: 'Item 1' },
@@ -150,6 +151,7 @@ const App = () => <ListView
       { text: 'Item 3' },
     ]}
   />;
+}
 
 export default App;
 ```
@@ -189,7 +191,7 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 ```ripple
 import { RippleArray } from 'ripple';
 
-export const Numbers = () => <>
+export function Numbers() @{
   const array = new RippleArray(1, 2, 3);
 
   <>
@@ -199,7 +201,7 @@ export const Numbers = () => <>
 
     <button onClick={() => array.push(array.length + 1)}>Add Item</button>
   </>
-</>;
+}
 ```
 
 </Code>
@@ -219,7 +221,7 @@ encounters an error in the `try` block, you can easily render a fallback in the
 ```ripple
 import { reportError } from 'some-library';
 
-export const ErrorBoundary = () => {
+export function ErrorBoundary() {
   return <div>
     @try {
       <ComponentThatFails />
@@ -229,7 +231,7 @@ export const ErrorBoundary = () => {
       <div>An error occurred! {e.message}</div>
     }
   </div>;
-};
+}
 ```
 
 The `catch` block also receives a `reset` function as its second argument.
@@ -237,7 +239,7 @@ Calling `reset()` clears the error state and re-renders the children, which is
 useful for building retry UIs:
 
 ```ripple
-export const RetryBoundary = () => {
+export function RetryBoundary() {
   return <div>
     @try {
       <ComponentThatMightFail />
@@ -248,7 +250,7 @@ export const RetryBoundary = () => {
       </div>
     }
   </div>;
-};
+}
 ```
 
 ## Dynamic Elements
@@ -259,7 +261,7 @@ and using the `<@tagName>` syntax:
 ```ripple
 import { track } from 'ripple';
 
-export const App = () => <>
+export function App() @{
   let &[tag] = track('div');
 
   <>
@@ -268,7 +270,7 @@ export const App = () => <>
       Toggle Element
     </button>
   </>
-</>;
+}
 ```
 
 ## Async (Suspense boundaries) <Badge type="warning" text="Experimental" />
@@ -278,20 +280,20 @@ The component suspends at the `await` and resumes rendering when the promise
 resolves.
 
 ```ripple
-const UserProfile = ({ id }: { id: number }) => <>
+function UserProfile({ id }: { id: number }) @{
   const user = await fetchUser(id);
 
   <>
     <h1>{user.name}</h1>
     <p>{user.email}</p>
   </>
-</>;
+}
 ```
 
 Wrap the component in a `try/pending` block to handle the suspended state:
 
 ```ripple
-export const App = () => {
+export function App() {
   return <>
     @try {
       <UserProfile id={1} />
@@ -301,7 +303,7 @@ export const App = () => {
       <p>Error: {e.message}</p>
     }
   </>;
-};
+}
 ```
 
 The `pending` clause shows while the component is suspended. The `catch`
@@ -318,7 +320,7 @@ nearest `@try/pending` boundary.
 ```ripple
 import { track } from 'ripple';
 
-export const CitySearch = () => <>
+export function CitySearch() @{
   let &[query] = track('');
   const city = await track(() => fetchCity(query));
 
@@ -327,7 +329,7 @@ export const CitySearch = () => <>
     <p>Showing: {query}</p>
     <CityCard {city} />
   </>
-</>;
+}
 ```
 
 ::: info Note When `query` changes, `await track` re-runs and re-suspends to the

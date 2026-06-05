@@ -22,7 +22,7 @@ entries, and to functions that return native TSRX without being directly called.
 
 Ripple's component lifecycle is akin to Vue/Svelte/Solid. The root scope of your
 component only runs once, akin to the "setup" scope in Vue/Svelte/Solid. However,
-all child scopes such as nested template scopes, and blocks like `@if` and `@for`,
+all child scopes such as statement containers, and blocks like `@if` and `@for`,
 may rerun if they contain reactive variables within them. Therefore, it is
 advisable to only write pure code within your components, and place side-effects
 within `effect()` to ensure they only run when intended.
@@ -41,20 +41,20 @@ function Card(props: { children: Children }) {
   return <div class="card">{props.children}</div>
 }
 
-export function App() {
-  return <>
+export function App() @{
+  function children() {
+    return <p>Card content here</p>
+  }
+
+  <>
     // Use implicitly...
     <Card>
       <p>Card content here</p>
     </Card>
 
     // or pass children explicitly as a prop.
-    function children() {
-      return <p>Card content here</p>
-    }
-
     <Card {children} />
-  </>;
+  </>
 }
 ```
 
@@ -175,14 +175,14 @@ function Outer({ children }: { children: Children }) {
 }
 
 export function App() {
-  return <Outer>
+  return <Outer>@{
     function HelloGreeting() {
       return <p>Hello from inside!</p>
     }
 
     // It can be passed as a prop to <Inner>, which is also in this scope
     <Inner Greeting={HelloGreeting} />
-  </Outer>;
+  }</Outer>;
 }
 ```
 
@@ -202,22 +202,16 @@ function Outer({ Footer }: { Footer: Component }) {
 }
 
 export function App() {
-  return <>
-    // ❌ WRONG — Footer is declared inside Outer's children,
-    // but Outer cannot see it. Footer is not in scope for the
-    // <Outer> component call.
-    <Outer {Footer}>
-      function Footer() {
-        return <button>OK</button>
-      }
-    </Outer>
-
+  // ❌ WRONG — Footer is declared inside Outer's children,
+  // but Outer cannot see it. Footer is not in scope for the
+  // <Outer> component call.
+  return <Outer {Footer}>@{
     function Footer() {
       return <button>OK</button>
     }
 
-    <Outer {Footer} />
-  </>;
+    <p>Child content</p>
+  }</Outer>;
 }
 ```
 

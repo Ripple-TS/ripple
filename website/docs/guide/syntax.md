@@ -12,24 +12,31 @@ that surgically applies fine-grained state changes to the DOM.
 
 ## Defining a Ripple Component
 
-Ripple components are ordinary TypeScript values. Use a capitalized component
-name, accept props as the first parameter, and return TSRX the same way you would
-return JSX. Most examples use an arrow function whose body is a TSRX fragment.
+Ripple components are ordinary TypeScript functions. Use a capitalized component
+name, accept props as the first parameter, and produce JSX the same way you would
+in a TypeScript JSX file. Return a single element directly when that is all the
+component needs, and use a JSX statement container when setup code belongs next
+to the rendered output.
 
 ```ripple
-const Hello = () => <span>Hello World!</span>;
+function Hello() {
+  return <span>Hello World!</span>;
+}
 
-export const App = () => <Hello />;
+export function App() {
+  return <Hello />;
+}
 ```
 
 TSRX is the default UI expression form in `.tsrx` files. You can return a single
-element directly, or use a fragment when the template needs multiple children.
-When a template scope mixes TypeScript setup and rendered output, put setup first
-and finish that scope with one JSX element, JSX fragment, or JSX control-flow
-expression. CSS text inside `<style>` blocks keeps CSS rules, not template rules.
+element directly. When a template scope mixes TypeScript setup and rendered
+output, wrap the scope in `@{...}`. Setup comes first and the container must
+finish with exactly one output node: a JSX element, a JSX fragment, or JSX
+control flow such as `@if`, `@for`, `@switch`, or `@try`. CSS text inside
+`<style>` blocks keeps CSS rules, not template rules.
 
 ```ripple
-export const MyComponent = ({ name }: { name: string | null }) => <>
+export function MyComponent({ name }: { name: string | null }) @{
   const fallback = 'friend';
 
   <>
@@ -42,8 +49,13 @@ export const MyComponent = ({ name }: { name: string | null }) => <>
       p { color: rebeccapurple; }
     </style>
   </>
-</>;
+}
 ```
+
+If the output needs multiple siblings or text next to elements, wrap the output
+in a fragment so it becomes the one final node. A bare expression container is
+not a statement-container output, and no script statements can appear after the
+final output.
 
 ## TSRX Expressions
 
@@ -53,16 +65,18 @@ inside of that value remains TSRX, so native text children and template control
 flow keep working.
 
 ```ripple
-const createBadge = (label: string) => <span class="badge">{label}</span>;
+function createBadge(label: string) {
+  return <span class="badge">{label}</span>;
+}
 
-const App = () => {
+function App() {
   const title = <span class="title">Settings</span>;
 
   return <>
     <header>{title}</header>
     {createBadge('New')}
   </>;
-};
+}
 ```
 
 Use fragments when a value needs multiple children, and single elements for
@@ -70,20 +84,21 @@ compact return values.
 
 ### TSRX vs React JSX
 
-- `<div>Text</div>` is a TSRX expression with Ripple/TSRX text rules.
-- `<>...</>` opens a TSRX fragment; its children are JSX text, elements,
-  expression containers, comments, and template directives. Setup statements may
-  appear before a final single output node.
+- `<div>Text</div>` is a JSX element with Ripple/TSRX text rules.
+- `<>...</>` opens a JSX fragment; its children are JSX text, elements,
+  expression containers, comments, and JSX control-flow expressions.
+- `@{...}` opens a JSX statement container. TypeScript setup statements go
+  before the final single output node.
 
 ## Guard Returns Before Templates
 
 Functions are just functions, so a component can return `null`, a TSRX element,
 or any value accepted by the target runtime before a TSRX expression opens.
-Inside a TSRX element or fragment body, `return` is a real function exit. Use it
-for guard-style exits, and use `@if`/`else` when the branch should render inline.
+Inside a statement container, `return` is a real function exit. Use it for
+guard-style exits, and use `@if`/`else` when the branch should render inline.
 
 ```ripple
-const Profile = ({ user }) => <>
+function Profile({ user }) @{
   if (!user) {
     return null;
   }
@@ -92,7 +107,7 @@ const Profile = ({ user }) => <>
     <h1>{user.name}</h1>
     <p>{user.email}</p>
   </>
-</>;
+}
 ```
 
 ## Concept: Expressions
@@ -127,46 +142,57 @@ JavaScript string and template expressions still go inside braces.
 <span>{'Message: ' + msg}</span>
 ```
 
-## Concept: Templates as Lexical Scopes
+## Concept: Statement Containers as Lexical Scopes
 
-In Ripple, templates act as lexical scopes. You can declare variables, call
-functions, and run TypeScript setup directly in an element or fragment before
-returning one output node for that scope.
+In Ripple, statement containers act as lexical scopes. You can declare
+variables, call functions, and run TypeScript setup directly beside the template
+before returning one output node for that scope.
 
 ```ripple
-const TemplateScope = () => <div>
-    // Variable declarations inside templates
-    const message = 'Hello from template scope';
-    let count = 42;
+function TemplateScope() @{
+  // Variable declarations inside statement containers
+  const message = 'Hello from template scope';
+  let count = 42;
 
-    // Function calls and expressions
-    console.log('This runs during render');
+  // Function calls and expressions
+  console.log('This runs during render');
 
-    // Conditional logic
-    const isEven = count % 2 === 0;
+  // Conditional logic
+  const isEven = count % 2 === 0;
 
-    debugger;
+  debugger;
 
-    <>
-      <h1>{message}</h1>
-      <p>Count is: {count}</p>
+  <>
+    <h1>{message}</h1>
+    <p>Count is: {count}</p>
 
-      @if (isEven) {
-        <span>Count is even</span>
-      }
+    @if (isEven) {
+      <span>Count is even</span>
+    }
 
-      // Nested scopes work too
-      <section>
-        const sectionData = 'Nested scope variable';
-        <p>{sectionData}</p>
-      </section>
-    </>
+    // Nested scopes work too
+    <section>@{
+      const sectionData = 'Nested scope variable';
+
+      <p>{sectionData}</p>
+    }</section>
+  </>
+}
+```
+
+Without `@{}`, text remains JSX text:
+
+```ripple
+function LiteralText() {
+  return <div>
+    let there be love
   </div>;
+}
 ```
 
 **Key Benefits:**
 
-- **Inline Logic**: Execute JavaScript directly where you need it in the template
+- **Inline Logic**: Execute JavaScript directly where you need it in a statement container
 - **Local Variables**: Declare variables scoped to specific parts of your template
 - **Debugging**: Place `console.log()` or `debugger` statements anywhere in
   templates
@@ -174,8 +200,8 @@ const TemplateScope = () => <div>
 
 **Scope Rules:**
 
-- Variables declared in templates are scoped to that template block
-- Nested elements create nested scopes
+- Variables declared in statement containers are scoped to that block
+- Nested statement containers and control-flow branches create nested scopes
 - Variables from outer scopes are accessible in inner scopes
 - Template variables don't leak to the function scope
 

@@ -18,8 +18,8 @@ export default function App() {
 		title: 'Styling',
 		code: `import { track } from 'ripple';
 
-export default function App() {
-  return <>
+export default function App() @{
+	<>
 		<div class="message">Hello Ripple!</div>
 
 		<DynamicStyleValues />
@@ -33,13 +33,13 @@ export default function App() {
 				padding: 1rem;
 			}
 		</style>
-  </>;
+	</>
 }
 
-function DynamicStyleValues() {
+function DynamicStyleValues() @{
   let &[color] = track('#3e95ff');
 
-  return <>
+  <>
 		<p class="notice" style={{ '--notice-color': color }}>
 			Hello Ripple!
 		</p>
@@ -51,14 +51,14 @@ function DynamicStyleValues() {
 				background-color: #eee;
 			}
 		</style>
-  </>;
+	</>
 }
 
-function DynamicClasses() {
+function DynamicClasses() @{
   let &[includeBaz] = track(true);
 	let &[count] = track(3);
 
-  return <>
+  <>
 		<p class={{ foo: true, bar: false, baz: includeBaz }}> // becomes: class="foo baz"
 			Hello Ripple!
 		</p>
@@ -70,14 +70,14 @@ function DynamicClasses() {
 		<p class={['foo', {bar: count > 2}, count > 3 && 'bat']}> // becomes: class="foo bar"
 			Hello Ripple!
 		</p>
-  </>;
+	</>
 }`,
 	},
 	{
 		title: 'Components',
 		code: `
-function Card() {
-	return <>
+function Card() @{
+	<>
 		<div class="card">
 			<p>Card content here</p>
 		</div>
@@ -92,7 +92,7 @@ function Card() {
 				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 			}
 		</style>
-	</>;
+	</>
 }
 
 export default function App() {
@@ -102,24 +102,24 @@ export default function App() {
 	{
 		title: 'Props',
 		code: `
-export default function App() {
-	return <>
-		<Card message="A Card" />
-
+export default function App() @{
 		const message = "Another card";
-		<Card {message} /> // props shorthand
 
 		const props = {
 			message: "A clickable card",
 			class: "clickable",
 			onClick: () => { alert("Card clicked!") }
 		};
-		<Card {...props} /> // props spread
-	</>;
+
+		<>
+			<Card message="A Card" />
+			<Card {message} /> // props shorthand
+			<Card {...props} /> // props spread
+		</>
 }
 
-function Card(props: { message: string, class?: string, onClick?: () => void }) {
-  return <>
+function Card(props: { message: string, class?: string, onClick?: () => void }) @{
+	<>
 		<div class={\`card \${props.class}\`} onclick={props.onClick || (() => {})}>
 			<p>{props.message}</p>
 		</div>
@@ -137,7 +137,7 @@ function Card(props: { message: string, class?: string, onClick?: () => void }) 
 				color: #000;
 			}
 		</style>
-  </>;
+	</>
 }
 `,
 	},
@@ -145,8 +145,8 @@ function Card(props: { message: string, class?: string, onClick?: () => void }) 
 		title: 'Children',
 		code: `import type { Children } from 'ripple';
 
-function Card(props: { children: Children }) {
-  return <>
+function Card(props: { children: Children }) @{
+	<>
 		<div class="card">{props.children}</div>
 		<style>
 			.card {
