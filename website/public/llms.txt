@@ -10,10 +10,11 @@ reactive collections.
 When answering Ripple questions:
 
 - Prefer `.tsrx` component examples.
-- Use arrow-fragment components: `const Component = (props) => <>...</>;`.
+- Return direct JSX for single-root components: `const Component = (props) => <div />;`.
+- Use JSX statement containers (`@{...}`) when TypeScript setup belongs next to the rendered output.
 - Use JSX text for static text and `{expr}` for dynamic values.
-- When a template scope mixes TypeScript setup with rendered output, put setup
-  first and finish the scope with one JSX element, JSX fragment, or JSX
+- When a statement container mixes TypeScript setup with rendered output, put
+  setup first and finish it with one JSX element, JSX fragment, or JSX
   control-flow expression.
 - Use `@if`, `@for`, `@switch`, and `@try` for rendered control flow.
 - Keep runtime API guidance Ripple-specific, but keep syntax guidance aligned
@@ -62,31 +63,30 @@ hydrate(App, {
 
 ## Components
 
-The recommended component form is a TypeScript arrow function whose body is a
-single TSRX fragment.
+Components are TypeScript arrow functions. Return a JSX element directly when
+there is one root, use a fragment for real multiple-child output, and use a JSX
+statement container (`@{...}`) when setup statements belong next to the UI.
 
 ```tsrx
-export const Button = ({ text, onClick }: { text: string; onClick: () => void }) => <>
-	<button class="button" {onClick}>{text}</button>
-</>;
+export const Button = ({ text, onClick }: { text: string; onClick: () => void }) =>
+	<button class="button" {onClick}>{text}</button>;
 
-export const App = () => <>
-	<Button text="Save" onClick={() => console.log('saved')} />
-</>;
+export const App = () =>
+	<Button text="Save" onClick={() => console.log('saved')} />;
 ```
 
-When setup code and rendered output share the same template scope, setup comes
-first and the scope finishes with one output node.
+When setup code and rendered output share the same scope, use `@{...}`. Setup
+comes first and the statement container finishes with one output node.
 
 ```tsrx
 import { track } from 'ripple';
 
-export const Counter = () => <>
+export const Counter = () => @{
 	let &[count] = track(0);
 	const increment = () => count++;
 
 	<button onClick={increment}>Count: {count}</button>
-</>;
+};
 ```
 
 If output needs multiple siblings, text, or expression containers after setup,
@@ -94,11 +94,10 @@ wrap that output in a fragment. Plain text between tags is JSX text, not
 JavaScript.
 
 ```tsrx
-export const LiteralText = () => <>
+export const LiteralText = () =>
 	<div>
 		x = 123
-	</div>
-</>;
+	</div>;
 ```
 
 ## Reactivity
@@ -109,7 +108,7 @@ binding subscribes to it; assigning to it updates the tracked value.
 ```tsrx
 import { effect, track, type Tracked } from 'ripple';
 
-export const Counter = () => <>
+export const Counter = () => @{
 	let &[count, countTracked] = track(0);
 	let &[double] = track(() => count * 2);
 
@@ -123,11 +122,10 @@ export const Counter = () => <>
 		<button onClick={() => count++}>Increment</button>
 		<CounterValue count={countTracked} />
 	</>
-</>;
+};
 
-const CounterValue = ({ count }: { count: Tracked<number> }) => <>
-	<p>Shared value: {count.value}</p>
-</>;
+const CounterValue = ({ count }: { count: Tracked<number> }) =>
+	<p>Shared value: {count.value}</p>;
 ```
 
 You can also keep the tracked object and read or write `.value` directly.
@@ -135,11 +133,11 @@ You can also keep the tracked object and read or write `.value` directly.
 ```tsrx
 import { track } from 'ripple';
 
-export const Counter = () => <>
+export const Counter = () => @{
 	const count = track(0);
 
 	<button onClick={() => count.value++}>{count.value}</button>
-</>;
+};
 ```
 
 Use `untrack(fn)` when an effect or derived value needs to read something without
@@ -153,7 +151,7 @@ output.
 ```tsrx
 import { RippleArray, RippleMap, RippleObject, RippleSet } from 'ripple';
 
-export const Inventory = () => <>
+export const Inventory = () => @{
 	const products = new RippleArray(
 		{ id: 1, name: 'Jacket' },
 		{ id: 2, name: 'Boots' },
@@ -171,7 +169,7 @@ export const Inventory = () => <>
 		<button onClick={() => selected.add(1)}>Select jacket</button>
 		<p>Selected: {selected.size + totals.added}</p>
 	</>
-</>;
+};
 ```
 
 Available collection APIs include `new RippleArray(...)`, `RippleArray.from(...)`,
@@ -185,7 +183,7 @@ Rendered control flow uses directive expressions.
 ```tsrx
 import { track } from 'ripple';
 
-export const StatusBadge = () => <>
+export const StatusBadge = () => @{
 	let &[status] = track<'idle' | 'loading' | 'done'>('idle');
 
 	<>
@@ -201,50 +199,47 @@ export const StatusBadge = () => <>
 		}
 		<button onClick={() => (status = 'done')}>Finish</button>
 	</>
-</>;
+};
 ```
 
 Use `@for (... of ...)` for rendered lists. `continue` skips the current rendered
 iteration. `break` is only for `@switch` cases.
 
 ```tsrx
-export const UserList = ({ users }: { users: User[] }) => <>
+export const UserList = ({ users }: { users: User[] }) =>
 	<ul>
 		@for (const user of users; index i; key user.id) {
 			if (user.hidden) continue;
 			<li>{i + 1}. {user.name}</li>
 		}
-	</ul>
-</>;
+	</ul>;
 ```
 
 Use ordinary TypeScript `return` for true component exits in setup code.
 
 ```tsrx
-export const Profile = ({ user }: { user: User | null }) => <>
+export const Profile = ({ user }: { user: User | null }) => @{
 	if (!user) {
 		return null;
 	}
 
 	<h1>{user.name}</h1>
-</>;
+};
 ```
 
 `@try` provides pending and error UI.
 
 ```tsrx
-export const ProfileBoundary = () => <>
-	@try {
-		<UserProfile />
-	} pending {
-		<p>Loading...</p>
-	} catch (error, reset) {
-		<div>
-			<p>Error: {error.message}</p>
-			<button onClick={() => reset()}>Try again</button>
-		</div>
-	}
-</>;
+export const ProfileBoundary = () => @try {
+	<UserProfile />
+} pending {
+	<p>Loading...</p>
+} catch (error, reset) {
+	<div>
+		<p>Error: {error.message}</p>
+		<button onClick={() => reset()}>Try again</button>
+	</div>
+};
 ```
 
 ## Events And Refs
@@ -255,7 +250,7 @@ or local variables.
 ```tsrx
 import { track } from 'ripple';
 
-export const SearchBox = () => <>
+export const SearchBox = () => @{
 	let &[query] = track('');
 	let input: HTMLInputElement | undefined;
 
@@ -272,7 +267,7 @@ export const SearchBox = () => <>
 		</label>
 		<button onClick={() => input?.focus()}>Focus</button>
 	</>
-</>;
+};
 ```
 
 ## Dynamic Components And Elements
@@ -282,15 +277,13 @@ Use `<@value />` when the tag or component is dynamic.
 ```tsrx
 import { track } from 'ripple';
 
-const Primary = () => <>
-	<button>Primary</button>
-</>;
+const Primary = () =>
+	<button>Primary</button>;
 
-const Secondary = () => <>
-	<button>Secondary</button>
-</>;
+const Secondary = () =>
+	<button>Secondary</button>;
 
-export const DynamicButton = () => <>
+export const DynamicButton = () => @{
 	let &[Current] = track(() => Primary);
 
 	<>
@@ -299,7 +292,7 @@ export const DynamicButton = () => <>
 			Swap
 		</button>
 	</>
-</>;
+};
 ```
 
 ## Styles
@@ -310,7 +303,7 @@ properties for runtime values.
 ```tsrx
 import { track } from 'ripple';
 
-export const Card = () => <>
+export const Card = () => @{
 	let &[tone] = track('rebeccapurple');
 
 	<>
@@ -324,7 +317,7 @@ export const Card = () => <>
 			}
 		</style>
 	</>
-</>;
+};
 ```
 
 Use `:global(...)` to opt out of scoping. Module-scope style expressions expose
@@ -337,9 +330,8 @@ const styles = <style>
 	}
 </style>;
 
-export const Badge = () => <>
-	<span class={styles.highlight}>New</span>
-</>;
+export const Badge = () =>
+	<span class={styles.highlight}>New</span>;
 ```
 
 ## Context
@@ -352,7 +344,7 @@ import { Context, track, type Tracked } from 'ripple';
 
 const ThemeContext = new Context<Tracked<string>>();
 
-export const App = () => <>
+export const App = () => @{
 	let &[theme, themeTracked] = track('light');
 	ThemeContext.set(themeTracked);
 
@@ -362,13 +354,13 @@ export const App = () => <>
 			Toggle theme
 		</button>
 	</>
-</>;
+};
 
-const ThemeLabel = () => <>
+const ThemeLabel = () => @{
 	const theme = ThemeContext.get();
 
 	<p>Theme: {theme.value}</p>
-</>;
+};
 ```
 
 ## Portals
@@ -378,7 +370,7 @@ Use `Portal` to render content outside the normal DOM position.
 ```tsrx
 import { Portal, track } from 'ripple';
 
-export const ModalDemo = () => <>
+export const ModalDemo = () => @{
 	let &[open] = track(false);
 
 	<>
@@ -392,7 +384,7 @@ export const ModalDemo = () => <>
 			</Portal>
 		}
 	</>
-</>;
+};
 ```
 
 ## Server Modules
@@ -411,7 +403,7 @@ module server {
 import { saveName } from server;
 import { track } from 'ripple';
 
-export const Form = () => <>
+export const Form = () => @{
 	let &[name] = track('');
 	let &[saved] = track('');
 	const submit = async () => {
@@ -424,7 +416,7 @@ export const Form = () => <>
 		<button onClick={submit}>Save</button>
 		<p>Saved: {saved}</p>
 	</>
-</>;
+};
 ```
 
 ## Raw HTML
@@ -433,9 +425,8 @@ Use `innerHTML={trustedHtml}` for trusted markup. Do not pass untrusted strings 
 raw HTML props.
 
 ```tsrx
-export const Article = ({ markup }: { markup: string }) => <>
-	<article innerHTML={markup} />
-</>;
+export const Article = ({ markup }: { markup: string }) =>
+	<article innerHTML={markup} />;
 ```
 
 ## Do And Do Not
@@ -443,9 +434,9 @@ export const Article = ({ markup }: { markup: string }) => <>
 Do:
 
 - Use `.tsrx` for component files.
-- Use arrow-fragment component bodies in examples.
-- Put setup before rendered output when both appear in a scope, and finish that
-  scope with one JSX element, JSX fragment, or JSX control-flow expression.
+- Return single-root components directly in examples.
+- Use `@{...}` when setup appears next to rendered output, and finish the
+  statement container with one JSX element, JSX fragment, or JSX control-flow expression.
 - Use JSX text for literal children.
 - Use `@for` for rendered lists and `@if` for conditional rendering.
 - Use Ripple collections for reactive collection state.

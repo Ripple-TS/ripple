@@ -17,9 +17,9 @@ them all the way through to the compiled output.
 
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **JSX-shaped templates**: JSX elements, fragments, text, and expression containers use standard JSX node shapes
-- **Structural template scopes**: when setup statements and output share a template scope, setup comes first and the scope finishes with one JSX output node
-- **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` inside templates
-- **Lexical template scoping**: declare locals next to the JSX that uses them
+- **JSX statement containers**: `@{ ... }` keeps TypeScript setup local to the JSX that uses it
+- **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` are JSX expressions
+- **Structural output rules**: statement containers finish with one JSX element, fragment, or JSX control-flow expression
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
 - **Scoped styles**: per-component `<style>` blocks with automatic class hashing
 - **TypeScript-first**: `.tsrx` is a superset of TypeScript; types flow through
@@ -745,7 +745,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Feature                | Syntax                                                 |
 | ---------------------- | ------------------------------------------------------ |
 | Component function     | `const Name = (props: T) => <div />;`                  |
-| Exported component     | `export const Name = (...) => <>...</>;`               |
+| Multi-child component  | `export const Name = (...) => <>...</>;`               |
 | Statement container    | `const Name = (...) => @{ ... };`                      |
 | Native TSRX value      | `const v = <div>Hi</div>;`                            |
 | Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
