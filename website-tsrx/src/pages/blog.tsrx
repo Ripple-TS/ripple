@@ -39,13 +39,13 @@ export function BlogPage() {
 							<p class="post-date">June 5, 2026</p>
 							<h2>
 								<a
-									href="/blog/explicit-render-flow-and-code-fences"
-								>Explicit JSX control flow & code fences</a>
+									href="/blog/rethinking-tsrx"
+								>Rethinking TSRX</a>
 							</h2>
-							<p>JSX control flow now use @if, @switch, @try, and @for, while code fences separate local logic from template code.</p>
+							<p>TSRX leans back into JSX: regular text, expression braces, comments, and explicit control flow only where JSX needs it.</p>
 							<a
 								class="read-link"
-								href="/blog/explicit-render-flow-and-code-fences"
+								href="/blog/rethinking-tsrx"
 							>Read the post</a>
 						</article>
 						<article class="post-preview">
