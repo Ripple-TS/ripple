@@ -260,6 +260,7 @@ export function TSRXPlugin(config) {
 			#forceScriptJSXElementDepth = 0;
 			#suppressTemplateRawTextToken = false;
 			#templateScriptParsingDepth = 0;
+			#controlFlowBlockAllowsNativeReturn = false;
 			#parsingJSXSwitchCaseScriptStatementDepth = 0;
 			#templateControlFlowBlockDepth = 0;
 			#templateControlFlowTryDepth = 0;
@@ -376,12 +377,17 @@ export function TSRXPlugin(config) {
 			#parseTemplateControlFlowBlock(createNewLexicalScope = true, node, exitStrict) {
 				node ??= /** @type {AST.BlockStatement} */ (this.startNode());
 				const body_start = this.start + 1;
+				// Consume the flag for this block only; nested control-flow blocks
+				// parsed inside the body must not inherit it.
+				const allows_native_return = this.#controlFlowBlockAllowsNativeReturn;
+				this.#controlFlowBlockAllowsNativeReturn = false;
 				node.body = [];
 				node.metadata = {
 					...node.metadata,
 					path: [],
 					native_tsrx_template_block: true,
 					templateMode: 'script',
+					allows_native_return,
 					hasTemplateFenceAhead: this.#hasTemplateFenceBeforeBlockClose(body_start),
 				};
 
@@ -1089,6 +1095,37 @@ export function TSRXPlugin(config) {
 				let index = skip_whitespace_from(this.input, this.start);
 
 				const first = this.input.charCodeAt(index);
+
+				if (first === CharCode.openBracket || first === CharCode.openBrace) {
+					let depth = 0;
+					let i = index;
+					for (; i < this.input.length; i++) {
+						const ch = this.input.charCodeAt(i);
+						if (
+							ch === CharCode.openBracket ||
+							ch === CharCode.openBrace ||
+							ch === CharCode.openParen
+						) {
+							depth++;
+						} else if (
+							ch === CharCode.closeBracket ||
+							ch === CharCode.closeBrace ||
+							ch === CharCode.closeParen
+						) {
+							depth--;
+							if (depth === 0) {
+								i++;
+								break;
+							}
+						}
+					}
+					if (depth !== 0) return false;
+					i = skip_whitespace_from(this.input, i);
+					if (this.input.charCodeAt(i) !== CharCode.equals) return false;
+					const next = this.input.charCodeAt(i + 1);
+					return next !== CharCode.equals && next !== CharCode.greaterThan;
+				}
+
 				if (
 					!this.#isIdentifierChar(first) ||
 					(first >= CharCode.digit0 && first <= CharCode.digit9)
@@ -3190,8 +3227,7 @@ export function TSRXPlugin(config) {
 						}
 						this.#templateScriptParsingDepth++;
 						try {
-							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument =
-								this.parseMaybeAssign();
+							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						} finally {
 							this.#templateScriptParsingDepth--;
 						}
@@ -3202,8 +3238,7 @@ export function TSRXPlugin(config) {
 						this.expect(tt.ellipsis);
 						this.#templateScriptParsingDepth++;
 						try {
-							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument =
-								this.parseMaybeAssign();
+							/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						} finally {
 							this.#templateScriptParsingDepth--;
 						}
@@ -3369,6 +3404,18 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * `@try`/`pending`/`catch`/`finally` blocks lower their direct `return`
+			 * values into reactive boundary fallbacks, so unlike `@if`/`@for`/`@switch`
+			 * blocks they legitimately allow `return <markup>` statements. Set the flag
+			 * immediately before parsing each such block so its body sees it.
+			 * @returns {AST.BlockStatement}
+			 */
+			#parseTemplateControlFlowReturnBlock(createNewLexicalScope = true) {
+				this.#controlFlowBlockAllowsNativeReturn = true;
+				return this.#parseTemplateControlFlowBlock(createNewLexicalScope);
+			}
+
+			/**
 			 * @type {Parse.Parser['parseTryStatement']}
 			 */
 			parseTryStatement(node) {
@@ -3376,12 +3423,12 @@ export function TSRXPlugin(config) {
 					this.#templateControlFlowTryDepth--;
 					try {
 						this.next();
-						node.block = this.#parseTemplateControlFlowBlock();
+						node.block = this.#parseTemplateControlFlowReturnBlock();
 						node.handler = null;
 
 						if (this.value === 'pending') {
 							this.next();
-							node.pending = this.#parseTemplateControlFlowBlock();
+							node.pending = this.#parseTemplateControlFlowReturnBlock();
 						} else {
 							node.pending = null;
 						}
@@ -3429,11 +3476,13 @@ export function TSRXPlugin(config) {
 							} finally {
 								this.#readingJSXControlFlowHeader = previous_reading_header;
 							}
-							clause.body = this.#parseTemplateControlFlowBlock(false);
+							clause.body = this.#parseTemplateControlFlowReturnBlock(false);
 							this.exitScope();
 							node.handler = this.finishNode(clause, 'CatchClause');
 						}
-						node.finalizer = this.eat(tt._finally) ? this.#parseTemplateControlFlowBlock() : null;
+						node.finalizer = this.eat(tt._finally)
+							? this.#parseTemplateControlFlowReturnBlock()
+							: null;
 
 						if (!node.handler && !node.finalizer && !node.pending) {
 							this.raise(
@@ -4020,9 +4069,15 @@ export function TSRXPlugin(config) {
 						? current_template_node.metadata?.hasTemplateFenceAhead
 						: this.#jsxTextContainsTemplateFence(jsx_text_value) ||
 							this.#hasTemplateFenceBeforeElementClose(this.start, current_template_node);
+					const is_template_block_return =
+						!!current_template_node.metadata?.native_tsrx_template_block &&
+						!current_template_node.metadata?.allows_native_return &&
+						jsx_text_value.trim() === 'return' &&
+						this.input.charCodeAt(token_start + jsx_text_value.length) === CharCode.lessThan;
 					const should_enter_template_text =
 						jsx_text_value.trim() !== '' &&
 						!has_template_fence_ahead &&
+						!is_template_block_return &&
 						this.#canImplicitlyEnterTemplateOutput(body);
 					if (should_enter_template_text) {
 						current_template_node.metadata ??= { path: [] };
@@ -4192,6 +4247,24 @@ export function TSRXPlugin(config) {
 						}
 
 						if (openingTagName !== closingTagName) {
+							// A closing tag that matches no open element on the path is not a
+							// mismatch we can recover from by marking ancestors unclosed — it is
+							// simply an unexpected closing tag (e.g. `<div></span>`).
+							const normalized_closing_name = closingTagName ?? '';
+							const matches_open_element = this.#path.some((node) => {
+								const elem = /** @type {any} */ (node);
+								if (!this.#isNativeTemplateNode(elem)) return false;
+								const elemName =
+									elem.type === 'JSXFragment'
+										? ''
+										: elem.openingElement?.name
+											? this.getElementName(elem.openingElement.name)
+											: null;
+								return elemName === normalized_closing_name;
+							});
+							if (!matches_open_element && this.#collect) {
+								this.raise(closingElement.start, 'Unexpected closing tag');
+							}
 							// this will throw if not collecting errors
 							this.#report_broken_markup_error(
 								closingElement.start,
@@ -4275,7 +4348,12 @@ export function TSRXPlugin(config) {
 						this.parseTemplateBody(body);
 						return;
 					}
+					const is_block_return_keyword =
+						!!current_template_node.metadata?.native_tsrx_template_block &&
+						!current_template_node.metadata?.allows_native_return &&
+						this.type.label === 'return';
 					if (
+						!is_block_return_keyword &&
 						!(
 							current_template_node.metadata?.native_tsrx_template_block &&
 							current_template_node.metadata?.hasTemplateFenceAhead
@@ -4320,7 +4398,15 @@ export function TSRXPlugin(config) {
 						}
 						this.context = previous_context;
 					}
-					if (current_template_node.metadata?.templateMode === 'template') {
+					const returns_jsx =
+						node?.type === 'ReturnStatement' &&
+						(node.argument?.type === 'JSXElement' || node.argument?.type === 'JSXFragment');
+					if (
+						current_template_node.metadata?.templateMode === 'template' ||
+						(current_template_node.metadata?.native_tsrx_template_block &&
+							!current_template_node.metadata?.allows_native_return &&
+							returns_jsx)
+					) {
 						this.#report_invalid_template_return_statements(node);
 					}
 					body.push(node);

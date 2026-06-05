@@ -66,7 +66,8 @@ describe('@tsrx/react basic', () => {
 			);
 
 			expect(code).toContain('export function MyApp()');
-			expect(code).toContain('return <div />;');
+			expect(code).toContain('const MyApp__static1 = <div />;');
+			expect(code).toContain('return MyApp__static1;');
 		});
 
 		it('lowers directive children inside returned JSX fragments', () => {

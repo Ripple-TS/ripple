@@ -1487,7 +1487,7 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('line\\\\nbreak');
+			expect(code).toContain('line\\nbreak');
 		});
 
 		it('keeps double-quoted strings inside expression containers as JavaScript strings', () => {

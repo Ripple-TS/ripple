@@ -143,6 +143,39 @@ function is_function_or_class_boundary(node) {
 }
 
 /**
+ * @param {any} node
+ * @param {boolean} [inside_function]
+ * @param {Set<any>} [seen]
+ * @returns {void}
+ */
+function mark_nested_function_return_jsx(node, inside_function = false, seen = new Set()) {
+	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	seen.add(node);
+
+	if (Array.isArray(node)) {
+		for (const item of node) mark_nested_function_return_jsx(item, inside_function, seen);
+		return;
+	}
+
+	const now_inside = inside_function || is_function_or_class_boundary(node);
+
+	if (
+		now_inside &&
+		node.type === 'ReturnStatement' &&
+		(node.argument?.type === 'JSXFragment' ||
+			node.argument?.type === 'JSXElement' ||
+			node.argument?.type === 'JSXStyleElement')
+	) {
+		node.argument.metadata = { ...(node.argument.metadata || {}), native_tsrx: true };
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		mark_nested_function_return_jsx(node[key], now_inside, seen);
+	}
+}
+
+/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
  * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
  * native TSRX template nodes into a plain TSX module for that platform.
@@ -457,6 +490,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 			) {
 				continue;
 			}
+			mark_nested_function_return_jsx(child);
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
 		}
@@ -601,6 +635,7 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		} else if (is_bare_render_expression(child)) {
 			render_nodes.push(to_jsx_expression_container(child, child));
 		} else {
+			mark_nested_function_return_jsx(child);
 			statements.push(child);
 			collect_statement_bindings(child, transform_context.available_bindings);
 		}
