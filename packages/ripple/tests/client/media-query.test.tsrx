@@ -53,6 +53,7 @@ describe('MediaQuery', () => {
 		function App() {
 			return <>
 				let &[medium] = MediaQuery(media);
+				---
 				<div>
 					<p>{medium}</p>
 				</div>
@@ -100,6 +101,7 @@ describe('MediaQuery', () => {
 		function Child() {
 			return <>
 				let &[medium] = MediaQuery(media);
+				---
 				<div>
 					<p>{medium}</p>
 				</div>

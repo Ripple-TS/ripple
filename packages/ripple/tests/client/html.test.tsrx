@@ -5,6 +5,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				const html = '<span>Host HTML</span>';
+				---
 				<code innerHTML={html} />
 			</>;
 		}
@@ -22,6 +23,7 @@ describe('Fragment innerHTML', () => {
 				let &[attrs] = track<{ innerHTML?: string }>({
 					innerHTML: '<span>Spread HTML</span>',
 				});
+				---
 				<code {...attrs} />
 				<button onClick={() => (attrs = { innerHTML: '<em>Updated HTML</em>' })}>{'Update'}</button>
 			</>;
@@ -45,6 +47,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				const attrs = { innerHTML: '<span>Spread HTML</span>' };
+				---
 				<code {...attrs} innerHTML="<em>Direct HTML</em>" />
 			</>;
 		}
@@ -60,6 +63,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				let str = '<div>Test</div>';
+				---
 				<Fragment innerHTML={str} />
 			</>;
 		}
@@ -72,14 +76,13 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				let &[str] = track('<div>Test</div>');
+				---
 				<Fragment innerHTML={str} />
 				<button
 					onClick={() => {
 						str = '<div>Updated</div>';
 					}}
-				>
-					{'Update'}
-				</button>
+				>{'Update'}</button>
 			</>;
 		}
 
@@ -97,6 +100,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				const html = '<strong>Fragment HTML</strong>';
+				---
 				<Fragment innerHTML={html} />
 			</>;
 		}
@@ -111,6 +115,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				let &[html] = track('<span>First</span>');
+				---
 				<Fragment innerHTML={html} />
 				<button onClick={() => (html = '<em>Second</em>')}>{'Update'}</button>
 			</>;
@@ -133,6 +138,7 @@ describe('Fragment innerHTML', () => {
 		function App() {
 			return <>
 				let str = '<circle r="45" cx="50" cy="50" fill="red" />';
+				---
 				<svg height="100" width="100">
 					<Fragment innerHTML={str} />
 				</svg>
@@ -151,7 +157,10 @@ describe('Fragment innerHTML', () => {
 			function App() {
 				return <>
 					let str = '<mi>x</mi><mo>+</mo><mi>y</mi>';
-					<math><Fragment innerHTML={str} /></math>
+					---
+					<math>
+						<Fragment innerHTML={str} />
+					</math>
 				</>;
 			}
 

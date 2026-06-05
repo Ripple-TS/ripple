@@ -14,6 +14,7 @@ describe('basic client > utilities', () => {
 						tick().then(() => resolve());
 					});
 				});
+				---
 				<p>{value}</p>
 			</>;
 		}

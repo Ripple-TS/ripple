@@ -44,6 +44,7 @@ describe('basic client > hmr', () => {
 						teardown_count++;
 					};
 				});
+				---
 				<span class="hmr-child">{'child'}</span>
 			</>;
 		}

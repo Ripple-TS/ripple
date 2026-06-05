@@ -2599,6 +2599,9 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 								? attr.value.expression
 								: attr.value
 							: null;
+					if (attr.value?.type === 'JSXExpressionContainer' && value) {
+						value.was_expression = true;
+					}
 					return /** @type {AST.Node} */ ({
 						type: 'Attribute',
 						name: {

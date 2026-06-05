@@ -96,6 +96,50 @@ expect(x).toBe(1);`;
 	});
 });
 
+describe('@tsrx/ripple Volar TypeScript output', () => {
+	it('keeps expression braces for literal JSX attributes', () => {
+		const { code } = compile_to_volar_mappings(
+			`function App() {
+	return <>
+		---
+		<option value={1} label={'One'} selected={true}>{'One'}</option>
+	</>;
+}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).toContain("<option value={1} label={'One'} selected={true}>");
+	});
+
+	it('does not collect statements from nested ordinary function bodies', () => {
+		const { code } = compile_to_volar_mappings(
+			`import { track } from 'ripple';
+function App() {
+	return <>
+		let value = track('');
+		const value_accessors = [
+			() => value.value,
+			(v: string) => {
+				if (v.includes('c')) {
+					v = v.replace(/c/g, '');
+				}
+				value.value = v;
+			},
+		];
+		---
+		<input type="text" ref={bindValue(...value_accessors)} />
+	</>;
+}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code.match(/if \(v\.includes\('c'\)\)/g)).toHaveLength(1);
+		expect(code).not.toContain("let value = track('');\n\n\t\tif (v.includes('c'))");
+	});
+});
+
 describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(

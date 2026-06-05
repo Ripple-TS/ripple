@@ -26,6 +26,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 			console.error(e);
 		}
 	}
+	---
 	<div onclick={doWork}>{"click"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -42,6 +43,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 			await fetch('/api');
 		} catch (e) {}
 	};
+	---
 	<div onclick={doWork}>{"click"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -61,6 +63,7 @@ describe('compiler > Volar transform does not duplicate try blocks from function
 			console.log('done');
 		}
 	}
+	---
 	<div onclick={save}>{"save"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -76,6 +79,7 @@ export function App() { return <>
 	try {
 		let &[data] = trackAsync(() => fetch('/api'));
 	} catch (e) {}
+	---
 	<div>{"hi"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -96,6 +100,7 @@ export function App() { return <>
 			await fetch('/refresh');
 		} catch (e) {}
 	}
+	---
 	<div onclick={refresh}>{"click"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -114,6 +119,7 @@ export function App() { return <>
 			} catch (e) {}
 		}
 	}
+	---
 	<div>{"hi"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -134,6 +140,7 @@ export function App() { return <>
 			await fetch('/save');
 		} catch (e) {}
 	}
+	---
 	<div>{"hi"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
@@ -151,6 +158,7 @@ export function App() { return <>
 			} catch (e) {}
 		}
 	};
+	---
 	<div>{"hi"}</div>
 </>; }`;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;

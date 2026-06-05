@@ -6,6 +6,7 @@ export type MergeableVueRef<T> = { value: T | null };
 export type RefProp<T = unknown> = (node: T | null) => void | (() => void);
 export type RefValue<T = Element> =
 	| ((node: T) => void | (() => void))
+	| readonly RefValue<T>[]
 	| { current: T | null }
 	| { value: T | null }
 	| T

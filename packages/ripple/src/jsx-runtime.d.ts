@@ -69,6 +69,8 @@ type EventHandlerValue<Target extends globalThis.EventTarget, EventType extends 
 
 type RefValue<Target extends globalThis.Element> =
 	| ((node: Target) => void | (() => void))
+	| readonly RefValue<Target>[]
+	| { current: Target | null }
 	| { value: Target | null }
 	| Target
 	| null

@@ -706,7 +706,7 @@ function visit_function(node, context) {
 	const metadata = /** @type {AST.FunctionExpression['metadata']} */ (node.metadata);
 
 	if (context.state.to_ts) {
-		return context.next(state);
+		return context.next(SetStateForOutsideComponent(state));
 	}
 
 	delete node.returnType;
