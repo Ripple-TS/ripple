@@ -185,6 +185,21 @@ describe('@tsrx/ripple named ref props', () => {
 		expect(code).toContain('input_ref: fn');
 	});
 
+	it('normalizes dynamic element syntax for component lowering', () => {
+		const { code } = compile(
+			`function App() { return <>
+				let &[tag] = track('polygon');
+				---
+				<@tag points="0,0 30,0 15,10" />
+			</>; }`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('_$_.composite(() =>');
+		expect(code).toContain('_$_.lazy_array_get(lazy, 0)');
+		expect(code).not.toContain('<tag');
+	});
+
 	it('prints named ref props in Volar TypeScript output', () => {
 		const { code } = compile_to_volar_mappings(
 			`function App() { return <>

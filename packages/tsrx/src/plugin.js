@@ -3105,6 +3105,7 @@ export function TSRXPlugin(config) {
 
 				if (this.eat(tt.braceL)) {
 					if (this.type === tt.ellipsis || this.input.slice(this.start, this.start + 3) === '...') {
+						this.#suppressTemplateRawTextToken = true;
 						if (this.type === tt.ellipsis) {
 							this.expect(tt.ellipsis);
 						} else {
@@ -3115,6 +3116,7 @@ export function TSRXPlugin(config) {
 						this.expect(tt.braceR);
 						return this.finishNode(node, 'JSXSpreadAttribute');
 					} else if (this.lookahead().type === tt.ellipsis) {
+						this.#suppressTemplateRawTextToken = true;
 						this.expect(tt.ellipsis);
 						/** @type {ESTreeJSX.JSXSpreadAttribute} */ (node).argument = this.parseMaybeAssign();
 						this.expect(tt.braceR);

@@ -283,6 +283,9 @@ foo();`;
 		})(ast);
 
 		expect(switchExpression.cases).toHaveLength(2);
+		const spread = switchExpression.cases[0].consequent[0].openingElement.attributes[0];
+		expect(spread.argument.type).toBe('Identifier');
+		expect(spread.argument.name).toBe('attrs');
 		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual([
 			'JSXElement',
 			'BreakStatement',
