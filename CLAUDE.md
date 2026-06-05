@@ -75,6 +75,18 @@ than editing generated output, tests, or editor integrations first.
 
 - Default component files are `.tsrx`. Do not describe the project as primarily
   using `.ripple` files unless the local file you are editing actually does.
+- Prefer the current TSRX component shape:
+  `const Component = (props) => <>...</>`.
+- TSRX templates use JSX-shaped elements, fragments, text, expression
+  containers, and directive control flow. Do not introduce removed experimental
+  template-boundary or legacy component syntaxes in new examples.
+- When a template scope mixes TypeScript setup with rendered output, setup
+  statements come first and the scope finishes with one output node: a JSX
+  element, JSX fragment, or JSX control-flow expression. Wrap text, expression
+  containers, or multiple siblings in a fragment when they are the output after
+  setup.
+- Use `@if`, `@for`, `@switch`, and `@try` for template control flow. Plain
+  JavaScript control flow remains ordinary setup code.
 - Some packages still preserve compatibility or historical references. Treat them
   as compatibility context, not the default architecture description.
 - Use `pnpm` for all package management and workspace scripts.

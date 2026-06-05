@@ -35,7 +35,7 @@ Created by [@trueadm](https://github.com/trueadm), who has contributed to
 - Fine-grained reactivity with `track()` and lazy destructuring.
 - Reactive `RippleArray`, `RippleObject`, `RippleMap`, and `RippleSet`.
 - Template-native `@if`, `@for`, `@switch`, and `@try`.
-- Local TypeScript setup inside templates with the optional `---` fence.
+- Local TypeScript setup inside templates with explicit single-output structure.
 - Scoped `<style>` blocks with automatic class hashing.
 - Vite, editor, Prettier, ESLint, SSR, and hydration support.
 
@@ -107,12 +107,17 @@ Single JSX elements are still valid TSRX values, but public examples should use
 the fragment-body component form unless the example is specifically about a small
 expression value.
 
-### Local TypeScript Fences
+### Local TypeScript
 
-Inside a fragment, element body, or directive branch, `---` works like localized
-frontmatter: TypeScript setup goes above the fence, rendered template children go
-below it. The fence is optional. If it is absent, text such as `x = 123` between
-tags is JSX text, not JavaScript.
+Inside a fragment, element body, or directive branch, TypeScript setup can live
+next to the JSX that uses it. When a scope mixes setup statements with rendered
+output, setup comes first and the scope finishes with exactly one output node: a
+JSX element, JSX fragment, or JSX control-flow expression. If the output needs
+text, expression containers, or multiple siblings after setup, wrap them in a
+fragment.
+
+Text such as `x = 123` between tags is JSX text, not JavaScript, unless it is in
+the setup portion before the output node.
 
 ```tsrx
 import { track } from 'ripple';
@@ -120,8 +125,8 @@ import { track } from 'ripple';
 export const Counter = () => <>
   let &[count] = track(0);
   const increment = () => count++;
-  ---
-  <button onClick={increment}>Count:{count}</button>
+
+  <button onClick={increment}>Count: {count}</button>
 </>;
 ```
 
@@ -133,12 +138,11 @@ export const Cart = ({ items }: { items: Item[] }) => <>
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
     const discount =
       subtotal > 100 ? 0.1 : 0;
-    ---
-    <p>Subtotal: ${subtotal}</p>
-    <p>
-      Save: $
-      {(subtotal * discount).toFixed(2)}
-    </p>
+
+    <>
+      <p>Subtotal: ${subtotal}</p>
+      <p>Save: ${(subtotal * discount).toFixed(2)}</p>
+    </>
   </div>
 </>;
 ```
@@ -174,16 +178,12 @@ export const TodoList = () => <>
     name: 'Ship the work',
   });
   let &[showDone] = track(true);
-  ---
+
   <ul>
     @for (const item of items; index i; key item.id) {
       if (!showDone && item.done) continue;
 
-      <li>
-        {i + 1}
-        .
-        {item.name}
-      </li>
+      <li>{i + 1}. {item.name}</li>
     }
   </ul>
 </>;
@@ -197,12 +197,11 @@ export const Dashboard = ({ user }: { user: User | null }) => <>
   if (!user) {
     return null;
   }
-  ---
-  <h1>
-    Welcome,
-    {user.name}
-  </h1>
-  <p>Here is your dashboard.</p>
+
+  <>
+    <h1>Welcome, {user.name}</h1>
+    <p>Here is your dashboard.</p>
+  </>
 </>;
 ```
 
@@ -216,10 +215,7 @@ export const ProfilePanel = () => <>
     <p>Loading...</p>
   } catch (error, reset) {
     <div>
-      <p>
-        Error:
-        {error.message}
-      </p>
+      <p>Error: {error.message}</p>
       <button onClick={() => reset()}>Try again</button>
     </div>
   }
@@ -240,18 +236,17 @@ export const Counter = () => <>
   effect(() => {
     console.log('Count changed:', count);
   });
-  ---
-  <p>Count:{count}</p>
-  <p>Double:{double}</p>
-  <button onClick={() => count++}>Increment</button>
-  <CounterValue count={trackedCount} />
+
+  <>
+    <p>Count: {count}</p>
+    <p>Double: {double}</p>
+    <button onClick={() => count++}>Increment</button>
+    <CounterValue count={trackedCount} />
+  </>
 </>;
 
 const CounterValue = ({ count }: { count: Tracked<number> }) => <>
-  <p>
-    Shared value:
-    {count.value}
-  </p>
+  <p>Shared value: {count.value}</p>
 </>;
 ```
 
@@ -270,21 +265,16 @@ export const Inventory = () => <>
   const totals = new RippleObject({ selected: 0 });
   const prices = new RippleMap([[1, 120]]);
   const selected = new RippleSet<number>();
-  ---
-  <ul>
-    @for (const item of items; key item.id) {
-      <li>
-        {item.name}
-        : $
-        {prices.get(item.id)}
-      </li>
-    }
-  </ul>
-  <button onClick={() => selected.add(1)}>Select first item</button>
-  <p>
-    Selected:
-    {selected.size + totals.selected}
-  </p>
+
+  <>
+    <ul>
+      @for (const item of items; key item.id) {
+        <li>{item.name}: ${prices.get(item.id)}</li>
+      }
+    </ul>
+    <button onClick={() => selected.add(1)}>Select first item</button>
+    <p>Selected: {selected.size + totals.selected}</p>
+  </>
 </>;
 ```
 
@@ -298,18 +288,20 @@ import { track } from 'ripple';
 export const SearchBox = () => <>
   let &[value] = track('');
   let input: HTMLInputElement | undefined;
-  ---
-  <label>
-    Search
-    <input
-      ref={input}
-      value={value}
-      onInput={(event) => {
-        value = event.currentTarget.value;
-      }}
-    />
-  </label>
-  <button onClick={() => input?.focus()}>Focus</button>
+
+  <>
+    <label>
+      Search
+      <input
+        ref={input}
+        value={value}
+        onInput={(event) => {
+          value = event.currentTarget.value;
+        }}
+      />
+    </label>
+    <button onClick={() => input?.focus()}>Focus</button>
+  </>
 </>;
 ```
 
@@ -323,17 +315,19 @@ import { track } from 'ripple';
 
 export const Notice = () => <>
   let &[tone] = track('rebeccapurple');
-  ---
-  <p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
-  <button
-    onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}
-  >Toggle tone</button>
-  <style>
-    .notice {
-      color: var(--notice-color);
-      font-weight: 700;
-    }
-  </style>
+
+  <>
+    <p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
+    <button
+      onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}
+    >Toggle tone</button>
+    <style>
+      .notice {
+        color: var(--notice-color);
+        font-weight: 700;
+      }
+    </style>
+  </>
 </>;
 ```
 
@@ -361,23 +355,22 @@ const ThemeContext = new Context<Tracked<string>>();
 export const App = () => <>
   let &[theme, themeTracked] = track('light');
   ThemeContext.set(themeTracked);
-  ---
-  <ThemeLabel />
-  <button
-    onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}
-  >Toggle theme</button>
-  <Portal target={document.body}>
-    <p>Portal content</p>
-  </Portal>
+
+  <>
+    <ThemeLabel />
+    <button
+      onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}
+    >Toggle theme</button>
+    <Portal target={document.body}>
+      <p>Portal content</p>
+    </Portal>
+  </>
 </>;
 
 const ThemeLabel = () => <>
   const theme = ThemeContext.get();
-  ---
-  <p>
-    Theme:
-    {theme.value}
-  </p>
+
+  <p>Theme: {theme.value}</p>
 </>;
 ```
 
@@ -403,7 +396,7 @@ export const Page = () => <>
       message = next;
     });
   });
-  ---
+
   <p>{message}</p>
 </>;
 ```
