@@ -203,28 +203,41 @@
         }
       ]
     },
-    "tsrx-template-fence": {
-      "name": "comment.line.tsrx.template-fence",
-      "match": "^[ \\t]*(---)[ \\t]*$",
-      "captures": {
-        "1": {
-          "name": "comment.line.tsrx.template-fence"
-        }
-      }
-    },
-    "tsrx-template-setup-section": {
-      "name": "meta.embedded.setup.tsrx",
-      "contentName": "source.js.embedded.tsrx-isolated",
-      "begin": "^[ \\t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\\b|[a-zA-Z_$][_$[:alnum:]]*\\s*(?:[.=(]|=>)))",
-      "end": "(?=^[ \\t]*---[ \\t]*$)",
+    "tsrx-template-comment": {
       "patterns": [
         {
-          "include": "#component-statements"
+          "name": "comment.block.js",
+          "begin": "^[ \\t]*(/\\*)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.comment.js"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.js"
+            }
+          }
+        },
+        {
+          "name": "comment.line.double-slash.js",
+          "begin": "^[ \\t]*(//)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.comment.js"
+            }
+          },
+          "end": "(?=$)",
+          "contentName": "comment.line.double-slash.js"
         }
       ]
     },
     "tsrx-template-directive": {
       "patterns": [
+        {
+          "include": "#tsrx-template-block-directive"
+        },
         {
           "include": "#tsrx-template-conditional-directive"
         },
@@ -258,6 +271,30 @@
         },
         {
           "include": "#tsrx-template-branch-directive"
+        }
+      ]
+    },
+    "tsrx-template-block-directive": {
+      "name": "meta.directive.block.tsrx",
+      "contentName": "source.js.embedded.tsrx-isolated",
+      "begin": "(@)(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "punctuation.section.block.begin.js"
+        }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.section.block.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#component-statements"
         }
       ]
     },
@@ -6504,13 +6541,10 @@
           "include": "#jsx-evaluated-code"
         },
         {
-          "include": "#tsrx-template-fence"
+          "include": "#tsrx-template-comment"
         },
         {
           "include": "#tsrx-template-child-directive"
-        },
-        {
-          "include": "#tsrx-template-setup-section"
         },
         {
           "include": "#jsx-tag-code"
@@ -6539,6 +6573,9 @@
       "patterns": [
         {
           "include": "#jsx-evaluated-code"
+        },
+        {
+          "include": "#tsrx-template-comment"
         },
         {
           "include": "#tsrx-template-switch-case-label"
@@ -6570,7 +6607,7 @@
       ]
     },
     "jsx-text": {
-      "match": "(?:(?!(?:\\r?\\n)?[ \\t]*---[ \\t]*$)(?![ \\t]*@(?:if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:if|for|switch|try)(?![_$[:alnum:]]))|[^<>{}&@]))+"
+      "match": "(?:(?![ \\t]*(?://|/\\*))(?![ \\t]*@(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))|[^<>{}&@]))+"
     },
     "jsx-code-text": {
       "match": "[^<>{}&]+"

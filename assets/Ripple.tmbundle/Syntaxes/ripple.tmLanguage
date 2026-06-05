@@ -4876,15 +4876,11 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#tsrx-template-fence</string>
+					<string>#tsrx-template-comment</string>
 				</dict>
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-child-directive</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-setup-section</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -5610,7 +5606,7 @@
 		<key>jsx-text</key>
 		<dict>
 			<key>match</key>
-			<string>(?:(?!(?:\r?\n)?[ \t]*---[ \t]*$)(?![ \t]*@(?:if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:if|for|switch|try)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
+			<string>(?:(?![ \t]*(?://|/\*))(?![ \t]*@(?:\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*(?:else|pending|catch|finally)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:\{|if|for|switch|try)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
 		</dict>
 		<key>label</key>
 		<dict>
@@ -8811,6 +8807,45 @@
 			<key>name</key>
 			<string>variable.language.this.js</string>
 		</dict>
+		<key>tsrx-template-block-directive</key>
+		<dict>
+			<key>begin</key>
+			<string>(@)(\{)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.section.block.begin.js</string>
+				</dict>
+			</dict>
+			<key>contentName</key>
+			<string>source.js.embedded.tsrx-isolated</string>
+			<key>end</key>
+			<string>(\})</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.section.block.end.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.directive.block.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#component-statements</string>
+				</dict>
+			</array>
+		</dict>
 		<key>tsrx-template-branch-directive</key>
 		<dict>
 			<key>begin</key>
@@ -8867,6 +8902,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-comment</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#tsrx-template-switch-case-label</string>
 				</dict>
 				<dict>
@@ -8900,6 +8939,54 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-text</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-comment</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>^[ \t]*(/\*)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.comment.js</string>
+						</dict>
+					</dict>
+					<key>end</key>
+					<string>\*/</string>
+					<key>endCaptures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.comment.js</string>
+						</dict>
+					</dict>
+					<key>name</key>
+					<string>comment.block.js</string>
+				</dict>
+				<dict>
+					<key>begin</key>
+					<string>^[ \t]*(//)</string>
+					<key>beginCaptures</key>
+					<dict>
+						<key>1</key>
+						<dict>
+							<key>name</key>
+							<string>punctuation.definition.comment.js</string>
+						</dict>
+					</dict>
+					<key>contentName</key>
+					<string>comment.line.double-slash.js</string>
+					<key>end</key>
+					<string>(?=$)</string>
+					<key>name</key>
+					<string>comment.line.double-slash.js</string>
 				</dict>
 			</array>
 		</dict>
@@ -8949,6 +9036,10 @@
 		<dict>
 			<key>patterns</key>
 			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
+				</dict>
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-conditional-directive</string>
@@ -9070,21 +9161,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>tsrx-template-fence</key>
-		<dict>
-			<key>captures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>comment.line.tsrx.template-fence</string>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>^[ \t]*(---)[ \t]*$</string>
-			<key>name</key>
-			<string>comment.line.tsrx.template-fence</string>
-		</dict>
 		<key>tsrx-template-loop-directive</key>
 		<dict>
 			<key>begin</key>
@@ -9124,24 +9200,6 @@
 				<dict>
 					<key>include</key>
 					<string>#comment</string>
-				</dict>
-			</array>
-		</dict>
-		<key>tsrx-template-setup-section</key>
-		<dict>
-			<key>begin</key>
-			<string>^[ \t]*(?!(?:else|pending|catch|finally)(?![_$[:alnum:]]))(?=(?:(?://|/\*)|(?:abstract|async|await|class|const|debugger|declare|enum|export|for|function|if|import|interface|let|module|return|switch|throw|try|type|using|var|while)\b|[a-zA-Z_$][_$[:alnum:]]*\s*(?:[.=(]|=&gt;)))</string>
-			<key>contentName</key>
-			<string>source.js.embedded.tsrx-isolated</string>
-			<key>end</key>
-			<string>(?=^[ \t]*---[ \t]*$)</string>
-			<key>name</key>
-			<string>meta.embedded.setup.tsrx</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#component-statements</string>
 				</dict>
 			</array>
 		</dict>
