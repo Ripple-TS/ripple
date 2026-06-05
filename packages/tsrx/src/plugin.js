@@ -764,7 +764,7 @@ export function TSRXPlugin(config) {
 						// `3 < /div>/`. Only reinterpret when a value precedes the `<` (so it
 						// is an operator) and a valid single-line regex actually follows;
 						// `5</div>` (no second `/`) still reads as a closing tag.
-						if (next === CharCode.slash && !expr_allowed) {
+						if (next === CharCode.slash && !expr_allowed && tag_stack.length === 0) {
 							const regex_end = this.#scanRegexLiteralEnd(index + 1);
 							if (regex_end !== -1) {
 								index = regex_end;
@@ -831,7 +831,10 @@ export function TSRXPlugin(config) {
 							let open_name = '';
 							if (next === CharCode.greaterThan) {
 								open_name = '';
-								cursor++;
+								tag_stack.push(open_name);
+								index = cursor + 1;
+								expr_allowed = true;
+								continue;
 							} else {
 								if (next === CharCode.at) cursor++;
 								const name_start = cursor;

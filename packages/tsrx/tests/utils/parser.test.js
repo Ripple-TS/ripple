@@ -487,6 +487,28 @@ foo();`;
 		expect(init.elements[0].properties).toHaveLength(4);
 	});
 
+	it('parses functions returning fragments in the template script section', () => {
+		const returned = getReturned(`
+			function App() {
+				return <>
+					function basic() {
+						return <><div>{'Basic Component'}</div></>;
+					}
+					---
+					<@basic />
+				</>;
+			}`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'FunctionDeclaration',
+			'TsrxTemplateFence',
+			'JSXElement',
+		]);
+		const declaration = returned.children[0];
+		expect(declaration.body.body[0].type).toBe('ReturnStatement');
+		expect(declaration.body.body[0].argument.type).toBe('JSXFragment');
+	});
+
 	it('parses native control flow in a component nested below the top level', () => {
 		const returned = getReturned(`
 			something(() => {
