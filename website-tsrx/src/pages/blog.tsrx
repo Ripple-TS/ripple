@@ -36,13 +36,13 @@ export function BlogPage() {
 					<h1>Blog</h1>
 					<section class="post-list" aria-label="Blog posts">
 						<article class="post-preview">
-							<p class="post-date">June 5, 2026</p>
+							<p class="post-date">June 7, 2026</p>
 							<h2>
 								<a
 									href="/blog/rethinking-tsrx"
 								>Rethinking TSRX</a>
 							</h2>
-							<p>TSRX leans back into JSX: regular text, expression braces, comments, and explicit control flow only where JSX needs it.</p>
+							<p>TSRX leans back into JSX: regular text, expression braces, comments, explicit statement blocks, and marked control flow only where templates need it.</p>
 							<a
 								class="read-link"
 								href="/blog/rethinking-tsrx"
