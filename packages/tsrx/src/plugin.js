@@ -1526,7 +1526,14 @@ export function TSRXPlugin(config) {
 				node.consequent = this.#parseTemplateControlFlowStatement();
 				node.alternate = null;
 
-				if (this.eat(tt._else)) {
+				if (this.type === tt._else) {
+					const previous_reading_header = this.#readingJSXControlFlowHeader;
+					this.#readingJSXControlFlowHeader = true;
+					try {
+						this.next();
+					} finally {
+						this.#readingJSXControlFlowHeader = previous_reading_header;
+					}
 					const label = this.type.keyword || this.type.label;
 					node.alternate =
 						label === 'if'
@@ -3634,14 +3641,7 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElement']}
 			 */
 			jsx_parseElement() {
-				// Elements inside `{expr}` containers (e.g. `{items.map((i) => <li>...)}`)
-				// are still TSRX, so they go through the native template path. Only force
-				// the plain script-JSX path when explicitly requested or when sitting in a
-				// template's script section, where `<div>` is an ordinary JS value.
-				if (
-					this.#forceScriptJSXElementDepth > 0 ||
-					this.#isInsideNativeTemplateScriptSection()
-				) {
+				if (this.#forceScriptJSXElementDepth > 0 || this.#isInsideNativeTemplateScriptSection()) {
 					if (this.#isStyleOpeningTagStart()) {
 						this.next();
 						return /** @type {ESTreeJSX.JSXElement | AST.JSXStyleElement} */ (
