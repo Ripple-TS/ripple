@@ -914,6 +914,42 @@ export function TSRXPlugin(config) {
 									cursor++;
 									continue;
 								}
+								// A `{…}` attribute value is its own expression that may contain
+								// `>`/`<`/nested tags (e.g. `a={<>…</>}`); skip the balanced
+								// container so its inner `>` is not mistaken for the tag close.
+								if (current === CharCode.openBrace) {
+									let brace_depth = 1;
+									let brace_quote = 0;
+									cursor++;
+									while (cursor < this.input.length && brace_depth > 0) {
+										const inner = this.input.charCodeAt(cursor);
+										if (brace_quote !== 0) {
+											if (
+												inner === CharCode.backslash &&
+												this.input.charCodeAt(cursor - 1) !== CharCode.backslash
+											) {
+												cursor += 2;
+												continue;
+											}
+											if (inner === brace_quote) brace_quote = 0;
+											cursor++;
+											continue;
+										}
+										if (
+											inner === CharCode.singleQuote ||
+											inner === CharCode.doubleQuote ||
+											inner === CharCode.backtick
+										) {
+											brace_quote = inner;
+										} else if (inner === CharCode.openBrace) {
+											brace_depth++;
+										} else if (inner === CharCode.closeBrace) {
+											brace_depth--;
+										}
+										cursor++;
+									}
+									continue;
+								}
 								if (current === CharCode.greaterThan) {
 									self_closing = this.input.charCodeAt(cursor - 1) === CharCode.slash;
 									break;

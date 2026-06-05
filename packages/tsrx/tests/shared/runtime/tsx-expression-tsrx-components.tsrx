@@ -15,6 +15,7 @@ function ContentEditable(props: {
 }) {
 	return <>
 		const className = props.className ?? props.class ?? '';
+		---
 		<article class="tsrx-expression-editable">
 			<span class="tsrx-expression-editable-class">{className}</span>
 			<div class="tsrx-expression-inner-placeholder">{props.placeholder}</div>
@@ -43,6 +44,7 @@ export function TsrxInTsxExpressionApp() {
 				/>
 			</>;
 		}
+		---
 		{renderPlugin()}
 	</>;
 }
