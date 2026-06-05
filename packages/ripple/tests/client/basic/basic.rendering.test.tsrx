@@ -17,6 +17,7 @@ describe('basic client > rendering & text', () => {
 		function Basic() {
 			return <>
 				let message = 'Hello World';
+				---
 				<div>{message}</div>
 			</>;
 		}
@@ -30,6 +31,7 @@ describe('basic client > rendering & text', () => {
 		function Basic() {
 			return <>
 				let markup = '<span>Not HTML</span>';
+				---
 				<div>{markup}</div>
 			</>;
 		}
@@ -63,6 +65,7 @@ second</pre>
 		function Basic() {
 			return <>
 				<div>
+					---
 					x = 123
 				</div>
 			</>;
@@ -102,7 +105,9 @@ second</pre>
 				void leaked;
 			}
 
-			return <>{'Hello world'}</>;
+			return <>
+				{'Hello world'}
+			</>;
 		}
 
 		render(Basic);
@@ -285,11 +290,11 @@ second</pre>
 
 	it('renders bare JSX text in if-else branches', () => {
 		function App() {
-				return <>
-					let condition = false;
-					---
-					@if (condition) {
-						Hello Ripple
+			return <>
+				let condition = false;
+				---
+				@if (condition) {
+					Hello Ripple
 				} else {
 					Hello React
 				}
@@ -305,13 +310,12 @@ second</pre>
 		function Basic() {
 			return <>
 				let &[message] = track('Hello World');
+				---
 				<button
 					onClick={() => {
 						message = 'Hello Ripple';
 					}}
-				>
-					{'Change Text'}
-				</button>
+				>{'Change Text'}</button>
 				<div>{message}</div>
 			</>;
 		}
@@ -373,8 +377,13 @@ second</pre>
 				let test: Record<number, string> = {};
 				let counter = 0;
 				test[counter++] = 'Test';
-				<div>{JSON.stringify(test)}</div>
-				<div>{JSON.stringify(counter)}</div>
+				---
+				<div>
+					{JSON.stringify(test)}
+				</div>
+				<div>
+					{JSON.stringify(counter)}
+				</div>
 			</>;
 		}
 		render(Example);
@@ -388,24 +397,25 @@ second</pre>
 				let &[name] = track('World');
 				let &[count] = track(0);
 				const staticMessage = 'Welcome to Ripple!';
+				---
 				<div class="mixed-content">
 					<h1>{staticMessage}</h1>
-					<p class="greeting">{'Hello, ' + name + '!'}</p>
-					<p class="notifications">{'You have ' + count + ' notifications'}</p>
+					<p class="greeting">
+						{'Hello, ' + name + '!'}
+					</p>
+					<p class="notifications">
+						{'You have ' + count + ' notifications'}
+					</p>
 					<button
 						onClick={() => {
 							count++;
 						}}
-					>
-						{'Add Notification'}
-					</button>
+					>{'Add Notification'}</button>
 					<button
 						onClick={() => {
 							name = name === 'World' ? 'User' : 'World';
 						}}
-					>
-						{'Toggle Name'}
-					</button>
+					>{'Toggle Name'}</button>
 				</div>
 			</>;
 		}
@@ -436,6 +446,7 @@ second</pre>
 				let &[count] = track(0);
 				const a = count++;
 				const b = ++count;
+				---
 				<div>{a}</div>
 				<div>{b}</div>
 				<div>{5}</div>
@@ -452,20 +463,17 @@ second</pre>
 			return <>
 				let &[showContent] = track(false);
 				let &[userRole] = track('guest');
+				---
 				<button
 					onClick={() => {
 						showContent = !showContent;
 					}}
-				>
-					{'Toggle Content'}
-				</button>
+				>{'Toggle Content'}</button>
 				<button
 					onClick={() => {
 						userRole = userRole === 'guest' ? 'admin' : 'guest';
 					}}
-				>
-					{'Toggle Role'}
-				</button>
+				>{'Toggle Role'}</button>
 				<div class="content">
 					@if (showContent) {
 						@if (userRole === 'admin') {
@@ -508,9 +516,7 @@ second</pre>
 		function App() {
 			let sectionData = 'Nested scope variable';
 			return <>
-				<section>
-					{sectionData}
-				</section>
+				<section>{sectionData}</section>
 			</>;
 		}
 
@@ -557,9 +563,16 @@ second</pre>
 					}
 				}
 				const reader = new Reader();
-				<div class="block-function">{readFunction()}</div>
-				<div class="block-arrow">{readArrow()}</div>
-				<div class="block-method">{reader.read()}</div>
+				---
+				<div class="block-function">
+					{readFunction()}
+				</div>
+				<div class="block-arrow">
+					{readArrow()}
+				</div>
+				<div class="block-method">
+					{reader.read()}
+				</div>
 			</>;
 		}
 
@@ -578,7 +591,6 @@ second</pre>
 		function App() {
 			return <>
 				const Something = conditional('a');
-				<Something />
 				function conditional(item: 'a') {
 					let hello = 'Hello';
 					const obj = {
@@ -595,6 +607,8 @@ second</pre>
 
 					return obj[item];
 				}
+				---
+				<Something />
 			</>;
 		}
 
@@ -607,6 +621,7 @@ second</pre>
 		function App() {
 			return <>
 				let name = 'World';
+				---
 				<div>
 					{'Hello'}
 					{' '}
