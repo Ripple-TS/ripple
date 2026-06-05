@@ -1,80 +1,73 @@
 import { highlight_tsrx } from '../lib/code-highlight.ts';
 
 const SNIPPET_HTML = highlight_tsrx(
-	`export const Greeting = ({ name }: { name?: string }) => <>
-  <div class="card">
-    @if (name) {
-      <p>Hello, {name}</p>
-    } else {
-      <p>Hello, stranger</p>
-    }
-  </div>
+	`export const Greeting = ({ name }: { name?: string }) => @{
+  const message = name ? \`Hello, \${name}\` : 'Hello, stranger';
 
-  <style>
-    .card { padding: 1rem; }
-  </style>
-</>;`,
+  <>
+    <div class="card">
+      <p>{message}</p>
+    </div>
+
+    <style>
+      .card { padding: 1rem; }
+    </style>
+  </>
+};`,
 );
 
 const REACT_HOOKS_HTML = highlight_tsrx(
-	`const Profile = ({ userId }: { userId: string | null }) => <>
-  @if (userId) {
-    const user = useUser(userId);
+	`const Profile = ({ userId }: { userId: string | null }) => @if (userId) {
+  const user = useUser(userId);
 
-    <h1>{user.name}</h1>
-  } else {
-    <a href="/login">Sign in</a>
-  }
-</>;`,
+  <h1>{user.name}</h1>
+} else {
+  <a href="/login">Sign in</a>
+};`,
 );
 
 const SOLID_LAZY_HTML = highlight_tsrx(
-	`const Counter = (&{ count, label }: Props) => <>
+	`const Counter = (&{ count, label }: Props) =>
   <section>
     <h2>{label}</h2>
     <p>Count: {count}</p>
-  </section>
-</>;`,
+  </section>;`,
 );
 
 const INLINE_LOCALS_HTML = highlight_tsrx(
-	`const Cart = ({ items }: { items: Item[] }) => <>
-  <div>
-    const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-    const discount = subtotal > 100 ? 0.1 : 0;
+	`const Cart = ({ items }: { items: Item[] }) => @{
+  const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+  const discount = subtotal > 100 ? 0.1 : 0;
 
-    <>
-      <h2>Your cart</h2>
-      <p>Subtotal: \${subtotal}</p>
-      <p>Save: \${(subtotal * discount).toFixed(2)}</p>
-    </>
+  <div>
+    <h2>Your cart</h2>
+    <p>Subtotal: \${subtotal}</p>
+    <p>Save: \${(subtotal * discount).toFixed(2)}</p>
   </div>
-</>;`,
+};`,
 );
 
 const COLOCATION_HTML = highlight_tsrx(
-	`const UserList = ({ users, showBio }: Props) => <>
-  @for (const user of users) {
-    const initials = user.name.slice(0, 2).toUpperCase();
-    const role = user.admin ? 'Admin' : 'Member';
+	`const UserList = ({ users, showBio }: Props) => @for (const user of users) {
+  const initials = user.name.slice(0, 2).toUpperCase();
+  const role = user.admin ? 'Admin' : 'Member';
 
-    <div class="user-row">
-      <span class="avatar">{initials}</span>
-      <strong>{user.name}</strong>
-      <span class="badge">{role}</span>
+  <div class="user-row">
+    <span class="avatar">{initials}</span>
+    <strong>{user.name}</strong>
+    <span class="badge">{role}</span>
 
-      @if (showBio && user.bio) {
-        const short_bio = user.bio.slice(0, 140);
-        const report = () => console.log('viewed ' + user.name);
+    @if (showBio && user.bio) {
+      const short_bio = user.bio.slice(0, 140);
+      const report = () => console.log('viewed ' + user.name);
 
-        <div class="bio-detail">
-          <p class="bio">{short_bio}</p>
-          <button onClick={report}>Viewed</button>
-        </div>
-      }
-    </div>
-  }
-</>;`,
+      <div class="bio-detail">
+        <p class="bio">{short_bio}</p>
+        <button onClick={report}>Viewed</button>
+      </div>
+    }
+  </div>
+};`,
 );
 
 export const IndexPage = () => <>
@@ -124,7 +117,7 @@ export const IndexPage = () => <>
 				</pre>
 				<p
 					class="section-body what-is-copy"
-				>You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and locals sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.</p>
+				>You can think of TSRX as a spiritual successor to JSX — the same mental model of embedding UI directly inside TypeScript, but with its own flavor. Control flow, scoped styles, and statement containers sit in the template as first-class syntax instead of being squeezed through expression slots, and the language stays aware of them through to the compiled output.</p>
 				<p class="section-body what-is-copy">
 					TSRX is framework-agnostic and interoperable. Today it compiles to React, Preact, Ripple, Solid, and Vue, with room for more targets over time. You can import
 					<code class="inline-code">.tsrx</code>
@@ -190,7 +183,7 @@ export const IndexPage = () => <>
 					class="section-body"
 				>TSRX takes care of the awkward parts each framework asks you to work around. Patterns that are natural to write — but fragile or illegal in the target runtime — get rewritten at compile time into the exact shape React, Preact, Solid, Ripple, or Vue expects. The source stays readable for humans and predictable for language models; the compiler handles the footguns.</p>
 				<p class="section-body">
-					React hooks can be called conditionally. The compiler lifts the conditional branch into its own component so the rules of hooks are satisfied by construction — no more manually splitting components just to gate a
+					React hooks can be called conditionally inside JSX control-flow expressions. The compiler lifts the conditional branch into its own component so the rules of hooks are satisfied by construction — no more manually splitting components just to gate a
 					<code class="inline-code">useUser(...)</code>
 					call behind an
 					<code class="inline-code">if</code>
@@ -211,7 +204,7 @@ export const IndexPage = () => <>
 				</pre>
 				<p
 					class="section-body"
-				>Locals can live next to the JSX that uses them. Variables declared mid-template stay scoped to their surrounding block, so derived values sit beside the markup they feed instead of piling up at the top of the component. Concerns stay together; readers (and LLMs) do less bookkeeping to follow the data flow.</p>
+				>Locals can live next to the JSX that uses them. A statement container starts with TypeScript setup and ends with one output node, so derived values sit beside the markup they feed instead of piling up at the top of the component. Concerns stay together; readers (and LLMs) do less bookkeeping to follow the data flow.</p>
 				<pre class="code-block">
 					<code innerHTML={INLINE_LOCALS_HTML} />
 				</pre>

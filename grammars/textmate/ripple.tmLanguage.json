@@ -283,13 +283,13 @@
           "name": "keyword.control.directive.tsrx"
         },
         "2": {
-          "name": "punctuation.section.block.begin.js"
+          "name": "keyword.control.directive.tsrx"
         }
       },
       "end": "(\\})",
       "endCaptures": {
         "1": {
-          "name": "punctuation.section.block.end.js"
+          "name": "keyword.control.directive.tsrx"
         }
       },
       "patterns": [

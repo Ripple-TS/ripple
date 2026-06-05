@@ -1,37 +1,35 @@
 import { highlight_tsrx } from '../lib/code-highlight.ts';
 
-const FRAGMENT_COMPONENT_BODY_HTML = highlight_tsrx(
+const STATEMENT_CONTAINER_COMPONENT_BODY_HTML = highlight_tsrx(
 	`type ProductCardProps = {
   product: Product;
 };
 
-const ProductCard = ({ product }: ProductCardProps): JSX.Element => <>@{
+const ProductCard = ({ product }: ProductCardProps): JSX.Element => @{
   const price = formatCurrency(product.price);
 
   <article>
     <h2>{product.name}</h2>
     <p>{price}</p>
   </article>
-}</>;`,
+};`,
 );
 
 const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
-	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => <>
-  @try {
-    const activity = result.value;
-    const latest = activity[0];
+	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => @try {
+  const activity = result.value;
+  const latest = activity[0];
 
-    @if (latest) {
-      <ActivityCard activity={latest} />
-    } else {
-      <p>No activity yet</p>
-    }
-  } pending {
-    <p>Loading activity...</p>
-  } catch (error) {
-    <p>{getErrorMessage(error)}</p>
+  @if (latest) {
+    <ActivityCard activity={latest} />
+  } else {
+    <p>No activity yet</p>
   }
-</>;`,
+} pending {
+  <p>Loading activity...</p>
+} catch (error) {
+  <p>{getErrorMessage(error)}</p>
+};`,
 );
 
 const JSX_CONTROL_FLOW_LOOP_HTML = highlight_tsrx(
@@ -48,18 +46,16 @@ const JSX_CONTROL_FLOW_LOOP_HTML = highlight_tsrx(
 );
 
 const MULTIPLE_CONTROL_FLOW_CHILDREN_HTML = highlight_tsrx(
-	`const Profile = ({ user }: ProfileProps): JSX.Element => <>
-  @if (user) {
-    const displayName = user.name.trim();
+	`const Profile = ({ user }: ProfileProps): JSX.Element => @if (user) {
+  const displayName = user.name.trim();
 
-    <>
-      <h2>{displayName}</h2>
-      <p>{user.bio}</p>
-    </>
-  } else {
-    <a href="/login">Sign in</a>
-  }
-</>;`,
+  <>
+    <h2>{displayName}</h2>
+    <p>{user.bio}</p>
+  </>
+} else {
+  <a href="/login">Sign in</a>
+};`,
 );
 
 const JSX_COMMENTS_HTML = highlight_tsrx(
@@ -74,15 +70,15 @@ const JSX_COMMENTS_HTML = highlight_tsrx(
 );
 
 const JSX_STATEMENT_CONTAINER_HTML = highlight_tsrx(
-	`<div>@{
+	`const App = (): JSX.Element => @{
   const message = formatMessage(user);
 
   <p>{message}</p>
-}</div>`,
+};`,
 );
 
 const JSX_STATEMENT_CONTAINER_RULES_HTML = highlight_tsrx(
-	`<div>@{
+	`const App = (): JSX.Element => @{
   const title = getTitle();
 
   // Text and multiple children are wrapped in one fragment.
@@ -90,7 +86,7 @@ const JSX_STATEMENT_CONTAINER_RULES_HTML = highlight_tsrx(
     Plain text goes in a fragment.
     <h2>{title}</h2>
   </>
-}</div>`,
+};`,
 );
 
 const ASSIGNED_JSX_CONTROL_FLOW_HTML = highlight_tsrx(
@@ -123,7 +119,7 @@ export function BlogRethinkingTsrxPage() {
 			<title>Rethinking TSRX | TSRX Blog</title>
 			<meta
 				name="description"
-				content="TSRX is leaning back into JSX: regular JSX text, expressions, comments, explicit @{...} statement blocks, and @if, @switch, @try, and @for for template control flow."
+				content="TSRX is leaning back into JSX: regular JSX text, expressions, comments, @{...} statement containers, and @if, @switch, @try, and @for for template control flow."
 			/>
 		</head>
 		<div class="app-shell">
@@ -165,7 +161,7 @@ export function BlogRethinkingTsrxPage() {
 							, covered the first big correction: components became ordinary functions, returns became ordinary returns, and TSRX values became easier to store, pass, and type. That change moved TSRX closer to TypeScript and JSX. This post is about the next correction: making sure the specialized parts of TSRX no longer look like native JavaScript by accident.
 						</p>
 						<p>
-							The feedback was consistent. People could not always tell the difference between JavaScript that ran as normal component logic and JavaScript-shaped syntax that meant "create this UI." The old control flow looked too much like native
+							The feedback was consistent. People could not always tell the difference between JavaScript that ran as normal component logic and JavaScript-shaped syntax that meant "create this UI." Earlier control flow looked too much like native
 							<code>if</code>
 							,
 							<code>switch</code>
@@ -216,7 +212,7 @@ export function BlogRethinkingTsrxPage() {
 							<code>
 								{'@{...}'}
 							</code>
-							. It is a small upgrade for the moments where a child needs a couple of local statements before it renders.
+							. It is a small upgrade for the moments where you need a couple of local statements before producing one template value. That value might be a component body, an assigned value, or a child inside another element.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={JSX_STATEMENT_CONTAINER_HTML} />
@@ -229,10 +225,10 @@ export function BlogRethinkingTsrxPage() {
 						<pre class="code-block">
 							<code innerHTML={JSX_STATEMENT_CONTAINER_RULES_HTML} />
 						</pre>
-						<h2>Fragments as component bodies</h2>
-						<p>Most TSRX components can be ordinary arrow functions that return a fragment. When the body needs a local value before rendering, put that setup inside a statement container and finish with the one JSX node the component should produce.</p>
+						<h2>Statement containers as component bodies</h2>
+						<p>Most TSRX components can return JSX directly. When the body needs local setup before rendering, return a statement container directly instead of wrapping it in an empty fragment. Fragments are still there for real multiple-child output; they just are not ceremony.</p>
 						<pre class="code-block">
-							<code innerHTML={FRAGMENT_COMPONENT_BODY_HTML} />
+							<code innerHTML={STATEMENT_CONTAINER_COMPONENT_BODY_HTML} />
 						</pre>
 						<h2>JSX control flow</h2>
 						<p>

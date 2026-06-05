@@ -475,7 +475,9 @@ export function SpecificationPage() {
 							</p>
 							<p class="section-body">
 								Plain JSX children are the default. When an element or fragment child needs local TypeScript statements before rendering, those statements must be contained in a JSX statement container written as 
-								<code class="inline-code">@{...}</code>
+								<code class="inline-code">
+									{'@{...}'}
+								</code>
 								. A statement container places setup statements first and then exactly one output node: a JSX element, JSX fragment, or JSX control-flow expression. If the output needs text, expression containers, or multiple siblings after setup, wrap them in a JSX fragment.
 							</p>
 							<p class="section-body">
@@ -503,7 +505,9 @@ export function SpecificationPage() {
 									 .
 								</li>
 								<li>
-									<code class="inline-code">@{...}</code>
+									<code class="inline-code">
+										{'@{...}'}
+									</code>
 									 is the template statement form and is represented by 
 									<code class="inline-code">JSXStatementContainer</code>
 									 .
@@ -528,7 +532,9 @@ export function SpecificationPage() {
 								</li>
 								<li>
 									The statement-container introducer must be written as the contiguous sequence 
-									<code class="inline-code">@{</code>
+									<code class="inline-code">
+										{'@{'}
+									</code>
 									. Whitespace between 
 									<code class="inline-code">@</code>
 									 and 

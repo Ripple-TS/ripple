@@ -42,7 +42,7 @@ export function BlogPage() {
 									href="/blog/rethinking-tsrx"
 								>Rethinking TSRX</a>
 							</h2>
-							<p>TSRX leans back into JSX: regular text, expression braces, comments, explicit statement blocks, and marked control flow only where templates need it.</p>
+							<p>TSRX leans back into JSX: regular text, expression braces, comments, statement-container component bodies, and marked control flow only where templates need it.</p>
 							<a
 								class="read-link"
 								href="/blog/rethinking-tsrx"

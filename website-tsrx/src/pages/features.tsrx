@@ -23,7 +23,7 @@ const COMPONENT_HTML = highlight_tsrx(
 );
 
 const BAILOUT_HTML = highlight_tsrx(
-	`export const Counter = () => <>
+	`export const Counter = () => @{
   let count = 0;
 
   // Plain JS/TS control flow can live in nested functions.
@@ -36,18 +36,18 @@ const BAILOUT_HTML = highlight_tsrx(
   };
 
   <button onClick={increment}>Count: {count}</button>
-</>;`,
+};`,
 );
 
 const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
-	`const ProductCard = ({ product }: { product: Product }) => <>
+	`const ProductCard = ({ product }: { product: Product }) => @{
   const name = product.name.trim();
   const price = money(product.price);
 
   <article>
     <h2>{name}</h2>
 
-    <footer>
+    <footer>@{
       const hasDiscount = product.discount > 0;
 
       <>
@@ -56,13 +56,13 @@ const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
           <span>Sale</span>
         }
       </>
-    </footer>
+    }</footer>
   </article>
-</>;`,
+};`,
 );
 
 const COMMENTS_HTML = highlight_tsrx(
-	`const Menu = ({ showAdmin }: { showAdmin: boolean }) => <>
+	`const Menu = ({ showAdmin }: { showAdmin: boolean }) =>
   <nav>
     // Comments can sit between template children.
     <a href="/">Home</a>
@@ -71,74 +71,63 @@ const COMMENTS_HTML = highlight_tsrx(
       // Branch comments are allowed too.
       <a href="/admin">Admin</a>
     }
-  </nav>
-</>;`,
+  </nav>;`,
 );
 
 const IF_HTML = highlight_tsrx(
-	`const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => <>
-  <div>
-    @if (status === 'active') {
-      <span class="badge active">Online</span>
-    } else if (status === 'idle') {
-      <span class="badge idle">Away</span>
-    } else {
-      <span class="badge">Offline</span>
-    }
-  </div>
-</>;`,
+	`const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) =>
+  @if (status === 'active') {
+    <span class="badge active">Online</span>
+  } else if (status === 'idle') {
+    <span class="badge idle">Away</span>
+  } else {
+    <span class="badge">Offline</span>
+  };`,
 );
 
 const FOR_HTML = highlight_tsrx(
-	`const TodoList = ({ items }: { items: Todo[] }) => <>
+	`const TodoList = ({ items }: { items: Todo[] }) =>
   <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
 
       <li>{i + 1}. {item.text}</li>
     }
-  </ul>
-</>;`,
+  </ul>;`,
 );
 
 const TRY_HTML = highlight_tsrx(
-	`const SafeProfile = ({ userId }: { userId: string }) => <>
-  @try {
-    <UserProfile id={userId} />
-  } catch (error) {
-    <div class="error">
-      <p>Something went wrong.</p>
-    </div>
-  }
-</>;`,
+	`const SafeProfile = ({ userId }: { userId: string }) => @try {
+  <UserProfile id={userId} />
+} catch (error) {
+  <div class="error">
+    <p>Something went wrong.</p>
+  </div>
+};`,
 );
 
 const TRY_RESET_HTML = highlight_tsrx(
-	`export const RetryBoundary = () => <>
-  @try {
-    <ComponentThatMightFail />
-  } catch (e, reset) {
-    <div>
-      <p>Error: {e.message}</p>
-      <button onClick={() => reset()}>Try again</button>
-    </div>
-  }
-</>;`,
+	`export const RetryBoundary = () => @try {
+  <ComponentThatMightFail />
+} catch (e, reset) {
+  <div>
+    <p>Error: {e.message}</p>
+    <button onClick={() => reset()}>Try again</button>
+  </div>
+};`,
 );
 
 const SWITCH_HTML = highlight_tsrx(
-	`const StatusMessage = ({ status }: { status: string }) => <>
-  @switch (status) {
-    case 'loading':
-      <p>Loading...</p>
-      break;
-    case 'success':
-      <p class="success">Done!</p>
-      break;
-    default:
-      <p>Unknown status.</p>
-  }
-</>;`,
+	`const StatusMessage = ({ status }: { status: string }) => @switch (status) {
+  case 'loading':
+    <p>Loading...</p>
+    break;
+  case 'success':
+    <p class="success">Done!</p>
+    break;
+  default:
+    <p>Unknown status.</p>
+};`,
 );
 
 const SHORTHAND_HTML = highlight_tsrx(
@@ -150,16 +139,16 @@ const SHORTHAND_HTML = highlight_tsrx(
 );
 
 const SCOPING_HTML = highlight_tsrx(
-	`const App = () => <>
+	`const App = () => @{
   const name = 'World';
 
-  <div>
+  <div>@{
     // This is a new scope - you can declare variables here
     const greeting = 'Hello, ' + name + '!';
 
     <h1>{greeting}</h1>
-  </div>
-</>;`,
+  }</div>
+};`,
 );
 
 const CHILDREN_HTML = highlight_tsrx(
@@ -174,27 +163,23 @@ const CHILDREN_HTML = highlight_tsrx(
 );
 
 const RENDER_PROPS_HTML = highlight_tsrx(
-	`const App = ({ items }: { items: Item[] }) => <>
-  const renderItem = (item: Item) => <>
-    <li>{item.label}</li>
-  </>;
+	`const App = ({ items }: { items: Item[] }) => @{
+  const renderItem = (item: Item) => <li>{item.label}</li>;
 
   <List items={items} render={renderItem} />
-</>;`,
+};`,
 );
 
 const ASYNC_BOUNDARY_HTML = highlight_tsrx(
 	`const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
-export const App = () => <>
-  @try {
-    <UserProfile id={1} />
-  } pending {
-    <p>Loading...</p>
-  } catch (e) {
-    <p>Something went wrong.</p>
-  }
-</>;`,
+export const App = () => @try {
+  <UserProfile id={1} />
+} pending {
+  <p>Loading...</p>
+} catch (e) {
+  <p>Something went wrong.</p>
+};`,
 );
 
 const SCOPED_STYLES_HTML = highlight_tsrx(
@@ -224,7 +209,7 @@ const STYLE_COMPOSITION_HTML = highlight_tsrx(
   </style>
 </>;
 
-const App = () => <>
+const App = () => @{
   const styles = <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
@@ -236,7 +221,7 @@ const App = () => <>
     // React component props:
     // <Badge className={styles.highlight} />
   </>
-</>;`,
+};`,
 );
 
 const MODULE_STYLE_COMPOSITION_HTML = highlight_tsrx(
@@ -261,7 +246,7 @@ export const ArticleCard = ({ title }: { title: string }) => <>
 const REACT_HOOKS_HTML = highlight_tsrx(
 	`import { useState, useEffect } from 'react';
 
-const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <>
+const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => @{
   if (!user) {
     return null;
   }
@@ -283,21 +268,20 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => <
       }
     </ul>
   </>
-</>;`,
+};`,
 );
 
 const LAZY_PROPS_HTML = highlight_tsrx(
-	`const UserCard = (&{ name, age }: { name: string; age: number }) => <>
+	`const UserCard = (&{ name, age }: { name: string; age: number }) =>
   <div>
     <h2>{name}</h2>
     <p>Age: {age}</p>
-  </div>
-</>;`,
+  </div>;`,
 );
 
 const NAV_ITEMS = [
 	{ id: 'components', label: 'Components' },
-	{ id: 'template-structure', label: 'Template structure' },
+	{ id: 'template-structure', label: 'Statement containers' },
 	{ id: 'comments', label: 'JS comments' },
 	{ id: 'lazy-destructuring', label: 'Lazy destructuring' },
 	{ id: 'prop-shorthands', label: 'Prop shorthands' },
@@ -317,7 +301,7 @@ export const FeaturesPage = () => <>
 		<title>TSRX | Features</title>
 		<meta
 			name="description"
-			content="TSRX language features: arrow components, fragment bodies, control flow, error boundaries, and more."
+			content="TSRX language features: arrow components, statement containers, JSX control flow, error boundaries, and more."
 		/>
 	</head>
 	<div class="app-shell">
@@ -380,17 +364,17 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Components</h2>
 						<p
 							class="section-body"
-						>A TSRX component is usually just a TypeScript arrow function that returns a fragment. Keep the setup code close to the markup, type props as the function parameter, and let the body read from top to bottom.</p>
+						>A TSRX component is usually just a TypeScript arrow function that returns JSX. Return a single element when that is all you need, return a fragment for real multiple-child output, and use a statement container when local setup belongs with the template.</p>
 						<p class="section-body">
-							In practice, most components end up as
+							In practice, components are ordinary
 							{' '}
 							<code class="inline-code">const</code>
 							{' '}
-							values with a
+							values. A setup-heavy component can return
 							{' '}
-							<code class="inline-code">{'<>...</>'}</code>
+							<code class="inline-code">{'@{...}'}</code>
 							{' '}
-							body. That gives you one place for local state, derived values, template control flow, rendered elements, and scoped styles.
+							directly, giving you one place for local state, derived values, template control flow, rendered elements, and scoped styles.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={COMPONENT_HTML} />
@@ -398,7 +382,7 @@ export const FeaturesPage = () => <>
 						<p class="section-body">
 							Export them like any other value:
 							{' '}
-							<code class="inline-code">{'export const Name = (...) => <>...</>'}</code>
+							<code class="inline-code">{'export const Name = (...) => <div />'}</code>
 							. The compiler turns that into the right component shape for the target you're using.
 						</p>
 						<p class="section-body">
@@ -416,13 +400,15 @@ export const FeaturesPage = () => <>
 						</pre>
 					</section>
 					<section class="doc-section" id="template-structure">
-						<h2 class="section-heading">Template structure</h2>
+						<h2 class="section-heading">Statement containers</h2>
 						<p class="section-body">
-							When a template scope mixes TypeScript setup with rendered output, setup comes first and the scope finishes with exactly one output node. That output can be a JSX element, a JSX fragment, or a JSX control-flow expression.
+							When a template scope mixes TypeScript setup with rendered output, wrap the setup in
+							<code class="inline-code">{'@{...}'}</code>
+							. Setup comes first and the container finishes with exactly one output node. That output can be a JSX element, a JSX fragment, or a JSX control-flow expression.
 						</p>
 						<p
 							class="section-body muted"
-						>If the rendered part needs multiple siblings, text, or a dynamic value, wrap it in a fragment. The rule applies locally to each element, fragment, and control-flow branch, so setup can stay close to the markup that uses it.</p>
+						>If the rendered part needs multiple siblings or text next to elements, wrap it in a fragment. The rule applies locally to component bodies, element children, and control-flow branches, so setup can stay close to the markup that uses it without becoming ambiguous JSX text.</p>
 						<pre class="code-block">
 							<code innerHTML={TEMPLATE_STRUCTURE_HTML} />
 						</pre>
@@ -476,12 +462,12 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Lexical scoping</h2>
 						<p
 							class="section-body"
-						>Every returned TSRX template and nested element creates its own lexical scope. You can declare variables, compute derived values, or call functions inside an element's children — they're scoped to that block and won't leak into the surrounding function.</p>
+						>Every statement container and control-flow block creates its own lexical scope. You can declare variables, compute derived values, or call functions there — they're scoped to that block and won't leak into the surrounding function.</p>
 						<pre class="code-block">
 							<code innerHTML={SCOPING_HTML} />
 						</pre>
 						<p class="section-body">
-							This applies to all block-like contexts: element children, component children, and control flow branches (
+							This applies to all block-like contexts: statement containers and control flow branches (
 							<code class="inline-code">@if</code>
 							,
 							<code class="inline-code">@for</code>
@@ -501,7 +487,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">else if</code>
 							/
 							<code class="inline-code">else</code>
-							template expressions directly inside templates. Branches render their template output, while ordinary
+							template expressions directly inside templates, or return them directly from a component. Branches render their template output, while ordinary
 							<code class="inline-code">if</code>
 							statements in setup stay plain JavaScript.
 						</p>
@@ -525,7 +511,9 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">continue</code>
 							inside a template
 							<code class="inline-code">@for</code>
-							body to skip the current item.
+							body to skip the current item, like returning
+							<code class="inline-code">null</code>
+							for that iteration.
 							<code class="inline-code">return</code>
 							exits the enclosing function, while direct children render the current iteration.
 							<code class="inline-code">break</code>
@@ -611,7 +599,7 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">pending</code>
 							and
 							<code class="inline-code">catch</code>
-							are optional and can be used independently. Each branch renders its direct template children.
+							are optional and can be used independently. Each branch follows the same setup-then-one-output rule as a statement container.
 						</p>
 						<p class="section-body">
 							Async work itself is expressed using the target's own lazy-loading primitive —
@@ -701,8 +689,8 @@ export const FeaturesPage = () => <>
 							<code class="inline-code">@tsrx/react</code>
 							or Preact with
 							<code class="inline-code">@tsrx/preact</code>
-							, hooks that appear in conditional, loop, switch, try, or returned-template
-							<code class="inline-code">{'<>...</>'}</code>
+							, hooks that appear in conditional, loop, switch, try, or statement-container
+							<code class="inline-code">{'@{...}'}</code>
 							scopes are isolated behind generated child components when the compiler can do so safely. Hook callbacks may read outer values and mutate branch-local or module-level bindings, but assigning hook results or mutating a parent binding across the generated component boundary is a compiler error. Move that state into an explicit child component when values need to cross the boundary.
 						</p>
 						<p class="section-body">

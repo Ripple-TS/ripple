@@ -76,60 +76,52 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => <>
-  <div>
-    @if (status === 'active') {
-      <span class="badge active">Online</span>
-    } else if (status === 'idle') {
-      <span class="badge idle">Away</span>
-    } else {
-      <span class="badge">Offline</span>
-    }
-  </div>
-</>;`,
+		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) =>
+  @if (status === 'active') {
+    <span class="badge active">Online</span>
+  } else if (status === 'idle') {
+    <span class="badge idle">Away</span>
+  } else {
+    <span class="badge">Offline</span>
+  };`,
 	},
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const TodoList = ({ items }: { items: { text: string }[] }) => <>
+		source: `const TodoList = ({ items }: { items: { text: string }[] }) =>
   <ul>
     @for (const item of items; index i) {
       <li>{i + 1}. {item.text}</li>
     }
-  </ul>
-</>;`,
+  </ul>;`,
 	},
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusMessage = ({ status }: { status: string }) => <>
-  @switch (status) {
-    case 'loading':
-      <p>Loading...</p>
-      break;
-    case 'success':
-      <p class="success">Done!</p>
-      break;
-    default:
-      <p>Unknown status.</p>
-  }
-</>;`,
+		source: `const StatusMessage = ({ status }: { status: string }) => @switch (status) {
+  case 'loading':
+    <p>Loading...</p>
+    break;
+  case 'success':
+    <p class="success">Done!</p>
+    break;
+  default:
+    <p>Unknown status.</p>
+};`,
 	},
 	{
 		value: 'error-boundary',
 		label: 'Error boundary',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const SafeProfile = ({ userId }: { userId: string }) => <>
-  @try {
-    <UserProfile id={userId} />
-  } catch (error) {
-    <div class="error">
-      <p>Something went wrong.</p>
-    </div>
-  }
-</>;`,
+		source: `const SafeProfile = ({ userId }: { userId: string }) => @try {
+  <UserProfile id={userId} />
+} catch (error) {
+  <div class="error">
+    <p>Something went wrong.</p>
+  </div>
+};`,
 	},
 	{
 		value: 'async-boundary',
@@ -137,13 +129,11 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => <>
-  @try {
-    <AsyncProfile />
-  } pending {
-    <p class="pending">Loading profile...</p>
-  }
-</>;`,
+export const App = () => @try {
+  <AsyncProfile />
+} pending {
+  <p class="pending">Loading profile...</p>
+};`,
 	},
 	{
 		value: 'async-boundary-error',
@@ -151,15 +141,13 @@ export const App = () => <>
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => <>
-  @try {
-    <AsyncProfile />
-  } pending {
-    <p class="pending">Loading profile...</p>
-  } catch (error) {
-    <p class="error">{(error as Error).message}</p>
-  }
-</>;`,
+export const App = () => @try {
+  <AsyncProfile />
+} pending {
+  <p class="pending">Loading profile...</p>
+} catch (error) {
+  <p class="error">{(error as Error).message}</p>
+};`,
 	},
 	{
 		value: 'scoped-styles',
@@ -188,7 +176,7 @@ export const App = () => <>
 		targets: ['vue'],
 		source: `import { ref } from 'vue';
 
-const App = () => <>
+const App = () => @{
   const count = ref(0);
 
   <main>
@@ -196,7 +184,7 @@ const App = () => <>
     <p>This is a minimal Vue-compatible TSRX snippet.</p>
     <button onClick={() => count.value++}>Count: {count.value}</button>
   </main>
-</>;
+};
 
 export default App;`,
 	},
@@ -206,7 +194,7 @@ export default App;`,
 		targets: ['react'],
 		source: `import { useEffect, useState } from 'react';
 
-export const App = () => <>
+export const App = () => @{
   const [tab, setTab] = useState('overview');
   const posts = [
     { title: 'Compiler update' },
@@ -230,7 +218,7 @@ export const App = () => <>
       }
     </ul>
   </>
-</>;`,
+};`,
 	},
 	{
 		value: 'nested-preact-hooks',
@@ -238,7 +226,7 @@ export const App = () => <>
 		targets: ['preact'],
 		source: `import { useEffect, useState } from 'preact/hooks';
 
-export const App = () => <>
+export const App = () => @{
   const [tab, setTab] = useState('overview');
   const posts = [
     { title: 'Compiler update' },
@@ -262,6 +250,6 @@ export const App = () => <>
       }
     </ul>
   </>
-</>;`,
+};`,
 	},
 ];

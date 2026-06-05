@@ -8837,7 +8837,7 @@
 				<key>2</key>
 				<dict>
 					<key>name</key>
-					<string>punctuation.section.block.begin.js</string>
+					<string>keyword.control.directive.tsrx</string>
 				</dict>
 			</dict>
 			<key>contentName</key>
@@ -8849,7 +8849,7 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>punctuation.section.block.end.js</string>
+					<string>keyword.control.directive.tsrx</string>
 				</dict>
 			</dict>
 			<key>name</key>

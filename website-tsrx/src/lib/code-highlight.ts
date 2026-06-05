@@ -44,6 +44,7 @@ const TEMPLATE_CONTROL_DIRECTIVES = new Set(['@if', '@for', '@switch', '@try']);
 type TemplateBlockState = {
 	brace_depth: number;
 	restore_jsx_text_depth: number;
+	statement_container?: boolean;
 };
 
 function escape_html(value: string): string {
@@ -315,11 +316,12 @@ function highlight_code_line(
 
 			if (char === '@' && next === '{') {
 				html += span('kw', '@');
-				html += span('br', '{');
+				html += span('kw', '{');
 				index += 2;
 				template_block_stack.push({
 					brace_depth: 1,
 					restore_jsx_text_depth: jsx_text_depth,
+					statement_container: true,
 				});
 				jsx_text_depth = 0;
 				jsx_expression_depth = 0;
@@ -432,14 +434,13 @@ function highlight_code_line(
 
 		if (char === '@' && next === '{') {
 			html += span('kw', '@');
-			html += span('br', '{');
+			html += span('kw', '{');
 			index += 2;
-			if (jsx_text_depth > 0) {
-				template_block_stack.push({
-					brace_depth: 1,
-					restore_jsx_text_depth: jsx_text_depth,
-				});
-			}
+			template_block_stack.push({
+				brace_depth: 1,
+				restore_jsx_text_depth: jsx_text_depth,
+				statement_container: true,
+			});
 			previous_keyword = '';
 			continue;
 		}
@@ -479,6 +480,14 @@ function highlight_code_line(
 		} else if (char === '}' && template_block_stack.length > 0) {
 			const template_block = template_block_stack[template_block_stack.length - 1];
 			template_block.brace_depth--;
+			if (template_block.brace_depth === 0 && template_block.statement_container) {
+				html += span('kw', char);
+				index++;
+				previous_keyword = '';
+				const finished_block = template_block_stack.pop()!;
+				jsx_text_depth = finished_block.restore_jsx_text_depth;
+				continue;
+			}
 		}
 
 		if ('{}()[]'.includes(char)) {
@@ -521,8 +530,6 @@ export function highlight_tsrx(source: string): string {
 
 			if (in_style || entering_style) {
 				html = highlight_css_line(line);
-				jsx_text_depth = 0;
-				template_block_stack.length = 0;
 			} else {
 				const highlighted = highlight_code_line(line, jsx_text_depth, template_block_stack);
 				html = highlighted.html;
