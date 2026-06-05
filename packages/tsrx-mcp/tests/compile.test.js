@@ -415,6 +415,7 @@ describe('@tsrx/mcp compile helpers', () => {
 				while (i < 3) {
 					i++;
 				}
+				---
 				<div>{i}</div>
 			</>; }`,
 			filename: 'App.tsrx',

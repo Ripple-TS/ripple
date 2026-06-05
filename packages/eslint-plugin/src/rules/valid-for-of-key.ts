@@ -15,91 +15,97 @@ const rule: Rule.RuleModule = {
 		schema: [],
 	},
 	create(context) {
-		return {
-			ForOfStatement(node: AST.ForOfStatement) {
-				if (!node.key) {
-					return;
+		const checkForOfKey = (node: AST.ForOfStatement) => {
+			if (!node.key) {
+				return;
+			}
+
+			const checkIdentifier = (identifier: AST.Identifier) => {
+				const scope = context.sourceCode.getScope(node);
+				const variable = findVariable(scope, identifier.name);
+
+				if (!variable) {
+					context.report({
+						node: identifier,
+						messageId: 'undefinedVariable',
+						data: {
+							name: identifier.name,
+						},
+					});
 				}
+			};
 
-				const checkIdentifier = (identifier: AST.Identifier) => {
-					const scope = context.sourceCode.getScope(node);
-					const variable = findVariable(scope, identifier.name);
+			const traverse = (node: AST.Node) => {
+				if (!node) return;
 
-					if (!variable) {
-						context.report({
-							node: identifier,
-							messageId: 'undefinedVariable',
-							data: {
-								name: identifier.name,
-							},
-						});
-					}
-				};
+				switch (node.type) {
+					case 'Identifier':
+						checkIdentifier(node);
 
-				const traverse = (node: AST.Node) => {
-					if (!node) return;
+						break;
+					case 'MemberExpression':
+						traverse(node.object);
 
-					switch (node.type) {
-						case 'Identifier':
-							checkIdentifier(node);
+						if (node.computed) {
+							traverse(node.property);
+						}
 
-							break;
-						case 'MemberExpression':
-							traverse(node.object);
+						break;
+					case 'BinaryExpression':
+					case 'LogicalExpression':
+						traverse(node.left);
+						traverse(node.right);
 
-							if (node.computed) {
-								traverse(node.property);
-							}
+						break;
+					case 'UnaryExpression':
+						traverse(node.argument);
 
-							break;
-						case 'BinaryExpression':
-						case 'LogicalExpression':
-							traverse(node.left);
-							traverse(node.right);
+						break;
+					case 'CallExpression':
+						traverse(node.callee);
+						node.arguments.forEach(traverse);
 
-							break;
-						case 'UnaryExpression':
-							traverse(node.argument);
+						break;
+					case 'ArrayExpression':
+						(node.elements as (AST.Expression | AST.SpreadElement)[]).forEach(traverse);
 
-							break;
-						case 'CallExpression':
-							traverse(node.callee);
-							node.arguments.forEach(traverse);
-
-							break;
-						case 'ArrayExpression':
-							(node.elements as (AST.Expression | AST.SpreadElement)[]).forEach(traverse);
-
-							break;
-						case 'ObjectExpression':
-							node.properties.forEach((prop: AST.Property | AST.SpreadElement) => {
-								if (prop.type === 'Property') {
-									if (prop.computed) {
-										traverse(prop.key);
-									}
-
-									traverse(prop.value);
-								} else if (prop.type === 'SpreadElement') {
-									traverse(prop.argument);
+						break;
+					case 'ObjectExpression':
+						node.properties.forEach((prop: AST.Property | AST.SpreadElement) => {
+							if (prop.type === 'Property') {
+								if (prop.computed) {
+									traverse(prop.key);
 								}
-							});
 
-							break;
-						case 'ConditionalExpression':
-							traverse(node.test);
-							traverse(node.consequent);
-							traverse(node.alternate);
+								traverse(prop.value);
+							} else if (prop.type === 'SpreadElement') {
+								traverse(prop.argument);
+							}
+						});
 
-							break;
-						case 'TemplateLiteral':
-							node.expressions.forEach(traverse);
+						break;
+					case 'ConditionalExpression':
+						traverse(node.test);
+						traverse(node.consequent);
+						traverse(node.alternate);
 
-							break;
-					}
-				};
+						break;
+					case 'TemplateLiteral':
+						node.expressions.forEach(traverse);
 
-				traverse(node.key);
-			},
+						break;
+				}
+			};
+
+			traverse(node.key);
+		};
+
+		// `@for (... ; key X)` loops parse to `JSXForExpression`, while the bare
+		// `for (... ; key X)` form parses to `ForOfStatement`. Both carry the same
+		// `key` shape, so validate either node type.
+		return {
+			ForOfStatement: checkForOfKey,
+			JSXForExpression: checkForOfKey,
 		};
 	},
 };
