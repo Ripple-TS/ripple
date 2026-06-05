@@ -1029,14 +1029,7 @@ export function TSRXPlugin(config) {
 
 			#parseTemplateRawText() {
 				const start = this.start;
-				let index = start;
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
-						break;
-					}
-					index++;
-				}
+				const index = this.#templateRawTextEnd(start);
 
 				const endLoc = acorn.getLineInfo(this.input, index);
 				const node = /** @type {ESTreeJSX.JSXText} */ (this.startNodeAt(start, this.startLoc));
@@ -1130,8 +1123,7 @@ export function TSRXPlugin(config) {
 				return next !== CharCode.equals && next !== CharCode.greaterThan;
 			}
 
-			#switchCaseLabelStart() {
-				let index = this.start;
+			#switchCaseLabelStart(index = this.start) {
 				while (index < this.input.length) {
 					const ch = this.input.charCodeAt(index);
 					if (
@@ -1378,8 +1370,17 @@ export function TSRXPlugin(config) {
 				if (current_context_token === '<tag' || current_context_token === '</tag') {
 					return false;
 				}
+				if (this.labels.some((label) => label.kind === 'switch')) {
+					return false;
+				}
 				const current_template_node = this.#currentNativeTemplateNode();
 				if (!current_template_node || this.#isJSXControlFlowDirectiveAt(this.pos)) {
+					return false;
+				}
+				if (this.#isTemplateLineCommentStart(this.pos)) {
+					return false;
+				}
+				if (this.#switchCaseLabelStart(this.pos) !== -1) {
 					return false;
 				}
 				if (this.input.charCodeAt(this.pos - 1) === CharCode.lessThan) {
@@ -1435,14 +1436,7 @@ export function TSRXPlugin(config) {
 
 			#readTemplateRawTextToken() {
 				const start = this.pos;
-				let index = start;
-				while (index < this.input.length) {
-					const ch = this.input.charCodeAt(index);
-					if (ch === CharCode.lessThan || ch === CharCode.openBrace || ch === CharCode.closeBrace) {
-						break;
-					}
-					index++;
-				}
+				const index = this.#templateRawTextEnd(start);
 
 				const endLoc = acorn.getLineInfo(this.input, index);
 				const value = this.input.slice(start, index);
@@ -1452,6 +1446,38 @@ export function TSRXPlugin(config) {
 				}
 				this.pos = index;
 				return this.finishToken(tstt.jsxText, value);
+			}
+
+			/**
+			 * @param {number} index
+			 */
+			#isTemplateLineCommentStart(index) {
+				return (
+					this.input.charCodeAt(index) === CharCode.slash &&
+					this.input.charCodeAt(index + 1) === CharCode.slash &&
+					this.#isLineStartPosition(index)
+				);
+			}
+
+			/**
+			 * @param {number} start
+			 */
+			#templateRawTextEnd(start) {
+				let index = start;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (
+						ch === CharCode.lessThan ||
+						ch === CharCode.openBrace ||
+						ch === CharCode.closeBrace ||
+						this.#isJSXControlFlowDirectiveAt(index) ||
+						this.#isTemplateLineCommentStart(index)
+					) {
+						break;
+					}
+					index++;
+				}
+				return index;
 			}
 
 			#isJSXControlFlowDirectiveAt(index) {
@@ -2471,6 +2497,16 @@ export function TSRXPlugin(config) {
 				this.#suppressTemplateRawTextToken = false;
 				const context = this.curContext();
 				if (
+					code !== CharCode.lessThan &&
+					code !== CharCode.greaterThan &&
+					code !== CharCode.openBrace &&
+					code !== CharCode.closeBrace &&
+					!suppressTemplateRawTextToken &&
+					this.#shouldReadTemplateRawTextToken()
+				) {
+					return this.#readTemplateRawTextToken();
+				}
+				if (
 					code === CharCode.greaterThan &&
 					this.input.charCodeAt(this.pos - 1) === CharCode.equals
 				) {
@@ -2509,16 +2545,6 @@ export function TSRXPlugin(config) {
 						++this.pos;
 						return this.finishToken(tstt.jsxTagStart);
 					}
-				}
-				if (
-					code !== CharCode.lessThan &&
-					code !== CharCode.greaterThan &&
-					code !== CharCode.openBrace &&
-					code !== CharCode.closeBrace &&
-					!suppressTemplateRawTextToken &&
-					this.#shouldReadTemplateRawTextToken()
-				) {
-					return this.#readTemplateRawTextToken();
 				}
 				return super.readToken(code);
 			}
@@ -3872,8 +3898,14 @@ export function TSRXPlugin(config) {
 				const parent_template_node = this.#currentNativeTemplateNode();
 				const parent_is_template_output =
 					parent_template_node?.metadata?.templateMode === 'template';
+				const fragment_has_local_template_fence =
+					is_fragment &&
+					parent_is_template_output &&
+					this.#hasTemplateFenceBeforeElementClose(this.start, node);
 				node.metadata.templateMode =
-					is_fragment && parent_is_template_output ? 'template' : 'script';
+					is_fragment && parent_is_template_output && !fragment_has_local_template_fence
+						? 'template'
+						: 'script';
 				if (!is_fragment && open.name.type === 'JSXNamespacedName') {
 					const namespace_node = /** @type {ESTreeJSX.JSXNamespacedName} */ (open.name);
 					const tagName = namespace_node.namespace.name + ':' + namespace_node.name.name;
@@ -3995,22 +4027,31 @@ export function TSRXPlugin(config) {
 					if (should_enter_template_text) {
 						current_template_node.metadata ??= { path: [] };
 						current_template_node.metadata.templateMode = 'template';
-					}
-					this.pos = token_start;
-					if (!should_enter_template_text) {
-						this.context = this.context.filter(
-							(context) =>
-								context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
-						);
+						this.pos = token_start;
+						this.start = token_start;
 						this.startLoc = token_start_loc;
 						this.curLine = token_start_loc.line;
 						this.lineStart = token_start - token_start_loc.column;
-						if (this.curContext() !== b_stat) {
-							this.context.push(b_stat);
+						const text = this.#parseTemplateRawText();
+						if (!isWhitespaceTextNode(text)) {
+							body.push(text);
 						}
-						this.exprAllowed = true;
-						this.#suppressTemplateRawTextToken = true;
+						this.parseTemplateBody(body);
+						return;
 					}
+					this.pos = token_start;
+					this.context = this.context.filter(
+						(context) =>
+							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+					);
+					this.startLoc = token_start_loc;
+					this.curLine = token_start_loc.line;
+					this.lineStart = token_start - token_start_loc.column;
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+					}
+					this.exprAllowed = true;
+					this.#suppressTemplateRawTextToken = true;
 					this.next();
 					this.parseTemplateBody(body);
 					return;
@@ -4089,8 +4130,7 @@ export function TSRXPlugin(config) {
 					return;
 				} else if (
 					this.type === tstt.jsxTagStart ||
-					(this.input.charCodeAt(this.start) === CharCode.lessThan &&
-						this.input.charCodeAt(this.start + 1) === CharCode.slash)
+					this.input.charCodeAt(this.start) === CharCode.lessThan
 				) {
 					const startPos = this.start;
 					const startLoc = this.startLoc;

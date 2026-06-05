@@ -75,6 +75,68 @@ const items=[1,2,3];
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('preserves arrow text before template children when a fragment has no fence', async () => {
+		const input = `function SetTest() {
+    return <>
+        let items = new RippleSet([1, 2, 3]);
+        let &[hasValue] = track(() => items.has(2));
+        <button onClick={() => items.delete(2)}>{'delete'}</button>
+        <pre>{hasValue}</pre>
+    </>;
+}`;
+		const expected = `function SetTest() {
+  return <>
+    let items = new RippleSet([1, 2, 3]);
+    let &[hasValue] = track(() => items.has(2));
+    <button onClick={() => items.delete(2)}>{"delete"}</button>
+    <pre>{hasValue}</pre>
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('keeps nested script-only fenced fragments multiline', async () => {
+		const input = `function App() {
+    return <>
+        MyContext.set(4);
+        ---
+        <h3>
+            {MyContext.get()}
+        </h3>
+        <h4>
+            {'2x:'}
+            {doubleContext()}
+        </h4>
+        <>
+            MyContext.set(8);
+            ---
+        </>
+    </>;
+}`;
+		const expected = `function App() {
+  return <>
+    MyContext.set(4);
+    ---
+    <h3>
+      {MyContext.get()}
+    </h3>
+    <h4>
+      {"2x:"}
+      {doubleContext()}
+    </h4>
+    <>
+      MyContext.set(8);
+      ---
+    </>
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats template for-of expressions without adding a semicolon before of', async () => {
 		const input = `const App=()=> <><ul>@for (const item of items) {<li>{item.label}</li>}</ul></>;`;
 		const expected = `const App = () => <>

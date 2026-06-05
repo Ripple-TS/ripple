@@ -5477,6 +5477,27 @@ function printRawText(raw) {
 }
 
 /**
+ * @param {string} raw
+ * @returns {Doc | Doc[] | string}
+ */
+function printJSXTextChild(raw) {
+	const text = raw.trim();
+	if (!text) {
+		return '';
+	}
+
+	const lines = text
+		.split(/\r\n|\r|\n/u)
+		.map((line) => line.trim())
+		.filter(Boolean);
+	if (lines.length <= 1) {
+		return lines[0] ?? '';
+	}
+
+	return join(hardline, lines);
+}
+
+/**
  * @param {AST.Node} parentNode
  * @param {AST.Node} firstChild
  * @param {Doc} childDoc
@@ -5862,7 +5883,7 @@ function printJSXFragment(node, path, options, print) {
 				continue;
 			}
 			// Handle JSX text nodes - trim whitespace and only include if not empty
-			const text = child.value.trim();
+			const text = printJSXTextChild(child.value);
 			if (text) {
 				childrenDocs.push(text);
 			}
