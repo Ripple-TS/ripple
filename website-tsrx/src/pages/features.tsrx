@@ -3,10 +3,10 @@
 import { highlight_tsrx } from '../lib/code-highlight.ts';
 
 const COMPONENT_HTML = highlight_tsrx(
-	`export const Button = ({ label, onClick }: {
+	`export function Button({ label, onClick }: {
   label: string;
   onClick: () => void;
-}) => <>
+}) @{
   // Ripple, Preact, Solid, and Vue host elements:
   <button class="btn" {onClick}>{label}</button>
 
@@ -19,28 +19,28 @@ const COMPONENT_HTML = highlight_tsrx(
       border-radius: 4px;
     }
   </style>
-</>;`,
+}`,
 );
 
 const BAILOUT_HTML = highlight_tsrx(
-	`export const Counter = () => @{
+	`export function Counter() @{
   let count = 0;
 
   // Plain JS/TS control flow can live in nested functions.
-  const increment = () => {
+  function increment() {
     if (count >= 10) {
       count = 0;
     } else {
       count += 1;
     }
-  };
+  }
 
   <button onClick={increment}>Count: {count}</button>
-};`,
+}`,
 );
 
 const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
-	`const ProductCard = ({ product }: { product: Product }) => @{
+	`function ProductCard({ product }: { product: Product }) @{
   const name = product.name.trim();
   const price = money(product.price);
 
@@ -58,12 +58,12 @@ const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
       </>
     }</footer>
   </article>
-};`,
+}`,
 );
 
 const COMMENTS_HTML = highlight_tsrx(
-	`const Menu = ({ showAdmin }: { showAdmin: boolean }) =>
-  <nav>
+	`function Menu({ showAdmin }: { showAdmin: boolean }) {
+  return <nav>
     // Comments can sit between template children.
     <a href="/">Home</a>
 
@@ -71,63 +71,72 @@ const COMMENTS_HTML = highlight_tsrx(
       // Branch comments are allowed too.
       <a href="/admin">Admin</a>
     }
-  </nav>;`,
+  </nav>;
+}`,
 );
 
 const IF_HTML = highlight_tsrx(
-	`const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) =>
-  @if (status === 'active') {
+	`function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
+  return @if (status === 'active') {
     <span class="badge active">Online</span>
   } else if (status === 'idle') {
     <span class="badge idle">Away</span>
   } else {
     <span class="badge">Offline</span>
-  };`,
+  };
+}`,
 );
 
 const FOR_HTML = highlight_tsrx(
-	`const TodoList = ({ items }: { items: Todo[] }) =>
-  <ul>
+	`function TodoList({ items }: { items: Todo[] }) {
+  return <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
 
       <li>{i + 1}. {item.text}</li>
     }
-  </ul>;`,
+  </ul>;
+}`,
 );
 
 const TRY_HTML = highlight_tsrx(
-	`const SafeProfile = ({ userId }: { userId: string }) => @try {
-  <UserProfile id={userId} />
-} catch (error) {
-  <div class="error">
-    <p>Something went wrong.</p>
-  </div>
-};`,
+	`function SafeProfile({ userId }: { userId: string }) {
+  return @try {
+    <UserProfile id={userId} />
+  } catch (error) {
+    <div class="error">
+      <p>Something went wrong.</p>
+    </div>
+  };
+}`,
 );
 
 const TRY_RESET_HTML = highlight_tsrx(
-	`export const RetryBoundary = () => @try {
-  <ComponentThatMightFail />
-} catch (e, reset) {
-  <div>
-    <p>Error: {e.message}</p>
-    <button onClick={() => reset()}>Try again</button>
-  </div>
-};`,
+	`export function RetryBoundary() {
+  return @try {
+    <ComponentThatMightFail />
+  } catch (e, reset) {
+    <div>
+      <p>Error: {e.message}</p>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  };
+}`,
 );
 
 const SWITCH_HTML = highlight_tsrx(
-	`const StatusMessage = ({ status }: { status: string }) => @switch (status) {
-  case 'loading':
-    <p>Loading...</p>
-    break;
-  case 'success':
-    <p class="success">Done!</p>
-    break;
-  default:
-    <p>Unknown status.</p>
-};`,
+	`function StatusMessage({ status }: { status: string }) {
+  return @switch (status) {
+    case 'loading':
+      <p>Loading...</p>
+      break;
+    case 'success':
+      <p class="success">Done!</p>
+      break;
+    default:
+      <p>Unknown status.</p>
+  };
+}`,
 );
 
 const SHORTHAND_HTML = highlight_tsrx(
@@ -139,7 +148,7 @@ const SHORTHAND_HTML = highlight_tsrx(
 );
 
 const SCOPING_HTML = highlight_tsrx(
-	`const App = () => @{
+	`function App() @{
   const name = 'World';
 
   <div>@{
@@ -148,7 +157,7 @@ const SCOPING_HTML = highlight_tsrx(
 
     <h1>{greeting}</h1>
   }</div>
-};`,
+}`,
 );
 
 const CHILDREN_HTML = highlight_tsrx(
@@ -163,27 +172,31 @@ const CHILDREN_HTML = highlight_tsrx(
 );
 
 const RENDER_PROPS_HTML = highlight_tsrx(
-	`const App = ({ items }: { items: Item[] }) => @{
-  const renderItem = (item: Item) => <li>{item.label}</li>;
+	`function App({ items }: { items: Item[] }) @{
+  function renderItem(item: Item) {
+    return <li>{item.label}</li>;
+  }
 
   <List items={items} render={renderItem} />
-};`,
+}`,
 );
 
 const ASYNC_BOUNDARY_HTML = highlight_tsrx(
 	`const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
-export const App = () => @try {
-  <UserProfile id={1} />
-} pending {
-  <p>Loading...</p>
-} catch (e) {
-  <p>Something went wrong.</p>
-};`,
+export function App() {
+  return @try {
+    <UserProfile id={1} />
+  } pending {
+    <p>Loading...</p>
+  } catch (e) {
+    <p>Something went wrong.</p>
+  };
+}`,
 );
 
 const SCOPED_STYLES_HTML = highlight_tsrx(
-	`const Card = () => <>
+	`function Card() @{
   <div class="card">
     <h2>Scoped title</h2>
     <p>Styles here won't leak out.</p>
@@ -197,19 +210,19 @@ const SCOPED_STYLES_HTML = highlight_tsrx(
 
     h2 { color: #333; }
   </style>
-</>;`,
+}`,
 );
 
 const STYLE_COMPOSITION_HTML = highlight_tsrx(
-	`const Badge = ({ class: className }: { class?: string }) => <>
+	`function Badge({ class: className }: { class?: string }) @{
   <span class={'badge ' + (className ?? '')}>New</span>
 
   <style>
     .badge { padding: 0.25rem 0.5rem; }
   </style>
-</>;
+}
 
-const App = () => @{
+function App() @{
   const styles = <style>
     .highlight { background: #e8f5e9; color: #2e7d32; }
   </style>;
@@ -221,7 +234,7 @@ const App = () => @{
     // React component props:
     // <Badge className={styles.highlight} />
   </>
-};`,
+}`,
 );
 
 const MODULE_STYLE_COMPOSITION_HTML = highlight_tsrx(
@@ -230,7 +243,7 @@ const MODULE_STYLE_COMPOSITION_HTML = highlight_tsrx(
   .title { font-weight: 700; }
 </style>;
 
-export const ArticleCard = ({ title }: { title: string }) => <>
+export function ArticleCard({ title }: { title: string }) @{
   // Ripple, Preact, Solid, and Vue host elements:
   <article class={articleStyles.card}>
     <h2 class={articleStyles.title}>{title}</h2>
@@ -240,13 +253,13 @@ export const ArticleCard = ({ title }: { title: string }) => <>
   // <article className={articleStyles.card}>
   //   <h2 className={articleStyles.title}>{title}</h2>
   // </article>
-</>;`,
+}`,
 );
 
 const REACT_HOOKS_HTML = highlight_tsrx(
 	`import { useState, useEffect } from 'react';
 
-const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => @{
+function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) @{
   if (!user) {
     return null;
   }
@@ -268,15 +281,16 @@ const UserProfile = ({ user, posts }: { user: User | null; posts: Post[] }) => @
       }
     </ul>
   </>
-};`,
+}`,
 );
 
 const LAZY_PROPS_HTML = highlight_tsrx(
-	`const UserCard = (&{ name, age }: { name: string; age: number }) =>
-  <div>
+	`function UserCard(&{ name, age }: { name: string; age: number }) {
+  return <div>
     <h2>{name}</h2>
     <p>Age: {age}</p>
-  </div>;`,
+  </div>;
+}`,
 );
 
 const NAV_ITEMS = [
@@ -301,7 +315,7 @@ export const FeaturesPage = () => <>
 		<title>TSRX | Features</title>
 		<meta
 			name="description"
-			content="TSRX language features: arrow components, statement containers, JSX control flow, error boundaries, and more."
+			content="TSRX language features: function components, statement containers, JSX control flow, error boundaries, and more."
 		/>
 	</head>
 	<div class="app-shell">
@@ -364,31 +378,31 @@ export const FeaturesPage = () => <>
 						<h2 class="section-heading">Components</h2>
 						<p
 							class="section-body"
-						>A TSRX component is usually just a TypeScript arrow function that returns JSX. Return a single element when that is all you need, return a fragment for real multiple-child output, and use a statement container when local setup belongs with the template.</p>
+						>A TSRX component is just a TypeScript function that produces JSX. Use a statement-container body for component-shaped templates, especially when local setup, comments, scoped styles, or multiple rendered children belong with the markup.</p>
 						<p class="section-body">
-							In practice, components are ordinary
+							In practice, components are ordinary TypeScript functions or
 							{' '}
 							<code class="inline-code">const</code>
 							{' '}
-							values. A setup-heavy component can return
+							values. A component can use
 							{' '}
 							<code class="inline-code">{'@{...}'}</code>
 							{' '}
-							directly, giving you one place for local state, derived values, template control flow, rendered elements, and scoped styles.
+							as the function body, giving you one place for local state, derived values, template control flow, rendered elements, and scoped styles.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={COMPONENT_HTML} />
 						</pre>
 						<p class="section-body">
-							Export them like any other value:
+							Export them like any other function:
 							{' '}
-							<code class="inline-code">{'export const Name = (...) => <div />'}</code>
+							<code class="inline-code">{'export function Name() @{ <div /> }'}</code>
 							. The compiler turns that into the right component shape for the target you're using.
 						</p>
 						<p class="section-body">
 							When a bit of logic should stay plain JavaScript rather than render into the template, put it in a normal function beside the markup. Use
 							{' '}
-							<code class="inline-code">{'const fn = () => { ... }'}</code>
+							<code class="inline-code">{'function fn() { ... }'}</code>
 							{' '}
 							for ordinary control flow, then call helpers from event handlers or expressions:
 							{' '}
@@ -404,11 +418,26 @@ export const FeaturesPage = () => <>
 						<p class="section-body">
 							When a template scope mixes TypeScript setup with rendered output, wrap the setup in
 							<code class="inline-code">{'@{...}'}</code>
-							. Setup comes first and the container finishes with exactly one output node. That output can be a JSX element, a JSX fragment, or a JSX control-flow expression.
+							. TSRX treats everything before the final renderable child as script, then the container must finish with exactly one output node.
+						</p>
+						<p class="section-body muted">
+							That final output can be a JSX element, a JSX fragment, or JSX control flow like
+							{' '}
+							<code class="inline-code">{'@if'}</code>
+							,
+							{' '}
+							<code class="inline-code">{'@for'}</code>
+							,
+							{' '}
+							<code class="inline-code">{'@switch'}</code>
+							, or
+							{' '}
+							<code class="inline-code">{'@try'}</code>
+							. It cannot be a bare expression container, and no script statements can appear after it.
 						</p>
 						<p
 							class="section-body muted"
-						>If the rendered part needs multiple siblings or text next to elements, wrap it in a fragment. The rule applies locally to component bodies, element children, and control-flow branches, so setup can stay close to the markup that uses it without becoming ambiguous JSX text.</p>
+						>If the rendered part needs multiple siblings or text next to elements, wrap those children in a fragment so they become one output. The rule applies locally to component bodies, element children, and control-flow branches, so setup can stay close to the markup that uses it without turning ordinary template text into JavaScript.</p>
 						<pre class="code-block">
 							<code innerHTML={TEMPLATE_STRUCTURE_HTML} />
 						</pre>
