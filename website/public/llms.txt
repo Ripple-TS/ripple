@@ -12,8 +12,9 @@ When answering Ripple questions:
 - Prefer `.tsrx` component examples.
 - Use arrow-fragment components: `const Component = (props) => <>...</>;`.
 - Use JSX text for static text and `{expr}` for dynamic values.
-- Use localized `---` fences when a template scope needs TypeScript setup before
-  rendered children.
+- When a template scope mixes TypeScript setup with rendered output, put setup
+  first and finish the scope with one JSX element, JSX fragment, or JSX
+  control-flow expression.
 - Use `@if`, `@for`, `@switch`, and `@try` for rendered control flow.
 - Keep runtime API guidance Ripple-specific, but keep syntax guidance aligned
   with TSRX.
@@ -74,8 +75,8 @@ export const App = () => <>
 </>;
 ```
 
-Use a `---` fence when setup code and rendered children share the same template
-scope.
+When setup code and rendered output share the same template scope, setup comes
+first and the scope finishes with one output node.
 
 ```tsrx
 import { track } from 'ripple';
@@ -83,13 +84,14 @@ import { track } from 'ripple';
 export const Counter = () => <>
 	let &[count] = track(0);
 	const increment = () => count++;
-	---
+
 	<button onClick={increment}>Count: {count}</button>
 </>;
 ```
 
-The fence is local to the current element, fragment, or directive branch. Without
-a fence, plain text between tags is JSX text, not JavaScript.
+If output needs multiple siblings, text, or expression containers after setup,
+wrap that output in a fragment. Plain text between tags is JSX text, not
+JavaScript.
 
 ```tsrx
 export const LiteralText = () => <>
@@ -114,11 +116,13 @@ export const Counter = () => <>
 	effect(() => {
 		console.log('count changed', count);
 	});
-	---
-	<p>Count: {count}</p>
-	<p>Double: {double}</p>
-	<button onClick={() => count++}>Increment</button>
-	<CounterValue count={countTracked} />
+
+	<>
+		<p>Count: {count}</p>
+		<p>Double: {double}</p>
+		<button onClick={() => count++}>Increment</button>
+		<CounterValue count={countTracked} />
+	</>
 </>;
 
 const CounterValue = ({ count }: { count: Tracked<number> }) => <>
@@ -133,7 +137,7 @@ import { track } from 'ripple';
 
 export const Counter = () => <>
 	const count = track(0);
-	---
+
 	<button onClick={() => count.value++}>{count.value}</button>
 </>;
 ```
@@ -157,16 +161,16 @@ export const Inventory = () => <>
 	const prices = new RippleMap([[1, 120], [2, 95]]);
 	const selected = new RippleSet<number>();
 	const totals = new RippleObject({ added: 0 });
-	---
-	<ul>
-		@for (const product of products; key product.id) {
-			<li>
-				{product.name}: ${prices.get(product.id)}
-			</li>
-		}
-	</ul>
-	<button onClick={() => selected.add(1)}>Select jacket</button>
-	<p>Selected: {selected.size + totals.added}</p>
+
+	<>
+		<ul>
+			@for (const product of products; key product.id) {
+				<li>{product.name}: ${prices.get(product.id)}</li>
+			}
+		</ul>
+		<button onClick={() => selected.add(1)}>Select jacket</button>
+		<p>Selected: {selected.size + totals.added}</p>
+	</>
 </>;
 ```
 
@@ -183,18 +187,20 @@ import { track } from 'ripple';
 
 export const StatusBadge = () => <>
 	let &[status] = track<'idle' | 'loading' | 'done'>('idle');
-	---
-	@switch (status) {
-		case 'loading':
-			<p>Loading...</p>
-			break;
-		case 'done':
-			<p>Done</p>
-			break;
-		default:
-			<p>Idle</p>
-	}
-	<button onClick={() => (status = 'done')}>Finish</button>
+
+	<>
+		@switch (status) {
+			case 'loading':
+				<p>Loading...</p>
+				break;
+			case 'done':
+				<p>Done</p>
+				break;
+			default:
+				<p>Idle</p>
+		}
+		<button onClick={() => (status = 'done')}>Finish</button>
+	</>
 </>;
 ```
 
@@ -219,7 +225,7 @@ export const Profile = ({ user }: { user: User | null }) => <>
 	if (!user) {
 		return null;
 	}
-	---
+
 	<h1>{user.name}</h1>
 </>;
 ```
@@ -252,18 +258,20 @@ import { track } from 'ripple';
 export const SearchBox = () => <>
 	let &[query] = track('');
 	let input: HTMLInputElement | undefined;
-	---
-	<label>
-		Search
-		<input
-			ref={input}
-			value={query}
-			onInput={(event) => {
-				query = event.currentTarget.value;
-			}}
-		/>
-	</label>
-	<button onClick={() => input?.focus()}>Focus</button>
+
+	<>
+		<label>
+			Search
+			<input
+				ref={input}
+				value={query}
+				onInput={(event) => {
+					query = event.currentTarget.value;
+				}}
+			/>
+		</label>
+		<button onClick={() => input?.focus()}>Focus</button>
+	</>
 </>;
 ```
 
@@ -284,11 +292,13 @@ const Secondary = () => <>
 
 export const DynamicButton = () => <>
 	let &[Current] = track(() => Primary);
-	---
-	<@Current />
-	<button onClick={() => (Current = Current === Primary ? Secondary : Primary)}>
-		Swap
-	</button>
+
+	<>
+		<@Current />
+		<button onClick={() => (Current = Current === Primary ? Secondary : Primary)}>
+			Swap
+		</button>
+	</>
 </>;
 ```
 
@@ -302,16 +312,18 @@ import { track } from 'ripple';
 
 export const Card = () => <>
 	let &[tone] = track('rebeccapurple');
-	---
-	<section class="card" style={{ '--tone': tone }}>
-		<h2>Card</h2>
-	</section>
-	<style>
-		.card {
-			border: 1px solid var(--tone);
-			padding: 1rem;
-		}
-	</style>
+
+	<>
+		<section class="card" style={{ '--tone': tone }}>
+			<h2>Card</h2>
+		</section>
+		<style>
+			.card {
+				border: 1px solid var(--tone);
+				padding: 1rem;
+			}
+		</style>
+	</>
 </>;
 ```
 
@@ -343,16 +355,18 @@ const ThemeContext = new Context<Tracked<string>>();
 export const App = () => <>
 	let &[theme, themeTracked] = track('light');
 	ThemeContext.set(themeTracked);
-	---
-	<ThemeLabel />
-	<button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
-		Toggle theme
-	</button>
+
+	<>
+		<ThemeLabel />
+		<button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+			Toggle theme
+		</button>
+	</>
 </>;
 
 const ThemeLabel = () => <>
 	const theme = ThemeContext.get();
-	---
+
 	<p>Theme: {theme.value}</p>
 </>;
 ```
@@ -366,16 +380,18 @@ import { Portal, track } from 'ripple';
 
 export const ModalDemo = () => <>
 	let &[open] = track(false);
-	---
-	<button onClick={() => (open = true)}>Open</button>
-	@if (open) {
-		<Portal target={document.body}>
-			<div class="modal">
-				<p>Modal content</p>
-				<button onClick={() => (open = false)}>Close</button>
-			</div>
-		</Portal>
-	}
+
+	<>
+		<button onClick={() => (open = true)}>Open</button>
+		@if (open) {
+			<Portal target={document.body}>
+				<div class="modal">
+					<p>Modal content</p>
+					<button onClick={() => (open = false)}>Close</button>
+				</div>
+			</Portal>
+		}
+	</>
 </>;
 ```
 
@@ -402,10 +418,12 @@ export const Form = () => <>
 		const result = await saveName(name);
 		saved = result.name;
 	};
-	---
-	<input value={name} onInput={(event) => (name = event.currentTarget.value)} />
-	<button onClick={submit}>Save</button>
-	<p>Saved: {saved}</p>
+
+	<>
+		<input value={name} onInput={(event) => (name = event.currentTarget.value)} />
+		<button onClick={submit}>Save</button>
+		<p>Saved: {saved}</p>
+	</>
 </>;
 ```
 
@@ -426,8 +444,8 @@ Do:
 
 - Use `.tsrx` for component files.
 - Use arrow-fragment component bodies in examples.
-- Keep setup above `---` and rendered children below it when both appear in a
-  scope.
+- Put setup before rendered output when both appear in a scope, and finish that
+  scope with one JSX element, JSX fragment, or JSX control-flow expression.
 - Use JSX text for literal children.
 - Use `@for` for rendered lists and `@if` for conditional rendering.
 - Use Ripple collections for reactive collection state.
@@ -436,7 +454,7 @@ Do not:
 
 - Use quoted-string text children as examples.
 - Use raw `if`, `for`, `switch`, or `try` as rendered control flow.
-- Treat text inside a template as JavaScript without a `---` fence.
+- Treat plain text inside a template as JavaScript; it is JSX text.
 - Put JavaScript expressions inside `<style>` blocks.
 - Invent imports or runtime APIs outside the `ripple` package or the active
   bundler integration.
