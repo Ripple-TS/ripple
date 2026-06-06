@@ -6,14 +6,16 @@ describe('lazy destructuring', () => {
 		function Test() @{
 				let count = track(1);
 				let doubled = track(() => count.value * 2);
-				<div>{`${count.value}-${doubled.value}`}</div>
-				<button
-					onClick={() => {
-						count.value = 5;
-					}}
-				>
-					{'set'}
-				</button>
+				<>
+					<div>{`${count.value}-${doubled.value}`}</div>
+					<button
+						onClick={() => {
+							count.value = 5;
+						}}
+					>
+						{'set'}
+					</button>
+				</>
 		}
 
 		render(Test);
@@ -31,15 +33,17 @@ describe('lazy destructuring', () => {
 		function Test() @{
 				let &[a] = track(1);
 				let &[b] = track('hello');
-				<Inner {a} {b} />
-				<button
-					onClick={() => {
-						a = 2;
-						b = 'world';
-					}}
-				>
-					{'update'}
-				</button>
+				<>
+					<Inner {a} {b} />
+					<button
+						onClick={() => {
+							a = 2;
+							b = 'world';
+						}}
+					>
+						{'update'}
+					</button>
+				</>
 		}
 
 		render(Test);
@@ -57,15 +61,17 @@ describe('lazy destructuring', () => {
 		function Test() @{
 				let &[first] = track(10);
 				let &[second] = track(20);
-				<Inner {first} {second} />
-				<button
-					onClick={() => {
-						first = 30;
-						second = 40;
-					}}
-				>
-					{'update'}
-				</button>
+				<>
+					<Inner {first} {second} />
+					<button
+						onClick={() => {
+							first = 30;
+							second = 40;
+						}}
+					>
+						{'update'}
+					</button>
+				</>
 		}
 
 		render(Test);
@@ -119,14 +125,16 @@ describe('lazy destructuring', () => {
 
 		function Test() @{
 				let &[count] = track(0);
-				<Inner {count} />
-				<button
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'increment'}
-				</button>
+				<>
+					<Inner {count} />
+					<button
+						onClick={() => {
+							count++;
+						}}
+					>
+						{'increment'}
+					</button>
+				</>
 		}
 
 		render(Test);
@@ -150,18 +158,18 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
 	});
 
-	it(
-		'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params',
-		() => {
-			function Inner(@{
-				values: [head, ...&{ length: rest_length, 0: first_rest }],
-			}: {
-				values: [number, Tracked<number>, Tracked<number>];
-			}) {
-					const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
-					rest_length = 0;
-					<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
-			}
+		it(
+			'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params',
+			() => {
+				function Inner({
+					values: [head, ...&{ length: rest_length, 0: first_rest }],
+				}: {
+					values: [number, Tracked<number>, Tracked<number>];
+				}) @{
+						const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
+						rest_length = 0;
+						<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
+				}
 
 			function Test() @{
 				<Inner values={[10, track(20), track(30)]} />
@@ -351,18 +359,20 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy array destructuring with track()', () => {
-		function Test() @{
-				let count: number;
-				&[count] = track(0);
-				<div>{count}</div>
-				<button
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'inc'}
-				</button>
-		}
+			function Test() @{
+					let count: number;
+					&[count] = track(0);
+					<>
+						<div>{count}</div>
+						<button
+							onClick={() => {
+								count++;
+							}}
+						>
+							{'inc'}
+						</button>
+					</>
+			}
 
 		render(Test);
 		expect(container.querySelector('div')!.textContent).toBe('0');
@@ -372,19 +382,21 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy array destructuring with second element', () => {
-		function Test() @{
-				let value;
-				let tracked;
-				&[value, tracked] = track(42);
-				<div>{value}</div>
-				<button
-					onClick={() => {
-						value = 100;
-					}}
-				>
-					{'set'}
-				</button>
-		}
+			function Test() @{
+					let value;
+					let tracked;
+					&[value, tracked] = track(42);
+					<>
+						<div>{value}</div>
+						<button
+							onClick={() => {
+								value = 100;
+							}}
+						>
+							{'set'}
+						</button>
+					</>
+			}
 
 		render(Test);
 		expect(container.querySelector('div')!.textContent).toBe('42');

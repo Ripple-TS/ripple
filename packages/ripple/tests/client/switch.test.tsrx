@@ -4,21 +4,23 @@ describe('switch statements', () => {
 	it('renders simple switch with literal cases', () => {
 		function App() @{
 				let &[value] = track('b');
-				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
-				@switch (value) {
-					case 'a':
-						<div>Case A</div>
-						break;
-					case 'b':
-						<div>Case B</div>
-						break;
-					case 'c':
-						<div>{'Case C'}</div>
-						break;
-					default:
-						<div>{'Default Case'}</div>
-				}
+				<>
+					<button onClick={() => (value = 'c')}>{'Change to C'}</button>
+					<button onClick={() => (value = 'a')}>{'Change to A'}</button>
+					@switch (value) {
+						case 'a':
+							<div>Case A</div>
+							break;
+						case 'b':
+							<div>Case B</div>
+							break;
+						case 'c':
+							<div>{'Case C'}</div>
+							break;
+						default:
+							<div>{'Default Case'}</div>
+					}
+				</>
 		}
 
 		render(App);
@@ -37,17 +39,19 @@ describe('switch statements', () => {
 	it('renders switch with reactive discriminant', () => {
 		function App() @{
 				let &[count] = track(1);
-				<button onClick={() => count++}>{'Increment'}</button>
-				@switch (count) {
-					case 1:
-						<div>{'Count is 1'}</div>
-						break;
-					case 2:
-						<div>{'Count is 2'}</div>
-						break;
-					default:
-						<div>{'Count is other'}</div>
-				}
+				<>
+					<button onClick={() => count++}>{'Increment'}</button>
+					@switch (count) {
+						case 1:
+							<div>{'Count is 1'}</div>
+							break;
+						case 2:
+							<div>{'Count is 2'}</div>
+							break;
+						default:
+							<div>{'Count is other'}</div>
+					}
+				</>
 		}
 
 		render(App);
@@ -67,11 +71,13 @@ describe('switch statements', () => {
 	it('renders switch with default clause only', () => {
 		function App() @{
 				let &[value] = track('x');
-				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
-				@switch (value) {
-					default:
-						<div>{'Default for ' + value}</div>
-				}
+				<>
+					<button onClick={() => (value = 'y')}>{'Change Value'}</button>
+					@switch (value) {
+						default:
+							<div>{'Default for ' + value}</div>
+					}
+				</>
 		}
 
 		render(App);
@@ -86,19 +92,21 @@ describe('switch statements', () => {
 	it('renders switch using empty case fall-through', () => {
 		function App() @{
 				let &[value] = track('a');
-				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
-				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
-				@switch (value) {
-					case 'a':
-						<div>Case A</div>
-						break;
-					case 'b':
-					case 'c':
-						<div>Case B or C</div>
-						break;
-					default:
-						<div>{'Default Case'}</div>
-				}
+				<>
+					<button onClick={() => (value = 'b')}>{'Change to B'}</button>
+					<button onClick={() => (value = 'c')}>{'Change to C'}</button>
+					@switch (value) {
+						case 'a':
+							<div>Case A</div>
+							break;
+						case 'b':
+						case 'c':
+							<div>Case B or C</div>
+							break;
+						default:
+							<div>{'Default Case'}</div>
+					}
+				</>
 		}
 
 		render(App);
@@ -127,26 +135,28 @@ describe('switch statements', () => {
 		function App() @{
 				let &[status] = track('active');
 				let &[message] = track('');
-				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
-				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
-				<button onClick={() => (status = 'error')}>{'Error'}</button>
-				@switch (status) {
-					case 'active':
-						message = 'Currently active.';
-						<div>{'Status: ' + message}</div>
-						break;
-					case 'pending':
-						message = 'Waiting for completion.';
-						<div>{'Status: ' + message}</div>
-						break;
-					case 'completed':
-						message = 'Task finished!';
-						<div class="success">{'Status: ' + message}</div>
-						break;
-					default:
-						message = 'An error occurred.';
-						<div class="error">{'Status: ' + message}</div>
-				}
+				<>
+					<button onClick={() => (status = 'pending')}>{'Pending'}</button>
+					<button onClick={() => (status = 'completed')}>{'Completed'}</button>
+					<button onClick={() => (status = 'error')}>{'Error'}</button>
+					@switch (status) {
+						case 'active':
+							message = 'Currently active.';
+							<div>{'Status: ' + message}</div>
+							break;
+						case 'pending':
+							message = 'Waiting for completion.';
+							<div>{'Status: ' + message}</div>
+							break;
+						case 'completed':
+							message = 'Task finished!';
+							<div class="success">{'Status: ' + message}</div>
+							break;
+						default:
+							message = 'An error occurred.';
+							<div class="error">{'Status: ' + message}</div>
+					}
+				</>
 		}
 
 		render(App);
@@ -176,37 +186,39 @@ describe('switch statements', () => {
 		() => {
 			function App() @{
 					let &[status] = track(0);
-					<div>
-						@switch (status) {
-							case -1:
-							case 0:
-								<p>{' Idle'}</p>
-							case 1:
-								<p>{' Loading'}</p>
-							case 2:
-								<p>{' Success'}</p>
-								break;
-							default:
-								<>
-									<p>{' Unknown status'}</p>
-									<p>{' Unknown 2'}</p>
-								</>
-							case 3:
-								<>
-									<p>{' Error'}</p>
-									<p>{' Error 2'}</p>
-									<p>{' Error 3'}</p>
-								</>
-								break;
-						}
-					</div>
-					<button
-						onClick={() => {
-							status = (status + 1) % 5;
-						}}
-					>
-						{'Next Status'}
-					</button>
+					<>
+						<div>
+							@switch (status) {
+								case -1:
+								case 0:
+									<p>{' Idle'}</p>
+								case 1:
+									<p>{' Loading'}</p>
+								case 2:
+									<p>{' Success'}</p>
+									break;
+								default:
+									<>
+										<p>{' Unknown status'}</p>
+										<p>{' Unknown 2'}</p>
+									</>
+								case 3:
+									<>
+										<p>{' Error'}</p>
+										<p>{' Error 2'}</p>
+										<p>{' Error 3'}</p>
+									</>
+									break;
+							}
+						</div>
+						<button
+							onClick={() => {
+								status = (status + 1) % 5;
+							}}
+						>
+							{'Next Status'}
+						</button>
+					</>
 			}
 
 			render(App);
@@ -248,29 +260,31 @@ describe('switch statements', () => {
 		() => {
 			function App() @{
 					let &[value] = track('x');
-					<button onClick={() => (value = 'a')}>{'Set A'}</button>
-					<button onClick={() => (value = 'b')}>{'Set B'}</button>
-					<button onClick={() => (value = 'c')}>{'Set C'}</button>
-					<button onClick={() => (value = 'x')}>{'Set X'}</button>
-					<div>
-						@switch (value) {
-							case 'a':
-								<div>{' Case A'}</div>
-								break;
-							// NOTE: This should be the default in the middle of the cases
-							// However, jsdom (and other node-based dom libs) has a bug
-							// that breaks out of the switch even if the default doesn't have a break
-							// The browser works correctly.
-							// So, we're just using a defined case in the middle to simulate default.
-							case 'x':
-								<div>{' Default Case for ' + value}</div>
-							case 'b':
-								<div>{' Case B'}</div>
-								break;
-							case 'c':
-								<div>{' Case C'}</div>
-						}
-					</div>
+					<>
+						<button onClick={() => (value = 'a')}>{'Set A'}</button>
+						<button onClick={() => (value = 'b')}>{'Set B'}</button>
+						<button onClick={() => (value = 'c')}>{'Set C'}</button>
+						<button onClick={() => (value = 'x')}>{'Set X'}</button>
+						<div>
+							@switch (value) {
+								case 'a':
+									<div>{' Case A'}</div>
+									break;
+								// NOTE: This should be the default in the middle of the cases
+								// However, jsdom (and other node-based dom libs) has a bug
+								// that breaks out of the switch even if the default doesn't have a break
+								// The browser works correctly.
+								// So, we're just using a defined case in the middle to simulate default.
+								case 'x':
+									<div>{' Default Case for ' + value}</div>
+								case 'b':
+									<div>{' Case B'}</div>
+									break;
+								case 'c':
+									<div>{' Case C'}</div>
+							}
+						</div>
+					</>
 			}
 
 			render(App);
@@ -316,9 +330,9 @@ describe('switch statements', () => {
 					<span>{'before'}</span>
 					@switch (value) {
 						case 'a':
-							Case A
+							<>Case A</>
 						case 'b':
-							Case B
+							<>Case B</>
 					}
 				</div>
 		}
@@ -334,10 +348,10 @@ describe('switch statements', () => {
 					<span>{'before'}</span>
 					@switch (value) {
 						case 'a':
-							Case A
+							<>Case A</>
 							break;
 						case 'b':
-							Case B
+							<>Case B</>
 							break;
 					}
 				</div>
@@ -350,26 +364,28 @@ describe('switch statements', () => {
 	it('renders switch with block-scoped cases and break inside blocks', () => {
 		function App() @{
 				let &[level] = track(1);
-				<button
-					onClick={() => {
-						if (level === 1) level = 2;
-						else if (level === 2) level = 3;
-						else level = 1;
-					}}
-				>
-					{'Toggle'}
-				</button>
-				@switch (level) {
-					case 1:
-						<div class="level">{'Level 1'}</div>
-						break;
-					case 2:
-						<div class="level">{'Level 2'}</div>
-						break;
-					case 3:
-						<div class="level">{'Level 3'}</div>
-						break;
-				}
+				<>
+					<button
+						onClick={() => {
+							if (level === 1) level = 2;
+							else if (level === 2) level = 3;
+							else level = 1;
+						}}
+					>
+						{'Toggle'}
+					</button>
+					@switch (level) {
+						case 1:
+							<div class="level">{'Level 1'}</div>
+							break;
+						case 2:
+							<div class="level">{'Level 2'}</div>
+							break;
+						case 3:
+							<div class="level">{'Level 3'}</div>
+							break;
+					}
+				</>
 		}
 
 		render(App);

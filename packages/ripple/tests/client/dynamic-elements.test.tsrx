@@ -58,17 +58,19 @@ describe('dynamic DOM elements', () => {
 	);
 
 	it('renders reactive dynamic element', () => {
-		function App() @{
-				let &[tag] = track('div');
-				<button
-					onClick={() => {
-						tag = 'span';
-					}}
-				>
-					{'Change Tag'}
-				</button>
-				<@tag id="dynamic">{'Hello World'}</@tag>
-		}
+			function App() @{
+					let &[tag] = track('div');
+					<>
+						<button
+							onClick={() => {
+								tag = 'span';
+							}}
+						>
+							{'Change Tag'}
+						</button>
+						<@tag id="dynamic">{'Hello World'}</@tag>
+					</>
+			}
 		render(App);
 
 		// Initially should be a div
@@ -221,25 +223,25 @@ describe('dynamic DOM elements', () => {
 		let namedRefElement: HTMLInputElement | null = null;
 
 		function App() @{
-				let tag = track('input');
-				let input: HTMLInputElement | undefined;
-				const state: { anonymous?: HTMLInputElement } = {};
-				<@tag
-					id="dynamic-ref-combo"
-					type="text"
+					let tag = track('input');
+					let input: HTMLInputElement | undefined;
+					const state: { anonymous?: HTMLInputElement } = {};
+					effect(() => {
+						refAttrElement = input ?? null;
+						anonymousRefElement = state.anonymous ?? null;
+					});
+					<@tag
+						id="dynamic-ref-combo"
+						type="text"
 					ref={[
 						input,
 						state.anonymous,
 						(node: HTMLInputElement | null) => {
 							namedRefElement = node;
-						},
-					]}
-				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
-		}
+							},
+						]}
+					/>
+			}
 
 		render(App);
 		flushSync();
@@ -263,23 +265,23 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-				let dynamic = track(() => Child);
-				let input: HTMLInputElement | undefined;
-				const state: { anonymous?: HTMLInputElement } = {};
-				<@dynamic
-					ref={[
-						input,
+					let dynamic = track(() => Child);
+					let input: HTMLInputElement | undefined;
+					const state: { anonymous?: HTMLInputElement } = {};
+					effect(() => {
+						refAttrElement = input ?? null;
+						anonymousRefElement = state.anonymous ?? null;
+					});
+					<@dynamic
+						ref={[
+							input,
 						state.anonymous,
 						(node: HTMLInputElement | null) => {
 							namedRefElement = node;
-						},
-					]}
-				/>
-				effect(() => {
-					refAttrElement = input ?? null;
-					anonymousRefElement = state.anonymous ?? null;
-				});
-		}
+							},
+						]}
+					/>
+			}
 
 		render(App);
 		flushSync();
@@ -321,25 +323,27 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('has reactive attributes on dynamic elements', () => {
-		function App() @{
-				let tag = track('div');
-				let &[count] = track(0);
-				<button
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'Increment'}
-				</button>
-				<@tag
-					id={count % 2 ? 'even' : 'odd'}
-					class={count % 2 ? 'even-class' : 'odd-class'}
-					data-count={count}
-				>
-					{'Count: '}
-					{count}
-				</@tag>
-		}
+			function App() @{
+					let tag = track('div');
+					let &[count] = track(0);
+					<>
+						<button
+							onClick={() => {
+								count++;
+							}}
+						>
+							{'Increment'}
+						</button>
+						<@tag
+							id={count % 2 ? 'even' : 'odd'}
+							class={count % 2 ? 'even-class' : 'odd-class'}
+							data-count={count}
+						>
+							{'Count: '}
+							{count}
+						</@tag>
+					</>
+			}
 
 		render(App);
 
@@ -374,15 +378,17 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('applies scoped CSS to dynamic elements', () => {
-		function App() @{
-				let tag = track('div');
-				<@tag class="test-class">{'Dynamic element'}</@tag>
-				<style>
-					.test-class {
-						color: red;
-					}
-				</style>
-		}
+			function App() @{
+					let tag = track('div');
+					<>
+						<@tag class="test-class">{'Dynamic element'}</@tag>
+						<style>
+							.test-class {
+								color: red;
+							}
+						</style>
+					</>
+			}
 
 		render(App);
 
@@ -398,29 +404,31 @@ describe('dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements with reactive classes', () => {
 		function App() @{
-				let tag = track('button');
-				let &[count] = track(0);
-				<@tag
-					class={count % 2 ? 'even' : 'odd'}
-					id={count % 2 ? 'even' : 'odd'}
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'Count: '}
-					{count}
-				</@tag>
-				<style>
-					.even {
-						background-color: green;
-						color: white;
-					}
-					.odd {
-						background-color: red;
-						color: white;
-					}
-				</style>
-		}
+					let tag = track('button');
+					let &[count] = track(0);
+					<>
+						<@tag
+							class={count % 2 ? 'even' : 'odd'}
+							id={count % 2 ? 'even' : 'odd'}
+							onClick={() => {
+								count++;
+							}}
+						>
+							{'Count: '}
+							{count}
+						</@tag>
+						<style>
+							.even {
+								background-color: green;
+								color: white;
+							}
+							.odd {
+								background-color: red;
+								color: white;
+							}
+						</style>
+					</>
+			}
 
 		render(App);
 
@@ -469,18 +477,20 @@ describe('dynamic DOM elements', () => {
 			class: string;
 			id: string;
 			onClick: EventListener;
-		}>) @{
-				const tag = track('button');
-				<@tag {...rest}>{rest.class}</@tag>
-				<style>
-					.even {
-						background-color: green;
-					}
-					.odd {
-						background-color: red;
-					}
-				</style>
-		}
+			}>) @{
+					const tag = track('button');
+					<>
+						<@tag {...rest}>{rest.class}</@tag>
+						<style>
+							.even {
+								background-color: green;
+							}
+							.odd {
+								background-color: red;
+							}
+						</style>
+					</>
+			}
 
 		function App() @{
 				let &[count] = track(0);
@@ -525,17 +535,19 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('adds scoping class to dynamic elements', () => {
-		function App() @{
-				let tag = track('div');
-				<@tag class="scoped">
-					<p>{'Scoped dynamic element'}</p>
-				</@tag>
-				<style>
-					.scoped {
-						color: blue;
-					}
-				</style>
-		}
+			function App() @{
+					let tag = track('div');
+					<>
+						<@tag class="scoped">
+							<p>{'Scoped dynamic element'}</p>
+						</@tag>
+						<style>
+							.scoped {
+								color: blue;
+							}
+						</style>
+					</>
+			}
 		render(App);
 
 		const div = container.querySelector('div');
@@ -546,17 +558,19 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('adds scoping class to dynamic elements when selector targets by tag name', () => {
-		function App() @{
-				let tag = track('div');
-				<@tag class="scoped">
-					<p>{'Scoped dynamic element'}</p>
-				</@tag>
-				<style>
-					div {
-						color: blue;
-					}
-				</style>
-		}
+			function App() @{
+					let tag = track('div');
+					<>
+						<@tag class="scoped">
+							<p>{'Scoped dynamic element'}</p>
+						</@tag>
+						<style>
+							div {
+								color: blue;
+							}
+						</style>
+					</>
+			}
 		render(App);
 
 		const div = container.querySelector('div');
@@ -567,29 +581,33 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('doesn\'t add scoping class to components inside dynamic element', () => {
-		function Child() @{
-				<div class="child">
-					<p>{'I am a child component'}</p>
-				</div>
-				<style>
-					.child {
-						color: blue;
-					}
-				</style>
-		}
+			function Child() @{
+					<>
+						<div class="child">
+							<p>{'I am a child component'}</p>
+						</div>
+						<style>
+							.child {
+								color: blue;
+							}
+						</style>
+					</>
+			}
 
-		function App() @{
-				let tag = track('div');
-				<@tag class="scoped">
-					<p>{'Scoped dynamic element'}</p>
-					<Child />
-				</@tag>
-				<style>
-					div {
-						color: blue;
-					}
-				</style>
-		}
+			function App() @{
+					let tag = track('div');
+					<>
+						<@tag class="scoped">
+							<p>{'Scoped dynamic element'}</p>
+							<Child />
+						</@tag>
+						<style>
+							div {
+								color: blue;
+							}
+						</style>
+					</>
+			}
 		render(App);
 
 		const outerDiv = container.querySelector('.scoped');
@@ -609,26 +627,30 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('doesn\'t add scoping class to dynamically rendered component', () => {
-		function Child() @{
-				<div class="child">
-					<p>{'I am a child component'}</p>
-				</div>
-				<style>
-					.child {
-						color: green;
-					}
-				</style>
-		}
+			function Child() @{
+					<>
+						<div class="child">
+							<p>{'I am a child component'}</p>
+						</div>
+						<style>
+							.child {
+								color: green;
+							}
+						</style>
+					</>
+			}
 
-		function App() @{
-				let tag = track(() => Child);
-				<@tag />
-				<style>
-					.child {
-						color: red;
-					}
-				</style>
-		}
+			function App() @{
+					let tag = track(() => Child);
+					<>
+						<@tag />
+						<style>
+							.child {
+								color: red;
+							}
+						</style>
+					</>
+			}
 		render(App);
 
 		const div = container.querySelector('.child');
@@ -773,15 +795,17 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
-		function App() @{
-				let &[b] = track(true);
-				<div>
-					@if (b) {
-						Inside if
-					}
-				</div>
-				<button onClick={() => (b = !b)}>{'Toggle b'}</button>
-		}
+			function App() @{
+					let &[b] = track(true);
+					<>
+						<div>
+							@if (b) {
+								<>Inside if</>
+							}
+						</div>
+						<button onClick={() => (b = !b)}>{'Toggle b'}</button>
+					</>
+			}
 
 		render(App);
 

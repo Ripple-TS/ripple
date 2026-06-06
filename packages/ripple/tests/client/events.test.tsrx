@@ -6,16 +6,18 @@ describe('on() event handler', () => {
 		function Basic() @{
 				let &[count1] = track(0);
 				let &[count2] = track(0);
-				<button
-					onClick={() => {
-						count1++;
-						count2++;
-					}}
-				>
-					{'Click me'}
-				</button>
-				<div class="count1">{count1}</div>
-				<div class="count2">{count2}</div>
+				<>
+					<button
+						onClick={() => {
+							count1++;
+							count2++;
+						}}
+					>
+						{'Click me'}
+					</button>
+					<div class="count1">{count1}</div>
+					<div class="count2">{count2}</div>
+				</>
 		}
 
 		render(Basic);
@@ -42,8 +44,10 @@ describe('on() event handler', () => {
 					});
 					return remove;
 				};
-				<button ref={setupListener}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<>
+					<button ref={setupListener}>{'Click me'}</button>
+					<div class="count">{count}</div>
+				</>
 		}
 
 		render(Basic);
@@ -79,9 +83,11 @@ describe('on() event handler', () => {
 						remove2();
 					};
 				};
-				<button ref={setupListeners}>{'Test'}</button>
-				<div class="click-count">{clickCount}</div>
-				<div class="mousedown-count">{mousedownCount}</div>
+				<>
+					<button ref={setupListeners}>{'Test'}</button>
+					<div class="click-count">{clickCount}</div>
+					<div class="mousedown-count">{mousedownCount}</div>
+				</>
 		}
 
 		render(Basic);
@@ -130,8 +136,10 @@ describe('on() event handler', () => {
 						remove3();
 					};
 				};
-				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="order">{callOrder.join(',')}</div>
+				<>
+					<button ref={setupListeners}>{'Click me'}</button>
+					<div class="order">{callOrder.join(',')}</div>
+				</>
 		}
 
 		render(Basic);
@@ -284,8 +292,10 @@ describe('on() event handler', () => {
 					});
 					return remove;
 				};
-				<input ref={setupListener} />
-				<div class="focus-count">{focusCount}</div>
+				<>
+					<input ref={setupListener} />
+					<div class="focus-count">{focusCount}</div>
+				</>
 		}
 
 		render(Basic);
@@ -386,8 +396,10 @@ describe('on() event handler', () => {
 						remove3?.();
 					};
 				};
-				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<>
+					<button ref={setupListeners}>{'Click me'}</button>
+					<div class="count">{count}</div>
+				</>
 		}
 
 		render(Basic);
@@ -426,8 +438,10 @@ describe('on() event handler', () => {
 						remove3?.();
 					};
 				};
-				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="count">{count}</div>
+				<>
+					<button ref={setupListeners}>{'Click me'}</button>
+					<div class="count">{count}</div>
+				</>
 		}
 
 		render(Basic);
@@ -464,10 +478,12 @@ describe('on() event handler', () => {
 				const setupChild = (node: HTMLButtonElement) => {
 					return on(node, 'click', childBubbleHandler);
 				};
-				<div ref={setupParent} class="parent">
-					<button ref={setupChild} class="child">{'Click me'}</button>
-				</div>
-				<div class="order">{callOrder.join(',')}</div>
+				<>
+					<div ref={setupParent} class="parent">
+						<button ref={setupChild} class="child">{'Click me'}</button>
+					</div>
+					<div class="order">{callOrder.join(',')}</div>
+				</>
 		}
 
 		render(Basic);
@@ -507,9 +523,11 @@ describe('on() event handler', () => {
 						permanentHandler?.();
 					};
 				};
-				<button ref={setupListeners}>{'Click me'}</button>
-				<div class="once-count">{count}</div>
-				<div class="permanent-count">{permanentCount}</div>
+				<>
+					<button ref={setupListeners}>{'Click me'}</button>
+					<div class="once-count">{count}</div>
+					<div class="permanent-count">{permanentCount}</div>
+				</>
 		}
 
 		render(Basic);

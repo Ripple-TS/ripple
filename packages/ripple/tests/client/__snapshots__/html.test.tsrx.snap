@@ -3,6 +3,7 @@
 exports[`Fragment innerHTML > renders dynamic innerHTML fragments 1`] = `
 <div>
   <!---->
+  <!---->
   <div>
     Test
   </div>
@@ -10,12 +11,14 @@ exports[`Fragment innerHTML > renders dynamic innerHTML fragments 1`] = `
   <button>
     Update
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`Fragment innerHTML > renders dynamic innerHTML fragments 2`] = `
 <div>
+  <!---->
   <!---->
   <div>
     Updated
@@ -24,6 +27,7 @@ exports[`Fragment innerHTML > renders dynamic innerHTML fragments 2`] = `
   <button>
     Update
   </button>
+  <!---->
   
 </div>
 `;

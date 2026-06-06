@@ -86,15 +86,17 @@ describe('MediaQuery', () => {
 	it('should have cleared event listeners after unmount', async () => {
 		const media = '(min-width: 600px)';
 
-		function App() @{
-			
-				let &[show] = track(true);
-				@if (show) {
-					<Child />
-				}
-				<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
-			
-		}
+			function App() @{
+				
+					let &[show] = track(true);
+					<>
+						@if (show) {
+							<Child />
+						}
+						<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+					</>
+				
+			}
 
 		function Child() @{
 			

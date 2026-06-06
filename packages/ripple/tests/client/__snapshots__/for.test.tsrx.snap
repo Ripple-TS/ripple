@@ -2,6 +2,7 @@
 
 exports[`for statements > correctly handles intermediate statements in for block 1`] = `
 <div>
+  <!---->
   <div>
     <div>
       <div>
@@ -32,12 +33,14 @@ exports[`for statements > correctly handles intermediate statements in for block
   <button>
     Add Item
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles intermediate statements in for block 2`] = `
 <div>
+  <!---->
   <div>
     <div>
       <div>
@@ -76,12 +79,14 @@ exports[`for statements > correctly handles intermediate statements in for block
   <button>
     Add Item
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles keyed for...of loops 1`] = `
 <div>
+  <!---->
   <!---->
   <div>
     0:Item 1
@@ -96,12 +101,14 @@ exports[`for statements > correctly handles keyed for...of loops 1`] = `
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles keyed for...of loops 2`] = `
 <div>
+  <!---->
   <!---->
   <div>
     0:Item 3
@@ -116,12 +123,14 @@ exports[`for statements > correctly handles keyed for...of loops 2`] = `
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles the index in a for...of loop 1`] = `
 <div>
+  <!---->
   <div>
     <div>
       0 : a
@@ -140,12 +149,14 @@ exports[`for statements > correctly handles the index in a for...of loop 1`] = `
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles the index in a for...of loop 2`] = `
 <div>
+  <!---->
   <div>
     <div>
       0 : a
@@ -167,12 +178,14 @@ exports[`for statements > correctly handles the index in a for...of loop 2`] = `
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > correctly handles the index in a for...of loop 3`] = `
 <div>
+  <!---->
   <div>
     <div>
       0 : d
@@ -194,12 +207,14 @@ exports[`for statements > correctly handles the index in a for...of loop 3`] = `
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > handles updating with new objects with same key 1`] = `
 <div>
+  <!---->
   <!---->
   <div>
     0:Item 1
@@ -214,12 +229,14 @@ exports[`for statements > handles updating with new objects with same key 1`] = 
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > handles updating with new objects with same key 2`] = `
 <div>
+  <!---->
   <!---->
   <div>
     0:Item 1!
@@ -234,12 +251,14 @@ exports[`for statements > handles updating with new objects with same key 2`] = 
   <button>
     Reverse
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > renders a simple dynamic array 1`] = `
 <div>
+  <!---->
   <!---->
   <div
     class="Item 1"
@@ -260,12 +279,14 @@ exports[`for statements > renders a simple dynamic array 1`] = `
   <button>
     Add Item
   </button>
+  <!---->
   
 </div>
 `;
 
 exports[`for statements > renders a simple dynamic array 2`] = `
 <div>
+  <!---->
   <!---->
   <div
     class="Item 1"
@@ -291,6 +312,7 @@ exports[`for statements > renders a simple dynamic array 2`] = `
   <button>
     Add Item
   </button>
+  <!---->
   
 </div>
 `;

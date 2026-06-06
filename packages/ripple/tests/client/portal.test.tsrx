@@ -49,17 +49,19 @@ describe('Portal', () => {
 	});
 
 	it('cleans up portal content when destroyed via conditional rendering', () => {
-		function TestPortal() @{
-			
-				let &[open] = track(true);
-				@if (open) {
-					<Portal target={document.body}>
-						<div class="test-portal">{'Conditional content'}</div>
-					</Portal>
-				}
-				<button onClick={() => (open = false)}>{'Close'}</button>
-			
-		}
+			function TestPortal() @{
+				
+					let &[open] = track(true);
+					<>
+						@if (open) {
+							<Portal target={document.body}>
+								<div class="test-portal">{'Conditional content'}</div>
+							</Portal>
+						}
+						<button onClick={() => (open = false)}>{'Close'}</button>
+					</>
+				
+			}
 
 		render(TestPortal);
 
@@ -77,18 +79,20 @@ describe('Portal', () => {
 	it('opens and closes portal via conditional rendering', () => {
 		function TestPortal() @{
 			
-				let &[open] = track(false);
-				@if (open) {
-					<Portal target={document.body}>
-						<div class="test-portal">
-							{'Content'}
-							<button onClick={() => (open = false)}>{'Close'}</button>
-						</div>
-					</Portal>
-				}
-				@if (!open) {
-					<button onClick={() => (open = true)}>{'Open'}</button>
-				}
+					let &[open] = track(false);
+					<>
+						@if (open) {
+							<Portal target={document.body}>
+								<div class="test-portal">
+									{'Content'}
+									<button onClick={() => (open = false)}>{'Close'}</button>
+								</div>
+							</Portal>
+						}
+						@if (!open) {
+							<button onClick={() => (open = true)}>{'Open'}</button>
+						}
+					</>
 			
 		}
 
@@ -117,16 +121,18 @@ describe('Portal', () => {
 		document.body.appendChild(target1);
 		document.body.appendChild(target2);
 
-		function TestMultiPortal() @{
-			
-				<Portal target={target1}>
-					<div class="test-portal">{'Portal 1 content'}</div>
-				</Portal>
-				<Portal target={target2}>
-					<div class="test-portal">{'Portal 2 content'}</div>
-				</Portal>
-			
-		}
+			function TestMultiPortal() @{
+				
+					<>
+						<Portal target={target1}>
+							<div class="test-portal">{'Portal 1 content'}</div>
+						</Portal>
+						<Portal target={target2}>
+							<div class="test-portal">{'Portal 2 content'}</div>
+						</Portal>
+					</>
+				
+			}
 
 		render(TestMultiPortal);
 

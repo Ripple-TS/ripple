@@ -14,14 +14,16 @@ describe('head elements', () => {
 	});
 
 	it('renders static title element', () => {
-		function App() @{
-			
-				<head>
-					<title>{'Static Test Title'}</title>
-				</head>
-				<div>{'Content'}</div>
-			
-		}
+			function App() @{
+				
+					<>
+						<head>
+							<title>{'Static Test Title'}</title>
+						</head>
+						<div>{'Content'}</div>
+					</>
+				
+			}
 
 		render(App);
 
@@ -32,20 +34,22 @@ describe('head elements', () => {
 	it('renders reactive title element', () => {
 		function App() @{
 			
-				let &[title] = track('Initial Title');
-				<head>
-					<title>{title}</title>
-				</head>
-				<div>
-					<button
-						onClick={() => {
-							title = 'Updated Title';
-						}}
-					>
-						{'Update Title'}
-					</button>
-					<span>{title}</span>
-				</div>
+					let &[title] = track('Initial Title');
+					<>
+						<head>
+							<title>{title}</title>
+						</head>
+						<div>
+							<button
+								onClick={() => {
+									title = 'Updated Title';
+								}}
+							>
+								{'Update Title'}
+							</button>
+							<span>{title}</span>
+						</div>
+					</>
 			
 		}
 
@@ -65,19 +69,21 @@ describe('head elements', () => {
 	it('renders title with template literal', () => {
 		function App() @{
 			
-				let &[name] = track('World');
-				<head>
-					<title>{`Hello ${name}!`}</title>
-				</head>
-				<div>
-					<button
-						onClick={() => {
-							name = 'Ripple';
-						}}
-					>
-						{'Change Name'}
-					</button>
-				</div>
+					let &[name] = track('World');
+					<>
+						<head>
+							<title>{`Hello ${name}!`}</title>
+						</head>
+						<div>
+							<button
+								onClick={() => {
+									name = 'Ripple';
+								}}
+							>
+								{'Change Name'}
+							</button>
+						</div>
+					</>
 			
 		}
 
@@ -95,21 +101,23 @@ describe('head elements', () => {
 	it('renders title with computed value', () => {
 		function App() @{
 			
-				let &[count] = track(0);
-				let prefix = 'Count: ';
-				<head>
-					<title>{prefix + count}</title>
-				</head>
-				<div>
-					<button
-						onClick={() => {
-							count++;
-						}}
-					>
-						{'Increment'}
-					</button>
-					<span>{count}</span>
-				</div>
+					let &[count] = track(0);
+					let prefix = 'Count: ';
+					<>
+						<head>
+							<title>{prefix + count}</title>
+						</head>
+						<div>
+							<button
+								onClick={() => {
+									count++;
+								}}
+							>
+								{'Increment'}
+							</button>
+							<span>{count}</span>
+						</div>
+					</>
 			
 		}
 
@@ -128,19 +136,21 @@ describe('head elements', () => {
 	it('handles multiple title updates', () => {
 		function App() @{
 			
-				let &[step] = track(1);
-				<head>
-					<title>{`Step ${step} of 3`}</title>
-				</head>
-				<div>
-					<button
-						onClick={() => {
-							step = step % 3 + 1;
-						}}
-					>
-						{'Next Step'}
-					</button>
-				</div>
+					let &[step] = track(1);
+					<>
+						<head>
+							<title>{`Step ${step} of 3`}</title>
+						</head>
+						<div>
+							<button
+								onClick={() => {
+									step = step % 3 + 1;
+								}}
+							>
+								{'Next Step'}
+							</button>
+						</div>
+					</>
 			
 		}
 
@@ -164,14 +174,16 @@ describe('head elements', () => {
 	});
 
 	it('renders empty title', () => {
-		function App() @{
-			
-				<head>
-					<title>{''}</title>
-				</head>
-				<div>{'Empty title test'}</div>
-			
-		}
+			function App() @{
+				
+					<>
+						<head>
+							<title>{''}</title>
+						</head>
+						<div>{'Empty title test'}</div>
+					</>
+				
+			}
 
 		render(App);
 
@@ -181,27 +193,29 @@ describe('head elements', () => {
 	it('renders title with conditional content', () => {
 		function App() @{
 			
-				let &[showPrefix] = track(true);
-				let &[title] = track('Main Page');
-				<head>
-					<title>{showPrefix ? 'App - ' + title : title}</title>
-				</head>
-				<div>
-					<button
-						onClick={() => {
-							showPrefix = !showPrefix;
-						}}
-					>
-						{'Toggle Prefix'}
-					</button>
-					<button
-						onClick={() => {
-							title = title === 'Main Page' ? 'Settings' : 'Main Page';
-						}}
-					>
-						{'Change Page'}
-					</button>
-				</div>
+					let &[showPrefix] = track(true);
+					let &[title] = track('Main Page');
+					<>
+						<head>
+							<title>{showPrefix ? 'App - ' + title : title}</title>
+						</head>
+						<div>
+							<button
+								onClick={() => {
+									showPrefix = !showPrefix;
+								}}
+							>
+								{'Toggle Prefix'}
+							</button>
+							<button
+								onClick={() => {
+									title = title === 'Main Page' ? 'Settings' : 'Main Page';
+								}}
+							>
+								{'Change Page'}
+							</button>
+						</div>
+					</>
 			
 		}
 

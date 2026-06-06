@@ -6,8 +6,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1);
 				let &[time] = track(() => date.getTime());
-				<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
-				<pre>{time}</pre>
+				<>
+					<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
+					<pre>{time}</pre>
+				</>
 			
 		}
 
@@ -29,8 +31,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 5, 15);
 				let &[year] = track(() => date.getFullYear());
-				<button onClick={() => date.setFullYear(2030)}>{'Change Year'}</button>
-				<pre>{year}</pre>
+				<>
+					<button onClick={() => date.setFullYear(2030)}>{'Change Year'}</button>
+					<pre>{year}</pre>
+				</>
 			
 		}
 
@@ -51,8 +55,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 15);
 				let &[month] = track(() => date.getMonth());
-				<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
-				<pre>{month}</pre>
+				<>
+					<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
+					<pre>{month}</pre>
+				</>
 			
 		}
 
@@ -73,8 +79,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1);
 				let &[day] = track(() => date.getDate());
-				<button onClick={() => date.setDate(15)}>{'Change Day'}</button>
-				<pre>{day}</pre>
+				<>
+					<button onClick={() => date.setDate(15)}>{'Change Day'}</button>
+					<pre>{day}</pre>
+				</>
 			
 		}
 
@@ -95,8 +103,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1);
 				let &[dayOfWeek] = track(() => date.getDay());
-				<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
-				<pre>{dayOfWeek}</pre>
+				<>
+					<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
+					<pre>{dayOfWeek}</pre>
+				</>
 			
 		}
 
@@ -117,8 +127,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1, 10, 30, 0);
 				let &[hours] = track(() => date.getHours());
-				<button onClick={() => date.setHours(15)}>{'Change to 3 PM'}</button>
-				<pre>{hours}</pre>
+				<>
+					<button onClick={() => date.setHours(15)}>{'Change to 3 PM'}</button>
+					<pre>{hours}</pre>
+				</>
 			
 		}
 
@@ -139,8 +151,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1, 10, 15, 0);
 				let &[minutes] = track(() => date.getMinutes());
-				<button onClick={() => date.setMinutes(45)}>{'Change Minutes'}</button>
-				<pre>{minutes}</pre>
+				<>
+					<button onClick={() => date.setMinutes(45)}>{'Change Minutes'}</button>
+					<pre>{minutes}</pre>
+				</>
 			
 		}
 
@@ -161,8 +175,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1, 10, 15, 30);
 				let &[seconds] = track(() => date.getSeconds());
-				<button onClick={() => date.setSeconds(45)}>{'Change Seconds'}</button>
-				<pre>{seconds}</pre>
+				<>
+					<button onClick={() => date.setSeconds(45)}>{'Change Seconds'}</button>
+					<pre>{seconds}</pre>
+				</>
 			
 		}
 
@@ -183,8 +199,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1, 12, 0, 0);
 				let &[isoString] = track(() => date.toISOString());
-				<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
-				<pre>{isoString}</pre>
+				<>
+					<button onClick={() => date.setFullYear(2026)}>{'Change Year'}</button>
+					<pre>{isoString}</pre>
+				</>
 			
 		}
 
@@ -210,8 +228,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1);
 				let &[dateString] = track(() => date.toDateString());
-				<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
-				<pre>{dateString}</pre>
+				<>
+					<button onClick={() => date.setMonth(11)}>{'Change to December'}</button>
+					<pre>{dateString}</pre>
+				</>
 			
 		}
 
@@ -235,8 +255,10 @@ describe('RippleDate', () => {
 			
 				let date = RippleDate(2025, 0, 1);
 				let &[valueOf] = track(() => date.valueOf());
-				<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
-				<pre>{valueOf}</pre>
+				<>
+					<button onClick={() => date.setDate(2)}>{'Next Day'}</button>
+					<pre>{valueOf}</pre>
+				</>
 			
 		}
 
@@ -261,25 +283,27 @@ describe('RippleDate', () => {
 				let &[month] = track(() => date.getMonth());
 				let &[day] = track(() => date.getDate());
 				let &[hours] = track(() => date.getHours());
-				<button onClick={() => date.setTime(new Date(2026, 5, 15, 14, 45, 30).getTime())}>
-					{'Change All'}
-				</button>
-				<div>
-					{'Year: '}
-					{year}
-				</div>
-				<div>
-					{'Month: '}
-					{month}
-				</div>
-				<div>
-					{'Day: '}
-					{day}
-				</div>
-				<div>
-					{'Hours: '}
-					{hours}
-				</div>
+				<>
+					<button onClick={() => date.setTime(new Date(2026, 5, 15, 14, 45, 30).getTime())}>
+						{'Change All'}
+					</button>
+					<div>
+						{'Year: '}
+						{year}
+					</div>
+					<div>
+						{'Month: '}
+						{month}
+					</div>
+					<div>
+						{'Day: '}
+						{day}
+					</div>
+					<div>
+						{'Hours: '}
+						{hours}
+					</div>
+				</>
 			
 		}
 
@@ -313,22 +337,24 @@ describe('RippleDate', () => {
 				let &[stringYear] = track(() => dateFromString.getFullYear());
 				let &[numbersYear] = track(() => dateFromNumbers.getFullYear());
 				let &[timestampYear] = track(() => dateFromTimestamp.getFullYear());
-				<div>
-					{'Now: '}
-					{nowYear}
-				</div>
-				<div>
-					{'String: '}
-					{stringYear}
-				</div>
-				<div>
-					{'Numbers: '}
-					{numbersYear}
-				</div>
-				<div>
-					{'Timestamp: '}
-					{timestampYear}
-				</div>
+				<>
+					<div>
+						{'Now: '}
+						{nowYear}
+					</div>
+					<div>
+						{'String: '}
+						{stringYear}
+					</div>
+					<div>
+						{'Numbers: '}
+						{numbersYear}
+					</div>
+					<div>
+						{'Timestamp: '}
+						{timestampYear}
+					</div>
+				</>
 			
 		}
 
@@ -357,15 +383,17 @@ describe('RippleDate', () => {
 				let date = RippleDate();
 				let &[localeDateString] = track(() => date.toLocaleDateString('en-US'));
 				let &[localeTimeString] = track(() => date.toLocaleTimeString('en-US'));
-				<button onClick={() => date.setFullYear(date.getFullYear() + 1)}>{'Next Year'}</button>
-				<div>
-					{'Date: '}
-					{localeDateString}
-				</div>
-				<div>
-					{'Time: '}
-					{localeTimeString}
-				</div>
+				<>
+					<button onClick={() => date.setFullYear(date.getFullYear() + 1)}>{'Next Year'}</button>
+					<div>
+						{'Date: '}
+						{localeDateString}
+					</div>
+					<div>
+						{'Time: '}
+						{localeTimeString}
+					</div>
+				</>
 			
 		}
 

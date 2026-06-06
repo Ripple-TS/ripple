@@ -15,7 +15,7 @@ describe('for statements', () => {
 		expect(container).toMatchSnapshot();
 	});
 
-	it('throws when loop blocks use plain JavaScript control flow with direct TSRX output', () => {
+	it('allows plain JavaScript control flow in setup when rendered output follows', () => {
 		expect(
 			() => compile(
 				`function App() @{
@@ -23,13 +23,12 @@ describe('for statements', () => {
 					for (const item of items) {
 						<div class="selected">{item}</div>
 					}
+					<></>
 				}`,
 				'App.tsrx',
 				{ mode: 'client' },
 			),
-		).toThrow(
-			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
-		);
+		).not.toThrow();
 	});
 
 	it('allows continue to skip an iteration', () => {
@@ -96,13 +95,15 @@ describe('for statements', () => {
 	});
 
 	it('renders a simple dynamic array', () => {
-		function App() @{
-				const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
-				@for (const item of items) {
-					<div class={item}>{item}</div>
-				}
-				<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
-		}
+			function App() @{
+					const items = new RippleArray('Item 1', 'Item 2', 'Item 3');
+					<>
+						@for (const item of items) {
+							<div class={item}>{item}</div>
+						}
+						<button onClick={() => items.push(`Item ${items.length + 1}`)}>{'Add Item'}</button>
+					</>
+			}
 
 		render(App);
 		expect(container).toMatchSnapshot();
@@ -116,19 +117,21 @@ describe('for statements', () => {
 	});
 
 	it('correctly handles intermediate statements in for block', () => {
-		function App() @{
-				const items = new RippleArray(1, 2, 3);
-				<div>
-					@for (const item of items) {
-						<div>
-							<div>{item}</div>
-							const some_text = item;
-							<div>{some_text}</div>
-						</div>
-					}
-				</div>
-				<button onClick={() => items.push(items.length + 1)}>{'Add Item'}</button>
-		}
+			function App() @{
+					const items = new RippleArray(1, 2, 3);
+					<>
+							<div>
+								@for (const item of items) {
+										const some_text = item;
+										<div>
+											<div>{item}</div>
+											<div>{some_text}</div>
+										</div>
+								}
+							</div>
+						<button onClick={() => items.push(items.length + 1)}>{'Add Item'}</button>
+					</>
+			}
 
 		render(App);
 
@@ -143,18 +146,20 @@ describe('for statements', () => {
 	});
 
 	it('correctly handles the index in a for...of loop', () => {
-		function App() @{
-				const items = new RippleArray('a', 'b', 'c');
-				<div>
-					@for (let item of items; index i) {
-						<div>{i + ' : ' + item}</div>
-					}
-				</div>
-				<button onClick={() => items.push(String.fromCharCode(97 + items.length))}>
-					{'Add Item'}
-				</button>
-				<button onClick={() => items.reverse()}>{'Reverse'}</button>
-		}
+			function App() @{
+					const items = new RippleArray('a', 'b', 'c');
+					<>
+						<div>
+							@for (let item of items; index i) {
+								<div>{i + ' : ' + item}</div>
+							}
+						</div>
+						<button onClick={() => items.push(String.fromCharCode(97 + items.length))}>
+							{'Add Item'}
+						</button>
+						<button onClick={() => items.reverse()}>{'Reverse'}</button>
+					</>
+			}
 
 		render(App);
 
@@ -175,22 +180,24 @@ describe('for statements', () => {
 
 	it('correctly handles keyed for...of loops', () => {
 		function App() @{
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
-				}
-				<button
-					onClick={() => {
-						items = items.toReversed();
-					}}
-				>
-					{'Reverse'}
-				</button>
-		}
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+					<>
+						@for (let item of items; index i; key item.id) {
+							<div>{i + ':' + item.text}</div>
+						}
+						<button
+							onClick={() => {
+								items = items.toReversed();
+							}}
+						>
+							{'Reverse'}
+						</button>
+					</>
+			}
 
 		render(App);
 
@@ -207,21 +214,23 @@ describe('for statements', () => {
 	it('keyed for over derived updates sibling text nodes', () => {
 		function App() @{
 				let &[count] = track(0);
-				let &[items] = track(
-					() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
-				);
-				<button
-					onClick={() => {
-						count++;
-					}}
-				>
-					{'Add'}
-				</button>
-				@for (const item of items; key item.id) {
-					<div class="item">{item.label}</div>
-				}
-				<p class="count">{count}</p>
-		}
+					let &[items] = track(
+						() => Array.from({ length: count }).map((_, id) => ({ id, label: `Item ${id}` })),
+					);
+					<>
+						<button
+							onClick={() => {
+								count++;
+							}}
+						>
+							{'Add'}
+						</button>
+						@for (const item of items; key item.id) {
+							<div class="item">{item.label}</div>
+						}
+						<p class="count">{count}</p>
+					</>
+			}
 
 		render(App);
 
@@ -244,21 +253,23 @@ describe('for statements', () => {
 	});
 
 	it('keyed for with 32+ items: full reversal updates values via Map path', () => {
-		function App() @{
-				let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
-				<div>
-					@for (let item of items; index idx; key item.id) {
-						<span class="item">{idx + ':' + item.text}</span>
-					}
-				</div>
-				<button
-					onClick={() => {
-						items = items.toReversed();
-					}}
-				>
-					{'Reverse'}
-				</button>
-		}
+			function App() @{
+					let &[items] = track(Array.from({ length: 40 }, (_, i) => ({ id: i, text: `Item ${i}` })));
+					<>
+						<div>
+							@for (let item of items; index idx; key item.id) {
+								<span class="item">{idx + ':' + item.text}</span>
+							}
+						</div>
+						<button
+							onClick={() => {
+								items = items.toReversed();
+							}}
+						>
+							{'Reverse'}
+						</button>
+					</>
+			}
 
 		render(App);
 
@@ -276,30 +287,32 @@ describe('for statements', () => {
 
 	it('handles updating with new objects with same key', () => {
 		function App() @{
-				let &[items] = track([
-					{ id: 1, text: 'Item 1' },
-					{ id: 2, text: 'Item 2' },
-					{ id: 3, text: 'Item 3' },
-				]);
-				@for (let item of items; index i; key item.id) {
-					<div>{i + ':' + item.text}</div>
-				}
-				<button
-					onClick={() => {
-						items[0].id = 3;
-						items[1].id = 2;
-						items[2].id = 1;
+					let &[items] = track([
+						{ id: 1, text: 'Item 1' },
+						{ id: 2, text: 'Item 2' },
+						{ id: 3, text: 'Item 3' },
+					]);
+					<>
+						@for (let item of items; index i; key item.id) {
+							<div>{i + ':' + item.text}</div>
+						}
+						<button
+							onClick={() => {
+								items[0].id = 3;
+								items[1].id = 2;
+								items[2].id = 1;
 
-						items = [
-							{ ...items[0], text: 'Item 1!' },
-							{ ...items[1], text: 'Item 2!' },
-							{ ...items[2], text: 'Item 3!' },
-						];
-					}}
-				>
-					{'Reverse'}
-				</button>
-		}
+								items = [
+									{ ...items[0], text: 'Item 1!' },
+									{ ...items[1], text: 'Item 2!' },
+									{ ...items[2], text: 'Item 3!' },
+								];
+							}}
+						>
+							{'Reverse'}
+						</button>
+					</>
+			}
 
 		render(App);
 		expect(container).toMatchSnapshot();
@@ -314,21 +327,23 @@ describe('for statements', () => {
 	it('ref-based for with 32+ items: remove from start with shared refs via Map path', () => {
 		const objects = Array.from({ length: 50 }, (_, i) => ({ id: i, text: `Obj ${i}` }));
 
-		function App() @{
-				let &[items] = track(objects.slice());
-				<div>
-					@for (const item of items) {
-						<span class="item">{item.text}</span>
-					}
-				</div>
-				<button
-					onClick={() => {
-						items = objects.slice(15).reverse();
-					}}
-				>
-					{'Trim and reverse'}
-				</button>
-		}
+			function App() @{
+					let &[items] = track(objects.slice());
+					<>
+						<div>
+							@for (const item of items) {
+								<span class="item">{item.text}</span>
+							}
+						</div>
+						<button
+							onClick={() => {
+								items = objects.slice(15).reverse();
+							}}
+						>
+							{'Trim and reverse'}
+						</button>
+					</>
+			}
 
 		render(App);
 

@@ -36,12 +36,14 @@ describe('context', () => {
 		function App() @{
 			
 				MyContext.set(4);
-				<h3>{MyContext.get()}</h3>
-				<h4>
-					{'2x:'}
-					{doubleContext()}
-				</h4>
 				MyContext.set(8);
+				<>
+					<h3>{MyContext.get()}</h3>
+					<h4>
+						{'2x:'}
+						{doubleContext()}
+					</h4>
+				</>
 			
 		}
 

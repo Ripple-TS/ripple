@@ -1609,8 +1609,14 @@ describe('use value()', () => {
 						return next;
 					},
 				);
-				<input type="text" ref={bindValue(value)} />
-				<div>{value.value}</div>
+				<>
+					<>
+						<>
+							<input type="text" ref={bindValue(value)} />
+							<div>{value.value}</div>
+						</>
+					</>
+				</>
 		}
 
 		render(App);
@@ -1644,8 +1650,10 @@ describe('use value()', () => {
 						return next;
 					},
 				);
-				<input type="text" ref={bindValue(value)} />
-				<div>{value.value}</div>
+				<>
+					<input type="text" ref={bindValue(value)} />
+					<div>{value.value}</div>
+				</>
 		}
 
 		render(App);
@@ -1679,8 +1687,10 @@ describe('use value()', () => {
 						return next;
 					},
 				);
-				<input type="text" ref={bindValue(value)} />
-				<div>{value.value}</div>
+				<>
+					<input type="text" ref={bindValue(value)} />
+					<div>{value.value}</div>
+				</>
 		}
 
 		render(App);
@@ -1725,8 +1735,10 @@ describe('use value()', () => {
 							}
 						});
 					});
-					<input type="text" ref={bindValue(value)} />
-					<div>{value.value}</div>
+					<>
+						<input type="text" ref={bindValue(value)} />
+						<div>{value.value}</div>
+					</>
 			}
 
 			render(App);
@@ -1899,8 +1911,10 @@ describe('use value()', () => {
 							// no update
 						},
 					];
-					<input type="text" ref={bindValue(...value_accessors)} />
-					<div>{value.value}</div>
+						<>
+							<input type="text" ref={bindValue(...value_accessors)} />
+							<div>{value.value}</div>
+						</>
 			}
 
 			render(App);
@@ -1933,8 +1947,10 @@ describe('use value()', () => {
 							return '';
 						},
 					);
-					<input type="text" ref={bindValue(value)} />
-					<div>{value.value}</div>
+						<>
+							<input type="text" ref={bindValue(value)} />
+							<div>{value.value}</div>
+						</>
 			}
 
 			render(App);
