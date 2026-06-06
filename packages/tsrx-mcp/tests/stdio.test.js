@@ -182,8 +182,9 @@ describe('@tsrx/mcp stdio server', () => {
 			});
 			expect(expect_text_content(prompt.messages[0].content)).toContain('detect-target');
 
-			const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
-			expect(expect_text_content(docs.contents[0])).toContain('export const Button');
+				const docs = await client.readResource({ uri: 'tsrx://docs/components.md' });
+				expect(expect_text_content(docs.contents[0])).toContain('export function Button');
+				expect(expect_text_content(docs.contents[0])).toContain('@{');
 
 			const target = await client.callTool({
 				name: 'detect-target',

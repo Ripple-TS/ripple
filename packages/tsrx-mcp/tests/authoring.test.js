@@ -24,16 +24,16 @@ describe('@tsrx/mcp authoring reviews', () => {
 		);
 	});
 
-	it('accepts expression text and directly named form controls', () => {
+	it('accepts JSX text and directly named form controls', () => {
 		const result = review_tsrx_accessibility({
 			target: 'react',
 			filename: 'App.tsrx',
 			code: `export function App() { return <>
 				<form>
-					<label htmlFor="todo-input">{'Todo title'}</label>
+					<label htmlFor="todo-input">Todo title</label>
 					<input id="todo-input" type="text" />
 					<input type="checkbox" aria-label="Mark task as complete" />
-					<button type="submit">{'Add task'}</button>
+					<button type="submit">Add task</button>
 				</form>
 			</>; }`,
 		});

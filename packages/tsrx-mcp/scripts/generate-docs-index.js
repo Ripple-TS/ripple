@@ -71,9 +71,9 @@ export async function generate_docs_index() {
 TSRX is a TypeScript language extension for authoring declarative UI in .tsrx files. It adds a small set of syntax forms on top of TypeScript, while letting each target compiler define the runtime semantics.
 
 Core ideas:
-- Components are ordinary TypeScript functions; the recommended authoring shape is a const arrow function returning a JSX fragment.
+- Components are ordinary TypeScript functions. Use a JSX statement container, \`@{ ... }\`, when the function body is mostly TSRX setup plus one rendered output.
 - JSXElement, JSXFragment, JSXText, JSXExpressionContainer, attributes, and spreads use the standard JSX node family.
-- Use a localized \`---\` fence when a fragment, element body, or control-flow branch needs TypeScript setup before rendered children.
+- A mixed setup/template scope must finish with exactly one output node: a JSXElement, JSXFragment, or JSX control-flow expression. Wrap plain text, expression containers, or multiple siblings in a fragment.
 - Template control flow uses directive expressions: \`@if\`, \`@for\`, \`@switch\`, and \`@try\`.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
@@ -87,15 +87,15 @@ Source: website-tsrx/src/pages/specification.tsrx`,
 			use_cases: 'components, functions, props, authoring .tsrx files, jsx return syntax',
 			content: `# Function Components
 
-Author UI as ordinary TypeScript values. Most components are const arrow functions whose body is a JSX fragment.
+Author UI as ordinary TypeScript values. Components can return JSX directly, or use a JSX statement container when setup and output should live together.
 
 \`\`\`tsx
-export const Button = ({ label }: { label: string }) => <>
+export function Button({ label }: { label: string }) @{
   <button>{label}</button>
-</>;
+}
 \`\`\`
 
-When a component needs setup before output, keep the TypeScript above a localized \`---\` fence and render JSX children below it.
+Inside \`@{ ... }\`, put any setup statements first and end with one rendered output node. No JavaScript setup can appear after that output.
 
 Source: website-tsrx/src/pages/specification.tsrx#components`,
 		},
@@ -131,22 +131,22 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 				'fragments, pass template as prop, return template from helper, render props, expression position jsx',
 			content: `# Expression Values
 
-TSRX uses JSX-shaped expression values. A single JSXElement can be assigned, passed, or returned directly. Use a JSXFragment when the value needs multiple children, local setup, or template control flow.
+TSRX uses JSX-shaped expression values. A single JSXElement can be assigned, passed, or returned directly. Use a JSXFragment when the value needs multiple children, or use a JSX statement container when setup needs to produce one final output.
 
 \`\`\`tsx
-const App = () => <>
+const App = () => @{
   const title = <span class="title">Settings</span>;
-  const badge = (label: string) => <>
+  const badge = (label: string) => @{
     const normalized = label.trim();
-    ---
+
     <span class="badge">{normalized}</span>
-  </>;
-  ---
+  };
+
   <Card title={title}>{badge('New')}</Card>
-</>;
+};
 \`\`\`
 
-The \`---\` fence is optional and local to the current fragment, element body, or control-flow branch. It separates TypeScript setup above from rendered children below.
+\`@{ ... }\` is a JSX statement container. A normal JSX fragment, element body, or control-flow branch can also contain setup before output, but that scope must still end with one output node. Use a fragment when the output is text, an expression container, or multiple siblings.
 
 Specification grammar:
 
@@ -173,7 +173,7 @@ const List = ({ items }: { items: string[] }) => <>
     <ul>
       @for (const item of items; index i; key item) {
         if (!item) continue;
-        ---
+
         <li>{item}</li>
       }
     </ul>
@@ -181,9 +181,9 @@ const List = ({ items }: { items: string[] }) => <>
 </>;
 \`\`\`
 
-Use normal function returns for guard exits in TypeScript setup before template output starts. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
+Use normal function returns for guard exits before entering template output. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
 
-\`return\` statements are not template output. Put guard returns in the TypeScript setup section before rendered children, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, \`continue\` skips the current rendered iteration and \`break\` is invalid; use \`break\` only for \`@switch\` cases.
+\`return\` statements are not template output. Put guard returns before the JSX statement container or return value, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, \`continue\` skips the current rendered iteration and \`break\` is invalid; use \`break\` only for \`@switch\` cases.
 
 TSRX rendering supports \`@for ... of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not rendering constructs. Move imperative loops into setup code, a nested function, event handler, effect, or helper where normal JavaScript control-flow rules apply.
 

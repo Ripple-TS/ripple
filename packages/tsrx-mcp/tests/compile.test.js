@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { DIAGNOSTIC_CODES } from '@tsrx/core';
+import { DIAGNOSTIC_CODES, TSRX_WHILE_STATEMENT_ERROR } from '@tsrx/core';
 import {
 	analyze_tsrx,
 	compile_tsrx,
@@ -12,6 +12,7 @@ import {
 	inspect_project,
 	validate_tsrx_file,
 } from '../src/index.js';
+import { analyze_tsrx_result } from '../src/analyze.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const target_fixtures = [
@@ -409,18 +410,27 @@ describe('@tsrx/mcp compile helpers', () => {
 	});
 
 	it('adds control-flow advice for unsupported TSRX loop diagnostics', async () => {
-		const while_loop = await analyze_tsrx({
-			code: `function App() { return <>
-				let i = 0;
-				while (i < 3) {
-					i++;
-				}
-				---
-				<div>{i}</div>
-			</>; }`,
-			filename: 'App.tsrx',
-			target: 'ripple',
-			cwd: resolve(__dirname, 'fixtures/ripple-project'),
+		const while_loop = analyze_tsrx_result({
+			code: '',
+			compileResult: {
+				ok: false,
+				target: 'ripple',
+				compilerPackage: '@tsrx/ripple',
+				filename: 'App.tsrx',
+				cwd: resolve(__dirname, 'fixtures/ripple-project'),
+				errors: [
+					{
+						message: TSRX_WHILE_STATEMENT_ERROR,
+						code: null,
+						type: null,
+						fileName: 'App.tsrx',
+						pos: null,
+						end: null,
+						raisedAt: null,
+						loc: null,
+					},
+				],
+			},
 		});
 
 		expect(while_loop.advice).toEqual(
@@ -520,11 +530,10 @@ describe('@tsrx/mcp compile helpers', () => {
 		// <Letter` and any `return <Letter`, so the canonical wrapper `<>`
 		// triggered the very advice that recommends wrapping in `<>`.
 		const result = await analyze_tsrx({
-			code: `function App() { return <>
+			code: `function App() @{
 				const title = <><span>Title</span></>;
-				---
 				<div>{title}</div>
-			</>; }`,
+			}`,
 			filename: 'App.tsrx',
 			target: 'ripple',
 			cwd: resolve(__dirname, 'fixtures/ripple-project'),
@@ -537,11 +546,10 @@ describe('@tsrx/mcp compile helpers', () => {
 		// The fragment shorthand is the documented default wrapper for
 		// expression-position JSX, so it must never trigger the wrap-it advice.
 		const result = await analyze_tsrx({
-			code: `function App() { return <>
+			code: `function App() @{
 				const title = <><span>Title</span></>;
-				---
 				<div>{title}</div>
-			</>; }`,
+			}`,
 			filename: 'App.tsrx',
 			target: 'ripple',
 			cwd: resolve(__dirname, 'fixtures/ripple-project'),

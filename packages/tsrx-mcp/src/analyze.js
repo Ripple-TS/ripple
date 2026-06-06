@@ -78,7 +78,7 @@ function create_advice(input) {
 			severity: 'info',
 			title: 'Use JSX-shaped expression values',
 			message:
-				'TSRX expression values use JSX-shaped nodes. Use a JSXElement directly for one child, or a JSXFragment when the value needs multiple children, local setup, or template control flow.',
+				'TSRX expression values use JSX-shaped nodes. Use a JSXElement directly for one child, a JSXFragment when the value needs multiple children, or a JSX statement container when setup must produce one final output.',
 			documentation: ['tsrx://docs/expression-values.md'],
 		});
 	}
@@ -100,7 +100,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Put returns in TypeScript setup',
 			message:
-				'Return statements are ordinary JavaScript control flow for functions, not template control flow. Use guard clauses before returning TSRX, or render conditionally inside the template.',
+				'Return statements are ordinary JavaScript control flow for functions, not template output. Use guard clauses before a JSX statement container or return value, or render conditionally inside the template.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

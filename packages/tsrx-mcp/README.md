@@ -88,7 +88,7 @@ Add the generic config above to your Codex MCP configuration.
   target-neutral authoring advice with linked docs resources.
 - `review-tsrx-accessibility` - review TSRX source for common accessibility issues
   before browser-based Axe validation, including missing button names, unlabeled
-  form controls, and visible text written in a non-rendering shape.
+  form controls, and visible text accidentally wrapped in quote characters.
 - `review-tsrx-styles` - review function-local style usage for malformed style
   blocks, broad selectors, root styling, and contrast risks.
 - `review-tsrx-components` - review component structure and suggest extraction

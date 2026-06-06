@@ -15,8 +15,9 @@ describe('@tsrx/mcp documentation index', () => {
 	it('includes generated specification grammar in language sections', () => {
 		const legacy_expression_node = ['Tsrx', 'Expression'].join('');
 		expect(find_documentation_section('components')?.content ?? '').toContain(
-			'export const Button',
+			'export function Button',
 		);
+		expect(find_documentation_section('components')?.content ?? '').toContain('@{');
 		expect(find_documentation_section('expression-values')?.content ?? '').toContain(
 			'PrimaryExpression',
 		);
