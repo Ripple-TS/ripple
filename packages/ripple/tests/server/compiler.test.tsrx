@@ -35,7 +35,6 @@ beforeAll(() => {
 		let toggle: { value: boolean } | undefined;
 		toggle!.value = false;
 		toggle!.value++;
-		<></>
 	}`;
 
 		const { code } = compile(source, 'test.tsrx', { mode: 'server' });

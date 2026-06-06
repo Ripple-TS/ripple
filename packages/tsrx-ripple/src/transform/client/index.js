@@ -2026,6 +2026,21 @@ const visitors = {
 		return b.empty;
 	},
 
+	JSXCodeBlock(node, context) {
+		// A code-only `@{ … }` block (no render output) is just a lexical block of
+		// setup statements. Component blocks (with a render template) are handled by
+		// `transform_native_tsrx_function`, and `to_ts` mode keeps the node for the
+		// TSX printer. Everywhere else, lower it to a plain BlockStatement so the
+		// JS printer (which has no JSXCodeBlock visitor) can emit it.
+		if (context.state.to_ts || node.render != null) {
+			return context.next();
+		}
+		const body = node.body.map(
+			(statement) => /** @type {AST.Statement} */ (context.visit(statement, context.state)),
+		);
+		return b.block(body);
+	},
+
 	JSXFragment(node, context) {
 		if (context.state.to_ts) {
 			return context.next();

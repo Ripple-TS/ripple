@@ -1608,6 +1608,26 @@ const visitors = {
 		return context.next();
 	},
 
+	JSXCodeBlock(node, context) {
+		// A code-only `@{ … }` block (no render output) is just a lexical block of
+		// setup statements. Component blocks (with a render template) are handled by
+		// `transform_native_tsrx_function`. Everywhere else, lower it to a plain
+		// BlockStatement so the JS printer (which has no JSXCodeBlock visitor) can
+		// emit it.
+		if (node.render != null) {
+			return context.next();
+		}
+		/** @type {AST.Statement[]} */
+		const statements = [];
+		for (const statement of node.body) {
+			push_statement(
+				/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement)),
+				statements,
+			);
+		}
+		return b.block(statements);
+	},
+
 	JSXElement(node, context) {
 		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
 			return build_jsx_to_tsrx_element(node, context);
