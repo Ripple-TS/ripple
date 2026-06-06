@@ -167,6 +167,35 @@ static bool is_jsx_control_keyword(const char *word) {
          strcmp(word, "try") == 0;
 }
 
+static bool is_jsx_boundary_keyword(const char *word) {
+  return strcmp(word, "case") == 0 ||
+         strcmp(word, "default") == 0 ||
+         strcmp(word, "else") == 0 ||
+         strcmp(word, "pending") == 0 ||
+         strcmp(word, "catch") == 0 ||
+         strcmp(word, "finally") == 0;
+}
+
+static bool check_boundary_lookahead(TSLexer *lexer, const char *word) {
+  scan_whitespace_and_comments(lexer);
+  if (strcmp(word, "case") == 0) {
+    return lexer->lookahead == '\'' || lexer->lookahead == '"' ||
+           lexer->lookahead == '`' || lexer->lookahead == '(' ||
+           iswdigit(lexer->lookahead) || lexer->lookahead == '-' ||
+           is_identifier_start(lexer->lookahead);
+  }
+  if (strcmp(word, "default") == 0) {
+    return lexer->lookahead == ':';
+  }
+  if (strcmp(word, "else") == 0) {
+    return lexer->lookahead == '{' || lexer->lookahead == 'i';
+  }
+  if (strcmp(word, "catch") == 0) {
+    return lexer->lookahead == '(' || lexer->lookahead == '{';
+  }
+  return lexer->lookahead == '{';
+}
+
 static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
   bool has_content = false;
@@ -218,6 +247,16 @@ static bool scan_jsx_text(TSLexer *lexer) {
         break;
       default:
         if (is_identifier_start(lexer->lookahead)) {
+          if (!has_non_whitespace_content) {
+            char word[16];
+            scan_identifier_word(lexer, word, sizeof(word));
+            if (is_jsx_boundary_keyword(word) && check_boundary_lookahead(lexer, word)) {
+              return false;
+            }
+            has_content = true;
+            has_non_whitespace_content = true;
+            break;
+          }
           while (is_identifier_continue(lexer->lookahead)) {
             advance(lexer);
           }

@@ -470,7 +470,7 @@ module.exports = grammar({
 			),
 
 		jsx_if_expression: ($) =>
-			prec(
+			prec.right(
 				1,
 				seq(
 					'@',
@@ -539,7 +539,7 @@ module.exports = grammar({
 			seq('default', ':', repeat(field('children', $._jsx_template_child))),
 
 		jsx_try_expression: ($) =>
-			prec(
+			prec.right(
 				1,
 				seq(
 					'@',
