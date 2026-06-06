@@ -46,79 +46,75 @@ function texts(selector: string): Array<string | null> {
 }
 
 function BasicApp() {
-	return <><div class="greeting">{'Hello world'}</div></>;
+	return <div class="greeting">{'Hello world'}</div>;
 }
 
-function Child(props: { text: string }) {
-	return <>
+function Child(props: { text: string }) @{
 		<span class="child">
 			{props.text}
 		</span>
-	</>;
 }
 
-function NestedApp() {
-	return <>
+function NestedApp() @{
 		<div>
 			<Child text="nested" />
 		</div>
-	</>;
 }
 
-function ExplicitTextApp() {
-	return <>
+function ExplicitTextApp() @{
 		const markup = '<span>Not HTML</span>';
 		const hidden = false;
 		const empty = null;
 		const missing = undefined;
-		<div class="explicit-text-markup">
-			{String(markup)}
-		</div>
-		<div class="explicit-text-boolean">
-			{String(hidden)}
-		</div>
-		<div class="explicit-text-null">
-			{empty == null ? '' : String(empty)}
-		</div>
-		<div class="explicit-text-undefined">
-			{missing == null ? '' : String(missing)}
-		</div>
-	</>;
+		<>
+			<div class="explicit-text-markup">
+				{String(markup)}
+			</div>
+			<div class="explicit-text-boolean">
+				{String(hidden)}
+			</div>
+			<div class="explicit-text-null">
+				{empty == null ? '' : String(empty)}
+			</div>
+			<div class="explicit-text-undefined">
+				{missing == null ? '' : String(missing)}
+			</div>
+		</>
 }
 
-function ExplicitHtmlApp() {
-	return <>
+function ExplicitHtmlApp() @{
 		const markup = ref('<span class="html-node">safe enough</span>');
-		<div class="explicit-html-target" innerHTML={markup.value} />
-		<button
-			class="explicit-html-update"
-			onClick={() => {
-				markup.value = '<strong class="html-node">updated</strong>';
-			}}
-		>update</button>
-	</>;
+		<>
+			<div class="explicit-html-target" innerHTML={markup.value} />
+			<button
+				class="explicit-html-update"
+				onClick={() => {
+					markup.value = '<strong class="html-node">updated</strong>';
+				}}
+			>update</button>
+		</>
 }
 
-function SpreadHtmlApp() {
-	return <>
+function SpreadHtmlApp() @{
 		const spreadProps = ref({
 			innerHTML: '<em class="html-node">spread</em>',
 		});
 		const markup = ref('<span class="html-node">safe enough</span>');
-		<div class="spread-html-child" {...spreadProps.value} innerHTML={markup.value} />
-		<button
-			class="spread-html-update-spread"
-			onClick={() => {
-				spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
-			}}
-		>spread</button>
-		<button
-			class="spread-html-update-markup"
-			onClick={() => {
-				markup.value = '<strong class="html-node">updated</strong>';
-			}}
-		>markup</button>
-	</>;
+		<>
+			<div class="spread-html-child" {...spreadProps.value} innerHTML={markup.value} />
+			<button
+				class="spread-html-update-spread"
+				onClick={() => {
+					spreadProps.value = { innerHTML: '<i class="html-node">spread update</i>' };
+				}}
+			>spread</button>
+			<button
+				class="spread-html-update-markup"
+				onClick={() => {
+					markup.value = '<strong class="html-node">updated</strong>';
+				}}
+			>markup</button>
+		</>
 }
 
 let element_ref_captured: HTMLDivElement | null = null;
@@ -129,28 +125,23 @@ let multi_dom_ref_a: HTMLInputElement | null = null;
 
 let multi_dom_ref_b: HTMLInputElement | null = null;
 
-function ElementRefApp() {
-	return <>
+function ElementRefApp() @{
 		<div
 			ref={(node: HTMLDivElement) => {
 				element_ref_captured = node;
 			}}
 			class="ref-target"
 		>ref test</div>
-	</>;
 }
 
-function KeywordRefCallbackApp() {
-	return <>
+function KeywordRefCallbackApp() @{
 		function capture(node: HTMLDivElement | null) {
 			keyword_ref_callback_captured = node;
 		}
 		<div ref={capture} class="keyword-ref-target">{'keyword ref'}</div>
-	</>;
 }
 
-function MultiDomRefApp() {
-	return <>
+function MultiDomRefApp() @{
 		function captureA(node: HTMLInputElement | null) {
 			multi_dom_ref_a = node;
 		}
@@ -158,14 +149,12 @@ function MultiDomRefApp() {
 			multi_dom_ref_b = node;
 		}
 		<input ref={mergeRefs(captureA, captureB)} class="multi-dom-ref" type="text" />
-	</>;
 }
 
 let combo_jsx_node: HTMLInputElement | null = null;
 let combo_keyword_node: HTMLInputElement | null = null;
 
-function ComboRefApp() {
-	return <>
+function ComboRefApp() @{
 		function jsxRef(node: HTMLInputElement | null) {
 			combo_jsx_node = node;
 		}
@@ -173,27 +162,23 @@ function ComboRefApp() {
 			combo_keyword_node = node;
 		}
 		<input ref={mergeRefs(jsxRef, keywordRef)} class="combo-ref" type="text" />
-	</>;
 }
 
 const value_ref_object = ref<HTMLInputElement | null>(null);
 let value_ref_callback_node: HTMLInputElement | null = null;
 
-function ValueRefObjectApp() {
-	return <>
+function ValueRefObjectApp() @{
 		function callbackRef(node: HTMLInputElement | null) {
 			value_ref_callback_node = node;
 		}
 		<input ref={mergeRefs(value_ref_object, callbackRef)} class="value-ref" type="text" />
-	</>;
 }
 
 let named_direct_node: HTMLInputElement | null = null;
 let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
-function NamedDirectRefApp() {
-	return <>
+function NamedDirectRefApp() @{
 		function nativeRef(node: HTMLInputElement | null) {
 			named_direct_native_node = node;
 		}
@@ -207,24 +192,21 @@ function NamedDirectRefApp() {
 			class="named-direct-ref"
 			type="text"
 		/>
-	</>;
 }
 
 let named_forward_node: HTMLInputElement | null = null;
 
 function NamedForwardInput(props: { type: string; input_ref?: any }) {
-	return <><input type={props.type} ref={props.input_ref} class="named-forward-ref" /></>;
+	return <input type={props.type} ref={props.input_ref} class="named-forward-ref" />;
 }
 
-function NamedForwardRefApp() {
-	return <>
+function NamedForwardRefApp() @{
 		<NamedForwardInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_forward_node = node;
 			}}
 		/>
-	</>;
 }
 
 let named_spread_before_node: HTMLInputElement | null = null;
@@ -234,25 +216,21 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
-	return <>
+function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
 		<input
 			{...props}
 			ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
 			class="named-spread-before-ref"
 		/>
-	</>;
 }
 
-function NamedSpreadBeforeRefApp() {
-	return <>
+function NamedSpreadBeforeRefApp() @{
 		<NamedSpreadBeforeRefInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_before_node = node;
 			}}
 		/>
-	</>;
 }
 
 let named_spread_after_node: HTMLInputElement | null = null;
@@ -262,25 +240,21 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
-	return <>
+function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
 		<input
 			ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
 			{...props}
 			class="named-spread-after-ref"
 		/>
-	</>;
 }
 
-function NamedSpreadAfterRefApp() {
-	return <>
+function NamedSpreadAfterRefApp() @{
 		<NamedSpreadAfterRefInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_after_node = node;
 			}}
 		/>
-	</>;
 }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
@@ -295,8 +269,7 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 	multi_spread_native_node = node;
 }
 
-function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
-	return <>
+function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) @{
 		const first = { type: props.type, ref: props.first_ref };
 		const second = { ref: props.second_ref };
 		<input
@@ -305,11 +278,9 @@ function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; sec
 			ref={multiSpreadExplicitNativeRef}
 			class="multi-spread-explicit-ref"
 		/>
-	</>;
 }
 
-function MultiSpreadExplicitRefApp() {
-	return <>
+function MultiSpreadExplicitRefApp() @{
 		<MultiSpreadExplicitRefInput
 			type="text"
 			first_ref={(node: HTMLInputElement | null) => {
@@ -319,496 +290,472 @@ function MultiSpreadExplicitRefApp() {
 				multi_spread_second_node = node;
 			}}
 		/>
-	</>;
 }
 
 const named_vue_ref_object = ref<HTMLInputElement | null>(null);
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={named_vue_ref_object} /></>;
+	return <NamedForwardInput type="text" input_ref={named_vue_ref_object} />;
 }
 
-function CounterApp() {
-	return <>
+function CounterApp() @{
 		const count = ref(0);
-		<p class="count">
-			{count.value}
-		</p>
-		<button class="inc" onClick={() => count.value++}>{'+'}</button>
-	</>;
+		<>
+			<p class="count">
+				{count.value}
+			</p>
+			<button class="inc" onClick={() => count.value++}>{'+'}</button>
+		</>
 }
 
 function LazyParamChild(&{ count }: { count: number }) {
-	return <><p class="lazy-child-count">{count}</p></>;
+	return <p class="lazy-child-count">{count}</p>;
 }
 
-function LazyObjectDestructuringApp() {
-	return <>
+function LazyObjectDestructuringApp() @{
 		const state = reactive({ count: 0 });
 		let &{ count } = state;
-		<p class="lazy-local-count">{count}</p>
-		<LazyParamChild count={state.count} />
-		<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
-	</>;
+		<>
+			<p class="lazy-local-count">{count}</p>
+			<LazyParamChild count={state.count} />
+			<button class="lazy-inc" onClick={() => count++}>{'+'}</button>
+		</>
 }
 
-function LazyArrayDestructuringApp() {
-	return <>
+function LazyArrayDestructuringApp() @{
 		const values = reactive([1, 2]);
 		let &[first, second] = values;
-		<p class="lazy-array-counts">{`${first}-${second}`}</p>
-		<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
-	</>;
+		<>
+			<p class="lazy-array-counts">{`${first}-${second}`}</p>
+			<button class="lazy-array-update" onClick={() => (first = second + 1)}>{'update'}</button>
+		</>
 }
 
-function ConditionalRefsApp() {
-	return <>
+function ConditionalRefsApp() @{
 		const count = ref(0);
 		const skip = ref(false);
-		<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
-		if (!skip.value) {
-			const doubled = ref(0);
-			<p class="early-count">
-				{count.value}
-			</p>
-			<p class="early-doubled">
-				{doubled.value}
-			</p>
-			<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
-			<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
-		}
-	</>;
+		<>
+			<button class="early-skip" onClick={() => (skip.value = !skip.value)}>{'skip'}</button>
+			@if (!skip.value) {
+				const doubled = ref(0);
+				<>
+					<p class="early-count">
+						{count.value}
+					</p>
+					<p class="early-doubled">
+						{doubled.value}
+					</p>
+					<button class="early-inc" onClick={() => count.value++}>{'inc'}</button>
+					<button class="early-double" onClick={() => doubled.value++}>{'double'}</button>
+				</>
+			}
+		</>
 }
 let watch_fire_count = 0;
 let watch_effect_fire_count = 0;
 
-function ProvideChild() {
-	return <>
+function ProvideChild() @{
 		const value = inject('provide-test-key', 'default');
 		<span class="provide-child">{value}</span>
-	</>;
 }
 
-function BareJsxConditionalApp() {
-	return <>
+function BareJsxConditionalApp() @{
 		const skip = ref(true);
-		<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-		if (!skip.value) {
-			<p class="bare-continuation">{'visible'}</p>
-		}
-	</>;
+		<>
+			<button class="bare-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+			@if (!skip.value) {
+				<p class="bare-continuation">{'visible'}</p>
+			}
+		</>
 }
 
-function ProvideConditionalApp() {
-	return <>
+function ProvideConditionalApp() @{
 		const skip = ref(true);
-		<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-		if (!skip.value) {
-			provide('provide-test-key', 'dark');
-			<ProvideChild />
-		}
-	</>;
+		<>
+			<button class="provide-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+			@if (!skip.value) {
+				provide('provide-test-key', 'dark');
+				<ProvideChild />
+			}
+		</>
 }
 
-function WatchConditionalApp() {
-	return <>
+function WatchConditionalApp() @{
 		const skip = ref(true);
 		const value = ref(0);
-		<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
-		<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
-		if (!skip.value) {
-			watch(value, () => {
-				watch_fire_count++;
-			});
-			<p class="watch-value">
-				{value.value}
-			</p>
-		}
-	</>;
+		<>
+			<button class="watch-toggle" onClick={() => (skip.value = !skip.value)}>{'toggle'}</button>
+			<button class="watch-inc" onClick={() => value.value++}>{'inc'}</button>
+			@if (!skip.value) {
+				watch(value, () => {
+					watch_fire_count++;
+				});
+				<p class="watch-value">
+					{value.value}
+				</p>
+			}
+		</>
 }
 
-function WatchEffectConditionalApp() {
-	return <>
+function WatchEffectConditionalApp() @{
 		const skip = ref(true);
 		const value = ref(0);
-		<button
-			class="watch-effect-toggle"
-			onClick={() => (skip.value = !skip.value)}
-		>{'toggle'}</button>
-		<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
-		if (!skip.value) {
-			watchEffect(() => {
-				void value.value;
-				watch_effect_fire_count++;
-			});
-			<p class="watch-effect-value">
-				{value.value}
-			</p>
-		}
-	</>;
+		<>
+			<button
+				class="watch-effect-toggle"
+				onClick={() => (skip.value = !skip.value)}
+			>{'toggle'}</button>
+			<button class="watch-effect-inc" onClick={() => value.value++}>{'inc'}</button>
+			@if (!skip.value) {
+				watchEffect(() => {
+					void value.value;
+					watch_effect_fire_count++;
+				});
+				<p class="watch-effect-value">
+					{value.value}
+				</p>
+			}
+		</>
 }
 
-function IfReactiveApp() {
-	return <>
+function IfReactiveApp() @{
 		const show = ref(true);
-		if (show.value) {
-			<span class="visible">{'shown'}</span>
-		} else {
-			<span class="hidden">{'hidden'}</span>
-		}
-		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
-	</>;
+		<>
+			@if (show.value) {
+				<span class="visible">{'shown'}</span>
+			} else {
+				<span class="hidden">{'hidden'}</span>
+			}
+			<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
+		</>
 }
 
-function ConditionalLocalStateApp() {
-	return <>
+function ConditionalLocalStateApp() @{
 		const count = ref(3);
-		<button class="outer-inc" onClick={() => count.value++}>
-			{'Outer: '}
-			{count.value}
-		</button>
-		if (count.value > 2) {
-			const newCount = ref(0);
-			<button class="inner-inc" onClick={() => newCount.value++}>
-				{'Inner: '}
-				{newCount.value}
+		<>
+			<button class="outer-inc" onClick={() => count.value++}>
+				{'Outer: '}
+				{count.value}
 			</button>
-		}
-	</>;
+			@if (count.value > 2) {
+				const newCount = ref(0);
+				<button class="inner-inc" onClick={() => newCount.value++}>
+					{'Inner: '}
+					{newCount.value}
+				</button>
+			}
+		</>
 }
 
-function StatefulChild() {
-	return <>
+function StatefulChild() @{
 		const inner = ref(0);
 		<button class="stateful-child" onClick={() => inner.value++}>
 			{'Child: '}
 			{inner.value}
 		</button>
-	</>;
 }
 
-function StatefulChildHostApp() {
-	return <>
+function StatefulChildHostApp() @{
 		<div>
 			<StatefulChild />
 		</div>
-	</>;
 }
 
-function StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) {
-	return <>
+function StatefulChildWithProp(props: { count: ReturnType<typeof ref> }) @{
 		const inner = ref(0);
 		<button class="stateful-child-prop" onClick={() => inner.value++}>
 			{'Child prop: '}
 			{inner.value}
 		</button>
-	</>;
 }
 
-function StatefulChildWithPropHostApp() {
-	return <>
+function StatefulChildWithPropHostApp() @{
 		const count = ref(3);
 		<div>
 			<StatefulChildWithProp {count} />
 		</div>
-	</>;
 }
 
-function ForReactiveApp() {
-	return <>
+function ForReactiveApp() @{
 		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value) {
-			<li class="item" key={item}>{item}</li>
-		}
-		<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
-		<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
-	</>;
+		<>
+			@for (const item of items.value) {
+				<li class="item" key={item}>{item}</li>
+			}
+			<button class="add" onClick={() => (items.value = [...items.value, 'd'])}>{'add'}</button>
+			<button class="remove" onClick={() => (items.value = items.value.slice(1))}>{'remove'}</button>
+		</>
 }
 
-function ForContinueApp() {
-	return <>
+function ForContinueApp() @{
 		const items = ref(['a', '', 'c']);
-		for (const item of items.value) {
+		@for (const item of items.value) {
 			if (!item) continue;
 			<li class="continue-item" key={item}>{item}</li>
 		}
-	</>;
 }
 
-function ForIndexReactiveApp() {
-	return <>
+function ForIndexReactiveApp() @{
 		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value; index i) {
-			<li class="indexed-item">{`${i}:${item}`}</li>
-		}
-		<button
-			class="prepend"
-			onClick={() => (items.value = ['z', ...items.value])}
-		>{'prepend'}</button>
-		<button
-			class="drop-middle"
-			onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
-		>{'drop middle'}</button>
-		<button
-			class="reverse"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-	</>;
+		<>
+			@for (const item of items.value; index i) {
+				<li class="indexed-item">{`${i}:${item}`}</li>
+			}
+			<button
+				class="prepend"
+				onClick={() => (items.value = ['z', ...items.value])}
+			>{'prepend'}</button>
+			<button
+				class="drop-middle"
+				onClick={() => (items.value = [items.value[0], ...items.value.slice(2)])}
+			>{'drop middle'}</button>
+			<button
+				class="reverse"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+		</>
 }
 
-function KeyedRow(props: { item: { id: string; label: string } }) {
-	return <>
+function KeyedRow(props: { item: { id: string; label: string } }) @{
 		const count = ref(0);
 		<button
 			class={`keyed-row row-${props.item.id}`}
 			onClick={() => count.value++}
 		>{`${props.item.label}:${count.value}`}</button>
-	</>;
 }
 
-function ForKeyedStateApp() {
-	return <>
+function ForKeyedStateApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const item of items.value; key item.id) {
-			<KeyedRow {item} />
-		}
-		<button
-			class="reverse-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-		<button
-			class="rename-beta"
-			onClick={() => (items.value = items.value.map(
-				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-			))}
-		>{'rename'}</button>
-	</>;
+		<>
+			@for (const item of items.value; key item.id) {
+				<KeyedRow {item} />
+			}
+			<button
+				class="reverse-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+			<button
+				class="rename-beta"
+				onClick={() => (items.value = items.value.map(
+					(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+				))}
+			>{'rename'}</button>
+		</>
 }
 
-function ForJsxKeyedStateApp() {
-	return <>
+function ForJsxKeyedStateApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const item of items.value) {
-			<KeyedRow key={item.id} {item} />
-		}
-		<button
-			class="reverse-jsx-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-		<button
-			class="rename-jsx-keyed-beta"
-			onClick={() => (items.value = items.value.map(
-				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-			))}
-		>{'rename'}</button>
-	</>;
+		<>
+			@for (const item of items.value) {
+				<KeyedRow key={item.id} {item} />
+			}
+			<button
+				class="reverse-jsx-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+			<button
+				class="rename-jsx-keyed-beta"
+				onClick={() => (items.value = items.value.map(
+					(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+				))}
+			>{'rename'}</button>
+		</>
 }
 
-function ForIndexKeyedStateApp() {
-	return <>
+function ForIndexKeyedStateApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const item of items.value; index i; key item.id) {
-			<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
-		}
-		<button
-			class="reverse-index-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-	</>;
+		<>
+			@for (const item of items.value; index i; key item.id) {
+				<p class={`indexed-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+			}
+			<button
+				class="reverse-index-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+		</>
 }
 
-function ForJsxIndexKeyedApp() {
-	return <>
+function ForJsxIndexKeyedApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const item of items.value; index i) {
-			<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
-		}
-		<button
-			class="reverse-jsx-index-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-	</>;
+		<>
+			@for (const item of items.value; index i) {
+				<p key={item.id} class={`jsx-index-keyed-row row-${item.id}`}>{`${i}:${item.label}`}</p>
+			}
+			<button
+				class="reverse-jsx-index-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+		</>
 }
 
-function ForNestedIndexKeyedApp() {
-	return <>
+function ForNestedIndexKeyedApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const item of items.value; index i; key item.id) {
-			<section class={`nested-index-keyed-row row-${item.id}`}>
-				<div>
-					<span>{`${i}:${item.label}`}</span>
-				</div>
-			</section>
-		}
-		<button
-			class="reverse-nested-index-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-		<button
-			class="rename-nested-index-keyed-beta"
-			onClick={() => (items.value = items.value.map(
-				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-			))}
-		>{'rename'}</button>
-	</>;
+		<>
+			@for (const item of items.value; index i; key item.id) {
+				<section class={`nested-index-keyed-row row-${item.id}`}>
+					<div>
+						<span>{`${i}:${item.label}`}</span>
+					</div>
+				</section>
+			}
+			<button
+				class="reverse-nested-index-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+			<button
+				class="rename-nested-index-keyed-beta"
+				onClick={() => (items.value = items.value.map(
+					(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+				))}
+			>{'rename'}</button>
+		</>
 }
 
-function ForImplicitIndexKeyFragmentApp() {
-	return <>
+function ForImplicitIndexKeyFragmentApp() @{
 		const items = ref(['a', 'b', 'c']);
-		for (const item of items.value; index i) {
-			<span class="fragment-index-item">{`${i}:${item}`}</span>
-			<span class="fragment-value-item">{item}</span>
-		}
-		<button
-			class="reverse-fragment-index"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-	</>;
+		<>
+			@for (const item of items.value; index i) {
+				<>
+					<span class="fragment-index-item">{`${i}:${item}`}</span>
+					<span class="fragment-value-item">{item}</span>
+				</>
+			}
+			<button
+				class="reverse-fragment-index"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+		</>
 }
 
-function DestructuredKeyedRow(props: { id: string; label: string }) {
-	return <>
+function DestructuredKeyedRow(props: { id: string; label: string }) @{
 		const count = ref(0);
 		<button
 			class={`destructured-keyed-row row-${props.id}`}
 			onClick={() => count.value++}
 		>{`${props.label}:${count.value}`}</button>
-	</>;
 }
 
-function ForDestructuredKeyedStateApp() {
-	return <>
+function ForDestructuredKeyedStateApp() @{
 		const items = ref([
 			{ id: 'a', label: 'Alpha' },
 			{ id: 'b', label: 'Beta' },
 			{ id: 'c', label: 'Gamma' },
 		]);
-		for (const { id, label } of items.value; key id) {
-			<DestructuredKeyedRow {id} {label} />
-		}
-		<button
-			class="reverse-destructured-keyed"
-			onClick={() => (items.value = [...items.value].reverse())}
-		>{'reverse'}</button>
-		<button
-			class="rename-destructured-keyed-beta"
-			onClick={() => (items.value = items.value.map(
-				(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
-			))}
-		>{'rename'}</button>
-	</>;
+		<>
+			@for (const { id, label } of items.value; key id) {
+				<DestructuredKeyedRow {id} {label} />
+			}
+			<button
+				class="reverse-destructured-keyed"
+				onClick={() => (items.value = [...items.value].reverse())}
+			>{'reverse'}</button>
+			<button
+				class="rename-destructured-keyed-beta"
+				onClick={() => (items.value = items.value.map(
+					(item) => item.id === 'b' ? { ...item, label: 'Bravo' } : item,
+				))}
+			>{'rename'}</button>
+		</>
 }
 
-function SwitchReactiveApp() {
-	return <>
+function SwitchReactiveApp() @{
 		const page = ref('home');
-		switch (page.value) {
-			case 'home':
-				<div class="page">{'Home'}</div>
-				break;
-			case 'about':
-				<div class="page">{'About'}</div>
-				break;
-			default:
-				<div class="page">{'404'}</div>
-				break;
-		}
-		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
-		<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
-	</>;
+		<>
+			@switch (page.value) {
+				case 'home':
+					<div class="page">{'Home'}</div>
+				case 'about':
+					<div class="page">{'About'}</div>
+				default:
+					<div class="page">{'404'}</div>
+			}
+			<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+			<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
+		</>
 }
 
-function StyledApp() {
-	return <>
+function StyledApp() @{
+	<>
 		<div class="styled">{'styled text'}</div>
 		<style>
 			.styled {
 				color: red;
 			}
 		</style>
-	</>;
+	</>
 }
 
-function ThrowingChild() {
-	return <>
+function ThrowingChild() @{
 		throw new Error('sync boom');
 		<p>{'unreachable'}</p>
-	</>;
 }
 
-function ErrorBoundaryApp() {
-	return <>
-		try {
+function ErrorBoundaryApp() @{
+		@try {
 			<ThrowingChild />
 		} catch (err) {
 			<p class="caught">
 				{(err as Error).message}
 			</p>
 		}
-	</>;
 }
 
-function MaybeThrow(props: { shouldThrow: boolean }) {
-	return <>
+function MaybeThrow(props: { shouldThrow: boolean }) @{
 		if (props.shouldThrow) {
 			throw new Error('conditional boom');
 		}
 		<p class="ok">{'no error'}</p>
-	</>;
 }
 
-function ErrorToggleApp() {
-	return <>
+function ErrorToggleApp() @{
 		const fail = ref(false);
-		try {
-			<MaybeThrow shouldThrow={fail.value} />
-		} catch (err, reset) {
-			<p class="caught">
-				{(err as Error).message}
-			</p>
-			<button
-				class="reset"
-				onClick={() => {
-					fail.value = false;
-					reset();
-				}}
-			>{'reset'}</button>
-		}
-		<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
-	</>;
+		<>
+			@try {
+				<MaybeThrow shouldThrow={fail.value} />
+			} catch (err, reset) {
+				<>
+					<p class="caught">
+						{(err as Error).message}
+					</p>
+					<button
+						class="reset"
+						onClick={() => {
+							fail.value = false;
+							reset();
+						}}
+					>{'reset'}</button>
+				</>
+			}
+			<button class="trigger-error" onClick={() => (fail.value = true)}>{'break'}</button>
+		</>
 }
 
-function InnerThrow() {
-	return <>
+function InnerThrow() @{
 		throw new Error('inner error');
-		---
 		<p>{'unreachable'}</p>
-	</>;
 }
 
-function NestedTryApp() {
-	return <>
+function NestedTryApp() @{
 		@try {
 			<div class="outer">
 				@try {
@@ -824,85 +771,76 @@ function NestedTryApp() {
 				{(err as Error).message}
 			</p>
 		}
-	</>;
 }
 
-function IfInsideTryApp() {
-	return <>
+function IfInsideTryApp() @{
 		const show = ref(true);
-		try {
-			if (show.value) {
-				<p class="branch-a">{'visible'}</p>
-			} else {
-				<p class="branch-b">{'alternate'}</p>
+		<>
+			@try {
+				@if (show.value) {
+					<p class="branch-a">{'visible'}</p>
+				} else {
+					<p class="branch-b">{'alternate'}</p>
+				}
+			} catch (err) {
+				<p class="caught">{'error'}</p>
 			}
-		} catch (err) {
-			<p class="caught">{'error'}</p>
-		}
-		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
-	</>;
+			<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
+		</>
 }
 
-function ForInsideTryApp() {
-	return <>
+function ForInsideTryApp() @{
 		const items = ref(['x', 'y']);
-		try {
-			for (const item of items.value) {
-				<span class="try-item" key={item}>{item}</span>
+		<>
+			@try {
+				@for (const item of items.value) {
+					<span class="try-item" key={item}>{item}</span>
+				}
+			} catch (err) {
+				<p class="caught">{'error'}</p>
 			}
-		} catch (err) {
-			<p class="caught">{'error'}</p>
-		}
-		<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
-	</>;
+			<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
+		</>
 }
 
-function SwitchInsideTryApp() {
-	return <>
+function SwitchInsideTryApp() @{
 		const page = ref('home');
-		try {
-			switch (page.value) {
-				case 'home':
-					<p class="try-page">{'Home'}</p>
-					break;
-				case 'about':
-					<p class="try-page">{'About'}</p>
-					break;
-				default:
-					<p class="try-page">{'404'}</p>
-					break;
+		<>
+			@try {
+				@switch (page.value) {
+					case 'home':
+						<p class="try-page">{'Home'}</p>
+					case 'about':
+						<p class="try-page">{'About'}</p>
+					default:
+						<p class="try-page">{'404'}</p>
+				}
+			} catch (err) {
+				<p class="caught">{'error'}</p>
 			}
-		} catch (err) {
-			<p class="caught">{'error'}</p>
-		}
-		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
-		<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
-	</>;
+			<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
+			<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
+		</>
 }
 
-function AsyncResolvedChild(props: { value: string }) {
-	return <>
+function AsyncResolvedChild(props: { value: string }) @{
 		<p class="async-resolved">
 			{props.value}
 		</p>
-	</>;
 }
 
-function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	return <>
+function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) @{
 		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		@try {
 			<AsyncChild value="hello" />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
 		}
-	</>;
 }
 
-function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	return <>
+function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }) @{
 		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		@try {
 			<AsyncChild value="hello" />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
@@ -911,29 +849,23 @@ function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }
 				{(err as Error).message}
 			</p>
 		}
-	</>;
 }
 
-function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) {
-	return <>
+function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) @{
 		const AsyncChild = defineVaporAsyncComponent(() => props.promise);
-		try {
+		@try {
 			<AsyncChild value="hello" />
 		} pending {}
-	</>;
 }
 
-function ThrowingSuspenseChild() {
-	return <>
+function ThrowingSuspenseChild() @{
 		throw new Error('pending catch boom');
 		<p>{'unreachable'}</p>
-	</>;
 }
 
-function SuspenseErrorApp() {
-	return <>
+function SuspenseErrorApp() @{
 		const prefix = 'caught: ';
-		try {
+		@try {
 			<ThrowingSuspenseChild />
 		} pending {
 			<p class="async-pending">{'loading...'}</p>
@@ -943,7 +875,6 @@ function SuspenseErrorApp() {
 				{(err as Error).message}
 			</p>
 		}
-	</>;
 }
 
 describe('tsrx-vue runtime', () => {

@@ -38,15 +38,17 @@ function createLoaderContext(resourcePath, options = {}) {
 describe('@tsrx/rspack-plugin-vue js-loader', () => {
 	it('prepends a virtual css import when a style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
-			<div>{'Hello world'}</div>
+		const source = `export function App() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		</>; }`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -60,9 +62,9 @@ describe('@tsrx/rspack-plugin-vue js-loader', () => {
 
 	it('returns compiled TSX and a sourcemap when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App({ name }: { name: string }) { return <>
+		const source = `export function App({ name }: { name: string }) @{
 			<div>{name}</div>
-		</>; }`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -78,9 +80,9 @@ describe('@tsrx/rspack-plugin-vue js-loader', () => {
 describe('@tsrx/rspack-plugin-vue vapor-loader', () => {
 	it('transforms compiled TSX into Vue Vapor runtime code', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App({ name }: { name: string }) { return <>
+		const source = `export function App({ name }: { name: string }) @{
 			<div>{name}</div>
-		</>; }`;
+		}`;
 		const compiled = compile(source, id);
 
 		const { context, promise } = createLoaderContext(id);
@@ -98,15 +100,17 @@ describe('@tsrx/rspack-plugin-vue vapor-loader', () => {
 describe('@tsrx/rspack-plugin-vue css-loader', () => {
 	it('returns the compiled scoped css text', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
-			<div>{'Hello world'}</div>
+		const source = `export function App() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		</>; }`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);
@@ -119,9 +123,9 @@ describe('@tsrx/rspack-plugin-vue css-loader', () => {
 
 	it('returns an empty string when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		</>; }`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);
