@@ -37,10 +37,10 @@ describe('style class maps (server)', () => {
 
 		it('passes multiple style expression classes to a child component', async () => {
 			function Child({ primary, secondary }: { primary: string; secondary: string }) @{
-				
+				<>
 					<div class={primary}>{'primary'}</div>
 					<span class={secondary}>{'secondary'}</span>
-				
+				</>
 			}
 
 			function Parent() @{
@@ -103,14 +103,14 @@ describe('style class maps (server)', () => {
 
 		it('child can combine its own classes with a parent style expression class', async () => {
 			function Card({ className }: { className?: string }) @{
-				
+				<>
 					<div class={['card-base', className ?? '']}>{'card content'}</div>
 					<style>
 						.card-base {
 							border: 1px solid black;
 						}
 					</style>
-				
+				</>
 			}
 
 			function App() @{
@@ -220,7 +220,7 @@ describe('style class maps (server)', () => {
 
 	it('preserves caller scoped hash through wrapper children', async () => {
 		function Wrapper({ children }) @{
-			
+			<>
 				<div class="green">
 					{'Wrapper'}
 					{children}
@@ -230,18 +230,18 @@ describe('style class maps (server)', () => {
 						color: green;
 					}
 				</style>
-			
+			</>
 		}
 
 		function Child() @{
-			
+			<>
 				<div class="red">{'Child'}</div>
 				<style>
 					.red {
 						color: red;
 					}
 				</style>
-			
+			</>
 		}
 
 		function App() @{
@@ -273,8 +273,8 @@ describe('style class maps (server)', () => {
 		}
 
 		function App() @{
-			
-				const DynamicWrapper = track(() => Wrapper);
+			const DynamicWrapper = track(() => Wrapper);
+			<>
 				<@DynamicWrapper>
 					<div class="green">{'Slotted child'}</div>
 				</@DynamicWrapper>
@@ -283,7 +283,7 @@ describe('style class maps (server)', () => {
 						color: green;
 					}
 				</style>
-			
+			</>
 		}
 
 		const { body } = await render(App);

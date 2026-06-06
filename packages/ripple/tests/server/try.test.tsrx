@@ -2,16 +2,20 @@ import { trackAsync } from 'ripple';
 
 describe('try block with catch and pending (server)', () => {
 	it('renders resolved content with an empty pending fallback', async () => {
-			function App() @{
-					<>
-						<span>{'before'}</span>
-						@try {
-							let &[data] = trackAsync(() => Promise.resolve('resolved value'));
-							<p>{data}</p>
-						} pending {}
-						<span>{'after'}</span>
-					</>
-			}
+		function DataChild() @{
+			let &[data] = trackAsync(() => Promise.resolve('resolved value'));
+			<p>{data}</p>
+		}
+
+		function App() @{
+			<>
+				<span>{'before'}</span>
+				@try {
+					<DataChild />
+				} pending {}
+				<span>{'after'}</span>
+			</>
+		}
 
 		const { body } = await render(App);
 		expect(body).toContain('before');
@@ -396,6 +400,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 		}
 
 		function App() @{
+			<>
 				@try {
 					<FailChild />
 				} catch (err: Error) {
@@ -406,6 +411,7 @@ describe('nested child components with try/catch boundaries (server)', () => {
 				} catch (err) {
 					<p>{'should not catch'}</p>
 				}
+			</>
 		}
 
 		const { body } = await render(App);
