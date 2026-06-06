@@ -62,14 +62,14 @@ function get_variable_types(code) {
 describe('@tsrx/ripple Volar JSX expression types', () => {
 	it('types JSX expression values as TSRXElement', () => {
 		const source = `
-function App() { return <>
+function App() @{
 	const nested = <div />;
 	const content = <>
 		<section>{nested}</section>
 	</>;
 
-	{content}
-</>; }
+	<>{content}</>
+}
 `;
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const types = get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
@@ -80,24 +80,21 @@ function App() { return <>
 
 	it('prints statement-bodied JSX fragments with typed child buckets', () => {
 		const source = `
-function ContentEditable(props: { placeholder: any }) {
-	return <>
+function ContentEditable(props: { placeholder: any }) @{
 		const className = 'editable';
 		<article class={className}>
 			<div>{props.placeholder}</div>
 		</article>
-	</>;
 }
 
-function App() {
-	return <>
+function App() @{
 		<ContentEditable placeholder={<><div>Hello</div></>} />
-	</>;
 }
 `;
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(code).toContain('children.push');
-		expect(code).toContain('const children = [] as Array<any>;');
+		expect(code).toContain("const className = 'editable';");
+		expect(code).toContain('return <article');
+		expect(code).not.toContain("\"const className = 'editable';\"");
 	});
 });

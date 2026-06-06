@@ -72,14 +72,11 @@ describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
 
 describe('@tsrx/ripple Volar mappings normalize to_ts source locations', () => {
 	it('maps script tokens after multiline template children', () => {
-		const source = `function App() {
-	return <>
+		const source = `function App() @{
 		const x = 1;
-		---
 		<pre>
 			{x}
 		</pre>
-	</>;
 }
 expect(x).toBe(1);`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
@@ -99,11 +96,8 @@ expect(x).toBe(1);`;
 describe('@tsrx/ripple Volar TypeScript output', () => {
 	it('keeps expression braces for literal JSX attributes', () => {
 		const { code } = compile_to_volar_mappings(
-			`function App() {
-	return <>
-		---
+			`function App() @{
 		<option value={1} label={'One'} selected={true}>{'One'}</option>
-	</>;
 }`,
 			'App.tsrx',
 			{ loose: true },
@@ -115,8 +109,7 @@ describe('@tsrx/ripple Volar TypeScript output', () => {
 	it('does not collect statements from nested ordinary function bodies', () => {
 		const { code } = compile_to_volar_mappings(
 			`import { track } from 'ripple';
-function App() {
-	return <>
+function App() @{
 		let value = track('');
 		const value_accessors = [
 			() => value.value,
@@ -127,9 +120,7 @@ function App() {
 				value.value = v;
 			},
 		];
-		---
 		<input type="text" ref={bindValue(...value_accessors)} />
-	</>;
 }`,
 			'App.tsrx',
 			{ loose: true },
@@ -143,11 +134,11 @@ function App() {
 describe('@tsrx/ripple try pending fallbacks', () => {
 	it('allows empty pending blocks as null fallbacks', () => {
 		const { code } = compile(
-			`function App() { return <>
-				try {
-					<div>{'content'}</div>
+			`function App() @{
+				@try {
+					<div>content</div>
 				} pending {}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -231,11 +222,10 @@ describe('@tsrx/ripple named ref props', () => {
 
 	it('normalizes dynamic element syntax for component lowering', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				let &[tag] = track('polygon');
-				---
 				<@tag points="0,0 30,0 15,10" />
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -283,12 +273,14 @@ describe('@tsrx/ripple named ref props', () => {
 	<input />
 </>; }
 
-function App() { return <>
+function App() @{
 	let input: HTMLInputElement | undefined;
 	const state = { input: undefined as HTMLInputElement | undefined };
-	<input type="text" input_ref={input} />
-	<Child inputRef={input} otherRef={state.input} />
-</>; }`;
+	<>
+		<input type="text" input_ref={input} />
+		<Child inputRef={input} otherRef={state.input} />
+	</>
+}`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 		expect(result.errors).toEqual([]);
@@ -299,53 +291,42 @@ function App() { return <>
 
 describe('@tsrx/ripple JSX fragment Volar output', () => {
 	it('prints JSX converted from fragment expression containers', () => {
-		const source = `function App() { return <>
+		const source = `function App() @{
 	const content = <section>{<div>{'inside'}</div>}</section>;
-	{content}
-</>; }`;
+	<>{content}</>
+}`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 		expect(result.code).toContain('<section>');
 		expect(result.code).toContain('<div>');
-		expect(result.code).toContain("{'inside'}");
+		expect(result.code).toContain("'inside';");
 		expect(result.code).not.toContain('<tsx');
 	});
 
-	it('returns children before and after setup statements', () => {
-		const source = `class Foo { bar() { return <><div>before</div> const x = 1; <div>{x}</div></>; } }`;
+	it('returns setup statements before a single fragment output', () => {
+		const source = `class Foo { bar() @{ const x = 1; <><div>before</div><div>{x}</div></> } }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
-		const match = result.code.match(/const ([A-Za-z_$][\w$]*) = \[\] as Array<any>;/);
-		expect(match).not.toBeNull();
-
-		const children_id = /** @type {RegExpMatchArray} */ (match)[1];
-		const first_push = result.code.indexOf(`${children_id}.push(<div>`);
 		const declaration = result.code.indexOf('const x = 1;');
-		const second_push = result.code.indexOf(`${children_id}.push(<div>`, first_push + 1);
-		const returned_children = result.code.indexOf(`return <>{${children_id}}</>;`);
+		const returned_fragment = result.code.indexOf('return <><div>');
+		const second_child = result.code.indexOf('<div>{(() =>', returned_fragment + 1);
 
-		expect(first_push).toBeGreaterThan(-1);
 		expect(declaration).toBeGreaterThan(-1);
-		expect(second_push).toBeGreaterThan(-1);
-		expect(returned_children).toBeGreaterThan(-1);
-		expect(first_push).toBeLessThan(declaration);
-		expect(declaration).toBeLessThan(second_push);
-		expect(second_push).toBeLessThan(returned_children);
+		expect(returned_fragment).toBeGreaterThan(-1);
+		expect(second_child).toBeGreaterThan(-1);
+		expect(declaration).toBeLessThan(returned_fragment);
+		expect(returned_fragment).toBeLessThan(second_child);
 	});
 
-	it('wraps fenced setup expressions in an IIFE before returning template output', () => {
+	it('prints statement-container setup before returning template output', () => {
 		const source = `let logs: string[] = [];
-function Child(&{ a, b, c }: { a: number; b: number; c: number }) {
-	return <>
+function Child(&{ a, b, c }: { a: number; b: number; c: number }) @{
 		effect(() => {
 			logs.push(\`Child effect: \${a}, \${b}, \${c}\`);
 		});
-		---
 		<div>{a + ' ' + b + ' ' + c}</div>
-	</>;
 }`;
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(result.code).toContain('return (() => {');
 		expect(result.code).toContain('effect(() => {');
 		expect(result.code).toContain('return <div>');
 		expect(result.code).not.toContain('<>effect(() =>');
@@ -505,11 +486,11 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
-			function Test() { return <>
+			function Test() @{
 				let &[count] = track(0);
 				const content = <><Some prop={count} /></>;
-				{content}
-			</>; }`,
+				<>{content}</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -536,11 +517,11 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
-			function Test() { return <>
+			function Test() @{
 				let &[count] = track(0);
 				const content = <><Some prop={count} /></>;
-				{content}
-			</>; }`,
+				<>{content}</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -552,11 +533,11 @@ describe('@tsrx/ripple <> expression values', () => {
 		const { code } = compile(
 			`import { track } from 'ripple';
 			function Some(props) { return <></>; }
-			function Test() { return <>
+			function Test() @{
 				let &[count] = track(0);
 				const content = <><Some prop={count % 2 ? 'odd' : 'even'} /></>;
-				{content}
-			</>; }`,
+				<>{content}</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -566,14 +547,14 @@ describe('@tsrx/ripple <> expression values', () => {
 
 	it('lowers tsx values nested in template expressions', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				const primary = true;
 				<div>
 					{primary
 						? ['first:', <strong>one</strong>, ':tail']
 						: ['second:', <strong>two</strong>, ':done']}
 				</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -598,10 +579,10 @@ describe('@tsrx/ripple <> expression values', () => {
 
 	it('renders native element values assigned inside returned templates on the server', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				const test = <button>Hello</button>;
-				{test}
-			</>; }`,
+				<>{test}</>
+			}`,
 			'App.tsrx',
 			{ mode: 'server' },
 		);
@@ -680,14 +661,16 @@ describe('@tsrx/ripple <> expression values', () => {
 
 	it('uses server render_expression for conditional array expression values', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				const condition = true;
 				const ternary_items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
 				const logical_items = condition && ['start:', ['one', 2], ':end'];
 
-				<div>{ternary_items}</div>
-				<div>{logical_items}</div>
-			</>; }`,
+				<>
+					<div>{ternary_items}</div>
+					<div>{logical_items}</div>
+				</>
+			}`,
 			'App.tsrx',
 			{ mode: 'server' },
 		);
@@ -700,12 +683,12 @@ describe('@tsrx/ripple <> expression values', () => {
 
 	it('uses client expression anchors that can hydrate conditional array markers', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				const condition = true;
 				const items = condition ? ['start:', ['one', 2], ':end'] : ['fallback'];
 
 				<div>{items}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -772,9 +755,9 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		expect(code).toMatch(/menuAlt: \(isAdmin\) => \{/);
 		expect(code).toMatch(/bySwitch: \(role\) => \{/);
 		expect(code).toContain("case 'admin':");
-		expect(code).toContain('return [');
+		expect(code).toContain('_$_.expression');
 		expect(code).toContain('_$_.tsrx_element');
-		expect(server.code).toContain('return [');
+		expect(server.code).toContain('_$_.render_expression([');
 		expect(server.code).toContain('_$_.tsrx_element');
 	});
 
@@ -956,10 +939,11 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 	});
 
 	it('does not classify plain functions as JSX-producing TSRX functions', () => {
-		const source = `function App() { return <>
+		const source = `function App() @{
 			function Plain() { return 'plain'; }
 			function Compat() { return <><div /></>; }
-		</>; }`;
+			<></>
+		}`;
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 

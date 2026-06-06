@@ -1179,14 +1179,16 @@ async function load() {
 		});
 
 		it('should handle style tags inside function body', async () => {
-			const input = `export function Test(){<div>{"Test"}</div><style>div{color:red}</style>}`;
-			const expected = `export function Test() {
-  <div>{'Test'}</div>
-  <style>
-    div {
-      color: red;
-    }
-  </style>
+			const input = `export function Test()@{<><div>{"Test"}</div><style>div{color:red}</style></>}`;
+			const expected = `export function Test() @{
+  <>
+    <div>{'Test'}</div>
+    <style>
+      div {
+        color: red;
+      }
+    </style>
+  </>
 }`;
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
@@ -1466,11 +1468,13 @@ const [obj1, obj2] = arrayOfObjects;`;
 		});
 
 		it('should keep a new line between elements or function if provided', async () => {
-			const expected = `<Something>
-  <div>{'Hello'}</div>
-</Something>
+			const expected = `<>
+  <Something>
+    <div>{'Hello'}</div>
+  </Something>
 
-<Child class="test" />`;
+  <Child class="test" />
+</>`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1593,17 +1597,19 @@ const [obj1, obj2] = arrayOfObjects;`;
 		});
 
 		it('should format & parent nested selector correctly', async () => {
-			const expected = `export function App() {
-  <div>
-    <h1>{'Hello'}</h1>
-  </div>
-  <style>
-    div {
-      & > * {
-        color: blue;
+			const expected = `export function App() @{
+  <>
+    <div>
+      <h1>{'Hello'}</h1>
+    </div>
+    <style>
+      div {
+        & > * {
+          color: blue;
+        }
       }
-    }
-  </style>
+    </style>
+  </>
 }`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -4282,19 +4288,21 @@ function Polygon() {
 		});
 
 		it('should preserve blank line between commented out block and following element', async () => {
-			const expected = `function App() {
-  <div id="second-top-block">
-    <div>
-      <div />
+			const expected = `function App() @{
+  <>
+    <div id="second-top-block">
+      <div>
+        <div />
+      </div>
+      <div id="sibling-block">{"Sibling"}</div>
     </div>
-    <div id="sibling-block">{"Sibling"}</div>
-  </div>
 
-  // if (show) {
-  // 	<div id="third-top-block">{"Top Scope - Show is true"}</div>
-  // }
+    // if (show) {
+    // 	<div id="third-top-block">{"Top Scope - Show is true"}</div>
+    // }
 
-  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
+    <button onClick={() => (b = !b)}>{"Toggle b"}</button>
+  </>
 }`;
 
 			const result = await format(expected, { printWidth: 100 });
@@ -5148,11 +5156,13 @@ if (status === 'a') status = 'b'; else if (status === 'b') status = 'c'; else st
 		});
 
 		it('should keep RippleSet parents with short syntax and no args intact', async () => {
-			const expected = `function SetTest() {
+			const expected = `function SetTest() @{
   let items = new RippleSet();
 
-  <button onClick={() => items.add(1)}>{'add'}</button>
-  <pre>{items.size}</pre>
+  <>
+    <button onClick={() => items.add(1)}>{'add'}</button>
+    <pre>{items.size}</pre>
+  </>
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
@@ -5160,11 +5170,13 @@ if (status === 'a') status = 'b'; else if (status === 'b') status = 'c'; else st
 		});
 
 		it('should keep RippleMap parents with short syntax and no args intact', async () => {
-			const expected = `function MapTest() {
+			const expected = `function MapTest() @{
   let items = new RippleMap();
 
-  <button onClick={() => items.set('key', 1)}>{'add'}</button>
-  <pre>{items.size}</pre>
+  <>
+    <button onClick={() => items.set('key', 1)}>{'add'}</button>
+    <pre>{items.size}</pre>
+  </>
 }`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -5188,16 +5200,18 @@ if (status === 'a') status = 'b'; else if (status === 'b') status = 'c'; else st
 		});
 
 		it('should preserve blank line between function with nested markup and js', async () => {
-			const expected = `function App() {
-  <div>
-    const a = 1;
-    <div>const b = 1;</div>
-    <div>const b = 1;</div>
-  </div>
-  <div>
-    const a = 2;
-    <div>const b = 1;</div>
-  </div>
+			const expected = `function App() @{
+  <>
+    <div>
+      const a = 1;
+      <div>const b = 1;</div>
+      <div>const b = 1;</div>
+    </div>
+    <div>
+      const a = 2;
+      <div>const b = 1;</div>
+    </div>
+  </>
 }
 
 render(App);`;
@@ -5318,12 +5332,14 @@ render(App);`;
 		});
 
 		it('should preserve inline comments inside jsx expressions', async () => {
-			const expected = `<div>
-  {/* 'This is visible text' */}
-</div>
-<div>
-  {/* <div>{'Card Component'}</div> */}
-</div>`;
+			const expected = `<>
+  <div>
+    {/* 'This is visible text' */}
+  </div>
+  <div>
+    {/* <div>{'Card Component'}</div> */}
+  </div>
+</>`;
 
 			const result = await format(expected, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
@@ -5346,21 +5362,23 @@ render(App);`;
 		});
 
 		it('should preserve blank line after multi-line comment block followed by element in function body', async () => {
-			const expected = `function App() {
-  <div>
+			const expected = `function App() @{
+  <>
     <div>
-      let x = 1;
-      // inner comment
-      <div />
+      <div>
+        let x = 1;
+        // inner comment
+        <div />
+      </div>
+      <div>{"Sibling"}</div>
     </div>
-    <div>{"Sibling"}</div>
-  </div>
 
-  // if (show) {
-  // 	<div>{"Top Scope - Show is true"}</div>
-  // }
+    // if (show) {
+    // 	<div>{"Top Scope - Show is true"}</div>
+    // }
 
-  <button onClick={() => (b = !b)}>{"Toggle b"}</button>
+    <button onClick={() => (b = !b)}>{"Toggle b"}</button>
+  </>
 }`;
 
 			const result = await format(expected, { printWidth: 100 });
@@ -5383,38 +5401,42 @@ render(App);`;
 
 		it("should correctly handle comments according to Ripple's syntax", async () => {
 			const input = `// input
-<section>
-  // TODO
-  {'Hello'}
-</section>
+<>
+  <section>
+    // TODO
+    {'Hello'}
+  </section>
 
-// input
-<section>
-  // TODO
-</section>
+  // input
+  <section>
+    // TODO
+  </section>
 
-// input
-<section>
-      // TODO
-  <span>{'Hello'}</span>
-</section>`;
+  // input
+  <section>
+        // TODO
+    <span>{'Hello'}</span>
+  </section>
+</>`;
 
 			const expected = `// input
-<section>
-  // TODO
-  {'Hello'}
-</section>
+<>
+  <section>
+    // TODO
+    {'Hello'}
+  </section>
 
-// input
-<section>
-  // TODO
-</section>
+  // input
+  <section>
+    // TODO
+  </section>
 
-// input
-<section>
-  // TODO
-  <span>{'Hello'}</span>
-</section>`;
+  // input
+  <section>
+    // TODO
+    <span>{'Hello'}</span>
+  </section>
+</>`;
 
 			const result = await format(input, { singleQuote: true });
 			expect(result).toBeWithNewline(expected);
