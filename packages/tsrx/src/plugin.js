@@ -3688,6 +3688,22 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['parseElement']}
 			 */
 			parseElement() {
+				// Depth the tokenizer context must return to once this element closes:
+				// the stack with the element's own opening `<` contexts (a trailing
+				// tc_oTag/tc_expr) stripped off. A balanced element should leave the
+				// stack here; the body (especially a control-flow block) can otherwise
+				// leave residue that breaks tokenizing the following JS token when the
+				// element is in expression position.
+				let pre_element_context_depth = this.context.length;
+				while (pre_element_context_depth > 0) {
+					const ctx = this.context[pre_element_context_depth - 1];
+					if (ctx === tstc.tc_expr || ctx === tstc.tc_oTag || ctx === tstc.tc_cTag) {
+						pre_element_context_depth--;
+					} else {
+						break;
+					}
+				}
+
 				// Adjust the start so we capture the `<` as part of the element
 				const start = this.start - 1;
 				const position = new acorn.Position(this.curLine, start - this.lineStart);
@@ -3797,13 +3813,18 @@ export function TSRXPlugin(config) {
 						this.#path.pop();
 					}
 
-					// Ensure we escape JSX <tag></tag> context
-					const curContext = this.curContext();
+					// A balanced element must leave the tokenizer context exactly where it
+					// began. The body (especially a control-flow block) can leave residue
+					// above the children context — the children tc_expr plus a spurious
+					// b_stat from an @if/@for block save-restore — which the old single
+					// tc_expr pop missed when the b_stat sat on top. In expression position,
+					// unwind back to the pre-element depth so the following JS token (e.g. a
+					// comma/brace closing an enclosing object) tokenizes as code, not text.
 					const parent = this.#path.at(-1);
 					const insideTemplate = this.#isNativeTemplateNode(parent);
 
-					if (curContext === tstc.tc_expr && !insideTemplate) {
-						this.context.pop();
+					if (!insideTemplate && this.context.length > pre_element_context_depth) {
+						this.context.length = pre_element_context_depth;
 					}
 				}
 
