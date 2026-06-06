@@ -1987,7 +1987,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "expression_statement"
+          "name": "_jsx_statement_container_expression_statement"
         },
         {
           "type": "SYMBOL",
@@ -2048,6 +2048,136 @@
         {
           "type": "SYMBOL",
           "name": "statement_block"
+        }
+      ]
+    },
+    "_jsx_statement_container_expression_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "assignment_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "augmented_assignment_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "await_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "unary_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "binary_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "ternary_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "update_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "new_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "yield_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "this"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "super"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "identifier"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_reserved_identifier"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "number"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "string"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "template_string"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "regex"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "true"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "false"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "null"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "undefined"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "object"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "array"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "function_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "arrow_function"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "class_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "call_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "member_expression"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "subscript_expression"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_semicolon"
         }
       ]
     },

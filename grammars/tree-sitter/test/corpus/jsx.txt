@@ -527,15 +527,14 @@ const App = () => <>
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
             children: (jsx_statement_container
-              statement: (expression_statement
-                (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_text)
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))))
+              children: (jsx_element
+                open_tag: (jsx_opening_element
+                  name: (jsx_element_name
+                    (identifier)))
+                children: (jsx_text)
+                close_tag: (jsx_closing_element
+                  name: (jsx_element_name
+                    (identifier)))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -573,11 +572,10 @@ function WithAsyncDeclaration() {
                 body: (statement_block
                   (return_statement
                     (number))))
-              statement: (expression_statement
-                (jsx_fragment
-                  open_tag: (jsx_opening_fragment)
-                  children: (jsx_text)
-                  close_tag: (jsx_closing_fragment))))
+              children: (jsx_fragment
+                open_tag: (jsx_opening_fragment)
+                children: (jsx_text)
+                close_tag: (jsx_closing_fragment)))
             close_tag: (jsx_closing_fragment)))))))
 
 ==================

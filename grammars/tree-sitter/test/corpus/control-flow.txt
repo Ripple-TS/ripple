@@ -233,18 +233,17 @@ const App = ({ ready }) => <>
                       name: (identifier)
                       (initializer
                         (string))))
-                  statement: (expression_statement
-                    (jsx_element
-                      open_tag: (jsx_opening_element
-                        name: (jsx_element_name
-                          (identifier)))
-                      children: (jsx_expression
-                        (component_statement
-                          (expression_statement
-                            (identifier))))
-                      close_tag: (jsx_closing_element
-                        name: (jsx_element_name
-                          (identifier))))))
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (identifier))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
                 children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_try_expression
@@ -258,20 +257,19 @@ const App = ({ ready }) => <>
                         (call_expression
                           function: (identifier)
                           arguments: (arguments)))))
-                  statement: (expression_statement
-                    (jsx_element
-                      open_tag: (jsx_opening_element
-                        name: (jsx_element_name
-                          (identifier)))
-                      children: (jsx_expression
-                        (component_statement
-                          (expression_statement
-                            (member_expression
-                              object: (identifier)
-                              property: (identifier)))))
-                      close_tag: (jsx_closing_element
-                        name: (jsx_element_name
-                          (identifier))))))
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))
                 children: (jsx_text))
               handler: (jsx_catch_clause
                 parameter: (identifier)
@@ -285,18 +283,17 @@ const App = ({ ready }) => <>
                           (member_expression
                             object: (identifier)
                             property: (identifier)))))
-                    statement: (expression_statement
-                      (jsx_element
-                        open_tag: (jsx_opening_element
-                          name: (jsx_element_name
-                            (identifier)))
-                        children: (jsx_expression
-                          (component_statement
-                            (expression_statement
-                              (identifier))))
-                        close_tag: (jsx_closing_element
-                          name: (jsx_element_name
-                            (identifier))))))
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (identifier))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier)))))
                   children: (jsx_text))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
@@ -675,18 +672,17 @@ function App() @{
             (identifier)
             (initializer
               (string))))
-        (expression_statement
-          (jsx_element
-            (jsx_opening_element
-              (jsx_element_name
-                (identifier)))
-            (jsx_expression
-              (component_statement
-                (expression_statement
-                  (identifier))))
-            (jsx_closing_element
-              (jsx_element_name
-                (identifier)))))))))
+        (jsx_element
+          (jsx_opening_element
+            (jsx_element_name
+              (identifier)))
+          (jsx_expression
+            (component_statement
+              (expression_statement
+                (identifier))))
+          (jsx_closing_element
+            (jsx_element_name
+              (identifier))))))))
 
 ==================
 Statement Container Arrow Body
@@ -713,18 +709,50 @@ const App = () => @{
                 (identifier)
                 (initializer
                   (string))))
-            (expression_statement
-              (jsx_element
-                (jsx_opening_element
-                  (jsx_element_name
-                    (identifier)))
-                (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (identifier))))
-                (jsx_closing_element
-                  (jsx_element_name
-                    (identifier)))))))))))
+            (jsx_element
+              (jsx_opening_element
+                (jsx_element_name
+                  (identifier)))
+              (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (identifier))))
+              (jsx_closing_element
+                (jsx_element_name
+                  (identifier))))))))))
+
+==================
+Statement Container Rejects Post-JSX Setup
+==================
+
+const App = () => @{
+  <div />
+  const x = 1;
+  <span />
+};
+
+---
+
+(program
+  (lexical_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters)
+          body: (jsx_statement_container
+            (ERROR
+              (jsx_self_closing_element
+                name: (jsx_non_namespaced_element_name
+                  (identifier))))
+            statement: (variable_declaration
+              (variable_declarator
+                name: (identifier)
+                (initializer
+                  (number))))
+            children: (jsx_self_closing_element
+              name: (jsx_non_namespaced_element_name
+                (identifier)))))))))
 
 ==================
 Control Flow Expression Bodies

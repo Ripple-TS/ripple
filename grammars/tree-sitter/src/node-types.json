@@ -2623,7 +2623,51 @@
         "required": false,
         "types": [
           {
+            "type": ";",
+            "named": false
+          },
+          {
+            "type": "arguments",
+            "named": false
+          },
+          {
+            "type": "array",
+            "named": true
+          },
+          {
+            "type": "arrow_function",
+            "named": true
+          },
+          {
+            "type": "assignment_expression",
+            "named": true
+          },
+          {
+            "type": "augmented_assignment_expression",
+            "named": true
+          },
+          {
+            "type": "await",
+            "named": false
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "binary_expression",
+            "named": true
+          },
+          {
             "type": "break_statement",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "class_expression",
             "named": true
           },
           {
@@ -2651,7 +2695,7 @@
             "named": true
           },
           {
-            "type": "expression_statement",
+            "type": "false",
             "named": true
           },
           {
@@ -2667,6 +2711,18 @@
             "named": true
           },
           {
+            "type": "fragment",
+            "named": false
+          },
+          {
+            "type": "function_expression",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
             "type": "if_statement",
             "named": true
           },
@@ -2675,7 +2731,31 @@
             "named": true
           },
           {
+            "type": "member_expression",
+            "named": true
+          },
+          {
             "type": "module_declaration",
+            "named": true
+          },
+          {
+            "type": "new_expression",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "number",
+            "named": true
+          },
+          {
+            "type": "object",
+            "named": true
+          },
+          {
+            "type": "regex",
             "named": true
           },
           {
@@ -2687,7 +2767,31 @@
             "named": true
           },
           {
+            "type": "string",
+            "named": true
+          },
+          {
+            "type": "subscript_expression",
+            "named": true
+          },
+          {
+            "type": "super",
+            "named": true
+          },
+          {
             "type": "switch_statement",
+            "named": true
+          },
+          {
+            "type": "template_string",
+            "named": true
+          },
+          {
+            "type": "ternary_expression",
+            "named": true
+          },
+          {
+            "type": "this",
             "named": true
           },
           {
@@ -2695,11 +2799,39 @@
             "named": true
           },
           {
+            "type": "track",
+            "named": false
+          },
+          {
+            "type": "true",
+            "named": true
+          },
+          {
             "type": "try_statement",
             "named": true
           },
           {
+            "type": "unary_expression",
+            "named": true
+          },
+          {
+            "type": "undefined",
+            "named": true
+          },
+          {
+            "type": "untrack",
+            "named": false
+          },
+          {
+            "type": "update_expression",
+            "named": true
+          },
+          {
             "type": "while_statement",
+            "named": true
+          },
+          {
+            "type": "yield_expression",
             "named": true
           }
         ]
