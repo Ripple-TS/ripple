@@ -31,7 +31,8 @@ function createLoaderContext(resourcePath) {
 describe('@tsrx/rspack-plugin-react js-loader', () => {
 	it('prepends a virtual css import when a style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
+		const source = `export function App() @{
+			<>
 			<div>{'Hello world'}</div>
 
 			<style>
@@ -39,7 +40,8 @@ describe('@tsrx/rspack-plugin-react js-loader', () => {
 					color: red;
 				}
 			</style>
-		</>; }`;
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -52,9 +54,9 @@ describe('@tsrx/rspack-plugin-react js-loader', () => {
 
 	it('does not prepend a virtual css import when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		</>; }`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -69,7 +71,8 @@ describe('@tsrx/rspack-plugin-react js-loader', () => {
 describe('@tsrx/rspack-plugin-react css-loader', () => {
 	it('returns the compiled scoped css text', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
+		const source = `export function App() @{
+			<>
 			<div>{'Hello world'}</div>
 
 			<style>
@@ -77,7 +80,8 @@ describe('@tsrx/rspack-plugin-react css-loader', () => {
 					color: red;
 				}
 			</style>
-		</>; }`;
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);
@@ -90,9 +94,9 @@ describe('@tsrx/rspack-plugin-react css-loader', () => {
 
 	it('returns an empty string when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		</>; }`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);

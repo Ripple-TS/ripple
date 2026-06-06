@@ -125,7 +125,8 @@ describe('@tsrx/bun-plugin-react', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export function App() { return <>
+				`export function App() @{
+					<>
 					<div>{'Hello world'}</div>
 
 					<style>
@@ -133,7 +134,8 @@ describe('@tsrx/bun-plugin-react', () => {
 							color: red;
 						}
 					</style>
-				</>; }`,
+					</>
+				}`,
 			);
 
 			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });
@@ -188,9 +190,9 @@ describe('@tsrx/bun-plugin-react', () => {
 			const file_path = path.join(dir, 'App.tsrx');
 			await writeFile(
 				file_path,
-				`export function App() { return <>
+				`export function App() @{
 					<div>{'Hello world'}</div>
-				</>; }`,
+				}`,
 			);
 
 			const hooks = setup_plugin(undefined, { target: 'browser', root: dir });

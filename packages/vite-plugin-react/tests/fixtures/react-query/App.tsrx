@@ -23,7 +23,7 @@ function delay() {
 	});
 }
 
-export const ReactQueryFixture = () => <>
+export const ReactQueryFixture = () => @{
 	const [fetchCount, setFetchCount] = useState(0);
 	async function fetchProject(id: ProjectId): Promise<Project> {
 		setFetchCount((count) => count + 1);
@@ -38,12 +38,14 @@ export const ReactQueryFixture = () => <>
 			tagCount: project.tags.length,
 		};
 	}
-	---
-	<QueryFixtureShell
-		initialProjectId="alpha"
-		alternateProjectId="beta"
-		{fetchProject}
-		{selectSummary}
-	/>
-	<output className="query-fetch-count">{fetchCount}</output>
-</>;
+
+	<>
+		<QueryFixtureShell
+			initialProjectId="alpha"
+			alternateProjectId="beta"
+			{fetchProject}
+			{selectSummary}
+		/>
+		<output className="query-fetch-count">{fetchCount}</output>
+	</>
+};

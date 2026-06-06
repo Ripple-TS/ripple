@@ -315,6 +315,8 @@ export function createJsxTransform(platform) {
 				);
 			},
 
+			JSXCodeBlock: transform_jsx_code_block,
+
 			BlockStatement: transform_block_statement,
 			ReturnStatement: transform_return_statement,
 
@@ -1092,6 +1094,34 @@ function transform_return_statement(node, { next, visit, state, path }) {
 }
 
 /**
+ * @param {any} node
+ * @param {{ state: TransformContext, path: AST.Node[] }} context
+ * @returns {any}
+ */
+function transform_jsx_code_block(node, { state, path }) {
+	const body_nodes = get_jsx_code_block_body_nodes(node, state);
+	const parent = /** @type {any} */ (path.at(-1));
+
+	if (parent && parent.body === node && is_function_or_class_boundary(parent)) {
+		const block = b.block(
+			mark_native_pretransformed_jsx(build_render_statements(body_nodes, true, state)),
+			node,
+		);
+		block.metadata = {
+			...(block.metadata || {}),
+			native_return_block: true,
+		};
+		return block;
+	}
+
+	const expression = b.call(
+		b.arrow([], b.block(build_render_statements(body_nodes, true, state), node)),
+	);
+
+	return in_jsx_child_context(path) ? to_jsx_expression_container(expression, node) : expression;
+}
+
+/**
  * @param {AST.Node[]} path
  * @returns {any | null}
  */
@@ -1206,6 +1236,10 @@ function find_native_await(node) {
 		node_contains_native_tsrx_template(node.body)
 	) {
 		return find_first_top_level_await(node.body, false);
+	}
+
+	if (node.body?.type === 'JSXCodeBlock') {
+		return find_native_await_in_list(get_raw_jsx_code_block_body_nodes(node.body));
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body || [] : [];
@@ -1436,6 +1470,10 @@ function merge_binding_maps(outer, inner) {
  */
 function function_has_native_tsrx_return(node) {
 	if (!node) return false;
+
+	if (node.body?.type === 'JSXCodeBlock') {
+		return true;
+	}
 
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
 		return node_contains_native_tsrx_template(node.body);
@@ -1710,7 +1748,10 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (node.type === 'JSXElement' && node.metadata?.native_tsrx) {
+	if (
+		(node.type === 'JSXElement' || node.type === 'JSXFragment') &&
+		node.metadata?.native_tsrx
+	) {
 		collect_style_elements(node.children || [], styles);
 		return;
 	}
@@ -1785,7 +1826,10 @@ function strip_style_elements(node) {
 		return node;
 	}
 
-	if (node.type === 'JSXElement' && node.metadata?.native_tsrx) {
+	if (
+		(node.type === 'JSXElement' || node.type === 'JSXFragment') &&
+		node.metadata?.native_tsrx
+	) {
 		node.children = strip_style_elements(node.children || []);
 		return node;
 	}
@@ -4106,14 +4150,46 @@ function jsx_control_expression_to_statement(node) {
 
 /**
  * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function get_jsx_code_block_body_nodes(node, transform_context) {
+	if (!node.render) {
+		return node.body || [];
+	}
+
+	if (is_native_tsrx_node(node.render)) {
+		const style_context = prepare_tsrx_fragment_styles(node.render, transform_context);
+		const render = style_context?.fragment ?? node.render;
+		return [
+			...(node.body || []),
+			...create_tsrx_style_ref_setup_statements(render, style_context, transform_context),
+			render,
+		];
+	}
+
+	return [...(node.body || []), node.render];
+}
+
+/**
+ * @param {any} node
+ * @returns {any[]}
+ */
+function get_raw_jsx_code_block_body_nodes(node) {
+	return [...(node.body || []), ...(node.render ? [node.render] : [])];
+}
+
+/**
+ * @param {any} node
  * @returns {boolean}
  */
 function is_native_tsrx_node(node) {
 	return (
-		(node?.type === 'JSXElement' ||
+		node?.type === 'JSXCodeBlock' ||
+		((node?.type === 'JSXElement' ||
 			node?.type === 'JSXFragment' ||
 			node?.type === 'JSXStyleElement') &&
-		node.metadata?.native_tsrx
+			node.metadata?.native_tsrx)
 	);
 }
 

@@ -1,10 +1,8 @@
-function PlainTextPlugin(props: { contentEditable: any; placeholder: any }) {
-	return <>
-		<section class="tsrx-expression-prop-root">
-			<div class="tsrx-expression-content">{props.contentEditable}</div>
-			<div class="tsrx-expression-plugin-placeholder">{props.placeholder}</div>
-		</section>
-	</>;
+function PlainTextPlugin(props: { contentEditable: any; placeholder: any }) @{
+	<section class="tsrx-expression-prop-root">
+		<div class="tsrx-expression-content">{props.contentEditable}</div>
+		<div class="tsrx-expression-plugin-placeholder">{props.placeholder}</div>
+	</section>
 }
 
 function ContentEditable(props: {
@@ -12,26 +10,23 @@ function ContentEditable(props: {
 	class?: string;
 	className?: string;
 	placeholder: any;
-}) {
-	return <>
-		const className = props.className ?? props.class ?? '';
-		---
-		<article class="tsrx-expression-editable">
-			<span class="tsrx-expression-editable-class">{className}</span>
-			<div class="tsrx-expression-inner-placeholder">{props.placeholder}</div>
-		</article>
-	</>;
+}) @{
+	const className = props.className ?? props.class ?? '';
+
+	<article class="tsrx-expression-editable">
+		<span class="tsrx-expression-editable-class">{className}</span>
+		<div class="tsrx-expression-inner-placeholder">{props.placeholder}</div>
+	</article>
 }
 
-export function TsrxInTsxExpressionApp() {
-	return <>
-		const placeholder = 'shared placeholder';
-		const classes = {
-			contentEditable: 'editable-class',
-			placeholder: 'placeholder-class',
-		};
-		function renderPlugin() {
-			return <>
+export function TsrxInTsxExpressionApp() @{
+	const placeholder = 'shared placeholder';
+	const classes = {
+		contentEditable: 'editable-class',
+		placeholder: 'placeholder-class',
+	};
+	function renderPlugin() {
+		return <>
 				<PlainTextPlugin
 					contentEditable={<>
 						<ContentEditable
@@ -43,8 +38,7 @@ export function TsrxInTsxExpressionApp() {
 					placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
 				/>
 			</>;
-		}
-		---
-		{renderPlugin()}
-	</>;
+	}
+
+	<>{renderPlugin()}</>
 }
