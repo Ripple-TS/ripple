@@ -5,9 +5,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path');
-				<pre>{url.port}</pre>
-				<pre>{url.host}</pre>
-				<button onClick={() => (url.port = '8080')}>{'Add Port'}</button>
+				<>
+					<pre>{url.port}</pre>
+					<pre>{url.host}</pre>
+					<button onClick={() => (url.port = '8080')}>{'Add Port'}</button>
+				</>
 			
 		}
 
@@ -31,9 +33,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path');
-				<pre>{url.search}</pre>
-				<pre>{url.searchParams.size}</pre>
-				<button onClick={() => url.searchParams.append('foo', 'bar')}>{'Add Param'}</button>
+				<>
+					<pre>{url.search}</pre>
+					<pre>{url.searchParams.size}</pre>
+					<button onClick={() => url.searchParams.append('foo', 'bar')}>{'Add Param'}</button>
+				</>
 			
 		}
 
@@ -57,8 +61,10 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path');
-				<pre>{url.hash}</pre>
-				<button onClick={() => (url.hash = '#section')}>{'Add Hash'}</button>
+				<>
+					<pre>{url.hash}</pre>
+					<button onClick={() => (url.hash = '#section')}>{'Add Hash'}</button>
+				</>
 			
 		}
 
@@ -80,9 +86,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com:8080/path');
-				<button onClick={() => (url.port = '')}>{'Remove Port'}</button>
-				<pre>{url.href}</pre>
-				<pre>{url.port}</pre>
+				<>
+					<button onClick={() => (url.port = '')}>{'Remove Port'}</button>
+					<pre>{url.href}</pre>
+					<pre>{url.port}</pre>
+				</>
 			
 		}
 
@@ -106,9 +114,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path#section');
-				<button onClick={() => (url.hash = '')}>{'Remove Hash'}</button>
-				<pre>{url.href}</pre>
-				<pre>{url.hash}</pre>
+				<>
+					<button onClick={() => (url.hash = '')}>{'Remove Hash'}</button>
+					<pre>{url.href}</pre>
+					<pre>{url.hash}</pre>
+				</>
 			
 		}
 
@@ -134,10 +144,12 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path?foo=bar');
-				<button onClick={() => (url.search = '')}>{'Remove Search'}</button>
-				<pre>{url.href}</pre>
-				<pre>{url.search}</pre>
-				<pre>{url.searchParams.size}</pre>
+				<>
+					<button onClick={() => (url.search = '')}>{'Remove Search'}</button>
+					<pre>{url.href}</pre>
+					<pre>{url.search}</pre>
+					<pre>{url.searchParams.size}</pre>
+				</>
 			
 		}
 
@@ -165,9 +177,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path');
-				<button onClick={() => (url.hash = 'section')}>{'Set Hash'}</button>
-				<pre>{url.hash}</pre>
-				<pre>{url.href}</pre>
+				<>
+					<button onClick={() => (url.hash = 'section')}>{'Set Hash'}</button>
+					<pre>{url.hash}</pre>
+					<pre>{url.href}</pre>
+				</>
 			
 		}
 
@@ -192,9 +206,11 @@ describe('RippleURL > partials/removal', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path');
-				<button onClick={() => (url.search = 'foo=bar')}>{'Set Search'}</button>
-				<pre>{url.search}</pre>
-				<pre>{url.href}</pre>
+				<>
+					<button onClick={() => (url.search = 'foo=bar')}>{'Set Search'}</button>
+					<pre>{url.search}</pre>
+					<pre>{url.href}</pre>
+				</>
 			
 		}
 

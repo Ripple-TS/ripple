@@ -7,10 +7,12 @@ describe('RippleURL > derived', () => {
 				const url = RippleURL('https://example.com/users/123?tab=profile');
 				let &[userId] = track(() => url.pathname.split('/').pop());
 				let &[activeTab] = track(() => url.searchParams.get('tab'));
-				<button onClick={() => (url.pathname = '/users/456')}>{'Change User'}</button>
-				<button onClick={() => url.searchParams.set('tab', 'settings')}>{'Change Tab'}</button>
-				<pre>{`User ID: ${userId}`}</pre>
-				<pre>{`Active Tab: ${activeTab}`}</pre>
+				<>
+					<button onClick={() => (url.pathname = '/users/456')}>{'Change User'}</button>
+					<button onClick={() => url.searchParams.set('tab', 'settings')}>{'Change Tab'}</button>
+					<pre>{`User ID: ${userId}`}</pre>
+					<pre>{`Active Tab: ${activeTab}`}</pre>
+				</>
 			
 		}
 
@@ -42,8 +44,10 @@ describe('RippleURL > derived', () => {
 		function ParentTest() @{
 			
 				const url = RippleURL('https://example.com/path?count=0');
-				<ChildA {url} />
-				<ChildB {url} />
+				<>
+					<ChildA {url} />
+					<ChildB {url} />
+				</>
 			
 		}
 
@@ -63,8 +67,10 @@ describe('RippleURL > derived', () => {
 		function ChildB({ url }: { url: RippleURL }) @{
 			
 				let &[count] = track(() => url.searchParams.get('count'));
-				<pre>{url.href}</pre>
-				<pre>{count}</pre>
+				<>
+					<pre>{url.href}</pre>
+					<pre>{count}</pre>
+				</>
 			
 		}
 

@@ -6,8 +6,10 @@ describe('RippleURLSearchParams > serialization', () => {
 			
 				const params = RippleURLSearchParams('foo=bar');
 				let &[string] = track(() => params.toString());
-				<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
-				<pre>{string}</pre>
+				<>
+					<button onClick={() => params.append('baz', 'qux')}>{'add'}</button>
+					<pre>{string}</pre>
+				</>
 			
 		}
 
@@ -29,9 +31,11 @@ describe('RippleURLSearchParams > serialization', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams();
-				<button onClick={() => params.set('key', 'value with spaces')}>{'add spaces'}</button>
-				<button onClick={() => params.set('special', '!@#$%^&*()')}>{'add special'}</button>
-				<pre>{params.toString()}</pre>
+				<>
+					<button onClick={() => params.set('key', 'value with spaces')}>{'add spaces'}</button>
+					<button onClick={() => params.set('special', '!@#$%^&*()')}>{'add special'}</button>
+					<pre>{params.toString()}</pre>
+				</>
 			
 		}
 

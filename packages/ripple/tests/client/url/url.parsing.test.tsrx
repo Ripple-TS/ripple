@@ -5,13 +5,15 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com:8080/path?foo=bar#section');
-				<pre>{url.href}</pre>
-				<pre>{url.protocol}</pre>
-				<pre>{url.hostname}</pre>
-				<pre>{url.port}</pre>
-				<pre>{url.pathname}</pre>
-				<pre>{url.search}</pre>
-				<pre>{url.hash}</pre>
+				<>
+					<pre>{url.href}</pre>
+					<pre>{url.protocol}</pre>
+					<pre>{url.hostname}</pre>
+					<pre>{url.port}</pre>
+					<pre>{url.pathname}</pre>
+					<pre>{url.search}</pre>
+					<pre>{url.hash}</pre>
+				</>
 			
 		}
 
@@ -32,8 +34,10 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('/path?query=value', 'https://example.com');
-				<pre>{url.href}</pre>
-				<pre>{url.origin}</pre>
+				<>
+					<pre>{url.href}</pre>
+					<pre>{url.origin}</pre>
+				</>
 			
 		}
 
@@ -49,9 +53,11 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path with spaces?key=value with spaces');
-				<pre>{url.pathname}</pre>
-				<pre>{url.search}</pre>
-				<pre>{url.href}</pre>
+				<>
+					<pre>{url.pathname}</pre>
+					<pre>{url.search}</pre>
+					<pre>{url.href}</pre>
+				</>
 			
 		}
 
@@ -68,9 +74,11 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('file:///Users/username/documents/file.txt');
-				<pre>{url.protocol}</pre>
-				<pre>{url.pathname}</pre>
-				<pre>{url.href}</pre>
+				<>
+					<pre>{url.protocol}</pre>
+					<pre>{url.pathname}</pre>
+					<pre>{url.href}</pre>
+				</>
 			
 		}
 
@@ -89,9 +97,11 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://192.168.1.1:8080/path');
-				<button onClick={() => (url.hostname = '10.0.0.1')}>{'Change IP'}</button>
-				<pre>{url.href}</pre>
-				<pre>{url.hostname}</pre>
+				<>
+					<button onClick={() => (url.hostname = '10.0.0.1')}>{'Change IP'}</button>
+					<pre>{url.href}</pre>
+					<pre>{url.hostname}</pre>
+				</>
 			
 		}
 
@@ -115,10 +125,12 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('http://localhost:3000/api/data');
-				<button onClick={() => (url.port = '8080')}>{'Change Port'}</button>
-				<pre>{url.href}</pre>
-				<pre>{url.hostname}</pre>
-				<pre>{url.port}</pre>
+				<>
+					<button onClick={() => (url.port = '8080')}>{'Change Port'}</button>
+					<pre>{url.href}</pre>
+					<pre>{url.hostname}</pre>
+					<pre>{url.port}</pre>
+				</>
 			
 		}
 
@@ -144,11 +156,13 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/api/v1/users/123/profile');
-				<button onClick={() => (url.pathname = '/api/v2/users/456/settings')}>
-					{'Change Path'}
-				</button>
-				<pre>{url.pathname}</pre>
-				<pre>{url.href}</pre>
+				<>
+					<button onClick={() => (url.pathname = '/api/v2/users/456/settings')}>
+						{'Change Path'}
+					</button>
+					<pre>{url.pathname}</pre>
+					<pre>{url.href}</pre>
+				</>
 			
 		}
 
@@ -176,8 +190,10 @@ describe('RippleURL > parsing', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('../sibling/path', 'https://example.com/parent/current');
-				<pre>{url.href}</pre>
-				<pre>{url.pathname}</pre>
+				<>
+					<pre>{url.href}</pre>
+					<pre>{url.pathname}</pre>
+				</>
 			
 		}
 

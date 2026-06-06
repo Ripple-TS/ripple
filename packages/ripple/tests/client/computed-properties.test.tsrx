@@ -6,14 +6,16 @@ describe('computed tracked properties', () => {
 				let obj = {
 					[0]: track(0),
 				};
-				<div>{obj[0].value}</div>
-				<button
-					onClick={() => {
-						obj[0].value += 1;
-					}}
-				>
-					{'Increment'}
-				</button>
+				<>
+					<div>{obj[0].value}</div>
+					<button
+						onClick={() => {
+							obj[0].value += 1;
+						}}
+					>
+						{'Increment'}
+					</button>
+				</>
 		}
 
 		render(App);
@@ -31,14 +33,16 @@ describe('computed tracked properties', () => {
 				let obj = {
 					[0]: track(0),
 				};
-				<div>{obj[0].value}</div>
-				<button
-					onClick={() => {
-						obj[0].value++;
-					}}
-				>
-					{'Increment'}
-				</button>
+				<>
+					<div>{obj[0].value}</div>
+					<button
+						onClick={() => {
+							obj[0].value++;
+						}}
+					>
+						{'Increment'}
+					</button>
+				</>
 		}
 
 		render(App);

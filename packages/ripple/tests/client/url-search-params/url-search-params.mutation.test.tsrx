@@ -5,9 +5,11 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams('foo=bar');
-				<button onClick={() => params.append('baz', 'qux')}>{'append'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button onClick={() => params.append('baz', 'qux')}>{'append'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -32,9 +34,11 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const params = RippleURLSearchParams('foo=bar');
 				let &[allFoo] = track(() => params.getAll('foo'));
-				<button onClick={() => params.append('foo', 'baz')}>{'append foo'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{JSON.stringify(allFoo)}</pre>
+				<>
+					<button onClick={() => params.append('foo', 'baz')}>{'append foo'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{JSON.stringify(allFoo)}</pre>
+				</>
 			
 		}
 
@@ -58,10 +62,12 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
-				<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{params.size}</pre>
-				<pre>{params.has('foo').toString()}</pre>
+				<>
+					<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{params.size}</pre>
+					<pre>{params.has('foo').toString()}</pre>
+				</>
 			
 		}
 
@@ -87,9 +93,11 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
-				<button onClick={() => params.delete('foo', 'baz')}>{'delete foo=baz'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button onClick={() => params.delete('foo', 'baz')}>{'delete foo=baz'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -114,9 +122,11 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const params = RippleURLSearchParams('foo=bar');
 				let &[reactiveSize] = track(() => params.size);
-				<button onClick={() => params.delete('nonexistent')}>{'delete nonexistent'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{reactiveSize}</pre>
+				<>
+					<button onClick={() => params.delete('nonexistent')}>{'delete nonexistent'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{reactiveSize}</pre>
+				</>
 			
 		}
 
@@ -140,10 +150,12 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams('foo=bar');
-				<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
-				<button onClick={() => params.set('baz', 'qux')}>{'add baz'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
+					<button onClick={() => params.set('baz', 'qux')}>{'add baz'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -176,9 +188,11 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const params = RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
 				let &[allFoo] = track(() => params.getAll('foo'));
-				<button onClick={() => params.set('foo', 'single')}>{'set foo'}</button>
-				<pre>{params.toString()}</pre>
-				<pre>{JSON.stringify(allFoo)}</pre>
+				<>
+					<button onClick={() => params.set('foo', 'single')}>{'set foo'}</button>
+					<pre>{params.toString()}</pre>
+					<pre>{JSON.stringify(allFoo)}</pre>
+				</>
 			
 		}
 
@@ -203,9 +217,11 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const params = RippleURLSearchParams('foo=bar');
 				let &[reactiveString] = track(() => params.toString());
-				<button onClick={() => params.set('foo', 'bar')}>{'set same value'}</button>
-				<pre>{reactiveString}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button onClick={() => params.set('foo', 'bar')}>{'set same value'}</button>
+					<pre>{reactiveString}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -228,8 +244,10 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams('z=last&a=first&m=middle');
-				<button onClick={() => params.sort()}>{'sort'}</button>
-				<pre>{params.toString()}</pre>
+				<>
+					<button onClick={() => params.sort()}>{'sort'}</button>
+					<pre>{params.toString()}</pre>
+				</>
 			
 		}
 
@@ -252,16 +270,18 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const url = RippleURL('https://example.com?foo=bar&baz=qux');
 				const params = url.searchParams;
-				<button
-					onClick={() => {
-						params.delete('foo');
-						params.delete('baz');
-					}}
-				>
-					{'clear all'}
-				</button>
-				<pre>{url.href}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button
+						onClick={() => {
+							params.delete('foo');
+							params.delete('baz');
+						}}
+					>
+						{'clear all'}
+					</button>
+					<pre>{url.href}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -287,20 +307,22 @@ describe('RippleURLSearchParams > mutation', () => {
 		function URLTest() @{
 			
 				const params = RippleURLSearchParams();
-				<button
-					onClick={() => {
-						params.append('a', '1');
-						params.append('b', '2');
-						params.set('a', '10');
-						params.delete('b');
-						params.append('c', '3');
-						params.sort();
-					}}
-				>
-					{'complex operations'}
-				</button>
-				<pre>{params.toString()}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button
+						onClick={() => {
+							params.append('a', '1');
+							params.append('b', '2');
+							params.set('a', '10');
+							params.delete('b');
+							params.append('c', '3');
+							params.sort();
+						}}
+					>
+						{'complex operations'}
+					</button>
+					<pre>{params.toString()}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 
@@ -325,11 +347,13 @@ describe('RippleURLSearchParams > mutation', () => {
 			
 				const params = RippleURLSearchParams();
 				let &[tags] = track(() => params.getAll('tag'));
-				<button onClick={() => params.append('tag', 'javascript')}>{'add js'}</button>
-				<button onClick={() => params.append('tag', 'typescript')}>{'add ts'}</button>
-				<button onClick={() => params.append('tag', 'ripple')}>{'add ripple'}</button>
-				<pre>{JSON.stringify(tags)}</pre>
-				<pre>{params.size}</pre>
+				<>
+					<button onClick={() => params.append('tag', 'javascript')}>{'add js'}</button>
+					<button onClick={() => params.append('tag', 'typescript')}>{'add ts'}</button>
+					<button onClick={() => params.append('tag', 'ripple')}>{'add ripple'}</button>
+					<pre>{JSON.stringify(tags)}</pre>
+					<pre>{params.size}</pre>
+				</>
 			
 		}
 

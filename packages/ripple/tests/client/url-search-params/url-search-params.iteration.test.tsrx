@@ -5,8 +5,10 @@ describe('RippleURLSearchParams > iteration', () => {
 		function URLTest() @{
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				let &[keys] = track(() => Array.from(params.keys()));
-				<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
-				<pre>{JSON.stringify(keys)}</pre>
+				<>
+					<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
+					<pre>{JSON.stringify(keys)}</pre>
+				</>
 		}
 
 		render(URLTest);
@@ -27,8 +29,10 @@ describe('RippleURLSearchParams > iteration', () => {
 		function URLTest() @{
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				let &[values] = track(() => Array.from(params.values()));
-				<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
-				<pre>{JSON.stringify(values)}</pre>
+				<>
+					<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
+					<pre>{JSON.stringify(values)}</pre>
+				</>
 		}
 
 		render(URLTest);
@@ -49,8 +53,10 @@ describe('RippleURLSearchParams > iteration', () => {
 		function URLTest() @{
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				let &[entries] = track(() => Array.from(params.entries()));
-				<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
-				<pre>{JSON.stringify(entries)}</pre>
+				<>
+					<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
+					<pre>{JSON.stringify(entries)}</pre>
+				</>
 		}
 
 		render(URLTest);
@@ -73,8 +79,10 @@ describe('RippleURLSearchParams > iteration', () => {
 		function URLTest() @{
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				let &[entries] = track(() => Array.from(params));
-				<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
-				<pre>{JSON.stringify(entries)}</pre>
+				<>
+					<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
+					<pre>{JSON.stringify(entries)}</pre>
+				</>
 		}
 
 		render(URLTest);
@@ -94,10 +102,12 @@ describe('RippleURLSearchParams > iteration', () => {
 	it('handles iteration with for...of', () => {
 		function URLTest() @{
 				const params = RippleURLSearchParams('foo=bar&baz=qux');
-				<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
-				@for (const [key, value] of params) {
-					<pre>{`${key}=${value}`}</pre>
-				}
+				<>
+					<button onClick={() => params.append('new', 'value')}>{'add param'}</button>
+					@for (const [key, value] of params) {
+						<pre>{`${key}=${value}`}</pre>
+					}
+				</>
 		}
 
 		render(URLTest);
@@ -128,8 +138,10 @@ describe('RippleURLSearchParams > iteration', () => {
 					}
 					return total;
 				});
-				<button onClick={() => params.append('d', '4')}>{'add d=4'}</button>
-				<pre>{sum}</pre>
+				<>
+					<button onClick={() => params.append('d', '4')}>{'add d=4'}</button>
+					<pre>{sum}</pre>
+				</>
 		}
 
 		render(URLTest);

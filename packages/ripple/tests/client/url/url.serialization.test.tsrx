@@ -5,8 +5,10 @@ describe('RippleURL > serialization', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path?foo=bar#section');
-				<button onClick={() => (url.pathname = '/newpath')}>{'Change Pathname'}</button>
-				<pre>{url.toString()}</pre>
+				<>
+					<button onClick={() => (url.pathname = '/newpath')}>{'Change Pathname'}</button>
+					<pre>{url.toString()}</pre>
+				</>
 			
 		}
 
@@ -32,9 +34,11 @@ describe('RippleURL > serialization', () => {
 		function URLTest() @{
 			
 				const url = RippleURL('https://example.com/path?foo=bar');
-				<button onClick={() => (url.pathname = '/api')}>{'Change Pathname'}</button>
-				<pre>{url.toJSON()}</pre>
-				<pre>{JSON.stringify({ url: url.toJSON() })}</pre>
+				<>
+					<button onClick={() => (url.pathname = '/api')}>{'Change Pathname'}</button>
+					<pre>{url.toJSON()}</pre>
+					<pre>{JSON.stringify({ url: url.toJSON() })}</pre>
+				</>
 			
 		}
 

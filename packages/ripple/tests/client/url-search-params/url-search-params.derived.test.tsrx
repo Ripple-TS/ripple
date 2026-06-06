@@ -8,11 +8,13 @@ describe('RippleURLSearchParams > derived', () => {
 				let &[page] = track(() => parseInt(params.get('page') || '1', 10));
 				let &[limit] = track(() => parseInt(params.get('limit') || '10', 10));
 				let &[offset] = track(() => (page - 1) * limit);
-				<button onClick={() => params.set('page', '2')}>{'next page'}</button>
-				<button onClick={() => params.set('page', '1')}>{'first page'}</button>
-				<pre>{`Page: ${page}`}</pre>
-				<pre>{`Limit: ${limit}`}</pre>
-				<pre>{`Offset: ${offset}`}</pre>
+				<>
+					<button onClick={() => params.set('page', '2')}>{'next page'}</button>
+					<button onClick={() => params.set('page', '1')}>{'first page'}</button>
+					<pre>{`Page: ${page}`}</pre>
+					<pre>{`Limit: ${limit}`}</pre>
+					<pre>{`Offset: ${offset}`}</pre>
+				</>
 			
 		}
 
@@ -47,8 +49,10 @@ describe('RippleURLSearchParams > derived', () => {
 		function ParentTest() @{
 			
 				const params = RippleURLSearchParams('count=0');
-				<ChildA {params} />
-				<ChildB {params} />
+				<>
+					<ChildA {params} />
+					<ChildB {params} />
+				</>
 			
 		}
 
