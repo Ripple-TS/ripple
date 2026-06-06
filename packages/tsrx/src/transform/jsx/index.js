@@ -541,6 +541,12 @@ function build_component_statements(body_nodes, transform_context) {
  * @returns {any[]}
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
+	body_nodes = body_nodes.flatMap((node) =>
+		node?.type === 'JSXCodeBlock'
+			? [...node.body, ...(node.render != null ? [node.render] : [])]
+			: [node],
+	);
+
 	const statements = [];
 	const render_nodes = [];
 	let has_terminal_return = false;
