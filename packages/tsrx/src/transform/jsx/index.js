@@ -2612,7 +2612,6 @@ function create_component_return_statement(
 function is_loop_skip_return_statement(node) {
 	return (
 		node?.type === 'ReturnStatement' &&
-		node.argument == null &&
 		node.metadata?.generated_loop_continue_return === true
 	);
 }
@@ -2651,7 +2650,12 @@ function create_component_loop_skip_if_statement(node, render_nodes, transform_c
 	const branch_statements = build_render_statements(consequent_body, true, transform_context);
 	prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
 
-	return set_loc(b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null), node);
+	const statement = set_loc(b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null), node);
+	statement.metadata = {
+		...(statement.metadata || {}),
+		generated_loop_skip_if: true,
+	};
+	return statement;
 }
 
 /**
@@ -4376,6 +4380,9 @@ function to_jsx_child(node, transform_context) {
 			return node;
 		case 'JSXIfExpression':
 		case 'IfStatement':
+			if (node.metadata?.generated_loop_skip_if) {
+				return node;
+			}
 			return (
 				transform_context.platform.hooks?.controlFlow?.ifStatement ?? if_statement_to_jsx_child
 			)(jsx_control_expression_to_statement(node), transform_context);
@@ -4726,7 +4733,9 @@ function continue_to_bare_return(source_node) {
  */
 export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 	if (Array.isArray(node)) {
-		return node.map((child) => rewrite_loop_continues_to_bare_returns(child, false));
+		return node.map((child) =>
+			rewrite_loop_continues_to_bare_returns(child, is_root && !is_loop_statement(child)),
+		);
 	}
 
 	if (!node || typeof node !== 'object') {

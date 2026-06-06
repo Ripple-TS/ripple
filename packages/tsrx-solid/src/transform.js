@@ -419,7 +419,6 @@ function body_to_jsx_child(body_nodes, transform_context) {
 function is_bare_return_statement(node) {
 	return (
 		node?.type === 'ReturnStatement' &&
-		node.argument == null &&
 		node.metadata?.generated_loop_continue_return === true
 	);
 }
