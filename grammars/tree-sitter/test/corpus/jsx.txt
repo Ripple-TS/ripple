@@ -493,14 +493,14 @@ function WithControlFlow(x) {
                   close_tag: (jsx_closing_element
                     name: (jsx_element_name
                       (identifier))))
+                children: (jsx_text))
+              alternative: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (null))))
                 children: (jsx_text)))
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (object
-                    (shorthand_property_identifier
-                      (shorthand_property_identifier_pattern))))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
