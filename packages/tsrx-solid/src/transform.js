@@ -176,7 +176,10 @@ function get_await_keyword_start(await_node, source) {
 		return await_node.start ?? 0;
 	}
 
-	if (await_node?.type === 'ForOfStatement' && await_node.await === true) {
+	if (
+		(await_node?.type === 'ForOfStatement' || await_node?.type === 'JSXForExpression') &&
+		await_node.await === true
+	) {
 		const statement_start = await_node.start ?? 0;
 		const statement_end = await_node.end ?? statement_start;
 		const statement_source = source.slice(statement_start, statement_end);
@@ -1948,7 +1951,7 @@ function to_jsx_element(node, transform_context) {
 
 	const walked_children = node.children || [];
 
-	if (!node.id) {
+	if (!node.id && !node.openingElement?.name) {
 		return tsrx_node_to_jsx_expression(node, transform_context, true);
 	}
 
@@ -1956,16 +1959,18 @@ function to_jsx_element(node, transform_context) {
 		return dynamic_element_to_jsx_child(node, transform_context);
 	}
 
-	const name = identifier_to_jsx_name(node.id);
+	const name = node.id
+		? identifier_to_jsx_name(node.id)
+		: clone_jsx_name(node.openingElement.name, node.openingElement.name);
 	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
-		node.attributes || [],
+		node.attributes || node.openingElement?.attributes || [],
 		is_composite,
 		transform_context,
 		node,
 	);
 
-	const selfClosing = !!node.selfClosing;
+	const selfClosing = !!(node.selfClosing || node.openingElement?.selfClosing);
 	const children = create_element_children(walked_children, transform_context);
 
 	const openingElement = set_loc(

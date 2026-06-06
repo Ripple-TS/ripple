@@ -2325,9 +2325,9 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											{icon ? icon() : null}
-										</@tag>,
+										</@tag> },
 								},
 							}}
 						/>
@@ -2373,9 +2373,9 @@ export function optionalFn(bar: string, baz?: string) {
 									},
 								details2: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											{icon ? icon() : null}
-										</@tag>,
+										</@tag> },
 								},
 							}}
 						/>
@@ -2423,10 +2423,10 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`function App() @{
 					<Page params={{
-						f: () => {
-							<>
+						f: () => @{
+							<div>
 								<div>x</div>
-							</>
+							</div>
 						},
 					}} />
 				}`,

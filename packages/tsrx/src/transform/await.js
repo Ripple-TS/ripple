@@ -42,7 +42,11 @@ export function find_first_top_level_await(node, inside_nested_function) {
 		return null;
 	}
 
-	if (node.type === 'AwaitExpression' || (node.type === 'ForOfStatement' && node.await === true)) {
+	if (
+		node.type === 'AwaitExpression' ||
+		(node.type === 'ForOfStatement' && node.await === true) ||
+		(node.type === 'JSXForExpression' && node.await === true)
+	) {
 		return node;
 	}
 

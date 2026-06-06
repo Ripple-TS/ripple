@@ -487,11 +487,13 @@ describe('@tsrx/vue basic', () => {
 				`function App() @{
 					const count = 0;
 
-					@if (count > 2) {
-						return;
-					}
+					<>
+						@if (count > 2) {
+							return;
+						}
 
-					<button>{count}</button>
+						<button>{count}</button>
+					</>
 				}`,
 				'App.tsrx',
 			),
@@ -595,7 +597,7 @@ describe('@tsrx/vue basic', () => {
 		);
 
 		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
-		expect(code).toContain('{(item, i) => App__static');
+		expect(code).toContain("{(item, i) => <div>{'test'}</div>}");
 		expect(code).toContain("<div>{'test'}</div>");
 		expect(code).not.toContain('<div key={i}>');
 		expect(code).not.toContain('<Fragment');
@@ -616,8 +618,8 @@ describe('@tsrx/vue basic', () => {
 
 		expect(code).toContain('<VaporFor in={items} getKey={(item, i) => i}>');
 		expect(code).toContain('{(item, i) => <>');
-		expect(code).toContain('App__static1');
-		expect(code).toContain('App__static2');
+		expect(code).toContain("<div>{'one'}</div>");
+		expect(code).toContain("<div>{'two'}</div>");
 		expect(code).not.toContain('<Fragment');
 	});
 

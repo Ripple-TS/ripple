@@ -168,10 +168,12 @@ export function runSharedSourceMappingTests({
 		});
 		it('keeps DOM attribute completions when scoped styles are present', () => {
 			const source = `function C() @{
-	<img src="logo.png" alt="Logo" class="logo" />
-	<style>
-		.logo { display: block; }
-	</style>
+	<>
+		<img src="logo.png" alt="Logo" class="logo" />
+		<style>
+			.logo { display: block; }
+		</style>
+	</>
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
@@ -188,10 +190,12 @@ export function runSharedSourceMappingTests({
 		});
 		it('exposes template style blocks as CSS embedded mappings', () => {
 			const source = `function C() @{
-	<div class="logo" />
-	<style>
-		.logo { display: block; }
-	</style>
+	<>
+		<div class="logo" />
+		<style>
+			.logo { display: block; }
+		</style>
+	</>
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const css_mapping = result.cssMappings.find((mapping) =>
@@ -242,13 +246,15 @@ export function runSharedSourceMappingTests({
 		});
 		it('maps nested scoped class definitions to their own selectors', () => {
 			const source = `function C() @{
-	<div class="app">
-		<div class="card"></div>
-	</div>
-	<style>
-		.app { display: block; }
-		.card { padding: 1rem; }
-	</style>
+	<>
+		<div class="app">
+			<div class="card"></div>
+		</div>
+		<style>
+			.app { display: block; }
+			.card { padding: 1rem; }
+		</style>
+	</>
 }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_offset = source.indexOf('card');

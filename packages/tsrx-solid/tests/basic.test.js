@@ -34,8 +34,10 @@ describe('@tsrx/solid basic', () => {
 		it('wraps multiple top-level JSX children in a fragment', () => {
 			const { code } = compile(
 				`function App() @{
-					<h1>{'a'}</h1>
-					<h2>{'b'}</h2>
+					<>
+						<h1>{'a'}</h1>
+						<h2>{'b'}</h2>
+					</>
 				}`,
 				'App.tsrx',
 			);
@@ -332,13 +334,16 @@ describe('@tsrx/solid basic', () => {
 				`function FeatureCard({ items }: { items: string[] }) @{
 					<ul>@{
 						const [state, setState] = createSignal();
-						@for (const item of items; index i) {
-							<li>{item}</li>
-						}
-						<div>@{
-							console.log('logged');
-							debugger;
-						}</div>
+						<>
+							@for (const item of items; index i) {
+								<li>{item}</li>
+							}
+							<div>@{
+								console.log('logged');
+								debugger;
+							}</div>
+						</>
+					}
 					</ul>
 				}`,
 				'FeatureCard.tsrx',
@@ -437,8 +442,8 @@ describe('@tsrx/solid basic', () => {
 
 			expect(rest_static).toBeTruthy();
 			expect(code).toContain('<Show when={!hidden}>');
-			expect(code).toContain(`fallback={${rest_static}}`);
-			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
+			expect(code).toContain("<Match when={kind === 'skip'}><><span>{'rest'}</span><App__StatementBodyHook1 /></></Match>");
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
@@ -495,8 +500,8 @@ describe('@tsrx/solid basic', () => {
 			const rest_static = code.match(/const (App__static\d+) = <em>\{'rest'\}<\/em>;/)?.[1];
 
 			expect(rest_static).toBeTruthy();
-			expect(code).toContain(`fallback={${rest_static}}`);
-			expect(code).toContain(`<Match when={kind === 'skip'}>{${rest_static}}</Match>`);
+			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
+			expect(code).toContain("<Match when={kind === 'skip'}><><em>{'rest'}</em><App__StatementBodyHook1 /></></Match>");
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
@@ -643,11 +648,13 @@ describe('@tsrx/solid basic', () => {
 				compile(
 					`export default function A() @{
 						let early = true;
-						<>Hello</>
-						@if (early) {
-							return;
-						}
-						<>World</>
+						<>
+							<>Hello</>
+							@if (early) {
+								return;
+							}
+							<>World</>
+						</>
 					}`,
 					'A.tsrx',
 				),
@@ -702,7 +709,9 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('<><h1>');
+			expect(code).toContain("const App__static1 = <h1>{'a'}</h1>;");
+			expect(code).toContain("const App__static2 = <h2>{'b'}</h2>;");
+			expect(code).toContain('return <>{App__static1}{App__static2}</>;');
 		});
 
 		it('rejects namespaced template tags', () => {
@@ -723,10 +732,12 @@ describe('@tsrx/solid basic', () => {
 		it('emits css and annotates elements with the scope class', () => {
 			const { code, css, cssHash } = compile(
 				`export function App() @{
-					<div class="wrapper">{'hi'}</div>
-					<style>
-						.wrapper { color: red; }
-					</style>
+					<>
+						<div class="wrapper">{'hi'}</div>
+						<style>
+							.wrapper { color: red; }
+						</style>
+					</>
 				}`,
 				'App.tsrx',
 			);

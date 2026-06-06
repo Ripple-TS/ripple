@@ -1409,7 +1409,7 @@ function find_native_await_in_statement(statement) {
 		);
 	}
 
-	return null;
+	return find_first_top_level_await(statement, false);
 }
 
 /**
