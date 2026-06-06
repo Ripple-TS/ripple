@@ -2230,7 +2230,7 @@
       ]
     },
     "jsx_if_expression": {
-      "type": "PREC",
+      "type": "PREC_RIGHT",
       "value": 1,
       "content": {
         "type": "SEQ",
@@ -2634,7 +2634,7 @@
       ]
     },
     "jsx_try_expression": {
-      "type": "PREC",
+      "type": "PREC_RIGHT",
       "value": 1,
       "content": {
         "type": "SEQ",
