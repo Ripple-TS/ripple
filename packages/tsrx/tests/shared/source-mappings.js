@@ -44,37 +44,31 @@ export function runSharedSourceMappingTests({
 		// (like `new`, `return`, backticks, `[...]`) without location markers;
 		// segments.js calls get_mapping_from_node() on these directly.
 		it('NewExpression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = new Map();
-	---
-</>; }`));
+}`));
 		it('computed MemberExpression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = foo[bar];
-	---
-</>; }`));
+}`));
 		it('empty ObjectExpression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = {};
-	---
-</>; }`));
+}`));
 		it('non-empty ObjectExpression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = { a: 1 };
-	---
-</>; }`));
+}`));
 		it('ReturnStatement', () =>
 			expect_maps(`function f() { return 1; } function C() { return <></>; }`));
 		it('ForStatement', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	for (let i = 0; i < 10; i++) {}
-	---
-</>; }`));
+}`));
 		it('ForInStatement', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	for (const x in obj) {}
-	---
-</>; }`));
+}`));
 		it('ForOfStatement', () =>
 			expect_maps(`const test = () => { for (const x of Object.keys({})) {}}`));
 		it('SwitchStatement', () =>
@@ -89,21 +83,18 @@ export function runSharedSourceMappingTests({
   }
 }`));
 		it('TemplateLiteral', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = \`hello \${y}\`;
-	---
-</>; }`));
+}`));
 		it('TaggedTemplateExpression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	tag\`hi\`;
-	---
-</>; }`));
+}`));
 		// AwaitExpression inside an async function body.
 		it('AwaitExpression in async function body', () => {
-			expect_maps(`async function C() { return <>
+			expect_maps(`async function C() @{
 	await foo();
-	---
-</>; }`);
+}`);
 		});
 
 		// Class methods should still have defaulted FunctionExpression metadata.
@@ -118,32 +109,28 @@ export function runSharedSourceMappingTests({
 		it('class static method', () =>
 			expect_maps(`class Foo { static bar() {} } function C() { return <></>; }`));
 		it('object method shorthand', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { foo() { return 1; } };
-	---
-</>; }`));
+}`));
 
 		// TS wrapper nodes whose spans (e.g. angle-bracket delimiters around
 		// generics) are otherwise invisible to the source map.
 		it('generic call with type arguments', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	useState<string>('');
-	---
-</>; }`));
+}`));
 		it('call argument with arrow-function return type', () =>
 			expect_maps(
-				`function C() { return <>
+				`function C() @{
 	const [itemElements] = useState((): Record<string, HTMLButtonElement | null> => ({}));
-	---
-</>; }`,
+}`,
 			));
 		it('component with type parameters', () =>
 			expect_maps(`function C<T extends string>() { return <></>; }`));
 		it('as-expression', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const x = y as string;
-	---
-</>; }`));
+}`));
 		it('union type annotation', () =>
 			expect_maps(`function C(p: { x: string | null }) { return <></>; }`));
 		it('array type annotation', () =>
@@ -215,13 +202,13 @@ export function runSharedSourceMappingTests({
 			expect(css_mapping?.data.customData.embeddedId).toMatch(/^style-/);
 		});
 		it('keeps assigned style blocks anchored in type-only output', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 		const styles = <style>
 			.logo { display: block; }
 		</style>;
-		---
+
 		<div class={styles.logo} />
-	</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_offset = source.indexOf('<style>') + 1;
 			const mapping = result.mappings.find((entry) => {
@@ -275,27 +262,24 @@ export function runSharedSourceMappingTests({
 			expect(mapping?.data.completion).toBe(true);
 		});
 		it('element with attribute spread', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = {};
-	---
 	<div {...o} />
-</>; }`));
+}`));
 
 		// Regression for the original useState<…> crash that started this
 		// whole line of investigation — kept as an end-to-end shape check.
 		it('calls with explicit type arguments', () =>
 			expect_maps(
-				`function Test() { return <>
+				`function Test() @{
 	const [foo, setFoo] = useState<string | null>(null);
-	---
-</>; }`,
+}`,
 			));
 		it('type annotation on array destructuring pattern', () =>
 			expect_maps(
-				`function C() { return <>
+				`function C() @{
 	const [s, setS]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
-	---
-</>; }`,
+}`,
 			));
 
 		// Class TS shape: type parameters, generic super class, implements clause.
@@ -315,10 +299,9 @@ export function runSharedSourceMappingTests({
 				`interface I<T> { x: T } class Foo implements I<string> { x = '' as string } function C() { return <></>; }`,
 			));
 		it('class expression with type parameters', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const F = class<T> { x: T | null = null; };
-	---
-</>; }`));
+}`));
 
 		// Method shorthand and class methods with type parameters / return types.
 		it('class method with type parameters', () =>
@@ -328,47 +311,40 @@ export function runSharedSourceMappingTests({
 				`class Foo { bar(x: number): string { return ''; } } function C() { return <></>; }`,
 			));
 		it('object method shorthand with type parameters', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { foo<T>(x: T): T { return x; } };
-	---
-</>; }`));
+}`));
 		// Non-method properties whose value happens to be a FunctionExpression
 		// (`node.method === false`) must not be reprinted as method shorthand;
 		// the Property override gates on `node.method`.
 		it('property with function expression value', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { foo: function() { return 1; } };
-	---
-</>; }`));
+}`));
 		it('property with named function expression value', () =>
 			expect_maps(
-				`function C() { return <>
+				`function C() @{
 	const o = { foo: function bar() { return 1; } };
-	---
-</>; }`,
+}`,
 			));
 		it('property with async function expression value', () =>
 			expect_maps(
-				`function C() { return <>
+				`function C() @{
 	const o = { foo: async function() { return 1; } };
-	---
-</>; }`,
+}`,
 			));
 		it('object literal getter', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { get x() { return 1; } };
-	---
-</>; }`));
+}`));
 		it('object literal setter', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { set x(v: number) {} };
-	---
-</>; }`));
+}`));
 		it('object literal getter with return type', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const o = { get x(): number { return 1; } };
-	---
-</>; }`));
+}`));
 
 		// TS type operators / mapped / parenthesized types.
 		it('keyof type operator', () =>
@@ -402,33 +378,29 @@ export function runSharedSourceMappingTests({
 
 import { load } from server;
 
-function C() { return <>
+function C() @{
 	load();
-	---
-</>; }`));
+}`));
 
 		// JS expressions whose esrap printer emits no leading/trailing location
 		// marker, mirroring the existing IfStatement / NewExpression cases.
 		it('UpdateExpression postfix', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	let x = 0;
 	x++;
-	---
-</>; }`));
+}`));
 		it('UpdateExpression prefix', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	let x = 0;
 	++x;
-	---
-</>; }`));
+}`));
 		it('UnaryExpression', () =>
 			expect_maps(
-				`function C() { return <>
+				`function C() @{
 	const x = !true;
 	const y = -1;
 	const z = typeof x;
-	---
-</>; }`,
+}`,
 			));
 		it('YieldExpression', () =>
 			expect_maps(`function* gen() { yield 1; yield* [2, 3]; } function C() { return <></>; }`));
@@ -440,10 +412,9 @@ function C() { return <>
 		// Arrow with default parameter and return type — combines AssignmentPattern
 		// with the ArrowFunctionExpression returnType visitor.
 		it('arrow with default-typed parameter and return type', () =>
-			expect_maps(`function C() { return <>
+			expect_maps(`function C() @{
 	const f = (x: number = 1): number => x + 1;
-	---
-</>; }`));
+}`));
 
 		// TSInstantiationExpression: `identity<string>` used as a value.
 		it('TSInstantiationExpression', () =>
@@ -475,10 +446,9 @@ function C() { return <>
 
 	describe(`[${name}] raw source maps cover arrow functions`, () => {
 		it('maps the whole arrow function start and end', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 	const f = (x: number): number => x + 1;
-	---
-</>; }`;
+}`;
 			const result = compile(source, 'App.tsrx');
 			const [src_to_gen_map] = build_src_to_gen_map(
 				result.map,
@@ -499,10 +469,9 @@ function C() { return <>
 
 	describe(`[${name}] Volar mappings cover arrow functions`, () => {
 		it('adds a verification-only mapping for the whole arrow function', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 	const f = (x: number): number => x + 1;
-	---
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_arrow = '(x: number): number => x + 1';
 			const source_offset = source.indexOf(source_arrow);
@@ -743,10 +712,9 @@ export function optionalFn(declRequired: string, declMaybe?: string) {
 
 import { load as getLoad } from server;
 
-function C() { return <>
+function C() @{
 	getLoad();
-	---
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
 
 			const source_load_offset = source.indexOf('load as');
@@ -1001,11 +969,10 @@ function C() { return <>
 				`class Foo { bar() { return <>{"Hello"}</>; } }`,
 				`class Foo { bar() { return <>Hello</>; } }`,
 				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,
-				`class Foo { bar() { return <>
+				`class Foo { bar() @{
 					const x = 1;
-					---
 					<div>{x}</div>
-				</>; } }`,
+				} }`,
 				`class Foo { bar() { return <><div>ok</div></>; } }`,
 				`class Foo { bar() { return <>@if (true) { <div>yes</div> }</>; } }`,
 			];
@@ -1022,12 +989,11 @@ function C() { return <>
 			// not carry a source mapping — otherwise the editor shows duplicate
 			// hover/intellisense (one for the name, one for the value) on the
 			// same `{count}` span.
-			const source = `function App() { return <>
+			const source = `function App() @{
 	const count = 0;
 	const Inner = (p: { count: number }) => null;
-	---
 	<Inner {count} />
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			expect(result.code).toContain('count={count}');
 
@@ -1048,14 +1014,15 @@ function C() { return <>
 	<input />
 </>; }
 
-function App() { return <>
+function App() @{
 	let host_input: HTMLInputElement | undefined;
 	let child_input: HTMLInputElement | undefined;
 	const state = { input: undefined as HTMLInputElement | undefined };
-	---
-	<input type="text" hostRef={host_input} />
-	<Child inputRef={child_input} otherRef={state.input} />
-</>; }`;
+	<>
+		<input type="text" hostRef={host_input} />
+		<Child inputRef={child_input} otherRef={state.input} />
+	</>
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 			const host_ref_offset = source.indexOf('host_input', source.indexOf('hostRef='));
@@ -1137,17 +1104,17 @@ export function App() { return <>
 			() => {
 				const source = `import { useState } from 'react';
 
-function App() { return <>
+function App() @{
 	const [show, setShow] = useState(true);
-	---
 
 	@if (show) {
 		const [count, setCount] = useState(0);
-		---
-		<p>{count}</p>
-		<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+		<>
+			<p>{count}</p>
+			<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+		</>
 	}
-	</>; }`;
+}`;
 
 				const result = compile_to_volar_mappings(source, 'App.tsrx');
 				const generated_helper_declaration_name_offset = result.code.indexOf('StatementBodyHook1');
@@ -1231,17 +1198,17 @@ function App() { return <>
 			() => {
 				const source = `import { useState } from 'react';
 
-			function App() { return <>
+			function App() @{
 				const [show, setShow] = useState(true);
-				---
 
 				@if (show) {
 					const [count, setCount] = useState(0);
-					---
-					<p>{count}</p>
-					<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+					<>
+						<p>{count}</p>
+						<button onClick={() => setCount(count + 1)}>{'inc'}</button>
+					</>
 				}
-			</>; }`;
+			}`;
 
 				const result = compile_to_volar_mappings(source, 'App.tsrx');
 				const generated_helper_count_declaration_offset =
