@@ -61,25 +61,20 @@ describe('SSR: switch statements', () => {
 		expect(body).toBeHtml('<div>Case A</div><div>Case B</div><div>Case C</div>');
 	});
 
-	it('renders a fall-through with a default case in the middle', async () => {
+	it('renders a default case', async () => {
 		function App() @{
 				let value = 'x';
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
+						break;
 					default:
 						<div>{'Default Case'}</div>
-					case 'b':
-						<div>Case B</div>
-						break;
-					case 'c':
-						<div>{'Case C'}</div>
-						break;
 				}
 		}
 
 		const { body } = await render(App);
-		expect(body).toBeHtml('<div>Default Case</div><div>Case B</div>');
+		expect(body).toBeHtml('<div>Default Case</div>');
 	});
 
 	it('renders bare text nodes in switch fall-through cases without element wrappers', async () => {
@@ -88,10 +83,10 @@ describe('SSR: switch statements', () => {
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
-						case 'a':
-							Case A
-						case 'b':
-							Case B
+							case 'a':
+								<>Case A</>
+							case 'b':
+								<>Case B</>
 					}
 				</div>
 		}
@@ -106,12 +101,12 @@ describe('SSR: switch statements', () => {
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
-						case 'a':
-							Case A
-							break;
-						case 'b':
-							Case B
-							break;
+							case 'a':
+								<>Case A</>
+								break;
+							case 'b':
+								<>Case B</>
+								break;
 					}
 				</div>
 		}

@@ -133,18 +133,18 @@ describe('lazy destructuring', () => {
 		expect(body).toBeHtml('<pre>2-2</pre>');
 	});
 
-	it(
-		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
-		async () => {
-			function Inner(@{
-				values: [head, ...&{ 0: first_rest, length: rest_length }],
-			}: {
-				values: number[];
-			}) {
-					const before = `${first_rest}-${rest_length}`;
-					rest_length = 0;
-					<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
-			}
+		it(
+			'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
+			async () => {
+				function Inner({
+					values: [head, ...&{ 0: first_rest, length: rest_length }],
+				}: {
+					values: number[];
+				}) @{
+						const before = `${first_rest}-${rest_length}`;
+						rest_length = 0;
+						<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
+				}
 
 			function Test() @{
 				<Inner values={[10, 20, 30]} />

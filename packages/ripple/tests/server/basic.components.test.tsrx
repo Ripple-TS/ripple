@@ -18,16 +18,17 @@ describe('basic server > components & composition', () => {
 	}
 
 	it('renders with component composition and children', async () => {
-		function Card(props: PropsWithChildren<{}>) @{
-			<div class="card">{props.children}</div>
-		}
+			function Card(props: PropsWithChildren<{}>) @{
+				<div class="card">{props.children}</div>
+			}
 
-		function Basic() @{
-				function children() {
-				}
+			function children() @{
+				<p>{'Card content here'}</p>
+			}
+
+			function Basic() @{
 				<Card {children} />
-			</>;
-		}
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -46,12 +47,13 @@ describe('basic server > components & composition', () => {
 				</div>
 		}
 
-		function Basic() @{
-				function test() {
-				}
+			function test() {
+				return null;
+			}
+
+			function Basic() @{
 				<Card {test} />
-			</>;
-		}
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -69,12 +71,13 @@ describe('basic server > components & composition', () => {
 			<div class="card">{props.children}</div>
 		}
 
-		function Basic() @{
-				function children() {
-				}
+			function children() @{
+				<p>{'Card content here'}</p>
+			}
+
+			function Basic() @{
 				<Card {children} />
-			</>;
-		}
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -91,9 +94,9 @@ describe('basic server > components & composition', () => {
 			<span>{label}</span>
 		}
 
-		function App() @{
-			{Test({ label: 'direct call' })}
-		}
+			function App() @{
+				<>{Test({ label: 'direct call' })}</>
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -161,20 +164,20 @@ describe('basic server > components & composition', () => {
 	});
 
 	it('renders with nested components and prop passing', async () => {
-		function Button(props: PropsWithExtras<@{
+		function Button(props: PropsWithExtras<{
 			variant: string;
 			label: string;
 			onClick: EventListener;
-		}>) {
+		}>) @{
 			<button class={props.variant} onClick={props.onClick}>{props.label}</button>
 		}
 
-		function Card(props: PropsWithExtras<@{
+		function Card(props: PropsWithExtras<{
 			title: string;
 			content: string;
 			buttonText: string;
 			onAction: EventListener;
-		}>) {
+		}>) @{
 				<div class="card">
 					<h3>{props.title}</h3>
 					<p>{props.content}</p>
@@ -182,16 +185,18 @@ describe('basic server > components & composition', () => {
 				</div>
 		}
 
-		function Basic() @{
-				let &[clicked] = track(false);
-				<Card
-					title="Test Card"
-					content="This is a test card"
-					buttonText="Click me"
-					onAction={() => (clicked = true)}
-				/>
-				<div class="status">{clicked ? 'Clicked' : 'Not clicked'}</div>
-		}
+			function Basic() @{
+					let &[clicked] = track(false);
+					<>
+						<Card
+							title="Test Card"
+							content="This is a test card"
+							buttonText="Click me"
+							onAction={() => (clicked = true)}
+						/>
+						<div class="status">{clicked ? 'Clicked' : 'Not clicked'}</div>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -210,27 +215,31 @@ describe('basic server > components & composition', () => {
 	});
 
 	it('renders with reactive component props', async () => {
-		function ChildComponent(props: PropsWithExtras<@{
+		function ChildComponent(props: PropsWithExtras<{
 			text: Tracked<string>;
 			count: Tracked<number>;
-		}>) {
-				<div class="child-content">{props.text.value}</div>
-				<div class="child-count">{props.count.value}</div>
+		}>) @{
+				<>
+					<div class="child-content">{props.text.value}</div>
+					<div class="child-count">{props.count.value}</div>
+				</>
 		}
 
-		function Basic() @{
-				let &[message, messageTracked] = track('Hello');
-				let &[number, numberTracked] = track(1);
-				<ChildComponent text={messageTracked} count={numberTracked} />
-				<button
-					onClick={() => {
-						message = message === 'Hello' ? 'Goodbye' : 'Hello';
-						number++;
-					}}
-				>
-					{'Update Props'}
-				</button>
-		}
+			function Basic() @{
+					let &[message, messageTracked] = track('Hello');
+					let &[number, numberTracked] = track(1);
+					<>
+						<ChildComponent text={messageTracked} count={numberTracked} />
+						<button
+							onClick={() => {
+								message = message === 'Hello' ? 'Goodbye' : 'Hello';
+								number++;
+							}}
+						>
+							{'Update Props'}
+						</button>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -261,17 +270,18 @@ describe('basic server > components & composition', () => {
 			arrowButton: ArrowButton,
 		};
 
-		function App() @{
-				function children() {
-				}
+			function children() @{
+				<span>{'Click me!'}</span>
+			}
+
+			function App() @{
 				<div>
 					<h1>{'Component as Property Test'}</h1>
 					<UI.span />
 					<UI.button {children} />
 					<UI.arrowButton {children} />
 				</div>
-			</>;
-		}
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -289,16 +299,18 @@ describe('basic server > components & composition', () => {
 		expect(arrowButtonSpan.textContent).toBe('Click me!');
 	});
 
-	it('handles empty string children', async () => {
-		function Button({ children }: PropsWithChildren<{}>) @{
-			{children}
-		}
+		it('handles empty string children', async () => {
+			function Button({ children }: PropsWithChildren<{}>) @{
+				<>{children}</>
+			}
 
-		function App() @{
-				let content = '';
-				<Button>{''}</Button>
-				<Button>{content}</Button>
-		}
+			function App() @{
+					let content = '';
+					<>
+						<Button>{''}</Button>
+						<Button>{content}</Button>
+					</>
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -306,9 +318,10 @@ describe('basic server > components & composition', () => {
 		expect(document.documentElement).toBeNull();
 	});
 
-	it('handles component without any output', async () => {
-		function Noop() @{
-		}
+		it('handles component without any output', async () => {
+			function Noop() {
+				return null;
+			}
 
 		function Op() @{
 			<div>{'Some HTML content'}</div>
@@ -439,47 +452,47 @@ describe('basic server > components & composition', () => {
 		expect(document.querySelector('.card').textContent).toBe('explicit');
 	});
 
-	it('renders components declared inside composite element children', async () => {
-		function Wrapper(props: PropsWithChildren<{}>) @{
-			<div class="wrapper">{props.children}</div>
-		}
+		it('renders components declared inside composite element children', async () => {
+			function Wrapper(props: PropsWithChildren<{}>) @{
+				<div class="wrapper">{props.children}</div>
+			}
 
-		function App() @{
+			function Inner() @{
+				<div class="inner">{'inner content'}</div>
+			}
+
+			function App() @{
 				<Wrapper>
-					function Inner() {
-					}
-
 					<Inner />
 				</Wrapper>
-			</>;
-		}
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
 		expect(document.querySelector('.wrapper .inner').textContent).toBe('inner content');
 	});
 
-	it('renders nested components declared inside composite children with prop passing', async () => {
-		function Wrapper(props: PropsWithChildren<{}>) @{
-			<div class="wrapper">{props.children}</div>
-		}
+		it('renders nested components declared inside composite children with prop passing', async () => {
+			function Wrapper(props: PropsWithChildren<{}>) @{
+				<div class="wrapper">{props.children}</div>
+			}
 
-		function App() @{
+			function Z() @{
+				<span class="z">{'I am Z'}</span>
+			}
+
+			function Child(props: { Z: Component }) @{
+				<div class="child">
+					{'Child Component: '}
+					<props.Z />
+				</div>
+			}
+
+			function App() @{
 				<Wrapper>
-					function Z() {
-					}
-
-					function Child(&{ Z }: { Z: Component }) @{
-							<div class="child">
-								{'Child Component: '}
-								<Z />
-							</div>
-					}
-
 					<Child {Z} />
 				</Wrapper>
-			</>;
-		}
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);

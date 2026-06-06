@@ -26,10 +26,12 @@ describe('basic client', () => {
 
 	it('renders direct JSX text children as text', async () => {
 		function Basic() @{
+			<>
 				<div>Rock &amp; &quot;Roll&quot;</div>
 				<div>line break</div>
 				<pre>first
 second</pre>
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -48,7 +50,7 @@ second</pre>
 				void leaked;
 			}
 
-			Hello world
+			<>Hello world</>
 		}
 
 		const { body } = await render(Basic);
@@ -62,7 +64,7 @@ second</pre>
 				if (!ready) {
 					return 'Waiting';
 				}
-				Ready
+				<>Ready</>
 		}
 
 		const { body } = await render(Basic);
@@ -136,6 +138,7 @@ second</pre>
 		let assigned;
 
 		function Basic() @{
+			<>
 				<div>
 					{'call:'}
 					{child('call')}
@@ -193,6 +196,7 @@ second</pre>
 					{'unary:'}
 					{void empty()}
 				</div>
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -216,11 +220,9 @@ second</pre>
 
 	it('renders inline tsrx fragments', async () => {
 		function Basic() @{
-				const content = <>
-					const label = 'Server';
-					<span>{label}</span>
-				<div>{content}</div>
-			</>;
+			const label = 'Server';
+			const content = <span>{label}</span>;
+			<div>{content}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -241,19 +243,21 @@ second</pre>
 	});
 
 	it('renders deeply nested tsx and tsrx expression values', async () => {
-		function makeFragment(label: string) @{
+		function makeFragment(label: string) {
+			const test = <>
+				{[1, 2, 3, 4].map((item) => <div class="helper-item">{item}</div>)}
+			</>;
+			return <>
 				<span class="label">{label}</span>
-				const test = <>
-					{[1, 2, 3, 4].map((item) => @{
-						{<><div class="helper-item">{item}</div>
-					}}</>)}
 				{test}
 			</>;
 		}
 
 		function Basic() @{
-				{<>{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}</>}
+			<>
+				{[1, 2, 3].map((item) => <div class="app-item">{item}</div>)}
 				{makeFragment('from helper')}
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -265,12 +269,12 @@ second</pre>
 
 	it('renders tsrx nested directly inside a top-level tsx expression value', async () => {
 		function Basic() @{
-				const content = <>
-					<section class="outer">
-						{<><div class="inner">{'from tsrx'}</div></>}
-					</section>
-				{content}
+			const content = <>
+				<section class="outer">
+					<div class="inner">{'from tsrx'}</div>
+				</section>
 			</>;
+			<>{content}</>
 		}
 
 		const { body } = await render(Basic);
@@ -280,16 +284,14 @@ second</pre>
 
 	it('renders nested elements from tsrx inside a top-level tsx value', async () => {
 		function Basic() @{
-				const content = <>
-					<div class="wrapper">
-						{<>
-							<section class="native">
-								<span class="nested-tsrx">{'inside nested tsrx'}</span>
-							</section>
-						</>}
-					</div>
-				{content}
+			const content = <>
+				<div class="wrapper">
+					<section class="native">
+						<span class="nested-tsrx">{'inside nested tsrx'}</span>
+					</section>
+				</div>
 			</>;
+			<>{content}</>
 		}
 
 		const { body } = await render(Basic);
@@ -300,11 +302,11 @@ second</pre>
 	});
 
 	it('renders tsx declared before a top-level tsx value', async () => {
-		function Basic() @{
+			function Basic() @{
+				const nested = <span class="nested-tsx">inside nested tsx</span>;
 				const content = <><div class="native">{nested}</div></>;
-				{content}
-			</>;
-		}
+				<>{content}</>
+			}
 
 		const { body } = await render(Basic);
 
@@ -334,9 +336,11 @@ second</pre>
 
 	it('flattens direct primitive array expressions', async () => {
 		function Basic() @{
-				const items = ['start:', ['one', 2], null, true, false, ':end'];
+			const items = ['start:', ['one', 2], null, true, false, ':end'];
+			<>
 				<div>{['start:', ['one', 2], null, true, false, ':end']}</div>
 				<div>{items}</div>
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -346,13 +350,15 @@ second</pre>
 
 	it('flattens conditional primitive array expressions', async () => {
 		function Basic() @{
-				const condition = true;
-				const ternary_items = condition
-					? ['start:', ['one', 2], null, true, false, ':end']
-					: ['fallback'];
-				const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+			const condition = true;
+			const ternary_items = condition
+				? ['start:', ['one', 2], null, true, false, ':end']
+				: ['fallback'];
+			const logical_items = condition && ['start:', ['one', 2], null, true, false, ':end'];
+			<>
 				<div>{ternary_items}</div>
 				<div>{logical_items}</div>
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -378,8 +384,10 @@ second</pre>
 			count: Tracked<number>;
 			class: { test: boolean };
 		}>) @{
+			<>
 				<div {...rest}>{'Child Component'}</div>
 				<div>{count.value}</div>
+			</>
 		}
 
 		function Parent() @{
@@ -423,12 +431,14 @@ second</pre>
 
 	it('handles AssignExpressions with tracked values or properties correctly', async () => {
 		function Assignments() @{
-				let &[count] = track(0);
-				const obj = { value: track(5) };
-				count += 10;
-				obj.value.value *= 2;
+			let &[count] = track(0);
+			const obj = { value: track(5) };
+			count += 10;
+			obj.value.value *= 2;
+			<>
 				<div>{count}</div>
 				<div>{obj.value.value}</div>
+			</>
 		}
 
 		const { body } = await render(Assignments);
@@ -438,12 +448,16 @@ second</pre>
 
 	it(`handles derived changes via tracked dependencies' changes`, async () => {
 		function Derived() @{
-				let &[base] = track(5);
-				let &[multiplier] = track(3);
-				let &[derived] = track(() => base * multiplier);
-				<div>{derived}</div>
-				base += 2;
-				<div>{derived}</div>
+			let &[base] = track(5);
+			let &[multiplier] = track(3);
+			let &[derived] = track(() => base * multiplier);
+			const before = derived;
+			base += 2;
+			const after = derived;
+			<>
+				<div>{before}</div>
+				<div>{after}</div>
+			</>
 		}
 
 		const { body } = await render(Derived);
@@ -453,13 +467,17 @@ second</pre>
 
 	it(`handles derived changes based on another derived's dependencies' changes`, async () => {
 		function NestedDerived() @{
-				let &[a] = track(2);
-				let &[b] = track(3);
-				let &[sum] = track(() => a + b);
-				let &[product] = track(() => sum * 2);
-				<div>{product}</div>
-				a = 4;
-				<div>{product}</div>
+			let &[a] = track(2);
+			let &[b] = track(3);
+			let &[sum] = track(() => a + b);
+			let &[product] = track(() => sum * 2);
+			const before = product;
+			a = 4;
+			const after = product;
+			<>
+				<div>{before}</div>
+				<div>{after}</div>
+			</>
 		}
 
 		const { body } = await render(NestedDerived);
@@ -469,20 +487,30 @@ second</pre>
 
 	it('handles lexical scopes correctly', async () => {
 		function LexicalScopes() @{
-				let &[x] = track(1);
+			let &[x] = track(1);
+			let nested = '';
+			let deep = '';
+			let deeper = '';
+			{
+				let &[x] = track(10);
+				nested = String(x);
+			}
+			{
+				let &[x] = track(12);
+				deep = String(x);
+				{
+					let &[x] = track(15);
+					deeper = String(x);
+				}
+			}
+			<>
 				<div>{x}</div>
+				<div>{nested}</div>
 				<div>
-					let &[x] = track(10);
-					{x}
+					{deep}
+					<span>{deeper}</span>
 				</div>
-				<div>
-					let &[x] = track(12);
-					{x}
-					<span>
-						let &[x] = track(15);
-						{x}
-					</span>
-				</div>
+			</>
 		}
 
 		const { body } = await render(LexicalScopes);
@@ -528,9 +556,11 @@ second</pre>
 					}
 				}
 				const reader = new Reader();
+			<>
 				<div class="block-function">{readFunction()}</div>
 				<div class="block-arrow">{readArrow()}</div>
 				<div class="block-method">{reader.read()}</div>
+			</>
 		}
 
 		const { body } = await render(App);

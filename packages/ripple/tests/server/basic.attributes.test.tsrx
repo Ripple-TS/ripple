@@ -18,15 +18,17 @@ describe('basic server > attribute rendering', () => {
 	});
 
 	it('render dynamic class attribute', async () => {
-		function Basic() @{
-				let &[active] = track(false);
-				<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
-				<style>
-					.active {
-						color: green;
-					}
-				</style>
-		}
+			function Basic() @{
+					let &[active] = track(false);
+					<>
+						<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
+						<style>
+							.active {
+								color: green;
+							}
+						</style>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -40,29 +42,31 @@ describe('basic server > attribute rendering', () => {
 	});
 
 	it('render class attribute with array, nested array, nested object', async () => {
-		function Basic() @{
-				<div
-					class={[
-						'foo',
-						'bar',
-						true && 'baz',
-						false && 'aaa',
-						null && 'bbb',
-						[
-							'ccc',
-							'ddd',
-							{ eee: true, fff: false },
-						],
-					]}
-				>
-					{'Class Array'}
-				</div>
-				<style>
-					.foo {
-						color: red;
-					}
-				</style>
-		}
+			function Basic() @{
+					<>
+						<div
+							class={[
+								'foo',
+								'bar',
+								true && 'baz',
+								false && 'aaa',
+								null && 'bbb',
+								[
+									'ccc',
+									'ddd',
+									{ eee: true, fff: false },
+								],
+							]}
+						>
+							{'Class Array'}
+						</div>
+						<style>
+							.foo {
+								color: red;
+							}
+						</style>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -85,27 +89,29 @@ describe('basic server > attribute rendering', () => {
 	});
 
 	it('applies scoped classes inside tsx blocks and fragment shorthand', async () => {
-		function App() @{
-				<>
-					<div class="card">
-						<h2>{'tsx block'}</h2>
-					</div>
-				</>
-				<>
-					<div class="card">
-						<h2>{'fragment shorthand'}</h2>
-					</div>
-				</>
-				<style>
-					.card {
-						padding: 1rem;
-					}
+			function App() @{
+					<>
+						<>
+							<div class="card">
+								<h2>{'tsx block'}</h2>
+							</div>
+						</>
+						<>
+							<div class="card">
+								<h2>{'fragment shorthand'}</h2>
+							</div>
+						</>
+						<style>
+							.card {
+								padding: 1rem;
+							}
 
-					h2 {
-						color: red;
-					}
-				</style>
-		}
+							h2 {
+								color: red;
+							}
+						</style>
+					</>
+			}
 
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -130,15 +136,17 @@ describe('basic server > attribute rendering', () => {
 	});
 
 	it('render dynamic class object', async () => {
-		function Basic() @{
-				let &[active] = track(false);
-				<div class={{ active: active, inactive: !active }}>{'Dynamic Class'}</div>
-				<style>
-					.active {
-						color: green;
-					}
-				</style>
-		}
+			function Basic() @{
+					let &[active] = track(false);
+					<>
+						<div class={{ active: active, inactive: !active }}>{'Dynamic Class'}</div>
+						<style>
+							.active {
+								color: green;
+							}
+						</style>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -155,20 +163,22 @@ describe('basic server > attribute rendering', () => {
 	it(
 		'applies scoped ripple class to multiple elements with dynamic class expressions',
 		async () => {
-			function Basic() @{
-					let &[selected] = track(1);
-					<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
-					<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
-					<style>
-						div {
-							background: green;
-							color: white;
-						}
-						div.selected {
-							background: indigo;
-						}
-					</style>
-			}
+				function Basic() @{
+						let &[selected] = track(1);
+						<>
+							<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
+							<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
+							<style>
+								div {
+									background: green;
+									color: white;
+								}
+								div.selected {
+									background: indigo;
+								}
+							</style>
+						</>
+				}
 
 			const { body } = await render(Basic);
 			const { document } = parseHtml(body);
@@ -526,15 +536,16 @@ describe('basic server > attribute rendering', () => {
 	});
 
 	it('renders with reactive attributes with nested reactive attributes', async () => {
-		function Basic() @{
-				let &[value] = track('parent-class');
-				<p class={value}>{'Colored parent value'}</p>
-				<div>
+			function Basic() @{
+					let &[value] = track('parent-class');
 					let &[nested] = track('nested-class');
-
-					<p class={nested}>{'Colored nested value'}</p>
-				</div>
-		}
+					<>
+						<p class={value}>{'Colored parent value'}</p>
+						<div>
+							<p class={nested}>{'Colored nested value'}</p>
+						</div>
+					</>
+			}
 
 		const { body } = await render(Basic);
 		const { document } = parseHtml(body);
@@ -556,11 +567,13 @@ describe('basic server > attribute rendering', () => {
 		expect(body).toBeHtml('<div class="container"><input type="checkbox" checked /></div>');
 	});
 
-	it('handles boolean props correctly', async () => {
-		function Basic() @{
-				<div data-disabled />
-				<Child isDisabled />
-		}
+		it('handles boolean props correctly', async () => {
+			function Basic() @{
+					<>
+						<div data-disabled />
+						<Child isDisabled />
+					</>
+			}
 
 		function Child({ isDisabled }: { isDisabled: boolean }) @{
 			<input disabled={isDisabled} />

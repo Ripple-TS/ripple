@@ -3,12 +3,12 @@ import { track } from 'ripple';
 describe('head elements', () => {
 	it('renders static title element', async () => {
 		function App() @{
-			
+			<>
 				<head>
 					<title>{'Static Test Title'}</title>
 				</head>
 				<div>{'Content'}</div>
-			
+			</>
 		}
 
 		const { head, body } = await render(App);
@@ -20,15 +20,15 @@ describe('head elements', () => {
 
 	it('renders reactive title element', async () => {
 		function App() @{
-			
-				let &[title] = track('Initial Title');
+			let &[title] = track('Initial Title');
+			<>
 				<head>
 					<title>{title}</title>
 				</head>
 				<div>
 					<span>{title}</span>
 				</div>
-			
+			</>
 		}
 
 		const { head, body } = await render(App);
@@ -56,16 +56,16 @@ describe('head elements', () => {
 
 	it('renders title with computed value', async () => {
 		function App() @{
-			
-				let &[count] = track(0);
-				let prefix = 'Count: ';
+			let &[count] = track(0);
+			let prefix = 'Count: ';
+			<>
 				<head>
 					<title>{prefix + count}</title>
 				</head>
 				<div>
 					<span>{count}</span>
 				</div>
-			
+			</>
 		}
 
 		const { head, body } = await render(App);
@@ -76,12 +76,12 @@ describe('head elements', () => {
 
 	it('renders empty title', async () => {
 		function App() @{
-			
+			<>
 				<head>
 					<title>{''}</title>
 				</head>
 				<div>{'Empty title test'}</div>
-			
+			</>
 		}
 
 		const { head, body } = await render(App);

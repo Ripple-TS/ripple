@@ -13,7 +13,7 @@ describe('for statements in SSR', () => {
 		);
 	});
 
-	it('throws when loop blocks use plain JavaScript control flow with direct TSRX output', () => {
+	it('allows plain JavaScript control flow in setup when rendered output follows', () => {
 		expect(
 			() => compile(
 				`function App() @{
@@ -21,13 +21,12 @@ describe('for statements in SSR', () => {
 					for (const item of items) {
 						<div class="selected">{item}</div>
 					}
+					<></>
 				}`,
 				'App.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow(
-			'TSRX elements and text inside JavaScript control flow blocks must use template directives.',
-		);
+		).not.toThrow();
 	});
 
 	it('renders nested for...of loops', async () => {

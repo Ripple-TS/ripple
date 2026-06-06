@@ -177,16 +177,17 @@ describe('HTML nesting validation', () => {
 		});
 	});
 
-	describe('compiler dev mode output', () => {
-		it('emits push_element and pop_element calls in dev mode', () => {
-			const lines = [];
-			lines.push('function App() @{
-				<>');
-			lines.push('  <div>');
-			lines.push('    <span>{"Hello"}</span>');
-			lines.push('  </div>');
-			lines.push('</>; }');
-			const source = lines.join('\n');
+		describe('compiler dev mode output', () => {
+			it('emits push_element and pop_element calls in dev mode', () => {
+				const lines = [];
+				lines.push('function App() @{');
+				lines.push('  <>');
+				lines.push('  <div>');
+				lines.push('    <span>{"Hello"}</span>');
+				lines.push('  </div>');
+				lines.push('  </>');
+				lines.push('}');
+				const source = lines.join('\n');
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: true });
 
@@ -194,15 +195,16 @@ describe('HTML nesting validation', () => {
 			expect(result.code).toContain('_$_.pop_element');
 		});
 
-		it('does not emit push_element or pop_element in non-dev mode', () => {
-			const lines = [];
-			lines.push('function App() @{
-				<>');
-			lines.push('  <div>');
-			lines.push('    <span>{"Hello"}</span>');
-			lines.push('  </div>');
-			lines.push('</>; }');
-			const source = lines.join('\n');
+			it('does not emit push_element or pop_element in non-dev mode', () => {
+				const lines = [];
+				lines.push('function App() @{');
+				lines.push('  <>');
+				lines.push('  <div>');
+				lines.push('    <span>{"Hello"}</span>');
+				lines.push('  </div>');
+				lines.push('  </>');
+				lines.push('}');
+				const source = lines.join('\n');
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: false });
 
@@ -210,26 +212,28 @@ describe('HTML nesting validation', () => {
 			expect(result.code).not.toContain('pop_element');
 		});
 
-		it('emits push_element with correct tag name', () => {
-			const lines = [];
-			lines.push('function App() @{
-				<>');
-			lines.push('  <button>{"Click"}</button>');
-			lines.push('</>; }');
-			const source = lines.join('\n');
+			it('emits push_element with correct tag name', () => {
+				const lines = [];
+				lines.push('function App() @{');
+				lines.push('  <>');
+				lines.push('  <button>{"Click"}</button>');
+				lines.push('  </>');
+				lines.push('}');
+				const source = lines.join('\n');
 
 			const result = compile(source, 'test.tsrx', { mode: 'server', dev: true });
 
 			expect(result.code).toContain('_$_.push_element(\'button\'');
 		});
 
-		it('does not emit push_element for client mode', () => {
-			const lines = [];
-			lines.push('function App() @{
-				<>');
-			lines.push('  <div>{"Hello"}</div>');
-			lines.push('</>; }');
-			const source = lines.join('\n');
+			it('does not emit push_element for client mode', () => {
+				const lines = [];
+				lines.push('function App() @{');
+				lines.push('  <>');
+				lines.push('  <div>{"Hello"}</div>');
+				lines.push('  </>');
+				lines.push('}');
+				const source = lines.join('\n');
 
 			const result = compile(source, 'test.tsrx', { mode: 'client', dev: true });
 

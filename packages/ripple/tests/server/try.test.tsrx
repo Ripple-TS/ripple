@@ -2,14 +2,16 @@ import { trackAsync } from 'ripple';
 
 describe('try block with catch and pending (server)', () => {
 	it('renders resolved content with an empty pending fallback', async () => {
-		function App() @{
-				<span>{'before'}</span>
-				@try {
-					let &[data] = trackAsync(() => Promise.resolve('resolved value'));
-					<p>{data}</p>
-				} pending {}
-				<span>{'after'}</span>
-		}
+			function App() @{
+					<>
+						<span>{'before'}</span>
+						@try {
+							let &[data] = trackAsync(() => Promise.resolve('resolved value'));
+							<p>{data}</p>
+						} pending {}
+						<span>{'after'}</span>
+					</>
+			}
 
 		const { body } = await render(App);
 		expect(body).toContain('before');
@@ -19,10 +21,8 @@ describe('try block with catch and pending (server)', () => {
 	});
 
 	it('catch block works when component throws before await with pending block', async () => {
-		function ThrowingChild() @{
+		function ThrowingChild() {
 				throw new Error('sync error');
-				let &[data] = trackAsync(() => Promise.resolve('hello'));
-				<p>{data}</p>
 		}
 
 		function App() @{
@@ -216,9 +216,8 @@ describe('trackAsync directly in component body (server)', () => {
 
 describe('nested child components with try/catch boundaries (server)', () => {
 	it('inner try/catch catches error from its own child', async () => {
-		function ThrowingChild() @{
+		function ThrowingChild() {
 				throw new Error('inner error');
-				<p>{'should not render'}</p>
 		}
 
 		function Inner() @{
@@ -270,9 +269,8 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	});
 
 	it('error propagates to outer catch when inner try has no catch', async () => {
-		function ThrowingChild() @{
+		function ThrowingChild() {
 				throw new Error('propagated error');
-				<p>{'should not render'}</p>
 		}
 
 		function Inner() @{
@@ -326,9 +324,8 @@ describe('nested child components with try/catch boundaries (server)', () => {
 	it(
 		'multiple nested levels: error propagates through pending-only boundaries to nearest catch',
 		async () => {
-			function ThrowingChild() @{
+			function ThrowingChild() {
 					throw new Error('deep error');
-					<p>{'should not render'}</p>
 			}
 
 			function Level3() @{

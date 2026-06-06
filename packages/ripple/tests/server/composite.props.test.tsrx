@@ -8,11 +8,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let &[foo] = track(123);
+			let &[foo] = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		const { body } = await render(App);
@@ -28,11 +28,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let foo = 123;
+			let foo = 123;
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		const { body } = await render(App);
@@ -48,11 +48,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let foo = track(123);
+			let foo = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		const { body } = await render(App);
@@ -68,11 +68,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let &[foo] = track(123);
+			let &[foo] = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		const { body } = await render(App);
@@ -84,7 +84,7 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', async () => {
 		function Button(&{ children, ...rest }: Props) @{
-			
+			<>
 				<button {...rest}>{children}</button>
 				<style>
 					.on {
@@ -94,15 +94,15 @@ describe('composite > props', () => {
 						color: red;
 					}
 				</style>
-			
+			</>
 		}
 
 		function Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) @{
-			
-				const onClick = () => (pressed.value = !pressed.value);
+			const onClick = () => (pressed.value = !pressed.value);
+			<>
 				<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 				<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
-			
+			</>
 		}
 
 		function App() @{

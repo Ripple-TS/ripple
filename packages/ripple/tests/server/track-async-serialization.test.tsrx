@@ -165,12 +165,14 @@ describe('trackAsync serialization (server)', () => {
 
 	it('generates unique hashes for multiple trackAsync calls', async () => {
 		function App() @{
-				@try {
-					let &[a] = trackAsync(() => Promise.resolve('first'));
-					let &[b] = trackAsync(() => Promise.resolve('second'));
-					<p>{a}</p>
-					<p>{b}</p>
-				} pending {
+					@try {
+						let &[a] = trackAsync(() => Promise.resolve('first'));
+						let &[b] = trackAsync(() => Promise.resolve('second'));
+						<>
+							<p>{a}</p>
+							<p>{b}</p>
+						</>
+					} pending {
 					<p>{'...'}</p>
 				}
 		}

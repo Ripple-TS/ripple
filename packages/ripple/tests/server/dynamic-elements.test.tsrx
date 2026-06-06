@@ -222,13 +222,15 @@ describe('server dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements', async () => {
 		function App() @{
-				let tag = track('div');
+			let tag = track('div');
+			<>
 				<@tag class="test-class">{'Dynamic element'}</@tag>
 				<style>
 					.test-class {
 						color: red;
 					}
 				</style>
+			</>
 		}
 
 		const { body } = await render(App);
@@ -248,7 +250,8 @@ describe('server dynamic DOM elements', () => {
 			class: string;
 			id: string;
 		}>) @{
-				const tag = track('button');
+			const tag = track('button');
+			<>
 				<@tag {...rest}>{rest.class}</@tag>
 				<style>
 					.even {
@@ -258,6 +261,7 @@ describe('server dynamic DOM elements', () => {
 						background-color: red;
 					}
 				</style>
+			</>
 		}
 
 		function App() @{
@@ -283,7 +287,8 @@ describe('server dynamic DOM elements', () => {
 
 	it('adds scoping class to dynamic elements', async () => {
 		function App() @{
-				let tag = track('div');
+			let tag = track('div');
+			<>
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 				</@tag>
@@ -292,6 +297,7 @@ describe('server dynamic DOM elements', () => {
 						color: blue;
 					}
 				</style>
+			</>
 		}
 
 		const { body } = await render(App);
@@ -310,7 +316,8 @@ describe('server dynamic DOM elements', () => {
 			// NOTE: We always add the class scoping hash if there is css
 			// but the tag selector will be marked as unused if it's not explicitly seen in the template.
 			function App() @{
-					let tag = track('div');
+				let tag = track('div');
+				<>
 					<@tag class="scoped">
 						<p>{'Scoped dynamic element'}</p>
 					</@tag>
@@ -319,6 +326,7 @@ describe('server dynamic DOM elements', () => {
 							color: blue;
 						}
 					</style>
+				</>
 			}
 
 			const { body } = await render(App);
@@ -334,6 +342,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('doesn\'t add scoping class to components inside dynamic element', async () => {
 		function Child() @{
+			<>
 				<div class="child">
 					<p>{'I am a child component'}</p>
 				</div>
@@ -342,10 +351,12 @@ describe('server dynamic DOM elements', () => {
 						color: blue;
 					}
 				</style>
+			</>
 		}
 
 		function App() @{
-				let tag = track('div');
+			let tag = track('div');
+			<>
 				<@tag class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 					<Child />
@@ -355,6 +366,7 @@ describe('server dynamic DOM elements', () => {
 						color: blue;
 					}
 				</style>
+			</>
 		}
 
 		const { body } = await render(App);
@@ -378,6 +390,7 @@ describe('server dynamic DOM elements', () => {
 
 	it('doesn\'t add scoping class to dynamically rendered component', async () => {
 		function Child() @{
+			<>
 				<div class="child">
 					<p>{'I am a child component'}</p>
 				</div>
@@ -386,16 +399,19 @@ describe('server dynamic DOM elements', () => {
 						color: green;
 					}
 				</style>
+			</>
 		}
 
 		function App() @{
-				let tag = track(() => Child);
+			let tag = track(() => Child);
+			<>
 				<@tag />
 				<style>
 					.child {
 						color: red;
 					}
 				</style>
+			</>
 		}
 
 		const { body } = await render(App);

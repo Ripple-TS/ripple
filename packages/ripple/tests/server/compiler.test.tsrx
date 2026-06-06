@@ -15,9 +15,9 @@ const errorMap = new ErrorMap();`;
 
 	it('removes type assertions from function parameters and leaves default values', () => {
 		const source = `
-function getString(e: string = 'test') @{
-	return e;
-}`;
+	function getString(e: string = 'test') {
+		return e;
+	}`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' });
 
@@ -31,11 +31,12 @@ beforeAll(() => {
 	(global as any).count++;
 });
 
-function Test() @{
-	let toggle: { value: boolean } | undefined;
-	toggle!.value = false;
-	toggle!.value++;
-}`;
+	function Test() @{
+		let toggle: { value: boolean } | undefined;
+		toggle!.value = false;
+		toggle!.value++;
+		<></>
+	}`;
 
 		const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
@@ -280,10 +281,10 @@ export function App() @{
 
 	it('emits anonymous component expressions as arrows in SSR output', () => {
 		const source = `
-const Inline = (props) => @{
-	<div>{props.x}</div>
-</>
-`;
+	const Inline = (props) => @{
+		<div>{props.x}</div>
+	}
+	`;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'server' }).code;
 
 		expect(result).toContain('const Inline = (props) => {');
@@ -354,18 +355,18 @@ export function App() @{
 
 	it('routes calls to functions with nested template returns through render_expression', () => {
 		const source = `
-function App() @{
-	function make(flag) @{
+	function make(flag) {
 		if (flag) {
-			<span>{'nested'}</span>
+			return <span>{'nested'}</span>;
 		}
 
 		return null;
 	}
 
-	<div>{make(true)}</div>
-}
-`;
+	function App() @{
+		<div>{make(true)}</div>
+	}
+	`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
@@ -375,18 +376,18 @@ function App() @{
 
 	it('does not treat nested function template returns as outer function returns', () => {
 		const source = `
-function App() @{
-	function make() @{
-		function nested() {
+	function make() {
+		function nested() @{
 			<span>{'nested'}</span>
 		}
 
 		return nested;
 	}
 
-	<div>{make()}</div>
-}
-`;
+	function App() @{
+		<div>{make()}</div>
+	}
+	`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 

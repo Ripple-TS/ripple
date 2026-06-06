@@ -21,11 +21,11 @@ describe('Context API', () => {
 		}
 
 		function Outer() @{
-			
-				MessageContext.set('outer');
+			MessageContext.set('outer');
+			<>
 				<Middle />
 				<Inner />
-			
+			</>
 		}
 
 		const { body } = await render(Outer);

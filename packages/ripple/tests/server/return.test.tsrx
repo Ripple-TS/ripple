@@ -22,14 +22,16 @@ describe('returns in restricted SSR scopes', () => {
 	it('compiles template directives inside templates', () => {
 		expect(
 			() => compile(
-				`
-				function App() @{
-						@if (ready) {
-								<div>yielded</div>
-							}
-							<span>after</span>
-				}
-			`,
+					`
+					function App() @{
+						<>
+							@if (ready) {
+									<div>yielded</div>
+								}
+								<span>after</span>
+						</>
+					}
+				`,
 				'test.tsrx',
 				{ mode: 'server' },
 			),
@@ -38,36 +40,37 @@ describe('returns in restricted SSR scopes', () => {
 });
 
 describe('function returns in SSR components', () => {
-	it('renders template directive branches alongside outer siblings', async () => {
-		function App() @{
-			const ready = true;
-				@if (ready) {
-					<div class="yielded">yielded</div>
-				}
-				<span class="outer">outer</span>
-		}
+		it('renders template directive branches alongside outer siblings', async () => {
+			function App() @{
+				const ready = true;
+				<>
+					@if (ready) {
+						<div class="yielded">yielded</div>
+					}
+					<span class="outer">outer</span>
+				</>
+			}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div class="yielded">yielded</div><span class="outer">outer</span>');
 	});
 
-	it('throws when control-flow blocks contain direct TSRX children', () => {
+	it('allows plain JavaScript control flow in setup when rendered output follows', () => {
 		expect(
 			() => compile(
 				`
-				function App() @{
-						const items = [1, 2, 3];
-						for (const item of items) {
-							<div>{item}</div>
-						}
-				}
-			`,
+					function App() @{
+							const items = [1, 2, 3];
+							for (const item of items) {
+								<div>{item}</div>
+							}
+							<></>
+					}
+				`,
 				'test.tsrx',
 				{ mode: 'server' },
 			),
-		).toThrow(
-			'TSRX elements and text inside JavaScript control flow blocks must use template directives.',
-		);
+		).not.toThrow();
 	});
 
 	it('renders TSRX return arguments and skips later siblings', async () => {

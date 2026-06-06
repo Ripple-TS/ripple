@@ -26,14 +26,14 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders bare JSX text in if-else branches', async () => {
-		function App() @{
-				let condition = false;
-				@if (condition) {
-					Hello Ripple
-				} else {
-					Hello React
-				}
-		}
+			function App() @{
+					let condition = false;
+					@if (condition) {
+						<>Hello Ripple</>
+					} else {
+						<>Hello React</>
+					}
+			}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('Hello React');
