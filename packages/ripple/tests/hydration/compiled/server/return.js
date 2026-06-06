@@ -6,9 +6,15 @@ export function GuardReturnRenders() {
 		var return_guard = false;
 		const ready = true;
 
-		if (!ready) {
-			return null;
-		}
+		_$_.regular_block(() => {
+			_$_.output_push('<!--[-->');
+
+			if (!ready) {
+				return_guard = true;
+			}
+
+			_$_.output_push('<!--]-->');
+		});
 
 		_$_.regular_block(() => {
 			_$_.output_push('<!--[-->');
@@ -35,9 +41,15 @@ export function GuardReturnNull() {
 		var return_guard = false;
 		const ready = false;
 
-		if (!ready) {
-			return null;
-		}
+		_$_.regular_block(() => {
+			_$_.output_push('<!--[-->');
+
+			if (!ready) {
+				return_guard = true;
+			}
+
+			_$_.output_push('<!--]-->');
+		});
 
 		_$_.regular_block(() => {
 			_$_.output_push('<!--[-->');

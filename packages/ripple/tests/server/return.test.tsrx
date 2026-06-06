@@ -6,13 +6,11 @@ describe('returns in restricted SSR scopes', () => {
 		expect(
 			() => compile(
 				`
-				function App() {
-					return <>
+				function App() @{
 						function label() {
 							return 'ready';
 						}
 						<div>{label()}</div>
-					</>;
 				}
 			`,
 				'test.tsrx',
@@ -25,13 +23,11 @@ describe('returns in restricted SSR scopes', () => {
 		expect(
 			() => compile(
 				`
-				function App() {
-					return <>
+				function App() @{
 						@if (ready) {
 								<div>yielded</div>
 							}
 							<span>after</span>
-					</>;
 				}
 			`,
 				'test.tsrx',
@@ -43,14 +39,12 @@ describe('returns in restricted SSR scopes', () => {
 
 describe('function returns in SSR components', () => {
 	it('renders template directive branches alongside outer siblings', async () => {
-		function App() {
+		function App() @{
 			const ready = true;
-			return <>
 				@if (ready) {
 					<div class="yielded">yielded</div>
 				}
 				<span class="outer">outer</span>
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -61,13 +55,11 @@ describe('function returns in SSR components', () => {
 		expect(
 			() => compile(
 				`
-				function App() {
-					return <>
+				function App() @{
 						const items = [1, 2, 3];
 						for (const item of items) {
 							<div>{item}</div>
 						}
-					</>;
 				}
 			`,
 				'test.tsrx',
@@ -79,14 +71,12 @@ describe('function returns in SSR components', () => {
 	});
 
 	it('renders TSRX return arguments and skips later siblings', async () => {
-		function App() {
+		function App() @{
 			const ready = true;
-			return <>
 				if (ready) {
 					return <div class="returned">returned</div>;
 				}
 				<span class="after">after</span>
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -94,13 +84,13 @@ describe('function returns in SSR components', () => {
 	});
 
 	it('allows guard returns before TSRX output', async () => {
-		function App() {
+		function App() @{
 			const ready = true;
 			if (!ready) {
 				return null;
 			}
 
-			return <><div>{'ready'}</div></>;
+			<div>{'ready'}</div>
 		}
 
 		const { body } = await render(App);

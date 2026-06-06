@@ -2,40 +2,30 @@ import { track } from 'ripple';
 
 // If block components for hydration testing
 
-export function IfTruthy() {
-	return <>
+export function IfTruthy() @{
 		const show = true;
-		---
 		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
-	</>;
 }
 
-export function IfFalsy() {
-	return <>
+export function IfFalsy() @{
 		const show = false;
-		---
 		@if (show) {
 			<div class="shown">{'Visible'}</div>
 		}
-	</>;
 }
 
-export function IfElse() {
-	return <>
+export function IfElse() @{
 		const isLoggedIn = true;
-		---
 		@if (isLoggedIn) {
 			<div class="logged-in">{'Welcome back!'}</div>
 		} else {
 			<div class="logged-out">{'Please log in'}</div>
 		}
-	</>;
 }
 
-export function ReactiveIf() {
-	return <>
+export function ReactiveIf() @{
 		let &[show] = track(true);
 		<button
 			class="toggle"
@@ -45,15 +35,12 @@ export function ReactiveIf() {
 		>
 			{'Toggle'}
 		</button>
-		---
 		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
-	</>;
 }
 
-export function ReactiveIfElse() {
-	return <>
+export function ReactiveIfElse() @{
 		let &[isOn] = track(false);
 		<button
 			class="toggle"
@@ -63,17 +50,14 @@ export function ReactiveIfElse() {
 		>
 			{'Toggle'}
 		</button>
-		---
 		@if (isOn) {
 			<div class="on">{'ON'}</div>
 		} else {
 			<div class="off">{'OFF'}</div>
 		}
-	</>;
 }
 
-export function NestedIf() {
-	return <>
+export function NestedIf() @{
 		let &[outer] = track(true);
 		let &[inner] = track(true);
 		<button
@@ -92,7 +76,6 @@ export function NestedIf() {
 		>
 			{'Inner'}
 		</button>
-		---
 		@if (outer) {
 			<div class="outer-content">
 				{'Outer'}
@@ -101,11 +84,9 @@ export function NestedIf() {
 				}
 			</div>
 		}
-	</>;
 }
 
-export function IfElseIfChain() {
-	return <>
+export function IfElseIfChain() @{
 		let &[status] = track<'loading' | 'success' | 'error'>('loading');
 		<div>
 			<button
@@ -140,5 +121,4 @@ export function IfElseIfChain() {
 				<div class="state">{'Error occurred'}</div>
 			}
 		</div>
-	</>;
 }

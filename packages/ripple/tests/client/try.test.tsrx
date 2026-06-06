@@ -18,16 +18,13 @@ describe('try block with catch and pending', () => {
 			resolve_value = resolve;
 		});
 
-		function App() {
-			return <>
+		function App() @{
 				<span class="before">{'before'}</span>
 				@try {
 					let &[data] = trackAsync(() => promise);
-					---
 					<p class="resolved">{data}</p>
 				} pending {}
 				<span class="after">{'after'}</span>
-			</>;
 		}
 
 		render(App);
@@ -50,24 +47,18 @@ describe('try block with catch and pending', () => {
 	});
 
 	it('catch block works when a child throws synchronously', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<ThrowingChild />
 				} pending {
-				---
 					<p>{'loading...'}</p>
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			</>;
 		}
 
-		function ThrowingChild() {
-			return <>
+		function ThrowingChild() @{
 				throw new Error('sync error');
-				---
-			</>;
 		}
 
 		render(App);
@@ -79,27 +70,21 @@ describe('try block with catch and pending', () => {
 	});
 
 	it('catch block works when component throws after trackAsync with pending block', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<ThrowingAfterAsync />
 				} pending {
-				---
 					<p>{'loading...'}</p>
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			</>;
 		}
 
-			function ThrowingAfterAsync() {
-				return <>
-					let &[data] = trackAsync(() => Promise.resolve('hello'));
-					throw new Error('error after await');
-					---
-					<p>{data}</p>
-				</>;
-			}
+		function ThrowingAfterAsync() @{
+				let &[data] = trackAsync(() => Promise.resolve('hello'));
+				throw new Error('error after await');
+				<p>{data}</p>
+		}
 
 		render(App);
 
@@ -111,18 +96,15 @@ describe('try block with catch and pending', () => {
 	});
 
 	it('catch block works when trackAsync rejects', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					let &[data] = trackAsync(() => Promise.reject(new Error('rejected')));
-					---
 					<p>{data}</p>
 				} pending {
 					<p>{'loading...'}</p>
 				} catch (err) {
 					<p>{'caught rejection'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -153,13 +135,10 @@ describe('try block with catch and pending', () => {
 			return promise;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				let &[version] = track(0);
-				---
 				@try {
 					let &[data] = trackAsync(() => createRequest(version));
-					---
 					<p class="resolved">{data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
@@ -167,7 +146,6 @@ describe('try block with catch and pending', () => {
 					<p class="caught">{(err as Error).message}</p>
 				}
 				<button class="retry" onClick={() => version++}>{'Retry'}</button>
-			</>;
 		}
 
 		render(App);
@@ -219,14 +197,14 @@ describe('try block with catch and pending', () => {
 			return promise;
 		}
 
-		function App() {
-			return <>
-					let &[version] = track(0);
-					---
-					@try {
-						let &[data] = trackAsync(() => (version, createRequest(version)));
-						---
-						<p class="resolved">{data}</p>
+		function App() @{
+				let &[version] = track(0);
+				@try {
+					let &[data] = trackAsync(() => {
+						version;
+						return createRequest(version);
+					});
+					<p class="resolved">{data}</p>
 				} pending {
 					<p class="pending">{'loading...'}</p>
 				} catch (err, reset) {
@@ -243,7 +221,6 @@ describe('try block with catch and pending', () => {
 						</button>
 					</>
 				}
-			</>;
 		}
 
 		render(App);
@@ -283,21 +260,17 @@ describe('try block', () => {
 	it(
 		'does not compile ref binds as async callbacks inside try/pending trackAsync branches',
 		async () => {
-				function App() {
-					return <>
-						let &[value, valueTracked] = track(1);
-						---
-						@try {
-							let &[loaded] = trackAsync(() => Promise.resolve(value + 1));
-							---
-							<>
-								<input type="number" ref={bindValue(valueTracked)} />
+			function App() @{
+					let &[value, valueTracked] = track(1);
+					@try {
+						let &[loaded] = trackAsync(() => Promise.resolve(value + 1));
+						<>
+							<input type="number" ref={bindValue(valueTracked)} />
 							<span>{loaded}</span>
 						</>
 					} pending {
 						<p>{'loading...'}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -313,27 +286,21 @@ describe('try block', () => {
 	);
 
 	it('does not crash when trackAsync is used to render a list inside try/pending', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<AsyncChild />
 				} pending {
-				---
 					<p>{'loading...'}</p>
 				}
-			</>;
 		}
 
-			function AsyncChild() {
-				return <>
-					let &[data] = trackAsync(() => Promise.resolve(['a', 'b', 'c']));
-					---
-					<ul>
-						@for (let item of data) {
+		function AsyncChild() @{
+				let &[data] = trackAsync(() => Promise.resolve(['a', 'b', 'c']));
+				<ul>
+					@for (let item of data) {
 						<li>{item}</li>
 					}
 				</ul>
-			</>;
 		}
 
 		render(App);
@@ -350,31 +317,25 @@ describe('try block', () => {
 	it(
 		'does not crash when async component with tracked state is used inside try/pending',
 		async () => {
-				function App() {
-					return <>
-						let &[query, queryTracked] = track('');
-						---
-						@try {
-							<FilteredList {queryTracked} />
+			function App() @{
+					let &[query, queryTracked] = track('');
+					@try {
+						<FilteredList {queryTracked} />
 					} pending {
 						<p>{'loading...'}</p>
 					}
-				</>;
 			}
 
-			function FilteredList({ queryTracked }: { queryTracked: Tracked<string> }) {
-				return <>
+			function FilteredList({ queryTracked }: { queryTracked: Tracked<string> }) @{
 					let &[items] = trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
 					let &[filtered] = track(
 						() => items.filter((item: string) => item.includes(queryTracked.value)),
 					);
-					---
 					<ul>
 						@for (let item of filtered) {
 							<li>{item}</li>
 						}
 					</ul>
-				</>;
 			}
 
 			render(App);
@@ -388,12 +349,10 @@ describe('try block', () => {
 	);
 
 	it('if test condition stays synchronous once trackAsync has resolved', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					let &[items] = trackAsync(() => Promise.resolve(['apple', 'banana', 'cherry']));
 
-					---
 					@if (items.includes('not-in-list')) {
 						<p>{'not-in-list is in the list!'}</p>
 					} else {
@@ -402,7 +361,6 @@ describe('try block', () => {
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -416,33 +374,26 @@ describe('try block', () => {
 	it('destroying try block while in pending state cleans up pending branch', async () => {
 		let pending_effect_teardown_count = 0;
 
-		function PendingChild() {
-			return <>
+		function PendingChild() @{
 				effect(() => {
 					return () => {
 						pending_effect_teardown_count++;
 					};
 				});
-				---
 				<p class="pending">{'loading...'}</p>
-			</>;
 		}
 
-		function App() {
-				return <>
-					let &[show] = track(true);
-					---
-					@if (show) {
-						@try {
-							let &[data] = trackAsync(() => new Promise(() => {}));
-							---
-							<p class="resolved">{data}</p>
-						} pending {
+		function App() @{
+				let &[show] = track(true);
+				if (show) {
+					@try {
+						let &[data] = trackAsync(() => new Promise(() => {}));
+						<p class="resolved">{data}</p>
+					} pending {
 						<PendingChild />
 					}
 				}
 				<button class="toggle" onClick={() => (show = !show)}>{'toggle'}</button>
-			</>;
 		}
 
 		render(App);
@@ -467,35 +418,28 @@ describe('try block', () => {
 	it('destroying try block while in resolved state cleans up resolved branch', async () => {
 		let resolved_effect_teardown_count = 0;
 
-		function ResolvedChild(&{ data }: { data: string }) {
-			return <>
+		function ResolvedChild(&{ data }: { data: string }) @{
 				effect(() => {
 					return () => {
 						resolved_effect_teardown_count++;
 					};
 				});
-				---
 				<p class="resolved">{data}</p>
-			</>;
 		}
 
-		function App() {
-				return <>
-					let &[show] = track(true);
-					---
-					@if (show) {
-						@try {
-							let &[data] = trackAsync(() => Promise.resolve('hello'));
-							---
-							<ResolvedChild {data} />
-						} pending {
+		function App() @{
+				let &[show] = track(true);
+				if (show) {
+					@try {
+						let &[data] = trackAsync(() => Promise.resolve('hello'));
+						<ResolvedChild {data} />
+					} pending {
 						<p class="pending">{'loading...'}</p>
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
 					}
 				}
 				<button class="toggle" onClick={() => (show = !show)}>{'toggle'}</button>
-			</>;
 		}
 
 		render(App);
@@ -521,27 +465,21 @@ describe('try block', () => {
 	it('destroying try block while in catch state cleans up catch branch', async () => {
 		let catch_effect_teardown_count = 0;
 
-		function CatchChild({ error }: { error: Error }) {
-			return <>
+		function CatchChild({ error }: { error: Error }) @{
 				effect(() => {
 					return () => {
 						catch_effect_teardown_count++;
 					};
 				});
-				---
 				<p class="caught">{error.message}</p>
-			</>;
 		}
 
-		function App() {
-				return <>
-					let &[show] = track(true);
-					---
-					@if (show) {
-						@try {
-							let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
-							---
-							<p class="resolved">{data}</p>
+		function App() @{
+				let &[show] = track(true);
+				if (show) {
+					@try {
+						let &[data] = trackAsync(() => Promise.reject(new Error('fail')));
+						<p class="resolved">{data}</p>
 					} pending {
 						<p class="pending">{'loading...'}</p>
 					} catch (err) {
@@ -549,7 +487,6 @@ describe('try block', () => {
 					}
 				}
 				<button class="toggle" onClick={() => (show = !show)}>{'toggle'}</button>
-			</>;
 		}
 
 		render(App);
@@ -570,26 +507,20 @@ describe('try block', () => {
 	});
 
 	it('pending block throwing renders catch block from the same try block', async () => {
-		function ThrowingPending() {
-			return <>
+		function ThrowingPending() @{
 				throw new Error('pending exploded');
-				---
 				<p>{'should not render'}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					let &[data] = trackAsync(() => new Promise(() => {}));
-					---
 					<p class="resolved">{data}</p>
 				} pending {
 					<ThrowingPending />
 				} catch (err) {
 					<p class="caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -605,35 +536,26 @@ describe('try block', () => {
 	});
 
 	it('pending block throwing without catch bubbles to parent try/catch', async () => {
-		function ThrowingPending() {
-			return <>
+		function ThrowingPending() @{
 				throw new Error('pending exploded');
-				---
 				<p>{'should not render'}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<Inner />
 				} catch (err) {
-				---
 					<p class="parent-caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
-		function Inner() {
-			return <>
+		function Inner() @{
 				@try {
 					let &[data] = trackAsync(() => new Promise(() => {}));
-					---
 					<p class="resolved">{data}</p>
 				} pending {
 					<ThrowingPending />
 				}
-			</>;
 		}
 
 		render(App);
@@ -655,19 +577,18 @@ describe('try block', () => {
 			first_resolve = resolve;
 		});
 
-		function App() {
-			return <>
-					@try {
-						let &[name] = trackAsync(() => first_promise);
-						// Read name synchronously to trigger the deferred mechanism while it is pending.
-						let &[length] = trackAsync(() =>
-							(name,
-							new Promise((resolve) => (second_resolve = resolve)).then(
-								(val) => name.length + val,
-							)),
-						);
-						---
-						<p class="resolved">
+		function App() @{
+				@try {
+					let &[name] = trackAsync(() => first_promise);
+					let &[length] = trackAsync(() => {
+						// Read name synchronously — throws ASYNC_DERIVED_READ_THROWN
+						// while name is still pending, triggering the deferred mechanism.
+						const n = name;
+						return new Promise<number>((resolve) => {
+							second_resolve = resolve;
+						}).then((val) => n.length + val);
+					});
+					<p class="resolved">
 						{name}
 						{' has length '}
 						{length}
@@ -675,7 +596,6 @@ describe('try block', () => {
 				} pending {
 					<p class="pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -718,25 +638,20 @@ describe('try block', () => {
 				first_resolve = resolve;
 			});
 
-			function PendingTracker() {
-				return <>
+			function PendingTracker() @{
 					pending_render_count++;
-					---
 					<p class="pending">{'loading...'}</p>
-				</>;
 			}
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() =>
-							(name,
-							new Promise((resolve) => (second_resolve = resolve)).then(
-								(val) => name.length + val,
-							)),
-						);
-						---
+						let &[length] = trackAsync(() => {
+							const n = name;
+							return new Promise<number>((resolve) => {
+								second_resolve = resolve;
+							}).then((val) => n.length + val);
+						});
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -745,7 +660,6 @@ describe('try block', () => {
 					} pending {
 						<PendingTracker />
 					}
-				</>;
 			}
 
 			render(App);
@@ -787,17 +701,15 @@ describe('try block', () => {
 				first_reject = reject;
 			});
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() =>
-							(name,
-							new Promise((resolve) => (second_resolve = resolve)).then(
-								(val) => name.length + val,
-							)),
-						);
-						---
+						let &[length] = trackAsync(() => {
+							const n = name;
+							return new Promise<number>((resolve) => {
+								second_resolve = resolve;
+							}).then((val) => n.length + val);
+						});
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -808,7 +720,6 @@ describe('try block', () => {
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -845,14 +756,15 @@ describe('try block', () => {
 				first_resolve = resolve;
 			});
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						let &[name] = trackAsync(() => first_promise);
-						let &[length] = trackAsync(() =>
-							(name, new Promise((_, reject) => (second_reject = reject))),
-						);
-						---
+						let &[length] = trackAsync(() => {
+							const n = name;
+							return new Promise<number>((_, reject) => {
+								second_reject = reject;
+							});
+						});
 						<p class="resolved">
 							{name}
 							{' has length '}
@@ -863,7 +775,6 @@ describe('try block', () => {
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -897,34 +808,25 @@ describe('try block', () => {
 	);
 
 	it('resolved try block without catch bubbles error to parent try/catch', async () => {
-		function ThrowingChild() {
-			return <>
+		function ThrowingChild() @{
 				let &[data] = trackAsync(() => Promise.reject(new Error('async failed')));
-				---
 				<p class="resolved">{data}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<Inner />
 				} catch (err) {
-				---
 					<p class="parent-caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
-		function Inner() {
-			return <>
+		function Inner() @{
 				@try {
 					<ThrowingChild />
 				} pending {
-				---
 					<p class="pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -958,18 +860,15 @@ describe('try block', () => {
 
 			let data: any;
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						data = trackAsync(() => user_promise);
-						---
 						<p class="resolved">{data.value}</p>
 					} pending {
 						<p class="pending">{'loading...'}</p>
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -1014,12 +913,15 @@ describe('try block', () => {
 			let name: any;
 			let length: any;
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						name = trackAsync(() => first_promise);
-						length = trackAsync(() => (name.value, Promise.resolve(name.value.length)));
-						---
+						length = trackAsync(() => {
+							const n = name.value;
+							return new Promise<number>((resolve) => {
+								resolve(n.length);
+							});
+						});
 						<p class="resolved">
 							{name.value}
 							{' has length '}
@@ -1030,7 +932,6 @@ describe('try block', () => {
 					} catch (err) {
 						<p class="caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -1080,14 +981,18 @@ describe('try block', () => {
 		let a: any;
 		let b: any;
 		let c: any;
-		function App() {
-				return <>
-					@try {
-						a = trackAsync(() => a_promise);
-						b = trackAsync(() => (a.value, Promise.resolve(a.value.toUpperCase())));
-						c = trackAsync(() => (b.value, Promise.resolve(b.value.length)));
-						---
-						<p class="resolved">
+		function App() @{
+				@try {
+					a = trackAsync(() => a_promise);
+					b = trackAsync(() => {
+						const val = a.value;
+						return Promise.resolve(val.toUpperCase());
+					});
+					c = trackAsync(() => {
+						const val = b.value;
+						return Promise.resolve(val.length);
+					});
+					<p class="resolved">
 						{a.value}
 						{' → '}
 						{b.value}
@@ -1099,7 +1004,6 @@ describe('try block', () => {
 				} catch (err) {
 					<p class="caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -1161,12 +1065,10 @@ describe('try block', () => {
 
 		let name: any;
 		let count: any;
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					name = trackAsync(() => first_promise);
 					count = trackAsync(() => second_promise);
-					---
 					<p class="resolved">
 						{name.value}
 						{' count: '}
@@ -1177,7 +1079,6 @@ describe('try block', () => {
 				} catch (err) {
 					<p class="caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -1230,36 +1131,27 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (promise_settled = { type: 'rejected', value: e }),
 			);
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<>
 							<AsyncChild />
 							<ThrowingChild />
 						</>
 					} pending {
-					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
 					}
-				</>;
 			}
 
 			let data: any;
-			function AsyncChild() {
-				return <>
+			function AsyncChild() @{
 					data = trackAsync(() => user_promise);
-					---
 					<p class="async-resolved">{data.value}</p>
-				</>;
 			}
 
-			function ThrowingChild() {
-				return <>
+			function ThrowingChild() @{
 					throw new Error('sync boom');
-					---
-				</>;
 			}
 
 			render(App);
@@ -1306,36 +1198,27 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (promise_settled = { type: 'rejected', value: e }),
 			);
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<>
 							<AsyncChild />
 							<ThrowingChild />
 						</>
 					} pending {
-					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
 					}
-				</>;
 			}
 
 			let data: any;
-			function AsyncChild() {
-				return <>
+			function AsyncChild() @{
 					data = trackAsync(() => user_promise);
-					---
 					<p class="async-resolved">{data.value}</p>
-				</>;
 			}
 
-			function ThrowingChild() {
-				return <>
+			function ThrowingChild() @{
 					throw new Error('sync boom');
-					---
-				</>;
 			}
 
 			render(App);
@@ -1389,8 +1272,7 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (settled_b = { type: 'rejected', value: e }),
 			);
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<>
 							<ChildA />
@@ -1398,37 +1280,26 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
-					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
 					}
-				</>;
 			}
 
 			let dataA: any;
-			function ChildA() {
-				return <>
+			function ChildA() @{
 					dataA = trackAsync(() => promise_a);
-					---
 					<p class="a">{dataA.value}</p>
-				</>;
 			}
 
 			let dataB: any;
-			function ChildB() {
-				return <>
+			function ChildB() @{
 					dataB = trackAsync(() => promise_b);
-					---
 					<p class="b">{dataB.value}</p>
-				</>;
 			}
 
-			function ThrowingChild() {
-				return <>
+			function ThrowingChild() @{
 					throw new Error('sync boom');
-					---
-				</>;
 			}
 
 			render(App);
@@ -1488,8 +1359,7 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (settled_b = { type: 'rejected', value: e }),
 			);
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<>
 							<ChildA />
@@ -1497,37 +1367,26 @@ describe('sync error while async deriveds are pending', () => {
 							<ThrowingChild />
 						</>
 					} pending {
-					---
 						<p class="pending">{'loading...'}</p>
 					} catch (err: Error) {
 						<p class="caught">{err.message}</p>
 					}
-				</>;
 			}
 
 			let dataA: any;
-			function ChildA() {
-				return <>
+			function ChildA() @{
 					dataA = trackAsync(() => promise_a);
-					---
 					<p class="a">{dataA.value}</p>
-				</>;
 			}
 
 			let dataB: any;
-			function ChildB() {
-				return <>
+			function ChildB() @{
 					dataB = trackAsync(() => promise_b);
-					---
 					<p class="b">{dataB.value}</p>
-				</>;
 			}
 
-			function ThrowingChild() {
-				return <>
+			function ThrowingChild() @{
 					throw new Error('sync boom');
-					---
-				</>;
 			}
 
 			render(App);
@@ -1565,34 +1424,25 @@ describe('sync error while async deriveds are pending', () => {
 	);
 
 	it('try block without catch propagates sync error to upstream boundary', async () => {
-		function ThrowingChild() {
-			return <>
+		function ThrowingChild() @{
 				throw new Error('no catch here');
-				---
 				<p>{'should not render'}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<Inner />
 				} catch (err) {
-				---
 					<p class="upstream-caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
-		function Inner() {
-			return <>
+		function Inner() @{
 				@try {
 					<ThrowingChild />
 				} pending {
-				---
 					<p class="inner-pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -1603,27 +1453,21 @@ describe('sync error while async deriveds are pending', () => {
 	});
 
 	it('try block without catch propagates async rejection to upstream boundary', async () => {
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<Inner />
 				} catch (err) {
-				---
 					<p class="upstream-caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
-		function Inner() {
-			return <>
-					@try {
-						let &[data] = trackAsync(() => Promise.reject(new Error('async no catch')));
-						---
-						<p class="resolved">{data}</p>
-					} pending {
+		function Inner() @{
+				@try {
+					let &[data] = trackAsync(() => Promise.reject(new Error('async no catch')));
+					<p class="resolved">{data}</p>
+				} pending {
 					<p class="inner-pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -1642,27 +1486,21 @@ describe('sync error while async deriveds are pending', () => {
 				reject_fn = reject;
 			});
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<Inner />
 					} catch (err) {
-					---
 						<p class="upstream-caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
-			function Inner() {
-				return <>
-						@try {
-							let &[data] = trackAsync(() => user_promise);
-							---
-							<p class="resolved">{data}</p>
-						} pending {
+			function Inner() @{
+					@try {
+						let &[data] = trackAsync(() => user_promise);
+						<p class="resolved">{data}</p>
+					} pending {
 						<p class="inner-pending">{'loading...'}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -1683,45 +1521,33 @@ describe('sync error while async deriveds are pending', () => {
 	);
 
 	it('nested try blocks without catch propagate error through multiple levels', async () => {
-		function ThrowingChild() {
-			return <>
+		function ThrowingChild() @{
 				throw new Error('deep error');
-				---
 				<p>{'should not render'}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<Middle />
 				} catch (err) {
-				---
 					<p class="top-caught">{(err as Error).message}</p>
 				}
-			</>;
 		}
 
-		function Middle() {
-			return <>
+		function Middle() @{
 				@try {
 					<Inner />
 				} pending {
-				---
 					<p class="mid-pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
-		function Inner() {
-			return <>
+		function Inner() @{
 				@try {
 					<ThrowingChild />
 				} pending {
-				---
 					<p class="inner-pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		render(App);
@@ -1732,23 +1558,17 @@ describe('sync error while async deriveds are pending', () => {
 	});
 
 	it('try block without catch throws to global when no upstream boundary exists', async () => {
-		function ThrowingChild() {
-			return <>
+		function ThrowingChild() @{
 				throw new Error('unhandled error');
-				---
 				<p>{'should not render'}</p>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				@try {
 					<ThrowingChild />
 				} pending {
-				---
 					<p class="pending">{'loading...'}</p>
 				}
-			</>;
 		}
 
 		expect(() => {
@@ -1764,27 +1584,21 @@ describe('sync error while async deriveds are pending', () => {
 				reject_fn = reject;
 			});
 
-			function Inner() {
-				return <>
+			function Inner() @{
 					@try {
 						let &[data] = trackAsync(() => user_promise);
-						---
 						<p class="resolved">{data}</p>
 					} catch (err) {
 						<p class="downstream-caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<Inner />
 					} pending {
-					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -1823,28 +1637,22 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (user_settled = { type: 'rejected', value: e }),
 			);
 
-			function Inner() {
-				return <>
+			function Inner() @{
 					@try {
 						let &[data] = trackAsync(() => user_promise);
 						throw new Error('synchronous error');
-						---
 						<p class="resolved">{data}</p>
 					} catch (err) {
 						<p class="downstream-caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<Inner />
 					} pending {
-					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
-				</>;
 			}
 
 			render(App);
@@ -1884,28 +1692,22 @@ describe('sync error while async deriveds are pending', () => {
 				(e) => (user_settled = { type: 'rejected', value: e }),
 			);
 
-			function Inner() {
-				return <>
+			function Inner() @{
 					@try {
 						let &[data] = trackAsync(() => user_promise);
 						throw new Error('synchronous error');
-						---
 						<p class="resolved">{data}</p>
 					} catch (err) {
 						<p class="downstream-caught">{(err as Error).message}</p>
 					}
-				</>;
 			}
 
-			function App() {
-				return <>
+			function App() @{
 					@try {
 						<Inner />
 					} pending {
-					---
 						<p class="outer-pending">{'loading...'}</p>
 					}
-				</>;
 			}
 
 			render(App);

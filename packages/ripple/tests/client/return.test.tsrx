@@ -6,9 +6,9 @@ describe('returns in restricted scopes', () => {
 		expect(
 			() => compile(`
 				return;
-				function App() { return <>
+				function App() @{
 					<div>{'hello'}</div>
-				</>; }
+				}
 			`, 'test.tsrx', {
 				mode: 'client',
 			}),
@@ -19,14 +19,11 @@ describe('returns in restricted scopes', () => {
 		expect(
 			() => compile(
 				`
-				function App() {
-					return <>
+				function App() @{
 						function label() {
 							return 'ready';
 						}
-						---
 						<div>{label()}</div>
-					</>;
 				}
 			`,
 				'test.tsrx',
@@ -39,14 +36,11 @@ describe('returns in restricted scopes', () => {
 		expect(
 			() => compile(
 				`
-				function App() {
-					return <>
+				function App() @{
 						@if (ready) {
 							<div>yielded</div>
 						}
-						---
 						<span>after</span>
-					</>;
 				}
 			`,
 				'test.tsrx',
@@ -58,15 +52,12 @@ describe('returns in restricted scopes', () => {
 
 describe('function returns in client components', () => {
 	it('renders template directive branches alongside outer siblings', () => {
-		function App() {
+		function App() @{
 			const ready = true;
-			return <>
 				@if (ready) {
 					<div class="yielded">yielded</div>
 				}
-				---
 				<span class="outer">outer</span>
-			</>;
 		}
 
 		render(App);
@@ -74,38 +65,32 @@ describe('function returns in client components', () => {
 		expect(container.querySelector('.outer')?.textContent).toBe('outer');
 	});
 
-	it('treats plain control-flow blocks as text inside templates', () => {
-		const { code } = compile(
-			`
-				function App() {
-					return <>
+	it('throws when control-flow blocks contain direct TSRX children', () => {
+		expect(
+			() => compile(
+				`
+				function App() @{
 						const items = [1, 2, 3];
-						---
 						for (const item of items) {
 							<div>{item}</div>
 						}
-					</>;
 				}
 			`,
-			'test.tsrx',
-			{ mode: 'client' },
+				'test.tsrx',
+				{ mode: 'client' },
+			),
+		).toThrow(
+			'TSRX elements and text inside JavaScript control flow blocks must use template directives. Use `@if`, `@for`, `@switch`, or `@try` for template control flow.',
 		);
-
-		expect(code).toContain('const items = [1, 2, 3];');
-		expect(code).not.toContain('"const items');
-		expect(code).toContain('"for (const item of items) "');
 	});
 
 	it('renders TSRX return arguments and skips later siblings', () => {
-		function App() {
+		function App() @{
 			const ready = true;
-			return <>
 				if (ready) {
 					return <div class="returned">returned</div>;
 				}
-				---
 				<span class="after">after</span>
-			</>;
 		}
 
 		render(App);
@@ -114,13 +99,13 @@ describe('function returns in client components', () => {
 	});
 
 	it('allows guard returns before TSRX output', () => {
-		function App() {
+		function App() @{
 			const ready = true;
 			if (!ready) {
 				return null;
 			}
 
-			return <><div class="ready">{'ready'}</div></>;
+			<div class="ready">{'ready'}</div>
 		}
 
 		render(App);

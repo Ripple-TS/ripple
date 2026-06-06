@@ -1,9 +1,7 @@
 describe('SSR: switch statements', () => {
 	it('renders simple switch with literal cases', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'b';
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -17,7 +15,6 @@ describe('SSR: switch statements', () => {
 					default:
 						<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -25,10 +22,8 @@ describe('SSR: switch statements', () => {
 	});
 
 	it('renders a fall-through with an empty switch case', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'b';
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -40,7 +35,6 @@ describe('SSR: switch statements', () => {
 					default:
 						<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -48,10 +42,8 @@ describe('SSR: switch statements', () => {
 	});
 
 	it('renders a fall-through with a case that has elements', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'a';
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -63,7 +55,6 @@ describe('SSR: switch statements', () => {
 					default:
 						<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -71,10 +62,8 @@ describe('SSR: switch statements', () => {
 	});
 
 	it('renders a fall-through with a default case in the middle', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'x';
-				---
 				@switch (value) {
 					case 'a':
 						<div>Case A</div>
@@ -87,7 +76,6 @@ describe('SSR: switch statements', () => {
 						<div>{'Case C'}</div>
 						break;
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -95,8 +83,7 @@ describe('SSR: switch statements', () => {
 	});
 
 	it('renders bare text nodes in switch fall-through cases without element wrappers', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
@@ -107,7 +94,6 @@ describe('SSR: switch statements', () => {
 							Case B
 					}
 				</div>
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -115,8 +101,7 @@ describe('SSR: switch statements', () => {
 	});
 
 	it('renders bare text nodes in switch cases without element wrappers', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'a';
 				<div>
 					<span>{'before'}</span>
@@ -129,7 +114,6 @@ describe('SSR: switch statements', () => {
 							break;
 					}
 				</div>
-			</>;
 		}
 
 		const { body } = await render(App);

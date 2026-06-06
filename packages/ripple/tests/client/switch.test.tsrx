@@ -2,10 +2,8 @@ import { flushSync, track } from 'ripple';
 
 describe('switch statements', () => {
 	it('renders simple switch with literal cases', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[value] = track('b');
-				---
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
 				@switch (value) {
@@ -21,7 +19,6 @@ describe('switch statements', () => {
 					default:
 						<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		render(App);
@@ -38,10 +35,8 @@ describe('switch statements', () => {
 	});
 
 	it('renders switch with reactive discriminant', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[count] = track(1);
-				---
 				<button onClick={() => count++}>{'Increment'}</button>
 				@switch (count) {
 					case 1:
@@ -53,7 +48,6 @@ describe('switch statements', () => {
 					default:
 						<div>{'Count is other'}</div>
 				}
-			</>;
 		}
 
 		render(App);
@@ -71,16 +65,13 @@ describe('switch statements', () => {
 	});
 
 	it('renders switch with default clause only', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[value] = track('x');
-				---
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				@switch (value) {
 					default:
 						<div>{'Default for ' + value}</div>
 				}
-			</>;
 		}
 
 		render(App);
@@ -93,10 +84,8 @@ describe('switch statements', () => {
 	});
 
 	it('renders switch using empty case fall-through', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[value] = track('a');
-				---
 				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				@switch (value) {
@@ -110,7 +99,6 @@ describe('switch statements', () => {
 					default:
 						<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		render(App);
@@ -136,11 +124,9 @@ describe('switch statements', () => {
 	});
 
 	it('renders switch with template content and reacts to tracked changes', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[status] = track('active');
 				let &[message] = track('');
-				---
 				<button onClick={() => (status = 'pending')}>{'Pending'}</button>
 				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
 				<button onClick={() => (status = 'error')}>{'Error'}</button>
@@ -161,7 +147,6 @@ describe('switch statements', () => {
 						message = 'An error occurred.';
 						<div class="error">{'Status: ' + message}</div>
 				}
-			</>;
 		}
 
 		render(App);
@@ -189,10 +174,8 @@ describe('switch statements', () => {
 	it(
 		'renders switch with multiple non-empty fall-through cases and reacts to tracked changes without recreating DOM unnecessarily',
 		() => {
-			function App() {
-				return <>
+			function App() @{
 					let &[status] = track(0);
-					---
 					<div>
 						@switch (status) {
 							case -1:
@@ -224,7 +207,6 @@ describe('switch statements', () => {
 					>
 						{'Next Status'}
 					</button>
-				</>;
 			}
 
 			render(App);
@@ -264,10 +246,8 @@ describe('switch statements', () => {
 	it(
 		'renders a fall-through default in the middle of switch cases and reacts to changes without recreating DOM unnecessarily',
 		() => {
-			function App() {
-				return <>
+			function App() @{
 					let &[value] = track('x');
-					---
 					<button onClick={() => (value = 'a')}>{'Set A'}</button>
 					<button onClick={() => (value = 'b')}>{'Set B'}</button>
 					<button onClick={() => (value = 'c')}>{'Set C'}</button>
@@ -291,7 +271,6 @@ describe('switch statements', () => {
 								<div>{' Case C'}</div>
 						}
 					</div>
-				</>;
 			}
 
 			render(App);
@@ -331,10 +310,8 @@ describe('switch statements', () => {
 	);
 
 	it('renders bare text nodes in switch fall-through cases without element wrappers', () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'a';
-				---
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
@@ -344,7 +321,6 @@ describe('switch statements', () => {
 							Case B
 					}
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -352,10 +328,8 @@ describe('switch statements', () => {
 	});
 
 	it('renders bare text nodes in switch cases without element wrappers', () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'a';
-				---
 				<div>
 					<span>{'before'}</span>
 					@switch (value) {
@@ -367,7 +341,6 @@ describe('switch statements', () => {
 							break;
 					}
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -375,10 +348,8 @@ describe('switch statements', () => {
 	});
 
 	it('renders switch with block-scoped cases and break inside blocks', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[level] = track(1);
-				---
 				<button
 					onClick={() => {
 						if (level === 1) level = 2;
@@ -399,7 +370,6 @@ describe('switch statements', () => {
 						<div class="level">{'Level 3'}</div>
 						break;
 				}
-			</>;
 		}
 
 		render(App);

@@ -232,9 +232,8 @@ export function WithGreeting() {
 
 export function ExpressionContent() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const value = 42;\n		const label = \'computed\';');
-		});
+		const value = 42;
+		const label = 'computed';
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -340,12 +339,8 @@ export function NestedTsxTsrxExpressionValues() {
 
 export function MixedTsrxCollectionText() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.render_expression([
 					'alpha ',
 					_$_.tsrx_element(() => {
@@ -376,11 +371,7 @@ export function MixedTsrxCollectionText() {
 						' zeta'
 					]
 				]);
-			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push(';');
+			});
 		});
 
 		_$_.regular_block(() => {
@@ -389,7 +380,7 @@ export function MixedTsrxCollectionText() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(content));
+				_$_.render_expression(content);
 			}
 
 			_$_.output_push('</div>');
@@ -399,12 +390,8 @@ export function MixedTsrxCollectionText() {
 
 export function MixedTsrxCollectionSplitServerText() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.render_expression([
 					'alpha ',
 					_$_.tsrx_element(() => {
@@ -435,11 +422,7 @@ export function MixedTsrxCollectionSplitServerText() {
 						' zeta'
 					]
 				]);
-			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push(';');
+			});
 		});
 
 		_$_.regular_block(() => {
@@ -448,7 +431,7 @@ export function MixedTsrxCollectionSplitServerText() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(content));
+				_$_.render_expression(content);
 			}
 
 			_$_.output_push('</div>');
@@ -458,12 +441,8 @@ export function MixedTsrxCollectionSplitServerText() {
 
 export function MixedTsrxCollectionSplitClientText() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.render_expression([
 					'alpha ',
 					_$_.tsrx_element(() => {
@@ -494,11 +473,7 @@ export function MixedTsrxCollectionSplitClientText() {
 						' zeta'
 					]
 				]);
-			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push(';');
+			});
 		});
 
 		_$_.regular_block(() => {
@@ -507,7 +482,7 @@ export function MixedTsrxCollectionSplitClientText() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(content));
+				_$_.render_expression(content);
 			}
 
 			_$_.output_push('</div>');
@@ -517,12 +492,8 @@ export function MixedTsrxCollectionSplitClientText() {
 
 export function MixedTsrxCollectionPrimitiveServerText() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.render_expression([
 					'count: ',
 					1,
@@ -540,11 +511,7 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 						_$_.output_push('</span>');
 					})
 				]);
-			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push(';');
+			});
 		});
 
 		_$_.regular_block(() => {
@@ -553,7 +520,7 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(content));
+				_$_.render_expression(content);
 			}
 
 			_$_.output_push('</div>');
@@ -563,12 +530,8 @@ export function MixedTsrxCollectionPrimitiveServerText() {
 
 export function MixedTsrxCollectionPrimitiveClientText() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.render_expression([
 					'count: ',
 					2,
@@ -586,11 +549,7 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 						_$_.output_push('</span>');
 					})
 				]);
-			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push(';');
+			});
 		});
 
 		_$_.regular_block(() => {
@@ -599,7 +558,7 @@ export function MixedTsrxCollectionPrimitiveClientText() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(content));
+				_$_.render_expression(content);
 			}
 
 			_$_.output_push('</div>');
@@ -613,9 +572,7 @@ function createPrimitiveItems() {
 
 export function DynamicArrayFromCall() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const items = createPrimitiveItems();');
-		});
+		const items = createPrimitiveItems();
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -623,7 +580,7 @@ export function DynamicArrayFromCall() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(items));
+				_$_.render_expression(items);
 			}
 
 			_$_.output_push('</div>');
@@ -633,9 +590,7 @@ export function DynamicArrayFromCall() {
 
 export function DynamicArrayFromTrack() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('let &amp;[items] = track([\'start:\', [\'one\', 2], true, null, false, \':end\']);');
-		});
+		let lazy = _$_.track(['start:', ['one', 2], true, null, false, ':end'], 'b5de6402');
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -643,7 +598,7 @@ export function DynamicArrayFromTrack() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(items));
+				_$_.render_expression(lazy.value);
 			}
 
 			_$_.output_push('</div>');
@@ -653,9 +608,11 @@ export function DynamicArrayFromTrack() {
 
 export function DynamicArrayFromConditional() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const condition = true;\n		const items = condition ? [\'start:\', [\'one\', 2], true, null, false, \':end\'] : [\'fallback\'];');
-		});
+		const condition = true;
+
+		const items = condition
+			? ['start:', ['one', 2], true, null, false, ':end']
+			: ['fallback'];
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -663,7 +620,7 @@ export function DynamicArrayFromConditional() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(items));
+				_$_.render_expression(items);
 			}
 
 			_$_.output_push('</div>');
@@ -673,9 +630,8 @@ export function DynamicArrayFromConditional() {
 
 export function DynamicArrayFromLogical() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const condition = true;\n		const items = condition &amp;&amp; [\'start:\', [\'one\', 2], true, null, false, \':end\'];');
-		});
+		const condition = true;
+		const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -683,7 +639,7 @@ export function DynamicArrayFromLogical() {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(items));
+				_$_.render_expression(items);
 			}
 
 			_$_.output_push('</div>');
@@ -693,12 +649,8 @@ export function DynamicArrayFromLogical() {
 
 export function NestedTsrxInsideTopLevelTsxExpression() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.output_push('<section');
 				_$_.output_push(' class="outer"');
 				_$_.output_push('>');
@@ -718,23 +670,19 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 				}
 
 				_$_.output_push('</section>');
-			}
+			});
 		});
 
 		_$_.regular_block(() => {
-			_$_.output_push(_$_.escape(";" + String(content)));
+			_$_.render_expression(content);
 		});
 	});
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.output_push('<div');
 				_$_.output_push(' class="wrapper"');
 				_$_.output_push('>');
@@ -762,23 +710,19 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 				}
 
 				_$_.output_push('</div>');
-			}
+			});
 		});
 
 		_$_.regular_block(() => {
-			_$_.output_push(_$_.escape(";" + String(content)));
+			_$_.render_expression(content);
 		});
 	});
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const nested =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const nested = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.output_push('<span');
 				_$_.output_push(' class="nested-tsx"');
 				_$_.output_push('>');
@@ -788,29 +732,25 @@ export function TsxDeclaredBeforeTopLevelTsx() {
 				}
 
 				_$_.output_push('</span>');
-			}
+			});
 		});
 
-		_$_.regular_block(() => {
-			_$_.output_push(';\n		const content =');
-		});
-
-		_$_.regular_block(() => {
-			{
+		const content = _$_.tsrx_element(() => {
+			_$_.regular_block(() => {
 				_$_.output_push('<div');
 				_$_.output_push(' class="native"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push(_$_.escape(nested));
+					_$_.render_expression(nested);
 				}
 
 				_$_.output_push('</div>');
-			}
+			});
 		});
 
 		_$_.regular_block(() => {
-			_$_.output_push(_$_.escape(";" + String(content)));
+			_$_.render_expression(content);
 		});
 	});
 }
@@ -833,14 +773,17 @@ function TextProp(__props) {
 
 export function TextPropWithToggle() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('let &amp;[show] = track(false);');
-		});
+		let lazy_1 = _$_.track(false, '1ba81c3b');
 
 		_$_.regular_block(() => {
 			{
 				const comp = TextProp;
-				const args = [{ children: _$_.normalize_children(show ? 'hello' : '') }];
+
+				const args = [
+					{
+						children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
+					}
+				];
 
 				_$_.render_component(comp, ...args);
 			}
@@ -902,9 +845,7 @@ function StaticHeader() {
 
 export function StaticChildWithSiblings() {
 	return _$_.tsrx_element(() => {
-		_$_.regular_block(() => {
-			_$_.output_push('const foo = \'bar\';');
-		});
+		const foo = 'bar';
 
 		_$_.regular_block(() => {
 			{

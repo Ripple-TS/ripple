@@ -3,23 +3,21 @@ import { Context, flushSync } from 'ripple';
 
 describe('context', () => {
 	it('creates a reactive ref with initial value', () => {
-		const MyContext = new Context<string | null>(null);
+		const MyContext = Context<string | null>(null);
 
-		function Child() {
-			return <>
+		function Child() @{
+			
 				const value = MyContext.get();
-				---
 				<div>{value}</div>
-			</>;
+			
 		}
 
-		function TestContext() {
-			return <>
+		function TestContext() @{
+			
 				const value = MyContext.get();
 				MyContext.set('Hello from context!');
-				---
 				<Child />
-			</>;
+			
 		}
 
 		render(TestContext);
@@ -28,29 +26,23 @@ describe('context', () => {
 	});
 
 	it('handles context captured inside a computed tracked', () => {
-		const MyContext = new Context<number | null>(null);
+		const MyContext = Context<number | null>(null);
 
 		const doubleContext = () => {
 			const value = MyContext.get() as number;
 			return value * 2;
 		};
 
-		function App() {
-			return <>
+		function App() @{
+			
 				MyContext.set(4);
-				---
-				<h3>
-					{MyContext.get()}
-				</h3>
+				<h3>{MyContext.get()}</h3>
 				<h4>
 					{'2x:'}
 					{doubleContext()}
 				</h4>
-				<>
-					MyContext.set(8);
-					---
-				</>
-			</>;
+				MyContext.set(8);
+			
 		}
 
 		render(App);

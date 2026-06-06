@@ -7,8 +7,7 @@ describe('compiler > assignments', () => {
 	it('properly handles JS assignments, reads and updates to array indices', () => {
 		const logs: (number | undefined)[] = [];
 
-		function App() {
-			return <>
+		function App() @{
 				let items: number[] = [];
 				let tracked_items = track<number[]>([]);
 				let items2 = new Array();
@@ -62,8 +61,6 @@ describe('compiler > assignments', () => {
 				logs.push(--items2[i]);
 				logs.push(--items3[0]);
 				logs.push(--items3[i]);
-				---
-			</>;
 		}
 
 		render(App);
@@ -106,13 +103,13 @@ describe('compiler > assignments', () => {
 
 	it('compiles tracked values in effect with assignment expression', () => {
 		const source = `import { track, effect } from 'ripple';
-function App() { return <>
+function App() @{
 	let &[count] = track(0);
+
 	effect(() => {
 		state.count = count;
 	});
-	---
-</>; }`;
+}`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
@@ -120,7 +117,7 @@ function App() { return <>
 
 	it('compiles tracked values in effect with update expressions', () => {
 		const source = `import { track, effect, untrack } from 'ripple';
-function App() { return <>
+function App() @{
 	let &[count] = track(5);
 
 	effect(() => {
@@ -131,8 +128,7 @@ function App() { return <>
 			state.postDecrement = count--;
 		});
 	});
-	---
-</>; }`;
+}`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
 		expect(effect_match?.[1].trim()).toMatchSnapshot();
@@ -140,17 +136,15 @@ function App() { return <>
 
 	it('compiles unknown lazy array destructuring through lazy array helpers', () => {
 		const source = `import { track } from 'ripple';
-function Child({ tr: &[count, tr] }) { return <>
+function Child({ tr: &[count, tr] }) @{
 	count++;
 	tr[0]++;
-	---
 	<div>{count}</div>
-</>; }
-function App() { return <>
+}
+function App() @{
 	let tracked = track(0);
-	---
 	<Child tr={tracked} />
-</>; }`;
+}`;
 		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 
 		expect(code).toContain('_$_.lazy_array_get(lazy, 0)');
@@ -162,14 +156,13 @@ function App() { return <>
 	});
 
 	it('compiles writes to unknown lazy array index 1 through lazy array helpers', () => {
-		const source = `function Child({ pair: &[first, second] }) { return <>
+		const source = `function Child({ pair: &[first, second] }) @{
 	second = 10;
-	---
 	<div>{first}</div>
-</>; }
-function App() { return <>
+		}
+function App() @{
 	<Child pair={[0, 1]} />
-</>; }`;
+}`;
 		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 
 		expect(code).toContain('_$_.lazy_array_set(lazy, 10, 1)');
@@ -177,14 +170,13 @@ function App() { return <>
 	});
 
 	it('does not double-wrap member access on lazy array value bindings', () => {
-		const source = `function Child({ pair: &[first] }) { return <>
+		const source = `function Child({ pair: &[first] }) @{
 	let value = first[0];
-	---
 	<div>{value}</div>
-</>; }
-function App() { return <>
+		}
+function App() @{
 	<Child pair={[{ 0: 'x' }]} />
-</>; }`;
+}`;
 		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 
 		expect(code).toContain('let value = _$_.lazy_array_get(lazy, 0)[0];');
@@ -193,14 +185,13 @@ function App() { return <>
 
 	it('throws on indexed access through known tracked lazy destructures', () => {
 		const source = `import { track } from 'ripple';
-function App() { return <>
+function App() @{
 	let &[value, tracked_ref] = track({ 0: 'x' });
 	let nested = value[0];
 	tracked_ref[0] = { 0: 'y' };
 	let next = value[0];
-	---
 	<div>{nested}{next}</div>
-</>; }`;
+}`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
 			/Use \.value or &\[\] lazy destructuring/,
@@ -209,15 +200,14 @@ function App() { return <>
 
 	it('throws on known tracked indexed access', () => {
 		const source = `import { track } from 'ripple';
-function App() { return <>
+function App() @{
 	let tracked = track(0);
 	tracked[0]++;
 	tracked[0] = tracked[0] + 1;
 	let value = tracked[0];
 	let ref = tracked[1];
-	---
 	<div>{value}</div>
-</>; }`;
+}`;
 
 		expect(() => compile(source, 'test.tsrx', { mode: 'client' })).toThrow(
 			/Use \.value or &\[\] lazy destructuring/,

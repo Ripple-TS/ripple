@@ -3,13 +3,11 @@ import { track } from 'ripple';
 
 describe('lazy destructuring', () => {
 	it('supports tracked value getter and setter', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				let count = track(1);
 				let derived = track(() => count.value * 2);
 				count.value = 3;
 				<pre>{`${count.value}-${derived.value}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -17,12 +15,12 @@ describe('lazy destructuring', () => {
 	});
 
 	it('lazily accesses object properties', async () => {
-		function Inner(&{ a, b }: { a: number; b: string }) {
-			return <><pre>{`${a}-${b}`}</pre></>;
+		function Inner(&{ a, b }: { a: number; b: string }) @{
+			<pre>{`${a}-${b}`}</pre>
 		}
 
-		function Test() {
-			return <><Inner a={1} b="hello" /></>;
+		function Test() @{
+			<Inner a={1} b="hello" />
 		}
 
 		const { body } = await render(Test);
@@ -30,12 +28,10 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports default values in lazy object destructuring', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj: { a: number; b?: number } = { a: 5 };
 				const &{ a, b = 99 } = obj;
 				<pre>{`${a}-${b}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -43,15 +39,13 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports nested lazy destructuring in non-lazy component params', async () => {
-		function Inner({ something: &[first, second] }: { something: Tracked<number> }) {
-			return <>
+		function Inner({ something: &[first, second] }: { something: Tracked<number> }) @{
 				first = second.value + 1;
 				<pre>{`${first}-${second.value}`}</pre>
-			</>;
 		}
 
-		function Test() {
-			return <><Inner something={track(1)} /></>;
+		function Test() @{
+			<Inner something={track(1)} />
 		}
 
 		const { body } = await render(Test);
@@ -59,14 +53,12 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports let lazy destructuring with assignment writeback', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj = { a: 1, b: 2 };
 				let &{ a, b } = obj;
 				a = 10;
 				b = 20;
 				<pre>{`${obj.a}-${obj.b}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -74,14 +66,12 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports compound assignment operators on lazy bindings', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj = { a: 5, b: 10 };
 				let &{ a, b } = obj;
 				a += 3;
 				b *= 2;
 				<pre>{`${obj.a}-${obj.b}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -89,15 +79,13 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports update expressions on lazy bindings', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj = { count: 0 };
 				let &{ count } = obj;
 				count++;
 				count++;
 				count--;
 				<pre>{obj.count}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -105,14 +93,12 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports update expressions on lazy bindings with default values', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj: { count?: number } = {};
 				let &{ count = 0 } = obj;
 				count++;
 				count++;
 				<pre>{obj.count}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -120,15 +106,13 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports function params with lazy destructuring and default values', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				function calc(&{ x, y = 100 }: { x: number; y?: number }) {
 					return x + y;
 				}
 				const a = calc({ x: 5, y: 10 });
 				const b = calc({ x: 5 });
 				<pre>{`${a}-${b}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -136,15 +120,13 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports nested lazy destructuring in non-lazy function params', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const something = track(1);
 				function getInfo({ something: &[first, second] }: { something: Tracked<number> }) {
 					first = second.value + 1;
 					return `${first}-${second.value}`;
 				}
 				<pre>{getInfo({ something })}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -154,20 +136,18 @@ describe('lazy destructuring', () => {
 	it(
 		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy component params',
 		async () => {
-			function Inner({
+			function Inner(@{
 				values: [head, ...&{ 0: first_rest, length: rest_length }],
 			}: {
 				values: number[];
 			}) {
-				return <>
 					const before = `${first_rest}-${rest_length}`;
 					rest_length = 0;
 					<pre>{`${head}-${before}-${first_rest}-${rest_length}`}</pre>
-				</>;
 			}
 
-			function Test() {
-				return <><Inner values={[10, 20, 30]} /></>;
+			function Test() @{
+				<Inner values={[10, 20, 30]} />
 			}
 
 			const { body } = await render(Test);
@@ -178,8 +158,7 @@ describe('lazy destructuring', () => {
 	it(
 		'preserves lazy getter/setter behavior for RestElement nested destructuring in non-lazy function params',
 		async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					function getInfo({
 						values: [head, ...&{ 0: first_rest, length: rest_length }],
 					}: {
@@ -190,7 +169,6 @@ describe('lazy destructuring', () => {
 						return `${head}-${before}-${first_rest}-${rest_length}`;
 					}
 					<pre>{getInfo({ values: [5, 6, 7] })}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -199,12 +177,10 @@ describe('lazy destructuring', () => {
 	);
 
 	it('supports member access on lazy destructured objects', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const obj = { user: { name: 'Alice', age: 30 } };
 				const &{ user } = obj;
 				<pre>{`${user.name}-${user.age}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -212,12 +188,12 @@ describe('lazy destructuring', () => {
 	});
 
 	it('preserves numeric member access on lazy array value bindings', async () => {
-		function Child({ pair: &[first] }: { pair: [{ 0: string }] }) {
-			return <><pre>{first[0]}</pre></>;
+		function Child({ pair: &[first] }: { pair: [{ 0: string }] }) @{
+			<pre>{first[0]}</pre>
 		}
 
-		function Test() {
-			return <><Child pair={[{ 0: 'x' }]} /></>;
+		function Test() @{
+			<Child pair={[{ 0: 'x' }]} />
 		}
 
 		const { body } = await render(Test);
@@ -225,12 +201,10 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports rest in lazy array destructuring for tracked tuples (iterable)', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				let tracked_value = track(0);
 				let &[value, ...rest] = tracked_value;
 				<pre>{`${value}-${rest.length}-${rest[0] === tracked_value}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -238,12 +212,10 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports rest in lazy array destructuring for length-only array-like values', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const array_like = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
 				const &[first, ...rest] = array_like;
 				<pre>{`${first}-${rest.join('')}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -251,8 +223,7 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports rest in lazy array destructuring for iterable values', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				const source = {
 					*[Symbol.iterator]() {
 						yield 'x';
@@ -262,7 +233,6 @@ describe('lazy destructuring', () => {
 				};
 				const &[first, ...rest] = source;
 				<pre>{`${first}-${rest.join('')}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -270,12 +240,10 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy array destructuring with track()', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				let count;
 				&[count] = track(0);
 				<div>{count}</div>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -283,8 +251,7 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports direct value access on tracked values during SSR', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				let tracked = track(0);
 				++tracked.value;
 				tracked.value++;
@@ -292,7 +259,6 @@ describe('lazy destructuring', () => {
 				let value = tracked.value;
 				let ref = tracked;
 				<pre>{`${value}-${ref === tracked}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -300,19 +266,15 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports lazy destructured tracked ref value access during SSR', async () => {
-		function Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) {
-			return <>
+		function Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) @{
 				++tracked_ref.value;
 				tracked_ref.value++;
 				<pre>{`${value}-${tracked_ref.value}`}</pre>
-			</>;
 		}
 
-		function Test() {
-			return <>
+		function Test() @{
 				let tracked = track(0);
 				<Child pair={tracked} />
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -320,13 +282,11 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy object destructuring', async () => {
-		function Test() {
-			return <>
+		function Test() @{
 				let a;
 				let b;
 				&{ a, b } = { a: 10, b: 20 };
 				<pre>{`${a}-${b}`}</pre>
-			</>;
 		}
 
 		const { body } = await render(Test);
@@ -337,23 +297,19 @@ describe('lazy destructuring', () => {
 		it('preserves nested lazy object access inside lazy object as component params', async () => {
 			let inner_value = 7;
 
-			function Inner(&{ outer: &{ inner } }: { outer: { inner: number } }) {
-				return <>
+			function Inner(&{ outer: &{ inner } }: { outer: { inner: number } }) @{
 					const before = inner;
 					inner_value = 8;
 					<pre>{`${before}-${inner}`}</pre>
-				</>;
 			}
 
-			function Test() {
-				return <>
+			function Test() @{
 					const outer = {
 						get inner() {
 							return inner_value;
 						},
 					};
 					<Inner {outer} />
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -364,22 +320,18 @@ describe('lazy destructuring', () => {
 			let first_value = 3;
 			let second_value = 4;
 
-			function Inner({ pair: &[first, second] }: { pair: [number, number] }) {
-				return <>
+			function Inner({ pair: &[first, second] }: { pair: [number, number] }) @{
 					const before = `${first}-${second}`;
 					first_value = 5;
 					second_value = 6;
 					<pre>{`${before}-${first}-${second}`}</pre>
-				</>;
 			}
 
-			function Test() {
-				return <>
+			function Test() @{
 					const pair = [0, 0] as [number, number];
 					Object.defineProperty(pair, 0, { get: () => first_value });
 					Object.defineProperty(pair, 1, { get: () => second_value });
 					<Inner {pair} />
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -387,8 +339,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves nested lazy object access inside lazy array as function params', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let name_value = 'Alice';
 					function getName(&[&{ name }]: [{ name: string }]) {
 						const before = name;
@@ -401,7 +352,6 @@ describe('lazy destructuring', () => {
 						},
 					};
 					<pre>{getName([user])}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -409,8 +359,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves nested lazy array access inside lazy array as function params', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let first_value = 5;
 					let second_value = 6;
 					function getValues(&[&[a, b]]: [[number, number]]) {
@@ -423,7 +372,6 @@ describe('lazy destructuring', () => {
 					Object.defineProperty(pair, 0, { get: () => first_value });
 					Object.defineProperty(pair, 1, { get: () => second_value });
 					<pre>{getValues([pair])}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -433,16 +381,13 @@ describe('lazy destructuring', () => {
 		it('preserves three-level lazy object access as component params', async () => {
 			let c_value = 42;
 
-			function Inner(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
-				return <>
+			function Inner(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) @{
 					const before = c;
 					c_value = 43;
 					<pre>{`${before}-${c}`}</pre>
-				</>;
 			}
 
-			function Test() {
-				return <>
+			function Test() @{
 					const a = {
 						b: {
 							get c() {
@@ -451,7 +396,6 @@ describe('lazy destructuring', () => {
 						},
 					};
 					<Inner {a} />
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -459,8 +403,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves nested lazy object access inside lazy object as function params', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let inner_value = 11;
 					function getValue(&{ outer: &{ inner } }: { outer: { inner: number } }) {
 						const before = inner;
@@ -473,7 +416,6 @@ describe('lazy destructuring', () => {
 						},
 					};
 					<pre>{getValue({ outer })}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -483,8 +425,7 @@ describe('lazy destructuring', () => {
 		it(
 			'supports nested lazy array inside lazy object as function params with writeback',
 			async () => {
-				function Test() {
-					return <>
+				function Test() @{
 						const obj = { pair: [1, 2] as [number, number] };
 						function bump(&{ pair: &[first, second] }: { pair: [number, number] }) {
 							first = first + 10;
@@ -492,7 +433,6 @@ describe('lazy destructuring', () => {
 						}
 						bump(obj);
 						<pre>{`${obj.pair[0]}-${obj.pair[1]}`}</pre>
-					</>;
 				}
 
 				const { body } = await render(Test);
@@ -501,8 +441,7 @@ describe('lazy destructuring', () => {
 		);
 
 		it('preserves three-level lazy object access as function params', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let c_value = 99;
 					function getValue(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) {
 						const before = c;
@@ -517,7 +456,6 @@ describe('lazy destructuring', () => {
 						},
 					};
 					<pre>{getValue({ a })}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -525,8 +463,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves nested lazy object access inside lazy object in const declaration', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let inner_value = 5;
 					const data = {
 						outer: {
@@ -539,7 +476,6 @@ describe('lazy destructuring', () => {
 					const before = inner;
 					inner_value = 6;
 					<pre>{`${before}-${inner}`}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -547,13 +483,11 @@ describe('lazy destructuring', () => {
 		});
 
 		it('supports nested lazy object inside lazy object in let with writeback', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					const data = { outer: { inner: 5 } };
 					let &{ outer: &{ inner } } = data;
 					inner = 50;
 					<pre>{data.outer.inner}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -561,14 +495,12 @@ describe('lazy destructuring', () => {
 		});
 
 		it('supports nested lazy array inside lazy object in let with writeback', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					const data = { pair: [1, 2] as [number, number] };
 					let &{ pair: &[first, second] } = data;
 					first = 100;
 					second = 200;
 					<pre>{`${data.pair[0]}-${data.pair[1]}`}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -576,13 +508,11 @@ describe('lazy destructuring', () => {
 		});
 
 		it('supports three-level lazy object nesting in let with writeback', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					const data = { a: { b: { c: 1 } } };
 					let &{ a: &{ b: &{ c } } } = data;
 					c = 999;
 					<pre>{data.a.b.c}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -590,14 +520,12 @@ describe('lazy destructuring', () => {
 		});
 
 		it('supports compound assignment on deeply nested lazy bindings', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					const data = { a: { b: { c: 5 } } };
 					let &{ a: &{ b: &{ c } } } = data;
 					c += 10;
 					c *= 2;
 					<pre>{data.a.b.c}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -605,8 +533,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves default values inside nested lazy destructuring', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let inner_value: number | undefined;
 					const data: { outer: { inner?: number } } = {
 						outer: {
@@ -619,7 +546,6 @@ describe('lazy destructuring', () => {
 					const before = inner;
 					inner_value = 43;
 					<pre>{`${before}-${inner}`}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -627,8 +553,7 @@ describe('lazy destructuring', () => {
 		});
 
 		it('preserves multiple sibling nested lazy destructures', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					let x_value = 1;
 					let y_value = 2;
 					const data = {
@@ -648,7 +573,6 @@ describe('lazy destructuring', () => {
 					x_value = 3;
 					y_value = 4;
 					<pre>{`${before}-${x}-${y}`}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);
@@ -656,14 +580,12 @@ describe('lazy destructuring', () => {
 		});
 
 		it('supports multiple sibling nested lazy destructures with writeback', async () => {
-			function Test() {
-				return <>
+			function Test() @{
 					const data = { a: { x: 1 }, b: { y: 2 } };
 					let &{ a: &{ x }, b: &{ y } } = data;
 					x = 11;
 					y = 22;
 					<pre>{`${data.a.x}-${data.b.y}`}</pre>
-				</>;
 			}
 
 			const { body } = await render(Test);

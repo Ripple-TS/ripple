@@ -2,8 +2,7 @@ import { RippleArray, RippleMap } from 'ripple';
 
 describe('generics', () => {
 	it('handles advanced generic ambiguity and edge cases', () => {
-		function App() {
-			return <>
+		function App() @{
 				const maybe = {
 					factory: function <T>() {
 						return {
@@ -184,7 +183,6 @@ describe('generics', () => {
 				>();
 				// 33. Map of generic instance as key
 				const mm = new Map<RippleArray<number>, RippleArray<string>>();
-			</>;
 		}
 
 		render(App);

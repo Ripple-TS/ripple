@@ -3,16 +3,13 @@ import { MAX_ARRAY_LENGTH } from '../../../src/runtime/internal/client/constants
 
 describe('RippleArray > static', () => {
 	it('handles static methods - from and of', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let itemsFrom = RippleArray.from([1, 2, 3], (x: number) => x * 2);
 				let itemsOf = RippleArray.of(4, 5, 6);
-				---
 				<button onClick={() => itemsFrom.push(8)}>{'add to from'}</button>
 				<button onClick={() => itemsOf.push(7)}>{'add to of'}</button>
 				<pre>{JSON.stringify(itemsFrom)}</pre>
 				<pre>{JSON.stringify(itemsOf)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -39,21 +36,16 @@ describe('RippleArray > static', () => {
 
 	('fromAsync' in Array.prototype ? describe : describe.skip)('RippleArray fromAsync', async () => {
 		it('handles static fromAsync method with reactivity', async () => {
-			function Parent() {
-				return <>
+			function Parent() @{
 					@try {
 						<ArrayTest />
 					} pending {
-					---
 						<div>{'Loading placeholder...'}</div>
 					}
-				</>;
 			}
 
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3]));
-					---
 					<button
 						onClick={() => {
 							items.push(4);
@@ -62,7 +54,6 @@ describe('RippleArray > static', () => {
 						{'add item'}
 					</button>
 					<pre>{JSON.stringify(items)}</pre>
-				</>;
 			}
 
 			render(Parent);
@@ -82,21 +73,16 @@ describe('RippleArray > static', () => {
 		});
 
 		it('handles static fromAsync method with mapping function', async () => {
-			function Parent() {
-				return <>
+			function Parent() @{
 					@try {
 						<ArrayTest />
 					} pending {
-					---
 						<div>{'Loading placeholder...'}</div>
 					}
-				</>;
 			}
 
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					let &[items] = trackAsync(() => RippleArray.fromAsync([1, 2, 3], (x: number) => x * 2));
-					---
 					<button
 						onClick={() => {
 							items.push(8);
@@ -105,7 +91,6 @@ describe('RippleArray > static', () => {
 						{'add item'}
 					</button>
 					<pre>{JSON.stringify(items)}</pre>
-				</>;
 			}
 
 			render(Parent);
@@ -127,23 +112,18 @@ describe('RippleArray > static', () => {
 		('fromAsync' in Array.prototype ? it : it.skip)(
 			'handles error in fromAsync method',
 			async () => {
-				function Parent() {
-					return <>
+				function Parent() @{
 						@try {
 							<ArrayTest />
 						} pending {
-						---
 							<div>{'Loading placeholder...'}</div>
 						}
-					</>;
 				}
 
-				function ArrayTest() {
-					return <>
+				function ArrayTest() @{
 						async function* throwingIterable() {
 							throw new Error('Async error');
 						}
-						---
 						@try {
 							let &[items] = trackAsync(() => RippleArray.fromAsync(throwingIterable()));
 
@@ -160,7 +140,6 @@ describe('RippleArray > static', () => {
 								<pre>{'No items'}</pre>
 							</>
 						}
-					</>;
 				}
 
 				render(Parent);
@@ -176,13 +155,10 @@ describe('RippleArray > static', () => {
 
 	describe('Creates RippleArray with a single element', () => {
 		it('specifies int', () => {
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					let items = new RippleArray(3);
-					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
-				</>;
 			}
 
 			render(ArrayTest);
@@ -192,8 +168,7 @@ describe('RippleArray > static', () => {
 		});
 
 		it('errors on exceeding max array size', () => {
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					const error = (() => {
 						try {
 							new RippleArray(MAX_ARRAY_LENGTH + 1);
@@ -202,9 +177,7 @@ describe('RippleArray > static', () => {
 							return (e as Error).message;
 						}
 					})();
-					---
 					<pre>{error}</pre>
-				</>;
 			}
 
 			render(ArrayTest);
@@ -213,13 +186,10 @@ describe('RippleArray > static', () => {
 		});
 
 		it('specifies int using static from method', () => {
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					let items = RippleArray.from([4]);
-					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
-				</>;
 			}
 
 			render(ArrayTest);
@@ -229,13 +199,10 @@ describe('RippleArray > static', () => {
 		});
 
 		it('specifies int using static of method', () => {
-			function ArrayTest() {
-				return <>
+			function ArrayTest() @{
 					let items = RippleArray.of(5);
-					---
 					<pre>{JSON.stringify(items)}</pre>
 					<pre>{items.length}</pre>
-				</>;
 			}
 
 			render(ArrayTest);
@@ -247,24 +214,18 @@ describe('RippleArray > static', () => {
 		('fromAsync' in Array.prototype ? it : it.skip)(
 			'specifies int using static fromAsync method',
 			async () => {
-				function Parent() {
-					return <>
+				function Parent() @{
 						@try {
 							<ArrayTest />
 						} pending {
-						---
 							<div>{'Loading placeholder...'}</div>
 						}
-					</>;
 				}
 
-				function ArrayTest() {
-					return <>
+				function ArrayTest() @{
 						let &[items] = trackAsync(() => RippleArray.fromAsync([6]));
-						---
 						<pre>{JSON.stringify(items)}</pre>
 						<pre>{items.length}</pre>
-					</>;
 				}
 
 				render(Parent);

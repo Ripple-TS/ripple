@@ -33,12 +33,11 @@ beforeAll(() => {
 	(global as any).count++;
 });
 
-function Test() { return <>
+function Test() @{
 	let toggle: { value: boolean } | undefined;
 	toggle!.value = false;
 	toggle!.value++;
-	---
-</>; }`;
+}`;
 
 		const { code } = compile(source, 'test.tsrx', { mode: 'client' });
 

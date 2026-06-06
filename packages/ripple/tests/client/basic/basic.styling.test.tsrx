@@ -2,8 +2,8 @@ import { compile } from '@tsrx/ripple';
 
 describe('basic client > styling', () => {
 	it('renders with styling scoped to component', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
+			
 				<div class="styled-container">
 					<h1>{'Styled heading'}</h1>
 					<p class="text">{'Styled paragraph'}</p>
@@ -24,7 +24,7 @@ describe('basic client > styling', () => {
 						font-size: 14px;
 					}
 				</style>
-			</>;
+			
 		}
 
 		render(Basic);
@@ -39,7 +39,7 @@ describe('basic client > styling', () => {
 	});
 
 	it('renders with keyframes in styling scoped to component', () => {
-		const source = `export function Basic() { return <>
+		const source = `export function Basic() @{
 			<div>
 				<p>{'Styled paragraph'}</p>
 			</div>
@@ -55,7 +55,7 @@ describe('basic client > styling', () => {
 					animation-name: anim;
 				}
 			</style>
-		</>; }`;
+		}`;
 
 		const { css } = compile(source, 'test.tsrx');
 		const name = css.match(/@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/)[1];

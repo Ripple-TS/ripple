@@ -2,52 +2,47 @@
 // Each component tests one specific combination of for / if / switch.
 
 // ── for + if (2 items shown, 1 hidden) ────────────────────────────────────────
-export function ForIf() {
-	return <>
+export function ForIf() @{
 		const items = [
 			{ id: 1, show: true, label: 'One' },
 			{ id: 2, show: true, label: 'Two' },
 			{ id: 3, show: false, label: 'Three' },
-			];
-			<ul class="for-if">
-				@for (const item of items; key item.id) {
-					@if (item.show) {
-						<li class={`item item-${item.id}`}>{item.label}</li>
-					}
+		];
+		<ul class="for-if">
+			for (const item of items; key item.id) {
+				@if (item.show) {
+					<li class={`item item-${item.id}`}>{item.label}</li>
+				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + switch (3 items, alternating cases) ─────────────────────────────────
-export function ForSwitch() {
-	return <>
+export function ForSwitch() @{
 		const items = [
 			{ id: 1, kind: 'a' },
 			{ id: 2, kind: 'b' },
 			{ id: 3, kind: 'a' },
-			];
-			<ul class="for-switch">
-				@for (const item of items; key item.id) {
-					@switch (item.kind) {
-						case 'a':
-							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
+		];
+		<ul class="for-switch">
+			for (const item of items; key item.id) {
+				@switch (item.kind) {
+					case 'a':
+						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 						break;
 					default:
 						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── if + switch (no for loop) ─────────────────────────────────────────────────
-export function IfSwitch() {
-	return <>
+export function IfSwitch() @{
 		const show = true;
 		const kind = 'a';
 		<div class="if-switch">
-			@if (show) {
+			if (show) {
 				@switch (kind) {
 					case 'a':
 						<p class="case-a">Case A</p>
@@ -57,16 +52,14 @@ export function IfSwitch() {
 				}
 			}
 		</div>
-	</>;
 }
 
 // ── if + switch where if is false ─────────────────────────────────────────────
-export function IfSwitchHidden() {
-	return <>
+export function IfSwitchHidden() @{
 		const show = false;
 		const kind = 'a';
 		<div class="if-switch-hidden">
-			@if (show) {
+			if (show) {
 				@switch (kind) {
 					case 'a':
 						<p class="case-a">Case A</p>
@@ -77,18 +70,16 @@ export function IfSwitchHidden() {
 			}
 			<p class="after">{'after'}</p>
 		</div>
-	</>;
 }
 
 // ── for + if + switch, single item (no inter-item cursor advance needed) ───────
-export function ForIfSwitchSingle() {
-	return <>
+export function ForIfSwitchSingle() @{
 		const items = [
 			{ id: 1, kind: 'a', show: true },
 		];
 		<ul class="for-if-switch-single">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
+			for (const item of items; key item.id) {
+				if (item.show) {
 					@switch (item.kind) {
 						case 'a':
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -99,19 +90,17 @@ export function ForIfSwitchSingle() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + if + switch, two items shown (the cursor-advance regression) ─────────
-export function ForIfSwitchMulti() {
-	return <>
+export function ForIfSwitchMulti() @{
 		const items = [
 			{ id: 1, kind: 'a', show: true },
 			{ id: 2, kind: 'b', show: true },
 		];
 		<ul class="for-if-switch-multi">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
+			for (const item of items; key item.id) {
+				if (item.show) {
 					@switch (item.kind) {
 						case 'a':
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -122,20 +111,18 @@ export function ForIfSwitchMulti() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + if + switch, last item hidden (if=false path between items) ──────────
-export function ForIfSwitchWithDisabled() {
-	return <>
+export function ForIfSwitchWithDisabled() @{
 		const items = [
 			{ id: 1, kind: 'a', show: true },
 			{ id: 2, kind: 'b', show: false },
 			{ id: 3, kind: 'a', show: true },
 		];
 		<ul class="for-if-switch-disabled">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
+			for (const item of items; key item.id) {
+				if (item.show) {
 					@switch (item.kind) {
 						case 'a':
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -146,12 +133,10 @@ export function ForIfSwitchWithDisabled() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── switch + try (no for/if) ──────────────────────────────────────────────────
-export function SwitchTry() {
-	return <>
+export function SwitchTry() @{
 		const kind = 'a';
 		<div class="switch-try">
 			@switch (kind) {
@@ -166,19 +151,17 @@ export function SwitchTry() {
 					<p class="default">{'Default'}</p>
 			}
 		</div>
-	</>;
 }
 
 // ── for + switch + try (no if) ────────────────────────────────────────────────
-export function ForSwitchTry() {
-	return <>
+export function ForSwitchTry() @{
 		const items = [
 			{ id: 1, kind: 'a' },
 			{ id: 2, kind: 'b' },
 		];
 		<ul class="for-switch-try">
-			@for (const item of items; key item.id) {
-				@switch (item.kind) {
+			for (const item of items; key item.id) {
+				switch (item.kind) {
 					case 'a':
 						@try {
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -195,19 +178,17 @@ export function ForSwitchTry() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + if + try (no switch) ────────────────────────────────────────────────
-export function ForIfTry() {
-	return <>
+export function ForIfTry() @{
 		const items = [
 			{ id: 1, show: true },
 			{ id: 2, show: true },
 		];
 		<ul class="for-if-try">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
+			for (const item of items; key item.id) {
+				if (item.show) {
 					@try {
 						<li class={`item item-${item.id}`}>{`item-${item.id}`}</li>
 					} pending {
@@ -216,19 +197,17 @@ export function ForIfTry() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + if + switch + try, single item ─────────────────────────────────────
-export function ForIfSwitchTrySingle() {
-	return <>
+export function ForIfSwitchTrySingle() @{
 		const items = [
 			{ id: 1, kind: 'a', show: true },
 		];
 		<ul class="for-if-switch-try-single">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
-					@switch (item.kind) {
+			for (const item of items; key item.id) {
+				if (item.show) {
+					switch (item.kind) {
 						case 'a':
 							@try {
 								<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -246,20 +225,18 @@ export function ForIfSwitchTrySingle() {
 				}
 			}
 		</ul>
-	</>;
 }
 
 // ── for + if + switch + try, multiple items (matches MixedControlFlowStatic) ──
-export function ForIfSwitchTryMulti() {
-	return <>
+export function ForIfSwitchTryMulti() @{
 		const items = [
 			{ id: 1, kind: 'a', show: true },
 			{ id: 2, kind: 'b', show: true },
 		];
 		<ul class="for-if-switch-try-multi">
-			@for (const item of items; key item.id) {
-				@if (item.show) {
-					@switch (item.kind) {
+			for (const item of items; key item.id) {
+				if (item.show) {
+					switch (item.kind) {
 						case 'a':
 							@try {
 								<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
@@ -277,5 +254,4 @@ export function ForIfSwitchTryMulti() {
 				}
 			}
 		</ul>
-	</>;
 }

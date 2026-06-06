@@ -1,9 +1,7 @@
 import { track } from 'ripple';
 
-export function SwitchStatic() {
-	return <>
+export function SwitchStatic() @{
 		const status: string = 'success';
-		---
 		@switch (status) {
 			case 'success':
 				<div class="status-success">{'Success'}</div>
@@ -14,11 +12,9 @@ export function SwitchStatic() {
 			default:
 				<div class="status-unknown">{'Unknown'}</div>
 		}
-	</>;
 }
 
-export function SwitchReactive() {
-	return <>
+export function SwitchReactive() @{
 		let &[status] = track<'a' | 'b' | 'c'>('a');
 		<button
 			class="toggle"
@@ -30,7 +26,6 @@ export function SwitchReactive() {
 		>
 			{'Toggle'}
 		</button>
-		---
 		@switch (status) {
 			case 'a':
 				<div class="case-a">Case A</div>
@@ -41,13 +36,10 @@ export function SwitchReactive() {
 			default:
 				<div class="case-c">{'Case C'}</div>
 		}
-	</>;
 }
 
-export function SwitchFallthrough() {
-	return <>
+export function SwitchFallthrough() @{
 		const val: number = 1;
-		---
 		@switch (val) {
 			case 1:
 			case 2:
@@ -56,11 +48,9 @@ export function SwitchFallthrough() {
 			default:
 				<div class="case-other">{'Other'}</div>
 		}
-	</>;
 }
 
-export function SwitchNumericLevels() {
-	return <>
+export function SwitchNumericLevels() @{
 		let &[level] = track<1 | 2 | 3>(1);
 		<button
 			class="level-toggle"
@@ -72,7 +62,6 @@ export function SwitchNumericLevels() {
 		>
 			{'Toggle Level'}
 		</button>
-		---
 		@switch (level) {
 			case 1:
 				<div class="level-1">{'Level 1'}</div>
@@ -84,11 +73,9 @@ export function SwitchNumericLevels() {
 				<div class="level-3">{'Level 3'}</div>
 				break;
 		}
-	</>;
 }
 
-export function SwitchBlockScoped() {
-	return <>
+export function SwitchBlockScoped() @{
 		let &[level] = track<1 | 2 | 3>(1);
 		<button
 			class="block-toggle"
@@ -100,7 +87,6 @@ export function SwitchBlockScoped() {
 		>
 			{'Toggle'}
 		</button>
-		---
 		@switch (level) {
 			case 1:
 				<div class="block-1">{'Block 1'}</div>
@@ -112,11 +98,9 @@ export function SwitchBlockScoped() {
 				<div class="block-3">{'Block 3'}</div>
 				break;
 		}
-	</>;
 }
 
-export function SwitchNoBreak() {
-	return <>
+export function SwitchNoBreak() @{
 		let &[level] = track<1 | 2 | 3>(1);
 		<button
 			class="nobreak-toggle"
@@ -128,7 +112,6 @@ export function SwitchNoBreak() {
 		>
 			{'Toggle'}
 		</button>
-		---
 		@switch (level) {
 			case 1:
 				<div class="nobreak-1">{'NoBreak 1'}</div>
@@ -137,5 +120,4 @@ export function SwitchNoBreak() {
 			case 3:
 				<div class="nobreak-3">{'NoBreak 3'}</div>
 		}
-	</>;
 }

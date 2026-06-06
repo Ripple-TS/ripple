@@ -2,20 +2,17 @@ import { RippleArray, flushSync, track } from 'ripple';
 
 describe('RippleArray > derived', () => {
 	it('handles array methods that return values (map, filter, etc.)', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3, 4, 5);
 				let &[doubled] = track(() => items.map((x) => x * 2));
 				let &[filtered] = track(() => items.filter((x) => x % 2 === 0));
 				let &[reduced] = track(() => items.reduce((acc, val) => acc + val, 0));
 				let &[includes] = track(() => items.includes(3));
-				---
 				<button onClick={() => items.push(6)}>{'add item'}</button>
 				<pre>{JSON.stringify(doubled)}</pre>
 				<pre>{JSON.stringify(filtered)}</pre>
 				<pre>{reduced}</pre>
 				<pre>{includes.toString()}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -39,15 +36,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles concat method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3);
 				let &[concatenated] = track(() => items.concat([4, 5], 6, [7, 8]));
-				---
 				<button onClick={() => items.push(3.5)}>{'add to original'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(concatenated)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -67,15 +61,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles array slice method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3, 4, 5);
 				let &[sliced] = track(() => items.slice(1, 4));
-				---
 				<button onClick={() => (items[2] = 30)}>{'change middle'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(sliced)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -95,12 +86,10 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles find and findIndex methods with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(5, 10, 15, 20, 25);
 				let &[found] = track(() => items.find((x) => x > 12));
 				let &[foundIndex] = track(() => items.findIndex((x) => x > 12));
-				---
 				<button
 					onClick={() => {
 						items[1] = 13;
@@ -111,7 +100,6 @@ describe('RippleArray > derived', () => {
 				</button>
 				<pre>{found}</pre>
 				<pre>{foundIndex}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -131,12 +119,10 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles findLast and findLastIndex methods with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(5, 15, 10, 20, 15);
 				let &[foundLast] = track(() => items.findLast((x) => x === 15));
 				let &[foundLastIndex] = track(() => items.findLastIndex((x) => x === 15));
-				---
 				<button
 					onClick={() => {
 						items[1] = 25;
@@ -147,7 +133,6 @@ describe('RippleArray > derived', () => {
 				</button>
 				<pre>{foundLast}</pre>
 				<pre>{foundLastIndex}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -167,11 +152,9 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles every method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(2, 4, 6, 8);
 				let &[allEven] = track(() => items.every((x) => x % 2 === 0));
-				---
 				<button onClick={() => items.push(3)}>{'add odd'}</button>
 				<button
 					onClick={() => {
@@ -182,7 +165,6 @@ describe('RippleArray > derived', () => {
 					{'ensure all even'}
 				</button>
 				<pre>{allEven.toString()}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -205,15 +187,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles flat method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray<number | number[]>([1, 2], [3, 4], 5);
 				let &[flattened] = track(() => items.flat());
-				---
 				<button onClick={() => (items[0] = [6, 7, 8])}>{'change nested'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(flattened)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -233,15 +212,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles flatMap method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3);
 				let &[flatMapped] = track(() => items.flatMap((x) => [x, x * 2]));
-				---
 				<button onClick={() => items.push(4)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(flatMapped)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -261,15 +237,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles join method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray('apple', 'banana', 'cherry');
 				let &[joined] = track(() => items.join(', '));
-				---
 				<button onClick={() => items.push('date')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{joined}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -291,11 +264,9 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles lastIndexOf method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3, 2, 1);
 				let &[lastIndex] = track(() => items.lastIndexOf(2));
-				---
 				<button
 					onClick={() => {
 						items.push(2);
@@ -305,7 +276,6 @@ describe('RippleArray > derived', () => {
 				</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{lastIndex}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -325,15 +295,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles reduceRight method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray('a', 'b', 'c');
 				let &[reduced] = track(() => items.reduceRight((acc, val) => acc + val, ''));
-				---
 				<button onClick={() => items.push('d')}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{reduced}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -353,11 +320,9 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles some method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 3, 5, 7);
 				let &[hasEven] = track(() => items.some((x) => x % 2 === 0));
-				---
 				<button onClick={() => items.push(2)}>{'add even'}</button>
 				<button
 					onClick={() => {
@@ -368,7 +333,6 @@ describe('RippleArray > derived', () => {
 					{'ensure all odd'}
 				</button>
 				<pre>{hasEven.toString()}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -391,11 +355,9 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles toLocaleString method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1000, 2000, 3000);
 				let &[localized] = track(() => items.toLocaleString('en-US'));
-				---
 				<button
 					onClick={() => {
 						items[2] = 4000;
@@ -405,7 +367,6 @@ describe('RippleArray > derived', () => {
 				</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{localized}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -425,15 +386,12 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles toString method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3);
 				let &[string] = track(() => items.toString());
-				---
 				<button onClick={() => items.push(4)}>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{string}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -457,15 +415,12 @@ describe('RippleArray > derived', () => {
 			context.skip();
 		}
 
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3, 4);
 				let &[withReplaced] = track(() => items.with(2, 30));
-				---
 				<button onClick={() => (items[2] = 50)}>{'change original'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{JSON.stringify(withReplaced)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -485,13 +440,10 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles toJSON method', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(1, 2, 3);
-				---
 				<button onClick={() => items.push(4)}>{'add'}</button>
 				<pre>{JSON.stringify(items)}</pre>
-			</>;
 		}
 
 		render(ArrayTest);
@@ -509,20 +461,17 @@ describe('RippleArray > derived', () => {
 	});
 
 	it('handles at method with reactivity', () => {
-		function ArrayTest() {
-			return <>
+		function ArrayTest() @{
 				let items = new RippleArray(10, 20, 30, 40, 50);
 				let &[atIndex2] = track(() => items.at(2));
 				let &[atNegative1] = track(() => items.at(-1));
 				let &[atNegative2] = track(() => items.at(-2));
-				---
 				<button onClick={() => (items[2] = 300)}>{'change index 2'}</button>
 				<button onClick={() => (items[items.length - 1] = 500)}>{'change last'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{atIndex2}</pre>
 				<pre>{atNegative1}</pre>
 				<pre>{atNegative2}</pre>
-			</>;
 		}
 
 		render(ArrayTest);

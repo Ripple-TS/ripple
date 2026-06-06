@@ -2,18 +2,13 @@ import { RippleURL, flushSync } from 'ripple';
 
 describe('RippleURL > partials/removal', () => {
 	it('handles URL with no port specified', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path');
-				---
-				<pre>
-					{url.port}
-				</pre>
-				<pre>
-					{url.host}
-				</pre>
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path');
+				<pre>{url.port}</pre>
+				<pre>{url.host}</pre>
 				<button onClick={() => (url.port = '8080')}>{'Add Port'}</button>
-			</>;
+			
 		}
 
 		render(URLTest);
@@ -33,18 +28,13 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles URL with no search params', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path');
-				---
-				<pre>
-					{url.search}
-				</pre>
-				<pre>
-					{url.searchParams.size}
-				</pre>
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path');
+				<pre>{url.search}</pre>
+				<pre>{url.searchParams.size}</pre>
 				<button onClick={() => url.searchParams.append('foo', 'bar')}>{'Add Param'}</button>
-			</>;
+			
 		}
 
 		render(URLTest);
@@ -64,15 +54,12 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles URL with no hash', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path');
-				---
-				<pre>
-					{url.hash}
-				</pre>
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path');
+				<pre>{url.hash}</pre>
 				<button onClick={() => (url.hash = '#section')}>{'Add Hash'}</button>
-			</>;
+			
 		}
 
 		render(URLTest);
@@ -90,18 +77,13 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles removing port by setting empty string', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com:8080/path');
-				---
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com:8080/path');
 				<button onClick={() => (url.port = '')}>{'Remove Port'}</button>
-				<pre>
-					{url.href}
-				</pre>
-				<pre>
-					{url.port}
-				</pre>
-			</>;
+				<pre>{url.href}</pre>
+				<pre>{url.port}</pre>
+			
 		}
 
 		render(URLTest);
@@ -121,18 +103,13 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles removing hash by setting empty string', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path#section');
-				---
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path#section');
 				<button onClick={() => (url.hash = '')}>{'Remove Hash'}</button>
-				<pre>
-					{url.href}
-				</pre>
-				<pre>
-					{url.hash}
-				</pre>
-			</>;
+				<pre>{url.href}</pre>
+				<pre>{url.hash}</pre>
+			
 		}
 
 		render(URLTest);
@@ -154,21 +131,14 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles removing search by setting empty string', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path?foo=bar');
-				---
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path?foo=bar');
 				<button onClick={() => (url.search = '')}>{'Remove Search'}</button>
-				<pre>
-					{url.href}
-				</pre>
-				<pre>
-					{url.search}
-				</pre>
-				<pre>
-					{url.searchParams.size}
-				</pre>
-			</>;
+				<pre>{url.href}</pre>
+				<pre>{url.search}</pre>
+				<pre>{url.searchParams.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -192,18 +162,13 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles hash without leading # character', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path');
-				---
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path');
 				<button onClick={() => (url.hash = 'section')}>{'Set Hash'}</button>
-				<pre>
-					{url.hash}
-				</pre>
-				<pre>
-					{url.href}
-				</pre>
-			</>;
+				<pre>{url.hash}</pre>
+				<pre>{url.href}</pre>
+			
 		}
 
 		render(URLTest);
@@ -224,18 +189,13 @@ describe('RippleURL > partials/removal', () => {
 	});
 
 	it('handles search without leading ? character', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com/path');
-				---
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com/path');
 				<button onClick={() => (url.search = 'foo=bar')}>{'Set Search'}</button>
-				<pre>
-					{url.search}
-				</pre>
-				<pre>
-					{url.href}
-				</pre>
-			</>;
+				<pre>{url.search}</pre>
+				<pre>{url.href}</pre>
+			
 		}
 
 		render(URLTest);

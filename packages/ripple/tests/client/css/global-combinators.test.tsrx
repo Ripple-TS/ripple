@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with combinators', () => {
 	it('handles :global with child combinator', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>{'content'}</span>
 	</div>
@@ -13,7 +13,7 @@ export function Test() { return <>
 			color: red;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span {/);
@@ -22,7 +22,7 @@ export function Test() { return <>
 
 	it('handles :global with adjacent sibling combinator', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>{'one'}</span>
 		<span>{'two'}</span>
@@ -37,7 +37,7 @@ export function Test() { return <>
 			color: blue;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/span\.tsrx-[a-z0-9]+ \+ span {/);
@@ -46,7 +46,7 @@ export function Test() { return <>
 
 	it('handles :global with general sibling combinator', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>{'one'}</span>
 		<span>{'two'}</span>
@@ -61,7 +61,7 @@ export function Test() { return <>
 			color: blue;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('~');
@@ -72,7 +72,7 @@ export function Test() { return <>
 
 	it('handles complex combinator chains with :global', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>
 			<button>{'nested button'}</button>
@@ -89,7 +89,7 @@ export function Test() { return <>
 			color: blue;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ > span > button {/);
@@ -98,7 +98,7 @@ export function Test() { return <>
 
 	it('handles :global with descendant combinator', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>
 			<button>{'click'}</button>
@@ -114,7 +114,7 @@ export function Test() { return <>
 			color: blue;
 		}
 	</style>
-</>; }`;
+}`;
 
 		const { css } = compile(source, 'test.tsrx');
 

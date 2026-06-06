@@ -3,8 +3,7 @@ import { track } from 'ripple';
 // Minimal repro for hydration issue with if block containing children
 // Based on SidebarGroup pattern from website-new
 
-export function IfWithChildren({ children }: { children: any }) {
-	return <>
+export function IfWithChildren({ children }: { children: any }) @{
 		let &[expanded] = track(true);
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
@@ -12,25 +11,21 @@ export function IfWithChildren({ children }: { children: any }) {
 				<div class="content">{children}</div>
 			}
 		</div>
-	</>;
 }
 
-export function ChildItem({ text: label }: { text: string }) {
-	return <><div class="item">{label}</div></>;
+export function ChildItem({ text: label }: { text: string }) @{
+	<div class="item">{label}</div>
 }
 
-export function TestIfWithChildren() {
-	return <>
+export function TestIfWithChildren() @{
 		<IfWithChildren>
 			<ChildItem text="Item 1" />
 			<ChildItem text="Item 2" />
 		</IfWithChildren>
-	</>;
 }
 
 // Simpler variant - if block with static children
-export function IfWithStaticChildren() {
-	return <>
+export function IfWithStaticChildren() @{
 		let &[expanded] = track(true);
 		<div class="container">
 			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
@@ -41,12 +36,10 @@ export function IfWithStaticChildren() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
 // Variant with sibling elements before the if block (like SidebarGroup)
-export function IfWithSiblingsAndChildren({ children }: { children: any }) {
-	return <>
+export function IfWithSiblingsAndChildren({ children }: { children: any }) @{
 		let &[expanded] = track(true);
 		<section class="group">
 			<div class="item" role="button" onClick={() => (expanded = !expanded)}>
@@ -62,23 +55,19 @@ export function IfWithSiblingsAndChildren({ children }: { children: any }) {
 				<div class="items">{children}</div>
 			}
 		</section>
-	</>;
 }
 
-export function TestIfWithSiblingsAndChildren() {
-	return <>
+export function TestIfWithSiblingsAndChildren() @{
 		<IfWithSiblingsAndChildren>
 			<ChildItem text="Item A" />
 			<ChildItem text="Item B" />
 		</IfWithSiblingsAndChildren>
-	</>;
 }
 
 // Test case for hydration pop bug: element with nested children followed by dynamic if sibling
 // This tests that hydrate_node is properly restored after processing an element's children
 // before navigating to a dynamic sibling (if/for/switch)
-export function ElementWithChildrenThenIf() {
-	return <>
+export function ElementWithChildrenThenIf() @{
 		let &[show] = track(true);
 		<div class="wrapper">
 			<div class="nested-parent">
@@ -91,12 +80,10 @@ export function ElementWithChildrenThenIf() {
 			}
 		</div>
 		<button class="toggle" onClick={() => (show = !show)}>{'Toggle'}</button>
-	</>;
 }
 
 // More complex: multiple levels of nesting before if sibling
-export function DeepNestingThenIf() {
-	return <>
+export function DeepNestingThenIf() @{
 		let &[visible] = track(true);
 		<section class="outer">
 			<article class="middle">
@@ -112,14 +99,12 @@ export function DeepNestingThenIf() {
 			}
 		</section>
 		<button class="btn" onClick={() => (visible = !visible)}>{'Toggle'}</button>
-	</>;
 }
 
 // Test case for CodeBlock pattern: element with only DOM element children (like buttons)
 // followed by another sibling element. This requires pop() to restore hydrate_node
 // because we descend into the first element to get the button children.
-export function DomElementChildrenThenSibling() {
-	return <>
+export function DomElementChildrenThenSibling() @{
 		let &[activeTab] = track('code');
 		<div class="tabs">
 			<div class="tab-list">
@@ -146,14 +131,12 @@ export function DomElementChildrenThenSibling() {
 				}
 			</div>
 		</div>
-	</>;
 }
 
 // Test case for element with DOM children followed by static siblings that don't
 // generate sibling() calls. This was causing incorrect pop() generation before next().
 // Pattern: <ul> with dynamic <li> children -> static <h2> -> static <p> -> next()
-export function DomChildrenThenStaticSiblings() {
-	return <>
+export function DomChildrenThenStaticSiblings() @{
 		let &[count] = track(0);
 		<div class="container">
 			<ul class="list">
@@ -167,14 +150,12 @@ export function DomChildrenThenStaticSiblings() {
 			<p class="para">{'Static paragraph'}</p>
 		</div>
 		<button class="inc" onClick={() => count++}>{'Increment'}</button>
-	</>;
 }
 
 // Test case for completely static element children followed by static siblings.
 // Pattern from introduction page: <ul> with static <li> (strong, code, text)
 // followed by static <h2> and <p>. No pop() should be generated for these.
-export function StaticListThenStaticSiblings() {
-	return <>
+export function StaticListThenStaticSiblings() @{
 		<div class="wrapper">
 			<ul class="features">
 				<li>
@@ -199,5 +180,4 @@ export function StaticListThenStaticSiblings() {
 				{' and more text.'}
 			</p>
 		</div>
-	</>;
 }

@@ -3,13 +3,13 @@ import { parse, compile } from '@tsrx/ripple';
 describe('compiler > attributes', () => {
 	it('generates valid JavaScript for component props with hyphenated attributes', () => {
 		const source = `
-			function Child(props) { return <>
+			function Child(props) @{
 				<div />
-			</>; }
+			}
 
-			export default function App() { return <>
+			export default function App() @{
 				<Child data-scope="test" aria-label="accessible" class="valid" />
-			</>; }`;
+			}`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
@@ -29,8 +29,12 @@ describe('compiler > attributes', () => {
 
 		testCases.forEach(({ attr, expected }) => {
 			const source = `
-				function Child(props) { return <> <div /> </>; }
-				export default function App() { return <> <Child ${attr} /> </>; }`;
+				function Child(props) @{
+					<div />
+				}
+				export default function App() @{
+					<Child ${attr} />
+				}`;
 
 			const result = compile(source, 'test.tsrx', { mode: 'client' });
 			expect(result.code).toMatch(expected);
@@ -39,11 +43,11 @@ describe('compiler > attributes', () => {
 
 	it('handles mixed valid and invalid attribute identifiers correctly', () => {
 		const source = `
-			function Child(props) { return <>
+			function Child(props) @{
 				<div />
-			</>; }
+			}
 
-			export default function App() { return <>
+			export default function App() @{
 				<Child
 					validProp="valid"
 					class="valid"
@@ -52,7 +56,7 @@ describe('compiler > attributes', () => {
 					aria-invalid="invalid"
 					custom-prop="invalid"
 				/>
-			</>; }`;
+			}`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 
@@ -69,13 +73,13 @@ describe('compiler > attributes', () => {
 
 	it('ensures generated code is syntactically valid JavaScript', () => {
 		const source = `
-			function Child(props) { return <>
+			function Child(props) @{
 				<div />
-			</>; }
+			}
 
-			export default function App() { return <>
+			export default function App() @{
 				<Child data-scope="test" />
-			</>; }`;
+			}`;
 
 		const result = compile(source, 'test.tsrx', { mode: 'client' });
 

@@ -2,21 +2,18 @@ import { flushSync, track } from 'ripple';
 
 describe('computed tracked properties', () => {
 	it('should update a property using assignment', () => {
-		function App() {
-			return <>
+		function App() @{
 				let obj = {
 					[0]: track(0),
 				};
-				---
-				<div>
-					{obj[0].value}
-				</div>
+				<div>{obj[0].value}</div>
 				<button
 					onClick={() => {
 						obj[0].value += 1;
 					}}
-				>{'Increment'}</button>
-			</>;
+				>
+					{'Increment'}
+				</button>
 		}
 
 		render(App);
@@ -30,21 +27,18 @@ describe('computed tracked properties', () => {
 	});
 
 	it('should update a property using update expressions', () => {
-		function App() {
-			return <>
+		function App() @{
 				let obj = {
 					[0]: track(0),
 				};
-				---
-				<div>
-					{obj[0].value}
-				</div>
+				<div>{obj[0].value}</div>
 				<button
 					onClick={() => {
 						obj[0].value++;
 					}}
-				>{'Increment'}</button>
-			</>;
+				>
+					{'Increment'}
+				</button>
 		}
 
 		render(App);

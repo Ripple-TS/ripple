@@ -1,82 +1,63 @@
 import { Fragment, track } from 'ripple';
 
-export function StaticHtml() {
-	return <>
+export function StaticHtml() @{
 		const html = '<p><strong>Bold</strong> text</p>';
 		<div innerHTML={html} />
-	</>;
 }
 
-export function DynamicHtml() {
-	return <>
+export function DynamicHtml() @{
 		const content = '<p>Dynamic <span>HTML</span> content</p>';
 		<div innerHTML={content} />
-	</>;
 }
 
-export function EmptyHtml() {
-	return <>
+export function EmptyHtml() @{
 		const html = '';
 		<div innerHTML={html} />
-	</>;
 }
 
-export function ComplexHtml() {
-	return <>
+export function ComplexHtml() @{
 		const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
 		<section innerHTML={html} />
-	</>;
 }
 
-export function MultipleHtml() {
-	return <>
+export function MultipleHtml() @{
 		const html1 = '<p>First paragraph</p>';
 		const html2 = '<p>Second paragraph</p>';
 		<div>
 			<Fragment innerHTML={html1} />
 			<Fragment innerHTML={html2} />
 		</div>
-	</>;
 }
 
-export function HtmlWithReactivity() {
-	return <>
+export function HtmlWithReactivity() @{
 		<div>
 			<Fragment innerHTML="<p>Count: 0</p>" />
 			<button>{'Increment'}</button>
 		</div>
-	</>;
 }
 
-export function HtmlWrapper({ children }: { children: any }) {
-	return <>
+export function HtmlWrapper({ children }: { children: any }) @{
 		<div class="wrapper">
 			<div class="inner">{children}</div>
 		</div>
-	</>;
 }
 
-export function HtmlInChildren() {
-	return <>
+export function HtmlInChildren() @{
 		const content = '<p><strong>Bold</strong> text</p>';
 		<HtmlWrapper>
 			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
-	</>;
 }
 
-export function HtmlInChildrenWithSiblings() {
-	return <>
+export function HtmlInChildrenWithSiblings() @{
 		const content = '<p>Dynamic content</p>';
 		<HtmlWrapper>
 			<h1>{'Title'}</h1>
 			<div class="content" innerHTML={content} />
 		</HtmlWrapper>
-	</>;
 }
 
-export function MultipleHtmlInChildren() {
-	return <>
+export function MultipleHtmlInChildren() @{
 		const html1 = '<p>First</p>';
 		const html2 = '<p>Second</p>';
 		<HtmlWrapper>
@@ -85,37 +66,30 @@ export function MultipleHtmlInChildren() {
 				<Fragment innerHTML={html2} />
 			</div>
 		</HtmlWrapper>
-	</>;
 }
 
-export function HtmlWithComments() {
-	return <>
+export function HtmlWithComments() @{
 		const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
 		<div innerHTML={content} />
-	</>;
 }
 
-export function HtmlWithEmptyComment() {
-	return <>
+export function HtmlWithEmptyComment() @{
 		const content = '<p>Before</p><!----><p>After</p>';
 		<div innerHTML={content} />
-	</>;
 }
 
-export function HtmlWithCommentsInChildren() {
-	return <>
+export function HtmlWithCommentsInChildren() @{
 		const content = '<h2 id="intro">Introduction</h2><p>Some text</p><!-- TODO --><p>More text</p>';
 		<HtmlWrapper>
 			<div class="vp-doc" innerHTML={content} />
 		</HtmlWrapper>
-	</>;
 }
 
-function DocFooter() {
-	return <><footer class="doc-footer">{'Footer content'}</footer></>;
+function DocFooter() @{
+	<footer class="doc-footer">{'Footer content'}</footer>
 }
 
-export function DocLayout({
+export function DocLayout(@{
 	children,
 	editPath = '',
 	nextLink = null,
@@ -126,7 +100,6 @@ export function DocLayout({
 	nextLink?: { href: string; text: string } | null;
 	toc?: { href: string; text: string }[];
 }) {
-	return <>
 		<div class="layout">
 			<div class="content-container">
 				<article>
@@ -158,11 +131,9 @@ export function DocLayout({
 				}
 			</aside>
 		</div>
-	</>;
 }
 
-export function HtmlWithServerData() {
-	return <>
+export function HtmlWithServerData() @{
 		const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 		<DocLayout
 			editPath="docs/introduction.md"
@@ -174,29 +145,23 @@ export function HtmlWithServerData() {
 		>
 			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
-	</>;
 }
 
-export function HtmlWithClientDefaults() {
-	return <>
+export function HtmlWithClientDefaults() @{
 		const content = '<h1 id="intro" class="doc-h1">Introduction</h1><p>Ripple is a framework.</p>';
 		<DocLayout>
 			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
-	</>;
 }
 
-export function HtmlWithUndefinedContent() {
-	return <>
+export function HtmlWithUndefinedContent() @{
 		const content: string | undefined = undefined;
 		<DocLayout>
 			<div class="vp-doc" innerHTML={content} />
 		</DocLayout>
-	</>;
 }
 
-function DynamicHeading({ level, children }: { level: number; children: any }) {
-	return <>
+function DynamicHeading({ level, children }: { level: number; children: any }) @{
 		@switch (level) {
 			case 1:
 				<h1 class="heading">{children}</h1>
@@ -205,11 +170,9 @@ function DynamicHeading({ level, children }: { level: number; children: any }) {
 				<h2 class="heading">{children}</h2>
 				break;
 		}
-	</>;
 }
 
-function CodeBlock({ code }: { code: string }) {
-	return <>
+function CodeBlock({ code }: { code: string }) @{
 		const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
 		<div class="code-block">
 			<div class="header">
@@ -218,19 +181,15 @@ function CodeBlock({ code }: { code: string }) {
 			</div>
 			<div class="content" innerHTML={highlighted} />
 		</div>
-	</>;
 }
 
-function ContentWrapper({ children }: { children: any }) {
-	return <>
+function ContentWrapper({ children }: { children: any }) @{
 		<div class="wrapper">
 			<div class="inner">{children}</div>
 		</div>
-	</>;
 }
 
-export function HtmlAfterSwitchInChildren() {
-	return <>
+export function HtmlAfterSwitchInChildren() @{
 		<ContentWrapper>
 			<DynamicHeading level={1}>{'Title'}</DynamicHeading>
 			<p>{'First paragraph'}</p>
@@ -238,10 +197,9 @@ export function HtmlAfterSwitchInChildren() {
 			<CodeBlock code="const x = 1;" />
 			<p>{'After code'}</p>
 		</ContentWrapper>
-	</>;
 }
 
-function NavItem({
+function NavItem(@{
 	href,
 	text: label,
 	active = false,
@@ -250,7 +208,6 @@ function NavItem({
 	text: string;
 	active?: boolean;
 }) {
-	return <>
 		<div class={`nav-item${active ? ' active' : ''}`}>
 			@if (active) {
 				<div class="indicator" />
@@ -259,11 +216,9 @@ function NavItem({
 				<span>{label}</span>
 			</a>
 		</div>
-	</>;
 }
 
-function SidebarSection({ title, children }: { title: string; children: any }) {
-	return <>
+function SidebarSection({ title, children }: { title: string; children: any }) @{
 		let &[expanded] = track(true);
 		<section class="sidebar-section">
 			<div class="section-header">
@@ -274,11 +229,9 @@ function SidebarSection({ title, children }: { title: string; children: any }) {
 				<div class="section-items">{children}</div>
 			}
 		</section>
-	</>;
 }
 
-function SideNav({ currentPath }: { currentPath: string }) {
-	return <>
+function SideNav({ currentPath }: { currentPath: string }) @{
 		<aside class="sidebar">
 			<nav>
 				<div class="group">
@@ -295,19 +248,15 @@ function SideNav({ currentPath }: { currentPath: string }) {
 				</div>
 			</nav>
 		</aside>
-	</>;
 }
 
-function PageHeader() {
-	return <>
+function PageHeader() @{
 		<header class="page-header">
 			<div class="logo">{'MyApp'}</div>
 		</header>
-	</>;
 }
 
-export function LayoutWithSidebarAndMain() {
-	return <>
+export function LayoutWithSidebarAndMain() @{
 		<div class="layout">
 			<PageHeader />
 			<div class="content-wrapper">
@@ -328,23 +277,19 @@ export function LayoutWithSidebarAndMain() {
 				</main>
 			</div>
 		</div>
-	</>;
 }
 
-function ArticleWrapper({ children }: { children: any }) {
-	return <>
+function ArticleWrapper({ children }: { children: any }) @{
 		<article class="doc-content">
 			<div>{children}</div>
 		</article>
-	</>;
 }
 
-function SimpleFooter() {
-	return <><footer class="doc-footer">{'Footer'}</footer></>;
+function SimpleFooter() @{
+	<footer class="doc-footer">{'Footer'}</footer>
 }
 
-export function ArticleWithChildrenThenSibling() {
-	return <>
+export function ArticleWithChildrenThenSibling() @{
 		<div class="content-container">
 			<ArticleWrapper>
 				<h1>{'Title'}</h1>
@@ -362,11 +307,9 @@ export function ArticleWithChildrenThenSibling() {
 			}
 			<SimpleFooter />
 		</div>
-	</>;
 }
 
-export function ArticleWithHtmlChildThenSibling() {
-	return <>
+export function ArticleWithHtmlChildThenSibling() @{
 		const htmlContent = '<pre><code>const x = 1;</code></pre>';
 		<div class="content-container">
 			<ArticleWrapper>
@@ -379,11 +322,9 @@ export function ArticleWithHtmlChildThenSibling() {
 			}
 			<SimpleFooter />
 		</div>
-	</>;
 }
 
-function InlineArticleLayout({ children }: { children: any }) {
-	return <>
+function InlineArticleLayout({ children }: { children: any }) @{
 		<div class="content-container">
 			<article class="doc-content">
 				<div>{children}</div>
@@ -395,31 +336,28 @@ function InlineArticleLayout({ children }: { children: any }) {
 			}
 			<SimpleFooter />
 		</div>
-	</>;
 }
 
-export function InlineArticleWithHtmlChild() {
-	return <>
+export function InlineArticleWithHtmlChild() @{
 		const htmlContent = '<pre><code>const x = 1;</code></pre>';
 		<InlineArticleLayout>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</InlineArticleLayout>
-	</>;
 }
 
-function HeaderStub() {
-	return <><header class="header">{'Header'}</header></>;
+function HeaderStub() @{
+	<header class="header">{'Header'}</header>
 }
 
-function SidebarStub() {
-	return <><aside class="sidebar">{'Sidebar'}</aside></>;
+function SidebarStub() @{
+	<aside class="sidebar">{'Sidebar'}</aside>
 }
 
-function FooterStub() {
-	return <><footer class="footer">{'Footer'}</footer></>;
+function FooterStub() @{
+	<footer class="footer">{'Footer'}</footer>
 }
 
-function DocsLayoutInner({
+function DocsLayoutInner(@{
 	children,
 	editPath = '',
 	nextLink = null,
@@ -428,7 +366,6 @@ function DocsLayoutInner({
 	editPath?: string;
 	nextLink?: { href: string; text: string } | null;
 }) {
-	return <>
 		<div class="layout">
 			<HeaderStub />
 			<div class="docs-wrapper">
@@ -457,28 +394,23 @@ function DocsLayoutInner({
 				</main>
 			</div>
 		</div>
-	</>;
 }
 
-export function DocsLayoutWithData() {
-	return <>
+export function DocsLayoutWithData() @{
 		const htmlContent = '<h1>Title</h1><p>Content</p>';
 		<DocsLayoutInner editPath="docs/styling.md" nextLink={{ href: '/next', text: 'Next' }}>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
-	</>;
 }
 
-export function DocsLayoutWithoutData() {
-	return <>
+export function DocsLayoutWithoutData() @{
 		const htmlContent: string | undefined = undefined;
 		<DocsLayoutInner>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutInner>
-	</>;
 }
 
-function DocsLayoutExact({
+function DocsLayoutExact(@{
 	children,
 	editPath = '',
 	prevLink = null,
@@ -491,7 +423,6 @@ function DocsLayoutExact({
 	nextLink?: { href: string; text: string } | null;
 	toc?: { href: string; text: string }[];
 }) {
-	return <>
 		<div class="layout">
 			<HeaderStub />
 			<div class="docs-wrapper">
@@ -542,11 +473,9 @@ function DocsLayoutExact({
 				</main>
 			</div>
 		</div>
-	</>;
 }
 
-export function DocsLayoutExactWithData() {
-	return <>
+export function DocsLayoutExactWithData() @{
 		const htmlContent = '<h1>Styling Guide</h1><p>Content</p>';
 		<DocsLayoutExact
 			editPath="docs/guide/styling.md"
@@ -559,11 +488,9 @@ export function DocsLayoutExactWithData() {
 		>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutExact>
-	</>;
 }
 
-export function DocsLayoutExactWithoutData() {
-	return <>
+export function DocsLayoutExactWithoutData() @{
 		const htmlContent: string | undefined = undefined;
 		const editPath: string | undefined = undefined;
 		const prevLink: { href: string; text: string } | null | undefined = undefined;
@@ -572,50 +499,40 @@ export function DocsLayoutExactWithoutData() {
 		<DocsLayoutExact {editPath} {prevLink} {nextLink} {toc}>
 			<div class="doc-content" innerHTML={htmlContent} />
 		</DocsLayoutExact>
-	</>;
 }
 
-export function TemplateWithHtmlContent() {
-	return <>
+export function TemplateWithHtmlContent() @{
 		const data = { title: 'Test', value: 42 };
 		<div>
 			<template id="t1" innerHTML={JSON.stringify(data)} />
 			<p class="content">{'Main content'}</p>
 		</div>
-	</>;
 }
 
-export function TemplateWithHtmlAndSiblings() {
-	return <>
+export function TemplateWithHtmlAndSiblings() @{
 		const data = { name: 'Ripple', version: '1.0' };
 		<div class="wrapper">
 			<h1>{'Title'}</h1>
 			<template id="data-template" innerHTML={JSON.stringify(data)} />
 			<p class="after-template">{'Content after template'}</p>
 		</div>
-	</>;
 }
 
-function LayoutWithTemplate({ children, data }: { children: any; data: object }) {
-	return <>
+function LayoutWithTemplate({ children, data }: { children: any; data: object }) @{
 		<div class="layout">
 			<template id="page-data" innerHTML={JSON.stringify(data)} />
 			<main>{children}</main>
 		</div>
-	</>;
 }
 
-export function NestedTemplateInLayout() {
-	return <>
+export function NestedTemplateInLayout() @{
 		const doc = { title: 'Comparison', html: '<p>Content</p>' };
 		<LayoutWithTemplate data={doc}>
 			<div class="doc-content" innerHTML={doc.html} />
 		</LayoutWithTemplate>
-	</>;
 }
 
-export function HtmlCodeBlocksWithSiblingChain() {
-	return <>
+export function HtmlCodeBlocksWithSiblingChain() @{
 		const html1 = '<span class="kw">const</span> <span class="id">a</span> = 1;';
 		const html2 = '<span class="kw">const</span> <span class="id">b</span> = 2;';
 		const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
@@ -636,5 +553,4 @@ export function HtmlCodeBlocksWithSiblingChain() {
 				<code innerHTML={html3} />
 			</pre>
 		</section>
-	</>;
 }

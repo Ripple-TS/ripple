@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with @media and @supports', () => {
 	it('handles :global inside @media queries', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -17,7 +17,7 @@ export function Test() { return <>
 			}
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@media (min-width: 768px) {');
@@ -27,7 +27,7 @@ export function Test() { return <>
 
 	it('handles :global inside @supports queries', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -41,7 +41,7 @@ export function Test() { return <>
 			}
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@supports (display: grid) {');
@@ -51,7 +51,7 @@ export function Test() { return <>
 
 	it('handles nested @media with :global', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -69,7 +69,7 @@ export function Test() { return <>
 			}
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@media (min-width: 768px) {');
@@ -80,7 +80,7 @@ export function Test() { return <>
 
 	it('handles :global in @container queries', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -90,7 +90,7 @@ export function Test() { return <>
 			}
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@container (min-width: 400px) {');
@@ -99,7 +99,7 @@ export function Test() { return <>
 
 	it('handles multiple at-rules with :global', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -115,7 +115,7 @@ export function Test() { return <>
 			}
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('@media screen {');

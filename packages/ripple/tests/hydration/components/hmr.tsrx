@@ -8,32 +8,26 @@ import { track } from 'ripple';
 
 // A layout component similar to docs-layout: a root div wrapping child components
 // where the children contain conditional content (if blocks)
-export function Layout({ children }: { children: any }) {
-	return <>
+export function Layout({ children }: { children: any }) @{
 		<div class="layout">
 			<nav class="nav">{'Navigation'}</nav>
 			<main class="main">{children}</main>
 		</div>
-	</>;
 }
 
 // A child component with an if block (the key source of deep hydrate_node)
-export function Content() {
-	return <>
+export function Content() @{
 		let &[visible] = track(true);
 		<div class="content">
 			@if (visible) {
 				<p class="text">{'Hello world'}</p>
 			}
 		</div>
-	</>;
 }
 
 // The top-level component combining Layout + Content (mimics docs layout + page)
-export function LayoutWithContent() {
-	return <>
+export function LayoutWithContent() @{
 		<Layout>
 			<Content />
 		</Layout>
-	</>;
 }

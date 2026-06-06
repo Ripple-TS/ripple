@@ -3,8 +3,7 @@ import { compile } from '@tsrx/ripple';
 
 describe('basic client > errors', () => {
 	it('renders with error handling simulation', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
 				let &[hasError] = track(false);
 				let &[errorMessage] = track('');
 				const triggerError = () => {
@@ -15,18 +14,14 @@ describe('basic client > errors', () => {
 						errorMessage = (e as Error).message;
 					}
 				};
-				---
 				<div>
 					<button onClick={triggerError}>{'Trigger Error'}</button>
 					@if (hasError) {
-						<div class="error">
-							{'Error caught: ' + errorMessage}
-						</div>
+						<div class="error">{'Error caught: ' + errorMessage}</div>
 					} else {
 						<div class="success">{'No error'}</div>
 					}
 				</div>
-			</>;
 		}
 
 		render(Basic);
@@ -46,18 +41,18 @@ describe('basic client > errors', () => {
 	});
 
 	it('should throw error for unclosed tag', () => {
-		const malformedCode = `export default function Example() { return <>
+		const malformedCode = `export default function Example() @{
 	<div></span>
-</>; }`;
+		}`;
 		expect(() => {
 			compile(malformedCode, 'test.tsrx');
 		}).toThrow('Expected closing tag to match opening tag');
 	});
 
 	it('should throw error for completely unclosed tag', () => {
-		const malformedCode = `export default function Example() { return <>
+		const malformedCode = `export default function Example() @{
 	<div>content
-</>; }`;
+		}`;
 
 		expect(() => {
 			compile(malformedCode, 'test.tsrx');
@@ -66,9 +61,9 @@ describe('basic client > errors', () => {
 
 	it('should throw error for interpolating children as text', () => {
 		const code = `
-			export function Layout({ children }) { return <>
+			export function Layout({ children }) @{
 				<div>{children}</div>
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -78,9 +73,9 @@ describe('basic client > errors', () => {
 
 	it('should throw error for interpolating props.children as text', () => {
 		const code = `
-			export function Layout(props) { return <>
+			export function Layout(props) @{
 				<div>{props.children}</div>
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -90,9 +85,9 @@ describe('basic client > errors', () => {
 
 	it('should throw error for calling children as a function', () => {
 		const code = `
-			export function Layout({ children }) { return <>
+			export function Layout({ children }) @{
 				{children()}
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -104,9 +99,9 @@ describe('basic client > errors', () => {
 
 	it('should throw error for calling props.children as a function', () => {
 		const code = `
-			export function Layout(props) { return <>
+			export function Layout(props) @{
 				{props.children()}
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -117,8 +112,7 @@ describe('basic client > errors', () => {
 	});
 
 	it('errors on mutating tracked value inside computed track() evaluation', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
 				let &[count] = track(0);
 				const &[doubled] = track(() => {
 					try {
@@ -127,9 +121,7 @@ describe('basic client > errors', () => {
 						error = (e as Error).message;
 					}
 				});
-				---
 				<p>{doubled}</p>
-			</>;
 		}
 
 		render(Basic);
@@ -140,8 +132,7 @@ describe('basic client > errors', () => {
 	});
 
 	it('errors on mutating tracked value inside untrack() in computed track() evaluation', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
 				let &[count] = track(0);
 				const &[doubled] = track(() => {
 					try {
@@ -152,9 +143,7 @@ describe('basic client > errors', () => {
 						error = (e as Error).message;
 					}
 				});
-				---
 				<p>{doubled}</p>
-			</>;
 		}
 
 		render(Basic);
@@ -165,8 +154,7 @@ describe('basic client > errors', () => {
 	});
 
 	it('errors on mutating a tracked variable in track() getter', () => {
-		function Basic() {
-			return <>
+		function Basic() @{
 				let &[count] = track(0);
 				const &[doubled] = track(0, (value) => {
 					try {
@@ -176,9 +164,7 @@ describe('basic client > errors', () => {
 					}
 					return value;
 				});
-				---
 				<p>{doubled}</p>
-			</>;
 		}
 
 		render(Basic);
@@ -190,15 +176,14 @@ describe('basic client > errors', () => {
 
 	it('should throw error for await inside client components', () => {
 		const code = `
-			export default async function App() { return <>
+			export default async function App() @{
 				let data = 'initial';
 				if (true) {
 					await new Promise(r => setTimeout(r, 100));
 					data = 'loaded';
 				}
-				---
 				<div>{data}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx', { mode: 'client' });
@@ -207,14 +192,13 @@ describe('basic client > errors', () => {
 
 	it('should throw error for while loop inside a component', () => {
 		const code = `
-			export default function App() { return <>
+			export default function App() @{
 				let i = 0;
 				while (i < 10) {
 					i++;
 				}
-				---
 				<div>{i}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -223,14 +207,13 @@ describe('basic client > errors', () => {
 
 	it('should throw error for do...while loop inside a component', () => {
 		const code = `
-			export default function App() { return <>
+			export default function App() @{
 				let i = 0;
 				do {
 					i++;
 				} while (i < 10);
-				---
 				<div>{i}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -239,9 +222,9 @@ describe('basic client > errors', () => {
 
 	it('should allow JSX fragments in TSRX templates as <> shorthand', () => {
 		const code = `
-			export default function SafeProfile() { return <>
+			export default function SafeProfile() @{
 				<b><>{111}</></b>
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -251,9 +234,9 @@ describe('basic client > errors', () => {
 
 	it('should allow JSX fragments inside tsx blocks', () => {
 		const code = `
-			export default function SafeProfile() { return <>
+			export default function SafeProfile() @{
 				<><>{111}</></>
-			</>; }
+			}
 		`;
 
 		expect(() => {
@@ -263,7 +246,7 @@ describe('basic client > errors', () => {
 
 	it('should not throw error for while loop inside a function within a component', () => {
 		const code = `
-			export default function App() { return <>
+			export default function App() @{
 				const compute = () => {
 					let i = 0;
 					while (i < 10) {
@@ -271,9 +254,8 @@ describe('basic client > errors', () => {
 					}
 					return i;
 				};
-				---
 				<div>{compute()}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -282,7 +264,7 @@ describe('basic client > errors', () => {
 
 	it('should not throw error for do...while loop inside a function within a component', () => {
 		const code = `
-			export default function App() { return <>
+			export default function App() @{
 				const compute = () => {
 					let i = 0;
 					do {
@@ -290,9 +272,8 @@ describe('basic client > errors', () => {
 					} while (i < 10);
 					return i;
 				};
-				---
 				<div>{compute()}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');
@@ -301,11 +282,10 @@ describe('basic client > errors', () => {
 
 	it('should throw error for variables using the reserved _$_ prefix', () => {
 		const code = `
-			export default function App() { return <>
+			export default function App() @{
 				const _$_test = 'hello';
-				---
 				<div>{_$_test}</div>
-			</>; }
+			}
 		`;
 		expect(() => {
 			compile(code, 'test.tsrx');

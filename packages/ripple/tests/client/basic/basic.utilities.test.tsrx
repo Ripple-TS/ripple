@@ -5,8 +5,8 @@ describe('basic client > utilities', () => {
 		let resolve: () => void;
 		const promise = new Promise<void>((res) => (resolve = res));
 
-		function Basic() {
-			return <>
+		function Basic() @{
+			
 				let &[value] = track(0);
 				effect(() => {
 					untrack(() => {
@@ -14,9 +14,8 @@ describe('basic client > utilities', () => {
 						tick().then(() => resolve());
 					});
 				});
-				---
 				<p>{value}</p>
-			</>;
+			
 		}
 		render(Basic);
 

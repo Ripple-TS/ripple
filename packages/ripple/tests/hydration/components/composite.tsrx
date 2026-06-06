@@ -1,63 +1,63 @@
 import type { Children } from 'ripple';
 
-export function Layout(&{ children }: { children?: Children }) {
-	return <><div class="layout">{children}</div></>;
+export function Layout(&{ children }: { children?: Children }) @{
+	<div class="layout">{children}</div>
 }
 
-export function TextWrappedLayout(&{ children }: { children?: Children }) {
-	return <>
+export function TextWrappedLayout(&{ children }: { children?: Children }) @{
+	
 		<div class="layout">
 			{'before'}
 			{children}
 			{'after'}
 		</div>
-	</>;
+	
 }
 
-export function SingleChild() {
-	return <><div class="single">{'single'}</div></>;
+export function SingleChild() @{
+	<div class="single">{'single'}</div>
 }
 
-export function MultiRootChild() {
-	return <>
+export function MultiRootChild() @{
+	
 		<h1>{'title'}</h1>
 		<p>{'description'}</p>
-	</>;
+	
 }
 
-export function EmptyLayout() {
-	return <><Layout /></>;
+export function EmptyLayout() @{
+	<Layout />
 }
 
-export function LayoutWithSingleChild() {
-	return <>
+export function LayoutWithSingleChild() @{
+	
 		<Layout>
 			<SingleChild />
 		</Layout>
-	</>;
+	
 }
 
-export function LayoutWithMultipleChildren() {
-	return <>
+export function LayoutWithMultipleChildren() @{
+	
 		<Layout>
 			<SingleChild />
 			<div class="extra">{'extra'}</div>
 		</Layout>
-	</>;
+	
 }
 
-export function LayoutWithMultiRootChild() {
-	return <>
+export function LayoutWithMultiRootChild() @{
+	
 		<Layout>
 			<MultiRootChild />
 		</Layout>
-	</>;
+	
 }
 
-export function LayoutWithTextAroundChildren() {
-	return <>
+export function LayoutWithTextAroundChildren() @{
+	
 		<TextWrappedLayout>
 			<SingleChild />
 		</TextWrappedLayout>
-	</>;
+	
 }

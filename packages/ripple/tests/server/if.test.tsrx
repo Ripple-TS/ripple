@@ -1,13 +1,10 @@
 describe('if statements in SSR', () => {
 	it('renders if block when condition is true', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let condition = true;
-				---
 				@if (condition) {
 					<div>{'If block'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -15,16 +12,13 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders else block when condition is false', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let condition = false;
-				---
 				@if (condition) {
 					<div>{'If block'}</div>
 				} else {
 					<div>{'Else block'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -32,46 +26,22 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders bare JSX text in if-else branches', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let condition = false;
-				---
 				@if (condition) {
 					Hello Ripple
 				} else {
 					Hello React
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('Hello React');
 	});
 
-	it('runs script-only if bodies that end with frontmatter without rendering them', async () => {
-		let calls = 0;
-		function App() {
-			return <>
-				let condition = true;
-				---
-				@if (condition) {
-					calls++;
-					---
-				}
-				<div>{'done'}</div>
-			</>;
-		}
-
-		const { body } = await render(App);
-		expect(calls).toBe(1);
-		expect(body).toBeHtml('<div>done</div>');
-	});
-
 	it('renders else if block when condition is true', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'b';
-				---
 				@if (value === 'a') {
 					<div>Case A</div>
 				} else if (value === 'b') {
@@ -79,7 +49,6 @@ describe('if statements in SSR', () => {
 				} else {
 					<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -87,10 +56,8 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders final else block in an if-else if-else chain', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let value = 'c';
-				---
 				@if (value === 'a') {
 					<div>Case A</div>
 				} else if (value === 'b') {
@@ -98,7 +65,6 @@ describe('if statements in SSR', () => {
 				} else {
 					<div>{'Default Case'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);
@@ -106,11 +72,9 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders nested if-else blocks correctly', async () => {
-		function App() {
-			return <>
+		function App() @{
 				let outer = true;
 				let inner = false;
-				---
 				@if (outer) {
 					@if (inner) {
 						<div>{'Outer true, Inner true'}</div>
@@ -120,7 +84,6 @@ describe('if statements in SSR', () => {
 				} else {
 					<div>{'Outer false'}</div>
 				}
-			</>;
 		}
 
 		const { body } = await render(App);

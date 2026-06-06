@@ -3,8 +3,7 @@ import { RippleObject, effect, flushSync, track } from 'ripple';
 
 describe('composite > reactivity', () => {
 	it('renders composite components with object state', () => {
-		function Button({ obj }: { obj: { count: Tracked<number> } }) {
-			return <>
+		function Button({ obj }: { obj: { count: Tracked<number> } }) @{
 				<button
 					class="count2"
 					onClick={() => {
@@ -13,21 +12,17 @@ describe('composite > reactivity', () => {
 				>
 					{obj.count.value}
 				</button>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				<div>
-					let obj = Object.create(null);
-					obj.count = track(0);
-					---
-					<span class="count">
-						{obj.count.value}
-					</span>
+					let obj = {
+						count: track(0),
+					};
+
+					<span class="count">{obj.count.value}</span>
 					<Button {obj} />
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -42,8 +37,7 @@ describe('composite > reactivity', () => {
 	});
 
 	it('renders composite components with object state wrapped in an if statement', () => {
-		function Button({ obj }: { obj: { count: Tracked<number> } }) {
-			return <>
+		function Button({ obj }: { obj: { count: Tracked<number> } }) @{
 				<button
 					class="count2"
 					onClick={() => {
@@ -52,35 +46,28 @@ describe('composite > reactivity', () => {
 				>
 					{obj.count.value}
 				</button>
-			</>;
 		}
 
-		function OtherComponent({ obj }: { obj: { count: Tracked<number> } }) {
-			return <>
-				<div class="count3">
-					{obj.count.value}
-				</div>
-			</>;
+		function OtherComponent({ obj }: { obj: { count: Tracked<number> } }) @{
+			<div class="count3">{obj.count.value}</div>
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				<div>
-					let obj = Object.create(null);
-					obj.count = track(0);
-					---
-					<span class="count">
-						{obj.count.value}
-					</span>
+					let obj = {
+						count: track(0),
+					};
+
+					<span class="count">{obj.count.value}</span>
 					<span>{' '}</span>
 					@if (obj) {
 						<Button {obj} />
 					}
+
 					@if (obj) {
 						<OtherComponent {obj} />
 					}
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -96,10 +83,8 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated state', () => {
-		function Button(props: { count: number }) {
-			return <>
+		function Button(props: { count: number }) @{
 				let &[count] = track(() => props.count);
-				---
 				<button
 					onClick={() => {
 						count++;
@@ -107,14 +92,12 @@ describe('composite > reactivity', () => {
 				>
 					{'child: ' + count}
 				</button>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				<div>
 					let &[count] = track(0);
-					---
+
 					<button
 						onClick={() => {
 							count++;
@@ -124,7 +107,6 @@ describe('composite > reactivity', () => {
 					</button>
 					<Button {count} />
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -148,10 +130,8 @@ describe('composite > reactivity', () => {
 	});
 
 	it('parents and children have isolated connected state (destructured props)', () => {
-		function Button(&{ count }: { count: number }) {
-			return <>
+		function Button(&{ count }: { count: number }) @{
 				let &[local_count] = track(() => count);
-				---
 				<button
 					onClick={() => {
 						local_count++;
@@ -159,14 +139,12 @@ describe('composite > reactivity', () => {
 				>
 					{'child: ' + local_count}
 				</button>
-			</>;
 		}
 
-		function App() {
-			return <>
+		function App() @{
 				<div>
 					let &[count] = track(0);
-					---
+
 					<button
 						onClick={() => {
 							count++;
@@ -176,7 +154,6 @@ describe('composite > reactivity', () => {
 					</button>
 					<Button {count} />
 				</div>
-			</>;
 		}
 
 		render(App);
@@ -202,8 +179,7 @@ describe('composite > reactivity', () => {
 	it('handles spreading of props', () => {
 		let logs: string[] = [];
 
-		function App() {
-			return <>
+		function App() @{
 				let &[a] = track(1);
 				let &[b] = track(2);
 				let &[c] = track(3);
@@ -214,7 +190,6 @@ describe('composite > reactivity', () => {
 						c,
 					}),
 				);
-				---
 				<Child {...obj} />
 				<button
 					onClick={() => {
@@ -222,20 +197,16 @@ describe('composite > reactivity', () => {
 						b++;
 						c++;
 					}}
-				>{'Increment all'}</button>
-			</>;
+				>
+					{'Increment all'}
+				</button>
 		}
 
-		function Child(&{ a, b, c }: { a: number; b: number; c: number }) {
-			return <>
+		function Child(&{ a, b, c }: { a: number; b: number; c: number }) @{
 				effect(() => {
 					logs.push(`Child effect: ${a}, ${b}, ${c}`);
 				});
-				---
-				<div>
-					{a + ' ' + b + ' ' + c}
-				</div>
-			</>;
+				<div>{a + ' ' + b + ' ' + c}</div>
 		}
 
 		render(App);
@@ -253,41 +224,21 @@ describe('composite > reactivity', () => {
 	});
 
 	it('keeps reactivity for spread props via intermediate components and lazy destructuring', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[count] = track(0);
-				---
 				<CounterWrapper {count} up={() => count++} down={() => count--} />
-			</>;
 		}
 
-		function CounterWrapper(props: {
-			count: number;
-			up: () => void;
-			down: () => void;
-		}) {
-			return <>
+		function CounterWrapper(props: Props) @{
 				<div>
 					<Counter {...props} />
 				</div>
-			</>;
 		}
 
-		function Counter(&{
-			count,
-			up,
-			down,
-			...rest
-		}: {
-			count: number;
-			up: () => void;
-			down: () => void;
-		}) {
-			return <>
+		function Counter(&{ count, up, down, ...rest }: Props) @{
 				<button onClick={() => up()}>{'UP'}</button>
 				<button onClick={() => down()}>{'DOWN'}</button>
 				<span {...rest}>{`Counter: ${count}`}</span>
-			</>;
 		}
 
 		render(App);
@@ -310,16 +261,12 @@ describe('composite > reactivity', () => {
 	});
 
 	it('keeps reactivity on elements for element spreads and adds / removes dynamic props', () => {
-		function App() {
-			return <>
+		function App() @{
 				let &[count] = track(0);
-				---
 				<CounterWrapper {count} up={() => count++} />
-			</>;
 		}
 
-		function CounterWrapper(props: { count: number; up: () => void }) {
-			return <>
+		function CounterWrapper(props: { count: number; up: () => void }) @{
 				const more: {
 					double: Tracked<number>;
 					another?: number;
@@ -337,14 +284,12 @@ describe('composite > reactivity', () => {
 						more.another = 0;
 					}
 				});
-				---
 				<div>
 					<Counter {...props} double={more.double} another={more.another} extra={more.extra} />
 				</div>
-			</>;
 		}
 
-		function Counter(&{
+		function Counter(&@{
 			count,
 			up,
 			...rest
@@ -355,10 +300,8 @@ describe('composite > reactivity', () => {
 			another?: number;
 			extra: number;
 		}) {
-			return <>
 				<div {...rest}>{`Counter: ${count} Double: ${rest.double.value}`}</div>
 				<button onClick={() => up()}>{'UP'}</button>
-			</>;
 		}
 
 		render(App);

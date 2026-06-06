@@ -2,51 +2,51 @@ import { track } from 'ripple';
 
 // Reactive components for hydration testing
 
-export function TrackedState() {
-	return <>
+export function TrackedState() @{
+	
 		let &[count] = track(0);
 		<div class="count">{count}</div>
-	</>;
+	
 }
 
-export function CounterWithInitial(props: { initial: number }) {
-	return <>
+export function CounterWithInitial(props: { initial: number }) @{
+	
 		let &[count] = track(props.initial);
 		<div>
 			<span class="count">{count}</span>
 		</div>
-	</>;
+	
 }
 
-export function CounterWrapper() {
-	return <><CounterWithInitial initial={5} /></>;
+export function CounterWrapper() @{
+	<CounterWithInitial initial={5} />
 }
 
-export function ComputedValues() {
-	return <>
+export function ComputedValues() @{
+	
 		let &[a] = track(2);
 		let &[b] = track(3);
 		const sum = () => a + b;
 		<div class="sum">{sum()}</div>
-	</>;
+	
 }
 
-export function MultipleTracked() {
-	return <>
+export function MultipleTracked() @{
+	
 		let &[x] = track(10);
 		let &[y] = track(20);
 		let &[z] = track(30);
 		<div class="x">{x}</div>
 		<div class="y">{y}</div>
 		<div class="z">{z}</div>
-	</>;
+	
 }
 
-export function DerivedState() {
-	return <>
+export function DerivedState() @{
+	
 		let &[firstName] = track('John');
 		let &[lastName] = track('Doe');
 		const fullName = () => `${firstName} ${lastName}`;
 		<div class="name">{fullName()}</div>
-	</>;
+	
 }

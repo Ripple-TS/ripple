@@ -2,30 +2,25 @@ import { track } from 'ripple';
 
 // For loop components for hydration testing
 
-export function StaticForLoop() {
-	return <>
+export function StaticForLoop() @{
 		const items = ['Apple', 'Banana', 'Cherry'];
 		<ul>
 			@for (const item of items) {
 				<li>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
-export function ForLoopWithIndex() {
-	return <>
+export function ForLoopWithIndex() @{
 		const items = ['A', 'B', 'C'];
 		<ul>
 			@for (const item of items; index i) {
 				<li>{`${i}: ${item}`}</li>
 			}
 		</ul>
-	</>;
 }
 
-export function KeyedForLoop() {
-	return <>
+export function KeyedForLoop() @{
 		const items = [
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
@@ -36,11 +31,9 @@ export function KeyedForLoop() {
 				<li>{item.name}</li>
 			}
 		</ul>
-	</>;
 }
 
-export function ReactiveForLoopAdd() {
-	return <>
+export function ReactiveForLoopAdd() @{
 		let &[items] = track(['A', 'B']);
 		<button
 			class="add"
@@ -55,11 +48,9 @@ export function ReactiveForLoopAdd() {
 				<li>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
-export function ReactiveForLoopRemove() {
-	return <>
+export function ReactiveForLoopRemove() @{
 		let &[items] = track(['A', 'B', 'C']);
 		<button
 			class="remove"
@@ -74,11 +65,9 @@ export function ReactiveForLoopRemove() {
 				<li>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
-export function ForLoopInteractive() {
-	return <>
+export function ForLoopInteractive() @{
 		let &[counts] = track([0, 0, 0]);
 		<div>
 			@for (const count of counts; index i) {
@@ -97,11 +86,9 @@ export function ForLoopInteractive() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
-export function NestedForLoop() {
-	return <>
+export function NestedForLoop() @{
 		const grid = [
 			[1, 2],
 			[3, 4],
@@ -115,22 +102,18 @@ export function NestedForLoop() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
-export function EmptyForLoop() {
-	return <>
+export function EmptyForLoop() @{
 		const items: string[] = [];
 		<div class="container">
 			@for (const item of items) {
 				<span>{item}</span>
 			}
 		</div>
-	</>;
 }
 
-export function ForLoopComplexObjects() {
-	return <>
+export function ForLoopComplexObjects() @{
 		const users = [
 			{ id: 1, name: 'Alice', role: 'Admin' },
 			{ id: 2, name: 'Bob', role: 'User' },
@@ -143,12 +126,10 @@ export function ForLoopComplexObjects() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
 // Test reordering items in a keyed for loop
-export function KeyedForLoopReorder() {
-	return <>
+export function KeyedForLoopReorder() @{
 		let &[items] = track([
 			{ id: 1, name: 'First' },
 			{ id: 2, name: 'Second' },
@@ -167,12 +148,10 @@ export function KeyedForLoopReorder() {
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with item property updates (keyed)
-export function KeyedForLoopUpdate() {
-	return <>
+export function KeyedForLoopUpdate() @{
 		let &[items] = track([
 			{ id: 1, name: 'Item 1' },
 			{ id: 2, name: 'Item 2' },
@@ -190,12 +169,10 @@ export function KeyedForLoopUpdate() {
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with combined add/remove/reorder
-export function ForLoopMixedOperations() {
-	return <>
+export function ForLoopMixedOperations() @{
 		let &[items] = track(['A', 'B', 'C', 'D']);
 		<button
 			class="shuffle"
@@ -211,12 +188,10 @@ export function ForLoopMixedOperations() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop inside if block (combined control flow)
-export function ForLoopInsideIf() {
-	return <>
+export function ForLoopInsideIf() @{
 		let &[showList] = track(true);
 		let &[items] = track(['X', 'Y', 'Z']);
 		<button
@@ -235,7 +210,6 @@ export function ForLoopInsideIf() {
 		>
 			{'Add Item'}
 		</button>
-		---
 		@if (showList) {
 			<ul class="list">
 				@for (const item of items) {
@@ -243,12 +217,10 @@ export function ForLoopInsideIf() {
 				}
 			</ul>
 		}
-	</>;
 }
 
 // Test for loop that transitions from empty to populated
-export function ForLoopEmptyToPopulated() {
-	return <>
+export function ForLoopEmptyToPopulated() @{
 		let &[items] = track<string[]>([]);
 		<button
 			class="populate"
@@ -263,12 +235,10 @@ export function ForLoopEmptyToPopulated() {
 				<li>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop that transitions from populated to empty
-export function ForLoopPopulatedToEmpty() {
-	return <>
+export function ForLoopPopulatedToEmpty() @{
 		let &[items] = track(['One', 'Two', 'Three']);
 		<button
 			class="clear"
@@ -283,12 +253,10 @@ export function ForLoopPopulatedToEmpty() {
 				<li>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test nested for loops with reactivity
-export function NestedForLoopReactive() {
-	return <>
+export function NestedForLoopReactive() @{
 		let &[grid] = track([
 			[1, 2],
 			[3, 4],
@@ -320,12 +288,10 @@ export function NestedForLoopReactive() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
 // Test for loop with deeply nested data
-export function ForLoopDeeplyNested() {
-	return <>
+export function ForLoopDeeplyNested() @{
 		const departments = [
 			{
 				id: 'd1',
@@ -360,12 +326,10 @@ export function ForLoopDeeplyNested() {
 				</div>
 			}
 		</div>
-	</>;
 }
 
 // Test for loop with index that gets updated
-export function ForLoopIndexUpdate() {
-	return <>
+export function ForLoopIndexUpdate() @{
 		let &[items] = track(['First', 'Second', 'Third']);
 		<button
 			class="prepend"
@@ -380,12 +344,10 @@ export function ForLoopIndexUpdate() {
 				<li class={`item-${i}`}>{`[${i}] ${item}`}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test keyed for loop with index
-export function KeyedForLoopWithIndex() {
-	return <>
+export function KeyedForLoopWithIndex() @{
 		let &[items] = track([
 			{ id: 'a', value: 'Alpha' },
 			{ id: 'b', value: 'Beta' },
@@ -404,12 +366,10 @@ export function KeyedForLoopWithIndex() {
 				<li class={`item-${item.id}`} data-index={i}>{`[${i}] ${item.id}: ${item.value}`}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with sibling elements
-export function ForLoopWithSiblings() {
-	return <>
+export function ForLoopWithSiblings() @{
 		let &[items] = track(['A', 'B']);
 		<div class="wrapper">
 			<header class="before">{'Before'}</header>
@@ -426,12 +386,10 @@ export function ForLoopWithSiblings() {
 		>
 			{'Add'}
 		</button>
-	</>;
 }
 
 // Test for loop items with their own reactive state
-export function ForLoopItemState() {
-	return <>
+export function ForLoopItemState() @{
 		const initialItems = [
 			{ id: 1, text: 'Todo 1' },
 			{ id: 2, text: 'Todo 2' },
@@ -442,11 +400,9 @@ export function ForLoopItemState() {
 				<TodoItem id={item.id} text={item.text} />
 			}
 		</div>
-	</>;
 }
 
-function TodoItem(props: { id: number; text: string }) {
-	return <>
+function TodoItem(props: { id: number; text: string }) @{
 		let &[done] = track(false);
 		<div class={`todo-${props.id}`}>
 			<input
@@ -461,24 +417,20 @@ function TodoItem(props: { id: number; text: string }) {
 				{props.text}
 			</span>
 		</div>
-	</>;
 }
 
 // Test for loop with single item
-export function ForLoopSingleItem() {
-	return <>
+export function ForLoopSingleItem() @{
 		const items = ['Only'];
 		<ul>
 			@for (const item of items) {
 				<li class="single">{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop adding at beginning
-export function ForLoopAddAtBeginning() {
-	return <>
+export function ForLoopAddAtBeginning() @{
 		let &[items] = track(['B', 'C']);
 		<button
 			class="prepend"
@@ -493,12 +445,10 @@ export function ForLoopAddAtBeginning() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop adding in the middle
-export function ForLoopAddInMiddle() {
-	return <>
+export function ForLoopAddInMiddle() @{
 		let &[items] = track(['A', 'C']);
 		<button
 			class="insert"
@@ -515,12 +465,10 @@ export function ForLoopAddInMiddle() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop removing from the middle
-export function ForLoopRemoveFromMiddle() {
-	return <>
+export function ForLoopRemoveFromMiddle() @{
 		let &[items] = track(['A', 'B', 'C']);
 		<button
 			class="remove-middle"
@@ -535,24 +483,20 @@ export function ForLoopRemoveFromMiddle() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with large list
-export function ForLoopLargeList() {
-	return <>
+export function ForLoopLargeList() @{
 		const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
 		<ul class="large-list">
 			@for (const item of items; index i) {
 				<li class={`item-${i}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with swap operation
-export function ForLoopSwap() {
-	return <>
+export function ForLoopSwap() @{
 		let &[items] = track(['A', 'B', 'C', 'D']);
 		<button
 			class="swap"
@@ -569,12 +513,10 @@ export function ForLoopSwap() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }
 
 // Test for loop with reverse operation
-export function ForLoopReverse() {
-	return <>
+export function ForLoopReverse() @{
 		let &[items] = track(['A', 'B', 'C', 'D']);
 		<button
 			class="reverse"
@@ -589,5 +531,4 @@ export function ForLoopReverse() {
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
-	</>;
 }

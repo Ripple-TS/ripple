@@ -10,18 +10,18 @@ const external_styles = <style>
 describe('style class maps (server)', () => {
 	describe('basic usage with components', () => {
 		it('passes scoped classes to a child component via a style expression', async () => {
-			function Child({ className }: { className: string }) {
-				return <><div class={className}>{'styled child'}</div></>;
+			function Child({ className }: { className: string }) @{
+				<div class={className}>{'styled child'}</div>
 			}
 
-			function Parent() {
+			function Parent() @{
 				const styles = <style>
 					.highlight {
 						color: red;
 					}
 				</style>;
 
-				return <><Child className={styles.highlight} /></>;
+				<Child className={styles.highlight} />
 			}
 
 			const { body } = await render(Parent);
@@ -36,14 +36,14 @@ describe('style class maps (server)', () => {
 		});
 
 		it('passes multiple style expression classes to a child component', async () => {
-			function Child({ primary, secondary }: { primary: string; secondary: string }) {
-				return <>
+			function Child({ primary, secondary }: { primary: string; secondary: string }) @{
+				
 					<div class={primary}>{'primary'}</div>
 					<span class={secondary}>{'secondary'}</span>
-				</>;
+				
 			}
 
-			function Parent() {
+			function Parent() @{
 				const styles = <style>
 					.primary {
 						color: blue;
@@ -53,7 +53,7 @@ describe('style class maps (server)', () => {
 					}
 				</style>;
 
-				return <><Child primary={styles.primary} secondary={styles.secondary} /></>;
+				<Child primary={styles.primary} secondary={styles.secondary} />
 			}
 
 			const { body } = await render(Parent);
@@ -77,18 +77,18 @@ describe('style class maps (server)', () => {
 
 	describe('parent styling applied to child', () => {
 		it('allows parent to style child elements via a style expression prop', async () => {
-			function Button({ extraClass }: { extraClass?: string }) {
-				return <><button class={extraClass ?? ''}>{'Click me'}</button></>;
+			function Button({ extraClass }: { extraClass?: string }) @{
+				<button class={extraClass ?? ''}>{'Click me'}</button>
 			}
 
-			function App() {
+			function App() @{
 				const styles = <style>
 					.fancy {
 						background: gold;
 					}
 				</style>;
 
-				return <><Button extraClass={styles.fancy} /></>;
+				<Button extraClass={styles.fancy} />
 			}
 
 			const { body } = await render(App);
@@ -102,25 +102,25 @@ describe('style class maps (server)', () => {
 		});
 
 		it('child can combine its own classes with a parent style expression class', async () => {
-			function Card({ className }: { className?: string }) {
-				return <>
+			function Card({ className }: { className?: string }) @{
+				
 					<div class={['card-base', className ?? '']}>{'card content'}</div>
 					<style>
 						.card-base {
 							border: 1px solid black;
 						}
 					</style>
-				</>;
+				
 			}
 
-			function App() {
+			function App() @{
 				const styles = <style>
 					.themed {
 						background: purple;
 					}
 				</style>;
 
-				return <><Card className={styles.themed} /></>;
+				<Card className={styles.themed} />
 			}
 
 			const { body } = await render(App);
@@ -134,11 +134,11 @@ describe('style class maps (server)', () => {
 		});
 
 		it('passes a standalone class even when it also appears in descendant context', async () => {
-			function Child({ cls }: { cls: string }) {
-				return <><span class={cls}>{'text'}</span></>;
+			function Child({ cls }: { cls: string }) @{
+				<span class={cls}>{'text'}</span>
 			}
 
-			function App() {
+			function App() @{
 				const styles = <style>
 					.dual {
 						color: blue;
@@ -148,11 +148,11 @@ describe('style class maps (server)', () => {
 					}
 				</style>;
 
-				return <>
+				
 					<div class="parent">
 						<Child cls={styles.dual} />
 					</div>
-				</>;
+				
 			}
 
 			const { body } = await render(App);
@@ -167,23 +167,23 @@ describe('style class maps (server)', () => {
 	});
 
 	it('passes scoped classes to a dynamic child component via a style expression', async () => {
-		function Child({ cls }: { cls: string }) {
-			return <><span class={cls}>{'text'}</span></>;
+		function Child({ cls }: { cls: string }) @{
+			<span class={cls}>{'text'}</span>
 		}
 
-		function Parent() {
+		function Parent() @{
 			const styles = <style>
 				.text {
 					color: red;
 				}
 			</style>;
 
-			return <>
+			
 				let dynamic = track(() => Child);
 				<div class="wrapper">
 					<@dynamic cls={styles.text} />
 				</div>
-			</>;
+			
 		}
 
 		const { body } = await render(Parent);
@@ -197,12 +197,12 @@ describe('style class maps (server)', () => {
 	});
 
 	it('passes style expression classes declared outside the component', async () => {
-		function Child({ cls }: { cls: string }) {
-			return <><span class={cls}>{'text'}</span></>;
+		function Child({ cls }: { cls: string }) @{
+			<span class={cls}>{'text'}</span>
 		}
 
-		function Parent() {
-			return <Child cls={external_styles.external} />;
+		function Parent() @{
+			<Child cls={external_styles.external} />
 		}
 
 		const { body, css } = await render(Parent);
@@ -219,8 +219,8 @@ describe('style class maps (server)', () => {
 	});
 
 	it('preserves caller scoped hash through wrapper children', async () => {
-		function Wrapper({ children }) {
-			return <>
+		function Wrapper({ children }) @{
+			
 				<div class="green">
 					{'Wrapper'}
 					{children}
@@ -230,26 +230,26 @@ describe('style class maps (server)', () => {
 						color: green;
 					}
 				</style>
-			</>;
+			
 		}
 
-		function Child() {
-			return <>
+		function Child() @{
+			
 				<div class="red">{'Child'}</div>
 				<style>
 					.red {
 						color: red;
 					}
 				</style>
-			</>;
+			
 		}
 
-		function App() {
-			return <>
+		function App() @{
+			
 				<Wrapper>
 					<Child />
 				</Wrapper>
-			</>;
+			
 		}
 
 		const { body } = await render(App);
@@ -268,12 +268,12 @@ describe('style class maps (server)', () => {
 	});
 
 	it('applies caller scoped hash to slotted children through dynamic components', async () => {
-		function Wrapper({ children }) {
-			return <><section>{children}</section></>;
+		function Wrapper({ children }) @{
+			<section>{children}</section>
 		}
 
-		function App() {
-			return <>
+		function App() @{
+			
 				const DynamicWrapper = track(() => Wrapper);
 				<@DynamicWrapper>
 					<div class="green">{'Slotted child'}</div>
@@ -283,7 +283,7 @@ describe('style class maps (server)', () => {
 						color: green;
 					}
 				</style>
-			</>;
+			
 		}
 
 		const { body } = await render(App);
@@ -299,19 +299,17 @@ describe('style class maps (server)', () => {
 	describe('server compiler output', () => {
 		it('emits style class maps', () => {
 			const source = `
-function Child({ cls }: { cls: string }) { return <>
+function Child({ cls }: { cls: string }) @{
 	<div class={cls}>{'text'}</div>
-</>; }
-export function App() {
+}
+export function App() @{
 	const styles = <style>
 		.highlight {
 			color: red;
 		}
 	</style>;
 
-	return <>
 		<Child cls={styles.highlight} />
-	</>;
 }`;
 			const { code } = compile(source, 'test.tsrx', { mode: 'server' });
 
@@ -321,18 +319,18 @@ export function App() {
 		});
 
 		it('includes CSS hash in rendered HTML', async () => {
-			function Child({ cls }: { cls: string }) {
-				return <><div class={cls}>{'hello'}</div></>;
+			function Child({ cls }: { cls: string }) @{
+				<div class={cls}>{'hello'}</div>
 			}
 
-			function App() {
+			function App() @{
 				const styles = <style>
 					.styled {
 						font-weight: bold;
 					}
 				</style>;
 
-				return <><Child cls={styles.styled} /></>;
+				<Child cls={styles.styled} />
 			}
 
 			const { body, css } = await render(App);

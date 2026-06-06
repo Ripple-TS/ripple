@@ -2,8 +2,7 @@ import { track } from 'ripple';
 
 // Event handling components for hydration testing
 
-export function ClickCounter() {
-	return <>
+export function ClickCounter() @{
 		let &[count] = track(0);
 		<div>
 			<button
@@ -16,11 +15,9 @@ export function ClickCounter() {
 			</button>
 			<span class="count">{count}</span>
 		</div>
-	</>;
 }
 
-export function IncrementDecrement() {
-	return <>
+export function IncrementDecrement() @{
 		let &[count] = track(0);
 		<div>
 			<button
@@ -41,11 +38,9 @@ export function IncrementDecrement() {
 				{'+'}
 			</button>
 		</div>
-	</>;
 }
 
-export function MultipleEvents() {
-	return <>
+export function MultipleEvents() @{
 		let &[clicks] = track(0);
 		let &[hovers] = track(0);
 		<div>
@@ -63,11 +58,9 @@ export function MultipleEvents() {
 			<span class="clicks">{clicks}</span>
 			<span class="hovers">{hovers}</span>
 		</div>
-	</>;
 }
 
-export function MultiStateUpdate() {
-	return <>
+export function MultiStateUpdate() @{
 		let &[count] = track(0);
 		let &[lastAction] = track('none');
 		const handleClick = () => {
@@ -79,11 +72,9 @@ export function MultiStateUpdate() {
 			<span class="count">{count}</span>
 			<span class="action">{lastAction}</span>
 		</div>
-	</>;
 }
 
-export function ToggleButton() {
-	return <>
+export function ToggleButton() @{
 		let &[isOn] = track(false);
 		<div>
 			<button
@@ -95,15 +86,13 @@ export function ToggleButton() {
 				{isOn ? 'ON' : 'OFF'}
 			</button>
 		</div>
-	</>;
 }
 
-export function ChildButton(props: { onClick: () => void; label: string }) {
-	return <><button class="child-btn" onClick={props.onClick}>{props.label}</button></>;
+export function ChildButton(props: { onClick: () => void; label: string }) @{
+	<button class="child-btn" onClick={props.onClick}>{props.label}</button>
 }
 
-export function ParentWithChildButton() {
-	return <>
+export function ParentWithChildButton() @{
 		let &[count] = track(0);
 		<div>
 			<ChildButton
@@ -114,5 +103,4 @@ export function ParentWithChildButton() {
 			/>
 			<span class="count">{count}</span>
 		</div>
-	</>;
 }

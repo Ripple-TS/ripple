@@ -2,18 +2,13 @@ import { RippleURL, RippleURLSearchParams, flushSync, track } from 'ripple';
 
 describe('RippleURLSearchParams > mutation', () => {
 	it('handles append operation with reactivity', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar');
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar');
 				<button onClick={() => params.append('baz', 'qux')}>{'append'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -33,19 +28,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles append with multiple values for same key', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar');
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar');
 				let &[allFoo] = track(() => params.getAll('foo'));
-				---
 				<button onClick={() => params.append('foo', 'baz')}>{'append foo'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{JSON.stringify(allFoo)}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{JSON.stringify(allFoo)}</pre>
+			
 		}
 
 		render(URLTest);
@@ -65,21 +55,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles delete operation with reactivity', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar&baz=qux');
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar&baz=qux');
 				<button onClick={() => params.delete('foo')}>{'delete foo'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-				<pre>
-					{params.has('foo').toString()}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{params.size}</pre>
+				<pre>{params.has('foo').toString()}</pre>
+			
 		}
 
 		render(URLTest);
@@ -101,18 +84,13 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles delete with specific value', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
 				<button onClick={() => params.delete('foo', 'baz')}>{'delete foo=baz'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -132,17 +110,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles delete when key does not exist', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar');
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar');
 				let &[reactiveSize] = track(() => params.size);
-				---
 				<button onClick={() => params.delete('nonexistent')}>{'delete nonexistent'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
+				<pre>{params.toString()}</pre>
 				<pre>{reactiveSize}</pre>
-			</>;
+			
 		}
 
 		render(URLTest);
@@ -162,19 +137,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles set operation with reactivity', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar');
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar');
 				<button onClick={() => params.set('foo', 'updated')}>{'update foo'}</button>
 				<button onClick={() => params.set('baz', 'qux')}>{'add baz'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -202,19 +172,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles set with multiple existing values', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar&foo=baz&foo=qux');
 				let &[allFoo] = track(() => params.getAll('foo'));
-				---
 				<button onClick={() => params.set('foo', 'single')}>{'set foo'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{JSON.stringify(allFoo)}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+				<pre>{JSON.stringify(allFoo)}</pre>
+			
 		}
 
 		render(URLTest);
@@ -234,17 +199,14 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles set when value is the same', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('foo=bar');
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('foo=bar');
 				let &[reactiveString] = track(() => params.toString());
-				---
 				<button onClick={() => params.set('foo', 'bar')}>{'set same value'}</button>
 				<pre>{reactiveString}</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -263,15 +225,12 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles sort operation with reactivity', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams('z=last&a=first&m=middle');
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams('z=last&a=first&m=middle');
 				<button onClick={() => params.sort()}>{'sort'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-			</>;
+				<pre>{params.toString()}</pre>
+			
 		}
 
 		render(URLTest);
@@ -289,24 +248,21 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles clearing all params via delete', () => {
-		function URLTest() {
-			return <>
-				const url = new RippleURL('https://example.com?foo=bar&baz=qux');
+		function URLTest() @{
+			
+				const url = RippleURL('https://example.com?foo=bar&baz=qux');
 				const params = url.searchParams;
-				---
 				<button
 					onClick={() => {
 						params.delete('foo');
 						params.delete('baz');
 					}}
-				>{'clear all'}</button>
-				<pre>
-					{url.href}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				>
+					{'clear all'}
+				</button>
+				<pre>{url.href}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -328,10 +284,9 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles multiple operations in sequence', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams();
-				---
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams();
 				<button
 					onClick={() => {
 						params.append('a', '1');
@@ -341,14 +296,12 @@ describe('RippleURLSearchParams > mutation', () => {
 						params.append('c', '3');
 						params.sort();
 					}}
-				>{'complex operations'}</button>
-				<pre>
-					{params.toString()}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				>
+					{'complex operations'}
+				</button>
+				<pre>{params.toString()}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);
@@ -368,21 +321,16 @@ describe('RippleURLSearchParams > mutation', () => {
 	});
 
 	it('handles duplicate keys with different values', () => {
-		function URLTest() {
-			return <>
-				const params = new RippleURLSearchParams();
+		function URLTest() @{
+			
+				const params = RippleURLSearchParams();
 				let &[tags] = track(() => params.getAll('tag'));
-				---
 				<button onClick={() => params.append('tag', 'javascript')}>{'add js'}</button>
 				<button onClick={() => params.append('tag', 'typescript')}>{'add ts'}</button>
 				<button onClick={() => params.append('tag', 'ripple')}>{'add ripple'}</button>
-				<pre>
-					{JSON.stringify(tags)}
-				</pre>
-				<pre>
-					{params.size}
-				</pre>
-			</>;
+				<pre>{JSON.stringify(tags)}</pre>
+				<pre>{params.size}</pre>
+			
 		}
 
 		render(URLTest);

@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 describe('CSS :global with advanced selectors', () => {
 	it('handles :global with ::slotted()', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<slot />
 	</div>
@@ -17,7 +17,7 @@ export function Test() { return <>
 			color: blue;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::slotted\(span\) {/);
@@ -26,7 +26,7 @@ export function Test() { return <>
 
 	it('handles :global with ::part()', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -38,7 +38,7 @@ export function Test() { return <>
 			border: 1px solid blue;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toMatch(/div\.tsrx-[a-z0-9]+ ::part\(input\) {/);
@@ -47,7 +47,7 @@ export function Test() { return <>
 
 	it('handles :global with :host and :host-context', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -63,7 +63,7 @@ export function Test() { return <>
 			background: black;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain(':host {');
@@ -73,7 +73,7 @@ export function Test() { return <>
 
 	it('handles :global with complex :nth-* selectors', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<span>{'one'}</span>
 		<span>{'two'}</span>
@@ -93,7 +93,7 @@ export function Test() { return <>
 			margin-top: 10px;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('span:nth-child(odd) {');
@@ -103,7 +103,7 @@ export function Test() { return <>
 
 	it('handles :global with language and directional pseudo-classes', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>{'content'}</div>
 
 	<style>
@@ -119,7 +119,7 @@ export function Test() { return <>
 			quotes: '«' '»';
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain(':lang(en) {');
@@ -129,7 +129,7 @@ export function Test() { return <>
 
 	it('handles :global with :focus-within and :focus-visible', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<input type="text" />
 	</div>
@@ -143,7 +143,7 @@ export function Test() { return <>
 			outline: 2px solid red;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('div:focus-within {');
@@ -152,7 +152,7 @@ export function Test() { return <>
 
 	it('handles :global with :any-link, :target, :scope', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<div>
 		<a href="#">{'link'}</a>
 	</div>
@@ -170,7 +170,7 @@ export function Test() { return <>
 			border: 1px solid black;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain(':any-link {');
@@ -180,7 +180,7 @@ export function Test() { return <>
 
 	it('handles :global with form-related pseudo-classes', () => {
 		const source = `
-export function Test() { return <>
+export function Test() @{
 	<form>
 		<input type="text" required />
 		<input type="checkbox" checked />
@@ -215,7 +215,7 @@ export function Test() { return <>
 			border-color: red;
 		}
 	</style>
-</>; }`;
+}`;
 		const { css } = compile(source, 'test.tsrx');
 
 		expect(css).toContain('input:required {');
