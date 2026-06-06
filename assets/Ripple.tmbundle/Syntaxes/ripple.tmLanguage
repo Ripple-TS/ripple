@@ -8894,6 +8894,24 @@
 				</dict>
 			</array>
 		</dict>
+		<key>tsrx-template-setup-statement</key>
+		<dict>
+			<key>begin</key>
+			<string>(?=[ \t]*(?:if|continue|break|return|throw)(?![_$[:alnum:]]))</string>
+			<key>contentName</key>
+			<string>source.js.embedded.tsrx-isolated</string>
+			<key>end</key>
+			<string>(?&lt;=;)|(?=\})</string>
+			<key>name</key>
+			<string>meta.directive.setup.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#component-statements</string>
+				</dict>
+			</array>
+		</dict>
 		<key>tsrx-template-child-directive</key>
 		<dict>
 			<key>patterns</key>
@@ -8951,6 +8969,10 @@
 				<dict>
 					<key>include</key>
 					<string>#jsx-entities</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-setup-statement</string>
 				</dict>
 				<dict>
 					<key>include</key>
