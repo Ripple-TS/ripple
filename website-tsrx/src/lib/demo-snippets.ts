@@ -10,7 +10,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'feature-card',
 		label: 'Feature card',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-	source: `export const FeatureCard = ({
+		source: `export function FeatureCard({
   title,
   items,
   ready,
@@ -18,7 +18,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
   title: string;
   items: string[];
   ready: boolean;
-}) => @{
+}) @{
   <>
     <section class="feature-card">
       <h2>{title}</h2>
@@ -52,18 +52,18 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
       }
     </style>
   </>
-};`,
+}`,
 	},
 	{
 		value: 'components',
 		label: 'Components + style',
-		source: `export const Button = ({
+		source: `export function Button({
   label,
   onClick,
 }: {
   label: string;
   onClick: () => void;
-}) => @{
+}) @{
   <>
     <button class="btn" {onClick}>{label}</button>
 
@@ -74,13 +74,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
       }
     </style>
   </>
-};`,
+}`,
 	},
 	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => @{
+		source: `function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) @{
   @if (status === 'active') {
     <span class="badge active">Online</span>
   } else if (status === 'idle') {
@@ -88,25 +88,25 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
   } else {
     <span class="badge">Offline</span>
   }
-};`,
+}`,
 	},
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const TodoList = ({ items }: { items: { text: string }[] }) => @{
+		source: `function TodoList({ items }: { items: { text: string }[] }) @{
   <ul>
     @for (const item of items; index i) {
       <li>{i + 1}. {item.text}</li>
     }
   </ul>
-};`,
+}`,
 	},
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusMessage = ({ status }: { status: string }) => @{
+		source: `function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
     case 'loading':
       <p>Loading...</p>
@@ -117,13 +117,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
     default:
       <p>Unknown status.</p>
   }
-};`,
+}`,
 	},
 	{
 		value: 'error-boundary',
 		label: 'Error boundary',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const SafeProfile = ({ userId }: { userId: string }) => @{
+		source: `function SafeProfile({ userId }: { userId: string }) @{
   @try {
     <UserProfile id={userId} />
   } catch (error) {
@@ -131,7 +131,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
       <p>Something went wrong.</p>
     </div>
   }
-};`,
+}`,
 	},
 	{
 		value: 'async-boundary',
@@ -139,13 +139,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => @{
+export function App() @{
   @try {
     <AsyncProfile />
   } pending {
     <p class="pending">Loading profile...</p>
   }
-};`,
+}`,
 	},
 	{
 		value: 'async-boundary-error',
@@ -153,7 +153,7 @@ export const App = () => @{
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => @{
+export function App() @{
   @try {
     <AsyncProfile />
   } pending {
@@ -161,12 +161,12 @@ export const App = () => @{
   } catch (error) {
     <p class="error">{(error as Error).message}</p>
   }
-};`,
+}`,
 	},
 	{
 		value: 'scoped-styles',
 		label: 'Scoped styles',
-		source: `const Card = () => @{
+		source: `function Card() @{
   <>
     <div class="card">
       <h2>Scoped title</h2>
@@ -184,7 +184,7 @@ export const App = () => @{
       }
     </style>
   </>
-};`,
+}`,
 	},
 	{
 		value: 'vue-starter',
@@ -192,7 +192,7 @@ export const App = () => @{
 		targets: ['vue'],
 		source: `import { ref } from 'vue';
 
-const App = () => @{
+function App() @{
   const count = ref(0);
 
   <main>
@@ -200,7 +200,7 @@ const App = () => @{
     <p>This is a minimal Vue-compatible TSRX snippet.</p>
     <button onClick={() => count.value++}>Count: {count.value}</button>
   </main>
-};
+}
 
 export default App;`,
 	},
@@ -210,7 +210,7 @@ export default App;`,
 		targets: ['react'],
 		source: `import { useEffect, useState } from 'react';
 
-export const App = () => @{
+export function App() @{
   const [tab, setTab] = useState('overview');
   const posts = [
     { title: 'Compiler update' },
@@ -234,7 +234,7 @@ export const App = () => @{
       }
     </ul>
   </>
-};`,
+}`,
 	},
 	{
 		value: 'nested-preact-hooks',
@@ -242,7 +242,7 @@ export const App = () => @{
 		targets: ['preact'],
 		source: `import { useEffect, useState } from 'preact/hooks';
 
-export const App = () => @{
+export function App() @{
   const [tab, setTab] = useState('overview');
   const posts = [
     { title: 'Compiler update' },
@@ -266,6 +266,6 @@ export const App = () => @{
       }
     </ul>
   </>
-};`,
+}`,
 	},
 ];
