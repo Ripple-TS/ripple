@@ -7,18 +7,20 @@ const COMPONENT_HTML = highlight_tsrx(
   label: string;
   onClick: () => void;
 }) @{
-  // Ripple, Preact, Solid, and Vue host elements:
-  <button class="btn" {onClick}>{label}</button>
+  <>
+    // Ripple, Preact, Solid, and Vue host elements:
+    <button class="btn" {onClick}>{label}</button>
 
-  // React host elements:
-  // <button className="btn" {onClick}>{label}</button>
+    // React host elements:
+    // <button className="btn" {onClick}>{label}</button>
 
-  <style>
-    .btn {
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-    }
-  </style>
+    <style>
+      .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+      }
+    </style>
+  </>
 }`,
 );
 
@@ -62,8 +64,8 @@ const TEMPLATE_STRUCTURE_HTML = highlight_tsrx(
 );
 
 const COMMENTS_HTML = highlight_tsrx(
-	`function Menu({ showAdmin }: { showAdmin: boolean }) {
-  return <nav>
+	`function Menu({ showAdmin }: { showAdmin: boolean }) @{
+  <nav>
     // Comments can sit between template children.
     <a href="/">Home</a>
 
@@ -71,62 +73,62 @@ const COMMENTS_HTML = highlight_tsrx(
       // Branch comments are allowed too.
       <a href="/admin">Admin</a>
     }
-  </nav>;
+  </nav>
 }`,
 );
 
 const IF_HTML = highlight_tsrx(
-	`function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) {
-  return @if (status === 'active') {
+	`function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) @{
+  @if (status === 'active') {
     <span class="badge active">Online</span>
   } else if (status === 'idle') {
     <span class="badge idle">Away</span>
   } else {
     <span class="badge">Offline</span>
-  };
+  }
 }`,
 );
 
 const FOR_HTML = highlight_tsrx(
-	`function TodoList({ items }: { items: Todo[] }) {
-  return <ul>
+	`function TodoList({ items }: { items: Todo[] }) @{
+  <ul>
     @for (const item of items; index i; key item.id) {
       if (item.hidden) continue;
 
       <li>{i + 1}. {item.text}</li>
     }
-  </ul>;
+  </ul>
 }`,
 );
 
 const TRY_HTML = highlight_tsrx(
-	`function SafeProfile({ userId }: { userId: string }) {
-  return @try {
+	`function SafeProfile({ userId }: { userId: string }) @{
+  @try {
     <UserProfile id={userId} />
   } catch (error) {
     <div class="error">
       <p>Something went wrong.</p>
     </div>
-  };
+  }
 }`,
 );
 
 const TRY_RESET_HTML = highlight_tsrx(
-	`export function RetryBoundary() {
-  return @try {
+	`export function RetryBoundary() @{
+  @try {
     <ComponentThatMightFail />
   } catch (e, reset) {
     <div>
       <p>Error: {e.message}</p>
       <button onClick={() => reset()}>Try again</button>
     </div>
-  };
+  }
 }`,
 );
 
 const SWITCH_HTML = highlight_tsrx(
-	`function StatusMessage({ status }: { status: string }) {
-  return @switch (status) {
+	`function StatusMessage({ status }: { status: string }) @{
+  @switch (status) {
     case 'loading':
       <p>Loading...</p>
       break;
@@ -135,7 +137,7 @@ const SWITCH_HTML = highlight_tsrx(
       break;
     default:
       <p>Unknown status.</p>
-  };
+  }
 }`,
 );
 
@@ -184,42 +186,46 @@ const RENDER_PROPS_HTML = highlight_tsrx(
 const ASYNC_BOUNDARY_HTML = highlight_tsrx(
 	`const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
-export function App() {
-  return @try {
+export function App() @{
+  @try {
     <UserProfile id={1} />
   } pending {
     <p>Loading...</p>
   } catch (e) {
     <p>Something went wrong.</p>
-  };
+  }
 }`,
 );
 
 const SCOPED_STYLES_HTML = highlight_tsrx(
 	`function Card() @{
-  <div class="card">
-    <h2>Scoped title</h2>
-    <p>Styles here won't leak out.</p>
-  </div>
+  <>
+    <div class="card">
+      <h2>Scoped title</h2>
+      <p>Styles here won't leak out.</p>
+    </div>
 
-  <style>
-    .card {
-      padding: 1.5rem;
-      border: 1px solid #ddd;
-    }
+    <style>
+      .card {
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+      }
 
-    h2 { color: #333; }
-  </style>
+      h2 { color: #333; }
+    </style>
+  </>
 }`,
 );
 
 const STYLE_COMPOSITION_HTML = highlight_tsrx(
 	`function Badge({ class: className }: { class?: string }) @{
-  <span class={'badge ' + (className ?? '')}>New</span>
+  <>
+    <span class={'badge ' + (className ?? '')}>New</span>
 
-  <style>
-    .badge { padding: 0.25rem 0.5rem; }
-  </style>
+    <style>
+      .badge { padding: 0.25rem 0.5rem; }
+    </style>
+  </>
 }
 
 function App() @{
@@ -310,7 +316,8 @@ const NAV_ITEMS = [
 	{ id: 'react-hooks', label: 'React & Preact Hooks' },
 ];
 
-export const FeaturesPage = () => <>
+export const FeaturesPage = () => @{
+	<>
 	<head>
 		<title>TSRX | Features</title>
 		<meta
@@ -1134,4 +1141,5 @@ export const FeaturesPage = () => <>
 			}
 		}
 	</style>
-</>;
+	</>
+};

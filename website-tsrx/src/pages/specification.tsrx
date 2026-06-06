@@ -324,8 +324,8 @@ const NAV_ITEMS = [
 	{ id: 'appendices', label: 'Appendices' },
 ];
 
-export function SpecificationPage() {
-	return <>
+export function SpecificationPage() @{
+	<>
 		<head>
 			<title>TSRX | Specification</title>
 			<meta
@@ -1234,5 +1234,5 @@ export function SpecificationPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

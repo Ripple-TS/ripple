@@ -1,7 +1,7 @@
 import { CompilerDemo } from '../components/compiler-demo.tsrx';
 
-export function PlaygroundPage() {
-	return <>
+export function PlaygroundPage() @{
+	<>
 		<head>
 			<title>TSRX | Playground</title>
 			<meta
@@ -202,5 +202,5 @@ export function PlaygroundPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

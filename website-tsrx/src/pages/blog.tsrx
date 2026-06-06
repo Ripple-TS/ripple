@@ -1,5 +1,5 @@
-export function BlogPage() {
-	return <>
+export function BlogPage() @{
+	<>
 		<head>
 			<title>TSRX Blog</title>
 			<meta
@@ -275,5 +275,5 @@ export function BlogPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

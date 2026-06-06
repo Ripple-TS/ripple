@@ -17,23 +17,23 @@ const SNIPPET_HTML = highlight_tsrx(
 );
 
 const REACT_HOOKS_HTML = highlight_tsrx(
-	`function Profile({ userId }: { userId: string | null }) {
-  return @if (userId) {
+	`function Profile({ userId }: { userId: string | null }) @{
+  @if (userId) {
     const user = useUser(userId);
 
     <h1>{user.name}</h1>
   } else {
     <a href="/login">Sign in</a>
-  };
+  }
 }`,
 );
 
 const SOLID_LAZY_HTML = highlight_tsrx(
-	`function Counter(&{ count, label }: Props) {
-  return <section>
+	`function Counter(&{ count, label }: Props) @{
+  <section>
     <h2>{label}</h2>
     <p>Count: {count}</p>
-  </section>;
+  </section>
 }`,
 );
 
@@ -51,8 +51,8 @@ const INLINE_LOCALS_HTML = highlight_tsrx(
 );
 
 const COLOCATION_HTML = highlight_tsrx(
-	`function UserList({ users, showBio }: Props) {
-  return @for (const user of users) {
+	`function UserList({ users, showBio }: Props) @{
+  @for (const user of users) {
     const initials = user.name.slice(0, 2).toUpperCase();
     const role = user.admin ? 'Admin' : 'Member';
 
@@ -71,11 +71,12 @@ const COLOCATION_HTML = highlight_tsrx(
         </div>
       }
     </div>
-  };
+  }
 }`,
 );
 
-export const IndexPage = () => <>
+export const IndexPage = () => @{
+	<>
 	<head>
 		<title>TSRX | A TypeScript language extension for building declarative UIs in an agentic era.</title>
 		<meta
@@ -822,4 +823,5 @@ export const IndexPage = () => <>
 			}
 		}
 	</style>
-</>;
+	</>
+};

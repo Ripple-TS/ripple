@@ -277,8 +277,8 @@ const NAV_GROUPS = [
 	},
 ];
 
-export function GettingStartedPage() {
-	return <>
+export function GettingStartedPage() @{
+	<>
 		<head>
 			<title>TSRX | Getting Started</title>
 			<meta
@@ -1380,5 +1380,5 @@ export function GettingStartedPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

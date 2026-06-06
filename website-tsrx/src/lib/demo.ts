@@ -6,8 +6,9 @@ export const DEFAULT_DEMO_SOURCE = `export const FeatureCard = ({
   title: string;
   items: string[];
   ready: boolean;
-}) => <>
-  <section class="feature-card">
+	}) => @{
+	  <>
+	  <section class="feature-card">
     <h2>{title}</h2>
 
     @if (ready) {
@@ -38,4 +39,5 @@ export const DEFAULT_DEMO_SOURCE = `export const FeatureCard = ({
       padding-left: 1.1rem;
     }
   </style>
-</>;`;
+	  </>
+	};`;

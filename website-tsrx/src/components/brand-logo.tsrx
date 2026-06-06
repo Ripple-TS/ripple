@@ -1,5 +1,5 @@
-export function BrandLogo() {
-	return <>
+export function BrandLogo() @{
+	<>
 		<div class="brand-logo">
 			<img
 				class="logo-mark"
@@ -21,5 +21,5 @@ export function BrandLogo() {
 				height: auto;
 			}
 		</style>
-	</>;
+	</>
 }

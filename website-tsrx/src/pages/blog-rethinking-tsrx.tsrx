@@ -16,19 +16,21 @@ const ProductCard = ({ product }: ProductCardProps): JSX.Element => @{
 );
 
 const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
-	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => @try {
-  const activity = result.value;
-  const latest = activity[0];
+	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => @{
+  @try {
+    const activity = result.value;
+    const latest = activity[0];
 
-  @if (latest) {
-    <ActivityCard activity={latest} />
-  } else {
-    <p>No activity yet</p>
+    @if (latest) {
+      <ActivityCard activity={latest} />
+    } else {
+      <p>No activity yet</p>
+    }
+  } pending {
+    <p>Loading activity...</p>
+  } catch (error) {
+    <p>{getErrorMessage(error)}</p>
   }
-} pending {
-  <p>Loading activity...</p>
-} catch (error) {
-  <p>{getErrorMessage(error)}</p>
 };`,
 );
 
@@ -46,15 +48,17 @@ const JSX_CONTROL_FLOW_LOOP_HTML = highlight_tsrx(
 );
 
 const MULTIPLE_CONTROL_FLOW_CHILDREN_HTML = highlight_tsrx(
-	`const Profile = ({ user }: ProfileProps): JSX.Element => @if (user) {
-  const displayName = user.name.trim();
+	`const Profile = ({ user }: ProfileProps): JSX.Element => @{
+  @if (user) {
+    const displayName = user.name.trim();
 
-  <>
-    <h2>{displayName}</h2>
-    <p>{user.bio}</p>
-  </>
-} else {
-  <a href="/login">Sign in</a>
+    <>
+      <h2>{displayName}</h2>
+      <p>{user.bio}</p>
+    </>
+  } else {
+    <a href="/login">Sign in</a>
+  }
 };`,
 );
 
@@ -113,8 +117,8 @@ const EmptyState = ({ search }: EmptyStateProps): JSX.Element => <section>
 </section>;`,
 );
 
-export function BlogRethinkingTsrxPage() {
-	return <>
+export function BlogRethinkingTsrxPage() @{
+	<>
 		<head>
 			<title>Rethinking TSRX | TSRX Blog</title>
 			<meta
@@ -604,5 +608,5 @@ export function BlogRethinkingTsrxPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

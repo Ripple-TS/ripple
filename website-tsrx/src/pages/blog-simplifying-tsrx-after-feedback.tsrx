@@ -171,8 +171,8 @@ const TAILWIND_STYLE_HTML = highlight_tsrx(
 }`,
 );
 
-export function BlogSimplifyingTsrxAfterFeedbackPage() {
-	return <>
+export function BlogSimplifyingTsrxAfterFeedbackPage() @{
+	<>
 		<head>
 			<title>Simplifying TSRX | TSRX Blog</title>
 			<meta
@@ -218,7 +218,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 						</header>
 
 						<p>
-							PR 
+							PR
 							<a
 								href="https://github.com/Ripple-TS/ripple/pull/1177"
 								target="_blank"
@@ -235,7 +235,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 
 						<h2>Components are just functions</h2>
 						<p>
-							Before this cleanup, TSRX introduced its own 
+							Before this cleanup, TSRX introduced its own
 							<code>component</code>
 							 form. It removed the visible return statement, which made components look less like ordinary TypeScript.
 						</p>
@@ -249,11 +249,11 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={SINGLE_ELEMENT_RETURN_HTML} />
 						</pre>
 						<p>
-							We also removed the plain 
+							We also removed the plain
 							<code>{"<tsx>"}</code>
-							 island. TSRX itself is expression-based now: native elements and native fragments can be assigned, passed as props, or returned directly. The old 
+							 island. TSRX itself is expression-based now: native elements and native fragments can be assigned, passed as props, or returned directly. The old
 							<code>{"<tsrx>"}</code>
-							 wrapper is not needed either because TSRX is already the default in 
+							 wrapper is not needed either because TSRX is already the default in
 							<code>.tsrx</code>
 							 files.
 						</p>
@@ -261,14 +261,14 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={NATIVE_EXPRESSION_VALUE_HTML} />
 						</pre>
 						<p>
-							Native fragments offer the same benefits 
+							Native fragments offer the same benefits
 							<code>{"<tsx>"}</code>
 							 was meant to provide. Keeping multiple ways to do the same thing did not add much once one path was clearer, more consistent, and easier for tools to explain.
 						</p>
 						<p>
-							When you return a fragment, its body is statement-driven: you can declare values, branch with 
+							When you return a fragment, its body is statement-driven: you can declare values, branch with
 							<code>if</code>
-							, loop with 
+							, loop with
 							<code>for...of</code>
 							, and emit UI in order.
 						</p>
@@ -276,16 +276,16 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={STATEMENT_CONTROL_FLOW_HTML} />
 						</pre>
 						<p>
-							All the useful TSRX control flow remains as-is: lists can still be rendered with 
+							All the useful TSRX control flow remains as-is: lists can still be rendered with
 							<code>for...of</code>
-							, async boundaries can still use 
+							, async boundaries can still use
 							<code>try / pending / catch</code>
 							, and the template still reads in the order the UI is produced.
 						</p>
 
 						<h2>No more return magic inside templates</h2>
 						<p>
-							The earlier 
+							The earlier
 							<code>component</code>
 							 model also allowed template bodies to bail out with a return. That looked convenient, but it made debugging strange because UI output and component exit behavior were mixed together.
 						</p>
@@ -293,9 +293,9 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={OLD_RETURN_MAGIC_HTML} />
 						</pre>
 						<p>
-							Now guard returns live before TSRX opens, just like normal TypeScript and JSX. Inside template 
+							Now guard returns live before TSRX opens, just like normal TypeScript and JSX. Inside template
 							<code>for...of</code>
-							 loops, 
+							 loops,
 							<code>continue</code>
 							 still skips the current item.
 						</p>
@@ -311,7 +311,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 
 						<h2>Fewer special cases</h2>
 						<p>
-							Ripple had accumulated a few TSRX-only shortcuts inside the old 
+							Ripple had accumulated a few TSRX-only shortcuts inside the old
 							<code>component</code>
 							 shape: raw HTML blocks, ref blocks, and style class expressions. They worked, but each one was another rule to remember and another thing for tools to explain.
 						</p>
@@ -319,41 +319,41 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={SPECIAL_CASES_BEFORE_HTML} />
 						</pre>
 						<p>
-							Those are now regular props. Ripple, Solid, and Vue use 
+							Those are now regular props. Ripple, Solid, and Vue use
 							<code>innerHTML</code>
-							 on DOM elements. Ripple and Solid can also use 
+							 on DOM elements. Ripple and Solid can also use
 							<code>{"<Fragment innerHTML={...} />"}</code>
-							 when you want to insert HTML without a wrapper element. React and Preact use 
+							 when you want to insert HTML without a wrapper element. React and Preact use
 							<code>dangerouslySetInnerHTML</code>
-							. Refs use 
+							. Refs use
 							<code>{"ref={...}"}</code>
-							, and scoped classes can be shared with children through 
+							, and scoped classes can be shared with children through
 							<code>{"const styles = <style>...</style>"}</code>
 							.
 						</p>
 						<p>
-							React TSRX does not rewrite an authored 
+							React TSRX does not rewrite an authored
 							<code>class</code>
-							 prop into 
+							 prop into
 							<code>className</code>
-							. Use 
+							. Use
 							<code>className</code>
 							 when your React component expects it; the compiler will not hide that difference for you.
 						</p>
 						<p>
-							For scoped styles on React host elements, TSRX still emits 
+							For scoped styles on React host elements, TSRX still emits
 							<code>className</code>
 							 for the generated CSS hash. That is generated output, not a rewrite of a class you wrote yourself.
 						</p>
 						<p>
-							Removing the old 
+							Removing the old
 							<code>class</code>
-							 to 
+							 to
 							<code>className</code>
 							 magic makes generated code easier for humans and LLMs to predict.
 						</p>
 						<p>
-							The style expression is just a value. Put it before the returned content, then pass 
+							The style expression is just a value. Put it before the returned content, then pass
 							<code>styles.card</code>
 							 anywhere that value is in scope.
 						</p>
@@ -363,20 +363,20 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 
 						<h2>Styling stays optional</h2>
 						<p>
-							The 
+							The
 							<code>{"<style>"}</code>
 							 block is still there, but its mental model is clearer: styles are scoped to the TSRX fragment that contains them, not to a separate component declaration form. It works the same way as before for colocated styles.
 						</p>
 						<p>
-							Inside 
+							Inside
 							<code>{"<style>"}</code>
-							, write static CSS. The TSRX rules for JavaScript statements and expressions inside elements do not apply there: no 
+							, write static CSS. The TSRX rules for JavaScript statements and expressions inside elements do not apply there: no
 							<code>if</code>
-							, 
+							,
 							<code>for</code>
-							, or 
+							, or
 							<code>{"{expr}"}</code>
-							. When a style value needs to change at runtime, set a CSS custom property on the element and read it with 
+							. When a style value needs to change at runtime, set a CSS custom property on the element and read it with
 							<code>var(...)</code>
 							.
 						</p>
@@ -384,7 +384,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={SCOPED_STYLE_HTML} />
 						</pre>
 						<p>
-							When you move styles into a value before the returned template, the model is intentionally more like 
+							When you move styles into a value before the returned template, the model is intentionally more like
 							<code>StyleX</code>
 							 and other popular CSS-in-JS solutions: the CSS is still static, but you get a declarative class map, and you pass those class names explicitly where you need them.
 						</p>
@@ -392,7 +392,7 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 							<code innerHTML={MODULE_STYLE_HTML} />
 						</pre>
 						<p>
-							This is optional. If your team prefers Tailwind, CSS modules, vanilla CSS, or a design system class API, keep using that. TSRX does not require colocated 
+							This is optional. If your team prefers Tailwind, CSS modules, vanilla CSS, or a design system class API, keep using that. TSRX does not require colocated
 							<code>{"<style>"}</code>
 							 blocks.
 						</p>
@@ -734,5 +734,5 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }

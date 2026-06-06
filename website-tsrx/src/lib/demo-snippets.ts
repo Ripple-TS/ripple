@@ -10,7 +10,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'feature-card',
 		label: 'Feature card',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `export const FeatureCard = ({
+	source: `export const FeatureCard = ({
   title,
   items,
   ready,
@@ -18,39 +18,41 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
   title: string;
   items: string[];
   ready: boolean;
-}) => <>
-  <section class="feature-card">
-    <h2>{title}</h2>
+}) => @{
+  <>
+    <section class="feature-card">
+      <h2>{title}</h2>
 
-    @if (ready) {
-      <ul>
-        @for (const item of items; index index) {
-          <li>{item}</li>
-        }
-      </ul>
-    } else {
-      <p>Loading output...</p>
-    }
-  </section>
+      @if (ready) {
+        <ul>
+          @for (const item of items; index index) {
+            <li>{item}</li>
+          }
+        </ul>
+      } else {
+        <p>Loading output...</p>
+      }
+    </section>
 
-  <style>
-    .feature-card {
-      padding: 1rem;
-      border: 1px solid rgba(90, 108, 255, 0.2);
-      background: rgba(255, 255, 255, 0.78);
-    }
+    <style>
+      .feature-card {
+        padding: 1rem;
+        border: 1px solid rgba(90, 108, 255, 0.2);
+        background: rgba(255, 255, 255, 0.78);
+      }
 
-    .feature-card h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1.15rem;
-    }
+      .feature-card h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1.15rem;
+      }
 
-    .feature-card ul {
-      margin: 0;
-      padding-left: 1.1rem;
-    }
-  </style>
-</>;`,
+      .feature-card ul {
+        margin: 0;
+        padding-left: 1.1rem;
+      }
+    </style>
+  </>
+};`,
 	},
 	{
 		value: 'components',
@@ -61,66 +63,74 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 }: {
   label: string;
   onClick: () => void;
-}) => <>
-  <button class="btn" {onClick}>{label}</button>
+}) => @{
+  <>
+    <button class="btn" {onClick}>{label}</button>
 
-  <style>
-    .btn {
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-    }
-  </style>
-</>;`,
+    <style>
+      .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+      }
+    </style>
+  </>
+};`,
 	},
 	{
 		value: 'conditional-rendering',
 		label: 'Conditional rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) =>
+		source: `const StatusBadge = ({ status }: { status: 'active' | 'idle' | 'offline' }) => @{
   @if (status === 'active') {
     <span class="badge active">Online</span>
   } else if (status === 'idle') {
     <span class="badge idle">Away</span>
   } else {
     <span class="badge">Offline</span>
-  };`,
+  }
+};`,
 	},
 	{
 		value: 'list-rendering',
 		label: 'List rendering',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const TodoList = ({ items }: { items: { text: string }[] }) =>
+		source: `const TodoList = ({ items }: { items: { text: string }[] }) => @{
   <ul>
     @for (const item of items; index i) {
       <li>{i + 1}. {item.text}</li>
     }
-  </ul>;`,
+  </ul>
+};`,
 	},
 	{
 		value: 'switch-statements',
 		label: 'Switch statements',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const StatusMessage = ({ status }: { status: string }) => @switch (status) {
-  case 'loading':
-    <p>Loading...</p>
-    break;
-  case 'success':
-    <p class="success">Done!</p>
-    break;
-  default:
-    <p>Unknown status.</p>
+		source: `const StatusMessage = ({ status }: { status: string }) => @{
+  @switch (status) {
+    case 'loading':
+      <p>Loading...</p>
+      break;
+    case 'success':
+      <p class="success">Done!</p>
+      break;
+    default:
+      <p>Unknown status.</p>
+  }
 };`,
 	},
 	{
 		value: 'error-boundary',
 		label: 'Error boundary',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-		source: `const SafeProfile = ({ userId }: { userId: string }) => @try {
-  <UserProfile id={userId} />
-} catch (error) {
-  <div class="error">
-    <p>Something went wrong.</p>
-  </div>
+		source: `const SafeProfile = ({ userId }: { userId: string }) => @{
+  @try {
+    <UserProfile id={userId} />
+  } catch (error) {
+    <div class="error">
+      <p>Something went wrong.</p>
+    </div>
+  }
 };`,
 	},
 	{
@@ -129,10 +139,12 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => @try {
-  <AsyncProfile />
-} pending {
-  <p class="pending">Loading profile...</p>
+export const App = () => @{
+  @try {
+    <AsyncProfile />
+  } pending {
+    <p class="pending">Loading profile...</p>
+  }
 };`,
 	},
 	{
@@ -141,34 +153,38 @@ export const App = () => @try {
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `import { AsyncProfile } from './profile.tsrx';
 
-export const App = () => @try {
-  <AsyncProfile />
-} pending {
-  <p class="pending">Loading profile...</p>
-} catch (error) {
-  <p class="error">{(error as Error).message}</p>
+export const App = () => @{
+  @try {
+    <AsyncProfile />
+  } pending {
+    <p class="pending">Loading profile...</p>
+  } catch (error) {
+    <p class="error">{(error as Error).message}</p>
+  }
 };`,
 	},
 	{
 		value: 'scoped-styles',
 		label: 'Scoped styles',
-		source: `const Card = () => <>
-  <div class="card">
-    <h2>Scoped title</h2>
-    <p>Styles here do not leak out.</p>
-  </div>
+		source: `const Card = () => @{
+  <>
+    <div class="card">
+      <h2>Scoped title</h2>
+      <p>Styles here do not leak out.</p>
+    </div>
 
-  <style>
-    .card {
-      padding: 1.5rem;
-      border: 1px solid #ddd;
-    }
+    <style>
+      .card {
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+      }
 
-    h2 {
-      color: #333;
-    }
-  </style>
-</>;`,
+      h2 {
+        color: #333;
+      }
+    </style>
+  </>
+};`,
 	},
 	{
 		value: 'vue-starter',

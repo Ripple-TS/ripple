@@ -1,5 +1,5 @@
-export function Layout({ children }: { children: any }) {
-	return <>
+export function Layout({ children }: { children: any }) @{
+	<>
 		<main class="shell">{children}</main>
 		<style>
 			:global(*) {
@@ -57,5 +57,5 @@ export function Layout({ children }: { children: any }) {
 				max-width: 100%;
 			}
 		</style>
-	</>;
+	</>
 }

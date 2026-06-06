@@ -76,7 +76,7 @@ function join_compiled_output(code: string, css: string): string {
 	return `${code.trimEnd()}\n\n/* CSS */\n${css.trimEnd()}`;
 }
 
-export function CompilerDemo() {
+export function CompilerDemo() @{
 	let source_ref: Tracked<HTMLElement> = track();
 	let output_ref: Tracked<HTMLElement> = track();
 
@@ -421,7 +421,7 @@ export function CompilerDemo() {
 		load_source(snippet.source);
 	});
 
-	return <>
+	<>
 		<section class="demo-shell" id="demo">
 			<div class="demo-header">
 				<div>
@@ -781,5 +781,5 @@ export function CompilerDemo() {
 				}
 			}
 		</style>
-	</>;
+	</>
 }
