@@ -8,9 +8,14 @@ module server {
 
 import { formatValue } from server;
 
+function ServerCallResult({ count }: { count: { value: number } }) @{
+	let &[data] = trackAsync(() => formatValue(count.value));
+	<p class="result">{data}</p>
+}
+
 export function AsyncWithServerCall() @{
-	
-		let &[count] = track(0);
+	let &[count, count_ref] = track(0);
+	<>
 		<button
 			class="increment"
 			onClick={() => {
@@ -18,14 +23,13 @@ export function AsyncWithServerCall() @{
 			}}
 		>
 			{'increment'}
-		</button>
-		@try {
-			let &[data] = trackAsync(() => formatValue(count));
-			<p class="result">{data}</p>
-		} pending {
-			<p class="loading">{'loading...'}</p>
-		}
-	
+			</button>
+			@try {
+				<ServerCallResult count={count_ref} />
+			} pending {
+				<p class="loading">{'loading...'}</p>
+			}
+	</>
 }
 
 export function AsyncSimpleValue() @{
@@ -113,9 +117,14 @@ export function ParentWithCatch() @{
 	
 }
 
+function ReactiveDependencyResult({ count }: { count: { value: number } }) @{
+	let &[data] = trackAsync(() => Promise.resolve(`count-${count.value}`));
+	<p class="result">{data}</p>
+}
+
 export function AsyncWithReactiveDependency() @{
-	
-		let &[count] = track(0);
+	let &[count, count_ref] = track(0);
+	<>
 		<button
 			class="increment"
 			onClick={() => {
@@ -123,12 +132,11 @@ export function AsyncWithReactiveDependency() @{
 			}}
 		>
 			{'increment'}
-		</button>
-		@try {
-			let &[data] = trackAsync(() => Promise.resolve(`count-${count}`));
-			<p class="result">{data}</p>
-		} pending {
-			<p class="loading">{'loading...'}</p>
-		}
-	
+			</button>
+			@try {
+				<ReactiveDependencyResult count={count_ref} />
+			} pending {
+				<p class="loading">{'loading...'}</p>
+			}
+	</>
 }

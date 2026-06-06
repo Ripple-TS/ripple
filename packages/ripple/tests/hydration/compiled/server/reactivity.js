@@ -87,35 +87,37 @@ export function MultipleTracked() {
 
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
-			_$_.output_push(' class="x"');
+			_$_.output_push(' class="multiple-tracked"');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape(lazy_4.value));
-			}
+				_$_.output_push('<div');
+				_$_.output_push(' class="x"');
+				_$_.output_push('>');
 
-			_$_.output_push('</div>');
-		});
+				{
+					_$_.output_push(_$_.escape(lazy_4.value));
+				}
 
-		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="y"');
-			_$_.output_push('>');
+				_$_.output_push('</div>');
+				_$_.output_push('<div');
+				_$_.output_push(' class="y"');
+				_$_.output_push('>');
 
-			{
-				_$_.output_push(_$_.escape(lazy_5.value));
-			}
+				{
+					_$_.output_push(_$_.escape(lazy_5.value));
+				}
 
-			_$_.output_push('</div>');
-		});
+				_$_.output_push('</div>');
+				_$_.output_push('<div');
+				_$_.output_push(' class="z"');
+				_$_.output_push('>');
 
-		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="z"');
-			_$_.output_push('>');
+				{
+					_$_.output_push(_$_.escape(lazy_6.value));
+				}
 
-			{
-				_$_.output_push(_$_.escape(lazy_6.value));
+				_$_.output_push('</div>');
 			}
 
 			_$_.output_push('</div>');

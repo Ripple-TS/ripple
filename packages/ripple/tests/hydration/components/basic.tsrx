@@ -7,9 +7,11 @@ export function StaticText() @{
 }
 
 export function MultipleElements() @{
+	<>
 		<h1>{'Title'}</h1>
 		<p>{'Paragraph text'}</p>
 		<span>{'Span text'}</span>
+	</>
 }
 
 export function NestedElements() @{
@@ -21,8 +23,10 @@ export function NestedElements() @{
 }
 
 export function WithAttributes() @{
+	<>
 		<input type="text" placeholder="Enter text" disabled />
 		<a href="/link" target="_blank">{'Link'}</a>
+	</>
 }
 
 export function ChildComponent() @{
@@ -44,8 +48,10 @@ export function SecondSibling() @{
 }
 
 export function SiblingComponents() @{
+	<>
 		<FirstSibling />
 		<SecondSibling />
+	</>
 }
 
 export function Greeting(props: { name: string }) @{
@@ -60,10 +66,12 @@ export function WithGreeting() @{
 }
 
 export function ExpressionContent() @{
-		const value = 42;
-		const label = 'computed';
+	const value = 42;
+	const label = 'computed';
+	<>
 		<div>{value}</div>
 		<span>{label.toUpperCase()}</span>
+	</>
 }
 
 function NestedHelperItem({ item }: { item: number }) @{
@@ -71,91 +79,95 @@ function NestedHelperItem({ item }: { item: number }) @{
 }
 
 function NestedTsxTsrxFragment({ label }: { label: string }) @{
+	<>
 		<span class="label">{label}</span>
 		@for (const item of [1, 2, 3, 4]) {
 			<NestedHelperItem {item} />
 		}
+	</>
 }
 
 export function NestedTsxTsrxExpressionValues() @{
+	<div class="nested-expression-values">
 		@for (const item of [1, 2, 3]) {
 			<div class="app-item">{item}</div>
 		}
 		<NestedTsxTsrxFragment label="from helper" />
+	</div>
 }
 
 export function MixedTsrxCollectionText() @{
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
+	const content = <>
+		{[
+			'alpha ',
+			<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'delta ',
 					<em class="tail">{'epsilon'}</em>,
 					' zeta',
-				],
-			]}
-		<div class="mixed-collection">{content}</div>
+			],
+		]}
 	</>;
+	<div class="mixed-collection">{content}</div>
 }
 
 export function MixedTsrxCollectionSplitServerText() @{
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
+	const content = <>
+		{[
+			'alpha ',
+			<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'delta ',
 					<em class="tail">{'epsilon'}</em>,
 					' zeta',
-				],
-			]}
-		<div class="mixed-collection-split">{content}</div>
+			],
+		]}
 	</>;
+	<div class="mixed-collection-split">{content}</div>
 }
 
 export function MixedTsrxCollectionSplitClientText() @{
-		const content = <>
-			{[
-				'alpha ',
-				<strong class="middle">{'beta'}</strong>,
+	const content = <>
+		{[
+			'alpha ',
+			<strong class="middle">{'beta'}</strong>,
 				' gamma ',
 				[
 					'changed ',
 					<em class="tail">{'epsilon'}</em>,
 					' zeta',
-				],
-			]}
-		<div class="mixed-collection-split">{content}</div>
+			],
+		]}
 	</>;
+	<div class="mixed-collection-split">{content}</div>
 }
 
 export function MixedTsrxCollectionPrimitiveServerText() @{
-		const content = <>
-			{[
-				'count: ',
-				1,
+	const content = <>
+		{[
+			'count: ',
+			1,
 				' / ',
 				true,
-				<span class="primitive-tail">{' ok'}</span>,
-			]}
-		<div class="mixed-collection-primitive">{content}</div>
+			<span class="primitive-tail">{' ok'}</span>,
+		]}
 	</>;
+	<div class="mixed-collection-primitive">{content}</div>
 }
 
 export function MixedTsrxCollectionPrimitiveClientText() @{
-		const content = <>
-			{[
-				'count: ',
-				2,
+	const content = <>
+		{[
+			'count: ',
+			2,
 				' / ',
 				false,
-				<span class="primitive-tail">{' ok'}</span>,
-			]}
-		<div class="mixed-collection-primitive">{content}</div>
+			<span class="primitive-tail">{' ok'}</span>,
+		]}
 	</>;
+	<div class="mixed-collection-primitive">{content}</div>
 }
 
 function createPrimitiveItems() {
@@ -185,31 +197,29 @@ export function DynamicArrayFromLogical() @{
 }
 
 export function NestedTsrxInsideTopLevelTsxExpression() @{
-		const content = <>
-			<section class="outer">
-				{<><div class="inner">{'from tsrx'}</div></>}
-			</section>
-		{content}
+	const content = <>
+		<section class="outer">
+			<div class="inner">{'from tsrx'}</div>
+		</section>
 	</>;
+	<>{content}</>
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() @{
-		const content = <>
-			<div class="wrapper">
-				{<>
-					<section class="native">
-						<span class="nested-tsrx">{'inside nested tsrx'}</span>
-					</section>
-				</>}
-			</div>
-		{content}
+	const content = <>
+		<div class="wrapper">
+			<section class="native">
+				<span class="nested-tsrx">{'inside nested tsrx'}</span>
+			</section>
+		</div>
 	</>;
+	<>{content}</>
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() @{
-		const content = <><div class="native">{nested}</div></>;
-		{content}
-	</>;
+	const nested = <span class="nested-tsx">inside nested tsx</span>;
+	const content = <><div class="native">{nested}</div></>;
+	<>{content}</>
 }
 
 function TextProp(&{ children }: { children: string }) @{
@@ -217,41 +227,47 @@ function TextProp(&{ children }: { children: string }) @{
 }
 
 export function TextPropWithToggle() @{
-		let &[show] = track(false);
+	let &[show] = track(false);
+	<>
 		<TextProp children={show ? 'hello' : ''} />
 		<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+	</>
 }
 
 // Test for static content in child component followed by sibling content
 function StaticHeader() @{
+	<>
 		<h1 class="sr-only">{'heading'}</h1>
 		<p class="subtitle">{'first paragraph'}</p>
 		<p class="subtitle">{'second paragraph'}</p>
+	</>
 }
 
 export function StaticChildWithSiblings() @{
-		const foo = 'bar';
+	const foo = 'bar';
+	<>
 		<StaticHeader />
 		<span class="sibling1">{foo}</span>
 		<span class="sibling2">{foo}</span>
+	</>
 }
 
 // Website-like components for testing complex hydration scenarios
 
 function Header() @{
+	<>
 		<h1 class="sr-only">{'Ripple'}</h1>
 		<img src="/images/logo.png" alt="Logo" class="logo" />
 		<p class="subtitle">{'the elegant TypeScript UI framework'}</p>
+	</>
 }
 
 function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) @{
-		<div class="social-links">
-			<a href="https://github.com" class="github-link">{'GitHub'}</a>
-			<a href="https://discord.com" class="discord-link">{'Discord'}</a>
-			@if (playgroundVisible) {
-				<a href="/playground" class="playground-link">{'Playground'}</a>
-			}
-		</div>
+	<div class="social-links">
+		<a href="https://github.com" class="github-link">{'GitHub'}</a>
+		<a href="https://discord.com" class="discord-link">{'Discord'}</a>
+		{playgroundVisible ? <a href="/playground" class="playground-link">{'Playground'}</a> : null}
+	</div>
 }
 
 function Layout({ children }: { children: Children }) @{

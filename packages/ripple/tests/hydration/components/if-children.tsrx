@@ -68,7 +68,8 @@ export function TestIfWithSiblingsAndChildren() @{
 // This tests that hydrate_node is properly restored after processing an element's children
 // before navigating to a dynamic sibling (if/for/switch)
 export function ElementWithChildrenThenIf() @{
-		let &[show] = track(true);
+	let &[show] = track(true);
+	<>
 		<div class="wrapper">
 			<div class="nested-parent">
 				<div class="nested-child">
@@ -80,11 +81,13 @@ export function ElementWithChildrenThenIf() @{
 			}
 		</div>
 		<button class="toggle" onClick={() => (show = !show)}>{'Toggle'}</button>
+	</>
 }
 
 // More complex: multiple levels of nesting before if sibling
 export function DeepNestingThenIf() @{
-		let &[visible] = track(true);
+	let &[visible] = track(true);
+	<>
 		<section class="outer">
 			<article class="middle">
 				<div class="inner">
@@ -99,6 +102,7 @@ export function DeepNestingThenIf() @{
 			}
 		</section>
 		<button class="btn" onClick={() => (visible = !visible)}>{'Toggle'}</button>
+	</>
 }
 
 // Test case for CodeBlock pattern: element with only DOM element children (like buttons)
@@ -137,7 +141,8 @@ export function DomElementChildrenThenSibling() @{
 // generate sibling() calls. This was causing incorrect pop() generation before next().
 // Pattern: <ul> with dynamic <li> children -> static <h2> -> static <p> -> next()
 export function DomChildrenThenStaticSiblings() @{
-		let &[count] = track(0);
+	let &[count] = track(0);
+	<>
 		<div class="container">
 			<ul class="list">
 				<li class="item">
@@ -148,8 +153,9 @@ export function DomChildrenThenStaticSiblings() @{
 			</ul>
 			<h2 class="heading">{'Static Heading'}</h2>
 			<p class="para">{'Static paragraph'}</p>
-		</div>
-		<button class="inc" onClick={() => count++}>{'Increment'}</button>
+			</div>
+			<button class="inc" onClick={() => count++}>{'Increment'}</button>
+	</>
 }
 
 // Test case for completely static element children followed by static siblings.

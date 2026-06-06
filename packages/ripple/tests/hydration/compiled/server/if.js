@@ -90,33 +90,32 @@ export function ReactiveIf() {
 		let lazy = _$_.track(true, '19a16ff0');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="toggle"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Toggle');
-			}
-
-			_$_.output_push('</button>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
-
-			if (lazy.value) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="content"');
+				_$_.output_push('<button');
+				_$_.output_push(' class="toggle"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('Content visible');
+					_$_.output_push('Toggle');
 				}
 
-				_$_.output_push('</div>');
-			}
+				_$_.output_push('</button>');
+				_$_.output_push('<!--[-->');
 
-			_$_.output_push('<!--]-->');
+				if (lazy.value) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="content"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Content visible');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
 		});
 	});
 }
@@ -126,43 +125,42 @@ export function ReactiveIfElse() {
 		let lazy_1 = _$_.track(false, '41177f39');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="toggle"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Toggle');
-			}
-
-			_$_.output_push('</button>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
-
-			if (lazy_1.value) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="on"');
+				_$_.output_push('<button');
+				_$_.output_push(' class="toggle"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('ON');
+					_$_.output_push('Toggle');
 				}
 
-				_$_.output_push('</div>');
-			} else {
-				_$_.output_push('<div');
-				_$_.output_push(' class="off"');
-				_$_.output_push('>');
+				_$_.output_push('</button>');
+				_$_.output_push('<!--[-->');
 
-				{
-					_$_.output_push('OFF');
+				if (lazy_1.value) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="on"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('ON');
+					}
+
+					_$_.output_push('</div>');
+				} else {
+					_$_.output_push('<div');
+					_$_.output_push(' class="off"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('OFF');
+					}
+
+					_$_.output_push('</div>');
 				}
 
-				_$_.output_push('</div>');
+				_$_.output_push('<!--]-->');
 			}
-
-			_$_.output_push('<!--]-->');
 		});
 	});
 }
@@ -173,60 +171,56 @@ export function NestedIf() {
 		let lazy_3 = _$_.track(true, 'f21b8c26');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="outer-toggle"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Outer');
-			}
-
-			_$_.output_push('</button>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="inner-toggle"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Inner');
-			}
-
-			_$_.output_push('</button>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
-
-			if (lazy_2.value) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="outer-content"');
+				_$_.output_push('<button');
+				_$_.output_push(' class="outer-toggle"');
 				_$_.output_push('>');
 
 				{
 					_$_.output_push('Outer');
-					_$_.output_push('<!--[-->');
-
-					if (lazy_3.value) {
-						_$_.output_push('<span');
-						_$_.output_push(' class="inner-content"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Inner');
-						}
-
-						_$_.output_push('</span>');
-					}
-
-					_$_.output_push('<!--]-->');
 				}
 
-				_$_.output_push('</div>');
-			}
+				_$_.output_push('</button>');
+				_$_.output_push('<button');
+				_$_.output_push(' class="inner-toggle"');
+				_$_.output_push('>');
 
-			_$_.output_push('<!--]-->');
+				{
+					_$_.output_push('Inner');
+				}
+
+				_$_.output_push('</button>');
+				_$_.output_push('<!--[-->');
+
+				if (lazy_2.value) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="outer-content"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Outer');
+						_$_.output_push('<!--[-->');
+
+						if (lazy_3.value) {
+							_$_.output_push('<span');
+							_$_.output_push(' class="inner-content"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Inner');
+							}
+
+							_$_.output_push('</span>');
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</div>');
+				}
+
+				_$_.output_push('<!--]-->');
+			}
 		});
 	});
 }

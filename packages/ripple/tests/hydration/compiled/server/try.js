@@ -178,51 +178,47 @@ function AsyncList() {
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="before"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('before');
-			}
+				_$_.output_push('<div');
+				_$_.output_push(' class="before"');
+				_$_.output_push('>');
 
-			_$_.output_push('</div>');
+				{
+					_$_.output_push('before');
+				}
+
+				_$_.output_push('</div>');
+
+				_$_.try_block(
+					() => {
+						_$_.output_push('<!--[-->');
+
+						{
+							const comp = AsyncContent;
+							const args = [{}];
+
+							_$_.render_component(comp, ...args);
+						}
+
+						_$_.output_push('<!--]-->');
+					},
+					null,
+					() => {
+						_$_.output_push('<!--[-->');
+						_$_.output_push('<div');
+						_$_.output_push(' class="loading"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('loading async content');
+						}
+
+						_$_.output_push('</div>');
+						_$_.output_push('<!--]-->');
+					}
+				);
+			}
 		});
-
-		_$_.try_block(
-			() => {
-				_$_.output_push('<!--[-->');
-
-				_$_.regular_block(() => {
-					{
-						const comp = AsyncContent;
-						const args = [{}];
-
-						_$_.render_component(comp, ...args);
-					}
-				});
-
-				_$_.output_push('<!--]-->');
-			},
-			null,
-			() => {
-				_$_.output_push('<!--[-->');
-
-				_$_.regular_block(() => {
-					_$_.output_push('<div');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('loading async content');
-					}
-
-					_$_.output_push('</div>');
-				});
-
-				_$_.output_push('<!--]-->');
-			}
-		);
 	});
 }
 

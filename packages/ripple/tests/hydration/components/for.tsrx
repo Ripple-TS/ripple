@@ -34,7 +34,8 @@ export function KeyedForLoop() @{
 }
 
 export function ReactiveForLoopAdd() @{
-		let &[items] = track(['A', 'B']);
+	let &[items] = track(['A', 'B']);
+	<>
 		<button
 			class="add"
 			onClick={() => {
@@ -48,10 +49,12 @@ export function ReactiveForLoopAdd() @{
 				<li>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 export function ReactiveForLoopRemove() @{
-		let &[items] = track(['A', 'B', 'C']);
+	let &[items] = track(['A', 'B', 'C']);
+	<>
 		<button
 			class="remove"
 			onClick={() => {
@@ -65,6 +68,7 @@ export function ReactiveForLoopRemove() @{
 				<li>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 export function ForLoopInteractive() @{
@@ -130,11 +134,12 @@ export function ForLoopComplexObjects() @{
 
 // Test reordering items in a keyed for loop
 export function KeyedForLoopReorder() @{
-		let &[items] = track([
-			{ id: 1, name: 'First' },
-			{ id: 2, name: 'Second' },
-			{ id: 3, name: 'Third' },
-		]);
+	let &[items] = track([
+		{ id: 1, name: 'First' },
+		{ id: 2, name: 'Second' },
+		{ id: 3, name: 'Third' },
+	]);
+	<>
 		<button
 			class="reorder"
 			onClick={() => {
@@ -148,14 +153,16 @@ export function KeyedForLoopReorder() @{
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop with item property updates (keyed)
 export function KeyedForLoopUpdate() @{
-		let &[items] = track([
-			{ id: 1, name: 'Item 1' },
-			{ id: 2, name: 'Item 2' },
-		]);
+	let &[items] = track([
+		{ id: 1, name: 'Item 1' },
+		{ id: 2, name: 'Item 2' },
+	]);
+	<>
 		<button
 			class="update"
 			onClick={() => {
@@ -169,11 +176,13 @@ export function KeyedForLoopUpdate() @{
 				<li class={`item-${item.id}`}>{item.name}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop with combined add/remove/reorder
 export function ForLoopMixedOperations() @{
-		let &[items] = track(['A', 'B', 'C', 'D']);
+	let &[items] = track(['A', 'B', 'C', 'D']);
+	<>
 		<button
 			class="shuffle"
 			onClick={() => {
@@ -188,12 +197,14 @@ export function ForLoopMixedOperations() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop inside if block (combined control flow)
 export function ForLoopInsideIf() @{
-		let &[showList] = track(true);
-		let &[items] = track(['X', 'Y', 'Z']);
+	let &[showList] = track(true);
+	let &[items] = track(['X', 'Y', 'Z']);
+	<>
 		<button
 			class="toggle"
 			onClick={() => {
@@ -217,11 +228,13 @@ export function ForLoopInsideIf() @{
 				}
 			</ul>
 		}
+	</>
 }
 
 // Test for loop that transitions from empty to populated
 export function ForLoopEmptyToPopulated() @{
-		let &[items] = track<string[]>([]);
+	let &[items] = track<string[]>([]);
+	<>
 		<button
 			class="populate"
 			onClick={() => {
@@ -235,11 +248,13 @@ export function ForLoopEmptyToPopulated() @{
 				<li>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop that transitions from populated to empty
 export function ForLoopPopulatedToEmpty() @{
-		let &[items] = track(['One', 'Two', 'Three']);
+	let &[items] = track(['One', 'Two', 'Three']);
+	<>
 		<button
 			class="clear"
 			onClick={() => {
@@ -253,14 +268,16 @@ export function ForLoopPopulatedToEmpty() @{
 				<li>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test nested for loops with reactivity
 export function NestedForLoopReactive() @{
-		let &[grid] = track([
-			[1, 2],
-			[3, 4],
-		]);
+	let &[grid] = track([
+		[1, 2],
+		[3, 4],
+	]);
+	<div class="nested-for-reactive">
 		<button
 			class="add-row"
 			onClick={() => {
@@ -288,6 +305,7 @@ export function NestedForLoopReactive() @{
 				</div>
 			}
 		</div>
+	</div>
 }
 
 // Test for loop with deeply nested data
@@ -330,7 +348,8 @@ export function ForLoopDeeplyNested() @{
 
 // Test for loop with index that gets updated
 export function ForLoopIndexUpdate() @{
-		let &[items] = track(['First', 'Second', 'Third']);
+	let &[items] = track(['First', 'Second', 'Third']);
+	<>
 		<button
 			class="prepend"
 			onClick={() => {
@@ -344,15 +363,17 @@ export function ForLoopIndexUpdate() @{
 				<li class={`item-${i}`}>{`[${i}] ${item}`}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test keyed for loop with index
 export function KeyedForLoopWithIndex() @{
-		let &[items] = track([
-			{ id: 'a', value: 'Alpha' },
-			{ id: 'b', value: 'Beta' },
-			{ id: 'c', value: 'Gamma' },
-		]);
+	let &[items] = track([
+		{ id: 'a', value: 'Alpha' },
+		{ id: 'b', value: 'Beta' },
+		{ id: 'c', value: 'Gamma' },
+	]);
+	<>
 		<button
 			class="reorder"
 			onClick={() => {
@@ -366,11 +387,13 @@ export function KeyedForLoopWithIndex() @{
 				<li class={`item-${item.id}`} data-index={i}>{`[${i}] ${item.id}: ${item.value}`}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop with sibling elements
 export function ForLoopWithSiblings() @{
-		let &[items] = track(['A', 'B']);
+	let &[items] = track(['A', 'B']);
+	<>
 		<div class="wrapper">
 			<header class="before">{'Before'}</header>
 			@for (const item of items) {
@@ -386,6 +409,7 @@ export function ForLoopWithSiblings() @{
 		>
 			{'Add'}
 		</button>
+	</>
 }
 
 // Test for loop items with their own reactive state
@@ -431,7 +455,8 @@ export function ForLoopSingleItem() @{
 
 // Test for loop adding at beginning
 export function ForLoopAddAtBeginning() @{
-		let &[items] = track(['B', 'C']);
+	let &[items] = track(['B', 'C']);
+	<>
 		<button
 			class="prepend"
 			onClick={() => {
@@ -445,11 +470,13 @@ export function ForLoopAddAtBeginning() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop adding in the middle
 export function ForLoopAddInMiddle() @{
-		let &[items] = track(['A', 'C']);
+	let &[items] = track(['A', 'C']);
+	<>
 		<button
 			class="insert"
 			onClick={() => {
@@ -465,11 +492,13 @@ export function ForLoopAddInMiddle() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop removing from the middle
 export function ForLoopRemoveFromMiddle() @{
-		let &[items] = track(['A', 'B', 'C']);
+	let &[items] = track(['A', 'B', 'C']);
+	<>
 		<button
 			class="remove-middle"
 			onClick={() => {
@@ -483,6 +512,7 @@ export function ForLoopRemoveFromMiddle() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop with large list
@@ -497,7 +527,8 @@ export function ForLoopLargeList() @{
 
 // Test for loop with swap operation
 export function ForLoopSwap() @{
-		let &[items] = track(['A', 'B', 'C', 'D']);
+	let &[items] = track(['A', 'B', 'C', 'D']);
+	<>
 		<button
 			class="swap"
 			onClick={() => {
@@ -513,11 +544,13 @@ export function ForLoopSwap() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }
 
 // Test for loop with reverse operation
 export function ForLoopReverse() @{
-		let &[items] = track(['A', 'B', 'C', 'D']);
+	let &[items] = track(['A', 'B', 'C', 'D']);
+	<>
 		<button
 			class="reverse"
 			onClick={() => {
@@ -531,4 +564,5 @@ export function ForLoopReverse() @{
 				<li class={`item-${item}`}>{item}</li>
 			}
 		</ul>
+	</>
 }

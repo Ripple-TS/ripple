@@ -32,14 +32,14 @@ export function ComputedValues() @{
 }
 
 export function MultipleTracked() @{
-	
-		let &[x] = track(10);
-		let &[y] = track(20);
-		let &[z] = track(30);
+	let &[x] = track(10);
+	let &[y] = track(20);
+	let &[z] = track(30);
+	<div class="multiple-tracked">
 		<div class="x">{x}</div>
 		<div class="y">{y}</div>
 		<div class="z">{z}</div>
-	
+	</div>
 }
 
 export function DerivedState() @{

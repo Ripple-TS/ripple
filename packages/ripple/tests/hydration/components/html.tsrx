@@ -89,7 +89,7 @@ function DocFooter() @{
 	<footer class="doc-footer">{'Footer content'}</footer>
 }
 
-export function DocLayout(@{
+export function DocLayout(&{
 	children,
 	editPath = '',
 	nextLink = null,
@@ -99,7 +99,7 @@ export function DocLayout(@{
 	editPath?: string;
 	nextLink?: { href: string; text: string } | null;
 	toc?: { href: string; text: string }[];
-}) {
+}) @{
 		<div class="layout">
 			<div class="content-container">
 				<article>
@@ -199,7 +199,7 @@ export function HtmlAfterSwitchInChildren() @{
 		</ContentWrapper>
 }
 
-function NavItem(@{
+function NavItem(&{
 	href,
 	text: label,
 	active = false,
@@ -207,7 +207,7 @@ function NavItem(@{
 	href: string;
 	text: string;
 	active?: boolean;
-}) {
+}) @{
 		<div class={`nav-item${active ? ' active' : ''}`}>
 			@if (active) {
 				<div class="indicator" />
@@ -357,7 +357,7 @@ function FooterStub() @{
 	<footer class="footer">{'Footer'}</footer>
 }
 
-function DocsLayoutInner(@{
+function DocsLayoutInner(&{
 	children,
 	editPath = '',
 	nextLink = null,
@@ -365,7 +365,7 @@ function DocsLayoutInner(@{
 	children: any;
 	editPath?: string;
 	nextLink?: { href: string; text: string } | null;
-}) {
+}) @{
 		<div class="layout">
 			<HeaderStub />
 			<div class="docs-wrapper">
@@ -410,7 +410,7 @@ export function DocsLayoutWithoutData() @{
 		</DocsLayoutInner>
 }
 
-function DocsLayoutExact(@{
+function DocsLayoutExact(&{
 	children,
 	editPath = '',
 	prevLink = null,
@@ -422,7 +422,7 @@ function DocsLayoutExact(@{
 	prevLink?: { href: string; text: string } | null;
 	nextLink?: { href: string; text: string } | null;
 	toc?: { href: string; text: string }[];
-}) {
+}) @{
 		<div class="layout">
 			<HeaderStub />
 			<div class="docs-wrapper">

@@ -44,12 +44,14 @@ function AsyncList() @{
 }
 
 export function AsyncTryWithLeadingSibling() @{
+	<>
 		<div class="before">{'before'}</div>
 		@try {
 			<AsyncContent />
 		} pending {
 			<div class="loading">{'loading async content'}</div>
 		}
+	</>
 }
 
 function AsyncContent() @{

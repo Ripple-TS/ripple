@@ -19,10 +19,10 @@ export function SingleChild() @{
 }
 
 export function MultiRootChild() @{
-	
+	<>
 		<h1>{'title'}</h1>
 		<p>{'description'}</p>
-	
+	</>
 }
 
 export function EmptyLayout() @{

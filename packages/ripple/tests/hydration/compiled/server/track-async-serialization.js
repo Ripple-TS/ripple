@@ -17,61 +17,70 @@ const formatValue = function (...args) {
 	return _$_server_$_.formatValue(...args);
 };
 
-export function AsyncWithServerCall() {
+function ServerCallResult({ count }) {
 	return _$_.tsrx_element(() => {
-		let lazy = _$_.track(0, '2e21cbe9');
+		let lazy = _$_.track_async(() => formatValue(count.value), '2e21cbe9');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="increment"');
+			_$_.output_push('<p');
+			_$_.output_push(' class="result"');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push('increment');
+				_$_.output_push(_$_.escape(lazy.value));
 			}
 
-			_$_.output_push('</button>');
+			_$_.output_push('</p>');
 		});
+	});
+}
 
-		_$_.try_block(
-			() => {
-				_$_.output_push('<!--[-->');
+export function AsyncWithServerCall() {
+	return _$_.tsrx_element(() => {
+		let lazy_1 = _$_.track(0, 'f0c2b41e');
 
-				let lazy_1 = _$_.track_async(() => formatValue(lazy.value), 'f0c2b41e');
+		_$_.regular_block(() => {
+			{
+				_$_.output_push('<button');
+				_$_.output_push(' class="increment"');
+				_$_.output_push('>');
 
-				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="result"');
-					_$_.output_push('>');
+				{
+					_$_.output_push('increment');
+				}
 
-					{
-						_$_.output_push(_$_.escape(lazy_1.value));
+				_$_.output_push('</button>');
+
+				_$_.try_block(
+					() => {
+						_$_.output_push('<!--[-->');
+
+						{
+							const comp = ServerCallResult;
+							const args = [{ count: lazy_1 }];
+
+							_$_.render_component(comp, ...args);
+						}
+
+						_$_.output_push('<!--]-->');
+					},
+					null,
+					() => {
+						_$_.output_push('<!--[-->');
+						_$_.output_push('<p');
+						_$_.output_push(' class="loading"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('loading...');
+						}
+
+						_$_.output_push('</p>');
+						_$_.output_push('<!--]-->');
 					}
-
-					_$_.output_push('</p>');
-				});
-
-				_$_.output_push('<!--]-->');
-			},
-			null,
-			() => {
-				_$_.output_push('<!--[-->');
-
-				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
-				});
-
-				_$_.output_push('<!--]-->');
+				);
 			}
-		);
+		});
 	});
 }
 
@@ -429,60 +438,69 @@ export function ParentWithCatch() {
 	});
 }
 
-export function AsyncWithReactiveDependency() {
+function ReactiveDependencyResult({ count }) {
 	return _$_.tsrx_element(() => {
-		let lazy_9 = _$_.track(0, 'c9d12acf');
+		let lazy_9 = _$_.track_async(() => Promise.resolve(`count-${count.value}`), 'c9d12acf');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="increment"');
+			_$_.output_push('<p');
+			_$_.output_push(' class="result"');
 			_$_.output_push('>');
 
 			{
-				_$_.output_push('increment');
+				_$_.output_push(_$_.escape(lazy_9.value));
 			}
 
-			_$_.output_push('</button>');
+			_$_.output_push('</p>');
 		});
+	});
+}
 
-		_$_.try_block(
-			() => {
-				_$_.output_push('<!--[-->');
+export function AsyncWithReactiveDependency() {
+	return _$_.tsrx_element(() => {
+		let lazy_10 = _$_.track(0, 'cdd1adb8');
 
-				let lazy_10 = _$_.track_async(() => Promise.resolve(`count-${lazy_9.value}`), 'cdd1adb8');
+		_$_.regular_block(() => {
+			{
+				_$_.output_push('<button');
+				_$_.output_push(' class="increment"');
+				_$_.output_push('>');
 
-				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="result"');
-					_$_.output_push('>');
+				{
+					_$_.output_push('increment');
+				}
 
-					{
-						_$_.output_push(_$_.escape(lazy_10.value));
+				_$_.output_push('</button>');
+
+				_$_.try_block(
+					() => {
+						_$_.output_push('<!--[-->');
+
+						{
+							const comp = ReactiveDependencyResult;
+							const args = [{ count: lazy_10 }];
+
+							_$_.render_component(comp, ...args);
+						}
+
+						_$_.output_push('<!--]-->');
+					},
+					null,
+					() => {
+						_$_.output_push('<!--[-->');
+						_$_.output_push('<p');
+						_$_.output_push(' class="loading"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('loading...');
+						}
+
+						_$_.output_push('</p>');
+						_$_.output_push('<!--]-->');
 					}
-
-					_$_.output_push('</p>');
-				});
-
-				_$_.output_push('<!--]-->');
-			},
-			null,
-			() => {
-				_$_.output_push('<!--[-->');
-
-				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
-				});
-
-				_$_.output_push('<!--]-->');
+				);
 			}
-		);
+		});
 	});
 }

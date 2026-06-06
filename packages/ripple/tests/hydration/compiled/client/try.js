@@ -11,10 +11,11 @@ var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_5 = _$_.template(`<!>`, 1, 1);
 var root_9 = _$_.template(`<li> </li>`, 0);
 var root_8 = _$_.template(`<ul class="items"></ul>`, 0);
-var root_11 = _$_.template(`<!>`, 1, 1);
-var root_12 = _$_.template(`<div class="loading">loading async content</div>`, 0);
-var root_10 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
-var root_13 = _$_.template(`<div class="resolved"> </div>`, 0);
+var root_12 = _$_.template(`<!>`, 1, 1);
+var root_13 = _$_.template(`<div class="loading">loading async content</div>`, 0);
+var root_11 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
+var root_10 = _$_.template(`<!>`, 1, 1);
+var root_14 = _$_.template(`<div class="resolved"> </div>`, 0);
 
 import { trackAsync } from 'ripple';
 
@@ -151,25 +152,32 @@ function AsyncList() {
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		var fragment_3 = root_10();
-		var div_1 = _$_.first_child_frag(fragment_3);
-		var node_2 = _$_.sibling(div_1);
+		var node_4 = _$_.first_child_frag(fragment_3);
 
-		_$_.try(
-			node_2,
-			(__anchor) => {
-				var fragment_4 = root_11();
-				var node_3 = _$_.first_child_frag(fragment_4);
+		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_4 = root_11();
+			var div_1 = _$_.first_child_frag(fragment_4);
+			var node_2 = _$_.sibling(div_1);
 
-				_$_.render_component(AsyncContent, node_3, {});
-				_$_.append(__anchor, fragment_4);
-			},
-			null,
-			(__anchor) => {
-				var div_2 = root_12();
+			_$_.try(
+				node_2,
+				(__anchor) => {
+					var fragment_5 = root_12();
+					var node_3 = _$_.first_child_frag(fragment_5);
 
-				_$_.append(__anchor, div_2);
-			}
-		);
+					_$_.render_component(AsyncContent, node_3, {});
+					_$_.append(__anchor, fragment_5);
+				},
+				null,
+				(__anchor) => {
+					var div_2 = root_13();
+
+					_$_.append(__anchor, div_2);
+				}
+			);
+
+			_$_.append(__anchor, fragment_4);
+		}));
 
 		_$_.append(__anchor, fragment_3);
 	});
@@ -178,7 +186,7 @@ export function AsyncTryWithLeadingSibling() {
 function AsyncContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
-		var div_3 = root_13();
+		var div_3 = root_14();
 
 		{
 			var expression_4 = _$_.child(div_3);

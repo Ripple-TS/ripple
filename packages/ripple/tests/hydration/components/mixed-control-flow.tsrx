@@ -7,9 +7,9 @@ export function MixedControlFlowStatic() @{
 			{ id: 3, kind: 'a', enabled: false },
 		];
 		<section class="mixed-static">
-			for (const row of rows; key row.id) {
-				if (row.enabled) {
-					switch (row.kind) {
+			@for (const row of rows; key row.id) {
+				@if (row.enabled) {
+					@switch (row.kind) {
 						case 'a':
 							@try {
 								<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
@@ -30,12 +30,13 @@ export function MixedControlFlowStatic() @{
 }
 
 export function MixedControlFlowReactive() @{
-		let &[show] = track(true);
-		let &[mode] = track<'a' | 'b'>('a');
-		let &[items] = track([
-			{ id: 1, label: 'One' },
-			{ id: 2, label: 'Two' },
-		]);
+	let &[show] = track(true);
+	let &[mode] = track<'a' | 'b'>('a');
+	let &[items] = track([
+		{ id: 1, label: 'One' },
+		{ id: 2, label: 'Two' },
+	]);
+	<>
 		<button
 			class="toggle-show"
 			onClick={() => {
@@ -62,8 +63,8 @@ export function MixedControlFlowReactive() @{
 		</button>
 		@if (show) {
 			<div class="mixed-reactive-list">
-				for (const item of items; key item.id) {
-					switch (mode) {
+				@for (const item of items; key item.id) {
+					@switch (mode) {
 						case 'a':
 							@try {
 								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
@@ -81,14 +82,16 @@ export function MixedControlFlowReactive() @{
 				}
 			</div>
 		}
+	</>
 }
 
 export function MixedControlFlowAsyncPending() @{
-		const rows = [1, 2];
-		const state = 'slow';
+	const rows = [1, 2];
+	const state = 'slow';
+	<>
 		<div class="before">{'before'}</div>
-		for (const row of rows) {
-			if (row === 1) {
+		@for (const row of rows) {
+			@if (row === 1) {
 				@switch (state) {
 					case 'slow':
 						@try {
@@ -102,6 +105,7 @@ export function MixedControlFlowAsyncPending() @{
 				}
 			}
 		}
+	</>
 }
 
 function AsyncRow({ label }: { label: string }) @{

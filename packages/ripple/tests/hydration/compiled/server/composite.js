@@ -54,25 +54,24 @@ export function SingleChild() {
 export function MultiRootChild() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<h1');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('title');
+				_$_.output_push('<h1');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('title');
+				}
+
+				_$_.output_push('</h1>');
+				_$_.output_push('<p');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('description');
+				}
+
+				_$_.output_push('</p>');
 			}
-
-			_$_.output_push('</h1>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('description');
-			}
-
-			_$_.output_push('</p>');
 		});
 	});
 }

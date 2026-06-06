@@ -21,36 +21,32 @@ export function StaticText() {
 export function MultipleElements() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<h1');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Title');
+				_$_.output_push('<h1');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Title');
+				}
+
+				_$_.output_push('</h1>');
+				_$_.output_push('<p');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Paragraph text');
+				}
+
+				_$_.output_push('</p>');
+				_$_.output_push('<span');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Span text');
+				}
+
+				_$_.output_push('</span>');
 			}
-
-			_$_.output_push('</h1>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Paragraph text');
-			}
-
-			_$_.output_push('</p>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<span');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Span text');
-			}
-
-			_$_.output_push('</span>');
 		});
 	});
 }
@@ -89,24 +85,23 @@ export function NestedElements() {
 export function WithAttributes() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<input');
-			_$_.output_push(' type="text"');
-			_$_.output_push(' placeholder="Enter text"');
-			_$_.output_push(' disabled');
-			_$_.output_push(' />');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<a');
-			_$_.output_push(' href="/link"');
-			_$_.output_push(' target="_blank"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Link');
-			}
+				_$_.output_push('<input');
+				_$_.output_push(' type="text"');
+				_$_.output_push(' placeholder="Enter text"');
+				_$_.output_push(' disabled');
+				_$_.output_push(' />');
+				_$_.output_push('<a');
+				_$_.output_push(' href="/link"');
+				_$_.output_push(' target="_blank"');
+				_$_.output_push('>');
 
-			_$_.output_push('</a>');
+				{
+					_$_.output_push('Link');
+				}
+
+				_$_.output_push('</a>');
+			}
 		});
 	});
 }
@@ -184,19 +179,19 @@ export function SiblingComponents() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			{
-				const comp = FirstSibling;
-				const args = [{}];
+				{
+					const comp = FirstSibling;
+					const args = [{}];
 
-				_$_.render_component(comp, ...args);
-			}
-		});
+					_$_.render_component(comp, ...args);
+				}
 
-		_$_.regular_block(() => {
-			{
-				const comp = SecondSibling;
-				const args = [{}];
+				{
+					const comp = SecondSibling;
+					const args = [{}];
 
-				_$_.render_component(comp, ...args);
+					_$_.render_component(comp, ...args);
+				}
 			}
 		});
 	});
@@ -236,25 +231,24 @@ export function ExpressionContent() {
 		const label = 'computed';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push(_$_.escape(value));
+				_$_.output_push('<div');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(value));
+				}
+
+				_$_.output_push('</div>');
+				_$_.output_push('<span');
+				_$_.output_push('>');
+
+				{
+					_$_.render_expression(label.toUpperCase());
+				}
+
+				_$_.output_push('</span>');
 			}
-
-			_$_.output_push('</div>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<span');
-			_$_.output_push('>');
-
-			{
-				_$_.render_expression(label.toUpperCase());
-			}
-
-			_$_.output_push('</span>');
 		});
 	});
 }
@@ -278,30 +272,29 @@ function NestedHelperItem({ item }) {
 function NestedTsxTsrxFragment({ label }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<span');
-			_$_.output_push(' class="label"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push(_$_.escape(label));
-			}
+				_$_.output_push('<span');
+				_$_.output_push(' class="label"');
+				_$_.output_push('>');
 
-			_$_.output_push('</span>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
-
-			for (const item of [1, 2, 3, 4]) {
 				{
-					const comp = NestedHelperItem;
-					const args = [{ item }];
-
-					_$_.render_component(comp, ...args);
+					_$_.output_push(_$_.escape(label));
 				}
-			}
 
-			_$_.output_push('<!--]-->');
+				_$_.output_push('</span>');
+				_$_.output_push('<!--[-->');
+
+				for (const item of [1, 2, 3, 4]) {
+					{
+						const comp = NestedHelperItem;
+						const args = [{ item }];
+
+						_$_.render_component(comp, ...args);
+					}
+				}
+
+				_$_.output_push('<!--]-->');
+			}
 		});
 	});
 }
@@ -309,30 +302,36 @@ function NestedTsxTsrxFragment({ label }) {
 export function NestedTsxTsrxExpressionValues() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			_$_.output_push('<div');
+			_$_.output_push(' class="nested-expression-values"');
+			_$_.output_push('>');
 
-			for (const item of [1, 2, 3]) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="app-item"');
-				_$_.output_push('>');
+			{
+				_$_.output_push('<!--[-->');
 
-				{
-					_$_.output_push(_$_.escape(item));
+				for (const item of [1, 2, 3]) {
+					_$_.output_push('<div');
+					_$_.output_push(' class="app-item"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(item));
+					}
+
+					_$_.output_push('</div>');
 				}
 
-				_$_.output_push('</div>');
+				_$_.output_push('<!--]-->');
+
+				{
+					const comp = NestedTsxTsrxFragment;
+					const args = [{ label: "from helper" }];
+
+					_$_.render_component(comp, ...args);
+				}
 			}
 
-			_$_.output_push('<!--]-->');
-		});
-
-		_$_.regular_block(() => {
-			{
-				const comp = NestedTsxTsrxFragment;
-				const args = [{ label: "from helper" }];
-
-				_$_.render_component(comp, ...args);
-			}
+			_$_.output_push('</div>');
 		});
 	});
 }
@@ -656,17 +655,15 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 				_$_.output_push('>');
 
 				{
-					_$_.render_expression(_$_.tsrx_element(() => {
-						_$_.output_push('<div');
-						_$_.output_push(' class="inner"');
-						_$_.output_push('>');
+					_$_.output_push('<div');
+					_$_.output_push(' class="inner"');
+					_$_.output_push('>');
 
-						{
-							_$_.output_push('from tsrx');
-						}
+					{
+						_$_.output_push('from tsrx');
+					}
 
-						_$_.output_push('</div>');
-					}));
+					_$_.output_push('</div>');
 				}
 
 				_$_.output_push('</section>');
@@ -674,7 +671,9 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 		});
 
 		_$_.regular_block(() => {
-			_$_.render_expression(content);
+			{
+				_$_.render_expression(content);
+			}
 		});
 	});
 }
@@ -688,25 +687,23 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 				_$_.output_push('>');
 
 				{
-					_$_.render_expression(_$_.tsrx_element(() => {
-						_$_.output_push('<section');
-						_$_.output_push(' class="native"');
+					_$_.output_push('<section');
+					_$_.output_push(' class="native"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<span');
+						_$_.output_push(' class="nested-tsrx"');
 						_$_.output_push('>');
 
 						{
-							_$_.output_push('<span');
-							_$_.output_push(' class="nested-tsrx"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('inside nested tsrx');
-							}
-
-							_$_.output_push('</span>');
+							_$_.output_push('inside nested tsrx');
 						}
 
-						_$_.output_push('</section>');
-					}));
+						_$_.output_push('</span>');
+					}
+
+					_$_.output_push('</section>');
 				}
 
 				_$_.output_push('</div>');
@@ -714,7 +711,9 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 		});
 
 		_$_.regular_block(() => {
-			_$_.render_expression(content);
+			{
+				_$_.render_expression(content);
+			}
 		});
 	});
 }
@@ -750,7 +749,9 @@ export function TsxDeclaredBeforeTopLevelTsx() {
 		});
 
 		_$_.regular_block(() => {
-			_$_.render_expression(content);
+			{
+				_$_.render_expression(content);
+			}
 		});
 	});
 }
@@ -777,28 +778,28 @@ export function TextPropWithToggle() {
 
 		_$_.regular_block(() => {
 			{
-				const comp = TextProp;
+				{
+					const comp = TextProp;
 
-				const args = [
-					{
-						children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
-					}
-				];
+					const args = [
+						{
+							children: _$_.normalize_children(lazy_1.value ? 'hello' : '')
+						}
+					];
 
-				_$_.render_component(comp, ...args);
+					_$_.render_component(comp, ...args);
+				}
+
+				_$_.output_push('<button');
+				_$_.output_push(' class="show-text"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Show');
+				}
+
+				_$_.output_push('</button>');
 			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="show-text"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Show');
-			}
-
-			_$_.output_push('</button>');
 		});
 	});
 }
@@ -806,39 +807,35 @@ export function TextPropWithToggle() {
 function StaticHeader() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<h1');
-			_$_.output_push(' class="sr-only"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('heading');
+				_$_.output_push('<h1');
+				_$_.output_push(' class="sr-only"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('heading');
+				}
+
+				_$_.output_push('</h1>');
+				_$_.output_push('<p');
+				_$_.output_push(' class="subtitle"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('first paragraph');
+				}
+
+				_$_.output_push('</p>');
+				_$_.output_push('<p');
+				_$_.output_push(' class="subtitle"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('second paragraph');
+				}
+
+				_$_.output_push('</p>');
 			}
-
-			_$_.output_push('</h1>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="subtitle"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('first paragraph');
-			}
-
-			_$_.output_push('</p>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="subtitle"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('second paragraph');
-			}
-
-			_$_.output_push('</p>');
 		});
 	});
 }
@@ -849,35 +846,32 @@ export function StaticChildWithSiblings() {
 
 		_$_.regular_block(() => {
 			{
-				const comp = StaticHeader;
-				const args = [{}];
+				{
+					const comp = StaticHeader;
+					const args = [{}];
 
-				_$_.render_component(comp, ...args);
+					_$_.render_component(comp, ...args);
+				}
+
+				_$_.output_push('<span');
+				_$_.output_push(' class="sibling1"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(foo));
+				}
+
+				_$_.output_push('</span>');
+				_$_.output_push('<span');
+				_$_.output_push(' class="sibling2"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push(_$_.escape(foo));
+				}
+
+				_$_.output_push('</span>');
 			}
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<span');
-			_$_.output_push(' class="sibling1"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push(_$_.escape(foo));
-			}
-
-			_$_.output_push('</span>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<span');
-			_$_.output_push(' class="sibling2"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push(_$_.escape(foo));
-			}
-
-			_$_.output_push('</span>');
 		});
 	});
 }
@@ -885,35 +879,31 @@ export function StaticChildWithSiblings() {
 function Header() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<h1');
-			_$_.output_push(' class="sr-only"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('Ripple');
+				_$_.output_push('<h1');
+				_$_.output_push(' class="sr-only"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Ripple');
+				}
+
+				_$_.output_push('</h1>');
+				_$_.output_push('<img');
+				_$_.output_push(' src="/images/logo.png"');
+				_$_.output_push(' alt="Logo"');
+				_$_.output_push(' class="logo"');
+				_$_.output_push(' />');
+				_$_.output_push('<p');
+				_$_.output_push(' class="subtitle"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('the elegant TypeScript UI framework');
+				}
+
+				_$_.output_push('</p>');
 			}
-
-			_$_.output_push('</h1>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<img');
-			_$_.output_push(' src="/images/logo.png"');
-			_$_.output_push(' alt="Logo"');
-			_$_.output_push(' class="logo"');
-			_$_.output_push(' />');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="subtitle"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('the elegant TypeScript UI framework');
-			}
-
-			_$_.output_push('</p>');
 		});
 	});
 }
@@ -946,22 +936,21 @@ function Actions({ playgroundVisible = false }) {
 				}
 
 				_$_.output_push('</a>');
-				_$_.output_push('<!--[-->');
 
-				if (playgroundVisible) {
-					_$_.output_push('<a');
-					_$_.output_push(' href="/playground"');
-					_$_.output_push(' class="playground-link"');
-					_$_.output_push('>');
+				_$_.render_expression(playgroundVisible
+					? _$_.tsrx_element(() => {
+						_$_.output_push('<a');
+						_$_.output_push(' href="/playground"');
+						_$_.output_push(' class="playground-link"');
+						_$_.output_push('>');
 
-					{
-						_$_.output_push('Playground');
-					}
+						{
+							_$_.output_push('Playground');
+						}
 
-					_$_.output_push('</a>');
-				}
-
-				_$_.output_push('<!--]-->');
+						_$_.output_push('</a>');
+					})
+					: null);
 			}
 
 			_$_.output_push('</div>');

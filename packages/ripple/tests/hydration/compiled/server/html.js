@@ -309,7 +309,7 @@ function DocFooter() {
 	});
 }
 
-export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }) {
+export function DocLayout(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -330,7 +330,7 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 						_$_.output_push('>');
 
 						{
-							_$_.render_expression(children);
+							_$_.render_expression(__props.children);
 						}
 
 						_$_.output_push('</div>');
@@ -339,14 +339,14 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 					_$_.output_push('</article>');
 					_$_.output_push('<!--[-->');
 
-					if (editPath) {
+					if (_$_.fallback(__props.editPath, '')) {
 						_$_.output_push('<div');
 						_$_.output_push(' class="edit-link"');
 						_$_.output_push('>');
 
 						{
 							_$_.output_push('<a');
-							_$_.output_push(_$_.attr('href', `https://github.com/edit/${editPath}`, false));
+							_$_.output_push(_$_.attr('href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`, false));
 							_$_.output_push('>');
 
 							{
@@ -362,18 +362,18 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 					_$_.output_push('<!--]-->');
 					_$_.output_push('<!--[-->');
 
-					if (nextLink) {
+					if (_$_.fallback(__props.nextLink, null)) {
 						_$_.output_push('<nav');
 						_$_.output_push(' class="prev-next"');
 						_$_.output_push('>');
 
 						{
 							_$_.output_push('<a');
-							_$_.output_push(_$_.attr('href', nextLink.href, false));
+							_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
 							_$_.output_push('>');
 
 							{
-								_$_.output_push(_$_.escape(nextLink.text));
+								_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
 							}
 
 							_$_.output_push('</a>');
@@ -399,7 +399,7 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 				{
 					_$_.output_push('<!--[-->');
 
-					if (toc.length > 0) {
+					if (_$_.fallback(__props.toc, []).length > 0) {
 						_$_.output_push('<div');
 						_$_.output_push(' class="toc"');
 						_$_.output_push('>');
@@ -411,7 +411,7 @@ export function DocLayout({ children, editPath = '', nextLink = null, toc = [] }
 							{
 								_$_.output_push('<!--[-->');
 
-								for (const item of toc) {
+								for (const item of _$_.fallback(__props.toc, [])) {
 									_$_.output_push('<li');
 									_$_.output_push('>');
 
@@ -714,17 +714,17 @@ export function HtmlAfterSwitchInChildren() {
 	});
 }
 
-function NavItem({ href, text: label, active = false }) {
+function NavItem(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
-			_$_.output_push(_$_.attr('class', `nav-item${active ? ' active' : ''}`));
+			_$_.output_push(_$_.attr('class', `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`));
 			_$_.output_push('>');
 
 			{
 				_$_.output_push('<!--[-->');
 
-				if (active) {
+				if (_$_.fallback(__props.active, false)) {
 					_$_.output_push('<div');
 					_$_.output_push(' class="indicator"');
 					_$_.output_push('>');
@@ -733,7 +733,7 @@ function NavItem({ href, text: label, active = false }) {
 
 				_$_.output_push('<!--]-->');
 				_$_.output_push('<a');
-				_$_.output_push(_$_.attr('href', href, false));
+				_$_.output_push(_$_.attr('href', __props.href, false));
 				_$_.output_push('>');
 
 				{
@@ -741,7 +741,7 @@ function NavItem({ href, text: label, active = false }) {
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape(label));
+						_$_.output_push(_$_.escape(__props.text));
 					}
 
 					_$_.output_push('</span>');
@@ -1405,7 +1405,7 @@ function FooterStub() {
 	});
 }
 
-function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
+function DocsLayoutInner(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -1461,7 +1461,7 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 										_$_.output_push('>');
 
 										{
-											_$_.render_expression(children);
+											_$_.render_expression(__props.children);
 										}
 
 										_$_.output_push('</div>');
@@ -1470,7 +1470,7 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 									_$_.output_push('</article>');
 									_$_.output_push('<!--[-->');
 
-									if (editPath) {
+									if (_$_.fallback(__props.editPath, '')) {
 										_$_.output_push('<div');
 										_$_.output_push(' class="edit-link"');
 										_$_.output_push('>');
@@ -1493,18 +1493,18 @@ function DocsLayoutInner({ children, editPath = '', nextLink = null }) {
 									_$_.output_push('<!--]-->');
 									_$_.output_push('<!--[-->');
 
-									if (nextLink) {
+									if (_$_.fallback(__props.nextLink, null)) {
 										_$_.output_push('<nav');
 										_$_.output_push(' class="prev-next"');
 										_$_.output_push('>');
 
 										{
 											_$_.output_push('<a');
-											_$_.output_push(_$_.attr('href', nextLink.href, false));
+											_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
 											_$_.output_push('>');
 
 											{
-												_$_.output_push(_$_.escape(nextLink.text));
+												_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
 											}
 
 											_$_.output_push('</a>');
@@ -1601,15 +1601,7 @@ export function DocsLayoutWithoutData() {
 	});
 }
 
-function DocsLayoutExact(
-	{
-		children,
-		editPath = '',
-		prevLink = null,
-		nextLink = null,
-		toc = []
-	}
-) {
+function DocsLayoutExact(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
 			_$_.output_push('<div');
@@ -1665,7 +1657,7 @@ function DocsLayoutExact(
 										_$_.output_push('>');
 
 										{
-											_$_.render_expression(children);
+											_$_.render_expression(__props.children);
 										}
 
 										_$_.output_push('</div>');
@@ -1674,14 +1666,14 @@ function DocsLayoutExact(
 									_$_.output_push('</article>');
 									_$_.output_push('<!--[-->');
 
-									if (editPath) {
+									if (_$_.fallback(__props.editPath, '')) {
 										_$_.output_push('<div');
 										_$_.output_push(' class="edit-link"');
 										_$_.output_push('>');
 
 										{
 											_$_.output_push('<a');
-											_$_.output_push(_$_.attr('href', `/edit/${editPath}`, false));
+											_$_.output_push(_$_.attr('href', `/edit/${_$_.fallback(__props.editPath, '')}`, false));
 											_$_.output_push('>');
 
 											{
@@ -1697,7 +1689,7 @@ function DocsLayoutExact(
 									_$_.output_push('<!--]-->');
 									_$_.output_push('<!--[-->');
 
-									if (prevLink || nextLink) {
+									if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) {
 										_$_.output_push('<nav');
 										_$_.output_push(' class="prev-next"');
 										_$_.output_push('>');
@@ -1705,9 +1697,9 @@ function DocsLayoutExact(
 										{
 											_$_.output_push('<!--[-->');
 
-											if (prevLink) {
+											if (_$_.fallback(__props.prevLink, null)) {
 												_$_.output_push('<a');
-												_$_.output_push(_$_.attr('href', prevLink.href, false));
+												_$_.output_push(_$_.attr('href', _$_.fallback(__props.prevLink, null).href, false));
 												_$_.output_push(' class="pager prev"');
 												_$_.output_push('>');
 
@@ -1717,7 +1709,7 @@ function DocsLayoutExact(
 													_$_.output_push('>');
 
 													{
-														_$_.output_push(_$_.escape(prevLink.text));
+														_$_.output_push(_$_.escape(_$_.fallback(__props.prevLink, null).text));
 													}
 
 													_$_.output_push('</span>');
@@ -1733,9 +1725,9 @@ function DocsLayoutExact(
 											_$_.output_push('<!--]-->');
 											_$_.output_push('<!--[-->');
 
-											if (nextLink) {
+											if (_$_.fallback(__props.nextLink, null)) {
 												_$_.output_push('<a');
-												_$_.output_push(_$_.attr('href', nextLink.href, false));
+												_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
 												_$_.output_push(' class="pager next"');
 												_$_.output_push('>');
 
@@ -1745,7 +1737,7 @@ function DocsLayoutExact(
 													_$_.output_push('>');
 
 													{
-														_$_.output_push(_$_.escape(nextLink.text));
+														_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
 													}
 
 													_$_.output_push('</span>');
@@ -1781,7 +1773,7 @@ function DocsLayoutExact(
 							{
 								_$_.output_push('<!--[-->');
 
-								if (toc.length > 0) {
+								if (_$_.fallback(__props.toc, []).length > 0) {
 									_$_.output_push('<div');
 									_$_.output_push(' class="aside-content"');
 									_$_.output_push('>');
@@ -1794,7 +1786,7 @@ function DocsLayoutExact(
 										{
 											_$_.output_push('<!--[-->');
 
-											for (const item of toc) {
+											for (const item of _$_.fallback(__props.toc, [])) {
 												_$_.output_push('<a');
 												_$_.output_push(_$_.attr('href', item.href, false));
 												_$_.output_push('>');

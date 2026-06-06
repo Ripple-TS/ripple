@@ -268,66 +268,65 @@ export function ElementWithChildrenThenIf() {
 		let lazy_3 = _$_.track(true, '7cd4817b');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="wrapper"');
-			_$_.output_push('>');
-
 			{
 				_$_.output_push('<div');
-				_$_.output_push(' class="nested-parent"');
+				_$_.output_push(' class="wrapper"');
 				_$_.output_push('>');
 
 				{
 					_$_.output_push('<div');
-					_$_.output_push(' class="nested-child"');
+					_$_.output_push(' class="nested-parent"');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('<span');
-						_$_.output_push(' class="deep"');
+						_$_.output_push('<div');
+						_$_.output_push(' class="nested-child"');
 						_$_.output_push('>');
 
 						{
-							_$_.output_push('Deep content');
+							_$_.output_push('<span');
+							_$_.output_push(' class="deep"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push('Deep content');
+							}
+
+							_$_.output_push('</span>');
 						}
 
-						_$_.output_push('</span>');
+						_$_.output_push('</div>');
 					}
 
 					_$_.output_push('</div>');
+					_$_.output_push('<!--[-->');
+
+					if (lazy_3.value) {
+						_$_.output_push('<div');
+						_$_.output_push(' class="conditional"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Conditional content');
+						}
+
+						_$_.output_push('</div>');
+					}
+
+					_$_.output_push('<!--]-->');
 				}
 
 				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
+				_$_.output_push('<button');
+				_$_.output_push(' class="toggle"');
+				_$_.output_push('>');
 
-				if (lazy_3.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="conditional"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Conditional content');
-					}
-
-					_$_.output_push('</div>');
+				{
+					_$_.output_push('Toggle');
 				}
 
-				_$_.output_push('<!--]-->');
+				_$_.output_push('</button>');
 			}
-
-			_$_.output_push('</div>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="toggle"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Toggle');
-			}
-
-			_$_.output_push('</button>');
 		});
 	});
 }
@@ -337,81 +336,80 @@ export function DeepNestingThenIf() {
 		let lazy_4 = _$_.track(true, '923116be');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="outer"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('<article');
-				_$_.output_push(' class="middle"');
+				_$_.output_push('<section');
+				_$_.output_push(' class="outer"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('<div');
-					_$_.output_push(' class="inner"');
+					_$_.output_push('<article');
+					_$_.output_push(' class="middle"');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('<p');
-						_$_.output_push(' class="leaf"');
+						_$_.output_push('<div');
+						_$_.output_push(' class="inner"');
 						_$_.output_push('>');
 
 						{
-							_$_.output_push('<strong');
+							_$_.output_push('<p');
+							_$_.output_push(' class="leaf"');
 							_$_.output_push('>');
 
 							{
-								_$_.output_push('Bold');
+								_$_.output_push('<strong');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('Bold');
+								}
+
+								_$_.output_push('</strong>');
+								_$_.output_push('<em');
+								_$_.output_push('>');
+
+								{
+									_$_.output_push('Italic');
+								}
+
+								_$_.output_push('</em>');
 							}
 
-							_$_.output_push('</strong>');
-							_$_.output_push('<em');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('Italic');
-							}
-
-							_$_.output_push('</em>');
+							_$_.output_push('</p>');
 						}
 
-						_$_.output_push('</p>');
+						_$_.output_push('</div>');
 					}
 
-					_$_.output_push('</div>');
-				}
+					_$_.output_push('</article>');
+					_$_.output_push('<!--[-->');
 
-				_$_.output_push('</article>');
-				_$_.output_push('<!--[-->');
+					if (lazy_4.value) {
+						_$_.output_push('<footer');
+						_$_.output_push(' class="footer"');
+						_$_.output_push('>');
 
-				if (lazy_4.value) {
-					_$_.output_push('<footer');
-					_$_.output_push(' class="footer"');
-					_$_.output_push('>');
+						{
+							_$_.output_push('Footer');
+						}
 
-					{
-						_$_.output_push('Footer');
+						_$_.output_push('</footer>');
 					}
 
-					_$_.output_push('</footer>');
+					_$_.output_push('<!--]-->');
 				}
 
-				_$_.output_push('<!--]-->');
+				_$_.output_push('</section>');
+				_$_.output_push('<button');
+				_$_.output_push(' class="btn"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('Toggle');
+				}
+
+				_$_.output_push('</button>');
 			}
-
-			_$_.output_push('</section>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="btn"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Toggle');
-			}
-
-			_$_.output_push('</button>');
 		});
 	});
 }
@@ -499,70 +497,69 @@ export function DomChildrenThenStaticSiblings() {
 		let lazy_6 = _$_.track(0, '0ea64305');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
-
 			{
-				_$_.output_push('<ul');
-				_$_.output_push(' class="list"');
+				_$_.output_push('<div');
+				_$_.output_push(' class="container"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('<li');
-					_$_.output_push(' class="item"');
+					_$_.output_push('<ul');
+					_$_.output_push(' class="list"');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value)));
+						_$_.output_push('<li');
+						_$_.output_push(' class="item"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value)));
+						}
+
+						_$_.output_push('</li>');
+						_$_.output_push('<li');
+						_$_.output_push(' class="item"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('Another item');
+						}
+
+						_$_.output_push('</li>');
 					}
 
-					_$_.output_push('</li>');
-					_$_.output_push('<li');
-					_$_.output_push(' class="item"');
+					_$_.output_push('</ul>');
+					_$_.output_push('<h2');
+					_$_.output_push(' class="heading"');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('Another item');
+						_$_.output_push('Static Heading');
 					}
 
-					_$_.output_push('</li>');
+					_$_.output_push('</h2>');
+					_$_.output_push('<p');
+					_$_.output_push(' class="para"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('Static paragraph');
+					}
+
+					_$_.output_push('</p>');
 				}
 
-				_$_.output_push('</ul>');
-				_$_.output_push('<h2');
-				_$_.output_push(' class="heading"');
+				_$_.output_push('</div>');
+				_$_.output_push('<button');
+				_$_.output_push(' class="inc"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('Static Heading');
+					_$_.output_push('Increment');
 				}
 
-				_$_.output_push('</h2>');
-				_$_.output_push('<p');
-				_$_.output_push(' class="para"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Static paragraph');
-				}
-
-				_$_.output_push('</p>');
+				_$_.output_push('</button>');
 			}
-
-			_$_.output_push('</div>');
-		});
-
-		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="inc"');
-			_$_.output_push('>');
-
-			{
-				_$_.output_push('Increment');
-			}
-
-			_$_.output_push('</button>');
 		});
 	});
 }

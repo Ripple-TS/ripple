@@ -26,7 +26,8 @@ export function IfElse() @{
 }
 
 export function ReactiveIf() @{
-		let &[show] = track(true);
+	let &[show] = track(true);
+	<>
 		<button
 			class="toggle"
 			onClick={() => {
@@ -38,10 +39,12 @@ export function ReactiveIf() @{
 		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
+	</>
 }
 
 export function ReactiveIfElse() @{
-		let &[isOn] = track(false);
+	let &[isOn] = track(false);
+	<>
 		<button
 			class="toggle"
 			onClick={() => {
@@ -55,11 +58,13 @@ export function ReactiveIfElse() @{
 		} else {
 			<div class="off">{'OFF'}</div>
 		}
+	</>
 }
 
 export function NestedIf() @{
-		let &[outer] = track(true);
-		let &[inner] = track(true);
+	let &[outer] = track(true);
+	let &[inner] = track(true);
+	<>
 		<button
 			class="outer-toggle"
 			onClick={() => {
@@ -84,6 +89,7 @@ export function NestedIf() @{
 				}
 			</div>
 		}
+	</>
 }
 
 export function IfElseIfChain() @{
