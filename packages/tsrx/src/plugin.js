@@ -606,7 +606,6 @@ export function TSRXPlugin(config) {
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
 			}
 
-
 			#isSwitchCaseScriptStatementStart() {
 				let index = skip_whitespace_from(this.input, this.start);
 
@@ -1019,6 +1018,7 @@ export function TSRXPlugin(config) {
 					case 'JSXElement':
 					case 'JSXFragment':
 					case 'JSXStyleElement':
+					case 'JSXCodeBlock':
 					case 'JSXIfExpression':
 					case 'JSXForExpression':
 					case 'JSXSwitchExpression':
@@ -1051,7 +1051,7 @@ export function TSRXPlugin(config) {
 						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ)
 					);
 				}
-				return this.#isJSXControlFlowDirectiveAt(index);
+				return this.#isCodeBlockStart(index) || this.#isJSXControlFlowDirectiveAt(index);
 			}
 
 			/**
@@ -1111,6 +1111,10 @@ export function TSRXPlugin(config) {
 					this.lineStart = at_index - loc.column;
 				}
 
+				if (this.#isCodeBlockStart(at_index)) {
+					return /** @type {AST.Node} */ (/** @type {unknown} */ (this.#parseCodeBlock()));
+				}
+
 				if (this.#isJSXControlFlowDirectiveAt(at_index)) {
 					return /** @type {AST.Node} */ (
 						/** @type {unknown} */ (this.#parseJSXControlFlowExpression())
@@ -1146,25 +1150,31 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Node[]} flat
 			 */
 			#parseCodeBlockBody(flat) {
+				let render_seen = false;
 				while (this.type !== tt.braceR && this.type !== tt.eof) {
 					if (this.#atRenderNodeStart()) {
-						flat.push(this.#parseCodeBlockRenderNode());
-						if (this.type !== tt.braceR && this.type !== tt.eof) {
-							if (this.#atRenderNodeStart()) {
-								this.raise(
-									this.start,
-									"A code block renders a single node; wrap multiple nodes or text in a fragment '<>…</>'.",
-								);
-							}
-							this.raise(
-								this.start,
-								"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
+						const render_node = this.#parseCodeBlockRenderNode();
+						if (render_seen) {
+							this.#report_recoverable_error_range(
+								/** @type {number} */ (render_node.start),
+								/** @type {number} */ (render_node.end),
+								"A code block renders a single node; wrap multiple nodes or text in a fragment '<>…</>'.",
 							);
 						}
-						return;
+						flat.push(render_node);
+						render_seen = true;
+						continue;
 					}
 					const statement = this.#parseCodeBlockSetupStatement();
 					if (statement) {
+						if (render_seen) {
+							// A statement after the rendered output: code must come first.
+							this.#report_recoverable_error_range(
+								/** @type {number} */ (statement.start),
+								/** @type {number} */ (statement.end),
+								"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
+							);
+						}
 						flat.push(statement);
 					}
 				}
@@ -2048,8 +2058,9 @@ export function TSRXPlugin(config) {
 						...node.metadata,
 						invalid_tsrx_template_return: true,
 					};
-					this.#report_recoverable_error(
+					this.#report_recoverable_error_range(
 						/** @type {AST.NodeWithLocation} */ (node).start ?? this.start,
+						/** @type {AST.NodeWithLocation} */ (node).end ?? this.start + 1,
 						TSRX_RETURN_STATEMENT_ERROR,
 						DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
 					);
