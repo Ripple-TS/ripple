@@ -393,7 +393,7 @@ function mark_control_flow_has_template(path, node) {
  * @returns {boolean}
  */
 function is_fenced_template_script_block(node) {
-	return (
+	return !!(
 		node?.type === 'BlockStatement' &&
 		node.metadata?.native_tsrx_template_block &&
 		node.metadata?.hasTemplateFence

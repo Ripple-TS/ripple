@@ -3913,12 +3913,15 @@ function build_tsrx_to_ts_expression(node, context) {
 				return b.call(
 					b.arrow(
 						[],
-						b.block([
-							...setup_statements,
-							b.return(/** @type {AST.Expression} */ (template_expression), node),
-						]),
-					),
-				);
+							b.block([
+								.../** @type {AST.Statement[]} */ (/** @type {unknown} */ (setup_statements)),
+								b.return(
+									/** @type {AST.Expression} */ (template_expression),
+									/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)),
+								),
+							]),
+						),
+					);
 			}
 		}
 	}
@@ -4094,18 +4097,21 @@ function transform_ts_child(node, context) {
 				is_capitalized: true,
 			};
 
-			if (!node.selfClosing && !node.unclosed) {
-				// closingElement.name is a separate JSXIdentifier (not the same object as node.id)
-				// so we need to capitalize it separately
-				if (node.closingElement.name && 'name' in node.closingElement.name) {
-					/** @type {{ name: string }} */ (node.closingElement.name).name = capitalized_name;
+				if (!node.selfClosing && !node.unclosed) {
+					// closingElement.name is a separate JSXIdentifier (not the same object as node.id)
+					// so we need to capitalize it separately
+					const closingElement = node.closingElement;
+					if (closingElement?.name && 'name' in closingElement.name) {
+						/** @type {{ name: string }} */ (closingElement.name).name = capitalized_name;
+					}
+					if (closingElement) {
+						closingElement.metadata = {
+							...closingElement.metadata,
+							is_capitalized: true,
+						};
+					}
 				}
-				node.closingElement.metadata = {
-					...node.closingElement.metadata,
-					is_capitalized: true,
-				};
 			}
-		}
 
 		if (node.id.type === 'MemberExpression') {
 			const member = /** @type {AST.MemberExpression} */ (visit(node.id, { ...state }));
@@ -4122,7 +4128,11 @@ function transform_ts_child(node, context) {
 		}
 
 		/** @type {ESTreeJSX.JSXElement} */
-		const jsxElement = b.jsx_element(node, attributes, children);
+			const jsxElement = b.jsx_element(
+				/** @type {ESTreeJSX.JSXElement} */ (/** @type {unknown} */ (node)),
+				attributes,
+				children,
+			);
 		if (element_name === 'style') {
 			disable_style_anchor_verification(jsxElement);
 		}

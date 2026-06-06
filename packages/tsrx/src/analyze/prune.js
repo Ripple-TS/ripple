@@ -363,8 +363,8 @@ function get_descendant_elements(node, adjacent_only) {
 			if (adjacent_only) return; // Only direct children for '>' combinator
 		}
 
-		if (current_node.children) {
-			for (const child of current_node.children) {
+		if (Array.isArray(/** @type {any} */ (current_node).children)) {
+			for (const child of /** @type {any} */ (current_node).children) {
 				visit(child, depth + 1);
 			}
 		}

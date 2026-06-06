@@ -164,11 +164,7 @@ export function add_hash_class(element, hash, class_attr_name = 'class') {
 
 	if (!existing) {
 		attrs.push(
-			b.jsx_attribute(b.jsx_id(class_attr_name), {
-				type: 'Literal',
-				value: hash,
-				raw: JSON.stringify(hash),
-			}),
+			b.jsx_attribute(b.jsx_id(class_attr_name), b.literal(hash)),
 		);
 		return;
 	}

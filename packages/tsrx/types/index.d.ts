@@ -83,8 +83,19 @@ interface BaseNodeMetaData {
 	commentContainerId?: number;
 	parenthesized?: boolean;
 	native_tsrx?: boolean;
+	native_tsrx_template_block?: boolean;
 	templateMode?: 'script' | 'template';
+	hasTemplateFence?: boolean;
+	script_only?: boolean;
+	tsrxDirective?: 'if' | 'for' | 'switch' | 'try';
+	ts_name?: string;
+	delegated?: any;
+	returned_tsrx_return?: AST.ReturnStatement;
 	styleScopeHash?: string;
+	css?: {
+		scopedClasses: Map<string, { start: number; end: number; selector: any }>;
+		hash: string;
+	};
 	elementLeadingComments?: AST.Comment[];
 	returns?: AST.ReturnStatement[];
 	has_return?: boolean;
@@ -95,6 +106,7 @@ interface BaseNodeMetaData {
 	regular_js?: boolean;
 	returned_tsrx_child?: boolean;
 	forceMapping?: boolean;
+	generated_loop_skip_if?: boolean;
 	lazy_id?: string;
 	disable_verification?: boolean;
 	lazy_param_binding_mappings?: Array<{
@@ -173,6 +185,8 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData & {
 			hook_split_block?: boolean;
 			native_return_block?: boolean;
+			native_tsrx_template_block?: boolean;
+			allows_native_return?: boolean;
 		};
 	}
 
@@ -238,6 +252,13 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
+		Element: Element;
+		TsrxFragment: TsrxFragment;
+		Text: Text;
+		TSRXExpression: TSRXExpression;
+		ScriptContent: ScriptContent;
+		Attribute: Attribute;
+		SpreadAttribute: SpreadAttribute;
 		TsrxTemplateFence: TsrxTemplateFence;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
@@ -249,6 +270,11 @@ declare module 'estree' {
 	}
 
 	interface ExpressionMap {
+		Element: Element;
+		TsrxFragment: TsrxFragment;
+		Text: Text;
+		TSRXExpression: TSRXExpression;
+		ScriptContent: ScriptContent;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -261,6 +287,65 @@ declare module 'estree' {
 	}
 
 	// Missing estree type
+	interface Attribute extends AST.BaseNode {
+		type: 'Attribute';
+		name: AST.Identifier;
+		value: any;
+		shorthand?: boolean;
+		metadata: BaseNodeMetaData;
+	}
+
+	interface SpreadAttribute extends AST.BaseNode {
+		type: 'SpreadAttribute';
+		argument: AST.Expression;
+		metadata: BaseNodeMetaData;
+	}
+
+	interface Element extends AST.BaseExpression {
+		type: 'Element';
+		id: AST.Identifier | AST.MemberExpression | AST.Literal;
+		attributes: Array<Attribute | SpreadAttribute>;
+		children: AST.Node[];
+		openingElement: ESTreeJSX.JSXOpeningElement;
+		closingElement: ESTreeJSX.JSXClosingElement | null;
+		selfClosing?: boolean;
+		unclosed?: boolean;
+		css?: string;
+		metadata: BaseNodeMetaData;
+		start: number;
+		end: number;
+	}
+
+	interface TsrxFragment extends AST.BaseExpression {
+		type: 'TsrxFragment';
+		children: AST.Node[];
+		openingElement?: ESTreeJSX.JSXOpeningFragment;
+		closingElement?: ESTreeJSX.JSXClosingFragment | null;
+		selfClosing?: boolean;
+		attributes?: Array<Attribute | SpreadAttribute>;
+		metadata: BaseNodeMetaData;
+		start: number;
+		end: number;
+	}
+
+	interface Text extends AST.BaseExpression {
+		type: 'Text';
+		expression: AST.Expression;
+		metadata: BaseNodeMetaData;
+	}
+
+	interface TSRXExpression extends AST.BaseExpression {
+		type: 'TSRXExpression';
+		expression: AST.Expression;
+		metadata: BaseNodeMetaData;
+	}
+
+	interface ScriptContent extends AST.BaseExpression {
+		type: 'ScriptContent';
+		content: string;
+		metadata: BaseNodeMetaData;
+	}
+
 	interface TsrxTemplateFence extends AST.BaseStatement {
 		type: 'TsrxTemplateFence';
 		value: '---';
@@ -272,6 +357,7 @@ declare module 'estree' {
 		body: AST.Statement[];
 		render: AST.Node | null;
 		metadata: BaseNodeMetaData;
+		innerComments?: AST.Comment[] | undefined;
 	}
 
 	interface JSXStyleElement extends AST.BaseExpression {
@@ -1331,7 +1417,7 @@ export interface AnalysisState extends BaseState {
 			filename: string;
 		};
 	};
-	elements?: ESTreeJSX.JSXElement[];
+		elements?: Array<ESTreeJSX.JSXElement | AST.Element>;
 	function_depth?: number;
 	collect?: boolean;
 	metadata: BaseStateMetaData & {
