@@ -22,7 +22,7 @@ const rule: Rule.RuleModule = {
 		},
 		messages: {
 			requireJsxInLoop:
-				'@for blocks in returned TSRX should contain template output. Render an element, text, expression, or nested template directive.',
+				'@for blocks in returned TSRX should contain template output. Render an element, fragment, or nested template directive.',
 			noJsxInEffectLoop:
 				'For...of loops inside effect() should not contain JSX. Effects are for side effects, not rendering.',
 		},
@@ -57,12 +57,9 @@ const rule: Rule.RuleModule = {
 				return true;
 			}
 
-			if (node.type === ('JSXText' as string)) {
-				return String((node as any).value ?? '').trim() !== '';
-			}
-
-			if (node.type === ('JSXExpressionContainer' as string)) {
-				return (node as any).expression?.type !== 'JSXEmptyExpression';
+			if (node.type === ('JSXCodeBlock' as string)) {
+				const render = (node as any).render;
+				return !!render && containsTemplateOutput(render, visited);
 			}
 
 			const keys = Object.keys(node);

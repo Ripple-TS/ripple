@@ -14,8 +14,19 @@ const NESTED_BOUNDARY_TYPES = new Set([
 ]);
 
 export function isNativeTsrxJsxNode(node: AST.Node | null | undefined): boolean {
+	if (!node) return false;
+
+	if (
+		node.type === ('JSXCodeBlock' as string) ||
+		node.type === ('JSXIfExpression' as string) ||
+		node.type === ('JSXForExpression' as string) ||
+		node.type === ('JSXSwitchExpression' as string) ||
+		node.type === ('JSXTryExpression' as string)
+	) {
+		return true;
+	}
+
 	return (
-		!!node &&
 		(node.type === ('JSXElement' as string) ||
 			node.type === ('JSXFragment' as string) ||
 			node.type === ('JSXStyleElement' as string)) &&

@@ -338,6 +338,8 @@ exactly one output node: a JSX element, JSX fragment, or JSX control-flow
 expression. Text, expression containers, and multiple siblings need a wrapping
 fragment in that output position. Branches that only exit may use normal
 statements such as `return`, `throw`, or `continue` where they are legal.
+For tooling and AST work, this syntax is represented as a `JSXCodeBlock` node
+with setup statements in `body` and the final rendered node in `render`.
 
 ```tsrx
 const Greeting = ({ name }: { name?: string }) => @{

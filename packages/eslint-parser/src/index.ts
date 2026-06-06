@@ -29,7 +29,7 @@ const visitorKeys: Record<string, string[]> = {
 	JSXForExpression: ['init', 'test', 'update', 'left', 'right', 'body', 'index', 'key'],
 	JSXSwitchExpression: ['discriminant', 'cases'],
 	JSXTryExpression: ['block', 'handler', 'finalizer', 'pending'],
-	TsrxTemplateFence: [],
+	JSXCodeBlock: ['body', 'render'],
 	StyleSheet: [],
 	ForOfStatement: ['left', 'right', 'body'],
 };
