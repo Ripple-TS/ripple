@@ -279,26 +279,28 @@ and a reactive block on Ripple.
 
 ## Core Syntax
 
-### Components are arrow functions
+### Components are ordinary functions
 
-Components are ordinary JavaScript or TypeScript values. Prefer an arrow
-function whose body returns JSX directly. Use a single element when that is all
-you need, a fragment for real multiple-child output, and a statement container
-when setup statements belong with the template.
+Components are ordinary JavaScript or TypeScript functions. Prefer function
+declarations for exported components. Return a single element directly when that
+is all you need, and use a statement container when setup statements or multiple
+rendered siblings belong with the template.
 
 ```tsrx
-export const Button = ({ label, onClick }: { label: string; onClick: () => void }) => <>
-	<button class="btn" {onClick}>{label}</button>
-	// React host elements:
-	// <button className="btn" {onClick}>{label}</button>
+export function Button({ label, onClick }: { label: string; onClick: () => void }) @{
+	<>
+		<button class="btn" {onClick}>{label}</button>
+		// React host elements:
+		// <button className="btn" {onClick}>{label}</button>
 
-	<style>
-		.btn {
-			padding: 0.5rem 1rem;
-			border-radius: 4px;
-		}
-	</style>
-</>;
+		<style>
+			.btn {
+				padding: 0.5rem 1rem;
+				border-radius: 4px;
+			}
+		</style>
+	</>
+}
 ```
 
 Single-element TSRX expressions are valid component bodies too:
@@ -309,9 +311,9 @@ const icon = <svg aria-hidden="true" />;
 
 **LLM DO:**
 
-- Use `const Name = (props: Props) => <div />;` for single-root UI building blocks.
-- Use `export const Name = (...) => <>...</>;` when public components truly return multiple siblings.
-- Use `const Name = (...) => @{ ... };` when setup statements and rendered output share a template scope.
+- Use `function Name(props: Props) { return <div />; }` for single-root UI building blocks.
+- Use `export function Name(...) @{ ... }` when setup statements and rendered output share a template scope.
+- Use `export function Name(...) @{ <>...</> }` when public components render multiple siblings.
 - Put setup first inside `@{...}` and finish the container with one JSX element, JSX fragment, or JSX control-flow expression.
 - Use module-scope `<style>` expressions for reusable class maps.
 - Treat `<style>` contents as static CSS, and use CSS custom properties for
@@ -746,9 +748,9 @@ const List = <T,>({ items, render }: Props<T>) =>
 
 | Feature                | Syntax                                                 |
 | ---------------------- | ------------------------------------------------------ |
-| Component function     | `const Name = (props: T) => <div />;`                  |
-| Multi-child component  | `export const Name = (...) => <>...</>;`               |
-| Statement container    | `const Name = (...) => @{ ... };`                      |
+| Component function     | `function Name(props: T) { return <div />; }`          |
+| Multi-child component  | `function Name(...) @{ <>...</> }`                     |
+| Statement container    | `function Name(...) @{ ... }`                          |
 | Native TSRX value      | `const v = <div>Hi</div>;`                            |
 | Native TSRX fragment   | `const v = <><span>Hi</span></>;`                     |
 | Text content           | `<p>literal</p>`, `<p>{expr}</p>`                     |

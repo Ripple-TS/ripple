@@ -80,7 +80,8 @@ than editing generated output, tests, or editor integrations first.
 - Default component files are `.tsrx`. Do not describe the project as primarily
   using `.ripple` files unless the local file you are editing actually does.
 - Prefer the current TSRX component shape:
-  `const Component = (props) => <>...</>`.
+  `function Component(props) @{ ... }` when setup and output share a scope, or
+  `function Component(props) { return <div />; }` for simple single-root output.
 - TSRX templates use JSX-shaped elements, fragments, text, expression
   containers, and directive control flow. Do not introduce removed experimental
   template-boundary or legacy component syntaxes in new examples.

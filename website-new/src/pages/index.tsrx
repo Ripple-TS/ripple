@@ -4,8 +4,7 @@ import { Actions } from '../components/actions.tsrx';
 import { Editor } from '../components/editor.tsrx';
 import { Content } from '../components/content.tsrx';
 
-export function IndexPage() {
-	return <>
+export function IndexPage() @{
 		<Layout>
 			<Header />
 			<Actions playgroundVisible={true} />
@@ -13,5 +12,4 @@ export function IndexPage() {
 			<Content />
 			<Actions playgroundVisible={false} />
 		</Layout>
-	</>;
 }

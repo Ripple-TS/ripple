@@ -10,10 +10,10 @@ module server {
 
 import { load_doc } from server;
 
-export function ComparisonPage() {
+export function ComparisonPage() @{
 	const doc = load_doc();
 
-	return <DocsLayout
+	<DocsLayout
 		title={doc.title}
 		editPath={doc.editPath}
 		prevLink={doc.prev}
@@ -22,5 +22,5 @@ export function ComparisonPage() {
 		currentPath="/docs/comparison"
 		>
 		<div class="doc-content" innerHTML={doc.html} />
-	</DocsLayout>;
+	</DocsLayout>
 }

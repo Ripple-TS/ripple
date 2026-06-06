@@ -87,7 +87,7 @@ Source: website-tsrx/src/pages/specification.tsrx`,
 			use_cases: 'components, functions, props, authoring .tsrx files, jsx return syntax',
 			content: `# Function Components
 
-Author UI as ordinary TypeScript values. Components can return JSX directly, or use a JSX statement container when setup and output should live together.
+Author UI as ordinary TypeScript functions. Components can return JSX directly, or use a JSX statement container when setup and output should live together.
 
 \`\`\`tsx
 export function Button({ label }: { label: string }) @{
@@ -108,10 +108,12 @@ Source: website-tsrx/src/pages/specification.tsrx#components`,
 Static text is JSXText and can be written directly between tags. Dynamic values use normal JSX expression containers.
 
 \`\`\`tsx
-const Greeting = ({ name }: { name: string }) => <>
+function Greeting({ name }: { name: string }) @{
+  <>
   <h1>Hello</h1>
   <p>{name}</p>
-</>;
+  </>
+}
 \`\`\`
 
 JavaScript comments are also allowed between template children and are not rendered. Use braces for JavaScript expressions, including string literals that should be evaluated as JavaScript.
@@ -134,7 +136,7 @@ Source: website-tsrx/src/pages/specification.tsrx#templates`,
 TSRX uses JSX-shaped expression values. A single JSXElement can be assigned, passed, or returned directly. Use a JSXFragment when the value needs multiple children, or use a JSX statement container when setup needs to produce one final output.
 
 \`\`\`tsx
-const App = () => @{
+function App() @{
   const title = <span class="title">Settings</span>;
   const badge = (label: string) => @{
     const normalized = label.trim();
@@ -143,7 +145,7 @@ const App = () => @{
   };
 
   <Card title={title}>{badge('New')}</Card>
-};
+}
 \`\`\`
 
 \`@{ ... }\` is a JSX statement container. A normal JSX fragment, element body, or control-flow branch can also contain setup before output, but that scope must still end with one output node. Use a fragment when the output is text, an expression container, or multiple siblings.
@@ -166,7 +168,8 @@ Source: website-tsrx/src/pages/specification.tsrx#expression-values`,
 Template control flow uses directive-prefixed expressions inside JSX children.
 
 \`\`\`tsx
-const List = ({ items }: { items: string[] }) => <>
+function List({ items }: { items: string[] }) @{
+  <>
   @if (items.length === 0) {
     <p>No items</p>
   } else {
@@ -178,7 +181,8 @@ const List = ({ items }: { items: string[] }) => <>
       }
     </ul>
   }
-</>;
+  </>
+}
 \`\`\`
 
 Use normal function returns for guard exits before entering template output. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
@@ -226,9 +230,11 @@ const styles = <style>
   .card { padding: 1rem; }
 </style>;
 
-export const ChildCard = () => <>
+export function ChildCard() @{
+  <>
   <Child class={styles.card} />
-</>;
+  </>
+}
 \`\`\`
 
 \`module server { ... }\` declares a server-oriented submodule in the Ripple host profile. Import exported functions with \`import { load } from server\` before use.
