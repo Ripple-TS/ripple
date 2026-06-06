@@ -2239,8 +2239,8 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 		}
 
-		case 'TsrxTemplateFence':
-			nodeContent = '---';
+		case 'JSXCodeBlock':
+			nodeContent = printJSXCodeBlock(node, path, options, print);
 			break;
 
 		case 'JSXStyleElement':
@@ -2649,6 +2649,12 @@ function printArrowFunction(node, path, options, print, args) {
 		if (shouldBreakBody) {
 			parts.push(' =>', indent([hardline, bodyContent]));
 		} else {
+			if (isTemplateExpression(node.body)) {
+				return conditionalGroup([
+					group([...parts, ' => ', bodyContent]),
+					group([...parts, ' =>', indent([hardline, bodyContent])]),
+				]);
+			}
 			parts.push(
 				' =>',
 				group(indent(line), { id: groupId }),
@@ -2674,8 +2680,13 @@ function isTemplateExpression(node) {
  * @param {AST.Node} node - The expression inside the attribute braces
  * @returns {boolean}
  */
-function shouldBreakAttributeExpressionClosingBrace(node) {
-	return node.type === 'ArrowFunctionExpression' && node.body && isTemplateExpression(node.body);
+function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode) {
+	return (
+		node.type === 'ArrowFunctionExpression' &&
+		node.body &&
+		isTemplateExpression(node.body) &&
+		sourceSpanExceedsPrintWidth(attributeNode ?? /** @type {AST.NodeWithLocation} */ (node), options)
+	);
 }
 
 /**
@@ -2892,9 +2903,6 @@ function sourceSpanExceedsPrintWidth(node, options) {
  * @returns {boolean}
  */
 function shouldBreakArrowExpressionBody(node, options, args) {
-	if (args?.isInAttribute && isTemplateExpression(node)) {
-		return true;
-	}
 	return (
 		(node.type === 'BinaryExpression' || node.type === 'LogicalExpression') &&
 		sourceSpanExceedsPrintWidth(/** @type {AST.NodeWithLocation} */ (node), options)
@@ -4622,6 +4630,21 @@ function getBlankLinesBetweenPositions(current_pos, next_pos) {
  * @param {AST.Node | AST.CSS.StyleSheet | AST.Comment} nextNode - Next node
  * @returns {number}
  */
+/**
+ * The position to measure a leading blank line against: the first leading
+ * comment if any (so the comment lines aren't miscounted as blank), else the
+ * node itself.
+ * @param {any} node
+ * @returns {any}
+ */
+function leadingAnchor(node) {
+	const lead = node?.leadingComments;
+	if (Array.isArray(lead) && lead.length > 0 && lead[0].loc) {
+		return lead[0];
+	}
+	return node;
+}
+
 function getBlankLinesBetweenNodes(currentNode, nextNode) {
 	// Return the number of blank lines between two nodes based on their location
 	if (
@@ -4992,6 +5015,16 @@ function printVariableDeclarator(node, path, options, print) {
 					indentIfBreak(init, { groupId }),
 				]);
 			}
+		}
+
+		if (isTemplateExpression(node.init)) {
+			const groupId = Symbol('declaration');
+			return group([
+				group(id),
+				' =',
+				group(indent(line), { id: groupId }),
+				indentIfBreak(init, { groupId }),
+			]);
 		}
 
 		// Default: simple inline format with space
@@ -5589,7 +5622,11 @@ function isSimpleJSXExpressionChild(child) {
 	return (
 		expression?.type === 'Identifier' ||
 		expression?.type === 'Literal' ||
-		expression?.type === 'TemplateLiteral'
+		expression?.type === 'TemplateLiteral' ||
+		// Stock Prettier keeps a single `{expr}` child inline regardless of the
+		// expression kind (member access, calls, etc.); only multiple children break.
+		expression?.type === 'MemberExpression' ||
+		expression?.type === 'CallExpression'
 	);
 }
 
@@ -5680,6 +5717,12 @@ function printJSXElement(node, path, options, print) {
 		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
 	}
 
+	// Comments that sit inside the opening tag (before an attribute) are attached
+	// by the parser to a body child; pull them out and key them by the attribute
+	// they precede so they print in the opening tag, not jammed into the body.
+	const openingTagCommentsByAttr = collectOpeningTagComments(node);
+	const hasOpeningTagComments = openingTagCommentsByAttr.size > 0;
+
 	// Format attributes
 	/** @type {Doc} */
 	let attributesDoc = '';
@@ -5709,13 +5752,23 @@ function printJSXElement(node, path, options, print) {
 				if (!hasBreakingAttribute && attrDoc && willBreak(attrDoc)) {
 					hasBreakingAttribute = true;
 				}
+				const lead = openingTagCommentsByAttr.get(i);
+				if (lead) {
+					/** @type {Doc[]} */
+					const parts = [];
+					for (const comment of lead) {
+						parts.push(comment.type === 'Line' ? '//' + comment.value : '/*' + comment.value + '*/');
+						parts.push(hardline);
+					}
+					return [...parts, attrDoc];
+				}
 				return attrDoc;
 			},
 		);
 		const attrLineBreak = options.singleAttributePerLine ? hardline : line;
 		attributesDoc = indent([attrLineBreak, join(attrLineBreak, attrs)]);
 	}
-	const shouldForceBreak = hasBreakingAttribute;
+	const shouldForceBreak = hasBreakingAttribute || hasOpeningTagComments;
 
 	if (isSelfClosing) {
 		return group(['<', tagName, typeArgsDoc, attributesDoc, hasAttributes ? line : ' ', '/>'], {
@@ -5735,13 +5788,46 @@ function printJSXElement(node, path, options, print) {
 		{ shouldBreak: shouldForceBreak },
 	);
 
+	// Trailing comments after the last child are attached by the parser either to
+	// the closing tag (`closingElement.leadingComments`) or, when the last child is
+	// an `{expr}` container, to `metadata.elementLeadingComments` positioned inside
+	// the body (start >= opening tag end). Emit both before `</tag>`.
+	const openingTagEnd = /** @type {AST.NodeWithLocation} */ (openingElement).end;
+	const bodyMetaComments = (node.metadata?.elementLeadingComments ?? []).filter(
+		(/** @type {AST.Comment} */ comment) =>
+			typeof comment.start === 'number' && comment.start >= openingTagEnd,
+	);
+	const trailingComments = [...(node.closingElement?.leadingComments ?? []), ...bodyMetaComments].sort(
+		(a, b) => /** @type {number} */ (a.start) - /** @type {number} */ (b.start),
+	);
+	const lastMeaningfulChild = [...(node.children ?? [])]
+		.reverse()
+		.find((child) => child.type !== 'JSXText' || child.value.trim());
+	const closingCommentDocs = printElementBodyLineComments(trailingComments, lastMeaningfulChild);
+	const hasClosingComments = closingCommentDocs.length > 0;
+	// A comment-only element has no children; its comments live in `innerComments`.
+	const innerCommentDocs = printElementBodyLineComments(node.innerComments);
+
 	if (!hasChildren) {
+		const bodyComments = [...innerCommentDocs, ...closingCommentDocs];
+		if (bodyComments.length > 0) {
+			return group([openingTag, indent(bodyComments), hardline, '</', tagName, '>']);
+		}
 		return [openingTag, '</', tagName, '>'];
 	}
 
-	// Format children - filter out empty text nodes and merge adjacent text nodes
+	// A `@{ … }` code block is the whole body and hugs the tags: `<div>@{ … }</div>`.
+	if (node.children.length === 1 && node.children[0].type === 'JSXCodeBlock') {
+		return group([openingTag, path.call(print, 'children', 0), '</', tagName, '>']);
+	}
+
+	// Format children - filter out empty text nodes and merge adjacent text nodes.
+	// childNodes tracks the source node behind each doc (a text run is a single
+	// JSXText) so the join can preserve authored blank lines.
 	const childrenDocs = [];
+	const childNodes = [];
 	let currentText = '';
+	let currentTextNode = null;
 
 	for (let i = 0; i < node.children.length; i++) {
 		const child = node.children[i];
@@ -5750,11 +5836,14 @@ function printJSXElement(node, path, options, print) {
 			if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
 				if (currentText) {
 					childrenDocs.push(currentText);
+					childNodes.push(currentTextNode);
 					currentText = '';
+					currentTextNode = null;
 				}
 				const printedChild = path.call(print, 'children', i);
 				if (printedChild !== '') {
 					childrenDocs.push(printedChild);
+					childNodes.push(child);
 				}
 				continue;
 			}
@@ -5772,9 +5861,12 @@ function printJSXElement(node, path, options, print) {
 				) {
 					if (currentText) {
 						childrenDocs.push(currentText);
+						childNodes.push(currentTextNode);
 						currentText = '';
+						currentTextNode = null;
 					}
 					childrenDocs.push([trimmed, ' ', path.call(print, 'children', i + 1), ';']);
+					childNodes.push(child);
 					i += 2;
 					continue;
 				}
@@ -5783,21 +5875,31 @@ function printJSXElement(node, path, options, print) {
 					currentText += ' ' + trimmed;
 				} else {
 					currentText = trimmed;
+					currentTextNode = child;
 				}
 			}
 		} else {
 			// If we have accumulated text, push it before the non-text node
 			if (currentText) {
 				childrenDocs.push(currentText);
+				childNodes.push(currentTextNode);
 				currentText = '';
+				currentTextNode = null;
 			}
 
 			if (child.type === 'JSXExpressionContainer') {
 				// Handle JSX expression containers
-				childrenDocs.push(['{', path.call(print, 'children', i, 'expression'), '}']);
+				childrenDocs.push([
+					...printTemplateChildLeadingComments(child),
+					'{',
+					path.call(print, 'children', i, 'expression'),
+					'}',
+				]);
+				childNodes.push(child);
 			} else {
 				// Handle nested JSX elements
 				childrenDocs.push(path.call(print, 'children', i));
+				childNodes.push(child);
 			}
 		}
 	}
@@ -5805,17 +5907,36 @@ function printJSXElement(node, path, options, print) {
 	// Don't forget any remaining text
 	if (currentText) {
 		childrenDocs.push(currentText);
+		childNodes.push(currentTextNode);
 	}
 
-	// Check if content can be inlined (single text node or single expression)
-	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
-		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
+	// A child with leading comments must break onto its own line, so the comment
+	// reads above the child rather than being jammed onto the opening tag.
+	const hasChildLeadingComments = node.children.some(
+		(child) =>
+			Array.isArray(/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments) &&
+			/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments.length > 0,
+	);
+	const forceMultiline = hasClosingComments || hasChildLeadingComments;
+
+	// Check if content can be inlined (single text node or single expression).
+	// Trailing or child-leading comments force the multi-line layout. A single
+	// text child stays inline when it fits and otherwise fills/wraps to printWidth.
+	if (!forceMultiline && childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
+		// The open tag breaks for attributes independently; the text+closing get
+		// their own group so the text only drops to its own (filled) lines when it
+		// itself overflows — otherwise it hugs `>text</tag>`.
+		return [
+			openingTag,
+			group([indent([softline, printRawText(childrenDocs[0])]), softline, '</', tagName, '>']),
+		];
 	}
 	const meaningfulChildren = node.children.filter(
 		(child) => child.type !== 'JSXText' || child.value.trim(),
 	);
 	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
 	if (
+		!forceMultiline &&
 		childrenDocs.length === 1 &&
 		singleMeaningfulChild?.type === 'JSXExpressionContainer' &&
 		isSimpleJSXExpressionChild(/** @type {AST.Node} */ (singleMeaningfulChild))
@@ -5823,6 +5944,7 @@ function printJSXElement(node, path, options, print) {
 		return group([openingTag, childrenDocs[0], '</', tagName, '>']);
 	}
 	if (
+		!forceMultiline &&
 		childrenDocs.length > 1 &&
 		wasOriginallySingleLine(node) &&
 		meaningfulChildren.some((child) => child.type === 'JSXText') &&
@@ -5834,19 +5956,24 @@ function printJSXElement(node, path, options, print) {
 		return group([openingTag, ...childrenDocs, '</', tagName, '>']);
 	}
 
-	// Multiple children or complex children - format with line breaks
+	// Multiple children or complex children - format with line breaks. Text runs
+	// fill/wrap to printWidth.
 	const formattedChildren = [];
 	for (let i = 0; i < childrenDocs.length; i++) {
-		formattedChildren.push(childrenDocs[i]);
+		formattedChildren.push(
+			typeof childrenDocs[i] === 'string' ? printRawText(childrenDocs[i]) : childrenDocs[i],
+		);
 		if (i < childrenDocs.length - 1) {
-			formattedChildren.push(hardline);
+			// Preserve a single authored blank line between children (2+ collapse to 1).
+			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
+			formattedChildren.push(blank ? [hardline, hardline] : hardline);
 		}
 	}
 
 	// Build the final element
 	return group([
 		openingTag,
-		indent([hardline, ...formattedChildren]),
+		indent([hardline, ...formattedChildren, ...closingCommentDocs]),
 		hardline,
 		'</',
 		tagName,
@@ -5869,8 +5996,15 @@ function printJSXFragment(node, path, options, print) {
 		return '<></>';
 	}
 
-	// Format children - filter out empty text nodes
+	// A `@{ … }` code block is the whole body and hugs the tags: `<>@{ … }</>`.
+	if (node.children.length === 1 && node.children[0].type === 'JSXCodeBlock') {
+		return group(['<>', path.call(print, 'children', 0), '</>']);
+	}
+
+	// Format children - filter out empty text nodes. childNodes tracks the source
+	// node behind each doc so the join can preserve authored blank lines.
 	const childrenDocs = [];
+	const childNodes = [];
 	for (let i = 0; i < node.children.length; i++) {
 		const child = node.children[i];
 
@@ -5879,6 +6013,7 @@ function printJSXFragment(node, path, options, print) {
 				const printedChild = path.call(print, 'children', i);
 				if (printedChild !== '') {
 					childrenDocs.push(printedChild);
+					childNodes.push(child);
 				}
 				continue;
 			}
@@ -5886,13 +6021,21 @@ function printJSXFragment(node, path, options, print) {
 			const text = printJSXTextChild(child.value);
 			if (text) {
 				childrenDocs.push(text);
+				childNodes.push(child);
 			}
 		} else if (child.type === 'JSXExpressionContainer') {
 			// Handle JSX expression containers
-			childrenDocs.push(['{', path.call(print, 'children', i, 'expression'), '}']);
+			childrenDocs.push([
+				...printTemplateChildLeadingComments(child),
+				'{',
+				path.call(print, 'children', i, 'expression'),
+				'}',
+			]);
+			childNodes.push(child);
 		} else {
 			// Handle nested JSX elements and fragments
 			childrenDocs.push(path.call(print, 'children', i));
+			childNodes.push(child);
 		}
 	}
 
@@ -5910,7 +6053,13 @@ function printJSXFragment(node, path, options, print) {
 		wasOriginallySingleLine(node) &&
 		!willBreak(childrenDocs[0])
 	) {
-		return group(['<>', childrenDocs[0], '</>']);
+		// Keep the fragment inline when it fits; otherwise expand `<>` onto its own
+		// lines so a breaking single child reads as `<>\n  <Child …/>\n</>` rather than
+		// `<><Child` with only the child's attributes broken.
+		return conditionalGroup([
+			['<>', childrenDocs[0], '</>'],
+			group(['<>', indent([hardline, childrenDocs[0]]), hardline, '</>']),
+		]);
 	}
 
 	// Multiple children or complex children - format with line breaks
@@ -5918,12 +6067,175 @@ function printJSXFragment(node, path, options, print) {
 	for (let i = 0; i < childrenDocs.length; i++) {
 		formattedChildren.push(childrenDocs[i]);
 		if (i < childrenDocs.length - 1) {
-			formattedChildren.push(hardline);
+			// Preserve a single authored blank line between children (2+ collapse to 1).
+			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
+			formattedChildren.push(blank ? [hardline, hardline] : hardline);
 		}
 	}
 
 	// Build the final fragment
 	return group(['<>', indent([hardline, ...formattedChildren]), hardline, '</>']);
+}
+
+/**
+ * Comments written inside an opening tag, before an attribute, are attached by
+ * the parser to the next visited body child (positionally they sort before the
+ * opening tag's end, but the child is visited first). Pull those out of the
+ * children and return a map from attribute index to the comments that precede it,
+ * so the element printer can render them in the opening tag instead of the body.
+ * @param {ESTreeJSX.JSXElement & { children?: AST.Node[] }} node
+ * @returns {Map<number, AST.Comment[]>}
+ */
+function collectOpeningTagComments(node) {
+	/** @type {Map<number, AST.Comment[]>} */
+	const byAttr = new Map();
+	const openingElement = /** @type {AST.NodeWithLocation} */ (node.openingElement);
+	const attributes = /** @type {any[]} */ (node.openingElement?.attributes) ?? [];
+	if (!openingElement || attributes.length === 0 || !Array.isArray(node.children)) {
+		return byAttr;
+	}
+	const openingEnd = openingElement.end;
+	/** @type {AST.Comment[]} */
+	const collected = [];
+	for (const child of node.children) {
+		const lead = /** @type {AST.NodeWithMaybeComments} */ (child).leadingComments;
+		if (!Array.isArray(lead) || lead.length === 0) continue;
+		const keep = [];
+		for (const comment of lead) {
+			if (typeof comment.start === 'number' && comment.start < openingEnd) {
+				collected.push(comment);
+			} else {
+				keep.push(comment);
+			}
+		}
+		if (keep.length !== lead.length) {
+			/** @type {any} */ (child).leadingComments = keep;
+		}
+	}
+	if (collected.length === 0) return byAttr;
+	collected.sort((a, b) => /** @type {number} */ (a.start) - /** @type {number} */ (b.start));
+	let ci = 0;
+	for (let ai = 0; ai < attributes.length; ai++) {
+		const attrStart = /** @type {AST.NodeWithLocation} */ (attributes[ai]).start;
+		/** @type {AST.Comment[]} */
+		const forAttr = [];
+		while (ci < collected.length && /** @type {number} */ (collected[ci].start) < attrStart) {
+			forAttr.push(collected[ci]);
+			ci++;
+		}
+		if (forAttr.length > 0) byAttr.set(ai, forAttr);
+	}
+	return byAttr;
+}
+
+/**
+ * Build doc parts for a template child's leading comments (each on its own line).
+ * Used for `{expr}` children, whose `{ … }` form is printed inline by the JSX
+ * printers and so would otherwise skip the node's attached leading comments.
+ * @param {AST.Node & AST.NodeWithMaybeComments} child
+ * @returns {Doc[]}
+ */
+function printTemplateChildLeadingComments(child) {
+	const comments = child.leadingComments;
+	if (!comments || comments.length === 0) {
+		return [];
+	}
+	/** @type {Doc[]} */
+	const parts = [];
+	for (let i = 0; i < comments.length; i++) {
+		const comment = comments[i];
+		if (comment.type === 'Line') {
+			parts.push('//' + comment.value);
+		} else if (comment.type === 'Block') {
+			parts.push('/*' + comment.value + '*/');
+		}
+		parts.push(hardline);
+		const next = comments[i + 1];
+		if (next && getBlankLinesBetweenNodes(comment, next) > 0) {
+			parts.push(hardline);
+		}
+	}
+	return parts;
+}
+
+/**
+ * Build doc parts for `//` line comments attached to an element body — trailing
+ * comments before `</tag>` (`closingElement.leadingComments`) or the comments of a
+ * comment-only element (`innerComments`). Block comments are intentionally skipped:
+ * they survive in the adjacent JSXText value and are already rendered as text, so
+ * emitting them here would duplicate them. Each comment is emitted on its own line
+ * at the children indent.
+ * @param {AST.Comment[] | null | undefined} commentList
+ * @returns {Doc[]}
+ */
+function printElementBodyLineComments(commentList, previousNode) {
+	const comments = (commentList ?? []).filter((comment) => comment.type === 'Line');
+	if (comments.length === 0) {
+		return [];
+	}
+	/** @type {Doc[]} */
+	const parts = [];
+	/** @type {AST.Node | AST.Comment | null | undefined} */
+	let prev = previousNode;
+	for (let i = 0; i < comments.length; i++) {
+		parts.push(hardline);
+		// Preserve a blank line before this comment if one existed in source.
+		if (prev && getBlankLinesBetweenNodes(prev, comments[i]) > 0) {
+			parts.push(hardline);
+		}
+		parts.push('//' + comments[i].value);
+		prev = comments[i];
+	}
+	return parts;
+}
+
+/**
+ * Print a `@{ … }` code block: setup statements then the single render output,
+ * indented one level. Callers in element/fragment body position hug it to the
+ * surrounding tags (`<div>@{` … `}</div>`); on its own (`() => @{ … }`) it stands
+ * alone.
+ * @param {AST.JSXCodeBlock} node
+ * @param {AstPath<AST.JSXCodeBlock>} path
+ * @param {RippleFormatOptions} options
+ * @param {PrintFn} print
+ * @returns {Doc}
+ */
+function printJSXCodeBlock(node, path, options, print) {
+	/** @type {Doc[]} */
+	const parts = [];
+	for (let i = 0; i < node.body.length; i++) {
+		parts.push(path.call(print, 'body', i));
+		if (i < node.body.length - 1) {
+			parts.push(
+				shouldAddBlankLine(node.body[i], node.body[i + 1]) ? [hardline, hardline] : hardline,
+			);
+		}
+	}
+	if (node.render) {
+		if (node.body.length > 0) {
+			// Preserve a blank line between the last setup statement and the render
+			// output (measured to the render's leading comment, if any).
+			const last = node.body[node.body.length - 1];
+			const renderStart =
+				/** @type {AST.NodeWithMaybeComments} */ (node.render).leadingComments?.[0] ?? node.render;
+			parts.push(getBlankLinesBetweenNodes(last, renderStart) > 0 ? [hardline, hardline] : hardline);
+		}
+		parts.push(path.call(print, 'render'));
+	}
+	// Trailing comments after the last statement/render inside the block.
+	const innerCommentDocs = printElementBodyLineComments(node.innerComments);
+	if (innerCommentDocs.length > 0) {
+		const lastNode = node.render ?? node.body[node.body.length - 1];
+		const firstComment = (node.innerComments ?? []).find((c) => c.type === 'Line');
+		if (lastNode && firstComment && getBlankLinesBetweenNodes(lastNode, firstComment) > 0) {
+			parts.push(hardline);
+		}
+		parts.push(...innerCommentDocs);
+	}
+	if (parts.length === 0) {
+		return '@{}';
+	}
+	return group(['@{', indent([hardline, ...parts]), hardline, '}']);
 }
 
 /**
@@ -5967,7 +6279,7 @@ function printJSXAttribute(attr, path, options, print) {
 			'value',
 			'expression',
 		);
-		if (shouldBreakAttributeExpressionClosingBrace(expression)) {
+		if (shouldBreakAttributeExpressionClosingBrace(expression, options, attr)) {
 			return [name, '={', exprDoc, hardline, '}'];
 		}
 		return [name, '={', exprDoc, '}'];

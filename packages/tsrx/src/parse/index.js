@@ -645,6 +645,25 @@ export function get_comment_handlers(source, comments, index = 0) {
 							}
 						}
 
+						// Trailing comments after the last statement/render inside a `@{ … }`
+						// code block (before its `}`) have no following node to attach to and
+						// would otherwise be claimed by the enclosing element's closing tag.
+						// Claim them here as the block's inner comments.
+						if (node.type === 'JSXCodeBlock') {
+							while (
+								comments[0] &&
+								comments[0].start >= /** @type {AST.NodeWithLocation} */ (node).start &&
+								comments[0].start < /** @type {AST.NodeWithLocation} */ (node).end
+							) {
+								(node.innerComments ||= []).push(
+									/** @type {AST.CommentWithLocation} */ (comments.shift()),
+								);
+							}
+							if (comments.length === 0) {
+								return;
+							}
+						}
+
 						const parent = /** @type {AST.Node & AST.NodeWithLocation} */ (path.at(-1));
 
 						if (parent === undefined || node.end !== parent.end) {
