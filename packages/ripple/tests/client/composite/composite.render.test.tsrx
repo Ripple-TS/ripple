@@ -7,9 +7,11 @@ describe('composite > render', () => {
 		}
 
 		function App() @{
-				let &[count] = track(0);
+			let &[count] = track(0);
+			<>
 				<button onClick={() => count++}>{'Increment'}</button>
 				<Button {count} />
+			</>
 		}
 
 		render(App);
@@ -29,23 +31,25 @@ describe('composite > render', () => {
 
 	it('correct handles passing through component props and children', () => {
 		function Button({ A, B, children }: { A: () => void; B: () => void; children: () => void }) @{
-				<div>
-					<A />
-					{children}
-					<B />
-				</div>
+			<div>
+				<A />
+				{children}
+				<B />
+			</div>
+		}
+
+		function A() @{
+			<div>{'I am A'}</div>
+		}
+
+		function B() @{
+			<div>{'I am B'}</div>
 		}
 
 		function App() @{
-				function A() {
-				}
-				function B() @{
-					<div>{'I am B'}</div>
-				}
-				<Button {A} {B}>
-					<div>{'other text'}</div>
-				</Button>
-			</>;
+			<Button {A} {B}>
+				<div>{'other text'}</div>
+			</Button>
 		}
 
 		render(App);
@@ -55,8 +59,8 @@ describe('composite > render', () => {
 
 	it('render simple text as children', () => {
 		function App() @{
-				let name = 'Click Me';
-				<Child class="my-button">{name}</Child>
+			let name = 'Click Me';
+			<Child class="my-button">{name}</Child>
 		}
 
 		function Child({ children, ...rest }: { children: string; class: string }) @{
@@ -69,17 +73,17 @@ describe('composite > render', () => {
 
 	it('renders explicit text around children', () => {
 		function Frame({ children }) @{
-				<div class="frame">
-					{'before'}
-					{children}
-					{'after'}
-				</div>
+			<div class="frame">
+				{'before'}
+				{children}
+				{'after'}
+			</div>
 		}
 
 		function App() @{
-				<Frame>
-					<span class="middle">{'middle'}</span>
-				</Frame>
+			<Frame>
+				<span class="middle">{'middle'}</span>
+			</Frame>
 		}
 
 		render(App);
@@ -100,30 +104,36 @@ describe('composite > render', () => {
 	});
 
 	it('preserves distinct scoped ripple hashes for wrapper and child content', () => {
+		function Wrapper({ children }) @{
+			<>
+				<div class="green">
+					{'Wrapper'}
+					{children}
+				</div>
+				<style>
+					.green {
+						color: green;
+					}
+				</style>
+			</>
+		}
+
+		function Child() @{
+			<>
+				<div class="red">{'Child'}</div>
+				<style>
+					.red {
+						color: red;
+					}
+				</style>
+			</>
+		}
+
 		function App() @{
-				function Wrapper({ children }) @{
-						<div class="green">
-							{'Wrapper'}
-							{children}
-						</div>
-						<style>
-							.green {
-								color: green;
-							}
-						</style>
-				}
-				function Child() @{
-						<div class="red">{'Child'}</div>
-						<style>
-							.red {
-								color: red;
-							}
-						</style>
-				}
-				<Wrapper>
-					<Child />
-				</Wrapper>
-				}
+			<Wrapper>
+				<Child />
+			</Wrapper>
+		}
 
 		render(App);
 
@@ -143,16 +153,16 @@ describe('composite > render', () => {
 
 	it('handles generics', () => {
 		function ArrayTest() @{
-				let items = new RippleArray<number>();
-				items.push.apply(items, [1, 2, 3, 4, 5]);
-				<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+			let items = new RippleArray<number>();
+			items.push.apply(items, [1, 2, 3, 4, 5]);
+			<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
 		}
 
 		render(ArrayTest);
 	});
 
 	it('should not render <undefined> tag when a passed in component is undefined', () => {
-		function Child(&@{
+		function Child(&{
 			children,
 			NonExistent,
 			...props
@@ -160,12 +170,12 @@ describe('composite > render', () => {
 			children?: Component;
 			NonExistent?: Component;
 			[key: string]: any;
-		}) {
-				<div {...props}>
-					{children}
-					// @ts-expect-error - intentionally testing behavior when a component is undefined
-					<NonExistent />
-				</div>
+		}) @{
+			<div {...props}>
+				{children}
+				// @ts-expect-error - intentionally testing behavior when a component is undefined
+				<NonExistent />
+			</div>
 		}
 
 		function App() @{
@@ -185,6 +195,7 @@ describe('composite > render', () => {
 describe('scoped styles with children', () => {
 	it('generates correct CSS hashes for wrapper and child with empty style in App', () => {
 		function Wrapper(&{ children }: { children?: Component }) @{
+			<>
 				<div class="green">
 					{'Wrapper'}
 					{children}
@@ -194,22 +205,27 @@ describe('scoped styles with children', () => {
 						color: green;
 					}
 				</style>
+			</>
 		}
 
 		function Child() @{
+			<>
 				<div class="red">{'Child'}</div>
 				<style>
 					.red {
 						color: red;
 					}
 				</style>
+			</>
 		}
 
 		function App() @{
+			<>
 				<Wrapper>
 					<Child />
 				</Wrapper>
 				<style></style>
+			</>
 		}
 
 		render(App);

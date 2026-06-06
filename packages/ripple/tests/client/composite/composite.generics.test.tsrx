@@ -32,10 +32,6 @@ describe('composite > generics', () => {
 				const limit = 100;
 				const i =
 					new Box<number>(2).value < limit ? 'ok' : 'no';
-				// 10. JSX / Element should still work
-				<div class="still-works">
-					<span>{'Test'}</span>
-				</div>
 				// 11. Generic function call vs Element: Identifier followed by generic args
 				function identity<T>(value: T): T {
 					return value;
@@ -183,6 +179,10 @@ describe('composite > generics', () => {
 				>();
 				// 33. Map of generic instance as key
 				const mm = new Map<RippleArray<number>, RippleArray<string>>();
+				// 10. JSX / Element should still work
+				<div class="still-works">
+					<span>{'Test'}</span>
+				</div>
 		}
 
 		render(App);

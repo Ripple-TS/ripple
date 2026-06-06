@@ -8,11 +8,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let &[foo] = track(123);
+			let &[foo] = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		render(App);
@@ -27,11 +27,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let foo = 123;
+			let foo = 123;
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		render(App);
@@ -46,11 +46,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let foo = track(123);
+			let foo = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		render(App);
@@ -65,11 +65,11 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				let &[foo] = track(123);
+			let &[foo] = track(123);
+			<>
 				<Child />
 				<Child {foo} />
-			
+			</>
 		}
 
 		render(App);
@@ -82,21 +82,17 @@ describe('composite > props', () => {
 		const logs: number[] = [];
 
 		function Counter({ count }: { count: Tracked<number> }) @{
-			
-				effect(() => {
-					logs.push(count.value);
-				});
-				<button onClick={() => (count.value = count.value + 1)}>{'+'}</button>
-			
+			effect(() => {
+				logs.push(count.value);
+			});
+			<button onClick={() => (count.value = count.value + 1)}>{'+'}</button>
 		}
 
 		function App() @{
-			
-				const count = track(0);
-				<div>
-					<Counter {count} />
-				</div>
-			
+			const count = track(0);
+			<div>
+				<Counter {count} />
+			</div>
 		}
 
 		render(App);
@@ -113,7 +109,7 @@ describe('composite > props', () => {
 
 	it('correctly retains prop accessors and reactivity when using rest props', () => {
 		function Button(&{ children, ...rest }: Props) @{
-			
+			<>
 				<button {...rest}>{children}</button>
 				<style>
 					.on {
@@ -123,22 +119,20 @@ describe('composite > props', () => {
 						color: red;
 					}
 				</style>
-			
+			</>
 		}
 
 		function Toggle(&{ pressed, ...rest }: { pressed: Tracked<boolean> }) @{
-			
-				const onClick = () => (pressed.value = !pressed.value);
+			const onClick = () => (pressed.value = !pressed.value);
+			<>
 				<Button {...rest} class={pressed.value ? 'on' : 'off'} {onClick}>{'button 1'}</Button>
 				<Button class={pressed.value ? 'on' : 'off'} {onClick}>{'button 2'}</Button>
-			
+			</>
 		}
 
 		function App() @{
-			
-				const pressed = track(true);
-				<Toggle {pressed} />
-			
+			const pressed = track(true);
+			<Toggle {pressed} />
 		}
 
 		render(App);
@@ -167,29 +161,25 @@ describe('composite > props', () => {
 		}
 
 		function Product({ id, name, organizationName, description, imageUrl, price }: ProductInfo) @{
-			
-				<article class="no-padding">
-					<img class="responsive small" src={imageUrl} alt={name} />
-					<span>{id}</span>
-					<h5>{name}</h5>
-					<h3>{organizationName}</h3>
-					<p>{description}</p>
-					<price class="price">{price}</price>
-				</article>
-			
+			<article class="no-padding">
+				<img class="responsive small" src={imageUrl} alt={name} />
+				<span>{id}</span>
+				<h5>{name}</h5>
+				<h3>{organizationName}</h3>
+				<p>{description}</p>
+				<price class="price">{price}</price>
+			</article>
 		}
 
 		function App() @{
-			
-				<Product
-					id="1"
-					name="Product 1"
-					organizationName="Org 1"
-					description="Description 1"
-					imageUrl="https://picsum.photos/300/200"
-					price={15}
-				/>
-			
+			<Product
+				id="1"
+				name="Product 1"
+				organizationName="Org 1"
+				description="Description 1"
+				imageUrl="https://picsum.photos/300/200"
+				price={15}
+			/>
 		}
 
 		render(App);

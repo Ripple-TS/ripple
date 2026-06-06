@@ -2,12 +2,13 @@ import { flushSync, track } from 'ripple';
 
 describe('composite > dynamic components', () => {
 	it('supports rendering composite components using <@component> syntax', () => {
+		function basic() @{
+			<div>{'Basic Component'}</div>
+		}
+
 		function App() @{
-				function basic() {
-				}
-				const tracked_basic = track(() => basic);
-				<@tracked_basic />
-			</>;
+			const tracked_basic = track(() => basic);
+			<@tracked_basic />
 		}
 
 		render(App);
@@ -17,16 +18,17 @@ describe('composite > dynamic components', () => {
 	});
 
 	it('supports rendering composite components from object properties', () => {
+		function basic() @{
+			<div>{'Basic Component'}</div>
+		}
+
 		function App() @{
-				function basic() {
-				}
-				const tracked_basic = track(() => basic);
-				const obj = {
-					tracked_basic,
-				};
-				const comp = obj.tracked_basic;
-				<@comp />
-			</>;
+			const tracked_basic = track(() => basic);
+			const obj = {
+				tracked_basic,
+			};
+			const comp = obj.tracked_basic;
+			<@comp />
 		}
 
 		render(App);
@@ -36,17 +38,18 @@ describe('composite > dynamic components', () => {
 	});
 
 	it('supports rendering composite components from tracked object properties', () => {
+		function basic() @{
+			<div>{'Basic Component'}</div>
+		}
+
 		function App() @{
-				function basic() {
-				}
-				const tracked_basic = track(() => basic);
-				const obj = {
-					tracked_basic,
-				};
-				let &[inner] = track(obj);
-				const comp = inner.tracked_basic;
-				<@comp />
-			</>;
+			const tracked_basic = track(() => basic);
+			const obj = {
+				tracked_basic,
+			};
+			let &[inner] = track(obj);
+			const comp = inner.tracked_basic;
+			<@comp />
 		}
 
 		render(App);
@@ -65,13 +68,15 @@ describe('composite > dynamic components', () => {
 		}
 
 		function App() @{
-				let &[thing] = track(() => Child1);
+			let &[thing] = track(() => Child1);
+			<>
 				<div id="container">
 					<@thing />
 				</div>
 				<button onClick={() => (thing = thing === Child1 ? Child2 : Child1)}>
 					{'Change Child'}
 				</button>
+			</>
 		}
 
 		render(App);
