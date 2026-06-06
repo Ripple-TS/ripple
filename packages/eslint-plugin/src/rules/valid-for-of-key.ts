@@ -15,7 +15,7 @@ const rule: Rule.RuleModule = {
 		schema: [],
 	},
 	create(context) {
-		const checkForOfKey = (node: AST.ForOfStatement) => {
+		const checkForOfKey = (node: AST.ForOfStatement | AST.JSXForExpression) => {
 			if (!node.key) {
 				return;
 			}

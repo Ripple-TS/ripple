@@ -1626,7 +1626,7 @@ export namespace Parse {
 		 * Parse JSX attribute (name="value" or {spread})
 		 * @returns JSXAttribute or JSXSpreadAttribute
 		 */
-		jsx_parseAttribute(): AST.TSRXAttribute | ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute;
+		jsx_parseAttribute(): ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute;
 
 		/**
 		 * Parse JSX opening element at position

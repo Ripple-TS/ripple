@@ -875,21 +875,21 @@ function printRippleNode(node, path, options, print, args) {
 		case 'IfStatement':
 			nodeContent = printIfStatement(node, path, options, print);
 			break;
-		case 'JSXIfExpression':
-			nodeContent = ['@', printIfStatement(node, path, options, print)];
-			break;
+			case 'JSXIfExpression':
+				nodeContent = ['@', printIfStatement(/** @type {AST.IfStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				break;
 
 		case 'ForOfStatement':
 			nodeContent = printForOfStatement(node, path, options, print);
 			break;
 		case 'JSXForExpression':
-			if (node.statementType === 'ForInStatement') {
-				nodeContent = ['@', printForInStatement(node, path, options, print)];
-			} else if (node.statementType === 'ForStatement') {
-				nodeContent = ['@', printForStatement(node, path, options, print)];
-			} else {
-				nodeContent = ['@', printForOfStatement(node, path, options, print)];
-			}
+				if (node.statementType === 'ForInStatement') {
+					nodeContent = ['@', printForInStatement(/** @type {AST.ForInStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				} else if (node.statementType === 'ForStatement') {
+					nodeContent = ['@', printForStatement(/** @type {AST.ForStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				} else {
+					nodeContent = ['@', printForOfStatement(/** @type {AST.ForOfStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				}
 			break;
 
 		case 'ForStatement':
@@ -916,9 +916,9 @@ function printRippleNode(node, path, options, print, args) {
 		case 'TryStatement':
 			nodeContent = printTryStatement(node, path, options, print);
 			break;
-		case 'JSXTryExpression':
-			nodeContent = ['@', printTryStatement(node, path, options, print)];
-			break;
+			case 'JSXTryExpression':
+				nodeContent = ['@', printTryStatement(/** @type {AST.TryStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				break;
 
 		case 'ArrayExpression': {
 			if (!node.elements || node.elements.length === 0) {
@@ -1622,9 +1622,9 @@ function printRippleNode(node, path, options, print, args) {
 		case 'SwitchStatement':
 			nodeContent = printSwitchStatement(node, path, options, print);
 			break;
-		case 'JSXSwitchExpression':
-			nodeContent = ['@', printSwitchStatement(node, path, options, print)];
-			break;
+			case 'JSXSwitchExpression':
+				nodeContent = ['@', printSwitchStatement(/** @type {AST.SwitchStatement} */ (/** @type {unknown} */ (node)), path, options, print)];
+				break;
 
 		case 'SwitchCase':
 			nodeContent = printSwitchCase(node, path, options, print);
@@ -2243,9 +2243,9 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printJSXCodeBlock(node, path, options, print);
 			break;
 
-		case 'JSXStyleElement':
-			nodeContent = printJSXElement(node, path, options, print);
-			break;
+			case 'JSXStyleElement':
+				nodeContent = printJSXElement(/** @type {ESTreeJSX.JSXElement} */ (/** @type {unknown} */ (node)), path, options, print);
+				break;
 
 		case 'JSXElement':
 			nodeContent = printJSXElement(node, path, options, print);
@@ -2676,16 +2676,21 @@ function isTemplateExpression(node) {
 }
 
 /**
- * Check whether a braced attribute expression should close on its own line.
- * @param {AST.Node} node - The expression inside the attribute braces
- * @returns {boolean}
- */
-function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode) {
+	 * Check whether a braced attribute expression should close on its own line.
+	 * @param {AST.Node} node - The expression inside the attribute braces
+	 * @param {RippleFormatOptions} options
+	 * @param {AST.Node} [attributeNode]
+	 * @returns {boolean}
+	 */
+	function shouldBreakAttributeExpressionClosingBrace(node, options, attributeNode = node) {
 	return (
 		node.type === 'ArrowFunctionExpression' &&
 		node.body &&
 		isTemplateExpression(node.body) &&
-		sourceSpanExceedsPrintWidth(attributeNode ?? /** @type {AST.NodeWithLocation} */ (node), options)
+			sourceSpanExceedsPrintWidth(
+				/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (attributeNode ?? node)),
+				options,
+			)
 	);
 }
 
@@ -4645,7 +4650,12 @@ function leadingAnchor(node) {
 	return node;
 }
 
-function getBlankLinesBetweenNodes(currentNode, nextNode) {
+	/**
+	 * @param {any} currentNode
+	 * @param {any} nextNode
+	 * @returns {number}
+	 */
+	function getBlankLinesBetweenNodes(currentNode, nextNode) {
 	// Return the number of blank lines between two nodes based on their location
 	if (
 		currentNode.loc &&
@@ -5569,19 +5579,20 @@ function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
 		return false;
 	}
 
-	if (firstChild.type === 'JSXElement' && firstChild.openingElement?.selfClosing) {
-		return !parentNode.openingElement?.attributes?.length;
-	}
+		if (firstChild.type === 'JSXElement' && firstChild.openingElement?.selfClosing) {
+			const parent = /** @type {any} */ (parentNode);
+			return !parent.openingElement?.attributes?.length;
+		}
 
 	return false;
 }
 
 /**
  * Check whether a child can participate in compact inline TSRX content.
- * @param {AST.Node} child
+	 * @param {any} child
  * @returns {boolean}
  */
-function isInlineableTextOrExpressionChild(child) {
+	function isInlineableTextOrExpressionChild(child) {
 	if (!child || (child.type !== 'JSXText' && child.type !== 'JSXExpressionContainer')) {
 		return false;
 	}
@@ -5596,18 +5607,18 @@ function isInlineableTextOrExpressionChild(child) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement} node
- * @returns {boolean}
- */
-function shouldTryInlineMultipleTextChildren(node) {
-	return (
-		wasOriginallySingleLine(node) &&
-		Array.isArray(node.children) &&
-		node.children.length > 1 &&
-		node.children.some((child) => child.type === 'JSXText') &&
-		node.children.every(isInlineableTextOrExpressionChild)
-	);
-}
+	 * @param {any} node
+	 * @returns {boolean}
+	 */
+	function shouldTryInlineMultipleTextChildren(node) {
+		return (
+			wasOriginallySingleLine(node) &&
+			Array.isArray(node.children) &&
+			node.children.length > 1 &&
+			node.children.some((/** @type {any} */ child) => child.type === 'JSXText') &&
+			node.children.every(isInlineableTextOrExpressionChild)
+		);
+	}
 
 /**
  * @param {AST.Node} child
@@ -5694,13 +5705,13 @@ function createElementLevelCommentPartsTrimmed(comments) {
 
 /**
  * Print a JSX element
- * @param {ESTreeJSX.JSXElement} node - The JSX element node
- * @param {AstPath<ESTreeJSX.JSXElement>} path - The AST path
+	 * @param {any} node - The JSX element node
+	 * @param {AstPath<any>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc | Doc[]}
  */
-function printJSXElement(node, path, options, print) {
+	function printJSXElement(node, path, options, print) {
 	// Get the tag name from the opening element
 	const openingElement = node.openingElement;
 	const closingElement = node.closingElement;
@@ -5912,11 +5923,11 @@ function printJSXElement(node, path, options, print) {
 
 	// A child with leading comments must break onto its own line, so the comment
 	// reads above the child rather than being jammed onto the opening tag.
-	const hasChildLeadingComments = node.children.some(
-		(child) =>
-			Array.isArray(/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments) &&
-			/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments.length > 0,
-	);
+		const hasChildLeadingComments = node.children.some(
+			(/** @type {any} */ child) =>
+				Array.isArray(/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments) &&
+				(/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments ?? []).length > 0,
+		);
 	const forceMultiline = hasClosingComments || hasChildLeadingComments;
 
 	// Check if content can be inlined (single text node or single expression).
@@ -5931,9 +5942,9 @@ function printJSXElement(node, path, options, print) {
 			group([indent([softline, printRawText(childrenDocs[0])]), softline, '</', tagName, '>']),
 		];
 	}
-	const meaningfulChildren = node.children.filter(
-		(child) => child.type !== 'JSXText' || child.value.trim(),
-	);
+		const meaningfulChildren = node.children.filter(
+			(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim(),
+		);
 	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
 	if (
 		!forceMultiline &&
@@ -5947,11 +5958,11 @@ function printJSXElement(node, path, options, print) {
 		!forceMultiline &&
 		childrenDocs.length > 1 &&
 		wasOriginallySingleLine(node) &&
-		meaningfulChildren.some((child) => child.type === 'JSXText') &&
-		meaningfulChildren.every(
-			(child) =>
-				child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
-		)
+			meaningfulChildren.some((/** @type {any} */ child) => child.type === 'JSXText') &&
+			meaningfulChildren.every(
+				(/** @type {any} */ child) =>
+					child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
+			)
 	) {
 		return group([openingTag, ...childrenDocs, '</', tagName, '>']);
 	}
@@ -5960,9 +5971,8 @@ function printJSXElement(node, path, options, print) {
 	// fill/wrap to printWidth.
 	const formattedChildren = [];
 	for (let i = 0; i < childrenDocs.length; i++) {
-		formattedChildren.push(
-			typeof childrenDocs[i] === 'string' ? printRawText(childrenDocs[i]) : childrenDocs[i],
-		);
+			const childDoc = childrenDocs[i];
+			formattedChildren.push(typeof childDoc === 'string' ? printRawText(childDoc) : childDoc);
 		if (i < childrenDocs.length - 1) {
 			// Preserve a single authored blank line between children (2+ collapse to 1).
 			const blank = getBlankLinesBetweenNodes(childNodes[i], leadingAnchor(childNodes[i + 1])) > 0;
@@ -5997,7 +6007,7 @@ function printJSXFragment(node, path, options, print) {
 	}
 
 	// A `@{ … }` code block is the whole body and hugs the tags: `<>@{ … }</>`.
-	if (node.children.length === 1 && node.children[0].type === 'JSXCodeBlock') {
+		if (node.children.length === 1 && /** @type {any} */ (node.children[0]).type === 'JSXCodeBlock') {
 		return group(['<>', path.call(print, 'children', 0), '</>']);
 	}
 
@@ -6165,10 +6175,11 @@ function printTemplateChildLeadingComments(child) {
  * they survive in the adjacent JSXText value and are already rendered as text, so
  * emitting them here would duplicate them. Each comment is emitted on its own line
  * at the children indent.
- * @param {AST.Comment[] | null | undefined} commentList
- * @returns {Doc[]}
- */
-function printElementBodyLineComments(commentList, previousNode) {
+	 * @param {AST.Comment[] | null | undefined} commentList
+	 * @param {any} [previousNode]
+	 * @returns {Doc[]}
+	 */
+	function printElementBodyLineComments(commentList, previousNode = null) {
 	const comments = (commentList ?? []).filter((comment) => comment.type === 'Line');
 	if (comments.length === 0) {
 		return [];
@@ -6388,14 +6399,14 @@ function is_attribute_value_breakable(value, is_nested_in_object = false) {
 
 /**
  * Print a JSX element node
- * @param {ESTreeJSX.JSXElement} element - The element node
- * @param {AstPath<ESTreeJSX.JSXElement>} path - The AST path
+	 * @param {AST.Element} element - The element node
+	 * @param {AstPath<AST.Element>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
  */
-function printElement(element, path, options, print) {
-	const node = /** @type {ESTreeJSX.JSXElement & AST.NodeWithLocation} */ (element);
+	function printElement(element, path, options, print) {
+		const node = /** @type {any} */ (element);
 	const tagName = printMemberExpressionSimple(node.id, options);
 	const openingElement = /** @type {any} */ (node.openingElement);
 	/** @type {Doc} */
@@ -6403,7 +6414,7 @@ function printElement(element, path, options, print) {
 	if (openingElement?.typeArguments) {
 		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
 	}
-	const elementLeadingComments = getElementLeadingComments(node);
+		const elementLeadingComments = getElementLeadingComments(/** @type {any} */ (node));
 
 	// `metadata.elementLeadingComments` may include comments that actually appear *inside* the element
 	// body (after the opening tag). Those must not be hoisted before the element.
@@ -6516,12 +6527,13 @@ function printElement(element, path, options, print) {
 				const attrDoc = print(attrPath);
 				parts.push(attrDoc);
 				const attr_node = /** @type {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
-					attrPath.node
+					/** @type {unknown} */ (attrPath.node)
 				);
 				if (
 					!hasBreakingAttribute &&
 					(willBreak(attrDoc) ||
-						(attr_node.type === 'JSXAttribute' && is_attribute_value_breakable(attr_node.value)))
+							(attr_node.type === 'JSXAttribute' &&
+								is_attribute_value_breakable(/** @type {any} */ (attr_node.value))))
 				) {
 					hasBreakingAttribute = true;
 				}
@@ -6636,10 +6648,11 @@ function printElement(element, path, options, print) {
 			isTextLikeChild &&
 			Array.isArray(currentChild.leadingComments) &&
 			currentChild.leadingComments.length > 0;
-		const rawExpressionLeadingComments =
-			isTextLikeChild && Array.isArray(currentChild.expression?.leadingComments)
-				? currentChild.expression.leadingComments
-				: null;
+			const currentChildAny = /** @type {any} */ (currentChild);
+			const rawExpressionLeadingComments =
+				isTextLikeChild && Array.isArray(currentChildAny.expression?.leadingComments)
+					? currentChildAny.expression.leadingComments
+					: null;
 		const elementBodyLeadingComments =
 			hasTextLeadingComments && node.openingElement
 				? /** @type {AST.Comment[]} */ (currentChild.leadingComments).filter(
@@ -6806,7 +6819,7 @@ function printElement(element, path, options, print) {
 
 	if (finalChildren.length === 1) {
 		const child = finalChildren[0];
-		const firstChild = node.children[0];
+			const firstChild = /** @type {any} */ (node.children[0]);
 		const isNonSelfClosingElement =
 			firstChild && firstChild.type === 'Element' && !firstChild.selfClosing;
 		const isElementChild = firstChild && firstChild.type === 'Element';

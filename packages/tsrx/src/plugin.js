@@ -453,10 +453,11 @@ export function TSRXPlugin(config) {
 				);
 			}
 
-			/**
-			 * @param {any} name
-			 */
-			#isDynamicJSXElementName(name) {
+				/**
+				 * @param {any} name
+				 * @returns {boolean}
+				 */
+				#isDynamicJSXElementName(name) {
 				if (!name || typeof name !== 'object') return false;
 				if (name.dynamic === true) return true;
 				return name.type === 'JSXMemberExpression' && this.#isDynamicJSXElementName(name.object);
@@ -495,7 +496,10 @@ export function TSRXPlugin(config) {
 				return true;
 			}
 
-			#previousNonSpaceTabIndex(index) {
+				/**
+				 * @param {number} index
+				 */
+				#previousNonSpaceTabIndex(index) {
 				let cursor = index - 1;
 				while (
 					cursor >= 0 &&
@@ -773,7 +777,10 @@ export function TSRXPlugin(config) {
 				);
 			}
 
-			#canPrecedeTypeArgumentList(ch) {
+				/**
+				 * @param {number} ch
+				 */
+				#canPrecedeTypeArgumentList(ch) {
 				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
 			}
 
@@ -946,7 +953,10 @@ export function TSRXPlugin(config) {
 				return index;
 			}
 
-			#isJSXControlFlowDirectiveAt(index) {
+				/**
+				 * @param {number} index
+				 */
+				#isJSXControlFlowDirectiveAt(index) {
 				if (this.input.charCodeAt(index) !== CharCode.at) return false;
 
 				let cursor = index + 1;
@@ -1377,7 +1387,9 @@ export function TSRXPlugin(config) {
 				} finally {
 					this.#readingJSXControlFlowHeader = previous_reading_header;
 				}
-				node.consequent = this.#parseTemplateControlFlowStatement();
+					node.consequent = /** @type {AST.Statement} */ (
+						this.#parseTemplateControlFlowStatement()
+					);
 				node.alternate = null;
 
 				if (this.type === tt._else) {
@@ -1392,7 +1404,7 @@ export function TSRXPlugin(config) {
 					node.alternate =
 						label === 'if'
 							? this.#parseTemplateIfStatement()
-							: this.#parseTemplateControlFlowStatement();
+							: /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
 				}
 
 				return this.finishNode(node, 'IfStatement');
@@ -1569,7 +1581,7 @@ export function TSRXPlugin(config) {
 					const node = /** @type {AST.BreakStatement} */ (this.startNode());
 					this.next();
 					node.label = null;
-					if (this.type === tstt.jsxText && this.value?.startsWith(';')) {
+						if (this.type === tstt.jsxText && typeof this.value === 'string' && this.value.startsWith(';')) {
 						const start = this.start;
 						const loc = acorn.getLineInfo(this.input, start + 1);
 						this.pos = start + 1;
@@ -1741,7 +1753,7 @@ export function TSRXPlugin(config) {
 				}
 
 				node.css = content;
-				node.children = [/** @type {AST.Node} */ (/** @type {unknown} */ (parsedCss))];
+					node.children = [parsedCss];
 			}
 
 			#parseNativeTemplateExpressionContainer() {
@@ -2242,9 +2254,9 @@ export function TSRXPlugin(config) {
 				const children = Array.isArray(/** @type {any} */ (container).children)
 					? /** @type {any} */ (container).children
 					: [];
-				const hasMeaningfulChildren = children.some(
-					(child) => child && !isWhitespaceTextNode(child),
-				);
+					const hasMeaningfulChildren = children.some(
+						(/** @type {any} */ child) => child && !isWhitespaceTextNode(child),
+					);
 
 				if (hasMeaningfulChildren) {
 					return null;
@@ -3035,7 +3047,10 @@ export function TSRXPlugin(config) {
 						name.name = name_value;
 						this.finishNodeAt(name, 'Identifier', name_end, name_end_loc);
 						const expression = /** @type {ESTreeJSX.JSXExpressionContainer} */ (
-							this.startNodeAt(node.start, /** @type {AST.NodeWithLocation} */ (node).loc.start)
+								this.startNodeAt(
+									/** @type {number} */ (node.start),
+									/** @type {AST.NodeWithLocation} */ (node).loc.start,
+								)
 						);
 						expression.expression = name;
 						/** @type {ESTreeJSX.JSXAttribute} */ (node).name = id;
@@ -3636,9 +3651,12 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseOpeningElementAt']}
 			 */
 			jsx_parseOpeningElementAt(startPos, startLoc) {
-				const node = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
-					this.startNodeAt(startPos, startLoc)
-				);
+					const node = /** @type {ESTreeJSX.JSXOpeningElement & AST.NodeWithLocation} */ (
+						this.startNodeAt(
+							/** @type {number} */ (startPos),
+							/** @type {AST.Position} */ (startLoc),
+						)
+					);
 				node.attributes = [];
 				const nodeName = this.jsx_parseElementName();
 				if (nodeName) node.name = nodeName;
@@ -3646,9 +3664,9 @@ export function TSRXPlugin(config) {
 					/** @type {any} */ (node).dynamic = true;
 				}
 				if (this.match(tt.relational) || this.match(tt.bitShift)) {
-					const typeArguments = this.tsTryParseAndCatch(() =>
-						this.tsParseTypeArgumentsInExpression(),
-					);
+						const typeArguments = /** @type {any} */ (this).tsTryParseAndCatch(() =>
+							/** @type {any} */ (this).tsParseTypeArgumentsInExpression(),
+						);
 					if (typeArguments) node.typeArguments = typeArguments;
 				}
 				while (this.type !== tt.slash && this.type !== tstt.jsxTagEnd) {
@@ -3681,7 +3699,10 @@ export function TSRXPlugin(config) {
 						this.#path.pop();
 					}
 				}
-				return this.finishNode(node, nodeName ? 'JSXOpeningElement' : 'JSXOpeningFragment');
+					if (nodeName) {
+						return this.finishNode(node, 'JSXOpeningElement');
+					}
+					return /** @type {any} */ (/** @type {any} */ (this).finishNode(node, 'JSXOpeningFragment'));
 			}
 
 			/**
@@ -3755,7 +3776,7 @@ export function TSRXPlugin(config) {
 					/** @type {ESTreeJSX.JSXFragment} */ (node).type = 'JSXFragment';
 					/** @type {ESTreeJSX.JSXFragment} */ (node).openingFragment =
 						this.#toOpeningFragment(open);
-					/** @type {ESTreeJSX.JSXFragment} */ (node).closingFragment = null;
+							/** @type {any} */ (node).closingFragment = null;
 				} else {
 					if (is_style) {
 						/** @type {AST.JSXStyleElement} */ (node).type = 'JSXStyleElement';
@@ -3765,7 +3786,7 @@ export function TSRXPlugin(config) {
 						/** @type {ESTreeJSX.JSXElement} */ (node).type = 'JSXElement';
 						/** @type {ESTreeJSX.JSXElement} */ (node).openingElement = open;
 						/** @type {ESTreeJSX.JSXElement} */ (node).closingElement = null;
-						if (open.dynamic) {
+							if (/** @type {any} */ (open).dynamic) {
 							/** @type {any} */ (node).dynamic = true;
 						}
 					}
@@ -3829,11 +3850,13 @@ export function TSRXPlugin(config) {
 				}
 
 				if (is_style && /** @type {AST.JSXStyleElement} */ (node).closingElement) {
-					const closing = /** @type {AST.JSXStyleElement} */ (node).closingElement;
+					const closing = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+						/** @type {AST.JSXStyleElement} */ (node).closingElement
+					);
 					return this.finishNodeAt(
 						node,
 						node.type,
-						/** @type {number} */ (closing.end),
+						closing.end,
 						closing.loc.end,
 					);
 				}

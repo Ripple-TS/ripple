@@ -285,20 +285,6 @@ export function createJsxTransform(platform) {
 				return next();
 			},
 
-			JSXCodeBlock(node, { next, state, visit }) {
-				// A code-only `@{ … }` block (no render output) is just a lexical block
-				// of setup statements, so lower it to a plain BlockStatement that the
-				// TSX printer can emit. Render-bearing blocks belong to the component
-				// lowering path and are handled elsewhere.
-				if (node.render != null) {
-					return next() ?? node;
-				}
-				const body = /** @type {AST.Statement[]} */ (
-					node.body.map((statement) => visit(statement, state))
-				);
-				return b.block(body, /** @type {AST.NodeWithLocation} */ (node));
-			},
-
 			JSXFragment(node, { next, path, state, visit }) {
 				if (!node.metadata?.native_tsrx) {
 					return next() ?? node;
@@ -383,7 +369,11 @@ export function createJsxTransform(platform) {
 					}
 				}
 				return /** @type {any} */ (
-					b.jsx_element({ ...node, type: 'JSXElement' }, node.openingElement?.attributes ?? [], [])
+					b.jsx_element(
+						/** @type {ESTreeJSX.JSXElement} */ ({ ...node, type: 'JSXElement', children: [] }),
+						node.openingElement?.attributes ?? [],
+						[],
+					)
 				);
 			},
 

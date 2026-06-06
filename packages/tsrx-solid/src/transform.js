@@ -158,8 +158,8 @@ const solid_platform = {
 		// `transformElementAttributes` is never reached for Solid. Attribute
 		// lowering happens in Solid's local `transform_element_attributes`,
 		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
-		transformElement: (inner, ctx, raw_children) =>
-			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx), raw_children),
+			transformElement: (inner, ctx) =>
+				to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx)),
 	},
 };
 
