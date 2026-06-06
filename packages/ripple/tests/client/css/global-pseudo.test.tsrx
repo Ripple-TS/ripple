@@ -4,19 +4,20 @@ describe('CSS :global with pseudo-classes', () => {
 	it('handles :global with :has()', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
+		<style>
+			div:has(:global(span)) {
+				color: red;
+			}
 
-	<style>
-		div:has(:global(span)) {
-			color: red;
-		}
-
-		:global(div:has(span)) {
-			color: blue;
-		}
-	</style>
+			:global(div:has(span)) {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -27,20 +28,21 @@ export function Test() @{
 	it('handles :global with :is()', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'one'}</span>
-		<p>{'two'}</p>
-	</div>
+	<>
+		<div>
+			<span>{'one'}</span>
+			<p>{'two'}</p>
+		</div>
+		<style>
+			div :is(:global(span), p) {
+				color: red;
+			}
 
-	<style>
-		div :is(:global(span), p) {
-			color: red;
-		}
-
-		:global(div:is(.foo, .bar)) {
-			color: blue;
-		}
-	</style>
+			:global(div:is(.foo, .bar)) {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -53,20 +55,21 @@ export function Test() @{
 	it('handles :global with :where()', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'one'}</span>
-		<p>{'two'}</p>
-	</div>
+	<>
+		<div>
+			<span>{'one'}</span>
+			<p>{'two'}</p>
+		</div>
+		<style>
+			div :where(:global(span), p) {
+				color: red;
+			}
 
-	<style>
-		div :where(:global(span), p) {
-			color: red;
-		}
-
-		:global(div:where(.foo, .bar)) {
-			color: blue;
-		}
-	</style>
+			:global(div:where(.foo, .bar)) {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -79,19 +82,20 @@ export function Test() @{
 	it('handles :global with :not()', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
+		<style>
+			div:not(:global(span)) {
+				color: red;
+			}
 
-	<style>
-		div:not(:global(span)) {
-			color: red;
-		}
-
-		:global(div:not(.foo)) {
-			color: blue;
-		}
-	</style>
+			:global(div:not(.foo)) {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -102,19 +106,20 @@ export function Test() @{
 	it('handles nested pseudo-classes with :global', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
+		<style>
+			div:is(:has(:global(span))) {
+				color: red;
+			}
 
-	<style>
-		div:is(:has(:global(span))) {
-			color: red;
-		}
-
-		:global(div:where(:is(.foo))) {
-			color: blue;
-		}
-	</style>
+			:global(div:where(:is(.foo))) {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -125,25 +130,26 @@ export function Test() @{
 	it('handles :global with :nth-child and other structural pseudo-classes', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'one'}</span>
-		<span>{'two'}</span>
-		<span>{'three'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'one'}</span>
+			<span>{'two'}</span>
+			<span>{'three'}</span>
+		</div>
+		<style>
+			:global(span):nth-child(2) {
+				color: red;
+			}
 
-	<style>
-		:global(span):nth-child(2) {
-			color: red;
-		}
+			div > :global(span:first-child) {
+				color: blue;
+			}
 
-		div > :global(span:first-child) {
-			color: blue;
-		}
-
-		:global(div):last-child {
-			color: green;
-		}
-	</style>
+			:global(div):last-child {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 

@@ -4,15 +4,16 @@ describe('CSS :global with combinators', () => {
 	it('handles :global with child combinator', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
-
-	<style>
-		div > :global(span) {
-			color: red;
-		}
-	</style>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
+		<style>
+			div > :global(span) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -23,20 +24,21 @@ export function Test() @{
 	it('handles :global with adjacent sibling combinator', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'one'}</span>
-		<span>{'two'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'one'}</span>
+			<span>{'two'}</span>
+		</div>
+		<style>
+			span + :global(span) {
+				color: red;
+			}
 
-	<style>
-		span + :global(span) {
-			color: red;
-		}
-
-		:global(div) + span {
-			color: blue;
-		}
-	</style>
+			:global(div) + span {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -47,20 +49,21 @@ export function Test() @{
 	it('handles :global with general sibling combinator', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'one'}</span>
-		<span>{'two'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'one'}</span>
+			<span>{'two'}</span>
+		</div>
+		<style>
+			span ~ :global(span) {
+				color: red;
+			}
 
-	<style>
-		span ~ :global(span) {
-			color: red;
-		}
-
-		:global(div) ~ span {
-			color: blue;
-		}
-	</style>
+			:global(div) ~ span {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -73,22 +76,23 @@ export function Test() @{
 	it('handles complex combinator chains with :global', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>{'nested button'}</button>
-		</span>
-		<button>{'sibling button'}</button>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>{'nested button'}</button>
+			</span>
+			<button>{'sibling button'}</button>
+		</div>
+		<style>
+			div > :global(span > button) {
+				color: red;
+			}
 
-	<style>
-		div > :global(span > button) {
-			color: red;
-		}
-
-		:global(div) > span + button {
-			color: blue;
-		}
-	</style>
+			:global(div) > span + button {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -99,21 +103,22 @@ export function Test() @{
 	it('handles :global with descendant combinator', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>{'click'}</button>
-		</span>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>{'click'}</button>
+			</span>
+		</div>
+		<style>
+			div :global(span button) {
+				color: red;
+			}
 
-	<style>
-		div :global(span button) {
-			color: red;
-		}
-
-		:global(div) span button {
-			color: blue;
-		}
-	</style>
+			:global(div) span button {
+				color: blue;
+			}
+		</style>
+	</>
 }`;
 
 		const { css } = compile(source, 'test.tsrx');

@@ -4,25 +4,27 @@ describe('CSS :global with complex nesting', () => {
 	it('handles :global block with nested selectors', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>{'click'}</button>
-		</span>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>{'click'}</button>
+			</span>
+		</div>
 
-	<style>
-		:global {
-			div {
-				span {
-					color: red;
+		<style>
+			:global {
+				div {
+					span {
+						color: red;
 
-					button {
-						color: blue;
+						button {
+							color: blue;
+						}
 					}
 				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -34,23 +36,25 @@ export function Test() @{
 	it('handles local block with :global nested inside', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
 
-	<style>
-		div {
-			color: red;
+		<style>
+			div {
+				color: red;
 
-			:global(span) {
-				color: blue;
+				:global(span) {
+					color: blue;
+				}
+
+				p {
+					color: green;
+				}
 			}
-
-			p {
-				color: green;
-			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -62,21 +66,23 @@ export function Test() @{
 	it('handles :global block with local nested inside', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>{'click'}</button>
-		</span>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>{'click'}</button>
+			</span>
+		</div>
 
-	<style>
-		:global {
-			div {
-				.local {
-					color: red;
+		<style>
+			:global {
+				div {
+					.local {
+						color: red;
+					}
 				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -89,25 +95,27 @@ export function Test() @{
 	it('handles alternating :global and local nesting', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>
-				<em>{'text'}</em>
-			</button>
-		</span>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>
+					<em>{'text'}</em>
+				</button>
+			</span>
+		</div>
 
-	<style>
-		div {
-			:global(span) {
-				button {
-					:global(em) {
-						color: red;
+		<style>
+			div {
+				:global(span) {
+					button {
+						:global(em) {
+							color: red;
+						}
 					}
 				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -120,25 +128,27 @@ export function Test() @{
 	it('handles deeply nested :global blocks', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>
-			<button>{'click'}</button>
-		</span>
-	</div>
+	<>
+		<div>
+			<span>
+				<button>{'click'}</button>
+			</span>
+		</div>
 
-	<style>
-		div {
-			:global {
-				span {
-					:global {
-						button {
-							color: red;
+		<style>
+			div {
+				:global {
+					span {
+						:global {
+							button {
+								color: red;
+							}
 						}
 					}
 				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -152,25 +162,27 @@ export function Test() @{
 	it('handles :global with nesting combinator &', () => {
 		const source = `
 export function Test() @{
-	<div class="container">
-		<button class="active">{'click'}</button>
-	</div>
+	<>
+		<div class="container">
+			<button class="active">{'click'}</button>
+		</div>
 
-	<style>
-		.container {
-			:global {
-				&.active {
-					color: red;
+		<style>
+			.container {
+				:global {
+					&.active {
+						color: red;
+					}
+				}
+
+				button {
+					:global(&.pressed) {
+						color: blue;
+					}
 				}
 			}
-
-			button {
-				:global(&.pressed) {
-					color: blue;
-				}
-			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -183,29 +195,31 @@ export function Test() @{
 	it('handles complex :global nesting with multiple levels', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<nav>
-			<ul>
-				<li>
-					<a href="#">{'link'}</a>
-				</li>
-			</ul>
-		</nav>
-	</div>
+	<>
+		<div>
+			<nav>
+				<ul>
+					<li>
+						<a href="#">{'link'}</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
 
-	<style>
-		div {
-			:global(nav) {
-				ul {
-					:global(li) {
-						a {
-							color: red;
+		<style>
+			div {
+				:global(nav) {
+					ul {
+						:global(li) {
+							a {
+								color: red;
+							}
 						}
 					}
 				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 

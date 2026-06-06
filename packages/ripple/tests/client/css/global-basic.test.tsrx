@@ -4,13 +4,14 @@ describe('CSS :global basic tests', () => {
 	it('applies global selector to all elements', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
-
-	<style>
-		:global(div) {
-			color: red;
-		}
-	</style>
+	<>
+		<div>{'content'}</div>
+		<style>
+			:global(div) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -22,17 +23,18 @@ export function Test() @{
 	it('applies global selector with class', () => {
 		const source = `
 export function Test() @{
-	<div class="foo">{'content'}</div>
+	<>
+		<div class="foo">{'content'}</div>
+		<style>
+			:global(div.foo) {
+				color: pink;
+			}
 
-	<style>
-		:global(div.foo) {
-			color: pink;
-		}
-
-		:global(.foo) {
-			font-weight: bold;
-		}
-	</style>
+			:global(.foo) {
+				font-weight: bold;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -44,19 +46,20 @@ export function Test() @{
 	it('mixes global and local selectors', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<p class="foo">{'red/bold'}</p>
-	</div>
+	<>
+		<div>
+			<p class="foo">{'red/bold'}</p>
+		</div>
+		<style>
+			:global(div) .foo {
+				color: red;
+			}
 
-	<style>
-		:global(div) .foo {
-			color: red;
-		}
-
-		:global(div) > .foo {
-			font-weight: bold;
-		}
-	</style>
+			:global(div) > .foo {
+				font-weight: bold;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -68,19 +71,20 @@ export function Test() @{
 	it('handles global block syntax', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
+	<>
+		<div>{'content'}</div>
+		<style>
+			:global {
+				.x {
+					color: green;
+				}
 
-	<style>
-		:global {
-			.x {
-				color: green;
+				.a, .selector, .list {
+					color: green;
+				}
 			}
-
-			.a, .selector, .list {
-				color: green;
-			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -92,17 +96,18 @@ export function Test() @{
 	it('handles global with pseudo-classes', () => {
 		const source = `
 export function Test() @{
-	<button>{'click'}</button>
+	<>
+		<button>{'click'}</button>
+		<style>
+			:global(button:hover) {
+				opacity: 0.8;
+			}
 
-	<style>
-		:global(button:hover) {
-			opacity: 0.8;
-		}
-
-		:global(button):focus {
-			outline: none;
-		}
-	</style>
+			:global(button):focus {
+				outline: none;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -114,15 +119,16 @@ export function Test() @{
 	it('handles multiple global selectors in selector list', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
-
-	<style>
-		:global(html),
-		:global(body) {
-			margin: 0;
-			padding: 0;
-		}
-	</style>
+	<>
+		<div>{'content'}</div>
+		<style>
+			:global(html),
+			:global(body) {
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -133,27 +139,28 @@ export function Test() @{
 	it('scopes local selectors while keeping globals unscoped', () => {
 		const source = `
 export function Test() @{
-	<div class="styled-container">
-				<h1>{'Styled heading'}</h1>
-				<p class="text">{'Styled paragraph'}</p>
-			</div>
+	<>
+		<div class="styled-container">
+			<h1>{'Styled heading'}</h1>
+			<p class="text">{'Styled paragraph'}</p>
+		</div>
+		<style>
+			.styled-container {
+				background-color: rgb(0, 0, 255);
+				padding: 16px;
+			}
 
-	<style>
-		.styled-container {
-			background-color: rgb(0, 0, 255);
-			padding: 16px;
-		}
+			:global(h1) {
+				color: rgb(255, 255, 255);
+				font-size: 32px;
+			}
 
-		:global(h1) {
-			color: rgb(255, 255, 255);
-			font-size: 32px;
-		}
-
-		.text {
-			color: rgb(200, 200, 200);
-			font-size: 14px;
-		}
-	</style>
+			.text {
+				color: rgb(200, 200, 200);
+				font-size: 14px;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 

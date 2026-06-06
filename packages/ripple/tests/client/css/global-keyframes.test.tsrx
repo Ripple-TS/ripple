@@ -4,18 +4,20 @@ describe('CSS :global with keyframes', () => {
 	it('handles -global- prefix for keyframes', () => {
 		const source = `
 export function Test() @{
-	<div>{'animated'}</div>
+	<>
+		<div>{'animated'}</div>
 
-	<style>
-		@keyframes -global-foo {
-			0% { opacity: 0; }
-			100% { opacity: 1; }
-		}
+		<style>
+			@keyframes -global-foo {
+				0% { opacity: 0; }
+				100% { opacity: 1; }
+			}
 
-		div {
-			animation: foo 1s;
-		}
-	</style>
+			div {
+				animation: foo 1s;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -27,14 +29,16 @@ export function Test() @{
 	it('handles scoped keyframes without -global- prefix', () => {
 		const source = `
 export function Test() @{
-	<div>{'animated'}</div>
+	<>
+		<div>{'animated'}</div>
 
-	<style>
-		@keyframes foo {
-			0% { opacity: 0; }
-			100% { opacity: 1; }
-		}
-	</style>
+		<style>
+			@keyframes foo {
+				0% { opacity: 0; }
+				100% { opacity: 1; }
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -44,28 +48,30 @@ export function Test() @{
 	it('handles mix of global and scoped keyframes', () => {
 		const source = `
 export function Test() @{
-	<div class="global-anim">{'one'}</div>
-	<div class="scoped-anim">{'two'}</div>
+	<>
+		<div class="global-anim">{'one'}</div>
+		<div class="scoped-anim">{'two'}</div>
 
-	<style>
-		@keyframes -global-fadeIn {
-			0% { opacity: 0; }
-			100% { opacity: 1; }
-		}
+		<style>
+			@keyframes -global-fadeIn {
+				0% { opacity: 0; }
+				100% { opacity: 1; }
+			}
 
-		@keyframes slideIn {
-			0% { transform: translateX(-100%); }
-			100% { transform: translateX(0); }
-		}
+			@keyframes slideIn {
+				0% { transform: translateX(-100%); }
+				100% { transform: translateX(0); }
+			}
 
-		.global-anim {
-			animation: fadeIn 1s;
-		}
+			.global-anim {
+				animation: fadeIn 1s;
+			}
 
-		.scoped-anim {
-			animation: slideIn 1s;
-		}
-	</style>
+			.scoped-anim {
+				animation: slideIn 1s;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -79,19 +85,21 @@ export function Test() @{
 	it('handles multiple animations with global keyframes', () => {
 		const source = `
 export function Test() @{
-	<div>{'animated'}</div>
+	<>
+		<div>{'animated'}</div>
 
-	<style>
-		@keyframes -global-foo {
-			0% { opacity: 0; }
-			100% { opacity: 1; }
-		}
+		<style>
+			@keyframes -global-foo {
+				0% { opacity: 0; }
+				100% { opacity: 1; }
+			}
 
-		@keyframes -global-bar {
-			0% { transform: scale(0); }
-			100% { transform: scale(1); }
-		}
-	</style>
+			@keyframes -global-bar {
+				0% { transform: scale(0); }
+				100% { transform: scale(1); }
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -102,37 +110,41 @@ export function Test() @{
 	it('handles animation property referencing keyframes (not marking as unused)', () => {
 		const source = `
 export function Parent() @{
-	<div class="parent">
-		<Child />
-	</div>
+	<>
+		<div class="parent">
+			<Child />
+		</div>
 
-	<style>
-		/* Scoped keyframe - only usable within Parent */
-		@keyframes slideIn {
-			from { transform: translateX(-100%); }
-			to { transform: translateX(0); }
-		}
+		<style>
+			/* Scoped keyframe - only usable within Parent */
+			@keyframes slideIn {
+				from { transform: translateX(-100%); }
+				to { transform: translateX(0); }
+			}
 
-		/* Global keyframe - usable in any component */
-		@keyframes -global-fadeIn {
-			0% { opacity: 0; }
-			100% { opacity: 1; }
-		}
+			/* Global keyframe - usable in any component */
+			@keyframes -global-fadeIn {
+				0% { opacity: 0; }
+				100% { opacity: 1; }
+			}
 
-		.parent {
-			animation: slideIn 1s;
-		}
-	</style>
+			.parent {
+				animation: slideIn 1s;
+			}
+		</style>
+	</>
 }
 
 function Child() @{
-	<div class="child">{'Child content'}</div>
+	<>
+		<div class="child">{'Child content'}</div>
 
-	<style>
-		.child {
-			animation: fadeIn 3s; /* Uses global fadeIn from Parent */
-		}
-	</style>
+		<style>
+			.child {
+				animation: fadeIn 3s; /* Uses global fadeIn from Parent */
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 

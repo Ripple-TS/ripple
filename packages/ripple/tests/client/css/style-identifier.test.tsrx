@@ -36,10 +36,10 @@ describe('style class maps', () => {
 
 		it('passes multiple style expression classes to a child component', () => {
 			function Child({ primary, secondary }: { primary: string; secondary: string }) @{
-				
+				<>
 					<div class={primary}>{'primary'}</div>
 					<span class={secondary}>{'secondary'}</span>
-				
+				</>
 			}
 
 			function Parent() @{
@@ -102,12 +102,10 @@ function App() @{
 					}
 				</style>;
 
-				
-					let dynamic = track(() => Child);
-					<div class="wrapper">
-						<@dynamic cls={styles.text} />
-					</div>
-				
+				let dynamic = track(() => Child);
+				<div class="wrapper">
+					<@dynamic cls={styles.text} />
+				</div>
 			}
 
 			render(Parent);
@@ -139,14 +137,14 @@ function App() @{
 
 		it('child can combine its own classes with a parent style expression class', () => {
 			function Card({ className }: { className?: string }) @{
-				
+				<>
 					<div class={['card-base', className ?? '']}>{'card content'}</div>
 					<style>
 						.card-base {
 							border: 1px solid black;
 						}
 					</style>
-				
+				</>
 			}
 
 			function App() @{
@@ -183,11 +181,9 @@ function App() @{
 					}
 				</style>;
 
-				
-					<div class="parent">
-						<Child cls={styles.dual} />
-					</div>
-				
+				<div class="parent">
+					<Child cls={styles.dual} />
+				</div>
 			}
 
 			render(App);
@@ -207,25 +203,28 @@ function Child({ cls }) @{
 	<div class={cls}>{'text'}</div>
 }
 function App() @{
-	<Child cls={style 'highlight'} />
-
-	<style>
-		.highlight {
-			color: red;
-		}
-	</style>
+	<>
+		<Child cls={style 'highlight'} />
+		<style>
+			.highlight {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 			expect(() => compile(source, 'test.tsrx')).toThrow();
 		});
 
 		it('does not parse the old style directive as a child expression', () => {
 			const source = `function App() @{
-	<div>{style 'foo'}</div>
-	<style>
-		.foo {
-			color: red;
-		}
-	</style>
+	<>
+		<div>{style 'foo'}</div>
+		<style>
+			.foo {
+				color: red;
+			}
+		</style>
+	</>
 			}`;
 			expect(() => compile(source, 'test.tsrx')).toThrow();
 		});

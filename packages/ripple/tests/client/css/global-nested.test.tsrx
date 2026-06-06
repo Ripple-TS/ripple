@@ -4,33 +4,35 @@ describe('CSS :global nested blocks', () => {
 	it('handles nested global blocks', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<p>{'content'}</p>
-	</div>
+	<>
+		<div>
+			<p>{'content'}</p>
+		</div>
 
-	<style>
-		div {
-			:global {
-				.x {
+		<style>
+			div {
+				:global {
+					.x {
+						color: green;
+					}
+				}
+
+				:global(.x) {
+					color: green;
+				}
+
+				p :global {
+					.y {
+						color: green;
+					}
+				}
+
+				p :global(.y) {
 					color: green;
 				}
 			}
-
-			:global(.x) {
-				color: green;
-			}
-
-			p :global {
-				.y {
-					color: green;
-				}
-			}
-
-			p :global(.y) {
-				color: green;
-			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -45,27 +47,29 @@ export function Test() @{
 	it('handles :global with nesting selector', () => {
 		const source = `
 export function Test() @{
-	<div class="x">{'content'}</div>
+	<>
+		<div class="x">{'content'}</div>
 
-	<style>
-		div {
-			:global {
+		<style>
+			div {
+				:global {
+					&.x {
+						color: green;
+					}
+				}
+			}
+
+			div :global {
 				&.x {
 					color: green;
 				}
 			}
-		}
 
-		div :global {
-			&.x {
+			div :global.x {
 				color: green;
 			}
-		}
-
-		div :global.x {
-			color: green;
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -76,21 +80,23 @@ export function Test() @{
 	it('handles global block with de-nested syntax', () => {
 		const source = `
 export function Test() @{
-	<div><p>{'content'}</p></div>
+	<>
+		<div><p>{'content'}</p></div>
 
-	<style>
-		:global div {
-			.y {
-				color: green;
+		<style>
+			:global div {
+				.y {
+					color: green;
+				}
 			}
-		}
 
-		div :global p {
-			.y {
-				color: green;
+			div :global p {
+				.y {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -102,21 +108,23 @@ export function Test() @{
 	it('handles global local nested combinations', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
+	<>
+		<div>{'content'}</div>
 
-	<style>
-		div {
-			:global(.whatever) {
-				color: green;
-			}
-		}
-
-		:global(.whatever) {
+		<style>
 			div {
-				color: green;
+				:global(.whatever) {
+					color: green;
+				}
 			}
-		}
-	</style>
+
+			:global(.whatever) {
+				div {
+					color: green;
+				}
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -128,19 +136,21 @@ export function Test() @{
 	it('handles :global with :is and :where pseudoclasses', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<span>{'content'}</span>
-	</div>
+	<>
+		<div>
+			<span>{'content'}</span>
+		</div>
 
-	<style>
-		div :global(:is(span)) {
-			color: green;
-		}
+		<style>
+			div :global(:is(span)) {
+				color: green;
+			}
 
-		:global(.foo) :is(div) {
-			color: green;
-		}
-	</style>
+			:global(.foo) :is(div) {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 

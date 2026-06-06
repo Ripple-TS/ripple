@@ -5,13 +5,15 @@ describe('CSS :global additional use cases', () => {
 	it('handles :global as modifier with dot notation', () => {
 		const source = `
 export function Test() @{
-	<div class="x">{'content'}</div>
+	<>
+		<div class="x">{'content'}</div>
 
-	<style>
-		div :global.x {
-			color: red;
-		}
-	</style>
+		<style>
+			div :global.x {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -21,15 +23,17 @@ export function Test() @{
 	it('handles :global modifier in nested syntax', () => {
 		const source = `
 export function Test() @{
-	<div class="x">{'content'}</div>
+	<>
+		<div class="x">{'content'}</div>
 
-	<style>
-		div {
-			:global.x {
-				color: green;
+		<style>
+			div {
+				:global.x {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -39,15 +43,17 @@ export function Test() @{
 	it('handles :global with & nesting selector inside block', () => {
 		const source = `
 export function Test() @{
-	<div class="x">{'content'}</div>
+	<>
+		<div class="x">{'content'}</div>
 
-	<style>
-		div {
-			& :global.x {
-				color: green;
+		<style>
+			div {
+				& :global.x {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -57,13 +63,15 @@ export function Test() @{
 	it('handles :global with :is pseudo-class modifier', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
+	<>
+		<div>{'content'}</div>
 
-	<style>
-		div :global:is(html.dark-mode *) {
-			color: green;
-		}
-	</style>
+		<style>
+			div :global:is(html.dark-mode *) {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -73,15 +81,17 @@ export function Test() @{
 	it('handles :global with & inside :global block', () => {
 		const source = `
 export function Test() @{
-	<div class="class">{'content'}</div>
+	<>
+		<div class="class">{'content'}</div>
 
-	<style>
-		div {
-			&:global(.class) {
-				color: green;
+		<style>
+			div {
+				&:global(.class) {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -92,15 +102,17 @@ export function Test() @{
 	it('handles :global(*) with & and descendant', () => {
 		const source = `
 export function Test() @{
-	<div class="class">{'content'}</div>
+	<>
+		<div class="class">{'content'}</div>
 
-	<style>
-		:global(*) {
-			&:hover .class {
-				color: green;
+		<style>
+			:global(*) {
+				&:hover .class {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -111,14 +123,16 @@ export function Test() @{
 	it('handles multiple :global selectors in list', () => {
 		const source = `
 export function Test() @{
-	<x>{'content'}</x>
-	<y>{'content'}</y>
+	<>
+		<x>{'content'}</x>
+		<y>{'content'}</y>
 
-	<style>
-		:global x, :global y {
-			color: green;
-		}
-	</style>
+		<style>
+			:global x, :global y {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -128,17 +142,19 @@ export function Test() @{
 	it('handles :global block with nested selector list', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<y>{'content'}</y>
-	</div>
+	<>
+		<div>
+			<y>{'content'}</y>
+		</div>
 
-	<style>
-		div :global, div :global y, unused :global {
-			z {
-				color: green;
+		<style>
+			div :global, div :global y, unused :global {
+				z {
+					color: green;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -149,31 +165,33 @@ export function Test() @{
 	it('handles keyframes inside :global block', () => {
 		const source = `
 export function Test() @{
-	<div class="x">{'animated'}</div>
+	<>
+		<div class="x">{'animated'}</div>
 
-	<style>
-		:global {
-			.x {
-				animation: test 1s;
+		<style>
+			:global {
+				.x {
+					animation: test 1s;
+				}
+
+				.y {
+					animation: test-in 1s;
+				}
+
+				@keyframes test-in {
+					to {
+						opacity: 1;
+					}
+				}
 			}
 
-			.y {
-				animation: test-in 1s;
-			}
-
-			@keyframes test-in {
+			@keyframes test {
 				to {
 					opacity: 1;
 				}
 			}
-		}
-
-		@keyframes test {
-			to {
-				opacity: 1;
-			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -187,14 +205,16 @@ export function Test() @{
 	it('handles global keyframes with no component elements', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
+	<>
+		<div>{'content'}</div>
 
-	<style>
-		@keyframes -global-orphan {
-			0% { color: red; }
-			100% { color: blue; }
-		}
-	</style>
+		<style>
+			@keyframes -global-orphan {
+				0% { color: red; }
+				100% { color: blue; }
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -205,20 +225,22 @@ export function Test() @{
 	it('handles :global with class modifier syntax', () => {
 		const source = `
 export function Test() @{
-	<div class="blue">{'might be programmatically added'}</div>
-	<span class="x blue">{'span content'}</span>
+	<>
+		<div class="blue">{'might be programmatically added'}</div>
+		<span class="x blue">{'span content'}</span>
 
-	<style>
-		div:global(.blue) {
-			color: blue;
-		}
-		span:global(.blue).x {
-			color: blue;
-		}
-		span.x:global(.bg) {
-			background: red;
-		}
-	</style>
+		<style>
+			div:global(.blue) {
+				color: blue;
+			}
+			span:global(.blue).x {
+				color: blue;
+			}
+			span.x:global(.bg) {
+				background: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -230,13 +252,15 @@ export function Test() @{
 	it('handles multiple :global() in descendant sequence', () => {
 		const source = `
 export function Test() @{
-	<p>{'this may or may not be styled'}</p>
+	<>
+		<p>{'this may or may not be styled'}</p>
 
-	<style>
-		:global(div) > :global(section) > p {
-			color: red;
-		}
-	</style>
+		<style>
+			:global(div) > :global(section) > p {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -247,17 +271,19 @@ export function Test() @{
 	it('handles :is with :global and html context', () => {
 		const source = `
 export function Test() @{
-	<x>
-		<y>
-			<z>{'content'}</z>
-		</y>
-	</x>
+	<>
+		<x>
+			<y>
+				<z>{'content'}</z>
+			</y>
+		</x>
 
-	<style>
-		x :is(:global(html *)) {
-			color: green;
-		}
-	</style>
+		<style>
+			x :is(:global(html *)) {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -267,24 +293,26 @@ export function Test() @{
 	it('handles :global block with :has inside', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<x>{'content'}</x>
-	</div>
+	<>
+		<div>
+			<x>{'content'}</x>
+		</div>
 
-	<style>
-		:global(.foo) {
-			:has(x) {
+		<style>
+			:global(.foo) {
+				:has(x) {
+					color: green;
+				}
+				&:has(x) {
+					color: green;
+				}
+			}
+
+			:global(.foo):has(x) {
 				color: green;
 			}
-			&:has(x) {
-				color: green;
-			}
-		}
-
-		:global(.foo):has(x) {
-			color: green;
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -297,49 +325,51 @@ export function Test() @{
 	it('handles :not with :global in complex nesting', () => {
 		const source = `
 export function Test() @{
-	<p class="foo">{'foo'}</p>
-	<p class="bar">
-		{'bar'}
-		<span>{'baz'}</span>
-	</p>
-	<span>{'buzz'}</span>
+	<>
+		<p class="foo">{'foo'}</p>
+		<p class="bar">
+			{'bar'}
+			<span>{'baz'}</span>
+		</p>
+		<span>{'buzz'}</span>
 
-	<style>
-		:not(:global(.foo)) {
-			color: green;
-		}
-		:not(.foo):not(:global(.unused)) {
-			color: green;
-		}
-		:global(.x):not(.foo) {
-			color: green;
-		}
-		:global(.x) :not(p) {
-			color: green;
-		}
-		:global(.x):not(p) {
-			color: green;
-		}
-
-		:global(span):not(p span) {
-			color: green;
-		}
-		span:not(:global(p span)) {
-			color: green;
-		}
-		:global(span:not(p span)) {
-			color: green;
-		}
-
-		:global(.x) {
-			:not(.foo) {
+		<style>
+			:not(:global(.foo)) {
 				color: green;
 			}
-			&:not(.foo) {
+			:not(.foo):not(:global(.unused)) {
 				color: green;
 			}
-		}
-	</style>
+			:global(.x):not(.foo) {
+				color: green;
+			}
+			:global(.x) :not(p) {
+				color: green;
+			}
+			:global(.x):not(p) {
+				color: green;
+			}
+
+			:global(span):not(p span) {
+				color: green;
+			}
+			span:not(:global(p span)) {
+				color: green;
+			}
+			:global(span:not(p span)) {
+				color: green;
+			}
+
+			:global(.x) {
+				:not(.foo) {
+					color: green;
+				}
+				&:not(.foo) {
+					color: green;
+				}
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -350,31 +380,33 @@ export function Test() @{
 	it('handles sibling combinators with children and :global before scoped elements', () => {
 		const source = `
 export function Test({ children }) @{
-	<div>
-		<p class="before">{'before'}</p>
+	<>
+		<div>
+			<p class="before">{'before'}</p>
 
-		{children}
+			{children}
 
-		<p class="foo">
-			<span>{'foo'}</span>
-		</p>
-		<p class="bar">{'bar'}</p>
-	</div>
+			<p class="foo">
+				<span>{'foo'}</span>
+			</p>
+			<p class="bar">{'bar'}</p>
+		</div>
 
-	<style>
-		.before + .foo { color: green; }
-		.before ~ .foo { color: green; }
-		.before ~ .bar { color: green; }
+		<style>
+			.before + .foo { color: green; }
+			.before ~ .foo { color: green; }
+			.before ~ .bar { color: green; }
 
-		:global(.x) + .foo { color: green; }
-		:global(.x) + .foo span { color: green; }
-		:global(.x) ~ .foo { color: green; }
-		:global(.x) ~ .foo span { color: green; }
-		:global(.x) ~ .bar { color: green; }
+			:global(.x) + .foo { color: green; }
+			:global(.x) + .foo span { color: green; }
+			:global(.x) ~ .foo { color: green; }
+			:global(.x) ~ .foo span { color: green; }
+			:global(.x) ~ .bar { color: green; }
 
-		/* should be unused as this is not a possibility */
-		:global(.x) + .bar { color: green; }
-	</style>
+			/* should be unused as this is not a possibility */
+			:global(.x) + .bar { color: green; }
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -387,31 +419,33 @@ export function Test({ children }) @{
 	it('handles sibling combinators with component and :global before scoped elements', () => {
 		const source = `
 export function Test({ children }) @{
-	<div>
-		<p class="before">{'before'}</p>
+	<>
+		<div>
+			<p class="before">{'before'}</p>
 
-		<Child1 />
+			<Child1 />
 
-		<p class="foo">
-			<span>{'foo'}</span>
-		</p>
-		<p class="bar">{'bar'}</p>
-	</div>
+			<p class="foo">
+				<span>{'foo'}</span>
+			</p>
+			<p class="bar">{'bar'}</p>
+		</div>
 
-	<style>
-		.before + .foo { color: green; }
-		.before ~ .foo { color: green; }
-		.before ~ .bar { color: green; }
+		<style>
+			.before + .foo { color: green; }
+			.before ~ .foo { color: green; }
+			.before ~ .bar { color: green; }
 
-		:global(.x) + .foo { color: green; }
-		:global(.x) + .foo span { color: green; }
-		:global(.x) ~ .foo { color: green; }
-		:global(.x) ~ .foo span { color: green; }
-		:global(.x) ~ .bar { color: green; }
+			:global(.x) + .foo { color: green; }
+			:global(.x) + .foo span { color: green; }
+			:global(.x) ~ .foo { color: green; }
+			:global(.x) ~ .foo span { color: green; }
+			:global(.x) ~ .bar { color: green; }
 
-		/* should be unused as this is not a possibility */
-		:global(.x) + .bar { color: green; }
-	</style>
+			/* should be unused as this is not a possibility */
+			:global(.x) + .bar { color: green; }
+		</style>
+	</>
 }
 
 function Child1() @{
@@ -433,31 +467,33 @@ import { track } from 'ripple';
 
 export function Test({ children }) @{
 	const DynamicComponent = track(() => Child1);
-	<div>
-		<p class="before">{'before'}</p>
+	<>
+		<div>
+			<p class="before">{'before'}</p>
 
-		<@DynamicComponent />
+			<@DynamicComponent />
 
-		<p class="foo">
-			<span>{'foo'}</span>
-		</p>
-		<p class="bar">{'bar'}</p>
-	</div>
+			<p class="foo">
+				<span>{'foo'}</span>
+			</p>
+			<p class="bar">{'bar'}</p>
+		</div>
 
-	<style>
-		.before + .foo { color: green; }
-		.before ~ .foo { color: green; }
-		.before ~ .bar { color: green; }
+		<style>
+			.before + .foo { color: green; }
+			.before ~ .foo { color: green; }
+			.before ~ .bar { color: green; }
 
-		:global(.x) + .foo { color: green; }
-		:global(.x) + .foo span { color: green; }
-		:global(.x) ~ .foo { color: green; }
-		:global(.x) ~ .foo span { color: green; }
-		:global(.x) ~ .bar { color: green; }
+			:global(.x) + .foo { color: green; }
+			:global(.x) + .foo span { color: green; }
+			:global(.x) ~ .foo { color: green; }
+			:global(.x) ~ .foo span { color: green; }
+			:global(.x) ~ .bar { color: green; }
 
-		/* should be unused as this is not a possibility */
-		:global(.x) + .bar { color: green; }
-	</style>
+			/* should be unused as this is not a possibility */
+			:global(.x) + .bar { color: green; }
+		</style>
+	</>
 }
 
 function Child1() @{
@@ -480,31 +516,33 @@ import { track } from 'ripple';
 
 export function Test({ children, classes }) @{
 	const dynamicElement = track('div');
-	<div>
-		<p class="before">{'before'}</p>
-		// Use Dynamic Element but it's the same with a regular one
-		<@dynamicElement class={classes} />
+	<>
+		<div>
+			<p class="before">{'before'}</p>
+			// Use Dynamic Element but it's the same with a regular one
+			<@dynamicElement class={classes} />
 
-		<p class="foo">
-			<span>{'foo'}</span>
-		</p>
-		<p class="bar">{'bar'}</p>
-	</div>
+			<p class="foo">
+				<span>{'foo'}</span>
+			</p>
+			<p class="bar">{'bar'}</p>
+		</div>
 
-	<style>
-		.before + .foo { color: green; }
-		.before ~ .foo { color: green; }
-		.before ~ .bar { color: green; }
+		<style>
+			.before + .foo { color: green; }
+			.before ~ .foo { color: green; }
+			.before ~ .bar { color: green; }
 
-		:global(.x) + .foo { color: green; }
-		:global(.x) + .foo span { color: green; }
-		:global(.x) ~ .foo { color: green; }
-		:global(.x) ~ .foo span { color: green; }
-		:global(.x) ~ .bar { color: green; }
+			:global(.x) + .foo { color: green; }
+			:global(.x) + .foo span { color: green; }
+			:global(.x) ~ .foo { color: green; }
+			:global(.x) ~ .foo span { color: green; }
+			:global(.x) ~ .bar { color: green; }
 
-		/* should be unused as this is not a possibility */
-		:global(.x) + .bar { color: green; }
-	</style>
+			/* should be unused as this is not a possibility */
+			:global(.x) + .bar { color: green; }
+		</style>
+	</>
 }`;
 
 			const { css } = compile(source, 'test.tsrx');
@@ -519,17 +557,19 @@ export function Test({ children, classes }) @{
 	it('handles :global with multiple global descendants', () => {
 		const source = `
 export function Test() @{
-	<div class="root">
-		<section class="whatever">
-			<p>{'hello'}</p>
-		</section>
-	</div>
+	<>
+		<div class="root">
+			<section class="whatever">
+				<p>{'hello'}</p>
+			</section>
+		</div>
 
-	<style>
-		:global(html) :global(body) .root p {
-			color: red;
-		}
-	</style>
+		<style>
+			:global(html) :global(body) .root p {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -539,23 +579,25 @@ export function Test() @{
 	it('handles nested @media with :global blocks', () => {
 		const source = `
 export function Test() @{
-	<div>{'content'}</div>
+	<>
+		<div>{'content'}</div>
 
-	<style>
-		div {
-			color: black;
+		<style>
+			div {
+				color: black;
 
-			@media (min-width: 768px) {
-				:global {
-					.foo {
-						color: red;
+				@media (min-width: 768px) {
+					:global {
+						.foo {
+							color: red;
+						}
 					}
-				}
 
-				color: blue;
+					color: blue;
+				}
 			}
-		}
-	</style>
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -567,26 +609,28 @@ export function Test() @{
 	it('handles :has with complex combinators', () => {
 		const source = `
 export function Test() @{
-	<g>
-		<h>
-			<i>{'content'}</i>
-		</h>
-		<j>
-			<k>{'content'}</k>
-		</j>
-	</g>
+	<>
+		<g>
+			<h>
+				<i>{'content'}</i>
+			</h>
+			<j>
+				<k>{'content'}</k>
+			</j>
+		</g>
 
-	<style>
-		g:has(> h > i) {
-			color: green;
-		}
-		h:has(> h > i) {
-			color: red;
-		}
-		g:has(+ j > k) {
-			color: green;
-		}
-	</style>
+		<style>
+			g:has(> h > i) {
+				color: green;
+			}
+			h:has(> h > i) {
+				color: red;
+			}
+			g:has(+ j > k) {
+				color: green;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -599,18 +643,20 @@ export function Test() @{
 	it('handles :global with attribute selectors containing special characters', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<h1 data-title="Hello, world!">{'hello world'}</h1>
-	</div>
+	<>
+		<div>
+			<h1 data-title="Hello, world!">{'hello world'}</h1>
+		</div>
 
-	<style>
-		div :global(h1[data-title="Hello, world!"]) {
-			color: red;
-		}
-		div :global(h1[attribute], video[autoplay]) {
-			color: red;
-		}
-	</style>
+		<style>
+			div :global(h1[data-title="Hello, world!"]) {
+				color: red;
+			}
+			div :global(h1[attribute], video[autoplay]) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -621,15 +667,17 @@ export function Test() @{
 	it('handles escaped commas in :global class names', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<h1 class="h1,h2,h3">{'hello world'}</h1>
-	</div>
+	<>
+		<div>
+			<h1 class="h1,h2,h3">{'hello world'}</h1>
+		</div>
 
-	<style>
-		div :global(.h1\\,h2\\,h3) {
-			color: red;
-		}
-	</style>
+		<style>
+			div :global(.h1\\,h2\\,h3) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -642,19 +690,21 @@ export function Test() @{
 	it('handles :global with :is containing multiple selectors', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<h1>{'hello world'}</h1>
-		<h2>{'subtitle'}</h2>
-	</div>
+	<>
+		<div>
+			<h1>{'hello world'}</h1>
+			<h2>{'subtitle'}</h2>
+		</div>
 
-	<style>
-		div :global(:is(h1, h2)) {
-			color: red;
-		}
-		div :global(:where(h1, h2)) {
-			color: red;
-		}
-	</style>
+		<style>
+			div :global(:is(h1, h2)) {
+				color: red;
+			}
+			div :global(:where(h1, h2)) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -665,17 +715,19 @@ export function Test() @{
 	it('handles :global with :is containing compound selectors', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<h1>{'hello world'}</h1>
-		<h2>{'subtitle'}</h2>
-		<h3>{'sub-subtitle'}</h3>
-	</div>
+	<>
+		<div>
+			<h1>{'hello world'}</h1>
+			<h2>{'subtitle'}</h2>
+			<h3>{'sub-subtitle'}</h3>
+		</div>
 
-	<style>
-		div :global(h1 ~ :is(h2, h3)) {
-			color: red;
-		}
-	</style>
+		<style>
+			div :global(h1 ~ :is(h2, h3)) {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		const { css } = compile(source, 'test.tsrx');
 
@@ -685,18 +737,20 @@ export function Test() @{
 	it('handles :global with pseudo-elements', () => {
 		const source = `
 export function Test() @{
-	<div>
-		<h1 class="foo">{'hello world'}</h1>
-	</div>
+	<>
+		<div>
+			<h1 class="foo">{'hello world'}</h1>
+		</div>
 
-	<style>
-		.foo :global(.bar)::after {
-			color: red;
-		}
-		.foo :global(.bar)::after .baz {
-			color: red;
-		}
-	</style>
+		<style>
+			.foo :global(.bar)::after {
+				color: red;
+			}
+			.foo :global(.bar)::after .baz {
+				color: red;
+			}
+		</style>
+	</>
 }`;
 		expect(() => compile(source, 'test.tsrx')).toThrow(
 			':global(...) can be at the start or end of a selector sequence, but not in the middle',
