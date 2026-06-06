@@ -102,8 +102,11 @@
 (style_element
   (raw_text) @string.special)
 
-; Template sections
-(template_fence) @comment
+; JSX statement containers
+(jsx_statement_container
+  "@" @keyword.control
+  "{" @keyword.control
+  "}" @keyword.control)
 
 (jsx_if_expression
   "@" @keyword.control

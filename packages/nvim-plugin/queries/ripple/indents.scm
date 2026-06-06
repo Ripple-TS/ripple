@@ -15,7 +15,7 @@
   (parenthesized_expression ")" @indent.end)
   (jsx_expression "}" @indent.end)
   (style_element "</style>" @indent.end)
-  (template_setup_section)
+  (jsx_statement_container "}" @indent.end)
   (module_body "}" @indent.end)
 ] @indent.begin
 

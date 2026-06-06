@@ -17,7 +17,7 @@
   (jsx_fragment)
   (jsx_self_closing_element)
   (style_element)
-  (template_setup_section)
+  (jsx_statement_container)
   (module_body)
 ] @indent
 

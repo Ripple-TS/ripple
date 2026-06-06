@@ -4,7 +4,7 @@
   (component_body)
   (class_body)
   (object)
-  (template_setup_section)
+  (jsx_statement_container)
   (jsx_template_block)
   (jsx_switch_body)
   (object_pattern)

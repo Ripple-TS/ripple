@@ -160,90 +160,6 @@ static void scan_identifier_word(TSLexer *lexer, char *word, size_t word_size) {
   word[length] = '\0';
 }
 
-static bool scan_jsx_statement_spacing_and_comments(TSLexer *lexer) {
-  for (;;) {
-    while (iswspace(lexer->lookahead)) {
-      advance(lexer);
-    }
-
-    if (lexer->lookahead == '/') {
-      advance(lexer);
-
-      if (lexer->lookahead == '/') {
-        advance(lexer);
-        while (lexer->lookahead != 0 && lexer->lookahead != '\n') {
-          advance(lexer);
-        }
-      } else if (lexer->lookahead == '*') {
-        advance(lexer);
-        while (true) {
-          if (lexer->lookahead == 0) return false;
-          if (lexer->lookahead == '*') {
-            advance(lexer);
-            if (lexer->lookahead == '/') {
-              advance(lexer);
-              break;
-            }
-          } else {
-            advance(lexer);
-          }
-        }
-      } else {
-        return false;
-      }
-    } else {
-      return true;
-    }
-  }
-}
-
-static bool scan_next_jsx_identifier_equals(TSLexer *lexer, const char *expected) {
-  char word[16];
-
-  if (!scan_jsx_statement_spacing_and_comments(lexer)) return false;
-  if (!is_identifier_start(lexer->lookahead)) return false;
-
-  scan_identifier_word(lexer, word, sizeof(word));
-  return strcmp(word, expected) == 0;
-}
-
-static bool scan_identifier_for_jsx_statement_keyword(TSLexer *lexer) {
-  char word[16];
-
-  scan_identifier_word(lexer, word, sizeof(word));
-
-  if (strcmp(word, "abstract") == 0) {
-    return scan_next_jsx_identifier_equals(lexer, "class");
-  }
-
-  if (strcmp(word, "async") == 0) {
-    return scan_next_jsx_identifier_equals(lexer, "function");
-  }
-
-  return strcmp(word, "break") == 0 ||
-         strcmp(word, "case") == 0 ||
-         strcmp(word, "catch") == 0 ||
-         strcmp(word, "class") == 0 ||
-         strcmp(word, "const") == 0 ||
-         strcmp(word, "continue") == 0 ||
-         strcmp(word, "debugger") == 0 ||
-         strcmp(word, "default") == 0 ||
-         strcmp(word, "do") == 0 ||
-         strcmp(word, "else") == 0 ||
-         strcmp(word, "finally") == 0 ||
-         strcmp(word, "for") == 0 ||
-         strcmp(word, "function") == 0 ||
-         strcmp(word, "if") == 0 ||
-         strcmp(word, "let") == 0 ||
-         strcmp(word, "pending") == 0 ||
-         strcmp(word, "return") == 0 ||
-         strcmp(word, "switch") == 0 ||
-         strcmp(word, "throw") == 0 ||
-         strcmp(word, "try") == 0 ||
-         strcmp(word, "var") == 0 ||
-         strcmp(word, "while") == 0;
-}
-
 static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
   bool has_content = false;
@@ -268,9 +184,8 @@ static bool scan_jsx_text(TSLexer *lexer) {
         break;
       default:
         if (is_identifier_start(lexer->lookahead)) {
-          bool is_statement_keyword = scan_identifier_for_jsx_statement_keyword(lexer);
-          if (is_statement_keyword && !has_non_whitespace_content) {
-            return false;
+          while (is_identifier_continue(lexer->lookahead)) {
+            advance(lexer);
           }
           has_content = true;
           has_non_whitespace_content = true;

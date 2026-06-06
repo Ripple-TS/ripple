@@ -307,6 +307,7 @@ export function Test(props) {
                                       (member_expression
                                         object: (identifier)
                                         property: (identifier)))))))
+                            children: (jsx_text)
                             close_tag: (jsx_closing_element
                               name: (jsx_element_name
                                 (identifier))))))))))
@@ -340,7 +341,9 @@ export function Test(props) {
                                       (member_expression
                                         object: (identifier)
                                         property: (identifier)))))))
+                            children: (jsx_text)
                             close_tag: (jsx_closing_fragment)))))))))
+            children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
@@ -443,6 +446,7 @@ function WithFragment() {
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))
+            children: (jsx_text)
             children: (style_element
               (raw_text))
             children: (jsx_text)
@@ -476,37 +480,37 @@ function WithControlFlow(x) {
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_if_expression
-              condition: (parenthesized_expression
-                (identifier))
-              consequence: (jsx_template_block
-                children: (jsx_text)
-                children: (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_text)
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))
-                children: (jsx_text))
-              alternative: (jsx_template_block
-                children: (jsx_text)
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (null))))
-                children: (jsx_text)))
+            children: (jsx_at_text)
+            children: (jsx_text)
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_text)
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier)))))))
+            children: (jsx_text)
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (object
+                    (shorthand_property_identifier
+                      (shorthand_property_identifier_pattern))))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
-Lone Template Fence
+Statement Container Child
 ==================
 
 const App = () => <>
-  ---
-  <div>Ready</div>
+  @{
+    <div>Ready</div>
+  }
 </>;
 
 ---
@@ -521,31 +525,33 @@ const App = () => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (template_setup_section
-              fence: (template_fence))
+            children: (jsx_statement_container
+              statement: (expression_statement
+                (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))))
             children: (jsx_text)
-            children: (jsx_element
-              open_tag: (jsx_opening_element
-                name: (jsx_element_name
-                  (identifier)))
-              children: (jsx_text)
-              close_tag: (jsx_closing_element
-                name: (jsx_element_name
-                  (identifier))))
             close_tag: (jsx_closing_fragment)))))))
 
 ==========================================
-Function Return Async Native Declaration
+Function Return Statement Container
 ==========================================
 
 function WithAsyncDeclaration() {
-  return <>
+  return <>@{
     async function load() {
       return 1;
     }
-    ---
-    async work
-  </>;
+
+    <>
+      async work
+    </>
+  }</>;
 }
 
 ---
@@ -559,15 +565,18 @@ function WithAsyncDeclaration() {
         (return_statement
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (template_setup_section
+            children: (jsx_statement_container
               statement: (function_declaration
                 name: (identifier)
                 parameters: (formal_parameters)
                 body: (statement_block
                   (return_statement
                     (number))))
-              fence: (template_fence))
-            children: (jsx_text)
+              statement: (expression_statement
+                (jsx_fragment
+                  open_tag: (jsx_opening_fragment)
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_fragment))))
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
@@ -646,7 +655,7 @@ fragment App() {
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_text)
+              children: (jsx_at_text)
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))
