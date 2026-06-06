@@ -14,7 +14,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic class attribute', () => {
 		function Basic() @{
-				let &[active] = track(false);
+			let &[active] = track(false);
+			<>
 				<button
 					onClick={() => {
 						active = !active;
@@ -28,6 +29,7 @@ describe('basic client > attribute rendering', () => {
 						color: green;
 					}
 				</style>
+			</>
 		}
 
 		render(Basic);
@@ -50,6 +52,7 @@ describe('basic client > attribute rendering', () => {
 
 	it('render class attribute with array, nested array, nested object', () => {
 		function Basic() @{
+			<>
 				<div
 					class={[
 						'foo',
@@ -71,6 +74,7 @@ describe('basic client > attribute rendering', () => {
 						color: red;
 					}
 				</style>
+			</>
 		}
 
 		render(Basic);
@@ -91,7 +95,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic class object', () => {
 		function Basic() @{
-				let &[active] = track(false);
+			let &[active] = track(false);
+			<>
 				<button
 					onClick={() => {
 						active = !active;
@@ -105,6 +110,7 @@ describe('basic client > attribute rendering', () => {
 						color: green;
 					}
 				</style>
+			</>
 		}
 
 		render(Basic);
@@ -130,7 +136,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('applies scoped ripple class to multiple elements with dynamic class expressions', () => {
 		function Basic() @{
-				let &[selected] = track(1);
+			let &[selected] = track(1);
+			<>
 				<div class={selected === 0 ? 'selected' : ''}>{`div 1`}</div>
 				<div class={selected === 0 ? 'selected' : ''}>{`div 2`}</div>
 				<style>
@@ -142,6 +149,7 @@ describe('basic client > attribute rendering', () => {
 						background: indigo;
 					}
 				</style>
+			</>
 		}
 
 		render(Basic);
@@ -157,7 +165,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic id attribute', () => {
 		function Basic() @{
-				let &[count] = track(0);
+			let &[count] = track(0);
+			<>
 				<button
 					onClick={() => {
 						count++;
@@ -166,6 +175,7 @@ describe('basic client > attribute rendering', () => {
 					{'Increment'}
 				</button>
 				<div id={`item-${count}`}>{'Dynamic ID'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -188,7 +198,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic style attribute', () => {
 		function Basic() @{
-				let &[color] = track('red');
+			let &[color] = track('red');
+			<>
 				<button
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
@@ -197,6 +208,7 @@ describe('basic client > attribute rendering', () => {
 					{'Change Color'}
 				</button>
 				<div style={`color: ${color}; font-weight: bold;`}>{'Dynamic Style'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -216,7 +228,8 @@ describe('basic client > attribute rendering', () => {
 
 	it('render style attribute as dynamic object', () => {
 		function Basic() @{
-				let &[color] = track('red');
+			let &[color] = track('red');
+			<>
 				<button
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
@@ -225,6 +238,7 @@ describe('basic client > attribute rendering', () => {
 					{'Change Color'}
 				</button>
 				<div style={{ color: color, fontWeight: 'bold' }}>{'Dynamic Style'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -244,12 +258,14 @@ describe('basic client > attribute rendering', () => {
 
 	it('render tracked variable as style attribute', () => {
 		function Basic() @{
-				let &[style] = track({ color: 'red', fontWeight: 'bold' });
-				function toggleColor() {
-					style = { ...style, color: style.color === 'red' ? 'blue' : 'red' };
-				}
+			let &[style] = track({ color: 'red', fontWeight: 'bold' });
+			function toggleColor() {
+				style = { ...style, color: style.color === 'red' ? 'blue' : 'red' };
+			}
+			<>
 				<button onClick={toggleColor}>{'Change Color'}</button>
 				<div {style}>{'Dynamic Style'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -269,12 +285,14 @@ describe('basic client > attribute rendering', () => {
 
 	it('render tracked object as style attribute', () => {
 		function Basic() @{
-				let style = new RippleObject({ color: 'red', fontWeight: 'bold' });
-				function toggleColor() {
-					style.color = style.color === 'red' ? 'blue' : 'red';
-				}
+			let style = new RippleObject({ color: 'red', fontWeight: 'bold' });
+			function toggleColor() {
+				style.color = style.color === 'red' ? 'blue' : 'red';
+			}
+			<>
 				<button onClick={toggleColor}>{'Change Color'}</button>
 				<div style={{ color: style.color, fontWeight: style.fontWeight }}>{'Dynamic Style'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -294,11 +312,11 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes with style and class', () => {
 		function Basic() @{
-				const attributes = {
-					style: { color: 'red', fontWeight: 'bold' },
-					class: ['foo', false && 'bar'],
-				};
-				<div {...attributes}>{'Attributes with style and class'}</div>
+			const attributes = {
+				style: { color: 'red', fontWeight: 'bold' },
+				class: ['foo', false && 'bar'],
+			};
+			<div {...attributes}>{'Attributes with style and class'}</div>
 		}
 
 		render(Basic);
@@ -314,10 +332,10 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread props without duplication', () => {
 		function App() @{
-				const checkBoxProp = { name: 'car' };
-				<div>
-					<input {...checkBoxProp} type="checkbox" id="vehicle1" value="Bike" />
-				</div>
+			const checkBoxProp = { name: 'car' };
+			<div>
+				<input {...checkBoxProp} type="checkbox" id="vehicle1" value="Bike" />
+			</div>
 		}
 
 		render(App);
@@ -338,8 +356,9 @@ describe('basic client > attribute rendering', () => {
 
 	it('render dynamic boolean attributes', () => {
 		function Basic() @{
-				let &[disabled] = track(false);
-				let &[checked] = track(false);
+			let &[disabled] = track(false);
+			let &[checked] = track(false);
+			<>
 				<button
 					onClick={() => {
 						disabled = !disabled;
@@ -349,6 +368,7 @@ describe('basic client > attribute rendering', () => {
 					{'Toggle'}
 				</button>
 				<input type="checkbox" {disabled} {checked} />
+			</>
 		}
 
 		render(Basic);
@@ -368,8 +388,9 @@ describe('basic client > attribute rendering', () => {
 
 	it('render multiple dynamic attributes', () => {
 		function Basic() @{
-				let &[theme] = track('light');
-				let &[size] = track('medium');
+			let &[theme] = track('light');
+			let &[size] = track('medium');
+			<>
 				<button
 					onClick={() => {
 						theme = theme === 'light' ? 'dark' : 'light';
@@ -381,6 +402,7 @@ describe('basic client > attribute rendering', () => {
 				<div class={`theme-${theme} size-${size}`} data-theme={theme} data-size={size}>
 					{'Multiple Dynamic Attributes'}
 				</div>
+			</>
 		}
 
 		render(Basic);
@@ -402,8 +424,9 @@ describe('basic client > attribute rendering', () => {
 
 	it('render conditional attributes', () => {
 		function Basic() @{
-				let &[showTitle] = track(false);
-				let &[showAria] = track(false);
+			let &[showTitle] = track(false);
+			let &[showAria] = track(false);
+			<>
 				<button
 					onClick={() => {
 						showTitle = !showTitle;
@@ -418,6 +441,7 @@ describe('basic client > attribute rendering', () => {
 				>
 					{'Conditional Attributes'}
 				</div>
+			</>
 		}
 
 		render(Basic);
@@ -443,10 +467,11 @@ describe('basic client > attribute rendering', () => {
 
 	it('render spread attributes', () => {
 		function Basic() @{
-				let &[attrs] = track<TestAttributes>({
-					class: 'initial',
-					id: 'test-1',
-				});
+			let &[attrs] = track<TestAttributes>({
+				class: 'initial',
+				id: 'test-1',
+			});
+			<>
 				<button
 					onClick={() => {
 						attrs = {
@@ -459,6 +484,7 @@ describe('basic client > attribute rendering', () => {
 					{'Update Attributes'}
 				</button>
 				<div {...attrs}>{'Spread Attributes'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -480,13 +506,14 @@ describe('basic client > attribute rendering', () => {
 
 	it('renders with reactive attributes with nested reactive attributes', () => {
 		function App() @{
-				let &[value] = track('parent-class');
+			let &[value] = track('parent-class');
+			let &[nested] = track('nested-class');
+			<>
 				<p class={value}>{'Colored parent value'}</p>
 				<div>
-					let &[nested] = track('nested-class');
-
 					<p class={nested}>{'Colored nested value'}</p>
 				</div>
+			</>
 		}
 
 		render(App);
@@ -499,10 +526,10 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles boolean attributes with no prop value provides', () => {
 		function App() @{
-				<div class="container">
-					<button onClick={() => console.log('clicked!')} disabled>{'Button'}</button>
-					<input type="checkbox" checked />
-				</div>
+			<div class="container">
+				<button onClick={() => console.log('clicked!')} disabled>{'Button'}</button>
+				<input type="checkbox" checked />
+			</div>
 		}
 
 		render(App);
@@ -511,8 +538,10 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles boolean props correctly', () => {
 		function App() @{
+			<>
 				<div data-disabled />
 				<Child isDisabled />
+			</>
 		}
 
 		function Child({ isDisabled }: { isDisabled: boolean }) @{
@@ -525,14 +554,15 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles reactive event handler changes', () => {
 		function Basic() @{
-				let &[count] = track(0);
-				let &[mode] = track<'increment' | 'decrement'>('increment');
-				const incrementHandler = () => {
-					count++;
-				};
-				const decrementHandler = () => {
-					count--;
-				};
+			let &[count] = track(0);
+			let &[mode] = track<'increment' | 'decrement'>('increment');
+			const incrementHandler = () => {
+				count++;
+			};
+			const decrementHandler = () => {
+				count--;
+			};
+			<>
 				<button
 					onClick={() => {
 						mode = mode === 'increment' ? 'decrement' : 'increment';
@@ -545,6 +575,7 @@ describe('basic client > attribute rendering', () => {
 					{mode === 'increment' ? '+' : '-'}
 				</button>
 				<div class="count">{count}</div>
+			</>
 		}
 
 		render(Basic);
@@ -579,20 +610,20 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with capture option', () => {
 		function Basic() @{
-				let captureOrder: RippleArray<string> = new RippleArray();
-				const handleCaptureClick = {
-					handleEvent() {
-						captureOrder.push('capture');
-					},
-					capture: true,
-				};
-				const handleBubbleClick = () => {
-					captureOrder.push('bubble');
-				};
-				<div onClick={handleCaptureClick} class="outer">
-					<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
-					<div class="order">{captureOrder.join(' -> ')}</div>
-				</div>
+			let captureOrder: RippleArray<string> = new RippleArray();
+			const handleCaptureClick = {
+				handleEvent() {
+					captureOrder.push('capture');
+				},
+				capture: true,
+			};
+			const handleBubbleClick = () => {
+				captureOrder.push('bubble');
+			};
+			<div onClick={handleCaptureClick} class="outer">
+				<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
+				<div class="order">{captureOrder.join(' -> ')}</div>
+			</div>
 		}
 
 		render(Basic);
@@ -610,17 +641,17 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with Capture suffix in the name', () => {
 		function Basic() @{
-				let captureOrder: RippleArray<string> = new RippleArray();
-				const handleCaptureClick = () => {
-					captureOrder.push('capture');
-				};
-				const handleBubbleClick = () => {
-					captureOrder.push('bubble');
-				};
-				<div onClickCapture={handleCaptureClick} class="outer">
-					<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
-					<div class="order">{captureOrder.join(' -> ')}</div>
-				</div>
+			let captureOrder: RippleArray<string> = new RippleArray();
+			const handleCaptureClick = () => {
+				captureOrder.push('capture');
+			};
+			const handleBubbleClick = () => {
+				captureOrder.push('bubble');
+			};
+			<div onClickCapture={handleCaptureClick} class="outer">
+				<button onClick={handleBubbleClick} class="inner">{'Click'}</button>
+				<div class="order">{captureOrder.join(' -> ')}</div>
+			</div>
 		}
 
 		render(Basic);
@@ -638,17 +669,17 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles custom events with customName option', () => {
 		function Basic() @{
-				let &[customEventCount] = track(0);
-				const handleCustom = {
-					handleEvent(event: CustomEvent) {
-						customEventCount += event.detail.value;
-					},
-					customName: 'MyCustomEvent',
-				};
-				<div>
-					<div onMyCustomEvent={handleCustom} class="custom-target">{'Custom'}</div>
-					<div class="custom-count">{customEventCount}</div>
-				</div>
+			let &[customEventCount] = track(0);
+			const handleCustom = {
+				handleEvent(event: CustomEvent) {
+					customEventCount += event.detail.value;
+				},
+				customName: 'MyCustomEvent',
+			};
+			<div>
+				<div onMyCustomEvent={handleCustom} class="custom-target">{'Custom'}</div>
+				<div class="custom-count">{customEventCount}</div>
+			</div>
 		}
 
 		render(Basic);
@@ -671,23 +702,23 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events with delegated: false option to bypass delegation', () => {
 		function Basic() @{
-				let &[delegatedCount] = track(0);
-				let &[nonDelegatedCount] = track(0);
-				const delegatedHandler = () => {
-					delegatedCount++;
-				};
-				const nonDelegatedHandler = {
-					handleEvent() {
-						nonDelegatedCount++;
-					},
-					delegated: false,
-				};
-				<div>
-					<button onClick={delegatedHandler} class="delegated-btn">{'Delegated'}</button>
-					<button onClick={nonDelegatedHandler} class="non-delegated-btn">{'Non-Delegated'}</button>
-					<div class="delegated-count">{delegatedCount}</div>
-					<div class="non-delegated-count">{nonDelegatedCount}</div>
-				</div>
+			let &[delegatedCount] = track(0);
+			let &[nonDelegatedCount] = track(0);
+			const delegatedHandler = () => {
+				delegatedCount++;
+			};
+			const nonDelegatedHandler = {
+				handleEvent() {
+					nonDelegatedCount++;
+				},
+				delegated: false,
+			};
+			<div>
+				<button onClick={delegatedHandler} class="delegated-btn">{'Delegated'}</button>
+				<button onClick={nonDelegatedHandler} class="non-delegated-btn">{'Non-Delegated'}</button>
+				<div class="delegated-count">{delegatedCount}</div>
+				<div class="non-delegated-count">{nonDelegatedCount}</div>
+			</div>
 		}
 
 		render(Basic);
@@ -717,30 +748,30 @@ describe('basic client > attribute rendering', () => {
 		const nonDelegatedClicks: number[] = [];
 
 		function Basic() @{
-				const makeDelegatedHandler = (id: number) => () => {
-					delegatedClicks.push(id);
-				};
-				const makeNonDelegatedHandler = (id: number) => ({
-					handleEvent() {
-						nonDelegatedClicks.push(id);
-					},
-					delegated: false,
-				});
-				const buttonIds = [0, 1, 2, 3, 4];
-				<div>
-					<div class="delegated-buttons">
-						@for (const i of buttonIds) {
-							<button onClick={makeDelegatedHandler(i)} class={`delegated-${i}`}>{`D${i}`}</button>
-						}
-					</div>
-					<div class="non-delegated-buttons">
-						@for (const i of buttonIds) {
-							<button onClick={makeNonDelegatedHandler(i)} class={`non-delegated-${i}`}>
-								{`ND${i}`}
-							</button>
-						}
-					</div>
+			const makeDelegatedHandler = (id: number) => () => {
+				delegatedClicks.push(id);
+			};
+			const makeNonDelegatedHandler = (id: number) => ({
+				handleEvent() {
+					nonDelegatedClicks.push(id);
+				},
+				delegated: false,
+			});
+			const buttonIds = [0, 1, 2, 3, 4];
+			<div>
+				<div class="delegated-buttons">
+					@for (const i of buttonIds) {
+						<button onClick={makeDelegatedHandler(i)} class={`delegated-${i}`}>{`D${i}`}</button>
+					}
 				</div>
+				<div class="non-delegated-buttons">
+					@for (const i of buttonIds) {
+						<button onClick={makeNonDelegatedHandler(i)} class={`non-delegated-${i}`}>
+							{`ND${i}`}
+						</button>
+					}
+				</div>
+			</div>
 		}
 
 		render(Basic);
@@ -779,22 +810,22 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles events defined as function directly vs as object', () => {
 		function Basic() @{
-				let &[functionCount] = track(0);
-				let &[objectCount] = track(0);
-				const functionHandler = () => {
-					functionCount++;
-				};
-				const objectHandler = {
-					handleEvent() {
-						objectCount++;
-					},
-				};
-				<div>
-					<button onClick={functionHandler} class="function-btn">{'Function'}</button>
-					<button onClick={objectHandler} class="object-btn">{'Object'}</button>
-					<div class="function-count">{functionCount}</div>
-					<div class="object-count">{objectCount}</div>
-				</div>
+			let &[functionCount] = track(0);
+			let &[objectCount] = track(0);
+			const functionHandler = () => {
+				functionCount++;
+			};
+			const objectHandler = {
+				handleEvent() {
+					objectCount++;
+				},
+			};
+			<div>
+				<button onClick={functionHandler} class="function-btn">{'Function'}</button>
+				<button onClick={objectHandler} class="object-btn">{'Object'}</button>
+				<div class="function-count">{functionCount}</div>
+				<div class="object-count">{objectCount}</div>
+			</div>
 		}
 
 		render(Basic);
@@ -829,43 +860,43 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles passive event option', () => {
 		function Basic() @{
-				let &[passiveDefaultPrevented] = track<boolean | null>(null);
-				let &[nonPassiveDefaultPrevented] = track<boolean | null>(null);
-				const passiveHandler = {
-					handleEvent(event: Event) {
-						event.preventDefault();
-						// In passive listeners, preventDefault() is ignored
-						passiveDefaultPrevented = event.defaultPrevented;
-					},
-					passive: true,
-					delegated: false, // Need to ensure it's not delegated to test passive properly
-				};
-				const nonPassiveHandler = {
-					handleEvent(event: Event) {
-						event.preventDefault();
-						// In non-passive listeners, preventDefault() works
-						nonPassiveDefaultPrevented = event.defaultPrevented;
-					},
-					delegated: false,
-				};
-				<div>
-					<div onWheel={passiveHandler} class="passive-target">{'Passive'}</div>
-					<div onWheel={nonPassiveHandler} class="non-passive-target">{'Non-Passive'}</div>
-					<div class="passive-result">
-						{passiveDefaultPrevented === null
-							? 'not-tested'
-							: passiveDefaultPrevented
-								? 'prevented'
-								: 'not-prevented'}
-					</div>
-					<div class="non-passive-result">
-						{nonPassiveDefaultPrevented === null
-							? 'not-tested'
-							: nonPassiveDefaultPrevented
-								? 'prevented'
-								: 'not-prevented'}
-					</div>
+			let &[passiveDefaultPrevented] = track<boolean | null>(null);
+			let &[nonPassiveDefaultPrevented] = track<boolean | null>(null);
+			const passiveHandler = {
+				handleEvent(event: Event) {
+					event.preventDefault();
+					// In passive listeners, preventDefault() is ignored
+					passiveDefaultPrevented = event.defaultPrevented;
+				},
+				passive: true,
+				delegated: false, // Need to ensure it's not delegated to test passive properly
+			};
+			const nonPassiveHandler = {
+				handleEvent(event: Event) {
+					event.preventDefault();
+					// In non-passive listeners, preventDefault() works
+					nonPassiveDefaultPrevented = event.defaultPrevented;
+				},
+				delegated: false,
+			};
+			<div>
+				<div onWheel={passiveHandler} class="passive-target">{'Passive'}</div>
+				<div onWheel={nonPassiveHandler} class="non-passive-target">{'Non-Passive'}</div>
+				<div class="passive-result">
+					{passiveDefaultPrevented === null
+						? 'not-tested'
+						: passiveDefaultPrevented
+							? 'prevented'
+							: 'not-prevented'}
 				</div>
+				<div class="non-passive-result">
+					{nonPassiveDefaultPrevented === null
+						? 'not-tested'
+						: nonPassiveDefaultPrevented
+							? 'prevented'
+							: 'not-prevented'}
+				</div>
+			</div>
 		}
 
 		render(Basic);
@@ -891,23 +922,23 @@ describe('basic client > attribute rendering', () => {
 
 	it('handles once option to fire event only once', () => {
 		function Basic() @{
-				let &[onceCount] = track(0);
-				let &[regularCount] = track(0);
-				const onceHandler = {
-					handleEvent() {
-						onceCount++;
-					},
-					once: true,
-				};
-				const regularHandler = () => {
-					regularCount++;
-				};
-				<div>
-					<button onClick={onceHandler} class="once-btn">{'Once'}</button>
-					<button onClick={regularHandler} class="regular-btn">{'Regular'}</button>
-					<div class="once-count">{onceCount}</div>
-					<div class="regular-count">{regularCount}</div>
-				</div>
+			let &[onceCount] = track(0);
+			let &[regularCount] = track(0);
+			const onceHandler = {
+				handleEvent() {
+					onceCount++;
+				},
+				once: true,
+			};
+			const regularHandler = () => {
+				regularCount++;
+			};
+			<div>
+				<button onClick={onceHandler} class="once-btn">{'Once'}</button>
+				<button onClick={regularHandler} class="regular-btn">{'Regular'}</button>
+				<div class="once-count">{onceCount}</div>
+				<div class="regular-count">{regularCount}</div>
+			</div>
 		}
 
 		render(Basic);

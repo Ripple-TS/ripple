@@ -21,12 +21,14 @@ exports[`basic client > attribute rendering > handles boolean attributes with no
 
 exports[`basic client > attribute rendering > handles boolean props correctly 1`] = `
 <div>
+  <!---->
   <div
     data-disabled=""
   />
   <input
     disabled=""
   />
+  <!---->
   <!---->
   
 </div>

@@ -15,8 +15,8 @@ describe('basic client > rendering & text', () => {
 
 	it('renders semi-dynamic text', () => {
 		function Basic() @{
-				let message = 'Hello World';
-				<div>{message}</div>
+			let message = 'Hello World';
+			<div>{message}</div>
 		}
 
 		render(Basic);
@@ -26,8 +26,8 @@ describe('basic client > rendering & text', () => {
 
 	it('renders string interpolation without creating HTML', () => {
 		function Basic() @{
-				let markup = '<span>Not HTML</span>';
-				<div>{markup}</div>
+			let markup = '<span>Not HTML</span>';
+			<div>{markup}</div>
 		}
 
 		render(Basic);
@@ -40,10 +40,12 @@ describe('basic client > rendering & text', () => {
 
 	it('renders direct JSX text children as text', () => {
 		function Basic() @{
+			<>
 				<div class="entities">Rock &amp; &quot;Roll&quot;</div>
 				<div class="backslash">line break</div>
 				<pre class="multiline">first
 second</pre>
+			</>
 		}
 
 		render(Basic);
@@ -54,7 +56,7 @@ second</pre>
 	});
 
 	it('does not render JavaScript statements outside returned component templates', () => {
-		function Basic() @{
+		function Basic() {
 			const ready = true;
 
 			if (ready) {
@@ -62,7 +64,7 @@ second</pre>
 				void leaked;
 			}
 
-			Hello world
+			return <>Hello world</>;
 		}
 
 		render(Basic);
@@ -73,11 +75,11 @@ second</pre>
 
 	it('renders primitive component return branches', () => {
 		function Basic() @{
-				const ready = false;
-				if (!ready) {
-					return 'Waiting';
-				}
-				Ready
+			const ready = false;
+			if (!ready) {
+				return 'Waiting';
+			}
+			<>Ready</>
 		}
 
 		render(Basic);
@@ -151,6 +153,7 @@ second</pre>
 		let assigned;
 
 		function Basic() @{
+			<>
 				<div>
 					{'call:'}
 					{child('call')}
@@ -208,6 +211,7 @@ second</pre>
 					{'unary:'}
 					{void empty()}
 				</div>
+			</>
 		}
 
 		render(Basic);
@@ -243,12 +247,12 @@ second</pre>
 
 	it('renders bare JSX text in if-else branches', () => {
 		function App() @{
-				let condition = false;
-				@if (condition) {
-					Hello Ripple
-				} else {
-					Hello React
-				}
+			let condition = false;
+			@if (condition) {
+				<>Hello Ripple</>
+			} else {
+				<>Hello React</>
+			}
 		}
 
 		render(App);
@@ -258,7 +262,8 @@ second</pre>
 
 	it('renders dynamic text', () => {
 		function Basic() @{
-				let &[message] = track('Hello World');
+			let &[message] = track('Hello World');
+			<>
 				<button
 					onClick={() => {
 						message = 'Hello Ripple';
@@ -267,6 +272,7 @@ second</pre>
 					{'Change Text'}
 				</button>
 				<div>{message}</div>
+			</>
 		}
 
 		render(Basic);
@@ -299,6 +305,7 @@ second</pre>
 
 	it('renders tick template literal for nested children', () => {
 		function Child({ level, children }: { level: number; children: any }) @{
+			<>
 				@if (level == 1) {
 					<h1>{children}</h1>
 				}
@@ -308,6 +315,7 @@ second</pre>
 				@if (level == 3) {
 					<h3>{children}</h3>
 				}
+			</>
 		}
 
 		function App() @{
@@ -320,11 +328,13 @@ second</pre>
 
 	it('renders simple JS expression logic correctly', () => {
 		function Example() @{
-				let test: Record<number, string> = {};
-				let counter = 0;
-				test[counter++] = 'Test';
+			let test: Record<number, string> = {};
+			let counter = 0;
+			test[counter++] = 'Test';
+			<>
 				<div>{JSON.stringify(test)}</div>
 				<div>{JSON.stringify(counter)}</div>
+			</>
 		}
 		render(Example);
 
@@ -333,28 +343,28 @@ second</pre>
 
 	it('renders with mixed static and dynamic content', () => {
 		function Basic() @{
-				let &[name] = track('World');
-				let &[count] = track(0);
-				const staticMessage = 'Welcome to Ripple!';
-				<div class="mixed-content">
-					<h1>{staticMessage}</h1>
-					<p class="greeting">{'Hello, ' + name + '!'}</p>
-					<p class="notifications">{'You have ' + count + ' notifications'}</p>
-					<button
-						onClick={() => {
-							count++;
-						}}
-					>
-						{'Add Notification'}
-					</button>
-					<button
-						onClick={() => {
-							name = name === 'World' ? 'User' : 'World';
-						}}
-					>
-						{'Toggle Name'}
-					</button>
-				</div>
+			let &[name] = track('World');
+			let &[count] = track(0);
+			const staticMessage = 'Welcome to Ripple!';
+			<div class="mixed-content">
+				<h1>{staticMessage}</h1>
+				<p class="greeting">{'Hello, ' + name + '!'}</p>
+				<p class="notifications">{'You have ' + count + ' notifications'}</p>
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'Add Notification'}
+				</button>
+				<button
+					onClick={() => {
+						name = name === 'World' ? 'User' : 'World';
+					}}
+				>
+					{'Toggle Name'}
+				</button>
+			</div>
 		}
 
 		render(Basic);
@@ -379,13 +389,15 @@ second</pre>
 
 	it('basic operations', () => {
 		function App() @{
-				let &[count] = track(0);
-				const a = count++;
-				const b = ++count;
+			let &[count] = track(0);
+			const a = count++;
+			const b = ++count;
+			<>
 				<div>{a}</div>
 				<div>{b}</div>
 				<div>{5}</div>
 				<div>{count}</div>
+			</>
 		}
 
 		render(App);
@@ -394,8 +406,9 @@ second</pre>
 
 	it('renders with conditional rendering using if statements', () => {
 		function Basic() @{
-				let &[showContent] = track(false);
-				let &[userRole] = track('guest');
+			let &[showContent] = track(false);
+			let &[userRole] = track('guest');
+			<>
 				<button
 					onClick={() => {
 						showContent = !showContent;
@@ -421,6 +434,7 @@ second</pre>
 						<div class="no-content">{'No content'}</div>
 					}
 				</div>
+			</>
 		}
 
 		render(Basic);
@@ -449,11 +463,8 @@ second</pre>
 
 	it('should handle lexical scopes correctly', () => {
 		function App() @{
-				<section>
-					let sectionData = 'Nested scope variable';
-
-					{sectionData}
-				</section>
+			let sectionData = 'Nested scope variable';
+			<section>{sectionData}</section>
 		}
 
 		render(App);
@@ -462,45 +473,47 @@ second</pre>
 
 	it('runs nested JavaScript blocks inside component-local callables', () => {
 		function App() @{
-				function readFunction() {
-					const label = 'function outer';
+			function readFunction() {
+				const label = 'function outer';
+				let result = '';
+
+				{
+					const label = 'function inner';
+					result = label;
+				}
+
+				return `${result} / ${label}`;
+			}
+			const readArrow = () => {
+				const offset = 5;
+				let value = offset;
+
+				{
+					const offset = 17;
+					value += offset;
+				}
+
+				return value;
+			};
+			class Reader {
+				read() {
+					const label = 'method outer';
 					let result = '';
 
 					{
-						const label = 'function inner';
+						const label = 'method inner';
 						result = label;
 					}
 
 					return `${result} / ${label}`;
 				}
-				const readArrow = () => {
-					const offset = 5;
-					let value = offset;
-
-					{
-						const offset = 17;
-						value += offset;
-					}
-
-					return value;
-				};
-				class Reader {
-					read() {
-						const label = 'method outer';
-						let result = '';
-
-						{
-							const label = 'method inner';
-							result = label;
-						}
-
-						return `${result} / ${label}`;
-					}
-				}
-				const reader = new Reader();
+			}
+			const reader = new Reader();
+			<>
 				<div class="block-function">{readFunction()}</div>
 				<div class="block-arrow">{readArrow()}</div>
 				<div class="block-method">{reader.read()}</div>
+			</>
 		}
 
 		render(App);
@@ -516,22 +529,22 @@ second</pre>
 
 	it('should handle consecutive text nodes without duplication', () => {
 		function App() @{
-				const Something = conditional('a');
-				<Something />
-				function conditional(item: 'a') @{
-					let hello = 'Hello';
-					const obj = {
-						a: function A() {
-								<div>
-									{'a'}
-									{' '}
-									{hello}
-								</div>
-						},
-					};
+			const Something = conditional('a');
+			function conditional(item: 'a') {
+				let hello = 'Hello';
+				const obj = {
+					a: function A() @{
+						<div>
+							{'a'}
+							{' '}
+							{hello}
+						</div>
+					},
+				};
 
-					return obj[item];
-				}
+				return obj[item];
+			}
+			<Something />
 		}
 
 		render(App);
@@ -541,13 +554,13 @@ second</pre>
 
 	it('should handle multiple consecutive text expressions', () => {
 		function App() @{
-				let name = 'World';
-				<div>
-					{'Hello'}
-					{' '}
-					{name}
-					{'!'}
-				</div>
+			let name = 'World';
+			<div>
+				{'Hello'}
+				{' '}
+				{name}
+				{'!'}
+			</div>
 		}
 
 		render(App);

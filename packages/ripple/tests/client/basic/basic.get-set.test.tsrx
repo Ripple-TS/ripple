@@ -3,10 +3,8 @@ import { effect, flushSync, track, untrack } from 'ripple';
 describe('basic client > tracked value access', () => {
 	it('gets tracked value', () => {
 		function Test() @{
-			
-				let count = track(0);
-				<div>{count.value}</div>
-			
+			let count = track(0);
+			<div>{count.value}</div>
 		}
 
 		render(Test);
@@ -17,11 +15,11 @@ describe('basic client > tracked value access', () => {
 
 	it('gets tracked value after mutation', () => {
 		function Test() @{
-			
-				let &[count] = track(0);
+			let &[count] = track(0);
+			<>
 				<p>{count}</p>
 				<button onClick={() => count++}>{'increment'}</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -38,8 +36,8 @@ describe('basic client > tracked value access', () => {
 
 	it('gets tracked value after multiple mutations', () => {
 		function Test() @{
-			
-				let &[count] = track(0);
+			let &[count] = track(0);
+			<>
 				<p>{count}</p>
 				<button
 					onClick={() => {
@@ -50,7 +48,7 @@ describe('basic client > tracked value access', () => {
 				>
 					{'increment'}
 				</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -67,11 +65,11 @@ describe('basic client > tracked value access', () => {
 
 	it('sets tracked value', () => {
 		function Test() @{
-			
-				let count = track(0);
+			let count = track(0);
+			<>
 				<p>{count.value}</p>
 				<button onClick={() => (count.value = 10)}>{'set to 10'}</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -88,8 +86,8 @@ describe('basic client > tracked value access', () => {
 
 	it('sets tracked value multiple times', () => {
 		function Test() @{
-			
-				let count = track(0);
+			let count = track(0);
+			<>
 				<p>{count.value}</p>
 				<button
 					onClick={() => {
@@ -100,7 +98,7 @@ describe('basic client > tracked value access', () => {
 				>
 					{'set multiple times'}
 				</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -117,11 +115,11 @@ describe('basic client > tracked value access', () => {
 
 	it('sets tracked value based on previous value', () => {
 		function Test() @{
-			
-				let count = track(0);
+			let count = track(0);
+			<>
 				<p>{count.value}</p>
 				<button onClick={() => (count.value = count.value + 10)}>{'add 10'}</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -144,8 +142,8 @@ describe('basic client > tracked value access', () => {
 
 	it('sets tracked value multiple times based on previous value', () => {
 		function Test() @{
-			
-				let count = track(0);
+			let count = track(0);
+			<>
 				<p>{count.value}</p>
 				<button
 					onClick={() => {
@@ -156,7 +154,7 @@ describe('basic client > tracked value access', () => {
 				>
 					{'add multiple times'}
 				</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -183,10 +181,8 @@ describe('basic client > tracked value access', () => {
 		}
 
 		function Test() @{
-			
-				let count = store();
-				<p>{count.value}</p>
-			
+			let count = store();
+			<p>{count.value}</p>
 		}
 
 		render(Test);
@@ -201,11 +197,11 @@ describe('basic client > tracked value access', () => {
 		}
 
 		function Test() @{
-			
-				let count = store();
+			let count = store();
+			<>
 				<p>{count.value}</p>
 				<button onClick={() => (count.value = 50)}>{'set to 50'}</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -222,15 +218,15 @@ describe('basic client > tracked value access', () => {
 
 	it('works with effects', () => {
 		function Test() @{
-			
-				let count = track(0);
-				let double = track(0);
-				effect(() => {
-					double.value = count.value * 2;
-				});
+			let count = track(0);
+			let double = track(0);
+			effect(() => {
+				double.value = count.value * 2;
+			});
+			<>
 				<p>{double.value}</p>
 				<button onClick={() => (count.value = count.value + 1)}>{'increment'}</button>
-			
+			</>
 		}
 
 		render(Test);
@@ -252,17 +248,17 @@ describe('basic client > tracked value access', () => {
 
 	it('works with effects and untrack', () => {
 		function Test() @{
-			
-				let count = track(0);
-				let double = track(0);
-				effect(() => {
-					untrack(() => {
-						double.value = count.value * 2;
-					});
+			let count = track(0);
+			let double = track(0);
+			effect(() => {
+				untrack(() => {
+					double.value = count.value * 2;
 				});
+			});
+			<>
 				<p>{double.value}</p>
 				<button onClick={() => (count.value = count.value + 1)}>{'increment'}</button>
-			
+			</>
 		}
 
 		render(Test);

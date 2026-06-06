@@ -133,7 +133,21 @@ export function is_tsrx_component_function(node, context) {
  * @returns {boolean}
  */
 export function is_native_tsrx_template_node(node) {
-	return !!(node && (node.type === 'Element' || node.type === 'TsrxFragment'));
+	return !!(
+		node &&
+		(node.type === 'Element' ||
+			node.type === 'TsrxFragment' ||
+			node.type === 'JSXElement' ||
+			node.type === 'JSXFragment' ||
+			node.type === 'JSXIfExpression' ||
+			node.type === 'JSXForExpression' ||
+			node.type === 'JSXSwitchExpression' ||
+			node.type === 'JSXTryExpression' ||
+			node.metadata?.tsrxDirective === 'if' ||
+			node.metadata?.tsrxDirective === 'for' ||
+			node.metadata?.tsrxDirective === 'switch' ||
+			node.metadata?.tsrxDirective === 'try')
+	);
 }
 
 /**
@@ -165,6 +179,10 @@ export function function_has_native_tsrx_return(node) {
 
 	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
 		return is_native_tsrx_template_node(node.body);
+	}
+
+	if (node.body?.type === 'JSXCodeBlock') {
+		return is_native_tsrx_template_node(node.body.render);
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
@@ -458,7 +476,7 @@ function statement_contains_native_tsrx_return(statement) {
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_template_children(node) {
-	return node.type === 'TsrxFragment' ? node.children || [] : [node];
+	return node.type === 'TsrxFragment' || node.type === 'JSXFragment' ? node.children || [] : [node];
 }
 
 /**
@@ -474,6 +492,16 @@ export function get_native_tsrx_function_body(node) {
 					).map(mark_returned_template_child),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
+	}
+
+	if (node.body?.type === 'JSXCodeBlock') {
+		const block = node.body;
+		return [
+			...expand_native_tsrx_return_statements(block.body || [], true),
+			...(is_native_tsrx_template_node(block.render)
+				? [mark_returned_template_child(block.render)]
+				: []),
+		];
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];

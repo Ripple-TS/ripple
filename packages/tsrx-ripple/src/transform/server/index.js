@@ -1355,6 +1355,9 @@ function get_native_tsrx_return_template_node(node, allow_direct_template = fals
 	if (node.type === 'ReturnStatement' && is_native_tsrx_template_node(node.argument)) {
 		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument));
 	}
+	if (node.type === 'JSXCodeBlock' && is_native_tsrx_template_node(node.render)) {
+		return /** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.render));
+	}
 	if (
 		node.type === 'FunctionDeclaration' ||
 		node.type === 'FunctionExpression' ||

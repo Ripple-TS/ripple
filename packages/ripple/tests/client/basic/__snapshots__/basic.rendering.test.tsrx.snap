@@ -2,6 +2,7 @@
 
 exports[`basic client > rendering & text > basic operations 1`] = `
 <div>
+  <!---->
   <div>
     0
   </div>
@@ -14,6 +15,7 @@ exports[`basic client > rendering & text > basic operations 1`] = `
   <div>
     2
   </div>
+  <!---->
   
 </div>
 `;
@@ -29,12 +31,14 @@ exports[`basic client > rendering & text > renders semi-dynamic text 1`] = `
 
 exports[`basic client > rendering & text > renders simple JS expression logic correctly 1`] = `
 <div>
+  <!---->
   <div>
     {"0":"Test"}
   </div>
   <div>
     1
   </div>
+  <!---->
   
 </div>
 `;

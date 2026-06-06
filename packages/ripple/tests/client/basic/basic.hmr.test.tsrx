@@ -38,12 +38,12 @@ describe('basic client > hmr', () => {
 		let teardown_count = 0;
 
 		function Child() @{
-				effect(() => {
-					return () => {
-						teardown_count++;
-					};
-				});
-				<span class="hmr-child">{'child'}</span>
+			effect(() => {
+				return () => {
+					teardown_count++;
+				};
+			});
+			<span class="hmr-child">{'child'}</span>
 		}
 
 		function App() @{
@@ -75,9 +75,9 @@ describe('basic client > hmr', () => {
 
 		try {
 			function App() @{
-					<div class="owned-root">
-						<span>{'child'}</span>
-					</div>
+				<div class="owned-root">
+					<span>{'child'}</span>
+				</div>
 			}
 
 			const cleanup = mount(App, { target: container });

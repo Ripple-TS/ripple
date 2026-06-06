@@ -4,18 +4,17 @@ import { effect, flushSync, track, untrack } from 'ripple';
 describe('basic client > reactivity', () => {
 	it('renders multiple reactive lexical blocks', () => {
 		function Basic() @{
+			let obj = {
+				count: track(0),
+			};
+			let b = {
+				count: track(0),
+			};
+			<>
 				<div>
-					let obj = {
-						count: track(0),
-					};
-
 					<span>{obj.count.value}</span>
 				</div>
 				<div>
-					let b = {
-						count: track(0),
-					};
-
 					<button
 						onClick={() => {
 							b.count.value--;
@@ -32,6 +31,7 @@ describe('basic client > reactivity', () => {
 						{'+'}
 					</button>
 				</div>
+			</>
 		}
 		render(Basic);
 
@@ -50,19 +50,18 @@ describe('basic client > reactivity', () => {
 
 	it('renders multiple reactive lexical blocks with complexity', () => {
 		function Basic() @{
-				const count = 'count';
+			const count = 'count';
+			let obj = {
+				count: track(0),
+			};
+			let b = {
+				count: track(0),
+			};
+			<>
 				<div>
-					let obj = {
-						count: track(0),
-					};
-
 					<span>{obj[count].value}</span>
 				</div>
 				<div>
-					let b = {
-						count: track(0),
-					};
-
 					<button
 						onClick={() => {
 							b[count].value--;
@@ -79,6 +78,7 @@ describe('basic client > reactivity', () => {
 						{'+'}
 					</button>
 				</div>
+			</>
 		}
 		render(Basic);
 
@@ -97,7 +97,8 @@ describe('basic client > reactivity', () => {
 
 	it('renders with computed reactive state', () => {
 		function Basic() @{
-				let &[count] = track(5);
+			let &[count] = track(5);
+			<>
 				<div class="count">{count}</div>
 				<div class="doubled">{count * 2}</div>
 				<div class="is-even">{count % 2 === 0 ? 'Even' : 'Odd'}</div>
@@ -108,6 +109,7 @@ describe('basic client > reactivity', () => {
 				>
 					{'Increment'}
 				</button>
+			</>
 		}
 
 		render(Basic);
@@ -133,10 +135,25 @@ describe('basic client > reactivity', () => {
 		let logs: string[] = [];
 
 		function App() @{
-				let first = track(0);
-				let second = track(0);
-				const arr = [first, second];
-				const total = track(() => arr.reduce((a, b) => a + b.value, 0));
+			let first = track(0);
+			let second = track(0);
+			const arr = [first, second];
+			const total = track(() => arr.reduce((a, b) => a + b.value, 0));
+			effect(() => {
+				let _arr: number[] = [];
+
+				arr.forEach((item) => {
+					_arr.push(item.value);
+				});
+
+				logs.push(_arr.join(', '));
+			});
+			effect(() => {
+				if (arr.map((a) => a.value).includes(1)) {
+					logs.push('arr includes 1');
+				}
+			});
+			<>
 				<button
 					onClick={() => {
 						first.value++;
@@ -151,24 +168,11 @@ describe('basic client > reactivity', () => {
 				>
 					{'second: ' + second.value}
 				</button>
-				effect(() => {
-					let _arr: number[] = [];
-
-					arr.forEach((item) => {
-						_arr.push(item.value);
-					});
-
-					logs.push(_arr.join(', '));
-				});
-				effect(() => {
-					if (arr.map((a) => a.value).includes(1)) {
-						logs.push('arr includes 1');
-					}
-				});
 				<div>{'Sum: ' + total.value}</div>
 				<div>{'Comma Separated: ' + arr.map((a) => a.value).join(', ')}</div>
 				<div>{'Number to string: ' + arr.map((a) => String(a.value))}</div>
 				<div>{'Even numbers: ' + arr.map((a) => a.value).filter((a) => a % 2 === 0)}</div>
+			</>
 		}
 
 		render(App);
@@ -204,7 +208,8 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where both mutate value', () => {
 		function App() @{
-				let &[count] = track(0, (v) => v + 1, (v) => v * 2);
+			let &[count] = track(0, (v) => v + 1, (v) => v * 2);
+			<>
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
@@ -213,6 +218,7 @@ describe('basic client > reactivity', () => {
 				>
 					{'Increment'}
 				</button>
+			</>
 		}
 
 		render(App);
@@ -229,7 +235,8 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where set only mutates value', () => {
 		function App() @{
-				let &[count] = track(1, (v) => v, (v) => v * 2);
+			let &[count] = track(1, (v) => v, (v) => v * 2);
+			<>
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
@@ -238,6 +245,7 @@ describe('basic client > reactivity', () => {
 				>
 					{'Increment'}
 				</button>
+			</>
 		}
 
 		render(App);
@@ -254,7 +262,8 @@ describe('basic client > reactivity', () => {
 
 	it('uses track get and set where get only mutates value', () => {
 		function App() @{
-				let &[count] = track(0, (v) => v + 1, (v) => v);
+			let &[count] = track(0, (v) => v + 1, (v) => v);
+			<>
 				<div class="count">{count}</div>
 				<button
 					onClick={() => {
@@ -263,6 +272,7 @@ describe('basic client > reactivity', () => {
 				>
 					{'Increment'}
 				</button>
+			</>
 		}
 
 		render(App);
@@ -281,10 +291,11 @@ describe('basic client > reactivity', () => {
 		let logs: number[] = [];
 
 		function App() @{
-				let &[count] = track(0, (v) => v, (next, prev) => {
-					logs.push(prev, next);
-					return next;
-				});
+			let &[count] = track(0, (v) => v, (next, prev) => {
+				logs.push(prev, next);
+				return next;
+			});
+			<>
 				<button
 					onClick={() => {
 						count++;
@@ -292,6 +303,7 @@ describe('basic client > reactivity', () => {
 				>
 					{'Increment'}
 				</button>
+			</>
 		}
 
 		render(App);
@@ -305,12 +317,12 @@ describe('basic client > reactivity', () => {
 
 	it('doesn\'t error on mutating a tracked variable in track() setter', () => {
 		function Basic() @{
-				let &[count] = track(0);
-				const &[doubled] = track(0, undefined, (value) => {
-					count += value;
-					return value;
-				});
-				<p>{doubled}</p>
+			let &[count] = track(0);
+			const &[doubled] = track(0, undefined, (value) => {
+				count += value;
+				return value;
+			});
+			<p>{doubled}</p>
 		}
 
 		render(Basic);
@@ -322,10 +334,11 @@ describe('basic client > reactivity', () => {
 		let state: { count?: number } = {};
 
 		function Basic() @{
-				let &[count] = track(0);
-				effect(() => {
-					state.count = count;
-				});
+			let &[count] = track(0);
+			effect(() => {
+				state.count = count;
+			});
+			<></>
 		}
 
 		render(Basic);
@@ -345,17 +358,18 @@ describe('basic client > reactivity', () => {
 		} = {};
 
 		function Basic() @{
-				let &[count] = track(5);
-				effect(() => {
-					untrack(() => {
-						state.initialValue = count;
-						state.preIncrement = ++count;
-						state.postIncrement = count++;
-						state.preDecrement = --count;
-						state.postDecrement = count--;
-						state.finalValue = count;
-					});
+			let &[count] = track(5);
+			effect(() => {
+				untrack(() => {
+					state.initialValue = count;
+					state.preIncrement = ++count;
+					state.postIncrement = count++;
+					state.preDecrement = --count;
+					state.postDecrement = count--;
+					state.finalValue = count;
 				});
+			});
+			<></>
 		}
 
 		render(Basic);
@@ -371,9 +385,9 @@ describe('basic client > reactivity', () => {
 
 	it('returns the same tracked object if plain track is called with a tracked object', () => {
 		function App() @{
-				const t = track({ a: 1, b: 2, c: 3 });
-				const doublet = track(t);
-				<pre>{t === doublet}</pre>
+			const t = track({ a: 1, b: 2, c: 3 });
+			const doublet = track(t);
+			<pre>{t === doublet}</pre>
 		}
 
 		render(App);

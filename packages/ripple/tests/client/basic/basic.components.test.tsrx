@@ -15,10 +15,10 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-				function children() {
-				}
-				<Card {children} />
-			</>;
+			function children() @{
+				<p>{'Card content here'}</p>
+			}
+			<Card {children} />
 		}
 
 		render(Basic);
@@ -32,18 +32,18 @@ describe('basic client > components & composition', () => {
 
 	it('does not render a falsy component call', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
-				<div class="card">
-					@if (props.children) {
-						{props.children}
-					}
-				</div>
+			<div class="card">
+				@if (props.children) {
+					{props.children}
+				}
+			</div>
 		}
 
 		function Basic() @{
-				function test() {
-				}
-				<Card {test} />
-			</>;
+			function test() @{
+				<p>{'Card content here'}</p>
+			}
+			<Card {test} />
 		}
 
 		render(Basic);
@@ -57,20 +57,22 @@ describe('basic client > components & composition', () => {
 
 	it('allows tracked variables alongside explicit component props', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
-				<div class="card">
-					@if (props.children) {
-						{props.children}
-					}
-				</div>
+			<div class="card">
+				@if (props.children) {
+					{props.children}
+				}
+			</div>
 		}
 
 		function Basic() @{
-				let &[test] = track(false);
-				function TestSlot() {
-				}
+			let &[test] = track(false);
+			function TestSlot() @{
+				<p>{'Card content here'}</p>
+			}
+			<>
 				<Card test={TestSlot} />
 				<div>{test ? 'yes' : 'no'}</div>
-			</>;
+			</>
 		}
 
 		render(Basic);
@@ -89,10 +91,10 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-				function children() {
-				}
-				<Card {children} />
-			</>;
+			function children() @{
+				<p>{'Card content here'}</p>
+			}
+			<Card {children} />
 		}
 
 		render(Basic);
@@ -110,7 +112,7 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-			{Test({ label: 'direct call' })}
+			<>{Test({ label: 'direct call' })}</>
 		}
 
 		render(App);
@@ -138,9 +140,9 @@ describe('basic client > components & composition', () => {
 			<span>{'value'}</span>
 		}
 
-		function App() @{
+		function App() {
 			const El = Test({});
-			<El />
+			return <><El /></>;
 		}
 
 		expect(() => render(App)).toThrow('Invalid component type');
@@ -151,8 +153,8 @@ describe('basic client > components & composition', () => {
 			return 'plain';
 		}
 
-		function App() @{
-			<Func />
+		function App() {
+			return <><Func /></>;
 		}
 
 		render(App);
@@ -175,29 +177,30 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('renders with nested components and prop passing', () => {
-		function Button(props: PropsWithExtras<@{
+		function Button(props: PropsWithExtras<{
 			variant: string;
 			label: string;
 			onClick: EventListener;
-		}>) {
+		}>) @{
 			<button class={props.variant} onClick={props.onClick}>{props.label}</button>
 		}
 
-		function Card(props: PropsWithExtras<@{
+		function Card(props: PropsWithExtras<{
 			title: string;
 			content: string;
 			buttonText: string;
 			onAction: EventListener;
-		}>) {
-				<div class="card">
-					<h3>{props.title}</h3>
-					<p>{props.content}</p>
-					<Button variant="primary" label={props.buttonText} onClick={props.onAction} />
-				</div>
+		}>) @{
+			<div class="card">
+				<h3>{props.title}</h3>
+				<p>{props.content}</p>
+				<Button variant="primary" label={props.buttonText} onClick={props.onAction} />
+			</div>
 		}
 
 		function Basic() @{
-				let &[clicked] = track(false);
+			let &[clicked] = track(false);
+			<>
 				<Card
 					title="Test Card"
 					content="This is a test card"
@@ -205,6 +208,7 @@ describe('basic client > components & composition', () => {
 					onAction={() => (clicked = true)}
 				/>
 				<div class="status">{clicked ? 'Clicked' : 'Not clicked'}</div>
+			</>
 		}
 
 		render(Basic);
@@ -228,17 +232,20 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('renders with reactive component props', () => {
-		function ChildComponent(props: PropsWithExtras<@{
+		function ChildComponent(props: PropsWithExtras<{
 			text: Tracked<string>;
 			count: Tracked<number>;
-		}>) {
+		}>) @{
+			<>
 				<div class="child-content">{props.text.value}</div>
 				<div class="child-count">{props.count.value}</div>
+			</>
 		}
 
 		function Basic() @{
-				let &[message, messageTracked] = track('Hello');
-				let &[number, numberTracked] = track(1);
+			let &[message, messageTracked] = track('Hello');
+			let &[number, numberTracked] = track(1);
+			<>
 				<ChildComponent text={messageTracked} count={numberTracked} />
 				<button
 					onClick={() => {
@@ -248,6 +255,7 @@ describe('basic client > components & composition', () => {
 				>
 					{'Update Props'}
 				</button>
+			</>
 		}
 
 		render(Basic);
@@ -278,9 +286,11 @@ describe('basic client > components & composition', () => {
 		}
 
 		function Basic() @{
-				let &[show] = track(false);
+			let &[show] = track(false);
+			<>
 				<TextProp children={show ? 'hello' : ''} />
 				<button class="show-text" onClick={() => (show = true)}>{'Show'}</button>
+			</>
 		}
 
 		render(Basic);
@@ -294,7 +304,7 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
-		function App() @{
+		function App() {
 			const SYMBOL_PROP = Symbol();
 			let &[hasError] = track(false);
 			const obj: {
@@ -343,6 +353,7 @@ describe('basic client > components & composition', () => {
 				});
 			}
 
+			return <>
 				<button onClick={() => obj['increment']()}>{'Increment'}</button>
 				<button onClick={() => obj[SYMBOL_PROP]()}>{'Increment'}</button>
 				<button onClick={trigger_nonexistent}>{'Nonexistent'}</button>
@@ -352,6 +363,7 @@ describe('basic client > components & composition', () => {
 				<button onClick={() => obj.arr[obj.arr.length - 1]()}>{'BinaryExpression prop'}</button>
 				<span>{obj.count.value}</span>
 				<span>{hasError}</span>
+			</>;
 		}
 
 		render(App);
@@ -421,15 +433,15 @@ describe('basic client > components & composition', () => {
 		};
 
 		function App() @{
-				function children() {
-				}
-				<div>
-					<h1>{'Component as Property Test'}</h1>
-					<UI.span />
-					<UI.button {children} />
-					<UI.arrowButton {children} />
-				</div>
-			</>;
+			function children() @{
+				<span>{'Click me!'}</span>
+			}
+			<div>
+				<h1>{'Component as Property Test'}</h1>
+				<UI.span />
+				<UI.button {children} />
+				<UI.arrowButton {children} />
+			</div>
 		}
 
 		render(App);
@@ -449,13 +461,15 @@ describe('basic client > components & composition', () => {
 
 	it('handles empty string children', () => {
 		function Button({ children }: PropsWithChildren<{}>) @{
-			{children}
+			<>{children}</>
 		}
 
 		function App() @{
-				let content = '';
+			let content = '';
+			<>
 				<Button>{''}</Button>
 				<Button>{content}</Button>
+			</>
 		}
 
 		expect(() => {
@@ -465,6 +479,7 @@ describe('basic client > components & composition', () => {
 
 	it('handles component without any output', () => {
 		function Noop() @{
+			<></>
 		}
 
 		function Op() @{
@@ -472,9 +487,11 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				let &[Content] = track(() => Noop);
+			let &[Content] = track(() => Noop);
+			<>
 				<@Content />
 				<button onClick={() => (Content = Op)}>{'Show Op'}</button>
+			</>
 		}
 
 		render(App);
@@ -505,8 +522,8 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1' };
-				<Card children="fallback text" {...extra} />
+			const extra = { id: '1' };
+			<Card children="fallback text" {...extra} />
 		}
 
 		render(App);
@@ -519,8 +536,8 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1' };
-				<Card {...extra} children="fallback text" />
+			const extra = { id: '1' };
+			<Card {...extra} children="fallback text" />
 		}
 
 		render(App);
@@ -533,10 +550,10 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1' };
-				<Card children="fallback text" {...extra}>
-					<span>{'template content'}</span>
-				</Card>
+			const extra = { id: '1' };
+			<Card children="fallback text" {...extra}>
+				<span>{'template content'}</span>
+			</Card>
 		}
 
 		render(App);
@@ -550,10 +567,10 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1' };
-				<Card {...extra} children="fallback text">
-					<span>{'template content'}</span>
-				</Card>
+			const extra = { id: '1' };
+			<Card {...extra} children="fallback text">
+				<span>{'template content'}</span>
+			</Card>
 		}
 
 		render(App);
@@ -567,12 +584,12 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1', children: 'from spread' };
-				<Card
-					// @ts-expect-error children specified more than once
-					children="explicit"
-					{...extra}
-				/>
+			const extra = { id: '1', children: 'from spread' };
+			<Card
+				// @ts-expect-error children specified more than once
+				children="explicit"
+				{...extra}
+			/>
 		}
 
 		render(App);
@@ -585,8 +602,8 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				const extra = { id: '1', children: 'from spread' };
-				<Card {...extra} children="explicit" />
+			const extra = { id: '1', children: 'from spread' };
+			<Card {...extra} children="explicit" />
 		}
 
 		render(App);
@@ -599,13 +616,12 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				<Wrapper>
-					function Inner() {
-					}
-
-					<Inner />
-				</Wrapper>
-			</>;
+			function Inner() @{
+				<span class="inner">{'inner content'}</span>
+			}
+			<Wrapper>
+				<Inner />
+			</Wrapper>
 		}
 
 		render(App);
@@ -618,20 +634,20 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-				<Wrapper>
-					function Z() {
-					}
+			function Z() @{
+				<div class="z">{'I am Z'}</div>
+			}
 
-					function Child(&{ Z }: { Z: Component }) @{
-							<div class="child">
-								{'Child Component: '}
-								<Z />
-							</div>
-					}
+			function Child(&{ Z }: { Z: Component }) @{
+				<div class="child">
+					{'Child Component: '}
+					<Z />
+				</div>
+			}
 
-					<Child {Z} />
-				</Wrapper>
-			</>;
+			<Wrapper>
+				<Child {Z} />
+			</Wrapper>
 		}
 
 		render(App);
