@@ -264,6 +264,17 @@
         }
       ]
     },
+    "tsrx-template-abrupt-statement": {
+      "name": "meta.directive.setup.tsrx",
+      "contentName": "source.js.embedded.tsrx-isolated",
+      "begin": "(?=[ \\t]*(?:(?:continue|break)(?:\\s+[_$[:alpha:]][_$[:alnum:]]*)?|return(?:\\s+[^\\n]*)?|throw(?:\\s+[^\\n]*)?)\\s*;?\\s*(?://.*)?$)",
+      "end": "(?=$)",
+      "patterns": [
+        {
+          "include": "#component-statements"
+        }
+      ]
+    },
     "tsrx-template-setup-statement": {
       "name": "meta.directive.setup.tsrx",
       "contentName": "source.js.embedded.tsrx-isolated",
@@ -6620,6 +6631,9 @@
         },
         {
           "include": "#jsx-entities"
+        },
+        {
+          "include": "#tsrx-template-abrupt-statement"
         },
         {
           "include": "#tsrx-template-setup-statement"
