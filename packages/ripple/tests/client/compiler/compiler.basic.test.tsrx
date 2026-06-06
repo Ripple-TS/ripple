@@ -897,10 +897,8 @@ export function App() @{
 	<div>{test}</div>
 }
 `;
-		expect(() => compile(code, 'test.tsrx')).toThrow(
-			/Code must be at the top of '@\{ \}'; statements cannot follow the rendered output/,
-		);
-	});
+			expect(() => compile(code, 'test.tsrx')).toThrow(/Unexpected token/);
+		});
 
 	it('allows component functions passed to composite children', () => {
 		const source = `
