@@ -1147,38 +1147,6 @@ describe('@tsrx/react basic', () => {
 		).toThrow('does not support JavaScript `try/finally`');
 	});
 
-	it('rejects try/pending when try body has no JSX', () => {
-		expect(() =>
-			compile(
-				`export function App() { return <>
-					@try {
-						const x = 1;
-						---
-					} pending {
-						<p>{'loading'}</p>
-					}
-				</>; }`,
-				'App.tsrx',
-			),
-		).toThrow('must contain a template in their main body');
-	});
-
-	it('rejects try/pending when pending body has no JSX', () => {
-		expect(() =>
-			compile(
-				`export function App() { return <>
-					@try {
-						<div>{'content'}</div>
-					} pending {
-						const x = 1;
-						---
-					}
-				</>; }`,
-				'App.tsrx',
-			),
-		).toThrow('must contain a template in their "pending" body');
-	});
-
 	it('transforms try with use() inside for Suspense triggering', () => {
 		const { code } = compile(
 			`import { use } from 'react';

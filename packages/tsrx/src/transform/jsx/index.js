@@ -4853,30 +4853,6 @@ function try_statement_to_jsx_child(node, transform_context) {
 		);
 	}
 
-	// Validate that try body contains JSX if pending block is present
-	if (pending) {
-		const try_body = node.block.body || [];
-		if (!try_body.some(is_jsx_child)) {
-			error(
-				'TSRX try statements must contain a template in their main body. Move the try statement into a function if it does not render anything.',
-				transform_context.filename,
-				node.block,
-				transform_context.errors,
-				transform_context.comments,
-			);
-		}
-		const pending_body = pending.body || [];
-		if (pending_body.length > 0 && !pending_body.some(is_jsx_child)) {
-			error(
-				'TSRX try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
-				transform_context.filename,
-				pending,
-				transform_context.errors,
-				transform_context.comments,
-			);
-		}
-	}
-
 	// Build the try body content as JSX children
 	const try_body_nodes = node.block.body || [];
 	const try_content = statement_body_to_jsx_child(try_body_nodes, transform_context);

@@ -508,6 +508,29 @@ foo();`;
 		expect(init.right.regex.pattern).toBe('div>');
 	});
 
+	it('reads a line-leading `<` against a number in the setup section as a comparison, not a tag', () => {
+		const ast = parseModule(
+			`const foo = @{
+				const x =
+					123
+					< 456;
+				<div/>
+			};`,
+			'App.tsrx',
+		);
+
+		const block = ast.body[0].declarations[0].init;
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		const init = block.body[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(init.left.value).toBe(123);
+		expect(init.right.value).toBe(456);
+		expect(block.render.type).toBe('JSXElement');
+		expect(block.render.openingElement.name.name).toBe('div');
+	});
+
 	it('parses array of objects in the setup section', () => {
 		const returned = getReturned(`
 			something(() => {
@@ -1126,13 +1149,19 @@ foo();`;
 
 	it('reports an error for two bare render nodes in a code block', () => {
 		expect(() =>
-			parseModule(`function App() { return <div>@{ const a = 5; <span/> <b/> }</div>; }`, 'App.tsrx'),
+			parseModule(
+				`function App() { return <div>@{ const a = 5; <span/> <b/> }</div>; }`,
+				'App.tsrx',
+			),
 		).toThrow(/single node/);
 	});
 
 	it('reports an error for a statement after the render node', () => {
 		expect(() =>
-			parseModule(`function App() { return <div>@{ const a = 5; <span/> doThing(); }</div>; }`, 'App.tsrx'),
+			parseModule(
+				`function App() { return <div>@{ const a = 5; <span/> doThing(); }</div>; }`,
+				'App.tsrx',
+			),
 		).toThrow(/statements cannot follow/);
 	});
 
@@ -1140,5 +1169,41 @@ foo();`;
 		expect(() =>
 			parseModule(`function App() { return <div>@{ hello world }</div>; }`, 'App.tsrx'),
 		).toThrow();
+	});
+
+	it('parses a code-only `@{ }` block (no render) as a function body', () => {
+		const ast = parseModule(
+			`function App() @{
+				const a = 5;
+				const b = 6;
+			}`,
+			'App.tsrx',
+		);
+
+		const block = ast.body[0].body;
+		expect(ast.body[0].type).toBe('FunctionDeclaration');
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'VariableDeclaration',
+		]);
+		expect(block.render).toBeNull();
+	});
+
+	it('parses a code-only `@{ }` block (no render) as an element body', () => {
+		const returned = getReturned(`function App() {
+			return <div>@{
+				const a = 5
+				const b = 6
+			}</div>;
+		}`);
+
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'VariableDeclaration',
+		]);
+		expect(block.render).toBeNull();
 	});
 });

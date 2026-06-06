@@ -1870,16 +1870,6 @@ const visitors = {
 			};
 
 			context.visit(switch_case, context.state);
-
-			if (!node.metadata.has_template) {
-				error(
-					'Component switch statements must contain a template in each of their cases. Move the switch statement into an effect if it does not render anything.',
-					context.state.analysis.module.filename,
-					switch_case,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
 		}
 	},
 
@@ -1969,18 +1959,8 @@ const visitors = {
 		};
 		context.next();
 
-		if (!node.metadata.has_template) {
-			if (is_script_only_control_flow_body(node.body)) {
-				node.metadata.script_only = true;
-			} else {
-				error(
-					'Component for...of loops must contain a template in their body. Move the for loop into an effect if it does not render anything.',
-					context.state.analysis.module.filename,
-					node.body,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
+		if (!node.metadata.has_template && is_script_only_control_flow_body(node.body)) {
+			node.metadata.script_only = true;
 		}
 	},
 
@@ -2127,22 +2107,6 @@ const visitors = {
 		}
 
 		const consequent_script_only = is_script_only_control_flow_body(node.consequent);
-		if (
-			is_template_directive &&
-			!node.metadata.has_template &&
-			!node.metadata.has_return &&
-			!node.metadata.has_throw &&
-			!node.metadata.has_continue &&
-			!consequent_script_only
-		) {
-			error(
-				'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
-				context.state.analysis.module.filename,
-				node.consequent,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
 
 		let alternate_script_only = false;
 		if (node.alternate) {
@@ -2155,22 +2119,6 @@ const visitors = {
 			context.visit(node.alternate, context.state);
 
 			alternate_script_only = is_script_only_control_flow_body(node.alternate);
-			if (
-				is_template_directive &&
-				!node.metadata.has_template &&
-				!node.metadata.has_return &&
-				!node.metadata.has_throw &&
-				!node.metadata.has_continue &&
-				!alternate_script_only
-			) {
-				error(
-					'Component if statements must contain a template in their "else" body. Move the if statement into an effect if it does not render anything.',
-					context.state.analysis.module.filename,
-					node.alternate,
-					context.state.collect ? context.state.analysis.errors : undefined,
-					context.state.analysis.comments,
-				);
-			}
 
 			if (saved_has_return) {
 				node.metadata.has_return = true;
@@ -2342,18 +2290,8 @@ const visitors = {
 
 			context.visit(node.block, state);
 
-			if (!node.metadata.has_template) {
-				if (is_script_only_control_flow_body(node.block)) {
-					node.metadata.script_only = true;
-				} else {
-					error(
-						'Component try statements must contain a template in their main body. Move the try statement into an effect if it does not render anything.',
-						state.analysis.module.filename,
-						node.block,
-						context.state.collect ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-				}
+			if (!node.metadata.has_template && is_script_only_control_flow_body(node.block)) {
+				node.metadata.script_only = true;
 			}
 
 			node.metadata = {
@@ -2363,18 +2301,12 @@ const visitors = {
 
 			context.visit(node.pending, state);
 
-			if ((node.pending.body || []).length > 0 && !node.metadata.has_template) {
-				if (is_script_only_control_flow_body(node.pending)) {
-					node.metadata.script_only = true;
-				} else {
-					error(
-						'Component try statements must contain a template in their "pending" body. Rendering a pending fallback is required to have a template.',
-						state.analysis.module.filename,
-						node.pending,
-						context.state.collect ? context.state.analysis.errors : undefined,
-						context.state.analysis.comments,
-					);
-				}
+			if (
+				(node.pending.body || []).length > 0 &&
+				!node.metadata.has_template &&
+				is_script_only_control_flow_body(node.pending)
+			) {
+				node.metadata.script_only = true;
 			}
 		} else {
 			context.visit(node.block, state);
