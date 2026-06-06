@@ -1961,21 +1961,6 @@
     }
   },
   {
-    "type": "jsx_at_text",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "jsx_attribute",
     "named": true,
     "fields": {
@@ -2096,10 +2081,6 @@
         "multiple": true,
         "required": false,
         "types": [
-          {
-            "type": "jsx_at_text",
-            "named": true
-          },
           {
             "type": "jsx_element",
             "named": true
@@ -2338,10 +2319,6 @@
         "multiple": true,
         "required": false,
         "types": [
-          {
-            "type": "jsx_at_text",
-            "named": true
-          },
           {
             "type": "jsx_element",
             "named": true
@@ -2757,10 +2734,6 @@
         "required": false,
         "types": [
           {
-            "type": "jsx_at_text",
-            "named": true
-          },
-          {
             "type": "jsx_element",
             "named": true
           },
@@ -2826,10 +2799,6 @@
         "multiple": true,
         "required": false,
         "types": [
-          {
-            "type": "jsx_at_text",
-            "named": true
-          },
           {
             "type": "jsx_element",
             "named": true
@@ -2912,10 +2881,6 @@
         "multiple": true,
         "required": false,
         "types": [
-          {
-            "type": "jsx_at_text",
-            "named": true
-          },
           {
             "type": "jsx_element",
             "named": true

@@ -480,19 +480,20 @@ function WithControlFlow(x) {
           (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -655,7 +656,7 @@ fragment App() {
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_at_text)
+              children: (jsx_text)
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))

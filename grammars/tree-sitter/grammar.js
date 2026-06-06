@@ -467,17 +467,19 @@ module.exports = grammar({
 				$.jsx_for_expression,
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
-				$.jsx_at_text,
 			),
 
 		jsx_if_expression: ($) =>
-			seq(
-				'@',
-				'if',
-				field('condition', $.parenthesized_expression),
-				field('consequence', $.jsx_template_block),
-				optional(
-					seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+			prec(
+				1,
+				seq(
+					'@',
+					'if',
+					field('condition', $.parenthesized_expression),
+					field('consequence', $.jsx_template_block),
+					optional(
+						seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+					),
 				),
 			),
 
@@ -492,29 +494,35 @@ module.exports = grammar({
 			),
 
 		jsx_for_expression: ($) =>
-			seq(
-				'@',
-				'for',
-				optional('await'),
-				'(',
-				choice(
-					seq(choice('let', 'const', 'var'), choice($._destructuring_pattern, $.identifier)),
-					$.identifier,
+			prec(
+				1,
+				seq(
+					'@',
+					'for',
+					optional('await'),
+					'(',
+					choice(
+						seq(choice('let', 'const', 'var'), choice($._destructuring_pattern, $.identifier)),
+						$.identifier,
+					),
+					choice('of', 'in'),
+					field('right', $.expression),
+					optional(seq(';', 'index', $.identifier)),
+					optional(seq(';', 'key', $.expression)),
+					')',
+					field('body', $.jsx_template_block),
 				),
-				choice('of', 'in'),
-				field('right', $.expression),
-				optional(seq(';', 'index', $.identifier)),
-				optional(seq(';', 'key', $.expression)),
-				')',
-				field('body', $.jsx_template_block),
 			),
 
 		jsx_switch_expression: ($) =>
-			seq(
-				'@',
-				'switch',
-				field('value', $.parenthesized_expression),
-				field('body', $.jsx_switch_body),
+			prec(
+				1,
+				seq(
+					'@',
+					'switch',
+					field('value', $.parenthesized_expression),
+					field('body', $.jsx_switch_body),
+				),
 			),
 
 		jsx_switch_body: ($) => seq('{', repeat(choice($.jsx_switch_case, $.jsx_switch_default)), '}'),
@@ -531,13 +539,16 @@ module.exports = grammar({
 			seq('default', ':', repeat(field('children', $._jsx_template_child))),
 
 		jsx_try_expression: ($) =>
-			seq(
-				'@',
-				'try',
-				field('body', $.jsx_template_block),
-				optional(field('pending', $.jsx_pending_clause)),
-				optional(field('handler', $.jsx_catch_clause)),
-				optional(field('finalizer', $.jsx_finally_clause)),
+			prec(
+				1,
+				seq(
+					'@',
+					'try',
+					field('body', $.jsx_template_block),
+					optional(field('pending', $.jsx_pending_clause)),
+					optional(field('handler', $.jsx_catch_clause)),
+					optional(field('finalizer', $.jsx_finally_clause)),
+				),
 			),
 
 		jsx_pending_clause: ($) => seq('pending', field('body', $.jsx_template_block)),
@@ -1088,20 +1099,10 @@ module.exports = grammar({
 				$.jsx_try_expression,
 				prec(2, $.style_element),
 				$.jsx_text,
-				$.jsx_at_text,
 				$.jsx_element,
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
 				$.jsx_expression,
-			),
-
-		jsx_at_text: ($) =>
-			prec(
-				-1,
-				seq(
-					'@',
-					choice('if', 'for', 'switch', 'try', 'else', 'pending', 'catch', 'finally', $.identifier),
-				),
 			),
 
 		this: ($) => 'this',

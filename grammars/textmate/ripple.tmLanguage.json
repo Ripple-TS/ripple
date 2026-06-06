@@ -497,6 +497,9 @@
       },
       "patterns": [
         {
+          "include": "#component-statements"
+        },
+        {
           "include": "#tsrx-template-children"
         }
       ]

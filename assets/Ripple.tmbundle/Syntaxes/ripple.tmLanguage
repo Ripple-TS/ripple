@@ -9121,6 +9121,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#component-statements</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#tsrx-template-children</string>
 				</dict>
 			</array>

@@ -31,24 +31,25 @@ const List = ({ items }) => <>
                 name: (jsx_element_name
                   (identifier)))
               children: (jsx_text)
-              children: (jsx_at_text)
-              children: (jsx_text)
-              children: (jsx_expression
-                (component_statement
-                  (expression_statement
-                    (jsx_element
-                      open_tag: (jsx_opening_element
-                        name: (jsx_element_name
-                          (identifier)))
-                      children: (jsx_expression
-                        (component_statement
-                          (expression_statement
-                            (member_expression
-                              object: (identifier)
-                              property: (identifier)))))
-                      close_tag: (jsx_closing_element
-                        name: (jsx_element_name
-                          (identifier)))))))
+              children: (jsx_for_expression
+                (identifier)
+                right: (identifier)
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text)))
               children: (jsx_text)
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
@@ -89,24 +90,29 @@ const List = ({ items }) => <>
                 name: (jsx_element_name
                   (identifier)))
               children: (jsx_text)
-              children: (jsx_at_text)
-              children: (jsx_text)
-              children: (jsx_expression
-                (component_statement
-                  (expression_statement
-                    (jsx_element
-                      open_tag: (jsx_opening_element
-                        name: (jsx_element_name
-                          (identifier)))
-                      children: (jsx_expression
-                        (component_statement
-                          (expression_statement
-                            (member_expression
-                              object: (identifier)
-                              property: (identifier)))))
-                      close_tag: (jsx_closing_element
-                        name: (jsx_element_name
-                          (identifier)))))))
+              children: (jsx_for_expression
+                (identifier)
+                right: (identifier)
+                (identifier)
+                (member_expression
+                  object: (identifier)
+                  property: (identifier))
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text)))
               children: (jsx_text)
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
@@ -142,22 +148,23 @@ const App = ({ show }) => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (string))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_expression
+                    (component_statement
+                      (expression_statement
+                        (string))))
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -216,57 +223,57 @@ const App = ({ ready }) => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_statement_container
+                  statement: (variable_declaration
+                    (variable_declarator
+                      name: (identifier)
+                      (initializer
+                        (string))))
+                  statement: (expression_statement
+                    (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (identifier))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))))
+                children: (jsx_text)))
             children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_statement_container
-                    statement: (variable_declaration
-                      (variable_declarator
-                        name: (identifier)
-                        (initializer
-                          (string))))
-                    statement: (expression_statement
-                      (jsx_element
-                        open_tag: (jsx_opening_element
-                          name: (jsx_element_name
-                            (identifier)))
-                        children: (jsx_expression
-                          (component_statement
-                            (expression_statement
-                              (identifier))))
-                        close_tag: (jsx_closing_element
-                          name: (jsx_element_name
-                            (identifier)))))))))
-            children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_statement_container
-                    statement: (variable_declaration
-                      (variable_declarator
-                        name: (identifier)
-                        (initializer
-                          (call_expression
-                            function: (identifier)
-                            arguments: (arguments)))))
-                    statement: (expression_statement
-                      (jsx_element
-                        open_tag: (jsx_opening_element
-                          name: (jsx_element_name
-                            (identifier)))
-                        children: (jsx_expression
-                          (component_statement
-                            (expression_statement
-                              (member_expression
-                                object: (identifier)
-                                property: (identifier)))))
-                        close_tag: (jsx_closing_element
-                          name: (jsx_element_name
-                            (identifier)))))))))
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_statement_container
+                  statement: (variable_declaration
+                    (variable_declarator
+                      name: (identifier)
+                      (initializer
+                        (call_expression
+                          function: (identifier)
+                          arguments: (arguments)))))
+                  statement: (expression_statement
+                    (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (member_expression
+                              object: (identifier)
+                              property: (identifier)))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -327,28 +334,28 @@ const App = ({ ready }) => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (identifier))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_statement_container)
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
             children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (jsx_statement_container))
-              (component_statement
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
-            children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_statement_container))))
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_statement_container)
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -398,19 +405,22 @@ const Status = ({ status }) => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))))
+            children: (jsx_if_expression
+              condition: (parenthesized_expression
+                (binary_expression
+                  left: (identifier)
+                  right: (string)))
+              consequence: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_element
+                  open_tag: (jsx_opening_element
+                    name: (jsx_element_name
+                      (identifier)))
+                  children: (jsx_text)
+                  close_tag: (jsx_closing_element
+                    name: (jsx_element_name
+                      (identifier))))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -551,14 +561,13 @@ const SuspenseBoundary = () => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_self_closing_element
-                    name: (jsx_non_namespaced_element_name
-                      (identifier))))))
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement
@@ -601,14 +610,13 @@ const App = () => <>
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
             children: (jsx_text)
-            children: (jsx_at_text)
-            children: (jsx_text)
-            children: (jsx_expression
-              (component_statement
-                (expression_statement
-                  (jsx_self_closing_element
-                    name: (jsx_non_namespaced_element_name
-                      (identifier))))))
+            children: (jsx_try_expression
+              body: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_self_closing_element
+                  name: (jsx_non_namespaced_element_name
+                    (identifier)))
+                children: (jsx_text)))
             children: (jsx_text)
             children: (jsx_expression
               (component_statement

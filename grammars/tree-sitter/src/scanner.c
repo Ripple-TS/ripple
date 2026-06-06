@@ -160,6 +160,13 @@ static void scan_identifier_word(TSLexer *lexer, char *word, size_t word_size) {
   word[length] = '\0';
 }
 
+static bool is_jsx_control_keyword(const char *word) {
+  return strcmp(word, "if") == 0 ||
+         strcmp(word, "for") == 0 ||
+         strcmp(word, "switch") == 0 ||
+         strcmp(word, "try") == 0;
+}
+
 static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
   bool has_content = false;
@@ -171,9 +178,36 @@ static bool scan_jsx_text(TSLexer *lexer) {
       case '<':
       case '{':
       case '}':
-      case '@':
       case 0:
         return has_content;
+      case '@': {
+        if (has_content) {
+          return true;
+        }
+
+        advance(lexer);
+        if (lexer->lookahead == '{') {
+          return false;
+        }
+
+        if (is_identifier_start(lexer->lookahead)) {
+          char word[16];
+          scan_identifier_word(lexer, word, sizeof(word));
+          lexer->mark_end(lexer);
+
+          if (is_jsx_control_keyword(word)) {
+            scan_whitespace_and_comments(lexer);
+            if ((strcmp(word, "try") == 0 && lexer->lookahead == '{') ||
+                (strcmp(word, "try") != 0 && lexer->lookahead == '(')) {
+              return false;
+            }
+          }
+        } else {
+          lexer->mark_end(lexer);
+        }
+
+        return true;
+      }
       case '-':
         if (!has_non_whitespace_content) {
           return has_content;
