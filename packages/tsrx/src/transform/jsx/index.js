@@ -430,6 +430,7 @@ export function createJsxTransform(platform) {
 				? expanded
 				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
+		lower_remaining_jsx_code_block_function_bodies(final_program);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
 			sourceMapSource: filename,
@@ -1172,33 +1173,41 @@ function transform_function(node, context) {
 	// render output. The parser already marks the render JSX as native_tsrx, so
 	// from here it flows through the existing native-component machinery exactly
 	// like the older fenced `{ return <> … </> }` shape.
-	if (node.body?.type === 'JSXCodeBlock') {
-		const code_block = node.body;
-		const statements = [...code_block.body];
-		if (code_block.render != null) {
-			let render = code_block.render;
-			if (!is_native_tsrx_node(render)) {
-				// A control-flow output (@if/@for/@switch/@try) isn't itself a native
-				// template node, so `return @if (…) { … }` wouldn't be recognized as a
-				// component render output. Wrap it in a native fragment so it flows
-				// through the same children-rendering path as a `<> … </>` render.
-				const fragment = b.jsx_fragment([render]);
-				fragment.metadata = { ...fragment.metadata, native_tsrx: true };
-				render = fragment;
-			}
-			statements.push(b.return(render, code_block.render));
-		}
-		node.body = b.block(statements, code_block);
-		if (node.type === 'ArrowFunctionExpression') {
-			node.expression = false;
-		}
-	}
+	lower_jsx_code_block_function_body(node);
 
 	if (node.metadata?.native_tsrx_function || function_has_native_tsrx_return(node)) {
 		return transform_native_tsrx_function(node, context);
 	}
 
 	return transform_function_with_hook_helpers(node, context);
+}
+
+/**
+ * @param {any} node
+ * @returns {void}
+ */
+function lower_jsx_code_block_function_body(node) {
+	if (node.body?.type !== 'JSXCodeBlock') return;
+
+	const code_block = node.body;
+	const statements = [...code_block.body];
+	if (code_block.render != null) {
+		let render = code_block.render;
+		if (!is_native_tsrx_node(render)) {
+			// A control-flow output (@if/@for/@switch/@try) isn't itself a native
+			// template node, so `return @if (…) { … }` wouldn't be recognized as a
+			// component render output. Wrap it in a native fragment so it flows
+			// through the same children-rendering path as a `<> … </>` render.
+			const fragment = b.jsx_fragment([render]);
+			fragment.metadata = { ...fragment.metadata, native_tsrx: true };
+			render = fragment;
+		}
+		statements.push(b.return(render, code_block.render));
+	}
+	node.body = b.block(statements, code_block);
+	if (node.type === 'ArrowFunctionExpression') {
+		node.expression = false;
+	}
 }
 
 /**
@@ -2471,6 +2480,38 @@ function expand_component_helpers(program) {
 	});
 
 	return program;
+}
+
+/**
+ * Generated helper metadata can be appended after the main transformer walk.
+ * If one of those helpers contains a statement-container body, lower it before
+ * the printer sees the helper subtree.
+ *
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {void}
+ */
+function lower_remaining_jsx_code_block_function_bodies(node, seen = new Set()) {
+	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	seen.add(node);
+
+	if (is_function_or_class_boundary(node)) {
+		lower_jsx_code_block_function_body(node);
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		const value = node[key];
+		if (!value || typeof value !== 'object') continue;
+
+		if (Array.isArray(value)) {
+			for (const child of value) {
+				lower_remaining_jsx_code_block_function_bodies(child, seen);
+			}
+		} else {
+			lower_remaining_jsx_code_block_function_bodies(value, seen);
+		}
+	}
 }
 
 /**
