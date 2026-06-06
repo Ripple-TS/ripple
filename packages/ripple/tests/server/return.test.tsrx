@@ -22,7 +22,7 @@ describe('returns in restricted SSR scopes', () => {
 	it('compiles template directives inside templates', () => {
 		expect(
 			() => compile(
-					`
+				`
 					function App() @{
 						<>
 							@if (ready) {
@@ -40,16 +40,16 @@ describe('returns in restricted SSR scopes', () => {
 });
 
 describe('function returns in SSR components', () => {
-		it('renders template directive branches alongside outer siblings', async () => {
-			function App() @{
-				const ready = true;
-				<>
-					@if (ready) {
-						<div class="yielded">yielded</div>
-					}
-					<span class="outer">outer</span>
-				</>
-			}
+	it('renders template directive branches alongside outer siblings', async () => {
+		function App() @{
+			const ready = true;
+			<>
+				@if (ready) {
+					<div class="yielded">yielded</div>
+				}
+				<span class="outer">outer</span>
+			</>
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div class="yielded">yielded</div><span class="outer">outer</span>');
@@ -64,7 +64,6 @@ describe('function returns in SSR components', () => {
 							for (const item of items) {
 								<div>{item}</div>
 							}
-							<></>
 					}
 				`,
 				'test.tsrx',
@@ -76,10 +75,10 @@ describe('function returns in SSR components', () => {
 	it('renders TSRX return arguments and skips later siblings', async () => {
 		function App() @{
 			const ready = true;
-				if (ready) {
-					return <div class="returned">returned</div>;
-				}
-				<span class="after">after</span>
+			if (ready) {
+				return <div class="returned">returned</div>;
+			}
+			<span class="after">after</span>
 		}
 
 		const { body } = await render(App);

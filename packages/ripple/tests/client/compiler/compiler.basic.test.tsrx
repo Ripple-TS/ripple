@@ -225,16 +225,15 @@ export function App() @{
 
 	it('renders without crashing', () => {
 		function App() @{
-				let foo: Record<string, number>;
-				let bar: Record<string, number>;
-				let baz: Record<string, number>;
-				foo = {};
-				foo = { test: 0 };
-				foo['abc'] = 123;
-				bar = { def: 456 };
-				baz = { ghi: 789 };
-				baz['jkl'] = 987;
-				<></>
+			let foo: Record<string, number>;
+			let bar: Record<string, number>;
+			let baz: Record<string, number>;
+			foo = {};
+			foo = { test: 0 };
+			foo['abc'] = 123;
+			bar = { def: 456 };
+			baz = { ghi: 789 };
+			baz['jkl'] = 987;
 		}
 
 		render(App);
@@ -242,14 +241,14 @@ export function App() @{
 
 	it('renders without crashing using < character', () => {
 		function App() @{
-				function bar() {
-					for (let i = 0; i < 10; i++) {
-						// do nothing
-					}
-					const x = 1 < 1;
+			function bar() {
+				for (let i = 0; i < 10; i++) {
+					// do nothing
 				}
-				let x = 5 < 10;
-				<div>{x}</div>
+				const x = 1 < 1;
+			}
+			let x = 5 < 10;
+			<div>{x}</div>
 		}
 
 		render(App);
@@ -260,18 +259,12 @@ export function App() @{
 			<>
 				<div>
 					const a = 1;
-					<div>
-						const b = 1;
-					</div>
-					<div>
-						const b = 1;
-					</div>
+					<div>const b = 1;</div>
+					<div>const b = 1;</div>
 				</div>
 				<div>
 					const a = 2;
-					<div>
-						const b = 1;
-					</div>
+					<div>const b = 1;</div>
 				</div>
 			</>
 		}
@@ -281,27 +274,26 @@ export function App() @{
 
 	it('renders without crashing using mapped types', () => {
 		function App() @{
-				type RecordKey = 'test';
-				type RecordValue = { a: string; b: number };
-				const config: Record<RecordKey, RecordValue> = {
-					test: {
-						a: 'test',
-						b: 1,
-					},
-				};
-				const config2: { [key in RecordKey]: RecordValue } = {
-					test: {
-						a: 'test2',
-						b: 2,
-					},
-				};
-				const config3: { [key: string]: RecordValue } = {
-					test: {
-						a: 'test3',
-						b: 3,
-					},
-				};
-				<></>
+			type RecordKey = 'test';
+			type RecordValue = { a: string; b: number };
+			const config: Record<RecordKey, RecordValue> = {
+				test: {
+					a: 'test',
+					b: 1,
+				},
+			};
+			const config2: { [key in RecordKey]: RecordValue } = {
+				test: {
+					a: 'test2',
+					b: 2,
+				},
+			};
+			const config3: { [key: string]: RecordValue } = {
+				test: {
+					a: 'test3',
+					b: 3,
+				},
+			};
 		}
 
 		render(App);
@@ -309,18 +301,18 @@ export function App() @{
 
 	it('renders without crashing using object destructuring', () => {
 		function App() @{
-				const obj = { a: 1, b: 2, c: 3 };
-				const { a, b, ...rest } = obj;
-				<div>
-					{'a '}
-					{a}
-					{'b '}
-					{b}
-					{'rest '}
-					{JSON.stringify(rest)}
+			const obj = { a: 1, b: 2, c: 3 };
+			const { a, b, ...rest } = obj;
+			<div>
+				{'a '}
+				{a}
+				{'b '}
+				{b}
+				{'rest '}
+				{JSON.stringify(rest)}
 
-					<div />
-				</div>
+				<div />
+			</div>
 		}
 
 		render(App);
@@ -328,17 +320,17 @@ export function App() @{
 
 	it('renders without crashing using object destructuring #2', () => {
 		function App() @{
-				const obj = { a: 1, b: 2, c: 3 };
-				const { a, b, ...rest } = obj;
-				<>
-					{'a '}
-					{a}
-					{'b '}
-					{b}
-					{'rest '}
-					{JSON.stringify(rest)}
-					<div />
-				</>
+			const obj = { a: 1, b: 2, c: 3 };
+			const { a, b, ...rest } = obj;
+			<>
+				{'a '}
+				{a}
+				{'b '}
+				{b}
+				{'rest '}
+				{JSON.stringify(rest)}
+				<div />
+			</>
 		}
 
 		render(App);
@@ -358,26 +350,25 @@ export function App() @{
 		}
 
 		function App() @{
-				let x: number[] = [] as number[];
-				const n = Wrapper<number>().unwrap<string>();
-				const tagResult = tagFn`value`;
-				interface Node<T> {
-					value: T;
-				}
-				class Box<T> {
-					value: T;
+			let x: number[] = [] as number[];
+			const n = Wrapper<number>().unwrap<string>();
+			const tagResult = tagFn`value`;
+			interface Node<T> {
+				value: T;
+			}
+			class Box<T> {
+				value: T;
 
-					method<U extends T>(): U {
-						return this.value as U;
-					}
-
-					constructor(value: T) {
-						this.value = value;
-					}
+				method<U extends T>(): U {
+					return this.value as U;
 				}
-				let flag = true;
-				const s = flag ? new Box<number>(1) : new Box<string>('string');
-				<></>
+
+				constructor(value: T) {
+					this.value = value;
+				}
+			}
+			let flag = true;
+			const s = flag ? new Box<number>(1) : new Box<string>('string');
 		}
 
 		render(App);
@@ -548,7 +539,6 @@ function App() @{
             value: value.value,
             [createRefKey()]: inputRef,
     };
-    <></>
 }
 `;
 
@@ -563,7 +553,6 @@ import { track } from 'ripple';
 function App() @{
 	let &[value, ...rest] = track(0);
 	const x = value;
-	<></>
 }
 `;
 		const track_result = compile_to_volar_mappings(track_source, 'test.tsrx').code;
@@ -723,9 +712,7 @@ const Inline = function(props: { x: string }) @{
 		const source = `
 type User = { name: string };
 
-function RenderProp<Item>(props: { children: (item: Item) => any }) @{
-	<></>
-}
+function RenderProp<Item>(props: { children: (item: Item) => any }) @{}
 
 export function App() @{
 	<RenderProp<User>>
@@ -897,8 +884,8 @@ export function App() @{
 	<div>{test}</div>
 }
 `;
-			expect(() => compile(code, 'test.tsrx')).toThrow(/Unexpected token/);
-		});
+		expect(() => compile(code, 'test.tsrx')).toThrow(/Unexpected token/);
+	});
 
 	it('allows component functions passed to composite children', () => {
 		const source = `
@@ -1161,12 +1148,9 @@ function App() @{
 	});
 
 	it('allows return statements inside returned TSRX fragments in Volar mappings', () => {
-		const result = compile_to_volar_mappings(
-			`function App() @{
+		const result = compile_to_volar_mappings(`function App() @{
 				return <div />;
-			}`,
-			'test.tsrx',
-		);
+			}`, 'test.tsrx');
 
 		expect(result.errors).toEqual([]);
 	});
@@ -1177,9 +1161,7 @@ import { track } from 'ripple';
 
 const outside = track(0);
 
-export function App() @{
-	<></>
-}
+export function App() @{}
 `;
 
 		const result = compile(source, 'test.tsrx', { collect: true });
@@ -1196,7 +1178,6 @@ export function App({ items }: { items: string[] }) @{
 			if (!item) continue
 		}
 	}
-	<></>
 }`;
 
 		const result = compile(source, 'test.tsrx', { collect: true });
@@ -1207,9 +1188,7 @@ export function App({ items }: { items: string[] }) @{
 
 	it('preserves class extends generic type arguments in volar output', () => {
 		const source = `class StringMap extends Map<string, string> {}
-export function App() @{
-	<></>
-}`;
+export function App() @{}`;
 
 		expect(() => compile_to_volar_mappings(source, 'test.tsrx', { loose: true })).not.toThrow();
 
@@ -1247,7 +1226,7 @@ export function App() @{
 			const ul =
 				returned.type === 'Element'
 					? returned
-					: (returned.children.find((n: AST.Node) => n.type === 'Element') as AST.Element);
+					: returned.children.find((n: AST.Node) => n.type === 'Element') as AST.Element;
 			expect((ul.id as AST.Identifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
 			const text = ul.children[0] as unknown as { type: string; expression: AST.Literal };
