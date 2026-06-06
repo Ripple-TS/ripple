@@ -34,7 +34,6 @@ import {
 	planSwitchLift as plan_switch_lift,
 	identifier_to_jsx_name,
 	is_bare_render_expression,
-	is_dynamic_element_id,
 	is_jsx_child,
 	jsx_name_to_expression,
 	set_loc,
@@ -207,12 +206,12 @@ function to_jsx_child(node, transform_context) {
 		case 'TsrxTemplateFence':
 			return null;
 		case 'JSXFragment':
-			if (node.metadata?.native_tsrx || node.id) {
+			if (node.metadata?.native_tsrx) {
 				return tsrx_node_to_jsx_expression(node, transform_context, true);
 			}
 			return node;
 		case 'JSXElement':
-			if (node.metadata?.native_tsrx || node.id) {
+			if (node.metadata?.native_tsrx) {
 				return to_jsx_element(node, transform_context);
 			}
 			return node;
@@ -1946,30 +1945,28 @@ function inject_solid_imports(program, transform_context) {
  * @returns {any}
  */
 function to_jsx_element(node, transform_context) {
-	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !node.id) return node;
+	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx) return node;
 
 	const walked_children = node.children || [];
 
-	if (!node.id && !node.openingElement?.name) {
+	if (!node.openingElement?.name) {
 		return tsrx_node_to_jsx_expression(node, transform_context, true);
 	}
 
-	if (is_dynamic_element_id(node.id)) {
+	if (node.dynamic) {
 		return dynamic_element_to_jsx_child(node, transform_context);
 	}
 
-	const name = node.id
-		? identifier_to_jsx_name(node.id)
-		: clone_jsx_name(node.openingElement.name, node.openingElement.name);
+	const name = clone_jsx_name(node.openingElement.name, node.openingElement.name);
 	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
-		node.attributes || node.openingElement?.attributes || [],
+		node.openingElement.attributes || [],
 		is_composite,
 		transform_context,
 		node,
 	);
 
-	const selfClosing = !!(node.selfClosing || node.openingElement?.selfClosing);
+	const selfClosing = !!node.openingElement.selfClosing;
 	const children = create_element_children(walked_children, transform_context);
 
 	const openingElement = set_loc(
@@ -2149,8 +2146,12 @@ function is_solid_jsx_ref_attribute(attr) {
  * @returns {any}
  */
 function dynamic_element_to_jsx_child(node, transform_context) {
-	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), node.id);
-	const alias_declaration = set_loc(b.const(dynamic_id, jsx_name_to_expression(node.id)), node);
+	const element_name = node.openingElement.name;
+	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), element_name);
+	const alias_declaration = set_loc(
+		b.const(dynamic_id, jsx_name_to_expression(element_name)),
+		node,
+	);
 	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
 
 	return to_jsx_expression_container(
@@ -2176,12 +2177,12 @@ function dynamic_element_to_jsx_child(node, transform_context) {
 function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
 	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
-		node.attributes || [],
+		node.openingElement?.attributes || [],
 		is_composite,
 		transform_context,
 		null,
 	);
-	const selfClosing = !!node.selfClosing;
+	const selfClosing = !!node.openingElement?.selfClosing;
 	const children = create_element_children(node.children || [], transform_context);
 	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
 
