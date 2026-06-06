@@ -1190,6 +1190,125 @@ foo();`;
 		expect(block.render).toBeNull();
 	});
 
+	it('parses two sibling `@{ }` blocks as separate element children', () => {
+		const returned = getReturned(`function App() {
+			return <main>
+				@{
+					const foo = props.foo();
+					<span>{foo}</span>
+				}
+				@{
+					const bar = props.bar();
+					<span>{bar}</span>
+				}
+			</main>;
+		}`);
+
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXCodeBlock', 'JSXCodeBlock']);
+		const [first, second] = returned.children;
+		expect(first.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(first.render.openingElement.name.name).toBe('span');
+		expect(second.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(second.render.openingElement.name.name).toBe('span');
+	});
+
+	it('parses two sibling `@if` directives as separate element children', () => {
+		const returned = getReturned(`function App() {
+			return <main>
+				@if (props.foo()) {
+					<span>{props.foo()}</span>
+				}
+				@if (props.bar()) {
+					<span>{props.bar()}</span>
+				}
+			</main>;
+		}`);
+
+		const directives = returned.children.filter((child) => child.type === 'JSXIfExpression');
+		expect(directives).toHaveLength(2);
+		expect(directives[0].test.callee.object.name).toBe('props');
+		expect(directives[0].test.callee.property.name).toBe('foo');
+		expect(directives[0].consequent.body[0].openingElement.name.name).toBe('span');
+		expect(directives[1].test.callee.property.name).toBe('bar');
+		expect(directives[1].consequent.body[0].openingElement.name.name).toBe('span');
+	});
+
+	it('reports an error for setup plus two render nodes in an `@if` body', () => {
+		expect(() =>
+			parseModule(
+				`function App() {
+					return <main>
+						@if (props.foo()) {
+							const a = 5;
+							<span>{props.foo()} {a}</span>
+
+							@if (props.bar()) {
+								const b = 6;
+								<span>{props.bar()} {b}</span>
+							}
+						}
+					</main>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/single node/);
+	});
+
+	it('reports an error for a nested `@{ }` block following a render node', () => {
+		// Like the nested-`@if` case, the outer block has setup plus two outputs (a
+		// `<span>` and a nested `@{ }`). A code block following the render node reads
+		// as a trailing statement, so this trips the "statements cannot follow" rule.
+		expect(() =>
+			parseModule(
+				`function App() {
+					return <main>
+						@{
+							const a = 5;
+							<span>{a}</span>
+
+							@{
+								const b = 6;
+								<span>{b}</span>
+							}
+						}
+					</main>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/statements cannot follow/);
+	});
+
+	it('parses a nested `@if` with its own setup when siblings are wrapped in a fragment', () => {
+		const returned = getReturned(`function App() {
+			return <main>
+				@if (props.foo()) {
+					const a = 5;
+					<>
+						<span>{props.foo()} {a}</span>
+						@if (props.bar()) {
+							const b = 6;
+							<span>{props.bar()} {b}</span>
+						}
+					</>
+				}
+			</main>;
+		}`);
+
+		const outer = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(outer.consequent.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'JSXFragment',
+		]);
+		const fragment = outer.consequent.body.find((child) => child.type === 'JSXFragment');
+		expect(fragment.children.map((child) => child.type)).toEqual(['JSXElement', 'JSXIfExpression']);
+		const inner = fragment.children.find((child) => child.type === 'JSXIfExpression');
+		expect(inner.consequent.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'JSXElement',
+		]);
+		expect(inner.consequent.body[1].openingElement.name.name).toBe('span');
+	});
+
 	it('parses a code-only `@{ }` block (no render) as an element body', () => {
 		const returned = getReturned(`function App() {
 			return <div>@{

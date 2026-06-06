@@ -3814,10 +3814,10 @@ export function TSRXPlugin(config) {
 				current_template_node.metadata ??= { path: [] };
 				current_template_node.metadata.templateMode = 'template';
 
-				// `@{ … }` code block as the whole body (§2 rule 1). Only valid as the
-				// sole content; reposition onto the `@` if leading whitespace was tokenized
-				// ahead of it.
-				if (body.length === 0 && this.#atCodeBlockStart()) {
+				// `@{ … }` code block as element/fragment content (§2 rule 1). Sibling
+				// code blocks are allowed, so this is not gated on an empty body;
+				// reposition onto the `@` if leading whitespace was tokenized ahead of it.
+				if (this.#atCodeBlockStart()) {
 					const at_index = skip_whitespace_from(this.input, this.start);
 					if (this.start !== at_index) {
 						const loc = acorn.getLineInfo(this.input, at_index);
