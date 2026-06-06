@@ -5591,6 +5591,21 @@ function create_tsx_with_typescript_support(comments) {
 			base_tsx.ExpressionStatement?.(node, context);
 			context.location(loc.end.line, loc.end.column);
 		},
+		JSXCodeBlock(node, context) {
+			context.write('{');
+			for (const statement of node.body) {
+				context.newline();
+				context.visit(statement);
+			}
+			if (node.render) {
+				context.newline();
+				context.write('return ');
+				context.visit(node.render);
+				context.write(';');
+			}
+			context.newline();
+			context.write('}');
+		},
 		UpdateExpression(node, context) {
 			if (!node.loc) {
 				base_tsx.UpdateExpression?.(node, context);

@@ -61,6 +61,7 @@ describe('compiler > assignments', () => {
 				logs.push(--items2[i]);
 				logs.push(--items3[0]);
 				logs.push(--items3[i]);
+				<></>
 		}
 
 		render(App);
@@ -109,6 +110,7 @@ function App() @{
 	effect(() => {
 		state.count = count;
 	});
+	<></>
 }`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);
@@ -128,6 +130,7 @@ function App() @{
 			state.postDecrement = count--;
 		});
 	});
+	<></>
 }`;
 		const result = compile(source, 'test.tsrx');
 		const effect_match = result.code.match(EFFECT_BODY_REGEX);

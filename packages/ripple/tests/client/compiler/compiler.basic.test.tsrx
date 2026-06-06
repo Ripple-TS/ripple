@@ -8,6 +8,10 @@ function get_returned_tsrx(node: any): any {
 	const body =
 		target.type === 'VariableDeclarator' ? target.init.body : target.body;
 
+	if (body.type === 'JSXCodeBlock') {
+		return body.render;
+	}
+
 	if (body.type !== 'BlockStatement') {
 		return body;
 	}
@@ -30,9 +34,10 @@ function count_occurrences(string: string, subString: string): number {
 describe('compiler > basics', () => {
 	it('parses style content correctly', () => {
 		const source = `export function App() @{
-  <div id="myid" class="myclass">{"Hello World"}</div>
-
-  <style>__STYLE__</style>
+  <>
+    <div id="myid" class="myclass">{"Hello World"}</div>
+    <style>__STYLE__</style>
+  </>
 		}`;
 		const style1 = '.myid {color: green }';
 		const style2 = '#myid {color: green }';
@@ -56,8 +61,10 @@ describe('compiler > basics', () => {
 	const markup = '<span>Not HTML</span>';
 	const text = markup;
 
-	<div>{markup}</div>
-	<div>{text}</div>
+	<>
+		<div>{markup}</div>
+		<div>{text}</div>
+	</>
 		}`;
 
 		const ast = parse(source);
@@ -91,19 +98,21 @@ describe('compiler > basics', () => {
 ) @{
 	const element = <span />;
 
-	<div>{String(title)}</div>
-	<div>{title + ''}</div>
-	<div>{title as string}</div>
-	<div>{title}</div>
-	<div>{props.label}</div>
-	<div>{element}</div>
+	<>
+		<div>{String(title)}</div>
+		<div>{title + ''}</div>
+		<div>{title as string}</div>
+		<div>{title}</div>
+		<div>{props.label}</div>
+		<div>{element}</div>
+	</>
 }`;
 
 		const { code } = compile(source, 'stringish-text.tsrx', { mode: 'client' });
 
 		expect(code).toContain('_$_.set_text');
 		expect(code).toContain('nodeValue = title');
-		expect(count_occurrences(code, '_$_.expression')).toBe(1);
+		expect(count_occurrences(code, '_$_.expression')).toBe(2);
 	});
 
 	it('does not merge adjacent call-containing children into stringified text', () => {
@@ -179,16 +188,16 @@ export function App() @{
 	it('parses backtick expressions inside TSRX fragments as template literals', () => {
 		const source = `let a = function() @{
 				<>
-					\`333\`
+					{\`333\`}
 				</>
 		}`;
 
 		const ast = parse(source);
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
-		const fragment = get_returned_tsrx(declaration).children[0] as any;
+		const fragment = get_returned_tsrx(declaration) as any;
 
 		expect(fragment.type).toBe('TsrxFragment');
-		expect(fragment.children[0].type).toBe('ExpressionStatement');
+		expect(fragment.children[0].type).toBe('TSRXExpression');
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toBe('333');
 	});
@@ -196,19 +205,19 @@ export function App() @{
 	it('parses backtick expressions around tag-like text inside TSRX fragments', () => {
 		const source = `let a = function() @{
 				<>
-					\`
+					{\`
 					<b></b>
-					\`
+					\`}
 				</>
 		}`;
 
 		const ast = parse(source);
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
-		const fragment = get_returned_tsrx(declaration).children[0] as any;
+		const fragment = get_returned_tsrx(declaration) as any;
 
 		expect(fragment.type).toBe('TsrxFragment');
 		expect(fragment.children.map((child: any) => child.type)).toEqual([
-			'ExpressionStatement',
+			'TSRXExpression',
 		]);
 		expect(fragment.children[0].expression.type).toBe('TemplateLiteral');
 		expect(fragment.children[0].expression.quasis[0].value.raw).toContain('<b></b>');
@@ -225,6 +234,7 @@ export function App() @{
 				bar = { def: 456 };
 				baz = { ghi: 789 };
 				baz['jkl'] = 987;
+				<></>
 		}
 
 		render(App);
@@ -247,6 +257,7 @@ export function App() @{
 
 	it('renders lexical blocks without crashing', () => {
 		function App() @{
+			<>
 				<div>
 					const a = 1;
 					<div>
@@ -262,6 +273,7 @@ export function App() @{
 						const b = 1;
 					</div>
 				</div>
+			</>
 		}
 
 		render(App);
@@ -289,6 +301,7 @@ export function App() @{
 						b: 3,
 					},
 				};
+				<></>
 		}
 
 		render(App);
@@ -317,13 +330,15 @@ export function App() @{
 		function App() @{
 				const obj = { a: 1, b: 2, c: 3 };
 				const { a, b, ...rest } = obj;
-				{'a '}
-				{a}
-				{'b '}
-				{b}
-				{'rest '}
-				{JSON.stringify(rest)}
-				<div />
+				<>
+					{'a '}
+					{a}
+					{'b '}
+					{b}
+					{'rest '}
+					{JSON.stringify(rest)}
+					<div />
+				</>
 		}
 
 		render(App);
@@ -362,6 +377,7 @@ export function App() @{
 				}
 				let flag = true;
 				const s = flag ? new Box<number>(1) : new Box<string>('string');
+				<></>
 		}
 
 		render(App);
@@ -386,8 +402,10 @@ export function App() @{
 
 	it('calculates fragment hop count for sibling fragments', () => {
 		const source = `export function App() @{
-	<div class="a">{'a'}</div>
-	<div class="b">{'b'}</div>
+	<>
+		<div class="a">{'a'}</div>
+		<div class="b">{'b'}</div>
+	</>
 		}`;
 
 		const { code } = compile(source, 'grouped-count.tsrx', { mode: 'client' });
@@ -400,7 +418,7 @@ export function App() @{
 		const source = `
 const Inline = (props) => @{
 	<div>{props.x}</div>
-</>
+}
 `;
 		const result = compile(source, 'anonymous-component.tsrx', { mode: 'client' }).code;
 
@@ -429,9 +447,9 @@ const Inline = function(props) @{
 	it('emits function calls with nested template returns as expressions in client output', () => {
 		const source = `
 function App() @{
-	function make(flag) @{
+	function make(flag) {
 		if (flag) {
-			<span>{'nested'}</span>
+			return <span>{'nested'}</span>;
 		}
 
 		return null;
@@ -530,6 +548,7 @@ function App() @{
             value: value.value,
             [createRefKey()]: inputRef,
     };
+    <></>
 }
 `;
 
@@ -544,6 +563,7 @@ import { track } from 'ripple';
 function App() @{
 	let &[value, ...rest] = track(0);
 	const x = value;
+	<></>
 }
 `;
 		const track_result = compile_to_volar_mappings(track_source, 'test.tsrx').code;
@@ -565,13 +585,13 @@ function App() @{
 	</>;
 	const content = <div class="native">{nested}</div>;
 
-	{content}
+	<>{content}</>
 }
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
 		expect(result).toContain('const nested = <span class="nested-tsx">');
-		expect(result).toContain('return <>{children}</>;');
+		expect(result).toContain('return content;');
 		expect(result).toContain('const content = <div class="native">');
 	});
 
@@ -615,7 +635,7 @@ function App() @{
 	</>;
 	const content = <div class="native">{nested}</div>;
 
-	{content}
+	<>{content}</>
 }
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
@@ -680,7 +700,8 @@ const Inline = (props: { x: string }) => @{
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
-		expect(result).toContain('const Inline = (props: { x: string }) => <div>');
+		expect(result).toContain('const Inline = (props: { x: string }) => {');
+		expect(result).toContain('return <div>');
 		expect(result).not.toContain('function Inline');
 		expect(result).not.toContain('function (props');
 	});
@@ -703,6 +724,7 @@ const Inline = function(props: { x: string }) @{
 type User = { name: string };
 
 function RenderProp<Item>(props: { children: (item: Item) => any }) @{
+	<></>
 }
 
 export function App() @{
@@ -855,7 +877,7 @@ export function App() @{
 		expect(() => compile_to_volar_mappings(source, 'test.tsrx')).not.toThrow();
 	});
 
-	it('should not error on having js below markup in the same scope', () => {
+	it('errors on having js below markup in the same scope', () => {
 		const code = `
 function Card(props) @{
 	<div class="card">
@@ -875,30 +897,33 @@ export function App() @{
 	<div>{test}</div>
 }
 `;
-		expect(() => compile(code, 'test.tsrx')).not.toThrow();
+		expect(() => compile(code, 'test.tsrx')).toThrow(
+			/Code must be at the top of '@\{ \}'; statements cannot follow the rendered output/,
+		);
 	});
 
-	it('allows component functions inside composite children', () => {
+	it('allows component functions passed to composite children', () => {
 		const source = `
 export function App() @{
-	<ark.div class="host-class" data-value="42">
-		function asChild({ children, href, ...rest }: { href: string; [key: string]: any }) @{
-			<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
-		}
-	</ark.div>
+	function asChild({ children, href, ...rest }: { href: string; [key: string]: any }) @{
+		<a id="aschild-anchor" {href} {...rest} data-extra="yes">{'Link'}</a>
+	}
+
+	<ark.div class="host-class" data-value="42" {asChild} />
 }
 `;
 
 		expect(() => compile_to_volar_mappings(source, 'test.tsrx')).not.toThrow();
 	});
 
-	it('allows parent element attributes referencing child-declared functions', () => {
+	it('allows parent element attributes referencing setup-declared functions', () => {
 		const source = `
 export function App() @{
+	function Z() @{
+		<div>{'hello'}</div>
+	}
+
 	<Test {Z}>
-		function Z() @{
-			<div>{'hello'}</div>
-		}
 	</Test>
 }
 `;
@@ -929,13 +954,15 @@ function OtherComponent({ children }: { children: string }) @{
 }
 
 export const App = () => @{
-	@try {
-		<ComponentThatSuspends />
-	} pending {
-		<div>Loading</div>
-	}
-	<OtherComponent children={'I like TSRX'} />
-</>;
+	<>
+		@try {
+			<ComponentThatSuspends />
+		} pending {
+			<div>Loading</div>
+		}
+		<OtherComponent children={'I like TSRX'} />
+	</>
+};
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx', { loose: true });
 		const source_offset = source.indexOf('\'I like TSRX\'');
@@ -1153,6 +1180,7 @@ import { track } from 'ripple';
 const outside = track(0);
 
 export function App() @{
+	<></>
 }
 `;
 
@@ -1170,10 +1198,11 @@ export function App({ items }: { items: string[] }) @{
 			if (!item) continue
 		}
 	}
+	<></>
 }`;
 
 		const result = compile(source, 'test.tsrx', { collect: true });
-		expect(result.errors.map((error) => error.message)).toContain(
+		expect(result.errors.map((error) => error.message)).not.toContain(
 			'Component if statements must contain a template in their "then" body. Move the if statement into an effect if it does not render anything.',
 		);
 	});
@@ -1181,6 +1210,7 @@ export function App({ items }: { items: string[] }) @{
 	it('preserves class extends generic type arguments in volar output', () => {
 		const source = `class StringMap extends Map<string, string> {}
 export function App() @{
+	<></>
 }`;
 
 		expect(() => compile_to_volar_mappings(source, 'test.tsrx', { loose: true })).not.toThrow();
@@ -1215,16 +1245,16 @@ export function App() @{
   <ul>var a = "123"</ul>
 			}`;
 			const ast = parse(source);
-			const ul = get_returned_tsrx(ast.body[0]).children.find(
-				(n: AST.Node) => n.type === 'Element',
-			) as AST.Element;
+			const returned = get_returned_tsrx(ast.body[0]);
+			const ul =
+				returned.type === 'Element'
+					? returned
+					: (returned.children.find((n: AST.Node) => n.type === 'Element') as AST.Element);
 			expect((ul.id as AST.Identifier).name).toBe('ul');
 			expect(ul.children).toHaveLength(1);
-			const decl = ul.children[0] as unknown as AST.VariableDeclaration;
-			expect(decl.type).toBe('VariableDeclaration');
-			expect(decl.kind).toBe('var');
-			expect((decl.declarations[0].id as AST.Identifier).name).toBe('a');
-			expect((decl.declarations[0].init as AST.Literal).value).toBe('123');
+			const text = ul.children[0] as unknown as { type: string; expression: AST.Literal };
+			expect(text.type).toBe('Text');
+			expect(text.expression.value).toBe('var a = "123"');
 			expect((ul.closingElement?.name as ESTreeJSX.JSXIdentifier)?.name).toBe('ul');
 		},
 	);
@@ -1247,19 +1277,12 @@ export function App() @{
 		expect(result).toContain('_$_.spread_props(');
 	});
 
-	it('parses less-than comparisons at line start in element children without whitespace', () => {
+	it('rejects less-than comparisons at line start in element children without whitespace', () => {
 		const source = `function TodoList({ items }: { items: { text: string }[] }) @{
 	<ul>var a = 3
 	<4;</ul>
 		}`;
 
-		const ast = parse(source);
-		const ul = get_returned_tsrx(ast.body[0]).children.find(
-			(n: AST.Node) => n.type === 'Element',
-		) as AST.Element;
-		expect((ul.id as AST.Identifier).name).toBe('ul');
-		expect(ul.children.length).toBeGreaterThanOrEqual(1);
-		const decl = ul.children[0] as unknown as AST.VariableDeclaration;
-		expect(decl.type).toBe('VariableDeclaration');
+		expect(() => parse(source)).toThrow();
 	});
 });

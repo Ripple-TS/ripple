@@ -739,6 +739,14 @@ export function convert_source_map_to_mappings(
 			} else if (node.type === 'JSXText') {
 				// Text content, no tokens to collect
 				return;
+			} else if (node.type === 'JSXCodeBlock') {
+				for (const statement of node.body) {
+					visit(statement);
+				}
+				if (node.render) {
+					visit(node.render);
+				}
+				return;
 			} else if (node.type === 'JSXElement') {
 				// Manually visit in source order: opening element, children, closing element
 

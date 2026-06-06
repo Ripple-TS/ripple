@@ -177,12 +177,12 @@ export function function_has_native_tsrx_return(node) {
 		return false;
 	}
 
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return is_native_tsrx_template_node(node.body);
-	}
-
 	if (node.body?.type === 'JSXCodeBlock') {
 		return is_native_tsrx_template_node(node.body.render);
+	}
+
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		return is_native_tsrx_template_node(node.body);
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
@@ -203,8 +203,8 @@ export function function_contains_native_tsrx_template(node) {
 		return false;
 	}
 
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return node_contains_native_tsrx_template(node.body, true);
+	if (node.body?.type === 'JSXCodeBlock') {
+		return is_native_tsrx_template_node(node.body.render);
 	}
 
 	return node_contains_native_tsrx_template(node.body, true);
@@ -484,16 +484,6 @@ export function get_native_tsrx_template_children(node) {
  * @returns {AST.Node[]}
  */
 export function get_native_tsrx_function_body(node) {
-	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
-		return is_native_tsrx_template_node(node.body)
-			? [
-					...get_native_tsrx_template_children(
-						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
-					).map(mark_returned_template_child),
-				]
-			: [b.return(/** @type {AST.Expression} */ (node.body))];
-	}
-
 	if (node.body?.type === 'JSXCodeBlock') {
 		const block = node.body;
 		return [
@@ -502,6 +492,16 @@ export function get_native_tsrx_function_body(node) {
 				? [mark_returned_template_child(block.render)]
 				: []),
 		];
+	}
+
+	if (node.type === 'ArrowFunctionExpression' && node.body?.type !== 'BlockStatement') {
+		return is_native_tsrx_template_node(node.body)
+			? [
+					...get_native_tsrx_template_children(
+						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
+					).map(mark_returned_template_child),
+				]
+			: [b.return(/** @type {AST.Expression} */ (node.body))];
 	}
 
 	const body = node.body?.type === 'BlockStatement' ? node.body.body : [];
