@@ -1153,25 +1153,28 @@ export function TSRXPlugin(config) {
 				let render_seen = false;
 				while (this.type !== tt.braceR && this.type !== tt.eof) {
 					if (this.#atRenderNodeStart()) {
+						const render_node = this.#parseCodeBlockRenderNode();
 						if (render_seen) {
-							this.#report_recoverable_error(
-								this.start,
+							this.#report_recoverable_error_range(
+								/** @type {number} */ (render_node.start),
+								/** @type {number} */ (render_node.end),
 								"A code block renders a single node; wrap multiple nodes or text in a fragment '<>…</>'.",
 							);
 						}
-						flat.push(this.#parseCodeBlockRenderNode());
+						flat.push(render_node);
 						render_seen = true;
 						continue;
 					}
-					if (render_seen) {
-						// A statement after the rendered output: code must come first.
-						this.#report_recoverable_error(
-							this.start,
-							"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
-						);
-					}
 					const statement = this.#parseCodeBlockSetupStatement();
 					if (statement) {
+						if (render_seen) {
+							// A statement after the rendered output: code must come first.
+							this.#report_recoverable_error_range(
+								/** @type {number} */ (statement.start),
+								/** @type {number} */ (statement.end),
+								"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
+							);
+						}
 						flat.push(statement);
 					}
 				}
