@@ -30,9 +30,10 @@ possible, to improve runtime performance.
 ```ripple
 import { track } from 'ripple';
 
-export function EventExample() {
+export function EventExample() @{
   let &[message] = track('');
-  return <div>
+
+  <div>
     <button onClick={() => (message = 'Clicked!')}>Click me</button>
     <input onInput={(e) => (message = e.target.value)} />
     <p>{message}</p>
@@ -79,9 +80,10 @@ phase. This is equivalent to using the `Capture` suffix on the event name.
 ```ripple
 import { RippleArray } from 'ripple';
 
-export function EventExample() {
+export function EventExample() @{
   let order = new RippleArray();
-  return <div
+
+  <div
     onClick={{
       handleEvent: () => order.push('outer-capture'),
       capture: true,
@@ -105,9 +107,10 @@ is useful for one-time setup or cleanup operations.
 ```ripple
 import { track } from 'ripple';
 
-export function EventExample() {
+export function EventExample() @{
   let &[count] = track(0);
-  return <>
+
+  <>
     <button
       onClick={{
         handleEvent: () => count++,
@@ -117,7 +120,7 @@ export function EventExample() {
       Click me (only works once)
     </button>
     <p>Clicks: {count}</p>
-  </>;
+  </>
 }
 // Button only responds to the first click
 ```
@@ -198,9 +201,10 @@ inferred from the attribute.
 ```ripple
 import { track } from 'ripple';
 
-export function EventExample() {
+export function EventExample() @{
   let &[count] = track(0);
-  return <>
+
+  <>
     <div
       onMyCustomEvent={{
         handleEvent: (e) => (count += e.detail.value),
@@ -210,7 +214,7 @@ export function EventExample() {
       Custom event target
     </div>
     <p>Event count: {count}</p>
-  </>;
+  </>
 }
 // The element listens for 'MyCustomEvent' instead of 'mycustomevent'
 ```
@@ -231,7 +235,7 @@ ones that can be used for event attributes with the object syntax.
 ```ripple
 import { on, effect } from 'ripple';
 
-export function App() {
+export function App() @{
   effect(() => {
     // on component mount
     const removeListener = on(window, 'resize', () => {
@@ -242,7 +246,7 @@ export function App() {
     return removeListener;
   });
 
-  return <></>;
+  <></>
 }
 ```
 

@@ -21,15 +21,16 @@ and cleared when it unmounts.
 ```ripple
 import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let div: HTMLDivElement | undefined;
   const input = track<HTMLInputElement | null>(null);
   const state: { button?: HTMLButtonElement } = {};
-  return <>
+
+  <>
     <div ref={div}>Hello world</div>
     <input ref={input} type="text" />
     <button ref={state.button}>Save</button>
-  </>;
+  </>
 }
 ```
 
@@ -43,7 +44,7 @@ function to run when the element is removed.
 <Code console>
 
 ```ripple
-export function App() {
+export function App() @{
   function setup(node: HTMLDivElement) {
     console.log('mounted', node);
 
@@ -51,7 +52,8 @@ export function App() {
       console.log('unmounted', node);
     };
   }
-  return <div ref={setup}>Hello world</div>
+
+  <div ref={setup}>Hello world</div>
 }
 ```
 
@@ -62,9 +64,10 @@ You can also create callback refs inline.
 <Code console>
 
 ```ripple
-export function App() {
+export function App() @{
   let div: HTMLDivElement | undefined;
-  return <div
+
+  <div
     ref={(node) => {
       div = node;
       console.log('mounted', node);
@@ -98,10 +101,11 @@ Use an array when one DOM element needs more than one ref.
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export function App() @{
   let input: HTMLInputElement | undefined;
   const trackedInput = track<HTMLInputElement | null>(null);
-  return <input ref={[input, trackedInput, (node) => console.log(node)]} />
+
+  <input ref={[input, trackedInput, (node) => console.log(node)]} />
 }
 ```
 
@@ -117,9 +121,10 @@ function Input({ id, ...rest }) {
   return <input {id} {...rest} />
 }
 
-export function App() {
+export function App() @{
   let input: HTMLInputElement | undefined;
-  return <Input id="email" ref={input} />
+
+  <Input id="email" ref={input} />
 }
 ```
 
@@ -137,9 +142,10 @@ export function Field({ inputRef, ...rest }) {
   </label>
 }
 
-export function App() {
+export function App() @{
   let input: HTMLInputElement | undefined;
-  return <Field inputRef={input} placeholder="Search docs" />
+
+  <Field inputRef={input} placeholder="Search docs" />
 }
 ```
 
@@ -156,7 +162,7 @@ assembled programmatically.
 ```ripple
 import { createRefKey, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[value] = track('');
   let input: HTMLInputElement | undefined;
 
@@ -180,10 +186,10 @@ export function App() {
     },
   };
 
-  return <>
+  <>
     <input type="text" {...props} />
     <Input {...props} />
-  </>;
+  </>
 }
 
 function Input({ id, value, ...rest }) {

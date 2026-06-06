@@ -1,10 +1,9 @@
 export function Content() {
 	return <>
 		<div class="content-section">
-			<h2 class="description">
-				{'Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one package.'}
-			</h2>
-
+			<h2
+				class="description"
+			>{'Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one package.'}</h2>
 			<ul class="features">
 				<li>
 					<strong>{'Reactive State Management'}</strong>
@@ -19,8 +18,10 @@ export function Content() {
 					{'- Clean, reusable components with props and children'}
 				</li>
 				<li>
-					<strong>{'Template Syntax<'}</strong>
-					{'- Familiar templating with Ripple-specific enhancements'}
+					<strong>{'Statement Containers'}</strong>
+					{'- Use '}
+					<code>{'@{...}'}</code>
+					{' for scripting, then finish with one JSX element, fragment, or control-flow expression'}
 				</li>
 				<li>
 					<strong>{'Performance'}</strong>
@@ -36,11 +37,21 @@ export function Content() {
 				</li>
 				<li>
 					<strong>{'Control Flow'}</strong>
-					{'- Native <code>if</code>, <code>for</code>, and <code>try</code> in templates'}
+					{'- Inline '}
+					<code>{'@if'}</code>
+					{', '}
+					<code>{'@for'}</code>
+					{', '}
+					<code>{'@switch'}</code>
+					{', and '}
+					<code>{'@try'}</code>
+					{' in templates'}
 				</li>
 				<li>
 					<strong>{'Scoped Styling'}</strong>
-					{'- Component-local CSS with <code>&lt;style&gt;</code> elements'}
+					{'- Component-local CSS with '}
+					<code>{'<style>'}</code>
+					{' elements'}
 				</li>
 				<li>
 					<strong>{'Prettier Support'}</strong>

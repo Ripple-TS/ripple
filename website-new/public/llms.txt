@@ -385,12 +385,12 @@ const nativeTemplate = @{
 ### Text, escaped text, and raw HTML
 
 ```tsrx
-function Inbox({ name, count }: { name: string; count: number }) {
-	return <>
+function Inbox({ name, count }: { name: string; count: number }) @{
+	<>
 		<p>Hello, {name}!</p>
 		<p>You have {count} unread messages</p>
 		<p>{count > 0 ? 'Check your inbox.' : 'All caught up.'}</p>
-	</>;
+	</>
 }
 ```
 
@@ -451,25 +451,28 @@ branch should exit the enclosing function.
 ### `if` / `else if` / `else`
 
 ```tsrx
-const StatusBadge = ({ status }: { status: string }) => @if (status === 'active') {
-	<span class="badge active">Online</span>
-} else if (status === 'idle') {
-	<span class="badge idle">Away</span>
-} else {
-	<span class="badge">Offline</span>
-};
+function StatusBadge({ status }: { status: string }) @{
+	@if (status === 'active') {
+		<span class="badge active">Online</span>
+	} else if (status === 'idle') {
+		<span class="badge idle">Away</span>
+	} else {
+		<span class="badge">Offline</span>
+	}
+}
 ```
 
 ### `for...of` with `index` and `key`
 
 ```tsrx
-const TodoList = ({ items }: { items: Todo[] }) =>
+function TodoList({ items }: { items: Todo[] }) @{
 	<ul>
 		@for (const item of items; index i; key item.id) {
 			if (item.hidden) continue;
 			<li>{i + 1}. {item.text}</li>
 		}
-	</ul>;
+	</ul>
+}
 ```
 
 Regular `for`, `for...in`, `while`, and `do...while` are not template
@@ -479,16 +482,18 @@ loops into a nested function.
 ### `switch`
 
 ```tsrx
-const StatusMessage = ({ status }: { status: string }) => @switch (status) {
-	case 'loading':
-		<p>Loading...</p>
-		break;
-	case 'success':
-		<p class="success">Done!</p>
-		break;
-	default:
-		<p>Unknown status.</p>
-};
+function StatusMessage({ status }: { status: string }) @{
+	@switch (status) {
+		case 'loading':
+			<p>Loading...</p>
+			break;
+		case 'success':
+			<p class="success">Done!</p>
+			break;
+		default:
+			<p>Unknown status.</p>
+	}
+}
 ```
 
 ### `try` / `catch` / `pending`
@@ -496,13 +501,15 @@ const StatusMessage = ({ status }: { status: string }) => @switch (status) {
 ```tsrx
 const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
-export const App = () => @try {
-	<UserProfile id={1} />
-} pending {
-	<p>Loading...</p>
-} catch (e) {
-	<p>Something went wrong.</p>
-};
+export function App() @{
+	@try {
+		<UserProfile id={1} />
+	} pending {
+		<p>Loading...</p>
+	} catch (e) {
+		<p>Something went wrong.</p>
+	}
+}
 ```
 
 The `catch` block also receives a `reset` function as its second argument.
@@ -510,14 +517,16 @@ Calling `reset()` clears the error state and re-renders the children, which is
 useful for building retry UIs:
 
 ```tsrx
-export const RetryBoundary = () => @try {
-	<ComponentThatMightFail />
-} catch (e, reset) {
-	<div>
-		<p>Error: {e.message}</p>
-		<button onClick={() => reset()}>Try again</button>
-	</div>
-};
+export function RetryBoundary() @{
+	@try {
+		<ComponentThatMightFail />
+	} catch (e, reset) {
+		<div>
+			<p>Error: {e.message}</p>
+			<button onClick={() => reset()}>Try again</button>
+		</div>
+	}
+}
 ```
 
 ### Guard returns
@@ -617,18 +626,16 @@ const articleStyles = <style>
 	}
 </style>;
 
-export function ArticleCard({ title }: { title: string }) {
-	return <>
-		// Ripple, Preact, Solid, and Vue host elements:
-		<article class={articleStyles.card}>
-			<h2 class={articleStyles.title}>{title}</h2>
-		</article>
+export function ArticleCard({ title }: { title: string }) @{
+	// Ripple, Preact, Solid, and Vue host elements:
+	<article class={articleStyles.card}>
+		<h2 class={articleStyles.title}>{title}</h2>
+	</article>
 
-		// React host elements:
-		// <article className={articleStyles.card}>
-		// 	<h2 className={articleStyles.title}>{title}</h2>
-		// </article>
-	</>;
+	// React host elements:
+	// <article className={articleStyles.card}>
+	// 	<h2 className={articleStyles.title}>{title}</h2>
+	// </article>
 }
 ```
 

@@ -32,7 +32,7 @@ import { Context, track } from 'ripple';
 const context = new Context({});
 const context2 = new Context();
 
-export function App() {
+export function App() @{
   // get reference to the object
   const obj = context.get();
   // set your reactive value
@@ -44,7 +44,7 @@ export function App() {
   // context2 now contains a tracked variable
   context2.set(count2Tracked);
 
-  return <>
+  <>
     <button onClick={() => {
       count++;
       count2++;
@@ -53,7 +53,7 @@ export function App() {
     // context's reactive property count gets updated
     <pre>Context: {count}</pre>
     <pre>Context2: {count2}</pre>
-  </>;
+  </>
 }
 ```
 

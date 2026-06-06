@@ -130,15 +130,15 @@ Use `@for (... of ...)` to render collections.
 <Code>
 
 ```ripple
-function ListView({ title, items }) {
-  return <>
+function ListView({ title, items }) @{
+  <>
     <h2>{title}</h2>
     <ul>
       @for (const item of items) {
         <li>{item.text}</li>
       }
     </ul>
-  </>;
+  </>
 }
 
 // usage
@@ -221,8 +221,8 @@ encounters an error in the `try` block, you can easily render a fallback in the
 ```ripple
 import { reportError } from 'some-library';
 
-export function ErrorBoundary() {
-  return <div>
+export function ErrorBoundary() @{
+  <div>
     @try {
       <ComponentThatFails />
     } catch (e) {
@@ -230,7 +230,7 @@ export function ErrorBoundary() {
 
       <div>An error occurred! {e.message}</div>
     }
-  </div>;
+  </div>
 }
 ```
 
@@ -239,8 +239,8 @@ Calling `reset()` clears the error state and re-renders the children, which is
 useful for building retry UIs:
 
 ```ripple
-export function RetryBoundary() {
-  return <div>
+export function RetryBoundary() @{
+  <div>
     @try {
       <ComponentThatMightFail />
     } catch (e, reset) {
@@ -249,7 +249,7 @@ export function RetryBoundary() {
         <button onClick={() => reset()}>Try again</button>
       </div>
     }
-  </div>;
+  </div>
 }
 ```
 
@@ -293,16 +293,14 @@ function UserProfile({ id }: { id: number }) @{
 Wrap the component in a `try/pending` block to handle the suspended state:
 
 ```ripple
-export function App() {
-  return <>
-    @try {
-      <UserProfile id={1} />
-    } pending {
-      <p>Loading...</p>
-    } catch (e) {
-      <p>Error: {e.message}</p>
-    }
-  </>;
+export function App() @{
+  @try {
+    <UserProfile id={1} />
+  } pending {
+    <p>Loading...</p>
+  } catch (e) {
+    <p>Error: {e.message}</p>
+  }
 }
 ```
 

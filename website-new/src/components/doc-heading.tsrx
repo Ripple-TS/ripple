@@ -8,14 +8,12 @@ export function DocHeading({
 	level: number;
 	id: string;
 	children: Children;
-}) {
-	return <>
-		const tag = `h${level}`;
-		const className = `doc-h${level}`;
-		---
-		<@tag {id} class={className}>
-			{children}
-			<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
-		</@tag>
-	</>;
+}) @{
+	const tag = `h${level}`;
+	const className = `doc-h${level}`;
+
+	<@tag {id} class={className}>
+		{children}
+		<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
+	</@tag>
 }

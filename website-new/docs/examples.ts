@@ -9,9 +9,9 @@ export default function App() {
 	{
 		title: 'Dynamic Content',
 		code: `
-export default function App() {
+export default function App() @{
 	const message = "Hello Ripple!";
-	return <div>{message}</div>
+	<div>{message}</div>
 }`,
 	},
 	{
@@ -261,22 +261,22 @@ function Truthy({ x }) {
   </div>
 }
 
-export default function App() {
-  return <>
+export default function App() @{
+  <>
 		<Truthy x={true} />
 		<Truthy x={false} />
-  </>;
-}
+  </>
+} 
 `,
 	},
 	{
 		title: 'Switch Statements',
 		code: `import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
 	let &[count] = track(1);
 
-  return <>
+  <>
 		<button onClick={() => count++}>Increment</button>
 
 		@switch (count) {
@@ -289,7 +289,7 @@ export default function App() {
 			default:
 				<div>Count is other</div>
 		}
-  </>;
+  </>
 }
 `,
 	},
@@ -312,12 +312,12 @@ function ListWithIndex({ items }) {
   </ul>
 }
 
-export default function App() {
+export default function App() @{
 	const items = ['apple', 'banana', 'cherry']
-  return <>
+  <>
 		<List {items} />
 		<ListWithIndex {items} />
-  </>;
+  </>
 }
 `,
 	},
@@ -332,8 +332,8 @@ function ComponentThatFails(props) {
   return <div>{props.foo.bar}</div>
 }
 
-export default function ErrorBoundary() {
-  return <div>
+export default function ErrorBoundary() @{
+  <div>
     @try {
       <ComponentThatFails />
     } catch (e) {
@@ -356,27 +356,25 @@ function AsyncComponent() {
   return <p>{message}</p>
 }
 
-export default function SuspenseBoundary() {
-  return <>
-		@try {
-			<AsyncComponent />
-		} pending {
-			<p>Loading...</p>
-		}
-  </>;
+export default function SuspenseBoundary() @{
+  @try {
+    <AsyncComponent />
+  } pending {
+    <p>Loading...</p>
+  }
 }
 `,
 	},
 	{
 		title: 'Raw HTML',
 		code: `
-export default function App() {
+export default function App() @{
 	let source = \`
 		<h1>My Blog Post</h1>
 		<p>Hi! I like JS and Ripple.</p>
 	\`
 
-  return <article innerHTML={source} />
+  <article innerHTML={source} />
 }
 `,
 	},
@@ -384,12 +382,12 @@ export default function App() {
 		title: 'Reactive Variables',
 		code: `import { track } from 'ripple';
 
-export default function Counter() {
+export default function Counter() @{
 	let &[count] = track(0);  // Reactive variable
 	let &[double] = track(() => count * 2);  // Derived reactive value
 	let &[quadruple] = track(() => double * 2);
 
-  return <>
+  <>
 		<div class="container">
 			<p>Count: {count}</p>
 			<p>Double: {double}</p>
@@ -407,7 +405,7 @@ export default function Counter() {
 				padding: 10px;
 			}
 		</style>
-  </>;
+  </>
 }`,
 	},
 	{
@@ -415,7 +413,7 @@ export default function Counter() {
 		code: `import { effect, track } from 'ripple';
 import confetti from 'canvas-confetti';
 
-export default function App() {
+export default function App() @{
   let &[count] = track(0);
 
   effect(() => {
@@ -425,7 +423,7 @@ export default function App() {
     }
   });
 
-	return <button onClick={() => count++}>Increment</button>
+	<button onClick={() => count++}>Increment</button>
 }
 `,
 	},
@@ -433,7 +431,7 @@ export default function App() {
 		title: 'Simple Reactive Array',
 		code: `import { effect, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
 	let &[first, firstTracked] = track(1);
 	let &[second, secondTracked] = track(2);
 	const arr = [firstTracked, secondTracked];
@@ -444,7 +442,7 @@ export default function App() {
 		console.log(total);
 	});
 
-	return <div>
+	<div>
 		<button onClick={() => first++}>First: {first}</button>
 		<button onClick={() => second++}>Second: {second}</button>
 		<p>Total: {total}</p>
@@ -456,7 +454,7 @@ export default function App() {
 		title: 'Fully Reactive Array',
 		code: `import { RippleArray, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   // create a RippleArray using the constructor
   const arr = new RippleArray(1, 2, 3);
 	let &[sum] = track(() => arr.reduce((a, b) => a + b, 0));
@@ -474,7 +472,7 @@ export default function App() {
   // const arr = RippleArray.of(1, 2, 3);
 	console.log(arr instanceof Array);
 
-  return <>
+  <>
 		// array methods can be used as usual
 		<p>arr: {arr.join(", ")}</p>
 		<p>double: {arr.map(x => x * 2).join(", ")}</p>
@@ -491,7 +489,7 @@ export default function App() {
 				margin: 5px;
 			}
 		</style>
-  </>;
+  </>
 }
 `,
 	},
@@ -499,16 +497,16 @@ export default function App() {
 		title: 'Reactive Object',
 		code: `import { RippleObject } from 'ripple';
 
-export default function App() {
+export default function App() @{
   const obj = new RippleObject({a: 0})
 
   obj.a = 0;
 
-  return <>
+  <>
 		<pre>obj.a is: {obj.a}</pre>
 		<pre>obj.b is: {obj.b}</pre>
 		<button onClick={() => { obj.a++; obj.b = obj.b ?? 5; obj.b++; }}>Increment</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -516,11 +514,11 @@ export default function App() {
 		title: 'Reactive Set',
 		code: `import { RippleSet, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   const set = new RippleSet([1, 2, 3]);
 	let &[has] = track(() => set.has(2));
 
-  return <>
+  <>
 		// direct usage
 		<p>Direct usage: set contains 2: {set.has(2)}</p>
 
@@ -529,7 +527,7 @@ export default function App() {
 
 		<button onClick={() => set.delete(2)}>Delete 2</button>
 		<button onClick={() => set.add(2)}>Add 2</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -537,11 +535,11 @@ export default function App() {
 		title: 'Reactive Map',
 		code: `import { RippleMap, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   const map = new RippleMap([[1,1], [2,2], [3,3], [4,4]]);
 	let &[has] = track(() => map.has(2));
 
-	return <>
+	<>
 		// direct usage
 		<p>Direct usage: map has an item with key 2: {map.has(2)}</p>
 
@@ -550,7 +548,7 @@ export default function App() {
 
 		<button onClick={() => map.delete(2)}>Delete item with key 2</button>
 		<button onClick={() => map.set(2, 2)}>Add key 2 with value 2</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -558,12 +556,12 @@ export default function App() {
 		title: 'Reactive Date',
 		code: `import { RippleDate, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   const date = new RippleDate(2025, 0, 1, 12, 0, 0);
 	let &[year] = track(() => date.getFullYear());
 	let &[month] = track(() => date.getMonth());
 
-  return <>
+  <>
 		// direct usage
 		<p>Direct usage: Current year is {date.getFullYear()}</p>
 		<p>ISO String: {date.toISOString()}</p>
@@ -573,7 +571,7 @@ export default function App() {
 
 		<button onClick={() => date.setFullYear(2026)}>Change to 2026</button>
 		<button onClick={() => date.setMonth(11)}>Change to December</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -581,7 +579,7 @@ export default function App() {
 		title: 'Tracked with get/set',
 		code: `import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[count] = track(0,
     (current) => {
       console.log(current);
@@ -597,7 +595,7 @@ export default function App() {
     }
   );
 
-	return <>
+	<>
 		<div class="container">
 			<p>{count}</p>
 			<button onClick={() => count++}>Increment</button>
@@ -613,7 +611,7 @@ export default function App() {
 				padding: 10px;
 			}
 		</style>
-  </>;
+  </>
 }
 `,
 	},
@@ -638,17 +636,17 @@ function createQuad(&[count]) {
   return quadTrack;
 }
 
-export default function App() {
+export default function App() @{
   let &[count, countTrack] = track(0);
   const &[double] = createDouble(countTrack);
 	const &[quad] = createQuad(countTrack);
 
-	return <>
+	<>
 		<p>Count: {count}</p>
 		<p>Double: {double}</p>
 		<p>Quadruple: {quad}</p>
 		<button onClick={() => { count++; }}>Increment Count</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -656,16 +654,16 @@ export default function App() {
 		title: 'Dynamic Components',
 		code: `import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[swapMe, swapMeTracked] = track(() => Child1);
 
-  return <>
+  <>
 		<Child swapMe={swapMeTracked} />
 
 		<button onClick={() => swapMe = swapMe === Child1 ? Child2 : Child1}>
 			Swap Component
 		</button>
-  </>;
+  </>
 }
 
 function Child({ swapMe }: {swapMe: Tracked<Component>}) {
@@ -685,7 +683,7 @@ function Child2(props) {
 		title: 'Component Transport Pattern',
 		code: `import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   const &[tracked_basic] = track(() => basic);
   const obj = {
     tracked_basic,
@@ -694,11 +692,11 @@ export default function App() {
   const &[Button] = track(() => SomeButton);
   const &[AnotherButton] = track(() => SomeButton);
 
-	return <>
+	<>
 		<@ripple_object.tracked_basic />
 		<Child {Button}>Child Button</Child>
 		<AnotherChild Button={AnotherButton}>Another Child Button</AnotherChild>
-  </>;
+  </>
 }
 
 function Child({ Button, children }) {
@@ -722,7 +720,7 @@ function basic() {
 		title: 'Untracking Reactivity',
 		code: `import { effect, track, untrack } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[count] = track(10);
   let &[double] = track(() => count * 2);
   let &[quadruple] = track(() => double * 2);
@@ -732,12 +730,12 @@ export default function App() {
     console.log(untrack(() => quadruple));
 	})
 
-	return <>
+	<>
 		<p>Count: {count}</p>
 		<p>Double: {double}</p>
 		<p>Quadruple: {quadruple}</p>
 		<button onClick={() => { count++; }}>Increment Count</button>
-  </>;
+  </>
 }
 `,
 	},
@@ -745,7 +743,7 @@ export default function App() {
 		title: 'Events',
 		code: `import { effect, on, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[message] = track('');
 
 	effect(() => {
@@ -758,12 +756,12 @@ export default function App() {
     return removeListener;
   });
 
-	return <div>
+	<div>
 		<p>Try resizing the window!</p>
     <button onClick={() => message = 'Clicked!'}>Click me</button>
     <input onInput={(e) => message = e.target.value} />
     <p>{message}</p>
-  </div>;
+  </div>
 }
 `,
 	},
@@ -771,7 +769,7 @@ export default function App() {
 		title: 'DOM References',
 		code: `import { track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[div] = track();
 
   const divRef = (node) => {
@@ -784,7 +782,7 @@ export default function App() {
     };
   };
 
-	return <div ref={divRef}>Hello world</div>
+	<div ref={divRef}>Hello world</div>
 }
 `,
 	},
@@ -792,7 +790,7 @@ export default function App() {
 		title: 'createRefKey',
 		code: `import { createRefKey, track } from 'ripple';
 
-export default function App() {
+export default function App() @{
   let &[value] = track('');
 
   const props = {
@@ -812,10 +810,10 @@ export default function App() {
     }
   };
 
-	return <>
+	<>
 		<input type="text" {...props} />
 		<div>{value}</div>
-  </>;
+  </>
 }
 `,
 	},
@@ -825,7 +823,7 @@ export default function App() {
 
 const MyContext = new Context(null);
 
-export default function Parent() {
+export default function Parent() @{
 	const value = MyContext.get();
 
 	// Context is read in the Parent component, but hasn't yet
@@ -836,10 +834,10 @@ export default function Parent() {
 	// Context is set in the Parent component
 	MyContext.set("Hello from context!");
 
-	return <Child />
+	<Child />
 }
 
-function Child() {
+function Child() @{
 
 	// Context is read in the Child component
 	const value = MyContext.get();
@@ -847,7 +845,7 @@ function Child() {
 	// value is "Hello from context!"
 	console.log(value);
 
-  return <p>Value in Child: {value}</p>;
+  <p>Value in Child: {value}</p>
 }
 `,
 	},

@@ -15,50 +15,50 @@ const STEP = 40;
 const INTERVAL = STEP / 2;
 const CURSOR = '<span class="typing-cursor">|</span>';
 
-export function Editor() {
-	return <>
-		let nodeRef: Tracked<HTMLElement> = track();
-		let &[loading] = track(true);
-		let &[content] = track('');
-		effect(() => {
-			if (nodeRef.value) {
-				fetchMessage().then((message: string) => {
-					content = message;
+export function Editor() @{
+	let nodeRef: Tracked<HTMLElement> = track();
+	let &[loading] = track(true);
+	let &[content] = track('');
+	effect(() => {
+		if (nodeRef.value) {
+			fetchMessage().then((message: string) => {
+				content = message;
 
-					loading = false;
-				});
+				loading = false;
+			});
+		}
+	});
+	effect(() => {
+		if (!content) {
+			return;
+		}
+
+		let charIndex = 0;
+		let timeoutId: number;
+
+		function addChar() {
+			charIndex += STEP;
+
+			if (charIndex < content.length) {
+				nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
+				timeoutId = window.setTimeout(addChar, INTERVAL);
+			} else {
+				nodeRef.value.innerHTML = content;
 			}
-		});
-		effect(() => {
-			if (!content) {
-				return;
-			}
+		}
 
-			let charIndex = 0;
-			let timeoutId: number;
+		timeoutId = window.setTimeout(addChar, 1000);
 
-			function addChar() {
-				charIndex += STEP;
+		if (charIndex >= content.length) {
+			window.clearTimeout(timeoutId);
+		}
 
-				if (charIndex < content.length) {
-					nodeRef.value.innerHTML = content.substring(0, charIndex) + CURSOR;
-					timeoutId = window.setTimeout(addChar, INTERVAL);
-				} else {
-					nodeRef.value.innerHTML = content;
-				}
-			}
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	});
 
-			timeoutId = window.setTimeout(addChar, 1000);
-
-			if (charIndex >= content.length) {
-				window.clearTimeout(timeoutId);
-			}
-
-			return () => {
-				window.clearTimeout(timeoutId);
-			};
-		});
-		---
+	<>
 		<div class="editor-mockup">
 			<div class="editor-header">
 				<div class="editor-dots">
@@ -248,5 +248,5 @@ export function Editor() {
 				font-weight: bold;
 			}
 		</style>
-	</>;
+	</>
 }

@@ -15,30 +15,30 @@ export function App() @{
   let &[count] = track(0);
 
   <>
-  <div class="container">
-    <h1>Welcome to Ripple!</h1>
+    <div class="container">
+      <h1>Welcome to Ripple!</h1>
 
-    <div>
-      <button onClick={() => count--}>-</button>
-      <span class="count">{count}</span>
-      <button onClick={() => count++}>+</button>
+      <div>
+        <button onClick={() => count--}>-</button>
+        <span class="count">{count}</span>
+        <button onClick={() => count++}>+</button>
+      </div>
     </div>
-  </div>
 
-  <style>
-    .container {
-      text-align: center;
-      font-family: "Arial", sans-serif;
-    }
+    <style>
+      .container {
+        text-align: center;
+        font-family: "Arial", sans-serif;
+      }
 
-    button {
-      height: 2rem;
-      width: 2rem;
-      margin: 1rem;
-    }
-  </style>
-
-  </>}`;
+      button {
+        height: 2rem;
+        width: 2rem;
+        margin: 1rem;
+      }
+    </style>
+  </>
+}`;
 
 export function IntroductionPage() {
 	return <>
@@ -122,8 +122,10 @@ export function IntroductionPage() {
 					{': Clean, reusable components with props and children'}
 				</li>
 				<li>
-					<strong>{'Template Syntax'}</strong>
-					{': Familiar templating with Ripple-specific enhancements'}
+					<strong>{'Statement Containers'}</strong>
+					{': Use '}
+					<code>{'@{...}'}</code>
+					{' for local setup, then finish with one JSX element, fragment, or control-flow expression'}
 				</li>
 				<li>
 					<strong>{'Performance'}</strong>

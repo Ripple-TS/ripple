@@ -26,9 +26,10 @@ and an input or select element's value.
 ```ripple
 import { bindValue, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[name, nameTracked] = track('');
-  return <div>
+
+  <div>
     <input
       type="text"
       ref={bindValue(nameTracked)}
@@ -49,9 +50,10 @@ export function App() {
 ```ripple
 import { bindValue, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[age, ageTracked] = track(0);
-  return <div>
+
+  <div>
     <input type="number" ref={bindValue(ageTracked)} min="0" max="120" />
     <p>Age: {age} years old</p>
     <button onClick={() => (age = age + 1)}>Increment</button>
@@ -68,9 +70,10 @@ export function App() {
 ```ripple
 import { bindValue, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[selectedFruit, selectedFruitTracked] = track('apple');
-  return <div>
+
+  <div>
     <select ref={bindValue(selectedFruitTracked)}>
       <option value="apple">Apple</option>
       <option value="banana">Banana</option>
@@ -91,9 +94,10 @@ export function App() {
 ```ripple
 import { bindValue, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[selectedColors, selectedColorsTracked] = track(['red', 'blue']);
-  return <div>
+
+  <div>
     <select multiple ref={bindValue(selectedColorsTracked)} style="height: 100px">
       <option value="red">Red</option>
       <option value="green">Green</option>
@@ -117,9 +121,10 @@ boolean value.
 ```ripple
 import { bindChecked, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[agreed, agreedTracked] = track(false);
-  return <div>
+
+  <div>
     <label>
       <input type="checkbox" ref={bindChecked(agreedTracked)} />
        I agree to the terms and conditions
@@ -152,10 +157,11 @@ checkboxes when only some (but not all) child items are selected.
 ```ripple
 import { bindChecked, bindIndeterminate, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[checked, checkedTracked] = track(false);
   let &[indeterminate, indeterminateTracked] = track(true);
-  return <div>
+
+  <div>
     <label>
       <input
         type="checkbox"
@@ -204,10 +210,10 @@ selections or mutually exclusive choices.
 ```ripple
 import { bindGroup, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[hobbies, hobbiesTracked] = track(['reading']);
 
-  return <div>
+  <div>
     <label>
       <input type="checkbox" value="reading" ref={bindGroup(hobbiesTracked)} />
        Reading
@@ -239,10 +245,10 @@ export function App() {
 ```ripple
 import { bindGroup, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[size, sizeTracked] = track('medium');
 
-  return <div>
+  <div>
     <label>
       <input type="radio" name="size" value="small" ref={bindGroup(sizeTracked)} />
        Small
@@ -289,7 +295,7 @@ programmatically update the file input.
 ```ripple
 import { bindFiles, bindNode, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[files, filesTracked] = track();
   let &[version] = track(0);
   let &[input, inputTracked] = track();
@@ -314,7 +320,7 @@ export function App() {
     files = dt.files;
   };
 
-  return <div>
+  <div>
     <input
       type="file"
       ref={[bindFiles(filesTracked), bindNode(inputTracked)]}
@@ -373,10 +379,11 @@ scrollbars).
 ```ripple
 import { bindClientWidth, bindClientHeight, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[width, widthTracked] = track(0);
   let &[height, heightTracked] = track(0);
-  return <div
+
+  <div
     ref={[bindClientWidth(widthTracked), bindClientHeight(heightTracked)]}
     style={{
       resize: 'both',
@@ -405,10 +412,11 @@ These bindings track the full outer dimensions of an element (including borders)
 ```ripple
 import { bindOffsetWidth, bindOffsetHeight, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[width, widthTracked] = track(0);
   let &[height, heightTracked] = track(0);
-  return <>
+
+  <>
     <div
       ref={[bindOffsetWidth(widthTracked), bindOffsetHeight(heightTracked)]}
       style={{
@@ -439,10 +447,10 @@ Tracks the element's content rectangle from the ResizeObserver API.
 ```ripple
 import { bindContentRect, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[rect, rectTracked] = track({ width: 0, height: 0, top: 0, left: 0 });
 
-  return <>
+  <>
     <div
       ref={bindContentRect(rectTracked)}
       style={{
@@ -472,10 +480,10 @@ Tracks the content box size (without padding or borders).
 ```ripple
 import { bindContentBoxSize, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[size, sizeTracked] = track([]);
 
-  return <>
+  <>
     <div
       ref={bindContentBoxSize(sizeTracked)}
       style={{
@@ -508,10 +516,10 @@ Tracks the border box size (including padding and borders).
 ```ripple
 import { bindBorderBoxSize, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[size, sizeTracked] = track([]);
 
-  return <>
+  <>
     <div
       ref={bindBorderBoxSize(sizeTracked)}
       style={{
@@ -543,10 +551,10 @@ Tracks the content box size in device pixels (useful for high-DPI displays).
 ```ripple
 import { bindDevicePixelContentBoxSize, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[size, sizeTracked] = track([]);
 
-  return <>
+  <>
     <div
       ref={bindDevicePixelContentBoxSize(sizeTracked)}
       style={{
@@ -580,10 +588,10 @@ Binds to an element's innerHTML property, useful for rich text editors.
 ```ripple
 import { bindInnerHTML, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[content, contentTracked] = track('<strong>Bold text</strong>');
 
-  return <>
+  <>
     <div
       contentEditable={true}
       ref={bindInnerHTML(contentTracked)}
@@ -611,10 +619,10 @@ Binds to an element's innerText property (text with line breaks, no HTML).
 ```ripple
 import { bindInnerText, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[text, textTracked] = track('Edit me!');
 
-  return <>
+  <>
     <div
       contentEditable={true}
       ref={bindInnerText(textTracked)}
@@ -640,10 +648,10 @@ Binds to an element's textContent property (raw text, no formatting).
 ```ripple
 import { bindTextContent, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[text, textTracked] = track('Type here');
 
-  return <>
+  <>
     <div
       contentEditable={true}
       ref={bindTextContent(textTracked)}
@@ -673,7 +681,7 @@ A convenient way to get a reference to a DOM element.
 ```ripple
 import { bindNode, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[divElement, divElementTracked] = track();
 
   const handleFocus = () => {
@@ -683,7 +691,7 @@ export function App() {
     }
   };
 
-  return <>
+  <>
     <div
       ref={bindNode(divElementTracked)}
       tabIndex={0}
@@ -712,7 +720,7 @@ attribute:
 ```ripple
 import { bindValue, bindClientWidth, bindNode, track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[text, textTracked] = track('');
   let &[width, widthTracked] = track(0);
   let &[inputElement, inputElementTracked] = track();
@@ -723,7 +731,7 @@ export function App() {
     console.log('Width:', width);
   };
 
-  return <div>
+  <div>
     <input
       type="text"
       ref={[

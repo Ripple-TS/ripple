@@ -190,7 +190,7 @@ function get_prev_next(slug) {
 		{ text: 'Introduction', link: 'introduction' },
 		{ text: 'Quick Start', link: 'quick-start' },
 		{ text: 'Creating an Application', link: 'guide/application' },
-		{ text: 'Template Syntax', link: 'guide/syntax' },
+		{ text: 'Component Syntax', link: 'guide/syntax' },
 		{ text: 'Components', link: 'guide/components' },
 		{ text: 'Control Flow', link: 'guide/control-flow' },
 		{ text: 'Reactivity', link: 'guide/reactivity' },

@@ -31,11 +31,11 @@ export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: 
 							text="Creating an Application"
 							active={currentPath === '/docs/guide/application'}
 						/>
-						<SidebarItem
-							href="/docs/guide/syntax"
-							text="Template Syntax"
-							active={currentPath === '/docs/guide/syntax'}
-						/>
+							<SidebarItem
+								href="/docs/guide/syntax"
+								text="Component Syntax"
+								active={currentPath === '/docs/guide/syntax'}
+							/>
 						<SidebarItem
 							href="/docs/guide/components"
 							text="Components"
@@ -214,10 +214,10 @@ function SidebarGroup({
 	title: string;
 	children: any;
 	hasActive?: boolean;
-}) {
-	return <>
-		let &[expanded] = track(true);
-		---
+}) @{
+	let &[expanded] = track(true);
+
+	<>
 		<section
 			class={`SidebarItem level-0 collapsible ${hasActive ? 'has-active' : ''} ${
 				expanded ? '' : 'collapsed'
@@ -331,7 +331,7 @@ function SidebarGroup({
 				padding-top: 4px;
 			}
 		</style>
-	</>;
+	</>
 }
 
 function SidebarItem({
@@ -346,12 +346,12 @@ function SidebarItem({
 	external?: boolean;
 	active?: boolean;
 	hasActive?: boolean;
-}) {
-	return <>
-		const classes = `SidebarItem level-1 is-link${active ? ' is-active' : ''}${
-			hasActive ? ' has-active' : ''
-		}`;
-		---
+}) @{
+	const classes = `SidebarItem level-1 is-link${active ? ' is-active' : ''}${
+		hasActive ? ' has-active' : ''
+	}`;
+
+	<>
 		<div class={classes}>
 			<div class="item">
 				<div class="indicator" />
@@ -434,5 +434,5 @@ function SidebarItem({
 				mask-size: 100% 100%;
 			}
 		</style>
-	</>;
+	</>
 }

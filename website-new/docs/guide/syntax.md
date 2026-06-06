@@ -69,13 +69,13 @@ function createBadge(label: string) {
   return <span class="badge">{label}</span>;
 }
 
-function App() {
+function App() @{
   const title = <span class="title">Settings</span>;
 
-  return <>
+  <>
     <header>{title}</header>
     {createBadge('New')}
-  </>;
+  </>
 }
 ```
 
@@ -231,12 +231,13 @@ injections. If you'd like to render trusted HTML onto your page, use the native
 `innerHTML` prop:
 
 ```ripple
-export function App() {
+export function App() @{
   let source = `
     <h1>My Blog Post</h1>
     <p>Hi! I like JS and Ripple.</p>
   `;
-  return <article innerHTML={source} />
+
+  <article innerHTML={source} />
 }
 ```
 
@@ -275,9 +276,9 @@ Regular text expressions are HTML-escaped by the target renderer. The content is
 never parsed as HTML unless you use the framework's raw HTML prop.
 
 ```ripple
-export function App() {
+export function App() @{
   const markup = '<span>Not HTML</span>';
   // Renders the literal string "<span>Not HTML</span>" as text
-  return <div>{markup}</div>
+  <div>{markup}</div>
 }
 ```
