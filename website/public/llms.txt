@@ -215,13 +215,13 @@ Use `@for (... of ...)` for rendered lists. `continue` skips the current rendere
 iteration. `break` is only for `@switch` cases.
 
 ```tsrx
-export function UserList({ users }: { users: User[] }) {
-	return <ul>
+export function UserList({ users }: { users: User[] }) @{
+	<ul>
 		@for (const user of users; index i; key user.id) {
 			if (user.hidden) continue;
 			<li>{i + 1}. {user.name}</li>
 		}
-	</ul>;
+	</ul>
 }
 ```
 
@@ -240,8 +240,8 @@ export function Profile({ user }: { user: User | null }) @{
 `@try` provides pending and error UI.
 
 ```tsrx
-export function ProfileBoundary() {
-	return @try {
+export function ProfileBoundary() @{
+	@try {
 		<UserProfile />
 	} pending {
 		<p>Loading...</p>
@@ -250,7 +250,7 @@ export function ProfileBoundary() {
 			<p>Error: {error.message}</p>
 			<button onClick={() => reset()}>Try again</button>
 		</div>
-	};
+	}
 }
 ```
 

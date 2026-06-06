@@ -8,8 +8,8 @@ Ripple supports native CSS styling that's scoped (localized) to the returned
 TSRX template using the `<style>` element.
 
 ```ripple
-function MyComponent() {
-  return <>
+function MyComponent() @{
+  <>
     <div class="container">
       <h1>Hello World</h1>
     </div>
@@ -24,7 +24,7 @@ function MyComponent() {
         font-size: 2rem;
       }
     </style>
-  </>;
+  </>
 }
 ```
 
@@ -47,11 +47,11 @@ Examples:
 ```ripple
 import { track } from 'ripple';
 
-function App() {
+function App() @{
   let &[includeBaz] = track(true);
   let &[count] = track(3);
 
-  return <>
+  <>
     <div class={{ foo: true, bar: false, baz: includeBaz }} />
     // becomes: class="foo baz"
 
@@ -60,7 +60,7 @@ function App() {
 
     <div class={['foo', { bar: count > 2 }, count > 3 && 'bat']} />
     // becomes: class="foo bar"
-  </>;
+  </>
 }
 ```
 
@@ -73,10 +73,10 @@ runtime, put that value in a CSS custom property on the element and read it with
 ```ripple
 import { track } from 'ripple';
 
-function App() {
+function App() @{
   let &[color] = track('red');
 
-  return <>
+  <>
     <div class="notice" style={{ '--notice-color': color }}>
       Styled text
     </div>
@@ -91,7 +91,7 @@ function App() {
         background-color: gray;
       }
     </style>
-  </>;
+  </>
 }
 ```
 
@@ -103,8 +103,8 @@ styles, use the `:global()` pseudo-class or `:global` block:
 <Code>
 
 ```ripple
-export function App() {
-  return <>
+export function App() @{
+  <>
     <div class="container">
       <Child />
     </div>
@@ -133,7 +133,7 @@ export function App() {
         }
       }
     </style>
-  </>;
+  </>
 }
 
 function Child() {
@@ -156,8 +156,8 @@ across components, prefix the animation name with `-global-`:
 <Code>
 
 ```ripple
-export function App() {
-  return <>
+export function App() @{
+  <>
     <div class="parent">
       <Child />
     </div>
@@ -187,11 +187,11 @@ export function App() {
         animation: slideIn 1s;
       }
     </style>
-  </>;
+  </>
 }
 
-function Child() {
-  return <>
+function Child() @{
+  <>
     <div class="child">Child content</div>
 
     <style>
@@ -199,7 +199,7 @@ function Child() {
         animation: fadeIn 1s; /* Uses global fadeIn from Parent */
       }
     </style>
-  </>;
+  </>
 }
 ```
 
@@ -222,28 +222,28 @@ function Child({ class: className }: { class: string }) {
   return <div class={className}>styled child</div>
 }
 
-function Parent() {
+function Parent() @{
   const styles = <style>
     .highlight {
       color: red;
     }
   </style>;
 
-  return <Child class={styles.highlight} />;
+  <Child class={styles.highlight} />
 }
 ```
 
 You can pass multiple classes:
 
 ```ripple
-function Child({ primary, secondary }: { primary: string; secondary: string }) {
-  return <>
+function Child({ primary, secondary }: { primary: string; secondary: string }) @{
+  <>
     <div class={primary}>primary</div>
     <span class={secondary}>secondary</span>
-  </>;
+  </>
 }
 
-function Parent() {
+function Parent() @{
   const styles = <style>
     .primary {
       color: blue;
@@ -253,7 +253,7 @@ function Parent() {
     }
   </style>;
 
-  return <Child primary={styles.primary} secondary={styles.secondary} />;
+  <Child primary={styles.primary} secondary={styles.secondary} />
 }
 ```
 
@@ -268,7 +268,7 @@ function Child({ cls }: { cls: string }) {
   return <span class={cls}>text</span>
 }
 
-function Parent() {
+function Parent() @{
   const styles = <style>
     .text {
       color: red;
@@ -276,7 +276,7 @@ function Parent() {
   </style>;
 
   let &[Dynamic] = track(() => Child);
-  return <@Dynamic cls={styles.text} />
+  <@Dynamic cls={styles.text} />
 }
 ```
 
@@ -286,8 +286,8 @@ A child component can combine classes it receives from a parent with its own
 scoped classes:
 
 ```ripple
-function Card({ class: className }: { class?: string }) {
-  return <>
+function Card({ class: className }: { class?: string }) @{
+  <>
     <div class={['card-base', className ?? '']}>card content</div>
 
     <style>
@@ -295,17 +295,17 @@ function Card({ class: className }: { class?: string }) {
         border: 1px solid black;
       }
     </style>
-  </>;
+  </>
 }
 
-function App() {
+function App() @{
   const styles = <style>
     .themed {
       background: purple;
     }
   </style>;
 
-  return <Card class={styles.themed} />;
+  <Card class={styles.themed} />
 }
 ```
 
@@ -319,7 +319,7 @@ If a class appears both standalone and in a descendant selector, it can still be
 used through the style expression map:
 
 ```ripple
-function App() {
+function App() @{
   const styles = <style>
     /* Standalone rule — exposes styles.dual */
     .dual {
@@ -332,7 +332,7 @@ function App() {
     }
   </style>;
 
-  return <div class="parent">
+  <div class="parent">
     <Child cls={styles.dual} />
   </div>
 }
@@ -342,14 +342,14 @@ The following will **not** work because the class has no standalone rule:
 
 ```ripple
 // ❌ .nested only exists in a descendant selector
-function App() {
+function App() @{
   const styles = <style>
     .wrapper .nested {
       color: red;
     }
   </style>;
 
-  return <Child cls={styles.nested} />;
+  <Child cls={styles.nested} />
 }
 ```
 

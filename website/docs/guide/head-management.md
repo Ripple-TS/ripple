@@ -10,9 +10,10 @@ directly within the component. It works with both static and reactive data.
 ```ripple
 import { track } from 'ripple';
 
-export function App() {
+export function App() @{
   let &[curr_step] = track(0);
-  return <>
+
+  <>
     <head>
       <title>Step {curr_step}</title>
     </head>
@@ -24,6 +25,6 @@ export function App() {
     >
       Next Step
     </button>
-  </>;
+  </>
 }
 ```
