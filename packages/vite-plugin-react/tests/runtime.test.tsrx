@@ -1214,7 +1214,7 @@ describe('tsrx-react runtime', () => {
 		await render(JsxTextApp);
 		expect(text('.jsx-text-entities')).toBe('Rock & "Roll"');
 		expect(text('.jsx-text-backslash')).toBe('line\\nbreak');
-		expect(text('.jsx-text-multiline')).toBe('first\nsecond');
+		expect(text('.jsx-text-multiline')).toBe('first second');
 	});
 
 	it('renders bare JSX text in if-else branches', async () => {

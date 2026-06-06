@@ -430,7 +430,7 @@ export function createJsxTransform(platform) {
 				? expanded
 				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
-		lower_remaining_jsx_code_block_function_bodies(final_program);
+		lower_remaining_jsx_code_blocks(final_program, transform_context);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
 			sourceMapSource: filename,
@@ -2488,10 +2488,11 @@ function expand_component_helpers(program) {
  * the printer sees the helper subtree.
  *
  * @param {any} node
+ * @param {TransformContext} transform_context
  * @param {Set<any>} [seen]
  * @returns {void}
  */
-function lower_remaining_jsx_code_block_function_bodies(node, seen = new Set()) {
+function lower_remaining_jsx_code_blocks(node, transform_context, seen = new Set()) {
 	if (!node || typeof node !== 'object' || seen.has(node)) return;
 	seen.add(node);
 
@@ -2501,15 +2502,24 @@ function lower_remaining_jsx_code_block_function_bodies(node, seen = new Set()) 
 
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-		const value = node[key];
+		let value = node[key];
 		if (!value || typeof value !== 'object') continue;
 
 		if (Array.isArray(value)) {
+			if (key === 'body') {
+				value = node[key] = value.flatMap((child) => {
+					if (child?.type !== 'JSXCodeBlock') return [child];
+					const body_nodes = get_jsx_code_block_body_nodes(child, transform_context);
+					return mark_native_pretransformed_jsx(
+						build_render_statements(body_nodes, true, transform_context),
+					);
+				});
+			}
 			for (const child of value) {
-				lower_remaining_jsx_code_block_function_bodies(child, seen);
+				lower_remaining_jsx_code_blocks(child, transform_context, seen);
 			}
 		} else {
-			lower_remaining_jsx_code_block_function_bodies(value, seen);
+			lower_remaining_jsx_code_blocks(value, transform_context, seen);
 		}
 	}
 }
