@@ -497,17 +497,17 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('count > 2');
 		expect(code).toContain('if (count > 2) {');
 		expect(code).toContain('return null;');
-		expect(code).not.toContain('let App__StatementBodyHook');
 		expect(code).not.toContain(': any');
-		expect(code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(code).toContain('function App__StatementBodyHook1({ count, setCount })');
+		expect(code).toContain('return <App__StatementBodyHook1 count={count} setCount={setCount} />;');
 		expect(code).toContain('return <button onClick={() => setCount(count + 1)}>{count}</button>;');
 		expect(code).not.toContain('App__Continue');
-		expect(mappings.code).not.toContain('let App__StatementBodyHook1;');
-		expect(mappings.code).not.toContain('const _tsrx_StatementBodyHook1_count = count;');
-		expect(mappings.code).not.toContain('const _tsrx_StatementBodyHook1_setCount = setCount;');
-		expect(mappings.code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(mappings.code).not.toContain('count: typeof _tsrx_StatementBodyHook1_count');
-		expect(mappings.code).not.toContain('setCount: typeof _tsrx_StatementBodyHook1_setCount');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_count = count;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_setCount = setCount;');
+		expect(mappings.code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(mappings.code).toContain('count: typeof _tsrx_StatementBodyHook1_count');
+		expect(mappings.code).toContain('setCount: typeof _tsrx_StatementBodyHook1_setCount');
 		expect(mappings.code).not.toContain('count: any');
 		expect(mappings.errors).toEqual([]);
 		expect(mappings.mappings.length).toBeGreaterThan(0);
@@ -546,10 +546,11 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (!foo) {');
 		expect(code).toContain('return null;');
 		expect(code).not.toContain(': any');
-		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(mappings.code).not.toContain('let App__StatementBodyHook1;');
-		expect(mappings.code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(mappings.code).not.toContain('foo: typeof _tsrx_StatementBodyHook1_foo');
+		expect(code).toContain('function App__StatementBodyHook1({ foo })');
+		expect(code).toContain('return <App__StatementBodyHook1 foo={foo} />;');
+		expect(mappings.code).toContain('let App__StatementBodyHook1;');
+		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
+		expect(mappings.code).toContain('foo: typeof _tsrx_StatementBodyHook1_foo');
 		expect(mappings.code).not.toContain('foo: any');
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
@@ -585,10 +586,9 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (!foo) {');
 		expect(code).toContain('return null;');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
-		expect(code).not.toContain('StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1');
 		expect(code).not.toContain(': any');
-		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
+		expect(code).toContain('return <App__StatementBodyHook1 foo={foo} />;');
 	});
 
 	it('does not emit helper prop type aliases for setup guard returns', () => {
@@ -617,9 +617,9 @@ describe('@tsrx/react basic', () => {
 		const helper_pos = code.indexOf('const StatementBodyHook1 = App__StatementBodyHook1 ??');
 		const type_ref_pos = code.indexOf('foo: typeof _tsrx_StatementBodyHook1_foo');
 
-		expect(alias_pos).toBe(-1);
-		expect(helper_pos).toBe(-1);
-		expect(type_ref_pos).toBe(-1);
+		expect(alias_pos).toBeGreaterThan(-1);
+		expect(helper_pos).toBeGreaterThan(-1);
+		expect(type_ref_pos).toBeGreaterThan(-1);
 		expect(code).not.toContain('foo: any');
 	});
 
@@ -628,8 +628,10 @@ describe('@tsrx/react basic', () => {
 
 			function Child() @{
 				<div>
-					const x = 1;
-					console.log(x);
+					@{
+						const x = 1;
+						console.log(x);
+					}
 				</div>
 			}
 
@@ -640,27 +642,31 @@ describe('@tsrx/react basic', () => {
 					console.log(count);
 				}, [count]);
 
-				<Child />
+				<>
+					<Child />
 
-				<h1>
-					{'Hello World'}
+					<h1>
+						{'Hello World'}
+						@if (count > 1) {
+							<span>{'Counted'}</span>
+						}
+					</h1>
+
 					@if (count > 1) {
-						<span>{'Counted'}</span>
+						<div>
+							@{
+								const [x] = useState(1);
+								<>{'Count is more than ' + x}</>
+							}
+						</div>
 					}
-				</h1>
 
-				@if (count > 1) {
-					<div>
-						const [x] = useState(1);
-						{'Count is more than ' + x}
-					</div>
-				}
+					<button onClick={() => setCount(count + 1)}>{count}</button>
 
-				<button onClick={() => setCount(count + 1)}>{count}</button>
-
-				@for (const item of items; index i) {
-					<div key={i}>{item}</div>
-				}
+					@for (const item of items; index i) {
+						<div key={i}>{item}</div>
+					}
+				</>
 			}`;
 
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -758,7 +764,8 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 		expect(code).toContain('useEffect(() => {});');
 		expect(code).toContain('return null;');
-		expect(code).not.toContain('StatementBodyHook');
+		expect(code).toContain('function App__StatementBodyHook1()');
+		expect(code).toContain('return <App__StatementBodyHook1 />;');
 	});
 
 	it('supports template statement children inside elements', () => {
@@ -1150,16 +1157,18 @@ describe('@tsrx/react basic', () => {
 	it('applies scoped CSS hashes inside try blocks', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() @{
+				<>
 					@try {
 						<div className="content">{'hello'}</div>
 					} catch (err) {
 						<p className="error">{'error'}</p>
 					}
 
-				<style>
-					.content { color: blue; }
-					.error { color: red; }
-				</style>
+					<style>
+						.content { color: blue; }
+						.error { color: red; }
+					</style>
+				</>
 			}`,
 			'App.tsrx',
 		);
@@ -1700,8 +1709,10 @@ describe('lazy destructuring', () => {
 	it('does not hoist elements using component-scope bindings as tag names', () => {
 		const { code } = compile(
 			`export function App({Widget}: {Widget: any}) @{
-				<div>{"static"}</div>
-				<Widget />
+				<>
+					<div>{"static"}</div>
+					<Widget />
+				</>
 			}`,
 			'App.tsrx',
 		);
@@ -1716,8 +1727,10 @@ describe('lazy destructuring', () => {
 	it('does not hoist elements using JSXMemberExpression with component-scope object', () => {
 		const { code } = compile(
 			`export function App({ui}: {ui: any}) @{
-				<div>{"static"}</div>
-				<ui.Button />
+				<>
+					<div>{"static"}</div>
+					<ui.Button />
+				</>
 			}`,
 			'App.tsrx',
 		);
@@ -1771,14 +1784,16 @@ describe('lazy destructuring', () => {
 
 			export function App() @{
 				const show = true;
-				@if (show) {
-					const localVar = 'hello';
-					<div>{localVar}</div>
-				}
-				@if (show) {
-					const [val] = useState(0);
-					<span>{val}</span>
-				}
+				<>
+					@if (show) {
+						const localVar = 'hello';
+						<div>{localVar}</div>
+					}
+					@if (show) {
+						const [val] = useState(0);
+						<span>{val}</span>
+					}
+				</>
 			}`,
 			'App.tsrx',
 		);
@@ -1796,12 +1811,14 @@ describe('lazy destructuring', () => {
 			`import { useEffect } from 'react';
 
 			export function App() @{
-				<div>
-					useEffect(() => {}, []);
-					<span>{'ok'}</span>
-				</div>
-
 				const later = 'later';
+
+				<div>
+					@{
+						useEffect(() => {}, []);
+						<span>{'ok'}</span>
+					}
+				</div>
 			}`,
 			'App.tsrx',
 		);
@@ -1817,17 +1834,19 @@ describe('lazy destructuring', () => {
 			`import { useEffect } from 'react';
 
 			export function App() @{
-				<div>
-					const later = 'inner';
-
-					useEffect(() => {
-						console.log(later);
-					}, [later]);
-
-					<span>{later}</span>
-				</div>
-
 				const later = 'outer';
+
+				<div>
+					@{
+						const later = 'inner';
+
+						useEffect(() => {
+							console.log(later);
+						}, [later]);
+
+						<span>{later}</span>
+					}
+				</div>
 			}`,
 			'App.tsrx',
 		);

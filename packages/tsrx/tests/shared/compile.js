@@ -3092,11 +3092,13 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows hook results that stay local to an extracted branch', () => {
 			const { code } = compile(
 				`export function App({ show }: { show: boolean }) @{
-							@if (show) {
-								const [x] = useState(100);
-								<div>{x}</div>
-							}
-							<span>{'after'}</span>
+							<>
+								@if (show) {
+									const [x] = useState(100);
+									<div>{x}</div>
+								}
+								<span>{'after'}</span>
+							</>
 						}`,
 				'App.tsrx',
 			);
