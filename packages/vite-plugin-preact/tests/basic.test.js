@@ -5,17 +5,17 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('injects and serves a virtual css module for styled components', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
-			<div>{'Hello world'}</div>
+		const source = `export function App() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		
-			</>;}`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const transformed = await plugin.transform(source, id);
 		const virtual_id = `${id}?tsrx-css&lang.css`;
@@ -31,11 +31,9 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('does not inject a virtual css module when no style block exists', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		
-			</>;}`;
+		}`;
 
 		const transformed = await plugin.transform(source, id);
 		const virtual_id = `${id}?tsrx-css&lang.css`;
@@ -49,12 +47,10 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 	it('maps the JSX transform output back to the original tsrx source', async () => {
 		const plugin = tsrxPreact();
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
+		const source = `export function App() @{
 			const message = 'Hello world';
 			<div>{message}</div>
-		
-			</>;}`;
+		}`;
 
 		const transformed = await plugin.transform(source, id);
 
@@ -69,24 +65,26 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 		const css_module = { id: `\0${id}?tsrx-css&lang.css` };
 		/** @type {Array<typeof css_module>} */
 		const invalidated = [];
-		const source = `export function App() {
-			return <>
-			<div className="content">{'Hello world'}</div>
-			<style>
-				.content {
-					color: red;
-				}
-			</style>
-			</>;}`;
-		const updated_source = `export function App() {
-			return <>
-			<div className="content">{'Hello world'}</div>
-			<style>
-				:where(.content) {
-					color: blue;
-				}
-			</style>
-			</>;}`;
+		const source = `export function App() @{
+			<>
+				<div className="content">{'Hello world'}</div>
+				<style>
+					.content {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
+		const updated_source = `export function App() @{
+			<>
+				<div className="content">{'Hello world'}</div>
+				<style>
+					:where(.content) {
+						color: blue;
+					}
+				</style>
+			</>
+		}`;
 
 		await plugin.transform(source, id);
 		const handle_hot_update = /** @type {(ctx: any) => Promise<any[]>} */ (plugin.handleHotUpdate);

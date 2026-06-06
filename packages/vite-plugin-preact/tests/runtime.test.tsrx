@@ -14,115 +14,104 @@ function text(selector: string): string | null {
 }
 
 function ResolvedChild(props: { value: string }) {
-	return <><p class="resolved">{props.value}</p></>;
+	return <p class="resolved">{props.value}</p>;
 }
 
-function ExplicitHtmlApp() {
-	return <>
+function ExplicitHtmlApp() @{
 		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
-		<button
-			class="explicit-html-update"
-			onClick={() => {
-				setMarkup('<strong class="html-node">updated</strong>');
-			}}
-		>
-			{'update'}
-		</button>
-	</>;
+		<>
+			<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
+			<button
+				class="explicit-html-update"
+				onClick={() => {
+					setMarkup('<strong class="html-node">updated</strong>');
+				}}
+			>
+				{'update'}
+			</button>
+		</>
 }
 
-function SpreadHtmlApp() {
-	return <>
+function SpreadHtmlApp() @{
 		const [spreadProps, setSpreadProps] = useState({
 			dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
 		});
 		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
-		<button
-			class="spread-html-update-spread"
-			onClick={() => {
-				setSpreadProps({
-					dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
-				});
-			}}
-		>
-			{'spread'}
-		</button>
-		<button
-			class="spread-html-update-markup"
-			onClick={() => {
-				setMarkup('<strong class="html-node">updated</strong>');
-			}}
-		>
-			{'markup'}
-		</button>
-	</>;
+		<>
+			<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
+			<button
+				class="spread-html-update-spread"
+				onClick={() => {
+					setSpreadProps({
+						dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
+					});
+				}}
+			>
+				{'spread'}
+			</button>
+			<button
+				class="spread-html-update-markup"
+				onClick={() => {
+					setMarkup('<strong class="html-node">updated</strong>');
+				}}
+			>
+				{'markup'}
+			</button>
+		</>
 }
 
 function EmptyPendingSuspenseApp(props: {
 	loader: () => Promise<{ default: typeof ResolvedChild }>;
-}) {
-	return <>
+}) @{
 		const LazyChild = lazy(props.loader);
-		try {
+		@try {
 			<LazyChild value="hello" />
 		} pending {}
-	</>;
 }
 
-function ForContinueApp() {
-	return <>
+function ForContinueApp() @{
 		const items = ['a', '', 'c'];
-		for (const item of items) {
+		@for (const item of items) {
 			if (!item) continue;
 			<li class="continue-item" key={item}>{item}</li>
 		}
-	</>;
 }
 
-function ForOverSetApp() {
-	return <>
+function ForOverSetApp() @{
 		const items = new Set<string>(['x', 'y', 'z']);
-		for (const item of items) {
+		@for (const item of items) {
 			<li class="set-item" key={item}>{item}</li>
 		}
-	</>;
 }
 
-function ForOverMapApp() {
-	return <>
+function ForOverMapApp() @{
 		const entries = new Map<string, number>([
 			['a', 1],
 			['b', 2],
 			['c', 3],
 		]);
-		for (const [key, value] of entries) {
+		@for (const [key, value] of entries) {
 			<li class="map-item" {key}>{key + ':' + value}</li>
 		}
-	</>;
 }
 
-function ForOverCustomIterableApp() {
-	return <>
+function ForOverCustomIterableApp() @{
 		function* iter() {
 			yield 'one';
 			yield 'two';
 			yield 'three';
 		}
 		const items = iter();
-		for (const item of items) {
+		@for (const item of items) {
 			<li class="generator-item" key={item}>{item}</li>
 		}
-	</>;
 }
 
 let named_direct_node: HTMLInputElement | null = null;
 let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
-function NamedDirectRefApp() {
-	return <>
+function NamedDirectRefApp() @{
 		function nativeRef(node: HTMLInputElement | null) {
 			named_direct_native_node = node;
 		}
@@ -136,24 +125,21 @@ function NamedDirectRefApp() {
 			class="named-direct-ref"
 			type="text"
 		/>
-	</>;
 }
 
 let named_forward_node: HTMLInputElement | null = null;
 
 function NamedForwardInput(props: { type: string; input_ref?: any }) {
-	return <><input type={props.type} ref={props.input_ref} class="named-forward-ref" /></>;
+	return <input type={props.type} ref={props.input_ref} class="named-forward-ref" />;
 }
 
-function NamedForwardRefApp() {
-	return <>
+function NamedForwardRefApp() @{
 		<NamedForwardInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_forward_node = node;
 			}}
 		/>
-	</>;
 }
 
 let named_spread_before_node: HTMLInputElement | null = null;
@@ -163,25 +149,21 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 	named_spread_before_native_node = node;
 }
 
-function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
-	return <>
+function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
 		<input
 			{...props}
 			ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
 			class="named-spread-before-ref"
 		/>
-	</>;
 }
 
-function NamedSpreadBeforeRefApp() {
-	return <>
+function NamedSpreadBeforeRefApp() @{
 		<NamedSpreadBeforeRefInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_before_node = node;
 			}}
 		/>
-	</>;
 }
 
 let named_spread_after_node: HTMLInputElement | null = null;
@@ -191,25 +173,21 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 	named_spread_after_native_node = node;
 }
 
-function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) {
-	return <>
+function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
 		<input
 			ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
 			{...props}
 			class="named-spread-after-ref"
 		/>
-	</>;
 }
 
-function NamedSpreadAfterRefApp() {
-	return <>
+function NamedSpreadAfterRefApp() @{
 		<NamedSpreadAfterRefInput
 			type="text"
 			input_ref={(node: HTMLInputElement | null) => {
 				named_spread_after_node = node;
 			}}
 		/>
-	</>;
 }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
@@ -224,8 +202,7 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 	multi_spread_native_node = node;
 }
 
-function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) {
-	return <>
+function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) @{
 		const first = { type: props.type, ref: props.first_ref };
 		const second = { ref: props.second_ref };
 		<input
@@ -234,11 +211,9 @@ function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; sec
 			ref={multiSpreadExplicitNativeRef}
 			class="multi-spread-explicit-ref"
 		/>
-	</>;
 }
 
-function MultiSpreadExplicitRefApp() {
-	return <>
+function MultiSpreadExplicitRefApp() @{
 		<MultiSpreadExplicitRefInput
 			type="text"
 			first_ref={(node: HTMLInputElement | null) => {
@@ -248,36 +223,33 @@ function MultiSpreadExplicitRefApp() {
 				multi_spread_second_node = node;
 			}}
 		/>
-	</>;
 }
 
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
 
 function NamedRefObjectApp() {
-	return <><NamedForwardInput type="text" input_ref={named_ref_object} /></>;
+	return <NamedForwardInput type="text" input_ref={named_ref_object} />;
 }
 
-function TsrxExpressionHookPanel(props: { active: boolean; label: string }) {
+function TsrxExpressionHookPanel(props: { active: boolean; label: string }) @{
 	if (!props.active) return null;
 
-	return <>
-		const [count, setCount] = useState(0);
-		<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
-			{props.label + ':' + count}
-		</button>
-	</>;
+	const [count, setCount] = useState(0);
+	<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
+		{props.label + ':' + count}
+	</button>
 }
 
-function TsrxExpressionHookApp() {
-	return <>
+function TsrxExpressionHookApp() @{
 		const [active, setActive] = useState(false);
 		const [label, setLabel] = useState('first');
-		<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
-			{active ? 'hide' : 'show'}
-		</button>
-		<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
-		<TsrxExpressionHookPanel {active} {label} />
-	</>;
+		<>
+			<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
+				{active ? 'hide' : 'show'}
+			</button>
+			<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
+			<TsrxExpressionHookPanel {active} {label} />
+		</>
 }
 
 describe('@tsrx/vite-plugin-preact runtime', () => {

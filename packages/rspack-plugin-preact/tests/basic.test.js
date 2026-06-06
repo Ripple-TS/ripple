@@ -35,17 +35,17 @@ function createLoaderContext(resourcePath, options = {}) {
 describe('@tsrx/rspack-plugin-preact js-loader', () => {
 	it('prepends a virtual css import when a style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
-			<div>{'Hello world'}</div>
+		const source = `export function App() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		
-			</>;}`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -58,11 +58,9 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 
 	it('does not prepend a virtual css import when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		
-			</>;}`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		jsLoader.call(context, source);
@@ -77,22 +75,18 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 		const id = '/virtual/App.tsrx';
 		const source = `'use server';
 
-		export function App() {
-			return <>
-			try {
+		export function App() @{
+			@try {
 				<AsyncThing />
 			} pending {
 				<div>{'Loading'}</div>
 			}
-		
-			</>;}
+		}
 
-		async function AsyncThing() {
-			return <>
+		async function AsyncThing() @{
 			await Promise.resolve();
 			<div>{'Done'}</div>
-		
-			</>;}`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id, { suspenseSource: 'preact-suspense' });
 		jsLoader.call(context, source);
@@ -106,17 +100,17 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 describe('@tsrx/rspack-plugin-preact css-loader', () => {
 	it('returns the compiled scoped css text', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
-			<div>{'Hello world'}</div>
+		const source = `export function App() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		
-			</>;}`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);
@@ -129,11 +123,9 @@ describe('@tsrx/rspack-plugin-preact css-loader', () => {
 
 	it('returns an empty string when no style block exists', async () => {
 		const id = '/virtual/App.tsrx';
-		const source = `export function App() {
-			return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		
-			</>;}`;
+		}`;
 
 		const { context, promise } = createLoaderContext(id);
 		cssLoader.call(context, source);

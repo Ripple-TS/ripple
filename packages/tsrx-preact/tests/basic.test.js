@@ -28,15 +28,13 @@ runSharedSwitchHelperHoistingTests({
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {
 		const { code } = compile(
-			`export function App() {
-				return <>
+			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -47,15 +45,13 @@ describe('@tsrx/preact basic', () => {
 
 	it('allows overriding the Suspense import source via compile options', () => {
 		const { code } = compile(
-			`export function App() {
-				return <>
+			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 			{ suspenseSource: 'preact-suspense' },
 		);
@@ -67,21 +63,17 @@ describe('@tsrx/preact basic', () => {
 
 	it('imports TsrxErrorBoundary from @tsrx/preact/error-boundary when try/catch is used', () => {
 		const { code } = compile(
-			`function ThrowingChild() {
-				return <>
+			`function ThrowingChild() @{
 				<div>{'might throw'}</div>
+			}
 
-				</>;}
-
-			export function App() {
-				return <>
+			export function App() @{
 				@try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -93,13 +85,11 @@ describe('@tsrx/preact basic', () => {
 	it('rejects namespaced template tags', () => {
 		expect(() =>
 			compile(
-				`export function App() {
-					return <>
+				`export function App() @{
 					<foo:bar>
 						<div>{'namespaced'}</div>
 					</foo:bar>
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			),
 		).toThrow(/Namespaced elements are not supported/);
@@ -107,13 +97,10 @@ describe('@tsrx/preact basic', () => {
 
 	it('supports async function components without requiring use server', () => {
 		const { code } = compile(
-			`export async function App() {
-					return <>
+			`export async function App() @{
 					const data = await fetchData();
-					---
 					<div>{data}</div>
-
-				</>;}`,
+				}`,
 			'App.tsrx',
 		);
 
@@ -123,13 +110,11 @@ describe('@tsrx/preact basic', () => {
 
 	it('applies for-control-flow keys to rendered elements', () => {
 		const { code } = compile(
-			`export function App({ items }: { items: { id: string, text: string }[] }) {
-				return <>
+			`export function App({ items }: { items: { id: string, text: string }[] }) @{
 				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -140,13 +125,11 @@ describe('@tsrx/preact basic', () => {
 
 	it('uses map_iterable for for-of over a Set without normalizing it', () => {
 		const { code } = compile(
-			`export function App({ items }: { items: Set<string> }) {
-				return <>
+			`export function App({ items }: { items: Set<string> }) @{
 				@for (const item of items) {
 					<li key={item}>{item}</li>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -162,15 +145,12 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(
 			`import { useState } from 'preact/hooks';
 
-			export function App({ items }: { items: Iterable<string> }) {
-				return <>
+			export function App({ items }: { items: Iterable<string> }) @{
 				@for (const item of items) {
 					const [open, setOpen] = useState(false);
-					---
 					<li key={item}>{open ? item : '-'}</li>
 				}
-
-				</>;}`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -212,11 +192,9 @@ describe('@tsrx/preact basic', () => {
 
 	it('does not hoist render-time expressions from template bodies', () => {
 		const { code } = compile(
-			`export function Test() {
-				return <>
+			`export function Test() @{
 				<div>{Date.now()}</div>
-
-				</>;}`,
+			}`,
 			'Test.tsrx',
 		);
 
@@ -228,29 +206,25 @@ describe('@tsrx/preact basic', () => {
 		const source = `import { useState } from 'preact/hooks';
 			import type { PropsWithChildren } from 'ripple';
 
-			function Wrapper(props: PropsWithChildren<{}>) {
-				return <>
+			function Wrapper(props: PropsWithChildren<{}>) @{
 				<section>{props.children}</section>
+			}
 
-				</>;}
-
-			function Parent(props: { title: string }) {
-				return <>
-				<Wrapper>
+			function Parent(props: { title: string }) @{
+				<Wrapper>@{
 					const [count] = useState(0);
 
-					---
-					<h1>{props.title}</h1>
-					<span>{count}</span>
-				</Wrapper>
+					<>
+						<h1>{props.title}</h1>
+						<span>{count}</span>
+					</>
+				}</Wrapper>
 
-				</>;}
+			}
 
-			function App() {
-				return <>
+			function App() @{
 				<Parent title="Hello from props" />
-
-				</>;}`;
+			}`;
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
@@ -269,13 +243,10 @@ describe('@tsrx/preact basic', () => {
 	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(
-				`export function App() {
-					return <>
+				`export function App() @{
 					function refA(_node) {}
-					---
 					<div ref={refA}>{'hi'}</div>
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -286,13 +257,10 @@ describe('@tsrx/preact basic', () => {
 
 		it('passes a single Ripple ref={expr} through as ref={expr} with no helper import', () => {
 			const { code } = compile(
-				`export function App() {
-					return <>
+				`export function App() @{
 					function refA(_node) {}
-					---
 					<div ref={refA}>{'hi'}</div>
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -302,19 +270,14 @@ describe('@tsrx/preact basic', () => {
 
 		it('keeps named ref-like props ordinary while normalizing host spreads', () => {
 			const { code } = compile(
-				`export function Child(props) {
-					return <>
+				`export function Child(props) @{
 					<input {...props} />
+				}
 
-					</>;}
-
-				export function App() {
-					return <>
+				export function App() @{
 					let input;
-					---
 					<Child input_ref={input} />
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -325,19 +288,14 @@ describe('@tsrx/preact basic', () => {
 
 		it('keeps named ref-like props ordinary without host spreads', () => {
 			const { code } = compile(
-				`export function Child(props) {
-					return <>
+				`export function Child(props) @{
 					<span>{'child'}</span>
+				}
 
-					</>;}
-
-				export function App() {
-					return <>
+				export function App() @{
 					let input;
-					---
 					<Child input_ref={input} />
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -348,15 +306,12 @@ describe('@tsrx/preact basic', () => {
 
 		it('normalizes multiple host spreads once while merging one explicit ref', () => {
 			const { code } = compile(
-				`export function App() {
-					return <>
+				`export function App() @{
 					const first = {};
 					const second = {};
 					function cb(_node) {}
-					---
 					<input {...first} {...second} ref={cb} />
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -380,14 +335,11 @@ describe('@tsrx/preact basic', () => {
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(
-					`export function App() {
-						return <>
+					`export function App() @{
 						function refA(_node) {}
 						function refB(_node) {}
-						---
 						<div ref={refA} ref={refB}>{'hi'}</div>
-
-						</>;}`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
@@ -397,15 +349,12 @@ describe('@tsrx/preact basic', () => {
 			const { code } = compile(
 				`import { mergeRefs } from '@tsrx/preact/ref';
 
-				export function App() {
-					return <>
+				export function App() @{
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					---
 					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
-
-					</>;}`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -416,15 +365,12 @@ describe('@tsrx/preact basic', () => {
 		it('rejects repeated ref={expr} attributes after the keyword removal', () => {
 			expect(() =>
 				compile(
-					`export function App() {
-					return <>
+					`export function App() @{
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					---
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
-
-					</>;}`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
