@@ -606,7 +606,6 @@ export function TSRXPlugin(config) {
 				return this.finishNodeAt(node, 'JSXText', index, endLoc);
 			}
 
-
 			#isSwitchCaseScriptStatementStart() {
 				let index = skip_whitespace_from(this.input, this.start);
 
@@ -1019,6 +1018,7 @@ export function TSRXPlugin(config) {
 					case 'JSXElement':
 					case 'JSXFragment':
 					case 'JSXStyleElement':
+					case 'JSXCodeBlock':
 					case 'JSXIfExpression':
 					case 'JSXForExpression':
 					case 'JSXSwitchExpression':
@@ -1051,7 +1051,7 @@ export function TSRXPlugin(config) {
 						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ)
 					);
 				}
-				return this.#isJSXControlFlowDirectiveAt(index);
+				return this.#isCodeBlockStart(index) || this.#isJSXControlFlowDirectiveAt(index);
 			}
 
 			/**
@@ -1111,6 +1111,10 @@ export function TSRXPlugin(config) {
 					this.lineStart = at_index - loc.column;
 				}
 
+				if (this.#isCodeBlockStart(at_index)) {
+					return /** @type {AST.Node} */ (/** @type {unknown} */ (this.#parseCodeBlock()));
+				}
+
 				if (this.#isJSXControlFlowDirectiveAt(at_index)) {
 					return /** @type {AST.Node} */ (
 						/** @type {unknown} */ (this.#parseJSXControlFlowExpression())
@@ -1146,22 +1150,25 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Node[]} flat
 			 */
 			#parseCodeBlockBody(flat) {
+				let render_seen = false;
 				while (this.type !== tt.braceR && this.type !== tt.eof) {
 					if (this.#atRenderNodeStart()) {
-						flat.push(this.#parseCodeBlockRenderNode());
-						if (this.type !== tt.braceR && this.type !== tt.eof) {
-							if (this.#atRenderNodeStart()) {
-								this.raise(
-									this.start,
-									"A code block renders a single node; wrap multiple nodes or text in a fragment '<>…</>'.",
-								);
-							}
-							this.raise(
+						if (render_seen) {
+							this.#report_recoverable_error(
 								this.start,
-								"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
+								"A code block renders a single node; wrap multiple nodes or text in a fragment '<>…</>'.",
 							);
 						}
-						return;
+						flat.push(this.#parseCodeBlockRenderNode());
+						render_seen = true;
+						continue;
+					}
+					if (render_seen) {
+						// A statement after the rendered output: code must come first.
+						this.#report_recoverable_error(
+							this.start,
+							"Code must be at the top of '@{ }'; statements cannot follow the rendered output.",
+						);
 					}
 					const statement = this.#parseCodeBlockSetupStatement();
 					if (statement) {

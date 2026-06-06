@@ -1255,9 +1255,6 @@ foo();`;
 	});
 
 	it('reports an error for a nested `@{ }` block following a render node', () => {
-		// Like the nested-`@if` case, the outer block has setup plus two outputs (a
-		// `<span>` and a nested `@{ }`). A code block following the render node reads
-		// as a trailing statement, so this trips the "statements cannot follow" rule.
 		expect(() =>
 			parseModule(
 				`function App() {
@@ -1275,7 +1272,7 @@ foo();`;
 				}`,
 				'App.tsrx',
 			),
-		).toThrow(/statements cannot follow/);
+		).toThrow(/single node/);
 	});
 
 	it('parses a nested `@if` with its own setup when siblings are wrapped in a fragment', () => {
@@ -1307,6 +1304,94 @@ foo();`;
 			'JSXElement',
 		]);
 		expect(inner.consequent.body[1].openingElement.name.name).toBe('span');
+	});
+
+	it('reports an error for nested `@{ }` blocks directly inside a code block body', () => {
+		expect(() =>
+			parseModule(
+				`function App() {
+					return <main>@{
+						const hey = 10;
+						@{
+							const foo = props.foo();
+							<span>{foo} {hey}</span>
+						}
+						@{
+							const bar = props.bar();
+							<span>{bar} {hey}</span>
+						}
+					}</main>;
+				}`,
+				'App.tsrx',
+			),
+		).toThrow(/single node/);
+	});
+
+	it('parses a single nested `@{ }` block as a code block render output', () => {
+		const returned = getReturned(`function App() {
+			return <main>@{
+				const hey = 10;
+				@{
+					const foo = props.foo();
+					<span>{foo} {hey}</span>
+				}
+			}</main>;
+		}`);
+
+		const block = returned.children[0];
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXCodeBlock');
+		expect(block.render.render.openingElement.name.name).toBe('span');
+	});
+
+	it('reports the one-child violation recoverably in loose mode', () => {
+		const errors = [];
+		const ast = parseModule(
+			`function App() {
+				return <main>@{
+					const hey = 10;
+					@{ const foo = props.foo(); <span>{foo} {hey}</span> }
+					@{ const bar = props.bar(); <span>{bar} {hey}</span> }
+				}</main>;
+			}`,
+			'App.tsrx',
+			{ loose: true, errors },
+		);
+
+		// Non-fatal: parsing still produces an AST.
+		expect(ast.type).toBe('Program');
+		expect(errors.map((error) => error.message)).toEqual([expect.stringMatching(/single node/)]);
+	});
+
+	it('parses nested `@{ }` blocks when wrapped in a fragment render output', () => {
+		const returned = getReturned(`function App() {
+			return <main>@{
+				const hey = 10;
+				<>
+					@{
+						const foo = props.foo();
+						<span>{foo} {hey}</span>
+					}
+					@{
+						const bar = props.bar();
+						<span>{bar} {hey}</span>
+					}
+				</>
+			}</main>;
+		}`);
+
+		const block = returned.children[0];
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXFragment');
+		expect(block.render.children.map((child) => child.type)).toEqual([
+			'JSXCodeBlock',
+			'JSXCodeBlock',
+		]);
+		const [first, second] = block.render.children;
+		expect(first.render.openingElement.name.name).toBe('span');
+		expect(second.render.openingElement.name.name).toBe('span');
 	});
 
 	it('parses a code-only `@{ }` block (no render) as an element body', () => {
