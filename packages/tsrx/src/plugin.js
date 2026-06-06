@@ -2058,8 +2058,9 @@ export function TSRXPlugin(config) {
 						...node.metadata,
 						invalid_tsrx_template_return: true,
 					};
-					this.#report_recoverable_error(
+					this.#report_recoverable_error_range(
 						/** @type {AST.NodeWithLocation} */ (node).start ?? this.start,
+						/** @type {AST.NodeWithLocation} */ (node).end ?? this.start + 1,
 						TSRX_RETURN_STATEMENT_ERROR,
 						DIAGNOSTIC_CODES.TEMPLATE_RETURN_STATEMENT,
 					);
