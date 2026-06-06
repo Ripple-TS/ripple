@@ -72,8 +72,8 @@ describe('@tsrx/react basic', () => {
 
 		it('lowers directive children inside returned JSX fragments', () => {
 			const { code, css, cssHash } = compile(
-				`export function MyApp() {
-					return <>
+				`export function MyApp() @{
+					<>
 							@if (x) {
 								<div>works</div>
 							} else {
@@ -83,8 +83,8 @@ describe('@tsrx/react basic', () => {
 						<style>
 							div { color: red; }
 						</style>
-					</>;
-				}`,
+					</>
+					}`,
 				'App.tsrx',
 			);
 
@@ -99,11 +99,10 @@ describe('@tsrx/react basic', () => {
 
 		it('converts expression-bodied arrows with statement fragments to block bodies', () => {
 			const { code } = compile(
-				`export const MyApp = () => <>
+				`export const MyApp = () => @{
 					const value = 1;
-					---
 					<div>{value}</div>
-				</>;`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -116,15 +115,12 @@ describe('@tsrx/react basic', () => {
 			const { code } = compile(
 				`import { useState } from 'react';
 
-				export function MyApp() {
-					return <>
+				export function MyApp() @{
 						@if (x) {
 							const [value] = useState(0);
-							---
 							<div>{value}</div>
 						}
-					</>;
-				}`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -136,11 +132,10 @@ describe('@tsrx/react basic', () => {
 
 	it('supports async function components without requiring use server', () => {
 		const { code } = compile(
-			`export async function App() { return <>
+			`export async function App() @{
 				const data = await fetchData();
-				---
 				<div>{data}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -152,11 +147,10 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`'use server';
 
-			export async function App() { return <>
+			export async function App() @{
 				const data = await fetchData();
-				---
 				<div>{data}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -168,11 +162,11 @@ describe('@tsrx/react basic', () => {
 	it('rejects for await...of in templates without requiring use server', () => {
 		expect(() =>
 			compile(
-				`export async function App({ items }: { items: AsyncIterable<string> }) { return <>
+				`export async function App({ items }: { items: AsyncIterable<string> }) @{
 					@for await (const item of items) {
 						<div>{item}</div>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			),
 		).toThrow(/does not support `for await\.\.\.of`/);
@@ -183,11 +177,11 @@ describe('@tsrx/react basic', () => {
 			compile(
 				`'use server';
 
-				export async function App({ items }: { items: AsyncIterable<string> }) { return <>
+				export async function App({ items }: { items: AsyncIterable<string> }) @{
 					@for await (const item of items) {
 						<div>{item}</div>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			),
 		).toThrow(/does not support `for await\.\.\.of`/);
@@ -195,11 +189,10 @@ describe('@tsrx/react basic', () => {
 
 	it('does not require use server for await inside nested async functions', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const load = async () => await fetchData();
-				---
 				<button onClick={load}>{'Load'}</button>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -209,11 +202,11 @@ describe('@tsrx/react basic', () => {
 
 	it('applies for-control-flow keys to rendered elements', () => {
 		const { code } = compile(
-			`export function App({ items }: { items: { id: string, text: string }[] }) { return <>
+			`export function App({ items }: { items: { id: string, text: string }[] }) @{
 				@for (const item of items; key item.id) {
 					<div>{item.text}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -227,20 +220,22 @@ describe('@tsrx/react basic', () => {
 	// omitted a generated class prop on `<Child>`. Keep the mapping-assertion piece here
 	// since the shared harness only runs `compile` for this class of test.
 	it('does not apply scoped css hashes to composite components (Volar mappings)', () => {
-		const source = `function Child() { return <>
+		const source = `function Child() @{
 				<div>{'Hello world'}</div>
-			</>; }
+			}
 
-			export function App() { return <>
-				<Child />
-				<div>{'Styled content'}</div>
+			export function App() @{
+				<>
+					<Child />
+					<div>{'Styled content'}</div>
 
-				<style>
-					.div {
-						color: red;
-					}
-				</style>
-			</>; }`;
+					<style>
+						.div {
+							color: red;
+						}
+					</style>
+				</>
+			}`;
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
 		expect(mappings.code).not.toMatch(/<Child\s+class(Name)?=/);
@@ -249,17 +244,19 @@ describe('@tsrx/react basic', () => {
 
 	it('applies scoped css hashes to elements inside control flow', () => {
 		const { code, css, cssHash } = compile(
-			`export function App() { return <>
-				@if (true) {
-					<div>{'inside'}</div>
-				}
-
-				<style>
-					.div {
-						color: red;
+			`export function App() @{
+				<>
+					@if (true) {
+						<div>{'inside'}</div>
 					}
-				</style>
-			</>; }`,
+
+					<style>
+						.div {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -271,15 +268,17 @@ describe('@tsrx/react basic', () => {
 
 	it('does not rewrite authored class attributes when scoped css applies', () => {
 		const { code, cssHash } = compile(
-			`export function App() { return <>
-				<div class="content">{'hello'}</div>
+			`export function App() @{
+				<>
+					<div class="content">{'hello'}</div>
 
-				<style>
-					.content {
-						color: red;
-					}
-				</style>
-			</>; }`,
+					<style>
+						.content {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -289,16 +288,17 @@ describe('@tsrx/react basic', () => {
 
 	it('renders component-body if statements as React expressions', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const count = 2;
 
-				---
-				@if (count > 1) {
-					<div>{'Count is more than one'}</div>
-				}
+				<>
+					@if (count > 1) {
+						<div>{'Count is more than one'}</div>
+					}
 
-				<button>{count}</button>
-			</>; }`,
+					<button>{count}</button>
+				</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -311,16 +311,15 @@ describe('@tsrx/react basic', () => {
 
 	it('renders if-else statements as React expressions', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const ready = false;
 
-				---
 				@if (ready) {
 					<div>{'Ready'}</div>
 				} else {
 					<div>{'Loading'}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -331,14 +330,13 @@ describe('@tsrx/react basic', () => {
 
 	it('renders component-body for-of statements as React expressions', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const items = [1, 2, 3];
 
-				---
 				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -352,14 +350,13 @@ describe('@tsrx/react basic', () => {
 
 	it('applies for-of key clauses to emitted React elements', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const items = [1, 2, 3];
 
-				---
 				@for (const item of items; index i; key item) {
 					<div>{item}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -369,14 +366,13 @@ describe('@tsrx/react basic', () => {
 
 	it('prefers inline JSX keys over for-of key clauses for emitted React elements', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const items = [{ id: 'a', inner: 'x' }];
 
-				---
 				@for (const item of items; key item.id) {
 					<div key={item.inner}>{item.id}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -387,11 +383,11 @@ describe('@tsrx/react basic', () => {
 
 	it('uses map_iterable for for-of over a Set without normalizing it', () => {
 		const { code } = compile(
-			`export function App({ items }: { items: Set<string> }) { return <>
+			`export function App({ items }: { items: Set<string> }) @{
 				@for (const item of items) {
 					<li key={item}>{item}</li>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -405,11 +401,11 @@ describe('@tsrx/react basic', () => {
 
 	it('uses map_iterable for for-of over a Map without normalizing it', () => {
 		const { code } = compile(
-			`export function App({ entries }: { entries: Map<string, number> }) { return <>
+			`export function App({ entries }: { entries: Map<string, number> }) @{
 				@for (const [key, value] of entries) {
 					<li key={key}>{key + ':' + value}</li>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -422,13 +418,12 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App({ items }: { items: Iterable<string> }) { return <>
+			export function App({ items }: { items: Iterable<string> }) @{
 				@for (const item of items) {
 					const [open, setOpen] = useState(false);
-					---
 					<li key={item}>{open ? item : '-'}</li>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -445,13 +440,12 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile_to_volar_mappings(
 			`import { useState } from 'react';
 
-			export function App({ items }: { items: Iterable<string> }) { return <>
+			export function App({ items }: { items: Iterable<string> }) @{
 				@for (const item of items) {
 					const [open, setOpen] = useState(false);
-					---
 					<li key={item}>{open ? item : '-'}</li>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -465,14 +459,15 @@ describe('@tsrx/react basic', () => {
 	it('allows return statements in localized setup before a template fence', () => {
 		expect(() =>
 			compile(
-				`export function App() { return <>
-					@if (count > 2) {
-						return;
-						---
-					}
+				`export function App() @{
+					<>
+						@if (count > 2) {
+							return;
+						}
 
-					<button>{count}</button>
-				</>; }`,
+						<button>{count}</button>
+					</>
+				}`,
 				'App.tsrx',
 			),
 		).not.toThrow();
@@ -481,7 +476,7 @@ describe('@tsrx/react basic', () => {
 	it('keeps setup guard returns before fenced template output', () => {
 		const source = `import { useState, useEffect } from 'react';
 
-				export function App() { return <>
+				export function App() @{
 					const [count, setCount] = useState(0);
 
 					if (count > 2) {
@@ -492,9 +487,8 @@ describe('@tsrx/react basic', () => {
 						console.log(count);
 					}, [count]);
 
-					---
 					<button onClick={() => setCount(count + 1)}>{count}</button>
-				</>; }`;
+				}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -524,7 +518,7 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-				export function App() { return <>
+				export function App() @{
 					const foo = getFoo();
 
 					if (!foo) {
@@ -535,9 +529,8 @@ describe('@tsrx/react basic', () => {
 						console.log(foo);
 					}, [foo]);
 
-					---
 					<div>{foo.trim()}</div>
-				</>; }`;
+				}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -570,7 +563,7 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-				export function App() { return <>
+				export function App() @{
 					const foo = getFoo();
 
 					if (!foo) {
@@ -581,9 +574,8 @@ describe('@tsrx/react basic', () => {
 						console.log(foo);
 					}, [foo]);
 
-					---
 					<div>{foo.trim()}</div>
-				</>; }`,
+				}`,
 			'App.tsrx',
 		);
 
@@ -605,7 +597,7 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-				export function App() { return <>
+				export function App() @{
 					const foo = getFoo();
 
 					if (!foo) {
@@ -616,9 +608,8 @@ describe('@tsrx/react basic', () => {
 						console.log(foo);
 					}, [foo]);
 
-					---
 					<div>{foo.trim()}</div>
-				</>; }`,
+				}`,
 			'App.tsrx',
 		);
 
@@ -635,21 +626,19 @@ describe('@tsrx/react basic', () => {
 	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
 		const source = `import { useState, useEffect } from 'react';
 
-			function Child() { return <>
+			function Child() @{
 				<div>
 					const x = 1;
 					console.log(x);
-					---
 				</div>
-			</>; }
+			}
 
-			export function App() { return <>
+			export function App() @{
 				const [count, setCount] = useState(0);
 				const items = [1, 2, 3];
 				useEffect(() => {
 					console.log(count);
 				}, [count]);
-				---
 
 				<Child />
 
@@ -663,7 +652,6 @@ describe('@tsrx/react basic', () => {
 				@if (count > 1) {
 					<div>
 						const [x] = useState(1);
-						---
 						{'Count is more than ' + x}
 					</div>
 				}
@@ -673,7 +661,7 @@ describe('@tsrx/react basic', () => {
 				@for (const item of items; index i) {
 					<div key={i}>{item}</div>
 				}
-			</>; }`;
+			}`;
 
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
@@ -682,9 +670,9 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('maps JSX functions to the function identifier', () => {
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			<div>{'Hello world'}</div>
-		</>; }`;
+		}`;
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 		const function_offset = source.indexOf('function App');
 		const app_offset = source.indexOf('App', function_offset);
@@ -702,9 +690,8 @@ describe('@tsrx/react basic', () => {
 
 	it('renders template switch directives as React expressions', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 					const count = 0;
-					---
 
 					@switch (count) {
 					case 0:
@@ -713,7 +700,7 @@ describe('@tsrx/react basic', () => {
 					default:
 						<div>{'Other'}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -726,7 +713,7 @@ describe('@tsrx/react basic', () => {
 	it('keeps hooks unconditional after switch-based component guard returns', () => {
 		const source = `import { useEffect } from 'react';
 
-					export function App() { return <>
+					export function App() @{
 						const count = 0;
 
 					switch (count) {
@@ -738,9 +725,8 @@ describe('@tsrx/react basic', () => {
 					console.log(count);
 				}, [count]);
 
-					---
 					<div>{count}</div>
-				</>; }`;
+				}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -757,15 +743,14 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
-					export function App({ x }: { x: boolean }) { return <>
+					export function App({ x }: { x: boolean }) @{
 						if (x) {
 							return null;
 						}
 
 						useEffect(() => {});
 
-						---
-					</>; }`,
+					}`,
 			'App.tsrx',
 		);
 
@@ -778,14 +763,15 @@ describe('@tsrx/react basic', () => {
 
 	it('supports template statement children inside elements', () => {
 		const { code } = compile(
-			`function Child() { return <>
+			`function Child() @{
 				<div>
-					const x = 1;
+					@{
+						const x = 1;
 
-					console.log(x);
-					---
+						console.log(x);
+					}
 				</div>
-			</>; }`,
+			}`,
 			'Child.tsrx',
 		);
 
@@ -798,12 +784,13 @@ describe('@tsrx/react basic', () => {
 
 	it('supports less-than comparisons in template statement element children without whitespace', () => {
 		const { code } = compile(
-			`function TodoList({ items }: { items: { text: string }[] }) { return <>
+			`function TodoList({ items }: { items: { text: string }[] }) @{
 				<ul>
-					var a = 3 < 4;
-					---
+					@{
+						var a = 3 < 4;
+					}
 				</ul>
-			</>; }`,
+			}`,
 			'TodoList.tsrx',
 		);
 
@@ -815,11 +802,11 @@ describe('@tsrx/react basic', () => {
 
 	it('allows JSX fragments at line start in component bodies', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				<>
 					<div>{'hello'}</div>
 				</>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -829,13 +816,13 @@ describe('@tsrx/react basic', () => {
 
 	it('allows JSX fragments at line start inside element children', () => {
 		const { code } = compile(
-			`function App() { return <>
+			`function App() @{
 				<div>
 					<>
 						<span>{'inner'}</span>
 					</>
 				</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -845,12 +832,12 @@ describe('@tsrx/react basic', () => {
 
 	it('allows JSX fragments alongside other elements in component bodies', () => {
 		const { code } = compile(
-			`export function App() { return <>
-				<h1>{'title'}</h1>
+			`export function App() @{
 				<>
+					<h1>{'title'}</h1>
 					<p>{'content'}</p>
 				</>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -864,19 +851,17 @@ describe('@tsrx/react basic', () => {
 	it('allows return statements in element child setup before a template fence', () => {
 		expect(() =>
 			compile(
-				`function App() { return <>
+				`function App() @{
 					const count = 0;
-					---
 
 					<h1>
 						{'Hello World'}
 						@if (count > 1) {
 							return;
-							---
 						}
 						<span>{'After'}</span>
 					</h1>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			),
 		).not.toThrow();
@@ -885,15 +870,16 @@ describe('@tsrx/react basic', () => {
 	it('extracts hook-bearing element child statement bodies into module components', () => {
 		const source = `import { useState } from 'react';
 
-			function App() { return <>
+			function App() @{
 				@if (true) {
 					<div>
-						const [x] = useState(1);
-						---
-						{'Count is more than ' + x}
+						@{
+							const [x] = useState(1);
+							<>{'Count is more than ' + x}</>
+						}
 					</div>
 				}
-			</>; }`;
+			}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -908,13 +894,13 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('supports fragment shorthand passed as props', () => {
-		const source = `function Child(props) { return <>
+		const source = `function Child(props) @{
 			<div>{props.content}</div>
-		</>; }
+		}
 
-			export function App() { return <>
+			export function App() @{
 				<Child content={<><span>{'hello'}</span></>} />
-			</>; }`;
+			}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -927,14 +913,13 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('supports dynamic elements', () => {
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			const dom = 'section';
 
-			---
 			<@dom class="box">
 				<span>{'hello'}</span>
 			</@dom>
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -949,11 +934,11 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('supports member-form dynamic elements', () => {
-		const source = `export function App(props) { return <>
+		const source = `export function App(props) @{
 			<@props.as class="box">
 				<span>{'hello'}</span>
 			</@props.as>
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -966,17 +951,17 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('passes if-statement children through composite components via {children}', () => {
-		const source = `function Wrapper(children) { return <>
+		const source = `function Wrapper(children) @{
 			<div>{children}</div>
-		</>; }
+		}
 
-		export function App() { return <>
+		export function App() @{
 			<Wrapper>
 				@if (true) {
 					<span>{'visible'}</span>
 				}
 			</Wrapper>
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -988,14 +973,13 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('transforms ref={fn} on elements to ref={fn}', () => {
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			function divRef(node) {
 				console.log(node);
 			}
 
-			---
 			<div ref={divRef}>{'Hello'}</div>
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -1005,20 +989,18 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('transforms ref={fn} on composite components to ref={fn}', () => {
-		const source = `function Child(props) { return <>
+		const source = `function Child(props) @{
 			const { ...rest } = props;
-			---
 			<input {...rest} />
-		</>; }
+		}
 
-		export function App() { return <>
+		export function App() @{
 			function childRef(node) {
 				console.log(node);
 			}
 
-			---
 			<Child ref={childRef} />
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -1029,12 +1011,11 @@ describe('@tsrx/react basic', () => {
 	});
 
 	it('transforms ref={fn} alongside other attributes', () => {
-		const source = `export function App() { return <>
+		const source = `export function App() @{
 			function inputRef(node) {}
 
-			---
 			<input type="text" ref={inputRef} class="field" />
-		</>; }`;
+		}`;
 
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
@@ -1047,17 +1028,17 @@ describe('@tsrx/react basic', () => {
 
 	it('transforms try/catch into ErrorBoundary wrapper', () => {
 		const { code } = compile(
-			`function ThrowingChild() { return <>
+			`function ThrowingChild() @{
 				<div>{'might throw'}</div>
-			</>; }
+			}
 
-			export function App() { return <>
+			export function App() @{
 				@try {
 					<ThrowingChild />
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1071,13 +1052,13 @@ describe('@tsrx/react basic', () => {
 
 	it('transforms try/pending into Suspense wrapper', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1091,7 +1072,7 @@ describe('@tsrx/react basic', () => {
 
 	it('transforms try/pending/catch into ErrorBoundary wrapping Suspense', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
 				} pending {
@@ -1099,7 +1080,7 @@ describe('@tsrx/react basic', () => {
 				} catch (err) {
 					<p>{'caught error'}</p>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1113,13 +1094,13 @@ describe('@tsrx/react basic', () => {
 
 	it('transforms catch with reset parameter', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				@try {
 					<div>{'content'}</div>
 				} catch (err, reset) {
 					<button onClick={reset}>{'retry'}</button>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1133,7 +1114,7 @@ describe('@tsrx/react basic', () => {
 	it('rejects JavaScript try/finally in component templates', () => {
 		expect(() =>
 			compile(
-				`export function App() { return <>
+				`export function App() @{
 					@try {
 						<div>{'content'}</div>
 					} catch (err) {
@@ -1141,7 +1122,7 @@ describe('@tsrx/react basic', () => {
 					} finally {
 						console.log('done');
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			),
 		).toThrow('does not support JavaScript `try/finally`');
@@ -1151,15 +1132,14 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { use } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				@try {
 					const data = use(fetchData());
-					---
 					<div>{data}</div>
 				} pending {
 					<p>{'loading...'}</p>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1169,7 +1149,7 @@ describe('@tsrx/react basic', () => {
 
 	it('applies scoped CSS hashes inside try blocks', () => {
 		const { code, css, cssHash } = compile(
-			`export function App() { return <>
+			`export function App() @{
 					@try {
 						<div className="content">{'hello'}</div>
 					} catch (err) {
@@ -1180,7 +1160,7 @@ describe('@tsrx/react basic', () => {
 					.content { color: blue; }
 					.error { color: red; }
 				</style>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1195,15 +1175,13 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const show = true;
-				---
 				@if (show) {
 					const [count, setCount] = useState(0);
-					---
 					<div>{count}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1221,15 +1199,13 @@ describe('@tsrx/react basic', () => {
 
 			declare function getFoo(): string | null;
 
-			export function App() { return <>
+			export function App() @{
 				const foo = getFoo();
-				---
 				@if (foo) {
 					const [count] = useState(0);
-					---
 					<div>{foo.trim()}{count}</div>
 				}
-			</>; }`;
+			}`;
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
@@ -1253,19 +1229,16 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const show = true;
-				---
 				@if (show) {
 					const [a] = useState(1);
-					---
 					<div>{a}</div>
 				} else {
 					const [b] = useState(2);
-					---
 					<span>{b}</span>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1279,15 +1252,13 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const items = [1, 2, 3];
-				---
 				@for (const item of items) {
 					const [active, setActive] = useState(false);
-					---
 					<div key={item}>{active ? 'yes' : 'no'}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1309,20 +1280,18 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const page = 'home';
-				---
 				@switch (page) {
 					case 'home':
 						const [count] = useState(0);
-						---
 						<div>{count}</div>
 						break;
 					case 'about':
 						<span>{'about'}</span>
 						break;
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1332,15 +1301,13 @@ describe('@tsrx/react basic', () => {
 
 	it('does not extract when branches have no hooks', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const show = true;
-				---
 				@if (show) {
 					const x = 42;
-					---
 					<div>{x}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1351,19 +1318,17 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const mode = 'a';
-				---
 				@if (mode === 'a') {
 					<div>{'a'}</div>
 				} else if (mode === 'b') {
 					const [x] = useState(0);
-					---
 					<div>{x}</div>
 				} else {
 					<div>{'c'}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1377,15 +1342,13 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import React from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const show = true;
-				---
 				@if (show) {
 					const [val] = React.useState(0);
-					---
 					<div>{val}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1396,15 +1359,13 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const items = ['a', 'b'];
-				---
 				@for (const item of items) {
 					const [active] = useState(false);
-					---
 					<div key={item}>{active ? 'yes' : 'no'}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1418,15 +1379,14 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function Component({ items }: { items: string[] }) { return <>
+			export function Component({ items }: { items: string[] }) @{
 				<ul>
 					@for (const item of items; index index) {
 						const state = useState(0);
-						---
 						<li>{item}</li>
 					}
 				</ul>
-			</>; }`,
+			}`,
 			'Component.tsrx',
 		);
 
@@ -1440,13 +1400,12 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App({ items }: { items: { id: string; label: string }[] }) { return <>
+			export function App({ items }: { items: { id: string; label: string }[] }) @{
 				@for (const item of items; key item.id) {
 					const [active] = useState(false);
-					---
 					<div>{active ? item.label : item.id}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1459,13 +1418,12 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App({ items }: { items: { id: string; inner: string }[] }) { return <>
+			export function App({ items }: { items: { id: string; inner: string }[] }) @{
 				@for (const item of items; key item.id) {
 					const [active] = useState(false);
-					---
 					<div key={item.inner}>{active ? item.inner : item.id}</div>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1485,7 +1443,7 @@ describe('@tsrx/react basic', () => {
 				title: string;
 				items: string[];
 				ready: boolean;
-			}) { return <>
+			}) @{
 				<section class="feature-card">
 					<h2>{title}</h2>
 
@@ -1499,7 +1457,7 @@ describe('@tsrx/react basic', () => {
 						<p>{'Loading output...'}</p>
 					}
 				</section>
-			</>; }`,
+			}`,
 			'FeatureCard.tsrx',
 		);
 
@@ -1511,9 +1469,9 @@ describe('@tsrx/react basic', () => {
 describe('lazy destructuring', () => {
 	it('transforms lazy object destructuring in component params', () => {
 		const { code } = compile(
-			`export function App(&{name, age}: Props) { return <>
+			`export function App(&{name, age}: Props) @{
 				<div>{name}{age}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1526,11 +1484,10 @@ describe('lazy destructuring', () => {
 
 	it('uses regular array destructuring for useState', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count, setCount] = useState(0);
-				---
 				<div>{count}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1540,11 +1497,10 @@ describe('lazy destructuring', () => {
 
 	it('transforms lazy object destructuring in variable declarations', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const &{data, error} = useSWR("/api");
-				---
 				<div>{data}{error}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1555,14 +1511,13 @@ describe('lazy destructuring', () => {
 
 	it('handles assignment to lazy array bindings', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				let &[val] = getState();
 				val = 10;
 				val++;
 				++val;
-				---
 				<div>{val}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1573,11 +1528,10 @@ describe('lazy destructuring', () => {
 
 	it('handles shorthand object properties with lazy bindings', () => {
 		const { code } = compile(
-			`export function App(&{name}: Props) { return <>
+			`export function App(&{name}: Props) @{
 				const obj = {name};
-				---
 				<div>{obj}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1587,11 +1541,10 @@ describe('lazy destructuring', () => {
 
 	it('handles shadowing in inner functions', () => {
 		const { code } = compile(
-			`export function App(&{name}: Props) { return <>
+			`export function App(&{name}: Props) @{
 				const fn = (name: string) => name.toUpperCase();
-				---
 				<div>{fn(name)}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1603,12 +1556,13 @@ describe('lazy destructuring', () => {
 
 	it('does not hoist static elements that reference lazy bindings', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const &[count] = useState(0);
-				---
-				<div>{"static"}</div>
-				<div>{count}</div>
-			</>; }`,
+				<>
+					<div>{"static"}</div>
+					<div>{count}</div>
+				</>
+			}`,
 			'App.tsrx',
 		);
 
@@ -1622,9 +1576,9 @@ describe('lazy destructuring', () => {
 
 	it('does not hoist render-time expressions from template bodies', () => {
 		const { code } = compile(
-			`export function Test() { return <>
+			`export function Test() @{
 				<div>{Date.now()}</div>
-			</>; }`,
+			}`,
 			'Test.tsrx',
 		);
 
@@ -1634,11 +1588,10 @@ describe('lazy destructuring', () => {
 
 	it('combines lazy params and regular destructuring', () => {
 		const { code } = compile(
-			`export function App(&{name}: Props) { return <>
+			`export function App(&{name}: Props) @{
 				const [count, setCount] = useState(0);
-				---
 				<div>{name}{count}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1650,12 +1603,11 @@ describe('lazy destructuring', () => {
 
 	it('uses regular destructuring inside callbacks', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count, setCount] = useState(0);
 				const handler = () => setCount(count + 1);
-				---
 				<div>{count}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1690,13 +1642,12 @@ describe('lazy destructuring', () => {
 
 	it('transforms lazy params in nested functions inside components', () => {
 		const { code } = compile(
-			`export function App(&{ outer }: { outer: string }) { return <>
+			`export function App(&{ outer }: { outer: string }) @{
 				function greet(&{ name }: { name: string }) {
 					return 'hi ' + name + ' from ' + outer;
 				}
-				---
 				<div>{greet}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1707,11 +1658,10 @@ describe('lazy destructuring', () => {
 
 	it('uses regular destructuring for useState at statement level', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count] = useState(0);
-				---
 				<div>{count}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1721,12 +1671,11 @@ describe('lazy destructuring', () => {
 
 	it('uses regular destructuring with tracked references', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count, setCount] = useState(0);
 				const inc = () => { setCount(count + 1); };
-				---
 				<button onClick={inc}>{count}</button>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1737,11 +1686,10 @@ describe('lazy destructuring', () => {
 
 	it('does not hoist elements referencing useState bindings', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count] = useState(0);
-				---
 				<p>{count}</p>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1751,10 +1699,10 @@ describe('lazy destructuring', () => {
 
 	it('does not hoist elements using component-scope bindings as tag names', () => {
 		const { code } = compile(
-			`export function App({Widget}: {Widget: any}) { return <>
+			`export function App({Widget}: {Widget: any}) @{
 				<div>{"static"}</div>
 				<Widget />
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1767,10 +1715,10 @@ describe('lazy destructuring', () => {
 
 	it('does not hoist elements using JSXMemberExpression with component-scope object', () => {
 		const { code } = compile(
-			`export function App({ui}: {ui: any}) { return <>
+			`export function App({ui}: {ui: any}) @{
 				<div>{"static"}</div>
 				<ui.Button />
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1783,12 +1731,11 @@ describe('lazy destructuring', () => {
 
 	it('uses regular destructuring with default parameter values', () => {
 		const { code } = compile(
-			`export function App() { return <>
+			`export function App() @{
 				const [count] = useState(0);
 				const handler = (step = count) => step + 1;
-				---
 				<div>{count}</div>
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1800,9 +1747,9 @@ describe('lazy destructuring', () => {
 	it('treats JSXMemberExpression property labels as not referencing scope bindings', () => {
 		const { code } = compile(
 			`import Icons from './Icons';
-			export function App({Button}: {Button: any}) { return <>
+			export function App({Button}: {Button: any}) @{
 				<Icons.Button />
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1822,20 +1769,17 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				const show = true;
-				---
 				@if (show) {
 					const localVar = 'hello';
-					---
 					<div>{localVar}</div>
 				}
 				@if (show) {
 					const [val] = useState(0);
-					---
 					<span>{val}</span>
 				}
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1851,15 +1795,14 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				<div>
 					useEffect(() => {}, []);
-					---
 					<span>{'ok'}</span>
 				</div>
 
 				const later = 'later';
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1873,7 +1816,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
-			export function App() { return <>
+			export function App() @{
 				<div>
 					const later = 'inner';
 
@@ -1881,12 +1824,11 @@ describe('lazy destructuring', () => {
 						console.log(later);
 					}, [later]);
 
-					---
 					<span>{later}</span>
 				</div>
 
 				const later = 'outer';
-			</>; }`,
+			}`,
 			'App.tsrx',
 		);
 
@@ -1902,7 +1844,7 @@ describe('lazy destructuring', () => {
 		const { code } = compile(
 			`import { useState, useEffect } from 'react';
 
-				export function App() { return <>
+				export function App() @{
 					const [count, setCount] = useState(0);
 
 					if (count > 2) {
@@ -1915,9 +1857,8 @@ describe('lazy destructuring', () => {
 					console.log(laterVar);
 				}, [laterVar]);
 
-					---
 					<div>{laterVar}</div>
-				</>; }`,
+				}`,
 			'App.tsrx',
 		);
 
@@ -1937,11 +1878,10 @@ describe('lazy destructuring', () => {
 	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					function refA(_node) {}
-					---
 					<div ref={refA}>{'hi'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1952,11 +1892,10 @@ describe('lazy destructuring', () => {
 
 		it('passes a single Ripple ref={expr} through as ref={expr} with no helper import', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					function refA(_node) {}
-					---
 					<div ref={refA}>{'hi'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1966,15 +1905,14 @@ describe('lazy destructuring', () => {
 
 		it('keeps named ref-like props ordinary while normalizing host spreads', () => {
 			const { code } = compile(
-				`export function Child(props) { return <>
+				`export function Child(props) @{
 					<input {...props} />
-				</>; }
+				}
 
-				export function App() { return <>
+				export function App() @{
 					let input;
-					---
 					<Child input_ref={input} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1985,15 +1923,14 @@ describe('lazy destructuring', () => {
 
 		it('keeps named ref-like props ordinary without host spreads', () => {
 			const { code } = compile(
-				`export function Child(props) { return <>
+				`export function Child(props) @{
 					<span>{'child'}</span>
-				</>; }
+				}
 
-				export function App() { return <>
+				export function App() @{
 					let input;
-					---
 					<Child input_ref={input} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2004,13 +1941,12 @@ describe('lazy destructuring', () => {
 
 		it('normalizes multiple host spreads once while merging one explicit ref', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const first = {};
 					const second = {};
 					function cb(_node) {}
-					---
 					<input {...first} {...second} ref={cb} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2034,12 +1970,11 @@ describe('lazy destructuring', () => {
 		it('rejects multiple ref={expr} attributes on the same element', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						function refA(_node) {}
 						function refB(_node) {}
-						---
 						<div ref={refA} ref={refB}>{'hi'}</div>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);
@@ -2049,13 +1984,12 @@ describe('lazy destructuring', () => {
 			const { code } = compile(
 				`import { mergeRefs } from '@tsrx/react/ref';
 
-				export function App() { return <>
+				export function App() @{
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					---
 					<div ref={mergeRefs(refA, refB, refC)}>{'hi'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2066,13 +2000,12 @@ describe('lazy destructuring', () => {
 		it('rejects repeated ref={expr} attributes after the keyword removal', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 					function refA(_node) {}
 					function refB(_node) {}
 					function refC(_node) {}
-					---
 					<div ref={refA} ref={refB} ref={refC}>{'hi'}</div>
-				</>; }`,
+				}`,
 					'App.tsrx',
 				),
 			).toThrow(/multiple `ref=\{\.\.\.\}` attributes/);

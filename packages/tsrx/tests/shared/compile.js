@@ -48,7 +48,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 	describe(`[${name}] compile diagnostics`, () => {
 		it('keeps callback returns around JSX values clean in type-only output', () => {
 			const result = compile_to_volar_mappings(
-				`function Test() { return <>
+				`function Test() @{
 					<Page
 						params={{
 							menuAlt: (isAdmin) => {
@@ -66,7 +66,7 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 							},
 						}}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 				{ loose: true },
 			);
@@ -114,11 +114,11 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 
 		it('reports semicolon-terminated template expression containers', () => {
 			const result = compile_to_volar_mappings(
-				`function App() { return <>
-					{
+				`function App() @{
+					<div>{
 						renderThing();
-					}
-				</>; }`,
+					}</div>
+				}`,
 				'App.tsrx',
 			);
 
@@ -157,8 +157,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 	describe(`[${name}] JSX fragments inside expression values`, () => {
 		it('preserves nested JSX fragments inside regular function TSX props', () => {
 			const { code } = compile(
-				`function App3() {
-					return <>
+				`function App3() @{
 						<PlainTextPlugin
 							ErrorBoundary={LexicalErrorBoundary}
 							contentEditable={<>
@@ -174,8 +173,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 								<div class={classes.placeholder}>{placeholder}</div>
 							</>}
 						/>
-					</>;
-				}`,
+					}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('contentEditable={<>');
@@ -187,8 +185,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 
 		it('allows shorthand attributes in JSX fragment values', () => {
 			const { code } = compile(
-				`export function Test(props) {
-					return <>
+				`export function Test(props) @{
 						<List
 							items={props.items}
 							renderItem={(item) =>
@@ -199,8 +196,7 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 								</>
 							}
 						/>
-					</>;
-				}`,
+					}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('item={item}');
@@ -211,11 +207,9 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 		it('preserves JSX-style returns in regular functions declared inside TSRX bodies', () => {
 			const { code } = compile(
 				`function App() @{
-					function renderChild() {
-						return <>
+					function renderChild() @{
 							<span class="nested-return">{'ok'}</span>
-						</>;
-					}
+						}
 
 					<>
 						{renderChild()}
@@ -244,9 +238,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 	describe(`[${name}] nested lazy destructuring`, () => {
 		it('transforms nested lazy object inside lazy object in component params', () => {
 			const { code } = compile(
-				`export function App(&{ outer: &{ inner } }: { outer: { inner: number } }) { return <>
+				`export function App(&{ outer: &{ inner } }: { outer: { inner: number } }) @{
 					<div>{inner}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -259,9 +253,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('transforms nested lazy array inside lazy object in component params', () => {
 			const { code } = compile(
-				`export function App(&{ pair: &[first, second] }: { pair: [number, number] }) { return <>
+				`export function App(&{ pair: &[first, second] }: { pair: [number, number] }) @{
 					<div>{first}{second}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -284,9 +278,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('transforms three-level nested lazy object in component params', () => {
 			const { code } = compile(
-				`export function App(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) { return <>
+				`export function App(&{ a: &{ b: &{ c } } }: { a: { b: { c: number } } }) @{
 					<div>{c}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -296,13 +290,12 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('transforms nested lazy in variable declaration with writeback', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const data = { outer: { inner: 5 } };
 					let &{ outer: &{ inner } } = data;
 					inner = 99;
-					---
 					<div>{data.outer.inner}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -314,14 +307,13 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('transforms nested lazy array-in-object in variable declaration with writeback', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const data = { pair: [1, 2] as [number, number] };
 					let &{ pair: &[first, second] } = data;
 					first = 100;
 					second = 200;
-					---
 					<div>{data.pair[0]}{data.pair[1]}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -346,14 +338,13 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('transforms compound assignment through nested lazy chain', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const data = { a: { b: { c: 5 } } };
 					let &{ a: &{ b: &{ c } } } = data;
 					c += 10;
 					c *= 2;
-					---
 					<div>{data.a.b.c}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -368,9 +359,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('replaces lazy pattern nested inside non-lazy object component param', () => {
 			const { code } = compile(
-				`export function App({ something: &[first, second] }: { something: [number, number] }) { return <>
+				`export function App({ something: &[first, second] }: { something: [number, number] }) @{
 					<div>{first}{second}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -383,9 +374,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('replaces lazy pattern nested inside non-lazy array component param', () => {
 			const { code } = compile(
-				`export function App([head, &{ inner }]: [number, { inner: number }]) { return <>
+				`export function App([head, &{ inner }]: [number, { inner: number }]) @{
 					<div>{head}{inner}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -410,13 +401,12 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('replaces lazy pattern nested inside non-lazy let declaration with writeback', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const data = { outer: { inner: 5 } };
 					let { outer: &{ inner } } = data;
 					inner = 99;
-					---
 					<div>{data.outer.inner}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -426,9 +416,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('replaces multiple sibling lazy patterns nested in non-lazy outer', () => {
 			const { code } = compile(
-				`export function App({ a: &{ x }, b: &{ y } }: { a: { x: number }, b: { y: number } }) { return <>
+				`export function App({ a: &{ x }, b: &{ y } }: { a: { x: number }, b: { y: number } }) @{
 					<div>{x}{y}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -439,9 +429,9 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 
 		it('replaces deeply nested lazy pattern through multiple non-lazy levels', () => {
 			const { code } = compile(
-				`export function App({ a: { b: &{ c } } }: { a: { b: { c: number } } }) { return <>
+				`export function App({ a: { b: &{ c } } }: { a: { b: { c: number } } }) @{
 					<div>{c}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -458,9 +448,9 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 	describe(`[${name}] fragment expression render bodies`, () => {
 		it('renders a component-body fragment shorthand with a lone expression child', () => {
 			const { code } = compile(
-				`export default function A() { return <>
+				`export default function A() @{
 					<>{"Hello"}</>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -469,11 +459,11 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 
 		it('renders lone expression fragment shorthand inside conditional render bodies', () => {
 			const { code } = compile(
-				`export function A() { return <>
+				`export function A() @{
 					@if (show) {
 						<>{"Hello"}</>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -483,11 +473,11 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 
 		it('renders lone expression fragment shorthand inside loop render bodies', () => {
 			const { code } = compile(
-				`export function A() { return <>
+				`export function A() @{
 					@for (const value of values) {
 						<>{value}</>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -497,7 +487,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 
 		it('renders lone expression fragment shorthand inside switch case bodies', () => {
 			const { code } = compile(
-				`export function A() { return <>
+				`export function A() @{
 					@switch (state) {
 						case "ready":
 							<>{"Ready"}</>
@@ -505,7 +495,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 						default:
 							<>{"Waiting"}</>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -536,7 +526,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			'lifts each downstream case body into a single helper component',
 			() => {
 				const { code } = compile(
-					`export function StatusBadge({ status }: { status: string }) { return <>
+					`export function StatusBadge({ status }: { status: string }) @{
 						@switch (status) {
 							case "idle":
 								<span>{'Online'}</span>
@@ -545,7 +535,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							case "offline":
 								<span>{'Offline'}</span>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -561,7 +551,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 
 		it('treats explicit break as a stop signal and leaves later cases independent', () => {
 			const { code } = compile(
-				`export function App({ kind }: { kind: string }) { return <>
+				`export function App({ kind }: { kind: string }) @{
 					@switch (kind) {
 						case "a":
 							<span>{'A'}</span>
@@ -572,7 +562,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 						default:
 							<span>{'Other'}</span>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -591,7 +581,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			'treats stacked case labels as fall-through aliases for one lifted body',
 			() => {
 				const { code } = compile(
-					`export function App({ n }: { n: number }) { return <>
+					`export function App({ n }: { n: number }) @{
 						@switch (n) {
 							case 1:
 							case 2:
@@ -600,7 +590,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							default:
 								<span>{'other'}</span>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -616,7 +606,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			'lifts a shared body into one StatementBodyHook helper across both <Match> arms',
 			() => {
 				const { code } = compile(
-					`export function App({ n }: { n: number }) { return <>
+					`export function App({ n }: { n: number }) @{
 						@switch (n) {
 							case 1:
 							case 2:
@@ -625,7 +615,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							default:
 								<span>{'other'}</span>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -648,7 +638,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			'lifts duplicated case bodies into StatementBodyHook helpers chained from each arm',
 			() => {
 				const { code } = compile(
-					`export function App({ status }: { status: string }) { return <>
+					`export function App({ status }: { status: string }) @{
 						@switch (status) {
 							case "idle":
 								<span>{'Online'}</span>
@@ -657,7 +647,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							case "offline":
 								<span>{'Offline'}</span>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -742,7 +732,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			'lowers fall-through to <Match> arms that invoke hoisted helpers',
 			() => {
 				const { code } = compile(
-					`export function App({ status }: { status: string }) { return <>
+					`export function App({ status }: { status: string }) @{
 						@switch (status) {
 							case "idle":
 								<span>{'Online'}</span>
@@ -751,7 +741,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							case "offline":
 								<span>{'Offline'}</span>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -770,7 +760,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 
 		it.runIf(name === 'solid')('routes default cases to <Switch fallback>', () => {
 			const { code } = compile(
-				`export function App({ kind }: { kind: string }) { return <>
+				`export function App({ kind }: { kind: string }) @{
 					@switch (kind) {
 						case "a":
 							<span>{'A'}</span>
@@ -778,7 +768,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 						default:
 							<span>{'D'}</span>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -821,7 +811,7 @@ export function runSharedSwitchHelperHoistingTests({
 	describe(`[${name}] StatementBodyHook hoisting (client vs typeOnly)`, () => {
 		// Three fall-through cases without break: two of those bodies are
 		// duplicated downstream (active, offline) so two helpers should exist.
-		const switch_source = `export function App({ status }: { status: string }) { return <>
+		const switch_source = `export function App({ status }: { status: string }) @{
 			@switch (status) {
 				case "idle":
 					<span>{'Online'}</span>
@@ -830,7 +820,7 @@ export function runSharedSwitchHelperHoistingTests({
 				case "offline":
 					<span>{'Offline'}</span>
 			}
-		</>; }`;
+		}`;
 
 		it('lifts duplicated case bodies in the client transform', () => {
 			const { code } = compile(switch_source, 'App.tsrx');
@@ -898,13 +888,12 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 	describe(`[${name}] component loop control flow`, () => {
 		it('uses continue to skip a for...of iteration', () => {
 			const { code } = compile(
-				`export function App({ items }: { items: string[] }) { return <>
+				`export function App({ items }: { items: string[] }) @{
 					@for (const item of items) {
 						if (!item) continue
-						---
 						<div>{item}</div>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -915,14 +904,15 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 
 		it('keeps rendered content before continue branches', () => {
 			const { code } = compile(
-				`export function App({ items }: { items: string[] }) { return <>
-					@for (const item of items) {
-						if (!item) continue
-						---
-						<span>{item}</span>
-						<div>{item}</div>
-					}
-				</>; }`,
+					`export function App({ items }: { items: string[] }) @{
+						@for (const item of items) {
+							if (!item) continue
+							<>
+								<span>{item}</span>
+								<div>{item}</div>
+							</>
+						}
+					}`,
 				'App.tsrx',
 			);
 
@@ -936,11 +926,11 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			'keeps explicit loop keys on otherwise static children',
 			() => {
 				const { code } = compile(
-					`export function App() { return <>
+					`export function App() @{
 						@for (const item of items; index i; key i) {
 							<div>{'test'}</div>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -953,12 +943,14 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			'keeps implicit loop keys on multi-child static loop bodies',
 			() => {
 				const { code } = compile(
-					`export function App() { return <>
+					`export function App() @{
 						@for (const item of items; index i) {
-							<div>{'one'}</div>
-							<div>{'two'}</div>
+							<>
+								<div>{'one'}</div>
+								<div>{'two'}</div>
+							</>
 						}
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 
@@ -971,7 +963,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 
 		it('allows ordinary function control flow inside for...of loops', () => {
 			const { code } = compile(
-				`export function App({ items }: { items: string[] }) { return <>
+				`export function App({ items }: { items: string[] }) @{
 					@for (const item of items) {
 						function label(value: string) {
 							for (let i = 0; i < 1; i++) {
@@ -982,10 +974,9 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 							}
 							return value
 						}
-						---
 						<div>{label(item)}</div>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1028,7 +1019,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 
 		it('lowers function component props inside JSX attribute objects', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<Page
 						params={{
 							menuAlt2: ({ isAdmin, children }: { isAdmin: boolean, children: (items: string[]) => JSX.Element }) => {
@@ -1042,7 +1033,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 							},
 						}}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1053,7 +1044,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 
 		it('lowers expression-bodied function component props', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<Child
 						children={({ items }: { items: JSX.Element[] }) => <ul>
 							@for (const item of items; index i) {
@@ -1061,7 +1052,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 							}
 						</ul>}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1078,7 +1069,7 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 
 		it('parses semicolon-terminated template expression containers', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<Child
 						children={({ items }: { items: JSX.Element[] }) => {
 							return <ul>
@@ -1088,13 +1079,13 @@ export function runSharedAnonymousComponentTests({ compile, name }) {
 							</ul>;
 						}}
 					/>
-				</>; }
+				}
 
-				function Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) { return <>
+				function Child({ children }: { children: (props: { items: JSX.Element[] }) => JSX.Element }) @{
 					{
 						children({ items: [<span>Item 1</span>, <span>Item 2</span>, <span>Item 3</span>] });
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1118,9 +1109,9 @@ export function runSharedComponentParamsTests({ compile, compile_to_volar_mappin
 		it('accepts a single props parameter', () => {
 			expect(() =>
 				compile(
-					`export function App(props) { return <>
+					`export function App(props) @{
 						<div>{props.value}</div>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
@@ -1129,9 +1120,9 @@ export function runSharedComponentParamsTests({ compile, compile_to_volar_mappin
 		it('accepts multiple parameters on ordinary functions that return TSRX', () => {
 			expect(() =>
 				compile(
-					`export function App(a, b, c) { return <>
+					`export function App(a, b, c) @{
 						<div>{a}{b}{c}</div>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
@@ -1139,9 +1130,9 @@ export function runSharedComponentParamsTests({ compile, compile_to_volar_mappin
 
 		it('does not surface removed props-parameter diagnostics via Volar mappings', () => {
 			const result = compile_to_volar_mappings(
-				`export function App(a, b, c) { return <>
+				`export function App(a, b, c) @{
 					<div>{a}{b}{c}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1280,9 +1271,9 @@ export function runSharedCompileTests({
 
 		it('keeps plain components local unless explicitly exported', () => {
 			const { code } = compile(
-				`function App() { return <>
+				`function App() @{
 					<div>{'Hello world'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1294,9 +1285,9 @@ export function runSharedCompileTests({
 
 		it('preserves named component exports without double-exporting', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<div>{'Hello world'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1307,9 +1298,9 @@ export function runSharedCompileTests({
 
 		it('preserves default component exports', () => {
 			const { code } = compile(
-				`export default function App() { return <>
+				`export default function App() @{
 					<div>{'Hello world'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1323,9 +1314,9 @@ export function runSharedCompileTests({
 					items: readonly Item[];
 				}
 
-				export function MyComponent<Item>(props: Props<Item>) { return <>
+				export function MyComponent<Item>(props: Props<Item>) @{
 					<div />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1336,13 +1327,13 @@ export function runSharedCompileTests({
 			const { code } = compile(
 				`type User = { name: string };
 
-				function RenderProp<Item>(props: { children: (item: Item) => any }) { return <></>; }
+				function RenderProp<Item>(props: { children: (item: Item) => any }) { return null; }
 
-				export function App() { return <>
+				export function App() @{
 					<RenderProp<User>>
 						{(item) => item.name}
 					</RenderProp>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1351,13 +1342,13 @@ export function runSharedCompileTests({
 
 		it('preserves generic type arguments on self-closing JSX component tags', () => {
 			const { code } = compile(
-				`function Box<T>({ value }: { value: T }) { return <>
+				`function Box<T>({ value }: { value: T }) @{
 					<div>{String(value)}</div>
-				</>; }
+				}
 
-				export function App() { return <>
+				export function App() @{
 					<Box<string> value="hi" />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1368,11 +1359,11 @@ export function runSharedCompileTests({
 	describe(`[${name}] component try pending fallbacks`, () => {
 		it('allows empty pending blocks as null fallbacks', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					@try {
 						<div>{'content'}</div>
 					} pending {}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1384,24 +1375,24 @@ export function runSharedCompileTests({
 	describe(`[${name}] TypeScript output`, () => {
 		it('collects unclosed tag diagnostics without loose recovery silence', () => {
 			const result = compile(
-				`function App() { return <>
+				`function App() @{
 					<div>hi
-				</>; }`,
+				}`,
 				'App.tsrx',
 				{ collect: true },
 			);
 
 			expect(result.errors.map((error) => error.message)).toContain(
-				"Expected closing tag to match opening tag. Expected '</div>' but found '</null>'",
+				"Unclosed tag '<div>'. Expected '</div>' before end of template.",
 			);
-			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG);
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.UNCLOSED_TAG);
 		});
 
 		it('keeps loose unclosed tag recovery silent', () => {
 			const result = compile(
-				`function App() { return <>
+				`function App() @{
 					<div>hi
-				</>; }`,
+				}`,
 				'App.tsrx',
 				{ loose: true },
 			);
@@ -1411,9 +1402,9 @@ export function runSharedCompileTests({
 
 		it('accepts adjacent JSX text and expression children', () => {
 			const { code } = compile(
-				`export function App({ count }: { count: number }) { return <>
+				`export function App({ count }: { count: number }) @{
 						<p>clicked {count} times</p>
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -1424,11 +1415,11 @@ export function runSharedCompileTests({
 
 		it('accepts indented JSX text children', () => {
 			const { code } = compile(
-				`export default function App() { return <>
+				`export default function App() @{
 						<div>
 							Hello
 						</div>
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -1439,9 +1430,9 @@ export function runSharedCompileTests({
 
 		it('accepts JSX text at the start of template bodies', () => {
 			const { code } = compile(
-				`export function App() { return <>
-						hello
-					</>; }`,
+				`export function App() @{
+						<>hello</>
+					}`,
 				'App.tsrx',
 			);
 
@@ -1452,13 +1443,13 @@ export function runSharedCompileTests({
 
 		it('accepts JSX text in if-else branches', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					@if (false) {
-						Hello Ripple
+						<>Hello Ripple</>
 					} else {
-						Hello React
+						<>Hello React</>
 					}
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1469,9 +1460,9 @@ export function runSharedCompileTests({
 
 		it('preserves entities in JSX text children for JSX runtime decoding', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<p>a&amp;b&quot;c</p>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1480,9 +1471,9 @@ export function runSharedCompileTests({
 
 		it('treats backslashes in JSX text children as literal text', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<p>line\\nbreak</p>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1491,9 +1482,9 @@ export function runSharedCompileTests({
 
 		it('keeps double-quoted strings inside expression containers as JavaScript strings', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<p>{"line\\nbreak"} {"&amp;"}</p>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1504,10 +1495,10 @@ export function runSharedCompileTests({
 		it('rejects literal newlines in double-quoted strings inside expression containers', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<p>{"line
 break"}</p>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow(/Unterminated string constant/);
@@ -1515,9 +1506,9 @@ break"}</p>
 
 		it('keeps compact string comparisons in expression containers parseable', () => {
 			const { code } = compile(
-				`export function App({ value }: { value: string }) { return <>
+				`export function App({ value }: { value: string }) @{
 					<p>{a<value}</p>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1560,7 +1551,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps JavaScript block scopes inside component-local callables', () => {
 			const { code } = compile(
-				`export function BlockScopeCheck() { return <>
+				`export function BlockScopeCheck() @{
 					function fromDeclaration() {
 						let result = 0;
 						{
@@ -1587,9 +1578,8 @@ export function optionalFn(bar: string, baz?: string) {
 
 					const reader = new Reader();
 
-					---
 					<output>{fromDeclaration()}{fromArrow()}{reader.value()}</output>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1605,7 +1595,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('still treats component-level braces as template expressions', () => {
 			const { code } = compile(
-				`export function ExpressionContainerCheck() { return <>
+				`export function ExpressionContainerCheck() @{
 					function ignore() {
 						{
 							const hidden = 'not rendered';
@@ -1614,9 +1604,8 @@ export function optionalFn(bar: string, baz?: string) {
 					}
 
 					const visible = 'render me';
-					---
-					{visible}
-				</>; }`,
+					<>{visible}</>
+				}`,
 				'App.tsrx',
 			);
 
@@ -1627,7 +1616,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps generic-looking arrow expressions parseable after inner blocks in functions', () => {
 			const { code } = compile(
-				`export function GenericAfterBlockCheck() { return <>
+				`export function GenericAfterBlockCheck() @{
 					const make = () => {
 						if (true) {
 							const local = 1;
@@ -1637,9 +1626,8 @@ export function optionalFn(bar: string, baz?: string) {
 						<T,>(value: T) => value;
 					};
 
-					---
 					<div>{make}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1652,9 +1640,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('collects mismatched closing tag diagnostic codes', () => {
 			expect(() =>
 				compile(
-					`function App() { return <>
+					`function App() @{
 						<div></span>
-					</>; }`,
+					}`,
 					'App.tsrx',
 					{ collect: true },
 				),
@@ -1666,7 +1654,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows return values inside functions and classes nested in components', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						function getLabel() {
 							return 'label';
 						}
@@ -1682,27 +1670,28 @@ export function optionalFn(bar: string, baz?: string) {
 						}
 
 						const model = new Model();
-						---
 						<div>{getLabel()}{model.getValue()}</div>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
 		});
 
-		it('rejects return statements inside TSRX template bodies', () => {
+		it('allows return statements before branch output', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
-						@if (x) {
-							return <div>hello world</div>;
-						}
+					`export function App() @{
+						<>
+							@if (x) {
+								return <div>hello world</div>;
+							}
 
-						<div>hello world 2</div>
-					</>; }`,
+							<div>hello world 2</div>
+						</>
+					}`,
 					'App.tsrx',
 				),
-			).toThrow(TSRX_TEMPLATE_RETURN_ERROR);
+			).not.toThrow();
 		});
 	});
 
@@ -1710,12 +1699,12 @@ export function optionalFn(bar: string, baz?: string) {
 		it('does not parse {style} inside element child expressions', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<div>{style 'root'}</div>
 						<style>
 							.root { color: blue; }
 						</style>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow();
@@ -1724,12 +1713,12 @@ export function optionalFn(bar: string, baz?: string) {
 		it('does not parse {style} in attributes', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<div class={style 'root'}>{'hi'}</div>
 						<style>
 							.root { color: blue; }
 						</style>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow();
@@ -1738,12 +1727,12 @@ export function optionalFn(bar: string, baz?: string) {
 		it('does not parse the removed #style syntax', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<Child cls={#style.root} />
 						<style>
 							.root { color: blue; }
 						</style>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow();
@@ -1771,7 +1760,7 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects dynamic attribute names inside JSX fragments', () => {
 			expect(() =>
 				compile(
-					`function Some(props) { return <></>; }
+					`function Some(props) { return null; }
 					class Foo {
 						bar() {
 							const placeholder = 'value';
@@ -1814,11 +1803,10 @@ export function optionalFn(bar: string, baz?: string) {
 		it('supports dynamic element syntax in native templates', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						const tag = 'section';
-						---
 						<@tag id="x" />
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
@@ -1862,15 +1850,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
-				`export function Button() { return <>
+				`export function Button() @{
 					const x = <>Hello world</>;
-					---
-					{x}
-				</>; }`,
+					<>{x}</>
+				}`,
 				'App.tsrx',
 			);
 
-			expect(code).toContain('const x = <>Hello world</>;');
+			expect(code).toContain('const x = "Hello world";');
 			expect(code).toContain('return x;');
 		});
 
@@ -1938,7 +1925,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps special fragment returns inside component-local functions', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 							function FragmentReturn() {
 								return <><div>fragment</div></>;
 							}
@@ -1949,9 +1936,8 @@ export function optionalFn(bar: string, baz?: string) {
 								return <><div>tsrx</div></>;
 							}
 
-							---
 							<div>App</div>
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -1964,9 +1950,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps special fragment returns inside component prop arrow functions', () => {
 			const { code } = compile(
-				`function Child(props) { return <></>; }
+				`function Child(props) { return null; }
 
-					export function App() { return <>
+					export function App() @{
 						<Child
 							fragment={() => {
 								return <><div>fragment</div></>;
@@ -1978,7 +1964,7 @@ export function optionalFn(bar: string, baz?: string) {
 							return <><div>tsrx</div></>;
 						}}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -1990,9 +1976,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('parses semicolon-less JSX returns in component prop arrow functions', () => {
 			const { code } = compile(
-				`function Card(props) { return <></>; }
+				`function Card(props) { return null; }
 
-				function App() { return <>
+				function App() @{
 					<Card
 						children={() => {
 							return <>
@@ -2000,7 +1986,7 @@ export function optionalFn(bar: string, baz?: string) {
 							</>
 						}}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('Hello, World!');
@@ -2008,14 +1994,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps expression child arrays in fragment and JSX callback props', () => {
 			const { code } = compile(
-				`function Child(props) { return <></>; }
+				`function Child(props) { return null; }
 
-					export function App() { return <>
+					export function App() @{
 						<Child
 							fragment={() => <>{[<>Delete</>, <>Edit</>]}</>}
 							native={() => <>{[<>Delete</>, <>Edit</>]}</>}
 						/>
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -2036,11 +2022,10 @@ export function optionalFn(bar: string, baz?: string) {
 		it('parses compact JSX templates before a trailing newline at EOF', () => {
 			const { code } = compile(
 				[
-					`export function App() { return <>`,
+					`export function App() @{`,
 					`\tconst title = <><h1>Hello There</h1>{Test(1, 2)}</>;`,
-					`\t---`,
-					`\t{title}`,
-					`</>; }`,
+					`\t<>{title}</>`,
+					`}`,
 					``,
 					`function Test(p1, p2) {`,
 					`\treturn <><div>Hello</div><div>{p1}</div><div>{p2}</div></>;`,
@@ -2057,7 +2042,6 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`class Foo { bar() { return <>
 					const label = 'Hi';
-					---
 					<div>{label}</div>
 				</>; } }`,
 				'App.tsrx',
@@ -2079,7 +2063,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('preserves JSX template fragments in component JSX attribute values', () => {
 			const { code } = compile(
-				`function App() { return <> <Card content={<><span>Title</span></>} /> </>; }`,
+				`function App() @{ <Card content={<><span>Title</span></>} /> }`,
 				'App.tsrx',
 			);
 
@@ -2088,7 +2072,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('preserves statement-bodied JSX templates in self-closing component attributes', () => {
 			const { code } = compile(
-				`function App() { return <>
+				`function App() @{
 					<Card
 						content={
 							@if (foo) {
@@ -2098,7 +2082,7 @@ export function optionalFn(bar: string, baz?: string) {
 							}
 						}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2342,9 +2326,7 @@ export function optionalFn(bar: string, baz?: string) {
 								details: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-											@if (icon) {
-												icon();
-											}
+											{icon ? icon() : null}
 										</@tag>,
 								},
 							}}
@@ -2392,9 +2374,7 @@ export function optionalFn(bar: string, baz?: string) {
 								details2: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-											@if (icon) {
-												icon();
-											}
+											{icon ? icon() : null}
 										</@tag>,
 								},
 							}}
@@ -2441,7 +2421,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('expression statement inside a JS function body nested in a JSX attribute', () => {
 			const { code } = compile(
-				`function App() { return <>
+				`function App() @{
 					<Page params={{
 						f: () => {
 							<>
@@ -2449,7 +2429,7 @@ export function optionalFn(bar: string, baz?: string) {
 							</>
 						},
 					}} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2460,7 +2440,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('parses statements before later JS statements in JSX attribute callbacks', () => {
 			const { code } = compile(
-				`function App() { return <>
+				`function App() @{
 					<Page params={{
 						menuAlt: (isAdmin) => {
 							const items = [];
@@ -2472,7 +2452,7 @@ export function optionalFn(bar: string, baz?: string) {
 							return items;
 						},
 					}} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2484,7 +2464,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps regular callback returns with JSX values intact', () => {
 			const { code } = compile(
-				`function Test() { return <>
+				`function Test() @{
 					<Page
 						params={{
 							menuAlt: (isAdmin) => {
@@ -2522,7 +2502,7 @@ export function optionalFn(bar: string, baz?: string) {
 							},
 						}}
 					/>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2545,9 +2525,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('gives untyped lazy object params an object-shaped generated type', () => {
 			const { code } = compile(
-				`export function App(&{ name, age }) { return <>
+				`export function App(&{ name, age }) @{
 					<div>{name}{age}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2558,9 +2538,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('uses the source property name for aliased lazy object params', () => {
 			const { code } = compile(
-				`export function App(&{ name: displayName }) { return <>
+				`export function App(&{ name: displayName }) @{
 					<div>{displayName}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2571,9 +2551,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('preserves provided types for aliased lazy object params', () => {
 			const { code } = compile(
-				`export function App(&{ a: c, b }: { a: string, b: string }) { return <>
+				`export function App(&{ a: c, b }: { a: string, b: string }) @{
 					<div>{c}{b}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2596,9 +2576,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects repeated local names inside lazy object params on components', () => {
 			expect(() =>
 				compile(
-					`export function App(&{ a: b, b }: { a: string, b: string }) { return <>
+					`export function App(&{ a: b, b }: { a: string, b: string }) @{
 						<div>{b}</div>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow(/Argument name clash/);
@@ -2638,11 +2618,10 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('does not rewrite body-level variables that shadow lazy bindings', () => {
 			const { code } = compile(
-				`export function App(&{ name }: { name: string }) { return <>
+				`export function App(&{ name }: { name: string }) @{
 					const name = 'override';
-					---
 					<div>{name}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain("const name = 'override'");
@@ -2652,14 +2631,13 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('does not rewrite locally shadowed names inside nested callbacks', () => {
 			const { code } = compile(
-				`export function App(&{name}: Props) { return <>
+				`export function App(&{name}: Props) @{
 					const handler = () => {
 						const name = 'local';
 						return name;
 					};
-					---
 					<div>{name}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2695,7 +2673,7 @@ export function optionalFn(bar: string, baz?: string) {
 	describe(`[${name}] fenced setup statements and JSX children`, () => {
 		it('keeps element setup statements before rendered children', () => {
 			const { code } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					<div class="card">@{
 						var a = "one"
 						a = "two"
@@ -2704,7 +2682,7 @@ export function optionalFn(bar: string, baz?: string) {
 							<b>{"hello" + a}</b>
 						</>
 					}</div>
-				</>; }`,
+				}`,
 				'Card.tsrx',
 			);
 			const assign_two = code.indexOf('a = "two"');
@@ -2716,15 +2694,16 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps component setup statements before rendered children with hook calls', () => {
 			const { code } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					var a = "one"
 					a = "two"
 					const x = useState(0)
-					---
-					<b>{"hello" + a}</b>
-					<b>{"hello" + a}</b>
-					<div>{x}</div>
-				</>; }`,
+					<>
+						<b>{"hello" + a}</b>
+						<b>{"hello" + a}</b>
+						<div>{x}</div>
+					</>
+				}`,
 				'Card.tsrx',
 			);
 			const assign_two = code.indexOf('a = "two"');
@@ -2736,15 +2715,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('does not capture JSX into temporaries when all statements precede JSX', () => {
 			const { code } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					<div>
 						const a = "one"
 						const b = "two"
-						---
 						<span>{a}</span>
 						<span>{b}</span>
 					</div>
-				</>; }`,
+				}`,
 				'Card.tsrx',
 			);
 			// No interleaving, so no capture temporaries should be introduced.
@@ -2753,13 +2731,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('keeps component setup statements before rendered children', () => {
 			const { code } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					var a = "one"
 					a = "two"
-					---
-					<b>{"hello" + a}</b>
-					<b>{"hello" + a}</b>
-				</>; }`,
+					<>
+						<b>{"hello" + a}</b>
+						<b>{"hello" + a}</b>
+					</>
+				}`,
 				'Card.tsrx',
 			);
 			const assign_two = code.indexOf('a = "two"');
@@ -2775,9 +2754,9 @@ export function optionalFn(bar: string, baz?: string) {
 			// `hello` is statically known to be a non-null string, so the
 			// text coercion wrapper is dead weight.
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<b>hello</b>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).not.toContain('== null');
@@ -2786,11 +2765,10 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('treats text as an ordinary identifier in expression containers', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					const text = 'hello';
-					---
 					<b>{text}</b>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('{text}');
@@ -2799,9 +2777,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects the removed {text expr} modifier syntax', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<b>{text name}</b>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).toThrow();
@@ -2813,9 +2791,9 @@ export function optionalFn(bar: string, baz?: string) {
 				// React/Preact/Solid hoist child-free static JSX to a module-level
 				// constant so the element identity is stable across renders.
 				const { code } = compile(
-					`export function App() { return <>
+					`export function App() @{
 						<b>hello {'hello'}</b>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				);
 				expect(code).toContain('const App__static1 = <b>');
@@ -2834,9 +2812,9 @@ export function optionalFn(bar: string, baz?: string) {
 					? 'dangerouslySetInnerHTML={{ __html: markup }}'
 					: 'innerHTML={markup}';
 			const { code } = compile(
-				`export function App({ markup }: { markup: string }) { return <>
+				`export function App({ markup }: { markup: string }) @{
 						<article ${html_attribute} />
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -2845,11 +2823,10 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('treats html as an ordinary expression identifier', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 						const html = '<strong>escaped</strong>';
-						---
 						<article>{html}</article>
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -2866,9 +2843,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('collapses a single-child fragment inside an element', () => {
 			const { code } = compile(
-				`export function App() { return <>
+				`export function App() @{
 					<b><>{111}</></b>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('<b>{111}</b>');
@@ -2878,9 +2855,9 @@ export function optionalFn(bar: string, baz?: string) {
 		it('allows JSX fragments inside tsx blocks without throwing', () => {
 			expect(() =>
 				compile(
-					`export function App() { return <>
+					`export function App() @{
 						<><>{111}</></>
-					</>; }`,
+					}`,
 					'App.tsrx',
 				),
 			).not.toThrow();
@@ -2888,13 +2865,13 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('supports fragment shorthand passed as a component prop', () => {
 			const { code } = compile(
-				`function Child(props) { return <>
+				`function Child(props) @{
 					<div>{props.content}</div>
-				</>; }
+				}
 
-				export function App() { return <>
+				export function App() @{
 					<Child content={<><span>{'hello'}</span></>} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('<Child content={');
@@ -2906,13 +2883,15 @@ export function optionalFn(bar: string, baz?: string) {
 	describe(`[${name}] scoped CSS`, () => {
 		it('applies the scope hash to host elements and emits the hashed stylesheet', () => {
 			const { code, css, cssHash } = compile(
-				`export function App() { return <>
-					<div>{'Hello world'}</div>
+				`export function App() @{
+					<>
+						<div>{'Hello world'}</div>
 
-					<style>
-						.div { color: red; }
-					</style>
-				</>; }`,
+						<style>
+							.div { color: red; }
+						</style>
+					</>
+				}`,
 				'App.tsrx',
 			);
 
@@ -2925,8 +2904,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('applies the scope hash inside a <> block', () => {
 			const { code, css, cssHash } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					<>
+						<>
 							<div ${generatedClassAttrName}="card">
 								<h2>{'Scoped title'}</h2>
 								<p>{'Styles here do not leak out.'}</p>
@@ -2938,17 +2918,18 @@ export function optionalFn(bar: string, baz?: string) {
 							<p>{'Styles here do not leak out.'}</p>
 						</div>
 
-					<style>
-						.card {
-							padding: 1.5rem;
-							border: 1px solid #ddd;
-						}
+						<style>
+							.card {
+								padding: 1.5rem;
+								border: 1px solid #ddd;
+							}
 
-						h2 {
-							color: #333;
-						}
-					</style>
-				</>; }`,
+							h2 {
+								color: #333;
+							}
+						</style>
+					</>
+				}`,
 				'Card.tsrx',
 			);
 
@@ -2958,8 +2939,9 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('applies the scope hash inside fragment shorthand', () => {
 			const { code, css, cssHash } = compile(
-				`function Card() { return <>
+				`function Card() @{
 					<>
+						<>
 							<div ${generatedClassAttrName}="card">
 								<h2>{'Scoped title'}</h2>
 								<p>{'Styles here do not leak out.'}</p>
@@ -2971,17 +2953,18 @@ export function optionalFn(bar: string, baz?: string) {
 							<p>{'Styles here do not leak out.'}</p>
 						</div>
 
-					<style>
-						.card {
-							padding: 1.5rem;
-							border: 1px solid #ddd;
-						}
+						<style>
+							.card {
+								padding: 1.5rem;
+								border: 1px solid #ddd;
+							}
 
-						h2 {
-							color: #333;
-						}
-					</style>
-				</>; }`,
+							h2 {
+								color: #333;
+							}
+						</style>
+					</>
+				}`,
 				'Card.tsrx',
 			);
 
@@ -2991,18 +2974,20 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('does not apply scoped css hashes to composite components', () => {
 			const { code, css, cssHash } = compile(
-				`function Child() { return <>
+				`function Child() @{
 					<div>{'Hello world'}</div>
-				</>; }
+				}
 
-				export function App() { return <>
-					<Child />
-					<div>{'Styled content'}</div>
+				export function App() @{
+					<>
+						<Child />
+						<div>{'Styled content'}</div>
 
-					<style>
-						.div { color: red; }
-					</style>
-				</>; }`,
+						<style>
+							.div { color: red; }
+						</style>
+					</>
+				}`,
 				'App.tsrx',
 			);
 
@@ -3015,21 +3000,22 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('passes style expression classes through a composite component prop', () => {
 			const { code, css, cssHash } = compile(
-				`function Badge(${componentClassParam}) { return <>
-					<span class={['badge', className ?? '']}>{'New'}</span>
+				`function Badge(${componentClassParam}) @{
+					<>
+						<span class={['badge', className ?? '']}>{'New'}</span>
 
-					<style>
-						.badge { padding: 0.25rem 0.5rem; }
-					</style>
-				</>; }
+						<style>
+							.badge { padding: 0.25rem 0.5rem; }
+						</style>
+					</>
+				}
 
-					export function App() { return <>
+					export function App() @{
 						const styles = <style>
 							.highlight { background: green; }
 						</style>;
-						---
 						<Badge ${componentClassAttrName}={styles.highlight} />
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -3042,17 +3028,16 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('passes style expression classes through a composite component prop when the element has children', () => {
 			const { code, css, cssHash } = compile(
-				`function Child(${componentClassParam}) { return <>
+				`function Child(${componentClassParam}) @{
 							<span class={className}>hello world</span>
-					</>; }
+					}
 
-						export function App() { return <>
+						export function App() @{
 							const styles = <style>
 								.container { color: red; }
 							</style>;
-							---
 								<Child ${componentClassAttrName}={styles.container}>hello world</Child>
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3065,13 +3050,12 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('passes hyphenated style expression class names through a composite component prop', () => {
 			const { code, css, cssHash } = compile(
-				`export function App() { return <>
+				`export function App() @{
 						const styles = <style>
 							.accent-tone { color: red; }
 						</style>;
-						---
 						<Child cls={styles['accent-tone']} />
-					</>; }`,
+					}`,
 				'App.tsrx',
 			);
 
@@ -3084,15 +3068,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('extracts hooks in expression-position JSX fragments into stable helper components', () => {
 			const { code } = compile(
 				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-							function App({ active }: { active: boolean }) { return <>
+							function App({ active }: { active: boolean }) @{
 								if (!active) return null;
 
 								useEffect(() => {
 									console.log(active);
 								}, [active]);
-								---
 								<span>{active ? 'active' : 'inactive'}</span>
-							</>; }`,
+							}`,
 				'App.tsrx',
 			);
 
@@ -3108,14 +3091,13 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('allows hook results that stay local to an extracted branch', () => {
 			const { code } = compile(
-				`export function App({ show }: { show: boolean }) { return <>
+				`export function App({ show }: { show: boolean }) @{
 							@if (show) {
 								const [x] = useState(100);
-								---
 								<div>{x}</div>
 							}
 							<span>{'after'}</span>
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3126,17 +3108,15 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('allows conditional hook callbacks to read outer bindings', () => {
 			const { code } = compile(
-				`export function App({ show, value }: { show: boolean; value: string }) { return <>
+				`export function App({ show, value }: { show: boolean; value: string }) @{
 							const label = value.trim();
-							---
 							@if (show) {
 								useEffect(() => {
 									console.log(label);
 								}, [label]);
-								---
 								<span>{label}</span>
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3147,16 +3127,15 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
 			const { code } = compile(
-				`export function App({ show, value }: { show: boolean; value: string }) { return <>
+				`export function App({ show, value }: { show: boolean; value: string }) @{
 							@if (show) {
 								let latest: string | undefined;
 								useEffect(() => {
 									latest = value;
 								}, [value]);
-								---
 								<span>{value}</span>
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3168,15 +3147,14 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`let effectCount = 0;
 
-						export function App({ show }: { show: boolean }) { return <>
+						export function App({ show }: { show: boolean }) @{
 							@if (show) {
 								useEffect(() => {
 									effectCount++;
 								}, []);
-								---
 								<span>{effectCount}</span>
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3187,18 +3165,16 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects conditional hook callbacks that assign to parent-scope bindings', () => {
 			expect(() =>
 				compile(
-					`export function App({ show, value }: { show: boolean; value: string }) { return <>
+					`export function App({ show, value }: { show: boolean; value: string }) @{
 								let latest: string | undefined;
-								---
+								console.log(latest);
 								@if (show) {
 									useEffect(() => {
 										latest = value;
 									}, [value]);
-									---
 									<span>{value}</span>
 								}
-								console.log(latest);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useEffect callback mutates `latest`/);
@@ -3207,19 +3183,17 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects conditional hook cleanup callbacks that mutate parent-scope bindings', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let cleanupCount = 0;
-								---
 								@if (show) {
 									useEffect(() => {
 										return () => {
 											cleanupCount++;
 										};
 									}, []);
-									---
 									<span>{'visible'}</span>
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useEffect callback mutates `cleanupCount`/);
@@ -3228,16 +3202,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects assigning hook results to bindings outside an extracted if branch', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let x: number | undefined;
-								---
+								console.log(x);
 								@if (show) {
 									[x] = useState(100);
-									---
 									<div>{x}</div>
 								}
-								console.log(x);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `x`/);
@@ -3246,17 +3218,15 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects assigning hook-derived values to bindings outside an extracted branch', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let x: number | undefined;
-								---
+								console.log(x);
 								@if (show) {
 									const [state] = useState(100);
 									x = state;
-									---
 									<div>{state}</div>
 								}
-								console.log(x);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/hook result is assigned to `x`/);
@@ -3265,16 +3235,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects compound assigning hook results to bindings outside an extracted branch', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let total = 0;
-								---
+								console.log(total);
 								@if (show) {
 									total += useCustomNumber();
-									---
 									<div>{total}</div>
 								}
-								console.log(total);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useCustomNumber result is assigned to `total`/);
@@ -3283,17 +3251,15 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects compound assigning hook-derived locals to bindings outside an extracted branch', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let total = 0;
-								---
+								console.log(total);
 								@if (show) {
 									const delta = useCustomNumber();
 									total += delta;
-									---
 									<div>{total}</div>
 								}
-								console.log(total);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/hook result is assigned to `total`/);
@@ -3302,16 +3268,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects hook-result assignments nested inside assignment targets', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let key = 0;
 								const values: Record<number, string> = {};
-								---
 								@if (show) {
 									values[key = useCustomNumber()] = 'active';
-									---
 									<div>{values[key]}</div>
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useCustomNumber result is assigned to `key`/);
@@ -3320,17 +3284,13 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects assigning hook results to outer bindings inside <> expressions', () => {
 			expect(() =>
 				compile(
-					`function App({ show }: { show: boolean }) {
-								return <>
+					`function App({ show }: { show: boolean }) @{
 									let x: number | undefined;
-									---
 									@if (show) {
 										[x] = useState(100);
-										---
 										<div>{x}</div>
 									}
-								</>;
-							}`,
+								}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `x`/);
@@ -3343,20 +3303,17 @@ export function optionalFn(bar: string, baz?: string) {
 			it('rejects assigning hook results to outer bindings inside switch cases', () => {
 				expect(() =>
 					compile(
-						`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
+						`export function App({ kind }: { kind: 'a' | 'b' }) @{
 								let x: number | undefined;
-								---
+								console.log(x);
 								@switch (kind) {
 									case 'a':
 										[x] = useState(100);
-										---
 										<div>{x}</div>
 									case 'b':
-										---
 										<span>{'b'}</span>
 								}
-								console.log(x);
-							</>; }`,
+							}`,
 						'App.tsrx',
 					),
 				).toThrow(/useState result is assigned to `x`/);
@@ -3364,17 +3321,15 @@ export function optionalFn(bar: string, baz?: string) {
 
 			it('allows switch case hook results that stay local', () => {
 				const { code } = compile(
-					`export function App({ kind }: { kind: 'a' | 'b' }) { return <>
+					`export function App({ kind }: { kind: 'a' | 'b' }) @{
 							@switch (kind) {
 								case 'a':
 									const [x] = useState(100);
-									---
 									<div>{x}</div>
 								case 'b':
-									---
 									<span>{'b'}</span>
 							}
-						</>; }`,
+						}`,
 					'App.tsrx',
 				);
 
@@ -3388,16 +3343,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects assigning hook results to outer bindings inside for-of bodies', () => {
 			expect(() =>
 				compile(
-					`export function App({ items }: { items: number[] }) { return <>
+					`export function App({ items }: { items: number[] }) @{
 								let last: number | undefined;
-								---
+								console.log(last);
 								@for (const item of items; index i) {
 									[last] = useState(item);
-									---
 									<div key={i}>{last}</div>
 								}
-								console.log(last);
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `last`/);
@@ -3406,17 +3359,15 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects hook results assigned to an outer binding after a for-of with a same-named const declaration', () => {
 			expect(() =>
 				compile(
-					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
+					`export function App({ show, items }: { show: boolean; items: number[] }) @{
 								let x: number | undefined;
-								---
 								@if (show) {
 									[x] = useState(0);
-									---
 									@for (const x of items) {
 										<div key={x}>{x}</div>
 									}
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `x`/);
@@ -3424,17 +3375,15 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('allows hook usage inside a for-of body whose let-declared loop var shadows an outer binding', () => {
 			const { code } = compile(
-				`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
+				`export function App({ show, items }: { show: boolean; items: number[] }) @{
 							let x: number | undefined;
-							---
 							@if (show) {
 								@for (let x of items) {
 									const [val] = useState(x);
-									---
 									<div key={x}>{val}</div>
 								}
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('useState(x)');
@@ -3444,15 +3393,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects for-of whose hook iterable is bound into an outer identifier', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let x: number | undefined;
-								---
 								@if (show) {
 									@for (x of useState(0)) {
 										<div>{x}</div>
 									}
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `x`/);
@@ -3461,16 +3409,15 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects for-of whose hook iterable is bound into an outer destructuring target', () => {
 			expect(() =>
 				compile(
-					`export function App({ show }: { show: boolean }) { return <>
+					`export function App({ show }: { show: boolean }) @{
 								let a: number | undefined;
 								let b: number | undefined;
-								---
 								@if (show) {
 									@for ([a, b] of [useState(0)]) {
 										<div>{a}{b}</div>
 									}
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `a`, `b`/);
@@ -3479,18 +3426,16 @@ export function optionalFn(bar: string, baz?: string) {
 		it('rejects hook results assigned to a for-of assignment-target outer binding', () => {
 			expect(() =>
 				compile(
-					`export function App({ show, items }: { show: boolean; items: number[] }) { return <>
+					`export function App({ show, items }: { show: boolean; items: number[] }) @{
 								let x: number | undefined;
-								---
 								@if (show) {
 									for (x of items) {
 										console.log(x);
 									}
 									[x] = useState(0);
-									---
 									<div>{x}</div>
 								}
-							</>; }`,
+							}`,
 					'App.tsrx',
 				),
 			).toThrow(/useState result is assigned to `x`/);
@@ -3498,13 +3443,12 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
 			const { code } = compile(
-				`export function App({ items }: { items: string[] }) { return <>
+				`export function App({ items }: { items: string[] }) @{
 							@for (const name of items) {
 								const [val] = useState(name);
-								---
 								<div key={name}>{val}</div>
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3515,11 +3459,11 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('falls back to the existing transform for non-hook for-of loops', () => {
 			const { code } = compile(
-				`export function App({ items }: { items: number[] }) { return <>
+				`export function App({ items }: { items: number[] }) @{
 							@for (const item of items; index i) {
 								<div key={i}>{item}</div>
 							}
-						</>; }`,
+						}`,
 				'App.tsrx',
 			);
 
@@ -3534,18 +3478,16 @@ export function optionalFn(bar: string, baz?: string) {
 			it('rejects assigning hook results to outer bindings inside try bodies', () => {
 				expect(() =>
 					compile(
-						`export function App({ load }: { load: () => number }) { return <>
+						`export function App({ load }: { load: () => number }) @{
 								let data: number | undefined;
-								---
 								@try {
 									[data] = useState(load());
 									console.log(data);
-									---
 									<div>{data}</div>
 								} catch (err) {
 									<div>{'error'}</div>
 								}
-							</>; }`,
+							}`,
 						'App.tsrx',
 					),
 				).toThrow(/useState result is assigned to `data`/);
@@ -3554,18 +3496,16 @@ export function optionalFn(bar: string, baz?: string) {
 			it('rejects assigning hook results to outer bindings inside catch bodies', () => {
 				expect(() =>
 					compile(
-						`export function App({ load }: { load: () => number }) { return <>
+						`export function App({ load }: { load: () => number }) @{
 								let attempt: number | undefined;
-								---
 								@try {
 									<div>{load()}</div>
 								} catch (err) {
 									[attempt] = useState(0);
 									console.log(attempt);
-									---
 									<div>{attempt}</div>
 								}
-							</>; }`,
+							}`,
 						'App.tsrx',
 					),
 				).toThrow(/useState result is assigned to `attempt`/);
@@ -3573,15 +3513,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 			it('allows try-body hook results that stay local', () => {
 				const { code } = compile(
-					`export function App({ load }: { load: () => number }) { return <>
+					`export function App({ load }: { load: () => number }) @{
 							@try {
 								const [data] = useState(load());
-								---
 								<div>{data}</div>
 							} catch (err) {
 								<div>{'error'}</div>
 							}
-						</>; }`,
+						}`,
 					'App.tsrx',
 				);
 
@@ -3591,13 +3530,13 @@ export function optionalFn(bar: string, baz?: string) {
 
 			it('try without hooks falls back to the existing transform', () => {
 				const { code } = compile(
-					`export function App({ load }: { load: () => number }) { return <>
+					`export function App({ load }: { load: () => number }) @{
 							@try {
 								<div>{load()}</div>
 							} catch (err) {
 								<div>{'error'}</div>
 							}
-						</>; }`,
+						}`,
 					'App.tsrx',
 				);
 

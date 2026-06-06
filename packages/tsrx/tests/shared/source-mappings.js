@@ -60,7 +60,7 @@ export function runSharedSourceMappingTests({
 	const x = { a: 1 };
 }`));
 		it('ReturnStatement', () =>
-			expect_maps(`function f() { return 1; } function C() { return <></>; }`));
+			expect_maps(`function f() { return 1; } function C() @{}`));
 		it('ForStatement', () =>
 			expect_maps(`function C() @{
 	for (let i = 0; i < 10; i++) {}
@@ -99,15 +99,15 @@ export function runSharedSourceMappingTests({
 
 		// Class methods should still have defaulted FunctionExpression metadata.
 		it('class method', () =>
-			expect_maps(`class Foo { bar() { return 1; } } function C() { return <></>; }`));
+			expect_maps(`class Foo { bar() { return 1; } } function C() @{}`));
 		it('class async method', () =>
-			expect_maps(`class Foo { async bar() { return 1; } } function C() { return <></>; }`));
+			expect_maps(`class Foo { async bar() { return 1; } } function C() @{}`));
 		it('class getter/setter', () =>
 			expect_maps(
-				`class Foo { get x() { return 1; } set x(v) {} } function C() { return <></>; }`,
+				`class Foo { get x() { return 1; } set x(v) {} } function C() @{}`,
 			));
 		it('class static method', () =>
-			expect_maps(`class Foo { static bar() {} } function C() { return <></>; }`));
+			expect_maps(`class Foo { static bar() {} } function C() @{}`));
 		it('object method shorthand', () =>
 			expect_maps(`function C() @{
 	const o = { foo() { return 1; } };
@@ -132,30 +132,30 @@ export function runSharedSourceMappingTests({
 	const x = y as string;
 }`));
 		it('union type annotation', () =>
-			expect_maps(`function C(p: { x: string | null }) { return <></>; }`));
+			expect_maps(`function C(p: { x: string | null }) @{}`));
 		it('array type annotation', () =>
-			expect_maps(`function C(p: { items: string[] }) { return <></>; }`));
+			expect_maps(`function C(p: { items: string[] }) @{}`));
 		it('type predicate (x is T)', () =>
 			expect_maps(
-				`function isF(x: any): x is string { return typeof x === 'string'; } function C() { return <></>; }`,
+				`function isF(x: any): x is string { return typeof x === 'string'; } function C() @{}`,
 			));
 		it('asserts type predicate', () =>
 			expect_maps(
-				`function assertF(x: any): asserts x is string { if (typeof x !== 'string') throw new Error(); } function C() { return <></>; }`,
+				`function assertF(x: any): asserts x is string { if (typeof x !== 'string') throw new Error(); } function C() @{}`,
 			));
 		it('asserts without type', () =>
 			expect_maps(
-				`function assert(x: any): asserts x { if (!x) throw new Error(); } function C() { return <></>; }`,
+				`function assert(x: any): asserts x { if (!x) throw new Error(); } function C() @{}`,
 			));
 
 		// JSX: esrap prints `<`, `>`, `</`, ` /` without location markers.
 		// Combined with hoisting to module-level statics, the opening
 		// element's start/end positions wouldn't otherwise resolve.
-		it('self-closing element', () => expect_maps(`function C() { return <> <input /> </>; }`));
+		it('self-closing element', () => expect_maps(`function C() @{ <input /> }`));
 		it('self-closing with attribute', () =>
-			expect_maps(`function C() { return <> <input class="foo" /> </>; }`));
+			expect_maps(`function C() @{ <input class="foo" /> }`));
 		it('marks self-closing tokens for attribute completions', () => {
-			const source = `function C() { return <> <input /> </>; }`;
+			const source = `function C() @{ <input /> }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_offset = source.indexOf('/>');
 			const mapping = result.mappings.find((entry) => {
@@ -167,12 +167,12 @@ export function runSharedSourceMappingTests({
 			expect(mapping?.data.completion).toBe(true);
 		});
 		it('keeps DOM attribute completions when scoped styles are present', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 	<img src="logo.png" alt="Logo" class="logo" />
 	<style>
 		.logo { display: block; }
 	</style>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
 			for (const attribute of ['src', 'alt', 'class']) {
@@ -187,12 +187,12 @@ export function runSharedSourceMappingTests({
 			}
 		});
 		it('exposes template style blocks as CSS embedded mappings', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 	<div class="logo" />
 	<style>
 		.logo { display: block; }
 	</style>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const css_mapping = result.cssMappings.find((mapping) =>
 				mapping.data?.customData?.content?.includes('.logo { display: block; }'),
@@ -226,7 +226,7 @@ export function runSharedSourceMappingTests({
 			expect(mapping?.data.verification).toBe(false);
 		});
 		it('keeps class attribute source mappings narrowed to the attribute name', () => {
-			const source = `function C() { return <> <div class="app" /> </>; }`;
+			const source = `function C() @{ <div class="app" /> }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_offset = source.indexOf('class');
 			const mapping = result.mappings.find((entry) => {
@@ -241,7 +241,7 @@ export function runSharedSourceMappingTests({
 			).toBe('class');
 		});
 		it('maps nested scoped class definitions to their own selectors', () => {
-			const source = `function C() { return <>
+			const source = `function C() @{
 	<div class="app">
 		<div class="card"></div>
 	</div>
@@ -249,7 +249,7 @@ export function runSharedSourceMappingTests({
 		.app { display: block; }
 		.card { padding: 1rem; }
 	</style>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const source_offset = source.indexOf('card');
 			const mapping = result.mappings.find((entry) => {
@@ -287,16 +287,16 @@ export function runSharedSourceMappingTests({
 		// implements; without a wrapper the type-position child nodes are dropped
 		// from the generated output and segments.js can't resolve their positions.
 		it('class with type parameters', () =>
-			expect_maps(`class Foo<T> { x: T | null = null; } function C() { return <></>; }`));
+			expect_maps(`class Foo<T> { x: T | null = null; } function C() @{}`));
 		it('class with generic extends', () =>
-			expect_maps(`class Foo extends Bar<string> {} function C() { return <></>; }`));
+			expect_maps(`class Foo extends Bar<string> {} function C() @{}`));
 		it('class with implements clause', () =>
 			expect_maps(
-				`interface I { x: number } class Foo implements I { x = 1 } function C() { return <></>; }`,
+				`interface I { x: number } class Foo implements I { x = 1 } function C() @{}`,
 			));
 		it('class with generic implements', () =>
 			expect_maps(
-				`interface I<T> { x: T } class Foo implements I<string> { x = '' as string } function C() { return <></>; }`,
+				`interface I<T> { x: T } class Foo implements I<string> { x = '' as string } function C() @{}`,
 			));
 		it('class expression with type parameters', () =>
 			expect_maps(`function C() @{
@@ -305,10 +305,10 @@ export function runSharedSourceMappingTests({
 
 		// Method shorthand and class methods with type parameters / return types.
 		it('class method with type parameters', () =>
-			expect_maps(`class Foo { bar<T>(x: T): T { return x; } } function C() { return <></>; }`));
+			expect_maps(`class Foo { bar<T>(x: T): T { return x; } } function C() @{}`));
 		it('class method with return type', () =>
 			expect_maps(
-				`class Foo { bar(x: number): string { return ''; } } function C() { return <></>; }`,
+				`class Foo { bar(x: number): string { return ''; } } function C() @{}`,
 			));
 		it('object method shorthand with type parameters', () =>
 			expect_maps(`function C() @{
@@ -348,26 +348,26 @@ export function runSharedSourceMappingTests({
 
 		// TS type operators / mapped / parenthesized types.
 		it('keyof type operator', () =>
-			expect_maps(`type K<T> = keyof T; function C() { return <></>; }`));
+			expect_maps(`type K<T> = keyof T; function C() @{}`));
 		it('readonly type operator', () =>
-			expect_maps(`type R = readonly string[]; function C() { return <></>; }`));
+			expect_maps(`type R = readonly string[]; function C() @{}`));
 		it('parenthesized type annotation', () =>
-			expect_maps(`function C(p: { x: (string | number) }) { return <></>; }`));
+			expect_maps(`function C(p: { x: (string | number) }) @{}`));
 		it('mapped type', () =>
-			expect_maps(`type M<T> = { [K in keyof T]: T[K] }; function C() { return <></>; }`));
+			expect_maps(`type M<T> = { [K in keyof T]: T[K] }; function C() @{}`));
 		it('mapped type with as remapping', () =>
 			expect_maps(
-				`type M<T> = { [K in keyof T as \`__\${string & K}\`]: T[K] }; function C() { return <></>; }`,
+				`type M<T> = { [K in keyof T as \`__\${string & K}\`]: T[K] }; function C() @{}`,
 			));
 		it('object type keyword', () =>
-			expect_maps(`function f(x: object): object { return x; } function C() { return <></>; }`));
+			expect_maps(`function f(x: object): object { return x; } function C() @{}`));
 
 		// import type / `{ type X }` imports.
 		it('import type declaration', () =>
-			expect_maps(`import type { ReactNode } from 'react'; function C() { return <></>; }`));
+			expect_maps(`import type { ReactNode } from 'react'; function C() @{}`));
 		it('inline type import specifier', () =>
 			expect_maps(
-				`import { type ReactNode, useState } from 'react'; function C() { return <></>; }`,
+				`import { type ReactNode, useState } from 'react'; function C() @{}`,
 			));
 		it('submodule import declaration', () =>
 			expect_maps(`module server {
@@ -403,10 +403,10 @@ function C() @{
 }`,
 			));
 		it('YieldExpression', () =>
-			expect_maps(`function* gen() { yield 1; yield* [2, 3]; } function C() { return <></>; }`));
+			expect_maps(`function* gen() { yield 1; yield* [2, 3]; } function C() @{}`));
 		it('AssignmentPattern with type', () =>
 			expect_maps(
-				`function f(x: number = 1): number { return x; } function C() { return <></>; }`,
+				`function f(x: number = 1): number { return x; } function C() @{}`,
 			));
 
 		// Arrow with default parameter and return type — combines AssignmentPattern
@@ -419,7 +419,7 @@ function C() @{
 		// TSInstantiationExpression: `identity<string>` used as a value.
 		it('TSInstantiationExpression', () =>
 			expect_maps(
-				`function identity<T>(x: T): T { return x; } const f = identity<string>; function C() { return <></>; }`,
+				`function identity<T>(x: T): T { return x; } const f = identity<string>; function C() @{}`,
 			));
 
 		// TSExpressionWithTypeArguments shows up in generic extends/implements.
@@ -634,9 +634,9 @@ function C() @{
 
 	describe(`[${name}] member-expression element names map each side independently`, () => {
 		it('gives <Icons.Button></Icons.Button> distinct opening and closing id mappings', () => {
-			const source = `function App() { return <>
+			const source = `function App() @{
 	<Icons.Button>{'x'}</Icons.Button>
-</>; }`;
+}`;
 			const opening_icons = source.indexOf('Icons.Button');
 			const closing_icons = source.indexOf('Icons.Button', opening_icons + 1);
 			const opening_button = opening_icons + 'Icons.'.length;
@@ -752,9 +752,9 @@ function C() @{
 
 	describe(`[${name}] lazy destructuring mappings`, () => {
 		it('preserves untyped lazy object patterns so source identifiers map identity-style', () => {
-			const source = `function Hello(&{ a: value, b }) { return <>
+			const source = `function Hello(&{ a: value, b }) @{
 	<>{value}{b}</>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
 
 			/**
@@ -794,9 +794,9 @@ function C() @{
 		});
 
 		it('preserves annotated lazy object params with their type annotation intact', () => {
-			const source = `function Hello(&{ a: value, b }: { a: string, b: string }) { return <>
+			const source = `function Hello(&{ a: value, b }: { a: string, b: string }) @{
 	<>{value}{b}</>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
 
 			expect(result.code).toContain('function Hello({ a: value, b }: { a: string; b: string })');
@@ -829,9 +829,9 @@ function C() @{
 		});
 
 		it('reports repeated lazy component param bindings in loose mode without throwing', () => {
-			const source = `function App(&{ a: b, b }: { a: string, b: string }) { return <>
+			const source = `function App(&{ a: b, b }: { a: string, b: string }) @{
 	<>{b}</>
-</>; }`;
+}`;
 
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
@@ -860,9 +860,9 @@ function C() @{
 		});
 
 		it('reports repeated lazy param bindings with full identifier ranges', () => {
-			const source = `function App(&{ a: value, value }: { a: string, value: string }) { return <>
+			const source = `function App(&{ a: value, value }: { a: string, value: string }) @{
 	<>{value}</>
-</>; }`;
+}`;
 
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
@@ -913,7 +913,7 @@ function C() @{
 			// Regression: previously `strip_locations` recursively deleted loc on
 			// the entire tsx block subtree, destroying Volar mappings for the
 			// inner JSX. Mappings for the inner <div> should still resolve.
-			const source = `function C() { return <> <><div>hi</div></> </>; }`;
+			const source = `function C() @{ <><div>hi</div></> }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const div_offset = source.indexOf('<div>');
 			const has_div_mapping = result.mappings.some(
@@ -923,7 +923,7 @@ function C() @{
 		});
 
 		it('keeps loc inside multi-child JSX fragments', () => {
-			const source = `function C() { return <> <><div>a</div><div>b</div></> </>; }`;
+			const source = `function C() @{ <><div>a</div><div>b</div></> }`;
 			expect(() => compile_to_volar_mappings(source, 'App.tsrx', { loose: true })).not.toThrow();
 		});
 
@@ -955,7 +955,7 @@ function C() @{
 
 	describe(`[${name}] JSX fragments preserve source locations`, () => {
 		it('keeps loc on JSX template elements inside fragments', () => {
-			const source = `function C() { return <> <><div>hi</div></> </>; }`;
+			const source = `function C() @{ <><div>hi</div></> }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			const div_offset = source.indexOf('<div>');
 			const has_div_mapping = result.mappings.some(
@@ -1010,9 +1010,9 @@ function C() @{
 
 	describe(`[${name}] named ref-like props use ordinary attribute mappings`, () => {
 		it('maps named ref-like prop values once', () => {
-			const source = `function Child(props: { inputRef?: any; otherRef?: any }) { return <>
+			const source = `function Child(props: { inputRef?: any; otherRef?: any }) @{
 	<input />
-</>; }
+}
 
 function App() @{
 	let host_input: HTMLInputElement | undefined;
@@ -1075,11 +1075,11 @@ function App() @{
 
 function RenderProp<Item>(props: { children: (item: Item) => any }) { return <></>; }
 
-export function App() { return <>
+export function App() @{
 	<RenderProp<User>>
 		{(item) => item.name}
 	</RenderProp>
-</>; }`;
+}`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx');
 
 			// The generated TSX must contain `<RenderProp<User>` (no leading
