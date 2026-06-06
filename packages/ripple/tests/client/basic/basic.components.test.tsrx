@@ -14,10 +14,11 @@ describe('basic client > components & composition', () => {
 			<div class="card">{props.children}</div>
 		}
 
+		function children() @{
+			<p>{'Card content here'}</p>
+		}
+
 		function Basic() @{
-			function children() @{
-				<p>{'Card content here'}</p>
-			}
 			<Card {children} />
 		}
 
@@ -34,7 +35,7 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
 			<div class="card">
 				@if (props.children) {
-					{props.children}
+					<>{props.children}</>
 				}
 			</div>
 		}
@@ -59,16 +60,17 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
 			<div class="card">
 				@if (props.children) {
-					{props.children}
+					<>{props.children}</>
 				}
 			</div>
 		}
 
+		function TestSlot() @{
+			<p>{'Card content here'}</p>
+		}
+
 		function Basic() @{
 			let &[test] = track(false);
-			function TestSlot() @{
-				<p>{'Card content here'}</p>
-			}
 			<>
 				<Card test={TestSlot} />
 				<div>{test ? 'yes' : 'no'}</div>
@@ -90,10 +92,11 @@ describe('basic client > components & composition', () => {
 			<div class="card">{props.children}</div>
 		}
 
+		function children() @{
+			<p>{'Card content here'}</p>
+		}
+
 		function Basic() @{
-			function children() @{
-				<p>{'Card content here'}</p>
-			}
 			<Card {children} />
 		}
 
@@ -140,9 +143,9 @@ describe('basic client > components & composition', () => {
 			<span>{'value'}</span>
 		}
 
-		function App() {
+		function App() @{
 			const El = Test({});
-			return <><El /></>;
+			<El />
 		}
 
 		expect(() => render(App)).toThrow('Invalid component type');
@@ -153,8 +156,8 @@ describe('basic client > components & composition', () => {
 			return 'plain';
 		}
 
-		function App() {
-			return <><Func /></>;
+		function App() @{
+			<Func />
 		}
 
 		render(App);
@@ -304,7 +307,7 @@ describe('basic client > components & composition', () => {
 	});
 
 	it('it retains this context with bracketed prop functions and keeps original chaining', () => {
-		function App() {
+		function App() @{
 			const SYMBOL_PROP = Symbol();
 			let &[hasError] = track(false);
 			const obj: {
@@ -353,7 +356,7 @@ describe('basic client > components & composition', () => {
 				});
 			}
 
-			return <>
+			<>
 				<button onClick={() => obj['increment']()}>{'Increment'}</button>
 				<button onClick={() => obj[SYMBOL_PROP]()}>{'Increment'}</button>
 				<button onClick={trigger_nonexistent}>{'Nonexistent'}</button>
@@ -363,7 +366,7 @@ describe('basic client > components & composition', () => {
 				<button onClick={() => obj.arr[obj.arr.length - 1]()}>{'BinaryExpression prop'}</button>
 				<span>{obj.count.value}</span>
 				<span>{hasError}</span>
-			</>;
+			</>
 		}
 
 		render(App);
@@ -432,10 +435,11 @@ describe('basic client > components & composition', () => {
 			arrowButton: ArrowButton,
 		};
 
+		function children() @{
+			<span>{'Click me!'}</span>
+		}
+
 		function App() @{
-			function children() @{
-				<span>{'Click me!'}</span>
-			}
 			<div>
 				<h1>{'Component as Property Test'}</h1>
 				<UI.span />
@@ -615,10 +619,11 @@ describe('basic client > components & composition', () => {
 			<div class="wrapper">{props.children}</div>
 		}
 
+		function Inner() @{
+			<span class="inner">{'inner content'}</span>
+		}
+
 		function App() @{
-			function Inner() @{
-				<span class="inner">{'inner content'}</span>
-			}
 			<Wrapper>
 				<Inner />
 			</Wrapper>
@@ -633,18 +638,18 @@ describe('basic client > components & composition', () => {
 			<div class="wrapper">{props.children}</div>
 		}
 
+		function Z() @{
+			<div class="z">{'I am Z'}</div>
+		}
+
+		function Child(&{ Z }: { Z: Component }) @{
+			<div class="child">
+				{'Child Component: '}
+				<Z />
+			</div>
+		}
+
 		function App() @{
-			function Z() @{
-				<div class="z">{'I am Z'}</div>
-			}
-
-			function Child(&{ Z }: { Z: Component }) @{
-				<div class="child">
-					{'Child Component: '}
-					<Z />
-				</div>
-			}
-
 			<Wrapper>
 				<Child {Z} />
 			</Wrapper>
