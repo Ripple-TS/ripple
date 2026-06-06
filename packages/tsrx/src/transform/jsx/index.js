@@ -176,6 +176,46 @@ function mark_nested_function_return_jsx(node, inside_function = false, seen = n
 }
 
 /**
+ * Rewrite a `@{ … }` code block that appears as an element/fragment child into
+ * the internal fenced shape the render pipeline already understands: its setup
+ * statements, a `TsrxTemplateFence`, then its single render output. This is the
+ * element-scoped equivalent of `transform_function`'s body lowering — function
+ * and arrow bodies are never element children, so they are untouched here.
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {void}
+ */
+function expand_child_code_blocks(node, seen = new Set()) {
+	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	seen.add(node);
+
+	if (Array.isArray(node)) {
+		for (const item of node) expand_child_code_blocks(item, seen);
+		return;
+	}
+
+	if (
+		Array.isArray(node.children) &&
+		node.children.some((/** @type {any} */ c) => c?.type === 'JSXCodeBlock')
+	) {
+		node.children = node.children.flatMap((/** @type {any} */ child) =>
+			child?.type === 'JSXCodeBlock'
+				? [
+						...child.body,
+						{ type: 'TsrxTemplateFence', metadata: { path: [] } },
+						...(child.render != null ? [child.render] : []),
+					]
+				: [child],
+		);
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		expand_child_code_blocks(node[key], seen);
+	}
+}
+
+/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
  * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
  * native TSRX template nodes into a plain TSX module for that platform.
@@ -236,6 +276,8 @@ export function createJsxTransform(platform) {
 			...(platform.hooks?.initialState?.() ?? {}),
 		};
 
+		expand_child_code_blocks(/** @type {any} */ (ast));
+
 		if (!transform_context.typeOnly) {
 			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
 		}
@@ -244,6 +286,20 @@ export function createJsxTransform(platform) {
 			_(node, { next, path }) {
 				set_node_path_metadata(node, path);
 				return next();
+			},
+
+			JSXCodeBlock(node, { next, state, visit }) {
+				// A code-only `@{ … }` block (no render output) is just a lexical block
+				// of setup statements, so lower it to a plain BlockStatement that the
+				// TSX printer can emit. Render-bearing blocks belong to the component
+				// lowering path and are handled elsewhere.
+				if (node.render != null) {
+					return next() ?? node;
+				}
+				const body = /** @type {AST.Statement[]} */ (
+					node.body.map((statement) => visit(statement, state))
+				);
+				return b.block(body, /** @type {AST.NodeWithLocation} */ (node));
 			},
 
 			JSXFragment(node, { next, path, state, visit }) {
@@ -299,6 +355,25 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (
 					to_jsx_element(inner, state, raw_children, in_jsx_child_context(path))
 				);
+			},
+
+			JSXExpressionContainer(node, { next, state }) {
+				const result = /** @type {any} */ (next() ?? node);
+				const expression = result.expression;
+				// `@if`/`@for`/`@switch`/`@try` used as an expression value (e.g. an
+				// attribute value `content={@if (…) { … }}` or a `{ … }` child) leaks a
+				// JSX*Expression node straight to the printer. Lower it with the same
+				// control-flow machinery used for render children and unwrap the value.
+				if (
+					is_if_control_node(expression) ||
+					is_switch_control_node(expression) ||
+					is_try_control_node(expression) ||
+					expression?.type === 'JSXForExpression'
+				) {
+					const lowered = /** @type {any} */ (to_jsx_child(expression, state));
+					return { ...result, expression: lowered?.expression ?? lowered };
+				}
+				return result;
 			},
 
 			JSXStyleElement(node, { path, state }) {
@@ -1111,6 +1186,33 @@ function get_active_native_tsrx_function(path) {
  * @returns {any}
  */
 function transform_function(node, context) {
+	// Lower a `@{ … }` function body (JSXCodeBlock) to an ordinary block: the
+	// setup statements followed by `return <render>` when the block produces a
+	// render output. The parser already marks the render JSX as native_tsrx, so
+	// from here it flows through the existing native-component machinery exactly
+	// like the older fenced `{ return <> … </> }` shape.
+	if (node.body?.type === 'JSXCodeBlock') {
+		const code_block = node.body;
+		const statements = [...code_block.body];
+		if (code_block.render != null) {
+			let render = code_block.render;
+			if (!is_native_tsrx_node(render)) {
+				// A control-flow output (@if/@for/@switch/@try) isn't itself a native
+				// template node, so `return @if (…) { … }` wouldn't be recognized as a
+				// component render output. Wrap it in a native fragment so it flows
+				// through the same children-rendering path as a `<> … </>` render.
+				const fragment = b.jsx_fragment([render]);
+				fragment.metadata = { ...fragment.metadata, native_tsrx: true };
+				render = fragment;
+			}
+			statements.push(b.return(render, code_block.render));
+		}
+		node.body = b.block(statements, code_block);
+		if (node.type === 'ArrowFunctionExpression') {
+			node.expression = false;
+		}
+	}
+
 	if (node.metadata?.native_tsrx_function || function_has_native_tsrx_return(node)) {
 		return transform_native_tsrx_function(node, context);
 	}

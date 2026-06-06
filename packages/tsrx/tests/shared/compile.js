@@ -79,13 +79,13 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 
 		it('allows return statements in localized setup before a template fence', () => {
 			const result = compile_to_volar_mappings(
-				`function Test() { return <>
+				`function Test() @{
 					if (ready) {
 						return;
 					}
-					---
+
 					<div>{'ready'}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -136,11 +136,11 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 		it('allows html identifiers as ordinary attribute values', () => {
 			const result = compile_to_volar_mappings(
 				`function Child(_: { body: string }) { return null; }
-				function App() { return <>
+				function App() @{
 					const html = '<strong>safe</strong>';
-					---
+
 					<Child body={html} />
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -210,17 +210,16 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 
 		it('preserves JSX-style returns in regular functions declared inside TSRX bodies', () => {
 			const { code } = compile(
-				`function App() {
-					return <>
-						function renderChild() {
-							return <>
-								<span class="nested-return">{'ok'}</span>
-							</>;
-						}
+				`function App() @{
+					function renderChild() {
+						return <>
+							<span class="nested-return">{'ok'}</span>
+						</>;
+					}
 
-						---
+					<>
 						{renderChild()}
-					</>;
+					</>
 				}`,
 				'App.tsrx',
 			);
@@ -2091,14 +2090,13 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code } = compile(
 				`function App() { return <>
 					<Card
-						content={<>
+						content={
 							@if (foo) {
 								<div>
-									if (foo) {}
-									---
+									@if (foo) {}
 								</div>
 							}
-						</>}
+						}
 					/>
 				</>; }`,
 				'App.tsrx',
@@ -2342,14 +2340,12 @@ export function optionalFn(bar: string, baz?: string) {
 						return <Page
 							params={{
 								details: {
-									render: (tag: string, className: string, icon: () => JSX.Element) => <>
+									render: (tag: string, className: string, icon: () => JSX.Element) =>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-											if (icon) {
+											@if (icon) {
 												icon();
 											}
-											---
-										</@tag>
-									</>,
+										</@tag>,
 								},
 							}}
 						/>
@@ -2394,14 +2390,12 @@ export function optionalFn(bar: string, baz?: string) {
 										leadingIcon: { children: <>icon</> },
 									},
 								details2: {
-									render: (tag: string, className: string, icon: () => JSX.Element) => <>
+									render: (tag: string, className: string, icon: () => JSX.Element) =>
 										<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-											if (icon) {
+											@if (icon) {
 												icon();
 											}
-											---
-										</@tag>
-									</>,
+										</@tag>,
 								},
 							}}
 						/>
@@ -2679,14 +2673,14 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('does not rewrite for-of loop variables that shadow lazy bindings', () => {
 			const { code } = compile(
-				`export function App(&{name}: Props) { return <>
+				`export function App(&{name}: Props) @{
 					const items = ['a', 'b'];
 					for (const name of items) {
 						console.log(name);
 					}
-					---
+
 					<div>{name}</div>
-				</>; }`,
+				}`,
 				'App.tsrx',
 			);
 
@@ -2702,13 +2696,14 @@ export function optionalFn(bar: string, baz?: string) {
 		it('keeps element setup statements before rendered children', () => {
 			const { code } = compile(
 				`function Card() { return <>
-					<div class="card">
+					<div class="card">@{
 						var a = "one"
 						a = "two"
-						---
-						<b>{"hello" + a}</b>
-						<b>{"hello" + a}</b>
-					</div>
+						<>
+							<b>{"hello" + a}</b>
+							<b>{"hello" + a}</b>
+						</>
+					}</div>
 				</>; }`,
 				'Card.tsrx',
 			);

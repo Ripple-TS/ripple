@@ -3614,9 +3614,16 @@ export function TSRXPlugin(config) {
 					const previous_script_jsx_element_depth = this.#scriptJSXElementDepth;
 					this.#scriptJSXElementDepth = 0;
 					try {
-						return /** @type {ESTreeJSX.JSXElement} */ (
+						const parsed = /** @type {ESTreeJSX.JSXElement} */ (
 							/** @type {unknown} */ (this.parseElement())
 						);
+						// A dynamic `<@tag>` parsed here goes straight through `parseElement`,
+						// bypassing `jsx_parseElement`'s context cleanup. In expression
+						// position (e.g. a render-prop arrow body inside object params) its
+						// markup contexts must be unwound, or the following JS token (a `,`/`}`)
+						// is mis-tokenized as JSX raw text.
+						this.#popTokenContextsAfterTemplateExpressionElement(parsed);
+						return parsed;
 					} finally {
 						this.#scriptJSXElementDepth = previous_script_jsx_element_depth;
 					}
