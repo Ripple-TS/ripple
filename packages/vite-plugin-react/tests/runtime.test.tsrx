@@ -52,8 +52,10 @@ function JsxTextApp() @{
 	<>
 		<div class="jsx-text-entities">Rock &amp; &quot;Roll&quot;</div>
 		<div class="jsx-text-backslash">line\nbreak</div>
-		<pre class="jsx-text-multiline">first
-second</pre>
+		<pre class="jsx-text-multiline">
+			first
+second
+		</pre>
 	</>
 }
 
@@ -85,9 +87,7 @@ function JsxTextIfElseApp() @{
 }
 
 function Child(props: { text: string }) @{
-	<span class="child">
-		{props.text}
-	</span>
+	<span class="child">{props.text}</span>
 }
 
 function NestedApp() @{
@@ -103,12 +103,8 @@ function ExplicitTextApp() @{
 	const missing = undefined;
 
 	<>
-		<div class="explicit-text-markup">
-			{String(markup)}
-		</div>
-		<div class="explicit-text-boolean">
-			{String(hidden)}
-		</div>
+		<div class="explicit-text-markup">{String(markup)}</div>
+		<div class="explicit-text-boolean">{String(hidden)}</div>
 		<div class="explicit-text-null">
 			{empty == null ? '' : String(empty)}
 		</div>
@@ -196,15 +192,9 @@ function CallableBlockRuntimeApp() @{
 	const reader = new MethodReader();
 
 	<section class="callable-block-runtime">
-		<p class="decl-block">
-			{readDeclaration()}
-		</p>
-		<p class="arrow-block">
-			{readArrow()}
-		</p>
-		<p class="method-block">
-			{reader.read()}
-		</p>
+		<p class="decl-block">{readDeclaration()}</p>
+		<p class="arrow-block">{readArrow()}</p>
+		<p class="method-block">{reader.read()}</p>
 	</section>
 }
 
@@ -319,10 +309,7 @@ function AutoMergedRefObjectApp() @{
 		auto_ref_obj_callback_node = node;
 	}
 
-	<div
-		ref={mergeRefs(ref_object, callbackRef)}
-		class="auto-merged-objects"
-	>{'object merged'}</div>
+	<div ref={mergeRefs(ref_object, callbackRef)} class="auto-merged-objects">{'object merged'}</div>
 }
 
 // ── React 19 cleanup contract through mergeRefs ──
@@ -390,11 +377,9 @@ function ForContinueApp() @{
 	const items = ['a', '', 'c'];
 
 	@for (const item of items) {
-		@{
-			if (!item) continue;
+		if (!item) continue;
 
-			<li class="continue-item" key={item}>{item}</li>
-		}
+		<li class="continue-item" key={item}>{item}</li>
 	}
 }
 
@@ -464,9 +449,7 @@ function SwitchReactiveApp() @{
 // ── Composite children ──
 
 function Wrapper(props: { children?: any }) @{
-	<div class="wrapper">
-		{props.children}
-	</div>
+	<div class="wrapper">{props.children}</div>
 }
 
 function ChildrenApp() @{
@@ -680,13 +663,11 @@ function ThrowingChild() @{
 }
 
 function ErrorBoundaryApp() @{
-		@try {
-			<ThrowingChild />
-		} catch (err: Error) {
-			<p class="caught">
-				{err.message}
-			</p>
-		}
+	@try {
+		<ThrowingChild />
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
+	}
 }
 
 // ── Try/catch with reactive toggle into/out of error ──
@@ -707,9 +688,7 @@ function ErrorToggleApp() @{
 			<MaybeThrow shouldThrow={fail} />
 		} catch (err: Error, reset: () => void) {
 			<>
-				<p class="caught">
-					{err.message}
-				</p>
+				<p class="caught">{err.message}</p>
 				<button
 					class="reset"
 					onClick={() => {
@@ -732,48 +711,44 @@ function AsyncChild(props: { promise: Promise<string> }) @{
 }
 
 function SuspenseApp(props: { promise: Promise<string> }) @{
-		@try {
-			<AsyncChild promise={props.promise} />
-		} pending {
-			<p class="pending">{'loading...'}</p>
-		}
+	@try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	}
 }
 
 function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) @{
-		@try {
-			<AsyncChild promise={props.promise} />
-		} pending {}
+	@try {
+		<AsyncChild promise={props.promise} />
+	} pending {}
 }
 
 // ── Try/pending/catch: Suspense + ErrorBoundary ──
 
 function SuspenseErrorApp(props: { promise: Promise<string> }) @{
-		@try {
-			<AsyncChild promise={props.promise} />
-		} pending {
-			<p class="pending">{'loading...'}</p>
-		} catch (err: Error) {
-			<p class="caught">
-				{err.message}
-			</p>
-		}
+	@try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	} catch (err: Error) {
+		<p class="caught">{err.message}</p>
+	}
 }
 
 // ── Try/catch with reset: recover from error ──
 
 function ErrorResetApp(props: { promise: Promise<string> }) @{
-		@try {
-			<AsyncChild promise={props.promise} />
-		} pending {
-			<p class="pending">{'loading...'}</p>
-		} catch (err: Error, reset: () => void) {
-			<>
-				<p class="caught">
-					{err.message}
-				</p>
-				<button class="retry" onClick={() => reset()}>{'retry'}</button>
-			</>
-		}
+	@try {
+		<AsyncChild promise={props.promise} />
+	} pending {
+		<p class="pending">{'loading...'}</p>
+	} catch (err: Error, reset: () => void) {
+		<>
+			<p class="caught">{err.message}</p>
+			<button class="retry" onClick={() => reset()}>{'retry'}</button>
+		</>
+	}
 }
 
 // ── Nested try: inner catch handles inner error ──
@@ -785,21 +760,17 @@ function InnerThrow() @{
 }
 
 function NestedTryApp() @{
-		@try {
-			<div class="outer">
-				@try {
-					<InnerThrow />
-				} catch (err: Error) {
-					<p class="inner-caught">
-						{err.message}
-					</p>
-				}
-			</div>
-		} catch (err: Error) {
-			<p class="outer-caught">
-				{err.message}
-			</p>
-		}
+	@try {
+		<div class="outer">
+			@try {
+				<InnerThrow />
+			} catch (err: Error) {
+				<p class="inner-caught">{err.message}</p>
+			}
+		</div>
+	} catch (err: Error) {
+		<p class="outer-caught">{err.message}</p>
+	}
 }
 
 // ── Try/pending with reactive promise swap ──
@@ -856,9 +827,7 @@ function ForInsideTryApp() @{
 // ── Hook inside if-branch ──
 
 function HookInIfApp() @{
-	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(
-		true,
-	);
+	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
 
 	<>
 		@if (show) {
@@ -892,7 +861,10 @@ function HookInForApp() @{
 						{item}
 						{clicked ? '!' : ''}
 					</span>
-					<button class={'hook-for-click-' + item} onClick={() => setClicked(true)}>{'click'}</button>
+					<button
+						class={'hook-for-click-' + item}
+						onClick={() => setClicked(true)}
+					>{'click'}</button>
 				</div>
 			}
 		}
@@ -908,14 +880,14 @@ function HookInSwitchApp() @{
 	<>
 		@switch (page) {
 			case 'home':
-				@{
-					const [homeCount, setHomeCount] = useState(0);
-
-					<>
-						<p class="hook-switch-val">{homeCount}</p>
-						<button class="hook-switch-inc" onClick={() => setHomeCount(homeCount + 1)}>{'inc'}</button>
-					</>
-				}
+				const [homeCount, setHomeCount] = useState(0);
+				<>
+					<p class="hook-switch-val">{homeCount}</p>
+					<button
+						class="hook-switch-inc"
+						onClick={() => setHomeCount(homeCount + 1)}
+					>{'inc'}</button>
+				</>
 				break;
 			case 'about':
 				<p class="hook-switch-val">{'about page'}</p>
@@ -1067,16 +1039,13 @@ function HookInSwitchWithScopeApp() @{
 	<>
 		@switch (tab) {
 			case 'counter':
-				@{
-					const [n, setN] = useState(0);
-
-					<>
-						<p class="switch-scope-val">
-							{theme + ':' + n}
-						</p>
-						<button class="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
-					</>
-				}
+				const [n, setN] = useState(0);
+				<>
+					<p class="switch-scope-val">
+						{theme + ':' + n}
+					</p>
+					<button class="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
+				</>
 				break;
 			case 'info':
 				<p class="switch-scope-val">
@@ -1153,20 +1122,20 @@ function StaticHoistInBranchApp() @{
 // ── Static hoisting: fully static component ──
 
 function FullyStaticApp() @{
-		<div class="all-static">
-			<h2>{'Title'}</h2>
-			<p>{'Paragraph'}</p>
-		</div>
+	<div class="all-static">
+		<h2>{'Title'}</h2>
+		<p>{'Paragraph'}</p>
+	</div>
 }
 
 // ── Lazy destructuring: object in props ──
 
 function LazyPropsChild(&{ name, age }: { name: string; age: number }) @{
-		<div class="lazy-props">
-			{name}
-			{' is '}
-			{age}
-		</div>
+	<div class="lazy-props">
+		{name}
+		{' is '}
+		{age}
+	</div>
 }
 
 function LazyPropsApp() @{

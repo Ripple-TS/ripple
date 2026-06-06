@@ -238,7 +238,6 @@ declare module 'estree' {
 
 	// Include TypeScript node types and TSRX-specific nodes in NodeMap
 	interface NodeMap {
-		TsrxTemplateFence: TsrxTemplateFence;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -258,13 +257,6 @@ declare module 'estree' {
 		JSXEmptyExpression: ESTreeJSX.JSXEmptyExpression;
 		ParenthesizedExpression: ParenthesizedExpression;
 		TSAsExpression: TSAsExpression;
-	}
-
-	// Missing estree type
-	interface TsrxTemplateFence extends AST.BaseStatement {
-		type: 'TsrxTemplateFence';
-		value: '---';
-		metadata: BaseNodeMetaData;
 	}
 
 	interface JSXCodeBlock extends AST.BaseExpression {

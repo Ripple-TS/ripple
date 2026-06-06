@@ -392,20 +392,8 @@ function mark_control_flow_has_template(path, node) {
  * @param {AST.Node | null | undefined} node
  * @returns {boolean}
  */
-function is_fenced_template_script_block(node) {
-	return (
-		node?.type === 'BlockStatement' &&
-		node.metadata?.native_tsrx_template_block &&
-		node.metadata?.hasTemplateFence
-	);
-}
-
-/**
- * @param {AST.Node | null | undefined} node
- * @returns {boolean}
- */
 function is_script_only_control_flow_body(node) {
-	return is_fenced_template_script_block(node) || node?.metadata?.script_only === true;
+	return node?.metadata?.script_only === true;
 }
 
 /**

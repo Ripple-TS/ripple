@@ -176,11 +176,12 @@ function mark_nested_function_return_jsx(node, inside_function = false, seen = n
 }
 
 /**
- * Rewrite a `@{ … }` code block that appears as an element/fragment child into
- * the internal fenced shape the render pipeline already understands: its setup
- * statements, a `TsrxTemplateFence`, then its single render output. This is the
- * element-scoped equivalent of `transform_function`'s body lowering — function
- * and arrow bodies are never element children, so they are untouched here.
+ * Flatten a `@{ … }` code block that appears as an element/fragment child into
+ * the element's children list: its setup statements followed by its single
+ * render output. The render pipeline already handles interleaved setup
+ * statements and JSX children. This is the element-scoped equivalent of
+ * `transform_function`'s body lowering — function and arrow bodies are never
+ * element children, so they are untouched here.
  * @param {any} node
  * @param {Set<any>} [seen]
  * @returns {void}
@@ -200,11 +201,7 @@ function expand_child_code_blocks(node, seen = new Set()) {
 	) {
 		node.children = node.children.flatMap((/** @type {any} */ child) =>
 			child?.type === 'JSXCodeBlock'
-				? [
-						...child.body,
-						{ type: 'TsrxTemplateFence', metadata: { path: [] } },
-						...(child.render != null ? [child.render] : []),
-					]
+				? [...child.body, ...(child.render != null ? [child.render] : [])]
 				: [child],
 		);
 	}
@@ -553,37 +550,6 @@ function build_component_statements(body_nodes, transform_context) {
  * @returns {any[]}
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
-	const fence_index = body_nodes.findIndex((node) => node?.type === 'TsrxTemplateFence');
-	if (fence_index !== -1) {
-		const statements = [];
-		const saved_bindings = transform_context.available_bindings;
-		transform_context.available_bindings = new Map(saved_bindings);
-
-		for (const child of body_nodes.slice(0, fence_index)) {
-			if (
-				!child ||
-				child.type === 'EmptyStatement' ||
-				(child.type === 'JSXText' && child.value.trim() === '')
-			) {
-				continue;
-			}
-			mark_nested_function_return_jsx(child);
-			statements.push(child);
-			collect_statement_bindings(child, transform_context.available_bindings);
-		}
-
-		statements.push(
-			...build_render_statements(
-				body_nodes.slice(fence_index + 1),
-				return_null_when_empty,
-				transform_context,
-			),
-		);
-
-		transform_context.available_bindings = saved_bindings;
-		return statements;
-	}
-
 	const statements = [];
 	const render_nodes = [];
 	let has_terminal_return = false;
@@ -604,10 +570,6 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 	for (let i = 0; i < body_nodes.length; i += 1) {
 		const child = body_nodes[i];
 
-		if (child?.type === 'TsrxTemplateFence') {
-			continue;
-		}
-
 		if (is_loop_skip_return_statement(child)) {
 			statements.push(create_component_return_statement(render_nodes, child));
 			render_nodes.length = 0;
@@ -626,7 +588,6 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 				const continuation_body = body_nodes.slice(i + 1);
 				const continuation_has_setup_statements = continuation_body.some(
 					(node) =>
-						node?.type !== 'TsrxTemplateFence' &&
 						!is_loop_skip_return_statement(node) &&
 						!is_loop_skip_if_statement(node) &&
 						!is_jsx_child(node),
@@ -1850,10 +1811,7 @@ function collect_style_elements(node, styles) {
 		return;
 	}
 
-	if (
-		(node.type === 'JSXElement' || node.type === 'JSXFragment') &&
-		node.metadata?.native_tsrx
-	) {
+	if ((node.type === 'JSXElement' || node.type === 'JSXFragment') && node.metadata?.native_tsrx) {
 		collect_style_elements(node.children || [], styles);
 		return;
 	}
@@ -1928,10 +1886,7 @@ function strip_style_elements(node) {
 		return node;
 	}
 
-	if (
-		(node.type === 'JSXElement' || node.type === 'JSXFragment') &&
-		node.metadata?.native_tsrx
-	) {
+	if ((node.type === 'JSXElement' || node.type === 'JSXFragment') && node.metadata?.native_tsrx) {
 		node.children = strip_style_elements(node.children || []);
 		return node;
 	}
@@ -2610,10 +2565,7 @@ function create_component_return_statement(
  * @returns {boolean}
  */
 function is_loop_skip_return_statement(node) {
-	return (
-		node?.type === 'ReturnStatement' &&
-		node.metadata?.generated_loop_continue_return === true
-	);
+	return node?.type === 'ReturnStatement' && node.metadata?.generated_loop_continue_return === true;
 }
 
 /**
@@ -2650,7 +2602,10 @@ function create_component_loop_skip_if_statement(node, render_nodes, transform_c
 	const branch_statements = build_render_statements(consequent_body, true, transform_context);
 	prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
 
-	const statement = set_loc(b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null), node);
+	const statement = set_loc(
+		b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null),
+		node,
+	);
 	statement.metadata = {
 		...(statement.metadata || {}),
 		generated_loop_skip_if: true,

@@ -2511,9 +2511,6 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
 	if (!node || typeof node !== 'object') return node;
 	if (Array.isArray(node)) return normalize_jsx_tsrx_children(node, inherited_path);
 
-	if (node.type === 'TsrxTemplateFence') {
-		return null;
-	}
 	if (node.type === 'JSXFragment') {
 		return jsx_to_ripple_fragment(node, inherited_path);
 	}
@@ -2734,10 +2731,6 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		node.type === 'JSXTryExpression'
 	) {
 		return jsx_control_expression_to_statement(node, inherited_path);
-	}
-
-	if (node.type === 'TsrxTemplateFence') {
-		return null;
 	}
 
 	return node;

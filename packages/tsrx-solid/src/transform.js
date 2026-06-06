@@ -203,8 +203,6 @@ function get_await_keyword_start(await_node, source) {
 function to_jsx_child(node, transform_context) {
 	if (!node) return node;
 	switch (node.type) {
-		case 'TsrxTemplateFence':
-			return null;
 		case 'JSXFragment':
 			if (node.metadata?.native_tsrx) {
 				return tsrx_node_to_jsx_expression(node, transform_context, true);
@@ -268,14 +266,6 @@ function jsx_control_expression_to_statement(node) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
- */
-function is_template_fence(node) {
-	return node?.type === 'TsrxTemplateFence';
-}
-
-/**
  * Lower a native TSRX fragment body to a Solid JSX expression.
  *
  * @param {any} node
@@ -287,7 +277,6 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	const children = (node.children || []).filter(
 		(/** @type {any} */ child) =>
 			child &&
-			!is_template_fence(child) &&
 			child.type !== 'EmptyStatement' &&
 			(child.type !== 'JSXText' || child.value.trim() !== ''),
 	);
@@ -364,10 +353,6 @@ function body_to_jsx_child(body_nodes, transform_context) {
 	let has_terminal_return = false;
 	let capture_index = 0;
 	for (const child of body_nodes) {
-		if (is_template_fence(child)) {
-			continue;
-		}
-
 		if (child?.type === 'ReturnStatement' && child.argument != null) {
 			statements.push(child);
 			has_terminal_return = true;
@@ -416,10 +401,7 @@ function body_to_jsx_child(body_nodes, transform_context) {
  * @returns {boolean}
  */
 function is_bare_return_statement(node) {
-	return (
-		node?.type === 'ReturnStatement' &&
-		node.metadata?.generated_loop_continue_return === true
-	);
+	return node?.type === 'ReturnStatement' && node.metadata?.generated_loop_continue_return === true;
 }
 
 /**
@@ -471,10 +453,6 @@ function loop_body_to_callback_statements(body_nodes, transform_context) {
 	let has_terminal_return = false;
 
 	for (const child of body_nodes) {
-		if (is_template_fence(child)) {
-			continue;
-		}
-
 		if (is_bare_return_statement(child)) {
 			statements.push(flush_children_to_return(child));
 			has_terminal_return = true;
@@ -1279,10 +1257,6 @@ function rewrite_early_return_guard_body(body, transform_context) {
 	 */
 	const collect = (nodes, outer, jsx_bucket) => {
 		for (const child of nodes) {
-			if (is_template_fence(child)) {
-				continue;
-			}
-
 			const return_nodes = return_statement_to_render_nodes(child);
 			if (return_nodes) {
 				jsx_bucket.push(...return_nodes);
@@ -1383,11 +1357,6 @@ function lower_solid_component_statement_list(statements) {
 
 	for (let index = 0; index < statements.length; index += 1) {
 		const statement = statements[index];
-		if (is_template_fence(statement)) {
-			changed = true;
-			continue;
-		}
-
 		const return_nodes = return_statement_to_render_nodes(statement);
 		if (return_nodes) {
 			return { nodes: [...nodes, ...return_nodes], terminal: true, changed: true };
@@ -1687,10 +1656,6 @@ function solid_component_body_nodes_to_function_statements(body_nodes, transform
 	let capture_index = 0;
 
 	for (const child of body_nodes) {
-		if (is_template_fence(child)) {
-			continue;
-		}
-
 		const expression_statement = render_expression_statement_to_node(child);
 		if (expression_statement) {
 			render_nodes.push(expression_statement);
@@ -2005,7 +1970,7 @@ function to_jsx_element(node, transform_context) {
  * @returns {any[]}
  */
 function create_element_children(children, transform_context) {
-	const visible_children = children.filter((/** @type {any} */ child) => !is_template_fence(child));
+	const visible_children = children;
 	if (visible_children.length === 0) return [];
 
 	// If any child is a plain statement (VariableDeclaration, ExpressionStatement,

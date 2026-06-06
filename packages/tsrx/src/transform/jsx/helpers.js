@@ -210,10 +210,6 @@ export function tsx_with_ts_locations() {
 			context.visit(node.id);
 			context.visit(node.body);
 		},
-		TsrxTemplateFence: () => {
-			// The fence is a compile-time boundary between localized setup and
-			// template output. It must not be emitted into generated TSX.
-		},
 	};
 
 	// Be careful when duplicating visitors that are already defined

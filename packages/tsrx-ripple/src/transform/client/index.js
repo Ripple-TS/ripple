@@ -3785,23 +3785,6 @@ function build_tsrx_ts_return_expression(children) {
 }
 
 /**
- * @param {AST.Node | null | undefined} node
- * @returns {boolean}
- */
-function is_tsrx_ts_template_child(node) {
-	return !!(
-		node &&
-		(node.type === 'Element' ||
-			node.type === 'Text' ||
-			node.type === 'TSRXExpression' ||
-			node.type === 'TsrxFragment' ||
-			node.type === 'JSXElement' ||
-			node.type === 'JSXFragment' ||
-			node.metadata?.tsrxDirective)
-	);
-}
-
-/**
  * @param {AST.Node[]} children
  * @param {VisitorClientContext} context
  * @returns {TsrxTsStatement[]}
@@ -3893,36 +3876,6 @@ function build_tsrx_ts_expression_from_statements(statements, loc_node, state) {
  * @returns {TsrxTsExpression}
  */
 function build_tsrx_to_ts_expression(node, context) {
-	if (node.metadata?.hasTemplateFence) {
-		const template_index = node.children.findIndex((child) => is_tsrx_ts_template_child(child));
-		if (template_index > 0) {
-			const setup_statements = transform_tsrx_ts_children(
-				/** @type {AST.Node[]} */ (node.children.slice(0, template_index)),
-				context,
-			);
-			if (setup_statements.length > 0) {
-				const template_statements = transform_tsrx_ts_children(
-					/** @type {AST.Node[]} */ (node.children.slice(template_index)),
-					context,
-				);
-				const template_expression = build_tsrx_ts_expression_from_statements(
-					template_statements,
-					node,
-					context.state,
-				);
-				return b.call(
-					b.arrow(
-						[],
-						b.block([
-							...setup_statements,
-							b.return(/** @type {AST.Expression} */ (template_expression), node),
-						]),
-					),
-				);
-			}
-		}
-	}
-
 	return build_tsrx_ts_expression_from_statements(
 		transform_tsrx_ts_children(/** @type {AST.Node[]} */ (node.children), context),
 		node,
