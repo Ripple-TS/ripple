@@ -300,28 +300,12 @@ export function TSRXPlugin(config) {
 				this.#filename = tsrx_options?.filename || null;
 			}
 
+			/** @this {Parse.Parser} */
 			#resetTokenStartToCurrentPosition() {
 				if (this.start !== this.pos) {
 					this.start = this.pos;
 					this.startLoc = this.curPosition();
 				}
-			}
-
-			#previousNonWhitespaceChar() {
-				let index = this.pos - 1;
-				while (index >= 0) {
-					const ch = this.input.charCodeAt(index);
-					if (
-						ch !== CharCode.space &&
-						ch !== CharCode.tab &&
-						ch !== CharCode.lineFeed &&
-						ch !== CharCode.carriageReturn
-					) {
-						return ch;
-					}
-					index--;
-				}
-				return null;
 			}
 
 			/**
@@ -800,6 +784,7 @@ export function TSRXPlugin(config) {
 				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
 			}
 
+			/** @this {TSRXParser & Parse.Parser} */
 			#parseJSXSwitchCaseRawText() {
 				const start = this.start;
 				let index = start;
@@ -1528,6 +1513,7 @@ export function TSRXPlugin(config) {
 
 			/**
 			 * @param {AST.Node[]} consequent
+			 * @this {TSRXParser & Parse.Parser}
 			 */
 			#parseJSXSwitchCaseConsequent(consequent) {
 				if (this.type === tt.braceL) {
