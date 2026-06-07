@@ -93,14 +93,27 @@ function parseCompilationErrorWithDocument(error, virtualCode, sourceMap, docume
 		if (mapping) {
 			start = document.positionAt(mapping.generatedOffsets[0]);
 			end = document.positionAt(mapping.generatedOffsets[0] + mapping.generatedLengths[0]);
-		} else if (sourceMap) {
-			// try to find the match even across multiple mappings
-			const result = sourceMap.toGeneratedRange(start_offset, end_offset, true).next().value;
+		} else {
+			// No single mapping spans the whole range: statements and elements are
+			// only covered by granular token mappings (e.g. `const test = 5;` maps
+			// as `const `, `test`, ` = `, `5`, `;`, with keywords often dropped), so
+			// an exact range lookup never matches them. Span the generated range
+			// from the tokens that overlap the range so the diagnostic lands on its
+			// source range instead of collapsing to the start of the file.
+			const generated = virtualCode.findGeneratedRangeBySourceRange(start_offset, end_offset);
 
-			if (result) {
-				const [gen_start_offset, gen_end_offset] = result;
-				start = document.positionAt(gen_start_offset);
-				end = document.positionAt(gen_end_offset);
+			if (generated) {
+				start = document.positionAt(generated[0]);
+				end = document.positionAt(generated[1]);
+			} else if (sourceMap) {
+				// try to find the match even across multiple mappings
+				const result = sourceMap.toGeneratedRange(start_offset, end_offset, true).next().value;
+
+				if (result) {
+					const [gen_start_offset, gen_end_offset] = result;
+					start = document.positionAt(gen_start_offset);
+					end = document.positionAt(gen_end_offset);
+				}
 			}
 		}
 	}

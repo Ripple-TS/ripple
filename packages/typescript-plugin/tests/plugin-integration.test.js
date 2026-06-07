@@ -39,6 +39,23 @@ function create_virtual_code(plugin, file_name, source) {
 	);
 }
 
+/**
+ * @param {number} sourceStart
+ * @param {number} sourceLength
+ * @param {number} generatedStart
+ * @param {number} generatedLength
+ * @returns {import('@tsrx/core/types').CodeMapping}
+ */
+function token_mapping(sourceStart, sourceLength, generatedStart, generatedLength) {
+	return {
+		sourceOffsets: [sourceStart],
+		lengths: [sourceLength],
+		generatedOffsets: [generatedStart],
+		generatedLengths: [generatedLength],
+		data: { customData: {} },
+	};
+}
+
 describe('typescript-plugin language plugin integration', () => {
 	beforeEach(() => {
 		_reset_for_test();
@@ -128,6 +145,39 @@ describe('typescript-plugin language plugin integration', () => {
 
 		expect(virtual_code).toBeInstanceOf(TSRXVirtualCode);
 		expect(virtual_code.generatedCode).toContain('compiler:ripple');
+	});
+
+	it('spans overlapping token mappings for a source range with no exact mapping', () => {
+		const plugin = create_plugin();
+		const workspace = create_fixture_workspace('ripple-only');
+		const file_name = path.join(workspace, 'src', 'App.tsrx');
+		const virtual_code = create_virtual_code(plugin, file_name, '<div/>');
+
+		// A diagnostic on a whole statement like `const test = 5;` points at the
+		// `const` keyword (offset 10) through the trailing `;` (offset 25). The
+		// compiler only emits granular token mappings and drops keywords and
+		// punctuation, so only `test` ([16,20)) and `5` ([23,24)) are mapped — no
+		// single mapping covers the statement, and neither endpoint is mapped.
+		virtual_code.mappings = [
+			token_mapping(16, 4, 100, 4), // test
+			token_mapping(23, 1, 107, 1), // 5
+		];
+
+		// The exact-range lookup the diagnostic plugin tries first cannot resolve
+		// the statement (no `10-25` mapping)...
+		expect(virtual_code.findMappingBySourceRange(10, 25)).toBeNull();
+
+		// ...but the overlap fallback anchors on the first/last tokens inside the
+		// range, spanning `test` through `5` in generated space even though the
+		// `const` keyword and `;` at the endpoints are unmapped.
+		expect(virtual_code.findGeneratedRangeBySourceRange(10, 25)).toEqual([100, 108]);
+
+		// A single mapped token still resolves via the exact lookup.
+		expect(virtual_code.findMappingBySourceRange(16, 20)).not.toBeNull();
+
+		// A range that overlaps no token at all stays unresolved (the caller then
+		// falls back to the source map).
+		expect(virtual_code.findGeneratedRangeBySourceRange(0, 5)).toBeNull();
 	});
 
 	it('returns undefined for non-tsrx files before compiler resolution', () => {

@@ -455,6 +455,71 @@ export class TSRXVirtualCode {
 		this.#buildMappingCache();
 		return /** @type {CachedMappings} */ (this.#mappingSourceToGen).get(`${start}-${end}`) ?? null;
 	}
+
+	/**
+	 * Resolve a source range to a generated `[start, end]` offset pair by spanning
+	 * the token mappings that overlap it.
+	 *
+	 * Statement and element source ranges are only ever covered by several
+	 * granular token mappings (e.g. `const test = 5;` maps as `const `, `test`,
+	 * ` = `, `5`, `;`), and keywords/punctuation are frequently dropped entirely,
+	 * so an exact `findMappingBySourceRange` lookup never matches a multi-token
+	 * range and the endpoints often fall on unmapped tokens. Callers that have a
+	 * range with no exact mapping (such as compile-error diagnostics) use this to
+	 * land on the range: the generated start comes from the first overlapping
+	 * token and the generated end from the last, so an error pointing at a `const`
+	 * keyword still resolves via the `test`/`5` tokens that follow it.
+	 *
+	 * @param {number} start - Start of the source range
+	 * @param {number} end - Exclusive end of the source range
+	 * @returns {[number, number] | null} Generated `[start, end]`, or null if no
+	 *   token overlaps the range
+	 */
+	findGeneratedRangeBySourceRange(start, end) {
+		/** @type {CodeMapping | null} */
+		let first = null;
+		/** @type {CodeMapping | null} */
+		let last = null;
+		for (let i = 0; i < this.mappings.length; i++) {
+			const mapping = this.mappings[i];
+			const sourceStart = mapping.sourceOffsets[0];
+			const sourceEnd = sourceStart + mapping.lengths[0];
+			// Skip tokens that do not overlap the half-open range [start, end).
+			if (sourceEnd <= start || sourceStart >= end) {
+				continue;
+			}
+			if (!first || sourceStart < first.sourceOffsets[0]) {
+				first = mapping;
+			}
+			if (!last || sourceEnd > last.sourceOffsets[0] + last.lengths[0]) {
+				last = mapping;
+			}
+		}
+		if (!first || !last) {
+			return null;
+		}
+
+		// Offset into the first/last token, clamped so an endpoint that lands
+		// before/after the token (an unmapped keyword or punctuation) snaps to the
+		// token edge rather than escaping its generated span.
+		const generated_start =
+			first.generatedOffsets[0] +
+			clamp_offset(start - first.sourceOffsets[0], first.generatedLengths[0]);
+		const generated_end =
+			last.generatedOffsets[0] +
+			clamp_offset(end - last.sourceOffsets[0], last.generatedLengths[0]);
+		return [generated_start, Math.max(generated_end, generated_start + 1)];
+	}
+}
+
+/**
+ * Clamp an intra-token offset into `[0, length]`.
+ * @param {number} offset
+ * @param {number} length
+ * @returns {number}
+ */
+function clamp_offset(offset, length) {
+	return Math.min(Math.max(offset, 0), length);
 }
 
 /**
