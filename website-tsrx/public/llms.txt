@@ -494,7 +494,7 @@ const StatusMessage = ({ status }: { status: string }) => @switch (status) {
 ```
 
 Each `case` and `default` body is a `{...}` template block. Cases are isolated,
-do not fall through, and `break` is invalid inside an `@switch` case body.
+do not fall through, and `break`/`return` are invalid inside an `@switch` case body.
 
 ### `try` / `catch` / `pending`
 

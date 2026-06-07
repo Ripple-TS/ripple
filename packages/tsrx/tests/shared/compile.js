@@ -510,7 +510,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 
 /**
  * Shared switch coverage. JSX `@switch` cases are isolated template branches:
- * they do not fall through and they do not use `break`.
+ * they do not fall through and they do not use `break` or `return`.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */

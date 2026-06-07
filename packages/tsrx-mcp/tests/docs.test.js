@@ -34,6 +34,7 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(content).toContain('continue');
 		expect(content).toContain('`return` statements are not template output');
 		expect(content).toContain('`break` is invalid');
+		expect(content).toContain('both `break` and `return` are invalid');
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});
 

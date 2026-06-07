@@ -609,7 +609,9 @@ export const FeaturesPage = () => @{
 								<code class="inline-code">{'{}'}</code>
 								body, cases never fall through, and
 								<code class="inline-code">break</code>
-								is invalid inside the case body.
+								and
+								<code class="inline-code">return</code>
+								are invalid inside the case body.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={SWITCH_HTML} />

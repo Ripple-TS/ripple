@@ -187,7 +187,7 @@ function List({ items }: { items: string[] }) @{
 
 Use normal function returns for guard exits before entering template output. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
 
-\`return\` statements are not template output. Put guard returns before the JSX statement container or return value, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, \`continue\` skips the current rendered iteration and \`break\` is invalid; use \`break\` only for \`@switch\` cases.
+\`return\` statements are not template output. Put guard returns before the JSX statement container or return value, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, \`continue\` skips the current rendered iteration and \`break\` is invalid. Inside a TSRX \`@switch\` case body, both \`break\` and \`return\` are invalid because cases are isolated template blocks.
 
 TSRX rendering supports \`@for ... of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not rendering constructs. Move imperative loops into setup code, a nested function, event handler, effect, or helper where normal JavaScript control-flow rules apply.
 

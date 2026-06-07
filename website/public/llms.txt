@@ -214,7 +214,7 @@ export function StatusBadge() @{
 
 Use `@for (... of ...)` for rendered lists. `continue` skips the current rendered
 iteration. `@switch` cases are isolated `{...}` blocks, do not fall through, and
-do not use `break`.
+do not use `break` or `return`.
 
 ```tsrx
 export function UserList({ users }: { users: User[] }) @{

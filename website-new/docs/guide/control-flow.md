@@ -58,7 +58,7 @@ to render inline.
 
 Use `@switch` to conditionally render content based on a value. It works with
 both static and reactive values. Each `case` and `default` has its own `{...}`
-body. Cases do not fall through, and `break` is not used inside `@switch`.
+body. Cases do not fall through, and `break`/`return` are not used inside `@switch`.
 
 <Code>
 

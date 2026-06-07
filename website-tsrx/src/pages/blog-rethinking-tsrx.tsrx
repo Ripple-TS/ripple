@@ -279,7 +279,7 @@ export function BlogRethinkingTsrxPage() @{
 							when the control flow itself should produce template output. Each branch or block
 							follows the same structural boundary as
 							<code>{'@{...}'}</code>
-							: setup first, then one output node.
+							: TypeScript first (although optional), then an optional rendered template output.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={JSX_CONTROL_FLOW_SCOPE_HTML} />

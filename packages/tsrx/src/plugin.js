@@ -1532,6 +1532,13 @@ export function TSRXPlugin(config) {
 					!this.#isJSXControlFlowDirectiveStart() &&
 					this.#switchCaseLabelStart(this.start) === -1
 				) {
+					const raw = String(this.value ?? '').trimStart();
+					if (/^break\b/.test(raw)) {
+						this.raise(this.start, '`break` is invalid inside `@switch` cases.');
+					}
+					if (/^return\b/.test(raw)) {
+						this.raise(this.start, '`return` is invalid inside `@switch` cases.');
+					}
 					this.context = this.context.filter(
 						(context) =>
 							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
@@ -1607,7 +1614,10 @@ export function TSRXPlugin(config) {
 				if (label === 'break') {
 					this.raise(this.start, '`break` is invalid inside `@switch` cases.');
 				}
-				if (label === 'continue' || label === 'return' || label === 'throw') {
+				if (label === 'return') {
+					this.raise(this.start, '`return` is invalid inside `@switch` cases.');
+				}
+				if (label === 'continue' || label === 'throw') {
 					consequent.push(this.parseStatement(null));
 					return;
 				}

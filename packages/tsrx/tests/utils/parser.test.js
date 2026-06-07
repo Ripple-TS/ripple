@@ -441,6 +441,29 @@ foo();`;
 		).toThrow('`break` is invalid inside `@switch` cases.');
 	});
 
+	it('rejects return statements inside JSX switch cases', () => {
+		expect(() =>
+			parseModule(
+				`function App() { return @switch (tag) {
+					case 'path': {
+						return;
+					}
+				}; }`,
+				'App.tsrx',
+			),
+		).toThrow('`return` is invalid inside `@switch` cases.');
+		expect(() =>
+			parseModule(
+				`function App() { return @switch (tag) {
+					case 'path': {
+						return <path />;
+					}
+				}; }`,
+				'App.tsrx',
+			),
+		).toThrow('`return` is invalid inside `@switch` cases.');
+	});
+
 	it('requires switch case and default bodies to be blocks', () => {
 		expect(() =>
 			parseModule(

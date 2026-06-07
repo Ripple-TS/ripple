@@ -99,12 +99,12 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'JSXForExpression :',
 	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock',
 	'',
-'JSXSwitchExpression :',
-'  @switch ( Expression ) { JSXSwitchCaseListopt }',
-'',
-'JSXSwitchCase :',
-'  case Expression : TemplateBlock',
-'  default : TemplateBlock',
+	'JSXSwitchExpression :',
+	'  @switch ( Expression ) { JSXSwitchCaseListopt }',
+	'',
+	'JSXSwitchCase :',
+	'  case Expression : TemplateBlock',
+	'  default : TemplateBlock',
 	'',
 	'JSXTryExpression :',
 	'  @try TemplateBlock pending TemplateBlock',
@@ -551,7 +551,9 @@ export function SpecificationPage() @{
 								<code class="inline-code">{'{}'}</code>
 								template block. Cases are isolated: they do not fall through to later cases, and
 								<code class="inline-code">break</code>
-								is a syntax error inside a JSX switch case.
+								and
+								<code class="inline-code">return</code>
+								are syntax errors inside a JSX switch case.
 							</p>
 							<p class="section-body">
 								Plain JSX children are the default. When an expression position, function body,
@@ -565,7 +567,8 @@ export function SpecificationPage() @{
 							</p>
 							<p class="section-body">
 								Control-flow block bodies follow the same structural rule as statement containers:
-								setup first, then one output node. The ordinary JSX form
+								TypeScript first (although optional), then an optional rendered template output. The
+								ordinary JSX form
 								<code class="inline-code">{'{ AssignmentExpression }'}</code>
 								contributes a JSXExpressionContainer node and is not itself a statement container. A
 								function exit remains an ordinary
