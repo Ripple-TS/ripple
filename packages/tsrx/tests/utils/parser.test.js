@@ -1224,6 +1224,141 @@ foo();`;
 		expect(value.body.render.openingElement.name.name).toBe('div');
 	});
 
+	it('parses a `@{ }` block as a function body following a return type', () => {
+		const ast = parseModule(`function App(): JSX.Element @{}`, 'App.tsrx');
+		const fn = ast.body[0];
+		expect(fn.type).toBe('FunctionDeclaration');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+		expect(fn.body.body).toEqual([]);
+		expect(fn.body.render).toBeNull();
+		expect(fn.returnType.type).toBe('TSTypeAnnotation');
+		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
+	});
+
+	it('splits setup and render in a `@{ }` body after a return type', () => {
+		const ast = parseModule(
+			`function App(): JSX.Element @{
+				const a = 5;
+				<div>a: {a}</div>
+			}`,
+			'App.tsrx',
+		);
+		const fn = ast.body[0];
+		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+		expect(fn.body.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(fn.body.render.openingElement.name.name).toBe('div');
+	});
+
+	it('parses a `@{ }` block as an arrow concise body after a return type', () => {
+		const ast = parseModule(`const App = (): JSX.Element => @{ <div/> };`, 'App.tsrx');
+		const value = ast.body[0].declarations[0].init;
+		expect(value.type).toBe('ArrowFunctionExpression');
+		expect(value.body.type).toBe('JSXCodeBlock');
+		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(value.body.render.openingElement.name.name).toBe('div');
+	});
+
+	it('parses a `@{ }` block as an anonymous function-expression body', () => {
+		const ast = parseModule(`const obj = { render: function() @{} };`, 'App.tsrx');
+		const value = ast.body[0].declarations[0].init.properties[0].value;
+		expect(value.type).toBe('FunctionExpression');
+		expect(value.id).toBeNull();
+		expect(value.body.type).toBe('JSXCodeBlock');
+		expect(value.body.body).toEqual([]);
+		expect(value.body.render).toBeNull();
+	});
+
+	it('parses a `@{ }` anonymous function-expression body after a return type', () => {
+		const ast = parseModule(`const obj = { render: function(): JSX.Element @{} };`, 'App.tsrx');
+		const value = ast.body[0].declarations[0].init.properties[0].value;
+		expect(value.type).toBe('FunctionExpression');
+		expect(value.body.type).toBe('JSXCodeBlock');
+		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+	});
+
+	it('parses a `@{ }` method shorthand body after a return type', () => {
+		const ast = parseModule(`const obj = { Render(): JSX.Element @{ <div/> } };`, 'App.tsrx');
+		const value = ast.body[0].declarations[0].init.properties[0].value;
+		expect(value.type).toBe('FunctionExpression');
+		expect(value.body.type).toBe('JSXCodeBlock');
+		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(value.body.render.openingElement.name.name).toBe('div');
+	});
+
+	it('parses a `@{ }` body on a generic function with a return type', () => {
+		const ast = parseModule(`function Test<T>(value: T): T @{}`, 'App.tsrx');
+		const fn = ast.body[0];
+		expect(fn.type).toBe('FunctionDeclaration');
+		expect(fn.typeParameters.params.map((p) => p.name.name ?? p.name)).toEqual(['T']);
+		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+	});
+
+	it('parses a `@{ }` body with multiple type parameters and a tuple return type', () => {
+		const ast = parseModule(`function Test<T, U>(first: T, second: U): [T, U] @{}`, 'App.tsrx');
+		const fn = ast.body[0];
+		expect(fn.typeParameters.params).toHaveLength(2);
+		expect(fn.returnType.typeAnnotation.type).toBe('TSTupleType');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+	});
+
+	it('parses a `@{ }` body with a constrained type parameter', () => {
+		const ast = parseModule(
+			`function Test<T extends { id: string }>(item: T): string @{}`,
+			'App.tsrx',
+		);
+		const fn = ast.body[0];
+		expect(fn.typeParameters.params[0].constraint.type).toBe('TSTypeLiteral');
+		expect(fn.returnType.typeAnnotation.type).toBe('TSStringKeyword');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+	});
+
+	it('parses a `@{ }` body with a defaulted type parameter', () => {
+		const ast = parseModule(`function Test<T = string>(value: T): T @{}`, 'App.tsrx');
+		const fn = ast.body[0];
+		expect(fn.typeParameters.params[0].default.type).toBe('TSStringKeyword');
+		expect(fn.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(fn.body.type).toBe('JSXCodeBlock');
+	});
+
+	it('parses a `@{ }` body on a generic function with a union return type', () => {
+		const ast = parseModule(`function Test<T>(items: T[]): T | undefined @{}`, 'App.tsrx');
+		const fn = ast.body[0];
+		expect(fn.typeParameters.params.map((p) => p.name.name ?? p.name)).toEqual(['T']);
+		const union = fn.returnType.typeAnnotation;
+		expect(union.type).toBe('TSUnionType');
+		expect(union.types.map((t) => t.typeName?.name ?? t.type)).toEqual(['T', 'TSUndefinedKeyword']);
+		expect(fn.body.type).toBe('JSXCodeBlock');
+	});
+
+	it('rejects an arrow token between a function return type and a `@{ }` body', () => {
+		expect(() => parseModule(`function App(): JSX.Element => @{}`, 'App.tsrx')).toThrow(
+			/Unexpected token/,
+		);
+	});
+
+	it('parses a typed arrow property whose concise body is a `@{ }` block', () => {
+		const ast = parseModule(`const obj = { Render: (): JSX.Element => @{ <div/> } };`, 'App.tsrx');
+		const value = ast.body[0].declarations[0].init.properties[0].value;
+		expect(value.type).toBe('ArrowFunctionExpression');
+		expect(value.returnType.typeAnnotation.type).toBe('TSTypeReference');
+		expect(value.body.type).toBe('JSXCodeBlock');
+		expect(value.body.render.openingElement.name.name).toBe('div');
+	});
+
+	it('rejects duplicate params in a `@{ }` function body after a return type', () => {
+		expect(() => parseModule(`function App(a, a): JSX.Element @{}`, 'App.tsrx')).toThrow(
+			/Argument name clash/,
+		);
+	});
+
+	it('rejects non-code-block directives as function bodies after a return type', () => {
+		expect(() =>
+			parseModule(`function App(): JSX.Element @if (show) { <div/> }`, 'App.tsrx'),
+		).toThrow(/Unexpected token/);
+	});
+
 	it('assigns each @-control directive directly to a variable', () => {
 		const cases = [
 			['const x = @if (c) { <a/> };', 'JSXIfExpression'],

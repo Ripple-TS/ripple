@@ -2392,6 +2392,16 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['getTokenFromCode']}
 			 */
 			getTokenFromCode(code) {
+				// acorn-typescript only recognizes `@` as the at-token when it is not
+				// reading a type. A return-type annotation (`function f(): T @{ … }`)
+				// finishes while still `inType`, so its trailing `@` reaches the base
+				// tokenizer, which throws "Unexpected character '@'". Emit the at-token
+				// here so the `@{ … }` code block that follows the type can be parsed.
+				if (code === CharCode.at && this.inType) {
+					++this.pos;
+					return this.finishToken(tstt.at);
+				}
+
 				if (
 					code === CharCode.greaterThan &&
 					this.input.charCodeAt(this.pos - 1) === CharCode.equals
@@ -2893,14 +2903,21 @@ export function TSRXPlugin(config) {
 					// Allow a `@{ … }` code block as the body of a (non-arrow) function or
 					// method, so a component can be written `function Something() @{ … }` or
 					// `{ Render() @{ … } }`. Arrow concise bodies (`() => @{ … }`) already
-					// route through `parseExprAtom`. Mirrors acorn's concise-expression-body
-					// branch.
+					// route through `parseExprAtom`.
+					//
+					// A return-type annotation sits between the params and the body
+					// (`function f(): T @{ … }`). acorn-typescript parses it inside
+					// `super.parseFunctionBody` and then demands a `{` block, so the `@{ … }`
+					// would never be seen. Parse the return type here first (exactly as
+					// acorn-typescript does) so `this.start` lands on the `@` that follows.
+					if (!isArrowFunction && this.match(tt.colon)) {
+						node.returnType = this.tsParseTypeOrTypePredicateAnnotation(tt.colon);
+					}
 					if (!isArrowFunction && this.#isCodeBlockStart(this.start)) {
-						/** @type {any} */ (node).body = this.parseMaybeAssign(forInit);
-						/** @type {any} */ (node).expression = true;
-						/** @type {any} */ (this).checkParams(node, false);
+						node.body = this.parseMaybeAssign(forInit);
+						this.checkParams(node, false);
 						this.exitScope();
-						return /** @type {any} */ (node);
+						return node;
 					}
 					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
 				} finally {
