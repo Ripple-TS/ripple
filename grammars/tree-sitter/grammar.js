@@ -33,6 +33,8 @@ module.exports = grammar({
 	inline: ($) => [
 		$._formal_parameter,
 		$.statement,
+		$._expression_statement_expression,
+		$._expression_statement_primary_expression,
 		$._semicolon,
 		$._reserved_identifier,
 		$._jsx_attribute,
@@ -87,6 +89,7 @@ module.exports = grammar({
 		[$.assignment_expression, $.initializer],
 		[$.do_statement],
 		[$.component_statement, $.primary_expression],
+		[$.expression_statement, $.component_statement],
 		[$.function_declaration, $.function_expression],
 		[$.required_parameter, $.type, $.type_identifier],
 		[$.statement_block, $.object, $.object_type],
@@ -206,7 +209,52 @@ module.exports = grammar({
 				$.statement_block,
 			),
 
-		expression_statement: ($) => seq($.expression, $._semicolon),
+		expression_statement: ($) => seq($._expression_statement_expression, $._semicolon),
+
+		_expression_statement_expression: ($) =>
+			choice(
+				$._expression_statement_primary_expression,
+				$.assignment_expression,
+				$.augmented_assignment_expression,
+				$.await_expression,
+				$.unary_expression,
+				$.binary_expression,
+				$.ternary_expression,
+				$.update_expression,
+				$.new_expression,
+				$.yield_expression,
+				$.parenthesized_expression,
+			),
+
+		_expression_statement_primary_expression: ($) =>
+			choice(
+				$.this,
+				$.super,
+				$.identifier,
+				$._reserved_identifier,
+				$.number,
+				$.string,
+				$.template_string,
+				$.regex,
+				$.true,
+				$.false,
+				$.null,
+				$.undefined,
+				$.object,
+				$.array,
+				$.arrow_function,
+				$.call_expression,
+				$.member_expression,
+				$.subscript_expression,
+				$.jsx_element,
+				$.jsx_fragment,
+				$.jsx_self_closing_element,
+				$.jsx_statement_container,
+				$.jsx_if_expression,
+				$.jsx_for_expression,
+				$.jsx_switch_expression,
+				$.jsx_try_expression,
+			),
 
 		variable_declaration: ($) =>
 			seq(choice('var', 'let', 'const'), commaSep1($.variable_declarator), $._semicolon),
@@ -475,8 +523,7 @@ module.exports = grammar({
 
 		jsx_statement_container: ($) =>
 			seq(
-				'@',
-				'{',
+				'@{',
 				repeat(field('statement', $._jsx_statement_container_statement)),
 				optional(field('children', $._jsx_statement_container_output)),
 				'}',
@@ -619,15 +666,18 @@ module.exports = grammar({
 		_style_content: ($) => /[^<]+/,
 
 		function_declaration: ($) =>
-			seq(
-				optional('async'),
-				'function',
-				optional('*'),
-				field('name', $.identifier),
-				optional(field('type_parameters', $.type_parameters)),
-				field('parameters', $.formal_parameters),
-				optional($._type_annotation),
-				field('body', choice($.statement_block, $.jsx_statement_container)),
+			prec.dynamic(
+				PREC.DECLARATION,
+				seq(
+					optional('async'),
+					'function',
+					optional('*'),
+					field('name', $.identifier),
+					optional(field('type_parameters', $.type_parameters)),
+					field('parameters', $.formal_parameters),
+					optional($._type_annotation),
+					field('body', choice($.statement_block, $.jsx_statement_container)),
+				),
 			),
 
 		class_declaration: ($) =>

@@ -62,6 +62,9 @@
     "component-statements": {
       "patterns": [
         {
+          "include": "#tsrx-template-child-directive"
+        },
+        {
           "include": "#jsx"
         },
         {
@@ -302,16 +305,16 @@
       "begin": "(@)(\\{)",
       "beginCaptures": {
         "1": {
-          "name": "keyword.control.directive.tsrx"
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
         },
         "2": {
-          "name": "keyword.control.directive.tsrx"
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
         }
       },
       "end": "(\\})",
       "endCaptures": {
         "1": {
-          "name": "keyword.control.directive.tsrx"
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
         }
       },
       "patterns": [
@@ -508,13 +511,13 @@
       "begin": "\\{",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.definition.block.tsrx"
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
         }
       },
       "end": "\\}",
       "endCaptures": {
         "0": {
-          "name": "punctuation.definition.block.tsrx"
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
         }
       },
       "patterns": [
@@ -1802,6 +1805,9 @@
         },
         {
           "include": "#type-function-return-type"
+        },
+        {
+          "include": "#tsrx-template-block-directive"
         },
         {
           "include": "#decl-block"

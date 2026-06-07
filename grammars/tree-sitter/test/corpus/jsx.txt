@@ -420,37 +420,35 @@ function WithFragment() {
 ---
 
 (program
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters)
-      body: (statement_block
-        (return_statement
-          (jsx_self_closing_element
-            name: (jsx_non_namespaced_element_name
-              (identifier)))))))
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters)
-      body: (statement_block
-        (return_statement
-          (jsx_fragment
-            open_tag: (jsx_opening_fragment)
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (statement_block
+      (return_statement
+        (jsx_self_closing_element
+          name: (jsx_non_namespaced_element_name
+            (identifier))))))
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (statement_block
+      (return_statement
+        (jsx_fragment
+          open_tag: (jsx_opening_fragment)
+          children: (jsx_text)
+          children: (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (identifier)))
             children: (jsx_text)
-            children: (jsx_element
-              open_tag: (jsx_opening_element
-                name: (jsx_element_name
-                  (identifier)))
-              children: (jsx_text)
-              close_tag: (jsx_closing_element
-                name: (jsx_element_name
-                  (identifier))))
-            children: (jsx_text)
-            children: (style_element
-              (raw_text))
-            children: (jsx_text)
-            close_tag: (jsx_closing_fragment)))))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (identifier))))
+          children: (jsx_text)
+          children: (style_element
+            (raw_text))
+          children: (jsx_text)
+          close_tag: (jsx_closing_fragment))))))
 
 ====================================
 Function Return Native Control Flow
@@ -469,40 +467,39 @@ function WithControlFlow(x) {
 ---
 
 (program
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters
-        (required_parameter
-          pattern: (identifier)))
-      body: (statement_block
-        (return_statement
-          (jsx_fragment
-            open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
-            children: (jsx_if_expression
-              condition: (parenthesized_expression
-                (identifier))
-              consequence: (jsx_template_block
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters
+      (required_parameter
+        pattern: (identifier)))
+    body: (statement_block
+      (return_statement
+        (jsx_fragment
+          open_tag: (jsx_opening_fragment)
+          children: (jsx_text)
+          children: (jsx_if_expression
+            condition: (parenthesized_expression
+              (identifier))
+            consequence: (jsx_template_block
+              children: (jsx_text)
+              children: (jsx_element
+                open_tag: (jsx_opening_element
+                  name: (jsx_element_name
+                    (identifier)))
                 children: (jsx_text)
-                children: (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_text)
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))
-                children: (jsx_text))
-              alternative: (jsx_template_block
-                children: (jsx_text)
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (null))))
-                children: (jsx_text)))
-            children: (jsx_text)
-            close_tag: (jsx_closing_fragment)))))))
+                close_tag: (jsx_closing_element
+                  name: (jsx_element_name
+                    (identifier))))
+              children: (jsx_text))
+            alternative: (jsx_template_block
+              children: (jsx_text)
+              children: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (null))))
+              children: (jsx_text)))
+          children: (jsx_text)
+          close_tag: (jsx_closing_fragment))))))
 
 ==================
 Statement Container Child
@@ -557,26 +554,25 @@ function WithAsyncDeclaration() {
 ---
 
 (program
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters)
-      body: (statement_block
-        (return_statement
-          (jsx_fragment
-            open_tag: (jsx_opening_fragment)
-            children: (jsx_statement_container
-              statement: (function_declaration
-                name: (identifier)
-                parameters: (formal_parameters)
-                body: (statement_block
-                  (return_statement
-                    (number))))
-              children: (jsx_fragment
-                open_tag: (jsx_opening_fragment)
-                children: (jsx_text)
-                close_tag: (jsx_closing_fragment)))
-            close_tag: (jsx_closing_fragment)))))))
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (statement_block
+      (return_statement
+        (jsx_fragment
+          open_tag: (jsx_opening_fragment)
+          children: (jsx_statement_container
+            statement: (function_declaration
+              name: (identifier)
+              parameters: (formal_parameters)
+              body: (statement_block
+                (return_statement
+                  (number))))
+            children: (jsx_fragment
+              open_tag: (jsx_opening_fragment)
+              children: (jsx_text)
+              close_tag: (jsx_closing_fragment)))
+          close_tag: (jsx_closing_fragment))))))
 
 ==================
 Server Module

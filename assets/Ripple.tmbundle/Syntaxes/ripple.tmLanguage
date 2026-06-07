@@ -945,6 +945,10 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-child-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#jsx</string>
 				</dict>
 				<dict>
@@ -3496,6 +3500,10 @@
 				<dict>
 					<key>include</key>
 					<string>#type-function-return-type</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-block-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -8850,12 +8858,12 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.control.directive.tsrx</string>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 				<key>2</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.control.directive.tsrx</string>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
 			<key>contentName</key>
@@ -8867,7 +8875,7 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>keyword.control.directive.tsrx</string>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
 			<key>name</key>
@@ -9128,7 +9136,7 @@
 				<key>0</key>
 				<dict>
 					<key>name</key>
-					<string>punctuation.definition.block.tsrx</string>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
 			<key>end</key>
@@ -9138,7 +9146,7 @@
 				<key>0</key>
 				<dict>
 					<key>name</key>
-					<string>punctuation.definition.block.tsrx</string>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
 			<key>name</key>

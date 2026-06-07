@@ -662,27 +662,86 @@ function App() @{
 ---
 
 (program
-  (expression_statement
-    (function_expression
-      (identifier)
-      (formal_parameters)
-      (jsx_statement_container
-        (variable_declaration
-          (variable_declarator
-            (identifier)
-            (initializer
-              (string))))
-        (jsx_element
-          (jsx_opening_element
-            (jsx_element_name
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (variable_declaration
+        (variable_declarator
+          (identifier)
+          (initializer
+            (string))))
+      (jsx_element
+        (jsx_opening_element
+          (jsx_element_name
+            (identifier)))
+        (jsx_expression
+          (component_statement
+            (expression_statement
+              (identifier))))
+        (jsx_closing_element
+          (jsx_element_name
+            (identifier)))))))
+
+==================
+Statement Container Try Output
+==================
+
+function App() @{
+  @try {
+    <ThrowingChild />
+  } pending {
+    <p>{'loading...'}</p>
+  } catch (err) {
+    <p>{'caught error'}</p>
+  }
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_try_expression
+        (jsx_template_block
+          (jsx_text)
+          (jsx_self_closing_element
+            (jsx_non_namespaced_element_name
               (identifier)))
-          (jsx_expression
-            (component_statement
-              (expression_statement
-                (identifier))))
-          (jsx_closing_element
-            (jsx_element_name
-              (identifier))))))))
+          (jsx_text))
+        (jsx_pending_clause
+          (jsx_template_block
+            (jsx_text)
+            (jsx_element
+              (jsx_opening_element
+                (jsx_element_name
+                  (identifier)))
+              (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
+              (jsx_closing_element
+                (jsx_element_name
+                  (identifier))))
+            (jsx_text)))
+        (jsx_catch_clause
+          (identifier)
+          (jsx_template_block
+            (jsx_text)
+            (jsx_element
+              (jsx_opening_element
+                (jsx_element_name
+                  (identifier)))
+              (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
+              (jsx_closing_element
+                (jsx_element_name
+                  (identifier))))
+            (jsx_text)))))))
 
 ==================
 Statement Container Arrow Body

@@ -104,9 +104,8 @@
 
 ; JSX statement containers
 (jsx_statement_container
-  "@" @keyword.control
-  "{" @keyword.control
-  "}" @keyword.control)
+  "@{" @punctuation.bracket
+  "}" @punctuation.bracket)
 
 (jsx_if_expression
   "@" @keyword.control

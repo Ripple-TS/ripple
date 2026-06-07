@@ -91,30 +91,28 @@ async function fetchData() {
 ---
 
 (program
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters
-        (required_parameter
-          pattern: (identifier))
-        (required_parameter
-          pattern: (identifier)))
-      body: (statement_block
-        (return_statement
-          (binary_expression
-            left: (identifier)
-            right: (identifier))))))
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters)
-      body: (statement_block
-        (return_statement
-          (call_expression
-            function: (await_expression
-              (identifier))
-            arguments: (arguments
-              (string))))))))
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters
+      (required_parameter
+        pattern: (identifier))
+      (required_parameter
+        pattern: (identifier)))
+    body: (statement_block
+      (return_statement
+        (binary_expression
+          left: (identifier)
+          right: (identifier)))))
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (statement_block
+      (return_statement
+        (call_expression
+          function: (await_expression
+            (identifier))
+          arguments: (arguments
+            (string)))))))
 
 ==================
 Arrow Functions
@@ -179,25 +177,24 @@ class Counter {
 ---
 
 (program
-  (expression_statement
-    (class_expression
-      name: (identifier)
-      body: (class_body
-        (field_definition
-          property: (property_name
-            (identifier))
-          (initializer
-            (number)))
-        (method_definition
-          name: (property_name
-            (identifier))
-          parameters: (formal_parameters)
-          body: (statement_block
-            (expression_statement
-              (update_expression
-                argument: (member_expression
-                  object: (this)
-                  property: (identifier))))))))))
+  (class_declaration
+    name: (identifier)
+    body: (class_body
+      (field_definition
+        property: (property_name
+          (identifier))
+        (initializer
+          (number)))
+      (method_definition
+        name: (property_name
+          (identifier))
+        parameters: (formal_parameters)
+        body: (statement_block
+          (expression_statement
+            (update_expression
+              argument: (member_expression
+                object: (this)
+                property: (identifier)))))))))
 
 ==================
 Destructuring
@@ -265,25 +262,24 @@ function add(a: number, b: number): number {
         (predefined_type))
       (initializer
         (string))))
-  (expression_statement
-    (function_expression
-      name: (identifier)
-      parameters: (formal_parameters
-        (required_parameter
-          pattern: (identifier)
-          (type
-            (predefined_type)))
-        (required_parameter
-          pattern: (identifier)
-          (type
-            (predefined_type))))
-      (type
-        (predefined_type))
-      body: (statement_block
-        (return_statement
-          (binary_expression
-            left: (identifier)
-            right: (identifier)))))))
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters
+      (required_parameter
+        pattern: (identifier)
+        (type
+          (predefined_type)))
+      (required_parameter
+        pattern: (identifier)
+        (type
+          (predefined_type))))
+    (type
+      (predefined_type))
+    body: (statement_block
+      (return_statement
+        (binary_expression
+          left: (identifier)
+          right: (identifier))))))
 
 ==================
 Template Strings

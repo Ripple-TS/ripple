@@ -19,6 +19,10 @@
   "<" @open
   "/>" @close)
 
+(jsx_statement_container
+  "@{" @open
+  "}" @close)
+
 ("(" @open ")" @close)
 ("[" @open "]" @close)
 ("{" @open "}" @close)
