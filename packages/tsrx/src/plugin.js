@@ -889,12 +889,13 @@ export function TSRXPlugin(config) {
 				// enclosing template (e.g. a top-level `return <div />`), the trailing
 				// text is plain JS and must not be read as template raw text.
 				const opening = this.#openingNativeTemplateNode;
+				const raw_text_anchor = this.start > this.lastTokEnd ? this.lastTokEnd : this.pos;
 				if (
 					opening &&
 					current_template_node === opening &&
 					/** @type {any} */ (opening).openingElement?.selfClosing &&
-					this.input.charCodeAt(this.pos - 1) === CharCode.greaterThan &&
-					this.input.charCodeAt(this.pos - 2) === CharCode.slash
+					this.input.charCodeAt(raw_text_anchor - 1) === CharCode.greaterThan &&
+					this.input.charCodeAt(raw_text_anchor - 2) === CharCode.slash
 				) {
 					const enclosing = this.#path.findLast(
 						(node) => node !== opening && this.#isNativeTemplateNode(node),
@@ -907,18 +908,88 @@ export function TSRXPlugin(config) {
 				return true;
 			}
 
+			#templateRawTextTokenStart() {
+				if (
+					this.#currentNativeTemplateNode()?.metadata?.templateMode === 'template' &&
+					this.lastTokEnd < this.start
+				) {
+					const current = this.input.charCodeAt(this.start);
+					const previous = this.input.charCodeAt(this.lastTokEnd - 1);
+					if (
+						current === CharCode.openBrace &&
+						previous !== CharCode.closeBrace &&
+						previous !== CharCode.greaterThan
+					) {
+						return this.start;
+					}
+					const skipped = this.input.slice(this.lastTokEnd, this.start);
+					if (/^\s+$/u.test(skipped)) {
+						return this.lastTokEnd;
+					}
+				}
+				return this.start;
+			}
+
 			#readTemplateRawTextToken() {
-				const start = this.pos;
+				const start = this.#templateRawTextTokenStart();
 				const index = this.#templateRawTextEnd(start);
+				const startLoc =
+					start === this.lastTokEnd && this.lastTokEndLoc
+						? this.lastTokEndLoc
+						: acorn.getLineInfo(this.input, start);
 
 				const endLoc = acorn.getLineInfo(this.input, index);
 				const value = this.input.slice(start, index);
+				this.start = start;
+				this.startLoc = startLoc;
 				if (value.match(regex_newline_characters)) {
 					this.curLine = endLoc.line;
 					this.lineStart = index - endLoc.column;
 				}
 				this.pos = index;
 				return this.finishToken(tstt.jsxText, value);
+			}
+
+			/**
+			 * @param {ESTreeJSX.JSXText} node
+			 */
+			#shouldKeepTemplateTextNode(node) {
+				if (!isWhitespaceTextNode(node)) {
+					return true;
+				}
+				return node.value !== '' && !regex_newline_characters.test(node.value);
+			}
+
+			/**
+			 * @param {ESTreeJSX.JSXText} node
+			 * @param {any[]} body
+			 */
+			#prependSkippedTemplateTextWhitespace(node, body) {
+				if (isWhitespaceTextNode(node)) {
+					return;
+				}
+				const current = /** @type {any} */ (this.#currentNativeTemplateNode());
+				const previous =
+					body.at(-1) ??
+					(current?.type === 'JSXFragment' ? current.openingFragment : current?.openingElement);
+				if (
+					!previous ||
+					previous.end === undefined ||
+					node.start === undefined ||
+					previous.end >= node.start
+				) {
+					return;
+				}
+				const skipped = this.input.slice(previous.end, node.start);
+				if (!/^\s+$/u.test(skipped)) {
+					return;
+				}
+				node.value = skipped + node.value;
+				node.raw = skipped + node.raw;
+				node.start = previous.end;
+				if (node.loc && previous.loc?.end) {
+					node.loc.start = { ...previous.loc.end };
+				}
 			}
 
 			/**
@@ -2316,15 +2387,17 @@ export function TSRXPlugin(config) {
 				const suppressTemplateRawTextToken = this.#suppressTemplateRawTextToken;
 				this.#suppressTemplateRawTextToken = false;
 				const context = this.curContext();
-				if (
-					code !== CharCode.lessThan &&
-					code !== CharCode.greaterThan &&
-					code !== CharCode.openBrace &&
-					code !== CharCode.closeBrace &&
-					!suppressTemplateRawTextToken &&
-					this.#shouldReadTemplateRawTextToken()
-				) {
-					return this.#readTemplateRawTextToken();
+				if (!suppressTemplateRawTextToken && this.#shouldReadTemplateRawTextToken()) {
+					const textStart = this.#templateRawTextTokenStart();
+					if (
+						textStart < this.start ||
+						(code !== CharCode.lessThan &&
+							code !== CharCode.greaterThan &&
+							code !== CharCode.openBrace &&
+							code !== CharCode.closeBrace)
+					) {
+						return this.#readTemplateRawTextToken();
+					}
 				}
 				if (
 					code === CharCode.greaterThan &&
@@ -3920,7 +3993,8 @@ export function TSRXPlugin(config) {
 						return;
 					}
 					const text = this.#parseTemplateRawText();
-					if (!isWhitespaceTextNode(text)) {
+					this.#prependSkippedTemplateTextWhitespace(text, body);
+					if (this.#shouldKeepTemplateTextNode(text)) {
 						body.push(text);
 					}
 				} else if (this.#isJSXControlFlowDirectiveStart()) {
@@ -4086,7 +4160,8 @@ export function TSRXPlugin(config) {
 					return;
 				} else {
 					const text = this.#parseTemplateRawText();
-					if (!isWhitespaceTextNode(text)) {
+					this.#prependSkippedTemplateTextWhitespace(text, body);
+					if (this.#shouldKeepTemplateTextNode(text)) {
 						body.push(text);
 					}
 				}

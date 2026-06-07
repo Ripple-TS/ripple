@@ -291,6 +291,51 @@ default:
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('preserves inline text spaces around expression children', async () => {
+		const input = `function Test(){return <div><p class="status">Visible: {String(visible)}</p><p>{name} is visible</p><p>Hello {name}!</p></div>}`;
+		const expected = `function Test() {
+  return <div>
+    <p class="status">Visible: {String(visible)}</p>
+    <p>{name} is visible</p>
+    <p>Hello {name}!</p>
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats text line breaks properly', async () => {
+		const input = `function Test() {
+  return <div>
+    <p class="status">Visible:
+
+      {String(visible)}</p>
+    <p>{name}
+
+      is visible</p>
+    <p>Hello {name}!</p>
+  </div>;
+}`;
+
+		const expected = `function Test() {
+  return <div>
+    <p class="status">
+      Visible:
+      {String(visible)}
+    </p>
+    <p>
+      {name}
+      is visible
+    </p>
+    <p>Hello {name}!</p>
+  </div>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('preserves multiline text and expression children', async () => {
 		const input = `export function App() {
   let [count] = track(0);
@@ -502,15 +547,45 @@ const items=[1,2,3];
 	});
 
 	it('should format tsrx expression fragments', async () => {
-		const input = `function App(){const content=<>@{const label="Hi";<><div>"Hello" {label}</div>{content}</>}</>;}`;
+		const input = `function App(){const content=<>@{const label="Hi";<><div>Hello {label}</div>{content}</>}</>;}`;
 		const expected = `function App() {
   const content = <>@{
     const label = 'Hi';
     <>
-      <div>"Hello"{label}</div>
+      <div>Hello {label}</div>
       {content}
     </>
   }</>;
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should format direct @{} assignment formatting with fragments', async () => {
+		const input = `function App(){const content=@{const label="Hi";<><div>Hello {label}</div>{content}</>};}`;
+		const expected = `function App() {
+  const content = @{
+    const label = 'Hi';
+    <>
+      <div>Hello {label}</div>
+      {content}
+    </>
+  };
+}`;
+		const result = await format(input, { singleQuote: true });
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('should format direct @if assignment formatting with fragments', async () => {
+		const input = `function App(){const content=@if(a>b){const label="Hi";<><div>Hello {label}</div>{content}</>};}`;
+		const expected = `function App() {
+  const content = @if (a > b) {
+    const label = 'Hi';
+    <>
+      <div>Hello {label}</div>
+      {content}
+    </>
+  };
 }`;
 		const result = await format(input, { singleQuote: true });
 		expect(result).toBeWithNewline(expected);

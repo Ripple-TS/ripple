@@ -143,6 +143,35 @@ describe('TSRX parser', () => {
 		expect(value.children[0].value).toContain('hello world');
 	});
 
+	it('preserves JSX text whitespace around expression children', () => {
+		const returned = getReturned(
+			`function App() {
+				return <div>{name} is visible</div>;
+			}`,
+		);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+		]);
+		expect(returned.children[1].value).toBe(' is visible');
+	});
+
+	it('preserves same-line JSX whitespace text between expression children', () => {
+		const returned = getReturned(
+			`function App() {
+				return <div>{first} {last}</div>;
+			}`,
+		);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXExpressionContainer',
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[1].value).toBe(' ');
+	});
+
 	it('keeps line comments out of plain JSX fragment output', () => {
 		const ast = parseModule(
 			`export const FeatureCard = () => <>

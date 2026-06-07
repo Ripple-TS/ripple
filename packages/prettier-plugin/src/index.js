@@ -5594,6 +5594,15 @@ function printJSXTextChild(raw) {
 }
 
 /**
+ * @param {string} raw
+ * @returns {string}
+ */
+function normalizeInlineJSXText(raw) {
+	const text = raw.replace(/[^\S\r\n]+/gu, ' ');
+	return text.trim() || !/[\r\n]/u.test(text) ? text : '';
+}
+
+/**
  * @param {AST.Node} parentNode
  * @param {AST.Node} firstChild
  * @param {Doc} childDoc
@@ -5914,15 +5923,15 @@ function printJSXElement(node, path, options, print) {
 				}
 				continue;
 			}
-			// Accumulate text content, preserving spaces between words
-			const trimmed = child.value.trim();
-			if (trimmed) {
+			// Accumulate text content, preserving meaningful boundary spaces.
+			const text = normalizeInlineJSXText(child.value);
+			if (text) {
 				const nextChild = node.children[i + 1];
 				const afterNextChild = node.children[i + 2];
 				const nextText = afterNextChild?.type === 'JSXText' ? afterNextChild.value.trim() : '';
 				if (
 					tagName === 'tsrx' &&
-					trimmed.endsWith('=') &&
+					text.trimEnd().endsWith('=') &&
 					nextChild?.type === 'JSXElement' &&
 					nextText === ';'
 				) {
@@ -5932,16 +5941,16 @@ function printJSXElement(node, path, options, print) {
 						currentText = '';
 						currentTextNode = null;
 					}
-					childrenDocs.push([trimmed, ' ', path.call(print, 'children', i + 1), ';']);
+					childrenDocs.push([text.trim(), ' ', path.call(print, 'children', i + 1), ';']);
 					childNodes.push(child);
 					i += 2;
 					continue;
 				}
 
 				if (currentText) {
-					currentText += ' ' + trimmed;
+					currentText += currentText.endsWith(' ') || text.startsWith(' ') ? text : ' ' + text;
 				} else {
-					currentText = trimmed;
+					currentText = text;
 					currentTextNode = child;
 				}
 			}
@@ -6013,8 +6022,8 @@ function printJSXElement(node, path, options, print) {
 		!forceMultiline &&
 		childrenDocs.length > 1 &&
 		wasOriginallySingleLine(node) &&
-		meaningfulChildren.some((/** @type {any} */ child) => child.type === 'JSXText') &&
-		meaningfulChildren.every(
+		node.children.some((/** @type {any} */ child) => child.type === 'JSXText') &&
+		node.children.every(
 			(/** @type {any} */ child) =>
 				child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
 		)
