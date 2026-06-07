@@ -5599,7 +5599,10 @@ function build_switch_with_lift(switch_node, transform_context) {
 			const { own_body, has_terminator } = case_info[i];
 
 			if (own_body.length === 0 && !has_terminator) {
-				return set_loc(b.switch_case(original_case.test, [create_null_return_statement()]), original_case);
+				return set_loc(
+					b.switch_case(original_case.test, [create_null_return_statement()]),
+					original_case,
+				);
 			}
 
 			const case_body = [];

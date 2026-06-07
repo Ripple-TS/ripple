@@ -422,6 +422,11 @@ export namespace Parse {
 		tokContexts: AcornTypeScriptTokContexts;
 	}
 
+	export interface AcornTypeScriptFunctionBodyConfig {
+		isFunctionDeclaration?: boolean | number;
+		isClassMethod?: boolean;
+	}
+
 	interface Scope {
 		flags: number;
 		var: string[];
@@ -489,6 +494,8 @@ export namespace Parse {
 		inAsync: boolean;
 		/** Whether we're inside a function */
 		inFunction: boolean;
+		/** Whether @sveltejs/acorn-typescript is currently parsing a TypeScript type */
+		inType: boolean;
 		/** Stack of label names for break/continue statements */
 		labels: Array<{ kind: string | null; name?: string; statementStart?: number }>;
 		/** Current scope flags stack */
@@ -599,6 +606,12 @@ export namespace Parse {
 		 * Main tokenizer dispatch based on first character
 		 */
 		getTokenFromCode(code: number): void;
+
+		/**
+		 * Get token from character code while in a TypeScript type context
+		 * Added by @sveltejs/acorn-typescript
+		 */
+		getTokenFromCodeInType(code: number): void;
 
 		/**
 		 * Get current position as Position object
@@ -1116,6 +1129,16 @@ export namespace Parse {
 
 		tsCheckTypeAnnotationForReadOnly(node: AST.TSTypeOperator): void;
 
+		/**
+		 * Run a parser callback with @sveltejs/acorn-typescript's type-context flag enabled
+		 */
+		tsInType<T>(cb: () => T): T;
+
+		/**
+		 * Parse a TypeScript return type or type predicate annotation
+		 */
+		tsParseTypeOrTypePredicateAnnotation(returnToken: TokenType): AST.TSTypeAnnotation;
+
 		tsParseTypeArguments(): AST.Node;
 
 		tsTryParseTypeAnnotation(): AST.TSTypeAnnotation;
@@ -1350,11 +1373,15 @@ export namespace Parse {
 		 * Parse function body
 		 */
 		parseFunctionBody(
-			node: AST.Node,
+			node: AST.FunctionDeclaration | AST.FunctionExpression | AST.ArrowFunctionExpression,
 			isArrowFunction: boolean,
 			isMethod: boolean,
 			forInit?: ForInit,
-		): void;
+			tsConfig?: AcornTypeScriptFunctionBodyConfig,
+		): AST.Node;
+
+		/** Check function parameters for duplicate names and invalid bindings */
+		checkParams(node: AST.Node, allowDuplicates: boolean): void;
 
 		/** Initialize function node properties */
 		initFunction(node: AST.Node): void;

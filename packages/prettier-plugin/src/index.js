@@ -4570,9 +4570,7 @@ function printJSXSwitchExpression(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printJSXSwitchCase(node, path, options, print, index) {
-	const header = node.test
-		? ['case ', path.call(print, 'cases', index, 'test'), ':']
-		: 'default:';
+	const header = node.test ? ['case ', path.call(print, 'cases', index, 'test'), ':'] : 'default:';
 	const consequents = node.consequent || [];
 	const printedConsequents = [];
 

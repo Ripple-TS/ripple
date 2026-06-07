@@ -647,11 +647,9 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			},
 		);
 
-		it.runIf(name === 'solid')(
-			'lowers isolated cases to independent <Match> arms',
-			() => {
-				const { code } = compile(
-					`export function App({ status }: { status: string }) @{
+		it.runIf(name === 'solid')('lowers isolated cases to independent <Match> arms', () => {
+			const { code } = compile(
+				`export function App({ status }: { status: string }) @{
 						@switch (status) {
 							case "idle": {
 								<span>{'Online'}</span>
@@ -664,19 +662,18 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 							}
 						}
 					}`,
-					'App.tsrx',
-				);
+				'App.tsrx',
+			);
 
-				expect(code).toContain('<Switch');
-				expect(code).toMatch(/<Match when=\{status === "idle"\}>/);
-				expect(code).toMatch(/<Match when=\{status === "active"\}>/);
-				expect(code).toMatch(/<Match when=\{status === "offline"\}>/);
-				expect(count_substring(code, "'Offline'")).toBe(1);
-				expect(count_substring(code, "'Away'")).toBe(1);
-				expect(count_substring(code, "'Online'")).toBe(1);
-				expect(code).not.toContain('StatementBodyHook');
-			},
-		);
+			expect(code).toContain('<Switch');
+			expect(code).toMatch(/<Match when=\{status === "idle"\}>/);
+			expect(code).toMatch(/<Match when=\{status === "active"\}>/);
+			expect(code).toMatch(/<Match when=\{status === "offline"\}>/);
+			expect(count_substring(code, "'Offline'")).toBe(1);
+			expect(count_substring(code, "'Away'")).toBe(1);
+			expect(count_substring(code, "'Online'")).toBe(1);
+			expect(code).not.toContain('StatementBodyHook');
+		});
 
 		it.runIf(name === 'solid')('routes default cases to <Switch fallback>', () => {
 			const { code } = compile(
@@ -729,11 +726,11 @@ export function runSharedSwitchHelperHoistingTests({
 	compile_to_volar_mappings,
 	name,
 	clientHelperShape,
-	}) {
-		describe(`[${name}] StatementBodyHook hoisting (client vs typeOnly)`, () => {
-			// Two case bodies contain hooks, so two helpers should exist. The
-			// non-hook case stays inline and cases remain isolated.
-			const switch_source = `export function App({ status }: { status: string }) @{
+}) {
+	describe(`[${name}] StatementBodyHook hoisting (client vs typeOnly)`, () => {
+		// Two case bodies contain hooks, so two helpers should exist. The
+		// non-hook case stays inline and cases remain isolated.
+		const switch_source = `export function App({ status }: { status: string }) @{
 				@switch (status) {
 					case "idle": {
 						const idle_label = useMemo(() => 'Online', [status]);
@@ -749,30 +746,30 @@ export function runSharedSwitchHelperHoistingTests({
 				}
 			}`;
 
-			it('lifts hook-bearing case bodies in the client transform', () => {
+		it('lifts hook-bearing case bodies in the client transform', () => {
 			const { code } = compile(switch_source, 'App.tsrx');
 
-				if (clientHelperShape === 'module-function') {
-					// React/Solid: top-level `function App__StatementBodyHook<N>()`
-					// declarations, no per-render cache slots.
-					const top_level_helper_count = (
-						code.match(/^function App__StatementBodyHook\d+\([^)]*\)/gm) || []
-					).length;
-					expect(top_level_helper_count).toBe(2);
-					expect(code).not.toContain('let App__StatementBodyHook');
-			} else if (clientHelperShape === 'module-vapor-component') {
-					// Vue: top-level `const App__StatementBodyHook<N> =
-					// defineVaporComponent(function App__StatementBodyHook<N>() {...})`.
-					const top_level_helper_count = (
-						code.match(
-							/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\([^)]*\)/gm,
-						) || []
-					).length;
+			if (clientHelperShape === 'module-function') {
+				// React/Solid: top-level `function App__StatementBodyHook<N>()`
+				// declarations, no per-render cache slots.
+				const top_level_helper_count = (
+					code.match(/^function App__StatementBodyHook\d+\([^)]*\)/gm) || []
+				).length;
 				expect(top_level_helper_count).toBe(2);
 				expect(code).not.toContain('let App__StatementBodyHook');
-				} else {
-					// Preact: local cache slot + `?? (= function …)` lazy
-					// initializer per hook-bearing body; no top-level declarations.
+			} else if (clientHelperShape === 'module-vapor-component') {
+				// Vue: top-level `const App__StatementBodyHook<N> =
+				// defineVaporComponent(function App__StatementBodyHook<N>() {...})`.
+				const top_level_helper_count = (
+					code.match(
+						/^const App__StatementBodyHook\d+ = defineVaporComponent\(function App__StatementBodyHook\d+\([^)]*\)/gm,
+					) || []
+				).length;
+				expect(top_level_helper_count).toBe(2);
+				expect(code).not.toContain('let App__StatementBodyHook');
+			} else {
+				// Preact: local cache slot + `?? (= function …)` lazy
+				// initializer per hook-bearing body; no top-level declarations.
 				const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
 				expect(cache_slot_count).toBe(2);
 				expect(code).toMatch(
@@ -781,7 +778,7 @@ export function runSharedSwitchHelperHoistingTests({
 			}
 		});
 
-			it('keeps hook-bearing case helpers local in the typeOnly transform', () => {
+		it('keeps hook-bearing case helpers local in the typeOnly transform', () => {
 			const { code } = compile_to_volar_mappings(switch_source, 'App.tsrx');
 
 			// Volar's virtual TSX always uses the local cache-slot pattern so
