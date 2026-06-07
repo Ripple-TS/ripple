@@ -452,6 +452,19 @@ export const FeaturesPage = () => @{
 								close to the markup that uses it without turning ordinary template text into
 								JavaScript.
 							</p>
+							<p class="section-body muted">
+								Control-flow bodies are implicit statement containers too:
+								<code class="inline-code">@if</code>
+								,
+								<code class="inline-code">@for</code>
+								,
+								<code class="inline-code">@switch</code>
+								, and
+								<code class="inline-code">@try</code>
+								arms all use
+								<code class="inline-code">{'{}'}</code>
+								blocks.
+							</p>
 							<pre class="code-block">
 								<code innerHTML={TEMPLATE_STRUCTURE_HTML} />
 							</pre>

@@ -6,7 +6,9 @@ title: Control flow in Ripple
 
 ## If statements
 
-Use `@if` blocks for inline conditional rendering inside TSRX templates.
+Use `@if` blocks for inline conditional rendering inside TSRX templates. Every
+control-flow body is an implicit statement container, so `@if`, `@for`,
+`@switch`, and `@try` arms always use `{...}` blocks.
 
 <Code>
 
@@ -129,7 +131,8 @@ export function InteractiveStatus() @{
 
 ## For statements
 
-Use `@for (... of ...)` to render collections.
+Use `@for (... of ...)` to render collections. The loop body must be a `{...}`
+template block.
 
 <Code>
 
@@ -218,7 +221,8 @@ or components. Otherwise, the loop can be run inside an `effect` or function.
 
 ## Try statements
 
-`@try` blocks build the foundation for **error boundaries**. When the runtime
+`@try` blocks build the foundation for **error boundaries**. The `try`,
+`pending`, `catch`, and `finally` arms must be `{...}` template blocks. When the runtime
 encounters an error in the `try` block, you can easily render a fallback in the
 `catch` block.
 

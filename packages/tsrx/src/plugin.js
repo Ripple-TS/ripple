@@ -1380,6 +1380,12 @@ export function TSRXPlugin(config) {
 					) {
 						this.raise(start, 'Expected `for` after `@`.');
 					}
+					if (/** @type {any} */ (node).body?.type !== 'BlockStatement') {
+						this.raise(
+							/** @type {any} */ (node).body?.start ?? start,
+							'Expected `{` after JSX control-flow directive.',
+						);
+					}
 					return node;
 				}
 
@@ -1405,10 +1411,10 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseTemplateControlFlowStatement() {
-				if (this.type === tt.braceL) {
-					return this.#parseTemplateControlFlowBlock();
+				if (this.type !== tt.braceL) {
+					this.raise(this.start, 'Expected `{` after JSX control-flow directive.');
 				}
-				return this.parseStatement(null);
+				return this.#parseTemplateControlFlowBlock();
 			}
 
 			#parseTemplateIfStatement() {

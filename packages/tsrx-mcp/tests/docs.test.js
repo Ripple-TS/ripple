@@ -26,6 +26,9 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(find_documentation_section('expression-values')?.content ?? '').not.toContain(
 			legacy_expression_node,
 		);
+		expect(find_documentation_section('overview')?.content ?? '').toContain(
+			'every directive body uses a `{...}` template block',
+		);
 	});
 
 	it('documents component loop control-flow rules', () => {

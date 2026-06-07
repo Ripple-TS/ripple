@@ -18,7 +18,7 @@ them all the way through to the compiled output.
 - **One source, many targets**: `@tsrx/react`, `@tsrx/preact`, `@tsrx/solid`, `@tsrx/vue`, `@tsrx/ripple`
 - **JSX-shaped templates**: JSX elements, fragments, text, and expression containers use standard JSX node shapes
 - **JSX statement containers**: `@{ ... }` keeps TypeScript setup local to the JSX that uses it
-- **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` are JSX expressions
+- **Declarative control flow**: `@if`, `@for`, `@switch`, and `@try` are JSX expressions whose bodies use `{...}` template blocks
 - **Structural output rules**: statement containers finish with one JSX element, fragment, or JSX control-flow expression
 - **Lazy prop destructuring**: `&{ ... }` and `&[ ... ]` preserve reactivity
 - **Scoped styles**: per-component `<style>` blocks with automatic class hashing
@@ -446,8 +446,9 @@ props, pass `children={...}` explicitly.
 
 Control-flow constructs are directive-prefixed JSX expressions, not helper
 components. They can be returned directly or nested inside JSX. Direct children
-inside each branch render into the current template; use `return` when the
-branch should exit the enclosing function.
+inside each braced branch render into the current template; use `return` when
+the branch should exit the enclosing function. `@if`, `@for`, `@switch`, and
+`@try` bodies are implicit statement containers, so every body uses `{...}`.
 
 ### `if` / `else if` / `else`
 

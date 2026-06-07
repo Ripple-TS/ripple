@@ -542,6 +542,11 @@ export function SpecificationPage() @{
 								blocks whose bodies render template children.
 							</p>
 							<p class="section-body">
+								Every JSX control-flow body is an implicit statement container and must use a
+								<code class="inline-code">{'{}'}</code>
+								template block after the directive header.
+							</p>
+							<p class="section-body">
 								Each
 								<code class="inline-code">@switch</code>
 								<code class="inline-code">case</code>

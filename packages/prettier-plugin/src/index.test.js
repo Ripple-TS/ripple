@@ -5815,11 +5815,9 @@ function Child({ something }) {
   return @switch (props.status) {
     case "ok": {
       <div>ok</div>
-      return
     }
     case "error": {
       <div>error</div>
-      return
     }
     default: {
       props.status satisfies never
@@ -5830,11 +5828,9 @@ function Child({ something }) {
   return @switch (props.status) {
     case 'ok': {
       <div>ok</div>
-      return;
     }
     case 'error': {
       <div>error</div>
-      return;
     }
     default: {
       props.status satisfies never;

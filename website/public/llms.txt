@@ -17,7 +17,8 @@ When answering Ripple questions:
   setup first and finish it with one JSX element, JSX fragment, or JSX
   control-flow expression. It cannot finish with a bare expression container,
   and script statements cannot appear after the final output.
-- Use `@if`, `@for`, `@switch`, and `@try` for rendered control flow.
+- Use `@if`, `@for`, `@switch`, and `@try` for rendered control flow. Their bodies
+  are implicit statement containers and must use `{...}` blocks.
 - Keep runtime API guidance Ripple-specific, but keep syntax guidance aligned
   with TSRX.
 

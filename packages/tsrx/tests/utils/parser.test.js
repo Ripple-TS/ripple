@@ -967,16 +967,12 @@ foo();`;
 		expect(directive.alternate.body[0].children[0].value).toContain('Waiting');
 	});
 
-	it('parses braceless @if JSX output as a JSXIfExpression', () => {
-		const returned = getReturned(`function App() { return <div>
-			@if (visible) <div class="status">Visible: {String(visible)}</div>
-		</div>; }`);
-
-		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
-		expect(directive.type).toBe('JSXIfExpression');
-		expect(directive.consequent.type).toBe('JSXElement');
-		expect(directive.consequent.openingElement.name.name).toBe('div');
-		expect(directive.consequent.openingElement.attributes[0].name.name).toBe('class');
+	it('rejects braceless @if JSX output', () => {
+		expect(() =>
+			getReturned(`function App() { return <div>
+				@if (visible) <div class="status">Visible: {String(visible)}</div>
+			</div>; }`),
+		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
 
 	it('parses code-only @if bodies', () => {
@@ -1728,30 +1724,21 @@ foo();`;
 	});
 
 	// The render node of a one-line block can be an `@if`/`@for`/`@switch`/`@try`
-	// directive, not just a `<tag`. These mirror the JSX one-liner cases above: the
-	// directive follows the setup `;` on the same line, or starts its own line, in
-	// both braceless and braced forms.
-	it('parses a one-line block whose render is a braceless `@if` after the setup `;`', () => {
-		const block = getReturned(
-			`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div> }; }`,
-		);
-
-		expect(block.type).toBe('JSXCodeBlock');
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXIfExpression');
-		expect(block.render.test.name).toBe('foo');
-		expect(block.render.consequent.type).toBe('JSXElement');
-		expect(block.render.consequent.openingElement.name.name).toBe('div');
+	// directive, not just a `<tag`. Directive bodies are implicit statement
+	// containers, so they must use `{ }`.
+	it('rejects a braceless `@if` render after the setup `;`', () => {
+		expect(() =>
+			getReturned(
+				`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div> }; }`,
+			),
+		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
 
-	it('parses a braceless `@if` render whose consequent begins on the next line', () => {
-		const block = getReturned(`function App() { return @{ const foo = 123; @if (foo)
-			<div>{foo}</div> }; }`);
-
-		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
-		expect(block.render.type).toBe('JSXIfExpression');
-		expect(block.render.consequent.type).toBe('JSXElement');
-		expect(block.render.consequent.openingElement.name.name).toBe('div');
+	it('rejects a braceless `@if` render whose consequent begins on the next line', () => {
+		expect(() =>
+			getReturned(`function App() { return @{ const foo = 123; @if (foo)
+				<div>{foo}</div> }; }`),
+		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
 
 	it('parses a braced `@if` render after the setup `;` on the same line', () => {
@@ -1786,10 +1773,26 @@ foo();`;
 		expect(block.render.body.body[0].openingElement.name.name).toBe('li');
 	});
 
+	it('rejects a braceless `@for` render after the setup `;`', () => {
+		expect(() =>
+			getReturned(
+				`function App() { return @{ const xs = [1, 2]; @for (const x of xs) <li>{x}</li> }; }`,
+			),
+		).toThrow(/Expected `\{` after JSX control-flow directive/);
+	});
+
+	it('rejects a braceless `@try` render after the setup `;`', () => {
+		expect(() =>
+			getReturned(
+				`function App() { return @{ const foo = 123; @try <div>{foo}</div> catch (e) { <span /> } }; }`,
+			),
+		).toThrow(/Unexpected keyword 'try'|Expected token `\{/);
+	});
+
 	it('rejects a trailing `;` after a one-line render node (no `;` after render in one-liners)', () => {
 		expect(() =>
 			parseModule(
-				`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div>; }; }`,
+				`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> }; }; }`,
 				'App.tsrx',
 			),
 		).toThrow(/statements cannot follow/);

@@ -74,7 +74,7 @@ Core ideas:
 - Components are ordinary TypeScript functions. Use a JSX statement container, \`@{ ... }\`, when the function body is mostly TSRX setup plus one rendered output.
 - JSXElement, JSXFragment, JSXText, JSXExpressionContainer, attributes, and spreads use the standard JSX node family.
 - A mixed setup/template scope must finish with exactly one output node: a JSXElement, JSXFragment, or JSX control-flow expression. Wrap plain text, expression containers, or multiple siblings in a fragment.
-- Template control flow uses directive expressions: \`@if\`, \`@for\`, \`@switch\`, and \`@try\`.
+- Template control flow uses directive expressions: \`@if\`, \`@for\`, \`@switch\`, and \`@try\`; every directive body uses a \`{...}\` template block.
 - lazy destructuring uses &[] and &{} for by-reference bindings.
 
 The core language docs should stay target-neutral. After identifying the active runtime target, use target-specific docs, prompts, or skills for runtime imports, bundler setup, and semantics that are not defined by TSRX itself.
