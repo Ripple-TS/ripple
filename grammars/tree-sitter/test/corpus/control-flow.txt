@@ -30,7 +30,6 @@ const List = ({ items }) => <>
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_text)
               children: (jsx_for_expression
                 (identifier)
                 right: (identifier)
@@ -49,8 +48,8 @@ const List = ({ items }) => <>
                     close_tag: (jsx_closing_element
                       name: (jsx_element_name
                         (identifier))))
-                  children: (jsx_text)))
-              children: (jsx_text)
+                  children: (jsx_text))
+                (jsx_text))
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))
@@ -89,7 +88,6 @@ const List = ({ items }) => <>
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_text)
               children: (jsx_for_expression
                 (identifier)
                 right: (identifier)
@@ -112,8 +110,8 @@ const List = ({ items }) => <>
                     close_tag: (jsx_closing_element
                       name: (jsx_element_name
                         (identifier))))
-                  children: (jsx_text)))
-              children: (jsx_text)
+                  children: (jsx_text))
+                (jsx_text))
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))
@@ -128,7 +126,7 @@ const List = ({ items }) => <>
   <ul>
     @for (const item of items) {
       <li>{item.text}</li>
-    } empty {
+    } @empty {
       <li>No items</li>
     }
   </ul>
@@ -154,7 +152,6 @@ const List = ({ items }) => <>
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_text)
               children: (jsx_for_expression
                 (identifier)
                 right: (identifier)
@@ -174,17 +171,18 @@ const List = ({ items }) => <>
                       name: (jsx_element_name
                         (identifier))))
                   children: (jsx_text))
-                empty: (jsx_template_block
-                  children: (jsx_text)
-                  children: (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
+                (jsx_empty_clause
+                  empty: (jsx_template_block
                     children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier))))
-                  children: (jsx_text)))
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_text)
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text))))
               children: (jsx_text)
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
@@ -199,7 +197,7 @@ If Statement in Template
 const App = ({ show }) => <>
   @if (show) {
     <div>{'Visible'}</div>
-  } else {
+  } @else {
     <div>{'Hidden'}</div>
   }
 </>;
@@ -219,7 +217,6 @@ const App = ({ show }) => <>
                   (shorthand_property_identifier)))))
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_if_expression
               condition: (parenthesized_expression
                 (identifier))
@@ -237,20 +234,21 @@ const App = ({ show }) => <>
                     name: (jsx_element_name
                       (identifier))))
                 children: (jsx_text))
-              alternative: (jsx_template_block
-                children: (jsx_text)
-                children: (jsx_element
-                  open_tag: (jsx_opening_element
-                    name: (jsx_element_name
-                      (identifier)))
-                  children: (jsx_expression
-                    (component_statement
-                      (expression_statement
-                        (string))))
-                  close_tag: (jsx_closing_element
-                    name: (jsx_element_name
-                      (identifier))))
-                children: (jsx_text)))
+              (jsx_else_clause
+                alternative: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (string))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -270,7 +268,7 @@ const App = ({ ready }) => <>
       const item = loadItem();
       <Card>{item.name}</Card>
     }
-  } catch (error) {
+  } @catch (error) {
     @{
       const fallback = error.message;
       <p>{fallback}</p>
@@ -293,12 +291,10 @@ const App = ({ ready }) => <>
                   (shorthand_property_identifier)))))
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_if_expression
               condition: (parenthesized_expression
                 (identifier))
               consequence: (jsx_template_block
-                children: (jsx_text)
                 children: (jsx_statement_container
                   statement: (variable_declaration
                     (variable_declarator
@@ -317,10 +313,8 @@ const App = ({ ready }) => <>
                       name: (jsx_element_name
                         (identifier)))))
                 children: (jsx_text)))
-            children: (jsx_text)
             children: (jsx_try_expression
               body: (jsx_template_block
-                children: (jsx_text)
                 children: (jsx_statement_container
                   statement: (variable_declaration
                     (variable_declarator
@@ -346,7 +340,6 @@ const App = ({ ready }) => <>
               handler: (jsx_catch_clause
                 parameter: (identifier)
                 body: (jsx_template_block
-                  children: (jsx_text)
                   children: (jsx_statement_container
                     statement: (variable_declaration
                       (variable_declarator
@@ -381,7 +374,7 @@ const App = ({ ready }) => <>
   }
   @try {
     @{}
-  } pending {
+  } @pending {
     @{}
     <p>Loading</p>
   }
@@ -402,12 +395,10 @@ const App = ({ ready }) => <>
                   (shorthand_property_identifier)))))
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_if_expression
               condition: (parenthesized_expression
                 (identifier))
               consequence: (jsx_template_block
-                children: (jsx_text)
                 children: (jsx_statement_container)
                 children: (jsx_text)
                 children: (jsx_element
@@ -419,15 +410,12 @@ const App = ({ ready }) => <>
                     name: (jsx_element_name
                       (identifier))))
                 children: (jsx_text)))
-            children: (jsx_text)
             children: (jsx_try_expression
               body: (jsx_template_block
-                children: (jsx_text)
                 children: (jsx_statement_container)
                 children: (jsx_text))
               pending: (jsx_pending_clause
                 body: (jsx_template_block
-                  children: (jsx_text)
                   children: (jsx_statement_container)
                   children: (jsx_text)
                   children: (jsx_element
@@ -449,11 +437,11 @@ Else If Chain
 const Status = ({ status }) => <>
   @if (status === 'loading') {
     <p>Loading...</p>
-  } else if (status === 'success') {
+  } @else if (status === 'success') {
     <p>Done</p>
-  } else if (status === 'error') {
+  } @else if (status === 'error') {
     <p>Error</p>
-  } else {
+  } @else {
     <p>Unknown</p>
   }
 </>;
@@ -473,7 +461,6 @@ const Status = ({ status }) => <>
                   (shorthand_property_identifier)))))
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_if_expression
               condition: (parenthesized_expression
                 (binary_expression
@@ -490,22 +477,7 @@ const Status = ({ status }) => <>
                     name: (jsx_element_name
                       (identifier))))
                 children: (jsx_text))
-              alternative: (jsx_else_if_clause
-                condition: (parenthesized_expression
-                  (binary_expression
-                    left: (identifier)
-                    right: (string)))
-                consequence: (jsx_template_block
-                  children: (jsx_text)
-                  children: (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_text)
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier))))
-                  children: (jsx_text))
+              (jsx_else_clause
                 alternative: (jsx_else_if_clause
                   condition: (parenthesized_expression
                     (binary_expression
@@ -522,17 +494,35 @@ const Status = ({ status }) => <>
                         name: (jsx_element_name
                           (identifier))))
                     children: (jsx_text))
-                  alternative: (jsx_template_block
-                    children: (jsx_text)
-                    children: (jsx_element
-                      open_tag: (jsx_opening_element
-                        name: (jsx_element_name
-                          (identifier)))
-                      children: (jsx_text)
-                      close_tag: (jsx_closing_element
-                        name: (jsx_element_name
-                          (identifier))))
-                    children: (jsx_text)))))
+                  (jsx_else_clause
+                    alternative: (jsx_else_if_clause
+                      condition: (parenthesized_expression
+                        (binary_expression
+                          left: (identifier)
+                          right: (string)))
+                      consequence: (jsx_template_block
+                        children: (jsx_text)
+                        children: (jsx_element
+                          open_tag: (jsx_opening_element
+                            name: (jsx_element_name
+                              (identifier)))
+                          children: (jsx_text)
+                          close_tag: (jsx_closing_element
+                            name: (jsx_element_name
+                              (identifier))))
+                        children: (jsx_text))
+                      (jsx_else_clause
+                        alternative: (jsx_template_block
+                          children: (jsx_text)
+                          children: (jsx_element
+                            open_tag: (jsx_opening_element
+                              name: (jsx_element_name
+                                (identifier)))
+                            children: (jsx_text)
+                            close_tag: (jsx_closing_element
+                              name: (jsx_element_name
+                                (identifier))))
+                          children: (jsx_text))))))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -542,12 +532,15 @@ Switch in Template
 
 const Status = ({ status }) => <>
   @switch (status) {
-    case 'loading':
+    @case 'loading': {
       <p>{'Loading...'}</p>
-    case 'success':
+    }
+    @case 'success': {
       <p>{'Success!'}</p>
-    default:
+    }
+    @default: {
       <p>{'Unknown'}</p>
+    }
   }
 </>;
 
@@ -566,53 +559,57 @@ const Status = ({ status }) => <>
                   (shorthand_property_identifier)))))
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_switch_expression
               value: (parenthesized_expression
                 (identifier))
               body: (jsx_switch_body
                 (jsx_switch_case
                   value: (string)
-                  children: (jsx_text)
-                  children: (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (string))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))
+                  body: (jsx_template_block
+                    children: (jsx_text)
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (string))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text)))
                 (jsx_switch_case
                   value: (string)
-                  children: (jsx_text)
-                  children: (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (string))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier)))))
+                  body: (jsx_template_block
+                    children: (jsx_text)
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (string))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text)))
                 (jsx_switch_default
-                  children: (jsx_text)
-                  children: (jsx_element
-                    open_tag: (jsx_opening_element
-                      name: (jsx_element_name
-                        (identifier)))
-                    children: (jsx_expression
-                      (component_statement
-                        (expression_statement
-                          (string))))
-                    close_tag: (jsx_closing_element
-                      name: (jsx_element_name
-                        (identifier))))
-                  children: (jsx_text))))
+                  body: (jsx_template_block
+                    children: (jsx_text)
+                    children: (jsx_element
+                      open_tag: (jsx_opening_element
+                        name: (jsx_element_name
+                          (identifier)))
+                      children: (jsx_expression
+                        (component_statement
+                          (expression_statement
+                            (string))))
+                      close_tag: (jsx_closing_element
+                        name: (jsx_element_name
+                          (identifier))))
+                    children: (jsx_text)))))
             children: (jsx_text)
             close_tag: (jsx_closing_fragment)))))))
 
@@ -623,7 +620,7 @@ Try Pending Block
 const SuspenseBoundary = () => <>
   @try {
     <AsyncComponent />
-  } pending {
+  } @pending {
     <p>{'Loading...'}</p>
   }
 </>;
@@ -639,7 +636,6 @@ const SuspenseBoundary = () => <>
           parameters: (formal_parameters)
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_try_expression
               body: (jsx_template_block
                 children: (jsx_text)
@@ -672,7 +668,7 @@ Try-Catch Error Boundary
 const App = () => <>
   @try {
     <ComponentThatMayFail />
-  } catch (e) {
+  } @catch (e) {
     <div>{'Error: '}{e.message}</div>
   }
 </>;
@@ -688,7 +684,6 @@ const App = () => <>
           parameters: (formal_parameters)
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_try_expression
               body: (jsx_template_block
                 children: (jsx_text)
@@ -803,9 +798,9 @@ Statement Container Try Output
 function App() @{
   @try {
     <ThrowingChild />
-  } pending {
+  } @pending {
     <p>{'loading...'}</p>
-  } catch (err) {
+  } @catch (err) {
     <p>{'caught error'}</p>
   }
 }
@@ -932,13 +927,13 @@ Control Flow Expression Bodies
 
 const Status = () => @if (ready) {
   <p>Ready</p>
-} else {
+} @else {
   <p>Waiting</p>
 };
 
 const Boundary = () => @try {
   <Component />
-} pending {
+} @pending {
   <p>Loading</p>
 };
 
@@ -965,17 +960,18 @@ const Boundary = () => @try {
                   (jsx_element_name
                     (identifier))))
               (jsx_text))
-            (jsx_template_block
-              (jsx_text)
-              (jsx_element
-                (jsx_opening_element
-                  (jsx_element_name
-                    (identifier)))
+            (jsx_else_clause
+              (jsx_template_block
                 (jsx_text)
-                (jsx_closing_element
-                  (jsx_element_name
-                    (identifier))))
-              (jsx_text)))))))
+                (jsx_element
+                  (jsx_opening_element
+                    (jsx_element_name
+                      (identifier)))
+                  (jsx_text)
+                  (jsx_closing_element
+                    (jsx_element_name
+                      (identifier))))
+                (jsx_text))))))))
   (variable_declaration
     (variable_declarator
       (identifier)

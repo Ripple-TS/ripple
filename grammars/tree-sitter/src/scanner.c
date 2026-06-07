@@ -160,23 +160,6 @@ static void scan_identifier_word(TSLexer *lexer, char *word, size_t word_size) {
   word[length] = '\0';
 }
 
-static bool is_jsx_control_keyword(const char *word) {
-  return strcmp(word, "if") == 0 ||
-         strcmp(word, "for") == 0 ||
-         strcmp(word, "switch") == 0 ||
-         strcmp(word, "try") == 0;
-}
-
-static bool is_jsx_boundary_keyword(const char *word) {
-  return strcmp(word, "case") == 0 ||
-	 strcmp(word, "default") == 0 ||
-	 strcmp(word, "else") == 0 ||
-	 strcmp(word, "empty") == 0 ||
-	 strcmp(word, "pending") == 0 ||
-	 strcmp(word, "catch") == 0 ||
-	 strcmp(word, "finally") == 0;
-}
-
 static bool check_boundary_lookahead(TSLexer *lexer, const char *word) {
   scan_whitespace_and_comments(lexer);
   if (strcmp(word, "case") == 0) {
@@ -202,6 +185,15 @@ static bool scan_jsx_text(TSLexer *lexer) {
   bool has_content = false;
   bool has_non_whitespace_content = false;
 
+  while (iswspace(lexer->lookahead)) {
+    skip(lexer);
+    has_content = true;
+  }
+
+  if (has_content && lexer->lookahead == '@') {
+    return false;
+  }
+
   for (;;) {
     lexer->mark_end(lexer);
     switch (lexer->lookahead) {
@@ -214,29 +206,7 @@ static bool scan_jsx_text(TSLexer *lexer) {
         if (has_content) {
           return true;
         }
-
-        advance(lexer);
-        if (lexer->lookahead == '{') {
-          return false;
-        }
-
-        if (is_identifier_start(lexer->lookahead)) {
-          char word[16];
-          scan_identifier_word(lexer, word, sizeof(word));
-          lexer->mark_end(lexer);
-
-          if (is_jsx_control_keyword(word)) {
-            scan_whitespace_and_comments(lexer);
-            if ((strcmp(word, "try") == 0 && lexer->lookahead == '{') ||
-                (strcmp(word, "try") != 0 && lexer->lookahead == '(')) {
-              return false;
-            }
-          }
-        } else {
-          lexer->mark_end(lexer);
-        }
-
-        return true;
+        return false;
       }
       case '-':
         if (!has_non_whitespace_content) {
@@ -251,7 +221,7 @@ static bool scan_jsx_text(TSLexer *lexer) {
           if (!has_non_whitespace_content) {
             char word[16];
             scan_identifier_word(lexer, word, sizeof(word));
-            if (is_jsx_boundary_keyword(word) && check_boundary_lookahead(lexer, word)) {
+            if (strcmp(word, "finally") == 0 && check_boundary_lookahead(lexer, word)) {
               return false;
             }
             has_content = true;

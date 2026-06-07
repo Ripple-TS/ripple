@@ -458,7 +458,7 @@ function WithControlFlow(x) {
   return <>
     @if (x) {
       <div>"works"</div>
-    } else {
+    } @else {
       {null}
     }
   </>;
@@ -476,7 +476,6 @@ function WithControlFlow(x) {
       (return_statement
         (jsx_fragment
           open_tag: (jsx_opening_fragment)
-          children: (jsx_text)
           children: (jsx_if_expression
             condition: (parenthesized_expression
               (identifier))
@@ -491,13 +490,14 @@ function WithControlFlow(x) {
                   name: (jsx_element_name
                     (identifier))))
               children: (jsx_text))
-            alternative: (jsx_template_block
-              children: (jsx_text)
-              children: (jsx_expression
-                (component_statement
-                  (expression_statement
-                    (null))))
-              children: (jsx_text)))
+            (jsx_else_clause
+              alternative: (jsx_template_block
+                children: (jsx_text)
+                children: (jsx_expression
+                  (component_statement
+                    (expression_statement
+                      (null))))
+                children: (jsx_text))))
           children: (jsx_text)
           close_tag: (jsx_closing_fragment))))))
 
@@ -522,7 +522,6 @@ const App = () => <>
           parameters: (formal_parameters)
           body: (jsx_fragment
             open_tag: (jsx_opening_fragment)
-            children: (jsx_text)
             children: (jsx_statement_container
               children: (jsx_element
                 open_tag: (jsx_opening_element
@@ -622,7 +621,7 @@ Code Element Control Flow Text
 =================================
 
 fragment App() {
-  <p><code>if</code><code>@if</code></p>
+  <p><code>if</code><code>{'@if'}</code></p>
 }
 
 ---
@@ -650,7 +649,10 @@ fragment App() {
               open_tag: (jsx_opening_element
                 name: (jsx_element_name
                   (identifier)))
-              children: (jsx_text)
+              children: (jsx_expression
+                (component_statement
+                  (expression_statement
+                    (string))))
               close_tag: (jsx_closing_element
                 name: (jsx_element_name
                   (identifier))))

@@ -117,6 +117,7 @@ module.exports = grammar({
 		[$.jsx_statement_container, $.primary_expression],
 		[$.declaration, $.jsx_statement_container],
 		[$.jsx_statement_container, $.object],
+		[$.jsx_try_expression],
 	],
 
 	rules: {
@@ -539,6 +540,8 @@ module.exports = grammar({
 
 		_jsx_directive_body: ($) => choice($.jsx_template_block, $._jsx_statement_container_output),
 
+		_jsx_continuation_gap: ($) => $.jsx_text,
+
 		_jsx_template_child: ($) =>
 			choice(
 				prec(2, $.style_element),
@@ -547,42 +550,65 @@ module.exports = grammar({
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
 				$.jsx_statement_container,
-				$.jsx_expression,
 				$.jsx_if_expression,
 				$.jsx_for_expression,
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
+				$.jsx_expression,
 			),
 
 		jsx_if_expression: ($) =>
-			prec.right(
-				1,
-				seq(
-					'@',
-					'if',
-					field('condition', $.parenthesized_expression),
-					field('consequence', $._jsx_directive_body),
-					optional(
-						seq('else', field('alternative', choice($.jsx_else_if_clause, $._jsx_directive_body))),
+			choice(
+				prec.right(
+					2,
+					seq(
+						'@',
+						'if',
+						field('condition', $.parenthesized_expression),
+						field('consequence', $._jsx_directive_body),
+						$.jsx_else_clause,
+					),
+				),
+				prec.right(
+					1,
+					seq(
+						'@',
+						'if',
+						field('condition', $.parenthesized_expression),
+						field('consequence', $._jsx_directive_body),
 					),
 				),
 			),
 
-		jsx_else_if_clause: ($) =>
+		jsx_else_clause: ($) =>
 			prec.right(
-				1,
-				seq(
-					'if',
-					field('condition', $.parenthesized_expression),
-					field('consequence', $._jsx_directive_body),
-					optional(
-						seq('else', field('alternative', choice($.jsx_else_if_clause, $._jsx_directive_body))),
+				2,
+				seq('@else', field('alternative', choice($.jsx_else_if_clause, $._jsx_directive_body))),
+			),
+
+		jsx_else_if_clause: ($) =>
+			choice(
+				prec.right(
+					2,
+					seq(
+						'if',
+						field('condition', $.parenthesized_expression),
+						field('consequence', $._jsx_directive_body),
+						$.jsx_else_clause,
+					),
+				),
+				prec.right(
+					1,
+					seq(
+						'if',
+						field('condition', $.parenthesized_expression),
+						field('consequence', $._jsx_directive_body),
 					),
 				),
 			),
 
 		jsx_for_expression: ($) =>
-			prec(
+			prec.right(
 				1,
 				seq(
 					'@',
@@ -599,9 +625,12 @@ module.exports = grammar({
 					optional(seq(';', 'key', $.expression)),
 					')',
 					field('body', $.jsx_template_block),
-					optional(seq('empty', field('empty', $.jsx_template_block))),
+					optional($._jsx_continuation_gap),
+					optional($.jsx_empty_clause),
 				),
 			),
+
+		jsx_empty_clause: ($) => prec.right(2, seq('@empty', field('empty', $.jsx_template_block))),
 
 		jsx_switch_expression: ($) =>
 			prec(
@@ -617,42 +646,49 @@ module.exports = grammar({
 		jsx_switch_body: ($) => seq('{', repeat(choice($.jsx_switch_case, $.jsx_switch_default)), '}'),
 
 		jsx_switch_case: ($) =>
-			seq(
-				'case',
-				field('value', $.expression),
-				':',
-				repeat(field('children', $._jsx_template_child)),
-			),
+			seq('@case', field('value', $.expression), ':', field('body', $.jsx_template_block)),
 
-		jsx_switch_default: ($) =>
-			seq('default', ':', repeat(field('children', $._jsx_template_child))),
+		jsx_switch_default: ($) => seq('@default', ':', field('body', $.jsx_template_block)),
 
 		jsx_try_expression: ($) =>
-			prec.right(
-				1,
-				seq(
-					'@',
-					'try',
-					field('body', $.jsx_template_block),
-					optional(field('pending', $.jsx_pending_clause)),
-					optional(field('handler', $.jsx_catch_clause)),
-					optional(field('finalizer', $.jsx_finally_clause)),
+			choice(
+				prec.right(
+					2,
+					seq(
+						'@',
+						'try',
+						field('body', $.jsx_template_block),
+						repeat1(
+							choice(
+								field('pending', $.jsx_pending_clause),
+								field('handler', $.jsx_catch_clause),
+								field('finalizer', $.jsx_finally_clause),
+							),
+						),
+					),
+				),
+				prec.right(
+					1,
+					seq('@', 'try', field('body', $.jsx_template_block), optional($._jsx_continuation_gap)),
 				),
 			),
 
-		jsx_pending_clause: ($) => seq('pending', field('body', $.jsx_template_block)),
+		jsx_pending_clause: ($) => prec.right(2, seq('@pending', field('body', $.jsx_template_block))),
 
 		jsx_catch_clause: ($) =>
-			seq(
-				'catch',
-				optional(
-					seq(
-						'(',
-						commaSep1(field('parameter', choice($.identifier, $._destructuring_pattern))),
-						')',
+			prec.right(
+				2,
+				seq(
+					'@catch',
+					optional(
+						seq(
+							'(',
+							commaSep1(field('parameter', choice($.identifier, $._destructuring_pattern))),
+							')',
+						),
 					),
+					field('body', $.jsx_template_block),
 				),
-				field('body', $.jsx_template_block),
 			),
 
 		jsx_finally_clause: ($) => seq('finally', field('body', $.jsx_template_block)),
