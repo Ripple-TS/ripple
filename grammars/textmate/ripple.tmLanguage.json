@@ -245,6 +245,9 @@
           "include": "#tsrx-template-block-directive"
         },
         {
+          "include": "#tsrx-template-inline-conditional-directive"
+        },
+        {
           "include": "#tsrx-template-conditional-directive"
         },
         {
@@ -323,6 +326,33 @@
       "patterns": [
         {
           "include": "#component-statements"
+        }
+      ]
+    },
+    "tsrx-template-inline-conditional-directive": {
+      "name": "meta.directive.if.tsrx",
+      "begin": "(@)(if)(?![_$[:alnum:]])(?=\\s*(\\(([^\\(\\)]|(\\(([^\\(\\)]|\\([^\\(\\)]*\\))*\\)))*\\))\\s*(?!\\{))",
+      "beginCaptures": {
+        "0": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?=$|(?=\\s+else\\b)|(?=\\}))",
+      "patterns": [
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#component-statements"
+        },
+        {
+          "include": "#comment"
         }
       ]
     },

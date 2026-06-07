@@ -684,6 +684,47 @@ function App() @{
             (identifier)))))))
 
 ==================
+Statement Container If Directive JSX Body
+==================
+
+function App({ visible }) @{
+  @if (visible) <div class="status">Visible: {String(visible)}</div>
+}
+
+---
+
+(program
+  (function_declaration
+    name: (identifier)
+    parameters: (formal_parameters
+      (required_parameter
+        pattern: (object_pattern
+          (shorthand_property_identifier_pattern
+            (shorthand_property_identifier)))))
+    body: (jsx_statement_container
+      children: (jsx_if_expression
+        condition: (parenthesized_expression
+          (identifier))
+        consequence: (jsx_element
+          open_tag: (jsx_opening_element
+            name: (jsx_element_name
+              (identifier))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (string)))
+          children: (jsx_text)
+          children: (jsx_expression
+            (component_statement
+              (expression_statement
+                (call_expression
+                  function: (identifier)
+                  arguments: (arguments
+                    (identifier))))))
+          close_tag: (jsx_closing_element
+            name: (jsx_element_name
+              (identifier))))))))
+
+==================
 Statement Container Try Output
 ==================
 

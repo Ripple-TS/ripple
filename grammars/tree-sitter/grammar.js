@@ -537,6 +537,8 @@ module.exports = grammar({
 				'}',
 			),
 
+		_jsx_directive_body: ($) => choice($.jsx_template_block, $._jsx_statement_container_output),
+
 		_jsx_template_child: ($) =>
 			choice(
 				prec(2, $.style_element),
@@ -559,20 +561,23 @@ module.exports = grammar({
 					'@',
 					'if',
 					field('condition', $.parenthesized_expression),
-					field('consequence', $.jsx_template_block),
+					field('consequence', $._jsx_directive_body),
 					optional(
-						seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+						seq('else', field('alternative', choice($.jsx_else_if_clause, $._jsx_directive_body))),
 					),
 				),
 			),
 
 		jsx_else_if_clause: ($) =>
-			seq(
-				'if',
-				field('condition', $.parenthesized_expression),
-				field('consequence', $.jsx_template_block),
-				optional(
-					seq('else', field('alternative', choice($.jsx_else_if_clause, $.jsx_template_block))),
+			prec.right(
+				1,
+				seq(
+					'if',
+					field('condition', $.parenthesized_expression),
+					field('consequence', $._jsx_directive_body),
+					optional(
+						seq('else', field('alternative', choice($.jsx_else_if_clause, $._jsx_directive_body))),
+					),
 				),
 			),
 

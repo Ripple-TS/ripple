@@ -2321,11 +2321,43 @@
         "required": false,
         "types": [
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
             "type": "jsx_else_if_clause",
             "named": true
           },
           {
+            "type": "jsx_for_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_if_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_switch_expression",
+            "named": true
+          },
+          {
             "type": "jsx_template_block",
+            "named": true
+          },
+          {
+            "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "style_element",
             "named": true
           }
         ]
@@ -2345,7 +2377,39 @@
         "required": true,
         "types": [
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
+            "type": "jsx_for_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_if_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_switch_expression",
+            "named": true
+          },
+          {
             "type": "jsx_template_block",
+            "named": true
+          },
+          {
+            "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "style_element",
             "named": true
           }
         ]
@@ -2547,11 +2611,43 @@
         "required": false,
         "types": [
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
             "type": "jsx_else_if_clause",
             "named": true
           },
           {
+            "type": "jsx_for_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_if_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_switch_expression",
+            "named": true
+          },
+          {
             "type": "jsx_template_block",
+            "named": true
+          },
+          {
+            "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "style_element",
             "named": true
           }
         ]
@@ -2571,7 +2667,39 @@
         "required": true,
         "types": [
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
+            "type": "jsx_for_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_fragment",
+            "named": true
+          },
+          {
+            "type": "jsx_if_expression",
+            "named": true
+          },
+          {
+            "type": "jsx_self_closing_element",
+            "named": true
+          },
+          {
+            "type": "jsx_switch_expression",
+            "named": true
+          },
+          {
             "type": "jsx_template_block",
+            "named": true
+          },
+          {
+            "type": "jsx_try_expression",
+            "named": true
+          },
+          {
+            "type": "style_element",
             "named": true
           }
         ]

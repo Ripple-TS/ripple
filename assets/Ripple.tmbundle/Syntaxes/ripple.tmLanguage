@@ -939,6 +939,99 @@
 				</dict>
 			</array>
 		</dict>
+		<key>component-if-statement</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>begin</key>
+					<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(?=\bif\s*(\(([^\(\)]|(\(([^\(\)]|\([^\(\)]*\))*\)))*\))\s*(?!\{))</string>
+					<key>end</key>
+					<string>(?=;|$|\})</string>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#comment</string>
+						</dict>
+						<dict>
+							<key>begin</key>
+							<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(if)\s*(\()</string>
+							<key>beginCaptures</key>
+							<dict>
+								<key>1</key>
+								<dict>
+									<key>name</key>
+									<string>keyword.control.conditional.js</string>
+								</dict>
+								<key>2</key>
+								<dict>
+									<key>name</key>
+									<string>meta.brace.round.js</string>
+								</dict>
+							</dict>
+							<key>end</key>
+							<string>\)</string>
+							<key>endCaptures</key>
+							<dict>
+								<key>0</key>
+								<dict>
+									<key>name</key>
+									<string>meta.brace.round.js</string>
+								</dict>
+							</dict>
+							<key>patterns</key>
+							<array>
+								<dict>
+									<key>include</key>
+									<string>#expression</string>
+								</dict>
+							</array>
+						</dict>
+						<dict>
+							<key>begin</key>
+							<string>(?&lt;=\))\s*\/(?![\/*])(?=(?:[^\/\\\[]|\\.|\[([^\]\\]|\\.)*\])+\/([dgimsuvy]+|(?![\/\*])|(?=\/\*))(?!\s*[a-zA-Z0-9_$]))</string>
+							<key>beginCaptures</key>
+							<dict>
+								<key>0</key>
+								<dict>
+									<key>name</key>
+									<string>punctuation.definition.string.begin.js</string>
+								</dict>
+							</dict>
+							<key>end</key>
+							<string>(/)([dgimsuvy]*)</string>
+							<key>endCaptures</key>
+							<dict>
+								<key>1</key>
+								<dict>
+									<key>name</key>
+									<string>punctuation.definition.string.end.js</string>
+								</dict>
+								<key>2</key>
+								<dict>
+									<key>name</key>
+									<string>keyword.other.js</string>
+								</dict>
+							</dict>
+							<key>name</key>
+							<string>string.regexp.js</string>
+							<key>patterns</key>
+							<array>
+								<dict>
+									<key>include</key>
+									<string>#regexp</string>
+								</dict>
+							</array>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#component-statements</string>
+						</dict>
+					</array>
+				</dict>
+			</array>
+		</dict>
 		<key>component-statements</key>
 		<dict>
 			<key>patterns</key>
@@ -4020,99 +4113,6 @@
 						<dict>
 							<key>include</key>
 							<string>#statements</string>
-						</dict>
-					</array>
-				</dict>
-			</array>
-		</dict>
-		<key>component-if-statement</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>begin</key>
-					<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(?=\bif\s*(\(([^\(\)]|(\(([^\(\)]|\([^\(\)]*\))*\)))*\))\s*(?!\{))</string>
-					<key>end</key>
-					<string>(?=;|$|\})</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#comment</string>
-						</dict>
-						<dict>
-							<key>begin</key>
-							<string>(?&lt;![_$[:alnum:]])(?:(?&lt;=\.\.\.)|(?&lt;!\.))(if)\s*(\()</string>
-							<key>beginCaptures</key>
-							<dict>
-								<key>1</key>
-								<dict>
-									<key>name</key>
-									<string>keyword.control.conditional.js</string>
-								</dict>
-								<key>2</key>
-								<dict>
-									<key>name</key>
-									<string>meta.brace.round.js</string>
-								</dict>
-							</dict>
-							<key>end</key>
-							<string>\)</string>
-							<key>endCaptures</key>
-							<dict>
-								<key>0</key>
-								<dict>
-									<key>name</key>
-									<string>meta.brace.round.js</string>
-								</dict>
-							</dict>
-							<key>patterns</key>
-							<array>
-								<dict>
-									<key>include</key>
-									<string>#expression</string>
-								</dict>
-							</array>
-						</dict>
-						<dict>
-							<key>begin</key>
-							<string>(?&lt;=\))\s*\/(?![\/*])(?=(?:[^\/\\\[]|\\.|\[([^\]\\]|\\.)*\])+\/([dgimsuvy]+|(?![\/\*])|(?=\/\*))(?!\s*[a-zA-Z0-9_$]))</string>
-							<key>beginCaptures</key>
-							<dict>
-								<key>0</key>
-								<dict>
-									<key>name</key>
-									<string>punctuation.definition.string.begin.js</string>
-								</dict>
-							</dict>
-							<key>end</key>
-							<string>(/)([dgimsuvy]*)</string>
-							<key>endCaptures</key>
-							<dict>
-								<key>1</key>
-								<dict>
-									<key>name</key>
-									<string>punctuation.definition.string.end.js</string>
-								</dict>
-								<key>2</key>
-								<dict>
-									<key>name</key>
-									<string>keyword.other.js</string>
-								</dict>
-							</dict>
-							<key>name</key>
-							<string>string.regexp.js</string>
-							<key>patterns</key>
-							<array>
-								<dict>
-									<key>include</key>
-									<string>#regexp</string>
-								</dict>
-							</array>
-						</dict>
-						<dict>
-							<key>include</key>
-							<string>#component-statements</string>
 						</dict>
 					</array>
 				</dict>
@@ -9189,6 +9189,10 @@
 				</dict>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-inline-conditional-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#tsrx-template-conditional-directive</string>
 				</dict>
 				<dict>
@@ -9305,6 +9309,48 @@
 				<dict>
 					<key>include</key>
 					<string>#punctuation-semicolon</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#comment</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-inline-conditional-directive</key>
+		<dict>
+			<key>begin</key>
+			<string>(@)(if)(?![_$[:alnum:]])(?=\s*(\(([^\(\)]|(\(([^\(\)]|\([^\(\)]*\))*\)))*\))\s*(?!\{))</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?=$|(?=\s+else\b)|(?=\}))</string>
+			<key>name</key>
+			<string>meta.directive.if.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-directive-header</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#component-statements</string>
 				</dict>
 				<dict>
 					<key>include</key>
