@@ -271,70 +271,67 @@ describe('switch statements', () => {
 		},
 	);
 
-	it(
-		'renders a middle switch case without falling through to later cases',
-		() => {
-			function App() @{
-				let &[value] = track('x');
-				<>
-					<button onClick={() => (value = 'a')}>{'Set A'}</button>
-					<button onClick={() => (value = 'b')}>{'Set B'}</button>
-					<button onClick={() => (value = 'c')}>{'Set C'}</button>
-					<button onClick={() => (value = 'x')}>{'Set X'}</button>
-					<div>
-						@switch (value) {
-							case 'a': {
-								<div>{' Case A'}</div>
-							}
-							case 'x': {
-								<div>
-									{' Default Case for ' + value}
-								</div>
-							}
-							case 'b': {
-								<div>{' Case B'}</div>
-							}
-							case 'c': {
-								<div>{' Case C'}</div>
-							}
+	it('renders a middle switch case without falling through to later cases', () => {
+		function App() @{
+			let &[value] = track('x');
+			<>
+				<button onClick={() => (value = 'a')}>{'Set A'}</button>
+				<button onClick={() => (value = 'b')}>{'Set B'}</button>
+				<button onClick={() => (value = 'c')}>{'Set C'}</button>
+				<button onClick={() => (value = 'x')}>{'Set X'}</button>
+				<div>
+					@switch (value) {
+						case 'a': {
+							<div>{' Case A'}</div>
 						}
-					</div>
-				</>
-			}
+						case 'x': {
+							<div>
+								{' Default Case for ' + value}
+							</div>
+						}
+						case 'b': {
+							<div>{' Case B'}</div>
+						}
+						case 'c': {
+							<div>{' Case C'}</div>
+						}
+					}
+				</div>
+			</>
+		}
 
-			render(App);
-			const [buttonA, buttonB, buttonC, buttonX] = container.querySelectorAll('button');
+		render(App);
+		const [buttonA, buttonB, buttonC, buttonX] = container.querySelectorAll('button');
 
-			expect(container.querySelector('div').textContent).toBe(' Default Case for x');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
+		expect(container.querySelector('div').textContent).toBe(' Default Case for x');
+		expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
 
-			buttonA.click();
-			flushSync();
+		buttonA.click();
+		flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(' Case A');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
+		expect(container.querySelector('div').textContent).toBe(' Case A');
+		expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
 
-			buttonC.click();
-			flushSync();
+		buttonC.click();
+		flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(' Case C');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
+		expect(container.querySelector('div').textContent).toBe(' Case C');
+		expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
 
-			buttonB.click();
-			flushSync();
+		buttonB.click();
+		flushSync();
 
-			const bDiv = container.querySelector('div').querySelectorAll('div')[0];
-			expect(bDiv.textContent).toBe(' Case B');
-			bDiv.id = 'b';
+		const bDiv = container.querySelector('div').querySelectorAll('div')[0];
+		expect(bDiv.textContent).toBe(' Case B');
+		bDiv.id = 'b';
 
-			buttonX.click();
-			flushSync();
+		buttonX.click();
+		flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(' Default Case for x');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
-			expect(container.querySelector('#b')).toBeNull();
-		},
-	);
+		expect(container.querySelector('div').textContent).toBe(' Default Case for x');
+		expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
+		expect(container.querySelector('#b')).toBeNull();
+	});
 
 	it('renders bare text nodes in switch cases without falling through', () => {
 		function App() @{

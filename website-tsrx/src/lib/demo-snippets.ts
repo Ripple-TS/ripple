@@ -106,7 +106,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		value: 'switch-statements',
 		label: 'Switch statements',
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
-	source: `function StatusMessage({ status }: { status: string }) @{
+		source: `function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
     case 'loading': {
       <p>Loading...</p>

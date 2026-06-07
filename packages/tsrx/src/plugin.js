@@ -1197,6 +1197,15 @@ export function TSRXPlugin(config) {
 			#parseCodeBlockBody(flat) {
 				let render_seen = false;
 				while (this.type !== tt.braceR && this.type !== tt.eof) {
+					// A bare `;` is an empty statement carrying no meaning. JSX render
+					// output does not consume a trailing `;`, so one written after the
+					// render node (`<>…</>;`) would otherwise parse as a statement and
+					// trip the "statements cannot follow the rendered output" rule. Skip
+					// stray semicolons silently here; prettier strips them on format.
+					if (this.type === tt.semi) {
+						this.next();
+						continue;
+					}
 					if (this.#atRenderNodeStart()) {
 						const render_node = this.#parseCodeBlockRenderNode();
 						if (render_seen) {

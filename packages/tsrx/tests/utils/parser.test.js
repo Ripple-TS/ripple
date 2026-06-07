@@ -1863,9 +1863,7 @@ foo();`;
 	// containers, so they must use `{ }`.
 	it('rejects a braceless `@if` render after the setup `;`', () => {
 		expect(() =>
-			getReturned(
-				`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div> }; }`,
-			),
+			getReturned(`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div> }; }`),
 		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
 
@@ -1924,12 +1922,21 @@ foo();`;
 		).toThrow(/Unexpected keyword 'try'|Expected token `\{/);
 	});
 
-	it('rejects a trailing `;` after a one-line render node (no `;` after render in one-liners)', () => {
-		expect(() =>
-			parseModule(
-				`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> }; }; }`,
-				'App.tsrx',
-			),
-		).toThrow(/statements cannot follow/);
+	it('allows and ignores a trailing `;` after a render node', () => {
+		const block = getReturned(
+			`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> }; }; }`,
+		);
+
+		// The stray `;` is a meaningless empty statement; it is skipped rather than
+		// captured as a body statement, so the render node still parses cleanly.
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXIfExpression');
+	});
+
+	it('allows and ignores a trailing `;` after a fragment render node', () => {
+		const block = getReturned(`function App() { return @{ <><div>{'hi'}</div></>; }; }`);
+
+		expect(block.body).toEqual([]);
+		expect(block.render.type).toBe('JSXFragment');
 	});
 });

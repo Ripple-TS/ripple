@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-	AppSwitchEmptyCase,
-	AppSwitchIsolated,
-} from './switch-fallthrough-components.tsrx';
+import { AppSwitchEmptyCase, AppSwitchIsolated } from './switch-fallthrough-components.tsrx';
 
 /**
  * Shared runtime suite for JSX `@switch` case isolation across all JSX targets.
