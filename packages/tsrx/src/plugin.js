@@ -1124,7 +1124,17 @@ export function TSRXPlugin(config) {
 					// one-render-node rule reports a clear "statements cannot follow" error
 					// instead of a generic parse fault.
 					if (this.type === tstt.jsxText || this.type === tstt.jsxName) {
+						// Rewinding `pos` to the mis-read token's start must also rewind the
+						// line counter: a `jsxText` token can span newlines (e.g. the blank
+						// line before a following render node), and reading it already
+						// advanced `curLine`/`lineStart` to its end. Resetting only `pos`
+						// would leave the line counter ahead of `pos`, inflating the `loc`
+						// of this statement and every node after it (which crashes source-map
+						// mapping when the inflated end line runs past the file).
+						const loc = acorn.getLineInfo(this.input, this.start);
 						this.pos = this.start;
+						this.curLine = loc.line;
+						this.lineStart = this.start - loc.column;
 						this.nextToken();
 					}
 					node = this.parseStatement(null);

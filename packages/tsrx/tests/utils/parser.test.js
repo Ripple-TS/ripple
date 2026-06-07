@@ -1232,6 +1232,53 @@ foo();`;
 		).toThrow();
 	});
 
+	it('keeps node locations in sync after re-reading a setup statement mis-read as JSX text', () => {
+		// A setup statement following a render node can be mis-tokenized as JSX text
+		// that swallows the following blank line(s). Re-reading it must rewind the
+		// line counter along with `pos`, otherwise every node from there on (and the
+		// code block's own end, which lands past the file when there is no trailing
+		// newline) gets a `loc` inflated by the swallowed newlines — crashing
+		// downstream source-map mapping. No trailing newline reproduces the worst case.
+		const source =
+			`export function App() @{\n` +
+			`\tfunction children() @{\n` +
+			`\t\t<p>{'x'}</p>\n` +
+			`\t}\n` +
+			`\n` +
+			`\t<Card {children} />\n` +
+			`\n` +
+			`\tconst test = 5;\n` +
+			`\n` +
+			`\t<div>{test}</div>\n` +
+			`}`;
+		const errors = [];
+		const ast = parseModule(source, 'App.tsrx', { collect: true, errors });
+		const total_lines = source.split('\n').length;
+
+		// Every node's reported line must match the line its byte offset actually sits on.
+		const line_of = (offset) => source.slice(0, offset).split('\n').length;
+		(function walk(node) {
+			if (!node || typeof node !== 'object') return;
+			if (Array.isArray(node)) return node.forEach(walk);
+			if (node.loc && typeof node.start === 'number') {
+				expect(node.loc.start.line, `${node.type} start`).toBe(line_of(node.start));
+				expect(node.loc.end.line, `${node.type} end`).toBe(line_of(node.end));
+				expect(node.loc.end.line).toBeLessThanOrEqual(total_lines);
+			}
+			for (const key in node) {
+				if (key === 'loc' || key === 'parent') continue;
+				walk(node[key]);
+			}
+		})(ast);
+
+		// Both authoring-rule diagnostics still land on the correct source lines.
+		const messages = errors.map((e) => `${e.loc?.start?.line}:${e.message}`);
+		expect(messages.some((m) => m.startsWith('8:') && /statements cannot follow/.test(m))).toBe(
+			true,
+		);
+		expect(messages.some((m) => m.startsWith('10:') && /single node/.test(m))).toBe(true);
+	});
+
 	it('parses a code-only `@{ }` block (no render) as a function body', () => {
 		const ast = parseModule(
 			`function App() @{
