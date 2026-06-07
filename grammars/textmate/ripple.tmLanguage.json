@@ -71,6 +71,9 @@
           "include": "#declaration"
         },
         {
+          "include": "#component-if-statement"
+        },
+        {
           "include": "#control-statement"
         },
         {
@@ -3223,6 +3226,67 @@
             },
             {
               "include": "#statements"
+            }
+          ]
+        }
+      ]
+    },
+    "component-if-statement": {
+      "patterns": [
+        {
+          "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(?=\\bif\\s*(\\(([^\\(\\)]|(\\(([^\\(\\)]|\\([^\\(\\)]*\\))*\\)))*\\))\\s*(?!\\{))",
+          "end": "(?=;|$|\\})",
+          "patterns": [
+            {
+              "include": "#comment"
+            },
+            {
+              "begin": "(?<![_$[:alnum:]])(?:(?<=\\.\\.\\.)|(?<!\\.))(if)\\s*(\\()",
+              "beginCaptures": {
+                "1": {
+                  "name": "keyword.control.conditional.js"
+                },
+                "2": {
+                  "name": "meta.brace.round.js"
+                }
+              },
+              "end": "\\)",
+              "endCaptures": {
+                "0": {
+                  "name": "meta.brace.round.js"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#expression"
+                }
+              ]
+            },
+            {
+              "name": "string.regexp.js",
+              "begin": "(?<=\\))\\s*\\/(?![\\/*])(?=(?:[^\\/\\\\\\[]|\\\\.|\\[([^\\]\\\\]|\\\\.)*\\])+\\/([dgimsuvy]+|(?![\\/\\*])|(?=\\/\\*))(?!\\s*[a-zA-Z0-9_$]))",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.definition.string.begin.js"
+                }
+              },
+              "end": "(/)([dgimsuvy]*)",
+              "endCaptures": {
+                "1": {
+                  "name": "punctuation.definition.string.end.js"
+                },
+                "2": {
+                  "name": "keyword.other.js"
+                }
+              },
+              "patterns": [
+                {
+                  "include": "#regexp"
+                }
+              ]
+            },
+            {
+              "include": "#component-statements"
             }
           ]
         }
