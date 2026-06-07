@@ -50,7 +50,7 @@ catalogs:
     '@modelcontextprotocol/sdk': ^1.29.0
     '@noble/hashes': ^2.2.0
     '@rollup/pluginutils': ^5.3.0
-    '@sveltejs/acorn-typescript': ^1.0.9
+    '@sveltejs/acorn-typescript': ^1.0.10
     '@solidjs/web': '>=2.0.0-beta.11'
     '@tailwindcss/vite': ^4.1.12
     '@types/adm-zip': ^0.5.8
@@ -73,7 +73,7 @@ catalogs:
     '@volar/typescript': ~2.4.28
     '@volar/vscode': ~2.4.28
     '@vscode/vsce': ^3.9.1
-    acorn: ^8.15.0
+    acorn: ^8.16.0
     adm-zip: ^0.5.17
     babel-preset-solid: '2.0.0-beta.11'
     clsx: ^2.1.1

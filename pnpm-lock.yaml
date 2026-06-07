@@ -34,8 +34,8 @@ catalogs:
       specifier: '>=2.0.0-beta.11'
       version: 2.0.0-beta.11
     '@sveltejs/acorn-typescript':
-      specifier: ^1.0.9
-      version: 1.0.9
+      specifier: ^1.0.10
+      version: 1.0.10
     '@tailwindcss/vite':
       specifier: ^4.1.12
       version: 4.2.1
@@ -100,7 +100,7 @@ catalogs:
       specifier: ^3.9.1
       version: 3.9.1
     acorn:
-      specifier: ^8.15.0
+      specifier: ^8.16.0
       version: 8.16.0
     adm-zip:
       specifier: ^0.5.17
@@ -829,7 +829,7 @@ importers:
         version: 2.2.0
       '@sveltejs/acorn-typescript':
         specifier: catalog:default
-        version: 1.0.9(acorn@8.16.0)
+        version: 1.0.10(acorn@8.16.0)
       '@types/estree':
         specifier: catalog:default
         version: 1.0.8
@@ -3162,8 +3162,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@sveltejs/acorn-typescript@1.0.9':
-    resolution: {integrity: sha512-lVJX6qEgs/4DOcRTpo56tmKzVPtoWAaVbL4hfO7t7NVwl9AAXzQR6cihesW1BmNMPl+bK6dreu2sOKBP2Q9CIA==}
+  '@sveltejs/acorn-typescript@1.0.10':
+    resolution: {integrity: sha512-4WfKk68eTih+MiJD4fSbxN7E8kVBmTMPWHUPYjvl2N0rMs53YLTT8/YjKU5Dtnz5LqDjl7LEw4U7lXR2W3J5WA==}
     peerDependencies:
       acorn: ^8.9.0
 
@@ -8762,7 +8762,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@sveltejs/acorn-typescript@1.0.9(acorn@8.16.0)':
+  '@sveltejs/acorn-typescript@1.0.10(acorn@8.16.0)':
     dependencies:
       acorn: 8.16.0
 
