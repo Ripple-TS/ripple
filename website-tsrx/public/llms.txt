@@ -446,9 +446,11 @@ props, pass `children={...}` explicitly.
 
 Control-flow constructs are directive-prefixed JSX expressions, not helper
 components. They can be returned directly or nested inside JSX. Direct children
-inside each braced branch render into the current template; use `return` when
-the branch should exit the enclosing function. `@if`, `@for`, `@switch`, and
-`@try` bodies are implicit statement containers, so every body uses `{...}`.
+inside each braced branch render into the current template. Use ordinary
+JavaScript `if` statements for guard returns before template output; direct
+`return`, `continue`, and `break` statements are invalid inside template `@if`
+branches. `@if`, `@for`, `@switch`, and `@try` bodies are implicit statement
+containers, so every body uses `{...}`.
 
 ### `if` / `else if` / `else`
 

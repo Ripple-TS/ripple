@@ -30,6 +30,9 @@ import {
 	isEventAttribute,
 	isInsideComponent as is_inside_component,
 	validateNesting,
+	validateTsrxIfBreakStatement,
+	validateTsrxIfContinueStatement,
+	validateTsrxIfReturnStatement,
 	validateTsrxLoopBreakStatement,
 	validateTsrxLoopContinueStatement,
 	validateTsrxLoopReturnStatement,
@@ -436,6 +439,29 @@ function is_inside_component_for_of(path) {
 			return false;
 		}
 		if (node.type === 'ForOfStatement' || node.type === 'JSXForExpression') {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @param {AnalysisContext['path']} path
+ * @returns {boolean}
+ */
+function is_inside_template_if(path) {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (is_function_or_class_boundary(node)) {
+			return false;
+		}
+		if (node.type === 'IfStatement' && node.metadata?.tsrxDirective === 'if') {
+			return true;
+		}
+		if (node.type === 'IfStatement' && /** @type {any} */ (node).statementType === 'IfStatement') {
+			return true;
+		}
+		if (node.type === 'JSXIfExpression') {
 			return true;
 		}
 	}
@@ -2166,6 +2192,16 @@ const visitors = {
 			context.visit(/** @type {AST.Node} */ (node.argument), context.state);
 		}
 
+		if (is_inside_template_if(context.path)) {
+			validateTsrxIfReturnStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return;
+		}
+
 		if (is_inside_component_for_of(context.path)) {
 			validateTsrxLoopReturnStatement(
 				node,
@@ -2215,6 +2251,16 @@ const visitors = {
 	},
 
 	BreakStatement(node, context) {
+		if (is_inside_component(context) && is_inside_template_if(context.path)) {
+			validateTsrxIfBreakStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return;
+		}
+
 		if (is_inside_component(context) && break_targets_component_loop(context.path)) {
 			validateTsrxLoopBreakStatement(
 				node,
@@ -2228,6 +2274,16 @@ const visitors = {
 	},
 
 	ContinueStatement(node, context) {
+		if (is_inside_component(context) && is_inside_template_if(context.path)) {
+			validateTsrxIfContinueStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return;
+		}
+
 		if (is_inside_component(context) && is_inside_component_for_of(context.path)) {
 			validateTsrxLoopContinueStatement(
 				node,

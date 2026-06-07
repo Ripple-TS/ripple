@@ -844,6 +844,57 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 			}
 		});
 
+		it('rejects direct returns inside @if template blocks', () => {
+			expect(() =>
+				compile(
+					`export function App({ ready }: { ready: boolean }) @{
+						@if (ready) {
+							return null
+							<div>{'Ready'}</div>
+						}
+					}`,
+					'App.tsrx',
+				),
+			).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
+		});
+
+		it('rejects nested exits inside @if template blocks', () => {
+			for (const [statement, expected] of [
+				['return null', /Return statements are not allowed inside TSRX template @if blocks/],
+				['break', /Break statements are not allowed inside TSRX template @if blocks/],
+				['continue', /Continue statements are not allowed inside TSRX template @if blocks/],
+			]) {
+				expect(() =>
+					compile(
+						`export function App({ ready, items }: { ready: boolean; items: string[] }) @{
+							@if (ready) {
+								for (const item of items) {
+									${statement}
+								}
+								<div>{'Ready'}</div>
+							}
+						}`,
+						'App.tsrx',
+					),
+				).toThrow(expected);
+			}
+		});
+
+		it('allows ordinary guard returns inside statement containers', () => {
+			const { code } = compile(
+				`export function App({ ready }: { ready: boolean }) @{
+					if (ready) {
+						return <span>{'Ready'}</span>
+					}
+					<div>{'Fallback'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('Ready');
+			expect(code).toContain('Fallback');
+		});
+
 		it.runIf(['react', 'preact'].includes(name))(
 			'keeps explicit loop keys on otherwise static children',
 			() => {
@@ -1599,7 +1650,7 @@ export function optionalFn(bar: string, baz?: string) {
 			).not.toThrow();
 		});
 
-		it('allows return statements before branch output', () => {
+		it('rejects return statements inside template @if branches', () => {
 			expect(() =>
 				compile(
 					`export function App() @{
@@ -1613,7 +1664,7 @@ export function optionalFn(bar: string, baz?: string) {
 					}`,
 					'App.tsrx',
 				),
-			).not.toThrow();
+			).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
 		});
 	});
 

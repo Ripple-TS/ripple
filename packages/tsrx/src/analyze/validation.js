@@ -14,6 +14,11 @@ export const TSRX_LOOP_BREAK_ERROR =
 	'Break statements are not allowed inside TSRX template for...of loops.';
 export const TSRX_LOOP_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
+export const TSRX_IF_RETURN_ERROR =
+	'Return statements are not allowed inside TSRX template @if blocks. Move the return before the template output or render conditionally instead.';
+export const TSRX_IF_BREAK_ERROR = 'Break statements are not allowed inside TSRX template @if blocks.';
+export const TSRX_IF_CONTINUE_ERROR =
+	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
 export const TSRX_FOR_STATEMENT_ERROR =
 	'For loops are not supported in TSRX templates. Use for...of instead.';
 export const TSRX_FOR_IN_STATEMENT_ERROR =
@@ -230,6 +235,42 @@ export function validate_tsrx_loop_break_statement(node, filename, errors, comme
 export function validate_tsrx_loop_continue_statement(node, filename, errors, comments) {
 	error(
 		TSRX_LOOP_CONTINUE_ERROR,
+		filename ?? null,
+		get_statement_keyword_node(node, 'continue'),
+		errors,
+		comments,
+	);
+}
+
+/**
+ * @param {AST.ReturnStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_tsrx_if_return_statement(node, filename, errors, comments) {
+	error(TSRX_IF_RETURN_ERROR, filename ?? null, get_return_keyword_node(node), errors, comments);
+}
+
+/**
+ * @param {AST.BreakStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_tsrx_if_break_statement(node, filename, errors, comments) {
+	error(TSRX_IF_BREAK_ERROR, filename ?? null, get_statement_keyword_node(node, 'break'), errors, comments);
+}
+
+/**
+ * @param {AST.ContinueStatement} node
+ * @param {string | null | undefined} filename
+ * @param {CompileError[]} [errors]
+ * @param {AST.CommentWithLocation[]} [comments]
+ */
+export function validate_tsrx_if_continue_statement(node, filename, errors, comments) {
+	error(
+		TSRX_IF_CONTINUE_ERROR,
 		filename ?? null,
 		get_statement_keyword_node(node, 'continue'),
 		errors,

@@ -456,7 +456,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
-	it('allows return statements in localized setup before a template fence', () => {
+	it('rejects return statements inside template @if branches', () => {
 		expect(() =>
 			compile(
 				`export function App() @{
@@ -470,7 +470,7 @@ describe('@tsrx/react basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).not.toThrow();
+		).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
 	});
 
 	it('keeps setup guard returns before fenced template output', () => {
@@ -856,7 +856,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('<tsx>');
 	});
 
-	it('allows return statements in element child setup before a template fence', () => {
+	it('rejects return statements inside element child template @if branches', () => {
 		expect(() =>
 			compile(
 				`function App() @{
@@ -872,7 +872,7 @@ describe('@tsrx/react basic', () => {
 				}`,
 				'App.tsrx',
 			),
-		).not.toThrow();
+		).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
 	});
 
 	it('extracts hook-bearing element child statement bodies into module components', () => {

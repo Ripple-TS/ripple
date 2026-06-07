@@ -194,7 +194,8 @@ export function TodoList() @{
 ```
 
 Use ordinary `return` for real function exits in TypeScript setup. Use `@if` for
-conditional rendering.
+conditional rendering; direct `return`, `continue`, and `break` statements are
+not valid inside `@if` template branches.
 
 ```tsrx
 export function Dashboard({ user }: { user: User | null }) @{

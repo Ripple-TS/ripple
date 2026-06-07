@@ -3,6 +3,9 @@ import {
 	TSRX_DO_WHILE_STATEMENT_ERROR,
 	TSRX_FOR_IN_STATEMENT_ERROR,
 	TSRX_FOR_STATEMENT_ERROR,
+	TSRX_IF_BREAK_ERROR,
+	TSRX_IF_CONTINUE_ERROR,
+	TSRX_IF_RETURN_ERROR,
 	TSRX_LOOP_BREAK_ERROR,
 	TSRX_LOOP_CONTINUE_ERROR,
 	TSRX_LOOP_RETURN_ERROR,
@@ -95,6 +98,21 @@ function create_advice(input) {
 			title: 'Filter before TSRX for...of loops',
 			message:
 				'Direct continue, break, and return statements are not valid inside TSRX @for loops. Filter the iterable before rendering, use empty { ... } for the no-items fallback, and keep ordinary JavaScript control flow inside nested functions.',
+			documentation: ['tsrx://docs/control-flow.md'],
+		});
+	}
+
+	if (
+		error_messages.has(TSRX_IF_RETURN_ERROR) ||
+		error_messages.has(TSRX_IF_BREAK_ERROR) ||
+		error_messages.has(TSRX_IF_CONTINUE_ERROR)
+	) {
+		advice.push({
+			kind: 'tsrx-if-control-flow',
+			severity: 'error',
+			title: 'Keep @if branches render-only',
+			message:
+				'Direct return, continue, and break statements are not valid inside TSRX @if branches. Use an ordinary JavaScript if statement before template output for guard returns, or render the branch output conditionally.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

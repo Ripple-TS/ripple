@@ -8,7 +8,9 @@ title: Control flow in Ripple
 
 Use `@if` blocks for inline conditional rendering inside TSRX templates. Every
 control-flow body is an implicit statement container, so `@if`, `@for`,
-`@switch`, and `@try` arms always use `{...}` blocks.
+`@switch`, and `@try` arms always use `{...}` blocks. Direct `return`,
+`continue`, and `break` statements are not valid inside `@if` template branches;
+use ordinary JavaScript `if` statements in setup for guard exits.
 
 <Code>
 

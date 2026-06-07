@@ -68,6 +68,11 @@ const TSRX_FOR_RETURN_ERROR =
 const TSRX_FOR_BREAK_ERROR = 'Break statements are not allowed inside TSRX template for...of loops.';
 const TSRX_FOR_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
+const TSRX_IF_RETURN_ERROR =
+	'Return statements are not allowed inside TSRX template @if blocks. Move the return before the template output or render conditionally instead.';
+const TSRX_IF_BREAK_ERROR = 'Break statements are not allowed inside TSRX template @if blocks.';
+const TSRX_IF_CONTINUE_ERROR =
+	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
 
 /**
  * @param {AST.Node} node
@@ -4782,6 +4787,10 @@ function validate_for_body_control_flow(node, transform_context, is_root = true)
 		return;
 	}
 
+	if (is_template_if_node(node)) {
+		return;
+	}
+
 	if (node.type === 'ReturnStatement') {
 		error(
 			TSRX_FOR_RETURN_ERROR,
@@ -4823,6 +4832,77 @@ function validate_for_body_control_flow(node, transform_context, is_root = true)
 		}
 		validate_for_body_control_flow(node[key], transform_context, false);
 	}
+}
+
+/**
+ * @param {any[] | any} node
+ * @param {TransformContext} transform_context
+ */
+function validate_if_body_control_flow(node, transform_context) {
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			validate_if_body_control_flow(child, transform_context);
+		}
+		return;
+	}
+
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (node.type === 'ReturnStatement') {
+		error(
+			TSRX_IF_RETURN_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+	if (node.type === 'BreakStatement') {
+		error(
+			TSRX_IF_BREAK_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+	if (node.type === 'ContinueStatement') {
+		error(
+			TSRX_IF_CONTINUE_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+
+	if (is_function_or_class_boundary(node)) {
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		validate_if_body_control_flow(node[key], transform_context);
+	}
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_template_if_node(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.metadata?.tsrxDirective === 'if' ||
+		(node?.type === 'IfStatement' && node?.statementType === 'IfStatement')
+	);
 }
 
 /**
@@ -5407,6 +5487,9 @@ function add_ref_import_specifier(imports, source, specifier) {
 function create_render_if_statement(node, transform_context) {
 	const consequent_body =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+	if (is_template_if_node(node)) {
+		validate_if_body_control_flow(consequent_body, transform_context);
+	}
 	const consequent_has_hooks =
 		should_extract_hook_helpers(transform_context) &&
 		body_contains_top_level_hook_call(consequent_body, transform_context, true);
@@ -5417,6 +5500,9 @@ function create_render_if_statement(node, transform_context) {
 			alternate = create_render_if_statement(node.alternate, transform_context);
 		} else {
 			const alternate_body = node.alternate.body || [node.alternate];
+			if (is_template_if_node(node)) {
+				validate_if_body_control_flow(alternate_body, transform_context);
+			}
 			const alternate_has_hooks =
 				should_extract_hook_helpers(transform_context) &&
 				body_contains_top_level_hook_call(alternate_body, transform_context, true);

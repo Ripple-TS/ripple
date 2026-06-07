@@ -561,7 +561,15 @@ export const FeaturesPage = () => @{
 								template expressions directly inside templates, or return them directly from a
 								component. Branches render their template output, while ordinary
 								<code class="inline-code">if</code>
-								statements in setup stay plain JavaScript.
+								statements in setup stay plain JavaScript for guard returns. Direct
+								<code class="inline-code">return</code>
+								,
+								<code class="inline-code">continue</code>
+								, and
+								<code class="inline-code">break</code>
+								are not allowed inside
+								<code class="inline-code">@if</code>
+								template branches.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={IF_HTML} />
