@@ -3382,19 +3382,19 @@ function printIfStatement(node, path, options, print, directive = false) {
 
 		parts.push(directive ? '@else ' : 'else ');
 		if (directive && node.alternate.type === 'IfStatement') {
-				parts.push(
-					path.call(
-						(alternatePath) =>
-							printIfStatement(
-								/** @type {AST.IfStatement} */ (alternatePath.node),
-								/** @type {AstPath<AST.IfStatement>} */ (alternatePath),
-								options,
-								print,
-								true,
-							),
-						'alternate',
-					),
-				);
+			parts.push(
+				path.call(
+					(alternatePath) =>
+						printIfStatement(
+							/** @type {AST.IfStatement} */ (alternatePath.node),
+							/** @type {AstPath<AST.IfStatement>} */ (alternatePath),
+							options,
+							print,
+							true,
+						),
+					'alternate',
+				),
+			);
 		} else {
 			parts.push(path.call(print, 'alternate'));
 		}

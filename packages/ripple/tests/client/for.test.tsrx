@@ -64,17 +64,17 @@ describe('for statements', () => {
 	});
 
 	it('throws for continue statements inside for...of loops', () => {
-		expect(() =>
-			compile(
-			`function App() @{
+		expect(
+			() => compile(
+				`function App() @{
 				const items = ['Item 1', '', 'Item 3'];
 				@for (const item of items) {
 					if (!item) continue;
 					<div class="item">{item}</div>
 				}
 			}`,
-			'App.tsrx',
-			{ mode: 'client' },
+				'App.tsrx',
+				{ mode: 'client' },
 			),
 		).toThrow('Continue statements are not allowed inside TSRX template for...of loops');
 	});

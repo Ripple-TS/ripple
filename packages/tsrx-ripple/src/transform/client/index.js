@@ -3072,7 +3072,9 @@ const visitors = {
 			},
 		});
 
-		const empty_scope = node.empty ? context.state.scopes.get(node.empty) || context.state.scope : null;
+		const empty_scope = node.empty
+			? context.state.scopes.get(node.empty) || context.state.scope
+			: null;
 		const empty_renderer = node.empty
 			? b.arrow(
 					[b.id('__anchor')],
@@ -3093,7 +3095,10 @@ const visitors = {
 		const for_args = [
 			id,
 			b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
-			b.arrow(index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern], b.block(body)),
+			b.arrow(
+				index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
+				b.block(body),
+			),
 			b.literal(flags),
 		];
 		if (key != null) {

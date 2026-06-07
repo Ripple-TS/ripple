@@ -259,7 +259,16 @@ function update_value(block, value) {
  * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
-function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed, get_key, render_empty) {
+function reconcile_by_key(
+	anchor,
+	block,
+	b,
+	render_fn,
+	is_controlled,
+	is_indexed,
+	get_key,
+	render_empty,
+) {
 	var state = block.s;
 
 	// Variables used in conditional branches - declare with initial values

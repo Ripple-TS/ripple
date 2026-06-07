@@ -584,8 +584,8 @@ export const FeaturesPage = () => @{
 								<code class="inline-code">index</code>
 								and
 								<code class="inline-code">key</code>
-								clauses so you don't need separate counters or key-extraction boilerplate.
-								The optional
+								clauses so you don't need separate counters or key-extraction boilerplate. The
+								optional
 								<code class="inline-code">empty</code>
 								branch renders when the iterable has no items.
 							</p>

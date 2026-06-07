@@ -1483,10 +1483,7 @@ foo();`;
 			['function App() { return @{ const a = 5; <div>{a}</div> }; }', 'JSXCodeBlock'],
 			['function App() { return @if (c) { <a/> }; }', 'JSXIfExpression'],
 			['function App() { return @for (const i of xs) { <li>{i}</li> }; }', 'JSXForExpression'],
-			[
-				"function App() { return @switch (v) { @case 'a': { <a/> } }; }",
-				'JSXSwitchExpression',
-			],
+			["function App() { return @switch (v) { @case 'a': { <a/> } }; }", 'JSXSwitchExpression'],
 			['function App() { return @try { <a/> } @catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {

@@ -65,7 +65,8 @@ const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 const TSRX_FOR_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
-const TSRX_FOR_BREAK_ERROR = 'Break statements are not allowed inside TSRX template for...of loops.';
+const TSRX_FOR_BREAK_ERROR =
+	'Break statements are not allowed inside TSRX template for...of loops.';
 const TSRX_FOR_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
 const TSRX_IF_RETURN_ERROR =
@@ -4778,7 +4779,11 @@ export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 function validate_for_body_control_flow(node, transform_context, is_root = true) {
 	if (Array.isArray(node)) {
 		for (const child of node) {
-			validate_for_body_control_flow(child, transform_context, is_root && !is_loop_statement(child));
+			validate_for_body_control_flow(
+				child,
+				transform_context,
+				is_root && !is_loop_statement(child),
+			);
 		}
 		return;
 	}
@@ -5021,9 +5026,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		if (empty_fallback) {
 			args.push(b.literal(null), b.arrow([], empty_fallback));
 		}
-		return to_jsx_expression_container(
-			b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), ...args),
-		);
+		return to_jsx_expression_container(b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), ...args));
 	}
 
 	const map_call = b.call(b.member(node.right, create_generated_identifier('map')), iter_callback);
@@ -5041,9 +5044,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		);
 	}
 
-	return to_jsx_expression_container(
-		map_call,
-	);
+	return to_jsx_expression_container(map_call);
 }
 
 /**

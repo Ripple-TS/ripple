@@ -41,7 +41,8 @@ import { builders as b } from '@tsrx/core';
 
 const TSRX_FOR_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
-const TSRX_FOR_BREAK_ERROR = 'Break statements are not allowed inside TSRX template for...of loops.';
+const TSRX_FOR_BREAK_ERROR =
+	'Break statements are not allowed inside TSRX template for...of loops.';
 const TSRX_FOR_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
 const TSRX_IF_RETURN_ERROR =
@@ -480,7 +481,11 @@ function is_template_if_node(node) {
 function validate_for_body_control_flow(node, transform_context, is_root = true) {
 	if (Array.isArray(node)) {
 		for (const child of node) {
-			validate_for_body_control_flow(child, transform_context, is_root && !is_loop_statement(child));
+			validate_for_body_control_flow(
+				child,
+				transform_context,
+				is_root && !is_loop_statement(child),
+			);
 		}
 		return;
 	}
