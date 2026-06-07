@@ -18,7 +18,7 @@ in a TypeScript JSX file. Return a single element directly when that is all the
 component needs, and use a JSX statement container when setup code belongs next
 to the rendered output.
 
-```ripple
+```tsrx
 function Hello() {
   return <span>Hello World!</span>;
 }
@@ -35,7 +35,7 @@ finish with exactly one output node: a JSX element, a JSX fragment, or JSX
 control flow such as `@if`, `@for`, `@switch`, or `@try`. CSS text inside
 `<style>` blocks keeps CSS rules, not template rules.
 
-```ripple
+```tsrx
 export function MyComponent({ name }: { name: string | null }) @{
   const fallback = 'friend';
 
@@ -64,7 +64,7 @@ stored, or passed as a value anywhere a TypeScript expression is allowed. The
 inside of that value remains TSRX, so native text children and template control
 flow keep working.
 
-```ripple
+```tsrx
 function createBadge(label: string) {
   return <span class="badge">{label}</span>;
 }
@@ -97,7 +97,7 @@ or any value accepted by the target runtime before a TSRX expression opens.
 Inside a statement container, `return` is a real function exit. Use it for
 guard-style exits, and use `@if`/`else` when the branch should render inline.
 
-```ripple
+```tsrx
 function Profile({ user }) @{
   if (!user) {
     return null;
@@ -121,7 +121,7 @@ then be converted to a string (if it is not already) to be inserted into the DOM
 Static text is ordinary JSX text. Variables, single-quoted strings, template
 literals, and other JavaScript expressions still use {braces}.
 
-```ripple
+```tsrx
 // ✅ Correct - Static text is JSX text
 <span>Hello World!</span>
 
@@ -136,7 +136,7 @@ The most basic form of data-binding is text interpolation. In the example below,
 we'll declare a `<span>` element. JSX text can sit next to dynamic {braces};
 JavaScript string and template expressions still go inside braces.
 
-```ripple
+```tsrx
 <span>Message: {msg}</span>
 <span>{`Message: ${msg}`}</span>
 <span>{'Message: ' + msg}</span>
@@ -148,7 +148,7 @@ In Ripple, statement containers act as lexical scopes. You can declare
 variables, call functions, and run TypeScript setup directly beside the template
 before returning one output node for that scope.
 
-```ripple
+```tsrx
 function TemplateScope() @{
   // Variable declarations inside statement containers
   const message = 'Hello from template scope';
@@ -182,7 +182,7 @@ function TemplateScope() @{
 
 Without `@{}`, text remains JSX text:
 
-```ripple
+```tsrx
 function LiteralText() {
   return <div>
     let there be love
@@ -212,13 +212,13 @@ to an attribute, we write the attribute's name and an equal sign, like plain HTM
 but instead of quotes, we use {braces}, within which, we can write a JS expression
 that evaluates to our desired value.
 
-```ripple
+```tsrx
 <span data-my-attr={attr_val}>Hi there!</span>
 ```
 
 ::: info Plain attributes can still be used.
 
-```ripple
+```tsrx
 <input type="text" />
 ```
 
@@ -230,7 +230,7 @@ By default, all text nodes in Ripple are escaped to prevent unintended script
 injections. If you'd like to render trusted HTML onto your page, use the native
 `innerHTML` prop:
 
-```ripple
+```tsrx
 export function App() @{
   let source = `
     <h1>My Blog Post</h1>
@@ -245,7 +245,7 @@ export function App() @{
 following example will not work, since closing tags by themselves are considered
 malformed HTML.
 
-```ripple
+```tsrx
 <article innerHTML={'<div>content</div>'} />
 ```
 
@@ -262,7 +262,7 @@ Plain JSX text is static escaped text. Dynamic text is just a normal
 `{expression}`. When you need explicit string coercion, write it in JavaScript
 with `String(value)`, `value + ''`, or a typed string value.
 
-```ripple
+```tsrx
 export function Frame({ children }) {
   return <div class="frame">
     before
@@ -275,7 +275,7 @@ export function Frame({ children }) {
 Regular text expressions are HTML-escaped by the target renderer. The content is
 never parsed as HTML unless you use the framework's raw HTML prop.
 
-```ripple
+```tsrx
 export function App() @{
   const markup = '<span>Not HTML</span>';
   // Renders the literal string "<span>Not HTML</span>" as text

@@ -469,32 +469,29 @@ function SwitchReactiveApp() @{
 	const [page, setPage] = createSignal('home');
 	<>
 		@switch (page()) {
-			case 'home':
+			case 'home': {
 				<div class="page">{'Home'}</div>
-				break;
-			case 'about':
+			}
+			case 'about': {
 				<div class="page">{'About'}</div>
-				break;
-			default:
+			}
+			default: {
 				<div class="page">{'404'}</div>
-				break;
+			}
 		}
 		<button class="go-about" onClick={() => setPage('about')}>{'about'}</button>
 		<button class="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
 	</>
 }
 
-function SwitchBreakTrailingReturnApp() {
+function GuardTrailingReturnApp() {
 	const [kind, setKind] = createSignal('skip');
-	switch (kind()) {
-		case 'skip':
-			break;
-		case 'done':
-			return <><p class="switch-break-result">{'done'}</p></>;
+	if (kind() === 'done') {
+		return <><p class="guard-result">{'done'}</p></>;
 	}
 	return <>
-		<p class="switch-break-rest">{'rest'}</p>
-		<button class="switch-break-done" onClick={() => setKind('done')}>{'done'}</button>
+		<p class="guard-rest">{'rest'}</p>
+		<button class="guard-done" onClick={() => setKind('done')}>{'done'}</button>
 	</>;
 }
 
@@ -769,7 +766,7 @@ function SignalInSwitchApp() @{
 	const [page, setPage] = createSignal('home');
 	<>
 		@switch (page()) {
-			case 'home':
+			case 'home': {
 				const [homeCount, setHomeCount] = createSignal(0);
 				<>
 					<p class="sig-switch-val">{homeCount()}</p>
@@ -778,10 +775,10 @@ function SignalInSwitchApp() @{
 						onClick={() => setHomeCount(homeCount() + 1)}
 					>{'inc'}</button>
 				</>
-				break;
-			case 'about':
+			}
+			case 'about': {
 				<p class="sig-switch-val">{'about page'}</p>
-				break;
+			}
 		}
 		<button class="sig-switch-go" onClick={() => setPage('about')}>{'about'}</button>
 	</>
@@ -1212,14 +1209,14 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.page')).toBe('404');
 	});
 
-	it('renders trailing component output for switch break cases', async () => {
-		await render(SwitchBreakTrailingReturnApp);
-		expect(text('.switch-break-rest')).toBe('rest');
-		expect(container.querySelector('.switch-break-result')).toBeNull();
+	it('renders trailing component output for guard return cases', async () => {
+		await render(GuardTrailingReturnApp);
+		expect(text('.guard-rest')).toBe('rest');
+		expect(container.querySelector('.guard-result')).toBeNull();
 
-		await click('.switch-break-done');
-		expect(text('.switch-break-result')).toBe('done');
-		expect(container.querySelector('.switch-break-rest')).toBeNull();
+		await click('.guard-done');
+		expect(text('.guard-result')).toBe('done');
+		expect(container.querySelector('.guard-rest')).toBeNull();
 	});
 
 	// ── Composite children ──

@@ -8,17 +8,18 @@ describe('switch statements', () => {
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				<button onClick={() => (value = 'a')}>{'Change to A'}</button>
 				@switch (value) {
-					case 'a':
+					case 'a': {
 						<div>Case A</div>
-						break;
-					case 'b':
+					}
+					case 'b': {
 						<div>Case B</div>
-						break;
-					case 'c':
+					}
+					case 'c': {
 						<div>{'Case C'}</div>
-						break;
-					default:
+					}
+					default: {
 						<div>{'Default Case'}</div>
+					}
 				}
 			</>
 		}
@@ -42,14 +43,15 @@ describe('switch statements', () => {
 			<>
 				<button onClick={() => count++}>{'Increment'}</button>
 				@switch (count) {
-					case 1:
+					case 1: {
 						<div>{'Count is 1'}</div>
-						break;
-					case 2:
+					}
+					case 2: {
 						<div>{'Count is 2'}</div>
-						break;
-					default:
+					}
+					default: {
 						<div>{'Count is other'}</div>
+					}
 				}
 			</>
 		}
@@ -74,10 +76,11 @@ describe('switch statements', () => {
 			<>
 				<button onClick={() => (value = 'y')}>{'Change Value'}</button>
 				@switch (value) {
-					default:
+					default: {
 						<div>
 							{'Default for ' + value}
 						</div>
+					}
 				}
 			</>
 		}
@@ -91,22 +94,24 @@ describe('switch statements', () => {
 		expect(container.querySelector('div').textContent).toBe('Default for y');
 	});
 
-	it('renders switch using empty case fall-through', () => {
+	it('renders switch with isolated empty cases', () => {
 		function App() @{
 			let &[value] = track('a');
 			<>
 				<button onClick={() => (value = 'b')}>{'Change to B'}</button>
 				<button onClick={() => (value = 'c')}>{'Change to C'}</button>
 				@switch (value) {
-					case 'a':
+					case 'a': {
 						<div>Case A</div>
-						break;
-					case 'b':
-					case 'c':
+					}
+					case 'b': {
+					}
+					case 'c': {
 						<div>Case B or C</div>
-						break;
-					default:
+					}
+					default: {
 						<div>{'Default Case'}</div>
+					}
 				}
 			</>
 		}
@@ -119,7 +124,7 @@ describe('switch statements', () => {
 		buttonB.click();
 		flushSync();
 
-		expect(container.querySelector('div').textContent).toBe('Case B or C');
+		expect(container.querySelector('div')).toBeNull();
 
 		buttonC.click();
 		flushSync();
@@ -127,7 +132,7 @@ describe('switch statements', () => {
 		expect(container.querySelector('div').textContent).toBe('Case B or C');
 
 		container.querySelector('div').textContent = 'DOM check';
-		buttonB.click();
+		buttonC.click();
 		flushSync();
 
 		expect(container.querySelector('div').textContent).toBe('DOM check');
@@ -142,29 +147,30 @@ describe('switch statements', () => {
 				<button onClick={() => (status = 'completed')}>{'Completed'}</button>
 				<button onClick={() => (status = 'error')}>{'Error'}</button>
 				@switch (status) {
-					case 'active':
+					case 'active': {
 						message = 'Currently active.';
 						<div>
 							{'Status: ' + message}
 						</div>
-						break;
-					case 'pending':
+					}
+					case 'pending': {
 						message = 'Waiting for completion.';
 						<div>
 							{'Status: ' + message}
 						</div>
-						break;
-					case 'completed':
+					}
+					case 'completed': {
 						message = 'Task finished!';
 						<div class="success">
 							{'Status: ' + message}
 						</div>
-						break;
-					default:
+					}
+					default: {
 						message = 'An error occurred.';
 						<div class="error">
 							{'Status: ' + message}
 						</div>
+					}
 				}
 			</>
 		}
@@ -192,33 +198,37 @@ describe('switch statements', () => {
 	});
 
 	it(
-		'renders switch with multiple non-empty fall-through cases and reacts to tracked changes without recreating DOM unnecessarily',
+		'renders switch with isolated cases and reacts to tracked changes without recreating DOM unnecessarily',
 		() => {
 			function App() @{
 				let &[status] = track(0);
 				<>
 					<div>
 						@switch (status) {
-							case -1:
-							case 0:
+							case -1: {
+							}
+							case 0: {
 								<p>{' Idle'}</p>
-							case 1:
+							}
+							case 1: {
 								<p>{' Loading'}</p>
-							case 2:
+							}
+							case 2: {
 								<p>{' Success'}</p>
-								break;
-							default:
+							}
+							default: {
 								<>
 									<p>{' Unknown status'}</p>
 									<p>{' Unknown 2'}</p>
 								</>
-							case 3:
+							}
+							case 3: {
 								<>
 									<p>{' Error'}</p>
 									<p>{' Error 2'}</p>
 									<p>{' Error 3'}</p>
 								</>
-								break;
+							}
 						}
 					</div>
 					<button
@@ -232,12 +242,12 @@ describe('switch statements', () => {
 			render(App);
 			const button = container.querySelector('button');
 
-			expect(container.querySelector('div').textContent).toBe(' Idle Loading Success');
+			expect(container.querySelector('div').textContent).toBe(' Idle');
 
 			button.click();
 			flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(' Loading Success');
+			expect(container.querySelector('div').textContent).toBe(' Loading');
 
 			button.click();
 			flushSync();
@@ -252,19 +262,17 @@ describe('switch statements', () => {
 			button.click();
 			flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(
-				' Unknown status Unknown 2 Error Error 2 Error 3',
-			);
+			expect(container.querySelector('div').textContent).toBe(' Unknown status Unknown 2');
 
 			button.click();
 			flushSync();
 
-			expect(container.querySelector('div').textContent).toBe(' Idle Loading Success');
+			expect(container.querySelector('div').textContent).toBe(' Idle');
 		},
 	);
 
 	it(
-		'renders a fall-through default in the middle of switch cases and reacts to changes without recreating DOM unnecessarily',
+		'renders a middle switch case without falling through to later cases',
 		() => {
 			function App() @{
 				let &[value] = track('x');
@@ -275,23 +283,20 @@ describe('switch statements', () => {
 					<button onClick={() => (value = 'x')}>{'Set X'}</button>
 					<div>
 						@switch (value) {
-							case 'a':
+							case 'a': {
 								<div>{' Case A'}</div>
-								break;
-							// NOTE: This should be the default in the middle of the cases
-							// However, jsdom (and other node-based dom libs) has a bug
-							// that breaks out of the switch even if the default doesn't have a break
-							// The browser works correctly.
-							// So, we're just using a defined case in the middle to simulate default.
-							case 'x':
+							}
+							case 'x': {
 								<div>
 									{' Default Case for ' + value}
 								</div>
-							case 'b':
+							}
+							case 'b': {
 								<div>{' Case B'}</div>
-								break;
-							case 'c':
+							}
+							case 'c': {
 								<div>{' Case C'}</div>
+							}
 						}
 					</div>
 				</>
@@ -300,8 +305,8 @@ describe('switch statements', () => {
 			render(App);
 			const [buttonA, buttonB, buttonC, buttonX] = container.querySelectorAll('button');
 
-			expect(container.querySelector('div').textContent).toBe(' Default Case for x Case B');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(2);
+			expect(container.querySelector('div').textContent).toBe(' Default Case for x');
+			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
 
 			buttonA.click();
 			flushSync();
@@ -325,44 +330,24 @@ describe('switch statements', () => {
 			buttonX.click();
 			flushSync();
 
-			// order should be correct with the previously rendered B element
-			expect(container.querySelector('div').textContent).toBe(' Default Case for x Case B');
-			expect(container.querySelector('div').querySelectorAll('div').length).toBe(2);
-			// the previously rendered div should be preserved
-			expect(container.querySelector('div').querySelectorAll('div')[1].id).toBe('b');
+			expect(container.querySelector('div').textContent).toBe(' Default Case for x');
+			expect(container.querySelector('div').querySelectorAll('div').length).toBe(1);
+			expect(container.querySelector('#b')).toBeNull();
 		},
 	);
 
-	it('renders bare text nodes in switch fall-through cases without element wrappers', () => {
+	it('renders bare text nodes in switch cases without falling through', () => {
 		function App() @{
 			let value = 'a';
 			<div>
 				<span>{'before'}</span>
 				@switch (value) {
-					case 'a':
+					case 'a': {
 						<>Case A</>
-					case 'b':
+					}
+					case 'b': {
 						<>Case B</>
-				}
-			</div>
-		}
-
-		render(App);
-		expect(container.querySelector('div').textContent).toBe('beforeCase ACase B');
-	});
-
-	it('renders bare text nodes in switch cases without element wrappers', () => {
-		function App() @{
-			let value = 'a';
-			<div>
-				<span>{'before'}</span>
-				@switch (value) {
-					case 'a':
-						<>Case A</>
-						break;
-					case 'b':
-						<>Case B</>
-						break;
+					}
 				}
 			</div>
 		}
@@ -371,7 +356,27 @@ describe('switch statements', () => {
 		expect(container.querySelector('div').textContent).toBe('beforeCase A');
 	});
 
-	it('renders switch with block-scoped cases and break inside blocks', () => {
+	it('renders bare text nodes in switch cases without element wrappers', () => {
+		function App() @{
+			let value = 'a';
+			<div>
+				<span>{'before'}</span>
+				@switch (value) {
+					case 'a': {
+						<>Case A</>
+					}
+					case 'b': {
+						<>Case B</>
+					}
+				}
+			</div>
+		}
+
+		render(App);
+		expect(container.querySelector('div').textContent).toBe('beforeCase A');
+	});
+
+	it('renders switch with isolated block-scoped cases', () => {
 		function App() @{
 			let &[level] = track(1);
 			<>
@@ -383,15 +388,15 @@ describe('switch statements', () => {
 					}}
 				>{'Toggle'}</button>
 				@switch (level) {
-					case 1:
+					case 1: {
 						<div class="level">{'Level 1'}</div>
-						break;
-					case 2:
+					}
+					case 2: {
 						<div class="level">{'Level 2'}</div>
-						break;
-					case 3:
+					}
+					case 3: {
 						<div class="level">{'Level 3'}</div>
-						break;
+					}
 				}
 			</>
 		}

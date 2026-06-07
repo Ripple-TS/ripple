@@ -163,12 +163,12 @@ export function HtmlWithUndefinedContent() @{
 
 function DynamicHeading({ level, children }: { level: number; children: any }) @{
 	@switch (level) {
-		case 1:
+		case 1: {
 			<h1 class="heading">{children}</h1>
-			break;
-		case 2:
+		}
+		case 2: {
 			<h2 class="heading">{children}</h2>
-			break;
+		}
 	}
 }
 

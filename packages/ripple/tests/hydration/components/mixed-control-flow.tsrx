@@ -10,19 +10,20 @@ export function MixedControlFlowStatic() @{
 		@for (const row of rows; key row.id) {
 			@if (row.enabled) {
 				@switch (row.kind) {
-					case 'a':
+					case 'a': {
 						@try {
 							<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
 						} pending {
 							<div class={`pending pending-${row.id}`}>{'pending a'}</div>
 						}
-						break;
-					default:
+					}
+					default: {
 						@try {
 							<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
 						} pending {
 							<div class={`pending pending-${row.id}`}>{'pending b'}</div>
 						}
+					}
 				}
 			}
 		}
@@ -59,19 +60,20 @@ export function MixedControlFlowReactive() @{
 			<div class="mixed-reactive-list">
 				@for (const item of items; key item.id) {
 					@switch (mode) {
-						case 'a':
+						case 'a': {
 							@try {
 								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
 							} pending {
 								<p class="pending">{'pending a'}</p>
 							}
-							break;
-						default:
+						}
+						default: {
 							@try {
 								<p class={`item item-${item.id}`}>{`B:${item.label}`}</p>
 							} pending {
 								<p class="pending">{'pending b'}</p>
 							}
+						}
 					}
 				}
 			</div>
@@ -87,15 +89,16 @@ export function MixedControlFlowAsyncPending() @{
 		@for (const row of rows) {
 			@if (row === 1) {
 				@switch (state) {
-					case 'slow':
+					case 'slow': {
 						@try {
 							<AsyncRow label={`row-${row}`} />
 						} pending {
 							<div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
 						}
-						break;
-					default:
+					}
+					default: {
 						<div class="unexpected">{'unexpected'}</div>
+					}
 				}
 			}
 		}

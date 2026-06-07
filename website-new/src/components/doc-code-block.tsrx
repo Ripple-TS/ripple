@@ -12,7 +12,7 @@ export function DocCodeBlock({ code, lang = 'text' }: { code: string; lang?: str
 	</div>
 }
 
-export function DocCodeGroup({ code, lang = 'ripple' }: { code: string; lang?: string }) @{
+export function DocCodeGroup({ code, lang = 'tsrx' }: { code: string; lang?: string }) @{
 	const highlighted = highlight(code, lang);
 
 	<div class="doc-code-group">

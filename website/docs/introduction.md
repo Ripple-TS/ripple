@@ -25,7 +25,7 @@ same component file to React, Solid, or Ripple.
 
 <Code>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{

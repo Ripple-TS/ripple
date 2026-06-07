@@ -185,11 +185,13 @@ const items=[1,2,3];
 	it('formats line comments before template text in control flow', async () => {
 		const input = `const App=()=> <>
 @switch (value) {
-case 'a':
+case 'a': {
 // explain case a
 <>A</>
-default:
+}
+default: {
 <>Fallback</>
+}
 }
 @try {
 // render the panel when ready
@@ -201,11 +203,13 @@ default:
 </>;`;
 		const expected = `const App = () => <>
   @switch (value) {
-    case "a":
+    case "a": {
       // explain case a
       <>A</>
-    default:
+    }
+    default: {
       <>Fallback</>
+    }
   }
   @try {
     // render the panel when ready
@@ -5809,26 +5813,32 @@ function Child({ something }) {
 		it('prints satisfies expressions in switch default cases', async () => {
 			const input = `export function Test(props: { status: "ok" | "error" }) {
   return @switch (props.status) {
-    case "ok":
+    case "ok": {
       <div>ok</div>
       return
-    case "error":
+    }
+    case "error": {
       <div>error</div>
       return
-    default:
+    }
+    default: {
       props.status satisfies never
+    }
   }
 }`;
 			const expected = `export function Test(props: { status: 'ok' | 'error' }) {
   return @switch (props.status) {
-    case 'ok':
+    case 'ok': {
       <div>ok</div>
       return;
-    case 'error':
+    }
+    case 'error': {
       <div>error</div>
       return;
-    default:
+    }
+    default: {
       props.status satisfies never;
+    }
   };
 }`;
 			const result = await format(input, { singleQuote: true });

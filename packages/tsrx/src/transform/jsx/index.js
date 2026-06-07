@@ -3966,9 +3966,7 @@ function get_hook_callee_name(callee) {
  * @param {any} source_node
  * @param {TransformContext} transform_context
  * @param {AST.Identifier} [preallocated_helper_id] - Optional pre-allocated id.
- *   Used by the switch lift's chained-call build, which allocates ids in
- *   source order in a forward pass and then constructs helpers in reverse so
- *   each fall-through case can reference the next case's component element.
+ *   Used by switch lifting to keep generated helper ids stable in source order.
  * @param {{ transientBindings?: Set<string> }} [options]
  * @returns {{ setup_statements: any[], component_element: ESTreeJSX.JSXElement }}
  */
@@ -5414,7 +5412,6 @@ export function clone_switch_helper_invocation(helper) {
  * @returns {{
  *   case_info: Array<{ own_body: any[], has_terminator: boolean }>,
  *   case_helpers: Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>,
- *   find_next_helper_after: (from_index: number) => null,
  *   setup_statements: any[],
  * }}
  */
@@ -5449,15 +5446,6 @@ export function plan_switch_lift(switch_node, transform_context) {
 	/** @type {Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>} */
 	const case_helpers = new Array(switch_node.cases.length).fill(null);
 
-	/**
-	 * @param {number} from_index
-	 * @returns {null}
-	 */
-	function find_next_helper_after(from_index) {
-		void from_index;
-		return null;
-	}
-
 	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
 		if (!needs_helper[i]) continue;
 		const { own_body } = case_info[i];
@@ -5481,7 +5469,6 @@ export function plan_switch_lift(switch_node, transform_context) {
 	return {
 		case_info,
 		case_helpers,
-		find_next_helper_after,
 		setup_statements,
 	};
 }

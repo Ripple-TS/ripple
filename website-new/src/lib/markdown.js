@@ -49,6 +49,7 @@ const highlighter = await createHighlighter({
 		'json',
 		modified_grammar,
 		{ ...modified_grammar, name: 'ripple' },
+		{ ...modified_grammar, name: 'tsrx' },
 	],
 });
 
@@ -279,7 +280,7 @@ export function get_doc(slug) {
 				highlighted = highlight(text, language);
 
 				// Check if this code block is inside a <Code> tab wrapper
-				const is_tabbed = lang === 'ripple';
+				const is_tabbed = lang === 'tsrx';
 
 				if (is_tabbed) {
 					return `<div class="language-${language}"><button title="Copy Code" class="copy"></button><span class="lang">${language}</span>${highlighted}</div>`;

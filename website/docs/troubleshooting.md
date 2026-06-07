@@ -10,7 +10,7 @@ While this may be caused by an actual unterminated regular expression, it can
 also happen when JSX-like syntax is malformed. Static text is plain JSX text;
 JavaScript expressions should use {braces}.
 
-```ripple
+```tsrx
 export function TextBrace() {
   return <>
     // ✔️ valid
@@ -43,7 +43,7 @@ If you've verified that you don't have any unclosed braces and are still
 encountering this, check for any usage of void elements that aren't using JSX
 self-closing syntax.
 
-```ripple
+```tsrx
 export function Bracey() {
   return <>
     // ✔️ valid

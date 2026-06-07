@@ -406,58 +406,6 @@ export function flatten_switch_consequent(consequent) {
 }
 
 /**
- * Compute fall-through expansions for each `case` in a `switch`. JavaScript
- * `switch` semantics say that once a case body executes, execution continues
- * into the bodies of subsequent cases until a `break` or terminal `return` is
- * hit. We pre-compute, per case, the flat list of statements that should run
- * when that case is the entry point — so downstream targets (which render each
- * case independently rather than executing fall-through at runtime) still
- * produce the right output.
- *
- * Walking right-to-left lets each case reuse the next case's already-expanded
- * tail without recomputation. Downstream nodes are deep-cloned when absorbed
- * so each case's expanded body owns its own AST subtree.
- *
- * @param {any[]} cases
- * @returns {Array<{ test: any, body: any[], source: any }>}
- */
-export function expand_switch_cases_for_fallthrough(cases) {
-	/** @type {Array<{ test: any, body: any[], source: any }>} */
-	const expanded = new Array(cases.length);
-	for (let i = cases.length - 1; i >= 0; i--) {
-		const consequent = flatten_switch_consequent(cases[i].consequent || []);
-		const body = [];
-		let has_terminal = false;
-		for (const child of consequent) {
-			if (child.type === 'BreakStatement') {
-				has_terminal = true;
-				break;
-			}
-			body.push(child);
-			if (child.type === 'ReturnStatement') {
-				has_terminal = true;
-				break;
-			}
-		}
-		// Strip locations from cloned downstream nodes. Only the original case
-		// (one entry up the chain) keeps `loc`/`start`/`end`; clones inlined
-		// into upstream cases would otherwise point editor IntelliSense at the
-		// same source range multiple times (one hover/go-to-definition per
-		// fall-through entry point), producing double/triple results in Volar.
-		const downstream =
-			!has_terminal && i + 1 < cases.length
-				? expanded[i + 1].body.map((n) => clone_expression_node(n, false))
-				: [];
-		expanded[i] = {
-			test: cases[i].test,
-			body: [...body, ...downstream],
-			source: cases[i],
-		};
-	}
-	return expanded;
-}
-
-/**
  * @param {AST.Expression | null | undefined} expression
  * @returns {boolean}
  */

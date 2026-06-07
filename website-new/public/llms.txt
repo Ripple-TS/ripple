@@ -197,14 +197,15 @@ export function StatusBadge() @{
 
 	<>
 		@switch (status) {
-			case 'loading':
+			case 'loading': {
 				<p>Loading...</p>
-				break;
-			case 'done':
+			}
+			case 'done': {
 				<p>Done</p>
-				break;
-			default:
+			}
+			default: {
 				<p>Idle</p>
+			}
 		}
 		<button onClick={() => (status = 'done')}>Finish</button>
 	</>
@@ -212,7 +213,8 @@ export function StatusBadge() @{
 ```
 
 Use `@for (... of ...)` for rendered lists. `continue` skips the current rendered
-iteration. `break` is only for `@switch` cases.
+iteration. `@switch` cases are isolated `{...}` blocks, do not fall through, and
+do not use `break`.
 
 ```tsrx
 export function UserList({ users }: { users: User[] }) @{

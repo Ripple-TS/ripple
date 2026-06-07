@@ -88,6 +88,7 @@ export function MixedControlFlowStatic() {
 										_$_.output_push('<!--]-->');
 									}
 								);
+								break;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -215,6 +216,7 @@ export function MixedControlFlowReactive() {
 											_$_.output_push('<!--]-->');
 										}
 									);
+									break;
 							}
 
 							_$_.output_push('<!--]-->');
@@ -296,6 +298,7 @@ export function MixedControlFlowAsyncPending() {
 									_$_.output_push('unexpected');
 								}
 								_$_.output_push('</div>');
+								break;
 						}
 
 						_$_.output_push('<!--]-->');

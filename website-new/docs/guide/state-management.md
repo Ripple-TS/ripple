@@ -25,7 +25,7 @@ Example with tracked / reactive contents:
 
 <Code>
 
-```ripple
+```tsrx
 import { Context, track } from 'ripple';
 
 // create context with an empty object
@@ -63,7 +63,7 @@ Passing data between components:
 
 <Code console>
 
-```ripple
+```tsrx
 import { Context } from 'ripple';
 
 const MyContext = new Context(null);

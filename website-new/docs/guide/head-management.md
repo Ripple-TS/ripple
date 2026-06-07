@@ -7,7 +7,7 @@ title: Head Management in Ripple
 To manage the content within `<head>`, you may simply use the `<head>` tag
 directly within the component. It works with both static and reactive data.
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{

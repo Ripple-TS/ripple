@@ -10,7 +10,7 @@ Use `@if` blocks for inline conditional rendering inside TSRX templates.
 
 <Code>
 
-```ripple
+```tsrx
 export function Truthy({ x }) {
   return <div>
     @if (x) {
@@ -31,7 +31,7 @@ render nothing or return another value.
 
 <Code>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function AuthGate() @{
@@ -57,27 +57,30 @@ to render inline.
 ## Switch statements
 
 Use `@switch` to conditionally render content based on a value. It works with
-both static and reactive values.
+both static and reactive values. Each `case` and `default` has its own `{...}`
+body. Cases do not fall through, and `break` is not used inside `@switch`.
 
 <Code>
 
-```ripple
+```tsrx
 export function StatusIndicator({ status }) {
   return <div>
     @switch (status) {
-      case 'init':
-        // fall-through to the next
-      case 'loading':
+      case 'init': {
+        <p>Starting...</p>
+      }
+      case 'loading': {
         <p>Loading...</p>
-        break;
-      case 'success':
+      }
+      case 'success': {
         <p>Success!</p>
-        break;
-      case 'error':
+      }
+      case 'error': {
         <p>Error!</p>
-        break;
-      default:
+      }
+      default: {
         <p>Unknown status</p>
+      }
     }
   </div>;
 }
@@ -89,7 +92,7 @@ You can also use reactive values with switch statements.
 
 <Code>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function InteractiveStatus() @{
@@ -101,20 +104,21 @@ export function InteractiveStatus() @{
 
     <div>
       @switch (status) {
-        case 'init':
+        case 'init': {
           <p>Init</p>
-        // fall-through to the next
-        case 'loading':
+        }
+        case 'loading': {
           <p>Loading...</p>
-          break;
-        case 'success':
+        }
+        case 'success': {
           <p>Success!</p>
-          break;
-        case 'error':
+        }
+        case 'error': {
           <p>Error!</p>
-          break;
-        default:
+        }
+        default: {
           <p>Unknown status</p>
+        }
       }
     </div>
   </>
@@ -129,7 +133,7 @@ Use `@for (... of ...)` to render collections.
 
 <Code>
 
-```ripple
+```tsrx
 function ListView({ title, items }) @{
   <>
     <h2>{title}</h2>
@@ -162,7 +166,7 @@ The `for...of` loop has also a built-in support for accessing the loops numerica
 index. The `label` index declares a variable that will used to assign the loop's
 index.
 
-```ripple
+```tsrx
 @for (const item of items; index i) {
   <div>{item.label} at index {i}</div>
 }
@@ -170,7 +174,7 @@ index.
 
 You can also provide a `key` for efficient list updates and reconciliation:
 
-```ripple
+```tsrx
 @for (const item of items; index i; key item.id) {
   <div>{item.label} at index {i}</div>
 }
@@ -188,7 +192,7 @@ You can use Ripple's reactive arrays to easily compose contents of an array.
 
 <Code>
 
-```ripple
+```tsrx
 import { RippleArray } from 'ripple';
 
 export function Numbers() @{
@@ -218,7 +222,7 @@ or components. Otherwise, the loop can be run inside an `effect` or function.
 encounters an error in the `try` block, you can easily render a fallback in the
 `catch` block.
 
-```ripple
+```tsrx
 import { reportError } from 'some-library';
 
 export function ErrorBoundary() @{
@@ -238,7 +242,7 @@ The `catch` block also receives a `reset` function as its second argument.
 Calling `reset()` clears the error state and re-renders the children, which is
 useful for building retry UIs:
 
-```ripple
+```tsrx
 export function RetryBoundary() @{
   <div>
     @try {
@@ -258,7 +262,7 @@ export function RetryBoundary() @{
 You can render dynamic HTML elements by storing the tag name in a tracked variable
 and using the `<@tagName>` syntax:
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{
@@ -279,7 +283,7 @@ Components can use `await` directly in their body — no `async` keyword needed.
 The component suspends at the `await` and resumes rendering when the promise
 resolves.
 
-```ripple
+```tsrx
 function UserProfile({ id }: { id: number }) @{
   const user = await fetchUser(id);
 
@@ -292,7 +296,7 @@ function UserProfile({ id }: { id: number }) @{
 
 Wrap the component in a `try/pending` block to handle the suspended state:
 
-```ripple
+```tsrx
 export function App() @{
   @try {
     <UserProfile id={1} />
@@ -315,7 +319,7 @@ For async operations that should re-run when reactive dependencies change, use
 — when they change the operation re-runs and the component re-suspends to the
 nearest `@try/pending` boundary.
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function CitySearch() @{

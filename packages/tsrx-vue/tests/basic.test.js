@@ -642,11 +642,13 @@ describe('@tsrx/vue basic', () => {
 		const { code } = compile(
 			`function App({ value }) @{
 				@switch (value) {
-					case 'a':
+					case 'a': {
 						<div>{'A'}</div>
-					default:
+					}
+					default: {
 						<div>{'Fallback'}</div>
 					}
+				}
 				}`,
 			'App.tsrx',
 		);
@@ -663,12 +665,14 @@ describe('@tsrx/vue basic', () => {
 		const { code } = compile(
 			`function App({ value }) @{
 					@switch (value) {
-						case 'a':
+						case 'a': {
 							const label = 'A';
 							<div>{label}</div>
-						default:
+						}
+						default: {
 							<div>{'Fallback'}</div>
 						}
+					}
 				}`,
 			'App.tsrx',
 		);

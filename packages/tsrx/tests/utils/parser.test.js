@@ -399,19 +399,19 @@ foo();`;
 		expect(ast.body[1].start).toBe(source.indexOf('foo()'));
 	});
 
-	it('parses switch cases with JSX children followed by break statements', () => {
+	it('parses switch cases with JSX children', () => {
 		const switchExpression = findNode(
 			`function App() { return <>@{
 				const iconNodes = [['path', { d: 'x' }], ['circle', { cx: '1' }]];
 				<svg>
 					@for (const [tag, attrs] of iconNodes) {
 						@switch (tag) {
-							case 'path':
+							case 'path': {
 								<path {...attrs} />
-								break;
-							case 'circle':
+							}
+							case 'circle': {
 								<circle {...attrs} />
-								break;
+							}
 						}
 					}
 				</svg>
@@ -423,14 +423,43 @@ foo();`;
 		const spread = switchExpression.cases[0].consequent[0].openingElement.attributes[0];
 		expect(spread.argument.type).toBe('Identifier');
 		expect(spread.argument.name).toBe('attrs');
-		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual([
-			'JSXElement',
-			'BreakStatement',
-		]);
-		expect(switchExpression.cases[1].consequent.map((node) => node.type)).toEqual([
-			'JSXElement',
-			'BreakStatement',
-		]);
+		expect(switchExpression.cases[0].consequent.map((node) => node.type)).toEqual(['JSXElement']);
+		expect(switchExpression.cases[1].consequent.map((node) => node.type)).toEqual(['JSXElement']);
+	});
+
+	it('rejects break statements inside JSX switch cases', () => {
+		expect(() =>
+			parseModule(
+				`function App() { return @switch (tag) {
+					case 'path': {
+						<path />
+						break;
+					}
+				}; }`,
+				'App.tsrx',
+			),
+		).toThrow('`break` is invalid inside `@switch` cases.');
+	});
+
+	it('requires switch case and default bodies to be blocks', () => {
+		expect(() =>
+			parseModule(
+				`function App() { return @switch (tag) {
+					case 'path':
+						<path />
+				}; }`,
+				'App.tsrx',
+			),
+		).toThrow();
+		expect(() =>
+			parseModule(
+				`function App() { return @switch (tag) {
+					default:
+						<path />
+				}; }`,
+				'App.tsrx',
+			),
+		).toThrow();
 	});
 
 	it('treats keyword and symbol-looking element children as JSXText', () => {
@@ -993,12 +1022,15 @@ foo();`;
 	it('parses @switch as a JSXSwitchExpression with fragment case bodies', () => {
 		const returned = getReturned(`function App() { return <div>
 			@switch (value) {
-				case 'a':
+				case 'a': {
 					<>Case A</>
-				case 'b':
+				}
+				case 'b': {
 					<>Case B</>
-				default:
+				}
+				default: {
 					<>Fallback</>
+				}
 			}
 		</div>; }`);
 
@@ -1177,7 +1209,7 @@ foo();`;
 		const cases = [
 			['const x = @if (c) { <a/> };', 'JSXIfExpression'],
 			['const x = @for (const i of items) { <li>{i}</li> };', 'JSXForExpression'],
-			["const x = @switch (v) { case 'a': <a/> };", 'JSXSwitchExpression'],
+			["const x = @switch (v) { case 'a': { <a/> } };", 'JSXSwitchExpression'],
 			['const x = @try { <a/> } catch (e) { <b/> };', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
@@ -1191,7 +1223,7 @@ foo();`;
 			['function App() { return @{ const a = 5; <div>{a}</div> }; }', 'JSXCodeBlock'],
 			['function App() { return @if (c) { <a/> }; }', 'JSXIfExpression'],
 			['function App() { return @for (const i of xs) { <li>{i}</li> }; }', 'JSXForExpression'],
-			["function App() { return @switch (v) { case 'a': <a/> }; }", 'JSXSwitchExpression'],
+			["function App() { return @switch (v) { case 'a': { <a/> } }; }", 'JSXSwitchExpression'],
 			['function App() { return @try { <a/> } catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {

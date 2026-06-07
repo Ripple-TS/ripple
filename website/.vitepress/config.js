@@ -35,6 +35,11 @@ export default defineConfig({
 				...modifiedGrammar,
 				name: 'ripple',
 			});
+
+			await highlighter.loadLanguage({
+				...modifiedGrammar,
+				name: 'tsrx',
+			});
 		},
 	},
 

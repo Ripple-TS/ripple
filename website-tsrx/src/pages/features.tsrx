@@ -129,14 +129,15 @@ const TRY_RESET_HTML = highlight_tsrx(
 const SWITCH_HTML = highlight_tsrx(
 	`function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
-    case 'loading':
+    case 'loading': {
       <p>Loading...</p>
-      break;
-    case 'success':
+    }
+    case 'success': {
       <p class="success">Done!</p>
-      break;
-    default:
+    }
+    default: {
       <p>Unknown status.</p>
+    }
   }
 }`,
 );
@@ -575,11 +576,7 @@ export const FeaturesPage = () => @{
 								<code class="inline-code">break</code>
 								is not allowed in
 								<code class="inline-code">@for</code>
-								template loop bodies; use
-								<code class="inline-code">break</code>
-								only for
-								<code class="inline-code">@switch</code>
-								cases. Nested functions keep ordinary JavaScript control flow.
+								template loop bodies. Nested functions keep ordinary JavaScript control flow.
 							</p>
 							<p class="section-body">
 								Other JavaScript loops are not template rendering constructs: regular
@@ -604,10 +601,15 @@ export const FeaturesPage = () => @{
 							<p class="section-body">
 								Multi-branch rendering uses an
 								<code class="inline-code">@switch</code>
-								template expression. Case children render directly; end fallthrough-sensitive cases
-								with
+								template expression. Each
+								<code class="inline-code">case</code>
+								or
+								<code class="inline-code">default</code>
+								has its own
+								<code class="inline-code">{'{}'}</code>
+								body, cases never fall through, and
 								<code class="inline-code">break</code>
-								.
+								is invalid inside the case body.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={SWITCH_HTML} />

@@ -481,16 +481,20 @@ loops into a nested function.
 
 ```tsrx
 const StatusMessage = ({ status }: { status: string }) => @switch (status) {
-	case 'loading':
+	case 'loading': {
 		<p>Loading...</p>
-		break;
-	case 'success':
+	}
+	case 'success': {
 		<p class="success">Done!</p>
-		break;
-	default:
+	}
+	default: {
 		<p>Unknown status.</p>
+	}
 };
 ```
+
+Each `case` and `default` body is a `{...}` template block. Cases are isolated,
+do not fall through, and `break` is invalid inside an `@switch` case body.
 
 ### `try` / `catch` / `pending`
 
@@ -760,7 +764,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Prop shorthand         | `<Input {value} {onChange} />`                         |
 | Conditional rendering  | `@if (cond) { <Panel /> }`                             |
 | List rendering         | `@for (const x of xs; index i; key x.id) { <li /> }`   |
-| Multi-branch           | `@switch (x) { case 'a': <A />; break; }`              |
+| Multi-branch           | `@switch (x) { case 'a': { <A /> } }`                  |
 | Error boundary         | `@try { <Child /> } catch (e) { <Fallback /> }`        |
 | Async boundary         | `@try { <Child /> } pending { <Loading /> }`           |
 | Guard exit             | `if (!user) { return null; }`                          |

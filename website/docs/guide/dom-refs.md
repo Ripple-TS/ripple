@@ -18,7 +18,7 @@ and cleared when it unmounts.
 
 <Code console>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export default function App() @{
@@ -43,7 +43,7 @@ function to run when the element is removed.
 
 <Code console>
 
-```ripple
+```tsrx
 export function App() @{
   function setup(node: HTMLDivElement) {
     console.log('mounted', node);
@@ -63,7 +63,7 @@ You can also create callback refs inline.
 
 <Code console>
 
-```ripple
+```tsrx
 export function App() @{
   let div: HTMLDivElement | undefined;
 
@@ -86,7 +86,7 @@ export function App() @{
 Function factories work well when a library returns the ref callback for you, or
 when the ref setup needs configuration.
 
-```ripple
+```tsrx
 import { fadeIn } from 'some-library';
 
 export function App({ ms }) {
@@ -98,7 +98,7 @@ export function App({ ms }) {
 
 Use an array when one DOM element needs more than one ref.
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{
@@ -116,7 +116,7 @@ a spread onto the host element that should be exposed.
 
 <Code console>
 
-```ripple
+```tsrx
 function Input({ id, ...rest }) {
   return <input {id} {...rest} />
 }
@@ -135,7 +135,7 @@ Named props such as `inputRef` are ordinary component API props. Pass them into
 
 <Code console>
 
-```ripple
+```tsrx
 export function Field({ inputRef, ...rest }) {
   return <label>
     Search<input type="search" ref={inputRef} {...rest} />
@@ -159,7 +159,7 @@ assembled programmatically.
 
 <Code console>
 
-```ripple
+```tsrx
 import { createRefKey, track } from 'ripple';
 
 export function App() @{

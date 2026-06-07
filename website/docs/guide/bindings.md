@@ -23,7 +23,7 @@ and an input or select element's value.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindValue, track } from 'ripple';
 
 export function App() @{
@@ -47,7 +47,7 @@ export function App() @{
 
 <Code>
 
-```ripple
+```tsrx
 import { bindValue, track } from 'ripple';
 
 export function App() @{
@@ -67,7 +67,7 @@ export function App() @{
 
 <Code>
 
-```ripple
+```tsrx
 import { bindValue, track } from 'ripple';
 
 export function App() @{
@@ -91,7 +91,7 @@ export function App() @{
 
 <Code>
 
-```ripple
+```tsrx
 import { bindValue, track } from 'ripple';
 
 export function App() @{
@@ -118,7 +118,7 @@ boolean value.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindChecked, track } from 'ripple';
 
 export function App() @{
@@ -154,7 +154,7 @@ checkboxes when only some (but not all) child items are selected.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindChecked, bindIndeterminate, track } from 'ripple';
 
 export function App() @{
@@ -207,7 +207,7 @@ selections or mutually exclusive choices.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindGroup, track } from 'ripple';
 
 export function App() @{
@@ -242,7 +242,7 @@ export function App() @{
 
 <Code>
 
-```ripple
+```tsrx
 import { bindGroup, track } from 'ripple';
 
 export function App() @{
@@ -292,7 +292,7 @@ programmatically update the file input.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindFiles, bindNode, track } from 'ripple';
 
 export function App() @{
@@ -376,7 +376,7 @@ scrollbars).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindClientWidth, bindClientHeight, track } from 'ripple';
 
 export function App() @{
@@ -409,7 +409,7 @@ These bindings track the full outer dimensions of an element (including borders)
 
 <Code>
 
-```ripple
+```tsrx
 import { bindOffsetWidth, bindOffsetHeight, track } from 'ripple';
 
 export function App() @{
@@ -444,7 +444,7 @@ Tracks the element's content rectangle from the ResizeObserver API.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindContentRect, track } from 'ripple';
 
 export function App() @{
@@ -477,7 +477,7 @@ Tracks the content box size (without padding or borders).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindContentBoxSize, track } from 'ripple';
 
 export function App() @{
@@ -513,7 +513,7 @@ Tracks the border box size (including padding and borders).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindBorderBoxSize, track } from 'ripple';
 
 export function App() @{
@@ -548,7 +548,7 @@ Tracks the content box size in device pixels (useful for high-DPI displays).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindDevicePixelContentBoxSize, track } from 'ripple';
 
 export function App() @{
@@ -585,7 +585,7 @@ Binds to an element's innerHTML property, useful for rich text editors.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindInnerHTML, track } from 'ripple';
 
 export function App() @{
@@ -616,7 +616,7 @@ Binds to an element's innerText property (text with line breaks, no HTML).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindInnerText, track } from 'ripple';
 
 export function App() @{
@@ -645,7 +645,7 @@ Binds to an element's textContent property (raw text, no formatting).
 
 <Code>
 
-```ripple
+```tsrx
 import { bindTextContent, track } from 'ripple';
 
 export function App() @{
@@ -678,7 +678,7 @@ A convenient way to get a reference to a DOM element.
 
 <Code>
 
-```ripple
+```tsrx
 import { bindNode, track } from 'ripple';
 
 export function App() @{
@@ -717,7 +717,7 @@ attribute:
 
 <Code>
 
-```ripple
+```tsrx
 import { bindValue, bindClientWidth, bindNode, track } from 'ripple';
 
 export function App() @{

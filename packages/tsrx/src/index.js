@@ -180,7 +180,6 @@ export {
 	create_compile_error,
 	create_generated_identifier,
 	create_null_literal,
-	expand_switch_cases_for_fallthrough,
 	flatten_switch_consequent,
 	get_for_of_iteration_params,
 	identifier_to_jsx_name,

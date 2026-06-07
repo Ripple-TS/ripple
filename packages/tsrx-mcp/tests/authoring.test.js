@@ -93,8 +93,9 @@ describe('@tsrx/mcp authoring reviews', () => {
 					</ul>
 				}
 				@switch (mode) {
-					case 'grid':
+					case 'grid': {
 						<section>${repeated_items}</section>
+					}
 				}
 			</>; }`,
 		});

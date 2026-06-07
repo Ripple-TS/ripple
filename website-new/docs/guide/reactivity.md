@@ -145,7 +145,7 @@ parameters: the first is the one being assigned and the second is the previous
 value. The get and set functions may be useful for tasks such as logging,
 validating, or transforming values before they are exposed or stored.
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{
@@ -181,7 +181,7 @@ lazy destructuring compiles each variable access to a deferred property/index
 lookup on the source. This preserves reactivity for reactive props and other
 tracked objects.
 
-```ripple
+```tsrx
 // Lazy object destructuring — a and b are accessed lazily from props
 const &{ a, b } = props;
 
@@ -198,7 +198,7 @@ const &{ a, ...rest } = props;
 **Component props** — use `&{...}` to lazily destructure props, preserving
 reactivity:
 
-```ripple
+```tsrx
 function Child(&{ count, className, children }: Props) {
   return <>
     // count, className, children are lazily read from the props object
@@ -210,7 +210,7 @@ function Child(&{ count, className, children }: Props) {
 
 **Function parameters** — works in regular functions too:
 
-```ripple
+```tsrx
 function process(&{ x, y }: Point) {
   return x + y; // lazily reads from the parameter object
 }
@@ -218,7 +218,7 @@ function process(&{ x, y }: Point) {
 
 **Variable declarations** — works with `const`, `let`, and `var`:
 
-```ripple
+```tsrx
 const &{ a, b } = someObject; // read-only lazy access
 let &{ x, y } = mutableObject; // supports assignment: x = 5 writes back
 ```
@@ -236,7 +236,7 @@ simply be passed by reference between boundaries:
 
 <Code console>
 
-```ripple
+```tsrx
 import { track, effect } from 'ripple';
 
 function createDouble(&[count]) {
@@ -279,7 +279,7 @@ UIs with minimal boilerplate.
 
 <Code>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function App() @{
@@ -316,7 +316,7 @@ based on changes that happen upon updates. To do this, you can use `effect`:
 
 <Code console>
 
-```ripple
+```tsrx
 import { track, effect } from 'ripple';
 
 export function App() @{
@@ -340,7 +340,7 @@ DOM changes are complete before executing subsequent code, similar to Vue's
 
 <Code console>
 
-```ripple
+```tsrx
 import { tick, track, effect } from 'ripple';
 
 export function App() @{
@@ -369,7 +369,7 @@ export function App() @{
 
 <Code console>
 
-```ripple
+```tsrx
 import { track, effect, untrack } from 'ripple';
 
 export function App() @{
@@ -406,7 +406,7 @@ object, like arrays:
 
 <Code console>
 
-```ripple
+```tsrx
 import { track, effect } from 'ripple';
 
 export function App() @{
@@ -445,7 +445,7 @@ various array operations such as push, pop, shift, unshift, etc. Even if you
 reference a non-existent element, once it is added, the original reference will
 react to the change.
 
-```ripple
+```tsrx
 import { RippleArray } from 'ripple';
 
 // using the constructor
@@ -460,7 +460,7 @@ const arr = RippleArray.of(1, 2, 3);
 
 Usage Example:
 
-```ripple
+```tsrx
 import { RippleArray } from 'ripple';
 
 export function App() @{
@@ -484,7 +484,7 @@ supports shallow reactivity and any property on the root level is reactive. You
 can even reference non-existent properties and once added the original reference
 reacts to the change.
 
-```ripple
+```tsrx
 import { RippleObject } from 'ripple';
 
 const obj = new RippleObject({ a: 1, b: 2, c: 3 });
@@ -494,7 +494,7 @@ Usage Example:
 
 <Code>
 
-```ripple
+```tsrx
 import { RippleObject } from 'ripple';
 
 export function App() @{
@@ -520,7 +520,7 @@ export function App() @{
 The `RippleSet` extends the standard JS `Set` class, and supports all of its
 methods and properties.
 
-```ripple
+```tsrx
 import { RippleSet } from 'ripple';
 
 const set = new RippleSet([1, 2, 3]);
@@ -531,7 +531,7 @@ reactive variables.
 
 <Code>
 
-```ripple
+```tsrx
 import { RippleSet, track } from 'ripple';
 
 export function App() @{
@@ -558,7 +558,7 @@ export function App() @{
 The `RippleMap` extends the standard JS `Map` class, and supports all of its
 methods and properties.
 
-```ripple
+```tsrx
 import { RippleMap } from 'ripple';
 
 const map = new RippleMap([[1, 1], [2, 2], [3, 3], [4, 4]]);
@@ -569,7 +569,7 @@ reactive variables.
 
 <Code>
 
-```ripple
+```tsrx
 import { RippleMap, track } from 'ripple';
 
 export function App() @{
@@ -596,7 +596,7 @@ export function App() @{
 The `RippleDate` extends the standard JS `Date` class, and supports all of its
 methods and properties.
 
-```ripple
+```tsrx
 import { RippleDate } from 'ripple';
 
 const date = new RippleDate(2026, 0, 1); // January 1, 2026
@@ -609,7 +609,7 @@ etc.) are reactive and will update when the date is modified.
 
 <Code>
 
-```ripple
+```tsrx
 import { RippleDate, track } from 'ripple';
 
 export function App() @{

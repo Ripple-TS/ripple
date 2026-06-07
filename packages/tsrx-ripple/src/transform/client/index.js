@@ -5660,22 +5660,6 @@ function transform_children(children, context) {
 }
 
 /**
- * Checks if a switch case consequent contains a BreakStatement,
- * including inside BlockStatements.
- * @param {AST.Node[]} consequent
- * @returns {boolean}
- */
-function consequent_has_break(consequent) {
-	for (const stmt of consequent) {
-		if (stmt.type === 'BreakStatement') return true;
-		if (stmt.type === 'BlockStatement') {
-			if (consequent_has_break(/** @type {AST.BlockStatement} */ (stmt).body)) return true;
-		}
-	}
-	return false;
-}
-
-/**
  * @param {AST.Node[]} body
  * @returns {number}
  */

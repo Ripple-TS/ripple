@@ -280,14 +280,15 @@ export default function App() @{
 		<button onClick={() => count++}>Increment</button>
 
 		@switch (count) {
-			case 1:
+			case 1: {
 				<div>Count is 1</div>
-				break;
-			case 2:
+			}
+			case 2: {
 				<div>Count is 2</div>
-				break;
-			default:
+			}
+			default: {
 				<div>Count is other</div>
+			}
 		}
   </>
 }

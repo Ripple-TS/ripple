@@ -35,9 +35,9 @@ describe('hydration > switch blocks', () => {
 		expect(container.querySelector('.case-a')?.textContent).toBe('Case A');
 	});
 
-	it('hydrates switch block with fallthrough', async () => {
+	it('hydrates switch block with an isolated empty case', async () => {
 		await hydrateComponent(ServerComponents.SwitchFallthrough, ClientComponents.SwitchFallthrough);
-		expect(container.querySelector('.case-1-2')?.textContent).toBe('1 or 2');
+		expect(container.querySelector('.case-1-2')).toBeNull();
 	});
 
 	it('hydrates reactive switch block with numeric cases', async () => {
@@ -65,11 +65,11 @@ describe('hydration > switch blocks', () => {
 		expect(container.querySelector('.level-1')?.textContent).toBe('Level 1');
 	});
 
-	it('hydrates switch block with block-scoped cases and break', async () => {
+	it('hydrates switch block with isolated block-scoped cases', async () => {
 		await hydrateComponent(ServerComponents.SwitchBlockScoped, ClientComponents.SwitchBlockScoped);
 		const button = container.querySelector('.block-toggle');
 
-		// Each case should render exclusively with break
+		// Each case renders exclusively without requiring a break statement.
 		expect(container.querySelector('.block-1')?.textContent).toBe('Block 1');
 		expect(container.querySelector('.block-2')).toBeNull();
 		expect(container.querySelector('.block-3')).toBeNull();
@@ -86,19 +86,19 @@ describe('hydration > switch blocks', () => {
 		expect(container.querySelector('.block-3')?.textContent).toBe('Block 3');
 	});
 
-	it('hydrates switch block without break statements (fallthrough)', async () => {
+	it('hydrates switch block without fallthrough', async () => {
 		await hydrateComponent(ServerComponents.SwitchNoBreak, ClientComponents.SwitchNoBreak);
 		const button = container.querySelector('.nobreak-toggle');
 
 		expect(container.querySelector('.nobreak-1')?.textContent).toBe('NoBreak 1');
-		expect(container.querySelector('.nobreak-2')?.textContent).toBe('NoBreak 2');
-		expect(container.querySelector('.nobreak-3')?.textContent).toBe('NoBreak 3');
+		expect(container.querySelector('.nobreak-2')).toBeNull();
+		expect(container.querySelector('.nobreak-3')).toBeNull();
 
 		button?.click();
 		flushSync();
 		expect(container.querySelector('.nobreak-1')).toBeNull();
 		expect(container.querySelector('.nobreak-2')?.textContent).toBe('NoBreak 2');
-		expect(container.querySelector('.nobreak-3')?.textContent).toBe('NoBreak 3');
+		expect(container.querySelector('.nobreak-3')).toBeNull();
 
 		button?.click();
 		flushSync();

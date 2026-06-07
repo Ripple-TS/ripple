@@ -3,14 +3,15 @@ import { track } from 'ripple';
 export function SwitchStatic() @{
 	const status: string = 'success';
 	@switch (status) {
-		case 'success':
+		case 'success': {
 			<div class="status-success">{'Success'}</div>
-			break;
-		case 'error':
+		}
+		case 'error': {
 			<div class="status-error">{'Error'}</div>
-			break;
-		default:
+		}
+		default: {
 			<div class="status-unknown">{'Unknown'}</div>
+		}
 	}
 }
 
@@ -26,14 +27,15 @@ export function SwitchReactive() @{
 			}}
 		>{'Toggle'}</button>
 		@switch (status) {
-			case 'a':
+			case 'a': {
 				<div class="case-a">Case A</div>
-				break;
-			case 'b':
+			}
+			case 'b': {
 				<div class="case-b">Case B</div>
-				break;
-			default:
+			}
+			default: {
 				<div class="case-c">{'Case C'}</div>
+			}
 		}
 	</>
 }
@@ -41,12 +43,14 @@ export function SwitchReactive() @{
 export function SwitchFallthrough() @{
 	const val: number = 1;
 	@switch (val) {
-		case 1:
-		case 2:
+		case 1: {
+		}
+		case 2: {
 			<div class="case-1-2">{'1 or 2'}</div>
-			break;
-		default:
+		}
+		default: {
 			<div class="case-other">{'Other'}</div>
+		}
 	}
 }
 
@@ -62,15 +66,15 @@ export function SwitchNumericLevels() @{
 			}}
 		>{'Toggle Level'}</button>
 		@switch (level) {
-			case 1:
+			case 1: {
 				<div class="level-1">{'Level 1'}</div>
-				break;
-			case 2:
+			}
+			case 2: {
 				<div class="level-2">{'Level 2'}</div>
-				break;
-			case 3:
+			}
+			case 3: {
 				<div class="level-3">{'Level 3'}</div>
-				break;
+			}
 		}
 	</>
 }
@@ -87,15 +91,15 @@ export function SwitchBlockScoped() @{
 			}}
 		>{'Toggle'}</button>
 		@switch (level) {
-			case 1:
+			case 1: {
 				<div class="block-1">{'Block 1'}</div>
-				break;
-			case 2:
+			}
+			case 2: {
 				<div class="block-2">{'Block 2'}</div>
-				break;
-			case 3:
+			}
+			case 3: {
 				<div class="block-3">{'Block 3'}</div>
-				break;
+			}
 		}
 	</>
 }
@@ -112,12 +116,15 @@ export function SwitchNoBreak() @{
 			}}
 		>{'Toggle'}</button>
 		@switch (level) {
-			case 1:
+			case 1: {
 				<div class="nobreak-1">{'NoBreak 1'}</div>
-			case 2:
+			}
+			case 2: {
 				<div class="nobreak-2">{'NoBreak 2'}</div>
-			case 3:
+			}
+			case 3: {
 				<div class="nobreak-3">{'NoBreak 3'}</div>
+			}
 		}
 	</>
 }

@@ -489,10 +489,12 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 			const { code } = compile(
 				`export function A() @{
 					@switch (state) {
-						case "ready":
+						case "ready": {
 							<>{"Ready"}</>
-						default:
+						}
+						default: {
 							<>{"Waiting"}</>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -520,12 +522,15 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 				const { code } = compile(
 					`export function StatusBadge({ status }: { status: string }) @{
 						@switch (status) {
-							case "idle":
+							case "idle": {
 								<span>{'Online'}</span>
-							case "active":
+							}
+							case "active": {
 								<span>{'Away'}</span>
-							case "offline":
+							}
+							case "offline": {
 								<span>{'Offline'}</span>
+							}
 						}
 					}`,
 					'App.tsrx',
@@ -538,16 +543,19 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			},
 		);
 
-		it('renders each explicit case body once without break statements', () => {
+		it('renders each explicit case block once', () => {
 			const { code } = compile(
 				`export function App({ kind }: { kind: string }) @{
 					@switch (kind) {
-						case "a":
+						case "a": {
 							<span>{'A'}</span>
-						case "b":
+						}
+						case "b": {
 							<span>{'B'}</span>
-						default:
+						}
+						default: {
 							<span>{'Other'}</span>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -567,11 +575,14 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 				const { code } = compile(
 					`export function App({ n }: { n: number }) @{
 						@switch (n) {
-							case 1:
-							case 2:
+							case 1: {
+							}
+							case 2: {
 								<span>{'one or two'}</span>
-							default:
+							}
+							default: {
 								<span>{'other'}</span>
+							}
 						}
 					}`,
 					'App.tsrx',
@@ -589,11 +600,14 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 				const { code } = compile(
 					`export function App({ n }: { n: number }) @{
 						@switch (n) {
-							case 1:
-							case 2:
+							case 1: {
+							}
+							case 2: {
 								<span>{'one or two'}</span>
-							default:
+							}
+							default: {
 								<span>{'other'}</span>
+							}
 						}
 					}`,
 					'App.tsrx',
@@ -606,17 +620,20 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 		);
 
 		it.runIf(['react', 'preact', 'vue'].includes(name))(
-			'does not lift downstream case bodies when a previous case omits break',
+			'does not lift downstream case bodies into earlier case blocks',
 			() => {
 				const { code } = compile(
 					`export function App({ status }: { status: string }) @{
 						@switch (status) {
-							case "idle":
+							case "idle": {
 								<span>{'Online'}</span>
-							case "active":
+							}
+							case "active": {
 								<span>{'Away'}</span>
-							case "offline":
+							}
+							case "offline": {
 								<span>{'Offline'}</span>
+							}
 						}
 					}`,
 					'App.tsrx',
@@ -636,12 +653,15 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 				const { code } = compile(
 					`export function App({ status }: { status: string }) @{
 						@switch (status) {
-							case "idle":
+							case "idle": {
 								<span>{'Online'}</span>
-							case "active":
+							}
+							case "active": {
 								<span>{'Away'}</span>
-							case "offline":
+							}
+							case "offline": {
 								<span>{'Offline'}</span>
+							}
 						}
 					}`,
 					'App.tsrx',
@@ -662,10 +682,12 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
 			const { code } = compile(
 				`export function App({ kind }: { kind: string }) @{
 					@switch (kind) {
-						case "a":
+						case "a": {
 							<span>{'A'}</span>
-						default:
+						}
+						default: {
 							<span>{'D'}</span>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -713,14 +735,17 @@ export function runSharedSwitchHelperHoistingTests({
 			// non-hook case stays inline and cases remain isolated.
 			const switch_source = `export function App({ status }: { status: string }) @{
 				@switch (status) {
-					case "idle":
+					case "idle": {
 						const idle_label = useMemo(() => 'Online', [status]);
 						<span>{idle_label}</span>
-					case "active":
+					}
+					case "active": {
 						const active_label = useMemo(() => 'Away', [status]);
 						<span>{active_label}</span>
-					case "offline":
+					}
+					case "offline": {
 						<span>{'Offline'}</span>
+					}
 				}
 			}`;
 
@@ -3211,11 +3236,13 @@ export function optionalFn(bar: string, baz?: string) {
 								let x: number | undefined;
 								console.log(x);
 								@switch (kind) {
-									case 'a':
+									case 'a': {
 										[x] = useState(100);
 										<div>{x}</div>
-									case 'b':
+									}
+									case 'b': {
 										<span>{'b'}</span>
+									}
 								}
 							}`,
 						'App.tsrx',
@@ -3227,11 +3254,13 @@ export function optionalFn(bar: string, baz?: string) {
 				const { code } = compile(
 					`export function App({ kind }: { kind: 'a' | 'b' }) @{
 							@switch (kind) {
-								case 'a':
+								case 'a': {
 									const [x] = useState(100);
 									<div>{x}</div>
-								case 'b':
+								}
+								case 'b': {
 									<span>{'b'}</span>
+								}
 							}
 						}`,
 					'App.tsrx',

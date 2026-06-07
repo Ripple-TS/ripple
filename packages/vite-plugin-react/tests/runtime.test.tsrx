@@ -438,15 +438,15 @@ function SwitchReactiveApp() @{
 
 	<>
 		@switch (page) {
-			case 'home':
+			case 'home': {
 				<div className="page">{'Home'}</div>
-				break;
-			case 'about':
+			}
+			case 'about': {
 				<div className="page">{'About'}</div>
-				break;
-			default:
+			}
+			default: {
 				<div className="page">{'404'}</div>
-				break;
+			}
 		}
 		<button className="go-about" onClick={() => setPage('about')}>{'about'}</button>
 		<button className="go-unknown" onClick={() => setPage('other')}>{'other'}</button>
@@ -886,7 +886,7 @@ function HookInSwitchApp() @{
 
 	<>
 		@switch (page) {
-			case 'home':
+			case 'home': {
 				const [homeCount, setHomeCount] = useState(0);
 				<>
 					<p className="hook-switch-val">{homeCount}</p>
@@ -895,10 +895,10 @@ function HookInSwitchApp() @{
 						onClick={() => setHomeCount(homeCount + 1)}
 					>{'inc'}</button>
 				</>
-				break;
-			case 'about':
+			}
+			case 'about': {
 				<p className="hook-switch-val">{'about page'}</p>
-				break;
+			}
 		}
 		<button className="hook-switch-go" onClick={() => setPage('about')}>{'about'}</button>
 	</>
@@ -1048,7 +1048,7 @@ function HookInSwitchWithScopeApp() @{
 
 	<>
 		@switch (tab) {
-			case 'counter':
+			case 'counter': {
 				const [n, setN] = useState(0);
 				<>
 					<p className="switch-scope-val">
@@ -1056,12 +1056,12 @@ function HookInSwitchWithScopeApp() @{
 					</p>
 					<button className="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
 				</>
-				break;
-			case 'info':
+			}
+			case 'info': {
 				<p className="switch-scope-val">
 					{theme + ':info'}
 				</p>
-				break;
+			}
 		}
 		<button
 			className="switch-scope-tab"

@@ -96,12 +96,15 @@ const JSX_STATEMENT_CONTAINER_RULES_HTML = highlight_tsrx(
 const ASSIGNED_JSX_CONTROL_FLOW_HTML = highlight_tsrx(
 	`const StatusBadge = ({ status }: StatusBadgeProps): JSX.Element => {
   const badge: JSX.Element = @switch (status) {
-    case 'active':
+    case 'active': {
       <strong>Active</strong>
-    case 'idle':
+    }
+    case 'idle': {
       <span>Idle</span>
-    default:
+    }
+    default: {
       <span>Offline</span>
+    }
   };
 
   return <header>{badge}</header>;

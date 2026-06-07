@@ -666,12 +666,15 @@ function SwitchReactiveApp() @{
 	const page = ref('home');
 	<>
 		@switch (page.value) {
-			case 'home':
+			case 'home': {
 				<div class="page">{'Home'}</div>
-			case 'about':
+			}
+			case 'about': {
 				<div class="page">{'About'}</div>
-			default:
+			}
+			default: {
 				<div class="page">{'404'}</div>
+			}
 		}
 		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
 		<button class="go-unknown" onClick={() => (page.value = 'other')}>{'other'}</button>
@@ -784,12 +787,15 @@ function SwitchInsideTryApp() @{
 	<>
 		@try {
 			@switch (page.value) {
-				case 'home':
+				case 'home': {
 					<p class="try-page">{'Home'}</p>
-				case 'about':
+				}
+				case 'about': {
 					<p class="try-page">{'About'}</p>
-				default:
+				}
+				default: {
 					<p class="try-page">{'404'}</p>
+				}
 			}
 		} catch (err) {
 			<p class="caught">{'error'}</p>

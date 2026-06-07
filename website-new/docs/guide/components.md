@@ -34,7 +34,7 @@ write HTML. By default, Ripple will make the content available as the `children`
 prop, which you can then render using `{props.children}` (or simply `{children}`
 if you destructured your props).
 
-```ripple
+```tsrx
 import type { Children } from 'ripple';
 
 function Card(props: { children: Children }) {
@@ -76,7 +76,7 @@ Define components in scope and pass them as explicit props:
 
 <Code>
 
-```ripple
+```tsrx
 import type { Component } from 'ripple';
 
 function Composite({ PropComp }: { PropComp: Component }) {
@@ -101,7 +101,7 @@ props" from React, and "snippets" from Svelte.
 
 <Code>
 
-```ripple
+```tsrx
 import type { Children, Component } from 'ripple';
 
 function Card({
@@ -163,7 +163,7 @@ Components declared inside a composite component element can be passed as props 
 
 <Code>
 
-```ripple
+```tsrx
 import type { Component } from 'ripple';
 
 function Inner({ Greeting }: { Greeting: Component }) {
@@ -193,7 +193,7 @@ export function App() @{
 A component declared inside a composite element's children is **not visible** to
 the parent component itself — it only exists in the child scope:
 
-```ripple
+```tsrx
 import type { Component } from 'ripple';
 
 function Outer({ Footer }: { Footer: Component }) {
@@ -221,7 +221,7 @@ See [Reactivity](/docs/guide/reactivity#Props-and-Attributes).
 
 ## Prop Shorthands
 
-```ripple
+```tsrx
 // Object spread
 <div {...properties}>Content</div>
 
@@ -238,7 +238,7 @@ The `Portal` component allows you to render (teleport) content anywhere in the D
 tree, breaking out of the normal component hierarchy. This is particularly useful
 for modals, tooltips, and notifications.
 
-```ripple
+```tsrx
 import { Portal } from 'ripple';
 
 export function App() {

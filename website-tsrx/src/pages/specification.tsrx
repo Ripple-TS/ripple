@@ -99,8 +99,12 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'JSXForExpression :',
 	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock',
 	'',
-	'JSXSwitchExpression :',
-	'  @switch ( Expression ) { JSXSwitchCaseListopt }',
+'JSXSwitchExpression :',
+'  @switch ( Expression ) { JSXSwitchCaseListopt }',
+'',
+'JSXSwitchCase :',
+'  case Expression : TemplateBlock',
+'  default : TemplateBlock',
 	'',
 	'JSXTryExpression :',
 	'  @try TemplateBlock pending TemplateBlock',
@@ -536,6 +540,18 @@ export function SpecificationPage() @{
 								, and
 								<code class="inline-code">@try</code>
 								blocks whose bodies render template children.
+							</p>
+							<p class="section-body">
+								Each
+								<code class="inline-code">@switch</code>
+								<code class="inline-code">case</code>
+								and
+								<code class="inline-code">default</code>
+								must use a
+								<code class="inline-code">{'{}'}</code>
+								template block. Cases are isolated: they do not fall through to later cases, and
+								<code class="inline-code">break</code>
+								is a syntax error inside a JSX switch case.
 							</p>
 							<p class="section-body">
 								Plain JSX children are the default. When an expression position, function body,

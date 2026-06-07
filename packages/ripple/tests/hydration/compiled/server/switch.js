@@ -39,6 +39,7 @@ export function SwitchStatic() {
 						_$_.output_push('Unknown');
 					}
 					_$_.output_push('</div>');
+					break;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -92,6 +93,7 @@ export function SwitchReactive() {
 							_$_.output_push('Case C');
 						}
 						_$_.output_push('</div>');
+						break;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -109,6 +111,7 @@ export function SwitchFallthrough() {
 
 			switch (val) {
 				case 1:
+					break;
 
 				case 2:
 					_$_.output_push('<div');
@@ -128,6 +131,7 @@ export function SwitchFallthrough() {
 						_$_.output_push('Other');
 					}
 					_$_.output_push('</div>');
+					break;
 			}
 
 			_$_.output_push('<!--]-->');
@@ -271,6 +275,7 @@ export function SwitchNoBreak() {
 							_$_.output_push('NoBreak 1');
 						}
 						_$_.output_push('</div>');
+						break;
 
 					case 2:
 						_$_.output_push('<div');
@@ -280,6 +285,7 @@ export function SwitchNoBreak() {
 							_$_.output_push('NoBreak 2');
 						}
 						_$_.output_push('</div>');
+						break;
 
 					case 3:
 						_$_.output_push('<div');
@@ -289,6 +295,7 @@ export function SwitchNoBreak() {
 							_$_.output_push('NoBreak 3');
 						}
 						_$_.output_push('</div>');
+						break;
 				}
 
 				_$_.output_push('<!--]-->');

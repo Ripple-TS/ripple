@@ -27,7 +27,7 @@ possible, to improve runtime performance.
 
 <Code>
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function EventExample() @{
@@ -59,7 +59,7 @@ The function that will be called when the event fires. This is the only required
 property when using an object as an event handler.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#once)
 
-```ripple
+```tsrx
 <button
   onClick={{
     handleEvent: (e) => console.log('clicked!'),
@@ -77,7 +77,7 @@ When `true`, the event is handled during the capture phase instead of the bubble
 phase. This is equivalent to using the `Capture` suffix on the event name.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#capture)
 
-```ripple
+```tsrx
 import { RippleArray } from 'ripple';
 
 export function EventExample() @{
@@ -104,7 +104,7 @@ When `true`, the event listener is automatically removed after it fires once. Th
 is useful for one-time setup or cleanup operations.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#once)
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function EventExample() @{
@@ -135,7 +135,7 @@ events like `touchstart`, `touchmove`, `wheel`, and `mousewheel` are passive by
 default.
 [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#passive)
 
-```ripple
+```tsrx
 <div
   onWheel={{
     handleEvent: (e) => {
@@ -177,7 +177,7 @@ Event delegation is automatically disabled for:
 - Events with `capture`, `passive`, `once`, or `signal` options
 - Events that don't support delegation (like `focus`, `blur`, `load`, etc.)
 
-```ripple
+```tsrx
 export function EventExample() {
   return <button
     onClick={{
@@ -198,7 +198,7 @@ Overrides the event name used for the listener. This is useful for custom events
 or when you want to use a different event name than the lower-cased name that's
 inferred from the attribute.
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 export function EventExample() @{
@@ -232,7 +232,7 @@ ones that can be used for event attributes with the object syntax.
 
 <Code console>
 
-```ripple
+```tsrx
 import { on, effect } from 'ripple';
 
 export function App() @{

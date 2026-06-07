@@ -1,13 +1,13 @@
 export function Header() {
 	return <>
-		<h1 class="sr-only">{'Ripple'}</h1>
+		<h1 class="sr-only">Ripple</h1>
 		<img
 			src="/images/ripple-logo-horizontal.png"
 			alt="Ripple Logo"
 			class="logo"
 			fetchpriority="high"
 		/>
-		<p class="subtitle">{'the elegant TypeScript UI framework'}</p>
+		<p class="subtitle">the elegant TypeScript UI framework</p>
 		<style>
 			.logo {
 				width: 100%;

@@ -7,7 +7,7 @@ title: Styling in Ripple
 Ripple supports native CSS styling that's scoped (localized) to the returned
 TSRX template using the `<style>` element.
 
-```ripple
+```tsrx
 function MyComponent() @{
   <>
     <div class="container">
@@ -44,7 +44,7 @@ falsy values are omitted. This behavior is powered by the `clsx` library.
 
 Examples:
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 function App() @{
@@ -70,7 +70,7 @@ Styles in `<style>` blocks are static CSS. When a value needs to change at
 runtime, put that value in a CSS custom property on the element and read it with
 `var(...)` from your static CSS:
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 function App() @{
@@ -102,7 +102,7 @@ styles, use the `:global()` pseudo-class or `:global` block:
 
 <Code>
 
-```ripple
+```tsrx
 export function App() @{
   <>
     <div class="container">
@@ -155,7 +155,7 @@ across components, prefix the animation name with `-global-`:
 
 <Code>
 
-```ripple
+```tsrx
 export function App() @{
   <>
     <div class="parent">
@@ -217,7 +217,7 @@ Each map entry contains both the CSS scope hash and the class name (for example
 
 ### Basic Usage
 
-```ripple
+```tsrx
 function Child({ class: className }: { class: string }) {
   return <div class={className}>styled child</div>
 }
@@ -235,7 +235,7 @@ function Parent() @{
 
 You can pass multiple classes:
 
-```ripple
+```tsrx
 function Child({ primary, secondary }: { primary: string; secondary: string }) @{
   <>
     <div class={primary}>primary</div>
@@ -261,7 +261,7 @@ function Parent() @{
 
 Style expression maps also work when rendering dynamic components with `<@Component />`:
 
-```ripple
+```tsrx
 import { track } from 'ripple';
 
 function Child({ cls }: { cls: string }) {
@@ -285,7 +285,7 @@ function Parent() @{
 A child component can combine classes it receives from a parent with its own
 scoped classes:
 
-```ripple
+```tsrx
 function Card({ class: className }: { class?: string }) @{
   <>
     <div class={['card-base', className ?? '']}>card content</div>
@@ -318,7 +318,7 @@ combinator selectors are not exported on the map.
 If a class appears both standalone and in a descendant selector, it can still be
 used through the style expression map:
 
-```ripple
+```tsrx
 function App() @{
   const styles = <style>
     /* Standalone rule — exposes styles.dual */
@@ -340,7 +340,7 @@ function App() @{
 
 The following will **not** work because the class has no standalone rule:
 
-```ripple
+```tsrx
 // ❌ .nested only exists in a descendant selector
 function App() @{
   const styles = <style>

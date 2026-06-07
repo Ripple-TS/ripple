@@ -25,7 +25,6 @@ import {
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
-	cloneSwitchHelperInvocation as clone_switch_helper_invocation,
 	contains_component_jsx,
 	create_generated_identifier,
 	create_null_literal,

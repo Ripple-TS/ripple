@@ -4,29 +4,29 @@ import * as _$_ from 'ripple/internal/client';
 var root_2 = _$_.template(`<li> </li>`, 0);
 var root_1 = _$_.template(`<!>`, 1, 1);
 var root = _$_.template(`<ul class="for-if"></ul>`, 0);
-var root_5 = _$_.template(`<li> </li>`, 1, 1);
+var root_5 = _$_.template(`<li> </li>`, 0);
 var root_6 = _$_.template(`<li> </li>`, 0);
 var root_4 = _$_.template(`<!>`, 1, 1);
 var root_3 = _$_.template(`<ul class="for-switch"></ul>`, 0);
-var root_9 = _$_.template(`<p class="case-a">Case A</p>`, 1, 1);
+var root_9 = _$_.template(`<p class="case-a">Case A</p>`, 0);
 var root_10 = _$_.template(`<p class="case-default">Default</p>`, 0);
 var root_8 = _$_.template(`<!>`, 1, 1);
 var root_7 = _$_.template(`<div class="if-switch"><!></div>`, 0);
-var root_13 = _$_.template(`<p class="case-a">Case A</p>`, 1, 1);
+var root_13 = _$_.template(`<p class="case-a">Case A</p>`, 0);
 var root_14 = _$_.template(`<p class="case-default">Default</p>`, 0);
 var root_12 = _$_.template(`<!>`, 1, 1);
 var root_11 = _$_.template(`<div class="if-switch-hidden"><!><p class="after">after</p></div>`, 0);
-var root_18 = _$_.template(`<li> </li>`, 1, 1);
+var root_18 = _$_.template(`<li> </li>`, 0);
 var root_19 = _$_.template(`<li> </li>`, 0);
 var root_17 = _$_.template(`<!>`, 1, 1);
 var root_16 = _$_.template(`<!>`, 1, 1);
 var root_15 = _$_.template(`<ul class="for-if-switch-single"></ul>`, 0);
-var root_23 = _$_.template(`<li> </li>`, 1, 1);
+var root_23 = _$_.template(`<li> </li>`, 0);
 var root_24 = _$_.template(`<li> </li>`, 0);
 var root_22 = _$_.template(`<!>`, 1, 1);
 var root_21 = _$_.template(`<!>`, 1, 1);
 var root_20 = _$_.template(`<ul class="for-if-switch-multi"></ul>`, 0);
-var root_28 = _$_.template(`<li> </li>`, 1, 1);
+var root_28 = _$_.template(`<li> </li>`, 0);
 var root_29 = _$_.template(`<li> </li>`, 0);
 var root_27 = _$_.template(`<!>`, 1, 1);
 var root_26 = _$_.template(`<!>`, 1, 1);
@@ -142,8 +142,7 @@ export function ForSwitch() {
 
 					{
 						var switch_case_0 = (__anchor) => {
-							var fragment_2 = root_5();
-							var li_2 = _$_.first_child_frag(fragment_2);
+							var li_2 = root_5();
 
 							{
 								var expression_1 = _$_.child(li_2, true);
@@ -168,7 +167,7 @@ export function ForSwitch() {
 								{ a: ' ', b: Symbol() }
 							);
 
-							_$_.append(__anchor, fragment_2);
+							_$_.append(__anchor, li_2);
 						};
 
 						var switch_case_default = (__anchor) => {
@@ -239,20 +238,20 @@ export function IfSwitch() {
 
 			{
 				var consequent_1 = (__anchor) => {
-					var fragment_3 = root_8();
-					var node_3 = _$_.first_child_frag(fragment_3);
+					var fragment_2 = root_8();
+					var node_3 = _$_.first_child_frag(fragment_2);
 
 					{
 						var switch_case_0_1 = (__anchor) => {
-							var fragment_4 = root_9();
+							var p_1 = root_9();
 
-							_$_.append(__anchor, fragment_4);
+							_$_.append(__anchor, p_1);
 						};
 
 						var switch_case_default_1 = (__anchor) => {
-							var p_1 = root_10();
+							var p_2 = root_10();
 
-							_$_.append(__anchor, p_1);
+							_$_.append(__anchor, p_2);
 						};
 
 						_$_.switch(node_3, () => {
@@ -270,7 +269,7 @@ export function IfSwitch() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_3);
+					_$_.append(__anchor, fragment_2);
 				};
 
 				_$_.if(node_2, (__render) => {
@@ -296,20 +295,20 @@ export function IfSwitchHidden() {
 
 			{
 				var consequent_2 = (__anchor) => {
-					var fragment_5 = root_12();
-					var node_5 = _$_.first_child_frag(fragment_5);
+					var fragment_3 = root_12();
+					var node_5 = _$_.first_child_frag(fragment_3);
 
 					{
 						var switch_case_0_2 = (__anchor) => {
-							var fragment_6 = root_13();
+							var p_3 = root_13();
 
-							_$_.append(__anchor, fragment_6);
+							_$_.append(__anchor, p_3);
 						};
 
 						var switch_case_default_2 = (__anchor) => {
-							var p_2 = root_14();
+							var p_4 = root_14();
 
-							_$_.append(__anchor, p_2);
+							_$_.append(__anchor, p_4);
 						};
 
 						_$_.switch(node_5, () => {
@@ -327,7 +326,7 @@ export function IfSwitchHidden() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_5);
+					_$_.append(__anchor, fragment_3);
 				};
 
 				_$_.if(node_4, (__render) => {
@@ -352,18 +351,17 @@ export function ForIfSwitchSingle() {
 				ul_3,
 				() => items,
 				(__anchor, pattern_2) => {
-					var fragment_7 = root_16();
-					var node_6 = _$_.first_child_frag(fragment_7);
+					var fragment_4 = root_16();
+					var node_6 = _$_.first_child_frag(fragment_4);
 
 					{
 						var consequent_3 = (__anchor) => {
-							var fragment_8 = root_17();
-							var node_7 = _$_.first_child_frag(fragment_8);
+							var fragment_5 = root_17();
+							var node_7 = _$_.first_child_frag(fragment_5);
 
 							{
 								var switch_case_0_3 = (__anchor) => {
-									var fragment_9 = root_18();
-									var li_4 = _$_.first_child_frag(fragment_9);
+									var li_4 = root_18();
 
 									{
 										var expression_3 = _$_.child(li_4, true);
@@ -388,7 +386,7 @@ export function ForIfSwitchSingle() {
 										{ a: ' ', b: Symbol() }
 									);
 
-									_$_.append(__anchor, fragment_9);
+									_$_.append(__anchor, li_4);
 								};
 
 								var switch_case_default_3 = (__anchor) => {
@@ -435,7 +433,7 @@ export function ForIfSwitchSingle() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_8);
+							_$_.append(__anchor, fragment_5);
 						};
 
 						_$_.if(node_6, (__render) => {
@@ -443,7 +441,7 @@ export function ForIfSwitchSingle() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_7);
+					_$_.append(__anchor, fragment_4);
 				},
 				4,
 				(pattern_2) => _$_.get(pattern_2).id
@@ -470,18 +468,17 @@ export function ForIfSwitchMulti() {
 				ul_4,
 				() => items,
 				(__anchor, pattern_3) => {
-					var fragment_10 = root_21();
-					var node_8 = _$_.first_child_frag(fragment_10);
+					var fragment_6 = root_21();
+					var node_8 = _$_.first_child_frag(fragment_6);
 
 					{
 						var consequent_4 = (__anchor) => {
-							var fragment_11 = root_22();
-							var node_9 = _$_.first_child_frag(fragment_11);
+							var fragment_7 = root_22();
+							var node_9 = _$_.first_child_frag(fragment_7);
 
 							{
 								var switch_case_0_4 = (__anchor) => {
-									var fragment_12 = root_23();
-									var li_6 = _$_.first_child_frag(fragment_12);
+									var li_6 = root_23();
 
 									{
 										var expression_5 = _$_.child(li_6, true);
@@ -506,7 +503,7 @@ export function ForIfSwitchMulti() {
 										{ a: ' ', b: Symbol() }
 									);
 
-									_$_.append(__anchor, fragment_12);
+									_$_.append(__anchor, li_6);
 								};
 
 								var switch_case_default_4 = (__anchor) => {
@@ -553,7 +550,7 @@ export function ForIfSwitchMulti() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_11);
+							_$_.append(__anchor, fragment_7);
 						};
 
 						_$_.if(node_8, (__render) => {
@@ -561,7 +558,7 @@ export function ForIfSwitchMulti() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_10);
+					_$_.append(__anchor, fragment_6);
 				},
 				4,
 				(pattern_3) => _$_.get(pattern_3).id
@@ -589,18 +586,17 @@ export function ForIfSwitchWithDisabled() {
 				ul_5,
 				() => items,
 				(__anchor, pattern_4) => {
-					var fragment_13 = root_26();
-					var node_10 = _$_.first_child_frag(fragment_13);
+					var fragment_8 = root_26();
+					var node_10 = _$_.first_child_frag(fragment_8);
 
 					{
 						var consequent_5 = (__anchor) => {
-							var fragment_14 = root_27();
-							var node_11 = _$_.first_child_frag(fragment_14);
+							var fragment_9 = root_27();
+							var node_11 = _$_.first_child_frag(fragment_9);
 
 							{
 								var switch_case_0_5 = (__anchor) => {
-									var fragment_15 = root_28();
-									var li_8 = _$_.first_child_frag(fragment_15);
+									var li_8 = root_28();
 
 									{
 										var expression_7 = _$_.child(li_8, true);
@@ -625,7 +621,7 @@ export function ForIfSwitchWithDisabled() {
 										{ a: ' ', b: Symbol() }
 									);
 
-									_$_.append(__anchor, fragment_15);
+									_$_.append(__anchor, li_8);
 								};
 
 								var switch_case_default_5 = (__anchor) => {
@@ -672,7 +668,7 @@ export function ForIfSwitchWithDisabled() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_14);
+							_$_.append(__anchor, fragment_9);
 						};
 
 						_$_.if(node_10, (__render) => {
@@ -680,7 +676,7 @@ export function ForIfSwitchWithDisabled() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_13);
+					_$_.append(__anchor, fragment_8);
 				},
 				4,
 				(pattern_4) => _$_.get(pattern_4).id
@@ -703,31 +699,31 @@ export function SwitchTry() {
 
 			{
 				var switch_case_0_6 = (__anchor) => {
-					var fragment_16 = root_31();
-					var node_13 = _$_.first_child_frag(fragment_16);
+					var fragment_10 = root_31();
+					var node_13 = _$_.first_child_frag(fragment_10);
 
 					_$_.try(
 						node_13,
 						(__anchor) => {
-							var p_3 = root_32();
+							var p_5 = root_32();
 
-							_$_.append(__anchor, p_3);
+							_$_.append(__anchor, p_5);
 						},
 						null,
 						(__anchor) => {
-							var p_4 = root_33();
+							var p_6 = root_33();
 
-							_$_.append(__anchor, p_4);
+							_$_.append(__anchor, p_6);
 						}
 					);
 
-					_$_.append(__anchor, fragment_16);
+					_$_.append(__anchor, fragment_10);
 				};
 
 				var switch_case_default_6 = (__anchor) => {
-					var p_5 = root_34();
+					var p_7 = root_34();
 
-					_$_.append(__anchor, p_5);
+					_$_.append(__anchor, p_7);
 				};
 
 				_$_.switch(node_12, () => {
@@ -762,13 +758,13 @@ export function ForSwitchTry() {
 				ul_6,
 				() => items,
 				(__anchor, pattern_5) => {
-					var fragment_17 = root_36();
-					var node_14 = _$_.first_child_frag(fragment_17);
+					var fragment_11 = root_36();
+					var node_14 = _$_.first_child_frag(fragment_11);
 
 					{
 						var switch_case_0_7 = (__anchor) => {
-							var fragment_18 = root_37();
-							var node_15 = _$_.first_child_frag(fragment_18);
+							var fragment_12 = root_37();
+							var node_15 = _$_.first_child_frag(fragment_12);
 
 							_$_.try(
 								node_15,
@@ -831,12 +827,12 @@ export function ForSwitchTry() {
 								}
 							);
 
-							_$_.append(__anchor, fragment_18);
+							_$_.append(__anchor, fragment_12);
 						};
 
 						var switch_case_default_7 = (__anchor) => {
-							var fragment_19 = root_40();
-							var node_16 = _$_.first_child_frag(fragment_19);
+							var fragment_13 = root_40();
+							var node_16 = _$_.first_child_frag(fragment_13);
 
 							_$_.try(
 								node_16,
@@ -899,7 +895,7 @@ export function ForSwitchTry() {
 								}
 							);
 
-							_$_.append(__anchor, fragment_19);
+							_$_.append(__anchor, fragment_13);
 						};
 
 						_$_.switch(node_14, () => {
@@ -917,7 +913,7 @@ export function ForSwitchTry() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_17);
+					_$_.append(__anchor, fragment_11);
 				},
 				4,
 				(pattern_5) => _$_.get(pattern_5).id
@@ -940,13 +936,13 @@ export function ForIfTry() {
 				ul_7,
 				() => items,
 				(__anchor, pattern_6) => {
-					var fragment_20 = root_44();
-					var node_17 = _$_.first_child_frag(fragment_20);
+					var fragment_14 = root_44();
+					var node_17 = _$_.first_child_frag(fragment_14);
 
 					{
 						var consequent_6 = (__anchor) => {
-							var fragment_21 = root_45();
-							var node_18 = _$_.first_child_frag(fragment_21);
+							var fragment_15 = root_45();
+							var node_18 = _$_.first_child_frag(fragment_15);
 
 							_$_.try(
 								node_18,
@@ -1009,7 +1005,7 @@ export function ForIfTry() {
 								}
 							);
 
-							_$_.append(__anchor, fragment_21);
+							_$_.append(__anchor, fragment_15);
 						};
 
 						_$_.if(node_17, (__render) => {
@@ -1017,7 +1013,7 @@ export function ForIfTry() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_20);
+					_$_.append(__anchor, fragment_14);
 				},
 				4,
 				(pattern_6) => _$_.get(pattern_6).id
@@ -1040,18 +1036,18 @@ export function ForIfSwitchTrySingle() {
 				ul_8,
 				() => items,
 				(__anchor, pattern_7) => {
-					var fragment_22 = root_49();
-					var node_19 = _$_.first_child_frag(fragment_22);
+					var fragment_16 = root_49();
+					var node_19 = _$_.first_child_frag(fragment_16);
 
 					{
 						var consequent_7 = (__anchor) => {
-							var fragment_23 = root_50();
-							var node_20 = _$_.first_child_frag(fragment_23);
+							var fragment_17 = root_50();
+							var node_20 = _$_.first_child_frag(fragment_17);
 
 							{
 								var switch_case_0_8 = (__anchor) => {
-									var fragment_24 = root_51();
-									var node_21 = _$_.first_child_frag(fragment_24);
+									var fragment_18 = root_51();
+									var node_21 = _$_.first_child_frag(fragment_18);
 
 									_$_.try(
 										node_21,
@@ -1114,12 +1110,12 @@ export function ForIfSwitchTrySingle() {
 										}
 									);
 
-									_$_.append(__anchor, fragment_24);
+									_$_.append(__anchor, fragment_18);
 								};
 
 								var switch_case_default_8 = (__anchor) => {
-									var fragment_25 = root_54();
-									var node_22 = _$_.first_child_frag(fragment_25);
+									var fragment_19 = root_54();
+									var node_22 = _$_.first_child_frag(fragment_19);
 
 									_$_.try(
 										node_22,
@@ -1182,7 +1178,7 @@ export function ForIfSwitchTrySingle() {
 										}
 									);
 
-									_$_.append(__anchor, fragment_25);
+									_$_.append(__anchor, fragment_19);
 								};
 
 								_$_.switch(node_20, () => {
@@ -1200,7 +1196,7 @@ export function ForIfSwitchTrySingle() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_23);
+							_$_.append(__anchor, fragment_17);
 						};
 
 						_$_.if(node_19, (__render) => {
@@ -1208,7 +1204,7 @@ export function ForIfSwitchTrySingle() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_22);
+					_$_.append(__anchor, fragment_16);
 				},
 				4,
 				(pattern_7) => _$_.get(pattern_7).id
@@ -1235,18 +1231,18 @@ export function ForIfSwitchTryMulti() {
 				ul_9,
 				() => items,
 				(__anchor, pattern_8) => {
-					var fragment_26 = root_58();
-					var node_23 = _$_.first_child_frag(fragment_26);
+					var fragment_20 = root_58();
+					var node_23 = _$_.first_child_frag(fragment_20);
 
 					{
 						var consequent_8 = (__anchor) => {
-							var fragment_27 = root_59();
-							var node_24 = _$_.first_child_frag(fragment_27);
+							var fragment_21 = root_59();
+							var node_24 = _$_.first_child_frag(fragment_21);
 
 							{
 								var switch_case_0_9 = (__anchor) => {
-									var fragment_28 = root_60();
-									var node_25 = _$_.first_child_frag(fragment_28);
+									var fragment_22 = root_60();
+									var node_25 = _$_.first_child_frag(fragment_22);
 
 									_$_.try(
 										node_25,
@@ -1309,12 +1305,12 @@ export function ForIfSwitchTryMulti() {
 										}
 									);
 
-									_$_.append(__anchor, fragment_28);
+									_$_.append(__anchor, fragment_22);
 								};
 
 								var switch_case_default_9 = (__anchor) => {
-									var fragment_29 = root_63();
-									var node_26 = _$_.first_child_frag(fragment_29);
+									var fragment_23 = root_63();
+									var node_26 = _$_.first_child_frag(fragment_23);
 
 									_$_.try(
 										node_26,
@@ -1377,7 +1373,7 @@ export function ForIfSwitchTryMulti() {
 										}
 									);
 
-									_$_.append(__anchor, fragment_29);
+									_$_.append(__anchor, fragment_23);
 								};
 
 								_$_.switch(node_24, () => {
@@ -1395,7 +1391,7 @@ export function ForIfSwitchTryMulti() {
 								});
 							}
 
-							_$_.append(__anchor, fragment_27);
+							_$_.append(__anchor, fragment_21);
 						};
 
 						_$_.if(node_23, (__render) => {
@@ -1403,7 +1399,7 @@ export function ForIfSwitchTryMulti() {
 						});
 					}
 
-					_$_.append(__anchor, fragment_26);
+					_$_.append(__anchor, fragment_20);
 				},
 				4,
 				(pattern_8) => _$_.get(pattern_8).id

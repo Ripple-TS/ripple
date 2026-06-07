@@ -72,7 +72,7 @@ export function IntroductionPage() {
 				{'), who has previously worked on React, Svelte, Lexical, and Inferno.'}
 			</p>
 
-			<DocCodeGroup code={example_code} lang="ripple" />
+			<DocCodeGroup code={example_code} lang="tsrx" />
 
 			<DocCallout type="info" title="Prerequisites">
 				<p>
@@ -81,19 +81,19 @@ export function IntroductionPage() {
 						href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/A_re-introduction_to_JavaScript"
 						target="_blank"
 						rel="noopener noreferrer"
-					>{'JavaScript'}</a>
+					>JavaScript</a>
 					{', '}
 					<a
 						href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML"
 						target="_blank"
 						rel="noopener noreferrer"
-					>{'HTML'}</a>
+					>HTML</a>
 					{' and '}
 					<a
 						href="https://developer.mozilla.org/en-US/docs/Learn/CSS/First_steps"
 						target="_blank"
 						rel="noopener noreferrer"
-					>{'CSS'}</a>
+					>CSS</a>
 					{' if needed. Prior experience with other frameworks is helpful but not required.'}
 				</p>
 			</DocCallout>
@@ -102,52 +102,52 @@ export function IntroductionPage() {
 
 			<ul>
 				<li>
-					<strong>{'Reactive Primitives'}</strong>
+					<strong>Reactive Primitives</strong>
 					{': Built-in reactivity with '}
-					<code>{'track'}</code>
+					<code>track</code>
 					{' and lazy destructuring '}
 					<code>{'&[]'}</code>
 					{' syntax on primitives'}
 				</li>
 				<li>
-					<strong>{'Reactive Objects'}</strong>
+					<strong>Reactive Objects</strong>
 					{': You can create fully reactive arrays/objects using '}
-					<code>{'RippleArray'}</code>
+					<code>RippleArray</code>
 					{' and '}
-					<code>{'RippleObject'}</code>
+					<code>RippleObject</code>
 				</li>
 				<li>
-					<strong>{'Component-Based Architecture'}</strong>
+					<strong>Component-Based Architecture</strong>
 					{': Clean, reusable components with props and children'}
 				</li>
 				<li>
-					<strong>{'Statement Containers'}</strong>
+					<strong>Statement Containers</strong>
 					{': Use '}
 					<code>{'@{...}'}</code>
 					{' for local setup, then finish with one JSX element, fragment, or control-flow expression'}
 				</li>
 				<li>
-					<strong>{'Performance'}</strong>
+					<strong>Performance</strong>
 					{': Fine-grain rendering, with industry-leading performance, bundle-size and memory usage'}
 				</li>
 				<li>
-					<strong>{'TypeScript Support'}</strong>
+					<strong>TypeScript Support</strong>
 					{': Full TypeScript integration with type checking'}
 				</li>
 				<li>
-					<strong>{'VSCode Integration'}</strong>
+					<strong>VSCode Integration</strong>
 					{': Rich editor support with diagnostics, syntax highlighting, and IntelliSense'}
 				</li>
 				<li>
-					<strong>{'Prettier Support'}</strong>
+					<strong>Prettier Support</strong>
 					{': Full Prettier formatting support for '}
-					<code>{'.tsrx'}</code>
+					<code>.tsrx</code>
 					{' modules'}
 				</li>
 				<li>
-					<strong>{'ESLint Support'}</strong>
+					<strong>ESLint Support</strong>
 					{': linting support for '}
-					<code>{'.tsrx'}</code>
+					<code>.tsrx</code>
 					{' modules'}
 				</li>
 			</ul>
@@ -156,11 +156,11 @@ export function IntroductionPage() {
 
 			<p>
 				{'Ripple supports server-side rendering (SSR) with full hydration support. See the '}
-				<a href="/docs/guide/application">{'Application Guide'}</a>
+				<a href="/docs/guide/application">Application Guide</a>
 				{' for details on using '}
-				<code>{'mount()'}</code>
+				<code>mount()</code>
 				{' for client-side rendering and '}
-				<code>{'hydrate()'}</code>
+				<code>hydrate()</code>
 				{' for SSR hydration.'}
 			</p>
 		</DocsLayout>

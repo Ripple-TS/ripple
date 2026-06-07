@@ -1476,8 +1476,6 @@ export function TSRXPlugin(config) {
 				this.labels.push({ kind: 'switch' });
 				this.enterScope(0);
 
-				/** @type {AST.SwitchCase | undefined} */
-				let current;
 				let sawDefault = false;
 				while (this.type !== tt.braceR) {
 					if (this.type === tstt.jsxText && this.#rewindToSwitchCaseLabel()) {
@@ -1486,12 +1484,8 @@ export function TSRXPlugin(config) {
 
 					if (this.type === tt._case || this.type === tt._default) {
 						const isCase = this.type === tt._case;
-						if (current) {
-							this.finishNode(current, 'SwitchCase');
-						}
-						current = /** @type {AST.SwitchCase} */ (this.startNode());
+						const current = /** @type {AST.SwitchCase} */ (this.startNode());
 						current.consequent = [];
-						node.cases.push(current);
 						const previous_reading_header = this.#readingJSXControlFlowHeader;
 						this.#readingJSXControlFlowHeader = true;
 						try {
@@ -1509,19 +1503,19 @@ export function TSRXPlugin(config) {
 						} finally {
 							this.#readingJSXControlFlowHeader = previous_reading_header;
 						}
+						this.expect(tt.braceL);
+						while (this.type !== tt.braceR) {
+							this.#parseJSXSwitchCaseConsequent(current.consequent);
+						}
+						this.expect(tt.braceR);
+						node.cases.push(this.finishNode(current, 'SwitchCase'));
 						continue;
 					}
 
-					if (!current) {
-						this.unexpected();
-					}
-					this.#parseJSXSwitchCaseConsequent(current.consequent);
+					this.unexpected();
 				}
 
 				this.exitScope();
-				if (current) {
-					this.finishNode(current, 'SwitchCase');
-				}
 				this.next();
 				this.labels.pop();
 				return this.#finishJSXControlFlowExpression(

@@ -81,6 +81,7 @@ export function ForSwitch() {
 								_$_.output_push(_$_.escape(`B-${item.id}`));
 							}
 							_$_.output_push('</li>');
+							break;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -129,6 +130,7 @@ export function IfSwitch() {
 								_$_.output_push('Default');
 							}
 							_$_.output_push('</p>');
+							break;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -177,6 +179,7 @@ export function IfSwitchHidden() {
 								_$_.output_push('Default');
 							}
 							_$_.output_push('</p>');
+							break;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -236,6 +239,7 @@ export function ForIfSwitchSingle() {
 									_$_.output_push(_$_.escape(`D-${item.id}`));
 								}
 								_$_.output_push('</li>');
+								break;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -292,6 +296,7 @@ export function ForIfSwitchMulti() {
 									_$_.output_push(_$_.escape(`B-${item.id}`));
 								}
 								_$_.output_push('</li>');
+								break;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -349,6 +354,7 @@ export function ForIfSwitchWithDisabled() {
 									_$_.output_push(_$_.escape(`B-${item.id}`));
 								}
 								_$_.output_push('</li>');
+								break;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -418,6 +424,7 @@ export function SwitchTry() {
 							_$_.output_push('Default');
 						}
 						_$_.output_push('</p>');
+						break;
 				}
 
 				_$_.output_push('<!--]-->');
@@ -506,6 +513,7 @@ export function ForSwitchTry() {
 									_$_.output_push('<!--]-->');
 								}
 							);
+							break;
 					}
 
 					_$_.output_push('<!--]-->');
@@ -658,6 +666,7 @@ export function ForIfSwitchTrySingle() {
 										_$_.output_push('<!--]-->');
 									}
 								);
+								break;
 						}
 
 						_$_.output_push('<!--]-->');
@@ -758,6 +767,7 @@ export function ForIfSwitchTryMulti() {
 										_$_.output_push('<!--]-->');
 									}
 								);
+								break;
 						}
 
 						_$_.output_push('<!--]-->');

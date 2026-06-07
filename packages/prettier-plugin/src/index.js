@@ -1663,15 +1663,12 @@ function printRippleNode(node, path, options, print, args) {
 			nodeContent = printSwitchStatement(node, path, options, print);
 			break;
 		case 'JSXSwitchExpression':
-			nodeContent = [
-				'@',
-				printSwitchStatement(
-					/** @type {AST.SwitchStatement} */ (/** @type {unknown} */ (node)),
-					path,
-					options,
-					print,
-				),
-			];
+			nodeContent = printJSXSwitchExpression(
+				/** @type {AST.SwitchStatement} */ (/** @type {unknown} */ (node)),
+				path,
+				options,
+				print,
+			);
 			break;
 
 		case 'SwitchCase':
@@ -4519,6 +4516,76 @@ function printSwitchStatement(node, path, options, print) {
 	parts.push(' {', bodyDoc, '}');
 
 	return parts;
+}
+
+/**
+ * Print a JSX switch expression. JSX switch cases use explicit template blocks:
+ * `case value: { ... }`, unlike ordinary JavaScript switch cases.
+ * @param {AST.SwitchStatement} node - The switch expression node
+ * @param {AstPath<AST.SwitchStatement>} path - The AST path
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {PrintFn} print - Print callback
+ * @returns {Doc[]}
+ */
+function printJSXSwitchExpression(node, path, options, print) {
+	const discriminant = path.call(
+		(discriminantPath) => print(discriminantPath, { suppressLeadingComments: true }),
+		'discriminant',
+	);
+
+	/** @type {Doc[]} */
+	const cases = [];
+	for (let i = 0; i < node.cases.length; i++) {
+		const caseDoc = [printJSXSwitchCase(node.cases[i], path, options, print, i)];
+		if (i < node.cases.length - 1 && isNextLineEmpty(node.cases[i], options)) {
+			caseDoc.push(hardline);
+		}
+		cases.push(caseDoc);
+	}
+
+	const bodyDoc =
+		cases.length > 0 ? [indent([hardline, join(hardline, cases)]), hardline] : hardline;
+
+	const discriminantDoc = group(['@switch (', indent([softline, discriminant]), softline, ')']);
+
+	return [
+		...extractAndPrintLeadingComments(node.discriminant),
+		discriminantDoc,
+		' {',
+		bodyDoc,
+		'}',
+	];
+}
+
+/**
+ * @param {AST.SwitchCase} node
+ * @param {AstPath<AST.SwitchStatement>} path
+ * @param {RippleFormatOptions} options
+ * @param {PrintFn} print
+ * @param {number} index
+ * @returns {Doc[]}
+ */
+function printJSXSwitchCase(node, path, options, print, index) {
+	const header = node.test
+		? ['case ', path.call(print, 'cases', index, 'test'), ':']
+		: 'default:';
+	const consequents = node.consequent || [];
+	const printedConsequents = [];
+
+	for (let i = 0; i < consequents.length; i++) {
+		const child = consequents[i];
+		if (!child || child.type === 'EmptyStatement') {
+			continue;
+		}
+		printedConsequents.push(path.call(print, 'cases', index, 'consequent', i));
+	}
+
+	const bodyDoc =
+		printedConsequents.length > 0
+			? [indent([hardline, join(hardline, printedConsequents)]), hardline]
+			: hardline;
+
+	return [header, ' {', bodyDoc, '}'];
 }
 
 /**

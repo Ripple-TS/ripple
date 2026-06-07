@@ -6,23 +6,30 @@ export function AppSwitchIsolated({ status }: { status: string }) @{
 	const obj = { idle: 'Online', active: 'Away', offline: 'Offline' } as const;
 
 	@switch (status) {
-		case 'idle':
+		case 'idle': {
 			<span class="span-idle">{obj.idle}</span>
-		case 'active':
+		}
+		case 'active': {
 			<span class="span-active">{obj.active}</span>
-		case 'offline':
+		}
+		case 'offline': {
 			<span class="span-offline">{obj.offline}</span>
-		default:
+		}
+		default: {
 			<span class="span-default">{'Indeterminate'}</span>
+		}
 	}
 }
 
 export function AppSwitchEmptyCase({ status }: { status: string }) @{
 	@switch (status) {
-		case 'idle':
-		case 'active':
+		case 'idle': {
+		}
+		case 'active': {
 			<span class="span-active">{'Away'}</span>
-		default:
+		}
+		default: {
 			<span class="span-default">{'Indeterminate'}</span>
+		}
 	}
 }

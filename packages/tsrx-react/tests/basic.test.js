@@ -700,10 +700,12 @@ describe('@tsrx/react basic', () => {
 					const count = 0;
 
 					@switch (count) {
-					case 0:
+					case 0: {
 						<div>{'Zero'}</div>
-					default:
+					}
+					default: {
 						<div>{'Other'}</div>
+					}
 				}
 			}`,
 			'App.tsrx',
@@ -1291,11 +1293,13 @@ describe('@tsrx/react basic', () => {
 			export function App() @{
 				const page = 'home';
 				@switch (page) {
-					case 'home':
+					case 'home': {
 						const [count] = useState(0);
 						<div>{count}</div>
-					case 'about':
+					}
+					case 'about': {
 						<span>{'about'}</span>
+					}
 				}
 			}`,
 			'App.tsrx',

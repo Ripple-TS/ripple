@@ -309,9 +309,9 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 						@switch (kind) {
-						case 'a': <span>{'A'}</span>;
-						case 'b': <span>{'B'}</span>;
-						default: <span>{'?'}</span>;
+						case 'a': { <span>{'A'}</span> }
+						case 'b': { <span>{'B'}</span> }
+						default: { <span>{'?'}</span> }
 					}
 				}`,
 				'App.tsrx',
@@ -424,12 +424,15 @@ describe('@tsrx/solid basic', () => {
 				`function App({ hidden, kind }: { hidden: boolean; kind: string }) @{
 					@if (!hidden) {
 						@switch (kind) {
-							case 'skip':
+							case 'skip': {
 								<span>{'rest'}</span>
-							case 'done':
+							}
+							case 'done': {
 								<p>{'done'}</p>
-							default:
+							}
+							default: {
 								<span>{'rest'}</span>
+							}
 						}
 					}
 				}`,
@@ -466,10 +469,12 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 					@switch (kind) {
-						case 'a':
+						case 'a': {
 							<div>{'A'}</div>
-						default:
+						}
+						default: {
 							<span>{'?'}</span>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -484,12 +489,15 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 					@switch (kind) {
-						case 'skip':
+						case 'skip': {
 							<em>{'rest'}</em>
-						case 'a':
+						}
+						case 'a': {
 							<span>{'A'}</span>
-						default:
+						}
+						default: {
 							<em>{'rest'}</em>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -506,10 +514,12 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 					@switch (kind) {
-						case 'a':
+						case 'a': {
 							<span>{'A'}</span>
-						default:
+						}
+						default: {
 							<em>{'rest'}</em>
+						}
 					}
 				}`,
 				'App.tsrx',
@@ -667,12 +677,15 @@ describe('@tsrx/solid basic', () => {
 		// that doesn't apply to React's `App__static` hoisting policy.
 		const switch_source = `export function App({ status }: { status: string }) @{
 			@switch (status) {
-				case "idle":
+				case "idle": {
 					<span>{'Online'}</span>
-				case "active":
+				}
+				case "active": {
 					<span>{'Away'}</span>
-				case "offline":
+				}
+				case "offline": {
 					<span>{'Offline'}</span>
+				}
 			}
 		}`;
 
