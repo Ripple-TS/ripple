@@ -1041,9 +1041,18 @@ export function TSRXPlugin(config) {
 			/**
 			 * Inside a code block (`@{ … }` or a directive's `{ }`), decides whether the
 			 * next thing is the single bare render node (`<tag …>`, `<>…</>`, or an
-			 * `@if`/`@for`/`@switch`/`@try` directive) rather than a setup statement. A JS
-			 * statement can never legally start with `<`, so a `<` at statement position
-			 * is always JSX output.
+			 * `@if`/`@for`/`@switch`/`@try` directive) rather than a setup statement.
+			 *
+			 * Render output that begins with `<` is recognized by the tokenizer
+			 * (`getTokenFromCode`): it emits `jsxTagStart` for a `<` that opens a tag — at
+			 * the start of a line, or in an expression position such as after `;`/`{`/`=>` —
+			 * which the `jsxTagStart` fast path below covers. The char-based fallback for a
+			 * raw `<` therefore only treats it as render output when the tag starts its own
+			 * line or follows a `;` on the same line (so one-liners such as
+			 * `@{ const foo = 1; <>{foo}</> }` work). A `<` the tokenizer left as a
+			 * relational operator while trailing a value on the same line is the comparison
+			 * it looks like (`aaa <b` is `aaa < b`, never a `<b>` tag), so it stays setup
+			 * code rather than being mistaken for render output.
 			 */
 			#atRenderNodeStart() {
 				if (this.type === tstt.jsxTagStart) return true;
@@ -1052,14 +1061,17 @@ export function TSRXPlugin(config) {
 				if (ch === CharCode.lessThan) {
 					const next = this.input.charCodeAt(index + 1);
 					if (next === CharCode.slash) return false;
-					return (
+					const tagLike =
 						next === CharCode.greaterThan ||
 						next === CharCode.at ||
 						next === CharCode.dollar ||
 						next === CharCode.underscore ||
 						(next >= CharCode.uppercaseA && next <= CharCode.uppercaseZ) ||
-						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ)
-					);
+						(next >= CharCode.lowercaseA && next <= CharCode.lowercaseZ);
+					const previous = this.#previousNonSpaceTabIndex(index);
+					const afterSemicolon =
+						previous >= 0 && this.input.charCodeAt(previous) === CharCode.semicolon;
+					return tagLike && (this.#isLineStartPosition(index) || afterSemicolon);
 				}
 				return this.#isCodeBlockStart(index) || this.#isJSXControlFlowDirectiveAt(index);
 			}

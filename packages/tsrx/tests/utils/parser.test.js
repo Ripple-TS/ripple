@@ -886,6 +886,18 @@ foo();`;
 		expect(directive.alternate.body[0].children[0].value).toContain('Waiting');
 	});
 
+	it('parses braceless @if JSX output as a JSXIfExpression', () => {
+		const returned = getReturned(`function App() { return <div>
+			@if (visible) <div class="status">Visible: {String(visible)}</div>
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.type).toBe('JSXIfExpression');
+		expect(directive.consequent.type).toBe('JSXElement');
+		expect(directive.consequent.openingElement.name.name).toBe('div');
+		expect(directive.consequent.openingElement.attributes[0].name.name).toBe('class');
+	});
+
 	it('parses code-only @if bodies', () => {
 		const returned = getReturned(`function App() { return <div>
 			@if (ready) {
@@ -1429,5 +1441,226 @@ foo();`;
 			'VariableDeclaration',
 		]);
 		expect(block.render).toBeNull();
+	});
+
+	// The boundary between a block's setup section and its single render node hinges
+	// on where the render node's `<` sits. A `<tag` that begins a new line (or follows
+	// a statement separator that opens an expression position) starts the render
+	// output; a `<` that merely continues a value on the same line stays a relational
+	// operator. This keeps badly spaced comparisons such as `aaa <b` from being
+	// mistaken for a `<b>` tag.
+	it('starts the render node when a bare `<tag` begins a new line after a value', () => {
+		const returned = getReturned(`function App() { return <div>@{
+			const x = aaa
+			<b>hi</b>
+		}</div>; }`);
+
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.body[0].declarations[0].init.type).toBe('Identifier');
+		expect(block.render.type).toBe('JSXElement');
+		expect(block.render.openingElement.name.name).toBe('b');
+	});
+
+	it('keeps a same-line `value < tag-like` as a comparison, with render on the next line', () => {
+		const returned = getReturned(`function App() { return <div>@{
+			const r = aaa < b
+			<span>{r}</span>
+		}</div>; }`);
+
+		const block = returned.children[0];
+		const init = block.body[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(block.render.openingElement.name.name).toBe('span');
+	});
+
+	it('keeps a no-space same-line `aaa <b` as a comparison, not a `<b>` tag', () => {
+		const returned = getReturned(`function App() { return <div>@{
+			const r = aaa <b
+			<span>{r}</span>
+		}</div>; }`);
+
+		const block = returned.children[0];
+		const init = block.body[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(init.left.name).toBe('aaa');
+		expect(init.right.name).toBe('b');
+		expect(block.render.openingElement.name.name).toBe('span');
+	});
+
+	it('treats a trailing `aaa <b` with no following node as a comparison, never a render node', () => {
+		const returned = getReturned(`function App() { return <div>@{
+			const r = aaa <b
+		}</div>; }`);
+
+		const block = returned.children[0];
+		expect(block.render).toBeNull();
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.body[0].declarations[0].init.operator).toBe('<');
+	});
+
+	it('still starts the render node when a `<tag` follows a `;` on the same line', () => {
+		const returned = getReturned(`function App() { return <div>@{
+			const a = 5; <span/>
+		}</div>; }`);
+
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXElement');
+		expect(block.render.openingElement.name.name).toBe('span');
+	});
+
+	it('parses a one-line `@{ }` block whose render follows the setup `;` (fragment)', () => {
+		const returned = getReturned(
+			`function App() { return <div>@{ const foo = 123; <>{foo}</> }</div>; }`,
+		);
+
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.body[0].declarations[0].init.value).toBe(123);
+		expect(block.render.type).toBe('JSXFragment');
+		expect(block.render.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
+	});
+
+	it('parses a one-line `@{ }` block whose render follows the setup `;` (element)', () => {
+		const returned = getReturned(
+			`function App() { return <div>@{ const foo = 123; <span>{foo}</span> }</div>; }`,
+		);
+
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXElement');
+		expect(block.render.openingElement.name.name).toBe('span');
+	});
+
+	it('parses a one-line `@{ }` block with multiple `;`-separated setup statements before the render', () => {
+		const returned = getReturned(
+			`function App() { return <div>@{ const a = 1; const b = 2; <span>{a}{b}</span> }</div>; }`,
+		);
+
+		const block = returned.children[0];
+		expect(block.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'VariableDeclaration',
+		]);
+		expect(block.render.openingElement.name.name).toBe('span');
+	});
+
+	it('parses a one-line `@{ }` block returned directly', () => {
+		const statement = parseModule(
+			`function App() { return @{ const foo = 123; <>{foo}</> }; }`,
+			'App.tsrx',
+		).body[0].body.body[0];
+
+		expect(statement.type).toBe('ReturnStatement');
+		expect(statement.argument.type).toBe('JSXCodeBlock');
+		expect(statement.argument.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(statement.argument.render.type).toBe('JSXFragment');
+	});
+
+	it('applies the setup-to-render `<` disambiguation inside an `@if` consequent', () => {
+		const returned = getReturned(`function App() { return <div>
+			@if (ready) {
+				const r = aaa <b
+				<span>{r}</span>
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.consequent.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'JSXElement',
+		]);
+		const init = directive.consequent.body[0].declarations[0].init;
+		expect(init.type).toBe('BinaryExpression');
+		expect(init.operator).toBe('<');
+		expect(directive.consequent.body[1].openingElement.name.name).toBe('span');
+	});
+
+	it('applies the setup-to-render `<` disambiguation inside an `@for` body', () => {
+		const returned = getReturned(`function App() { return <ul>
+			@for (const item of items) {
+				const r = item <count
+				<li>{r}</li>
+			}
+		</ul>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.body.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'JSXElement',
+		]);
+		expect(directive.body.body[0].declarations[0].init.operator).toBe('<');
+		expect(directive.body.body[1].openingElement.name.name).toBe('li');
+	});
+
+	// The render node of a one-line block can be an `@if`/`@for`/`@switch`/`@try`
+	// directive, not just a `<tag`. These mirror the JSX one-liner cases above: the
+	// directive follows the setup `;` on the same line, or starts its own line, in
+	// both braceless and braced forms.
+	it('parses a one-line block whose render is a braceless `@if` after the setup `;`', () => {
+		const block = getReturned(
+			`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div> }; }`,
+		);
+
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXIfExpression');
+		expect(block.render.test.name).toBe('foo');
+		expect(block.render.consequent.type).toBe('JSXElement');
+		expect(block.render.consequent.openingElement.name.name).toBe('div');
+	});
+
+	it('parses a braceless `@if` render whose consequent begins on the next line', () => {
+		const block = getReturned(`function App() { return @{ const foo = 123; @if (foo)
+			<div>{foo}</div> }; }`);
+
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXIfExpression');
+		expect(block.render.consequent.type).toBe('JSXElement');
+		expect(block.render.consequent.openingElement.name.name).toBe('div');
+	});
+
+	it('parses a braced `@if` render after the setup `;` on the same line', () => {
+		const block = getReturned(
+			`function App() { return @{ const foo = 123; @if (foo) { <div>{foo}</div> } }; }`,
+		);
+
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXIfExpression');
+		expect(block.render.consequent.type).toBe('BlockStatement');
+		expect(block.render.consequent.body.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(block.render.consequent.body[0].openingElement.name.name).toBe('div');
+	});
+
+	it('parses a braced `@if` render whose body begins on the next line', () => {
+		const block = getReturned(`function App() { return @{ const foo = 123; @if (foo) {
+			<div>{foo}</div>} }; }`);
+
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXIfExpression');
+		expect(block.render.consequent.body.map((child) => child.type)).toEqual(['JSXElement']);
+	});
+
+	it('parses a braced `@for` render after the setup `;` on the same line', () => {
+		const block = getReturned(
+			`function App() { return @{ const xs = [1, 2]; @for (const x of xs) { <li>{x}</li> } }; }`,
+		);
+
+		expect(block.body.map((child) => child.type)).toEqual(['VariableDeclaration']);
+		expect(block.render.type).toBe('JSXForExpression');
+		expect(block.render.body.body.map((child) => child.type)).toEqual(['JSXElement']);
+		expect(block.render.body.body[0].openingElement.name.name).toBe('li');
+	});
+
+	it('rejects a trailing `;` after a one-line render node (no `;` after render in one-liners)', () => {
+		expect(() =>
+			parseModule(
+				`function App() { return @{ const foo = 123; @if (foo) <div>{foo}</div>; }; }`,
+				'App.tsrx',
+			),
+		).toThrow(/statements cannot follow/);
 	});
 });
