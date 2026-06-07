@@ -1,3 +1,5 @@
+import { Layout } from '../components/layout.tsrx';
+
 const MODIFIED_PRODUCTIONS = [
 	'PrimaryExpression :',
 	'  TsrxExpression',
@@ -188,7 +190,7 @@ export function SpecificationPage() {
 				content="Draft TSRX language specification: TypeScript-compatible grammar extensions, TSRX return expressions, expression values, lazy destructuring, style identifiers, and host-defined server extensions."
 			/>
 		</head>
-		<div class="app-shell">
+		<Layout>
 			<div class="page-shell">
 				<header class="masthead">
 					<a class="brand-lockup" href="/" aria-label="TSRX home">
@@ -605,57 +607,8 @@ export function SpecificationPage() {
 					<p>{'Copyright © 2025-present Dominic Gannaway'}</p>
 				</footer>
 			</div>
-		</div>
+		</Layout>
 		<style>
-			:global(*) {
-				box-sizing: border-box;
-			}
-
-			:global(html) {
-				scroll-behavior: smooth;
-				overflow-x: hidden;
-				scrollbar-gutter: stable;
-			}
-
-			:global(body) {
-				margin: 0;
-				font-family:
-					system-ui,
-					-apple-system,
-					BlinkMacSystemFont,
-					'Segoe UI',
-					Roboto,
-					sans-serif;
-				color: #1a1640;
-				background:
-					radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-					radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
-					linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
-				background-repeat: no-repeat;
-				background-size:
-					100% 100vh,
-					100% 100vh,
-					100% 100%;
-				min-height: 100vh;
-				overflow-x: hidden;
-			}
-
-			:global(a) {
-				color: inherit;
-				text-decoration: none;
-			}
-
-			:global(code),
-			:global(pre) {
-				font-family: 'Spline Sans Mono', 'SFMono-Regular', monospace;
-			}
-
-			.app-shell {
-				position: relative;
-				z-index: 1;
-				width: 100%;
-			}
-
 			.page-shell {
 				width: min(1180px, calc(100vw - 2rem));
 				margin: 0 auto;

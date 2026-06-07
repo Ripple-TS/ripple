@@ -1,4 +1,5 @@
 import { CompilerDemo } from '../components/compiler-demo.tsrx';
+import { Layout } from '../components/layout.tsrx';
 
 export function PlaygroundPage() {
 	return <>
@@ -9,86 +10,38 @@ export function PlaygroundPage() {
 				content="Try TSRX in the browser. Write component code and see the compiled code in real time."
 			/>
 		</head>
-		<div class="demo-page">
-			<header class="demo-nav">
-				<a class="brand-lockup" href="/" aria-label="TSRX home">
-					<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
-				</a>
-				<nav class="nav-links">
-					<a href="/getting-started">{'Getting Started'}</a>
-					<a href="/features">{'Features'}</a>
-					<a href="/specification">{'Specification'}</a>
-					<a href="/playground" aria-current="page">{'Playground'}</a>
-					<a href="/blog">{'Blog'}</a>
-					<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
-						{'Discord'}
+		<Layout>
+			<div class="demo-page">
+				<header class="demo-nav">
+					<a class="brand-lockup" href="/" aria-label="TSRX home">
+						<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
 					</a>
-					<a
-						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						{'GitHub'}
-					</a>
-					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
-				</nav>
-			</header>
+					<nav class="nav-links">
+						<a href="/getting-started">{'Getting Started'}</a>
+						<a href="/features">{'Features'}</a>
+						<a href="/specification">{'Specification'}</a>
+						<a href="/playground" aria-current="page">{'Playground'}</a>
+						<a href="/blog">{'Blog'}</a>
+						<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+							{'Discord'}
+						</a>
+						<a
+							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							{'GitHub'}
+						</a>
+						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">{'llms.txt'}</a>
+					</nav>
+				</header>
 
-			<main class="demo-main">
-				<CompilerDemo />
-			</main>
-		</div>
+				<main class="demo-main">
+					<CompilerDemo />
+				</main>
+			</div>
+		</Layout>
 		<style>
-			:global(*) {
-				box-sizing: border-box;
-			}
-
-			:global(html) {
-				scroll-behavior: smooth;
-				overflow-x: hidden;
-				scrollbar-gutter: stable;
-			}
-
-			:global(body) {
-				margin: 0;
-				font-family:
-					system-ui,
-					-apple-system,
-					BlinkMacSystemFont,
-					'Segoe UI',
-					Roboto,
-					sans-serif;
-				color: #1a1640;
-				background:
-					radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-					radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
-					linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
-				background-repeat: no-repeat;
-				background-size:
-					100% 100vh,
-					100% 100vh,
-					100% 100%;
-				min-height: 100vh;
-				overflow-x: hidden;
-			}
-
-			:global(a) {
-				color: inherit;
-				text-decoration: none;
-			}
-
-			:global(button),
-			:global(input),
-			:global(textarea),
-			:global(select) {
-				font: inherit;
-			}
-
-			:global(code),
-			:global(pre) {
-				font-family: 'Spline Sans Mono', 'SFMono-Regular', monospace;
-			}
-
 			.demo-page {
 				display: grid;
 				grid-template-rows: auto 1fr;

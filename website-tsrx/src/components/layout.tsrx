@@ -1,6 +1,6 @@
 export function Layout({ children }: { children: any }) {
 	return <>
-		<main class="shell">{children}</main>
+		<div class="shell">{children}</div>
 		<style>
 			:global(*) {
 				box-sizing: border-box;
@@ -8,7 +8,8 @@ export function Layout({ children }: { children: any }) {
 
 			:global(html) {
 				scroll-behavior: smooth;
-				overflow-x: hidden;
+				overflow-x: clip;
+				scrollbar-gutter: stable;
 			}
 
 			:global(body) {
@@ -31,7 +32,6 @@ export function Layout({ children }: { children: any }) {
 					100% 100vh,
 					100% 100%;
 				min-height: 100vh;
-				overflow-x: hidden;
 			}
 
 			:global(a) {
@@ -41,7 +41,8 @@ export function Layout({ children }: { children: any }) {
 
 			:global(button),
 			:global(input),
-			:global(textarea) {
+			:global(textarea),
+			:global(select) {
 				font: inherit;
 			}
 
