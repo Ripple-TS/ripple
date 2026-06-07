@@ -283,7 +283,6 @@ export function export_builder(
  * @param {AST.BlockStatement} body
  * @param {boolean} [async]
  * @param {AST.TSTypeParameterDeclaration} [type_parameters]
- * @param
  * @returns {AST.FunctionDeclaration}
  */
 export function function_declaration(id, params, body, async = false, type_parameters) {

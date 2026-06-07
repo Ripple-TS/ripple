@@ -1425,7 +1425,7 @@ function SetStateForOutsideComponent(state, more_state = {}) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | ESTreeJSX.JSXFragment} node
  * @param {TransformClientContext} context
  * @returns {AST.CallExpression}
  */
@@ -3710,10 +3710,6 @@ const visitors = {
 		return b.empty;
 	},
 
-	ScriptContent(node, context) {
-		return b.literal(sanitizeTemplateString(node.content));
-	},
-
 	Program(node, context) {
 		/** @type {Array<AST.Statement | AST.Directive | AST.ModuleDeclaration>} */
 		const statements = [];
@@ -4666,12 +4662,6 @@ function transform_ts_child(node, context) {
 			return result;
 		}
 		state.init.push(result);
-	} else if (node.type === 'ScriptContent') {
-		state.init?.push(
-			/** @type {AST.Statement} */ (
-				/** @type {unknown} */ (b.jsx_text(node.content, node.content))
-			),
-		);
 	} else {
 		const result = visit(node, state);
 		if (!state.init) {

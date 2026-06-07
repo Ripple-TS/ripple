@@ -1264,12 +1264,11 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * `@`-constructs are expressions (§6a, §2 rule 9): a `@{ … }` code block or an
-			 * `@if`/`@for`/`@switch`/`@try` directive may be returned, assigned, or passed
-			 * anywhere an expression is expected — `() => @{ … }`, `const x = @{ … }`,
-			 * `items.map((i) => @if (c) { … })`. Only `@{` and the four reserved
-			 * control-flow keywords are intercepted; any other `@…` (e.g. a decorated
-			 * class expression `@dec class {}`) falls through so decorators keep working.
+			 * At-sign constructs are expressions (§6a, §2 rule 9): code blocks and the
+			 * if/for/switch/try directive forms may be returned, assigned, or passed
+			 * anywhere an expression is expected. Only code blocks and the four reserved
+			 * control-flow keywords are intercepted; any other at-sign form, such as a
+			 * decorated class expression, falls through so decorators keep working.
 			 * @type {Parse.Parser['parseExprAtom']}
 			 */
 			parseExprAtom(refDestructuringErrors, forInit, forNew) {

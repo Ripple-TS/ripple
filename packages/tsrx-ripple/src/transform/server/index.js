@@ -316,7 +316,7 @@ function insert_style_ref_setup_statements(body, setup) {
 }
 
 /**
- * @param {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | ESTreeJSX.JSXFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
@@ -2929,10 +2929,6 @@ const visitors = {
 			const render_fn = b.arrow([], b.block(init));
 			return b.call('_$_.tsrx_element', render_fn);
 		}
-	},
-
-	ScriptContent(node, context) {
-		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(node.content))));
 	},
 
 	TSModuleBlock(node, context) {

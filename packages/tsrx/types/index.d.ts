@@ -254,8 +254,8 @@ declare module 'estree' {
 		Element: Element;
 		TsrxFragment: TsrxFragment;
 		Text: Text;
+		TSRXJSXElement: TSRXJSXElement;
 		TSRXExpression: TSRXExpression;
-		ScriptContent: ScriptContent;
 		Attribute: Attribute;
 		SpreadAttribute: SpreadAttribute;
 		JSXCodeBlock: JSXCodeBlock;
@@ -272,7 +272,6 @@ declare module 'estree' {
 		TsrxFragment: TsrxFragment;
 		Text: Text;
 		TSRXExpression: TSRXExpression;
-		ScriptContent: ScriptContent;
 		JSXCodeBlock: JSXCodeBlock;
 		JSXStyleElement: JSXStyleElement;
 		JSXIfExpression: JSXIfExpression;
@@ -284,7 +283,8 @@ declare module 'estree' {
 		TSAsExpression: TSAsExpression;
 	}
 
-	// Missing estree type
+	// Ripple-normalized template node shapes. The core parser emits JSX-shaped
+	// TSRX nodes; @tsrx/ripple creates these during its normalization pass.
 	interface Attribute extends AST.BaseNode {
 		type: 'Attribute';
 		name: AST.Identifier;
@@ -338,10 +338,25 @@ declare module 'estree' {
 		metadata: BaseNodeMetaData;
 	}
 
-	interface ScriptContent extends AST.BaseExpression {
-		type: 'ScriptContent';
-		content: string;
-		metadata: BaseNodeMetaData;
+	type TSRXJSXChild =
+		| ESTreeJSX.JSXText
+		| ESTreeJSX.JSXExpressionContainer
+		| ESTreeJSX.JSXSpreadChild
+		| TSRXJSXElement
+		| TSRXJSXFragment
+		| AST.JSXCodeBlock;
+
+	interface TSRXJSXElement
+		extends Omit<ESTreeJSX.JSXElement, 'children'>, AST.NodeWithMaybeComments {
+		children: TSRXJSXChild[];
+		metadata: BaseNodeMetaData & {
+			ts_name?: string;
+		};
+	}
+
+	interface TSRXJSXFragment
+		extends Omit<ESTreeJSX.JSXFragment, 'children'>, AST.NodeWithMaybeComments {
+		children: TSRXJSXChild[];
 	}
 
 	interface JSXCodeBlock extends AST.BaseExpression {
@@ -492,7 +507,7 @@ declare module 'estree' {
 		trailingComments?: AST.Comment[] | undefined;
 	}
 
-	export type TSRXDeclaration = AST.Declaration | AST.TSDeclareFunction;
+	type TSRXDeclaration = AST.Declaration | AST.TSDeclareFunction;
 
 	interface TSRXExportNamedDeclaration extends Omit<AST.ExportNamedDeclaration, 'declaration'> {
 		declaration?: TSRXDeclaration | null | undefined;
@@ -502,9 +517,9 @@ declare module 'estree' {
 		body: (Program['body'][number] | FunctionExpression)[];
 	}
 
-	export type TSRXStatement = AST.Statement | TSESTree.Statement;
+	type TSRXStatement = AST.Statement | TSESTree.Statement;
 
-	export type NodeWithChildren = ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | JSXStyleElement;
+	type NodeWithChildren = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {

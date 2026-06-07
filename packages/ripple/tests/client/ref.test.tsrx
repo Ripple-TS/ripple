@@ -98,9 +98,10 @@ describe('refs', () => {
 			<Child ref={componentRef} {items} />
 		}
 
-		function Child(
-			props: PropsWithExtras<{ items: RippleArray<number>; ref?: RefValue<HTMLPreElement> }>,
-		) @{
+		function Child(props: PropsWithExtras<{
+			items: RippleArray<number>;
+			ref?: RefValue<HTMLPreElement>;
+		}>) @{
 			const { items, ...rest } = props;
 			<>
 				<pre {...rest}>{JSON.stringify(items)}</pre>

@@ -661,9 +661,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 								comments[0].start >= /** @type {AST.NodeWithLocation} */ (node).start &&
 								comments[0].start < /** @type {AST.NodeWithLocation} */ (node).end
 							) {
-								/** @type {AST.NodeWithMaybeComments} */ ((node).innerComments ||= []).push(
-									/** @type {AST.CommentWithLocation} */ (comments.shift()),
-								);
+								pushInnerComment(node, /** @type {AST.CommentWithLocation} */ (comments.shift()));
 							}
 							if (comments.length === 0) {
 								return;

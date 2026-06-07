@@ -5758,7 +5758,7 @@ function createElementLevelCommentPartsTrimmed(comments) {
 
 /**
  * Print a JSX element
- * @param {any} node - The JSX element node
+ * @param {AST.TSRXJSXElement} node - The JSX element node
  * @param {AstPath<any>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
@@ -5979,11 +5979,10 @@ function printJSXElement(node, path, options, print) {
 
 	// A child with leading comments must break onto its own line, so the comment
 	// reads above the child rather than being jammed onto the opening tag.
-	const hasChildLeadingComments = node.children.some(
-		(/** @type {any} */ child) =>
-			Array.isArray(/** @type {AST.NodeWithMaybeComments} */ (child).leadingComments) &&
-			/** @type {AST.NodeWithMaybeComments} */ ((child).leadingComments ?? []).length > 0,
-	);
+	const hasChildLeadingComments = node.children.some((child) => {
+		const leadingComments = /** @type {AST.NodeWithMaybeComments} */ (child).leadingComments;
+		return Array.isArray(leadingComments) && leadingComments.length > 0;
+	});
 	const forceMultiline = hasClosingComments || hasChildLeadingComments;
 
 	// Check if content can be inlined (single text node or single expression).
@@ -6149,7 +6148,7 @@ function printJSXFragment(node, path, options, print) {
  * opening tag's end, but the child is visited first). Pull those out of the
  * children and return a map from attribute index to the comments that precede it,
  * so the element printer can render them in the opening tag instead of the body.
- * @param {ESTreeJSX.JSXElement & { children?: AST.Node[] }} node
+ * @param {AST.TSRXJSXElement} node
  * @returns {Map<number, AST.Comment[]>}
  */
 function collectOpeningTagComments(node) {
@@ -6257,10 +6256,9 @@ function printElementBodyLineComments(commentList, previousNode = null) {
 }
 
 /**
- * Print a `@{ … }` code block: setup statements then the single render output,
- * indented one level. Callers in element/fragment body position hug it to the
- * surrounding tags (`<div>@{` … `}</div>`); on its own (`() => @{ … }`) it stands
- * alone.
+ * Print a TSRX code block: setup statements then the single render output.
+ * Callers in element/fragment body position hug it to the surrounding tags;
+ * on its own as an arrow body it stands alone.
  * @param {AST.JSXCodeBlock} node
  * @param {AstPath<AST.JSXCodeBlock>} path
  * @param {RippleFormatOptions} options
