@@ -1130,7 +1130,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 }
 
 /**
- * Transform a `try { ... } pending { ... } catch (err, reset) { ... }` block
+ * Transform an `@try { ... } @pending { ... } @catch (err, reset) { ... }` block
  * into Solid's `<Errored>` and/or `<Loading>` JSX elements.
  *
  * @param {any} node

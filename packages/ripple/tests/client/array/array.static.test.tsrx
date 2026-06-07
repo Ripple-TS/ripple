@@ -41,7 +41,7 @@ describe('RippleArray > static', () => {
 			function Parent() @{
 				@try {
 					<ArrayTest />
-				} pending {
+				} @pending {
 					<div>{'Loading placeholder...'}</div>
 				}
 			}
@@ -78,7 +78,7 @@ describe('RippleArray > static', () => {
 			function Parent() @{
 				@try {
 					<ArrayTest />
-				} pending {
+				} @pending {
 					<div>{'Loading placeholder...'}</div>
 				}
 			}
@@ -117,7 +117,7 @@ describe('RippleArray > static', () => {
 				function Parent() @{
 					@try {
 						<ArrayTest />
-					} pending {
+					} @pending {
 						<div>{'Loading placeholder...'}</div>
 					}
 				}
@@ -134,9 +134,9 @@ describe('RippleArray > static', () => {
 								<li>{item}</li>
 							}
 						</ul>
-					} pending {
+					} @pending {
 						<div>{'Loading...'}</div>
-					} catch (e) {
+					} @catch (e) {
 						<>
 							<pre>
 								{'Error: ' + (e as Error).message}
@@ -227,7 +227,7 @@ describe('RippleArray > static', () => {
 				function Parent() @{
 					@try {
 						<ArrayTest />
-					} pending {
+					} @pending {
 						<div>{'Loading placeholder...'}</div>
 					}
 				}

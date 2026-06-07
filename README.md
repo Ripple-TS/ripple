@@ -216,9 +216,9 @@ export function Dashboard({ user }: { user: User | null }) @{
 export function ProfilePanel() @{
   @try {
     <UserProfile />
-  } pending {
+  } @pending {
     <p>Loading...</p>
-  } catch (error, reset) {
+  } @catch (error, reset) {
     <div>
       <p>Error:{error.message}</p>
       <button onClick={() => reset()}>Try again</button>

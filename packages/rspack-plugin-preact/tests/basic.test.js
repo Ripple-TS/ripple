@@ -78,7 +78,7 @@ describe('@tsrx/rspack-plugin-preact js-loader', () => {
 		export function App() @{
 			@try {
 				<AsyncThing />
-			} pending {
+			} @pending {
 				<div>{'Loading'}</div>
 			}
 		}

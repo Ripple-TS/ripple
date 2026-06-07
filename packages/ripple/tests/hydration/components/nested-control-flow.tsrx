@@ -149,7 +149,7 @@ export function SwitchTry() @{
 			@case 'a': {
 				@try {
 					<p class="resolved-a">{'A resolved'}</p>
-				} pending {
+				} @pending {
 					<p class="pending-a">{'A pending'}</p>
 				}
 			}
@@ -172,14 +172,14 @@ export function ForSwitchTry() @{
 				@case 'a': {
 					@try {
 						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
-					} pending {
+					} @pending {
 						<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 					}
 				}
 				@default: {
 					@try {
 						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
-					} pending {
+					} @pending {
 						<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 					}
 				}
@@ -199,7 +199,7 @@ export function ForIfTry() @{
 			@if (item.show) {
 				@try {
 					<li class={`item item-${item.id}`}>{`item-${item.id}`}</li>
-				} pending {
+				} @pending {
 					<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 				}
 			}
@@ -219,14 +219,14 @@ export function ForIfSwitchTrySingle() @{
 					@case 'a': {
 						@try {
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
-						} pending {
+						} @pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}
 					@default: {
 						@try {
 							<li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
-						} pending {
+						} @pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}
@@ -249,14 +249,14 @@ export function ForIfSwitchTryMulti() @{
 					@case 'a': {
 						@try {
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
-						} pending {
+						} @pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}
 					@default: {
 						@try {
 							<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
-						} pending {
+						} @pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}

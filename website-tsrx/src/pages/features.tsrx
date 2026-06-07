@@ -107,7 +107,7 @@ const TRY_HTML = highlight_tsrx(
 	`function SafeProfile({ userId }: { userId: string }) @{
   @try {
     <UserProfile id={userId} />
-  } catch (error) {
+  } @catch (error) {
     <div class="error">
       <p>Something went wrong.</p>
     </div>
@@ -119,7 +119,7 @@ const TRY_RESET_HTML = highlight_tsrx(
 	`export function RetryBoundary() @{
   @try {
     <ComponentThatMightFail />
-  } catch (e, reset) {
+  } @catch (e, reset) {
     <div>
       <p>Error: {e.message}</p>
       <button onClick={() => reset()}>Try again</button>
@@ -192,9 +192,9 @@ const ASYNC_BOUNDARY_HTML = highlight_tsrx(
 export function App() @{
   @try {
     <UserProfile id={1} />
-  } pending {
+  } @pending {
     <p>Loading...</p>
-  } catch (e) {
+  } @catch (e) {
     <p>Something went wrong.</p>
   }
 }`,

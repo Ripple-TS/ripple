@@ -5172,11 +5172,11 @@ function switch_statement_to_jsx_child(node, transform_context) {
 }
 
 /**
- * Transform a `try { ... } pending { ... } catch (err, reset) { ... }` block
+ * Transform an `@try { ... } @pending { ... } @catch (err, reset) { ... }` block
  * into React `<TsrxErrorBoundary>` and/or `<Suspense>` JSX elements.
  *
- * - `pending` → `<Suspense fallback={...}>`
- * - `catch` → `<TsrxErrorBoundary fallback={(err, reset) => ...}>`
+ * - `@pending` → `<Suspense fallback={...}>`
+ * - `@catch` → `<TsrxErrorBoundary fallback={(err, reset) => ...}>`
  * - both → ErrorBoundary wraps Suspense
  * - JavaScript `try/finally` is not part of component template control flow
  *
@@ -5372,8 +5372,8 @@ function create_jsx_element(tag_name, attributes, children) {
 
 /**
  * Inject runtime-helper import declarations the transform decided it needed
- * during the walk: `Suspense` for `try { ... } pending { ... }`,
- * `TsrxErrorBoundary` for `try { ... } catch (...)`, and `mergeRefs` for
+ * during the walk: `Suspense` for `@try { ... } @pending { ... }`,
+ * `TsrxErrorBoundary` for `@try { ... } @catch (...)`, and `mergeRefs` for
  * elements with multiple `ref` attributes under the `'merge-refs'`
  * strategy. Import sources are platform-specific.
  *

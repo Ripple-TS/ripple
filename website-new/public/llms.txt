@@ -252,9 +252,9 @@ export function Profile({ user }: { user: User | null }) @{
 export function ProfileBoundary() @{
 	@try {
 		<UserProfile />
-	} pending {
+	} @pending {
 		<p>Loading...</p>
-	} catch (error, reset) {
+	} @catch (error, reset) {
 		<div>
 			<p>Error: {error.message}</p>
 			<button onClick={() => reset()}>Try again</button>

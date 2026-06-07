@@ -29,7 +29,7 @@ export function RootAsyncRejects() @{
 export function AsyncListInTryPending() @{
 	@try {
 		<AsyncList />
-	} pending {
+	} @pending {
 		<p class="loading">{'loading...'}</p>
 	}
 }
@@ -48,7 +48,7 @@ export function AsyncTryWithLeadingSibling() @{
 		<div class="before">{'before'}</div>
 		@try {
 			<AsyncContent />
-		} pending {
+		} @pending {
 			<div class="loading">{'loading async content'}</div>
 		}
 	</>

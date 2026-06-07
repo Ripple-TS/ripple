@@ -691,7 +691,7 @@ describe('@tsrx/vue basic', () => {
 			function App() @{
 				@try {
 					<ThrowingChild />
-				} catch (error) {
+				} @catch (error) {
 					<div>{error.message}</div>
 				}
 			}`,
@@ -711,7 +711,7 @@ describe('@tsrx/vue basic', () => {
 			`function App() @{
 				@try {
 					<div>{'Async content'}</div>
-				} pending {
+				} @pending {
 					<div>{'Loading...'}</div>
 				}
 			}`,
@@ -733,7 +733,7 @@ describe('@tsrx/vue basic', () => {
 			`function App() @{
 				@try {
 					<div>{'Async content'}</div>
-				} pending {}
+				} @pending {}
 			}`,
 			'App.tsrx',
 		);
@@ -752,9 +752,9 @@ describe('@tsrx/vue basic', () => {
 
 				@try {
 					<div>{'Async content'}</div>
-				} pending {
+				} @pending {
 					<div>{'Loading...'}</div>
-				} catch (error, reset) {
+				} @catch (error, reset) {
 					<button onClick={reset}>{error.message}{suffix}</button>
 				}
 			}`,
@@ -792,9 +792,9 @@ describe('@tsrx/vue basic', () => {
 
 				@try {
 					<AsyncChild value="hello" />
-				} pending {
+				} @pending {
 					<p class="async-pending">{'loading...'}</p>
-				} catch (err) {
+				} @catch (err) {
 					<p class="async-caught">{(err as Error).message}{suffix}</p>
 				}
 			}`;
@@ -830,7 +830,7 @@ describe('@tsrx/vue basic', () => {
 				`function App() @{
 					@try {
 						<div>{'content'}</div>
-					} catch (error) {
+					} @catch (error) {
 						<div>{error.message}</div>
 					} finally {
 						log(error)

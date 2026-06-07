@@ -314,7 +314,7 @@ const RIPPLE_SNIPPETS = [
 		kind: CompletionItemKind.Snippet,
 		detail: 'try...pending block',
 		documentation: 'Handle async content with loading fallback',
-		insertText: '@try {\n\t$1\n} pending {\n\t<div>Loading...</div>\n}',
+		insertText: '@try {\n\t$1\n} @pending {\n\t<div>Loading...</div>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-try-pending',
 	},

@@ -9,7 +9,7 @@ describe('trackAsync hydration from serialized data (client)', () => {
 			@try {
 				let &[data] = trackAsync(() => Promise.resolve('fallback'));
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="loading">{'loading...'}</p>
 			}
 		}
@@ -33,7 +33,7 @@ describe('trackAsync hydration from serialized data (client)', () => {
 			@try {
 				let &[value] = trackAsync(() => promise);
 				<span class="value">{value}</span>
-			} pending {
+			} @pending {
 				<span class="pending">{'waiting'}</span>
 			}
 		}

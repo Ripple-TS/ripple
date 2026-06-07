@@ -26,9 +26,9 @@ const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
     } @else {
       <p>No activity yet</p>
     }
-  } pending {
+  } @pending {
     <p>Loading activity...</p>
-  } catch (error) {
+  } @catch (error) {
     <p>{getErrorMessage(error)}</p>
   }
 };`,

@@ -190,7 +190,7 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 			`function App() @{
 				@try {
 					<div>content</div>
-				} pending {}
+				} @pending {}
 			}`,
 			'App.tsrx',
 		);
@@ -204,9 +204,9 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 			`function App() @{
 				@try {
 					<p>{'ok'}</p>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
-				} catch (err) {
+				} @catch (err) {
 					<p>{'caught rejection'}</p>
 				}
 			}`,

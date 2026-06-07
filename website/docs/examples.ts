@@ -337,7 +337,7 @@ export default function ErrorBoundary() @{
   <div>
     @try {
       <ComponentThatFails />
-    } catch (e) {
+    } @catch (e) {
       reportError(e);
 
       <div>An error occurred! {e.message}</div>
@@ -360,7 +360,7 @@ function AsyncComponent() {
 export default function SuspenseBoundary() @{
   @try {
     <AsyncComponent />
-  } pending {
+  } @pending {
     <p>Loading...</p>
   }
 }

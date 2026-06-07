@@ -13,14 +13,14 @@ export function MixedControlFlowStatic() @{
 					@case 'a': {
 						@try {
 							<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
-						} pending {
+						} @pending {
 							<div class={`pending pending-${row.id}`}>{'pending a'}</div>
 						}
 					}
 					@default: {
 						@try {
 							<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
-						} pending {
+						} @pending {
 							<div class={`pending pending-${row.id}`}>{'pending b'}</div>
 						}
 					}
@@ -63,14 +63,14 @@ export function MixedControlFlowReactive() @{
 						@case 'a': {
 							@try {
 								<p class={`item item-${item.id}`}>{`A:${item.label}`}</p>
-							} pending {
+							} @pending {
 								<p class="pending">{'pending a'}</p>
 							}
 						}
 						@default: {
 							@try {
 								<p class={`item item-${item.id}`}>{`B:${item.label}`}</p>
-							} pending {
+							} @pending {
 								<p class="pending">{'pending b'}</p>
 							}
 						}
@@ -92,7 +92,7 @@ export function MixedControlFlowAsyncPending() @{
 					@case 'slow': {
 						@try {
 							<AsyncRow label={`row-${row}`} />
-						} pending {
+						} @pending {
 							<div class={`pending-row pending-row-${row}`}>{`pending ${row}`}</div>
 						}
 					}

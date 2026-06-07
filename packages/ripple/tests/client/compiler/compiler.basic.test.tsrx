@@ -944,7 +944,7 @@ export const App = () => @{
 	<>
 		@try {
 			<ComponentThatSuspends />
-		} pending {
+		} @pending {
 			<div>Loading</div>
 		}
 		<OtherComponent children={'I like TSRX'} />

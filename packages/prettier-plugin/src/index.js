@@ -958,6 +958,7 @@ function printRippleNode(node, path, options, print, args) {
 					path,
 					options,
 					print,
+					true,
 				),
 			];
 			break;
@@ -3774,9 +3775,10 @@ function printClassDeclaration(node, path, options, print) {
  * @param {AstPath<AST.TryStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {boolean} [directive=false] - Whether this is a JSX @try expression.
  * @returns {Doc[]}
  */
-function printTryStatement(node, path, options, print) {
+function printTryStatement(node, path, options, print, directive = false) {
 	// Extract leading comments from block node to print them before 'try' keyword
 	const blockNode = node.block;
 
@@ -3796,12 +3798,12 @@ function printTryStatement(node, path, options, print) {
 	parts.push(block);
 
 	if (node.pending) {
-		parts.push(' pending ');
+		parts.push(directive ? ' @pending ' : ' pending ');
 		parts.push(path.call(print, 'pending'));
 	}
 
 	if (node.handler) {
-		parts.push(' catch');
+		parts.push(directive ? ' @catch' : ' catch');
 		if (node.handler.param) {
 			parts.push(' (');
 			parts.push(path.call(print, 'handler', 'param'));

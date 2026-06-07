@@ -1026,6 +1026,28 @@ foo();`;
 				}
 			</div>; }`),
 		).toThrow(/Unexpected token/);
+
+		expect(() =>
+			getReturned(`function App() { return <div>
+				@try {
+					<AsyncThing />
+				} pending {
+					<>Loading</>
+				}
+			</div>; }`),
+		).toThrow(/Expected `@pending` after `@try` block/);
+
+		expect(() =>
+			getReturned(`function App() { return <div>
+				@try {
+					<AsyncThing />
+				} @pending {
+					<>Loading</>
+				} catch (error) {
+					<>Failed</>
+				}
+			</div>; }`),
+		).toThrow(/Expected `@catch` after `@try` block/);
 	});
 
 	it('parses code-only @if bodies', () => {
@@ -1153,9 +1175,9 @@ foo();`;
 		const returned = getReturned(`function App() { return <div>
 			@try {
 				<ComponentThatSuspends />
-			} pending {
+			} @pending {
 				<>Loading</>
-			} catch (error, reset) {
+			} @catch (error, reset) {
 				<>Failed</>
 			}
 		</div>; }`);
@@ -1175,7 +1197,7 @@ foo();`;
 		const returned = getReturned(`function App() { return <div>
 			@try {
 				calls++;
-			} pending {
+			} @pending {
 				<>Loading</>
 			}
 		</div>; }`);
@@ -1448,7 +1470,7 @@ foo();`;
 			['const x = @if (c) { <a/> };', 'JSXIfExpression'],
 			['const x = @for (const i of items) { <li>{i}</li> };', 'JSXForExpression'],
 			["const x = @switch (v) { @case 'a': { <a/> } };", 'JSXSwitchExpression'],
-			['const x = @try { <a/> } catch (e) { <b/> };', 'JSXTryExpression'],
+			['const x = @try { <a/> } @catch (e) { <b/> };', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
 			const init = parseModule(source, 'App.tsrx').body[0].declarations[0].init;
@@ -1465,7 +1487,7 @@ foo();`;
 				"function App() { return @switch (v) { @case 'a': { <a/> } }; }",
 				'JSXSwitchExpression',
 			],
-			['function App() { return @try { <a/> } catch (e) { <b/> }; }', 'JSXTryExpression'],
+			['function App() { return @try { <a/> } @catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
 			const statement = parseModule(source, 'App.tsrx').body[0].body.body[0];

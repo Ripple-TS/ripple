@@ -671,7 +671,7 @@ function ThrowingChild() @{
 function ErrorBoundaryApp() @{
 	@try {
 		<ThrowingChild />
-	} catch (err: Error) {
+	} @catch (err: Error) {
 		<p className="caught">{err.message}</p>
 	}
 }
@@ -692,7 +692,7 @@ function ErrorToggleApp() @{
 	<>
 		@try {
 			<MaybeThrow shouldThrow={fail} />
-		} catch (err: Error, reset: () => void) {
+		} @catch (err: Error, reset: () => void) {
 			<>
 				<p className="caught">{err.message}</p>
 				<button
@@ -719,7 +719,7 @@ function AsyncChild(props: { promise: Promise<string> }) @{
 function SuspenseApp(props: { promise: Promise<string> }) @{
 	@try {
 		<AsyncChild promise={props.promise} />
-	} pending {
+	} @pending {
 		<p className="pending">{'loading...'}</p>
 	}
 }
@@ -727,7 +727,7 @@ function SuspenseApp(props: { promise: Promise<string> }) @{
 function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) @{
 	@try {
 		<AsyncChild promise={props.promise} />
-	} pending {}
+	} @pending {}
 }
 
 // ── Try/pending/catch: Suspense + ErrorBoundary ──
@@ -735,9 +735,9 @@ function EmptyPendingSuspenseApp(props: { promise: Promise<string> }) @{
 function SuspenseErrorApp(props: { promise: Promise<string> }) @{
 	@try {
 		<AsyncChild promise={props.promise} />
-	} pending {
+	} @pending {
 		<p className="pending">{'loading...'}</p>
-	} catch (err: Error) {
+	} @catch (err: Error) {
 		<p className="caught">{err.message}</p>
 	}
 }
@@ -747,9 +747,9 @@ function SuspenseErrorApp(props: { promise: Promise<string> }) @{
 function ErrorResetApp(props: { promise: Promise<string> }) @{
 	@try {
 		<AsyncChild promise={props.promise} />
-	} pending {
+	} @pending {
 		<p className="pending">{'loading...'}</p>
-	} catch (err: Error, reset: () => void) {
+	} @catch (err: Error, reset: () => void) {
 		<>
 			<p className="caught">{err.message}</p>
 			<button className="retry" onClick={() => reset()}>{'retry'}</button>
@@ -770,11 +770,11 @@ function NestedTryApp() @{
 		<div className="outer">
 			@try {
 				<InnerThrow />
-			} catch (err: Error) {
+			} @catch (err: Error) {
 				<p className="inner-caught">{err.message}</p>
 			}
 		</div>
-	} catch (err: Error) {
+	} @catch (err: Error) {
 		<p className="outer-caught">{err.message}</p>
 	}
 }
@@ -787,7 +787,7 @@ function SwappableAsyncApp() @{
 	<>
 		@try {
 			<AsyncChild {promise} />
-		} pending {
+		} @pending {
 			<p className="pending">{'loading...'}</p>
 		}
 		<button className="swap" onClick={() => setPromise(Promise.resolve('second'))}>{'swap'}</button>
@@ -806,7 +806,7 @@ function IfInsideTryApp() @{
 			} @else {
 				<p className="branch-b">{'alternate'}</p>
 			}
-		} catch (err: Error) {
+		} @catch (err: Error) {
 			<p className="caught">{'error'}</p>
 		}
 		<button className="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
@@ -823,7 +823,7 @@ function ForInsideTryApp() @{
 			@for (const item of items) {
 				<span className="try-item" key={item}>{item}</span>
 			}
-		} catch (err: Error) {
+		} @catch (err: Error) {
 			<p className="caught">{'error'}</p>
 		}
 		<button className="add" onClick={() => setItems([...items, 'z'])}>{'add'}</button>

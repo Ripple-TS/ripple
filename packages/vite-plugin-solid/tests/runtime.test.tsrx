@@ -544,7 +544,7 @@ function ThrowingChild() @{
 function ErrorBoundaryApp() @{
 	@try {
 		<ThrowingChild />
-	} catch (err) {
+	} @catch (err) {
 		<p class="caught">{(err as Error).message}</p>
 	}
 }
@@ -563,7 +563,7 @@ function ErrorToggleApp() @{
 	<>
 		@try {
 			<MaybeThrow shouldThrow={fail()} />
-		} catch (err, reset) {
+		} @catch (err, reset) {
 			<>
 				<p class="caught">{(err as Error).message}</p>
 				<button
@@ -589,7 +589,7 @@ function SuspenseApp(props: { loader: () => Promise<{ default: typeof ResolvedCh
 	const LazyChild = lazy(props.loader);
 	@try {
 		<LazyChild value="hello" />
-	} pending {
+	} @pending {
 		<p class="pending">{'loading...'}</p>
 	}
 }
@@ -600,7 +600,7 @@ function EmptyPendingSuspenseApp(props: {
 	const LazyChild = lazy(props.loader);
 	@try {
 		<LazyChild value="hello" />
-	} pending {}
+	} @pending {}
 }
 
 // ── Try/pending/catch: Loading + Errored ──
@@ -609,9 +609,9 @@ function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof Resol
 	const LazyChild = lazy(props.loader);
 	@try {
 		<LazyChild value="hello" />
-	} pending {
+	} @pending {
 		<p class="pending">{'loading...'}</p>
-	} catch (err) {
+	} @catch (err) {
 		<p class="caught">{(err as Error).message}</p>
 	}
 }
@@ -628,11 +628,11 @@ function NestedTryApp() @{
 		<div class="outer">
 			@try {
 				<InnerThrow />
-			} catch (err) {
+			} @catch (err) {
 				<p class="inner-caught">{(err as Error).message}</p>
 			}
 		</div>
-	} catch (err) {
+	} @catch (err) {
 		<p class="outer-caught">{(err as Error).message}</p>
 	}
 }
@@ -648,7 +648,7 @@ function IfInsideTryApp() @{
 			} @else {
 				<p class="branch-b">{'alternate'}</p>
 			}
-		} catch (err) {
+		} @catch (err) {
 			<p class="caught">{'error'}</p>
 		}
 		<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
@@ -664,7 +664,7 @@ function ForInsideTryApp() @{
 			@for (const item of items(); index i) {
 				<span class="try-item">{item()}</span>
 			}
-		} catch (err) {
+		} @catch (err) {
 			<p class="caught">{'error'}</p>
 		}
 		<button class="add" onClick={() => setItems([...items(), 'z'])}>{'add'}</button>

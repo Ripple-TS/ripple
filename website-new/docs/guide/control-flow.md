@@ -254,7 +254,7 @@ export function ErrorBoundary() @{
   <div>
     @try {
       <ComponentThatFails />
-    } catch (e) {
+    } @catch (e) {
       reportError(e);
 
       <div>An error occurred! {e.message}</div>
@@ -272,7 +272,7 @@ export function RetryBoundary() @{
   <div>
     @try {
       <ComponentThatMightFail />
-    } catch (e, reset) {
+    } @catch (e, reset) {
       <div>
         <p>Error: {e.message}</p>
         <button onClick={() => reset()}>Try again</button>
@@ -325,9 +325,9 @@ Wrap the component in a `try/pending` block to handle the suspended state:
 export function App() @{
   @try {
     <UserProfile id={1} />
-  } pending {
+  } @pending {
     <p>Loading...</p>
-  } catch (e) {
+  } @catch (e) {
     <p>Error: {e.message}</p>
   }
 }

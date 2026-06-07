@@ -1335,7 +1335,7 @@ export function runSharedCompileTests({
 				`export function App() @{
 					@try {
 						<div>{'content'}</div>
-					} pending {}
+					} @pending {}
 				}`,
 				'App.tsrx',
 			);
@@ -3463,7 +3463,7 @@ export function optionalFn(bar: string, baz?: string) {
 									[data] = useState(load());
 									console.log(data);
 									<div>{data}</div>
-								} catch (err) {
+								} @catch (err) {
 									<div>{'error'}</div>
 								}
 							}`,
@@ -3479,7 +3479,7 @@ export function optionalFn(bar: string, baz?: string) {
 								let attempt: number | undefined;
 								@try {
 									<div>{load()}</div>
-								} catch (err) {
+								} @catch (err) {
 									[attempt] = useState(0);
 									console.log(attempt);
 									<div>{attempt}</div>
@@ -3496,7 +3496,7 @@ export function optionalFn(bar: string, baz?: string) {
 							@try {
 								const [data] = useState(load());
 								<div>{data}</div>
-							} catch (err) {
+							} @catch (err) {
 								<div>{'error'}</div>
 							}
 						}`,
@@ -3512,7 +3512,7 @@ export function optionalFn(bar: string, baz?: string) {
 					`export function App({ load }: { load: () => number }) @{
 							@try {
 								<div>{load()}</div>
-							} catch (err) {
+							} @catch (err) {
 								<div>{'error'}</div>
 							}
 						}`,

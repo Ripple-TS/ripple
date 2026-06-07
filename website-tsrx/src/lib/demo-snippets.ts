@@ -127,7 +127,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `function SafeProfile({ userId }: { userId: string }) @{
   @try {
     <UserProfile id={userId} />
-  } catch (error) {
+  } @catch (error) {
     <div class="error">
       <p>Something went wrong.</p>
     </div>
@@ -143,7 +143,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 export function App() @{
   @try {
     <AsyncProfile />
-  } pending {
+  } @pending {
     <p class="pending">Loading profile...</p>
   }
 }`,
@@ -157,9 +157,9 @@ export function App() @{
 export function App() @{
   @try {
     <AsyncProfile />
-  } pending {
+  } @pending {
     <p class="pending">Loading profile...</p>
-  } catch (error) {
+  } @catch (error) {
     <p class="error">{(error as Error).message}</p>
   }
 }`,

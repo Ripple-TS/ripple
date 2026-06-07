@@ -700,7 +700,7 @@ function ThrowingChild() @{
 function ErrorBoundaryApp() @{
 	@try {
 		<ThrowingChild />
-	} catch (err) {
+	} @catch (err) {
 		<p class="caught">{(err as Error).message}</p>
 	}
 }
@@ -717,7 +717,7 @@ function ErrorToggleApp() @{
 	<>
 		@try {
 			<MaybeThrow shouldThrow={fail.value} />
-		} catch (err, reset) {
+		} @catch (err, reset) {
 			<>
 				<p class="caught">{(err as Error).message}</p>
 				<button
@@ -743,11 +743,11 @@ function NestedTryApp() @{
 		<div class="outer">
 			@try {
 				<InnerThrow />
-			} catch (err) {
+			} @catch (err) {
 				<p class="inner-caught">{(err as Error).message}</p>
 			}
 		</div>
-	} catch (err) {
+	} @catch (err) {
 		<p class="outer-caught">{(err as Error).message}</p>
 	}
 }
@@ -761,7 +761,7 @@ function IfInsideTryApp() @{
 			} @else {
 				<p class="branch-b">{'alternate'}</p>
 			}
-		} catch (err) {
+		} @catch (err) {
 			<p class="caught">{'error'}</p>
 		}
 		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
@@ -775,7 +775,7 @@ function ForInsideTryApp() @{
 			@for (const item of items.value) {
 				<span class="try-item" key={item}>{item}</span>
 			}
-		} catch (err) {
+		} @catch (err) {
 			<p class="caught">{'error'}</p>
 		}
 		<button class="add" onClick={() => (items.value = [...items.value, 'z'])}>{'add'}</button>
@@ -797,7 +797,7 @@ function SwitchInsideTryApp() @{
 					<p class="try-page">{'404'}</p>
 				}
 			}
-		} catch (err) {
+		} @catch (err) {
 			<p class="caught">{'error'}</p>
 		}
 		<button class="go-about" onClick={() => (page.value = 'about')}>{'about'}</button>
@@ -813,7 +813,7 @@ function SuspenseApp(props: { promise: Promise<typeof AsyncResolvedChild> }) @{
 	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
 	@try {
 		<AsyncChild value="hello" />
-	} pending {
+	} @pending {
 		<p class="async-pending">{'loading...'}</p>
 	}
 }
@@ -822,9 +822,9 @@ function SuspenseCatchApp(props: { promise: Promise<typeof AsyncResolvedChild> }
 	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
 	@try {
 		<AsyncChild value="hello" />
-	} pending {
+	} @pending {
 		<p class="async-pending">{'loading...'}</p>
-	} catch (err) {
+	} @catch (err) {
 		<p class="async-caught">{(err as Error).message}</p>
 	}
 }
@@ -833,7 +833,7 @@ function EmptyPendingSuspenseApp(props: { promise: Promise<typeof AsyncResolvedC
 	const AsyncChild = defineVaporAsyncComponent(() => props.promise);
 	@try {
 		<AsyncChild value="hello" />
-	} pending {}
+	} @pending {}
 }
 
 function ThrowingSuspenseChild() @{
@@ -845,9 +845,9 @@ function SuspenseErrorApp() @{
 	const prefix = 'caught: ';
 	@try {
 		<ThrowingSuspenseChild />
-	} pending {
+	} @pending {
 		<p class="async-pending">{'loading...'}</p>
-	} catch (err) {
+	} @catch (err) {
 		<p class="async-caught">
 			{prefix}
 			{(err as Error).message}

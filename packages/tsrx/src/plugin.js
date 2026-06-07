@@ -261,14 +261,14 @@ export function TSRXPlugin(config) {
 			#forceScriptJSXElementDepth = 0;
 			#suppressTemplateRawTextToken = false;
 			#templateScriptParsingDepth = 0;
-				#controlFlowBlockAllowsNativeReturn = false;
-				#parsingJSXSwitchCaseScriptStatementDepth = 0;
-				#templateControlFlowBlockDepth = 0;
-				#templateControlFlowTryDepth = 0;
-				/** @type {Parse.Parser['context']} */
-				context = [b_stat];
-				/** @type {AST.Node | null} */
-				#openingNativeTemplateNode = null;
+			#controlFlowBlockAllowsNativeReturn = false;
+			#parsingJSXSwitchCaseScriptStatementDepth = 0;
+			#templateControlFlowBlockDepth = 0;
+			#templateControlFlowTryDepth = 0;
+			/** @type {Parse.Parser['context']} */
+			context = [b_stat];
+			/** @type {AST.Node | null} */
+			#openingNativeTemplateNode = null;
 			#closingNativeTemplateNode = false;
 			#readingJSXControlFlowDirectiveKeyword = false;
 			#readingJSXControlFlowHeader = false;
@@ -293,12 +293,12 @@ export function TSRXPlugin(config) {
 			 * @param {Parse.Options} options
 			 * @param {string} input
 			 */
-				constructor(options, input) {
-					super(options, input);
-					this.context ??= [b_stat];
-					const tsrx_options = options?.tsrxOptions ?? options?.rippleOptions;
-					this.#collect = tsrx_options?.collect === true || tsrx_options?.loose === true;
-					this.#loose = tsrx_options?.loose === true;
+			constructor(options, input) {
+				super(options, input);
+				this.context ??= [b_stat];
+				const tsrx_options = options?.tsrxOptions ?? options?.rippleOptions;
+				this.#collect = tsrx_options?.collect === true || tsrx_options?.loose === true;
+				this.#loose = tsrx_options?.loose === true;
 				this.#errors = tsrx_options?.errors;
 				this.#filename = tsrx_options?.filename || null;
 			}
@@ -1572,10 +1572,9 @@ export function TSRXPlugin(config) {
 				node.alternate = null;
 
 				if (this.#eatJSXDirectiveClauseKeyword('else')) {
-					node.alternate =
-						this.#eatJSXDirectiveBareClauseKeyword('if')
-							? this.#parseTemplateIfStatement()
-							: /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
+					node.alternate = this.#eatJSXDirectiveBareClauseKeyword('if')
+						? this.#parseTemplateIfStatement()
+						: /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
 				} else if (this.#isUnprefixedDirectiveClauseKeyword('else')) {
 					this.raise(this.start, 'Expected `@else` after `@if` block.');
 				}
@@ -3390,7 +3389,7 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * `@try`/`pending`/`catch`/`finally` blocks lower their direct `return`
+			 * `@try`/`@pending`/`@catch`/`finally` blocks lower their direct `return`
 			 * values into reactive boundary fallbacks, so unlike `@if`/`@for`/`@switch`
 			 * blocks they legitimately allow `return <markup>` statements. Set the flag
 			 * immediately before parsing each such block so its body sees it.
@@ -3412,19 +3411,50 @@ export function TSRXPlugin(config) {
 						node.block = this.#parseTemplateControlFlowReturnBlock();
 						node.handler = null;
 
-						if (this.value === 'pending') {
-							this.next();
+						if (this.#eatJSXDirectiveClauseKeyword('pending')) {
 							node.pending = this.#parseTemplateControlFlowReturnBlock();
+						} else if (this.#isUnprefixedDirectiveClauseKeyword('pending')) {
+							this.raise(this.start, 'Expected `@pending` after `@try` block.');
 						} else {
 							node.pending = null;
 						}
 
-						if (this.type === tt._catch) {
-							const clause = /** @type {AST.CatchClause} */ (this.startNode());
+						const clauseStart = this.start;
+						const clauseStartLoc = this.startLoc;
+						if (this.#eatJSXDirectiveClauseKeyword('catch')) {
+							if (this.type === tt._catch || this.value === 'catch') {
+								this.next();
+							}
+							const paramStart = skip_whitespace_from(this.input, this.start);
+							if (this.input.charCodeAt(paramStart) === CharCode.openParen) {
+								this.pos = paramStart;
+								this.start = paramStart;
+								this.startLoc = acorn.getLineInfo(this.input, paramStart);
+								this.curLine = this.startLoc.line;
+								this.lineStart = paramStart - this.startLoc.column;
+								this.context = this.context.filter(
+									(context) =>
+										context !== tstc.tc_expr &&
+										context !== tstc.tc_oTag &&
+										context !== tstc.tc_cTag,
+								);
+								if (this.curContext() !== b_stat) {
+									this.context.push(b_stat);
+								}
+								this.exprAllowed = true;
+								this.#suppressTemplateRawTextToken = true;
+								try {
+									this.nextToken();
+								} finally {
+									this.#suppressTemplateRawTextToken = false;
+								}
+							}
+							const clause = /** @type {AST.CatchClause} */ (
+								this.startNodeAt(clauseStart, clauseStartLoc)
+							);
 							const previous_reading_header = this.#readingJSXControlFlowHeader;
 							this.#readingJSXControlFlowHeader = true;
 							try {
-								this.next();
 								if (this.eat(tt.parenL)) {
 									const param = this.parseBindingAtom();
 									const simple = param.type === 'Identifier';
@@ -3465,6 +3495,8 @@ export function TSRXPlugin(config) {
 							clause.body = this.#parseTemplateControlFlowReturnBlock(false);
 							this.exitScope();
 							node.handler = this.finishNode(clause, 'CatchClause');
+						} else if (this.#isUnprefixedDirectiveClauseKeyword('catch')) {
+							this.raise(this.start, 'Expected `@catch` after `@try` block.');
 						}
 						node.finalizer = this.eat(tt._finally)
 							? this.#parseTemplateControlFlowReturnBlock()

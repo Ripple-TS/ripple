@@ -196,7 +196,7 @@ const items=[1,2,3];
 @try {
 // render the panel when ready
 <Panel />
-} catch (error) {
+} @catch (error) {
 // render plain text fallback
 <>Error</>
 }
@@ -214,7 +214,7 @@ const items=[1,2,3];
   @try {
     // render the panel when ready
     <Panel />
-  } catch (error) {
+  } @catch (error) {
     // render plain text fallback
     <>Error</>
   }
@@ -5618,9 +5618,9 @@ render(App);`;
     @for (const item of items) {
       <li>{item}</li>
     }
-  } pending {
+  } @pending {
     <div>{'Loading...'}</div>
-  } catch (e) {
+  } @catch (e) {
     error = (e as Error).message;
   } finally {
     <div>finally block</div>
@@ -5738,7 +5738,7 @@ render(App);`;
     // <div>
     @try {
       <div>b is true</div>
-    } catch (e) {}
+    } @catch (e) {}
     // 	<div>
     // 		<div>
     // 			@if (b) {
@@ -5756,7 +5756,7 @@ render(App);`;
     // <div>
     @try {
       <div>b is true</div>
-    } catch (e) {}
+    } @catch (e) {}
     // 	<div>
     // 		<div>
     // 			@if (b) {
@@ -5810,9 +5810,9 @@ function Child({ something }) {
   return @try {
     const data = fetchData();
     <div>{data}</div>
-  } pending {
+  } @pending {
     <div>Loading...</div>
-  } catch (error: Error, reset: () => void) {
+  } @catch (error: Error, reset: () => void) {
     <>
       <div>{error.message}</div>
       <button onClick={reset}>Retry</button>

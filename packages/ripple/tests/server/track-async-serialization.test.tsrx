@@ -9,7 +9,7 @@ describe('trackAsync serialization (server)', () => {
 			@try {
 				let &[data] = trackAsync(() => Promise.resolve('hello world'));
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="loading">{'loading...'}</p>
 			}
 		}
@@ -26,7 +26,7 @@ describe('trackAsync serialization (server)', () => {
 			@try {
 				let &[count] = trackAsync(() => Promise.resolve(42));
 				<span class="count">{count}</span>
-			} pending {
+			} @pending {
 				<span>{'...'}</span>
 			}
 		}
@@ -41,7 +41,7 @@ describe('trackAsync serialization (server)', () => {
 			@try {
 				let &[data] = trackAsync(() => Promise.resolve({ name: 'Alice', age: 30 }));
 				<p>{data.name}</p>
-			} pending {
+			} @pending {
 				<p>{'...'}</p>
 			}
 		}
@@ -60,7 +60,7 @@ describe('trackAsync serialization (server)', () => {
 						<li>{item}</li>
 					}
 				</ul>
-			} pending {
+			} @pending {
 				<p>{'...'}</p>
 			}
 		}
@@ -75,9 +75,9 @@ describe('trackAsync serialization (server)', () => {
 			@try {
 				let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="loading">{'loading...'}</p>
-			} catch (e) {
+			} @catch (e) {
 				<p class="error">{(e as Error).message}</p>
 			}
 		}
@@ -95,7 +95,7 @@ describe('trackAsync serialization (server)', () => {
 			@try {
 				let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="pending">{'loading...'}</p>
 			}
 		}
@@ -103,7 +103,7 @@ describe('trackAsync serialization (server)', () => {
 		function Parent() @{
 			@try {
 				<Child />
-			} catch (e) {
+			} @catch (e) {
 				<p class="parent-error">{(e as Error).message}</p>
 			}
 		}
@@ -123,9 +123,9 @@ describe('trackAsync serialization (server)', () => {
 					throw new Error('sync failure');
 				});
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="loading">{'loading...'}</p>
-			} catch (e) {
+			} @catch (e) {
 				<p class="error">{(e as Error).message}</p>
 			}
 		}
@@ -146,9 +146,9 @@ describe('trackAsync serialization (server)', () => {
 					() => Promise.reject(new Error('</script><div data-injected="1">boom</div>')),
 				);
 				<p class="result">{data}</p>
-			} pending {
+			} @pending {
 				<p class="loading">{'loading...'}</p>
-			} catch (e) {
+			} @catch (e) {
 				<p class="error">{(e as Error).message}</p>
 			}
 		}
@@ -172,7 +172,7 @@ describe('trackAsync serialization (server)', () => {
 					<p>{a}</p>
 					<p>{b}</p>
 				</>
-			} pending {
+			} @pending {
 				<p>{'...'}</p>
 			}
 		}

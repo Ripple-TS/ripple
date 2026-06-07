@@ -1043,7 +1043,7 @@ describe('@tsrx/react basic', () => {
 			export function App() @{
 				@try {
 					<ThrowingChild />
-				} catch (err) {
+				} @catch (err) {
 					<p>{'caught error'}</p>
 				}
 			}`,
@@ -1063,7 +1063,7 @@ describe('@tsrx/react basic', () => {
 			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
 				}
 			}`,
@@ -1083,9 +1083,9 @@ describe('@tsrx/react basic', () => {
 			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
-				} catch (err) {
+				} @catch (err) {
 					<p>{'caught error'}</p>
 				}
 			}`,
@@ -1105,7 +1105,7 @@ describe('@tsrx/react basic', () => {
 			`export function App() @{
 				@try {
 					<div>{'content'}</div>
-				} catch (err, reset) {
+				} @catch (err, reset) {
 					<button onClick={reset}>{'retry'}</button>
 				}
 			}`,
@@ -1125,7 +1125,7 @@ describe('@tsrx/react basic', () => {
 				`export function App() @{
 					@try {
 						<div>{'content'}</div>
-					} catch (err) {
+					} @catch (err) {
 						<p>{'error'}</p>
 					} finally {
 						console.log('done');
@@ -1144,7 +1144,7 @@ describe('@tsrx/react basic', () => {
 				@try {
 					const data = use(fetchData());
 					<div>{data}</div>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
 				}
 			}`,
@@ -1161,7 +1161,7 @@ describe('@tsrx/react basic', () => {
 				<>
 					@try {
 						<div className="content">{'hello'}</div>
-					} catch (err) {
+					} @catch (err) {
 						<p className="error">{'error'}</p>
 					}
 

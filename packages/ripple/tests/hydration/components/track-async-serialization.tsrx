@@ -24,7 +24,7 @@ export function AsyncWithServerCall() @{
 		>{'increment'}</button>
 		@try {
 			<ServerCallResult count={count_ref} />
-		} pending {
+		} @pending {
 			<p class="loading">{'loading...'}</p>
 		}
 	</>
@@ -34,7 +34,7 @@ export function AsyncSimpleValue() @{
 	@try {
 		let &[data] = trackAsync(() => Promise.resolve('hydrated value'));
 		<p class="result">{data}</p>
-	} pending {
+	} @pending {
 		<p class="loading">{'loading...'}</p>
 	}
 }
@@ -43,7 +43,7 @@ export function AsyncNumericValue() @{
 	@try {
 		let &[count] = trackAsync(() => Promise.resolve(42));
 		<span class="count">{count}</span>
-	} pending {
+	} @pending {
 		<span class="pending">{'...'}</span>
 	}
 }
@@ -55,7 +55,7 @@ export function AsyncObjectValue() @{
 			<span class="name">{user.name}</span>
 			<span class="age">{user.age}</span>
 		</div>
-	} pending {
+	} @pending {
 		<div class="loading">{'loading user...'}</div>
 	}
 }
@@ -68,7 +68,7 @@ export function AsyncMultipleValues() @{
 			<span class="first">{first}</span>
 			<span class="second">{second}</span>
 		</div>
-	} pending {
+	} @pending {
 		<div class="loading">{'loading...'}</div>
 	}
 }
@@ -77,9 +77,9 @@ export function AsyncWithCatch() @{
 	@try {
 		let &[data] = trackAsync(() => Promise.reject(new Error('fetch failed')));
 		<p class="result">{data}</p>
-	} pending {
+	} @pending {
 		<p class="loading">{'loading...'}</p>
-	} catch (e) {
+	} @catch (e) {
 		<p class="error">{(e as Error).message}</p>
 	}
 }
@@ -88,7 +88,7 @@ export function ChildWithError() @{
 	@try {
 		let &[data] = trackAsync(() => Promise.reject(new Error('child error')));
 		<p class="result">{data}</p>
-	} pending {
+	} @pending {
 		<p class="pending">{'loading...'}</p>
 	}
 }
@@ -96,7 +96,7 @@ export function ChildWithError() @{
 export function ParentWithCatch() @{
 	@try {
 		<ChildWithError />
-	} catch (e) {
+	} @catch (e) {
 		<p class="parent-error">{(e as Error).message}</p>
 	}
 }
@@ -117,7 +117,7 @@ export function AsyncWithReactiveDependency() @{
 		>{'increment'}</button>
 		@try {
 			<ReactiveDependencyResult count={count_ref} />
-		} pending {
+		} @pending {
 			<p class="loading">{'loading...'}</p>
 		}
 	</>

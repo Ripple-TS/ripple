@@ -510,9 +510,9 @@ const UserProfile = lazy(() => import('./UserProfile.tsrx'));
 
 export const App = () => @try {
 	<UserProfile id={1} />
-} pending {
+} @pending {
 	<p>Loading...</p>
-} catch (e) {
+} @catch (e) {
 	<p>Something went wrong.</p>
 };
 ```
@@ -524,7 +524,7 @@ useful for building retry UIs:
 ```tsrx
 export const RetryBoundary = () => @try {
 	<ComponentThatMightFail />
-} catch (e, reset) {
+} @catch (e, reset) {
 	<div>
 		<p>Error: {e.message}</p>
 		<button onClick={() => reset()}>Try again</button>
@@ -772,8 +772,8 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Conditional rendering  | `@if (cond) { <Panel /> }`                             |
 | List rendering         | `@for (const x of xs; index i; key x.id) { <li /> }`   |
 | Multi-branch           | `@switch (x) { @case 'a': { <A /> } }`                 |
-| Error boundary         | `@try { <Child /> } catch (e) { <Fallback /> }`        |
-| Async boundary         | `@try { <Child /> } pending { <Loading /> }`           |
+| Error boundary         | `@try { <Child /> } @catch (e) { <Fallback /> }`        |
+| Async boundary         | `@try { <Child /> } @pending { <Loading /> }`           |
 | Guard exit             | `if (!user) { return null; }`                          |
 | Scoped style           | `<style> .x { ... } </style>`                          |
 | Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`           |

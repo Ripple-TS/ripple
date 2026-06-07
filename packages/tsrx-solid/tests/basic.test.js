@@ -277,7 +277,7 @@ describe('@tsrx/solid basic', () => {
 				`function App() @{
 						@try {
 						<div>{'content'}</div>
-					} catch (err, reset) {
+					} @catch (err, reset) {
 						<div>{'error'}</div>
 					}
 				}`,
@@ -292,9 +292,9 @@ describe('@tsrx/solid basic', () => {
 				`function App() @{
 						@try {
 						<div>{'ready'}</div>
-					} pending {
+					} @pending {
 						<div>{'loading'}</div>
-					} catch (err) {
+					} @catch (err) {
 						<div>{'error'}</div>
 					}
 				}`,
@@ -567,9 +567,9 @@ describe('@tsrx/solid basic', () => {
 				`function App() @{
 						@try {
 							<div>{'ready'}</div>
-						} pending {
+						} @pending {
 							<div>{'loading'}</div>
-						} catch (err) {
+						} @catch (err) {
 							<div>{'error'}</div>
 						}
 				}`,
@@ -589,9 +589,9 @@ describe('@tsrx/solid basic', () => {
 				) @{
 						@try {
 							setup();
-						} pending {
+						} @pending {
 							<div>{'loading'}</div>
-						} catch (err) {
+						} @catch (err) {
 							recover(err);
 						}
 				}`,
@@ -611,9 +611,9 @@ describe('@tsrx/solid basic', () => {
 				`function App() {
 					return @try {
 						<div>{'ready'}</div>
-					} pending {
+					} @pending {
 						<div>{'loading'}</div>
-					} catch (err) {
+					} @catch (err) {
 						<div>{'error'}</div>
 					};
 				}`,
@@ -633,9 +633,9 @@ describe('@tsrx/solid basic', () => {
 				) {
 					return @try {
 						setup();
-					} pending {
+					} @pending {
 						<div>{'loading'}</div>
-					} catch (err) {
+					} @catch (err) {
 						recover(err);
 					};
 				}`,

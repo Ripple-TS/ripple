@@ -31,7 +31,7 @@ describe('@tsrx/preact basic', () => {
 			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
 				}
 			}`,
@@ -48,7 +48,7 @@ describe('@tsrx/preact basic', () => {
 			`export function App() @{
 				@try {
 					<div>{'async content'}</div>
-				} pending {
+				} @pending {
 					<p>{'loading...'}</p>
 				}
 			}`,
@@ -70,7 +70,7 @@ describe('@tsrx/preact basic', () => {
 			export function App() @{
 				@try {
 					<ThrowingChild />
-				} catch (err) {
+				} @catch (err) {
 					<p>{'caught error'}</p>
 				}
 			}`,
