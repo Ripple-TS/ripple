@@ -49,11 +49,11 @@ export function IntroductionPage() {
 			{toc}
 			currentPath="/docs/introduction"
 		>
-			<DocHeading level={1} id="introduction">{'Introduction'}</DocHeading>
+			<DocHeading level={1} id="introduction">Introduction</DocHeading>
 
-			<p>{'Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).'}</p>
+			<p>Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).</p>
 
-			<p>{'It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.'}</p>
+			<p>It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.</p>
 
 			<p>
 				{'Ripple was created by Dominic Gannaway ('}
@@ -91,7 +91,7 @@ export function IntroductionPage() {
 				</p>
 			</DocCallout>
 
-			<DocHeading level={2} id="features">{'Features'}</DocHeading>
+			<DocHeading level={2} id="features">Features</DocHeading>
 
 			<ul>
 				<li>
@@ -145,7 +145,7 @@ export function IntroductionPage() {
 				</li>
 			</ul>
 
-			<DocHeading level={2} id="server-side-rendering">{'Server-Side Rendering'}</DocHeading>
+			<DocHeading level={2} id="server-side-rendering">Server-Side Rendering</DocHeading>
 
 			<p>
 				{'Ripple supports server-side rendering (SSR) with full hydration support. See the '}

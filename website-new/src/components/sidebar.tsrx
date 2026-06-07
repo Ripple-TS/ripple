@@ -5,7 +5,7 @@ export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: 
 		<aside class="Sidebar">
 			<div class="curtain" />
 			<nav class="nav" id="SidebarNav" aria-labelledby="sidebar-aria-label" tabindex="-1">
-				<span class="visually-hidden" id="sidebar-aria-label">{'Sidebar Navigation'}</span>
+				<span class="visually-hidden" id="sidebar-aria-label">Sidebar Navigation</span>
 				<div class="group">
 					<SidebarGroup
 						title="Getting Started"

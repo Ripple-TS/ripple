@@ -3,7 +3,7 @@ export function Content() {
 		<div class="content-section">
 			<h2
 				class="description"
-			>{'Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one package.'}</h2>
+			>Ripple is a TypeScript UI framework that combines the best parts of React, Solid, and Svelte into one package.</h2>
 			<ul class="features">
 				<li>
 					<strong>{'Reactive State Management'}</strong>

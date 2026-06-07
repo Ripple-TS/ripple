@@ -30,24 +30,24 @@ export function DocsHeader() {
 													stroke-linejoin="round"
 												/>
 											</svg>
-											<span class="DocSearch-Button-Placeholder">{'Search'}</span>
+											<span class="DocSearch-Button-Placeholder">Search</span>
 										</span>
 										<span class="DocSearch-Button-Keys">
-											<kbd class="DocSearch-Button-Key">{'⌘'}</kbd>
-											<kbd class="DocSearch-Button-Key">{'K'}</kbd>
+											<kbd class="DocSearch-Button-Key">⌘</kbd>
+											<kbd class="DocSearch-Button-Key">K</kbd>
 										</span>
 									</button>
 								</div>
 								<nav aria-labelledby="main-nav-aria-label" class="HeaderBarMenu menu">
-									<span id="main-nav-aria-label" class="visually-hidden">{'Main Navigation'}</span>
+									<span id="main-nav-aria-label" class="visually-hidden">Main Navigation</span>
 									<a class="link HeaderBarMenuLink" href="/llms.txt" target="_self" tabindex="0">
-										<span>{'llms.txt'}</span>
+										<span>llms.txt</span>
 									</a>
 									<a class="link HeaderBarMenuLink" href="/playground" tabindex="0">
-										<span>{'Playground'}</span>
+										<span>Playground</span>
 									</a>
 									<a class="link HeaderBarMenuLink active" href="/docs/introduction" tabindex="0">
-										<span>{'Docs'}</span>
+										<span>Docs</span>
 									</a>
 								</nav>
 								<div class="HeaderBarAppearance appearance">

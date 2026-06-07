@@ -80,7 +80,8 @@ needed. Prior experience with other frameworks is helpful but not required.
   `RippleArray` and `RippleObject`
 - **Component-Based Architecture**: Clean, reusable components with props and
   children
-- **Template Syntax**: Familiar templating with Ripple-specific enhancements
+- **Statement Containers**: Use `@{...}` for local setup, then finish with one
+  JSX element, fragment, or control-flow expression
 - **Performance**: Fine-grain rendering, with industry-leading performance,
   bundle-size and memory usage
 - **TypeScript Support**: Full TypeScript integration with type checking

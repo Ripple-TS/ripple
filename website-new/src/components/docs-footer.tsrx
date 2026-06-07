@@ -2,8 +2,8 @@ export function DocsFooter() {
 	return <>
 		<footer class="docs-footer">
 			<div class="footer-content">
-				<p class="footer-message">{'Released under the MIT License.'}</p>
-				<p class="footer-copyright">{'Copyright © 2025-present Dominic Gannaway'}</p>
+				<p class="footer-message">Released under the MIT License.</p>
+				<p class="footer-copyright">Copyright © 2025-present Dominic Gannaway</p>
 			</div>
 		</footer>
 		<style>

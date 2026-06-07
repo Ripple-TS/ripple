@@ -66,12 +66,12 @@ export function Editor() @{
 					<div class="editor-dot yellow" />
 					<div class="editor-dot green" />
 				</div>
-				<div class="editor-tab">{'Examples.tsrx'}</div>
+				<div class="editor-tab">Examples.tsrx</div>
 			</div>
 			<div class="editor-content">
 				<pre class="editor-code" ref={bindNode(nodeRef)}>
 					@if (loading) {
-						<span class="editor-loader">{'Loading...'}</span>
+						<span class="editor-loader">Loading...</span>
 					}
 				</pre>
 			</div>
