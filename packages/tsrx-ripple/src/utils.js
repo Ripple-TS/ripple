@@ -489,9 +489,9 @@ export function get_native_tsrx_function_body(node) {
 		const block = node.body;
 		return [
 			...expand_native_tsrx_return_statements(block.body || [], true),
-				...(is_native_tsrx_template_node(block.render)
-					? [mark_returned_template_child(/** @type {AST.Node} */ (block.render))]
-					: []),
+			...(is_native_tsrx_template_node(block.render)
+				? [mark_returned_template_child(/** @type {AST.Node} */ (block.render))]
+				: []),
 		];
 	}
 
@@ -500,7 +500,7 @@ export function get_native_tsrx_function_body(node) {
 			? [
 					...get_native_tsrx_template_children(
 						/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.body)),
-						).map((child) => mark_returned_template_child(child)),
+					).map((child) => mark_returned_template_child(child)),
 				]
 			: [b.return(/** @type {AST.Expression} */ (node.body))];
 	}
@@ -2497,7 +2497,9 @@ function jsx_style_to_ripple_element(node, inherited_path = []) {
 		end: node.openingElement?.name?.end ?? node.start,
 		loc: node.openingElement?.name?.loc,
 	});
-	const stylesheet = node.children?.find((/** @type {any} */ child) => child?.type === 'StyleSheet');
+	const stylesheet = node.children?.find(
+		(/** @type {any} */ child) => child?.type === 'StyleSheet',
+	);
 
 	return /** @type {AST.Element} */ (
 		/** @type {unknown} */ ({
@@ -2632,7 +2634,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		}
 
 		const attributes = opening.attributes
-				.map((/** @type {any} */ attr) => {
+			.map((/** @type {any} */ attr) => {
 				if (attr.type === 'JSXAttribute') {
 					const name =
 						attr.name.type === 'JSXIdentifier'

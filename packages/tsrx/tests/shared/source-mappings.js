@@ -59,8 +59,7 @@ export function runSharedSourceMappingTests({
 			expect_maps(`function C() @{
 	const x = { a: 1 };
 }`));
-		it('ReturnStatement', () =>
-			expect_maps(`function f() { return 1; } function C() @{}`));
+		it('ReturnStatement', () => expect_maps(`function f() { return 1; } function C() @{}`));
 		it('ForStatement', () =>
 			expect_maps(`function C() @{
 	for (let i = 0; i < 10; i++) {}
@@ -98,16 +97,12 @@ export function runSharedSourceMappingTests({
 		});
 
 		// Class methods should still have defaulted FunctionExpression metadata.
-		it('class method', () =>
-			expect_maps(`class Foo { bar() { return 1; } } function C() @{}`));
+		it('class method', () => expect_maps(`class Foo { bar() { return 1; } } function C() @{}`));
 		it('class async method', () =>
 			expect_maps(`class Foo { async bar() { return 1; } } function C() @{}`));
 		it('class getter/setter', () =>
-			expect_maps(
-				`class Foo { get x() { return 1; } set x(v) {} } function C() @{}`,
-			));
-		it('class static method', () =>
-			expect_maps(`class Foo { static bar() {} } function C() @{}`));
+			expect_maps(`class Foo { get x() { return 1; } set x(v) {} } function C() @{}`));
+		it('class static method', () => expect_maps(`class Foo { static bar() {} } function C() @{}`));
 		it('object method shorthand', () =>
 			expect_maps(`function C() @{
 	const o = { foo() { return 1; } };
@@ -131,10 +126,8 @@ export function runSharedSourceMappingTests({
 			expect_maps(`function C() @{
 	const x = y as string;
 }`));
-		it('union type annotation', () =>
-			expect_maps(`function C(p: { x: string | null }) @{}`));
-		it('array type annotation', () =>
-			expect_maps(`function C(p: { items: string[] }) @{}`));
+		it('union type annotation', () => expect_maps(`function C(p: { x: string | null }) @{}`));
+		it('array type annotation', () => expect_maps(`function C(p: { items: string[] }) @{}`));
 		it('type predicate (x is T)', () =>
 			expect_maps(
 				`function isF(x: any): x is string { return typeof x === 'string'; } function C() @{}`,
@@ -152,8 +145,7 @@ export function runSharedSourceMappingTests({
 		// Combined with hoisting to module-level statics, the opening
 		// element's start/end positions wouldn't otherwise resolve.
 		it('self-closing element', () => expect_maps(`function C() @{ <input /> }`));
-		it('self-closing with attribute', () =>
-			expect_maps(`function C() @{ <input class="foo" /> }`));
+		it('self-closing with attribute', () => expect_maps(`function C() @{ <input class="foo" /> }`));
 		it('marks self-closing tokens for attribute completions', () => {
 			const source = `function C() @{ <input /> }`;
 			const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
@@ -297,9 +289,7 @@ export function runSharedSourceMappingTests({
 		it('class with generic extends', () =>
 			expect_maps(`class Foo extends Bar<string> {} function C() @{}`));
 		it('class with implements clause', () =>
-			expect_maps(
-				`interface I { x: number } class Foo implements I { x = 1 } function C() @{}`,
-			));
+			expect_maps(`interface I { x: number } class Foo implements I { x = 1 } function C() @{}`));
 		it('class with generic implements', () =>
 			expect_maps(
 				`interface I<T> { x: T } class Foo implements I<string> { x = '' as string } function C() @{}`,
@@ -313,9 +303,7 @@ export function runSharedSourceMappingTests({
 		it('class method with type parameters', () =>
 			expect_maps(`class Foo { bar<T>(x: T): T { return x; } } function C() @{}`));
 		it('class method with return type', () =>
-			expect_maps(
-				`class Foo { bar(x: number): string { return ''; } } function C() @{}`,
-			));
+			expect_maps(`class Foo { bar(x: number): string { return ''; } } function C() @{}`));
 		it('object method shorthand with type parameters', () =>
 			expect_maps(`function C() @{
 	const o = { foo<T>(x: T): T { return x; } };
@@ -353,14 +341,11 @@ export function runSharedSourceMappingTests({
 }`));
 
 		// TS type operators / mapped / parenthesized types.
-		it('keyof type operator', () =>
-			expect_maps(`type K<T> = keyof T; function C() @{}`));
-		it('readonly type operator', () =>
-			expect_maps(`type R = readonly string[]; function C() @{}`));
+		it('keyof type operator', () => expect_maps(`type K<T> = keyof T; function C() @{}`));
+		it('readonly type operator', () => expect_maps(`type R = readonly string[]; function C() @{}`));
 		it('parenthesized type annotation', () =>
 			expect_maps(`function C(p: { x: (string | number) }) @{}`));
-		it('mapped type', () =>
-			expect_maps(`type M<T> = { [K in keyof T]: T[K] }; function C() @{}`));
+		it('mapped type', () => expect_maps(`type M<T> = { [K in keyof T]: T[K] }; function C() @{}`));
 		it('mapped type with as remapping', () =>
 			expect_maps(
 				`type M<T> = { [K in keyof T as \`__\${string & K}\`]: T[K] }; function C() @{}`,
@@ -372,9 +357,7 @@ export function runSharedSourceMappingTests({
 		it('import type declaration', () =>
 			expect_maps(`import type { ReactNode } from 'react'; function C() @{}`));
 		it('inline type import specifier', () =>
-			expect_maps(
-				`import { type ReactNode, useState } from 'react'; function C() @{}`,
-			));
+			expect_maps(`import { type ReactNode, useState } from 'react'; function C() @{}`));
 		it('submodule import declaration', () =>
 			expect_maps(`module server {
 	export function load() {
@@ -411,9 +394,7 @@ function C() @{
 		it('YieldExpression', () =>
 			expect_maps(`function* gen() { yield 1; yield* [2, 3]; } function C() @{}`));
 		it('AssignmentPattern with type', () =>
-			expect_maps(
-				`function f(x: number = 1): number { return x; } function C() @{}`,
-			));
+			expect_maps(`function f(x: number = 1): number { return x; } function C() @{}`));
 
 		// Arrow with default parameter and return type — combines AssignmentPattern
 		// with the ArrowFunctionExpression returnType visitor.

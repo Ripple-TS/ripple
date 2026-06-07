@@ -90,16 +90,16 @@ setup statements or multiple rendered siblings belong next to the UI.
 
 ```tsrx
 type ButtonProps = {
-	text: string;
-	onClick: () => void;
+  text: string;
+  onClick: () => void;
 };
 
 export function Button({ text, onClick }: ButtonProps) {
-	return <button class="button" {onClick}>{text}</button>;
+  return <button class="button" {onClick}>{text}</button>;
 }
 
 export function App() {
-	return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
+  return <Button text="Click me" onClick={() => console.log('Clicked!')} />;
 }
 ```
 
@@ -125,7 +125,7 @@ export function Counter() @{
   let &[count] = track(0);
   const increment = () => count++;
 
-  <button onClick={increment}>Count: {count}</button>
+  <button onClick={increment}>Count:{count}</button>
 }
 ```
 
@@ -135,7 +135,8 @@ The same rule applies in nested scopes:
 export function Cart({ items }: { items: Item[] }) @{
   <div class="cart">@{
     const subtotal = items.reduce((sum, item) => sum + item.price, 0);
-    const discount = subtotal > 100 ? 0.1 : 0;
+    const discount =
+      subtotal > 100 ? 0.1 : 0;
 
     <>
       <p>Subtotal: ${subtotal}</p>
@@ -154,7 +155,7 @@ Static text is JSX text. Dynamic values use normal JSX expression containers.
 ```tsrx
 export function Greeting({ name }: { name?: string }) @{
   @if (name) {
-    <p>Hello, {name}</p>
+    <p>Hello,{name}</p>
   } else {
     <p>Hello, stranger</p>
   }
@@ -181,7 +182,11 @@ export function TodoList() @{
     @for (const item of items; index i; key item.id) {
       if (!showDone && item.done) continue;
 
-      <li>{i + 1}. {item.name}</li>
+      <li>
+        {i + 1}
+        .
+        {item.name}
+      </li>
     }
   </ul>
 }
@@ -197,7 +202,7 @@ export function Dashboard({ user }: { user: User | null }) @{
   }
 
   <>
-    <h1>Welcome, {user.name}</h1>
+    <h1>Welcome,{user.name}</h1>
     <p>Here is your dashboard.</p>
   </>
 }
@@ -213,7 +218,7 @@ export function ProfilePanel() @{
     <p>Loading...</p>
   } catch (error, reset) {
     <div>
-      <p>Error: {error.message}</p>
+      <p>Error:{error.message}</p>
       <button onClick={() => reset()}>Try again</button>
     </div>
   }
@@ -236,15 +241,15 @@ export function Counter() @{
   });
 
   <>
-    <p>Count: {count}</p>
-    <p>Double: {double}</p>
+    <p>Count:{count}</p>
+    <p>Double:{double}</p>
     <button onClick={() => count++}>Increment</button>
     <CounterValue count={trackedCount} />
   </>
 }
 
 function CounterValue({ count }: { count: Tracked<number> }) {
-  return <p>Shared value: {count.value}</p>;
+  return <p>Shared value:{count.value}</p>;
 }
 ```
 
@@ -271,7 +276,10 @@ export function Inventory() @{
       }
     </ul>
     <button onClick={() => selected.add(1)}>Select first item</button>
-    <p>Selected: {selected.size + totals.selected}</p>
+    <p>
+      Selected:
+      {selected.size + totals.selected}
+    </p>
   </>
 }
 ```
@@ -317,7 +325,9 @@ export function Notice() @{
   <>
     <p class="notice" style={{ '--notice-color': tone }}>Scoped text</p>
     <button
-      onClick={() => (tone = tone === 'rebeccapurple' ? 'tomato' : 'rebeccapurple')}
+      onClick={() => (tone = tone === 'rebeccapurple'
+        ? 'tomato'
+        : 'rebeccapurple')}
     >Toggle tone</button>
     <style>
       .notice {
@@ -333,13 +343,13 @@ Module-scope style expressions can expose scoped class names:
 
 ```tsrx
 const styles = <style>
-	.highlight {
-		background: #e8f5e9;
-	}
+  .highlight {
+    background: #e8f5e9;
+  }
 </style>;
 
 export function Badge() {
-	return <span class={styles.highlight}>New</span>;
+  return <span class={styles.highlight}>New</span>;
 }
 ```
 
@@ -356,9 +366,9 @@ export function App() @{
 
   <>
     <ThemeLabel />
-    <button
-      onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}
-    >Toggle theme</button>
+    <button onClick={() => (theme = theme === 'light' ? 'dark' : 'light')}>
+      Toggle theme
+    </button>
     <Portal target={document.body}>
       <p>Portal content</p>
     </Portal>
@@ -368,7 +378,7 @@ export function App() @{
 function ThemeLabel() @{
   const theme = ThemeContext.get();
 
-  <p>Theme: {theme.value}</p>
+  <p>Theme:{theme.value}</p>
 }
 ```
 

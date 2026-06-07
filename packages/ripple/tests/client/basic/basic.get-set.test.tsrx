@@ -45,9 +45,7 @@ describe('basic client > tracked value access', () => {
 						count++;
 						count++;
 					}}
-				>
-					{'increment'}
-				</button>
+				>{'increment'}</button>
 			</>
 		}
 
@@ -95,9 +93,7 @@ describe('basic client > tracked value access', () => {
 						count.value = 15;
 						count.value = 25;
 					}}
-				>
-					{'set multiple times'}
-				</button>
+				>{'set multiple times'}</button>
 			</>
 		}
 
@@ -151,9 +147,7 @@ describe('basic client > tracked value access', () => {
 						count.value = count.value + 15;
 						count.value = count.value + 25;
 					}}
-				>
-					{'add multiple times'}
-				</button>
+				>{'add multiple times'}</button>
 			</>
 		}
 

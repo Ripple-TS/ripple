@@ -20,7 +20,7 @@ export function StateManagementPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/guide/state-management"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

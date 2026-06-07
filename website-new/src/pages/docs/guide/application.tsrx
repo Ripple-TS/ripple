@@ -20,7 +20,7 @@ export function ApplicationPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/guide/application"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

@@ -1482,10 +1482,16 @@ const visitors = {
 
 		if (is_reference(node, parent)) {
 			if (context.state.to_ts) {
+				const binding = context.state.scope.get(node.name);
 				if (node.tracked) {
+					if (
+						(binding?.kind === 'lazy' || binding?.kind === 'lazy_fallback') &&
+						binding.read_unwraps
+					) {
+						return context.next();
+					}
 					// Check if this identifier is used as a dynamic component/element
 					// by checking if it has a capitalized name in metadata
-					const binding = context.state.scope.get(node.name);
 					if (binding?.metadata?.is_dynamic_component) {
 						// Capitalize the identifier for TypeScript
 						const capitalized_name = node.name.charAt(0).toUpperCase() + node.name.slice(1);
@@ -2032,7 +2038,27 @@ const visitors = {
 		// `transform_native_tsrx_function`, and `to_ts` mode keeps the node for the
 		// TSX printer. Everywhere else, lower it to a plain BlockStatement so the
 		// JS printer (which has no JSXCodeBlock visitor) can emit it.
-		if (context.state.to_ts || node.render != null) {
+		if (context.state.to_ts) {
+			/** @type {AST.Statement[]} */
+			const body = [];
+			for (const statement of node.body) {
+				push_statement(
+					/** @type {AST.Statement | AST.Statement[]} */ (context.visit(statement, context.state)),
+					body,
+				);
+			}
+			return {
+				...node,
+				body,
+				render: node.render
+					? transform_tsrx_ts_render_node(
+							/** @type {AST.Node} */ (node.render),
+							/** @type {VisitorClientContext} */ (context),
+						)
+					: null,
+			};
+		}
+		if (node.render != null) {
 			return context.next();
 		}
 		const body = node.body.map(
@@ -3755,6 +3781,7 @@ function join_template(items) {
 /**
  * @typedef {AST.Statement | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsStatement
  * @typedef {AST.Expression | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsExpression
+ * @typedef {ESTreeJSX.JSXElement['children'][number]} TsrxTsxChild
  */
 
 /**
@@ -3884,6 +3911,338 @@ function build_tsrx_to_ts_expression(node, context) {
 }
 
 /**
+ * @param {AST.TSRXExpression | AST.Text} node
+ * @returns {AST.NodeWithLocation | undefined}
+ */
+function get_tsrx_expression_container_location(node) {
+	if (node.loc) return /** @type {AST.NodeWithLocation} */ (node);
+
+	const expression = /** @type {AST.Expression & Partial<AST.NodeWithLocation>} */ (
+		node.expression
+	);
+	if (!expression.loc || node.start == null || node.end == null) {
+		return undefined;
+	}
+
+	return /** @type {AST.NodeWithLocation} */ ({
+		start: node.start,
+		end: node.end,
+		loc: {
+			start: {
+				line: expression.loc.start.line,
+				column: Math.max(0, expression.loc.start.column - 1),
+			},
+			end: {
+				line: expression.loc.end.line,
+				column: expression.loc.end.column + 1,
+			},
+		},
+	});
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @param {VisitorClientContext} context
+ * @returns {TsrxTsxChild[]}
+ */
+function transform_tsrx_tsx_children(children, context) {
+	/** @type {TsrxTsxChild[]} */
+	const transformed_children = [];
+	/** @type {AST.Node[]} */
+	let pending_statement_children = [];
+
+	const flush_pending_statement_children = () => {
+		if (pending_statement_children.length === 0) return;
+
+		const statements = transform_body(pending_statement_children, context);
+		if (statements.length > 0) {
+			transformed_children.push(b.jsx_expression_container(b.call(b.thunk(b.block(statements)))));
+		}
+		pending_statement_children = [];
+	};
+
+	for (const child of children) {
+		const transformed = transform_tsrx_tsx_child(child, context);
+		if (transformed === undefined) {
+			pending_statement_children.push(child);
+			continue;
+		}
+
+		flush_pending_statement_children();
+		if (transformed !== null) {
+			transformed_children.push(transformed);
+		}
+	}
+
+	flush_pending_statement_children();
+	return transformed_children;
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {VisitorClientContext} context
+ * @returns {TsrxTsxChild | null | undefined}
+ */
+function transform_tsrx_tsx_child(node, context) {
+	if (node == null || node.type === 'EmptyStatement') {
+		return null;
+	}
+
+	if (node.type === 'Text') {
+		const expression = /** @type {AST.Literal} */ (node.expression);
+		const value = String(expression.value ?? '');
+		return setLocation(b.jsx_text(value, value), /** @type {AST.NodeWithLocation} */ (node));
+	}
+
+	if (node.type === 'TSRXExpression') {
+		return b.jsx_expression_container(
+			/** @type {AST.Expression} */ (context.visit(node.expression, context.state)),
+			get_tsrx_expression_container_location(node),
+		);
+	}
+
+	if (node.type === 'Element') {
+		const expression = transform_ts_child(node, {
+			...context,
+			state: { ...context.state, init: null },
+		});
+		return expression
+			? /** @type {TsrxTsxChild} */ (/** @type {unknown} */ (expression))
+			: undefined;
+	}
+
+	if (node.type === 'TsrxFragment') {
+		const expression = build_tsrx_to_ts_expression(node, context);
+		if (expression.type === 'JSXElement' || expression.type === 'JSXFragment') {
+			return /** @type {TsrxTsxChild} */ (expression);
+		}
+		return b.jsx_expression_container(/** @type {AST.Expression} */ (expression));
+	}
+
+	return undefined;
+}
+
+/**
+ * @param {TsrxTsStatement[]} statements
+ * @returns {AST.Statement[]}
+ */
+function transform_tsrx_ts_statements_to_render_body(statements) {
+	/** @type {AST.Statement[]} */
+	const body = [];
+
+	for (const statement of statements) {
+		const child = statement_to_tsrx_ts_expression(statement);
+		body.push(
+			child
+				? b.return(/** @type {AST.Expression} */ (child))
+				: /** @type {AST.Statement} */ (statement),
+		);
+	}
+
+	return body;
+}
+
+/**
+ * @param {AST.Node[]} children
+ * @param {VisitorClientContext} context
+ * @returns {AST.Statement[]}
+ */
+function transform_tsrx_ts_render_children(children, context) {
+	/** @type {AST.Statement[]} */
+	const body = [];
+
+	for (const child of children) {
+		if (child == null || child.type === 'EmptyStatement') continue;
+
+		if (is_template_or_control_flow(child)) {
+			if (
+				child.type === 'IfStatement' ||
+				child.type === 'ForOfStatement' ||
+				child.type === 'SwitchStatement' ||
+				child.type === 'TryStatement'
+			) {
+				body.push(transform_tsrx_ts_render_control_flow_statement(child, context));
+			} else {
+				body.push(
+					...transform_tsrx_ts_statements_to_render_body(
+						transform_tsrx_ts_children([child], context),
+					),
+				);
+			}
+		} else {
+			body.push(
+				.../** @type {AST.Statement[]} */ (
+					transform_tsrx_ts_children([/** @type {AST.Node} */ (child)], context)
+				),
+			);
+		}
+	}
+
+	return body;
+}
+
+/**
+ * @param {AST.Node} node
+ * @param {VisitorClientContext} context
+ * @returns {AST.Statement}
+ */
+function transform_tsrx_ts_render_node(node, context) {
+	const body = transform_tsrx_ts_render_children([node], context);
+	return body.length === 1 ? body[0] : b.block(body);
+}
+
+/**
+ * @param {AST.IfStatement | AST.ForOfStatement | AST.SwitchStatement | AST.TryStatement} node
+ * @param {VisitorClientContext} context
+ * @returns {AST.Statement}
+ */
+function transform_tsrx_ts_render_control_flow_statement(node, context) {
+	if (node.type === 'IfStatement') {
+		const consequent_scope =
+			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
+			context.state.scope;
+		const consequent_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		const consequent = b.block(
+			transform_tsrx_ts_render_children(consequent_body, {
+				...context,
+				state: { ...context.state, scope: consequent_scope },
+			}),
+			/** @type {AST.NodeWithLocation} */ (node.consequent),
+		);
+
+		let alternate = null;
+		if (node.alternate !== null) {
+			const alternate_node = /** @type {AST.Statement} */ (node.alternate);
+			const alternate_scope = context.state.scopes.get(alternate_node) || context.state.scope;
+			alternate =
+				alternate_node.type === 'IfStatement'
+					? transform_tsrx_ts_render_control_flow_statement(alternate_node, {
+							...context,
+							state: { ...context.state, scope: alternate_scope },
+						})
+					: b.block(
+							transform_tsrx_ts_render_children(
+								alternate_node.type === 'BlockStatement' ? alternate_node.body : [alternate_node],
+								{
+									...context,
+									state: { ...context.state, scope: alternate_scope },
+								},
+							),
+							/** @type {AST.NodeWithLocation} */ (alternate_node),
+						);
+		}
+
+		return b.if(
+			/** @type {AST.Expression} */ (context.visit(node.test, context.state)),
+			consequent,
+			alternate,
+			/** @type {AST.NodeWithLocation} */ (node),
+		);
+	}
+
+	if (node.type === 'ForOfStatement') {
+		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
+		const block_body = transform_tsrx_ts_render_children(
+			/** @type {AST.BlockStatement} */ (node.body).body,
+			{
+				...context,
+				state: { ...context.state, scope: body_scope },
+			},
+		);
+		if (node.key) {
+			block_body.unshift(b.stmt(/** @type {AST.Expression} */ (context.visit(node.key))));
+		}
+		if (node.index) {
+			block_body.unshift(
+				b.let(/** @type {AST.Identifier} */ (context.visit(node.index)), b.literal(0)),
+			);
+		}
+
+		return b.for_of(
+			/** @type {AST.Pattern} */ (context.visit(node.left)),
+			/** @type {AST.Expression} */ (context.visit(node.right)),
+			b.block(block_body),
+			node.await,
+			/** @type {AST.NodeWithLocation} */ (node),
+		);
+	}
+
+	if (node.type === 'SwitchStatement') {
+		const cases = node.cases.map((switch_case) => {
+			const consequent_scope =
+				context.state.scopes.get(switch_case.consequent) || context.state.scope;
+			return b.switch_case(
+				switch_case.test ? /** @type {AST.Expression} */ (context.visit(switch_case.test)) : null,
+				transform_tsrx_ts_render_children(flatten_switch_consequent(switch_case.consequent), {
+					...context,
+					state: { ...context.state, scope: consequent_scope },
+				}),
+			);
+		});
+
+		return b.switch(
+			/** @type {AST.Expression} */ (context.visit(node.discriminant)),
+			cases,
+			/** @type {AST.NodeWithLocation} */ (node),
+		);
+	}
+
+	const try_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.block));
+	const try_body = b.block(
+		transform_tsrx_ts_render_children(node.block.body, {
+			...context,
+			state: { ...context.state, scope: try_scope },
+		}),
+		/** @type {AST.NodeWithLocation} */ (node.block),
+	);
+
+	let catch_handler = null;
+	if (node.handler) {
+		const catch_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.handler.body));
+		catch_handler = b.catch_clause(
+			node.handler.param || null,
+			node.handler.resetParam || null,
+			b.block(
+				transform_tsrx_ts_render_children(node.handler.body.body, {
+					...context,
+					state: { ...context.state, scope: catch_scope },
+				}),
+				/** @type {AST.NodeWithLocation} */ (node.handler.body),
+			),
+			/** @type {AST.NodeWithLocation} */ (node.handler),
+		);
+	}
+
+	const pending = node.pending
+		? b.block(
+				transform_tsrx_ts_render_children(node.pending.body, {
+					...context,
+					state: {
+						...context.state,
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.pending)),
+					},
+				}),
+				/** @type {AST.NodeWithLocation} */ (node.pending),
+			)
+		: null;
+	const finalizer = node.finalizer
+		? b.block(
+				transform_body(node.finalizer.body, {
+					...context,
+					state: {
+						...context.state,
+						scope: /** @type {ScopeInterface} */ (context.state.scopes.get(node.finalizer)),
+					},
+				}),
+				/** @type {AST.NodeWithLocation} */ (node.finalizer),
+			)
+		: null;
+
+	return b.try(try_body, catch_handler, finalizer, pending);
+}
+
+/**
  * @param {AST.Node} node
  * @param {TransformClientContext} context
  */
@@ -3993,30 +4352,30 @@ function transform_ts_child(node, context) {
 
 		if (!node.selfClosing && !node.unclosed && !has_children_props && node.children.length > 0) {
 			const component_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node));
+			const child_context = {
+				...context,
+				state: {
+					...state,
+					scope: component_scope,
+					inside_head: element_name === 'head' ? true : state.inside_head,
+					namespace: child_namespace,
+					skip_children_traversal: is_dom_element,
+				},
+			};
 			const thunk =
-				element_name === 'style'
+				element_name === 'style' || is_dom_element
 					? null
-					: b.thunk(
-							b.block(
-								transform_body(node.children, {
-									...context,
-									state: {
-										...state,
-										scope: component_scope,
-										inside_head: element_name === 'head' ? true : state.inside_head,
-										namespace: child_namespace,
-										skip_children_traversal: is_dom_element,
-									},
-								}),
-							),
-						);
+					: b.thunk(b.block(transform_body(node.children, child_context)));
 
-			if (thunk !== null) {
-				if (is_dom_element) {
-					children.push(b.jsx_expression_container(b.call(thunk)));
-				} else {
-					attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
-				}
+			if (is_dom_element) {
+				children.push(
+					...transform_tsrx_tsx_children(
+						/** @type {AST.Node[]} */ (node.children),
+						/** @type {VisitorClientContext} */ (child_context),
+					),
+				);
+			} else if (thunk !== null) {
+				attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
 			}
 		}
 
@@ -4085,6 +4444,10 @@ function transform_ts_child(node, context) {
 		);
 		if (element_name === 'style') {
 			disable_style_anchor_verification(jsxElement);
+		}
+
+		if (!state.init) {
+			return jsxElement;
 		}
 
 		// For unclosed elements, push the JSXElement directly without wrapping in ExpressionStatement
@@ -5465,7 +5828,9 @@ function create_tsx_with_typescript_support(comments) {
 					context.newline();
 				}
 				// Write the comment
+				context.location(comment.loc.start.line, comment.loc.start.column);
 				context.write(formatComment(comment));
+				context.location(comment.loc.end.line, comment.loc.end.column);
 				context.newline();
 				comment_index++;
 			} else {
@@ -5574,9 +5939,7 @@ function create_tsx_with_typescript_support(comments) {
 			}
 			if (node.render) {
 				context.newline();
-				context.write('return ');
 				context.visit(node.render);
-				context.write(';');
 			}
 			context.newline();
 			context.write('}');
@@ -6384,21 +6747,22 @@ function create_tsx_with_typescript_support(comments) {
 			context.visit(node.body);
 		},
 		TryStatement(node, context) {
+			if (node.pending) {
+				context.write('(() => ');
+				context.visit(node.pending);
+				context.write(')();');
+				context.newline();
+			}
+
+			if (!node.handler && !node.finalizer) {
+				context.write('(() => ');
+				context.visit(node.block);
+				context.write(')();');
+				return;
+			}
+
 			context.write('try ');
 			context.visit(node.block);
-
-			if (node.pending) {
-				// Output the pending block with source mapping for the 'pending' keyword
-				context.write(' ');
-				context.location(
-					/** @type {AST.SourceLocation} */
-					(node.pending.loc).start.line,
-					/** @type {AST.SourceLocation} */
-					(node.pending.loc).start.column - 'pending '.length,
-				);
-				context.write('pending ');
-				context.visit(node.pending);
-			}
 
 			if (node.handler) {
 				context.write(' catch');

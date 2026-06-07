@@ -904,7 +904,7 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 
 		it('keeps rendered content before continue branches', () => {
 			const { code } = compile(
-					`export function App({ items }: { items: string[] }) @{
+				`export function App({ items }: { items: string[] }) @{
 						@for (const item of items) {
 							if (!item) continue
 							<>

@@ -106,15 +106,15 @@ export function DocsLayout({
 															id="doc-outline-aria-label"
 															role="heading"
 															aria-level="2"
-														>
-															{'Features'}
-														</div>
+														>{'Features'}</div>
 														<ul class="DocumentOutlineItem root">
 															@for (const item of toc) {
 																<li>
-																	<a class="outline-link" href={item.href} title={item.text}>
-																		{item.text}
-																	</a>
+																	<a
+																		class="outline-link"
+																		href={item.href}
+																		title={item.text}
+																	>{item.text}</a>
 																</li>
 															}
 														</ul>

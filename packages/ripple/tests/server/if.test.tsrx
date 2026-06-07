@@ -1,10 +1,10 @@
 describe('if statements in SSR', () => {
 	it('renders if block when condition is true', async () => {
 		function App() @{
-				let condition = true;
-				@if (condition) {
-					<div>{'If block'}</div>
-				}
+			let condition = true;
+			@if (condition) {
+				<div>{'If block'}</div>
+			}
 		}
 
 		const { body } = await render(App);
@@ -13,12 +13,12 @@ describe('if statements in SSR', () => {
 
 	it('renders else block when condition is false', async () => {
 		function App() @{
-				let condition = false;
-				@if (condition) {
-					<div>{'If block'}</div>
-				} else {
-					<div>{'Else block'}</div>
-				}
+			let condition = false;
+			@if (condition) {
+				<div>{'If block'}</div>
+			} else {
+				<div>{'Else block'}</div>
+			}
 		}
 
 		const { body } = await render(App);
@@ -26,14 +26,14 @@ describe('if statements in SSR', () => {
 	});
 
 	it('renders bare JSX text in if-else branches', async () => {
-			function App() @{
-					let condition = false;
-					@if (condition) {
-						<>Hello Ripple</>
-					} else {
-						<>Hello React</>
-					}
+		function App() @{
+			let condition = false;
+			@if (condition) {
+				<>Hello Ripple</>
+			} else {
+				<>Hello React</>
 			}
+		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('Hello React');
@@ -41,14 +41,14 @@ describe('if statements in SSR', () => {
 
 	it('renders else if block when condition is true', async () => {
 		function App() @{
-				let value = 'b';
-				@if (value === 'a') {
-					<div>Case A</div>
-				} else if (value === 'b') {
-					<div>Case B</div>
-				} else {
-					<div>{'Default Case'}</div>
-				}
+			let value = 'b';
+			@if (value === 'a') {
+				<div>Case A</div>
+			} else if (value === 'b') {
+				<div>Case B</div>
+			} else {
+				<div>{'Default Case'}</div>
+			}
 		}
 
 		const { body } = await render(App);
@@ -57,14 +57,14 @@ describe('if statements in SSR', () => {
 
 	it('renders final else block in an if-else if-else chain', async () => {
 		function App() @{
-				let value = 'c';
-				@if (value === 'a') {
-					<div>Case A</div>
-				} else if (value === 'b') {
-					<div>Case B</div>
-				} else {
-					<div>{'Default Case'}</div>
-				}
+			let value = 'c';
+			@if (value === 'a') {
+				<div>Case A</div>
+			} else if (value === 'b') {
+				<div>Case B</div>
+			} else {
+				<div>{'Default Case'}</div>
+			}
 		}
 
 		const { body } = await render(App);
@@ -73,17 +73,17 @@ describe('if statements in SSR', () => {
 
 	it('renders nested if-else blocks correctly', async () => {
 		function App() @{
-				let outer = true;
-				let inner = false;
-				@if (outer) {
-					@if (inner) {
-						<div>{'Outer true, Inner true'}</div>
-					} else {
-						<div>{'Outer true, Inner false'}</div>
-					}
+			let outer = true;
+			let inner = false;
+			@if (outer) {
+				@if (inner) {
+					<div>{'Outer true, Inner true'}</div>
 				} else {
-					<div>{'Outer false'}</div>
+					<div>{'Outer true, Inner false'}</div>
 				}
+			} else {
+				<div>{'Outer false'}</div>
+			}
 		}
 
 		const { body } = await render(App);

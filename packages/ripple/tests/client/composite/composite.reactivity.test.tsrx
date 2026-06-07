@@ -9,9 +9,7 @@ describe('composite > reactivity', () => {
 				onClick={() => {
 					obj.count.value++;
 				}}
-			>
-				{obj.count.value}
-			</button>
+			>{obj.count.value}</button>
 		}
 
 		function App() @{
@@ -42,9 +40,7 @@ describe('composite > reactivity', () => {
 				onClick={() => {
 					obj.count.value++;
 				}}
-			>
-				{obj.count.value}
-			</button>
+			>{obj.count.value}</button>
 		}
 
 		function OtherComponent({ obj }: { obj: { count: Tracked<number> } }) @{
@@ -194,9 +190,7 @@ describe('composite > reactivity', () => {
 						b++;
 						c++;
 					}}
-				>
-					{'Increment all'}
-				</button>
+				>{'Increment all'}</button>
 			</>
 		}
 
@@ -204,7 +198,9 @@ describe('composite > reactivity', () => {
 			effect(() => {
 				logs.push(`Child effect: ${a}, ${b}, ${c}`);
 			});
-			<div>{a + ' ' + b + ' ' + c}</div>
+			<div>
+				{a + ' ' + b + ' ' + c}
+			</div>
 		}
 
 		render(App);
@@ -228,9 +224,9 @@ describe('composite > reactivity', () => {
 		}
 
 		function CounterWrapper(props: Props) @{
-				<div>
-					<Counter {...props} />
-				</div>
+			<div>
+				<Counter {...props} />
+			</div>
 		}
 
 		function Counter(&{ count, up, down, ...rest }: Props) @{

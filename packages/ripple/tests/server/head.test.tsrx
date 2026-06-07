@@ -40,12 +40,10 @@ describe('head elements', () => {
 
 	it('renders title with template literal', async () => {
 		function App() @{
-			
-				let &[name] = track('World');
-				<head>
-					<title>{`Hello ${name}!`}</title>
-				</head>
-			
+			let &[name] = track('World');
+			<head>
+				<title>{`Hello ${name}!`}</title>
+			</head>
 		}
 
 		const { head, body } = await render(App);
@@ -60,7 +58,9 @@ describe('head elements', () => {
 			let prefix = 'Count: ';
 			<>
 				<head>
-					<title>{prefix + count}</title>
+					<title>
+						{prefix + count}
+					</title>
 				</head>
 				<div>
 					<span>{count}</span>
@@ -92,13 +92,13 @@ describe('head elements', () => {
 
 	it('renders title with conditional content', async () => {
 		function App() @{
-			
-				let &[showPrefix] = track(true);
-				let &[title] = track('Main Page');
-				<head>
-					<title>{showPrefix ? 'App - ' + title : title}</title>
-				</head>
-			
+			let &[showPrefix] = track(true);
+			let &[title] = track('Main Page');
+			<head>
+				<title>
+					{showPrefix ? 'App - ' + title : title}
+				</title>
+			</head>
 		}
 
 		const { head, body } = await render(App);

@@ -15,8 +15,8 @@ describe('basic client', () => {
 
 	it('renders string interpolation as escaped text', async () => {
 		function Basic() @{
-				let markup = '<span>Not HTML</span>';
-				<div>{markup}</div>
+			let markup = '<span>Not HTML</span>';
+			<div>{markup}</div>
 		}
 
 		const { body } = await render(Basic);
@@ -29,8 +29,10 @@ describe('basic client', () => {
 			<>
 				<div>Rock &amp; &quot;Roll&quot;</div>
 				<div>line break</div>
-				<pre>first
-second</pre>
+				<pre>
+					first
+second
+				</pre>
 			</>
 		}
 
@@ -60,11 +62,11 @@ second</pre>
 
 	it('renders primitive component return branches', async () => {
 		function Basic() @{
-				const ready = false;
-				if (!ready) {
-					return 'Waiting';
-				}
-				<>Ready</>
+			const ready = false;
+			if (!ready) {
+				return 'Waiting';
+			}
+			<>Ready</>
 		}
 
 		const { body } = await render(Basic);
@@ -232,8 +234,8 @@ second</pre>
 
 	it('renders Fragment innerHTML', async () => {
 		function Basic() @{
-				const html = '<strong>Server Fragment HTML</strong>';
-				<Fragment innerHTML={html} />
+			const html = '<strong>Server Fragment HTML</strong>';
+			<Fragment innerHTML={html} />
 		}
 
 		const { body } = await render(Basic);
@@ -274,7 +276,9 @@ second</pre>
 					<div class="inner">{'from tsrx'}</div>
 				</section>
 			</>;
-			<>{content}</>
+			<>
+				{content}
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -291,7 +295,9 @@ second</pre>
 					</section>
 				</div>
 			</>;
-			<>{content}</>
+			<>
+				{content}
+			</>
 		}
 
 		const { body } = await render(Basic);
@@ -302,11 +308,13 @@ second</pre>
 	});
 
 	it('renders tsx declared before a top-level tsx value', async () => {
-			function Basic() @{
-				const nested = <span class="nested-tsx">inside nested tsx</span>;
-				const content = <><div class="native">{nested}</div></>;
-				<>{content}</>
-			}
+		function Basic() @{
+			const nested = <span class="nested-tsx">inside nested tsx</span>;
+			const content = <><div class="native">{nested}</div></>;
+			<>
+				{content}
+			</>
+		}
 
 		const { body } = await render(Basic);
 
@@ -317,16 +325,16 @@ second</pre>
 
 	it('flattens nested primitive arrays inside mixed tsrx collections', async () => {
 		function Basic() @{
-				<div>
-					{<>
-						{[
-							'start:',
-							['one', 2, true, null, false],
-							<strong>{'!'}</strong>,
-							':end',
-						]}
-					</>}
-				</div>
+			<div>
+				{<>
+					{[
+						'start:',
+						['one', 2, true, null, false],
+						<strong>{'!'}</strong>,
+						':end',
+					]}
+				</>}
+			</div>
 		}
 
 		const { body } = await render(Basic);
@@ -338,7 +346,9 @@ second</pre>
 		function Basic() @{
 			const items = ['start:', ['one', 2], null, true, false, ':end'];
 			<>
-				<div>{['start:', ['one', 2], null, true, false, ':end']}</div>
+				<div>
+					{['start:', ['one', 2], null, true, false, ':end']}
+				</div>
 				<div>{items}</div>
 			</>
 		}
@@ -368,10 +378,10 @@ second</pre>
 
 	it('renders tracked state updates', async () => {
 		function Counter() @{
-				let &[count] = track(0);
-				count++;
-				count = count + 5;
-				<div>{count}</div>
+			let &[count] = track(0);
+			count++;
+			count = count + 5;
+			<div>{count}</div>
 		}
 
 		const { body } = await render(Counter);
@@ -391,9 +401,9 @@ second</pre>
 		}
 
 		function Parent() @{
-				const count = track(10);
-				let Dynamic = track(() => Child);
-				<@Dynamic {count} class={{ test: true }} />
+			const count = track(10);
+			let Dynamic = track(() => Child);
+			<@Dynamic {count} class={{ test: true }} />
 		}
 
 		const { body } = await render(Parent);
@@ -403,10 +413,10 @@ second</pre>
 
 	it('renders tracked object properties', async () => {
 		function ObjCounter() @{
-				const obj = { count: track(2) };
-				obj.count.value += 3;
-				obj.count.value = obj.count.value + 1;
-				<div>{obj.count.value}</div>
+			const obj = { count: track(2) };
+			obj.count.value += 3;
+			obj.count.value = obj.count.value + 1;
+			<div>{obj.count.value}</div>
 		}
 
 		const { body } = await render(ObjCounter);
@@ -416,10 +426,10 @@ second</pre>
 
 	it('renders spread props with tracked values', async () => {
 		function SpreadProps() @{
-				let &[id] = track('unique-id');
-				let &[isActive] = track(true);
-				let &[styles] = track({ color: 'red', fontSize: '16px' });
-				<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
+			let &[id] = track('unique-id');
+			let &[isActive] = track(true);
+			let &[styles] = track({ color: 'red', fontSize: '16px' });
+			<div {...{ id: id, class: { active: isActive }, style: styles }}>{'Spread Props'}</div>
 		}
 
 		const { body } = await render(SpreadProps);
@@ -520,42 +530,42 @@ second</pre>
 
 	it('runs nested JavaScript blocks inside component-local callables', async () => {
 		function App() @{
-				function readFunction() {
-					const label = 'function outer';
+			function readFunction() {
+				const label = 'function outer';
+				let result = '';
+
+				{
+					const label = 'function inner';
+					result = label;
+				}
+
+				return `${result} / ${label}`;
+			}
+			const readArrow = () => {
+				const offset = 5;
+				let value = offset;
+
+				{
+					const offset = 17;
+					value += offset;
+				}
+
+				return value;
+			};
+			class Reader {
+				read() {
+					const label = 'method outer';
 					let result = '';
 
 					{
-						const label = 'function inner';
+						const label = 'method inner';
 						result = label;
 					}
 
 					return `${result} / ${label}`;
 				}
-				const readArrow = () => {
-					const offset = 5;
-					let value = offset;
-
-					{
-						const offset = 17;
-						value += offset;
-					}
-
-					return value;
-				};
-				class Reader {
-					read() {
-						const label = 'method outer';
-						let result = '';
-
-						{
-							const label = 'method inner';
-							result = label;
-						}
-
-						return `${result} / ${label}`;
-					}
-				}
-				const reader = new Reader();
+			}
+			const reader = new Reader();
 			<>
 				<div class="block-function">{readFunction()}</div>
 				<div class="block-arrow">{readArrow()}</div>

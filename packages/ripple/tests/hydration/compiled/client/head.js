@@ -232,7 +232,7 @@ export function ComputedTitle() {
 				}
 			}
 
-			_$_.head('928271df', (__anchor) => {
+			_$_.head('92c79d98', (__anchor) => {
 				_$_.render(() => {
 					_$_.document.title = prefix + lazy_5.value;
 				});
@@ -253,11 +253,11 @@ export function MultipleHeadBlocks() {
 		_$_.expression(node_8, () => _$_.tsrx_element((__anchor, __block) => {
 			var div_9 = root_19();
 
-			_$_.head('487ad51a', (__anchor) => {
+			_$_.head('9a44f25d', (__anchor) => {
 				_$_.document.title = 'First Head';
 			});
 
-			_$_.head('9b3c4604', (__anchor) => {
+			_$_.head('0873e476', (__anchor) => {
 				var meta_2 = root_20();
 
 				_$_.append(__anchor, meta_2);
@@ -278,7 +278,7 @@ export function HeadWithStyle() {
 		_$_.expression(node_9, () => _$_.tsrx_element((__anchor, __block) => {
 			var div_10 = root_22();
 
-			_$_.head('ec9d13cb', (__anchor) => {
+			_$_.head('d75c5358', (__anchor) => {
 				_$_.document.title = 'Styled Page';
 			});
 

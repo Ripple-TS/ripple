@@ -3,8 +3,8 @@ import { Fragment, flushSync, track } from 'ripple';
 describe('Fragment innerHTML', () => {
 	it('renders host innerHTML as content instead of an attribute', () => {
 		function App() @{
-				const html = '<span>Host HTML</span>';
-				<code innerHTML={html} />
+			const html = '<span>Host HTML</span>';
+			<code innerHTML={html} />
 		}
 
 		render(App);
@@ -16,13 +16,13 @@ describe('Fragment innerHTML', () => {
 
 	it('renders spread innerHTML as content instead of an attribute', () => {
 		function App() @{
-				let &[attrs] = track<{ innerHTML?: string }>({
-					innerHTML: '<span>Spread HTML</span>',
-				});
-				<>
-					<code {...attrs} />
-					<button onClick={() => (attrs = { innerHTML: '<em>Updated HTML</em>' })}>{'Update'}</button>
-				</>
+			let &[attrs] = track<{ innerHTML?: string }>({
+				innerHTML: '<span>Spread HTML</span>',
+			});
+			<>
+				<code {...attrs} />
+				<button onClick={() => (attrs = { innerHTML: '<em>Updated HTML</em>' })}>{'Update'}</button>
+			</>
 		}
 
 		render(App);
@@ -41,8 +41,8 @@ describe('Fragment innerHTML', () => {
 
 	it('uses the last innerHTML value when spreads and direct props are mixed', () => {
 		function App() @{
-				const attrs = { innerHTML: '<span>Spread HTML</span>' };
-				<code {...attrs} innerHTML="<em>Direct HTML</em>" />
+			const attrs = { innerHTML: '<span>Spread HTML</span>' };
+			<code {...attrs} innerHTML="<em>Direct HTML</em>" />
 		}
 
 		render(App);
@@ -54,8 +54,8 @@ describe('Fragment innerHTML', () => {
 
 	it('renders static innerHTML fragments', () => {
 		function App() @{
-				let str = '<div>Test</div>';
-				<Fragment innerHTML={str} />
+			let str = '<div>Test</div>';
+			<Fragment innerHTML={str} />
 		}
 
 		render(App);
@@ -64,17 +64,15 @@ describe('Fragment innerHTML', () => {
 
 	it('renders dynamic innerHTML fragments', () => {
 		function App() @{
-				let &[str] = track('<div>Test</div>');
-				<>
-					<Fragment innerHTML={str} />
-					<button
-						onClick={() => {
-							str = '<div>Updated</div>';
-						}}
-					>
-						{'Update'}
-					</button>
-				</>
+			let &[str] = track('<div>Test</div>');
+			<>
+				<Fragment innerHTML={str} />
+				<button
+					onClick={() => {
+						str = '<div>Updated</div>';
+					}}
+				>{'Update'}</button>
+			</>
 		}
 
 		render(App);
@@ -89,8 +87,8 @@ describe('Fragment innerHTML', () => {
 
 	it('renders static Fragment innerHTML', () => {
 		function App() @{
-				const html = '<strong>Fragment HTML</strong>';
-				<Fragment innerHTML={html} />
+			const html = '<strong>Fragment HTML</strong>';
+			<Fragment innerHTML={html} />
 		}
 
 		render(App);
@@ -101,11 +99,11 @@ describe('Fragment innerHTML', () => {
 
 	it('updates dynamic Fragment innerHTML', () => {
 		function App() @{
-				let &[html] = track('<span>First</span>');
-				<>
-					<Fragment innerHTML={html} />
-					<button onClick={() => (html = '<em>Second</em>')}>{'Update'}</button>
-				</>
+			let &[html] = track('<span>First</span>');
+			<>
+				<Fragment innerHTML={html} />
+				<button onClick={() => (html = '<em>Second</em>')}>{'Update'}</button>
+			</>
 		}
 
 		render(App);
@@ -123,10 +121,10 @@ describe('Fragment innerHTML', () => {
 
 	it('renders the correct namespace for child svg element when html is surrounded by <svg>', () => {
 		function App() @{
-				let str = '<circle r="45" cx="50" cy="50" fill="red" />';
-				<svg height="100" width="100">
-					<Fragment innerHTML={str} />
-				</svg>
+			let str = '<circle r="45" cx="50" cy="50" fill="red" />';
+			<svg height="100" width="100">
+				<Fragment innerHTML={str} />
+			</svg>
 		}
 
 		render(App);
@@ -139,8 +137,10 @@ describe('Fragment innerHTML', () => {
 		'renders the correct namespace for child math element when html is surrounded by <math>',
 		() => {
 			function App() @{
-					let str = '<mi>x</mi><mo>+</mo><mi>y</mi>';
-					<math><Fragment innerHTML={str} /></math>
+				let str = '<mi>x</mi><mo>+</mo><mi>y</mi>';
+				<math>
+					<Fragment innerHTML={str} />
+				</math>
 			}
 
 			render(App);

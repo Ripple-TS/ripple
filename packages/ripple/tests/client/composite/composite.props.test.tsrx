@@ -42,7 +42,9 @@ describe('composite > props', () => {
 
 	it('correctly handles no props', () => {
 		function Child(props: { foo?: Tracked<number> }) @{
-			<div>{props.foo?.value}</div>
+			<div>
+				{props.foo?.value}
+			</div>
 		}
 
 		function App() @{

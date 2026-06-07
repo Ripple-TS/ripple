@@ -20,7 +20,7 @@ export function EventsPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/guide/events"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

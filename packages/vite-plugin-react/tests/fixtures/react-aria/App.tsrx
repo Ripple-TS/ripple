@@ -30,8 +30,12 @@ export function ReactAriaFixture() @{
 			onAction={recordAction}
 		/>
 		<AriaActionButton action={deleteAction} isDisabled={true} onAction={recordAction} />
-		<output className="last-action">{lastEntry ? lastEntry.id : 'none'}</output>
-		<output className="last-pointer">{lastEntry ? lastEntry.pointerType : 'none'}</output>
+		<output className="last-action">
+			{lastEntry ? lastEntry.id : 'none'}
+		</output>
+		<output className="last-pointer">
+			{lastEntry ? lastEntry.pointerType : 'none'}
+		</output>
 		<output className="action-count">{entries.length}</output>
 	</section>
 }

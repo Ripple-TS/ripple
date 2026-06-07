@@ -20,7 +20,7 @@ export function HeadManagementPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/guide/head-management"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

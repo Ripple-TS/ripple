@@ -155,7 +155,9 @@ describe('composite > render', () => {
 		function ArrayTest() @{
 			let items = new RippleArray<number>();
 			items.push.apply(items, [1, 2, 3, 4, 5]);
-			<pre>{items ? JSON.stringify(items) : 'Loading...'}</pre>
+			<pre>
+				{items ? JSON.stringify(items) : 'Loading...'}
+			</pre>
 		}
 
 		render(ArrayTest);
@@ -173,8 +175,9 @@ describe('composite > render', () => {
 		}) @{
 			<div {...props}>
 				{children}
-				// @ts-expect-error - intentionally testing behavior when a component is undefined
+
 				<NonExistent />
+				// @ts-expect-error - intentionally testing behavior when a component is undefined
 			</div>
 		}
 

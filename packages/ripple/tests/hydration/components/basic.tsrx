@@ -15,11 +15,11 @@ export function MultipleElements() @{
 }
 
 export function NestedElements() @{
-		<div class="outer">
-			<div class="inner">
-				<span>{'Nested content'}</span>
-			</div>
+	<div class="outer">
+		<div class="inner">
+			<span>{'Nested content'}</span>
 		</div>
+	</div>
 }
 
 export function WithAttributes() @{
@@ -34,9 +34,9 @@ export function ChildComponent() @{
 }
 
 export function ParentWithChild() @{
-		<div class="parent">
-			<ChildComponent />
-		</div>
+	<div class="parent">
+		<ChildComponent />
+	</div>
 }
 
 export function FirstSibling() @{
@@ -55,10 +55,10 @@ export function SiblingComponents() @{
 }
 
 export function Greeting(props: { name: string }) @{
-		<div>
-			{'Hello '}
-			{props.name}
-		</div>
+	<div>
+		{'Hello '}
+		{props.name}
+	</div>
 }
 
 export function WithGreeting() @{
@@ -101,11 +101,11 @@ export function MixedTsrxCollectionText() @{
 		{[
 			'alpha ',
 			<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'delta ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
+			' gamma ',
+			[
+				'delta ',
+				<em class="tail">{'epsilon'}</em>,
+				' zeta',
 			],
 		]}
 	</>;
@@ -117,11 +117,11 @@ export function MixedTsrxCollectionSplitServerText() @{
 		{[
 			'alpha ',
 			<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'delta ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
+			' gamma ',
+			[
+				'delta ',
+				<em class="tail">{'epsilon'}</em>,
+				' zeta',
 			],
 		]}
 	</>;
@@ -133,11 +133,11 @@ export function MixedTsrxCollectionSplitClientText() @{
 		{[
 			'alpha ',
 			<strong class="middle">{'beta'}</strong>,
-				' gamma ',
-				[
-					'changed ',
-					<em class="tail">{'epsilon'}</em>,
-					' zeta',
+			' gamma ',
+			[
+				'changed ',
+				<em class="tail">{'epsilon'}</em>,
+				' zeta',
 			],
 		]}
 	</>;
@@ -149,8 +149,8 @@ export function MixedTsrxCollectionPrimitiveServerText() @{
 		{[
 			'count: ',
 			1,
-				' / ',
-				true,
+			' / ',
+			true,
 			<span class="primitive-tail">{' ok'}</span>,
 		]}
 	</>;
@@ -162,8 +162,8 @@ export function MixedTsrxCollectionPrimitiveClientText() @{
 		{[
 			'count: ',
 			2,
-				' / ',
-				false,
+			' / ',
+			false,
 			<span class="primitive-tail">{' ok'}</span>,
 		]}
 	</>;
@@ -175,25 +175,25 @@ function createPrimitiveItems() {
 }
 
 export function DynamicArrayFromCall() @{
-		const items = createPrimitiveItems();
-		<div class="dynamic-array-call">{items}</div>
+	const items = createPrimitiveItems();
+	<div class="dynamic-array-call">{items}</div>
 }
 
 export function DynamicArrayFromTrack() @{
-		let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
-		<div class="dynamic-array-track">{items}</div>
+	let &[items] = track(['start:', ['one', 2], true, null, false, ':end']);
+	<div class="dynamic-array-track">{items}</div>
 }
 
 export function DynamicArrayFromConditional() @{
-		const condition = true;
-		const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];
-		<div class="dynamic-array-conditional">{items}</div>
+	const condition = true;
+	const items = condition ? ['start:', ['one', 2], true, null, false, ':end'] : ['fallback'];
+	<div class="dynamic-array-conditional">{items}</div>
 }
 
 export function DynamicArrayFromLogical() @{
-		const condition = true;
-		const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
-		<div class="dynamic-array-logical">{items}</div>
+	const condition = true;
+	const items = condition && ['start:', ['one', 2], true, null, false, ':end'];
+	<div class="dynamic-array-logical">{items}</div>
 }
 
 export function NestedTsrxInsideTopLevelTsxExpression() @{
@@ -202,7 +202,9 @@ export function NestedTsrxInsideTopLevelTsxExpression() @{
 			<div class="inner">{'from tsrx'}</div>
 		</section>
 	</>;
-	<>{content}</>
+	<>
+		{content}
+	</>
 }
 
 export function NestedTsrxElementsInsideTopLevelTsxValue() @{
@@ -213,13 +215,17 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() @{
 			</section>
 		</div>
 	</>;
-	<>{content}</>
+	<>
+		{content}
+	</>
 }
 
 export function TsxDeclaredBeforeTopLevelTsx() @{
 	const nested = <span class="nested-tsx">inside nested tsx</span>;
 	const content = <><div class="native">{nested}</div></>;
-	<>{content}</>
+	<>
+		{content}
+	</>
 }
 
 function TextProp(&{ children }: { children: string }) @{
@@ -271,24 +277,24 @@ function Actions({ playgroundVisible = false }: { playgroundVisible: boolean }) 
 }
 
 function Layout({ children }: { children: Children }) @{
-		<main>
-			<div class="container">{children}</div>
-		</main>
+	<main>
+		<div class="container">{children}</div>
+	</main>
 }
 
 function Content() @{
-		<div class="content">
-			<p>{'Some content here'}</p>
-		</div>
+	<div class="content">
+		<p>{'Some content here'}</p>
+	</div>
 }
 
 export function WebsiteIndex() @{
-		<Layout>
-			<Header />
-			<Actions playgroundVisible={true} />
-			<Content />
-			<Actions playgroundVisible={false} />
-		</Layout>
+	<Layout>
+		<Header />
+		<Actions playgroundVisible={true} />
+		<Content />
+		<Actions playgroundVisible={false} />
+	</Layout>
 }
 
 // Test case for component as last element with no following siblings.
@@ -299,24 +305,24 @@ function LastChild() @{
 }
 
 export function ComponentAsLastSibling() @{
-		<div class="wrapper">
-			<h1>{'Header'}</h1>
-			<p>{'Some content'}</p>
-			<LastChild />
-		</div>
+	<div class="wrapper">
+		<h1>{'Header'}</h1>
+		<p>{'Some content'}</p>
+		<LastChild />
+	</div>
 }
 
 // Nested version - component is last child inside another component
 function InnerContent() @{
-		<div class="inner">
-			<span>{'Inner text'}</span>
-			<LastChild />
-		</div>
+	<div class="inner">
+		<span>{'Inner text'}</span>
+		<LastChild />
+	</div>
 }
 
 export function NestedComponentAsLastSibling() @{
-		<section class="outer">
-			<h2>{'Section title'}</h2>
-			<InnerContent />
-		</section>
+	<section class="outer">
+		<h2>{'Section title'}</h2>
+		<InnerContent />
+	</section>
 }

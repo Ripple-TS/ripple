@@ -119,10 +119,7 @@ describe('@tsrx/solid basic', () => {
 
 	describe('attributes', () => {
 		it('keeps class attribute as class (not className)', () => {
-			const { code } = compile(
-				`function App() @{ <div class="foo">{'x'}</div> }`,
-				'App.tsrx',
-			);
+			const { code } = compile(`function App() @{ <div class="foo">{'x'}</div> }`, 'App.tsrx');
 			expect(code).toContain('class="foo"');
 			expect(code).not.toContain('className');
 		});
@@ -443,7 +440,9 @@ describe('@tsrx/solid basic', () => {
 			expect(rest_static).toBeTruthy();
 			expect(code).toContain('<Show when={!hidden}>');
 			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
-			expect(code).toContain("<Match when={kind === 'skip'}><><span>{'rest'}</span><App__StatementBodyHook1 /></></Match>");
+			expect(code).toContain(
+				"<Match when={kind === 'skip'}><><span>{'rest'}</span><App__StatementBodyHook1 /></></Match>",
+			);
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
@@ -501,7 +500,9 @@ describe('@tsrx/solid basic', () => {
 
 			expect(rest_static).toBeTruthy();
 			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
-			expect(code).toContain("<Match when={kind === 'skip'}><><em>{'rest'}</em><App__StatementBodyHook1 /></></Match>");
+			expect(code).toContain(
+				"<Match when={kind === 'skip'}><><em>{'rest'}</em><App__StatementBodyHook1 /></></Match>",
+			);
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 

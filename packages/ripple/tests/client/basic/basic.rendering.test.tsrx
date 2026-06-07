@@ -43,8 +43,10 @@ describe('basic client > rendering & text', () => {
 			<>
 				<div class="entities">Rock &amp; &quot;Roll&quot;</div>
 				<div class="backslash">line break</div>
-				<pre class="multiline">first
-second</pre>
+				<pre class="multiline">
+					first
+second
+				</pre>
 			</>
 		}
 
@@ -268,9 +270,7 @@ second</pre>
 					onClick={() => {
 						message = 'Hello Ripple';
 					}}
-				>
-					{'Change Text'}
-				</button>
+				>{'Change Text'}</button>
 				<div>{message}</div>
 			</>
 		}
@@ -348,22 +348,22 @@ second</pre>
 			const staticMessage = 'Welcome to Ripple!';
 			<div class="mixed-content">
 				<h1>{staticMessage}</h1>
-				<p class="greeting">{'Hello, ' + name + '!'}</p>
-				<p class="notifications">{'You have ' + count + ' notifications'}</p>
+				<p class="greeting">
+					{'Hello, ' + name + '!'}
+				</p>
+				<p class="notifications">
+					{'You have ' + count + ' notifications'}
+				</p>
 				<button
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Add Notification'}
-				</button>
+				>{'Add Notification'}</button>
 				<button
 					onClick={() => {
 						name = name === 'World' ? 'User' : 'World';
 					}}
-				>
-					{'Toggle Name'}
-				</button>
+				>{'Toggle Name'}</button>
 			</div>
 		}
 
@@ -413,16 +413,12 @@ second</pre>
 					onClick={() => {
 						showContent = !showContent;
 					}}
-				>
-					{'Toggle Content'}
-				</button>
+				>{'Toggle Content'}</button>
 				<button
 					onClick={() => {
 						userRole = userRole === 'guest' ? 'admin' : 'guest';
 					}}
-				>
-					{'Toggle Role'}
-				</button>
+				>{'Toggle Role'}</button>
 				<div class="content">
 					@if (showContent) {
 						@if (userRole === 'admin') {

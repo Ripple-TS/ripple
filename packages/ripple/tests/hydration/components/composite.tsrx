@@ -5,13 +5,11 @@ export function Layout(&{ children }: { children?: Children }) @{
 }
 
 export function TextWrappedLayout(&{ children }: { children?: Children }) @{
-	
-		<div class="layout">
-			{'before'}
-			{children}
-			{'after'}
-		</div>
-	
+	<div class="layout">
+		{'before'}
+		{children}
+		{'after'}
+	</div>
 }
 
 export function SingleChild() @{
@@ -30,34 +28,26 @@ export function EmptyLayout() @{
 }
 
 export function LayoutWithSingleChild() @{
-	
-		<Layout>
-			<SingleChild />
-		</Layout>
-	
+	<Layout>
+		<SingleChild />
+	</Layout>
 }
 
 export function LayoutWithMultipleChildren() @{
-	
-		<Layout>
-			<SingleChild />
-			<div class="extra">{'extra'}</div>
-		</Layout>
-	
+	<Layout>
+		<SingleChild />
+		<div class="extra">{'extra'}</div>
+	</Layout>
 }
 
 export function LayoutWithMultiRootChild() @{
-	
-		<Layout>
-			<MultiRootChild />
-		</Layout>
-	
+	<Layout>
+		<MultiRootChild />
+	</Layout>
 }
 
 export function LayoutWithTextAroundChildren() @{
-	
-		<TextWrappedLayout>
-			<SingleChild />
-		</TextWrappedLayout>
-	
+	<TextWrappedLayout>
+		<SingleChild />
+	</TextWrappedLayout>
 }

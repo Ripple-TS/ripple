@@ -20,7 +20,7 @@ export function BestPracticesPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/best-practices"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

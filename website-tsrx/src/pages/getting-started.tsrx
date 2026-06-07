@@ -305,9 +305,7 @@ export function GettingStartedPage() @{
 							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 							target="_blank"
 							rel="noopener noreferrer"
-						>
-							GitHub
-						</a>
+						>GitHub</a>
 						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
 					</nav>
 				</header>
@@ -315,9 +313,10 @@ export function GettingStartedPage() @{
 				<section class="hero">
 					<h1>Getting Started</h1>
 					<p class="lede">
-						Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor tooling that makes 
+						Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor
+						tooling that makes
 						<code class="inline-code">.tsrx</code>
-						 files feel native in the rest of your repo.
+						files feel native in the rest of your repo.
 					</p>
 				</section>
 
@@ -369,11 +368,11 @@ export function GettingStartedPage() @{
 								<code innerHTML={VITE_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								That's it — create any 
+								That's it — create any
 								<code class="inline-code">.tsrx</code>
-								 file and import it from your existing JS, TS, or TSX code. The plugin compiles 
+								file and import it from your existing JS, TS, or TSX code. The plugin compiles
 								<code class="inline-code">.tsrx</code>
-								 modules into standard React components with scoped CSS.
+								modules into standard React components with scoped CSS.
 							</p>
 						</section>
 
@@ -388,17 +387,17 @@ export function GettingStartedPage() @{
 								<code innerHTML={PREACT_VITE_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								The plugin compiles 
+								The plugin compiles
 								<code class="inline-code">.tsrx</code>
-								 modules into standard Preact components. 
+								modules into standard Preact components.
 								<code class="inline-code">Suspense</code>
-								 is imported from 
+								is imported from
 								<code class="inline-code">preact/compat</code>
-								 by default; pass 
-								<code class="inline-code">{"{ suspenseSource: 'preact-suspense' }"}</code>
-								 to 
+								by default; pass
+								<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+								to
 								<code class="inline-code">tsrxPreact()</code>
-								 if you want to avoid pulling in the full compat layer.
+								if you want to avoid pulling in the full compat layer.
 							</p>
 						</section>
 
@@ -413,15 +412,15 @@ export function GettingStartedPage() @{
 								<code innerHTML={PREACT_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								Like the React Rspack plugin, it chains 
+								Like the React Rspack plugin, it chains
 								<code class="inline-code">builtin:swc-loader</code>
-								 for the final JSX transform and routes per-component 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks through Rspack's built-in CSS module type. You can also pass 
-								<code class="inline-code">{"{ suspenseSource: 'preact-suspense' }"}</code>
-								 if you want to avoid the default 
+								for the final JSX transform and routes per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks through Rspack's built-in CSS module type. You can also pass
+								<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+								if you want to avoid the default
 								<code class="inline-code">preact/compat</code>
-								 Suspense import.
+								Suspense import.
 							</p>
 						</section>
 
@@ -436,11 +435,11 @@ export function GettingStartedPage() @{
 								<code innerHTML={REACT_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								The plugin chains 
+								The plugin chains
 								<code class="inline-code">builtin:swc-loader</code>
-								 for the final JSX transform and routes per-component 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks through Rspack's built-in CSS module type, so no extra loaders are required.
+								for the final JSX transform and routes per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks through Rspack's built-in CSS module type, so no extra loaders are required.
 							</p>
 						</section>
 
@@ -455,11 +454,12 @@ export function GettingStartedPage() @{
 								<code innerHTML={TURBOPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								The helper registers a Turbopack rule for 
+								The helper registers a Turbopack rule for
 								<code class="inline-code">.tsrx</code>
-								 files, hands the compiled output back to Next as TSX, and routes component-local 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks through a sibling virtual CSS import so Turbopack can process the scoped styles without extra loader setup.
+								files, hands the compiled output back to Next as TSX, and routes component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks through a sibling virtual CSS import so Turbopack can process the scoped
+								styles without extra loader setup.
 							</p>
 						</section>
 
@@ -477,13 +477,14 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/bun-plugin-react</code>
-								 compiles 
+								compiles
 								<code class="inline-code">.tsrx</code>
-								 modules with 
+								modules with
 								<code class="inline-code">@tsrx/react</code>
-								 and then hands the generated TSX to Bun's automatic JSX pipeline. Component-local 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without extra loader setup.
+								and then hands the generated TSX to Bun's automatic JSX pipeline. Component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without
+								extra loader setup.
 							</p>
 						</section>
 
@@ -499,20 +500,21 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/bun-plugin-preact</code>
-								 follows the same Bun integration shape as React, but targets Preact's automatic JSX runtime and supports overriding the default 
+								follows the same Bun integration shape as React, but targets Preact's automatic JSX
+								runtime and supports overriding the default
 								<code class="inline-code">preact/compat</code>
-								 Suspense import with 
-								<code class="inline-code">{"{ suspenseSource: \"preact-suspense\" }"}</code>
-								 when needed.
+								Suspense import with
+								<code class="inline-code">{'{ suspenseSource: "preact-suspense" }'}</code>
+								when needed.
 							</p>
 						</section>
 
 						<section class="doc-section" id="solid-vite">
 							<h2 class="section-heading">Solid + Vite</h2>
 							<p class="section-body">
-								Install the Solid compiler, its Vite plugin, and the upstream 
+								Install the Solid compiler, its Vite plugin, and the upstream
 								<code class="inline-code">vite-plugin-solid</code>
-								 which runs Solid's JSX transform on the emitted TSX:
+								which runs Solid's JSX transform on the emitted TSX:
 							</p>
 							<pre class="code-block">
 								<code innerHTML={SOLID_INSTALL_HTML} />
@@ -536,17 +538,18 @@ export function GettingStartedPage() @{
 								<code innerHTML={SOLID_RSPACK_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								The plugin compiles 
+								The plugin compiles
 								<code class="inline-code">.tsrx</code>
-								 files with 
+								files with
 								<code class="inline-code">@tsrx/solid</code>
-								 and then chains 
+								and then chains
 								<code class="inline-code">babel-loader</code>
-								 with Solid's Babel preset for the final JSX transform. In development mode it also enables 
+								with Solid's Babel preset for the final JSX transform. In development mode it also
+								enables
 								<code class="inline-code">solid-refresh/babel</code>
-								 automatically, while per-component 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks still flow through Rspack's built-in CSS module type.
+								automatically, while per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks still flow through Rspack's built-in CSS module type.
 							</p>
 						</section>
 
@@ -562,20 +565,21 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/bun-plugin-solid</code>
-								 compiles 
+								compiles
 								<code class="inline-code">.tsrx</code>
-								 modules with 
+								modules with
 								<code class="inline-code">@tsrx/solid</code>
-								 and runs Solid's Babel JSX transform inside the Bun plugin. Component-local 
-								<code class="inline-code">{"<style>"}</code>
-								 blocks are emitted as sibling virtual CSS modules.
+								and runs Solid's Babel JSX transform inside the Bun plugin. Component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks are emitted as sibling virtual CSS modules.
 							</p>
 						</section>
 
 						<section class="doc-section" id="vue-vite">
 							<h2 class="section-heading">Vue + Vite</h2>
 							<p class="section-body">
-								Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX plugin:
+								Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX
+								plugin:
 							</p>
 							<pre class="code-block">
 								<code innerHTML={VUE_INSTALL_HTML} />
@@ -586,11 +590,12 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/vite-plugin-vue</code>
-								 compiles 
+								compiles
 								<code class="inline-code">.tsrx</code>
-								 modules and performs the downstream Vapor JSX transform. For editor typechecking, set 
+								modules and performs the downstream Vapor JSX transform. For editor typechecking,
+								set
 								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
-								 in your 
+								in your
 								<code class="inline-code">tsconfig.json</code>
 								.
 							</p>
@@ -610,13 +615,14 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/rspack-plugin-vue</code>
-								 compiles 
+								compiles
 								<code class="inline-code">.tsrx</code>
-								 modules into Vue-flavoured TSX, runs the result through 
+								modules into Vue-flavoured TSX, runs the result through
 								<code class="inline-code">vue-jsx-vapor</code>
-								 and then strips the remaining TypeScript syntax with Rspack's built-in SWC loader. Like the Vite setup, editor typechecking should set 
+								and then strips the remaining TypeScript syntax with Rspack's built-in SWC loader.
+								Like the Vite setup, editor typechecking should set
 								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
-								 in your 
+								in your
 								<code class="inline-code">tsconfig.json</code>
 								.
 							</p>
@@ -636,15 +642,16 @@ export function GettingStartedPage() @{
 							</pre>
 							<p class="section-body">
 								<code class="inline-code">@tsrx/bun-plugin-vue</code>
-								 compiles 
+								compiles
 								<code class="inline-code">.tsrx</code>
-								 modules with 
+								modules with
 								<code class="inline-code">@tsrx/vue</code>
-								 and performs the downstream 
+								and performs the downstream
 								<code class="inline-code">vue-jsx-vapor</code>
-								 transform inside the Bun plugin itself, so no extra Bun plugin setup is required. Like the Vite and Rspack Vue setups, editor typechecking should set 
+								transform inside the Bun plugin itself, so no extra Bun plugin setup is required.
+								Like the Vite and Rspack Vue setups, editor typechecking should set
 								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
-								 in your 
+								in your
 								<code class="inline-code">tsconfig.json</code>
 								.
 							</p>
@@ -653,11 +660,12 @@ export function GettingStartedPage() @{
 						<section class="doc-section" id="ripple">
 							<h2 class="section-heading">Ripple</h2>
 							<p class="section-body">
-								The Ripple framework ships with TSRX support as standard. If you're using Ripple with 
+								The Ripple framework ships with TSRX support as standard. If you're using Ripple
+								with
 								<code class="inline-code">@ripple-ts/vite-plugin</code>
-								, 
+								,
 								<code class="inline-code">.tsrx</code>
-								 files work out of the box — no additional packages needed.
+								files work out of the box — no additional packages needed.
 							</p>
 						</section>
 
@@ -665,9 +673,11 @@ export function GettingStartedPage() @{
 							<p class="section-kicker">Tooling setup</p>
 							<h2 class="section-heading">Choose the tooling you want</h2>
 							<p class="section-body">
-								Once your compiler target is installed, add the editor tooling you actually want so 
+								Once your compiler target is installed, add the editor tooling you actually want so
 								<code class="inline-code">.tsrx</code>
-								 files behave like first-class source files in the rest of your repo. Prettier and ESLint are separate paths here, so you can adopt one without committing to the other.
+								files behave like first-class source files in the rest of your repo. Prettier and
+								ESLint are separate paths here, so you can adopt one without committing to the
+								other.
 							</p>
 						</section>
 
@@ -678,11 +688,11 @@ export function GettingStartedPage() @{
 								<code innerHTML={PRETTIER_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
-								Add the TSRX Prettier plugin to your 
+								Add the TSRX Prettier plugin to your
 								<code class="inline-code">.prettierrc</code>
-								 so Prettier can parse and format 
+								so Prettier can parse and format
 								<code class="inline-code">.tsrx</code>
-								 modules:
+								modules:
 							</p>
 							<pre class="code-block">
 								<code innerHTML={PRETTIER_CONFIG_HTML} />
@@ -696,9 +706,9 @@ export function GettingStartedPage() @{
 								<code innerHTML={ESLINT_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
-								The recommended flat config is the simplest starting point for 
+								The recommended flat config is the simplest starting point for
 								<code class="inline-code">.tsrx</code>
-								 files:
+								files:
 							</p>
 							<pre class="code-block">
 								<code innerHTML={ESLINT_CONFIG_HTML} />
@@ -708,25 +718,25 @@ export function GettingStartedPage() @{
 						<section class="doc-section" id="typescript-plugin">
 							<h2 class="section-heading">TypeScript plugin</h2>
 							<p class="section-body">
-								Install 
+								Install
 								<code class="inline-code">@tsrx/typescript-plugin</code>
-								 when you want TypeScript itself to understand 
+								when you want TypeScript itself to understand
 								<code class="inline-code">.tsrx</code>
-								 files, especially outside the TSRX VS Code extension: other editors, 
+								files, especially outside the TSRX VS Code extension: other editors,
 								<code class="inline-code">tsserver</code>
-								, and command-line 
+								, and command-line
 								<code class="inline-code">tsc</code>
-								 workflows.
+								workflows.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={TYPESCRIPT_PLUGIN_INSTALL_HTML} />
 							</pre>
 							<p class="section-body">
-								Then register it in your 
+								Then register it in your
 								<code class="inline-code">tsconfig.json</code>
-								. Keep your existing compiler options and add the 
+								. Keep your existing compiler options and add the
 								<code class="inline-code">plugins</code>
-								 entry under 
+								entry under
 								<code class="inline-code">compilerOptions</code>
 								:
 							</p>
@@ -734,21 +744,23 @@ export function GettingStartedPage() @{
 								<code innerHTML={TYPESCRIPT_PLUGIN_CONFIG_HTML} />
 							</pre>
 							<p class="section-body">
-								The plugin turns TSRX into virtual TypeScript for diagnostics, navigation, completions, and type checking. If you already use the TSRX VS Code extension, this manual setup is optional because the extension runs the language tooling for you.
+								The plugin turns TSRX into virtual TypeScript for diagnostics, navigation,
+								completions, and type checking. If you already use the TSRX VS Code extension, this
+								manual setup is optional because the extension runs the language tooling for you.
 							</p>
 							<h3 class="subsection-heading">Command-line type checking</h3>
 							<p class="section-body">
-								The package also ships a 
+								The package also ships a
 								<code class="inline-code">tsrx-tsc</code>
-								 binary — a drop-in 
+								binary — a drop-in
 								<code class="inline-code">tsc</code>
-								 wrapper that understands 
+								wrapper that understands
 								<code class="inline-code">.tsrx</code>
-								 files. Use it for CI type checking and any 
+								files. Use it for CI type checking and any
 								<code class="inline-code">tsc</code>
-								 workflow that needs to see your TSRX modules. Add a 
+								workflow that needs to see your TSRX modules. Add a
 								<code class="inline-code">typecheck</code>
-								 script to your 
+								script to your
 								<code class="inline-code">package.json</code>
 								:
 							</p>
@@ -756,11 +768,11 @@ export function GettingStartedPage() @{
 								<code innerHTML={TYPECHECK_SCRIPT_HTML} />
 							</pre>
 							<p class="section-body">
-								Then run 
+								Then run
 								<code class="inline-code">pnpm typecheck</code>
-								 to type check the whole project, including 
+								to type check the whole project, including
 								<code class="inline-code">.tsrx</code>
-								 files, without emitting any output. It accepts the same flags as 
+								files, without emitting any output. It accepts the same flags as
 								<code class="inline-code">tsc</code>
 								.
 							</p>
@@ -769,30 +781,33 @@ export function GettingStartedPage() @{
 						<section class="doc-section" id="vscode">
 							<h2 class="section-heading">VS Code</h2>
 							<p class="section-body">
-								Install 
+								Install
 								<a
 									class="inline-link"
 									href="https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin"
 									target="_blank"
 									rel="noopener noreferrer"
-								>
-									TSRX for VS Code
-								</a>
-								 from the Visual Studio Code Marketplace for diagnostics, navigation, completions, and TypeScript-aware editor support. Pair it with the official Prettier extension if you want format-on-save support inside the editor.
+								>TSRX for VS Code</a>
+								from the Visual Studio Code Marketplace for diagnostics, navigation, completions,
+								and TypeScript-aware editor support. Pair it with the official Prettier extension if
+								you want format-on-save support inside the editor.
 							</p>
 							<p class="section-body">
-								After that, opening a 
+								After that, opening a
 								<code class="inline-code">.tsrx</code>
-								 file should give you syntax highlighting, diagnostics, go-to-definition, formatting, and the rest of the normal editor loop without extra manual setup.
+								file should give you syntax highlighting, diagnostics, go-to-definition, formatting,
+								and the rest of the normal editor loop without extra manual setup.
 							</p>
 						</section>
 
 						<section class="doc-section" id="mcp">
 							<h2 class="section-heading">MCP</h2>
 							<p class="section-body">
-								Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents current TSRX docs, target detection, project inspection, formatting, compilation, diagnostic advice, and read-only 
+								Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents
+								current TSRX docs, target detection, project inspection, formatting, compilation,
+								diagnostic advice, and read-only
 								<code class="inline-code">.tsrx</code>
-								 file validation.
+								file validation.
 							</p>
 							<h3 class="subsection-heading">Hosted Endpoint</h3>
 							<p class="section-body">
@@ -802,34 +817,36 @@ export function GettingStartedPage() @{
 								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
 							</p>
 							<p class="section-body">
-								This is the best starting point for ChatGPT web and other clients that connect to an HTTP MCP server instead of launching a local command.
+								This is the best starting point for ChatGPT web and other clients that connect to an
+								HTTP MCP server instead of launching a local command.
 							</p>
 							<h3 class="subsection-heading">ChatGPT</h3>
 							<p class="section-body">
-								Add 
+								Add
 								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
-								 when creating a custom app or connector from ChatGPT developer mode, then select that app from the tools menu in a chat.
+								when creating a custom app or connector from ChatGPT developer mode, then select
+								that app from the tools menu in a chat.
 							</p>
 							<h3 class="subsection-heading">Self-hosting</h3>
 							<p class="section-body">
-								To self-host the endpoint, deploy the monorepo's 
+								To self-host the endpoint, deploy the monorepo's
 								<code class="inline-code">website-mcp</code>
-								 app anywhere that can run a Node HTTP server and connect remote MCP clients to its 
+								app anywhere that can run a Node HTTP server and connect remote MCP clients to its
 								<code class="inline-code">/mcp</code>
-								 route.
+								route.
 							</p>
 							<h3 class="subsection-heading">Local MCP Server</h3>
 							<p class="section-body">
-								For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install 
+								For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install
 								<code class="inline-code">@tsrx/mcp</code>
-								 as a stdio MCP server so the tool can inspect your project.
+								as a stdio MCP server so the tool can inspect your project.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={MCP_CONFIG_HTML} />
 							</pre>
 							<h3 class="subsection-heading">Codex</h3>
 							<p class="section-body">
-								For Codex, add the server to 
+								For Codex, add the server to
 								<code class="inline-code">~/.codex/config.toml</code>
 								:
 							</p>
@@ -838,45 +855,44 @@ export function GettingStartedPage() @{
 							</pre>
 							<h3 class="subsection-heading">Gemini CLI</h3>
 							<p class="section-body">
-								For Gemini CLI, put the same 
+								For Gemini CLI, put the same
 								<code class="inline-code">mcpServers</code>
-								 JSON in 
+								JSON in
 								<code class="inline-code">.gemini/settings.json</code>
-								 for a project, or 
+								for a project, or
 								<code class="inline-code">~/.gemini/settings.json</code>
-								 globally.
+								globally.
 							</p>
 							<h3 class="subsection-heading">Cursor</h3>
 							<p class="section-body">
-								For Cursor, put the same 
+								For Cursor, put the same
 								<code class="inline-code">mcpServers</code>
-								 JSON in 
+								JSON in
 								<code class="inline-code">.cursor/mcp.json</code>
-								 for a project, or 
+								for a project, or
 								<code class="inline-code">~/.cursor/mcp.json</code>
-								 globally. Cursor Agent and 
+								globally. Cursor Agent and
 								<code class="inline-code">cursor-agent</code>
-								 discover the configured tools automatically.
+								discover the configured tools automatically.
 							</p>
 							<h3 class="subsection-heading">Claude Code</h3>
-							<p class="section-body">
-								For Claude Code, add it directly from the command line:
-							</p>
+							<p class="section-body">For Claude Code, add it directly from the command line:</p>
 							<pre class="code-block">
 								<code innerHTML={MCP_CLAUDE_CODE_HTML} />
 							</pre>
 							<p class="section-body">
-								In an existing repo, start with 
+								In an existing repo, start with
 								<code class="inline-code">inspect-project</code>
-								 so the agent can detect the runtime target, installed TSRX packages, and likely project commands. For generated code, run 
+								so the agent can detect the runtime target, installed TSRX packages, and likely
+								project commands. For generated code, run
 								<code class="inline-code">format-tsrx</code>
-								, 
+								,
 								<code class="inline-code">compile-tsrx</code>
-								, and then 
+								, and then
 								<code class="inline-code">analyze-tsrx</code>
-								 when diagnostics need syntax-aware advice. For existing files, use 
+								when diagnostics need syntax-aware advice. For existing files, use
 								<code class="inline-code">validate-tsrx-file</code>
-								 for a read-only format, compile, and advice pass.
+								for a read-only format, compile, and advice pass.
 							</p>
 						</section>
 
@@ -884,7 +900,8 @@ export function GettingStartedPage() @{
 							<p class="section-kicker">Next</p>
 							<h2 class="section-heading">What's next?</h2>
 							<p class="section-body">
-								Now that TSRX is set up, explore the language syntax — components, control flow, error boundaries, and more.
+								Now that TSRX is set up, explore the language syntax — components, control flow,
+								error boundaries, and more.
 							</p>
 							<a class="cta-link" href="/features">Explore the features →</a>
 						</section>

@@ -26,9 +26,7 @@ describe('basic client > collections', () => {
 					onClick={() => {
 						user = { ...user, name: 'Jane', age: 30 };
 					}}
-				>
-					{'Update User'}
-				</button>
+				>{'Update User'}</button>
 			</>
 		}
 
@@ -62,9 +60,7 @@ describe('basic client > collections', () => {
 						user.name.value = 'Jane';
 						user.age.value = 30;
 					}}
-				>
-					{'Update User'}
-				</button>
+				>{'Update User'}</button>
 			</>
 		}
 
@@ -90,15 +86,15 @@ describe('basic client > collections', () => {
 			<>
 				<pre>{String(array[3])}</pre>
 				<pre>{array[0]}</pre>
-				<pre>{TRACKED_ARRAY in array}</pre>
+				<pre>
+					{TRACKED_ARRAY in array}
+				</pre>
 				<button
 					onClick={() => {
 						array.push(array.length + 1);
 						array[0] = array[0] + 1;
 					}}
-				>
-					{'Add'}
-				</button>
+				>{'Add'}</button>
 			</>
 		}
 
@@ -143,9 +139,7 @@ describe('basic client > collections', () => {
 					onClick={() => {
 						primary = !primary;
 					}}
-				>
-					{'toggle'}
-				</button>
+				>{'toggle'}</button>
 			</>
 		}
 
@@ -196,7 +190,9 @@ describe('basic client > collections', () => {
 		function App() @{
 			const items = ['start:', ['one', 2], null, true, false, ':end'];
 			<>
-				<div class="frame">{['start:', ['one', 2], null, true, false, ':end']}</div>
+				<div class="frame">
+					{['start:', ['one', 2], null, true, false, ':end']}
+				</div>
 				<div class="bound-frame">{items}</div>
 			</>
 		}

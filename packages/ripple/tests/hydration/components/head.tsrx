@@ -74,7 +74,9 @@ export function ConditionalTitle() @{
 	let &[title] = track('Main Page');
 	<>
 		<head>
-			<title>{showPrefix ? 'App - ' + title : title}</title>
+			<title>
+				{showPrefix ? 'App - ' + title : title}
+			</title>
 		</head>
 		<div>{title}</div>
 	</>
@@ -86,7 +88,9 @@ export function ComputedTitle() @{
 	let prefix = 'Count: ';
 	<>
 		<head>
-			<title>{prefix + count}</title>
+			<title>
+				{prefix + count}
+			</title>
 		</head>
 		<div>
 			<span>{count}</span>

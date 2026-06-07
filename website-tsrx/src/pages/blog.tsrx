@@ -19,11 +19,9 @@ export function BlogPage() @{
 						<a href="/specification">Specification</a>
 						<a href="/playground">Playground</a>
 						<a href="/blog" aria-current="page">Blog</a>
-						<a
-							href="https://discord.gg/HCYpT5QHQR"
-							target="_blank"
-							rel="noopener noreferrer"
-						>Discord</a>
+						<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+							Discord
+						</a>
 						<a
 							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 							target="_blank"
@@ -38,22 +36,24 @@ export function BlogPage() @{
 						<article class="post-preview">
 							<p class="post-date">June 7, 2026</p>
 							<h2>
-								<a
-									href="/blog/rethinking-tsrx"
-								>Rethinking TSRX</a>
+								<a href="/blog/rethinking-tsrx">Rethinking TSRX</a>
 							</h2>
-							<p>TSRX leans back into JSX: regular text, expression braces, comments, statement-container component bodies, and marked control flow only where templates need it.</p>
-							<a
-								class="read-link"
-								href="/blog/rethinking-tsrx"
-							>Read the post</a>
+							<p>
+								TSRX leans back into JSX: regular text, expression braces, comments,
+								statement-container component bodies, and marked control flow only where templates
+								need it.
+							</p>
+							<a class="read-link" href="/blog/rethinking-tsrx">Read the post</a>
 						</article>
 						<article class="post-preview">
 							<p class="post-date">May 29, 2026</p>
 							<h2>
 								<a href="/blog/simplifying-tsrx-after-feedback">Simplifying TSRX after feedback</a>
 							</h2>
-							<p>We removed some early TSRX-only ideas and made the language feel closer to ordinary TypeScript and JSX.</p>
+							<p>
+								We removed some early TSRX-only ideas and made the language feel closer to ordinary
+								TypeScript and JSX.
+							</p>
 							<a class="read-link" href="/blog/simplifying-tsrx-after-feedback">Read the post</a>
 						</article>
 					</section>

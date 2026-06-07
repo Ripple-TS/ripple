@@ -20,9 +20,7 @@ describe('basic client > attribute rendering', () => {
 					onClick={() => {
 						active = !active;
 					}}
-				>
-					{'Toggle'}
-				</button>
+				>{'Toggle'}</button>
 				<div class={active ? 'active' : 'inactive'}>{'Dynamic Class'}</div>
 				<style>
 					.active {
@@ -66,9 +64,7 @@ describe('basic client > attribute rendering', () => {
 							{ eee: true, fff: false },
 						],
 					]}
-				>
-					{'Class Array'}
-				</div>
+				>{'Class Array'}</div>
 				<style>
 					.foo {
 						color: red;
@@ -101,9 +97,7 @@ describe('basic client > attribute rendering', () => {
 					onClick={() => {
 						active = !active;
 					}}
-				>
-					{'Toggle'}
-				</button>
+				>{'Toggle'}</button>
 				<div class={{ active: active, inactive: !active }}>{'Dynamic Class'}</div>
 				<style>
 					.active {
@@ -171,9 +165,7 @@ describe('basic client > attribute rendering', () => {
 					onClick={() => {
 						count++;
 					}}
-				>
-					{'Increment'}
-				</button>
+				>{'Increment'}</button>
 				<div id={`item-${count}`}>{'Dynamic ID'}</div>
 			</>
 		}
@@ -204,9 +196,7 @@ describe('basic client > attribute rendering', () => {
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
 					}}
-				>
-					{'Change Color'}
-				</button>
+				>{'Change Color'}</button>
 				<div style={`color: ${color}; font-weight: bold;`}>{'Dynamic Style'}</div>
 			</>
 		}
@@ -234,9 +224,7 @@ describe('basic client > attribute rendering', () => {
 					onClick={() => {
 						color = color === 'red' ? 'blue' : 'red';
 					}}
-				>
-					{'Change Color'}
-				</button>
+				>{'Change Color'}</button>
 				<div style={{ color: color, fontWeight: 'bold' }}>{'Dynamic Style'}</div>
 			</>
 		}
@@ -364,9 +352,7 @@ describe('basic client > attribute rendering', () => {
 						disabled = !disabled;
 						checked = !checked;
 					}}
-				>
-					{'Toggle'}
-				</button>
+				>{'Toggle'}</button>
 				<input type="checkbox" {disabled} {checked} />
 			</>
 		}
@@ -396,12 +382,12 @@ describe('basic client > attribute rendering', () => {
 						theme = theme === 'light' ? 'dark' : 'light';
 						size = size === 'medium' ? 'large' : 'medium';
 					}}
-				>
-					{'Toggle Theme & Size'}
-				</button>
-				<div class={`theme-${theme} size-${size}`} data-theme={theme} data-size={size}>
-					{'Multiple Dynamic Attributes'}
-				</div>
+				>{'Toggle Theme & Size'}</button>
+				<div
+					class={`theme-${theme} size-${size}`}
+					data-theme={theme}
+					data-size={size}
+				>{'Multiple Dynamic Attributes'}</div>
 			</>
 		}
 
@@ -432,15 +418,11 @@ describe('basic client > attribute rendering', () => {
 						showTitle = !showTitle;
 						showAria = !showAria;
 					}}
-				>
-					{'Toggle Attributes'}
-				</button>
+				>{'Toggle Attributes'}</button>
 				<div
 					title={showTitle ? 'This is a title' : undefined}
 					aria-label={showAria ? 'Accessible label' : undefined}
-				>
-					{'Conditional Attributes'}
-				</div>
+				>{'Conditional Attributes'}</div>
 			</>
 		}
 
@@ -480,9 +462,7 @@ describe('basic client > attribute rendering', () => {
 							'data-extra': 'value',
 						};
 					}}
-				>
-					{'Update Attributes'}
-				</button>
+				>{'Update Attributes'}</button>
 				<div {...attrs}>{'Spread Attributes'}</div>
 			</>
 		}
@@ -568,9 +548,7 @@ describe('basic client > attribute rendering', () => {
 						mode = mode === 'increment' ? 'decrement' : 'increment';
 					}}
 					class="toggle-mode"
-				>
-					{'Toggle Mode'}
-				</button>
+				>{'Toggle Mode'}</button>
 				<button onClick={mode === 'increment' ? incrementHandler : decrementHandler} class="action">
 					{mode === 'increment' ? '+' : '-'}
 				</button>
@@ -766,9 +744,10 @@ describe('basic client > attribute rendering', () => {
 				</div>
 				<div class="non-delegated-buttons">
 					@for (const i of buttonIds) {
-						<button onClick={makeNonDelegatedHandler(i)} class={`non-delegated-${i}`}>
-							{`ND${i}`}
-						</button>
+						<button
+							onClick={makeNonDelegatedHandler(i)}
+							class={`non-delegated-${i}`}
+						>{`ND${i}`}</button>
 					}
 				</div>
 			</div>

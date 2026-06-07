@@ -1,32 +1,32 @@
 import { track, trackAsync } from 'ripple';
 
 export function MixedControlFlowStatic() @{
-		const rows = [
-			{ id: 1, kind: 'a', enabled: true },
-			{ id: 2, kind: 'b', enabled: true },
-			{ id: 3, kind: 'a', enabled: false },
-		];
-		<section class="mixed-static">
-			@for (const row of rows; key row.id) {
-				@if (row.enabled) {
-					@switch (row.kind) {
-						case 'a':
-							@try {
-								<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
-							} pending {
-								<div class={`pending pending-${row.id}`}>{'pending a'}</div>
-							}
-							break;
-						default:
-							@try {
-								<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
-							} pending {
-								<div class={`pending pending-${row.id}`}>{'pending b'}</div>
-							}
-					}
+	const rows = [
+		{ id: 1, kind: 'a', enabled: true },
+		{ id: 2, kind: 'b', enabled: true },
+		{ id: 3, kind: 'a', enabled: false },
+	];
+	<section class="mixed-static">
+		@for (const row of rows; key row.id) {
+			@if (row.enabled) {
+				@switch (row.kind) {
+					case 'a':
+						@try {
+							<div class={`row row-${row.id} kind-a`}>{`A-${row.id}`}</div>
+						} pending {
+							<div class={`pending pending-${row.id}`}>{'pending a'}</div>
+						}
+						break;
+					default:
+						@try {
+							<div class={`row row-${row.id} kind-b`}>{`B-${row.id}`}</div>
+						} pending {
+							<div class={`pending pending-${row.id}`}>{'pending b'}</div>
+						}
 				}
 			}
-		</section>
+		}
+	</section>
 }
 
 export function MixedControlFlowReactive() @{
@@ -42,25 +42,19 @@ export function MixedControlFlowReactive() @{
 			onClick={() => {
 				show = !show;
 			}}
-		>
-			{'Toggle Show'}
-		</button>
+		>{'Toggle Show'}</button>
 		<button
 			class="toggle-mode"
 			onClick={() => {
 				mode = mode === 'a' ? 'b' : 'a';
 			}}
-		>
-			{'Toggle Mode'}
-		</button>
+		>{'Toggle Mode'}</button>
 		<button
 			class="add-item"
 			onClick={() => {
 				items = [...items, { id: 3, label: 'Three' }];
 			}}
-		>
-			{'Add Item'}
-		</button>
+		>{'Add Item'}</button>
 		@if (show) {
 			<div class="mixed-reactive-list">
 				@for (const item of items; key item.id) {
@@ -109,6 +103,6 @@ export function MixedControlFlowAsyncPending() @{
 }
 
 function AsyncRow({ label }: { label: string }) @{
-		let &[value] = trackAsync(() => Promise.resolve(label));
-		<div class="resolved-row">{value}</div>
+	let &[value] = trackAsync(() => Promise.resolve(label));
+	<div class="resolved-row">{value}</div>
 }

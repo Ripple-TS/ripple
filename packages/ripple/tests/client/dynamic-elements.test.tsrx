@@ -4,8 +4,8 @@ import { createRefKey, effect, flushSync, track } from 'ripple';
 describe('dynamic DOM elements', () => {
 	it('renders static dynamic element', () => {
 		function App() @{
-				let tag = track('div');
-				<@tag>{'Hello World'}</@tag>
+			let tag = track('div');
+			<@tag>{'Hello World'}</@tag>
 		}
 		render(App);
 
@@ -18,8 +18,8 @@ describe('dynamic DOM elements', () => {
 	// They can be ignored for now. But we'll fix them via jsx() vs <jsx>
 	it('renders static dynamic element from a plain object with a tracked property', () => {
 		function App() @{
-				let obj = { tag: track('div') };
-				<obj.tag.value>{'Hello World'}</obj.tag.value>
+			let obj = { tag: track('div') };
+			<obj.tag.value>{'Hello World'}</obj.tag.value>
 		}
 		render(App);
 
@@ -30,9 +30,9 @@ describe('dynamic DOM elements', () => {
 
 	it('renders static dynamic element from a tracked object with a tracked property', () => {
 		function App() @{
-				let obj = track({ tag: track('div') });
-				let tag = obj.value.tag;
-				<@tag>{'Hello World'}</@tag>
+			let obj = track({ tag: track('div') });
+			let tag = obj.value.tag;
+			<@tag>{'Hello World'}</@tag>
 		}
 		render(App);
 
@@ -45,9 +45,9 @@ describe('dynamic DOM elements', () => {
 		'renders static dynamic element from a tracked object with a computed tracked property',
 		() => {
 			function App() @{
-					let obj = track({ tag: track('div') });
-					let tag = obj.value['tag'];
-					<@tag>{'Hello World'}</@tag>
+				let obj = track({ tag: track('div') });
+				let tag = obj.value['tag'];
+				<@tag>{'Hello World'}</@tag>
 			}
 			render(App);
 
@@ -58,19 +58,17 @@ describe('dynamic DOM elements', () => {
 	);
 
 	it('renders reactive dynamic element', () => {
-			function App() @{
-					let &[tag] = track('div');
-					<>
-						<button
-							onClick={() => {
-								tag = 'span';
-							}}
-						>
-							{'Change Tag'}
-						</button>
-						<@tag id="dynamic">{'Hello World'}</@tag>
-					</>
-			}
+		function App() @{
+			let &[tag] = track('div');
+			<>
+				<button
+					onClick={() => {
+						tag = 'span';
+					}}
+				>{'Change Tag'}</button>
+				<@tag id="dynamic">{'Hello World'}</@tag>
+			</>
+		}
 		render(App);
 
 		// Initially should be a div
@@ -91,8 +89,8 @@ describe('dynamic DOM elements', () => {
 
 	it('renders self-closing dynamic element', () => {
 		function App() @{
-				let tag = track('input');
-				<@tag type="text" value="test" />
+			let tag = track('input');
+			<@tag type="text" value="test" />
 		}
 		render(App);
 
@@ -104,9 +102,9 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with attributes', () => {
 		function App() @{
-				let tag = track('div');
-				let &[className] = track('test-class');
-				<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
+			let tag = track('div');
+			let &[className] = track('test-class');
+			<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
 		}
 		render(App);
 
@@ -119,11 +117,11 @@ describe('dynamic DOM elements', () => {
 
 	it('handles nested dynamic elements', () => {
 		function App() @{
-				let outerTag = track('div');
-				let innerTag = track('span');
-				<@outerTag class="outer">
-					<@innerTag class="inner">{'Nested content'}</@innerTag>
-				</@outerTag>
+			let outerTag = track('div');
+			let innerTag = track('span');
+			<@outerTag class="outer">
+				<@innerTag class="inner">{'Nested content'}</@innerTag>
+			</@outerTag>
 		}
 		render(App);
 
@@ -138,11 +136,9 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with class object', () => {
 		function App() @{
-				let tag = track('div');
-				let &[active] = track(true);
-				<@tag class={{ active: active, 'dynamic-element': true }}>
-					{'Element with class object'}
-				</@tag>
+			let tag = track('div');
+			let &[active] = track(true);
+			<@tag class={{ active: active, 'dynamic-element': true }}>{'Element with class object'}</@tag>
 		}
 		render(App);
 
@@ -154,16 +150,14 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with style object', () => {
 		function App() @{
-				let tag = track('span');
-				<@tag
-					style={{
-						color: 'red',
-						fontSize: '16px',
-						fontWeight: 'bold',
-					}}
-				>
-					{'Styled dynamic element'}
-				</@tag>
+			let tag = track('span');
+			<@tag
+				style={{
+					color: 'red',
+					fontSize: '16px',
+					fontWeight: 'bold',
+				}}
+			>{'Styled dynamic element'}</@tag>
 		}
 		render(App);
 
@@ -176,13 +170,13 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with spread attributes', () => {
 		function App() @{
-				let tag = track('section');
-				const attrs = {
-					id: 'spread-section',
-					'data-testid': 'spread-test',
-					class: 'spread-class',
-				};
-				<@tag {...attrs} data-extra="additional">{'Element with spread attributes'}</@tag>
+			let tag = track('section');
+			const attrs = {
+				id: 'spread-section',
+				'data-testid': 'spread-test',
+				class: 'spread-class',
+			};
+			<@tag {...attrs} data-extra="additional">{'Element with spread attributes'}</@tag>
 		}
 		render(App);
 
@@ -198,15 +192,13 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		function App() @{
-				let tag = track('article');
-				<@tag
-					ref={(node: HTMLElement) => {
-						capturedElement = node;
-					}}
-					id="ref-test"
-				>
-					{'Element with ref'}
-				</@tag>
+			let tag = track('article');
+			<@tag
+				ref={(node: HTMLElement) => {
+					capturedElement = node;
+				}}
+				id="ref-test"
+			>{'Element with ref'}</@tag>
 		}
 		render(App);
 		flushSync();
@@ -223,25 +215,25 @@ describe('dynamic DOM elements', () => {
 		let namedRefElement: HTMLInputElement | null = null;
 
 		function App() @{
-					let tag = track('input');
-					let input: HTMLInputElement | undefined;
-					const state: { anonymous?: HTMLInputElement } = {};
-					effect(() => {
-						refAttrElement = input ?? null;
-						anonymousRefElement = state.anonymous ?? null;
-					});
-					<@tag
-						id="dynamic-ref-combo"
-						type="text"
-					ref={[
-						input,
-						state.anonymous,
-						(node: HTMLInputElement | null) => {
-							namedRefElement = node;
-							},
-						]}
-					/>
-			}
+			let tag = track('input');
+			let input: HTMLInputElement | undefined;
+			const state: { anonymous?: HTMLInputElement } = {};
+			effect(() => {
+				refAttrElement = input ?? null;
+				anonymousRefElement = state.anonymous ?? null;
+			});
+			<@tag
+				id="dynamic-ref-combo"
+				type="text"
+				ref={[
+					input,
+					state.anonymous,
+					(node: HTMLInputElement | null) => {
+						namedRefElement = node;
+					},
+				]}
+			/>
+		}
 
 		render(App);
 		flushSync();
@@ -265,23 +257,23 @@ describe('dynamic DOM elements', () => {
 		}
 
 		function App() @{
-					let dynamic = track(() => Child);
-					let input: HTMLInputElement | undefined;
-					const state: { anonymous?: HTMLInputElement } = {};
-					effect(() => {
-						refAttrElement = input ?? null;
-						anonymousRefElement = state.anonymous ?? null;
-					});
-					<@dynamic
-						ref={[
-							input,
-						state.anonymous,
-						(node: HTMLInputElement | null) => {
-							namedRefElement = node;
-							},
-						]}
-					/>
-			}
+			let dynamic = track(() => Child);
+			let input: HTMLInputElement | undefined;
+			const state: { anonymous?: HTMLInputElement } = {};
+			effect(() => {
+				refAttrElement = input ?? null;
+				anonymousRefElement = state.anonymous ?? null;
+			});
+			<@dynamic
+				ref={[
+					input,
+					state.anonymous,
+					(node: HTMLInputElement | null) => {
+						namedRefElement = node;
+					},
+				]}
+			/>
+		}
 
 		render(App);
 		flushSync();
@@ -297,18 +289,18 @@ describe('dynamic DOM elements', () => {
 
 	it('handles dynamic element with createRefKey in spread', () => {
 		function App() @{
-				let tag = track('header');
-				function elementRef(node: HTMLElement) {
-					// Set an attribute on the element to prove ref was called
-					node.setAttribute('data-spread-ref-called', 'true');
-					node.setAttribute('data-spread-ref-tag', node.tagName.toLowerCase());
-				}
-				const dynamicProps = {
-					id: 'spread-ref-test',
-					class: 'ref-element',
-					[createRefKey()]: elementRef,
-				};
-				<@tag {...dynamicProps}>{'Element with spread ref'}</@tag>
+			let tag = track('header');
+			function elementRef(node: HTMLElement) {
+				// Set an attribute on the element to prove ref was called
+				node.setAttribute('data-spread-ref-called', 'true');
+				node.setAttribute('data-spread-ref-tag', node.tagName.toLowerCase());
+			}
+			const dynamicProps = {
+				id: 'spread-ref-test',
+				class: 'ref-element',
+				[createRefKey()]: elementRef,
+			};
+			<@tag {...dynamicProps}>{'Element with spread ref'}</@tag>
 		}
 		render(App);
 		flushSync();
@@ -323,27 +315,25 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('has reactive attributes on dynamic elements', () => {
-			function App() @{
-					let tag = track('div');
-					let &[count] = track(0);
-					<>
-						<button
-							onClick={() => {
-								count++;
-							}}
-						>
-							{'Increment'}
-						</button>
-						<@tag
-							id={count % 2 ? 'even' : 'odd'}
-							class={count % 2 ? 'even-class' : 'odd-class'}
-							data-count={count}
-						>
-							{'Count: '}
-							{count}
-						</@tag>
-					</>
-			}
+		function App() @{
+			let tag = track('div');
+			let &[count] = track(0);
+			<>
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>{'Increment'}</button>
+				<@tag
+					id={count % 2 ? 'even' : 'odd'}
+					class={count % 2 ? 'even-class' : 'odd-class'}
+					data-count={count}
+				>
+					{'Count: '}
+					{count}
+				</@tag>
+			</>
+		}
 
 		render(App);
 
@@ -378,17 +368,17 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('applies scoped CSS to dynamic elements', () => {
-			function App() @{
-					let tag = track('div');
-					<>
-						<@tag class="test-class">{'Dynamic element'}</@tag>
-						<style>
-							.test-class {
-								color: red;
-							}
-						</style>
-					</>
-			}
+		function App() @{
+			let tag = track('div');
+			<>
+				<@tag class="test-class">{'Dynamic element'}</@tag>
+				<style>
+					.test-class {
+						color: red;
+					}
+				</style>
+			</>
+		}
 
 		render(App);
 
@@ -404,31 +394,31 @@ describe('dynamic DOM elements', () => {
 
 	it('applies scoped CSS to dynamic elements with reactive classes', () => {
 		function App() @{
-					let tag = track('button');
-					let &[count] = track(0);
-					<>
-						<@tag
-							class={count % 2 ? 'even' : 'odd'}
-							id={count % 2 ? 'even' : 'odd'}
-							onClick={() => {
-								count++;
-							}}
-						>
-							{'Count: '}
-							{count}
-						</@tag>
-						<style>
-							.even {
-								background-color: green;
-								color: white;
-							}
-							.odd {
-								background-color: red;
-								color: white;
-							}
-						</style>
-					</>
-			}
+			let tag = track('button');
+			let &[count] = track(0);
+			<>
+				<@tag
+					class={count % 2 ? 'even' : 'odd'}
+					id={count % 2 ? 'even' : 'odd'}
+					onClick={() => {
+						count++;
+					}}
+				>
+					{'Count: '}
+					{count}
+				</@tag>
+				<style>
+					.even {
+						background-color: green;
+						color: white;
+					}
+					.odd {
+						background-color: red;
+						color: white;
+					}
+				</style>
+			</>
+		}
 
 		render(App);
 
@@ -477,30 +467,30 @@ describe('dynamic DOM elements', () => {
 			class: string;
 			id: string;
 			onClick: EventListener;
-			}>) @{
-					const tag = track('button');
-					<>
-						<@tag {...rest}>{rest.class}</@tag>
-						<style>
-							.even {
-								background-color: green;
-							}
-							.odd {
-								background-color: red;
-							}
-						</style>
-					</>
-			}
+		}>) @{
+			const tag = track('button');
+			<>
+				<@tag {...rest}>{rest.class}</@tag>
+				<style>
+					.even {
+						background-color: green;
+					}
+					.odd {
+						background-color: red;
+					}
+				</style>
+			</>
+		}
 
 		function App() @{
-				let &[count] = track(0);
-				<DynamicButton
-					class={count % 2 ? 'even' : 'odd'}
-					id={count % 2 ? 'even' : 'odd'}
-					onClick={() => {
-						count++;
-					}}
-				/>
+			let &[count] = track(0);
+			<DynamicButton
+				class={count % 2 ? 'even' : 'odd'}
+				id={count % 2 ? 'even' : 'odd'}
+				onClick={() => {
+					count++;
+				}}
+			/>
 		}
 
 		render(App);
@@ -535,19 +525,19 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('adds scoping class to dynamic elements', () => {
-			function App() @{
-					let tag = track('div');
-					<>
-						<@tag class="scoped">
-							<p>{'Scoped dynamic element'}</p>
-						</@tag>
-						<style>
-							.scoped {
-								color: blue;
-							}
-						</style>
-					</>
-			}
+		function App() @{
+			let tag = track('div');
+			<>
+				<@tag class="scoped">
+					<p>{'Scoped dynamic element'}</p>
+				</@tag>
+				<style>
+					.scoped {
+						color: blue;
+					}
+				</style>
+			</>
+		}
 		render(App);
 
 		const div = container.querySelector('div');
@@ -558,19 +548,19 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('adds scoping class to dynamic elements when selector targets by tag name', () => {
-			function App() @{
-					let tag = track('div');
-					<>
-						<@tag class="scoped">
-							<p>{'Scoped dynamic element'}</p>
-						</@tag>
-						<style>
-							div {
-								color: blue;
-							}
-						</style>
-					</>
-			}
+		function App() @{
+			let tag = track('div');
+			<>
+				<@tag class="scoped">
+					<p>{'Scoped dynamic element'}</p>
+				</@tag>
+				<style>
+					div {
+						color: blue;
+					}
+				</style>
+			</>
+		}
 		render(App);
 
 		const div = container.querySelector('div');
@@ -581,33 +571,33 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('doesn\'t add scoping class to components inside dynamic element', () => {
-			function Child() @{
-					<>
-						<div class="child">
-							<p>{'I am a child component'}</p>
-						</div>
-						<style>
-							.child {
-								color: blue;
-							}
-						</style>
-					</>
-			}
+		function Child() @{
+			<>
+				<div class="child">
+					<p>{'I am a child component'}</p>
+				</div>
+				<style>
+					.child {
+						color: blue;
+					}
+				</style>
+			</>
+		}
 
-			function App() @{
-					let tag = track('div');
-					<>
-						<@tag class="scoped">
-							<p>{'Scoped dynamic element'}</p>
-							<Child />
-						</@tag>
-						<style>
-							div {
-								color: blue;
-							}
-						</style>
-					</>
-			}
+		function App() @{
+			let tag = track('div');
+			<>
+				<@tag class="scoped">
+					<p>{'Scoped dynamic element'}</p>
+					<Child />
+				</@tag>
+				<style>
+					div {
+						color: blue;
+					}
+				</style>
+			</>
+		}
 		render(App);
 
 		const outerDiv = container.querySelector('.scoped');
@@ -627,30 +617,30 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('doesn\'t add scoping class to dynamically rendered component', () => {
-			function Child() @{
-					<>
-						<div class="child">
-							<p>{'I am a child component'}</p>
-						</div>
-						<style>
-							.child {
-								color: green;
-							}
-						</style>
-					</>
-			}
+		function Child() @{
+			<>
+				<div class="child">
+					<p>{'I am a child component'}</p>
+				</div>
+				<style>
+					.child {
+						color: green;
+					}
+				</style>
+			</>
+		}
 
-			function App() @{
-					let tag = track(() => Child);
-					<>
-						<@tag />
-						<style>
-							.child {
-								color: red;
-							}
-						</style>
-					</>
-			}
+		function App() @{
+			let tag = track(() => Child);
+			<>
+				<@tag />
+				<style>
+					.child {
+						color: red;
+					}
+				</style>
+			</>
+		}
 		render(App);
 
 		const div = container.querySelector('.child');
@@ -668,24 +658,22 @@ describe('dynamic DOM elements', () => {
 		let refCallCount = 0;
 
 		function Button(props: any) @{
-				const el = track('button');
-				<@el {...props} />
+			const el = track('button');
+			<@el {...props} />
 		}
 
 		function App() @{
-				let &[active] = track(false);
-				<Button
-					data-active={String(active)}
-					onClick={() => {
-						active = !active;
-					}}
-					ref={(el: HTMLElement) => {
-						capturedElement = el;
-						refCallCount++;
-					}}
-				>
-					{'content'}
-				</Button>
+			let &[active] = track(false);
+			<Button
+				data-active={String(active)}
+				onClick={() => {
+					active = !active;
+				}}
+				ref={(el: HTMLElement) => {
+					capturedElement = el;
+					refCallCount++;
+				}}
+			>{'content'}</Button>
 		}
 
 		render(App);
@@ -710,29 +698,29 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		function Button(props: any) @{
-				const el = track('button');
-				<@el {...props} />
+			const el = track('button');
+			<@el {...props} />
 		}
 
 		function App() @{
-				let &[active] = track(false);
-				let &[buttonProps] = track(
-					() => ({
-						'data-active': active,
-					}),
-				);
-				<Button
-					{...buttonProps}
-					onClick={() => {
-						active = !active;
-					}}
-					ref={(el: HTMLElement) => {
-						capturedElement = el;
-					}}
-				>
-					{'content: '}
-					{active}
-				</Button>
+			let &[active] = track(false);
+			let &[buttonProps] = track(
+				() => ({
+					'data-active': active,
+				}),
+			);
+			<Button
+				{...buttonProps}
+				onClick={() => {
+					active = !active;
+				}}
+				ref={(el: HTMLElement) => {
+					capturedElement = el;
+				}}
+			>
+				{'content: '}
+				{active}
+			</Button>
 		}
 
 		render(App);
@@ -755,27 +743,25 @@ describe('dynamic DOM elements', () => {
 		let capturedElement: HTMLElement | null = null;
 
 		function Button(props: any) @{
-				const el = track('button');
-				<@el {...props} />
+			const el = track('button');
+			<@el {...props} />
 		}
 
 		function App() @{
-				let &[active] = track(false);
-				<Button
-					data-active={String(active)}
-					onClick={() => {
-						active = !active;
-					}}
-					ref={(el: HTMLElement) => {
-						capturedElement = el;
-						refCallCount++;
-						return () => {
-							cleanupCount++;
-						};
-					}}
-				>
-					{'content'}
-				</Button>
+			let &[active] = track(false);
+			<Button
+				data-active={String(active)}
+				onClick={() => {
+					active = !active;
+				}}
+				ref={(el: HTMLElement) => {
+					capturedElement = el;
+					refCallCount++;
+					return () => {
+						cleanupCount++;
+					};
+				}}
+			>{'content'}</Button>
 		}
 
 		render(App);
@@ -795,17 +781,17 @@ describe('dynamic DOM elements', () => {
 	});
 
 	it('should remove and add back a text node in a conditional statement with a tracked', () => {
-			function App() @{
-					let &[b] = track(true);
-					<>
-						<div>
-							@if (b) {
-								<>Inside if</>
-							}
-						</div>
-						<button onClick={() => (b = !b)}>{'Toggle b'}</button>
-					</>
-			}
+		function App() @{
+			let &[b] = track(true);
+			<>
+				<div>
+					@if (b) {
+						<>Inside if</>
+					}
+				</div>
+				<button onClick={() => (b = !b)}>{'Toggle b'}</button>
+			</>
+		}
 
 		render(App);
 

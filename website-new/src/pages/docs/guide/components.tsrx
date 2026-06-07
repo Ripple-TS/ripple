@@ -20,7 +20,7 @@ export function ComponentsPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/guide/components"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

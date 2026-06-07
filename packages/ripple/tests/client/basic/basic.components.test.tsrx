@@ -35,7 +35,9 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
 			<div class="card">
 				@if (props.children) {
-					<>{props.children}</>
+					<>
+						{props.children}
+					</>
 				}
 			</div>
 		}
@@ -60,7 +62,9 @@ describe('basic client > components & composition', () => {
 		function Card(props: PropsWithChildrenOptional<{ test?: Component }>) @{
 			<div class="card">
 				@if (props.children) {
-					<>{props.children}</>
+					<>
+						{props.children}
+					</>
 				}
 			</div>
 		}
@@ -73,7 +77,9 @@ describe('basic client > components & composition', () => {
 			let &[test] = track(false);
 			<>
 				<Card test={TestSlot} />
-				<div>{test ? 'yes' : 'no'}</div>
+				<div>
+					{test ? 'yes' : 'no'}
+				</div>
 			</>
 		}
 
@@ -115,7 +121,9 @@ describe('basic client > components & composition', () => {
 		}
 
 		function App() @{
-			<>{Test({ label: 'direct call' })}</>
+			<>
+				{Test({ label: 'direct call' })}
+			</>
 		}
 
 		render(App);
@@ -210,7 +218,9 @@ describe('basic client > components & composition', () => {
 					buttonText="Click me"
 					onAction={() => (clicked = true)}
 				/>
-				<div class="status">{clicked ? 'Clicked' : 'Not clicked'}</div>
+				<div class="status">
+					{clicked ? 'Clicked' : 'Not clicked'}
+				</div>
 			</>
 		}
 
@@ -255,9 +265,7 @@ describe('basic client > components & composition', () => {
 						message = message === 'Hello' ? 'Goodbye' : 'Hello';
 						number++;
 					}}
-				>
-					{'Update Props'}
-				</button>
+				>{'Update Props'}</button>
 			</>
 		}
 
@@ -465,7 +473,9 @@ describe('basic client > components & composition', () => {
 
 	it('handles empty string children', () => {
 		function Button({ children }: PropsWithChildren<{}>) @{
-			<>{children}</>
+			<>
+				{children}
+			</>
 		}
 
 		function App() @{
@@ -589,11 +599,7 @@ describe('basic client > components & composition', () => {
 
 		function App() @{
 			const extra = { id: '1', children: 'from spread' };
-			<Card
-				// @ts-expect-error children specified more than once
-				children="explicit"
-				{...extra}
-			/>
+			<Card children="explicit" {...extra} />
 		}
 
 		render(App);

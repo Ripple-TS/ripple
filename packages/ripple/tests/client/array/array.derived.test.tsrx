@@ -102,9 +102,7 @@ describe('RippleArray > derived', () => {
 						items[1] = 13;
 						items[0] = 6;
 					}}
-				>
-					{'update values'}
-				</button>
+				>{'update values'}</button>
 				<pre>{found}</pre>
 				<pre>{foundIndex}</pre>
 			</>
@@ -137,9 +135,7 @@ describe('RippleArray > derived', () => {
 						items[1] = 25;
 						items[4] = 15;
 					}}
-				>
-					{'update values'}
-				</button>
+				>{'update values'}</button>
 				<pre>{foundLast}</pre>
 				<pre>{foundLastIndex}</pre>
 			</>
@@ -172,9 +168,7 @@ describe('RippleArray > derived', () => {
 						items.pop();
 						items.push(10);
 					}}
-				>
-					{'ensure all even'}
-				</button>
+				>{'ensure all even'}</button>
 				<pre>{allEven.toString()}</pre>
 			</>
 		}
@@ -290,9 +284,7 @@ describe('RippleArray > derived', () => {
 					onClick={() => {
 						items.push(2);
 					}}
-				>
-					{'add duplicate'}
-				</button>
+				>{'add duplicate'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{lastIndex}</pre>
 			</>
@@ -352,9 +344,7 @@ describe('RippleArray > derived', () => {
 						items.pop();
 						items.push(9);
 					}}
-				>
-					{'ensure all odd'}
-				</button>
+				>{'ensure all odd'}</button>
 				<pre>{hasEven.toString()}</pre>
 			</>
 		}
@@ -387,9 +377,7 @@ describe('RippleArray > derived', () => {
 					onClick={() => {
 						items[2] = 4000;
 					}}
-				>
-					{'add item'}
-				</button>
+				>{'add item'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 				<pre>{localized}</pre>
 			</>

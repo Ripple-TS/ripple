@@ -95,6 +95,6 @@ function App() @{
 
 		expect(code).toContain("const className = 'editable';");
 		expect(code).toContain('return <article');
-		expect(code).not.toContain("\"const className = 'editable';\"");
+		expect(code).not.toContain('"const className = \'editable\';"');
 	});
 });

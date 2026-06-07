@@ -27,9 +27,7 @@ export function PlaygroundPage() @{
 						href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						GitHub
-					</a>
+					>GitHub</a>
 					<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
 				</nav>
 			</header>

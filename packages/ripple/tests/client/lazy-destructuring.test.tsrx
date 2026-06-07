@@ -4,18 +4,16 @@ import { flushSync, track } from 'ripple';
 describe('lazy destructuring', () => {
 	it('supports tracked value getter and setter', () => {
 		function Test() @{
-				let count = track(1);
-				let doubled = track(() => count.value * 2);
-				<>
-					<div>{`${count.value}-${doubled.value}`}</div>
-					<button
-						onClick={() => {
-							count.value = 5;
-						}}
-					>
-						{'set'}
-					</button>
-				</>
+			let count = track(1);
+			let doubled = track(() => count.value * 2);
+			<>
+				<div>{`${count.value}-${doubled.value}`}</div>
+				<button
+					onClick={() => {
+						count.value = 5;
+					}}
+				>{'set'}</button>
+			</>
 		}
 
 		render(Test);
@@ -31,19 +29,17 @@ describe('lazy destructuring', () => {
 		}
 
 		function Test() @{
-				let &[a] = track(1);
-				let &[b] = track('hello');
-				<>
-					<Inner {a} {b} />
-					<button
-						onClick={() => {
-							a = 2;
-							b = 'world';
-						}}
-					>
-						{'update'}
-					</button>
-				</>
+			let &[a] = track(1);
+			let &[b] = track('hello');
+			<>
+				<Inner {a} {b} />
+				<button
+					onClick={() => {
+						a = 2;
+						b = 'world';
+					}}
+				>{'update'}</button>
+			</>
 		}
 
 		render(Test);
@@ -59,19 +55,17 @@ describe('lazy destructuring', () => {
 		}
 
 		function Test() @{
-				let &[first] = track(10);
-				let &[second] = track(20);
-				<>
-					<Inner {first} {second} />
-					<button
-						onClick={() => {
-							first = 30;
-							second = 40;
-						}}
-					>
-						{'update'}
-					</button>
-				</>
+			let &[first] = track(10);
+			let &[second] = track(20);
+			<>
+				<Inner {first} {second} />
+				<button
+					onClick={() => {
+						first = 30;
+						second = 40;
+					}}
+				>{'update'}</button>
+			</>
 		}
 
 		render(Test);
@@ -96,9 +90,9 @@ describe('lazy destructuring', () => {
 
 	it('supports default values in lazy object destructuring', () => {
 		function Test() @{
-				const obj: { a: number; b?: number } = { a: 5 };
-				const &{ a, b = 99 } = obj;
-				<pre>{`${a}-${b}`}</pre>
+			const obj: { a: number; b?: number } = { a: 5 };
+			const &{ a, b = 99 } = obj;
+			<pre>{`${a}-${b}`}</pre>
 		}
 
 		render(Test);
@@ -124,17 +118,15 @@ describe('lazy destructuring', () => {
 		}
 
 		function Test() @{
-				let &[count] = track(0);
-				<>
-					<Inner {count} />
-					<button
-						onClick={() => {
-							count++;
-						}}
-					>
-						{'increment'}
-					</button>
-				</>
+			let &[count] = track(0);
+			<>
+				<Inner {count} />
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>{'increment'}</button>
+			</>
 		}
 
 		render(Test);
@@ -146,8 +138,8 @@ describe('lazy destructuring', () => {
 
 	it('supports nested lazy destructuring in non-lazy component params', () => {
 		function Inner({ something: &[first, second] }: { something: Tracked<number> }) @{
-				first = second.value + 1;
-				<pre>{`${first}-${second.value}`}</pre>
+			first = second.value + 1;
+			<pre>{`${first}-${second.value}`}</pre>
 		}
 
 		function Test() @{
@@ -158,18 +150,18 @@ describe('lazy destructuring', () => {
 		expect(container.querySelector('pre')!.textContent).toBe('2-2');
 	});
 
-		it(
-			'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params',
-			() => {
-				function Inner({
-					values: [head, ...&{ length: rest_length, 0: first_rest }],
-				}: {
-					values: [number, Tracked<number>, Tracked<number>];
-				}) @{
-						const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
-						rest_length = 0;
-						<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
-				}
+	it(
+		'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy component params',
+		() => {
+			function Inner({
+				values: [head, ...&{ length: rest_length, 0: first_rest }],
+			}: {
+				values: [number, Tracked<number>, Tracked<number>];
+			}) @{
+				const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
+				rest_length = 0;
+				<pre>{`${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`}</pre>
+			}
 
 			function Test() @{
 				<Inner values={[10, track(20), track(30)]} />
@@ -182,11 +174,11 @@ describe('lazy destructuring', () => {
 
 	it('supports lazy destructuring in function params', () => {
 		function Test() @{
-				function getInfo(&{ x, y }: { x: number; y: number }) {
-					return x + y;
-				}
-				const result = getInfo({ x: 3, y: 7 });
-				<pre>{result}</pre>
+			function getInfo(&{ x, y }: { x: number; y: number }) {
+				return x + y;
+			}
+			const result = getInfo({ x: 3, y: 7 });
+			<pre>{result}</pre>
 		}
 
 		render(Test);
@@ -195,13 +187,13 @@ describe('lazy destructuring', () => {
 
 	it('supports nested lazy destructuring in non-lazy function params', () => {
 		function Test() @{
-				const something = track(1);
-				function getInfo({ something: &[first, second] }: { something: Tracked<number> }) {
-					first = second.value + 1;
-					return `${first}-${second.value}`;
-				}
-				const result = getInfo({ something });
-				<pre>{result}</pre>
+			const something = track(1);
+			function getInfo({ something: &[first, second] }: { something: Tracked<number> }) {
+				first = second.value + 1;
+				return `${first}-${second.value}`;
+			}
+			const result = getInfo({ something });
+			<pre>{result}</pre>
 		}
 
 		render(Test);
@@ -212,17 +204,17 @@ describe('lazy destructuring', () => {
 		'preserves lazy getter/setter behavior for nested rest destructuring in non-lazy function params',
 		() => {
 			function Test() @{
-					function summarize({
-						values: [head, ...&{ length: rest_length, 0: first_rest }],
-					}: {
-						values: [number, Tracked<number>, Tracked<number>];
-					}) {
-						const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
-						rest_length = 0;
-						return `${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`;
-					}
-					const result = summarize({ values: [5, track(6), track(7)] });
-					<pre>{result}</pre>
+				function summarize({
+					values: [head, ...&{ length: rest_length, 0: first_rest }],
+				}: {
+					values: [number, Tracked<number>, Tracked<number>];
+				}) {
+					const before = `${first_rest?.value ?? 'nil'}-${rest_length}`;
+					rest_length = 0;
+					return `${head}-${before}-${first_rest?.value ?? 'nil'}-${rest_length}`;
+				}
+				const result = summarize({ values: [5, track(6), track(7)] });
+				<pre>{result}</pre>
 			}
 
 			render(Test);
@@ -232,11 +224,11 @@ describe('lazy destructuring', () => {
 
 	it('supports let lazy destructuring with assignment writeback', () => {
 		function Test() @{
-				const obj = { a: 1, b: 2 };
-				let &{ a, b } = obj;
-				a = 10;
-				b = 20;
-				<pre>{`${obj.a}-${obj.b}`}</pre>
+			const obj = { a: 1, b: 2 };
+			let &{ a, b } = obj;
+			a = 10;
+			b = 20;
+			<pre>{`${obj.a}-${obj.b}`}</pre>
 		}
 
 		render(Test);
@@ -245,11 +237,11 @@ describe('lazy destructuring', () => {
 
 	it('supports compound assignment operators on lazy bindings', () => {
 		function Test() @{
-				const obj = { a: 5, b: 10 };
-				let &{ a, b } = obj;
-				a += 3;
-				b *= 2;
-				<pre>{`${obj.a}-${obj.b}`}</pre>
+			const obj = { a: 5, b: 10 };
+			let &{ a, b } = obj;
+			a += 3;
+			b *= 2;
+			<pre>{`${obj.a}-${obj.b}`}</pre>
 		}
 
 		render(Test);
@@ -258,12 +250,12 @@ describe('lazy destructuring', () => {
 
 	it('supports update expressions on lazy bindings', () => {
 		function Test() @{
-				const obj = { count: 0 };
-				let &{ count } = obj;
-				count++;
-				count++;
-				count--;
-				<pre>{obj.count}</pre>
+			const obj = { count: 0 };
+			let &{ count } = obj;
+			count++;
+			count++;
+			count--;
+			<pre>{obj.count}</pre>
 		}
 
 		render(Test);
@@ -272,12 +264,12 @@ describe('lazy destructuring', () => {
 
 	it('supports function params with lazy destructuring and default values', () => {
 		function Test() @{
-				function calc(&{ x, y = 100 }: { x: number; y?: number }) {
-					return x + y;
-				}
-				const a = calc({ x: 5, y: 10 });
-				const b = calc({ x: 5 });
-				<pre>{`${a}-${b}`}</pre>
+			function calc(&{ x, y = 100 }: { x: number; y?: number }) {
+				return x + y;
+			}
+			const a = calc({ x: 5, y: 10 });
+			const b = calc({ x: 5 });
+			<pre>{`${a}-${b}`}</pre>
 		}
 
 		render(Test);
@@ -286,10 +278,10 @@ describe('lazy destructuring', () => {
 
 	it('supports lazy destructuring with default value writeback', () => {
 		function Test() @{
-				const obj: { a: number; b?: number } = { a: 1 };
-				let &{ a, b = 50 } = obj;
-				b = 99;
-				<pre>{`${a}-${obj.b}`}</pre>
+			const obj: { a: number; b?: number } = { a: 1 };
+			let &{ a, b = 50 } = obj;
+			b = 99;
+			<pre>{`${a}-${obj.b}`}</pre>
 		}
 
 		render(Test);
@@ -298,8 +290,8 @@ describe('lazy destructuring', () => {
 
 	it('supports rest destructuring from iterable array-like tracked values', () => {
 		function Test() @{
-				let &[value, ...rest] = track(0);
-				<pre>{`${value}-${rest.length}-${(rest[0] as Tracked<number>).value === value}`}</pre>
+			let &[value, ...rest] = track(0);
+			<pre>{`${value}-${rest.length}-${(rest[0] as Tracked<number>).value === value}`}</pre>
 		}
 
 		render(Test);
@@ -308,9 +300,9 @@ describe('lazy destructuring', () => {
 
 	it('supports rest destructuring from length-only array-like sources', () => {
 		function Test() @{
-				const source = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
-				const &[first, ...rest] = source;
-				<pre>{`${first}-${rest.join(',')}`}</pre>
+			const source = { 0: 'x', 1: 'y', 2: 'z', length: 3 };
+			const &[first, ...rest] = source;
+			<pre>{`${first}-${rest.join(',')}`}</pre>
 		}
 
 		render(Test);
@@ -319,15 +311,15 @@ describe('lazy destructuring', () => {
 
 	it('supports rest destructuring from iterable sources', () => {
 		function Test() @{
-				const source = {
-					*[Symbol.iterator]() {
-						yield 'x';
-						yield 'y';
-						yield 'z';
-					},
-				};
-				const &[first, ...rest] = source;
-				<pre>{`${first}-${rest.join(',')}`}</pre>
+			const source = {
+				*[Symbol.iterator]() {
+					yield 'x';
+					yield 'y';
+					yield 'z';
+				},
+			};
+			const &[first, ...rest] = source;
+			<pre>{`${first}-${rest.join(',')}`}</pre>
 		}
 
 		render(Test);
@@ -336,11 +328,11 @@ describe('lazy destructuring', () => {
 
 	it('supports update expressions on lazy bindings with default values', () => {
 		function Test() @{
-				const obj: { count?: number } = {};
-				let &{ count = 0 } = obj;
-				count++;
-				count++;
-				<pre>{obj.count}</pre>
+			const obj: { count?: number } = {};
+			let &{ count = 0 } = obj;
+			count++;
+			count++;
+			<pre>{obj.count}</pre>
 		}
 
 		render(Test);
@@ -349,9 +341,9 @@ describe('lazy destructuring', () => {
 
 	it('supports member access on lazy destructured objects', () => {
 		function Test() @{
-				const obj = { user: { name: 'Alice', age: 30 } };
-				const &{ user } = obj;
-				<pre>{`${user.name}-${user.age}`}</pre>
+			const obj = { user: { name: 'Alice', age: 30 } };
+			const &{ user } = obj;
+			<pre>{`${user.name}-${user.age}`}</pre>
 		}
 
 		render(Test);
@@ -359,20 +351,18 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy array destructuring with track()', () => {
-			function Test() @{
-					let count: number;
-					&[count] = track(0);
-					<>
-						<div>{count}</div>
-						<button
-							onClick={() => {
-								count++;
-							}}
-						>
-							{'inc'}
-						</button>
-					</>
-			}
+		function Test() @{
+			let count: number;
+			&[count] = track(0);
+			<>
+				<div>{count}</div>
+				<button
+					onClick={() => {
+						count++;
+					}}
+				>{'inc'}</button>
+			</>
+		}
 
 		render(Test);
 		expect(container.querySelector('div')!.textContent).toBe('0');
@@ -382,21 +372,19 @@ describe('lazy destructuring', () => {
 	});
 
 	it('supports standalone lazy array destructuring with second element', () => {
-			function Test() @{
-					let value;
-					let tracked;
-					&[value, tracked] = track(42);
-					<>
-						<div>{value}</div>
-						<button
-							onClick={() => {
-								value = 100;
-							}}
-						>
-							{'set'}
-						</button>
-					</>
-			}
+		function Test() @{
+			let value;
+			let tracked;
+			&[value, tracked] = track(42);
+			<>
+				<div>{value}</div>
+				<button
+					onClick={() => {
+						value = 100;
+					}}
+				>{'set'}</button>
+			</>
+		}
 
 		render(Test);
 		expect(container.querySelector('div')!.textContent).toBe('42');
@@ -407,13 +395,13 @@ describe('lazy destructuring', () => {
 
 	it('supports direct value access on tracked values', () => {
 		function Test() @{
-				let tracked = track(0);
-				++tracked.value;
-				tracked.value++;
-				tracked.value = tracked.value + 1;
-				let value = tracked.value;
-				let ref = tracked;
-				<pre>{`${value}-${ref === tracked}`}</pre>
+			let tracked = track(0);
+			++tracked.value;
+			tracked.value++;
+			tracked.value = tracked.value + 1;
+			let value = tracked.value;
+			let ref = tracked;
+			<pre>{`${value}-${ref === tracked}`}</pre>
 		}
 
 		render(Test);
@@ -422,14 +410,14 @@ describe('lazy destructuring', () => {
 
 	it('supports lazy destructured tracked ref value access', () => {
 		function Child({ pair: &[value, tracked_ref] }: { pair: Tracked<number> }) @{
-				++tracked_ref.value;
-				tracked_ref.value++;
-				<pre>{`${value}-${tracked_ref.value}`}</pre>
+			++tracked_ref.value;
+			tracked_ref.value++;
+			<pre>{`${value}-${tracked_ref.value}`}</pre>
 		}
 
 		function Test() @{
-				let tracked = track(0);
-				<Child pair={tracked} />
+			let tracked = track(0);
+			<Child pair={tracked} />
 		}
 
 		render(Test);
@@ -438,10 +426,10 @@ describe('lazy destructuring', () => {
 
 	it('supports standalone lazy object destructuring', () => {
 		function Test() @{
-				let a;
-				let b;
-				&{ a, b } = { a: 10, b: 20 };
-				<pre>{`${a}-${b}`}</pre>
+			let a;
+			let b;
+			&{ a, b } = { a: 10, b: 20 };
+			<pre>{`${a}-${b}`}</pre>
 		}
 
 		render(Test);

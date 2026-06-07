@@ -18,93 +18,89 @@ function ResolvedChild(props: { value: string }) {
 }
 
 function ExplicitHtmlApp() @{
-		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<>
-			<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
-			<button
-				class="explicit-html-update"
-				onClick={() => {
-					setMarkup('<strong class="html-node">updated</strong>');
-				}}
-			>
-				{'update'}
-			</button>
-		</>
+	const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+	<>
+		<div class="explicit-html-child" dangerouslySetInnerHTML={{ __html: markup }} />
+		<button
+			class="explicit-html-update"
+			onClick={() => {
+				setMarkup('<strong class="html-node">updated</strong>');
+			}}
+		>{'update'}</button>
+	</>
 }
 
 function SpreadHtmlApp() @{
-		const [spreadProps, setSpreadProps] = useState({
-			dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
-		});
-		const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
-		<>
-			<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
-			<button
-				class="spread-html-update-spread"
-				onClick={() => {
-					setSpreadProps({
-						dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
-					});
-				}}
-			>
-				{'spread'}
-			</button>
-			<button
-				class="spread-html-update-markup"
-				onClick={() => {
-					setMarkup('<strong class="html-node">updated</strong>');
-				}}
-			>
-				{'markup'}
-			</button>
-		</>
+	const [spreadProps, setSpreadProps] = useState({
+		dangerouslySetInnerHTML: { __html: '<em class="html-node">spread</em>' },
+	});
+	const [markup, setMarkup] = useState('<span class="html-node">safe enough</span>');
+	<>
+		<div class="spread-html-child" {...spreadProps} dangerouslySetInnerHTML={{ __html: markup }} />
+		<button
+			class="spread-html-update-spread"
+			onClick={() => {
+				setSpreadProps({
+					dangerouslySetInnerHTML: { __html: '<i class="html-node">spread update</i>' },
+				});
+			}}
+		>{'spread'}</button>
+		<button
+			class="spread-html-update-markup"
+			onClick={() => {
+				setMarkup('<strong class="html-node">updated</strong>');
+			}}
+		>{'markup'}</button>
+	</>
 }
 
 function EmptyPendingSuspenseApp(props: {
 	loader: () => Promise<{ default: typeof ResolvedChild }>;
 }) @{
-		const LazyChild = lazy(props.loader);
-		@try {
-			<LazyChild value="hello" />
-		} pending {}
+	const LazyChild = lazy(props.loader);
+	@try {
+		<LazyChild value="hello" />
+	} pending {}
 }
 
 function ForContinueApp() @{
-		const items = ['a', '', 'c'];
-		@for (const item of items) {
-			if (!item) continue;
-			<li class="continue-item" key={item}>{item}</li>
-		}
+	const items = ['a', '', 'c'];
+	@for (const item of items) {
+		if (!item) continue;
+		<li class="continue-item" key={item}>{item}</li>
+	}
 }
 
 function ForOverSetApp() @{
-		const items = new Set<string>(['x', 'y', 'z']);
-		@for (const item of items) {
-			<li class="set-item" key={item}>{item}</li>
-		}
+	const items = new Set<string>(['x', 'y', 'z']);
+	@for (const item of items) {
+		<li class="set-item" key={item}>{item}</li>
+	}
 }
 
 function ForOverMapApp() @{
-		const entries = new Map<string, number>([
-			['a', 1],
-			['b', 2],
-			['c', 3],
-		]);
-		@for (const [key, value] of entries) {
-			<li class="map-item" {key}>{key + ':' + value}</li>
-		}
+	const entries = new Map<string, number>([
+		['a', 1],
+		['b', 2],
+		['c', 3],
+	]);
+	@for (const [key, value] of entries) {
+		<li class="map-item" {key}>
+			{key + ':' + value}
+		</li>
+	}
 }
 
 function ForOverCustomIterableApp() @{
-		function* iter() {
-			yield 'one';
-			yield 'two';
-			yield 'three';
-		}
-		const items = iter();
-		@for (const item of items) {
-			<li class="generator-item" key={item}>{item}</li>
-		}
+	function* iter() {
+		yield 'one';
+		yield 'two';
+		yield 'three';
+	}
+	const items = iter();
+	@for (const item of items) {
+		<li class="generator-item" key={item}>{item}</li>
+	}
 }
 
 let named_direct_node: HTMLInputElement | null = null;
@@ -112,19 +108,19 @@ let named_direct_native_node: HTMLInputElement | null = null;
 let named_direct_anonymous_node: HTMLInputElement | null = null;
 
 function NamedDirectRefApp() @{
-		function nativeRef(node: HTMLInputElement | null) {
-			named_direct_native_node = node;
-		}
-		function anonymousRef(node: HTMLInputElement | null) {
-			named_direct_anonymous_node = node;
-		}
-		<input
-			ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
-				named_direct_node = node;
-			})}
-			class="named-direct-ref"
-			type="text"
-		/>
+	function nativeRef(node: HTMLInputElement | null) {
+		named_direct_native_node = node;
+	}
+	function anonymousRef(node: HTMLInputElement | null) {
+		named_direct_anonymous_node = node;
+	}
+	<input
+		ref={mergeRefs(nativeRef, anonymousRef, (node: HTMLInputElement | null) => {
+			named_direct_node = node;
+		})}
+		class="named-direct-ref"
+		type="text"
+	/>
 }
 
 let named_forward_node: HTMLInputElement | null = null;
@@ -134,12 +130,12 @@ function NamedForwardInput(props: { type: string; input_ref?: any }) {
 }
 
 function NamedForwardRefApp() @{
-		<NamedForwardInput
-			type="text"
-			input_ref={(node: HTMLInputElement | null) => {
-				named_forward_node = node;
-			}}
-		/>
+	<NamedForwardInput
+		type="text"
+		input_ref={(node: HTMLInputElement | null) => {
+			named_forward_node = node;
+		}}
+	/>
 }
 
 let named_spread_before_node: HTMLInputElement | null = null;
@@ -150,20 +146,20 @@ function namedSpreadBeforeNativeRef(node: HTMLInputElement | null) {
 }
 
 function NamedSpreadBeforeRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
-		<input
-			{...props}
-			ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
-			class="named-spread-before-ref"
-		/>
+	<input
+		{...props}
+		ref={mergeRefs(input_ref, namedSpreadBeforeNativeRef)}
+		class="named-spread-before-ref"
+	/>
 }
 
 function NamedSpreadBeforeRefApp() @{
-		<NamedSpreadBeforeRefInput
-			type="text"
-			input_ref={(node: HTMLInputElement | null) => {
-				named_spread_before_node = node;
-			}}
-		/>
+	<NamedSpreadBeforeRefInput
+		type="text"
+		input_ref={(node: HTMLInputElement | null) => {
+			named_spread_before_node = node;
+		}}
+	/>
 }
 
 let named_spread_after_node: HTMLInputElement | null = null;
@@ -174,20 +170,20 @@ function namedSpreadAfterNativeRef(node: HTMLInputElement | null) {
 }
 
 function NamedSpreadAfterRefInput({ input_ref, ...props }: { type: string; input_ref?: any }) @{
-		<input
-			ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
-			{...props}
-			class="named-spread-after-ref"
-		/>
+	<input
+		ref={mergeRefs(namedSpreadAfterNativeRef, input_ref)}
+		{...props}
+		class="named-spread-after-ref"
+	/>
 }
 
 function NamedSpreadAfterRefApp() @{
-		<NamedSpreadAfterRefInput
-			type="text"
-			input_ref={(node: HTMLInputElement | null) => {
-				named_spread_after_node = node;
-			}}
-		/>
+	<NamedSpreadAfterRefInput
+		type="text"
+		input_ref={(node: HTMLInputElement | null) => {
+			named_spread_after_node = node;
+		}}
+	/>
 }
 
 let multi_spread_first_node: HTMLInputElement | null = null;
@@ -203,26 +199,26 @@ function multiSpreadExplicitNativeRef(node: HTMLInputElement | null) {
 }
 
 function MultiSpreadExplicitRefInput(props: { type: string; first_ref?: any; second_ref?: any }) @{
-		const first = { type: props.type, ref: props.first_ref };
-		const second = { ref: props.second_ref };
-		<input
-			{...first}
-			{...second}
-			ref={multiSpreadExplicitNativeRef}
-			class="multi-spread-explicit-ref"
-		/>
+	const first = { type: props.type, ref: props.first_ref };
+	const second = { ref: props.second_ref };
+	<input
+		{...first}
+		{...second}
+		ref={multiSpreadExplicitNativeRef}
+		class="multi-spread-explicit-ref"
+	/>
 }
 
 function MultiSpreadExplicitRefApp() @{
-		<MultiSpreadExplicitRefInput
-			type="text"
-			first_ref={(node: HTMLInputElement | null) => {
-				multi_spread_first_node = node;
-			}}
-			second_ref={(node: HTMLInputElement | null) => {
-				multi_spread_second_node = node;
-			}}
-		/>
+	<MultiSpreadExplicitRefInput
+		type="text"
+		first_ref={(node: HTMLInputElement | null) => {
+			multi_spread_first_node = node;
+		}}
+		second_ref={(node: HTMLInputElement | null) => {
+			multi_spread_second_node = node;
+		}}
+	/>
 }
 
 const named_ref_object: { current: HTMLInputElement | null } = { current: null };
@@ -241,15 +237,15 @@ function TsrxExpressionHookPanel(props: { active: boolean; label: string }) @{
 }
 
 function TsrxExpressionHookApp() @{
-		const [active, setActive] = useState(false);
-		const [label, setLabel] = useState('first');
-		<>
-			<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
-				{active ? 'hide' : 'show'}
-			</button>
-			<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
-			<TsrxExpressionHookPanel {active} {label} />
-		</>
+	const [active, setActive] = useState(false);
+	const [label, setLabel] = useState('first');
+	<>
+		<button class="tsrx-expression-hook-toggle" onClick={() => setActive(!active)}>
+			{active ? 'hide' : 'show'}
+		</button>
+		<button class="tsrx-expression-hook-label" onClick={() => setLabel('second')}>{'label'}</button>
+		<TsrxExpressionHookPanel {active} {label} />
+	</>
 }
 
 describe('@tsrx/vite-plugin-preact runtime', () => {

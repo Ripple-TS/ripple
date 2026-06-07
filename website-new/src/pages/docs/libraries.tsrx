@@ -20,7 +20,7 @@ export function LibrariesPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/libraries"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

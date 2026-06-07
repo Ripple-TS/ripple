@@ -172,7 +172,7 @@ export function review_tsrx_accessibility(input) {
 					'Buttons must expose a visible label or an aria-label. This is especially important for disabled submit buttons and icon-only controls.',
 				snippet: line_snippet(match[0]),
 				recommendation:
-					"Use visible JSX text such as Add task or add aria-label for icon-only buttons.",
+					'Use visible JSX text such as Add task or add aria-label for icon-only buttons.',
 				documentation: ['tsrx://docs/text-and-template-expressions.md'],
 			});
 		}

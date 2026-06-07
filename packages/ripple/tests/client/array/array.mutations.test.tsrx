@@ -242,9 +242,9 @@ describe('RippleArray > mutations', () => {
 		function ArrayTest() @{
 			let items = new RippleArray(1, 2, 3);
 			<>
-				<button onClick={() => items.forEach((item, i) => (items[i] = item * 2))}>
-					{'double all'}
-				</button>
+				<button
+					onClick={() => items.forEach((item, i) => (items[i] = item * 2))}
+				>{'double all'}</button>
 				<pre>{JSON.stringify(items)}</pre>
 			</>
 		}
@@ -267,9 +267,9 @@ describe('RippleArray > mutations', () => {
 		function ArrayTest() @{
 			let items = new RippleArray(1, 2, 3);
 			<>
-				<button onClick={() => items.forEach((item, i) => (items[i] = item * 2))}>
-					{'double all'}
-				</button>
+				<button
+					onClick={() => items.forEach((item, i) => (items[i] = item * 2))}
+				>{'double all'}</button>
 				@for (const item of items) {
 					<pre>{item}</pre>
 				}

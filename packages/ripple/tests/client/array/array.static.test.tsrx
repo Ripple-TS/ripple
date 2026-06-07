@@ -53,9 +53,7 @@ describe('RippleArray > static', () => {
 						onClick={() => {
 							items.push(4);
 						}}
-					>
-						{'add item'}
-					</button>
+					>{'add item'}</button>
 					<pre>{JSON.stringify(items)}</pre>
 				</>
 			}
@@ -92,9 +90,7 @@ describe('RippleArray > static', () => {
 						onClick={() => {
 							items.push(8);
 						}}
-					>
-						{'add item'}
-					</button>
+					>{'add item'}</button>
 					<pre>{JSON.stringify(items)}</pre>
 				</>
 			}
@@ -142,7 +138,9 @@ describe('RippleArray > static', () => {
 						<div>{'Loading...'}</div>
 					} catch (e) {
 						<>
-							<pre>{'Error: ' + (e as Error).message}</pre>
+							<pre>
+								{'Error: ' + (e as Error).message}
+							</pre>
 							<pre>{'No items'}</pre>
 						</>
 					}

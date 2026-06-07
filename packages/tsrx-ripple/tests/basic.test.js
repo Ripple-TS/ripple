@@ -91,6 +91,59 @@ expect(x).toBe(1);`;
 
 		expect(mapping).toBeDefined();
 	});
+
+	it('keeps lazy tracked values mapped to their source condition in @if output', () => {
+		const source = `import { track } from 'ripple';
+function App() @{
+	let &[show] = track(true);
+	<>
+		@if (show) {
+			<Child />
+		}
+		<button onClick={() => (show = !show)}>{'Toggle Child'}</button>
+	</>
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const generated_if_offset = result.code.indexOf('if (show)');
+		const generated_show_offset = result.code.indexOf('show', generated_if_offset);
+		const source_show_offset = source.indexOf('show) {');
+		const mapping = find_exact_mapping(
+			result.mappings,
+			source_show_offset,
+			generated_show_offset,
+			'show'.length,
+		);
+
+		expect(result.code).toContain('if (show)');
+		expect(result.code).not.toContain("show?.['#v']");
+		expect(mapping).toBeDefined();
+	});
+
+	it('maps preserved TypeScript pragma comments at their source column', () => {
+		const source = `import { RippleObject } from 'ripple';
+import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
+function ObjectTest() @{
+	const obj = new RippleObject({ a: 0 });
+	// @ts-expect-error TRACKED_OBJECT is internal
+	expect(TRACKED_OBJECT in obj).toBe(true);
+	<pre>{'done'}</pre>
+}`;
+		const result = compile_to_volar_mappings(source, 'object.test.tsrx', { loose: true });
+		const source_comment_offset = source.indexOf('// @ts-expect-error');
+		const generated_comment_offset = result.code.indexOf('// @ts-expect-error');
+		const comment_length = '// @ts-expect-error TRACKED_OBJECT is internal'.length;
+		const mapping = find_exact_mapping(
+			result.mappings,
+			source_comment_offset,
+			generated_comment_offset,
+			comment_length,
+		);
+
+		expect(source_comment_offset).toBeGreaterThan(
+			source.lastIndexOf('\n', source_comment_offset) + 1,
+		);
+		expect(mapping).toBeDefined();
+	});
 });
 
 describe('@tsrx/ripple Volar TypeScript output', () => {
@@ -144,6 +197,27 @@ describe('@tsrx/ripple try pending fallbacks', () => {
 
 		expect(code).toContain('_$_.try(');
 		expect(code).toContain('template(`<div>content</div>`');
+	});
+
+	it('prints pending blocks as valid TypeScript in Volar output', () => {
+		const { code } = compile_to_volar_mappings(
+			`function App() @{
+				@try {
+					<p>{'ok'}</p>
+				} pending {
+					<p>{'loading...'}</p>
+				} catch (err) {
+					<p>{'caught rejection'}</p>
+				}
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).toContain("return <p>{'loading...'}</p>;");
+		expect(code).toContain('try {');
+		expect(code).toContain('catch (err)');
+		expect(code).not.toContain(' pending ');
 	});
 });
 
@@ -299,7 +373,7 @@ describe('@tsrx/ripple JSX fragment Volar output', () => {
 
 		expect(result.code).toContain('<section>');
 		expect(result.code).toContain('<div>');
-		expect(result.code).toContain("'inside';");
+		expect(result.code).toContain("{'inside'}");
 		expect(result.code).not.toContain('<tsx');
 	});
 
@@ -308,13 +382,32 @@ describe('@tsrx/ripple JSX fragment Volar output', () => {
 		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const declaration = result.code.indexOf('const x = 1;');
 		const returned_fragment = result.code.indexOf('return <><div>');
-		const second_child = result.code.indexOf('<div>{(() =>', returned_fragment + 1);
+		const second_child = result.code.indexOf('<div>{x}</div>', returned_fragment + 1);
 
 		expect(declaration).toBeGreaterThan(-1);
 		expect(returned_fragment).toBeGreaterThan(-1);
 		expect(second_child).toBeGreaterThan(-1);
 		expect(declaration).toBeLessThan(returned_fragment);
 		expect(returned_fragment).toBeLessThan(second_child);
+	});
+
+	it('returns JSX from root control-flow branches in Volar output', () => {
+		const source = `function Component() @{
+	const tracker = track<HTMLDivElement | null>(null);
+	const show = track(true);
+	captured = tracker;
+	toggle = show;
+
+	@if (show.value) {
+		<div ref={tracker}>{'Hello World'}</div>
+	}
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(result.code).toContain('if (show.value) {');
+		expect(result.code).toContain("return <div ref={tracker}>{'Hello World'}</div>;");
+		expect(result.code).not.toContain('return if');
+		expect(result.code).not.toContain('(() =>');
 	});
 
 	it('prints statement-container setup before returning template output', () => {

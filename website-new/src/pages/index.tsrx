@@ -5,11 +5,11 @@ import { Editor } from '../components/editor.tsrx';
 import { Content } from '../components/content.tsrx';
 
 export function IndexPage() @{
-		<Layout>
-			<Header />
-			<Actions playgroundVisible={true} />
-			<Editor />
-			<Content />
-			<Actions playgroundVisible={false} />
-		</Layout>
+	<Layout>
+		<Header />
+		<Actions playgroundVisible={true} />
+		<Editor />
+		<Content />
+		<Actions playgroundVisible={false} />
+	</Layout>
 }

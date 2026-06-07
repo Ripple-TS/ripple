@@ -494,18 +494,14 @@ export function CompilerDemo() @{
 					onClick={() => {
 						active_mobile_panel.value = 'input';
 					}}
-				>
-					input
-				</button>
+				>input</button>
 				<button
 					type="button"
 					class={`pane-button${active_mobile_panel.value === 'output' ? ' is-active' : ''}`}
 					onClick={() => {
 						active_mobile_panel.value = 'output';
 					}}
-				>
-					output
-				</button>
+				>output</button>
 			</div>
 		</section>
 		<style>

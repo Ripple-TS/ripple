@@ -16,10 +16,8 @@ describe('client tracked numeric access', () => {
 		let value: any;
 
 		function Test() @{
-			
-				value = track(0);
-				<div />
-			
+			value = track(0);
+			<div />
 		}
 
 		render(Test);
@@ -35,10 +33,8 @@ describe('client tracked numeric access', () => {
 		let value: any;
 
 		function Test() @{
-			
-				value = track(() => 1);
-				<div />
-			
+			value = track(() => 1);
+			<div />
 		}
 
 		render(Test);
@@ -55,11 +51,9 @@ describe('client tracked numeric access', () => {
 		let next: any;
 
 		function Test() @{
-			
-				value = track(0);
-				next = track(1);
-				<div />
-			
+			value = track(0);
+			next = track(1);
+			<div />
 		}
 
 		render(Test);
@@ -79,11 +73,9 @@ describe('client tracked numeric access', () => {
 		let derived: any;
 
 		function Test() @{
-			
-				value = track(0);
-				derived = track(() => value.value + 1);
-				<div />
-			
+			value = track(0);
+			derived = track(() => value.value + 1);
+			<div />
 		}
 
 		render(Test);
@@ -101,11 +93,9 @@ describe('client tracked numeric access', () => {
 		let derived: any;
 
 		function Test() @{
-			
-				value = track(0);
-				derived = track(() => value.value + 1);
-				<div />
-			
+			value = track(0);
+			derived = track(() => value.value + 1);
+			<div />
 		}
 
 		render(Test);

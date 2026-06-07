@@ -575,10 +575,10 @@ export function get_comment_handlers(source, comments, index = 0) {
 							continue;
 						}
 
-							const ancestorElements = path
-								.filter((ancestor) => isNativeTemplateNode(ancestor) && ancestor.loc)
-								.map((ancestor) => /** @type {AST.NodeWithLocation} */ (ancestor))
-								.sort((a, b) => a.loc.start.line - b.loc.start.line);
+						const ancestorElements = path
+							.filter((ancestor) => isNativeTemplateNode(ancestor) && ancestor.loc)
+							.map((ancestor) => /** @type {AST.NodeWithLocation} */ (ancestor))
+							.sort((a, b) => a.loc.start.line - b.loc.start.line);
 
 						const targetAncestor = ancestorElements.find(
 							(ancestor) => comment.loc.start.line < ancestor.loc.start.line,
@@ -661,7 +661,7 @@ export function get_comment_handlers(source, comments, index = 0) {
 								comments[0].start >= /** @type {AST.NodeWithLocation} */ (node).start &&
 								comments[0].start < /** @type {AST.NodeWithLocation} */ (node).end
 							) {
-									(/** @type {AST.NodeWithMaybeComments} */ (node).innerComments ||= []).push(
+								/** @type {AST.NodeWithMaybeComments} */ ((node).innerComments ||= []).push(
 									/** @type {AST.CommentWithLocation} */ (comments.shift()),
 								);
 							}

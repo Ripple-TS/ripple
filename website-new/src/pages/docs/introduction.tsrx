@@ -51,19 +51,17 @@ export function IntroductionPage() {
 		>
 			<DocHeading level={1} id="introduction">{'Introduction'}</DocHeading>
 
-			<p>
-				{'Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).'}
-			</p>
+			<p>{'Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).'}</p>
 
-			<p>
-				{'It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.'}
-			</p>
+			<p>{'It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.'}</p>
 
 			<p>
 				{'Ripple was created by Dominic Gannaway ('}
-				<a href="https://github.com/trueadm" target="_blank" rel="noopener noreferrer">
-					{'@trueadm'}
-				</a>
+				<a
+					href="https://github.com/trueadm"
+					target="_blank"
+					rel="noopener noreferrer"
+				>{'@trueadm'}</a>
 				{'), who has previously worked on React, Svelte, Lexical, and Inferno.'}
 			</p>
 
@@ -76,25 +74,19 @@ export function IntroductionPage() {
 						href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/A_re-introduction_to_JavaScript"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						{'JavaScript'}
-					</a>
+					>{'JavaScript'}</a>
 					{', '}
 					<a
 						href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						{'HTML'}
-					</a>
+					>{'HTML'}</a>
 					{' and '}
 					<a
 						href="https://developer.mozilla.org/en-US/docs/Learn/CSS/First_steps"
 						target="_blank"
 						rel="noopener noreferrer"
-					>
-						{'CSS'}
-					</a>
+					>{'CSS'}</a>
 					{' if needed. Prior experience with other frameworks is helpful but not required.'}
 				</p>
 			</DocCallout>

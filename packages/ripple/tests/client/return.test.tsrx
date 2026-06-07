@@ -54,15 +54,15 @@ describe('returns in restricted scopes', () => {
 
 describe('function returns in client components', () => {
 	it('renders template directive branches alongside outer siblings', () => {
-			function App() @{
-				const ready = true;
-					<>
-						@if (ready) {
-							<div class="yielded">yielded</div>
-						}
-						<span class="outer">outer</span>
-					</>
-			}
+		function App() @{
+			const ready = true;
+			<>
+				@if (ready) {
+					<div class="yielded">yielded</div>
+				}
+				<span class="outer">outer</span>
+			</>
+		}
 
 		render(App);
 		expect(container.querySelector('.yielded')?.textContent).toBe('yielded');
@@ -90,10 +90,10 @@ describe('function returns in client components', () => {
 	it('renders TSRX return arguments and skips later siblings', () => {
 		function App() @{
 			const ready = true;
-				if (ready) {
-					return <div class="returned">returned</div>;
-				}
-				<span class="after">after</span>
+			if (ready) {
+				return <div class="returned">returned</div>;
+			}
+			<span class="after">after</span>
 		}
 
 		render(App);

@@ -6,14 +6,12 @@ describe('trackAsync hydration from serialized data (client)', () => {
 		// The full hydration round-trip is tested in hydration tests
 
 		function App() @{
-			
-				@try {
-					let &[data] = trackAsync(() => Promise.resolve('fallback'));
-					<p class="result">{data}</p>
-				} pending {
-					<p class="loading">{'loading...'}</p>
-				}
-			
+			@try {
+				let &[data] = trackAsync(() => Promise.resolve('fallback'));
+				<p class="result">{data}</p>
+			} pending {
+				<p class="loading">{'loading...'}</p>
+			}
 		}
 
 		render(App);
@@ -32,14 +30,12 @@ describe('trackAsync hydration from serialized data (client)', () => {
 		const promise = new Promise<number>((r) => (resolve_fn = r));
 
 		function App() @{
-			
-				@try {
-					let &[value] = trackAsync(() => promise);
-					<span class="value">{value}</span>
-				} pending {
-					<span class="pending">{'waiting'}</span>
-				}
-			
+			@try {
+				let &[value] = trackAsync(() => promise);
+				<span class="value">{value}</span>
+			} pending {
+				<span class="pending">{'waiting'}</span>
+			}
 		}
 
 		render(App);

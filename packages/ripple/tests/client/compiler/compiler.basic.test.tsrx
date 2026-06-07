@@ -462,8 +462,8 @@ function App() @{
 	// function App() @{
 	// 	const items = new RippleArray(1, 2, 3);
 	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
-	// 	const set = RippleSet([1, 2, 3]);
-	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const set = new RippleSet([1, 2, 3]);
+	// 	const map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div ref={() => {}} />
 	// }
@@ -486,8 +486,8 @@ function App() @{
 	// function App() @{
 	// 	const items = new RippleArray(1, 2, 3);
 	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
-	// 	const set = RippleSet([1, 2, 3]);
-	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const set = new RippleSet([1, 2, 3]);
+	// 	const map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div ref={() => {}} />
 	// }
@@ -512,8 +512,8 @@ function App() @{
 	// function App() @{
 	// 	const items = new RippleArray(1, 2, 3);
 	// 	const obj = new RippleObject({ a: 1, b: 2, c: 3 });
-	// 	const set = RippleSet([1, 2, 3]);
-	// 	const map = RippleMap([['a', 1], ['b', 2], ['c', 3]]);
+	// 	const set = new RippleSet([1, 2, 3]);
+	// 	const map = new RippleMap([['a', 1], ['b', 2], ['c', 3]]);
 
 	// 	<div ref={() => {}} />
 	// }
@@ -631,7 +631,7 @@ function App() @{
 		const source_declaration = source.indexOf('nested =');
 		const source_reference = source.indexOf('nested}</div>');
 		const generated_declaration = result.code.indexOf('const nested') + 'const '.length;
-		const generated_reference = result.code.indexOf('nested;', generated_declaration);
+		const generated_reference = result.code.indexOf('nested}</div>', generated_declaration);
 
 		function find_mapping(source_offset: number, generated_offset: number) {
 			return result.mappings.find(

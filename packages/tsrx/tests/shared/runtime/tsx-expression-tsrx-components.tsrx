@@ -27,18 +27,20 @@ export function TsrxInTsxExpressionApp() @{
 	};
 	function renderPlugin() {
 		return <>
-				<PlainTextPlugin
-					contentEditable={<>
-						<ContentEditable
-							aria-placeholder={placeholder}
-							class={classes.contentEditable}
-							placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
-						/>
-					</>}
-					placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
-				/>
-			</>;
+			<PlainTextPlugin
+				contentEditable={<>
+					<ContentEditable
+						aria-placeholder={placeholder}
+						class={classes.contentEditable}
+						placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
+					/>
+				</>}
+				placeholder={<><div class={classes.placeholder}>{placeholder}</div></>}
+			/>
+		</>;
 	}
 
-	<>{renderPlugin()}</>
+	<>
+		{renderPlugin()}
+	</>
 }

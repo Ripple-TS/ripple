@@ -4,13 +4,13 @@ import { track } from 'ripple';
 // Based on SidebarGroup pattern from website-new
 
 export function IfWithChildren({ children }: { children: any }) @{
-		let &[expanded] = track(true);
-		<div class="container">
-			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			@if (expanded) {
-				<div class="content">{children}</div>
-			}
-		</div>
+	let &[expanded] = track(true);
+	<div class="container">
+		<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
+		@if (expanded) {
+			<div class="content">{children}</div>
+		}
+	</div>
 }
 
 export function ChildItem({ text: label }: { text: string }) @{
@@ -18,50 +18,50 @@ export function ChildItem({ text: label }: { text: string }) @{
 }
 
 export function TestIfWithChildren() @{
-		<IfWithChildren>
-			<ChildItem text="Item 1" />
-			<ChildItem text="Item 2" />
-		</IfWithChildren>
+	<IfWithChildren>
+		<ChildItem text="Item 1" />
+		<ChildItem text="Item 2" />
+	</IfWithChildren>
 }
 
 // Simpler variant - if block with static children
 export function IfWithStaticChildren() @{
-		let &[expanded] = track(true);
-		<div class="container">
-			<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
-			@if (expanded) {
-				<div class="content">
-					<span>{'Static child 1'}</span>
-					<span>{'Static child 2'}</span>
-				</div>
-			}
-		</div>
+	let &[expanded] = track(true);
+	<div class="container">
+		<div class="header" role="button" onClick={() => (expanded = !expanded)}>{'Toggle'}</div>
+		@if (expanded) {
+			<div class="content">
+				<span>{'Static child 1'}</span>
+				<span>{'Static child 2'}</span>
+			</div>
+		}
+	</div>
 }
 
 // Variant with sibling elements before the if block (like SidebarGroup)
 export function IfWithSiblingsAndChildren({ children }: { children: any }) @{
-		let &[expanded] = track(true);
-		<section class="group">
-			<div class="item" role="button" onClick={() => (expanded = !expanded)}>
-				<div class="indicator" />
-				<h2 class="text">{'Title'}</h2>
-				<div class="caret">
-					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
-						<path d="m9 18 6-6-6-6" />
-					</svg>
-				</div>
+	let &[expanded] = track(true);
+	<section class="group">
+		<div class="item" role="button" onClick={() => (expanded = !expanded)}>
+			<div class="indicator" />
+			<h2 class="text">{'Title'}</h2>
+			<div class="caret">
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+					<path d="m9 18 6-6-6-6" />
+				</svg>
 			</div>
-			@if (expanded) {
-				<div class="items">{children}</div>
-			}
-		</section>
+		</div>
+		@if (expanded) {
+			<div class="items">{children}</div>
+		}
+	</section>
 }
 
 export function TestIfWithSiblingsAndChildren() @{
-		<IfWithSiblingsAndChildren>
-			<ChildItem text="Item A" />
-			<ChildItem text="Item B" />
-		</IfWithSiblingsAndChildren>
+	<IfWithSiblingsAndChildren>
+		<ChildItem text="Item A" />
+		<ChildItem text="Item B" />
+	</IfWithSiblingsAndChildren>
 }
 
 // Test case for hydration pop bug: element with nested children followed by dynamic if sibling
@@ -109,32 +109,28 @@ export function DeepNestingThenIf() @{
 // followed by another sibling element. This requires pop() to restore hydrate_node
 // because we descend into the first element to get the button children.
 export function DomElementChildrenThenSibling() @{
-		let &[activeTab] = track('code');
-		<div class="tabs">
-			<div class="tab-list">
-				<button
-					class="tab"
-					aria-selected={activeTab === 'code' ? 'true' : 'false'}
-					onClick={() => (activeTab = 'code')}
-				>
-					{'Code'}
-				</button>
-				<button
-					class="tab"
-					aria-selected={activeTab === 'preview' ? 'true' : 'false'}
-					onClick={() => (activeTab = 'preview')}
-				>
-					{'Preview'}
-				</button>
-			</div>
-			<div class="panel">
-				@if (activeTab === 'code') {
-					<pre class="code">{'const x = 1;'}</pre>
-				} else {
-					<div class="preview">{'Preview content'}</div>
-				}
-			</div>
+	let &[activeTab] = track('code');
+	<div class="tabs">
+		<div class="tab-list">
+			<button
+				class="tab"
+				aria-selected={activeTab === 'code' ? 'true' : 'false'}
+				onClick={() => (activeTab = 'code')}
+			>{'Code'}</button>
+			<button
+				class="tab"
+				aria-selected={activeTab === 'preview' ? 'true' : 'false'}
+				onClick={() => (activeTab = 'preview')}
+			>{'Preview'}</button>
 		</div>
+		<div class="panel">
+			@if (activeTab === 'code') {
+				<pre class="code">{'const x = 1;'}</pre>
+			} else {
+				<div class="preview">{'Preview content'}</div>
+			}
+		</div>
+	</div>
 }
 
 // Test case for element with DOM children followed by static siblings that don't
@@ -153,8 +149,8 @@ export function DomChildrenThenStaticSiblings() @{
 			</ul>
 			<h2 class="heading">{'Static Heading'}</h2>
 			<p class="para">{'Static paragraph'}</p>
-			</div>
-			<button class="inc" onClick={() => count++}>{'Increment'}</button>
+		</div>
+		<button class="inc" onClick={() => count++}>{'Increment'}</button>
 	</>
 }
 
@@ -162,28 +158,28 @@ export function DomChildrenThenStaticSiblings() @{
 // Pattern from introduction page: <ul> with static <li> (strong, code, text)
 // followed by static <h2> and <p>. No pop() should be generated for these.
 export function StaticListThenStaticSiblings() @{
-		<div class="wrapper">
-			<ul class="features">
-				<li>
-					<strong>{'Feature One'}</strong>
-					{': Description of feature one with '}
-					<code>{'code'}</code>
-					{' reference'}
-				</li>
-				<li>
-					<strong>{'Feature Two'}</strong>
-					{': Another feature description'}
-				</li>
-				<li>
-					<strong>{'Feature Three'}</strong>
-					{': Third feature'}
-				</li>
-			</ul>
-			<h2 class="section-heading">{'Section Heading'}</h2>
-			<p class="section-content">
-				{'Static paragraph with '}
-				<a href="/link">{'a link'}</a>
-				{' and more text.'}
-			</p>
-		</div>
+	<div class="wrapper">
+		<ul class="features">
+			<li>
+				<strong>{'Feature One'}</strong>
+				{': Description of feature one with '}
+				<code>{'code'}</code>
+				{' reference'}
+			</li>
+			<li>
+				<strong>{'Feature Two'}</strong>
+				{': Another feature description'}
+			</li>
+			<li>
+				<strong>{'Feature Three'}</strong>
+				{': Third feature'}
+			</li>
+		</ul>
+		<h2 class="section-heading">{'Section Heading'}</h2>
+		<p class="section-content">
+			{'Static paragraph with '}
+			<a href="/link">{'a link'}</a>
+			{' and more text.'}
+		</p>
+	</div>
 }

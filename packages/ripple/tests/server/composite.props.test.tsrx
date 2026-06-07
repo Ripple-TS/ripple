@@ -44,7 +44,9 @@ describe('composite > props', () => {
 
 	it('correctly handles no props', async () => {
 		function Child(props: { foo?: Tracked<number> }) @{
-			<div>{props.foo?.value}</div>
+			<div>
+				{props.foo?.value}
+			</div>
 		}
 
 		function App() @{
@@ -106,10 +108,8 @@ describe('composite > props', () => {
 		}
 
 		function App() @{
-			
-				const pressed = track(true);
-				<Toggle {pressed} />
-			
+			const pressed = track(true);
+			<Toggle {pressed} />
 		}
 
 		const { body } = await render(App);
@@ -133,29 +133,25 @@ describe('composite > props', () => {
 		}
 
 		function Product({ id, name, organizationName, description, imageUrl, price }: ProductInfo) @{
-			
-				<article class="no-padding">
-					<img class="responsive small" src={imageUrl} alt={name} />
-					<span>{id}</span>
-					<h5>{name}</h5>
-					<h3>{organizationName}</h3>
-					<p>{description}</p>
-					<price class="price">{price}</price>
-				</article>
-			
+			<article class="no-padding">
+				<img class="responsive small" src={imageUrl} alt={name} />
+				<span>{id}</span>
+				<h5>{name}</h5>
+				<h3>{organizationName}</h3>
+				<p>{description}</p>
+				<price class="price">{price}</price>
+			</article>
 		}
 
 		function App() @{
-			
-				<Product
-					id="1"
-					name="Product 1"
-					organizationName="Org 1"
-					description="Description 1"
-					imageUrl="https://picsum.photos/300/200"
-					price={15}
-				/>
-			
+			<Product
+				id="1"
+				name="Product 1"
+				organizationName="Org 1"
+				description="Description 1"
+				imageUrl="https://picsum.photos/300/200"
+				price={15}
+			/>
 		}
 
 		const { body } = await render(App);

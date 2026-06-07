@@ -3,26 +3,26 @@ import { track } from 'ripple';
 // If block components for hydration testing
 
 export function IfTruthy() @{
-		const show = true;
-		@if (show) {
-			<div class="shown">{'Visible'}</div>
-		}
+	const show = true;
+	@if (show) {
+		<div class="shown">{'Visible'}</div>
+	}
 }
 
 export function IfFalsy() @{
-		const show = false;
-		@if (show) {
-			<div class="shown">{'Visible'}</div>
-		}
+	const show = false;
+	@if (show) {
+		<div class="shown">{'Visible'}</div>
+	}
 }
 
 export function IfElse() @{
-		const isLoggedIn = true;
-		@if (isLoggedIn) {
-			<div class="logged-in">{'Welcome back!'}</div>
-		} else {
-			<div class="logged-out">{'Please log in'}</div>
-		}
+	const isLoggedIn = true;
+	@if (isLoggedIn) {
+		<div class="logged-in">{'Welcome back!'}</div>
+	} else {
+		<div class="logged-out">{'Please log in'}</div>
+	}
 }
 
 export function ReactiveIf() @{
@@ -33,9 +33,7 @@ export function ReactiveIf() @{
 			onClick={() => {
 				show = !show;
 			}}
-		>
-			{'Toggle'}
-		</button>
+		>{'Toggle'}</button>
 		@if (show) {
 			<div class="content">{'Content visible'}</div>
 		}
@@ -50,9 +48,7 @@ export function ReactiveIfElse() @{
 			onClick={() => {
 				isOn = !isOn;
 			}}
-		>
-			{'Toggle'}
-		</button>
+		>{'Toggle'}</button>
 		@if (isOn) {
 			<div class="on">{'ON'}</div>
 		} else {
@@ -70,17 +66,13 @@ export function NestedIf() @{
 			onClick={() => {
 				outer = !outer;
 			}}
-		>
-			{'Outer'}
-		</button>
+		>{'Outer'}</button>
 		<button
 			class="inner-toggle"
 			onClick={() => {
 				inner = !inner;
 			}}
-		>
-			{'Inner'}
-		</button>
+		>{'Inner'}</button>
 		@if (outer) {
 			<div class="outer-content">
 				{'Outer'}
@@ -93,38 +85,32 @@ export function NestedIf() @{
 }
 
 export function IfElseIfChain() @{
-		let &[status] = track<'loading' | 'success' | 'error'>('loading');
-		<div>
-			<button
-				class="success"
-				onClick={() => {
-					status = 'success';
-				}}
-			>
-				{'Success'}
-			</button>
-			<button
-				class="error"
-				onClick={() => {
-					status = 'error';
-				}}
-			>
-				{'Error'}
-			</button>
-			<button
-				class="loading"
-				onClick={() => {
-					status = 'loading';
-				}}
-			>
-				{'Loading'}
-			</button>
-			@if (status === 'loading') {
-				<div class="state">{'Loading...'}</div>
-			} else if (status === 'success') {
-				<div class="state">{'Success!'}</div>
-			} else {
-				<div class="state">{'Error occurred'}</div>
-			}
-		</div>
+	let &[status] = track<'loading' | 'success' | 'error'>('loading');
+	<div>
+		<button
+			class="success"
+			onClick={() => {
+				status = 'success';
+			}}
+		>{'Success'}</button>
+		<button
+			class="error"
+			onClick={() => {
+				status = 'error';
+			}}
+		>{'Error'}</button>
+		<button
+			class="loading"
+			onClick={() => {
+				status = 'loading';
+			}}
+		>{'Loading'}</button>
+		@if (status === 'loading') {
+			<div class="state">{'Loading...'}</div>
+		} else if (status === 'success') {
+			<div class="state">{'Success!'}</div>
+		} else {
+			<div class="state">{'Error occurred'}</div>
+		}
+	</div>
 }

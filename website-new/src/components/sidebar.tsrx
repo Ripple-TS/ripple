@@ -31,11 +31,11 @@ export function Sidebar({ currentPath = '/docs/introduction' }: { currentPath?: 
 							text="Creating an Application"
 							active={currentPath === '/docs/guide/application'}
 						/>
-							<SidebarItem
-								href="/docs/guide/syntax"
-								text="Component Syntax"
-								active={currentPath === '/docs/guide/syntax'}
-							/>
+						<SidebarItem
+							href="/docs/guide/syntax"
+							text="Component Syntax"
+							active={currentPath === '/docs/guide/syntax'}
+						/>
 						<SidebarItem
 							href="/docs/guide/components"
 							text="Components"

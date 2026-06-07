@@ -148,11 +148,9 @@ describe('style class maps (server)', () => {
 					}
 				</style>;
 
-				
-					<div class="parent">
-						<Child cls={styles.dual} />
-					</div>
-				
+				<div class="parent">
+					<Child cls={styles.dual} />
+				</div>
 			}
 
 			const { body } = await render(App);
@@ -178,12 +176,10 @@ describe('style class maps (server)', () => {
 				}
 			</style>;
 
-			
-				let dynamic = track(() => Child);
-				<div class="wrapper">
-					<@dynamic cls={styles.text} />
-				</div>
-			
+			let dynamic = track(() => Child);
+			<div class="wrapper">
+				<@dynamic cls={styles.text} />
+			</div>
 		}
 
 		const { body } = await render(Parent);
@@ -245,11 +241,9 @@ describe('style class maps (server)', () => {
 		}
 
 		function App() @{
-			
-				<Wrapper>
-					<Child />
-				</Wrapper>
-			
+			<Wrapper>
+				<Child />
+			</Wrapper>
 		}
 
 		const { body } = await render(App);

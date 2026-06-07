@@ -55,6 +55,7 @@ import {
 	build_line_offsets,
 	get_mapping_from_node,
 } from '../source-map-utils.js';
+import { should_preserve_comment } from '../comment-utils.js';
 
 const LAZY_PARAM_IDENTIFIER_REGEX = /^__lazy\d+$/;
 
@@ -431,6 +432,42 @@ export function convert_source_map_to_mappings(
 		}
 	}
 
+	/** @type {Set<string>} */
+	const mapped_comments = new Set();
+
+	/**
+	 * @param {any} node
+	 * @returns {void}
+	 */
+	function add_preserved_comment_mappings(node) {
+		for (const key of ['leadingComments', 'trailingComments', 'innerComments', 'comments']) {
+			const comments = node?.[key];
+			if (!Array.isArray(comments)) continue;
+
+			for (const comment of comments) {
+				if (!comment?.loc || !should_preserve_comment(comment)) continue;
+
+				const comment_key = `${comment.start}:${comment.end}`;
+				if (mapped_comments.has(comment_key)) continue;
+				mapped_comments.add(comment_key);
+
+				try {
+					mappings.push(
+						get_mapping_from_node(
+							comment,
+							src_to_gen_map,
+							gen_line_offsets,
+							mapping_data_verify_only,
+						),
+					);
+				} catch {
+					// Comments that were not emitted in generated TSX have no source-map
+					// segment. They should not produce Volar mappings.
+				}
+			}
+		}
+	}
+
 	/**
 	 * @param {AST.Literal} node
 	 */
@@ -445,6 +482,8 @@ export function convert_source_map_to_mappings(
 
 	walk(ast, null, {
 		_(node, { visit }) {
+			add_preserved_comment_mappings(node);
+
 			// Collect key node types: Identifiers, Literals, and JSX Elements
 			if (node.type === 'Identifier') {
 				// Only create mappings for identifiers with location info (from source)

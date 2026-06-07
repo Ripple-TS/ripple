@@ -14,9 +14,7 @@ describe('basic client > events', () => {
 					onClick={() => {
 						clickCount++;
 					}}
-				>
-					{'Test Button'}
-				</button>
+				>{'Test Button'}</button>
 				<div class="focus-count">{focusCount}</div>
 				<div class="click-count">{clickCount}</div>
 			</>
@@ -54,9 +52,7 @@ describe('basic client > events', () => {
 						onClick={() => {
 							bubbleClicks++;
 						}}
-					>
-						{'Click me'}
-					</button>
+					>{'Click me'}</button>
 					<div class="capture-count">{captureClicks}</div>
 					<div class="bubble-count">{bubbleClicks}</div>
 				</div>
@@ -127,9 +123,10 @@ describe('basic client > events', () => {
 			let &[enabled] = track(true);
 			let &[count] = track(0);
 			<>
-				<button class="target" {...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}>
-					{'target'}
-				</button>
+				<button
+					class="target"
+					{...(enabled ? { onClick: () => count++ } : { title: 'disabled' })}
+				>{'target'}</button>
 				<button class="toggle" onClick={() => (enabled = false)}>{'toggle'}</button>
 				<span class="count">{count}</span>
 			</>
@@ -216,7 +213,9 @@ describe('basic client > events', () => {
 			};
 			<>
 				<div class="counter">{counter}</div>
-				<div class="parity">{isEven ? 'Even' : 'Odd'}</div>
+				<div class="parity">
+					{isEven ? 'Even' : 'Odd'}
+				</div>
 				<div class="history-count">{history.length}</div>
 				<button class="inc-btn" onClick={handleIncrement}>{'+'}</button>
 				<button class="dec-btn" onClick={handleDecrement}>{'-'}</button>

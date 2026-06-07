@@ -1,4 +1,5 @@
 import type { ExtendedEventOptions } from '@tsrx/core/types';
+export type { RefValue } from '@tsrx/core/runtime/ref';
 export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsrx/core/types';
 
 export type Component<T = Record<string, any>> = (props: T) => void;

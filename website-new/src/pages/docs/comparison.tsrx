@@ -20,7 +20,7 @@ export function ComparisonPage() @{
 		nextLink={doc.next}
 		toc={doc.toc}
 		currentPath="/docs/comparison"
-		>
+	>
 		<div class="doc-content" innerHTML={doc.html} />
 	</DocsLayout>
 }

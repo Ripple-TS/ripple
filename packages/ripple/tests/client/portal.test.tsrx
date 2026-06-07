@@ -12,11 +12,9 @@ describe('Portal', () => {
 		document.body.appendChild(target);
 
 		function TestPortal() @{
-			
-				<Portal {target}>
-					<div class="test-portal">{'Portal works!'}</div>
-				</Portal>
-			
+			<Portal {target}>
+				<div class="test-portal">{'Portal works!'}</div>
+			</Portal>
 		}
 
 		render(TestPortal);
@@ -31,11 +29,9 @@ describe('Portal', () => {
 
 	it('renders portal content to document.body', () => {
 		function TestPortal() @{
-			
-				<Portal target={document.body}>
-					<div class="test-portal">{'In document.body!'}</div>
-				</Portal>
-			
+			<Portal target={document.body}>
+				<div class="test-portal">{'In document.body!'}</div>
+			</Portal>
 		}
 
 		render(TestPortal);
@@ -49,19 +45,17 @@ describe('Portal', () => {
 	});
 
 	it('cleans up portal content when destroyed via conditional rendering', () => {
-			function TestPortal() @{
-				
-					let &[open] = track(true);
-					<>
-						@if (open) {
-							<Portal target={document.body}>
-								<div class="test-portal">{'Conditional content'}</div>
-							</Portal>
-						}
-						<button onClick={() => (open = false)}>{'Close'}</button>
-					</>
-				
-			}
+		function TestPortal() @{
+			let &[open] = track(true);
+			<>
+				@if (open) {
+					<Portal target={document.body}>
+						<div class="test-portal">{'Conditional content'}</div>
+					</Portal>
+				}
+				<button onClick={() => (open = false)}>{'Close'}</button>
+			</>
+		}
 
 		render(TestPortal);
 
@@ -78,22 +72,20 @@ describe('Portal', () => {
 
 	it('opens and closes portal via conditional rendering', () => {
 		function TestPortal() @{
-			
-					let &[open] = track(false);
-					<>
-						@if (open) {
-							<Portal target={document.body}>
-								<div class="test-portal">
-									{'Content'}
-									<button onClick={() => (open = false)}>{'Close'}</button>
-								</div>
-							</Portal>
-						}
-						@if (!open) {
-							<button onClick={() => (open = true)}>{'Open'}</button>
-						}
-					</>
-			
+			let &[open] = track(false);
+			<>
+				@if (open) {
+					<Portal target={document.body}>
+						<div class="test-portal">
+							{'Content'}
+							<button onClick={() => (open = false)}>{'Close'}</button>
+						</div>
+					</Portal>
+				}
+				@if (!open) {
+					<button onClick={() => (open = true)}>{'Open'}</button>
+				}
+			</>
 		}
 
 		render(TestPortal);
@@ -121,18 +113,16 @@ describe('Portal', () => {
 		document.body.appendChild(target1);
 		document.body.appendChild(target2);
 
-			function TestMultiPortal() @{
-				
-					<>
-						<Portal target={target1}>
-							<div class="test-portal">{'Portal 1 content'}</div>
-						</Portal>
-						<Portal target={target2}>
-							<div class="test-portal">{'Portal 2 content'}</div>
-						</Portal>
-					</>
-				
-			}
+		function TestMultiPortal() @{
+			<>
+				<Portal target={target1}>
+					<div class="test-portal">{'Portal 1 content'}</div>
+				</Portal>
+				<Portal target={target2}>
+					<div class="test-portal">{'Portal 2 content'}</div>
+				</Portal>
+			</>
+		}
 
 		render(TestMultiPortal);
 
@@ -149,16 +139,14 @@ describe('Portal', () => {
 
 	it('handles portal with reactive content', () => {
 		function TestReactivePortal() @{
-			
-				let &[count] = track(0);
-				<Portal target={document.body}>
-					<div class="test-portal">
-						{'Count: '}
-						{String(count)}
-						<button onClick={() => count++}>{'Increment'}</button>
-					</div>
-				</Portal>
-			
+			let &[count] = track(0);
+			<Portal target={document.body}>
+				<div class="test-portal">
+					{'Count: '}
+					{String(count)}
+					<button onClick={() => count++}>{'Increment'}</button>
+				</div>
+			</Portal>
 		}
 
 		render(TestReactivePortal);

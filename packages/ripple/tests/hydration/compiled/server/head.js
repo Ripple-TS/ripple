@@ -250,7 +250,7 @@ export function ComputedTitle() {
 
 				_$_.output_push('</div>');
 				_$_.set_output_target('head');
-				_$_.output_push('<!--928271df-->');
+				_$_.output_push('<!--92c79d98-->');
 				_$_.output_push('<title');
 				_$_.output_push('>');
 
@@ -278,7 +278,7 @@ export function MultipleHeadBlocks() {
 
 				_$_.output_push('</div>');
 				_$_.set_output_target('head');
-				_$_.output_push('<!--487ad51a-->');
+				_$_.output_push('<!--9a44f25d-->');
 				_$_.output_push('<title');
 				_$_.output_push('>');
 
@@ -287,7 +287,7 @@ export function MultipleHeadBlocks() {
 				}
 
 				_$_.output_push('</title>');
-				_$_.output_push('<!--9b3c4604-->');
+				_$_.output_push('<!--0873e476-->');
 				_$_.output_push('<meta');
 				_$_.output_push(' name="author"');
 				_$_.output_push(' content="Test Author"');
@@ -311,7 +311,7 @@ export function HeadWithStyle() {
 
 				_$_.output_push('</div>');
 				_$_.set_output_target('head');
-				_$_.output_push('<!--ec9d13cb-->');
+				_$_.output_push('<!--d75c5358-->');
 				_$_.output_push('<title');
 				_$_.output_push('>');
 
