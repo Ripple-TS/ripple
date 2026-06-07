@@ -1115,6 +1115,18 @@ export function TSRXPlugin(config) {
 				this.#templateScriptParsingDepth++;
 				let node;
 				try {
+					// A code-block/directive body is statements plus at most one render node —
+					// never bare text or markup tokens. If the tokenizer mis-read trailing
+					// code as JSX (raw text or a tag-name token — both can happen for a
+					// statement following the render node, depending on the leftover context),
+					// reposition to the token start and re-read it as code now that the
+					// template path is hidden. It then parses as a statement so the
+					// one-render-node rule reports a clear "statements cannot follow" error
+					// instead of a generic parse fault.
+					if (this.type === tstt.jsxText || this.type === tstt.jsxName) {
+						this.pos = this.start;
+						this.nextToken();
+					}
 					node = this.parseStatement(null);
 				} finally {
 					this.#templateScriptParsingDepth--;
