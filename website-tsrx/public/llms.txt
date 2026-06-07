@@ -467,16 +467,20 @@ const StatusBadge = ({ status }: { status: string }) => @if (status === 'active'
 ```tsrx
 const TodoList = ({ items }: { items: Todo[] }) =>
 	<ul>
-		@for (const item of items; index i; key item.id) {
-			if (item.hidden) continue;
+		@for (const item of items.filter((item) => !item.hidden); index i; key item.id) {
 			<li>{i + 1}. {item.text}</li>
+		} empty {
+			<li>No todos</li>
 		}
 	</ul>;
 ```
 
 Regular `for`, `for...in`, `while`, and `do...while` are not template
-rendering constructs. Use `for...of` for rendered lists, or move imperative
-loops into a nested function.
+rendering constructs. Use `for...of` for rendered lists, filter the iterable
+before rendering when some items should be skipped, and use `empty { ... }` for
+the no-items fallback. Direct `continue`, `break`, and `return` statements are
+not allowed in `@for` template loop bodies. Move imperative loops into a nested
+function.
 
 ### `switch`
 

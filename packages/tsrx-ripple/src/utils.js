@@ -2448,6 +2448,12 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 			statement,
 		]);
 	}
+	if (statement.empty?.type === 'BlockStatement') {
+		statement.empty.body = normalize_jsx_tsrx_children(statement.empty.body || [], [
+			...inherited_path,
+			statement,
+		]);
+	}
 	if (statement.block?.type === 'BlockStatement') {
 		statement.block.body = normalize_jsx_tsrx_children(statement.block.body || [], [
 			...inherited_path,

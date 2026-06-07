@@ -3434,6 +3434,10 @@ function printForOfStatement(node, path, options, print) {
 
 	parts.push(') ');
 	parts.push(path.call(print, 'body'));
+	if (node.empty) {
+		parts.push(' empty ');
+		parts.push(path.call(print, 'empty'));
+	}
 
 	return parts;
 }

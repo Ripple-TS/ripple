@@ -91,11 +91,13 @@ const IF_HTML = highlight_tsrx(
 
 const FOR_HTML = highlight_tsrx(
 	`function TodoList({ items }: { items: Todo[] }) @{
-  <ul>
-    @for (const item of items; index i; key item.id) {
-      if (item.hidden) continue;
+  const visibleItems = items.filter((item) => !item.hidden);
 
+  <ul>
+    @for (const item of visibleItems; index i; key item.id) {
       <li>{i + 1}. {item.text}</li>
+    } empty {
+      <li>No todos yet</li>
     }
   </ul>
 }`,
@@ -577,19 +579,19 @@ export const FeaturesPage = () => @{
 								clauses so you don't need separate counters or key-extraction boilerplate.
 							</p>
 							<p class="section-body">
-								Use
+								Filter the collection before passing it to
+								<code class="inline-code">@for</code>
+								when some items should not render. Use
+								<code class="inline-code">empty</code>
+								for the no-items branch. Direct
 								<code class="inline-code">continue</code>
-								inside a template
-								<code class="inline-code">@for</code>
-								body to skip the current item, like returning
-								<code class="inline-code">null</code>
-								for that iteration.
-								<code class="inline-code">return</code>
-								exits the enclosing function, while direct children render the current iteration.
+								,
 								<code class="inline-code">break</code>
-								is not allowed in
+								, and
+								<code class="inline-code">return</code>
+								statements are not allowed in
 								<code class="inline-code">@for</code>
-								template loop bodies. Nested functions keep ordinary JavaScript control flow.
+								template loop bodies; nested functions keep ordinary JavaScript control flow.
 							</p>
 							<p class="section-body">
 								Other JavaScript loops are not template rendering constructs: regular

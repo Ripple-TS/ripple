@@ -813,40 +813,38 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 	runSharedSwitchFallthroughTests({ compile, name });
 
 	describe(`[${name}] component loop control flow`, () => {
-		it('uses continue to skip a for...of iteration', () => {
+		it('renders an empty fallback for for...of loops', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) @{
 					@for (const item of items) {
-						if (!item) continue
 						<div>{item}</div>
+					} empty {
+						<p>{'No items'}</p>
 					}
 				}`,
 				'App.tsrx',
 			);
 
-			expect(code).not.toContain('continue;');
-			expect(code).toMatch(/return null;|\? (?:null|\[\]) :/);
 			expect(code).toContain('<div>{item}</div>');
+			expect(code).toContain('No items');
 		});
 
-		it('keeps rendered content before continue branches', () => {
-			const { code } = compile(
-				`export function App({ items }: { items: string[] }) @{
-						@for (const item of items) {
-							if (!item) continue
-							<>
-								<span>{item}</span>
+		it('rejects direct loop exits inside for...of template loops', () => {
+			for (const statement of ['continue', 'break', 'return null']) {
+				expect(() =>
+					compile(
+						`export function App({ items }: { items: string[] }) @{
+							@for (const item of items) {
+								${statement}
 								<div>{item}</div>
-							</>
-						}
-					}`,
-				'App.tsrx',
-			);
-
-			expect(code).not.toContain('continue;');
-			expect(code).not.toContain('{}');
-			expect(code).toContain('<span>{item}</span>');
-			expect(code).toContain('<div>{item}</div>');
+							}
+						}`,
+						'App.tsrx',
+					),
+				).toThrow(
+					/(Continue|Break|Return) statements are not allowed inside TSRX template for\.\.\.of loops/,
+				);
+			}
 		});
 
 		it.runIf(['react', 'preact'].includes(name))(

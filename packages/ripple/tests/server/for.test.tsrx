@@ -108,17 +108,30 @@ describe('for statements in SSR', () => {
 		);
 	});
 
-	it('allows continue to skip a for...of iteration', async () => {
+	it('renders filtered items before passing them to @for', async () => {
 		function App() @{
-			const items = ['Item 1', '', 'Item 3'];
+			const items = ['Item 1', '', 'Item 3'].filter(Boolean);
 			@for (const item of items) {
-				if (!item) continue;
 				<div>{item}</div>
 			}
 		}
 
 		const { body } = await render(App);
 		expect(body).toBeHtml('<div>Item 1</div><div>Item 3</div>');
+	});
+
+	it('renders an empty fallback', async () => {
+		function App() @{
+			const items = [];
+			@for (const item of items) {
+				<div>{item}</div>
+			} empty {
+				<p>No items</p>
+			}
+		}
+
+		const { body } = await render(App);
+		expect(body).toBeHtml('<p>No items</p>');
 	});
 
 	it('allows ordinary function control flow inside for...of loops', async () => {
@@ -171,5 +184,20 @@ describe('for statements in SSR', () => {
 				{ mode: 'server' },
 			),
 		).toThrow('Break statements are not allowed inside TSRX template for...of loops');
+	});
+
+	it('throws for continue statements inside for...of loops', () => {
+		expect(
+			() => compile(
+				`function App(items) @{
+						@for (const item of items) {
+							if (!item) continue
+						<div>{item}</div>
+					}
+				}`,
+				'App.tsrx',
+				{ mode: 'server' },
+			),
+		).toThrow('Continue statements are not allowed inside TSRX template for...of loops');
 	});
 });

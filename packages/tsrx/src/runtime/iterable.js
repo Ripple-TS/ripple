@@ -4,11 +4,12 @@
  * @param {Iterable<T> | Iterator<T>} iterable
  * @param {(item: T, index: number, is_last: boolean) => U} fn
  * @param {() => U | U[]} [tail]
+ * @param {() => U | U[]} [empty]
  * @returns {U[]}
  */
-export function map_iterable(iterable, fn, tail) {
+export function map_iterable(iterable, fn, tail, empty) {
 	if (Array.isArray(iterable)) {
-		return map_array(iterable, fn, tail);
+		return map_array(iterable, fn, tail, empty);
 	}
 
 	/** @type {Iterator<T>} */
@@ -25,14 +26,14 @@ export function map_iterable(iterable, fn, tail) {
 
 	var current = iterator.next();
 	if (current.done) {
-		if (!tail) {
+		if (!empty) {
 			return [];
 		}
-		var tail_value = tail();
-		if (Array.isArray(tail_value)) {
-			return tail_value;
+		var empty_value = empty();
+		if (Array.isArray(empty_value)) {
+			return empty_value;
 		}
-		return [tail_value];
+		return [empty_value];
 	}
 
 	var index = 0;
@@ -71,19 +72,20 @@ export function map_iterable(iterable, fn, tail) {
  * @param {Array<T>} array
  * @param {(item: T, index: number, is_last: boolean) => U} fn
  * @param {() => U | U[]} [tail]
+ * @param {() => U | U[]} [empty]
  * @returns {U[]}
  */
-function map_array(array, fn, tail) {
+function map_array(array, fn, tail, empty) {
 	var length = array.length;
 	if (length === 0) {
-		if (!tail) {
+		if (!empty) {
 			return [];
 		}
-		var tail_value = tail();
-		if (Array.isArray(tail_value)) {
-			return tail_value;
+		var empty_value = empty();
+		if (Array.isArray(empty_value)) {
+			return empty_value;
 		}
-		return [tail_value];
+		return [empty_value];
 	}
 	var result = [];
 	for (var i = 0; i < length; i++) {

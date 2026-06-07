@@ -4,6 +4,7 @@ import {
 	TSRX_FOR_IN_STATEMENT_ERROR,
 	TSRX_FOR_STATEMENT_ERROR,
 	TSRX_LOOP_BREAK_ERROR,
+	TSRX_LOOP_CONTINUE_ERROR,
 	TSRX_LOOP_RETURN_ERROR,
 	TSRX_RETURN_STATEMENT_ERROR,
 	TSRX_WHILE_STATEMENT_ERROR,
@@ -83,13 +84,17 @@ function create_advice(input) {
 		});
 	}
 
-	if (error_messages.has(TSRX_LOOP_RETURN_ERROR) || error_messages.has(TSRX_LOOP_BREAK_ERROR)) {
+	if (
+		error_messages.has(TSRX_LOOP_RETURN_ERROR) ||
+		error_messages.has(TSRX_LOOP_BREAK_ERROR) ||
+		error_messages.has(TSRX_LOOP_CONTINUE_ERROR)
+	) {
 		advice.push({
 			kind: 'tsrx-loop-control-flow',
 			severity: 'error',
-			title: 'Use continue inside TSRX for...of loops',
+			title: 'Filter before TSRX for...of loops',
 			message:
-				'Return statements are function control flow, not template output, and break statements are not valid inside TSRX @for loops. Use continue to skip the current rendered item. Nested functions inside the loop keep ordinary JavaScript control flow.',
+				'Direct continue, break, and return statements are not valid inside TSRX @for loops. Filter the iterable before rendering, use empty { ... } for the no-items fallback, and keep ordinary JavaScript control flow inside nested functions.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

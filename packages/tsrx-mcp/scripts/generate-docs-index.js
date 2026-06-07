@@ -174,10 +174,10 @@ function List({ items }: { items: string[] }) @{
     <p>No items</p>
   } else {
     <ul>
-      @for (const item of items; index i; key item) {
-        if (!item) continue;
-
+      @for (const item of items.filter(Boolean); index i; key item) {
         <li>{item}</li>
+      } empty {
+        <li>No items</li>
       }
     </ul>
   }
@@ -185,9 +185,9 @@ function List({ items }: { items: string[] }) @{
 }
 \`\`\`
 
-Use normal function returns for guard exits before entering template output. Inside a nested TSRX loop body, \`continue\` skips the current rendered iteration.
+Use normal function returns for guard exits before entering template output. Filter a collection before passing it to \`@for\` when some items should not render, and use \`empty { ... }\` for the no-items fallback.
 
-\`return\` statements are not template output. Put guard returns before the JSX statement container or return value, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, \`continue\` skips the current rendered iteration and \`break\` is invalid. Inside a TSRX \`@switch\` case body, both \`break\` and \`return\` are invalid because cases are isolated template blocks.
+\`return\` statements are not template output. Put guard returns before the JSX statement container or return value, or render conditionally with \`@if\`. Inside a TSRX \`@for ... of\` loop, direct \`continue\`, \`break\`, and \`return\` statements are invalid. Inside a TSRX \`@switch\` case body, both \`break\` and \`return\` are invalid because cases are isolated template blocks.
 
 TSRX rendering supports \`@for ... of\` list loops. Regular \`for\`, \`for...in\`, \`while\`, and \`do...while\` loops are not rendering constructs. Move imperative loops into setup code, a nested function, event handler, effect, or helper where normal JavaScript control-flow rules apply.
 

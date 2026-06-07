@@ -441,11 +441,11 @@ function ForReactiveApp() @{
 	</>
 }
 
-function ForContinueApp() @{
+function ForFilteredApp() @{
 	const items = ['a', '', 'c'];
-	@for (const item of items) {
+	const visibleItems = items.filter(Boolean);
+	@for (const item of visibleItems) {
 		const item_value = (item as unknown as () => string)();
-		if (!item_value) continue;
 		<li class="continue-item">{item_value}</li>
 	}
 }
@@ -1169,8 +1169,8 @@ describe('tsrx-solid runtime', () => {
 		expect(after[0].textContent).toBe('b');
 	});
 
-	it('skips for-of iterations with continue', async () => {
-		await render(ForContinueApp);
+	it('renders filtered for-of items', async () => {
+		await render(ForFilteredApp);
 		expect(
 			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
 		).toEqual([
@@ -1179,7 +1179,7 @@ describe('tsrx-solid runtime', () => {
 		]);
 	});
 
-	it('keeps prior JSX children when continue skips a for-of continuation', async () => {
+	it('keeps prior JSX children when conditional output skips a for-of continuation', async () => {
 		await render(ForContinueAfterPriorJsxApp);
 		expect(
 			Array.from(container.querySelectorAll('.continue-before'), (item) => item.textContent),

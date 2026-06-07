@@ -1,0 +1,13 @@
+---
+"@tsrx/core": patch
+"@tsrx/ripple": patch
+"@tsrx/solid": patch
+"@tsrx/vue": patch
+"ripple": patch
+"@tsrx/prettier-plugin": patch
+"@tsrx/eslint-parser": patch
+"@ripple-ts/language-server": patch
+"@tsrx/mcp": patch
+---
+
+Add `empty { ... }` fallbacks for TSRX `@for` loops and reject direct `continue`, `break`, and `return` statements inside template loop bodies.

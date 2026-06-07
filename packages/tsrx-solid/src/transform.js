@@ -13,7 +13,6 @@ import {
 	collectParamBindings as collect_param_bindings,
 	collectStatementBindings as collect_statement_bindings,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
-	rewriteLoopContinuesToBareReturns as rewrite_loop_continues_to_bare_returns,
 	isInterleavedBody as is_interleaved_body_core,
 	isCapturableJsxChild as is_capturable_jsx_child,
 	captureJsxChild,
@@ -39,6 +38,12 @@ import {
 } from '@tsrx/core';
 
 import { builders as b } from '@tsrx/core';
+
+const TSRX_FOR_RETURN_ERROR =
+	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
+const TSRX_FOR_BREAK_ERROR = 'Break statements are not allowed inside TSRX template for...of loops.';
+const TSRX_FOR_CONTINUE_ERROR =
+	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
 
 /**
  * Solid extends the shared `JsxTransformContext` with `needs_*` flags that
@@ -419,6 +424,77 @@ function body_has_loop_skip(body_nodes) {
 	return body_nodes.some(
 		(node) => is_bare_return_statement(node) || get_returning_if_info(node) !== null,
 	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_function_or_class_boundary(node) {
+	return (
+		node?.type === 'FunctionDeclaration' ||
+		node?.type === 'FunctionExpression' ||
+		node?.type === 'ArrowFunctionExpression' ||
+		node?.type === 'ClassDeclaration' ||
+		node?.type === 'ClassExpression'
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_loop_statement(node) {
+	return (
+		node?.type === 'ForStatement' ||
+		node?.type === 'ForInStatement' ||
+		node?.type === 'ForOfStatement' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'WhileStatement' ||
+		node?.type === 'DoWhileStatement'
+	);
+}
+
+/**
+ * @param {any[] | any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} [is_root]
+ */
+function validate_for_body_control_flow(node, transform_context, is_root = true) {
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			validate_for_body_control_flow(child, transform_context, is_root && !is_loop_statement(child));
+		}
+		return;
+	}
+
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (node.type === 'ReturnStatement') {
+		error(TSRX_FOR_RETURN_ERROR, transform_context.filename, node, transform_context.errors);
+		return;
+	}
+	if (node.type === 'BreakStatement') {
+		error(TSRX_FOR_BREAK_ERROR, transform_context.filename, node, transform_context.errors);
+		return;
+	}
+	if (node.type === 'ContinueStatement') {
+		error(TSRX_FOR_CONTINUE_ERROR, transform_context.filename, node, transform_context.errors);
+		return;
+	}
+
+	if (is_function_or_class_boundary(node) || (!is_root && is_loop_statement(node))) {
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		validate_for_body_control_flow(node[key], transform_context, false);
+	}
 }
 
 /**
@@ -839,10 +915,9 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = /** @type {any[]} */ (
-		rewrite_loop_continues_to_bare_returns(
-			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
-		)
+		node.body.type === 'BlockStatement' ? node.body.body : [node.body]
 	);
+	validate_for_body_control_flow(loop_body, transform_context);
 
 	let arrow;
 
@@ -858,6 +933,15 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	}
 
 	const attributes = [b.jsx_attribute(b.jsx_id('each'), to_jsx_expression_container(node.right))];
+	if (node.empty) {
+		const empty_body = node.empty.type === 'BlockStatement' ? node.empty.body : [node.empty];
+		attributes.push(
+			b.jsx_attribute(
+				b.jsx_id('fallback'),
+				to_jsx_expression_container(body_to_jsx_child(empty_body, transform_context), node.empty),
+			),
+		);
+	}
 
 	if (node.key) {
 		const item_param = clone_expression_node(loop_params[0]);

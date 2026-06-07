@@ -2469,6 +2469,16 @@
           }
         ]
       },
+      "empty": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_template_block",
+            "named": true
+          }
+        ]
+      },
       "right": {
         "multiple": false,
         "required": true,
@@ -5113,6 +5123,10 @@
   },
   {
     "type": "else",
+    "named": false
+  },
+  {
+    "type": "empty",
     "named": false
   },
   {

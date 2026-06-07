@@ -34,9 +34,9 @@ describe('@tsrx/mcp documentation index', () => {
 	it('documents component loop control-flow rules', () => {
 		const content = find_documentation_section('control-flow')?.content ?? '';
 
-		expect(content).toContain('continue');
+		expect(content).toContain('empty { ... }');
 		expect(content).toContain('`return` statements are not template output');
-		expect(content).toContain('`break` is invalid');
+		expect(content).toContain('direct `continue`, `break`, and `return` statements are invalid');
 		expect(content).toContain('both `break` and `return` are invalid');
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});

@@ -1025,6 +1025,37 @@ foo();`;
 		expect(directive.right.name).toBe('items');
 		expect(directive.key.property.name).toBe('id');
 		expect(directive.body.body[0].type).toBe('JSXElement');
+		expect(directive.empty).toBeNull();
+	});
+
+	it('parses @for empty fallbacks as template blocks', () => {
+		const returned = getReturned(`function App() { return <ul>
+			@for (const item of items; key item.id) {
+				<li>{item.label}</li>
+			} empty {
+				const message = 'No items';
+				<li>{message}</li>
+			}
+		</ul>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXForExpression');
+		expect(directive.type).toBe('JSXForExpression');
+		expect(directive.empty.type).toBe('BlockStatement');
+		expect(directive.empty.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'JSXElement',
+		]);
+		expect(directive.empty.body[1].openingElement.name.name).toBe('li');
+	});
+
+	it('rejects braceless @for empty fallbacks', () => {
+		expect(() =>
+			getReturned(`function App() { return <ul>
+				@for (const item of items) {
+					<li>{item.label}</li>
+				} empty <li>No items</li>
+			</ul>; }`),
+		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
 
 	it('parses code-only @for bodies', () => {

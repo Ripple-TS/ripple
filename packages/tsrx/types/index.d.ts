@@ -398,6 +398,7 @@ declare module 'estree' {
 		await?: boolean;
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
+		empty?: AST.BlockStatement | null;
 		metadata: BaseNodeMetaData;
 	}
 
@@ -456,6 +457,7 @@ declare module 'estree' {
 	interface ForOfStatement {
 		index?: AST.Identifier | null;
 		key?: AST.Expression | null;
+		empty?: AST.BlockStatement | null;
 	}
 
 	interface ImportDeclaration {

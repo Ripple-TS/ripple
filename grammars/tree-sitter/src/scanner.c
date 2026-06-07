@@ -169,11 +169,12 @@ static bool is_jsx_control_keyword(const char *word) {
 
 static bool is_jsx_boundary_keyword(const char *word) {
   return strcmp(word, "case") == 0 ||
-         strcmp(word, "default") == 0 ||
-         strcmp(word, "else") == 0 ||
-         strcmp(word, "pending") == 0 ||
-         strcmp(word, "catch") == 0 ||
-         strcmp(word, "finally") == 0;
+	 strcmp(word, "default") == 0 ||
+	 strcmp(word, "else") == 0 ||
+	 strcmp(word, "empty") == 0 ||
+	 strcmp(word, "pending") == 0 ||
+	 strcmp(word, "catch") == 0 ||
+	 strcmp(word, "finally") == 0;
 }
 
 static bool check_boundary_lookahead(TSLexer *lexer, const char *word) {

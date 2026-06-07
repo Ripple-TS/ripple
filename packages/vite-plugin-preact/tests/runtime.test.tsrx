@@ -63,10 +63,10 @@ function EmptyPendingSuspenseApp(props: {
 	} pending {}
 }
 
-function ForContinueApp() @{
+function ForFilteredApp() @{
 	const items = ['a', '', 'c'];
-	@for (const item of items) {
-		if (!item) continue;
+	const visibleItems = items.filter(Boolean);
+	@for (const item of visibleItems) {
 		<li class="continue-item" key={item}>{item}</li>
 	}
 }
@@ -295,8 +295,8 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 		expect(container.querySelector('.spread-html-child .html-node')?.tagName).toBe('STRONG');
 	});
 
-	it('skips for-of iterations with continue', async () => {
-		await render(ForContinueApp);
+	it('renders filtered for-of items', async () => {
+		await render(ForFilteredApp);
 		expect(
 			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
 		).toEqual([

@@ -599,6 +599,7 @@ module.exports = grammar({
 					optional(seq(';', 'key', $.expression)),
 					')',
 					field('body', $.jsx_template_block),
+					optional(seq('empty', field('empty', $.jsx_template_block))),
 				),
 			),
 

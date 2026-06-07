@@ -121,6 +121,78 @@ const List = ({ items }) => <>
             close_tag: (jsx_closing_fragment)))))))
 
 ==================
+For-of with empty fallback
+==================
+
+const List = ({ items }) => <>
+  <ul>
+    @for (const item of items) {
+      <li>{item.text}</li>
+    } empty {
+      <li>No items</li>
+    }
+  </ul>
+</>;
+
+---
+
+(program
+  (variable_declaration
+    (variable_declarator
+      name: (identifier)
+      (initializer
+        (arrow_function
+          parameters: (formal_parameters
+            (required_parameter
+              pattern: (object_pattern
+                (shorthand_property_identifier_pattern
+                  (shorthand_property_identifier)))))
+          body: (jsx_fragment
+            open_tag: (jsx_opening_fragment)
+            children: (jsx_text)
+            children: (jsx_element
+              open_tag: (jsx_opening_element
+                name: (jsx_element_name
+                  (identifier)))
+              children: (jsx_text)
+              children: (jsx_for_expression
+                (identifier)
+                right: (identifier)
+                body: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_expression
+                      (component_statement
+                        (expression_statement
+                          (member_expression
+                            object: (identifier)
+                            property: (identifier)))))
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text))
+                empty: (jsx_template_block
+                  children: (jsx_text)
+                  children: (jsx_element
+                    open_tag: (jsx_opening_element
+                      name: (jsx_element_name
+                        (identifier)))
+                    children: (jsx_text)
+                    close_tag: (jsx_closing_element
+                      name: (jsx_element_name
+                        (identifier))))
+                  children: (jsx_text)))
+              children: (jsx_text)
+              close_tag: (jsx_closing_element
+                name: (jsx_element_name
+                  (identifier))))
+            children: (jsx_text)
+            close_tag: (jsx_closing_fragment)))))))
+
+==================
 If Statement in Template
 ==================
 

@@ -63,6 +63,11 @@ const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
 	'Hook callbacks inside conditional or repeated TSRX scopes must not mutate bindings declared outside the generated hook component.';
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
+const TSRX_FOR_RETURN_ERROR =
+	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
+const TSRX_FOR_BREAK_ERROR = 'Break statements are not allowed inside TSRX template for...of loops.';
+const TSRX_FOR_CONTINUE_ERROR =
+	'Continue statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering.';
 
 /**
  * @param {AST.Node} node
@@ -4761,6 +4766,66 @@ export function rewrite_loop_continues_to_bare_returns(node, is_root = true) {
 }
 
 /**
+ * @param {any[] | any} node
+ * @param {TransformContext} transform_context
+ * @param {boolean} [is_root]
+ */
+function validate_for_body_control_flow(node, transform_context, is_root = true) {
+	if (Array.isArray(node)) {
+		for (const child of node) {
+			validate_for_body_control_flow(child, transform_context, is_root && !is_loop_statement(child));
+		}
+		return;
+	}
+
+	if (!node || typeof node !== 'object') {
+		return;
+	}
+
+	if (node.type === 'ReturnStatement') {
+		error(
+			TSRX_FOR_RETURN_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+	if (node.type === 'BreakStatement') {
+		error(
+			TSRX_FOR_BREAK_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+	if (node.type === 'ContinueStatement') {
+		error(
+			TSRX_FOR_CONTINUE_ERROR,
+			transform_context.filename,
+			node,
+			transform_context.errors,
+			transform_context.comments,
+		);
+		return;
+	}
+
+	if (is_function_or_class_boundary(node) || (!is_root && is_loop_statement(node))) {
+		return;
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
+			continue;
+		}
+		validate_for_body_control_flow(node[key], transform_context, false);
+	}
+}
+
+/**
  * @param {any} node
  * @returns {boolean}
  */
@@ -4795,10 +4860,9 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 
 	const loop_params = get_for_of_iteration_params(node.left, node.index);
 	const loop_body = /** @type {any[]} */ (
-		rewrite_loop_continues_to_bare_returns(
-			node.body.type === 'BlockStatement' ? node.body.body : [node.body],
-		)
+		node.body.type === 'BlockStatement' ? node.body.body : [node.body]
 	);
+	validate_for_body_control_flow(loop_body, transform_context);
 	const has_hooks =
 		should_extract_hook_helpers(transform_context) &&
 		body_contains_top_level_hook_call(loop_body, transform_context, true);
@@ -4853,16 +4917,52 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	transform_context.available_bindings = saved_bindings;
 
 	const iter_callback = b.arrow(loop_params, b.block(body_statements));
+	const empty_fallback = node.empty
+		? b.call(
+				b.arrow(
+					[],
+					b.block(
+						build_render_statements(
+							node.empty.type === 'BlockStatement' ? node.empty.body : [node.empty],
+							true,
+							transform_context,
+						),
+					),
+					false,
+					undefined,
+					node.empty,
+				),
+			)
+		: null;
 
 	if (transform_context.platform.imports.forOfIterableHelper) {
 		transform_context.needs_for_of_iterable = true;
+		const args = [node.right, iter_callback];
+		if (empty_fallback) {
+			args.push(b.literal(null), b.arrow([], empty_fallback));
+		}
 		return to_jsx_expression_container(
-			b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), node.right, iter_callback),
+			b.call(b.id(MAP_ITERABLE_INTERNAL_NAME), ...args),
+		);
+	}
+
+	const map_call = b.call(b.member(node.right, create_generated_identifier('map')), iter_callback);
+	if (empty_fallback) {
+		return to_jsx_expression_container(
+			b.conditional(
+				b.binary(
+					'===',
+					b.member(clone_expression_node(node.right), create_generated_identifier('length')),
+					b.literal(0),
+				),
+				empty_fallback,
+				map_call,
+			),
 		);
 	}
 
 	return to_jsx_expression_container(
-		b.call(b.member(node.right, create_generated_identifier('map')), iter_callback),
+		map_call,
 	);
 }
 

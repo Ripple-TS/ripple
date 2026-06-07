@@ -3062,97 +3062,57 @@ const visitors = {
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
 		/** @type {AST.Statement[]} */
-		const body = [];
-		let body_start = 0;
+		const body = transform_body(body_nodes, {
+			...context,
+			state: {
+				...context.state,
+				scope: body_scope,
+				namespace: context.state.namespace,
+				flush_node: null,
+			},
+		});
 
-		while (body_start < body_nodes.length) {
-			const child = body_nodes[body_start];
-			if (child.metadata?.regular_js && !child.metadata?.has_template) {
-				body.push(
-					...transform_body([child], {
-						...context,
-						state: {
-							...context.state,
-							scope: body_scope,
-							namespace: context.state.namespace,
-							flush_node: null,
-						},
-					}),
-				);
-				body_start++;
-				continue;
-			}
-
-			if (
-				child.type !== 'IfStatement' ||
-				!child.metadata?.has_continue ||
-				child.metadata?.has_template ||
-				child.alternate
-			) {
-				break;
-			}
-
-			const consequent_body =
-				child.consequent.type === 'BlockStatement' ? child.consequent.body : [child.consequent];
-			if (find_top_level_continue_index(consequent_body) === -1) {
-				break;
-			}
-
-			const consequent_scope =
-				/** @type {ScopeInterface} */ (context.state.scopes.get(child.consequent)) || body_scope;
-			const skip_statements = transform_continue_consequent_body(consequent_body, {
-				...context,
-				state: {
-					...context.state,
-					scope: consequent_scope,
-					namespace: context.state.namespace,
-					flush_node: null,
-				},
-			});
-
-			body.push(
-				b.if(
-					/** @type {AST.Expression} */ (
-						context.visit(child.test, {
-							...context.state,
-							metadata: { ...context.state.metadata },
-						})
+		const empty_scope = node.empty ? context.state.scopes.get(node.empty) || context.state.scope : null;
+		const empty_renderer = node.empty
+			? b.arrow(
+					[b.id('__anchor')],
+					b.block(
+						transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
+							...context,
+							state: {
+								...context.state,
+								scope: /** @type {ScopeInterface} */ (empty_scope),
+								namespace: context.state.namespace,
+								flush_node: null,
+							},
+						}),
 					),
-					b.block(skip_statements),
+				)
+			: undefined;
+
+		const for_args = [
+			id,
+			b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
+			b.arrow(index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern], b.block(body)),
+			b.literal(flags),
+		];
+		if (key != null) {
+			for_args.push(
+				b.arrow(
+					index ? [pattern, index] : [pattern],
+					/** @type {AST.Expression} */ (context.visit(key)),
 				),
 			);
-			body_start++;
 		}
-
-		body.push(
-			...transform_body(body_nodes.slice(body_start), {
-				...context,
-				state: {
-					...context.state,
-					scope: body_scope,
-					namespace: context.state.namespace,
-					flush_node: null,
-				},
-			}),
-		);
+		if (empty_renderer) {
+			for_args.push(empty_renderer);
+		}
 
 		context.state.init?.push(
 			b.stmt(
 				b.call(
 					key != null ? '_$_.for_keyed' : '_$_.for',
-					id,
-					b.thunk(/** @type {AST.Expression} */ (context.visit(node.right))),
-					b.arrow(
-						index ? [b.id('__anchor'), pattern, index] : [b.id('__anchor'), pattern],
-						b.block(body),
-					),
-					b.literal(flags),
-					key != null
-						? b.arrow(
-								index ? [pattern, index] : [pattern],
-								/** @type {AST.Expression} */ (context.visit(key)),
-							)
-						: undefined,
+					.../** @type {AST.Expression[]} */ (for_args),
 				),
 			),
 		);

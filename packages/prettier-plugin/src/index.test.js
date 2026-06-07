@@ -1299,6 +1299,20 @@ async function load() {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should handle empty fallbacks for for...of loops', async () => {
+			const input = `export function Test()@{const items=[];@for(const item of items){<li>{item}</li>}empty{<li>No items</li>}}`;
+			const expected = `export function Test() @{
+  const items = [];
+  @for (const item of items) {
+    <li>{item}</li>
+  } empty {
+    <li>No items</li>
+  }
+}`;
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should handle TypeScript function return type', async () => {
 			const input = `export function FooBar() { function Foo() : string { return ""; }}`;
 			const expected = `export function FooBar() {

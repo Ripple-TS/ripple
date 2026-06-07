@@ -26,7 +26,7 @@ const visitorKeys: Record<string, string[]> = {
 	JSXText: [],
 	JSXStyleElement: ['openingElement', 'children', 'closingElement'],
 	JSXIfExpression: ['test', 'consequent', 'alternate'],
-	JSXForExpression: ['init', 'test', 'update', 'left', 'right', 'body', 'index', 'key'],
+	JSXForExpression: ['init', 'test', 'update', 'left', 'right', 'body', 'index', 'key', 'empty'],
 	JSXSwitchExpression: ['discriminant', 'cases'],
 	JSXTryExpression: ['block', 'handler', 'finalizer', 'pending'],
 	JSXCodeBlock: ['body', 'render'],

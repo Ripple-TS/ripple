@@ -31,6 +31,7 @@ import {
 	isInsideComponent as is_inside_component,
 	validateNesting,
 	validateTsrxLoopBreakStatement,
+	validateTsrxLoopContinueStatement,
 	validateTsrxLoopReturnStatement,
 	validateTsrxReturnStatement,
 	validateTsrxUnsupportedLoopStatement,
@@ -434,7 +435,7 @@ function is_inside_component_for_of(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'ForOfStatement') {
+		if (node.type === 'ForOfStatement' || node.type === 'JSXForExpression') {
 			return true;
 		}
 	}
@@ -2228,7 +2229,13 @@ const visitors = {
 
 	ContinueStatement(node, context) {
 		if (is_inside_component(context) && is_inside_component_for_of(context.path)) {
-			mark_control_flow_has_continue(context.path);
+			validateTsrxLoopContinueStatement(
+				node,
+				context.state.analysis.module.filename,
+				context.state.collect ? context.state.analysis.errors : undefined,
+				context.state.analysis.comments,
+			);
+			return;
 		}
 
 		context.next();

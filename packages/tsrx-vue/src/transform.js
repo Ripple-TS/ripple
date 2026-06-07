@@ -505,6 +505,10 @@ function create_define_vapor_component_call(fn_expression, generated_helpers, ge
  * @returns {any | null}
  */
 function render_for_of_as_vapor_for(node, loop_params, body_statements, transform_context) {
+	if (node.empty) {
+		return null;
+	}
+
 	if (body_statements.length !== 1) {
 		return null;
 	}

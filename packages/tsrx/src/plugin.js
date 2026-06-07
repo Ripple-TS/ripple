@@ -261,12 +261,14 @@ export function TSRXPlugin(config) {
 			#forceScriptJSXElementDepth = 0;
 			#suppressTemplateRawTextToken = false;
 			#templateScriptParsingDepth = 0;
-			#controlFlowBlockAllowsNativeReturn = false;
-			#parsingJSXSwitchCaseScriptStatementDepth = 0;
-			#templateControlFlowBlockDepth = 0;
-			#templateControlFlowTryDepth = 0;
-			/** @type {AST.Node | null} */
-			#openingNativeTemplateNode = null;
+				#controlFlowBlockAllowsNativeReturn = false;
+				#parsingJSXSwitchCaseScriptStatementDepth = 0;
+				#templateControlFlowBlockDepth = 0;
+				#templateControlFlowTryDepth = 0;
+				/** @type {Parse.Parser['context']} */
+				context = [b_stat];
+				/** @type {AST.Node | null} */
+				#openingNativeTemplateNode = null;
 			#closingNativeTemplateNode = false;
 			#readingJSXControlFlowDirectiveKeyword = false;
 			#readingJSXControlFlowHeader = false;
@@ -291,11 +293,12 @@ export function TSRXPlugin(config) {
 			 * @param {Parse.Options} options
 			 * @param {string} input
 			 */
-			constructor(options, input) {
-				super(options, input);
-				const tsrx_options = options?.tsrxOptions ?? options?.rippleOptions;
-				this.#collect = tsrx_options?.collect === true || tsrx_options?.loose === true;
-				this.#loose = tsrx_options?.loose === true;
+				constructor(options, input) {
+					super(options, input);
+					this.context ??= [b_stat];
+					const tsrx_options = options?.tsrxOptions ?? options?.rippleOptions;
+					this.#collect = tsrx_options?.collect === true || tsrx_options?.loose === true;
+					this.#loose = tsrx_options?.loose === true;
 				this.#errors = tsrx_options?.errors;
 				this.#filename = tsrx_options?.filename || null;
 			}
@@ -378,7 +381,15 @@ export function TSRXPlugin(config) {
 				// at most one render node. Code-only blocks are allowed (§2 rule 6). Hide
 				// the enclosing template from `#path` so the body tokenizes as code (not
 				// JSX raw text); render nodes re-establish their own path via `parseElement`.
+				const enclosing_context = this.context;
 				const enclosing_path = this.#path;
+				this.context = enclosing_context.filter(
+					(context) =>
+						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+				);
+				if (this.curContext() !== b_stat) {
+					this.context.push(b_stat);
+				}
 				this.#path = [];
 				if (createNewLexicalScope) {
 					this.enterScope(0);
@@ -397,6 +408,7 @@ export function TSRXPlugin(config) {
 					this.strict = false;
 				}
 				this.exprAllowed = true;
+				this.context = enclosing_context;
 				const previous_reading_header = this.#readingJSXControlFlowHeader;
 				this.#readingJSXControlFlowHeader = true;
 				try {
@@ -1386,6 +1398,19 @@ export function TSRXPlugin(config) {
 							'Expected `{` after JSX control-flow directive.',
 						);
 					}
+					if (this.#eatJSXForEmptyKeyword()) {
+						if (this.type !== tt.braceL) {
+							this.raise(this.start, 'Expected `{` after JSX control-flow directive.');
+						}
+						this.#templateControlFlowBlockDepth++;
+						try {
+							/** @type {any} */ (node).empty = this.parseBlock();
+						} finally {
+							this.#templateControlFlowBlockDepth--;
+						}
+					} else {
+						/** @type {any} */ (node).empty = null;
+					}
 					return node;
 				}
 
@@ -1408,6 +1433,38 @@ export function TSRXPlugin(config) {
 				}
 
 				this.raise(start, 'Expected `@if`, `@for`, `@switch`, or `@try`.');
+			}
+
+			#eatJSXForEmptyKeyword() {
+				if ((this.type.keyword || this.type.label || this.value) === 'empty') {
+					this.next();
+					return true;
+				}
+
+				const keywordStart = skip_whitespace_from(this.input, this.start);
+				if (
+					this.input.slice(keywordStart, keywordStart + 'empty'.length) !== 'empty' ||
+					this.#isIdentifierChar(this.input.charCodeAt(keywordStart + 'empty'.length))
+				) {
+					return false;
+				}
+
+				const keywordEnd = keywordStart + 'empty'.length;
+				this.pos = keywordEnd;
+				this.start = keywordEnd;
+				this.startLoc = acorn.getLineInfo(this.input, keywordEnd);
+				this.curLine = this.startLoc.line;
+				this.lineStart = keywordEnd - this.startLoc.column;
+				this.context = this.context.filter(
+					(context) =>
+						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+				);
+				if (this.curContext() !== b_stat) {
+					this.context.push(b_stat);
+				}
+				this.exprAllowed = true;
+				this.next();
+				return true;
 			}
 
 			#parseTemplateControlFlowStatement() {

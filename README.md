@@ -177,16 +177,17 @@ export function TodoList() @{
     name: 'Ship the work',
   });
   let &[showDone] = track(true);
+  const visibleItems = () => items.filter((item) => showDone || !item.done);
 
   <ul>
-    @for (const item of items; index i; key item.id) {
-      if (!showDone && item.done) continue;
-
+    @for (const item of visibleItems(); index i; key item.id) {
       <li>
         {i + 1}
         .
         {item.name}
       </li>
+    } empty {
+      <li>No todos to show</li>
     }
   </ul>
 }

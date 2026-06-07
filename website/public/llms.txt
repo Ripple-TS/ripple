@@ -213,16 +213,21 @@ export function StatusBadge() @{
 }
 ```
 
-Use `@for (... of ...)` for rendered lists. `continue` skips the current rendered
-iteration. `@switch` cases are isolated `{...}` blocks, do not fall through, and
-do not use `break` or `return`.
+Use `@for (... of ...)` for rendered lists. Filter the iterable before rendering
+when some items should be skipped, and use `empty { ... }` for the no-items
+fallback. Direct `continue`, `break`, and `return` statements are not allowed in
+`@for` template loop bodies. `@switch` cases are isolated `{...}` blocks, do not
+fall through, and do not use `break` or `return`.
 
 ```tsrx
 export function UserList({ users }: { users: User[] }) @{
+	const visibleUsers = users.filter((user) => !user.hidden);
+
 	<ul>
-		@for (const user of users; index i; key user.id) {
-			if (user.hidden) continue;
+		@for (const user of visibleUsers; index i; key user.id) {
 			<li>{i + 1}. {user.name}</li>
+		} empty {
+			<li>No users</li>
 		}
 	</ul>
 }

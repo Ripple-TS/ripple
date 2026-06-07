@@ -4,6 +4,7 @@ const KEYWORDS = new Set([
 	'await',
 	'case',
 	'catch',
+	'empty',
 	'class',
 	'component',
 	'const',

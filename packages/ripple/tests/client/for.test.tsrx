@@ -31,11 +31,10 @@ describe('for statements', () => {
 		).not.toThrow();
 	});
 
-	it('allows continue to skip an iteration', () => {
+	it('renders filtered items before passing them to @for', () => {
 		function App() @{
-			const items = ['Item 1', '', 'Item 3'];
+			const items = ['Item 1', '', 'Item 3'].filter(Boolean);
 			@for (const item of items) {
-				if (!item) continue;
 				<div class="item">{item}</div>
 			}
 		}
@@ -48,50 +47,36 @@ describe('for statements', () => {
 		]);
 	});
 
-	it('allows continue after setup statements to skip an iteration', () => {
-		const skipped = [];
-
+	it('renders an empty fallback', () => {
 		function App() @{
-			const items = ['Item 1', '', 'Item 3'];
+			const items = [];
 			@for (const item of items) {
-				if (!item) {
-					skipped.push('skip');
-					continue;
-				}
 				<div class="item">{item}</div>
+			} empty {
+				<div class="empty">{'No items'}</div>
 			}
 		}
 
 		render(App);
 
-		expect(skipped).toEqual(['skip']);
-		expect(Array.from(container.querySelectorAll('.item')).map((el) => el.textContent)).toEqual([
-			'Item 1',
-			'Item 3',
-		]);
+		expect(container.querySelector('.empty').textContent).toBe('No items');
+		expect(container.querySelector('.item')).toBeNull();
 	});
 
-	it('does not emit JavaScript continue in for...of skip callbacks', () => {
-		const { code } = compile(
+	it('throws for continue statements inside for...of loops', () => {
+		expect(() =>
+			compile(
 			`function App() @{
 				const items = ['Item 1', '', 'Item 3'];
-				const skipped = [];
-
-					@for (const item of items) {
-						if (!item) {
-							skipped.push('skip');
-							continue;
-						}
+				@for (const item of items) {
+					if (!item) continue;
 					<div class="item">{item}</div>
 				}
 			}`,
 			'App.tsrx',
 			{ mode: 'client' },
-		);
-
-		expect(code).toContain('skipped.push(\'skip\')');
-		expect(code).not.toContain('continue;');
-		expect(code).not.toMatch(/continue;\s*return/);
+			),
+		).toThrow('Continue statements are not allowed inside TSRX template for...of loops');
 	});
 
 	it('renders a simple dynamic array', () => {

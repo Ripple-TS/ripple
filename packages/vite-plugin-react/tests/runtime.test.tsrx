@@ -380,12 +380,11 @@ function ForReactiveApp() @{
 	</>
 }
 
-function ForContinueApp() @{
+function ForFilteredApp() @{
 	const items = ['a', '', 'c'];
+	const visibleItems = items.filter(Boolean);
 
-	@for (const item of items) {
-		if (!item) continue;
-
+	@for (const item of visibleItems) {
 		<li className="continue-item" key={item}>{item}</li>
 	}
 }
@@ -1464,8 +1463,8 @@ describe('tsrx-react runtime', () => {
 		expect(after[0].textContent).toBe('b');
 	});
 
-	it('skips for-of iterations with continue', async () => {
-		await render(ForContinueApp);
+	it('renders filtered for-of items', async () => {
+		await render(ForFilteredApp);
 		expect(
 			Array.from(container.querySelectorAll('.continue-item'), (item) => item.textContent),
 		).toEqual([

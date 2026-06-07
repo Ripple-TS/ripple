@@ -58,6 +58,17 @@ function create_item(anchor, value, index, render_fn, is_indexed, is_keyed) {
 }
 
 /**
+ * @param {Node} anchor
+ * @param {(anchor: Node) => void} render_empty
+ * @returns {Block}
+ */
+function create_empty(anchor, render_empty) {
+	return branch(() => {
+		render_empty(anchor);
+	});
+}
+
+/**
  * @param {Block} block
  * @param {Element} anchor
  * @returns {void}
@@ -104,9 +115,10 @@ function collection_to_array(collection) {
  * @param {() => V[] | Iterable<V>} get_collection
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
+ * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
-export function for_block(node, get_collection, render_fn, flags) {
+export function for_block(node, get_collection, render_fn, flags, render_empty) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var anchor = /** @type {Element | Text} */ (node);
@@ -131,7 +143,7 @@ export function for_block(node, get_collection, render_fn, flags) {
 			var array = collection_to_array(collection);
 
 			untrack(() => {
-				reconcile_by_ref(anchor, block, array, render_fn, is_controlled, is_indexed);
+				reconcile_by_ref(anchor, block, array, render_fn, is_controlled, is_indexed, render_empty);
 			});
 
 			if (hydrating) {
@@ -151,9 +163,10 @@ export function for_block(node, get_collection, render_fn, flags) {
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {number} flags
  * @param {(item: V) => K} [get_key]
+ * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
-export function for_block_keyed(node, get_collection, render_fn, flags, get_key) {
+export function for_block_keyed(node, get_collection, render_fn, flags, get_key, render_empty) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
 	var anchor = /** @type {Element | Text} */ (node);
@@ -188,6 +201,7 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key)
 					is_controlled,
 					is_indexed,
 					/** @type {(item: V) => K} */ (get_key),
+					render_empty,
 				);
 			});
 		},
@@ -211,6 +225,7 @@ function reconcile_fast_clear(anchor, block, array) {
 	parent_node.append(anchor);
 	state.array = array;
 	state.blocks = [];
+	state.empty = null;
 }
 
 /**
@@ -241,9 +256,10 @@ function update_value(block, value) {
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
  * @param {(item: V) => K} get_key
+ * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
-function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed, get_key) {
+function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed, get_key, render_empty) {
 	var state = block.s;
 
 	// Variables used in conditional branches - declare with initial values
@@ -271,6 +287,7 @@ function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed
 			array: [],
 			blocks: [],
 			keys: null,
+			empty: null,
 		};
 	}
 
@@ -278,6 +295,30 @@ function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed
 	var a_length = a.length;
 	var b_length = b.length;
 	var j = 0;
+
+	if (b_length === 0) {
+		if (a_length > 0) {
+			if (is_controlled) {
+				reconcile_fast_clear(anchor, block, b);
+			} else {
+				for (; j < a_length; j++) {
+					destroy_block(state.blocks[j]);
+				}
+				state.array = b;
+				state.blocks = [];
+				state.keys = [];
+			}
+		}
+		if (render_empty && state.empty === null) {
+			state.empty = create_empty(anchor, render_empty);
+		}
+		return;
+	}
+
+	if (state.empty !== null) {
+		destroy_block(state.empty);
+		state.empty = null;
+	}
 
 	// Fast-path for clear
 	if (is_controlled && b_length === 0) {
@@ -516,9 +557,10 @@ function reconcile_by_key(anchor, block, b, render_fn, is_controlled, is_indexed
  * @param {(anchor: Node, value: V | Tracked, index?: any) => Block} render_fn
  * @param {boolean} is_controlled
  * @param {boolean} is_indexed
+ * @param {(anchor: Node) => void} [render_empty]
  * @returns {void}
  */
-function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed) {
+function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed, render_empty) {
 	var state = block.s;
 
 	// Variables used in conditional branches - declare with initial values
@@ -546,6 +588,7 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 			array: [],
 			blocks: [],
 			keys: null,
+			empty: null,
 		};
 	}
 
@@ -553,6 +596,29 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 	var a_length = a.length;
 	var b_length = b.length;
 	var j = 0;
+
+	if (b_length === 0) {
+		if (a_length > 0) {
+			if (is_controlled) {
+				reconcile_fast_clear(anchor, block, b);
+			} else {
+				for (; j < a_length; j++) {
+					destroy_block(state.blocks[j]);
+				}
+				state.array = b;
+				state.blocks = [];
+			}
+		}
+		if (render_empty && state.empty === null) {
+			state.empty = create_empty(anchor, render_empty);
+		}
+		return;
+	}
+
+	if (state.empty !== null) {
+		destroy_block(state.empty);
+		state.empty = null;
+	}
 
 	// Fast-path for clear
 	if (is_controlled && b_length === 0) {

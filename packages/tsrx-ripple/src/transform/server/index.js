@@ -2508,10 +2508,15 @@ const visitors = {
 			...context,
 			state: { ...context.state, scope: /** @type {ScopeInterface} */ (body_scope) },
 		});
+		const empty_id = node.empty ? b.id(context.state.scope.generate('for_empty')) : null;
 
 		if (node.index) {
 			context.state.init?.push(b.var(node.index, b.literal(0)));
 			body.push(b.stmt(b.update('++', node.index)));
+		}
+		if (empty_id) {
+			context.state.init?.push(b.var(empty_id, b.true));
+			body.unshift(b.stmt(b.assignment('=', empty_id, b.false)));
 		}
 
 		context.state.init?.push(
@@ -2522,6 +2527,21 @@ const visitors = {
 				b.block(body),
 			),
 		);
+
+		if (empty_id && node.empty) {
+			const empty_scope = context.state.scopes.get(node.empty) || context.state.scope;
+			context.state.init?.push(
+				b.if(
+					empty_id,
+					b.block(
+						transform_body(/** @type {AST.BlockStatement} */ (node.empty).body, {
+							...context,
+							state: { ...context.state, scope: /** @type {ScopeInterface} */ (empty_scope) },
+						}),
+					),
+				),
+			);
+		}
 
 		context.state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 	},

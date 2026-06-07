@@ -262,6 +262,16 @@ const RIPPLE_SNIPPETS = [
 		sortText: '0-for-key',
 	},
 	{
+		label: 'for-empty',
+		kind: CompletionItemKind.Snippet,
+		detail: 'for...of loop with empty fallback',
+		documentation: 'Iterate over items with an empty fallback',
+		insertText:
+			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n} empty {\n\t<${6:li}>${7:No items}</${6:li}>\n}',
+		insertTextFormat: InsertTextFormat.Snippet,
+		sortText: '0-for-empty',
+	},
+	{
 		label: 'for-index-key',
 		kind: CompletionItemKind.Snippet,
 		detail: 'for...of loop with key',
@@ -286,7 +296,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'switch statement',
 		documentation: 'Switch-based conditional rendering',
 		insertText:
-			"@switch (${1:value}) {\n\tcase ${2:'case1'}:\n\t\t<>\n\t\t\t$3\n\t\t</>\n\t\tbreak;\n\tcase ${4:'case2'}:\n\t\t<>\n\t\t\t$5\n\t\t</>\n\t\tbreak;\n\tdefault:\n\t\t<>\n\t\t\t$6\n\t\t</>\n}",
+			"@switch (${1:value}) {\n\tcase ${2:'case1'}: {\n\t\t<>\n\t\t\t$3\n\t\t</>\n\t}\n\tcase ${4:'case2'}: {\n\t\t<>\n\t\t\t$5\n\t\t</>\n\t}\n\tdefault: {\n\t\t<>\n\t\t\t$6\n\t\t</>\n\t}\n}",
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-switch-case',
 	},
