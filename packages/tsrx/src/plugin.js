@@ -1625,30 +1625,9 @@ export function TSRXPlugin(config) {
 
 				const label = this.type.keyword || this.type.label;
 				if (label === 'break') {
-					const node = /** @type {AST.BreakStatement} */ (this.startNode());
-					this.next();
-					node.label = null;
-					if (
-						this.type === tstt.jsxText &&
-						typeof this.value === 'string' &&
-						this.value.startsWith(';')
-					) {
-						const start = this.start;
-						const loc = acorn.getLineInfo(this.input, start + 1);
-						this.pos = start + 1;
-						this.start = start + 1;
-						this.startLoc = loc;
-						this.curLine = loc.line;
-						this.lineStart = start + 1 - loc.column;
-						this.exprAllowed = true;
-						this.next();
-					} else {
-						this.semicolon();
-					}
-					consequent.push(this.finishNode(node, 'BreakStatement'));
-					return;
+					this.raise(this.start, '`break` is invalid inside `@switch` cases.');
 				}
-				if (label === 'break' || label === 'continue' || label === 'return' || label === 'throw') {
+				if (label === 'continue' || label === 'return' || label === 'throw') {
 					consequent.push(this.parseStatement(null));
 					return;
 				}

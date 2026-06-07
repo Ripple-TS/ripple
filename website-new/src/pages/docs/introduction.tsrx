@@ -51,9 +51,16 @@ export function IntroductionPage() {
 		>
 			<DocHeading level={1} id="introduction">Introduction</DocHeading>
 
-			<p>Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of TypeScript).</p>
+			<p>
+				Ripple is an elegant, compiler-driven language and UI framework built on TSRX (a superset of
+				TypeScript).
+			</p>
 
-			<p>It features its own JSX-like templating language, allowing a declarative blend of structure and control flow. This makes applications easier for both humans and AI to reason about, while delivering a developer experience that ultimately results in a better user experience.</p>
+			<p>
+				It features its own JSX-like templating language, allowing a declarative blend of structure
+				and control flow. This makes applications easier for both humans and AI to reason about,
+				while delivering a developer experience that ultimately results in a better user experience.
+			</p>
 
 			<p>
 				{'Ripple was created by Dominic Gannaway ('}

@@ -644,7 +644,6 @@ describe('@tsrx/vue basic', () => {
 				@switch (value) {
 					case 'a':
 						<div>{'A'}</div>
-						break;
 					default:
 						<div>{'Fallback'}</div>
 					}
@@ -667,7 +666,6 @@ describe('@tsrx/vue basic', () => {
 						case 'a':
 							const label = 'A';
 							<div>{label}</div>
-							break;
 						default:
 							<div>{'Fallback'}</div>
 						}

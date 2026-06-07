@@ -5,7 +5,8 @@ export function Layout({ children }) {
 
 			<div class="vercel-footer">
 				<p>
-					Backed by <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>
+					Backed by
+					<a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>
 				</p>
 			</div>
 		</main>

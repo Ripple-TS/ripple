@@ -3184,8 +3184,6 @@ const visitors = {
 			const consequent = switch_case.consequent;
 
 			if (consequent.length !== 0) {
-				// Flatten top-level BlockStatements so BreakStatements and elements inside
-				// block-scoped cases (e.g. `case 1: { ... break; }`) are properly handled
 				const flattened_consequent = flatten_switch_consequent(consequent);
 				const consequent_scope = context.state.scopes.get(consequent) || context.state.scope;
 
@@ -3193,8 +3191,6 @@ const visitors = {
 					...context,
 					state: { ...context.state, scope: consequent_scope, flush_node: null },
 				});
-				const has_break = consequent_has_break(consequent);
-				const is_last = counter === node.cases.length - 1;
 				const is_default = switch_case.test == null;
 				const consequent_id = context.state.scope.generate(
 					'switch_case_' + (is_default ? 'default' : id_gen),
@@ -3204,14 +3200,9 @@ const visitors = {
 				case_body.push(
 					b.stmt(b.call(b.member(b.id('result'), b.id('push'), false), b.id(consequent_id))),
 				);
-
-				// in js, `default:` can be in the middle without a break
-				// so we only add return for the last case or cases with a break
-				if (has_break || is_last) {
-					case_body.push(b.return(b.id('result')));
-				}
 				id_gen++;
 			}
+			case_body.push(b.return(b.id('result')));
 
 			counter++;
 

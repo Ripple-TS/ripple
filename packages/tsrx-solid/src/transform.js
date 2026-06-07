@@ -877,14 +877,13 @@ function for_of_statement_to_jsx_child(node, transform_context) {
  * statement with a discriminant `d` and cases `[c1, c2, default]` becomes:
  *   <Switch fallback={...default}><Match when={d === c1}>...</Match>...</Switch>
  *
- * Fall-through across cases reuses the shared `plan_switch_lift` pipeline
- * from `@tsrx/core`: each duplicated case body is hoisted into a
- * `StatementBodyHook` helper component that chains into the next helper, and
- * each `<Match>` body just renders the appropriate helper element. The
- * client transform hoists those helpers to module scope (Solid's platform
- * sets `moduleScopedHookComponents: true`); `compile_to_volar_mappings` opts
- * back out and emits the helpers locally inside the component body so Volar
- * still sees closure-captured bindings against the component scope.
+ * Cases are isolated: `@switch` does not fall through and does not use `break`.
+ * Hook-bearing case bodies reuse the shared `plan_switch_lift` pipeline from
+ * `@tsrx/core`. The client transform hoists those helpers to module scope
+ * (Solid's platform sets `moduleScopedHookComponents: true`);
+ * `compile_to_volar_mappings` opts back out and emits the helpers locally
+ * inside the component body so Volar still sees closure-captured bindings
+ * against the component scope.
  *
  * When any case is lifted in `typeOnly` mode the helper declarations have to
  * live somewhere local-scoped — we wrap the whole `<Switch>` in an IIFE that
@@ -899,10 +898,7 @@ function switch_statement_to_jsx_child(node, transform_context) {
 	transform_context.needs_switch = true;
 	transform_context.needs_match = true;
 
-	const { case_info, case_helpers, find_next_helper_after, setup_statements } = plan_switch_lift(
-		node,
-		transform_context,
-	);
+	const { case_info, case_helpers, setup_statements } = plan_switch_lift(node, transform_context);
 
 	/** @type {any} */
 	let fallback = null;
@@ -922,25 +918,9 @@ function switch_statement_to_jsx_child(node, transform_context) {
 			// definition's `loc` is what the case position should map to.
 			body_jsx = helper.component_element;
 		} else if (info.own_body.length === 0) {
-			// Empty case in the source. If a downstream chain exists (alias
-			// pattern like `case 1: case 2: body; break;`), the `<Match>` for
-			// the empty label still has to render that downstream body —
-			// Solid's `<Match>` arms are exclusive, so JS fall-through can't
-			// rescue us here.
-			const next_helper = find_next_helper_after(i);
-			body_jsx = next_helper ? clone_switch_helper_invocation(next_helper) : create_null_literal();
+			body_jsx = create_null_literal();
 		} else {
-			// Inline case body: process JSX/non-JSX statements just like Solid
-			// does for any other branch body, then append the chain helper if
-			// this case falls through with no terminator.
-			const inline_body = [...info.own_body];
-			if (!info.has_terminator) {
-				const next_helper = find_next_helper_after(i);
-				if (next_helper) {
-					inline_body.push(clone_switch_helper_invocation(next_helper));
-				}
-			}
-			body_jsx = body_to_jsx_child(inline_body, transform_context);
+			body_jsx = body_to_jsx_child(info.own_body, transform_context);
 		}
 
 		if (original_case.test === null) {

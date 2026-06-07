@@ -2450,6 +2450,7 @@ const visitors = {
 				);
 				case_body.push(...consequent.body);
 			}
+			case_body.push(b.break);
 
 			cases.push(
 				b.switch_case(

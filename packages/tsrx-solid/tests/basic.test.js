@@ -309,8 +309,8 @@ describe('@tsrx/solid basic', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 						@switch (kind) {
-						case 'a': <span>{'A'}</span>; break;
-						case 'b': <span>{'B'}</span>; break;
+						case 'a': <span>{'A'}</span>;
+						case 'b': <span>{'B'}</span>;
 						default: <span>{'?'}</span>;
 					}
 				}`,
@@ -435,14 +435,12 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			const rest_static = code.match(/const (App__static\d+) = <span>\{'rest'\}<\/span>;/)?.[1];
 
-			expect(rest_static).toBeTruthy();
 			expect(code).toContain('<Show when={!hidden}>');
-			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
-			expect(code).toContain(
-				"<Match when={kind === 'skip'}><><span>{'rest'}</span><App__StatementBodyHook1 /></></Match>",
-			);
+			expect(code).toContain("<Match when={kind === 'skip'}><span>{'rest'}</span></Match>");
+			expect(code).toContain("<Match when={kind === 'done'}><p>{'done'}</p></Match>");
+			expect(code).toContain("fallback={<span>{'rest'}</span>}");
+			expect(code).not.toContain('StatementBodyHook');
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
@@ -482,7 +480,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).not.toContain('switch (kind)');
 		});
 
-		it('component-body switch break cases include trailing render fallback', () => {
+		it('component-body switch cases are isolated without trailing fallthrough', () => {
 			const { code } = compile(
 				`function App({ kind }: { kind: string }) @{
 					@switch (kind) {
@@ -496,13 +494,11 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			const rest_static = code.match(/const (App__static\d+) = <em>\{'rest'\}<\/em>;/)?.[1];
 
-			expect(rest_static).toBeTruthy();
-			expect(code).toContain('fallback={<App__StatementBodyHook2 />}');
-			expect(code).toContain(
-				"<Match when={kind === 'skip'}><><em>{'rest'}</em><App__StatementBodyHook1 /></></Match>",
-			);
+			expect(code).toContain("<Match when={kind === 'skip'}><em>{'rest'}</em></Match>");
+			expect(code).toContain("<Match when={kind === 'a'}><span>{'A'}</span></Match>");
+			expect(code).toContain("fallback={<em>{'rest'}</em>}");
+			expect(code).not.toContain('StatementBodyHook');
 			expect(code).not.toContain("<Match when={kind === 'skip'}>{null}</Match>");
 		});
 
@@ -692,10 +688,7 @@ describe('@tsrx/solid basic', () => {
 			// `App__static<N>` declarations should NOT alias a bare
 			// StatementBodyHook reference.
 			expect(code).not.toMatch(/const App__static\d+\s*=\s*<App__StatementBodyHook\d+\s*\/>/);
-			// But truly-static `<span>` content still gets hoisted as
-			// `App__static<N>` — the React-style optimization survives for
-			// content where it actually helps.
-			expect(code).toMatch(/const App__static\d+\s*=\s*<span>/);
+			expect(code).toContain('<Match when={status === "active"}><span>{\'Away\'}</span></Match>');
 		});
 	});
 

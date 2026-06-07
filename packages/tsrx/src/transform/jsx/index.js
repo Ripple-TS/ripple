@@ -5355,9 +5355,8 @@ function create_render_if_statement(node, transform_context) {
  * case body needs to be hoisted into its own helper component or can stay
  * inline.
  *
- * `own_body` is everything in the case's `consequent` up to (and including for
- * `return <expr>`, excluding for `break` / bare `return;`) the first
- * terminator. `has_terminator` records whether such a terminator was seen.
+ * `own_body` is the case's isolated consequent. JSX `@switch` cases do not
+ * fall through, so `break` is not part of the template switch model.
  *
  * @param {any[]} consequent
  * @returns {{ own_body: any[], has_terminator: boolean }}
@@ -5366,10 +5365,6 @@ function summarize_switch_case_body(consequent) {
 	const own_body = [];
 	let has_terminator = false;
 	for (const child of consequent) {
-		if (child.type === 'BreakStatement') {
-			has_terminator = true;
-			break;
-		}
 		if (child.type === 'ReturnStatement' && child.argument == null) {
 			has_terminator = true;
 			break;
@@ -5402,11 +5397,10 @@ export function clone_switch_helper_invocation(helper) {
 
 /**
  * Plan the switch lift: decide which case bodies to hoist into their own
- * helper components, build them in reverse so each helper can chain into the
- * next, and return everything callers need to construct a target-specific
- * switch shape (a JS `switch` for React/Preact/Vue or `<Switch>/<Match>` for
- * Solid). Centralizes the lift bookkeeping so both consumers see the same
- * hook-detection rules, duplication analysis, and helper-id numbering.
+ * helper components and return everything callers need to construct a
+ * target-specific switch shape (a JS `switch` for React/Preact/Vue or
+ * `<Switch>/<Match>` for Solid). JSX `@switch` cases are isolated and do not
+ * fall through.
  *
  * Returned helpers — when non-null — are already constructed via
  * `create_hook_safe_helper`, which is the same path hook-bearing case bodies
@@ -5420,7 +5414,7 @@ export function clone_switch_helper_invocation(helper) {
  * @returns {{
  *   case_info: Array<{ own_body: any[], has_terminator: boolean }>,
  *   case_helpers: Array<{ setup_statements: any[], component_element: ESTreeJSX.JSXElement } | null>,
- *   find_next_helper_after: (from_index: number) => { component_element: ESTreeJSX.JSXElement } | null,
+ *   find_next_helper_after: (from_index: number) => null,
  *   setup_statements: any[],
  * }}
  */
@@ -5430,22 +5424,15 @@ export function plan_switch_lift(switch_node, transform_context) {
 		return summarize_switch_case_body(consequent);
 	});
 
-	// A case body needs to be lifted iff (a) it would render in more than one
-	// arm after fall-through expansion, or (b) it contains hooks (which always
-	// went through the lift pipeline before this change). Duplication happens
-	// exactly when the previous case has no terminator — that's the only way
-	// an earlier arm can reach this body via JS fall-through semantics.
+	// A case body needs to be lifted iff it contains hooks. Cases are isolated,
+	// so downstream case bodies are never duplicated into earlier arms.
 	const needs_helper = case_info.map(
-		(/** @type {{ own_body: any[], has_terminator: boolean }} */ info, /** @type {number} */ k) => {
+		(/** @type {{ own_body: any[], has_terminator: boolean }} */ info) => {
 			if (info.own_body.length === 0) return false;
-			if (
+			return (
 				should_extract_hook_helpers(transform_context) &&
 				body_contains_top_level_hook_call(info.own_body, transform_context, true)
-			) {
-				return true;
-			}
-			if (k === 0) return false;
-			return !case_info[k - 1].has_terminator;
+			);
 		},
 	);
 
@@ -5463,36 +5450,20 @@ export function plan_switch_lift(switch_node, transform_context) {
 	const case_helpers = new Array(switch_node.cases.length).fill(null);
 
 	/**
-	 * Find the next downstream helper this arm chains into when it has no
-	 * terminator: scan forward past any empty cases until we hit either a
-	 * helper-bearing case or a case whose body has a terminator (which stops
-	 * the chain — JS would have `break`/`return`ed out at that point).
-	 *
 	 * @param {number} from_index
-	 * @returns {{ component_element: ESTreeJSX.JSXElement } | null}
+	 * @returns {null}
 	 */
 	function find_next_helper_after(from_index) {
-		for (let j = from_index + 1; j < switch_node.cases.length; j++) {
-			if (case_helpers[j]) return case_helpers[j];
-			if (case_info[j].has_terminator) return null;
-		}
+		void from_index;
 		return null;
 	}
 
 	for (let i = switch_node.cases.length - 1; i >= 0; i--) {
 		if (!needs_helper[i]) continue;
-		const { own_body, has_terminator } = case_info[i];
-
-		let helper_body = own_body;
-		if (!has_terminator) {
-			const next_helper = find_next_helper_after(i);
-			if (next_helper) {
-				helper_body = [...own_body, clone_switch_helper_invocation(next_helper)];
-			}
-		}
+		const { own_body } = case_info[i];
 
 		case_helpers[i] = create_hook_safe_helper(
-			helper_body,
+			own_body,
 			undefined,
 			switch_node.cases[i],
 			transform_context,
@@ -5516,34 +5487,12 @@ export function plan_switch_lift(switch_node, transform_context) {
 }
 
 /**
- * Switch lift for fall-through deduplication. Reuses the same `create_hook_safe_helper`
- * pipeline as hook-bearing case bodies: every case whose body would otherwise
- * appear in 2+ arms (because the previous case had no `break` / `return`) is
- * hoisted into its own helper component, and each upstream arm references the
- * next helper at the end of its own body to materialize JS fall-through at
- * render time. Cases whose bodies live in exactly one arm stay inline so the
- * common (break-terminated) shape compiles to the same simple switch as before
- * the lift was introduced.
- *
- * The chain pattern:
- *   helper_idle  = () => <><Online/><Helper_active/></>
- *   helper_active = () => <><Away/><Helper_offline/></>
- *   helper_offline = () => <Offline/>
- *
- *   case "idle":    return <Helper_idle/>
- *   case "active":  return <Helper_active/>
- *   case "offline": return <Helper_offline/>
- *
- * Each case body appears exactly once in the generated module — matching how
- * we already handle hook-bearing case bodies — which keeps the bundle from
- * growing quadratically in case count and means editor mappings are 1:1.
- *
  * @param {any} switch_node
  * @param {TransformContext} transform_context
  * @returns {{ setup_statements: any[], switch_statement: any }}
  */
 function build_switch_with_lift(switch_node, transform_context) {
-	const { case_info, case_helpers, find_next_helper_after, setup_statements } = plan_switch_lift(
+	const { case_info, case_helpers, setup_statements } = plan_switch_lift(
 		switch_node,
 		transform_context,
 	);
@@ -5563,10 +5512,7 @@ function build_switch_with_lift(switch_node, transform_context) {
 			const { own_body, has_terminator } = case_info[i];
 
 			if (own_body.length === 0 && !has_terminator) {
-				// Alias-pattern empty case (`case 'a': case 'b': ...`) — keep
-				// the arm body empty so JS falls through to the next case at
-				// runtime, where the helper invocation actually lives.
-				return set_loc(b.switch_case(original_case.test, []), original_case);
+				return set_loc(b.switch_case(original_case.test, [create_null_return_statement()]), original_case);
 			}
 
 			const case_body = [];
@@ -5593,27 +5539,13 @@ function build_switch_with_lift(switch_node, transform_context) {
 				}
 			}
 
-			if (!has_terminal && !has_terminator) {
-				const next_helper = find_next_helper_after(i);
-				if (next_helper) {
-					render_nodes.push(clone_switch_helper_invocation(next_helper));
-				}
-			}
-
 			if (!has_terminal) {
 				if (render_nodes.length > 0) {
 					case_body.push(create_component_return_statement(render_nodes, original_case));
-				} else if (has_terminator) {
-					// Empty body with explicit `break;` / bare `return;` — keep
-					// a `break` so JS doesn't fall through into the next case
-					// (which may now hold the lifted helper invocation).
-					case_body.push(b.break);
 				} else if (case_body.length > 0) {
-					// Statements-only inline case without terminator. We've
-					// already inlined the downstream chain via the helper
-					// reference above, so emit a `break` to stop the runtime
-					// from re-running downstream statements via JS fall-through.
-					case_body.push(b.break);
+					case_body.push(create_null_return_statement());
+				} else if (has_terminator) {
+					case_body.push(create_null_return_statement());
 				}
 			}
 
