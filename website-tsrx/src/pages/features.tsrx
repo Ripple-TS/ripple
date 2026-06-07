@@ -577,6 +577,9 @@ export const FeaturesPage = () => @{
 								and
 								<code class="inline-code">key</code>
 								clauses so you don't need separate counters or key-extraction boilerplate.
+								The optional
+								<code class="inline-code">empty</code>
+								branch renders when the iterable has no items.
 							</p>
 							<p class="section-body">
 								Filter the collection before passing it to

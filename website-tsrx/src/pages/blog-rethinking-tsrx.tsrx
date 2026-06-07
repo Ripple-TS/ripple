@@ -35,16 +35,22 @@ const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
 );
 
 const JSX_CONTROL_FLOW_LOOP_HTML = highlight_tsrx(
-	`const ProductList = ({ products }: ProductListProps): JSX.Element => <ul>
-  @for (const product of products; key product.id) {
+	`const ProductList = ({ products }: ProductListProps): JSX.Element => @{
+  const visibleProducts = products.filter((product) => product.available);
+
+  <ul>
+    @for (const product of visibleProducts; key product.id) {
     const price = formatCurrency(product.price);
 
     <li>
       <span>{product.name}</span>
       <strong>{price}</strong>
     </li>
-  }
-</ul>;`,
+    } empty {
+      <li>No products available</li>
+    }
+  </ul>
+};`,
 );
 
 const MULTIPLE_CONTROL_FLOW_CHILDREN_HTML = highlight_tsrx(
@@ -286,7 +292,14 @@ export function BlogRethinkingTsrxPage() @{
 						</pre>
 						<p>
 							Loops use the same shape: setup can happen at the top of each iteration, then the loop
-							body produces one output node.
+							body produces one output node. If some items should not render, filter the iterable
+							before the loop. If the list is empty, use the loop's
+							<code>empty</code>
+							branch instead of smuggling a
+							<code>continue</code>
+							or
+							<code>return</code>
+							into template control flow.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={JSX_CONTROL_FLOW_LOOP_HTML} />

@@ -183,6 +183,25 @@ You can also provide a `key` for efficient list updates and reconciliation:
 }
 ```
 
+Use `empty { ... }` for the fallback that should render when the iterable has no
+items. If some items should be skipped, filter the iterable before passing it to
+`@for`; direct `continue`, `break`, and `return` statements are not valid inside
+template loop bodies.
+
+```tsrx
+export function FilteredList({ items }) @{
+  const visibleItems = items.filter((item) => !item.hidden);
+
+  <ul>
+    @for (const item of visibleItems; key item.id) {
+      <li>{item.label}</li>
+    } empty {
+      <li>No items</li>
+    }
+  </ul>
+}
+```
+
 **Key Usage Guidelines:**
 
 - **Arrays with `RippleObject` objects**: Keys are usually unnecessary - object
