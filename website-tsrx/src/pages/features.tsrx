@@ -81,9 +81,9 @@ const IF_HTML = highlight_tsrx(
 	`function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) @{
   @if (status === 'active') {
     <span class="badge active">Online</span>
-  } else if (status === 'idle') {
+  } @else if (status === 'idle') {
     <span class="badge idle">Away</span>
-  } else {
+  } @else {
     <span class="badge">Offline</span>
   }
 }`,
@@ -96,7 +96,7 @@ const FOR_HTML = highlight_tsrx(
   <ul>
     @for (const item of visibleItems; index i; key item.id) {
       <li>{i + 1}. {item.text}</li>
-    } empty {
+    } @empty {
       <li>No todos yet</li>
     }
   </ul>
@@ -131,13 +131,13 @@ const TRY_RESET_HTML = highlight_tsrx(
 const SWITCH_HTML = highlight_tsrx(
 	`function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
-    case 'loading': {
+    @case 'loading': {
       <p>Loading...</p>
     }
-    case 'success': {
+    @case 'success': {
       <p class="success">Done!</p>
     }
-    default: {
+    @default: {
       <p>Unknown status.</p>
     }
   }

@@ -267,7 +267,7 @@ const RIPPLE_SNIPPETS = [
 		detail: 'for...of loop with empty fallback',
 		documentation: 'Iterate over items with an empty fallback',
 		insertText:
-			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n} empty {\n\t<${6:li}>${7:No items}</${6:li}>\n}',
+			'@for (const ${1:item} of ${2:items}; key ${1:item}.${3:id}) {\n\t<${4:li}>{${1:item}.${5:text}}</${4:li}>\n} @empty {\n\t<${6:li}>${7:No items}</${6:li}>\n}',
 		insertTextFormat: InsertTextFormat.Snippet,
 		sortText: '0-for-empty',
 	},

@@ -76,7 +76,7 @@ describe('@tsrx/react basic', () => {
 					<>
 							@if (x) {
 								<div>works</div>
-							} else {
+							} @else {
 								<span>idle</span>
 						}
 
@@ -316,7 +316,7 @@ describe('@tsrx/react basic', () => {
 
 				@if (ready) {
 					<div>{'Ready'}</div>
-				} else {
+				} @else {
 					<div>{'Loading'}</div>
 				}
 			}`,
@@ -700,10 +700,10 @@ describe('@tsrx/react basic', () => {
 					const count = 0;
 
 					@switch (count) {
-					case 0: {
+					@case 0: {
 						<div>{'Zero'}</div>
 					}
-					default: {
+					@default: {
 						<div>{'Other'}</div>
 					}
 				}
@@ -1244,7 +1244,7 @@ describe('@tsrx/react basic', () => {
 				@if (show) {
 					const [a] = useState(1);
 					<div>{a}</div>
-				} else {
+				} @else {
 					const [b] = useState(2);
 					<span>{b}</span>
 				}
@@ -1293,11 +1293,11 @@ describe('@tsrx/react basic', () => {
 			export function App() @{
 				const page = 'home';
 				@switch (page) {
-					case 'home': {
+					@case 'home': {
 						const [count] = useState(0);
 						<div>{count}</div>
 					}
-					case 'about': {
+					@case 'about': {
 						<span>{'about'}</span>
 					}
 				}
@@ -1332,10 +1332,10 @@ describe('@tsrx/react basic', () => {
 				const mode = 'a';
 				@if (mode === 'a') {
 					<div>{'a'}</div>
-				} else if (mode === 'b') {
+				} @else if (mode === 'b') {
 					const [x] = useState(0);
 					<div>{x}</div>
-				} else {
+				} @else {
 					<div>{'c'}</div>
 				}
 			}`,
@@ -1463,7 +1463,7 @@ describe('@tsrx/react basic', () => {
 								<li>{item}</li>
 							}
 						</ul>
-					} else {
+					} @else {
 						<p>{'Loading output...'}</p>
 					}
 				</section>

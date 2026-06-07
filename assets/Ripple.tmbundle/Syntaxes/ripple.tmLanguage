@@ -5723,7 +5723,7 @@
 		<key>jsx-text</key>
 		<dict>
 			<key>match</key>
-			<string>(?:(?![ \t]*(?://|/\*))(?![ \t]*@(?:\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*(?:else|empty|pending|catch|finally)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:\{|if|for|switch|try)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
+			<string>(?:(?![ \t]*(?://|/\*))(?![ \t]*@(?:\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*@(?:else|empty)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:\{|if|for|switch|try|case|default|else|empty)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
 		</dict>
 		<key>label</key>
 		<dict>
@@ -8988,10 +8988,20 @@
 		<key>tsrx-template-branch-directive</key>
 		<dict>
 			<key>begin</key>
-			<string>(?&lt;![_$[:alnum:]])(else|empty|pending|catch|finally)(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{))</string>
+			<string>(?:(@)(else|empty)|(pending|catch|finally))(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{))</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>3</key>
 				<dict>
 					<key>name</key>
 					<string>keyword.control.directive.tsrx</string>
@@ -9339,7 +9349,7 @@
 				</dict>
 			</dict>
 			<key>end</key>
-			<string>(?=$|(?=\s+else\b)|(?=\}))</string>
+			<string>(?=$|(?=\s+@else\b)|(?=\}))</string>
 			<key>name</key>
 			<string>meta.directive.if.tsrx</string>
 			<key>patterns</key>
@@ -9421,10 +9431,15 @@
 		<key>tsrx-template-switch-case-label</key>
 		<dict>
 			<key>begin</key>
-			<string>(?&lt;![_$[:alnum:]])(case|default)(?![_$[:alnum:]])(?=[^\n{}]*:)</string>
+			<string>(@)(case|default)(?![_$[:alnum:]])(?=[^\n{}]*:)</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>2</key>
 				<dict>
 					<key>name</key>
 					<string>keyword.control.directive.tsrx</string>

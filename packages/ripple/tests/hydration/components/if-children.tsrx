@@ -126,7 +126,7 @@ export function DomElementChildrenThenSibling() @{
 		<div class="panel">
 			@if (activeTab === 'code') {
 				<pre class="code">{'const x = 1;'}</pre>
-			} else {
+			} @else {
 				<div class="preview">{'Preview content'}</div>
 			}
 		</div>

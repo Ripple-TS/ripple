@@ -83,7 +83,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 			code: `export function App() { return <>
 				@if (items.length === 0) {
 					<p>{'Empty'}</p>
-				} else {
+				} @else {
 					<ul>
 						@for (const item of items; key item.id) {
 							@if (item.visible) {
@@ -93,7 +93,7 @@ describe('@tsrx/mcp authoring reviews', () => {
 					</ul>
 				}
 				@switch (mode) {
-					case 'grid': {
+					@case 'grid': {
 						<section>${repeated_items}</section>
 					}
 				}

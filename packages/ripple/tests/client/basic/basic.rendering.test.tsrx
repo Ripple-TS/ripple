@@ -252,7 +252,7 @@ second
 			let condition = false;
 			@if (condition) {
 				<>Hello Ripple</>
-			} else {
+			} @else {
 				<>Hello React</>
 			}
 		}
@@ -423,10 +423,10 @@ second
 					@if (showContent) {
 						@if (userRole === 'admin') {
 							<div class="admin-content">{'Admin content'}</div>
-						} else {
+						} @else {
 							<div class="user-content">{'User content'}</div>
 						}
-					} else {
+					} @else {
 						<div class="no-content">{'No content'}</div>
 					}
 				</div>

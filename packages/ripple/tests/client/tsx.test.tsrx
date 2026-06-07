@@ -671,9 +671,9 @@ describe('tsx expression', () => {
 		function createContent(type) @{
 			@if (type === 'success') {
 				<div class="success">Success!</div>
-			} else if (type === 'error') {
+			} @else if (type === 'error') {
 				<div class="error">Error!</div>
-			} else {
+			} @else {
 				<div class="default">Default</div>
 			}
 		}

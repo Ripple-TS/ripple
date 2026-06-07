@@ -62,7 +62,7 @@ second
 function JsxTextIfElseTrueApp() @{
 	@if (true) {
 		<>Hello Ripple</>
-	} else {
+	} @else {
 		<>Hello React</>
 	}
 }
@@ -70,7 +70,7 @@ function JsxTextIfElseTrueApp() @{
 function JsxTextIfElseFalseApp() @{
 	@if (false) {
 		<>Hello Ripple</>
-	} else {
+	} @else {
 		<>Hello React</>
 	}
 }
@@ -359,7 +359,7 @@ function IfReactiveApp() @{
 	<>
 		@if (show) {
 			<span className="visible">{'shown'}</span>
-		} else {
+		} @else {
 			<span className="hidden">{'hidden'}</span>
 		}
 		<button className="toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
@@ -437,13 +437,13 @@ function SwitchReactiveApp() @{
 
 	<>
 		@switch (page) {
-			case 'home': {
+			@case 'home': {
 				<div className="page">{'Home'}</div>
 			}
-			case 'about': {
+			@case 'about': {
 				<div className="page">{'About'}</div>
 			}
-			default: {
+			@default: {
 				<div className="page">{'404'}</div>
 			}
 		}
@@ -803,7 +803,7 @@ function IfInsideTryApp() @{
 		@try {
 			@if (show) {
 				<p className="branch-a">{'visible'}</p>
-			} else {
+			} @else {
 				<p className="branch-b">{'alternate'}</p>
 			}
 		} catch (err: Error) {
@@ -845,7 +845,7 @@ function HookInIfApp() @{
 					<button className="hook-if-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
 				</>
 			}
-		} else {
+		} @else {
 			<p className="hook-if-hidden">{'hidden'}</p>
 		}
 		<button className="hook-if-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
@@ -885,7 +885,7 @@ function HookInSwitchApp() @{
 
 	<>
 		@switch (page) {
-			case 'home': {
+			@case 'home': {
 				const [homeCount, setHomeCount] = useState(0);
 				<>
 					<p className="hook-switch-val">{homeCount}</p>
@@ -895,7 +895,7 @@ function HookInSwitchApp() @{
 					>{'inc'}</button>
 				</>
 			}
-			case 'about': {
+			@case 'about': {
 				<p className="hook-switch-val">{'about page'}</p>
 			}
 		}
@@ -918,7 +918,7 @@ function HookInBothBranchesApp() @{
 					<button className="branch-inc" onClick={() => setX(x + 1)}>{'inc'}</button>
 				</>
 			}
-		} else {
+		} @else {
 			@{
 				const [y, setY] = useState(20);
 
@@ -1047,7 +1047,7 @@ function HookInSwitchWithScopeApp() @{
 
 	<>
 		@switch (tab) {
-			case 'counter': {
+			@case 'counter': {
 				const [n, setN] = useState(0);
 				<>
 					<p className="switch-scope-val">
@@ -1056,7 +1056,7 @@ function HookInSwitchWithScopeApp() @{
 					<button className="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
 				</>
 			}
-			case 'info': {
+			@case 'info': {
 				<p className="switch-scope-val">
 					{theme + ':info'}
 				</p>

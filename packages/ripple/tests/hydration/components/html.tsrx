@@ -163,10 +163,10 @@ export function HtmlWithUndefinedContent() @{
 
 function DynamicHeading({ level, children }: { level: number; children: any }) @{
 	@switch (level) {
-		case 1: {
+		@case 1: {
 			<h1 class="heading">{children}</h1>
 		}
-		case 2: {
+		@case 2: {
 			<h2 class="heading">{children}</h2>
 		}
 	}
@@ -445,7 +445,7 @@ function DocsLayoutExact(&{
 										<a href={prevLink.href} class="pager prev">
 											<span class="title">{prevLink.text}</span>
 										</a>
-									} else {
+									} @else {
 										<span />
 									}
 									@if (nextLink) {

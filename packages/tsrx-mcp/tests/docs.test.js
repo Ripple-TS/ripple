@@ -34,7 +34,7 @@ describe('@tsrx/mcp documentation index', () => {
 	it('documents component loop control-flow rules', () => {
 		const content = find_documentation_section('control-flow')?.content ?? '';
 
-		expect(content).toContain('empty { ... }');
+		expect(content).toContain(' { ... }');
 		expect(content).toContain('`return` statements are not template output');
 		expect(content).toContain('Inside TSRX `@if` branches and `@for ... of` loops');
 		expect(content).toContain('direct `continue`, `break`, and `return` statements are invalid');

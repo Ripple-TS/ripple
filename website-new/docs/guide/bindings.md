@@ -337,7 +337,7 @@ export function App() @{
             }
           </ul>
         </>
-      } else {
+      } @else {
         <p>No files selected</p>
       }
     </div>

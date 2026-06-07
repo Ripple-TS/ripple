@@ -23,7 +23,7 @@ const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
 
     @if (latest) {
       <ActivityCard activity={latest} />
-    } else {
+    } @else {
       <p>No activity yet</p>
     }
   } pending {
@@ -46,7 +46,7 @@ const JSX_CONTROL_FLOW_LOOP_HTML = highlight_tsrx(
       <span>{product.name}</span>
       <strong>{price}</strong>
     </li>
-    } empty {
+    } @empty {
       <li>No products available</li>
     }
   </ul>
@@ -62,7 +62,7 @@ const MULTIPLE_CONTROL_FLOW_CHILDREN_HTML = highlight_tsrx(
       <h2>{displayName}</h2>
       <p>{user.bio}</p>
     </>
-  } else {
+  } @else {
     <a href="/login">Sign in</a>
   }
 };`,
@@ -102,13 +102,13 @@ const JSX_STATEMENT_CONTAINER_RULES_HTML = highlight_tsrx(
 const ASSIGNED_JSX_CONTROL_FLOW_HTML = highlight_tsrx(
 	`const StatusBadge = ({ status }: StatusBadgeProps): JSX.Element => {
   const badge: JSX.Element = @switch (status) {
-    case 'active': {
+    @case 'active': {
       <strong>Active</strong>
     }
-    case 'idle': {
+    @case 'idle': {
       <span>Idle</span>
     }
-    default: {
+    @default: {
       <span>Offline</span>
     }
   };

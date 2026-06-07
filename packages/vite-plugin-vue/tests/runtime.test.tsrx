@@ -407,7 +407,7 @@ function IfReactiveApp() @{
 	<>
 		@if (show.value) {
 			<span class="visible">{'shown'}</span>
-		} else {
+		} @else {
 			<span class="hidden">{'hidden'}</span>
 		}
 		<button class="toggle" onClick={() => (show.value = !show.value)}>{'toggle'}</button>
@@ -666,13 +666,13 @@ function SwitchReactiveApp() @{
 	const page = ref('home');
 	<>
 		@switch (page.value) {
-			case 'home': {
+			@case 'home': {
 				<div class="page">{'Home'}</div>
 			}
-			case 'about': {
+			@case 'about': {
 				<div class="page">{'About'}</div>
 			}
-			default: {
+			@default: {
 				<div class="page">{'404'}</div>
 			}
 		}
@@ -758,7 +758,7 @@ function IfInsideTryApp() @{
 		@try {
 			@if (show.value) {
 				<p class="branch-a">{'visible'}</p>
-			} else {
+			} @else {
 				<p class="branch-b">{'alternate'}</p>
 			}
 		} catch (err) {
@@ -787,13 +787,13 @@ function SwitchInsideTryApp() @{
 	<>
 		@try {
 			@switch (page.value) {
-				case 'home': {
+				@case 'home': {
 					<p class="try-page">{'Home'}</p>
 				}
-				case 'about': {
+				@case 'about': {
 					<p class="try-page">{'About'}</p>
 				}
-				default: {
+				@default: {
 					<p class="try-page">{'404'}</p>
 				}
 			}

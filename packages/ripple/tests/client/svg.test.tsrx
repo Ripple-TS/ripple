@@ -243,7 +243,7 @@ describe('SVG namespace handling', () => {
 			<SVG>
 				@if (isDiamond) {
 					<polygon points="0,0 30,0 15,10" />
-				} else {
+				} @else {
 					<polygon points="0,0 30,0 15,10" />
 				}
 			</SVG>
@@ -460,10 +460,10 @@ describe('SVG namespace handling', () => {
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
 				@for (const [tag, attrs] of iconNodes) {
 					@switch (tag) {
-						case 'path': {
+						@case 'path': {
 							<path {...attrs} />
 						}
-						case 'circle': {
+						@case 'circle': {
 							<circle {...attrs} />
 						}
 					}

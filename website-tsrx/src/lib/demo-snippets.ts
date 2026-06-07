@@ -29,7 +29,7 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
             <li>{item}</li>
           }
         </ul>
-      } else {
+      } @else {
         <p>Loading output...</p>
       }
     </section>
@@ -83,9 +83,9 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		source: `function StatusBadge({ status }: { status: 'active' | 'idle' | 'offline' }) @{
   @if (status === 'active') {
     <span class="badge active">Online</span>
-  } else if (status === 'idle') {
+  } @else if (status === 'idle') {
     <span class="badge idle">Away</span>
-  } else {
+  } @else {
     <span class="badge">Offline</span>
   }
 }`,
@@ -108,13 +108,13 @@ export const DEMO_SNIPPETS: DemoSnippet[] = [
 		targets: ['react', 'preact', 'ripple', 'solid', 'vue'],
 		source: `function StatusMessage({ status }: { status: string }) @{
   @switch (status) {
-    case 'loading': {
+    @case 'loading': {
       <p>Loading...</p>
     }
-    case 'success': {
+    @case 'success': {
       <p class="success">Done!</p>
     }
-    default: {
+    @default: {
       <p>Unknown status.</p>
     }
   }

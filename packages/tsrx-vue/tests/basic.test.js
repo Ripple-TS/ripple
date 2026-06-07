@@ -469,7 +469,7 @@ describe('@tsrx/vue basic', () => {
 			`function App({ visible }) @{
 				@if (visible) {
 					<div>{'Visible'}</div>
-				} else {
+				} @else {
 					<div>{'Hidden'}</div>
 				}
 			}`,
@@ -642,10 +642,10 @@ describe('@tsrx/vue basic', () => {
 		const { code } = compile(
 			`function App({ value }) @{
 				@switch (value) {
-					case 'a': {
+					@case 'a': {
 						<div>{'A'}</div>
 					}
-					default: {
+					@default: {
 						<div>{'Fallback'}</div>
 					}
 				}
@@ -665,11 +665,11 @@ describe('@tsrx/vue basic', () => {
 		const { code } = compile(
 			`function App({ value }) @{
 					@switch (value) {
-						case 'a': {
+						@case 'a': {
 							const label = 'A';
 							<div>{label}</div>
 						}
-						default: {
+						@default: {
 							<div>{'Fallback'}</div>
 						}
 					}

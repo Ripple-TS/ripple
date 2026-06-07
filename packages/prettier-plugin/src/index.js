@@ -883,6 +883,7 @@ function printRippleNode(node, path, options, print, args) {
 					path,
 					options,
 					print,
+					true,
 				),
 			];
 			break;
@@ -919,6 +920,7 @@ function printRippleNode(node, path, options, print, args) {
 						path,
 						options,
 						print,
+						true,
 					),
 				];
 			}
@@ -3330,9 +3332,10 @@ function extractAndPrintLeadingComments(node) {
  * @param {AstPath<AST.IfStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {boolean} [directive]
  * @returns {Doc[]}
  */
-function printIfStatement(node, path, options, print) {
+function printIfStatement(node, path, options, print, directive = false) {
 	// Extract leading comments from test node to print them before 'if' keyword
 	const testNode = node.test;
 
@@ -3376,8 +3379,24 @@ function printIfStatement(node, path, options, print) {
 			parts.push(' ');
 		}
 
-		parts.push('else ');
-		parts.push(path.call(print, 'alternate'));
+		parts.push(directive ? '@else ' : 'else ');
+		if (directive && node.alternate.type === 'IfStatement') {
+				parts.push(
+					path.call(
+						(alternatePath) =>
+							printIfStatement(
+								/** @type {AST.IfStatement} */ (alternatePath.node),
+								/** @type {AstPath<AST.IfStatement>} */ (alternatePath),
+								options,
+								print,
+								true,
+							),
+						'alternate',
+					),
+				);
+		} else {
+			parts.push(path.call(print, 'alternate'));
+		}
 	}
 
 	return parts;
@@ -3411,9 +3430,10 @@ function printForInStatement(node, path, options, print) {
  * @param {AstPath<AST.ForOfStatement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
+ * @param {boolean} [directive]
  * @returns {Doc[]}
  */
-function printForOfStatement(node, path, options, print) {
+function printForOfStatement(node, path, options, print, directive = false) {
 	/** @type {Doc[]} */
 	const parts = [];
 	parts.push('for (');
@@ -3435,7 +3455,7 @@ function printForOfStatement(node, path, options, print) {
 	parts.push(') ');
 	parts.push(path.call(print, 'body'));
 	if (node.empty) {
-		parts.push(' empty ');
+		parts.push(directive ? ' @empty ' : ' empty ');
 		parts.push(path.call(print, 'empty'));
 	}
 
@@ -4570,7 +4590,9 @@ function printJSXSwitchExpression(node, path, options, print) {
  * @returns {Doc[]}
  */
 function printJSXSwitchCase(node, path, options, print, index) {
-	const header = node.test ? ['case ', path.call(print, 'cases', index, 'test'), ':'] : 'default:';
+	const header = node.test
+		? ['@case ', path.call(print, 'cases', index, 'test'), ':']
+		: '@default:';
 	const consequents = node.consequent || [];
 	const printedConsequents = [];
 

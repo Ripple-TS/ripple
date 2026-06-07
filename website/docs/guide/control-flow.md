@@ -19,7 +19,7 @@ export function Truthy({ x }) {
   return <div>
     @if (x) {
       <span>x is truthy</span>
-    } else {
+    } @else {
       <span>x is falsy</span>
     }
   </div>
@@ -61,7 +61,7 @@ to render inline.
 ## Switch statements
 
 Use `@switch` to conditionally render content based on a value. It works with
-both static and reactive values. Each `case` and `default` has its own `{...}`
+both static and reactive values. Each `` and `` has its own `{...}`
 body. Cases do not fall through, and `break`/`return` are not used inside `@switch`.
 
 <Code>
@@ -70,19 +70,19 @@ body. Cases do not fall through, and `break`/`return` are not used inside `@swit
 export function StatusIndicator({ status }) {
   return <div>
     @switch (status) {
-      case 'init': {
+      @case 'init': {
         <p>Starting...</p>
       }
-      case 'loading': {
+      @case 'loading': {
         <p>Loading...</p>
       }
-      case 'success': {
+      @case 'success': {
         <p>Success!</p>
       }
-      case 'error': {
+      @case 'error': {
         <p>Error!</p>
       }
-      default: {
+      @default: {
         <p>Unknown status</p>
       }
     }
@@ -108,19 +108,19 @@ export function InteractiveStatus() @{
 
     <div>
       @switch (status) {
-        case 'init': {
+        @case 'init': {
           <p>Init</p>
         }
-        case 'loading': {
+        @case 'loading': {
           <p>Loading...</p>
         }
-        case 'success': {
+        @case 'success': {
           <p>Success!</p>
         }
-        case 'error': {
+        @case 'error': {
           <p>Error!</p>
         }
-        default: {
+        @default: {
           <p>Unknown status</p>
         }
       }
@@ -185,7 +185,7 @@ You can also provide a `key` for efficient list updates and reconciliation:
 }
 ```
 
-Use `empty { ... }` for the fallback that should render when the iterable has no
+Use ` { ... }` for the fallback that should render when the iterable has no
 items. If some items should be skipped, filter the iterable before passing it to
 `@for`; direct `continue`, `break`, and `return` statements are not valid inside
 template loop bodies.
@@ -197,7 +197,7 @@ export function FilteredList({ items }) @{
   <ul>
     @for (const item of visibleItems; key item.id) {
       <li>{item.label}</li>
-    } empty {
+    } @empty {
       <li>No items</li>
     }
   </ul>

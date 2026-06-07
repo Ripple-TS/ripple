@@ -88,7 +88,7 @@ describe('async suspense', () => {
 					} pending {
 						<div class="pending">{'loading...'}</div>
 					}
-				} else {
+				} @else {
 					<div class="hidden">{'hidden'}</div>
 				}
 			</>

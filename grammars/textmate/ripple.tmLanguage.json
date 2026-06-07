@@ -343,7 +343,7 @@
           "name": "keyword.control.directive.tsrx"
         }
       },
-      "end": "(?=$|(?=\\s+else\\b)|(?=\\}))",
+      "end": "(?=$|(?=\\s+@else\\b)|(?=\\}))",
       "patterns": [
         {
           "include": "#tsrx-template-directive-header"
@@ -358,9 +358,12 @@
     },
     "tsrx-template-switch-case-label": {
       "name": "meta.directive.switch.case.tsrx",
-      "begin": "(?<![_$[:alnum:]])(case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:)",
+      "begin": "(@)(case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:)",
       "beginCaptures": {
         "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
           "name": "keyword.control.directive.tsrx"
         }
       },
@@ -486,9 +489,15 @@
     },
     "tsrx-template-branch-directive": {
       "name": "meta.directive.branch.tsrx",
-      "begin": "(?<![_$[:alnum:]])(else|empty|pending|catch|finally)(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{))",
+      "begin": "(?:(@)(else|empty)|(pending|catch|finally))(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{))",
       "beginCaptures": {
         "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "3": {
           "name": "keyword.control.directive.tsrx"
         }
       },
@@ -6744,7 +6753,7 @@
       ]
     },
     "jsx-text": {
-      "match": "(?:(?![ \\t]*(?://|/\\*))(?![ \\t]*@(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*(?:else|empty|pending|catch|finally)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))|[^<>{}&@]))+"
+      "match": "(?:(?![ \\t]*(?://|/\\*))(?![ \\t]*@(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*@(?:else|empty)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:\\{|if|for|switch|try|case|default|else|empty)(?![_$[:alnum:]]))|[^<>{}&@]))+"
     },
     "jsx-code-text": {
       "match": "[^<>{}&]+"

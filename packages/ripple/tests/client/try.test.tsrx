@@ -357,7 +357,7 @@ describe('try block', () => {
 
 				@if (items.includes('not-in-list')) {
 					<p>{'not-in-list is in the list!'}</p>
-				} else {
+				} @else {
 					<p>{'not-in-list is not in the list.'}</p>
 				}
 			} pending {

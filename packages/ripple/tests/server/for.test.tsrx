@@ -125,7 +125,7 @@ describe('for statements in SSR', () => {
 			const items = [];
 			@for (const item of items) {
 				<div>{item}</div>
-			} empty {
+			} @empty {
 				<p>No items</p>
 			}
 		}

@@ -17,7 +17,7 @@ export const DEFAULT_DEMO_SOURCE = `export function FeatureCard({
             <li>{item}</li>
           }
         </ul>
-      } else {
+      } @else {
         <p>Loading output...</p>
       }
     </section>

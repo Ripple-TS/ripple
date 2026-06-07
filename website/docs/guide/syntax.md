@@ -42,7 +42,7 @@ export function MyComponent({ name }: { name: string | null }) @{
   <>
     @if (name) {
       <p>Hello, {name}</p>
-    } else {
+    } @else {
       <p>Hello, {fallback}</p>
     }
     <style>

@@ -20,7 +20,7 @@ describe('basic client > errors', () => {
 					<div class="error">
 						{'Error caught: ' + errorMessage}
 					</div>
-				} else {
+				} @else {
 					<div class="success">{'No error'}</div>
 				}
 			</div>

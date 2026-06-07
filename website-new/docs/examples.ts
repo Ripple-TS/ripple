@@ -255,7 +255,7 @@ function Truthy({ x }) {
 	return <div>
     @if (x) {
       <span>x is truthy</span>
-    } else {
+    } @else {
       <span>x is falsy</span>
     }
   </div>
@@ -280,13 +280,13 @@ export default function App() @{
 		<button onClick={() => count++}>Increment</button>
 
 		@switch (count) {
-			case 1: {
+			@case 1: {
 				<div>Count is 1</div>
 			}
-			case 2: {
+			@case 2: {
 				<div>Count is 2</div>
 			}
-			default: {
+			@default: {
 				<div>Count is other</div>
 			}
 		}

@@ -198,13 +198,13 @@ export function StatusBadge() @{
 
 	<>
 		@switch (status) {
-			case 'loading': {
+			@case 'loading': {
 				<p>Loading...</p>
 			}
-			case 'done': {
+			@case 'done': {
 				<p>Done</p>
 			}
-			default: {
+			@default: {
 				<p>Idle</p>
 			}
 		}
@@ -214,7 +214,7 @@ export function StatusBadge() @{
 ```
 
 Use `@for (... of ...)` for rendered lists. Filter the iterable before rendering
-when some items should be skipped, and use `empty { ... }` for the no-items
+when some items should be skipped, and use ` { ... }` for the no-items
 fallback. Direct `continue`, `break`, and `return` statements are not allowed in
 `@for` template loop bodies, and are also invalid inside `@if` template branches.
 `@switch` cases are isolated `{...}` blocks, do not fall through, and do not use
@@ -227,7 +227,7 @@ export function UserList({ users }: { users: User[] }) @{
 	<ul>
 		@for (const user of visibleUsers; index i; key user.id) {
 			<li>{i + 1}. {user.name}</li>
-		} empty {
+		} @empty {
 			<li>No users</li>
 		}
 	</ul>

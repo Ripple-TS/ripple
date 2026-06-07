@@ -185,11 +185,11 @@ const items=[1,2,3];
 	it('formats line comments before template text in control flow', async () => {
 		const input = `const App=()=> <>
 @switch (value) {
-case 'a': {
+@case 'a': {
 // explain case a
 <>A</>
 }
-default: {
+@default: {
 <>Fallback</>
 }
 }
@@ -203,11 +203,11 @@ default: {
 </>;`;
 		const expected = `const App = () => <>
   @switch (value) {
-    case "a": {
+    @case "a": {
       // explain case a
       <>A</>
     }
-    default: {
+    @default: {
       <>Fallback</>
     }
   }
@@ -517,11 +517,11 @@ const comp=obj.Basic;
 	});
 
 	it('formats @if/else directive bodies in a plain JSX body', async () => {
-		const input = `const App=()=> <div>@if(ready){<span>Ready</span>}else{<span>Waiting</span>}</div>;`;
+		const input = `const App=()=> <div>@if(ready){<span>Ready</span>}@else{<span>Waiting</span>}</div>;`;
 		const expected = `const App = () => <div>
   @if (ready) {
     <span>Ready</span>
-  } else {
+  } @else {
     <span>Waiting</span>
   }
 </div>;`;
@@ -1300,12 +1300,12 @@ async function load() {
 		});
 
 		it('should handle empty fallbacks for for...of loops', async () => {
-			const input = `export function Test()@{const items=[];@for(const item of items){<li>{item}</li>}empty{<li>No items</li>}}`;
+			const input = `export function Test()@{const items=[];@for(const item of items){<li>{item}</li>}@empty{<li>No items</li>}}`;
 			const expected = `export function Test() @{
   const items = [];
   @for (const item of items) {
     <li>{item}</li>
-  } empty {
+  } @empty {
     <li>No items</li>
   }
 }`;
@@ -5827,26 +5827,26 @@ function Child({ something }) {
 		it('prints satisfies expressions in switch default cases', async () => {
 			const input = `export function Test(props: { status: "ok" | "error" }) {
   return @switch (props.status) {
-    case "ok": {
+    @case "ok": {
       <div>ok</div>
     }
-    case "error": {
+    @case "error": {
       <div>error</div>
     }
-    default: {
+    @default: {
       props.status satisfies never
     }
   }
 }`;
 			const expected = `export function Test(props: { status: 'ok' | 'error' }) {
   return @switch (props.status) {
-    case 'ok': {
+    @case 'ok': {
       <div>ok</div>
     }
-    case 'error': {
+    @case 'error': {
       <div>error</div>
     }
-    default: {
+    @default: {
       props.status satisfies never;
     }
   };

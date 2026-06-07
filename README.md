@@ -156,7 +156,7 @@ Static text is JSX text. Dynamic values use normal JSX expression containers.
 export function Greeting({ name }: { name?: string }) @{
   @if (name) {
     <p>Hello,{name}</p>
-  } else {
+  } @else {
     <p>Hello, stranger</p>
   }
 }
@@ -186,7 +186,7 @@ export function TodoList() @{
         .
         {item.name}
       </li>
-    } empty {
+    } @empty {
       <li>No todos to show</li>
     }
   </ul>

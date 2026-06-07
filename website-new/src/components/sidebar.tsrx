@@ -359,7 +359,7 @@ function SidebarItem({
 					<a {href} target="_blank" rel="noreferrer" class="link link doc-external-link-icon">
 						<p class="text">{label}</p>
 					</a>
-				} else {
+				} @else {
 					<a {href} class="link link">
 						<p class="text">{label}</p>
 					</a>

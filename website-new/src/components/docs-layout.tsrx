@@ -71,7 +71,7 @@ export function DocsLayout({
 												<span class="desc">Previous page</span>
 												<span class="title">{prevLink.text}</span>
 											</a>
-										} else {
+										} @else {
 											<span />
 										}
 										@if (nextLink) {

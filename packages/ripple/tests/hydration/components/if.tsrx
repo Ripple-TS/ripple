@@ -20,7 +20,7 @@ export function IfElse() @{
 	const isLoggedIn = true;
 	@if (isLoggedIn) {
 		<div class="logged-in">{'Welcome back!'}</div>
-	} else {
+	} @else {
 		<div class="logged-out">{'Please log in'}</div>
 	}
 }
@@ -51,7 +51,7 @@ export function ReactiveIfElse() @{
 		>{'Toggle'}</button>
 		@if (isOn) {
 			<div class="on">{'ON'}</div>
-		} else {
+		} @else {
 			<div class="off">{'OFF'}</div>
 		}
 	</>
@@ -107,9 +107,9 @@ export function IfElseIfChain() @{
 		>{'Loading'}</button>
 		@if (status === 'loading') {
 			<div class="state">{'Loading...'}</div>
-		} else if (status === 'success') {
+		} @else if (status === 'success') {
 			<div class="state">{'Success!'}</div>
-		} else {
+		} @else {
 			<div class="state">{'Error occurred'}</div>
 		}
 	</div>

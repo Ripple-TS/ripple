@@ -421,7 +421,7 @@ function IfReactiveApp() @{
 	<>
 		@if (show()) {
 			<span class="visible">{'shown'}</span>
-		} else {
+		} @else {
 			<span class="hidden">{'hidden'}</span>
 		}
 		<button class="toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
@@ -469,13 +469,13 @@ function SwitchReactiveApp() @{
 	const [page, setPage] = createSignal('home');
 	<>
 		@switch (page()) {
-			case 'home': {
+			@case 'home': {
 				<div class="page">{'Home'}</div>
 			}
-			case 'about': {
+			@case 'about': {
 				<div class="page">{'About'}</div>
 			}
-			default: {
+			@default: {
 				<div class="page">{'404'}</div>
 			}
 		}
@@ -645,7 +645,7 @@ function IfInsideTryApp() @{
 		@try {
 			@if (show()) {
 				<p class="branch-a">{'visible'}</p>
-			} else {
+			} @else {
 				<p class="branch-b">{'alternate'}</p>
 			}
 		} catch (err) {
@@ -682,7 +682,7 @@ function SignalInIfApp() @{
 				<p class="sig-if-count">{count()}</p>
 				<button class="sig-if-inc" onClick={() => setCount(count() + 1)}>{'inc'}</button>
 			</>
-		} else {
+		} @else {
 			<p class="sig-if-hidden">{'hidden'}</p>
 		}
 		<button class="sig-if-toggle" onClick={() => setShow(!show())}>{'toggle'}</button>
@@ -700,7 +700,7 @@ function SignalInBothBranchesApp() @{
 				<p class="branch-val">{x()}</p>
 				<button class="branch-inc" onClick={() => setX(x() + 1)}>{'inc'}</button>
 			</>
-		} else {
+		} @else {
 			const [y, setY] = createSignal(20);
 			<>
 				<p class="branch-val">{y()}</p>
@@ -766,7 +766,7 @@ function SignalInSwitchApp() @{
 	const [page, setPage] = createSignal('home');
 	<>
 		@switch (page()) {
-			case 'home': {
+			@case 'home': {
 				const [homeCount, setHomeCount] = createSignal(0);
 				<>
 					<p class="sig-switch-val">{homeCount()}</p>
@@ -776,7 +776,7 @@ function SignalInSwitchApp() @{
 					>{'inc'}</button>
 				</>
 			}
-			case 'about': {
+			@case 'about': {
 				<p class="sig-switch-val">{'about page'}</p>
 			}
 		}
@@ -814,7 +814,7 @@ function ConditionalBranchTemplateApp() @{
 		<button class="template-return-toggle" onClick={() => setGuard(!guard())}>{'toggle'}</button>
 		@if (!guard()) {
 			<p class="template-return-rest">{'rest'}</p>
-		} else {
+		} @else {
 			<p class="template-return-guard">{'guard'}</p>
 		}
 	</>

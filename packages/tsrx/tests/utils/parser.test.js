@@ -406,10 +406,10 @@ foo();`;
 				<svg>
 					@for (const [tag, attrs] of iconNodes) {
 						@switch (tag) {
-							case 'path': {
+							@case 'path': {
 								<path {...attrs} />
 							}
-							case 'circle': {
+							@case 'circle': {
 								<circle {...attrs} />
 							}
 						}
@@ -431,7 +431,7 @@ foo();`;
 		expect(() =>
 			parseModule(
 				`function App() { return @switch (tag) {
-					case 'path': {
+					@case 'path': {
 						<path />
 						break;
 					}
@@ -445,7 +445,7 @@ foo();`;
 		expect(() =>
 			parseModule(
 				`function App() { return @switch (tag) {
-					case 'path': {
+					@case 'path': {
 						return;
 					}
 				}; }`,
@@ -455,7 +455,7 @@ foo();`;
 		expect(() =>
 			parseModule(
 				`function App() { return @switch (tag) {
-					case 'path': {
+					@case 'path': {
 						return <path />;
 					}
 				}; }`,
@@ -468,7 +468,7 @@ foo();`;
 		expect(() =>
 			parseModule(
 				`function App() { return @switch (tag) {
-					case 'path':
+					@case 'path':
 						<path />
 				}; }`,
 				'App.tsrx',
@@ -477,7 +477,7 @@ foo();`;
 		expect(() =>
 			parseModule(
 				`function App() { return @switch (tag) {
-					default:
+					@default:
 						<path />
 				}; }`,
 				'App.tsrx',
@@ -953,7 +953,7 @@ foo();`;
 		const returned = getReturned(`function App() { return <div>
 			@if (ready) {
 				<>Ready</>
-			} else {
+			} @else {
 				<>Waiting</>
 			}
 		</div>; }`);
@@ -967,12 +967,65 @@ foo();`;
 		expect(directive.alternate.body[0].children[0].value).toContain('Waiting');
 	});
 
+	it('parses @else if as a chained JSXIfExpression alternate', () => {
+		const returned = getReturned(`function App() { return <div>
+			@if (status === 'loading') {
+				<>Loading</>
+			} @else if (status === 'success') {
+				<>Success</>
+			} @else {
+				<>Failed</>
+			}
+		</div>; }`);
+
+		const directive = returned.children.find((child) => child.type === 'JSXIfExpression');
+		expect(directive.alternate.type).toBe('IfStatement');
+		expect(directive.alternate.test.right.value).toBe('success');
+		expect(directive.alternate.consequent.body[0].children[0].value).toContain('Success');
+		expect(directive.alternate.alternate.body[0].children[0].value).toContain('Failed');
+	});
+
 	it('rejects braceless @if JSX output', () => {
 		expect(() =>
 			getReturned(`function App() { return <div>
 				@if (visible) <div class="status">Visible: {String(visible)}</div>
 			</div>; }`),
 		).toThrow(/Expected `\{` after JSX control-flow directive/);
+	});
+
+	it('rejects unprefixed template continuation clauses', () => {
+		expect(() =>
+			getReturned(`function App() { return <div>
+				@if (ready) {
+					<>Ready</>
+				} else {
+					<>Waiting</>
+				}
+			</div>; }`),
+		).toThrow(/Expected `@else` after `@if` block/);
+
+		expect(() =>
+			getReturned(`function App() { return <ul>
+				@for (const item of items) {
+					<li>{item}</li>
+				} empty {
+					<li>Empty</li>
+				}
+			</ul>; }`),
+		).toThrow(/Expected `@empty` after `@for` block/);
+
+		expect(() =>
+			getReturned(`function App() { return <div>
+				@switch (value) {
+					case 'a': {
+						<>A</>
+					}
+					default: {
+						<>B</>
+					}
+				}
+			</div>; }`),
+		).toThrow(/Unexpected token/);
 	});
 
 	it('parses code-only @if bodies', () => {
@@ -1032,7 +1085,7 @@ foo();`;
 		const returned = getReturned(`function App() { return <ul>
 			@for (const item of items; key item.id) {
 				<li>{item.label}</li>
-			} empty {
+			} @empty {
 				const message = 'No items';
 				<li>{message}</li>
 			}
@@ -1053,7 +1106,7 @@ foo();`;
 			getReturned(`function App() { return <ul>
 				@for (const item of items) {
 					<li>{item.label}</li>
-				} empty <li>No items</li>
+				} @empty <li>No items</li>
 			</ul>; }`),
 		).toThrow(/Expected `\{` after JSX control-flow directive/);
 	});
@@ -1072,13 +1125,13 @@ foo();`;
 	it('parses @switch as a JSXSwitchExpression with fragment case bodies', () => {
 		const returned = getReturned(`function App() { return <div>
 			@switch (value) {
-				case 'a': {
+				@case 'a': {
 					<>Case A</>
 				}
-				case 'b': {
+				@case 'b': {
 					<>Case B</>
 				}
-				default: {
+				@default: {
 					<>Fallback</>
 				}
 			}
@@ -1394,7 +1447,7 @@ foo();`;
 		const cases = [
 			['const x = @if (c) { <a/> };', 'JSXIfExpression'],
 			['const x = @for (const i of items) { <li>{i}</li> };', 'JSXForExpression'],
-			["const x = @switch (v) { case 'a': { <a/> } };", 'JSXSwitchExpression'],
+			["const x = @switch (v) { @case 'a': { <a/> } };", 'JSXSwitchExpression'],
 			['const x = @try { <a/> } catch (e) { <b/> };', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {
@@ -1408,7 +1461,10 @@ foo();`;
 			['function App() { return @{ const a = 5; <div>{a}</div> }; }', 'JSXCodeBlock'],
 			['function App() { return @if (c) { <a/> }; }', 'JSXIfExpression'],
 			['function App() { return @for (const i of xs) { <li>{i}</li> }; }', 'JSXForExpression'],
-			["function App() { return @switch (v) { case 'a': { <a/> } }; }", 'JSXSwitchExpression'],
+			[
+				"function App() { return @switch (v) { @case 'a': { <a/> } }; }",
+				'JSXSwitchExpression',
+			],
 			['function App() { return @try { <a/> } catch (e) { <b/> }; }', 'JSXTryExpression'],
 		];
 		for (const [source, type] of cases) {

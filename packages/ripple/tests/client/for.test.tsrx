@@ -52,7 +52,7 @@ describe('for statements', () => {
 			const items = [];
 			@for (const item of items) {
 				<div class="item">{item}</div>
-			} empty {
+			} @empty {
 				<div class="empty">{'No items'}</div>
 			}
 		}

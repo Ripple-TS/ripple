@@ -22,7 +22,7 @@ const REACT_HOOKS_HTML = highlight_tsrx(
     const user = useUser(userId);
 
     <h1>{user.name}</h1>
-  } else {
+  } @else {
     <a href="/login">Sign in</a>
   }
 }`,

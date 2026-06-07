@@ -27,10 +27,10 @@ export function ForSwitch() @{
 	<ul class="for-switch">
 		@for (const item of items; key item.id) {
 			@switch (item.kind) {
-				case 'a': {
+				@case 'a': {
 					<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 				}
-				default: {
+				@default: {
 					<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 				}
 			}
@@ -45,10 +45,10 @@ export function IfSwitch() @{
 	<div class="if-switch">
 		@if (show) {
 			@switch (kind) {
-				case 'a': {
+				@case 'a': {
 					<p class="case-a">Case A</p>
 				}
-				default: {
+				@default: {
 					<p class="case-default">{'Default'}</p>
 				}
 			}
@@ -63,10 +63,10 @@ export function IfSwitchHidden() @{
 	<div class="if-switch-hidden">
 		@if (show) {
 			@switch (kind) {
-				case 'a': {
+				@case 'a': {
 					<p class="case-a">Case A</p>
 				}
-				default: {
+				@default: {
 					<p class="case-default">{'Default'}</p>
 				}
 			}
@@ -84,10 +84,10 @@ export function ForIfSwitchSingle() @{
 		@for (const item of items; key item.id) {
 			@if (item.show) {
 				@switch (item.kind) {
-					case 'a': {
+					@case 'a': {
 						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 					}
-					default: {
+					@default: {
 						<li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
 					}
 				}
@@ -106,10 +106,10 @@ export function ForIfSwitchMulti() @{
 		@for (const item of items; key item.id) {
 			@if (item.show) {
 				@switch (item.kind) {
-					case 'a': {
+					@case 'a': {
 						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 					}
-					default: {
+					@default: {
 						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 					}
 				}
@@ -129,10 +129,10 @@ export function ForIfSwitchWithDisabled() @{
 		@for (const item of items; key item.id) {
 			@if (item.show) {
 				@switch (item.kind) {
-					case 'a': {
+					@case 'a': {
 						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 					}
-					default: {
+					@default: {
 						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 					}
 				}
@@ -146,14 +146,14 @@ export function SwitchTry() @{
 	const kind = 'a';
 	<div class="switch-try">
 		@switch (kind) {
-			case 'a': {
+			@case 'a': {
 				@try {
 					<p class="resolved-a">{'A resolved'}</p>
 				} pending {
 					<p class="pending-a">{'A pending'}</p>
 				}
 			}
-			default: {
+			@default: {
 				<p class="default">{'Default'}</p>
 			}
 		}
@@ -169,14 +169,14 @@ export function ForSwitchTry() @{
 	<ul class="for-switch-try">
 		@for (const item of items; key item.id) {
 			@switch (item.kind) {
-				case 'a': {
+				@case 'a': {
 					@try {
 						<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 					} pending {
 						<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 					}
 				}
-				default: {
+				@default: {
 					@try {
 						<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 					} pending {
@@ -216,14 +216,14 @@ export function ForIfSwitchTrySingle() @{
 		@for (const item of items; key item.id) {
 			@if (item.show) {
 				@switch (item.kind) {
-					case 'a': {
+					@case 'a': {
 						@try {
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 						} pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}
-					default: {
+					@default: {
 						@try {
 							<li class={`item item-${item.id} kind-default`}>{`D-${item.id}`}</li>
 						} pending {
@@ -246,14 +246,14 @@ export function ForIfSwitchTryMulti() @{
 		@for (const item of items; key item.id) {
 			@if (item.show) {
 				@switch (item.kind) {
-					case 'a': {
+					@case 'a': {
 						@try {
 							<li class={`item item-${item.id} kind-a`}>{`A-${item.id}`}</li>
 						} pending {
 							<li class={`pending pending-${item.id}`}>{`pending ${item.id}`}</li>
 						}
 					}
-					default: {
+					@default: {
 						@try {
 							<li class={`item item-${item.id} kind-b`}>{`B-${item.id}`}</li>
 						} pending {

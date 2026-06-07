@@ -10,4 +10,4 @@
 "@tsrx/mcp": patch
 ---
 
-Add `empty { ... }` fallbacks for TSRX `@for` loops and reject direct `continue`, `break`, and `return` statements inside `@for` loop bodies and `@if` template branches.
+Add `@empty { ... }` fallbacks for TSRX `@for` loops, require prefixed template continuation clauses such as `@else`, `@case`, and `@default`, and reject direct `continue`, `break`, and `return` statements inside `@for` loop bodies and `@if` template branches.

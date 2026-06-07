@@ -457,9 +457,9 @@ containers, so every body uses `{...}`.
 ```tsrx
 const StatusBadge = ({ status }: { status: string }) => @if (status === 'active') {
 	<span class="badge active">Online</span>
-} else if (status === 'idle') {
+} @else if (status === 'idle') {
 	<span class="badge idle">Away</span>
-} else {
+} @else {
 	<span class="badge">Offline</span>
 };
 ```
@@ -471,7 +471,7 @@ const TodoList = ({ items }: { items: Todo[] }) =>
 	<ul>
 		@for (const item of items.filter((item) => !item.hidden); index i; key item.id) {
 			<li>{i + 1}. {item.text}</li>
-		} empty {
+		} @empty {
 			<li>No todos</li>
 		}
 	</ul>;
@@ -479,7 +479,7 @@ const TodoList = ({ items }: { items: Todo[] }) =>
 
 Regular `for`, `for...in`, `while`, and `do...while` are not template
 rendering constructs. Use `for...of` for rendered lists, filter the iterable
-before rendering when some items should be skipped, and use `empty { ... }` for
+before rendering when some items should be skipped, and use ` { ... }` for
 the no-items fallback. Direct `continue`, `break`, and `return` statements are
 not allowed in `@for` template loop bodies. Move imperative loops into a nested
 function.
@@ -488,19 +488,19 @@ function.
 
 ```tsrx
 const StatusMessage = ({ status }: { status: string }) => @switch (status) {
-	case 'loading': {
+	@case 'loading': {
 		<p>Loading...</p>
 	}
-	case 'success': {
+	@case 'success': {
 		<p class="success">Done!</p>
 	}
-	default: {
+	@default: {
 		<p>Unknown status.</p>
 	}
 };
 ```
 
-Each `case` and `default` body is a `{...}` template block. Cases are isolated,
+Each `` and `` body is a `{...}` template block. Cases are isolated,
 do not fall through, and `break`/`return` are invalid inside an `@switch` case body.
 
 ### `try` / `catch` / `pending`
@@ -771,7 +771,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Prop shorthand         | `<Input {value} {onChange} />`                         |
 | Conditional rendering  | `@if (cond) { <Panel /> }`                             |
 | List rendering         | `@for (const x of xs; index i; key x.id) { <li /> }`   |
-| Multi-branch           | `@switch (x) { case 'a': { <A /> } }`                  |
+| Multi-branch           | `@switch (x) { @case 'a': { <A /> } }`                 |
 | Error boundary         | `@try { <Child /> } catch (e) { <Fallback /> }`        |
 | Async boundary         | `@try { <Child /> } pending { <Loading /> }`           |
 | Guard exit             | `if (!user) { return null; }`                          |

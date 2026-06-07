@@ -705,6 +705,8 @@ export function TSRXPlugin(config) {
 					index++;
 				}
 				if (!this.#isLineStartPosition(index)) return -1;
+				if (this.input.charCodeAt(index) !== CharCode.at) return -1;
+				index++;
 				if (
 					this.input.slice(index, index + 4) === 'case' &&
 					!this.#isIdentifierChar(this.input.charCodeAt(index + 4))
@@ -749,19 +751,21 @@ export function TSRXPlugin(config) {
 
 				const ch = this.input.charCodeAt(wordStart);
 				if (ch === CharCode.closeBrace) return index;
+				if (ch === CharCode.at) {
+					const keywordStart = wordStart + 1;
+					if (
+						this.input.slice(keywordStart, keywordStart + 4) === 'case' &&
+						!this.#isIdentifierChar(this.input.charCodeAt(keywordStart + 4))
+					) {
+						return index;
+					}
 
-				if (
-					this.input.slice(wordStart, wordStart + 4) === 'case' &&
-					!this.#isIdentifierChar(this.input.charCodeAt(wordStart + 4))
-				) {
-					return index;
-				}
-
-				if (
-					this.input.slice(wordStart, wordStart + 7) === 'default' &&
-					!this.#isIdentifierChar(this.input.charCodeAt(wordStart + 7))
-				) {
-					return index;
+					if (
+						this.input.slice(keywordStart, keywordStart + 7) === 'default' &&
+						!this.#isIdentifierChar(this.input.charCodeAt(keywordStart + 7))
+					) {
+						return index;
+					}
 				}
 
 				for (const keyword of ['break', 'continue', 'return', 'throw']) {
@@ -1368,7 +1372,7 @@ export function TSRXPlugin(config) {
 					this.#readingJSXControlFlowDirectiveKeyword = false;
 				}
 
-				const label = this.type.keyword || this.type.label;
+				const label = this.type.keyword || this.type.label || this.value;
 				if (label === 'if') {
 					return this.#finishJSXControlFlowExpression(
 						this.#parseTemplateIfStatement(),
@@ -1417,6 +1421,8 @@ export function TSRXPlugin(config) {
 						} finally {
 							this.#templateControlFlowBlockDepth--;
 						}
+					} else if (this.#isUnprefixedDirectiveClauseKeyword('empty')) {
+						this.raise(this.start, 'Expected `@empty` after `@for` block.');
 					} else {
 						/** @type {any} */ (node).empty = null;
 					}
@@ -1444,26 +1450,27 @@ export function TSRXPlugin(config) {
 				this.raise(start, 'Expected `@if`, `@for`, `@switch`, or `@try`.');
 			}
 
-			#eatJSXForEmptyKeyword() {
-				if ((this.type.keyword || this.type.label || this.value) === 'empty') {
-					this.next();
-					return true;
-				}
-
+			/**
+			 * @param {string} keyword
+			 */
+			#eatJSXDirectiveClauseKeyword(keyword) {
 				const keywordStart = skip_whitespace_from(this.input, this.start);
+				if (this.input.charCodeAt(keywordStart) !== CharCode.at) {
+					return false;
+				}
+				const wordStart = keywordStart + 1;
 				if (
-					this.input.slice(keywordStart, keywordStart + 'empty'.length) !== 'empty' ||
-					this.#isIdentifierChar(this.input.charCodeAt(keywordStart + 'empty'.length))
+					this.input.slice(wordStart, wordStart + keyword.length) !== keyword ||
+					this.#isIdentifierChar(this.input.charCodeAt(wordStart + keyword.length))
 				) {
 					return false;
 				}
 
-				const keywordEnd = keywordStart + 'empty'.length;
-				this.pos = keywordEnd;
-				this.start = keywordEnd;
-				this.startLoc = acorn.getLineInfo(this.input, keywordEnd);
+				this.pos = wordStart;
+				this.start = wordStart;
+				this.startLoc = acorn.getLineInfo(this.input, wordStart);
 				this.curLine = this.startLoc.line;
-				this.lineStart = keywordEnd - this.startLoc.column;
+				this.lineStart = wordStart - this.startLoc.column;
 				this.context = this.context.filter(
 					(context) =>
 						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
@@ -1472,8 +1479,76 @@ export function TSRXPlugin(config) {
 					this.context.push(b_stat);
 				}
 				this.exprAllowed = true;
+				this.#readingJSXControlFlowDirectiveKeyword = true;
+				try {
+					this.nextToken();
+				} finally {
+					this.#readingJSXControlFlowDirectiveKeyword = false;
+				}
 				this.next();
 				return true;
+			}
+
+			#eatJSXForEmptyKeyword() {
+				return this.#eatJSXDirectiveClauseKeyword('empty');
+			}
+
+			/**
+			 * @param {string} keyword
+			 */
+			#eatJSXDirectiveBareClauseKeyword(keyword) {
+				const wordStart = skip_whitespace_from(this.input, this.start);
+				if (
+					this.input.slice(wordStart, wordStart + keyword.length) !== keyword ||
+					this.#isIdentifierChar(this.input.charCodeAt(wordStart + keyword.length))
+				) {
+					return false;
+				}
+
+				this.pos = wordStart;
+				this.start = wordStart;
+				this.startLoc = acorn.getLineInfo(this.input, wordStart);
+				this.curLine = this.startLoc.line;
+				this.lineStart = wordStart - this.startLoc.column;
+				this.context = this.context.filter(
+					(context) =>
+						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+				);
+				if (this.curContext() !== b_stat) {
+					this.context.push(b_stat);
+				}
+				this.exprAllowed = true;
+				this.#readingJSXControlFlowDirectiveKeyword = true;
+				try {
+					this.nextToken();
+				} finally {
+					this.#readingJSXControlFlowDirectiveKeyword = false;
+				}
+				return true;
+			}
+
+			/**
+			 * @param {string} keyword
+			 */
+			#isUnprefixedDirectiveClauseKeyword(keyword) {
+				const keywordStart = skip_whitespace_from(this.input, this.start);
+				return (
+					this.input.slice(keywordStart, keywordStart + keyword.length) === keyword &&
+					!this.#isIdentifierChar(this.input.charCodeAt(keywordStart + keyword.length))
+				);
+			}
+
+			/**
+			 * @returns {'case' | 'default' | null}
+			 */
+			#eatJSXSwitchCaseClauseKeyword() {
+				if (this.#eatJSXDirectiveClauseKeyword('case')) {
+					return 'case';
+				}
+				if (this.#eatJSXDirectiveClauseKeyword('default')) {
+					return 'default';
+				}
+				return null;
 			}
 
 			#parseTemplateControlFlowStatement() {
@@ -1496,19 +1571,13 @@ export function TSRXPlugin(config) {
 				node.consequent = /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
 				node.alternate = null;
 
-				if (this.type === tt._else) {
-					const previous_reading_header = this.#readingJSXControlFlowHeader;
-					this.#readingJSXControlFlowHeader = true;
-					try {
-						this.next();
-					} finally {
-						this.#readingJSXControlFlowHeader = previous_reading_header;
-					}
-					const label = this.type.keyword || this.type.label;
+				if (this.#eatJSXDirectiveClauseKeyword('else')) {
 					node.alternate =
-						label === 'if'
+						this.#eatJSXDirectiveBareClauseKeyword('if')
 							? this.#parseTemplateIfStatement()
 							: /** @type {AST.Statement} */ (this.#parseTemplateControlFlowStatement());
+				} else if (this.#isUnprefixedDirectiveClauseKeyword('else')) {
+					this.raise(this.start, 'Expected `@else` after `@if` block.');
 				}
 
 				return this.finishNode(node, 'IfStatement');
@@ -1539,14 +1608,18 @@ export function TSRXPlugin(config) {
 						continue;
 					}
 
-					if (this.type === tt._case || this.type === tt._default) {
-						const isCase = this.type === tt._case;
-						const current = /** @type {AST.SwitchCase} */ (this.startNode());
+					const clauseStart = this.start;
+					const clauseStartLoc = this.startLoc;
+					const clause = this.#eatJSXSwitchCaseClauseKeyword();
+					if (clause) {
+						const isCase = clause === 'case';
+						const current = /** @type {AST.SwitchCase} */ (
+							this.startNodeAt(clauseStart, clauseStartLoc)
+						);
 						current.consequent = [];
 						const previous_reading_header = this.#readingJSXControlFlowHeader;
 						this.#readingJSXControlFlowHeader = true;
 						try {
-							this.next();
 							if (isCase) {
 								current.test = this.parseExpression();
 							} else {
