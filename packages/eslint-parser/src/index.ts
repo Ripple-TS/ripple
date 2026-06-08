@@ -123,7 +123,10 @@ function ensure_node_properties(node: any, code: string): void {
 }
 
 function is_fatal_parser_diagnostic(error: any): boolean {
-	return error?.code !== DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER;
+	return (
+		error?.code === DIAGNOSTIC_CODES.UNCLOSED_TAG ||
+		error?.code === DIAGNOSTIC_CODES.MISMATCHED_CLOSING_TAG
+	);
 }
 
 function to_eslint_parse_error(error: any): SyntaxError {

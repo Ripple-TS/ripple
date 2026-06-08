@@ -3,7 +3,7 @@ import { DIAGNOSTIC_CODES } from '@tsrx/core';
 import { parseForESLint } from '../src/index.ts';
 
 describe('eslint-parser', () => {
-	it('throws collected parser diagnostics as ESLint parse errors', () => {
+	it('throws collected broken-markup diagnostics as ESLint parse errors', () => {
 		expect(() =>
 			parseForESLint(`export function App() { return <div><span></div>; }`, {
 				filePath: 'App.tsrx',
