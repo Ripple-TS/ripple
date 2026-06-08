@@ -409,6 +409,32 @@ describe('@tsrx/mcp compile helpers', () => {
 		expect(result.nextSteps).toContain('Run compile-tsrx again after revising the source.');
 	});
 
+	it('adds statement-container advice when a component body is missing @', async () => {
+		const result = await analyze_tsrx({
+			code: `function App() {
+				const label = 'Save';
+				<button>{label}</button>
+			}`,
+			filename: 'App.tsrx',
+			target: 'react',
+			cwd: react_fixture,
+		});
+
+		expect(result.ok).toBe(false);
+		expect(result.advice).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: 'forgotten-statement-container',
+					severity: 'error',
+					documentation: expect.arrayContaining([
+						'tsrx://docs/components.md',
+						'tsrx://docs/expression-values.md',
+					]),
+				}),
+			]),
+		);
+	});
+
 	it('adds control-flow advice for unsupported TSRX loop diagnostics', async () => {
 		const while_loop = analyze_tsrx_result({
 			code: '',

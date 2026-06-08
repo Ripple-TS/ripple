@@ -97,6 +97,8 @@ export function Button({ label }: { label: string }) @{
 
 Inside \`@{ ... }\`, put any setup statements first and end with one rendered output node. No JavaScript setup can appear after that output.
 
+If a normal function body contains setup statements followed by bare TSRX output, add the missing \`@\` before the opening brace. Plain \`{ ... }\` is JavaScript; \`@{ ... }\` is the statement-container form.
+
 Source: website-tsrx/src/pages/specification.tsrx#components`,
 		},
 		{
@@ -149,6 +151,8 @@ function App() @{
 \`\`\`
 
 \`@{ ... }\` is a JSX statement container. A normal JSX fragment, element body, or control-flow branch can also contain setup before output, but that scope must still end with one output node. Use a fragment when the output is text, an expression container, or multiple siblings.
+
+When generating code, prefer \`function Component(props) @{ ... }\` for component bodies that need hooks, setup, guard returns, and final template output together. Do not silently drop the \`@\`; the compiler treats plain braces as a normal JavaScript function body.
 
 Specification grammar:
 

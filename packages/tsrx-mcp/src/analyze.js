@@ -87,6 +87,17 @@ function create_advice(input) {
 		});
 	}
 
+	if (error_codes.has(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER)) {
+		advice.push({
+			kind: 'forgotten-statement-container',
+			severity: 'error',
+			title: 'Add @ before statement-container braces',
+			message:
+				"A function body with TypeScript setup followed by bare TSRX output must use a JSX statement container. Change the opening `{` to `@{`, or use an ordinary `return` when the function only returns JSX.",
+			documentation: ['tsrx://docs/components.md', 'tsrx://docs/expression-values.md'],
+		});
+	}
+
 	if (
 		error_messages.has(TSRX_LOOP_RETURN_ERROR) ||
 		error_messages.has(TSRX_LOOP_BREAK_ERROR) ||

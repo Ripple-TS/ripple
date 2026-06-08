@@ -18,6 +18,9 @@ describe('@tsrx/mcp documentation index', () => {
 			'export function Button',
 		);
 		expect(find_documentation_section('components')?.content ?? '').toContain('@{');
+		expect(find_documentation_section('components')?.content ?? '').toContain(
+			'add the missing `@` before the opening brace',
+		);
 		expect(find_documentation_section('expression-values')?.content ?? '').toContain(
 			'PrimaryExpression',
 		);
