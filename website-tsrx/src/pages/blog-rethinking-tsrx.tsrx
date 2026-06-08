@@ -15,6 +15,17 @@ const ProductCard = ({ product }: ProductCardProps): JSX.Element => @{
 };`,
 );
 
+const FUNCTION_STATEMENT_CONTAINER_BODY_HTML = highlight_tsrx(
+	`export function ProductCard({ product }: ProductCardProps): JSX.Element @{
+  const price = formatCurrency(product.price);
+
+  <article>
+    <h2>{product.name}</h2>
+    <p>{price}</p>
+  </article>
+}`,
+);
+
 const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
 	`const ActivityPanel = ({ result }: ActivityPanelProps): JSX.Element => @{
   @try {
@@ -85,6 +96,17 @@ const JSX_STATEMENT_CONTAINER_HTML = highlight_tsrx(
 
   <p>{message}</p>
 };`,
+);
+
+const ASSIGNED_JSX_STATEMENT_CONTAINER_HTML = highlight_tsrx(
+	`const summary: JSX.Element = @{
+  const count = items.length;
+  const label = count === 1 ? 'item' : 'items';
+
+  <p>{count} {label}</p>
+};
+
+return <aside>{summary}</aside>;`,
 );
 
 const JSX_STATEMENT_CONTAINER_RULES_HTML = highlight_tsrx(
@@ -245,12 +267,20 @@ export function BlogRethinkingTsrxPage() @{
 							<code>{'{value}'}</code>
 							. TSRX adds the statement version:
 							<code>{'@{...}'}</code>
-							. It is a small upgrade for the moments where you need a couple of local statements
-							before producing one template value. That value might be a component body, an assigned
-							value, or a child inside another element.
+							. It is still an expression, so it can appear anywhere JSX can appear: as a component
+							body, as an assigned value, as a returned value, or as a child inside another element.
+							The only difference is that it can run a few local statements before producing one
+							template value.
 						</p>
 						<pre class="code-block">
 							<code innerHTML={JSX_STATEMENT_CONTAINER_HTML} />
+						</pre>
+						<p>
+							JSX statement containers are just expressions, so you can assign them to variables and
+							use them like any other JSX.
+						</p>
+						<pre class="code-block">
+							<code innerHTML={ASSIGNED_JSX_STATEMENT_CONTAINER_HTML} />
 						</pre>
 						<p>
 							A statement container ends with exactly one output node: a JSX element, a JSX
@@ -271,6 +301,10 @@ export function BlogRethinkingTsrxPage() @{
 						</p>
 						<pre class="code-block">
 							<code innerHTML={STATEMENT_CONTAINER_COMPONENT_BODY_HTML} />
+						</pre>
+						<p>They can also be used as the body of function declarations too.</p>
+						<pre class="code-block">
+							<code innerHTML={FUNCTION_STATEMENT_CONTAINER_BODY_HTML} />
 						</pre>
 						<h2>JSX control flow</h2>
 						<p>
