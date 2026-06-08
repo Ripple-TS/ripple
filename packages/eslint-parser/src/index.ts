@@ -1,6 +1,6 @@
 import type { Program } from 'estree';
 import type { Linter } from 'eslint';
-import { parseModule as parse_module } from '@tsrx/core';
+import { DIAGNOSTIC_CODES, parseModule as parse_module } from '@tsrx/core';
 
 interface ParseResult {
 	ast: Program;
@@ -122,6 +122,23 @@ function ensure_node_properties(node: any, code: string): void {
 	}
 }
 
+function is_fatal_parser_diagnostic(error: any): boolean {
+	return error?.code !== DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER;
+}
+
+function to_eslint_parse_error(error: any): SyntaxError {
+	const parse_error: any = new SyntaxError(error?.message || String(error));
+	const loc = error?.loc?.start;
+	if (loc) {
+		parse_error.lineNumber = loc.line;
+		parse_error.column = loc.column + 1;
+	}
+	if (typeof error?.start === 'number') {
+		parse_error.index = error.start;
+	}
+	return parse_error;
+}
+
 /**
  * ESLint parser for TSRX (.tsrx) files
  *
@@ -134,6 +151,11 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 		// Parse the TSRX source code using the shared TSRX parser
 		const ast = parse_module(code, options?.filePath, { collect: true, errors }) as any;
 		if (!ast) throw new Error('Parser returned null or undefined AST');
+
+		const fatal_error = errors.find(is_fatal_parser_diagnostic);
+		if (fatal_error) {
+			throw to_eslint_parse_error(fatal_error);
+		}
 
 		// Normalize for ESLint traversal (avoid duplicate node visits)
 		normalize_tsrx_ast_for_eslint(ast);
@@ -165,6 +187,9 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 			visitorKeys,
 		};
 	} catch (error: any) {
+		if (error instanceof SyntaxError && (error as any).lineNumber != null) {
+			throw error;
+		}
 		// Transform TSRX parse errors to ESLint-compatible format
 		throw new SyntaxError(`Failed to parse TSRX file: ${error.message || error}`);
 	}
