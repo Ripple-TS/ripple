@@ -1065,11 +1065,12 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Node} node
 			 */
 			#reportForgottenStatementContainerBody(node) {
-				if (node.body?.type !== 'BlockStatement') {
+				const body = /** @type {{ body?: AST.Node }} */ (node).body;
+				if (body?.type !== 'BlockStatement') {
 					return;
 				}
 
-					for (const statement of /** @type {AST.BlockStatement} */ (node.body).body || []) {
+				for (const statement of /** @type {AST.BlockStatement} */ (body).body || []) {
 					const target =
 						this.#isRenderOutputNode(statement) ||
 						(statement.type === 'ExpressionStatement' &&
