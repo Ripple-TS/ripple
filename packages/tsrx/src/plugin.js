@@ -1077,7 +1077,13 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				for (const statement of /** @type {AST.BlockStatement} */ (body).body || []) {
+				const statements = /** @type {AST.BlockStatement} */ (body).body || [];
+				const has_return_type = Boolean(/** @type {{ returnType?: AST.Node }} */ (node).returnType);
+				if (!has_return_type) {
+					return;
+				}
+
+				for (const statement of statements) {
 					const target =
 						this.#isForgottenStatementContainerOutputNode(statement) ||
 						(statement.type === 'ExpressionStatement' &&

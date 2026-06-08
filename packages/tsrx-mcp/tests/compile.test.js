@@ -411,7 +411,7 @@ describe('@tsrx/mcp compile helpers', () => {
 
 	it('adds statement-container advice when a component body is missing @', async () => {
 		const result = await analyze_tsrx({
-			code: `function App() {
+			code: `function App(): JSX.Element {
 				const label = 'Save';
 				<button>{label}</button>
 			}`,
