@@ -125,6 +125,25 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			);
 		});
 
+		it('does not report explicit nested statement containers in ordinary function bodies', () => {
+			const result = compile_to_volar_mappings(
+				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
+					const badge = @{
+						const initials = user.name.slice(0, 2).toUpperCase();
+
+						<button title={user.name}>{initials}</button>
+					};
+
+					return badge;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).not.toContain(
+				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+			);
+		});
+
 		it('allows return statements in localized setup before a template fence', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() @{

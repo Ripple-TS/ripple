@@ -93,7 +93,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Add @ before statement-container braces',
 			message:
-				"A function body with TypeScript setup followed by bare TSRX output must use a JSX statement container. Change the opening `{` to `@{`, or use an ordinary `return` when the function only returns JSX.",
+				'A function body with TypeScript setup followed by bare TSRX output must use a JSX statement container. Change the opening `{` to `@{`, or use an ordinary `return` when the function only returns JSX.',
 			documentation: ['tsrx://docs/components.md', 'tsrx://docs/expression-values.md'],
 		});
 	}

@@ -1058,6 +1058,13 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @param {AST.Node | null | undefined} node
+			 */
+			#isForgottenStatementContainerOutputNode(node) {
+				return this.#isRenderOutputNode(node) && node?.type !== 'JSXCodeBlock';
+			}
+
+			/**
 			 * A normal function body that directly contains a bare JSX/control-flow node
 			 * almost always means the author wrote `{ ... <div /> }` but intended
 			 * `@{ ... <div /> }`. Report only direct body children so ordinary nested
@@ -1072,9 +1079,9 @@ export function TSRXPlugin(config) {
 
 				for (const statement of /** @type {AST.BlockStatement} */ (body).body || []) {
 					const target =
-						this.#isRenderOutputNode(statement) ||
+						this.#isForgottenStatementContainerOutputNode(statement) ||
 						(statement.type === 'ExpressionStatement' &&
-							this.#isRenderOutputNode(statement.expression))
+							this.#isForgottenStatementContainerOutputNode(statement.expression))
 							? statement
 							: null;
 
