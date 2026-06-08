@@ -1,5 +1,98 @@
 # @tsrx/core
 
+## 0.1.23
+
+### Patch Changes
+
+- [`9eb4819`](https://github.com/Ripple-TS/ripple/commit/9eb4819cede6da7e93cbcd2bdf284bcb42d40464)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow bare `else` text after a
+  TSRX `@if` block while continuing to reject missing-`@` continuation clauses,
+  and remove `finally` parsing from TSRX `@try` control flow.
+
+- [`88a254c`](https://github.com/Ripple-TS/ripple/commit/88a254c69953a5ace33bc10047f11052ec598672)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - For Ripple, emit
+  `@for @empty` fallback bodies in client `to_ts` output. Mapping of the node for
+  all targets.
+
+- [`ba3a7f6`](https://github.com/Ripple-TS/ripple/commit/ba3a7f6485ea163e60cc0750a8e8b06b50728009)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow TSRX `@{}` blocks and
+  `@if`/`@for`/`@switch`/`@try` directives as dangling expression statements.
+
+- [#1211](https://github.com/Ripple-TS/ripple/pull/1211)
+  [`ac6f358`](https://github.com/Ripple-TS/ripple/commit/ac6f3582ca0b2814004439c882d6aa735c8afe50)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add diagnostics, lint autofix,
+  and MCP advice for function bodies that forget `@{...}` before TSRX template
+  output.
+
+- [`78ffa8d`](https://github.com/Ripple-TS/ripple/commit/78ffa8d90fd01e85bf34e5c6adef0e51caae8da7)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lower bare
+  `@if`/`@for`/`@switch`/`@try` control-flow directives that sit directly in a
+  call/`new` argument position
+  (`func(@if (status === 'active') { … } @else { … })`). For the React, Preact,
+  Solid, and Vue targets these previously leaked an untransformed
+  `JSXIfExpression`/`JSXForExpression`/`JSXSwitchExpression`/`JSXTryExpression`
+  straight to the printer and crashed with "Not implemented: JSX…Expression". The
+  argument is now wrapped in a native TSRX fragment before transform, so it flows
+  through the same render machinery as an expression-bodied arrow, `return`, or
+  assignment output (a `@{ … }` code-block argument already lowered to an IIFE and
+  is unchanged).
+
+- [`16560cb`](https://github.com/Ripple-TS/ripple/commit/16560cb466430bdbe8749d9491bc79e69e58d02c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lower bare
+  `@if`/`@for`/`@switch`/`@try` control-flow directives that sit directly in an
+  expression position — an expression-bodied arrow
+  (`const M = (props) => @switch (x) { … }`), a `return @switch (x) { … }`, or
+  assignment to a variable (`const view = @switch (x) { … }`,
+  `view = @switch (x) { … }`). For the React, Preact, Solid, and Vue targets these
+  previously leaked an untransformed
+  `JSXSwitchExpression`/`JSXIfExpression`/`JSXForExpression`/`JSXTryExpression`
+  straight to the printer and crashed with "Not implemented: JSX…Expression". The
+  directive is now wrapped in a native TSRX fragment before transform, so it flows
+  through the same render machinery as a component-body output and each platform
+  emits its existing lowering (an IIFE+`switch` for React/Preact/Vue,
+  `<Switch>`/`<Match>` for Solid).
+
+- [`4be6e54`](https://github.com/Ripple-TS/ripple/commit/4be6e54bbfee20927adca473648a94aa173d7d77)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parse `@{ … }` code blocks
+  and `@if`/`@for`/`@switch`/`@try` control-flow directives inside an element
+  nested in a `{ … }` expression container (e.g. `{<div>@if (x) { … }</div>}`,
+  including in `.map()` callbacks). These previously crashed with "RangeError:
+  Invalid array length": the directive parser strips JSX tokenizer contexts so its
+  body parses as JS, and inside an expression container it also stripped the
+  container's and enclosing element's contexts, underflowing the context stack
+  when the surrounding markup closed. The directive filter now preserves every
+  context below the innermost expression-container baseline, matching the bare
+  `function … @{ … }` form.
+
+- [`2b67f83`](https://github.com/Ripple-TS/ripple/commit/2b67f83d7ed7eab7a39bc33524fcf73f737d977e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Parse ternaries whose
+  branches are JSX elements or fragments with children inside a `{ … }` expression
+  container (e.g. `{cond ? <div>a</div> : <span>b</span>}`, including nested
+  ternaries, fragment branches, and ternaries in attribute values or `.map()`
+  callbacks). A JSX branch left the tokenizer at `exprAllowed === false`, so the
+  `<` after the `:` was not recognized as a tag start and parsing failed with
+  "Unexpected token". Expression position is now restored after a JSX ternary
+  branch so the alternate parses as JSX too.
+
+- [`9918c52`](https://github.com/Ripple-TS/ripple/commit/9918c52e954f2b8e1a994892e7c555e8277f2d59)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep ordinary JavaScript
+  control-flow blocks from implicitly rendering bare TSRX templates while
+  preserving Solid terminal branch lowering.
+
+- [`e8493be`](https://github.com/Ripple-TS/ripple/commit/e8493be0b3489f402105297251e1919c103c2360)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve leading whitespace
+  in JSX text children of elements nested inside `{ … }` expression containers.
+  The JSX-expression reader skipped leading whitespace before anchoring the
+  JSXText token, so `{<textarea>   a</textarea>}` lost its indentation while the
+  bare `<textarea>   a</textarea>` kept it. Both paths now capture text
+  identically, so every target (Ripple, React, Preact, Solid, Vue, including
+  `typeOnly`/`to_ts` output) emits consistent JSX text.
+
+- [`c424675`](https://github.com/Ripple-TS/ripple/commit/c424675102a9edd4f1e356fb6db30124a9c2d885)
+  Thanks [@trueadm](https://github.com/trueadm)! - Extract hook-bearing plain `if`
+  return branches in React and Preact TSRX component bodies into helper
+  components.
+
 ## 0.1.22
 
 ### Patch Changes

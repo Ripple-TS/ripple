@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.25
+
+### Patch Changes
+
+- [`078b033`](https://github.com/Ripple-TS/ripple/commit/078b033f4ef8024842031c8e0ce34a389b3c9eb0)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix TSRX syntax highlighting
+  for directive control-flow keywords in expression positions and editor grammar
+  assets. Directives such as `@switch`, `@case`, `@default`, `@empty`, `@pending`,
+  `@catch`, and `@else if` now receive consistent keyword coloring, and
+  statement-container fences keep directive coloring.
+
+- Updated dependencies []:
+  - @ripple-ts/language-server@0.3.75
+  - @tsrx/typescript-plugin@0.3.75
+
 ## 2.0.24
 
 ### Patch Changes

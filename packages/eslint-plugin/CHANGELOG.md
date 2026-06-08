@@ -1,5 +1,19 @@
 # @tsrx/eslint-plugin
 
+## 0.3.75
+
+### Patch Changes
+
+- [#1211](https://github.com/Ripple-TS/ripple/pull/1211)
+  [`ac6f358`](https://github.com/Ripple-TS/ripple/commit/ac6f3582ca0b2814004439c882d6aa735c8afe50)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add diagnostics, lint autofix,
+  and MCP advice for function bodies that forget `@{...}` before TSRX template
+  output.
+
+- Updated dependencies
+  [[`ac6f358`](https://github.com/Ripple-TS/ripple/commit/ac6f3582ca0b2814004439c882d6aa735c8afe50)]:
+  - @tsrx/eslint-parser@0.3.75
+
 ## 0.3.74
 
 ### Patch Changes
