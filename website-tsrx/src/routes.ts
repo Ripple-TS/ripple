@@ -129,7 +129,7 @@ async function compile_target(target: CompileTarget, source: string) {
  */
 async function format_tsrx(source: string) {
 	return await format(source, {
-		parser: 'ripple',
+		parser: 'tsrx',
 		plugins: [ripple_prettier_plugin as any],
 		useTabs: false,
 		tabWidth: 2,

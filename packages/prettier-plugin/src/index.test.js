@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import prettier from 'prettier';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { languages } from './index.js';
+import { languages, parsers } from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,13 +40,16 @@ expect.extend({
 
 describe('prettier-plugin', () => {
 	it('registers .tsrx as a supported file extension', () => {
-		const ripple_language = languages?.[0];
+		const tsrx_language = languages?.[0];
 
-		if (!ripple_language) {
-			throw new Error('Missing Ripple language metadata');
+		if (!tsrx_language) {
+			throw new Error('Missing TSRX language metadata');
 		}
 
-		expect(ripple_language.extensions).toContain('.tsrx');
+		expect(tsrx_language.extensions).toContain('.tsrx');
+		expect(tsrx_language.parsers).toContain('tsrx');
+		expect(parsers?.tsrx).toBeDefined();
+		expect(parsers?.ripple).toBeUndefined();
 	});
 
 	/**
@@ -55,7 +58,7 @@ describe('prettier-plugin', () => {
 	 */
 	const format = async (code, options = {}) => {
 		return await prettier.format(code, {
-			parser: 'ripple',
+			parser: 'tsrx',
 			plugins: [join(__dirname, 'index.js')],
 			...options,
 		});
@@ -816,7 +819,7 @@ const items=[1,2,3];
 		 */
 		const format = async (code, options = {}) => {
 			return await prettier.format(code, {
-				parser: 'ripple',
+				parser: 'tsrx',
 				plugins: [join(__dirname, 'index.js')],
 				...options,
 			});
@@ -829,7 +832,7 @@ const items=[1,2,3];
 		 */
 		const formatWithCursorHelper = async (code, options) =>
 			await prettier.formatWithCursor(code, {
-				parser: 'ripple',
+				parser: 'tsrx',
 				plugins: [join(__dirname, 'index.js')],
 				...options,
 			});
@@ -882,13 +885,14 @@ const items=[1,2,3];
 		});
 
 		it('registers .tsrx as a supported file extension', () => {
-			const ripple_language = languages?.[0];
+			const tsrx_language = languages?.[0];
 
-			if (!ripple_language) {
-				throw new Error('Missing Ripple language metadata');
+			if (!tsrx_language) {
+				throw new Error('Missing TSRX language metadata');
 			}
 
-			expect(ripple_language.extensions).toContain('.tsrx');
+			expect(tsrx_language.extensions).toContain('.tsrx');
+			expect(tsrx_language.parsers).toContain('tsrx');
 		});
 
 		it('should format a simple component', async () => {

@@ -104,7 +104,7 @@ export async function format_tsrx(input) {
 		...(project_config ?? {}),
 		...user_overrides,
 		filepath: resolved_filename,
-		parser: 'ripple',
+		parser: 'tsrx',
 		plugins: [tsrx_prettier_plugin],
 	};
 

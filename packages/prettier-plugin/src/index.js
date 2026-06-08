@@ -42,16 +42,16 @@ const { replaceEndOfLine, willBreak } = utils;
 /** @type {import('prettier').Plugin['languages']} */
 export const languages = [
 	{
-		name: 'ripple',
-		parsers: ['ripple'],
+		name: 'tsrx',
+		parsers: ['tsrx'],
 		extensions: ['.tsrx'],
-		vscodeLanguageIds: ['ripple'],
+		vscodeLanguageIds: ['tsrx', 'ripple'],
 	},
 ];
 
 /** @type {import('prettier').Plugin['parsers']} */
 export const parsers = {
-	ripple: {
+	tsrx: {
 		astFormat: 'ripple-ast',
 		/**
 		 * @param {string} text

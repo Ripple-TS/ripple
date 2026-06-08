@@ -1081,6 +1081,10 @@ export function TSRXPlugin(config) {
 			 * @param {AST.Node} node
 			 */
 			#reportForgottenStatementContainerBody(node) {
+				if (!this.#collect) {
+					return;
+				}
+
 				const body = /** @type {{ body?: AST.Node }} */ (node).body;
 				if (body?.type !== 'BlockStatement') {
 					return;

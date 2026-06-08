@@ -10,7 +10,7 @@
 			"files": ["*.tsrx"],
 			"options": {
 				"bracketSameLine": false,
-				"parser": "ripple"
+				"parser": "tsrx"
 			}
 		},
 		{

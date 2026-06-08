@@ -1549,6 +1549,22 @@ foo();`;
 		).toThrow();
 	});
 
+	it('does not throw forgotten statement-container hints during strict parsing', () => {
+		const source = `export function UserBadge({ user }: UserBadgeProps): JSX.Element {
+			const initials = user.name.slice(0, 2).toUpperCase();
+
+			<button title={user.name}>{initials}</button>
+		}`;
+
+		expect(() => parseModule(source, 'App.tsrx')).not.toThrow();
+
+		const errors = [];
+		parseModule(source, 'App.tsrx', { collect: true, errors });
+		expect(errors.map((error) => error.message)).toContain(
+			"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.",
+		);
+	});
+
 	it('keeps node locations in sync after re-reading a setup statement mis-read as JSX text', () => {
 		// A setup statement following a render node can be mis-tokenized as JSX text
 		// that swallows the following blank line(s). Re-reading it must rewind the
