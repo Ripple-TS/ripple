@@ -70,6 +70,78 @@ describe('@tsrx/ripple Volar mappings cover arrow functions', () => {
 	});
 });
 
+describe('@tsrx/ripple Volar mappings style anchors', () => {
+	it('omits stylesheet AST children from template style anchors', () => {
+		const source = `function App() @{
+	const items = ['one'];
+	<>
+		@try {
+			<div className="content">{'hello'}</div>
+		} @pending {
+			<div>Hello</div>
+		} @catch (err) {
+			<p className="error">{'error'}</p>
+		}
+
+		@if (items.length > 0) {
+			const hey = 'yo';
+		} @else {
+		}
+
+		@for (const item of items) {
+			<div>{item}</div>
+		} @empty {
+			<div>Nothing to see</div>
+		}
+
+		<style>
+			.content {
+				color: blue;
+			}
+			.error {
+				color: red;
+			}
+		</style>
+	</>
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const server = compile(source, 'App.tsrx', { mode: 'server', loose: true });
+		/** @type {string[]} */
+		const source_style_nodes = [];
+		const seen = new WeakSet();
+		/** @param {any} node */
+		const collect_style_nodes = (node) => {
+			if (!node || typeof node !== 'object' || seen.has(node)) return;
+			seen.add(node);
+			if (
+				node.type === 'JSXStyleElement' ||
+				(node.type === 'Element' && node.id?.name === 'style')
+			) {
+				source_style_nodes.push(node.type);
+			}
+			for (const key in node) {
+				if (key === 'parent' || key === 'metadata') continue;
+				const value = node[key];
+				if (Array.isArray(value)) {
+					for (const child of value) collect_style_nodes(child);
+				} else {
+					collect_style_nodes(value);
+				}
+			}
+		};
+		collect_style_nodes(result.sourceAst);
+
+		expect(result.code).toContain('<style></style>');
+		expect(result.code).not.toContain('StyleSheet');
+		expect(
+			result.cssMappings.some((mapping) => mapping.data?.customData?.content?.includes('.content')),
+		).toBe(true);
+		expect(source_style_nodes).toEqual(['JSXStyleElement']);
+		expect(server.code).not.toContain('StyleSheet');
+		expect(server.css).toContain('.content');
+	});
+});
+
 describe('@tsrx/ripple Volar mappings normalize to_ts source locations', () => {
 	it('maps script tokens after multiline template children', () => {
 		const source = `function App() @{

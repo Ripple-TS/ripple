@@ -4319,7 +4319,10 @@ function transform_ts_child(node, context) {
 					? null
 					: b.thunk(b.block(transform_body(node.children, child_context)));
 
-			if (is_dom_element) {
+			if (element_name === 'style') {
+				// CSS children are TSRX stylesheet AST, not TSX children. Keep the
+				// empty style anchor for type-only mappings, but never print the CSS AST.
+			} else if (is_dom_element) {
 				children.push(
 					...transform_tsrx_tsx_children(
 						/** @type {AST.Node[]} */ (node.children),

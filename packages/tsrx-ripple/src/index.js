@@ -114,6 +114,7 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 		errors,
 		comments,
 	});
+	const ast_from_source = structuredClone(ast);
 	normalize_jsx_tsrx_templates(ast);
 	const analysis = analyze(ast, filename, {
 		to_ts: true,
@@ -132,7 +133,7 @@ export function compile_to_volar_mappings(source, filename, options = {}) {
 
 	return createVolarMappingsResult({
 		ast: transformed.ast,
-		ast_from_source: ast,
+		ast_from_source,
 		source,
 		generated_code: transformed.code,
 		source_map: transformed.map,
