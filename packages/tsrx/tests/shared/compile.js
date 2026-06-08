@@ -37,6 +37,8 @@ function diagnostic_codes(result) {
 
 const TSRX_TEMPLATE_RETURN_ERROR =
 	'Return statements are not allowed inside TSRX templates. Move the return before the TSRX return value, or use conditional rendering instead.';
+const TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR =
+	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
 
 /**
  * Shared compile/editor diagnostics. These do not assert source-map structure;
@@ -75,6 +77,52 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(result.code).toContain('return [<>Delete</>, <>Edit</>];');
 			expect(result.code).toContain('return [<>View</>];');
 			expect(result.code).toContain('bySwitch: (role) => {');
+		});
+
+		it('reports function bodies that look like forgotten statement containers', () => {
+			const result = compile_to_volar_mappings(
+				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
+					if (!user) {
+						return <span class="muted">Signed out</span>;
+					}
+
+					const initials = user.name.slice(0, 2).toUpperCase();
+
+					<button title={user.name}>{initials}</button>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER);
+			expect(result.errors.map((error) => error.message)).toContain(
+				TSRX_FORGOTTEN_STATEMENT_CONTAINER_ERROR,
+			);
+		});
+
+		it('reports arrow function bodies that look like forgotten statement containers', () => {
+			const result = compile_to_volar_mappings(
+				`const UserBadge = ({ user }: UserBadgeProps): JSX.Element => {
+					const initials = user.name.slice(0, 2).toUpperCase();
+
+					<button title={user.name}>{initials}</button>
+				};`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER);
+		});
+
+		it('does not report ordinary returned JSX', () => {
+			const result = compile_to_volar_mappings(
+				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
+					return <span>{user.name}</span>;
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).not.toContain(
+				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+			);
 		});
 
 		it('allows return statements in localized setup before a template fence', () => {

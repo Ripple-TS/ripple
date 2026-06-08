@@ -5,6 +5,7 @@ import noReturnInComponent from './rules/no-return-in-component.js';
 import controlFlowJsx from './rules/control-flow-jsx.js';
 import noLazyDestructuringInModules from './rules/no-lazy-destructuring-in-modules.js';
 import validForOfKey from './rules/valid-for-of-key.js';
+import requireStatementContainerBody from './rules/require-statement-container-body.js';
 
 const plugin = {
 	meta: {
@@ -18,6 +19,7 @@ const plugin = {
 		'control-flow-jsx': controlFlowJsx,
 		'no-lazy-destructuring-in-modules': noLazyDestructuringInModules,
 		'valid-for-of-key': validForOfKey,
+		'require-statement-container-body': requireStatementContainerBody,
 	},
 	configs: {} as any,
 };
@@ -56,6 +58,7 @@ function createConfig(name: string, files: string[], parser: any) {
 			'ripple/control-flow-jsx': 'error',
 			'ripple/no-lazy-destructuring-in-modules': 'error',
 			'ripple/valid-for-of-key': 'error',
+			'ripple/require-statement-container-body': 'error',
 		},
 	};
 

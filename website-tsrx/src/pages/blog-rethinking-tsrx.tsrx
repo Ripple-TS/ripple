@@ -340,6 +340,18 @@ export function BlogRethinkingTsrxPage() @{
 							. Multiple elements need a fragment, and plain JSX text needs one too. Once that
 							output appears, the container is done: no JavaScript logic can come after it.
 						</p>
+						<p>
+							The
+							<code>@</code>
+							is the important boundary. If you write setup statements followed by a bare JSX
+							element in a normal
+							<code>{'{}'}</code>
+							function body, the compiler will tell you to add the missing
+							<code>@</code>
+							so the body becomes
+							<code>{'@{...}'}</code>
+							.
+						</p>
 						<pre class="code-block">
 							<code innerHTML={JSX_STATEMENT_CONTAINER_RULES_HTML} />
 						</pre>

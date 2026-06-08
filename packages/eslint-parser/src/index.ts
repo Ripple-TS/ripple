@@ -130,8 +130,9 @@ function ensure_node_properties(node: any, code: string): void {
  */
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
 	try {
+		const errors: any[] = [];
 		// Parse the TSRX source code using the shared TSRX parser
-		const ast = parse_module(code, options?.filePath) as any;
+		const ast = parse_module(code, options?.filePath, { collect: true, errors }) as any;
 		if (!ast) throw new Error('Parser returned null or undefined AST');
 
 		// Normalize for ESLint traversal (avoid duplicate node visits)
@@ -158,7 +159,9 @@ export function parseForESLint(code: string, options?: Linter.ParserOptions): Pa
 
 		return {
 			ast: result,
-			services: {},
+			services: {
+				tsrxDiagnostics: errors,
+			},
 			visitorKeys,
 		};
 	} catch (error: any) {

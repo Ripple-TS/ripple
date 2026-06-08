@@ -470,6 +470,15 @@ export const FeaturesPage = () => @{
 								<code class="inline-code">{'{}'}</code>
 								blocks.
 							</p>
+							<p class="section-body muted">
+								If you write setup statements and then a bare JSX element inside a normal
+								<code class="inline-code">{'{}'}</code>
+								function body, the compiler will ask you to add the missing
+								<code class="inline-code">@</code>
+								. Plain braces are JavaScript; statement-container braces are
+								<code class="inline-code">{'@{...}'}</code>
+								.
+							</p>
 							<pre class="code-block">
 								<code innerHTML={TEMPLATE_STRUCTURE_HTML} />
 							</pre>

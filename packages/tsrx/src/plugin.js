@@ -18,6 +18,8 @@ import { DIAGNOSTIC_CODES } from './diagnostics.js';
 import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
 	'Dynamic component / element syntax (`@`) is only supported on native TSRX element names, not attribute names.';
+const FORGOTTEN_STATEMENT_CONTAINER_ERROR =
+	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
 
 const CharCode = Object.freeze({
 	tab: 9,
@@ -1053,6 +1055,40 @@ export function TSRXPlugin(config) {
 						return true;
 				}
 				return false;
+			}
+
+			/**
+			 * A normal function body that directly contains a bare JSX/control-flow node
+			 * almost always means the author wrote `{ ... <div /> }` but intended
+			 * `@{ ... <div /> }`. Report only direct body children so ordinary nested
+			 * callbacks/branches are diagnosed by their own function body, not their parent.
+			 * @param {AST.Node} node
+			 */
+			#reportForgottenStatementContainerBody(node) {
+				if (node.body?.type !== 'BlockStatement') {
+					return;
+				}
+
+				for (const statement of node.body.body || []) {
+					const target =
+						this.#isRenderOutputNode(statement) ||
+						(statement.type === 'ExpressionStatement' &&
+							this.#isRenderOutputNode(statement.expression))
+							? statement
+							: null;
+
+					if (!target) {
+						continue;
+					}
+
+					this.#report_recoverable_error_range(
+						/** @type {number} */ (target.start),
+						/** @type {number} */ (target.end),
+						FORGOTTEN_STATEMENT_CONTAINER_ERROR,
+						DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+					);
+					return;
+				}
 			}
 
 			/**
@@ -3059,7 +3095,9 @@ export function TSRXPlugin(config) {
 						this.exitScope();
 						return node;
 					}
-					return super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
+					const parsed = super.parseFunctionBody(node, isArrowFunction, isMethod, forInit, ...args);
+					this.#reportForgottenStatementContainerBody(parsed);
+					return parsed;
 				} finally {
 					this.#functionBodyDepth--;
 				}
