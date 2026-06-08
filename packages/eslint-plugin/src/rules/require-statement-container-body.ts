@@ -1,3 +1,4 @@
+import type { Rule } from 'eslint';
 import type * as AST from '@tsrx/core/types/estree';
 
 type AnyNode = AST.Node & Record<string, any>;
@@ -41,7 +42,7 @@ function get_forgotten_output_statement(node: AST.Node): AnyNode | null {
 	return null;
 }
 
-export default {
+const rule: Rule.RuleModule = {
 	meta: {
 		type: 'problem',
 		docs: {
@@ -51,6 +52,7 @@ export default {
 		messages: {
 			requireStatementContainerBody: MESSAGE,
 		},
+		schema: [],
 	},
 	create(context) {
 		function check_function(node: AST.Node) {
@@ -76,3 +78,5 @@ export default {
 		};
 	},
 };
+
+export default rule;

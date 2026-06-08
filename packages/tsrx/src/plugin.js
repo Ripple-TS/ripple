@@ -318,7 +318,7 @@ export function TSRXPlugin(config) {
 			 * This helper keeps the parser-state setup in one place while callers keep
 			 * ownership of their distinct closing delimiter handling (`}` vs `</tag>`).
 			 *
-				 * @param {AST.Node & { body?: AST.Node }} node
+			 * @param {AST.Node & { body?: AST.Node }} node
 			 * @param {AST.Node[]} body
 			 * @param {{
 			 *   enterScope?: boolean,
