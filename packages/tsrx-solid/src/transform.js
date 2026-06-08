@@ -40,7 +40,7 @@ import {
 import { builders as b } from '@tsrx/core';
 
 const TSRX_FOR_RETURN_ERROR =
-	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
+	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @empty fallback for empty lists.';
 const TSRX_FOR_BREAK_ERROR =
 	'Break statements are not allowed inside TSRX template for...of loops.';
 const TSRX_FOR_CONTINUE_ERROR =

@@ -108,7 +108,7 @@ function create_advice(input) {
 			severity: 'error',
 			title: 'Filter before TSRX for...of loops',
 			message:
-				'Direct continue, break, and return statements are not valid inside TSRX @for loops. Filter the iterable before rendering, use  { ... } for the no-items fallback, and keep ordinary JavaScript control flow inside nested functions.',
+				'Direct continue, break, and return statements are not valid inside TSRX @for loops. Filter the iterable before rendering, use @empty { ... } for the no-items fallback, and keep ordinary JavaScript control flow inside nested functions.',
 			documentation: ['tsrx://docs/control-flow.md'],
 		});
 	}

@@ -98,7 +98,7 @@ const TEMPLATE_EXPRESSION_GRAMMAR = [
 	'',
 	'JSXForExpression :',
 	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock',
-	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock empty TemplateBlock',
+	'  @for ( ForHeader TemplateForOptionsopt ) TemplateBlock @empty TemplateBlock',
 	'',
 	'JSXSwitchExpression :',
 	'  @switch ( Expression ) { JSXSwitchCaseListopt }',

@@ -214,7 +214,7 @@ export function StatusBadge() @{
 ```
 
 Use `@for (... of ...)` for rendered lists. Filter the iterable before rendering
-when some items should be skipped, and use ` { ... }` for the no-items
+when some items should be skipped, and use `@empty { ... }` for the no-items
 fallback. Direct `continue`, `break`, and `return` statements are not allowed in
 `@for` template loop bodies, and are also invalid inside `@if` template branches.
 `@switch` cases are isolated `{...}` blocks, do not fall through, and do not use

@@ -64,7 +64,7 @@ const HOOK_CALLBACK_OUTER_MUTATION_ERROR =
 const TEMPLATE_FRAGMENT_ERROR =
 	'JSX fragment syntax is not needed in TSRX templates. TSRX renders in immediate mode, so everything is already a fragment. Use `<>...</>` only in expression position.';
 const TSRX_FOR_RETURN_ERROR =
-	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @for empty fallback for empty lists.';
+	'Return statements are not allowed inside TSRX template for...of loops. Filter the iterable before rendering or use an @empty fallback for empty lists.';
 const TSRX_FOR_BREAK_ERROR =
 	'Break statements are not allowed inside TSRX template for...of loops.';
 const TSRX_FOR_CONTINUE_ERROR =
