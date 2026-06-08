@@ -543,6 +543,41 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('return <App__StatementBodyHook');
 	});
 
+	it('does not split hooks out of ordinary functions that return TSRX control flow', () => {
+		const { code } = compile(
+			`import { useEffect } from 'react';
+
+			export function StatusBadge({
+				status,
+			}: {
+				status: 'active' | 'idle' | 'offline';
+			}) {
+				if (status === 'active') {
+					return <span class="badge active">Online</span>;
+				}
+
+				useEffect(() => {
+					console.log('!');
+				}, []);
+
+				return <>
+					@if (status === 'idle') {
+						<span class="badge idle">Away</span>
+					} @else {
+						<span class="badge">Offline</span>
+					}
+				</>;
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('export function StatusBadge');
+		expect(code).toContain('useEffect(');
+		expect(code).toContain("status === 'idle' ?");
+		expect(code).not.toContain('StatementBodyHook');
+		expect(code).not.toContain('return <StatusBadge__StatementBodyHook');
+	});
+
 	it('keeps setup guard returns while preserving source local names', () => {
 		const source = `import { useEffect } from 'react';
 

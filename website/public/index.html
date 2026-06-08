@@ -533,7 +533,7 @@
 				color: #e1e4e8;
 				overflow-x: auto;
 				text-align: left;
-				height: 800px;
+				height: min(620px, 64vh);
 			}
 
 			.editor-code {
@@ -679,7 +679,7 @@
 				.editor-content {
 					padding: 0.5rem;
 					font-size: 0.65rem;
-					height: 400px;
+					height: min(360px, 58vh);
 					overflow-x: auto;
 					overflow-y: auto;
 				}
@@ -973,7 +973,7 @@
 <span class="line-number"> 7</span>     <span class="bracket">&lt;</span><span class="tag">ul</span><span class="bracket">&gt;</span>
 <span class="line-number"> 8</span>       <span class="control-keyword">@for</span> <span class="brace">(</span><span class="keyword">const</span> <span class="property">todo</span> <span class="keyword">of</span> <span class="ripple-syntax">todos</span>; <span class="keyword">key</span> <span class="property">todo.id</span><span class="brace">)</span> <span class="block-brace">{</span>
 <span class="line-number"> 9</span>         <span class="bracket">&lt;</span><span class="tag">li</span><span class="bracket">&gt;</span><span class="template-brace">{</span><span class="property">todo.text</span><span class="template-brace">}</span><span class="bracket">&lt;/</span><span class="tag">li</span><span class="bracket">&gt;</span>
-<span class="line-number">10</span>       <span class="block-brace">}</span> <span class="control-keyword">empty</span> <span class="block-brace">{</span>
+<span class="line-number">10</span>       <span class="block-brace">}</span> <span class="control-keyword">@empty</span> <span class="block-brace">{</span>
 <span class="line-number">11</span>         <span class="bracket">&lt;</span><span class="tag">li</span><span class="bracket">&gt;</span><span class="string">No todos yet</span><span class="bracket">&lt;/</span><span class="tag">li</span><span class="bracket">&gt;</span>
 <span class="line-number">12</span>       <span class="block-brace">}</span>
 <span class="line-number">13</span>     <span class="bracket">&lt;/</span><span class="tag">ul</span><span class="bracket">&gt;</span>

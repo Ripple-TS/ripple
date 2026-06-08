@@ -1114,7 +1114,7 @@ function transform_block_statement(node, { next, visit, state, path }) {
 		}
 	}
 
-	if (get_active_native_tsrx_function(path)) {
+	if (get_active_native_tsrx_function(path)?.metadata?.native_tsrx_body) {
 		const block = create_native_tsrx_statement_list_block(node, state);
 		if (block) {
 			return visit(block, state);
@@ -1130,7 +1130,22 @@ function transform_block_statement(node, { next, visit, state, path }) {
  * @returns {any}
  */
 function transform_return_statement(node, { next, visit, state, path }) {
-	if (get_active_native_tsrx_function(path) && is_native_tsrx_node(node.argument)) {
+	const active_native_tsrx_function = get_active_native_tsrx_function(path);
+	if (active_native_tsrx_function && is_native_tsrx_node(node.argument)) {
+		if (!active_native_tsrx_function.metadata?.native_tsrx_body) {
+			const statements = mark_native_pretransformed_jsx(
+				create_native_tsrx_render_statements(node.argument, state),
+			);
+			if (statements.length === 1) {
+				return visit(statements[0], state);
+			}
+			const block = b.block(statements, node.argument);
+			block.metadata = {
+				...(block.metadata || {}),
+				native_return_block: true,
+			};
+			return visit(block, state);
+		}
 		return visit(create_native_tsrx_render_block(node.argument, state), state);
 	}
 
@@ -1198,7 +1213,9 @@ function transform_function(node, context) {
 		node.metadata?.native_tsrx_function ||
 		function_has_native_tsrx_return(node)
 	) {
-		return transform_native_tsrx_function(node, context);
+		return transform_native_tsrx_function(node, context, {
+			nativeBody: has_jsx_code_block_body || !!node.metadata?.native_tsrx_function,
+		});
 	}
 
 	return transform_function_with_hook_helpers(node, context);
@@ -1235,9 +1252,10 @@ function lower_jsx_code_block_function_body(node) {
 /**
  * @param {any} node
  * @param {{ next: () => any, state: TransformContext }} context
+ * @param {{ nativeBody?: boolean }} [options]
  * @returns {any}
  */
-function transform_native_tsrx_function(node, { next, state }) {
+function transform_native_tsrx_function(node, { next, state }, { nativeBody = false } = {}) {
 	const helper_state =
 		state.helper_state || create_helper_state(get_function_helper_base_name(node));
 	const saved_helper_state = state.helper_state;
@@ -1249,7 +1267,8 @@ function transform_native_tsrx_function(node, { next, state }) {
 	node.metadata = {
 		...(node.metadata || {}),
 		native_tsrx: true,
-		...(needs_hook_split(node, state) ? { hook_split: true } : {}),
+		...(nativeBody ? { native_tsrx_body: true } : {}),
+		...(nativeBody && needs_hook_split(node, state) ? { hook_split: true } : {}),
 	};
 	state.available_bindings = merge_binding_maps(
 		saved_bindings,
@@ -1275,6 +1294,7 @@ function transform_native_tsrx_function(node, { next, state }) {
 	inner.metadata = {
 		...strip_function_transform_metadata(inner.metadata),
 		native_tsrx_function: true,
+		...(nativeBody ? { native_tsrx_body: true } : {}),
 		...(!saved_helper_state ? create_generated_helper_metadata(helper_state) || {} : {}),
 	};
 

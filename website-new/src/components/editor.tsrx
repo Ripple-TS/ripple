@@ -162,7 +162,7 @@ export function Editor() @{
 				color: #e1e4e8;
 				overflow-x: auto;
 				text-align: left;
-				height: 800px;
+				height: min(620px, 64vh);
 			}
 
 			.editor-code {
