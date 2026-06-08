@@ -484,15 +484,15 @@ function SwitchReactiveApp() @{
 	</>
 }
 
-function GuardTrailingReturnApp() {
+function GuardTrailingReturnApp() @{
 	const [kind, setKind] = createSignal('skip');
 	if (kind() === 'done') {
 		return <><p class="guard-result">{'done'}</p></>;
 	}
-	return <>
+	<>
 		<p class="guard-rest">{'rest'}</p>
 		<button class="guard-done" onClick={() => setKind('done')}>{'done'}</button>
-	</>;
+	</>
 }
 
 // ── Composite children ──
@@ -786,7 +786,7 @@ function SignalInSwitchApp() @{
 
 // ── Component guard return before signals with parent scope ──
 
-function GuardReturnWithSignalsApp() {
+function GuardReturnWithSignalsApp() @{
 	const [count, setCount] = createSignal(0);
 	const [skip, setSkip] = createSignal(false);
 	if (skip()) {
@@ -794,7 +794,7 @@ function GuardReturnWithSignalsApp() {
 	}
 	const [doubled, setDoubled] = createSignal(0);
 
-	return <>
+	<>
 		<p class="early-count">{count()}</p>
 		<p class="early-doubled">{doubled()}</p>
 		<button
@@ -805,7 +805,7 @@ function GuardReturnWithSignalsApp() {
 			}}
 		>{'inc'}</button>
 		<button class="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
-	</>;
+	</>
 }
 
 function ConditionalBranchTemplateApp() @{

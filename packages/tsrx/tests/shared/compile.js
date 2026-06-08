@@ -376,6 +376,85 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 			expect(code).not.toContain('return;\n');
 		});
 	});
+
+	describe(`[${name}] control flow in expression position`, () => {
+		it('lowers @switch assigned to a variable', () => {
+			const { code } = compile(
+				`function App({ status }: { status: string }) {
+						const view = @switch (status) {
+							@case 'loading': { <p>Loading...</p> }
+							@default: { <p>Unknown status.</p> }
+						};
+						return view;
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('Loading...');
+			expect(code).toContain('Unknown status.');
+			expect(code).not.toContain('@switch');
+			expect(code).not.toContain('JSXSwitchExpression');
+		});
+
+		it('lowers @switch in an expression-bodied arrow output', () => {
+			const { code } = compile(
+				`const StatusMessage = ({ status }: { status: string }) => @switch (status) {
+						@case 'loading': { <p>Loading...</p> }
+						@case 'success': { <p>Done!</p> }
+						@default: { <p>Unknown status.</p> }
+					};`,
+				'App.tsrx',
+			);
+			expect(code).toContain('Loading...');
+			expect(code).toContain('Done!');
+			expect(code).toContain('Unknown status.');
+			expect(code).toContain(`'loading'`);
+			expect(code).not.toContain('@switch');
+			expect(code).not.toContain('JSXSwitchExpression');
+		});
+
+		it('lowers @switch in a return statement output', () => {
+			const { code } = compile(
+				`function StatusMessage({ status }: { status: string }) {
+						return @switch (status) {
+							@case 'loading': { <p>Loading...</p> }
+							@default: { <p>Unknown status.</p> }
+						};
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('Loading...');
+			expect(code).toContain('Unknown status.');
+			expect(code).not.toContain('@switch');
+			expect(code).not.toContain('JSXSwitchExpression');
+		});
+
+		it('lowers @if in an expression-bodied arrow output', () => {
+			const { code } = compile(
+				`const Banner = ({ ok }: { ok: boolean }) => @if (ok) {
+						<p>All good</p>
+					} @else {
+						<p>Something broke</p>
+					};`,
+				'App.tsrx',
+			);
+			expect(code).toContain('All good');
+			expect(code).toContain('Something broke');
+			expect(code).not.toContain('@if');
+			expect(code).not.toContain('JSXIfExpression');
+		});
+
+		it('lowers @for in an expression-bodied arrow output', () => {
+			const { code } = compile(
+				`const List = ({ items }: { items: string[] }) => @for (const item of items) {
+						<li>{item}</li>
+					};`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<li>');
+			expect(code).not.toContain('@for');
+			expect(code).not.toContain('JSXForExpression');
+		});
+	});
 }
 
 /**

@@ -331,7 +331,7 @@
     },
     "tsrx-template-inline-conditional-directive": {
       "name": "meta.directive.if.tsrx",
-      "begin": "(@)(if)(?![_$[:alnum:]])(?=\\s*(\\(([^\\(\\)]|(\\(([^\\(\\)]|\\([^\\(\\)]*\\))*\\)))*\\))\\s*(?!\\{))",
+      "begin": "(@)(if)(?![_$[:alnum:]])(?=\\s*(\\(([^\\(\\)]|(\\(([^\\(\\)]|\\([^\\(\\)]*\\))*\\)))*\\))(?!\\s*\\{))",
       "beginCaptures": {
         "0": {
           "name": "keyword.control.directive.tsrx"
@@ -343,7 +343,7 @@
           "name": "keyword.control.directive.tsrx"
         }
       },
-      "end": "(?=$|(?=\\s+@else\\b)|(?=\\}))",
+      "end": "(?=$|(?=\\s+@?else\\b)|(?=\\}))",
       "patterns": [
         {
           "include": "#tsrx-template-directive-header"
@@ -382,6 +382,57 @@
         }
       ]
     },
+    "tsrx-template-switch-case-block": {
+      "name": "meta.directive.switch.case.tsrx",
+      "begin": "(@)(case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:\\s*\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.directive.tsrx"
+        },
+        "2": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-switch-case-body"
+        },
+        {
+          "name": "punctuation.definition.section.case-statement.js",
+          "match": ":"
+        },
+        {
+          "include": "#expression"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-switch-case-body": {
+      "name": "meta.directive.block.tsrx",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#component-statements"
+        },
+        {
+          "include": "#tsrx-template-children"
+        }
+      ]
+    },
     "tsrx-template-conditional-directive": {
       "name": "meta.directive.if.tsrx",
       "begin": "(@)(if)(?![_$[:alnum:]])",
@@ -396,13 +447,16 @@
           "name": "keyword.control.directive.tsrx"
         }
       },
-      "end": "(?<=\\})",
+      "end": "(?<=\\})(?!\\s*@?else(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{)))",
       "patterns": [
         {
           "include": "#tsrx-template-directive-header"
         },
         {
           "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#tsrx-template-branch-directive"
         },
         {
           "include": "#comment"
@@ -423,13 +477,16 @@
           "name": "keyword.control.directive.tsrx"
         }
       },
-      "end": "(?<=\\})",
+      "end": "(?<=\\})(?!\\s*@empty(?![_$[:alnum:]])(?=\\s*(?:\\{|[^\\n{}]+\\{)))",
       "patterns": [
         {
           "include": "#tsrx-template-directive-header"
         },
         {
           "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#tsrx-template-branch-directive"
         },
         {
           "include": "#comment"
@@ -456,7 +513,30 @@
           "include": "#tsrx-template-directive-header"
         },
         {
-          "include": "#tsrx-template-directive-block"
+          "include": "#tsrx-template-switch-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-switch-directive-block": {
+      "name": "meta.directive.block.tsrx",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.block.tsrx punctuation.definition.block.js"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#tsrx-template-switch-case-block"
         },
         {
           "include": "#comment"
@@ -477,10 +557,13 @@
           "name": "keyword.control.directive.tsrx"
         }
       },
-      "end": "(?<=\\})",
+      "end": "(?<=\\})(?!\\s*@(pending|catch)(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{)))",
       "patterns": [
         {
           "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#tsrx-template-branch-directive"
         },
         {
           "include": "#comment"
@@ -489,7 +572,7 @@
     },
     "tsrx-template-branch-directive": {
       "name": "meta.directive.branch.tsrx",
-      "begin": "(?:(@)(else|empty|pending|catch)|(finally))(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{))",
+      "begin": "(?:(@)(else|empty|pending|catch)|(else|catch))(?![_$[:alnum:]])(?=\\s*(?:\\(|\\{|[^\\n{}]+\\{))",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.directive.tsrx"
@@ -498,6 +581,30 @@
           "name": "keyword.control.directive.tsrx"
         },
         "3": {
+          "name": "keyword.control.directive.tsrx"
+        }
+      },
+      "end": "(?<=\\})",
+      "patterns": [
+        {
+          "include": "#tsrx-template-branch-if-directive"
+        },
+        {
+          "include": "#tsrx-template-directive-header"
+        },
+        {
+          "include": "#tsrx-template-directive-block"
+        },
+        {
+          "include": "#comment"
+        }
+      ]
+    },
+    "tsrx-template-branch-if-directive": {
+      "name": "meta.directive.if.tsrx",
+      "begin": "(if)(?![_$[:alnum:]])",
+      "beginCaptures": {
+        "1": {
           "name": "keyword.control.directive.tsrx"
         }
       },
@@ -613,7 +720,13 @@
     "expressionWithoutIdentifiers": {
       "patterns": [
         {
+          "include": "#tsrx-template-child-directive"
+        },
+        {
           "include": "#tsrx-template-block-directive"
+        },
+        {
+          "include": "#tsrx-template-directive"
         },
         {
           "include": "#string"
@@ -6792,7 +6905,13 @@
     "non-jsx-expression": {
       "patterns": [
         {
+          "include": "#tsrx-template-child-directive"
+        },
+        {
           "include": "#tsrx-template-block-directive"
+        },
+        {
+          "include": "#tsrx-template-directive"
         },
         {
           "include": "#jsx-tag-code-in-expression"

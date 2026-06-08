@@ -73,15 +73,17 @@ describe('vite-plugin-ripple source maps', () => {
 		await init_plugin(plugin, root);
 
 		const id = `${root}/Styled.tsrx`;
-		const source = `export function Styled() { return <>
-			<div>{'Hello world'}</div>
+		const source = `export function Styled() @{
+			<>
+				<div>{'Hello world'}</div>
 
-			<style>
-				.div {
-					color: red;
-				}
-			</style>
-		</>; }`;
+				<style>
+					.div {
+						color: red;
+					}
+				</style>
+			</>
+		}`;
 
 		const result = await call_transform(plugin, source, id);
 

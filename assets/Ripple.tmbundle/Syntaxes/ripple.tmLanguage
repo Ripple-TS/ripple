@@ -3146,7 +3146,15 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-child-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#tsrx-template-block-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -6145,7 +6153,15 @@
 			<array>
 				<dict>
 					<key>include</key>
+					<string>#tsrx-template-child-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
 					<string>#tsrx-template-block-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -8988,7 +9004,7 @@
 		<key>tsrx-template-branch-directive</key>
 		<dict>
 			<key>begin</key>
-			<string>(?:(@)(else|empty|pending|catch)|(finally))(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{))</string>
+			<string>(?:(@)(else|empty|pending|catch)|(else|catch))(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{))</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>1</key>
@@ -9011,6 +9027,42 @@
 			<string>(?&lt;=\})</string>
 			<key>name</key>
 			<string>meta.directive.branch.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-branch-if-directive</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-directive-header</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-directive-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#comment</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-branch-if-directive</key>
+		<dict>
+			<key>begin</key>
+			<string>(if)(?![_$[:alnum:]])</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?&lt;=\})</string>
+			<key>name</key>
+			<string>meta.directive.if.tsrx</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -9170,7 +9222,7 @@
 				</dict>
 			</dict>
 			<key>end</key>
-			<string>(?&lt;=\})</string>
+			<string>(?&lt;=\})(?!\s*@?else(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{)))</string>
 			<key>name</key>
 			<string>meta.directive.if.tsrx</string>
 			<key>patterns</key>
@@ -9182,6 +9234,10 @@
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-directive-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-branch-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -9329,7 +9385,7 @@
 		<key>tsrx-template-inline-conditional-directive</key>
 		<dict>
 			<key>begin</key>
-			<string>(@)(if)(?![_$[:alnum:]])(?=\s*(\(([^\(\)]|(\(([^\(\)]|\([^\(\)]*\))*\)))*\))\s*(?!\{))</string>
+			<string>(@)(if)(?![_$[:alnum:]])(?=\s*(\(([^\(\)]|(\(([^\(\)]|\([^\(\)]*\))*\)))*\))(?!\s*\{))</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>0</key>
@@ -9349,7 +9405,7 @@
 				</dict>
 			</dict>
 			<key>end</key>
-			<string>(?=$|(?=\s+@else\b)|(?=\}))</string>
+			<string>(?=$|(?=\s+@?else\b)|(?=\}))</string>
 			<key>name</key>
 			<string>meta.directive.if.tsrx</string>
 			<key>patterns</key>
@@ -9391,7 +9447,7 @@
 				</dict>
 			</dict>
 			<key>end</key>
-			<string>(?&lt;=\})</string>
+			<string>(?&lt;=\})(?!\s*@empty(?![_$[:alnum:]])(?=\s*(?:\{|[^\n{}]+\{)))</string>
 			<key>name</key>
 			<string>meta.directive.for.tsrx</string>
 			<key>patterns</key>
@@ -9403,6 +9459,10 @@
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-directive-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-branch-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -9425,6 +9485,85 @@
 				<dict>
 					<key>include</key>
 					<string>#component-statements</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-switch-case-block</key>
+		<dict>
+			<key>begin</key>
+			<string>(@)(case|default)(?![_$[:alnum:]])(?=[^\n{}]*:\s*\{)</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>keyword.control.directive.tsrx</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?&lt;=\})</string>
+			<key>name</key>
+			<string>meta.directive.switch.case.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-switch-case-body</string>
+				</dict>
+				<dict>
+					<key>match</key>
+					<string>:</string>
+					<key>name</key>
+					<string>punctuation.definition.section.case-statement.js</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#expression</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#comment</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-switch-case-body</key>
+		<dict>
+			<key>begin</key>
+			<string>\{</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\}</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.directive.block.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#component-statements</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-children</string>
 				</dict>
 			</array>
 		</dict>
@@ -9503,7 +9642,43 @@
 				</dict>
 				<dict>
 					<key>include</key>
-					<string>#tsrx-template-directive-block</string>
+					<string>#tsrx-template-switch-directive-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#comment</string>
+				</dict>
+			</array>
+		</dict>
+		<key>tsrx-template-switch-directive-block</key>
+		<dict>
+			<key>begin</key>
+			<string>\{</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>\}</string>
+			<key>endCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>meta.directive.block.tsrx</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-switch-case-block</string>
 				</dict>
 				<dict>
 					<key>include</key>
@@ -9534,7 +9709,7 @@
 				</dict>
 			</dict>
 			<key>end</key>
-			<string>(?&lt;=\})</string>
+			<string>(?&lt;=\})(?!\s*@(pending|catch)(?![_$[:alnum:]])(?=\s*(?:\(|\{|[^\n{}]+\{)))</string>
 			<key>name</key>
 			<string>meta.directive.try.tsrx</string>
 			<key>patterns</key>
@@ -9542,6 +9717,10 @@
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-directive-block</string>
+				</dict>
+				<dict>
+					<key>include</key>
+					<string>#tsrx-template-branch-directive</string>
 				</dict>
 				<dict>
 					<key>include</key>

@@ -138,11 +138,6 @@
 (style_element
   (raw_text) @string.special)
 
-; JSX statement containers
-(jsx_statement_container
-  "@{" @punctuation.bracket
-  "}" @punctuation.bracket)
-
 (jsx_if_expression
   "@" @keyword.control
   "if" @keyword.control)
@@ -150,17 +145,35 @@
 (jsx_else_if_clause
   "if" @keyword.control)
 
+(jsx_else_clause
+  "@else" @keyword.control)
+
 (jsx_for_expression
   "@" @keyword.control
   "for" @keyword.control)
+
+(jsx_empty_clause
+  "@empty" @keyword.control)
 
 (jsx_switch_expression
   "@" @keyword.control
   "switch" @keyword.control)
 
+(jsx_switch_case
+  "@case" @keyword.control)
+
+(jsx_switch_default
+  "@default" @keyword.control)
+
 (jsx_try_expression
   "@" @keyword.control
   "try" @keyword.control)
+
+(jsx_pending_clause
+  "@pending" @keyword.control)
+
+(jsx_catch_clause
+  "@catch" @keyword.control)
 
 ; Types
 (type_identifier) @type
@@ -281,6 +294,11 @@
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 ["." "," ";" ":" "..."] @punctuation.delimiter
 ; Note: < and > are handled separately in JSX contexts as @tag.delimiter
+
+; JSX statement container fences should keep directive coloring over generic brackets.
+(jsx_statement_container
+  "@{" @keyword.control
+  "}" @keyword.control)
 
 (template_substitution
   "${" @punctuation.special

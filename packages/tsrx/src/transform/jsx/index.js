@@ -224,6 +224,73 @@ function expand_child_code_blocks(node, seen = new Set()) {
 }
 
 /**
+ * A `@`-prefixed JSX control-flow expression (`@if`/`@for`/`@switch`/`@try`).
+ * These are the only control-flow nodes that can appear in expression position;
+ * the plain statement forms (`IfStatement`, `SwitchStatement`, …) never do.
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_jsx_control_flow_expression(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'JSXSwitchExpression' ||
+		node?.type === 'JSXTryExpression'
+	);
+}
+
+/**
+ * Wrap a render-output node in a native TSRX fragment so it flows through the
+ * same single-child render path as a `<> … </>` output.
+ * @param {any} node
+ * @returns {any}
+ */
+function wrap_in_native_tsrx_fragment(node) {
+	const fragment = b.jsx_fragment([node]);
+	fragment.metadata = { ...(fragment.metadata || {}), native_tsrx: true };
+	return fragment;
+}
+
+/**
+ * Wrap a bare JSX control-flow directive that sits directly in an expression
+ * position — an expression-bodied arrow (`() => @switch (…) { … }`), a
+ * `return @switch (…) { … }`, or assignment to a variable
+ * (`const x = @switch (…) { … }`, `x = @switch (…) { … }`) — in a native TSRX
+ * fragment.
+ * @param {any} node
+ * @param {Set<any>} [seen]
+ * @returns {void}
+ */
+function wrap_control_flow_expression_values(node, seen = new Set()) {
+	if (!node || typeof node !== 'object' || seen.has(node)) return;
+	seen.add(node);
+
+	if (Array.isArray(node)) {
+		for (const item of node) wrap_control_flow_expression_values(item, seen);
+		return;
+	}
+
+	if (
+		node.type === 'ArrowFunctionExpression' &&
+		node.body?.type !== 'BlockStatement' &&
+		is_jsx_control_flow_expression(node.body)
+	) {
+		node.body = wrap_in_native_tsrx_fragment(node.body);
+	} else if (node.type === 'ReturnStatement' && is_jsx_control_flow_expression(node.argument)) {
+		node.argument = wrap_in_native_tsrx_fragment(node.argument);
+	} else if (node.type === 'VariableDeclarator' && is_jsx_control_flow_expression(node.init)) {
+		node.init = wrap_in_native_tsrx_fragment(node.init);
+	} else if (node.type === 'AssignmentExpression' && is_jsx_control_flow_expression(node.right)) {
+		node.right = wrap_in_native_tsrx_fragment(node.right);
+	}
+
+	for (const key of Object.keys(node)) {
+		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		wrap_control_flow_expression_values(node[key], seen);
+	}
+}
+
+/**
  * Build a `transform()` function for a specific JSX platform (React, Preact,
  * Solid). Given a `JsxPlatform` descriptor, returns a transform that lowers
  * native TSRX template nodes into a plain TSX module for that platform.
@@ -285,6 +352,7 @@ export function createJsxTransform(platform) {
 		};
 
 		expand_child_code_blocks(/** @type {any} */ (ast));
+		wrap_control_flow_expression_values(/** @type {any} */ (ast));
 
 		if (!transform_context.typeOnly) {
 			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);

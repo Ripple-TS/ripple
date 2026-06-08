@@ -39,23 +39,25 @@ describe('basic client > styling', () => {
 	});
 
 	it('renders with keyframes in styling scoped to component', () => {
-		const source = `export function Basic() { return <>
-			<div>
-				<p>{'Styled paragraph'}</p>
-			</div>
+		const source = `export function Basic() @{
+			<>
+				<div>
+					<p>{'Styled paragraph'}</p>
+				</div>
 
-			<style>
-				div {
-					animation-name: anim;
-				}
+				<style>
+					div {
+						animation-name: anim;
+					}
 
-				@keyframes anim {}
+					@keyframes anim {}
 
-				p {
-					animation-name: anim;
-				}
-			</style>
-		</>; }`;
+					p {
+						animation-name: anim;
+					}
+				</style>
+			</>
+		}`;
 
 		const { css } = compile(source, 'test.tsrx');
 		const name = css.match(/@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/)[1];
