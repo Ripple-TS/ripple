@@ -231,10 +231,11 @@ declare module 'estree' {
 		lazy?: boolean;
 	}
 
-	// We mark the whole node as marked when member is @[expression]
-	// Otherwise, we only mark Identifier nodes
+	// Dynamic tag parsing may mark the whole member expression; otherwise,
+	// tracking usually lives on identifier nodes.
 	interface MemberExpression {
 		tracked?: boolean;
+		dynamic?: boolean;
 	}
 
 	interface SimpleLiteral extends AST.LiteralNode {}
@@ -243,6 +244,7 @@ declare module 'estree' {
 
 	interface TrackedNode {
 		tracked?: boolean;
+		dynamic?: boolean;
 	}
 
 	interface LiteralNode {
@@ -701,6 +703,7 @@ declare module 'estree-jsx' {
 
 	interface JSXIdentifier {
 		tracked?: boolean;
+		dynamic?: boolean;
 		metadata: BaseNodeMetaData & {
 			is_component?: boolean;
 		};

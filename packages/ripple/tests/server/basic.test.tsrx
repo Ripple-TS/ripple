@@ -403,7 +403,7 @@ second
 		function Parent() @{
 			const count = track(10);
 			let Dynamic = track(() => Child);
-			<@Dynamic {count} class={{ test: true }} />
+			<${Dynamic} {count} class={{ test: true }} />
 		}
 
 		const { body } = await render(Parent);

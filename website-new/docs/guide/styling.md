@@ -259,7 +259,7 @@ function Parent() @{
 
 ### With Dynamic Components
 
-Style expression maps also work when rendering dynamic components with `<@Component />`:
+Style expression maps also work when rendering dynamic components with `<${Component} />`:
 
 ```tsrx
 import { track } from 'ripple';
@@ -276,7 +276,7 @@ function Parent() @{
   </style>;
 
   let &[Dynamic] = track(() => Child);
-  <@Dynamic cls={styles.text} />
+  <${Dynamic} cls={styles.text} />
 }
 ```
 

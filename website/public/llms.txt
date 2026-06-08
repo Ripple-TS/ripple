@@ -293,7 +293,7 @@ export function SearchBox() @{
 
 ## Dynamic Components And Elements
 
-Use `<@value />` when the tag or component is dynamic.
+Use `<${value} />` when the tag or component is dynamic.
 
 ```tsrx
 import { track } from 'ripple';
@@ -310,7 +310,7 @@ export function DynamicButton() @{
 	let &[Current] = track(() => Primary);
 
 	<>
-		<@Current />
+		<${Current} />
 		<button onClick={() => (Current = Current === Primary ? Secondary : Primary)}>
 			Swap
 		</button>

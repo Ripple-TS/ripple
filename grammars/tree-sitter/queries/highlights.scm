@@ -53,6 +53,14 @@
   name: (jsx_element_name) @tag
   ">" @tag.delimiter)
 
+(jsx_opening_element
+  "<" @tag.delimiter
+  name: (jsx_dynamic_element_name
+    "${" @tag.delimiter
+    name: (jsx_non_namespaced_element_name) @tag
+    "}" @tag.delimiter)
+  ">" @tag.delimiter)
+
 (jsx_opening_fragment
   "<" @tag.delimiter
   ">" @tag.delimiter)
@@ -60,6 +68,14 @@
 (jsx_closing_element
   "</" @tag.delimiter
   name: (jsx_element_name) @tag
+  ">" @tag.delimiter)
+
+(jsx_closing_element
+  "</" @tag.delimiter
+  name: (jsx_dynamic_element_name
+    "${" @tag.delimiter
+    name: (jsx_non_namespaced_element_name) @tag
+    "}" @tag.delimiter)
   ">" @tag.delimiter)
 
 (jsx_closing_fragment
@@ -71,6 +87,14 @@
   name: (jsx_non_namespaced_element_name) @tag
   "/>" @tag.delimiter)
 
+(jsx_self_closing_element
+  "<" @tag.delimiter
+  name: (jsx_dynamic_element_name
+    "${" @tag.delimiter
+    name: (jsx_non_namespaced_element_name) @tag
+    "}" @tag.delimiter)
+  "/>" @tag.delimiter)
+
 ; Override identifier coloring for JSX element names
 ; These must come after the general (identifier) @variable pattern to have higher priority
 
@@ -78,11 +102,23 @@
 (jsx_opening_element
   name: (jsx_element_name (identifier) @tag))
 
+(jsx_opening_element
+  name: (jsx_dynamic_element_name
+    name: (jsx_non_namespaced_element_name (identifier) @tag)))
+
 (jsx_closing_element
   name: (jsx_element_name (identifier) @tag))
 
+(jsx_closing_element
+  name: (jsx_dynamic_element_name
+    name: (jsx_non_namespaced_element_name (identifier) @tag)))
+
 (jsx_self_closing_element
   name: (jsx_non_namespaced_element_name (identifier) @tag))
+
+(jsx_self_closing_element
+  name: (jsx_dynamic_element_name
+    name: (jsx_non_namespaced_element_name (identifier) @tag)))
 
 (jsx_attribute
   name: [(identifier) (jsx_namespace_name) (jsx_hyphenated_name)] @attribute)

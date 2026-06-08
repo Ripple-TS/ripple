@@ -668,7 +668,7 @@ export default function App() @{
 }
 
 function Child({ swapMe }: {swapMe: Tracked<Component>}) {
-  return <@swapMe />
+  return <\${swapMe} />
 }
 
 function Child1(props) {
@@ -694,18 +694,18 @@ export default function App() @{
   const &[AnotherButton] = track(() => SomeButton);
 
 	<>
-		<@ripple_object.tracked_basic />
+		<\${ripple_object.tracked_basic} />
 		<Child {Button}>Child Button</Child>
 		<AnotherChild Button={AnotherButton}>Another Child Button</AnotherChild>
   </>
 }
 
 function Child({ Button, children }) {
-  return <@Button>{children}</@Button>
+  return <\${Button}>{children}</\${Button}>
 }
 
 function AnotherChild(&{ Button, children }) {
-  return <@Button>{children}</@Button>
+  return <\${Button}>{children}</\${Button}>
 }
 
 function SomeButton({ children }) {

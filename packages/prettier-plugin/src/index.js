@@ -6463,11 +6463,21 @@ function printJSXAttribute(attr, path, options, print) {
  * @returns {string}
  */
 function printJSXElementName(node) {
+	const tagName = printJSXElementNameBare(node);
+	return isDynamicJSXElementName(node) ? '${' + tagName + '}' : tagName;
+}
+
+/**
+ * Print a JSX element name without dynamic tag delimiters.
+ * @param {AST.Node} node - The JSX element name node
+ * @returns {string}
+ */
+function printJSXElementNameBare(node) {
 	if (node.type === 'JSXIdentifier') {
-		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
+		return node.name;
 	}
 	if (node.type === 'JSXMemberExpression') {
-		return printJSXElementName(node.object) + '.' + printJSXElementName(node.property);
+		return printJSXElementNameBare(node.object) + '.' + printJSXElementNameBare(node.property);
 	}
 	if (node.type === 'JSXNamespacedName') {
 		const namespace_name = node.namespace.name;
@@ -6475,6 +6485,23 @@ function printJSXElementName(node) {
 		return namespace_name + ':' + local_name;
 	}
 	return 'Unknown';
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function isDynamicJSXElementName(node) {
+	if (node.type === 'JSXIdentifier') {
+		return isDynamicJSXIdentifier(node);
+	}
+	if (node.type === 'JSXMemberExpression') {
+		return (
+			/** @type {{ dynamic?: boolean }} */ (node).dynamic === true ||
+			isDynamicJSXElementName(node.object)
+		);
+	}
+	return false;
 }
 
 /**
@@ -6493,15 +6520,27 @@ function isDynamicJSXIdentifier(node) {
  * @returns {string}
  */
 function printMemberExpressionSimple(node, options, computed = false) {
+	const tagName = printMemberExpressionSimpleBare(node, options, computed);
+	return !computed && isDynamicSimpleTagName(node) ? '${' + tagName + '}' : tagName;
+}
+
+/**
+ * Print a member expression as simple string without dynamic tag delimiters.
+ * @param {AST.Node} node - The node to print
+ * @param {RippleFormatOptions} options - Prettier options
+ * @param {boolean} [computed=false] - Whether the property is computed
+ * @returns {string}
+ */
+function printMemberExpressionSimpleBare(node, options, computed = false) {
 	if (node.type === 'JSXIdentifier') {
-		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
+		return node.name;
 	}
 
 	if (node.type === 'JSXMemberExpression') {
 		return (
-			printMemberExpressionSimple(node.object, options) +
+			printMemberExpressionSimpleBare(node.object, options) +
 			'.' +
-			printMemberExpressionSimple(node.property, options, true)
+			printMemberExpressionSimpleBare(node.property, options, true)
 		);
 	}
 
@@ -6510,16 +6549,16 @@ function printMemberExpressionSimple(node, options, computed = false) {
 	}
 
 	if (node.type === 'Identifier') {
-		return (computed ? '' : node.tracked ? '@' : '') + node.name;
+		return node.name;
 	}
 
 	if (node.type === 'MemberExpression') {
-		const obj = printMemberExpressionSimple(node.object, options);
+		const obj = printMemberExpressionSimpleBare(node.object, options);
 		let prop;
 		if (node.computed) {
-			prop = '[' + printMemberExpressionSimple(node.property, options, true) + ']';
+			prop = '[' + printMemberExpressionSimpleBare(node.property, options, true) + ']';
 		} else {
-			prop = '.' + printMemberExpressionSimple(node.property, options, true);
+			prop = '.' + printMemberExpressionSimpleBare(node.property, options, true);
 		}
 		return obj + prop;
 	}
@@ -6528,6 +6567,32 @@ function printMemberExpressionSimple(node, options, computed = false) {
 		return computed ? formatStringLiteral(node.value, options) : JSON.stringify(node.value);
 	}
 	return '';
+}
+
+/**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function isDynamicSimpleTagName(node) {
+	if (node.type === 'JSXIdentifier') {
+		return isDynamicJSXIdentifier(node);
+	}
+	if (node.type === 'JSXMemberExpression') {
+		return (
+			/** @type {{ dynamic?: boolean }} */ (node).dynamic === true ||
+			isDynamicSimpleTagName(node.object)
+		);
+	}
+	if (node.type === 'Identifier') {
+		return node.tracked === true;
+	}
+	if (node.type === 'MemberExpression') {
+		return (
+			/** @type {{ tracked?: boolean }} */ (node).tracked === true ||
+			isDynamicSimpleTagName(/** @type {AST.Node} */ (node.object))
+		);
+	}
+	return false;
 }
 
 /**

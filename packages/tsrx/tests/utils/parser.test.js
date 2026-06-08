@@ -483,6 +483,32 @@ abc
 		expect(value.children[0].type).toBe('JSXElement');
 	});
 
+	it('parses dynamic tag expression names', () => {
+		const ast = parseModule('function App() { return <${tag}><span /></${tag}>; }', 'App.tsrx');
+
+		const value = ast.body[0].body.body[0].argument;
+		expect(value.type).toBe('JSXElement');
+		expect(value.dynamic).toBe(true);
+		expect(value.openingElement.dynamic).toBe(true);
+		expect(value.openingElement.name.name).toBe('tag');
+		expect(value.openingElement.name.dynamic).toBe(true);
+		expect(value.closingElement.name.name).toBe('tag');
+		expect(value.closingElement.name.dynamic).toBe(true);
+	});
+
+	it('parses member-form dynamic tag expression names', () => {
+		const ast = parseModule('function App() { return <${props.as} class="box" />; }', 'App.tsrx');
+
+		const value = ast.body[0].body.body[0].argument;
+		expect(value.type).toBe('JSXElement');
+		expect(value.dynamic).toBe(true);
+		expect(value.openingElement.dynamic).toBe(true);
+		expect(value.openingElement.name.type).toBe('JSXMemberExpression');
+		expect(value.openingElement.name.object.name).toBe('props');
+		expect(value.openingElement.name.object.dynamic).toBe(true);
+		expect(value.openingElement.name.property.name).toBe('as');
+	});
+
 	it('parses style blocks as JSXStyleElement nodes', () => {
 		const returned = getReturned(`function App() { return <style>
 			.root {
@@ -916,7 +942,7 @@ foo();`;
 					function basic() {
 						return <><div>{'Basic Component'}</div></>;
 					}
-					<@basic />
+					<\${basic} />
 				}</>;
 			}`);
 
@@ -1512,11 +1538,11 @@ foo();`;
 			`class Foo {
 				bar() {
 					return <Page params={{ details: { render: (tag: string, className: string, icon: () => JSX.Element) =>
-						<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+						<\${tag} class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 							@if (icon) {
 								icon();
 							}
-						</@tag>,
+						</\${tag}>,
 					} }} />
 				}
 			}`,

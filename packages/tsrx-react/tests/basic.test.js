@@ -989,9 +989,9 @@ describe('@tsrx/react basic', () => {
 		const source = `export function App() @{
 			const dom = 'section';
 
-			<@dom class="box">
+			<\${dom} class="box">
 				<span>{'hello'}</span>
-			</@dom>
+			</\${dom}>
 		}`;
 
 		const { code } = compile(source, 'App.tsrx');
@@ -1008,9 +1008,9 @@ describe('@tsrx/react basic', () => {
 
 	it('supports member-form dynamic elements', () => {
 		const source = `export function App(props) @{
-			<@props.as class="box">
+			<\${props.as} class="box">
 				<span>{'hello'}</span>
-			</@props.as>
+			</\${props.as}>
 		}`;
 
 		const { code } = compile(source, 'App.tsrx');

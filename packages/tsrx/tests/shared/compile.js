@@ -1923,7 +1923,7 @@ export function optionalFn(bar: string, baz?: string) {
 					`class Foo {
 						bar() {
 							const tag = 'section';
-							return <><@tag id="x" /></>;
+							return <><\${tag} id="x" /></>;
 						}
 					}`,
 					'App.tsrx',
@@ -1937,7 +1937,7 @@ export function optionalFn(bar: string, baz?: string) {
 					`class Foo {
 						bar() {
 							const tag = 'section';
-							return <><@tag id="x" /></>;
+							return <><\${tag} id="x" /></>;
 						}
 					}`,
 					'App.tsrx',
@@ -1950,7 +1950,7 @@ export function optionalFn(bar: string, baz?: string) {
 				compile(
 					`export function App() @{
 						const tag = 'section';
-						<@tag id="x" />
+						<\${tag} id="x" />
 					}`,
 					'App.tsrx',
 				),
@@ -1963,7 +1963,7 @@ export function optionalFn(bar: string, baz?: string) {
 					`class Foo {
 						bar() {
 							const tag = 'section';
-							return <><@tag id="x" /></>;
+							return <><\${tag} id="x" /></>;
 						}
 					}`,
 					'App.tsrx',
@@ -2470,9 +2470,9 @@ export function optionalFn(bar: string, baz?: string) {
 							params={{
 								details: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+										@{ <\${tag} class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											{icon ? icon() : null}
-										</@tag> },
+										</\${tag}> },
 								},
 							}}
 						/>
@@ -2518,9 +2518,9 @@ export function optionalFn(bar: string, baz?: string) {
 									},
 								details2: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+										@{ <\${tag} class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											{icon ? icon() : null}
-										</@tag> },
+										</\${tag}> },
 								},
 							}}
 						/>

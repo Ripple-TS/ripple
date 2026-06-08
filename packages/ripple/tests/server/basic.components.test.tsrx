@@ -331,7 +331,7 @@ describe('basic server > components & composition', () => {
 
 		function App() @{
 			let Content = track(() => Noop);
-			<@Content />
+			<${Content} />
 		}
 
 		const { body } = await render(App);

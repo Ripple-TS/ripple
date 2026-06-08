@@ -123,9 +123,11 @@ export function createAutoInsertPlugin() {
 						sourceOffset,
 					});
 
-					// Check if we just typed '>' after a tag name
-					// Match patterns like: <div> or <Component> but not <div /> or <Component/>
-					const tagMatch = line.match(/<([@$\w][\w.-]*)[^>]*?(?<!\/)>$/);
+					// Check if we just typed '>' after a tag name.
+					// Match patterns like <div>, <Component>, or <${tag}>, but not self-closing tags.
+					const tagMatch = line.match(
+						/<(\$\{\s*[$A-Za-z_][\w$]*(?:\s*\.\s*[$A-Za-z_][\w$]*)*\s*\}|[@$\w][\w.-]*)[^>]*?(?<!\/)>$/,
+					);
 					if (!tagMatch) {
 						log('No tag match found');
 						return null;
@@ -135,7 +137,7 @@ export function createAutoInsertPlugin() {
 					log('Tag matched:', tagName);
 
 					// Don't auto-close void elements (self-closing HTML tags)
-					if (VOID_ELEMENTS.has(tagName.toLowerCase())) {
+					if (!tagName.startsWith('${') && VOID_ELEMENTS.has(tagName.toLowerCase())) {
 						log('Void element, skipping auto-close:', tagName);
 						return null;
 					}

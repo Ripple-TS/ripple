@@ -471,7 +471,7 @@ export function Test({ children }) @{
 		<div>
 			<p class="before">{'before'}</p>
 
-			<@DynamicComponent />
+			<\${DynamicComponent} />
 
 			<p class="foo">
 				<span>{'foo'}</span>
@@ -520,7 +520,7 @@ export function Test({ children, classes }) @{
 		<div>
 			<p class="before">{'before'}</p>
 			// Use Dynamic Element but it's the same with a regular one
-			<@dynamicElement class={classes} />
+			<\${dynamicElement} class={classes} />
 
 			<p class="foo">
 				<span>{'foo'}</span>

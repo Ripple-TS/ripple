@@ -503,7 +503,7 @@ describe('basic client > components & composition', () => {
 		function App() @{
 			let &[Content] = track(() => Noop);
 			<>
-				<@Content />
+				<${Content} />
 				<button onClick={() => (Content = Op)}>{'Show Op'}</button>
 			</>
 		}

@@ -1157,26 +1157,35 @@ module.exports = grammar({
 		jsx_opening_element: ($) =>
 			seq(
 				'<',
-				optional('@'),
-				field('name', $.jsx_element_name),
+				field('name', choice($.jsx_dynamic_element_name, seq(optional('@'), $.jsx_element_name))),
 				repeat(field('attribute', $._jsx_attribute)),
 				'>',
 			),
 
 		jsx_opening_fragment: () => seq('<', '>'),
 
-		jsx_closing_element: ($) => seq('</', optional('@'), field('name', $.jsx_element_name), '>'),
+		jsx_closing_element: ($) =>
+			seq(
+				'</',
+				field('name', choice($.jsx_dynamic_element_name, seq(optional('@'), $.jsx_element_name))),
+				'>',
+			),
 
 		jsx_closing_fragment: () => seq('</', '>'),
 
 		jsx_self_closing_element: ($) =>
 			seq(
 				'<',
-				optional('@'),
-				field('name', $.jsx_non_namespaced_element_name),
+				field(
+					'name',
+					choice($.jsx_dynamic_element_name, seq(optional('@'), $.jsx_non_namespaced_element_name)),
+				),
 				repeat(field('attribute', $._jsx_attribute)),
 				'/>',
 			),
+
+		jsx_dynamic_element_name: ($) =>
+			seq('${', field('name', $.jsx_non_namespaced_element_name), '}'),
 
 		jsx_element_name: ($) =>
 			choice($.identifier, $.jsx_namespace_name, $.jsx_member_name, $.member_expression),

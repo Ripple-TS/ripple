@@ -178,7 +178,7 @@ describe('style class maps (server)', () => {
 
 			let dynamic = track(() => Child);
 			<div class="wrapper">
-				<@dynamic cls={styles.text} />
+				<${dynamic} cls={styles.text} />
 			</div>
 		}
 
@@ -269,9 +269,9 @@ describe('style class maps (server)', () => {
 		function App() @{
 			const DynamicWrapper = track(() => Wrapper);
 			<>
-				<@DynamicWrapper>
+				<${DynamicWrapper}>
 					<div class="green">{'Slotted child'}</div>
-				</@DynamicWrapper>
+				</${DynamicWrapper}>
 				<style>
 					.green {
 						color: green;

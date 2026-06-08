@@ -175,7 +175,7 @@ interface TrackedBase<V> {
 	value: V;
 }
 // Augment Tracked to be callable when V is a Component
-// This allows <@Something /> to work in JSX when Something is Tracked<Component>
+// This allows <${Something} /> to work in JSX when Something is Tracked<Component>
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }

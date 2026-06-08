@@ -17,7 +17,7 @@ import { error } from './errors.js';
 import { DIAGNOSTIC_CODES } from './diagnostics.js';
 import { TSRX_RETURN_STATEMENT_ERROR } from './analyze/validation.js';
 const DYNAMIC_ATTRIBUTE_NAME_ERROR =
-	'Dynamic component / element syntax (`@`) is only supported on native TSRX element names, not attribute names.';
+	'Dynamic component / element syntax (`${...}`) is only supported on native TSRX element names, not attribute names.';
 const FORGOTTEN_STATEMENT_CONTAINER_ERROR =
 	"This function body contains TSRX template output, but it is a normal JavaScript block. Add '@' before the opening brace to use a TSRX statement container.";
 
@@ -35,6 +35,7 @@ const CharCode = Object.freeze({
 	closeParen: 41,
 	asterisk: 42,
 	dash: 45,
+	period: 46,
 	slash: 47,
 	colon: 58,
 	semicolon: 59,
@@ -493,6 +494,17 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @param {number} startPos
+			 */
+			#isDynamicJSXTagStartAt(startPos) {
+				const next = this.input.charCodeAt(startPos + 1);
+				return (
+					next === CharCode.at ||
+					(next === CharCode.dollar && this.input.charCodeAt(startPos + 2) === CharCode.openBrace)
+				);
+			}
+
+			/**
 			 * @param {number} index
 			 */
 			#isLineStartPosition(index) {
@@ -807,6 +819,128 @@ export function TSRXPlugin(config) {
 			/**
 			 * @param {number} ch
 			 */
+			#isIdentifierStart(ch) {
+				return (
+					(ch >= CharCode.uppercaseA && ch <= CharCode.uppercaseZ) ||
+					(ch >= CharCode.lowercaseA && ch <= CharCode.lowercaseZ) ||
+					ch === CharCode.underscore ||
+					ch === CharCode.dollar
+				);
+			}
+
+			/**
+			 * @param {number} index
+			 */
+			#skipDynamicTagWhitespace(index) {
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (
+						ch !== CharCode.space &&
+						ch !== CharCode.tab &&
+						ch !== CharCode.lineFeed &&
+						ch !== CharCode.carriageReturn
+					) {
+						break;
+					}
+					index++;
+				}
+				return index;
+			}
+
+			/**
+			 * Dynamic tag names are authored as `<${tag}>` / `</${tag}>`, but the
+			 * downstream transforms already understand JSX-shaped names carrying
+			 * `dynamic` metadata from the earlier dynamic-tag parser path. Parse the
+			 * `${...}` spelling into that same name shape.
+			 *
+			 * @param {number} index
+			 * @param {boolean} dynamic
+			 * @returns {{ node: ESTreeJSX.JSXIdentifier, index: number }}
+			 */
+			#parseDynamicJSXTagIdentifier(index, dynamic) {
+				const start = index;
+				const first = this.input.charCodeAt(index);
+				if (!this.#isIdentifierStart(first)) {
+					this.raise(index, 'Expected an identifier in dynamic JSX tag name.');
+				}
+				index++;
+				while (this.#isIdentifierChar(this.input.charCodeAt(index))) {
+					index++;
+				}
+
+				const startLoc = acorn.getLineInfo(this.input, start);
+				const endLoc = acorn.getLineInfo(this.input, index);
+				const node = /** @type {ESTreeJSX.JSXIdentifier} */ (this.startNodeAt(start, startLoc));
+				node.name = this.input.slice(start, index);
+				if (dynamic) {
+					/** @type {any} */ (node).dynamic = true;
+				}
+				return {
+					node: this.finishNodeAt(node, 'JSXIdentifier', index, endLoc),
+					index,
+				};
+			}
+
+			/**
+			 * @returns {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression | null}
+			 */
+			#parseDynamicJSXElementName() {
+				const start = this.start;
+				if (
+					this.input.charCodeAt(start) !== CharCode.dollar ||
+					this.input.charCodeAt(start + 1) !== CharCode.openBrace
+				) {
+					return null;
+				}
+
+				let index = this.#skipDynamicTagWhitespace(start + 2);
+				let parsed = this.#parseDynamicJSXTagIdentifier(index, true);
+				let name = /** @type {ESTreeJSX.JSXIdentifier | ESTreeJSX.JSXMemberExpression} */ (
+					parsed.node
+				);
+				index = this.#skipDynamicTagWhitespace(parsed.index);
+
+				while (this.input.charCodeAt(index) === CharCode.period) {
+					index = this.#skipDynamicTagWhitespace(index + 1);
+					parsed = this.#parseDynamicJSXTagIdentifier(index, false);
+					const member = /** @type {ESTreeJSX.JSXMemberExpression} */ (
+						this.startNodeAt(
+							/** @type {number} */ (name.start),
+							/** @type {AST.NodeWithLocation} */ (name).loc.start,
+						)
+					);
+					member.object = name;
+					member.property = parsed.node;
+					/** @type {any} */ (member).dynamic = true;
+					name = this.finishNodeAt(
+						member,
+						'JSXMemberExpression',
+						/** @type {number} */ (parsed.node.end),
+						/** @type {AST.NodeWithLocation} */ (parsed.node).loc.end,
+					);
+					index = this.#skipDynamicTagWhitespace(parsed.index);
+				}
+
+				if (this.input.charCodeAt(index) !== CharCode.closeBrace) {
+					this.raise(index, 'Expected `}` after dynamic JSX tag name.');
+				}
+
+				const end = index + 1;
+				const endLoc = acorn.getLineInfo(this.input, end);
+				this.pos = end;
+				this.curLine = endLoc.line;
+				this.lineStart = end - endLoc.column;
+				this.start = end;
+				this.startLoc = new acorn.Position(endLoc.line, endLoc.column);
+				this.exprAllowed = false;
+				this.next();
+
+				return name;
+			}
+
+			/**
+			 * @param {number} ch
+			 */
 			#canPrecedeTypeArgumentList(ch) {
 				return this.#isIdentifierChar(ch) || ch === CharCode.closeParen;
 			}
@@ -865,7 +999,7 @@ export function TSRXPlugin(config) {
 			 *   element nested in a container (e.g. `{<div>   a</div>}`) is still a
 			 *   template-mode element whose text children are raw JSX text; the rest of
 			 *   the directive/comment/boundary checks below still apply, so a directive
-			 *   body (`{<@tag>@if(x){…}</@tag>}`) is correctly excluded.
+			 *   body (`{<${tag}>@if(x){…}</${tag}>}`) is correctly excluded.
 			 */
 			#shouldReadTemplateRawTextToken(allow_inside_expression_container = false) {
 				if (
@@ -3470,6 +3604,11 @@ export function TSRXPlugin(config) {
 					return '';
 				}
 
+				const dynamicName = this.#parseDynamicJSXElementName();
+				if (dynamicName) {
+					return dynamicName;
+				}
+
 				let node = this.jsx_parseNamespacedName();
 
 				if (node.type === 'JSXNamespacedName') {
@@ -3998,14 +4137,14 @@ export function TSRXPlugin(config) {
 			 * @type {Parse.Parser['jsx_parseElementAt']}
 			 */
 			jsx_parseElementAt(startPos, startLoc) {
-				if (this.input.charCodeAt(startPos + 1) === CharCode.at) {
+				if (this.#isDynamicJSXTagStartAt(startPos)) {
 					const previous_script_jsx_element_depth = this.#scriptJSXElementDepth;
 					this.#scriptJSXElementDepth = 0;
 					try {
 						const parsed = /** @type {ESTreeJSX.JSXElement} */ (
 							/** @type {unknown} */ (this.parseElement())
 						);
-						// A dynamic `<@tag>` parsed here goes straight through `parseElement`,
+						// A dynamic tag parsed here goes straight through `parseElement`,
 						// bypassing `jsx_parseElement`'s context cleanup. In expression
 						// position (e.g. a render-prop arrow body inside object params) its
 						// markup contexts must be unwound, or the following JS token (a `,`/`}`)

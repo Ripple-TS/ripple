@@ -5,7 +5,7 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {
 		function App() @{
 			let tag = track('div');
-			<@tag>{'Hello World'}</@tag>
+			<${tag}>{'Hello World'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -19,7 +19,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let obj = { tag: track('div') };
 			let tag = obj.tag;
-			<@tag>{'Hello World'}</@tag>
+			<${tag}>{'Hello World'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -31,7 +31,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let obj = track({ tag: track('div') });
 			let tag = obj.value.tag;
-			<@tag>{'Hello World'}</@tag>
+			<${tag}>{'Hello World'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -45,7 +45,7 @@ describe('server dynamic DOM elements', () => {
 			function App() @{
 				let obj = track({ tag: track('div') });
 				let tag = obj.value['tag'];
-				<@tag>{'Hello World'}</@tag>
+				<${tag}>{'Hello World'}</${tag}>
 			}
 
 			const { body } = await render(App);
@@ -57,7 +57,7 @@ describe('server dynamic DOM elements', () => {
 	it('renders self-closing dynamic element', async () => {
 		function App() @{
 			let tag = track('input');
-			<@tag type="text" value="test" />
+			<${tag} type="text" value="test" />
 		}
 
 		const { body } = await render(App);
@@ -69,7 +69,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			let &[className] = track('test-class');
-			<@tag class={className} id="test" data-testid="dynamic-element">{'Content'}</@tag>
+			<${tag} class={className} id="test" data-testid="dynamic-element">{'Content'}</${tag}>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -86,9 +86,9 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let outerTag = track('div');
 			let innerTag = track('span');
-			<@outerTag class="outer">
-				<@innerTag class="inner">{'Nested content'}</@innerTag>
-			</@outerTag>
+			<${outerTag} class="outer">
+				<${innerTag} class="inner">{'Nested content'}</${innerTag}>
+			</${outerTag}>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -106,7 +106,9 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			let &[active] = track(true);
-			<@tag class={{ active: active, 'dynamic-element': true }}>{'Element with class object'}</@tag>
+			<${tag}
+				class={{ active: active, 'dynamic-element': true }}
+			>{'Element with class object'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -121,13 +123,13 @@ describe('server dynamic DOM elements', () => {
 	it('handles dynamic element with style object', async () => {
 		function App() @{
 			let tag = track('span');
-			<@tag
+			<${tag}
 				style={{
 					color: 'red',
 					fontSize: '16px',
 					fontWeight: 'bold',
 				}}
-			>{'Styled dynamic element'}</@tag>
+			>{'Styled dynamic element'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -148,7 +150,7 @@ describe('server dynamic DOM elements', () => {
 				'data-testid': 'spread-test',
 				class: 'spread-class',
 			};
-			<@tag {...attrs} data-extra="additional">{'Element with spread attributes'}</@tag>
+			<${tag} {...attrs} data-extra="additional">{'Element with spread attributes'}</${tag}>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -166,12 +168,12 @@ describe('server dynamic DOM elements', () => {
 
 		function App() @{
 			let tag = track('article');
-			<@tag
+			<${tag}
 				ref={(node: HTMLElement) => {
 					capturedElement = node;
 				}}
 				id="ref-test"
-			>{'Element with ref'}</@tag>
+			>{'Element with ref'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -199,7 +201,7 @@ describe('server dynamic DOM elements', () => {
 				class: 'ref-element',
 				[createRefKey()]: elementRef,
 			};
-			<@tag {...dynamicProps}>{'Element with spread ref'}</@tag>
+			<${tag} {...dynamicProps}>{'Element with spread ref'}</${tag}>
 		}
 
 		const { body } = await render(App);
@@ -218,7 +220,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			<>
-				<@tag class="test-class">{'Dynamic element'}</@tag>
+				<${tag} class="test-class">{'Dynamic element'}</${tag}>
 				<style>
 					.test-class {
 						color: red;
@@ -246,7 +248,7 @@ describe('server dynamic DOM elements', () => {
 		}>) @{
 			const tag = track('button');
 			<>
-				<@tag {...rest}>{rest.class}</@tag>
+				<${tag} {...rest}>{rest.class}</${tag}>
 				<style>
 					.even {
 						background-color: green;
@@ -283,9 +285,9 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			<>
-				<@tag class="scoped">
+				<${tag} class="scoped">
 					<p>{'Scoped dynamic element'}</p>
-				</@tag>
+				</${tag}>
 				<style>
 					.scoped {
 						color: blue;
@@ -312,9 +314,9 @@ describe('server dynamic DOM elements', () => {
 			function App() @{
 				let tag = track('div');
 				<>
-					<@tag class="scoped">
+					<${tag} class="scoped">
 						<p>{'Scoped dynamic element'}</p>
-					</@tag>
+					</${tag}>
 					<style>
 						div {
 							color: blue;
@@ -351,10 +353,10 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			<>
-				<@tag class="scoped">
+				<${tag} class="scoped">
 					<p>{'Scoped dynamic element'}</p>
 					<Child />
-				</@tag>
+				</${tag}>
 				<style>
 					div {
 						color: blue;
@@ -399,7 +401,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track(() => Child);
 			<>
-				<@tag />
+				<${tag} />
 				<style>
 					.child {
 						color: red;

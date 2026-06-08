@@ -408,7 +408,7 @@ function App() {
 function Basic(){return <><div>{"Basic Component"}</div></>;}
 const obj={Basic};
 const comp=obj.Basic;
-<@comp />
+<\${comp} />
 }</>}`;
 		const expected = `function App() {
   return <>@{
@@ -417,7 +417,7 @@ const comp=obj.Basic;
     }
     const obj = { Basic };
     const comp = obj.Basic;
-    <@comp />
+    <\${comp} />
   }</>;
 }`;
 
@@ -973,7 +973,7 @@ const items=[1,2,3];
 		it('should format a function with a dynamic function using props member access', async () => {
 			const expected = `function Card(props) {
   <div class="card">
-    <@props.children />
+    <\${props.children} />
   </div>
 }`;
 
@@ -1466,13 +1466,13 @@ export function Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should not strip @ from dynamic @tag', async () => {
+		it('preserves paired dynamic tags', async () => {
 			const expected = `export function Four() {
   let tag = track('div');
 
-  <@tag {href} {...props}>
-    <@children />
-  </@tag>
+  <\${tag} {href} {...props}>
+    <\${children} />
+  </\${tag}>
 }`;
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
@@ -1494,9 +1494,9 @@ export function Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should not strip @ from dynamic self-closing components', async () => {
+		it('preserves dynamic self-closing components', async () => {
 			const expected = `function App() {
-  <@ripple_object.tracked_basic />
+  <\${ripple_object.tracked_basic} />
 }`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 100 });

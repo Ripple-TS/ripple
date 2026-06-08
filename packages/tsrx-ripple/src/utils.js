@@ -126,7 +126,14 @@ export function get_tsrx_component_function_name(node, context) {
  * @returns {boolean}
  */
 export function is_tsrx_component_function(node, context) {
-	return is_native_tsrx_function_node(node) || node?.body?.type === 'JSXCodeBlock';
+	return (
+		is_native_tsrx_function_node(node) ||
+		!!(
+			node &&
+			'body' in node &&
+			/** @type {{ body?: AST.Node }} */ (node).body?.type === 'JSXCodeBlock'
+		)
+	);
 }
 
 /**
@@ -1653,7 +1660,16 @@ export function is_element_dynamic(node) {
  */
 function is_id_dynamic(node) {
 	if (node.type === 'Identifier') {
-		return !!node.tracked;
+		return !!(node.tracked || node.dynamic);
+	}
+
+	if (node.type === 'MemberExpression') {
+		return (
+			!!node.dynamic ||
+			is_id_dynamic(
+				/** @type {AST.Identifier | AST.MemberExpression | AST.Literal} */ (node.object),
+			)
+		);
 	}
 
 	return false;
@@ -2313,6 +2329,7 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 			name: jsx_member.object.name,
 			start: jsx_member.object.start,
 			end: jsx_member.object.end,
+			tracked: jsx_member.object.tracked === true || jsx_member.object.dynamic === true,
 		});
 	}
 
@@ -2329,6 +2346,7 @@ function jsx_member_expression_to_member_expression(jsx_member) {
 		optional: false,
 		start: jsx_member.start,
 		end: jsx_member.end,
+		dynamic: /** @type {{ dynamic?: boolean }} */ (jsx_member).dynamic === true,
 	});
 }
 

@@ -4,7 +4,7 @@ Dynamic Component
 
 fragment App() {
   let Current = track(() => ComponentA);
-  <@Current />
+  <${Current} />
 }
 
 ---
@@ -27,8 +27,9 @@ fragment App() {
       (component_statement
         (expression_statement
           (jsx_self_closing_element
-            name: (jsx_non_namespaced_element_name
-              (identifier))))))))
+            name: (jsx_dynamic_element_name
+              name: (jsx_non_namespaced_element_name
+                (identifier)))))))))
 
 ==================
 Dynamic Element
@@ -36,7 +37,7 @@ Dynamic Element
 
 fragment App() {
   let tag = track('div');
-  <@tag>{'content'}</@tag>
+  <${tag}>{'content'}</${tag}>
 }
 
 ---
@@ -58,15 +59,17 @@ fragment App() {
         (expression_statement
           (jsx_element
             open_tag: (jsx_opening_element
-              name: (jsx_element_name
-                (identifier)))
+              name: (jsx_dynamic_element_name
+                name: (jsx_non_namespaced_element_name
+                  (identifier))))
             children: (jsx_expression
               (component_statement
                 (expression_statement
                   (string))))
             close_tag: (jsx_closing_element
-              name: (jsx_element_name
-                (identifier)))))))))
+              name: (jsx_dynamic_element_name
+                name: (jsx_non_namespaced_element_name
+                  (identifier))))))))))
 
 ==================
 JSX Attributes

@@ -2193,9 +2193,17 @@
     "named": true,
     "fields": {
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "@",
+            "named": false
+          },
+          {
+            "type": "jsx_dynamic_element_name",
+            "named": true
+          },
           {
             "type": "jsx_element_name",
             "named": true
@@ -2208,6 +2216,22 @@
     "type": "jsx_closing_fragment",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "jsx_dynamic_element_name",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "jsx_non_namespaced_element_name",
+            "named": true
+          }
+        ]
+      }
+    }
   },
   {
     "type": "jsx_element",
@@ -2782,9 +2806,17 @@
         ]
       },
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "@",
+            "named": false
+          },
+          {
+            "type": "jsx_dynamic_element_name",
+            "named": true
+          },
           {
             "type": "jsx_element_name",
             "named": true
@@ -2833,9 +2865,17 @@
         ]
       },
       "name": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
+          {
+            "type": "@",
+            "named": false
+          },
+          {
+            "type": "jsx_dynamic_element_name",
+            "named": true
+          },
           {
             "type": "jsx_non_namespaced_element_name",
             "named": true

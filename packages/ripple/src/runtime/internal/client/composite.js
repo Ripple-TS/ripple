@@ -84,7 +84,7 @@ export function composite(get_component, node, props) {
 				};
 
 				if (ns !== active_namespace) {
-					// support top-level dynamic element svg/math <@tag />
+					// support top-level dynamic element svg/math <${tag} />
 					b = branch(() => with_ns(ns, run));
 				} else {
 					b = branch(run);

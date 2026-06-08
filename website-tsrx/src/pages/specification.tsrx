@@ -863,8 +863,8 @@ export function SpecificationPage() @{
 								<li>
 									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a
 									JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced
-									names. Dynamic tags written with a leading
-									<code class="inline-code">@</code>
+									names. Dynamic tags written as
+									<code class="inline-code">{'<${tag}>'}</code>
 									keep the JSX name shape and carry dynamic metadata.
 								</li>
 								<li>

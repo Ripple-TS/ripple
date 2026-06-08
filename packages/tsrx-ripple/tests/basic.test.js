@@ -376,7 +376,7 @@ describe('@tsrx/ripple named ref props', () => {
 				let input;
 				let state = {};
 				function fn() {}
-				<@tag ref={[input, state.other]} input_ref={fn} />
+				<\${tag} ref={[input, state.other]} input_ref={fn} />
 			</>; }`,
 			'App.tsrx',
 		);
@@ -391,7 +391,7 @@ describe('@tsrx/ripple named ref props', () => {
 		const { code } = compile(
 			`function App() @{
 				let &[tag] = track('polygon');
-				<@tag points="0,0 30,0 15,10" />
+				<\${tag} points="0,0 30,0 15,10" />
 			}`,
 			'App.tsrx',
 		);
