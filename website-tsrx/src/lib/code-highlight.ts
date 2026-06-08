@@ -40,7 +40,18 @@ const KEYWORDS = new Set([
 const CONTROL_KEYWORDS = new Set(['break', 'continue', 'return']);
 const LITERALS = new Set(['false', 'null', 'true', 'undefined']);
 const TEMPLATE_KEYWORDS = new Set(['html', 'ref', 'style']);
-const TEMPLATE_CONTROL_DIRECTIVES = new Set(['@if', '@for', '@switch', '@try']);
+const TEMPLATE_CONTROL_DIRECTIVES = new Set([
+	'@if',
+	'@else',
+	'@for',
+	'@empty',
+	'@switch',
+	'@case',
+	'@default',
+	'@try',
+	'@pending',
+	'@catch',
+]);
 
 type TemplateBlockState = {
 	brace_depth: number;
