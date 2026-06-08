@@ -41,6 +41,15 @@ ruleTester.run('require-statement-container-body', rule, {
 				}
 			`,
 		},
+		{
+			code: `
+				export function UserBadge({ user }) {
+					const initials = user.name.slice(0, 2).toUpperCase();
+
+					<button title={user.name}>{initials}</button>
+				}
+			`,
+		},
 	],
 	invalid: [
 		{

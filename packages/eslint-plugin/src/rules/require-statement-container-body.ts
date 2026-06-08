@@ -56,6 +56,10 @@ const rule: Rule.RuleModule = {
 	},
 	create(context) {
 		function check_function(node: AST.Node) {
+			if (!(node as AnyNode).returnType) {
+				return;
+			}
+
 			const forgotten_output = get_forgotten_output_statement(node);
 			if (!forgotten_output) {
 				return;
