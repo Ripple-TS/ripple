@@ -112,6 +112,22 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			expect(diagnostic_codes(result)).toContain(DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER);
 		});
 
+		it('does not report forgotten statement containers when setup follows template output', () => {
+			const result = compile_to_volar_mappings(
+				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {
+					<span>{user.name}</span>;
+
+					const initials = user.name.slice(0, 2).toUpperCase();
+					console.log(initials);
+				}`,
+				'App.tsrx',
+			);
+
+			expect(diagnostic_codes(result)).not.toContain(
+				DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+			);
+		});
+
 		it('does not report ordinary returned JSX', () => {
 			const result = compile_to_volar_mappings(
 				`export function UserBadge({ user }: UserBadgeProps): JSX.Element {

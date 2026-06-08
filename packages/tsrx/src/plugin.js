@@ -1065,10 +1065,19 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * @param {AST.Node | null | undefined} node
+			 */
+			#isIgnoredForgottenStatementContainerStatement(node) {
+				return !node || node.type === 'EmptyStatement';
+			}
+
+			/**
 			 * A normal function body that directly contains a bare JSX/control-flow node
 			 * almost always means the author wrote `{ ... <div /> }` but intended
-			 * `@{ ... <div /> }`. Report only direct body children so ordinary nested
-			 * callbacks/branches are diagnosed by their own function body, not their parent.
+			 * `@{ ... <div /> }`. Only report when adding `@` would produce a valid
+			 * statement container: setup statements first, followed by one final render
+			 * output. Report only direct body children so ordinary nested callbacks/branches
+			 * are diagnosed by their own function body, not their parent.
 			 * @param {AST.Node} node
 			 */
 			#reportForgottenStatementContainerBody(node) {
@@ -1083,26 +1092,44 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				for (const statement of statements) {
-					const target =
+				let target = null;
+				let target_index = -1;
+				for (let index = 0; index < statements.length; index++) {
+					const statement = statements[index];
+					const output =
 						this.#isForgottenStatementContainerOutputNode(statement) ||
 						(statement.type === 'ExpressionStatement' &&
 							this.#isForgottenStatementContainerOutputNode(statement.expression))
 							? statement
 							: null;
 
-					if (!target) {
+					if (!output) {
 						continue;
 					}
 
-					this.#report_recoverable_error_range(
-						/** @type {number} */ (target.start),
-						/** @type {number} */ (target.end),
-						FORGOTTEN_STATEMENT_CONTAINER_ERROR,
-						DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
-					);
+					if (target_index !== -1) {
+						return;
+					}
+					target_index = index;
+					target = output;
+				}
+
+				if (!target) {
 					return;
 				}
+
+				for (const statement of statements.slice(target_index + 1)) {
+					if (!this.#isIgnoredForgottenStatementContainerStatement(statement)) {
+						return;
+					}
+				}
+
+				this.#report_recoverable_error_range(
+					/** @type {number} */ (target.start),
+					/** @type {number} */ (target.end),
+					FORGOTTEN_STATEMENT_CONTAINER_ERROR,
+					DIAGNOSTIC_CODES.FORGOTTEN_STATEMENT_CONTAINER,
+				);
 			}
 
 			/**

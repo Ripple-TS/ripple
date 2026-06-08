@@ -27,19 +27,41 @@ function is_template_output_statement(node: AnyNode | null | undefined): boolean
 	);
 }
 
+function is_ignored_statement(node: AnyNode | null | undefined): boolean {
+	return !node || node.type === 'EmptyStatement';
+}
+
 function get_forgotten_output_statement(node: AST.Node): AnyNode | null {
 	const body = (node as AnyNode).body;
 	if (!body || body.type !== 'BlockStatement') {
 		return null;
 	}
 
-	for (const statement of body.body || []) {
+	let target: AnyNode | null = null;
+	let target_index = -1;
+	const statements = body.body || [];
+	for (let index = 0; index < statements.length; index++) {
+		const statement = statements[index] as AnyNode;
 		if (is_template_output_statement(statement)) {
-			return statement;
+			if (target_index !== -1) {
+				return null;
+			}
+			target = statement;
+			target_index = index;
 		}
 	}
 
-	return null;
+	if (!target) {
+		return null;
+	}
+
+	for (const statement of statements.slice(target_index + 1)) {
+		if (!is_ignored_statement(statement as AnyNode)) {
+			return null;
+		}
+	}
+
+	return target;
 }
 
 const rule: Rule.RuleModule = {
