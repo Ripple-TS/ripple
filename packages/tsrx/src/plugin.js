@@ -318,7 +318,7 @@ export function TSRXPlugin(config) {
 			 * This helper keeps the parser-state setup in one place while callers keep
 			 * ownership of their distinct closing delimiter handling (`}` vs `</tag>`).
 			 *
-			 * @param {AST.Node} node
+				 * @param {AST.Node & { body?: AST.Node }} node
 			 * @param {AST.Node[]} body
 			 * @param {{
 			 *   enterScope?: boolean,
@@ -1069,7 +1069,7 @@ export function TSRXPlugin(config) {
 					return;
 				}
 
-				for (const statement of node.body.body || []) {
+					for (const statement of /** @type {AST.BlockStatement} */ (node.body).body || []) {
 					const target =
 						this.#isRenderOutputNode(statement) ||
 						(statement.type === 'ExpressionStatement' &&
