@@ -1,5 +1,40 @@
 # @tsrx/typescript-plugin
 
+## 0.3.74
+
+### Patch Changes
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix compile-error diagnostics
+  collapsing to the top of the file when the error range has no exact mapping.
+  Statements and elements are only covered by granular token mappings
+  (keywords/punctuation are dropped), so a whole-statement range never matched the
+  exact `findMappingBySourceRange` lookup and the Volar source map could not
+  anchor an unmapped start offset. The virtual code now resolves such ranges by
+  spanning the token mappings that overlap them, so diagnostics land on the right
+  source line.
+
+- Updated dependencies
+  [[`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)]:
+  - @tsrx/ripple@0.1.22
+  - @tsrx/solid@0.1.22
+  - @tsrx/vue@0.1.22
+  - @tsrx/preact@0.1.22
+  - @tsrx/react@0.2.22
+
 ## 0.3.73
 
 ### Patch Changes

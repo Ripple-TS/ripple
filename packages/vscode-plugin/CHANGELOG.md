@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.0.24
+
+### Patch Changes
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Support braceless `@if`
+  directive JSX output in editor grammars.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix TSRX grammar and
+  highlighting for direct template control-flow output in function statement
+  containers, and treat `@{` as a bracket opener.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Use the regular editor text
+  color for plain JSX text and inline `<code>` contents in TSRX files, without
+  embedded JSX tag scopes leaking into text children.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Update TSRX TextMate
+  highlighting for template fences and JSX control-flow directives.
+
+- Updated dependencies
+  [[`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649),
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)]:
+  - @tsrx/typescript-plugin@0.3.74
+  - @ripple-ts/language-server@0.3.74
+
 ## 2.0.23
 
 ### Patch Changes

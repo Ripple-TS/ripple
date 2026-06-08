@@ -1,5 +1,13 @@
 # @tsrx/rspack-plugin-vue
 
+## 0.0.34
+
+### Patch Changes
+
+- Updated dependencies
+  [[`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)]:
+  - @tsrx/vue@0.1.22
+
 ## 0.0.33
 
 ### Patch Changes

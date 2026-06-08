@@ -1,5 +1,121 @@
 # @tsrx/core
 
+## 0.1.22
+
+### Patch Changes
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix line-tracking desync when a
+  code-block setup statement following a render node is mis-read as JSX text.
+  Re-reading the statement now rewinds the line counter along with the position,
+  so node `loc` lines stay correct and source-map mapping no longer crashes
+  ("Location line ... out of bounds") for blocks without a trailing newline.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow a trailing `;` after the
+  render node of a `@{ }` code block or directive body (e.g. `<>…</>;`). The stray
+  semicolon is a meaningless empty statement and is now skipped during parsing
+  instead of being captured as a statement after the render output. This
+  previously produced a "statements cannot follow the rendered output" diagnostic
+  and, because the render node was then mis-bucketed as a body statement, could
+  crash the transformer with "Not implemented: JSXStyleElement" when the output
+  contained a `<style>` element. Prettier still strips the semicolon on format.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Map preserved TypeScript pragma
+  comments to their original source ranges in Volar TypeScript output.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Emit `return null` for
+  `continue` inside JSX template `@for` loop callbacks.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Preserve scoped CSS classes for
+  dynamic TSRX elements when selectors use tag names.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow empty `<style></style>`
+  blocks inside TSRX fragments.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Support fenced script-only TSRX
+  control-flow directive bodies.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Add `@empty { ... }` fallbacks
+  for TSRX `@for` loops, require prefixed template continuation clauses such as
+  `@else`, `@empty`, `@pending`, `@catch`, `@case`, and `@default`, and reject
+  direct `continue`, `break`, and `return` statements inside `@for` loop bodies
+  and `@if` template branches.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Move native TSRX element
+  parsing toward standard JSX AST nodes, add a dedicated `JSXStyleElement` node,
+  and cover `---` template fence edge cases.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix parsing module-scope style
+  expressions followed by regular JavaScript statements.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix native template parsing
+  when script-section functions return fragments before a template fence.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Preserve spaces between inline
+  JSX text and expression children in the parser and formatter.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Allow JSX and shared ref helper
+  types to accept arrays of ref functions.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove the stale
+  `ScriptContent` AST node typing and dead transform handlers.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix parsing of a `@{ … }`
+  code-block body that follows a function return-type annotation, e.g.
+  `function App(): JSX.Element @{}`. The return type was parsed inside
+  acorn-typescript while still in type-tokenizer mode, so the trailing `@` threw
+  "Unexpected character '@'" before the code block could be recognized. The return
+  type is now parsed before the body is inspected, and `@` is tokenized in type
+  mode, so typed functions, methods, anonymous function expressions, and generic
+  signatures all accept a `@{ … }` body.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Prevent TSRX parser hangs when
+  JSX switch cases contain elements followed by break statements, and preserve
+  dynamic element lowering through Ripple normalization.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Fix TSRX parser handling for
+  generic function expressions in template setup and parenthesized conditional JSX
+  spread attributes.
+
+- [#1199](https://github.com/Ripple-TS/ripple/pull/1199)
+  [`5d33325`](https://github.com/Ripple-TS/ripple/commit/5d3332564109d228af5e02c0f68ca4a318766649)
+  Thanks [@trueadm](https://github.com/trueadm)! - Keep TSRX template replay
+  locations aligned so generated TypeScript source maps stay within the source
+  document.
+
 ## 0.1.21
 
 ### Patch Changes
