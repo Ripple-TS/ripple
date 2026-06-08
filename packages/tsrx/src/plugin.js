@@ -1445,6 +1445,16 @@ export function TSRXPlugin(config) {
 				this.pos = keywordStart;
 				this.start = keywordStart;
 				this.startLoc = acorn.getLineInfo(this.input, keywordStart);
+				this.curLine = this.startLoc.line;
+				this.lineStart = keywordStart - this.startLoc.column;
+				this.context = this.context.filter(
+					(context) =>
+						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+				);
+				if (this.curContext() !== b_stat) {
+					this.context.push(b_stat);
+				}
+				this.exprAllowed = true;
 				this.#readingJSXControlFlowDirectiveKeyword = true;
 				try {
 					this.nextToken();

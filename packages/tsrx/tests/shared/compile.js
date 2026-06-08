@@ -963,6 +963,25 @@ export function runSharedComponentLoopControlFlowTests({ compile, name }) {
 	runSharedSwitchFallthroughTests({ compile, name });
 
 	describe(`[${name}] component loop control flow`, () => {
+		it('renders for...of loops inside fragment outputs with JSX siblings', () => {
+			const { code } = compile(
+				`export function App({ items }: { items: string[] }) @{
+					<>
+						<h3>head</h3>
+						<p>text</p>
+						@for (const item of items) {
+							<div>{item}</div>
+						}
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<h3>head</h3>');
+			expect(code).toContain('<p>text</p>');
+			expect(code).toContain('<div>{item}</div>');
+		});
+
 		it('renders an empty fallback for for...of loops', () => {
 			const { code } = compile(
 				`export function App({ items }: { items: string[] }) @{

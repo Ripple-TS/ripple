@@ -426,7 +426,7 @@ export function BlogRethinkingTsrxPage() @{
 							Loops use the same shape: setup can happen at the top of each iteration, then the loop
 							body produces one output node. If some items should not render, filter the iterable
 							before the loop. If the list is empty, use the loop's
-							<code>empty</code>
+							<code>@empty</code>
 							branch instead of smuggling a
 							<code>continue</code>
 							or

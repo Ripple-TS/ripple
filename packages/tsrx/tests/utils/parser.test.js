@@ -1103,6 +1103,31 @@ foo();`;
 		expect(directive.empty).toBeNull();
 	});
 
+	it('parses @for inside a statement-container fragment output with JSX siblings', () => {
+		const ast = parseModule(
+			`export function App({ items }: { items: string[] }) @{
+				<>
+					<h3>head</h3>
+					<p>text</p>
+					@for (const item of items) {
+						<div>{item}</div>
+					}
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		const block = ast.body[0].declaration.body;
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.render.type).toBe('JSXFragment');
+		expect(block.render.children.map((child) => child.type)).toEqual([
+			'JSXElement',
+			'JSXElement',
+			'JSXForExpression',
+		]);
+		expect(block.render.children[2].body.body[0].type).toBe('JSXElement');
+	});
+
 	it('parses @for empty fallbacks as template blocks', () => {
 		const returned = getReturned(`function App() { return <ul>
 			@for (const item of items; key item.id) {
