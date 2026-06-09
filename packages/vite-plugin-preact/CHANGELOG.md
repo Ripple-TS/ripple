@@ -1,5 +1,13 @@
 # @tsrx/vite-plugin-preact
 
+## 0.0.49
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6fd49c9`](https://github.com/Ripple-TS/ripple/commit/6fd49c9dd737e889844e254763f66e13ea4a7241)]:
+  - @tsrx/preact@0.1.24
+
 ## 0.0.48
 
 ### Patch Changes
