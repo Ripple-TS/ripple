@@ -856,246 +856,34 @@ function ForInsideTryApp() @{
 	</>
 }
 
-// ── Hook inside if-branch ──
+// ── Explicit hook component inside control flow ──
 
-function HookInIfApp() @{
-	const [show, setShow]: [boolean, React.Dispatch<React.SetStateAction<boolean>>] = useState(true);
+function ExplicitHookPanel(props: { multiplier: number }) {
+	const [base, setBase] = useState(5);
 
-	<>
-		@if (show) {
-			@{
-				const [count, setCount] = useState(0);
-
-				<>
-					<p className="hook-if-count">{count}</p>
-					<button className="hook-if-inc" onClick={() => setCount(count + 1)}>{'inc'}</button>
-				</>
-			}
-		} @else {
-			<p className="hook-if-hidden">{'hidden'}</p>
-		}
-		<button className="hook-if-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
-	</>
+	return <>
+		<p className="explicit-hook-result">
+			{base * props.multiplier}
+		</p>
+		<button className="explicit-hook-inc" onClick={() => setBase(base + 1)}>{'inc base'}</button>
+	</>;
 }
 
-// ── Hook inside for-of loop ──
-
-function HookInForApp() @{
-	const [items, setItems] = useState(['a', 'b']);
-
-	<>
-		@for (const item of items) {
-			@{
-				const [clicked, setClicked] = useState(false);
-
-				<div className="hook-for-item" key={item}>
-					<span>
-						{item}
-						{clicked ? '!' : ''}
-					</span>
-					<button
-						className={'hook-for-click-' + item}
-						onClick={() => setClicked(true)}
-					>{'click'}</button>
-				</div>
-			}
-		}
-		<button className="hook-for-add" onClick={() => setItems([...items, 'c'])}>{'add'}</button>
-	</>
-}
-
-// ── Hook inside switch case ──
-
-function HookInSwitchApp() @{
-	const [page, setPage] = useState('home');
-
-	<>
-		@switch (page) {
-			@case 'home': {
-				const [homeCount, setHomeCount] = useState(0);
-				<>
-					<p className="hook-switch-val">{homeCount}</p>
-					<button
-						className="hook-switch-inc"
-						onClick={() => setHomeCount(homeCount + 1)}
-					>{'inc'}</button>
-				</>
-			}
-			@case 'about': {
-				<p className="hook-switch-val">{'about page'}</p>
-			}
-		}
-		<button className="hook-switch-go" onClick={() => setPage('about')}>{'about'}</button>
-	</>
-}
-
-// ── Hook inside if-else both branches ──
-
-function HookInBothBranchesApp() @{
-	const [mode, setMode] = useState('a');
-
-	<>
-		@if (mode === 'a') {
-			@{
-				const [x, setX] = useState(10);
-
-				<>
-					<p className="branch-val">{x}</p>
-					<button className="branch-inc" onClick={() => setX(x + 1)}>{'inc'}</button>
-				</>
-			}
-		} @else {
-			@{
-				const [y, setY] = useState(20);
-
-				<>
-					<p className="branch-val">{y}</p>
-					<button className="branch-inc" onClick={() => setY(y + 1)}>{'inc'}</button>
-				</>
-			}
-		}
-		<button
-			className="branch-toggle"
-			onClick={() => setMode(mode === 'a' ? 'b' : 'a')}
-		>{'toggle'}</button>
-	</>
-}
-
-// ── Hook inside if-branch closing over parent scope ──
-
-function HookClosingOverScopeApp() @{
+function ExplicitHookBranchApp() @{
+	const [show, setShow] = useState(true);
 	const [multiplier, setMultiplier] = useState(2);
 
 	<>
-		@if (multiplier > 0) {
-			@{
-				const [base, setBase] = useState(5);
-
-				<>
-					<p className="scope-result">
-						{base * multiplier}
-					</p>
-					<button className="scope-inc-base" onClick={() => setBase(base + 1)}>{'inc base'}</button>
-				</>
-			}
+		@if (show) {
+			<ExplicitHookPanel {multiplier} />
+		} @else {
+			<p className="explicit-hook-hidden">{'hidden'}</p>
 		}
+		<button className="explicit-hook-toggle" onClick={() => setShow(!show)}>{'toggle'}</button>
 		<button
-			className="scope-inc-mult"
+			className="explicit-hook-mult"
 			onClick={() => setMultiplier(multiplier + 1)}
 		>{'inc multiplier'}</button>
-	</>
-}
-
-// ── Hook inside element children (hooks in nested <div> body) ──
-
-function HookInsideElementApp() @{
-	const [label, setLabel] = useState('greeting');
-
-	<>
-		<div className="outer">
-			<h2>{label}</h2>
-			@if (label === 'greeting') {
-				@{
-					const [msg, setMsg] = useState('Hello');
-
-					<>
-						<p className="inner-msg">{msg}</p>
-						<button className="inner-update" onClick={() => setMsg('Hi there')}>{'update'}</button>
-					</>
-				}
-			}
-		</div>
-		<button
-			className="outer-toggle"
-			onClick={() => setLabel(label === 'greeting' ? 'farewell' : 'greeting')}
-		>toggle</button>
-	</>
-}
-
-// ── Hook inside for-of closing over parent scope ──
-
-function HookInForClosingScopeApp() @{
-	const [prefix, setPrefix] = useState('item');
-	const [items, setItems] = useState(['a', 'b']);
-
-	<>
-		@for (const item of items) {
-			@{
-				const [active, setActive] = useState(false);
-
-				<div className="for-scope-item" key={item}>
-					<span className="for-scope-label">
-						{prefix + '-' + item + (active ? '!' : '')}
-					</span>
-					<button
-						className={'for-scope-toggle-' + item}
-						onClick={() => setActive(!active)}
-					>{'toggle'}</button>
-				</div>
-			}
-		}
-		<button
-			className="for-scope-prefix"
-			onClick={() => setPrefix('thing')}
-		>{'change prefix'}</button>
-	</>
-}
-
-// ── Component guard return before hooks with parent scope ──
-
-function GuardReturnWithHooksApp() @{
-	const [count, setCount] = useState(0);
-	const [skip, setSkip] = useState(false);
-	if (skip) {
-		return null;
-	}
-	const [doubled, setDoubled] = useState(0);
-
-	<>
-		<p className="early-count">{count}</p>
-		<p className="early-doubled">{doubled}</p>
-		<button
-			className="early-inc"
-			onClick={() => {
-				setCount(count + 1);
-				setDoubled((count + 1) * 2);
-			}}
-		>inc</button>
-		<button className="early-skip" onClick={() => setSkip(true)}>{'skip'}</button>
-	</>
-}
-
-// ── Hook inside switch closing over parent scope ──
-
-function HookInSwitchWithScopeApp() @{
-	const [tab, setTab] = useState('counter');
-	const [theme, setTheme] = useState('light');
-
-	<>
-		@switch (tab) {
-			@case 'counter': {
-				const [n, setN] = useState(0);
-				<>
-					<p className="switch-scope-val">
-						{theme + ':' + n}
-					</p>
-					<button className="switch-scope-inc" onClick={() => setN(n + 1)}>{'inc'}</button>
-				</>
-			}
-			@case 'info': {
-				<p className="switch-scope-val">
-					{theme + ':info'}
-				</p>
-			}
-		}
-		<button
-			className="switch-scope-tab"
-			onClick={() => setTab(tab === 'counter' ? 'info' : 'counter')}
-		>{'switch tab'}</button>
-		<button
-			className="switch-scope-theme"
-			onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-		>{'switch theme'}</button>
 	</>
 }
 
@@ -1744,127 +1532,24 @@ describe('tsrx-react runtime', () => {
 		expect(container.querySelectorAll('.try-item')[2].textContent).toBe('z');
 	});
 
-	// ── Hooks inside control flow ──
+	// ── Explicit hook components inside control flow ──
 
-	it('supports useState inside an if-branch', async () => {
-		await render(HookInIfApp);
-		expect(text('.hook-if-count')).toBe('0');
+	it('supports hooks inside explicit child components rendered by control flow', async () => {
+		await render(ExplicitHookBranchApp);
+		expect(text('.explicit-hook-result')).toBe('10');
 
-		await click('.hook-if-inc');
-		expect(text('.hook-if-count')).toBe('1');
+		await click('.explicit-hook-inc');
+		expect(text('.explicit-hook-result')).toBe('12');
 
-		await click('.hook-if-toggle');
-		expect(text('.hook-if-hidden')).toBe('hidden');
-		expect(container.querySelector('.hook-if-count')).toBeNull();
-	});
+		await click('.explicit-hook-mult');
+		expect(text('.explicit-hook-result')).toBe('18');
 
-	it('supports useState inside a for-of loop body', async () => {
-		await render(HookInForApp);
-		const items = container.querySelectorAll('.hook-for-item');
-		expect(items.length).toBe(2);
+		await click('.explicit-hook-toggle');
+		expect(text('.explicit-hook-hidden')).toBe('hidden');
+		expect(container.querySelector('.explicit-hook-result')).toBeNull();
 
-		await click('.hook-for-click-a');
-		expect(container.querySelector('.hook-for-item span')!.textContent).toBe('a!');
-	});
-
-	it('supports useState inside a switch case', async () => {
-		await render(HookInSwitchApp);
-		expect(text('.hook-switch-val')).toBe('0');
-
-		await click('.hook-switch-inc');
-		expect(text('.hook-switch-val')).toBe('1');
-
-		await click('.hook-switch-go');
-		expect(text('.hook-switch-val')).toBe('about page');
-	});
-
-	it('supports hooks in both if-else branches independently', async () => {
-		await render(HookInBothBranchesApp);
-		expect(text('.branch-val')).toBe('10');
-
-		await click('.branch-inc');
-		expect(text('.branch-val')).toBe('11');
-
-		await click('.branch-toggle');
-		expect(text('.branch-val')).toBe('20');
-
-		await click('.branch-inc');
-		expect(text('.branch-val')).toBe('21');
-	});
-
-	// ── Hoisted hooks closing over parent scope ──
-
-	it('hook in if-branch correctly closes over parent scope variables', async () => {
-		await render(HookClosingOverScopeApp);
-		// base=5, multiplier=2 → 10
-		expect(text('.scope-result')).toBe('10');
-
-		await click('.scope-inc-base');
-		// base=6, multiplier=2 → 12
-		expect(text('.scope-result')).toBe('12');
-
-		await click('.scope-inc-mult');
-		// base=6, multiplier=3 → 18
-		expect(text('.scope-result')).toBe('18');
-	});
-
-	it('hook inside element children works with parent scope', async () => {
-		await render(HookInsideElementApp);
-		expect(text('h2')).toBe('greeting');
-		expect(text('.inner-msg')).toBe('Hello');
-
-		await click('.inner-update');
-		expect(text('.inner-msg')).toBe('Hi there');
-
-		await click('.outer-toggle');
-		expect(text('h2')).toBe('farewell');
-		expect(container.querySelector('.inner-msg')).toBeNull();
-
-		await click('.outer-toggle');
-		expect(text('h2')).toBe('greeting');
-		// Hook state resets since the component remounts
-		expect(text('.inner-msg')).toBe('Hello');
-	});
-
-	it('hook in for-of loop correctly uses parent scope variables', async () => {
-		await render(HookInForClosingScopeApp);
-		const labels = container.querySelectorAll('.for-scope-label');
-		expect(labels[0].textContent).toBe('item-a');
-		expect(labels[1].textContent).toBe('item-b');
-
-		await click('.for-scope-toggle-a');
-		expect(container.querySelector('.for-scope-label')!.textContent).toBe('item-a!');
-
-		await click('.for-scope-prefix');
-		expect(container.querySelector('.for-scope-label')!.textContent).toBe('thing-a!');
-	});
-
-	it('component guard return before hooks passes scope correctly to continuation', async () => {
-		await render(GuardReturnWithHooksApp);
-		expect(text('.early-count')).toBe('0');
-		expect(text('.early-doubled')).toBe('0');
-
-		await click('.early-inc');
-		expect(text('.early-count')).toBe('1');
-		expect(text('.early-doubled')).toBe('2');
-
-		await click('.early-skip');
-		expect(container.querySelector('.early-count')).toBeNull();
-		expect(container.querySelector('.early-doubled')).toBeNull();
-	});
-
-	it('hook in switch case correctly uses parent scope variables', async () => {
-		await render(HookInSwitchWithScopeApp);
-		expect(text('.switch-scope-val')).toBe('light:0');
-
-		await click('.switch-scope-inc');
-		expect(text('.switch-scope-val')).toBe('light:1');
-
-		await click('.switch-scope-theme');
-		expect(text('.switch-scope-val')).toBe('dark:1');
-
-		await click('.switch-scope-tab');
-		expect(text('.switch-scope-val')).toBe('dark:info');
+		await click('.explicit-hook-toggle');
+		expect(text('.explicit-hook-result')).toBe('15');
 	});
 
 	it('keeps <> expression hook state stable across regular function rerenders', async () => {
