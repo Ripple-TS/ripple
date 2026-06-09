@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "preserve",
-    "jsxImportSource": "solid-js",
+    "jsxImportSource": "@solidjs/web",
     "plugins": [{ "name": "@tsrx/typescript-plugin" }],
     "strict": true,
     "allowImportingTsExtensions": true,

@@ -33,7 +33,8 @@
     "zimmerframe": "catalog:default"
   },
   "peerDependencies": {
-    "solid-js": ">=1.8 || >=2.0.0-beta"
+    "@solidjs/web": "catalog:default",
+    "solid-js": "catalog:default"
   },
   "devDependencies": {
     "@types/estree": "catalog:default",

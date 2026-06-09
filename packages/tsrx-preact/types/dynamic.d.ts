@@ -1,16 +1,32 @@
 import type { ComponentType, JSX, VNode } from 'preact';
 
-export type DynamicElementType = keyof JSX.IntrinsicElements | ComponentType<any>;
+type DynamicIntrinsicElements = JSX.IntrinsicElements;
+export type DynamicElementType =
+	| keyof DynamicIntrinsicElements
+	| ComponentType<any>
+	| (string & {});
+type DynamicTarget<T> = Exclude<T, null | undefined | false>;
+type DynamicComponentProps<T> = [T] extends [never]
+	? Record<string, unknown>
+	: T extends ComponentType<infer P>
+		? Omit<P, 'is'>
+		: T extends keyof DynamicIntrinsicElements
+			? DynamicIntrinsicElements[T]
+			: Record<string, unknown>;
 
-export type DynamicProps<T extends DynamicElementType> = Omit<
-	T extends ComponentType<infer P>
-		? P
-		: T extends keyof JSX.IntrinsicElements
-			? JSX.IntrinsicElements[T]
-			: Record<string, unknown>,
-	'is'
+export type DynamicProps<T extends DynamicElementType> = DynamicComponentProps<
+	DynamicTarget<NoInfer<T>>
 > & {
 	is: T | null | undefined | false;
 };
 
-export function Dynamic<T extends DynamicElementType>(props: DynamicProps<T>): VNode | null;
+export function Dynamic<T extends keyof DynamicIntrinsicElements>(
+	props: DynamicIntrinsicElements[T] & {
+		is: T | null | undefined | false;
+	},
+): VNode | null;
+export function Dynamic<T extends DynamicElementType>(
+	props: DynamicComponentProps<DynamicTarget<NoInfer<T>>> & {
+		is: T | null | undefined | false;
+	},
+): VNode | null;

@@ -27,7 +27,8 @@
   },
   "devDependencies": {
     "@tsrx/core": "workspace:*",
-    "solid-js": "2.0.0-beta.7",
+    "@solidjs/web": "catalog:default",
+    "solid-js": "catalog:default",
     "typescript": "catalog:default",
     "vite": "catalog:default",
     "vite-plugin-solid": "3.0.0-next.5"

@@ -1,12 +1,6 @@
-declare global {
-	namespace JSX {
-		interface IntrinsicElements {
-			[name: string]: any;
-		}
-	}
-}
+import type { NativeElements } from 'vue-jsx-vapor';
 
-type DynamicIntrinsicElements = JSX.IntrinsicElements;
+type DynamicIntrinsicElements = NativeElements;
 
 export type DynamicElementType =
 	| keyof DynamicIntrinsicElements
