@@ -19,3 +19,7 @@ export function iterable_array_from<T>(
 	iterable: Iterable<T> | Iterator<T> | ArrayLike<T>,
 	index?: number,
 ): T[];
+export function exclude_prop_from_object(
+	props: Record<PropertyKey, any> | null | undefined,
+	exclude_prop: PropertyKey,
+): Record<PropertyKey, any>;

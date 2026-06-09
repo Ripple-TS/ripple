@@ -1,4 +1,5 @@
 import { is_void_element } from '@tsrx/core/runtime/html';
+import { exclude_prop_from_object } from '@tsrx/core/runtime/language-helpers';
 import {
 	escape,
 	get,
@@ -10,21 +11,6 @@ import {
 	spread_inner_html,
 } from './internal/server/index.js';
 import { tsrx_element } from './element.js';
-
-/**
- * @param {Record<PropertyKey, any>} props
- * @param {string} exclude_prop
- * @returns {Record<PropertyKey, any>}
- */
-function exclude_prop_from_object(props, exclude_prop) {
-	/** @type {Record<PropertyKey, any>} */
-	const next = {};
-	for (const prop of Reflect.ownKeys(props)) {
-		if (prop === exclude_prop) continue;
-		next[prop] = props[prop];
-	}
-	return next;
-}
 
 /**
  * @param {any} value

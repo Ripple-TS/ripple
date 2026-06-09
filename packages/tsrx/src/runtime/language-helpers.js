@@ -89,3 +89,42 @@ export function iterable_array_from(iterable, index = 0) {
 	}
 	return result;
 }
+
+/**
+ * Creates a shallow forwarding object without one prop. Values are exposed through
+ * getters so compiler-emitted reactive prop accessors are not snapshotted.
+ * @param {Record<PropertyKey, any> | null | undefined} props
+ * @param {PropertyKey} exclude_prop
+ * @returns {Record<PropertyKey, any>}
+ */
+export function exclude_prop_from_object(props, exclude_prop) {
+	/** @type {Record<PropertyKey, any>} */
+	const next = {};
+	if (props == null) return next;
+
+	for (const prop of Reflect.ownKeys(props)) {
+		if (prop === exclude_prop) continue;
+
+		const descriptor = get_descriptor(props, prop);
+		if (!descriptor?.enumerable) continue;
+
+		/** @type {PropertyDescriptor} */
+		const forwarding_descriptor = {
+			enumerable: true,
+			configurable: true,
+			get() {
+				return props[prop];
+			},
+		};
+
+		if (descriptor.writable === true || typeof descriptor.set === 'function') {
+			forwarding_descriptor.set = (value) => {
+				props[prop] = value;
+			};
+		}
+
+		define_property(next, prop, forwarding_descriptor);
+	}
+
+	return next;
+}

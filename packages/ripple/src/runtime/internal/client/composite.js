@@ -1,5 +1,6 @@
 /** @import { Block } from '#client' */
 
+import { exclude_prop_from_object } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
 import { hydrate_next, hydrating } from './hydration.js';
@@ -7,21 +8,6 @@ import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
 import { render_component } from './component.js';
-
-/**
- * @param {Record<PropertyKey, any>} props
- * @param {string} exclude_prop
- * @returns {Record<PropertyKey, any>}
- */
-function exclude_prop_from_object(props, exclude_prop) {
-	/** @type {Record<PropertyKey, any>} */
-	const next = {};
-	for (const prop of Reflect.ownKeys(props)) {
-		if (prop === exclude_prop) continue;
-		next[prop] = props[prop];
-	}
-	return next;
-}
 
 /**
  * @typedef {Function | string | null | undefined | false} CompositeTarget
