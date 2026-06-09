@@ -12,27 +12,18 @@ import {
 import { tsrx_element } from './element.js';
 
 /**
- * @param {Record<string, any>} props
+ * @param {Record<PropertyKey, any>} props
  * @param {string} exclude_prop
- * @returns {Record<string, any>}
+ * @returns {Record<PropertyKey, any>}
  */
 function exclude_prop_from_object(props, exclude_prop) {
-	return new Proxy(props, {
-		get(target, property, receiver) {
-			if (property === exclude_prop) return undefined;
-			return Reflect.get(target, property, receiver);
-		},
-		has(target, property) {
-			return property !== exclude_prop && Reflect.has(target, property);
-		},
-		ownKeys(target) {
-			return Reflect.ownKeys(target).filter((property) => property !== exclude_prop);
-		},
-		getOwnPropertyDescriptor(target, property) {
-			if (property === exclude_prop) return undefined;
-			return Reflect.getOwnPropertyDescriptor(target, property);
-		},
-	});
+	/** @type {Record<PropertyKey, any>} */
+	const next = {};
+	for (const prop of Reflect.ownKeys(props)) {
+		if (prop === exclude_prop) continue;
+		next[prop] = props[prop];
+	}
+	return next;
 }
 
 /**

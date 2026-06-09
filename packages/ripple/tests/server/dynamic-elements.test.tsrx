@@ -1,4 +1,4 @@
-import type { PropsWithExtras } from 'ripple';
+import type { DynamicProps, PropsWithExtras, TSRXElement } from 'ripple';
 import { createRefKey, Dynamic, track } from 'ripple';
 
 describe('server dynamic DOM elements', () => {
@@ -26,7 +26,7 @@ describe('server dynamic DOM elements', () => {
 	});
 
 	it('does not pass is to dynamic component props', async () => {
-		function Child(props) @{
+		function Child(props: { label: string; is?: Function }) @{
 			<div>
 				{props.is === undefined && !('is' in props) ? 'hidden' : 'leaked'}
 			</div>
