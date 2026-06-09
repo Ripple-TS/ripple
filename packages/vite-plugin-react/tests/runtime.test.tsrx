@@ -890,9 +890,9 @@ function ExplicitHookBranchApp() @{
 // ── Hook inside expression-position JSX fragments from a regular function ──
 
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) @{
-	if (!props.active) return null;
-
 	const [count, setCount] = useState(0);
+
+	if (!props.active) return null;
 
 	<button className="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 		{props.label + ':' + count}

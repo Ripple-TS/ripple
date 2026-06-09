@@ -254,9 +254,10 @@ function NamedRefObjectApp() {
 }
 
 function TsrxExpressionHookPanel(props: { active: boolean; label: string }) @{
+	const [count, setCount] = useState(0);
+
 	if (!props.active) return null;
 
-	const [count, setCount] = useState(0);
 	<button class="tsrx-expression-hook-count" onClick={() => setCount(count + 1)}>
 		{props.label + ':' + count}
 	</button>
