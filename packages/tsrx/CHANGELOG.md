@@ -1,5 +1,29 @@
 # @tsrx/core
 
+## 0.1.25
+
+### Patch Changes
+
+- [`d14ec84`](https://github.com/Ripple-TS/ripple/commit/d14ec84f26233e514be9e59ffc94e61db5089587)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Preserve whitespace between a
+  control-flow directive's closing `}` and the following template text. A bare
+  `else` (or any sibling text) after an `@if` block such as `@if (x) { … } else`
+  now keeps the leading space instead of dropping it, matching how text after a
+  plain element is handled.
+
+- [`921fb9c`](https://github.com/Ripple-TS/ripple/commit/921fb9ce6485db41527b631f5236b7abbac74986)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix a parser crash ("Invalid
+  array length") when a control-flow directive (`@if`/`@for`/`@switch`/`@try`) is
+  followed by same-line trailing text that runs straight into the closing tag,
+  e.g. `<>@if (a) { … } done</>`. The manual JSX-closing-tag re-entry now restores
+  the two tokenizer contexts a real `jsxTagStart` would have pushed, so the
+  closing tag no longer underflows the context stack.
+
+- [#1233](https://github.com/Ripple-TS/ripple/pull/1233)
+  [`1693c9e`](https://github.com/Ripple-TS/ripple/commit/1693c9e6daf1421e71171fe3c50e37adfc858b69)
+  Thanks [@trueadm](https://github.com/trueadm)! - Remove generated React and
+  Preact hook helper extraction so hooks remain in authored order.
+
 ## 0.1.24
 
 ### Patch Changes

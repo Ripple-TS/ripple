@@ -1,5 +1,15 @@
 # @tsrx/vue
 
+## 0.1.25
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d14ec84`](https://github.com/Ripple-TS/ripple/commit/d14ec84f26233e514be9e59ffc94e61db5089587),
+  [`921fb9c`](https://github.com/Ripple-TS/ripple/commit/921fb9ce6485db41527b631f5236b7abbac74986),
+  [`1693c9e`](https://github.com/Ripple-TS/ripple/commit/1693c9e6daf1421e71171fe3c50e37adfc858b69)]:
+  - @tsrx/core@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes
