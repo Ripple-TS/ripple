@@ -1977,7 +1977,6 @@ export function TSRXPlugin(config) {
 						)
 					);
 					name.name = 'style';
-					name.tracked = false;
 					this.finishNodeAt(
 						name,
 						'JSXIdentifier',
@@ -3302,7 +3301,6 @@ export function TSRXPlugin(config) {
 								this.startNodeAt(name_start, name_start_loc)
 							);
 							id.name = name_value;
-							id.tracked = false;
 							this.finishNodeAt(id, 'JSXIdentifier', name_end, name_end_loc);
 							const name = /** @type {AST.Identifier} */ (
 								this.startNodeAt(name_start, name_start_loc)
@@ -3379,7 +3377,6 @@ export function TSRXPlugin(config) {
 							this.startNodeAt(name_start, name_start_loc)
 						);
 						id.name = name_value;
-						id.tracked = false;
 						this.finishNodeAt(id, 'JSXIdentifier', name_end, name_end_loc);
 						const name = /** @type {AST.Identifier} */ (
 							this.startNodeAt(name_start, name_start_loc)

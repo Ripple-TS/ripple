@@ -701,7 +701,6 @@ declare module 'estree-jsx' {
 	}
 
 	interface JSXIdentifier {
-		tracked?: boolean;
 		metadata: BaseNodeMetaData & {
 			is_component?: boolean;
 		};

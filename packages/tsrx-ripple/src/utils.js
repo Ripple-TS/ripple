@@ -2628,7 +2628,6 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				name: name.name,
 				start: name.start,
 				end: name.end,
-				tracked: name.tracked === true,
 			});
 		} else if (name.type === 'JSXMemberExpression') {
 			// Convert JSXMemberExpression to MemberExpression

@@ -1057,17 +1057,16 @@ function build_show_element(test, children, fallback) {
 
 /**
  * `for (const item of items; index i) { ... }` →
- * `<For each={items}>{(item, i) => ...}</For>`
+ * `<For each={items} keyed={false}>{(item, i) => ...}</For>`
  *
  * `for (const item of items; key item.id) { ... }` →
  * `<For each={items} keyed={(item) => item.id}>{(item) => ...}</For>`
  *
- * Solid 2.0's `<For>` accepts a `keyed` prop (`boolean | (item) => any`) that
- * switches reconciliation from reference identity to derived keys. The callback
- * only receives the item — not the index — so a `key` expression that depends
- * only on the index can't be translated cleanly and will surface as a
- * scope error in the generated TSX. Item-based keys (the common case, e.g.
- * `key item.id`) translate directly.
+ * Solid 2.0's `<For>` defaults to raw row values for the child callback. When
+ * no explicit `key` is present, TSRX follows Solid's native callback shapes:
+ * index loops use `keyed={false}` (accessor item, raw index), while loops
+ * without an index use the default raw item. Explicit `key` clauses replace
+ * the implicit mode with the user-provided key expression.
  *
  * @param {any} node
  * @param {TransformContext} transform_context
@@ -1080,6 +1079,7 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 	const loop_body = /** @type {any[]} */ (
 		node.body.type === 'BlockStatement' ? node.body.body : [node.body]
 	);
+	const uses_index_only_mode = !node.key && node.index;
 	validate_for_body_control_flow(loop_body, transform_context);
 
 	let arrow;
@@ -1112,6 +1112,8 @@ function for_of_statement_to_jsx_child(node, transform_context) {
 		attributes.push(
 			b.jsx_attribute(b.jsx_id('keyed'), to_jsx_expression_container(keyed_arrow, node.key)),
 		);
+	} else if (uses_index_only_mode) {
+		attributes.push(b.jsx_attribute(b.jsx_id('keyed'), to_jsx_expression_container(b.false)));
 	}
 
 	return create_jsx_element('For', attributes, [to_jsx_expression_container(arrow)]);
@@ -1285,13 +1287,20 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (handler) {
 		transform_context.needs_errored = true;
 
-		const catch_params = [];
-		if (handler.param) catch_params.push(handler.param);
-		else catch_params.push(create_generated_identifier('_error'));
+		const error_accessor_param = create_generated_identifier('_error');
+		const catch_params = [error_accessor_param];
 		if (handler.resetParam) catch_params.push(handler.resetParam);
 		else catch_params.push(create_generated_identifier('_reset'));
 
-		const catch_body_nodes = handler.body.body || [];
+		const catch_body_nodes = [...(handler.body.body || [])];
+		if (handler.param) {
+			catch_body_nodes.unshift(
+				b.const(
+					clone_expression_node(handler.param),
+					b.call(clone_identifier(error_accessor_param)),
+				),
+			);
+		}
 		const catch_jsx = body_to_jsx_child(catch_body_nodes, transform_context);
 
 		const fallback_fn = merge_branch_body_into_arrow(

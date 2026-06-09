@@ -471,7 +471,7 @@ function ForFilteredApp() @{
 	const items = ['a', '', 'c'];
 	const visibleItems = items.filter(Boolean);
 	@for (const item of visibleItems) {
-		const item_value = (item as unknown as () => string)();
+		const item_value = item;
 		<li class="continue-item">{item_value}</li>
 	}
 }
@@ -479,7 +479,7 @@ function ForFilteredApp() @{
 function ForContinueAfterPriorJsxApp() @{
 	const items = ['a', '', 'c'];
 	@for (const item of items) {
-		const item_value = (item as unknown as () => string)();
+		const item_value = item;
 		<>
 			<span class="continue-before">{`before-${item_value || 'empty'}`}</span>
 			@if (item_value) {
@@ -762,9 +762,8 @@ function SignalClosingOverScopeApp() @{
 }
 
 // ── Signal inside for-of loop body ──
-// NOTE: Solid's <For> passes each item as an accessor (`() => T`) rather than
-// a plain value, so branch-local uses of `item` outside JSX reactive positions
-// must call `item()` explicitly. This differs from the React runtime tests.
+// NOTE: Solid's <For keyed={false}> passes each item as an accessor (`() => T`)
+// and the index as a raw number. This differs from the React runtime tests.
 
 function SignalInForApp() @{
 	const [items, setItems] = createSignal(['a', 'b']);

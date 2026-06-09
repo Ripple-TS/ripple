@@ -242,17 +242,34 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain("import { Switch, Match } from 'solid-js'");
 		});
 
-		it('for-of → <For each>{(item, i) => ...}', () => {
+		it('for-of with index and no key → <For keyed={false}>', () => {
 			const { code } = compile(
 				`function App({ items }: { items: number[] }) @{
 						@for (const item of items; index i) {
+						<li>{i + item()}</li>
+					}
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('<For each={items}');
+			expect(code).toContain('keyed={false}');
+			expect(code).toMatch(/\(item, i\) =>/);
+			expect(code).toContain('<li>{i + item()}</li>');
+			expect(code).toContain("import { For } from 'solid-js'");
+		});
+
+		it('for-of without index or key → default <For>', () => {
+			const { code } = compile(
+				`function App({ items }: { items: number[] }) @{
+						@for (const item of items) {
 						<li>{item}</li>
 					}
 				}`,
 				'App.tsrx',
 			);
 			expect(code).toContain('<For each={items}>');
-			expect(code).toMatch(/\(item, i\) =>/);
+			expect(code).not.toContain('keyed=');
+			expect(code).toContain('(item) => <li>{item}</li>');
 			expect(code).toContain("import { For } from 'solid-js'");
 		});
 
@@ -272,7 +289,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/keyed=\{\(item\) =>\s*item\.id\}/);
 		});
 
-		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
+		it('try/catch → <Errored fallback={(_error, reset) => ...}>', () => {
 			const { code } = compile(
 				`function App() @{
 						@try {
@@ -283,7 +300,8 @@ describe('@tsrx/solid basic', () => {
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('<Errored fallback={(err, reset) =>');
+			expect(code).toContain('<Errored fallback={(_error, reset) =>');
+			expect(code).toContain('const err = _error();');
 			expect(code).toContain("import { Errored } from 'solid-js'");
 		});
 
@@ -413,7 +431,8 @@ describe('@tsrx/solid basic', () => {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('<For each={items}>');
+			expect(code).toContain('<For each={items}');
+			expect(code).not.toContain('keyed=');
 			expect(code).toContain('<Show when={cond}');
 			expect(code).toContain('setup();');
 			expect(code).not.toContain('if (cond)');
@@ -583,6 +602,7 @@ describe('@tsrx/solid basic', () => {
 			);
 
 			expect(code).toContain('<For each={items}>');
+			expect(code).not.toContain('keyed=');
 			expect(code).toContain('(item) => <div>{item}</div>');
 			expect(code).not.toContain('for (const item of items)');
 		});

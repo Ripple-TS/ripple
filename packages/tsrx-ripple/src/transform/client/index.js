@@ -2629,7 +2629,7 @@ const visitors = {
 							}
 						}
 
-						if (metadata.tracking || attr.name.tracked) {
+						if (metadata.tracking) {
 							if (attr.name.name === 'children') {
 								children_prop = b.prop(
 									'get',
@@ -4159,7 +4159,6 @@ function transform_ts_child(node, context) {
 				const attr_value = /** @type { AST.Expression & AST.NodeWithLocation | null} */ (
 					attr.value
 				);
-				// Handle both regular identifiers and tracked identifiers
 				/** @type {string} */
 				let prop_name;
 				/** @type {AST.Identifier} */
@@ -4167,10 +4166,6 @@ function transform_ts_child(node, context) {
 				if (name.type === 'Identifier') {
 					name_node = name;
 					prop_name = name.name;
-				} else if (name.type === 'MemberExpression' && name.object.type === 'Identifier') {
-					// For tracked attributes like {@count}, use the original name
-					name_node = name.object;
-					prop_name = name.object.name;
 				} else {
 					name_node = attr.name;
 					prop_name = attr.name.name || 'unknown';
@@ -4777,10 +4772,6 @@ function element_has_dynamic_content(element) {
 		if (attr.type === 'Attribute') {
 			// Dynamic value expression (not null, not Literal)
 			if (attr.value !== null && attr.value.type !== 'Literal') {
-				return true;
-			}
-			// Tracked attribute name
-			if (attr.name.tracked) {
 				return true;
 			}
 		} else if (attr.type === 'SpreadAttribute') {
