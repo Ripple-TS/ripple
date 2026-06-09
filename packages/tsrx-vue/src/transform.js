@@ -33,6 +33,7 @@ const vue_platform = {
 	name: 'Vue',
 	imports: {
 		suspense: 'vue',
+		dynamic: '@tsrx/vue/dynamic',
 		errorBoundary: '@tsrx/vue/error-boundary',
 		mergeRefs: '@tsrx/vue/ref',
 		refProp: '@tsrx/vue/ref',

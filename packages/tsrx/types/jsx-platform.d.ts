@@ -53,6 +53,8 @@ export interface JsxTransformContext {
 	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
 	lazy_next_id: number;
+	/** Scope map used to resolve runtime Dynamic imports for scoped CSS pruning. */
+	runtime_dynamic_scopes: Map<any, any> | null;
 	inside_element_child?: boolean;
 	/** Full source text for source-aware diagnostics. */
 	source: string;
@@ -318,6 +320,12 @@ export interface JsxPlatform {
 		 * block appears. React: `'react'`. Preact: `'preact/compat'`.
 		 */
 		suspense: string;
+		/**
+		 * Module that exports the target runtime `Dynamic` component. When set,
+		 * the shared JSX transform treats imported `Dynamic` elements with an
+		 * `is` prop as runtime-dynamic for scoped CSS pruning.
+		 */
+		dynamic?: string;
 		/**
 		 * Module to import `TsrxErrorBoundary` from when an `@try { ... } @catch (...)`
 		 * block appears. Usually `'@tsrx/<platform>/error-boundary'`.

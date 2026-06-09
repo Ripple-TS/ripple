@@ -32,6 +32,7 @@ const preact_platform = {
 	imports: {
 		fragment: 'preact',
 		suspense: DEFAULT_SUSPENSE_SOURCE,
+		dynamic: '@tsrx/preact/dynamic',
 		errorBoundary: '@tsrx/preact/error-boundary',
 		mergeRefs: '@tsrx/preact/ref',
 		refProp: '@tsrx/preact/ref',

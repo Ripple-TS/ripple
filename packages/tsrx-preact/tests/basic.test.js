@@ -222,6 +222,28 @@ describe('@tsrx/preact basic', () => {
 		expect(code).toContain('return <div>{Date.now()}</div>;');
 	});
 
+	it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
+		const { code, cssHash } = compile(
+			`import { Dynamic } from '@tsrx/preact/dynamic';
+			const RuntimeDynamic = Dynamic;
+
+			export function App() @{
+				<>
+					<RuntimeDynamic is="div" class="host">{'hello'}</RuntimeDynamic>
+
+					<style>
+						.host {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`class="host ${cssHash}"`);
+	});
+
 	it('preserves parent prop types in hook-bearing composite children', () => {
 		const source = `import { useState } from 'preact/hooks';
 			import type { PropsWithChildren } from 'ripple';

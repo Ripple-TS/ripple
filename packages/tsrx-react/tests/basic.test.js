@@ -286,6 +286,77 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain(`className="content ${cssHash}"`);
 	});
 
+	it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
+		const { code, cssHash } = compile(
+			`import { Dynamic } from '@tsrx/react/dynamic';
+			const RuntimeDynamic = Dynamic;
+
+			export function App() @{
+				<>
+					<RuntimeDynamic is="div" className="host">{'hello'}</RuntimeDynamic>
+
+					<style>
+						.host {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`className="host ${cssHash}"`);
+	});
+
+	it('applies scoped css hashes to runtime Dynamic import aliases', () => {
+		const { code, cssHash } = compile(
+			`import { Dynamic as RuntimeDynamic } from '@tsrx/react/dynamic';
+
+			export function App() @{
+				<>
+					<RuntimeDynamic is="div" className="host">{'hello'}</RuntimeDynamic>
+
+					<style>
+						.host {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`className="host ${cssHash}"`);
+	});
+
+	it('does not treat local Dynamic components as runtime Dynamic imports', () => {
+		const { code, cssHash } = compile(
+			`import { Dynamic } from '@tsrx/react/dynamic';
+
+			function LocalDynamic(props) {
+				return <div {...props} />;
+			}
+
+			export function App() @{
+				const Dynamic = LocalDynamic;
+				<>
+					<Dynamic is="div" className="host">{'hello'}</Dynamic>
+
+					<style>
+						.host {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain('const Dynamic = LocalDynamic;');
+		expect(code).toContain('className="host"');
+		expect(code).not.toContain(`className="host ${cssHash}"`);
+	});
+
 	it('renders component-body if statements as React expressions', () => {
 		const { code } = compile(
 			`export function App() @{

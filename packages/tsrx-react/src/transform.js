@@ -15,6 +15,7 @@ const react_platform = {
 	imports: {
 		fragment: 'react',
 		suspense: 'react',
+		dynamic: '@tsrx/react/dynamic',
 		errorBoundary: '@tsrx/react/error-boundary',
 		mergeRefs: '@tsrx/react/ref',
 		refProp: '@tsrx/react/ref',

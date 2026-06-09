@@ -7,6 +7,7 @@ import { print } from 'esrap';
 import { error } from '../../errors.js';
 import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
+import { create_scopes, ScopeRoot } from '../../scope.js';
 import {
 	in_jsx_child_context,
 	set_node_path_metadata,
@@ -352,6 +353,7 @@ export function createJsxTransform(platform) {
 			hook_helpers_enabled: false,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
+			runtime_dynamic_scopes: null,
 			filename: filename ?? null,
 			source,
 			collect,
@@ -365,6 +367,10 @@ export function createJsxTransform(platform) {
 
 		expand_child_code_blocks(/** @type {any} */ (ast));
 		wrap_control_flow_expression_values(/** @type {any} */ (ast));
+		transform_context.runtime_dynamic_scopes = create_runtime_dynamic_scopes(
+			/** @type {any} */ (ast),
+			transform_context,
+		);
 
 		if (!transform_context.typeOnly) {
 			preallocate_lazy_ids(/** @type {any} */ (ast), transform_context);
@@ -540,16 +546,26 @@ export function createJsxTransform(platform) {
  *
  * @param {any} component
  * @param {any} css
+ * @param {TransformContext} transform_context
  * @param {boolean} [export_top_scoped_classes]
  * @returns {void}
  */
-function apply_css_definition_metadata(component, css, export_top_scoped_classes = false) {
+function apply_css_definition_metadata(
+	component,
+	css,
+	transform_context,
+	export_top_scoped_classes = false,
+) {
 	analyze_css(css);
 
 	const metadata = component.metadata || (component.metadata = { path: [] });
 	const style_classes = metadata.styleClasses || (metadata.styleClasses = new Map());
 	const top_scoped_classes = metadata.topScopedClasses || new Map();
-	const elements = collect_css_prunable_elements(component.body || component.children || []);
+	const elements = collect_css_prunable_elements(
+		component.body || component.children || [],
+		[],
+		transform_context,
+	);
 
 	const prune = () => {
 		for (const element of elements) {
@@ -574,16 +590,17 @@ function apply_css_definition_metadata(component, css, export_top_scoped_classes
 /**
  * @param {any} value
  * @param {any[]} [elements]
+ * @param {TransformContext | null} [transform_context]
  * @returns {any[]}
  */
-function collect_css_prunable_elements(value, elements = []) {
+function collect_css_prunable_elements(value, elements = [], transform_context = null) {
 	if (!value || typeof value !== 'object') {
 		return elements;
 	}
 
 	if (Array.isArray(value)) {
 		for (const child of value) {
-			collect_css_prunable_elements(child, elements);
+			collect_css_prunable_elements(child, elements, transform_context);
 		}
 		return elements;
 	}
@@ -597,6 +614,7 @@ function collect_css_prunable_elements(value, elements = []) {
 	}
 
 	if (value.type === 'JSXElement' && value.metadata?.native_tsrx) {
+		mark_runtime_dynamic_element(value, transform_context);
 		if (!is_style_element(value)) {
 			elements.push(value);
 		}
@@ -606,10 +624,245 @@ function collect_css_prunable_elements(value, elements = []) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
 			continue;
 		}
-		collect_css_prunable_elements(value[key], elements);
+		collect_css_prunable_elements(value[key], elements, transform_context);
 	}
 
 	return elements;
+}
+
+/**
+ * @param {AST.Program} ast
+ * @param {TransformContext} transform_context
+ * @returns {Map<any, any> | null}
+ */
+function create_runtime_dynamic_scopes(ast, transform_context) {
+	const dynamic_source = transform_context.platform.imports.dynamic;
+	if (!dynamic_source) {
+		return null;
+	}
+	if (!has_runtime_dynamic_import(ast, dynamic_source)) {
+		return null;
+	}
+
+	const { scopes } = create_scopes(ast, new ScopeRoot(), null, {
+		collect: true,
+		errors: [],
+		filename: transform_context.filename ?? '',
+		comments: transform_context.comments,
+	});
+
+	return scopes;
+}
+
+/**
+ * @param {any} node
+ * @param {TransformContext | null} transform_context
+ * @returns {void}
+ */
+function mark_runtime_dynamic_element(node, transform_context) {
+	const dynamic_source = transform_context?.platform.imports.dynamic;
+	const scopes = transform_context?.runtime_dynamic_scopes;
+	if (
+		!dynamic_source ||
+		!scopes ||
+		node.metadata?.runtime_dynamic_element === true ||
+		!has_jsx_attribute(node, 'is') ||
+		!is_runtime_dynamic_jsx_name(node.openingElement?.name, scopes.get(node), dynamic_source)
+	) {
+		return;
+	}
+
+	node.metadata.runtime_dynamic_element = true;
+}
+
+/**
+ * @param {AST.Program} ast
+ * @param {string} dynamic_source
+ * @returns {boolean}
+ */
+function has_runtime_dynamic_import(ast, dynamic_source) {
+	return ast.body.some(
+		(/** @type {any} */ node) =>
+			node.type === 'ImportDeclaration' &&
+			node.importKind !== 'type' &&
+			node.source?.type === 'Literal' &&
+			node.source.value === dynamic_source &&
+			node.specifiers.some(
+				(/** @type {any} */ specifier) =>
+					is_runtime_dynamic_import_specifier(specifier, 'component') ||
+					is_runtime_dynamic_import_specifier(specifier, 'namespace'),
+			),
+	);
+}
+
+/**
+ * @param {any} node
+ * @param {string} name
+ * @returns {boolean}
+ */
+function has_jsx_attribute(node, name) {
+	return (node.openingElement?.attributes ?? []).some(
+		(/** @type {any} */ attr) =>
+			attr.type === 'JSXAttribute' &&
+			attr.name?.type === 'JSXIdentifier' &&
+			attr.name.name === name,
+	);
+}
+
+/**
+ * @param {any} name
+ * @param {any} scope
+ * @param {string} dynamic_source
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_jsx_name(name, scope, dynamic_source) {
+	if (!scope || !name) {
+		return false;
+	}
+
+	if (name.type === 'JSXIdentifier') {
+		return is_runtime_dynamic_binding(scope.get(name.name), dynamic_source, 'component', new Set());
+	}
+
+	if (
+		name.type === 'JSXMemberExpression' &&
+		name.object?.type === 'JSXIdentifier' &&
+		name.property?.type === 'JSXIdentifier' &&
+		name.property.name === 'Dynamic'
+	) {
+		return is_runtime_dynamic_binding(
+			scope.get(name.object.name),
+			dynamic_source,
+			'namespace',
+			new Set(),
+		);
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} binding
+ * @param {string} dynamic_source
+ * @param {'component' | 'namespace'} kind
+ * @param {Set<any>} seen
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_binding(binding, dynamic_source, kind, seen) {
+	if (!binding || seen.has(binding)) {
+		return false;
+	}
+	seen.add(binding);
+
+	if (is_runtime_dynamic_import_binding(binding, dynamic_source, kind)) {
+		return true;
+	}
+
+	if (binding.reassigned) {
+		return false;
+	}
+
+	const initial = unwrap_reference_expression(binding.initial);
+	if (!initial) {
+		return false;
+	}
+
+	if (initial.type === 'Identifier') {
+		return is_runtime_dynamic_binding(binding.scope.get(initial.name), dynamic_source, kind, seen);
+	}
+
+	if (
+		kind === 'component' &&
+		initial.type === 'MemberExpression' &&
+		!initial.computed &&
+		initial.object?.type === 'Identifier' &&
+		initial.property?.type === 'Identifier' &&
+		initial.property.name === 'Dynamic'
+	) {
+		return is_runtime_dynamic_binding(
+			binding.scope.get(initial.object.name),
+			dynamic_source,
+			'namespace',
+			new Set(),
+		);
+	}
+
+	return false;
+}
+
+/**
+ * @param {any} binding
+ * @param {string} dynamic_source
+ * @param {'component' | 'namespace'} kind
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_import_binding(binding, dynamic_source, kind) {
+	const declaration = binding?.initial;
+	if (
+		binding?.declaration_kind !== 'import' ||
+		declaration?.type !== 'ImportDeclaration' ||
+		declaration.importKind === 'type' ||
+		declaration.source?.type !== 'Literal' ||
+		declaration.source.value !== dynamic_source
+	) {
+		return false;
+	}
+
+	return declaration.specifiers.some(
+		(/** @type {any} */ specifier) =>
+			specifier.local?.name === binding.node?.name &&
+			is_runtime_dynamic_import_specifier(specifier, kind),
+	);
+}
+
+/**
+ * @param {any} specifier
+ * @param {'component' | 'namespace'} kind
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_import_specifier(specifier, kind) {
+	if (kind === 'namespace') {
+		return specifier.type === 'ImportNamespaceSpecifier';
+	}
+	return (
+		specifier.type === 'ImportSpecifier' &&
+		specifier.importKind !== 'type' &&
+		get_imported_name(specifier) === 'Dynamic'
+	);
+}
+
+/**
+ * @param {any} specifier
+ * @returns {string | null}
+ */
+function get_imported_name(specifier) {
+	const imported = specifier.imported;
+	if (imported?.type === 'Identifier') {
+		return imported.name;
+	}
+	if (imported?.type === 'Literal') {
+		return String(imported.value);
+	}
+	return null;
+}
+
+/**
+ * @param {any} expression
+ * @returns {any}
+ */
+function unwrap_reference_expression(expression) {
+	let node = expression;
+	while (
+		node &&
+		(node.type === 'TSAsExpression' ||
+			node.type === 'TSTypeAssertion' ||
+			node.type === 'TSNonNullExpression' ||
+			node.type === 'ParenthesizedExpression' ||
+			node.type === 'ChainExpression')
+	) {
+		node = node.expression;
+	}
+	return node;
 }
 
 /**
@@ -2001,7 +2254,7 @@ function prepare_tsrx_fragment_styles(node, transform_context) {
 	if (!css) return null;
 
 	const style_refs = collect_style_ref_attributes(node);
-	apply_css_definition_metadata(node, css, style_refs.length > 0);
+	apply_css_definition_metadata(node, css, transform_context, style_refs.length > 0);
 	transform_context.stylesheets.push(css);
 	const fragment = annotate_tsrx_with_hash(
 		node,

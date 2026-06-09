@@ -94,6 +94,7 @@ const solid_platform = {
 		// Both fields are here to satisfy the descriptor shape; actual
 		// import injection goes through `hooks.injectImports`.
 		suspense: 'solid-js',
+		dynamic: '@tsrx/solid/dynamic',
 		errorBoundary: 'solid-js',
 		refProp: '@tsrx/solid/ref',
 	},

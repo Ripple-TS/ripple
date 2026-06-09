@@ -83,7 +83,7 @@ export function annotate_with_hash(
 	}
 
 	if (node.type === 'JSXElement') {
-		if (!is_composite_jsx_element(node)) {
+		if (!is_composite_jsx_element(node) || node.metadata?.runtime_dynamic_element) {
 			add_hash_class_to_jsx_element(node, hash, jsx_class_attr_name);
 		}
 		if (Array.isArray(node.children)) {

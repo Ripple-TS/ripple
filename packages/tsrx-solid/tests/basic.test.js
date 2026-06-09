@@ -770,6 +770,28 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/class="wrapper tsrx-[a-z0-9]+"/);
 		});
 
+		it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
+			const { code, cssHash } = compile(
+				`import { Dynamic } from '@tsrx/solid/dynamic';
+				const RuntimeDynamic = Dynamic;
+
+				export function App() @{
+					<>
+						<RuntimeDynamic is="div" class="host">{'hello'}</RuntimeDynamic>
+
+						<style>
+							.host {
+								color: red;
+							}
+						</style>
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain(`class="host ${cssHash}"`);
+		});
+
 		it('supports style expressions for scoped class maps', () => {
 			const { code } = compile(
 				`export function App() @{

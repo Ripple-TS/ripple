@@ -199,6 +199,28 @@ describe('@tsrx/vue basic', () => {
 		expect(css).toContain('color: red;');
 	});
 
+	it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
+		const { code, cssHash } = compile(
+			`import { Dynamic } from '@tsrx/vue/dynamic';
+			const RuntimeDynamic = Dynamic;
+
+			function App() @{
+				<>
+					<RuntimeDynamic is="div" class="host">{'hello'}</RuntimeDynamic>
+
+					<style>
+						.host {
+							color: red;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`class="host ${cssHash}"`);
+	});
+
 	it('ref={fn} on a DOM element compiles to ref={fn}', () => {
 		const { code } = compile(
 			`function App() @{
