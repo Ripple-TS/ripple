@@ -114,7 +114,7 @@ const solid_platform = {
 	},
 	hooks: {
 		// Hoist to module scope in the client transform —
-		// same trade-off as React and Vue, where one definition per helper
+		// same trade-off as Vue, where one definition per helper
 		// keeps bundles small and source mappings 1:1. The
 		// `compile_to_volar_mappings` entry point opts back out so Volar's
 		// type-only output keeps helpers inline against the component body.

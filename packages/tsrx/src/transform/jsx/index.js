@@ -1038,376 +1038,6 @@ function is_interleaved_body(body_nodes) {
 }
 
 /**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function needs_hook_split(node, transform_context) {
-	const body = node.body?.body || [];
-	return (
-		transform_context.platform.hooks?.componentBodyHookHelpers === true &&
-		node.body?.type === 'BlockStatement' &&
-		(find_hook_split_index(body, transform_context) !== -1 ||
-			body_contains_component_body_branch_hook_return(body, transform_context))
-	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function create_hook_split_block(node, transform_context) {
-	if (
-		transform_context.platform.hooks?.componentBodyHookHelpers !== true ||
-		!should_extract_hook_helpers(transform_context) ||
-		node.body?.type !== 'BlockStatement'
-	) {
-		return null;
-	}
-
-	const source_body = node.body.body || [];
-	const branch_rewrite = rewrite_component_body_branch_hook_returns(source_body, transform_context);
-	const body = branch_rewrite.body;
-	const split_index = find_hook_split_index(body, transform_context);
-	if (split_index === -1 && !branch_rewrite.changed) {
-		return null;
-	}
-
-	let block_body;
-	if (split_index === -1) {
-		block_body = expand_native_tsrx_return_statement_list(body, transform_context);
-	} else {
-		const split_statement = body[split_index];
-		const continuation_body = body.slice(split_index + 1);
-		const helper = create_hook_safe_helper(
-			expand_native_tsrx_return_statement_list(continuation_body, transform_context),
-			undefined,
-			get_body_source_node(continuation_body) || split_statement,
-			transform_context,
-		);
-
-		block_body = [
-			...body.slice(0, split_index + 1),
-			...helper.setup_statements,
-			set_loc(b.return(helper.component_element), split_statement),
-		];
-	}
-
-	const block = b.block(block_body, node.body);
-	block.metadata = {
-		...(block.metadata || {}),
-		hook_split_block: true,
-	};
-	return block;
-}
-
-/**
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function body_contains_component_body_branch_hook_return(body_nodes, transform_context) {
-	return body_nodes.some((node) =>
-		statement_contains_component_body_branch_hook_return(node, transform_context),
-	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function statement_contains_component_body_branch_hook_return(node, transform_context) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	if (Array.isArray(node)) {
-		return body_contains_component_body_branch_hook_return(node, transform_context);
-	}
-
-	if (is_function_or_class_boundary(node)) {
-		return false;
-	}
-
-	if (is_plain_if_statement(node)) {
-		return (
-			branch_needs_component_body_hook_helper(node.consequent, transform_context) ||
-			statement_contains_component_body_branch_hook_return(node.consequent, transform_context) ||
-			branch_needs_component_body_hook_helper(node.alternate, transform_context) ||
-			statement_contains_component_body_branch_hook_return(node.alternate, transform_context)
-		);
-	}
-
-	if (node.type === 'BlockStatement') {
-		return body_contains_component_body_branch_hook_return(node.body || [], transform_context);
-	}
-
-	return false;
-}
-
-/**
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {{ body: any[], changed: boolean }}
- */
-function rewrite_component_body_branch_hook_returns(body_nodes, transform_context) {
-	let changed = false;
-	const body = body_nodes.map((node) => {
-		const next_node = rewrite_component_body_branch_hook_return_statement(node, transform_context);
-		if (next_node !== node) {
-			changed = true;
-		}
-		return next_node;
-	});
-	return changed ? { body, changed } : { body: body_nodes, changed: false };
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function rewrite_component_body_branch_hook_return_statement(node, transform_context) {
-	if (!node || typeof node !== 'object' || is_function_or_class_boundary(node)) {
-		return node;
-	}
-
-	if (is_plain_if_statement(node)) {
-		const consequent = rewrite_component_body_hook_return_branch(
-			node.consequent,
-			transform_context,
-		);
-		const alternate = node.alternate
-			? rewrite_component_body_hook_return_branch(node.alternate, transform_context)
-			: { node: node.alternate, changed: false };
-
-		if (!consequent.changed && !alternate.changed) {
-			return node;
-		}
-		return set_loc(b.if(node.test, consequent.node, alternate.node), node);
-	}
-
-	if (node.type === 'BlockStatement') {
-		const rewritten = rewrite_component_body_branch_hook_returns(
-			node.body || [],
-			transform_context,
-		);
-		return rewritten.changed ? set_loc(b.block(rewritten.body, node), node) : node;
-	}
-
-	return node;
-}
-
-/**
- * @param {any} branch
- * @param {TransformContext} transform_context
- * @returns {{ node: any, changed: boolean }}
- */
-function rewrite_component_body_hook_return_branch(branch, transform_context) {
-	if (!branch || typeof branch !== 'object') {
-		return { node: branch, changed: false };
-	}
-
-	if (is_plain_if_statement(branch)) {
-		const next_node = rewrite_component_body_branch_hook_return_statement(
-			branch,
-			transform_context,
-		);
-		return { node: next_node, changed: next_node !== branch };
-	}
-
-	const branch_body = branch.type === 'BlockStatement' ? branch.body || [] : [branch];
-	const rewritten = rewrite_component_body_branch_hook_returns(branch_body, transform_context);
-	const body = rewritten.body;
-	const needs_helper = branch_needs_component_body_hook_helper_body(body, transform_context);
-
-	if (!needs_helper) {
-		if (!rewritten.changed) {
-			return { node: branch, changed: false };
-		}
-		const node =
-			branch.type === 'BlockStatement'
-				? set_loc(b.block(body, branch), branch)
-				: (body[0] ?? branch);
-		return { node, changed: true };
-	}
-
-	const helper_body = expand_native_tsrx_return_statement_list(body, transform_context);
-	const helper = create_hook_safe_helper(
-		helper_body,
-		undefined,
-		get_body_source_node(body) || branch,
-		transform_context,
-	);
-	const node = set_loc(
-		b.block([...helper.setup_statements, set_loc(b.return(helper.component_element), branch)]),
-		branch,
-	);
-	return { node, changed: true };
-}
-
-/**
- * @param {any} branch
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function branch_needs_component_body_hook_helper(branch, transform_context) {
-	if (!branch || typeof branch !== 'object' || is_plain_if_statement(branch)) {
-		return false;
-	}
-	const body = branch.type === 'BlockStatement' ? branch.body || [] : [branch];
-	return branch_needs_component_body_hook_helper_body(body, transform_context);
-}
-
-/**
- * @param {any[]} body
- * @param {TransformContext} transform_context
- * @returns {boolean}
- */
-function branch_needs_component_body_hook_helper_body(body, transform_context) {
-	return (
-		body_has_top_level_component_body_return(body) &&
-		body_contains_direct_top_level_hook_call(body, transform_context, true)
-	);
-}
-
-/**
- * @param {any[]} body
- * @returns {boolean}
- */
-function body_has_top_level_component_body_return(body) {
-	return body.some((node) => node?.type === 'ReturnStatement');
-}
-
-/**
- * @param {any[]} body
- * @param {TransformContext} transform_context
- * @param {boolean} include_platform_setup
- * @returns {boolean}
- */
-function body_contains_direct_top_level_hook_call(body, transform_context, include_platform_setup) {
-	return body.some((node) =>
-		statement_contains_direct_top_level_hook_call(node, transform_context, include_platform_setup),
-	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {boolean} include_platform_setup
- * @returns {boolean}
- */
-function statement_contains_direct_top_level_hook_call(
-	node,
-	transform_context,
-	include_platform_setup,
-) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	if (is_function_or_class_boundary(node)) {
-		return false;
-	}
-
-	if (
-		is_plain_if_statement(node) ||
-		is_switch_control_node(node) ||
-		is_try_control_node(node) ||
-		is_for_of_control_node(node)
-	) {
-		return false;
-	}
-
-	return statement_contains_top_level_hook_call(node, transform_context, include_platform_setup);
-}
-
-/**
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {number}
- */
-function find_hook_split_index(body_nodes, transform_context) {
-	for (let i = 0; i < body_nodes.length; i += 1) {
-		if (!is_component_body_conditional_return_statement(body_nodes[i])) {
-			continue;
-		}
-
-		if (body_contains_top_level_hook_call(body_nodes.slice(i + 1), transform_context, true)) {
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_component_body_conditional_return_statement(node) {
-	if (!is_if_control_node(node)) {
-		return false;
-	}
-
-	return (
-		statement_contains_component_body_return(node.consequent) ||
-		statement_contains_component_body_return(node.alternate)
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function statement_contains_component_body_return(node) {
-	if (!node || typeof node !== 'object') {
-		return false;
-	}
-
-	if (node.type === 'ReturnStatement') {
-		return true;
-	}
-
-	if (is_function_or_class_boundary(node)) {
-		return false;
-	}
-
-	if (Array.isArray(node)) {
-		return node.some(statement_contains_component_body_return);
-	}
-
-	if (node.type === 'BlockStatement') {
-		return (node.body || []).some(statement_contains_component_body_return);
-	}
-
-	if (is_if_control_node(node)) {
-		return (
-			statement_contains_component_body_return(node.consequent) ||
-			statement_contains_component_body_return(node.alternate)
-		);
-	}
-
-	if (is_switch_control_node(node)) {
-		return (node.cases || []).some((/** @type {any} */ switch_case) =>
-			statement_contains_component_body_return(switch_case.consequent || []),
-		);
-	}
-
-	if (is_try_control_node(node)) {
-		return (
-			statement_contains_component_body_return(node.block) ||
-			statement_contains_component_body_return(node.handler?.body) ||
-			statement_contains_component_body_return(node.finalizer)
-		);
-	}
-
-	return false;
-}
-
-/**
  * @param {any[]} body_nodes
  * @param {TransformContext} transform_context
  * @param {boolean} include_platform_setup
@@ -1651,7 +1281,7 @@ function create_generated_helper_metadata(helper_state) {
  * @returns {any}
  */
 function strip_function_transform_metadata(metadata) {
-	const { native_tsrx, hook_split, ...next_metadata } = metadata || {};
+	const { native_tsrx, ...next_metadata } = metadata || {};
 	return next_metadata;
 }
 
@@ -1661,16 +1291,8 @@ function strip_function_transform_metadata(metadata) {
  * @returns {any}
  */
 function transform_block_statement(node, { next, visit, state, path }) {
-	if (node.metadata?.hook_split_block || node.metadata?.native_return_block) {
+	if (node.metadata?.native_return_block) {
 		return next() ?? node;
-	}
-
-	const parent = /** @type {any} */ (path.at(-1));
-	if (parent?.metadata?.hook_split && parent.body === node) {
-		const block = create_hook_split_block(parent, state);
-		if (block) {
-			return visit(block, state);
-		}
 	}
 
 	if (get_active_native_tsrx_function(path)?.metadata?.native_tsrx_body) {
@@ -1827,7 +1449,6 @@ function transform_native_tsrx_function(node, { next, state }, { nativeBody = fa
 		...(node.metadata || {}),
 		native_tsrx: true,
 		...(nativeBody ? { native_tsrx_body: true } : {}),
-		...(nativeBody && needs_hook_split(node, state) ? { hook_split: true } : {}),
 	};
 	state.available_bindings = merge_binding_maps(
 		saved_bindings,
@@ -1979,6 +1600,10 @@ function find_native_await_in_statement(statement) {
  * @returns {any}
  */
 function transform_function_with_hook_helpers(node, { next, state }) {
+	if (!state.platform.hooks?.moduleScopedHookComponents) {
+		return next() ?? node;
+	}
+
 	const has_hook_bearing_tsrx = function_contains_hook_bearing_tsrx(node, state);
 	if (state.helper_state || !is_uppercase_function_like(node) || !has_hook_bearing_tsrx) {
 		return next() ?? node;
@@ -2844,7 +2469,10 @@ function should_use_module_scoped_hook_components(transform_context) {
  * @returns {boolean}
  */
 function should_extract_hook_helpers(transform_context) {
-	return !!transform_context.hook_helpers_enabled;
+	return !!(
+		transform_context.hook_helpers_enabled &&
+		transform_context.platform.hooks?.moduleScopedHookComponents
+	);
 }
 
 /**

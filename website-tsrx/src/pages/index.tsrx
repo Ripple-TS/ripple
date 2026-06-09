@@ -16,18 +16,6 @@ const SNIPPET_HTML = highlight_tsrx(
 }`,
 );
 
-const REACT_HOOKS_HTML = highlight_tsrx(
-	`function Profile({ userId }: { userId: string | null }) @{
-  @if (userId) {
-    const user = useUser(userId);
-
-    <h1>{user.name}</h1>
-  } @else {
-    <a href="/login">Sign in</a>
-  }
-}`,
-);
-
 const SOLID_LAZY_HTML = highlight_tsrx(
 	`function Counter(&{ count, label }: Props) @{
   <section>
@@ -204,24 +192,11 @@ export const IndexPage = () => @{
 					<p class="eyebrow">Ergonomics</p>
 					<h2 class="section-heading">Better ergonomics for today's frameworks.</h2>
 					<p class="section-body">
-						TSRX takes care of the awkward parts each framework asks you to work around. Patterns
-						that are natural to write — but fragile or illegal in the target runtime — get rewritten
-						at compile time into the exact shape React, Preact, Solid, Ripple, or Vue expects. The
-						source stays readable for humans and predictable for language models; the compiler
-						handles the footguns.
+						TSRX takes care of awkward target-specific details where the compiler can preserve the
+						runtime's semantics directly. The source stays readable for humans and predictable for
+						language models, while target transforms handle the mechanical parts that are safe to
+						automate.
 					</p>
-					<p class="section-body">
-						React hooks can be called conditionally inside JSX control-flow expressions. The
-						compiler lifts the conditional branch into its own component so the rules of hooks are
-						satisfied by construction — no more manually splitting components just to gate a
-						<code class="inline-code">useUser(...)</code>
-						call behind an
-						<code class="inline-code">if</code>
-						.
-					</p>
-					<pre class="code-block">
-						<code innerHTML={REACT_HOOKS_HTML} />
-					</pre>
 					<p class="section-body">
 						Solid props can be destructured eagerly. The
 						<code class="inline-code">{'&{ ... }'}</code>

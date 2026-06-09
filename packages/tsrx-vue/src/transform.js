@@ -49,7 +49,7 @@ const vue_platform = {
 	},
 	hooks: {
 		// Hoist to module scope
-		// in the regular client transform — same trade-off as React, where one
+		// in the regular client transform — one
 		// definition per helper keeps bundles small and source mappings 1:1
 		// for editor IntelliSense. The `compile_to_volar_mappings` entry point
 		// opts back out so Volar's type-only output keeps helpers inline,

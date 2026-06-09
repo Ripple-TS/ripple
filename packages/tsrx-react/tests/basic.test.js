@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
-	runSharedSwitchHelperHoistingTests,
 	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
@@ -23,12 +22,6 @@ runSharedCompileTests({
 	generatedClassAttrName: 'className',
 });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
-runSharedSwitchHelperHoistingTests({
-	compile,
-	compile_to_volar_mappings,
-	name: 'react',
-	clientHelperShape: 'module-function',
-});
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';
@@ -111,7 +104,7 @@ describe('@tsrx/react basic', () => {
 			expect(code).toContain('return <div>{value}</div>;');
 		});
 
-		it('hoists hook-bearing returned fragment branches into React components', () => {
+		it('leaves hook-bearing returned fragment branches inline', () => {
 			const { code } = compile(
 				`import { useState } from 'react';
 
@@ -124,9 +117,9 @@ describe('@tsrx/react basic', () => {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('function MyApp__StatementBodyHook1()');
 			expect(code).toContain('const [value] = useState(0);');
-			expect(code).toContain('return x ? <MyApp__StatementBodyHook1 /> : null;');
+			expect(code).toContain('return x');
+			expect(code).not.toContain('StatementBodyHook');
 		});
 	});
 
@@ -485,7 +478,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('Array.isArray(');
 	});
 
-	it('uses map_iterable inside a hook-bearing for-of without normalizing the source', () => {
+	it('uses map_iterable inside a for-of with hook calls without normalizing the source', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
@@ -498,16 +491,17 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App__StatementBodyHook1');
 		expect(code).toContain(
 			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
 		);
-		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
+		expect(code).toContain('useState(false)');
+		expect(code).toContain('__map_iterable(items,');
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain('Array.from(');
 		expect(code).not.toContain('Array.isArray(');
 	});
 
-	it('emits a valid type-only IterationValue import in virtual TSX for hook-bearing for-of', () => {
+	it('keeps type-only for-of output simple when hook calls stay inline', () => {
 		const { code } = compile_to_volar_mappings(
 			`import { useState } from 'react';
 
@@ -521,9 +515,10 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain('map_iterable as __map_iterable');
-		expect(code).toContain('type IterationValue as __IterationValue');
+		expect(code).toContain('useState(false)');
 		expect(code).toContain("from '@tsrx/react/runtime/iterable'");
-		expect(code).toContain('__IterationValue<typeof _tsrx_iteration_items_1>');
+		expect(code).not.toContain('StatementBodyHook');
+		expect(code).not.toContain('type IterationValue as __IterationValue');
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
@@ -544,7 +539,7 @@ describe('@tsrx/react basic', () => {
 		).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
 	});
 
-	it('keeps setup guard returns before fenced template output', () => {
+	it('keeps setup guard returns before fenced template output without hook splitting', () => {
 		const source = `import { useState, useEffect } from 'react';
 
 				export function App() @{
@@ -569,16 +564,10 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (count > 2) {');
 		expect(code).toContain('return null;');
 		expect(code).not.toContain(': any');
-		expect(code).toContain('function App__StatementBodyHook1({ count, setCount })');
-		expect(code).toContain('return <App__StatementBodyHook1 count={count} setCount={setCount} />;');
 		expect(code).toContain('return <button onClick={() => setCount(count + 1)}>{count}</button>;');
 		expect(code).not.toContain('App__Continue');
-		expect(mappings.code).toContain('let App__StatementBodyHook1;');
-		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_count = count;');
-		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_setCount = setCount;');
-		expect(mappings.code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(mappings.code).toContain('count: typeof _tsrx_StatementBodyHook1_count');
-		expect(mappings.code).toContain('setCount: typeof _tsrx_StatementBodyHook1_setCount');
+		expect(code).not.toContain('StatementBodyHook');
+		expect(mappings.code).not.toContain('StatementBodyHook');
 		expect(mappings.code).not.toContain('count: any');
 		expect(mappings.errors).toEqual([]);
 		expect(mappings.mappings.length).toBeGreaterThan(0);
@@ -649,7 +638,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain('return <StatusBadge__StatementBodyHook');
 	});
 
-	it('keeps setup guard returns while preserving source local names', () => {
+	it('keeps setup guard returns while preserving source local names without hook splitting', () => {
 		const source = `import { useEffect } from 'react';
 
 			declare function getFoo(): string | null;
@@ -682,11 +671,8 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (!foo) {');
 		expect(code).toContain('return null;');
 		expect(code).not.toContain(': any');
-		expect(code).toContain('function App__StatementBodyHook1({ foo })');
-		expect(code).toContain('return <App__StatementBodyHook1 foo={foo} />;');
-		expect(mappings.code).toContain('let App__StatementBodyHook1;');
-		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(mappings.code).toContain('foo: typeof _tsrx_StatementBodyHook1_foo');
+		expect(code).not.toContain('StatementBodyHook');
+		expect(mappings.code).not.toContain('StatementBodyHook');
 		expect(mappings.code).not.toContain('foo: any');
 		expect(code).toContain('useEffect(');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
@@ -722,9 +708,8 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('if (!foo) {');
 		expect(code).toContain('return null;');
 		expect(code).toContain('return <div>{foo.trim()}</div>;');
-		expect(code).toContain('function App__StatementBodyHook1');
 		expect(code).not.toContain(': any');
-		expect(code).toContain('return <App__StatementBodyHook1 foo={foo} />;');
+		expect(code).not.toContain('StatementBodyHook');
 	});
 
 	it('does not emit helper prop type aliases for setup guard returns', () => {
@@ -749,17 +734,12 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		const alias_pos = code.indexOf('const _tsrx_StatementBodyHook1_foo = foo;');
-		const helper_pos = code.indexOf('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		const type_ref_pos = code.indexOf('foo: typeof _tsrx_StatementBodyHook1_foo');
-
-		expect(alias_pos).toBeGreaterThan(-1);
-		expect(helper_pos).toBeGreaterThan(-1);
-		expect(type_ref_pos).toBeGreaterThan(-1);
+		expect(code).not.toContain('StatementBodyHook');
+		expect(code).not.toContain('_tsrx_StatementBodyHook1_foo');
 		expect(code).not.toContain('foo: any');
 	});
 
-	it('does not emit duplicate Volar mappings for helper-extracted React output', () => {
+	it('does not emit duplicate Volar mappings for React output with inline hooks', () => {
 		const source = `import { useState, useEffect } from 'react';
 
 			function Child() @{
@@ -882,7 +862,7 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('keeps hooks after setup early null returns in the component body', () => {
+	it('keeps hooks after setup early null returns in the component body without splitting', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
@@ -901,8 +881,7 @@ describe('@tsrx/react basic', () => {
 		expect(code).toContain('return null;');
 		expect(code).toContain('useEffect(() => {});');
 		expect(code).toContain('return null;');
-		expect(code).toContain('function App__StatementBodyHook1()');
-		expect(code).toContain('return <App__StatementBodyHook1 />;');
+		expect(code).not.toContain('StatementBodyHook');
 	});
 
 	it('supports template statement children inside elements', () => {
@@ -1011,7 +990,7 @@ describe('@tsrx/react basic', () => {
 		).toThrow(/Return statements are not allowed inside TSRX template @if blocks/);
 	});
 
-	it('extracts hook-bearing element child statement bodies into module components', () => {
+	it('leaves hook-bearing element child statement bodies inline', () => {
 		const source = `import { useState } from 'react';
 
 			function App() @{
@@ -1028,12 +1007,10 @@ describe('@tsrx/react basic', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('function App__StatementBodyHook2() {');
 		expect(code).toContain('const [x] = useState(1);');
-		expect(code).toContain('<App__StatementBodyHook2 />');
 		expect(code).not.toContain(': any');
-		expect(mappings.code).toContain('function StatementBodyHook2() {');
-		expect(mappings.code).toContain('<StatementBodyHook2 />');
+		expect(code).not.toContain('StatementBodyHook');
+		expect(mappings.code).not.toContain('StatementBodyHook');
 		expect(mappings.errors).toEqual([]);
 	});
 
@@ -1275,270 +1252,6 @@ describe('@tsrx/react basic', () => {
 		expect(css).not.toBe('');
 		expect(code).toContain(`className="content ${cssHash}"`);
 		expect(code).toContain(`className="error ${cssHash}"`);
-	});
-
-	// ── Hook extraction from control flow ──
-
-	it('extracts hooks from if-branch into a module component', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const show = true;
-				@if (show) {
-					const [count, setCount] = useState(0);
-					<div>{count}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1()');
-		expect(code).toContain('useState(0)');
-		expect(code).not.toContain(': any');
-		// The hook call should be inside the helper component, not the IIFE
-		const hook_pos = code.indexOf('useState(0)');
-		const helper_pos = code.indexOf('function App__StatementBodyHook1');
-		expect(hook_pos).toBeGreaterThan(helper_pos);
-	});
-
-	it('passes branch locals into module-scoped hook helpers while preserving Volar types', () => {
-		const source = `import { useState } from 'react';
-
-			declare function getFoo(): string | null;
-
-			export function App() @{
-				const foo = getFoo();
-				@if (foo) {
-					const [count] = useState(0);
-					<div>{foo.trim()}{count}</div>
-				}
-			}`;
-		const { code } = compile(source, 'App.tsrx');
-		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
-
-		expect(code).toContain('function App__StatementBodyHook1({ foo })');
-		expect(code).toContain('<App__StatementBodyHook1 foo={foo} />');
-		expect(code).not.toContain(': any');
-		expect(code).not.toContain('let App__StatementBodyHook1;');
-		expect(code).not.toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(code).not.toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(mappings.code).toContain('let App__StatementBodyHook1;');
-		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_foo = foo;');
-		expect(mappings.code).toContain('const StatementBodyHook1 = App__StatementBodyHook1 ??');
-		expect(mappings.code).toContain(
-			'function StatementBodyHook1({ foo }: { foo: typeof _tsrx_StatementBodyHook1_foo })',
-		);
-		expect(mappings.code).toContain('<StatementBodyHook1 foo={foo} />');
-		expect(mappings.code).not.toContain('foo: any');
-	});
-
-	it('extracts hooks from if-else branches into separate local components', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const show = true;
-				@if (show) {
-					const [a] = useState(1);
-					<div>{a}</div>
-				} @else {
-					const [b] = useState(2);
-					<span>{b}</span>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		// Both branches should get their own hook-safe components
-		const matches = code.match(/function App__StatementBodyHook\d+/g);
-		expect(matches).not.toBeNull();
-		expect(matches.length).toBeGreaterThanOrEqual(2);
-	});
-
-	it('extracts hooks from for-of loop body into a module component', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const items = [1, 2, 3];
-				@for (const item of items) {
-					const [active, setActive] = useState(false);
-					<div key={item}>{active ? 'yes' : 'no'}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-		// Hook-bearing for-of bodies emit `map_iterable(source, callback)`
-		// so any Iterable works, with the helper hoisted above the iteration.
-		expect(code).toContain(
-			`import { map_iterable as __map_iterable } from '@tsrx/react/runtime/iterable';`,
-		);
-		expect(code).toContain('__map_iterable(');
-		expect(code).not.toContain('Array.from(');
-		// Hook should be inside the helper, not the iteration callback directly
-		const hook_pos = code.indexOf('useState(false)');
-		const helper_pos = code.indexOf('function App__StatementBodyHook1');
-		expect(hook_pos).toBeGreaterThan(helper_pos);
-	});
-
-	it('extracts hooks from switch case into a module component', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const page = 'home';
-				@switch (page) {
-					@case 'home': {
-						const [count] = useState(0);
-						<div>{count}</div>
-					}
-					@case 'about': {
-						<span>{'about'}</span>
-					}
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-		expect(code).toContain('useState(0)');
-	});
-
-	it('does not extract when branches have no hooks', () => {
-		const { code } = compile(
-			`export function App() @{
-				const show = true;
-				@if (show) {
-					const x = 42;
-					<div>{x}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).not.toContain('StatementBodyHook');
-	});
-
-	it('extracts hooks from deeply nested if-else-if chains', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const mode = 'a';
-				@if (mode === 'a') {
-					<div>{'a'}</div>
-				} @else if (mode === 'b') {
-					const [x] = useState(0);
-					<div>{x}</div>
-				} @else {
-					<div>{'c'}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		// Only the else-if branch with hooks should be extracted
-		const matches = code.match(/function App__StatementBodyHook\d+/g);
-		expect(matches).not.toBeNull();
-		expect(matches.length).toBe(1);
-	});
-
-	it('handles member-expression hooks like React.useState in control flow', () => {
-		const { code } = compile(
-			`import React from 'react';
-
-			export function App() @{
-				const show = true;
-				@if (show) {
-					const [val] = React.useState(0);
-					<div>{val}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-	});
-
-	it('propagates key from loop body element to wrapper component', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App() @{
-				const items = ['a', 'b'];
-				@for (const item of items) {
-					const [active] = useState(false);
-					<div key={item}>{active ? 'yes' : 'no'}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-		// Key should appear on both the inner element and wrapper component
-		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item} />');
-		expect(code).not.toContain('items={items}');
-	});
-
-	it('adds index key to hook wrapper component when loop has index and no explicit key', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function Component({ items }: { items: string[] }) @{
-				<ul>
-					@for (const item of items; index index) {
-						const state = useState(0);
-						<li>{item}</li>
-					}
-				</ul>
-			}`,
-			'Component.tsrx',
-		);
-
-		expect(code).toContain('function Component__StatementBodyHook1');
-		expect(code).toContain('__map_iterable(items, (item, index) =>');
-		expect(code).toContain('<Component__StatementBodyHook1 item={item} key={index} />');
-		expect(code).not.toContain('index={index} />');
-	});
-
-	it('applies for-of key clauses to hook wrapper components', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App({ items }: { items: { id: string; label: string }[] }) @{
-				@for (const item of items; key item.id) {
-					const [active] = useState(false);
-					<div>{active ? item.label : item.id}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item.id} />');
-		expect(code).not.toContain('items={items}');
-	});
-
-	it('prefers inline JSX keys over for-of key clauses for hook wrapper components', () => {
-		const { code } = compile(
-			`import { useState } from 'react';
-
-			export function App({ items }: { items: { id: string; inner: string }[] }) @{
-				@for (const item of items; key item.id) {
-					const [active] = useState(false);
-					<div key={item.inner}>{active ? item.inner : item.id}</div>
-				}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('function App__StatementBodyHook1');
-		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item.inner} />');
-		expect(code).not.toContain('<App__StatementBodyHook1 item={item} key={item.id} />');
-		expect(code).not.toContain('items={items}');
 	});
 
 	it('adds index key to non-hook loop items in conditional branches', () => {
@@ -1877,7 +1590,7 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('App__static');
 	});
 
-	it('does not leak inner-scope bindings into helper component props', () => {
+	it('does not generate helper component props for conditional hook branches', () => {
 		const { code } = compile(
 			`import { useState } from 'react';
 
@@ -1897,15 +1610,11 @@ describe('lazy destructuring', () => {
 			'App.tsrx',
 		);
 
-		// The hook-bearing branch gets a helper component
-		expect(code).toContain('function App__StatementBodyHook1');
-
-		// The helper component should NOT receive 'localVar' as a prop —
-		// it was declared inside the first if block, not in the component scope
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain('localVar={localVar}');
 	});
 
-	it('does not pass unrelated future bindings into hook-safe element helpers', () => {
+	it('does not generate element helpers for statement children with hooks', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
@@ -1923,12 +1632,12 @@ describe('lazy destructuring', () => {
 		);
 
 		expect(code).toContain("const later = 'later';");
-		expect(code).toContain('function App__StatementBodyHook1(');
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later={later}');
 	});
 
-	it('does not pass helper-local declarations as hook-safe element helper props', () => {
+	it('does not generate helper-local prop plumbing for inline statement children', () => {
 		const { code } = compile(
 			`import { useEffect } from 'react';
 
@@ -1952,7 +1661,7 @@ describe('lazy destructuring', () => {
 
 		expect(code).toContain("const later = 'inner';");
 		expect(code).toContain("const later = 'outer';");
-		expect(code).toContain('function App__StatementBodyHook1(');
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain('_tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later: typeof _tsrx_StatementBodyHook1_later');
 		expect(code).not.toContain('later={later}');

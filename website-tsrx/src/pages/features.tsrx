@@ -294,34 +294,6 @@ export function ArticleCard({ title }: { title: string }) @{
 }`,
 );
 
-const REACT_HOOKS_HTML = highlight_tsrx(
-	`import { useState, useEffect } from 'react';
-
-function UserProfile({ user, posts }: { user: User | null; posts: Post[] }) @{
-  if (!user) {
-    return null;
-  }
-
-  const [tab, setTab] = useState('overview');
-
-  // Hooks inside TSRX template branches are isolated safely.
-  <>
-    <h1>{user.name}</h1>
-    <TabBar value={tab} onChange={setTab} />
-
-    <ul>
-      @for (const post of posts) {
-        useEffect(() => {
-          console.log('viewed ' + post.title);
-        }, [post.title]);
-
-        <li>{post.title}</li>
-      }
-    </ul>
-  </>
-}`,
-);
-
 const LAZY_PROPS_HTML = highlight_tsrx(
 	`function UserCard(&{ name, age }: { name: string; age: number }) {
   return <div>
@@ -346,7 +318,6 @@ const NAV_ITEMS = [
 	{ id: 'dynamic', label: 'Dynamic rendering' },
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
-	{ id: 'react-hooks', label: 'React & Preact Hooks' },
 ];
 
 export const FeaturesPage = () => @{
@@ -863,25 +834,6 @@ export const FeaturesPage = () => @{
 								block. Classes that only appear in compound or descendant selectors are not exported
 								on the map.
 							</p>
-						</section>
-						<section class="doc-section" id="react-hooks">
-							<h2 class="section-heading">React &amp; Preact Hooks</h2>
-							<p class="section-body">
-								When targeting React with
-								<code class="inline-code">@tsrx/react</code>
-								or Preact with
-								<code class="inline-code">@tsrx/preact</code>
-								, hooks that appear in conditional, loop, switch, try, or statement-container
-								<code class="inline-code">{'@{...}'}</code>
-								scopes are isolated behind generated child components when the compiler can do so
-								safely. Hook callbacks may read outer values and mutate branch-local or module-level
-								bindings, but assigning hook results or mutating a parent binding across the
-								generated component boundary is a compiler error. Move that state into an explicit
-								child component when values need to cross the boundary.
-							</p>
-							<pre class="code-block">
-								<code innerHTML={REACT_HOOKS_HTML} />
-							</pre>
 						</section>
 					</main>
 				</div>

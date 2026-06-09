@@ -1083,7 +1083,7 @@ export function runSharedSwitchFallthroughTests({ compile, name }) {
  * Shared assertions covering where each target places the lifted
  * `StatementBodyHook` helper component for hook-bearing switch cases
  * — module scope for the client transform on every target whose platform
- * sets `moduleScopedHookComponents: true` (React, Solid, Vue), and a local
+ * sets `moduleScopedHookComponents: true` (Solid, Vue), and a local
  * `let App__StatementBodyHook<N>` cache slot + per-render `?? (= …)` lazy
  * initializer otherwise. `compile_to_volar_mappings` keeps the local-scoped
  * shape regardless of platform default so Volar's virtual TSX can still
@@ -1132,7 +1132,7 @@ export function runSharedSwitchHelperHoistingTests({
 			const { code } = compile(switch_source, 'App.tsrx');
 
 			if (clientHelperShape === 'module-function') {
-				// React/Solid: top-level `function App__StatementBodyHook<N>()`
+				// Solid: top-level `function App__StatementBodyHook<N>()`
 				// declarations, no per-render cache slots.
 				const top_level_helper_count = (
 					code.match(/^function App__StatementBodyHook\d+\([^)]*\)/gm) || []
@@ -1150,7 +1150,7 @@ export function runSharedSwitchHelperHoistingTests({
 				expect(top_level_helper_count).toBe(2);
 				expect(code).not.toContain('let App__StatementBodyHook');
 			} else {
-				// Preact: local cache slot + `?? (= function …)` lazy
+				// Local cache slot + `?? (= function …)` lazy
 				// initializer per hook-bearing body; no top-level declarations.
 				const cache_slot_count = (code.match(/^let App__StatementBodyHook\d+;$/gm) || []).length;
 				expect(cache_slot_count).toBe(2);
@@ -3384,559 +3384,45 @@ export function optionalFn(bar: string, baz?: string) {
 		});
 	});
 
-	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation constraints`, () => {
-		it('extracts hooks from plain component-body if return branches', () => {
-			const { code } = compile(
-				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-								function StatusBadge(props: { disabled: boolean }) @{
-									if (props.disabled) {
-										useEffect(() => {});
-
-										return <span>{'disabled'}</span>;
-									}
-
-									<span>{'enabled'}</span>
-								}`,
-				'StatusBadge.tsrx',
-			);
-
-			expect(code).toContain('function StatusBadge__StatementBodyHook1()');
-			expect(code).toContain('useEffect(() => {});');
-			expect(code).toContain('return <StatusBadge__StatementBodyHook1 />;');
-			expect(code).toContain("{'enabled'}");
-			expect(code.indexOf('useEffect(() => {});')).toBeLessThan(
-				code.indexOf('function StatusBadge(props'),
-			);
-		});
-
-		it('passes parent bindings into plain if return branch hook helpers', () => {
-			const { code } = compile(
-				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-								function StatusBadge(props: { disabled: boolean; label: string }) @{
-									const label = props.label.trim();
-									if (props.disabled) {
-										useEffect(() => {
-											console.log(label);
-										}, [label]);
-
-										return <span>{label}</span>;
-									}
-
-									<span>{'enabled'}</span>
-								}`,
-				'StatusBadge.tsrx',
-			);
-
-			expect(code).toContain('function StatusBadge__StatementBodyHook1({ label })');
-			expect(code).toContain('<StatusBadge__StatementBodyHook1 label={label} />');
-			expect(code).toContain('console.log(label);');
-			expect(code).not.toContain(': any');
-		});
-
-		it('does not extract hooks from ordinary function if return branches', () => {
-			const { code } = compile(
-				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-								function StatusBadge(props: { disabled: boolean }) {
-									if (props.disabled) {
-										useEffect(() => {});
-
-										return <span>{'disabled'}</span>;
-									}
-
-									return <span>{'enabled'}</span>;
-								}`,
-				'StatusBadge.tsrx',
-			);
-
-			expect(code).toContain('function StatusBadge(props: { disabled: boolean }) {');
-			expect(code).toContain('useEffect(() => {});');
-			expect(code).not.toContain('StatementBodyHook');
-			expect(code).not.toContain('return <StatusBadge__StatementBodyHook');
-		});
-
-		it('extracts hooks in expression-position JSX fragments into stable helper components', () => {
-			const { code } = compile(
-				`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
-								function App({ active }: { active: boolean }) @{
-								if (!active) return null;
-
-								useEffect(() => {
-									console.log(active);
-								}, [active]);
-								<span>{active ? 'active' : 'inactive'}</span>
-							}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('useEffect(');
-			if (name === 'react' || name === 'preact') {
-				expect(code).toContain('function App({ active }: { active: boolean })');
-				expect(code).toContain("return <span>{active ? 'active' : 'inactive'}</span>;");
-			} else {
-				expect(code).toContain('let App__StatementBodyHook1;');
-				expect(code).toContain('App__StatementBodyHook1 ??');
-			}
-		});
-
-		it('allows hook results that stay local to an extracted branch', () => {
-			const { code } = compile(
-				`export function App({ show }: { show: boolean }) @{
-							<>
-								@if (show) {
-									const [x] = useState(100);
-									<div>{x}</div>
-								}
-								<span>{'after'}</span>
-							</>
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('useState(100)');
-			expect(code).toContain('StatementBodyHook');
-			expect(code).toContain('after');
-		});
-
-		it('allows conditional hook callbacks to read outer bindings', () => {
-			const { code } = compile(
-				`export function App({ show, value }: { show: boolean; value: string }) @{
-							const label = value.trim();
-							@if (show) {
-								useEffect(() => {
-									console.log(label);
-								}, [label]);
-								<span>{label}</span>
-							}
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('useEffect(');
-			expect(code).toContain('label={label}');
-			expect(code).toContain('StatementBodyHook');
-		});
-
-		it('allows conditional hook callbacks to mutate branch-local bindings', () => {
-			const { code } = compile(
-				`export function App({ show, value }: { show: boolean; value: string }) @{
-							@if (show) {
-								let latest: string | undefined;
-								useEffect(() => {
-									latest = value;
-								}, [value]);
-								<span>{value}</span>
-							}
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('latest = value');
-			expect(code).toContain('StatementBodyHook');
-		});
-
-		it('allows conditional hook callbacks to mutate module-level bindings', () => {
-			const { code } = compile(
-				`let effectCount = 0;
-
-						export function App({ show }: { show: boolean }) @{
-							@if (show) {
-								useEffect(() => {
-									effectCount++;
-								}, []);
-								<span>{effectCount}</span>
-							}
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('effectCount++');
-			expect(code).toContain('StatementBodyHook');
-		});
-
-		it('rejects conditional hook callbacks that assign to parent-scope bindings', () => {
-			expect(() =>
-				compile(
-					`export function App({ show, value }: { show: boolean; value: string }) @{
-								let latest: string | undefined;
-								console.log(latest);
-								@if (show) {
-									useEffect(() => {
-										latest = value;
-									}, [value]);
-									<span>{value}</span>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useEffect callback mutates `latest`/);
-		});
-
-		it('rejects conditional hook cleanup callbacks that mutate parent-scope bindings', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let cleanupCount = 0;
-								@if (show) {
-									useEffect(() => {
-										return () => {
-											cleanupCount++;
-										};
-									}, []);
-									<span>{'visible'}</span>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useEffect callback mutates `cleanupCount`/);
-		});
-
-		it('rejects assigning hook results to bindings outside an extracted if branch', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let x: number | undefined;
-								console.log(x);
-								@if (show) {
-									[x] = useState(100);
-									<div>{x}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `x`/);
-		});
-
-		it('rejects assigning hook-derived values to bindings outside an extracted branch', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let x: number | undefined;
-								console.log(x);
-								@if (show) {
-									const [state] = useState(100);
-									x = state;
-									<div>{state}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/hook result is assigned to `x`/);
-		});
-
-		it('rejects compound assigning hook results to bindings outside an extracted branch', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let total = 0;
-								console.log(total);
-								@if (show) {
-									total += useCustomNumber();
-									<div>{total}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useCustomNumber result is assigned to `total`/);
-		});
-
-		it('rejects compound assigning hook-derived locals to bindings outside an extracted branch', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let total = 0;
-								console.log(total);
-								@if (show) {
-									const delta = useCustomNumber();
-									total += delta;
-									<div>{total}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/hook result is assigned to `total`/);
-		});
-
-		it('rejects hook-result assignments nested inside assignment targets', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let key = 0;
-								const values: Record<number, string> = {};
-								@if (show) {
-									values[key = useCustomNumber()] = 'active';
-									<div>{values[key]}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useCustomNumber result is assigned to `key`/);
-		});
-
-		it('rejects assigning hook results to outer bindings inside <> expressions', () => {
-			expect(() =>
-				compile(
-					`function App({ show }: { show: boolean }) @{
-									let x: number | undefined;
-									@if (show) {
-										[x] = useState(100);
-										<div>{x}</div>
-									}
-								}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `x`/);
-		});
-	});
-
 	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] hook isolation outer binding diagnostics`,
+		`[${name}] conditional hooks are not extracted`,
 		() => {
-			it('rejects assigning hook results to outer bindings inside switch cases', () => {
-				expect(() =>
-					compile(
-						`export function App({ kind }: { kind: 'a' | 'b' }) @{
-								let x: number | undefined;
-								console.log(x);
-								@switch (kind) {
-									@case 'a': {
-										[x] = useState(100);
-										<div>{x}</div>
-									}
-									@case 'b': {
-										<span>{'b'}</span>
-									}
-								}
-							}`,
-						'App.tsrx',
-					),
-				).toThrow(/useState result is assigned to `x`/);
-			});
-
-			it('allows switch case hook results that stay local', () => {
+			it('leaves hooks inside authored template control flow', () => {
 				const { code } = compile(
-					`export function App({ kind }: { kind: 'a' | 'b' }) @{
-							@switch (kind) {
-								@case 'a': {
-									const [x] = useState(100);
-									<div>{x}</div>
-								}
-								@case 'b': {
-									<span>{'b'}</span>
-								}
-							}
-						}`,
-					'App.tsrx',
-				);
-
-				expect(code).toContain('useState(100)');
-				expect(code).toContain('StatementBodyHook');
-			});
-		},
-	);
-
-	describe.runIf(['react', 'preact'].includes(name))(`[${name}] hook isolation in loops`, () => {
-		it('rejects assigning hook results to outer bindings inside for-of bodies', () => {
-			expect(() =>
-				compile(
-					`export function App({ items }: { items: number[] }) @{
-								let last: number | undefined;
-								console.log(last);
-								@for (const item of items; index i) {
-									[last] = useState(item);
-									<div key={i}>{last}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `last`/);
-		});
-
-		it('rejects hook results assigned to an outer binding after a for-of with a same-named const declaration', () => {
-			expect(() =>
-				compile(
-					`export function App({ show, items }: { show: boolean; items: number[] }) @{
-								let x: number | undefined;
-								@if (show) {
-									[x] = useState(0);
-									@for (const x of items) {
-										<div key={x}>{x}</div>
-									}
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `x`/);
-		});
-
-		it('allows hook usage inside a for-of body whose let-declared loop var shadows an outer binding', () => {
-			const { code } = compile(
-				`export function App({ show, items }: { show: boolean; items: number[] }) @{
-							let x: number | undefined;
+					`export function App({ show }: { show: boolean }) @{
 							@if (show) {
-								@for (let x of items) {
-									const [val] = useState(x);
-									<div key={x}>{val}</div>
-								}
-							}
-						}`,
-				'App.tsrx',
-			);
-			expect(code).toContain('useState(x)');
-			expect(code).toContain('StatementBodyHook');
-		});
-
-		it('rejects for-of whose hook iterable is bound into an outer identifier', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let x: number | undefined;
-								@if (show) {
-									@for (x of useState(0)) {
-										<div>{x}</div>
-									}
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `x`/);
-		});
-
-		it('rejects for-of whose hook iterable is bound into an outer destructuring target', () => {
-			expect(() =>
-				compile(
-					`export function App({ show }: { show: boolean }) @{
-								let a: number | undefined;
-								let b: number | undefined;
-								@if (show) {
-									@for ([a, b] of [useState(0)]) {
-										<div>{a}{b}</div>
-									}
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `a`, `b`/);
-		});
-
-		it('rejects hook results assigned to a for-of assignment-target outer binding', () => {
-			expect(() =>
-				compile(
-					`export function App({ show, items }: { show: boolean; items: number[] }) @{
-								let x: number | undefined;
-								@if (show) {
-									for (x of items) {
-										console.log(x);
-									}
-									[x] = useState(0);
-									<div>{x}</div>
-								}
-							}`,
-					'App.tsrx',
-				),
-			).toThrow(/useState result is assigned to `x`/);
-		});
-
-		it('still extracts hook-bearing for-of bodies when hook results stay local', () => {
-			const { code } = compile(
-				`export function App({ items }: { items: string[] }) @{
-							@for (const name of items) {
-								const [val] = useState(name);
-								<div key={name}>{val}</div>
-							}
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain('useState(name)');
-			expect(code).toContain('StatementBodyHook');
-			expect(code).toContain('__map_iterable(');
-		});
-
-		it('falls back to the existing transform for non-hook for-of loops', () => {
-			const { code } = compile(
-				`export function App({ items }: { items: number[] }) @{
-							@for (const item of items; index i) {
-								<div key={i}>{item}</div>
-							}
-						}`,
-				'App.tsrx',
-			);
-
-			expect(code).not.toContain('StatementBodyHook');
-			expect(code).toContain('__map_iterable(items, (item, i)');
-		});
-	});
-
-	describe.runIf(['react', 'preact'].includes(name))(
-		`[${name}] hook isolation in try blocks`,
-		() => {
-			it('rejects assigning hook results to outer bindings inside try bodies', () => {
-				expect(() =>
-					compile(
-						`export function App({ load }: { load: () => number }) @{
-								let data: number | undefined;
-								@try {
-									[data] = useState(load());
-									console.log(data);
-									<div>{data}</div>
-								} @catch (err) {
-									<div>{'error'}</div>
-								}
-							}`,
-						'App.tsrx',
-					),
-				).toThrow(/useState result is assigned to `data`/);
-			});
-
-			it('rejects assigning hook results to outer bindings inside catch bodies', () => {
-				expect(() =>
-					compile(
-						`export function App({ load }: { load: () => number }) @{
-								let attempt: number | undefined;
-								@try {
-									<div>{load()}</div>
-								} @catch (err) {
-									[attempt] = useState(0);
-									console.log(attempt);
-									<div>{attempt}</div>
-								}
-							}`,
-						'App.tsrx',
-					),
-				).toThrow(/useState result is assigned to `attempt`/);
-			});
-
-			it('allows try-body hook results that stay local', () => {
-				const { code } = compile(
-					`export function App({ load }: { load: () => number }) @{
-							@try {
-								const [data] = useState(load());
-								<div>{data}</div>
-							} @catch (err) {
-								<div>{'error'}</div>
+								const [count] = useState(0);
+								<div>{count}</div>
 							}
 						}`,
 					'App.tsrx',
 				);
 
-				expect(code).toContain('useState(load())');
-				expect(code).toContain('StatementBodyHook');
-			});
-
-			it('try without hooks falls back to the existing transform', () => {
-				const { code } = compile(
-					`export function App({ load }: { load: () => number }) @{
-							@try {
-								<div>{load()}</div>
-							} @catch (err) {
-								<div>{'error'}</div>
-							}
-						}`,
-					'App.tsrx',
-				);
-
+				expect(code).toContain('useState(0)');
+				expect(code).toContain('return show');
 				expect(code).not.toContain('StatementBodyHook');
-				expect(code).toContain('TsrxErrorBoundary');
+			});
+
+			it('keeps guard returns and later hooks in the component body', () => {
+				const { code } = compile(
+					`import { useEffect } from '${name === 'preact' ? 'preact/hooks' : 'react'}';
+
+						export function App({ ready }: { ready: boolean }) @{
+							if (!ready) {
+								return null;
+							}
+
+							useEffect(() => {});
+
+							<div />
+						}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('if (!ready) {');
+				expect(code).toContain('useEffect(() => {});');
+				expect(code).toContain('<div />');
+				expect(code).not.toContain('StatementBodyHook');
 			});
 		},
 	);

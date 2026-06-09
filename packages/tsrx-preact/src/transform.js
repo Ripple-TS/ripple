@@ -45,10 +45,6 @@ const preact_platform = {
 	validation: {
 		requireUseServerForAwait: false,
 	},
-	hooks: {
-		moduleScopedHookComponents: true,
-		componentBodyHookHelpers: true,
-	},
 };
 
 export const transform = createJsxTransform(preact_platform);

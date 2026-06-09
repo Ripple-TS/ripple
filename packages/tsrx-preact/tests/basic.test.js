@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
-	runSharedSwitchHelperHoistingTests,
 	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
@@ -18,12 +17,6 @@ runSharedSourceMappingTests({
 runSharedTsxExpressionTsrxTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });
-runSharedSwitchHelperHoistingTests({
-	compile,
-	compile_to_volar_mappings,
-	name: 'preact',
-	clientHelperShape: 'module-function',
-});
 
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {
@@ -141,7 +134,7 @@ describe('@tsrx/preact basic', () => {
 		expect(code).not.toContain('Array.isArray(');
 	});
 
-	it('uses map_iterable inside a hook-bearing for-of without normalizing the source', () => {
+	it('uses map_iterable inside a for-of with hook calls without normalizing the source', () => {
 		const { code } = compile(
 			`import { useState } from 'preact/hooks';
 
@@ -156,16 +149,16 @@ describe('@tsrx/preact basic', () => {
 
 		expect(code).toContain('map_iterable as __map_iterable');
 		expect(code).toContain("from '@tsrx/preact/runtime/iterable'");
-		expect(code).toContain('function App__StatementBodyHook1({ item })');
-		expect(code).toContain('<App__StatementBodyHook1 item={item} key={item} />');
-		expect(code).toContain('__map_iterable(_tsrx_iteration_items_1,');
+		expect(code).toContain('useState(false)');
+		expect(code).toContain('__map_iterable(items,');
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain('type IterationValue as __IterationValue');
 		expect(code).not.toContain('Array.from(');
 		expect(code).not.toContain('Array.isArray(');
 		expect(code).not.toContain('IterationValue as type __IterationValue');
 	});
 
-	it('extracts component-body hooks after early null returns', () => {
+	it('keeps component-body hooks after early null returns without splitting', () => {
 		const { code } = compile(
 			`import { useEffect } from 'preact/hooks';
 
@@ -179,13 +172,10 @@ describe('@tsrx/preact basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('function App__StatementBodyHook1()');
 		expect(code).toContain('useEffect(() => {});');
-		expect(code).toContain('return <App__StatementBodyHook1 />;');
-		expect(code.indexOf('function App__StatementBodyHook1')).toBeLessThan(
-			code.indexOf('export function App'),
-		);
-		expect(code.indexOf('useEffect(() => {});')).toBeLessThan(code.indexOf('export function App'));
+		expect(code).toContain('if (x) {');
+		expect(code).toContain('return null;');
+		expect(code).not.toContain('StatementBodyHook');
 	});
 
 	it('does not split hooks out of ordinary uppercase function bodies', () => {
@@ -244,7 +234,7 @@ describe('@tsrx/preact basic', () => {
 		expect(code).toContain(`class="host ${cssHash}"`);
 	});
 
-	it('preserves parent prop types in hook-bearing composite children', () => {
+	it('keeps hook-bearing composite children inline without helper prop plumbing', () => {
 		const source = `import { useState } from 'preact/hooks';
 			import type { PropsWithChildren } from 'ripple';
 
@@ -270,15 +260,11 @@ describe('@tsrx/preact basic', () => {
 		const { code } = compile(source, 'App.tsrx');
 		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
 
-		expect(code).toContain('function Parent__StatementBodyHook1({ props })');
-		expect(code).toContain('<Parent__StatementBodyHook1 props={props} />');
 		expect(code).toContain('<h1>{props.title}</h1>');
+		expect(code).not.toContain('StatementBodyHook');
 		expect(code).not.toContain(': any');
-		expect(mappings.code).toContain('const _tsrx_StatementBodyHook1_props = props;');
-		expect(mappings.code).toContain(
-			'function StatementBodyHook1({ props }: { props: typeof _tsrx_StatementBodyHook1_props })',
-		);
 		expect(mappings.code).toContain('<h1>{props.title}</h1>');
+		expect(mappings.code).not.toContain('StatementBodyHook');
 		expect(mappings.code).not.toContain('props: any');
 	});
 

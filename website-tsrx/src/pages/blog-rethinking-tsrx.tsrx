@@ -42,18 +42,22 @@ const TOP_LEVEL_EARLY_RETURN_HTML = highlight_tsrx(
 }`,
 );
 
-const CONDITIONAL_HOOKS_HTML = highlight_tsrx(
+const EXPLICIT_HOOK_COMPONENT_HTML = highlight_tsrx(
 	`const DetailsPanel = ({ open }: DetailsPanelProps): JSX.Element => @{
   const [selected, setSelected] = useState('summary');
 
   @if (open) {
-    const [draft, setDraft] = useState('');
-
-    <Editor value={draft} onInput={setDraft} />
+    <DetailsEditor />
   } @else {
     <button onClick={() => setSelected('details')}>Showing {selected}</button>
   }
-};`,
+};
+
+function DetailsEditor(): JSX.Element {
+  const [draft, setDraft] = useState('');
+
+  return <Editor value={draft} onInput={setDraft} />;
+}`,
 );
 
 const JSX_CONTROL_FLOW_SCOPE_HTML = highlight_tsrx(
@@ -378,14 +382,6 @@ export function BlogRethinkingTsrxPage() @{
 							fragment. Fragments are still there for real multiple-child output; they just are not
 							ceremony.
 						</p>
-						<p>
-							Hooks can live in that script section too. In React and Preact targets, a hook used
-							inside TSRX control flow is treated as conditional template work, so the compiler can
-							isolate it without making the parent component's hook order conditional.
-						</p>
-						<pre class="code-block">
-							<code innerHTML={CONDITIONAL_HOOKS_HTML} />
-						</pre>
 						<pre class="code-block">
 							<code innerHTML={STATEMENT_CONTAINER_COMPONENT_BODY_HTML} />
 						</pre>
@@ -405,6 +401,16 @@ export function BlogRethinkingTsrxPage() @{
 						</p>
 						<pre class="code-block">
 							<code innerHTML={TOP_LEVEL_EARLY_RETURN_HTML} />
+						</pre>
+						<h2>React and Preact hooks stay explicit</h2>
+						<p>
+							TSRX does not try to make conditional React or Preact hooks safe by moving them into
+							generated child components. Hook ordering is runtime behavior, especially for effects,
+							so a branch that owns hook state should be an explicit component with a name you can
+							reason about.
+						</p>
+						<pre class="code-block">
+							<code innerHTML={EXPLICIT_HOOK_COMPONENT_HTML} />
 						</pre>
 						<h2>JSX control flow</h2>
 						<p>
