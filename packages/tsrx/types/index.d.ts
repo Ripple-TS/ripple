@@ -232,8 +232,7 @@ declare module 'estree' {
 		lazy?: boolean;
 	}
 
-	// We mark the whole node as marked when member is @[expression]
-	// Otherwise, we only mark Identifier nodes
+	// Ripple analysis may mark a whole member expression as tracked metadata.
 	interface MemberExpression {
 		tracked?: boolean;
 	}

@@ -952,8 +952,8 @@ const items=[1,2,3];
 			const input = `function printMemberExpressionSimple(node, options, computed = false) {
   if (node.type === 'MemberExpression') {
     const prop = node.computed
-      ? (node.property.tracked ? '.@[' : '[') + printMemberExpressionSimple(node.property, options, node.computed) + ']'
-      : (node.property.tracked ? '.@' : '.') + printMemberExpressionSimple(node.property, options, node.computed);
+      ? (node.optional ? '?.[' : '[') + printMemberExpressionSimple(node.property, options, node.computed) + ']'
+      : (node.optional ? '?.' : '.') + printMemberExpressionSimple(node.property, options, node.computed);
   }
 }`;
 
@@ -964,14 +964,14 @@ const items=[1,2,3];
 ) {
   if (node.type === 'MemberExpression') {
     const prop = node.computed
-      ? (node.property.tracked ? '.@[' : '[') +
+      ? (node.optional ? '?.[' : '[') +
         printMemberExpressionSimple(
           node.property,
           options,
           node.computed,
         ) +
         ']'
-      : (node.property.tracked ? '.@' : '.') +
+      : (node.optional ? '?.' : '.') +
         printMemberExpressionSimple(
           node.property,
           options,

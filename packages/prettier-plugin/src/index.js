@@ -1732,18 +1732,12 @@ function printRippleNode(node, path, options, print, args) {
 		}
 		case 'Identifier': {
 			// Simple case - just return the name directly like Prettier core
-			const trackedPrefix = node.tracked ? '@' : '';
 			let identifierContent;
 			if (node.typeAnnotation) {
 				const optionalMarker = node.optional ? '?' : '';
-				identifierContent = [
-					trackedPrefix + node.name,
-					optionalMarker,
-					': ',
-					path.call(print, 'typeAnnotation'),
-				];
+				identifierContent = [node.name, optionalMarker, ': ', path.call(print, 'typeAnnotation')];
 			} else {
-				identifierContent = trackedPrefix + node.name;
+				identifierContent = node.name;
 			}
 			// Preserve parentheses for type-cast identifiers, but only if:
 			// 1. The identifier itself is marked as parenthesized
@@ -4010,7 +4004,6 @@ function printMemberExpression(node, path, options, print) {
 
 	let result;
 	if (node.computed) {
-		// Check if the MemberExpression itself is tracked to add @ symbol
 		const openBracket = node.optional ? '?.[' : '[';
 		result = [objectPart, openBracket, propertyPart, ']'];
 	} else {
@@ -6502,7 +6495,7 @@ function printMemberExpressionSimple(node, options, computed = false) {
 	}
 
 	if (node.type === 'Identifier') {
-		return (computed ? '' : node.tracked ? '@' : '') + node.name;
+		return node.name;
 	}
 
 	if (node.type === 'MemberExpression') {
