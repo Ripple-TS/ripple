@@ -25,7 +25,6 @@ import {
 	is_bare_render_expression,
 	is_component_jsx_name,
 	is_jsx_child,
-	jsx_name_to_expression,
 	set_loc,
 	to_text_expression,
 } from './ast-builders.js';
@@ -402,10 +401,6 @@ export function createJsxTransform(platform) {
 			},
 
 			JSXElement(node, { next, path, state }) {
-				if (!node.metadata?.native_tsrx && is_dynamic_jsx_element(node)) {
-					return dynamic_element_to_jsx(node, state, in_jsx_child_context(path));
-				}
-
 				if (!node.metadata?.native_tsrx) {
 					return next() ?? node;
 				}
@@ -3381,7 +3376,7 @@ function to_jsx_element(
 	raw_children = node.children || [],
 	in_jsx_child = false,
 ) {
-	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx && !is_dynamic_jsx_element(node)) {
+	if (node.type === 'JSXElement' && !node.metadata?.native_tsrx) {
 		return node;
 	}
 
@@ -3391,10 +3386,6 @@ function to_jsx_element(
 		report_jsx_fragment_in_tsrx_error(node, transform_context);
 		return set_loc(b.jsx_fragment(), node);
 	}
-	if (is_dynamic_jsx_element(node)) {
-		return dynamic_element_to_jsx(node, transform_context, in_jsx_child);
-	}
-
 	const name = clone_jsx_name(source_name);
 	const attributes = transform_element_attributes_dispatch(
 		source_opening.attributes || [],
@@ -4639,29 +4630,6 @@ function is_native_tsrx_node(node) {
  * @param {any} node
  * @returns {boolean}
  */
-function is_dynamic_jsx_element(node) {
-	return !!(
-		node?.type === 'JSXElement' &&
-		(node.dynamic === true ||
-			node.openingElement?.dynamic === true ||
-			is_dynamic_jsx_name(node.openingElement?.name))
-	);
-}
-
-/**
- * @param {any} name
- * @returns {boolean}
- */
-function is_dynamic_jsx_name(name) {
-	if (!name || typeof name !== 'object') return false;
-	if (name.dynamic === true) return true;
-	return name.type === 'JSXMemberExpression' && is_dynamic_jsx_name(name.object);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
 function is_if_control_node(node) {
 	return node?.type === 'IfStatement' || node?.type === 'JSXIfExpression';
 }
@@ -4742,9 +4710,6 @@ function to_jsx_child(node, transform_context) {
 		case 'JSXElement':
 			if (is_native_tsrx_node(node)) {
 				return to_jsx_element(node, transform_context, node.children || [], true);
-			}
-			if (is_dynamic_jsx_element(node)) {
-				return dynamic_element_to_jsx(node, transform_context, true);
 			}
 			return node;
 		case 'JSXFragment':
@@ -6674,57 +6639,6 @@ function value_has_unmappable_jsx_loc(value) {
 		value?.type === 'JSXExpressionContainer' &&
 		(value.expression?.type === 'JSXElement' || value.expression?.type === 'JSXFragment') &&
 		!value.expression.loc
-	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @param {boolean} in_jsx_child
- * @returns {any}
- */
-function dynamic_element_to_jsx(node, transform_context, in_jsx_child) {
-	const source_name = node.openingElement?.name;
-	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), source_name || node);
-	const alias_declaration = set_loc(
-		b.const(dynamic_id, jsx_name_to_expression(source_name)),
-		source_name || node,
-	);
-	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
-
-	const expression = b.call(
-		b.arrow(
-			[],
-			b.block([
-				alias_declaration,
-				b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
-			]),
-		),
-	);
-
-	return in_jsx_child ? to_jsx_expression_container(expression, node) : set_loc(expression, node);
-}
-
-/**
- * @param {AST.Identifier} dynamic_id
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXElement}
- */
-function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
-	const attributes = transform_element_attributes_dispatch(
-		node.openingElement?.attributes || [],
-		transform_context,
-		node,
-	);
-	const selfClosing = !!node.openingElement?.selfClosing;
-	const children = create_element_children(node.children || [], transform_context);
-	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
-
-	return b.jsx_element_fresh(
-		b.jsx_opening_element(name, attributes, selfClosing),
-		selfClosing ? null : b.jsx_closing_element(clone_jsx_name(name)),
-		children,
 	);
 }
 

@@ -9,6 +9,7 @@ export const DEFAULT_SUSPENSE_SOURCE: string;
 
 export function parse(source: string, filename?: string, options?: ParseOptions): Program;
 
+export { Dynamic, type DynamicElementType, type DynamicProps } from './dynamic.js';
 export { isRefProp } from './ref.js';
 
 export const compile: CompileFn<CompileOptions & BaseCompileOptions>;

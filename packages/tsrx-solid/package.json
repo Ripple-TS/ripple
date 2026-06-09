@@ -18,6 +18,10 @@
       "types": "./types/index.d.ts",
       "default": "./src/index.js"
     },
+    "./dynamic": {
+      "types": "./types/dynamic.d.ts",
+      "default": "./src/dynamic.js"
+    },
     "./ref": {
       "types": "./types/ref.d.ts",
       "default": "./src/ref.js"

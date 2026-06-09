@@ -2170,75 +2170,6 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('<tsx');
 		});
 
-		it('rejects dynamic attribute names inside JSX fragments', () => {
-			expect(() =>
-				compile(
-					`function Some(props) { return null; }
-					class Foo {
-						bar() {
-							const placeholder = 'value';
-							return <><Some @prop={placeholder} /></>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).toThrow(/not attribute names/);
-		});
-
-		it('supports dynamic element syntax inside JSX fragments', () => {
-			expect(() =>
-				compile(
-					`class Foo {
-						bar() {
-							const tag = 'section';
-							return <><@tag id="x" /></>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('supports dynamic element syntax inside JSX fragment shorthand values', () => {
-			expect(() =>
-				compile(
-					`class Foo {
-						bar() {
-							const tag = 'section';
-							return <><@tag id="x" /></>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('supports dynamic element syntax in native templates', () => {
-			expect(() =>
-				compile(
-					`export function App() @{
-						const tag = 'section';
-						<@tag id="x" />
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
-		it('supports dynamic element syntax in JSX fragment values', () => {
-			expect(() =>
-				compile(
-					`class Foo {
-						bar() {
-							const tag = 'section';
-							return <><@tag id="x" /></>;
-						}
-					}`,
-					'App.tsrx',
-				),
-			).not.toThrow();
-		});
-
 		it('unwraps a JSX fragment containing a single expression to the expression', () => {
 			// Regression: previously `<>{'Hello'}</>` was compiled to
 			// `return {'Hello'};`, which is a JS syntax error because `{`
@@ -2730,30 +2661,6 @@ export function optionalFn(bar: string, baz?: string) {
 			}
 		});
 
-		it('preserves dynamic JSX tags from typed nested render props', () => {
-			const { code } = compile(
-				`class Foo {
-					bar() {
-						return <Page
-							params={{
-								details: {
-									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-											{icon ? icon() : null}
-										</@tag> },
-								},
-							}}
-						/>
-					}
-				}`,
-				'App.tsrx',
-			);
-
-			expect(code).toContain(`${classAttrName}={`);
-			expect(code).toContain('has-icon');
-			expect(code).toContain('icon()');
-		});
-
 		it('preserves JSX templates in complex nested params objects', () => {
 			const { code } = compile(
 				`class Foo {
@@ -2786,9 +2693,9 @@ export function optionalFn(bar: string, baz?: string) {
 									},
 								details2: {
 									render: (tag: string, className: string, icon: () => JSX.Element) =>
-										@{ <@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
+										@{ <span class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
 											{icon ? icon() : null}
-										</@tag> },
+										</span> },
 								},
 							}}
 						/>

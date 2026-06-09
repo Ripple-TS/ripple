@@ -1,14 +1,14 @@
-import { flushSync, track } from 'ripple';
+import { Dynamic, flushSync, track } from 'ripple';
 
 describe('composite > dynamic components', () => {
-	it('supports rendering composite components using <@component> syntax', () => {
+	it('supports rendering composite components using <Dynamic is={component}> syntax', () => {
 		function basic() @{
 			<div>{'Basic Component'}</div>
 		}
 
 		function App() @{
 			const tracked_basic = track(() => basic);
-			<@tracked_basic />
+			<Dynamic is={tracked_basic} />
 		}
 
 		render(App);
@@ -28,7 +28,7 @@ describe('composite > dynamic components', () => {
 				tracked_basic,
 			};
 			const comp = obj.tracked_basic;
-			<@comp />
+			<Dynamic is={comp} />
 		}
 
 		render(App);
@@ -49,13 +49,31 @@ describe('composite > dynamic components', () => {
 			};
 			let &[inner] = track(obj);
 			const comp = inner.tracked_basic;
-			<@comp />
+			<Dynamic is={comp} />
 		}
 
 		render(App);
 		flushSync();
 
 		expect(container.textContent).toBe('Basic Component');
+	});
+
+	it('does not pass is to dynamic component props', () => {
+		function Child(props) @{
+			<div>
+				{props.is === undefined && !('is' in props) ? 'hidden' : 'leaked'}
+			</div>
+		}
+
+		function App() @{
+			const component = track(() => Child);
+			<Dynamic is={component} label="child" />
+		}
+
+		render(App);
+		flushSync();
+
+		expect(container.textContent).toBe('hidden');
 	});
 
 	it('handles dynamic component switching', () => {
@@ -71,7 +89,7 @@ describe('composite > dynamic components', () => {
 			let &[thing] = track(() => Child1);
 			<>
 				<div id="container">
-					<@thing />
+					<Dynamic is={thing} />
 				</div>
 				<button
 					onClick={() => (thing = thing === Child1 ? Child2 : Child1)}

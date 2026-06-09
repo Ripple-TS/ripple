@@ -5,6 +5,7 @@ import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/co
 import { transform } from './transform.js';
 
 export { isRefProp } from './ref.js';
+export { Dynamic } from './dynamic.js';
 
 /**
  * Parse tsrx-vue source code to an ESTree AST.

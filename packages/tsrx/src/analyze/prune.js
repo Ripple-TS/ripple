@@ -63,6 +63,14 @@ function get_attribute_value(attribute) {
 }
 
 /**
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_element(node) {
+	return node?.metadata?.runtime_dynamic_element === true;
+}
+
+/**
  * Returns true if node is a DOM element (not a component).
  * @param {AST.Node} node
  * @returns {boolean}
@@ -73,21 +81,8 @@ function is_element_dom_element(node) {
 		(id.type === 'Identifier' || id.type === 'JSXIdentifier') &&
 		id.name[0].toLowerCase() === id.name[0] &&
 		id.name !== 'children' &&
-		!id.tracked &&
-		!id.dynamic
+		!id.tracked
 	);
-}
-
-/**
- * Returns true if element is dynamic.
- * @param {any} node
- * @returns {boolean}
- */
-function is_element_dynamic(node) {
-	const id = get_element_name(node);
-	return id?.type === 'Identifier' || id?.type === 'JSXIdentifier'
-		? !!(id.tracked || id.dynamic)
-		: false;
 }
 
 // CSS selector constants
@@ -395,13 +390,11 @@ function get_descendant_elements(node, adjacent_only) {
  * @returns {boolean}
  */
 function can_render_dynamic_content(element, check_classes = false) {
-	if (!is_element_dom_element(element)) {
+	if (is_runtime_dynamic_element(element)) {
 		return true;
 	}
 
-	// Either a dynamic element or component (only can tell at runtime)
-	// But dynamic elements should return false ideally
-	if (is_element_dynamic(element)) {
+	if (!is_element_dom_element(element)) {
 		return true;
 	}
 
@@ -1021,7 +1014,7 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 			}
 
 			case 'TypeSelector': {
-				if (is_element_dynamic(element)) {
+				if (is_runtime_dynamic_element(element)) {
 					break;
 				}
 
@@ -1126,10 +1119,6 @@ export function prune_css(css, element, styleClasses, topScopedClasses) {
 	css_hash = css.hash;
 	style_identifier_classes = styleClasses;
 	top_scoped_classes = topScopedClasses;
-
-	if (is_element_dynamic(element)) {
-		element.metadata.scoped = true;
-	}
 
 	/** @type {Visitors<AST.CSS.Node, null>} */
 	const visitors = {

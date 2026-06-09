@@ -446,38 +446,6 @@ describe('@tsrx/ripple named ref props', () => {
 		expect(code).toContain('_$_.ref(input_2, () => state.input, (v) => state.input = v)');
 	});
 
-	it('wraps ref forms on dynamic elements so runtime host spreads can apply them', () => {
-		const { code } = compile(
-			`function App() { return <>
-				let tag = track('input');
-				let input;
-				let state = {};
-				function fn() {}
-				<@tag ref={[input, state.other]} input_ref={fn} />
-			</>; }`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('ref: _$_.create_ref_prop(() => [');
-		expect(code).toContain('_$_.create_ref_prop(() => input, (v) => input = v)');
-		expect(code).toContain('_$_.create_ref_prop(() => state.other, (v) => state.other = v)');
-		expect(code).toContain('input_ref: fn');
-	});
-
-	it('normalizes dynamic element syntax for component lowering', () => {
-		const { code } = compile(
-			`function App() @{
-				let &[tag] = track('polygon');
-				<@tag points="0,0 30,0 15,10" />
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('_$_.composite(() =>');
-		expect(code).toContain('_$_.lazy_array_get(lazy, 0)');
-		expect(code).not.toContain('<tag');
-	});
-
 	it('prints named ref props in Volar TypeScript output', () => {
 		const { code } = compile_to_volar_mappings(
 			`function App() { return <>

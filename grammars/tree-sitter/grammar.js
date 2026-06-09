@@ -70,6 +70,7 @@ module.exports = grammar({
 		[$.required_parameter, $.primary_expression],
 		[$.pattern, $.assignment_expression],
 		[$.jsx_element_name, $.jsx_non_namespaced_element_name],
+		[$.jsx_element_name, $.type_parameter],
 		[$.primary_expression, $.jsx_element_name],
 		[$.primary_expression, $.jsx_member_name],
 		[$.primary_expression, $.jsx_element],
@@ -1157,7 +1158,6 @@ module.exports = grammar({
 		jsx_opening_element: ($) =>
 			seq(
 				'<',
-				optional('@'),
 				field('name', $.jsx_element_name),
 				repeat(field('attribute', $._jsx_attribute)),
 				'>',
@@ -1165,25 +1165,22 @@ module.exports = grammar({
 
 		jsx_opening_fragment: () => seq('<', '>'),
 
-		jsx_closing_element: ($) => seq('</', optional('@'), field('name', $.jsx_element_name), '>'),
+		jsx_closing_element: ($) => seq('</', field('name', $.jsx_element_name), '>'),
 
 		jsx_closing_fragment: () => seq('</', '>'),
 
 		jsx_self_closing_element: ($) =>
 			seq(
 				'<',
-				optional('@'),
 				field('name', $.jsx_non_namespaced_element_name),
 				repeat(field('attribute', $._jsx_attribute)),
 				'/>',
 			),
 
-		jsx_element_name: ($) =>
-			choice($.identifier, $.jsx_namespace_name, $.jsx_member_name, $.member_expression),
+		jsx_element_name: ($) => choice($.identifier, $.jsx_namespace_name, $.jsx_member_name),
 
 		// Non-namespaced variant (used for self-closing elements)
-		jsx_non_namespaced_element_name: ($) =>
-			choice($.identifier, $.jsx_member_name, $.member_expression),
+		jsx_non_namespaced_element_name: ($) => choice($.identifier, $.jsx_member_name),
 
 		// Support dotted names in JSX element names (e.g. Namespace.Component)
 		// Implemented iteratively to avoid left recursion

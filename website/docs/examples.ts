@@ -653,7 +653,7 @@ export default function App() @{
 	},
 	{
 		title: 'Dynamic Components',
-		code: `import { track } from 'ripple';
+		code: `import { Dynamic, track } from 'ripple';
 
 export default function App() @{
   let &[swapMe, swapMeTracked] = track(() => Child1);
@@ -668,7 +668,7 @@ export default function App() @{
 }
 
 function Child({ swapMe }: {swapMe: Tracked<Component>}) {
-  return <@swapMe />
+  return <Dynamic is={swapMe} />
 }
 
 function Child1(props) {
@@ -682,7 +682,7 @@ function Child2(props) {
 	},
 	{
 		title: 'Component Transport Pattern',
-		code: `import { track } from 'ripple';
+		code: `import { Dynamic, track } from 'ripple';
 
 export default function App() @{
   const &[tracked_basic] = track(() => basic);
@@ -694,18 +694,18 @@ export default function App() @{
   const &[AnotherButton] = track(() => SomeButton);
 
 	<>
-		<@ripple_object.tracked_basic />
+		<Dynamic is={ripple_object.tracked_basic} />
 		<Child {Button}>Child Button</Child>
 		<AnotherChild Button={AnotherButton}>Another Child Button</AnotherChild>
   </>
 }
 
 function Child({ Button, children }) {
-  return <@Button>{children}</@Button>
+  return <Dynamic is={Button}>{children}</Dynamic>
 }
 
 function AnotherChild(&{ Button, children }) {
-  return <@Button>{children}</@Button>
+  return <Dynamic is={Button}>{children}</Dynamic>
 }
 
 function SomeButton({ children }) {

@@ -2,7 +2,7 @@ import type { ExtendedEventOptions } from '@tsrx/core/types';
 export type { RefValue } from '@tsrx/core/runtime/ref';
 export type { AddEventOptions, AddEventObject, ExtendedEventOptions } from '@tsrx/core/types';
 
-export type Component<T = Record<string, any>> = (props: T) => void;
+export type Component<T = Record<string, any>> = (props: T) => void | TSRXElement;
 
 declare const TSRX_ELEMENT: unique symbol;
 declare const REF_KEY: unique symbol;
@@ -25,6 +25,29 @@ export type FragmentProps = {
 export function tsrx_element(render: Function): TSRXElement;
 
 export function Fragment(props: FragmentProps): TSRXElement;
+
+type DynamicIntrinsicElements = JSX.IntrinsicElements;
+export type DynamicElementType = keyof DynamicIntrinsicElements | Component<any> | (string & {});
+type UnwrapTracked<T> = T extends Tracked<infer V> ? V : T;
+type DynamicTarget<T> = Exclude<UnwrapTracked<T>, null | undefined | false>;
+type DynamicComponentProps<T> = [T] extends [never]
+	? Props
+	: T extends Component<infer P>
+		? Omit<P, 'is'>
+		: T extends keyof DynamicIntrinsicElements
+			? DynamicIntrinsicElements[T]
+			: Props;
+export type DynamicProps<T> = Expand<
+	{
+		is: T;
+	} & DynamicComponentProps<DynamicTarget<NoInfer<T>>>
+>;
+
+export function Dynamic<T>(
+	props: {
+		is: T;
+	} & DynamicComponentProps<DynamicTarget<NoInfer<T>>>,
+): TSRXElement;
 
 export function mount(
 	component: Component,
@@ -174,8 +197,8 @@ interface TrackedBase<V> {
 	'#v': V;
 	value: V;
 }
-// Augment Tracked to be callable when V is a Component
-// This allows <@Something /> to work in JSX when Something is Tracked<Component>
+// Augment Tracked to be callable when V is a Component.
+// This allows tracked component values to continue flowing through JSX checks.
 interface TrackedCallable<V> {
 	(props: V extends Component<infer P> ? P : never): V extends Component ? void : never;
 }

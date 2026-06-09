@@ -269,18 +269,15 @@ Ripple has built-in support for dynamic components, a way to render different
 components based on reactive state. Instead of hardcoding which component to show,
 you can store a component in a `Tracked` via `track()`, and update it at runtime.
 When the tracked value changes, Ripple automatically unmounts the previous
-component and mounts the new one. Dynamic components are written with the
-`<@Component />` tag, where `@` is a special marker that tells the compiler the
-component or element is dynamic — it does not dereference or unwrap the value. The
-expression after `@` is treated as a `Tracked` value, and the runtime handles
-unwrapping it internally. This makes it straightforward to pass components as
-props or swap them directly within a component, enabling flexible, state-driven
-UIs with minimal boilerplate.
+component and mounts the new one. Dynamic components are rendered with
+`<Dynamic is={Component} />`; the runtime handles unwrapping the value internally.
+This makes it straightforward to pass components as props or swap them directly
+within a component, enabling flexible, state-driven UIs with minimal boilerplate.
 
 <Code>
 
 ```tsrx
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 
 export function App() @{
   let &[swapMe, swapMeTracked] = track(() => Child1);
@@ -295,7 +292,7 @@ export function App() @{
 }
 
 function Child(&{ swapMe }: { swapMe: Tracked<Component> }) {
-  return <@swapMe />
+  return <Dynamic is={swapMe} />
 }
 
 function Child1(props) {

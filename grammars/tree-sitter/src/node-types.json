@@ -2304,10 +2304,6 @@
         {
           "type": "jsx_namespace_name",
           "named": true
-        },
-        {
-          "type": "member_expression",
-          "named": true
         }
       ]
     }
@@ -2754,10 +2750,6 @@
         },
         {
           "type": "jsx_member_name",
-          "named": true
-        },
-        {
-          "type": "member_expression",
           "named": true
         }
       ]

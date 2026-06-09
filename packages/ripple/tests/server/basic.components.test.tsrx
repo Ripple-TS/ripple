@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 import type {
 	Tracked,
 	PropsWithChildren,
@@ -331,7 +331,7 @@ describe('basic server > components & composition', () => {
 
 		function App() @{
 			let Content = track(() => Noop);
-			<@Content />
+			<Dynamic is={Content} />
 		}
 
 		const { body } = await render(App);

@@ -985,44 +985,6 @@ describe('@tsrx/react basic', () => {
 		expect(mappings.errors).toEqual([]);
 	});
 
-	it('supports dynamic elements', () => {
-		const source = `export function App() @{
-			const dom = 'section';
-
-			<@dom class="box">
-				<span>{'hello'}</span>
-			</@dom>
-		}`;
-
-		const { code } = compile(source, 'App.tsrx');
-		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
-
-		expect(code).toContain("const dom = 'section';");
-		expect(code).toContain('const DynamicElement = dom;');
-		expect(code).toContain('<DynamicElement class="box">');
-		expect(code).toContain("<span>{'hello'}</span>");
-		expect(code).toContain('return DynamicElement');
-		expect(code).toContain('? <DynamicElement class="box">');
-		expect(mappings.errors).toEqual([]);
-	});
-
-	it('supports member-form dynamic elements', () => {
-		const source = `export function App(props) @{
-			<@props.as class="box">
-				<span>{'hello'}</span>
-			</@props.as>
-		}`;
-
-		const { code } = compile(source, 'App.tsrx');
-		const mappings = compile_to_volar_mappings(source, 'App.tsrx');
-
-		expect(code).toContain('function App(props) {');
-		expect(code).toContain('const DynamicElement = props.as;');
-		expect(code).toContain('<DynamicElement class="box">');
-		expect(code).toContain("<span>{'hello'}</span>");
-		expect(mappings.errors).toEqual([]);
-	});
-
 	it('passes if-statement children through composite components via {children}', () => {
 		const source = `function Wrapper(children) @{
 			<div>{children}</div>

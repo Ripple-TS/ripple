@@ -1673,27 +1673,6 @@ export function is_element_dom_element(node) {
 }
 
 /**
- * Returns true if element is a dynamic element
- * @param {AST.Element} node
- * @returns {boolean}
- */
-export function is_element_dynamic(node) {
-	return is_id_dynamic(node.id);
-}
-
-/**
- * @param {AST.Identifier | AST.MemberExpression | AST.Literal} node
- * @returns {boolean}
- */
-function is_id_dynamic(node) {
-	if (node.type === 'Identifier') {
-		return !!node.tracked;
-	}
-
-	return false;
-}
-
-/**
  * Normalizes children nodes (merges adjacent text, removes empty)
  * @param {AST.Node[]} children
  * @param {CommonContext} context
@@ -2649,7 +2628,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				name: name.name,
 				start: name.start,
 				end: name.end,
-				tracked: name.tracked === true || name.dynamic === true,
+				tracked: name.tracked === true,
 			});
 		} else if (name.type === 'JSXMemberExpression') {
 			// Convert JSXMemberExpression to MemberExpression

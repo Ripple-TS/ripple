@@ -1244,11 +1244,16 @@ function get_styles(styles) {
 /**
  * @param {Record<string, any>} attrs
  * @param {string | undefined} css_hash
+ * @param {string} [exclude_prop]
  * @returns {string}
  */
-export function spread_attrs(attrs, css_hash) {
+export function spread_attrs(attrs, css_hash, exclude_prop) {
 	let attr_str = '';
 	let name;
+
+	if (css_hash === undefined && Object.prototype.hasOwnProperty.call(attrs, '#class')) {
+		css_hash = attrs['#class'];
+	}
 
 	for (name in attrs) {
 		var value = attrs[name];
@@ -1256,6 +1261,8 @@ export function spread_attrs(attrs, css_hash) {
 		if (
 			name === 'children' ||
 			name === 'innerHTML' ||
+			name === '#class' ||
+			name === exclude_prop ||
 			typeof value === 'function' ||
 			is_tsrx_element(value)
 		)

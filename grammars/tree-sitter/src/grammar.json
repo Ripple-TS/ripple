@@ -6793,18 +6793,6 @@
           "value": "<"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "@"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
           "type": "FIELD",
           "name": "name",
           "content": {
@@ -6850,18 +6838,6 @@
           "value": "</"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "@"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
           "type": "FIELD",
           "name": "name",
           "content": {
@@ -6894,18 +6870,6 @@
         {
           "type": "STRING",
           "value": "<"
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "@"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
         },
         {
           "type": "FIELD",
@@ -6946,10 +6910,6 @@
         {
           "type": "SYMBOL",
           "name": "jsx_member_name"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "member_expression"
         }
       ]
     },
@@ -6963,10 +6923,6 @@
         {
           "type": "SYMBOL",
           "name": "jsx_member_name"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "member_expression"
         }
       ]
     },
@@ -8724,6 +8680,7 @@
     ["required_parameter", "primary_expression"],
     ["pattern", "assignment_expression"],
     ["jsx_element_name", "jsx_non_namespaced_element_name"],
+    ["jsx_element_name", "type_parameter"],
     ["primary_expression", "jsx_element_name"],
     ["primary_expression", "jsx_member_name"],
     ["primary_expression", "jsx_element"],

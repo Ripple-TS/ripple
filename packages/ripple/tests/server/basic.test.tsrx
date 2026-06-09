@@ -1,4 +1,4 @@
-import { Fragment, track } from 'ripple';
+import { Dynamic, Fragment, track } from 'ripple';
 import type { Tracked, PropsNoChildren } from 'ripple';
 
 describe('basic client', () => {
@@ -402,8 +402,8 @@ second
 
 		function Parent() @{
 			const count = track(10);
-			let Dynamic = track(() => Child);
-			<@Dynamic {count} class={{ test: true }} />
+			let DynamicChild = track(() => Child);
+			<Dynamic is={DynamicChild} {count} class={{ test: true }} />
 		}
 
 		const { body } = await render(Parent);

@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 import type { Component, PropsWithChildren, PropsWithExtras } from 'ripple';
 
 describe('SVG namespace handling', () => {
@@ -296,7 +296,7 @@ describe('SVG namespace handling', () => {
 		function App() @{
 			let &[dynTag] = track('polygon');
 			<SVG>
-				<@dynTag points="0,0 30,0 15,10" />
+				<Dynamic is={dynTag} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 
@@ -327,7 +327,7 @@ describe('SVG namespace handling', () => {
 		function App() @{
 			let &[Component] = track(() => Polygon);
 			<SVG>
-				<@Component points="0,0 30,0 15,10" />
+				<Dynamic is={Component} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 
@@ -343,24 +343,25 @@ describe('SVG namespace handling', () => {
 	it('should render SVG as a dynamic top element with any dynamic children elements', () => {
 		function SVG({ children }: PropsWithChildren<{}>) @{
 			let &[tag] = track('svg');
-			<@tag
+			<Dynamic
+				is={tag}
 				width={100}
 				height={50}
 				fill="red"
 				viewBox="0 0 30 10"
 				preserveAspectRatio="none"
-			>{children}</@tag>
+			>{children}</Dynamic>
 		}
 
 		function Polygon({ points }: PropsWithExtras<{ points: string }>) @{
 			let &[dynTag] = track('polygon');
-			<@dynTag {points} />
+			<Dynamic is={dynTag} {points} />
 		}
 
 		function App() @{
 			let &[Component] = track(() => Polygon);
 			<SVG>
-				<@Component points="0,0 30,0 15,10" />
+				<Dynamic is={Component} points="0,0 30,0 15,10" />
 			</SVG>
 		}
 

@@ -8,8 +8,8 @@ export type { RefValue } from '#public';
  * renderable TSRX values when used in expression positions.
  */
 
-// Ripple components don't return JSX elements - they're imperative
-export type ComponentType<P = {}> = (props: P) => void;
+// Ripple components are usually imperative, but helpers can return TSRX values.
+export type ComponentType<P = {}> = (props: P) => void | TSRXElement;
 
 /**
  * Create a JSX element (for elements with children)

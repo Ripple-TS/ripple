@@ -85,9 +85,10 @@ export function render(fn, state, flags = 0) {
  * @param {any} element
  * @param {any} fn
  * @param {number} [flags]
+ * @param {string} [exclude_prop]
  */
-export function render_spread(element, fn, flags = 0) {
-	return block(RENDER_BLOCK | flags, apply_element_spread(element, fn));
+export function render_spread(element, fn, flags = 0, exclude_prop) {
+	return block(RENDER_BLOCK | flags, apply_element_spread(element, fn, exclude_prop));
 }
 
 /**

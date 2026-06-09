@@ -61,6 +61,7 @@ import {
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
 	is_tsrx_component_function,
+	is_ripple_import,
 } from '../utils.js';
 import is_reference from 'is-reference';
 
@@ -125,6 +126,35 @@ function prepare_legacy_nodes_for_css_pruning(nodes) {
 			}
 		}
 	};
+}
+
+/**
+ * @param {AST.Element} node
+ * @param {AnalysisContext} context
+ * @returns {boolean}
+ */
+function is_runtime_dynamic_element(node, context) {
+	const has_is_attr = node.attributes.some(
+		(attr) =>
+			attr.type === 'Attribute' && attr.name?.type === 'Identifier' && attr.name.name === 'is',
+	);
+	if (!has_is_attr) {
+		return false;
+	}
+
+	if (node.id.type === 'Identifier') {
+		return node.id.name === 'Dynamic' && is_ripple_import(node.id, context);
+	}
+
+	if (
+		node.id.type === 'MemberExpression' &&
+		!node.id.computed &&
+		node.id.property.type === 'Identifier'
+	) {
+		return node.id.property.name === 'Dynamic' && is_ripple_import(node.id, context);
+	}
+
+	return false;
 }
 
 /**
@@ -2447,6 +2477,10 @@ const visitors = {
 
 		const { state, visit, path } = context;
 		const is_dom_element = is_element_dom_element(node);
+		const is_dynamic_runtime_element = !is_dom_element && is_runtime_dynamic_element(node, context);
+		if (is_dynamic_runtime_element) {
+			node.metadata.runtime_dynamic_element = true;
+		}
 		/** @type {Set<AST.Identifier>} */
 		const attribute_names = new Set();
 
@@ -2466,35 +2500,6 @@ const visitors = {
 		}
 
 		validateNesting(node, context);
-
-		// Store capitalized name for dynamic components/elements
-		// TODO: this is not quite right as the node.id could be a member expression
-		// so, we'd need to identify dynamic based on that too
-		// However, we're going to get rid of capitalization in favor of jsx()
-		// so, this will be need to be redone.
-		if (node.id.type === 'Identifier' && node.id.tracked) {
-			const source_name = node.id.name;
-			const capitalized_name = source_name.charAt(0).toUpperCase() + source_name.slice(1);
-			node.metadata.ts_name = capitalized_name;
-			node.metadata.source_name = source_name;
-
-			// Mark the binding as a dynamic component so we can capitalize it everywhere
-			const binding = context.state.scope.get(source_name);
-			if (binding) {
-				if (!binding.metadata) {
-					binding.metadata = {};
-				}
-				binding.metadata.is_dynamic_component = true;
-			}
-
-			if (!is_dom_element && state.elements) {
-				state.elements.push(node);
-				// Mark dynamic elements as scoped by default since we can't match CSS at compile time
-				if (/** @type {any} */ (state.component)?.metadata?.css) {
-					node.metadata.scoped = true;
-				}
-			}
-		}
 
 		if (is_dom_element) {
 			if (/** @type {AST.Identifier} */ (node.id).name === 'head') {
@@ -2636,6 +2641,10 @@ const visitors = {
 				);
 			}
 		} else {
+			if (is_dynamic_runtime_element && state.elements) {
+				state.elements.push(node);
+			}
+
 			for (const attr of node.attributes) {
 				if (attr.type === 'Attribute') {
 					if (attr.name.type === 'Identifier') {

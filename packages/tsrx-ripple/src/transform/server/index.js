@@ -47,7 +47,6 @@ import {
 	normalize_children,
 	is_children_template_expression,
 	is_binding_function,
-	is_element_dynamic,
 	is_ripple_track_call,
 	is_ripple_import,
 	replace_lazy_param_pattern,
@@ -2009,31 +2008,21 @@ const visitors = {
 			return;
 		}
 
-		const dynamic_name = state.dynamicElementName;
-		if (dynamic_name) {
-			state.dynamicElementName = undefined;
-		}
-
-		const is_dom_element = !!dynamic_name || is_element_dom_element(node);
+		const is_dom_element = is_element_dom_element(node);
 		const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
 		/** @type {(AST.Property | AST.SpreadElement)[] | null} */
 		const spread_attributes = is_spreading ? [] : null;
-		const child_namespace =
-			!dynamic_name && is_dom_element
-				? determine_namespace_for_children(
-						/** @type {AST.Identifier} */ (node.id).name,
-						state.namespace,
-					)
-				: state.namespace;
+		const child_namespace = is_dom_element
+			? determine_namespace_for_children(
+					/** @type {AST.Identifier} */ (node.id).name,
+					state.namespace,
+				)
+			: state.namespace;
 
 		if (is_dom_element) {
-			const is_void = dynamic_name
-				? false
-				: is_void_element(/** @type {AST.Identifier} */ (node.id).name);
-			const use_self_closing_syntax = node.selfClosing && (is_void || !!dynamic_name);
-			const tag_name = dynamic_name
-				? dynamic_name
-				: b.literal(/** @type {AST.Identifier} */ (node.id).name);
+			const is_void = is_void_element(/** @type {AST.Identifier} */ (node.id).name);
+			const use_self_closing_syntax = node.selfClosing && is_void;
+			const tag_name = b.literal(/** @type {AST.Identifier} */ (node.id).name);
 			/** @type {AST.CSS.StyleSheet['hash'] | null} */
 			const scoping_hash =
 				state.applyParentCssScope ?? (node.metadata.scoped ? get_component_css_hash(state) : null);
@@ -2046,9 +2035,7 @@ const visitors = {
 				b.stmt(
 					b.call(
 						b.id('_$_.output_push'),
-						dynamic_name
-							? b.template([b.quasi('<', false), b.quasi('', false)], [tag_name])
-							: b.literal('<' + /** @type {AST.Literal} */ (tag_name).value),
+						b.literal('<' + /** @type {AST.Literal} */ (tag_name).value),
 					),
 				),
 			);
@@ -2200,7 +2187,7 @@ const visitors = {
 			);
 
 			// In dev mode, emit push_element for runtime nesting validation
-			if (state.dev && !dynamic_name) {
+			if (state.dev) {
 				const element_name = /** @type {AST.Identifier} */ (node.id).name;
 				const loc = node.loc;
 				state.init?.push(
@@ -2234,8 +2221,7 @@ const visitors = {
 							state: {
 								...state,
 								init,
-								...(state.applyParentCssScope ||
-								(dynamic_name && node.metadata.scoped && get_component_css(state))
+								...(state.applyParentCssScope
 									? {
 											applyParentCssScope:
 												state.applyParentCssScope || get_component_css_hash(state),
@@ -2262,8 +2248,7 @@ const visitors = {
 							state: {
 								...state,
 								init,
-								...(state.applyParentCssScope ||
-								(dynamic_name && node.metadata.scoped && get_component_css(state))
+								...(state.applyParentCssScope
 									? {
 											applyParentCssScope:
 												state.applyParentCssScope || get_component_css_hash(state),
@@ -2283,9 +2268,7 @@ const visitors = {
 						b.stmt(
 							b.call(
 								b.id('_$_.output_push'),
-								dynamic_name
-									? b.template([b.quasi('</', false), b.quasi('>', false)], [tag_name])
-									: b.literal('</' + /** @type {AST.Literal} */ (tag_name).value + '>'),
+								b.literal('</' + /** @type {AST.Literal} */ (tag_name).value + '>'),
 							),
 						),
 					);
@@ -2293,7 +2276,7 @@ const visitors = {
 			}
 
 			// In dev mode, emit pop_element after the element is fully rendered
-			if (state.dev && !dynamic_name) {
+			if (state.dev) {
 				state.init?.push(b.stmt(b.call('_$_.pop_element')));
 			}
 		} else {
@@ -2318,6 +2301,15 @@ const visitors = {
 										})
 									);
 
+						const scoped_hash = get_component_css_hash(state);
+						if (attr.name.name === 'class' && node.metadata.scoped && scoped_hash) {
+							if (property.type === 'Literal') {
+								property = b.literal(`${scoped_hash} ${property.value}`);
+							} else {
+								property = b.array([property, b.literal(scoped_hash)]);
+							}
+						}
+
 						if (attr.name.name === 'children') {
 							children_prop = b.prop(
 								'init',
@@ -2341,6 +2333,20 @@ const visitors = {
 				}
 			}
 
+			if (node.metadata.scoped && get_component_css(state)) {
+				const hasClassAttr = node.attributes.some(
+					(attr) =>
+						attr.type === 'Attribute' &&
+						attr.name.type === 'Identifier' &&
+						attr.name.name === 'class',
+				);
+				if (!hasClassAttr) {
+					const name = is_spreading ? '#class' : 'class';
+					const value = /** @type {string} */ (get_component_css_hash(state));
+					props.push(b.prop('init', b.key(name), b.literal(value)));
+				}
+			}
+
 			for (const child of node.children) {
 				if (is_native_tsrx_function_node(child)) {
 					state.init?.push(/** @type {AST.Statement} */ (visit(child, state)));
@@ -2360,9 +2366,7 @@ const visitors = {
 						visit(create_native_tsrx_render_function([], children_filtered, node), {
 							...context.state,
 							regular_js: false,
-							...(apply_parent_css_scope ||
-							get_component_css(state) ||
-							(is_element_dynamic(node) && node.metadata.scoped && get_component_css(state))
+							...(apply_parent_css_scope || get_component_css(state)
 								? {
 										applyParentCssScope:
 											apply_parent_css_scope || get_component_css_hash(state) || undefined,
@@ -2395,44 +2399,15 @@ const visitors = {
 			const comp_call = b.call('_$_.render_component', comp_id, b.spread(args_id));
 			const comp_call_statement = b.stmt(comp_call);
 
-			/** @type {AST.Statement[]} */
-			const init = [];
 			const visited_id = /** @type {AST.Expression} */ (visit(node.id, state));
 			/** @type {AST.Statement[]} */
-			const statements = [
-				b.const(comp_id, is_element_dynamic(node) ? b.call('_$_.get', visited_id) : visited_id),
-				b.const(args_id, b.array(args)),
-			];
+			const statements = [b.const(comp_id, visited_id), b.const(args_id, b.array(args))];
 
 			if (local_metadata) {
 				statements.push(comp_call_statement);
-			} else if (!is_element_dynamic(node)) {
+			} else {
 				// imported or children
 				statements.push(b.if(comp_id, b.block([comp_call_statement])));
-			} else {
-				// if it's a dynamic element, build the element output
-				// and store the results in the `init` array
-				visit(
-					node,
-					/** @type {TransformServerState} */ ({
-						...state,
-						dynamicElementName: b.template([b.quasi('', false), b.quasi('', false)], [comp_id]),
-						init,
-					}),
-				);
-
-				statements.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
-
-				statements.push(
-					b.if(
-						b.binary('===', b.unary('typeof', comp_id), b.literal('function')),
-						b.block([comp_call_statement]),
-						// make sure that falsy values for dynamic element or component don't get rendered
-						b.if(comp_id, b.block(init)),
-					),
-				);
-
-				statements.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))));
 			}
 
 			state.init?.push(b.block(statements));

@@ -463,7 +463,7 @@ function Child1() @{
 		'handles sibling combinators with dynamic component and :global before scoped elements',
 		() => {
 			const source = `
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 
 export function Test({ children }) @{
 	const DynamicComponent = track(() => Child1);
@@ -471,7 +471,7 @@ export function Test({ children }) @{
 		<div>
 			<p class="before">{'before'}</p>
 
-			<@DynamicComponent />
+			<Dynamic is={DynamicComponent} />
 
 			<p class="foo">
 				<span>{'foo'}</span>
@@ -512,7 +512,7 @@ function Child1() @{
 		'handles sibling combinators with dynamic element or regular element and :global before scoped elements',
 		() => {
 			const source = `
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 
 export function Test({ children, classes }) @{
 	const dynamicElement = track('div');
@@ -520,7 +520,7 @@ export function Test({ children, classes }) @{
 		<div>
 			<p class="before">{'before'}</p>
 			// Use Dynamic Element but it's the same with a regular one
-			<@dynamicElement class={classes} />
+			<Dynamic is={dynamicElement} class={classes} />
 
 			<p class="foo">
 				<span>{'foo'}</span>

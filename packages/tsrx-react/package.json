@@ -22,6 +22,10 @@
       "types": "./types/error-boundary.d.ts",
       "default": "./src/error-boundary.js"
     },
+    "./dynamic": {
+      "types": "./types/dynamic.d.ts",
+      "default": "./src/dynamic.js"
+    },
     "./ref": {
       "types": "./types/ref.d.ts",
       "default": "./src/ref.js"

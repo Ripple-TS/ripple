@@ -1,5 +1,6 @@
 import type { MockInstance } from 'vitest';
 import { createSignal, lazy } from 'solid-js';
+import { Dynamic } from '@tsrx/solid/dynamic';
 import {
 	runSwitchFallthroughRuntimeTests,
 } from '@tsrx/core/test-harness/runtime/switch-fallthrough';
@@ -51,6 +52,31 @@ function NestedApp() @{
 	<div>
 		<Child text="nested" />
 	</div>
+}
+
+function DynamicElementApp() @{
+	const tag = 'section';
+	<Dynamic is={tag} class="dynamic-host">{'dynamic element'}</Dynamic>
+}
+
+function DynamicChild(props: { label: string }) @{
+	<span class="dynamic-child">{props.label}</span>
+}
+
+function DynamicComponentApp() @{
+	const component = DynamicChild;
+	<Dynamic is={component} label="dynamic component" />
+}
+
+function DynamicSwitchApp() @{
+	const [tag, setTag] = createSignal<'section' | 'article'>('section');
+	<>
+		<Dynamic is={tag()} class="dynamic-switch">{tag()}</Dynamic>
+		<button
+			class="dynamic-switch-toggle"
+			onClick={() => setTag(tag() === 'section' ? 'article' : 'section')}
+		>{'toggle'}</button>
+	</>
 }
 
 function ExplicitTextApp() @{
@@ -959,6 +985,30 @@ describe('tsrx-solid runtime', () => {
 	it('renders nested components', async () => {
 		await render(NestedApp);
 		expect(text('.child')).toBe('nested');
+	});
+
+	it('renders dynamic host elements', async () => {
+		await render(DynamicElementApp);
+		const element = container.querySelector('.dynamic-host');
+		expect(element?.tagName).toBe('SECTION');
+		expect(element?.textContent).toBe('dynamic element');
+	});
+
+	it('renders dynamic components', async () => {
+		await render(DynamicComponentApp);
+		expect(text('.dynamic-child')).toBe('dynamic component');
+	});
+
+	it('updates when the dynamic is prop changes', async () => {
+		await render(DynamicSwitchApp);
+		let element = container.querySelector('.dynamic-switch');
+		expect(element?.tagName).toBe('SECTION');
+		expect(element?.textContent).toBe('section');
+
+		await click('.dynamic-switch-toggle');
+		element = container.querySelector('.dynamic-switch');
+		expect(element?.tagName).toBe('ARTICLE');
+		expect(element?.textContent).toBe('article');
 	});
 
 	it('renders explicit text interpolation as text', async () => {

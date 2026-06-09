@@ -72,7 +72,6 @@ import {
 	build_getter,
 	determine_namespace_for_children,
 	index_to_key,
-	is_element_dynamic,
 	is_children_template_expression,
 	is_inside_left_side_assignment,
 	strong_hash,
@@ -1492,29 +1491,6 @@ const visitors = {
 					) {
 						return context.next();
 					}
-					// Check if this identifier is used as a dynamic component/element
-					// by checking if it has a capitalized name in metadata
-					if (binding?.metadata?.is_dynamic_component) {
-						// Capitalize the identifier for TypeScript
-						const capitalized_name = node.name.charAt(0).toUpperCase() + node.name.slice(1);
-						const capitalized_node = {
-							...node,
-							name: capitalized_name,
-							metadata: {
-								...node.metadata,
-								is_capitalized: true,
-							},
-						};
-						const member = b.member(
-							capitalized_node,
-							b.literal('#v'),
-							true,
-							!is_inside_left_side_assignment(node),
-							/** @type {AST.NodeWithLocation} */ (node),
-						);
-						member.tracked = true;
-						return member;
-					}
 					const member = b.member(
 						node,
 						b.literal('#v'),
@@ -1911,78 +1887,6 @@ const visitors = {
 	},
 
 	VariableDeclarator(node, context) {
-		// In TypeScript mode, capitalize identifiers that are used as dynamic components
-		if (context.state.to_ts) {
-			/**
-			 * Recursively capitalize identifiers in patterns (ArrayPattern, ObjectPattern)
-			 * @param {AST.Pattern} pattern - The pattern node to process
-			 * @returns {AST.Pattern} The transformed pattern
-			 */
-			const capitalize_pattern = (pattern) => {
-				if (pattern.type === 'Identifier') {
-					const binding = context.state.scope.get(pattern.name);
-					if (binding?.metadata?.is_dynamic_component) {
-						const capitalized_name = pattern.name.charAt(0).toUpperCase() + pattern.name.slice(1);
-						// Add metadata to track the original name for Volar mappings
-						return {
-							...pattern,
-							name: capitalized_name,
-							metadata: {
-								...pattern.metadata,
-								is_capitalized: true,
-							},
-						};
-					}
-					return pattern;
-				} else if (pattern.type === 'ArrayPattern') {
-					return {
-						...pattern,
-						elements: pattern.elements.map((element) =>
-							element ? capitalize_pattern(element) : element,
-						),
-					};
-				} else if (pattern.type === 'ObjectPattern') {
-					return {
-						...pattern,
-						properties: pattern.properties.map((prop) => {
-							if (prop.type === 'Property') {
-								return {
-									...prop,
-									value: capitalize_pattern(prop.value),
-								};
-							} else if (prop.type === 'RestElement') {
-								return {
-									...prop,
-									argument: capitalize_pattern(prop.argument),
-								};
-							}
-							return prop;
-						}),
-					};
-				} else if (pattern.type === 'RestElement') {
-					return {
-						...pattern,
-						argument: capitalize_pattern(pattern.argument),
-					};
-				} else if (pattern.type === 'AssignmentPattern') {
-					return {
-						...pattern,
-						left: capitalize_pattern(pattern.left),
-						right: /** @type {AST.Expression} */ (context.visit(pattern.right)),
-					};
-				}
-				return pattern;
-			};
-
-			const transformed_id = capitalize_pattern(node.id);
-			if (transformed_id !== node.id) {
-				return {
-					...node,
-					id: transformed_id,
-					init: node.init ? /** @type {AST.Expression} */ (context.visit(node.init)) : null,
-				};
-			}
-		}
 		return context.next();
 	},
 
@@ -2684,7 +2588,6 @@ const visitors = {
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
-			const is_dynamic_element = is_element_dynamic(node);
 			const is_spreading = node.attributes.some((attr) => attr.type === 'SpreadAttribute');
 			/** @type {(AST.Property | AST.SpreadElement)[]} */
 			const props = [];
@@ -2824,9 +2727,7 @@ const visitors = {
 						visit(children_component, {
 							...state,
 							regular_js: false,
-							...(apply_parent_css_scope ||
-							get_component_css(state) ||
-							(is_dynamic_element && node.metadata.scoped && get_component_css(state))
+							...(apply_parent_css_scope || get_component_css(state)
 								? {
 										applyParentCssScope:
 											apply_parent_css_scope ||
@@ -4366,49 +4267,6 @@ function transform_ts_child(node, context) {
 				);
 			} else if (thunk !== null) {
 				attributes.push(b.jsx_attribute(b.jsx_id('children'), b.jsx_expression_container(thunk)));
-			}
-		}
-
-		if (
-			/** @type {AST.Node} */ (node.id).type !== 'MemberExpression' &&
-			/** @type {AST.Identifier} */ (node.id).tracked
-		) {
-			// This is just temporary until we remove capitalization
-			// The `is_capitalized` was never handled for MemberExpression
-			// but it should've been for the `object` part because it starts the tag
-			// But the plan is to only rely on source_name and creating a const for the tag with ['#v']
-			const source_name = /** @type {AST.Identifier} */ (node.id).name;
-			const capitalized_name = source_name.charAt(0).toUpperCase() + source_name.slice(1);
-
-			// node.id and node.openingElement.name are the SAME object (convert_from_jsx mutates
-			// the JSXIdentifier to an Identifier in-place). Capitalize the name directly so that
-			// the generated JSX uses <Tag> (uppercase) matching the capitalized variable declaration,
-			// preventing the TypeScript "declared but never read" false-negative (ts6133).
-			/** @type {AST.Identifier} */ (node.id).name = capitalized_name;
-			if (!node.id.metadata) {
-				node.id.metadata = { path: [] };
-			}
-			node.id.metadata.is_capitalized = true;
-			node.id.metadata.source_name = source_name;
-
-			node.openingElement.metadata = {
-				...node.openingElement.metadata,
-				is_capitalized: true,
-			};
-
-			if (!node.selfClosing && !node.unclosed) {
-				// closingElement.name is a separate JSXIdentifier (not the same object as node.id)
-				// so we need to capitalize it separately
-				const closingElement = node.closingElement;
-				if (closingElement?.name && 'name' in closingElement.name) {
-					/** @type {{ name: string }} */ (closingElement.name).name = capitalized_name;
-				}
-				if (closingElement) {
-					closingElement.metadata = {
-						...closingElement.metadata,
-						is_capitalized: true,
-					};
-				}
 			}
 		}
 

@@ -6464,7 +6464,7 @@ function printJSXAttribute(attr, path, options, print) {
  */
 function printJSXElementName(node) {
 	if (node.type === 'JSXIdentifier') {
-		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
+		return node.name;
 	}
 	if (node.type === 'JSXMemberExpression') {
 		return printJSXElementName(node.object) + '.' + printJSXElementName(node.property);
@@ -6478,14 +6478,6 @@ function printJSXElementName(node) {
 }
 
 /**
- * @param {ESTreeJSX.JSXIdentifier} node
- * @returns {boolean}
- */
-function isDynamicJSXIdentifier(node) {
-	return /** @type {{ dynamic?: boolean }} */ (node).dynamic === true;
-}
-
-/**
  * Print a member expression as simple string (for element tag names)
  * @param {AST.Node} node - The node to print
  * @param {RippleFormatOptions} options - Prettier options
@@ -6494,7 +6486,7 @@ function isDynamicJSXIdentifier(node) {
  */
 function printMemberExpressionSimple(node, options, computed = false) {
 	if (node.type === 'JSXIdentifier') {
-		return (isDynamicJSXIdentifier(node) ? '@' : '') + node.name;
+		return node.name;
 	}
 
 	if (node.type === 'JSXMemberExpression') {

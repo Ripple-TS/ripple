@@ -1,6 +1,7 @@
 import { lazy } from 'preact/compat';
 import { act } from 'preact/test-utils';
 import { useState } from 'preact/hooks';
+import { Dynamic } from '@tsrx/preact/dynamic';
 import { mergeRefs } from '@tsrx/preact/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
@@ -15,6 +16,31 @@ function text(selector: string): string | null {
 
 function ResolvedChild(props: { value: string }) {
 	return <p class="resolved">{props.value}</p>;
+}
+
+function DynamicElementApp() @{
+	const tag = 'section';
+	<Dynamic is={tag} class="dynamic-host">{'dynamic element'}</Dynamic>
+}
+
+function DynamicChild(props: { label: string }) @{
+	<span class="dynamic-child">{props.label}</span>
+}
+
+function DynamicComponentApp() @{
+	const component = DynamicChild;
+	<Dynamic is={component} label="dynamic component" />
+}
+
+function DynamicSwitchApp() @{
+	const [tag, setTag] = useState<'section' | 'article'>('section');
+	<>
+		<Dynamic is={tag} class="dynamic-switch">{tag}</Dynamic>
+		<button
+			class="dynamic-switch-toggle"
+			onClick={() => setTag(tag === 'section' ? 'article' : 'section')}
+		>{'toggle'}</button>
+	</>
 }
 
 function ExplicitHtmlApp() @{
@@ -263,6 +289,32 @@ describe('@tsrx/vite-plugin-preact runtime', () => {
 			resolve_fn!({ default: ResolvedChild });
 		});
 		expect(container.querySelector('.resolved')?.textContent).toBe('hello');
+	});
+
+	it('renders dynamic host elements', async () => {
+		await render(DynamicElementApp);
+		const element = container.querySelector('.dynamic-host');
+		expect(element?.tagName).toBe('SECTION');
+		expect(element?.textContent).toBe('dynamic element');
+	});
+
+	it('renders dynamic components', async () => {
+		await render(DynamicComponentApp);
+		expect(text('.dynamic-child')).toBe('dynamic component');
+	});
+
+	it('updates when the dynamic is prop changes', async () => {
+		await render(DynamicSwitchApp);
+		let element = container.querySelector('.dynamic-switch');
+		expect(element?.tagName).toBe('SECTION');
+		expect(element?.textContent).toBe('section');
+
+		await act(async () => {
+			(container.querySelector('.dynamic-switch-toggle') as HTMLButtonElement).click();
+		});
+		element = container.querySelector('.dynamic-switch');
+		expect(element?.tagName).toBe('ARTICLE');
+		expect(element?.textContent).toBe('article');
 	});
 
 	it('renders explicit html interpolation as html', async () => {

@@ -913,10 +913,10 @@ foo();`;
 		const returned = getReturned(`
 			function App() {
 				return <>@{
-					function basic() {
+					function Basic() {
 						return <><div>{'Basic Component'}</div></>;
 					}
-					<@basic />
+					<Basic />
 				}</>;
 			}`);
 
@@ -1522,26 +1522,6 @@ foo();`;
 		const directive = returned.children.find((child) => child.type === 'JSXTryExpression');
 		expect(directive.block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
 		expect(directive.pending.body[0].type).toBe('JSXFragment');
-	});
-
-	it('parses a control-flow child inside a dynamic element returned from a nested render prop', () => {
-		const directive = findNode(
-			`class Foo {
-				bar() {
-					return <Page params={{ details: { render: (tag: string, className: string, icon: () => JSX.Element) =>
-						<@tag class={\`\${className}\${icon ? 'has-icon' : ''}\`}>
-							@if (icon) {
-								icon();
-							}
-						</@tag>,
-					} }} />
-				}
-			}`,
-			'JSXIfExpression',
-		);
-
-		expect(directive.type).toBe('JSXIfExpression');
-		expect(directive.consequent.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
 	});
 
 	it('parses a `@{ }` block returned directly from an arrow body', () => {

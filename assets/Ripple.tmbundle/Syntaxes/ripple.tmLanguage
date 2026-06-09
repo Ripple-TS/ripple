@@ -5166,9 +5166,9 @@
 		<key>jsx-tag</key>
 		<dict>
 			<key>begin</key>
-			<string>(?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
+			<string>(?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
 			<key>end</key>
-			<string>(/&gt;)|(?:(&lt;/)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
+			<string>(/&gt;)|(?:(&lt;/)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
 			<key>endCaptures</key>
 			<dict>
 				<key>1</key>
@@ -5213,7 +5213,7 @@
 			<array>
 				<dict>
 					<key>begin</key>
-					<string>(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;)</string>
+					<string>(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;)</string>
 					<key>beginCaptures</key>
 					<dict>
 						<key>1</key>
@@ -5526,9 +5526,9 @@
 			<string>(?x)
   (?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*
   (?!&lt;\s*[_$[:alpha:]][_$[:alnum:]]*((\s+extends\s+[^=&gt;])|,)) # look ahead is not type parameter of arrow
-  (?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
+  (?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
 			<key>end</key>
-			<string>(?!(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
+			<string>(?!(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))(?=((&lt;\s*)|(\s+))(?!\?)|\/?&gt;))</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -5633,7 +5633,7 @@
 		<key>jsx-tag-without-attributes</key>
 		<dict>
 			<key>begin</key>
-			<string>(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;)</string>
+			<string>(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;)</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>1</key>
@@ -5670,7 +5670,7 @@
 			<key>contentName</key>
 			<string>meta.jsx.children.js</string>
 			<key>end</key>
-			<string>(&lt;/)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;)</string>
+			<string>(&lt;/)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;)</string>
 			<key>endCaptures</key>
 			<dict>
 				<key>1</key>
@@ -5717,9 +5717,9 @@
 		<key>jsx-tag-without-attributes-in-expression</key>
 		<dict>
 			<key>begin</key>
-			<string>(?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*(?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
+			<string>(?&lt;!\+\+|--)(?&lt;=[({\[,?=&gt;:*]|&amp;&amp;|\|\||\?|\*\/|^await|[^\._$[:alnum:]]await|^return|[^\._$[:alnum:]]return|^default|[^\._$[:alnum:]]default|^yield|[^\._$[:alnum:]]yield|^)\s*(?=(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
 			<key>end</key>
-			<string>(?!(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|(@?[_$[:alpha:]][-_$[:alnum:]]*(?:\.@?[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
+			<string>(?!(&lt;)\s*(?:([_$[:alpha:]][-_$[:alnum:].]*)(?&lt;!\.|-)(:))?((?![sS][tT][yY][lL][eE]\b)(?:(?!children)[a-z][a-z0-9]*|(?:children|([_$[:alpha:]][-_$[:alnum:]]*(?:\.[_$[:alpha:]][-_$[:alnum:]]*)*)))(?&lt;!-))?\s*(&gt;))</string>
 			<key>patterns</key>
 			<array>
 				<dict>

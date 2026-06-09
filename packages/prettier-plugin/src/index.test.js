@@ -403,28 +403,6 @@ function App() {
 		expect(result).toBeWithNewline(expected);
 	});
 
-	it('preserves dynamic component syntax', async () => {
-		const input = `function App(){return <>@{
-function Basic(){return <><div>{"Basic Component"}</div></>;}
-const obj={Basic};
-const comp=obj.Basic;
-<@comp />
-}</>}`;
-		const expected = `function App() {
-  return <>@{
-    function Basic() {
-      return <><div>{"Basic Component"}</div></>;
-    }
-    const obj = { Basic };
-    const comp = obj.Basic;
-    <@comp />
-  }</>;
-}`;
-
-		const result = await format(input);
-		expect(result).toBeWithNewline(expected);
-	});
-
 	it('formats raw HTML props inside native elements', async () => {
 		const input = `function App(){return <article innerHTML={source}/>}`;
 		const expected = `function App() {
@@ -970,17 +948,6 @@ const items=[1,2,3];
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should format a function with a dynamic function using props member access', async () => {
-			const expected = `function Card(props) {
-  <div class="card">
-    <@props.children />
-  </div>
-}`;
-
-			const result = await format(expected, { singleQuote: true });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should respect print width when using ternary expressions', async () => {
 			const input = `function printMemberExpressionSimple(node, options, computed = false) {
   if (node.type === 'MemberExpression') {
@@ -1466,18 +1433,6 @@ export function Test({ a, b }: Props) {}`;
 			expect(result).toBeWithNewline(expected);
 		});
 
-		it('should not strip @ from dynamic @tag', async () => {
-			const expected = `export function Four() {
-  let tag = track('div');
-
-  <@tag {href} {...props}>
-    <@children />
-  </@tag>
-}`;
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
-			expect(result).toBeWithNewline(expected);
-		});
-
 		it('should not include a comma after the last rest parameter', async () => {
 			const expected = `function Foo({
   lorem,
@@ -1491,15 +1446,6 @@ export function Test({ a, b }: Props) {}`;
 }) {}`;
 
 			const result = await format(expected, { singleQuote: true, printWidth: 60 });
-			expect(result).toBeWithNewline(expected);
-		});
-
-		it('should not strip @ from dynamic self-closing components', async () => {
-			const expected = `function App() {
-  <@ripple_object.tracked_basic />
-}`;
-
-			const result = await format(expected, { singleQuote: true, printWidth: 100 });
 			expect(result).toBeWithNewline(expected);
 		});
 

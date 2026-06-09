@@ -781,7 +781,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`           |
 | Escape scoping         | `:global(.class)`                                      |
 | Cross-component class  | `<Child class={styles.foo} />`; React uses `className` |
-| Dynamic element        | `<@tag />` with a tracked/stateful `tag`               |
+| Dynamic element        | `<Dynamic is={tag} />` with a tracked/stateful `tag`   |
 
 ## Resources
 

@@ -1,4 +1,4 @@
-import { track } from 'ripple';
+import { Dynamic, track } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
 const external_styles = <style>
@@ -104,7 +104,7 @@ function App() @{
 
 				let dynamic = track(() => Child);
 				<div class="wrapper">
-					<@dynamic cls={styles.text} />
+					<Dynamic is={dynamic} cls={styles.text} />
 				</div>
 			}
 

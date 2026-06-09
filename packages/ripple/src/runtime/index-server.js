@@ -68,6 +68,8 @@ export const bindNode = noop;
 export const bindOffsetWidth = noop;
 export const bindOffsetHeight = noop;
 
+export { Dynamic } from './dynamic-server.js';
+
 /**
  * Portal component noop for server-side rendering.
  * Portals are client-only and do not render on the server.

@@ -90,44 +90,6 @@ export function clone_jsx_name(name, source_node = name) {
 }
 
 /**
- * Convert a JSX tag name back into a JavaScript expression. Dynamic element
- * tags are parsed as JSX-shaped names, but the runtime alias needs ordinary JS.
- *
- * @param {any} name
- * @returns {any}
- */
-export function jsx_name_to_expression(name) {
-	if (!name) return name;
-	if (name.type === 'JSXIdentifier') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'Identifier',
-				name: name.name,
-				metadata: name.metadata || { path: [] },
-			}),
-			name,
-		);
-	}
-	if (name.type === 'JSXMemberExpression') {
-		return set_loc(
-			/** @type {any} */ ({
-				type: 'MemberExpression',
-				object: jsx_name_to_expression(name.object),
-				property: jsx_name_to_expression(name.property),
-				computed: false,
-				optional: false,
-				metadata: name.metadata || { path: [] },
-			}),
-			name,
-		);
-	}
-	if (name.type === 'Identifier' || name.type === 'MemberExpression') {
-		return clone_expression_node(name);
-	}
-	return name;
-}
-
-/**
  * @returns {AST.Literal}
  */
 export function create_null_literal() {
@@ -340,26 +302,6 @@ export function is_bare_render_expression(node) {
 		default:
 			return false;
 	}
-}
-
-/**
- * A dynamic element id is one whose identifier is `tracked` — i.e. it was
- * introduced by reactive destructuring so its value can change at runtime.
- *
- * @param {any} id
- * @returns {boolean}
- */
-export function is_dynamic_element_id(id) {
-	if (!id || typeof id !== 'object') {
-		return false;
-	}
-	if (id.type === 'Identifier' || id.type === 'JSXIdentifier') {
-		return !!id.tracked;
-	}
-	if (id.type === 'MemberExpression' || id.type === 'JSXMemberExpression') {
-		return is_dynamic_element_id(id.object);
-	}
-	return false;
 }
 
 /**

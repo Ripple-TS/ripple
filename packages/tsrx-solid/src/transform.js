@@ -30,10 +30,8 @@ import {
 	get_for_of_iteration_params,
 	is_component_like_element,
 	planSwitchLift as plan_switch_lift,
-	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_jsx_child,
-	jsx_name_to_expression,
 	set_loc,
 } from '@tsrx/core';
 
@@ -167,7 +165,7 @@ const solid_platform = {
 		// before `to_jsx_element` runs, so the dispatch path that would call
 		// `transformElementAttributes` is never reached for Solid. Attribute
 		// lowering happens in Solid's local `transform_element_attributes`,
-		// which `to_jsx_element` and `create_dynamic_jsx_element` call directly.
+		// which `to_jsx_element` calls directly.
 		transformElement: (inner, ctx) =>
 			to_jsx_element(/** @type {any} */ (inner), /** @type {any} */ (ctx)),
 	},
@@ -2162,10 +2160,6 @@ function to_jsx_element(node, transform_context) {
 		return tsrx_node_to_jsx_expression(node, transform_context, true);
 	}
 
-	if (node.dynamic) {
-		return dynamic_element_to_jsx_child(node, transform_context);
-	}
-
 	const name = clone_jsx_name(node.openingElement.name, node.openingElement.name);
 	const is_composite = is_component_like_element(node);
 	const attributes = transform_element_attributes(
@@ -2347,73 +2341,6 @@ function is_solid_jsx_ref_attribute(attr) {
 		attr.value.expression &&
 		attr.value.expression.type !== 'JSXEmptyExpression'
 	);
-}
-
-/**
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function dynamic_element_to_jsx_child(node, transform_context) {
-	const element_name = node.openingElement.name;
-	const dynamic_id = set_loc(create_generated_identifier('DynamicElement'), element_name);
-	const alias_declaration = set_loc(
-		b.const(dynamic_id, jsx_name_to_expression(element_name)),
-		node,
-	);
-	const jsx_element = create_dynamic_jsx_element(dynamic_id, node, transform_context);
-
-	return to_jsx_expression_container(
-		b.call(
-			b.arrow(
-				[],
-				b.block([
-					alias_declaration,
-					b.return(b.conditional(clone_identifier(dynamic_id), jsx_element, create_null_literal())),
-				]),
-			),
-		),
-		node,
-	);
-}
-
-/**
- * @param {AST.Identifier} dynamic_id
- * @param {any} node
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function create_dynamic_jsx_element(dynamic_id, node, transform_context) {
-	const is_composite = is_component_like_element(node);
-	const attributes = transform_element_attributes(
-		node.openingElement?.attributes || [],
-		is_composite,
-		transform_context,
-		null,
-	);
-	const selfClosing = !!node.openingElement?.selfClosing;
-	const children = create_element_children(node.children || [], transform_context);
-	const name = identifier_to_jsx_name(clone_identifier(dynamic_id));
-
-	return /** @type {any} */ ({
-		type: 'JSXElement',
-		openingElement: {
-			type: 'JSXOpeningElement',
-			name,
-			attributes,
-			selfClosing,
-			metadata: { path: [] },
-		},
-		closingElement: selfClosing
-			? null
-			: {
-					type: 'JSXClosingElement',
-					name: clone_jsx_name(name),
-					metadata: { path: [] },
-				},
-		children,
-		metadata: { path: [] },
-	});
 }
 
 // =====================================================================

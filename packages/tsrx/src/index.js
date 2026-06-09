@@ -185,9 +185,7 @@ export {
 	identifier_to_jsx_name,
 	is_bare_render_expression,
 	is_component_jsx_name,
-	is_dynamic_element_id,
 	is_jsx_child,
-	jsx_name_to_expression,
 	set_loc,
 	to_text_expression,
 } from './transform/jsx/ast-builders.js';
