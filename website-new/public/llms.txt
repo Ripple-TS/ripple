@@ -293,30 +293,50 @@ export function SearchBox() @{
 
 ## Dynamic Components And Elements
 
-Use `<Dynamic is={value} />` when the tag or component is dynamic.
+Use the Ripple runtime `Dynamic` component when the element tag or component
+constructor is chosen at runtime. Import `Dynamic` from `ripple`:
+
+```tsrx
+import { Dynamic } from 'ripple';
+```
+
+The `is` prop can be a string tag name or a component. Ripple host elements use
+`class`, not React's `className`.
 
 ```tsrx
 import { Dynamic, track } from 'ripple';
 
-function Primary() {
-	return <button>Primary</button>;
+type Tag = 'section' | 'article';
+
+function Summary() {
+	return <p>Summary</p>;
 }
 
-function Secondary() {
-	return <button>Secondary</button>;
+function Details() {
+	return <article>Details</article>;
 }
 
-export function DynamicButton() @{
-	let &[Current] = track(() => Primary);
+export function DynamicPanel() @{
+	let &[tag] = track('section' as Tag);
+	let &[Body] = track(() => Summary);
 
 	<>
-		<Dynamic is={Current} />
-		<button onClick={() => (Current = Current === Primary ? Secondary : Primary)}>
+		<Dynamic is={tag} class="panel">
+			<Dynamic is={Body} />
+		</Dynamic>
+
+		<button onClick={() => {
+			tag = tag === 'section' ? 'article' : 'section';
+			Body = Body === Summary ? Details : Summary;
+		}}>
 			Swap
 		</button>
 	</>
 }
 ```
+
+Do not use removed dynamic tag syntax such as `<@tag />` or `<@Component />`.
+Use `<Dynamic is={...} />` instead.
 
 ## Styles
 

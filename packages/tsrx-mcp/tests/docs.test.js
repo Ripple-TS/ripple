@@ -45,6 +45,17 @@ describe('@tsrx/mcp documentation index', () => {
 		expect(content).toContain('Regular `for`, `for...in`, `while`, and `do...while`');
 	});
 
+	it('documents runtime Dynamic imports and removed dynamic tag syntax', () => {
+		const content = find_documentation_section('dynamic-elements-and-components')?.content ?? '';
+
+		expect(content).toContain("import { Dynamic } from '@tsrx/react/dynamic';");
+		expect(content).toContain("import { Dynamic } from '@tsrx/solid/dynamic';");
+		expect(content).toContain("import { Dynamic } from 'ripple';");
+		expect(content).toContain('The `is` prop can be a string tag name or a component value');
+		expect(content).toContain('Do not use removed dynamic tag syntax');
+		expect(content).toContain('`<Dynamic is={...} />`');
+	});
+
 	it('keeps the checked-in generated docs fresh', async () => {
 		expect(readFileSync(generated_docs_path, 'utf8')).toBe(await generate_docs_index());
 	});

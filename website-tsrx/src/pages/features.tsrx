@@ -203,6 +203,32 @@ export function App() @{
 }`,
 );
 
+const DYNAMIC_HTML = highlight_tsrx(
+	`import { Dynamic } from '@tsrx/react/dynamic';
+
+type PanelProps = {
+  as?: 'section' | 'article';
+  item: Item;
+  expanded: boolean;
+};
+
+function Summary({ item }: { item: Item }) @{
+  <p>{item.summary}</p>
+}
+
+function Details({ item }: { item: Item }) @{
+  <article>{item.body}</article>
+}
+
+export function Panel({ as = 'section', item, expanded }: PanelProps) @{
+  const Body = expanded ? Details : Summary;
+
+  <Dynamic is={as} className="panel">
+    <Dynamic is={Body} item={item} />
+  </Dynamic>
+}`,
+);
+
 const SCOPED_STYLES_HTML = highlight_tsrx(
 	`function Card() @{
   <>
@@ -317,6 +343,7 @@ const NAV_ITEMS = [
 	{ id: 'switch', label: 'Switch statements' },
 	{ id: 'try', label: 'Error boundaries' },
 	{ id: 'async-boundaries', label: 'Async boundaries' },
+	{ id: 'dynamic', label: 'Dynamic rendering' },
 	{ id: 'scoped-styles', label: 'Scoped styles' },
 	{ id: 'style-composition', label: 'Style composition' },
 	{ id: 'react-hooks', label: 'React & Preact Hooks' },
@@ -328,7 +355,7 @@ export const FeaturesPage = () => @{
 			<title>TSRX | Features</title>
 			<meta
 				name="description"
-				content="TSRX language features: function components, statement containers, JSX control flow, error boundaries, and more."
+				content="TSRX language features: function components, statement containers, JSX control flow, dynamic rendering, error boundaries, and more."
 			/>
 		</head>
 		<div class="app-shell">
@@ -733,6 +760,48 @@ export const FeaturesPage = () => @{
 							<pre class="code-block">
 								<code innerHTML={ASYNC_BOUNDARY_HTML} />
 							</pre>
+						</section>
+						<section class="doc-section" id="dynamic">
+							<h2 class="section-heading">Dynamic elements and components</h2>
+							<p class="section-body">
+								Use the target runtime
+								<code class="inline-code">Dynamic</code>
+								component when the host element tag or component constructor is selected at runtime.
+								The
+								<code class="inline-code">is</code>
+								prop can receive a string tag name like
+								<code class="inline-code">'section'</code>
+								or a component value.
+							</p>
+							<p class="section-body">
+								Import
+								<code class="inline-code">Dynamic</code>
+								from the target runtime module:
+								<code class="inline-code">@tsrx/react/dynamic</code>
+								,
+								<code class="inline-code">@tsrx/preact/dynamic</code>
+								,
+								<code class="inline-code">@tsrx/solid/dynamic</code>
+								,
+								<code class="inline-code">@tsrx/vue/dynamic</code>
+								, or
+								<code class="inline-code">ripple</code>
+								for the Ripple target.
+							</p>
+							<pre class="code-block">
+								<code innerHTML={DYNAMIC_HTML} />
+							</pre>
+							<p class="section-body muted">
+								The example uses React's
+								<code class="inline-code">className</code>
+								prop. Ripple, Preact, Solid, and Vue use
+								<code class="inline-code">class</code>
+								for host classes. Removed dynamic tag forms like
+								<code class="inline-code">{'<@tag />'}</code>
+								and
+								<code class="inline-code">{'<@Component />'}</code>
+								are not part of current TSRX.
+							</p>
 						</section>
 						<section class="doc-section" id="scoped-styles">
 							<h2 class="section-heading">Scoped styles</h2>

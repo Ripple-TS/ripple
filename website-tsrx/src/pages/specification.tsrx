@@ -124,6 +124,26 @@ const STYLE_GRAMMAR = [
 	'  <style JSXAttributesopt> CSSSource </style>',
 ].join('\n');
 
+const DYNAMIC_RUNTIME_IMPORTS = [
+	'React:  import { Dynamic } from \'@tsrx/react/dynamic\';',
+	'Preact: import { Dynamic } from \'@tsrx/preact/dynamic\';',
+	'Solid:  import { Dynamic } from \'@tsrx/solid/dynamic\';',
+	'Vue:    import { Dynamic } from \'@tsrx/vue/dynamic\';',
+	'Ripple: import { Dynamic } from \'ripple\';',
+].join('\n');
+
+const DYNAMIC_RUNTIME_EXAMPLE = [
+	'import { Dynamic } from \'@tsrx/react/dynamic\';',
+	'',
+	'type Tag = \'section\' | \'article\';',
+	'',
+	'export function Panel({ as = \'section\', title }: { as?: Tag; title: string }) @{',
+	'  <Dynamic is={as} className="panel">',
+	'    <h2>{title}</h2>',
+	'  </Dynamic>',
+	'}',
+].join('\n');
+
 const SERVER_EXTENSION_GRAMMAR = [
 	'SubmoduleDeclaration :',
 	'  module Identifier { ModuleItemListopt }',
@@ -186,7 +206,6 @@ const TEMPLATE_AST_SHAPE = [
 	'  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;',
 	'  attributes: Array<JSXAttribute | JSXSpreadAttribute>;',
 	'  selfClosing: boolean;',
-	'  dynamic?: boolean;',
 	'}',
 	'',
 	'interface JSXExpressionContainer {',
@@ -585,6 +604,28 @@ export function SpecificationPage() @{
 							<pre class="code-block plain">
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
 							</pre>
+							<p class="section-body">
+								Runtime dynamic element and component selection is not a separate core TSRX tag
+								syntax. Use the host runtime
+								<code class="inline-code">Dynamic</code>
+								component when the tag name or component constructor is chosen at runtime. The
+								source form remains an ordinary JSXElement, for example
+								<code class="inline-code">{'<Dynamic is={tag} />'}</code>
+								, and the runtime component must be imported from the active target.
+							</p>
+							<pre class="code-block plain">
+								<code>{DYNAMIC_RUNTIME_IMPORTS}</code>
+							</pre>
+							<pre class="code-block plain">
+								<code>{DYNAMIC_RUNTIME_EXAMPLE}</code>
+							</pre>
+							<p class="section-body">
+								Forms such as
+								<code class="inline-code">{'<@tag />'}</code>
+								and
+								<code class="inline-code">{'<@Component />'}</code>
+								are not dynamic tag syntax in current TSRX.
+							</p>
 							<ul class="spec-list">
 								<li>
 									A JSX text child is represented by
@@ -778,6 +819,13 @@ export function SpecificationPage() @{
 								<li>How lazy destructuring is realized at runtime.</li>
 								<li>How style expressions expose generated or scoped class names.</li>
 								<li>
+									Which runtime
+									<code class="inline-code">Dynamic</code>
+									component a host exposes, which module exports it, and how its
+									<code class="inline-code">is</code>
+									prop resolves string tags and component constructors.
+								</li>
+								<li>
 									How submodule declarations and imports from identifier sources are compiled or
 									executed by a host profile that enables them.
 								</li>
@@ -863,9 +911,13 @@ export function SpecificationPage() @{
 								<li>
 									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a
 									JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced
-									names. Dynamic tags written with a leading
-									<code class="inline-code">@</code>
-									keep the JSX name shape and carry dynamic metadata.
+									names. Runtime dynamic rendering uses an ordinary imported JSX component such as
+									<code class="inline-code">Dynamic</code>
+									with ordinary attributes such as
+									<code class="inline-code">is</code>
+									; it does not add a
+									<code class="inline-code">dynamic</code>
+									property to JSXOpeningElement.
 								</li>
 								<li>
 									openingElement and closingElement preserve the original tag delimiters so

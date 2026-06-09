@@ -443,6 +443,44 @@ props, pass `children={...}` explicitly.
 <List children={items.map(renderItem)} />
 ```
 
+### Dynamic elements and components
+
+Use the target runtime `Dynamic` component when the element tag or component
+constructor is chosen at runtime. Import `Dynamic` from the target's dynamic
+runtime module, not from `@tsrx/core`.
+
+| Target | Import |
+| --- | --- |
+| React | `import { Dynamic } from '@tsrx/react/dynamic';` |
+| Preact | `import { Dynamic } from '@tsrx/preact/dynamic';` |
+| Solid | `import { Dynamic } from '@tsrx/solid/dynamic';` |
+| Vue | `import { Dynamic } from '@tsrx/vue/dynamic';` |
+| Ripple | `import { Dynamic } from 'ripple';` |
+
+```tsrx
+import { Dynamic } from '@tsrx/react/dynamic';
+
+type Tag = 'section' | 'article';
+
+export function Panel({ as = 'section', title }: { as?: Tag; title: string }) @{
+	<Dynamic is={as} className="panel">
+		<h2>{title}</h2>
+	</Dynamic>
+}
+```
+
+For Preact, Solid, Vue, and Ripple host-class examples, use `class` instead of
+React's `className`. The `is` prop can be a string tag name or a component:
+
+```tsrx
+const Body = expanded ? ExpandedBody : CompactBody;
+
+<Dynamic is={Body} item={item} />
+```
+
+Do not use removed dynamic tag syntax such as `<@tag />` or `<@Component />`.
+Use `<Dynamic is={...} />` instead.
+
 ## Control Flow
 
 Control-flow constructs are directive-prefixed JSX expressions, not helper
