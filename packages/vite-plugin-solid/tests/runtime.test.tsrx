@@ -1,4 +1,5 @@
 import type { MockInstance } from 'vitest';
+import type { JSX } from '@solidjs/web';
 import { createSignal, lazy } from 'solid-js';
 import { Dynamic } from '@tsrx/solid/dynamic';
 import {
@@ -562,7 +563,7 @@ function StyledApp() @{
 
 // ── Try/catch: synchronous error boundary ──
 
-function ThrowingChild() @{
+function ThrowingChild(): JSX.Element @{
 	throw new Error('sync boom');
 	<p>{'unreachable'}</p>
 }
@@ -571,7 +572,7 @@ function ErrorBoundaryApp() @{
 	@try {
 		<ThrowingChild />
 	} @catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+		<p class="caught">{(err() as Error).message}</p>
 	}
 }
 
@@ -591,7 +592,7 @@ function ErrorToggleApp() @{
 			<MaybeThrow shouldThrow={fail()} />
 		} @catch (err, reset) {
 			<>
-				<p class="caught">{(err as Error).message}</p>
+				<p class="caught">{(err() as Error).message}</p>
 				<button
 					class="reset"
 					onClick={() => {
@@ -638,13 +639,13 @@ function SuspenseErrorApp(props: { loader: () => Promise<{ default: typeof Resol
 	} @pending {
 		<p class="pending">{'loading...'}</p>
 	} @catch (err) {
-		<p class="caught">{(err as Error).message}</p>
+		<p class="caught">{(err() as Error).message}</p>
 	}
 }
 
 // ── Nested try: inner catch handles inner error ──
 
-function InnerThrow() @{
+function InnerThrow(): JSX.Element @{
 	throw new Error('inner error');
 	<p>{'unreachable'}</p>
 }
@@ -655,11 +656,11 @@ function NestedTryApp() @{
 			@try {
 				<InnerThrow />
 			} @catch (err) {
-				<p class="inner-caught">{(err as Error).message}</p>
+				<p class="inner-caught">{(err() as Error).message}</p>
 			}
 		</div>
 	} @catch (err) {
-		<p class="outer-caught">{(err as Error).message}</p>
+		<p class="outer-caught">{(err() as Error).message}</p>
 	}
 }
 

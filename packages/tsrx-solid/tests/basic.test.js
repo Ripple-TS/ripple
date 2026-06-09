@@ -289,19 +289,19 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toMatch(/keyed=\{\(item\) =>\s*item\.id\}/);
 		});
 
-		it('try/catch → <Errored fallback={(_error, reset) => ...}>', () => {
+		it('try/catch → <Errored fallback={(err, reset) => ...}>', () => {
 			const { code } = compile(
 				`function App() @{
 						@try {
 						<div>{'content'}</div>
 					} @catch (err, reset) {
-						<div>{'error'}</div>
+						<div>{err().message}</div>
 					}
 				}`,
 				'App.tsrx',
 			);
-			expect(code).toContain('<Errored fallback={(_error, reset) =>');
-			expect(code).toContain('const err = _error();');
+			expect(code).toContain('<Errored fallback={(err, reset) =>');
+			expect(code).toContain('<div>{err().message}</div>');
 			expect(code).toContain("import { Errored } from 'solid-js'");
 		});
 
@@ -652,7 +652,7 @@ describe('@tsrx/solid basic', () => {
 						} @pending {
 							<div>{'loading'}</div>
 						} @catch (err) {
-							recover(err);
+							recover(err());
 						}
 				}`,
 				'App.tsrx',
@@ -661,7 +661,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain('<Errored');
 			expect(code).toContain('<Loading fallback=');
 			expect(code).toContain('setup();');
-			expect(code).toContain('recover(err);');
+			expect(code).toContain('recover(err());');
 			expect(code).toMatch(/import \{[^}]*Errored[^}]*Loading[^}]*\} from 'solid-js'/);
 			expect(code).not.toContain('try {');
 		});

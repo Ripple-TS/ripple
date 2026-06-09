@@ -1287,20 +1287,13 @@ function try_statement_to_jsx_child(node, transform_context) {
 	if (handler) {
 		transform_context.needs_errored = true;
 
-		const error_accessor_param = create_generated_identifier('_error');
-		const catch_params = [error_accessor_param];
+		const catch_params = [];
+		if (handler.param) catch_params.push(handler.param);
+		else catch_params.push(create_generated_identifier('_error'));
 		if (handler.resetParam) catch_params.push(handler.resetParam);
 		else catch_params.push(create_generated_identifier('_reset'));
 
-		const catch_body_nodes = [...(handler.body.body || [])];
-		if (handler.param) {
-			catch_body_nodes.unshift(
-				b.const(
-					clone_expression_node(handler.param),
-					b.call(clone_identifier(error_accessor_param)),
-				),
-			);
-		}
+		const catch_body_nodes = handler.body.body || [];
 		const catch_jsx = body_to_jsx_child(catch_body_nodes, transform_context);
 
 		const fallback_fn = merge_branch_body_into_arrow(
