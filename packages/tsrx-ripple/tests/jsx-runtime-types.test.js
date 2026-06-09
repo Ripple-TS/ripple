@@ -74,8 +74,20 @@ function App() @{
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		const types = get_variable_types(`import 'ripple/jsx-runtime';\n${code}`);
 
-		expect(types.get('content')).toBe('TSRXElement');
-		expect(types.get('nested')).toBe('TSRXElement');
+		expect(types.get('content')).toBe('Element');
+		expect(types.get('nested')).toBe('Element');
+	});
+
+	it('allows tag-specific TSRXElement annotations for JSX values', () => {
+		get_variable_types(`
+import 'ripple/jsx-runtime';
+import type { TSRXElement } from 'ripple';
+
+const div: TSRXElement<'div'> = <div />;
+function Child(): TSRXElement<'div'> {
+	return <div />;
+}
+`);
 	});
 
 	it('prints statement-bodied JSX fragments with typed child buckets', () => {

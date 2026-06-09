@@ -8,9 +8,10 @@ declare const TSRX_ELEMENT: unique symbol;
 declare const REF_KEY: unique symbol;
 export type RefKey = typeof REF_KEY;
 
-export type TSRXElement = {
+export type TSRXElement<Tag = any> = {
 	readonly render: Function;
 	readonly [TSRX_ELEMENT]: true;
+	readonly __tag?: Tag;
 };
 
 /** Type for implicit children fragments rendered with `{children}`. */

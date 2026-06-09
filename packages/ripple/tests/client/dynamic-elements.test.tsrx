@@ -301,6 +301,65 @@ describe('dynamic DOM elements', () => {
 		expect(element!.hasAttribute('input_ref')).toBe(false);
 	});
 
+	it('updates forwarded refs when a dynamic component changes', () => {
+		let refAttrElement: HTMLInputElement | null = null;
+		let anonymousRefElement: HTMLInputElement | null = null;
+		let namedRefElement: HTMLInputElement | null = null;
+
+		function TextInput(props: PropsWithExtras<{}>) @{
+			<input id="dynamic-component-text" type="text" {...props} />
+		}
+
+		function SearchInput(props: PropsWithExtras<{}>) @{
+			<input id="dynamic-component-search" type="search" {...props} />
+		}
+
+		function App() @{
+			let &[dynamic] = track(() => TextInput);
+			<>
+				<button
+					onClick={() => {
+						dynamic = dynamic === TextInput ? SearchInput : TextInput;
+					}}
+				>{'Change Component'}</button>
+				<Dynamic
+					is={dynamic}
+					ref={[
+						(node: HTMLInputElement | null) => {
+							refAttrElement = node;
+						},
+						(node: HTMLInputElement | null) => {
+							anonymousRefElement = node;
+						},
+						(node: HTMLInputElement | null) => {
+							namedRefElement = node;
+						},
+					]}
+				/>
+			</>
+		}
+
+		render(App);
+		flushSync();
+
+		const button = container.querySelector('button')!;
+		const textInput = container.querySelector('#dynamic-component-text');
+		expect(textInput).toBeInstanceOf(HTMLInputElement);
+		expect(refAttrElement).toBe(textInput);
+		expect(anonymousRefElement).toBe(textInput);
+		expect(namedRefElement).toBe(textInput);
+
+		button.click();
+		flushSync();
+
+		const searchInput = container.querySelector('#dynamic-component-search');
+		expect(searchInput).toBeInstanceOf(HTMLInputElement);
+		expect(container.querySelector('#dynamic-component-text')).toBeNull();
+		expect(refAttrElement).toBe(searchInput);
+		expect(anonymousRefElement).toBe(searchInput);
+		expect(namedRefElement).toBe(searchInput);
+	});
+
 	it('handles dynamic element with createRefKey in spread', () => {
 		function App() @{
 			let tag = track('header');

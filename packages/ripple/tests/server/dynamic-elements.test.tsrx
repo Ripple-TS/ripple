@@ -26,14 +26,17 @@ describe('server dynamic DOM elements', () => {
 	});
 
 	it('does not pass is to dynamic component props', async () => {
-		function Child(props: { label: string; is?: Function }) @{
+		function Child(props: Omit<DynamicProps<'div'>, 'is'> & {
+			label: string;
+			is?: Function;
+		}): TSRXElement<'div'> @{
 			<div>
 				{props.is === undefined && !('is' in props) ? 'hidden' : 'leaked'}
 			</div>
 		}
 
 		function App() @{
-			<Dynamic is={Child} label="child" />
+			<Dynamic is={Child} label="child" class="yo" />
 		}
 
 		const { body } = await render(App);

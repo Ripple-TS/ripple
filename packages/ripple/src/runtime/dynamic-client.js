@@ -1,10 +1,16 @@
 /** @import { Block } from '#client' */
 
 import { composite } from './internal/client/composite.js';
+import { with_block } from './internal/client/runtime.js';
 import { tsrx_element } from './element.js';
 
 /**
- * @param {{ is?: Function | string | null | undefined | false, [key: string]: any }} props
+ * @typedef {Function | string | null | undefined | false} DynamicTarget
+ * @typedef {{ is?: DynamicTarget, [key: string]: any }} DynamicProps
+ */
+
+/**
+ * @param {DynamicProps} props
  * @returns {import('./element.js').TSRXElement}
  */
 export function Dynamic(props) {
@@ -14,7 +20,14 @@ export function Dynamic(props) {
 		 * @param {Block | null} block
 		 */
 		(anchor, block) => {
-			composite(() => /** @type {any} */ (props?.is), anchor, props || {}, 'is', block);
+			const render_dynamic = () =>
+				composite(() => /** @type {DynamicTarget} */ (props?.is), anchor, props || {}, 'is');
+
+			if (block !== null) {
+				with_block(block, render_dynamic);
+			} else {
+				render_dynamic();
+			}
 		},
 	);
 }
