@@ -15,6 +15,7 @@ jobs:
     if: github.repository == 'Ripple-TS/ripple'
     permissions:
       contents: write
+      issues: read
       pull-requests: write
     name: Release PR
     runs-on: ubuntu-latest
@@ -43,8 +44,9 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          github-token: ${{ github.token }}
           version: pnpm changeset:version
           commit: Version Packages
           title: Version Packages
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
