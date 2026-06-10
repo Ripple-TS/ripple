@@ -1,5 +1,51 @@
 # @tsrx/solid
 
+## 0.1.26
+
+### Patch Changes
+
+- [#1240](https://github.com/Ripple-TS/ripple/pull/1240)
+  [`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add parser, formatter, and
+  compiler support for `<{expr}>` dynamic element tags.
+
+- [#1241](https://github.com/Ripple-TS/ripple/pull/1241)
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Treat dynamic tags
+  (`<{expr}>`) like the runtime `Dynamic` helper during scoped CSS analysis on all
+  targets: type selectors are no longer pruned (the tag can resolve to any
+  element), the element's classes match scoped selectors, and the scope hash is
+  applied to its class.
+
+- [#1241](https://github.com/Ripple-TS/ripple/pull/1241)
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Remove the runtime `Dynamic`
+  component exports; dynamic rendering is the `<{expr}>` tag syntax. The `Dynamic`
+  type declarations remain so type-only output keeps type-checking, but the JS is
+  gone: React and Preact production output now lowers dynamic tags to a scoped
+  component alias (`const TsrxDynamic_N = expr;`), Ripple SSR uses the internal
+  `_$_.dynamic_element` helper, and the imported-`Dynamic` detection for scoped
+  CSS is removed (the element marking is now `metadata.dynamicElement`, set by the
+  dynamic-tag lowering).
+
+- [#1241](https://github.com/Ripple-TS/ripple/pull/1241)
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lower dynamic tags
+  (`<{expr}>`) for Solid and Vue production output to scoped component bindings
+  instead of the `Dynamic` helper component. Solid binds
+  `const TsrxDynamic_N = _tsrx_dynamic(() => expr)` (aliasing `dynamic` from
+  `@solidjs/web`); Vue aliases the tag inside an import-free expression-child IIFE
+  so vue-jsx-vapor's render block keeps it reactive. Declarations are placed in
+  the scope that owns the expression (e.g. inside loop callbacks), and the
+  type-only transform keeps the `<TsrxDynamic is={expr}>` shape with source
+  mappings for both tag positions.
+- Updated dependencies
+  [[`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)]:
+  - @tsrx/core@0.1.26
+
 ## 0.1.25
 
 ### Patch Changes

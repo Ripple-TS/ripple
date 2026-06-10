@@ -1,5 +1,21 @@
 # @tsrx/prettier-plugin
 
+## 0.3.78
+
+### Patch Changes
+
+- [#1240](https://github.com/Ripple-TS/ripple/pull/1240)
+  [`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Add parser, formatter, and
+  compiler support for `<{expr}>` dynamic element tags.
+
+- Updated dependencies
+  [[`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)]:
+  - @tsrx/core@0.1.26
+
 ## 0.3.77
 
 ### Patch Changes

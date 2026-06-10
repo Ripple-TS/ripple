@@ -1,5 +1,35 @@
 # ripple
 
+## 0.3.78
+
+### Patch Changes
+
+- [#1240](https://github.com/Ripple-TS/ripple/pull/1240)
+  [`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Render `<{expr}>` dynamic
+  tags directly through `_$_.composite` in the client production output instead of
+  lowering to the `Dynamic` helper component, and fix hydration of dynamic string
+  tags claiming the SSR-rendered element.
+
+- [#1241](https://github.com/Ripple-TS/ripple/pull/1241)
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Remove the runtime `Dynamic`
+  component exports; dynamic rendering is the `<{expr}>` tag syntax. The `Dynamic`
+  type declarations remain so type-only output keeps type-checking, but the JS is
+  gone: React and Preact production output now lowers dynamic tags to a scoped
+  component alias (`const TsrxDynamic_N = expr;`), Ripple SSR uses the internal
+  `_$_.dynamic_element` helper, and the imported-`Dynamic` detection for scoped
+  CSS is removed (the element marking is now `metadata.dynamicElement`, set by the
+  dynamic-tag lowering).
+- Updated dependencies
+  [[`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa),
+  [`92982ee`](https://github.com/Ripple-TS/ripple/commit/92982ee5cd2e6d971b5b650ec1df70483c9716aa),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9),
+  [`b826234`](https://github.com/Ripple-TS/ripple/commit/b8262342111a977ba5a0d44086154e386b06f4b9)]:
+  - @tsrx/ripple@0.1.26
+  - @tsrx/core@0.1.26
+
 ## 0.3.77
 
 ### Patch Changes
