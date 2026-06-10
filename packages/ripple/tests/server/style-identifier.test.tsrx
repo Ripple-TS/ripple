@@ -1,4 +1,4 @@
-import { Dynamic, track } from 'ripple';
+import { track } from 'ripple';
 import { compile } from '@tsrx/ripple';
 
 const external_styles = <style>
@@ -178,7 +178,7 @@ describe('style class maps (server)', () => {
 
 			let dynamic = track(() => Child);
 			<div class="wrapper">
-				<Dynamic is={dynamic} cls={styles.text} />
+				<{dynamic} cls={styles.text} />
 			</div>
 		}
 
@@ -269,9 +269,9 @@ describe('style class maps (server)', () => {
 		function App() @{
 			const DynamicWrapper = track(() => Wrapper);
 			<>
-				<Dynamic is={DynamicWrapper}>
+				<{DynamicWrapper}>
 					<div class="green">{'Slotted child'}</div>
-				</Dynamic>
+				</{DynamicWrapper}>
 				<style>
 					.green {
 						color: green;

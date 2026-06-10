@@ -4,7 +4,6 @@
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { transform } from './transform.js';
 
-export { Dynamic } from './dynamic.js';
 export { isRefProp } from './ref.js';
 
 /**

@@ -33,6 +33,10 @@ const preact_platform = {
 		fragment: 'preact',
 		suspense: DEFAULT_SUSPENSE_SOURCE,
 		dynamic: '@tsrx/preact/dynamic',
+		// Production output aliases dynamic tags to a scoped component const
+		// inside an expression-child IIFE, re-evaluated on every render; the
+		// type-only transform keeps the `Dynamic` component shape (types only).
+		dynamicFactory: {},
 		errorBoundary: '@tsrx/preact/error-boundary',
 		mergeRefs: '@tsrx/preact/ref',
 		refProp: '@tsrx/preact/ref',

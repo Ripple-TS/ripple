@@ -61,7 +61,6 @@ import {
 	is_native_tsrx_template_node,
 	is_native_tsrx_function_node,
 	is_tsrx_component_function,
-	is_ripple_import,
 } from '../utils.js';
 import is_reference from 'is-reference';
 
@@ -126,35 +125,6 @@ function prepare_legacy_nodes_for_css_pruning(nodes) {
 			}
 		}
 	};
-}
-
-/**
- * @param {AST.Element} node
- * @param {AnalysisContext} context
- * @returns {boolean}
- */
-function is_runtime_dynamic_element(node, context) {
-	const has_is_attr = node.attributes.some(
-		(attr) =>
-			attr.type === 'Attribute' && attr.name?.type === 'Identifier' && attr.name.name === 'is',
-	);
-	if (!has_is_attr) {
-		return false;
-	}
-
-	if (node.id.type === 'Identifier') {
-		return node.id.name === 'Dynamic' && is_ripple_import(node.id, context);
-	}
-
-	if (
-		node.id.type === 'MemberExpression' &&
-		!node.id.computed &&
-		node.id.property.type === 'Identifier'
-	) {
-		return node.id.property.name === 'Dynamic' && is_ripple_import(node.id, context);
-	}
-
-	return false;
 }
 
 /**
@@ -2476,16 +2446,13 @@ const visitors = {
 		}
 
 		const { state, visit, path } = context;
-		const is_dynamic_syntax_element = node.isDynamic === true;
+		const is_dynamic_element = node.isDynamic === true;
 		const is_dom_element = is_element_dom_element(node);
-		// Dynamic tags (`<{expr}>`) resolve at runtime just like the imported
-		// `Dynamic` helper, so they share its CSS treatment: scoped pruning must
+		// Dynamic tags (`<{expr}>`) resolve at runtime: scoped CSS pruning must
 		// keep type selectors (the tag could be any element) and collect the
 		// element so its classes match and receive the scope hash.
-		const is_dynamic_runtime_element =
-			is_dynamic_syntax_element || (!is_dom_element && is_runtime_dynamic_element(node, context));
-		if (is_dynamic_runtime_element) {
-			node.metadata.runtime_dynamic_element = true;
+		if (is_dynamic_element) {
+			node.metadata.dynamicElement = true;
 		}
 		/** @type {Set<AST.Identifier>} */
 		const attribute_names = new Set();
@@ -2493,7 +2460,7 @@ const visitors = {
 		mark_control_flow_has_template(path, node);
 
 		if (
-			!is_dynamic_syntax_element &&
+			!is_dynamic_element &&
 			!is_dom_element &&
 			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
 		) {
@@ -2648,7 +2615,7 @@ const visitors = {
 				);
 			}
 		} else {
-			if (is_dynamic_runtime_element && state.elements) {
+			if (is_dynamic_element && state.elements) {
 				state.elements.push(node);
 			}
 

@@ -1,6 +1,5 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
-import { Dynamic as TsrxDynamic } from 'ripple/server';
 
 export function Layout(__props) {
 	return _$_.tsrx_element(() => {
@@ -214,7 +213,7 @@ export function DynamicTagElement() {
 
 		_$_.regular_block(() => {
 			{
-				const comp = TsrxDynamic;
+				const comp = _$_.dynamic_element;
 
 				const args = [
 					{
@@ -249,7 +248,7 @@ export function DynamicTagComponent() {
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
 								{
-									const comp = TsrxDynamic;
+									const comp = _$_.dynamic_element;
 									const args = [{ is: Comp }];
 
 									if (comp) {

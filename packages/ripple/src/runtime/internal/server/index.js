@@ -2037,3 +2037,5 @@ export function ripple_map(iterable) {
 export function fallback(value, fallback) {
 	return value === undefined ? fallback : value;
 }
+
+export { dynamic_element } from './dynamic.js';

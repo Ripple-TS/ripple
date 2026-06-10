@@ -16,6 +16,10 @@ const react_platform = {
 		fragment: 'react',
 		suspense: 'react',
 		dynamic: '@tsrx/react/dynamic',
+		// Production output aliases dynamic tags to a scoped component const
+		// inside an expression-child IIFE, re-evaluated on every render; the
+		// type-only transform keeps the `Dynamic` component shape (types only).
+		dynamicFactory: {},
 		errorBoundary: '@tsrx/react/error-boundary',
 		mergeRefs: '@tsrx/react/ref',
 		refProp: '@tsrx/react/ref',

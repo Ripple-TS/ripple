@@ -212,28 +212,6 @@ describe('@tsrx/preact basic', () => {
 		expect(code).toContain('return <div>{Date.now()}</div>;');
 	});
 
-	it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
-		const { code, cssHash } = compile(
-			`import { Dynamic } from '@tsrx/preact/dynamic';
-			const RuntimeDynamic = Dynamic;
-
-			export function App() @{
-				<>
-					<RuntimeDynamic is="div" class="host">{'hello'}</RuntimeDynamic>
-
-					<style>
-						.host {
-							color: red;
-						}
-					</style>
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain(`class="host ${cssHash}"`);
-	});
-
 	it('applies scoped css hashes and keeps type selectors for dynamic tags', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() @{
@@ -261,7 +239,7 @@ describe('@tsrx/preact basic', () => {
 		expect(css).toContain(`.host.${cssHash}`);
 	});
 
-	it('lowers dynamic tag syntax to the Preact Dynamic helper import', () => {
+	it('lowers dynamic tag syntax to a scoped component alias', () => {
 		const { code } = compile(
 			`export function App() @{
 				const Tag = 'section';
@@ -270,8 +248,23 @@ describe('@tsrx/preact basic', () => {
 			'App.tsrx',
 		);
 
+		expect(code).toContain('const TsrxDynamic_1 = Tag;');
+		expect(code).toContain(`<TsrxDynamic_1 class="host">{'hello'}</TsrxDynamic_1>`);
+		expect(code).not.toContain('@tsrx/preact/dynamic');
+	});
+
+	it('keeps the Dynamic component shape in type-only output for dynamic tags', () => {
+		const { code } = compile_to_volar_mappings(
+			`export function App() @{
+				const Tag = 'section';
+				<{Tag} class="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
 		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/preact/dynamic';`);
-		expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} class="host"`);
 	});
 
 	it('keeps hook-bearing composite children inline without helper prop plumbing', () => {

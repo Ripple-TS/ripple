@@ -9,8 +9,8 @@ import {
 	render_tsrx_element,
 	spread_attrs,
 	spread_inner_html,
-} from './internal/server/index.js';
-import { tsrx_element } from './element.js';
+} from './index.js';
+import { tsrx_element } from '../../element.js';
 
 /**
  * @param {any} value
@@ -58,9 +58,9 @@ function render_element(tag, props) {
 
 /**
  * @param {{ is?: Function | string | null | undefined | false, [key: string]: any }} props
- * @returns {import('./element.js').TSRXElement}
+ * @returns {import('../../element.js').TSRXElement}
  */
-export function Dynamic(props) {
+export function dynamic_element(props) {
 	return tsrx_element(() => {
 		const component = get(props?.is);
 		if (component == null || component === false) {

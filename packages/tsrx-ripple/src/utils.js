@@ -1683,9 +1683,11 @@ export const dynamic_element_import_local = 'TsrxDynamic';
 
 /**
  * @param {AST.Element} node
+ * @param {AST.Expression} [component_id] - Override for the lowered component
+ * reference; defaults to the `TsrxDynamic` local used by type-only output.
  * @returns {boolean}
  */
-export function lower_dynamic_element(node) {
+export function lower_dynamic_element(node, component_id) {
 	if (node.isDynamic !== true) {
 		return false;
 	}
@@ -1696,7 +1698,7 @@ export function lower_dynamic_element(node) {
 		closing_name?.expression && clone_expression_node(closing_name.expression);
 	expression.was_expression = true;
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
-	node.id = b.id(dynamic_element_import_local);
+	node.id = component_id ?? b.id(dynamic_element_import_local);
 	if (node.openingElement?.name) {
 		node.openingElement.name = b.jsx_id(dynamic_element_import_local);
 	}

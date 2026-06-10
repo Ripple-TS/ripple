@@ -112,6 +112,12 @@ export function is_hoist_safe_jsx_node(node) {
 		return node.children.every(is_hoist_safe_jsx_child);
 	}
 
+	// Lowered dynamic tags reference a component-scoped const and resolve at
+	// runtime — never static, never hoistable.
+	if (/** @type {any} */ (node).metadata?.dynamicElement === true) {
+		return false;
+	}
+
 	return (
 		node.openingElement.attributes.every(is_hoist_safe_jsx_attribute) &&
 		node.children.every(is_hoist_safe_jsx_child)

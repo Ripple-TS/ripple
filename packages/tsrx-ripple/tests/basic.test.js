@@ -31,11 +31,11 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(code).toContain(`class: "host"`);
 	});
 
-	it('lowers dynamic tags through the runtime Dynamic helper on the server', () => {
+	it('lowers dynamic tags through the internal dynamic_element helper on the server', () => {
 		const { code } = compile(source, 'App.tsrx', { mode: 'server' });
-		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
-		expect(code).toContain('const comp = TsrxDynamic;');
+		expect(code).toContain('const comp = _$_.dynamic_element;');
 		expect(code).toContain('is: Tag');
+		expect(code).not.toContain('TsrxDynamic');
 	});
 
 	it('keeps scoped type selectors and applies scope hashes for dynamic tags', () => {

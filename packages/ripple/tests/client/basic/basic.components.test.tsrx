@@ -5,7 +5,7 @@ import type {
 	Component,
 	PropsWithChildrenOptional,
 } from 'ripple';
-import { Dynamic, flushSync, track } from 'ripple';
+import { flushSync, track } from 'ripple';
 import { did_error } from '../capture-error.js';
 
 describe('basic client > components & composition', () => {
@@ -503,7 +503,7 @@ describe('basic client > components & composition', () => {
 		function App() @{
 			let &[Content] = track(() => Noop);
 			<>
-				<Dynamic is={Content} />
+				<{Content} />
 				<button onClick={() => (Content = Op)}>{'Show Op'}</button>
 			</>
 		}

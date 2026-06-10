@@ -7,7 +7,6 @@ import { print } from 'esrap';
 import { error } from '../../errors.js';
 import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
-import { create_scopes, ScopeRoot } from '../../scope.js';
 import {
 	in_jsx_child_context,
 	set_node_path_metadata,
@@ -333,7 +332,6 @@ export function createJsxTransform(platform) {
 			hook_helpers_enabled: false,
 			available_bindings: new Map(),
 			lazy_next_id: 0,
-			runtime_dynamic_scopes: null,
 			filename: filename ?? null,
 			source,
 			collect,
@@ -349,10 +347,6 @@ export function createJsxTransform(platform) {
 		wrap_control_flow_expression_values(
 			/** @type {any} */ (ast),
 			platform.imports.dynamicFactory ? transform_context : null,
-		);
-		transform_context.runtime_dynamic_scopes = create_runtime_dynamic_scopes(
-			/** @type {any} */ (ast),
-			transform_context,
 		);
 
 		if (!transform_context.typeOnly) {
@@ -607,8 +601,8 @@ function lower_dynamic_jsx_element(node, transform_context) {
 	 * @param {ESTreeJSX.JSXElement} element
 	 * @returns {ESTreeJSX.JSXElement}
 	 */
-	const mark_runtime_dynamic = (element) => {
-		element.metadata.runtime_dynamic_element = true;
+	const mark_dynamic_element = (element) => {
+		element.metadata.dynamicElement = true;
 		return element;
 	};
 
@@ -620,52 +614,58 @@ function lower_dynamic_jsx_element(node, transform_context) {
 		const local_id = b.jsx_id(local);
 		transform_context.needs_dynamic_factory = true;
 
-		if (factory.name) {
-			// `const TsrxDynamic_1 = _tsrx_dynamic(() => expr);` next to the
-			// template — the factory's thunk keeps the tag reactive (Solid). The
-			// declaration rides on the name node's metadata: element rebuilds
-			// clone names with a shared metadata reference, so setup extraction
-			// still finds it afterwards.
-			add_jsx_setup_declaration(
-				local_id,
-				b.const(
-					b.id(local),
-					b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression)),
-				),
+		if (factory.renderBlock) {
+			// Import-free alias inside a reactive render block (Vue): the const
+			// is a plain snapshot and Vapor never re-runs setup, so the whole
+			// element is rebuilt in a native fragment whose expression-container
+			// child holds
+			// `(() => { const TsrxDynamic_1 = expr; return <TsrxDynamic_1 ...>; })()`
+			// — vue-jsx-vapor compiles expression children into `createNodes(...)`
+			// render blocks, which re-run the IIFE when the tag expression
+			// changes. The container is marked so downstream lone-child
+			// collapsing keeps it in expression-child position instead of
+			// unwrapping to a bare call.
+			const element = mark_dynamic_element(rebuild_element(local_id));
+			const wrapper = b.arrow(
+				[],
+				b.block([b.const(b.id(local), generated_expression), b.return(element)], node),
 			);
-			return mark_runtime_dynamic(rebuild_element(local_id));
+			// Lets scoped-CSS collection descend into this generated closure;
+			// user function boundaries are otherwise skipped.
+			wrapper.metadata = /** @type {any} */ ({
+				...(wrapper.metadata || { path: [] }),
+				tsrx_dynamic_wrapper: true,
+			});
+			const container = to_jsx_expression_container(b.call(wrapper), element);
+			container.metadata = /** @type {any} */ ({
+				...(container.metadata || { path: [] }),
+				tsrx_reactive_block: true,
+			});
+
+			return set_loc(wrap_in_native_tsrx_fragment(container), node);
 		}
 
-		// Import-free alias (Vue): the const is a plain snapshot, so it must be
-		// re-evaluated inside a reactive render block. Rebuild the element in a
-		// native fragment whose expression-container child holds
-		// `(() => { const TsrxDynamic_1 = expr; return <TsrxDynamic_1 ...>; })()`
-		// — vue-jsx-vapor compiles expression children into `createNodes(...)`
-		// render blocks, which re-run the IIFE when the tag expression changes.
-		// The container is marked so downstream lone-child collapsing keeps it
-		// in expression-child position instead of unwrapping to a bare call.
-		const element = mark_runtime_dynamic(rebuild_element(local_id));
-		const wrapper = b.arrow(
-			[],
-			b.block([b.const(b.id(local), generated_expression), b.return(element)], node),
+		// Statement placement: `const TsrxDynamic_1 = ...;` next to the
+		// template. With a factory, the thunk keeps the tag reactive (Solid:
+		// `_tsrx_dynamic(() => expr)`); without one, the plain alias is
+		// re-evaluated by the host's render cycle (React/Preact re-run the
+		// component body). The declaration rides on the name node's metadata:
+		// element rebuilds clone names with a shared metadata reference, so
+		// setup extraction still finds it afterwards.
+		add_jsx_setup_declaration(
+			local_id,
+			b.const(
+				b.id(local),
+				factory.name
+					? b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression))
+					: generated_expression,
+			),
 		);
-		// Lets scoped-CSS collection descend into this generated closure; user
-		// function boundaries are otherwise skipped.
-		wrapper.metadata = /** @type {any} */ ({
-			...(wrapper.metadata || { path: [] }),
-			tsrx_dynamic_wrapper: true,
-		});
-		const container = to_jsx_expression_container(b.call(wrapper), element);
-		container.metadata = /** @type {any} */ ({
-			...(container.metadata || { path: [] }),
-			tsrx_reactive_block: true,
-		});
-
-		return set_loc(wrap_in_native_tsrx_fragment(container), node);
+		return mark_dynamic_element(rebuild_element(local_id));
 	}
 
 	transform_context.needs_dynamic_element = true;
-	return mark_runtime_dynamic(
+	return mark_dynamic_element(
 		rebuild_element(b.jsx_id(DYNAMIC_IMPORT_LOCAL), [
 			b.jsx_attribute(
 				b.jsx_id('is'),
@@ -777,7 +777,6 @@ function collect_css_prunable_elements(value, elements = [], transform_context =
 	}
 
 	if (value.type === 'JSXElement' && value.metadata?.native_tsrx) {
-		mark_runtime_dynamic_element(value, transform_context);
 		if (!is_style_element(value)) {
 			elements.push(value);
 		}
@@ -791,241 +790,6 @@ function collect_css_prunable_elements(value, elements = [], transform_context =
 	}
 
 	return elements;
-}
-
-/**
- * @param {AST.Program} ast
- * @param {TransformContext} transform_context
- * @returns {Map<any, any> | null}
- */
-function create_runtime_dynamic_scopes(ast, transform_context) {
-	const dynamic_source = transform_context.platform.imports.dynamic;
-	if (!dynamic_source) {
-		return null;
-	}
-	if (!has_runtime_dynamic_import(ast, dynamic_source)) {
-		return null;
-	}
-
-	const { scopes } = create_scopes(ast, new ScopeRoot(), null, {
-		collect: true,
-		errors: [],
-		filename: transform_context.filename ?? '',
-		comments: transform_context.comments,
-	});
-
-	return scopes;
-}
-
-/**
- * @param {any} node
- * @param {TransformContext | null} transform_context
- * @returns {void}
- */
-function mark_runtime_dynamic_element(node, transform_context) {
-	const dynamic_source = transform_context?.platform.imports.dynamic;
-	const scopes = transform_context?.runtime_dynamic_scopes;
-	if (
-		!dynamic_source ||
-		!scopes ||
-		node.metadata?.runtime_dynamic_element === true ||
-		!has_jsx_attribute(node, 'is') ||
-		!is_runtime_dynamic_jsx_name(node.openingElement?.name, scopes.get(node), dynamic_source)
-	) {
-		return;
-	}
-
-	node.metadata.runtime_dynamic_element = true;
-}
-
-/**
- * @param {AST.Program} ast
- * @param {string} dynamic_source
- * @returns {boolean}
- */
-function has_runtime_dynamic_import(ast, dynamic_source) {
-	return ast.body.some(
-		(/** @type {any} */ node) =>
-			node.type === 'ImportDeclaration' &&
-			node.importKind !== 'type' &&
-			node.source?.type === 'Literal' &&
-			node.source.value === dynamic_source &&
-			node.specifiers.some(
-				(/** @type {any} */ specifier) =>
-					is_runtime_dynamic_import_specifier(specifier, 'component') ||
-					is_runtime_dynamic_import_specifier(specifier, 'namespace'),
-			),
-	);
-}
-
-/**
- * @param {any} node
- * @param {string} name
- * @returns {boolean}
- */
-function has_jsx_attribute(node, name) {
-	return (node.openingElement?.attributes ?? []).some(
-		(/** @type {any} */ attr) =>
-			attr.type === 'JSXAttribute' &&
-			attr.name?.type === 'JSXIdentifier' &&
-			attr.name.name === name,
-	);
-}
-
-/**
- * @param {any} name
- * @param {any} scope
- * @param {string} dynamic_source
- * @returns {boolean}
- */
-function is_runtime_dynamic_jsx_name(name, scope, dynamic_source) {
-	if (!scope || !name) {
-		return false;
-	}
-
-	if (name.type === 'JSXIdentifier') {
-		return is_runtime_dynamic_binding(scope.get(name.name), dynamic_source, 'component', new Set());
-	}
-
-	if (
-		name.type === 'JSXMemberExpression' &&
-		name.object?.type === 'JSXIdentifier' &&
-		name.property?.type === 'JSXIdentifier' &&
-		name.property.name === 'Dynamic'
-	) {
-		return is_runtime_dynamic_binding(
-			scope.get(name.object.name),
-			dynamic_source,
-			'namespace',
-			new Set(),
-		);
-	}
-
-	return false;
-}
-
-/**
- * @param {any} binding
- * @param {string} dynamic_source
- * @param {'component' | 'namespace'} kind
- * @param {Set<any>} seen
- * @returns {boolean}
- */
-function is_runtime_dynamic_binding(binding, dynamic_source, kind, seen) {
-	if (!binding || seen.has(binding)) {
-		return false;
-	}
-	seen.add(binding);
-
-	if (is_runtime_dynamic_import_binding(binding, dynamic_source, kind)) {
-		return true;
-	}
-
-	if (binding.reassigned) {
-		return false;
-	}
-
-	const initial = unwrap_reference_expression(binding.initial);
-	if (!initial) {
-		return false;
-	}
-
-	if (initial.type === 'Identifier') {
-		return is_runtime_dynamic_binding(binding.scope.get(initial.name), dynamic_source, kind, seen);
-	}
-
-	if (
-		kind === 'component' &&
-		initial.type === 'MemberExpression' &&
-		!initial.computed &&
-		initial.object?.type === 'Identifier' &&
-		initial.property?.type === 'Identifier' &&
-		initial.property.name === 'Dynamic'
-	) {
-		return is_runtime_dynamic_binding(
-			binding.scope.get(initial.object.name),
-			dynamic_source,
-			'namespace',
-			new Set(),
-		);
-	}
-
-	return false;
-}
-
-/**
- * @param {any} binding
- * @param {string} dynamic_source
- * @param {'component' | 'namespace'} kind
- * @returns {boolean}
- */
-function is_runtime_dynamic_import_binding(binding, dynamic_source, kind) {
-	const declaration = binding?.initial;
-	if (
-		binding?.declaration_kind !== 'import' ||
-		declaration?.type !== 'ImportDeclaration' ||
-		declaration.importKind === 'type' ||
-		declaration.source?.type !== 'Literal' ||
-		declaration.source.value !== dynamic_source
-	) {
-		return false;
-	}
-
-	return declaration.specifiers.some(
-		(/** @type {any} */ specifier) =>
-			specifier.local?.name === binding.node?.name &&
-			is_runtime_dynamic_import_specifier(specifier, kind),
-	);
-}
-
-/**
- * @param {any} specifier
- * @param {'component' | 'namespace'} kind
- * @returns {boolean}
- */
-function is_runtime_dynamic_import_specifier(specifier, kind) {
-	if (kind === 'namespace') {
-		return specifier.type === 'ImportNamespaceSpecifier';
-	}
-	return (
-		specifier.type === 'ImportSpecifier' &&
-		specifier.importKind !== 'type' &&
-		get_imported_name(specifier) === 'Dynamic'
-	);
-}
-
-/**
- * @param {any} specifier
- * @returns {string | null}
- */
-function get_imported_name(specifier) {
-	const imported = specifier.imported;
-	if (imported?.type === 'Identifier') {
-		return imported.name;
-	}
-	if (imported?.type === 'Literal') {
-		return String(imported.value);
-	}
-	return null;
-}
-
-/**
- * @param {any} expression
- * @returns {any}
- */
-function unwrap_reference_expression(expression) {
-	let node = expression;
-	while (
-		node &&
-		(node.type === 'TSAsExpression' ||
-			node.type === 'TSTypeAssertion' ||
-			node.type === 'TSNonNullExpression' ||
-			node.type === 'ParenthesizedExpression' ||
-			node.type === 'ChainExpression')
-	) {
-		node = node.expression;
-	}
-	return node;
 }
 
 /**
@@ -3480,6 +3244,11 @@ function to_jsx_element(
 			);
 
 	const element = set_loc(b.jsx_element_fresh(openingElement, closingElement, children), node);
+	if (node.metadata?.dynamicElement === true) {
+		// Keep lowered dynamic tags recognizable to scoped-CSS passes and the
+		// static-hoist veto after the rebuild.
+		element.metadata.dynamicElement = true;
+	}
 	if (transform_context.typeOnly && is_style_element(node)) {
 		disable_style_anchor_verification(element);
 	}

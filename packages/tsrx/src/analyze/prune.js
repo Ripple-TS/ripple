@@ -67,12 +67,12 @@ function get_attribute_value(attribute) {
  * @param {AST.Node} node
  * @returns {boolean}
  */
-function is_runtime_dynamic_element(node) {
-	// `metadata.runtime_dynamic_element` marks imported `Dynamic` usage and
-	// lowered dynamic tags; `isDynamic` is the parser flag on a not-yet-lowered
-	// `<{expr}>` element. Both resolve their tag at runtime.
+function is_dynamic_element(node) {
+	// `metadata.dynamicElement` marks lowered dynamic tags; `isDynamic` is the
+	// parser flag on a not-yet-lowered `<{expr}>` element. Both resolve their
+	// tag at runtime, so they can match any type selector.
 	return (
-		node?.metadata?.runtime_dynamic_element === true ||
+		node?.metadata?.dynamicElement === true ||
 		/** @type {ESTreeJSX.JSXExpressionContainer} */ (node)?.isDynamic === true
 	);
 }
@@ -397,7 +397,7 @@ function get_descendant_elements(node, adjacent_only) {
  * @returns {boolean}
  */
 function can_render_dynamic_content(element, check_classes = false) {
-	if (is_runtime_dynamic_element(element)) {
+	if (is_dynamic_element(element)) {
 		return true;
 	}
 
@@ -1021,7 +1021,7 @@ function relative_selector_might_apply_to_node(relative_selector, rule, element,
 			}
 
 			case 'TypeSelector': {
-				if (is_runtime_dynamic_element(element)) {
+				if (is_dynamic_element(element)) {
 					break;
 				}
 

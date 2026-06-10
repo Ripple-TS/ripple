@@ -38,7 +38,7 @@ const vue_platform = {
 		// inside an expression-child IIFE — vue-jsx-vapor's own render block
 		// keeps the tag reactive, so no runtime import is needed; the type-only
 		// transform keeps the `Dynamic` component shape.
-		dynamicFactory: {},
+		dynamicFactory: { renderBlock: true },
 		errorBoundary: '@tsrx/vue/error-boundary',
 		mergeRefs: '@tsrx/vue/ref',
 		refProp: '@tsrx/vue/ref',

@@ -5,7 +5,6 @@
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { DEFAULT_SUSPENSE_SOURCE, transform } from './transform.js';
 
-export { Dynamic } from './dynamic.js';
 export { DEFAULT_SUSPENSE_SOURCE };
 export { isRefProp } from './ref.js';
 

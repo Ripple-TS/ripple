@@ -23,8 +23,7 @@
       "default": "./src/error-boundary.js"
     },
     "./dynamic": {
-      "types": "./types/dynamic.d.ts",
-      "default": "./src/dynamic.js"
+      "types": "./types/dynamic.d.ts"
     },
     "./ref": {
       "types": "./types/ref.d.ts",

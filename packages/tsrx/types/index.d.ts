@@ -84,7 +84,7 @@ interface BaseNodeMetaData {
 	parenthesized?: boolean;
 	native_tsrx?: boolean;
 	native_tsrx_template_block?: boolean;
-	runtime_dynamic_element?: boolean;
+	dynamicElement?: boolean;
 	templateMode?: 'script' | 'template';
 	script_only?: boolean;
 	tsrxDirective?: 'if' | 'for' | 'switch' | 'try';

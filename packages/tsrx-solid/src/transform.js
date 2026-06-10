@@ -2203,6 +2203,11 @@ function to_jsx_element(node, transform_context) {
 			openingElement,
 			closingElement,
 			children,
+			// Keep lowered dynamic tags recognizable to scoped-CSS passes and
+			// the static-hoist veto after the rebuild.
+			...(node.metadata?.dynamicElement === true
+				? { metadata: { path: [], dynamicElement: true } }
+				: null),
 		}),
 		node,
 	);

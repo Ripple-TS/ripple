@@ -55,8 +55,6 @@ export interface JsxTransformContext {
 	hook_helpers_enabled: boolean;
 	available_bindings: Map<string, AST.Identifier>;
 	lazy_next_id: number;
-	/** Scope map used to resolve runtime Dynamic imports for scoped CSS pruning. */
-	runtime_dynamic_scopes: Map<any, any> | null;
 	inside_element_child?: boolean;
 	/** Full source text for source-aware diagnostics. */
 	source: string;
@@ -318,27 +316,30 @@ export interface JsxPlatform {
 		 */
 		suspense: string;
 		/**
-		 * Module that exports the target runtime `Dynamic` component. When set,
-		 * the shared JSX transform treats imported `Dynamic` elements with an
-		 * `is` prop as runtime-dynamic for scoped CSS pruning.
+		 * Module the type-only transform imports the `Dynamic` component type
+		 * from when lowering dynamic tags to `<TsrxDynamic is={expr}>`. The
+		 * module only needs type declarations; production output never imports
+		 * it.
 		 */
 		dynamic?: string;
 		/**
 		 * Scoped-binding lowering for dynamic tags (`<{expr}>`) in production
-		 * output; each tag binds a scoped component const. With `name`/`source`,
-		 * the factory is imported as `_tsrx_dynamic` and wraps the tag
-		 * expression in a reactive thunk:
-		 * `const TsrxDynamic_N = _tsrx_dynamic(() => expr);` followed by an
-		 * ordinary `<TsrxDynamic_N ...>` reference (Solid:
+		 * output; each tag binds a scoped component const referenced like an
+		 * ordinary component. With `name`/`source`, the factory is imported as
+		 * `_tsrx_dynamic` and wraps the tag expression in a reactive thunk:
+		 * `const TsrxDynamic_N = _tsrx_dynamic(() => expr);` (Solid:
 		 * `{ name: 'dynamic', source: '@solidjs/web' }`). With an empty object,
-		 * the tag becomes an import-free alias inside an expression-child IIFE,
+		 * the const is a plain import-free alias re-evaluated by the host's
+		 * render cycle: `const TsrxDynamic_N = expr;` (React/Preact). With
+		 * `renderBlock: true`, the alias and element move inside an
+		 * expression-child IIFE,
 		 * `{(() => { const TsrxDynamic_N = expr; return <TsrxDynamic_N ...>; })()}`,
 		 * relying on the host JSX compiler's reactive render block for
-		 * expression children (Vue). When unset (or in type-only output),
-		 * dynamic tags lower to `<TsrxDynamic is={expr}>` imported from
-		 * `imports.dynamic`.
+		 * expression children (Vue Vapor, which never re-runs setup). In
+		 * type-only output, dynamic tags always lower to
+		 * `<TsrxDynamic is={expr}>` imported from `imports.dynamic`.
 		 */
-		dynamicFactory?: { name?: string; source?: string };
+		dynamicFactory?: { name?: string; source?: string; renderBlock?: boolean };
 		/**
 		 * Module to import `TsrxErrorBoundary` from when an `@try { ... } @catch (...)`
 		 * block appears. Usually `'@tsrx/<platform>/error-boundary'`.

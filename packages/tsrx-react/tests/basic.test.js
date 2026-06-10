@@ -280,28 +280,6 @@ describe('@tsrx/react basic', () => {
 		expect(code).not.toContain(`className="content ${cssHash}"`);
 	});
 
-	it('applies scoped css hashes to runtime Dynamic imports and aliases', () => {
-		const { code, cssHash } = compile(
-			`import { Dynamic } from '@tsrx/react/dynamic';
-			const RuntimeDynamic = Dynamic;
-
-			export function App() @{
-				<>
-					<RuntimeDynamic is="div" className="host">{'hello'}</RuntimeDynamic>
-
-					<style>
-						.host {
-							color: red;
-						}
-					</style>
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain(`className="host ${cssHash}"`);
-	});
-
 	it('applies scoped css hashes and keeps type selectors for dynamic tags', () => {
 		const { code, css, cssHash } = compile(
 			`export function App() @{
@@ -329,7 +307,7 @@ describe('@tsrx/react basic', () => {
 		expect(css).toContain(`.host.${cssHash}`);
 	});
 
-	it('lowers dynamic tag syntax to the React Dynamic helper import', () => {
+	it('lowers dynamic tag syntax to a scoped component alias', () => {
 		const { code } = compile(
 			`export function App() @{
 				const Tag = 'section';
@@ -338,24 +316,23 @@ describe('@tsrx/react basic', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/react/dynamic';`);
-		expect(code).toContain(`<TsrxDynamic is={Tag} className="host">{'hello'}</TsrxDynamic>`);
+		expect(code).toContain('const TsrxDynamic_1 = Tag;');
+		expect(code).toContain(`<TsrxDynamic_1 className="host">{'hello'}</TsrxDynamic_1>`);
+		expect(code).not.toContain('@tsrx/react/dynamic');
 	});
 
-	it('adds a separate Dynamic helper import when a namespace import already exists', () => {
-		const { code } = compile(
-			`import * as dynamicHelpers from '@tsrx/react/dynamic';
-
-			export function App() @{
+	it('keeps the Dynamic component shape in type-only output for dynamic tags', () => {
+		const { code } = compile_to_volar_mappings(
+			`export function App() @{
 				const Tag = 'section';
 				<{Tag} className="host">{'hello'}</{Tag}>
 			}`,
 			'App.tsrx',
+			{ loose: true },
 		);
 
 		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/react/dynamic';`);
-		expect(code).toContain(`import * as dynamicHelpers from '@tsrx/react/dynamic';`);
-		expect(code).toContain(`<TsrxDynamic is={Tag} className="host">{'hello'}</TsrxDynamic>`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} className="host"`);
 	});
 
 	it('does not map generated Dynamic tag names over dynamic tag props', () => {
@@ -395,55 +372,6 @@ describe('@tsrx/react basic', () => {
 		expect(generated_tag_mapping).toBeUndefined();
 		expect(class_mapping).toBeDefined();
 		expect(closing_tag_mapping).toBeDefined();
-	});
-
-	it('applies scoped css hashes to runtime Dynamic import aliases', () => {
-		const { code, cssHash } = compile(
-			`import { Dynamic as RuntimeDynamic } from '@tsrx/react/dynamic';
-
-			export function App() @{
-				<>
-					<RuntimeDynamic is="div" className="host">{'hello'}</RuntimeDynamic>
-
-					<style>
-						.host {
-							color: red;
-						}
-					</style>
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain(`className="host ${cssHash}"`);
-	});
-
-	it('does not treat local Dynamic components as runtime Dynamic imports', () => {
-		const { code, cssHash } = compile(
-			`import { Dynamic } from '@tsrx/react/dynamic';
-
-			function LocalDynamic(props) {
-				return <div {...props} />;
-			}
-
-			export function App() @{
-				const Dynamic = LocalDynamic;
-				<>
-					<Dynamic is="div" className="host">{'hello'}</Dynamic>
-
-					<style>
-						.host {
-							color: red;
-						}
-					</style>
-				</>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('const Dynamic = LocalDynamic;');
-		expect(code).toContain('className="host"');
-		expect(code).not.toContain(`className="host ${cssHash}"`);
 	});
 
 	it('renders component-body if statements as React expressions', () => {
