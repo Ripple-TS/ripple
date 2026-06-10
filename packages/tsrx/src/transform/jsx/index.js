@@ -599,6 +599,19 @@ function lower_dynamic_jsx_element(node, transform_context) {
 		return element;
 	};
 
+	/**
+	 * Scoped-CSS passes treat lowered dynamic tags like the imported `Dynamic`
+	 * helper: type selectors survive pruning and the scope hash lands on the
+	 * element's class.
+	 *
+	 * @param {ESTreeJSX.JSXElement} element
+	 * @returns {ESTreeJSX.JSXElement}
+	 */
+	const mark_runtime_dynamic = (element) => {
+		element.metadata.runtime_dynamic_element = true;
+		return element;
+	};
+
 	if (factory) {
 		// Bind the tag expression to a scoped component const and reference it
 		// like an ordinary component.
@@ -620,7 +633,7 @@ function lower_dynamic_jsx_element(node, transform_context) {
 					b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression)),
 				),
 			);
-			return rebuild_element(local_id);
+			return mark_runtime_dynamic(rebuild_element(local_id));
 		}
 
 		// Import-free alias (Vue): the const is a plain snapshot, so it must be
@@ -631,7 +644,7 @@ function lower_dynamic_jsx_element(node, transform_context) {
 		// render blocks, which re-run the IIFE when the tag expression changes.
 		// The container is marked so downstream lone-child collapsing keeps it
 		// in expression-child position instead of unwrapping to a bare call.
-		const element = rebuild_element(local_id);
+		const element = mark_runtime_dynamic(rebuild_element(local_id));
 		const wrapper = b.arrow(
 			[],
 			b.block([b.const(b.id(local), generated_expression), b.return(element)], node),
@@ -652,14 +665,16 @@ function lower_dynamic_jsx_element(node, transform_context) {
 	}
 
 	transform_context.needs_dynamic_element = true;
-	return rebuild_element(b.jsx_id(DYNAMIC_IMPORT_LOCAL), [
-		b.jsx_attribute(
-			b.jsx_id('is'),
-			b.jsx_expression_container(generated_expression, dynamic_name),
-			false,
-			dynamic_name,
-		),
-	]);
+	return mark_runtime_dynamic(
+		rebuild_element(b.jsx_id(DYNAMIC_IMPORT_LOCAL), [
+			b.jsx_attribute(
+				b.jsx_id('is'),
+				b.jsx_expression_container(generated_expression, dynamic_name),
+				false,
+				dynamic_name,
+			),
+		]),
+	);
 }
 
 /**

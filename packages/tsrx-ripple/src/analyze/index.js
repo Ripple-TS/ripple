@@ -2478,7 +2478,12 @@ const visitors = {
 		const { state, visit, path } = context;
 		const is_dynamic_syntax_element = node.isDynamic === true;
 		const is_dom_element = is_element_dom_element(node);
-		const is_dynamic_runtime_element = !is_dom_element && is_runtime_dynamic_element(node, context);
+		// Dynamic tags (`<{expr}>`) resolve at runtime just like the imported
+		// `Dynamic` helper, so they share its CSS treatment: scoped pruning must
+		// keep type selectors (the tag could be any element) and collect the
+		// element so its classes match and receive the scope hash.
+		const is_dynamic_runtime_element =
+			is_dynamic_syntax_element || (!is_dom_element && is_runtime_dynamic_element(node, context));
 		if (is_dynamic_runtime_element) {
 			node.metadata.runtime_dynamic_element = true;
 		}

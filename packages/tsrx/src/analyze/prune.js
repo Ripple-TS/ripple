@@ -1,4 +1,5 @@
 /** @import * as AST from 'estree' */
+/** @import * as ESTreeJSX from 'estree-jsx' */
 /** @import { Visitors, TopScopedClasses, StyleClasses } from '../../types/index' */
 /** @typedef {0 | 1} Direction */
 
@@ -67,7 +68,13 @@ function get_attribute_value(attribute) {
  * @returns {boolean}
  */
 function is_runtime_dynamic_element(node) {
-	return node?.metadata?.runtime_dynamic_element === true;
+	// `metadata.runtime_dynamic_element` marks imported `Dynamic` usage and
+	// lowered dynamic tags; `isDynamic` is the parser flag on a not-yet-lowered
+	// `<{expr}>` element. Both resolve their tag at runtime.
+	return (
+		node?.metadata?.runtime_dynamic_element === true ||
+		/** @type {ESTreeJSX.JSXExpressionContainer} */ (node)?.isDynamic === true
+	);
 }
 
 /**

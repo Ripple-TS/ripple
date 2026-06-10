@@ -75,9 +75,13 @@ export function annotate_with_hash(
 ) {
 	if (!node || typeof node !== 'object') return node;
 	if (
-		node.type === 'FunctionDeclaration' ||
-		node.type === 'FunctionExpression' ||
-		node.type === 'ArrowFunctionExpression'
+		(node.type === 'FunctionDeclaration' ||
+			node.type === 'FunctionExpression' ||
+			node.type === 'ArrowFunctionExpression') &&
+		// Generated dynamic-tag wrappers are render-block closures, not user
+		// component boundaries — the element inside still belongs to this
+		// component's scoped CSS.
+		node.metadata?.tsrx_dynamic_wrapper !== true
 	) {
 		return node;
 	}

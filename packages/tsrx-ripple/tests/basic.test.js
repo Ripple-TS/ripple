@@ -38,6 +38,31 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(code).toContain('is: Tag');
 	});
 
+	it('keeps scoped type selectors and applies scope hashes for dynamic tags', () => {
+		const { code, css, cssHash } = compile(
+			`function App() @{
+				const Tag = 'section';
+				<>
+					<{Tag} class="host">{'hello'}</{Tag}>
+					<style>
+						div { color: red; }
+						.host { color: blue; }
+						.unused { color: green; }
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		// The tag resolves at runtime, so it could be any element: type
+		// selectors must survive pruning, matching classes get the hash, and
+		// genuinely unused classes are still pruned.
+		expect(css).toContain(`div.${cssHash} { color: red; }`);
+		expect(css).toContain(`.host.${cssHash} { color: blue; }`);
+		expect(css).toContain('/* (unused) .unused { color: green; }*/');
+		expect(code).toContain(`class: '${cssHash} host'`);
+	});
+
 	it('emits valid to_ts output for dynamic tags', () => {
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);

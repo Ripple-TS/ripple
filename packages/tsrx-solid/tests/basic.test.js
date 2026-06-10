@@ -867,6 +867,33 @@ describe('@tsrx/solid basic', () => {
 		});
 	});
 
+	it('applies scoped css hashes and keeps type selectors for dynamic tags', () => {
+		const { code, css, cssHash } = compile(
+			`export function App() @{
+				const Tag = 'section';
+				<>
+					<{Tag} class="host">{'hello'}</{Tag}>
+
+					<style>
+						div {
+							color: red;
+						}
+						.host {
+							color: blue;
+						}
+					</style>
+				</>
+			}`,
+			'App.tsrx',
+		);
+
+		// The tag resolves at runtime, so it could be any element: type
+		// selectors must survive pruning and the element's class gets the hash.
+		expect(code).toContain(`class="host ${cssHash}"`);
+		expect(css).toContain(`div.${cssHash}`);
+		expect(css).toContain(`.host.${cssHash}`);
+	});
+
 	describe('lazy destructuring (variable form)', () => {
 		it('let [a, b] = createSignal uses regular destructuring', () => {
 			const { code } = compile(
