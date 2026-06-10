@@ -5,7 +5,7 @@ describe('server dynamic DOM elements', () => {
 	it('renders static dynamic element', async () => {
 		function App() @{
 			let tag = track('div');
-			<Dynamic is={tag}>{'Hello World'}</Dynamic>
+			<{tag}>{'Hello World'}</{tag}>
 		}
 
 		const { body } = await render(App);
@@ -17,7 +17,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let obj = { tag: track('div') };
 			let tag = obj.tag;
-			<Dynamic is={tag}>{'Hello World'}</Dynamic>
+			<{tag}>{'Hello World'}</{tag}>
 		}
 
 		const { body } = await render(App);
@@ -36,7 +36,7 @@ describe('server dynamic DOM elements', () => {
 		}
 
 		function App() @{
-			<Dynamic is={Child} label="child" class="yo" />
+			<{Child} label="child" class="yo" />
 		}
 
 		const { body } = await render(App);
@@ -48,7 +48,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let obj = track({ tag: track('div') });
 			let tag = obj.value.tag;
-			<Dynamic is={tag}>{'Hello World'}</Dynamic>
+			<{tag}>{'Hello World'}</{tag}>
 		}
 
 		const { body } = await render(App);
@@ -62,7 +62,7 @@ describe('server dynamic DOM elements', () => {
 			function App() @{
 				let obj = track({ tag: track('div') });
 				let tag = obj.value['tag'];
-				<Dynamic is={tag}>{'Hello World'}</Dynamic>
+				<{tag}>{'Hello World'}</{tag}>
 			}
 
 			const { body } = await render(App);
@@ -74,7 +74,7 @@ describe('server dynamic DOM elements', () => {
 	it('renders self-closing dynamic element', async () => {
 		function App() @{
 			let tag = track('input');
-			<Dynamic is={tag} type="text" value="test" />
+			<{tag} type="text" value="test" />
 		}
 
 		const { body } = await render(App);
@@ -86,12 +86,7 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			let &[className] = track('test-class');
-			<Dynamic
-				is={tag}
-				class={className}
-				id="test"
-				data-testid="dynamic-element"
-			>{'Content'}</Dynamic>
+			<{tag} class={className} id="test" data-testid="dynamic-element">{'Content'}</{tag}>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);
@@ -108,9 +103,9 @@ describe('server dynamic DOM elements', () => {
 		function App() @{
 			let outerTag = track('div');
 			let innerTag = track('span');
-			<Dynamic is={outerTag} class="outer">
-				<Dynamic is={innerTag} class="inner">{'Nested content'}</Dynamic>
-			</Dynamic>
+			<{outerTag} class="outer">
+				<{innerTag} class="inner">{'Nested content'}</{innerTag}>
+			</{outerTag}>
 		}
 		const { body } = await render(App);
 		const { document } = parseHtml(body);

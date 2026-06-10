@@ -5870,7 +5870,8 @@ function printJSXElement(node, path, options, print) {
 	const openingElement = node.openingElement;
 	const closingElement = node.closingElement;
 
-	const tagName = printJSXElementName(openingElement.name);
+	const tagName = printJSXElementName(openingElement.name, path, print);
+	const tagNameText = getJSXElementNameText(openingElement.name);
 
 	const isSelfClosing = openingElement.selfClosing;
 	const hasAttributes = openingElement.attributes && openingElement.attributes.length > 0;
@@ -6022,7 +6023,7 @@ function printJSXElement(node, path, options, print) {
 				const afterNextChild = node.children[i + 2];
 				const nextText = afterNextChild?.type === 'JSXText' ? afterNextChild.value.trim() : '';
 				if (
-					tagName === 'tsrx' &&
+					tagNameText === 'tsrx' &&
 					text.trimEnd().endsWith('=') &&
 					nextChild?.type === 'JSXElement' &&
 					nextText === ';'
@@ -6467,21 +6468,50 @@ function printJSXAttribute(attr, path, options, print) {
 /**
  * Print a JSX element name.
  * @param {AST.Node} node - The JSX element name node
- * @returns {string}
+ * @param {AstPath<any>} path
+ * @param {PrintFn} print
+ * @returns {Doc | Doc[]}
  */
-function printJSXElementName(node) {
+function printJSXElementName(node, path, print) {
 	if (node.type === 'JSXIdentifier') {
 		return node.name;
 	}
 	if (node.type === 'JSXMemberExpression') {
-		return printJSXElementName(node.object) + '.' + printJSXElementName(node.property);
+		return [
+			printJSXElementName(node.object, path, print),
+			'.',
+			printJSXElementName(node.property, path, print),
+		];
 	}
 	if (node.type === 'JSXNamespacedName') {
 		const namespace_name = node.namespace.name;
 		const local_name = node.name.name;
 		return namespace_name + ':' + local_name;
 	}
+	if (node.type === 'JSXExpressionContainer') {
+		return ['{', path.call(print, 'openingElement', 'name', 'expression'), '}'];
+	}
 	return 'Unknown';
+}
+
+/**
+ * Get a plain JSX element name for tag-specific formatting checks.
+ * @param {AST.Node} node - The JSX element name node
+ * @returns {string | null}
+ */
+function getJSXElementNameText(node) {
+	if (node.type === 'JSXIdentifier') {
+		return node.name;
+	}
+	if (node.type === 'JSXMemberExpression') {
+		const object = getJSXElementNameText(node.object);
+		const property = getJSXElementNameText(node.property);
+		return object && property ? object + '.' + property : null;
+	}
+	if (node.type === 'JSXNamespacedName') {
+		return node.namespace.name + ':' + node.name.name;
+	}
+	return null;
 }
 
 /**

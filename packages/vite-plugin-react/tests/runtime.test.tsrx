@@ -1,6 +1,5 @@
 import type { MockInstance } from 'vitest';
 import { useState, use } from 'react';
-import { Dynamic } from '@tsrx/react/dynamic';
 import { mergeRefs } from '@tsrx/react/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
@@ -99,7 +98,7 @@ function NestedApp() @{
 
 function DynamicElementApp() @{
 	const tag = 'section';
-	<Dynamic is={tag} className="dynamic-host">{'dynamic element'}</Dynamic>
+	<{tag} className="dynamic-host">{'dynamic element'}</{tag}>
 }
 
 function DynamicChild(props: { label: string }) @{
@@ -108,13 +107,13 @@ function DynamicChild(props: { label: string }) @{
 
 function DynamicComponentApp() @{
 	const component = DynamicChild;
-	<Dynamic is={component} label="dynamic component" />
+	<{component} label="dynamic component" />
 }
 
 function DynamicSwitchApp() @{
 	const [tag, setTag] = useState<'section' | 'article'>('section');
 	<>
-		<Dynamic is={tag} className="dynamic-switch">{tag}</Dynamic>
+		<{tag} className="dynamic-switch">{tag}</{tag}>
 		<button
 			className="dynamic-switch-toggle"
 			onClick={() => setTag(tag === 'section' ? 'article' : 'section')}

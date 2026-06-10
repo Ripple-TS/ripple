@@ -1,14 +1,14 @@
-import { Dynamic, flushSync, track } from 'ripple';
+import { flushSync, track } from 'ripple';
 
 describe('composite > dynamic components', () => {
-	it('supports rendering composite components using <Dynamic is={component}> syntax', () => {
+	it('supports rendering composite components using dynamic tag syntax', () => {
 		function basic() @{
 			<div>{'Basic Component'}</div>
 		}
 
 		function App() @{
 			const tracked_basic = track(() => basic);
-			<Dynamic is={tracked_basic} />
+			<{tracked_basic} />
 		}
 
 		render(App);
@@ -28,7 +28,7 @@ describe('composite > dynamic components', () => {
 				tracked_basic,
 			};
 			const comp = obj.tracked_basic;
-			<Dynamic is={comp} />
+			<{comp} />
 		}
 
 		render(App);
@@ -49,7 +49,7 @@ describe('composite > dynamic components', () => {
 			};
 			let &[inner] = track(obj);
 			const comp = inner.tracked_basic;
-			<Dynamic is={comp} />
+			<{comp} />
 		}
 
 		render(App);
@@ -67,7 +67,7 @@ describe('composite > dynamic components', () => {
 
 		function App() @{
 			const component = track(() => Child);
-			<Dynamic is={component} label="child" />
+			<{component} label="child" />
 		}
 
 		render(App);
@@ -89,7 +89,7 @@ describe('composite > dynamic components', () => {
 			let &[thing] = track(() => Child1);
 			<>
 				<div id="container">
-					<Dynamic is={thing} />
+					<{thing} />
 				</div>
 				<button
 					onClick={() => (thing = thing === Child1 ? Child2 : Child1)}

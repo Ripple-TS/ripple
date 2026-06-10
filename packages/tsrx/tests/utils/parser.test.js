@@ -83,6 +83,94 @@ describe('TSRX parser', () => {
 		expect(returned.openingElement.name.name).toBe('div');
 	});
 
+	it('parses self-closing dynamic element tags', () => {
+		const source = 'function MyApp() { return <{Tag} class="card" />; }';
+		const returned = getReturned(source);
+
+		expect(returned.type).toBe('JSXElement');
+		expect(returned.isDynamic).toBe(true);
+		expect(returned.openingElement.isDynamic).toBe(true);
+		expect(returned.openingElement.selfClosing).toBe(true);
+		expect(returned.closingElement).toBeNull();
+		expect(returned.openingElement.name.type).toBe('JSXExpressionContainer');
+		expect(returned.openingElement.name.isDynamic).toBe(true);
+		expect(returned.openingElement.name.expression.type).toBe('Identifier');
+		expect(returned.openingElement.name.expression.name).toBe('Tag');
+		expect(
+			source.slice(
+				returned.openingElement.name.expression.start,
+				returned.openingElement.name.expression.end,
+			),
+		).toBe('Tag');
+	});
+
+	it('parses dynamic element tags with matching closing tags', () => {
+		const source = `function MyApp() {
+			return <{Child} class="card"><div>Hello</div></{Child}>;
+		}`;
+		const returned = getReturned(source);
+
+		expect(returned.type).toBe('JSXElement');
+		expect(returned.isDynamic).toBe(true);
+		expect(returned.openingElement.name.expression.name).toBe('Child');
+		expect(returned.closingElement.isDynamic).toBe(true);
+		expect(returned.closingElement.name.type).toBe('JSXExpressionContainer');
+		expect(returned.closingElement.name.expression.name).toBe('Child');
+		expect(returned.children.map((child) => child.type)).toEqual(['JSXElement']);
+	});
+
+	it('parses supported dynamic element name expressions', () => {
+		const cases = [
+			['<{Tag} />', 'Identifier', 'Tag'],
+			['<{something.prop} />', 'MemberExpression', 'something.prop'],
+			['<{arr[0]} />', 'MemberExpression', 'arr[0]'],
+			["<{'div'} />", 'Literal', "'div'"],
+			['<{`div`} />', 'TemplateLiteral', '`div`'],
+		];
+
+		for (const [tag, expressionType, expressionSource] of cases) {
+			const source = `function MyApp() { return ${tag}; }`;
+			const returned = getReturned(source);
+			const expression = returned.openingElement.name.expression;
+			expect(returned.isDynamic).toBe(true);
+			expect(expression.type).toBe(expressionType);
+			expect(source.slice(expression.start, expression.end)).toBe(expressionSource);
+		}
+	});
+
+	it('rejects static non-string dynamic element names', () => {
+		for (const tag of [
+			'<{null} />',
+			'<{undefined} />',
+			'<{true} />',
+			'<{1} />',
+			'<{{}} />',
+			'<{[]} />',
+		]) {
+			expect(() => parseModule(`function MyApp() { return ${tag}; }`, 'App.tsrx')).toThrow(
+				'Dynamic element names must be',
+			);
+		}
+	});
+
+	it('rejects dynamic element call expressions, spreads, and string interpolation', () => {
+		for (const tag of [
+			'<{tagName()} />',
+			'<{condition ? tagName() : Tag} />',
+			'<{new TagName()} />',
+			'<{({ ...tags }).tag} />',
+			'<{({ tag }).tag} />',
+			'<{[Tag][0]} />',
+			"<{'hello' + 'by'} />",
+			'<{`d${kind}`} />',
+			'<{tag`div`} />',
+		]) {
+			expect(() => parseModule(`function MyApp() { return ${tag}; }`, 'App.tsrx')).toThrow(
+				'Dynamic element names must be',
+			);
+		}
+	});
+
 	it('parses a return after a fragment variable initializer without an explicit semicolon', () => {
 		const ast = parseModule(
 			`function MyComponent() {

@@ -6,6 +6,7 @@ import {
 } from '@tsrx/core/test-harness/compile';
 import { runSharedSourceMappingTests } from '@tsrx/core/test-harness/source-mappings';
 import { compile, compile_to_volar_mappings } from '../src/index.js';
+import { find_exact_mapping } from '../../tsrx/src/source-map-utils.js';
 
 runSharedSourceMappingTests({
 	compile,
@@ -299,6 +300,74 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(code).toContain(`className="host ${cssHash}"`);
+	});
+
+	it('lowers dynamic tag syntax to the React Dynamic helper import', () => {
+		const { code } = compile(
+			`export function App() @{
+				const Tag = 'section';
+				<{Tag} className="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/react/dynamic';`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} className="host">{'hello'}</TsrxDynamic>`);
+	});
+
+	it('adds a separate Dynamic helper import when a namespace import already exists', () => {
+		const { code } = compile(
+			`import * as dynamicHelpers from '@tsrx/react/dynamic';
+
+			export function App() @{
+				const Tag = 'section';
+				<{Tag} className="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/react/dynamic';`);
+		expect(code).toContain(`import * as dynamicHelpers from '@tsrx/react/dynamic';`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} className="host">{'hello'}</TsrxDynamic>`);
+	});
+
+	it('does not map generated Dynamic tag names over dynamic tag props', () => {
+		const source = `export function App() @{
+			const tag = 'div';
+			const className = 'test-class';
+			<{tag} className={className} id="test">{'Content'}</{tag}>
+		}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx');
+		const generated_tag_offset = result.code.indexOf('<TsrxDynamic') + 1;
+		const generated_is_value_offset = result.code.indexOf('tag', result.code.indexOf('is={'));
+		const generated_class_offset = result.code.indexOf('className=', generated_tag_offset);
+		const source_class_offset = source.indexOf('className=');
+		const source_closing_tag_offset = source.indexOf('tag}', source.indexOf('</{'));
+
+		const generated_tag_mapping = result.mappings.find((mapping) => {
+			const generated_offset = mapping.generatedOffsets[0];
+			const generated_length = mapping.generatedLengths?.[0] ?? mapping.lengths[0];
+			return (
+				generated_offset <= generated_tag_offset &&
+				generated_tag_offset < generated_offset + generated_length
+			);
+		});
+		const class_mapping = find_exact_mapping(
+			result.mappings,
+			source_class_offset,
+			generated_class_offset,
+			'className'.length,
+		);
+		const closing_tag_mapping = find_exact_mapping(
+			result.mappings,
+			source_closing_tag_offset,
+			generated_is_value_offset,
+			'tag'.length,
+		);
+
+		expect(generated_tag_mapping).toBeUndefined();
+		expect(class_mapping).toBeDefined();
+		expect(closing_tag_mapping).toBeDefined();
 	});
 
 	it('applies scoped css hashes to runtime Dynamic import aliases', () => {

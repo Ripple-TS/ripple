@@ -792,6 +792,19 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain(`class="host ${cssHash}"`);
 		});
 
+		it('lowers dynamic tag syntax to the Solid Dynamic helper import', () => {
+			const { code } = compile(
+				`export function App() @{
+					const Tag = 'section';
+					<{Tag} class="host">{'hello'}</{Tag}>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/solid/dynamic';`);
+			expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+		});
+
 		it('supports style expressions for scoped class maps', () => {
 			const { code } = compile(
 				`export function App() @{

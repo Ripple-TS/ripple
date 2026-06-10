@@ -69,6 +69,7 @@ const TSRX_IF_RETURN_ERROR =
 const TSRX_IF_BREAK_ERROR = 'Break statements are not allowed inside TSRX template @if blocks.';
 const TSRX_IF_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
+const DYNAMIC_IMPORT_LOCAL = 'TsrxDynamic';
 
 /**
  * @param {AST.Node} node
@@ -300,6 +301,8 @@ export function createJsxTransform(platform) {
 			needs_normalize_spread_props: false,
 			needs_normalize_spread_props_for_ref_attr: false,
 			needs_fragment: false,
+			needs_dynamic_element: false,
+			dynamic_import_local: DYNAMIC_IMPORT_LOCAL,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
 			stylesheets,
@@ -364,6 +367,8 @@ export function createJsxTransform(platform) {
 			},
 
 			JSXElement(node, { next, path, state }) {
+				lower_dynamic_jsx_element(node, state);
+
 				if (!node.metadata?.native_tsrx) {
 					return next() ?? node;
 				}
@@ -462,6 +467,7 @@ export function createJsxTransform(platform) {
 			transformed_program.body.unshift(...type_only_style_anchors);
 		}
 		const expanded = expand_component_helpers(transformed_program);
+		inject_dynamic_import(expanded, transform_context);
 		if (platform.hooks?.injectImports) {
 			platform.hooks.injectImports(expanded, transform_context, suspense_source);
 		} else {
@@ -495,6 +501,122 @@ export function createJsxTransform(platform) {
 	}
 
 	return transform;
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_dynamic_element_node(node) {
+	return !!(
+		node?.type === 'JSXElement' &&
+		(node.isDynamic === true ||
+			node.openingElement?.isDynamic === true ||
+			is_dynamic_element_name(node.openingElement?.name))
+	);
+}
+
+/**
+ * @param {any} name
+ * @returns {boolean}
+ */
+function is_dynamic_element_name(name) {
+	return !!(name?.type === 'JSXExpressionContainer' && name.isDynamic === true);
+}
+
+/**
+ * Lower a single parser-native dynamic tag (`<{expr}>`) into the target runtime
+ * `<Dynamic is={expr}>` helper shape while the existing JSXElement walker is
+ * already visiting it.
+ *
+ * @param {any} node
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function lower_dynamic_jsx_element(node, transform_context) {
+	if (!is_dynamic_element_node(node)) return;
+	if (!transform_context.platform.imports.dynamic) return;
+
+	const opening = node.openingElement;
+	const dynamic_name = opening?.name;
+	const dynamic_expression = dynamic_name?.expression;
+	if (!dynamic_expression) return;
+	const closing_expression =
+		node.metadata?.dynamic_closing_expression ??
+		dynamic_expression.metadata?.dynamic_closing_expression ??
+		(node.closingElement?.name?.expression &&
+			clone_expression_node(node.closingElement.name.expression));
+
+	const dynamic_id = b.jsx_id(transform_context.dynamic_import_local);
+	opening.name = dynamic_id;
+	opening.isDynamic = false;
+	opening.attributes = [
+		create_dynamic_is_attribute(dynamic_expression, dynamic_name, closing_expression),
+		...(opening.attributes || []),
+	];
+	if (node.closingElement?.name) {
+		node.closingElement.name = b.jsx_id(transform_context.dynamic_import_local);
+		node.closingElement.isDynamic = false;
+	}
+	node.isDynamic = false;
+
+	transform_context.needs_dynamic_element = true;
+}
+
+/**
+ * @param {any} expression
+ * @param {any} source_name
+ * @param {any} [closing_expression]
+ * @returns {any}
+ */
+function create_dynamic_is_attribute(expression, source_name, closing_expression) {
+	const generated_expression = clone_expression_node(expression);
+	add_extra_source_mappings_from_matching_expression(generated_expression, closing_expression);
+	return b.jsx_attribute(
+		b.jsx_id('is'),
+		b.jsx_expression_container(generated_expression, source_name),
+		false,
+		source_name,
+	);
+}
+
+/**
+ * @param {any} generated
+ * @param {any} source
+ * @returns {void}
+ */
+function add_extra_source_mappings_from_matching_expression(generated, source) {
+	if (!generated || !source || generated.type !== source.type) return;
+
+	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
+		if (!source.loc) return;
+		generated.metadata ??= { path: [] };
+		generated.metadata.extra_source_mappings ??= [];
+		generated.metadata.extra_source_mappings.push({ source });
+		return;
+	}
+
+	for (const key of ['expression', 'object', 'property']) {
+		if (generated[key] && source[key]) {
+			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
+		}
+	}
+}
+
+/**
+ * @param {AST.Program} program
+ * @param {TransformContext} transform_context
+ * @returns {void}
+ */
+function inject_dynamic_import(program, transform_context) {
+	const source = transform_context.platform.imports.dynamic;
+	if (!transform_context.needs_dynamic_element || !source) return;
+	program.body.unshift(
+		b.import_declaration(
+			[b.import_specifier('Dynamic', transform_context.dynamic_import_local)],
+			source,
+		),
+	);
 }
 
 /**

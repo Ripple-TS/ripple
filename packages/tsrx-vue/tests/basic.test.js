@@ -221,6 +221,19 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain(`class="host ${cssHash}"`);
 	});
 
+	it('lowers dynamic tag syntax to the Vue Dynamic helper import', () => {
+		const { code } = compile(
+			`function App() @{
+				const Tag = 'section';
+				<{Tag} class="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/vue/dynamic';`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+	});
+
 	it('ref={fn} on a DOM element compiles to ref={fn}', () => {
 		const { code } = compile(
 			`function App() @{

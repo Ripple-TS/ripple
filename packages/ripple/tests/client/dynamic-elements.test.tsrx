@@ -5,7 +5,7 @@ describe('dynamic DOM elements', () => {
 	it('renders static dynamic element', () => {
 		function App() @{
 			let tag = track('div');
-			<Dynamic is={tag}>{'Hello World'}</Dynamic>
+			<{tag}>{'Hello World'}</{tag}>
 		}
 		render(App);
 
@@ -17,7 +17,7 @@ describe('dynamic DOM elements', () => {
 	it('renders static dynamic element from a plain object with a tracked property', () => {
 		function App() @{
 			let obj = { tag: track('div') };
-			<Dynamic is={obj.tag}>{'Hello World'}</Dynamic>
+			<{obj.tag}>{'Hello World'}</{obj.tag}>
 		}
 		render(App);
 
@@ -30,7 +30,7 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let obj = track({ tag: track('div') });
 			let tag = obj.value.tag;
-			<Dynamic is={tag}>{'Hello World'}</Dynamic>
+			<{tag}>{'Hello World'}</{tag}>
 		}
 		render(App);
 
@@ -45,7 +45,7 @@ describe('dynamic DOM elements', () => {
 			function App() @{
 				let obj = track({ tag: track('div') });
 				let tag = obj.value['tag'];
-				<Dynamic is={tag}>{'Hello World'}</Dynamic>
+				<{tag}>{'Hello World'}</{tag}>
 			}
 			render(App);
 
@@ -64,7 +64,7 @@ describe('dynamic DOM elements', () => {
 						tag = 'span';
 					}}
 				>{'Change Tag'}</button>
-				<Dynamic is={tag} id="dynamic">{'Hello World'}</Dynamic>
+				<{tag} id="dynamic">{'Hello World'}</{tag}>
 			</>
 		}
 		render(App);
@@ -88,7 +88,7 @@ describe('dynamic DOM elements', () => {
 	it('renders self-closing dynamic element', () => {
 		function App() @{
 			let tag = track('input');
-			<Dynamic is={tag} type="text" value="test" />
+			<{tag} type="text" value="test" />
 		}
 		render(App);
 
@@ -102,12 +102,7 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let tag = track('div');
 			let &[className] = track('test-class');
-			<Dynamic
-				is={tag}
-				class={className}
-				id="test"
-				data-testid="dynamic-element"
-			>{'Content'}</Dynamic>
+			<{tag} class={className} id="test" data-testid="dynamic-element">{'Content'}</{tag}>
 		}
 		render(App);
 
@@ -122,9 +117,9 @@ describe('dynamic DOM elements', () => {
 		function App() @{
 			let outerTag = track('div');
 			let innerTag = track('span');
-			<Dynamic is={outerTag} class="outer">
-				<Dynamic is={innerTag} class="inner">{'Nested content'}</Dynamic>
-			</Dynamic>
+			<{outerTag} class="outer">
+				<{innerTag} class="inner">{'Nested content'}</{innerTag}>
+			</{outerTag}>
 		}
 		render(App);
 

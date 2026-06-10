@@ -27,6 +27,7 @@
 	generated: string;
 	loc: AST.SourceLocation;
 	metadata: PluginActionOverrides;
+	generatedLoc?: AST.SourceLocation;
 	end_loc?: AST.SourceLocation;
 	sourceLength?: number;
 	mappingData?: Partial<VolarCodeMapping['data']>;
@@ -387,7 +388,8 @@ export function convert_source_map_to_mappings(
 	 * @returns {{ line: number; column: number }}
 	 */
 	function get_generated_position_for_token(token) {
-		const key = `${token.loc.start.line}:${token.loc.start.column}`;
+		const generated_loc = token.generatedLoc ?? token.loc;
+		const key = `${generated_loc.start.line}:${generated_loc.start.column}`;
 		const positions = src_to_gen_map.get(key);
 		if (!positions || positions.length === 0) {
 			throw new Error(`No source map entry for position "${key}"`);
@@ -478,6 +480,34 @@ export function convert_source_map_to_mappings(
 		}
 	}
 
+	/**
+	 * @param {any} generated_node
+	 * @returns {void}
+	 */
+	function add_extra_source_mapping_tokens(generated_node) {
+		if (!generated_node?.loc || !Array.isArray(generated_node.metadata?.extra_source_mappings)) {
+			return;
+		}
+
+		for (const extra_mapping of generated_node.metadata.extra_source_mappings) {
+			const source_node = extra_mapping.source;
+			if (!source_node?.loc) continue;
+
+			tokens.push({
+				source: source_node.name ?? generated_node.name,
+				generated: generated_node.name,
+				loc: source_node.loc,
+				generatedLoc: generated_node.loc,
+				metadata: {},
+				sourceLength:
+					typeof source_node.start === 'number' && typeof source_node.end === 'number'
+						? source_node.end - source_node.start
+						: undefined,
+				mappingData: extra_mapping.mappingData,
+			});
+		}
+	}
+
 	// We have to visit everything in generated order to maintain correct indices
 
 	walk(ast, null, {
@@ -521,6 +551,7 @@ export function convert_source_map_to_mappings(
 						token.mappingData = { ...mapping_data, verification: false };
 					}
 					tokens.push(token);
+					add_extra_source_mapping_tokens(node);
 
 					if (Array.isArray(node.metadata?.lazy_param_binding_mappings)) {
 						for (const binding_mapping of node.metadata.lazy_param_binding_mappings) {
@@ -558,6 +589,7 @@ export function convert_source_map_to_mappings(
 						token.mappingData = { ...mapping_data, verification: false };
 					}
 					tokens.push(token);
+					add_extra_source_mapping_tokens(node);
 				}
 				return; // Leaf node, don't traverse further
 			} else if (node.type === 'Literal') {

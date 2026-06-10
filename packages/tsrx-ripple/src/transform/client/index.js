@@ -97,6 +97,8 @@ import {
 	is_code_block_function_body,
 	is_tsrx_component_function,
 	is_style_element,
+	dynamic_element_import_local,
+	lower_dynamic_element,
 	rewrite_lazy_member_base,
 	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
@@ -2056,6 +2058,10 @@ const visitors = {
 
 	Element(node, context) {
 		const { state, visit } = context;
+
+		if (lower_dynamic_element(node)) {
+			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+		}
 
 		if (
 			is_style_element(node) &&
@@ -4140,6 +4146,10 @@ function transform_ts_child(node, context) {
 	if (node.type === 'TSRXExpression' || node.type === 'Text') {
 		state.init?.push(b.stmt(/** @type {AST.Expression} */ (visit(node.expression, { ...state }))));
 	} else if (node.type === 'Element') {
+		if (lower_dynamic_element(node)) {
+			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+		}
+
 		/** @type {ESTreeJSX.JSXElement['children']} */
 		const children = [];
 		let has_children_props = false;
@@ -4870,6 +4880,11 @@ function transform_template_element(node, state, visit, child_namespace) {
  */
 function transform_children(children, context) {
 	const { visit, state, root } = context;
+	for (const child of children) {
+		if (child.type === 'Element' && lower_dynamic_element(child)) {
+			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+		}
+	}
 	const normalized = normalize_children(children, {
 		...context,
 		state: { ...state, keep_component_style: state.to_ts ? true : state.keep_component_style },

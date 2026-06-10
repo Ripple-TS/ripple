@@ -18,6 +18,74 @@ runSharedComponentParamsTests({
 	name: 'ripple',
 });
 
+describe('@tsrx/ripple dynamic tag syntax', () => {
+	const source = `function App() @{
+	const Tag = 'section';
+	<{Tag} class="host">{'hello'}</{Tag}>
+}`;
+
+	it('lowers dynamic tags through the runtime Dynamic helper on the client', () => {
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
+		expect(code).toContain('_$_.render_component(TsrxDynamic');
+		expect(code).toContain('is: Tag');
+	});
+
+	it('lowers dynamic tags through the runtime Dynamic helper on the server', () => {
+		const { code } = compile(source, 'App.tsrx', { mode: 'server' });
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
+		expect(code).toContain('const comp = TsrxDynamic;');
+		expect(code).toContain('is: Tag');
+	});
+
+	it('emits valid to_ts output for dynamic tags', () => {
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} class="host"`);
+		expect(code).toContain(`children={() =>`);
+		expect(code).toContain(`'hello';`);
+	});
+
+	it('does not map generated Dynamic tag names over dynamic tag props', () => {
+		const source = `function App() @{
+	const tag = 'div';
+	const className = 'test-class';
+	<{tag} class={className} id="test" data-testid="dynamic-element">{'Content'}</{tag}>
+}`;
+		const result = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		const generated_tag_offset = result.code.indexOf('<TsrxDynamic') + 1;
+		const generated_is_value_offset = result.code.indexOf('tag', result.code.indexOf('is={'));
+		const generated_class_offset = result.code.indexOf('class=', generated_tag_offset);
+		const source_class_offset = source.indexOf('class=');
+		const source_closing_tag_offset = source.indexOf('tag}', source.indexOf('</{'));
+
+		const generated_tag_mapping = result.mappings.find((mapping) => {
+			const generated_offset = mapping.generatedOffsets[0];
+			const generated_length = mapping.generatedLengths?.[0] ?? mapping.lengths[0];
+			return (
+				generated_offset <= generated_tag_offset &&
+				generated_tag_offset < generated_offset + generated_length
+			);
+		});
+		const class_mapping = find_exact_mapping(
+			result.mappings,
+			source_class_offset,
+			generated_class_offset,
+			'class'.length,
+		);
+		const closing_tag_mapping = find_exact_mapping(
+			result.mappings,
+			source_closing_tag_offset,
+			generated_is_value_offset,
+			'tag'.length,
+		);
+
+		expect(generated_tag_mapping).toBeUndefined();
+		expect(class_mapping).toBeDefined();
+		expect(closing_tag_mapping).toBeDefined();
+	});
+});
+
 describe('@tsrx/ripple Volar mappings cover declaration keywords', () => {
 	/**
 	 * @param {string} source

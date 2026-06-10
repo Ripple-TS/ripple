@@ -74,6 +74,34 @@ describe('prettier-plugin', () => {
 		expect(result).toBeWithNewline(expected);
 	});
 
+	it('formats dynamic element tags', async () => {
+		const input = `function App(props){const Child='div';return <{Child} {...props} class="card"><span>Hello</span></{Child}>}`;
+		const expected = `function App(props) {
+  const Child = "div";
+  return <{Child} {...props} class="card">
+    <span>Hello</span>
+  </{Child}>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
+	it('formats dynamic element tag expressions', async () => {
+		const input = `function App(){return <><{registry.item}/><{items[0]}/><{'section'}/><{\`article\`}/></>;}`;
+		const expected = `function App() {
+  return <>
+    <{registry.item} />
+    <{items[0]} />
+    <{"section"} />
+    <{\`article\`} />
+  </>;
+}`;
+
+		const result = await format(input);
+		expect(result).toBeWithNewline(expected);
+	});
+
 	it('formats a fragment code block with setup and template control flow', async () => {
 		const input = `function App(){return <>@{
 const items=[1,2,3];

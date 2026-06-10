@@ -234,6 +234,19 @@ describe('@tsrx/preact basic', () => {
 		expect(code).toContain(`class="host ${cssHash}"`);
 	});
 
+	it('lowers dynamic tag syntax to the Preact Dynamic helper import', () => {
+		const { code } = compile(
+			`export function App() @{
+				const Tag = 'section';
+				<{Tag} class="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+		);
+
+		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/preact/dynamic';`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+	});
+
 	it('keeps hook-bearing composite children inline without helper prop plumbing', () => {
 		const source = `import { useState } from 'preact/hooks';
 			import type { PropsWithChildren } from 'ripple';

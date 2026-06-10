@@ -1,6 +1,5 @@
 import type { MockInstance } from 'vitest';
 import { defineVaporAsyncComponent, inject, provide, reactive, ref, watch, watchEffect } from 'vue';
-import { Dynamic } from '@tsrx/vue/dynamic';
 import { mergeRefs } from '@tsrx/vue/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
@@ -62,7 +61,7 @@ function NestedApp() @{
 
 function DynamicElementApp() @{
 	const tag = 'section';
-	<Dynamic is={tag} class="dynamic-host">{'dynamic element'}</Dynamic>
+	<{tag} class="dynamic-host">{'dynamic element'}</{tag}>
 }
 
 function DynamicChild(props: { label: string }) @{
@@ -71,13 +70,13 @@ function DynamicChild(props: { label: string }) @{
 
 function DynamicComponentApp() @{
 	const component = DynamicChild;
-	<Dynamic is={component} label="dynamic component" />
+	<{component} label="dynamic component" />
 }
 
 function DynamicSwitchApp() @{
 	const tag = ref<'section' | 'article'>('section');
 	<>
-		<Dynamic is={tag.value} class="dynamic-switch">{tag.value}</Dynamic>
+		<{tag.value} class="dynamic-switch">{tag.value}</{tag.value}>
 		<button
 			class="dynamic-switch-toggle"
 			onClick={() => {

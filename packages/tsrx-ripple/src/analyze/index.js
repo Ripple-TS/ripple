@@ -2476,7 +2476,8 @@ const visitors = {
 		}
 
 		const { state, visit, path } = context;
-		const is_dom_element = is_element_dom_element(node);
+		const is_dynamic_syntax_element = node.isDynamic === true;
+		const is_dom_element = !is_dynamic_syntax_element && is_element_dom_element(node);
 		const is_dynamic_runtime_element = !is_dom_element && is_runtime_dynamic_element(node, context);
 		if (is_dynamic_runtime_element) {
 			node.metadata.runtime_dynamic_element = true;
@@ -2487,6 +2488,7 @@ const visitors = {
 		mark_control_flow_has_template(path, node);
 
 		if (
+			!is_dynamic_syntax_element &&
 			!is_dom_element &&
 			is_children_template_expression(/** @type {AST.Expression} */ (node.id), context)
 		) {

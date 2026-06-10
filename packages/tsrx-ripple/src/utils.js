@@ -6,6 +6,7 @@
 
 import {
 	buildAssignmentValue,
+	clone_expression_node,
 	extractPaths,
 	builders,
 	isBooleanAttribute,
@@ -1672,6 +1673,78 @@ export function is_element_dom_element(node) {
 	);
 }
 
+export const dynamic_element_import_local = 'TsrxDynamic';
+
+/**
+ * @param {AST.Element} node
+ * @returns {boolean}
+ */
+export function lower_dynamic_element(node) {
+	if (node.isDynamic !== true) {
+		return false;
+	}
+
+	const expression = /** @type {AST.Expression & { was_expression?: boolean }} */ (node.id);
+	const closing_expression =
+		node.metadata?.dynamic_closing_expression ??
+		expression.metadata?.dynamic_closing_expression ??
+		(node.closingElement?.name?.expression &&
+			clone_expression_node(node.closingElement.name.expression));
+	expression.was_expression = true;
+	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
+	node.id = b.id(dynamic_element_import_local);
+	if (node.openingElement?.name) {
+		node.openingElement.name = b.jsx_id(dynamic_element_import_local);
+	}
+	if (node.closingElement?.name) {
+		node.closingElement.name = b.jsx_id(dynamic_element_import_local);
+	}
+	node.attributes = [
+		{
+			type: 'Attribute',
+			name: {
+				type: 'Identifier',
+				name: 'is',
+				tracked: false,
+				start: expression.start,
+				end: expression.end,
+				loc: expression.loc,
+			},
+			value: expression,
+			shorthand: false,
+			start: expression.start,
+			end: expression.end,
+			loc: expression.loc,
+		},
+		...node.attributes,
+	];
+	node.isDynamic = false;
+	return true;
+}
+
+/**
+ * @param {any} generated
+ * @param {any} source
+ * @returns {void}
+ */
+function add_extra_source_mappings_from_matching_expression(generated, source) {
+	if (!generated || !source || generated.type !== source.type) return;
+
+	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
+		if (!source.loc) return;
+		generated.metadata ??= { path: [] };
+		generated.metadata.extra_source_mappings ??= [];
+		generated.metadata.extra_source_mappings.push({ source });
+		return;
+	}
+
+	for (const key of ['expression', 'object', 'property']) {
+		if (generated[key] && source[key]) {
+			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
+		}
+	}
+}
+
 /**
  * Normalizes children nodes (merges adjacent text, removes empty)
  * @param {AST.Node[]} children
@@ -2619,7 +2692,7 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		const opening = node.openingElement;
 		const name = opening.name;
 
-		/** @type {AST.Identifier | AST.MemberExpression} */
+		/** @type {AST.Identifier | AST.MemberExpression | AST.Expression} */
 		let id;
 
 		if (name.type === 'JSXIdentifier') {
@@ -2641,6 +2714,8 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				start: name.start,
 				end: name.end,
 			});
+		} else if (name.type === 'JSXExpressionContainer' && name.isDynamic === true) {
+			id = name.expression;
 		} else {
 			// Fallback - should not reach here
 			id = /** @type {AST.Identifier} */ ({
@@ -2726,6 +2801,10 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 				end: node.end,
 			})
 		);
+		if (node.isDynamic === true || opening.isDynamic === true || name.isDynamic === true) {
+			element.isDynamic = true;
+			element.metadata.dynamic_closing_expression = node.metadata?.dynamic_closing_expression;
+		}
 
 		element.children = /** @type {AST.Node[]} */ (
 			/** @type {AST.Node[]} */ (node.children)

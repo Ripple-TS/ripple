@@ -1,7 +1,6 @@
 import { lazy } from 'preact/compat';
 import { act } from 'preact/test-utils';
 import { useState } from 'preact/hooks';
-import { Dynamic } from '@tsrx/preact/dynamic';
 import { mergeRefs } from '@tsrx/preact/ref';
 import {
 	runSwitchFallthroughRuntimeTests,
@@ -20,7 +19,7 @@ function ResolvedChild(props: { value: string }) {
 
 function DynamicElementApp() @{
 	const tag = 'section';
-	<Dynamic is={tag} class="dynamic-host">{'dynamic element'}</Dynamic>
+	<{tag} class="dynamic-host">{'dynamic element'}</{tag}>
 }
 
 function DynamicChild(props: { label: string }) @{
@@ -29,13 +28,13 @@ function DynamicChild(props: { label: string }) @{
 
 function DynamicComponentApp() @{
 	const component = DynamicChild;
-	<Dynamic is={component} label="dynamic component" />
+	<{component} label="dynamic component" />
 }
 
 function DynamicSwitchApp() @{
 	const [tag, setTag] = useState<'section' | 'article'>('section');
 	<>
-		<Dynamic is={tag} class="dynamic-switch">{tag}</Dynamic>
+		<{tag} class="dynamic-switch">{tag}</{tag}>
 		<button
 			class="dynamic-switch-toggle"
 			onClick={() => setTag(tag === 'section' ? 'article' : 'section')}

@@ -57,7 +57,7 @@ function NestedApp() @{
 
 function DynamicElementApp() @{
 	const tag = 'section';
-	<Dynamic is={tag} class="dynamic-host">{'dynamic element'}</Dynamic>
+	<{tag} class="dynamic-host">{'dynamic element'}</{tag}>
 }
 
 function DynamicChild(props: { label: string }) @{
@@ -66,7 +66,7 @@ function DynamicChild(props: { label: string }) @{
 
 function DynamicComponentApp() @{
 	const component = DynamicChild;
-	<Dynamic is={component} label="dynamic component" />
+	<{component} label="dynamic component" />
 }
 
 function DynamicSwitchApp() @{
