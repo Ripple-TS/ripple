@@ -36,6 +36,8 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 		expect(code).toContain('const comp = _$_.dynamic_element;');
 		expect(code).toContain('is: Tag');
 		expect(code).not.toContain('TsrxDynamic');
+		// The helper is statically known — no `if (comp)` guard.
+		expect(code).not.toContain('if (comp)');
 	});
 
 	it('keeps scoped type selectors and applies scope hashes for dynamic tags', () => {

@@ -2406,10 +2406,15 @@ const visitors = {
 			/** @type {AST.Statement[]} */
 			const statements = [b.const(comp_id, visited_id), b.const(args_id, b.array(args))];
 
-			if (local_metadata) {
+			if (local_metadata || node.metadata?.dynamicElement === true) {
+				// Locally defined components and the internal `_$_.dynamic_element`
+				// helper are statically known; a dynamic tag's possibly-null value
+				// is handled inside the helper itself.
 				statements.push(comp_call_statement);
 			} else {
-				// imported or children
+				// Imported components and component-valued props (e.g. `children`,
+				// optional component props) may be undefined at render time —
+				// render nothing instead of crashing.
 				statements.push(b.if(comp_id, b.block([comp_call_statement])));
 			}
 

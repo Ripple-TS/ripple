@@ -227,9 +227,7 @@ export function DynamicTagElement() {
 					}
 				];
 
-				if (comp) {
-					_$_.render_component(comp, ...args);
-				}
+				_$_.render_component(comp, ...args);
 			}
 		});
 	});
@@ -251,9 +249,7 @@ export function DynamicTagComponent() {
 									const comp = _$_.dynamic_element;
 									const args = [{ is: Comp }];
 
-									if (comp) {
-										_$_.render_component(comp, ...args);
-									}
+									_$_.render_component(comp, ...args);
 								}
 							});
 						})
