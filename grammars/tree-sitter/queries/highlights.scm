@@ -91,6 +91,45 @@
   "{" @punctuation.bracket
   "}" @punctuation.bracket)
 
+; Dynamic tags (`<{expr}>`): braces take the tag delimiter color while the
+; expression inside keeps regular expression highlighting.
+(jsx_opening_element
+  name: (jsx_element_name
+    (jsx_expression
+      "{" @tag.delimiter
+      "}" @tag.delimiter)))
+
+(jsx_closing_element
+  name: (jsx_element_name
+    (jsx_expression
+      "{" @tag.delimiter
+      "}" @tag.delimiter)))
+
+(jsx_self_closing_element
+  name: (jsx_non_namespaced_element_name
+    (jsx_expression
+      "{" @tag.delimiter
+      "}" @tag.delimiter)))
+
+; Capitalized dynamic tag names read as components.
+(jsx_opening_element
+  name: (jsx_element_name
+    (jsx_expression
+      (identifier) @tag
+      (#match? @tag "^[A-Z]"))))
+
+(jsx_closing_element
+  name: (jsx_element_name
+    (jsx_expression
+      (identifier) @tag
+      (#match? @tag "^[A-Z]"))))
+
+(jsx_self_closing_element
+  name: (jsx_non_namespaced_element_name
+    (jsx_expression
+      (identifier) @tag
+      (#match? @tag "^[A-Z]"))))
+
 ; Leave jsx_text uncaptured so text children use the editor's regular text color.
 
 ; Style elements

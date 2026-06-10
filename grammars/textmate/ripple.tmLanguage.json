@@ -6505,6 +6505,9 @@
           "include": "#jsx-tag-fragment"
         },
         {
+          "include": "#jsx-tag-dynamic"
+        },
+        {
           "include": "#jsx-tag-without-attributes"
         },
         {
@@ -6788,6 +6791,123 @@
         }
       ]
     },
+    "jsx-tag-dynamic-in-expression": {
+      "begin": "(?<!\\+\\+|--)(?<=[({\\[,?=>:*]|&&|\\|\\||\\?|\\*\\/|^await|[^\\._$[:alnum:]]await|^return|[^\\._$[:alnum:]]return|^default|[^\\._$[:alnum:]]default|^yield|[^\\._$[:alnum:]]yield|^)\\s*(?=<\\{)",
+      "end": "(?!<\\{)",
+      "patterns": [
+        {
+          "include": "#jsx-tag-dynamic"
+        }
+      ]
+    },
+    "jsx-tag-dynamic": {
+      "name": "meta.tag.js",
+      "begin": "(?=<\\{)",
+      "end": "(/>)|(?:(</)\\s*(\\{)\\s*([[:upper:]][_$[:alnum:]]*(?:\\.[_$[:alpha:]][_$[:alnum:]]*)*)\\s*(\\})\\s*(>))|(?:(</)\\s*(\\{)([^}]*)(\\})\\s*(>))",
+      "endCaptures": {
+        "1": {
+          "name": "punctuation.definition.tag.end.js"
+        },
+        "2": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "4": {
+          "name": "meta.embedded.expression.js source.js.embedded.tsrx support.class.component.js"
+        },
+        "5": {
+          "name": "punctuation.definition.tag.end.js"
+        },
+        "6": {
+          "name": "punctuation.definition.tag.end.js"
+        },
+        "7": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "8": {
+          "name": "punctuation.definition.tag.begin.js"
+        },
+        "9": {
+          "name": "meta.embedded.expression.js source.js.embedded.tsrx",
+          "patterns": [
+            {
+              "include": "#expression"
+            }
+          ]
+        },
+        "10": {
+          "name": "punctuation.definition.tag.end.js"
+        },
+        "11": {
+          "name": "punctuation.definition.tag.end.js"
+        }
+      },
+      "patterns": [
+        {
+          "begin": "(<)(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.begin.js"
+            },
+            "2": {
+              "name": "punctuation.definition.tag.begin.js"
+            }
+          },
+          "end": "(?=[/]?>)",
+          "patterns": [
+            {
+              "begin": "\\G",
+              "end": "(\\})",
+              "endCaptures": {
+                "1": {
+                  "name": "punctuation.definition.tag.end.js"
+                }
+              },
+              "contentName": "meta.embedded.expression.js source.js.embedded.tsrx",
+              "patterns": [
+                {
+                  "match": "\\G\\s*([[:upper:]][_$[:alnum:]]*(?:\\.[_$[:alpha:]][_$[:alnum:]]*)*)\\s*(?=\\})",
+                  "captures": {
+                    "1": {
+                      "name": "support.class.component.js"
+                    }
+                  }
+                },
+                {
+                  "include": "#expression"
+                }
+              ]
+            },
+            {
+              "include": "#comment"
+            },
+            {
+              "include": "#type-arguments"
+            },
+            {
+              "include": "#jsx-tag-attributes"
+            }
+          ]
+        },
+        {
+          "begin": "(>)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.tag.end.js"
+            }
+          },
+          "end": "(?=</)",
+          "contentName": "meta.jsx.children.js",
+          "patterns": [
+            {
+              "include": "#jsx-children"
+            }
+          ]
+        }
+      ]
+    },
     "jsx-children": {
       "patterns": [
         {
@@ -6807,6 +6927,9 @@
         },
         {
           "include": "#jsx-tag-fragment"
+        },
+        {
+          "include": "#jsx-tag-dynamic"
         },
         {
           "include": "#jsx-tag-without-attributes"
@@ -6844,6 +6967,9 @@
         },
         {
           "include": "#jsx-tag-fragment"
+        },
+        {
+          "include": "#jsx-tag-dynamic"
         },
         {
           "include": "#jsx-tag-without-attributes"
@@ -6886,6 +7012,9 @@
           "include": "#jsx-tag-fragment"
         },
         {
+          "include": "#jsx-tag-dynamic-in-expression"
+        },
+        {
           "include": "#jsx-tag-without-attributes-in-expression"
         },
         {
@@ -6921,6 +7050,9 @@
         },
         {
           "include": "#jsx-tag-fragment"
+        },
+        {
+          "include": "#jsx-tag-dynamic-in-expression"
         },
         {
           "include": "#jsx-tag-without-attributes-in-expression"

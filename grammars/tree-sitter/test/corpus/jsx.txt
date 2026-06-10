@@ -589,3 +589,64 @@ fragment App() {
             close_tag: (jsx_closing_element
               name: (jsx_element_name
                 (identifier)))))))))
+
+=================================
+Dynamic Element Tags
+=================================
+
+fragment App() {
+  <{Tag} class="host">{'hello'}</{Tag}>
+}
+
+---
+
+(program
+  (fragment_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (component_body
+      (component_statement
+        (expression_statement
+          (jsx_element
+            open_tag: (jsx_opening_element
+              name: (jsx_element_name
+                (jsx_expression
+                  (identifier)))
+              attribute: (jsx_attribute
+                name: (identifier)
+                value: (string)))
+            children: (jsx_expression
+              (component_statement
+                (expression_statement
+                  (string))))
+            close_tag: (jsx_closing_element
+              name: (jsx_element_name
+                (jsx_expression
+                  (identifier))))))))))
+
+=================================
+Self-Closing Dynamic Element Tags
+=================================
+
+fragment App() {
+  <{parts.section} class="host" />
+}
+
+---
+
+(program
+  (fragment_declaration
+    name: (identifier)
+    parameters: (formal_parameters)
+    body: (component_body
+      (component_statement
+        (expression_statement
+          (jsx_self_closing_element
+            name: (jsx_non_namespaced_element_name
+              (jsx_expression
+                (member_expression
+                  object: (identifier)
+                  property: (identifier))))
+            attribute: (jsx_attribute
+              name: (identifier)
+              value: (string))))))))

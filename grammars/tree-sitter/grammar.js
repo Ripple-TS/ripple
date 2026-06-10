@@ -1177,10 +1177,19 @@ module.exports = grammar({
 				'/>',
 			),
 
-		jsx_element_name: ($) => choice($.identifier, $.jsx_namespace_name, $.jsx_member_name),
+		// Dynamic tags (`<{expr}>`) hold a single expression; the node is aliased
+		// to jsx_expression so editor queries reuse the existing container shape
+		// without introducing a new node type.
+		_jsx_dynamic_element_name: ($) => alias($.jsx_dynamic_tag_expression, $.jsx_expression),
+
+		jsx_dynamic_tag_expression: ($) => seq('{', $.expression, '}'),
+
+		jsx_element_name: ($) =>
+			choice($.identifier, $.jsx_namespace_name, $.jsx_member_name, $._jsx_dynamic_element_name),
 
 		// Non-namespaced variant (used for self-closing elements)
-		jsx_non_namespaced_element_name: ($) => choice($.identifier, $.jsx_member_name),
+		jsx_non_namespaced_element_name: ($) =>
+			choice($.identifier, $.jsx_member_name, $._jsx_dynamic_element_name),
 
 		// Support dotted names in JSX element names (e.g. Namespace.Component)
 		// Implemented iteratively to avoid left recursion

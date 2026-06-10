@@ -2298,6 +2298,10 @@
           "named": true
         },
         {
+          "type": "jsx_expression",
+          "named": true
+        },
+        {
           "type": "jsx_member_name",
           "named": true
         },
@@ -2746,6 +2750,10 @@
       "types": [
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "jsx_expression",
           "named": true
         },
         {
