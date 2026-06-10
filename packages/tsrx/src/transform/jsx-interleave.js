@@ -43,6 +43,10 @@ export function is_interleaved_body(body_nodes, is_jsx_child) {
  */
 export function is_capturable_jsx_child(jsx) {
 	if (!jsx) return false;
+	// Reactive-block containers (dynamic tags) must stay expression children
+	// so the host JSX compiler wraps them in a render block; capturing them
+	// into a const would evaluate them once.
+	if (jsx.metadata?.tsrx_reactive_block === true) return false;
 	const t = jsx.type;
 	return t === 'JSXElement' || t === 'JSXFragment' || t === 'JSXExpressionContainer';
 }

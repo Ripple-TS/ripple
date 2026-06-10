@@ -227,20 +227,25 @@ function wrap_control_flow_expression_values(node, lower_dynamic_context, seen =
 	if (!node || typeof node !== 'object' || seen.has(node)) return;
 	seen.add(node);
 
-	if (Array.isArray(node)) {
-		for (const item of node) wrap_control_flow_expression_values(item, lower_dynamic_context, seen);
-		return;
-	}
-
 	// Dynamic tags on factory platforms must lower before control-flow
-	// conversion and static hoisting run. Production output needs the
-	// `const TsrxDynamic_N = factory(() => expr)` setup declaration extracted
-	// into the branch body that owns the expression's scope (e.g. a `@for`
-	// loop variable); type-only output needs `<TsrxDynamic is={expr}>` in
-	// place before a reference-free tree (e.g. `<{'div'}>`) is hoisted to a
-	// module-level static const while still carrying the raw dynamic tag.
-	if (lower_dynamic_context && node.type === 'JSXElement') {
-		lower_dynamic_jsx_element(node, lower_dynamic_context);
+	// conversion and static hoisting run. Production output needs the scoped
+	// `const TsrxDynamic_N = ...` binding declared in the scope that owns the
+	// tag expression (e.g. a `@for` loop variable); type-only output needs
+	// `<TsrxDynamic is={expr}>` in place before a reference-free tree (e.g.
+	// `<{'div'}>`) is hoisted to a module-level static const while still
+	// carrying the raw dynamic tag. Alias lowerings return a replacement
+	// fragment, which is swapped into the child's position here.
+	const lower_child = (/** @type {any} */ child) => {
+		if (!lower_dynamic_context || child?.type !== 'JSXElement') return child;
+		return lower_dynamic_jsx_element(child, lower_dynamic_context) ?? child;
+	};
+
+	if (Array.isArray(node)) {
+		for (let i = 0; i < node.length; i++) {
+			node[i] = lower_child(node[i]);
+			wrap_control_flow_expression_values(node[i], lower_dynamic_context, seen);
+		}
+		return;
 	}
 
 	if (
@@ -271,6 +276,7 @@ function wrap_control_flow_expression_values(node, lower_dynamic_context, seen =
 
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+		node[key] = lower_child(node[key]);
 		wrap_control_flow_expression_values(node[key], lower_dynamic_context, seen);
 	}
 }
@@ -383,8 +389,14 @@ export function createJsxTransform(platform) {
 				return /** @type {any} */ (wrap_jsx_setup_declarations(expression, in_jsx_child));
 			},
 
-			JSXElement(node, { next, path, state }) {
-				lower_dynamic_jsx_element(node, state);
+			JSXElement(node, { next, path, state, visit }) {
+				const lowered = lower_dynamic_jsx_element(node, state);
+				if (lowered) {
+					// Alias lowerings replace the element with a fragment; factory
+					// platforms normally lower in the pre-walk pass, so this only
+					// covers elements introduced after it.
+					return /** @type {any} */ (visit(lowered, state));
+				}
 
 				if (!node.metadata?.native_tsrx) {
 					return next() ?? node;
@@ -527,9 +539,13 @@ export function createJsxTransform(platform) {
  * element rebuilds, so checking it covers rebuilt elements too; once lowered,
  * the name is a plain `JSXIdentifier` and the element is skipped on re-visits.
  *
+ * Most lowerings rewrite the element's tag in place and return nothing. The
+ * import-free alias lowering (Vue) instead returns a replacement fragment the
+ * caller must put in the original element's position.
+ *
  * @param {any} node
  * @param {TransformContext} transform_context
- * @returns {void}
+ * @returns {ESTreeJSX.JSXFragment | undefined}
  */
 function lower_dynamic_jsx_element(node, transform_context) {
 	const dynamic_name = node.openingElement?.name;
@@ -556,23 +572,73 @@ function lower_dynamic_jsx_element(node, transform_context) {
 	}
 
 	if (factory) {
-		// `const TsrxDynamic_1 = dynamic(() => expr);` next to the template,
-		// then reference it like an ordinary component. The declaration rides on
-		// the name node's metadata: element rebuilds clone names with a shared
-		// metadata reference, so setup extraction still finds it afterwards.
+		// Bind the tag expression to a scoped component const and reference it
+		// like an ordinary component.
 		transform_context.local_statement_component_index += 1;
 		const local = `${DYNAMIC_IMPORT_LOCAL}_${transform_context.local_statement_component_index}`;
 		const local_id = b.jsx_id(local);
-		add_jsx_setup_declaration(
-			local_id,
-			b.const(b.id(local), b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression))),
-		);
-		node.openingElement.name = local_id;
-		if (node.closingElement?.name) {
-			node.closingElement.name = b.jsx_id(local);
-		}
 		transform_context.needs_dynamic_factory = true;
-		return;
+
+		if (factory.name) {
+			// `const TsrxDynamic_1 = _tsrx_dynamic(() => expr);` next to the
+			// template — the factory's thunk keeps the tag reactive (Solid). The
+			// declaration rides on the name node's metadata: element rebuilds
+			// clone names with a shared metadata reference, so setup extraction
+			// still finds it afterwards.
+			node.openingElement.name = local_id;
+			if (node.closingElement?.name) {
+				node.closingElement.name = b.jsx_id(local);
+			}
+			add_jsx_setup_declaration(
+				local_id,
+				b.const(
+					b.id(local),
+					b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression)),
+				),
+			);
+			return;
+		}
+
+		// Import-free alias (Vue): the const is a plain snapshot, so it must be
+		// re-evaluated inside a reactive render block. Rebuild the element in a
+		// native fragment whose expression-container child holds
+		// `(() => { const TsrxDynamic_1 = expr; return <TsrxDynamic_1 ...>; })()`
+		// — vue-jsx-vapor compiles expression children into `createNodes(...)`
+		// render blocks, which re-run the IIFE when the tag expression changes.
+		// The container is marked so downstream lone-child collapsing keeps it
+		// in expression-child position instead of unwrapping to a bare call.
+		const element = b.jsx_element_fresh(
+			b.jsx_opening_element(
+				local_id,
+				node.openingElement.attributes,
+				node.openingElement.selfClosing,
+				node.openingElement.typeArguments,
+				node.openingElement,
+			),
+			node.closingElement ? b.jsx_closing_element(b.jsx_id(local), node.closingElement) : null,
+			node.children,
+			node,
+		);
+		element.metadata = { ...(node.metadata || {}), path: [] };
+
+		const wrapper = b.arrow(
+			[],
+			b.block([b.const(b.id(local), generated_expression), b.return(element)], node),
+		);
+		// Lets scoped-CSS collection descend into this generated closure; user
+		// function boundaries are otherwise skipped.
+		wrapper.metadata = /** @type {any} */ ({
+			...(wrapper.metadata || { path: [] }),
+			tsrx_dynamic_wrapper: true,
+		});
+		const container = to_jsx_expression_container(b.call(wrapper), element);
+		container.metadata = /** @type {any} */ ({
+			...(container.metadata || { path: [] }),
+			tsrx_reactive_block: true,
+		});
+
+		const fragment = set_loc(wrap_in_native_tsrx_fragment(container), node);
+		return fragment;
 	}
 
 	node.openingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
@@ -599,7 +665,7 @@ function lower_dynamic_jsx_element(node, transform_context) {
  */
 function inject_dynamic_import(program, transform_context) {
 	const factory = transform_context.platform.imports.dynamicFactory;
-	if (transform_context.needs_dynamic_factory && factory) {
+	if (transform_context.needs_dynamic_factory && factory?.name && factory.source) {
 		program.body.unshift(
 			b.import_declaration(
 				[b.import_specifier(factory.name, DYNAMIC_FACTORY_LOCAL)],
@@ -680,9 +746,13 @@ function collect_css_prunable_elements(value, elements = [], transform_context =
 	}
 
 	if (
-		value.type === 'FunctionDeclaration' ||
-		value.type === 'FunctionExpression' ||
-		value.type === 'ArrowFunctionExpression'
+		(value.type === 'FunctionDeclaration' ||
+			value.type === 'FunctionExpression' ||
+			value.type === 'ArrowFunctionExpression') &&
+		// Generated dynamic-tag wrappers are render-block closures, not user
+		// component boundaries — the element inside still belongs to this
+		// component's scoped CSS.
+		value.metadata?.tsrx_dynamic_wrapper !== true
 	) {
 		return elements;
 	}
@@ -5907,6 +5977,12 @@ function build_return_expression(render_nodes) {
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
 		if (only.type === 'JSXExpressionContainer') {
+			// Reactive-block containers (dynamic tags) must stay expression
+			// children so the host JSX compiler wraps them in a render block;
+			// returning the bare call would evaluate them once.
+			if (only.metadata?.tsrx_reactive_block === true) {
+				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			}
 			return only.expression;
 		}
 		if (only.type === 'JSXText') {

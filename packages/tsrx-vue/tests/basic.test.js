@@ -221,7 +221,7 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain(`class="host ${cssHash}"`);
 	});
 
-	it('lowers dynamic tag syntax to the Vue Dynamic helper import', () => {
+	it('lowers dynamic tag syntax to a scoped component alias', () => {
 		const { code } = compile(
 			`function App() @{
 				const Tag = 'section';
@@ -230,8 +230,52 @@ describe('@tsrx/vue basic', () => {
 			'App.tsrx',
 		);
 
+		expect(code).toContain('const TsrxDynamic_1 = Tag;');
+		expect(code).toContain(`<TsrxDynamic_1 class="host">{'hello'}</TsrxDynamic_1>`);
+		expect(code).not.toContain('@tsrx/vue/dynamic');
+	});
+
+	it('declares dynamic tag aliases inside the owning control-flow scope', () => {
+		const { code } = compile(
+			`function App({ items }) @{
+				@for (const item of items) {
+					<{item.tag} class="row">{item.label}</{item.tag}>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		const callback_start = code.indexOf('(item) =>');
+		const declaration = code.indexOf('const TsrxDynamic_1 = item.tag;');
+		expect(callback_start).toBeGreaterThan(-1);
+		expect(declaration).toBeGreaterThan(callback_start);
+	});
+
+	it('keeps the Dynamic component shape in type-only output for dynamic tags', () => {
+		const { code } = compile_to_volar_mappings(
+			`function App() @{
+				const Tag = 'section';
+				<{Tag} class="host">{'hello'}</{Tag}>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
 		expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/vue/dynamic';`);
-		expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+		expect(code).toContain(`<TsrxDynamic is={Tag} class="host"`);
+	});
+
+	it('lowers reference-free dynamic tags in type-only output instead of hoisting them raw', () => {
+		const { code } = compile_to_volar_mappings(
+			`function Test() @{
+				<{'div'} class="hello">{'Content'}</{'div'}>
+			}`,
+			'App.tsrx',
+			{ loose: true },
+		);
+
+		expect(code).toContain(`<TsrxDynamic is={'div'} class="hello"`);
+		expect(code).not.toContain('<{');
 	});
 
 	it('ref={fn} on a DOM element compiles to ref={fn}', () => {

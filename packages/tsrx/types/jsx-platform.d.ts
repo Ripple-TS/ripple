@@ -324,15 +324,21 @@ export interface JsxPlatform {
 		 */
 		dynamic?: string;
 		/**
-		 * Runtime factory used to lower dynamic tags (`<{expr}>`) in production
-		 * output: the factory is imported as `_tsrx_dynamic` and each tag
-		 * becomes `const TsrxDynamic_N = _tsrx_dynamic(() => expr);` followed by
-		 * an ordinary `<TsrxDynamic_N ...>` component reference. When unset (or
-		 * in type-only output), dynamic tags lower to `<TsrxDynamic is={expr}>`
-		 * imported from `imports.dynamic`. Solid: `{ name: 'dynamic', source:
-		 * '@solidjs/web' }`.
+		 * Scoped-binding lowering for dynamic tags (`<{expr}>`) in production
+		 * output; each tag binds a scoped component const. With `name`/`source`,
+		 * the factory is imported as `_tsrx_dynamic` and wraps the tag
+		 * expression in a reactive thunk:
+		 * `const TsrxDynamic_N = _tsrx_dynamic(() => expr);` followed by an
+		 * ordinary `<TsrxDynamic_N ...>` reference (Solid:
+		 * `{ name: 'dynamic', source: '@solidjs/web' }`). With an empty object,
+		 * the tag becomes an import-free alias inside an expression-child IIFE,
+		 * `{(() => { const TsrxDynamic_N = expr; return <TsrxDynamic_N ...>; })()}`,
+		 * relying on the host JSX compiler's reactive render block for
+		 * expression children (Vue). When unset (or in type-only output),
+		 * dynamic tags lower to `<TsrxDynamic is={expr}>` imported from
+		 * `imports.dynamic`.
 		 */
-		dynamicFactory?: { name: string; source: string };
+		dynamicFactory?: { name?: string; source?: string };
 		/**
 		 * Module to import `TsrxErrorBoundary` from when an `@try { ... } @catch (...)`
 		 * block appears. Usually `'@tsrx/<platform>/error-boundary'`.

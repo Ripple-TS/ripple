@@ -34,6 +34,11 @@ const vue_platform = {
 	imports: {
 		suspense: 'vue',
 		dynamic: '@tsrx/vue/dynamic',
+		// Production output aliases dynamic tags to a scoped component const
+		// inside an expression-child IIFE — vue-jsx-vapor's own render block
+		// keeps the tag reactive, so no runtime import is needed; the type-only
+		// transform keeps the `Dynamic` component shape.
+		dynamicFactory: {},
 		errorBoundary: '@tsrx/vue/error-boundary',
 		mergeRefs: '@tsrx/vue/ref',
 		refProp: '@tsrx/vue/ref',

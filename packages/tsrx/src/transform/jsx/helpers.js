@@ -52,7 +52,14 @@ export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
 		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
 	);
 
-	if (children.length === 1 && children[0].type !== 'JSXText') {
+	if (
+		children.length === 1 &&
+		children[0].type !== 'JSXText' &&
+		// Reactive-block containers (dynamic tags) must stay expression
+		// children so the host JSX compiler wraps them in a render block;
+		// unwrapping to a bare call would evaluate them once.
+		children[0].metadata?.tsrx_reactive_block !== true
+	) {
 		const only = children[0];
 		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
 			return only.expression;
