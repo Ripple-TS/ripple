@@ -55,27 +55,6 @@ const CharCode = Object.freeze({
 	closeBrace: 125,
 });
 
-/**
- * Keywords after which a `/` begins a regex literal rather than division, used
- * by the look-ahead scanners to track expression position in script content.
- */
-const REGEX_PRECEDING_KEYWORDS = new Set([
-	'return',
-	'typeof',
-	'instanceof',
-	'in',
-	'of',
-	'new',
-	'delete',
-	'void',
-	'do',
-	'else',
-	'yield',
-	'await',
-	'case',
-	'throw',
-]);
-
 // Transparent wrappers to look through when validating a dynamic tag
 // expression (`<{expr}>`), and syntax that disqualifies one outright.
 const DYNAMIC_TAG_WRAPPER_TYPES = new Set([
@@ -596,6 +575,26 @@ export function TSRXPlugin(config) {
 						}
 						continue;
 					}
+					if (this.#isTemplateBlockCommentStart(index)) {
+						const comment_start = index;
+						const comment_start_loc = acorn.getLineInfo(this.input, comment_start);
+						const close = this.input.indexOf('*/', index + 2);
+						const value_end = close === -1 ? this.input.length : close;
+						index = close === -1 ? this.input.length : close + 2;
+						if (this.options.onComment && comment_start >= token_end) {
+							const comment_end_loc = acorn.getLineInfo(this.input, index);
+							this.options.onComment(
+								true,
+								this.input.slice(comment_start + 2, value_end),
+								comment_start,
+								index,
+								new acorn.Position(comment_start_loc.line, comment_start_loc.column),
+								new acorn.Position(comment_end_loc.line, comment_end_loc.column),
+								/** @type {any} */ (null),
+							);
+						}
+						continue;
+					}
 					const ch = this.input.charCodeAt(index);
 					if (
 						ch === CharCode.lessThan ||
@@ -973,6 +972,19 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * Unlike `//` (which is only a comment at line-start so inline text like
+			 * `https://…` stays text), `/*` starts a comment anywhere in template
+			 * text, matching `jsx_readToken`.
+			 * @param {number} index
+			 */
+			#isTemplateBlockCommentStart(index) {
+				return (
+					this.input.charCodeAt(index) === CharCode.slash &&
+					this.input.charCodeAt(index + 1) === CharCode.asterisk
+				);
+			}
+
+			/**
 			 * @param {number} start
 			 */
 			#templateRawTextEnd(start) {
@@ -984,7 +996,8 @@ export function TSRXPlugin(config) {
 						ch === CharCode.openBrace ||
 						ch === CharCode.closeBrace ||
 						this.#isJSXControlFlowDirectiveAt(index) ||
-						this.#isTemplateLineCommentStart(index)
+						this.#isTemplateLineCommentStart(index) ||
+						this.#isTemplateBlockCommentStart(index)
 					) {
 						break;
 					}

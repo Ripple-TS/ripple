@@ -2753,6 +2753,104 @@ function test() {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should preserve template comments and blank lines from unformatted input', async () => {
+			const input = `function TodoList() @{
+<>
+  /* world 0 */
+  // hello
+  /* world 1 */
+  <ul>
+  // hello
+  /* world 2 */
+
+  </ul>
+
+  <ul>
+  // hello
+  /* world 3 */
+  // hello
+  </ul>
+  /* world 4 */
+  </>
+}`;
+
+			const expected = `function TodoList() @{
+  <>
+    /* world 0 */
+    // hello
+    /* world 1 */
+    <ul>
+      // hello
+      /* world 2 */
+    </ul>
+
+    <ul>
+      // hello
+      /* world 3 */
+      // hello
+    </ul>
+    /* world 4 */
+  </>
+}`;
+
+			const result = await format(input, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+			// Reformatting the output must be stable.
+			expect(await format(result, { singleQuote: true })).toBeWithNewline(expected);
+		});
+
+		it('should preserve block comments before a closing fragment', async () => {
+			const expected = `function App() @{
+  <>
+    <span>{'child'}</span>
+
+    /* block comment */
+  </>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve a blank line before a trailing block comment in elements', async () => {
+			const expected = `function App() {
+  <div>
+    <span>{'child'}</span>
+
+    /* block comment */
+  </div>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should preserve a comment-only fragment body', async () => {
+			const expected = `function App() @{
+  <>
+    /* only */
+  </>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep blank lines around comments between template siblings', async () => {
+			const expected = `function App() @{
+  <>
+    <ul></ul>
+
+    /* between */
+
+    <ul></ul>
+  </>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve trailing comments in function parameters', async () => {
 			const expected = `function test(
   // comment in params

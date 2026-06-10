@@ -1298,3 +1298,41 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		expect(server.code).not.toContain('Compat(__output');
 	});
 });
+
+describe('@tsrx/ripple template comments', () => {
+	const source = `function TodoList() @{
+<>
+  /* world 0 */
+  // hello
+  /* world 1 */
+  <ul>
+  // hello
+  /* world 2 */
+
+  </ul>
+
+  <ul>
+  // hello
+  /* world 3 */
+  // hello
+  </ul>
+  /* world 4 */
+  </>
+}`;
+
+	it('keeps line and block comments out of client templates', () => {
+		const { code } = compile(source, 'App.tsrx');
+		expect(code).not.toMatch(/world|hello/);
+		expect(code).toContain('<ul></ul><ul></ul>');
+	});
+
+	it('keeps line and block comments out of server output', () => {
+		const { code } = compile(source, 'App.tsrx', { mode: 'server' });
+		expect(code).not.toMatch(/world|hello/);
+	});
+
+	it('keeps template comments out of to_ts output', () => {
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+		expect(code).not.toMatch(/world|hello/);
+	});
+});

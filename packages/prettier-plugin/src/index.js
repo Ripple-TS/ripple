@@ -5960,26 +5960,13 @@ function printJSXElement(node, path, options, print) {
 		{ shouldBreak: shouldForceBreak },
 	);
 
-	// Trailing comments after the last child are attached by the parser either to
-	// the closing tag (`closingElement.leadingComments`) or, when the last child is
-	// an `{expr}` container, to `metadata.elementLeadingComments` positioned inside
-	// the body (start >= opening tag end). Emit both before `</tag>`.
-	const openingTagEnd = /** @type {AST.NodeWithLocation} */ (openingElement).end;
-	const bodyMetaComments = (node.metadata?.elementLeadingComments ?? []).filter(
-		(/** @type {AST.Comment} */ comment) =>
-			typeof comment.start === 'number' && comment.start >= openingTagEnd,
+	// Comments before `</tag>` and the comments of a comment-only element.
+	const { closingCommentDocs, innerCommentDocs } = collectElementBodyCommentDocs(
+		node,
+		openingElement,
+		node.closingElement,
 	);
-	const trailingComments = [
-		...(node.closingElement?.leadingComments ?? []),
-		...bodyMetaComments,
-	].sort((a, b) => /** @type {number} */ (a.start) - /** @type {number} */ (b.start));
-	const lastMeaningfulChild = [...(node.children ?? [])]
-		.reverse()
-		.find((child) => child.type !== 'JSXText' || child.value.trim());
-	const closingCommentDocs = printElementBodyLineComments(trailingComments, lastMeaningfulChild);
 	const hasClosingComments = closingCommentDocs.length > 0;
-	// A comment-only element has no children; its comments live in `innerComments`.
-	const innerCommentDocs = printElementBodyLineComments(node.innerComments);
 
 	if (!hasChildren) {
 		const bodyComments = [...innerCommentDocs, ...closingCommentDocs];
@@ -6171,7 +6158,19 @@ function printJSXElement(node, path, options, print) {
 function printJSXFragment(node, path, options, print) {
 	const hasChildren = node.children && node.children.length > 0;
 
+	// Comments before `</>` and the comments of a comment-only fragment.
+	const fragment = /** @type {any} */ (node);
+	const { closingCommentDocs, innerCommentDocs } = collectElementBodyCommentDocs(
+		node,
+		fragment.openingFragment,
+		fragment.closingFragment,
+	);
+
 	if (!hasChildren) {
+		const bodyComments = [...innerCommentDocs, ...closingCommentDocs];
+		if (bodyComments.length > 0) {
+			return group(['<>', indent(bodyComments), hardline, '</>']);
+		}
 		return '<></>';
 	}
 
@@ -6219,7 +6218,11 @@ function printJSXFragment(node, path, options, print) {
 	}
 
 	// Check if content can be inlined (single text node or single expression)
-	if (childrenDocs.length === 1 && typeof childrenDocs[0] === 'string') {
+	if (
+		childrenDocs.length === 1 &&
+		typeof childrenDocs[0] === 'string' &&
+		closingCommentDocs.length === 0
+	) {
 		return ['<>', childrenDocs[0], '</>'];
 	}
 	const meaningfulChildren = node.children.filter(
@@ -6230,6 +6233,7 @@ function printJSXFragment(node, path, options, print) {
 		meaningfulChildren.length === 1 &&
 		meaningfulChildren[0].type === 'JSXElement' &&
 		wasOriginallySingleLine(node) &&
+		closingCommentDocs.length === 0 &&
 		!willBreak(childrenDocs[0])
 	) {
 		// Keep the fragment inline when it fits; otherwise expand `<>` onto its own
@@ -6253,7 +6257,12 @@ function printJSXFragment(node, path, options, print) {
 	}
 
 	// Build the final fragment
-	return group(['<>', indent([hardline, ...formattedChildren]), hardline, '</>']);
+	return group([
+		'<>',
+		indent([hardline, ...formattedChildren, ...closingCommentDocs]),
+		hardline,
+		'</>',
+	]);
 }
 
 /**
@@ -6338,18 +6347,48 @@ function printTemplateChildLeadingComments(child) {
 }
 
 /**
- * Build doc parts for `//` line comments attached to an element body — trailing
+ * Collect and print the comments that belong to an element/fragment body:
+ * trailing comments after the last child (attached by the parser to the closing
+ * tag's `leadingComments` or, when the last child is an `{expr}` container, to
+ * `metadata.elementLeadingComments` positioned inside the body) and the comments
+ * of a comment-only body (`innerComments`).
+ * @param {any} node
+ * @param {any} openingNode
+ * @param {any} closingNode
+ * @returns {{ closingCommentDocs: Doc[], innerCommentDocs: Doc[] }}
+ */
+function collectElementBodyCommentDocs(node, openingNode, closingNode) {
+	const openingEnd = openingNode?.end;
+	const bodyMetaComments = (node.metadata?.elementLeadingComments ?? []).filter(
+		(/** @type {AST.Comment} */ comment) =>
+			typeof comment.start === 'number' &&
+			typeof openingEnd === 'number' &&
+			comment.start >= openingEnd,
+	);
+	const trailingComments = [...(closingNode?.leadingComments ?? []), ...bodyMetaComments].sort(
+		(/** @type {AST.Comment} */ a, /** @type {AST.Comment} */ b) =>
+			/** @type {number} */ (a.start) - /** @type {number} */ (b.start),
+	);
+	const lastMeaningfulChild = [...(node.children ?? [])]
+		.reverse()
+		.find((/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim());
+	return {
+		closingCommentDocs: printElementBodyComments(trailingComments, lastMeaningfulChild),
+		innerCommentDocs: printElementBodyComments(node.innerComments),
+	};
+}
+
+/**
+ * Build doc parts for comments attached to an element body — trailing
  * comments before `</tag>` (`closingElement.leadingComments`) or the comments of a
- * comment-only element (`innerComments`). Block comments are intentionally skipped:
- * they survive in the adjacent JSXText value and are already rendered as text, so
- * emitting them here would duplicate them. Each comment is emitted on its own line
+ * comment-only element (`innerComments`). Each comment is emitted on its own line
  * at the children indent.
  * @param {AST.Comment[] | null | undefined} commentList
  * @param {any} [previousNode]
  * @returns {Doc[]}
  */
-function printElementBodyLineComments(commentList, previousNode = null) {
-	const comments = (commentList ?? []).filter((comment) => comment.type === 'Line');
+function printElementBodyComments(commentList, previousNode = null) {
+	const comments = commentList ?? [];
 	if (comments.length === 0) {
 		return [];
 	}
@@ -6363,7 +6402,9 @@ function printElementBodyLineComments(commentList, previousNode = null) {
 		if (prev && getBlankLinesBetweenNodes(prev, comments[i]) > 0) {
 			parts.push(hardline);
 		}
-		parts.push('//' + comments[i].value);
+		parts.push(
+			comments[i].type === 'Line' ? '//' + comments[i].value : '/*' + comments[i].value + '*/',
+		);
 		prev = comments[i];
 	}
 	return parts;
@@ -6404,10 +6445,10 @@ function printJSXCodeBlock(node, path, options, print) {
 		parts.push(path.call(print, 'render'));
 	}
 	// Trailing comments after the last statement/render inside the block.
-	const innerCommentDocs = printElementBodyLineComments(node.innerComments);
+	const innerCommentDocs = printElementBodyComments(node.innerComments);
 	if (innerCommentDocs.length > 0) {
 		const lastNode = node.render ?? node.body[node.body.length - 1];
-		const firstComment = (node.innerComments ?? []).find((c) => c.type === 'Line');
+		const firstComment = (node.innerComments ?? [])[0];
 		if (lastNode && firstComment && getBlankLinesBetweenNodes(lastNode, firstComment) > 0) {
 			parts.push(hardline);
 		}

@@ -562,6 +562,106 @@ abc
 		expect(value.children[0].value).toContain('const x = 1');
 	});
 
+	// Collect every JSXText value in the tree, and parse with `collect` so the
+	// recorded comments can be asserted alongside the text they were removed from.
+	function parseTemplateTextsAndComments(source) {
+		/** @type {import('estree').Comment[]} */
+		const comments = [];
+		const ast = parseModule(source, 'App.tsrx', { collect: true, comments });
+		const texts = [];
+		(function walk(node) {
+			if (!node || typeof node !== 'object') return;
+			if (Array.isArray(node)) return node.forEach(walk);
+			if (node.type === 'JSXText') texts.push(node.value);
+			for (const key in node) {
+				if (key === 'loc' || key === 'start' || key === 'end') continue;
+				walk(node[key]);
+			}
+		})(ast);
+		comments.sort((a, b) => a.start - b.start);
+		return { texts, comments };
+	}
+
+	it('strips block and line comments from template text and records them as comments', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function TodoList() @{
+  <>
+    /* world 0 */
+    // hello
+    /* world 1 */
+    <ul>
+    // hello
+    /* world 2 */
+
+    </ul>
+
+    <ul>
+    // hello
+    /* world 3 */
+    // hello
+    </ul>
+    /* world 4 */
+  </>
+  }`);
+
+		for (const text of texts) {
+			expect(text).not.toMatch(/world|hello|\/\*|\/\//);
+		}
+		expect(comments.filter((comment) => comment.type === 'Block').map((c) => c.value)).toEqual([
+			' world 0 ',
+			' world 1 ',
+			' world 2 ',
+			' world 3 ',
+			' world 4 ',
+		]);
+		expect(comments.filter((comment) => comment.type === 'Line').map((c) => c.value)).toEqual([
+			' hello',
+			' hello',
+			' hello',
+			' hello',
+		]);
+	});
+
+	it('strips a block comment between words of template text', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div>hello /* note */ world</div>
+}`);
+
+		expect(texts).toEqual(['hello  world']);
+		expect(comments.map((comment) => comment.value)).toEqual([' note ']);
+	});
+
+	it('strips a block comment that is the only element content', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div>/* note */</div>
+}`);
+
+		expect(texts).toEqual([]);
+		expect(comments.map((comment) => comment.value)).toEqual([' note ']);
+	});
+
+	it('records a block comment before a closing fragment exactly once', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+<>
+<ul></ul>
+/* z */
+</>
+}`);
+
+		for (const text of texts) {
+			expect(text).not.toContain('z');
+		}
+		expect(comments.map((comment) => comment.type + ':' + comment.value)).toEqual(['Block: z ']);
+	});
+
+	it('keeps // inside template text when it is not at line start', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div>visit https://x.com please</div>
+}`);
+
+		expect(texts).toEqual(['visit https://x.com please']);
+		expect(comments).toEqual([]);
+	});
+
 	it('keeps ordinary tag names as JSX identifiers', () => {
 		const ast = parseModule('const wrapper = <tsrx><div /></tsrx>;', 'App.tsrx');
 
