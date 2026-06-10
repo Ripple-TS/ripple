@@ -71,6 +71,7 @@ const TSRX_IF_BREAK_ERROR = 'Break statements are not allowed inside TSRX templa
 const TSRX_IF_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
 const DYNAMIC_IMPORT_LOCAL = 'TsrxDynamic';
+const DYNAMIC_FACTORY_LOCAL = '_tsrx_dynamic';
 
 /**
  * @param {AST.Node} node
@@ -218,16 +219,28 @@ function wrap_in_native_tsrx_fragment(node) {
  * (`const x = @switch (…) { … }`, `x = @switch (…) { … }`), or a call/`new`
  * argument (`render(@if (…) { … })`) — in a native TSRX fragment.
  * @param {any} node
+ * @param {TransformContext | null} lower_dynamic_context
  * @param {Set<any>} [seen]
  * @returns {void}
  */
-function wrap_control_flow_expression_values(node, seen = new Set()) {
+function wrap_control_flow_expression_values(node, lower_dynamic_context, seen = new Set()) {
 	if (!node || typeof node !== 'object' || seen.has(node)) return;
 	seen.add(node);
 
 	if (Array.isArray(node)) {
-		for (const item of node) wrap_control_flow_expression_values(item, seen);
+		for (const item of node) wrap_control_flow_expression_values(item, lower_dynamic_context, seen);
 		return;
+	}
+
+	// Dynamic tags on factory platforms must lower before control-flow
+	// conversion and static hoisting run. Production output needs the
+	// `const TsrxDynamic_N = factory(() => expr)` setup declaration extracted
+	// into the branch body that owns the expression's scope (e.g. a `@for`
+	// loop variable); type-only output needs `<TsrxDynamic is={expr}>` in
+	// place before a reference-free tree (e.g. `<{'div'}>`) is hoisted to a
+	// module-level static const while still carrying the raw dynamic tag.
+	if (lower_dynamic_context && node.type === 'JSXElement') {
+		lower_dynamic_jsx_element(node, lower_dynamic_context);
 	}
 
 	if (
@@ -258,7 +271,7 @@ function wrap_control_flow_expression_values(node, seen = new Set()) {
 
 	for (const key of Object.keys(node)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-		wrap_control_flow_expression_values(node[key], seen);
+		wrap_control_flow_expression_values(node[key], lower_dynamic_context, seen);
 	}
 }
 
@@ -303,6 +316,7 @@ export function createJsxTransform(platform) {
 			needs_normalize_spread_props_for_ref_attr: false,
 			needs_fragment: false,
 			needs_dynamic_element: false,
+			needs_dynamic_factory: false,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
 			stylesheets,
@@ -326,7 +340,10 @@ export function createJsxTransform(platform) {
 		};
 
 		expand_child_code_blocks(/** @type {any} */ (ast));
-		wrap_control_flow_expression_values(/** @type {any} */ (ast));
+		wrap_control_flow_expression_values(
+			/** @type {any} */ (ast),
+			platform.imports.dynamicFactory ? transform_context : null,
+		);
 		transform_context.runtime_dynamic_scopes = create_runtime_dynamic_scopes(
 			/** @type {any} */ (ast),
 			transform_context,
@@ -517,18 +534,45 @@ export function createJsxTransform(platform) {
 function lower_dynamic_jsx_element(node, transform_context) {
 	const dynamic_name = node.openingElement?.name;
 	if (dynamic_name?.type !== 'JSXExpressionContainer' || dynamic_name.isDynamic !== true) return;
-	if (!transform_context.platform.imports.dynamic) return;
+
+	// Type-only output always uses the `<TsrxDynamic is={expr}>` component
+	// shape; production output prefers the platform's runtime factory when one
+	// is configured (e.g. Solid's `dynamic`).
+	const factory = transform_context.typeOnly
+		? undefined
+		: transform_context.platform.imports.dynamicFactory;
+	if (!factory && !transform_context.platform.imports.dynamic) return;
 
 	const dynamic_expression = dynamic_name.expression;
 	if (!dynamic_expression) return;
 	const generated_expression = clone_expression_node(dynamic_expression);
 	if (node.closingElement?.name?.expression) {
-		// One generated `is={expr}` stands in for both tags; record the closing
+		// One generated expression stands in for both tags; record the closing
 		// tag's positions so editor features keep working on `</{expr}>`.
 		add_extra_source_mappings_from_matching_expression(
 			generated_expression,
 			clone_expression_node(node.closingElement.name.expression),
 		);
+	}
+
+	if (factory) {
+		// `const TsrxDynamic_1 = dynamic(() => expr);` next to the template,
+		// then reference it like an ordinary component. The declaration rides on
+		// the name node's metadata: element rebuilds clone names with a shared
+		// metadata reference, so setup extraction still finds it afterwards.
+		transform_context.local_statement_component_index += 1;
+		const local = `${DYNAMIC_IMPORT_LOCAL}_${transform_context.local_statement_component_index}`;
+		const local_id = b.jsx_id(local);
+		add_jsx_setup_declaration(
+			local_id,
+			b.const(b.id(local), b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression))),
+		);
+		node.openingElement.name = local_id;
+		if (node.closingElement?.name) {
+			node.closingElement.name = b.jsx_id(local);
+		}
+		transform_context.needs_dynamic_factory = true;
+		return;
 	}
 
 	node.openingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
@@ -554,6 +598,15 @@ function lower_dynamic_jsx_element(node, transform_context) {
  * @returns {void}
  */
 function inject_dynamic_import(program, transform_context) {
+	const factory = transform_context.platform.imports.dynamicFactory;
+	if (transform_context.needs_dynamic_factory && factory) {
+		program.body.unshift(
+			b.import_declaration(
+				[b.import_specifier(factory.name, DYNAMIC_FACTORY_LOCAL)],
+				factory.source,
+			),
+		);
+	}
 	const source = transform_context.platform.imports.dynamic;
 	if (!transform_context.needs_dynamic_element || !source) return;
 	program.body.unshift(

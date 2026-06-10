@@ -40,6 +40,7 @@ export interface JsxTransformContext {
 	needs_normalize_spread_props_for_ref_attr: boolean;
 	needs_fragment: boolean;
 	needs_dynamic_element: boolean;
+	needs_dynamic_factory: boolean;
 	needs_for_of_iterable: boolean;
 	needs_iteration_value_type: boolean;
 	stylesheets: AST.CSS.StyleSheet[];
@@ -322,6 +323,16 @@ export interface JsxPlatform {
 		 * `is` prop as runtime-dynamic for scoped CSS pruning.
 		 */
 		dynamic?: string;
+		/**
+		 * Runtime factory used to lower dynamic tags (`<{expr}>`) in production
+		 * output: the factory is imported as `_tsrx_dynamic` and each tag
+		 * becomes `const TsrxDynamic_N = _tsrx_dynamic(() => expr);` followed by
+		 * an ordinary `<TsrxDynamic_N ...>` component reference. When unset (or
+		 * in type-only output), dynamic tags lower to `<TsrxDynamic is={expr}>`
+		 * imported from `imports.dynamic`. Solid: `{ name: 'dynamic', source:
+		 * '@solidjs/web' }`.
+		 */
+		dynamicFactory?: { name: string; source: string };
 		/**
 		 * Module to import `TsrxErrorBoundary` from when an `@try { ... } @catch (...)`
 		 * block appears. Usually `'@tsrx/<platform>/error-boundary'`.

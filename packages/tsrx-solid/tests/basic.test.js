@@ -792,7 +792,7 @@ describe('@tsrx/solid basic', () => {
 			expect(code).toContain(`class="host ${cssHash}"`);
 		});
 
-		it('lowers dynamic tag syntax to the Solid Dynamic helper import', () => {
+		it('lowers dynamic tag syntax to a scoped Solid dynamic factory binding', () => {
 			const { code } = compile(
 				`export function App() @{
 					const Tag = 'section';
@@ -801,8 +801,54 @@ describe('@tsrx/solid basic', () => {
 				'App.tsrx',
 			);
 
+			expect(code).toContain(`import { dynamic as _tsrx_dynamic } from '@solidjs/web';`);
+			expect(code).toContain('const TsrxDynamic_1 = _tsrx_dynamic(() => Tag);');
+			expect(code).toContain(`<TsrxDynamic_1 class="host">{'hello'}</TsrxDynamic_1>`);
+			expect(code).not.toContain('@tsrx/solid/dynamic');
+		});
+
+		it('declares dynamic factory bindings inside the owning control-flow scope', () => {
+			const { code } = compile(
+				`export function App({ items }) @{
+					@for (const item of items) {
+						<{item.tag} class="row">{item.label}</{item.tag}>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			const callback_start = code.indexOf('(item) =>');
+			const declaration = code.indexOf('const TsrxDynamic_1 = _tsrx_dynamic(() => item.tag);');
+			expect(callback_start).toBeGreaterThan(-1);
+			expect(declaration).toBeGreaterThan(callback_start);
+		});
+
+		it('keeps the Dynamic component shape in type-only output for dynamic tags', () => {
+			const { code } = compile_to_volar_mappings(
+				`export function App() @{
+					const Tag = 'section';
+					<{Tag} class="host">{'hello'}</{Tag}>
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
 			expect(code).toContain(`import { Dynamic as TsrxDynamic } from '@tsrx/solid/dynamic';`);
-			expect(code).toContain(`<TsrxDynamic is={Tag} class="host">{'hello'}</TsrxDynamic>`);
+			expect(code).toContain(`<TsrxDynamic is={Tag} class="host"`);
+			expect(code).not.toContain('@solidjs/web');
+		});
+
+		it('lowers reference-free dynamic tags in type-only output instead of hoisting them raw', () => {
+			const { code } = compile_to_volar_mappings(
+				`export function App() @{
+					<{'div'} class="hello">{'Content'}</{'div'}>
+				}`,
+				'App.tsrx',
+				{ loose: true },
+			);
+
+			expect(code).toContain(`<TsrxDynamic is={'div'} class="hello"`);
+			expect(code).not.toContain('<{');
 		});
 
 		it('supports style expressions for scoped class maps', () => {
