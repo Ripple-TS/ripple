@@ -489,8 +489,7 @@ export function convert_source_map_to_mappings(
 			return;
 		}
 
-		for (const extra_mapping of generated_node.metadata.extra_source_mappings) {
-			const source_node = extra_mapping.source;
+		for (const source_node of generated_node.metadata.extra_source_mappings) {
 			if (!source_node?.loc) continue;
 
 			tokens.push({
@@ -503,7 +502,6 @@ export function convert_source_map_to_mappings(
 					typeof source_node.start === 'number' && typeof source_node.end === 'number'
 						? source_node.end - source_node.start
 						: undefined,
-				mappingData: extra_mapping.mappingData,
 			});
 		}
 	}

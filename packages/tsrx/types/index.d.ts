@@ -728,6 +728,7 @@ declare module 'estree-jsx' {
 	interface JSXExpressionContainer {
 		text?: boolean;
 		style?: boolean;
+		isDynamic?: boolean;
 	}
 
 	interface JSXMemberExpression {

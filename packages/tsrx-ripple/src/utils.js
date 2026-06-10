@@ -5,6 +5,7 @@
  */
 
 import {
+	add_extra_source_mappings_from_matching_expression,
 	buildAssignmentValue,
 	clone_expression_node,
 	extractPaths,
@@ -1685,11 +1686,9 @@ export function lower_dynamic_element(node) {
 	}
 
 	const expression = /** @type {AST.Expression & { was_expression?: boolean }} */ (node.id);
+	const closing_name = /** @type {any} */ (node.closingElement?.name);
 	const closing_expression =
-		node.metadata?.dynamic_closing_expression ??
-		expression.metadata?.dynamic_closing_expression ??
-		(node.closingElement?.name?.expression &&
-			clone_expression_node(node.closingElement.name.expression));
+		closing_name?.expression && clone_expression_node(closing_name.expression);
 	expression.was_expression = true;
 	add_extra_source_mappings_from_matching_expression(expression, closing_expression);
 	node.id = b.id(dynamic_element_import_local);
@@ -1700,7 +1699,7 @@ export function lower_dynamic_element(node) {
 		node.closingElement.name = b.jsx_id(dynamic_element_import_local);
 	}
 	node.attributes = [
-		{
+		/** @type {AST.Attribute} */ ({
 			type: 'Attribute',
 			name: {
 				type: 'Identifier',
@@ -1715,34 +1714,11 @@ export function lower_dynamic_element(node) {
 			start: expression.start,
 			end: expression.end,
 			loc: expression.loc,
-		},
+		}),
 		...node.attributes,
 	];
 	node.isDynamic = false;
 	return true;
-}
-
-/**
- * @param {any} generated
- * @param {any} source
- * @returns {void}
- */
-function add_extra_source_mappings_from_matching_expression(generated, source) {
-	if (!generated || !source || generated.type !== source.type) return;
-
-	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
-		if (!source.loc) return;
-		generated.metadata ??= { path: [] };
-		generated.metadata.extra_source_mappings ??= [];
-		generated.metadata.extra_source_mappings.push({ source });
-		return;
-	}
-
-	for (const key of ['expression', 'object', 'property']) {
-		if (generated[key] && source[key]) {
-			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
-		}
-	}
 }
 
 /**
@@ -2803,7 +2779,6 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		);
 		if (node.isDynamic === true || opening.isDynamic === true || name.isDynamic === true) {
 			element.isDynamic = true;
-			element.metadata.dynamic_closing_expression = node.metadata?.dynamic_closing_expression;
 		}
 
 		element.children = /** @type {AST.Node[]} */ (

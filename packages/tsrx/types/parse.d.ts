@@ -1621,11 +1621,13 @@ export namespace Parse {
 			| ReturnType<Parser['jsx_parseIdentifier']>;
 
 		/**
-		 * Parse JSX element name (identifier, member, namespaced)
+		 * Parse JSX element name (identifier, member, namespaced, or a dynamic
+		 * `{expression}` container)
 		 */
 		jsx_parseElementName():
 			| ESTreeJSX.JSXMemberExpression
 			| ReturnType<Parser['jsx_parseNamespacedName']>
+			| ESTreeJSX.JSXExpressionContainer
 			| '';
 
 		/**

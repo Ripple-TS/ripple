@@ -40,7 +40,6 @@ export interface JsxTransformContext {
 	needs_normalize_spread_props_for_ref_attr: boolean;
 	needs_fragment: boolean;
 	needs_dynamic_element: boolean;
-	dynamic_import_local: string;
 	needs_for_of_iterable: boolean;
 	needs_iteration_value_type: boolean;
 	stylesheets: AST.CSS.StyleSheet[];

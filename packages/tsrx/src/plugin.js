@@ -76,6 +76,25 @@ const REGEX_PRECEDING_KEYWORDS = new Set([
 	'throw',
 ]);
 
+// Transparent wrappers to look through when validating a dynamic tag
+// expression (`<{expr}>`), and syntax that disqualifies one outright.
+const DYNAMIC_TAG_WRAPPER_TYPES = new Set([
+	'TSAsExpression',
+	'TSTypeAssertion',
+	'TSNonNullExpression',
+	'ParenthesizedExpression',
+	'ChainExpression',
+]);
+const DYNAMIC_TAG_DISALLOWED_TYPES = new Set([
+	'SpreadElement',
+	'ExperimentalSpreadProperty',
+	'ObjectExpression',
+	'ArrayExpression',
+	'CallExpression',
+	'NewExpression',
+	'TaggedTemplateExpression',
+]);
+
 /** @type {WeakMap<Record<string, boolean>, Map<string, number>>} */
 const argument_clash_first_positions = new WeakMap();
 /** @type {WeakMap<Record<string, boolean>, Set<string>>} */
@@ -2582,6 +2601,12 @@ export function TSRXPlugin(config) {
 				} else if (node.type === 'MemberExpression' || node.type === 'JSXMemberExpression') {
 					// For components like <Foo.Bar>, return "Foo.Bar"
 					return this.getElementName(node.object) + '.' + this.getElementName(node.property);
+				} else if (this.#isDynamicJSXElementName(node)) {
+					// Dynamic tags (`<{Tag}>`) name by expression source. The braces keep
+					// them from colliding with static tag names ('style', 'head', ...) and
+					// read as source syntax in error messages (`</{Tag}>`).
+					const expression = /** @type {AST.Expression} */ (/** @type {any} */ (node).expression);
+					return `{${this.input.slice(expression.start, expression.end).trim()}}`;
 				}
 				return null;
 			}
@@ -2595,94 +2620,24 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * @param {any} name
-			 * @returns {string | null}
-			 */
-			#dynamicJSXElementNameSource(name) {
-				if (!this.#isDynamicJSXElementName(name)) return null;
-				const expression = name.expression;
-				if (
-					!expression ||
-					typeof expression.start !== 'number' ||
-					typeof expression.end !== 'number'
-				) {
-					return null;
-				}
-				return this.input.slice(expression.start, expression.end).trim();
-			}
-
-			/**
-			 * @param {any} node
-			 * @param {Map<any, any>} [seen]
-			 * @returns {any}
-			 */
-			#cloneSourceLocationNode(node, seen = new Map()) {
-				if (!node || typeof node !== 'object') return node;
-				if (seen.has(node)) return seen.get(node);
-				if (Array.isArray(node)) {
-					const clone = [];
-					seen.set(node, clone);
-					for (const child of node) {
-						clone.push(this.#cloneSourceLocationNode(child, seen));
-					}
-					return clone;
-				}
-
-				const clone = {};
-				seen.set(node, clone);
-				for (const key of Object.keys(node)) {
-					if (key === 'metadata' || key === 'parent') continue;
-					clone[key] = this.#cloneSourceLocationNode(node[key], seen);
-				}
-				return clone;
-			}
-
-			/**
-			 * @param {any} name
-			 * @returns {string}
-			 */
-			#getJSXElementDisplayName(name) {
-				if (this.#isDynamicJSXElementName(name)) {
-					return `{${this.#dynamicJSXElementNameSource(name) ?? '...'}}`;
-				}
-				return this.getElementName(name) ?? '';
-			}
-
-			/**
-			 * @param {any} expression
-			 * @returns {any}
-			 */
-			#unwrapDynamicTagExpression(expression) {
-				let node = expression;
-				while (
-					node &&
-					(node.type === 'TSAsExpression' ||
-						node.type === 'TSTypeAssertion' ||
-						node.type === 'TSNonNullExpression' ||
-						node.type === 'ParenthesizedExpression' ||
-						node.type === 'ChainExpression')
-				) {
-					node = node.expression;
-				}
-				return node;
-			}
-
-			/**
+			 * Dynamic tag expressions must be able to resolve to an element name:
+			 * an identifier, member access, static string, or a runtime expression
+			 * composed of those. Constructed values (calls, spreads, concatenation,
+			 * interpolation, object/array literals) and static non-string literals
+			 * can never be valid tag names.
 			 * @param {any} expression
 			 * @returns {boolean}
 			 */
 			#isValidDynamicTagExpression(expression) {
-				const node = this.#unwrapDynamicTagExpression(expression);
-				if (!node) return false;
-				if (this.#dynamicTagExpressionContainsDisallowedSyntax(node)) return false;
-				if (node.type === 'JSXEmptyExpression' || node.type?.startsWith?.('JSX')) return false;
+				let node = expression;
+				while (node && DYNAMIC_TAG_WRAPPER_TYPES.has(node.type)) {
+					node = node.expression;
+				}
+				if (!node || node.type?.startsWith?.('JSX')) return false;
 				if (node.type === 'Identifier') return node.name !== 'undefined';
 				if (node.type === 'Literal') return typeof node.value === 'string';
-				if (node.type === 'TemplateLiteral') return node.expressions.length === 0;
 				if (node.type === 'UnaryExpression' && node.operator === 'void') return false;
-				if (node.type === 'ObjectExpression' || node.type === 'ArrayExpression') return false;
-				if (node.type === 'CallExpression' || node.type === 'NewExpression') return false;
-				return true;
+				return !this.#containsDisallowedDynamicTagSyntax(node);
 			}
 
 			/**
@@ -2690,22 +2645,14 @@ export function TSRXPlugin(config) {
 			 * @param {Set<any>} [seen]
 			 * @returns {boolean}
 			 */
-			#dynamicTagExpressionContainsDisallowedSyntax(node, seen = new Set()) {
+			#containsDisallowedDynamicTagSyntax(node, seen = new Set()) {
 				if (!node || typeof node !== 'object' || seen.has(node)) return false;
 				seen.add(node);
 				if (Array.isArray(node)) {
-					return node.some((child) =>
-						this.#dynamicTagExpressionContainsDisallowedSyntax(child, seen),
-					);
+					return node.some((child) => this.#containsDisallowedDynamicTagSyntax(child, seen));
 				}
 				if (
-					node.type === 'SpreadElement' ||
-					node.type === 'ExperimentalSpreadProperty' ||
-					node.type === 'ObjectExpression' ||
-					node.type === 'ArrayExpression' ||
-					node.type === 'CallExpression' ||
-					node.type === 'NewExpression' ||
-					node.type === 'TaggedTemplateExpression' ||
+					DYNAMIC_TAG_DISALLOWED_TYPES.has(node.type) ||
 					(node.type === 'TemplateLiteral' && node.expressions.length > 0) ||
 					(node.type === 'BinaryExpression' && node.operator === '+')
 				) {
@@ -2713,7 +2660,7 @@ export function TSRXPlugin(config) {
 				}
 				for (const key of Object.keys(node)) {
 					if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
-					if (this.#dynamicTagExpressionContainsDisallowedSyntax(node[key], seen)) return true;
+					if (this.#containsDisallowedDynamicTagSyntax(node[key], seen)) return true;
 				}
 				return false;
 			}
@@ -3580,14 +3527,11 @@ export function TSRXPlugin(config) {
 			}
 
 			#parseJSXDynamicElementName() {
-				const container =
-					/** @type {ESTreeJSX.JSXExpressionContainer & { isDynamic?: boolean }} */ (
-						this.jsx_parseExpressionContainer()
-					);
+				const container = this.jsx_parseExpressionContainer();
 				container.isDynamic = true;
 				if (!this.#isValidDynamicTagExpression(container.expression)) {
 					this.raise(
-						container.expression?.start ?? container.start,
+						/** @type {number} */ (container.expression?.start ?? container.start),
 						'Dynamic element names must be an identifier, member expression, static string, or runtime expression; calls, spreads, string concatenation, string interpolation, and static null, undefined, boolean, number, object, and array literals are not valid tag names.',
 					);
 				}
@@ -4137,7 +4081,7 @@ export function TSRXPlugin(config) {
 				);
 				node.attributes = [];
 				const nodeName = this.jsx_parseElementName();
-				if (nodeName) node.name = nodeName;
+				if (nodeName) node.name = /** @type {any} */ (nodeName);
 				if (this.#isDynamicJSXElementName(nodeName)) {
 					/** @type {any} */ (node).isDynamic = true;
 				}
@@ -4157,9 +4101,7 @@ export function TSRXPlugin(config) {
 				if (opening_template_node) {
 					if (nodeName) {
 						/** @type {any} */ (opening_template_node).type =
-							!this.#isDynamicJSXElementName(nodeName) && this.getElementName(nodeName) === 'style'
-								? 'JSXStyleElement'
-								: 'JSXElement';
+							this.getElementName(nodeName) === 'style' ? 'JSXStyleElement' : 'JSXElement';
 						/** @type {any} */ (opening_template_node).openingElement = node;
 						/** @type {any} */ (opening_template_node).closingElement = null;
 						if (this.#isDynamicJSXElementName(nodeName)) {
@@ -4239,7 +4181,7 @@ export function TSRXPlugin(config) {
 				}
 				const tag_name = open.name ? this.getElementName(open.name) : null;
 				const is_dynamic = this.#isDynamicJSXElementName(open.name);
-				const is_style = !is_dynamic && tag_name === 'style';
+				const is_style = tag_name === 'style';
 				const inside_head = this.#path.findLast((n) => this.#isNativeElementNamed(n, 'head'));
 
 				// Fragments (<>) produce JSXOpeningFragment with no `name` property
@@ -4301,9 +4243,7 @@ export function TSRXPlugin(config) {
 					if (this.#path[this.#path.length - 1] === node) {
 						const displayTag = is_fragment
 							? ''
-							: this.#getJSXElementDisplayName(
-									/** @type {ESTreeJSX.JSXElement} */ (node).openingElement.name,
-								);
+							: this.getElementName(/** @type {ESTreeJSX.JSXElement} */ (node).openingElement.name);
 						this.#report_broken_markup_error(
 							this.start,
 							`Unclosed tag '<${displayTag}>'. Expected '</${displayTag}>' before end of template.`,
@@ -4505,21 +4445,15 @@ export function TSRXPlugin(config) {
 								? ''
 								: closingElement.name.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
-									: this.#isDynamicJSXElementName(closingElement.name)
-										? this.#dynamicJSXElementNameSource(closingElement.name)
-										: this.getElementName(closingElement.name);
+									: this.getElementName(closingElement.name);
 						} else {
 							openingTagName = currentElement.openingElement?.name
-								? this.#isDynamicJSXElementName(currentElement.openingElement.name)
-									? this.#dynamicJSXElementNameSource(currentElement.openingElement.name)
-									: this.getElementName(currentElement.openingElement.name)
+								? this.getElementName(currentElement.openingElement.name)
 								: null;
 							closingTagName = closingElement.name
 								? closingElement.name?.type === 'JSXNamespacedName'
 									? closingElement.name.namespace.name + ':' + closingElement.name.name.name
-									: this.#isDynamicJSXElementName(closingElement.name)
-										? this.#dynamicJSXElementNameSource(closingElement.name)
-										: this.getElementName(closingElement.name)
+									: this.getElementName(closingElement.name)
 								: null;
 						}
 
@@ -4535,9 +4469,7 @@ export function TSRXPlugin(config) {
 									elem.type === 'JSXFragment'
 										? ''
 										: elem.openingElement?.name
-											? this.#isDynamicJSXElementName(elem.openingElement.name)
-												? this.#dynamicJSXElementNameSource(elem.openingElement.name)
-												: this.getElementName(elem.openingElement.name)
+											? this.getElementName(elem.openingElement.name)
 											: null;
 								return elemName === normalized_closing_name;
 							});
@@ -4563,9 +4495,7 @@ export function TSRXPlugin(config) {
 									elem.type === 'JSXFragment'
 										? ''
 										: elem.openingElement?.name
-											? this.#isDynamicJSXElementName(elem.openingElement.name)
-												? this.#dynamicJSXElementNameSource(elem.openingElement.name)
-												: this.getElementName(elem.openingElement.name)
+											? this.getElementName(elem.openingElement.name)
 											: null;
 
 								// Found matching opening tag
@@ -4593,26 +4523,12 @@ export function TSRXPlugin(config) {
 								elementToClose.type === 'JSXFragment'
 									? ''
 									: elementToClose.openingElement?.name
-										? this.#isDynamicJSXElementName(elementToClose.openingElement.name)
-											? this.#dynamicJSXElementNameSource(elementToClose.openingElement.name)
-											: this.getElementName(elementToClose.openingElement.name)
+										? this.getElementName(elementToClose.openingElement.name)
 										: null;
 							if (elementToCloseName === closingTagName) {
 								if (elementToClose.type === 'JSXFragment') {
 									elementToClose.closingFragment = this.#toClosingFragment(closingElement);
 								} else {
-									if (this.#isDynamicJSXElementName(closingElement.name)) {
-										const closingExpression = this.#cloneSourceLocationNode(
-											closingElement.name.expression,
-										);
-										elementToClose.metadata ??= {};
-										elementToClose.metadata.dynamic_closing_expression = closingExpression;
-										const openingExpression = elementToClose.openingElement?.name?.expression;
-										if (openingExpression) {
-											openingExpression.metadata ??= {};
-											openingExpression.metadata.dynamic_closing_expression = closingExpression;
-										}
-									}
 									elementToClose.closingElement = closingElement;
 								}
 							}

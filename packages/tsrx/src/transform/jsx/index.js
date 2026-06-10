@@ -15,6 +15,7 @@ import {
 	tsx_with_ts_locations,
 } from './helpers.js';
 import {
+	add_extra_source_mappings_from_matching_expression,
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
@@ -302,7 +303,6 @@ export function createJsxTransform(platform) {
 			needs_normalize_spread_props_for_ref_attr: false,
 			needs_fragment: false,
 			needs_dynamic_element: false,
-			dynamic_import_local: DYNAMIC_IMPORT_LOCAL,
 			needs_for_of_iterable: false,
 			needs_iteration_value_type: false,
 			stylesheets,
@@ -504,103 +504,48 @@ export function createJsxTransform(platform) {
 }
 
 /**
- * @param {any} node
- * @returns {boolean}
- */
-function is_dynamic_element_node(node) {
-	return !!(
-		node?.type === 'JSXElement' &&
-		(node.isDynamic === true ||
-			node.openingElement?.isDynamic === true ||
-			is_dynamic_element_name(node.openingElement?.name))
-	);
-}
-
-/**
- * @param {any} name
- * @returns {boolean}
- */
-function is_dynamic_element_name(name) {
-	return !!(name?.type === 'JSXExpressionContainer' && name.isDynamic === true);
-}
-
-/**
  * Lower a single parser-native dynamic tag (`<{expr}>`) into the target runtime
  * `<Dynamic is={expr}>` helper shape while the existing JSXElement walker is
- * already visiting it.
+ * already visiting it. The dynamic name container travels by reference through
+ * element rebuilds, so checking it covers rebuilt elements too; once lowered,
+ * the name is a plain `JSXIdentifier` and the element is skipped on re-visits.
  *
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {void}
  */
 function lower_dynamic_jsx_element(node, transform_context) {
-	if (!is_dynamic_element_node(node)) return;
+	const dynamic_name = node.openingElement?.name;
+	if (dynamic_name?.type !== 'JSXExpressionContainer' || dynamic_name.isDynamic !== true) return;
 	if (!transform_context.platform.imports.dynamic) return;
 
-	const opening = node.openingElement;
-	const dynamic_name = opening?.name;
-	const dynamic_expression = dynamic_name?.expression;
+	const dynamic_expression = dynamic_name.expression;
 	if (!dynamic_expression) return;
-	const closing_expression =
-		node.metadata?.dynamic_closing_expression ??
-		dynamic_expression.metadata?.dynamic_closing_expression ??
-		(node.closingElement?.name?.expression &&
-			clone_expression_node(node.closingElement.name.expression));
+	const generated_expression = clone_expression_node(dynamic_expression);
+	if (node.closingElement?.name?.expression) {
+		// One generated `is={expr}` stands in for both tags; record the closing
+		// tag's positions so editor features keep working on `</{expr}>`.
+		add_extra_source_mappings_from_matching_expression(
+			generated_expression,
+			clone_expression_node(node.closingElement.name.expression),
+		);
+	}
 
-	const dynamic_id = b.jsx_id(transform_context.dynamic_import_local);
-	opening.name = dynamic_id;
-	opening.isDynamic = false;
-	opening.attributes = [
-		create_dynamic_is_attribute(dynamic_expression, dynamic_name, closing_expression),
-		...(opening.attributes || []),
+	node.openingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
+	node.openingElement.attributes = [
+		b.jsx_attribute(
+			b.jsx_id('is'),
+			b.jsx_expression_container(generated_expression, dynamic_name),
+			false,
+			dynamic_name,
+		),
+		...(node.openingElement.attributes || []),
 	];
 	if (node.closingElement?.name) {
-		node.closingElement.name = b.jsx_id(transform_context.dynamic_import_local);
-		node.closingElement.isDynamic = false;
+		node.closingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
 	}
-	node.isDynamic = false;
 
 	transform_context.needs_dynamic_element = true;
-}
-
-/**
- * @param {any} expression
- * @param {any} source_name
- * @param {any} [closing_expression]
- * @returns {any}
- */
-function create_dynamic_is_attribute(expression, source_name, closing_expression) {
-	const generated_expression = clone_expression_node(expression);
-	add_extra_source_mappings_from_matching_expression(generated_expression, closing_expression);
-	return b.jsx_attribute(
-		b.jsx_id('is'),
-		b.jsx_expression_container(generated_expression, source_name),
-		false,
-		source_name,
-	);
-}
-
-/**
- * @param {any} generated
- * @param {any} source
- * @returns {void}
- */
-function add_extra_source_mappings_from_matching_expression(generated, source) {
-	if (!generated || !source || generated.type !== source.type) return;
-
-	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
-		if (!source.loc) return;
-		generated.metadata ??= { path: [] };
-		generated.metadata.extra_source_mappings ??= [];
-		generated.metadata.extra_source_mappings.push({ source });
-		return;
-	}
-
-	for (const key of ['expression', 'object', 'property']) {
-		if (generated[key] && source[key]) {
-			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
-		}
-	}
 }
 
 /**
@@ -612,10 +557,7 @@ function inject_dynamic_import(program, transform_context) {
 	const source = transform_context.platform.imports.dynamic;
 	if (!transform_context.needs_dynamic_element || !source) return;
 	program.body.unshift(
-		b.import_declaration(
-			[b.import_specifier('Dynamic', transform_context.dynamic_import_local)],
-			source,
-		),
+		b.import_declaration([b.import_specifier('Dynamic', DYNAMIC_IMPORT_LOCAL)], source),
 	);
 }
 
@@ -3384,7 +3326,13 @@ function to_jsx_element(
 		? null
 		: set_loc(
 				b.jsx_closing_element(
-					clone_jsx_name(name, node.closingElement?.name || node.closingElement || node),
+					// Clone from the actual closing name when there is one: a dynamic
+					// tag's closing expression (`</{Tag}>`) has its own source positions,
+					// which editor mappings need.
+					clone_jsx_name(
+						node.closingElement?.name ?? name,
+						node.closingElement?.name || node.closingElement || node,
+					),
 				),
 				node.closingElement || node,
 			);

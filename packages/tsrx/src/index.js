@@ -173,6 +173,7 @@ export {
 	get_style_element_stylesheet as getStyleElementStylesheet,
 } from './transform/style-ref.js';
 export {
+	add_extra_source_mappings_from_matching_expression,
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,

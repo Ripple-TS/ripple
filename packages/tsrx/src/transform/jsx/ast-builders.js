@@ -90,6 +90,33 @@ export function clone_jsx_name(name, source_node = name) {
 }
 
 /**
+ * Record extra source positions on a generated expression so one generated
+ * range can map back to several source ranges. Used for dynamic tags, where
+ * the generated `is={expr}` value stands in for both `<{expr}` and `</{expr}>`;
+ * segments.js turns each recorded node into an additional mapping token.
+ * @param {any} generated
+ * @param {any} source
+ * @returns {void}
+ */
+export function add_extra_source_mappings_from_matching_expression(generated, source) {
+	if (!generated || !source || generated.type !== source.type) return;
+
+	if (generated.type === 'Identifier' || generated.type === 'PrivateIdentifier') {
+		if (!source.loc) return;
+		generated.metadata ??= { path: [] };
+		generated.metadata.extra_source_mappings ??= [];
+		generated.metadata.extra_source_mappings.push(source);
+		return;
+	}
+
+	for (const key of ['expression', 'object', 'property']) {
+		if (generated[key] && source[key]) {
+			add_extra_source_mappings_from_matching_expression(generated[key], source[key]);
+		}
+	}
+}
+
+/**
  * @returns {AST.Literal}
  */
 export function create_null_literal() {
