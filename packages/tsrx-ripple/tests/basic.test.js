@@ -24,11 +24,11 @@ describe('@tsrx/ripple dynamic tag syntax', () => {
 	<{Tag} class="host">{'hello'}</{Tag}>
 }`;
 
-	it('lowers dynamic tags through the runtime Dynamic helper on the client', () => {
+	it('renders dynamic tags directly through composite on the client', () => {
 		const { code } = compile(source, 'App.tsrx');
-		expect(code).toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
-		expect(code).toContain('_$_.render_component(TsrxDynamic');
-		expect(code).toContain('is: Tag');
+		expect(code).not.toContain(`import { Dynamic as TsrxDynamic } from 'ripple';`);
+		expect(code).toContain('_$_.composite(() => Tag, ');
+		expect(code).toContain(`class: "host"`);
 	});
 
 	it('lowers dynamic tags through the runtime Dynamic helper on the server', () => {

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import * as _$_ from 'ripple/internal/server';
+import { Dynamic as TsrxDynamic } from 'ripple/server';
 
 export function Layout(__props) {
 	return _$_.tsrx_element(() => {
@@ -195,6 +196,65 @@ export function LayoutWithTextAroundChildren() {
 									const args = [{}];
 
 									_$_.render_component(comp, ...args);
+								}
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
+export function DynamicTagElement() {
+	return _$_.tsrx_element(() => {
+		const Tag = 'section';
+
+		_$_.regular_block(() => {
+			{
+				const comp = TsrxDynamic;
+
+				const args = [
+					{
+						is: Tag,
+						class: "host",
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								_$_.output_push('hello');
+							});
+						})
+					}
+				];
+
+				if (comp) {
+					_$_.render_component(comp, ...args);
+				}
+			}
+		});
+	});
+}
+
+export function DynamicTagComponent() {
+	return _$_.tsrx_element(() => {
+		const Comp = SingleChild;
+
+		_$_.regular_block(() => {
+			{
+				const comp = Layout;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								{
+									const comp = TsrxDynamic;
+									const args = [{ is: Comp }];
+
+									if (comp) {
+										_$_.render_component(comp, ...args);
+									}
 								}
 							});
 						})

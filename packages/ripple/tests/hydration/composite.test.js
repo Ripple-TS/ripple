@@ -50,4 +50,19 @@ describe('hydration > composite', () => {
 		);
 		expect(container.querySelector('.layout')?.textContent).toBe('beforesingleafter');
 	});
+
+	it('hydrates a dynamic tag element', async () => {
+		await hydrateComponent(ServerComponents.DynamicTagElement, ClientComponents.DynamicTagElement);
+		expect(container.innerHTML).toBeHtml('<section class="host">hello</section>');
+	});
+
+	it('hydrates a dynamic tag component', async () => {
+		await hydrateComponent(
+			ServerComponents.DynamicTagComponent,
+			ClientComponents.DynamicTagComponent,
+		);
+		expect(container.innerHTML).toBeHtml(
+			'<div class="layout"><div class="single">single</div></div>',
+		);
+	});
 });

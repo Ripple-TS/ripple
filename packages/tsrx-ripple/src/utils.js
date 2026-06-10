@@ -1665,6 +1665,11 @@ export function escape_html(value, is_attr = false) {
  * @returns {boolean}
  */
 export function is_element_dom_element(node) {
+	// A dynamic tag's id is an arbitrary expression (possibly a lowercase
+	// identifier) and resolves at runtime, never statically to a DOM element.
+	if (/** @type {AST.Element} */ (node).isDynamic === true) {
+		return false;
+	}
 	const id = /** @type {AST.Element} */ (node).id;
 	return (
 		id.type === 'Identifier' &&

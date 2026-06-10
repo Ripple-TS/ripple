@@ -3,7 +3,8 @@
 import { exclude_prop_from_object } from '@tsrx/core/runtime/language-helpers';
 import { branch, destroy_block, render, render_spread } from './blocks.js';
 import { COMPOSITE_BLOCK, DEFAULT_NAMESPACE, NAMESPACE_URI } from './constants.js';
-import { hydrate_next, hydrating } from './hydration.js';
+import { hydrate_node, hydrate_next, hydrating, set_hydrate_node } from './hydration.js';
+import { first_child } from './operations.js';
 import { active_block, active_namespace, get, with_ns } from './runtime.js';
 import { top_element_to_ns } from './utils.js';
 import { is_tsrx_element } from '../../element.js';
@@ -57,15 +58,22 @@ export function composite(get_component, node, props, exclude_prop) {
 				var run = () => {
 					var block = /** @type {Block} */ (active_block);
 
-					var element =
-						ns !== DEFAULT_NAMESPACE
-							? document.createElementNS(
-									NAMESPACE_URI[ns],
-									/** @type {keyof HTMLElementTagNameMap} */ (component),
-								)
-							: document.createElement(/** @type {keyof HTMLElementTagNameMap} */ (component));
+					/** @type {Element} */
+					var element;
+					if (hydrating) {
+						// Claim the SSR-rendered element instead of creating a new one.
+						element = /** @type {Element} */ (hydrate_node);
+					} else {
+						element =
+							ns !== DEFAULT_NAMESPACE
+								? document.createElementNS(
+										NAMESPACE_URI[ns],
+										/** @type {keyof HTMLElementTagNameMap} */ (component),
+									)
+								: document.createElement(/** @type {keyof HTMLElementTagNameMap} */ (component));
 
-					/** @type {ChildNode} */ (anchor).before(element);
+						/** @type {ChildNode} */ (anchor).before(element);
+					}
 
 					if (block.s === null) {
 						block.s = {
@@ -77,13 +85,27 @@ export function composite(get_component, node, props, exclude_prop) {
 					render_spread(element, () => props || {}, 0, exclude_prop);
 
 					if (is_tsrx_element(props?.children)) {
-						var child_anchor = document.createComment('');
-						element.appendChild(child_anchor);
+						/** @type {Node} */
+						var child_anchor;
+						if (hydrating) {
+							// The server renders children directly inside the element with no
+							// extra markers; descend the cursor so they claim those nodes.
+							child_anchor = /** @type {Node} */ (first_child(element));
+						} else {
+							child_anchor = document.createComment('');
+							element.appendChild(child_anchor);
+						}
 
 						if (ns !== DEFAULT_NAMESPACE) {
 							with_ns(ns, () => props.children.render(child_anchor, block));
 						} else {
 							props.children.render(child_anchor, block);
+						}
+
+						if (hydrating) {
+							// Reset the cursor to the claimed element so sibling traversal
+							// continues after it.
+							set_hydrate_node(element);
 						}
 					}
 				};

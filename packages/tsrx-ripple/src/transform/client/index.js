@@ -2059,7 +2059,10 @@ const visitors = {
 	Element(node, context) {
 		const { state, visit } = context;
 
-		if (lower_dynamic_element(node)) {
+		// The TS view needs the `<TsrxDynamic is={expr}>` component shape for type
+		// checking; production codegen keeps `node.id` as the dynamic expression
+		// and renders it directly via `_$_.composite` in the component branch.
+		if (state.to_ts && lower_dynamic_element(node)) {
 			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
 		}
 
@@ -2798,7 +2801,10 @@ const visitors = {
 			} else {
 				object_props = b.object(props);
 			}
-			if (metadata.tracking) {
+			// Dynamic tags (`<{expr}>`) always render through composite: the runtime
+			// resolves the expression value (component function, tag string, or
+			// null) and re-renders when a tracked expression changes.
+			if (metadata.tracking || node.isDynamic === true) {
 				const shared = b.call(
 					'_$_.composite',
 					b.thunk(/** @type {AST.Expression} */ (visit(node.id, state))),
@@ -4880,9 +4886,11 @@ function transform_template_element(node, state, visit, child_namespace) {
  */
 function transform_children(children, context) {
 	const { visit, state, root } = context;
-	for (const child of children) {
-		if (child.type === 'Element' && lower_dynamic_element(child)) {
-			state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+	if (state.to_ts) {
+		for (const child of children) {
+			if (child.type === 'Element' && lower_dynamic_element(child)) {
+				state.imports.add(`import { Dynamic as ${dynamic_element_import_local} } from 'ripple'`);
+			}
 		}
 	}
 	const normalized = normalize_children(children, {

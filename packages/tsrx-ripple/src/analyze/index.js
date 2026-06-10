@@ -2477,7 +2477,7 @@ const visitors = {
 
 		const { state, visit, path } = context;
 		const is_dynamic_syntax_element = node.isDynamic === true;
-		const is_dom_element = !is_dynamic_syntax_element && is_element_dom_element(node);
+		const is_dom_element = is_element_dom_element(node);
 		const is_dynamic_runtime_element = !is_dom_element && is_runtime_dynamic_element(node, context);
 		if (is_dynamic_runtime_element) {
 			node.metadata.runtime_dynamic_element = true;

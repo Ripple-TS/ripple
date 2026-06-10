@@ -15,6 +15,9 @@ var root_11 = _$_.template(`<!>`, 1, 1);
 var root_10 = _$_.template(`<!>`, 1, 1);
 var root_13 = _$_.template(`<!>`, 1, 1);
 var root_12 = _$_.template(`<!>`, 1, 1);
+var root_14 = _$_.template(`<!>`, 1, 1);
+var root_16 = _$_.template(`<!>`, 1, 1);
+var root_15 = _$_.template(`<!>`, 1, 1);
 
 export function Layout(__props) {
 	return _$_.tsrx_element((__anchor, __block) => {
@@ -154,5 +157,44 @@ export function LayoutWithTextAroundChildren() {
 		});
 
 		_$_.append(__anchor, fragment_9);
+	});
+}
+
+export function DynamicTagElement() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		const Tag = 'section';
+		var fragment_11 = root_14();
+		var node_10 = _$_.first_child_frag(fragment_11);
+
+		_$_.composite(() => Tag, node_10, {
+			class: "host",
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var expression_3 = _$_.text('hello');
+
+				_$_.append(__anchor, expression_3);
+			})
+		});
+
+		_$_.append(__anchor, fragment_11);
+	});
+}
+
+export function DynamicTagComponent() {
+	return _$_.tsrx_element((__anchor, __block) => {
+		const Comp = SingleChild;
+		var fragment_12 = root_15();
+		var node_11 = _$_.first_child_frag(fragment_12);
+
+		_$_.render_component(Layout, node_11, {
+			children: _$_.tsrx_element((__anchor, __block) => {
+				var fragment_13 = root_16();
+				var node_12 = _$_.first_child_frag(fragment_13);
+
+				_$_.composite(() => Comp, node_12, {});
+				_$_.append(__anchor, fragment_13);
+			})
+		});
+
+		_$_.append(__anchor, fragment_12);
 	});
 }

@@ -51,3 +51,15 @@ export function LayoutWithTextAroundChildren() @{
 		<SingleChild />
 	</TextWrappedLayout>
 }
+
+export function DynamicTagElement() @{
+	const Tag = 'section';
+	<{Tag} class="host">{'hello'}</{Tag}>
+}
+
+export function DynamicTagComponent() @{
+	const Comp = SingleChild;
+	<Layout>
+		<{Comp} />
+	</Layout>
+}
