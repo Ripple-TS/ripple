@@ -1,4 +1,4 @@
-import { Dynamic, type Children } from 'ripple';
+import { type Children } from 'ripple';
 
 export function DocHeading({
 	level,
@@ -12,8 +12,8 @@ export function DocHeading({
 	const tag = `h${level}`;
 	const className = `doc-h${level}`;
 
-	<Dynamic is={tag} {id} class={className}>
+	<{tag} {id} class={className}>
 		{children}
 		<a class="header-anchor" href={`#${id}`} aria-label={`Permalink`} />
-	</Dynamic>
+	</{tag}>
 }

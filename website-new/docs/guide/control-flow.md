@@ -284,17 +284,18 @@ export function RetryBoundary() @{
 
 ## Dynamic Elements
 
-You can render dynamic HTML elements by storing the tag name in a tracked variable
-and passing it to the `Dynamic` runtime component:
+You can render dynamic HTML elements or components by writing the tag as an
+expression in braces — `<{expression}>`. The expression can be a tag name
+string, a component, or a tracked variable holding either:
 
 ```tsrx
-import { Dynamic, track } from 'ripple';
+import { track } from 'ripple';
 
 export function App() @{
   let &[tag] = track('div');
 
   <>
-    <Dynamic is={tag} class="dynamic">Hello World</Dynamic>
+    <{tag} class="dynamic">Hello World</{tag}>
     <button onClick={() => (tag = tag === 'div' ? 'span' : 'div')}>
       Toggle Element
     </button>

@@ -445,41 +445,38 @@ props, pass `children={...}` explicitly.
 
 ### Dynamic elements and components
 
-Use the target runtime `Dynamic` component when the element tag or component
-constructor is chosen at runtime. Import `Dynamic` from the target's dynamic
-runtime module, not from `@tsrx/core`.
-
-| Target | Import |
-| --- | --- |
-| React | `import { Dynamic } from '@tsrx/react/dynamic';` |
-| Preact | `import { Dynamic } from '@tsrx/preact/dynamic';` |
-| Solid | `import { Dynamic } from '@tsrx/solid/dynamic';` |
-| Vue | `import { Dynamic } from '@tsrx/vue/dynamic';` |
-| Ripple | `import { Dynamic } from 'ripple';` |
+Use the dynamic tag syntax `<{expression}>` when the element tag or component
+constructor is chosen at runtime. The expression can evaluate to a string tag
+name or a component value, and a non-self-closing element repeats the same
+expression in its closing tag: `</{expression}>`. No import is required; each
+target compiler lowers the form to its own runtime helper.
 
 ```tsrx
-import { Dynamic } from '@tsrx/react/dynamic';
-
 type Tag = 'section' | 'article';
 
 export function Panel({ as = 'section', title }: { as?: Tag; title: string }) @{
-	<Dynamic is={as} className="panel">
+	<{as} className="panel">
 		<h2>{title}</h2>
-	</Dynamic>
+	</{as}>
 }
 ```
 
 For Preact, Solid, Vue, and Ripple host-class examples, use `class` instead of
-React's `className`. The `is` prop can be a string tag name or a component:
+React's `className`. The tag expression can be a string tag name or a
+component:
 
 ```tsrx
 const Body = expanded ? ExpandedBody : CompactBody;
 
-<Dynamic is={Body} item={item} />
+<{Body} item={item} />
 ```
 
-Do not use removed dynamic tag syntax such as `<@tag />` or `<@Component />`.
-Use `<Dynamic is={...} />` instead.
+The tag expression must resolve to an element name: an identifier, member
+access, static string, or a runtime expression composed of those. Calls,
+spreads, string concatenation, and string interpolation are not valid tag
+names. Do not use removed dynamic tag syntax such as `<@tag />`,
+`<@Component />`, or the imported `Dynamic` component with an `is` prop. Use
+`<{tag}>` instead.
 
 ## Control Flow
 
@@ -819,7 +816,7 @@ const List = <T,>({ items, render }: Props<T>) =>
 | Dynamic CSS value      | `style={{ '--tone': tone }}` + `var(--tone)`           |
 | Escape scoping         | `:global(.class)`                                      |
 | Cross-component class  | `<Child class={styles.foo} />`; React uses `className` |
-| Dynamic element        | `<Dynamic is={tag} />` with a tracked/stateful `tag`   |
+| Dynamic element        | `<{tag} />` with a tracked/stateful `tag`              |
 
 ## Resources
 

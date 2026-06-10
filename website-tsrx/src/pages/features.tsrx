@@ -204,9 +204,7 @@ export function App() @{
 );
 
 const DYNAMIC_HTML = highlight_tsrx(
-	`import { Dynamic } from '@tsrx/react/dynamic';
-
-type PanelProps = {
+	`type PanelProps = {
   as?: 'section' | 'article';
   item: Item;
   expanded: boolean;
@@ -223,9 +221,9 @@ function Details({ item }: { item: Item }) @{
 export function Panel({ as = 'section', item, expanded }: PanelProps) @{
   const Body = expanded ? Details : Summary;
 
-  <Dynamic is={as} className="panel">
-    <Dynamic is={Body} item={item} />
-  </Dynamic>
+  <{as} className="panel">
+    <{Body} item={item} />
+  </{as}>
 }`,
 );
 
@@ -735,29 +733,21 @@ export const FeaturesPage = () => @{
 						<section class="doc-section" id="dynamic">
 							<h2 class="section-heading">Dynamic elements and components</h2>
 							<p class="section-body">
-								Use the target runtime
-								<code class="inline-code">Dynamic</code>
-								component when the host element tag or component constructor is selected at runtime.
-								The
-								<code class="inline-code">is</code>
-								prop can receive a string tag name like
+								Use the dynamic tag syntax
+								<code class="inline-code">{'<{expression}>'}</code>
+								when the host element tag or component constructor is selected at runtime. The
+								expression can evaluate to a string tag name like
 								<code class="inline-code">'section'</code>
-								or a component value.
+								or a component value, and the closing tag repeats the same expression:
+								<code class="inline-code">{'</{expression}>'}</code>
+								. No import is required; each target compiler lowers the tag to its own runtime
+								helper.
 							</p>
 							<p class="section-body">
-								Import
-								<code class="inline-code">Dynamic</code>
-								from the target runtime module:
-								<code class="inline-code">@tsrx/react/dynamic</code>
-								,
-								<code class="inline-code">@tsrx/preact/dynamic</code>
-								,
-								<code class="inline-code">@tsrx/solid/dynamic</code>
-								,
-								<code class="inline-code">@tsrx/vue/dynamic</code>
-								, or
-								<code class="inline-code">ripple</code>
-								for the Ripple target.
+								The tag expression must be able to resolve to an element name: an identifier, member
+								access, static string, or a runtime expression composed of those. Calls, spreads,
+								string concatenation, string interpolation, and static non-string literals are not
+								valid tag names.
 							</p>
 							<pre class="code-block">
 								<code innerHTML={DYNAMIC_HTML} />

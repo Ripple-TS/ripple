@@ -124,23 +124,24 @@ const STYLE_GRAMMAR = [
 	'  <style JSXAttributesopt> CSSSource </style>',
 ].join('\n');
 
-const DYNAMIC_RUNTIME_IMPORTS = [
-	'React:  import { Dynamic } from \'@tsrx/react/dynamic\';',
-	'Preact: import { Dynamic } from \'@tsrx/preact/dynamic\';',
-	'Solid:  import { Dynamic } from \'@tsrx/solid/dynamic\';',
-	'Vue:    import { Dynamic } from \'@tsrx/vue/dynamic\';',
-	'Ripple: import { Dynamic } from \'ripple\';',
+const DYNAMIC_TAG_GRAMMAR = [
+	'JSXElementName :',
+	'  JSXIdentifier',
+	'  JSXMemberExpression',
+	'  JSXNamespacedName',
+	'  JSXExpressionContainer',
+	'',
+	'JSXExpressionContainer :',
+	'  { AssignmentExpression }',
 ].join('\n');
 
-const DYNAMIC_RUNTIME_EXAMPLE = [
-	'import { Dynamic } from \'@tsrx/react/dynamic\';',
-	'',
+const DYNAMIC_TAG_EXAMPLE = [
 	'type Tag = \'section\' | \'article\';',
 	'',
 	'export function Panel({ as = \'section\', title }: { as?: Tag; title: string }) @{',
-	'  <Dynamic is={as} className="panel">',
+	'  <{as} className="panel">',
 	'    <h2>{title}</h2>',
-	'  </Dynamic>',
+	'  </{as}>',
 	'}',
 ].join('\n');
 
@@ -203,7 +204,7 @@ const TEMPLATE_AST_SHAPE = [
 	'',
 	'interface JSXOpeningElement {',
 	'  type: \'JSXOpeningElement\';',
-	'  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;',
+	'  name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName | JSXExpressionContainer;',
 	'  attributes: Array<JSXAttribute | JSXSpreadAttribute>;',
 	'  selfClosing: boolean;',
 	'}',
@@ -605,22 +606,26 @@ export function SpecificationPage() @{
 								<code>{TEMPLATE_EXPRESSION_GRAMMAR}</code>
 							</pre>
 							<p class="section-body">
-								Runtime dynamic element and component selection is not a separate core TSRX tag
-								syntax. Use the host runtime
-								<code class="inline-code">Dynamic</code>
-								component when the tag name or component constructor is chosen at runtime. The
-								source form remains an ordinary JSXElement, for example
-								<code class="inline-code">{'<Dynamic is={tag} />'}</code>
-								, and the runtime component must be imported from the active target.
+								Runtime dynamic element and component selection uses the dynamic tag syntax: a JSX
+								expression container in element-name position, written
+								<code class="inline-code">{'<{expression}>'}</code>
+								. The expression can evaluate to a string tag name or a component constructor, and a
+								non-self-closing element repeats the same expression in its closing tag:
+								<code class="inline-code">{'</{expression}>'}</code>
+								. No runtime import is required; each target compiler lowers the form to its own
+								runtime helper.
 							</p>
 							<pre class="code-block plain">
-								<code>{DYNAMIC_RUNTIME_IMPORTS}</code>
+								<code>{DYNAMIC_TAG_GRAMMAR}</code>
 							</pre>
 							<pre class="code-block plain">
-								<code>{DYNAMIC_RUNTIME_EXAMPLE}</code>
+								<code>{DYNAMIC_TAG_EXAMPLE}</code>
 							</pre>
 							<p class="section-body">
-								Forms such as
+								The tag expression must be able to resolve to an element name: an identifier, member
+								access, static string, or a runtime expression composed of those. Calls, spreads,
+								string concatenation, string interpolation, and static non-string literals are not
+								valid dynamic tag expressions. Forms such as
 								<code class="inline-code">{'<@tag />'}</code>
 								and
 								<code class="inline-code">{'<@Component />'}</code>
@@ -819,11 +824,10 @@ export function SpecificationPage() @{
 								<li>How lazy destructuring is realized at runtime.</li>
 								<li>How style expressions expose generated or scoped class names.</li>
 								<li>
-									Which runtime
-									<code class="inline-code">Dynamic</code>
-									component a host exposes, which module exports it, and how its
-									<code class="inline-code">is</code>
-									prop resolves string tags and component constructors.
+									How the dynamic tag syntax
+									<code class="inline-code">{'<{expression}>'}</code>
+									is lowered, and how the resolved value selects between string tags and component
+									constructors at runtime.
 								</li>
 								<li>
 									How submodule declarations and imports from identifier sources are compiled or
@@ -910,14 +914,13 @@ export function SpecificationPage() @{
 							<ul class="spec-list">
 								<li>
 									JSXOpeningElement.name is a JSXIdentifier for ordinary tag names, a
-									JSXMemberExpression for dotted names, and a JSXNamespacedName for namespaced
-									names. Runtime dynamic rendering uses an ordinary imported JSX component such as
-									<code class="inline-code">Dynamic</code>
-									with ordinary attributes such as
-									<code class="inline-code">is</code>
-									; it does not add a
-									<code class="inline-code">dynamic</code>
-									property to JSXOpeningElement.
+									JSXMemberExpression for dotted names, a JSXNamespacedName for namespaced names,
+									and a JSXExpressionContainer for dynamic tags written as
+									<code class="inline-code">{'<{expression}>'}</code>
+									. Dynamic tags additionally mark the element, its opening element, and the name
+									container with an
+									<code class="inline-code">isDynamic</code>
+									flag for downstream tooling.
 								</li>
 								<li>
 									openingElement and closingElement preserve the original tag delimiters so

@@ -257,44 +257,34 @@ Source: website-tsrx/src/pages/specification.tsrx#style`,
 			slug: 'dynamic-elements-and-components',
 			title: 'Dynamic Elements and Components',
 			use_cases:
-				'dynamic elements, dynamic components, Dynamic component, is prop, runtime tag, runtime component, removed <@tag syntax',
+				'dynamic elements, dynamic components, dynamic tag syntax, runtime tag, runtime component, removed <@tag syntax, removed Dynamic component',
 			content: `# Dynamic Elements and Components
 
-Use the target runtime \`Dynamic\` component when the element tag or component constructor is chosen at runtime. The source form is ordinary JSX: \`<Dynamic is={value} />\`.
-
-Import \`Dynamic\` from the active target runtime module:
-
-| Target | Import |
-| --- | --- |
-| React | \`import { Dynamic } from '@tsrx/react/dynamic';\` |
-| Preact | \`import { Dynamic } from '@tsrx/preact/dynamic';\` |
-| Solid | \`import { Dynamic } from '@tsrx/solid/dynamic';\` |
-| Vue | \`import { Dynamic } from '@tsrx/vue/dynamic';\` |
-| Ripple | \`import { Dynamic } from 'ripple';\` |
+Use the dynamic tag syntax \`<{expression}>\` when the element tag or component constructor is chosen at runtime. The expression can evaluate to a string tag name or a component value, and a non-self-closing element repeats the same expression in its closing tag: \`</{expression}>\`. No import is required; each target compiler lowers the form to its own runtime helper.
 
 \`\`\`tsx
-import { Dynamic } from '@tsrx/react/dynamic';
-
 type Tag = 'section' | 'article';
 
 export function Panel({ as = 'section', title }: { as?: Tag; title: string }) @{
-  <Dynamic is={as} className="panel">
+  <{as} className="panel">
     <h2>{title}</h2>
-  </Dynamic>
+  </{as}>
 }
 \`\`\`
 
-The \`is\` prop can be a string tag name or a component value:
+The tag expression can be a string tag name or a component value:
 
 \`\`\`tsx
 const Body = expanded ? ExpandedBody : CompactBody;
 
-<Dynamic is={Body} item={item} />
+<{Body} item={item} />
 \`\`\`
+
+The tag expression must resolve to an element name: an identifier, member access, static string, or a runtime expression composed of those. Calls, spreads, string concatenation, string interpolation, and static non-string literals are not valid dynamic tag expressions.
 
 For React host classes, use \`className\`. For Preact, Solid, Vue, and Ripple host classes, use \`class\`.
 
-Do not use removed dynamic tag syntax such as \`<@tag />\` or \`<@Component />\`. Use \`<Dynamic is={...} />\` instead.
+Do not use removed dynamic tag syntax such as \`<@tag />\` or \`<@Component />\`, and do not import a runtime \`Dynamic\` component with an \`is\` prop. Use \`<{tag}>\` instead.
 
 Source: website-tsrx/src/pages/features.tsrx#dynamic`,
 		},
