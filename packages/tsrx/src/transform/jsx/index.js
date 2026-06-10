@@ -539,13 +539,13 @@ export function createJsxTransform(platform) {
  * element rebuilds, so checking it covers rebuilt elements too; once lowered,
  * the name is a plain `JSXIdentifier` and the element is skipped on re-visits.
  *
- * Most lowerings rewrite the element's tag in place and return nothing. The
- * import-free alias lowering (Vue) instead returns a replacement fragment the
- * caller must put in the original element's position.
+ * The parsed element is never mutated: every lowering builds a fresh
+ * replacement node (an element, or a fragment for the alias lowering) that
+ * the caller must put in the original element's position.
  *
  * @param {any} node
  * @param {TransformContext} transform_context
- * @returns {ESTreeJSX.JSXFragment | undefined}
+ * @returns {ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment | undefined}
  */
 function lower_dynamic_jsx_element(node, transform_context) {
 	const dynamic_name = node.openingElement?.name;
@@ -571,6 +571,34 @@ function lower_dynamic_jsx_element(node, transform_context) {
 		);
 	}
 
+	/**
+	 * Rebuild the element as an ordinary component reference named `name_id`,
+	 * carrying the original attributes (after any `extra_attributes`) and
+	 * children over by reference.
+	 *
+	 * @param {ESTreeJSX.JSXIdentifier} name_id
+	 * @param {ESTreeJSX.JSXAttribute[]} [extra_attributes]
+	 * @returns {ESTreeJSX.JSXElement}
+	 */
+	const rebuild_element = (name_id, extra_attributes = []) => {
+		const element = b.jsx_element_fresh(
+			b.jsx_opening_element(
+				name_id,
+				[...extra_attributes, ...(node.openingElement.attributes || [])],
+				node.openingElement.selfClosing,
+				node.openingElement.typeArguments,
+				node.openingElement,
+			),
+			node.closingElement
+				? b.jsx_closing_element(b.jsx_id(name_id.name), node.closingElement)
+				: null,
+			node.children,
+			node,
+		);
+		element.metadata = { ...(node.metadata || {}), path: [] };
+		return element;
+	};
+
 	if (factory) {
 		// Bind the tag expression to a scoped component const and reference it
 		// like an ordinary component.
@@ -585,10 +613,6 @@ function lower_dynamic_jsx_element(node, transform_context) {
 			// declaration rides on the name node's metadata: element rebuilds
 			// clone names with a shared metadata reference, so setup extraction
 			// still finds it afterwards.
-			node.openingElement.name = local_id;
-			if (node.closingElement?.name) {
-				node.closingElement.name = b.jsx_id(local);
-			}
 			add_jsx_setup_declaration(
 				local_id,
 				b.const(
@@ -596,7 +620,7 @@ function lower_dynamic_jsx_element(node, transform_context) {
 					b.call(b.id(DYNAMIC_FACTORY_LOCAL), b.arrow([], generated_expression)),
 				),
 			);
-			return;
+			return rebuild_element(local_id);
 		}
 
 		// Import-free alias (Vue): the const is a plain snapshot, so it must be
@@ -607,20 +631,7 @@ function lower_dynamic_jsx_element(node, transform_context) {
 		// render blocks, which re-run the IIFE when the tag expression changes.
 		// The container is marked so downstream lone-child collapsing keeps it
 		// in expression-child position instead of unwrapping to a bare call.
-		const element = b.jsx_element_fresh(
-			b.jsx_opening_element(
-				local_id,
-				node.openingElement.attributes,
-				node.openingElement.selfClosing,
-				node.openingElement.typeArguments,
-				node.openingElement,
-			),
-			node.closingElement ? b.jsx_closing_element(b.jsx_id(local), node.closingElement) : null,
-			node.children,
-			node,
-		);
-		element.metadata = { ...(node.metadata || {}), path: [] };
-
+		const element = rebuild_element(local_id);
 		const wrapper = b.arrow(
 			[],
 			b.block([b.const(b.id(local), generated_expression), b.return(element)], node),
@@ -637,25 +648,18 @@ function lower_dynamic_jsx_element(node, transform_context) {
 			tsrx_reactive_block: true,
 		});
 
-		const fragment = set_loc(wrap_in_native_tsrx_fragment(container), node);
-		return fragment;
+		return set_loc(wrap_in_native_tsrx_fragment(container), node);
 	}
 
-	node.openingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
-	node.openingElement.attributes = [
+	transform_context.needs_dynamic_element = true;
+	return rebuild_element(b.jsx_id(DYNAMIC_IMPORT_LOCAL), [
 		b.jsx_attribute(
 			b.jsx_id('is'),
 			b.jsx_expression_container(generated_expression, dynamic_name),
 			false,
 			dynamic_name,
 		),
-		...(node.openingElement.attributes || []),
-	];
-	if (node.closingElement?.name) {
-		node.closingElement.name = b.jsx_id(DYNAMIC_IMPORT_LOCAL);
-	}
-
-	transform_context.needs_dynamic_element = true;
+	]);
 }
 
 /**
