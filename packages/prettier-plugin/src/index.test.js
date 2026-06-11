@@ -2851,6 +2851,30 @@ function test() {
 			expect(result).toBeWithNewline(expected);
 		});
 
+		it('should keep a trailing line comment after an expression container child', async () => {
+			const expected = `function App() @{
+  <>
+    {q} // hey
+    // hello
+  </>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
+		it('should keep a trailing block comment after an expression container child', async () => {
+			const expected = `function App() {
+  <div>
+    {x} /* note */
+    <span>{'tail'}</span>
+  </div>
+}`;
+
+			const result = await format(expected, { singleQuote: true });
+			expect(result).toBeWithNewline(expected);
+		});
+
 		it('should preserve trailing comments in function parameters', async () => {
 			const expected = `function test(
   // comment in params

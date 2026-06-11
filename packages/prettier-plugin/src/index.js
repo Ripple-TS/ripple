@@ -5912,6 +5912,7 @@ function printJSXElement(node, path, options, print) {
 					'{',
 					path.call(print, 'children', i, 'expression'),
 					'}',
+					...printTemplateChildTrailingComments(child),
 				]);
 				childNodes.push(child);
 			} else {
@@ -6065,6 +6066,7 @@ function printJSXFragment(node, path, options, print) {
 				'{',
 				path.call(print, 'children', i, 'expression'),
 				'}',
+				...printTemplateChildTrailingComments(child),
 			]);
 			childNodes.push(child);
 		} else {
@@ -6198,6 +6200,32 @@ function printTemplateChildLeadingComments(child) {
 		const next = comments[i + 1];
 		if (next && getBlankLinesBetweenNodes(comment, next) > 0) {
 			parts.push(hardline);
+		}
+	}
+	return parts;
+}
+
+/**
+ * Build doc parts for a template child's trailing comments (kept on the same
+ * line as the child). Used for `{expr}` children, whose `{ … }` form is printed
+ * inline by the JSX printers and so would otherwise skip the node's attached
+ * trailing comments.
+ * @param {AST.Node & AST.NodeWithMaybeComments} child
+ * @returns {Doc[]}
+ */
+function printTemplateChildTrailingComments(child) {
+	const comments = child.trailingComments;
+	if (!comments || comments.length === 0) {
+		return [];
+	}
+	/** @type {Doc[]} */
+	const parts = [];
+	for (const comment of comments) {
+		if (comment.type === 'Line') {
+			parts.push(lineSuffix([' ', '//' + comment.value]));
+			parts.push(breakParent);
+		} else if (comment.type === 'Block') {
+			parts.push(' /*' + comment.value + '*/');
 		}
 	}
 	return parts;
