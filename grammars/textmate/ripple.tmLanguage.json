@@ -213,7 +213,7 @@
       "patterns": [
         {
           "name": "comment.block.js",
-          "begin": "^[ \\t]*(/\\*)",
+          "begin": "(/\\*)",
           "beginCaptures": {
             "1": {
               "name": "punctuation.definition.comment.js"
@@ -228,7 +228,7 @@
         },
         {
           "name": "comment.line.double-slash.js",
-          "begin": "^[ \\t]*(//)",
+          "begin": "(?:^|(?<=[>}]))[ \\t]*(//)",
           "beginCaptures": {
             "1": {
               "name": "punctuation.definition.comment.js"
@@ -6992,7 +6992,7 @@
       ]
     },
     "jsx-text": {
-      "match": "(?:(?![ \\t]*(?://|/\\*))(?![ \\t]*@(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*@(?:else|empty|pending|catch)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:\\{|if|for|switch|try|case|default|else|empty|pending|catch)(?![_$[:alnum:]]))|[^<>{}&@]))+"
+      "match": "(?:(?![ \\t]*/\\*)(?![ \\t]*@(?:\\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \\t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:))(?![ \\t]*@(?:else|empty|pending|catch)(?![_$[:alnum:]])(?=[ \\t]*(?:\\(|\\{|[^\\n{}]+\\{)))(?:@(?!(?:\\{|if|for|switch|try|case|default|else|empty|pending|catch)(?![_$[:alnum:]]))|[^<>{}&@]))+"
     },
     "jsx-code-text": {
       "match": "[^<>{}&]+"

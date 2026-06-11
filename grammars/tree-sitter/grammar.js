@@ -516,6 +516,7 @@ module.exports = grammar({
 				$.jsx_element,
 				$.jsx_fragment,
 				$.jsx_self_closing_element,
+				$.jsx_statement_container,
 				$.jsx_if_expression,
 				$.jsx_for_expression,
 				$.jsx_switch_expression,

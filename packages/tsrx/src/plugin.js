@@ -547,7 +547,7 @@ export function TSRXPlugin(config) {
 				let index = start;
 				let value = '';
 				while (index < this.input.length) {
-					if (this.#isTemplateLineCommentStart(index)) {
+					if (this.#isTemplateLineCommentStart(index, start)) {
 						const comment_start = index;
 						const comment_start_loc = acorn.getLineInfo(this.input, comment_start);
 						index += 2;
@@ -962,14 +962,29 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
+			 * A `//` is a comment only when nothing but whitespace precedes it on its
+			 * line, or — given `run_start`, the position where the current text run
+			 * began (right after a sibling element, code block, or expression
+			 * container) — since that boundary. Once real text has begun, `//` is
+			 * literal so inline text like `https://…` stays text.
 			 * @param {number} index
+			 * @param {number} [run_start]
 			 */
-			#isTemplateLineCommentStart(index) {
-				return (
-					this.input.charCodeAt(index) === CharCode.slash &&
-					this.input.charCodeAt(index + 1) === CharCode.slash &&
-					this.#isLineStartPosition(index)
-				);
+			#isTemplateLineCommentStart(index, run_start = -1) {
+				if (
+					this.input.charCodeAt(index) !== CharCode.slash ||
+					this.input.charCodeAt(index + 1) !== CharCode.slash
+				) {
+					return false;
+				}
+				if (this.#isLineStartPosition(index)) return true;
+				if (run_start < 0) return false;
+				for (let i = index - 1; i >= run_start; i--) {
+					const ch = this.input.charCodeAt(i);
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) return false;
+					if (ch !== CharCode.space && ch !== CharCode.tab) return false;
+				}
+				return true;
 			}
 
 			/**
@@ -997,7 +1012,7 @@ export function TSRXPlugin(config) {
 						ch === CharCode.openBrace ||
 						ch === CharCode.closeBrace ||
 						this.#isJSXControlFlowDirectiveAt(index) ||
-						this.#isTemplateLineCommentStart(index) ||
+						this.#isTemplateLineCommentStart(index, start) ||
 						this.#isTemplateBlockCommentStart(index)
 					) {
 						break;

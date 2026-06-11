@@ -184,6 +184,12 @@ static bool scan_jsx_text(TSLexer *lexer) {
   lexer->result_symbol = JSX_TEXT;
   bool has_content = false;
   bool has_non_whitespace_content = false;
+  // True while only whitespace has been consumed since the nearest comment
+  // boundary: the token start (right after a sibling element, expression
+  // container, or code block) or the start of the current line. A `//` seen
+  // while this holds starts a line comment; after real text it is literal, so
+  // inline text like `https://…` stays text. `/*` is a comment anywhere.
+  bool ws_only_since_boundary = true;
 
   while (iswspace(lexer->lookahead)) {
     skip(lexer);
@@ -208,6 +214,19 @@ static bool scan_jsx_text(TSLexer *lexer) {
         }
         return false;
       }
+      case '/': {
+        advance(lexer);
+        if (lexer->lookahead == '*') {
+          return has_content;
+        }
+        if (lexer->lookahead == '/' && ws_only_since_boundary) {
+          return has_content;
+        }
+        has_content = true;
+        has_non_whitespace_content = true;
+        ws_only_since_boundary = false;
+        break;
+      }
       case '-':
         if (!has_non_whitespace_content) {
           return has_content;
@@ -215,6 +234,7 @@ static bool scan_jsx_text(TSLexer *lexer) {
         advance(lexer);
         has_content = true;
         has_non_whitespace_content = true;
+        ws_only_since_boundary = false;
         break;
       default:
         if (is_identifier_start(lexer->lookahead)) {
@@ -226,6 +246,7 @@ static bool scan_jsx_text(TSLexer *lexer) {
             }
             has_content = true;
             has_non_whitespace_content = true;
+            ws_only_since_boundary = false;
             break;
           }
           while (is_identifier_continue(lexer->lookahead)) {
@@ -233,11 +254,15 @@ static bool scan_jsx_text(TSLexer *lexer) {
           }
           has_content = true;
           has_non_whitespace_content = true;
+          ws_only_since_boundary = false;
           break;
         }
 
-        if (!iswspace(lexer->lookahead)) {
+        if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+          ws_only_since_boundary = true;
+        } else if (!iswspace(lexer->lookahead)) {
           has_non_whitespace_content = true;
+          ws_only_since_boundary = false;
         }
         advance(lexer);
         has_content = true;

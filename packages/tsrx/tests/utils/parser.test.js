@@ -662,6 +662,48 @@ abc
 		expect(comments).toEqual([]);
 	});
 
+	it('keeps // after text on the same line as literal text', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div>hi // note</div>
+}`);
+
+		expect(texts).toEqual(['hi // note']);
+		expect(comments).toEqual([]);
+	});
+
+	it('parses a trailing line comment after a `@{ }` code block on the same line', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function StatusBadge0() @{
+	<>
+		@{@{@{<>hello @{222}</>}}}  // <-- depth 4
+	</>
+}`);
+
+		expect(texts).toEqual(['hello ']);
+		expect(comments.map((comment) => comment.type + ':' + comment.value)).toEqual([
+			'Line: <-- depth 4',
+		]);
+	});
+
+	it('parses a trailing line comment after an element on the same line', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div><b>z</b> // note
+	tail</div>
+}`);
+
+		expect(texts).toEqual(['z', 'tail']);
+		expect(comments.map((comment) => comment.type + ':' + comment.value)).toEqual(['Line: note']);
+	});
+
+	it('parses a trailing line comment after an expression container on the same line', () => {
+		const { texts, comments } = parseTemplateTextsAndComments(`function App() @{
+	<div>{x} // note
+	tail</div>
+}`);
+
+		expect(texts).toEqual([' \n\ttail']);
+		expect(comments.map((comment) => comment.type + ':' + comment.value)).toEqual(['Line: note']);
+	});
+
 	it('keeps ordinary tag names as JSX identifiers', () => {
 		const ast = parseModule('const wrapper = <tsrx><div /></tsrx>;', 'App.tsrx');
 

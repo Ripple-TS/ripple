@@ -650,3 +650,88 @@ fragment App() {
             attribute: (jsx_attribute
               name: (identifier)
               value: (string))))))))
+
+==================
+Template Trailing Line Comments
+==================
+
+function App() @{
+  <>
+   {q} // trailing after expression
+   @{r}  // trailing after statement container
+   <b>z</b> // trailing after element
+   // line start
+   text with // literal slashes
+   visit https://x.com please
+   hello /* inline block */ world
+  </>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_fragment
+        (jsx_opening_fragment)
+        (jsx_text)
+        (jsx_expression
+          (component_statement
+            (expression_statement
+              (identifier))))
+        (jsx_text)
+        (comment)
+        (jsx_statement_container
+          (identifier))
+        (jsx_text)
+        (comment)
+        (jsx_text)
+        (jsx_element
+          (jsx_opening_element
+            (jsx_element_name
+              (identifier)))
+          (jsx_text)
+          (jsx_closing_element
+            (jsx_element_name
+              (identifier))))
+        (jsx_text)
+        (comment)
+        (jsx_text)
+        (comment)
+        (jsx_text)
+        (comment)
+        (jsx_text)
+        (jsx_closing_fragment)))))
+
+==================
+Nested Statement Container Output
+==================
+
+function App() @{
+  <>
+    @{@{@{<>hello @{222}</>}}}
+  </>
+}
+
+---
+
+(program
+  (function_declaration
+    (identifier)
+    (formal_parameters)
+    (jsx_statement_container
+      (jsx_fragment
+        (jsx_opening_fragment)
+        (jsx_statement_container
+          (jsx_statement_container
+            (jsx_statement_container
+              (jsx_fragment
+                (jsx_opening_fragment)
+                (jsx_text)
+                (jsx_statement_container
+                  (number))
+                (jsx_closing_fragment)))))
+        (jsx_text)
+        (jsx_closing_fragment)))))

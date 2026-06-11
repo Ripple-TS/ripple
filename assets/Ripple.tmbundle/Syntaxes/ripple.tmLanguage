@@ -5926,7 +5926,7 @@
 		<key>jsx-text</key>
 		<dict>
 			<key>match</key>
-			<string>(?:(?![ \t]*(?://|/\*))(?![ \t]*@(?:\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*@(?:else|empty|pending|catch)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:\{|if|for|switch|try|case|default|else|empty|pending|catch)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
+			<string>(?:(?![ \t]*/\*)(?![ \t]*@(?:\{|if|for|switch|try)(?![_$[:alnum:]]))(?![ \t]*@(?:case|default)(?![_$[:alnum:]])(?=[^\n{}]*:))(?![ \t]*@(?:else|empty|pending|catch)(?![_$[:alnum:]])(?=[ \t]*(?:\(|\{|[^\n{}]+\{)))(?:@(?!(?:\{|if|for|switch|try|case|default|else|empty|pending|catch)(?![_$[:alnum:]]))|[^&lt;&gt;{}&amp;@]))+</string>
 		</dict>
 		<key>label</key>
 		<dict>
@@ -9360,7 +9360,7 @@
 			<array>
 				<dict>
 					<key>begin</key>
-					<string>^[ \t]*(/\*)</string>
+					<string>(/\*)</string>
 					<key>beginCaptures</key>
 					<dict>
 						<key>1</key>
@@ -9384,7 +9384,7 @@
 				</dict>
 				<dict>
 					<key>begin</key>
-					<string>^[ \t]*(//)</string>
+					<string>(?:^|(?&lt;=[&gt;}]))[ \t]*(//)</string>
 					<key>beginCaptures</key>
 					<dict>
 						<key>1</key>
