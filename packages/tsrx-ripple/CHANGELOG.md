@@ -1,5 +1,38 @@
 # @tsrx/ripple
 
+## 0.1.28
+
+### Patch Changes
+
+- [#1254](https://github.com/Ripple-TS/ripple/pull/1254)
+  [`4af2591`](https://github.com/Ripple-TS/ripple/commit/4af259139d118a27d177531aa6a21435a3f3a015)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Support `@{ … }` code blocks
+  in template children position, each with its own lexical scope. Code-block
+  children of elements, fragments, and control-flow branches were silently dropped
+  on the client, and the server kept their render output while losing the setup
+  statements (referencing undeclared variables at runtime). The lowering pays only
+  for what a block uses: a template-only block merges statically into the parent
+  template (no `_$_.expression`, no inline component), a code-only block becomes a
+  plain `{ … }` statement block, and a block with both setup code and render
+  output becomes a scoped inline component (`(() => @{ … })()`, the same lowering
+  as value-position blocks). Nested blocks (`@{ @{ … } }`) shadow correctly
+  instead of collapsing into one scope, share a single closure and `with_scope`
+  wrapper per chain, and empty chains compile to nothing.
+
+- [`87afc5d`](https://github.com/Ripple-TS/ripple/commit/87afc5d3f4c73e604cd245865e27d29e40435482)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep fragment expression
+  children inside `{ … }` containers in the TS/Volar virtual code. Fragments with
+  multiple children printed bare expressions as JSX children (`<>{a} {a}</>`
+  became `<>aa</>`), which TypeScript reads as JSX text — hiding the expressions
+  from type checking, hover, and rename in the editor.
+- Updated dependencies
+  [[`f001849`](https://github.com/Ripple-TS/ripple/commit/f00184940979a77cbf6873a811caaaa436feab46),
+  [`4af2591`](https://github.com/Ripple-TS/ripple/commit/4af259139d118a27d177531aa6a21435a3f3a015),
+  [`87afc5d`](https://github.com/Ripple-TS/ripple/commit/87afc5d3f4c73e604cd245865e27d29e40435482),
+  [`87afc5d`](https://github.com/Ripple-TS/ripple/commit/87afc5d3f4c73e604cd245865e27d29e40435482),
+  [`f1a4c10`](https://github.com/Ripple-TS/ripple/commit/f1a4c10d2ad8ed604375f36f7ae3b653fe95ed1a)]:
+  - @tsrx/core@0.1.28
+
 ## 0.1.27
 
 ### Patch Changes

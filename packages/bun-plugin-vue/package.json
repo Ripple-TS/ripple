@@ -3,7 +3,7 @@
   "description": "Bun plugin for @tsrx/vue (.tsrx modules)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "type": "module",
   "publishConfig": {
     "access": "public"
