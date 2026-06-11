@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	runSharedCodeBlockChildrenTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedTsxExpressionTsrxTests,
@@ -17,6 +18,7 @@ runSharedSourceMappingTests({
 runSharedTsxExpressionTsrxTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'preact', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'preact' });
+runSharedCodeBlockChildrenTests({ compile, name: 'preact' });
 
 describe('@tsrx/preact basic', () => {
 	it('imports Suspense from preact/compat when try/pending is used', () => {

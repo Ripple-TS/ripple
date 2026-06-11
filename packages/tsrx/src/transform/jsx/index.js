@@ -146,10 +146,57 @@ function mark_nested_function_return_jsx(node, inside_function = false, seen = n
 }
 
 /**
- * Flatten a `@{ … }` code block that appears as an element/fragment child into
- * the element's children list: its setup statements followed by its single
- * render output. The render pipeline already handles interleaved setup
- * statements and JSX children. This is the element-scoped equivalent of
+ * Lower a `@{ … }` code block that appears as an element/fragment child,
+ * paying only for what the block uses while keeping each block its own
+ * lexical scope:
+ *
+ * - no setup code: the scope is unobservable, so the render output merges
+ *   directly into the children list (template-only chains collapse to the
+ *   innermost output, empty chains to nothing);
+ * - code-only: a plain `{ … }` statement block — statements run in source
+ *   order, scoped, and render nothing (the render pipeline already handles
+ *   statements interleaved with JSX children);
+ * - setup code + render output: kept as a `JSXCodeBlock` (with any nested
+ *   chain simplified) for the context-aware lowering into a scoped IIFE
+ *   (`transform_jsx_code_block` / `build_render_statements`).
+ *
+ * Always returns zero or one node.
+ * @param {any} block
+ * @returns {any[]}
+ */
+function lower_code_block_child(block) {
+	const body = block.body || [];
+	const render = block.render ?? null;
+
+	if (body.length === 0) {
+		if (render == null) return [];
+		if (render.type === 'JSXCodeBlock') return lower_code_block_child(render);
+		return [render];
+	}
+
+	if (render?.type === 'JSXCodeBlock') {
+		const inner = lower_code_block_child(render);
+		if (inner.length === 0) {
+			return [b.block(body, block)];
+		}
+		if (inner[0].type === 'BlockStatement') {
+			return [b.block([...body, inner[0]], block)];
+		}
+		// The chain still renders — simplify the render to the lowered inner
+		// node and leave the block for the context-aware lowering.
+		return [{ ...block, render: inner[0] }];
+	}
+
+	if (render == null) {
+		return [b.block(body, block)];
+	}
+
+	return [block];
+}
+
+/**
+ * Lower `@{ … }` code blocks that appear as element/fragment children (see
+ * `lower_code_block_child`). This is the element-scoped equivalent of
  * `transform_function`'s body lowering — function and arrow bodies are never
  * element children, so they are untouched here.
  * @param {any} node
@@ -170,9 +217,7 @@ function expand_child_code_blocks(node, seen = new Set()) {
 		node.children.some((/** @type {any} */ c) => c?.type === 'JSXCodeBlock')
 	) {
 		node.children = node.children.flatMap((/** @type {any} */ child) =>
-			child?.type === 'JSXCodeBlock'
-				? [...child.body, ...(child.render != null ? [child.render] : [])]
-				: [child],
+			child?.type === 'JSXCodeBlock' ? lower_code_block_child(child) : [child],
 		);
 	}
 
@@ -802,6 +847,79 @@ function build_component_statements(body_nodes, transform_context) {
 }
 
 /**
+ * Statements for one `@{ … }` scope level: the setup statements followed by
+ * the lowered chain continuation. A nested level that declares anything is
+ * kept in a nested plain `{ … }` block, so a whole chain shares a single
+ * closure while still scoping each level; the generated `return` exits that
+ * closure.
+ * @param {any} block
+ * @param {TransformContext} transform_context
+ * @returns {{ statements: any[], has_render: boolean }}
+ */
+function code_block_scope_statements(block, transform_context) {
+	const statements = [...(block.body || [])];
+	const render = block.render ?? null;
+
+	if (render == null) {
+		return { statements, has_render: false };
+	}
+
+	if (render.type === 'JSXCodeBlock') {
+		const inner = code_block_scope_statements(render, transform_context);
+		if (inner.statements.length > 0) {
+			if ((render.body || []).length > 0) {
+				statements.push(b.block(inner.statements, render));
+			} else {
+				statements.push(...inner.statements);
+			}
+		}
+		return { statements, has_render: inner.has_render };
+	}
+
+	return {
+		statements: [...statements, ...build_render_statements([render], true, transform_context)],
+		has_render: true,
+	};
+}
+
+/**
+ * Lower a `@{ … }` code block that appears in a component/IIFE statement
+ * stream, keeping each block its own lexical scope:
+ *
+ * - no setup code: the scope is unobservable, so the render output (if any)
+ *   merges directly into the stream;
+ * - code-only: a plain `{ … }` statement block;
+ * - setup code + render output: a scoped IIFE expression child whose value is
+ *   the render output, with nested chains folded into the one closure.
+ *
+ * Always returns zero or one node.
+ * @param {any} block
+ * @param {TransformContext} transform_context
+ * @returns {any[]}
+ */
+function lower_code_block_stream_node(block, transform_context) {
+	const body = block.body || [];
+	const render = block.render ?? null;
+
+	if (body.length === 0) {
+		if (render == null) return [];
+		if (render.type === 'JSXCodeBlock') {
+			return lower_code_block_stream_node(render, transform_context);
+		}
+		return [render];
+	}
+
+	const { statements, has_render } = code_block_scope_statements(block, transform_context);
+
+	if (!has_render) {
+		return [b.block(statements, block)];
+	}
+
+	const iife = b.call(b.arrow([], b.block(statements, block)));
+	return [to_jsx_expression_container(iife, block)];
+}
+
+/**
  * @param {any[]} body_nodes
  * @param {boolean} return_null_when_empty
  * @param {TransformContext} transform_context
@@ -809,9 +927,7 @@ function build_component_statements(body_nodes, transform_context) {
  */
 function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
 	body_nodes = body_nodes.flatMap((node) =>
-		node?.type === 'JSXCodeBlock'
-			? [...node.body, ...(node.render != null ? [node.render] : [])]
-			: [node],
+		node?.type === 'JSXCodeBlock' ? lower_code_block_stream_node(node, transform_context) : [node],
 	);
 
 	const statements = [];

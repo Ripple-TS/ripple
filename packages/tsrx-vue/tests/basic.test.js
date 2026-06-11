@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedClassFunctionComponentTests,
+	runSharedCodeBlockChildrenTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedComponentLoopControlFlowTests,
 	runSharedComponentParamsTests,
@@ -20,6 +21,7 @@ runSharedSourceMappingTests({
 runSharedTsxExpressionTsrxTests({ compile, name: 'vue', classAttrName: 'class' });
 runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
+runSharedCodeBlockChildrenTests({ compile, name: 'vue' });
 runSharedClassFunctionComponentTests({ compile, compile_to_volar_mappings, name: 'vue' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'vue' });
 runSharedSwitchHelperHoistingTests({

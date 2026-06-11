@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	runSharedCodeBlockChildrenTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedTsxExpressionTsrxTests,
@@ -23,6 +24,7 @@ runSharedCompileTests({
 	generatedClassAttrName: 'className',
 });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'react' });
+runSharedCodeBlockChildrenTests({ compile, name: 'react' });
 
 /**
  * @import { CodeMapping } from '@tsrx/core/types';

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	runSharedClassFunctionComponentTests,
+	runSharedCodeBlockChildrenTests,
 	runSharedCompileDiagnosticsTests,
 	runSharedCompileTests,
 	runSharedComponentParamsTests,
@@ -20,6 +21,7 @@ runSharedSourceMappingTests({
 runSharedTsxExpressionTsrxTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileTests({ compile, name: 'solid', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'solid' });
+runSharedCodeBlockChildrenTests({ compile, name: 'solid' });
 runSharedClassFunctionComponentTests({ compile, compile_to_volar_mappings, name: 'solid' });
 runSharedComponentParamsTests({ compile, compile_to_volar_mappings, name: 'solid' });
 runSharedSwitchHelperHoistingTests({

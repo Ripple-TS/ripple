@@ -3477,3 +3477,123 @@ export function optionalFn(bar: string, baz?: string) {
 		},
 	);
 }
+
+/**
+ * `@{ … }` code blocks in template children position: each block is its own
+ * lexical scope, and the lowering pays only for what the block uses —
+ * template-only blocks merge statically into the parent, code-only blocks
+ * become a plain `{ … }` statement block, and blocks with both setup code and
+ * render output become a scoped IIFE child. Nested chains (`@{ @{ … } }`)
+ * fold into a single closure with nested plain blocks, so shadowed
+ * declarations stay scoped per level.
+ *
+ * @param {{ compile: CompileHarness['compile'], name: string }} harness
+ */
+export function runSharedCodeBlockChildrenTests({ compile, name }) {
+	describe(`[${name}] code blocks in template children position`, () => {
+		it('compiles empty nested code blocks to nothing at any depth', () => {
+			for (const block of ['@{}', '@{@{}}', '@{@{@{}}}']) {
+				const { code, errors } = compile(
+					`function StatusBadge() @{
+						<>
+							<>{a}</>
+							<>{b}</>
+							${block}
+						</>
+					}`,
+					'App.tsrx',
+				);
+				expect(errors ?? []).toEqual([]);
+				expect(code).toContain('{a}');
+				expect(code).toContain('{b}');
+				expect(code).not.toContain('_tsrx_child_');
+				expect(code).not.toContain('(() => {');
+			}
+		});
+
+		it('merges a template-only block statically into its parent', () => {
+			for (const block of [
+				`@{<span class="x">{'x'}</span>}`,
+				`@{@{@{<span class="x">{'x'}</span>}}}`,
+			]) {
+				const { code } = compile(
+					`function App() @{
+						<>
+							<span class="a">{'a'}</span>
+							${block}
+						</>
+					}`,
+					'App.tsrx',
+				);
+				expect(code).toContain('<span class="x">');
+				expect(code).not.toContain('(() => {');
+				expect(code).not.toContain('_tsrx_child_');
+			}
+		});
+
+		it('lowers a code-only block to a scoped statement block in source order', () => {
+			const { code } = compile(
+				`function App() @{
+					const items: number[] = [];
+					<>
+						@{
+							const scoped = 1;
+							items.push(scoped);
+						}
+						<span class="len">{items.length}</span>
+					</>
+				}`,
+				'App.tsrx',
+			);
+			// The statements run in source order inside a real `{ … }` block —
+			// no inline IIFE needed.
+			expect(code).toMatch(/\{\s*const scoped = 1;/);
+			expect(code.indexOf('items.length')).toBeGreaterThan(code.indexOf('const scoped = 1;'));
+			expect(code).not.toContain('(() => {');
+		});
+
+		it('lowers a block with setup code and render output to a scoped IIFE child', () => {
+			const { code } = compile(
+				`function App() @{
+					<>
+						<span class="a">{'a'}</span>
+						@{
+							const x = 1;
+							<span class="x">{x}</span>
+						}
+					</>
+				}`,
+				'App.tsrx',
+			);
+			expect(code).toMatch(/\(\(\) => \{\s*const x = 1;/);
+			expect(code).toContain('return <span class="x">{x}</span>');
+		});
+
+		it('gives each nested code block its own lexical scope in one closure', () => {
+			const { code } = compile(
+				`function App() @{
+					const y = 10;
+					<>
+						<span class="a">{'a'}</span>
+						@{
+							const x = 1;
+							@{
+								const x = 2;
+								@{
+									<span class="sum">{x + y}</span>
+								}
+							}
+						}
+					</>
+				}`,
+				'App.tsrx',
+			);
+			// Shadowed declarations survive: each chain level is its own scope,
+			// folded into a single closure with nested plain blocks.
+			expect(code).toContain('const x = 1;');
+			expect(code).toContain('const x = 2;');
+			expect(code).toContain('<span class="sum">{x + y}</span>');
+			expect(count_substring(code, '(() => {')).toBe(1);
+		});
+	});
+}
