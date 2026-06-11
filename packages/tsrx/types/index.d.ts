@@ -170,6 +170,17 @@ declare module 'estree' {
 	interface SimpleCallExpression {
 		metadata: BaseNodeMetaData & {
 			hash?: string;
+			/**
+			 * A generated `(() => @{ … })()` inline-component IIFE for a code
+			 * block; collapsible once the block's statements lower into the
+			 * component callback.
+			 */
+			tsrx_code_block_component?: boolean;
+			/**
+			 * A generated zero-argument scope IIFE for a `@{ … }` code-block
+			 * chain level; runs synchronously inside its `with_scope` wrapper.
+			 */
+			tsrx_code_block_scope?: boolean;
 		};
 	}
 
@@ -323,7 +334,14 @@ declare module 'estree' {
 		closingElement?: ESTreeJSX.JSXClosingFragment | null;
 		selfClosing?: boolean;
 		attributes?: Array<Attribute | SpreadAttribute>;
-		metadata: BaseNodeMetaData;
+		metadata: BaseNodeMetaData & {
+			/**
+			 * A synthetic wrapper for a nested code-block render chain
+			 * (`@{ @{ … } }`), so render-slot consumers see a template node;
+			 * template-children lowering unwraps it.
+			 */
+			tsrx_code_block_chain?: boolean;
+		};
 		start: number;
 		end: number;
 	}

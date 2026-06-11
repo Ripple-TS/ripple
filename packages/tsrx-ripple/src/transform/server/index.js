@@ -74,6 +74,7 @@ import {
 	rewrite_lazy_member_base,
 	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
+	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
 	is_code_block_function_body,
 } from '../../utils.js';
@@ -1164,6 +1165,7 @@ function transform_children(children, context) {
 		}
 		if (
 			node.type === 'VariableDeclaration' ||
+			node.type === 'BlockStatement' ||
 			node.type === 'ExpressionStatement' ||
 			node.type === 'ThrowStatement' ||
 			node.type === 'FunctionDeclaration' ||
@@ -1541,6 +1543,14 @@ const visitors = {
 		}
 
 		const callee = node.callee;
+
+		// A generated inline-component IIFE for a `@{ … }` block: after the
+		// block's statements lower into the component callback, the wrapper
+		// scope holds a lone `return _$_.tsrx_element(…)` — collapse it to
+		// the component value.
+		if (!state.to_ts && node.metadata?.tsrx_code_block_component) {
+			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
+		}
 
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (callee.type === 'Identifier' && is_ripple_import(callee, context)) {

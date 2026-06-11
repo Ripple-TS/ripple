@@ -64,6 +64,7 @@ import {
 	is_dom_property,
 	is_declared_function_within_component,
 	is_inside_call_expression,
+	unwrap_single_return_iife,
 	is_value_static,
 	is_void_element,
 	is_element_dom_element,
@@ -1589,6 +1590,15 @@ const visitors = {
 			context.state.metadata.tracking = true;
 		}
 
+		// A generated inline-component IIFE for a `@{ … }` block: after the
+		// block's statements lower into the component callback, the wrapper
+		// scope holds a lone `return _$_.tsrx_element(…)` — collapse it to the
+		// component value. Constructing the value reads no scope, so no
+		// `with_scope` is needed either.
+		if (!context.state.to_ts && node.metadata?.tsrx_code_block_component) {
+			return unwrap_single_return_iife(/** @type {AST.Expression} */ (context.next()));
+		}
+
 		// Handle direct calls to ripple-imported functions: effect(), untrack(), RippleArray(), etc.
 		if (!context.state.to_ts && callee.type === 'Identifier' && is_ripple_import(callee, context)) {
 			const ripple_runtime_method = get_ripple_namespace_call_name(callee.name);
@@ -1692,17 +1702,25 @@ const visitors = {
 			}
 		}
 
-		return b.call(
-			'_$_.with_scope',
-			b.id('__block'),
-			b.thunk({
-				...node,
-				callee: /** @type {AST.Expression} */ (context.visit(callee)),
-				arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
-					node.arguments.map((arg) => context.visit(arg))
-				),
-			}),
-		);
+		const visited_call = {
+			...node,
+			callee: /** @type {AST.Expression} */ (context.visit(callee)),
+			arguments: /** @type {(AST.Expression | AST.SpreadElement)[]} */ (
+				node.arguments.map((arg) => context.visit(arg))
+			),
+		};
+
+		// A generated code-block scope IIFE is already a zero-argument
+		// closure — use its arrow as the with_scope callback directly instead
+		// of thunking the call (`() => (() => { … })()`).
+		if (
+			node.metadata?.tsrx_code_block_scope &&
+			visited_call.callee.type === 'ArrowFunctionExpression'
+		) {
+			return b.call('_$_.with_scope', b.id('__block'), visited_call.callee);
+		}
+
+		return b.call('_$_.with_scope', b.id('__block'), b.thunk(visited_call));
 	},
 
 	TSTypeAliasDeclaration(_, context) {
@@ -4967,7 +4985,10 @@ function transform_children(children, context) {
 					(node.id.type !== 'Identifier' || !is_element_dom_element(node))),
 		) ||
 		(normalized.filter(
-			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
+			(node) =>
+				node.type !== 'VariableDeclaration' &&
+				node.type !== 'BlockStatement' &&
+				node.type !== 'EmptyStatement',
 		).length === 1 &&
 			normalized.some(
 				(node) =>
@@ -4984,7 +5005,10 @@ function transform_children(children, context) {
 					/** @type {AST.TSRXExpression} */ (node).expression.type !== 'Literal',
 			)) ||
 		normalized.filter(
-			(node) => node.type !== 'VariableDeclaration' && node.type !== 'EmptyStatement',
+			(node) =>
+				node.type !== 'VariableDeclaration' &&
+				node.type !== 'BlockStatement' &&
+				node.type !== 'EmptyStatement',
 		).length > 1;
 	/** @type {AST.Identifier | null} */
 	let initial = null;
@@ -5163,6 +5187,7 @@ function transform_children(children, context) {
 
 		if (
 			node.type === 'VariableDeclaration' ||
+			node.type === 'BlockStatement' ||
 			node.type === 'ExpressionStatement' ||
 			node.type === 'ThrowStatement' ||
 			node.type === 'FunctionDeclaration' ||

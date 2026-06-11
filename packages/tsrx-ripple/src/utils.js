@@ -183,7 +183,38 @@ export function wrap_code_block_in_iife(code_block) {
 	// Match the parser's `() => @{ … }` shape: a code-block body is treated as a
 	// block, not a concise expression body.
 	arrow.expression = false;
-	return b.call(arrow);
+	const call = /** @type {AST.SimpleCallExpression} */ (b.call(arrow));
+	// Marks a generated inline-component IIFE so the runtime transforms can
+	// collapse it once the block's statements have moved into the component
+	// callback (`unwrap_single_return_iife`).
+	call.metadata = { ...call.metadata, tsrx_code_block_component: true };
+	return call;
+}
+
+/**
+ * Collapse a transformed zero-argument IIFE whose body is a single
+ * `return <expr>;` into the returned expression. Used for generated
+ * code-block component IIFEs after their setup statements have been lowered
+ * into the component callback, leaving the wrapper scope empty.
+ * @param {AST.Expression} call
+ * @returns {AST.Expression}
+ */
+export function unwrap_single_return_iife(call) {
+	if (call?.type !== 'CallExpression' || call.arguments.length !== 0) {
+		return call;
+	}
+	const callee = call.callee;
+	if (callee.type !== 'ArrowFunctionExpression' || callee.async || callee.params.length !== 0) {
+		return call;
+	}
+	const body = callee.body;
+	if (body.type === 'BlockStatement' && body.body.length === 1) {
+		const statement = body.body[0];
+		if (statement.type === 'ReturnStatement' && statement.argument) {
+			return statement.argument;
+		}
+	}
+	return call;
 }
 
 /**
@@ -1413,6 +1444,19 @@ export function is_inside_call_expression(context) {
 			type === 'ArrowFunctionExpression' ||
 			type === 'FunctionDeclaration'
 		) {
+			// A call inside a nested function generally runs later, after
+			// `with_scope` has restored the previous scope, so it needs its
+			// own wrapper. A code-block scope IIFE runs synchronously inside
+			// its own `with_scope` wrapper, though — see through it.
+			const maybe_iife = context.path[i - 1];
+			if (
+				type === 'ArrowFunctionExpression' &&
+				maybe_iife?.type === 'CallExpression' &&
+				maybe_iife.callee === context_node &&
+				maybe_iife.metadata?.tsrx_code_block_scope
+			) {
+				continue;
+			}
 			return false;
 		}
 		if (type === 'CallExpression') {
@@ -2445,7 +2489,7 @@ function jsx_to_ripple_fragment(node, inherited_path = []) {
 	const fragment = /** @type {AST.TsrxFragment} */ (
 		/** @type {unknown} */ ({
 			type: 'TsrxFragment',
-			children: normalize_jsx_tsrx_children(node.children || [], inherited_path),
+			children: normalize_jsx_tsrx_template_children(node.children || [], inherited_path),
 			openingElement: node.openingFragment,
 			closingElement: node.closingFragment,
 			selfClosing: false,
@@ -2484,10 +2528,10 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 	}
 
 	if (statement.consequent?.type === 'BlockStatement') {
-		statement.consequent.body = normalize_jsx_tsrx_children(statement.consequent.body || [], [
-			...inherited_path,
-			statement,
-		]);
+		statement.consequent.body = normalize_jsx_tsrx_template_children(
+			statement.consequent.body || [],
+			[...inherited_path, statement],
+		);
 	} else if (statement.consequent) {
 		statement.consequent = normalize_jsx_tsrx_node(statement.consequent, [
 			...inherited_path,
@@ -2495,10 +2539,10 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 		]);
 	}
 	if (statement.alternate?.type === 'BlockStatement') {
-		statement.alternate.body = normalize_jsx_tsrx_children(statement.alternate.body || [], [
-			...inherited_path,
-			statement,
-		]);
+		statement.alternate.body = normalize_jsx_tsrx_template_children(
+			statement.alternate.body || [],
+			[...inherited_path, statement],
+		);
 	} else if (statement.alternate) {
 		statement.alternate = normalize_jsx_tsrx_node(statement.alternate, [
 			...inherited_path,
@@ -2512,44 +2556,44 @@ function jsx_control_expression_to_statement(node, inherited_path = []) {
 		}
 	}
 	if (statement.body?.type === 'BlockStatement') {
-		statement.body.body = normalize_jsx_tsrx_children(statement.body.body || [], [
+		statement.body.body = normalize_jsx_tsrx_template_children(statement.body.body || [], [
 			...inherited_path,
 			statement,
 		]);
 	}
 	if (statement.empty?.type === 'BlockStatement') {
-		statement.empty.body = normalize_jsx_tsrx_children(statement.empty.body || [], [
+		statement.empty.body = normalize_jsx_tsrx_template_children(statement.empty.body || [], [
 			...inherited_path,
 			statement,
 		]);
 	}
 	if (statement.block?.type === 'BlockStatement') {
-		statement.block.body = normalize_jsx_tsrx_children(statement.block.body || [], [
+		statement.block.body = normalize_jsx_tsrx_template_children(statement.block.body || [], [
 			...inherited_path,
 			statement,
 		]);
 	}
 	if (statement.pending?.type === 'BlockStatement') {
-		statement.pending.body = normalize_jsx_tsrx_children(statement.pending.body || [], [
+		statement.pending.body = normalize_jsx_tsrx_template_children(statement.pending.body || [], [
 			...inherited_path,
 			statement,
 		]);
 	}
 	if (statement.handler?.body?.type === 'BlockStatement') {
-		statement.handler.body.body = normalize_jsx_tsrx_children(statement.handler.body.body || [], [
-			...inherited_path,
-			statement,
-		]);
+		statement.handler.body.body = normalize_jsx_tsrx_template_children(
+			statement.handler.body.body || [],
+			[...inherited_path, statement],
+		);
 	}
 	if (statement.finalizer?.type === 'BlockStatement') {
-		statement.finalizer.body = normalize_jsx_tsrx_children(statement.finalizer.body || [], [
-			...inherited_path,
-			statement,
-		]);
+		statement.finalizer.body = normalize_jsx_tsrx_template_children(
+			statement.finalizer.body || [],
+			[...inherited_path, statement],
+		);
 	}
 	if (Array.isArray(statement.cases)) {
 		for (const switch_case of statement.cases) {
-			switch_case.consequent = normalize_jsx_tsrx_children(switch_case.consequent || [], [
+			switch_case.consequent = normalize_jsx_tsrx_template_children(switch_case.consequent || [], [
 				...inherited_path,
 				statement,
 			]);
@@ -2607,6 +2651,113 @@ function normalize_jsx_tsrx_children(children, inherited_path = []) {
 }
 
 /**
+ * Lower a `@{ … }` code block that appears in a template children list. Each
+ * code block is its own lexical scope, so it never flattens into the
+ * surrounding scope, but the lowering only pays for what the block uses:
+ *
+ * - no setup code: the scope is unobservable, so the render output merges
+ *   statically into the parent template — no `_$_.expression`, no inline
+ *   component, no anchor;
+ * - code-only: a plain `BlockStatement` — statements run in source order,
+ *   scoped, render nothing;
+ * - setup code + render output: an inline anonymous component expression
+ *   (`(() => @{ … })()`, the same lowering as value-position code blocks),
+ *   since the setup may feed the output — `_$_.expression` is the right tool
+ *   for a dynamic child value;
+ * - nested chains (`@{ @{ … } }`): intermediate levels with statements merge
+ *   into one IIFE as nested plain `{ … }` blocks (one closure, not one per
+ *   level), and only the innermost render-bearing level becomes the inline
+ *   component.
+ * @param {AST.JSXCodeBlock} block — internals already normalized
+ * @param {AST.Node[]} inherited_path
+ * @returns {AST.Node | null}
+ */
+function code_block_to_template_child(block, inherited_path) {
+	const body = block.body || [];
+	const render = block.render;
+
+	// `@{ @{ … } }` — normalize wrapped the already-lowered inner chain in a
+	// synthetic fragment for render-slot consumers (function bodies, value
+	// positions). As a template child, unwrap it instead of stacking an
+	// inline component per nesting level.
+	if (render?.type === 'TsrxFragment' && render.metadata.tsrx_code_block_chain) {
+		const inner_child = render.children[0];
+		if (body.length === 0) {
+			return inner_child;
+		}
+		if (inner_child.type === 'BlockStatement') {
+			const statement = b.block(
+				[...body, inner_child],
+				/** @type {AST.NodeWithLocation} */ (block),
+			);
+			statement.metadata = { path: inherited_path };
+			return statement;
+		}
+		if (inner_child.type !== 'TSRXExpression') {
+			// Unreachable by construction — the chain wrapper only ever holds
+			// a statement block or an expression child.
+			return inner_child;
+		}
+		// The inner level is either one of our scope IIFEs (fold its body in
+		// as a nested plain block instead of a nested closure, so a whole
+		// chain shares a single function) or the inline component (return its
+		// value from this level's scope).
+		const inner_expression = inner_child.expression;
+		const scope_body =
+			inner_expression.type === 'CallExpression' &&
+			inner_expression.metadata?.tsrx_code_block_scope &&
+			inner_expression.callee.type === 'ArrowFunctionExpression' &&
+			inner_expression.callee.body.type === 'BlockStatement'
+				? [...body, inner_expression.callee.body]
+				: [...body, b.return(inner_expression)];
+		const scope_call = /** @type {AST.SimpleCallExpression} */ (
+			b.call(b.arrow([], b.block(scope_body, /** @type {AST.NodeWithLocation} */ (block))))
+		);
+		scope_call.metadata = { ...scope_call.metadata, tsrx_code_block_scope: true };
+		return b.tsrx_expression(scope_call, /** @type {AST.NodeWithLocation} */ (block));
+	}
+
+	if (render == null) {
+		if (body.length === 0) {
+			return null;
+		}
+		const statement = b.block(body, /** @type {AST.NodeWithLocation} */ (block));
+		statement.metadata = { path: inherited_path };
+		return statement;
+	}
+
+	if (body.length === 0) {
+		// No setup code — the block's scope is unobservable, so the render
+		// output merges statically into the parent template.
+		return render;
+	}
+
+	return b.tsrx_expression(
+		wrap_code_block_in_iife(block),
+		/** @type {AST.NodeWithLocation} */ (block),
+	);
+}
+
+/**
+ * Normalize a template children list (fragment/element children, control-flow
+ * branch bodies), lowering `@{ … }` code-block children into their scoped
+ * template-child form. Statement arrays that are not template children
+ * (function bodies, program body) must keep using
+ * `normalize_jsx_tsrx_children` so statement-position code blocks stay
+ * lexical blocks.
+ * @param {any[]} children
+ * @param {AST.Node[]} [inherited_path]
+ * @returns {AST.Node[]}
+ */
+function normalize_jsx_tsrx_template_children(children, inherited_path = []) {
+	return normalize_jsx_tsrx_children(children, inherited_path)
+		.map((child) =>
+			child.type === 'JSXCodeBlock' ? code_block_to_template_child(child, inherited_path) : child,
+		)
+		.filter((child) => child != null);
+}
+
+/**
  * @param {any} node
  * @param {AST.Node[]} [inherited_path]
  * @returns {any}
@@ -2637,6 +2788,41 @@ function normalize_jsx_tsrx_node(node, inherited_path = []) {
 	}
 	if (node.type === 'JSXExpressionContainer') {
 		return jsx_to_ripple_node(node, inherited_path);
+	}
+	if (node.type === 'JSXCodeBlock') {
+		// Each `@{ … }` is its own lexical scope, so nested blocks never merge
+		// into their parent. A block whose render output is itself a code block
+		// (`@{ @{ … } }`) keeps the nesting: the inner block is lowered like a
+		// template child inside a synthetic fragment so it gets its own scope.
+		const path = [...inherited_path, node];
+		node.body = normalize_jsx_tsrx_children(node.body || [], path);
+		if (node.render?.type === 'JSXCodeBlock') {
+			const inner = normalize_jsx_tsrx_node(node.render, path);
+			const inner_child = code_block_to_template_child(inner, path);
+			// An inner block that is empty all the way down renders nothing —
+			// drop it so the outer block becomes code-only (and prunable too).
+			if (inner_child == null) {
+				node.render = null;
+			} else if (is_native_tsrx_template_node(inner_child)) {
+				// The inner chain collapsed to a plain template node (its scope
+				// was unobservable) — it becomes this block's render directly,
+				// with no wrapper fragment.
+				node.render = inner_child;
+			} else {
+				const fragment = b.tsrx_fragment(
+					[inner_child],
+					/** @type {AST.NodeWithLocation} */ (inner),
+				);
+				fragment.metadata.path = path;
+				// Mark the wrapper so template-children lowering can unwrap it
+				// instead of stacking an inline component per nesting level.
+				fragment.metadata.tsrx_code_block_chain = true;
+				node.render = fragment;
+			}
+		} else if (node.render) {
+			node.render = normalize_jsx_tsrx_node(node.render, path);
+		}
+		return node;
 	}
 
 	for (const key in node) {
@@ -2789,10 +2975,10 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 		}
 
 		element.children = /** @type {AST.Node[]} */ (
-			/** @type {AST.Node[]} */ (node.children)
-				.map((child) => normalize_jsx_tsrx_node(child, [...inherited_path, element]))
-				.flat()
-				.filter(Boolean)
+			normalize_jsx_tsrx_template_children(/** @type {AST.Node[]} */ (node.children), [
+				...inherited_path,
+				element,
+			]).filter(Boolean)
 		);
 
 		return element;
@@ -2833,10 +3019,10 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 
 	if (node.type === 'JSXFragment') {
 		return /** @type {AST.Node[]} */ (
-			/** @type {AST.Node[]} */ (node.children)
-				.map((child) => normalize_jsx_tsrx_node(child, inherited_path))
-				.flat()
-				.filter(Boolean)
+			normalize_jsx_tsrx_template_children(
+				/** @type {AST.Node[]} */ (node.children),
+				inherited_path,
+			).filter(Boolean)
 		);
 	}
 

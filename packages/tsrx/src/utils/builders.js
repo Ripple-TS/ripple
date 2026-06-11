@@ -1250,6 +1250,44 @@ export function jsx_fragment(children = [], attributes = []) {
 }
 
 /**
+ * Ripple's internal fragment template node (the normalized form of a
+ * `JSXFragment`).
+ * @param {AST.Node[]} [children]
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TsrxFragment}
+ */
+export function tsrx_fragment(children = [], loc_info) {
+	const node = /** @type {AST.TsrxFragment} */ (
+		/** @type {unknown} */ ({
+			type: 'TsrxFragment',
+			children,
+			attributes: [],
+			selfClosing: false,
+			metadata: { path: [] },
+		})
+	);
+
+	return set_location(node, loc_info);
+}
+
+/**
+ * Ripple's internal expression template child (the normalized form of a
+ * `JSXExpressionContainer` child).
+ * @param {AST.Expression} expression
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.TSRXExpression}
+ */
+export function tsrx_expression(expression, loc_info) {
+	const node = /** @type {AST.TSRXExpression} */ ({
+		type: 'TSRXExpression',
+		expression,
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * @param {AST.Expression | ESTreeJSX.JSXEmptyExpression} expression
  * @param {AST.NodeWithLocation} [loc_info]
  * @returns {ESTreeJSX.JSXExpressionContainer}
