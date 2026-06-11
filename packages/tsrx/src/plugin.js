@@ -600,6 +600,7 @@ export function TSRXPlugin(config) {
 						ch === CharCode.lessThan ||
 						ch === CharCode.openBrace ||
 						ch === CharCode.closeBrace ||
+						this.#isCodeBlockStart(index) ||
 						this.#isJSXControlFlowDirectiveAt(index)
 					) {
 						break;

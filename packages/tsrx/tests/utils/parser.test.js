@@ -842,6 +842,60 @@ abc
 		expect(block.render.openingElement.name.name).toBe('div');
 	});
 
+	it('parses a `@{ }` block preceded by text as a code block, not text plus expression container', () => {
+		const ast = parseModule(
+			`function Foo(props) @{
+				<>
+					Hello @{props.username}
+				</>
+			}`,
+			'App.tsrx',
+		);
+		const fragment = ast.body[0].body.render;
+
+		expect(fragment.children.map((child) => child.type)).toEqual(['JSXText', 'JSXCodeBlock']);
+		expect(fragment.children[0].value).toContain('Hello ');
+		const block = fragment.children[1];
+		expect(block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
+		expect(block.body[0].expression.property.name).toBe('username');
+		expect(block.render).toBeNull();
+	});
+
+	it('parses inline `@{ }` blocks between text siblings and keeps the surrounding spaces', () => {
+		const returned = getReturned(`function App() { return <div>a @{x} b @{y} c</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXCodeBlock',
+			'JSXText',
+			'JSXCodeBlock',
+			'JSXText',
+		]);
+		expect(returned.children[0].value).toBe('a ');
+		expect(returned.children[2].value).toBe(' b ');
+		expect(returned.children[4].value).toBe(' c');
+	});
+
+	it('parses a `@{ }` block preceded by text inside an element nested in an expression container', () => {
+		const span = findElement(
+			`function App() { return <div>{cond ? <span>p @{q}</span> : null}</div>; }`,
+			'span',
+		);
+
+		expect(span.children.map((child) => child.type)).toEqual(['JSXText', 'JSXCodeBlock']);
+		expect(span.children[0].value).toBe('p ');
+	});
+
+	it('keeps a lone `@` followed by a spaced expression container as text', () => {
+		const returned = getReturned(`function App() { return <div>at @ {x}</div>; }`);
+
+		expect(returned.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXExpressionContainer',
+		]);
+		expect(returned.children[0].value).toBe('at @ ');
+	});
+
 	it('keeps locations aligned for plain JSX expression children', () => {
 		const source = `function App() {
 	return <>
