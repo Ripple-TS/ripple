@@ -1,5 +1,20 @@
 # @tsrx/core
 
+## 0.1.27
+
+### Patch Changes
+
+- [#1244](https://github.com/Ripple-TS/ripple/pull/1244)
+  [`60a78c9`](https://github.com/Ripple-TS/ripple/commit/60a78c9def09eed6d706c42bc751d2d051d1d57f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Strip `/* … */` block
+  comments from template text on all targets. The template raw-text scanner only
+  recognized line comments, so block comments in text position leaked into
+  compiled output (production templates, server output, and to_ts virtual code)
+  and, in one position, were both recorded as a comment and kept as text. Block
+  comments are now removed from `JSXText` and recorded as comments everywhere, and
+  the Prettier plugin prints them back (including before closing tags/fragments
+  and in comment-only bodies) instead of relying on the leaked text.
+
 ## 0.1.26
 
 ### Patch Changes
