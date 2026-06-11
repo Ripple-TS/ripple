@@ -2292,20 +2292,20 @@ function printRippleNode(node, path, options, print, args) {
 			break;
 
 		case 'JSXStyleElement':
-			nodeContent = printJSXElement(
-				/** @type {ESTreeJSX.JSXElement} */ (/** @type {unknown} */ (node)),
+			nodeContent = printJSXElement(node, path, options, print);
+			break;
+
+		case 'JSXElement':
+			nodeContent = printJSXElement(/** @type {AST.TSRXJSXElement} */ (node), path, options, print);
+			break;
+
+		case 'JSXFragment':
+			nodeContent = printJSXFragment(
+				/** @type {AST.TSRXJSXFragment} */ (node),
 				path,
 				options,
 				print,
 			);
-			break;
-
-		case 'JSXElement':
-			nodeContent = printJSXElement(node, path, options, print);
-			break;
-
-		case 'JSXFragment':
-			nodeContent = printJSXFragment(node, path, options, print);
 			break;
 
 		case 'JSXText':
@@ -5695,86 +5695,6 @@ function normalizeInlineJSXText(raw) {
 }
 
 /**
- * @param {AST.Node} parentNode
- * @param {AST.Node} firstChild
- * @param {Doc} childDoc
- * @returns {boolean}
- */
-function shouldInlineSingleChild(parentNode, firstChild, childDoc) {
-	if (!firstChild || childDoc == null) {
-		return false;
-	}
-
-	if (firstChild.type === 'JSXText') {
-		return true;
-	}
-
-	if (typeof childDoc === 'string') {
-		return childDoc.length <= 20 && !childDoc.includes('\n');
-	}
-
-	// Inline JSX expressions if they fit, but respect original multi-line formatting
-	// for non-literal expressions (e.g. {children} should stay multi-line if written that way)
-	if (firstChild.type === 'JSXExpressionContainer') {
-		if (wasOriginallySingleLine(parentNode)) {
-			return true;
-		}
-		// For multi-line parents, only inline if the expression is a simple literal
-		const expr = firstChild.expression;
-		if (expr && (expr.type === 'Literal' || expr.type === 'TemplateLiteral')) {
-			return true;
-		}
-		return false;
-	}
-
-	// Respect original formatting for elements: if parent was originally multi-line, keep it multi-line
-	// This follows Prettier's philosophy for decorators and objects
-	if (!wasOriginallySingleLine(parentNode)) {
-		return false;
-	}
-
-	if (firstChild.type === 'JSXElement' && firstChild.openingElement?.selfClosing) {
-		const parent = /** @type {any} */ (parentNode);
-		return !parent.openingElement?.attributes?.length;
-	}
-
-	return false;
-}
-
-/**
- * Check whether a child can participate in compact inline TSRX content.
- * @param {any} child
- * @returns {boolean}
- */
-function isInlineableTextOrExpressionChild(child) {
-	if (!child || (child.type !== 'JSXText' && child.type !== 'JSXExpressionContainer')) {
-		return false;
-	}
-
-	if (hasComment(/** @type {AST.Node & AST.NodeWithMaybeComments} */ (child))) {
-		return false;
-	}
-
-	const expression = /** @type {{ expression?: AST.Node & AST.NodeWithMaybeComments }} */ (child)
-		.expression;
-	return !expression || !hasComment(expression);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function shouldTryInlineMultipleTextChildren(node) {
-	return (
-		wasOriginallySingleLine(node) &&
-		Array.isArray(node.children) &&
-		node.children.length > 1 &&
-		node.children.some((/** @type {any} */ child) => child.type === 'JSXText') &&
-		node.children.every(isInlineableTextOrExpressionChild)
-	);
-}
-
-/**
  * @param {AST.Node} child
  * @returns {boolean}
  */
@@ -5796,71 +5716,9 @@ function isSimpleJSXExpressionChild(child) {
 }
 
 /**
- * Get leading comments from element metadata
- * @param {ESTreeJSX.JSXElement} node - The element node
- * @returns {AST.Comment[]}
- */
-function getElementLeadingComments(node) {
-	const fromMetadata = node?.metadata?.elementLeadingComments;
-	if (Array.isArray(fromMetadata)) {
-		return fromMetadata;
-	}
-	return [];
-}
-
-/**
- * Create doc parts for element-level comments
- * @param {AST.Comment[]} comments - Array of comments
- * @returns {Doc[]}
- */
-function createElementLevelCommentParts(comments) {
-	if (!comments || comments.length === 0) {
-		return [];
-	}
-
-	/** @type {Doc[]} */
-	const parts = [];
-
-	for (let i = 0; i < comments.length; i++) {
-		const comment = comments[i];
-		const nextComment = comments[i + 1];
-
-		if (comment.type === 'Line') {
-			parts.push('//' + comment.value);
-			parts.push(hardline);
-		} else if (comment.type === 'Block') {
-			parts.push('/*' + comment.value + '*/');
-			parts.push(hardline);
-		}
-
-		if (nextComment) {
-			const blankLinesBetween = getBlankLinesBetweenNodes(comment, nextComment);
-			if (blankLinesBetween > 0) {
-				parts.push(hardline);
-			}
-		}
-	}
-
-	return parts;
-}
-
-/**
- * Create element-level comment parts with trailing hardline trimmed
- * @param {AST.Comment[]} comments - Array of comments
- * @returns {Doc[]}
- */
-function createElementLevelCommentPartsTrimmed(comments) {
-	const parts = createElementLevelCommentParts(comments);
-	if (parts.length > 0 && parts[parts.length - 1] === hardline) {
-		parts.pop();
-	}
-	return parts;
-}
-
-/**
  * Print a JSX element
- * @param {AST.TSRXJSXElement} node - The JSX element node
- * @param {AstPath<any>} path - The AST path
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node - The JSX element node
+ * @param {AstPath<AST.TSRXJSXElement>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc | Doc[]}
@@ -5873,7 +5731,7 @@ function printJSXElement(node, path, options, print) {
 	// Dynamic tags (`<{expr}>`) print the opening expression for both tags so
 	// they stay textually identical; static names print as plain strings.
 	const tagName =
-		/** @type {any} */ (openingElement.name).type === 'JSXExpressionContainer'
+		openingElement.name.type === 'JSXExpressionContainer'
 			? ['{', path.call(print, 'openingElement', 'name', 'expression'), '}']
 			: printJSXElementName(openingElement.name);
 
@@ -5962,7 +5820,7 @@ function printJSXElement(node, path, options, print) {
 
 	// Comments before `</tag>` and the comments of a comment-only element.
 	const { closingCommentDocs, innerCommentDocs } = collectElementBodyCommentDocs(
-		node,
+		/** @type {AST.TSRXJSXElement} */ (node),
 		openingElement,
 		node.closingElement,
 	);
@@ -6099,7 +5957,7 @@ function printJSXElement(node, path, options, print) {
 		];
 	}
 	const meaningfulChildren = node.children.filter(
-		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim(),
+		(child) => child.type !== 'JSXText' || child.value.trim(),
 	);
 	const singleMeaningfulChild = meaningfulChildren.length === 1 ? meaningfulChildren[0] : null;
 	if (
@@ -6114,9 +5972,9 @@ function printJSXElement(node, path, options, print) {
 		!forceMultiline &&
 		childrenDocs.length > 1 &&
 		wasOriginallySingleLine(node) &&
-		node.children.some((/** @type {any} */ child) => child.type === 'JSXText') &&
+		node.children.some((child) => child.type === 'JSXText') &&
 		node.children.every(
-			(/** @type {any} */ child) =>
+			(child) =>
 				child.type === 'JSXText' || isSimpleJSXExpressionChild(/** @type {AST.Node} */ (child)),
 		)
 	) {
@@ -6149,8 +6007,8 @@ function printJSXElement(node, path, options, print) {
 
 /**
  * Print a JSX fragment (<>...</>)
- * @param {ESTreeJSX.JSXFragment} node - The JSX fragment node
- * @param {AstPath<ESTreeJSX.JSXFragment>} path - The AST path
+ * @param {AST.TSRXJSXFragment} node - The JSX fragment node
+ * @param {AstPath<AST.TSRXJSXFragment>} path - The AST path
  * @param {RippleFormatOptions} options - Prettier options
  * @param {PrintFn} print - Print callback
  * @returns {Doc}
@@ -6159,11 +6017,10 @@ function printJSXFragment(node, path, options, print) {
 	const hasChildren = node.children && node.children.length > 0;
 
 	// Comments before `</>` and the comments of a comment-only fragment.
-	const fragment = /** @type {any} */ (node);
 	const { closingCommentDocs, innerCommentDocs } = collectElementBodyCommentDocs(
 		node,
-		fragment.openingFragment,
-		fragment.closingFragment,
+		node.openingFragment,
+		node.closingFragment,
 	);
 
 	if (!hasChildren) {
@@ -6175,7 +6032,7 @@ function printJSXFragment(node, path, options, print) {
 	}
 
 	// A `@{ … }` code block is the whole body and hugs the tags: `<>@{ … }</>`.
-	if (node.children.length === 1 && /** @type {any} */ (node.children[0]).type === 'JSXCodeBlock') {
+	if (node.children.length === 1 && node.children[0].type === 'JSXCodeBlock') {
 		return group(['<>', path.call(print, 'children', 0), '</>']);
 	}
 
@@ -6271,14 +6128,14 @@ function printJSXFragment(node, path, options, print) {
  * opening tag's end, but the child is visited first). Pull those out of the
  * children and return a map from attribute index to the comments that precede it,
  * so the element printer can render them in the opening tag instead of the body.
- * @param {AST.TSRXJSXElement} node
+ * @param {AST.TSRXJSXElement | AST.JSXStyleElement} node
  * @returns {Map<number, AST.Comment[]>}
  */
 function collectOpeningTagComments(node) {
 	/** @type {Map<number, AST.Comment[]>} */
 	const byAttr = new Map();
 	const openingElement = /** @type {AST.NodeWithLocation} */ (node.openingElement);
-	const attributes = /** @type {any[]} */ (node.openingElement?.attributes) ?? [];
+	const attributes = node.openingElement?.attributes ?? [];
 	if (!openingElement || attributes.length === 0 || !Array.isArray(node.children)) {
 		return byAttr;
 	}
@@ -6297,7 +6154,7 @@ function collectOpeningTagComments(node) {
 			}
 		}
 		if (keep.length !== lead.length) {
-			/** @type {any} */ (child).leadingComments = keep;
+			child.leadingComments = keep;
 		}
 	}
 	if (collected.length === 0) return byAttr;
@@ -6352,9 +6209,9 @@ function printTemplateChildLeadingComments(child) {
  * tag's `leadingComments` or, when the last child is an `{expr}` container, to
  * `metadata.elementLeadingComments` positioned inside the body) and the comments
  * of a comment-only body (`innerComments`).
- * @param {any} node
- * @param {any} openingNode
- * @param {any} closingNode
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
+ * @param {AST.TSRXJSXElement['openingElement'] | AST.TSRXJSXFragment['openingFragment']} openingNode
+ * @param {AST.TSRXJSXElement['closingElement'] | AST.TSRXJSXFragment['closingFragment']} closingNode
  * @returns {{ closingCommentDocs: Doc[], innerCommentDocs: Doc[] }}
  */
 function collectElementBodyCommentDocs(node, openingNode, closingNode) {
@@ -6371,7 +6228,7 @@ function collectElementBodyCommentDocs(node, openingNode, closingNode) {
 	);
 	const lastMeaningfulChild = [...(node.children ?? [])]
 		.reverse()
-		.find((/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim());
+		.find((child) => child.type !== 'JSXText' || child.value.trim());
 	return {
 		closingCommentDocs: printElementBodyComments(trailingComments, lastMeaningfulChild),
 		innerCommentDocs: printElementBodyComments(node.innerComments),
@@ -6528,540 +6385,4 @@ function printJSXElementName(node) {
 		return namespace_name + ':' + local_name;
 	}
 	return 'Unknown';
-}
-
-/**
- * Print a member expression as simple string (for element tag names)
- * @param {AST.Node} node - The node to print
- * @param {RippleFormatOptions} options - Prettier options
- * @param {boolean} [computed=false] - Whether the property is computed
- * @returns {string}
- */
-function printMemberExpressionSimple(node, options, computed = false) {
-	if (node.type === 'JSXIdentifier') {
-		return node.name;
-	}
-
-	if (node.type === 'JSXMemberExpression') {
-		return (
-			printMemberExpressionSimple(node.object, options) +
-			'.' +
-			printMemberExpressionSimple(node.property, options, true)
-		);
-	}
-
-	if (node.type === 'JSXNamespacedName') {
-		return node.namespace.name + ':' + node.name.name;
-	}
-
-	if (node.type === 'Identifier') {
-		return node.name;
-	}
-
-	if (node.type === 'MemberExpression') {
-		const obj = printMemberExpressionSimple(node.object, options);
-		let prop;
-		if (node.computed) {
-			prop = '[' + printMemberExpressionSimple(node.property, options, true) + ']';
-		} else {
-			prop = '.' + printMemberExpressionSimple(node.property, options, true);
-		}
-		return obj + prop;
-	}
-
-	if (node.type === 'Literal') {
-		return computed ? formatStringLiteral(node.value, options) : JSON.stringify(node.value);
-	}
-	return '';
-}
-
-/**
- * Check whether an attribute value can expand into multiline content.
- * @param {AST.Expression | null | undefined} value - The attribute value node
- * @param {boolean} [is_nested_in_object=false] - Whether this value is nested within an object literal
- * @returns {boolean}
- */
-function is_attribute_value_breakable(value, is_nested_in_object = false) {
-	if (!value) return false;
-
-	switch (value.type) {
-		case 'ConditionalExpression':
-			// Keep simple top-level ternary attributes inline when they fit.
-			// We only force-break when a conditional is nested in an object literal value.
-			return is_nested_in_object;
-		case 'ObjectExpression':
-			return value.properties.some(
-				(property) =>
-					property.type === 'Property' &&
-					is_attribute_value_breakable(/** @type {AST.Expression} */ (property.value), true),
-			);
-		default:
-			return false;
-	}
-}
-
-/**
- * Print a JSX element node
- * @param {AST.Element} element - The element node
- * @param {AstPath<AST.Element>} path - The AST path
- * @param {RippleFormatOptions} options - Prettier options
- * @param {PrintFn} print - Print callback
- * @returns {Doc}
- */
-function printElement(element, path, options, print) {
-	const node = /** @type {any} */ (element);
-	const tagName = printMemberExpressionSimple(node.id, options);
-	const openingElement = /** @type {any} */ (node.openingElement);
-	/** @type {Doc} */
-	let typeArgsDoc = '';
-	if (openingElement?.typeArguments) {
-		typeArgsDoc = path.call(print, 'openingElement', 'typeArguments');
-	}
-	const elementLeadingComments = getElementLeadingComments(/** @type {any} */ (node));
-
-	// `metadata.elementLeadingComments` may include comments that actually appear *inside* the element
-	// body (after the opening tag). Those must not be hoisted before the element.
-	const outerElementLeadingComments = elementLeadingComments.filter(
-		(/** @type {AST.Comment} */ comment) =>
-			typeof comment.start !== 'number' || comment.start < node.start,
-	);
-	const innerElementBodyComments = elementLeadingComments.filter(
-		(/** @type {AST.Comment} */ comment) =>
-			typeof comment.start === 'number' &&
-			comment.start >= /** @type {AST.NodeWithLocation} */ (node.openingElement).end &&
-			comment.start < node.end,
-	);
-	const metadataCommentParts =
-		outerElementLeadingComments.length > 0
-			? createElementLevelCommentParts(outerElementLeadingComments)
-			: [];
-	const fallbackElementComments = [];
-	const shouldLiftTextLevelComments = outerElementLeadingComments.length === 0;
-
-	const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-	const hasInnerComments = Array.isArray(node.innerComments) && node.innerComments.length > 0;
-	const isSelfClosing = !!node.selfClosing;
-	const hasAttributes = Array.isArray(node.attributes) && node.attributes.length > 0;
-
-	// Collect comments that the parser attached to children but actually belong inside
-	// the opening tag (positionally before openingElement.end). These should be printed
-	// as leading comments before the appropriate attribute, not lifted to element-level.
-	/** @type {Set<AST.Comment>} */
-	const openingTagCommentsSet = new Set();
-	if (hasChildren && node.openingElement) {
-		const openingEnd = /** @type {AST.NodeWithLocation} */ (node.openingElement).end;
-		for (const child of node.children) {
-			if (
-				(child.type === 'JSXExpressionContainer' || child.type === 'JSXText') &&
-				Array.isArray(child.leadingComments)
-			) {
-				for (const comment of child.leadingComments) {
-					if (
-						typeof comment.start === 'number' &&
-						comment.start >= node.start &&
-						comment.start < openingEnd
-					) {
-						openingTagCommentsSet.add(comment);
-					}
-				}
-			}
-		}
-	}
-
-	// Build a map from attribute index to comments that should precede that attribute
-	const openingTagCommentsByAttrIndex = new Map();
-	if (openingTagCommentsSet.size > 0 && hasAttributes) {
-		const sortedOTC = [...openingTagCommentsSet].sort(
-			(a, b) => /** @type {number} */ (a.start) - /** @type {number} */ (b.start),
-		);
-		let commentIdx = 0;
-		for (let attrIdx = 0; attrIdx < node.attributes.length; attrIdx++) {
-			const attr = node.attributes[attrIdx];
-			const commentsForAttr = [];
-			while (
-				commentIdx < sortedOTC.length &&
-				/** @type {number} */ (sortedOTC[commentIdx].start) <
-					/** @type {AST.NodeWithLocation} */ (attr).start
-			) {
-				commentsForAttr.push(sortedOTC[commentIdx]);
-				commentIdx++;
-			}
-			if (commentsForAttr.length > 0) {
-				openingTagCommentsByAttrIndex.set(attrIdx, commentsForAttr);
-			}
-		}
-	}
-
-	if (isSelfClosing && !hasInnerComments && !hasAttributes) {
-		const elementDoc = group(['<', tagName, typeArgsDoc, ' />']);
-		return metadataCommentParts.length > 0 ? [...metadataCommentParts, elementDoc] : elementDoc;
-	}
-
-	// Determine the line break type for attributes
-	// When singleAttributePerLine is true, force each attribute on its own line with hardline
-	// Otherwise, use line to allow collapsing when it fits
-	const attrLineBreak = options.singleAttributePerLine ? hardline : line;
-
-	const shouldUseSelfClosingSyntax = isSelfClosing || (!hasChildren && !hasInnerComments);
-
-	const hasOpeningTagComments = openingTagCommentsSet.size > 0;
-	let attrIndex = 0;
-	let hasBreakingAttribute = false;
-	const attrDocs = hasAttributes
-		? path.map((attrPath) => {
-				const idx = attrIndex++;
-				const commentsForAttr = openingTagCommentsByAttrIndex.get(idx);
-				/** @type {Doc[]} */
-				const parts = [];
-				if (commentsForAttr) {
-					for (const comment of commentsForAttr) {
-						// Line comments (//) consume the rest of the line, so they must
-						// use hardline to force a break. Block comments can use normal breaks.
-						if (comment.type === 'Line') {
-							parts.push(hardline);
-							parts.push('//' + comment.value);
-						} else if (comment.type === 'Block') {
-							parts.push(attrLineBreak);
-							parts.push('/*' + comment.value + '*/');
-						}
-					}
-				}
-				parts.push(attrLineBreak);
-				const attrDoc = print(attrPath);
-				parts.push(attrDoc);
-				const attr_node = /** @type {ESTreeJSX.JSXAttribute | ESTreeJSX.JSXSpreadAttribute} */ (
-					/** @type {unknown} */ (attrPath.node)
-				);
-				if (
-					!hasBreakingAttribute &&
-					(willBreak(attrDoc) ||
-						(attr_node.type === 'JSXAttribute' &&
-							is_attribute_value_breakable(/** @type {any} */ (attr_node.value))))
-				) {
-					hasBreakingAttribute = true;
-				}
-				return parts;
-			}, 'attributes')
-		: [];
-	const shouldForceBreak = hasOpeningTagComments || hasBreakingAttribute;
-	const openingTagAlwaysBreaks =
-		(hasAttributes && options.singleAttributePerLine) || shouldForceBreak;
-	const openingTag = group([
-		'<',
-		tagName,
-		typeArgsDoc,
-		hasAttributes
-			? indent([
-					...attrDocs,
-					// Force the group to break when there are line comments in the opening tag,
-					// or when any attribute value would break (e.g. multiline objects, ternaries).
-					// This ensures attributes are broken onto separate lines rather than breaking
-					// expression values inline on the same line as the tag name.
-					...(shouldForceBreak ? [breakParent] : []),
-				])
-			: '',
-		// Add line break opportunity before > or />
-		// Use line for self-closing (keeps space), softline for non-self-closing when attributes present
-		// When bracketSameLine is true, don't add line break for non-self-closing elements
-		shouldUseSelfClosingSyntax
-			? hasAttributes
-				? line
-				: ''
-			: hasAttributes && !options.bracketSameLine
-				? softline
-				: '',
-		shouldUseSelfClosingSyntax ? (hasAttributes ? '/>' : ' />') : '>',
-	]);
-
-	if (!hasChildren) {
-		if (!hasInnerComments) {
-			return metadataCommentParts.length > 0 ? [...metadataCommentParts, openingTag] : openingTag;
-		}
-
-		/** @type {Doc[]} */
-		const innerParts = [];
-		for (const comment of node.innerComments ?? []) {
-			if (comment.type === 'Line') {
-				innerParts.push('//' + comment.value);
-				innerParts.push(hardline);
-			} else if (comment.type === 'Block') {
-				innerParts.push('/*' + comment.value + '*/');
-				innerParts.push(hardline);
-			}
-		}
-
-		if (innerParts.length > 0 && innerParts[innerParts.length - 1] === hardline) {
-			innerParts.pop();
-		}
-
-		const closingTag = ['</', tagName, '>'];
-		const elementOutput = group([
-			openingTag,
-			indent([hardline, ...innerParts]),
-			hardline,
-			closingTag,
-		]);
-		return metadataCommentParts.length > 0
-			? [...metadataCommentParts, elementOutput]
-			: elementOutput;
-	}
-
-	// Has children - use unified children processing
-	// Build children with whitespace preservation
-	/** @type {Doc[]} */
-	const finalChildren = [];
-	const sortedInnerElementBodyComments =
-		innerElementBodyComments.length > 0
-			? innerElementBodyComments.slice().sort((a, b) => (a.start ?? 0) - (b.start ?? 0))
-			: [];
-	let innerElementBodyCommentIndex = 0;
-
-	for (let i = 0; i < node.children.length; i++) {
-		const currentChild = node.children[i];
-		const nextChild = node.children[i + 1];
-
-		// Insert any element-body comments that appear before this child.
-		if (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {
-			const currentChildStart = typeof currentChild.start === 'number' ? currentChild.start : null;
-			if (currentChildStart != null) {
-				const commentsBefore = [];
-				while (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {
-					/** @type {AST.Comment} */
-					const comment = sortedInnerElementBodyComments[innerElementBodyCommentIndex];
-					if (typeof comment.start !== 'number' || comment.start >= currentChildStart) {
-						break;
-					}
-					commentsBefore.push(comment);
-					innerElementBodyCommentIndex++;
-				}
-				if (commentsBefore.length > 0) {
-					if (finalChildren.length > 0) {
-						finalChildren.push(hardline);
-					}
-					finalChildren.push(...createElementLevelCommentPartsTrimmed(commentsBefore));
-					finalChildren.push(hardline);
-				}
-			}
-		}
-
-		const isTextLikeChild =
-			currentChild.type === 'JSXExpressionContainer' || currentChild.type === 'JSXText';
-		const hasTextLeadingComments =
-			shouldLiftTextLevelComments &&
-			isTextLikeChild &&
-			Array.isArray(currentChild.leadingComments) &&
-			currentChild.leadingComments.length > 0;
-		const currentChildAny = /** @type {any} */ (currentChild);
-		const rawExpressionLeadingComments =
-			isTextLikeChild && Array.isArray(currentChildAny.expression?.leadingComments)
-				? currentChildAny.expression.leadingComments
-				: null;
-		const elementBodyLeadingComments =
-			hasTextLeadingComments && node.openingElement
-				? /** @type {AST.Comment[]} */ (currentChild.leadingComments).filter(
-						(comment) =>
-							comment.context?.containerId === node.metadata?.commentContainerId &&
-							comment.context?.beforeMeaningfulChild &&
-							typeof comment.start === 'number' &&
-							comment.start >= /** @type {AST.NodeWithLocation} */ (node.openingElement).end &&
-							comment.start < /** @type {AST.NodeWithLocation} */ (currentChild).start,
-					)
-				: [];
-
-		if (hasTextLeadingComments) {
-			for (let j = 0; j < /** @type {AST.Comment[]} */ (currentChild.leadingComments).length; j++) {
-				const comment = /** @type {AST.Comment[]} */ (currentChild.leadingComments)[j];
-				// Don't lift comments that belong inside the opening tag (handled in attribute section)
-				if (!openingTagCommentsSet.has(comment) && !elementBodyLeadingComments.includes(comment)) {
-					fallbackElementComments.push(comment);
-				}
-			}
-		}
-
-		const childPrintArgs = /** @type {PrintArgs} */ ({});
-		if (hasTextLeadingComments) {
-			childPrintArgs.suppressLeadingComments = true;
-		}
-		if (rawExpressionLeadingComments && rawExpressionLeadingComments.length > 0) {
-			childPrintArgs.suppressExpressionLeadingComments = true;
-		}
-
-		const printedChild =
-			Object.keys(childPrintArgs).length > 0
-				? path.call((childPath) => print(childPath, childPrintArgs), 'children', i)
-				: path.call(print, 'children', i);
-
-		const childLeadingCommentParts =
-			elementBodyLeadingComments.length > 0
-				? createElementLevelCommentParts(elementBodyLeadingComments)
-				: rawExpressionLeadingComments && rawExpressionLeadingComments.length > 0
-					? createElementLevelCommentParts(rawExpressionLeadingComments)
-					: null;
-		const childDoc = childLeadingCommentParts
-			? [...childLeadingCommentParts, printedChild]
-			: printedChild;
-		finalChildren.push(childDoc);
-
-		// Insert element-body comments that fall between this child and the next child (or the closing tag).
-		let insertedBodyCommentsBetween = false;
-		if (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {
-			const currentChildEnd = /** @type {AST.NodeWithLocation} */ (currentChild).end;
-			const nextChildStart =
-				nextChild && typeof nextChild.start === 'number' ? nextChild.start : null;
-			const commentsBetween = [];
-			while (innerElementBodyCommentIndex < sortedInnerElementBodyComments.length) {
-				/** @type {AST.Comment} */
-				const comment = sortedInnerElementBodyComments[innerElementBodyCommentIndex];
-				if (typeof comment.start !== 'number') {
-					innerElementBodyCommentIndex++;
-					continue;
-				}
-				if (comment.start < currentChildEnd) {
-					break;
-				}
-				if (nextChildStart != null && comment.start >= nextChildStart) {
-					break;
-				}
-				commentsBetween.push(comment);
-				innerElementBodyCommentIndex++;
-			}
-			if (commentsBetween.length > 0) {
-				const firstComment = commentsBetween[0];
-				const lastComment = commentsBetween[commentsBetween.length - 1];
-
-				// Preserve any blank line(s) that existed between the previous child and the comment block.
-				const blankLinesBefore = getBlankLinesBetweenNodes(currentChild, firstComment);
-				finalChildren.push(hardline);
-				if (blankLinesBefore > 0) {
-					finalChildren.push(hardline);
-				}
-
-				finalChildren.push(...createElementLevelCommentPartsTrimmed(commentsBetween));
-
-				if (nextChild) {
-					// Preserve any blank line(s) that existed between the comment block and the next child.
-					const blankLinesAfter = getBlankLinesBetweenNodes(lastComment, nextChild);
-					finalChildren.push(hardline);
-					if (blankLinesAfter > 0) {
-						finalChildren.push(hardline);
-					}
-				}
-				insertedBodyCommentsBetween = true;
-			}
-		}
-
-		if (nextChild) {
-			if (insertedBodyCommentsBetween) {
-				continue;
-			}
-			const whitespaceTarget =
-				nextChild.leadingComments && nextChild.leadingComments.length > 0
-					? nextChild.leadingComments[0]
-					: nextChild;
-			const whitespaceLinesCount = getBlankLinesBetweenNodes(currentChild, whitespaceTarget);
-			const isTextOrExpressionChild =
-				currentChild.type === 'JSXExpressionContainer' ||
-				currentChild.type === 'JSXText' ||
-				nextChild.type === 'JSXExpressionContainer' ||
-				nextChild.type === 'JSXText';
-
-			if (whitespaceLinesCount > 0) {
-				finalChildren.push(hardline);
-				finalChildren.push(hardline);
-			} else if (!isTextOrExpressionChild && shouldAddBlankLine(currentChild, nextChild)) {
-				finalChildren.push(hardline);
-				finalChildren.push(hardline);
-			} else {
-				finalChildren.push(hardline);
-			}
-		}
-	}
-
-	// Collect comments attached to the closing element (comments that appear after the last child
-	// but before the closing tag, e.g. `</div>`). The parser attaches these as leadingComments
-	// on either the closingElement node or the closingElement.name node depending on context.
-	const closingElementComments = [
-		...(node.closingElement && Array.isArray(node.closingElement.leadingComments)
-			? node.closingElement.leadingComments
-			: []),
-		...(node.closingElement &&
-		node.closingElement.name &&
-		Array.isArray(node.closingElement.name.leadingComments)
-			? node.closingElement.name.leadingComments
-			: []),
-	];
-
-	if (closingElementComments.length > 0) {
-		const lastChild = node.children[node.children.length - 1];
-		if (lastChild) {
-			const blankLinesBefore = getBlankLinesBetweenNodes(lastChild, closingElementComments[0]);
-			finalChildren.push(hardline);
-			if (blankLinesBefore > 0) {
-				finalChildren.push(hardline);
-			}
-		}
-		finalChildren.push(...createElementLevelCommentPartsTrimmed(closingElementComments));
-	}
-
-	const fallbackCommentParts =
-		fallbackElementComments.length > 0
-			? createElementLevelCommentParts(fallbackElementComments)
-			: [];
-	const leadingCommentParts =
-		metadataCommentParts.length > 0
-			? [...metadataCommentParts, ...fallbackCommentParts]
-			: fallbackCommentParts;
-
-	const closingTag = ['</', tagName, '>'];
-	let elementOutput;
-	const shouldTryInlineMultipleChildren =
-		!openingTagAlwaysBreaks &&
-		fallbackCommentParts.length === 0 &&
-		closingElementComments.length === 0 &&
-		shouldTryInlineMultipleTextChildren(node);
-
-	if (finalChildren.length === 1) {
-		const child = finalChildren[0];
-		const firstChild = /** @type {any} */ (node.children[0]);
-		const isNonSelfClosingElement =
-			firstChild && firstChild.type === 'Element' && !firstChild.selfClosing;
-		const isElementChild = firstChild && firstChild.type === 'Element';
-		const isRawTextChild =
-			firstChild && firstChild.type === 'Text' && typeof firstChild.raw === 'string';
-
-		if (
-			(typeof child === 'string' || isRawTextChild) &&
-			shouldInlineSingleChild(node, firstChild, child)
-		) {
-			elementOutput = openingTagAlwaysBreaks
-				? [openingTag, indent([hardline, child]), hardline, closingTag]
-				: conditionalGroup([
-						group([openingTag, child, closingTag]),
-						[openingTag, indent([hardline, child]), hardline, closingTag],
-					]);
-		} else if (
-			child &&
-			typeof child === 'object' &&
-			!isNonSelfClosingElement &&
-			shouldInlineSingleChild(node, firstChild, child)
-		) {
-			if (isElementChild && hasAttributes) {
-				elementOutput = [openingTag, indent([hardline, child]), hardline, closingTag];
-			} else {
-				elementOutput = group([openingTag, indent([softline, child]), softline, closingTag]);
-			}
-		} else {
-			elementOutput = [openingTag, indent([hardline, ...finalChildren]), hardline, closingTag];
-		}
-	} else if (shouldTryInlineMultipleChildren) {
-		const inlineChildren = path.map(print, 'children');
-		elementOutput = conditionalGroup([
-			group([openingTag, ...inlineChildren, closingTag]),
-			[openingTag, indent([hardline, ...finalChildren]), hardline, closingTag],
-		]);
-	} else {
-		elementOutput = group([openingTag, indent([hardline, ...finalChildren]), hardline, closingTag]);
-	}
-
-	return leadingCommentParts.length > 0 ? [...leadingCommentParts, elementOutput] : elementOutput;
 }

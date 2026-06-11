@@ -318,7 +318,7 @@ function insert_style_ref_setup_statements(body, setup) {
 }
 
 /**
- * @param {AST.TSRXJSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformServerContext} context
  * @returns {AST.CallExpression}
  */
@@ -1645,14 +1645,14 @@ const visitors = {
 
 	JSXElement(node, context) {
 		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(node, context);
+			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
 		}
 		return context.next();
 	},
 
 	JSXFragment(node, context) {
 		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(node, context);
+			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
 		}
 		return context.next();
 	},

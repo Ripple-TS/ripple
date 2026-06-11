@@ -2018,9 +2018,10 @@ export function TSRXPlugin(config) {
 					);
 					const closingEnd = closingStart + '</style>'.length;
 					const closingEndInfo = acorn.getLineInfo(this.input, closingEnd);
-					const closingElement = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
-						this.startNodeAt(closingStart, closingStartLoc)
-					);
+					const closingElement =
+						/** @type {ESTreeJSX.TSRXJSXClosingElement & AST.NodeWithLocation} */ (
+							this.startNodeAt(closingStart, closingStartLoc)
+						);
 					closingElement.name = name;
 					this.finishNodeAt(
 						closingElement,
@@ -4221,8 +4222,10 @@ export function TSRXPlugin(config) {
 				} else {
 					if (is_style) {
 						/** @type {AST.JSXStyleElement} */ (node).type = 'JSXStyleElement';
-						/** @type {AST.JSXStyleElement} */ (node).openingElement = open;
-						/** @type {AST.JSXStyleElement} */ (node).closingElement = null;
+						/** @type {AST.JSXStyleElement} */ (node).openingElement =
+							/** @type {AST.JSXStyleElement['openingElement']} */ (open);
+						/** @type {AST.JSXStyleElement} */ (node).closingElement =
+							/** @type {AST.JSXStyleElement['closingElement']} */ (null);
 					} else {
 						/** @type {ESTreeJSX.JSXElement} */ (node).type = 'JSXElement';
 						/** @type {ESTreeJSX.JSXElement} */ (node).openingElement = open;

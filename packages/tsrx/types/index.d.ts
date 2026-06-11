@@ -253,6 +253,9 @@ declare module 'estree' {
 		TsrxFragment: TsrxFragment;
 		Text: Text;
 		TSRXJSXElement: TSRXJSXElement;
+		TSRXJSXFragment: TSRXJSXFragment;
+		TSRXJSXOpeningElement: ESTreeJSX.TSRXJSXOpeningElement;
+		TSRXJSXClosingElement: ESTreeJSX.TSRXJSXClosingElement;
 		TSRXExpression: TSRXExpression;
 		Attribute: Attribute;
 		SpreadAttribute: SpreadAttribute;
@@ -346,7 +349,11 @@ declare module 'estree' {
 		| AST.JSXCodeBlock;
 
 	interface TSRXJSXElement
-		extends Omit<ESTreeJSX.JSXElement, 'children'>, AST.NodeWithMaybeComments {
+		extends
+			Omit<ESTreeJSX.JSXElement, 'children' | 'openingElement' | 'closingElement'>,
+			AST.NodeWithMaybeComments {
+		openingElement: ESTreeJSX.TSRXJSXOpeningElement;
+		closingElement: ESTreeJSX.TSRXJSXClosingElement | null;
 		children: TSRXJSXChild[];
 		metadata: BaseNodeMetaData & {
 			ts_name?: string;
@@ -366,13 +373,10 @@ declare module 'estree' {
 		innerComments?: AST.Comment[] | undefined;
 	}
 
-	interface JSXStyleElement extends AST.BaseExpression {
+	interface JSXStyleElement extends Omit<AST.TSRXJSXElement, 'type' | 'children'> {
 		type: 'JSXStyleElement';
-		openingElement: ESTreeJSX.JSXOpeningElement;
-		closingElement: ESTreeJSX.JSXClosingElement | null;
 		children: AST.CSS.StyleSheet[];
 		css?: string;
-		metadata: BaseNodeMetaData;
 		unclosed?: boolean;
 	}
 
@@ -520,7 +524,7 @@ declare module 'estree' {
 
 	type TSRXStatement = AST.Statement | TSESTree.Statement;
 
-	type NodeWithChildren = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement;
+	type NodeWithChildren = TSRXJSXElement | TSRXJSXFragment | JSXStyleElement | ESTreeJSX.JSXElement;
 
 	export namespace CSS {
 		export interface BaseNode extends AST.NodeWithMaybeComments {
@@ -736,11 +740,11 @@ declare module 'estree-jsx' {
 	}
 
 	interface TSRXJSXOpeningElement extends Omit<JSXOpeningElement, 'name'> {
-		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
+		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName | JSXExpressionContainer;
 	}
 
 	interface TSRXJSXClosingElement extends Omit<JSXClosingElement, 'name'> {
-		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName;
+		name: AST.MemberExpression | JSXIdentifier | JSXNamespacedName | JSXExpressionContainer;
 	}
 
 	interface ExpressionMap {

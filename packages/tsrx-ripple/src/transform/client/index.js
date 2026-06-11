@@ -1428,7 +1428,7 @@ function SetStateForOutsideComponent(state, more_state = {}) {
 }
 
 /**
- * @param {AST.TSRXJSXElement | ESTreeJSX.JSXFragment} node
+ * @param {AST.TSRXJSXElement | AST.TSRXJSXFragment} node
  * @param {TransformClientContext} context
  * @returns {AST.CallExpression}
  */
@@ -1994,7 +1994,7 @@ const visitors = {
 			return context.next();
 		}
 		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(node, context);
+			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXFragment} */ (node), context);
 		}
 		return context.next();
 	},
@@ -2004,7 +2004,7 @@ const visitors = {
 			return context.next();
 		}
 		if (context.state.jsx_to_tsrx_element || is_native_tsrx_value_position(context.path)) {
-			return build_jsx_to_tsrx_element(node, context);
+			return build_jsx_to_tsrx_element(/** @type {AST.TSRXJSXElement} */ (node), context);
 		}
 		return context.next();
 	},
