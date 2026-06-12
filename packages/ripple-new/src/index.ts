@@ -20,6 +20,7 @@ export {
   useId,
   useImperativeHandle,
   useEffectEvent,
+  useSyncExternalStore,
   useDeferredValue,
   useTransition,
   startTransition,

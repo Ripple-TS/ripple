@@ -794,6 +794,55 @@ export function useImperativeHandle<T>(
  * trap. The returned function has the same identity across renders; calling it
  * invokes the most-recent `fn` (i.e., it always sees fresh closure values).
  */
+/**
+ * React 18+ `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot?)`.
+ *
+ * Mirrors React's contract: subscribe is called on mount with an
+ * `onStoreChange` callback; the returned function unsubscribes on unmount
+ * (and on subscribe identity change). `getSnapshot()` is called on every
+ * render to return the current snapshot. When the store calls
+ * `onStoreChange`, the component re-renders and `getSnapshot()` runs again.
+ *
+ * `getServerSnapshot` is accepted for API compatibility but not used —
+ * ripple-new has no SSR pipeline today; if/when one lands, this argument
+ * is where to plug in the server-side snapshot.
+ *
+ * Built on top of useState + useEffect. The user's `slot` is the call
+ * site's compiler-injected symbol; two derived sub-slots
+ * (`<slot>:uses:tick` and `<slot>:uses:effect`) host the internal hooks
+ * so the two sub-hooks have stable, distinct identities within the call.
+ */
+export function useSyncExternalStore<T>(
+  subscribe: (onStoreChange: () => void) => () => void,
+  getSnapshot: () => T,
+  ...rest: any[]
+): T {
+  // React-19 shape: `useSyncExternalStore(subscribe, getSnapshot,
+  // getServerSnapshot?)`. The compiler appends the hook-slot Symbol as the
+  // LAST argument, so we detect the user-vs-compiler args by counting from
+  // the end. One trailing Symbol → user passed no getServerSnapshot; one
+  // trailing Symbol preceded by another arg → user passed getServerSnapshot
+  // (currently ignored; no SSR pipeline yet).
+  const slot = rest[rest.length - 1] as symbol | undefined;
+  if (slot === undefined || typeof slot !== 'symbol') missingSlot('useSyncExternalStore');
+  const desc = slot.description ?? '';
+  const tickSlot = Symbol.for(desc + ':uses:tick');
+  const effectSlot = Symbol.for(desc + ':uses:effect');
+
+  // Force a re-render when the store fires onStoreChange.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [, setTick] = useState(0, tickSlot);
+
+  // Subscribe on mount; re-subscribe if subscribe identity changes.
+  useEffect(() => {
+    const handle = (): void => setTick((t: number) => t + 1);
+    return subscribe(handle);
+  }, [subscribe], effectSlot);
+
+  // Fresh read on every render — guards against tearing between commits.
+  return getSnapshot();
+}
+
 export function useEffectEvent<F extends (...args: any[]) => any>(fn: F, slot?: symbol): F {
   if (slot === undefined) missingSlot('useEffectEvent');
   const scope = CURRENT_SCOPE!;

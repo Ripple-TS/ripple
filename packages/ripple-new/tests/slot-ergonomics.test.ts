@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   useState, useReducer, useEffect, useLayoutEffect, useInsertionEffect,
   useMemo, useCallback, useRef, useId, useImperativeHandle, useEffectEvent,
-  useTransition, useDeferredValue,
+  useTransition, useDeferredValue, useSyncExternalStore,
 } from '../src/index.js';
 
 // The `slot: symbol` argument on every hook is COMPILER-INJECTED.
@@ -34,6 +34,7 @@ describe('slot ergonomics — public signature hides the compiler-injected slot'
     ['useTransition',  () => useTransition()],
     ['useImperativeHandle', () => useImperativeHandle({ current: null }, () => ({}), [])],
     ['useDeferredValue',    () => useDeferredValue(0)],
+    ['useSyncExternalStore', () => useSyncExternalStore(() => () => {}, () => 0)],
   ])('%s without a slot throws naming the hook', (name, call) => {
     expect(call).toThrow(new RegExp(`${name} was called without a slot symbol`));
   });
