@@ -303,7 +303,7 @@ function collect_rule_class_map_entries(node, entries) {
  * @param {any} complex_selector
  * @returns {any | null}
  */
-function get_standalone_class_selector(complex_selector) {
+export function get_standalone_class_selector(complex_selector) {
 	if (complex_selector?.children?.length !== 1) return null;
 	const relative_selector = complex_selector.children[0];
 	if (

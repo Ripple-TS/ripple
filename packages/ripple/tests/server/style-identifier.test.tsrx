@@ -336,5 +336,60 @@ export function App() @{
 			expect(body).toMatch(/tsrx-[a-z0-9]+/);
 			expect(body).toContain('styled');
 		});
+
+		it('prunes style expression selectors the class map cannot reach', () => {
+			const source = `
+export function App() @{
+	const styles = <style>
+		div {
+			color: red;
+		}
+		.parent .card {
+			font-weight: bold;
+		}
+		.card {
+			color: green;
+			&:hover {
+				color: blue;
+			}
+		}
+		:global(body) {
+			margin: 0;
+		}
+	</style>;
+
+	<div class={styles.card}>{'text'}</div>
+}`;
+			const { css, cssHash } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(css).toContain('/* (unused) div {');
+			expect(css).toContain('/* (unused) .parent .card {');
+			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain('&:hover {');
+			expect(css).toContain('body {');
+		});
+
+		it('keeps all selectors of a free-standing style block', () => {
+			const source = `
+export function App() @{
+	<>
+		<div class="card">{'text'}</div>
+
+		<style>
+			div {
+				color: red;
+			}
+			.card {
+				color: green;
+			}
+		</style>
+	</>
+}`;
+			const { css, cssHash } = compile(source, 'test.tsrx', { mode: 'server' });
+
+			expect(css).not.toContain('(unused)');
+			expect(css).toContain(`div.${cssHash}`);
+			expect(css).toContain(`.card.${cssHash}`);
+		});
 	});
 });

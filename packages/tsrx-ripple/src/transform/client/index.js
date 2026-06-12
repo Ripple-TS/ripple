@@ -242,7 +242,7 @@ function build_style_class_map_expression(node, context) {
 	}
 
 	analyzeCss(stylesheet);
-	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet));
+	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet, true));
 	const class_map = createStyleClassMapFromStylesheet(stylesheet);
 	if (!context.state.to_ts) {
 		return class_map;

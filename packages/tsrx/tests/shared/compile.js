@@ -3465,6 +3465,50 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).toContain('margin: 5px;');
 			expect(code).toContain('card');
 		});
+
+		it('prunes style expression selectors that the class map cannot reach', () => {
+			const { css, cssHash } = compile(
+				`export function App() @{
+						const styles = <style>
+							div { color: red; }
+							.parent .card { font-weight: bold; }
+							.card {
+								color: green;
+								&:hover { color: blue; }
+							}
+							:global(body) { margin: 0; }
+						</style>;
+						<div class={styles.card} />
+					}`,
+				'App.tsrx',
+			);
+
+			expect(css).toContain('/* (unused) div { color: red; }*/');
+			expect(css).toContain('/* (unused) .parent .card { font-weight: bold; }*/');
+			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain('&:hover { color: blue; }');
+			expect(css).toContain('body { margin: 0; }');
+		});
+
+		it('keeps all selectors of a free-standing style block', () => {
+			const { css, cssHash } = compile(
+				`export function App() @{
+						<>
+							<div ${generatedClassAttrName}="card">{'Foo'}</div>
+
+							<style>
+								div { color: red; }
+								.card { color: green; }
+							</style>
+						</>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(css).not.toContain('(unused)');
+			expect(css).toContain(`div.${cssHash}`);
+			expect(css).toContain(`.card.${cssHash}`);
+		});
 	});
 
 	describe.runIf(['react', 'preact'].includes(name))(

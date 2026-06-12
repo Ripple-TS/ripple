@@ -214,7 +214,7 @@ function build_style_class_map_expression(node, context) {
 	}
 
 	analyzeCss(stylesheet);
-	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet));
+	context.state.stylesheets.push(prepareStylesheetForRender(stylesheet, true));
 	return create_server_style_class_map_expression(stylesheet);
 }
 

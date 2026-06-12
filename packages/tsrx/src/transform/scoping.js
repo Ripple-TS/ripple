@@ -7,20 +7,45 @@
 
 import { walk } from 'zimmerframe';
 import * as b from '../utils/builders.js';
+import { get_standalone_class_selector } from './style-ref.js';
 
 /**
- * Mark every selector inside the stylesheet as "used" so `renderStylesheets`
- * does not comment it out. We skip selector-pruning because component
- * boundaries can be dynamic — any selector authored inside the component's
- * `<style>` block is considered intentional.
+ * Mark selectors inside the stylesheet as "used" so `renderStylesheets` does
+ * not comment them out.
+ *
+ * For a free-standing `<style>` block every selector is marked: we skip
+ * selector-pruning because component boundaries can be dynamic — any selector
+ * authored inside the component's `<style>` block is considered intentional.
+ *
+ * When the `<style>` block is assigned to a variable (`is_style_expression`),
+ * the only scoped selectors reachable through the generated class map are
+ * standalone class selectors, so anything else at the top level — element
+ * selectors, compound selectors, descendant chains — can never match and stays
+ * unused for `renderStylesheets` to comment out. Global selectors and selectors
+ * of nested rules are kept: globals match without the class map, and nested
+ * rules are pruned together with their parent rule when the parent itself is
+ * unreachable.
  *
  * @param {any} stylesheet
+ * @param {boolean} [is_style_expression]
  * @returns {any}
  */
-export function prepare_stylesheet_for_render(stylesheet) {
+export function prepare_stylesheet_for_render(stylesheet, is_style_expression = false) {
 	walk(stylesheet, null, {
 		_(node, { next }) {
 			if (node && node.metadata && typeof node.metadata === 'object') {
+				if (
+					is_style_expression &&
+					node.type === 'ComplexSelector' &&
+					!node.metadata.used &&
+					node.metadata.rule?.metadata?.parent_rule == null &&
+					get_standalone_class_selector(node) === null
+				) {
+					// Unreachable via the class map: leave the subtree untouched — no
+					// `used`, and no `scoped` marks that would splice the hash into
+					// pruned output.
+					return;
+				}
 				node.metadata.used = true;
 				if (node.type === 'RelativeSelector' && !node.metadata.is_global) {
 					node.metadata.scoped = true;

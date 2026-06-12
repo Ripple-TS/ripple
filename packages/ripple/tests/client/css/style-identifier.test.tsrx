@@ -270,5 +270,73 @@ export function App() @{
 			expect(code).toContain('highlight');
 			expect(code).toMatch(/tsrx-[a-z0-9]+ highlight/);
 		});
+
+		const unreachable_selectors_source = `
+export function App() @{
+	const styles = <style>
+		div {
+			color: red;
+		}
+		.parent .card {
+			font-weight: bold;
+		}
+		.card {
+			color: green;
+			&:hover {
+				color: blue;
+			}
+		}
+		:global(body) {
+			margin: 0;
+		}
+	</style>;
+
+	<div class={styles.card}>{'text'}</div>
+}`;
+
+		it('prunes style expression selectors the class map cannot reach in client mode', () => {
+			const { css, cssHash } = compile(unreachable_selectors_source, 'test.tsrx');
+
+			expect(css).toContain('/* (unused) div {');
+			expect(css).toContain('/* (unused) .parent .card {');
+			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain('&:hover {');
+			expect(css).toContain('body {');
+		});
+
+		it('prunes style expression selectors the class map cannot reach in server mode', () => {
+			const { css, cssHash } = compile(unreachable_selectors_source, 'test.tsrx', {
+				mode: 'server',
+			});
+
+			expect(css).toContain('/* (unused) div {');
+			expect(css).toContain('/* (unused) .parent .card {');
+			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain('&:hover {');
+			expect(css).toContain('body {');
+		});
+
+		it('keeps all selectors of a free-standing style block', () => {
+			const source = `
+export function App() @{
+	<>
+		<div class="card">{'text'}</div>
+
+		<style>
+			div {
+				color: red;
+			}
+			.card {
+				color: green;
+			}
+		</style>
+	</>
+}`;
+			const { css, cssHash } = compile(source, 'test.tsrx');
+
+			expect(css).not.toContain('(unused)');
+			expect(css).toContain(`div.${cssHash}`);
+			expect(css).toContain(`.card.${cssHash}`);
+		});
 	});
 });
