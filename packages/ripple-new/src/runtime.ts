@@ -517,11 +517,12 @@ export function withScope<P>(
   }
 }
 
-export function unmountBlock(block: Block): void {
+export function unmountBlock(block: Block, detachDom: boolean = true): void {
   if (block.disposed) return;
   block.disposed = true;
   // Depth-first cleanup of all scopes reachable from this block.
-  unmountScope(block);
+  unmountScope(block, detachDom);
+  if (!detachDom) return;
   // Remove DOM range.
   if (block.startMarker && block.endMarker) {
     const parent = block.startMarker.parentNode;
@@ -557,10 +558,10 @@ function fireCleanupsOnly(scope: Scope): void {
   }
 }
 
-function unmountScope(scope: Scope): void {
+function unmountScope(scope: Scope, detachDom: boolean = true): void {
   // Recurse into child scopes first.
   const children = scope.children;
-  for (let i = 0, n = children.length; i < n; i++) unmountScope(children[i].scope);
+  for (let i = 0, n = children.length; i < n; i++) unmountScope(children[i].scope, detachDom);
   // Walk slot-stashed child Blocks (ifBlock / forBlock / componentSlot / portal).
   for (const key in scope) {
     // Compiler-emitted slot keys are `_xxx$N` (single underscore). Runtime
@@ -569,17 +570,20 @@ function unmountScope(scope: Scope): void {
     if (key.charCodeAt(0) === 95 /* '_' */ && key.charCodeAt(1) !== 95) {
       const val = scope[key];
       if (val && val.__kind === 'ifBlockSlot') {
-        if (val.block) unmountBlock(val.block);
+        if (val.block) unmountBlock(val.block, detachDom);
       } else if (val && val.__kind === 'forBlockSlot') {
         const items = val.items as Map<any, Block>;
         const it = items.values();
-        for (let r = it.next(); !r.done; r = it.next()) unmountBlock(r.value);
+        for (let r = it.next(); !r.done; r = it.next()) unmountBlock(r.value, detachDom);
         // An @empty branch (if any) hangs off the same slot.
-        if (val.emptyBlock) unmountBlock(val.emptyBlock);
+        if (val.emptyBlock) unmountBlock(val.emptyBlock, detachDom);
       } else if (val && val.__kind === 'switchBlockSlot') {
-        if (val.block) unmountBlock(val.block);
+        if (val.block) unmountBlock(val.block, detachDom);
       } else if (val && (val.__kind === 'componentSlotSlot' || val.__kind === 'portalSlotSlot' || val.__kind === 'trySlotSlot')) {
-        if (val.block) unmountBlock(val.block);
+        // Portal DOM lives in a FOREIGN target — the root-level batched clear
+        // never reaches it, so portals must always self-detach individually.
+        const childDetach = val.__kind === 'portalSlotSlot' ? true : detachDom;
+        if (val.block) unmountBlock(val.block, childDetach);
         // trySlotSlot keeps an off-screen `tryBlock` ALIVE across suspend/
         // resume so its hooks Map survives replay. When the surrounding
         // scope is being torn down (e.g. an @if branch unmounts mid-pending,
@@ -3112,7 +3116,13 @@ export function createRoot(container: Element): Root {
     },
     unmount() {
       if (rootBlock) {
-        unmountBlock(rootBlock);
+        // Skip the per-Block DOM walk recursion (~3 removeChild ops × every
+        // Block in the tree). Run cleanups + scope teardown only, then clear
+        // the container in one shot. Portals self-detach during the recursive
+        // teardown because their DOM lives in a foreign target — see the
+        // portalSlotSlot branch in unmountScope.
+        unmountBlock(rootBlock, /*detachDom*/ false);
+        container.textContent = '';
         rootBlock = null;
         currentBody = null;
       }
