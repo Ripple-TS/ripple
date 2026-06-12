@@ -1740,6 +1740,7 @@ function emitElementHtml(node, path, bindings, forCalls, ifCalls, compCalls, try
   // emit them as bindings in source order instead.
   const firstSpreadIdx = attrs.findIndex((a) => a.type === 'SpreadAttribute' || a.type === 'JSXSpreadAttribute');
   let attrHtml = '';
+  let sawRef = false;
   for (let attrI = 0; attrI < attrs.length; attrI++) {
     const attr = attrs[attrI];
     // `<div {...props}/>` — runtime spread. Emits one setSpread binding that
@@ -1771,11 +1772,22 @@ function emitElementHtml(node, path, bindings, forCalls, ifCalls, compCalls, try
 
     // Attribute-level `ref={expr}` (new TSRX) — replaces the removed
     // `{ref expr}` child intrinsic. Routes to the existing `kind: 'ref'`
-    // binding emit, which handles both object refs ({ current } pattern) and
-    // callback refs ((el) => …). Repeated `ref={…}` on the same element each
-    // attach independently — the binding system handles them as separate
-    // slot ids, so this loop iteration emits one per encounter.
+    // binding emit, which handles both object refs ({ current } pattern)
+    // and callback refs ((el) => …). The array form `ref={[a, b]}` is
+    // the canonical way to attach multiple refs to the same element —
+    // attachRef in the runtime iterates the array. Repeating `ref=` on
+    // the same element is rejected here: it's an authoring footgun
+    // (which ref wins? do both attach? in what order?) and the array
+    // form expresses the same intent unambiguously.
     if (attrName === 'ref' && val) {
+      if (sawRef) {
+        throw new Error(
+          'Element has multiple `ref={…}` attributes; an element may have ' +
+          'at most one. Use a single array-valued ref to attach multiple, ' +
+          'e.g. `ref={[a, b]}` (attachRef in the runtime iterates the array).'
+        );
+      }
+      sawRef = true;
       const refInner = val.type === 'JSXExpressionContainer' ? val.expression : val;
       bindings.push({
         id: bindings.length, kind: 'ref',
