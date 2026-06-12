@@ -23,7 +23,13 @@
  * ifBlock, dynamic components, portals.
  */
 
-import { parseModule, prepareStylesheetForRender, renderStylesheets, annotateWithHash } from '@tsrx/core';
+import {
+  parseModule,
+  prepareStylesheetForRender,
+  renderStylesheets,
+  annotateWithHash,
+  createStyleClassMapFromStylesheet,
+} from '@tsrx/core';
 import { print as esrapPrint } from 'esrap';
 import esrapTsx from 'esrap/languages/tsx';
 
@@ -596,6 +602,15 @@ export function compile(source, filename, options) {
         if (name) ctx.runtimeNeeded.add(name);
       }
     } else {
+      // Style maps: rewrite `const x = <style>…</style>` before printing — the
+      // initialiser becomes an ObjectExpression with hashed class names, and
+      // the stylesheet flows through the regular cssInjections pipeline.
+      applyStyleMap(node, ctx);
+      // Also handle `export const x = <style>…</style>` (declaration wrapped
+      // in an ExportNamedDeclaration).
+      if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+        applyStyleMap(node.declaration, ctx);
+      }
       body += printNode(node) + '\n';
     }
   }
@@ -691,6 +706,43 @@ export function compile(source, filename, options) {
  * whole component — multiple `<style>` blocks share it; that matches Ripple's
  * `annotate_component_with_hash`.
  */
+/**
+ * Style maps: `const styles = <style>...</style>;`
+ *
+ * Upstream ripple's headline form for "named class lookup": the variable's
+ * initialiser — a `<style>` element — is replaced at compile time with an
+ * object expression like `{ red: "red tsrx-abc", blue: "blue tsrx-abc" }`,
+ * built from the parsed stylesheet. The component then references the
+ * hashed class names via `class={styles.red}` instead of relying on the
+ * implicit auto-scoping pass.
+ *
+ * The stylesheet ALSO gets registered for module-level injection via the
+ * existing cssInjections pipeline, so the rules are emitted in a
+ * `<style data-ripple-new>` tag just like the auto-scoped case.
+ *
+ * `prepareStylesheetForRender(sheet, true)` switches the selector renderer
+ * to "style expression" mode — selectors are emitted with hash classes
+ * concatenated (`.red.tsrx-abc`) so the matched element only needs the
+ * hash on its `class` attribute.
+ */
+function applyStyleMap(stmt, ctx) {
+  if (stmt.type !== 'VariableDeclaration') return;
+  for (const decl of stmt.declarations) {
+    if (!decl.init || decl.init.type !== 'JSXStyleElement') continue;
+    const styleNode = decl.init;
+    const sheet = (styleNode.children || []).find(c => c && c.type === 'StyleSheet');
+    if (!sheet) continue;
+    const hash = styleNode.metadata?.styleScopeHash || sheet.hash || null;
+    if (!hash) continue;
+    prepareStylesheetForRender(sheet, true);
+    const css = renderStylesheets([sheet]);
+    ctx.cssInjections.push({ hash, css });
+    ctx.runtimeNeeded.add('injectStyle');
+    // Replace the JSXStyleElement init with the class-map ObjectExpression.
+    decl.init = createStyleClassMapFromStylesheet(sheet);
+  }
+}
+
 function applyCssScoping(componentNode, ctx) {
   if (!componentNode.body || componentNode.body.type !== 'JSXCodeBlock') return null;
   let cssHash = null;
