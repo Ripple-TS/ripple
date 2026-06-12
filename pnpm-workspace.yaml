@@ -35,6 +35,8 @@ packages:
   - website-new
   - website-tsrx
   - benchmarks
+  - benchmarks/js-framework
+  - benchmarks/js-framework/*
 
 overrides:
   esrap: *esrap_common

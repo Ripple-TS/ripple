@@ -1,0 +1,20 @@
+{
+  "name": "ripple-new-jsbench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "js-framework-benchmark fixture for ripple-new — drives 1000-row create/update/swap/select/remove against the production-built renderer for apples-to-apples perf measurement.",
+  "scripts": {
+    "dev": "vite --host --port 5176 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5176 --strictPort"
+  },
+  "dependencies": {
+    "ripple-new": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/ripple-new": "workspace:*",
+    "vite": "catalog:default",
+    "terser": "^5.31.0"
+  }
+}
