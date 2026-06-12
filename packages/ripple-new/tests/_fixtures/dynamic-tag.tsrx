@@ -1,11 +1,11 @@
 import { useState } from 'ripple-new';
 
-// `<{expr}>` — @tsrx/core 0.1.29's new dynamic-tag syntax. Lets a parent
-// pick the rendered component without the `<Dynamic is={...}>` runtime
-// helper. Parser emits a JSXExpressionContainer at openingElement.name
-// with `isDynamic === true`; the compiler routes through the same
-// componentSlot path as `<Foo>` / `<ctx.Provider>`, with the inner
-// expression interpolated verbatim as the component reference.
+// `<{expr}>` — dynamic-tag syntax. Lets a parent pick the rendered
+// component at the call site. Parser emits a JSXExpressionContainer at
+// openingElement.name with `isDynamic === true`; the compiler routes
+// through the same componentSlot path as `<Foo>` / `<ctx.Provider>`,
+// with the inner expression interpolated verbatim as the component
+// reference.
 
 export function Red(props) @{
   <span class='leaf red'>{('red:' + (props.label || '')) as string}</span>
@@ -22,9 +22,7 @@ export function PickTag(props) @{
   </div>
 }
 
-// State-driven swap to exercise the slot's re-mount path. Same shape as
-// the existing `Toggle` fixture but using `<{Comp}>` instead of
-// `<Dynamic is={Comp}/>`.
+// State-driven swap to exercise the slot's re-mount path.
 export function ToggleTag() @{
   const [which, setWhich] = useState('red');
   const Comp = which === 'red' ? Red : Blue;

@@ -69,7 +69,3 @@ export {
   type Scope,
   type Block,
 } from './runtime';
-
-// TSRX-migration v1: helper for the `<Dynamic is={X} ... />` form that
-// replaces the removed `<@dynamic>` element syntax.
-export { Dynamic } from './dynamic';
