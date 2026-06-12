@@ -1,5 +1,20 @@
 # @tsrx/core
 
+## 0.1.30
+
+### Patch Changes
+
+- [`b104604`](https://github.com/Ripple-TS/ripple/commit/b10460473fec0ee68b4963cbc2a3d9d5bb3bc633)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix descendant and sibling
+  selectors being wrongly pruned as unused in the shared JSX targets (react,
+  preact, solid, vue).
+
+  Selector pruning for free-standing `<style>` blocks runs before the transform
+  walker has stamped ancestor paths onto template nodes, so combinator matching
+  (`.card h2`, `.card > ul`) found no ancestors and marked every such selector
+  unused. Element collection for pruning now records each element's ancestor chain
+  itself, so descendant matching works the same as in the Ripple target.
+
 ## 0.1.29
 
 ### Patch Changes

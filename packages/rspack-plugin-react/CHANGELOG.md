@@ -1,5 +1,12 @@
 # @tsrx/rspack-plugin-react
 
+## 0.0.56
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/react@0.2.30
+
 ## 0.0.55
 
 ### Patch Changes
