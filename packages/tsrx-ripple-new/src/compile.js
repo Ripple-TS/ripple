@@ -1495,7 +1495,16 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
       const isInsideHost = cc.elVar.startsWith('_el');
       anchorArg = isInsideHost ? '' : ', __block.endMarker';
     }
-    afterLines.push(`  componentSlot(__s, ${JSON.stringify('_comp$' + cc.id)}, __s.${bindingsName}._compHost$${cc.id}, ${cc.compExpr}, ${cc.propsExpr}${anchorArg});`);
+    // key arg is positional AFTER anchor in componentSlot's signature. When a
+    // key is present but anchor isn't, supply `undefined` for the anchor slot
+    // so the key lands in the right argument position — the runtime's
+    // `anchor ?? null` still routes through appendChild as before.
+    let keyArg = '';
+    if (cc.keyExpr != null) {
+      if (anchorArg === '') anchorArg = ', undefined';
+      keyArg = `, (${cc.keyExpr})`;
+    }
+    afterLines.push(`  componentSlot(__s, ${JSON.stringify('_comp$' + cc.id)}, __s.${bindingsName}._compHost$${cc.id}, ${cc.compExpr}, ${cc.propsExpr}${anchorArg}${keyArg});`);
   }
   for (const pc of ctx._portalCalls) {
     ctx.runtimeNeeded.add('portal');
@@ -1813,7 +1822,18 @@ function emitElementHtml(node, path, bindings, forCalls, ifCalls, compCalls, try
     } else {
       rawAttrName = attr.name.name || attr.name;
     }
-    if (rawAttrName === 'key') continue;  // consumed by for-of, not emitted
+    // `key` on a regular element:
+    //   - inside @for: consumed by the keyFn (keyed reconciliation drives
+    //     this).
+    //   - on a standalone component: extracted in makeCompCall and threaded
+    //     into componentSlot for key-driven remount (React parity).
+    //   - on a regular DOM element ELSEWHERE: silent no-op. DOM elements
+    //     have no hook state, no scope, and no refs that aren't already
+    //     handled by the binding update path. Re-cloning the template would
+    //     be strictly more work than the in-place diff. To force a
+    //     teardown+remount, wrap the element in a 1-line fn component and
+    //     put `key=` on that — the component slot will honour the key.
+    if (rawAttrName === 'key') continue;
     // `className` is React-shape JSX; emit `class` in HTML so the browser
     // actually applies it (and dynamic bindings also know which kind to pick).
     const attrName = rawAttrName === 'className' ? 'class' : rawAttrName;
@@ -2247,6 +2267,12 @@ function makeCompCall(node, ctx, componentName, inlinedSubs, bindings, forCalls,
   // values, not identity.
   const attrs = node.attributes || node.openingElement?.attributes || [];
   const propParts = [];
+  // `key={expr}` is consumed by the componentSlot runtime (drives key-driven
+  // remount on identity change), NOT passed as a prop — matches React, where
+  // `props.key` is undefined inside the component body. When `key` follows a
+  // spread, the spread cannot inject `key` either: we filter it out of the
+  // emitted propsExpr but keep its expression for the slot arg.
+  let keyExpr = null;
   for (const attr of attrs) {
     if (attr.type === 'SpreadAttribute' || attr.type === 'JSXSpreadAttribute') {
       propParts.push(`...(${printExprWithTsrx(attr.argument, ctx, componentName, inlinedSubs)})`);
@@ -2255,6 +2281,13 @@ function makeCompCall(node, ctx, componentName, inlinedSubs, bindings, forCalls,
     if (attr.type !== 'Attribute' && attr.type !== 'JSXAttribute') continue;
     const attrName = attr.name.name || attr.name;
     const val = attr.value;
+    if (attrName === 'key') {
+      // `<Foo key/>` (no value) is meaningless — skip silently.
+      if (val == null) continue;
+      const keyInner = val.type === 'JSXExpressionContainer' ? val.expression : val;
+      keyExpr = printExprWithTsrx(keyInner, ctx, componentName, inlinedSubs);
+      continue;
+    }
     if (val == null) { propParts.push(`${JSON.stringify(attrName)}: true`); continue; }
     let inner = val.type === 'JSXExpressionContainer' ? val.expression : val;
     inner = resolveStyleExpr(inner, cssHash);
@@ -2284,7 +2317,7 @@ function makeCompCall(node, ctx, componentName, inlinedSubs, bindings, forCalls,
 
   const propsExpr = `{ ${propParts.join(', ')} }`;
 
-  return { id, compExpr, propsExpr, hostPath: null };
+  return { id, compExpr, propsExpr, hostPath: null, keyExpr };
 }
 
 // ===========================================================================

@@ -44,3 +44,30 @@ export function Nested() @{
 export function DefaultOnly() @{
   <div><ThemeReader /></div>
 }
+
+// Key-driven remount fixtures: KeyHost wraps a Counter that owns its own
+// useState + useEffect. The host passes `props.k` as the component slot's
+// key — changing it triggers a fresh Block (state resets, cleanup fires,
+// mount effect runs again). Same key + new props re-renders in place.
+import { useEffect } from 'ripple-new';
+
+export let mountCount = 0;
+export let cleanupCount = 0;
+export function resetKeyCounters() { mountCount = 0; cleanupCount = 0; }
+
+export function Counter(props) @{
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    mountCount++;
+    return () => { cleanupCount++; };
+  }, []);
+  <div class='kh'>
+    <span class='label'>{(props.label ?? '') as string}</span>
+    <span class='count'>{n as string}</span>
+    <button class='inc' onClick={() => setN(n + 1)}>{'+'}</button>
+  </div>
+}
+
+export function KeyHost(props) @{
+  <Counter key={props.k} label={props.label} />
+}

@@ -1434,13 +1434,25 @@ interface CompSlot {
   end: Comment;
   block: Block | null;
   currentComp: ComponentBody | null;
+  // Last-render `key` value. Sentinel `NO_KEY` when the slot was created
+  // without a key arg, or when the prior render didn't supply one — so a
+  // first render with `key=undefined` followed by a subsequent render with
+  // `key=undefined` doesn't spuriously remount. Compared with Object.is so
+  // NaN keys are stable and 0 / -0 are distinguished.
+  prevKey: any;
 }
+
+const NO_KEY: unique symbol = Symbol('NO_KEY');
 
 /**
  * Mount/update a component invoked from JSX. Each invocation creates a Block
  * (so hooks/effects are scoped properly). If the component identity changes
  * across renders (dynamic-component / element-type swap), the old Block is
- * torn down and a fresh one mounted in its place.
+ * torn down and a fresh one mounted in its place. When a `key` arg is
+ * supplied and changes between renders (Object.is compare), the slot also
+ * tears down + remounts — matches React's key-driven identity reset: useState
+ * resets, useEffect cleanups fire, refs null out, the subtree gets a fresh
+ * Block with a fresh hook bag.
  */
 export function componentSlot(
   parentScope: Scope,
@@ -1449,6 +1461,7 @@ export function componentSlot(
   comp: ComponentBody,
   props: any,
   anchor?: Node | null,
+  key?: any,
 ): void {
   const parentBlock = parentScope.block;
   let state = parentScope[slotKey] as CompSlot | undefined;
@@ -1460,9 +1473,19 @@ export function componentSlot(
     // and must sit before its enclosing block's endMarker).
     domParent.insertBefore(start, anchor ?? null);
     domParent.insertBefore(end, anchor ?? null);
-    state = { __kind: 'componentSlotSlot', start, end, block: null, currentComp: null };
+    state = { __kind: 'componentSlotSlot', start, end, block: null, currentComp: null, prevKey: NO_KEY };
     parentScope[slotKey] = state;
   }
+  // Key-driven remount: when the compiler emitted a key arg AND its value
+  // changed since last render, force `comp !== state.currentComp` semantics
+  // even if the component identity is unchanged. Null out currentComp so the
+  // existing tear-down branch below fires; prevKey is updated after so we
+  // don't loop on the same key. `key === undefined` means "no key this
+  // render" and is a no-op so React-style optional-key callers don't pay.
+  if (key !== undefined && state.prevKey !== NO_KEY && !Object.is(key, state.prevKey)) {
+    state.currentComp = null;
+  }
+  state.prevKey = key === undefined ? NO_KEY : key;
   if (comp !== state.currentComp) {
     if (state.block) {
       // The slot's `state.start`/`state.end` markers ARE the previous block's
@@ -2475,13 +2498,23 @@ export function forBlock<T, E = undefined>(
   // and last render's snapshot matches this render's, we can treat the body
   // as PURE for the survivor short-circuit. The body still runs for moved/
   // mounted/removed items — only stable survivors get skipped.
+  // `lite` = body is depEligible but did NOT promote to pure this render.
+  // depEligible (compile.js:2553-2555) means no hooks, no nested comps, no
+  // control flow → the body can't observe CURRENT_SCOPE / CURRENT_BLOCK and
+  // never throws Suspense. We skip renderBlock's activeBlock plumbing and
+  // call itemBody directly. Saves ~10 ops/survivor — meaningful on the
+  // select-row tick where `selected` changes and 1000 survivors all
+  // re-evaluate but only 2 actually flip their class.
+  let lite = false;
   if ((f & 4) !== 0 && deps !== undefined) {
     if (state.cachedDeps !== null && depsEqual(state.cachedDeps, deps)) {
       pure = true;
+    } else {
+      lite = true;
     }
     state.cachedDeps = deps;
   }
-  reconcileKeyed(parentBlock, state, items, getKey, itemBody as any, extra, pure, (f & 2) !== 0);
+  reconcileKeyed(parentBlock, state, items, getKey, itemBody as any, extra, pure, (f & 2) !== 0, lite);
 }
 
 function depsEqual(a: any[], b: any[]): boolean {
@@ -2492,6 +2525,16 @@ function depsEqual(a: any[], b: any[]): boolean {
   }
   return true;
 }
+
+// Cutoff for the small-displacement shortcut in reconcileKeyed. When fewer
+// than this many positions change between renders (and every item survives),
+// we compute the move set directly in O(K_DISP) instead of paying the LIS
+// path's O(N) alloc + back-walk. Covers single drag-and-drop, undo/redo of a
+// recent edit, animated swap transitions, A/B variant toggles, etc. Above
+// this threshold the LIS path wins. The buffer is reused across calls
+// (single-threaded JS, no recursion through reconcileKeyed).
+const K_DISP = 4;
+const _disp = new Int32Array(K_DISP);
 
 /**
  * Keyed reconciliation over a doubly-linked list of item Blocks.
@@ -2518,6 +2561,7 @@ function reconcileKeyed<T, E>(
   extra: E,
   pure: boolean,
   singleRoot: boolean,
+  lite: boolean = false,
 ): void {
   const oldItems = state.items;
   const oldSize = state.size;
@@ -2572,7 +2616,13 @@ function reconcileKeyed<T, E>(
       block.extra = extra;
       block.body = itemBody as ComponentBody;
       block.itemIndex = prefixLen;
-      renderBlock(block);
+      if (lite) {
+        // depEligible body — no hooks, no comps, no control flow.
+        // Skip renderBlock's activeBlock plumbing; call body directly.
+        (itemBody as any)(block, newItem, extra);
+      } else {
+        renderBlock(block);
+      }
     }
     oldFirst = block.nextSibling!;
     prefixLen++;
@@ -2598,7 +2648,11 @@ function reconcileKeyed<T, E>(
       block.extra = extra;
       block.body = itemBody as ComponentBody;
       block.itemIndex = newEnd;
-      renderBlock(block);
+      if (lite) {
+        (itemBody as any)(block, newItem, extra);
+      } else {
+        renderBlock(block);
+      }
     }
     oldLast = block.prevSibling!;
     newEnd--;
@@ -2741,7 +2795,11 @@ function reconcileKeyed<T, E>(
         block.extra = extra;
         block.body = itemBody as ComponentBody;
         block.itemIndex = newIdx;
-        renderBlock(block);
+        if (lite) {
+          (itemBody as any)(block, newItem, extra);
+        } else {
+          renderBlock(block);
+        }
       }
     }
     cur = next;
@@ -2752,6 +2810,62 @@ function reconcileKeyed<T, E>(
   // same shape & order as new middle. Linked-list pointers are still correct
   // (we never touched them). Just return.
   if (!moved && patched === newMidLen) return;
+
+  // ── Small-displacement shortcut. When every old item survived AND only a
+  // small number of positions actually changed (≤ K_DISP), we can compute
+  // the exact move set in O(K_DISP) instead of paying the LIS path's O(N)
+  // allocation + back-walk that rewrites every prev/next pointer. This is
+  // a general property of permutations — when survivors are stable and the
+  // permutation has few fixed-point misses, LIS does provably wasted work.
+  //
+  // Real shapes this covers:
+  //   - drag-and-drop reorder (swap two rows, rotate three)
+  //   - undo/redo of a recent local edit
+  //   - animated swap / sort transitions
+  //   - A/B variant toggle that flips a small set of cells
+  //   - any benchmark or test fixture that mutates exactly K positions
+  //
+  // Bail cost on a true large-shuffle permutation: K_DISP + 1 source
+  // compares before falling through to the LIS path, which is sub-µs.
+  if (moved && patched === newMidLen) {
+    let dCount = 0;
+    for (let i = 0; i < newMidLen; i++) {
+      if (sources[i] !== i) {
+        if (dCount === K_DISP) { dCount = K_DISP + 1; break; }
+        _disp[dCount++] = i;
+      }
+    }
+    if (dCount <= K_DISP) {
+      const endAnchor: Node = afterMiddle ? afterMiddle.startMarker! : state.end;
+      // Move right-to-left. Positions to the right of the rightmost
+      // displaced index are identity-mapped and have stable startMarkers;
+      // each moved block becomes the next iteration's anchor.
+      for (let j = dCount - 1; j >= 0; j--) {
+        const i = _disp[j];
+        const block = oldItems.get(newKeys[i])!;
+        const anchor: Node = (i + 1 < newMidLen)
+          ? oldItems.get(newKeys[i + 1])!.startMarker!
+          : endAnchor;
+        moveBlockBefore(block, anchor);
+      }
+      // Relink prev/next around each displaced position. Non-displaced
+      // neighbours of displaced blocks get their boundary pointers updated
+      // here too; non-displaced blocks BETWEEN two displaced positions keep
+      // their internal pointers (they were never touched by the survivor
+      // walk and the moves above don't reorder them).
+      for (let j = 0; j < dCount; j++) {
+        const i = _disp[j];
+        const block = oldItems.get(newKeys[i])!;
+        const prev = i > 0 ? oldItems.get(newKeys[i - 1])! : beforeMiddle;
+        const next = i + 1 < newMidLen ? oldItems.get(newKeys[i + 1])! : afterMiddle;
+        block.prevSibling = prev;
+        block.nextSibling = next;
+        if (prev) prev.nextSibling = block; else state.head = block;
+        if (next) next.prevSibling = block; else state.tail = block;
+      }
+      return;
+    }
+  }
 
   // Walk new middle back-to-front. For each new position: mount / move / leave.
   // Track:
