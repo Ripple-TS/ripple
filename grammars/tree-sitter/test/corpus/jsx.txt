@@ -410,7 +410,6 @@ function WithControlFlow(x) {
             condition: (parenthesized_expression
               (identifier))
             consequence: (jsx_template_block
-              children: (jsx_text)
               children: (jsx_element
                 open_tag: (jsx_opening_element
                   name: (jsx_element_name
@@ -418,16 +417,12 @@ function WithControlFlow(x) {
                 children: (jsx_text)
                 close_tag: (jsx_closing_element
                   name: (jsx_element_name
-                    (identifier))))
-              children: (jsx_text))
+                    (identifier)))))
             (jsx_else_clause
               alternative: (jsx_template_block
-                children: (jsx_text)
-                children: (jsx_expression
-                  (component_statement
-                    (expression_statement
-                      (null))))
-                children: (jsx_text))))
+                statement: (statement_block
+                  (expression_statement
+                    (null))))))
           children: (jsx_text)
           close_tag: (jsx_closing_fragment))))))
 

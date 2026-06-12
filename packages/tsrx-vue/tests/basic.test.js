@@ -3,9 +3,8 @@ import {
 	runSharedClassFunctionComponentTests,
 	runSharedCodeBlockChildrenTests,
 	runSharedCompileDiagnosticsTests,
-	runSharedComponentLoopControlFlowTests,
+	runSharedCompileTests,
 	runSharedComponentParamsTests,
-	runSharedNestedLazyDestructuringTests,
 	runSharedSwitchHelperHoistingTests,
 	runSharedTsxExpressionTsrxTests,
 } from '@tsrx/core/test-harness/compile';
@@ -19,7 +18,7 @@ runSharedSourceMappingTests({
 	rejectsComponentAwait: true,
 });
 runSharedTsxExpressionTsrxTests({ compile, name: 'vue', classAttrName: 'class' });
-runSharedComponentLoopControlFlowTests({ compile, name: 'vue' });
+runSharedCompileTests({ compile, name: 'vue', classAttrName: 'class' });
 runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, name: 'vue' });
 runSharedCodeBlockChildrenTests({ compile, name: 'vue' });
 runSharedClassFunctionComponentTests({ compile, compile_to_volar_mappings, name: 'vue' });
@@ -30,31 +29,8 @@ runSharedSwitchHelperHoistingTests({
 	name: 'vue',
 	clientHelperShape: 'module-vapor-component',
 });
-runSharedNestedLazyDestructuringTests({ compile, name: 'vue' });
 
 describe('@tsrx/vue basic', () => {
-	it('wraps named component exports in defineVaporComponent', () => {
-		const { code } = compile(
-			`export function App() @{
-				<div>{'Hello'}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toMatchSnapshot();
-	});
-
-	it('wraps default component exports in defineVaporComponent', () => {
-		const { code } = compile(
-			`export default function App() @{
-				<div>{'Hello'}</div>
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toMatchSnapshot();
-	});
-
 	it('merges defineVaporComponent into existing vue imports', () => {
 		const { code } = compile(
 			`import { ref } from 'vue';
@@ -812,23 +788,6 @@ describe('@tsrx/vue basic', () => {
 		expect(code).toContain("{'Loading...'}");
 		expect(code).not.toContain('fallback={');
 		expect(code).not.toContain('TsrxErrorBoundary');
-	});
-
-	it('compiles empty pending blocks as null Vue Suspense fallbacks', () => {
-		const { code } = compile(
-			`function App() @{
-				@try {
-					<div>{'Async content'}</div>
-				} @pending {}
-			}`,
-			'App.tsrx',
-		);
-
-		expect(code).toContain('Suspense');
-		expect(code).toContain('v-slots=');
-		expect(code).toContain('default: () =>');
-		expect(code).not.toContain('fallback: () =>');
-		expect(code).not.toContain('fallback={');
 	});
 
 	it('compiles try/pending/catch into an error boundary around Suspense', () => {

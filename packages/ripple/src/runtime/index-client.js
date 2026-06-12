@@ -11,6 +11,7 @@ import { render_component } from './internal/client/component.js';
 import { create_anchor } from './internal/client/utils.js';
 import { try_block } from './internal/client/try.js';
 import { remove_ssr_css } from './internal/client/css.js';
+import { normalize_children } from './element.js';
 import {
 	clear_track_hash_reference,
 	hydrate_node,
@@ -58,6 +59,22 @@ function render_root_boundary(anchor, render_content, boundary) {
 }
 
 /**
+ * Apply the same children normalization that compiled component call sites
+ * get, so `mount`/`hydrate` accept a component function as the `children`
+ * prop.
+ *
+ * @param {Record<string, any> | undefined} props
+ * @returns {Record<string, any>}
+ */
+function normalize_props(props) {
+	if (props?.children != null) {
+		return { ...props, children: normalize_children(props.children) };
+	}
+
+	return props || {};
+}
+
+/**
  * @param {Function} component
  * @param {{ props?: Record<string, any>, target: HTMLElement, rootBoundary?: RootBoundaryOptions }} options
  * @returns {() => void}
@@ -66,7 +83,7 @@ export function mount(component, options) {
 	init_operations();
 	remove_ssr_css();
 
-	const props = options.props || {};
+	const props = normalize_props(options.props);
 	const target = options.target;
 	const anchor = create_anchor();
 
@@ -104,7 +121,7 @@ export function hydrate(component, options) {
 	init_operations();
 	remove_ssr_css();
 
-	const props = options.props || {};
+	const props = normalize_props(options.props);
 	const target = options.target;
 	const was_hydrating = hydrating;
 	const previous_hydrate_node = hydrate_node;

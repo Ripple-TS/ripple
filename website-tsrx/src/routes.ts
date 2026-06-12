@@ -138,21 +138,25 @@ async function format_tsrx(source: string) {
 	});
 }
 
+const layout = '/src/components/layout.tsrx';
+
 export const routes = [
-	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx' }),
-	new RenderRoute({ path: '/getting-started', entry: '/src/pages/getting-started.tsrx' }),
-	new RenderRoute({ path: '/features', entry: '/src/pages/features.tsrx' }),
-	new RenderRoute({ path: '/blog', entry: '/src/pages/blog.tsrx' }),
+	new RenderRoute({ path: '/', entry: '/src/pages/index.tsrx', layout }),
+	new RenderRoute({ path: '/getting-started', entry: '/src/pages/getting-started.tsrx', layout }),
+	new RenderRoute({ path: '/features', entry: '/src/pages/features.tsrx', layout }),
+	new RenderRoute({ path: '/blog', entry: '/src/pages/blog.tsrx', layout }),
 	new RenderRoute({
 		path: '/blog/simplifying-tsrx-after-feedback',
 		entry: '/src/pages/blog-simplifying-tsrx-after-feedback.tsrx',
+		layout,
 	}),
 	new RenderRoute({
 		path: '/blog/rethinking-tsrx',
 		entry: '/src/pages/blog-rethinking-tsrx.tsrx',
+		layout,
 	}),
-	new RenderRoute({ path: '/specification', entry: '/src/pages/specification.tsrx' }),
-	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx' }),
+	new RenderRoute({ path: '/specification', entry: '/src/pages/specification.tsrx', layout }),
+	new RenderRoute({ path: '/playground', entry: '/src/pages/playground.tsrx', layout }),
 	new ServerRoute({
 		path: '/api/format',
 		methods: ['POST'],

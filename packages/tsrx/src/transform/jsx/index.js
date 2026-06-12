@@ -779,19 +779,25 @@ function apply_css_definition_metadata(
 }
 
 /**
+ * Pruning runs from the fragment visitor, before the walker has descended into
+ * the subtree and stamped walker paths, so each collected element gets its
+ * ancestor chain (`metadata.path`) here — descendant/sibling selector matching
+ * in `prune_css` reads it.
+ *
  * @param {any} value
  * @param {any[]} [elements]
  * @param {TransformContext | null} [transform_context]
+ * @param {any[]} [path]
  * @returns {any[]}
  */
-function collect_css_prunable_elements(value, elements = [], transform_context = null) {
+function collect_css_prunable_elements(value, elements = [], transform_context = null, path = []) {
 	if (!value || typeof value !== 'object') {
 		return elements;
 	}
 
 	if (Array.isArray(value)) {
 		for (const child of value) {
-			collect_css_prunable_elements(child, elements, transform_context);
+			collect_css_prunable_elements(child, elements, transform_context, path);
 		}
 		return elements;
 	}
@@ -810,15 +816,18 @@ function collect_css_prunable_elements(value, elements = [], transform_context =
 
 	if (value.type === 'JSXElement' && value.metadata?.native_tsrx) {
 		if (!is_style_element(value)) {
+			set_node_path_metadata(value, path);
 			elements.push(value);
 		}
 	}
+
+	const child_path = value.type ? [...path, value] : path;
 
 	for (const key of Object.keys(value)) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata' || key === 'css') {
 			continue;
 		}
-		collect_css_prunable_elements(value[key], elements, transform_context);
+		collect_css_prunable_elements(value[key], elements, transform_context, child_path);
 	}
 
 	return elements;

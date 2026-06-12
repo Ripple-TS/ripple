@@ -273,28 +273,6 @@
         }
       ]
     },
-    "tsrx-template-abrupt-statement": {
-      "name": "meta.directive.setup.tsrx",
-      "contentName": "source.js.embedded.tsrx-isolated",
-      "begin": "(?=[ \\t]*(?:(?:continue|break)(?:\\s+[_$[:alpha:]][_$[:alnum:]]*)?|return(?:\\s+[^\\n]*)?|throw(?:\\s+[^\\n]*)?)\\s*;?\\s*(?://.*)?$)",
-      "end": "(?=$)",
-      "patterns": [
-        {
-          "include": "#component-statements"
-        }
-      ]
-    },
-    "tsrx-template-setup-statement": {
-      "name": "meta.directive.setup.tsrx",
-      "contentName": "source.js.embedded.tsrx-isolated",
-      "begin": "(?=[ \\t]*(?:if|continue|break|return|throw)(?![_$[:alnum:]]))",
-      "end": "(?<=;)|(?=\\})",
-      "patterns": [
-        {
-          "include": "#component-statements"
-        }
-      ]
-    },
     "tsrx-template-child-directive": {
       "patterns": [
         {
@@ -356,32 +334,6 @@
         }
       ]
     },
-    "tsrx-template-switch-case-label": {
-      "name": "meta.directive.switch.case.tsrx",
-      "begin": "(@)(case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:)",
-      "beginCaptures": {
-        "1": {
-          "name": "keyword.control.directive.tsrx"
-        },
-        "2": {
-          "name": "keyword.control.directive.tsrx"
-        }
-      },
-      "end": "(:)",
-      "endCaptures": {
-        "1": {
-          "name": "punctuation.definition.section.case-statement.js"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#expression"
-        },
-        {
-          "include": "#comment"
-        }
-      ]
-    },
     "tsrx-template-switch-case-block": {
       "name": "meta.directive.switch.case.tsrx",
       "begin": "(@)(case|default)(?![_$[:alnum:]])(?=[^\\n{}]*:\\s*\\{)",
@@ -412,6 +364,7 @@
     },
     "tsrx-template-switch-case-body": {
       "name": "meta.directive.block.tsrx",
+      "contentName": "source.js.embedded.tsrx-isolated",
       "begin": "\\{",
       "beginCaptures": {
         "0": {
@@ -427,9 +380,6 @@
       "patterns": [
         {
           "include": "#component-statements"
-        },
-        {
-          "include": "#tsrx-template-children"
         }
       ]
     },
@@ -657,6 +607,7 @@
     },
     "tsrx-template-directive-block": {
       "name": "meta.directive.block.tsrx",
+      "contentName": "source.js.embedded.tsrx-isolated",
       "begin": "\\{",
       "beginCaptures": {
         "0": {
@@ -672,9 +623,6 @@
       "patterns": [
         {
           "include": "#component-statements"
-        },
-        {
-          "include": "#tsrx-template-children"
         }
       ]
     },
@@ -6939,52 +6887,6 @@
         },
         {
           "include": "#jsx-entities"
-        },
-        {
-          "include": "#jsx-text"
-        }
-      ]
-    },
-    "tsrx-template-children": {
-      "patterns": [
-        {
-          "include": "#jsx-evaluated-code"
-        },
-        {
-          "include": "#tsrx-template-comment"
-        },
-        {
-          "include": "#tsrx-template-switch-case-label"
-        },
-        {
-          "include": "#tsrx-template-child-directive"
-        },
-        {
-          "include": "#jsx-tag-code"
-        },
-        {
-          "include": "#jsx-tag-style"
-        },
-        {
-          "include": "#jsx-tag-fragment"
-        },
-        {
-          "include": "#jsx-tag-dynamic"
-        },
-        {
-          "include": "#jsx-tag-without-attributes"
-        },
-        {
-          "include": "#jsx-tag"
-        },
-        {
-          "include": "#jsx-entities"
-        },
-        {
-          "include": "#tsrx-template-abrupt-statement"
-        },
-        {
-          "include": "#tsrx-template-setup-statement"
         },
         {
           "include": "#jsx-text"

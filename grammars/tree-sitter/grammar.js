@@ -40,7 +40,6 @@ module.exports = grammar({
 		$._jsx_attribute,
 		$._jsx_child,
 		$._jsx_attribute_value,
-		$._jsx_template_child,
 		$._jsx_statement_container_statement,
 		$._jsx_statement_container_output,
 	],
@@ -535,29 +534,14 @@ module.exports = grammar({
 		jsx_template_block: ($) =>
 			seq(
 				'{',
-				optional(field('children', $.jsx_text)),
-				repeat(field('children', $._jsx_template_child)),
+				repeat(field('statement', $._jsx_statement_container_statement)),
+				optional(field('children', $._jsx_statement_container_output)),
 				'}',
 			),
 
 		_jsx_directive_body: ($) => choice($.jsx_template_block, $._jsx_statement_container_output),
 
 		_jsx_continuation_gap: ($) => $.jsx_text,
-
-		_jsx_template_child: ($) =>
-			choice(
-				prec(2, $.style_element),
-				$.jsx_text,
-				$.jsx_element,
-				$.jsx_fragment,
-				$.jsx_self_closing_element,
-				$.jsx_statement_container,
-				$.jsx_if_expression,
-				$.jsx_for_expression,
-				$.jsx_switch_expression,
-				$.jsx_try_expression,
-				$.jsx_expression,
-			),
 
 		jsx_if_expression: ($) =>
 			choice(

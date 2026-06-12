@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.33
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/language-server@0.3.82
+  - @tsrx/typescript-plugin@0.3.82
+
+## 2.0.32
+
+### Patch Changes
+
+- [`aee9f25`](https://github.com/Ripple-TS/ripple/commit/aee9f250205f61eb862f29fb55e482302e34d8de)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix grammar regresssion in @
+  control flow blocks
+
 ## 2.0.31
 
 ### Patch Changes

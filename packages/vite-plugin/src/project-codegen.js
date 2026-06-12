@@ -106,33 +106,44 @@ async function resolveRouteComponent(data) {
   if (!entryPath) return null;
 
   const loadModule = routeModules[entryPath] ?? (() => import(/* @vite-ignore */ entryPath));
-  return getComponentExport(await loadModule(), exportName);
+  const Component = getComponentExport(await loadModule(), exportName);
+  if (!Component) return null;
+
+  // Load the route layout so hydration sees the same component tree as the
+  // server render and the layout's CSS is part of the client graph.
+  const layoutPath = typeof route?.layout === 'string' ? route.layout : undefined;
+  if (layoutPath) {
+    const loadLayout = routeModules[layoutPath] ?? (() => import(/* @vite-ignore */ layoutPath));
+    const Layout = getComponentExport(await loadLayout());
+    if (Layout) return { Component, Layout };
+  }
+
+  return { Component };
 }
 
 (async () => {
   try {
     const data = JSON.parse(document.getElementById('__ripple_data').textContent);
     const target = document.getElementById('root');
-    const Component = await resolveRouteComponent(data);
+    const resolved = await resolveRouteComponent(data);
 
-    if (!Component || !target) {
+    if (!resolved || !target) {
       console.error('[ripple] Unable to hydrate route: missing component export or #root target.');
       return;
     }
 
+    // With a layout, hydrate the layout and pass the page as its children
+    // prop — the same tree the server rendered.
+    const { Component, Layout } = resolved;
+    const pageProps = { params: data.params };
+    const root = Layout ?? Component;
+    const props = Layout ? { ...pageProps, children: () => Component(pageProps) } : pageProps;
+
     try {
-      hydrate(Component, {
-        target,
-        props: { params: data.params },
-        rootBoundary,
-      });
+      hydrate(root, { target, props, rootBoundary });
     } catch (error) {
       console.warn('[ripple] Hydration failed, falling back to mount.', error);
-      mount(Component, {
-        target,
-        props: { params: data.params },
-        rootBoundary,
-      });
+      mount(root, { target, props, rootBoundary });
     }
   } catch (error) {
     console.error('[ripple] Failed to bootstrap client hydration.', error);

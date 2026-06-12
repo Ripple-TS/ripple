@@ -442,127 +442,15 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() @{
 			</div>
 		</div>
 		<style>
-			:global(*) {
-				box-sizing: border-box;
-			}
-
-			:global(html) {
-				scroll-behavior: smooth;
-				overflow-x: clip;
-				scrollbar-gutter: stable;
-			}
-
-			:global(body) {
-				margin: 0;
-				font-family:
-					system-ui,
-					-apple-system,
-					BlinkMacSystemFont,
-					'Segoe UI',
-					Roboto,
-					sans-serif;
-				color: #1a1640;
-				background:
-					radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-					radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
-					linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
-				background-repeat: no-repeat;
-				background-size:
-					100% 100vh,
-					100% 100vh,
-					100% 100%;
-				min-height: 100vh;
-				overflow-x: clip;
-			}
-
-			:global(a) {
-				color: inherit;
-				text-decoration: none;
-			}
-
-			:global(code),
-			:global(pre) {
-				font-family: 'Spline Sans Mono', 'SFMono-Regular', monospace;
-			}
-
-			.app-shell {
-				position: relative;
-				z-index: 1;
-				width: 100%;
-			}
-
 			.page-shell {
 				width: min(1040px, calc(100vw - 2rem));
 				margin: 0 auto;
 				padding: 1rem 0 4rem;
 			}
 
-			.masthead {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 1rem;
-				padding: 1rem 0 2rem;
-				flex-wrap: wrap;
-			}
-
-			.brand-lockup {
-				display: inline-flex;
-				align-items: center;
-			}
-
-			.header-logo {
-				display: block;
-				width: 3.2rem;
-				height: 3.2rem;
-			}
-
-			.masthead-nav {
-				display: inline-flex;
-				gap: 1rem;
-				font-size: 0.95rem;
-				color: rgba(26, 22, 64, 0.7);
-			}
-
-			.masthead-nav a {
-				white-space: nowrap;
-			}
-
 			.masthead-nav a:hover,
 			.back-link:hover,
 			article a:hover {
-				color: #5e2cff;
-			}
-
-			.masthead-nav a[aria-current='page'] {
-				color: #5e2cff;
-				font-weight: 500;
-			}
-
-			.article-shell {
-				width: min(760px, 100%);
-				margin: 0;
-				padding-top: 2.5rem;
-			}
-
-			.back-link {
-				display: inline-flex;
-				margin-bottom: 2rem;
-				font-size: 0.95rem;
-				font-weight: 700;
-				color: #5e2cff;
-			}
-
-			.article-header {
-				margin-bottom: 2rem;
-			}
-
-			.eyebrow {
-				margin: 0 0 0.75rem;
-				font-size: 0.78rem;
-				font-weight: 700;
-				text-transform: uppercase;
-				letter-spacing: 0.08em;
 				color: #5e2cff;
 			}
 
@@ -613,89 +501,31 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() @{
 
 			.code-block {
 				margin: 1rem 0 0;
-				padding: 1.25rem 1.4rem;
-				overflow-x: auto;
-				background: #0e1528;
-				color: #e7ecff;
-				font-size: 0.88rem;
-				line-height: 1.65;
-				white-space: pre;
-				-webkit-font-smoothing: antialiased;
 			}
 
-			:global(.code-block .ln) {
-				color: rgba(255, 255, 255, 0.25);
-				display: inline-block;
-				width: 1.4rem;
-				text-align: right;
-				margin-right: 0.85rem;
-				user-select: none;
-			}
-
-			:global(.code-block .kw) {
-				color: #569cd6;
-			}
-			:global(.code-block .kw-export) {
-				color: #c586c0;
-			}
-			:global(.code-block .kw-ctrl) {
-				color: #c586c0;
-			}
-			:global(.code-block .fn) {
-				color: #dcdcaa;
-			}
-			:global(.code-block .type) {
-				color: #4ec9b0;
-			}
-			:global(.code-block .prop) {
-				color: #9cdcfe;
-			}
-			:global(.code-block .str) {
-				color: #ce9178;
-			}
-			:global(.code-block .val) {
-				color: #b5cea8;
-			}
-			:global(.code-block .el) {
-				color: #569cd6;
-			}
-			:global(.code-block .tag) {
-				color: #808080;
-			}
-			:global(.code-block .attr) {
-				color: #92c5f8;
-			}
-			:global(.code-block .br) {
-				color: #ffd700;
-			}
-			:global(.code-block .tbr) {
-				color: #ffd700;
-			}
-			:global(.code-block .css-sel) {
-				color: #d7ba7d;
-			}
-			:global(.code-block .css-br) {
-				color: #d4d4d4;
-			}
-			:global(.code-block .comment),
-			:global(.code-block .cmt) {
-				color: #808080;
-			}
-
-			.site-footer {
-				margin-top: 4rem;
-				padding: 2rem 0;
-				border-top: 1px solid rgba(26, 22, 64, 0.1);
-				text-align: center;
-			}
-
-			.site-footer p {
+			.article-shell {
+				width: min(760px, 100%);
 				margin: 0;
-				font-size: 0.88rem;
-				line-height: 1.6;
-				color: rgba(26, 22, 64, 0.5);
+				padding-top: 2.5rem;
 			}
-
+			.article-header {
+				margin-bottom: 2rem;
+			}
+			.back-link {
+				display: inline-flex;
+				margin-bottom: 2rem;
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: #5e2cff;
+			}
+			.eyebrow {
+				margin: 0 0 0.75rem;
+				font-size: 0.78rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: #5e2cff;
+			}
 			@media (max-width: 720px) {
 				.page-shell {
 					width: calc(100vw - 1.5rem);
@@ -750,12 +580,6 @@ export function BlogSimplifyingTsrxAfterFeedbackPage() @{
 				.lead,
 				article p {
 					font-size: 1rem;
-				}
-
-				.code-block {
-					padding: 1rem 0.75rem;
-					font-size: 0.75rem;
-					line-height: 1.55;
 				}
 			}
 		</style>

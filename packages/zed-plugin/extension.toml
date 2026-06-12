@@ -8,7 +8,7 @@ repository = "https://github.com/Ripple-TS/ripple"
 
 [grammars.ripple]
 repository = "https://github.com/Ripple-TS/ripple"
-rev = "f1a4c10d2ad8ed604375f36f7ae3b653fe95ed1a"
+rev = "efe50a74b1c11b00114b0831dd8e9f8239918d50"
 path = "grammars/tree-sitter"
 
 [language_servers.ripple-language-server]

@@ -65,94 +65,10 @@ export function BlogPage() @{
 			</div>
 		</div>
 		<style>
-			:global(*) {
-				box-sizing: border-box;
-			}
-
-			:global(html) {
-				scroll-behavior: smooth;
-				overflow-x: clip;
-				scrollbar-gutter: stable;
-			}
-
-			:global(body) {
-				margin: 0;
-				font-family:
-					system-ui,
-					-apple-system,
-					BlinkMacSystemFont,
-					'Segoe UI',
-					Roboto,
-					sans-serif;
-				color: #1a1640;
-				background:
-					radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-					radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
-					linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
-				background-repeat: no-repeat;
-				background-size:
-					100% 100vh,
-					100% 100vh,
-					100% 100%;
-				min-height: 100vh;
-				overflow-x: clip;
-			}
-
-			:global(a) {
-				color: inherit;
-				text-decoration: none;
-			}
-
-			.app-shell {
-				position: relative;
-				z-index: 1;
-				width: 100%;
-			}
-
 			.page-shell {
 				width: min(1040px, calc(100vw - 2rem));
 				margin: 0 auto;
 				padding: 1rem 0 4rem;
-			}
-
-			.masthead {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 1rem;
-				padding: 1rem 0 2rem;
-				flex-wrap: wrap;
-			}
-
-			.brand-lockup {
-				display: inline-flex;
-				align-items: center;
-			}
-
-			.header-logo {
-				display: block;
-				width: 3.2rem;
-				height: 3.2rem;
-			}
-
-			.masthead-nav {
-				display: inline-flex;
-				gap: 1rem;
-				font-size: 0.95rem;
-				color: rgba(26, 22, 64, 0.7);
-			}
-
-			.masthead-nav a {
-				white-space: nowrap;
-			}
-
-			.masthead-nav a:hover {
-				color: #5e2cff;
-			}
-
-			.masthead-nav a[aria-current='page'] {
-				color: #5e2cff;
-				font-weight: 500;
 			}
 
 			.blog-shell {
@@ -207,20 +123,6 @@ export function BlogPage() @{
 				margin-top: 1rem;
 				font-weight: 700;
 				color: #5e2cff;
-			}
-
-			.site-footer {
-				margin-top: 4rem;
-				padding: 2rem 0;
-				border-top: 1px solid rgba(26, 22, 64, 0.1);
-				text-align: center;
-			}
-
-			.site-footer p {
-				margin: 0;
-				font-size: 0.88rem;
-				line-height: 1.6;
-				color: rgba(26, 22, 64, 0.5);
 			}
 
 			@media (max-width: 720px) {

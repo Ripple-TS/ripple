@@ -9143,24 +9143,6 @@
 			<key>name</key>
 			<string>variable.language.this.js</string>
 		</dict>
-		<key>tsrx-template-abrupt-statement</key>
-		<dict>
-			<key>begin</key>
-			<string>(?=[ \t]*(?:(?:continue|break)(?:\s+[_$[:alpha:]][_$[:alnum:]]*)?|return(?:\s+[^\n]*)?|throw(?:\s+[^\n]*)?)\s*;?\s*(?://.*)?$)</string>
-			<key>contentName</key>
-			<string>source.js.embedded.tsrx-isolated</string>
-			<key>end</key>
-			<string>(?=$)</string>
-			<key>name</key>
-			<string>meta.directive.setup.tsrx</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#component-statements</string>
-				</dict>
-			</array>
-		</dict>
 		<key>tsrx-template-block-directive</key>
 		<dict>
 			<key>begin</key>
@@ -9289,68 +9271,6 @@
 				<dict>
 					<key>include</key>
 					<string>#tsrx-template-branch-directive</string>
-				</dict>
-			</array>
-		</dict>
-		<key>tsrx-template-children</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#jsx-evaluated-code</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-comment</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-switch-case-label</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-child-directive</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-code</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-style</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-fragment</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-dynamic</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag-without-attributes</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-tag</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-entities</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-abrupt-statement</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-setup-statement</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#jsx-text</string>
 				</dict>
 			</array>
 		</dict>
@@ -9509,6 +9429,8 @@
 					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
+			<key>contentName</key>
+			<string>source.js.embedded.tsrx-isolated</string>
 			<key>end</key>
 			<string>\}</string>
 			<key>endCaptures</key>
@@ -9526,10 +9448,6 @@
 				<dict>
 					<key>include</key>
 					<string>#component-statements</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-children</string>
 				</dict>
 			</array>
 		</dict>
@@ -9673,24 +9591,6 @@
 				</dict>
 			</array>
 		</dict>
-		<key>tsrx-template-setup-statement</key>
-		<dict>
-			<key>begin</key>
-			<string>(?=[ \t]*(?:if|continue|break|return|throw)(?![_$[:alnum:]]))</string>
-			<key>contentName</key>
-			<string>source.js.embedded.tsrx-isolated</string>
-			<key>end</key>
-			<string>(?&lt;=;)|(?=\})</string>
-			<key>name</key>
-			<string>meta.directive.setup.tsrx</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#component-statements</string>
-				</dict>
-			</array>
-		</dict>
 		<key>tsrx-template-switch-case-block</key>
 		<dict>
 			<key>begin</key>
@@ -9746,6 +9646,8 @@
 					<string>punctuation.definition.block.tsrx punctuation.definition.block.js</string>
 				</dict>
 			</dict>
+			<key>contentName</key>
+			<string>source.js.embedded.tsrx-isolated</string>
 			<key>end</key>
 			<string>\}</string>
 			<key>endCaptures</key>
@@ -9763,51 +9665,6 @@
 				<dict>
 					<key>include</key>
 					<string>#component-statements</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#tsrx-template-children</string>
-				</dict>
-			</array>
-		</dict>
-		<key>tsrx-template-switch-case-label</key>
-		<dict>
-			<key>begin</key>
-			<string>(@)(case|default)(?![_$[:alnum:]])(?=[^\n{}]*:)</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>keyword.control.directive.tsrx</string>
-				</dict>
-				<key>2</key>
-				<dict>
-					<key>name</key>
-					<string>keyword.control.directive.tsrx</string>
-				</dict>
-			</dict>
-			<key>end</key>
-			<string>(:)</string>
-			<key>endCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>punctuation.definition.section.case-statement.js</string>
-				</dict>
-			</dict>
-			<key>name</key>
-			<string>meta.directive.switch.case.tsrx</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#expression</string>
-				</dict>
-				<dict>
-					<key>include</key>
-					<string>#comment</string>
 				</dict>
 			</array>
 		</dict>

@@ -529,8 +529,7 @@ export function ripple(inlineOptions = {}) {
 
 				renderRouteEntries = loadedRippleConfig.router.routes
 					.filter((/** @type {Route} */ r) => r.type === 'render')
-					.map((/** @type {RenderRoute} */ r) => r.entry)
-					.map(get_route_entry_path)
+					.flatMap((/** @type {RenderRoute} */ r) => [get_route_entry_path(r.entry), r.layout])
 					.filter((entry) => typeof entry === 'string');
 
 				// Deduplicate entries (multiple routes can share the same component)

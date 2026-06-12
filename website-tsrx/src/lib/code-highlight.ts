@@ -1,43 +1,53 @@
+// Dark+ blue (#569cd6): storage, declarations, and word operators.
 const KEYWORDS = new Set([
-	'as',
 	'async',
-	'await',
-	'case',
-	'catch',
-	'empty',
 	'class',
 	'component',
 	'const',
-	'default',
-	'else',
-	'export',
 	'extends',
-	'for',
-	'from',
 	'function',
-	'if',
 	'in',
-	'import',
 	'index',
 	'instanceof',
 	'interface',
 	'key',
+	'keyof',
 	'let',
 	'new',
 	'of',
-	'pending',
-	'return',
-	'satisfies',
-	'switch',
 	'this',
-	'throw',
-	'try',
 	'type',
 	'typeof',
 	'var',
 ]);
 
-const CONTROL_KEYWORDS = new Set(['break', 'continue', 'return']);
+// Dark+ purple (#c586c0): control flow and module keywords.
+const CONTROL_KEYWORDS = new Set([
+	'as',
+	'await',
+	'break',
+	'case',
+	'catch',
+	'continue',
+	'default',
+	'do',
+	'else',
+	'empty',
+	'finally',
+	'for',
+	'from',
+	'if',
+	'import',
+	'pending',
+	'return',
+	'satisfies',
+	'switch',
+	'throw',
+	'try',
+	'while',
+	'yield',
+]);
+// Dark+ colors literal constants the same blue as storage keywords.
 const LITERALS = new Set(['false', 'null', 'true', 'undefined']);
 const TEMPLATE_KEYWORDS = new Set(['html', 'ref', 'style']);
 const TEMPLATE_CONTROL_DIRECTIVES = new Set([
@@ -176,14 +186,20 @@ function highlight_jsx_expression(expression: string): string {
 			continue;
 		}
 
+		if (char === '=' && next === '>') {
+			html += span('kw', '=>');
+			index += 2;
+			continue;
+		}
+
 		if (/[A-Za-z_$]/.test(char)) {
 			const ident_end = read_identifier(expression, index);
 			const ident = expression.slice(index, ident_end);
 			let class_name = 'prop';
 
-			if (LITERALS.has(ident)) {
-				class_name = 'val';
-			} else if (TEMPLATE_KEYWORDS.has(ident)) {
+			if (CONTROL_KEYWORDS.has(ident)) {
+				class_name = 'kw-ctrl';
+			} else if (LITERALS.has(ident) || KEYWORDS.has(ident) || TEMPLATE_KEYWORDS.has(ident)) {
 				class_name = 'kw';
 			} else if (/^[A-Z]/.test(ident)) {
 				class_name = 'type';
@@ -267,10 +283,8 @@ function read_jsx_tag(
 			let class_name = 'attr';
 
 			if (expression_depth > 0) {
-				if (TEMPLATE_KEYWORDS.has(ident)) {
+				if (TEMPLATE_KEYWORDS.has(ident) || LITERALS.has(ident)) {
 					class_name = 'kw';
-				} else if (LITERALS.has(ident)) {
-					class_name = 'val';
 				} else if (/^[A-Z]/.test(ident)) {
 					class_name = 'type';
 				} else {
@@ -372,10 +386,19 @@ function highlight_code_line(
 	let jsx_text_depth = initial_jsx_text_depth;
 	let jsx_expression_depth = 0;
 
+	// Pre-@ statement syntax: a line in template-children position that starts
+	// like a statement (optionally after a closing brace) renders as code, not
+	// template text. The lookaheads keep prose lines unaffected.
+	const code_statement_line =
+		initial_jsx_text_depth > 0 &&
+		/^[\t ]*\}?[\t ]*(?:(?:if|for|while|switch|catch)[\t ]*\(|else[\t ]+if[\t ]*\(|(?:try|else|do|finally|pending|empty)[\t ]*\{|(?:const|let|var)[\t ]+[A-Za-z_$])/.test(
+			line,
+		);
+
 	while (index < line.length) {
 		const char = line[index];
 		const next = line[index + 1];
-		const in_jsx_text = jsx_expression_depth === 0 && jsx_text_depth > 0;
+		const in_jsx_text = jsx_expression_depth === 0 && jsx_text_depth > 0 && !code_statement_line;
 
 		if (comment_state.in_block_comment) {
 			const comment_end = line.indexOf('*/', index);
@@ -414,7 +437,7 @@ function highlight_code_line(
 				const directive = line.slice(index, directive_end);
 
 				if (TEMPLATE_CONTROL_DIRECTIVES.has(directive)) {
-					html += span('kw', directive);
+					html += span('kw-ctrl', directive);
 					index = directive_end;
 					template_block_stack.push({
 						brace_depth: 0,
@@ -427,8 +450,8 @@ function highlight_code_line(
 			}
 
 			if (char === '@' && next === '{') {
-				html += span('kw', '@');
-				html += span('kw', '{');
+				html += span('kw-ctrl', '@');
+				html += span('kw-ctrl', '{');
 				index += 2;
 				template_block_stack.push({
 					brace_depth: 1,
@@ -531,7 +554,7 @@ function highlight_code_line(
 			const directive = line.slice(index, directive_end);
 
 			if (TEMPLATE_CONTROL_DIRECTIVES.has(directive)) {
-				html += span('kw', directive);
+				html += span('kw-ctrl', directive);
 				index = directive_end;
 				previous_keyword = directive.slice(1);
 				continue;
@@ -539,14 +562,21 @@ function highlight_code_line(
 		}
 
 		if (char === '@' && next === '{') {
-			html += span('kw', '@');
-			html += span('kw', '{');
+			html += span('kw-ctrl', '@');
+			html += span('kw-ctrl', '{');
 			index += 2;
 			template_block_stack.push({
 				brace_depth: 1,
 				restore_jsx_text_depth: jsx_text_depth,
 				statement_container: true,
 			});
+			previous_keyword = '';
+			continue;
+		}
+
+		if (char === '=' && next === '>') {
+			html += span('kw', '=>');
+			index += 2;
 			previous_keyword = '';
 			continue;
 		}
@@ -559,10 +589,10 @@ function highlight_code_line(
 
 			if (CONTROL_KEYWORDS.has(ident)) {
 				class_name = 'kw-ctrl';
-			} else if (KEYWORDS.has(ident)) {
-				class_name = ident === 'export' ? 'kw-export' : 'kw';
-			} else if (LITERALS.has(ident)) {
-				class_name = 'val';
+			} else if (ident === 'export') {
+				class_name = 'kw-export';
+			} else if (KEYWORDS.has(ident) || LITERALS.has(ident)) {
+				class_name = 'kw';
 			} else if (TEMPLATE_KEYWORDS.has(ident)) {
 				class_name = 'kw';
 			} else if (
@@ -587,7 +617,7 @@ function highlight_code_line(
 			const template_block = template_block_stack[template_block_stack.length - 1];
 			template_block.brace_depth--;
 			if (template_block.brace_depth === 0 && template_block.statement_container) {
-				html += span('kw', char);
+				html += span('kw-ctrl', char);
 				index++;
 				previous_keyword = '';
 				const finished_block = template_block_stack.pop()!;

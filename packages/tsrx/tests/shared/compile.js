@@ -1198,9 +1198,9 @@ export function runSharedSwitchHelperHoistingTests({
 }
 
 /**
- * Shared component-loop regressions. Vue does not share the full JSX output
- * suite because its component export shape differs, but it should still share
- * these component-body validation rules.
+ * Shared component-loop regressions. Runs as part of `runSharedCompileTests`;
+ * exported separately so harnesses that only cover component-body validation
+ * can run it on its own.
  *
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
@@ -1636,7 +1636,8 @@ export function runSharedClassFunctionComponentTests({ compile, compile_to_volar
  * Shared compile-output regressions. These assert observable properties of
  * the generated code (not source-map structure) that every JSX target should
  * satisfy across whatever `transformElement` hook the platform wires in.
- * Vue should be excluded from running these
+ * Target-specific shapes (Vue's `defineVaporComponent` export wrapper and
+ * Suspense slot fallbacks) are guarded inline with `it.runIf`.
  *
  * @param {CompileHarness} harness
  */
@@ -1689,9 +1690,11 @@ export function runSharedCompileTests({
 	});
 
 	describe(`[${name}] component export shapes`, () => {
-		// Function export prefix preservation should stay identical across
-		// targets. Any future change that double-exports, strips a default,
-		// or otherwise changes the declaration wrapper fails here first.
+		// Export prefix preservation should stay stable per target. Vue wraps
+		// every component in `defineVaporComponent(...)`; the other targets
+		// keep the authored function declaration. Any future change that
+		// double-exports, strips a default, or otherwise changes the
+		// declaration wrapper fails here first.
 
 		it('keeps plain components local unless explicitly exported', () => {
 			const { code } = compile(
@@ -1707,7 +1710,7 @@ export function runSharedCompileTests({
 			expect(code).not.toContain('export default function App');
 		});
 
-		it('preserves named component exports without double-exporting', () => {
+		it.runIf(name !== 'vue')('preserves named component exports without double-exporting', () => {
 			const { code } = compile(
 				`export function App() @{
 					<div>{'Hello world'}</div>
@@ -1720,7 +1723,23 @@ export function runSharedCompileTests({
 			expect(code).not.toContain('export export function App()');
 		});
 
-		it('preserves default component exports', () => {
+		it.runIf(name === 'vue')(
+			'wraps named component exports in defineVaporComponent without double-exporting',
+			() => {
+				const { code } = compile(
+					`export function App() @{
+						<div>{'Hello world'}</div>
+					}`,
+					'App.tsrx',
+				);
+
+				expect(code).toContain('export const App = defineVaporComponent(function App()');
+				expect(code).toContain("{'Hello world'}");
+				expect(code).not.toContain('export function App');
+			},
+		);
+
+		it.runIf(name !== 'vue')('preserves default component exports', () => {
 			const { code } = compile(
 				`export default function App() @{
 					<div>{'Hello world'}</div>
@@ -1729,6 +1748,18 @@ export function runSharedCompileTests({
 			);
 
 			expect(code).toContain('export default function App()');
+			expect(code).toContain("{'Hello world'}");
+		});
+
+		it.runIf(name === 'vue')('wraps default component exports in defineVaporComponent', () => {
+			const { code } = compile(
+				`export default function App() @{
+					<div>{'Hello world'}</div>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('export default defineVaporComponent(function App()');
 			expect(code).toContain("{'Hello world'}");
 		});
 
@@ -1744,7 +1775,11 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('export function MyComponent<Item>(props: Props<Item>)');
+			expect(code).toContain(
+				name === 'vue'
+					? 'export const MyComponent = defineVaporComponent(function MyComponent<Item>(props: Props<Item>)'
+					: 'export function MyComponent<Item>(props: Props<Item>)',
+			);
 		});
 
 		it('preserves generic type arguments on JSX component tags', () => {
@@ -1781,6 +1816,9 @@ export function runSharedCompileTests({
 	});
 
 	describe(`[${name}] component try pending fallbacks`, () => {
+		// Vue lowers `@pending` to a Suspense slot object, the other targets to
+		// a `fallback={...}` prop — an empty block must not emit a fallback slot
+		// or a fallback prop respectively.
 		it('allows empty pending blocks as null fallbacks', () => {
 			const { code } = compile(
 				`export function App() @{
@@ -1791,8 +1829,16 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('fallback={null}');
 			expect(code).toContain("{'content'}");
+			if (name === 'vue') {
+				expect(code).toContain('Suspense');
+				expect(code).toContain('v-slots=');
+				expect(code).toContain('default: () =>');
+				expect(code).not.toContain('fallback: () =>');
+				expect(code).not.toContain('fallback={');
+			} else {
+				expect(code).toContain('fallback={null}');
+			}
 		});
 	});
 
@@ -3535,6 +3581,50 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).toContain(`.card.${cssHash}`);
 			expect(css).toContain('/* (unused) span { color: gray; }*/');
 			expect(css).toContain('.test { color: black; }');
+		});
+
+		it('keeps descendant selectors that match across nesting and control flow', () => {
+			// Combinator selectors (`.card h2`) match through each element's
+			// ancestor chain. Pruning runs before the transform walker stamps
+			// paths onto template nodes, so element collection has to record the
+			// chain itself — regression: every combinator selector was marked
+			// unused in the shared JSX targets.
+			const { css, cssHash } = compile(
+				`export function App({ ready }: { ready: boolean }) @{
+					<>
+						<section ${generatedClassAttrName}="card">
+							<h2>{'title'}</h2>
+
+							@if (ready) {
+								<ul>
+									<li>{'item'}</li>
+								</ul>
+							}
+						</section>
+
+						<style>
+							.card {
+								padding: 1rem;
+							}
+							.card h2 {
+								margin: 0;
+							}
+							.card ul {
+								margin: 0;
+							}
+							.card ol {
+								margin: 0;
+							}
+						</style>
+					</>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain(`.card.${cssHash} h2:where(.${cssHash})`);
+			expect(css).toContain(`.card.${cssHash} ul:where(.${cssHash})`);
+			expect(css).toContain('/* (unused) .card ol');
 		});
 	});
 

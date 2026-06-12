@@ -20,6 +20,7 @@ function mount_after_ssr() {
 
 			return `
 import { hydrate } from 'ripple';
+import { Layout } from '/src/components/layout.tsrx';
 
 const route_modules = import.meta.glob('/src/pages/*.tsrx');
 
@@ -42,18 +43,22 @@ const route_modules = import.meta.glob('/src/pages/*.tsrx');
 		}
 
 		const module = await load_module();
-    const Component =
+    const Page =
       module.default ||
       Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
 
-    if (!Component || !target) {
+    if (!Page || !target) {
       console.error('[tsrx] Unable to mount route: missing component export or #root target.');
       return;
     }
 
-    hydrate(Component, {
+    // Hydrate the shared layout with the page as its children prop, matching
+    // the server-rendered tree so the layout's CSS stays loaded.
+    const params = routeData.params || {};
+
+    hydrate(Layout, {
       target,
-      props: { params: routeData.params || {} }
+      props: { params, children: () => Page({ params }) }
     });
   } catch (error) {
     console.error('[tsrx] Failed to bootstrap client mount.', error);

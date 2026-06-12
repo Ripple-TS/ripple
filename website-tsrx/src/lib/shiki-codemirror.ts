@@ -19,7 +19,7 @@ let highlighter_promise: Promise<Highlighter> | null = null;
 function get_highlighter(): Promise<Highlighter> {
 	if (!highlighter_promise) {
 		highlighter_promise = createHighlighter({
-			themes: ['one-dark-pro'],
+			themes: ['dark-plus'],
 			langs: [
 				'javascript',
 				'typescript',
@@ -41,7 +41,7 @@ function build_decorations(doc: string, highlighter: Highlighter, lang: string):
 	try {
 		const result = highlighter.codeToTokens(doc, {
 			lang,
-			theme: 'one-dark-pro',
+			theme: 'dark-plus',
 		});
 		tokens = result.tokens;
 	} catch {

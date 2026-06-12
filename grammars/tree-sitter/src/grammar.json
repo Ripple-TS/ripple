@@ -2432,6 +2432,17 @@
           "value": "{"
         },
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "FIELD",
+            "name": "statement",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_jsx_statement_container_statement"
+            }
+          }
+        },
+        {
           "type": "CHOICE",
           "members": [
             {
@@ -2439,24 +2450,13 @@
               "name": "children",
               "content": {
                 "type": "SYMBOL",
-                "name": "jsx_text"
+                "name": "_jsx_statement_container_output"
               }
             },
             {
               "type": "BLANK"
             }
           ]
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "FIELD",
-            "name": "children",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_jsx_template_child"
-            }
-          }
         },
         {
           "type": "STRING",
@@ -2480,59 +2480,6 @@
     "_jsx_continuation_gap": {
       "type": "SYMBOL",
       "name": "jsx_text"
-    },
-    "_jsx_template_child": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "PREC",
-          "value": 2,
-          "content": {
-            "type": "SYMBOL",
-            "name": "style_element"
-          }
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_text"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_element"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_fragment"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_self_closing_element"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_statement_container"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_if_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_for_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_switch_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_try_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "jsx_expression"
-        }
-      ]
     },
     "jsx_if_expression": {
       "type": "CHOICE",
@@ -8797,7 +8744,6 @@
     "_jsx_attribute",
     "_jsx_child",
     "_jsx_attribute_value",
-    "_jsx_template_child",
     "_jsx_statement_container_statement",
     "_jsx_statement_container_output"
   ],

@@ -17,7 +17,7 @@ describe('project codegen', () => {
 		expect(source).toContain('function getRouteEntryExportName(entry)');
 		expect(source).toContain('return Array.isArray(entry) ? entry[0] : undefined;');
 		expect(source).toContain('const rootBoundary = rippleConfig.rootBoundary;');
-		expect(source).toContain('rootBoundary,');
+		expect(source).toContain('hydrate(root, { target, props, rootBoundary });');
 	});
 
 	it('generates server components from named entry tuples', () => {

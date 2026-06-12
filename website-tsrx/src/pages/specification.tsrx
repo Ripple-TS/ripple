@@ -1048,99 +1048,10 @@ export function SpecificationPage() @{
 			</div>
 		</div>
 		<style>
-			:global(*) {
-				box-sizing: border-box;
-			}
-
-			:global(html) {
-				scroll-behavior: smooth;
-				overflow-x: hidden;
-				scrollbar-gutter: stable;
-			}
-
-			:global(body) {
-				margin: 0;
-				font-family:
-					system-ui,
-					-apple-system,
-					BlinkMacSystemFont,
-					'Segoe UI',
-					Roboto,
-					sans-serif;
-				color: #1a1640;
-				background:
-					radial-gradient(circle at top, rgba(146, 92, 255, 0.14), transparent 15%),
-					radial-gradient(circle at 80% 10%, rgba(111, 0, 255, 0.1), transparent 15%),
-					linear-gradient(180deg, #ffffff 0%, #f6f3ff 46%, #f2f4fb 100%);
-				background-repeat: no-repeat;
-				background-size:
-					100% 100vh,
-					100% 100vh,
-					100% 100%;
-				min-height: 100vh;
-				overflow-x: hidden;
-			}
-
-			:global(a) {
-				color: inherit;
-				text-decoration: none;
-			}
-
-			:global(code),
-			:global(pre) {
-				font-family: 'Spline Sans Mono', 'SFMono-Regular', monospace;
-			}
-
-			.app-shell {
-				position: relative;
-				z-index: 1;
-				width: 100%;
-			}
-
 			.page-shell {
 				width: min(1180px, calc(100vw - 2rem));
 				margin: 0 auto;
 				padding: 1rem 0 4rem;
-			}
-
-			.masthead {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 1rem;
-				padding: 1rem 0 2rem;
-				flex-wrap: wrap;
-			}
-
-			.brand-lockup {
-				display: inline-flex;
-				align-items: center;
-			}
-
-			.header-logo {
-				display: block;
-				width: 3.2rem;
-				height: 3.2rem;
-			}
-
-			.masthead-nav {
-				display: inline-flex;
-				gap: 1rem;
-				font-size: 0.95rem;
-				color: rgba(26, 22, 64, 0.7);
-			}
-
-			.masthead-nav a {
-				white-space: nowrap;
-			}
-
-			.masthead-nav a:hover {
-				color: #5e2cff;
-			}
-
-			.masthead-nav a[aria-current='page'] {
-				color: #5e2cff;
-				font-weight: 500;
 			}
 
 			.docs-layout {
@@ -1150,73 +1061,8 @@ export function SpecificationPage() @{
 				align-items: start;
 			}
 
-			.side-nav {
-				position: sticky;
-				top: 1.5rem;
-				padding-top: 0.5rem;
-			}
-
-			.side-nav-dropdown {
-				display: none;
-			}
-
-			.side-nav-dropdown-label {
-				display: block;
-				margin: 0 0 0.45rem;
-				font-size: 0.72rem;
-				font-weight: 600;
-				text-transform: uppercase;
-				letter-spacing: 0.06em;
-				color: rgba(26, 22, 64, 0.45);
-			}
-
-			.side-nav-select {
-				width: 100%;
-				padding: 0.75rem 3rem 0.75rem 1.2rem;
-				border: 1px solid rgba(94, 44, 255, 0.12);
-				border-radius: 0.9rem;
-				background-color: rgba(255, 255, 255, 0.92);
-				color: #1a1640;
-				appearance: none;
-				-webkit-appearance: none;
-				-moz-appearance: none;
-				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%231a1640' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-				background-repeat: no-repeat;
-				background-size: 0.95rem;
-				background-position: right 1.2rem center;
-			}
-
-			.side-nav-heading {
-				margin: 0 0 0.75rem;
-				font-size: 0.78rem;
-				font-weight: 600;
-				text-transform: uppercase;
-				letter-spacing: 0.06em;
-				color: rgba(26, 22, 64, 0.45);
-			}
-
-			.side-nav-link {
-				display: block;
-				padding: 0.3rem 0;
-				font-size: 0.9rem;
-				color: rgba(26, 22, 64, 0.6);
-				transition: color 0.15s;
-			}
-
-			.side-nav-link:hover {
-				color: #5e2cff;
-			}
-
-			.docs-content {
-				min-width: 0;
-			}
-
 			.doc-section {
 				margin-top: 3rem;
-			}
-
-			.doc-section:first-child {
-				margin-top: 0.5rem;
 			}
 
 			.page-heading {
@@ -1249,39 +1095,12 @@ export function SpecificationPage() @{
 				letter-spacing: -0.02em;
 			}
 
-			.section-body {
-				margin: 0.5rem 0 0;
-				font-size: 1.05rem;
-				line-height: 1.7;
-				color: rgba(26, 22, 64, 0.76);
-			}
-
 			.section-body.lead {
 				font-size: 1.15rem;
 			}
 
 			.section-body.compact {
 				font-size: 0.98rem;
-			}
-
-			.section-body.muted {
-				color: rgba(26, 22, 64, 0.55);
-				font-style: italic;
-			}
-
-			.inline-code {
-				display: inline-block;
-				background: rgba(94, 44, 255, 0.1);
-				color: #5e2cff;
-				padding: 0.16em 0.48em;
-				margin: 0 0.18em;
-				border-radius: 4px;
-				font-size: 0.92em;
-			}
-
-			.section-body a:not(.cta-link) {
-				display: inline-block;
-				margin: 0 0.18em;
 			}
 
 			.status-panel {
@@ -1314,15 +1133,6 @@ export function SpecificationPage() @{
 			}
 
 			.code-block {
-				margin: 0.75rem 0 0;
-				padding: 1.25rem 1.4rem;
-				overflow-x: auto;
-				background: #0e1528;
-				color: #e7ecff;
-				font-size: 0.88rem;
-				line-height: 1.65;
-				white-space: pre;
-				-webkit-font-smoothing: antialiased;
 				border-radius: 18px;
 			}
 
@@ -1330,20 +1140,23 @@ export function SpecificationPage() @{
 				color: #dbe6ff;
 			}
 
-			.site-footer {
-				margin-top: 4rem;
-				padding: 2rem 0;
-				border-top: 1px solid rgba(26, 22, 64, 0.1);
-				text-align: center;
+			.section-body {
+				margin: 0.5rem 0 0;
+				font-size: 1.05rem;
+				line-height: 1.7;
+				color: rgba(26, 22, 64, 0.76);
 			}
-
-			.site-footer p {
-				margin: 0;
-				font-size: 0.88rem;
-				line-height: 1.6;
-				color: rgba(26, 22, 64, 0.5);
+			.section-body.muted {
+				color: rgba(26, 22, 64, 0.55);
+				font-style: italic;
 			}
-
+			.section-body a:not(.cta-link) {
+				display: inline-block;
+				margin: 0 0.18em;
+			}
+			.doc-section:first-child {
+				margin-top: 0.5rem;
+			}
 			@media (max-width: 720px) {
 				.page-shell {
 					width: calc(100vw - 1.5rem);
@@ -1437,12 +1250,6 @@ export function SpecificationPage() @{
 				.section-body,
 				.spec-list li {
 					font-size: 0.95rem;
-				}
-
-				.code-block {
-					padding: 1rem 0.75rem;
-					font-size: 0.75rem;
-					line-height: 1.55;
 				}
 
 				.site-footer {
