@@ -61,3 +61,6 @@ debug
 # Temporary folders
 tmp/
 temp/
+
+# differential test rig precompile cache
+**/.react-cache/

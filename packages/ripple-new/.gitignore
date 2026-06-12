@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.react-cache/
+**/.react-cache/
+*.log
