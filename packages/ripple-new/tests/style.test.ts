@@ -5,7 +5,24 @@ import {
   ImportantStyle, CustomPropStyle, PerRowStyle,
   ScopedSingle, ScopedReuse, ScopedOther, ScopedMultiClass, ScopedNested,
   UnscopedLookalike, ScopedDynamic, ScopedToggle, ScopedPlusInlineStyle, StyleAtTop,
+  ScopedHover, ScopedFocusWithin, ScopedMedia, ScopedKeyframes, ScopedGlobal,
 } from './_fixtures/style.tsrx';
+
+// Helper: find the module-level <style data-ripple-new> tag for a given hash
+// and return its CSS text. Tests use this to assert how @tsrx/core's
+// stylesheet pipeline rewrote the source CSS (which selectors got hashed,
+// which got passed through, where `:global` opens a hole, etc.).
+function styleSheetTextFor(el: Element): string {
+  // Walk up to find the class name carrying the tsrx- hash, then look up the
+  // injected style tag containing that hash.
+  const hashClass = Array.from(el.classList).find(c => c.startsWith('tsrx-'));
+  if (!hashClass) throw new Error('element has no tsrx-<hash> class');
+  const sheets = Array.from(document.head.querySelectorAll('style[data-ripple-new]')) as HTMLStyleElement[];
+  for (const s of sheets) {
+    if (s.textContent && s.textContent.includes(hashClass)) return s.textContent;
+  }
+  throw new Error(`no injected style tag found for ${hashClass}`);
+}
 
 describe('style prop — static forms', () => {
   it('inlines a static string style into the template (no runtime setStyle)', () => {
@@ -280,6 +297,84 @@ describe('scoped <style> blocks', () => {
     const div = r.find('div');
     expect(div.classList.contains('top')).toBe(true);
     expect(getComputedStyle(div).color).toBe('rgb(1, 2, 3)');
+    r.unmount();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Verification: pseudo-classes, @media, @keyframes, :global
+//
+// These features pass through @tsrx/core's CSS pipeline; the tests below
+// pin the actually-shipped behavior so a future @tsrx/core bump can't
+// silently change the surface. Each test reads the injected stylesheet
+// text directly and asserts how the hash interleaves with the rule.
+// ---------------------------------------------------------------------------
+
+describe('scoped CSS — pseudo-classes', () => {
+  it('hashes both the base selector and its :hover variant', () => {
+    const r = mount(ScopedHover);
+    const btn = r.find('button');
+    expect(btn.classList.contains('hov')).toBe(true);
+    const css = styleSheetTextFor(btn);
+    // Base rule hashed.
+    expect(css).toMatch(/\.hov[^:]*\{[^}]*color:\s*rgb\(0,\s*0,\s*0\)/);
+    // :hover variant preserves the pseudo-class, hash still anchors the
+    // class portion.
+    expect(css).toMatch(/\.hov[^{]*:hover\s*\{[^}]*color:\s*rgb\(0,\s*0,\s*255\)/);
+    r.unmount();
+  });
+
+  it('hashes :focus-within on a parent selector', () => {
+    const r = mount(ScopedFocusWithin);
+    const wrap = r.find('.wrap');
+    const css = styleSheetTextFor(wrap);
+    expect(css).toMatch(/\.wrap[^{]*\{[^}]*padding:\s*4px/);
+    expect(css).toMatch(/\.wrap[^{]*:focus-within\s*\{[^}]*background:\s*rgb\(255,\s*255,\s*0\)/);
+    r.unmount();
+  });
+});
+
+describe('scoped CSS — @media', () => {
+  it('preserves @media query structure with inner rules hashed', () => {
+    const r = mount(ScopedMedia);
+    const card = r.find('.card');
+    const css = styleSheetTextFor(card);
+    // Outer rule hashed.
+    expect(css).toMatch(/\.card[^{]*\{[^}]*width:\s*100px/);
+    // @media block survives and its inner rule is still hashed.
+    expect(css).toMatch(/@media[^{]*max-width:\s*600px[^{]*\{/);
+    expect(css).toMatch(/@media[\s\S]*\.card[^{]*\{[^}]*width:\s*50px/);
+    r.unmount();
+  });
+});
+
+describe('scoped CSS — @keyframes', () => {
+  it('emits the @keyframes block + the animation property referencing it', () => {
+    const r = mount(ScopedKeyframes);
+    const div = r.find('.anim');
+    const css = styleSheetTextFor(div);
+    // @keyframes appears in the injected CSS.
+    expect(css).toMatch(/@keyframes/);
+    // Animation property references a keyframes name.
+    expect(css).toMatch(/animation:\s*\S+\s+1s\s+linear/);
+    // The class itself is hashed.
+    expect(css).toMatch(/\.anim[^{]*\{/);
+    r.unmount();
+  });
+});
+
+describe('scoped CSS — :global escape hatch', () => {
+  it(':global(...) selectors are emitted WITHOUT the hash; local rules still hashed', () => {
+    const r = mount(ScopedGlobal);
+    const local = r.find('.local');
+    const css = styleSheetTextFor(local);
+    // Local rule is hashed alongside its base class.
+    expect(css).toMatch(/\.local[^{]*\{[^}]*color:\s*rgb\(10,\s*10,\s*10\)/);
+    // :global(...) wrapper unwrapped; inner selector emitted unscoped.
+    expect(css).toMatch(/\.bodywide[^{]*\{[^}]*color:\s*rgb\(123,\s*0,\s*0\)/);
+    // And the bodywide rule must NOT have the hash applied.
+    const hashClass = Array.from(local.classList).find(c => c.startsWith('tsrx-'))!;
+    expect(css).not.toMatch(new RegExp(`\\.bodywide[^{]*\\.${hashClass}`));
     r.unmount();
   });
 });

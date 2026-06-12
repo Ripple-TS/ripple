@@ -161,3 +161,67 @@ export function StyleAtTop() @{
     <div class='top'>{'T'}</div>
   </>
 }
+
+// ---------------------------------------------------------------------------
+// Pseudo-classes, @media, @keyframes, :global — verification fixtures that
+// pin behavior likely inherited from @tsrx/core's CSS pipeline. Each
+// fixture's accompanying test asserts how the hash interacts with the
+// selector / at-rule.
+// ---------------------------------------------------------------------------
+
+export function ScopedHover() @{
+  <>
+    <button class='hov'>{'over me'}</button>
+    <style>
+      .hov { color: rgb(0, 0, 0); }
+      .hov:hover { color: rgb(0, 0, 255); }
+    </style>
+  </>
+}
+
+export function ScopedFocusWithin() @{
+  <>
+    <div class='wrap'>
+      <input class='inp' />
+    </div>
+    <style>
+      .wrap { padding: 4px; }
+      .wrap:focus-within { background: rgb(255, 255, 0); }
+    </style>
+  </>
+}
+
+export function ScopedMedia() @{
+  <>
+    <div class='card'>{'card'}</div>
+    <style>
+      .card { width: 100px; }
+      @media (max-width: 600px) {
+        .card { width: 50px; }
+      }
+    </style>
+  </>
+}
+
+export function ScopedKeyframes() @{
+  <>
+    <div class='anim'>{'animated'}</div>
+    <style>
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+      .anim { animation: spin 1s linear infinite; }
+    </style>
+  </>
+}
+
+export function ScopedGlobal() @{
+  <>
+    <div class='local'>{'local'}</div>
+    <style>
+      .local { color: rgb(10, 10, 10); }
+      :global(.bodywide) { color: rgb(123, 0, 0); }
+    </style>
+  </>
+}
