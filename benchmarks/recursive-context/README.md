@@ -7,8 +7,10 @@ A second benchmark adjacent to [`js-framework`](../js-framework/). Where js-fram
 ```
 benchmarks/recursive-context/
 ├── ripple-new/        # Vite app, dev :5185
+├── solid/             # Vite app, dev :5187 (Solid 2.0 beta)
+├── react/             # Vite app, dev :5186 (React 19)
 ├── ripple/            # Vite app, dev :5184
-├── run.mjs            # Playwright harness — drives both adapters
+├── run.mjs            # Playwright harness — drives all adapters
 ├── package.json       # umbrella: `pnpm bench`
 └── README.md
 ```
@@ -36,8 +38,10 @@ The bench distinguishes a global fan-out update from a scoped subtree update —
 # 1. From the repo root, install:
 pnpm install
 
-# 2. Start both adapter dev servers (separate terminals):
+# 2. Start each adapter's dev server (separate terminals):
 pnpm --filter ripple-new-recursive-bench dev    # :5185
+pnpm --filter solid-recursive-bench dev         # :5187
+pnpm --filter react-recursive-bench dev         # :5186
 pnpm --filter ripple-recursive-bench dev        # :5184
 
 # 3. Run the harness:

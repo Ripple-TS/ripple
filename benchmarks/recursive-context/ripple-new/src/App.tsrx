@@ -18,10 +18,10 @@ const RootCtx = createContext(0);
 const LocalCtx = createContext(0);
 
 // Module-level setter handles wired up on mount.
-let _setRoot: any = null;
-let _setLocal: any = null;
-export function bumpRoot() { if (_setRoot) _setRoot((v: number) => v + 1); }
-export function bumpPartial() { if (_setLocal) _setLocal((v: number) => v + 1); }
+let _setRoot = null;
+let _setLocal = null;
+export function bumpRoot() { if (_setRoot) _setRoot((v) => v + 1); }
+export function bumpPartial() { if (_setLocal) _setLocal((v) => v + 1); }
 
 function Mid(props) @{
   const [local, setLocal] = useState(0);

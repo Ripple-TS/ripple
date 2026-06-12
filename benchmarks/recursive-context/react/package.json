@@ -1,0 +1,20 @@
+{
+  "name": "react-recursive-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "recursive-context bench fixture for React 19 — exposes window.__mount/__updateRoot/__updatePartial/__unmount/__reset for the Playwright harness.",
+  "scripts": {
+    "dev": "vite --host --port 5186 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5186 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:default",
+    "react-dom": "catalog:default"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "catalog:default"
+  }
+}
