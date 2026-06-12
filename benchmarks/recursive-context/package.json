@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/recursive-context",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Recursive-component + Context-read bench. Same DOM shape rendered by ripple-new and ripple; harness measures mount / update / unmount independently. Adjacent to benchmarks/js-framework.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 40"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

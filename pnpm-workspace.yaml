@@ -37,6 +37,8 @@ packages:
   - benchmarks
   - benchmarks/js-framework
   - benchmarks/js-framework/*
+  - benchmarks/recursive-context
+  - benchmarks/recursive-context/*
 
 overrides:
   esrap: *esrap_common
