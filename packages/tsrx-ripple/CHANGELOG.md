@@ -1,5 +1,63 @@
 # @tsrx/ripple
 
+## 0.1.29
+
+### Patch Changes
+
+- [#1259](https://github.com/Ripple-TS/ripple/pull/1259)
+  [`3b6fb73`](https://github.com/Ripple-TS/ripple/commit/3b6fb73170d4ad6a383befdda951ce0da4fcbb46)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Lower a code-only `@{ … }`
+  block in value position to a `tsrx_element`. The value-position IIFE wrap was
+  gated on the block having render output, so a render-less block assigned to a
+  variable or returned (e.g. `const Test = @{ const y = 1; };`) was lowered to a
+  bare `BlockStatement` and printed as a malformed object literal
+  (`const Test = { const y = 1; };`) in client, server, and `to_ts` output. The
+  wrap now applies regardless of render output, so a code-only block gets the same
+  lowering as a render-bearing one — a `tsrx_element` whose setup runs on render
+  and which renders nothing (an immediately-invoked arrow in the `to_ts` view).
+
+- [#1262](https://github.com/Ripple-TS/ripple/pull/1262)
+  [`1c645c8`](https://github.com/Ripple-TS/ripple/commit/1c645c8f854df23bb1271b3402d1885616b525cd)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Prune unreachable selectors
+  from `<style>` blocks consistently across targets.
+
+  For a style expression (`const styles = <style> … </style>`), only standalone
+  class selectors — scoped (`.x`) or global-wrapped (`:global(.x)`) — end up in
+  the generated class map, but the emitted CSS still contained every selector.
+  Top-level selectors that don't contribute a class map entry (element selectors,
+  compound selectors, descendant chains, global tag selectors) are now commented
+  out as unused, while standalone classes, `:global(.x)` selectors, and rules
+  nested inside a reachable rule (e.g. `&:hover`) are kept.
+
+  Free-standing `<style>` blocks in the shared JSX targets (react, preact, solid,
+  vue) now prune selectors that match no element, the same way the Ripple target
+  always has, instead of keeping every authored selector. Selector matching also
+  recognizes `className` as the class attribute for React-style targets.
+
+- [#1260](https://github.com/Ripple-TS/ripple/pull/1260)
+  [`b1256fd`](https://github.com/Ripple-TS/ripple/commit/b1256fdb5bf279ee7dd20bf1a71dcfccc47e279c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Make style scope hashes
+  unique per style block and per file. The hash was derived from the style block's
+  content alone, so two `<style>` blocks with identical CSS — in different
+  components of the same file, or in different files — collided and shared a
+  scope. The hash input now includes the filename and the line/column where the
+  `<style>` tag starts. Because the filename may be an absolute path, the hash
+  also switched from the reversible djb2 hash to the truncated SHA-256 hash so
+  file structure can't be recovered from class names in the shipped bundle.
+
+  The `filename` parameter of `parse`, `parseModule`, and the per-target `parse`
+  wrappers is now required (typed as a non-empty string), and parsing a `<style>`
+  element without one throws a clear error instead of silently seeding the hash
+  with an empty name. The prettier plugin and eslint parser pass their host's file
+  path through, falling back to a plugin-specific placeholder when formatting or
+  linting in-memory text.
+
+- Updated dependencies
+  [[`67de047`](https://github.com/Ripple-TS/ripple/commit/67de047d103f39673b25910e1a97760278820999),
+  [`1c645c8`](https://github.com/Ripple-TS/ripple/commit/1c645c8f854df23bb1271b3402d1885616b525cd),
+  [`b1256fd`](https://github.com/Ripple-TS/ripple/commit/b1256fdb5bf279ee7dd20bf1a71dcfccc47e279c)]:
+  - @tsrx/core@0.1.29
+
 ## 0.1.28
 
 ### Patch Changes

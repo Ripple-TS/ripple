@@ -1,5 +1,13 @@
 # @tsrx/bun-plugin-react
 
+## 0.1.52
+
+### Patch Changes
+
+- Updated dependencies
+  [[`b1256fd`](https://github.com/Ripple-TS/ripple/commit/b1256fdb5bf279ee7dd20bf1a71dcfccc47e279c)]:
+  - @tsrx/react@0.2.29
+
 ## 0.1.51
 
 ### Patch Changes
