@@ -3432,6 +3432,39 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).not.toBe('');
 			expect(code).toContain('accent-tone');
 		});
+
+		it('lowers style expressions inside an expression-position code block', () => {
+			const { code, css, cssHash } = compile(
+				`const Test = @{
+						const styles = <style>
+							.card { margin: 5px; }
+						</style>;
+						<div class={styles.card} />
+					};`,
+				'App.tsrx',
+			);
+
+			expect(css).not.toBe('');
+			const hash = cssHash.split(' ').find((h) => code.includes(`${h} card`));
+			expect(hash).toBeTruthy();
+			expect(css).toContain(`.card.${hash}`);
+			expect(code).toContain(`${classAttrName}={styles.card}`);
+			expect(code).not.toContain('JSXStyleElement');
+		});
+
+		it('lowers a style expression that is the only content of an expression-position code block', () => {
+			const { code, css } = compile(
+				`const Test = @{
+						const styles = <style>
+							.card { margin: 5px; }
+						</style>
+					};`,
+				'App.tsrx',
+			);
+
+			expect(css).toContain('margin: 5px;');
+			expect(code).toContain('card');
+		});
 	});
 
 	describe.runIf(['react', 'preact'].includes(name))(

@@ -1378,10 +1378,10 @@ function transform_return_statement(node, { next, visit, state, path }) {
 
 /**
  * @param {any} node
- * @param {{ state: TransformContext, path: AST.Node[] }} context
+ * @param {{ state: TransformContext, path: AST.Node[], visit: (node: any, state?: TransformContext) => any }} context
  * @returns {any}
  */
-function transform_jsx_code_block(node, { state, path }) {
+function transform_jsx_code_block(node, { state, path, visit }) {
 	const body_nodes = get_jsx_code_block_body_nodes(node, state);
 	const parent = /** @type {any} */ (path.at(-1));
 
@@ -1398,10 +1398,22 @@ function transform_jsx_code_block(node, { state, path }) {
 	}
 
 	const expression = b.call(
-		b.arrow([], b.block(build_render_statements(body_nodes, true, state), node)),
+		b.arrow(
+			[],
+			b.block(
+				mark_native_pretransformed_jsx(build_render_statements(body_nodes, true, state)),
+				node,
+			),
+		),
 	);
 
-	return in_jsx_child_context(path) ? to_jsx_expression_container(expression, node) : expression;
+	// Setup statements were carried over verbatim, so re-visit the lowered
+	// scope: TSRX-only nodes they contain (style elements, nested `@{ … }`
+	// blocks) still need their own lowering before printing.
+	const result = in_jsx_child_context(path)
+		? to_jsx_expression_container(expression, node)
+		: expression;
+	return visit(result, state);
 }
 
 /**
