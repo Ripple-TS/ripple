@@ -1,0 +1,20 @@
+{
+  "name": "ripple-new-playground",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Playground for the ripple-new template-clone renderer, compiled through @tsrx/ripple-new.",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "ripple-new": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/ripple-new": "workspace:*",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

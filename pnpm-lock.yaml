@@ -1390,6 +1390,22 @@ importers:
         specifier: catalog:default
         version: 4.1.6(@types/node@25.3.3)(happy-dom@20.10.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@8.0.12(@types/node@25.3.3)(esbuild@0.27.7)(jiti@2.6.1))
 
+  playground/ripple-new:
+    dependencies:
+      ripple-new:
+        specifier: workspace:*
+        version: link:../../packages/ripple-new
+    devDependencies:
+      '@tsrx/ripple-new':
+        specifier: workspace:*
+        version: link:../../packages/tsrx-ripple-new
+      typescript:
+        specifier: catalog:default
+        version: 5.9.3
+      vite:
+        specifier: catalog:default
+        version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.7)(jiti@2.6.1)
+
   playground/solid:
     dependencies:
       '@solidjs/web':
