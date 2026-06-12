@@ -41,6 +41,14 @@ export interface Scope {
    */
   children: ChildScope[];
   mounted: boolean;
+  /**
+   * Slot objects owned by this scope (ifBlockSlot, forBlockSlot, etc.).
+   * Lazily allocated by registerSlot at the slot's first creation site;
+   * walked directly by unmountScope so teardown doesn't have to enumerate
+   * the entire hidden-class chain looking for `_xxx$N` slot keys.
+   * Null on scopes with no slots — the common case for leaf components.
+   */
+  _slots: any[] | null;
   // Bindings (b$0, b$1, ...) are stamped directly on the scope by compiled bodies.
   [key: string]: any;
 }
@@ -390,6 +398,7 @@ class BlockImpl {
   hooks: Map<symbol, any> | null;
   cleanups: Cleanup[];
   children: ChildScope[];
+  _slots: any[] | null;
   // For-block item bookkeeping.
   forSlot: ForSlot | null;
   prevSibling: Block | null;
@@ -430,6 +439,7 @@ class BlockImpl {
     this.hooks = null;
     this.cleanups = [];
     this.children = [];
+    this._slots = null;
     this.forSlot = null;
     this.prevSibling = null;
     this.nextSibling = null;
@@ -503,6 +513,7 @@ export function withScope<P>(
       hooks: null,
       cleanups: [],
       children: [],
+      _slots: null,
       mounted: false,
     };
     children.push({ key, scope });
@@ -558,28 +569,42 @@ function fireCleanupsOnly(scope: Scope): void {
   }
 }
 
+/**
+ * Register a slot object as owned by `scope`. Called from each slot-creation
+ * site in runtime.ts (portal, componentSlot, trySlot, ifBlock, switchBlock,
+ * forBlock). The lazy `_slots` array lets `unmountScope` walk slots in O(slot)
+ * instead of `for (key in scope)` enumerating the entire hidden-class chain
+ * (~25-30 keys per Block at ~57k key visits in a 2047-component tree).
+ *
+ * Invariant: every slot whose teardown requires recursing into a child Block
+ * MUST be registered here. The runtime currently has exactly six creation
+ * sites; the @tsrx/ripple-new compiler never creates slot objects directly.
+ */
+function registerSlot(scope: Scope, slot: any): void {
+  const slots = scope._slots;
+  if (slots === null) scope._slots = [slot];
+  else slots.push(slot);
+}
+
 function unmountScope(scope: Scope, detachDom: boolean = true): void {
   // Recurse into child scopes first.
   const children = scope.children;
   for (let i = 0, n = children.length; i < n; i++) unmountScope(children[i].scope, detachDom);
   // Walk slot-stashed child Blocks (ifBlock / forBlock / componentSlot / portal).
-  for (const key in scope) {
-    // Compiler-emitted slot keys are `_xxx$N` (single underscore). Runtime
-    // back-references like `__trySlot` use double underscore; those point
-    // to slots owned by ANOTHER scope and must NOT be torn down here.
-    if (key.charCodeAt(0) === 95 /* '_' */ && key.charCodeAt(1) !== 95) {
-      const val = scope[key];
-      if (val && val.__kind === 'ifBlockSlot') {
+  const slots = scope._slots;
+  if (slots !== null) {
+    for (let i = 0, n = slots.length; i < n; i++) {
+      const val = slots[i];
+      if (val.__kind === 'ifBlockSlot' || val.__kind === 'switchBlockSlot') {
         if (val.block) unmountBlock(val.block, detachDom);
-      } else if (val && val.__kind === 'forBlockSlot') {
+      } else if (val.__kind === 'forBlockSlot') {
         const items = val.items as Map<any, Block>;
         const it = items.values();
         for (let r = it.next(); !r.done; r = it.next()) unmountBlock(r.value, detachDom);
         // An @empty branch (if any) hangs off the same slot.
         if (val.emptyBlock) unmountBlock(val.emptyBlock, detachDom);
-      } else if (val && val.__kind === 'switchBlockSlot') {
-        if (val.block) unmountBlock(val.block, detachDom);
-      } else if (val && (val.__kind === 'componentSlotSlot' || val.__kind === 'portalSlotSlot' || val.__kind === 'trySlotSlot')) {
+      } else {
+        // componentSlotSlot | portalSlotSlot | trySlotSlot
         // Portal DOM lives in a FOREIGN target — the root-level batched clear
         // never reaches it, so portals must always self-detach individually.
         const childDetach = val.__kind === 'portalSlotSlot' ? true : detachDom;
@@ -595,17 +620,18 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
         // unmountBlock because the tryBlock's DOM was already torn down by
         // its parent's unmount, and a second pass through unmountBlock
         // would re-walk the same scopes / double-fire cleanups.
-        if (val.__kind === 'trySlotSlot' && val.tryBlock && val.tryBlock !== val.block) {
-          val.tryBlock.disposed = true;
-          val.pendingThenable = null;
-        }
-        // Cancel any in-flight transition-fallback timeout so the callback
-        // can't fire after the slot's owning scope is gone.
-        if (val.__kind === 'trySlotSlot' && val.transitionTimeoutId !== null) {
-          clearTimeout(val.transitionTimeoutId);
-          val.transitionTimeoutId = null;
-        }
-        if (val.__kind === 'portalSlotSlot' && val.target) {
+        if (val.__kind === 'trySlotSlot') {
+          if (val.tryBlock && val.tryBlock !== val.block) {
+            val.tryBlock.disposed = true;
+            val.pendingThenable = null;
+          }
+          // Cancel any in-flight transition-fallback timeout so the callback
+          // can't fire after the slot's owning scope is gone.
+          if (val.transitionTimeoutId !== null) {
+            clearTimeout(val.transitionTimeoutId);
+            val.transitionTimeoutId = null;
+          }
+        } else if (val.__kind === 'portalSlotSlot' && val.target) {
           unregisterDelegationTarget(val.target);
         }
       }
@@ -1375,6 +1401,7 @@ export function portal(
     const block = createBlock('portal', parentBlock, target, start, end, body, props);
     state = { __kind: 'portalSlotSlot', block, target, start, end };
     parentScope[slotKey] = state;
+    registerSlot(parentScope, state);
     // Portal target hosts handlers stamped via the same `el.$$click = …`
     // mechanism as the main tree, so it needs the delegated event listeners
     // too. Refcounted: a target hosting two portals attaches once, detaches
@@ -1479,6 +1506,7 @@ export function componentSlot(
     domParent.insertBefore(end, anchor ?? null);
     state = { __kind: 'componentSlotSlot', start, end, block: null, currentComp: null, prevKey: NO_KEY };
     parentScope[slotKey] = state;
+    registerSlot(parentScope, state);
   }
   // Key-driven remount: when the compiler emitted a key arg AND its value
   // changed since last render, force `comp !== state.currentComp` semantics
@@ -1729,6 +1757,7 @@ export function tryBlock(
       domParent, parentBlock,
     };
     parentScope[slotKey] = newState;
+    registerSlot(parentScope, newState);
     state = newState;
   } else {
     state.tryBody = tryBody;
@@ -2295,6 +2324,7 @@ export function ifBlock(
     domParent.insertBefore(end, anchor ?? null);
     state = { __kind: 'ifBlockSlot', start, end, branch: -1, block: null };
     parentScope[slotKey] = state;
+    registerSlot(parentScope, state);
   }
   const next: 0 | 1 = cond ? 1 : 0;
   const body = next ? thenBody : elseBody;
@@ -2367,6 +2397,7 @@ export function switchBlock(
     domParent.insertBefore(end, anchor ?? null);
     state = { __kind: 'switchBlockSlot', start, end, caseIdx: -1, block: null };
     parentScope[slotKey] = state;
+    registerSlot(parentScope, state);
   }
   // Pick the first matching case, or fall back to default.
   let nextIdx = -2;
@@ -2462,6 +2493,7 @@ export function forBlock<T, E = undefined>(
       emptyBlock: null,
     };
     parentScope[slotKey] = state;
+    registerSlot(parentScope, state);
   }
   // `@empty` arm: when `items.length === 0` and the compiler emitted an
   // empty-body helper, mount that body in place of the (empty) item list. We
