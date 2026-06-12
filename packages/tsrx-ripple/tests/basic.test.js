@@ -201,6 +201,31 @@ describe('@tsrx/ripple lowers `@{ … }` code blocks in expression position', ()
 		});
 	}
 
+	const code_only = `const Test = @{
+	const y = 1;
+};`;
+
+	for (const mode of /** @type {const} */ (['client', 'server'])) {
+		it(`compiles a code-only block in value position to a tsrx_element (${mode})`, () => {
+			const { code, errors } = compile(code_only, 'App.tsrx', { mode });
+			expect(errors).toEqual([]);
+			// A render-less block in value position must not print as a bare
+			// `= { … }` block (a malformed object literal); it lowers to the same
+			// tsrx_element shape as a render-bearing block, just with no output.
+			expect(code).toContain('_$_.tsrx_element');
+			expect(code).toContain('const y = 1;');
+			expect(code).not.toMatch(/=\s*\{\s*\n\s*const/);
+		});
+	}
+
+	it('emits valid to_ts for a code-only block in value position', () => {
+		const { code } = compile_to_volar_mappings(code_only, 'App.tsrx', { loose: true });
+		expect(code).toContain('(() => {');
+		expect(code).toContain('const y = 1;');
+		expect(code).not.toContain('JSXCodeBlock');
+		expect(code).not.toMatch(/=\s*\{\s*\n\s*const/);
+	});
+
 	it('keeps setup and variable identifiers navigable in to_ts output', () => {
 		const source = `function App() {
 	const view = @{

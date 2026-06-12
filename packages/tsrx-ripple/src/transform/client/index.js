@@ -1959,15 +1959,15 @@ const visitors = {
 	},
 
 	JSXCodeBlock(node, context) {
-		// A `@{ … }` block that produces render output but sits in a value
-		// position (assigned to a variable, returned, …) is wrapped in an
-		// immediately-invoked arrow so it flows through the function-body path
-		// (`transform_native_tsrx_function`) rather than reaching the printer as a
-		// raw `JSXCodeBlock`. Applies to runtime and `to_ts` output alike. The
-		// function-body guard keeps `transform_native_tsrx_function`'s own visit of
-		// the body (in `to_ts`) from re-wrapping it endlessly.
+		// A `@{ … }` block that sits in a value position (assigned to a variable,
+		// returned, …) is wrapped in an immediately-invoked arrow so it flows
+		// through the function-body path (`transform_native_tsrx_function`) rather
+		// than reaching the printer as a raw `JSXCodeBlock` — a code-only block
+		// would otherwise print as an invalid `{ … }` "expression". Applies to
+		// runtime and `to_ts` output alike. The function-body guard keeps
+		// `transform_native_tsrx_function`'s own visit of the body (in `to_ts`)
+		// from re-wrapping it endlessly.
 		if (
-			node.render != null &&
 			!is_code_block_function_body(node, context.path.at(-1)) &&
 			is_native_tsrx_value_position(context.path)
 		) {
