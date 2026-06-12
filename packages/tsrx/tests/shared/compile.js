@@ -3476,6 +3476,7 @@ export function optionalFn(bar: string, baz?: string) {
 								color: green;
 								&:hover { color: blue; }
 							}
+							:global(.badge) { padding: 0; }
 							:global(body) { margin: 0; }
 						</style>;
 						<div class={styles.card} />
@@ -3487,7 +3488,9 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).toContain('/* (unused) .parent .card { font-weight: bold; }*/');
 			expect(css).toContain(`.card.${cssHash}`);
 			expect(css).toContain('&:hover { color: blue; }');
-			expect(css).toContain('body { margin: 0; }');
+			expect(css).toContain('.badge { padding: 0; }');
+			expect(css).not.toContain(`.badge.${cssHash}`);
+			expect(css).toContain('/* (unused) :global(body) { margin: 0; }*/');
 		});
 
 		it('keeps all selectors of a free-standing style block', () => {

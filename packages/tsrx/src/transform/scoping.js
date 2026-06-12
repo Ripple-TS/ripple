@@ -7,7 +7,7 @@
 
 import { walk } from 'zimmerframe';
 import * as b from '../utils/builders.js';
-import { get_standalone_class_selector } from './style-ref.js';
+import { mark_class_map_selectors } from './style-ref.js';
 
 /**
  * Mark selectors inside the stylesheet as "used" so `renderStylesheets` does
@@ -18,32 +18,34 @@ import { get_standalone_class_selector } from './style-ref.js';
  * authored inside the component's `<style>` block is considered intentional.
  *
  * When the `<style>` block is assigned to a variable (`is_style_expression`),
- * the only scoped selectors reachable through the generated class map are
- * standalone class selectors, so anything else at the top level — element
- * selectors, compound selectors, descendant chains — can never match and stays
- * unused for `renderStylesheets` to comment out. Global selectors and selectors
- * of nested rules are kept: globals match without the class map, and nested
- * rules are pruned together with their parent rule when the parent itself is
- * unreachable.
+ * the only selectors reachable through the generated class map are standalone
+ * class selectors — scoped (`.x`) or global-wrapped (`:global(.x)`). Anything
+ * else at the top level — element selectors, compound selectors, descendant
+ * chains, global tag selectors — never ends up in the class map and is marked
+ * unused for `renderStylesheets` to comment out. Selectors of nested rules ride
+ * along with their parent: they apply where the parent's class matched, and the
+ * whole rule is pruned when the parent itself is unreachable.
  *
  * @param {any} stylesheet
  * @param {boolean} [is_style_expression]
  * @returns {any}
  */
 export function prepare_stylesheet_for_render(stylesheet, is_style_expression = false) {
+	if (is_style_expression) {
+		mark_class_map_selectors(stylesheet);
+	}
 	walk(stylesheet, null, {
-		_(node, { next }) {
+		_(node, { next, path }) {
 			if (node && node.metadata && typeof node.metadata === 'object') {
 				if (
 					is_style_expression &&
 					node.type === 'ComplexSelector' &&
-					!node.metadata.used &&
-					node.metadata.rule?.metadata?.parent_rule == null &&
-					get_standalone_class_selector(node) === null
+					is_unreachable_via_class_map(node, path)
 				) {
-					// Unreachable via the class map: leave the subtree untouched — no
-					// `used`, and no `scoped` marks that would splice the hash into
-					// pruned output.
+					// Not in the generated class map. The analyzer pre-marks global
+					// selectors as used, so reset, and leave the subtree untouched —
+					// no `scoped` marks that would splice the hash into pruned output.
+					node.metadata.used = false;
 					return;
 				}
 				node.metadata.used = true;
@@ -55,6 +57,37 @@ export function prepare_stylesheet_for_render(stylesheet, is_style_expression = 
 		},
 	});
 	return stylesheet;
+}
+
+/**
+ * True when a selector of a style expression should be pruned because nothing
+ * reachable through the generated class map can match it. The class map
+ * collection in `style-ref.js` is the single decider of what the map exposes:
+ * it marks the carrying prelude-level selectors with `class_map_selector`.
+ * The remaining cases are structural, not class-shaped: selectors of nested
+ * rules ride along with their parent (the whole rule is pruned when the parent
+ * is unreachable), selectors inside another selector's arguments belong to
+ * their enclosing prelude-level selector, and a bare `:global` block prelude
+ * is kept because its contents render unscoped as authored and cannot be
+ * pruned selector-by-selector.
+ *
+ * @param {any} complex_selector
+ * @param {any[]} path
+ * @returns {boolean}
+ */
+function is_unreachable_via_class_map(complex_selector, path) {
+	if (complex_selector.metadata.class_map_selector) return false;
+	if (complex_selector.metadata.rule?.metadata?.parent_rule != null) return false;
+	if (path.some((parent) => parent.type === 'ComplexSelector')) return false;
+
+	if (complex_selector.children?.length === 1) {
+		const first = complex_selector.children[0]?.selectors?.[0];
+		if (first?.type === 'PseudoClassSelector' && first.name === 'global' && first.args === null) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /**

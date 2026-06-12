@@ -353,6 +353,9 @@ export function App() @{
 				color: blue;
 			}
 		}
+		:global(.badge) {
+			padding: 0;
+		}
 		:global(body) {
 			margin: 0;
 		}
@@ -366,7 +369,9 @@ export function App() @{
 			expect(css).toContain('/* (unused) .parent .card {');
 			expect(css).toContain(`.card.${cssHash}`);
 			expect(css).toContain('&:hover {');
-			expect(css).toContain('body {');
+			expect(css).toContain('.badge {');
+			expect(css).not.toContain(`.badge.${cssHash}`);
+			expect(css).toContain('/* (unused) :global(body) {');
 		});
 
 		it('keeps all selectors of a free-standing style block', () => {

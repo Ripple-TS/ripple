@@ -482,12 +482,10 @@ export function createJsxTransform(platform) {
 						return /** @type {any} */ (create_style_expression_value(node, stylesheet, state));
 					}
 				}
-				return /** @type {any} */ (
-					b.jsx_element(
-						/** @type {ESTreeJSX.JSXElement} */ ({ ...node, type: 'JSXElement', children: [] }),
-						node.openingElement?.attributes ?? [],
-						[],
-					)
+				return b.jsx_element(
+					/** @type {ESTreeJSX.JSXElement} */ ({ ...node, type: 'JSXElement', children: [] }),
+					node.openingElement?.attributes ?? [],
+					[],
 				);
 			},
 

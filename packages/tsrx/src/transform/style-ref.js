@@ -261,21 +261,42 @@ function collect_style_class_map_entries(css) {
 }
 
 /**
- * @param {any} node
- * @param {Map<string, any>} entries
+ * Stamp `class_map_selector` on the prelude-level selectors whose classes the
+ * class map exposes, without building the map. Runs the same collection as
+ * `create_style_class_map_from_stylesheet`, so marking and the generated map
+ * always agree; calling both is harmless.
+ *
+ * @param {any} css
  * @returns {void}
  */
-function collect_rule_class_map_entries(node, entries) {
+export function mark_class_map_selectors(css) {
+	collect_rule_class_map_entries(css, new Map());
+}
+
+/**
+ * @param {any} node
+ * @param {Map<string, any>} entries
+ * @param {any} [enclosing_selector] the nearest prelude-level selector; classes
+ *   found inside another selector (e.g. in `:global(...)` args) mark it as the
+ *   selector that carries their class map entry
+ * @returns {void}
+ */
+function collect_rule_class_map_entries(node, entries, enclosing_selector = null) {
 	if (!node || typeof node !== 'object') return;
 
 	if (Array.isArray(node)) {
-		for (const child of node) collect_rule_class_map_entries(child, entries);
+		for (const child of node) collect_rule_class_map_entries(child, entries, enclosing_selector);
 		return;
 	}
 
 	if (node.type === 'ComplexSelector') {
+		enclosing_selector ??= node;
 		const class_selector = get_standalone_class_selector(node);
 		if (class_selector) {
+			// Mark the prelude-level selector for every occurrence (not just the
+			// deduped first) so the render preparation of style expressions keeps
+			// exactly the selectors whose classes the map exposes.
+			(enclosing_selector.metadata ??= {}).class_map_selector = true;
 			const name = class_selector.name.replace(regex_backslash_and_following_character, '$1');
 			if (!entries.has(name)) {
 				entries.set(name, {
@@ -295,7 +316,7 @@ function collect_rule_class_map_entries(node, entries) {
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		collect_rule_class_map_entries(node[key], entries);
+		collect_rule_class_map_entries(node[key], entries, enclosing_selector);
 	}
 }
 
@@ -303,7 +324,7 @@ function collect_rule_class_map_entries(node, entries) {
  * @param {any} complex_selector
  * @returns {any | null}
  */
-export function get_standalone_class_selector(complex_selector) {
+function get_standalone_class_selector(complex_selector) {
 	if (complex_selector?.children?.length !== 1) return null;
 	const relative_selector = complex_selector.children[0];
 	if (
