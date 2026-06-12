@@ -18,6 +18,39 @@ runSharedComponentParamsTests({
 	name: 'ripple',
 });
 
+describe('@tsrx/ripple style scope hashes', () => {
+	const source = `export function Card() @{
+	<>
+		<style>
+			.card { padding: 1.5rem; }
+		</style>
+		<div class="card">{'one'}</div>
+	</>
+}
+
+export function Other() @{
+	<>
+		<style>
+			.card { padding: 1.5rem; }
+		</style>
+		<div class="card">{'two'}</div>
+	</>
+}`;
+
+	it('produces distinct hashes for identical style blocks in the same file', () => {
+		const { cssHash } = compile(source, 'Card.tsrx');
+		const hashes = cssHash.split(' ');
+		expect(hashes).toHaveLength(2);
+		expect(hashes[0]).not.toBe(hashes[1]);
+	});
+
+	it('produces distinct hashes for identical style blocks across files', () => {
+		const { cssHash: a } = compile(source, 'a/Card.tsrx');
+		const { cssHash: b } = compile(source, 'b/Card.tsrx');
+		expect(a).not.toBe(b);
+	});
+});
+
 describe('@tsrx/ripple dynamic tag syntax', () => {
 	const source = `function App() @{
 	const Tag = 'section';

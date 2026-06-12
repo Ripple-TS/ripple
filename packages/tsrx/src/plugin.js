@@ -1995,11 +1995,25 @@ export function TSRXPlugin(config) {
 			 * @param {boolean} insideHead
 			 */
 			#parseStyleElement(open, node, insideHead) {
+				const filename = this.#filename;
+				if (!filename) {
+					throw new Error(
+						'<style> elements require a filename: pass one to parse so style scope hashes are unique per file.',
+					);
+				}
 				const contentStart = open.end;
 				const input = this.input.slice(contentStart);
 				const relativeCloseStart = input.indexOf('</style>');
 				const content = relativeCloseStart === -1 ? input : input.slice(0, relativeCloseStart);
-				const parsedCss = parse_style(content, { loose: this.#loose });
+				const parsedCss = parse_style(
+					content,
+					{
+						filename,
+						line: open.loc.start.line,
+						column: open.loc.start.column,
+					},
+					{ loose: this.#loose },
+				);
 
 				if (!insideHead) {
 					node.metadata.styleScopeHash = parsedCss.hash;

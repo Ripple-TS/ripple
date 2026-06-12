@@ -1,6 +1,7 @@
 /** @import * as AST from 'estree' */
+/** @import { NonEmptyString } from '../../types/helpers' */
 
-import { simple_hash } from '../utils/hashing.js';
+import { strong_hash } from '../utils/hashing.js';
 
 const REGEX_MATCHER = /^[~^$*|]?=/;
 const REGEX_ATTRIBUTE_FLAGS = /^[a-zA-Z]+/;
@@ -110,16 +111,24 @@ class Parser {
 }
 
 /**
+ * @template {string} T
  * @param {string} content
+ * @param {{ filename: NonEmptyString<T>, line: number, column: number }} location position of the `<style>` tag in the source file
  * @param {{ loose?: boolean }} options
  * @returns {AST.CSS.StyleSheet}
  */
-export function parse_style(content, options) {
+export function parse_style(content, location, options) {
 	const parser = new Parser(content, options.loose || false);
+
+	// The filename and the position of the `<style>` tag keep the hash unique
+	// when identical content appears in multiple style blocks within a file or
+	// across files. The filename may be an absolute path, so this must be a
+	// pre-image-resistant hash to avoid leaking file structure into the bundle.
+	const hash_source = `${location.filename}:${location.line}:${location.column}:${content}`;
 
 	return {
 		source: content,
-		hash: `tsrx-${simple_hash(content)}`,
+		hash: `tsrx-${strong_hash(hash_source)}`,
 		type: 'StyleSheet',
 		children: read_body(parser),
 		start: 0,

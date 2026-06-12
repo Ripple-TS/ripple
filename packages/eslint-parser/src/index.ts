@@ -151,8 +151,13 @@ function to_eslint_parse_error(error: any): SyntaxError {
 export function parseForESLint(code: string, options?: Linter.ParserOptions): ParseResult {
 	try {
 		const errors: any[] = [];
-		// Parse the TSRX source code using the shared TSRX parser
-		const ast = parse_module(code, options?.filePath, { collect: true, errors }) as any;
+		// Parse the TSRX source code using the shared TSRX parser. ESLint passes
+		// `<input>` for in-memory sources (e.g. RuleTester), so a real filename is
+		// only missing when the parser is invoked directly.
+		const ast = parse_module(code, options?.filePath || 'ESLintParser.tsrx', {
+			collect: true,
+			errors,
+		}) as any;
 		if (!ast) throw new Error('Parser returned null or undefined AST');
 
 		const fatal_error = errors.find(is_fatal_parser_diagnostic);

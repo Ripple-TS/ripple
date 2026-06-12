@@ -1,5 +1,6 @@
 /** @import * as AST from 'estree' */
 /** @import { CompileError, ParseOptions } from '@tsrx/core/types' */
+/** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
 import { createVolarMappingsResult, dedupeMappings, parseModule } from '@tsrx/core';
 import { transform } from './transform.js';
@@ -8,8 +9,9 @@ export { isRefProp } from './ref.js';
 
 /**
  * Parse tsrx-solid source code to an ESTree AST.
+ * @template {string} T
  * @param {string} source
- * @param {string} [filename]
+ * @param {NonEmptyString<T>} filename
  * @param {ParseOptions} [options]
  * @returns {AST.Program}
  */
@@ -21,8 +23,9 @@ export function parse(source, filename, options) {
  * Compile tsrx-solid source code to a TSX module suitable for use with
  * Solid's JSX transform (typically via `vite-plugin-solid`).
  *
+ * @template {string} T
  * @param {string} source
- * @param {string} [filename]
+ * @param {NonEmptyString<T>} filename
  * @param {{ collect?: boolean, loose?: boolean }} [options]
  * @returns {{ code: string, map: any, css: string, cssHash: string | null, errors: CompileError[] }}
  */
@@ -47,8 +50,9 @@ export function compile(source, filename, options) {
 /**
  * Compile tsrx-solid source to virtual TSX plus Volar mappings for editor tooling.
  *
+ * @template {string} T
  * @param {string} source
- * @param {string} [filename]
+ * @param {NonEmptyString<T>} filename
  * @param {ParseOptions} [options]
  * @returns {import('@tsrx/core/types').VolarMappingsResult}
  */

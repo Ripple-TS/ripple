@@ -67,8 +67,7 @@
     "#client": "./src/runtime/internal/client/types.d.ts",
     "#client/constants": "./src/internal/client/constants.js",
     "#server": "./src/runtime/internal/server/types.d.ts",
-    "#public": "./types/index.d.ts",
-    "#helpers": "./src/helpers.d.ts"
+    "#public": "./types/index.d.ts"
   },
   "dependencies": {
     "clsx": "catalog:default",

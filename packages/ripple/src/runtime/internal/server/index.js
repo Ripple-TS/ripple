@@ -1,6 +1,6 @@
 /**
  * @import { Component, Dependency, Block, TryBlockWithCatch } from '#server';
- * @import { NestedArray } from '#helpers';
+ * @import { NestedArray } from '@tsrx/core/types/helpers';
  * @import { Props } from '#public';
  * @import { RenderResult, BaseRenderOptions, RenderStreamResult, Stream, StreamSink } from 'ripple/server';
  */

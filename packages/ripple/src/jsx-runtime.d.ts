@@ -1,5 +1,5 @@
 import type { AddEventObject, FragmentProps, RefKey, RefValue, TSRXElement } from '#public';
-import type { Nullable } from '#helpers';
+import type { Nullable } from '@tsrx/core/types/helpers';
 export type { RefValue } from '#public';
 
 /**

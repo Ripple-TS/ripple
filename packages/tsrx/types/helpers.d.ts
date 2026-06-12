@@ -9,3 +9,5 @@ export type Nullable<T> = T | null;
 export type Nullish<T> = T | null | undefined;
 
 export type NestedArray<T> = (T | NestedArray<T>)[];
+
+export type NonEmptyString<T extends string> = T extends '' ? never : T;

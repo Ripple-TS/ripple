@@ -1,5 +1,6 @@
 /** @import * as AST from 'estree' */
 /** @import { ParseOptions } from '../../types/index' */
+/** @import { NonEmptyString } from '../../types/helpers' */
 
 import { createParser } from './index.js';
 import { TSRXPlugin } from '../plugin.js';
@@ -8,8 +9,9 @@ const parse = createParser(TSRXPlugin());
 
 /**
  * Parse source code to an ESTree AST using the TSRX parser.
+ * @template {string} T
  * @param {string} source
- * @param {string} [filename]
+ * @param {NonEmptyString<T>} filename
  * @param {ParseOptions} [options]
  * @returns {AST.Program}
  */

@@ -27,6 +27,9 @@
     "./types/acorn": {
       "types": "./types/acorn.d.ts"
     },
+    "./types/helpers": {
+      "types": "./types/helpers.d.ts"
+    },
     "./runtime/ref": {
       "types": "./types/runtime/ref.d.ts",
       "default": "./src/runtime/ref.js"

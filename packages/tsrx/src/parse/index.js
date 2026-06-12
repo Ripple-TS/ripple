@@ -2,6 +2,7 @@
 @import * as AST from 'estree'
 @import * as ESTreeJSX from 'estree-jsx'
 @import { Parse } from '../../types/parse'
+@import { NonEmptyString } from '../../types/helpers'
  */
 
 import * as acorn from 'acorn';
@@ -189,7 +190,7 @@ function elementTemplateClosingTagPlugin(Base) {
  * extend the base parser with framework-specific syntax.
  *
  * @param {...(AcornPlugin | Function)} plugins - Framework parser plugins to compose
- * @returns {(source: string, filename?: string, options?: any) => AST.Program} A parse function
+ * @returns {<T extends string>(source: string, filename: NonEmptyString<T>, options?: any) => AST.Program} A parse function
  */
 export function createParser(...plugins) {
 	const parser = /** @type {Parse.ParserConstructor} */ (
@@ -204,7 +205,7 @@ export function createParser(...plugins) {
 
 	/**
 	 * @param {string} source
-	 * @param {string} [filename]
+	 * @param {string} filename
 	 * @param {any} [options]
 	 * @returns {AST.Program}
 	 */

@@ -44,15 +44,15 @@ describe('compiler > basics', () => {
 		const style3 = 'div {color: green }';
 
 		let input = source.replace('__STYLE__', style1);
-		let ast = parse(input);
+		let ast = parse(input, 'App.tsrx');
 		expect(get_returned_tsrx(ast.body[0]).children.at(-1).children[0].source).toEqual(style1);
 
 		input = source.replace('__STYLE__', style2);
-		ast = parse(input);
+		ast = parse(input, 'App.tsrx');
 		expect(get_returned_tsrx(ast.body[0]).children.at(-1).children[0].source).toEqual(style2);
 
 		input = source.replace('__STYLE__', style3);
-		ast = parse(input);
+		ast = parse(input, 'App.tsrx');
 		expect(get_returned_tsrx(ast.body[0]).children.at(-1).children[0].source).toEqual(style3);
 	});
 
@@ -67,7 +67,7 @@ describe('compiler > basics', () => {
 	</>
 		}`;
 
-		const ast = parse(source);
+		const ast = parse(source, 'App.tsrx');
 		const elements = get_returned_tsrx(ast.body[0]).children.filter(
 			(node: AST.Node) => node.type === 'Element',
 		) as AST.Element[];
@@ -89,7 +89,7 @@ describe('compiler > basics', () => {
 	<div>{text markup}</div>
 		}`;
 
-		expect(() => parse(invalid_source)).toThrow();
+		expect(() => parse(invalid_source, 'App.tsrx')).toThrow();
 	});
 
 	it('optimizes string-shaped expressions as text nodes', () => {
@@ -192,7 +192,7 @@ export function App() @{
 				</>
 		}`;
 
-		const ast = parse(source);
+		const ast = parse(source, 'App.tsrx');
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration) as any;
 
@@ -211,7 +211,7 @@ export function App() @{
 				</>
 		}`;
 
-		const ast = parse(source);
+		const ast = parse(source, 'App.tsrx');
 		const declaration = (ast.body[0] as AST.VariableDeclaration).declarations[0];
 		const fragment = get_returned_tsrx(declaration) as any;
 
@@ -1050,7 +1050,7 @@ function App() @{
 }
 `;
 
-		const ast = parse(source);
+		const ast = parse(source, 'App.tsrx');
 		const ast_json = JSON.stringify(ast);
 
 		expect(ast_json).toContain('"name":"effect"');
@@ -1223,7 +1223,7 @@ export function App() @{
 			const source = `function TodoList({ items }: { items: { text: string }[] }) @{
   <ul>var a = "123"</ul>
 			}`;
-			const ast = parse(source);
+			const ast = parse(source, 'App.tsrx');
 			const returned = get_returned_tsrx(ast.body[0]);
 			const ul =
 				returned.type === 'Element'
@@ -1262,6 +1262,6 @@ export function App() @{
 	<4;</ul>
 		}`;
 
-		expect(() => parse(source)).toThrow();
+		expect(() => parse(source, 'App.tsrx')).toThrow();
 	});
 });

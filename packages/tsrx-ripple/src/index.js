@@ -1,5 +1,6 @@
 /** @import * as AST from 'estree' */
 /** @import { CompileOptions, CompileError, ParseOptions } from '../types/index' */
+/** @import { NonEmptyString } from '@tsrx/core/types/helpers' */
 
 import { createVolarMappingsResult, parseModule } from '@tsrx/core';
 import { analyze } from './analyze/index.js';
@@ -9,8 +10,9 @@ import { normalize_jsx_tsrx_templates } from './utils.js';
 
 /**
  * Parse Ripple source code to ESTree AST
+ * @template {string} T
  * @param {string} source
- * @param {string} [filename]
+ * @param {NonEmptyString<T>} filename
  * @param {ParseOptions} [options]
  * @returns {AST.Program}
  */

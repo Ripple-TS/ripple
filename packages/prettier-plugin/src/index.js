@@ -55,11 +55,11 @@ export const parsers = {
 		astFormat: 'ripple-ast',
 		/**
 		 * @param {string} text
-		 * @param {ParserOptions<AST.Node | AST.CSS.StyleSheet>} _options
+		 * @param {ParserOptions<AST.Node | AST.CSS.StyleSheet>} options
 		 * @returns {AST.Program}
 		 */
-		parse(text, _options) {
-			return parseModule(text);
+		parse(text, options) {
+			return parseModule(text, options.filepath || 'PrettierPlugin.tsrx');
 		},
 
 		/**

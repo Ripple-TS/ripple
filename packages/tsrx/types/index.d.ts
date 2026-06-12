@@ -4,7 +4,7 @@ import type { TSESTree } from '@typescript-eslint/types';
 import type { Parse } from './parse.js';
 import type * as ESRap from 'esrap';
 import type { Position } from 'acorn';
-import type { RequireAllOrNone } from '../src/helpers.js';
+import type { RequireAllOrNone } from './helpers';
 import type {
 	JsxPlatform,
 	JsxPlatformHooks,

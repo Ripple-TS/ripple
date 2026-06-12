@@ -12,7 +12,7 @@
 	Binding,
 }	from '../../../types/index';
 @import { CompileError } from '../../../types/index';
-@import { RequiredPresent } from '../../helpers';
+@import { RequiredPresent } from '@tsrx/core/types/helpers';
  */
 
 /**
