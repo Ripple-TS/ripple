@@ -7,7 +7,7 @@ describe('@tsrx/vite-plugin-preact basic', () => {
 		const id = '/virtual/App.tsrx';
 		const source = `export function App() @{
 			<>
-				<div>{'Hello world'}</div>
+				<div class="div">{'Hello world'}</div>
 
 				<style>
 					.div {

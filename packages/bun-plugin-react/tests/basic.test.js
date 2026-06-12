@@ -127,7 +127,7 @@ describe('@tsrx/bun-plugin-react', () => {
 				file_path,
 				`export function App() @{
 					<>
-					<div>{'Hello world'}</div>
+					<div className="div">{'Hello world'}</div>
 
 					<style>
 						.div {

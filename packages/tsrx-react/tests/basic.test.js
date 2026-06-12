@@ -243,7 +243,7 @@ describe('@tsrx/react basic', () => {
 			`export function App() @{
 				<>
 					@if (true) {
-						<div>{'inside'}</div>
+						<div className="div">{'inside'}</div>
 					}
 
 					<style>
@@ -257,8 +257,8 @@ describe('@tsrx/react basic', () => {
 		);
 
 		expect(css).not.toBe('');
-		expect(code).toContain(`className="${cssHash}"`);
-		expect(code).toContain(`App__static1 = <div className="${cssHash}">`);
+		expect(code).toContain(`className="div ${cssHash}"`);
+		expect(code).toContain(`App__static1 = <div className="div ${cssHash}">`);
 		expect(css).toContain(`.div.${cssHash}`);
 	});
 

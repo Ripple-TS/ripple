@@ -73,7 +73,7 @@ describe('@tsrx/rspack-plugin-react css-loader', () => {
 		const id = '/virtual/App.tsrx';
 		const source = `export function App() @{
 			<>
-			<div>{'Hello world'}</div>
+			<div className="div">{'Hello world'}</div>
 
 			<style>
 				.div {

@@ -756,11 +756,13 @@ function attribute_matches(node, name, expected_value, operator, case_insensitiv
 		if (attribute.type !== 'JSXAttribute') continue;
 
 		const lowerCaseName = name.toLowerCase();
+		const accepted_names = [lowerCaseName, `$${lowerCaseName}`];
+		if (lowerCaseName === 'class') {
+			// React-style targets author the class attribute as `className`.
+			accepted_names.push('classname');
+		}
 		const attributeName = get_attribute_name(attribute);
-		if (
-			!attributeName ||
-			![lowerCaseName, `$${lowerCaseName}`].includes(attributeName.toLowerCase())
-		) {
+		if (!attributeName || !accepted_names.includes(attributeName.toLowerCase())) {
 			continue;
 		}
 

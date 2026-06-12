@@ -127,7 +127,7 @@ describe('@tsrx/bun-plugin-preact', () => {
 				file_path,
 				`export function App() @{
 					<>
-						<div>{'Hello world'}</div>
+						<div class="div">{'Hello world'}</div>
 
 						<style>
 							.div {

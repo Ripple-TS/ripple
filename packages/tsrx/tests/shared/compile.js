@@ -3255,7 +3255,7 @@ export function optionalFn(bar: string, baz?: string) {
 			const { code, css, cssHash } = compile(
 				`export function App() @{
 					<>
-						<div>{'Hello world'}</div>
+						<div ${generatedClassAttrName}="div">{'Hello world'}</div>
 
 						<style>
 							.div { color: red; }
@@ -3267,7 +3267,7 @@ export function optionalFn(bar: string, baz?: string) {
 
 			expect(css).not.toBe('');
 			expect(code).toContain("{'Hello world'}");
-			expect(code).toContain(`${generatedClassAttrName}="${cssHash}"`);
+			expect(code).toContain(`${generatedClassAttrName}="div ${cssHash}"`);
 			expect(css).toContain(`.div.${cssHash}`);
 			expect(css).toContain('color: red;');
 		});
@@ -3493,7 +3493,28 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(css).toContain('/* (unused) :global(body) { margin: 0; }*/');
 		});
 
-		it('keeps all selectors of a free-standing style block', () => {
+		it('matches free-standing selectors for both class and className attributes', () => {
+			const { css, cssHash } = compile(
+				`export function App() @{
+						<>
+							<div class="a">{'a'}</div>
+							<span className="b">{'b'}</span>
+
+							<style>
+								.a { color: red; }
+								.b { color: blue; }
+							</style>
+						</>
+					}`,
+				'App.tsrx',
+			);
+
+			expect(css).toContain(`.a.${cssHash}`);
+			expect(css).toContain(`.b.${cssHash}`);
+			expect(css).not.toContain('(unused)');
+		});
+
+		it('prunes free-standing selectors that match no element', () => {
 			const { css, cssHash } = compile(
 				`export function App() @{
 						<>
@@ -3502,15 +3523,18 @@ export function optionalFn(bar: string, baz?: string) {
 							<style>
 								div { color: red; }
 								.card { color: green; }
+								span { color: gray; }
+								:global(.test) { color: black; }
 							</style>
 						</>
 					}`,
 				'App.tsrx',
 			);
 
-			expect(css).not.toContain('(unused)');
 			expect(css).toContain(`div.${cssHash}`);
 			expect(css).toContain(`.card.${cssHash}`);
+			expect(css).toContain('/* (unused) span { color: gray; }*/');
+			expect(css).toContain('.test { color: black; }');
 		});
 	});
 

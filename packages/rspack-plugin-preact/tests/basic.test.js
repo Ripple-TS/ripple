@@ -102,7 +102,7 @@ describe('@tsrx/rspack-plugin-preact css-loader', () => {
 		const id = '/virtual/App.tsrx';
 		const source = `export function App() @{
 			<>
-				<div>{'Hello world'}</div>
+				<div class="div">{'Hello world'}</div>
 
 				<style>
 					.div {

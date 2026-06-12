@@ -6,7 +6,7 @@ describe('@tsrx/vite-plugin-react basic', () => {
 		const id = '/virtual/App.tsrx';
 		const source = `export function App() @{
 			<>
-			<div>{'Hello world'}</div>
+			<div className="div">{'Hello world'}</div>
 
 			<style>
 				.div {

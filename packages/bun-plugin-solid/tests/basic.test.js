@@ -78,7 +78,7 @@ describe('@tsrx/bun-plugin-solid', () => {
 			await writeFile(
 				file_path,
 				`export function App({ name }: { name: string }) { return <>
-					<div>{name}</div>
+					<div class="div">{name}</div>
 
 					<style>
 						.div {

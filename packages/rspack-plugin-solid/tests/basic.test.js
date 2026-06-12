@@ -71,7 +71,7 @@ describe('@tsrx/rspack-plugin-solid css-loader', () => {
 	it('returns the compiled scoped css text', async () => {
 		const id = '/virtual/App.tsrx';
 		const source = `export function App() { return <>
-			<div>{'Hello world'}</div>
+			<div class="div">{'Hello world'}</div>
 
 			<style>
 				.div {

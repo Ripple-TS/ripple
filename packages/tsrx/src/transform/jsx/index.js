@@ -1921,8 +1921,10 @@ function prepare_tsrx_fragment_styles(node, transform_context) {
 	if (!css) return null;
 
 	const style_refs = collect_style_ref_attributes(node);
+	// `prune_css` inside marks the matching selectors as used/scoped; selectors
+	// that match no element render commented out, like the Ripple target.
 	apply_css_definition_metadata(node, css, transform_context, style_refs.length > 0);
-	transform_context.stylesheets.push(prepare_stylesheet_for_render(css));
+	transform_context.stylesheets.push(css);
 	const fragment = annotate_tsrx_with_hash(
 		node,
 		css.hash,
