@@ -20,20 +20,25 @@ const LocalCtx = createContext(0);
 // exist so simple last-write-wins capture is fine.
 let _setRoot = null;
 let _setLocal = null;
+let _setVisible = null;
 export function bumpRoot() { if (_setRoot) _setRoot((v) => v + 1); }
 export function bumpPartial() { if (_setLocal) _setLocal((v) => v + 1); }
+export function hideMid() { if (_setVisible) _setVisible(false); }
+export function showMid() { if (_setVisible) _setVisible(true); }
 
 function Mid({ depth, path }) {
   const [local, setLocal] = useState(0);
+  const [visible, setVisible] = useState(true);
   _setLocal = setLocal;
-  return (
+  _setVisible = setVisible;
+  return visible ? (
     <LocalCtx.Provider value={local}>
       <div className="mid">
         <Node depth={depth - 1} path={path + 'L'} />
         <Node depth={depth - 1} path={path + 'R'} />
       </div>
     </LocalCtx.Provider>
-  );
+  ) : null;
 }
 
 function Node({ depth, path }) {

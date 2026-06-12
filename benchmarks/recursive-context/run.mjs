@@ -104,6 +104,34 @@ async function measureUnmount(browser, url) {
   return summarize(samples);
 }
 
+// Partial unmount/remount: hide/show the 32-leaf Mid subtree without tearing
+// down the rest of the tree. Mounted once; each iteration alternates
+// __partialUnmount + __partialRemount and records both halves of the cycle
+// — so any GC/JIT noise hits both ops symmetrically.
+async function measurePartialUnmountRemount(browser, url) {
+  const { ctx, page } = await freshPage(browser, url);
+  await page.evaluate(() => window.__mount());
+  await sleep(50);
+  const unmountSamples = [];
+  const remountSamples = [];
+  for (let i = 0; i < WARMUP + ITER; i++) {
+    // Mid subtree currently mounted (start state).
+    const dtUnmount = await timeInPage(page, '__partialUnmount');
+    await sleep(10);
+    const dtRemount = await timeInPage(page, '__partialRemount');
+    if (i >= WARMUP) {
+      unmountSamples.push(dtUnmount);
+      remountSamples.push(dtRemount);
+    }
+    await sleep(20);
+  }
+  await ctx.close();
+  return {
+    partial_unmount: summarize(unmountSamples),
+    partial_remount: summarize(remountSamples),
+  };
+}
+
 async function runTarget(t) {
   const browser = await chromium.launch({
     headless: true,
@@ -115,13 +143,15 @@ async function runTarget(t) {
   const update_root = await measureLoop(browser, t.url, '__updateRoot');
   console.error(`  → update_partial`);
   const update_partial = await measureLoop(browser, t.url, '__updatePartial');
+  console.error(`  → partial_unmount/remount`);
+  const { partial_unmount, partial_remount } = await measurePartialUnmountRemount(browser, t.url);
   console.error(`  → unmount`);
   const unmount = await measureUnmount(browser, t.url);
   await browser.close();
-  return { mount, update_root, update_partial, unmount };
+  return { mount, update_root, update_partial, partial_unmount, partial_remount, unmount };
 }
 
-const OPS = ['mount', 'update_root', 'update_partial', 'unmount'];
+const OPS = ['mount', 'update_root', 'update_partial', 'partial_unmount', 'partial_remount', 'unmount'];
 
 (async () => {
   const all = {};
@@ -133,10 +163,10 @@ const OPS = ['mount', 'update_root', 'update_partial', 'unmount'];
   const cols = TARGETS.map((t) => t.name);
   const W = 32;
   console.log();
-  console.log('Op             | ' + cols.map((c) => c.padEnd(W)).join('| '));
-  console.log('---------------+-' + cols.map(() => '-'.repeat(W)).join('+-'));
+  console.log('Op               | ' + cols.map((c) => c.padEnd(W)).join('| '));
+  console.log('-----------------+-' + cols.map(() => '-'.repeat(W)).join('+-'));
   for (const op of OPS) {
-    const row = [op.padEnd(14)];
+    const row = [op.padEnd(16)];
     for (const c of cols) {
       const r = all[c][op];
       row.push(
@@ -156,7 +186,7 @@ const OPS = ['mount', 'update_root', 'update_partial', 'unmount'];
       for (const op of OPS) {
         const ratio = r[op].median / baseline[op].median;
         const tag = ratio < 0.95 ? '++ faster' : ratio < 1.05 ? '== ~equal' : '-- slower';
-        console.log(`  ${op.padEnd(14)} ${ratio.toFixed(2)}x  ${tag}`);
+        console.log(`  ${op.padEnd(16)} ${ratio.toFixed(2)}x  ${tag}`);
       }
       console.log();
     }
@@ -168,7 +198,7 @@ const OPS = ['mount', 'update_root', 'update_partial', 'unmount'];
     for (const c of cols) {
       const r = all[c];
       const ratio = r.update_partial.median / r.update_root.median;
-      console.log(`  ${c.padEnd(14)} ${ratio.toFixed(3)}x  (ideal: ~0.03)`);
+      console.log(`  ${c.padEnd(16)} ${ratio.toFixed(3)}x  (ideal: ~0.03)`);
     }
   }
 })().catch((e) => {

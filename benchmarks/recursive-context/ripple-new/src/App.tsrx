@@ -20,18 +20,25 @@ const LocalCtx = createContext(0);
 // Module-level setter handles wired up on mount.
 let _setRoot = null;
 let _setLocal = null;
+let _setVisible = null;
 export function bumpRoot() { if (_setRoot) _setRoot((v) => v + 1); }
 export function bumpPartial() { if (_setLocal) _setLocal((v) => v + 1); }
+export function hideMid() { if (_setVisible) _setVisible(false); }
+export function showMid() { if (_setVisible) _setVisible(true); }
 
 function Mid(props) @{
   const [local, setLocal] = useState(0);
+  const [visible, setVisible] = useState(true);
   _setLocal = setLocal;
-  <LocalCtx.Provider value={local}>
-    <div class='mid'>
-      <Node depth={props.depth - 1} path={props.path + 'L'} />
-      <Node depth={props.depth - 1} path={props.path + 'R'} />
-    </div>
-  </LocalCtx.Provider>
+  _setVisible = setVisible;
+  @if (visible) {
+    <LocalCtx.Provider value={local}>
+      <div class='mid'>
+        <Node depth={props.depth - 1} path={props.path + 'L'} />
+        <Node depth={props.depth - 1} path={props.path + 'R'} />
+      </div>
+    </LocalCtx.Provider>
+  }
 }
 
 function Node(props) @{

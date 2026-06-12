@@ -20,17 +20,24 @@ const LocalCtx = new Context<Tracked<number> | null>(null);
 
 let _bumpRoot: any = null;
 let _bumpLocal: any = null;
+let _setVisible: any = null;
 export function bumpRoot() { if (_bumpRoot) _bumpRoot(); }
 export function bumpPartial() { if (_bumpLocal) _bumpLocal(); }
+export function hideMid() { if (_setVisible) _setVisible(false); }
+export function showMid() { if (_setVisible) _setVisible(true); }
 
 function Mid(props) @{
-  let &[local, localT] = track(0);
-  LocalCtx.set(localT);
-  _bumpLocal = () => { local += 1; };
-  <div class='mid'>
-    <Node depth={props.depth - 1} path={props.path + 'L'} />
-    <Node depth={props.depth - 1} path={props.path + 'R'} />
-  </div>
+  let &[visible] = track(true);
+  _setVisible = (v) => { visible = v; };
+  @if (visible) {
+    let &[local, localT] = track(0);
+    LocalCtx.set(localT);
+    _bumpLocal = () => { local += 1; };
+    <div class='mid'>
+      <Node depth={props.depth - 1} path={props.path + 'L'} />
+      <Node depth={props.depth - 1} path={props.path + 'R'} />
+    </div>
+  }
 }
 
 function Node(props) @{

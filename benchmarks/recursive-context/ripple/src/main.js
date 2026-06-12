@@ -1,5 +1,5 @@
 import { mount, flushSync } from 'ripple';
-import App, { bumpRoot, bumpPartial } from './App.tsrx';
+import App, { bumpRoot, bumpPartial, hideMid, showMid } from './App.tsrx';
 
 const target = document.getElementById('main');
 let unmount = null;
@@ -9,6 +9,8 @@ window.__mount = () => {
 };
 window.__updateRoot = () => { flushSync(bumpRoot); };
 window.__updatePartial = () => { flushSync(bumpPartial); };
+window.__partialUnmount = () => { flushSync(hideMid); };
+window.__partialRemount = () => { flushSync(showMid); };
 window.__unmount = () => {
   if (unmount) { unmount(); unmount = null; }
 };
