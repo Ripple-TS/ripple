@@ -620,14 +620,33 @@ function unmountScope(scope: Scope): void {
 
 // ---------------------------------------------------------------------------
 // Hooks — keyed by compile-time Symbol per call site
+//
+// The `slot` argument is COMPILER-INJECTED. @tsrx/ripple-new appends a
+// `Symbol.for(stableId)` to every hook call; the symbol is what gives the
+// hook its per-call-site identity within a scope (and its cross-module
+// identity for HMR state preservation). The public signature marks `slot`
+// as OPTIONAL so authors writing `useState(0)` in their editor don't see a
+// confusing "Expected 2 arguments, but got 1" diagnostic. At runtime the
+// missingSlot guard throws if a hook is somehow called without the slot —
+// almost always because the source was loaded outside the Vite plugin.
 // ---------------------------------------------------------------------------
+
+function missingSlot(name: string): never {
+  throw new Error(
+    `${name} was called without a slot symbol. The Ripple compiler injects ` +
+    `per-call-site slot symbols; ensure your project loads this runtime ` +
+    `through the Vite plugin (@tsrx/ripple-new/vite). To call hooks by hand, ` +
+    `pass a stable symbol, e.g. useState(0, Symbol.for('my-stable-id')).`
+  );
+}
 
 interface StateSlot<T> { value: T; setter: (next: T | ((prev: T) => T)) => void; }
 
 export function useState<T>(
   initial: T | (() => T),
-  slot: symbol,
+  slot?: symbol,
 ): [T, (next: T | ((prev: T) => T)) => void] {
+  if (slot === undefined) missingSlot('useState');
   const scope = CURRENT_SCOPE!;
   const block = CURRENT_BLOCK!;
   let s = scope.hooks?.get(slot) as StateSlot<T> | undefined;
@@ -652,8 +671,9 @@ export function useState<T>(
 export function useReducer<S, A>(
   reducer: (s: S, a: A) => S,
   initial: S | (() => S),
-  slot: symbol,
+  slot?: symbol,
 ): [S, (action: A) => void] {
+  if (slot === undefined) missingSlot('useReducer');
   const scope = CURRENT_SCOPE!;
   const block = CURRENT_BLOCK!;
   let s = scope.hooks?.get(slot) as { value: S; dispatch: (a: A) => void; reducer: (s: S, a: A) => S } | undefined;
@@ -704,17 +724,21 @@ function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): v
   effectQueues[phase].push({ scope, slot, fn, args: deps });
 }
 
-export function useEffect(fn: EffectFn, deps: any[], slot: symbol): void {
+export function useEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
+  if (slot === undefined) missingSlot('useEffect');
   enqueueEffect(slot, fn, deps, PASSIVE);
 }
-export function useLayoutEffect(fn: EffectFn, deps: any[], slot: symbol): void {
+export function useLayoutEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
+  if (slot === undefined) missingSlot('useLayoutEffect');
   enqueueEffect(slot, fn, deps, LAYOUT);
 }
-export function useInsertionEffect(fn: EffectFn, deps: any[], slot: symbol): void {
+export function useInsertionEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
+  if (slot === undefined) missingSlot('useInsertionEffect');
   enqueueEffect(slot, fn, deps, INSERTION);
 }
 
-export function useMemo<T>(compute: (...deps: any[]) => T, deps: any[], slot: symbol): T {
+export function useMemo<T>(compute: (...deps: any[]) => T, deps: any[], slot?: symbol): T {
+  if (slot === undefined) missingSlot('useMemo');
   const scope = CURRENT_SCOPE!;
   const prev = scope.hooks?.get(slot) as { deps: any[]; value: T } | undefined;
   if (prev && !depsChanged(prev.deps, deps)) return prev.value;
@@ -724,11 +748,13 @@ export function useMemo<T>(compute: (...deps: any[]) => T, deps: any[], slot: sy
   return value;
 }
 
-export function useCallback<F extends (...args: any[]) => any>(fn: F, deps: any[], slot: symbol): F {
+export function useCallback<F extends (...args: any[]) => any>(fn: F, deps: any[], slot?: symbol): F {
+  if (slot === undefined) missingSlot('useCallback');
   return useMemo(() => fn, deps, slot);
 }
 
-export function useRef<T>(initial: T, slot: symbol): { current: T } {
+export function useRef<T>(initial: T, slot?: symbol): { current: T } {
+  if (slot === undefined) missingSlot('useRef');
   const scope = CURRENT_SCOPE!;
   let s = scope.hooks?.get(slot) as { current: T } | undefined;
   if (s === undefined) {
@@ -748,8 +774,9 @@ export function useImperativeHandle<T>(
   ref: { current: T | null } | ((value: T | null) => void) | null | undefined,
   factory: () => T,
   deps: any[],
-  slot: symbol,
+  slot?: symbol,
 ): void {
+  if (slot === undefined) missingSlot('useImperativeHandle');
   const setRef = (value: T | null): void => {
     if (typeof ref === 'function') (ref as any)(value);
     else if (ref != null) (ref as { current: T | null }).current = value;
@@ -767,7 +794,8 @@ export function useImperativeHandle<T>(
  * trap. The returned function has the same identity across renders; calling it
  * invokes the most-recent `fn` (i.e., it always sees fresh closure values).
  */
-export function useEffectEvent<F extends (...args: any[]) => any>(fn: F, slot: symbol): F {
+export function useEffectEvent<F extends (...args: any[]) => any>(fn: F, slot?: symbol): F {
+  if (slot === undefined) missingSlot('useEffectEvent');
   const scope = CURRENT_SCOPE!;
   let s = scope.hooks?.get(slot) as { current: F; stable: F } | undefined;
   if (s === undefined) {
@@ -909,7 +937,8 @@ function useThenable<T>(thenable: TrackedThenable<T>): T {
 
 // Monotonic counter — produces stable cross-render IDs.
 let _idCounter = 0;
-export function useId(slot: symbol): string {
+export function useId(slot?: symbol): string {
+  if (slot === undefined) missingSlot('useId');
   const scope = CURRENT_SCOPE!;
   let s = scope.hooks?.get(slot) as { id: string } | undefined;
   if (s === undefined) {
@@ -1946,7 +1975,8 @@ export function startTransition(fn: () => void): void {
   queueMicrotask(() => tickTransitionCount(-1));
 }
 
-export function useTransition(slot: symbol): [boolean, (fn: () => void) => void] {
+export function useTransition(slot?: symbol): [boolean, (fn: () => void) => void] {
+  if (slot === undefined) missingSlot('useTransition');
   const scope = CURRENT_SCOPE!;
   const block = CURRENT_BLOCK!;
   let s = scope.hooks?.get(slot) as { isPending: boolean; start: (fn: () => void) => void } | undefined;
@@ -1988,7 +2018,8 @@ export function useDeferredValue<T>(value: T, ...rest: any[]): T {
   // user-vs-compiler args by counting from the end. One trailing Symbol →
   // user passed no initialValue; one trailing Symbol preceded by another
   // arg → user passed initialValue. Same hook-slot semantics either way.
-  const slot = rest[rest.length - 1] as symbol;
+  const slot = rest[rest.length - 1] as symbol | undefined;
+  if (slot === undefined || typeof slot !== 'symbol') missingSlot('useDeferredValue');
   const initialValue = rest.length >= 2 ? (rest[0] as T) : undefined;
   const hasInitial = rest.length >= 2;
   const scope = CURRENT_SCOPE!;
