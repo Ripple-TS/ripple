@@ -1298,6 +1298,39 @@ function normalizeChildren(nodes) {
 				expression,
 			});
 		} else if (n.type === 'JSXElement') {
+			// Long-form `<Fragment>…</Fragment>` (canary `enableFragmentRefs`
+			// parity): if it carries a `ref` attribute, expand to a
+			// FragmentStart / …children… / FragmentEnd sequence so the parent
+			// element template gets `<!--frag-->` markers + a fragmentRef
+			// binding pairing them. Without a ref, treat it identically to the
+			// `<>` shorthand and just inline the children (no wasted markers).
+			// Detection is by source-name only; the runtime `Fragment` export
+			// exists as a sentinel for `import { Fragment }` parity, but the
+			// compiler matches the identifier here. Routing this BEFORE the
+			// generic Element branch is required — `Fragment` would otherwise
+			// hit `isComponentTag` and route through `componentSlot`, which
+			// has no notion of marker pairs.
+			if (isFragmentLongForm(n)) {
+				const refAttr = (n.openingElement.attributes || []).find(
+					(a) =>
+						(a.type === 'Attribute' || a.type === 'JSXAttribute') &&
+						a.name &&
+						(a.name.name || a.name) === 'ref',
+				);
+				if (refAttr) {
+					const refVal = refAttr.value;
+					const refInner =
+						refVal && refVal.type === 'JSXExpressionContainer'
+							? refVal.expression
+							: refVal;
+					out.push({ type: 'FragmentStart', refExpr: refInner });
+					out.push(...normalizeChildren(n.children || []));
+					out.push({ type: 'FragmentEnd' });
+				} else {
+					out.push(...normalizeChildren(n.children || []));
+				}
+				continue;
+			}
 			// Skip JSXStyleElement nested as a child — its CSS gets registered via
 			// the @tsrx/core scoping pipeline elsewhere; it contributes no DOM.
 			// (Detected separately via JSXStyleElement type but the parser may also
@@ -1549,6 +1582,11 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 	// on `ctx` so we don't thread an extra param through every emit signature.
 	const _prevSwitchCalls = ctx._switchCalls;
 	ctx._switchCalls = [];
+	// Top-level Fragment ref pairing stack — same save/restore reason as
+	// portals/switches so nested planJsx invocations (e.g. sub-templates
+	// inside components) don't leak FragmentStart bindings into each other.
+	const _prevFragRefStack = ctx._fragRefStack;
+	ctx._fragRefStack = [];
 	const tryCalls = []; // tryBlock calls
 
 	// Track HTML index across top-level nodes — component-call nodes don't
@@ -1661,6 +1699,15 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 		if (b.kind === 'style') ctx.runtimeNeeded.add('setStyle');
 		if (b.kind === 'spread') ctx.runtimeNeeded.add('setSpread');
 		if (b.kind === 'ref') ctx.runtimeNeeded.add('attachRef');
+		if (b.kind === 'fragmentRef') {
+			ctx.runtimeNeeded.add('attachRef');
+			ctx.runtimeNeeded.add('mountFragmentRef');
+			// Fragment refs need a SECOND template-walked node for the end
+			// marker; emitBindingMount expects a single elVar so we resolve
+			// the end-marker var here and stash it on the binding for the
+			// emit branch to pick up.
+			b.endElVar = ensureVar(b.endPath);
+		}
 		mountLines.push(emitBindingMount(b, elVar));
 	}
 	for (const fc of forCalls) {
@@ -1877,6 +1924,11 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 	}
 	// Restore the outer plan's switch-call list — pairs with the save above.
 	ctx._switchCalls = _prevSwitchCalls;
+	// Restore the outer plan's fragment-ref pairing stack.
+	if (ctx._fragRefStack && ctx._fragRefStack.length) {
+		throw new Error('Unclosed <Fragment ref={…}> — FragmentStart without matching FragmentEnd');
+	}
+	ctx._fragRefStack = _prevFragRefStack;
 
 	return {
 		bindingsName,
@@ -2002,6 +2054,18 @@ function emitBindingMount(b, elVar) {
       __s.cleanups.push(() => attachRef(_b._ref$${b.id}, null));
     }`;
 		}
+		case 'fragmentRef': {
+			// <Fragment ref={r}>…</Fragment> — markers are two Comment nodes
+			// emitted directly into the parent template HTML (<!--frag--> /
+			// <!--/frag-->), already walked into elVar (start) and b.endElVar
+			// (end). mountFragmentRef builds the FragmentInstance, attaches
+			// the user's ref, and registers a single cleanup that detaches
+			// the ref + destroys the instance on unmount.
+			return `    {
+      const _r = (${b.expr});
+      _b._fi$${b.id} = mountFragmentRef(__s, ${elVar}, ${b.endElVar}, _r);
+    }`;
+		}
 	}
 	return '';
 }
@@ -2108,6 +2172,28 @@ function emitNodeHtml(
 			childIndex: path[path.length - 1],
 		});
 		return '<!>';
+	}
+	// Top-level <Fragment ref={…}> — the wrapping <ripple-frag> (multi-root)
+	// is the parent in this scope, so the marker pair lives at the supplied
+	// path. Pairing uses ctx._fragRefStack, saved/restored by planJsx so
+	// nested plans never share state.
+	if (node.type === 'FragmentStart') {
+		const b = {
+			id: bindings.length,
+			kind: 'fragmentRef',
+			expr: printExprWithTsrx(node.refExpr, ctx, componentName, inlinedSubs),
+			path,
+			endPath: null,
+		};
+		bindings.push(b);
+		(ctx._fragRefStack ??= []).push(b);
+		return '<!--frag-->';
+	}
+	if (node.type === 'FragmentEnd') {
+		const b = (ctx._fragRefStack ??= []).pop();
+		if (!b) throw new Error('FragmentEnd without matching FragmentStart');
+		b.endPath = path;
+		return '<!--/frag-->';
 	}
 	if (node.type === 'Element')
 		return emitElementHtml(
@@ -2426,7 +2512,33 @@ function emitElementHtml(
 	} else {
 		// Mixed children — walk them in order.
 		let childIdx = 0;
+		// Stack of in-flight fragmentRef bindings: each FragmentStart pushes a
+		// binding (path captured); the matching FragmentEnd pops and patches in
+		// the endPath. Stacked so nested <Fragment ref={…}> pairs cleanly.
+		const fragRefStack = [];
 		for (const child of children) {
+			if (child.type === 'FragmentStart') {
+				const b = {
+					id: bindings.length,
+					kind: 'fragmentRef',
+					expr: printExprWithTsrx(child.refExpr, ctx, componentName, inlinedSubs),
+					path: [...path, childIdx],
+					endPath: null,
+				};
+				bindings.push(b);
+				fragRefStack.push(b);
+				html += '<!--frag-->';
+				childIdx++;
+				continue;
+			}
+			if (child.type === 'FragmentEnd') {
+				const b = fragRefStack.pop();
+				if (!b) throw new Error('FragmentEnd without matching FragmentStart');
+				b.endPath = [...path, childIdx];
+				html += '<!--/frag-->';
+				childIdx++;
+				continue;
+			}
 			if (child.type === 'Text') {
 				bindings.push({
 					id: bindings.length,
@@ -2696,6 +2808,18 @@ function makeIfCall(node, ctx, componentName, inlinedSubs, parentNs = 'html', cs
 // ===========================================================================
 // Component-as-tag — `<Foo>...</Foo>`, `<ctx.Provider>...</ctx.Provider>`
 // ===========================================================================
+
+// Long-form `<Fragment>…</Fragment>` (capital-F sentinel for fragment refs).
+// Matches a JSXElement / Element whose tag identifier is exactly the word
+// "Fragment". Used in normalizeChildren to expand into a FragmentStart /
+// children / FragmentEnd sequence BEFORE isComponentTag would route the
+// element through the componentSlot path.
+function isFragmentLongForm(node) {
+	const name = node.openingElement?.name || node.id;
+	if (!name) return false;
+	if (name.type !== 'Identifier' && name.type !== 'JSXIdentifier') return false;
+	return name.name === 'Fragment';
+}
 
 function isComponentTag(node) {
 	const name = node.openingElement?.name || node.id;

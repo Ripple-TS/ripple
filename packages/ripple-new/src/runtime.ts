@@ -1328,7 +1328,7 @@ export function setText(node: Text, value: any): void {
 //               Matches React's `ref={[a, b]}` convention.
 // Called by the compiler-emitted ref binding mount + update paths and
 // by the scope cleanup hook installed at mount time.
-export function attachRef(ref: any, el: Element | null): void {
+export function attachRef(ref: any, el: Element | FragmentInstance | null): void {
 	if (ref == null) return;
 	if (typeof ref === 'function') {
 		ref(el);
@@ -1339,6 +1339,420 @@ export function attachRef(ref: any, el: Element | null): void {
 		return;
 	}
 	ref.current = el;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fragment refs (React canary `enableFragmentRefs` parity).
+//
+// `<Fragment ref={r}>...</Fragment>` populates `r.current` with a
+// FragmentInstance that exposes imperative methods over the fragment's
+// first-level host children. The compiler intercepts the long-form
+// `<Fragment>` JSXElement when it carries a `ref` attribute, emits a
+// start/end Comment marker pair around the children in the parent template,
+// and binds the markers + ref expression to a `fragmentRef` binding which
+// calls `mountFragmentRef` at mount time and registers a cleanup that
+// detaches the ref and destroys the instance on unmount.
+//
+// `Fragment` is exported as a sentinel symbol so user code can write
+// `import { Fragment } from 'ripple-new'` for parity with React. The
+// compiler matches on the JSX identifier 'Fragment' at the source-name
+// level, so the import is currently only for TS validity — but reserving
+// the symbol identity now keeps the door open for component-prop-name
+// resolution later.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const Fragment: unique symbol = Symbol.for('ripple-new.Fragment');
+
+export class FragmentInstance {
+	/**
+	 * Sentinel that React's test suite asserts is truthy as a sanity-check
+	 * that the FragmentInstance is bound to its owning Block. Named
+	 * `_ownerBlock` (not React's `_fragmentFiber`) because ripple-new uses
+	 * Blocks, not fibers — same role.
+	 */
+	_ownerBlock: Block;
+	_startMarker: Comment;
+	_endMarker: Comment;
+	_destroyed: boolean;
+	/**
+	 * Live registry of listeners added via addEventListener so subsequent
+	 * removeEventListener calls can find them. Each entry records the host
+	 * elements the listener was applied to so we can detach in one walk.
+	 * `null` until the first addEventListener — keeps the per-instance
+	 * memory cost at zero for fragments that never use the listener API.
+	 */
+	_listeners:
+		| Array<{
+				type: string;
+				listener: EventListenerOrEventListenerObject;
+				options: AddEventListenerOptions | boolean | undefined;
+				applied: Element[];
+		  }>
+		| null;
+
+	constructor(ownerBlock: Block, startMarker: Comment, endMarker: Comment) {
+		this._ownerBlock = ownerBlock;
+		this._startMarker = startMarker;
+		this._endMarker = endMarker;
+		this._destroyed = false;
+		this._listeners = null;
+	}
+
+	_destroy(): void {
+		this._destroyed = true;
+		// Detach any still-registered listeners from their host elements so
+		// stale closures don't keep DOM nodes / scopes alive after unmount.
+		if (this._listeners) {
+			for (const entry of this._listeners) {
+				for (const el of entry.applied) {
+					el.removeEventListener(entry.type, entry.listener, entry.options as any);
+				}
+			}
+			this._listeners = null;
+		}
+	}
+
+	// ─── focus / focusLast / blur (Stage 2) ─────────────────────────────
+	/**
+	 * Focus the first focusable element inside the fragment, in tree order.
+	 * Mirrors React FragmentInstance.focus: matches `<input>`, `<button>`,
+	 * `<select>`, `<textarea>`, `<a href>`, `[contenteditable="true"]`, and
+	 * anything with an explicit tabIndex >= 0. Skips disabled/hidden and
+	 * tabIndex=-1 elements. No-op if the fragment has no focusable descendants.
+	 */
+	focus(options?: FocusOptions): void {
+		if (this._destroyed) return;
+		for (const el of fragmentDescendants(this)) {
+			if (isFocusable(el)) {
+				(el as HTMLElement).focus(options);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Focus the LAST focusable element inside the fragment, in tree order.
+	 * Same focusability rules as `focus()`.
+	 */
+	focusLast(options?: FocusOptions): void {
+		if (this._destroyed) return;
+		let last: Element | null = null;
+		for (const el of fragmentDescendants(this)) {
+			if (isFocusable(el)) last = el;
+		}
+		if (last) (last as HTMLElement).focus(options);
+	}
+
+	/**
+	 * Blur the currently-focused element if it's inside the fragment range.
+	 * No-op if focus is outside the fragment (matches React's "owned" scope —
+	 * we don't blur arbitrary other elements just because they happen to be
+	 * active when blur() is called).
+	 */
+	blur(): void {
+		if (this._destroyed) return;
+		const doc = this._startMarker.ownerDocument || document;
+		const active = doc.activeElement;
+		if (!active || active === doc.body) return;
+		if (isInsideFragment(this, active)) {
+			(active as HTMLElement).blur();
+		}
+	}
+
+	// ─── addEventListener / removeEventListener (Stage 3) ───────────────
+	/**
+	 * Attaches a listener to every DIRECT (host-Element) child of the
+	 * fragment, in tree order. Events that bubble up from descendants
+	 * fire the listener too (standard DOM event bubbling). The listener
+	 * is also recorded on the FragmentInstance so a later
+	 * removeEventListener with the same (type, listener, options.capture)
+	 * tuple detaches them in one walk.
+	 *
+	 * The current implementation is a SNAPSHOT model: children present
+	 * at addEventListener-time get the listener, but children inserted
+	 * later (via state changes inside the fragment) do not. React's spec
+	 * is "applies to future children too" — that's tracked separately and
+	 * will land alongside the dynamic-list integration. Snapshot mode is
+	 * sufficient for the vast majority of real-world fragment-ref uses
+	 * (tooltip / focus-trap libraries attach to a static child set).
+	 */
+	addEventListener(
+		type: string,
+		listener: EventListenerOrEventListenerObject,
+		options?: AddEventListenerOptions | boolean,
+	): void {
+		if (this._destroyed) return;
+		const applied: Element[] = [];
+		let node: ChildNode | null = this._startMarker.nextSibling;
+		while (node && node !== this._endMarker) {
+			if (node.nodeType === 1) {
+				(node as Element).addEventListener(type, listener, options as any);
+				applied.push(node as Element);
+			}
+			node = node.nextSibling;
+		}
+		if (!this._listeners) this._listeners = [];
+		this._listeners.push({ type, listener, options, applied });
+	}
+
+	/**
+	 * Removes a listener that was previously added via this same
+	 * FragmentInstance. The (type, listener, options.capture) tuple must
+	 * match the original add call — same identity rule the platform
+	 * uses on EventTarget.removeEventListener. Unmatched calls are a
+	 * silent no-op (DOM parity).
+	 */
+	removeEventListener(
+		type: string,
+		listener: EventListenerOrEventListenerObject,
+		options?: AddEventListenerOptions | boolean,
+	): void {
+		if (this._destroyed || !this._listeners) return;
+		const wantCapture = listenerCapturePhase(options);
+		for (let i = this._listeners.length - 1; i >= 0; i--) {
+			const entry = this._listeners[i];
+			if (entry.type !== type) continue;
+			if (entry.listener !== listener) continue;
+			if (listenerCapturePhase(entry.options) !== wantCapture) continue;
+			for (const el of entry.applied) {
+				el.removeEventListener(type, listener, entry.options as any);
+			}
+			this._listeners.splice(i, 1);
+			return;
+		}
+	}
+
+	// ─── observeUsing / unobserveUsing / getClientRects / getRootNode (Stage 4) ─
+	/**
+	 * Forwards .observe() on the supplied observer (IntersectionObserver,
+	 * ResizeObserver, MutationObserver, or any other with an `observe(target)`
+	 * signature) to every direct fragment child. Lets a single fragment ref
+	 * stand in for "watch this list of siblings" — react-aria's Virtualizer
+	 * and dnd-kit's drop-zone primitives are the canonical clients.
+	 */
+	observeUsing(observer: { observe(target: Element): void }): void {
+		if (this._destroyed) return;
+		let node: ChildNode | null = this._startMarker.nextSibling;
+		while (node && node !== this._endMarker) {
+			if (node.nodeType === 1) observer.observe(node as Element);
+			node = node.nextSibling;
+		}
+	}
+
+	/**
+	 * Forwards .unobserve() on the supplied observer to every direct fragment
+	 * child. Mirrors observeUsing — same membership rule (direct children
+	 * present at call time).
+	 */
+	unobserveUsing(observer: { unobserve(target: Element): void }): void {
+		if (this._destroyed) return;
+		let node: ChildNode | null = this._startMarker.nextSibling;
+		while (node && node !== this._endMarker) {
+			if (node.nodeType === 1) observer.unobserve(node as Element);
+			node = node.nextSibling;
+		}
+	}
+
+	/**
+	 * Concatenates the client rects of every direct fragment child. The
+	 * returned array is a flat list of DOMRects in tree order — useful for
+	 * tooltip positioning that needs to span multiple sibling elements.
+	 * After unmount returns [].
+	 */
+	getClientRects(): DOMRect[] {
+		const out: DOMRect[] = [];
+		if (this._destroyed) return out;
+		let node: ChildNode | null = this._startMarker.nextSibling;
+		while (node && node !== this._endMarker) {
+			if (node.nodeType === 1) {
+				const rects = (node as Element).getClientRects();
+				for (let i = 0; i < rects.length; i++) out.push(rects[i]);
+			}
+			node = node.nextSibling;
+		}
+		return out;
+	}
+
+	/**
+	 * Returns the rootNode of the fragment (its document or shadow root).
+	 * Falls back to the start-marker's owner document if the fragment has
+	 * no direct children yet — keeps the contract "always returns a Node"
+	 * so callers don't need null-checks.
+	 */
+	getRootNode(): Node {
+		let node: ChildNode | null = this._startMarker.nextSibling;
+		while (node && node !== this._endMarker) {
+			if (node.nodeType === 1) return (node as Element).getRootNode();
+			node = node.nextSibling;
+		}
+		return this._startMarker.getRootNode();
+	}
+
+	// ─── compareDocumentPosition / dispatchEvent (Stage 5) ──────────────
+	/**
+	 * Compares `other` against the fragment's span. The returned bitmask
+	 * uses the same Node constants the platform's compareDocumentPosition
+	 * uses, with `CONTAINED_BY` indicating that `other` lives strictly
+	 * between the fragment's start and end markers (in document order).
+	 *
+	 *   - other before the start marker     → DOCUMENT_POSITION_PRECEDING
+	 *   - other after the end marker        → DOCUMENT_POSITION_FOLLOWING
+	 *   - other between start & end markers → DOCUMENT_POSITION_CONTAINED_BY |
+	 *                                          DOCUMENT_POSITION_FOLLOWING
+	 *   - other not in the same tree        → DOCUMENT_POSITION_DISCONNECTED
+	 */
+	compareDocumentPosition(other: Node): number {
+		if (this._destroyed) return Node.DOCUMENT_POSITION_DISCONNECTED;
+		const startRel = this._startMarker.compareDocumentPosition(other);
+		if (startRel & Node.DOCUMENT_POSITION_DISCONNECTED) return startRel;
+		const endRel = this._endMarker.compareDocumentPosition(other);
+		const followsStart = (startRel & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+		const precedesEnd = (endRel & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+		if (followsStart && precedesEnd) {
+			return Node.DOCUMENT_POSITION_CONTAINED_BY | Node.DOCUMENT_POSITION_FOLLOWING;
+		}
+		if (startRel & Node.DOCUMENT_POSITION_PRECEDING) {
+			return Node.DOCUMENT_POSITION_PRECEDING;
+		}
+		return Node.DOCUMENT_POSITION_FOLLOWING;
+	}
+
+	/**
+	 * Dispatches `event` on the fragment's parent host element so the
+	 * event bubbles into the surrounding handler tree the way native
+	 * EventTarget.dispatchEvent does. Mirrors React's FragmentInstance:
+	 * because the fragment itself has no DOM node, the dispatch target is
+	 * the parent (`return.stateNode` in React's fiber model).
+	 *
+	 * Returns false if the event's default action was cancelled — matches
+	 * EventTarget.dispatchEvent's return contract so callers can branch
+	 * on preventDefault() like they would on any other DOM dispatch.
+	 */
+	dispatchEvent(event: Event): boolean {
+		if (this._destroyed) return true;
+		const parent = this._startMarker.parentNode;
+		if (!parent) return true;
+		return (parent as unknown as EventTarget).dispatchEvent(event);
+	}
+
+	// ─── scrollIntoView (Stage 6) ───────────────────────────────────────
+	/**
+	 * Scrolls the fragment into view. Picks the first focusable descendant
+	 * if one exists (matches what tab-focus would land on), falling back to
+	 * the first element child otherwise. Mirrors React's FragmentInstance
+	 * choice — for tooltip / anchor-scroll use cases the "natural target"
+	 * is usually a focusable element, not an arbitrary wrapper div.
+	 */
+	scrollIntoView(arg?: boolean | ScrollIntoViewOptions): void {
+		if (this._destroyed) return;
+		let firstFocusable: Element | null = null;
+		let firstAny: Element | null = null;
+		for (const el of fragmentDescendants(this)) {
+			if (!firstAny) firstAny = el;
+			if (isFocusable(el)) {
+				firstFocusable = el;
+				break;
+			}
+		}
+		const target = firstFocusable || firstAny;
+		if (target) (target as HTMLElement).scrollIntoView(arg as any);
+	}
+}
+
+/**
+ * EventTarget.removeEventListener compares on (type, listener, capture-flag).
+ * Everything else (once, passive, signal) is "transparent" to identity, so
+ * we normalize options down to its capture-flag for the equality test.
+ */
+function listenerCapturePhase(o: AddEventListenerOptions | boolean | undefined): boolean {
+	if (o == null) return false;
+	if (typeof o === 'boolean') return o;
+	return !!o.capture;
+}
+
+/**
+ * Walk every Element strictly between the start and end markers of the
+ * fragment, in document (tree) order. Uses a TreeWalker rooted at each
+ * top-level child between the markers so the iteration is O(n) over the
+ * fragment's subtree (not the whole document). Comment / Text nodes are
+ * skipped — fragment ref methods only care about Elements.
+ */
+function* fragmentDescendants(fi: FragmentInstance): Generator<Element> {
+	let node: ChildNode | null = fi._startMarker.nextSibling;
+	while (node && node !== fi._endMarker) {
+		const next = node.nextSibling;
+		if (node.nodeType === 1) {
+			const top = node as Element;
+			yield top;
+			// SHOW_ELEMENT (filter 1) keeps us off Text/Comment.
+			const walker = (top.ownerDocument || document).createTreeWalker(top, 1);
+			let descendant = walker.nextNode() as Element | null;
+			while (descendant) {
+				yield descendant;
+				descendant = walker.nextNode() as Element | null;
+			}
+		}
+		node = next;
+	}
+}
+
+/**
+ * Is `node` strictly between the fragment's start and end markers in
+ * document order? Uses compareDocumentPosition so the check works for
+ * arbitrary descendants — not just immediate children — and returns false
+ * for detached / unrelated nodes (which is what blur containment expects).
+ */
+function isInsideFragment(fi: FragmentInstance, node: Node): boolean {
+	const startRel = fi._startMarker.compareDocumentPosition(node);
+	const endRel = fi._endMarker.compareDocumentPosition(node);
+	const followsStart = (startRel & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+	const precedesEnd = (endRel & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+	return followsStart && precedesEnd;
+}
+
+/**
+ * Mirrors the focusability check React's FragmentInstance uses:
+ *  - inherently-focusable tags: <input>, <select>, <textarea>, <button>
+ *    (not disabled), <a> (with href).
+ *  - explicit tabIndex >= 0 OR contenteditable="true" on any tag.
+ *  - tabIndex === -1 → not in sequential order, NOT picked by focus() /
+ *    focusLast(). (Still focusable via .focus() directly — we just skip
+ *    them when walking, matching React's behavior.)
+ *  - hidden / disabled → never focusable.
+ */
+function isFocusable(el: Element): boolean {
+	if ((el as HTMLElement).hidden === true) return false;
+	const tabAttr = el.getAttribute('tabindex');
+	const explicitTab = tabAttr === null ? null : parseInt(tabAttr, 10);
+	if (explicitTab !== null && explicitTab < 0) return false;
+	const tag = el.tagName;
+	if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+		return !(el as HTMLInputElement).disabled;
+	}
+	if (tag === 'A' && el.hasAttribute('href')) return true;
+	if (explicitTab !== null && explicitTab >= 0) return true;
+	if (el.getAttribute('contenteditable') === 'true') return true;
+	return false;
+}
+
+/**
+ * Compiler-emitted helper. Creates a FragmentInstance bound to the supplied
+ * marker pair + owning block, attaches the user's ref, and queues both the
+ * detach + the FragmentInstance destruction on the scope's cleanup chain.
+ */
+export function mountFragmentRef(
+	scope: Scope,
+	startMarker: Comment,
+	endMarker: Comment,
+	ref: any,
+): FragmentInstance {
+	const fi = new FragmentInstance(scope.block, startMarker, endMarker);
+	attachRef(ref, fi);
+	scope.cleanups.push(() => {
+		attachRef(ref, null);
+		fi._destroy();
+	});
+	return fi;
 }
 
 // XML namespaces recognised by the HTML5 parser for attribute names —
