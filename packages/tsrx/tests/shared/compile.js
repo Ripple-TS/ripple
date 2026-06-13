@@ -245,6 +245,62 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 			}
 		});
 
+		it('rejects return statements inside @try/@catch/@pending blocks', () => {
+			for (const source of [
+				`function Test() @{
+					@try {
+						return <div>{'ok'}</div>;
+					} @catch (e) {
+						<div>{'err'}</div>
+					}
+				}`,
+				`function Test() @{
+					@try {
+						<div>{'ok'}</div>
+					} @catch (e) {
+						return <div>{'err'}</div>;
+					}
+				}`,
+				`function Test() @{
+					@try {
+						<div>{'ok'}</div>
+					} @pending {
+						return <div>{'loading'}</div>;
+					} @catch (e) {
+						<div>{'err'}</div>
+					}
+				}`,
+				`function Test() @{
+					@try {
+						return;
+					} @catch (e) {
+						<div>{'err'}</div>
+					}
+				}`,
+			]) {
+				const result = compile_to_volar_mappings(source, 'App.tsrx');
+
+				expect(result.errors.map((error) => error.message)).toContain(TSRX_TEMPLATE_RETURN_ERROR);
+			}
+		});
+
+		it('allows @try/@catch/@pending blocks without return statements', () => {
+			const result = compile_to_volar_mappings(
+				`function Test() @{
+					@try {
+						<div>{'ok'}</div>
+					} @pending {
+						<div>{'loading'}</div>
+					} @catch (e) {
+						<div>{'err'}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(result.errors).toEqual([]);
+		});
+
 		it('allows return statements inside nested ordinary functions in statement containers', () => {
 			const result = compile_to_volar_mappings(
 				`function Test() @{

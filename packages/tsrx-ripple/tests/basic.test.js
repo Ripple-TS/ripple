@@ -1168,7 +1168,7 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		expect(code).not.toContain('Return statements are not allowed');
 	});
 
-	it('uses one return guard for multiple component return branches', () => {
+	it('compiles multiple component guard returns as plain control flow', () => {
 		const source = `function Test({ done }) @{
 			if (done.value) {
 				return <p>Done</p>;
@@ -1188,22 +1188,23 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 		const tsx = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(client.code).toContain('var return_guard = false;');
+		// Plain JS guards are ordinary early returns now — no `return_guard`
+		// bookkeeping. Each guard returns a `tsrx_element` directly.
+		expect(client.code).not.toContain('return_guard');
+		expect(client.code).toContain('if (done.value)');
+		expect(client.code).toContain("} else if (done.value === 'test')");
+		expect(client.code).toContain('return _$_.tsrx_element((__anchor, __block) =>');
 		expect(client.code).toContain('_$_.for(');
 		expect(client.code).toContain('_$_.render_tsrx_element(_$_.with_scope(__block, loop),');
-		expect(client.code).not.toContain('_$_.expression(expression_2, loop)');
-		expect(client.code).not.toContain('return_guard_1');
-		expect(client.code).not.toContain('!return_guard &&');
-		expect(server.code).toContain('var return_guard = false;');
+		expect(server.code).not.toContain('return_guard');
+		expect(server.code).toContain('if (done.value)');
+		expect(server.code).toContain('return _$_.tsrx_element(() =>');
 		expect(server.code).toContain('_$_.render_tsrx_element(loop())');
-		expect(server.code).not.toContain('_$_.render_expression(loop())');
-		expect(server.code).not.toContain('return_guard_1');
-		expect(server.code).not.toContain('!return_guard &&');
 		expect(tsx.code).toContain('if (done.value)');
-		expect(tsx.code).toContain('return;');
+		expect(tsx.code).toContain('return <p>Done</p>');
 	});
 
-	it('keeps return guard names local to each compiled function', () => {
+	it('compiles guard returns in separate functions as plain control flow', () => {
 		const source = `function First(flag) @{
 			if (flag) {
 				return <p>first</p>;
@@ -1220,13 +1221,13 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code.match(/var return_guard = false;/g)).toHaveLength(2);
-		expect(client.code).not.toContain('return_guard_1');
-		expect(server.code.match(/var return_guard = false;/g)).toHaveLength(2);
-		expect(server.code).not.toContain('return_guard_1');
+		expect(client.code).not.toContain('return_guard');
+		expect(client.code.match(/if \(flag\) \{/g)).toHaveLength(2);
+		expect(server.code).not.toContain('return_guard');
+		expect(server.code.match(/if \(flag\) \{/g)).toHaveLength(2);
 	});
 
-	it('still avoids user return_guard bindings inside a compiled function', () => {
+	it('does not synthesize a return_guard binding that could clash with user names', () => {
 		const source = `function Test(return_guard) @{
 			if (return_guard) {
 				return <p>done</p>;
@@ -1236,8 +1237,12 @@ describe('@tsrx/ripple nested function fragment returns', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('var return_guard_1 = false;');
-		expect(server.code).toContain('var return_guard_1 = false;');
+		// No compiler-generated return_guard binding exists, so the user's
+		// `return_guard` parameter is used as-is with no `_1` suffix.
+		expect(client.code).not.toContain('return_guard_1');
+		expect(client.code).toContain('if (return_guard)');
+		expect(server.code).not.toContain('return_guard_1');
+		expect(server.code).toContain('if (return_guard)');
 	});
 });
 
@@ -1292,8 +1297,10 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 
 		expect(client.code).toContain('if (flag) return;');
 		expect(client.code).toContain('_$_.with_scope(__block, sideEffect);');
-		expect(client.code).not.toContain('if (!return_guard) _$_.with_scope(__block, sideEffect)');
-		expect(server.code).toContain('if (!return_guard) sideEffect();');
+		expect(client.code).not.toContain('return_guard');
+		expect(server.code).toContain('if (flag) return;');
+		expect(server.code).toContain('sideEffect();');
+		expect(server.code).not.toContain('return_guard');
 	});
 
 	it('preserves ordinary control flow for plain functions returning templates', () => {

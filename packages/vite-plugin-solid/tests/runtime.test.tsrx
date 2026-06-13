@@ -1263,14 +1263,18 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.page')).toBe('404');
 	});
 
-	it('renders trailing component output for guard return cases', async () => {
+	it('evaluates a plain guard return once at setup (non-reactive)', async () => {
 		await render(GuardTrailingReturnApp);
 		expect(text('.guard-rest')).toBe('rest');
 		expect(container.querySelector('.guard-result')).toBeNull();
 
+		// `if (kind() === 'done') return …` is plain JS that runs once during
+		// component setup, exactly like any Solid component body. Flipping the
+		// signal does not re-run the guard, so the trailing output stays put.
+		// Reactive conditional rendering is done with `@if`.
 		await click('.guard-done');
-		expect(text('.guard-result')).toBe('done');
-		expect(container.querySelector('.guard-rest')).toBeNull();
+		expect(text('.guard-rest')).toBe('rest');
+		expect(container.querySelector('.guard-result')).toBeNull();
 	});
 
 	// ── Composite children ──
@@ -1491,19 +1495,25 @@ describe('tsrx-solid runtime', () => {
 		expect(text('.scope-result')).toBe('18');
 	});
 
-	it('component guard return before signals updates reactively', async () => {
-		await render(GuardReturnWithSignalsApp);
-		expect(text('.early-count')).toBe('0');
-		expect(text('.early-doubled')).toBe('0');
+	it(
+		'keeps reactive expressions after a plain guard return, but the guard is setup-once',
+		async () => {
+			await render(GuardReturnWithSignalsApp);
+			expect(text('.early-count')).toBe('0');
+			expect(text('.early-doubled')).toBe('0');
 
-		await click('.early-inc');
-		expect(text('.early-count')).toBe('1');
-		expect(text('.early-doubled')).toBe('2');
+			// Reactive JSX expressions in the trailing output still update...
+			await click('.early-inc');
+			expect(text('.early-count')).toBe('1');
+			expect(text('.early-doubled')).toBe('2');
 
-		await click('.early-skip');
-		expect(container.querySelector('.early-count')).toBeNull();
-		expect(container.querySelector('.early-doubled')).toBeNull();
-	});
+			// ...but `if (skip()) return null` ran once at setup, so flipping `skip`
+			// does not unmount the early output.
+			await click('.early-skip');
+			expect(text('.early-count')).toBe('1');
+			expect(text('.early-doubled')).toBe('2');
+		},
+	);
 
 	it('conditional branch template updates reactively', async () => {
 		await render(ConditionalBranchTemplateApp);

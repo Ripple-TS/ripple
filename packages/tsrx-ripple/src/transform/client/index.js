@@ -84,12 +84,10 @@ import {
 	strip_class_typescript_syntax,
 	strip_typescript_expression_wrappers,
 	jsx_to_ripple_node,
-	tracked_get,
 	build_index_read,
 	build_index_write,
 	build_index_update,
 	create_native_tsrx_render_function,
-	generate_local_name,
 	get_native_tsrx_function_body,
 	get_indexed_reactive_target,
 	is_native_tsrx_function_node,
@@ -101,7 +99,6 @@ import {
 	dynamic_element_import_local,
 	lower_dynamic_element,
 	rewrite_lazy_member_base,
-	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
 	wrap_code_block_in_iife,
 } from '../../utils.js';
@@ -3210,53 +3207,6 @@ const visitors = {
 		const id = context.state.flush_node?.();
 		const statements = [];
 
-		if (node.metadata?.lone_return && context.state.return_flags) {
-			const consequent_body =
-				node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
-			const ret = /** @type {AST.ReturnStatement} */ (consequent_body[0]);
-			const info = context.state.return_flags.get(ret);
-
-			if (info) {
-				/** @type {AST.Statement[]} */
-				const callback_body = [];
-
-				if (info.tracked) {
-					callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
-					callback_body.push(
-						b.if(
-							/** @type {AST.Expression} */ (
-								context.visit(node.test, {
-									...context.state,
-									metadata: { ...context.state.metadata },
-								})
-							),
-							b.stmt(b.call('_$_.set', b.id(info.name), b.true)),
-						),
-					);
-				} else {
-					callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
-					callback_body.push(
-						b.if(
-							/** @type {AST.Expression} */ (
-								context.visit(node.test, {
-									...context.state,
-									metadata: { ...context.state.metadata },
-								})
-							),
-							b.stmt(b.assignment('=', b.id(info.name), b.true)),
-						),
-					);
-				}
-
-				statements.push(
-					b.stmt(b.call('_$_.if', id, b.arrow([b.id('__render')], b.block(callback_body)))),
-				);
-
-				context.state.init?.push(b.block(statements));
-				return;
-			}
-		}
-
 		const consequent_scope =
 			/** @type {ScopeInterface} */ (context.state.scopes.get(node.consequent)) ||
 			context.state.scope;
@@ -3296,19 +3246,6 @@ const visitors = {
 
 		/** @type {AST.Statement[]} */
 		const callback_body = [];
-
-		if (node.metadata?.has_return && context.state.return_flags) {
-			for (const info of get_unique_return_infos(
-				node.metadata.returns || [],
-				context.state.return_flags,
-			)) {
-				if (info.tracked) {
-					callback_body.push(b.stmt(b.call('_$_.set', b.id(info.name), b.false)));
-				} else {
-					callback_body.push(b.stmt(b.assignment('=', b.id(info.name), b.false)));
-				}
-			}
-		}
 
 		callback_body.push(
 			b.if(
@@ -3366,16 +3303,6 @@ const visitors = {
 					: undefined,
 				/** @type {AST.NodeWithLocation} */ (node),
 			);
-		}
-		if (!is_inside_component(context)) {
-			return context.next();
-		}
-		const info = context.state.return_flags?.get(node);
-		if (info) {
-			if (info.tracked) {
-				return b.stmt(b.call('_$_.set', b.id(info.name), b.true));
-			}
-			return b.stmt(b.assignment('=', b.id(info.name), b.true));
 		}
 		return context.next();
 	},
@@ -4612,105 +4539,6 @@ function is_template_or_control_flow(node) {
 }
 
 /**
- * Builds a negated AND condition from return flag info.
- * @param {{ name: string, tracked: boolean }[]} flags
- * @returns {AST.Expression}
- */
-function build_return_guard(flags) {
-	/** @param {{ name: string, tracked: boolean }} flag */
-	const negate_flag = (flag) =>
-		flag.tracked ? b.unary('!', tracked_get(b.id(flag.name))) : b.unary('!', b.id(flag.name));
-
-	/** @type {AST.Expression} */
-	let condition = negate_flag(flags[0]);
-	for (let i = 1; i < flags.length; i++) {
-		condition = b.logical('&&', condition, negate_flag(flags[i]));
-	}
-	return condition;
-}
-
-/**
- * Builds a positive OR condition from return flag info.
- * @param {{ name: string, tracked: boolean }[]} flags
- * @returns {AST.Expression}
- */
-function build_positive_return_guard(flags) {
-	/** @param {{ name: string, tracked: boolean }} flag */
-	const read_flag = (flag) => (flag.tracked ? tracked_get(b.id(flag.name)) : b.id(flag.name));
-
-	/** @type {AST.Expression} */
-	let condition = read_flag(flags[0]);
-	for (let i = 1; i < flags.length; i++) {
-		condition = b.logical('||', condition, read_flag(flags[i]));
-	}
-	return condition;
-}
-
-/**
- * @param {AST.Node} node
- * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
- * @returns {{ name: string, tracked: boolean } | null}
- */
-function get_returned_child_info(node, return_flags) {
-	const source = /** @type {AST.ReturnStatement | undefined} */ (
-		node.metadata?.returned_tsrx_return
-	);
-	return source ? (return_flags.get(source) ?? null) : null;
-}
-
-/**
- * Collects all unique valid return statements from direct children.
- * @param {AST.Node[]} children
- * @returns {AST.ReturnStatement[]}
- */
-function collect_returns_from_children(children) {
-	/** @type {AST.ReturnStatement[]} */
-	const returns = [];
-	const seen = new Set();
-	for (let index = 0; index < children.length; index++) {
-		const node = children[index];
-		if (
-			node.type === 'ReturnStatement' &&
-			index !== children.length - 1 &&
-			!node.metadata?.invalid_tsrx_template_return
-		) {
-			if (!seen.has(node)) {
-				seen.add(node);
-				returns.push(node);
-			}
-		}
-		if (node.metadata?.returns) {
-			for (const ret of node.metadata.returns) {
-				if (!ret.metadata?.invalid_tsrx_template_return && !seen.has(ret)) {
-					seen.add(ret);
-					returns.push(ret);
-				}
-			}
-		}
-	}
-	return returns;
-}
-
-/**
- * @param {AST.ReturnStatement[]} returns
- * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
- * @returns {{ name: string, tracked: boolean }[]}
- */
-function get_unique_return_infos(returns, return_flags) {
-	/** @type {{ name: string, tracked: boolean }[]} */
-	const infos = [];
-	const seen = new Set();
-	for (const ret of returns) {
-		const info = return_flags.get(ret);
-		if (info && !seen.has(info.name)) {
-			seen.add(info.name);
-			infos.push(info);
-		}
-	}
-	return infos;
-}
-
-/**
  * @param {AST.Node} node
  * @returns {boolean}
  */
@@ -4931,54 +4759,12 @@ function transform_children(children, context) {
 		...context,
 		state: { ...state, keep_component_style: state.to_ts ? true : state.keep_component_style },
 	});
-	const effective_normalized = normalized.filter(
-		(node) => !(node.metadata?.regular_js && is_dead_native_tsrx_expression_statement(node)),
-	);
 
 	const head_elements = /** @type {AST.Element[]} */ (
 		children.filter(
 			(node) => node.type === 'Element' && node.id.type === 'Identifier' && node.id.name === 'head',
 		)
 	);
-
-	const all_returns = collect_returns_from_children(effective_normalized);
-	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
-	const return_flags = new Map([...(state.return_flags || [])]);
-	/** @type {AST.ReturnStatement[]} */
-	const new_returns = [];
-	for (const ret of all_returns) {
-		if (!return_flags.has(ret)) {
-			new_returns.push(ret);
-		}
-	}
-
-	const return_guard_scope = (state.component && state.scopes.get(state.component)) || state.scope;
-	const shared_return_info =
-		new_returns.length > 0
-			? {
-					name: generate_local_name(return_guard_scope, 'return_guard'),
-					tracked: new_returns.some((ret) => ret.metadata?.is_reactive ?? false),
-				}
-			: null;
-	if (shared_return_info !== null) {
-		for (const ret of new_returns) {
-			return_flags.set(ret, shared_return_info);
-		}
-	}
-
-	if (!state.to_ts && shared_return_info !== null) {
-		if (shared_return_info.tracked) {
-			state.init?.unshift(
-				b.var(b.id(shared_return_info.name), b.call('_$_.track', b.false, b.id('__block'))),
-			);
-		} else {
-			state.init?.unshift(b.var(b.id(shared_return_info.name), b.false));
-		}
-	}
-
-	/** @type {{ name: string, tracked: boolean }[]} */
-	const accumulated_return_flags = [];
-	const has_returns = all_returns.length > 0;
 
 	const is_fragment =
 		normalized.some(
@@ -5052,85 +4838,14 @@ function transform_children(children, context) {
 		state.init?.push(b.var(id, b.call(template_id)));
 	};
 
-	/** @type {AST.Node[]} */
-	let pending_group = [];
-	/** @type {{ name: string, tracked: boolean }[]} */
-	let pending_guard_flags = [];
-	let pending_guard_positive = false;
 	let fragment_hop_count = 0;
 
 	let skipped = 0;
-
-	const flush_pending_group = () => {
-		if (pending_group.length === 0) return;
-
-		const guard_flags = pending_guard_flags;
-		const guard_positive = pending_guard_positive;
-		const group_nodes = pending_group;
-		pending_group = [];
-		pending_guard_flags = [];
-		pending_guard_positive = false;
-
-		state.template?.push('<!>');
-		if (is_fragment) {
-			fragment_hop_count += 1;
-		}
-
-		if (initial === null && root) {
-			create_initial(group_nodes[0]);
-		}
-
-		const current_prev = prev;
-		/** @type {AST.Identifier | null} */
-		let cached_anchor = null;
-		const group_flush_node = () => {
-			if (cached_anchor) return cached_anchor;
-			const id = b.id(state.scope.generate('node'));
-			if (current_prev !== null) {
-				state.init?.push(b.var(id, b.call('_$_.sibling', current_prev())));
-			} else if (initial !== null) {
-				if (is_fragment) {
-					state.init?.push(b.var(id, b.call('_$_.first_child_frag', initial)));
-				} else {
-					cached_anchor = initial;
-					return initial;
-				}
-			} else if (state.flush_node !== null) {
-				state.init?.push(b.var(id, b.call('_$_.child', state.flush_node?.())));
-			}
-			cached_anchor = id;
-			return id;
-		};
-
-		prev = group_flush_node;
-
-		const anchor = group_flush_node();
-		const body = transform_body(group_nodes, {
-			...context,
-			state: { ...context.state, flush_node: null, return_flags },
-		});
-
-		const content_id = state.scope.generate('content');
-		const guard_condition = guard_positive
-			? build_positive_return_guard(guard_flags)
-			: build_return_guard(guard_flags);
-
-		/** @type {AST.Statement[]} */
-		const callback_body = [
-			b.if(guard_condition, b.stmt(b.call(b.id('__render'), b.id(content_id)))),
-		];
-
-		state.init?.push(b.var(b.id(content_id), b.arrow([b.id('__anchor')], b.block(body))));
-		state.init?.push(
-			b.stmt(b.call('_$_.if', anchor, b.arrow([b.id('__render')], b.block(callback_body)))),
-		);
-	};
 
 	for (let node_idx = 0; node_idx < normalized.length; node_idx++) {
 		const node = normalized[node_idx];
 
 		if (node.metadata?.regular_js && !state.to_ts) {
-			flush_pending_group();
 			if (is_dead_native_tsrx_expression_statement(node)) {
 				continue;
 			}
@@ -5147,46 +4862,10 @@ function transform_children(children, context) {
 					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
 						? /** @type {AST.Statement} */ (regular_node)
 						: b.stmt(/** @type {AST.Expression} */ (regular_node));
-				state.init?.push(
-					accumulated_return_flags.length > 0 && should_guard_regular_js_statement(statement)
-						? b.if(build_return_guard(accumulated_return_flags), statement)
-						: statement,
-				);
+				state.init?.push(statement);
 			}
 			continue;
 		}
-
-		if (accumulated_return_flags.length > 0 && is_template_or_control_flow(node) && !state.to_ts) {
-			const returned_child_info = get_returned_child_info(node, return_flags);
-			const guard_flags = returned_child_info ? [returned_child_info] : accumulated_return_flags;
-			const guard_positive = returned_child_info !== null;
-			const guard_key = guard_flags.map((flag) => flag.name).join(',');
-			const pending_guard_key = pending_guard_flags.map((flag) => flag.name).join(',');
-			if (
-				pending_group.length > 0 &&
-				(pending_guard_positive !== guard_positive || pending_guard_key !== guard_key)
-			) {
-				flush_pending_group();
-			}
-			if (pending_group.length === 0) {
-				pending_guard_flags = [...guard_flags];
-				pending_guard_positive = guard_positive;
-			}
-			pending_group.push(node);
-
-			if (node.metadata?.has_return && node.metadata.returns) {
-				flush_pending_group();
-				for (const ret of node.metadata.returns) {
-					const info = return_flags.get(ret);
-					if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
-						accumulated_return_flags.push(info);
-					}
-				}
-			}
-			continue;
-		}
-
-		flush_pending_group();
 
 		if (is_fragment && is_template_or_control_flow(node)) {
 			fragment_hop_count += 1;
@@ -5205,15 +4884,7 @@ function transform_children(children, context) {
 			node.type === 'ReturnStatement' ||
 			is_native_tsrx_function_node(node)
 		) {
-			state.init?.push(/** @type {AST.Statement} */ (visit(node, { ...state, return_flags })));
-			if (!state.to_ts) {
-				if (node.type === 'ReturnStatement') {
-					const info = return_flags.get(node);
-					if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
-						accumulated_return_flags.push(info);
-					}
-				}
-			}
+			state.init?.push(/** @type {AST.Statement} */ (visit(node, state)));
 		} else if (state.to_ts) {
 			transform_ts_child(node, /** @type {VisitorClientContext} */ ({ visit, state }));
 		} else {
@@ -5342,7 +5013,6 @@ function transform_children(children, context) {
 
 				visit(node, {
 					...state,
-					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -5408,7 +5078,6 @@ function transform_children(children, context) {
 
 				visit(node, {
 					...state,
-					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -5482,7 +5151,6 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
-					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -5491,7 +5159,6 @@ function transform_children(children, context) {
 				node.is_controlled = is_controlled;
 				visit(node, {
 					...state,
-					return_flags,
 					flush_node: /** @type {TransformClientState['flush_node']} */ (flush_node),
 					namespace: state.namespace,
 				});
@@ -5519,18 +5186,7 @@ function transform_children(children, context) {
 				debugger;
 			}
 		}
-
-		if (has_returns && node.metadata?.has_return && node.metadata.returns) {
-			for (const ret of node.metadata.returns) {
-				const info = return_flags.get(ret);
-				if (info && !accumulated_return_flags.some((f) => f.name === info.name)) {
-					accumulated_return_flags.push(info);
-				}
-			}
-		}
 	}
-
-	flush_pending_group();
 
 	for (let i = 0; i < head_elements.length; i++) {
 		const head_element = head_elements[i];

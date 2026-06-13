@@ -260,3 +260,51 @@ export function tsx_with_ts_locations() {
 
 	return { ...base, ...wrappers };
 }
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_template_if_node(node) {
+	return (
+		node?.type === 'JSXIfExpression' ||
+		node?.metadata?.tsrxDirective === 'if' ||
+		(node?.type === 'IfStatement' && node?.statementType === 'IfStatement')
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_template_for_of_node(node) {
+	return (
+		node?.type === 'JSXForExpression' ||
+		node?.metadata?.tsrxDirective === 'for' ||
+		(node?.type === 'ForOfStatement' && node?.statementType === 'ForOfStatement')
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_template_switch_node(node) {
+	return (
+		node?.type === 'JSXSwitchExpression' ||
+		node?.metadata?.tsrxDirective === 'switch' ||
+		(node?.type === 'SwitchStatement' && node?.statementType === 'SwitchStatement')
+	);
+}
+
+/**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_template_try_node(node) {
+	return (
+		node?.type === 'JSXTryExpression' ||
+		node?.metadata?.tsrxDirective === 'try' ||
+		(node?.type === 'TryStatement' && node?.statementType === 'TryStatement')
+	);
+}

@@ -164,6 +164,10 @@ export {
 	in_jsx_child_context as inJsxChildContext,
 	tsx_node_to_jsx_expression as tsxNodeToJsxExpression,
 	tsx_with_ts_locations as tsxWithTsLocations,
+	is_template_if_node as isTemplateIfNode,
+	is_template_for_of_node as isTemplateForOfNode,
+	is_template_switch_node as isTemplateSwitchNode,
+	is_template_try_node as isTemplateTryNode,
 } from './transform/jsx/helpers.js';
 export {
 	collect_style_ref_attributes as collectStyleRefAttributes,

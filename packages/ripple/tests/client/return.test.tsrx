@@ -16,6 +16,24 @@ describe('returns in restricted scopes', () => {
 		).toThrow('Return statements are not allowed at the top level of a module.');
 	});
 
+	it('throws error when return is used inside @try/@catch/@pending blocks', () => {
+		for (const source of [
+			`function App() @{
+				@try { return <div>{'ok'}</div>; } @catch (e) { <div>{'err'}</div> }
+			}`,
+			`function App() @{
+				@try { <div>{'ok'}</div> } @catch (e) { return <div>{'err'}</div>; }
+			}`,
+			`function App() @{
+				@try { <div>{'ok'}</div> } @pending { return <div>{'load'}</div>; } @catch (e) { <div>{'err'}</div> }
+			}`,
+		]) {
+			expect(() => compile(source, 'App.tsrx', { mode: 'client' })).toThrow(
+				'Return statements are not allowed inside TSRX templates',
+			);
+		}
+	});
+
 	it('allows returns inside regular functions declared in TSRX templates', () => {
 		expect(
 			() => compile(

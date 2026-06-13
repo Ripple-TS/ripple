@@ -69,10 +69,8 @@ import {
 	build_index_write,
 	build_index_update,
 	expression_contains_call,
-	generate_local_name,
 	get_indexed_reactive_target,
 	rewrite_lazy_member_base,
-	should_guard_regular_js_statement,
 	strip_tsrx_style_elements,
 	unwrap_single_return_iife,
 	wrap_code_block_in_iife,
@@ -927,96 +925,6 @@ function visit_ripple_fragment_element(node, context) {
 }
 
 /**
- * Builds a negated AND condition from return flag names: !__r_1 && !__r_2 && ...
- * @param {string[]} flags
- * @returns {AST.Expression}
- */
-function build_return_guard(flags) {
-	/** @type {AST.Expression} */
-	let condition = b.unary('!', b.id(flags[0]));
-	for (let i = 1; i < flags.length; i++) {
-		condition = b.logical('&&', condition, b.unary('!', b.id(flags[i])));
-	}
-	return condition;
-}
-
-/**
- * Builds a positive OR condition from return flag names.
- * @param {string[]} flags
- * @returns {AST.Expression}
- */
-function build_positive_return_guard(flags) {
-	/** @type {AST.Expression} */
-	let condition = b.id(flags[0]);
-	for (let i = 1; i < flags.length; i++) {
-		condition = b.logical('||', condition, b.id(flags[i]));
-	}
-	return condition;
-}
-
-/**
- * @param {AST.Node} node
- * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
- * @returns {string | null}
- */
-function get_returned_child_flag_name(node, return_flags) {
-	const source = /** @type {AST.ReturnStatement | undefined} */ (
-		node.metadata?.returned_tsrx_return
-	);
-	return source ? (return_flags.get(source)?.name ?? null) : null;
-}
-
-/**
- * Collects all unique valid return statements from the direct children of a body.
- * @param {AST.Node[]} children
- * @returns {AST.ReturnStatement[]}
- */
-function collect_returns_from_children(children) {
-	/** @type {AST.ReturnStatement[]} */
-	const returns = [];
-	const seen = new Set();
-	for (let index = 0; index < children.length; index++) {
-		const node = children[index];
-		if (
-			node.type === 'ReturnStatement' &&
-			index !== children.length - 1 &&
-			!node.metadata?.invalid_tsrx_template_return
-		) {
-			if (!seen.has(node)) {
-				seen.add(node);
-				returns.push(node);
-			}
-		}
-		if (node.metadata?.returns) {
-			for (const ret of node.metadata.returns) {
-				if (!ret.metadata?.invalid_tsrx_template_return && !seen.has(ret)) {
-					seen.add(ret);
-					returns.push(ret);
-				}
-			}
-		}
-	}
-	return returns;
-}
-
-/**
- * @param {AST.ReturnStatement[]} returns
- * @param {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} return_flags
- * @returns {string[]}
- */
-function get_unique_return_flag_names(returns, return_flags) {
-	/** @type {string[]} */
-	const names = [];
-	for (const ret of returns) {
-		const info = return_flags.get(ret);
-		if (info && !names.includes(info.name)) {
-			names.push(info.name);
-		}
-	}
-	return names;
-}
-
-/**
  * @param {AST.Node} node
  * @returns {boolean}
  */
@@ -1078,47 +986,8 @@ function transform_variable_declaration(node, context) {
 function transform_children(children, context) {
 	const { visit, state } = context;
 	const normalized = normalize_children(children, context);
-	const effective_normalized = normalized.filter(
-		(node) => !(node.metadata?.regular_js && is_dead_native_tsrx_expression_statement(node)),
-	);
 	const should_wrap_in_regular_block =
 		state.component !== undefined && !state.skip_regular_blocks && !state.in_regular_block;
-
-	const all_returns = collect_returns_from_children(effective_normalized);
-	/** @type {Map<AST.ReturnStatement, { name: string, tracked: boolean }>} */
-	const return_flags = new Map([...(state.return_flags || [])]);
-	/** @type {AST.ReturnStatement[]} */
-	const new_returns = [];
-	for (const ret of all_returns) {
-		if (!return_flags.has(ret)) {
-			new_returns.push(ret);
-		}
-	}
-
-	if (new_returns.length > 0) {
-		const return_guard_scope =
-			(state.component && state.scopes.get(state.component)) || state.scope;
-		const info = { name: generate_local_name(return_guard_scope, 'return_guard'), tracked: false };
-		for (const ret of new_returns) {
-			return_flags.set(ret, info);
-		}
-		state.init?.push(b.var(b.id(info.name), b.false));
-	}
-
-	/** @type {string[]} */
-	let accumulated_flags = [];
-
-	/**
-	 * @param {AST.ReturnStatement[] | undefined} returns
-	 */
-	const push_return_flags = (returns) => {
-		if (!returns) return;
-		for (const name of get_unique_return_flag_names(returns, return_flags)) {
-			if (!accumulated_flags.includes(name)) {
-				accumulated_flags.push(name);
-			}
-		}
-	};
 
 	/**
 	 * @param {AST.Statement[]} statements
@@ -1146,11 +1015,7 @@ function transform_children(children, context) {
 					regular_node.type.endsWith('Statement') || regular_node.type.endsWith('Declaration')
 						? /** @type {AST.Statement} */ (regular_node)
 						: b.stmt(/** @type {AST.Expression} */ (regular_node));
-				state.init?.push(
-					accumulated_flags.length > 0 && should_guard_regular_js_statement(statement)
-						? b.if(build_return_guard(accumulated_flags), statement)
-						: statement,
-				);
+				state.init?.push(statement);
 			}
 			return;
 		}
@@ -1182,57 +1047,11 @@ function transform_children(children, context) {
 							...context,
 							state: local_state,
 						})
-					: /** @type {AST.Statement} */ (visit(node, { ...local_state, return_flags })),
+					: /** @type {AST.Statement} */ (visit(node, local_state)),
 			);
-			if (node.type === 'ReturnStatement') {
-				const info = return_flags.get(node);
-				if (info && !accumulated_flags.includes(info.name)) {
-					accumulated_flags.push(info.name);
-				}
-			}
 		} else {
-			visit(node, { ...local_state, return_flags, template_child: true });
+			visit(node, { ...local_state, template_child: true });
 		}
-	};
-
-	/** @type {AST.Node[]} */
-	let pending_group = [];
-	/** @type {string[]} */
-	let pending_guard_flags = [];
-	let pending_guard_positive = false;
-
-	const flush_pending_group = () => {
-		if (pending_group.length === 0) return;
-
-		const group = pending_group;
-		const guard_flags = pending_guard_flags;
-		const guard_positive = pending_guard_positive;
-		pending_group = [];
-		pending_guard_flags = [];
-		pending_guard_positive = false;
-
-		/** @type {AST.Statement[]} */
-		const wrapped = [];
-		const saved_init = state.init;
-		state.init = wrapped;
-
-		for (const group_node of group) {
-			process_node(group_node, { ...state, init: wrapped, in_regular_block: true });
-		}
-
-		state.init = saved_init;
-		if (wrapped.length === 0) return;
-
-		const guard = guard_positive
-			? build_positive_return_guard(guard_flags)
-			: build_return_guard(guard_flags);
-		state.init?.push(
-			...wrap_regular_block([
-				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))),
-				b.if(guard, b.block(wrapped)),
-				b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_CLOSE))),
-			]),
-		);
 	};
 
 	/**
@@ -1258,46 +1077,15 @@ function transform_children(children, context) {
 		const node = normalized[idx];
 
 		if (is_head_element(node)) {
-			flush_pending_group();
 			continue;
 		}
-
-		if (accumulated_flags.length > 0 && should_wrap_node_in_regular_block(node)) {
-			const returned_child_flag = get_returned_child_flag_name(node, return_flags);
-			const guard_flags = returned_child_flag ? [returned_child_flag] : accumulated_flags;
-			const guard_positive = returned_child_flag !== null;
-			const guard_key = guard_flags.join(',');
-			const pending_guard_key = pending_guard_flags.join(',');
-			if (
-				pending_group.length > 0 &&
-				(pending_guard_positive !== guard_positive || pending_guard_key !== guard_key)
-			) {
-				flush_pending_group();
-			}
-			if (pending_group.length === 0) {
-				pending_guard_flags = [...guard_flags];
-				pending_guard_positive = guard_positive;
-			}
-			pending_group.push(node);
-
-			if (node.metadata?.has_return && node.metadata.returns) {
-				flush_pending_group();
-				push_return_flags(node.metadata.returns);
-			}
-			continue;
-		}
-
-		flush_pending_group();
 
 		if (should_wrap_node_in_regular_block(node)) {
 			process_wrapped_template_or_control_flow(node);
 		} else {
 			process_node(node);
 		}
-		push_return_flags(node.metadata?.has_return ? node.metadata.returns : undefined);
 	}
-
-	flush_pending_group();
 
 	const head_elements = /** @type {AST.Element[]} */ (
 		children.filter((node) => is_head_element(node))
@@ -2626,6 +2414,19 @@ const visitors = {
 	},
 
 	ReturnStatement(node, context) {
+		// A `return <markup>` produces a renderable value — lower it to a server
+		// `tsrx_element`, exactly like control flow returning JSX in a regular
+		// function. `@try`/`@pending`/`@catch` blocks legitimately return markup
+		// this way (the only `@`-blocks that allow native returns).
+		if (!context.state.to_ts && is_native_tsrx_template_node(node.argument)) {
+			return b.return(
+				build_template_node_to_tsrx_element(
+					/** @type {AST.Element | AST.TsrxFragment} */ (/** @type {unknown} */ (node.argument)),
+					context,
+				),
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+		}
 		if (!is_inside_component(context)) {
 			if (node.argument) {
 				return b.return(
@@ -2636,10 +2437,6 @@ const visitors = {
 				);
 			}
 			return context.next();
-		}
-		const info = context.state.return_flags?.get(node);
-		if (info) {
-			return b.stmt(b.assignment('=', b.id(info.name), b.true));
 		}
 		return context.next();
 	},

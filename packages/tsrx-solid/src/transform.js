@@ -33,6 +33,10 @@ import {
 	is_bare_render_expression,
 	is_jsx_child,
 	set_loc,
+	isTemplateIfNode as is_template_if_node,
+	isTemplateForOfNode as is_template_for_of_node,
+	isTemplateSwitchNode as is_template_switch_node,
+	isTemplateTryNode as is_template_try_node,
 } from '@tsrx/core';
 
 import { builders as b } from '@tsrx/core';
@@ -472,54 +476,6 @@ function is_loop_statement(node) {
 		node?.type === 'JSXForExpression' ||
 		node?.type === 'WhileStatement' ||
 		node?.type === 'DoWhileStatement'
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_template_if_node(node) {
-	return (
-		node?.type === 'JSXIfExpression' ||
-		node?.metadata?.tsrxDirective === 'if' ||
-		(node?.type === 'IfStatement' && node?.statementType === 'IfStatement')
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_template_for_of_node(node) {
-	return (
-		node?.type === 'JSXForExpression' ||
-		node?.metadata?.tsrxDirective === 'for' ||
-		(node?.type === 'ForOfStatement' && node?.statementType === 'ForOfStatement')
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_template_switch_node(node) {
-	return (
-		node?.type === 'JSXSwitchExpression' ||
-		node?.metadata?.tsrxDirective === 'switch' ||
-		(node?.type === 'SwitchStatement' && node?.statementType === 'SwitchStatement')
-	);
-}
-
-/**
- * @param {any} node
- * @returns {boolean}
- */
-function is_template_try_node(node) {
-	return (
-		node?.type === 'JSXTryExpression' ||
-		node?.metadata?.tsrxDirective === 'try' ||
-		(node?.type === 'TryStatement' && node?.statementType === 'TryStatement')
 	);
 }
 
@@ -1417,13 +1373,8 @@ function rewrite_solid_native_component_function(fn, parent, transform_context) 
 	}
 
 	const source_body = fn.body.body || [];
-	const early_body = rewrite_early_return_guard_body(source_body, transform_context);
-	const effective_body =
-		early_body ??
-		(() => {
-			const lowered = lower_solid_component_statement_list(source_body);
-			return lowered.changed ? lowered.nodes : null;
-		})();
+	const lowered = lower_solid_component_statement_list(source_body);
+	const effective_body = lowered.changed ? lowered.nodes : null;
 
 	if (effective_body === null) {
 		return;
@@ -1444,140 +1395,6 @@ function rewrite_solid_native_component_function(fn, parent, transform_context) 
 	} finally {
 		transform_context.available_bindings = saved_bindings;
 	}
-}
-
-/**
- * Preserve the old Solid setup-once behavior for early guard returns: setup
- * statements after the guard stay in the outer function, while render output is
- * lifted into a reactive `<Show>`.
- *
- * @param {any[]} body
- * @param {TransformContext} transform_context
- * @returns {any[] | null}
- */
-function rewrite_early_return_guard_body(body, transform_context) {
-	const early_idx = body.findIndex((node) => get_component_returning_if_info(node) !== null);
-	if (early_idx === -1) {
-		return null;
-	}
-
-	const early_if = body[early_idx];
-	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
-		get_component_returning_if_info(early_if)
-	);
-	const before = body.slice(0, early_idx);
-	const after = body.slice(early_idx + 1);
-	const lowered_after = lower_solid_component_statement_list(after);
-	const effective_after = lowered_after.changed ? lowered_after.nodes : after;
-	const branch_has_content_before_return = early_info.consequent_body.length > 0;
-	const early_interleaved = is_interleaved_body([...before, ...after]);
-
-	/** @type {any[]} */
-	const before_non_jsx = [];
-	/** @type {any[]} */
-	const before_jsx = [];
-	/** @type {any[]} */
-	const after_non_jsx = [];
-	/** @type {any[]} */
-	const after_jsx = [];
-	let early_capture_index = 0;
-
-	/**
-	 * @param {any[]} nodes
-	 * @param {any[]} outer
-	 * @param {any[]} jsx_bucket
-	 */
-	const collect = (nodes, outer, jsx_bucket) => {
-		for (const child of nodes) {
-			const return_nodes = return_statement_to_render_nodes(child);
-			if (return_nodes) {
-				jsx_bucket.push(...return_nodes);
-				continue;
-			}
-
-			if (is_solid_render_child(child)) {
-				if (get_component_returning_if_info(child) !== null) {
-					jsx_bucket.push(child);
-					continue;
-				}
-				if (early_interleaved) {
-					const jsx = to_jsx_child(child, transform_context);
-					outer.push(...extract_jsx_setup_declarations(jsx));
-					if (is_capturable_jsx_child(jsx)) {
-						const { declaration, reference } = captureJsxChild(jsx, early_capture_index++);
-						outer.push(declaration);
-						jsx_bucket.push(reference);
-					} else {
-						jsx_bucket.push(jsx);
-					}
-				} else {
-					jsx_bucket.push(child);
-				}
-			} else if (is_bare_render_expression(child)) {
-				jsx_bucket.push(to_jsx_expression_container(child, child));
-			} else {
-				outer.push(child);
-			}
-		}
-	};
-
-	collect(before, before_non_jsx, before_jsx);
-	collect(effective_after, after_non_jsx, after_jsx);
-
-	const next_body = [...before_non_jsx, ...before_jsx, ...after_non_jsx];
-
-	if (branch_has_content_before_return) {
-		transform_context.needs_show = true;
-		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
-		const fallback_body =
-			after_jsx.length > 0
-				? body_to_component_early_return_jsx_child(after_jsx, transform_context)
-				: null;
-		next_body.push(build_show_element(early_if.test, branch_body, fallback_body));
-	} else if (after_jsx.length > 0) {
-		transform_context.needs_show = true;
-		const show_body = body_to_component_early_return_jsx_child(after_jsx, transform_context);
-		next_body.push(build_show_element(negate_expression(early_if.test), show_body, null));
-	} else {
-		return null;
-	}
-
-	return next_body;
-}
-
-/**
- * @param {any[]} body_nodes
- * @param {TransformContext} transform_context
- * @returns {any}
- */
-function body_to_component_early_return_jsx_child(body_nodes, transform_context) {
-	const early_idx = body_nodes.findIndex((node) => get_component_returning_if_info(node) !== null);
-	if (early_idx === -1) {
-		return body_to_jsx_child(body_nodes, transform_context);
-	}
-
-	const early_if = body_nodes[early_idx];
-	const early_info = /** @type {{ consequent_body: any[], return_index: number }} */ (
-		get_component_returning_if_info(early_if)
-	);
-	const before = body_nodes.slice(0, early_idx);
-	const after = body_nodes.slice(early_idx + 1);
-	const branch_has_content_before_return = early_info.consequent_body.length > 0;
-	const children = [...before];
-
-	if (branch_has_content_before_return) {
-		transform_context.needs_show = true;
-		const branch_body = body_to_jsx_child(early_info.consequent_body, transform_context);
-		const fallback_body =
-			after.length > 0 ? body_to_component_early_return_jsx_child(after, transform_context) : null;
-		children.push(build_show_element(early_if.test, branch_body, fallback_body));
-	} else if (after.length > 0) {
-		transform_context.needs_show = true;
-		const show_body = body_to_component_early_return_jsx_child(after, transform_context);
-		children.push(build_show_element(negate_expression(early_if.test), show_body, null));
-	}
-
-	return body_to_jsx_child(children, transform_context);
 }
 
 /**
@@ -1622,11 +1439,62 @@ function lower_solid_component_statement_list(statements) {
 }
 
 /**
+ * Detects a `throw` reachable as a plain statement inside this control-flow node
+ * — through `if`/`switch`/`try`/block structure but not into nested functions,
+ * JSX, or expressions. This is what the lowering treats as a render-affecting
+ * terminal, so such control flow stays reactive even when written as plain JS.
+ * @param {any} node
+ * @returns {boolean}
+ */
+function control_flow_has_render_throw(node) {
+	if (!node || typeof node !== 'object') {
+		return false;
+	}
+	switch (node.type) {
+		case 'ThrowStatement':
+			return true;
+		case 'BlockStatement':
+			return (node.body || []).some(control_flow_has_render_throw);
+		case 'IfStatement':
+			return (
+				control_flow_has_render_throw(node.consequent) ||
+				control_flow_has_render_throw(node.alternate)
+			);
+		case 'SwitchStatement':
+			return (node.cases || []).some((/** @type {any} */ switch_case) =>
+				(switch_case.consequent || []).some(control_flow_has_render_throw),
+			);
+		case 'TryStatement':
+			return (
+				control_flow_has_render_throw(node.block) ||
+				control_flow_has_render_throw(node.handler?.body) ||
+				control_flow_has_render_throw(node.finalizer) ||
+				control_flow_has_render_throw(node.pending)
+			);
+		default:
+			return false;
+	}
+}
+
+/**
  * @param {any} statement
  * @param {any[]} rest
  * @returns {{ node: any, terminal: boolean, consumesRest?: boolean } | null}
  */
 function lower_solid_component_control_statement(statement, rest) {
+	// A plain guard that *returns* JSX is ordinary JavaScript and must behave
+	// exactly like control flow in a regular `function C() { …; return <jsx> }` —
+	// setup-once, not lifted into a reactive `<Show>`. So plain control flow is
+	// left untouched. The exceptions, which still lower into Solid's reactive
+	// render forms, are:
+	//   - `@`-directives (`@if`/`@for`/`@switch`/`@try`), which carry
+	//     `statementType` / `tsrxDirective` (see `is_template_*_node`); and
+	//   - control flow that `throw`s, so a `@try` boundary keeps re-catching when
+	//     the throwing condition changes (a setup-once throw could never re-fire).
+	if (!is_solid_render_control(statement) && !control_flow_has_render_throw(statement)) {
+		return null;
+	}
+
 	if (statement?.type === 'IfStatement') {
 		return lower_solid_component_if_statement(statement, rest);
 	}
@@ -1932,29 +1800,6 @@ function solid_component_body_nodes_to_function_statements(body_nodes, transform
 	}
 
 	return statements;
-}
-
-/**
- * @param {any} node
- * @returns {{ consequent_body: any[], return_index: number } | null}
- */
-function get_component_returning_if_info(node) {
-	if (!node || node.type !== 'IfStatement' || node.alternate) return null;
-	const consequent_body = get_statement_body(node.consequent);
-	const return_index = consequent_body.findIndex((child) =>
-		return_statement_to_render_nodes(child),
-	);
-	if (return_index === -1) {
-		return null;
-	}
-
-	return {
-		consequent_body: [
-			...consequent_body.slice(0, return_index),
-			.../** @type {any[]} */ (return_statement_to_render_nodes(consequent_body[return_index])),
-		],
-		return_index,
-	};
 }
 
 /**

@@ -3650,15 +3650,17 @@ export function TSRXPlugin(config) {
 			}
 
 			/**
-			 * `@try`/`@pending`/`@catch` blocks lower their direct `return`
-			 * values into reactive boundary fallbacks, so unlike `@if`/`@for`/`@switch`
-			 * blocks they legitimately allow `return <markup>` statements. Set the flag
-			 * immediately before parsing each such block so its body sees it.
+			 * `@try`/`@pending`/`@catch` blocks are template control-flow blocks like
+			 * `@if`/`@for`/`@switch`: `return` is not allowed inside them. A `return`
+			 * is only valid in the JS setup at the top of a `@{ … }` code block, never
+			 * inside a `@`-directive block. Report any direct `return` with the same
+			 * template-return diagnostic used elsewhere.
 			 * @returns {AST.BlockStatement}
 			 */
 			#parseTemplateControlFlowReturnBlock(createNewLexicalScope = true) {
-				this.#controlFlowBlockAllowsNativeReturn = true;
-				return this.#parseTemplateControlFlowBlock(createNewLexicalScope);
+				const block = this.#parseTemplateControlFlowBlock(createNewLexicalScope);
+				this.#report_invalid_template_return_statements(block.body);
+				return block;
 			}
 
 			/**

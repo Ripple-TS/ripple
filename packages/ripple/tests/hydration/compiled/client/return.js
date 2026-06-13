@@ -6,7 +6,6 @@ var root_1 = _$_.template(`<div class="ready">ready</div>`, 1, 1);
 
 export function GuardReturnRenders() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var return_guard = false;
 		const ready = true;
 
 		if (!ready) {
@@ -21,7 +20,6 @@ export function GuardReturnRenders() {
 
 export function GuardReturnNull() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var return_guard = false;
 		const ready = false;
 
 		if (!ready) {

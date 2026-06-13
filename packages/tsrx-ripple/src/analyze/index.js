@@ -438,8 +438,14 @@ function is_inside_component_for_of(path) {
 		if (is_function_or_class_boundary(node)) {
 			return false;
 		}
-		if (node.type === 'ForOfStatement' || node.type === 'JSXForExpression') {
+		if (node.type === 'JSXForExpression') {
 			return true;
+		}
+		// The nearest enclosing for-of owns this statement. Only a `@for` template
+		// directive enforces the no-return/no-continue rule; a plain JS `for…of`
+		// is ordinary JavaScript, so stop and report it as not template-owned.
+		if (node.type === 'ForOfStatement') {
+			return node.metadata?.tsrxDirective === 'for';
 		}
 	}
 	return false;
@@ -498,8 +504,11 @@ function break_targets_component_loop(path) {
 		if (node.type === 'SwitchStatement') {
 			return false;
 		}
+		// A `break` targets the nearest enclosing loop (or switch, handled above).
+		// Only a `@for` template directive forbids it; plain JS loops are ordinary
+		// JavaScript where `break` is allowed.
 		if (is_loop_statement(node)) {
-			return true;
+			return node.type === 'ForOfStatement' && node.metadata?.tsrxDirective === 'for';
 		}
 	}
 	return false;
@@ -1850,15 +1859,10 @@ const visitors = {
 	},
 
 	ForStatement(node, context) {
-		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
-			validateTsrxUnsupportedLoopStatement(
-				node,
-				context.state.analysis.module.filename,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
+		// `for`/`for…in`/`while`/`do…while` have no template directive form, so
+		// they are always ordinary JavaScript — render via `@for` (a `for…of`) or
+		// return JSX from inside the loop. Don't reject them; let them lower as
+		// regular control flow.
 		context.next();
 	},
 
@@ -2373,41 +2377,14 @@ const visitors = {
 	},
 
 	ForInStatement(node, context) {
-		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
-			validateTsrxUnsupportedLoopStatement(
-				node,
-				context.state.analysis.module.filename,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 
 	WhileStatement(node, context) {
-		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
-			validateTsrxUnsupportedLoopStatement(
-				node,
-				context.state.analysis.module.filename,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 
 	DoWhileStatement(node, context) {
-		if (is_inside_component(context) && !context.state.regular_js && !node.metadata?.regular_js) {
-			validateTsrxUnsupportedLoopStatement(
-				node,
-				context.state.analysis.module.filename,
-				context.state.collect ? context.state.analysis.errors : undefined,
-				context.state.analysis.comments,
-			);
-		}
-
 		context.next();
 	},
 

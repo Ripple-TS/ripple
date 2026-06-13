@@ -6,7 +6,7 @@ import { beforeEach, afterEach } from 'vitest';
 import { mount } from 'ripple';
 
 /**
- * @param {Component} component
+ * @param {Component | (() => any)} component
  */
 globalThis.render = function render(component) {
 	mount(component, {

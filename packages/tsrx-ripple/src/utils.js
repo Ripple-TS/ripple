@@ -57,6 +57,30 @@ export function should_guard_regular_js_statement(statement) {
 }
 
 /**
+ * Plain JS control flow (`if`/`for`/`while`/`switch`/`try`, etc.) that is NOT an
+ * `@if`/`@for`/`@switch`/`@try` template directive. Only directives carry
+ * `metadata.tsrxDirective`; everything else is ordinary JavaScript that may
+ * return JSX, and must lower exactly like control flow in a regular function.
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+export function is_plain_js_control_flow(node) {
+	if (node.metadata?.tsrxDirective) {
+		return false;
+	}
+	return (
+		node.type === 'IfStatement' ||
+		node.type === 'SwitchStatement' ||
+		node.type === 'TryStatement' ||
+		node.type === 'ForOfStatement' ||
+		node.type === 'ForInStatement' ||
+		node.type === 'ForStatement' ||
+		node.type === 'WhileStatement' ||
+		node.type === 'DoWhileStatement'
+	);
+}
+
+/**
  * Generate a name that is unique inside the current transform scope without
  * reserving it for the entire module.
  * @param {ScopeInterface} scope
@@ -724,6 +748,13 @@ function create_return_argument_child(argument, statement) {
 function expand_native_tsrx_return_statement(statement, omit_control_return = false) {
 	if (statement.metadata?.returned_tsrx_child) {
 		return [statement];
+	}
+
+	// Plain JS control flow is ordinary JavaScript — leave it intact (its JSX
+	// returns lower to `_$_.tsrx_element` via the regular-JS path) instead of
+	// expanding it into template children. Only `@`-directives template-ize.
+	if (is_plain_js_control_flow(statement)) {
+		return [mark_regular_js_statement(statement)];
 	}
 
 	if (!node_contains_component_return(statement)) {
