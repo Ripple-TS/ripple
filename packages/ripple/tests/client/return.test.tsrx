@@ -139,9 +139,9 @@ describe('function returns in client components', () => {
 			const ready = true;
 			return <>
 				@if (ready) {
-					<div class="yielded">{'yielded'}</div>
+					<div class="yielded">yielded</div>
 				}
-				<span class="outer">{'outer'}</span>
+				<span class="outer">outer</span>
 			</>;
 		}
 
@@ -155,9 +155,9 @@ describe('function returns in client components', () => {
 			const ready = true;
 			return <div class="root">
 				@if (ready) {
-					<p class="inner">{'inner'}</p>
+					<p class="inner">inner</p>
 				}
-				<span class="outer">{'outer'}</span>
+				<span class="outer">outer</span>
 			</div>;
 		}
 
@@ -173,7 +173,7 @@ describe('function returns in client components', () => {
 				@for (const item of items) {
 					<li class="item">{item}</li>
 				}
-				<span class="outer">{'outer'}</span>
+				<span class="outer">outer</span>
 			</>;
 		}
 
@@ -190,12 +190,9 @@ describe('function returns in client components', () => {
 		function Dashboard({ user }: { user: Tracked<string | null> }) {
 			return <>
 				@if (!user.value) {
-					<p class="empty">{'No user found'}</p>
+					<p class="empty">No user found</p>
 				}
-				<h1 class="welcome">
-					{'Welcome,'}
-					{user.value}
-				</h1>
+				<h1 class="welcome">Welcome,{user.value}</h1>
 			</>;
 		}
 
@@ -203,13 +200,13 @@ describe('function returns in client components', () => {
 			let &[user, userTracked] = track<string | null>(null);
 			return <>
 				<Dashboard user={userTracked} />
-				<button onClick={() => (user = user === 'Adam' ? null : 'Adam')}>{'Toggle'}</button>
+				<button onClick={() => (user = user === 'Adam' ? null : 'Adam')}>Toggle</button>
 			</>;
 		}
 
 		render(App);
 		expect(container.querySelector('.empty')?.textContent).toBe('No user found');
-		expect(container.querySelector('.welcome')?.textContent).toBe('Welcome,null');
+		expect(container.querySelector('.welcome')?.textContent).toBe('Welcome,');
 
 		container.querySelector('button')?.click();
 		flushSync();

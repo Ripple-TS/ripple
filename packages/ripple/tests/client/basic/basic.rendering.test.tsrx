@@ -235,6 +235,47 @@ second
 		]);
 	});
 
+	it('never prints nullish (null/undefined) in interpolated text', () => {
+		function Basic() @{
+			const nothing = null;
+			const missing = undefined;
+			<>
+				<div class="null">value: {nothing}</div>
+				<div class="undefined">value: {missing}</div>
+				<div class="explicit">raw: {String(nothing)}</div>
+			</>
+		}
+
+		render(Basic);
+
+		expect(container.querySelector('.null').textContent).toBe('value: ');
+		expect(container.querySelector('.undefined').textContent).toBe('value: ');
+		// An explicit `String(...)` is the author's own coercion and is left
+		// untouched, so it still stringifies nullish to "null".
+		expect(container.querySelector('.explicit').textContent).toBe('raw: null');
+	});
+
+	it('reactively clears interpolated text when a value becomes nullish', () => {
+		function Basic() @{
+			let &[name] = track<string | null>('Ada');
+			<>
+				<div class="label">Name: {name}</div>
+				<button onClick={() => (name = name == null ? 'Ada' : null)}>toggle</button>
+			</>
+		}
+
+		render(Basic);
+		expect(container.querySelector('.label').textContent).toBe('Name: Ada');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('Name: ');
+
+		container.querySelector('button').click();
+		flushSync();
+		expect(container.querySelector('.label').textContent).toBe('Name: Ada');
+	});
+
 	it('does not render unreachable statements after an ASI return', () => {
 		function Basic() {
 			return;

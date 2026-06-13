@@ -24,6 +24,25 @@ describe('basic client', () => {
 		expect(body).toBeHtml('<div>&lt;span>Not HTML&lt;/span></div>');
 	});
 
+	it('never prints nullish (null/undefined) in interpolated text', async () => {
+		function Basic() @{
+			const nothing = null;
+			const missing = undefined;
+			<>
+				<div class="null">value: {nothing}</div>
+				<div class="undefined">value: {missing}</div>
+				<div class="explicit">raw: {String(nothing)}</div>
+			</>
+		}
+
+		const { body } = await render(Basic);
+
+		expect(body).toBeHtml(
+			'<div class="null">value: </div>' + '<div class="undefined">value: </div>' +
+				'<div class="explicit">raw: null</div>',
+		);
+	});
+
 	it('renders direct JSX text children as text', async () => {
 		function Basic() @{
 			<>

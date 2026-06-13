@@ -1816,7 +1816,7 @@ export function normalize_children(children, context) {
 				prev_child.expression = b.binary(
 					'+',
 					prev_child.expression,
-					b.call('String', child.expression),
+					b.call('String', b.logical('??', child.expression, b.literal(''))),
 				);
 			}
 			normalized.splice(i, 1);

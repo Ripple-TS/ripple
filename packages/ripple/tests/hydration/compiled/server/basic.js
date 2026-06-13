@@ -204,7 +204,7 @@ export function Greeting(props) {
 			_$_.output_push('>');
 
 			{
-				_$_.output_push(_$_.escape('Hello ' + String(props.name)));
+				_$_.output_push(_$_.escape('Hello ' + String(props.name ?? '')));
 			}
 
 			_$_.output_push('</div>');
