@@ -1472,6 +1472,24 @@ function isKnownStringExpression(node) {
 // helper that only stripped outer wrappers at JSX-child position — this
 // also covers inner wrappers (e.g. `(foo as number).toFixed(2) as string`)
 // and statement-position wrappers (`@if` body's `'…' as string`).
+// AST properties that hold a TS-only type annotation. esrap's tsx printer
+// will emit them verbatim into the .js output (`let x: T`, `(p: T): R =>`,
+// `function f<T>(){}`), which Rolldown rejects as it parses the output as
+// plain JavaScript ("Type annotations can only be used in TypeScript
+// files."). Clearing them lets the printer skip them cleanly. Listed
+// explicitly rather than as a generic filter so the strip is auditable.
+const TS_TYPE_PROPS = [
+	'typeAnnotation', // Identifier `x: T`, VariableDeclarator, RestElement, Pattern
+	'returnType', // FunctionDeclaration / Arrow / MethodDefinition return type
+	'typeParameters', // Generic `<T>` on function / class / interface
+	'definite', // `let x!: T` definite-assignment assertion
+	'accessibility', // class member `public` / `private` / `protected`
+	'readonly', // class member `readonly`
+	'declare', // `declare` modifier
+	'override', // class member `override`
+	'implements', // `class X implements I` list
+];
+
 function stripTsOnlyWrappers(node) {
 	if (node === null || typeof node !== 'object') return node;
 	if (Array.isArray(node)) {
@@ -1487,6 +1505,14 @@ function stripTsOnlyWrappers(node) {
 	) {
 		return stripTsOnlyWrappers(node.expression);
 	}
+	// Drop type-only properties before descending so esrap never sees them.
+	for (let i = 0; i < TS_TYPE_PROPS.length; i++) {
+		const prop = TS_TYPE_PROPS[i];
+		if (node[prop] !== undefined) node[prop] = null;
+	}
+	// `optional` on a parameter / Identifier is the `x?: T` marker — esrap
+	// emits `x?` even if typeAnnotation is gone, which is also TS-only.
+	if (node.optional === true) node.optional = false;
 	for (const key of Object.keys(node)) {
 		// Skip `loc`/`range`/`start`/`end` source-position fields and the parent
 		// backref (acorn-typescript sometimes attaches one). These never hold

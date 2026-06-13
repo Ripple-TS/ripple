@@ -129,6 +129,14 @@ interface PendingEffect {
 	slot: symbol;
 	fn: EffectFn;
 	args: any[];
+	/**
+	 * Scope-tree depth captured at enqueue. Used by drainPhase to fire effects
+	 * CHILD-FIRST (post-order) on mount/update — matching React's commit-phase
+	 * walk. Without it, parent-first ordering breaks any parent layout-effect
+	 * that reads refs/measurements established by child layout-effects (react-
+	 * aria FocusScope, react-redux subscribers, react-spring measurements …).
+	 */
+	depth: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -380,6 +388,11 @@ function commitEffectsSync(): void {
 function drainPhase(phase: Phase): void {
 	const q = effectQueues[phase];
 	if (q.length === 0) return;
+	// React parity: walk child-first (post-order). Each effect was tagged with
+	// its scope-tree depth at enqueue. Sort descending so deeper scopes fire
+	// before shallower ones; Array.sort is stable so sibling registration
+	// order is preserved within a depth bucket.
+	q.sort((a, b) => b.depth - a.depth);
 	// Cleanups first (in registration order), then bodies. React's contract.
 	for (let i = 0; i < q.length; i++) {
 		const e = q[i];
@@ -960,7 +973,19 @@ function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): v
 	} else {
 		prev.deps = deps;
 	}
-	effectQueues[phase].push({ scope, slot, fn, args: deps });
+	// Compute Block-tree depth for child-first drain. We walk parentBlock (not
+	// scope.parent) because a full componentSlot Block sets scope.parent = null
+	// by design — only LiteBlockImpl scopes carry a scope.parent. parentBlock
+	// is the universal upward link that mirrors React's fiber tree the same way
+	// for hookful components, @if branches, and lite components alike. Walks
+	// once per enqueue; typical depths < 20 and effects are rare on the hot path.
+	let depth = 0;
+	let b: Block | null = scope.block.parentBlock;
+	while (b !== null) {
+		depth++;
+		b = b.parentBlock;
+	}
+	effectQueues[phase].push({ scope, slot, fn, args: deps, depth });
 }
 
 export function useEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
@@ -1578,41 +1603,135 @@ function unregisterDelegationTarget(target: Node): void {
 	}
 }
 
+/**
+ * Event types React tags as DiscreteEventPriority. Updates triggered from
+ * these handlers MUST commit synchronously before the handler returns to
+ * the browser — otherwise:
+ *   - fast double-clicks see pre-flush state and double-submit
+ *   - autofocus after reveal misses (focus runs before the microtask)
+ *   - `e.preventDefault(); setX(...); read(measure)` reads stale layout
+ *   - controlled inputs drop keystrokes (value lags one task)
+ *
+ * Source: facebook/react packages/react-dom-bindings/src/events/
+ * ReactDOMEventListener.js — getEventPriority's DiscreteEventPriority arm.
+ * Kept verbatim so future React additions can be picked up by diff.
+ */
+const DISCRETE_EVENTS = new Set<string>([
+	'auxclick',
+	'beforeblur',
+	'beforeinput',
+	'blur',
+	'cancel',
+	'change',
+	'click',
+	'close',
+	'compositionend',
+	'compositionstart',
+	'compositionupdate',
+	'contextmenu',
+	'copy',
+	'cut',
+	'dblclick',
+	'dragend',
+	'dragstart',
+	'drop',
+	'focus',
+	'focusin',
+	'focusout',
+	'fullscreenchange',
+	'gotpointercapture',
+	'hashchange',
+	'input',
+	'invalid',
+	'keydown',
+	'keypress',
+	'keyup',
+	'lostpointercapture',
+	'mousedown',
+	'mouseup',
+	'paste',
+	'pause',
+	'play',
+	'pointercancel',
+	'pointerdown',
+	'pointerup',
+	'popstate',
+	'ratechange',
+	'reset',
+	'resize',
+	'seeked',
+	'select',
+	'selectionchange',
+	'selectstart',
+	'submit',
+	'textInput',
+	'touchcancel',
+	'touchend',
+	'touchstart',
+	'volumechange',
+]);
+
+/**
+ * Re-entrancy depth for dispatchDelegated. Only the outermost dispatch flushes
+ * — nested handlers (e.g. a click handler that synthetically dispatches another
+ * event on the same target chain) inherit the outer flush instead of producing
+ * intermediate commits that React wouldn't.
+ */
+let _dispatchDepth = 0;
+
 function dispatchDelegated(event: Event): void {
 	const key = '$$' + event.type;
+	const isDiscrete = DISCRETE_EVENTS.has(event.type);
+	_dispatchDepth++;
 	let node = event.target as any;
-	while (node !== null && node !== undefined) {
-		const slot = node[key] as EventSlot;
-		if (slot) {
-			if (typeof slot === 'function') {
-				slot(event);
-			} else {
-				// bundle: fn(...args, event)
-				const a = slot.args;
-				switch (a.length) {
-					case 0:
-						slot.fn(event);
-						break;
-					case 1:
-						slot.fn(a[0], event);
-						break;
-					case 2:
-						slot.fn(a[0], a[1], event);
-						break;
-					default:
-						slot.fn.apply(null, a.concat(event));
+	try {
+		while (node !== null && node !== undefined) {
+			const slot = node[key] as EventSlot;
+			if (slot) {
+				if (typeof slot === 'function') {
+					slot(event);
+				} else {
+					// bundle: fn(...args, event)
+					const a = slot.args;
+					switch (a.length) {
+						case 0:
+							slot.fn(event);
+							break;
+						case 1:
+							slot.fn(a[0], event);
+							break;
+						case 2:
+							slot.fn(a[0], a[1], event);
+							break;
+						default:
+							slot.fn.apply(null, a.concat(event));
+					}
 				}
+				if (event.cancelBubble) return;
 			}
-			if (event.cancelBubble) return;
+			// Portal-aware ascent: when crossing a portal root, jump to the rendering Block's DOM parent.
+			if (node.$$portalParent) {
+				node = node.$$portalParent;
+			} else {
+				node = node.parentNode;
+			}
 		}
-		// Portal-aware ascent: when crossing a portal root, jump to the rendering Block's DOM parent.
-		if (node.$$portalParent) {
-			node = node.$$portalParent;
-		} else {
-			node = node.parentNode;
+	} finally {
+		_dispatchDepth--;
+		// React parity: discrete events (click, keydown, input, …) must commit
+		// before the browser regains control — otherwise fast double-clicks,
+		// focus-after-reveal, e.preventDefault+setState+measure patterns and
+		// controlled-input value reads all see stale state. Only the OUTERMOST
+		// dispatch flushes — nested synthetic dispatches inherit the outer
+		// commit window. Non-discrete events (scroll, mousemove, …) keep
+		// microtask-batched semantics so they don't thrash the scheduler.
+		if (isDiscrete && _dispatchDepth === 0 && hasPendingWork()) {
+			flushSync(noop);
 		}
 	}
 }
+
+function noop(): void {}
 
 // ---------------------------------------------------------------------------
 // Portals — createPortal renders into a foreign DOM target while staying
