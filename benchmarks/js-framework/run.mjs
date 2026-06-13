@@ -19,6 +19,7 @@ import { chromium } from 'playwright';
 
 const ITER = parseInt(process.argv[2] || '8', 10);
 const ROW_COUNT = 1000;
+const ROW_COUNT_LARGE = 10000; // matches the canonical suite's runlots / clear table size
 
 const TARGETS = process.env.TARGETS
 	? JSON.parse(process.env.TARGETS)
@@ -32,7 +33,12 @@ const OPS = [
 	{ name: 'swap', pre: 'rows', click: '#swaprows' },
 	{ name: 'remove', pre: 'rows', click: 'tbody tr:nth-child(5) td:nth-child(3) a' },
 	{ name: 'runlots', pre: 'empty', click: '#runlots' },
-	{ name: 'clear', pre: 'rows', click: '#clear' },
+	// Canonical js-framework-benchmark `clear` measures clearing the
+	// 10K-row table that `runlots` populated — NOT the 1K-row table from
+	// `run`. The previous `pre: 'rows'` rebuilt 1K rows before the timed
+	// click, so reported numbers were ~10x too fast and not comparable to
+	// the upstream suite. Use `rows-large` to ensure the 10K state first.
+	{ name: 'clear', pre: 'rows-large', click: '#clear' },
 ];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -50,6 +56,16 @@ async function ensureState(page, pre) {
 			await page.waitForFunction(
 				(n) => document.querySelectorAll('tbody tr').length === n,
 				ROW_COUNT,
+				{ timeout: 5000 },
+			);
+		}
+	} else if (pre === 'rows-large') {
+		const cnt = await page.evaluate(() => document.querySelectorAll('tbody tr').length);
+		if (cnt !== ROW_COUNT_LARGE) {
+			await page.evaluate(() => document.getElementById('runlots').click());
+			await page.waitForFunction(
+				(n) => document.querySelectorAll('tbody tr').length === n,
+				ROW_COUNT_LARGE,
 				{ timeout: 5000 },
 			);
 		}
