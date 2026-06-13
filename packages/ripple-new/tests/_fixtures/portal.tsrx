@@ -3,8 +3,10 @@ import { useState, createContext, use, createPortal } from 'ripple-new';
 export const Theme = createContext('light');
 
 export function PortalledChild() @{
-  const theme = use(Theme);
-  <span class='child'>{theme as string}</span>
+	const theme = use(Theme);
+	<span class="child">
+		{theme as string}
+	</span>
 }
 
 // React-shape: createPortal(children, target) at JSX child position.
@@ -16,19 +18,24 @@ export function PortalledChild() @{
 // body). Same compile-time semantics: the body is rendered inside the portal
 // target rather than at the call site.
 export function Modal(props) @{
-  <section class='modal-anchor'>
-    {createPortal(() => @{ <div class='modal'><PortalledChild /></div> }, props.target)}
-  </section>
+	<section class="modal-anchor">{createPortal(
+		() => @{
+			<div class="modal">
+				<PortalledChild />
+			</div>
+		},
+		props.target,
+	)}</section>
 }
 
 export function App(props) @{
-  const [open, setOpen] = useState(true);
-  <div class='app-root'>
-    <button onClick={() => setOpen(!open)}>{'toggle'}</button>
-    <Theme.Provider value={'dark'}>
-      @if (open) {
-        <Modal target={props.target} />
-      }
-    </Theme.Provider>
-  </div>
+	const [open, setOpen] = useState(true);
+	<div class="app-root">
+		<button onClick={() => setOpen(!open)}>{'toggle'}</button>
+		<Theme.Provider value="dark">
+			@if (open) {
+				<Modal target={props.target} />
+			}
+		</Theme.Provider>
+	</div>
 }

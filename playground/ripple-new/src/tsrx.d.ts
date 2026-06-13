@@ -9,7 +9,7 @@ declare module '*.tsrx';
 // type-check of a `.tsrx` file doesn't drown the editor in implicit-any
 // noise about <div>, <span>, etc.
 declare namespace JSX {
-  interface IntrinsicElements {
-    [tag: string]: any;
-  }
+	interface IntrinsicElements {
+		[tag: string]: any;
+	}
 }

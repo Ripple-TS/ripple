@@ -24,10 +24,10 @@
  */
 
 import {
-  createJsxTransform,
-  createVolarMappingsResult,
-  dedupeMappings,
-  parseModule,
+	createJsxTransform,
+	createVolarMappingsResult,
+	dedupeMappings,
+	parseModule,
 } from '@tsrx/core';
 
 /**
@@ -54,22 +54,22 @@ import {
  * names in source. (Volar TSX is virtual — its imports never run.)
  */
 const RIPPLE_NEW_PLATFORM = {
-  name: 'ripple-new',
-  imports: {
-    fragment: 'ripple-new',
-    suspense: 'ripple-new',
-    dynamic: 'ripple-new',
-    errorBoundary: 'ripple-new',
-    forOfIterableHelper: '@tsrx/core/runtime/iterable',
-  },
-  jsx: {
-    rewriteClassAttr: false,
-    classAttrName: 'class',
-    multiRefStrategy: 'array',
-  },
-  validation: {
-    requireUseServerForAwait: false,
-  },
+	name: 'ripple-new',
+	imports: {
+		fragment: 'ripple-new',
+		suspense: 'ripple-new',
+		dynamic: 'ripple-new',
+		errorBoundary: 'ripple-new',
+		forOfIterableHelper: '@tsrx/core/runtime/iterable',
+	},
+	jsx: {
+		rewriteClassAttr: false,
+		classAttrName: 'class',
+		multiRefStrategy: 'array',
+	},
+	validation: {
+		requireUseServerForAwait: false,
+	},
 };
 
 const rippleNewTransform = createJsxTransform(RIPPLE_NEW_PLATFORM);
@@ -88,34 +88,34 @@ const rippleNewTransform = createJsxTransform(RIPPLE_NEW_PLATFORM);
  * @returns {import('@tsrx/core/types').VolarMappingsResult}
  */
 export function compileToVolarMappings(source, filename, options) {
-  /** @type {import('@tsrx/core/types').CompileError[]} */
-  const errors = [];
-  /** @type {import('@tsrx/core/types').AST.CommentWithLocation[]} */
-  const comments = [];
-  const ast = parseModule(source, filename, {
-    ...options,
-    collect: true,
-    loose: !!options?.loose,
-    errors,
-    comments,
-  });
-  const transformed = rippleNewTransform(ast, source, filename, {
-    collect: true,
-    loose: !!options?.loose,
-    typeOnly: true,
-    errors,
-    comments,
-  });
-  const result = createVolarMappingsResult({
-    ast: transformed.ast,
-    ast_from_source: ast,
-    source,
-    generated_code: transformed.code,
-    source_map: transformed.map,
-    errors,
-  });
-  return {
-    ...result,
-    mappings: dedupeMappings(result.mappings),
-  };
+	/** @type {import('@tsrx/core/types').CompileError[]} */
+	const errors = [];
+	/** @type {import('@tsrx/core/types').AST.CommentWithLocation[]} */
+	const comments = [];
+	const ast = parseModule(source, filename, {
+		...options,
+		collect: true,
+		loose: !!options?.loose,
+		errors,
+		comments,
+	});
+	const transformed = rippleNewTransform(ast, source, filename, {
+		collect: true,
+		loose: !!options?.loose,
+		typeOnly: true,
+		errors,
+		comments,
+	});
+	const result = createVolarMappingsResult({
+		ast: transformed.ast,
+		ast_from_source: ast,
+		source,
+		generated_code: transformed.code,
+		source_map: transformed.map,
+		errors,
+	});
+	return {
+		...result,
+		mappings: dedupeMappings(result.mappings),
+	};
 }

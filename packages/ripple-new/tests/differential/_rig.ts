@@ -61,29 +61,31 @@ const reactImportCache = new Map<string, Promise<any>>();
  * hand. Tradeoff: one disk write per fixture.
  */
 function loadReactFixture(srcPath: string): Promise<any> {
-  const cached = reactImportCache.get(srcPath);
-  if (cached) return cached;
-  const slug = basename(srcPath).replace(/\.tsrx$/, '');
-  const outFile = join(REACT_FIXTURE_CACHE_DIR, `${slug}-${hashString(srcPath)}.js`);
-  if (!existsSync(outFile)) {
-    return Promise.reject(new Error(
-      `Precompiled React fixture not found for ${srcPath}.\n` +
-      `Expected at ${outFile}. Either globalSetup didn't run, or the fixture ` +
-      `couldn't be compiled via @tsrx/react — check setup logs.`
-    ));
-  }
-  const promise = import(/* @vite-ignore */ outFile);
-  reactImportCache.set(srcPath, promise);
-  return promise;
+	const cached = reactImportCache.get(srcPath);
+	if (cached) return cached;
+	const slug = basename(srcPath).replace(/\.tsrx$/, '');
+	const outFile = join(REACT_FIXTURE_CACHE_DIR, `${slug}-${hashString(srcPath)}.js`);
+	if (!existsSync(outFile)) {
+		return Promise.reject(
+			new Error(
+				`Precompiled React fixture not found for ${srcPath}.\n` +
+					`Expected at ${outFile}. Either globalSetup didn't run, or the fixture ` +
+					`couldn't be compiled via @tsrx/react — check setup logs.`,
+			),
+		);
+	}
+	const promise = import(/* @vite-ignore */ outFile);
+	reactImportCache.set(srcPath, promise);
+	return promise;
 }
 
 function hashString(s: string): string {
-  // Cheap deterministic id — collisions across the test suite are
-  // astronomically unlikely; we're cache-keying by the fixture's source
-  // path, which is itself unique.
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  return Math.abs(h).toString(36);
+	// Cheap deterministic id — collisions across the test suite are
+	// astronomically unlikely; we're cache-keying by the fixture's source
+	// path, which is itself unique.
+	let h = 5381;
+	for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+	return Math.abs(h).toString(36);
 }
 
 /**
@@ -98,9 +100,12 @@ function hashString(s: string): string {
  *     we collapse to put both runtimes on equal footing.
  */
 function normaliseHtml(html: string): string {
-  return sortAttributes(collapseInterTagWhitespace(stripComments(html))
-    .replace(' data-reactroot="', ' ').replace(' data-reactroot=""', '')
-    .trim());
+	return sortAttributes(
+		collapseInterTagWhitespace(stripComments(html))
+			.replace(' data-reactroot="', ' ')
+			.replace(' data-reactroot=""', '')
+			.trim(),
+	);
 }
 
 /**
@@ -111,18 +116,21 @@ function normaliseHtml(html: string): string {
  * susceptible to catastrophic backtracking).
  */
 function stripComments(s: string): string {
-  let out = '';
-  let i = 0;
-  const n = s.length;
-  while (i < n) {
-    const open = s.indexOf('<!--', i);
-    if (open === -1) { out += s.slice(i); break; }
-    out += s.slice(i, open);
-    const close = s.indexOf('-->', open + 4);
-    if (close === -1) break;                               // unterminated comment — drop the rest
-    i = close + 3;
-  }
-  return out;
+	let out = '';
+	let i = 0;
+	const n = s.length;
+	while (i < n) {
+		const open = s.indexOf('<!--', i);
+		if (open === -1) {
+			out += s.slice(i);
+			break;
+		}
+		out += s.slice(i, open);
+		const close = s.indexOf('-->', open + 4);
+		if (close === -1) break; // unterminated comment — drop the rest
+		i = close + 3;
+	}
+	return out;
 }
 
 /**
@@ -131,37 +139,40 @@ function stripComments(s: string): string {
  * content; only inter-tag whitespace gets compacted away.
  */
 function collapseInterTagWhitespace(s: string): string {
-  let out = '';
-  let i = 0;
-  const n = s.length;
-  while (i < n) {
-    const c = s.charCodeAt(i);
-    if (c === 62 /* > */) {
-      out += '>';
-      i++;
-      while (i < n) {
-        const cc = s.charCodeAt(i);
-        if (cc === 32 || cc === 9 || cc === 10 || cc === 13 || cc === 12 || cc === 11) { i++; continue; }
-        break;
-      }
-      continue;
-    }
-    if (c === 60 /* < */) {
-      // Strip whitespace immediately preceding a tag too.
-      // The previous slice already wrote up to this point — trim trailing
-      // whitespace off `out`.
-      let end = out.length;
-      while (end > 0) {
-        const cc = out.charCodeAt(end - 1);
-        if (cc === 32 || cc === 9 || cc === 10 || cc === 13 || cc === 12 || cc === 11) end--;
-        else break;
-      }
-      if (end < out.length) out = out.slice(0, end);
-    }
-    out += s[i];
-    i++;
-  }
-  return out;
+	let out = '';
+	let i = 0;
+	const n = s.length;
+	while (i < n) {
+		const c = s.charCodeAt(i);
+		if (c === 62 /* > */) {
+			out += '>';
+			i++;
+			while (i < n) {
+				const cc = s.charCodeAt(i);
+				if (cc === 32 || cc === 9 || cc === 10 || cc === 13 || cc === 12 || cc === 11) {
+					i++;
+					continue;
+				}
+				break;
+			}
+			continue;
+		}
+		if (c === 60 /* < */) {
+			// Strip whitespace immediately preceding a tag too.
+			// The previous slice already wrote up to this point — trim trailing
+			// whitespace off `out`.
+			let end = out.length;
+			while (end > 0) {
+				const cc = out.charCodeAt(end - 1);
+				if (cc === 32 || cc === 9 || cc === 10 || cc === 13 || cc === 12 || cc === 11) end--;
+				else break;
+			}
+			if (end < out.length) out = out.slice(0, end);
+		}
+		out += s[i];
+		i++;
+	}
+	return out;
 }
 
 /**
@@ -174,43 +185,44 @@ function collapseInterTagWhitespace(s: string): string {
  * both runtimes on equal footing.
  */
 function sortAttributes(html: string): string {
-  // `[^>]*` is bounded by the negated character class — greedy match has
-  // identical semantics to the lazy `[^>]*?` for our input but doesn't get
-  // flagged by CodeQL's polynomial-regex check (lazy unbounded reps trip
-  // its ReDoS heuristic).
-  return html.replace(/<([a-zA-Z][\w-]*)\s+([^>]*)(\/?)>/g, (_, tag, attrs, selfClose) => {
-    // Split the attribute string on whitespace BETWEEN attributes — but not
-    // inside quoted values. Naive parse: match name="value" | name='value'
-    // | name=unquoted | name (boolean).
-    const matches = attrs.match(/(?:[a-zA-Z_:][\w:.-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*))?/g) || [];
-    if (matches.length === 0) return `<${tag}${selfClose ? '/' : ''}>`;
-    matches.sort();
-    return `<${tag} ${matches.join(' ')}${selfClose ? '/' : ''}>`;
-  });
+	// `[^>]*` is bounded by the negated character class — greedy match has
+	// identical semantics to the lazy `[^>]*?` for our input but doesn't get
+	// flagged by CodeQL's polynomial-regex check (lazy unbounded reps trip
+	// its ReDoS heuristic).
+	return html.replace(/<([a-zA-Z][\w-]*)\s+([^>]*)(\/?)>/g, (_, tag, attrs, selfClose) => {
+		// Split the attribute string on whitespace BETWEEN attributes — but not
+		// inside quoted values. Naive parse: match name="value" | name='value'
+		// | name=unquoted | name (boolean).
+		const matches =
+			attrs.match(/(?:[a-zA-Z_:][\w:.-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*))?/g) || [];
+		if (matches.length === 0) return `<${tag}${selfClose ? '/' : ''}>`;
+		matches.sort();
+		return `<${tag} ${matches.join(' ')}${selfClose ? '/' : ''}>`;
+	});
 }
 
 export interface DiffMount {
-  container: HTMLElement;
-  /** Drive a synthetic click on the FIRST element matching the selector. */
-  click(selector: string): Promise<void>;
-  /** Find one element (throws if missing). */
-  find(selector: string): Element;
-  /** Find all matching elements. */
-  findAll(selector: string): Element[];
+	container: HTMLElement;
+	/** Drive a synthetic click on the FIRST element matching the selector. */
+	click(selector: string): Promise<void>;
+	/** Find one element (throws if missing). */
+	find(selector: string): Element;
+	/** Find all matching elements. */
+	findAll(selector: string): Element[];
 }
 
 export interface DiffPair {
-  ripple: DiffMount;
-  react: DiffMount;
-  /**
-   * Drive a step on BOTH runtimes (interleaved — ripple first, then
-   * React). After both complete, normalises and asserts equal innerHTML.
-   * If the snapshots diverge, the assertion message includes both for
-   * easy diffing.
-   */
-  step(name: string, fn: (i: DiffMount, r: DiffMount) => void | Promise<void>): Promise<void>;
-  /** Tear down both. */
-  unmount(): void;
+	ripple: DiffMount;
+	react: DiffMount;
+	/**
+	 * Drive a step on BOTH runtimes (interleaved — ripple first, then
+	 * React). After both complete, normalises and asserts equal innerHTML.
+	 * If the snapshots diverge, the assertion message includes both for
+	 * easy diffing.
+	 */
+	step(name: string, fn: (i: DiffMount, r: DiffMount) => void | Promise<void>): Promise<void>;
+	/** Tear down both. */
+	unmount(): void;
 }
 
 /**
@@ -222,109 +234,120 @@ export interface DiffPair {
  * root component.
  */
 export async function mountDifferential(
-  srcPath: string,
-  rippleEntry: string,
-  initialProps?: any,
+	srcPath: string,
+	rippleEntry: string,
+	initialProps?: any,
 ): Promise<DiffPair> {
-  // ripple-new side — import via Vitest's normal pipeline (the
-  // rippleNew() plugin handles compilation).
-  const rippleMod = await import(/* @vite-ignore */ srcPath);
-  const RippleComp = rippleMod[rippleEntry];
-  if (!RippleComp) throw new Error(`ripple-new export "${rippleEntry}" not found in ${srcPath}`);
+	// ripple-new side — import via Vitest's normal pipeline (the
+	// rippleNew() plugin handles compilation).
+	const rippleMod = await import(/* @vite-ignore */ srcPath);
+	const RippleComp = rippleMod[rippleEntry];
+	if (!RippleComp) throw new Error(`ripple-new export "${rippleEntry}" not found in ${srcPath}`);
 
-  // React side — compile, write, dynamic-import.
-  const reactMod = await loadReactFixture(srcPath);
-  const ReactComp = reactMod[rippleEntry];
-  if (!ReactComp) throw new Error(`@tsrx/react export "${rippleEntry}" not found in ${srcPath}`);
+	// React side — compile, write, dynamic-import.
+	const reactMod = await loadReactFixture(srcPath);
+	const ReactComp = reactMod[rippleEntry];
+	if (!ReactComp) throw new Error(`@tsrx/react export "${rippleEntry}" not found in ${srcPath}`);
 
-  // Two hidden containers, side-by-side under body.
-  const rippleContainer = document.createElement('div');
-  rippleContainer.setAttribute('data-rt', 'ripple');
-  const reactContainer = document.createElement('div');
-  reactContainer.setAttribute('data-rt', 'react');
-  document.body.appendChild(rippleContainer);
-  document.body.appendChild(reactContainer);
+	// Two hidden containers, side-by-side under body.
+	const rippleContainer = document.createElement('div');
+	rippleContainer.setAttribute('data-rt', 'ripple');
+	const reactContainer = document.createElement('div');
+	reactContainer.setAttribute('data-rt', 'react');
+	document.body.appendChild(rippleContainer);
+	document.body.appendChild(reactContainer);
 
-  // Ripple mount.
-  const rippleRoot = rippleCreateRoot(rippleContainer);
-  rippleRoot.render(RippleComp, initialProps);
-  rippleFlushSync(() => {});
+	// Ripple mount.
+	const rippleRoot = rippleCreateRoot(rippleContainer);
+	rippleRoot.render(RippleComp, initialProps);
+	rippleFlushSync(() => {});
 
-  // React mount.
-  const rRoot: ReactRoot = reactCreateRoot(reactContainer);
-  await reactAct(async () => {
-    rRoot.render(React.createElement(ReactComp, initialProps));
-  });
+	// React mount.
+	const rRoot: ReactRoot = reactCreateRoot(reactContainer);
+	await reactAct(async () => {
+		rRoot.render(React.createElement(ReactComp, initialProps));
+	});
 
-  function mkMount(container: HTMLElement, isReact: boolean): DiffMount {
-    return {
-      container,
-      async click(selector) {
-        // jsdom's container.querySelector('#x') sometimes fails to resolve
-        // single-char IDs on freshly-React-rendered subtrees (the scope at
-        // which selectors are resolved doesn't include just-mounted nodes
-        // in some envs). Fall back to a tree walk via getElementsByTagName
-        // when the direct querySelector returns null. This is jsdom-quirk
-        // workaround code, not a renderer concern.
-        let el: Element | null = container.querySelector(selector);
-        if (!el && selector.startsWith('#')) {
-          const id = selector.slice(1);
-          const all = container.getElementsByTagName('*');
-          for (let i = 0; i < all.length; i++) {
-            if (all[i].id === id) { el = all[i]; break; }
-          }
-        }
-        if (!el) {
-          throw new Error(`no element matching ${selector} (${isReact ? 'react' : 'ripple'})`);
-        }
-        if (isReact) {
-          await reactAct(async () => {
-            if (typeof (el as HTMLElement).click === 'function') (el as HTMLElement).click();
-            else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-          });
-        } else {
-          rippleFlushSync(() => {
-            if (typeof (el as HTMLElement).click === 'function') (el as HTMLElement).click();
-            else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-          });
-        }
-      },
-      find(selector) {
-        const el = container.querySelector(selector);
-        if (!el) throw new Error(`no element matching ${selector} (${isReact ? 'react' : 'ripple'})`);
-        return el;
-      },
-      findAll(selector) { return Array.from(container.querySelectorAll(selector)); },
-    };
-  }
+	function mkMount(container: HTMLElement, isReact: boolean): DiffMount {
+		return {
+			container,
+			async click(selector) {
+				// jsdom's container.querySelector('#x') sometimes fails to resolve
+				// single-char IDs on freshly-React-rendered subtrees (the scope at
+				// which selectors are resolved doesn't include just-mounted nodes
+				// in some envs). Fall back to a tree walk via getElementsByTagName
+				// when the direct querySelector returns null. This is jsdom-quirk
+				// workaround code, not a renderer concern.
+				let el: Element | null = container.querySelector(selector);
+				if (!el && selector.startsWith('#')) {
+					const id = selector.slice(1);
+					const all = container.getElementsByTagName('*');
+					for (let i = 0; i < all.length; i++) {
+						if (all[i].id === id) {
+							el = all[i];
+							break;
+						}
+					}
+				}
+				if (!el) {
+					throw new Error(`no element matching ${selector} (${isReact ? 'react' : 'ripple'})`);
+				}
+				if (isReact) {
+					await reactAct(async () => {
+						if (typeof (el as HTMLElement).click === 'function') (el as HTMLElement).click();
+						else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+					});
+				} else {
+					rippleFlushSync(() => {
+						if (typeof (el as HTMLElement).click === 'function') (el as HTMLElement).click();
+						else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+					});
+				}
+			},
+			find(selector) {
+				const el = container.querySelector(selector);
+				if (!el)
+					throw new Error(`no element matching ${selector} (${isReact ? 'react' : 'ripple'})`);
+				return el;
+			},
+			findAll(selector) {
+				return Array.from(container.querySelectorAll(selector));
+			},
+		};
+	}
 
-  const ripple = mkMount(rippleContainer, false);
-  const react = mkMount(reactContainer, true);
+	const ripple = mkMount(rippleContainer, false);
+	const react = mkMount(reactContainer, true);
 
-  async function step(name: string, fn: (i: DiffMount, r: DiffMount) => void | Promise<void>): Promise<void> {
-    await fn(ripple, react);
-    // Drain React commits + effects, give microtasks a chance.
-    await reactAct(async () => {});
-    const i = normaliseHtml(rippleContainer.innerHTML);
-    const r = normaliseHtml(reactContainer.innerHTML);
-    if (i !== r) {
-      throw new Error(
-        `Differential DOM divergence at step "${name}":\n` +
-        `  ripple-new: ${i}\n` +
-        `  @tsrx/react:  ${r}`
-      );
-    }
-    // Verbose-pass on equality — using expect so the runner counts an
-    // assertion (helps with vitest's "asserted nothing" warnings).
-    expect(i).toBe(r);
-  }
+	async function step(
+		name: string,
+		fn: (i: DiffMount, r: DiffMount) => void | Promise<void>,
+	): Promise<void> {
+		await fn(ripple, react);
+		// Drain React commits + effects, give microtasks a chance.
+		await reactAct(async () => {});
+		const i = normaliseHtml(rippleContainer.innerHTML);
+		const r = normaliseHtml(reactContainer.innerHTML);
+		if (i !== r) {
+			throw new Error(
+				`Differential DOM divergence at step "${name}":\n` +
+					`  ripple-new: ${i}\n` +
+					`  @tsrx/react:  ${r}`,
+			);
+		}
+		// Verbose-pass on equality — using expect so the runner counts an
+		// assertion (helps with vitest's "asserted nothing" warnings).
+		expect(i).toBe(r);
+	}
 
-  function unmount(): void {
-    rippleRoot.unmount();
-    reactFlushSync(() => { rRoot.unmount(); });
-    rippleContainer.remove();
-    reactContainer.remove();
-  }
+	function unmount(): void {
+		rippleRoot.unmount();
+		reactFlushSync(() => {
+			rRoot.unmount();
+		});
+		rippleContainer.remove();
+		reactContainer.remove();
+	}
 
-  return { ripple, react, step, unmount };
+	return { ripple, react, step, unmount };
 }

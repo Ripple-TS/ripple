@@ -1,18 +1,37 @@
 import { createRoot, flushSync } from 'ripple-new';
-import App, { bumpAt1, bumpAt11, bumpAt21, bumpAt31, bumpAt41, bumpAt51, bumpAt61, bumpAt71, bumpAt81, bumpAt91 } from './App.tsrx';
+import App, {
+	bumpAt1,
+	bumpAt11,
+	bumpAt21,
+	bumpAt31,
+	bumpAt41,
+	bumpAt51,
+	bumpAt61,
+	bumpAt71,
+	bumpAt81,
+	bumpAt91,
+} from './App.tsrx';
 
 const target = document.getElementById('main');
 let root = null;
 
 // index.html does NOT auto-mount — harness wraps each call in performance.now().
 window.__mount = () => {
-  root = createRoot(target);
-  root.render(App, {});
+	root = createRoot(target);
+	root.render(App, {});
 };
-window.__unmount = () => { if (root) { root.unmount(); root = null; } };
+window.__unmount = () => {
+	if (root) {
+		root.unmount();
+		root = null;
+	}
+};
 window.__reset = () => {
-  if (root) { root.unmount(); root = null; }
-  while (target.firstChild) target.removeChild(target.firstChild);
+	if (root) {
+		root.unmount();
+		root = null;
+	}
+	while (target.firstChild) target.removeChild(target.firstChild);
 };
 window.__bumpAt1 = () => flushSync(bumpAt1);
 window.__bumpAt11 = () => flushSync(bumpAt11);

@@ -1,14 +1,35 @@
 import { mount, flushSync } from 'ripple';
-import App, { bumpAt1, bumpAt11, bumpAt21, bumpAt31, bumpAt41, bumpAt51, bumpAt61, bumpAt71, bumpAt81, bumpAt91 } from './App.tsrx';
+import App, {
+	bumpAt1,
+	bumpAt11,
+	bumpAt21,
+	bumpAt31,
+	bumpAt41,
+	bumpAt51,
+	bumpAt61,
+	bumpAt71,
+	bumpAt81,
+	bumpAt91,
+} from './App.tsrx';
 
 const target = document.getElementById('main');
 let unmount = null;
 
-window.__mount = () => { unmount = mount(App, { target, props: {} }); };
-window.__unmount = () => { if (unmount) { unmount(); unmount = null; } };
+window.__mount = () => {
+	unmount = mount(App, { target, props: {} });
+};
+window.__unmount = () => {
+	if (unmount) {
+		unmount();
+		unmount = null;
+	}
+};
 window.__reset = () => {
-  if (unmount) { unmount(); unmount = null; }
-  while (target.firstChild) target.removeChild(target.firstChild);
+	if (unmount) {
+		unmount();
+		unmount = null;
+	}
+	while (target.firstChild) target.removeChild(target.firstChild);
 };
 window.__bumpAt1 = () => flushSync(bumpAt1);
 window.__bumpAt11 = () => flushSync(bumpAt11);

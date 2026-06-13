@@ -14,23 +14,19 @@ import { useState } from 'ripple-new';
 // gradientTransform), ReactDOMComponent-test.js (SVG attribute casing).
 // ---------------------------------------------------------------------------
 export function SvgCamelAttrs(props) @{
-  <svg
-    id='cam'
-    viewBox='0 0 200 200'
-    preserveAspectRatio={props.preserveAspectRatio}
-  >
-    <defs>
-      <linearGradient
-        id='lg'
-        gradientTransform={props.gradientTransform}
-        gradientUnits={props.gradientUnits}
-      />
-      <clipPath id='cp' clipPathUnits={props.clipPathUnits} />
-      <marker id='mk' markerWidth={props.markerWidth} />
-      <pattern id='pt' patternUnits={props.patternUnits} />
-    </defs>
-    <text id='tx' x='10' y='20' textLength={props.textLength}>{'hi'}</text>
-  </svg>
+	<svg id="cam" viewBox="0 0 200 200" preserveAspectRatio={props.preserveAspectRatio}>
+		<defs>
+			<linearGradient
+				id="lg"
+				gradientTransform={props.gradientTransform}
+				gradientUnits={props.gradientUnits}
+			/>
+			<clipPath id="cp" clipPathUnits={props.clipPathUnits} />
+			<marker id="mk" markerWidth={props.markerWidth} />
+			<pattern id="pt" patternUnits={props.patternUnits} />
+		</defs>
+		<text id="tx" x="10" y="20" textLength={props.textLength}>{'hi'}</text>
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -38,27 +34,27 @@ export function SvgCamelAttrs(props) @{
 // verbatim. Reference: ReactDOMComponent-test.js (stroke-width, fill-opacity).
 // ---------------------------------------------------------------------------
 export function SvgKebabAttrs(props) @{
-  <svg id='kebab' viewBox='0 0 100 100'>
-    <line
-      id='ln'
-      x1='0'
-      y1='0'
-      x2='50'
-      y2='50'
-      stroke-width={props.strokeWidth}
-      stroke-dasharray={props.strokeDasharray}
-      stroke-linecap={props.strokeLinecap}
-    />
-    <rect
-      id='rc'
-      x='0'
-      y='0'
-      width='30'
-      height='30'
-      fill-opacity={props.fillOpacity}
-      clip-path={props.clipPath}
-    />
-  </svg>
+	<svg id="kebab" viewBox="0 0 100 100">
+		<line
+			id="ln"
+			x1="0"
+			y1="0"
+			x2="50"
+			y2="50"
+			stroke-width={props.strokeWidth}
+			stroke-dasharray={props.strokeDasharray}
+			stroke-linecap={props.strokeLinecap}
+		/>
+		<rect
+			id="rc"
+			x="0"
+			y="0"
+			width="30"
+			height="30"
+			fill-opacity={props.fillOpacity}
+			clip-path={props.clipPath}
+		/>
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -68,9 +64,9 @@ export function SvgKebabAttrs(props) @{
 // setAttributeNS routing.
 // ---------------------------------------------------------------------------
 export function SvgXmlAttrs(props) @{
-  <svg id='xml' viewBox='0 0 50 50' xml:lang={props.lang} xml:space={props.space}>
-    <text id='xt' x='5' y='15'>{'ns'}</text>
-  </svg>
+	<svg id="xml" viewBox="0 0 50 50" xml:lang={props.lang} xml:space={props.space}>
+		<text id="xt" x="5" y="15">{'ns'}</text>
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -80,9 +76,9 @@ export function SvgXmlAttrs(props) @{
 // Reference: ReactDOMComponent-test.js (xlink namespace + null clear).
 // ---------------------------------------------------------------------------
 export function SvgXlinkClear(props) @{
-  <svg id='xlink-root' viewBox='0 0 50 50'>
-    <use id='use-el' xlink:href={props.href}/>
-  </svg>
+	<svg id="xlink-root" viewBox="0 0 50 50">
+		<use id="use-el" xlink:href={props.href} />
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -91,11 +87,11 @@ export function SvgXlinkClear(props) @{
 // no special-casing, and that <a> is in the SVG namespace because parent is.
 // ---------------------------------------------------------------------------
 export function SvgPlainHref(props) @{
-  <svg id='aroot' viewBox='0 0 50 50'>
-    <a id='alink' href={props.href}>
-      <rect x='0' y='0' width='10' height='10' />
-    </a>
-  </svg>
+	<svg id="aroot" viewBox="0 0 50 50">
+		<a id="alink" href={props.href}>
+			<rect x="0" y="0" width="10" height="10" />
+		</a>
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -106,9 +102,9 @@ export function SvgPlainHref(props) @{
 // correct namespaceURI too, the same as the direct emit path.
 // ---------------------------------------------------------------------------
 export function SvgSpreadNamespaced(props) @{
-  <svg id='spread-root' viewBox='0 0 50 50'>
-    <use id='spread-use' {...props.attrs} />
-  </svg>
+	<svg id="spread-root" viewBox="0 0 50 50">
+		<use id="spread-use" {...props.attrs} />
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +115,7 @@ export function SvgSpreadNamespaced(props) @{
 // attribute on the inner <circle>.
 // ---------------------------------------------------------------------------
 export function SvgClassPath(props) @{
-  <svg id='cls-root' viewBox='0 0 100 100'>
-    <circle id='cls-c' cx='50' cy='50' r='40' class={props.cls}/>
-  </svg>
+	<svg id="cls-root" viewBox="0 0 100 100">
+		<circle id="cls-c" cx="50" cy="50" r="40" class={props.cls} />
+	</svg>
 }

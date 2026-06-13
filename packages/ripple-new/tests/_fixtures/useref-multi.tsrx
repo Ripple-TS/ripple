@@ -12,10 +12,11 @@ import { useRef, useEffect } from 'ripple-new';
 // against React (separate work item), so the array-ref shape is exercised
 // only by the non-differential useref.test.ts suite.
 export function ArrayRefsOneEl(props) @{
-  const a = useRef(null);
-  const b = useRef(null);
-  useEffect((tgt) => { tgt.a = a.current; tgt.b = b.current; }, [props.target]);
-  <div class='multi' ref={[a, b]}>
-    {'mounted'}
-  </div>
+	const a = useRef(null);
+	const b = useRef(null);
+	useEffect((tgt) => {
+		tgt.a = a.current;
+		tgt.b = b.current;
+	}, [props.target]);
+	<div class="multi" ref={[a, b]}>{'mounted'}</div>
 }

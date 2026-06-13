@@ -1,49 +1,53 @@
 import { useState, useId } from 'ripple-new';
 
 export function Toggle() @{
-  const [on, setOn] = useState(false);
-  <div>
-    <button onClick={() => setOn(!on)}>{on ? 'on' : 'off'}</button>
-    <section>
-      @if (on) {
-        <p class='shown'>{'shown'}</p>
-      } @else {
-        <p class='hidden'>{'hidden'}</p>
-      }
-    </section>
-  </div>
+	const [on, setOn] = useState(false);
+	<div>
+		<button onClick={() => setOn(!on)}>
+			{on ? 'on' : 'off'}
+		</button>
+		<section>
+			@if (on) {
+				<p class="shown">{'shown'}</p>
+			} @else {
+				<p class="hidden">{'hidden'}</p>
+			}
+		</section>
+	</div>
 }
 
 export function IfOnly() @{
-  const [show, setShow] = useState(false);
-  <div>
-    <button onClick={() => setShow(!show)}>{'toggle'}</button>
-    <section>
-      @if (show) {
-        <span class='maybe'>{'shown'}</span>
-      }
-    </section>
-  </div>
+	const [show, setShow] = useState(false);
+	<div>
+		<button onClick={() => setShow(!show)}>{'toggle'}</button>
+		<section>
+			@if (show) {
+				<span class="maybe">{'shown'}</span>
+			}
+		</section>
+	</div>
 }
 
 export function HookInIf() @{
-  // Hooks inside an `@if` branch — uses our compile-time Symbol slots, so
-  // toggling the branch destroys + recreates state (Block boundary semantics).
-  const [show, setShow] = useState(true);
-  <div>
-    <button id='top' onClick={() => setShow(!show)}>{'toggle'}</button>
-    <section>
-      @if (show) {
-        const [n, setN] = useState(0);
-        <button id='inner' onClick={() => setN(n + 1)}>{n as string}</button>
-      }
-    </section>
-  </div>
+	// Hooks inside an `@if` branch — uses our compile-time Symbol slots, so
+	// toggling the branch destroys + recreates state (Block boundary semantics).
+	const [show, setShow] = useState(true);
+	<div>
+		<button id="top" onClick={() => setShow(!show)}>{'toggle'}</button>
+		<section>
+			@if (show) {
+				const [n, setN] = useState(0);
+				<button id="inner" onClick={() => setN(n + 1)}>
+					{n as string}
+				</button>
+			}
+		</section>
+	</div>
 }
 
 export function IdInComponent() @{
-  const id = useId();
-  <label for={id}>{id}</label>
+	const id = useId();
+	<label for={id}>{id}</label>
 }
 
 // Regression pin for tsrx 0.1.29 commit 921fb9ce — fix(parser): control
@@ -61,19 +65,31 @@ export function IdInComponent() @{
 // — a separate parser-semantics ticket, tracked in d14ec84f).
 
 export function IfTrailingText(props) @{
-  <p>
-    @if (props.show) { <span class='gated'>{'yes'}</span> } trailing!
-  </p>
+	<p>
+		@if (props.show) {
+			<span class="gated">{'yes'}</span>
+		}
+		trailing!
+	</p>
 }
 
 export function ForTrailingText(props) @{
-  <p>
-    @for (const x of props.items; key x) { <span class='row'>{x as string}</span> } tail
-  </p>
+	<p>
+		@for (const x of props.items; key x) {
+			<span class="row">
+				{x as string}
+			</span>
+		}
+		tail
+	</p>
 }
 
 export function WhitespaceInIf(props) @{
-  <p>
-    @if (props.show) {{'  spaced  ' as string}}
-  </p>
+	<p>
+		@if (props.show) {
+			{
+				'  spaced  ' as string;
+			}
+		}
+	</p>
 }

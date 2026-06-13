@@ -15,20 +15,24 @@ import { use, useState, useTransition } from 'ripple-new';
 // if transition takes too long".
 
 function SuspendingLeaf(props) @{
-  const v = use(props.promise);
-  <span class='leaf'>{v as string}</span>
+	const v = use(props.promise);
+	<span class="leaf">
+		{v as string}
+	</span>
 }
 
 export function TimeoutFallback(props) @{
-  const [promise, setPromise] = useState(props.initialPromise);
-  const [isPending, start] = useTransition();
-  <div>
-    <span id='pending'>{(isPending ? '1' : '0') as string}</span>
-    <button id='swap' onClick={() => start(() => setPromise(props.nextPromise))}>{'swap'}</button>
-    @try {
-      <SuspendingLeaf promise={promise} />
-    } @pending {
-      <span id='fallback'>{'pending-shown'}</span>
-    }
-  </div>
+	const [promise, setPromise] = useState(props.initialPromise);
+	const [isPending, start] = useTransition();
+	<div>
+		<span id="pending">
+			{(isPending ? '1' : '0') as string}
+		</span>
+		<button id="swap" onClick={() => start(() => setPromise(props.nextPromise))}>{'swap'}</button>
+		@try {
+			<SuspendingLeaf promise={promise} />
+		} @pending {
+			<span id="fallback">{'pending-shown'}</span>
+		}
+	</div>
 }

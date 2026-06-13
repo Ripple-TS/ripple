@@ -6,22 +6,24 @@ import { useState, useEffect } from 'ripple-new';
 // ---------------------------------------------------------------------------
 
 export function SpreadOnElement(props) @{
-  <div {...props.attrs} id='target'>{'spread'}</div>
+	<div {...props.attrs} id="target">{'spread'}</div>
 }
 
 // Spread combined with explicit attrs — explicit wins on key collision because
 // it's emitted later in the binding order.
 export function SpreadWithExplicit(props) @{
-  <div {...props.attrs} class='explicit-wins'>{'mix'}</div>
+	<div {...props.attrs} class="explicit-wins">{'mix'}</div>
 }
 
 // Component-level spread — merged into the props object.
 function SpreadChild(props) @{
-  <span id='child' class={props.cls}>{(props.label + (props.tag || '')) as string}</span>
+	<span id="child" class={props.cls}>
+		{props.label + (props.tag || '') as string}
+	</span>
 }
 
 export function SpreadOnComponent(props) @{
-  <SpreadChild {...props.child}/>
+	<SpreadChild {...props.child} />
 }
 
 // ---------------------------------------------------------------------------
@@ -30,28 +32,28 @@ export function SpreadOnComponent(props) @{
 
 // `<input disabled/>` — no `=` → present in HTML, runtime sees the attribute.
 export function BooleanAttr() @{
-  <input id='bool' disabled type='text'/>
+	<input id="bool" disabled type="text" />
 }
 
 // `<input maxLength={n}/>` — dynamic numeric attribute → setAttribute path.
 export function DynamicNumericAttr(props) @{
-  <input id='num' maxLength={props.n} type='text'/>
+	<input id="num" maxLength={props.n} type="text" />
 }
 
 // `<div {value}/>` — TSRX shorthand for `value={value}`. The local binds to the
 // attribute via the identifier name (parsed as `Attribute { shorthand: true }`).
 export function ShorthandAttr(props) @{
-  const id = props.id;
-  <div {id}>{'shorthand'}</div>
+	const id = props.id;
+	<div {id}>{'shorthand'}</div>
 }
 
 // SVG with `xlink:href` — namespaced attribute. TSRX parses the colon-prefixed
 // form as a JSXNamespacedName; the compiler emits it as a regular setAttribute
 // with the full qualified name (browser handles the xlink namespace).
 export function NamespacedAttr(props) @{
-  <svg viewBox='0 0 50 50'>
-    <use id='use-el' xlink:href={props.href}/>
-  </svg>
+	<svg viewBox="0 0 50 50">
+		<use id="use-el" xlink:href={props.href} />
+	</svg>
 }
 
 // ---------------------------------------------------------------------------
@@ -59,19 +61,23 @@ export function NamespacedAttr(props) @{
 // ---------------------------------------------------------------------------
 
 export function ForOfIndexOnly(props) @{
-  <ul>
-    @for (const item of props.items; index i) {
-      <li class={'i-' + i}>{(i + ':' + item) as string}</li>
-    }
-  </ul>
+	<ul>
+		@for (const item of props.items; index i) {
+			<li class={'i-' + i}>
+				{i + ':' + item as string}
+			</li>
+		}
+	</ul>
 }
 
 export function ForOfIndexAndKey(props) @{
-  <ul>
-    @for (const item of props.items; index i; key item.id) {
-      <li class={'k-' + item.id}>{(i + ':' + item.label) as string}</li>
-    }
-  </ul>
+	<ul>
+		@for (const item of props.items; index i; key item.id) {
+			<li class={'k-' + item.id}>
+				{i + ':' + item.label as string}
+			</li>
+		}
+	</ul>
 }
 
 // ---------------------------------------------------------------------------
@@ -80,7 +86,9 @@ export function ForOfIndexAndKey(props) @{
 // ---------------------------------------------------------------------------
 
 export function TernaryFragmentChild(props) @{
-  <div>{props.cond ? <><span class='yes'>{'yes'}</span></> : <><span class='no'>{'no'}</span></>}</div>
+	<div>
+		{props.cond ? <><span class="yes">{'yes'}</span></> : <><span class="no">{'no'}</span></>}
+	</div>
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +98,7 @@ export function TernaryFragmentChild(props) @{
 // ---------------------------------------------------------------------------
 
 export function HtmlOnlyChild(props) @{
-  <div id='html-host' innerHTML={props.markup} />
+	<div id="html-host" innerHTML={props.markup} />
 }
 
 // ---------------------------------------------------------------------------
@@ -100,14 +108,18 @@ export function HtmlOnlyChild(props) @{
 // ---------------------------------------------------------------------------
 
 export function KeyedFragmentItems(props) @{
-  <ul>
-    @for (const x of props.items; key x.id) {
-      <>
-        <li class={'a-' + x.id}>{(x.label + '-a') as string}</li>
-        <li class={'b-' + x.id}>{(x.label + '-b') as string}</li>
-      </>
-    }
-  </ul>
+	<ul>
+		@for (const x of props.items; key x.id) {
+			<>
+				<li class={'a-' + x.id}>
+					{x.label + '-a' as string}
+				</li>
+				<li class={'b-' + x.id}>
+					{x.label + '-b' as string}
+				</li>
+			</>
+		}
+	</ul>
 }
 
 // ---------------------------------------------------------------------------
@@ -118,29 +130,37 @@ export function KeyedFragmentItems(props) @{
 // ---------------------------------------------------------------------------
 
 export function LazyObjectDestructure(props) @{
-  const &{ first, last } = props.user;
-  <div id='lazy-obj'>{(first + ' ' + last) as string}</div>
+	const &{ first, last } = props.user;
+	<div id="lazy-obj">
+		{first + ' ' + last as string}
+	</div>
 }
 
 export function LazyArrayDestructure(props) @{
-  const &[head, ...tail] = props.items;
-  <div id='lazy-arr'>{('head=' + head + ' rest=' + tail.length) as string}</div>
+	const &[head, ...tail] = props.items;
+	<div id="lazy-arr">
+		{'head=' + head + ' rest=' + tail.length as string}
+	</div>
 }
 
 // Lazy destructuring as a COMPONENT PARAMETER — the body sees fields
 // destructured directly from the props object.
 export function LazyParamDestructure(&{ greeting, name }) @{
-  <div id='lazy-param'>{(greeting + ', ' + name) as string}</div>
+	<div id="lazy-param">
+		{greeting + ', ' + name as string}
+	</div>
 }
 
 // Lazy destructuring inside a FOR-OF HEAD — keyFn picks up the same
 // destructure pattern so `key id` resolves the destructured field.
 export function LazyForOfHead(props) @{
-  <ul>
-    @for (const &{ id, label } of props.items; key id) {
-      <li class={'item-' + id}>{label as string}</li>
-    }
-  </ul>
+	<ul>
+		@for (const &{ id, label } of props.items; key id) {
+			<li class={'item-' + id}>
+				{label as string}
+			</li>
+		}
+	</ul>
 }
 
 // ---------------------------------------------------------------------------
@@ -151,13 +171,15 @@ export function LazyForOfHead(props) @{
 // ---------------------------------------------------------------------------
 
 function ShorthandChild(props) @{
-  <span id='child'>{(props.label + ':' + props.count) as string}</span>
+	<span id="child">
+		{props.label + ':' + props.count as string}
+	</span>
 }
 
 export function ShorthandComponentProp() @{
-  const label = 'count';
-  const count = 7;
-  <ShorthandChild {label} {count}/>
+	const label = 'count';
+	const count = 7;
+	<ShorthandChild {label} {count} />
 }
 
 // ---------------------------------------------------------------------------
@@ -171,20 +193,24 @@ export function ShorthandComponentProp() @{
 // PURE: body uses only `row` (the item) — no parent closures, no hooks, no
 // component calls. Should be marked pure → survivors skip renderBlock.
 export function PureForOf(props) @{
-  <ul>
-    @for (const row of props.items; key row.id) {
-      <li class={'r-' + row.id}>{row.label as string}</li>
-    }
-  </ul>
+	<ul>
+		@for (const row of props.items; key row.id) {
+			<li class={'r-' + row.id}>
+				{row.label as string}
+			</li>
+		}
+	</ul>
 }
 
 // IMPURE: body reads `selected` from parent scope → must re-render survivors
 // when parent state changes (otherwise the row's class won't reflect new
 // selected state).
 export function ImpureForOf(props) @{
-  <ul>
-    @for (const row of props.items; key row.id) {
-      <li class={props.selected === row.id ? 'sel' : ''}>{row.label as string}</li>
-    }
-  </ul>
+	<ul>
+		@for (const row of props.items; key row.id) {
+			<li class={props.selected === row.id ? 'sel' : ''}>
+				{row.label as string}
+			</li>
+		}
+	</ul>
 }

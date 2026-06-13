@@ -21,51 +21,61 @@ const LocalCtx = createContext(0);
 let _setRoot = null;
 let _setLocal = null;
 let _setVisible = null;
-export function bumpRoot() { if (_setRoot) _setRoot((v) => v + 1); }
-export function bumpPartial() { if (_setLocal) _setLocal((v) => v + 1); }
-export function hideMid() { if (_setVisible) _setVisible(false); }
-export function showMid() { if (_setVisible) _setVisible(true); }
+export function bumpRoot() {
+	if (_setRoot) _setRoot((v) => v + 1);
+}
+export function bumpPartial() {
+	if (_setLocal) _setLocal((v) => v + 1);
+}
+export function hideMid() {
+	if (_setVisible) _setVisible(false);
+}
+export function showMid() {
+	if (_setVisible) _setVisible(true);
+}
 
 function Mid(props) @{
-  const [local, setLocal] = useState(0);
-  const [visible, setVisible] = useState(true);
-  _setLocal = setLocal;
-  _setVisible = setVisible;
-  @if (visible) {
-    <LocalCtx.Provider value={local}>
-      <div class='mid'>
-        <Node depth={props.depth - 1} path={props.path + 'L'} />
-        <Node depth={props.depth - 1} path={props.path + 'R'} />
-      </div>
-    </LocalCtx.Provider>
-  }
+	const [local, setLocal] = useState(0);
+	const [visible, setVisible] = useState(true);
+	_setLocal = setLocal;
+	_setVisible = setVisible;
+	@if (visible) {
+		<LocalCtx.Provider value={local}>
+			<div class="mid">
+				<Node depth={props.depth - 1} path={props.path + 'L'} />
+				<Node depth={props.depth - 1} path={props.path + 'R'} />
+			</div>
+		</LocalCtx.Provider>
+	}
 }
 
 function Node(props) @{
-  @if (props.depth > 0) {
-    @if (props.path === MID_PATH) {
-      <Mid depth={props.depth} path={props.path} />
-    } @else {
-      <div class='n'>
-        <Node depth={props.depth - 1} path={props.path + 'L'} />
-        <Node depth={props.depth - 1} path={props.path + 'R'} />
-      </div>
-    }
-  } @else {
-    <Leaf path={props.path} />
-  }
+	@if (props.depth > 0) {
+		@if (props.path === MID_PATH) {
+			<Mid depth={props.depth} path={props.path} />
+		} @else {
+			<div class="n">
+				<Node depth={props.depth - 1} path={props.path + 'L'} />
+				<Node depth={props.depth - 1} path={props.path + 'R'} />
+			</div>
+		}
+	} @else {
+		<Leaf path={props.path} />
+	}
 }
 
 function Leaf(props) @{
-  const root = use(RootCtx);
-  const local = use(LocalCtx);
-  <span class='leaf'>{(props.path + '|' + root + ':' + local) as string}</span>
+	const root = use(RootCtx);
+	const local = use(LocalCtx);
+	<span class="leaf">
+		{props.path + '|' + root + ':' + local as string}
+	</span>
 }
 
 export default function App(props) @{
-  const [root, setRoot] = useState(0);
-  _setRoot = setRoot;
-  <RootCtx.Provider value={root}>
-    <Node depth={props.depth} path={''} />
-  </RootCtx.Provider>
+	const [root, setRoot] = useState(0);
+	_setRoot = setRoot;
+	<RootCtx.Provider value={root}>
+		<Node depth={props.depth} path="" />
+	</RootCtx.Provider>
 }

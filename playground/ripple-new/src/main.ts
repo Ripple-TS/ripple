@@ -11,7 +11,7 @@ root.render(App);
 // preserves state across module swaps. Accept App.tsrx so editing the chrome
 // component or its imports updates without losing the active demo selection.
 if (import.meta.hot) {
-  import.meta.hot.accept('./App.tsrx', (mod) => {
-    if (mod?.App) root.render(mod.App);
-  });
+	import.meta.hot.accept('./App.tsrx', (mod) => {
+		if (mod?.App) root.render(mod.App);
+	});
 }

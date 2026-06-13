@@ -26,97 +26,94 @@ const FIXTURE_DIR = join(__dirname, '../_fixtures');
 const CACHE_DIR = join(__dirname, '.react-cache');
 
 function hashString(s: string): string {
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  return Math.abs(h).toString(36);
+	let h = 5381;
+	for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+	return Math.abs(h).toString(36);
 }
 
 function compileOne(srcPath: string): void {
-  const source = readFileSync(srcPath, 'utf8');
-  let compiled;
-  try {
-    compiled = compileToReact(source, srcPath);
-  } catch {
-    // Some fixtures use ripple-new features that @tsrx/react rejects
-    // (multi-ref, @switch, Dynamic shapes). Skip silently — a differential
-    // test that imports the missing precompile will surface the gap.
-    return;
-  }
-  if (compiled.errors && compiled.errors.length > 0) return;
-  let transformed;
-  try {
-    transformed = esbuildTransformSync(compiled.code, {
-      loader: 'tsx',
-      jsx: 'automatic',
-      jsxImportSource: 'react',
-      target: 'esnext',
-      format: 'esm',
-      sourcefile: srcPath,
-    });
-  } catch {
-    return;
-  }
-  // @tsrx/react preserves the user's authored `from 'ripple-new'` imports
-  // verbatim (it expects the user to author against the platform they're
-  // targeting). For our differential fixtures — which ARE authored against
-  // ripple-new — we rewrite the imports to React-side equivalents so the
-  // React runtime supplies the hooks/components. The names of React's hooks
-  // match ripple-new's (useState, useEffect, useReducer, useMemo,
-  // useCallback, useRef, useId, useImperativeHandle, useDeferredValue,
-  // useTransition, startTransition, createContext, memo, use, Fragment,
-  // Suspense), so a flat import rewrite is enough.
-  //
-  // EXCEPT createPortal: in React it lives on `react-dom`, not `react`, so a
-  // naive rewrite leaves it `undefined`. ALSO, @tsrx/react lowers
-  // `createPortal(() => <jsx/>, target)` so the children stay a thunk —
-  // React 19 expects a ReactNode and would warn / no-op. Below we (a) strip
-  // createPortal out of the rewritten react import, (b) import the real one
-  // from react-dom under an internal alias, (c) shim a `createPortal` const
-  // that unwraps the thunk if present and forwards to the real impl.
-  let rewritten = transformed.code.replace(
-    /from\s+["']ripple-new["']/g,
-    'from "react"'
-  );
-  if (/\bcreatePortal\b/.test(rewritten)) {
-    rewritten = rewritten.replace(
-      /(import\s*\{[^}]*?)\bcreatePortal\b\s*,?\s*([^}]*\}\s*from\s+"react";?)/,
-      (_m, head, tail) => `${head}${tail}`.replace(/,\s*\}/, ' }').replace(/\{\s*,/, '{ ')
-    );
-    rewritten = `import { createPortal as __rd_createPortal } from "react-dom";
+	const source = readFileSync(srcPath, 'utf8');
+	let compiled;
+	try {
+		compiled = compileToReact(source, srcPath);
+	} catch {
+		// Some fixtures use ripple-new features that @tsrx/react rejects
+		// (multi-ref, @switch, Dynamic shapes). Skip silently — a differential
+		// test that imports the missing precompile will surface the gap.
+		return;
+	}
+	if (compiled.errors && compiled.errors.length > 0) return;
+	let transformed;
+	try {
+		transformed = esbuildTransformSync(compiled.code, {
+			loader: 'tsx',
+			jsx: 'automatic',
+			jsxImportSource: 'react',
+			target: 'esnext',
+			format: 'esm',
+			sourcefile: srcPath,
+		});
+	} catch {
+		return;
+	}
+	// @tsrx/react preserves the user's authored `from 'ripple-new'` imports
+	// verbatim (it expects the user to author against the platform they're
+	// targeting). For our differential fixtures — which ARE authored against
+	// ripple-new — we rewrite the imports to React-side equivalents so the
+	// React runtime supplies the hooks/components. The names of React's hooks
+	// match ripple-new's (useState, useEffect, useReducer, useMemo,
+	// useCallback, useRef, useId, useImperativeHandle, useDeferredValue,
+	// useTransition, startTransition, createContext, memo, use, Fragment,
+	// Suspense), so a flat import rewrite is enough.
+	//
+	// EXCEPT createPortal: in React it lives on `react-dom`, not `react`, so a
+	// naive rewrite leaves it `undefined`. ALSO, @tsrx/react lowers
+	// `createPortal(() => <jsx/>, target)` so the children stay a thunk —
+	// React 19 expects a ReactNode and would warn / no-op. Below we (a) strip
+	// createPortal out of the rewritten react import, (b) import the real one
+	// from react-dom under an internal alias, (c) shim a `createPortal` const
+	// that unwraps the thunk if present and forwards to the real impl.
+	let rewritten = transformed.code.replace(/from\s+["']ripple-new["']/g, 'from "react"');
+	if (/\bcreatePortal\b/.test(rewritten)) {
+		rewritten = rewritten.replace(
+			/(import\s*\{[^}]*?)\bcreatePortal\b\s*,?\s*([^}]*\}\s*from\s+"react";?)/,
+			(_m, head, tail) => `${head}${tail}`.replace(/,\s*\}/, ' }').replace(/\{\s*,/, '{ '),
+		);
+		rewritten = `import { createPortal as __rd_createPortal } from "react-dom";
 const createPortal = (children, target) => __rd_createPortal(typeof children === "function" ? children() : children, target);
 ${rewritten}`;
-  }
-  // xlink:href is React 19's "non-standard DOM property" — emitted as the
-  // string-keyed JSX prop `"xlink:href":` by @tsrx/react, then dropped at
-  // render time. Rewriting the prop key to camelCase `xlinkHref:` makes
-  // React 19 round-trip it back to the namespaced `xlink:href` attribute
-  // with XLINK_NS — byte-identical to ripple-new's setAttributeNS path.
-  // Only applies to the React-side cache; the ripple-new fixture stays
-  // authored as `xlink:href` in the source.
-  rewritten = rewritten.replace(/"xlink:href":/g, 'xlinkHref:');
-  const slug = basename(srcPath).replace(/\.tsrx$/, '');
-  const outFile = join(CACHE_DIR, `${slug}-${hashString(srcPath)}.js`);
-  writeFileSync(outFile, rewritten);
+	}
+	// xlink:href is React 19's "non-standard DOM property" — emitted as the
+	// string-keyed JSX prop `"xlink:href":` by @tsrx/react, then dropped at
+	// render time. Rewriting the prop key to camelCase `xlinkHref:` makes
+	// React 19 round-trip it back to the namespaced `xlink:href` attribute
+	// with XLINK_NS — byte-identical to ripple-new's setAttributeNS path.
+	// Only applies to the React-side cache; the ripple-new fixture stays
+	// authored as `xlink:href` in the source.
+	rewritten = rewritten.replace(/"xlink:href":/g, 'xlinkHref:');
+	const slug = basename(srcPath).replace(/\.tsrx$/, '');
+	const outFile = join(CACHE_DIR, `${slug}-${hashString(srcPath)}.js`);
+	writeFileSync(outFile, rewritten);
 }
 
 export async function setup(): Promise<void> {
-  if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
-  if (!existsSync(FIXTURE_DIR)) return;
-  // Walk both the top-level fixture dir AND any subdirs (we currently only
-  // ship a flat layout but allow nesting for forward compatibility).
-  const walk = (dir: string): string[] => {
-    const out: string[] = [];
-    for (const name of readdirSync(dir)) {
-      const full = join(dir, name);
-      const s = statSync(full);
-      if (s.isDirectory()) out.push(...walk(full));
-      else if (full.endsWith('.tsrx')) out.push(full);
-    }
-    return out;
-  };
-  for (const file of walk(FIXTURE_DIR)) compileOne(file);
+	if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
+	if (!existsSync(FIXTURE_DIR)) return;
+	// Walk both the top-level fixture dir AND any subdirs (we currently only
+	// ship a flat layout but allow nesting for forward compatibility).
+	const walk = (dir: string): string[] => {
+		const out: string[] = [];
+		for (const name of readdirSync(dir)) {
+			const full = join(dir, name);
+			const s = statSync(full);
+			if (s.isDirectory()) out.push(...walk(full));
+			else if (full.endsWith('.tsrx')) out.push(full);
+		}
+		return out;
+	};
+	for (const file of walk(FIXTURE_DIR)) compileOne(file);
 }
 
 export async function teardown(): Promise<void> {
-  // Keep the cache between runs — `setup` overwrites on each invocation.
+	// Keep the cache between runs — `setup` overwrites on each invocation.
 }

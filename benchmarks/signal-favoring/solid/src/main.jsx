@@ -1,14 +1,35 @@
 import { render } from '@solidjs/web';
-import App, { bumpAt1, bumpAt11, bumpAt21, bumpAt31, bumpAt41, bumpAt51, bumpAt61, bumpAt71, bumpAt81, bumpAt91 } from './App.jsx';
+import App, {
+	bumpAt1,
+	bumpAt11,
+	bumpAt21,
+	bumpAt31,
+	bumpAt41,
+	bumpAt51,
+	bumpAt61,
+	bumpAt71,
+	bumpAt81,
+	bumpAt91,
+} from './App.jsx';
 
 const target = document.getElementById('main');
 let dispose = null;
 
-window.__mount = () => { dispose = render(() => <App />, target); };
-window.__unmount = () => { if (dispose) { dispose(); dispose = null; } };
+window.__mount = () => {
+	dispose = render(() => <App />, target);
+};
+window.__unmount = () => {
+	if (dispose) {
+		dispose();
+		dispose = null;
+	}
+};
 window.__reset = () => {
-  if (dispose) { dispose(); dispose = null; }
-  while (target.firstChild) target.removeChild(target.firstChild);
+	if (dispose) {
+		dispose();
+		dispose = null;
+	}
+	while (target.firstChild) target.removeChild(target.firstChild);
 };
 window.__bumpAt1 = () => bumpAt1();
 window.__bumpAt11 = () => bumpAt11();

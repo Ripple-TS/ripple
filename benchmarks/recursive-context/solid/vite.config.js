@@ -10,12 +10,12 @@ import solid from 'vite-plugin-solid';
 //      auto-injected condition in serve mode
 // hot:false also disables solid-refresh (independent HMR-injection issue).
 export default defineConfig({
-  plugins: [solid({ dev: false, hot: false })],
-  mode: 'production',
-  define: { 'process.env.NODE_ENV': JSON.stringify('production') },
-  resolve: {
-    conditions: ['solid', 'browser', 'module', 'import', 'default'],
-  },
-  build: { target: 'esnext', minify: false },
-  server: { port: 5187, strictPort: true },
+	plugins: [solid({ dev: false, hot: false })],
+	mode: 'production',
+	define: { 'process.env.NODE_ENV': JSON.stringify('production') },
+	resolve: {
+		conditions: ['solid', 'browser', 'module', 'import', 'default'],
+	},
+	build: { target: 'esnext', minify: false },
+	server: { port: 5187, strictPort: true },
 });

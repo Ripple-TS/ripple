@@ -13,14 +13,16 @@ import { use, useState, useMemo, useDeferredValue } from 'ripple-new';
 // memo deps semantics survive a re-render that doesn't change deps.
 
 export function UseInsideMemo(props) @{
-  <>
-    @try {
-      const v = useMemo(() => 'm:' + use(props.promise), [props.depKey]);
-      <span class='resolved'>{v as string}</span>
-    } @pending {
-      <span class='fallback'>{'pending'}</span>
-    }
-  </>
+	<>
+		@try {
+			const v = useMemo(() => 'm:' + use(props.promise), [props.depKey]);
+			<span class="resolved">
+				{v as string}
+			</span>
+		} @pending {
+			<span class="fallback">{'pending'}</span>
+		}
+	</>
 }
 
 // ============================================================================
@@ -31,25 +33,29 @@ export function UseInsideMemo(props) @{
 // fallback throws" contract.
 
 function ThrowOnRender(props) @{
-  if (props.bang) {
-    throw new Error('fallback-boom');
-  }
-  <span class='fallback-ok'>{'fallback-ok'}</span>
+	if (props.bang) {
+		throw new Error('fallback-boom');
+	}
+	<span class="fallback-ok">{'fallback-ok'}</span>
 }
 
 export function PendingThrowBubblesUp(props) @{
-  <>
-    @try {
-      @try {
-        const v = use(props.promise);
-        <span class='resolved'>{v as string}</span>
-      } @pending {
-        <ThrowOnRender bang={true} />
-      }
-    } @catch (err) {
-      <span class='outer-caught'>{err.message as string}</span>
-    }
-  </>
+	<>
+		@try {
+			@try {
+				const v = use(props.promise);
+				<span class="resolved">
+					{v as string}
+				</span>
+			} @pending {
+				<ThrowOnRender bang={true} />
+			}
+		} @catch (err) {
+			<span class="outer-caught">
+				{err.message as string}
+			</span>
+		}
+	</>
 }
 
 // ============================================================================
@@ -61,7 +67,9 @@ export function PendingThrowBubblesUp(props) @{
 // "useDeferredValue with initialValue".
 
 export function DeferredWithInitial(props) @{
-  const v = useDeferredValue(props.value, props.initialValue);
-  props.observe(v);
-  <span class='out' data-tag={v.tag}>{v.tag as string}</span>
+	const v = useDeferredValue(props.value, props.initialValue);
+	props.observe(v);
+	<span class="out" data-tag={v.tag}>
+		{v.tag as string}
+	</span>
 }

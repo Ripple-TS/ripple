@@ -18,37 +18,37 @@ import { resolve } from 'node:path';
 const FIXTURE = resolve(__dirname, '../_fixtures/portal-events.tsrx');
 
 function makeTargets() {
-  const iTarget = document.createElement('div');
-  iTarget.id = 'ripple-portal-target';
-  const rTarget = document.createElement('div');
-  rTarget.id = 'react-portal-target';
-  document.body.appendChild(iTarget);
-  document.body.appendChild(rTarget);
-  return { iTarget, rTarget };
+	const iTarget = document.createElement('div');
+	iTarget.id = 'ripple-portal-target';
+	const rTarget = document.createElement('div');
+	rTarget.id = 'react-portal-target';
+	document.body.appendChild(iTarget);
+	document.body.appendChild(rTarget);
+	return { iTarget, rTarget };
 }
 
 describe('differential: portal.tsrx — createPortal', () => {
-  it('BasicPortalClick: portal target receives the modal subtree on mount', async () => {
-    const { iTarget, rTarget } = makeTargets();
-    // mountDifferential shares one props object across both runtimes — but
-    // we need different portal targets to keep their DOM separate. Pass the
-    // target via a closure-injected getter so each runtime picks the right one.
-    // (The rig API doesn't expose per-runtime props; for now both targets
-    // share the same node and we assert via innerHTML rather than identity.)
-    const sharedTarget = document.createElement('div');
-    document.body.appendChild(sharedTarget);
+	it('BasicPortalClick: portal target receives the modal subtree on mount', async () => {
+		const { iTarget, rTarget } = makeTargets();
+		// mountDifferential shares one props object across both runtimes — but
+		// we need different portal targets to keep their DOM separate. Pass the
+		// target via a closure-injected getter so each runtime picks the right one.
+		// (The rig API doesn't expose per-runtime props; for now both targets
+		// share the same node and we assert via innerHTML rather than identity.)
+		const sharedTarget = document.createElement('div');
+		document.body.appendChild(sharedTarget);
 
-    const d = await mountDifferential(FIXTURE, 'BasicPortalClick', { target: sharedTarget });
-    await d.step('mount (portal target receives .modal)', () => {
-      // sharedTarget gets written TWICE (once by each runtime). The last
-      // writer wins, but both wrote the same shape so identity-after-mount
-      // is well-defined. Assert presence.
-      expect(sharedTarget.querySelector('.modal')).not.toBeNull();
-      expect(sharedTarget.querySelector('.inside-btn')?.textContent).toBe('inside');
-    });
-    d.unmount();
-    sharedTarget.remove();
-    iTarget.remove();
-    rTarget.remove();
-  });
+		const d = await mountDifferential(FIXTURE, 'BasicPortalClick', { target: sharedTarget });
+		await d.step('mount (portal target receives .modal)', () => {
+			// sharedTarget gets written TWICE (once by each runtime). The last
+			// writer wins, but both wrote the same shape so identity-after-mount
+			// is well-defined. Assert presence.
+			expect(sharedTarget.querySelector('.modal')).not.toBeNull();
+			expect(sharedTarget.querySelector('.inside-btn')?.textContent).toBe('inside');
+		});
+		d.unmount();
+		sharedTarget.remove();
+		iTarget.remove();
+		rTarget.remove();
+	});
 });
