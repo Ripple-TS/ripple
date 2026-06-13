@@ -6362,9 +6362,9 @@ function printJSXAttribute(attr, path, options, print) {
 	// tsrx-features.tsrx fixtures). Mirror printJSXElementName's logic.
 	const name =
 		attr.name.type === 'JSXNamespacedName'
-			? /** @type {AST.JSXNamespacedName} */ (attr.name).namespace.name +
+			? /** @type {ESTreeJSX.JSXNamespacedName} */ (attr.name).namespace.name +
 				':' +
-				/** @type {AST.JSXNamespacedName} */ (attr.name).name.name
+				/** @type {ESTreeJSX.JSXNamespacedName} */ (attr.name).name.name
 			: /** @type {ESTreeJSX.JSXIdentifier} */ (attr.name).name;
 
 	if (attr.shorthand) {

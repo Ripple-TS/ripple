@@ -6,6 +6,7 @@ export {
 	flushSync,
 	drainPassiveEffects,
 	act,
+	setIsRippleActEnvironment,
 	type Root,
 
 	// Hooks

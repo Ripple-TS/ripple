@@ -188,8 +188,46 @@ type Phase = 0 | 1 | 2;
 const effectQueues: [PendingEffect[], PendingEffect[], PendingEffect[]] = [[], [], []];
 let passiveScheduled = false;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// React-parity act() environment flag.
+//
+// `IS_RIPPLE_ACT_ENVIRONMENT` is the opt-in dev signal that scheduler updates
+// happening outside `act(...)` should be reported. Test setups flip it on once
+// (mirrors React's IS_REACT_ACT_ENVIRONMENT). `actScopeDepth` counts how deep
+// we are inside an active `act()` call; non-zero suppresses the warning.
+// `syncFlush` (set by flushSync) also suppresses — code inside flushSync is by
+// definition handling its own scheduling.
+// ─────────────────────────────────────────────────────────────────────────────
+let IS_RIPPLE_ACT_ENVIRONMENT = false;
+let actScopeDepth = 0;
+
+/**
+ * Test-environment opt-in. When true, scheduleRender() calls that happen
+ * outside a flushSync or an act() callback emit a console.error mirroring
+ * React's "An update to X was not wrapped in act(...)" message. Default
+ * false so production / non-test code never warns.
+ */
+export function setIsRippleActEnvironment(value: boolean): void {
+	IS_RIPPLE_ACT_ENVIRONMENT = value;
+}
+
 export function scheduleRender(block: Block): void {
 	if (block.disposed) return;
+	// Test-env warning: a state update happened with no flushSync or act()
+	// scope around it. The test will likely assert on stale DOM and fail
+	// confusingly; surface the cause directly.
+	if (IS_RIPPLE_ACT_ENVIRONMENT && actScopeDepth === 0 && !syncFlush) {
+		// eslint-disable-next-line no-console
+		console.error(
+			'An update to a component was not wrapped in act(...).\n\n' +
+				'When testing, code that causes state updates should be wrapped into act(...):\n\n' +
+				'  act(() => {\n' +
+				'    /* fire events that update state */\n' +
+				'  });\n' +
+				'  /* assert on the output */\n\n' +
+				"This ensures you're testing the behavior the user would see in the browser.",
+		);
+	}
 	// Capture the caller's priority — setters inside startTransition() see
 	// TRANSITION_DEPTH > 0 and tag the render as 'transition'. An urgent setter
 	// arriving for a block already queued at 'transition' upgrades it.
@@ -292,27 +330,37 @@ function hasPendingWork(): boolean {
 }
 
 /**
- * React-parity `act(fn)` — wrap test code that schedules async work (Promise
- * resolutions, effects, scheduled renders) so all of it commits before the
- * `await act(...)` resolves. Iterates microtask ticks + passive-effect drains
- * until the scheduler is quiescent. The sync overload (`act(() => {...})`)
- * returns void synchronously when no async work was triggered — but using
- * `await act(...)` is always safe.
+ * React-parity `act(...)`. Wrap test code that triggers updates so all of
+ * the scheduled work commits before the assertion phase runs. Always returns
+ * a Promise — `await` is mandatory regardless of whether the callback itself
+ * is sync or async. This matches the *async* model React tests use; the
+ * promise resolves only after the scheduler is quiescent (renders +
+ * INSERTION/LAYOUT/PASSIVE effects + microtask chains from `use(promise)`
+ * and transition retries).
+ *
+ * While the act() scope is active, scheduleRender's "update outside act(...)"
+ * dev warning is suppressed (see `IS_RIPPLE_ACT_ENVIRONMENT` and
+ * `setIsRippleActEnvironment`).
+ *
+ * The double-loop (5 microtask ticks × up to 50 outer iterations) drains
+ * cascades like `use(promise)` → status flip → retry → renderBlock that
+ * wouldn't settle in a single tick.
  */
 export async function act<T>(fn: () => T | Promise<T>): Promise<T> {
-	const result = await Promise.resolve(fn());
-	// Stabilize: alternate microtask drains and passive-effect drains until
-	// nothing's left in either queue. Capped to avoid infinite loops on bugs.
-	for (let i = 0; i < 50; i++) {
-		// Multiple microtask ticks to drain Promise.then chains (use(promise)
-		// → status check → retry → renderBlock, etc).
-		for (let j = 0; j < 5; j++) await Promise.resolve();
-		drainPassiveEffects();
-		if (!hasPendingWork()) return result;
+	actScopeDepth++;
+	try {
+		const result = await Promise.resolve(fn());
+		for (let i = 0; i < 50; i++) {
+			for (let j = 0; j < 5; j++) await Promise.resolve();
+			drainPassiveEffects();
+			if (!hasPendingWork()) return result;
+		}
+		throw new Error(
+			'act(): scheduler did not stabilize after 50 iterations — likely an infinite render loop',
+		);
+	} finally {
+		actScopeDepth--;
 	}
-	throw new Error(
-		'act(): scheduler did not stabilize after 50 iterations — likely an infinite render loop',
-	);
 }
 
 function commitEffectsSync(): void {
