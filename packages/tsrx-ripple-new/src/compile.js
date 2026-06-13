@@ -628,10 +628,18 @@ export function compile(source, filename, options) {
     // Body walk: reject @try / TryStatement / unknown free-function calls
     // (catches transitive hooks via same-module helpers and unknown imports).
     if (eligible) {
+      // Cycle / shared-subtree guard. Some AST nodes carry back-references
+      // (e.g. `parent`, `scope`) and even cycle-free ASTs can have shared
+      // subtree pointers; without a WeakSet the `for (k in n)` traversal can
+      // re-enter the same subtree N times — observable as a vitest worker
+      // hang on the bigger fixture files.
+      const seen = new WeakSet();
       const reject = (function walk(n) {
         if (!n) return false;
         if (Array.isArray(n)) { for (const x of n) if (walk(x)) return true; return false; }
         if (typeof n !== 'object' || !n.type) return false;
+        if (seen.has(n)) return false;
+        seen.add(n);
         const t = n.type;
         if (t === 'TryStatement' || t === 'JSXTryExpression') return true;
         if (t === 'CallExpression' && n.callee && n.callee.type === 'Identifier') {
@@ -641,7 +649,7 @@ export function compile(source, filename, options) {
           }
         }
         for (const k in n) {
-          if (k === 'type' || k === 'loc' || k === 'start' || k === 'end' || k === 'range') continue;
+          if (k === 'type' || k === 'loc' || k === 'start' || k === 'end' || k === 'range' || k === 'parent') continue;
           if (walk(n[k])) return true;
         }
         return false;

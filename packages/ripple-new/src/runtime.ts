@@ -3148,11 +3148,22 @@ function mountItem<T, E>(
 
 function moveBlockBefore(block: Block, anchor: Node): void {
   const parent = block.startMarker!.parentNode!;
+  const end = block.endMarker!;
   let n: Node | null = block.startMarker!;
-  const stop = block.endMarker!.nextSibling;
-  while (n && n !== stop) {
+  // Walk by checking `n === end` BEFORE moving. The previous design captured
+  // `stop = endMarker.nextSibling` at function entry, then iterated until
+  // `n === stop`. That breaks when the block range has multi-root content
+  // (e.g. fragment items with start/end Comment markers + N body nodes):
+  // after moving start + body nodes adjacent to `anchor`, the rest of the
+  // range (including `endMarker`) sits at the OLD position. When the walker
+  // finally reaches `endMarker`, its captured `nextSibling` points BACK to
+  // the already-moved start (now adjacent at `endMarker`'s new neighbour
+  // position), so the walker loops back into the range and never terminates.
+  while (n) {
+    const isEnd = (n === end);
     const next: Node | null = n.nextSibling;
     parent.insertBefore(n, anchor);
+    if (isEnd) break;
     n = next;
   }
 }

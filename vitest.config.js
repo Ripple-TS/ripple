@@ -1,5 +1,6 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 import { ripple } from '@ripple-ts/vite-plugin';
+import { rippleNew } from './packages/tsrx-ripple-new/src/vite.js';
 import { tsrxPreact } from './packages/vite-plugin-preact/src/index.js';
 import { tsrxReact } from './packages/vite-plugin-react/src/index.js';
 import { tsrxSolid } from './packages/vite-plugin-solid/src/index.js';
@@ -105,6 +106,22 @@ export default defineConfig({
 				},
 				plugins: [ripple({ excludeRippleExternalModules: true })],
 				resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
+			},
+			{
+				test: {
+					name: 'ripple-new',
+					include: [
+						'packages/ripple-new/tests/**/*.test.tsrx',
+						'packages/ripple-new/tests/**/*.test.ts',
+					],
+					environment: 'jsdom',
+					// Precompiles every fixture through @tsrx/react + esbuild before any
+					// test loads — runs in pure Node so esbuild's TextEncoder requirements
+					// are satisfied (jsdom's TextEncoder breaks esbuild's binary protocol).
+					globalSetup: ['packages/ripple-new/tests/differential/_setup.ts'],
+					globals: false,
+				},
+				plugins: [rippleNew()],
 			},
 			{
 				test: {
