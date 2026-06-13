@@ -887,7 +887,14 @@ function transform_native_tsrx_function(node, context) {
 		state: {
 			...context.state,
 			flush_node: null,
-			component: is_synthetic_children ? context.state.component : node,
+			// A synthetic children render arrow is itself a tsrx_element render
+			// context, so it inherits the enclosing component. When the enclosing
+			// function is a `function C() { return <jsx> }` component (transformed
+			// via the generic function path, which never sets `component`), there is
+			// no component to inherit. Fall back to this arrow as the component
+			// boundary so directive-branch elements in statement position are not
+			// misread as out-of-component template statements and double-wrapped.
+			component: is_synthetic_children ? (context.state.component ?? node) : node,
 			metadata,
 			scope: component_scope,
 			is_tsrx_element: false,
