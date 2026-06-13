@@ -49,12 +49,23 @@ export interface Scope {
    * Null on scopes with no slots — the common case for leaf components.
    */
   _slots: any[] | null;
+  /**
+   * Per-scope context Provider map. Pre-initialised to null on both Scope
+   * and Block so the field's hidden-class position is stable across all
+   * instances — Provider stamping was previously a late `??=` add that
+   * fragmented the post-render shape tree of every Block under a Provider
+   * ancestor.
+   */
+  $$ctxValues: Map<Context<any>, any> | null;
   // Bindings (b$0, b$1, ...) are stamped directly on the scope by compiled bodies.
   [key: string]: any;
 }
 
 interface ChildScope {
-  key: symbol;
+  // withScope uses Symbol per call-site; componentSlotLite uses a stable
+  // string `_comp$N` (cheaper to mint at compile time, identity-equality
+  // is identical to symbols for the linear-scan lookup).
+  key: symbol | string;
   scope: Scope;
 }
 
@@ -399,6 +410,9 @@ class BlockImpl {
   cleanups: Cleanup[];
   children: ChildScope[];
   _slots: any[] | null;
+  $$ctxValues: Map<Context<any>, any> | null;
+  // __thenableIdx is reset every renderBlock so pre-init costs nothing.
+  __thenableIdx: number;
   // For-block item bookkeeping.
   forSlot: ForSlot | null;
   prevSibling: Block | null;
@@ -440,6 +454,8 @@ class BlockImpl {
     this.cleanups = [];
     this.children = [];
     this._slots = null;
+    this.$$ctxValues = null;
+    this.__thenableIdx = 0;
     this.forSlot = null;
     this.prevSibling = null;
     this.nextSibling = null;
@@ -447,6 +463,41 @@ class BlockImpl {
     this.parent = null;
     this.block = this as unknown as Block;
     this.kind = kind;
+  }
+}
+
+/**
+ * Plain (non-Block) child Scope. Allocated once per (parent, call-site)
+ * pair and reused across re-renders. Class-not-literal so V8 hands every
+ * such scope the same hidden class — paired with the BlockImpl shape, the
+ * Scope-typed read sites (unmountScope, fireCleanupsOnly, hook lookups via
+ * `scope.hooks`) see exactly two stable classes instead of class-vs-literal.
+ *
+ * Field order matches the prior object-literal at withScope so existing
+ * code that walked the keys (now via the indexed `_slots` array — see
+ * runtime.ts:583) sees identical structure.
+ */
+class ScopeImpl {
+  block: Block;
+  parent: Scope | null;
+  hooks: Map<symbol, any> | null;
+  cleanups: Cleanup[];
+  children: ChildScope[];
+  _slots: any[] | null;
+  $$ctxValues: Map<Context<any>, any> | null;
+  mounted: boolean;
+  // Compiled bodies stamp bindings (b$0, b$1, ...) directly on the scope.
+  [key: string]: any;
+
+  constructor(parent: Scope, block: Block) {
+    this.block = block;
+    this.parent = parent;
+    this.hooks = null;
+    this.cleanups = [];
+    this.children = [];
+    this._slots = null;
+    this.$$ctxValues = null;
+    this.mounted = false;
   }
 }
 
@@ -473,7 +524,7 @@ export function renderBlock(block: Block): void {
   // Reset the per-render `use(thenable)` call-order counter. Cached entries
   // in __thenables persist so that earlier use() calls return synchronously
   // on replay-after-resolve (matches React's thenableState[index] scheme).
-  (block as any).__thenableIdx = 0;
+  block.__thenableIdx = 0;
   // Capture the render priority. Explicit pendingMode (set by scheduleRender)
   // wins. Otherwise INHERIT from the outer block — re-entrant renders (try,
   // if, for, comp slots) called synchronously inside an outer body should
@@ -507,21 +558,53 @@ export function withScope<P>(
     if (children[i].key === key) { scope = children[i].scope; break; }
   }
   if (scope === undefined) {
-    scope = {
-      block: parent.block,
-      parent,
-      hooks: null,
-      cleanups: [],
-      children: [],
-      _slots: null,
-      mounted: false,
-    };
+    scope = new ScopeImpl(parent, parent.block);
     children.push({ key, scope });
   }
   const prevScope = CURRENT_SCOPE;
   CURRENT_SCOPE = scope;
   try {
     body(scope, props, undefined);
+    if (!scope.mounted) scope.mounted = true;
+  } finally {
+    CURRENT_SCOPE = prevScope;
+  }
+}
+
+/**
+ * Lite component slot: allocates ONLY a per-call-site Scope — no Block, no
+ * Comment markers, no CompSlot wrapper. Emitted by @tsrx/ripple-new at call
+ * sites whose callee is a same-module FunctionDeclaration that:
+ *   - calls no hooks (lexical free-identifier check)
+ *   - has no `use(...)`, no @try, no `children` param
+ *   - has no unknown free function calls (catches transitive hooks via helpers)
+ * AND the call site itself has no `key=`, no spread props, no JSX children.
+ *
+ * The Scope shape matches ScopeImpl exactly, so V8 hands every lite scope the
+ * same hidden class as the withScope branch and the cross-cutting Scope-typed
+ * read sites (unmountScope, useContextInternal) stay clean.
+ *
+ * Recursion is safe: each call site allocates its OWN Scope (no aliasing of
+ * slot-key namespace across recursion depths) — unlike Design (b) same-scope
+ * dispatch, which would clobber `_if$N` etc. across nested recursive calls.
+ */
+export function componentSlotLite<P>(
+  parentScope: Scope,
+  slotKey: string,
+  comp: ComponentBody<P>,
+  props: P,
+): void {
+  let scope = parentScope[slotKey] as Scope | undefined;
+  if (scope === undefined) {
+    scope = new ScopeImpl(parentScope, parentScope.block);
+    parentScope[slotKey] = scope;
+    // Register on parent.children so unmountScope(parent) walks into us.
+    parentScope.children.push({ key: slotKey, scope });
+  }
+  const prevScope = CURRENT_SCOPE;
+  CURRENT_SCOPE = scope;
+  try {
+    comp(scope, props, undefined);
     if (!scope.mounted) scope.mounted = true;
   } finally {
     CURRENT_SCOPE = prevScope;
@@ -595,9 +678,12 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
   if (slots !== null) {
     for (let i = 0, n = slots.length; i < n; i++) {
       const val = slots[i];
-      if (val.__kind === 'ifBlockSlot' || val.__kind === 'switchBlockSlot') {
+      // Read __kind ONCE per slot — the property access is megamorphic across
+      // six slot shapes, so caching the local saves three repeat IC walks.
+      const k = val.__kind;
+      if (k === 'ifBlockSlot' || k === 'switchBlockSlot') {
         if (val.block) unmountBlock(val.block, detachDom);
-      } else if (val.__kind === 'forBlockSlot') {
+      } else if (k === 'forBlockSlot') {
         const items = val.items as Map<any, Block>;
         const it = items.values();
         for (let r = it.next(); !r.done; r = it.next()) unmountBlock(r.value, detachDom);
@@ -607,7 +693,7 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
         // componentSlotSlot | portalSlotSlot | trySlotSlot
         // Portal DOM lives in a FOREIGN target — the root-level batched clear
         // never reaches it, so portals must always self-detach individually.
-        const childDetach = val.__kind === 'portalSlotSlot' ? true : detachDom;
+        const childDetach = k === 'portalSlotSlot' ? true : detachDom;
         if (val.block) unmountBlock(val.block, childDetach);
         // trySlotSlot keeps an off-screen `tryBlock` ALIVE across suspend/
         // resume so its hooks Map survives replay. When the surrounding
@@ -620,7 +706,7 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
         // unmountBlock because the tryBlock's DOM was already torn down by
         // its parent's unmount, and a second pass through unmountBlock
         // would re-walk the same scopes / double-fire cleanups.
-        if (val.__kind === 'trySlotSlot') {
+        if (k === 'trySlotSlot') {
           if (val.tryBlock && val.tryBlock !== val.block) {
             val.tryBlock.disposed = true;
             val.pendingThenable = null;
@@ -631,7 +717,7 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
             clearTimeout(val.transitionTimeoutId);
             val.transitionTimeoutId = null;
           }
-        } else if (val.__kind === 'portalSlotSlot' && val.target) {
+        } else if (k === 'portalSlotSlot' && val.target) {
           unregisterDelegationTarget(val.target);
         }
       }
@@ -909,8 +995,10 @@ export function createContext<T>(defaultValue: T): Context<T> {
   // and renders its `children` body inside its scope.
   ctx.Provider = function ProviderBody(scope, props) {
     // Stash on the scope (not block) so siblings of the Provider don't see it.
-    (scope as any).$$ctxValues ??= new Map();
-    (scope as any).$$ctxValues.set(ctx, props.value);
+    // $$ctxValues is pre-initialised to null on every Scope/Block so this
+    // assignment is a hidden-class-stable update (not a late stamp).
+    if (scope.$$ctxValues === null) scope.$$ctxValues = new Map();
+    scope.$$ctxValues.set(ctx, props.value);
     // Children is the compiled render-body for the JSX between the Provider tags.
     if (typeof props.children === 'function') {
       props.children(scope);
@@ -947,14 +1035,14 @@ export function use<T>(usable: Context<T> | PromiseLike<T> | TrackedThenable<T>)
 function useContextInternal<T>(context: Context<T>): T {
   let s: Scope | null = CURRENT_SCOPE;
   while (s !== null) {
-    const m = (s as any).$$ctxValues as Map<Context<any>, any> | undefined;
-    if (m && m.has(context)) return m.get(context) as T;
+    const m = s.$$ctxValues;
+    if (m !== null && m.has(context)) return m.get(context) as T;
     s = s.parent;
   }
   let b: Block | null = CURRENT_BLOCK ? CURRENT_BLOCK.parentBlock : null;
   while (b !== null) {
-    const m = (b as any).$$ctxValues as Map<Context<any>, any> | undefined;
-    if (m && m.has(context)) return m.get(context) as T;
+    const m = b.$$ctxValues;
+    if (m !== null && m.has(context)) return m.get(context) as T;
     b = b.parentBlock;
   }
   return context.defaultValue;
@@ -988,8 +1076,8 @@ function isSuspenseException(x: any): x is SuspenseException {
 function useThenable<T>(thenable: TrackedThenable<T>): T {
   const block = CURRENT_BLOCK!;
   const state: TrackedThenable<any>[] = (block as any).__thenables ??= [];
-  const idx = (block as any).__thenableIdx as number;
-  (block as any).__thenableIdx = idx + 1;
+  const idx = block.__thenableIdx;
+  block.__thenableIdx = idx + 1;
 
   const stored = state[idx];
   // Replay path: same promise as last attempt — fast lookup of the cached entry.

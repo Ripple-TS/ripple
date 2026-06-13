@@ -54,6 +54,7 @@ export {
   tryBlock,
   switchBlock,
   componentSlot,
+  componentSlotLite,
   portal,
   createPortal,
   type PortalDescriptor,

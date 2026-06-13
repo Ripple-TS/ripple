@@ -1,0 +1,14 @@
+{
+  "name": "@benchmarks/signal-favoring",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "100-component linear chain with stateful counters every 10 levels. Stateful frameworks (Solid, ripple) re-evaluate only the text expression that read the signal; hook frameworks (React, ripple-new) re-render the owning component and cascade through descendants. The bench-name describes its bias.",
+  "scripts": {
+    "bench": "node run.mjs",
+    "bench:long": "node run.mjs 40"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

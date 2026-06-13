@@ -1,0 +1,20 @@
+{
+  "name": "react-signal-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "signal-favoring bench fixture for React 19 — 100-component chain; setState re-renders the owning component and cascades through descendants.",
+  "scripts": {
+    "dev": "vite --host --port 5192 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5192 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:default",
+    "react-dom": "catalog:default"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "catalog:default"
+  }
+}

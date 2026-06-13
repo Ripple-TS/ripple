@@ -568,12 +568,88 @@ export function compile(source, filename, options) {
     nextHookSymId: 0,
     nextTemplateId: 0,
     nextHelperId: 0,
+    // Same-module component eligibility for componentSlotLite (Design (c)
+    // hookless lite path). Populated by the pre-pass below; read by
+    // makeCompCall to branch the call-site emit.
+    componentInfo: new Map(),
   };
   // List of exported components needing HMR wrapping. Each entry: { name,
   // exportKind: 'default' | 'named' }. We emit the `Comp = hmr(Comp)` lines
   // and the `import.meta.hot.accept` block after walking the body, so the
   // wrapping sits AFTER each component's `const Comp = …;` declaration.
   const hmrComponents = [];
+
+  // === Design (c) v0 pre-pass: classify same-module components as
+  // hookless+eligible for componentSlotLite. Two sweeps:
+  //   (1) Register every same-module FunctionDeclaration component so that
+  //       inter-component recursive references resolve to a known entry.
+  //   (2) For each registered component, run a body walk to decide
+  //       eligibility. Conservative rules: NO hooks, NO `use`/`useContext`/
+  //       `memo`/`createPortal`, NO @try (TryStatement / JSXTryExpression),
+  //       NO `children` destructure param, NO unknown free-function calls
+  //       (catches transitive hooks via same-module helpers).
+  //
+  //   Recursion is OK: the recursive name appears as a free identifier in
+  //   the body but is registered in ctx.componentInfo by sweep (1), so the
+  //   unknown-call walker doesn't flag it.
+  for (const node of ast.body) {
+    let compNode = null;
+    if (isComponentFunction(node)) compNode = node;
+    else if (node.type === 'ExportDefaultDeclaration' && isComponentFunction(node.declaration)) compNode = node.declaration;
+    else if (node.type === 'ExportNamedDeclaration' && isComponentFunction(node.declaration)) compNode = node.declaration;
+    if (compNode && compNode.id) {
+      ctx.componentInfo.set(compNode.id.name, { eligible: false, node: compNode });
+    }
+  }
+  for (const [, info] of ctx.componentInfo) {
+    const compNode = info.node;
+    const locals = collectComponentLocals(compNode);
+    // Synthesise a root node combining setup statements + JSX render body so
+    // collectFreeIdentifiers sees the same identifier scope the runtime would.
+    const stmts = (compNode.body.body || []).slice();
+    if (compNode.body.render) stmts.push(compNode.body.render);
+    const root = { type: 'BlockStatement', body: stmts };
+    const free = collectFreeIdentifiers(root, locals);
+    // Hookless check.
+    let eligible = true;
+    for (const n of free) {
+      if (HOOK_NAMES.has(n) || n === 'use' || n === 'useContext' || n === 'memo' || n === 'createPortal') {
+        eligible = false;
+        break;
+      }
+    }
+    // Children-destructure-param rejection.
+    if (eligible && compNode.params && compNode.params[0] && compNode.params[0].type === 'ObjectPattern') {
+      for (const p of compNode.params[0].properties || []) {
+        const k = p.key && (p.key.name || p.key.value);
+        if (k === 'children') { eligible = false; break; }
+      }
+    }
+    // Body walk: reject @try / TryStatement / unknown free-function calls
+    // (catches transitive hooks via same-module helpers and unknown imports).
+    if (eligible) {
+      const reject = (function walk(n) {
+        if (!n) return false;
+        if (Array.isArray(n)) { for (const x of n) if (walk(x)) return true; return false; }
+        if (typeof n !== 'object' || !n.type) return false;
+        const t = n.type;
+        if (t === 'TryStatement' || t === 'JSXTryExpression') return true;
+        if (t === 'CallExpression' && n.callee && n.callee.type === 'Identifier') {
+          const cname = n.callee.name;
+          if (!locals.has(cname) && !ctx.componentInfo.has(cname) && !HOOK_NAMES.has(cname)) {
+            return true;
+          }
+        }
+        for (const k in n) {
+          if (k === 'type' || k === 'loc' || k === 'start' || k === 'end' || k === 'range') continue;
+          if (walk(n[k])) return true;
+        }
+        return false;
+      })(root);
+      if (reject) eligible = false;
+    }
+    info.eligible = eligible;
+  }
 
   let body = '';
   const compileOpts = { hmrWrap: hmrEnabled };
@@ -1477,6 +1553,15 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
     afterLines.push(`  ifBlock(__s, ${JSON.stringify('_if$' + ic.id)}, __s.${bindingsName}._ifHost$${ic.id}, (${ic.condExpr}), ${ic.thenHelper}, ${elseArg}${anchorArg});`);
   }
   for (const cc of compCalls) {
+    // Design (c) lite path: hookless same-module callees with no key/spread/
+    // children skip Block + Comment-markers + CompSlot. The lite scope
+    // inherits parent Block via Scope.block, so the callee's DOM still lives
+    // in the caller's range without needing its own DOM-range markers.
+    if (cc.liteEligible) {
+      ctx.runtimeNeeded.add('componentSlotLite');
+      afterLines.push(`  componentSlotLite(__s, ${JSON.stringify('_comp$' + cc.id)}, ${cc.compExpr}, ${cc.propsExpr});`);
+      continue;
+    }
     ctx.runtimeNeeded.add('componentSlot');
     // Anchor selection:
     //   - In mixed children with source-order siblings, we emitted a `<!>`
@@ -2317,7 +2402,28 @@ function makeCompCall(node, ctx, componentName, inlinedSubs, bindings, forCalls,
 
   const propsExpr = `{ ${propParts.join(', ')} }`;
 
-  return { id, compExpr, propsExpr, hostPath: null, keyExpr };
+  // Design (c) v0: decide whether the call site can use componentSlotLite
+  // (Scope-only, no Block / no Comment markers / no CompSlot wrapper).
+  // Requires:
+  //   - callee is a bare Identifier (no dynamic <{expr}/> tag)
+  //   - callee is registered in ctx.componentInfo as eligible (same-module
+  //     hookless component that passed the pre-pass)
+  //   - no key=, no spread, no JSX children at the call site
+  let liteEligible = false;
+  if (ctx.componentInfo && keyExpr == null) {
+    const tagName = node.openingElement?.name || node.id || node.name;
+    const isBareIdent = tagName && (tagName.type === 'Identifier' || tagName.type === 'JSXIdentifier');
+    if (isBareIdent) {
+      const calleeInfo = ctx.componentInfo.get(compExpr);
+      if (calleeInfo && calleeInfo.eligible) {
+        const hasSpread = propParts.some((p) => p.startsWith('...'));
+        const hasChildrenProp = propParts.some((p) => p.startsWith('"children":'));
+        liteEligible = !hasSpread && !hasChildrenProp;
+      }
+    }
+  }
+
+  return { id, compExpr, propsExpr, hostPath: null, keyExpr, liteEligible };
 }
 
 // ===========================================================================

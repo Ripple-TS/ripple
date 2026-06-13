@@ -1,0 +1,19 @@
+{
+  "name": "ripple-new-signal-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "signal-favoring bench fixture for ripple-new — 100-component chain with stateful counters every 10 levels.",
+  "scripts": {
+    "dev": "vite --host --port 5190 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5190 --strictPort"
+  },
+  "dependencies": {
+    "ripple-new": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/ripple-new": "workspace:*",
+    "vite": "catalog:default"
+  }
+}
