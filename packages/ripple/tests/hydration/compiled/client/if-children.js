@@ -384,7 +384,7 @@ export function DomChildrenThenStaticSiblings() {
 			_$_.next();
 
 			_$_.render(() => {
-				_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value)));
+				_$_.set_text(expression_3, 'Item count: ' + _$_.with_scope(__block, () => String(lazy_6.value ?? '')));
 			});
 
 			_$_.append(__anchor, fragment_9, true);

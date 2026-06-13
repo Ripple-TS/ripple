@@ -196,7 +196,7 @@ export function Greeting(props) {
 		}
 
 		_$_.render(() => {
-			_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name)));
+			_$_.set_text(expression, 'Hello ' + _$_.with_scope(__block, () => String(props.name ?? '')));
 		});
 
 		_$_.append(__anchor, div_6);

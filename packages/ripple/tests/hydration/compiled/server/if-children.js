@@ -513,7 +513,7 @@ export function DomChildrenThenStaticSiblings() {
 						_$_.output_push('>');
 
 						{
-							_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value)));
+							_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value ?? '')));
 						}
 
 						_$_.output_push('</li>');
