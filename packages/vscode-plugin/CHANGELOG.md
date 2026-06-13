@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.34
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/typescript-plugin@0.3.83
+  - @ripple-ts/language-server@0.3.83
+
 ## 2.0.33
 
 ### Patch Changes

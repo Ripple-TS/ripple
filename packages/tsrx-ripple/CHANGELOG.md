@@ -1,5 +1,87 @@
 # @tsrx/ripple
 
+## 0.1.31
+
+### Patch Changes
+
+- [#1268](https://github.com/Ripple-TS/ripple/pull/1268)
+  [`3d93339`](https://github.com/Ripple-TS/ripple/commit/3d93339e851818b547c43c29c8965700c069b037)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Never render `null` or
+  `undefined` as text in interpolated template output.
+
+  When adjacent text and expressions are merged for concatenation, a dynamic value
+  was coerced with `String(value)`, so a nullish value printed the literal string
+  `"null"`/`"undefined"` (e.g. `<h1>Welcome,{user.name}</h1>` rendered
+  `Welcome,null`). The merge now coerces via `String(value ?? '')` so nullish
+  values render as empty text. This applies to both the client and server targets.
+  An author-written `String(...)` is unaffected and still stringifies nullish
+  explicitly.
+
+- [#1266](https://github.com/Ripple-TS/ripple/pull/1266)
+  [`5646eb4`](https://github.com/Ripple-TS/ripple/commit/5646eb4e4c101b34100acf30ea57ad4065a47720)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix client crash when a
+  `function C() { return <jsx> }` component renders a template control-flow
+  directive (`@if`/`@for`/`@switch`/`@try`).
+
+  The block-statement return form is transformed via the generic function path,
+  which never sets the `component` render state. A directive-branch element in
+  statement position (e.g. `@if (cond) { <p>…</p> }`) then matched the
+  out-of-component "bare template statement" rule and was double-wrapped: its
+  content compiled into an orphaned template while the template the branch
+  actually referenced was left empty, crashing at runtime with
+  `Cannot read properties of null (reading 'cloneNode')`. A synthetic children
+  render arrow now establishes itself as the component boundary when no enclosing
+  component is set, so directive branches inline their content correctly. The
+  `@{ … }` form and the server target were already correct.
+
+- [#1269](https://github.com/Ripple-TS/ripple/pull/1269)
+  [`8747e8f`](https://github.com/Ripple-TS/ripple/commit/8747e8f306628443d3c4d73bce0d79e986f5966e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Disallow `return` statements
+  inside `@try`/`@catch`/`@pending` blocks.
+
+  `return` is only valid in the JS setup at the top of a `@{ … }` code block —
+  never inside a `@`-directive block. `@if`/`@for`/`@switch` already rejected
+  returns; `@try`/`@catch`/`@pending` previously allowed `return <markup>`
+  (lowering it into a reactive boundary fallback). They now reject any `return`
+  (with or without an argument) with the same
+  `Return statements are not allowed inside TSRX templates` diagnostic,
+  consistently across every target (ripple, react, preact, solid, vue). Render
+  markup by writing it as the block's output instead of returning it. Returns
+  inside nested ordinary functions are unaffected.
+
+- [#1269](https://github.com/Ripple-TS/ripple/pull/1269)
+  [`8747e8f`](https://github.com/Ripple-TS/ripple/commit/8747e8f306628443d3c4d73bce0d79e986f5966e)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Treat plain JS control flow
+  inside `@{ … }` as ordinary JavaScript that returns JSX.
+
+  Only `@`-directives (`@if`/`@for`/`@switch`/`@try`) lower to template control
+  flow. Plain `if`/`for`/`for…of`/`for…in`/`while`/`do…while`/`switch`/`try`
+  inside a code block are now compiled exactly like the same control flow in a
+  regular `function C() { …; return <jsx> }` body — their JSX returns become
+  `tsrx_element` values rather than being template-ized.
+
+  Previously these plain statements were mis-routed into the template transform:
+  on **ripple** an early-return guard produced a `_$_.if`/`_$_.switch`/`_$_.try`
+  wrapper (with dead code in the `switch`/`try` cases) and plain loops threw a
+  compile error; on **solid** they produced
+  `<Show>`/`<Switch>`/`<For>`/`<Errored>` (dropping trailing output for `try`).
+  They now stay as plain control flow, so early-return guards and loops behave
+  like normal JavaScript.
+
+  As part of this, the ripple client and server targets no longer emit the
+  `return_guard` bookkeeping variable: a plain early `return` is a real early
+  return, so subsequent template output is naturally skipped without a guard flag.
+
+  On **solid**, this means a plain guard (`if (signal()) return …`) inside a
+  component body now runs once at setup — exactly like a regular Solid component —
+  instead of being lifted into a reactive `<Show>`. Use `@if` (or another
+  `@`-directive) when you want reactive conditional rendering.
+
+- Updated dependencies
+  [[`8747e8f`](https://github.com/Ripple-TS/ripple/commit/8747e8f306628443d3c4d73bce0d79e986f5966e),
+  [`8747e8f`](https://github.com/Ripple-TS/ripple/commit/8747e8f306628443d3c4d73bce0d79e986f5966e)]:
+  - @tsrx/core@0.1.31
+
 ## 0.1.30
 
 ### Patch Changes
