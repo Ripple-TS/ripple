@@ -1562,12 +1562,23 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
   }
   for (const cc of compCalls) {
     // Design (c) lite path: hookless same-module callees with no key/spread/
-    // children skip Block + Comment-markers + CompSlot. The lite scope
-    // inherits parent Block via Scope.block, so the callee's DOM still lives
-    // in the caller's range without needing its own DOM-range markers.
+    // children skip the Block/CompSlot/Comment-markers triplet but STILL pass
+    // host + anchor so the callee's body inserts content INSIDE the owning
+    // element (not at the parent block's range, which would put a child
+    // <span> as a sibling of its parent <div>).
     if (cc.liteEligible) {
       ctx.runtimeNeeded.add('componentSlotLite');
-      afterLines.push(`  componentSlotLite(__s, ${JSON.stringify('_comp$' + cc.id)}, ${cc.compExpr}, ${cc.propsExpr});`);
+      // Anchor: same rules as componentSlot — anchorVar overrides; otherwise
+      // omit when the host is a nested in-template element (the body can
+      // safely appendChild), or pass __block.endMarker when the host is the
+      // block's own parentNode (so the lite range stays inside the block).
+      let anchorArg = '';
+      if (cc.anchorVar) {
+        anchorArg = `, __s.${bindingsName}._compAnchor$${cc.id}`;
+      } else if (!cc.elVar.startsWith('_el')) {
+        anchorArg = ', __block.endMarker';
+      }
+      afterLines.push(`  componentSlotLite(__s, ${JSON.stringify('_comp$' + cc.id)}, __s.${bindingsName}._compHost$${cc.id}, ${cc.compExpr}, ${cc.propsExpr}${anchorArg});`);
       continue;
     }
     ctx.runtimeNeeded.add('componentSlot');

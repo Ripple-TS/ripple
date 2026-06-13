@@ -331,7 +331,7 @@ function drainPhase(phase: Phase): void {
     if (e.scope.block.disposed) continue;
     let cleanup: void | Cleanup;
     try {
-      cleanup = e.fn.apply(null, e.args);
+      cleanup = e.fn.apply(null, e.args as []);
     } catch (err) {
       // Route effect errors to the nearest enclosing tryBlock, if any.
       const handler = findTryHandler(e.scope.block);
@@ -588,18 +588,55 @@ export function withScope<P>(
  * slot-key namespace across recursion depths) — unlike Design (b) same-scope
  * dispatch, which would clobber `_if$N` etc. across nested recursive calls.
  */
+/**
+ * Minimal block-shaped object carrying the DOM insertion context for a lite
+ * component body. The compiled body reads `__s.block.parentNode` and
+ * `__s.block.endMarker` to position its cloned template; without these the
+ * body would insert at the PARENT block's range (breaking nesting).
+ *
+ * Why not reuse BlockImpl: BlockImpl is 24 fields; lite components don't
+ * need scheduling, suspense, key, or marker bookkeeping. Carrying just the
+ * fields the body actually reads keeps the lite path lean. The two `block`
+ * read sites in the body (`parentNode`, `endMarker`) plus the context-walk
+ * Phase B read (`parentBlock`) are the only consumers.
+ */
+class LiteBlockImpl {
+  parentNode: Node;
+  endMarker: Node | null;
+  parentBlock: Block | null;
+  $$ctxValues: Map<Context<any>, any> | null;
+
+  constructor(parentNode: Node, endMarker: Node | null, parentBlock: Block | null) {
+    this.parentNode = parentNode;
+    this.endMarker = endMarker;
+    this.parentBlock = parentBlock;
+    this.$$ctxValues = null;
+  }
+}
+
 export function componentSlotLite<P>(
   parentScope: Scope,
   slotKey: string,
+  host: Node,
   comp: ComponentBody<P>,
   props: P,
+  anchor?: Node,
 ): void {
   let scope = parentScope[slotKey] as Scope | undefined;
   if (scope === undefined) {
     scope = new ScopeImpl(parentScope, parentScope.block);
+    // Lite scope's `block` exposes the host/anchor as the body's DOM context
+    // — so the compiled body's `__s.block.parentNode.insertBefore(_root,
+    // __s.block.endMarker)` plants content INSIDE the owning element rather
+    // than spilling out to the parent block's range. `parentBlock` keeps the
+    // context-walk Phase B chain pointing at the real ancestor Block.
+    scope.block = new LiteBlockImpl(host, anchor ?? null, parentScope.block) as unknown as Block;
     parentScope[slotKey] = scope;
     // Register on parent.children so unmountScope(parent) walks into us.
     parentScope.children.push({ key: slotKey, scope });
+  } else {
+    // Re-render: the parent's host/anchor are stable across renders so no
+    // need to rebuild the LiteBlockImpl. Skip the allocation on warm path.
   }
   const prevScope = CURRENT_SCOPE;
   CURRENT_SCOPE = scope;
