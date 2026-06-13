@@ -201,13 +201,9 @@ describe('FragmentInstance — sibling fragments', () => {
 		const r = mount(SiblingFragments, { leftRef, rightRef });
 		let fired = 0;
 		leftRef.current!.addEventListener('click', () => fired++);
-		(r.find('#R1') as HTMLElement).dispatchEvent(
-			new MouseEvent('click', { bubbles: true }),
-		);
+		(r.find('#R1') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		expect(fired).toBe(0);
-		(r.find('#L1') as HTMLElement).dispatchEvent(
-			new MouseEvent('click', { bubbles: true }),
-		);
+		(r.find('#L1') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		expect(fired).toBe(1);
 		r.unmount();
 	});

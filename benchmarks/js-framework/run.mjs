@@ -49,10 +49,9 @@ async function ensureState(page, pre) {
 			const btn = document.getElementById('clear');
 			if (btn) btn.click();
 		});
-		await page.waitForFunction(
-			() => document.querySelectorAll('tbody tr').length === 0,
-			{ timeout: 5000 },
-		);
+		await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 0, {
+			timeout: 5000,
+		});
 	} else if (pre === 'rows') {
 		const cnt = await page.evaluate(() => document.querySelectorAll('tbody tr').length);
 		if (cnt !== ROW_COUNT) {

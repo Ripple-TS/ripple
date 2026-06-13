@@ -1320,9 +1320,7 @@ function normalizeChildren(nodes) {
 				if (refAttr) {
 					const refVal = refAttr.value;
 					const refInner =
-						refVal && refVal.type === 'JSXExpressionContainer'
-							? refVal.expression
-							: refVal;
+						refVal && refVal.type === 'JSXExpressionContainer' ? refVal.expression : refVal;
 					out.push({ type: 'FragmentStart', refExpr: refInner });
 					out.push(...normalizeChildren(n.children || []));
 					out.push({ type: 'FragmentEnd' });

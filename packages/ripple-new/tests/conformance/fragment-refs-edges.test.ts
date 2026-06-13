@@ -91,7 +91,12 @@ describe('FragmentInstance.observeUsing — repeated calls', () => {
 	it('observeUsing twice forwards .observe twice per child (dedupe is the observer’s job)', () => {
 		const fragRef = makeRef();
 		const r = mount(Single, { fragRef });
-		const obs = { seen: [] as Element[], observe(t: Element) { this.seen.push(t); } };
+		const obs = {
+			seen: [] as Element[],
+			observe(t: Element) {
+				this.seen.push(t);
+			},
+		};
 		fragRef.current!.observeUsing(obs);
 		fragRef.current!.observeUsing(obs);
 		expect(obs.seen).toHaveLength(2);
@@ -102,7 +107,12 @@ describe('FragmentInstance.observeUsing — repeated calls', () => {
 	it('unobserveUsing without a preceding observe still walks and calls .unobserve (DOM-spec parity)', () => {
 		const fragRef = makeRef();
 		const r = mount(Single, { fragRef });
-		const obs = { seen: [] as Element[], unobserve(t: Element) { this.seen.push(t); } };
+		const obs = {
+			seen: [] as Element[],
+			unobserve(t: Element) {
+				this.seen.push(t);
+			},
+		};
 		fragRef.current!.unobserveUsing(obs);
 		expect(obs.seen).toHaveLength(1);
 		r.unmount();
@@ -168,6 +178,8 @@ describe('FragmentInstance — defensive method behavior after destroy', () => {
 		// nothing fired).
 		expect(fi.dispatchEvent(new Event('x'))).toBe(true);
 		// compareDocumentPosition returns DISCONNECTED.
-		expect(fi.compareDocumentPosition(document.body) & Node.DOCUMENT_POSITION_DISCONNECTED).toBeTruthy();
+		expect(
+			fi.compareDocumentPosition(document.body) & Node.DOCUMENT_POSITION_DISCONNECTED,
+		).toBeTruthy();
 	});
 });

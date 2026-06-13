@@ -10,7 +10,9 @@ export function StableAcrossRenders(props) @{
 	const [n, setN] = useState(0);
 	_setN = setN;
 	<div id="parent">
-		<span id="counter">{n as number}</span>
+		<span id="counter">
+			{n as number}
+		</span>
 		<Fragment ref={props.fragRef}>
 			<div id="child">x</div>
 		</Fragment>

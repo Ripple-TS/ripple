@@ -1381,14 +1381,12 @@ export class FragmentInstance {
 	 * `null` until the first addEventListener — keeps the per-instance
 	 * memory cost at zero for fragments that never use the listener API.
 	 */
-	_listeners:
-		| Array<{
-				type: string;
-				listener: EventListenerOrEventListenerObject;
-				options: AddEventListenerOptions | boolean | undefined;
-				applied: Element[];
-		  }>
-		| null;
+	_listeners: Array<{
+		type: string;
+		listener: EventListenerOrEventListenerObject;
+		options: AddEventListenerOptions | boolean | undefined;
+		applied: Element[];
+	}> | null;
 
 	constructor(ownerBlock: Block, startMarker: Comment, endMarker: Comment) {
 		this._ownerBlock = ownerBlock;

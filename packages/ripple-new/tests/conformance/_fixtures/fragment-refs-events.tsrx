@@ -36,8 +36,7 @@ export function OutsideSibling(props) @{
 // Empty fragment — addEventListener is a no-op (no children to attach to).
 export function EmptyFragment(props) @{
 	<div id="parent">
-		<Fragment ref={props.fragRef}>
-		</Fragment>
+		<Fragment ref={props.fragRef}></Fragment>
 	</div>
 }
 

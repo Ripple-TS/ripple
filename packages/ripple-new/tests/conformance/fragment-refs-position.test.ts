@@ -88,9 +88,7 @@ describe('FragmentInstance.dispatchEvent', () => {
 		const parent = r.find('#parent') as HTMLElement;
 		const handler = (e: Event) => e.preventDefault();
 		parent.addEventListener('customping', handler);
-		const result = fragRef.current!.dispatchEvent(
-			new Event('customping', { cancelable: true }),
-		);
+		const result = fragRef.current!.dispatchEvent(new Event('customping', { cancelable: true }));
 		expect(result).toBe(false);
 		parent.removeEventListener('customping', handler);
 		r.unmount();
