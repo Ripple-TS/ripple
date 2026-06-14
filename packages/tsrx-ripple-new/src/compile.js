@@ -1539,6 +1539,25 @@ function normalizeChildren(nodes) {
 				}
 				continue;
 			}
+			// `<Activity mode={…}>…</Activity>` (React 19). Matched by name BEFORE
+			// the generic Element branch (it would otherwise route through
+			// componentSlot). Lower to an ActivityStatement carrying the mode expr
+			// and the raw children (compiled into one body by makeActivityCall).
+			if (isActivityLongForm(n)) {
+				const modeAttr = (n.openingElement.attributes || []).find(
+					(a) =>
+						(a.type === 'Attribute' || a.type === 'JSXAttribute') &&
+						a.name &&
+						(a.name.name || a.name) === 'mode',
+				);
+				let mode = null;
+				if (modeAttr) {
+					const v = modeAttr.value;
+					mode = v && v.type === 'JSXExpressionContainer' ? v.expression : v;
+				}
+				out.push({ type: 'ActivityStatement', mode, children: n.children || [] });
+				continue;
+			}
 			// Skip JSXStyleElement nested as a child — its CSS gets registered via
 			// the @tsrx/core scoping pipeline elsewhere; it contributes no DOM.
 			// (Detected separately via JSXStyleElement type but the parser may also
@@ -2037,15 +2056,25 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 		);
 	}
 	for (const ic of ifCalls) {
+		// Anchor selection mirrors componentSlot: with `<!>`-anchored source-order
+		// siblings, pass the captured anchor var so the start/end markers land
+		// BEFORE it (preserving order). When the host is the body's own parentNode
+		// (a control-flow-only body, host var is `_b._compHost`, not an `_el`),
+		// pass `__block.endMarker` so the markers stay INSIDE the owning block's
+		// range. Otherwise (host is a real template element) omit it (append into
+		// the element).
+		let anchorArg = '';
+		if (ic.anchorVar) anchorArg = `, __s.${bindingsName}._ifAnchor$${ic.id}`;
+		else if (ic.elVar && !ic.elVar.startsWith('_el')) anchorArg = ', __block.endMarker';
+		if (ic.activity) {
+			ctx.runtimeNeeded.add('activityBlock');
+			afterLines.push(
+				`  activityBlock(__s, ${JSON.stringify('_activity$' + ic.id)}, __s.${bindingsName}._ifHost$${ic.id}, (${ic.modeExpr}), ${ic.thenHelper}${anchorArg});`,
+			);
+			continue;
+		}
 		ctx.runtimeNeeded.add('ifBlock');
 		const elseArg = ic.elseHelper || 'null';
-		// Anchor selection mirrors componentSlot: when the if-block sits in a
-		// mixed-children template with source-order siblings, we emitted a
-		// `<!>` placeholder at the if's index and stored its el var on
-		// `ic.anchorVar` — pass that so ifBlock's start/end markers land
-		// BEFORE the anchor, preserving sibling order. Otherwise omit the arg
-		// (runtime treats undefined as null → appendChild, same as before).
-		const anchorArg = ic.anchorVar ? `, __s.${bindingsName}._ifAnchor$${ic.id}` : '';
 		afterLines.push(
 			`  ifBlock(__s, ${JSON.stringify('_if$' + ic.id)}, __s.${bindingsName}._ifHost$${ic.id}, (${ic.condExpr}), ${ic.thenHelper}, ${elseArg}${anchorArg});`,
 		);
@@ -2463,6 +2492,12 @@ function emitNodeHtml(
 		ifCalls.push(ic);
 		return '';
 	}
+	if (node.type === 'ActivityStatement') {
+		const ic = makeActivityCall(node, ctx, componentName, inlinedSubs, parentNs, cssHash);
+		ic.hostPath = [];
+		ifCalls.push(ic);
+		return '';
+	}
 	if (node.type === 'ForOfStatement') {
 		const fc = makeForCall(node, ctx, componentName, inlinedSubs, parentNs, cssHash);
 		fc.hostPath = [];
@@ -2861,6 +2896,15 @@ function emitElementHtml(
 				ifCalls.push(ifCall);
 				html += '<!>';
 				childIdx++;
+			} else if (child.type === 'ActivityStatement') {
+				const ac = makeActivityCall(child, ctx, componentName, inlinedSubs, childNs, cssHash);
+				ac.hostPath = path;
+				// `<!>` anchor so activityBlock's markers insert before later siblings
+				// (same sibling-order reasoning as @if above).
+				ac.anchorPath = [...path, childIdx];
+				ifCalls.push(ac);
+				html += '<!>';
+				childIdx++;
 			} else if (child.type === 'TryStatement') {
 				const tc = makeTryCall(child, ctx, componentName, inlinedSubs, childNs, cssHash);
 				tc.hostPath = path;
@@ -3048,6 +3092,47 @@ function makeIfCall(node, ctx, componentName, inlinedSubs, parentNs = 'html', cs
 		elseHelper: elseHelperName,
 		hostPath: null,
 	};
+}
+
+// `<Activity mode={…}>…</Activity>` (React 19). Lowers exactly like makeIfCall
+// but to a single body helper + an `activity`-flagged ifCalls entry (so it reuses
+// the host/anchor mount-loop). The afterLines emit branches on `.activity` to
+// call `activityBlock` instead of `ifBlock`. `mode` is inlined and re-evaluated
+// every parent render (like ifBlock's cond); a missing mode defaults to visible.
+function makeActivityCall(
+	node,
+	ctx,
+	componentName,
+	inlinedSubs,
+	parentNs = 'html',
+	cssHash = null,
+) {
+	const modeExpr = node.mode ? printExpr(node.mode) : "'visible'";
+	const bodyHelperName = `__activity$${ctx.nextHelperId++}`;
+	const bodyFake = {
+		type: 'Component',
+		id: { type: 'Identifier', name: bodyHelperName },
+		params: [],
+		body: node.children,
+	};
+	const bodyFn = compileFunctionBody(bodyFake, ctx, bodyHelperName, parentNs, cssHash);
+	inlinedSubs.push(bodyFn + ';');
+	return {
+		id: ctx.nextHelperId++,
+		activity: true,
+		modeExpr,
+		thenHelper: bodyHelperName,
+		elseHelper: null,
+		hostPath: null,
+	};
+}
+
+/** Long-form `<Activity>` tag — matched by name, mirroring isFragmentLongForm. */
+function isActivityLongForm(node) {
+	const name = node.openingElement?.name || node.id;
+	if (!name) return false;
+	if (name.type !== 'Identifier' && name.type !== 'JSXIdentifier') return false;
+	return name.name === 'Activity';
 }
 
 // ===========================================================================

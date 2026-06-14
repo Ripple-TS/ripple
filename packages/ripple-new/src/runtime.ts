@@ -117,11 +117,20 @@ export interface Block extends Scope {
 	pendingMode: 'urgent' | 'transition' | null;
 	/** The render mode in effect during the body's *current* execution. */
 	currentRenderMode: 'urgent' | 'transition' | null;
+	/**
+	 * Set on a block inside a HIDDEN `<Activity>` subtree. While inactive, the
+	 * block still renders (state + DOM are produced/updated) but its effects do
+	 * NOT run (enqueueEffect skips when any ancestor is inactive); on reveal the
+	 * flag is cleared and a re-render re-fires the effects.
+	 */
+	inactive: boolean;
 }
 
 interface EffectSlot {
 	deps: any[] | undefined;
 	cleanup: Cleanup | undefined;
+	/** Discriminant so deactivateScope can find effect slots among state/memo/ref. */
+	effect: true;
 }
 
 interface PendingEffect {
@@ -591,6 +600,7 @@ class BlockImpl {
 	mounted: boolean;
 	pendingMode: 'urgent' | 'transition' | null;
 	currentRenderMode: 'urgent' | 'transition' | null;
+	inactive: boolean;
 	// Hooks + cleanups (per-block state).
 	hooks: Map<symbol, any> | null;
 	cleanups: Cleanup[];
@@ -636,6 +646,7 @@ class BlockImpl {
 		this.mounted = false;
 		this.pendingMode = null;
 		this.currentRenderMode = null;
+		this.inactive = false;
 		this.hooks = null;
 		this.cleanups = [];
 		this.children = [];
@@ -913,7 +924,7 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
 			// Read __kind ONCE per slot — the property access is megamorphic across
 			// six slot shapes, so caching the local saves three repeat IC walks.
 			const k = val.__kind;
-			if (k === 'ifBlockSlot' || k === 'switchBlockSlot') {
+			if (k === 'ifBlockSlot' || k === 'switchBlockSlot' || k === 'activityBlockSlot') {
 				if (val.block) unmountBlock(val.block, detachDom);
 			} else if (k === 'forBlockSlot') {
 				const items = val.items as Map<any, Block>;
@@ -1081,10 +1092,18 @@ function depsChanged(prev: any[] | undefined, next: any[] | undefined): boolean 
 
 function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): void {
 	const scope = CURRENT_SCOPE!;
+	// Hidden <Activity> subtree: render (state + DOM) but DON'T run effects. Skip
+	// BEFORE touching the slot so the effect is treated as fresh and re-fires when
+	// the Activity becomes visible (deactivateScope also clears prior deps). Walk
+	// ancestors so a visible inner block inside a hidden outer Activity is skipped
+	// too. Effects are rare on the hot path, so this extra walk is cheap.
+	for (let a: Block | null = scope.block; a !== null; a = a.parentBlock) {
+		if (a.inactive) return;
+	}
 	const prev = scope.hooks?.get(slot) as EffectSlot | undefined;
 	if (prev && !depsChanged(prev.deps, deps)) return;
 	if (!prev) {
-		ensureHooks(scope).set(slot, { deps, cleanup: undefined });
+		ensureHooks(scope).set(slot, { deps, cleanup: undefined, effect: true });
 		// Mark any enclosing for-block items so batch-clear knows to walk cleanups.
 		let b: Block | null = scope.block;
 		while (b) {
@@ -1502,6 +1521,14 @@ export function attachRef(ref: any, el: Element | FragmentInstance | null): void
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const Fragment: unique symbol = Symbol.for('ripple-new.Fragment');
+
+/**
+ * React-19 `<Activity mode="hidden"|"visible">` sentinel. The compiler matches
+ * the `Activity` tag by NAME (so this export is only needed so user imports
+ * `import { Activity } from 'ripple-new'` resolve); the runtime work happens in
+ * `activityBlock`.
+ */
+export const Activity: unique symbol = Symbol.for('ripple-new.Activity');
 
 export class FragmentInstance {
 	/**
@@ -3450,6 +3477,161 @@ export function ifBlock(
 		// Same branch — re-render in place.
 		state.block.body = body!;
 		renderBlock(state.block);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Control flow: activityBlock — React 19 <Activity mode="hidden"|"visible">
+//
+// Unlike ifBlock (which unmounts on branch change), an Activity keeps ONE
+// long-lived child Block across the whole hidden/visible lifecycle. Hidden:
+// children stay mounted (state + DOM preserved) but visually hidden via
+// display:none and their effects are torn down (cleanups run); the subtree is
+// marked `inactive` so re-renders while hidden update the DOM but skip effects.
+// Visible: display restored and a re-render re-fires the effects. State is
+// preserved because the block is never disposed while toggling.
+// ---------------------------------------------------------------------------
+
+interface ActivitySlot {
+	__kind: 'activityBlockSlot';
+	block: Block | null;
+	hidden: boolean;
+	/** Direct child elements we hid → their prior inline `display`, for restore. */
+	savedDisplay: Map<HTMLElement, string>;
+}
+
+/** display:none every direct element child between the block's markers (idempotent). */
+function hideActivityRange(state: ActivitySlot): void {
+	const b = state.block;
+	if (!b) return;
+	let node: ChildNode | null = (b.startMarker as Comment).nextSibling;
+	while (node && node !== b.endMarker) {
+		if (node.nodeType === 1) {
+			const el = node as HTMLElement;
+			if (!state.savedDisplay.has(el)) state.savedDisplay.set(el, el.style.display);
+			el.style.display = 'none';
+		}
+		node = node.nextSibling;
+	}
+}
+
+/** Restore the inline `display` we saved on hide. */
+function showActivityRange(state: ActivitySlot): void {
+	for (const [el, display] of state.savedDisplay) el.style.display = display;
+	state.savedDisplay.clear();
+}
+
+export function activityBlock(
+	parentScope: Scope,
+	slotKey: string,
+	domParent: Node,
+	mode: 'visible' | 'hidden' | string,
+	body: ComponentBody,
+	anchor?: Node | null,
+): void {
+	const parentBlock = parentScope.block;
+	const wantHidden = mode === 'hidden';
+	let state = parentScope[slotKey] as ActivitySlot | undefined;
+
+	if (state === undefined) {
+		const bStart = document.createComment('activity');
+		const bEnd = document.createComment('/activity');
+		domParent.insertBefore(bStart, anchor ?? null);
+		domParent.insertBefore(bEnd, anchor ?? null);
+		const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
+		state = { __kind: 'activityBlockSlot', block: b, hidden: false, savedDisplay: new Map() };
+		parentScope[slotKey] = state;
+		registerSlot(parentScope, state);
+		if (wantHidden) {
+			// Mount while hidden: render children (creates state + DOM) but no
+			// effects — mark inactive BEFORE the render so enqueueEffect skips them.
+			b.inactive = true;
+			renderBlock(b);
+			hideActivityRange(state);
+			state.hidden = true;
+		} else {
+			renderBlock(b);
+		}
+		return;
+	}
+
+	const b = state.block!;
+	b.body = body;
+
+	if (wantHidden) {
+		if (!state.hidden) {
+			// visible → hidden: prerender latest content with effects suppressed,
+			// tear down the previously-mounted effects (cleanups BEFORE hiding the
+			// DOM, matching React), then hide.
+			b.inactive = true;
+			renderBlock(b);
+			deactivateScope(b);
+			hideActivityRange(state);
+			state.hidden = true;
+		} else {
+			// hidden → hidden: prerender (no effects), then hide any new children.
+			renderBlock(b);
+			hideActivityRange(state);
+		}
+	} else {
+		if (state.hidden) {
+			// hidden → visible: restore DOM, clear inactive, re-render to re-fire
+			// effects (deactivateScope cleared their deps so they re-enqueue).
+			showActivityRange(state);
+			b.inactive = false;
+			state.hidden = false;
+			renderBlock(b);
+		} else {
+			// visible → visible: ordinary re-render in place.
+			renderBlock(b);
+		}
+	}
+}
+
+/**
+ * Run a subtree's effect CLEANUPS without disposing it, and reset its effect
+ * slots so the setups re-fire on reactivation. Used by activityBlock on hide:
+ * effects are torn down (cleanups run, parent-before-child) while state, DOM and
+ * the blocks all stay alive. Refs are intentionally LEFT attached to the
+ * preserved (hidden) DOM — they point at valid, still-present nodes.
+ */
+function deactivateScope(scope: Scope): void {
+	const hooks = scope.hooks;
+	if (hooks) {
+		for (const slot of hooks.values()) {
+			if (slot && (slot as EffectSlot).effect === true) {
+				const e = slot as EffectSlot;
+				if (typeof e.cleanup === 'function') {
+					const cleanup = e.cleanup;
+					e.cleanup = undefined;
+					// Drop from scope.cleanups too so an eventual unmount can't re-fire it.
+					const idx = scope.cleanups.indexOf(cleanup);
+					if (idx !== -1) scope.cleanups.splice(idx, 1);
+					try {
+						cleanup();
+					} catch (err) {
+						console.error(err);
+					}
+				}
+				// Force the setup to re-enqueue + re-fire when the subtree reactivates.
+				e.deps = undefined;
+			}
+		}
+	}
+	const children = scope.children;
+	for (let i = 0, n = children.length; i < n; i++) deactivateScope(children[i].scope);
+	const slots = scope._slots;
+	if (slots !== null) {
+		for (let i = 0, n = slots.length; i < n; i++) {
+			const val = slots[i];
+			if (val.__kind === 'forBlockSlot') {
+				const it = (val.items as Map<any, Block>).values();
+				for (let r = it.next(); !r.done; r = it.next()) deactivateScope(r.value);
+				if (val.emptyBlock) deactivateScope(val.emptyBlock);
+			} else if (val.block) {
+				deactivateScope(val.block);
+			}
+		}
 	}
 }
 

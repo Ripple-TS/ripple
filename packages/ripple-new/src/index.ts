@@ -58,6 +58,8 @@ export {
 	ifBlock,
 	tryBlock,
 	switchBlock,
+	activityBlock,
+	Activity,
 	componentSlot,
 	componentSlotLite,
 	Fragment,
