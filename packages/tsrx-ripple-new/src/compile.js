@@ -677,43 +677,56 @@ function countNewlines(str) {
 }
 
 /**
- * Build a v3 source map from coarse, boundary-granularity anchors. Codegen here
- * is string assembly (not full AST printing), so per-token maps would require a
- * codegen rewrite. Instead we map the FIRST generated line of each top-level
- * emitted chunk (component / passthrough statement) to that node's source
- * position, and inline `sourcesContent` so the original `.tsrx` is visible in
- * devtools. Generated lines without an anchor are left unmapped — never mapped
- * to a wrong position.
+ * Build a v3 source map from a flat list of mapping segments. The segments come
+ * from esrap itself — we print each user statement/expression via esrap with
+ * `sourceMapEncodeMappings: false` (the same machinery the mainline TSRX
+ * compilers use) and merge each node's real per-token mappings into module
+ * coordinates. Generated runtime plumbing (templates, mount/update DOM ops) is
+ * left unmapped — never mapped to a wrong position. `sourcesContent` is inlined
+ * so the original `.tsrx` is visible in devtools.
  *
  * @param {string} source original .tsrx text
- * @param {string} filename
- * @param {Array<{ genLine: number, srcLine0: number, srcCol0: number }>} anchors
- *   genLine is the 0-based ABSOLUTE generated line; src* are 0-based source coords.
+ * @param {string} sourceName basename used as the map's single source entry
+ * @param {Array<{ genLine: number, genCol: number, srcLine0: number, srcCol0: number }>} segments
+ *   genLine/genCol are 0-based ABSOLUTE generated coords; src* are 0-based source coords.
  */
-function buildSourceMap(source, filename, anchors) {
-	const sourceName = (filename || 'module.tsrx').split(/[\\/]/).pop();
+function buildSourceMap(source, sourceName, segments) {
 	const byLine = new Map();
 	let maxLine = -1;
-	for (const a of anchors) {
-		// First anchor per generated line wins (chunks start at column 0).
-		if (!byLine.has(a.genLine)) byLine.set(a.genLine, a);
-		if (a.genLine > maxLine) maxLine = a.genLine;
+	for (const s of segments) {
+		if (s.genLine < 0) continue;
+		let arr = byLine.get(s.genLine);
+		if (!arr) byLine.set(s.genLine, (arr = []));
+		arr.push(s);
+		if (s.genLine > maxLine) maxLine = s.genLine;
 	}
 	let prevSrcLine = 0;
 	let prevSrcCol = 0;
 	const groups = [];
 	for (let line = 0; line <= maxLine; line++) {
-		const a = byLine.get(line);
-		if (!a) {
+		const arr = byLine.get(line);
+		if (!arr) {
 			groups.push('');
 			continue;
 		}
-		// Fields: [genColumn, sourceIndex, sourceLine, sourceColumn], all deltas.
-		// genColumn resets to 0 each line and our anchor sits at column 0;
-		// sourceIndex is always 0 (single source).
-		groups.push(encodeVlq([0, 0, a.srcLine0 - prevSrcLine, a.srcCol0 - prevSrcCol]));
-		prevSrcLine = a.srcLine0;
-		prevSrcCol = a.srcCol0;
+		// Sort by generated column and drop duplicates at the same column.
+		arr.sort((a, b) => a.genCol - b.genCol);
+		let prevGenCol = 0;
+		let lastGenCol = -1;
+		let group = '';
+		for (const s of arr) {
+			if (s.genCol === lastGenCol) continue;
+			lastGenCol = s.genCol;
+			// Fields: [genColumn, sourceIndex, sourceLine, sourceColumn] as deltas.
+			// genColumn resets per line; sourceIndex is always 0 (single source).
+			group +=
+				(group ? ',' : '') +
+				encodeVlq([s.genCol - prevGenCol, 0, s.srcLine0 - prevSrcLine, s.srcCol0 - prevSrcCol]);
+			prevGenCol = s.genCol;
+			prevSrcLine = s.srcLine0;
+			prevSrcCol = s.srcCol0;
+		}
+		groups.push(group);
 	}
 	return {
 		version: 3,
@@ -754,6 +767,13 @@ export function compile(source, filename, options) {
 		// hookless lite path). Populated by the pre-pass below; read by
 		// makeCompCall to branch the call-site emit.
 		componentInfo: new Map(),
+		// Source-map inputs, read by printNodeWithMap to ask esrap for real
+		// per-token mappings against the original .tsrx.
+		mapSource: source,
+		mapSourceName: (filename || 'module.tsrx').split(/[\\/]/).pop(),
+		// Per-component setup-statement maps, populated by compileFunctionBody on
+		// the top-level (autoCallback) pass and drained per component below.
+		_setupMaps: null,
 	};
 	// List of exported components needing HMR wrapping. Each entry: { name,
 	// exportKind: 'default' | 'named' }. We emit the `Comp = hmr(Comp)` lines
@@ -869,36 +889,77 @@ export function compile(source, filename, options) {
 	}
 
 	let body = '';
-	// Source-map bookkeeping: record the generated line (0-based, within `body`)
-	// at which each top-level emitted chunk starts, paired with its source
-	// position. Shifted by the prelude line count and encoded at return.
+	// Source-map bookkeeping. `bodySegments` collects mapping segments in
+	// body-relative coordinates (0-based line within `body`); they're shifted by
+	// the prelude line count and encoded at return. Segments come from esrap's
+	// real per-token maps (component setup statements, top-level passthrough
+	// statements) plus a coarse anchor at each component declaration line.
 	let bodyLine = 0;
-	const bodyAnchors = [];
-	const appendBody = (node, chunk) => {
+	const bodySegments = [];
+	const pushEsrapSegments = (baseLine, colShift, mappings) => {
+		for (let i = 0; i < mappings.length; i++) {
+			for (const seg of mappings[i]) {
+				bodySegments.push({
+					genLine: baseLine + i,
+					genCol: seg[0] + colShift,
+					srcLine0: seg[2],
+					srcCol0: seg[3],
+				});
+			}
+		}
+	};
+	const pushDeclAnchor = (node, baseLine) => {
 		const loc = node && node.loc && node.loc.start;
 		if (loc) {
-			bodyAnchors.push({ genLine: bodyLine, srcLine0: loc.line - 1, srcCol0: loc.column | 0 });
+			bodySegments.push({
+				genLine: baseLine,
+				genCol: 0,
+				srcLine0: loc.line - 1,
+				srcCol0: loc.column | 0,
+			});
 		}
-		body += chunk;
-		bodyLine += countNewlines(chunk);
+	};
+	// Drain the setup-statement maps compileFunctionBody captured for the
+	// component that starts at body line `base`.
+	const drainSetupMaps = (base) => {
+		if (ctx._setupMaps) {
+			for (const e of ctx._setupMaps) pushEsrapSegments(base + e.fnRelLine, e.colShift, e.mappings);
+			ctx._setupMaps = null;
+		}
 	};
 	const compileOpts = { hmrWrap: hmrEnabled };
 	for (const node of ast.body) {
 		if (isComponentFunction(node)) {
 			// `function Foo() @{ ... }` (new TSRX shape) — non-exported helper. HMR
 			// doesn't wrap these (they're not user-visible across module boundaries).
-			appendBody(node, compileComponent(node, ctx) + '\n\n');
+			const base = bodyLine;
+			ctx._setupMaps = null;
+			const chunk = compileComponent(node, ctx) + '\n\n';
+			pushDeclAnchor(node, base);
+			drainSetupMaps(base);
+			body += chunk;
+			bodyLine += countNewlines(chunk);
 		} else if (node.type === 'ExportDefaultDeclaration' && isComponentFunction(node.declaration)) {
 			// `export default function Foo() @{...}` → emit as named const + `export default Foo;`.
 			const c = node.declaration;
+			const base = bodyLine;
+			ctx._setupMaps = null;
 			const compiled = compileComponent({ ...c, default: true }, ctx, compileOpts);
-			appendBody(node, compiled + '\n\n');
+			pushDeclAnchor(node, base);
+			drainSetupMaps(base);
+			body += compiled + '\n\n';
+			bodyLine += countNewlines(compiled + '\n\n');
 			if (hmrEnabled) hmrComponents.push({ name: c.id.name, exportKind: 'default' });
 		} else if (node.type === 'ExportNamedDeclaration' && isComponentFunction(node.declaration)) {
 			// `export function Foo() @{...}` → emit as `export const Foo = ...;`.
 			const c = node.declaration;
+			const base = bodyLine;
+			ctx._setupMaps = null;
 			const compiled = compileComponent({ ...c, export: true }, ctx, compileOpts);
-			appendBody(node, compiled + '\n\n');
+			pushDeclAnchor(node, base);
+			drainSetupMaps(base);
+			body += compiled + '\n\n';
+			bodyLine += countNewlines(compiled + '\n\n');
 			if (hmrEnabled) hmrComponents.push({ name: c.id.name, exportKind: 'named' });
 		} else if (node.type === 'ImportDeclaration' && node.source.value === 'ripple-new') {
 			// Preserve ALL user-imported names from ripple-new (Portal, createContext,
@@ -917,7 +978,13 @@ export function compile(source, filename, options) {
 			if (node.type === 'ExportNamedDeclaration' && node.declaration) {
 				applyStyleMap(node.declaration, ctx);
 			}
-			appendBody(node, printNode(node) + '\n');
+			// Top-level passthrough (imports, plain consts/functions): print with
+			// esrap's real map — col 0, no re-indent, single line offset.
+			const base = bodyLine;
+			const { code, mappings } = printNodeWithMap(node, ctx);
+			pushEsrapSegments(base, 0, mappings);
+			body += code + '\n';
+			bodyLine += countNewlines(code + '\n');
 		}
 	}
 
@@ -986,19 +1053,20 @@ export function compile(source, filename, options) {
 			? `import { ${[...ctx.runtimeNeeded].sort().join(', ')} } from 'ripple-new';\n\n`
 			: '';
 
-	// Everything before `body` in the output — shifts every body anchor's
+	// Everything before `body` in the output — shifts every body segment's
 	// generated line down by the prelude's line count.
 	const prelude = finalRuntimeImport + delegateCall + styleBlock + templatesBlock + helpersBlock;
 	const preludeLines = countNewlines(prelude);
-	const anchors = bodyAnchors.map((a) => ({
-		genLine: a.genLine + preludeLines,
-		srcLine0: a.srcLine0,
-		srcCol0: a.srcCol0,
+	const segments = bodySegments.map((s) => ({
+		genLine: s.genLine + preludeLines,
+		genCol: s.genCol,
+		srcLine0: s.srcLine0,
+		srcCol0: s.srcCol0,
 	}));
 
 	return {
 		code: prelude + body + hmrBlock,
-		map: buildSourceMap(source, filename, anchors),
+		map: buildSourceMap(source, ctx.mapSourceName, segments),
 	};
 }
 
@@ -1249,9 +1317,31 @@ function compileFunctionBody(node, ctx, name, parentNs = 'html', cssHash = null,
 	const rewrittenStatements = workingStatements
 		.map((s) => rewriteHookCalls(s, ctx, name))
 		.map((s) => rewriteTsrxBlocks(s, ctx, name, inlinedSubs));
+	// Capture per-statement source maps for the TOP-LEVEL component body only
+	// (the autoCallback pass). Output stays byte-identical — printNodeWithMap
+	// prints the same code as printNode, it just also returns esrap's real
+	// per-token mappings. Nested for-of / if / try bodies are embedded at
+	// variable offsets and are left unmapped. Function-body layout: line 0 is
+	// `function X(...) {`, line 1 is the `const __block` header, line 2 is the
+	// first setup statement; statements join with '\n' and indent two spaces.
+	const collectSetupMaps = !!(options && options.autoCallback && !(options && options.prologue));
+	const setupMaps = collectSetupMaps ? [] : null;
+	let stmtRelLine = 2;
 	const statementCode = rewrittenStatements
-		.map((s) => '  ' + printNode(s).replace(/\n/g, '\n  '))
+		.map((s) => {
+			let code;
+			if (collectSetupMaps) {
+				const r = printNodeWithMap(s, ctx);
+				code = r.code;
+				setupMaps.push({ fnRelLine: stmtRelLine, colShift: 2, mappings: r.mappings });
+				stmtRelLine += 1 + countNewlines(code);
+			} else {
+				code = printNode(s);
+			}
+			return '  ' + code.replace(/\n/g, '\n  ');
+		})
 		.join('\n');
+	if (collectSetupMaps) ctx._setupMaps = setupMaps;
 
 	const plan = planJsx(jsxNodes, ctx, name, inlinedSubs, parentNs, cssHash);
 
@@ -3550,6 +3640,24 @@ function printNode(node) {
 	// values via printExprWithTsrx) — no per-call-site strip needed.
 	const { code } = esrapPrint(stripTsOnlyWrappers(node), esrapTsx());
 	return code;
+}
+
+/**
+ * Like printNode, but also returns esrap's real per-token source mappings for
+ * this node (decoded, NOT VLQ-encoded). `code` is byte-identical to printNode —
+ * source-map options don't change the printed output — so callers can keep
+ * emitting the same string while capturing the map. `mappings` is an array
+ * indexed by generated line; each entry is a list of `[genCol, srcIdx, srcLine,
+ * srcCol]` segments with ABSOLUTE source positions (relative to the original
+ * `.tsrx`, via the node's `.loc`).
+ */
+function printNodeWithMap(node, ctx) {
+	const { code, map } = esrapPrint(stripTsOnlyWrappers(node), esrapTsx(), {
+		sourceMapSource: ctx.mapSourceName,
+		sourceMapContent: ctx.mapSource,
+		sourceMapEncodeMappings: false,
+	});
+	return { code, mappings: map.mappings || [] };
 }
 
 function printExpr(node) {

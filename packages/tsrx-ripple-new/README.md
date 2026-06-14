@@ -18,11 +18,15 @@ codegen. Async (`async function`) and generator (`function*`) component bodies a
 rejected at compile time, as is `@for await` (async iteration); load async data
 with `use(promise)` inside a `@try` / `@pending` boundary instead.
 
-Source maps are currently coarse (the codegen is string-assembly, not full AST
-printing): the emitted map carries `sources` + inlined `sourcesContent` and
-top-level statement/component anchors, so the original `.tsrx` is visible and
-boundaries map, but per-token fidelity inside generated runtime plumbing is not
-yet provided.
+Source maps use esrap's real per-token mappings (the same machinery as the
+mainline TSRX compilers), captured per node and merged into module coordinates.
+The emitted v3 map carries `sources` + inlined `sourcesContent`, a token-level map
+for top-level statements and each component's setup statements, and a line anchor
+at every component declaration. Because the codegen is string-assembly rather than
+a single full-AST esrap print, two things are not yet mapped: expressions embedded
+inside JSX templates (event/text/attribute holes) and nested control-flow bodies
+(`@for` / `@if` / `@try` item bodies) — closing those requires emitting the
+template/binding plumbing as an AST so esrap prints the whole module in one pass.
 
 ## Status
 

@@ -204,19 +204,40 @@ export function Second() @{
 		const genLines = out.code.split('\n');
 		const srcLines = src.split('\n');
 
-		// Every emitted segment must point at the matching source declaration:
-		// the generated `export const X = function X(...` line maps to the
-		// source `export function X() @{` line (column 0).
-		expect(segs.length).toBeGreaterThanOrEqual(2);
+		// Single source, and every mapping points inside the original source.
 		for (const s of segs) {
 			expect(s.srcIdx).toBe(0);
-			expect(s.genCol).toBe(0);
-			expect(s.srcCol).toBe(0);
-			const gen = genLines[s.genLine];
-			const srcDecl = srcLines[s.srcLine];
-			const m = gen.match(/export const (\w+) = function/);
-			expect(m).toBeTruthy();
-			expect(srcDecl).toContain(`export function ${m[1]}(`);
+			expect(s.srcLine).toBeGreaterThanOrEqual(0);
+			expect(s.srcLine).toBeLessThan(srcLines.length);
 		}
+
+		// The generated `export const App = function App(...` line maps (at
+		// column 0) to the source `export function App() @{` line.
+		const declGen = genLines.findIndex((l) => l.startsWith('export const App = function App'));
+		const declSeg = segs.find((s) => s.genLine === declGen && s.genCol === 0);
+		expect(declSeg).toBeTruthy();
+		expect(srcLines[declSeg.srcLine]).toContain('export function App(');
+	});
+
+	it('maps setup-statement tokens to their exact source positions (real esrap maps)', () => {
+		const out = compile(src, 'App.tsrx');
+		const segs = decodeMappings(out.map.mappings);
+		const genLines = out.code.split('\n');
+		const srcLines = src.split('\n');
+
+		// The generated `const [n, setN] = useState(0, _h$0);` line carries
+		// per-token mappings (not just a line anchor) back to the source
+		// `const [n, setN] = useState(0);` line.
+		const genIdx = genLines.findIndex((l) => l.includes('useState(0, _h$0)'));
+		expect(genIdx).toBeGreaterThan(-1);
+		const lineSegs = segs.filter((s) => s.genLine === genIdx);
+		expect(lineSegs.length).toBeGreaterThanOrEqual(3); // many tokens, not one anchor
+
+		// Pick the `useState` token in the generated line and assert it maps to
+		// the `useState` token in the source.
+		const genCol = genLines[genIdx].indexOf('useState');
+		const srcSeg = lineSegs.find((s) => s.genCol === genCol);
+		expect(srcSeg).toBeTruthy();
+		expect(srcLines[srcSeg.srcLine].slice(srcSeg.srcCol)).toMatch(/^useState/);
 	});
 });
