@@ -130,3 +130,93 @@ export function R() @{ const a = useRef(null); const b = useRef(null); <div ref=
 		).toThrow(/multiple `ref/);
 	});
 });
+
+describe('@tsrx/ripple-new compile — source map', () => {
+	// Self-contained base64-VLQ decoder (no codec dep resolvable from this pkg).
+	const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+	const c2i = {};
+	for (let i = 0; i < B64.length; i++) c2i[B64[i]] = i;
+	function decodeSegment(s) {
+		const nums = [];
+		let shift = 0;
+		let value = 0;
+		for (const ch of s) {
+			const x = c2i[ch];
+			value += (x & 31) << shift;
+			if (x & 32) {
+				shift += 5;
+			} else {
+				const neg = value & 1;
+				value >>= 1;
+				nums.push(neg ? -value : value);
+				value = 0;
+				shift = 0;
+			}
+		}
+		return nums;
+	}
+	function decodeMappings(str) {
+		let srcIdx = 0;
+		let srcLine = 0;
+		let srcCol = 0;
+		const out = [];
+		str.split(';').forEach((group, genLine) => {
+			let genCol = 0;
+			if (!group) return;
+			for (const seg of group.split(',')) {
+				const a = decodeSegment(seg);
+				genCol += a[0];
+				if (a.length > 1) {
+					srcIdx += a[1];
+					srcLine += a[2];
+					srcCol += a[3];
+				}
+				out.push({ genLine, genCol, srcIdx, srcLine, srcCol });
+			}
+		});
+		return out;
+	}
+
+	const src = `import { useState } from 'ripple-new';
+
+export function App() @{
+  const [n, setN] = useState(0);
+  <button onClick={() => setN(n + 1)}>{n as number}</button>
+}
+
+export function Second() @{
+  <div>{'hi'}</div>
+}`;
+
+	it('emits a v3 map with the source name and inlined sourcesContent', () => {
+		const out = compile(src, 'App.tsrx');
+		expect(out.map).toBeTruthy();
+		expect(out.map.version).toBe(3);
+		expect(out.map.sources).toContain('App.tsrx');
+		expect(out.map.sourcesContent).toEqual([src]);
+		expect(typeof out.map.mappings).toBe('string');
+		expect(out.map.mappings.length).toBeGreaterThan(0);
+	});
+
+	it('anchors each component declaration to its source line', () => {
+		const out = compile(src, 'App.tsrx');
+		const segs = decodeMappings(out.map.mappings);
+		const genLines = out.code.split('\n');
+		const srcLines = src.split('\n');
+
+		// Every emitted segment must point at the matching source declaration:
+		// the generated `export const X = function X(...` line maps to the
+		// source `export function X() @{` line (column 0).
+		expect(segs.length).toBeGreaterThanOrEqual(2);
+		for (const s of segs) {
+			expect(s.srcIdx).toBe(0);
+			expect(s.genCol).toBe(0);
+			expect(s.srcCol).toBe(0);
+			const gen = genLines[s.genLine];
+			const srcDecl = srcLines[s.srcLine];
+			const m = gen.match(/export const (\w+) = function/);
+			expect(m).toBeTruthy();
+			expect(srcDecl).toContain(`export function ${m[1]}(`);
+		}
+	});
+});

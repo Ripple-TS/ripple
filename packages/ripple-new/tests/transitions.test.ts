@@ -11,6 +11,7 @@ import {
 	NestedTransitions,
 	DeferredValueInTransition,
 	UrgentSupersedesTransition,
+	AsyncStartTransition,
 } from './_fixtures/transitions.tsrx';
 
 interface Deferred<T> {
@@ -370,6 +371,53 @@ describe('Transitions — multiple-suspend edge cases', () => {
 		r.click('#bump');
 		expect(r.find('#original').textContent).toBe('Original: 2');
 		expect(r.find('#deferred').textContent).toBe('Deferred: 2'); // NOT 1!
+		r.unmount();
+	});
+});
+
+describe('useTransition — async actions (React 19)', () => {
+	it('holds isPending true until the async action promise resolves, then commits', async () => {
+		const gate = deferred<void>();
+		const r = mount(AsyncStartTransition, { gate: gate.promise });
+		expect(r.find('#pending').textContent).toBe('idle');
+		expect(r.find('#n').textContent).toBe('0');
+
+		// Click — the action runs its synchronous slice, then awaits the gate.
+		r.click('#go');
+		expect(r.find('#pending').textContent).toBe('pending');
+
+		// Drain microtasks WITHOUT settling the action promise. The old code
+		// dropped isPending on a fixed microtask here; the fix keeps it pending
+		// until the returned promise settles. n must not have changed yet.
+		await act(() => {});
+		expect(r.find('#pending').textContent).toBe('pending');
+		expect(r.find('#n').textContent).toBe('0');
+
+		// Settle the action — the awaited setter commits and isPending drops.
+		await act(() => {
+			gate.resolve();
+		});
+		expect(r.find('#pending').textContent).toBe('idle');
+		expect(r.find('#n').textContent).toBe('1');
+		r.unmount();
+	});
+
+	it('drops isPending when the async action promise rejects (decrements exactly once)', async () => {
+		const gate = deferred<void>();
+		const r = mount(AsyncStartTransition, { gate: gate.promise });
+
+		r.click('#go');
+		expect(r.find('#pending').textContent).toBe('pending');
+		await act(() => {});
+		expect(r.find('#pending').textContent).toBe('pending');
+
+		// Reject the gate — the action's promise rejects; isPending must still
+		// drop (settle handles both fulfil and reject), and the setter never ran.
+		await act(() => {
+			gate.reject(new Error('action failed'));
+		});
+		expect(r.find('#pending').textContent).toBe('idle');
+		expect(r.find('#n').textContent).toBe('0');
 		r.unmount();
 	});
 });

@@ -1,4 +1,8 @@
-export const version = '0.1.0-alpha.0';
+import pkg from '../package.json' with { type: 'json' };
+
+// Source the version from package.json so it can't drift from the published
+// package version (the previous hardcoded literal already had).
+export const version: string = pkg.version;
 
 export {
 	// Public API

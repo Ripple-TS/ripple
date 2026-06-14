@@ -653,6 +653,77 @@ function isComponentFunction(node) {
 	);
 }
 
+const VLQ_B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/** Base64-VLQ encode a list of signed integers (source-map v3 segment fields). */
+function encodeVlq(values) {
+	let out = '';
+	for (const value of values) {
+		let vlq = value < 0 ? (-value << 1) | 1 : value << 1;
+		do {
+			let digit = vlq & 31;
+			vlq >>>= 5;
+			if (vlq > 0) digit |= 32;
+			out += VLQ_B64[digit];
+		} while (vlq > 0);
+	}
+	return out;
+}
+
+function countNewlines(str) {
+	let n = 0;
+	for (let i = 0; i < str.length; i++) if (str.charCodeAt(i) === 10) n++;
+	return n;
+}
+
+/**
+ * Build a v3 source map from coarse, boundary-granularity anchors. Codegen here
+ * is string assembly (not full AST printing), so per-token maps would require a
+ * codegen rewrite. Instead we map the FIRST generated line of each top-level
+ * emitted chunk (component / passthrough statement) to that node's source
+ * position, and inline `sourcesContent` so the original `.tsrx` is visible in
+ * devtools. Generated lines without an anchor are left unmapped — never mapped
+ * to a wrong position.
+ *
+ * @param {string} source original .tsrx text
+ * @param {string} filename
+ * @param {Array<{ genLine: number, srcLine0: number, srcCol0: number }>} anchors
+ *   genLine is the 0-based ABSOLUTE generated line; src* are 0-based source coords.
+ */
+function buildSourceMap(source, filename, anchors) {
+	const sourceName = (filename || 'module.tsrx').split(/[\\/]/).pop();
+	const byLine = new Map();
+	let maxLine = -1;
+	for (const a of anchors) {
+		// First anchor per generated line wins (chunks start at column 0).
+		if (!byLine.has(a.genLine)) byLine.set(a.genLine, a);
+		if (a.genLine > maxLine) maxLine = a.genLine;
+	}
+	let prevSrcLine = 0;
+	let prevSrcCol = 0;
+	const groups = [];
+	for (let line = 0; line <= maxLine; line++) {
+		const a = byLine.get(line);
+		if (!a) {
+			groups.push('');
+			continue;
+		}
+		// Fields: [genColumn, sourceIndex, sourceLine, sourceColumn], all deltas.
+		// genColumn resets to 0 each line and our anchor sits at column 0;
+		// sourceIndex is always 0 (single source).
+		groups.push(encodeVlq([0, 0, a.srcLine0 - prevSrcLine, a.srcCol0 - prevSrcCol]));
+		prevSrcLine = a.srcLine0;
+		prevSrcCol = a.srcCol0;
+	}
+	return {
+		version: 3,
+		sources: [sourceName],
+		sourcesContent: [source],
+		names: [],
+		mappings: groups.join(';'),
+	};
+}
+
 /**
  * Compile a .tsrx source string into JS targeting `ripple-new`.
  * @param {string} source
@@ -798,23 +869,36 @@ export function compile(source, filename, options) {
 	}
 
 	let body = '';
+	// Source-map bookkeeping: record the generated line (0-based, within `body`)
+	// at which each top-level emitted chunk starts, paired with its source
+	// position. Shifted by the prelude line count and encoded at return.
+	let bodyLine = 0;
+	const bodyAnchors = [];
+	const appendBody = (node, chunk) => {
+		const loc = node && node.loc && node.loc.start;
+		if (loc) {
+			bodyAnchors.push({ genLine: bodyLine, srcLine0: loc.line - 1, srcCol0: loc.column | 0 });
+		}
+		body += chunk;
+		bodyLine += countNewlines(chunk);
+	};
 	const compileOpts = { hmrWrap: hmrEnabled };
 	for (const node of ast.body) {
 		if (isComponentFunction(node)) {
 			// `function Foo() @{ ... }` (new TSRX shape) — non-exported helper. HMR
 			// doesn't wrap these (they're not user-visible across module boundaries).
-			body += compileComponent(node, ctx) + '\n\n';
+			appendBody(node, compileComponent(node, ctx) + '\n\n');
 		} else if (node.type === 'ExportDefaultDeclaration' && isComponentFunction(node.declaration)) {
 			// `export default function Foo() @{...}` → emit as named const + `export default Foo;`.
 			const c = node.declaration;
 			const compiled = compileComponent({ ...c, default: true }, ctx, compileOpts);
-			body += compiled + '\n\n';
+			appendBody(node, compiled + '\n\n');
 			if (hmrEnabled) hmrComponents.push({ name: c.id.name, exportKind: 'default' });
 		} else if (node.type === 'ExportNamedDeclaration' && isComponentFunction(node.declaration)) {
 			// `export function Foo() @{...}` → emit as `export const Foo = ...;`.
 			const c = node.declaration;
 			const compiled = compileComponent({ ...c, export: true }, ctx, compileOpts);
-			body += compiled + '\n\n';
+			appendBody(node, compiled + '\n\n');
 			if (hmrEnabled) hmrComponents.push({ name: c.id.name, exportKind: 'named' });
 		} else if (node.type === 'ImportDeclaration' && node.source.value === 'ripple-new') {
 			// Preserve ALL user-imported names from ripple-new (Portal, createContext,
@@ -833,7 +917,7 @@ export function compile(source, filename, options) {
 			if (node.type === 'ExportNamedDeclaration' && node.declaration) {
 				applyStyleMap(node.declaration, ctx);
 			}
-			body += printNode(node) + '\n';
+			appendBody(node, printNode(node) + '\n');
 		}
 	}
 
@@ -902,16 +986,19 @@ export function compile(source, filename, options) {
 			? `import { ${[...ctx.runtimeNeeded].sort().join(', ')} } from 'ripple-new';\n\n`
 			: '';
 
+	// Everything before `body` in the output — shifts every body anchor's
+	// generated line down by the prelude's line count.
+	const prelude = finalRuntimeImport + delegateCall + styleBlock + templatesBlock + helpersBlock;
+	const preludeLines = countNewlines(prelude);
+	const anchors = bodyAnchors.map((a) => ({
+		genLine: a.genLine + preludeLines,
+		srcLine0: a.srcLine0,
+		srcCol0: a.srcCol0,
+	}));
+
 	return {
-		code:
-			finalRuntimeImport +
-			delegateCall +
-			styleBlock +
-			templatesBlock +
-			helpersBlock +
-			body +
-			hmrBlock,
-		map: null,
+		code: prelude + body + hmrBlock,
+		map: buildSourceMap(source, filename, anchors),
 	};
 }
 

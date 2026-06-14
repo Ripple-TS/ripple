@@ -264,3 +264,29 @@ export function UrgentSupersedesTransition(props) @{
 		}
 	</div>
 }
+
+// ---------------------------------------------------------------------------
+// Async startTransition (React 19 Actions). The action awaits `props.gate`
+// before committing its setter; isPending must stay true until that promise
+// SETTLES — not merely for one microtask. On settle (fulfil or reject) the
+// pending flag drops exactly once.
+// ---------------------------------------------------------------------------
+export function AsyncStartTransition(props) @{
+	const [n, setN] = useState(0);
+	const [isPending, start] = useTransition();
+	<div>
+		<span id="n">
+			{n as string}
+		</span>
+		<span id="pending">
+			{isPending ? 'pending' : 'idle'}
+		</span>
+		<button
+			id="go"
+			onClick={() => start(async () => {
+				await props.gate;
+				setN(n + 1);
+			})}
+		>{'go'}</button>
+	</div>
+}

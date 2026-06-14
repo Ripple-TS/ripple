@@ -1,3 +1,18 @@
+> ⚠️ **HISTORICAL / SUPERSEDED — do not use as a current source of truth.**
+>
+> This is a pre-implementation "Phase 1" handoff written before the compiler
+> existed. The migration it plans is now **fully shipped**: the compiler is
+> implemented (`src/compile.js`), `switchBlock` and scoped CSS / `@if` / `@for` /
+> portals all work, and there is a full test suite (`tests/compile.test.js` plus
+> `packages/ripple-new/tests/`). Nearly every concrete statement below is now
+> stale — wrong package path, wrong `@tsrx/core` version (it is pinned at
+> `0.1.29`, not `0.1.25`), `switchBlock` described as an unimplemented stub, and
+> references to files that never existed (`src/dynamic.ts`, `__tests__/`,
+> `_legacy/`). Retained only for historical context.
+>
+> For current docs see [`README.md`](./README.md) and
+> [`packages/ripple-new/README.md`](../ripple-new/README.md).
+
 # TSRX Migration — Phase 1 Findings & Checklist
 
 Branch: `tsrx-migration` Bumped: `@tsrx/core` `^0.1.13` → `^0.1.25` Baseline:

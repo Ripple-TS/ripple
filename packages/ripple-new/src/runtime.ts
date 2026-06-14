@@ -2936,14 +2936,15 @@ function attachResume(state: TrySlot, thenable: TrackedThenable<any>): void {
 // tearing down the current view.
 // ---------------------------------------------------------------------------
 
-export function startTransition(fn: () => void): void {
+export function startTransition(fn: () => void | Promise<unknown>): void {
 	// Bump the priority flag FIRST so any scheduleRender calls fired by the
 	// listener notification (and by fn itself) are tagged as transition.
 	TRANSITION_DEPTH++;
+	let result: unknown;
 	try {
 		tickTransitionCount(+1);
 		try {
-			fn();
+			result = fn();
 		} finally {
 			TRANSITION_DEPTH--;
 		}
@@ -2951,19 +2952,36 @@ export function startTransition(fn: () => void): void {
 		tickTransitionCount(-1);
 		throw err;
 	}
-	// The synchronous slice is done. Decrement after the scheduler has had a
-	// chance to flush the queued renders this transition produced — if any of
-	// those renders held the transition open by suspending, they incremented
-	// the count themselves via handleSuspense, so the net count stays > 0.
-	queueMicrotask(() => tickTransitionCount(-1));
+	if (result != null && typeof (result as { then?: unknown }).then === 'function') {
+		// React 19 Actions parity: an async callback returns a promise. Keep the
+		// transition pending until that promise settles — the awaited
+		// continuation (and any setters after `await`) resumes on a later
+		// microtask, AFTER a fixed queueMicrotask decrement would have already
+		// dropped isPending. Decrement exactly once on settle (fulfil OR reject).
+		let settled = false;
+		const settle = () => {
+			if (settled) return;
+			settled = true;
+			tickTransitionCount(-1);
+		};
+		(result as Promise<unknown>).then(settle, settle);
+	} else {
+		// Synchronous callback: decrement after the scheduler has had a chance to
+		// flush the queued renders this transition produced — if any of those
+		// renders held the transition open by suspending, they incremented the
+		// count themselves via handleSuspense, so the net count stays > 0.
+		queueMicrotask(() => tickTransitionCount(-1));
+	}
 }
 
-export function useTransition(slot?: symbol): [boolean, (fn: () => void) => void] {
+export function useTransition(
+	slot?: symbol,
+): [boolean, (fn: () => void | Promise<unknown>) => void] {
 	if (slot === undefined) missingSlot('useTransition');
 	const scope = CURRENT_SCOPE!;
 	const block = CURRENT_BLOCK!;
 	let s = scope.hooks?.get(slot) as
-		| { isPending: boolean; start: (fn: () => void) => void }
+		| { isPending: boolean; start: (fn: () => void | Promise<unknown>) => void }
 		| undefined;
 	if (s === undefined) {
 		const slotRef = { isPending: false, start: startTransition };
