@@ -256,6 +256,7 @@ export function scheduleRender(block: Block): void {
 
 function flush(): void {
 	scheduled = false;
+	let pendingError: { err: any } | null = null;
 	while (QUEUE.length) {
 		const block = QUEUE.shift()!;
 		block.pending = false;
@@ -263,11 +264,21 @@ function flush(): void {
 			try {
 				renderBlock(block);
 			} catch (err) {
-				handleRenderError(block, err);
+				try {
+					handleRenderError(block, err);
+				} catch (unhandled) {
+					// No tryBlock claimed this error. Don't let it abandon the
+					// rest of the queue or skip commitEffects() — that would
+					// strand unrelated roots batched into the same flush and
+					// drop their already-rendered effects. Remember the first
+					// such error and surface it once the flush fully drains.
+					if (pendingError === null) pendingError = { err: unhandled };
+				}
 			}
 		}
 	}
 	commitEffects();
+	if (pendingError !== null) throw pendingError.err;
 }
 
 /**
@@ -281,6 +292,7 @@ export function flushSync<T>(fn: () => T): T {
 	try {
 		const result = fn();
 		// Drain anything scheduled by fn.
+		let pendingError: { err: any } | null = null;
 		while (QUEUE.length) {
 			const block = QUEUE.shift()!;
 			block.pending = false;
@@ -288,11 +300,19 @@ export function flushSync<T>(fn: () => T): T {
 				try {
 					renderBlock(block);
 				} catch (err) {
-					handleRenderError(block, err);
+					try {
+						handleRenderError(block, err);
+					} catch (unhandled) {
+						// See flush(): finish draining and commit effects before
+						// surfacing an unhandled render error, so one failing root
+						// can't strand the rest of this synchronous flush.
+						if (pendingError === null) pendingError = { err: unhandled };
+					}
 				}
 			}
 		}
 		commitEffectsSync();
+		if (pendingError !== null) throw pendingError.err;
 		return result;
 	} finally {
 		syncFlush = prevSync;
@@ -918,11 +938,24 @@ export function useState<T>(
 	return [s.value, s.setter];
 }
 
-export function useReducer<S, A>(
+export function useReducer<S, A, I = S>(
 	reducer: (s: S, a: A) => S,
-	initial: S | (() => S),
+	initialArg: I,
+	initOrSlot?: ((arg: I) => S) | symbol,
 	slot?: symbol,
 ): [S, (action: A) => void] {
+	// The compiler appends the hook slot symbol as the final argument. So the
+	// React 2-arg form `useReducer(reducer, initialState)` arrives as
+	// `(reducer, initialState, slot)` and the lazy 3-arg form
+	// `useReducer(reducer, initialArg, init)` arrives as
+	// `(reducer, initialArg, init, slot)`. Disambiguate by which trailing arg
+	// is the symbol.
+	let init: ((arg: I) => S) | undefined;
+	if (typeof initOrSlot === 'symbol') {
+		slot = initOrSlot;
+	} else {
+		init = initOrSlot;
+	}
 	if (slot === undefined) missingSlot('useReducer');
 	const scope = CURRENT_SCOPE!;
 	const block = CURRENT_BLOCK!;
@@ -930,7 +963,12 @@ export function useReducer<S, A>(
 		| { value: S; dispatch: (a: A) => void; reducer: (s: S, a: A) => S }
 		| undefined;
 	if (s === undefined) {
-		const initVal = typeof initial === 'function' ? (initial as () => S)() : initial;
+		const initVal =
+			init !== undefined
+				? init(initialArg)
+				: typeof initialArg === 'function'
+					? (initialArg as unknown as () => S)()
+					: (initialArg as unknown as S);
 		s = {
 			value: initVal,
 			reducer,

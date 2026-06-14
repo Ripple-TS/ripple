@@ -1021,6 +1021,22 @@ function applyCssScoping(componentNode, ctx) {
 
 function compileComponent(node, ctx, options) {
 	const name = node.id.name;
+	// The ripple-new target has no async/generator component model. Without this
+	// guard an `async function` / `function*` component body compiles to broken
+	// synchronous code with no diagnostic — the worst failure mode. Fail loudly.
+	if (node.async) {
+		throw new Error(
+			`Component \`${name}\` is declared \`async\`, which the ripple-new target does not support. ` +
+				`Load async data with \`use(promise)\` inside a \`@try\` / \`@pending\` boundary instead of ` +
+				`awaiting in the component body.`,
+		);
+	}
+	if (node.generator) {
+		throw new Error(
+			`Component \`${name}\` is declared as a generator (\`function*\`), which the ripple-new ` +
+				`target does not support.`,
+		);
+	}
 	const isExported = !!(node.export || node.default || node.exported);
 	const isDefault = !!node.default;
 	const hmrWrap = !!(options && options.hmrWrap);
@@ -3089,6 +3105,18 @@ function makeSwitchCall(node, ctx, componentName, inlinedSubs, parentNs = 'html'
 }
 
 function makeForCall(node, ctx, componentName, inlinedSubs, parentNs = 'html', cssHash = null) {
+	// `@for await (...)` (async iteration) has no meaning for the runtime's
+	// synchronous keyed reconciler. The TSRX parser currently rejects the surface
+	// syntax outright, but guard the lowered node too so a future parser change
+	// can't make it silently lower to a plain synchronous loop, dropping the
+	// `await` with no diagnostic.
+	if (node.await) {
+		throw new Error(
+			'`@for await (...)` (async iteration) is not supported by the ripple-new target. ' +
+				'Use a synchronous `@for` over a materialized array, or resolve async data with ' +
+				'`use(promise)` first.',
+		);
+	}
 	// node.left = const x  OR  const &{x,y} / const [a,b]  (destructured)
 	// node.right = expr, node.body = BlockStatement,
 	// node.key = optional `key …` expression, node.index = optional `index <id>`.

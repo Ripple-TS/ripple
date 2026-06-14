@@ -31,4 +31,37 @@ describe('compile errors — rejected authoring patterns', () => {
     `;
 		expect(() => compile(src, 'array-ref.tsrx')).not.toThrow();
 	});
+
+	it('rejects an `async function` component with an actionable message', () => {
+		const src = `export async function Foo() @{ <div>{1}</div> }`;
+		// Without this guard an async component compiles to broken synchronous
+		// code with no diagnostic — silent miscompilation is the worst failure.
+		expect(() => compile(src, 'async-comp.tsrx')).toThrow(/declared `async`/);
+		expect(() => compile(src, 'async-comp.tsrx')).toThrow(/use\(promise\)/);
+	});
+
+	it('rejects an `async` exported-default component', () => {
+		const src = `export default async function Foo() @{ <div>{1}</div> }`;
+		expect(() => compile(src, 'async-default.tsrx')).toThrow(/declared `async`/);
+	});
+
+	it('rejects a generator (`function*`) component', () => {
+		const src = `export function* Gen() @{ <div>{1}</div> }`;
+		expect(() => compile(src, 'gen-comp.tsrx')).toThrow(/generator/);
+	});
+
+	it('rejects `@for await (...)` (async iteration) — must fail loudly, not lower to a sync loop', () => {
+		const src = `
+      export function L(props) @{
+        <ul>
+          @for await (const x of props.items) {
+            <li>{x as any}</li>
+          }
+        </ul>
+      }
+    `;
+		// The TSRX parser rejects the surface syntax outright today; makeForCall
+		// also guards the lowered node. Either way the contract is: it throws.
+		expect(() => compile(src, 'for-await.tsrx')).toThrow();
+	});
 });

@@ -1,4 +1,4 @@
-import { compile } from '../compiler/compile.js';
+import { compile } from '../src/compile.js';
 import { readFileSync } from 'fs';
 const src = readFileSync(process.argv[2], 'utf8');
 try {

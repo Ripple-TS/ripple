@@ -4,7 +4,7 @@
  *
  *   node scripts/inspect-ast.js <file.tsrx> [--tail node-type]
  *
- * Parses a TSRX file with @tsrx/core@0.1.25 and prints the resulting ESTree
+ * Parses a TSRX file with @tsrx/core and prints the resulting ESTree
  * AST as indented JSON, dropping noisy fields (start/end/loc/range/parent)
  * so the structural shape is what stands out.
  *

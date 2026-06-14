@@ -1,26 +1,30 @@
-import { compile } from './compile.js';
+import { compile } from '../src/compile.js';
+
+// Quick manual smoke check — compiles a few representative components and prints
+// the emitted ripple-new code. Run with `pnpm smoke`. For assertions, see
+// tests/compile.test.js (run via `pnpm test --project tsrx-ripple-new`).
 
 const cases = [
 	{
 		name: 'hello',
-		src: `component Hello() {
-  <div class="x">{text 'hi'}</div>
+		src: `export function Hello() @{
+  <div class="x">{'hi'}</div>
 }`,
 	},
 	{
 		name: 'counter',
 		src: `import { useState } from 'ripple-new';
-component Counter() {
+export function Counter() @{
   const [n, setN] = useState(0);
-  <button onClick={() => setN(n + 1)}>{text n}</button>
+  <button onClick={() => setN(n + 1)}>{n as number}</button>
 }`,
 	},
 	{
 		name: 'for-of',
-		src: `component List() {
+		src: `export function List(props) @{
   <ul>
-    for (const item of items) {
-      <li key={item.id}>{text item.label}</li>
+    @for (const item of props.items; key item.id) {
+      <li>{item.label as string}</li>
     }
   </ul>
 }`,

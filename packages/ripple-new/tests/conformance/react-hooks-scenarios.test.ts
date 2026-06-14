@@ -221,13 +221,11 @@ describe('useReducer — Object.is bailout on same-reference state', () => {
 });
 
 describe('useReducer — 3-arg lazy init form', () => {
-	// TODO: ripple-new useReducer is currently 2-arg only
-	// `(reducer, initial)` with the 3rd arg as the compiler-injected
-	// slot symbol. React's `useReducer(reducer, initialArg, init)`
-	// lazy-init form is not supported. Pinning the gap here so the
-	// implementation work is tracked; the test will switch from
-	// `.skip` to a real assertion once the runtime grows the 3rd arg.
-	it.skip('useReducer(reducer, initialArg, init) calls init(initialArg) on mount', () => {
+	// React's `useReducer(reducer, initialArg, init)` lazy-init form. The
+	// compiler appends the slot symbol after the user args, so the runtime
+	// sees `(reducer, initialArg, init, slot)` and runs `init(initialArg)`
+	// once on mount.
+	it('useReducer(reducer, initialArg, init) calls init(initialArg) on mount', () => {
 		const r = mount(ReducerLazyInit, { seed: 4 });
 		expect(r.find('#out').textContent).toBe('40');
 		r.click('#inc');
