@@ -241,3 +241,21 @@ export function Second() @{
 		expect(srcLines[srcSeg.srcLine].slice(srcSeg.srcCol)).toMatch(/^useState/);
 	});
 });
+
+describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
+	const src = `export function App() @{ <div>{'hi'}</div> }`;
+
+	it("mode: 'client' is the default and produces identical output", () => {
+		const a = compile(src, 'App.tsrx').code;
+		const b = compile(src, 'App.tsrx', { mode: 'client' }).code;
+		expect(b).toBe(a);
+	});
+
+	it("mode: 'server' is recognized but not implemented yet (fails loudly)", () => {
+		expect(() => compile(src, 'App.tsrx', { mode: 'server' })).toThrow(/not implemented/i);
+	});
+
+	it('an unknown mode throws', () => {
+		expect(() => compile(src, 'App.tsrx', { mode: 'bogus' })).toThrow(/Unknown compile mode/);
+	});
+});

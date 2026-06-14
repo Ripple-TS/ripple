@@ -17,7 +17,9 @@
     "README.md"
   ],
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./server": "./src/server/index.ts",
+    "./constants": "./src/constants.ts"
   },
   "scripts": {
     "test": "vitest run",

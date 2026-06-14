@@ -741,19 +741,36 @@ function buildSourceMap(source, sourceName, segments) {
  * Compile a .tsrx source string into JS targeting `ripple-new`.
  * @param {string} source
  * @param {string} filename
- * @param {{ hmr?: boolean }} [options] — `hmr: true` wraps each exported
- *   component in `hmr(Component)` and emits an `import.meta.hot.accept(...)`
- *   block that delegates updates to the runtime HMR wrapper. Dev tooling
- *   (e.g. the Vite plugin) should pass `hmr: true` when running in serve
- *   mode and leave it off for production builds.
+ * @param {{ hmr?: boolean, mode?: 'client' | 'server' }} [options] —
+ *   `hmr: true` wraps each exported component in `hmr(Component)` and emits an
+ *   `import.meta.hot.accept(...)` block that delegates updates to the runtime
+ *   HMR wrapper. Dev tooling (e.g. the Vite plugin) should pass `hmr: true` in
+ *   serve mode and leave it off for production builds.
+ *   `mode` selects the codegen target: `'client'` (default) emits the
+ *   template-clone DOM runtime; `'server'` emits HTML-string SSR output (not
+ *   implemented yet — see the SSR plan).
  * @returns {{ code: string, map: any }}
  */
 export function compile(source, filename, options) {
+	const mode = (options && options.mode) || 'client';
+	if (mode !== 'client' && mode !== 'server') {
+		throw new Error(`Unknown compile mode "${mode}" — expected 'client' or 'server'.`);
+	}
+	if (mode === 'server') {
+		// Server (SSR) codegen lands in a later phase of the SSR plan. The mode
+		// flag is threaded now so the Vite plugin and packaging can be wired up
+		// first; fail loudly rather than silently emit client (DOM-cloning) code.
+		throw new Error(
+			'ripple-new server-mode compilation is not implemented yet. The ' +
+				'`mode: "server"` flag is recognized so SSR can be built incrementally.',
+		);
+	}
 	const ast = parseModule(source, filename);
 	const hmrEnabled = !!(options && options.hmr);
 
 	const ctx = {
 		filename,
+		mode,
 		runtimeNeeded: new Set(),
 		hoistedTemplates: [], // { name, html }
 		hoistedHelpers: [], // raw JS strings (sub-components, hook Symbols, key fns)

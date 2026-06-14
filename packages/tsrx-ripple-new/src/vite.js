@@ -1,9 +1,11 @@
 /**
  * Vite plugin for compiling .tsrx files via @tsrx/ripple-new compiler.
  *
- * Defaults to enabling HMR when Vite is in serve mode (`vite dev`) and
- * disabling it in build mode. Pass `{ hmr: true | false }` to override
- * (e.g. `rippleNew({ hmr: false })` to skip HMR wrapping even in dev).
+ * Per-module target is chosen from Vite's SSR signal: a module compiled for the
+ * server environment uses `mode: 'server'` (SSR HTML output), everything else
+ * uses `mode: 'client'` (template-clone DOM runtime). HMR defaults to on in
+ * serve mode and is always off for SSR; pass `{ hmr: true | false }` to override
+ * the client default.
  */
 import { compile } from './compile.js';
 
@@ -15,9 +17,15 @@ export function rippleNew(options = {}) {
 		configResolved(config) {
 			if (hmrEnabled === undefined) hmrEnabled = config.command === 'serve';
 		},
-		transform(code, id) {
+		transform(code, id, transformOptions) {
 			if (!id.endsWith('.tsrx')) return null;
-			const out = compile(code, id, { hmr: !!hmrEnabled });
+			// Mirror Ripple's mode decision: the legacy `options.ssr` flag OR the
+			// environment consumer (Vite 6+ environment API) marks a server build.
+			const ssr = transformOptions?.ssr === true || this.environment?.config?.consumer === 'server';
+			const out = compile(code, id, {
+				hmr: !ssr && !!hmrEnabled,
+				mode: ssr ? 'server' : 'client',
+			});
 			return { code: out.code, map: out.map };
 		},
 	};
