@@ -1,4 +1,4 @@
-import { RippleObject, flushSync } from 'ripple';
+import { RippleObject, effect, flushSync, snapshot } from 'ripple';
 import { TRACKED_OBJECT } from '../../src/runtime/internal/client/constants.js';
 
 describe('RippleObject', () => {
@@ -193,5 +193,51 @@ describe('RippleObject', () => {
 
 		expect(pre1.textContent).toBe('1');
 		expect(pre3.textContent).toBe('{"a":1,"b":1,"c":{"d":{"e":8}}}');
+	});
+
+	it('snapshot() returns a detached plain copy of current values', () => {
+		let snap: any;
+
+		function ObjectTest() @{
+			const obj = new RippleObject({ a: 1, b: 2 });
+			obj.a = 10;
+			snap = snapshot(obj);
+			// a later mutation must not affect the snapshot
+			obj.a = 99;
+			<div />
+		}
+
+		render(ObjectTest);
+
+		expect(snap).toEqual({ a: 10, b: 2 });
+		// detached: a plain object, not a proxy
+		expect(TRACKED_OBJECT in snap).toBe(false);
+		expect(snap.a).toBe(10);
+	});
+
+	it('snapshot() reads without registering reactivity', () => {
+		let runs = 0;
+
+		function ObjectTest() @{
+			const obj = new RippleObject({ a: 0 });
+			effect(() => {
+				snapshot(obj);
+				runs++;
+			});
+			<button
+				onClick={() => {
+					obj.a++;
+				}}
+			>{'Increment A'}</button>
+		}
+
+		render(ObjectTest);
+		flushSync();
+		expect(runs).toBe(1);
+
+		container.querySelectorAll('button')[0].click();
+		flushSync();
+		// snapshot did not subscribe, so the effect must not re-run
+		expect(runs).toBe(1);
 	});
 });

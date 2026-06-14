@@ -1,7 +1,7 @@
 /** @import { Block, Tracked } from '#client' */
 /** @import { RippleArray, RippleObject } from '#public' */
 
-import { get, set, tracked } from './internal/client/runtime.js';
+import { get, set, tracked, untrack } from './internal/client/runtime.js';
 import {
 	array_prototype,
 	get_descriptor,
@@ -15,6 +15,22 @@ import {
 	TRACKED_OBJECT,
 	UNINITIALIZED,
 } from './internal/client/constants.js';
+
+/**
+ * Returns a shallow, detached plain copy of a reactive array or object.
+ * Values are read without registering any reactivity.
+ *
+ * @template {Iterable<unknown> | object} T
+ * @param {T} value
+ * @returns {T}
+ */
+export function snapshot(value) {
+	if (typeof value !== 'object' || value === null) {
+		return value;
+	}
+
+	return untrack(() => /** @type {T} */ (is_array(value) ? [...value] : { ...value }));
+}
 
 /**
  * @template T

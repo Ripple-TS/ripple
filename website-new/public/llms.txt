@@ -153,6 +153,21 @@ export function Counter() @{
 Use `untrack(fn)` when an effect or derived value needs to read something without
 subscribing to it.
 
+Use `snapshot(value)` to take a plain, detached shallow copy of a reactive array
+or object. Values are read without subscribing, so it is safe to call inside an
+effect or derived. The copy is a plain array or object (not a proxy); nested
+values are shared by reference.
+
+```tsrx
+import { RippleObject, snapshot } from 'ripple';
+
+export function Settings() @{
+	const settings = new RippleObject({ theme: 'dark', fontSize: 14 });
+
+	<button onClick={() => console.log(snapshot(settings))}>{'Log settings'}</button>
+}
+```
+
 ## Reactive Collections
 
 Use Ripple collection classes when collection operations should update rendered

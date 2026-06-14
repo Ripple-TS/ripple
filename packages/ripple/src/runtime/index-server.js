@@ -17,6 +17,19 @@ export {
 } from './internal/client/constants.js';
 export { isRefProp } from '@tsrx/core/runtime/ref';
 
+/**
+ * Server values are never proxied, so a snapshot is just a shallow copy.
+ * @template {Iterable<unknown> | object} T
+ * @param {T} value
+ * @returns {T}
+ */
+export function snapshot(value) {
+	if (typeof value !== 'object' || value === null) {
+		return value;
+	}
+	return /** @type {T} */ (Array.isArray(value) ? [...value] : { ...value });
+}
+
 export const effect = noop;
 export const createRefKey = noop;
 export const on = noop;

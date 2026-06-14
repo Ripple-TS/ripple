@@ -178,6 +178,8 @@ export {
 	peek_tracked as peek,
 } from './internal/client/runtime.js';
 
+export { snapshot } from './proxy.js';
+
 export { RippleArray } from './array.js';
 
 export { RippleObject } from './object.js';

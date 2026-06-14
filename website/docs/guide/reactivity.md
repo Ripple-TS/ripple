@@ -390,6 +390,37 @@ export function App() @{
 
 </Code>
 
+## Snapshotting State
+
+Sometimes you need the current data behind a reactive array or object as plain,
+non-reactive data — for example to log it, serialize it, send it over the network,
+or hand it to non-Ripple code. Use `snapshot` to take a detached shallow copy.
+
+The values are read _without_ subscribing, so calling `snapshot` inside an effect
+or derived will not create a dependency. The result is a plain array or object
+(not a Ripple proxy), so later mutations to the source don't affect it. The copy
+is shallow: nested values are shared by reference, which matches Ripple's shallow
+reactivity.
+
+<Code console>
+
+```tsrx
+import { RippleObject, effect, snapshot } from 'ripple';
+
+export function App() @{
+  const settings = new RippleObject({ theme: 'dark', fontSize: 14 });
+
+  effect(() => {
+    // Reads the current values without subscribing — this effect runs once.
+    console.log(snapshot(settings));
+  });
+
+  <button onClick={() => settings.fontSize++}>{'Bigger'}</button>
+}
+```
+
+</Code>
+
 ## Reactive Collection Primitives
 
 Because Ripple isn't based on Signals, there is no mechanism with which we can

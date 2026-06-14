@@ -69,6 +69,8 @@ export function tick(): Promise<void>;
 
 export function untrack<T>(fn: () => T): T;
 
+export function snapshot<T extends Iterable<unknown> | object>(value: T): T;
+
 export function flushSync<T>(fn?: () => T): T;
 
 export function effect(fn: (() => void) | (() => () => void)): void;
