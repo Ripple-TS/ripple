@@ -91,6 +91,28 @@ describe('<Activity> — toggling visibility', () => {
 		t.r.unmount();
 	});
 
+	it('skips a passive effect that was queued before the Activity hid', () => {
+		// Regression: enqueueEffect skips registration while inactive and
+		// deactivateScope fires stored cleanups, but a PendingEffect already
+		// sitting in the passive queue (mount drains insertion+layout sync, defers
+		// passive) must ALSO be skipped if its subtree hides before the queue
+		// drains — otherwise the effect mounts into a hidden subtree.
+		const log: string[] = [];
+		const opts = { mode: 'visible', log: (s: string) => log.push(s), expose: () => {} };
+		const r = mount(ActivityHost, opts);
+		// Layout fired synchronously during mount; passive is queued, not yet run.
+		expect(log).toContain('mount layout');
+		expect(log).not.toContain('mount passive');
+
+		// Hide BEFORE the passive queue drains, then drain it.
+		r.update(ActivityHost, { ...opts, mode: 'hidden' });
+		flushEffects();
+
+		// The queued passive body must NOT have run into the now-hidden subtree.
+		expect(log).not.toContain('mount passive');
+		r.unmount();
+	});
+
 	it('re-renders while hidden (updates DOM) without running effects', () => {
 		const t = setup('hidden');
 		t.log.length = 0;

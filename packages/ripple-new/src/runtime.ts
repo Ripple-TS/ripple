@@ -131,13 +131,29 @@ interface EffectSlot {
 	cleanup: Cleanup | undefined;
 	/** Discriminant so deactivateScope can find effect slots among state/memo/ref. */
 	effect: true;
+	/**
+	 * True once a per-slot finalizer has been registered in scope.cleanups (on the
+	 * slot's first body run, in drainPhase). The finalizer fires slot.cleanup
+	 * exactly once at unmount; registering on first RUN (not slot creation) keeps
+	 * scope.cleanups ordered by phase-execution order (insertion→layout→passive)
+	 * so unmount tears down in the correct reverse order.
+	 */
+	finalized?: boolean;
 }
 
 interface PendingEffect {
 	scope: Scope;
 	slot: symbol;
 	fn: EffectFn;
-	args: any[];
+	/**
+	 * The effect's deps array, spread as positional arguments to the body when it
+	 * runs (`fn.apply(null, args)`). This is a deliberate superset of React: a
+	 * body written as a pure function of its deps — `(a, b) => …` — captures
+	 * nothing from the render scope, so the compiler can hoist it to module scope
+	 * (one allocation, no stale-closure retention). Zero-arg React-style bodies
+	 * still work (extra args are ignored). `undefined` for the no-deps form.
+	 */
+	args: any[] | undefined;
 	/**
 	 * Scope-tree depth captured at enqueue. Used by drainPhase to fire effects
 	 * CHILD-FIRST (post-order) on mount/update — matching React's commit-phase
@@ -506,9 +522,13 @@ function drainPhase(phase: Phase): void {
 	// order is preserved within a depth bucket.
 	q.sort((a, b) => b.depth - a.depth);
 	// Cleanups first (in registration order), then bodies. React's contract.
+	// Skip entries whose subtree was hidden by <Activity> after they were queued
+	// but before this drain: deactivateScope already fired their cleanups, and the
+	// body must not run while hidden (it re-enqueues on reveal). See
+	// inInactiveSubtree.
 	for (let i = 0; i < q.length; i++) {
 		const e = q[i];
-		if (e.scope.block.disposed) continue;
+		if (e.scope.block.disposed || inInactiveSubtree(e.scope.block)) continue;
 		const slot = e.scope.hooks?.get(e.slot) as EffectSlot | undefined;
 		if (slot && slot.cleanup) {
 			try {
@@ -521,10 +541,13 @@ function drainPhase(phase: Phase): void {
 	}
 	for (let i = 0; i < q.length; i++) {
 		const e = q[i];
-		if (e.scope.block.disposed) continue;
+		if (e.scope.block.disposed || inInactiveSubtree(e.scope.block)) continue;
 		let cleanup: void | Cleanup;
 		try {
-			cleanup = e.fn.apply(null, e.args as []);
+			// Spread deps as positional args (see PendingEffect.args). A no-deps
+			// effect has args === undefined, so the body is called with zero args.
+			// eslint-disable-next-line prefer-spread
+			cleanup = e.fn.apply(null, (e.args ?? []) as []);
 		} catch (err) {
 			// Route effect errors to the nearest enclosing tryBlock, if any.
 			const handler = findTryHandler(e.scope.block);
@@ -533,9 +556,24 @@ function drainPhase(phase: Phase): void {
 			continue;
 		}
 		const slot = e.scope.hooks?.get(e.slot) as EffectSlot | undefined;
-		if (slot && typeof cleanup === 'function') {
-			slot.cleanup = cleanup;
-			e.scope.cleanups.push(cleanup);
+		if (slot) {
+			if (typeof cleanup === 'function') slot.cleanup = cleanup;
+			// Register ONE stable finalizer per effect slot, on its FIRST run, in
+			// phase-execution order. The finalizer fires the slot's CURRENT cleanup
+			// once at unmount. Registering here (not on each drain) is what stops
+			// the old double-fire bug: previously every returned cleanup was pushed
+			// into scope.cleanups, so a dep-changed effect's stale cleanups replayed
+			// at unmount. The slot owns its latest cleanup; the finalizer reads it.
+			if (!slot.finalized) {
+				slot.finalized = true;
+				e.scope.cleanups.push(() => {
+					const c = slot.cleanup;
+					if (c) {
+						slot.cleanup = undefined;
+						c();
+					}
+				});
+			}
 		}
 	}
 	q.length = 0;
@@ -607,6 +645,10 @@ class BlockImpl {
 	children: ChildScope[];
 	_slots: any[] | null;
 	$$ctxValues: Map<Context<any>, any> | null;
+	// Contexts this block READ during its last render, with the value seen.
+	// Populated by useContextInternal; consulted by the memo bailout so a context
+	// change forces a re-render even when props are shallow-equal (React parity).
+	$$ctxReads: Map<Context<any>, any> | null;
 	// __thenableIdx is reset every renderBlock so pre-init costs nothing.
 	__thenableIdx: number;
 	// For-block item bookkeeping.
@@ -652,6 +694,7 @@ class BlockImpl {
 		this.children = [];
 		this._slots = null;
 		this.$$ctxValues = null;
+		this.$$ctxReads = null;
 		this.__thenableIdx = 0;
 		this.forSlot = null;
 		this.prevSibling = null;
@@ -682,6 +725,7 @@ class ScopeImpl {
 	children: ChildScope[];
 	_slots: any[] | null;
 	$$ctxValues: Map<Context<any>, any> | null;
+	$$ctxReads: Map<Context<any>, any> | null;
 	mounted: boolean;
 	// Compiled bodies stamp bindings (b$0, b$1, ...) directly on the scope.
 	[key: string]: any;
@@ -694,6 +738,7 @@ class ScopeImpl {
 		this.children = [];
 		this._slots = null;
 		this.$$ctxValues = null;
+		this.$$ctxReads = null;
 		this.mounted = false;
 	}
 }
@@ -729,6 +774,10 @@ export function renderBlock(block: Block): void {
 	// in __thenables persist so that earlier use() calls return synchronously
 	// on replay-after-resolve (matches React's thenableState[index] scheme).
 	block.__thenableIdx = 0;
+	// Clear last render's recorded context dependencies; this render repopulates
+	// them (its own reads + descendant reads propagated up). Only memo blocks
+	// ever hold a non-null map, so this is a no-op for the common case.
+	if (block.$$ctxReads !== null) block.$$ctxReads.clear();
 	// Capture the render priority. Explicit pendingMode (set by scheduleRender)
 	// wins. Otherwise INHERIT from the outer block — re-entrant renders (try,
 	// if, for, comp slots) called synchronously inside an outer body should
@@ -1057,12 +1106,11 @@ export function useReducer<S, A, I = S>(
 		| { value: S; dispatch: (a: A) => void; reducer: (s: S, a: A) => S }
 		| undefined;
 	if (s === undefined) {
-		const initVal =
-			init !== undefined
-				? init(initialArg)
-				: typeof initialArg === 'function'
-					? (initialArg as unknown as () => S)()
-					: (initialArg as unknown as S);
+		// React parity: the initial state is `initialArg` used AS-IS. Lazy
+		// initialization happens ONLY when the third `init` argument is supplied
+		// (`init(initialArg)`). A function passed as `initialArg` in the 2-arg form
+		// is stored as the state value verbatim — it is NOT called.
+		const initVal = init !== undefined ? init(initialArg) : (initialArg as unknown as S);
 		s = {
 			value: initVal,
 			reducer,
@@ -1090,16 +1138,27 @@ function depsChanged(prev: any[] | undefined, next: any[] | undefined): boolean 
 	return false;
 }
 
-function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): void {
+// True if `block` or any ancestor is in a hidden <Activity> subtree. Effects
+// must not run inside such a subtree — neither freshly (enqueueEffect skips
+// registration) NOR via an entry already sitting in a phase queue when the
+// Activity hides between enqueue and drain (drainPhase skips execution). On
+// reveal, deactivateScope has cleared each effect slot's deps, so the
+// re-render re-enqueues and the effect finally fires.
+function inInactiveSubtree(block: Block | null): boolean {
+	for (let a = block; a !== null; a = a.parentBlock) {
+		if (a.inactive) return true;
+	}
+	return false;
+}
+
+function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[] | undefined, phase: Phase): void {
 	const scope = CURRENT_SCOPE!;
 	// Hidden <Activity> subtree: render (state + DOM) but DON'T run effects. Skip
 	// BEFORE touching the slot so the effect is treated as fresh and re-fires when
 	// the Activity becomes visible (deactivateScope also clears prior deps). Walk
 	// ancestors so a visible inner block inside a hidden outer Activity is skipped
 	// too. Effects are rare on the hot path, so this extra walk is cheap.
-	for (let a: Block | null = scope.block; a !== null; a = a.parentBlock) {
-		if (a.inactive) return;
-	}
+	if (inInactiveSubtree(scope.block)) return;
 	const prev = scope.hooks?.get(slot) as EffectSlot | undefined;
 	if (prev && !depsChanged(prev.deps, deps)) return;
 	if (!prev) {
@@ -1128,37 +1187,70 @@ function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): v
 	effectQueues[phase].push({ scope, slot, fn, args: deps, depth });
 }
 
-export function useEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useEffect');
-	enqueueEffect(slot, fn, deps, PASSIVE);
-}
-export function useLayoutEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useLayoutEffect');
-	enqueueEffect(slot, fn, deps, LAYOUT);
-}
-export function useInsertionEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useInsertionEffect');
-	enqueueEffect(slot, fn, deps, INSERTION);
+// ABI: the compiler appends the hook slot as the LAST argument. When the user
+// omits deps (`useEffect(fn)`), the call arrives as `useEffect(fn, slot)` — the
+// symbol lands in the deps position and the real slot param is undefined. Detect
+// the trailing symbol and reinterpret so optional-deps forms work. A returned
+// undefined deps means "run on every commit" (React parity for omitted deps).
+function resolveEffectArgs(
+	name: string,
+	deps: any[] | symbol | undefined,
+	slot: symbol | undefined,
+): [any[] | undefined, symbol] {
+	if (slot === undefined && typeof deps === 'symbol') {
+		slot = deps;
+		deps = undefined;
+	}
+	if (slot === undefined) missingSlot(name);
+	return [deps as any[] | undefined, slot];
 }
 
-export function useMemo<T>(compute: (...deps: any[]) => T, deps: any[], slot?: symbol): T {
+export function useEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useEffect', deps, slot);
+	enqueueEffect(s, fn, d, PASSIVE);
+}
+export function useLayoutEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useLayoutEffect', deps, slot);
+	enqueueEffect(s, fn, d, LAYOUT);
+}
+export function useInsertionEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useInsertionEffect', deps, slot);
+	enqueueEffect(s, fn, d, INSERTION);
+}
+
+export function useMemo<T>(compute: (...deps: any[]) => T, deps?: any[], slot?: symbol): T {
+	// ABI: the compiler appends the hook slot as the LAST argument. When the user
+	// omits deps (`useMemo(fn)`), that call arrives as `useMemo(fn, slot)` — the
+	// symbol lands in the deps position. Reinterpret so optional-deps forms work.
+	if (slot === undefined && typeof deps === 'symbol') {
+		slot = deps as unknown as symbol;
+		deps = undefined;
+	}
 	if (slot === undefined) missingSlot('useMemo');
 	const scope = CURRENT_SCOPE!;
-	const prev = scope.hooks?.get(slot) as { deps: any[]; value: T } | undefined;
-	if (prev && !depsChanged(prev.deps, deps)) return prev.value;
+	const prev = scope.hooks?.get(slot) as { deps: any[] | undefined; value: T } | undefined;
+	// deps === undefined → recompute every render (React parity for omitted deps).
+	if (prev && deps !== undefined && !depsChanged(prev.deps, deps)) return prev.value;
+	// Spread deps as positional args (superset of React — see PendingEffect.args):
+	// a factory written as a pure function of its deps is hoistable. Zero-arg
+	// React-style factories ignore the extra args.
 	// eslint-disable-next-line prefer-spread
-	const value = compute.apply(null, deps);
+	const value = compute.apply(null, (deps ?? []) as []);
 	ensureHooks(scope).set(slot, { deps, value });
 	return value;
 }
 
 export function useCallback<F extends (...args: any[]) => any>(
 	fn: F,
-	deps: any[],
+	deps?: any[],
 	slot?: symbol,
 ): F {
-	if (slot === undefined) missingSlot('useCallback');
-	return useMemo(() => fn, deps, slot);
+	// Trailing-symbol ABI (see resolveEffectArgs): `useCallback(fn)` arrives as
+	// `useCallback(fn, slot)`. useMemo reinterprets the same way, so forward both
+	// args verbatim and let it sort out the omitted-deps case. Guard here (rather
+	// than letting useMemo throw) so the diagnostic names useCallback, not useMemo.
+	if (slot === undefined && typeof deps !== 'symbol') missingSlot('useCallback');
+	return useMemo(() => fn, deps as any[] | undefined, slot);
 }
 
 export function useRef<T>(initial: T, slot?: symbol): { current: T } {
@@ -1181,10 +1273,12 @@ export function useRef<T>(initial: T, slot?: symbol): { current: T } {
 export function useImperativeHandle<T>(
 	ref: { current: T | null } | ((value: T | null) => void) | null | undefined,
 	factory: () => T,
-	deps: any[],
+	deps?: any[],
 	slot?: symbol,
 ): void {
-	if (slot === undefined) missingSlot('useImperativeHandle');
+	const [resolvedDeps, resolvedSlot] = resolveEffectArgs('useImperativeHandle', deps, slot);
+	deps = resolvedDeps;
+	slot = resolvedSlot;
 	const setRef = (value: T | null): void => {
 		if (typeof ref === 'function') (ref as any)(value);
 		else if (ref != null) (ref as { current: T | null }).current = value;
@@ -1240,24 +1334,67 @@ export function useSyncExternalStore<T>(
 	if (slot === undefined || typeof slot !== 'symbol') missingSlot('useSyncExternalStore');
 	const desc = slot.description ?? '';
 	const tickSlot = Symbol.for(desc + ':uses:tick');
+	const instSlot = Symbol.for(desc + ':uses:inst');
+	const layoutSlot = Symbol.for(desc + ':uses:layout');
 	const effectSlot = Symbol.for(desc + ':uses:effect');
 
-	// Force a re-render when the store fires onStoreChange.
+	// Fresh read on every render — guards against tearing between commits.
+	const value = getSnapshot();
+
+	// `inst` mirrors React's mutable cell: the last-committed snapshot plus the
+	// getSnapshot used to produce it. checkIfSnapshotChanged compares the current
+	// store value against it with Object.is — this is the dedup that stops a
+	// store notification from re-rendering when the snapshot is referentially
+	// unchanged.
+	const inst = useRef<{ value: T; getSnapshot: () => T }>({ value, getSnapshot }, instSlot) as {
+		current: { value: T; getSnapshot: () => T };
+	};
+
+	// forceUpdate: a tick bump. setTick uses Object.is internally, so always
+	// increment (never compare against a stale tick) to guarantee a re-render.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [, setTick] = useState(0, tickSlot);
+	const forceUpdate = (): void => setTick((t: number) => t + 1);
 
-	// Subscribe on mount; re-subscribe if subscribe identity changes.
+	const checkIfSnapshotChanged = (): boolean => {
+		try {
+			return !Object.is(inst.current.value, inst.current.getSnapshot());
+		} catch {
+			// A throwing getSnapshot means the store likely mutated — re-render so
+			// the render-phase read surfaces the error (React's behavior).
+			return true;
+		}
+	};
+
+	// Layout-phase value sync: record the snapshot read during render, then catch
+	// any store mutation that happened between render and commit (re-render if so).
+	// Deps include `value`/`getSnapshot` so the synced cell tracks each render.
+	useLayoutEffect(
+		() => {
+			inst.current.value = value;
+			inst.current.getSnapshot = getSnapshot;
+			if (checkIfSnapshotChanged()) forceUpdate();
+		},
+		[subscribe, value, getSnapshot],
+		layoutSlot,
+	);
+
+	// Subscribe in the passive phase (React parity). Immediately re-check after
+	// subscribing: the store may have changed in the window between the render
+	// read and the subscription taking effect, which would otherwise be missed.
 	useEffect(
 		() => {
-			const handle = (): void => setTick((t: number) => t + 1);
-			return subscribe(handle);
+			if (checkIfSnapshotChanged()) forceUpdate();
+			const handleStoreChange = (): void => {
+				if (checkIfSnapshotChanged()) forceUpdate();
+			};
+			return subscribe(handleStoreChange);
 		},
 		[subscribe],
 		effectSlot,
 	);
 
-	// Fresh read on every render — guards against tearing between commits.
-	return getSnapshot();
+	return value;
 }
 
 export function useEffectEvent<F extends (...args: any[]) => any>(fn: F, slot?: symbol): F {
@@ -1284,6 +1421,13 @@ export interface Context<T> {
 	$$kind: typeof CONTEXT_TAG;
 	defaultValue: T;
 	Provider: ComponentBody<{ value: T; children?: any }>;
+	/**
+	 * Monotonic version bumped whenever a Provider for this context commits a
+	 * changed value. Consumers record the version they read at; the memo bailout
+	 * (componentSlot) compares it so a context change forces a re-render through
+	 * the push-cascade even when props are shallow-equal. See useContextInternal.
+	 */
+	$$version: number;
 }
 
 /**
@@ -1291,7 +1435,7 @@ export interface Context<T> {
  * walks the Block parent chain to find the nearest Provider for that context.
  */
 export function createContext<T>(defaultValue: T): Context<T> {
-	const ctx = { $$kind: CONTEXT_TAG, defaultValue } as Context<T>;
+	const ctx = { $$kind: CONTEXT_TAG, defaultValue, $$version: 0 } as Context<T>;
 	// A Provider is a built-in component that stamps the value on its Block
 	// and renders its `children` body inside its scope.
 	ctx.Provider = function ProviderBody(scope, props) {
@@ -1299,6 +1443,13 @@ export function createContext<T>(defaultValue: T): Context<T> {
 		// $$ctxValues is pre-initialised to null on every Scope/Block so this
 		// assignment is a hidden-class-stable update (not a late stamp).
 		if (scope.$$ctxValues === null) scope.$$ctxValues = new Map();
+		// Bump the context version when an EXISTING value actually changes. This
+		// runs before children() below, so the memo bailout downstream already
+		// sees the new version when the cascade reaches it. (First-set is not a
+		// change — consumers haven't read a prior version yet.)
+		if (scope.$$ctxValues.has(ctx) && !Object.is(scope.$$ctxValues.get(ctx), props.value)) {
+			ctx.$$version++;
+		}
 		scope.$$ctxValues.set(ctx, props.value);
 		// Children is the compiled render-body for the JSX between the Provider tags.
 		if (typeof props.children === 'function') {
@@ -1334,6 +1485,18 @@ export function use<T>(usable: Context<T> | PromiseLike<T> | TrackedThenable<T>)
 }
 
 function useContextInternal<T>(context: Context<T>): T {
+	// Record the context dependency on every enclosing memo() block, with the
+	// version read. The push-cascade re-renders a Provider's subtree top-down;
+	// a memo bailout would otherwise sever that cascade and strand consumers
+	// (the memo'd component itself, its lite descendants, AND deeper consumers)
+	// with a stale value. Stamping memo ancestors lets the bailout detect the
+	// version change and decline to skip. Only memo blocks are stamped, so this
+	// costs nothing for the common no-memo tree.
+	for (let b: Block | null = CURRENT_BLOCK; b !== null; b = b.parentBlock) {
+		if ((b.body as any)?.__memo === true) {
+			(b.$$ctxReads ??= new Map()).set(context, context.$$version);
+		}
+	}
 	let s: Scope | null = CURRENT_SCOPE;
 	while (s !== null) {
 		const m = s.$$ctxValues;
@@ -2587,14 +2750,34 @@ export function componentSlot(
 		// `memo(Component)` — skip the body when new props shallow-equal the
 		// committed props. Matches React.memo's contract; the wrapped fn carries
 		// the `__memo: true` marker the wrapper installs.
-		if ((comp as any).__memo === true && shallowEqualProps(state.block.props, props)) {
-			// Keep the committed props identity — diffing against them next time
-			// is what makes the memo terminate.
-			return;
+		if ((comp as any).__memo === true && !ctxDepsChanged(state.block)) {
+			const compare = (comp as any).__compare as ((prev: any, next: any) => boolean) | undefined;
+			// React.memo's optional comparator: returns true when props are equal
+			// (→ skip the render). Falls back to a shallow Object.is comparison.
+			const equal = compare
+				? compare(state.block.props, props)
+				: shallowEqualProps(state.block.props, props);
+			if (equal) {
+				// Keep the committed props identity — diffing against them next time
+				// is what makes the memo terminate.
+				return;
+			}
 		}
 		state.block.props = props;
 		renderBlock(state.block);
 	}
+}
+
+// True if any context the block read last render has since changed value
+// (its Provider bumped the version). When so, a memo bailout must NOT skip —
+// the block (or a consumer in its subtree) needs the new context value.
+function ctxDepsChanged(block: Block): boolean {
+	const reads = block.$$ctxReads;
+	if (reads === null) return false;
+	for (const [ctx, version] of reads) {
+		if (ctx.$$version !== version) return true;
+	}
+	return false;
 }
 
 function shallowEqualProps(a: any, b: any): boolean {
@@ -2605,7 +2788,8 @@ function shallowEqualProps(a: any, b: any): boolean {
 	if (ka.length !== kb.length) return false;
 	for (let i = 0; i < ka.length; i++) {
 		const k = ka[i];
-		if (a[k] !== b[k]) return false;
+		// React uses Object.is (not ===) so NaN props compare equal and ±0 differ.
+		if (!Object.prototype.hasOwnProperty.call(b, k) || !Object.is(a[k], b[k])) return false;
 	}
 	return true;
 }
@@ -2617,12 +2801,21 @@ function shallowEqualProps(a: any, b: any): boolean {
  * first render and any non-skip render. Pair with `useCallback` /
  * `useMemo` on the parent so handler + computed prop refs stay stable across
  * renders that don't conceptually change the child's view.
+ *
+ * An optional `arePropsEqual(prevProps, nextProps)` comparator mirrors
+ * React.memo's second argument: return `true` to skip the render (props are
+ * "equal"), `false` to re-render. When omitted, a shallow Object.is comparison
+ * of own enumerable keys is used.
  */
-export function memo<P>(component: ComponentBody<P>): ComponentBody<P> {
+export function memo<P>(
+	component: ComponentBody<P>,
+	arePropsEqual?: (prevProps: Readonly<P>, nextProps: Readonly<P>) => boolean,
+): ComponentBody<P> {
 	function memoWrapper(scope: Scope, props: P, extra: any): void {
 		component(scope, props, extra);
 	}
 	(memoWrapper as any).__memo = true;
+	if (arePropsEqual) (memoWrapper as any).__compare = arePropsEqual;
 	return memoWrapper as ComponentBody<P>;
 }
 
@@ -3603,10 +3796,9 @@ function deactivateScope(scope: Scope): void {
 				const e = slot as EffectSlot;
 				if (typeof e.cleanup === 'function') {
 					const cleanup = e.cleanup;
+					// Clear it BEFORE firing so the per-slot unmount finalizer (still
+					// registered in scope.cleanups) sees no cleanup and won't re-run it.
 					e.cleanup = undefined;
-					// Drop from scope.cleanups too so an eventual unmount can't re-fire it.
-					const idx = scope.cleanups.indexOf(cleanup);
-					if (idx !== -1) scope.cleanups.splice(idx, 1);
 					try {
 						cleanup();
 					} catch (err) {

@@ -5,12 +5,9 @@ import { useRef, useEffect } from 'ripple-new';
 // pattern lifted into the runtime). attachRef in src/runtime.ts iterates
 // the array and applies each shape (function / object) independently.
 //
-// Kept in its own file because it depends on the ripple-new positional-
-// deps useEffect convention (the effect body reads the target via
-// closure-captured `a`/`b` refs but receives `target` as a positional
-// arg from the deps). That same convention blocks differential testing
-// against React (separate work item), so the array-ref shape is exercised
-// only by the non-differential useref.test.ts suite.
+// The effect body reads the target via a positional dep arg (`tgt`) while
+// closing over the `a`/`b` refs — exercising ripple-new's deps-as-args
+// convention (the runtime spreads the deps array as positional arguments).
 export function ArrayRefsOneEl(props) @{
 	const a = useRef(null);
 	const b = useRef(null);
