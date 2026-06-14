@@ -168,6 +168,18 @@ let syncFlush = false; // flushSync sets this to drain the queue synchronously
 /** Depth of nested startTransition() calls currently on the call stack. */
 let TRANSITION_DEPTH = 0;
 /**
+ * Number of async transition actions whose returned promise has not yet settled.
+ * `TRANSITION_DEPTH` only covers the SYNCHRONOUS slice of a `startTransition`
+ * callback; for an `async` action it is already 0 by the time the continuation
+ * after the first `await` runs, so post-await setters would otherwise schedule
+ * at urgent priority. Keeping this count elevated across the in-flight window
+ * makes those setters transition-priority (React 19 Actions). Caveat: it's a
+ * process-global window, so an unrelated urgent update fired while an async
+ * action is pending is also tagged transition — perfect per-action scoping
+ * would need AsyncContext, which isn't available in the browser target.
+ */
+let ASYNC_TRANSITION_COUNT = 0;
+/**
  * Outstanding transition WORK count — incremented when startTransition fires,
  * decremented when its renders commit (and again for any tryBlock that holds
  * the transition pending while suspended). useTransition's isPending tracks
@@ -239,7 +251,8 @@ export function scheduleRender(block: Block): void {
 	// Capture the caller's priority — setters inside startTransition() see
 	// TRANSITION_DEPTH > 0 and tag the render as 'transition'. An urgent setter
 	// arriving for a block already queued at 'transition' upgrades it.
-	const mode: 'urgent' | 'transition' = TRANSITION_DEPTH > 0 ? 'transition' : 'urgent';
+	const mode: 'urgent' | 'transition' =
+		TRANSITION_DEPTH > 0 || ASYNC_TRANSITION_COUNT > 0 ? 'transition' : 'urgent';
 	if (block.pending) {
 		if (mode === 'urgent') block.pendingMode = 'urgent';
 		return;
@@ -2958,10 +2971,15 @@ export function startTransition(fn: () => void | Promise<unknown>): void {
 		// continuation (and any setters after `await`) resumes on a later
 		// microtask, AFTER a fixed queueMicrotask decrement would have already
 		// dropped isPending. Decrement exactly once on settle (fulfil OR reject).
+		// ASYNC_TRANSITION_COUNT stays elevated across the same window so setters
+		// fired after the `await` schedule at transition priority (TRANSITION_DEPTH
+		// is already 0 by then — the synchronous slice has returned).
+		ASYNC_TRANSITION_COUNT++;
 		let settled = false;
 		const settle = () => {
 			if (settled) return;
 			settled = true;
+			ASYNC_TRANSITION_COUNT--;
 			tickTransitionCount(-1);
 		};
 		(result as Promise<unknown>).then(settle, settle);

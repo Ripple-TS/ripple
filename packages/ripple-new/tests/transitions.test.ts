@@ -12,6 +12,7 @@ import {
 	DeferredValueInTransition,
 	UrgentSupersedesTransition,
 	AsyncStartTransition,
+	AsyncTransitionKeepsDom,
 } from './_fixtures/transitions.tsrx';
 
 interface Deferred<T> {
@@ -418,6 +419,45 @@ describe('useTransition — async actions (React 19)', () => {
 		});
 		expect(r.find('#pending').textContent).toBe('idle');
 		expect(r.find('#n').textContent).toBe('0');
+		r.unmount();
+	});
+
+	it('post-await setters keep transition priority (suspending render holds prior DOM, no fallback)', async () => {
+		const gate = deferred<void>();
+		const d1 = deferred<string>();
+		const d2 = deferred<string>();
+		// d1 resolved up front so the initial mount commits without suspense.
+		d1.resolve('one');
+		await Promise.resolve();
+		const r = mount(AsyncTransitionKeepsDom, {
+			initialPromise: d1.promise,
+			nextPromise: d2.promise,
+			gate: gate.promise,
+		});
+		await act(() => {});
+		expect(r.find('#value').textContent).toBe('one');
+		expect(r.findAll('#fallback')).toHaveLength(0);
+
+		// Run the async action. After the gate resolves, the post-await
+		// setPromise schedules a render that reads the still-pending d2 and
+		// suspends. TRANSITION_DEPTH is already 0 here — only the async-action
+		// priority window keeps this render at transition priority, so the prior
+		// DOM ('one') must stay and NO fallback may appear. Before the fix this
+		// render was urgent and would flash #fallback.
+		r.click('#go');
+		await act(() => {
+			gate.resolve();
+		});
+		expect(r.find('#value').textContent).toBe('one'); // OLD value held
+		expect(r.findAll('#fallback')).toHaveLength(0); // proves transition priority
+		expect(r.find('#pending').textContent).toBe('pending');
+
+		// Resolve the new promise — DOM updates and isPending returns to idle.
+		await act(() => {
+			d2.resolve('two');
+		});
+		expect(r.find('#value').textContent).toBe('two');
+		expect(r.find('#pending').textContent).toBe('idle');
 		r.unmount();
 	});
 });

@@ -290,3 +290,35 @@ export function AsyncStartTransition(props) @{
 		>{'go'}</button>
 	</div>
 }
+
+// ---------------------------------------------------------------------------
+// Async action priority across `await`. The setter runs AFTER the await, by
+// which point the synchronous slice (and TRANSITION_DEPTH) is long gone. It
+// must still schedule at transition priority: when that post-await render
+// suspends, the prior DOM is kept (no fallback flash) — the React 18/19
+// "show old screen while new loads" behavior, now driven by an async action.
+// ---------------------------------------------------------------------------
+export function AsyncTransitionKeepsDom(props) @{
+	const [promise, setPromise] = useState(props.initialPromise);
+	const [isPending, start] = useTransition();
+	<div>
+		<span id="pending">
+			{isPending ? 'pending' : 'idle'}
+		</span>
+		<button
+			id="go"
+			onClick={() => start(async () => {
+				await props.gate;
+				setPromise(props.nextPromise);
+			})}
+		>{'go'}</button>
+		@try {
+			const value = use(promise);
+			<span id="value">
+				{value as string}
+			</span>
+		} @pending {
+			<span id="fallback">{'fallback'}</span>
+		}
+	</div>
+}
