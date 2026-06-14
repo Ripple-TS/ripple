@@ -1379,10 +1379,29 @@ export function setText(node: Text, value: any): void {
 //               Matches React's `ref={[a, b]}` convention.
 // Called by the compiler-emitted ref binding mount + update paths and
 // by the scope cleanup hook installed at mount time.
+// React 19 callback-ref cleanup. A callback ref may RETURN a cleanup function;
+// when it does, that cleanup runs on detach INSTEAD of calling the ref with
+// null. We remember the returned cleanup keyed by the ref function so the later
+// detach call — `attachRef(ref, null)`, emitted as the scope cleanup — can run
+// it. Legacy callback refs (that return nothing) keep the `ref(null)` contract.
+const refCleanups = new WeakMap<(el: any) => unknown, () => void>();
+
 export function attachRef(ref: any, el: Element | FragmentInstance | null): void {
 	if (ref == null) return;
 	if (typeof ref === 'function') {
-		ref(el);
+		if (el === null) {
+			// Detach: prefer the React-19 cleanup the callback returned at attach.
+			const cleanup = refCleanups.get(ref);
+			if (cleanup !== undefined) {
+				refCleanups.delete(ref);
+				cleanup();
+			} else {
+				ref(null);
+			}
+		} else {
+			const cleanup = ref(el);
+			if (typeof cleanup === 'function') refCleanups.set(ref, cleanup as () => void);
+		}
 		return;
 	}
 	if (Array.isArray(ref)) {
@@ -2793,20 +2812,16 @@ function handleSuspense(state: TrySlot, thenable: TrackedThenable<any>, sourceBl
 		return;
 	}
 
-	if (sourceBlock === state.tryBlock) {
-		// Urgent suspend on the try-body block itself (initial render OR
-		// re-render). PRESERVE its hooks Map and `_b.*` bindings so useMemo /
-		// useState etc. survive across replays — matches React's WIP-discard
-		// contract where even an unfinished render's hook state is preserved.
-		softDetachTryBlock(state);
-	} else {
-		// Nested-block suspended — pop the whole try subtree. (Rare in current
-		// codegen; future enhancement could preserve more granularly.)
-		if (state.tryBlock) {
-			unmountBlock(state.tryBlock);
-			state.tryBlock = null;
-		}
-	}
+	// PRESERVE the try-body block's hooks Map, `_b.*` bindings, and DOM via
+	// softDetach — whether the suspend came from the try-body block itself OR a
+	// nested descendant block (e.g. a child component that re-renders on its own
+	// and then suspends). The old nested-case behavior unmounted the whole try
+	// subtree, discarding every descendant `scope.hooks` Map, so useState /
+	// useMemo / useRef silently reset on resume — a latent data-loss bug. Keeping
+	// the same blocks means the resume path (attachResume) re-renders the held
+	// tryBlock, which reconciles descendants by key with their state intact —
+	// React's committed-state-preserved-while-suspended contract.
+	softDetachTryBlock(state);
 	state.block = null;
 	state.branch = 2;
 
