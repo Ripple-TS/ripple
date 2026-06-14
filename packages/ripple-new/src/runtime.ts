@@ -3754,9 +3754,39 @@ function reconcileKeyed<T, E>(
 	}
 
 	// Fast bail: all survivors AND no moves AND no mounts → old middle is the
-	// same shape & order as new middle. Linked-list pointers are still correct
-	// (we never touched them). Just return.
-	if (!moved && patched === newMidLen) return;
+	// same shape & order as new middle.
+	if (!moved && patched === newMidLen) {
+		// If the survivor walk did NOT unmount anything (oldRemain ===
+		// patched), the linked-list pointers are still correct end-to-end
+		// and we can return without touching them. But if blocks were
+		// unmounted BETWEEN survivors, the survivors' .prevSibling /
+		// .nextSibling pointers still reference now-disposed blocks AND
+		// state.head / state.tail may also point at disposed blocks. The
+		// next reconcile would then walk those stale pointers, decrement
+		// state.size for blocks that no longer exist, and ultimately
+		// crash with a null-pointer access in the prefix/suffix walk.
+		//
+		// Relink the entire middle chain so its prev/next pointers — and
+		// the boundary into beforeMiddle / afterMiddle / state.head /
+		// state.tail — accurately reflect the post-unmount topology.
+		// O(newMidLen); only fires when survivors and removes are mixed.
+		// Surfaced by fuzz-keyed-list seed=-2060211668 action 9 (a
+		// replace-all 13 → 2 where both survivors are in original order).
+		if (oldRemain !== patched) {
+			let prev: Block | null = beforeMiddle;
+			for (let i = 0; i < newMidLen; i++) {
+				const block = oldItems.get(newKeys[i])!;
+				block.prevSibling = prev;
+				if (prev) prev.nextSibling = block;
+				else state.head = block;
+				prev = block;
+			}
+			prev!.nextSibling = afterMiddle;
+			if (afterMiddle) afterMiddle.prevSibling = prev;
+			else state.tail = prev;
+		}
+		return;
+	}
 
 	// ── Small-displacement shortcut. When every old item survived AND only a
 	// small number of positions actually changed (≤ K_DISP), we can compute
@@ -3814,6 +3844,31 @@ function reconcileKeyed<T, E>(
 				if (next) next.prevSibling = block;
 				else state.tail = block;
 			}
+			// Boundary patch: the first and last block of the NEW middle may be
+			// identity-mapped (not in _disp), in which case the displacement
+			// loop never touched them — they still carry their pre-reconcile
+			// neighbour pointers, which can be stale (e.g. pointing at a block
+			// that the survivor walk just unmounted, or at a prior-reconcile
+			// neighbour that has since shifted). Always re-pin the boundary
+			// pointers so state.head / state.tail / beforeMiddle.next /
+			// afterMiddle.prev are correct for the next reconcile.
+			//
+			// Repro for why this matters: surfaced by fuzz-keyed-list seed
+			// -1491785866 — a `replace-all` that shrinks the list (e.g. 6 → 3)
+			// where the last survivor is identity-mapped. Without the patch,
+			// state.tail keeps pointing at the prior-tail block (now deleted)
+			// and the surviving last block's .nextSibling still points at the
+			// removed sibling. The next reconcile then stops its old-middle
+			// walk early (at the stale nextSibling) and re-mounts the
+			// last survivor as a NEW block, producing a duplicate row.
+			const newMidFirst = oldItems.get(newKeys[0])!;
+			const newMidLast = oldItems.get(newKeys[newMidLen - 1])!;
+			newMidFirst.prevSibling = beforeMiddle;
+			newMidLast.nextSibling = afterMiddle;
+			if (beforeMiddle) beforeMiddle.nextSibling = newMidFirst;
+			else state.head = newMidFirst;
+			if (afterMiddle) afterMiddle.prevSibling = newMidLast;
+			else state.tail = newMidLast;
 			return;
 		}
 	}
