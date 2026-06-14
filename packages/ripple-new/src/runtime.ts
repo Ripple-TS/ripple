@@ -215,7 +215,20 @@ let passiveScheduled = false;
 // during commit, AFTER all renders/DOM insertion and BEFORE layout effects, so
 // callback refs see a connected node and ref.current is populated by the time a
 // layout effect runs — matching React's commit-phase ref attachment.
-const refAttachQueue: { fn: () => void; depth: number }[] = [];
+const refAttachQueue: { fn: () => void; depth: number; block: Block | null }[] = [];
+
+// FragmentInstances that currently hold event listeners and/or observers. After
+// each commit we re-apply their stored bindings to their CURRENT children, so a
+// child that mounts into a fragment later picks up the listeners/observers added
+// earlier — React's `commitNewChildToFragmentInstance` future-children contract.
+// Empty for any app that doesn't use fragment-ref listeners (the common case),
+// so the per-commit cost is a single `size` check.
+const activeFragments = new Set<FragmentInstance>();
+
+function reapplyFragmentBindings(): void {
+	if (activeFragments.size === 0) return;
+	for (const fi of activeFragments) fi._reapply();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // React-parity act() environment flag.
@@ -359,7 +372,7 @@ export function queueRefAttach(scope: Scope, fn: () => void): void {
 		depth++;
 		b = b.parentBlock;
 	}
-	refAttachQueue.push({ fn, depth });
+	refAttachQueue.push({ fn, depth, block: scope.block });
 }
 
 /** Drain queued mount ref attaches child-first (deepest depth → shallowest). */
@@ -368,12 +381,31 @@ function drainRefAttaches(): void {
 	const q = refAttachQueue.splice(0);
 	// Descending depth = child-before-parent; stable sort keeps sibling order.
 	q.sort((a, b) => b.depth - a.depth);
-	for (const r of q) r.fn();
+	for (const r of q) {
+		// Skip attaches whose owning subtree was unmounted earlier in THIS flush
+		// (e.g. a try boundary caught a mount-time throw and ran unmountBlock +
+		// the ref-detach cleanup). Without this guard the deferred attach would
+		// re-run on a torn-down node — firing a callback ref on a dead element and
+		// resurrecting an object ref the cleanup just nulled.
+		if (blockSubtreeDisposed(r.block)) continue;
+		r.fn();
+	}
+}
+
+/** True if `block` or any of its ancestors has been disposed (unmounted). */
+function blockSubtreeDisposed(block: Block | null): boolean {
+	let b: Block | null = block;
+	while (b !== null) {
+		if (b.disposed) return true;
+		b = b.parentBlock;
+	}
+	return false;
 }
 
 function commitEffects(): void {
 	drainPhase(INSERTION);
 	drainRefAttaches();
+	reapplyFragmentBindings();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length && !passiveScheduled) {
 		passiveScheduled = true;
@@ -445,6 +477,7 @@ function commitEffectsSync(): void {
 	// but passive effects (useEffect) still fire AFTER paint via the regular scheduler.
 	drainPhase(INSERTION);
 	drainRefAttaches();
+	reapplyFragmentBindings();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length > 0 && !passiveScheduled) {
 		passiveScheduled = true;
@@ -1482,18 +1515,30 @@ export class FragmentInstance {
 	_endMarker: Comment;
 	_destroyed: boolean;
 	/**
-	 * Live registry of listeners added via addEventListener so subsequent
-	 * removeEventListener calls can find them. Each entry records the host
-	 * elements the listener was applied to so we can detach in one walk.
-	 * `null` until the first addEventListener — keeps the per-instance
-	 * memory cost at zero for fragments that never use the listener API.
+	 * Registry of listeners added via addEventListener, deduped by
+	 * (type, listener, capture). `null` until the first addEventListener — zero
+	 * per-instance cost for fragments that never use the listener API. Stored
+	 * (not snapshotted onto specific elements) so they can be RE-APPLIED to
+	 * children that mount later: `_reapply` (run after every commit) attaches
+	 * each stored listener to the current children, matching React's
+	 * future-children contract.
 	 */
 	_listeners: Array<{
 		type: string;
 		listener: EventListenerOrEventListenerObject;
 		options: AddEventListenerOptions | boolean | undefined;
-		applied: Element[];
 	}> | null;
+	/**
+	 * Observers registered via observeUsing, re-applied to future children the
+	 * same way as `_listeners`. `null` until the first observeUsing.
+	 */
+	_observers: Set<{ observe(target: Element): void; unobserve(target: Element): void }> | null;
+	/**
+	 * The ref currently pointed at this instance. Held here (not captured in the
+	 * mount closure) so the unmount cleanup detaches whatever ref is current AND
+	 * the compiler's update path can re-point a changed `<Fragment ref={…}>`.
+	 */
+	_currentRef: any;
 
 	constructor(ownerBlock: Block, startMarker: Comment, endMarker: Comment) {
 		this._ownerBlock = ownerBlock;
@@ -1501,19 +1546,55 @@ export class FragmentInstance {
 		this._endMarker = endMarker;
 		this._destroyed = false;
 		this._listeners = null;
+		this._observers = null;
+		this._currentRef = null;
 	}
 
 	_destroy(): void {
 		this._destroyed = true;
-		// Detach any still-registered listeners from their host elements so
-		// stale closures don't keep DOM nodes / scopes alive after unmount.
+		activeFragments.delete(this);
+		// Detach any still-registered listeners from the current children (cleanups
+		// run before the DOM range is removed, so the children are still attached)
+		// so stale closures don't keep nodes/scopes alive after unmount. Observers
+		// are NOT explicitly unobserved — like React, we rely on the browser
+		// dropping disconnected nodes; the observer's owner manages its lifecycle.
 		if (this._listeners) {
-			for (const entry of this._listeners) {
-				for (const el of entry.applied) {
-					el.removeEventListener(entry.type, entry.listener, entry.options as any);
+			for (const el of fragmentDirectChildren(this)) {
+				for (const e of this._listeners) {
+					el.removeEventListener(e.type, e.listener, e.options as any);
 				}
 			}
 			this._listeners = null;
+		}
+		this._observers = null;
+	}
+
+	/** Deregister from the commit re-apply set once no bindings remain. */
+	_maybeDeactivate(): void {
+		if (
+			(this._listeners === null || this._listeners.length === 0) &&
+			(this._observers === null || this._observers.size === 0)
+		) {
+			activeFragments.delete(this);
+		}
+	}
+
+	/**
+	 * Re-apply every stored listener + observer to the CURRENT direct children.
+	 * Run after each commit (reapplyFragmentBindings) so children that mounted
+	 * since the last pass pick up the fragment's bindings. addEventListener and
+	 * observer.observe are idempotent for an already-wired (element, binding)
+	 * pair, so re-applying is safe.
+	 */
+	_reapply(): void {
+		if (this._destroyed) return;
+		for (const el of fragmentDirectChildren(this)) {
+			if (this._listeners) {
+				for (const e of this._listeners) el.addEventListener(e.type, e.listener, e.options as any);
+			}
+			if (this._observers) {
+				for (const ob of this._observers) ob.observe(el);
+			}
 		}
 	}
 
@@ -1566,20 +1647,11 @@ export class FragmentInstance {
 
 	// ─── addEventListener / removeEventListener (Stage 3) ───────────────
 	/**
-	 * Attaches a listener to every DIRECT (host-Element) child of the
-	 * fragment, in tree order. Events that bubble up from descendants
-	 * fire the listener too (standard DOM event bubbling). The listener
-	 * is also recorded on the FragmentInstance so a later
-	 * removeEventListener with the same (type, listener, options.capture)
-	 * tuple detaches them in one walk.
-	 *
-	 * The current implementation is a SNAPSHOT model: children present
-	 * at addEventListener-time get the listener, but children inserted
-	 * later (via state changes inside the fragment) do not. React's spec
-	 * is "applies to future children too" — that's tracked separately and
-	 * will land alongside the dynamic-list integration. Snapshot mode is
-	 * sufficient for the vast majority of real-world fragment-ref uses
-	 * (tooltip / focus-trap libraries attach to a static child set).
+	 * Attaches a listener to every DIRECT (host-Element) child of the fragment.
+	 * The (type, listener, capture) tuple is stored and RE-APPLIED after each
+	 * commit, so children inserted into the fragment LATER also get the listener
+	 * — React's future-children contract. Deduped by (type, listener, capture)
+	 * like the DOM, so repeat calls are no-ops.
 	 */
 	addEventListener(
 		type: string,
@@ -1587,25 +1659,30 @@ export class FragmentInstance {
 		options?: AddEventListenerOptions | boolean,
 	): void {
 		if (this._destroyed) return;
-		const applied: Element[] = [];
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) {
-				(node as Element).addEventListener(type, listener, options as any);
-				applied.push(node as Element);
-			}
-			node = node.nextSibling;
-		}
+		const capture = listenerCapturePhase(options);
 		if (!this._listeners) this._listeners = [];
-		this._listeners.push({ type, listener, options, applied });
+		for (const e of this._listeners) {
+			if (
+				e.type === type &&
+				e.listener === listener &&
+				listenerCapturePhase(e.options) === capture
+			) {
+				return; // already registered — no-op (DOM/React dedupe)
+			}
+		}
+		this._listeners.push({ type, listener, options });
+		for (const el of fragmentDirectChildren(this)) {
+			el.addEventListener(type, listener, options as any);
+		}
+		activeFragments.add(this);
 	}
 
 	/**
-	 * Removes a listener that was previously added via this same
-	 * FragmentInstance. The (type, listener, options.capture) tuple must
-	 * match the original add call — same identity rule the platform
-	 * uses on EventTarget.removeEventListener. Unmatched calls are a
-	 * silent no-op (DOM parity).
+	 * Removes a listener previously added via this FragmentInstance. The
+	 * (type, listener, options.capture) tuple must match the add call — the same
+	 * identity rule EventTarget.removeEventListener uses. Detaches from the
+	 * current children and stops re-applying it to future ones. Unmatched calls
+	 * are a silent no-op (DOM parity).
 	 */
 	removeEventListener(
 		type: string,
@@ -1619,10 +1696,11 @@ export class FragmentInstance {
 			if (entry.type !== type) continue;
 			if (entry.listener !== listener) continue;
 			if (listenerCapturePhase(entry.options) !== wantCapture) continue;
-			for (const el of entry.applied) {
+			for (const el of fragmentDirectChildren(this)) {
 				el.removeEventListener(type, listener, entry.options as any);
 			}
 			this._listeners.splice(i, 1);
+			this._maybeDeactivate();
 			return;
 		}
 	}
@@ -1635,27 +1713,30 @@ export class FragmentInstance {
 	 * stand in for "watch this list of siblings" — react-aria's Virtualizer
 	 * and dnd-kit's drop-zone primitives are the canonical clients.
 	 */
-	observeUsing(observer: { observe(target: Element): void }): void {
+	observeUsing(observer: {
+		observe(target: Element): void;
+		unobserve(target: Element): void;
+	}): void {
 		if (this._destroyed) return;
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) observer.observe(node as Element);
-			node = node.nextSibling;
-		}
+		if (!this._observers) this._observers = new Set();
+		this._observers.add(observer);
+		for (const el of fragmentDirectChildren(this)) observer.observe(el);
+		activeFragments.add(this);
 	}
 
 	/**
-	 * Forwards .unobserve() on the supplied observer to every direct fragment
-	 * child. Mirrors observeUsing — same membership rule (direct children
-	 * present at call time).
+	 * Stops observing with the given observer: unobserves the current children
+	 * and stops re-applying it to future ones. (The walk runs even without a
+	 * preceding observeUsing, matching the DOM's tolerant unobserve.)
 	 */
-	unobserveUsing(observer: { unobserve(target: Element): void }): void {
+	unobserveUsing(observer: {
+		observe(target: Element): void;
+		unobserve(target: Element): void;
+	}): void {
 		if (this._destroyed) return;
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) observer.unobserve(node as Element);
-			node = node.nextSibling;
-		}
+		if (this._observers) this._observers.delete(observer);
+		for (const el of fragmentDirectChildren(this)) observer.unobserve(el);
+		this._maybeDeactivate();
 	}
 
 	/**
@@ -1685,6 +1766,7 @@ export class FragmentInstance {
 	 * so callers don't need null-checks.
 	 */
 	getRootNode(): Node {
+		if (this._destroyed) return this._startMarker.getRootNode();
 		let node: ChildNode | null = this._startMarker.nextSibling;
 		while (node && node !== this._endMarker) {
 			if (node.nodeType === 1) return (node as Element).getRootNode();
@@ -1802,6 +1884,21 @@ function* fragmentDescendants(fi: FragmentInstance): Generator<Element> {
 }
 
 /**
+ * Yield the DIRECT (first-level) Element children between the fragment markers,
+ * in document order. This is the membership set for the per-child operations
+ * (event listeners, observers) — matching React's first-level traverse — as
+ * opposed to fragmentDescendants which deep-walks (used by focus/scrollIntoView).
+ */
+function* fragmentDirectChildren(fi: FragmentInstance): Generator<Element> {
+	let node: ChildNode | null = fi._startMarker.nextSibling;
+	while (node && node !== fi._endMarker) {
+		const next = node.nextSibling;
+		if (node.nodeType === 1) yield node as Element;
+		node = next;
+	}
+}
+
+/**
  * Is `node` strictly between the fragment's start and end markers in
  * document order? Uses compareDocumentPosition so the check works for
  * arbitrary descendants — not just immediate children — and returns false
@@ -1852,12 +1949,15 @@ export function mountFragmentRef(
 	ref: any,
 ): FragmentInstance {
 	const fi = new FragmentInstance(scope.block, startMarker, endMarker);
+	fi._currentRef = ref;
 	// Defer the attach to commit (after DOM insertion, before layout effects) so
 	// the fragment's markers/children are connected when a callback ref fires —
-	// same React-19 timing as element refs. Detach stays synchronous on unmount.
-	queueRefAttach(scope, () => attachRef(ref, fi));
+	// same React-19 timing as element refs. Read `_currentRef` (not the captured
+	// `ref`) so a ref the compiler re-points via the update path is honored, and
+	// so the detach cleanup always releases whatever ref is current on unmount.
+	queueRefAttach(scope, () => attachRef(fi._currentRef, fi));
 	scope.cleanups.push(() => {
-		attachRef(ref, null);
+		attachRef(fi._currentRef, null);
 		fi._destroy();
 	});
 	return fi;

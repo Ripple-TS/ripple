@@ -2370,6 +2370,21 @@ function emitBindingUpdate(b) {
       }
     }`;
 		}
+		case 'fragmentRef': {
+			// A changing `<Fragment ref={…}>` expression must detach the old ref and
+			// re-point the new one at the SAME (persistent) FragmentInstance. The
+			// instance is already mounted + connected, so attach inline. _currentRef
+			// (read by the mount cleanup) is updated so unmount detaches the new ref.
+			return `    {
+      const _r = (${b.expr});
+      const _fi = _b._fi$${b.id};
+      if (_fi && _r !== _fi._currentRef) {
+        attachRef(_fi._currentRef, null);
+        attachRef(_r, _fi);
+        _fi._currentRef = _r;
+      }
+    }`;
+		}
 	}
 	return '';
 }
