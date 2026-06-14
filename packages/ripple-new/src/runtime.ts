@@ -208,6 +208,15 @@ type Phase = 0 | 1 | 2;
 const effectQueues: [PendingEffect[], PendingEffect[], PendingEffect[]] = [[], [], []];
 let passiveScheduled = false;
 
+// Deferred ref attaches (React-19 timing parity). On mount the whole subtree is
+// built and inserted before its DOM is connected to the document, so attaching a
+// ref inline would hand a callback ref / measure a node that is NOT yet
+// connected. Instead the compiler enqueues mount ref attaches here; they drain
+// during commit, AFTER all renders/DOM insertion and BEFORE layout effects, so
+// callback refs see a connected node and ref.current is populated by the time a
+// layout effect runs — matching React's commit-phase ref attachment.
+const refAttachQueue: { fn: () => void; depth: number }[] = [];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // React-parity act() environment flag.
 //
@@ -336,8 +345,35 @@ export function flushSync<T>(fn: () => T): T {
 // Effect commit pipeline (insertion → layout → passive)
 // ---------------------------------------------------------------------------
 
+/**
+ * Compiler-emitted on a host element's ref MOUNT. Defers the attach until commit
+ * (drainRefAttaches) so the node is connected when a callback ref fires and
+ * ref.current is set before layout effects run. `depth` (block-tree depth) drives
+ * child-before-parent ordering, matching effect ordering. Ref UPDATES stay inline
+ * (the element is already connected by then).
+ */
+export function queueRefAttach(scope: Scope, fn: () => void): void {
+	let depth = 0;
+	let b: Block | null = scope.block.parentBlock;
+	while (b !== null) {
+		depth++;
+		b = b.parentBlock;
+	}
+	refAttachQueue.push({ fn, depth });
+}
+
+/** Drain queued mount ref attaches child-first (deepest depth → shallowest). */
+function drainRefAttaches(): void {
+	if (refAttachQueue.length === 0) return;
+	const q = refAttachQueue.splice(0);
+	// Descending depth = child-before-parent; stable sort keeps sibling order.
+	q.sort((a, b) => b.depth - a.depth);
+	for (const r of q) r.fn();
+}
+
 function commitEffects(): void {
 	drainPhase(INSERTION);
+	drainRefAttaches();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length && !passiveScheduled) {
 		passiveScheduled = true;
@@ -408,6 +444,7 @@ function commitEffectsSync(): void {
 	// Match React semantics: flushSync drains insertion + layout synchronously,
 	// but passive effects (useEffect) still fire AFTER paint via the regular scheduler.
 	drainPhase(INSERTION);
+	drainRefAttaches();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length > 0 && !passiveScheduled) {
 		passiveScheduled = true;
@@ -1952,7 +1989,17 @@ export function setSpread(el: Element, value: any, prev: any): void {
 	// Remove keys present in prev but absent (or set differently for events) in value.
 	if (prev) {
 		for (const k in prev) {
-			if (k === 'key' || k === 'children' || k === 'ref') continue;
+			if (k === 'key' || k === 'children') continue;
+			if (k === 'ref') {
+				// Detach the prior ref when it's removed from the spread or its
+				// identity changed (the value loop re-attaches a changed ref).
+				// attachRef runs a callback's React-19 cleanup-return (or calls it
+				// with null) and clears object/array refs — full parity with a
+				// direct `ref={}` binding.
+				const nextRef = value ? value.ref : undefined;
+				if (prev.ref != null && prev.ref !== nextRef) attachRef(prev.ref, null);
+				continue;
+			}
 			if (value && k in value) continue;
 			if (isEventKey(k)) {
 				(el as any)['$$' + k.slice(2).toLowerCase()] = null;
@@ -1972,8 +2019,10 @@ export function setSpread(el: Element, value: any, prev: any): void {
 		const pv = prev ? prev[k] : undefined;
 		if (k === 'ref') {
 			if (v === pv) continue;
-			if (typeof v === 'function') v(el);
-			else if (v != null) (v as any).current = el;
+			// Route through attachRef for full parity: callback cleanup-return,
+			// object `.current`, and array refs. The prior ref (if any) was already
+			// detached in the removal loop above (detach-before-attach).
+			attachRef(v, el);
 			continue;
 		}
 		if (k === 'class' || k === 'className') {

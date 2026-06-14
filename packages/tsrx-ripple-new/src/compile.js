@@ -1905,8 +1905,14 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 			else ctx.runtimeNeeded.add('setClassName');
 		}
 		if (b.kind === 'style') ctx.runtimeNeeded.add('setStyle');
-		if (b.kind === 'spread') ctx.runtimeNeeded.add('setSpread');
-		if (b.kind === 'ref') ctx.runtimeNeeded.add('attachRef');
+		if (b.kind === 'spread') {
+			ctx.runtimeNeeded.add('setSpread');
+			ctx.runtimeNeeded.add('attachRef'); // unmount-detach of a spread-supplied ref
+		}
+		if (b.kind === 'ref') {
+			ctx.runtimeNeeded.add('attachRef');
+			ctx.runtimeNeeded.add('queueRefAttach'); // deferred mount attach (commit-phase timing)
+		}
 		if (b.kind === 'fragmentRef') {
 			ctx.runtimeNeeded.add('attachRef');
 			ctx.runtimeNeeded.add('mountFragmentRef');
@@ -2227,11 +2233,16 @@ function emitBindingMount(b, elVar) {
     }`;
 		}
 		case 'spread': {
+			// Detach a spread-supplied `ref` on unmount. setSpread attaches/updates
+			// the ref during mount/update, but only a scope cleanup can detach it
+			// when the element unmounts — read the final spread value's ref and run
+			// its React-19 cleanup-return (or null) via attachRef.
 			return `    {
       const _v = ${E};
       setSpread(${elVar}, _v, undefined);
       _b._el$${b.id} = ${elVar};
       _b._sp$${b.id} = _v;
+      __s.cleanups.push(() => { const _sp = _b._sp$${b.id}; if (_sp != null && _sp.ref != null) attachRef(_sp.ref, null); });
     }`;
 		}
 		case 'event': {
@@ -2254,11 +2265,15 @@ function emitBindingMount(b, elVar) {
 			// attachRef handles all three supported shapes: callback (function),
 			// object (set .current), and array (recursively attach each). Register
 			// a scope cleanup so unmount detaches with null (React parity).
+			// The attach is DEFERRED via queueRefAttach so it runs at commit, after
+			// the subtree is inserted into the document — a callback ref then sees a
+			// connected node and ref.current is set before layout effects run
+			// (React-19 commit-phase ref timing). Detach stays synchronous on unmount.
 			return `    {
       const _r = (${b.expr});
-      attachRef(_r, ${elVar});
       _b._ref$${b.id} = _r;
       _b._el$${b.id} = ${elVar};
+      queueRefAttach(__s, () => attachRef(_r, _b._el$${b.id}));
       __s.cleanups.push(() => attachRef(_b._ref$${b.id}, null));
     }`;
 		}
@@ -2335,14 +2350,21 @@ function emitBindingUpdate(b) {
 			return `    { ${reads} if (${cmps}) { ${writes} } }`;
 		}
 		case 'ref': {
-			// Ref expression identity may change across renders — detach the prior
-			// value (so any object ref's `.current` is cleared) and re-attach the
-			// new one via the shared attachRef helper (handles all three shapes).
+			// Ref expression identity may change across renders. React 19: detach
+			// the PRIOR ref fully before attaching the new one — for an object ref
+			// that clears `.current`; for a callback ref that runs its returned
+			// cleanup (or calls it with null). The old code skipped detaching
+			// function refs (`typeof _old !== 'function'`), so a callback ref's
+			// identity change (or replacement by null) never ran its cleanup and
+			// orphaned it — a React-19 divergence and a leak. Detach old uniformly;
+			// attachRef routes functions/objects/arrays to the right detach path.
+			// The outer `_r !== _b._ref$` guard already prevents re-firing a stable
+			// ref, so this never double-invokes an unchanged callback ref.
 			return `    {
       const _r = (${b.expr});
       if (_r !== _b._ref$${b.id}) {
         const _old = _b._ref$${b.id};
-        if (_old != null && typeof _old !== 'function') attachRef(_old, null);
+        if (_old != null) attachRef(_old, null);
         attachRef(_r, _b._el$${b.id});
         _b._ref$${b.id} = _r;
       }

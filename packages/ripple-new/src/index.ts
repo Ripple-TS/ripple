@@ -51,6 +51,7 @@ export {
 	setStyle,
 	setSpread,
 	attachRef,
+	queueRefAttach,
 	injectStyle,
 	delegateEvents,
 	forBlock,
