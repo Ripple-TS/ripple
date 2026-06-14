@@ -1852,7 +1852,10 @@ export function mountFragmentRef(
 	ref: any,
 ): FragmentInstance {
 	const fi = new FragmentInstance(scope.block, startMarker, endMarker);
-	attachRef(ref, fi);
+	// Defer the attach to commit (after DOM insertion, before layout effects) so
+	// the fragment's markers/children are connected when a callback ref fires —
+	// same React-19 timing as element refs. Detach stays synchronous on unmount.
+	queueRefAttach(scope, () => attachRef(ref, fi));
 	scope.cleanups.push(() => {
 		attachRef(ref, null);
 		fi._destroy();
@@ -1985,7 +1988,11 @@ function isEventKey(k: string): boolean {
 	);
 }
 
-export function setSpread(el: Element, value: any, prev: any): void {
+export function setSpread(el: Element, value: any, prev: any, mountScope?: Scope): void {
+	// `mountScope` is passed only on the mount call (not on updates). When present
+	// a spread-supplied ref attach is DEFERRED to commit so a callback ref sees a
+	// connected node — same React-19 timing as element/fragment refs. On update
+	// the element is already connected, so the ref attaches inline.
 	// Remove keys present in prev but absent (or set differently for events) in value.
 	if (prev) {
 		for (const k in prev) {
@@ -2021,8 +2028,10 @@ export function setSpread(el: Element, value: any, prev: any): void {
 			if (v === pv) continue;
 			// Route through attachRef for full parity: callback cleanup-return,
 			// object `.current`, and array refs. The prior ref (if any) was already
-			// detached in the removal loop above (detach-before-attach).
-			attachRef(v, el);
+			// detached in the removal loop above (detach-before-attach). On mount,
+			// defer the attach to commit so a callback ref sees a connected node.
+			if (mountScope) queueRefAttach(mountScope, () => attachRef(v, el));
+			else attachRef(v, el);
 			continue;
 		}
 		if (k === 'class' || k === 'className') {

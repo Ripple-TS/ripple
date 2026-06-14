@@ -71,6 +71,20 @@ describe('spread-supplied ref (React 19 parity with ref={})', () => {
 		expect(log).toEqual(['A:attach', 'A:cleanup', 'B:attach', 'B:cleanup']);
 	});
 
+	it('spread callback ref fires with a connected node (deferred to commit)', () => {
+		let connected: any = null;
+		const r = mount(SpreadDirect, {
+			attrs: {
+				id: 'target',
+				ref: (el: any) => {
+					connected = el && el.isConnected;
+				},
+			},
+		});
+		expect(connected).toBe(true);
+		r.unmount();
+	});
+
 	it('removing the ref key from the spread detaches the prior ref', () => {
 		const log: string[] = [];
 		const a = (el: any) => {

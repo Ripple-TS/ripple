@@ -2239,7 +2239,7 @@ function emitBindingMount(b, elVar) {
 			// its React-19 cleanup-return (or null) via attachRef.
 			return `    {
       const _v = ${E};
-      setSpread(${elVar}, _v, undefined);
+      setSpread(${elVar}, _v, undefined, __s);
       _b._el$${b.id} = ${elVar};
       _b._sp$${b.id} = _v;
       __s.cleanups.push(() => { const _sp = _b._sp$${b.id}; if (_sp != null && _sp.ref != null) attachRef(_sp.ref, null); });

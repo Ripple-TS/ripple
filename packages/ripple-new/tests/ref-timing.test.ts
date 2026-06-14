@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from './_helpers';
-import { ConnectedRef, RefInLayout, NestedTiming, RefAndLayout } from './_fixtures/ref-timing.tsrx';
+import {
+	ConnectedRef,
+	RefInLayout,
+	NestedTiming,
+	RefAndLayout,
+	FragmentTiming,
+} from './_fixtures/ref-timing.tsrx';
 
 describe('ref attach timing (React 19 commit-phase)', () => {
 	it('a callback ref fires with a node already connected to the document', () => {
@@ -44,5 +50,12 @@ describe('ref attach timing (React 19 commit-phase)', () => {
 		// reverse of mount, matching React's commit teardown order.
 		r.unmount();
 		expect(log).toEqual(['ref:attach', 'layout:body', 'layout:cleanup', 'ref:cleanup']);
+	});
+
+	it('a fragment callback ref fires after its children are connected', () => {
+		let connected: any = null;
+		const r = mount(FragmentTiming, { observe: (c: boolean) => (connected = c) });
+		expect(connected).toBe(true);
+		r.unmount();
 	});
 });

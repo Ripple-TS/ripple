@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'ripple-new';
+import { useState, useRef, useLayoutEffect, Fragment } from 'ripple-new';
 
 // React-19 commit-phase ref timing: a callback ref must fire with a CONNECTED
 // node (the subtree is in the document), and ref.current must be populated
@@ -45,4 +45,17 @@ export function RefAndLayout(props) @{
 			return () => props.log('ref:cleanup');
 		}}
 	>{'x'}</div>
+}
+
+// A fragment callback ref: at call time its child (#fragtiming) must already be
+// connected to the document (deferred to commit). The callback ignores the
+// FragmentInstance and reports the child's connectivity.
+export function FragmentTiming(props) @{
+	<div>
+		<Fragment
+			ref={() => props.observe(document.querySelector('#fragtiming')?.isConnected ?? false)}
+		>
+			<span id="fragtiming">{'x'}</span>
+		</Fragment>
+	</div>
 }
