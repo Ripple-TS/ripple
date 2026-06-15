@@ -883,7 +883,17 @@ export function componentSlotLite<P>(
 		// __s.block.endMarker)` plants content INSIDE the owning element rather
 		// than spilling out to the parent block's range. `parentBlock` keeps the
 		// context-walk Phase B chain pointing at the real ancestor Block.
-		scope.block = new LiteBlockImpl(host, anchor ?? null, parentScope.block) as unknown as Block;
+		let endMarker = anchor ?? null;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped this hookless component's output in a
+			// `<!--[-->…<!--]-->` range (anchor resolved to the `<!--[-->`). Point the
+			// cursor at the content so the body's clone() adopts the server DOM, and
+			// use `<!--]-->` as the insert anchor so the body's
+			// `insertBefore(content, endMarker)` is a no-op (content already there).
+			endMarker = matchingClose(anchor as Node);
+			hydrateNode = (anchor as Node).nextSibling;
+		}
+		scope.block = new LiteBlockImpl(host, endMarker, parentScope.block) as unknown as Block;
 		parentScope[slotKey] = scope;
 		// Register on parent.children so unmountScope(parent) walks into us.
 		parentScope.children.push({ key: slotKey, scope });
