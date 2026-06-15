@@ -1,4 +1,4 @@
-import { use } from 'ripple-new';
+import { use, useState } from 'ripple-new';
 
 // SSR Phase 4 — Suspense + data serialization. The server render() awaits
 // use(promise) and renders the resolved value (not the @pending fallback); the
@@ -13,6 +13,24 @@ export function AsyncLeaf(props) @{
 	<div id="leaf">
 		{value as string}
 	</div>
+}
+
+// Mirrors the playground/ripple-new-ssr App shape: a bare use() (async data
+// seeded on hydrate) PLUS a useState counter with an onClick. Proves Phase 4
+// data seeding composes with stateful, interactive hydration in one single-root
+// component — and that a post-hydration re-render (the click) does NOT
+// re-suspend the already-seeded use().
+export function AsyncCounter(props) @{
+	const message = use(props.promise);
+	const [n, setN] = useState(0);
+	<main id="ac">
+		<h1>
+			{message as string}
+		</h1>
+		<button id="ac-btn" onClick={() => setN(n + 1)}>
+			{'count:' + n as string}
+		</button>
+	</main>
 }
 
 // @try / @pending / @catch around a use(promise). The server awaits the promise

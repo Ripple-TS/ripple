@@ -4,8 +4,9 @@ import { join } from 'node:path';
 import { compile } from '../../../tsrx-ripple-new/src/index.js';
 import { hydrate, flushSync } from '../../src/index.js';
 import * as ServerRT from 'ripple-new/server';
-// CLIENT-compiled component (normal .tsrx import path).
-import { AsyncLeaf } from '../_fixtures/ssr-suspense.tsrx';
+// CLIENT-compiled components (normal .tsrx import path). Importing AsyncCounter
+// (which has an onClick) makes this module register click delegation at load.
+import { AsyncLeaf, AsyncCounter } from '../_fixtures/ssr-suspense.tsrx';
 
 // SSR Phase 4 — client hydration seeds the server-resolved use(thenable) values
 // from the inline data <script>, so a hydrating use() returns synchronously
@@ -69,6 +70,31 @@ describe('hydrate — Suspense data seeding (SSR Phase 4)', () => {
 		flushSync(() => {});
 
 		expect(div.textContent).toBe('server-value');
+		root.unmount();
+	});
+
+	it('composes seeded use() with a stateful, interactive counter (the example app shape)', async () => {
+		const { body } = await ServerRT.render(server.AsyncCounter, {
+			promise: Promise.resolve('Hi'),
+		});
+		expect(body).toBe(
+			'<main id="ac"><h1>Hi</h1><button id="ac-btn">count:0</button></main>' +
+				'<script type="application/json" data-ripple-new-suspense>["Hi"]</script>',
+		);
+
+		container.innerHTML = body;
+		const before = container.querySelector('#ac')!.outerHTML;
+		const root = hydrate(AsyncCounter, container, { promise: Promise.resolve('Hi') });
+		flushSync(() => {});
+		// No mismatch: the #ac subtree is unchanged after hydrate.
+		expect(container.querySelector('#ac')!.outerHTML).toBe(before);
+
+		// Click → re-render. The counter updates AND the seeded use() does not
+		// re-suspend (the greeting stays put, no fallback / blank).
+		const btn = container.querySelector('#ac-btn') as HTMLButtonElement;
+		flushSync(() => btn.click());
+		expect(container.querySelector('#ac-btn')!.textContent).toBe('count:1');
+		expect(container.querySelector('#ac h1')!.textContent).toBe('Hi');
 		root.unmount();
 	});
 });
