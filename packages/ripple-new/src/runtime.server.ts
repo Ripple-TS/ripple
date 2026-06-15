@@ -163,7 +163,10 @@ export function ssrComponent(parent: SSRScope, comp: ServerComponent, props: any
 	const scope = ssrScope(parent ?? prev);
 	CURRENT_SCOPE = scope;
 	try {
-		return comp(scope, props ?? {}, undefined) ?? '';
+		// Wrap the child's output in a hydration block range so the client's
+		// componentSlot can ADOPT it during hydration (its `<!--[-->`/`<!--]-->`
+		// become the slot's start/end markers, exactly like control-flow blocks).
+		return BLOCK_OPEN + (comp(scope, props ?? {}, undefined) ?? '') + BLOCK_CLOSE;
 	} finally {
 		CURRENT_SCOPE = prev;
 	}

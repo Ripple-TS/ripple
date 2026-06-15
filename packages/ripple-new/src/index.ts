@@ -52,6 +52,8 @@ export {
 	template,
 	clone,
 	htext,
+	child,
+	sibling,
 	setText,
 	setAttribute,
 	setClassName,

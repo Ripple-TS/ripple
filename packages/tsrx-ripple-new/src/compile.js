@@ -2564,6 +2564,25 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 		mountLines.push(`    const _root = clone(${tpl});`);
 		elementVars = new Map();
 		let varCounter = 0;
+		// Does this template contain a control-flow / component / portal hole? If so
+		// the server DOM expands each hole into a `<!--[-->…<!--]-->` range that
+		// shifts raw sibling paths, so we navigate with the hole-aware `child`/
+		// `sibling` helpers (which skip a whole block range as one logical sibling)
+		// instead of raw `.firstChild`/`.nextSibling`. Hole-free leaf templates keep
+		// the raw walk (faster, and they already hydrate since server == template).
+		// `child`/`sibling` are identical to raw access when not hydrating, so the
+		// client path is unchanged (and the hydration branch DCE-folds away).
+		const hasHoles =
+			forCalls.length > 0 ||
+			ifCalls.length > 0 ||
+			compCalls.length > 0 ||
+			tryCalls.length > 0 ||
+			ctx._switchCalls.length > 0 ||
+			ctx._portalCalls.length > 0;
+		if (hasHoles) {
+			ctx.runtimeNeeded.add('child');
+			ctx.runtimeNeeded.add('sibling');
+		}
 		ensureVar = (path) => {
 			// Top-level position in a multi-root template — the synthetic frag we
 			// cloned gets drained on mount, so empty-path callers (top-level
@@ -2575,7 +2594,8 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 			if (elementVars.has(key)) return elementVars.get(key);
 			const v = `_el${varCounter++}`;
 			elementVars.set(key, v);
-			mountLines.push(`    const ${v} = ${walkExpr('_root', path)};`);
+			const walk = hasHoles ? walkExprH('_root', path) : walkExpr('_root', path);
+			mountLines.push(`    const ${v} = ${walk};`);
 			return v;
 		};
 	} else {
@@ -4455,6 +4475,22 @@ function walkExpr(rootVar, path) {
 		const idx = path[i];
 		expr = `${expr}.firstChild`;
 		for (let n = 0; n < idx; n++) expr = `${expr}.nextSibling`;
+	}
+	return expr;
+}
+
+// Hole-aware variant of walkExpr: `child(node)` for `.firstChild`, `sibling(node,
+// n)` for n× `.nextSibling`. Identical to walkExpr when not hydrating; while
+// hydrating, `sibling` skips each `<!--[-->…<!--]-->` block range as one logical
+// step so paths that cross a control-flow / component hole resolve to the right
+// server node. Used for templates that contain holes (see `hasHoles`).
+function walkExprH(rootVar, path) {
+	if (path.length === 0) return rootVar;
+	let expr = rootVar;
+	for (let i = 0; i < path.length; i++) {
+		const idx = path[i];
+		expr = `child(${expr})`;
+		if (idx > 0) expr = `sibling(${expr}, ${idx})`;
 	}
 	return expr;
 }

@@ -374,6 +374,28 @@ importers:
         specifier: catalog:default
         version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.48.0)
 
+  benchmarks/news:
+    dependencies:
+      playwright:
+        specifier: ^1.49.0
+        version: 1.60.0
+      vite:
+        specifier: catalog:default
+        version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.48.0)
+
+  benchmarks/news/ripple-new:
+    dependencies:
+      ripple-new:
+        specifier: workspace:*
+        version: link:../../../packages/ripple-new
+    devDependencies:
+      '@tsrx/ripple-new':
+        specifier: workspace:*
+        version: link:../../../packages/tsrx-ripple-new
+      vite:
+        specifier: catalog:default
+        version: 8.0.12(@types/node@25.3.3)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.48.0)
+
   benchmarks/recursive-context:
     dependencies:
       playwright:

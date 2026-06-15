@@ -12,7 +12,7 @@
  * Reconciliation: LIS-based keyed list inside forBlock (ported from Ripple's patchKeyedChildrenComplex).
  */
 
-import { SUSPENSE_SCRIPT_ATTR } from './constants';
+import { SUSPENSE_SCRIPT_ATTR, HYDRATION_START, HYDRATION_END } from './constants';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1655,8 +1655,16 @@ export function template(html: string, ns: number = 0, frag: number = 0): Elemen
 // Do NOT assign `hydrating = true` anywhere except `hydrate()`, or this breaks.
 // ---------------------------------------------------------------------------
 let hydrating = false;
-// The server node the next clone() call should adopt as a component root.
-let hydrateNextRoot: Node | null = null;
+// The HYDRATION CURSOR (ported from Ripple's `hydrate_node`). While hydrating,
+// this points at the server-rendered node the next adopt operation should claim.
+// `clone()` adopts the cursor as a template root; the compiler-emitted cursor
+// walk (`child`/`sibling` — used only for templates that contain control-flow /
+// component holes, whose server DOM no longer matches the raw template paths)
+// advances it node-by-node; block functions (forBlock/ifBlock/componentSlot/…)
+// adopt the server `<!--[-->`/`<!--]-->` markers off it. For hole-free leaf
+// templates the cursor is just the adopted root and the old raw path-walk
+// (`_root.firstChild.nextSibling…`) still resolves bindings correctly.
+let hydrateNode: Node | null = null;
 // Server-resolved `use(thenable)` values (SSR Phase 4), parsed from the inline
 // `<script data-ripple-new-suspense>` in `hydrate()` and consumed in render
 // order by `useThenable` so a hydrating boundary returns synchronously. Both are
@@ -1666,11 +1674,11 @@ let hydrationSeeds: unknown[] | null = null;
 let hydrationSeedCursor = 0;
 
 export function clone<T extends Node>(node: T): T {
-	if (hydrating && hydrateNextRoot !== null) {
-		const adopted = hydrateNextRoot as unknown as T;
-		// Consumed: a leaf component clones exactly one root template.
-		hydrateNextRoot = null;
-		return adopted;
+	if (hydrating && hydrateNode !== null) {
+		// Adopt the server node at the cursor as this template's root. The cursor
+		// stays put so a hole-template's subsequent child()/sibling() walk descends
+		// into it; for a hole-free leaf the raw path-walk takes over from here.
+		return hydrateNode as unknown as T;
 	}
 	return node.cloneNode(true) as T;
 }
@@ -1691,6 +1699,63 @@ export function htext(el: Node, text: string): Text {
 	const t = document.createTextNode(text);
 	el.appendChild(t);
 	return t;
+}
+
+// ---------------------------------------------------------------------------
+// Hydration navigation helpers. The compiler emits `child`/`sibling` instead of
+// raw `.firstChild`/`.nextSibling` ONLY for templates containing control-flow /
+// component holes — there the server DOM expands each hole into a
+// `<!--[-->…<!--]-->` range, so a raw sibling walk would land on the wrong node.
+// `child`/`sibling` are PURE navigators (they don't move the cursor): they treat
+// a whole `<!--[-->…<!--]-->` block as ONE logical sibling, which exactly matches
+// the single `<!>` placeholder the template uses for that hole — so ripple-new's
+// existing path+childIndex binding resolution keeps working unchanged on the
+// server DOM. The `hydrateNode` cursor is set by each block call (forBlock /
+// ifBlock / componentSlot, to its content start) for the child's `clone()` to
+// adopt. When `hydrating` is false these are trivial DOM reads and the whole
+// hydration path DCE-folds away for client-only builds.
+// ---------------------------------------------------------------------------
+
+/** True if `node` is a server block-open marker `<!--[-->`. */
+function isBlockOpen(node: Node | null): node is Comment {
+	return node !== null && node.nodeType === 8 && (node as Comment).data === HYDRATION_START;
+}
+
+/** From a block-open `<!--[-->`, the matching `<!--]-->` (depth-tracked). */
+function matchingClose(open: Node): Comment {
+	let depth = 0;
+	let node: Node = open.nextSibling as Node;
+	for (;;) {
+		if (node.nodeType === 8) {
+			const data = (node as Comment).data;
+			if (data === HYDRATION_END) {
+				if (depth === 0) return node as Comment;
+				depth -= 1;
+			} else if (data === HYDRATION_START) {
+				depth += 1;
+			}
+		}
+		node = node.nextSibling as Node;
+	}
+}
+
+/** Logical index-0 child: `node.firstChild` for both client and hydration. */
+export function child<T extends Node>(node: T): Node | null {
+	return node.firstChild;
+}
+
+/**
+ * The n-th logical sibling after `node`. Client: plain `.nextSibling` × n.
+ * Hydrating: a `<!--[-->…<!--]-->` block counts as ONE step (we jump past its
+ * range), so an element/hole after a block resolves to the right server node.
+ */
+export function sibling(node: Node, n: number = 1): Node | null {
+	let c: Node | null = node;
+	for (let i = 0; i < n; i++) {
+		if (hydrating && isBlockOpen(c)) c = matchingClose(c as Node);
+		c = (c as Node).nextSibling;
+	}
+	return c;
 }
 
 // ---------------------------------------------------------------------------
@@ -2982,13 +3047,25 @@ export function componentSlot(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as CompSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('comp');
-		const end = document.createComment('/comp');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a multi-root template
-		// and must sit before its enclosing block's endMarker).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped this component's output in a
+			// `<!--[-->…<!--]-->` range (anchor resolved to the `<!--[-->`). Adopt
+			// those comments as our markers and point the cursor at the first
+			// content node so the child's clone() adopts the server DOM.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('comp');
+			end = document.createComment('/comp');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a multi-root template
+			// and must sit before its enclosing block's endMarker).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = {
 			__kind: 'componentSlotSlot',
 			start,
@@ -3261,13 +3338,24 @@ export function tryBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as TrySlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('try');
-		const end = document.createComment('/try');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a mixed-children
-		// template and must sit before its in-template static-sibling anchor).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server (Phase 4) awaited use() and wrapped the resolved
+			// SUCCESS arm (or @catch arm) in a `<!--[-->…<!--]-->` range. Adopt it as
+			// the slot; mountTry brackets the content and the seeded use() values
+			// (hydrationSeeds) let the try body render its success arm synchronously.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('try');
+			end = document.createComment('/try');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a mixed-children
+			// template and must sit before its in-template static-sibling anchor).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		const newState: TrySlot = {
 			__kind: 'trySlotSlot',
 			start,
@@ -3353,8 +3441,17 @@ function mountTry(state: TrySlot): void {
 	state.branch = 1;
 	const bStart = document.createComment('try-b');
 	const bEnd = document.createComment('/try-b');
-	state.domParent.insertBefore(bStart, state.end);
-	state.domParent.insertBefore(bEnd, state.end);
+	if (hydrating) {
+		// The server's resolved arm content is already inside the adopted slot
+		// range — bracket it and point the cursor at it so the try body's clone()
+		// adopts the server DOM (use() returns its seeded value → success arm).
+		state.domParent.insertBefore(bStart, state.start.nextSibling);
+		state.domParent.insertBefore(bEnd, state.end);
+		hydrateNode = bStart.nextSibling;
+	} else {
+		state.domParent.insertBefore(bStart, state.end);
+		state.domParent.insertBefore(bEnd, state.end);
+	}
 	const b = createBlock(
 		'control-flow',
 		state.parentBlock,
@@ -4176,15 +4273,25 @@ export function ifBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as IfSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('if');
-		const end = document.createComment('/if');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a mixed-children
-		// template and must sit before its static-element/text siblings). The
-		// compiler emits a `<!>` placeholder at the if-block's source-order
-		// index and passes the captured Comment as `anchor`.
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped the taken branch in a `<!--[-->…<!--]-->`
+			// range (anchor resolved to the `<!--[-->`). Adopt it as the slot markers;
+			// the branch mount below brackets the already-present content.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('if');
+			end = document.createComment('/if');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a mixed-children
+			// template and must sit before its static-element/text siblings). The
+			// compiler emits a `<!>` placeholder at the if-block's source-order
+			// index and passes the captured Comment as `anchor`.
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = { __kind: 'ifBlockSlot', start, end, branch: -1, block: null };
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
@@ -4204,8 +4311,17 @@ export function ifBlock(
 			// permanent state.start / state.end stay put.
 			const bStart = document.createComment('br');
 			const bEnd = document.createComment('/br');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			if (hydrating) {
+				// The branch content is ALREADY in the adopted slot range — bracket it
+				// (bStart after slot.start, bEnd before slot.end) and point the cursor
+				// at its first node so the branch body's clone() adopts the server DOM.
+				domParent.insertBefore(bStart, state.start.nextSibling);
+				domParent.insertBefore(bEnd, state.end);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
 			state.block = b;
 			renderBlock(b);
@@ -4434,13 +4550,22 @@ export function switchBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as SwitchSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('switch');
-		const end = document.createComment('/switch');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot sits before static-element
-		// siblings authored AFTER the @switch in source order).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: adopt the server's `<!--[-->…<!--]-->` range (the matched
+			// case's content) as the slot markers (see ifBlock).
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('switch');
+			end = document.createComment('/switch');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot sits before static-element
+			// siblings authored AFTER the @switch in source order).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = { __kind: 'switchBlockSlot', start, end, caseIdx: -1, block: null };
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
@@ -4464,8 +4589,16 @@ export function switchBlock(
 		if (body) {
 			const bStart = document.createComment('case');
 			const bEnd = document.createComment('/case');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			if (hydrating) {
+				// Bracket the already-present case content in the adopted range and
+				// point the cursor at it (see ifBlock).
+				domParent.insertBefore(bStart, state.start.nextSibling);
+				domParent.insertBefore(bEnd, state.end);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
 			state.block = b;
 			renderBlock(b);
@@ -4523,14 +4656,26 @@ export function forBlock<T, E = undefined>(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as ForSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('for');
-		const end = document.createComment('/for');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (when a static sibling follows this @for in mixed
-		// children, the compiler emits a `<!>` anchor at the @for's source-order
-		// index and threads it here so the markers land BEFORE the sibling).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped the whole @for in a `<!--[-->…<!--]-->`
+			// range (anchor resolved to the outer `<!--[-->`). Adopt it as the slot
+			// markers and point the cursor at the first item's `<!--[-->` so the
+			// empty→fill mount below adopts each item via mountItem.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('for');
+			end = document.createComment('/for');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (when a static sibling follows this @for in mixed
+			// children, the compiler emits a `<!>` anchor at the @for's source-order
+			// index and threads it here so the markers land BEFORE the sibling).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = {
 			__kind: 'forBlockSlot',
 			start,
@@ -5208,6 +5353,32 @@ function mountItem<T, E>(
 	forSlot: ForSlot,
 	singleRoot: boolean,
 ): Block {
+	if (hydrating) {
+		// Hydration: the server wrapped EVERY item in its own `<!--[-->…<!--]-->`
+		// range (regardless of the client `singleRoot` optimization, which the
+		// server can't know). Adopt this item's markers off the cursor, point the
+		// cursor at its content for the body's clone(), then advance past it to the
+		// next item's marker. (Hydrated items thus carry markers — the singleRoot
+		// no-marker path is a client-mount-only optimization.)
+		const itemStart = hydrateNode as Comment;
+		const itemEnd = matchingClose(itemStart as Node);
+		hydrateNode = itemStart.nextSibling;
+		const block = createBlock(
+			'control-flow',
+			parentBlock,
+			parentNode,
+			itemStart,
+			itemEnd,
+			body as ComponentBody,
+			item,
+			extra,
+		);
+		block.forSlot = forSlot;
+		block.itemIndex = index;
+		renderBlock(block);
+		hydrateNode = itemEnd.nextSibling;
+		return block;
+	}
 	if (singleRoot) {
 		// Compiler verified the body emits exactly one Element root — skip the
 		// per-item Comment markers and use the inserted element as both start
@@ -5433,13 +5604,14 @@ export function hydrate(
 		hydrationSeedCursor = 0;
 		seedScript.remove();
 	}
-	// The component's server root is the container's first node. clone() adopts it.
-	hydrateNextRoot = container.firstChild;
+	// The component's server root is the container's first node — the initial
+	// cursor position. clone() adopts it; a hole-template walk advances from here.
+	hydrateNode = container.firstChild;
 	try {
 		renderBlock(rootBlock);
 	} finally {
 		hydrating = false;
-		hydrateNextRoot = null;
+		hydrateNode = null;
 		hydrationSeeds = null;
 		hydrationSeedCursor = 0;
 	}

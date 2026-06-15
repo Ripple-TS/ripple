@@ -41,6 +41,8 @@ packages:
   - benchmarks/recursive-context/*
   - benchmarks/signal-favoring
   - benchmarks/signal-favoring/*
+  - benchmarks/news
+  - benchmarks/news/*
 
 overrides:
   esrap: *esrap_common

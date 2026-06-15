@@ -102,7 +102,7 @@ exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / 
 
 exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > renders nested component composition > Card 1`] = `
 {
-  "body": "<article class="card"><h2>T</h2><em class="badge">new</em></article>",
+  "body": "<article class="card"><h2>T</h2><!--[--><em class="badge">new</em><!--]--></article>",
   "css": "",
   "head": "",
 }
