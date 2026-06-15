@@ -3921,6 +3921,9 @@ function deactivateScope(scope: Scope): void {
 				if (val.emptyBlock) deactivateScope(val.emptyBlock);
 			} else if (val.block) {
 				deactivateScope(val.block);
+				if (val.__kind === 'trySlotSlot' && val.tryBlock && val.tryBlock !== val.block) {
+					deactivateScope(val.tryBlock);
+				}
 			}
 		}
 	}
