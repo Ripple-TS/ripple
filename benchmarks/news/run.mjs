@@ -86,11 +86,18 @@ await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
 const beforeHTML = await page.evaluate(() => document.getElementById('app').innerHTML);
 const check = await page.evaluate(async () => {
 	const root = document.getElementById('app');
-	const before = root.innerHTML;
+	// hydrate() consumes + REMOVES the server's suspense seed
+	// (<script data-ripple-new-suspense>) from the container, so comparing raw
+	// innerHTML before/after would report a false rebuild for any app that
+	// emitted that script. Exclude it from both sides; the no-rebuild check is
+	// about the rendered tree, not the seed.
+	const stripSeed = (html) =>
+		html.replace(/<script[^>]*\bdata-ripple-new-suspense\b[^>]*>[\s\S]*?<\/script>/g, '');
+	const before = stripSeed(root.innerHTML);
 	window.__hydrate();
 	await new Promise((r) => requestAnimationFrame(r));
 	const cards = root.querySelectorAll('article.card').length;
-	const noRebuild = root.innerHTML === before; // hydration adopted, didn't rebuild
+	const noRebuild = stripSeed(root.innerHTML) === before; // hydration adopted, didn't rebuild
 	const cls0 = root.querySelector('header.masthead').className;
 	root.querySelector('#theme').click();
 	const cls1 = root.querySelector('header.masthead').className;
