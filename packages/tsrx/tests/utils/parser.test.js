@@ -1495,6 +1495,28 @@ foo();`;
 		expect(pre.children[4].value).toBe(' ');
 	});
 
+	it('parses a text-then-element sibling after newline-separated elements', () => {
+		const pre = findElement('let a = <pre><b>2</b>\n<b>3</b>1<b>4</b></pre>;', 'pre');
+		expect(pre.children.map((child) => child.type)).toEqual([
+			'JSXElement',
+			'JSXElement',
+			'JSXText',
+			'JSXElement',
+		]);
+		expect(pre.children[2].value).toBe('1');
+	});
+
+	it('parses indented multi-line markup with a text-then-element sibling', () => {
+		const source =
+			'let a  = <pre> \n\n    <b>2</b>   \n    <b>3</b> \n    \n    1<b>4</b>\n</pre>;';
+		const pre = findElement(source, 'pre');
+		expect(pre.children.filter((child) => child.type === 'JSXElement')).toHaveLength(3);
+		const text = pre.children.find(
+			(child) => child.type === 'JSXText' && child.value.includes('1'),
+		);
+		expect(text.value).toBe('1');
+	});
+
 	it('parses parenthesized conditional JSX spread attributes in render output', () => {
 		const returned = getReturned(`function App() { return <div>@{
 			let &[enabled] = track(true);

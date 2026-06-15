@@ -4416,8 +4416,23 @@ export function TSRXPlugin(config) {
 					// text never starts at `<`, so drop the leaked context and re-read the
 					// tag instead of emitting an empty node.
 					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
-						while (this.curContext() === tstc.tc_expr) {
-							this.context.pop();
+						if (this.input.charCodeAt(this.start + 1) === CharCode.slash) {
+							while (this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+							}
+						} else {
+							let native_depth = 0;
+							for (const node of this.#path) {
+								if (this.#isNativeTemplateNode(node)) native_depth++;
+							}
+							let tc_expr_depth = 0;
+							for (const context of this.context) {
+								if (context === tstc.tc_expr) tc_expr_depth++;
+							}
+							while (tc_expr_depth > native_depth && this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+								tc_expr_depth--;
+							}
 						}
 						this.pos = this.start;
 						this.exprAllowed = true;
