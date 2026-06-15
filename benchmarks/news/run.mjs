@@ -83,7 +83,6 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
-const beforeHTML = await page.evaluate(() => document.getElementById('app').innerHTML);
 const check = await page.evaluate(async () => {
 	const root = document.getElementById('app');
 	// hydrate() consumes + REMOVES the server's suspense seed

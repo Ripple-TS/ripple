@@ -1720,6 +1720,43 @@ export function htext(el: Node, text: string): Text {
 	return t;
 }
 
+/**
+ * Compiler-emitted mount for a `{x as string}` text hole that sits AMONG sibling
+ * nodes (the `<!>` placeholder lives at a resolved position, `posNode`).
+ *
+ * `posNode` is resolved with the hole-aware `child`/`sibling` walk, so during
+ * hydration it is the SERVER's text node at that logical position (the server
+ * rendered the value directly, with no `<!>`), even when earlier siblings are
+ * components / control-flow that expanded into `<!--[-->…<!--]-->` ranges. We
+ * ADOPT it. While NOT hydrating, `posNode` is the cloned template's `<!>`
+ * comment, which we replace 1-for-1 with a text node (position-preserving, so
+ * later sibling walks are unaffected). This is the sibling-position analog of
+ * `htext` (which handles the only-child fast path).
+ */
+export function htextSwap(posNode: Node | null, text: string): Text {
+	if (hydrating) {
+		if (posNode !== null && posNode.nodeType === 3) {
+			// Adopt the server text node.
+			if ((posNode as Text).data !== text) (posNode as Text).data = text;
+			return posNode as Text;
+		}
+		// Server emitted no text node here (empty value, or it merged with an
+		// adjacent static text run): insert a fresh node before the next logical
+		// node without removing it.
+		const t = document.createTextNode(text);
+		if (posNode !== null && posNode.parentNode !== null) {
+			posNode.parentNode.insertBefore(t, posNode);
+		}
+		return t;
+	}
+	// Fresh mount: posNode is the `<!>` placeholder — replace it in place.
+	const t = document.createTextNode(text);
+	const parent = posNode!.parentNode!;
+	parent.insertBefore(t, posNode);
+	parent.removeChild(posNode!);
+	return t;
+}
+
 // ---------------------------------------------------------------------------
 // Hydration navigation helpers. The compiler emits `child`/`sibling` instead of
 // raw `.firstChild`/`.nextSibling` ONLY for templates containing control-flow /

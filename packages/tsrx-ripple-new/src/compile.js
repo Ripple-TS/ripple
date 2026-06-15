@@ -2883,8 +2883,15 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 
 	// Emit per-binding mount code.
 	for (const b of elementBindings) {
-		const elVar = ensureVar(b.path);
+		// A sibling-position `{x as string}` text hole resolves to its POSITION node
+		// (the `<!>` placeholder / server text node) via the full path INCLUDING the
+		// childIndex — so the hole-aware child/sibling walk adopts the correct server
+		// node during hydration (raw childNodes[childIndex] would land inside an
+		// earlier sibling's `<!--[-->…<!--]-->` range). Everything else resolves to
+		// its host element.
+		const elVar = b.kind === 'text' ? ensureVar([...b.path, b.childIndex]) : ensureVar(b.path);
 		if (b.kind === 'text' || b.kind === 'textOnlyChild') ctx.runtimeNeeded.add('setText');
+		if (b.kind === 'text') ctx.runtimeNeeded.add('htextSwap');
 		if (b.kind === 'textOnlyChild') ctx.runtimeNeeded.add('htext');
 		if (b.kind === 'attr') ctx.runtimeNeeded.add('setAttribute');
 		if (b.kind === 'class') {
@@ -3201,23 +3208,16 @@ function emitBindingMount(b, elVar) {
     }`;
 		}
 		case 'text': {
-			// Multi-root fragment Text bindings have path=[] which ensureVar remaps
-			// to `__block.parentNode`. But the `<!>` placeholder lives in `_root`
-			// (the cloned fragment) until the drain at line ~1291 that moves its
-			// children into the live block range. Walking
-			// `__block.parentNode.childNodes[childIndex]` here would grab the
-			// PARENT'S child (a pre-existing sibling), then insertBefore + remove
-			// it — silently deleting it. Do the swap on `_root` instead; the
-			// subsequent drain moves _t into the block range with the rest.
-			const swapHost = elVar === '__block.parentNode' ? '_root' : elVar;
+			// `elVar` is the POSITION node for this sibling text hole (resolved with
+			// the hole-aware path INCLUDING childIndex — see the binding loop). On a
+			// fresh mount it's the cloned template's `<!>` comment (replaced 1-for-1,
+			// position-preserving — works for single AND multi-root, since the path
+			// walk starts from `_root`/the cloned fragment). While hydrating it's the
+			// SERVER's text node at that logical position, which htextSwap ADOPTS.
 			const coerce = b.knownString ? '_v' : 'String(_v)';
 			return `    {
       const _v = ${E};
-      const _t = document.createTextNode(_v == null || _v === false ? '' : ${coerce});
-      const _m = ${swapHost}.childNodes[${b.childIndex}];
-      ${swapHost}.insertBefore(_t, _m);
-      ${swapHost}.removeChild(_m);
-      _b._txt$${b.id} = _t;
+      _b._txt$${b.id} = htextSwap(${elVar}, _v == null || _v === false ? '' : ${coerce});
       _b._prev$${b.id} = _v;
     }`;
 		}

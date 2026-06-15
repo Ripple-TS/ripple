@@ -52,6 +52,7 @@ export {
 	template,
 	clone,
 	htext,
+	htextSwap,
 	child,
 	sibling,
 	setText,
