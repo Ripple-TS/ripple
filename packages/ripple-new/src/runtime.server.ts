@@ -21,6 +21,8 @@
 // module-global "current scope" (mirroring the client's CURRENT_SCOPE) is safe.
 // ---------------------------------------------------------------------------
 
+import { BLOCK_OPEN, BLOCK_CLOSE, EMPTY_COMMENT } from './constants';
+
 interface SSRScope {
 	parent: SSRScope | null;
 	/** Context Provider values stamped on this scope (lazily allocated). */
@@ -60,6 +62,24 @@ export function escapeAttr(v: unknown): string {
 export function ssrText(v: unknown): string {
 	if (v == null || v === false) return '';
 	return escapeHtml(v);
+}
+
+/**
+ * Wrap a control-flow branch / for-item's HTML in hydration block markers
+ * (`<!--[-->` … `<!--]-->`), so a future client hydrate cursor can find the
+ * block boundaries and adopt the chosen branch. Mirrors Ripple's marker
+ * protocol (shared constants in ./constants).
+ */
+export function ssrBlock(content: string): string {
+	return BLOCK_OPEN + content + BLOCK_CLOSE;
+}
+
+/**
+ * A portal's site marker. The portal body renders into a foreign target at the
+ * client, so server-side it leaves a single anchor comment placeholder.
+ */
+export function ssrPortal(): string {
+	return EMPTY_COMMENT;
 }
 
 /** A dynamic attribute: ` name="value"`, ` name` for `true`, or '' to omit. */
@@ -166,11 +186,20 @@ export function useContext<T>(ctx: Context<T>): T {
 	return readContext(ctx);
 }
 
+// Sentinel thrown by `use(thenable)` on the server: a server render is sync and
+// can't await, so a pending value suspends. The nearest `@try` catches this and
+// renders its `@pending` fallback (see the compiler's ssrEmitTry). Distinct from
+// real errors, which route to `@catch`.
+const SSR_SUSPENSE = Symbol('ripple-new.ssr.suspense');
+export function ssrIsSuspense(err: unknown): boolean {
+	return err === SSR_SUSPENSE;
+}
+
 export function use<T>(usable: Context<T> | PromiseLike<T>): T {
 	if (usable && (usable as any).$$kind === CONTEXT_TAG) return readContext(usable as Context<T>);
-	throw new Error(
-		'use(thenable) / Suspense is not supported during server render yet (SSR Phase 1).',
-	);
+	// A thenable: server render can't resolve it — suspend so the enclosing
+	// @try renders its @pending fallback.
+	throw SSR_SUSPENSE;
 }
 
 // ---------------------------------------------------------------------------
@@ -287,9 +316,11 @@ export interface RenderResult {
 
 /**
  * Render a server-compiled component (a function returning an HTML string) to
- * `{ head, body, css }`. `head` is empty in Phase 1 (no document-head API yet);
- * `css` is the concatenation of every scoped stylesheet injected by the
- * components that actually rendered.
+ * `{ head, body, css }`. `head` is empty (no document-head API yet); `css` is
+ * the scoped stylesheets of the components that actually rendered, emitted as
+ * ready-to-place `<style data-ripple-new="hash">…</style>` tags (one per hash,
+ * deduped). The client's `injectStyle` matches that `data-ripple-new` hash and
+ * skips re-injecting on hydration — so the styles cross the boundary once.
  */
 export function render(component: ServerComponent, props?: any): RenderResult {
 	const prevScope = CURRENT_SCOPE;
@@ -301,7 +332,10 @@ export function render(component: ServerComponent, props?: any): RenderResult {
 		const root = ssrScope(null);
 		CURRENT_SCOPE = root;
 		const body = component(root, props ?? {}, undefined) ?? '';
-		const css = [...CSS.values()].join('');
+		let css = '';
+		for (const [hash, sheet] of CSS) {
+			css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
+		}
 		return { head: '', body, css };
 	} finally {
 		CURRENT_SCOPE = prevScope;

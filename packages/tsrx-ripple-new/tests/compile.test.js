@@ -264,16 +264,14 @@ describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
 		expect(out).not.toContain('template(');
 	});
 
-	it("mode: 'server' rejects control flow within Phase 1", () => {
-		expect(() =>
-			compile(
-				`export function L(p) @{ <ul>@for (const x of p.items) { <li>{x as any}</li> }</ul> }`,
-				'l.tsrx',
-				{
-					mode: 'server',
-				},
-			),
-		).toThrow(/does not support `@for`/);
+	it("mode: 'server' lowers control flow to string builders with block markers", () => {
+		const out = compile(
+			`export function L(p) @{ <ul>@for (const x of p.items) { <li>{x as any}</li> }</ul> }`,
+			'l.tsrx',
+			{ mode: 'server' },
+		).code;
+		expect(out).toContain('ssrBlock(');
+		expect(out).toMatch(/from 'ripple-new\/server'/);
 	});
 
 	it('an unknown mode throws', () => {

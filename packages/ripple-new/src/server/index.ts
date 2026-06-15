@@ -37,6 +37,7 @@ export {
 	createContext,
 	use,
 	useContext,
+	ssrIsSuspense,
 	type Context,
 	type FormStatus,
 
@@ -48,5 +49,7 @@ export {
 	ssrStyle,
 	ssrSpread,
 	ssrComponent,
+	ssrBlock,
+	ssrPortal,
 	injectStyle,
 } from '../runtime.server';

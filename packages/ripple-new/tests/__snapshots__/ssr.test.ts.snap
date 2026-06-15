@@ -59,11 +59,11 @@ exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, a
 exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > collects scoped CSS into the css field > Scoped 1`] = `
 {
   "body": "<div class="box tsrx-170b2cb6">scoped</div>",
-  "css": "
+  "css": "<style data-ripple-new="tsrx-170b2cb6">
 			.box.tsrx-170b2cb6 {
 				color: red;
 			}
-		",
+		</style>",
   "head": "",
 }
 `;

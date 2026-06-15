@@ -1202,7 +1202,7 @@ function compileServerComponent(node, ctx) {
 	return `const ${name} = ${fn};`;
 }
 
-function ssrCompileBody(node, ctx, name, cssHash, cssEntries) {
+function ssrCompileBody(node, ctx, name, cssHash, cssEntries, parentNs = 'html') {
 	const params = node.params.map((p) => printNode(p)).join(', ');
 	const paramsClause = params ? `, ${params}` : '';
 
@@ -1234,7 +1234,7 @@ function ssrCompileBody(node, ctx, name, cssHash, cssEntries) {
 		ctx,
 		name,
 		inlinedSubs,
-		'html',
+		parentNs,
 		cssHash,
 	);
 
@@ -1279,17 +1279,15 @@ function ssrEmitNode(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 			if (isComponentTag(node)) return ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash);
 			return ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash);
 		case 'TSRXExpression':
-			return ssrUnsupported(
-				'JSX-bearing expression holes (portals / JSX ternaries / sub-templates)',
-			);
+			return ssrEmitTsrxExpression(node, ctx, name, inlinedSubs, cssHash);
 		case 'IfStatement':
-			return ssrUnsupported('`@if` control flow');
+			return ssrEmitIf(node, ctx, name, inlinedSubs, parentNs, cssHash);
 		case 'ForOfStatement':
-			return ssrUnsupported('`@for` control flow');
+			return ssrEmitFor(node, ctx, name, inlinedSubs, parentNs, cssHash);
 		case 'TryStatement':
-			return ssrUnsupported('`@try` / Suspense');
+			return ssrEmitTry(node, ctx, name, inlinedSubs, parentNs, cssHash);
 		case 'SwitchStatement':
-			return ssrUnsupported('`@switch` control flow');
+			return ssrEmitSwitch(node, ctx, name, inlinedSubs, parentNs, cssHash);
 		case 'ActivityStatement':
 			return ssrUnsupported('`<Activity>`');
 		case 'FragmentStart':
@@ -1422,10 +1420,6 @@ function ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 }
 
 function ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash) {
-	const kids = normalizeChildren(node.children || []);
-	if (kids.length > 0)
-		ssrUnsupported('component children (e.g. <Comp>…</Comp> / context Providers)');
-
 	const compExpr = tagExpr(node);
 	const attrs = node.attributes || node.openingElement?.attributes || [];
 	const propParts = [];
@@ -1452,8 +1446,146 @@ function ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash) {
 			);
 		}
 	}
+	// Children → a server `children` render-fn (returns an HTML string). The
+	// component decides whether/where to render them by calling props.children(scope)
+	// — e.g. a context Provider does exactly that. Mirrors the client convention
+	// where children compile to a render fn passed as the `children` prop.
+	if ((node.children || []).length > 0) {
+		const sub = ssrCompileSub(node.children, ctx, '__schildren', [], cssHash, 'html');
+		inlinedSubs.push(sub.fn + ';');
+		propParts.push(`"children": ${sub.fnName}`);
+	}
 	ctx.runtimeNeeded.add('ssrComponent');
 	return `ssrComponent(__s, ${compExpr}, { ${propParts.join(', ')} })`;
+}
+
+// ---------------------------------------------------------------------------
+// Server control flow — @if/@for/@switch/@try lowered to HTML-string builders.
+// Each branch/item/case body is compiled (via ssrCompileSub) into a server
+// sub-function returning a string, and the chosen branch's output is wrapped in
+// `ssrBlock(…)` (BLOCK_OPEN/BLOCK_CLOSE markers) so a future client hydrate
+// cursor can find the boundaries. Expressions (test/items/discriminant) are
+// printed and evaluated at render time.
+// ---------------------------------------------------------------------------
+
+// Compile a list of body statements into a server sub-function `function NAME(__s,
+// …params, __extra) { return <html>; }`. Returns { fnName, fn }; the caller pushes
+// `fn` into the enclosing inlinedSubs.
+function ssrCompileSub(bodyStmts, ctx, baseName, paramNodes, cssHash, parentNs) {
+	const fnName = `${baseName}$${ctx.nextHelperId++}`;
+	const synth = { params: paramNodes || [], body: bodyStmts };
+	const fn = ssrCompileBody(synth, ctx, fnName, cssHash, [], parentNs || 'html');
+	return { fnName, fn };
+}
+
+function ssrEmitIf(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const testExpr = printExpr(node.test);
+	const thenStmts =
+		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+	const thenSub = ssrCompileSub(thenStmts, ctx, '__sif', [], cssHash, parentNs);
+	inlinedSubs.push(thenSub.fn + ';');
+	let elseCall = "''";
+	if (node.alternate) {
+		// An `else if` arrives as an IfStatement; wrap it so it recurses through
+		// ssrEmitNode and gets its own marker.
+		const elseStmts =
+			node.alternate.type === 'BlockStatement' ? node.alternate.body : [node.alternate];
+		const elseSub = ssrCompileSub(elseStmts, ctx, '__selse', [], cssHash, parentNs);
+		inlinedSubs.push(elseSub.fn + ';');
+		elseCall = `${elseSub.fnName}(__s)`;
+	}
+	ctx.runtimeNeeded.add('ssrBlock');
+	return `ssrBlock((${testExpr}) ? ${thenSub.fnName}(__s) : ${elseCall})`;
+}
+
+function ssrEmitFor(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const itemsExpr = printExpr(node.right);
+	const itemId = node.left.declarations[0].id; // Identifier or destructuring Pattern
+	const params = [itemId];
+	if (node.index) params.push(node.index);
+	const itemSub = ssrCompileSub(node.body.body, ctx, '__sitem', params, cssHash, parentNs);
+	inlinedSubs.push(itemSub.fn + ';');
+	let emptyCall = "''";
+	if (node.empty) {
+		const emptyStmts = node.empty.type === 'BlockStatement' ? node.empty.body : [node.empty];
+		const emptySub = ssrCompileSub(emptyStmts, ctx, '__sempty', [], cssHash, parentNs);
+		inlinedSubs.push(emptySub.fn + ';');
+		emptyCall = `${emptySub.fnName}(__s)`;
+	}
+	ctx.runtimeNeeded.add('ssrBlock');
+	const mapper = node.index
+		? `(__it, __i) => ssrBlock(${itemSub.fnName}(__s, __it, __i))`
+		: `(__it) => ssrBlock(${itemSub.fnName}(__s, __it))`;
+	// Eager: render every item now and join. No keyed reconciliation server-side;
+	// each item gets its own block marker for a future hydrate to match.
+	return `ssrBlock((() => { const __items = Array.from((${itemsExpr}) ?? []); return __items.length === 0 ? ${emptyCall} : __items.map(${mapper}).join(''); })())`;
+}
+
+function ssrEmitSwitch(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const discExpr = printExpr(node.discriminant);
+	const arms = [];
+	let defaultCall = "''";
+	for (const c of node.cases || []) {
+		const sub = ssrCompileSub(c.consequent || [], ctx, '__scase', [], cssHash, parentNs);
+		inlinedSubs.push(sub.fn + ';');
+		if (c.test == null) defaultCall = `${sub.fnName}(__s)`;
+		else arms.push(`__d === (${printExpr(c.test)}) ? ${sub.fnName}(__s)`);
+	}
+	ctx.runtimeNeeded.add('ssrBlock');
+	// First case matching by strict-equality wins (no JS fall-through); else default.
+	const selector = arms.length ? `${arms.join(' : ')} : ${defaultCall}` : defaultCall;
+	return `ssrBlock((() => { const __d = (${discExpr}); return ${selector}; })())`;
+}
+
+function ssrEmitTry(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const trySub = ssrCompileSub(node.block.body, ctx, '__stry', [], cssHash, parentNs);
+	inlinedSubs.push(trySub.fn + ';');
+	let pendingCall = "''";
+	if (node.pending && node.pending.body && node.pending.body.length > 0) {
+		const pendSub = ssrCompileSub(node.pending.body, ctx, '__spend', [], cssHash, parentNs);
+		inlinedSubs.push(pendSub.fn + ';');
+		pendingCall = `${pendSub.fnName}(__s)`;
+	}
+	let catchExpr = 'throw __e'; // no @catch → rethrow non-suspense errors
+	if (node.handler) {
+		const params = node.handler.param ? [node.handler.param] : [];
+		const catchSub = ssrCompileSub(
+			node.handler.body.body,
+			ctx,
+			'__scatch',
+			params,
+			cssHash,
+			parentNs,
+		);
+		inlinedSubs.push(catchSub.fn + ';');
+		catchExpr = node.handler.param
+			? `return ${catchSub.fnName}(__s, __e)`
+			: `return ${catchSub.fnName}(__s)`;
+	}
+	ctx.runtimeNeeded.add('ssrBlock');
+	ctx.runtimeNeeded.add('ssrIsSuspense');
+	// SSR @try: render the try body; a `use(thenable)` suspension renders the
+	// @pending fallback; any other thrown error renders @catch (or rethrows).
+	return `ssrBlock((() => { try { return ${trySub.fnName}(__s); } catch (__e) { if (ssrIsSuspense(__e)) return ${pendingCall}; ${catchExpr}; } })())`;
+}
+
+// `{createPortal(...)}` (and other JSX-bearing expression holes) at child
+// position arrive as TSRXExpression. A portal leaves a site marker on the
+// server (its body renders into a foreign target on the client). Other rich
+// holes (JSX ternaries / sub-templates) remain unsupported for now.
+function ssrEmitTsrxExpression(node, ctx, name, inlinedSubs, cssHash) {
+	const expr = node.expression;
+	if (
+		expr &&
+		expr.type === 'CallExpression' &&
+		expr.callee &&
+		expr.callee.type === 'Identifier' &&
+		expr.callee.name === 'createPortal'
+	) {
+		ctx.runtimeNeeded.add('ssrPortal');
+		return 'ssrPortal()';
+	}
+	return ssrUnsupported('JSX-bearing expression holes (JSX ternaries / sub-templates)');
 }
 
 // ===========================================================================

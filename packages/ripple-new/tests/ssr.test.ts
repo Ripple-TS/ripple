@@ -102,11 +102,16 @@ describe('SSR Phase 1 — semantics', () => {
 		expect(out.head).toBe('');
 	});
 
-	it('rejects control flow at compile time (Phase 1 boundary)', () => {
+	it('still rejects truly-unsupported server constructs (e.g. <Activity>)', () => {
+		// Control flow is supported as of Phase 3; Activity is not.
 		expect(() =>
-			compile(`export function C(p) @{ <div>@if (p.x) { <span>{'a'}</span> }</div> }`, 'c.tsrx', {
-				mode: 'server',
-			}),
-		).toThrow(/does not support `@if`/);
+			compile(
+				`export function C(p) @{ <Activity mode="hidden"><span>{'a'}</span></Activity> }`,
+				'c.tsrx',
+				{
+					mode: 'server',
+				},
+			),
+		).toThrow(/does not support `<Activity>`/);
 	});
 });

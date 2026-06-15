@@ -2455,6 +2455,14 @@ const _injectedStyles = new Set<string>();
 
 export function injectStyle(id: string, css: string): void {
 	if (_injectedStyles.has(id)) return;
+	// SSR de-dup: the server already emitted this scoped stylesheet (the css of
+	// the RenderResult, a `<style data-ripple-new="hash">`). On a hydrated page
+	// the per-runtime Set is empty, so also check the DOM before re-injecting —
+	// otherwise hydration would append a duplicate <style>.
+	if (typeof document !== 'undefined' && document.querySelector(`style[data-ripple-new="${id}"]`)) {
+		_injectedStyles.add(id);
+		return;
+	}
 	_injectedStyles.add(id);
 	const el = document.createElement('style');
 	el.setAttribute('data-ripple-new', id);
