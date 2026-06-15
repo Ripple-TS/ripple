@@ -93,14 +93,19 @@ export function ssrText(v: unknown): string {
  * `{x as string}` / literals / `+`-concats to `ssrText`, everything else here.
  */
 export function ssrChild(v: unknown, scope: SSRScope): string {
-	if (v == null || v === false || v === true) return '';
+	// Every renderable hole serializes to ONE `<!--[-->…<!--]-->` range so the
+	// client's childSlot adopts a uniform marker pair on hydration regardless of
+	// whether the value is a component, an element, a primitive, or empty — and
+	// an empty hole still occupies one logical node, keeping sibling cursor
+	// alignment intact. `ssrComponent` already wraps its output in block markers.
+	if (v == null || v === false || v === true) return ssrBlock('');
 	// A component-body / children render function, or `<Comp/>` used as a value.
 	if (typeof v === 'function') return ssrComponent(scope, v as ServerComponent, {});
 	if (typeof v === 'object' && (v as any).$$kind === ELEMENT_TAG) {
 		const d = v as { type: ServerComponent; props: any };
 		return ssrComponent(scope, d.type, d.props);
 	}
-	return escapeHtml(v);
+	return ssrBlock(escapeHtml(v));
 }
 
 /**

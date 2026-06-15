@@ -124,7 +124,7 @@ export default function Main() @{
 		<div class="jumbotron">
 			<div class="row">
 				<div class="col-md-6">
-					<h1>{'ripple-new'}</h1>
+					<h1>ripple-new</h1>
 				</div>
 				<div class="col-md-6">
 					<div class="row">
@@ -134,7 +134,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="run"
 								onClick={run}
-							>{'Create 1,000 rows'}</button>
+							>Create 1,000 rows</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -142,7 +142,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="runlots"
 								onClick={runLots}
-							>{'Create 10,000 rows'}</button>
+							>Create 10,000 rows</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -150,7 +150,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="add"
 								onClick={add}
-							>{'Append 1,000 rows'}</button>
+							>Append 1,000 rows</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -158,7 +158,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="update"
 								onClick={update}
-							>{'Update every 10th row'}</button>
+							>Update every 10th row</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -166,7 +166,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="clear"
 								onClick={clear}
-							>{'Clear'}</button>
+							>Clear</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -174,7 +174,7 @@ export default function Main() @{
 								class="btn btn-primary btn-block"
 								id="swaprows"
 								onClick={swap}
-							>{'Swap Rows'}</button>
+							>Swap Rows</button>
 						</div>
 					</div>
 				</div>

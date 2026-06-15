@@ -3147,6 +3147,154 @@ export function componentSlot(
 	}
 }
 
+// ---------------------------------------------------------------------------
+// Renderable expression hole — `{expr}` (no string cast) as element content
+// ---------------------------------------------------------------------------
+//
+// `{x as string}` (and string literals / template literals) compile to the fast
+// text binding (`htext`/`setText`). A bare `{x}` is a RENDERABLE hole, matching
+// Ripple: it renders a component/children-function or an element descriptor,
+// and coerces a primitive to text. The compiler routes these through a compCall
+// entry tagged `isChild`, emitting `childSlot(...)` instead of `componentSlot`.
+//
+// childSlot owns ONE `<!--[-->`/`<!--]-->` marker pair (the same shape the
+// server emits via `ssrBlock`/`ssrComponent` for every renderable hole, so
+// hydration alignment is uniform whether the value is a component or a
+// primitive). Between the markers it holds EITHER a Block (function /
+// ElementDescriptor) or a single Text node (primitive). A value whose mode
+// flips across renders tears the old content down — cleanups fire, content
+// nodes are removed — and rebuilds in place, keeping the markers.
+
+interface ChildSlot {
+	__kind: 'childSlot';
+	start: Comment;
+	end: Comment;
+	block: Block | null;
+	text: Text | null;
+	currentComp: ComponentBody | null;
+}
+
+// `true`/`false`/`null`/`undefined` render as empty (React parity); everything
+// else stringifies. Text-node `.data` is literal, so no HTML escaping here (that
+// is only the server's concern, where output is serialized into markup).
+function coerceChildText(v: unknown): string {
+	return v == null || v === false || v === true ? '' : String(v);
+}
+
+// Remove the slot's current content (Block or Text) while preserving its marker
+// pair, so a mode switch (or component-identity swap) rebuilds in place.
+function clearChildContent(state: ChildSlot): void {
+	if (state.block !== null) {
+		// Fire the subtree's cleanups but DON'T let unmountBlock strip the DOM —
+		// it would take our markers with it. We remove the content nodes by hand.
+		unmountBlock(state.block, false);
+		state.block = null;
+	}
+	const parent = state.start.parentNode;
+	if (parent !== null) {
+		let n: Node | null = state.start.nextSibling;
+		while (n !== null && n !== state.end) {
+			const next: Node | null = n.nextSibling;
+			parent.removeChild(n);
+			n = next;
+		}
+	}
+	state.text = null;
+	state.currentComp = null;
+}
+
+export function childSlot(
+	parentScope: Scope,
+	slotKey: string,
+	domParent: Node,
+	value: unknown,
+	anchor?: Node | null,
+): void {
+	const parentBlock = parentScope.block;
+	let state = parentScope[slotKey] as ChildSlot | undefined;
+	if (state === undefined) {
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: adopt the server's `<!--[-->…<!--]-->` range as our markers
+			// and point the cursor at the first content node for the Block's clone()
+			// / the text adopt below.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('');
+			end = document.createComment('');
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
+		state = { __kind: 'childSlot', start, end, block: null, text: null, currentComp: null };
+		parentScope[slotKey] = state;
+		registerSlot(parentScope, state);
+	}
+
+	// Classify: function → ComponentBody (empty props, e.g. a `{children}`
+	// render-fn); ElementDescriptor → its `type` + carried props; anything else
+	// → text/empty.
+	let comp: ComponentBody | null = null;
+	let props: any = {};
+	if (typeof value === 'function') {
+		comp = value as ComponentBody;
+	} else if (isElementDescriptor(value)) {
+		comp = value.type as ComponentBody;
+		props = value.props;
+	}
+
+	if (comp !== null) {
+		if (state.block !== null && comp === state.currentComp) {
+			// Same component identity → update in place (matches componentSlot).
+			state.block.props = props;
+			renderBlock(state.block);
+			return;
+		}
+		// New component (first render, or identity swap from text / another comp).
+		clearChildContent(state);
+		state.currentComp = comp;
+		const b = createBlock('dynamic', parentBlock, domParent, state.start, state.end, comp, props);
+		state.block = b;
+		renderBlock(b);
+		return;
+	}
+
+	// Text / empty.
+	if (state.block !== null) clearChildContent(state); // swapped away from a component
+	const str = coerceChildText(value);
+	if (str === '') {
+		// `null` / `undefined` / `false` / `true` / `''` render NOTHING — not even
+		// an empty text node — matching React/Ripple. The server emits an empty
+		// `<!--[--><!--]-->` range for these, so the marker pair stays content-less
+		// on both sides. Drop a text node left over from a prior non-empty render.
+		if (state.text !== null) {
+			state.text.remove();
+			state.text = null;
+		}
+		return;
+	}
+	if (state.text !== null) {
+		if (state.text.data !== str) state.text.data = str;
+		return;
+	}
+	if (hydrating) {
+		// Adopt the server text sitting between our adopted markers. (An empty hole
+		// has no text node, but `str !== ''` here means the server emitted one.)
+		const n = hydrateNode;
+		if (n !== null && n !== state.end && n.nodeType === 3) {
+			state.text = n as Text;
+			hydrateNode = n.nextSibling;
+			if ((n as Text).data !== str) (n as Text).data = str;
+			return;
+		}
+	}
+	const tn = document.createTextNode(str);
+	domParent.insertBefore(tn, state.end);
+	state.text = tn;
+}
+
 // True if any context the block read last render has since changed value
 // (its Provider bumped the version). When so, a memo bailout must NOT skip —
 // the block (or a consumer in its subtree) needs the new context value.

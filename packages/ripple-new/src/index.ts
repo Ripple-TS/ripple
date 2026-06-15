@@ -72,6 +72,7 @@ export {
 	Activity,
 	componentSlot,
 	componentSlotLite,
+	childSlot,
 	Fragment,
 	FragmentInstance,
 	mountFragmentRef,

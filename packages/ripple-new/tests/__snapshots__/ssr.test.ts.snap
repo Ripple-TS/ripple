@@ -34,7 +34,7 @@ exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, a
 
 exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, and attributes > Greet 1`] = `
 {
-  "body": "<p>Hello, Ada !</p>",
+  "body": "<p>Hello, <!--[-->Ada<!--]--> !</p>",
   "css": "",
   "head": "",
 }

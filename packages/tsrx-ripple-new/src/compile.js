@@ -2378,6 +2378,22 @@ function needsRichDispatch(expr) {
 //   - String `+` concat:             at least one operand known-string
 // Conservative — returns false for anything we can't prove. Safe to use
 // from any text-binding site BEFORE the TS-wrapper strip in printNode.
+// A text child that is a plain string literal — `<el>plain text</el>` (JSXText)
+// or `<el>{'literal'}</el>` — can be baked directly into the template HTML
+// instead of emitting a runtime text binding. Returns the literal string, or
+// `null` when the expression is anything dynamic. Mirrors the server's
+// `Literal`-string fast path so client and server emit identical markup.
+function staticTextLiteral(node) {
+	if (node == null || typeof node !== 'object') return null;
+	if (
+		(node.type === 'Literal' || node.type === 'StringLiteral') &&
+		typeof node.value === 'string'
+	) {
+		return node.value;
+	}
+	return null;
+}
+
 function isKnownStringExpression(node) {
 	if (node == null || typeof node !== 'object') return false;
 	if (node.type === 'Literal' || node.type === 'StringLiteral') {
@@ -2791,6 +2807,24 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 		);
 	}
 	for (const cc of compCalls) {
+		// Renderable `{expr}` hole — dispatch the value at runtime (component /
+		// element → block; primitive → text; nullish/boolean/'' → nothing). Shares
+		// the host/`<!>`-anchor resolution + hole-aware hydration walk with real
+		// component calls; only the emitted runtime call differs.
+		if (cc.isChild) {
+			ctx.runtimeNeeded.add('childSlot');
+			let anchorArg;
+			if (cc.anchorVar) {
+				anchorArg = `, __s.${bindingsName}._compAnchor$${cc.id}`;
+			} else {
+				const isInsideHost = cc.elVar.startsWith('_el');
+				anchorArg = isInsideHost ? '' : ', __block.endMarker';
+			}
+			afterLines.push(
+				`  childSlot(__s, ${JSON.stringify('_child$' + cc.id)}, __s.${bindingsName}._compHost$${cc.id}, ${cc.valueExpr}${anchorArg});`,
+			);
+			continue;
+		}
 		// Design (c) lite path: hookless same-module callees with no key/spread/
 		// children skip the Block/CompSlot/Comment-markers triplet but STILL pass
 		// host + anchor so the callee's body inserts content INSIDE the owning
@@ -3164,14 +3198,24 @@ function emitNodeHtml(
 	cssHash = null,
 ) {
 	if (node.type === 'Text') {
-		bindings.push({
-			id: bindings.length,
-			kind: 'text',
-			expr: printExpr(resolveStyleExpr(node.expression, cssHash)),
-			knownString: isKnownStringExpression(node.expression),
-			path: path.slice(0, -1),
-			childIndex: path[path.length - 1],
-		});
+		if (isKnownStringExpression(node.expression)) {
+			bindings.push({
+				id: bindings.length,
+				kind: 'text',
+				expr: printExpr(resolveStyleExpr(node.expression, cssHash)),
+				knownString: true,
+				path: path.slice(0, -1),
+				childIndex: path[path.length - 1],
+			});
+			return '<!>';
+		}
+		// Bare `{expr}` (no string cast) → RENDERABLE hole at a top-level / multi-
+		// root position. Host is the parent (the dropped last path segment), anchor
+		// is this node's `<!>` slot.
+		const ch = makeChildCall(node.expression, ctx, cssHash);
+		ch.hostPath = path.slice(0, -1);
+		ch.anchorPath = path;
+		compCalls.push(ch);
 		return '<!>';
 	}
 	// Top-level <Fragment ref={…}> — the wrapping <ripple-frag> (multi-root)
@@ -3517,14 +3561,34 @@ function emitElementHtml(
 	// Special case: a single Text child (only-child text fast path).
 	if (children.length === 1 && children[0].type === 'Text') {
 		const txtChild = children[0];
-		bindings.push({
-			id: bindings.length,
-			kind: 'textOnlyChild',
-			expr: printExpr(resolveStyleExpr(txtChild.expression, cssHash)),
-			knownString: isKnownStringExpression(txtChild.expression),
-			path,
-		});
-		// The element stays empty in the template — runtime appends a Text node.
+		const staticLit = staticTextLiteral(txtChild.expression);
+		if (staticLit !== null) {
+			// Static string-literal text (JSXText or `{'literal'}`) bakes directly
+			// into the template HTML — no `htext` mount, no `setText` binding, and a
+			// byte-for-byte match with the server's `<el>text</el>` so hydration
+			// adopts it for free. (Sole child → no sibling childIndex / text-node
+			// merge concerns; mirrors the server `Literal` fast path.)
+			html += escapeHtml(staticLit);
+		} else if (isKnownStringExpression(txtChild.expression)) {
+			bindings.push({
+				id: bindings.length,
+				kind: 'textOnlyChild',
+				expr: printExpr(resolveStyleExpr(txtChild.expression, cssHash)),
+				knownString: true,
+				path,
+			});
+			// The element stays empty in the template — runtime appends a Text node.
+		} else {
+			// Bare `{expr}` (no string cast) → RENDERABLE hole: render a component /
+			// element / children-fn, coerce a primitive to text, render nothing for
+			// nullish/boolean. A `<!>` anchor at child index 0 lets childSlot adopt
+			// the server's `<!--[-->…<!--]-->` range on hydration.
+			const ch = makeChildCall(txtChild.expression, ctx, cssHash);
+			ch.hostPath = path;
+			ch.anchorPath = [...path, 0];
+			compCalls.push(ch);
+			html += '<!>';
+		}
 	} else if (children.length === 1 && children[0].type === 'Html') {
 		// `{html expr}` as the only child — set the element's innerHTML directly.
 		// Empty template; runtime injects the HTML on mount and diff-replaces on update.
@@ -3537,11 +3601,21 @@ function emitElementHtml(
 	} else {
 		// Mixed children — walk them in order.
 		let childIdx = 0;
+		// Whether the PREVIOUS emitted child was a baked static-text literal. Two
+		// adjacent baked text nodes would collapse into a single DOM text node
+		// (the HTML parser merges them), throwing off `childIndex` counting for
+		// later siblings — so a static text adjacent to another baked text falls
+		// back to a `<!>` binding instead. Comments (`<!>`, `<!--frag-->`) and
+		// elements between two texts prevent the merge, so this only trips on
+		// genuinely consecutive literals (`{'a'}{'b'}`).
+		let prevBakedText = false;
 		// Stack of in-flight fragmentRef bindings: each FragmentStart pushes a
 		// binding (path captured); the matching FragmentEnd pops and patches in
 		// the endPath. Stacked so nested <Fragment ref={…}> pairs cleanly.
 		const fragRefStack = [];
 		for (const child of children) {
+			const prevBaked = prevBakedText;
+			prevBakedText = false;
 			if (child.type === 'FragmentStart') {
 				const b = {
 					id: bindings.length,
@@ -3565,16 +3639,36 @@ function emitElementHtml(
 				continue;
 			}
 			if (child.type === 'Text') {
-				bindings.push({
-					id: bindings.length,
-					kind: 'text',
-					expr: printExpr(resolveStyleExpr(child.expression, cssHash)),
-					knownString: isKnownStringExpression(child.expression),
-					path,
-					childIndex: childIdx,
-				});
-				html += '<!>'; // placeholder we'll replace at mount
-				childIdx++;
+				const staticLit = staticTextLiteral(child.expression);
+				if (staticLit !== null && !prevBaked) {
+					// Static literal with no baked-text neighbour → bake into the
+					// template HTML (no binding), occupying one childNode slot just like
+					// the `<!>` it replaces, so sibling `childIndex`es are unchanged.
+					html += escapeHtml(staticLit);
+					prevBakedText = true;
+					childIdx++;
+				} else if (isKnownStringExpression(child.expression)) {
+					bindings.push({
+						id: bindings.length,
+						kind: 'text',
+						expr: printExpr(resolveStyleExpr(child.expression, cssHash)),
+						knownString: true,
+						path,
+						childIndex: childIdx,
+					});
+					html += '<!>'; // placeholder we'll replace at mount
+					childIdx++;
+				} else {
+					// Bare `{expr}` (no string cast) → RENDERABLE hole (component /
+					// element / children-fn render; primitive → text; nullish/boolean →
+					// nothing). Same `<!>` anchor + host as a component child.
+					const ch = makeChildCall(child.expression, ctx, cssHash);
+					ch.hostPath = path;
+					ch.anchorPath = [...path, childIdx];
+					compCalls.push(ch);
+					html += '<!>';
+					childIdx++;
+				}
 			} else if (child.type === 'Element') {
 				if (isComponentTag(child)) {
 					const cc = makeCompCall(
@@ -3741,7 +3835,7 @@ function emitElementHtml(
 							'    <li>{text item.name}</li>\n' +
 							'  }',
 					);
-				} else {
+				} else if (isKnownStringExpression(expr)) {
 					bindings.push({
 						id: bindings.length,
 						kind: 'text',
@@ -3751,10 +3845,29 @@ function emitElementHtml(
 							componentName,
 							inlinedSubs,
 						),
-						knownString: isKnownStringExpression(expr),
+						knownString: true,
 						path,
 						childIndex: childIdx,
 					});
+					html += '<!>';
+					childIdx++;
+				} else {
+					// Bare `{expr}` (no string cast) → RENDERABLE hole. Uses the TSRX-aware
+					// printer for the value (sub-template arrows etc.), then rides the
+					// childSlot path like the simpler Text branch.
+					const ch = {
+						id: ctx.nextHelperId++,
+						isChild: true,
+						valueExpr: printExprWithTsrx(
+							resolveStyleExpr(expr, cssHash),
+							ctx,
+							componentName,
+							inlinedSubs,
+						),
+						hostPath: path,
+						anchorPath: [...path, childIdx],
+					};
+					compCalls.push(ch);
 					html += '<!>';
 					childIdx++;
 				}
@@ -3923,6 +4036,21 @@ function tagExpr(node) {
 		return `(${printExpr(name.expression)})`;
 	}
 	return name.name;
+}
+
+// Build a "renderable child" call entry for a bare `{expr}` text hole (no
+// string cast). Mirrors Ripple/React: a component / element-descriptor /
+// children render-fn RENDERS, a primitive coerces to text, and
+// null/undefined/boolean/'' render nothing. It rides the compCall machinery
+// (host + `<!>` anchor resolution, hole-aware child/sibling hydration walk) but
+// emits `childSlot(...)` instead of `componentSlot(...)`. The caller sets
+// `.hostPath` / `.anchorPath` exactly like a component call.
+function makeChildCall(expr, ctx, cssHash) {
+	return {
+		id: ctx.nextHelperId++,
+		isChild: true,
+		valueExpr: printExpr(resolveStyleExpr(expr, cssHash)),
+	};
 }
 
 function makeCompCall(
