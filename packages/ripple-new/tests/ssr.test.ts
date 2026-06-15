@@ -1,0 +1,112 @@
+import { describe, it, expect, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { compile } from '../../tsrx-ripple-new/src/index.js';
+import * as RT from 'ripple-new/server';
+
+const FIXTURES = join(process.cwd(), 'packages/ripple-new/tests/_fixtures');
+
+// SSR Phase 1: server render of static markup + dynamic text + attributes +
+// nested components. The compiler (mode: 'server') emits HTML-string-building
+// bodies that import from 'ripple-new/server'; we eval them with that same
+// runtime module injected, then call render() and snapshot { head, body, css }.
+
+function evalServer(source: string, file: string): Record<string, any> {
+	let { code } = compile(source, file, { mode: 'server' });
+	// Bind the server-runtime import to the live module, and capture exports.
+	code = code.replace(
+		/import\s*\{([^}]*)\}\s*from\s*['"]ripple-new\/server['"];?/g,
+		'const {$1} = __rt;',
+	);
+	code = code.replace(/export const (\w+) =/g, 'const $1 = __exports.$1 =');
+	code = code.replace(/export default (\w+);?/g, '__exports.default = $1;');
+	const fn = new Function('__rt', '__exports', code + '\nreturn __exports;');
+	return fn(RT, {});
+}
+
+const fixture = (name: string) => readFileSync(join(FIXTURES, `${name}.tsrx`), 'utf8');
+
+const basic = evalServer(fixture('basic'), 'basic.tsrx');
+const ssr = evalServer(fixture('ssr'), 'ssr.tsrx');
+
+describe('SSR Phase 1 — basic fixtures', () => {
+	it('renders static markup, dynamic text, and attributes', () => {
+		expect(RT.render(basic.Hello)).toMatchSnapshot('Hello');
+		expect(RT.render(basic.Counter, { n: 5 })).toMatchSnapshot('Counter');
+		expect(RT.render(basic.Greet, { name: 'Ada' })).toMatchSnapshot('Greet');
+		expect(RT.render(basic.Mixed)).toMatchSnapshot('Mixed');
+	});
+
+	it('renders SVG and MathML (static + dynamic attrs)', () => {
+		expect(RT.render(basic.SvgStatic)).toMatchSnapshot('SvgStatic');
+		expect(RT.render(basic.SvgDynamic, { klass: 'c', w: 30, fill: 'blue' })).toMatchSnapshot(
+			'SvgDynamic',
+		);
+		expect(
+			RT.render(basic.MathDynamic, { display: 'block', klass: 'm', value: 'x' }),
+		).toMatchSnapshot('MathDynamic');
+	});
+});
+
+describe('SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css)', () => {
+	it('renders dynamic object style with camelCase keys', () => {
+		expect(RT.render(ssr.Styled, { klass: 'a', color: 'red', label: 'hi' })).toMatchSnapshot(
+			'Styled',
+		);
+	});
+
+	it('renders boolean attributes, void elements, and dynamic attrs', () => {
+		expect(RT.render(ssr.Field, { value: 'v', disabled: true })).toMatchSnapshot('Field-disabled');
+		expect(RT.render(ssr.Field, { value: 'v', disabled: false })).toMatchSnapshot('Field-enabled');
+	});
+
+	it('serializes spread attributes', () => {
+		expect(RT.render(ssr.Spread, { attrs: { id: 'x', 'data-k': '1' } })).toMatchSnapshot('Spread');
+	});
+
+	it('emits innerHTML raw (unescaped)', () => {
+		expect(RT.render(ssr.Raw, { html: '<b>bold</b>' })).toMatchSnapshot('Raw');
+	});
+
+	it('renders nested component composition', () => {
+		expect(RT.render(ssr.Card, { title: 'T', tag: 'new' })).toMatchSnapshot('Card');
+	});
+
+	it('collects scoped CSS into the css field', () => {
+		const out = RT.render(ssr.Scoped);
+		expect(out).toMatchSnapshot('Scoped');
+		expect(out.css).toContain('.box.tsrx-');
+		expect(out.body).toContain('class="box tsrx-');
+	});
+});
+
+describe('SSR Phase 1 — semantics', () => {
+	it('escapes dynamic text and attribute values', () => {
+		const out = RT.render(basic.Greet, { name: '<script>"x"' });
+		expect(out.body).toContain('&lt;script&gt;');
+		expect(out.body).not.toContain('<script>');
+	});
+
+	it('hooks render their initial value; effects do NOT run on the server', () => {
+		const onEffect = vi.fn();
+		const out = RT.render(ssr.HookView, { start: 7, onEffect });
+		expect(out.body).toContain('<span class="n">7</span>');
+		expect(out.body).toContain('<span class="d">14</span>'); // useMemo ran once
+		expect(out.body).toMatch(/id=":in-[0-9a-z]+:"/); // deterministic useId
+		expect(onEffect).not.toHaveBeenCalled(); // useEffect is a no-op on the server
+	});
+
+	it('returns the { head, body, css } shape', () => {
+		const out = RT.render(basic.Hello);
+		expect(Object.keys(out).sort()).toEqual(['body', 'css', 'head']);
+		expect(out.head).toBe('');
+	});
+
+	it('rejects control flow at compile time (Phase 1 boundary)', () => {
+		expect(() =>
+			compile(`export function C(p) @{ <div>@if (p.x) { <span>{'a'}</span> }</div> }`, 'c.tsrx', {
+				mode: 'server',
+			}),
+		).toThrow(/does not support `@if`/);
+	});
+});

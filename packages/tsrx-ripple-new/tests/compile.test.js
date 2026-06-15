@@ -251,8 +251,29 @@ describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
 		expect(b).toBe(a);
 	});
 
-	it("mode: 'server' is recognized but not implemented yet (fails loudly)", () => {
-		expect(() => compile(src, 'App.tsrx', { mode: 'server' })).toThrow(/not implemented/i);
+	it("mode: 'server' emits HTML-string-building bodies importing 'ripple-new/server'", () => {
+		const out = compile(
+			`export function G(props) @{ <p class={props.c}>{props.name as string}</p> }`,
+			'G.tsrx',
+			{ mode: 'server' },
+		).code;
+		expect(out).toContain("from 'ripple-new/server'");
+		expect(out).toContain('ssrText(');
+		expect(out).toContain('ssrAttr(');
+		// No client template-clone codegen in server mode.
+		expect(out).not.toContain('template(');
+	});
+
+	it("mode: 'server' rejects control flow within Phase 1", () => {
+		expect(() =>
+			compile(
+				`export function L(p) @{ <ul>@for (const x of p.items) { <li>{x as any}</li> }</ul> }`,
+				'l.tsrx',
+				{
+					mode: 'server',
+				},
+			),
+		).toThrow(/does not support `@for`/);
 	});
 
 	it('an unknown mode throws', () => {

@@ -761,13 +761,11 @@ export function compile(source, filename, options) {
 		throw new Error(`Unknown compile mode "${mode}" — expected 'client' or 'server'.`);
 	}
 	if (mode === 'server') {
-		// Server (SSR) codegen lands in a later phase of the SSR plan. The mode
-		// flag is threaded now so the Vite plugin and packaging can be wired up
-		// first; fail loudly rather than silently emit client (DOM-cloning) code.
-		throw new Error(
-			'ripple-new server-mode compilation is not implemented yet. The ' +
-				'`mode: "server"` flag is recognized so SSR can be built incrementally.',
-		);
+		// Server (SSR) codegen — Phase 1: static markup + dynamic text + attributes
+		// + nested components, emitted as HTML-string-building bodies importing the
+		// server runtime from 'ripple-new/server'. Control flow, portals, Activity
+		// and component children are rejected (later phases).
+		return compileServer(source, filename, options);
 	}
 	const ast = parseModule(source, filename);
 	const hmrEnabled = !!(options && options.hmr);
@@ -1094,6 +1092,368 @@ export function compile(source, filename, options) {
 		code: prelude + body + hmrBlock,
 		map: buildSourceMap(source, ctx.mapSourceName, segments),
 	};
+}
+
+// ===========================================================================
+// Server (SSR) codegen — Phase 1
+//
+// A parallel, self-contained codegen path. Each component compiles to a
+// function `(__s, props, __extra) => string` that BUILDS an HTML string by
+// interleaving static chunks with `ssr*` runtime helpers for the dynamic holes
+// (text/attrs/style/spread) and `ssrComponent` for nested components. The
+// client path (template/clone + bindings) is left completely untouched.
+//
+// Out of Phase 1 scope (rejected with a clear diagnostic): control flow
+// (@if/@for/@switch/@try), portals, Activity, fragment refs, component children,
+// and JSX-bearing expression holes. They land in later SSR phases.
+// ===========================================================================
+
+function ssrUnsupported(what) {
+	throw new Error(
+		`ripple-new server render (SSR Phase 1) does not support ${what} yet. ` +
+			`Phase 1 covers static markup, dynamic text, attributes and nested ` +
+			`components; control flow, portals and component children come later.`,
+	);
+}
+
+function compileServer(source, filename, options) {
+	const ast = parseModule(source, filename);
+	const ctx = {
+		filename,
+		mode: 'server',
+		runtimeNeeded: new Set(),
+		hoistedHelpers: [],
+		cssInjections: [],
+		currentComponentLocals: null,
+		nextHookSymId: 0,
+		nextHelperId: 0,
+		componentInfo: new Map(),
+		mapSource: source,
+		mapSourceName: (filename || 'module.tsrx').split(/[\\/]/).pop(),
+		_setupMaps: null,
+	};
+
+	let body = '';
+	for (const node of ast.body) {
+		if (isComponentFunction(node)) {
+			body += compileServerComponent(node, ctx) + '\n\n';
+		} else if (node.type === 'ExportDefaultDeclaration' && isComponentFunction(node.declaration)) {
+			body += compileServerComponent({ ...node.declaration, default: true }, ctx) + '\n\n';
+		} else if (node.type === 'ExportNamedDeclaration' && isComponentFunction(node.declaration)) {
+			body += compileServerComponent({ ...node.declaration, export: true }, ctx) + '\n\n';
+		} else if (node.type === 'ImportDeclaration' && node.source.value === 'ripple-new') {
+			// User imports from 'ripple-new' resolve to the server runtime instead.
+			for (const sp of node.specifiers || []) {
+				const name = sp.imported?.name || sp.local?.name;
+				if (name) ctx.runtimeNeeded.add(name);
+			}
+		} else {
+			applyStyleMap(node, ctx);
+			if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+				applyStyleMap(node.declaration, ctx);
+			}
+			body += printNode(rewriteJsxValues(node, ctx)) + '\n';
+		}
+	}
+
+	const runtimeImport =
+		ctx.runtimeNeeded.size > 0
+			? `import { ${[...ctx.runtimeNeeded].sort().join(', ')} } from 'ripple-new/server';\n\n`
+			: '';
+	const helpers = ctx.hoistedHelpers.length ? ctx.hoistedHelpers.join('\n') + '\n\n' : '';
+	const code = runtimeImport + helpers + body;
+	// Phase 1: minimal (valid, empty-mapping) source map. SSR source maps are a
+	// later refinement; the client path keeps its real per-token maps.
+	return { code, map: buildSourceMap(source, ctx.mapSourceName, []) };
+}
+
+function compileServerComponent(node, ctx) {
+	const name = node.id.name;
+	if (node.async)
+		throw new Error(
+			`Component \`${name}\` is declared \`async\`, which ripple-new does not support.`,
+		);
+	if (node.generator)
+		throw new Error(
+			`Component \`${name}\` is declared as a generator, which ripple-new does not support.`,
+		);
+
+	const isExported = !!(node.export || node.default || node.exported);
+	const isDefault = !!node.default;
+
+	// Scoped <style>: applyCssScoping stamps hash classes + registers cssInjections.
+	// Capture this component's entries to emit injectStyle INSIDE the body (so the
+	// active server render collects CSS only for components it actually renders).
+	const beforeCss = ctx.cssInjections.length;
+	const cssHash = applyCssScoping(node, ctx);
+	const cssEntries = ctx.cssInjections.slice(beforeCss);
+
+	const prevLocals = ctx.currentComponentLocals;
+	ctx.currentComponentLocals = collectComponentLocals(node);
+	let fn;
+	try {
+		fn = ssrCompileBody(node, ctx, name, cssHash, cssEntries);
+	} finally {
+		ctx.currentComponentLocals = prevLocals;
+	}
+
+	if (isDefault) return `const ${name} = ${fn};\nexport default ${name};`;
+	if (isExported) return `export const ${name} = ${fn};`;
+	return `const ${name} = ${fn};`;
+}
+
+function ssrCompileBody(node, ctx, name, cssHash, cssEntries) {
+	const params = node.params.map((p) => printNode(p)).join(', ');
+	const paramsClause = params ? `, ${params}` : '';
+
+	let statements;
+	let jsxNodes;
+	if (node.body && node.body.type === 'JSXCodeBlock') {
+		statements = node.body.body || [];
+		jsxNodes = node.body.render ? [node.body.render] : [];
+	} else {
+		const bodyRewritten = rewriteEarlyExits(node.body);
+		statements = [];
+		jsxNodes = [];
+		for (const child of bodyRewritten) {
+			if (isJsxNode(child)) {
+				if (child.type === 'Element' && elementTagName(child) === 'style') continue;
+				jsxNodes.push(child);
+			} else statements.push(child);
+		}
+	}
+
+	const inlinedSubs = [];
+	const rewritten = statements
+		.map((s) => rewriteHookCalls(s, ctx, name))
+		.map((s) => rewriteJsxValues(s, ctx));
+	const setupCode = rewritten.map((s) => '  ' + printNode(s).replace(/\n/g, '\n  ')).join('\n');
+
+	const htmlExpr = ssrEmitNodes(
+		normalizeChildren(jsxNodes),
+		ctx,
+		name,
+		inlinedSubs,
+		'html',
+		cssHash,
+	);
+
+	let cssLines = '';
+	if (cssEntries && cssEntries.length) {
+		ctx.runtimeNeeded.add('injectStyle');
+		cssLines =
+			cssEntries
+				.map((e) => `  injectStyle(${JSON.stringify(e.hash)}, ${JSON.stringify(e.css)});`)
+				.join('\n') + '\n';
+	}
+	const subsBlock = inlinedSubs.length
+		? inlinedSubs.map((s) => '  ' + s.replace(/\n/g, '\n  ')).join('\n') + '\n'
+		: '';
+	const setupBlock = setupCode ? setupCode + '\n' : '';
+	return `function ${name}(__s${paramsClause}, __extra) {\n${cssLines}${setupBlock}${subsBlock}  return ${htmlExpr};\n}`;
+}
+
+// Serialize a list of normalized JSX nodes to a JS expression that evaluates to
+// an HTML string (the concatenation of each node's expression).
+function ssrEmitNodes(nodes, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const parts = [];
+	for (const n of nodes) {
+		const p = ssrEmitNode(n, ctx, name, inlinedSubs, parentNs, cssHash);
+		if (p) parts.push(p);
+	}
+	return parts.length ? parts.join(' + ') : "''";
+}
+
+function ssrEmitNode(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	switch (node.type) {
+		case 'Text': {
+			const expr = node.expression;
+			if (expr && expr.type === 'Literal' && typeof expr.value === 'string') {
+				// Static text — escape at compile time, inline as a literal chunk.
+				return JSON.stringify(escapeHtml(expr.value));
+			}
+			ctx.runtimeNeeded.add('ssrText');
+			return `ssrText(${printExpr(resolveStyleExpr(expr, cssHash))})`;
+		}
+		case 'Element':
+			if (isComponentTag(node)) return ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash);
+			return ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash);
+		case 'TSRXExpression':
+			return ssrUnsupported(
+				'JSX-bearing expression holes (portals / JSX ternaries / sub-templates)',
+			);
+		case 'IfStatement':
+			return ssrUnsupported('`@if` control flow');
+		case 'ForOfStatement':
+			return ssrUnsupported('`@for` control flow');
+		case 'TryStatement':
+			return ssrUnsupported('`@try` / Suspense');
+		case 'SwitchStatement':
+			return ssrUnsupported('`@switch` control flow');
+		case 'ActivityStatement':
+			return ssrUnsupported('`<Activity>`');
+		case 'FragmentStart':
+		case 'FragmentEnd':
+			return ssrUnsupported('fragment refs (`<Fragment ref={…}>`)');
+		default:
+			return ssrUnsupported(`node type ${node.type}`);
+	}
+}
+
+function ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash) {
+	const tag = elementTagName(node);
+	const attrs = node.attributes || node.openingElement?.attributes || [];
+	const selfNs = nsForSelf(node, parentNs);
+	const childNs = nsForChildren(node, selfNs);
+
+	// `parts` are JS expressions concatenated with `+`. `lit` accumulates the
+	// current static run so adjacent literals fold into one quoted chunk.
+	const parts = [];
+	let lit = '<' + tag;
+	const flush = () => {
+		if (lit) {
+			parts.push(JSON.stringify(lit));
+			lit = '';
+		}
+	};
+
+	const firstSpreadIdx = attrs.findIndex(
+		(a) => a.type === 'SpreadAttribute' || a.type === 'JSXSpreadAttribute',
+	);
+	let innerHtmlExpr = null;
+
+	for (let attrI = 0; attrI < attrs.length; attrI++) {
+		const attr = attrs[attrI];
+		if (attr.type === 'SpreadAttribute' || attr.type === 'JSXSpreadAttribute') {
+			flush();
+			ctx.runtimeNeeded.add('ssrSpread');
+			parts.push(`ssrSpread(${printExprWithTsrx(attr.argument, ctx, name, inlinedSubs)})`);
+			continue;
+		}
+		if (attr.type !== 'Attribute' && attr.type !== 'JSXAttribute') continue;
+		const rawAttrName = attr.name.name || attr.name;
+		if (rawAttrName === 'key') continue;
+		// Events and refs have no server semantics — dropped.
+		if (rawAttrName === 'ref') continue;
+		if (rawAttrName.length > 2 && rawAttrName.startsWith('on') && /^[A-Z]/.test(rawAttrName[2]))
+			continue;
+		// Function form/button actions are events too; a static string `action`
+		// falls through to the normal attribute path below.
+		const attrName = rawAttrName === 'className' ? 'class' : rawAttrName;
+		const val = attr.value;
+		const isAfterSpread = firstSpreadIdx !== -1 && attrI > firstSpreadIdx;
+
+		if (attrName === 'innerHTML' && val) {
+			const inner2 = val.type === 'JSXExpressionContainer' ? val.expression : val;
+			innerHtmlExpr = printExpr(inner2);
+			continue;
+		}
+
+		// Boolean attribute (no value) → present.
+		if (val == null) {
+			lit += ' ' + attrName;
+			continue;
+		}
+
+		let inner = val.type === 'JSXExpressionContainer' ? val.expression : val;
+
+		if (attrName === 'style') {
+			inner = resolveStyleExpr(inner, cssHash);
+			if (!isAfterSpread && inner.type === 'Literal' && typeof inner.value === 'string') {
+				lit += ` style="${escapeAttr(inner.value)}"`;
+				continue;
+			}
+			if (!isAfterSpread && inner.type === 'ObjectExpression' && objectExprIsStaticLiteral(inner)) {
+				const css = staticObjectToCssString(inner);
+				if (css) lit += ` style="${escapeAttr(css)}"`;
+				continue;
+			}
+			flush();
+			ctx.runtimeNeeded.add('ssrStyle');
+			parts.push(`ssrStyle(${printExprWithTsrx(inner, ctx, name, inlinedSubs)})`);
+			continue;
+		}
+
+		// Static literal (and not after a spread) → inline into the tag.
+		if (!isAfterSpread && inner.type === 'Literal') {
+			if (typeof inner.value === 'string') lit += ` ${attrName}="${escapeAttr(inner.value)}"`;
+			else if (typeof inner.value === 'number') lit += ` ${attrName}="${inner.value}"`;
+			else if (inner.value === true) lit += ` ${attrName}`;
+			continue;
+		}
+
+		// Dynamic attribute (or literal after a spread).
+		flush();
+		ctx.runtimeNeeded.add('ssrAttr');
+		parts.push(
+			`ssrAttr(${JSON.stringify(attrName)}, ${printExprWithTsrx(inner, ctx, name, inlinedSubs)})`,
+		);
+	}
+
+	// Void elements: `<tag …/>`, no children.
+	if (VOID_ELEMENTS.has(tag) && (node.children || []).length === 0) {
+		lit += '/>';
+		flush();
+		return parts.join(' + ');
+	}
+
+	lit += '>';
+	if (innerHtmlExpr !== null) {
+		// innerHTML — raw (unescaped) content, no other children.
+		flush();
+		parts.push(`(${innerHtmlExpr} == null ? '' : String(${innerHtmlExpr}))`);
+	} else {
+		const childrenExpr = ssrEmitNodes(
+			normalizeChildren(node.children || []),
+			ctx,
+			name,
+			inlinedSubs,
+			childNs,
+			cssHash,
+		);
+		if (childrenExpr !== "''") {
+			flush();
+			parts.push(childrenExpr);
+		}
+	}
+	lit += `</${tag}>`;
+	flush();
+	return parts.join(' + ');
+}
+
+function ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash) {
+	const kids = normalizeChildren(node.children || []);
+	if (kids.length > 0)
+		ssrUnsupported('component children (e.g. <Comp>…</Comp> / context Providers)');
+
+	const compExpr = tagExpr(node);
+	const attrs = node.attributes || node.openingElement?.attributes || [];
+	const propParts = [];
+	for (const attr of attrs) {
+		if (attr.type === 'SpreadAttribute' || attr.type === 'JSXSpreadAttribute') {
+			propParts.push(`...(${printExprWithTsrx(attr.argument, ctx, name, inlinedSubs)})`);
+			continue;
+		}
+		if (attr.type !== 'Attribute' && attr.type !== 'JSXAttribute') continue;
+		const attrName = attr.name.name || attr.name;
+		if (attrName === 'key') continue;
+		const val = attr.value;
+		if (val == null) {
+			propParts.push(`${JSON.stringify(attrName)}: true`);
+			continue;
+		}
+		let inner = val.type === 'JSXExpressionContainer' ? val.expression : val;
+		inner = resolveStyleExpr(inner, cssHash);
+		if (inner.type === 'Literal') {
+			propParts.push(`${JSON.stringify(attrName)}: ${JSON.stringify(inner.value)}`);
+		} else {
+			propParts.push(
+				`${JSON.stringify(attrName)}: (${printExprWithTsrx(inner, ctx, name, inlinedSubs)})`,
+			);
+		}
+	}
+	ctx.runtimeNeeded.add('ssrComponent');
+	return `ssrComponent(__s, ${compExpr}, { ${propParts.join(', ')} })`;
 }
 
 // ===========================================================================

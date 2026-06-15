@@ -19,7 +19,9 @@ describe('SSR scaffold (phase 0)', () => {
 		expect(EMPTY_COMMENT).toBe('<!---->');
 	});
 
-	it('ripple-new/server render() resolves but is not implemented yet', () => {
-		expect(() => render(null)).toThrow(/not implemented/i);
+	it('ripple-new/server render() renders a component to { head, body, css }', () => {
+		// Phase 1: render is implemented (a server component is a function → HTML).
+		const out = render(((_s: any) => '<p>hi</p>') as any);
+		expect(out).toEqual({ head: '', body: '<p>hi</p>', css: '' });
 	});
 });
