@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mount, flushEffects } from './_helpers';
 import { flushSync } from '../src/index.js';
-import { ActivityHost, NestedActivity } from './_fixtures/activity.tsrx';
+import { ActivityHost, NestedActivity, TextActivityHost } from './_fixtures/activity.tsrx';
 
 // Parity with React 19 <Activity mode="hidden"|"visible"> — the portable subset
 // of React's Activity-test.js / ReactDOMActivity-test.js (DOM + effect lifecycle
@@ -141,6 +141,39 @@ describe('<Activity> — nested', () => {
 		flushEffects();
 		expect(log).toEqual(['render inner', 'mount inner']);
 		expect((r.container.querySelector('#inner') as HTMLElement).style.display).toBe('');
+		r.unmount();
+	});
+});
+
+describe('<Activity> — bare text child', () => {
+	// A direct text node has no box and can't take display:none. Hiding must blank
+	// its data instead, or the text stays visible while the subtree is "hidden".
+	const host = (r: any) => r.container.querySelector('#host') as HTMLElement;
+
+	it('mount hidden hides bare text (data blanked); not visible in the DOM', () => {
+		const r = mount(TextActivityHost, { mode: 'hidden', text: 'secret' });
+		flushEffects();
+		expect(host(r).textContent).toBe(''); // text node blanked
+		r.unmount();
+	});
+
+	it('mount visible shows the text', () => {
+		const r = mount(TextActivityHost, { mode: 'visible', text: 'secret' });
+		flushEffects();
+		expect(host(r).textContent).toBe('secret');
+		r.unmount();
+	});
+
+	it('toggling restores the text on show and re-hides on hide', () => {
+		const r = mount(TextActivityHost, { mode: 'visible', text: 'secret' });
+		flushEffects();
+		expect(host(r).textContent).toBe('secret');
+
+		r.update(TextActivityHost, { mode: 'hidden', text: 'secret' });
+		expect(host(r).textContent).toBe('');
+
+		r.update(TextActivityHost, { mode: 'visible', text: 'secret' });
+		expect(host(r).textContent).toBe('secret');
 		r.unmount();
 	});
 });

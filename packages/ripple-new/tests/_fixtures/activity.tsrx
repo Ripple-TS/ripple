@@ -27,6 +27,16 @@ export function ActivityHost(props) @{
 	</div>
 }
 
+// Bare-text Activity child: when hidden, the direct text node (no element box,
+// can't take display:none) must still be hidden — see hideActivityRange.
+export function TextActivityHost(props) @{
+	<div id="host">
+		<Activity mode={props.mode}>
+			{props.text as string}
+		</Activity>
+	</div>
+}
+
 // Nested: an inner Activity (mode controlled separately) inside an outer one.
 function Inner(props) @{
 	useLayoutEffect(() => {

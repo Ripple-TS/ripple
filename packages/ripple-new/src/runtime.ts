@@ -3767,9 +3767,20 @@ interface ActivitySlot {
 	hidden: boolean;
 	/** Direct child elements we hid → their prior inline `display`, for restore. */
 	savedDisplay: Map<HTMLElement, string>;
+	/**
+	 * Direct child TEXT nodes we hid → their prior `data`, for restore. Text nodes
+	 * have no box and can't take `display:none`, so a bare-text Activity child
+	 * (`<Activity mode="hidden">{'…'}</Activity>`) is hidden by blanking its data.
+	 */
+	savedText: Map<Text, string>;
 }
 
-/** display:none every direct element child between the block's markers (idempotent). */
+/**
+ * Hide every direct child between the block's markers (idempotent). Elements get
+ * `display:none`; bare text nodes can't be styled, so their `data` is blanked
+ * (original saved for restore). Re-runs after each hidden re-render, so newly
+ * created children — and dynamic text re-populated by setText — get re-hidden.
+ */
 function hideActivityRange(state: ActivitySlot): void {
 	const b = state.block;
 	if (!b) return;
@@ -3779,15 +3790,21 @@ function hideActivityRange(state: ActivitySlot): void {
 			const el = node as HTMLElement;
 			if (!state.savedDisplay.has(el)) state.savedDisplay.set(el, el.style.display);
 			el.style.display = 'none';
+		} else if (node.nodeType === 3) {
+			const t = node as Text;
+			if (!state.savedText.has(t)) state.savedText.set(t, t.data);
+			if (t.data !== '') t.data = '';
 		}
 		node = node.nextSibling;
 	}
 }
 
-/** Restore the inline `display` we saved on hide. */
+/** Restore the inline `display` / text `data` we saved on hide. */
 function showActivityRange(state: ActivitySlot): void {
 	for (const [el, display] of state.savedDisplay) el.style.display = display;
 	state.savedDisplay.clear();
+	for (const [t, data] of state.savedText) t.data = data;
+	state.savedText.clear();
 }
 
 export function activityBlock(
@@ -3808,7 +3825,13 @@ export function activityBlock(
 		domParent.insertBefore(bStart, anchor ?? null);
 		domParent.insertBefore(bEnd, anchor ?? null);
 		const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
-		state = { __kind: 'activityBlockSlot', block: b, hidden: false, savedDisplay: new Map() };
+		state = {
+			__kind: 'activityBlockSlot',
+			block: b,
+			hidden: false,
+			savedDisplay: new Map(),
+			savedText: new Map(),
+		};
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
 		if (wantHidden) {
