@@ -7,6 +7,7 @@ export const version: string = pkg.version;
 export {
 	// Public API
 	createRoot,
+	hydrate,
 	flushSync,
 	drainPassiveEffects,
 	act,
@@ -50,6 +51,7 @@ export {
 	// Compiler-emitted runtime helpers
 	template,
 	clone,
+	htext,
 	setText,
 	setAttribute,
 	setClassName,

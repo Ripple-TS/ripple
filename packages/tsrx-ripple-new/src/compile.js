@@ -2406,6 +2406,7 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 	for (const b of elementBindings) {
 		const elVar = ensureVar(b.path);
 		if (b.kind === 'text' || b.kind === 'textOnlyChild') ctx.runtimeNeeded.add('setText');
+		if (b.kind === 'textOnlyChild') ctx.runtimeNeeded.add('htext');
 		if (b.kind === 'attr') ctx.runtimeNeeded.add('setAttribute');
 		if (b.kind === 'class') {
 			if (b.ns && b.ns !== 'html') ctx.runtimeNeeded.add('setAttribute');
@@ -2682,11 +2683,13 @@ function emitBindingMount(b, elVar) {
 			// mount AND every update. Falsy-check still applied so `null` /
 			// `undefined` / `false` render as empty rather than literal text.
 			const coerce = b.knownString ? '_v' : 'String(_v)';
+			// `htext` creates + appends the text node on a fresh mount (identical to
+			// the old inline path), but ADOPTS the server text node when hydrating.
+			// Seeding `_prev` to the client value makes the first update a no-op when
+			// it matches the server text (no hydration mismatch re-render).
 			return `    {
       const _v = ${E};
-      const _t = document.createTextNode(_v == null || _v === false ? '' : ${coerce});
-      ${elVar}.appendChild(_t);
-      _b._txt$${b.id} = _t;
+      _b._txt$${b.id} = htext(${elVar}, _v == null || _v === false ? '' : ${coerce});
       _b._prev$${b.id} = _v;
     }`;
 		}

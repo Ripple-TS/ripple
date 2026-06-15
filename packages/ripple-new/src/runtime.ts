@@ -1619,8 +1619,51 @@ export function template(html: string, ns: number = 0, frag: number = 0): Elemen
 	return frag ? wrapEl : (wrapEl.firstChild as Element);
 }
 
+// ---------------------------------------------------------------------------
+// Hydration (SSR Phase 2). When `hydrating`, the compiled mount path ADOPTS the
+// server-rendered DOM instead of cloning a fresh template: `clone()` returns the
+// adopted server root, and `htext()` adopts the existing server text node rather
+// than creating one. Element/attribute/event/ref bindings are unchanged — their
+// template paths (`_root.firstChild.nextSibling…`) already align with the server
+// DOM, because text lives INSIDE elements and so doesn't shift element siblings.
+//
+// Dead-code-elimination contract (mirrors Ripple/Svelte): `hydrating` is set
+// `true` ONLY inside the `hydrate()` entry. An app that never imports `hydrate`
+// lets the bundler tree-shake it, after which `hydrating` is provably always
+// `false`, so it constant-folds and EVERY `if (hydrating)` branch below (in the
+// hot-path clone/htext) is dropped — client-only builds pay zero hydration cost.
+// Do NOT assign `hydrating = true` anywhere except `hydrate()`, or this breaks.
+// ---------------------------------------------------------------------------
+let hydrating = false;
+// The server node the next clone() call should adopt as a component root.
+let hydrateNextRoot: Node | null = null;
+
 export function clone<T extends Node>(node: T): T {
+	if (hydrating && hydrateNextRoot !== null) {
+		const adopted = hydrateNextRoot as unknown as T;
+		// Consumed: a leaf component clones exactly one root template.
+		hydrateNextRoot = null;
+		return adopted;
+	}
 	return node.cloneNode(true) as T;
+}
+
+/**
+ * Compiler-emitted for a single-text-child binding's mount. Normally creates the
+ * text node and appends it; while hydrating, ADOPTS the element's existing
+ * (server-rendered) text node so the DOM isn't rebuilt. The prev-value the
+ * compiler seeds alongside this makes the first update a no-op when the client
+ * value matches the server text (avoiding a mismatch re-render).
+ */
+export function htext(el: Node, text: string): Text {
+	if (hydrating) {
+		const first = el.firstChild;
+		if (first !== null && first.nodeType === 3) return first as Text;
+		// Server rendered an empty hole (value was ''/null) — create + adopt.
+	}
+	const t = document.createTextNode(text);
+	el.appendChild(t);
+	return t;
 }
 
 // ---------------------------------------------------------------------------
@@ -5243,6 +5286,55 @@ export function createRoot(container: Element): Root {
 				rootBlock = null;
 				currentBody = null;
 			}
+			unregisterDelegationTarget(container);
+		},
+	};
+}
+
+/**
+ * Hydrate a server-rendered container (SSR Phase 2). Instead of clearing the
+ * container and cloning fresh DOM, the compiled mount ADOPTS the existing
+ * server DOM: `clone()` returns the server root, `htext()` adopts server text
+ * nodes, and event handlers / update bindings are stamped on the adopted nodes
+ * (`hydrating` flag, see clone/htext). The seeded prev-values make the first
+ * update a no-op when the client matches the server (no mismatch re-render).
+ *
+ * Phase 2 scope: a single-root leaf component — element structure, attributes,
+ * single-text-children, events, refs, innerHTML. Nested components, adjacent /
+ * mixed text holes and control flow arrive in a later phase.
+ */
+export function hydrate(
+	bodyOrElement: ComponentBody | ElementDescriptor,
+	container: Element,
+	props?: any,
+): { unmount(): void } {
+	let body: ComponentBody;
+	if (isElementDescriptor(bodyOrElement)) {
+		body = bodyOrElement.type;
+		props = bodyOrElement.props;
+	} else {
+		body = bodyOrElement;
+	}
+	registerDelegationTarget(container);
+	const rootBlock = createBlock('root', null, container, null, null, body, props);
+	hydrating = true;
+	// The component's server root is the container's first node. clone() adopts it.
+	hydrateNextRoot = container.firstChild;
+	try {
+		renderBlock(rootBlock);
+	} finally {
+		hydrating = false;
+		hydrateNextRoot = null;
+	}
+	// Commit effects on the next microtask flush (same as createRoot's first render).
+	if (!syncFlush && !scheduled) {
+		scheduled = true;
+		queueMicrotask(flush);
+	}
+	return {
+		unmount() {
+			unmountBlock(rootBlock, /*detachDom*/ false);
+			container.textContent = '';
 			unregisterDelegationTarget(container);
 		},
 	};
