@@ -3449,16 +3449,18 @@ function mountTry(state: TrySlot): void {
 	state.savedDom = null;
 	state.hasResolved = false;
 	state.branch = 1;
-	const bStart = document.createComment('try-b');
-	const bEnd = document.createComment('/try-b');
-	if (hydrating) {
-		// The server's resolved arm content is already inside the adopted slot
-		// range — bracket it and point the cursor at it so the try body's clone()
-		// adopts the server DOM (use() returns its seeded value → success arm).
-		state.domParent.insertBefore(bStart, state.start.nextSibling);
-		state.domParent.insertBefore(bEnd, state.end);
+	let bStart: Node;
+	let bEnd: Node;
+	if (hydrating && isBlockOpen(state.start.nextSibling)) {
+		// ADOPT the server's inner arm range (no inserted markers — byte-for-byte;
+		// see ifBlock). The seeded use() values let the try body render its success
+		// arm and adopt the server DOM.
+		bStart = state.start.nextSibling as Comment;
+		bEnd = matchingClose(bStart);
 		hydrateNode = bStart.nextSibling;
 	} else {
+		bStart = document.createComment('try-b');
+		bEnd = document.createComment('/try-b');
 		state.domParent.insertBefore(bStart, state.end);
 		state.domParent.insertBefore(bEnd, state.end);
 	}
@@ -4319,16 +4321,19 @@ export function ifBlock(
 			// Each branch gets its OWN start/end markers inside the if's permanent
 			// range. Branch unmount removes them along with the branch's DOM; the
 			// permanent state.start / state.end stay put.
-			const bStart = document.createComment('br');
-			const bEnd = document.createComment('/br');
-			if (hydrating) {
-				// The branch content is ALREADY in the adopted slot range — bracket it
-				// (bStart after slot.start, bEnd before slot.end) and point the cursor
-				// at its first node so the branch body's clone() adopts the server DOM.
-				domParent.insertBefore(bStart, state.start.nextSibling);
-				domParent.insertBefore(bEnd, state.end);
+			let bStart: Node;
+			let bEnd: Node;
+			if (hydrating && isBlockOpen(state.start.nextSibling)) {
+				// ADOPT the server's inner branch range (no inserted markers →
+				// byte-for-byte). The server nests `<!--[-->`(slot) `<!--[-->`(branch)
+				// content `<!--]-->`(branch) `<!--]-->`(slot); the inner pair IS the
+				// branch's start/end (so swap still removes just the branch range).
+				bStart = state.start.nextSibling as Comment;
+				bEnd = matchingClose(bStart);
 				hydrateNode = bStart.nextSibling;
 			} else {
+				bStart = document.createComment('br');
+				bEnd = document.createComment('/br');
 				domParent.insertBefore(bStart, state.end);
 				domParent.insertBefore(bEnd, state.end);
 			}
@@ -4597,15 +4602,16 @@ export function switchBlock(
 		}
 		state.caseIdx = nextIdx;
 		if (body) {
-			const bStart = document.createComment('case');
-			const bEnd = document.createComment('/case');
-			if (hydrating) {
-				// Bracket the already-present case content in the adopted range and
-				// point the cursor at it (see ifBlock).
-				domParent.insertBefore(bStart, state.start.nextSibling);
-				domParent.insertBefore(bEnd, state.end);
+			let bStart: Node;
+			let bEnd: Node;
+			if (hydrating && isBlockOpen(state.start.nextSibling)) {
+				// ADOPT the server's inner case range (no inserted markers — see ifBlock).
+				bStart = state.start.nextSibling as Comment;
+				bEnd = matchingClose(bStart);
 				hydrateNode = bStart.nextSibling;
 			} else {
+				bStart = document.createComment('case');
+				bEnd = document.createComment('/case');
 				domParent.insertBefore(bStart, state.end);
 				domParent.insertBefore(bEnd, state.end);
 			}
@@ -4719,8 +4725,18 @@ export function forBlock<T, E = undefined>(
 		} else {
 			const bStart = document.createComment('empty');
 			const bEnd = document.createComment('/empty');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			if (hydrating) {
+				// The server rendered the @empty content directly inside the adopted
+				// `<!--[-->…<!--]-->` range — bracket it (don't insert at the end +
+				// re-mount, which would move the adopted content) and point the cursor
+				// at it so the empty body's clone() adopts the server DOM.
+				domParent.insertBefore(bStart, state.start.nextSibling);
+				domParent.insertBefore(bEnd, state.end);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock(
 				'control-flow',
 				parentBlock,
@@ -4733,6 +4749,9 @@ export function forBlock<T, E = undefined>(
 			state.emptyBlock = b;
 			renderBlock(b);
 		}
+		// Advance the cursor past the whole @for so the next sibling's clone()
+		// doesn't read a position left inside this consumed range.
+		if (hydrating) hydrateNode = state.end.nextSibling;
 		return;
 	}
 	// We have items (or no empty body). If an empty branch was previously
@@ -4775,6 +4794,11 @@ export function forBlock<T, E = undefined>(
 		(f & 2) !== 0,
 		lite,
 	);
+	// Advance the hydration cursor past the @for's `<!--]-->` so a later sibling's
+	// clone() starts after this block — covers the zero-item, no-@empty case where
+	// reconcileKeyed mounts nothing and the cursor would otherwise stay on the
+	// inner close marker.
+	if (hydrating) hydrateNode = state.end.nextSibling;
 }
 
 function depsEqual(a: any[], b: any[]): boolean {

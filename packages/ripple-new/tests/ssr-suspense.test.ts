@@ -45,8 +45,10 @@ function deferred<T>() {
 describe('SSR Phase 4 — render() awaits use(promise)', () => {
 	it('@try awaits use(promise) and renders the resolved success arm + seed', async () => {
 		const out = await RT.render(m.Boundary, { promise: Promise.resolve('hi') });
+		// Nested ranges: outer = try-slot, inner = the resolved success arm.
 		expect(out.body).toBe(
-			`<div id="box">${OPEN}<span class="ok">hi</span>${CLOSE}</div>` + seed('["hi"]'),
+			`<div id="box">${OPEN}${OPEN}<span class="ok">hi</span>${CLOSE}${CLOSE}</div>` +
+				seed('["hi"]'),
 		);
 	});
 
@@ -57,7 +59,9 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 
 	it('routes a rejected use(promise) to @catch (rejected boundaries are not seeded)', async () => {
 		const out = await RT.render(m.Boundary, { promise: Promise.reject(new Error('nope')) });
-		expect(out.body).toBe(`<div id="box">${OPEN}<span class="err">nope</span>${CLOSE}</div>`);
+		expect(out.body).toBe(
+			`<div id="box">${OPEN}${OPEN}<span class="err">nope</span>${CLOSE}${CLOSE}</div>`,
+		);
 		expect(out.body).not.toContain('data-ripple-new-suspense');
 	});
 
@@ -66,8 +70,9 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 			outer: Promise.resolve('O'),
 			inner: Promise.resolve('I'),
 		});
+		// Two nested @try, each = slot + arm → four nested ranges around the span.
 		expect(out.body).toBe(
-			`<div id="outer">${OPEN}${OPEN}<span class="both">O:I</span>${CLOSE}${CLOSE}</div>` +
+			`<div id="outer">${OPEN}${OPEN}${OPEN}${OPEN}<span class="both">O:I</span>${CLOSE}${CLOSE}${CLOSE}${CLOSE}</div>` +
 				seed('["O","I"]'),
 		);
 	});
@@ -78,7 +83,7 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 			b: Promise.resolve('B'),
 		});
 		expect(out.body).toBe(
-			`<div id="sibs">${OPEN}<span class="a">A</span>${CLOSE}${OPEN}<span class="b">B</span>${CLOSE}</div>` +
+			`<div id="sibs">${OPEN}${OPEN}<span class="a">A</span>${CLOSE}${CLOSE}${OPEN}${OPEN}<span class="b">B</span>${CLOSE}${CLOSE}</div>` +
 				seed('["A","B"]'),
 		);
 	});
@@ -117,7 +122,7 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 		dA.resolve('A1');
 		const [a, b] = await Promise.all([pA, pB]);
 		expect(a.body).toBe(
-			`<div id="sibs">${OPEN}<span class="a">A1</span>${CLOSE}${OPEN}<span class="b">A2</span>${CLOSE}</div>` +
+			`<div id="sibs">${OPEN}${OPEN}<span class="a">A1</span>${CLOSE}${CLOSE}${OPEN}${OPEN}<span class="b">A2</span>${CLOSE}${CLOSE}</div>` +
 				seed('["A1","A2"]'),
 		);
 		// b must contain ONLY its own seed — not A's values leaking through SERIAL.

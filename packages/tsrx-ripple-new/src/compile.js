@@ -1532,7 +1532,13 @@ function ssrEmitIf(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 		elseCall = `${elseSub.fnName}(__s)`;
 	}
 	ctx.runtimeNeeded.add('ssrBlock');
-	return `ssrBlock((${testExpr}) ? ${thenSub.fnName}(__s) : ${elseCall})`;
+	// Nested ranges: the OUTER ssrBlock is the if-slot; the INNER one wraps the
+	// taken branch's content. The client adopts BOTH on hydration (slot = outer,
+	// branch = inner) so no comment markers are inserted — byte-for-byte, exactly
+	// like @for. The not-taken arm emits no inner range (just `''`).
+	const thenInner = `ssrBlock(${thenSub.fnName}(__s))`;
+	const elseInner = node.alternate ? `ssrBlock(${elseCall})` : "''";
+	return `ssrBlock((${testExpr}) ? ${thenInner} : ${elseInner})`;
 }
 
 function ssrEmitFor(node, ctx, name, inlinedSubs, parentNs, cssHash) {
@@ -1565,8 +1571,10 @@ function ssrEmitSwitch(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 	for (const c of node.cases || []) {
 		const sub = ssrCompileSub(c.consequent || [], ctx, '__scase', [], cssHash, parentNs);
 		inlinedSubs.push(sub.fn + ';');
-		if (c.test == null) defaultCall = `${sub.fnName}(__s)`;
-		else arms.push(`__d === (${printExpr(c.test)}) ? ${sub.fnName}(__s)`);
+		// Inner ssrBlock wraps the matched case's content (see ssrEmitIf) so the
+		// client adopts it as the branch range during hydration (no inserted markers).
+		if (c.test == null) defaultCall = `ssrBlock(${sub.fnName}(__s))`;
+		else arms.push(`__d === (${printExpr(c.test)}) ? ssrBlock(${sub.fnName}(__s))`);
 	}
 	ctx.runtimeNeeded.add('ssrBlock');
 	// First case matching by strict-equality wins (no JS fall-through); else default.
@@ -1577,11 +1585,14 @@ function ssrEmitSwitch(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 function ssrEmitTry(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 	const trySub = ssrCompileSub(node.block.body, ctx, '__stry', [], cssHash, parentNs);
 	inlinedSubs.push(trySub.fn + ';');
+	// Each arm's content is wrapped in an INNER ssrBlock (see ssrEmitIf) so the
+	// client adopts it as the boundary's branch range during hydration without
+	// inserting comment markers (byte-for-byte). The OUTER ssrBlock is the slot.
 	let pendingCall = "''";
 	if (node.pending && node.pending.body && node.pending.body.length > 0) {
 		const pendSub = ssrCompileSub(node.pending.body, ctx, '__spend', [], cssHash, parentNs);
 		inlinedSubs.push(pendSub.fn + ';');
-		pendingCall = `${pendSub.fnName}(__s)`;
+		pendingCall = `ssrBlock(${pendSub.fnName}(__s))`;
 	}
 	let catchExpr = 'throw __e'; // no @catch → rethrow non-suspense errors
 	if (node.handler) {
@@ -1596,14 +1607,14 @@ function ssrEmitTry(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 		);
 		inlinedSubs.push(catchSub.fn + ';');
 		catchExpr = node.handler.param
-			? `return ${catchSub.fnName}(__s, __e)`
-			: `return ${catchSub.fnName}(__s)`;
+			? `return ssrBlock(${catchSub.fnName}(__s, __e))`
+			: `return ssrBlock(${catchSub.fnName}(__s))`;
 	}
 	ctx.runtimeNeeded.add('ssrBlock');
 	ctx.runtimeNeeded.add('ssrIsSuspense');
 	// SSR @try: render the try body; a `use(thenable)` suspension renders the
 	// @pending fallback; any other thrown error renders @catch (or rethrows).
-	return `ssrBlock((() => { try { return ${trySub.fnName}(__s); } catch (__e) { if (ssrIsSuspense(__e)) return ${pendingCall}; ${catchExpr}; } })())`;
+	return `ssrBlock((() => { try { return ssrBlock(${trySub.fnName}(__s)); } catch (__e) { if (ssrIsSuspense(__e)) return ${pendingCall}; ${catchExpr}; } })())`;
 }
 
 // `{createPortal(...)}` (and other JSX-bearing expression holes) at child

@@ -27,11 +27,13 @@ const CLOSE = '<!--]-->';
 
 describe('SSR Phase 3 — control flow with block markers', () => {
 	it('@if / @else renders the chosen branch wrapped in markers', async () => {
+		// Nested ranges: outer = if-slot, inner = the taken branch (so the client
+		// adopts both on hydration with no inserted markers — byte-for-byte).
 		expect((await RT.render(m.IfElse, { on: true })).body).toBe(
-			`<div>${OPEN}<span class="yes">on</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span class="yes">on</span>${CLOSE}${CLOSE}</div>`,
 		);
 		expect((await RT.render(m.IfElse, { on: false })).body).toBe(
-			`<div>${OPEN}<span class="no">off</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span class="no">off</span>${CLOSE}${CLOSE}</div>`,
 		);
 	});
 
@@ -45,28 +47,30 @@ describe('SSR Phase 3 — control flow with block markers', () => {
 	});
 
 	it('@switch picks the matching case (or default)', async () => {
+		// Nested ranges: outer = switch-slot, inner = the matched case.
 		expect((await RT.render(m.Switch, { k: 'a' })).body).toBe(
-			`<div>${OPEN}<span>A</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span>A</span>${CLOSE}${CLOSE}</div>`,
 		);
 		expect((await RT.render(m.Switch, { k: 'b' })).body).toBe(
-			`<div>${OPEN}<span>B</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span>B</span>${CLOSE}${CLOSE}</div>`,
 		);
 		expect((await RT.render(m.Switch, { k: 'z' })).body).toBe(
-			`<div>${OPEN}<span>?</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span>?</span>${CLOSE}${CLOSE}</div>`,
 		);
 	});
 
 	it('@try renders the resolved success arm (awaiting use), @catch on error', async () => {
-		// Sync body → success arm, no suspension, no seed script.
+		// Nested ranges: outer = try-slot, inner = the resolved arm. Sync body →
+		// success arm, no suspension, no seed script.
 		expect((await RT.render(m.Boundary, { read: () => 'hi' })).body).toBe(
-			`<div>${OPEN}<span class="ok">hi</span>${CLOSE}</div>`,
+			`<div>${OPEN}${OPEN}<span class="ok">hi</span>${CLOSE}${CLOSE}</div>`,
 		);
 		// use(thenable): render() awaits it and re-renders the SUCCESS arm (Phase 4,
 		// not the @pending fallback), appending the resolved value as an inline seed
 		// <script> for the client to adopt on hydration.
 		const resolved = await RT.render(m.Boundary, { read: () => RT.use(Promise.resolve('x')) });
 		expect(resolved.body).toBe(
-			`<div>${OPEN}<span class="ok">x</span>${CLOSE}</div>` +
+			`<div>${OPEN}${OPEN}<span class="ok">x</span>${CLOSE}${CLOSE}</div>` +
 				`<script type="application/json" data-ripple-new-suspense>["x"]</script>`,
 		);
 		// A thrown error renders the @catch arm with the error.
@@ -77,7 +81,7 @@ describe('SSR Phase 3 — control flow with block markers', () => {
 				},
 			})
 		).body;
-		expect(caught).toBe(`<div>${OPEN}<span class="error">boom</span>${CLOSE}</div>`);
+		expect(caught).toBe(`<div>${OPEN}${OPEN}<span class="error">boom</span>${CLOSE}${CLOSE}</div>`);
 	});
 });
 
