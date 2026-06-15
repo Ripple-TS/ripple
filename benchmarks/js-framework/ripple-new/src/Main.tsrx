@@ -129,12 +129,9 @@ export default function Main() @{
 				<div class="col-md-6">
 					<div class="row">
 						<div class="col-sm-6 smallpad">
-							<button
-								type="button"
-								class="btn btn-primary btn-block"
-								id="run"
-								onClick={run}
-							>Create 1,000 rows</button>
+							<button type="button" class="btn btn-primary btn-block" id="run" onClick={run}>
+								Create 1,000 rows
+							</button>
 						</div>
 						<div class="col-sm-6 smallpad">
 							<button
@@ -145,36 +142,24 @@ export default function Main() @{
 							>Create 10,000 rows</button>
 						</div>
 						<div class="col-sm-6 smallpad">
-							<button
-								type="button"
-								class="btn btn-primary btn-block"
-								id="add"
-								onClick={add}
-							>Append 1,000 rows</button>
+							<button type="button" class="btn btn-primary btn-block" id="add" onClick={add}>
+								Append 1,000 rows
+							</button>
 						</div>
 						<div class="col-sm-6 smallpad">
-							<button
-								type="button"
-								class="btn btn-primary btn-block"
-								id="update"
-								onClick={update}
-							>Update every 10th row</button>
+							<button type="button" class="btn btn-primary btn-block" id="update" onClick={update}>
+								Update every 10th row
+							</button>
 						</div>
 						<div class="col-sm-6 smallpad">
-							<button
-								type="button"
-								class="btn btn-primary btn-block"
-								id="clear"
-								onClick={clear}
-							>Clear</button>
+							<button type="button" class="btn btn-primary btn-block" id="clear" onClick={clear}>
+								Clear
+							</button>
 						</div>
 						<div class="col-sm-6 smallpad">
-							<button
-								type="button"
-								class="btn btn-primary btn-block"
-								id="swaprows"
-								onClick={swap}
-							>Swap Rows</button>
+							<button type="button" class="btn btn-primary btn-block" id="swaprows" onClick={swap}>
+								Swap Rows
+							</button>
 						</div>
 					</div>
 				</div>

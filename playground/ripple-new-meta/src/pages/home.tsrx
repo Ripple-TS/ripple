@@ -9,14 +9,22 @@ export function Home(props: { params: Record<string, string> }) @{
 		</head>
 		<section class="page" id="home">
 			<header class="app-header">
-				<a href="/"><strong>ripple-new meta</strong></a>
-				<nav><a href="/">Home</a> <a href="/about">About</a></nav>
+				<a href="/">
+					<strong>ripple-new meta</strong>
+				</a>
+				<nav>
+					<a href="/">Home</a>
+
+					<a href="/about">About</a>
+				</nav>
 			</header>
 			<h1>Home</h1>
 			<p>Server-rendered, then hydrated by @ripple-ts/vite-plugin-new.</p>
-			<button class="counter" id="counter" onClick={() => setCount(count + 1)}>
-				{`count: ${count}`}
-			</button>
+			<button
+				class="counter"
+				id="counter"
+				onClick={() => setCount(count + 1)}
+			>{`count: ${count}`}</button>
 		</section>
 	</>
 }

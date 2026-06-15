@@ -7,7 +7,11 @@ export function Layout({ children }: { children: any }) @{
 		<style>
 			:global(body) {
 				margin: 0;
-				font: 15px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+				font:
+					15px/1.6 system-ui,
+					-apple-system,
+					'Segoe UI',
+					sans-serif;
 				color: #1a1640;
 			}
 			:global(a) {

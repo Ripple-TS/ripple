@@ -22,7 +22,11 @@ export function AsyncLeaf(props) @{
 export function AsyncUndef(props) @{
 	const value = use(props.promise);
 	<div id="undef">
-		{(value === undefined ? 'is-undefined' : value === null ? 'is-null' : 'other') as string}
+		{(value === undefined
+			? 'is-undefined'
+			: value === null
+				? 'is-null'
+				: 'other') as string}
 	</div>
 }
 

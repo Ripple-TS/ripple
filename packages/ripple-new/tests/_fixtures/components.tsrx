@@ -97,12 +97,12 @@ export function KeyHost(props) @{
 // normalizes this to FunctionDeclaration form.
 export const ArrowComp = (props) => @{
 	<div id="arrow">{`hi ${props.who}`}</div>
-}
+};
 
 // Arrow component with a fragment body + nested components (mixed shapes).
 export const ArrowFragHost = () => @{
 	<>
-		<ArrowComp who={'arrow'} />
-		<Label text={'sibling'} />
+		<ArrowComp who="arrow" />
+		<Label text="sibling" />
 	</>
-}
+};
