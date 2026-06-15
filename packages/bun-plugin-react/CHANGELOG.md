@@ -1,5 +1,12 @@
 # @tsrx/bun-plugin-react
 
+## 0.1.55
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/react@0.2.32
+
 ## 0.1.54
 
 ### Patch Changes

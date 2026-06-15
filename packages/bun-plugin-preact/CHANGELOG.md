@@ -1,5 +1,12 @@
 # @tsrx/bun-plugin-preact
 
+## 0.0.55
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tsrx/preact@0.1.32
+
 ## 0.0.54
 
 ### Patch Changes

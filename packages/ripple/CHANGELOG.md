@@ -1,5 +1,18 @@
 # ripple
 
+## 0.3.84
+
+### Patch Changes
+
+- [`a5d1860`](https://github.com/Ripple-TS/ripple/commit/a5d18603beac4b15e99f9d23f4d0b18b67ffe413)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Adds snapshot() api for
+  non-reactive shallow copies of RippleArray and RippleObject
+- Updated dependencies
+  [[`cc3176b`](https://github.com/Ripple-TS/ripple/commit/cc3176b4e40021021986830bdfa3295530715432),
+  [`cc3176b`](https://github.com/Ripple-TS/ripple/commit/cc3176b4e40021021986830bdfa3295530715432)]:
+  - @tsrx/core@0.1.32
+  - @tsrx/ripple@0.1.32
+
 ## 0.3.83
 
 ### Patch Changes
