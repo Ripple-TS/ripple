@@ -7,6 +7,7 @@ import {
 	RawFormWithStatus,
 	SelfFormStatus,
 	OptimisticForm,
+	BareOptimistic,
 	DirectAction,
 	RawForm,
 } from './_fixtures/actions.tsrx';
@@ -164,6 +165,22 @@ describe('useOptimistic', () => {
 		await settle();
 		// Real committed state (no '?'), optimistic queue cleared.
 		expect(r.find('#list').textContent).toBe('x,y');
+		r.unmount();
+	});
+
+	it('shows briefly then reverts when addOptimistic is called OUTSIDE a transition', async () => {
+		// Bare addOptimistic (no Action): the value shows for one render, then the
+		// queue self-clears on a microtask — it must NOT stay stuck waiting for a
+		// transition that never comes.
+		const r = mount(BareOptimistic, { initial: ['a'] });
+		flushSync(() => {});
+		expect(r.find('#list').textContent).toBe('a');
+
+		flushSync(() => (r.find('#add') as HTMLElement).click());
+		expect(r.find('#list').textContent).toBe('a,x'); // shown briefly
+
+		await tick();
+		expect(r.find('#list').textContent).toBe('a'); // reverted, not stuck
 		r.unmount();
 	});
 });

@@ -76,6 +76,19 @@ export function OptimisticForm(props) @{
 	</form>
 }
 
+// useOptimistic with addOptimistic called OUTSIDE any transition (a bare click).
+// React shows the optimistic value only briefly; it must NOT stay stuck.
+export function BareOptimistic(props) @{
+	const [items] = useState(props.initial);
+	const [optimistic, addOptimistic] = useOptimistic(items, (cur, v) => [...cur, v]);
+	<div>
+		<span id="list">
+			{optimistic.join(',') as string}
+		</span>
+		<button id="add" onClick={() => addOptimistic('x')}>{'add'}</button>
+	</div>
+}
+
 // Direct dispatch: formAction(payload) called outside a <form>.
 export function DirectAction(props) @{
 	const [state, formAction, isPending] = useActionState(props.action, props.initial);

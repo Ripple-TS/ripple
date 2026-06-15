@@ -3809,6 +3809,13 @@ interface OptimisticSlot<S, V> {
 	queue: V[];
 	updateFn?: (state: S, value: V) => S;
 	add: (value: V) => void;
+	/**
+	 * True when the queue was populated INSIDE a transition, so it should clear
+	 * when that transition settles (count → 0). Without this, an addOptimistic
+	 * called outside any transition would (a) never clear via the listener, and
+	 * (b) be wiped by an unrelated transition elsewhere settling. See `add`.
+	 */
+	armed: boolean;
 }
 
 export function useOptimistic<S, V = S>(
@@ -3824,23 +3831,40 @@ export function useOptimistic<S, V = S>(
 	const block = CURRENT_BLOCK!;
 	let s = scope.hooks?.get(slot) as OptimisticSlot<S, V> | undefined;
 	if (s === undefined) {
+		const clear = (): void => {
+			slotRef.armed = false;
+			if (slotRef.queue.length > 0) {
+				slotRef.queue.length = 0;
+				if (!block.disposed) scheduleRender(block);
+			}
+		};
 		const slotRef: OptimisticSlot<S, V> = {
 			queue: [],
 			updateFn,
+			armed: false,
 			add: (value: V) => {
 				slotRef.queue.push(value);
+				if (TRANSITION_PENDING_COUNT > 0) {
+					// Inside an Action: the optimistic value is held until that
+					// transition settles (the listener below clears it then).
+					slotRef.armed = true;
+				} else {
+					// Outside any Action: React warns and shows the value only
+					// briefly. Clear on the next microtask so it renders once and
+					// reverts — never left stuck waiting on a transition that won't come.
+					queueMicrotask(clear);
+				}
 				if (!block.disposed) scheduleRender(block);
 			},
 		};
 		s = slotRef;
 		ensureHooks(scope).set(slot, slotRef);
 		// When the owning transition settles (pending count hits 0), drop the
-		// optimistic queue so the next render re-derives from the real state.
+		// optimistic queue so the next render re-derives from the real state. Gated
+		// on `armed` so an unrelated transition settling doesn't wipe a queue this
+		// hook populated outside any transition (that path self-clears via microtask).
 		const listener = (): void => {
-			if (TRANSITION_PENDING_COUNT === 0 && slotRef.queue.length > 0) {
-				slotRef.queue.length = 0;
-				if (!block.disposed) scheduleRender(block);
-			}
+			if (TRANSITION_PENDING_COUNT === 0 && slotRef.armed) clear();
 		};
 		TRANSITION_LISTENERS.add(listener);
 		scope.cleanups.push(() => TRANSITION_LISTENERS.delete(listener));
