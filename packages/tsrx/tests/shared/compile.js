@@ -58,10 +58,8 @@ export function runSharedCompileDiagnosticsTests({ compile_to_volar_mappings, na
 				{ loose: true },
 			);
 
-			// Bare expressions as fragment children would read as JSX text
-			// (`<>{a}a</>`), hiding the identifiers from TypeScript.
 			expect(result.errors).toEqual([]);
-			expect(result.code).toContain('<>{a}{a}</>');
+			expect(result.code).toContain('{a} {a}');
 			expect(result.code).not.toContain('<>{a}a</>');
 		});
 
@@ -1726,7 +1724,9 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('<>{a}{b}</>');
+			// The inline space between the two expressions is interior, so it stays
+			// bare; only fragment-edge whitespace becomes `{' '}`.
+			expect(code).toContain('<>{a} {b}</>');
 			expect(code).not.toContain('<>{a}b</>');
 		});
 
@@ -1739,7 +1739,7 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('<>{a}{a}</>');
+			expect(code).toContain('{a} {a}');
 			expect(code).not.toContain('<>{a}a</>');
 			expect(code).not.toContain('<>aa</>');
 		});
@@ -1979,8 +1979,8 @@ export function runSharedCompileTests({
 				'App.tsrx',
 			);
 
-			expect(code).toContain('"Hello Ripple"');
-			expect(code).toContain('"Hello React"');
+			expect(code).toContain('Hello Ripple');
+			expect(code).toContain('Hello React');
 			expect(code).not.toContain('return null;');
 		});
 

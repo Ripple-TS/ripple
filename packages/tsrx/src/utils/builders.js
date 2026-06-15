@@ -369,6 +369,26 @@ export function literal(value, raw, loc_info) {
 }
 
 /**
+ * Ripple template `Text` node wrapping a string literal of `value`. Used by the
+ * Ripple normalizer when lowering a JSX text child to a template Text node.
+ *
+ * Remove once Ripple transformers move to the parser's JSX AST
+ *
+ * @param {string} value
+ * @param {AST.NodeWithLocation} [loc_info]
+ * @returns {AST.Text}
+ */
+export function text(value, loc_info) {
+	const node = /** @type {AST.Text} */ ({
+		type: 'Text',
+		expression: literal(value, JSON.stringify(value), loc_info),
+		metadata: { path: [] },
+	});
+
+	return set_location(node, loc_info);
+}
+
+/**
  * @param {AST.Expression | AST.Super} object
  * @param {string | AST.Expression | AST.PrivateIdentifier} property
  * @param {boolean} computed

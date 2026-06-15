@@ -3021,20 +3021,12 @@ export function jsx_to_ripple_node(node, inherited_path = []) {
 
 	if (node.type === 'JSXText') {
 		const value = normalize_jsx_text_value(node.value);
-		if (value.trim() === '') return null;
-		return /** @type {AST.Node} */ ({
-			type: 'Text',
-			expression: {
-				type: 'Literal',
-				value,
-				raw: JSON.stringify(value),
-				start: node.start,
-				end: node.end,
-			},
-			metadata: {},
-			start: node.start,
-			end: node.end,
-		});
+		if (value === '') {
+			return null;
+		}
+		return /** @type {AST.Node} */ (
+			b.text(value, /** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)))
+		);
 	}
 
 	if (node.type === 'JSXExpressionContainer') {

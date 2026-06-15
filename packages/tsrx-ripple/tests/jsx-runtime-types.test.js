@@ -119,9 +119,22 @@ function StatusBadge() @{
 `;
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		// Bare expressions as fragment children would read as JSX text (`<>aa</>`),
-		// hiding both identifiers from TypeScript.
-		expect(code).toContain('<>{a}{a}</>');
+		expect(code).toContain("<>{a} {a}{' '}</>");
 		expect(code).not.toContain('<>aa</>');
+	});
+
+	it('matches the JSX targets for text, fragments and edge whitespace', () => {
+		const compile = (src) => compile_to_volar_mappings(src, 'App.tsrx', { loose: true }).code;
+
+		expect(compile('let a = <> <>123</> 2 <>123</> </>;')).toContain(
+			"let a = <>{' '}<>123</> 2 <>123</>{' '}</>;",
+		);
+		expect(compile('let b = <> <></> 2 <></> </>;')).toContain(
+			"let b = <>{' '}<></> 2 <></>{' '}</>;",
+		);
+		expect(compile('let c = <></>;')).toContain('let c = null;');
+		expect(compile('let d = <pre> <b>1</b> <b>2</b> </pre>;')).toContain(
+			"let d = <pre>{' '}<b>1</b> <b>2</b>{' '}</pre>;",
+		);
 	});
 });

@@ -74,6 +74,16 @@ const TSRX_IF_CONTINUE_ERROR =
 	'Continue statements are not allowed inside TSRX template @if blocks. Filter before rendering or use conditional output instead.';
 const DYNAMIC_IMPORT_LOCAL = 'TsrxDynamic';
 const DYNAMIC_FACTORY_LOCAL = '_tsrx_dynamic';
+const LEADING_INLINE_WHITESPACE = /^[ \t]+/;
+const TRAILING_INLINE_WHITESPACE = /[ \t]+$/;
+
+/**
+ * @param {string | undefined} ch
+ * @returns {boolean}
+ */
+function is_newline_char(ch) {
+	return ch === '\n' || ch === '\r';
+}
 
 /**
  * @param {AST.Node} node
@@ -2413,9 +2423,7 @@ function mark_native_pretransformed_jsx(node, seen = new Set()) {
 function get_tsrx_render_children(node) {
 	return (node.children || []).filter(
 		(/** @type {any} */ child) =>
-			child &&
-			child.type !== 'EmptyStatement' &&
-			(child.type !== 'JSXText' || child.value.trim() !== ''),
+			child && child.type !== 'EmptyStatement' && (child.type !== 'JSXText' || child.value !== ''),
 	);
 }
 
@@ -3399,7 +3407,9 @@ function create_element_children(children, transform_context) {
 		const saved_inside_element_child = transform_context.inside_element_child;
 		transform_context.inside_element_child = true;
 		try {
-			return children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context));
+			return wrap_edge_whitespace(
+				children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context)),
+			);
 		} finally {
 			transform_context.inside_element_child = saved_inside_element_child;
 		}
@@ -3950,6 +3960,67 @@ function is_try_control_node(node) {
 }
 
 /**
+ * Wrap the inline whitespace at a fragment/element's content edges in `{' '}`
+ * containers. A bare leading/trailing space is fragile: once the output is
+ * line-wrapped (by prettier or the host JSX compiler) it becomes newline-adjacent
+ * and is trimmed away, dropping a significant space. Whitespace BETWEEN siblings
+ * stays bare text — it is not at an edge and is preserved as-is. Only spaces/tabs
+ * are pulled out; whitespace runs containing a newline are layout indentation and
+ * are left for the host compiler to collapse.
+ *
+ * @param {any[]} nodes
+ * @returns {any[]}
+ */
+export function wrap_edge_whitespace(nodes) {
+	const length = nodes.length;
+	if (length === 0) {
+		return nodes;
+	}
+
+	const first = nodes[0];
+	const last = nodes[length - 1];
+	if (first?.type !== 'JSXText' && last?.type !== 'JSXText') {
+		return nodes;
+	}
+
+	/** @type {(ESTreeJSX.JSXExpressionContainer | ESTreeJSX.JSXText)[]} */
+	const out = [];
+	for (let i = 0; i < length; i++) {
+		const node = nodes[i];
+		const at_start = i === 0;
+		const at_end = i === length - 1;
+		if (!node || node.type !== 'JSXText' || (!at_start && !at_end)) {
+			out.push(node);
+			continue;
+		}
+		let value = /** @type {string} */ (node.value);
+		if (at_start) {
+			const lead = LEADING_INLINE_WHITESPACE.exec(value);
+			if (lead && !is_newline_char(value[lead[0].length])) {
+				out.push(to_jsx_expression_container(b.literal(lead[0]), node));
+				value = value.slice(lead[0].length);
+			}
+		}
+		/** @type {ESTreeJSX.JSXExpressionContainer | null} */
+		let trailing = null;
+		if (at_end) {
+			const trail = TRAILING_INLINE_WHITESPACE.exec(value);
+			if (trail && !is_newline_char(value[value.length - trail[0].length - 1])) {
+				trailing = to_jsx_expression_container(b.literal(trail[0]), node);
+				value = value.slice(0, value.length - trail[0].length);
+			}
+		}
+		if (value !== '') {
+			out.push(b.jsx_text(value, value));
+		}
+		if (trailing) {
+			out.push(trailing);
+		}
+	}
+	return out;
+}
+
+/**
  * @param {any} node
  * @param {TransformContext} transform_context
  * @returns {any}
@@ -4034,15 +4105,15 @@ function to_jsx_child(node, transform_context) {
 function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = false) {
 	const children = (node.children || []).filter(
 		(/** @type {any} */ child) =>
-			child &&
-			child.type !== 'EmptyStatement' &&
-			(child.type !== 'JSXText' || child.value.trim() !== ''),
+			child && child.type !== 'EmptyStatement' && (child.type !== 'JSXText' || child.value !== ''),
 	);
 
 	/** @type {any} */
 	let expression;
 	if (children.length === 0) {
-		expression = create_null_literal();
+		expression = in_jsx_child
+			? set_loc(b.jsx_fragment([]), node.loc ? node : undefined)
+			: create_null_literal();
 	} else {
 		expression = return_value_body_to_expression(children, node, transform_context);
 	}
@@ -4052,10 +4123,10 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 			const saved_inside_element_child = transform_context.inside_element_child;
 			transform_context.inside_element_child = true;
 			try {
-				const render_nodes = children.map((/** @type {any} */ child) =>
-					to_jsx_child(child, transform_context),
+				const render_nodes = wrap_edge_whitespace(
+					children.map((/** @type {any} */ child) => to_jsx_child(child, transform_context)),
 				);
-				expression = build_return_expression(render_nodes) || create_null_literal();
+				expression = build_return_expression(render_nodes, in_jsx_child) || create_null_literal();
 			} finally {
 				transform_context.inside_element_child = saved_inside_element_child;
 			}
@@ -5839,9 +5910,10 @@ function value_has_unmappable_jsx_loc(value) {
 
 /**
  * @param {any[]} render_nodes
+ * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function build_return_expression(render_nodes) {
+function build_return_expression(render_nodes, in_jsx_child = false) {
 	if (render_nodes.length === 0) return null;
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
@@ -5855,6 +5927,9 @@ function build_return_expression(render_nodes) {
 			return only.expression;
 		}
 		if (only.type === 'JSXText') {
+			if (in_jsx_child) {
+				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			}
 			const value = (only.value ?? '').trim();
 			return b.literal(value, JSON.stringify(value), only);
 		}

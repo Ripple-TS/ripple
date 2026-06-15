@@ -5,12 +5,7 @@
  */
 
 import * as acorn from 'acorn';
-import {
-	skipWhitespace,
-	isWhitespaceTextNode,
-	BINDING_TYPES,
-	DestructuringErrors,
-} from './parse/index.js';
+import { isWhitespaceTextNode, BINDING_TYPES, DestructuringErrors } from './parse/index.js';
 import { parse_style } from './parse/style.js';
 import { regex_newline_characters } from './utils/patterns.js';
 import { error } from './errors.js';
@@ -549,7 +544,6 @@ export function TSRXPlugin(config) {
 				while (index < this.input.length) {
 					if (this.#isTemplateLineCommentStart(index, start)) {
 						const comment_start = index;
-						const comment_start_loc = acorn.getLineInfo(this.input, comment_start);
 						index += 2;
 						while (
 							index < this.input.length &&
@@ -558,20 +552,9 @@ export function TSRXPlugin(config) {
 						) {
 							index++;
 						}
-						if (this.options.onComment && comment_start >= token_end) {
-							const comment_end_loc = acorn.getLineInfo(this.input, index);
-							// Pass null metadata so position-based attachment places the comment
-							// as a leading comment on the following child (which the JSX printers
-							// emit), rather than on the container's `elementLeadingComments`.
-							this.options.onComment(
-								false,
-								this.input.slice(comment_start + 2, index),
-								comment_start,
-								index,
-								new acorn.Position(comment_start_loc.line, comment_start_loc.column),
-								new acorn.Position(comment_end_loc.line, comment_end_loc.column),
-								/** @type {any} */ (null),
-							);
+
+						if (comment_start >= token_end) {
+							this.#emitTemplateLineComment(comment_start, index, null);
 						}
 						continue;
 					}
@@ -590,7 +573,7 @@ export function TSRXPlugin(config) {
 								index,
 								new acorn.Position(comment_start_loc.line, comment_start_loc.column),
 								new acorn.Position(comment_end_loc.line, comment_end_loc.column),
-								/** @type {any} */ (null),
+								null,
 							);
 						}
 						continue;
@@ -638,6 +621,62 @@ export function TSRXPlugin(config) {
 					return true;
 				}
 				return node.value !== '' && !regex_newline_characters.test(node.value);
+			}
+
+			#skipTrailingLayoutWhitespace() {
+				let index = this.start;
+				let has_newline = false;
+				while (index < this.input.length) {
+					const ch = this.input.charCodeAt(index);
+					if (ch === CharCode.lineFeed || ch === CharCode.carriageReturn) {
+						has_newline = true;
+						index++;
+					} else if (ch === CharCode.space || ch === CharCode.tab) {
+						index++;
+					} else if (ch === CharCode.slash && this.input.charCodeAt(index + 1) === CharCode.slash) {
+						const comment_start = index;
+						while (index < this.input.length && !this.#isNewlineCharCode(index)) {
+							index++;
+						}
+						this.#emitTemplateLineComment(comment_start, index, null);
+					} else {
+						break;
+					}
+				}
+				if (!has_newline) return;
+				const loc = acorn.getLineInfo(this.input, index);
+				this.start = index;
+				this.startLoc = new acorn.Position(loc.line, loc.column);
+				if (this.pos <= index) {
+					this.curLine = loc.line;
+					this.lineStart = index - loc.column;
+				}
+			}
+
+			/**
+			 * @param {number} index
+			 */
+			#isNewlineCharCode(index) {
+				const ch = this.input.charCodeAt(index);
+				return ch === CharCode.lineFeed || ch === CharCode.carriageReturn;
+			}
+
+			/**
+			 * @param {number} start
+			 * @param {number} end
+			 * @param {Parse.CommentMetaData | null} metadata
+			 */
+			#emitTemplateLineComment(start, end, metadata) {
+				if (!this.options.onComment) return;
+				this.options.onComment(
+					false,
+					this.input.slice(start + 2, end),
+					start,
+					end,
+					acorn.getLineInfo(this.input, start),
+					acorn.getLineInfo(this.input, end),
+					metadata,
+				);
 			}
 
 			#isSwitchCaseScriptStatementStart() {
@@ -4430,50 +4469,58 @@ export function TSRXPlugin(config) {
 						this.context.pop();
 					}
 					return;
-				} else if (
-					this.type === tstt.jsxTagStart ||
-					this.input.charCodeAt(this.start) === CharCode.lessThan
-				) {
+				} else if (this.type === tstt.jsxTagStart) {
 					const startPos = this.start;
 					const startLoc = this.startLoc;
-					if (this.type === tstt.jsxTagStart) {
-						this.next();
-					} else {
-						// A control-flow block inside a native template can leave the tokenizer
-						// in normal JS mode, so a closing tag may arrive as a relational
-						// `<` token. Re-enter JSX closing-tag parsing manually.
-						this.pos = startPos + 1;
-						this.type = tstt.jsxTagStart;
-						this.start = startPos;
-						this.startLoc = startLoc;
-						this.exprAllowed = false;
-						// A genuine `jsxTagStart` pushes `tc_expr` + `tc_oTag` in its
-						// `updateContext`; faking the token here skips those pushes. That is
-						// harmless for an opening tag (the next token is the tag name), but a
-						// closing tag (`</`) immediately runs `context.length -= 2` in the
-						// slash `updateContext`, which would underflow the context stack and
-						// throw "Invalid array length" (e.g. `<>@if (a) { … } done</>`). Push
-						// the two contexts a real `jsxTagStart` would have added so the closing
-						// tag pops its own contexts instead of the enclosing template's.
-						if (this.input.charCodeAt(this.pos) === CharCode.slash) {
-							this.context.push(tstc.tc_expr);
-							this.context.push(tstc.tc_oTag);
-						}
-						this.next();
-					}
+					this.next();
 					if (this.value === '/' || this.type === tt.slash) {
 						// Consume '/'
 						this.next();
 
-						let closingElement;
+						const closingNode = this.startNodeAt(startPos, startLoc);
+						const inside_parent_template =
+							this.#jsxExpressionContainerDepth === 0 &&
+							this.#templateScriptParsingDepth === 0 &&
+							this.#path.slice(0, -1).some((node) => this.#isNativeTemplateNode(node));
 						this.#closingNativeTemplateNode = true;
+						/** @type {ReturnType<Parse.Parser['jsx_parseElementName']>} */
+						let closingName;
 						try {
-							closingElement = /** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
-								this.jsx_parseClosingElementAt(startPos, startLoc)
-							);
+							closingName = this.jsx_parseElementName();
 						} finally {
 							this.#closingNativeTemplateNode = false;
 						}
+						if (closingName) {
+							/** @type {ESTreeJSX.JSXClosingElement} */ (closingNode).name =
+								/** @type {ESTreeJSX.JSXIdentifier} */ (closingName);
+						}
+						const current = /** @type {ESTreeJSX.JSXFragment | ESTreeJSX.JSXElement} */ (
+							this.#path[this.#path.length - 1]
+						);
+						const current_name = this.#isNativeTemplateNode(current)
+							? current.type === 'JSXFragment'
+								? ''
+								: current.openingElement?.name
+									? this.getElementName(current.openingElement.name)
+									: null
+							: null;
+						const closing_name_str = !closingName
+							? ''
+							: closingName.type === 'JSXNamespacedName'
+								? closingName.namespace.name + ':' + closingName.name.name
+								: this.getElementName(closingName);
+						if (!(inside_parent_template && current_name === closing_name_str)) {
+							this.#closingNativeTemplateNode = true;
+						}
+						this.expect(tstt.jsxTagEnd);
+						this.#closingNativeTemplateNode = false;
+						const closingElement =
+							/** @type {ESTreeJSX.JSXClosingElement & AST.NodeWithLocation} */ (
+								this.finishNode(
+									closingNode,
+									closingName ? 'JSXClosingElement' : 'JSXClosingFragment',
+								)
+							);
 						if (this.#isDynamicJSXElementName(closingElement.name)) {
 							/** @type {any} */ (closingElement).isDynamic = true;
 						}
@@ -4586,7 +4633,7 @@ export function TSRXPlugin(config) {
 						}
 
 						this.#path.pop();
-						skipWhitespace(this);
+						this.#skipTrailingLayoutWhitespace();
 						return;
 					}
 					const node = this.parseElement();

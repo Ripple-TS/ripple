@@ -1429,6 +1429,7 @@ foo();`;
 			'JSXExpressionContainer',
 			'JSXText',
 			'JSXFragment',
+			'JSXText',
 		]);
 		expect(level2.children[0].expression.name).toBe('a');
 
@@ -1439,6 +1440,59 @@ foo();`;
 		expect(level4.type).toBe('JSXFragment');
 		expect(level4.children.map((child) => child.type)).toEqual(['JSXExpressionContainer']);
 		expect(level4.children[0].expression.name).toBe('a');
+	});
+
+	it('parses sibling fragments separated by template text', () => {
+		const withText = findNode('let a = <> <>123</> 2 <>456</> </>', 'JSXFragment');
+		expect(withText.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+		]);
+		expect(withText.children[0].value).toBe(' ');
+		expect(withText.children[2].value).toBe(' 2 ');
+		expect(withText.children[4].value).toBe(' ');
+
+		const emptySiblings = findNode('let b = <> <></> 2 <></> </>', 'JSXFragment');
+		expect(emptySiblings.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+		]);
+		expect(withText.children[0].value).toBe(' ');
+		expect(withText.children[2].value).toBe(' 2 ');
+		expect(withText.children[4].value).toBe(' ');
+	});
+
+	it('keeps an inline space between adjacent sibling fragments', () => {
+		const fragment = findNode('let c = <> <></>  <></>something </>', 'JSXFragment');
+		expect(fragment.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+			'JSXFragment',
+			'JSXText',
+		]);
+		expect(fragment.children[2].value).toBe('  ');
+		expect(fragment.children[4].value).toBe('something ');
+	});
+
+	it('keeps inline spaces around and between sibling elements', () => {
+		const pre = findElement('const a = <pre> <b>1</b> <b>2</b> </pre>;', 'pre');
+		expect(pre.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+			'JSXElement',
+			'JSXText',
+		]);
+		expect(pre.children[0].value).toBe(' ');
+		expect(pre.children[2].value).toBe(' ');
+		expect(pre.children[4].value).toBe(' ');
 	});
 
 	it('parses parenthesized conditional JSX spread attributes in render output', () => {
