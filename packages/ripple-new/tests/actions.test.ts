@@ -129,9 +129,10 @@ describe('useFormStatus', () => {
 		submit(r.container); // submit 2 (action 2 queued behind action 1)
 		expect(r.find('#status').textContent).toBe('pending:post');
 
+		// Drain fully with action 2's promise STILL unresolved: action 1's settle
+		// has fired, but action 2 is in flight → status MUST stay pending.
 		d1.resolve();
-		await tick();
-		// Action 1 done but action 2 is still in flight → status MUST stay pending.
+		await settle();
 		expect(r.find('#status').textContent).toBe('pending:post');
 
 		d2.resolve();
