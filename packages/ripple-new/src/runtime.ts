@@ -1328,18 +1328,24 @@ export function useSyncExternalStore<T>(
 	// getServerSnapshot?)`. The compiler appends the hook-slot Symbol as the
 	// LAST argument, so we detect the user-vs-compiler args by counting from
 	// the end. One trailing Symbol → user passed no getServerSnapshot; one
-	// trailing Symbol preceded by another arg → user passed getServerSnapshot
-	// (currently ignored; no SSR pipeline yet).
+	// trailing Symbol preceded by another arg → user passed getServerSnapshot.
 	const slot = rest[rest.length - 1] as symbol | undefined;
 	if (slot === undefined || typeof slot !== 'symbol') missingSlot('useSyncExternalStore');
+	const getServerSnapshot = rest.length >= 2 ? (rest[0] as () => T) : undefined;
 	const desc = slot.description ?? '';
 	const tickSlot = Symbol.for(desc + ':uses:tick');
 	const instSlot = Symbol.for(desc + ':uses:inst');
 	const layoutSlot = Symbol.for(desc + ':uses:layout');
 	const effectSlot = Symbol.for(desc + ':uses:effect');
 
-	// Fresh read on every render — guards against tearing between commits.
-	const value = getSnapshot();
+	// Fresh read on every render — guards against tearing between commits. DURING
+	// HYDRATION the first read must use getServerSnapshot (if provided) so it
+	// matches the server-rendered value — the layout effect below then re-checks
+	// getSnapshot() and forces an update if the client value differs (React's
+	// hydrate-then-sync behavior). `hydrating` constant-folds out for non-SSR
+	// builds (see the hydration DCE contract).
+	const value =
+		hydrating && getServerSnapshot !== undefined ? getServerSnapshot() : getSnapshot();
 
 	// `inst` mirrors React's mutable cell: the last-committed snapshot plus the
 	// getSnapshot used to produce it. checkIfSnapshotChanged compares the current
@@ -2745,6 +2751,13 @@ function handleFormSubmit(form: HTMLFormElement, event: Event): void {
 	}
 
 	const fn = action as (formData: FormData) => unknown;
+	// Track in-flight submissions per form. A useActionState dispatcher returns a
+	// promise that resolves when THAT dispatch's action finishes — not when the
+	// whole sequential queue drains — so a rapid second submit must NOT flip the
+	// form's status to idle while a later queued action is still running. Only
+	// clear when the count returns to 0.
+	const fa = form as any;
+	fa.$$pendingSubmits = (fa.$$pendingSubmits || 0) + 1;
 	setFormStatus(form, { pending: true, data, method: 'post', action: fn });
 
 	// useActionState dispatchers self-wrap in a transition AND keep typed-in
@@ -2753,7 +2766,8 @@ function handleFormSubmit(form: HTMLFormElement, event: Event): void {
 	const isDispatcher = (fn as any).$$isActionDispatcher === true;
 
 	const settle = (ok: boolean) => {
-		setFormStatus(form, IDLE_FORM_STATUS);
+		fa.$$pendingSubmits = Math.max(0, (fa.$$pendingSubmits || 1) - 1);
+		if (fa.$$pendingSubmits === 0) setFormStatus(form, IDLE_FORM_STATUS);
 		// React resets a plain <form action={fn}>'s uncontrolled fields on success;
 		// useActionState-driven forms keep their values. form.reset() restores
 		// uncontrolled inputs to defaultValue; controlled inputs are re-applied by
@@ -3777,26 +3791,45 @@ function findAncestorForm(block: Block): HTMLFormElement | null {
 	return null;
 }
 
+interface FormStatusSlot {
+	form: HTMLFormElement | null;
+	listener: (() => void) | null;
+}
+
 export function useFormStatus(slot?: symbol): FormStatus {
 	if (slot === undefined) missingSlot('useFormStatus');
 	const scope = CURRENT_SCOPE!;
 	const block = CURRENT_BLOCK!;
-	let s = scope.hooks?.get(slot) as { form: HTMLFormElement | null } | undefined;
+	let s = scope.hooks?.get(slot) as FormStatusSlot | undefined;
 	if (s === undefined) {
-		const form = findAncestorForm(block);
-		s = { form };
-		ensureHooks(scope).set(slot, s);
+		s = { form: null, listener: null };
+		const slotRef = s;
+		ensureHooks(scope).set(slot, slotRef);
+		scope.cleanups.push(() => {
+			if (slotRef.form && slotRef.listener) FORM_STATUS_LISTENERS.get(slotRef.form)?.delete(slotRef.listener);
+		});
+	}
+	// Re-resolve the nearest ANCESTOR <form> on EVERY render: a conditionally
+	// rendered form (or a moved consumer) means the form can appear/change after
+	// the first run. Re-subscribe when it changes; caching only the first result
+	// would leave the hook stuck reporting idle for a form that showed up later.
+	const form = findAncestorForm(block);
+	if (form !== s.form) {
+		if (s.form && s.listener) FORM_STATUS_LISTENERS.get(s.form)?.delete(s.listener);
+		s.form = form;
 		if (form) {
 			const listener = (): void => {
 				if (!block.disposed) scheduleRender(block);
 			};
+			s.listener = listener;
 			let set = FORM_STATUS_LISTENERS.get(form);
 			if (!set) {
 				set = new Set();
 				FORM_STATUS_LISTENERS.set(form, set);
 			}
 			set.add(listener);
-			scope.cleanups.push(() => set!.delete(listener));
+		} else {
+			s.listener = null;
 		}
 	}
 	return s.form ? (FORM_STATUS.get(s.form) ?? IDLE_FORM_STATUS) : IDLE_FORM_STATUS;

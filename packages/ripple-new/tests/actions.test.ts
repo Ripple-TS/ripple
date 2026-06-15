@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount, flushEffects } from './_helpers';
-import { flushSync } from '../src/index.js';
+import { flushSync, setFormAction } from '../src/index.js';
 import {
 	ActionForm,
 	FormWithStatus,
 	RawFormWithStatus,
+	StatusProbe,
 	SelfFormStatus,
 	OptimisticForm,
 	BareOptimistic,
@@ -110,6 +111,64 @@ describe('useFormStatus', () => {
 		d.resolve();
 		await settle();
 		expect(r.find('#status').textContent).toBe('idle');
+		r.unmount();
+	});
+
+	it('keeps the form pending until ALL queued submits drain', async () => {
+		// useActionState runs dispatches sequentially; each dispatch's promise
+		// resolves when THAT action finishes, not when the whole queue drains. A
+		// rapid second submit must keep the form's status pending until both
+		// actions complete — not flip to idle after the first.
+		const d1 = deferred();
+		const d2 = deferred();
+		const promises = [d1.promise, d2.promise];
+		const action = (_p: any, _fd: FormData) => promises.shift();
+		const r = mount(FormWithStatus, { action });
+		flushSync(() => {});
+		submit(r.container); // submit 1 (action 1 runs)
+		submit(r.container); // submit 2 (action 2 queued behind action 1)
+		expect(r.find('#status').textContent).toBe('pending:post');
+
+		d1.resolve();
+		await tick();
+		// Action 1 done but action 2 is still in flight → status MUST stay pending.
+		expect(r.find('#status').textContent).toBe('pending:post');
+
+		d2.resolve();
+		await settle();
+		expect(r.find('#status').textContent).toBe('idle');
+		r.unmount();
+	});
+
+	it('re-resolves an ancestor form that appears after the first render', async () => {
+		// First render has no ancestor form (idle). After we wrap the probe in a
+		// <form> and re-render, the hook must re-resolve + subscribe to it — not
+		// stay stuck on the cached null from the first render.
+		let force!: () => void;
+		const r = mount(StatusProbe, { expose: (f: () => void) => (force = f) });
+		flushSync(() => {});
+		expect(r.find('#probe').textContent).toBe('idle');
+
+		// Insert a <form> between the root container and #wrap, so it becomes the
+		// probe's nearest ANCESTOR form (and submit events bubble to the root).
+		const wrap = r.find('#wrap');
+		const form = document.createElement('form');
+		r.container.insertBefore(form, wrap);
+		form.appendChild(wrap);
+		const d = deferred();
+		setFormAction(form as any, 'action', () => d.promise, undefined);
+
+		// Re-render → useFormStatus re-resolves + subscribes to the new ancestor form.
+		flushSync(() => force());
+		// A submit flips the form's status; the now-subscribed probe reflects it.
+		flushSync(() =>
+			form.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true })),
+		);
+		expect(r.find('#probe').textContent).toBe('pending');
+
+		// Resolve + drain so the in-flight transition doesn't leak into later tests.
+		d.resolve();
+		await settle();
 		r.unmount();
 	});
 

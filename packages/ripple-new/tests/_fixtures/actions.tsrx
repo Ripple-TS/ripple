@@ -42,6 +42,22 @@ export function RawFormWithStatus(props) @{
 	</form>
 }
 
+// useFormStatus + a self re-render trigger — used to verify the hook re-resolves
+// its ancestor <form> on each render (so a form that appears later is picked up).
+function StatusProbeInner(props) @{
+	const [, setN] = useState(0);
+	const status = useFormStatus();
+	props.expose(() => setN((n) => n + 1));
+	<span id="probe">{(status.pending ? 'pending' : 'idle') as string}</span>
+}
+// The probe is a CHILD so it has real block markers — the test inserts a <form>
+// as an ancestor of #wrap, which becomes the probe's nearest ancestor form.
+export function StatusProbe(props) @{
+	<div id="wrap">
+		<StatusProbeInner expose={props.expose} />
+	</div>
+}
+
 // useFormStatus called in the SAME component that renders the form must NOT see
 // that form (React parity) — it has no ancestor form, so it stays idle.
 export function SelfFormStatus(props) @{
