@@ -261,6 +261,54 @@ describe('direct dispatch (formAction(payload) outside a form)', () => {
 		expect(r.find('#pending').textContent).toBe('idle');
 		r.unmount();
 	});
+
+	it('clears isPending when a useActionState action throws synchronously', async () => {
+		// A synchronously-throwing action inside useActionState's dispatch must not
+		// leave isPending stuck true (the throw escaping startTransition before
+		// `finish` runs would otherwise wedge pendingCount forever) — and it reports
+		// the error.
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const err = new Error('boom');
+		const action = () => {
+			throw err;
+		};
+		const r = mount(DirectAction, { action, initial: 0, payload: 1 });
+		flushSync(() => {});
+		expect(r.find('#pending').textContent).toBe('idle');
+
+		flushSync(() => (r.find('#run') as HTMLElement).click());
+		// isPending flips true synchronously at dispatch…
+		expect(r.find('#pending').textContent).toBe('pending');
+
+		// …then the action runs on a microtask and throws; pending must clear.
+		await settle();
+		expect(r.find('#pending').textContent).toBe('idle'); // not stuck on pending
+		expect(spy).toHaveBeenCalledWith(err);
+		spy.mockRestore();
+		r.unmount();
+	});
+
+	it('keeps the dispatch queue threading after a synchronous throw', async () => {
+		// The chain must not reject-and-stall: a second dispatch after a throwing
+		// one still runs and commits (the throw resolved the chain with prior state).
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		let calls = 0;
+		const action = (prev: number, payload: number) => {
+			calls++;
+			if (calls === 1) throw new Error('first blows up');
+			return prev + payload; // second dispatch threads prior (unchanged) state
+		};
+		const r = mount(DirectAction, { action, initial: 10, payload: 5 });
+		flushSync(() => {});
+		flushSync(() => (r.find('#run') as HTMLElement).click()); // throws
+		flushSync(() => (r.find('#run') as HTMLElement).click()); // must still run
+		await settle();
+		expect(calls).toBe(2);
+		expect(r.find('#state').textContent).toBe('15'); // 10 + 5 committed
+		expect(r.find('#pending').textContent).toBe('idle');
+		spy.mockRestore();
+		r.unmount();
+	});
 });
 
 describe('raw <form action={fn}> auto-reset', () => {

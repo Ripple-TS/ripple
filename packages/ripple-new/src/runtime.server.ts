@@ -385,73 +385,76 @@ function serializeSuspenseSeeds(values: unknown[]): string {
  * is appended to `body` as an inline data `<script>` for the client to seed.
  */
 export async function render(component: ServerComponent, props?: any): Promise<RenderResult> {
-	const prevScope = CURRENT_SCOPE;
-	const prevId = ID_COUNTER;
-	const prevCss = CSS;
-	const prevSusp = SUSPENDED;
-	const prevRes = RESOLVED;
-	const prevSerial = SERIAL;
-	const prevOcc = OCC;
-	// RESOLVED is the suspense cache and persists across passes; everything else
-	// is reinstalled fresh per pass (below) so interleaved concurrent renders are
-	// safe — each pass runs to completion synchronously before the next `await`.
+	// The suspense cache persists across this render's passes; it is render-local
+	// (never a module global) so concurrent renders can't share it.
 	const resolved = new Map<string, { value: unknown } | { reason: unknown }>();
-	try {
-		let attempt = 0;
-		for (;;) {
-			ID_COUNTER = 0;
-			CSS = new Map();
-			SUSPENDED = [];
-			SERIAL = [];
-			OCC = new Map();
-			RESOLVED = resolved;
-			const root = ssrScope(null);
-			CURRENT_SCOPE = root;
-			let body = '';
-			try {
-				body = component(root, props ?? {}, undefined) ?? '';
-			} catch (err) {
-				// A suspension with no enclosing @try unwinds to here; its thenable is
-				// already in SUSPENDED, so fall through to the await + retry. Any other
-				// throw is a genuine render failure — propagate it.
-				if (!ssrIsSuspense(err)) throw err;
+	let attempt = 0;
+	for (;;) {
+		// Run ONE synchronous pass entirely within this tick: save the ambient
+		// module globals, install this pass's fresh state, run the (synchronous)
+		// component, capture the results into locals, then restore the globals —
+		// all before the `await` below. So no pass state is ever held in a module
+		// global across a suspension point, and a concurrent render() that runs
+		// during our await can't observe or clobber our in-flight pass.
+		const prevScope = CURRENT_SCOPE;
+		const prevId = ID_COUNTER;
+		const prevCss = CSS;
+		const prevSusp = SUSPENDED;
+		const prevRes = RESOLVED;
+		const prevSerial = SERIAL;
+		const prevOcc = OCC;
+		ID_COUNTER = 0;
+		const cssMap = (CSS = new Map());
+		const suspended = (SUSPENDED = [] as { promise: PromiseLike<unknown>; key: string }[]);
+		const serial = (SERIAL = [] as unknown[]);
+		OCC = new Map();
+		RESOLVED = resolved;
+		const root = ssrScope(null);
+		CURRENT_SCOPE = root;
+		let body = '';
+		try {
+			body = component(root, props ?? {}, undefined) ?? '';
+		} catch (err) {
+			// A suspension with no enclosing @try unwinds to here; its thenable is
+			// already in `suspended`, so fall through to the await + retry. Any other
+			// throw is a genuine render failure — propagate it (the finally restores).
+			if (!ssrIsSuspense(err)) throw err;
+		} finally {
+			CURRENT_SCOPE = prevScope;
+			ID_COUNTER = prevId;
+			CSS = prevCss;
+			SUSPENDED = prevSusp;
+			RESOLVED = prevRes;
+			SERIAL = prevSerial;
+			OCC = prevOcc;
+		}
+
+		if (suspended.length === 0) {
+			let css = '';
+			for (const [hash, sheet] of cssMap) {
+				css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
 			}
-			const suspended = SUSPENDED;
-			if (suspended.length === 0) {
-				let css = '';
-				for (const [hash, sheet] of CSS) {
-					css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
-				}
-				const seeds = SERIAL;
-				if (seeds.length > 0) body += serializeSuspenseSeeds(seeds);
-				return { head: '', body, css };
-			}
-			if (++attempt > MAX_SUSPENSE_PASSES) {
-				throw new Error(
-					'ripple-new SSR: exceeded ' +
-						MAX_SUSPENSE_PASSES +
-						' suspense passes — a use(thenable) never resolved.',
-				);
-			}
-			// Await everything this pass surfaced; cache each outcome by its key.
-			await Promise.all(
-				suspended.map(async ({ promise, key }) => {
-					if (resolved.has(key)) return;
-					try {
-						resolved.set(key, { value: await promise });
-					} catch (reason) {
-						resolved.set(key, { reason });
-					}
-				}),
+			if (serial.length > 0) body += serializeSuspenseSeeds(serial);
+			return { head: '', body, css };
+		}
+		if (++attempt > MAX_SUSPENSE_PASSES) {
+			throw new Error(
+				'ripple-new SSR: exceeded ' +
+					MAX_SUSPENSE_PASSES +
+					' suspense passes — a use(thenable) never resolved.',
 			);
 		}
-	} finally {
-		CURRENT_SCOPE = prevScope;
-		ID_COUNTER = prevId;
-		CSS = prevCss;
-		SUSPENDED = prevSusp;
-		RESOLVED = prevRes;
-		SERIAL = prevSerial;
-		OCC = prevOcc;
+		// Await everything this pass surfaced; cache each outcome by its key. Only
+		// render-local state (`suspended`, `resolved`) is touched across the await.
+		await Promise.all(
+			suspended.map(async ({ promise, key }) => {
+				if (resolved.has(key)) return;
+				try {
+					resolved.set(key, { value: await promise });
+				} catch (reason) {
+					resolved.set(key, { reason });
+				}
+			}),
+		);
 	}
 }

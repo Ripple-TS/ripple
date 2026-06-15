@@ -32,6 +32,16 @@ const CLOSE = '<!--]-->';
 const seed = (json: string) =>
 	`<script type="application/json" data-ripple-new-suspense>${json}</script>`;
 
+function deferred<T>() {
+	let resolve!: (v: T) => void;
+	let reject!: (e: any) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { promise, resolve, reject };
+}
+
 describe('SSR Phase 4 — render() awaits use(promise)', () => {
 	it('@try awaits use(promise) and renders the resolved success arm + seed', async () => {
 		const out = await RT.render(m.Boundary, { promise: Promise.resolve('hi') });
@@ -92,6 +102,26 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 		const json = out.body.match(/data-ripple-new-suspense>(.*?)<\/script>$/)![1];
 		expect(json).not.toContain('<');
 		expect(JSON.parse(json)).toEqual(['</script><x>']);
+	});
+
+	it('keeps two concurrent, interleaved renders isolated (no global clobbering)', async () => {
+		// render() holds per-pass state (scope, suspense queue, css, seed list) in
+		// module globals. Two render()s suspended at the same time must not bleed
+		// into each other across the await. Force interleaving with deferreds:
+		// start both (both suspend), then resolve in reverse order.
+		const dA = deferred<string>();
+		const dB = deferred<string>();
+		const pA = RT.render(m.Siblings, { a: dA.promise, b: Promise.resolve('A2') });
+		const pB = RT.render(m.AsyncLeaf, { promise: dB.promise });
+		dB.resolve('B1');
+		dA.resolve('A1');
+		const [a, b] = await Promise.all([pA, pB]);
+		expect(a.body).toBe(
+			`<div id="sibs">${OPEN}<span class="a">A1</span>${CLOSE}${OPEN}<span class="b">A2</span>${CLOSE}</div>` +
+				seed('["A1","A2"]'),
+		);
+		// b must contain ONLY its own seed — not A's values leaking through SERIAL.
+		expect(b.body).toBe('<div id="leaf">B1</div>' + seed('["B1"]'));
 	});
 
 	it('non-suspending components emit no seed <script>', async () => {

@@ -3760,7 +3760,22 @@ export function useActionState<S>(
 							if (slotRef.pendingCount === 0) setPending(false);
 						};
 						startTransition(() => {
-							const p = Promise.resolve(slotRef.action(prevState, payload));
+							let p: Promise<S>;
+							try {
+								p = Promise.resolve(slotRef.action(prevState, payload));
+							} catch (err) {
+								// A SYNCHRONOUS throw from the action would otherwise escape
+								// startTransition before `finish` is wired, leaving pendingCount
+								// (and isPending) stuck true forever and rejecting the chain so the
+								// queue stops threading. Settle it exactly like the async-rejection
+								// path: clear pending, route the error, keep prior state.
+								finish();
+								const handler = findTryHandler(block);
+								if (handler) handler(err);
+								else console.error(err);
+								resolveResult(prevState);
+								return;
+							}
 							p.then(
 								(result) => {
 									slotRef.state = result;
