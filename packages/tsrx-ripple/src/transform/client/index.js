@@ -54,6 +54,7 @@ import {
 	formatComment,
 	setLocation,
 	createElementRefTargetTypeForName as create_element_ref_target_type_for_name,
+	wrapEdgeWhitespace as wrap_edge_whitespace,
 } from '@tsrx/core';
 const b = builders;
 import {
@@ -3619,6 +3620,7 @@ function join_template(items) {
  * @typedef {AST.Statement | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsStatement
  * @typedef {AST.Expression | ESTreeJSX.JSXElement | ESTreeJSX.JSXFragment} TsrxTsExpression
  * @typedef {ESTreeJSX.JSXElement['children'][number]} TsrxTsxChild
+ * @typedef {TsrxTsExpression | ESTreeJSX.JSXText | ESTreeJSX.JSXExpressionContainer} TsrxTsViewNode
  */
 
 /**
@@ -3637,24 +3639,28 @@ function statement_to_tsrx_ts_expression(statement) {
 }
 
 /**
- * @param {TsrxTsExpression[]} children
- * @returns {TsrxTsExpression}
+ * @param {TsrxTsxChild[]} children
+ * @param {boolean} in_jsx_child
+ * @param {AST.NodeWithLocation} loc_node
+ * @returns {TsrxTsViewNode}
  */
-function build_tsrx_ts_return_expression(children) {
-	return children.length === 0
-		? b.literal(null)
-		: children.length === 1
-			? children[0]
-			: b.jsx_fragment(
-					// A plain expression placed directly as a JSX child reads as JSX text
-					// in the TS view (`<>{a}{b}</>` would become `<>ab</>`), so it needs
-					// an expression container to stay visible to TypeScript.
-					children.map((child) =>
-						child.type === 'JSXElement' || child.type === 'JSXFragment'
-							? child
-							: b.jsx_expression_container(child),
-					),
-				);
+function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
+	if (children.length === 0) {
+		return in_jsx_child ? setLocation(b.jsx_fragment([]), loc_node) : b.literal(null);
+	}
+	if (children.length === 1) {
+		const only = children[0];
+		if (only.type === 'JSXText') {
+			return in_jsx_child
+				? setLocation(b.jsx_fragment([only]), /** @type {AST.NodeWithLocation} */ (only))
+				: b.literal(only.value);
+		}
+		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
+			return only.expression;
+		}
+		return /** @type {TsrxTsViewNode} */ (only);
+	}
+	return b.jsx_fragment(children);
 }
 
 /**
@@ -3680,79 +3686,21 @@ function transform_tsrx_ts_children(children, context) {
 }
 
 /**
- * @param {TsrxTsStatement[]} statements
- * @param {AST.TsrxFragment} loc_node
- * @param {TransformClientState} state
- * @returns {TsrxTsExpression}
- */
-function build_tsrx_ts_expression_from_statements(statements, loc_node, state) {
-	const inline_children = statements.map(statement_to_tsrx_ts_expression);
-
-	if (inline_children.every(Boolean)) {
-		return build_tsrx_ts_return_expression(/** @type {TsrxTsExpression[]} */ (inline_children));
-	}
-
-	/** @type {AST.Statement[]} */
-	const body = [];
-	const has_children = inline_children.some(Boolean);
-	const children_id = has_children ? state.scope.generate('children') : null;
-	if (children_id !== null) {
-		body.push(
-			b.const(
-				b.id(children_id),
-				b.ts_as(
-					b.array([]),
-					b.ts_type_reference(
-						b.id('Array'),
-						b.ts_type_parameter_instantiation([b.ts_keyword_type('any')]),
-					),
-				),
-			),
-		);
-	}
-	for (const statement of statements) {
-		const child = statement_to_tsrx_ts_expression(statement);
-		if (child) {
-			if (children_id !== null) {
-				body.push(
-					b.stmt(
-						b.call(b.member(b.id(children_id), 'push'), /** @type {AST.Expression} */ (child)),
-					),
-				);
-			}
-		} else {
-			body.push(/** @type {AST.Statement} */ (statement));
-		}
-	}
-
-	body.push(
-		b.return(
-			children_id === null
-				? b.literal(null)
-				: /** @type {AST.Expression} */ (
-						b.jsx_fragment([b.jsx_expression_container(b.id(children_id))])
-					),
-			/** @type {AST.NodeWithLocation} */ (loc_node),
-		),
-	);
-
-	return b.call(b.arrow([], b.block(body)));
-}
-
-/**
  * Builds a TSX expression for Volar/TypeScript output. Pure template children can
  * remain inline JSX; fragments with setup statements need an IIFE so declarations
  * stay in statement position.
  *
  * @param {AST.TsrxFragment} node
  * @param {VisitorClientContext} context
- * @returns {TsrxTsExpression}
+ * @param {boolean} [in_jsx_child]
+ * @returns {TsrxTsViewNode}
  */
-function build_tsrx_to_ts_expression(node, context) {
-	return build_tsrx_ts_expression_from_statements(
-		transform_tsrx_ts_children(/** @type {AST.Node[]} */ (node.children), context),
-		node,
-		context.state,
+function build_tsrx_to_ts_expression(node, context, in_jsx_child = false) {
+	const children = transform_tsrx_tsx_children(/** @type {AST.Node[]} */ (node.children), context);
+	return build_tsrx_ts_return_expression(
+		children,
+		in_jsx_child,
+		/** @type {AST.NodeWithLocation} */ (/** @type {unknown} */ (node)),
 	);
 }
 
@@ -3821,7 +3769,7 @@ function transform_tsrx_tsx_children(children, context) {
 	}
 
 	flush_pending_statement_children();
-	return transformed_children;
+	return /** @type {TsrxTsxChild[]} */ (wrap_edge_whitespace(transformed_children));
 }
 
 /**
@@ -3858,11 +3806,19 @@ function transform_tsrx_tsx_child(node, context) {
 	}
 
 	if (node.type === 'TsrxFragment') {
-		const expression = build_tsrx_to_ts_expression(node, context);
-		if (expression.type === 'JSXElement' || expression.type === 'JSXFragment') {
-			return /** @type {TsrxTsxChild} */ (expression);
+		// `in_jsx_child` mode already returns a valid JSX child (a fragment, or a
+		// `{expr}` container kept for type visibility), so use it as-is. Only a bare
+		// expression (which can happen in other positions) needs wrapping.
+		const expression = build_tsrx_to_ts_expression(node, context, true);
+		if (
+			expression.type === 'JSXElement' ||
+			expression.type === 'JSXFragment' ||
+			expression.type === 'JSXExpressionContainer' ||
+			expression.type === 'JSXText'
+		) {
+			return expression;
 		}
-		return b.jsx_expression_container(/** @type {AST.Expression} */ (expression));
+		return b.jsx_expression_container(expression);
 	}
 
 	return undefined;
