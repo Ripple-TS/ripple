@@ -58,6 +58,10 @@ function ssrScope(parent: SSRScope | null): SSRScope {
 
 const NOOP = (): void => {};
 
+// Matches the client runtime's `ELEMENT_TAG` (createElement descriptor marker)
+// so `ssrChild` can render a `<Comp/>`-as-value descriptor server-side too.
+const ELEMENT_TAG = Symbol.for('ripple-new.element');
+
 // ---------------------------------------------------------------------------
 // Escaping
 // ---------------------------------------------------------------------------
@@ -78,6 +82,24 @@ export function escapeAttr(v: unknown): string {
 /** A dynamic text hole. null/false/undefined render as empty (React parity). */
 export function ssrText(v: unknown): string {
 	if (v == null || v === false) return '';
+	return escapeHtml(v);
+}
+
+/**
+ * A RENDERABLE expression hole — the value of a `{expr}` that is NOT marked as
+ * definite text (`{expr as string}`). Mirrors Ripple: a `{children}` / component
+ * function or element descriptor RENDERS (wrapped in a hydration block range, so
+ * the client adopts it), while a primitive coerces to text. The compiler routes
+ * `{x as string}` / literals / `+`-concats to `ssrText`, everything else here.
+ */
+export function ssrChild(v: unknown, scope: SSRScope): string {
+	if (v == null || v === false || v === true) return '';
+	// A component-body / children render function, or `<Comp/>` used as a value.
+	if (typeof v === 'function') return ssrComponent(scope, v as ServerComponent, {});
+	if (typeof v === 'object' && (v as any).$$kind === ELEMENT_TAG) {
+		const d = v as { type: ServerComponent; props: any };
+		return ssrComponent(scope, d.type, d.props);
+	}
 	return escapeHtml(v);
 }
 

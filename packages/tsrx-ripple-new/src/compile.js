@@ -1309,8 +1309,16 @@ function ssrEmitNode(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 				// Static text — escape at compile time, inline as a literal chunk.
 				return JSON.stringify(escapeHtml(expr.value));
 			}
-			ctx.runtimeNeeded.add('ssrText');
-			return `ssrText(${printExpr(resolveStyleExpr(expr, cssHash))})`;
+			// `{x as string}` / literals / templates / `+`-concats → definite TEXT.
+			// Everything else (`{children}`, `{<Comp/>}`, possibly-renderable values)
+			// → ssrChild, which RENDERS a component/element child (and coerces a
+			// primitive to text) — mirrors Ripple's `{expr}` vs `{expr as string}`.
+			if (isKnownStringExpression(expr)) {
+				ctx.runtimeNeeded.add('ssrText');
+				return `ssrText(${printExpr(resolveStyleExpr(expr, cssHash))})`;
+			}
+			ctx.runtimeNeeded.add('ssrChild');
+			return `ssrChild(${printExpr(resolveStyleExpr(expr, cssHash))}, __s)`;
 		}
 		case 'Element':
 			if (isComponentTag(node)) return ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash);

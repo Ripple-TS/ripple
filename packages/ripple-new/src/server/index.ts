@@ -45,6 +45,7 @@ export {
 	escapeHtml,
 	escapeAttr,
 	ssrText,
+	ssrChild,
 	ssrAttr,
 	ssrStyle,
 	ssrSpread,
