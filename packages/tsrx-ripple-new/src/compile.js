@@ -657,6 +657,36 @@ function isComponentFunction(node) {
 	);
 }
 
+// A top-level statement that carries NO runtime value — pure TypeScript type
+// surface (`interface`, `type` alias, `declare …` ambients, `import type` /
+// `export type`). The runtime compile (client/server) must DROP these: esrap
+// would otherwise print them verbatim into the emitted .js (or crash on a
+// type-alias whose annotation we null out), and Vite doesn't type-strip a
+// `.tsrx` module. This is RUNTIME-ONLY: the Volar/TS-server path (volar.js) is a
+// separate pipeline that intentionally PRESERVES all types for the language
+// service, so it never calls this. Enums and value namespaces have runtime
+// semantics and are deliberately NOT treated as type-only.
+function isTypeOnlyStatement(node) {
+	if (node == null) return false;
+	if (
+		node.type === 'TSInterfaceDeclaration' ||
+		node.type === 'TSTypeAliasDeclaration' ||
+		node.type === 'TSDeclareFunction'
+	) {
+		return true;
+	}
+	// `declare const/let/var/function/class/module/namespace …` — ambient, no emit.
+	if (node.declare === true) return true;
+	// `import type { … } from …`
+	if (node.type === 'ImportDeclaration' && node.importKind === 'type') return true;
+	// `export type { … }`, `export type X = …`, `export interface I {}`
+	if (node.type === 'ExportNamedDeclaration') {
+		if (node.exportKind === 'type') return true;
+		if (node.declaration && isTypeOnlyStatement(node.declaration)) return true;
+	}
+	return false;
+}
+
 const VLQ_B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 /** Base64-VLQ encode a list of signed integers (source-map v3 segment fields). */
@@ -768,6 +798,10 @@ export function compile(source, filename, options) {
 		return compileServer(source, filename, options);
 	}
 	const ast = parseModule(source, filename);
+	// Drop type-only statements (interface / type / declare / import-export type)
+	// before emit — they carry no runtime value and would leak invalid TS into
+	// the .js (or crash the printer). Runtime-only; Volar keeps them.
+	ast.body = ast.body.filter((n) => !isTypeOnlyStatement(n));
 	const hmrEnabled = !!(options && options.hmr);
 
 	const ctx = {
@@ -1118,6 +1152,9 @@ function ssrUnsupported(what) {
 
 function compileServer(source, filename, options) {
 	const ast = parseModule(source, filename);
+	// Drop type-only statements before emit (see isTypeOnlyStatement) — same as
+	// the client path; the server HTML-string output is plain JS too.
+	ast.body = ast.body.filter((n) => !isTypeOnlyStatement(n));
 	const ctx = {
 		filename,
 		mode: 'server',
@@ -2373,7 +2410,8 @@ function isKnownStringExpression(node) {
 const TS_TYPE_PROPS = [
 	'typeAnnotation', // Identifier `x: T`, VariableDeclarator, RestElement, Pattern
 	'returnType', // FunctionDeclaration / Arrow / MethodDefinition return type
-	'typeParameters', // Generic `<T>` on function / class / interface
+	'typeParameters', // Generic `<T>` declaration on function / class / interface
+	'typeArguments', // Generic `<T>` ARGS on a call / new / JSX (`new Promise<string>()`, `foo<T>()`)
 	'definite', // `let x!: T` definite-assignment assertion
 	'accessibility', // class member `public` / `private` / `protected`
 	'readonly', // class member `readonly`
