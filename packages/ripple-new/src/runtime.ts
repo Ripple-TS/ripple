@@ -1344,8 +1344,7 @@ export function useSyncExternalStore<T>(
 	// getSnapshot() and forces an update if the client value differs (React's
 	// hydrate-then-sync behavior). `hydrating` constant-folds out for non-SSR
 	// builds (see the hydration DCE contract).
-	const value =
-		hydrating && getServerSnapshot !== undefined ? getServerSnapshot() : getSnapshot();
+	const value = hydrating && getServerSnapshot !== undefined ? getServerSnapshot() : getSnapshot();
 
 	// `inst` mirrors React's mutable cell: the last-committed snapshot plus the
 	// getSnapshot used to produce it. checkIfSnapshotChanged compares the current
@@ -3806,7 +3805,8 @@ export function useFormStatus(slot?: symbol): FormStatus {
 		const slotRef = s;
 		ensureHooks(scope).set(slot, slotRef);
 		scope.cleanups.push(() => {
-			if (slotRef.form && slotRef.listener) FORM_STATUS_LISTENERS.get(slotRef.form)?.delete(slotRef.listener);
+			if (slotRef.form && slotRef.listener)
+				FORM_STATUS_LISTENERS.get(slotRef.form)?.delete(slotRef.listener);
 		});
 	}
 	// Re-resolve the nearest ANCESTOR <form> on EVERY render: a conditionally

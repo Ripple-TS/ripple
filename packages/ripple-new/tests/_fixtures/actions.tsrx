@@ -48,7 +48,9 @@ function StatusProbeInner(props) @{
 	const [, setN] = useState(0);
 	const status = useFormStatus();
 	props.expose(() => setN((n) => n + 1));
-	<span id="probe">{(status.pending ? 'pending' : 'idle') as string}</span>
+	<span id="probe">
+		{(status.pending ? 'pending' : 'idle') as string}
+	</span>
 }
 // The probe is a CHILD so it has real block markers — the test inserts a <form>
 // as an ancestor of #wrap, which becomes the probe's nearest ancestor form.
