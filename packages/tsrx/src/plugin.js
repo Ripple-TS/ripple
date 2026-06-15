@@ -4383,22 +4383,29 @@ export function TSRXPlugin(config) {
 			parseTemplateBody(body) {
 				const current_template_node = this.#currentNativeTemplateNode();
 				if (!current_template_node) return;
-				// Outside a `@{ … }` block every element/fragment body is plain JSX (§2,
-				// §5). There is no script section and no `---` fence to infer — text is
-				// text, and setup code lives only inside a code block.
 				current_template_node.metadata ??= { path: [] };
 				current_template_node.metadata.templateMode = 'template';
 
-				// `@{ … }` code block as element/fragment content (§2 rule 1). Sibling
-				// code blocks are allowed, so this is not gated on an empty body;
-				// reposition onto the `@` if leading whitespace was tokenized ahead of it.
 				if (this.#atCodeBlockStart()) {
 					const at_index = skip_whitespace_from(this.input, this.start);
 					if (this.start !== at_index) {
+						const ws_start = this.start;
+						const ws_start_loc = this.startLoc;
+						const ws_value = this.input.slice(ws_start, at_index);
+						const text_node = /** @type {ESTreeJSX.JSXText} */ (
+							this.startNodeAt(ws_start, ws_start_loc)
+						);
+						text_node.value = ws_value;
+						text_node.raw = ws_value;
 						const loc = acorn.getLineInfo(this.input, at_index);
+						const at_position = new acorn.Position(loc.line, loc.column);
+						this.finishNodeAt(text_node, 'JSXText', at_index, at_position);
+						if (this.#shouldKeepTemplateTextNode(text_node)) {
+							body.push(text_node);
+						}
 						this.pos = at_index;
 						this.start = at_index;
-						this.startLoc = new acorn.Position(loc.line, loc.column);
+						this.startLoc = at_position;
 						this.curLine = loc.line;
 						this.lineStart = at_index - loc.column;
 					}

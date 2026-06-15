@@ -424,6 +424,24 @@ abc
 		expect(block.render.openingElement.name.name).toBe('span');
 	});
 
+	it('preserves significant whitespace before a code block in a fragment', () => {
+		const fragment = findNode('let a = <>   @{<b>123</b>}   </>;', 'JSXFragment');
+
+		expect(fragment.children.map((child) => child.type)).toEqual([
+			'JSXText',
+			'JSXCodeBlock',
+			'JSXText',
+		]);
+		expect(fragment.children[0].value).toBe('   ');
+		expect(fragment.children[2].value).toBe('   ');
+	});
+
+	it('drops layout whitespace before a code block in a fragment', () => {
+		const fragment = findNode('let a = <>\n   @{<b>123</b>}\n</>;', 'JSXFragment');
+
+		expect(fragment.children.map((child) => child.type)).toEqual(['JSXCodeBlock']);
+	});
+
 	it('parses an @if directive inside an element nested in an expression container', () => {
 		const directive = findNode(
 			inExpressionContainer(`@if (ok) { <span>x</span> }`),
