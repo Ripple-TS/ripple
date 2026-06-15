@@ -1462,8 +1462,12 @@ export function createContext<T>(defaultValue: T): Context<T> {
 		if (scope.$$ctxValues === null) scope.$$ctxValues = new Map();
 		// Bump the context version when an EXISTING value actually changes. This
 		// runs before children() below, so the memo bailout downstream already
-		// sees the new version when the cascade reaches it. (First-set is not a
-		// change — consumers haven't read a prior version yet.)
+		// sees the new version when the cascade reaches it. First-set is NOT a
+		// change: adding a Provider always creates a fresh scope for its
+		// descendants, so a memoized consumer can't carry pre-Provider state — it's
+		// always freshly mounted within the Provider's scope and reads the value
+		// directly (no memo bailout to invalidate). (Bumping on first-set would
+		// over-invalidate every memo'd consumer of this context elsewhere.)
 		if (scope.$$ctxValues.has(ctx) && !Object.is(scope.$$ctxValues.get(ctx), props.value)) {
 			ctx.$$version++;
 		}
@@ -1762,8 +1766,10 @@ export function child<T extends Node>(node: T): Node | null {
 export function sibling(node: Node, n: number = 1): Node | null {
 	let c: Node | null = node;
 	for (let i = 0; i < n; i++) {
-		if (hydrating && isBlockOpen(c)) c = matchingClose(c as Node);
-		c = (c as Node).nextSibling;
+		// Over-walk (cursor already past the last node) → return null, don't throw.
+		if (c === null) return null;
+		if (hydrating && isBlockOpen(c)) c = matchingClose(c);
+		c = c.nextSibling;
 	}
 	return c;
 }
