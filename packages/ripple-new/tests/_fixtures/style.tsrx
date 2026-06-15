@@ -275,3 +275,25 @@ export function ScopedGlobal() @{
 		</style>
 	</>
 }
+
+// `:global()` around a TAG selector + a mixed `.local :global(em)` chain. The
+// tag case is the clearest regression for the prepended-hash bug: `:global(a)`
+// must render as exactly `a { … }`, NOT `.tsrx-<hash>a { … }` (which would turn
+// the tag into a bogus class). The mixed chain must scope `.local` but leave
+// the descendant `em` global.
+export function ScopedGlobalTag() @{
+	<>
+		<div class="local">{'g'}</div>
+		<style>
+			.local {
+				color: rgb(10, 10, 10);
+			}
+			:global(a) {
+				color: rgb(9, 9, 9);
+			}
+			.local :global(em) {
+				font-style: normal;
+			}
+		</style>
+	</>
+}

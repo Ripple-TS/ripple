@@ -34,6 +34,11 @@ type ServerComponent = (scope: SSRScope, props: any, extra?: any) => string;
 let CURRENT_SCOPE: SSRScope | null = null;
 let ID_COUNTER = 0;
 let CSS: Map<string, string> | null = null;
+// Accumulates top-level `<head>` content during the active render pass (a
+// mutable container, mirroring CSS's mutable Map, so a per-pass local capture
+// keeps accumulating via `HEAD.html +=` even though strings are immutable).
+// Returned as RenderResult.head; the metaframework injects it at <!--ssr-head-->.
+let HEAD: { html: string } | null = null;
 
 // Suspense (SSR Phase 4). A render pass that reaches an unresolved `use(thenable)`
 // records the thenable in SUSPENDED and throws SSR_SUSPENSE; the nearest @try
@@ -377,6 +382,14 @@ export function injectStyle(id: string, css: string): void {
 	if (CSS !== null) CSS.set(id, css);
 }
 
+// Compiler-emitted for each top-level `<head>` block (carrying a `<!--hash-->`
+// marker + the head children HTML). Accumulates into the active render pass's
+// head buffer (null-guarded like injectStyle, so it only collects during a
+// synchronous pass).
+export function ssrHead(content: string): void {
+	if (HEAD !== null) HEAD.html += content;
+}
+
 // ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
@@ -429,12 +442,14 @@ export async function render(component: ServerComponent, props?: any): Promise<R
 		const prevScope = CURRENT_SCOPE;
 		const prevId = ID_COUNTER;
 		const prevCss = CSS;
+		const prevHead = HEAD;
 		const prevSusp = SUSPENDED;
 		const prevRes = RESOLVED;
 		const prevSerial = SERIAL;
 		const prevOcc = OCC;
 		ID_COUNTER = 0;
 		const cssMap = (CSS = new Map());
+		const headBuf = (HEAD = { html: '' });
 		const suspended = (SUSPENDED = [] as { promise: PromiseLike<unknown>; key: string }[]);
 		const serial = (SERIAL = [] as unknown[]);
 		OCC = new Map();
@@ -453,6 +468,7 @@ export async function render(component: ServerComponent, props?: any): Promise<R
 			CURRENT_SCOPE = prevScope;
 			ID_COUNTER = prevId;
 			CSS = prevCss;
+			HEAD = prevHead;
 			SUSPENDED = prevSusp;
 			RESOLVED = prevRes;
 			SERIAL = prevSerial;
@@ -465,7 +481,7 @@ export async function render(component: ServerComponent, props?: any): Promise<R
 				css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
 			}
 			if (serial.length > 0) body += serializeSuspenseSeeds(serial);
-			return { head: '', body, css };
+			return { head: headBuf.html, body, css };
 		}
 		if (++attempt > MAX_SUSPENSE_PASSES) {
 			throw new Error(

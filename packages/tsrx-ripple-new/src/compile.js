@@ -25,6 +25,7 @@
 
 import {
 	parseModule,
+	analyzeCss,
 	prepareStylesheetForRender,
 	renderStylesheets,
 	annotateWithHash,
@@ -1266,14 +1267,13 @@ function ssrCompileBody(node, ctx, name, cssHash, cssEntries, parentNs = 'html')
 		.map((s) => rewriteJsxValues(s, ctx));
 	const setupCode = rewritten.map((s) => '  ' + printNode(s).replace(/\n/g, '\n  ')).join('\n');
 
-	const htmlExpr = ssrEmitNodes(
-		normalizeChildren(jsxNodes),
-		ctx,
-		name,
-		inlinedSubs,
-		parentNs,
-		cssHash,
-	);
+	// Partition top-level `<head>` out of the body (mirrors the client planJsx):
+	// head blocks accumulate into render()'s `head` via `ssrHead`, NOT the body
+	// HTML — so the body collapses to its single real root.
+	const normalized = normalizeChildren(jsxNodes);
+	const headNodes = normalized.filter((n) => n.type === 'HeadElement');
+	const bodyNodes = normalized.filter((n) => n.type !== 'HeadElement');
+	const htmlExpr = ssrEmitNodes(bodyNodes, ctx, name, inlinedSubs, parentNs, cssHash);
 
 	let cssLines = '';
 	if (cssEntries && cssEntries.length) {
@@ -1283,11 +1283,13 @@ function ssrCompileBody(node, ctx, name, cssHash, cssEntries, parentNs = 'html')
 				.map((e) => `  injectStyle(${JSON.stringify(e.hash)}, ${JSON.stringify(e.css)});`)
 				.join('\n') + '\n';
 	}
+	// `ssrHead(…)` side-effect statements (one per head block), like injectStyle.
+	const headLines = emitHeadServer(headNodes, ctx);
 	const subsBlock = inlinedSubs.length
 		? inlinedSubs.map((s) => '  ' + s.replace(/\n/g, '\n  ')).join('\n') + '\n'
 		: '';
 	const setupBlock = setupCode ? setupCode + '\n' : '';
-	return `function ${name}(__s${paramsClause}, __extra) {\n${cssLines}${setupBlock}${subsBlock}  return ${htmlExpr};\n}`;
+	return `function ${name}(__s${paramsClause}, __extra) {\n${cssLines}${headLines}${setupBlock}${subsBlock}  return ${htmlExpr};\n}`;
 }
 
 // Serialize a list of normalized JSX nodes to a JS expression that evaluates to
@@ -1695,6 +1697,11 @@ function applyStyleMap(stmt, ctx) {
 		if (!sheet) continue;
 		const hash = styleNode.metadata?.styleScopeHash || sheet.hash || null;
 		if (!hash) continue;
+		// `analyzeCss` marks `:global(...)` selectors (is_global / is_global_block
+		// metadata) so the renderer leaves them UNSCOPED. Without this pass
+		// `:global(a)` would be scoped to `.<hash>a`. Mirrors tsrx-ripple, which
+		// runs analyzeCss(stylesheet) before prepareStylesheetForRender.
+		analyzeCss(sheet);
 		prepareStylesheetForRender(sheet, true);
 		const css = renderStylesheets([sheet]);
 		ctx.cssInjections.push({ hash, css });
@@ -1730,7 +1737,11 @@ function applyCssScoping(componentNode, ctx) {
 	}
 	collect(componentNode.body);
 	if (!cssHash || styleSheets.length === 0) return null;
-	for (const sheet of styleSheets) prepareStylesheetForRender(sheet);
+	for (const sheet of styleSheets) {
+		// Mark `:global(...)` selectors before scoping so they render unscoped.
+		analyzeCss(sheet);
+		prepareStylesheetForRender(sheet);
+	}
 	const css = renderStylesheets(styleSheets);
 	ctx.cssInjections.push({ hash: cssHash, css });
 	ctx.runtimeNeeded.add('injectStyle');
@@ -1782,6 +1793,7 @@ function compileComponent(node, ctx, options) {
 	// Backwards-compat: internal callers (legacy synthetic Component shapes)
 	// may still attach `.css` directly on the node.
 	if (!cssHash && node.css) {
+		analyzeCss(node.css);
 		prepareStylesheetForRender(node.css);
 		const css = renderStylesheets([node.css]);
 		cssHash = node.css.hash;
@@ -1940,6 +1952,9 @@ function compileFunctionBody(node, ctx, name, parentNs = 'html', cssHash = null,
 		lines.push(`  }`);
 	}
 	if (plan.after) lines.push(plan.after);
+	// Top-level `<head>` blocks → mountHead into document.head (out-of-band; runs
+	// every render, idempotent via mountHead's dedupe, independent of __block).
+	if (plan.head) lines.push(plan.head);
 
 	return `function ${name}(__s${paramsClause}, __extra) {\n  const __block = __s.block;\n${lines.join('\n')}\n}`;
 }
@@ -2169,6 +2184,155 @@ function allocHookSymbol(ctx, debugName) {
  *   - Tsx (`<>...</>`) and Tsrx (`<tsrx>...</tsrx>`) → flattened (children inlined)
  *   - Anything else (Element / ForOf / If / etc.) → passed through
  */
+// ===========================================================================
+// Top-level <head> extraction
+// ===========================================================================
+//
+// A `<head>` at the component output root (typically inside a `<>` fragment,
+// alongside a `<style>` and one body element) is NOT body DOM: like `<style>`
+// (→ CSS), its contents are routed to the document head — `render().head` on
+// the server, `document.head` on the client. Removing it from the body-root
+// count collapses the remaining single body element to the single-root path
+// (no `<ripple-frag>`), so the body hydrates with the existing single-root
+// machinery while the head is mounted out-of-band. Client and server share one
+// per-block hash-comment marker (`<!--rnh-…-->`) so hydration adopts (not
+// duplicates) the server-rendered head.
+
+/** @param {any} n @returns {boolean} */
+function isHeadElementNode(n) {
+	return (
+		n &&
+		n.type === 'JSXElement' &&
+		n.openingElement &&
+		n.openingElement.name &&
+		(n.openingElement.name.name || n.openingElement.name) === 'head'
+	);
+}
+
+// Deterministic short hash bridging a head block's client `mountHead` and server
+// `ssrHead` marker. Must be byte-identical across the client and server compiles
+// of the SAME source — so it is keyed ONLY on the head element's SOURCE POSITION
+// (same AST → same offset in both modes), NOT the filename (which can differ
+// between how the two modes are invoked). Unique per head WITHIN a file; the
+// theoretical cross-file collision (two files with a `<head>` at the same byte
+// offset rendered on one page) is not reachable for the one-head-per-page shape.
+/** @param {any} _ctx @param {any} node @param {number} index @returns {string} */
+function headHash(_ctx, node, index) {
+	const pos =
+		node && node.openingElement && node.openingElement.start != null
+			? node.openingElement.start
+			: index;
+	const src = `head:${pos}`;
+	let h = 5381;
+	for (let i = 0; i < src.length; i++) h = (Math.imul(h, 33) + src.charCodeAt(i)) | 0;
+	return 'rnh-' + (h >>> 0).toString(36);
+}
+
+// Serialize a `<head>`'s children to a STATIC HTML string at compile time — one
+// string shared by `ssrHead` (server) and `mountHead` (client), so the two are
+// byte-identical with NO `ssr*` runtime helpers. Supports static `<title>` (with
+// text) and void `<meta>`/`<link>` (with static attributes). Throws a clear
+// error on dynamic content (a deferred feature — the website's head is static).
+/** @param {any} headNode @returns {string} */
+function staticHeadHtml(headNode) {
+	let html = '';
+	for (const child of headNode.children || []) {
+		if (child.type === 'JSXText') {
+			if (!/^\s*$/.test(child.value)) html += escapeHtml(child.value);
+			continue;
+		}
+		if (child.type !== 'JSXElement') {
+			throw new Error(
+				`<head> may only contain static <title>/<meta>/<link> elements (got ${child.type}). Dynamic <head> content is not yet supported in ripple-new.`,
+			);
+		}
+		const tag = child.openingElement.name.name || child.openingElement.name;
+		let attrs = '';
+		for (const a of child.openingElement.attributes || []) {
+			if (a.type !== 'JSXAttribute' && a.type !== 'Attribute') {
+				throw new Error('Spread attributes in <head> are not yet supported in ripple-new.');
+			}
+			const attrName = a.name.name || a.name;
+			// The CSS-scoping pass stamps a `class="tsrx-…"` onto every element,
+			// including head children — meaningless on <title>/<meta>/<link>. Drop it
+			// so the head HTML stays clean (and identical between client/server).
+			if (attrName === 'class') continue;
+			let val = a.value;
+			if (val == null) {
+				attrs += ` ${attrName}`;
+				continue;
+			}
+			let str;
+			if (val.type === 'JSXExpressionContainer') {
+				const e = val.expression;
+				if (e && e.type === 'Literal' && typeof e.value === 'string') str = e.value;
+				else
+					throw new Error(
+						`Dynamic value for <head> attribute "${attrName}" is not yet supported in ripple-new.`,
+					);
+			} else if (val.type === 'Literal') {
+				str = String(val.value);
+			} else if (val.type === 'JSXText') {
+				str = val.value;
+			} else {
+				throw new Error(`Unsupported value for <head> attribute "${attrName}" in ripple-new.`);
+			}
+			attrs += ` ${attrName}="${escapeAttr(str)}"`;
+		}
+		if (VOID_ELEMENTS.has(tag) || child.openingElement.selfClosing) {
+			html += `<${tag}${attrs}>`;
+		} else {
+			let text = '';
+			for (const c of child.children || []) {
+				if (c.type === 'JSXText') text += escapeHtml(c.value);
+				else if (
+					c.type === 'JSXExpressionContainer' &&
+					c.expression &&
+					c.expression.type === 'Literal' &&
+					typeof c.expression.value === 'string'
+				)
+					text += escapeHtml(c.expression.value);
+				else
+					throw new Error(
+						`Dynamic content inside <${tag}> in <head> is not yet supported in ripple-new.`,
+					);
+			}
+			html += `<${tag}${attrs}>${text}</${tag}>`;
+		}
+	}
+	return html;
+}
+
+// Build the CLIENT `mountHead(hash, html)` statements for a component's head
+// blocks (one per `HeadElement`). Returns '' when there are none.
+/** @param {any[]} headNodes @param {any} ctx @returns {string} */
+function emitHeadClient(headNodes, ctx) {
+	if (!headNodes.length) return '';
+	ctx.runtimeNeeded.add('mountHead');
+	return headNodes
+		.map(
+			(h, i) =>
+				`  mountHead(${JSON.stringify(headHash(ctx, h, i))}, ${JSON.stringify(staticHeadHtml(h))});`,
+		)
+		.join('\n');
+}
+
+// Build the SERVER `ssrHead("<!--hash-->" + html)` statements for a component's
+// head blocks. Returns '' when there are none.
+/** @param {any[]} headNodes @param {any} ctx @returns {string} */
+function emitHeadServer(headNodes, ctx) {
+	if (!headNodes.length) return '';
+	ctx.runtimeNeeded.add('ssrHead');
+	return (
+		headNodes
+			.map(
+				(h, i) =>
+					`  ssrHead(${JSON.stringify(`<!--${headHash(ctx, h, i)}-->` + staticHeadHtml(h))});`,
+			)
+			.join('\n') + '\n'
+	);
+}
+
 function normalizeChildren(nodes) {
 	const out = [];
 	if (!nodes) return out;
@@ -2244,6 +2408,17 @@ function normalizeChildren(nodes) {
 					mode = v && v.type === 'JSXExpressionContainer' ? v.expression : v;
 				}
 				out.push({ type: 'ActivityStatement', mode, children: n.children || [] });
+				continue;
+			}
+			// `<head>` → extract to the document-head channel (NOT body DOM). Kept in
+			// `out` as a synthetic node so planJsx / ssrCompileBody can partition it
+			// out of the body-root count and emit it via mountHead / ssrHead.
+			if (isHeadElementNode(n)) {
+				out.push({
+					type: 'HeadElement',
+					children: n.children || [],
+					openingElement: n.openingElement,
+				});
 				continue;
 			}
 			// Skip JSXStyleElement nested as a child — its CSS gets registered via
@@ -2492,8 +2667,15 @@ function stripTsOnlyWrappers(node) {
 }
 
 function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html', cssHash = null) {
-	const jsxNodes = normalizeChildren(jsxNodesRaw);
-	if (jsxNodes.length === 0) return { mount: '', update: '', after: '' };
+	const allNodes = normalizeChildren(jsxNodesRaw);
+	// Partition top-level `<head>` out of the BODY-root set: `jsxNodes` (the body)
+	// drives single/multi-root + the template, while head blocks are mounted
+	// out-of-band into document.head. Excluding `<head>` (like `<style>`) is what
+	// collapses a `<head> + <style> + <div>` page to the single-root path.
+	const headNodes = allNodes.filter((n) => n.type === 'HeadElement');
+	const jsxNodes = allNodes.filter((n) => n.type !== 'HeadElement');
+	const headEmit = emitHeadClient(headNodes, ctx);
+	if (jsxNodes.length === 0) return { mount: '', update: '', after: '', head: headEmit };
 
 	// Emit ONE template containing all top-level JSX (wrapping multiple roots in
 	// a synthetic <ripple-frag>).
@@ -2923,6 +3105,7 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 		mount: mountLines.join('\n'),
 		update: updateLines.join('\n'),
 		after: afterLines.join('\n'),
+		head: headEmit,
 	};
 }
 

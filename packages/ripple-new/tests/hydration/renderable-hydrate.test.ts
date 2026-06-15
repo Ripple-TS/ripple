@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { compile } from '../../../tsrx-ripple-new/src/index.js';
 import { createRoot, hydrate, flushSync, createElement, delegateEvents } from '../../src/index.js';
 import * as ServerRT from 'ripple-new/server';
-import { Inner, Counter, Hole, Layout } from './_fixtures/renderable.tsrx';
+import { Inner, Counter, Hole, Layout, FragLayout } from './_fixtures/renderable.tsrx';
 
 // Renderable `{expr}` holes (no `as string` cast) — Ripple/React semantics:
 //   - function (component / children render-fn) → render as a block
@@ -161,6 +161,23 @@ describe('renderable holes — hydration', () => {
 		expect(container.querySelector('#layout')).toBe(main);
 		expect(container.querySelector('#counter')).toBe(btn);
 		// And the adopted component is interactive.
+		flushSync(() => btn.click());
+		expect(btn.textContent).toBe('count:1');
+		root.unmount();
+	});
+
+	// A component whose only body root is `{children}` (the website Layout shape,
+	// `<>{children}<style/></>`) hydrates via childSlot's cursor-adopt branch: the
+	// frag template contributes no body DOM, so the sole childSlot adopts the
+	// server's range off the hydrate cursor.
+	it('adopts a component child through a fragment layout whose only root is {children}', async () => {
+		const { body } = await ServerRT.render(server.FragLayout, { children: server.Counter });
+		expect(body).toContain('count:0');
+		container.innerHTML = body;
+		const btn = container.querySelector('#counter') as HTMLButtonElement;
+		const root = hydrate(FragLayout, container, { children: Counter });
+		flushSync(() => {});
+		expect(container.querySelector('#counter')).toBe(btn); // adopted, not rebuilt
 		flushSync(() => btn.click());
 		expect(btn.textContent).toBe('count:1');
 		root.unmount();

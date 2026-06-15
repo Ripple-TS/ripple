@@ -53,4 +53,5 @@ export {
 	ssrBlock,
 	ssrPortal,
 	injectStyle,
+	ssrHead,
 } from '../runtime.server';

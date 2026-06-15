@@ -23,6 +23,7 @@ import {
 	ScopedMedia,
 	ScopedKeyframes,
 	ScopedGlobal,
+	ScopedGlobalTag,
 } from './_fixtures/style.tsrx';
 
 // Helper: find the module-level <style data-ripple-new> tag for a given hash
@@ -403,6 +404,22 @@ describe('scoped CSS — :global escape hatch', () => {
 		// And the bodywide rule must NOT have the hash applied.
 		const hashClass = Array.from(local.classList).find((c) => c.startsWith('tsrx-'))!;
 		expect(css).not.toMatch(new RegExp(`\\.bodywide[^{]*\\.${hashClass}`));
+		r.unmount();
+	});
+
+	it(':global(<tag>) renders the bare tag (no hash glued onto it)', () => {
+		const r = mount(ScopedGlobalTag);
+		const local = r.find('.local');
+		const css = styleSheetTextFor(local);
+		const hashClass = Array.from(local.classList).find((c) => c.startsWith('tsrx-'))!;
+		// The local class is still scoped.
+		expect(css).toMatch(new RegExp(`\\.local\\.${hashClass}`));
+		// `:global(a)` → exactly `a { … }`, NOT `.tsrx-<hash>a` (the regression).
+		expect(css).toMatch(/(^|[\s,{}])a\s*\{[^}]*color:\s*rgb\(9,\s*9,\s*9\)/);
+		expect(css).not.toContain(`${hashClass}a`);
+		// `.local :global(em)` → `.local.<hash> em` (local scoped, em global).
+		expect(css).toMatch(new RegExp(`\\.local\\.${hashClass}\\s+em\\b`));
+		expect(css).not.toContain(`${hashClass}em`);
 		r.unmount();
 	});
 });

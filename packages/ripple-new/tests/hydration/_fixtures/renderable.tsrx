@@ -24,3 +24,11 @@ export function Layout(props) @{
 		<footer>FOOT</footer>
 	</main>
 }
+
+// Multi-root FRAGMENT `{children}` — the exact website-tsrx Layout shape
+// (`<>{children}<style/></>`), here without the style. Top-level childSlot.
+export function FragLayout(props) @{
+	<>
+		{props.children}
+	</>
+}

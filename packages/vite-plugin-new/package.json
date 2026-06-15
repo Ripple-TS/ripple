@@ -1,0 +1,41 @@
+{
+  "name": "@ripple-ts/vite-plugin-new",
+  "description": "Vite metaframework plugin for the ripple-new renderer (dev SSR + routing + hydrate; production build is Phase 2)",
+  "license": "MIT",
+  "author": "Dominic Gannaway",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "module": "src/index.js",
+  "main": "src/index.js",
+  "bin": {
+    "ripple-new-preview": "src/bin/preview.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./production": {
+      "import": "./src/server/production.js",
+      "default": "./src/server/production.js",
+      "types": "./types/production.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ripple-TS/ripple.git",
+    "directory": "packages/vite-plugin-new"
+  },
+  "dependencies": {
+    "@ripple-ts/adapter": "workspace:*",
+    "@tsrx/ripple-new": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:default",
+    "ripple-new": "workspace:*",
+    "type-fest": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

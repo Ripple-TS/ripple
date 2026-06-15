@@ -2561,6 +2561,54 @@ export function setSpread(el: Element, value: any, prev: any, mountScope?: Scope
 
 const _injectedStyles = new Set<string>();
 
+// ---------------------------------------------------------------------------
+// Top-level <head> mounting — compiler-emitted `mountHead(hash, html)` for each
+// extracted `<head>` block. Idempotent (keyed by the per-block hash). On a
+// hydrated page the server already wrote `<!--hash-->` + the head children into
+// the document <head> (via render().head → <!--ssr-head-->), so mountHead ADOPTS
+// those — finds the marker comment, leaves the elements, removes the marker —
+// rather than duplicating them. On a fresh client render it parses + appends,
+// updating an existing <title> in place rather than adding a second one.
+// (Head elements are mounted imperatively like <style>, NOT tracked as a Block —
+// simpler than original Ripple's HEAD_BLOCK, at the cost of reactive meta/link.)
+// ---------------------------------------------------------------------------
+
+const _mountedHeads = new Set<string>();
+
+export function mountHead(hash: string, html: string): void {
+	if (_mountedHeads.has(hash)) return;
+	if (typeof document === 'undefined') return;
+
+	// SSR adopt / de-dup: find the server's `<!--hash-->` marker in document.head.
+	// If present, the head children are already in the DOM — adopt them (leave in
+	// place), remove the marker so a later re-mount can't re-match it, and stop.
+	for (let n: Node | null = document.head.firstChild; n !== null; n = n.nextSibling) {
+		if (n.nodeType === 8 && (n as Comment).data === hash) {
+			_mountedHeads.add(hash);
+			(n as Comment).remove();
+			return;
+		}
+	}
+
+	// Fresh client mount (no server head): parse the head HTML and append, with a
+	// <title> adopt-or-update so a re-render / navigation keeps exactly one title.
+	_mountedHeads.add(hash);
+	const parsed = new DOMParser().parseFromString('<head>' + html + '</head>', 'text/html');
+	for (const node of Array.from(parsed.head.childNodes)) {
+		if (node.nodeType === 1 && (node as Element).tagName === 'TITLE') {
+			let title = document.head.querySelector('title');
+			if (title === null) {
+				title = document.createElement('title');
+				document.head.appendChild(title);
+			}
+			const text = node.textContent ?? '';
+			if (title.textContent !== text) title.textContent = text;
+		} else {
+			document.head.appendChild(document.importNode(node, true));
+		}
+	}
+}
+
 export function injectStyle(id: string, css: string): void {
 	if (_injectedStyles.has(id)) return;
 	// SSR de-dup: the server already emitted this scoped stylesheet (the css of
@@ -3216,11 +3264,20 @@ export function childSlot(
 		let start: Comment;
 		let end: Comment;
 		if (hydrating && isBlockOpen(anchor ?? null)) {
-			// Hydration: adopt the server's `<!--[-->…<!--]-->` range as our markers
+			// Hydration (nested hole): the anchor resolved via child/sibling to the
+			// server's `<!--[-->`. Adopt that `<!--[-->…<!--]-->` range as our markers
 			// and point the cursor at the first content node for the Block's clone()
 			// / the text adopt below.
 			start = anchor as Comment;
 			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else if (hydrating && isBlockOpen(hydrateNode)) {
+			// Hydration (sole top-level hole, e.g. a layout `<>{children}…</>`): the
+			// anchor is the block's end-marker (not a `<!--[-->`), but the CURSOR sits
+			// on the server's range-open. Adopt from the cursor. This is what lets a
+			// component whose only body root is `{children}` hydrate as single-root.
+			start = hydrateNode as Comment;
+			end = matchingClose(hydrateNode as Node);
 			hydrateNode = start.nextSibling;
 		} else {
 			start = document.createComment('');
