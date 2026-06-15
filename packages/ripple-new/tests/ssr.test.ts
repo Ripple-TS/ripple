@@ -30,50 +30,56 @@ const basic = evalServer(fixture('basic'), 'basic.tsrx');
 const ssr = evalServer(fixture('ssr'), 'ssr.tsrx');
 
 describe('SSR Phase 1 — basic fixtures', () => {
-	it('renders static markup, dynamic text, and attributes', () => {
-		expect(RT.render(basic.Hello)).toMatchSnapshot('Hello');
-		expect(RT.render(basic.Counter, { n: 5 })).toMatchSnapshot('Counter');
-		expect(RT.render(basic.Greet, { name: 'Ada' })).toMatchSnapshot('Greet');
-		expect(RT.render(basic.Mixed)).toMatchSnapshot('Mixed');
+	it('renders static markup, dynamic text, and attributes', async () => {
+		expect(await RT.render(basic.Hello)).toMatchSnapshot('Hello');
+		expect(await RT.render(basic.Counter, { n: 5 })).toMatchSnapshot('Counter');
+		expect(await RT.render(basic.Greet, { name: 'Ada' })).toMatchSnapshot('Greet');
+		expect(await RT.render(basic.Mixed)).toMatchSnapshot('Mixed');
 	});
 
-	it('renders SVG and MathML (static + dynamic attrs)', () => {
-		expect(RT.render(basic.SvgStatic)).toMatchSnapshot('SvgStatic');
-		expect(RT.render(basic.SvgDynamic, { klass: 'c', w: 30, fill: 'blue' })).toMatchSnapshot(
+	it('renders SVG and MathML (static + dynamic attrs)', async () => {
+		expect(await RT.render(basic.SvgStatic)).toMatchSnapshot('SvgStatic');
+		expect(await RT.render(basic.SvgDynamic, { klass: 'c', w: 30, fill: 'blue' })).toMatchSnapshot(
 			'SvgDynamic',
 		);
 		expect(
-			RT.render(basic.MathDynamic, { display: 'block', klass: 'm', value: 'x' }),
+			await RT.render(basic.MathDynamic, { display: 'block', klass: 'm', value: 'x' }),
 		).toMatchSnapshot('MathDynamic');
 	});
 });
 
 describe('SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css)', () => {
-	it('renders dynamic object style with camelCase keys', () => {
-		expect(RT.render(ssr.Styled, { klass: 'a', color: 'red', label: 'hi' })).toMatchSnapshot(
+	it('renders dynamic object style with camelCase keys', async () => {
+		expect(await RT.render(ssr.Styled, { klass: 'a', color: 'red', label: 'hi' })).toMatchSnapshot(
 			'Styled',
 		);
 	});
 
-	it('renders boolean attributes, void elements, and dynamic attrs', () => {
-		expect(RT.render(ssr.Field, { value: 'v', disabled: true })).toMatchSnapshot('Field-disabled');
-		expect(RT.render(ssr.Field, { value: 'v', disabled: false })).toMatchSnapshot('Field-enabled');
+	it('renders boolean attributes, void elements, and dynamic attrs', async () => {
+		expect(await RT.render(ssr.Field, { value: 'v', disabled: true })).toMatchSnapshot(
+			'Field-disabled',
+		);
+		expect(await RT.render(ssr.Field, { value: 'v', disabled: false })).toMatchSnapshot(
+			'Field-enabled',
+		);
 	});
 
-	it('serializes spread attributes', () => {
-		expect(RT.render(ssr.Spread, { attrs: { id: 'x', 'data-k': '1' } })).toMatchSnapshot('Spread');
+	it('serializes spread attributes', async () => {
+		expect(await RT.render(ssr.Spread, { attrs: { id: 'x', 'data-k': '1' } })).toMatchSnapshot(
+			'Spread',
+		);
 	});
 
-	it('emits innerHTML raw (unescaped)', () => {
-		expect(RT.render(ssr.Raw, { html: '<b>bold</b>' })).toMatchSnapshot('Raw');
+	it('emits innerHTML raw (unescaped)', async () => {
+		expect(await RT.render(ssr.Raw, { html: '<b>bold</b>' })).toMatchSnapshot('Raw');
 	});
 
-	it('renders nested component composition', () => {
-		expect(RT.render(ssr.Card, { title: 'T', tag: 'new' })).toMatchSnapshot('Card');
+	it('renders nested component composition', async () => {
+		expect(await RT.render(ssr.Card, { title: 'T', tag: 'new' })).toMatchSnapshot('Card');
 	});
 
-	it('collects scoped CSS into the css field', () => {
-		const out = RT.render(ssr.Scoped);
+	it('collects scoped CSS into the css field', async () => {
+		const out = await RT.render(ssr.Scoped);
 		expect(out).toMatchSnapshot('Scoped');
 		expect(out.css).toContain('.box.tsrx-');
 		expect(out.body).toContain('class="box tsrx-');
@@ -81,23 +87,23 @@ describe('SSR Phase 1 — ssr fixture (style / spread / innerHTML / components /
 });
 
 describe('SSR Phase 1 — semantics', () => {
-	it('escapes dynamic text and attribute values', () => {
-		const out = RT.render(basic.Greet, { name: '<script>"x"' });
+	it('escapes dynamic text and attribute values', async () => {
+		const out = await RT.render(basic.Greet, { name: '<script>"x"' });
 		expect(out.body).toContain('&lt;script&gt;');
 		expect(out.body).not.toContain('<script>');
 	});
 
-	it('hooks render their initial value; effects do NOT run on the server', () => {
+	it('hooks render their initial value; effects do NOT run on the server', async () => {
 		const onEffect = vi.fn();
-		const out = RT.render(ssr.HookView, { start: 7, onEffect });
+		const out = await RT.render(ssr.HookView, { start: 7, onEffect });
 		expect(out.body).toContain('<span class="n">7</span>');
 		expect(out.body).toContain('<span class="d">14</span>'); // useMemo ran once
 		expect(out.body).toMatch(/id=":in-[0-9a-z]+:"/); // deterministic useId
 		expect(onEffect).not.toHaveBeenCalled(); // useEffect is a no-op on the server
 	});
 
-	it('returns the { head, body, css } shape', () => {
-		const out = RT.render(basic.Hello);
+	it('returns the { head, body, css } shape', async () => {
+		const out = await RT.render(basic.Hello);
 		expect(Object.keys(out).sort()).toEqual(['body', 'css', 'head']);
 		expect(out.head).toBe('');
 	});

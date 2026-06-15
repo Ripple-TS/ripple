@@ -1894,17 +1894,29 @@ function compileFunctionBody(node, ctx, name, parentNs = 'html', cssHash = null,
 
 function rewriteHookCalls(node, ctx, componentName) {
 	return mapAst(node, (n) => {
-		if (
-			n.type === 'CallExpression' &&
-			n.callee.type === 'Identifier' &&
-			HOOK_NAMES.has(n.callee.name)
-		) {
-			ctx.runtimeNeeded.add(n.callee.name);
-			const symVar = allocHookSymbol(ctx, `${componentName}.${n.callee.name}#${ctx.nextHookSymId}`);
-			return {
-				...n,
-				arguments: [...n.arguments, { type: 'Identifier', name: symVar }],
-			};
+		if (n.type === 'CallExpression' && n.callee.type === 'Identifier') {
+			const name = n.callee.name;
+			if (HOOK_NAMES.has(name)) {
+				ctx.runtimeNeeded.add(name);
+				const symVar = allocHookSymbol(ctx, `${componentName}.${name}#${ctx.nextHookSymId}`);
+				return {
+					...n,
+					arguments: [...n.arguments, { type: 'Identifier', name: symVar }],
+				};
+			}
+			// SSR Phase 4: give every server-side `use(thenable)` call site a stable
+			// key so render()'s suspense cache matches the same call across re-render
+			// passes (and tells sibling/nested boundaries apart). The client keys
+			// use() by per-block call order instead, so this is server-mode only;
+			// the server's use() ignores the key for `use(Context)` reads.
+			if (name === 'use' && ctx.mode === 'server') {
+				ctx.runtimeNeeded.add('use');
+				const symVar = allocHookSymbol(ctx, `${componentName}.use#${ctx.nextHookSymId}`);
+				return {
+					...n,
+					arguments: [...n.arguments, { type: 'Identifier', name: symVar }],
+				};
+			}
 		}
 		return null;
 	});

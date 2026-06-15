@@ -12,6 +12,8 @@
  * Reconciliation: LIS-based keyed list inside forBlock (ported from Ripple's patchKeyedChildrenComplex).
  */
 
+import { SUSPENSE_SCRIPT_ATTR } from './constants';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -1559,6 +1561,19 @@ function useThenable<T>(thenable: TrackedThenable<T>): T {
 	const idx = block.__thenableIdx;
 	block.__thenableIdx = idx + 1;
 
+	// Hydration seeding (SSR Phase 4): the server already resolved this use() and
+	// serialized the value. Adopt the next seeded value (use() calls hydrate in
+	// the same render order the server produced them in) and mark the thenable
+	// fulfilled, so this render and every later one return synchronously — no
+	// re-suspend, no client re-fetch. Folds out for client-only builds.
+	if (hydrating && hydrationSeeds !== null && hydrationSeedCursor < hydrationSeeds.length) {
+		const value = hydrationSeeds[hydrationSeedCursor++] as T;
+		thenable.status = 'fulfilled';
+		thenable.value = value;
+		state[idx] = thenable;
+		return value;
+	}
+
 	const stored = state[idx];
 	// Replay path: same promise as last attempt — fast lookup of the cached entry.
 	if (stored === thenable) {
@@ -1642,6 +1657,13 @@ export function template(html: string, ns: number = 0, frag: number = 0): Elemen
 let hydrating = false;
 // The server node the next clone() call should adopt as a component root.
 let hydrateNextRoot: Node | null = null;
+// Server-resolved `use(thenable)` values (SSR Phase 4), parsed from the inline
+// `<script data-ripple-new-suspense>` in `hydrate()` and consumed in render
+// order by `useThenable` so a hydrating boundary returns synchronously. Both are
+// touched ONLY under `if (hydrating)` and assigned ONLY in `hydrate()`, so they
+// constant-fold away with the rest of the hydration path in client-only builds.
+let hydrationSeeds: unknown[] | null = null;
+let hydrationSeedCursor = 0;
 
 export function clone<T extends Node>(node: T): T {
 	if (hydrating && hydrateNextRoot !== null) {
@@ -5383,6 +5405,19 @@ export function hydrate(
 	registerDelegationTarget(container);
 	const rootBlock = createBlock('root', null, container, null, null, body, props);
 	hydrating = true;
+	// Adopt server-serialized use(thenable) values, if any: pull them out of the
+	// inline data <script> (and remove it, so it isn't taken for a hydratable
+	// node) and stage them for useThenable to consume in render order.
+	const seedScript = container.querySelector('script[' + SUSPENSE_SCRIPT_ATTR + ']');
+	if (seedScript !== null) {
+		try {
+			hydrationSeeds = JSON.parse(seedScript.textContent || '[]');
+		} catch {
+			hydrationSeeds = null;
+		}
+		hydrationSeedCursor = 0;
+		seedScript.remove();
+	}
 	// The component's server root is the container's first node. clone() adopts it.
 	hydrateNextRoot = container.firstChild;
 	try {
@@ -5390,6 +5425,8 @@ export function hydrate(
 	} finally {
 		hydrating = false;
 		hydrateNextRoot = null;
+		hydrationSeeds = null;
+		hydrationSeedCursor = 0;
 	}
 	// Commit effects on the next microtask flush (same as createRoot's first render).
 	if (!syncFlush && !scheduled) {

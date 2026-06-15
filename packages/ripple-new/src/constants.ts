@@ -23,3 +23,13 @@ export const BLOCK_OPEN = `<!--${HYDRATION_START}-->`;
 export const BLOCK_CLOSE = `<!--${HYDRATION_END}-->`;
 /** A bare anchor comment used where the client would otherwise clone a `<!>`. */
 export const EMPTY_COMMENT = '<!---->';
+
+/**
+ * Marker attribute on the inline `<script type="application/json">` that the
+ * server emits to carry the JSON-serialized `use(thenable)` values it resolved
+ * during render (SSR Phase 4 — Suspense). The client `hydrate()` finds this
+ * script by attribute, parses it, and seeds the values back into `use()` (in
+ * render order) so a hydrating boundary returns synchronously instead of
+ * re-suspending. Shared so server emit and client read stay byte-identical.
+ */
+export const SUSPENSE_SCRIPT_ATTR = 'data-ripple-new-suspense';

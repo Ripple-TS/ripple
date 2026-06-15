@@ -21,7 +21,7 @@
 // module-global "current scope" (mirroring the client's CURRENT_SCOPE) is safe.
 // ---------------------------------------------------------------------------
 
-import { BLOCK_OPEN, BLOCK_CLOSE, EMPTY_COMMENT } from './constants';
+import { BLOCK_OPEN, BLOCK_CLOSE, EMPTY_COMMENT, SUSPENSE_SCRIPT_ATTR } from './constants';
 
 interface SSRScope {
 	parent: SSRScope | null;
@@ -34,6 +34,23 @@ type ServerComponent = (scope: SSRScope, props: any, extra?: any) => string;
 let CURRENT_SCOPE: SSRScope | null = null;
 let ID_COUNTER = 0;
 let CSS: Map<string, string> | null = null;
+
+// Suspense (SSR Phase 4). A render pass that reaches an unresolved `use(thenable)`
+// records the thenable in SUSPENDED and throws SSR_SUSPENSE; the nearest @try
+// renders its @pending fallback. render()'s retry loop awaits everything in
+// SUSPENDED, caches each outcome in RESOLVED (keyed by the compiler-injected
+// call-site key + per-pass occurrence index), then re-renders — on the next pass
+// use() finds the cached value and returns it, so the @try renders its success
+// arm (or, on rejection, routes the error to @catch). SERIAL collects the
+// resolved values in render (depth-first) order so the client can seed them back
+// in the same order during hydration. OCC counts per-site occurrences so a use()
+// inside an @for gets a distinct key per iteration. All four are reinstalled
+// fresh at the top of every pass (see render()) so concurrent render() calls
+// that interleave across an `await` cannot clobber one another.
+let SUSPENDED: { promise: PromiseLike<unknown>; key: string }[] | null = null;
+let RESOLVED: Map<string, { value: unknown } | { reason: unknown }> | null = null;
+let SERIAL: unknown[] | null = null;
+let OCC: Map<string, number> | null = null;
 
 function ssrScope(parent: SSRScope | null): SSRScope {
 	return { parent, $$ctxValues: null };
@@ -186,19 +203,45 @@ export function useContext<T>(ctx: Context<T>): T {
 	return readContext(ctx);
 }
 
-// Sentinel thrown by `use(thenable)` on the server: a server render is sync and
-// can't await, so a pending value suspends. The nearest `@try` catches this and
-// renders its `@pending` fallback (see the compiler's ssrEmitTry). Distinct from
-// real errors, which route to `@catch`.
+// Sentinel thrown by `use(thenable)` on the server when the value isn't resolved
+// yet. The nearest `@try` catches it and renders its `@pending` fallback (see the
+// compiler's ssrEmitTry) for this pass; render()'s loop then awaits the thenable
+// and re-renders. Distinct from real errors, which route to `@catch`.
 const SSR_SUSPENSE = Symbol('ripple-new.ssr.suspense');
 export function ssrIsSuspense(err: unknown): boolean {
 	return err === SSR_SUSPENSE;
 }
 
-export function use<T>(usable: Context<T> | PromiseLike<T>): T {
+export function use<T>(usable: Context<T> | PromiseLike<T>, siteKey?: string | symbol): T {
 	if (usable && (usable as any).$$kind === CONTEXT_TAG) return readContext(usable as Context<T>);
-	// A thenable: server render can't resolve it — suspend so the enclosing
-	// @try renders its @pending fallback.
+	// A thenable. Key it by the compiler-injected call-site key, disambiguated by
+	// how many times this site has already run THIS pass (so a use() inside an
+	// @for gets a distinct key per iteration). The key is stable across passes
+	// because each pass re-derives it from the same deterministic render.
+	const base =
+		siteKey === undefined
+			? '@'
+			: typeof siteKey === 'symbol'
+				? (siteKey as symbol).toString()
+				: String(siteKey);
+	const occ = OCC;
+	const n = occ !== null ? (occ.get(base) ?? 0) : 0;
+	if (occ !== null) occ.set(base, n + 1);
+	const key = base + '#' + n;
+
+	const resolved = RESOLVED;
+	if (resolved !== null && resolved.has(key)) {
+		const entry = resolved.get(key)!;
+		// Rejected on a prior pass → throw so the enclosing @try renders @catch.
+		// (Not seeded for hydration; the client re-derives a rejected boundary.)
+		if ('reason' in entry) throw entry.reason;
+		// Resolved → return it, and record it (in render order) for client seeding.
+		if (SERIAL !== null) SERIAL.push(entry.value);
+		return entry.value as T;
+	}
+	// First time we reach this site this render — record the thenable so render()'s
+	// loop can await it, then suspend so the nearest @try shows @pending this pass.
+	if (SUSPENDED !== null) SUSPENDED.push({ promise: usable as PromiseLike<unknown>, key });
 	throw SSR_SUSPENSE;
 }
 
@@ -314,6 +357,20 @@ export interface RenderResult {
 	css: string;
 }
 
+/** Guard against a `use(thenable)` that never resolves wedging the render loop. */
+const MAX_SUSPENSE_PASSES = 50;
+
+/**
+ * Serialize the resolved `use(thenable)` values (in render order) into an inline
+ * data `<script>` the client reads during hydration. `<` is escaped to `<`
+ * so the JSON payload can't terminate the `<script>` element or open an HTML
+ * comment. Only emitted when at least one value was resolved.
+ */
+function serializeSuspenseSeeds(values: unknown[]): string {
+	const json = JSON.stringify(values).replace(/</g, '\\u003c');
+	return '<script type="application/json" ' + SUSPENSE_SCRIPT_ATTR + '>' + json + '</script>';
+}
+
 /**
  * Render a server-compiled component (a function returning an HTML string) to
  * `{ head, body, css }`. `head` is empty (no document-head API yet); `css` is
@@ -321,25 +378,80 @@ export interface RenderResult {
  * ready-to-place `<style data-ripple-new="hash">…</style>` tags (one per hash,
  * deduped). The client's `injectStyle` matches that `data-ripple-new` hash and
  * skips re-injecting on hydration — so the styles cross the boundary once.
+ *
+ * Async because of Suspense (Phase 4): a `use(thenable)` that hasn't resolved
+ * suspends the pass; render() awaits it and re-renders, so the @try ends up
+ * showing its resolved success arm (or @catch on rejection). Each resolved value
+ * is appended to `body` as an inline data `<script>` for the client to seed.
  */
-export function render(component: ServerComponent, props?: any): RenderResult {
+export async function render(component: ServerComponent, props?: any): Promise<RenderResult> {
 	const prevScope = CURRENT_SCOPE;
 	const prevId = ID_COUNTER;
 	const prevCss = CSS;
-	ID_COUNTER = 0;
-	CSS = new Map();
+	const prevSusp = SUSPENDED;
+	const prevRes = RESOLVED;
+	const prevSerial = SERIAL;
+	const prevOcc = OCC;
+	// RESOLVED is the suspense cache and persists across passes; everything else
+	// is reinstalled fresh per pass (below) so interleaved concurrent renders are
+	// safe — each pass runs to completion synchronously before the next `await`.
+	const resolved = new Map<string, { value: unknown } | { reason: unknown }>();
 	try {
-		const root = ssrScope(null);
-		CURRENT_SCOPE = root;
-		const body = component(root, props ?? {}, undefined) ?? '';
-		let css = '';
-		for (const [hash, sheet] of CSS) {
-			css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
+		let attempt = 0;
+		for (;;) {
+			ID_COUNTER = 0;
+			CSS = new Map();
+			SUSPENDED = [];
+			SERIAL = [];
+			OCC = new Map();
+			RESOLVED = resolved;
+			const root = ssrScope(null);
+			CURRENT_SCOPE = root;
+			let body = '';
+			try {
+				body = component(root, props ?? {}, undefined) ?? '';
+			} catch (err) {
+				// A suspension with no enclosing @try unwinds to here; its thenable is
+				// already in SUSPENDED, so fall through to the await + retry. Any other
+				// throw is a genuine render failure — propagate it.
+				if (!ssrIsSuspense(err)) throw err;
+			}
+			const suspended = SUSPENDED;
+			if (suspended.length === 0) {
+				let css = '';
+				for (const [hash, sheet] of CSS) {
+					css += '<style data-ripple-new="' + hash + '">' + sheet + '</style>';
+				}
+				const seeds = SERIAL;
+				if (seeds.length > 0) body += serializeSuspenseSeeds(seeds);
+				return { head: '', body, css };
+			}
+			if (++attempt > MAX_SUSPENSE_PASSES) {
+				throw new Error(
+					'ripple-new SSR: exceeded ' +
+						MAX_SUSPENSE_PASSES +
+						' suspense passes — a use(thenable) never resolved.',
+				);
+			}
+			// Await everything this pass surfaced; cache each outcome by its key.
+			await Promise.all(
+				suspended.map(async ({ promise, key }) => {
+					if (resolved.has(key)) return;
+					try {
+						resolved.set(key, { value: await promise });
+					} catch (reason) {
+						resolved.set(key, { reason });
+					}
+				}),
+			);
 		}
-		return { head: '', body, css };
 	} finally {
 		CURRENT_SCOPE = prevScope;
 		ID_COUNTER = prevId;
 		CSS = prevCss;
+		SUSPENDED = prevSusp;
+		RESOLVED = prevRes;
+		SERIAL = prevSerial;
+		OCC = prevOcc;
 	}
 }

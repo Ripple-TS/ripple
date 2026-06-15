@@ -38,8 +38,8 @@ afterEach(() => container.remove());
 
 // Server-render `name` with `props`, place it in the container, hydrate with the
 // client `clientComp`, and return the before/after innerHTML for mismatch checks.
-function setup(name: string, clientComp: any, props?: any) {
-	const { body } = ServerRT.render(server[name], props);
+async function setup(name: string, clientComp: any, props?: any) {
+	const { body } = await ServerRT.render(server[name], props);
 	container.innerHTML = body;
 	const before = container.innerHTML;
 	const root = hydrate(clientComp, container, props);
@@ -48,26 +48,26 @@ function setup(name: string, clientComp: any, props?: any) {
 }
 
 describe('hydrate — no mismatch (DOM adopted, not rebuilt)', () => {
-	it('static text', () => {
-		const { body, before, after } = setup('StaticText', StaticText);
+	it('static text', async () => {
+		const { body, before, after } = await setup('StaticText', StaticText);
 		expect(body).toBe('<div class="greet">Hello, world</div>');
 		expect(after).toBe(before); // hydration did not touch the DOM
 	});
 
-	it('dynamic attributes + text', () => {
-		const { body, before, after } = setup('Attrs', Attrs, { id: 'a', cls: 'c', text: 'hi' });
+	it('dynamic attributes + text', async () => {
+		const { body, before, after } = await setup('Attrs', Attrs, { id: 'a', cls: 'c', text: 'hi' });
 		expect(body).toBe('<div id="a" class="c" data-kind="leaf">hi</div>');
 		expect(after).toBe(before);
 	});
 
-	it('nested elements with text children', () => {
-		const { body, before, after } = setup('Mixed', Mixed);
+	it('nested elements with text children', async () => {
+		const { body, before, after } = await setup('Mixed', Mixed);
 		expect(body).toBe('<div id="m"><span class="a">A</span><span class="b">B</span></div>');
 		expect(after).toBe(before);
 	});
 
-	it('adopts the exact server text node (no new node created)', () => {
-		setup('StaticText', StaticText);
+	it('adopts the exact server text node (no new node created)', async () => {
+		await setup('StaticText', StaticText);
 		const div = container.querySelector('.greet') as HTMLElement;
 		expect(div.childNodes.length).toBe(1);
 		expect(div.firstChild!.nodeType).toBe(3); // a single text node, adopted
@@ -75,8 +75,8 @@ describe('hydrate — no mismatch (DOM adopted, not rebuilt)', () => {
 });
 
 describe('hydrate — interactivity', () => {
-	it('attaches event handlers to adopted nodes and updates on click', () => {
-		const { before, after } = setup('Counter', Counter, { start: 5 });
+	it('attaches event handlers to adopted nodes and updates on click', async () => {
+		const { before, after } = await setup('Counter', Counter, { start: 5 });
 		expect(before).toBe('<button id="btn">5</button>'); // server initial
 		expect(after).toBe(before); // no mismatch on hydrate
 
@@ -87,8 +87,8 @@ describe('hydrate — interactivity', () => {
 		expect(btn.firstChild).toBe(node); // updated in place, not recreated
 	});
 
-	it('preserves adopted element identity across hydration', () => {
-		const { root } = setup('Counter', Counter, { start: 0 });
+	it('preserves adopted element identity across hydration', async () => {
+		const { root } = await setup('Counter', Counter, { start: 0 });
 		const btn = container.querySelector('#btn');
 		flushSync(() => (btn as HTMLButtonElement).click());
 		// Same button element instance — it was adopted, never replaced.
@@ -98,14 +98,14 @@ describe('hydrate — interactivity', () => {
 });
 
 describe('hydrate — useSyncExternalStore', () => {
-	it('reads getServerSnapshot during hydration, then syncs to getSnapshot', () => {
+	it('reads getServerSnapshot during hydration, then syncs to getSnapshot', async () => {
 		const store = {
 			subscribe: () => () => {},
 			getSnapshot: () => 'client',
 			getServerSnapshot: () => 'server',
 		};
 		// Server rendered the SERVER snapshot.
-		const { body } = ServerRT.render(server.StoreView, { store });
+		const { body } = await ServerRT.render(server.StoreView, { store });
 		expect(body).toBe('<span id="sv">server</span>');
 
 		container.innerHTML = body;

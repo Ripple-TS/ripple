@@ -26,71 +26,83 @@ const OPEN = '<!--[-->';
 const CLOSE = '<!--]-->';
 
 describe('SSR Phase 3 — control flow with block markers', () => {
-	it('@if / @else renders the chosen branch wrapped in markers', () => {
-		expect(RT.render(m.IfElse, { on: true }).body).toBe(
+	it('@if / @else renders the chosen branch wrapped in markers', async () => {
+		expect((await RT.render(m.IfElse, { on: true })).body).toBe(
 			`<div>${OPEN}<span class="yes">on</span>${CLOSE}</div>`,
 		);
-		expect(RT.render(m.IfElse, { on: false }).body).toBe(
+		expect((await RT.render(m.IfElse, { on: false })).body).toBe(
 			`<div>${OPEN}<span class="no">off</span>${CLOSE}</div>`,
 		);
 	});
 
-	it('@for renders each item in its own marker; @empty when the list is empty', () => {
-		expect(RT.render(m.List, { items: ['a', 'b'] }).body).toBe(
+	it('@for renders each item in its own marker; @empty when the list is empty', async () => {
+		expect((await RT.render(m.List, { items: ['a', 'b'] })).body).toBe(
 			`<ul>${OPEN}${OPEN}<li>a</li>${CLOSE}${OPEN}<li>b</li>${CLOSE}${CLOSE}</ul>`,
 		);
-		expect(RT.render(m.List, { items: [] }).body).toBe(
+		expect((await RT.render(m.List, { items: [] })).body).toBe(
 			`<ul>${OPEN}<li class="empty">none</li>${CLOSE}</ul>`,
 		);
 	});
 
-	it('@switch picks the matching case (or default)', () => {
-		expect(RT.render(m.Switch, { k: 'a' }).body).toBe(`<div>${OPEN}<span>A</span>${CLOSE}</div>`);
-		expect(RT.render(m.Switch, { k: 'b' }).body).toBe(`<div>${OPEN}<span>B</span>${CLOSE}</div>`);
-		expect(RT.render(m.Switch, { k: 'z' }).body).toBe(`<div>${OPEN}<span>?</span>${CLOSE}</div>`);
+	it('@switch picks the matching case (or default)', async () => {
+		expect((await RT.render(m.Switch, { k: 'a' })).body).toBe(
+			`<div>${OPEN}<span>A</span>${CLOSE}</div>`,
+		);
+		expect((await RT.render(m.Switch, { k: 'b' })).body).toBe(
+			`<div>${OPEN}<span>B</span>${CLOSE}</div>`,
+		);
+		expect((await RT.render(m.Switch, { k: 'z' })).body).toBe(
+			`<div>${OPEN}<span>?</span>${CLOSE}</div>`,
+		);
 	});
 
-	it('@try renders the body, @pending on suspension, @catch on error', () => {
-		// Resolved-ish body → renders the try arm.
-		expect(RT.render(m.Boundary, { read: () => 'hi' }).body).toBe(
+	it('@try renders the resolved success arm (awaiting use), @catch on error', async () => {
+		// Sync body → success arm, no suspension, no seed script.
+		expect((await RT.render(m.Boundary, { read: () => 'hi' })).body).toBe(
 			`<div>${OPEN}<span class="ok">hi</span>${CLOSE}</div>`,
 		);
-		// use(thenable) suspends on the server → the @pending fallback renders.
-		expect(RT.render(m.Boundary, { read: () => RT.use(Promise.resolve('x')) }).body).toBe(
-			`<div>${OPEN}<span class="loading">loading</span>${CLOSE}</div>`,
+		// use(thenable): render() awaits it and re-renders the SUCCESS arm (Phase 4,
+		// not the @pending fallback), appending the resolved value as an inline seed
+		// <script> for the client to adopt on hydration.
+		const resolved = await RT.render(m.Boundary, { read: () => RT.use(Promise.resolve('x')) });
+		expect(resolved.body).toBe(
+			`<div>${OPEN}<span class="ok">x</span>${CLOSE}</div>` +
+				`<script type="application/json" data-ripple-new-suspense>["x"]</script>`,
 		);
 		// A thrown error renders the @catch arm with the error.
-		const caught = RT.render(m.Boundary, {
-			read: () => {
-				throw new Error('boom');
-			},
-		}).body;
+		const caught = (
+			await RT.render(m.Boundary, {
+				read: () => {
+					throw new Error('boom');
+				},
+			})
+		).body;
 		expect(caught).toBe(`<div>${OPEN}<span class="error">boom</span>${CLOSE}</div>`);
 	});
 });
 
 describe('SSR Phase 3 — component children (context Provider)', () => {
-	it('a Provider renders its children, which read the provided context value', () => {
-		expect(RT.render(m.Provided, { theme: 'dark' }).body).toContain(
+	it('a Provider renders its children, which read the provided context value', async () => {
+		expect((await RT.render(m.Provided, { theme: 'dark' })).body).toContain(
 			'<span class="theme">dark</span>',
 		);
-		expect(RT.render(m.Provided, { theme: 'light' }).body).toContain(
+		expect((await RT.render(m.Provided, { theme: 'light' })).body).toContain(
 			'<span class="theme">light</span>',
 		);
 	});
 });
 
 describe('SSR Phase 3 — portals', () => {
-	it('emits a site marker for a portal and renders sibling content inline', () => {
-		const body = RT.render(m.WithPortal).body;
+	it('emits a site marker for a portal and renders sibling content inline', async () => {
+		const body = (await RT.render(m.WithPortal)).body;
 		expect(body).toBe('<div id="host"><!----><span>inline</span></div>');
 	});
 });
 
 describe('SSR Phase 3 — scoped CSS across the boundary', () => {
-	it('server css output is tagged <style data-ripple-new="hash"> tags', () => {
+	it('server css output is tagged <style data-ripple-new="hash"> tags', async () => {
 		const ssr = evalServer(readFileSync(join(FIXTURES, 'ssr.tsrx'), 'utf8'), 'ssr.tsrx');
-		const { css, body } = RT.render(ssr.Scoped);
+		const { css, body } = await RT.render(ssr.Scoped);
 		expect(css).toMatch(/^<style data-ripple-new="tsrx-[0-9a-f]+">.*<\/style>$/s);
 		// The hash on the body class matches the css tag's hash.
 		const hash = css.match(/data-ripple-new="(tsrx-[0-9a-f]+)"/)![1];

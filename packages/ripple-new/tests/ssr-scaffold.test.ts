@@ -19,9 +19,10 @@ describe('SSR scaffold (phase 0)', () => {
 		expect(EMPTY_COMMENT).toBe('<!---->');
 	});
 
-	it('ripple-new/server render() renders a component to { head, body, css }', () => {
+	it('ripple-new/server render() renders a component to { head, body, css }', async () => {
 		// Phase 1: render is implemented (a server component is a function → HTML).
-		const out = render(((_s: any) => '<p>hi</p>') as any);
+		// Phase 4: render() is async (it awaits any suspended use(thenable)).
+		const out = await render(((_s: any) => '<p>hi</p>') as any);
 		expect(out).toEqual({ head: '', body: '<p>hi</p>', css: '' });
 	});
 });
