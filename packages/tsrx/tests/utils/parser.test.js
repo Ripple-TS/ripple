@@ -1141,6 +1141,31 @@ foo();`;
 		expect(block.body[1].declarations[0].init.regex.pattern).toBe('---');
 	});
 
+	it('parses a template literal as the sole content of a `@{ }` code block', () => {
+		const block = findNode('let c = @{ `a${x}b` };', 'JSXCodeBlock');
+
+		expect(block.type).toBe('JSXCodeBlock');
+		expect(block.render).toBeNull();
+		expect(block.body.map((child) => child.type)).toEqual(['ExpressionStatement']);
+		const template = block.body[0].expression;
+		expect(template.type).toBe('TemplateLiteral');
+		expect(template.quasis.map((quasi) => quasi.value.raw)).toEqual(['a', 'b']);
+		expect(template.expressions.map((expression) => expression.name)).toEqual(['x']);
+	});
+
+	it('parses a template literal after another statement in a `@{ }` code block', () => {
+		const block = findNode('let i = @{ const a = 1; `t${a}` };', 'JSXCodeBlock');
+
+		expect(block.body.map((child) => child.type)).toEqual([
+			'VariableDeclaration',
+			'ExpressionStatement',
+		]);
+		const template = block.body[1].expression;
+		expect(template.type).toBe('TemplateLiteral');
+		expect(template.quasis.map((quasi) => quasi.value.raw)).toEqual(['t', '']);
+		expect(template.expressions.map((expression) => expression.name)).toEqual(['a']);
+	});
+
 	it('does not treat tag-looking text inside setup regex literals as markup', () => {
 		const returned = getReturned(`function App() { return <div>@{
 			const x = /<span>/

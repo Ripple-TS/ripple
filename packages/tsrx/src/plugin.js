@@ -232,6 +232,7 @@ export function TSRXPlugin(config) {
 		// If we push an undefined context, Acorn's tokenizer will later crash reading `.override`.
 		const b_stat = tc.b_stat || acorn.tokContexts.b_stat;
 		const b_expr = tc.b_expr || acorn.tokContexts.b_expr;
+		const q_tmpl = tc.q_tmpl || acorn.tokContexts.q_tmpl;
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
@@ -1272,14 +1273,21 @@ export function TSRXPlugin(config) {
 			 */
 			#parseCodeBlockSetupStatement() {
 				const previous_context = this.context;
-				this.context = previous_context.filter(
-					(context) =>
-						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
-				);
+				const at_template_literal = this.type === tt.backQuote;
 				let pushed_statement_context = false;
-				if (this.curContext() !== b_stat) {
-					this.context.push(b_stat);
-					pushed_statement_context = true;
+				if (at_template_literal) {
+					if (this.curContext() !== q_tmpl) {
+						this.context.push(q_tmpl);
+					}
+				} else {
+					this.context = previous_context.filter(
+						(context) =>
+							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+					);
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+						pushed_statement_context = true;
+					}
 				}
 				this.exprAllowed = true;
 				const previous_path = this.#path;
@@ -1287,22 +1295,7 @@ export function TSRXPlugin(config) {
 				this.#templateScriptParsingDepth++;
 				let node;
 				try {
-					// A code-block/directive body is statements plus at most one render node —
-					// never bare text or markup tokens. If the tokenizer mis-read trailing
-					// code as JSX (raw text or a tag-name token — both can happen for a
-					// statement following the render node, depending on the leftover context),
-					// reposition to the token start and re-read it as code now that the
-					// template path is hidden. It then parses as a statement so the
-					// one-render-node rule reports a clear "statements cannot follow" error
-					// instead of a generic parse fault.
 					if (this.type === tstt.jsxText || this.type === tstt.jsxName) {
-						// Rewinding `pos` to the mis-read token's start must also rewind the
-						// line counter: a `jsxText` token can span newlines (e.g. the blank
-						// line before a following render node), and reading it already
-						// advanced `curLine`/`lineStart` to its end. Resetting only `pos`
-						// would leave the line counter ahead of `pos`, inflating the `loc`
-						// of this statement and every node after it (which crashes source-map
-						// mapping when the inflated end line runs past the file).
 						const loc = acorn.getLineInfo(this.input, this.start);
 						this.pos = this.start;
 						this.curLine = loc.line;
@@ -1316,7 +1309,9 @@ export function TSRXPlugin(config) {
 					if (pushed_statement_context && this.curContext() === b_stat) {
 						this.context.pop();
 					}
-					this.context = previous_context;
+					if (!at_template_literal) {
+						this.context = previous_context;
+					}
 				}
 				if (this.curContext() === tstc.tc_expr) {
 					this.context.pop();
