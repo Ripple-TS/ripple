@@ -6,7 +6,7 @@ import { hydrate, flushSync } from '../../src/index.js';
 import * as ServerRT from 'ripple-new/server';
 // CLIENT-compiled components (normal .tsrx import path). Importing AsyncCounter
 // (which has an onClick) makes this module register click delegation at load.
-import { AsyncLeaf, AsyncCounter } from '../_fixtures/ssr-suspense.tsrx';
+import { AsyncLeaf, AsyncCounter, AsyncUndef } from '../_fixtures/ssr-suspense.tsrx';
 
 // SSR Phase 4 — client hydration seeds the server-resolved use(thenable) values
 // from the inline data <script>, so a hydrating use() returns synchronously
@@ -53,6 +53,29 @@ describe('hydrate — Suspense data seeding (SSR Phase 4)', () => {
 		expect(div.firstChild).toBe(textNode);
 		expect(div.textContent).toBe('hello');
 		// The seed <script> was consumed and removed from the live DOM.
+		expect(container.querySelector('script[data-ripple-new-suspense]')).toBeNull();
+		root.unmount();
+	});
+
+	it('round-trips an undefined-resolving use() as undefined, not null', async () => {
+		const { body } = await ServerRT.render(server.AsyncUndef, {
+			promise: Promise.resolve(undefined),
+		});
+		// Server saw `undefined` and the seed encodes it via the sentinel — NOT
+		// `[null]` (which a naive JSON.stringify of `[undefined]` would produce).
+		expect(body).toContain('<div id="undef">is-undefined</div>');
+		expect(body).toContain('__ripple_new_undefined__');
+		expect(body).not.toContain('>[null]<');
+
+		container.innerHTML = body;
+		const div = container.querySelector('#undef') as HTMLElement;
+		const root = hydrate(AsyncUndef, container, { promise: Promise.resolve(undefined) });
+		flushSync(() => {});
+
+		// The seeded value hydrated as `undefined` (not `null`): same discriminant,
+		// adopted (not rebuilt), seed script consumed.
+		expect(container.querySelector('#undef')).toBe(div);
+		expect(div.textContent).toBe('is-undefined');
 		expect(container.querySelector('script[data-ripple-new-suspense]')).toBeNull();
 		root.unmount();
 	});

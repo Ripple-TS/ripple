@@ -21,7 +21,13 @@
 // module-global "current scope" (mirroring the client's CURRENT_SCOPE) is safe.
 // ---------------------------------------------------------------------------
 
-import { BLOCK_OPEN, BLOCK_CLOSE, EMPTY_COMMENT, SUSPENSE_SCRIPT_ATTR } from './constants';
+import {
+	BLOCK_OPEN,
+	BLOCK_CLOSE,
+	EMPTY_COMMENT,
+	SUSPENSE_SCRIPT_ATTR,
+	UNDEFINED_SENTINEL_KEY,
+} from './constants';
 
 interface SSRScope {
 	parent: SSRScope | null;
@@ -410,7 +416,13 @@ const MAX_SUSPENSE_PASSES = 50;
  * comment. Only emitted when at least one value was resolved.
  */
 function serializeSuspenseSeeds(values: unknown[]): string {
-	const json = JSON.stringify(values).replace(/</g, '\\u003c');
+	// Encode `undefined` (which JSON drops/nulls) as a sentinel so a
+	// `use(thenable)` that resolved to `undefined` round-trips to `undefined` on
+	// the client — not `null`. The replacer fires for array elements AND nested
+	// object properties, so deeply-nested `undefined` survives too.
+	const json = JSON.stringify(values, (_key, value) =>
+		value === undefined ? { [UNDEFINED_SENTINEL_KEY]: true } : value,
+	).replace(/</g, '\\u003c');
 	return '<script type="application/json" ' + SUSPENSE_SCRIPT_ATTR + '>' + json + '</script>';
 }
 

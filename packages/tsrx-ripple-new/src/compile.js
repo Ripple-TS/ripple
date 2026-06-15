@@ -658,6 +658,60 @@ function isComponentFunction(node) {
 	);
 }
 
+// Arrow-function component shape: `const X = (props) => @{…}` (and the `export`
+// variant). @tsrx/core parses the `@{…}` arrow body as a JSXCodeBlock, but the
+// rest of the compiler keys on FunctionDeclaration. Convert a single-declarator
+// `const X = (…) => @{…}` / `= function (…) @{…}` into an equivalent synthetic
+// FunctionDeclaration so ALL downstream machinery (detection, hookless
+// eligibility, emission, export handling, css scoping) works unchanged. Returns
+// null when the var-decl is not an arrow/function component.
+/** @param {any} varDecl @returns {any|null} */
+function arrowComponentToFunctionDecl(varDecl) {
+	if (!varDecl || varDecl.type !== 'VariableDeclaration') return null;
+	if (!varDecl.declarations || varDecl.declarations.length !== 1) return null;
+	const d = varDecl.declarations[0];
+	if (!d || !d.id || d.id.type !== 'Identifier') return null;
+	const init = d.init;
+	if (
+		!init ||
+		(init.type !== 'ArrowFunctionExpression' && init.type !== 'FunctionExpression') ||
+		!init.body ||
+		init.body.type !== 'JSXCodeBlock'
+	) {
+		return null;
+	}
+	return {
+		type: 'FunctionDeclaration',
+		id: d.id,
+		params: init.params || [],
+		body: init.body,
+		async: !!init.async,
+		generator: !!init.generator,
+		// Preserve source position for hashing / source maps / decl anchors.
+		start: varDecl.start,
+		end: varDecl.end,
+		loc: varDecl.loc,
+	};
+}
+
+// Rewrite top-level arrow-function components (`const X = () => @{…}`, incl.
+// `export const X = …`) to FunctionDeclaration form in place, so the rest of the
+// pipeline sees the canonical component shape. Mutates `ast.body`.
+/** @param {any} ast @returns {void} */
+function normalizeArrowComponents(ast) {
+	if (!ast || !Array.isArray(ast.body)) return;
+	for (let i = 0; i < ast.body.length; i++) {
+		const node = ast.body[i];
+		if (node.type === 'VariableDeclaration') {
+			const fn = arrowComponentToFunctionDecl(node);
+			if (fn) ast.body[i] = fn;
+		} else if (node.type === 'ExportNamedDeclaration' && node.declaration) {
+			const fn = arrowComponentToFunctionDecl(node.declaration);
+			if (fn) node.declaration = fn;
+		}
+	}
+}
+
 // A top-level statement that carries NO runtime value — pure TypeScript type
 // surface (`interface`, `type` alias, `declare …` ambients, `import type` /
 // `export type`). The runtime compile (client/server) must DROP these: esrap
@@ -803,6 +857,9 @@ export function compile(source, filename, options) {
 	// before emit — they carry no runtime value and would leak invalid TS into
 	// the .js (or crash the printer). Runtime-only; Volar keeps them.
 	ast.body = ast.body.filter((n) => !isTypeOnlyStatement(n));
+	// Normalize arrow-function components (`const X = () => @{…}`) to
+	// FunctionDeclaration form so the component pipeline recognizes them.
+	normalizeArrowComponents(ast);
 	const hmrEnabled = !!(options && options.hmr);
 
 	const ctx = {
@@ -1156,6 +1213,9 @@ function compileServer(source, filename, options) {
 	// Drop type-only statements before emit (see isTypeOnlyStatement) — same as
 	// the client path; the server HTML-string output is plain JS too.
 	ast.body = ast.body.filter((n) => !isTypeOnlyStatement(n));
+	// Normalize arrow-function components (`const X = () => @{…}`) to
+	// FunctionDeclaration form so the component pipeline recognizes them.
+	normalizeArrowComponents(ast);
 	const ctx = {
 		filename,
 		mode: 'server',

@@ -1,11 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import { mount } from './_helpers';
-import { Greeting, App, Nested, DefaultOnly } from './_fixtures/components.tsrx';
+import {
+	Greeting,
+	App,
+	Nested,
+	DefaultOnly,
+	ArrowComp,
+	ArrowFragHost,
+} from './_fixtures/components.tsrx';
 
 describe('component composition', () => {
 	it('renders a static child component with props', () => {
 		const r = mount(Greeting, { name: 'world' });
 		expect(r.find('.lbl').textContent).toBe('world');
+		r.unmount();
+	});
+
+	it('renders an arrow-function component (const X = (props) => @{…})', () => {
+		const r = mount(ArrowComp, { who: 'world' });
+		expect(r.find('#arrow').textContent).toBe('hi world');
+		r.unmount();
+	});
+
+	it('renders an arrow component with a fragment body + nested components', () => {
+		const r = mount(ArrowFragHost);
+		expect(r.find('#arrow').textContent).toBe('hi arrow');
+		expect(r.find('.lbl').textContent).toBe('sibling');
 		r.unmount();
 	});
 });

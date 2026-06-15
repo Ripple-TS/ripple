@@ -33,3 +33,13 @@ export const EMPTY_COMMENT = '<!---->';
  * re-suspending. Shared so server emit and client read stay byte-identical.
  */
 export const SUSPENSE_SCRIPT_ATTR = 'data-ripple-new-suspense';
+
+/**
+ * Sentinel marker for a `use(thenable)` value that resolved to `undefined`.
+ * JSON can't represent `undefined` (an array element round-trips to `null`, an
+ * object property is dropped), so the server's seed serializer encodes any
+ * `undefined` as `{ [UNDEFINED_SENTINEL_KEY]: true }` and the client's parser
+ * reviver decodes it back to `undefined`. Shared so both sides agree, and keyed
+ * obscurely enough that real resolved data won't collide.
+ */
+export const UNDEFINED_SENTINEL_KEY = '__ripple_new_undefined__';

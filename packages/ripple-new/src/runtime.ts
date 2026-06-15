@@ -12,7 +12,12 @@
  * Reconciliation: LIS-based keyed list inside forBlock (ported from Ripple's patchKeyedChildrenComplex).
  */
 
-import { SUSPENSE_SCRIPT_ATTR, HYDRATION_START, HYDRATION_END } from './constants';
+import {
+	SUSPENSE_SCRIPT_ATTR,
+	HYDRATION_START,
+	HYDRATION_END,
+	UNDEFINED_SENTINEL_KEY,
+} from './constants';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -5842,7 +5847,14 @@ export function hydrate(
 	const seedScript = container.querySelector('script[' + SUSPENSE_SCRIPT_ATTR + ']');
 	if (seedScript !== null) {
 		try {
-			hydrationSeeds = JSON.parse(seedScript.textContent || '[]');
+			// Reviver decodes the server's `undefined` sentinel back to `undefined`
+			// (JSON has no `undefined`), so a `use(thenable)` that resolved to
+			// `undefined` is seeded as `undefined`, not `null`.
+			hydrationSeeds = JSON.parse(seedScript.textContent || '[]', (_key, value) =>
+				value !== null && typeof value === 'object' && value[UNDEFINED_SENTINEL_KEY] === true
+					? undefined
+					: value,
+			);
 		} catch {
 			hydrationSeeds = null;
 		}

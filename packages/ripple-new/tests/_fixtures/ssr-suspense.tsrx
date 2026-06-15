@@ -15,6 +15,17 @@ export function AsyncLeaf(props) @{
 	</div>
 }
 
+// A use() that resolves to `undefined`. The resolved value must round-trip
+// through the SSR seed as `undefined`, NOT `null` (JSON has no undefined). The
+// rendered marker discriminates undefined / null / other so the hydration test
+// can prove the seeded value is undefined.
+export function AsyncUndef(props) @{
+	const value = use(props.promise);
+	<div id="undef">
+		{(value === undefined ? 'is-undefined' : value === null ? 'is-null' : 'other') as string}
+	</div>
+}
+
 // Mirrors the playground/ripple-new-ssr App shape: a bare use() (async data
 // seeded on hydrate) PLUS a useState counter with an onClick. Proves Phase 4
 // data seeding composes with stateful, interactive hydration in one single-root
