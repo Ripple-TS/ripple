@@ -20,6 +20,20 @@ export function in_jsx_child_context(path) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_empty_jsx_fragment(node) {
+	return (
+		node?.type === 'JSXFragment' &&
+		!(node.children || []).some(
+			(/** @type {any} */ child) =>
+				child && (child.type !== 'JSXText' || child.value.trim() !== ''),
+		)
+	);
+}
+
+/**
  * Match Ripple's transform path metadata shape: every node seen by the walker
  * carries its current ancestor path for downstream CSS pruning and mapping
  * helpers.

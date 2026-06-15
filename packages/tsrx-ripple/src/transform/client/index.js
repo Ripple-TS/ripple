@@ -48,6 +48,7 @@ import {
 	getStyleElementStylesheet,
 	getOriginalEventName,
 	isEventAttribute,
+	isEmptyJsxFragment as is_empty_jsx_fragment,
 	isInsideComponent as is_inside_component,
 	normalizeEventName,
 	shouldPreserveComment,
@@ -3646,7 +3647,10 @@ function statement_to_tsrx_ts_expression(statement) {
  */
 function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
 	if (children.length === 0) {
-		return in_jsx_child ? setLocation(b.jsx_fragment([]), loc_node) : b.literal(null);
+		// An empty fragment is a real value: keep it as `<></>` even in expression
+		// position. Lowering it to `null` (e.g. `let b = <></>`) drops the author's
+		// fragment; `<></>` is a valid value and matches the JSX targets' TS view.
+		return setLocation(b.jsx_fragment([]), loc_node);
 	}
 	if (children.length === 1) {
 		const only = children[0];
@@ -3657,6 +3661,11 @@ function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
 		}
 		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
 			return only.expression;
+		}
+		if (is_empty_jsx_fragment(only)) {
+			// `<><></></>` — keep the outer fragment instead of collapsing to the bare
+			// inner `<></>`, matching the JSX targets and preserving author intent.
+			return setLocation(b.jsx_fragment([only]), loc_node);
 		}
 		return /** @type {TsrxTsViewNode} */ (only);
 	}

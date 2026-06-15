@@ -9,6 +9,7 @@ import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
 import {
 	in_jsx_child_context,
+	is_empty_jsx_fragment,
 	set_node_path_metadata,
 	tsx_with_ts_locations,
 	is_template_if_node,
@@ -4127,9 +4128,16 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	/** @type {any} */
 	let expression;
 	if (children.length === 0) {
-		expression = in_jsx_child
-			? set_loc(b.jsx_fragment([]), node.loc ? node : undefined)
-			: create_null_literal();
+		// An empty fragment is a real value: keep it as `<></>` in BOTH child and
+		// expression position. Lowering it to a bare `null` in expression position
+		// (e.g. `let b = <></>`) drops the author's fragment and changes its type;
+		// `<></>` is a valid value and keeps the to_ts/runtime view faithful.
+		expression = set_loc(b.jsx_fragment([]), node.loc ? node : undefined);
+	} else if (children.length === 1 && is_empty_jsx_fragment(children[0])) {
+		// `<><></></>` — a fragment whose only child is an empty fragment. The generic
+		// single-child collapse below would unwrap it to the bare inner `<></>`,
+		// dropping the outer fragment the author wrote. Keep both levels.
+		expression = set_loc(b.jsx_fragment(children), node.loc ? node : undefined);
 	} else {
 		expression = return_value_body_to_expression(children, node, transform_context);
 	}

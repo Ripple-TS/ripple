@@ -1757,6 +1757,31 @@ export function runSharedCompileTests({
 			expect(code).toContain('<b>{<></>}</b>');
 			expect(code).not.toContain('{null}');
 		});
+
+		it('keeps an empty fragment in expression position as a fragment', () => {
+			const { code } = compile(
+				`function App() @{
+					let b = <></>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let b = <></>;');
+			expect(code).not.toContain('let b = null;');
+		});
+
+		it('keeps the outer fragment of a nested empty fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <><></></>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <><></></>;');
+		});
 	});
 
 	describe(`[${name}] component export shapes`, () => {

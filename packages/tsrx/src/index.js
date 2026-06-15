@@ -163,6 +163,7 @@ export {
 } from './transform/jsx/index.js';
 export {
 	in_jsx_child_context as inJsxChildContext,
+	is_empty_jsx_fragment as isEmptyJsxFragment,
 	tsx_node_to_jsx_expression as tsxNodeToJsxExpression,
 	tsx_with_ts_locations as tsxWithTsLocations,
 	is_template_if_node as isTemplateIfNode,

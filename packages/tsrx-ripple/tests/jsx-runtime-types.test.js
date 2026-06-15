@@ -144,7 +144,8 @@ function App() @{
 		expect(compile('let b = <> <></> 2 <></> </>;')).toContain(
 			"let b = <>{' '}<></> 2 <></>{' '}</>;",
 		);
-		expect(compile('let c = <></>;')).toContain('let c = null;');
+		expect(compile('let c = <></>;')).toContain('let c = <></>;');
+		expect(compile('let e = <><></></>;')).toContain('let e = <><></></>;');
 		expect(compile('let d = <pre> <b>1</b> <b>2</b> </pre>;')).toContain(
 			"let d = <pre>{' '}<b>1</b> <b>2</b>{' '}</pre>;",
 		);
