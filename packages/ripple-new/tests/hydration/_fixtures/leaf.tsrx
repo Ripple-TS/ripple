@@ -1,8 +1,20 @@
-import { useState } from 'ripple-new';
+import { useState, useSyncExternalStore } from 'ripple-new';
 
 // Leaf hydration fixtures (SSR Phase 2): single-root components with element
 // structure, single-text-children, attributes, and events — the shapes whose
 // client template paths align with the server DOM so hydration can adopt.
+
+// useSyncExternalStore with a server snapshot: during hydration the first read
+// must use getServerSnapshot (matching the server HTML), then sync to the client
+// snapshot after.
+export function StoreView(props) @{
+	const v = useSyncExternalStore(
+		props.store.subscribe,
+		props.store.getSnapshot,
+		props.store.getServerSnapshot,
+	);
+	<span id="sv">{v as string}</span>
+}
 
 // Static text only-child.
 export function StaticText() @{

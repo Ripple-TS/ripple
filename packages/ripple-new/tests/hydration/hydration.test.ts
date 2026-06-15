@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compile } from '../../../tsrx-ripple-new/src/index.js';
-import { hydrate, flushSync } from '../../src/index.js';
+import { hydrate, flushSync, drainPassiveEffects } from '../../src/index.js';
 import * as ServerRT from 'ripple-new/server';
 // CLIENT-compiled variants (the normal .tsrx import path, client mode). The
 // onClick handler in Counter makes this module call delegateEvents(['click']) at
 // load, so click delegation is registered for hydrated containers.
-import { StaticText, Attrs, Mixed, Counter } from './_fixtures/leaf.tsrx';
+import { StaticText, Attrs, Mixed, Counter, StoreView } from './_fixtures/leaf.tsrx';
 
 // SSR Phase 2 — client hydration. Server-render a fixture to HTML, put it in a
 // container, hydrate with the CLIENT component, and assert (1) the DOM is NOT
@@ -93,6 +93,33 @@ describe('hydrate — interactivity', () => {
 		flushSync(() => (btn as HTMLButtonElement).click());
 		// Same button element instance — it was adopted, never replaced.
 		expect(container.querySelector('#btn')).toBe(btn);
+		root.unmount();
+	});
+});
+
+describe('hydrate — useSyncExternalStore', () => {
+	it('reads getServerSnapshot during hydration, then syncs to getSnapshot', () => {
+		const store = {
+			subscribe: () => () => {},
+			getSnapshot: () => 'client',
+			getServerSnapshot: () => 'server',
+		};
+		// Server rendered the SERVER snapshot.
+		const { body } = ServerRT.render(server.StoreView, { store });
+		expect(body).toBe('<span id="sv">server</span>');
+
+		container.innerHTML = body;
+		const before = container.innerHTML;
+		const root = hydrate(StoreView, container, { store });
+		// First hydrated read matches the server snapshot → no mismatch.
+		expect(container.innerHTML).toBe(before);
+		expect((container.querySelector('#sv') as HTMLElement).textContent).toBe('server');
+
+		// After commit, the store hook syncs to the client snapshot.
+		flushSync(() => {});
+		drainPassiveEffects();
+		flushSync(() => {});
+		expect((container.querySelector('#sv') as HTMLElement).textContent).toBe('client');
 		root.unmount();
 	});
 });
