@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount, flushEffects } from './_helpers';
 import { flushSync } from '../src/index.js';
 import {
 	ActionForm,
 	FormWithStatus,
+	RawFormWithStatus,
 	SelfFormStatus,
 	OptimisticForm,
 	DirectAction,
@@ -121,6 +122,26 @@ describe('useFormStatus', () => {
 		// The hook's component renders the form, so there is NO ancestor form → idle.
 		expect(r.find('#self').textContent).toBe('idle');
 		expect(captured.pending).toBe(false);
+		r.unmount();
+	});
+
+	it('clears pending when a raw form action throws synchronously', async () => {
+		// A synchronously-throwing action must still reset the form status — it must
+		// not leave useFormStatus stuck on pending — and report the error.
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const err = new Error('boom');
+		const action = () => {
+			throw err;
+		};
+		const r = mount(RawFormWithStatus, { action });
+		flushSync(() => {});
+		expect(r.find('#status').textContent).toBe('idle');
+
+		submit(r.container);
+		await tick();
+		expect(r.find('#status').textContent).toBe('idle'); // not stuck on pending
+		expect(spy).toHaveBeenCalledWith(err);
+		spy.mockRestore();
 		r.unmount();
 	});
 });

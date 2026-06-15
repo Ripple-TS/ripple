@@ -33,6 +33,15 @@ export function FormWithStatus(props) @{
 	</form>
 }
 
+// RAW <form action={fn}> (not useActionState) + a useFormStatus child. Used to
+// verify a SYNCHRONOUSLY-throwing action still clears the form's pending status.
+export function RawFormWithStatus(props) @{
+	<form action={props.action}>
+		<StatusReader />
+		<button id="submit" type="submit">{'go'}</button>
+	</form>
+}
+
 // useFormStatus called in the SAME component that renders the form must NOT see
 // that form (React parity) — it has no ancestor form, so it stays idle.
 export function SelfFormStatus(props) @{

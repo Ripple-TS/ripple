@@ -2700,15 +2700,6 @@ function handleFormSubmit(form: HTMLFormElement, event: Event): void {
 	// values (no auto-reset); a raw action function is wrapped here and its form
 	// is reset on success.
 	const isDispatcher = (fn as any).$$isActionDispatcher === true;
-	let result: unknown;
-	if (isDispatcher) {
-		result = fn(data);
-	} else {
-		startTransition(() => {
-			result = fn(data);
-			return result as void | Promise<unknown>;
-		});
-	}
 
 	const settle = (ok: boolean) => {
 		setFormStatus(form, IDLE_FORM_STATUS);
@@ -2724,6 +2715,27 @@ function handleFormSubmit(form: HTMLFormElement, event: Event): void {
 			}
 		}
 	};
+
+	let result: unknown;
+	try {
+		if (isDispatcher) {
+			result = fn(data);
+		} else {
+			startTransition(() => {
+				result = fn(data);
+				return result as void | Promise<unknown>;
+			});
+		}
+	} catch (err) {
+		// A SYNCHRONOUS throw from the action (or a startTransition rethrow) would
+		// otherwise skip the settle wiring below, leaving the form's status stuck
+		// on `pending`. Clear it, then report — an error thrown inside a DOM submit
+		// handler has no meaningful propagation target (mirrors the runtime's
+		// effect-error handling: recover + console.error).
+		settle(false);
+		console.error(err);
+		return;
+	}
 	Promise.resolve(result).then(
 		() => settle(true),
 		() => settle(false),
