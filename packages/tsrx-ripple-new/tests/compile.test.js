@@ -309,3 +309,40 @@ describe('@tsrx/ripple-new compile — JSX component as a value (root.render sha
 		);
 	});
 });
+
+describe('@tsrx/ripple-new compile — Actions bundle', () => {
+	it('routes a dynamic <form action={fn}> to setFormAction (not setAttribute)', () => {
+		const out = code(`export function F(props) @{ <form action={props.act}>{'x'}</form> }`);
+		expect(out).toContain('setFormAction(');
+		expect(out).toMatch(/import \{[^}]*\bsetFormAction\b[^}]*\} from 'ripple-new'/);
+	});
+
+	it('leaves a static string action as a native attribute', () => {
+		const out = code(`export function F() @{ <form action="/submit">{'x'}</form> }`);
+		// Inlined into the template() HTML string, not routed to setFormAction.
+		expect(out).toMatch(/template\([^)]*action=/);
+		expect(out).not.toContain('setFormAction(');
+	});
+
+	it('routes <button formAction={fn}> to setFormAction', () => {
+		const out = code(
+			`export function F(props) @{ <form>{'x'}<button formAction={props.act}>{'go'}</button></form> }`,
+		);
+		expect(out).toContain('setFormAction(');
+		expect(out).toContain('"formaction"');
+	});
+
+	it('injects hook slots for useActionState / useFormStatus / useOptimistic', () => {
+		const out = code(
+			`export function F(props) @{
+				const [s, a] = useActionState(props.fn, 0);
+				const st = useFormStatus();
+				const [o, add] = useOptimistic(s);
+				<form action={a}>{String(s) + st.pending + o as string}</form>
+			}`,
+		);
+		expect(out).toMatch(/useActionState\([^)]*_h\$\d+\)/);
+		expect(out).toMatch(/useFormStatus\(_h\$\d+\)/);
+		expect(out).toMatch(/useOptimistic\([^)]*_h\$\d+\)/);
+	});
+});

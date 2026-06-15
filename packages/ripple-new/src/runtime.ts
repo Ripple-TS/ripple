@@ -2619,6 +2619,118 @@ function dispatchDelegated(event: Event): void {
 function noop(): void {}
 
 // ---------------------------------------------------------------------------
+// React 19 Actions — <form action={fn}>, useActionState, useFormStatus,
+// useOptimistic. A function passed to a form/button action intercepts native
+// submit, builds FormData, and runs the action inside a transition. Submission
+// status is published per-form so a descendant useFormStatus() can read it.
+// ---------------------------------------------------------------------------
+
+export interface FormStatus {
+	pending: boolean;
+	data: FormData | null;
+	method: string;
+	action: ((formData: FormData) => unknown) | string | null;
+}
+const IDLE_FORM_STATUS: FormStatus = { pending: false, data: null, method: 'get', action: null };
+
+// Per-form current submission status + the descendant useFormStatus subscribers.
+const FORM_STATUS = new WeakMap<HTMLFormElement, FormStatus>();
+const FORM_STATUS_LISTENERS = new WeakMap<HTMLFormElement, Set<() => void>>();
+
+function setFormStatus(form: HTMLFormElement, status: FormStatus): void {
+	FORM_STATUS.set(form, status);
+	const ls = FORM_STATUS_LISTENERS.get(form);
+	if (ls) for (const l of ls) l();
+}
+
+/**
+ * Compiler-emitted binding for `<form action={fn}>` / `<button formAction={fn}>`.
+ * A FUNCTION value wires submit interception (stored on the element as
+ * `$$formAction`, with the form gaining a delegated `$$submit` handler once);
+ * a string/null value falls back to the native attribute so ordinary form posts
+ * still work. `prev` lets the update path clean up when switching function→string.
+ */
+export function setFormAction(
+	el: HTMLFormElement | HTMLButtonElement | HTMLInputElement,
+	name: string,
+	value: unknown,
+	prev: unknown,
+): void {
+	if (typeof value === 'function') {
+		(el as any).$$formAction = value;
+		if (el.nodeName === 'FORM') {
+			if (!(el as any).$$formSubmitWired) {
+				(el as any).$$formSubmitWired = true;
+				(el as any).$$submit = (event: Event) => handleFormSubmit(el as HTMLFormElement, event);
+				delegateEvents(['submit']);
+			}
+		}
+		// A function action implies a non-native submit; drop any stale attribute.
+		el.removeAttribute(name);
+		return;
+	}
+	// Non-function (string/null): native behavior. Clear any prior handler.
+	(el as any).$$formAction = undefined;
+	if (typeof prev === 'function' && el.nodeName === 'FORM') {
+		(el as any).$$submit = undefined;
+	}
+	setAttribute(el, name, value);
+}
+
+function handleFormSubmit(form: HTMLFormElement, event: Event): void {
+	// A `<button formAction>` / `<input type=submit formAction>` submitter
+	// overrides the form-level action (React parity).
+	const submitter = (event as SubmitEvent).submitter as HTMLElement | null;
+	const action =
+		(submitter && (submitter as any).$$formAction) || ((form as any).$$formAction as unknown);
+	if (typeof action !== 'function') return; // native submit / no function action
+	event.preventDefault();
+
+	const data = new FormData(form);
+	// Include the activating submitter's name/value (FormData(form, submitter)
+	// isn't universally available; append manually for parity).
+	if (submitter && (submitter as HTMLInputElement).name) {
+		data.append((submitter as HTMLInputElement).name, (submitter as HTMLInputElement).value ?? '');
+	}
+
+	const fn = action as (formData: FormData) => unknown;
+	setFormStatus(form, { pending: true, data, method: 'post', action: fn });
+
+	// useActionState dispatchers self-wrap in a transition AND keep typed-in
+	// values (no auto-reset); a raw action function is wrapped here and its form
+	// is reset on success.
+	const isDispatcher = (fn as any).$$isActionDispatcher === true;
+	let result: unknown;
+	if (isDispatcher) {
+		result = fn(data);
+	} else {
+		startTransition(() => {
+			result = fn(data);
+			return result as void | Promise<unknown>;
+		});
+	}
+
+	const settle = (ok: boolean) => {
+		setFormStatus(form, IDLE_FORM_STATUS);
+		// React resets a plain <form action={fn}>'s uncontrolled fields on success;
+		// useActionState-driven forms keep their values. form.reset() restores
+		// uncontrolled inputs to defaultValue; controlled inputs are re-applied by
+		// the next render's value bindings.
+		if (ok && !isDispatcher) {
+			try {
+				form.reset();
+			} catch {
+				/* jsdom/detached form */
+			}
+		}
+	};
+	Promise.resolve(result).then(
+		() => settle(true),
+		() => settle(false),
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Portals — createPortal renders into a foreign DOM target while staying
 // part of the React-tree for context / unmount / event delegation.
 // ---------------------------------------------------------------------------
@@ -3485,6 +3597,205 @@ export function useTransition(
 		scope.cleanups.push(() => TRANSITION_LISTENERS.delete(listener));
 	}
 	return [s.isPending, s.start];
+}
+
+// ---------------------------------------------------------------------------
+// useActionState(action, initialState, permalink?) → [state, formAction, isPending]
+//
+// `action(previousState, payload)` runs inside a transition. `formAction` is a
+// stable dispatcher you wire to `<form action={formAction}>` (payload = FormData)
+// or call directly (`formAction(payload)`). Dispatches run SEQUENTIALLY, each
+// receiving the previous COMPLETED result as previousState. `isPending` is true
+// from dispatch until the queue drains. The action's resolved value becomes the
+// new state. Errors route to the nearest @try boundary (else console.error).
+// `permalink` (SSR progressive enhancement) is accepted for signature parity and
+// ignored — ripple-new is client-only. Form auto-reset is intentionally skipped
+// for useActionState forms (typed-in values are kept), matching React.
+// ---------------------------------------------------------------------------
+
+interface ActionStateSlot<S> {
+	state: S;
+	isPending: boolean;
+	pendingCount: number;
+	chain: Promise<S>;
+	action: (prev: S, payload: any) => S | Promise<S>;
+	dispatch: ((payload?: any) => Promise<S>) & { $$isActionDispatcher?: true };
+}
+
+export function useActionState<S>(
+	action: (prevState: S, payload: any) => S | Promise<S>,
+	initialState: S,
+	permalinkOrSlot?: string | symbol,
+	slot?: symbol,
+): [S, (payload?: any) => void, boolean] {
+	// `permalink` is optional, the compiler appends the slot last. Disambiguate:
+	// a trailing symbol in the 3rd position means no permalink was passed.
+	if (typeof permalinkOrSlot === 'symbol') slot = permalinkOrSlot;
+	if (slot === undefined) missingSlot('useActionState');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as ActionStateSlot<S> | undefined;
+	if (s === undefined) {
+		const slotRef: ActionStateSlot<S> = {
+			state: initialState,
+			isPending: false,
+			pendingCount: 0,
+			chain: Promise.resolve(initialState),
+			action,
+			dispatch: undefined as any,
+		};
+		const setPending = (next: boolean): void => {
+			if (slotRef.isPending !== next) {
+				slotRef.isPending = next;
+				if (!block.disposed) scheduleRender(block);
+			}
+		};
+		const dispatch = ((payload?: any): Promise<S> => {
+			slotRef.pendingCount++;
+			setPending(true);
+			// Sequential queue: each run sees the prior COMPLETED state.
+			slotRef.chain = slotRef.chain.then(
+				(prevState) =>
+					new Promise<S>((resolveResult) => {
+						const finish = (): void => {
+							slotRef.pendingCount--;
+							if (slotRef.pendingCount === 0) setPending(false);
+						};
+						startTransition(() => {
+							const p = Promise.resolve(slotRef.action(prevState, payload));
+							p.then(
+								(result) => {
+									slotRef.state = result;
+									finish();
+									if (!block.disposed) scheduleRender(block);
+									resolveResult(result);
+								},
+								(err) => {
+									finish();
+									const handler = findTryHandler(block);
+									if (handler) handler(err);
+									else console.error(err);
+									// Keep prior state so the next queued dispatch threads it.
+									resolveResult(prevState);
+								},
+							);
+							return p;
+						});
+					}),
+			);
+			return slotRef.chain;
+		}) as ActionStateSlot<S>['dispatch'];
+		dispatch.$$isActionDispatcher = true;
+		slotRef.dispatch = dispatch;
+		s = slotRef;
+		ensureHooks(scope).set(slot, slotRef);
+	}
+	// Keep the action reference fresh across renders (closures over latest props).
+	s.action = action;
+	return [s.state, s.dispatch, s.isPending];
+}
+
+// ---------------------------------------------------------------------------
+// useFormStatus() → { pending, data, method, action }
+//
+// Reads the submission status of the nearest ANCESTOR <form> (found by walking
+// the DOM up from this component's markers — so a <form> rendered BY this same
+// component is correctly ignored, matching React). Subscribes to that form's
+// status so a submission re-renders the consumer. Defaults to the idle status
+// when there is no ancestor form or no active submission.
+// ---------------------------------------------------------------------------
+
+function findAncestorForm(block: Block): HTMLFormElement | null {
+	let n: Node | null = block.startMarker ?? block.parentNode ?? null;
+	while (n) {
+		if ((n as any).nodeName === 'FORM') return n as HTMLFormElement;
+		n = n.parentNode;
+	}
+	return null;
+}
+
+export function useFormStatus(slot?: symbol): FormStatus {
+	if (slot === undefined) missingSlot('useFormStatus');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as { form: HTMLFormElement | null } | undefined;
+	if (s === undefined) {
+		const form = findAncestorForm(block);
+		s = { form };
+		ensureHooks(scope).set(slot, s);
+		if (form) {
+			const listener = (): void => {
+				if (!block.disposed) scheduleRender(block);
+			};
+			let set = FORM_STATUS_LISTENERS.get(form);
+			if (!set) {
+				set = new Set();
+				FORM_STATUS_LISTENERS.set(form, set);
+			}
+			set.add(listener);
+			scope.cleanups.push(() => set!.delete(listener));
+		}
+	}
+	return s.form ? (FORM_STATUS.get(s.form) ?? IDLE_FORM_STATUS) : IDLE_FORM_STATUS;
+}
+
+// ---------------------------------------------------------------------------
+// useOptimistic(state, updateFn?) → [optimisticState, addOptimistic]
+//
+// `optimisticState` equals `state` unless an Action/transition is in flight, in
+// which case it is `state` folded through `updateFn(acc, value)` for each queued
+// addOptimistic call (or the raw value when no updateFn). The queue is cleared
+// when the owning transition settles, so optimistic and real state converge in
+// the same commit — on success `state` has advanced, on error it is unchanged
+// (automatic revert). addOptimistic should be called inside an Action.
+// ---------------------------------------------------------------------------
+
+interface OptimisticSlot<S, V> {
+	queue: V[];
+	updateFn?: (state: S, value: V) => S;
+	add: (value: V) => void;
+}
+
+export function useOptimistic<S, V = S>(
+	passthrough: S,
+	updateFnOrSlot?: ((state: S, value: V) => S) | symbol,
+	slot?: symbol,
+): [S, (value: V) => void] {
+	let updateFn: ((state: S, value: V) => S) | undefined;
+	if (typeof updateFnOrSlot === 'symbol') slot = updateFnOrSlot;
+	else updateFn = updateFnOrSlot;
+	if (slot === undefined) missingSlot('useOptimistic');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as OptimisticSlot<S, V> | undefined;
+	if (s === undefined) {
+		const slotRef: OptimisticSlot<S, V> = {
+			queue: [],
+			updateFn,
+			add: (value: V) => {
+				slotRef.queue.push(value);
+				if (!block.disposed) scheduleRender(block);
+			},
+		};
+		s = slotRef;
+		ensureHooks(scope).set(slot, slotRef);
+		// When the owning transition settles (pending count hits 0), drop the
+		// optimistic queue so the next render re-derives from the real state.
+		const listener = (): void => {
+			if (TRANSITION_PENDING_COUNT === 0 && slotRef.queue.length > 0) {
+				slotRef.queue.length = 0;
+				if (!block.disposed) scheduleRender(block);
+			}
+		};
+		TRANSITION_LISTENERS.add(listener);
+		scope.cleanups.push(() => TRANSITION_LISTENERS.delete(listener));
+	}
+	s.updateFn = updateFn;
+	let optimistic = passthrough;
+	for (let i = 0; i < s.queue.length; i++) {
+		optimistic = s.updateFn ? s.updateFn(optimistic, s.queue[i]) : (s.queue[i] as unknown as S);
+	}
+	return [optimistic, s.add];
 }
 
 // ---------------------------------------------------------------------------

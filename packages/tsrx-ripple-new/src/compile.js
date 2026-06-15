@@ -65,6 +65,10 @@ const HOOK_NAMES = new Set([
 	'useDeferredValue',
 	'useTransition',
 	'useSyncExternalStore',
+	// React 19 Actions bundle.
+	'useActionState',
+	'useFormStatus',
+	'useOptimistic',
 ]);
 
 // Namespace inheritance — mirrors HTML5 foreign-content rules. The element
@@ -2048,6 +2052,7 @@ function planJsx(jsxNodesRaw, ctx, componentName, inlinedSubs, parentNs = 'html'
 			else ctx.runtimeNeeded.add('setClassName');
 		}
 		if (b.kind === 'style') ctx.runtimeNeeded.add('setStyle');
+		if (b.kind === 'formAction') ctx.runtimeNeeded.add('setFormAction');
 		if (b.kind === 'spread') {
 			ctx.runtimeNeeded.add('setSpread');
 			ctx.runtimeNeeded.add('attachRef'); // unmount-detach of a spread-supplied ref
@@ -2402,6 +2407,17 @@ function emitBindingMount(b, elVar) {
 			return `    _b._el$${b.id} = ${elVar};
     ${elVar}.$$${b.eventName} = (${b.expr});`;
 		}
+		case 'formAction': {
+			// <form action={fn}> / <button formAction={fn}>: wire the submit handler
+			// (or fall back to the native attribute for string values). Diffed by
+			// function identity on update.
+			return `    {
+      const _v = ${E};
+      setFormAction(${elVar}, ${JSON.stringify(b.name)}, _v, undefined);
+      _b._el$${b.id} = ${elVar};
+      _b._prev$${b.id} = _v;
+    }`;
+		}
 		case 'event-bundle': {
 			// Build a `{ fn, args }` bundle and stash fn + each arg in slots so the
 			// update path can identity-diff and skip the reassignment on no-op.
@@ -2481,6 +2497,9 @@ function emitBindingUpdate(b) {
 		}
 		case 'event': {
 			return `    _b._el$${b.id}.$$${b.eventName} = (${b.expr});`;
+		}
+		case 'formAction': {
+			return `    { const _v = ${E}; if (_b._prev$${b.id} !== _v) { setFormAction(_b._el$${b.id}, ${JSON.stringify(b.name)}, _v, _b._prev$${b.id}); _b._prev$${b.id} = _v; } }`;
 		}
 		case 'event-bundle': {
 			// Diff fn + each arg against the per-slot cache. Only rebuild + assign
@@ -2880,6 +2899,24 @@ function emitElementHtml(
 			}
 		} else if (attrName === 'class' || attrName === 'className') {
 			bindings.push({ id: bindings.length, kind: 'class', expr, path, ns: hostNs });
+		} else if (
+			(tag === 'form' && attrName === 'action') ||
+			((tag === 'button' || tag === 'input') &&
+				(attrName === 'formAction' || attrName === 'formaction'))
+		) {
+			// React 19 function action: a DYNAMIC `<form action={fn}>` /
+			// `<button formAction={fn}>` is routed to setFormAction, which intercepts
+			// submit and calls the function with FormData (string values fall back to
+			// the native attribute at runtime). Static string actions were already
+			// inlined into the HTML above via the literal path.
+			bindings.push({
+				id: bindings.length,
+				kind: 'formAction',
+				name: tag === 'form' ? 'action' : 'formaction',
+				expr,
+				path,
+				ns: hostNs,
+			});
 		} else {
 			bindings.push({ id: bindings.length, kind: 'attr', name: attrName, expr, path, ns: hostNs });
 		}
