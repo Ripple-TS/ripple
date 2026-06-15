@@ -3789,8 +3789,26 @@ function transform_tsrx_tsx_child(node, context) {
 	}
 
 	if (node.type === 'TSRXExpression') {
+		// An EMPTY fragment that is the container's expression (`<b>{<></>}</b>`) must
+		// stay `<></>`: the `{}` already supplies the wrapper, so the default
+		// `in_jsx_child = false` lowering to a bare `null` drops the source fragment.
+		// Build it as a JSX child instead. Non-empty fragments keep their existing
+		// lowering (e.g. `{<>{a}</>}` still unwraps to `{a}`). This matches the JSX
+		// targets and how the same fragment survives in an attribute value.
+		const expr = node.expression;
+		const is_empty_fragment =
+			expr?.type === 'TsrxFragment' &&
+			!(expr.children || []).some(
+				(/** @type {any} */ child) =>
+					child &&
+					child.type !== 'EmptyStatement' &&
+					(child.type !== 'Text' || String(child.expression?.value ?? '') !== ''),
+			);
+		const expression = is_empty_fragment
+			? build_tsrx_to_ts_expression(/** @type {AST.TsrxFragment} */ (expr), context, true)
+			: /** @type {AST.Expression} */ (context.visit(node.expression, context.state));
 		return b.jsx_expression_container(
-			/** @type {AST.Expression} */ (context.visit(node.expression, context.state)),
+			/** @type {AST.Expression} */ (expression),
 			get_tsrx_expression_container_location(node),
 		);
 	}

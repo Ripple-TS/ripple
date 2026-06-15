@@ -1743,6 +1743,20 @@ export function runSharedCompileTests({
 			expect(code).not.toContain('<>{a}a</>');
 			expect(code).not.toContain('<>aa</>');
 		});
+
+		// Regression: an empty fragment as a container's expression must stay
+		// `{<></>}`, not be lowered to the bare `{null}` of expression position.
+		it('keeps an empty fragment inside a container as a fragment', () => {
+			const { code } = compile(
+				`function App() @{
+					<b>{<></>}</b>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<b>{<></>}</b>');
+			expect(code).not.toContain('{null}');
+		});
 	});
 
 	describe(`[${name}] component export shapes`, () => {

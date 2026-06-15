@@ -429,7 +429,23 @@ export function createJsxTransform(platform) {
 
 				const style_context = prepare_tsrx_fragment_styles(node, state);
 				const target = style_context?.fragment ?? next() ?? node;
-				const in_jsx_child = in_jsx_child_context(path);
+				// An EMPTY fragment that is the sole expression of a `{ … }` container in a
+				// JSX child slot (`<b>{<></>}</b>`) must stay `<></>`: the container already
+				// supplies the `{}` wrapper, so lowering it to a bare `null` (the default
+				// expression-position behavior) drops the source fragment. This matches how
+				// the same fragment is preserved in an attribute value (`a={<></>}`).
+				// Non-empty fragments keep their existing lowering.
+				const immediate_parent = /** @type {any} */ (path[path.length - 1]);
+				const is_empty_container_child =
+					immediate_parent?.type === 'JSXExpressionContainer' &&
+					in_jsx_child_context(path.slice(0, -1)) &&
+					!(target.children || []).some(
+						(/** @type {any} */ child) =>
+							child &&
+							child.type !== 'EmptyStatement' &&
+							(child.type !== 'JSXText' || child.value !== ''),
+					);
+				const in_jsx_child = in_jsx_child_context(path) || is_empty_container_child;
 				const expression = tsrx_node_to_jsx_expression(target, state, in_jsx_child);
 				for (const statement of create_tsrx_style_ref_setup_statements(
 					target,

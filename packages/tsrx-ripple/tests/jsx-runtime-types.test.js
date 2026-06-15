@@ -123,6 +123,18 @@ function StatusBadge() @{
 		expect(code).not.toContain('<>aa</>');
 	});
 
+	it('keeps an empty fragment inside a container in the TS view', () => {
+		const source = `
+function App() @{
+	<b>{<></>}</b>
+}
+`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(code).toContain('<b>{<></>}</b>');
+		expect(code).not.toContain('{null}');
+	});
+
 	it('matches the JSX targets for text, fragments and edge whitespace', () => {
 		const compile = (src) => compile_to_volar_mappings(src, 'App.tsrx', { loose: true }).code;
 
