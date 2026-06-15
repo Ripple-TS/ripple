@@ -36,6 +36,7 @@ export {
 	// Context
 	createContext,
 	use,
+	useContext,
 	type Context,
 
 	// HMR (compiler-emitted when the Vite plugin's hmr option is on)
@@ -68,6 +69,8 @@ export {
 	portal,
 	createPortal,
 	type PortalDescriptor,
+	createElement,
+	type ElementDescriptor,
 	withScope,
 	renderBlock,
 	createBlock,

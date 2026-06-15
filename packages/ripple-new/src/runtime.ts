@@ -1484,6 +1484,17 @@ export function use<T>(usable: Context<T> | PromiseLike<T> | TrackedThenable<T>)
 	return useThenable(usable as TrackedThenable<T>);
 }
 
+/**
+ * React's `useContext(Context)` — reads the nearest Provider's value (or the
+ * context default). A thin alias for the context branch of `use()`: context
+ * reads carry no per-call-site state, so there is no hook slot and the compiler
+ * needs no rewrite. Provided for React familiarity; `use(Context)` is the
+ * React-19 idiom and remains the primary form.
+ */
+export function useContext<T>(context: Context<T>): T {
+	return useContextInternal(context);
+}
+
 function useContextInternal<T>(context: Context<T>): T {
 	// Record the context dependency on every enclosing memo() block, with the
 	// version read. The push-cascade re-renders a Provider's subtree top-down;
@@ -2201,9 +2212,10 @@ export function setClassName(el: Element, value: string | null | undefined): voi
 }
 
 // ---------------------------------------------------------------------------
-// Style — kebab-case object form (Ripple semantics) or full cssText string.
-// `prev` is the previous value tracked by the compiler so we can diff
-// object→object and only touch the properties that changed.
+// Style — object form (keys may be kebab-case `font-size` OR React-style
+// camelCase `fontSize`; see styleName) or a full cssText string. `prev` is the
+// previous value tracked by the compiler so we can diff object→object and only
+// touch the properties that changed.
 // ---------------------------------------------------------------------------
 
 const IMPORTANT_SUFFIX = '!important';
@@ -2226,12 +2238,12 @@ export function setStyle(el: HTMLElement | SVGElement, value: any, prev: any): v
 	// so leftover declarations don't leak across the transition.
 	if (prev && typeof prev === 'object') {
 		for (const k in prev) {
-			if (!(k in value)) style.removeProperty(k);
+			if (!(k in value)) style.removeProperty(styleName(k));
 		}
 		for (const k in value) {
 			const v = value[k];
 			if (v === prev[k]) continue;
-			if (v == null || v === false) style.removeProperty(k);
+			if (v == null || v === false) style.removeProperty(styleName(k));
 			else applyStyleProperty(style, k, v);
 		}
 	} else {
@@ -2243,7 +2255,50 @@ export function setStyle(el: HTMLElement | SVGElement, value: any, prev: any): v
 	}
 }
 
+// Normalize a style-object key to a CSS property name CSSOM accepts. Supports
+// BOTH kebab-case (`font-size`) and React-style camelCase (`fontSize`) keys —
+// the latter is converted to kebab. Mirrors React's hyphenateStyleName:
+//   fontSize        → font-size
+//   backgroundColor → background-color
+//   WebkitTransform → -webkit-transform   (leading uppercase = vendor prefix)
+//   msFilter        → -ms-filter          (the `ms` prefix gets a leading dash)
+// Custom properties (`--myVar`) and already-hyphenated names (anything starting
+// with `-`) pass through verbatim — custom properties are case-sensitive and
+// must NOT be hyphenated. No regex (char-walk) to avoid backtracking concerns.
+function styleName(name: string): string {
+	// `--custom-prop` and pre-hyphenated `-webkit-…` keys: leave untouched.
+	if (name.charCodeAt(0) === 45 /* - */) return name;
+	// Fast path: no uppercase → already kebab (the common case), no allocation.
+	let hasUpper = false;
+	for (let i = 0; i < name.length; i++) {
+		const c = name.charCodeAt(i);
+		if (c >= 65 && c <= 90) {
+			hasUpper = true;
+			break;
+		}
+	}
+	if (!hasUpper) return name;
+	let out = '';
+	for (let i = 0; i < name.length; i++) {
+		const c = name.charCodeAt(i);
+		// Uppercase → `-` + lowercase. A leading uppercase therefore yields the
+		// leading dash a vendor prefix needs (`WebkitX` → `-webkit-x`).
+		if (c >= 65 && c <= 90) out += '-' + String.fromCharCode(c + 32);
+		else out += name[i];
+	}
+	// React parity: `msFoo` → `ms-foo` (above) → `-ms-foo`.
+	if (
+		out.charCodeAt(0) === 109 /* m */ &&
+		out.charCodeAt(1) === 115 /* s */ &&
+		out.charCodeAt(2) === 45
+	) {
+		out = '-' + out;
+	}
+	return out;
+}
+
 function applyStyleProperty(style: CSSStyleDeclaration, name: string, value: any): void {
+	const prop = styleName(name);
 	const s = typeof value === 'number' ? String(value) : (value as string);
 	// CodeQL flagged the prior `/\s*!important\s*$/` test+replace combo as
 	// polynomial-regex-on-uncontrolled-input. Same job in linear time using
@@ -2251,12 +2306,12 @@ function applyStyleProperty(style: CSSStyleDeclaration, name: string, value: any
 	const tail = s.trimEnd();
 	if (tail.endsWith(IMPORTANT_SUFFIX)) {
 		style.setProperty(
-			name,
+			prop,
 			tail.slice(0, tail.length - IMPORTANT_SUFFIX.length).trimEnd(),
 			'important',
 		);
 	} else {
-		style.setProperty(name, s);
+		style.setProperty(prop, s);
 	}
 }
 
@@ -2652,6 +2707,27 @@ export function createPortal(
 	props: any = undefined,
 ): PortalDescriptor {
 	return { $$kind: PORTAL_TAG, body, target, props };
+}
+
+// ---------------------------------------------------------------------------
+// Element descriptor — `createElement(Comp, props)`. The compiler lowers a JSX
+// component element used at VALUE position (e.g. `root.render(<App foo={x}/>)`)
+// to this call, so JSX-as-a-value matches React's `root.render(<App/>)` shape.
+// It is a plain { type, props } record (like a ReactElement). `root.render`
+// unwraps it; props are evaluated fresh at each call site, so re-rendering with
+// `root.render(<App foo={next}/>)` updates props while keeping `type` identity.
+// ---------------------------------------------------------------------------
+const ELEMENT_TAG = Symbol.for('ripple-new.element');
+export interface ElementDescriptor<P = any> {
+	$$kind: typeof ELEMENT_TAG;
+	type: ComponentBody<P>;
+	props: P;
+}
+export function createElement<P>(type: ComponentBody<P>, props?: P): ElementDescriptor<P> {
+	return { $$kind: ELEMENT_TAG, type, props: (props ?? {}) as P };
+}
+function isElementDescriptor(v: any): v is ElementDescriptor {
+	return v != null && v.$$kind === ELEMENT_TAG;
 }
 
 // ---------------------------------------------------------------------------
@@ -4754,6 +4830,16 @@ function lis(arr: Int32Array): number[] {
 // ---------------------------------------------------------------------------
 
 export interface Root {
+	/**
+	 * Render into this root. Two forms:
+	 *  - React-style:   `root.render(<App foo={x}/>)` — a single element descriptor
+	 *    (the compiler lowers the JSX to `createElement(App, {foo: x})`).
+	 *  - Body + props:  `root.render(App, { foo: x })` — the original ripple-new
+	 *    form, kept for direct (non-JSX) callers and existing test helpers.
+	 * Re-rendering with the same component (`type`/body) updates props in place;
+	 * a different component tears down and remounts.
+	 */
+	render(element: ElementDescriptor): void;
 	render(body: ComponentBody, props?: any): void;
 	unmount(): void;
 }
@@ -4766,7 +4852,16 @@ export function createRoot(container: Element): Root {
 	// registered later (via `delegateEvents`) will back-attach automatically.
 	registerDelegationTarget(container);
 	return {
-		render(body, props) {
+		render(bodyOrElement: ComponentBody | ElementDescriptor, props?: any) {
+			// React-style `render(<App foo={x}/>)` arrives as an element descriptor:
+			// unwrap to (type, props). The `render(body, props)` form passes through.
+			let body: ComponentBody;
+			if (isElementDescriptor(bodyOrElement)) {
+				body = bodyOrElement.type;
+				props = bodyOrElement.props;
+			} else {
+				body = bodyOrElement;
+			}
 			if (rootBlock && currentBody === body) {
 				rootBlock.props = props;
 				scheduleRender(rootBlock);

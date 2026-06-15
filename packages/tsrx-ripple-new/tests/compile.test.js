@@ -259,3 +259,53 @@ describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
 		expect(() => compile(src, 'App.tsrx', { mode: 'bogus' })).toThrow(/Unknown compile mode/);
 	});
 });
+
+describe('@tsrx/ripple-new compile — JSX component as a value (root.render shape)', () => {
+	const imp = `import { createRoot } from 'ripple-new';`;
+
+	it('lowers root.render(<App/>) to createElement(App, {}) and imports createElement', () => {
+		const out = code(`${imp} createRoot(x).render(<App/>);`);
+		expect(out).toContain('createElement(App, {})');
+		expect(out).toContain('render(createElement(App, {}))');
+		expect(out).toMatch(/import \{[^}]*\bcreateElement\b[^}]*\} from 'ripple-new'/);
+		expect(out).not.toContain('<App');
+	});
+
+	it('passes attributes (and spreads) through as the props object', () => {
+		const out = code(`${imp} createRoot(x).render(<App count={1} name="hi" {...rest}/>);`);
+		expect(out).toContain('createElement(App, { count: 1, name: "hi", ...rest })');
+	});
+
+	it('lowers a JSX component value in setup position (const el = <App/>)', () => {
+		const out = code(`${imp} const el = <App x={2}/>;`);
+		expect(out).toContain('createElement(App, { x: 2 })');
+	});
+
+	it('lowers nested JSX in a prop value recursively', () => {
+		const out = code(`${imp} createRoot(x).render(<App icon={<Icon size={3}/>}/>);`);
+		expect(out).toContain('createElement(App, { icon: createElement(Icon, { size: 3 }) })');
+	});
+
+	it('drops key= from the props (meaningless at value position)', () => {
+		const out = code(`${imp} createRoot(x).render(<App key={1} a={2}/>);`);
+		expect(out).toContain('createElement(App, { a: 2 })');
+	});
+
+	it('rejects a host element used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<div/>);`)).toThrow(
+			/Host element <div\/> used as a value/,
+		);
+	});
+
+	it('rejects a component element with children used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<App><Child/></App>);`)).toThrow(
+			/with children used as a value/,
+		);
+	});
+
+	it('rejects a fragment used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<>{'a'}</>);`)).toThrow(
+			/Fragment used as a value/,
+		);
+	});
+});

@@ -995,10 +995,15 @@ export function compile(source, filename, options) {
 			if (node.type === 'ExportNamedDeclaration' && node.declaration) {
 				applyStyleMap(node.declaration, ctx);
 			}
+			// Lower any JSX component value (e.g. `root.render(<App/>)` or
+			// `const el = <App/>`) to createElement(...) before printing — esrap
+			// can't print raw JSX, and this is what makes root.render(<App/>) match
+			// React's shape.
+			const lowered = rewriteJsxValues(node, ctx);
 			// Top-level passthrough (imports, plain consts/functions): print with
 			// esrap's real map — col 0, no re-indent, single line offset.
 			const base = bodyLine;
-			const { code, mappings } = printNodeWithMap(node, ctx);
+			const { code, mappings } = printNodeWithMap(lowered, ctx);
 			pushEsrapSegments(base, 0, mappings);
 			body += code + '\n';
 			bodyLine += countNewlines(code + '\n');
@@ -1333,7 +1338,10 @@ function compileFunctionBody(node, ctx, name, parentNs = 'html', cssHash = null,
 	// the block doesn't capture local arrow params.
 	const rewrittenStatements = workingStatements
 		.map((s) => rewriteHookCalls(s, ctx, name))
-		.map((s) => rewriteTsrxBlocks(s, ctx, name, inlinedSubs));
+		.map((s) => rewriteTsrxBlocks(s, ctx, name, inlinedSubs))
+		// JSX component element at VALUE position in setup (e.g. `const el = <App/>`)
+		// → createElement(App, props). Output JSX (jsxNodes) was already split off.
+		.map((s) => rewriteJsxValues(s, ctx));
 	// Capture per-statement source maps for the TOP-LEVEL component body only
 	// (the autoCallback pass). Output stays byte-identical — printNodeWithMap
 	// prints the same code as printNode, it just also returns esrap's real
@@ -1452,6 +1460,122 @@ function rewriteTsrxBlocks(node, ctx, componentName, inlinedSubs) {
 		}
 		return null;
 	});
+}
+
+/**
+ * Lower a JSX COMPONENT element used at VALUE position (not as a component body's
+ * rendered output) into a `createElement(Comp, props)` call, so JSX-as-a-value
+ * works — chiefly `root.render(<App foo={x}/>)` matching React's root render.
+ *
+ * Only component elements (capitalized / member tag) with NO children are
+ * supported as values; host elements (`<div/>`), fragments, and children-bearing
+ * components throw a clear diagnostic (define a component for that markup). Props
+ * (including spreads) are emitted into the object literal verbatim; `key` is
+ * dropped (meaningless at value position). Nested JSX in prop values is lowered
+ * recursively. This never touches a component body's OUTPUT JSX — that is split
+ * out as `jsxNodes` and handled by planJsx before this runs.
+ */
+function rewriteJsxValues(node, ctx) {
+	return mapAst(node, (n) => {
+		const t = n && n.type;
+		if (t === 'Element' || t === 'JSXElement') {
+			if (!isComponentTag(n)) {
+				const loc = n.loc && n.loc.start;
+				const tag = n.id?.name || n.openingElement?.name?.name || 'element';
+				throw new Error(
+					`Host element <${tag}/> used as a value` +
+						(loc ? ` (line ${loc.line})` : '') +
+						` is not supported. Wrap the markup in a component and render that ` +
+						`(e.g. \`root.render(<App/>)\`).`,
+				);
+			}
+			const kids = n.children || [];
+			if (kids.some((c) => c.type !== 'Comment')) {
+				const loc = n.loc && n.loc.start;
+				throw new Error(
+					`Component element with children used as a value` +
+						(loc ? ` (line ${loc.line})` : '') +
+						` is not supported. Move the children into the component itself.`,
+				);
+			}
+			return jsxElementToCreateElement(n, ctx);
+		}
+		if (t === 'Fragment' || t === 'JSXFragment') {
+			const loc = n.loc && n.loc.start;
+			throw new Error(
+				`Fragment used as a value` +
+					(loc ? ` (line ${loc.line})` : '') +
+					` is not supported. Wrap it in a component and render that.`,
+			);
+		}
+		return null;
+	});
+}
+
+// Convert a JSX tag name node to a plain expression node esrap can print.
+function jsxNameToExpr(name) {
+	if (name.type === 'Identifier' || name.type === 'JSXIdentifier') {
+		return { type: 'Identifier', name: name.name };
+	}
+	if (name.type === 'MemberExpression' || name.type === 'JSXMemberExpression') {
+		const prop = name.property;
+		return {
+			type: 'MemberExpression',
+			object: jsxNameToExpr(name.object),
+			property:
+				prop && prop.type ? jsxNameToExpr(prop) : { type: 'Identifier', name: String(prop) },
+			computed: false,
+			optional: false,
+		};
+	}
+	// `<{expr}/>` — dynamic tag carries the expression directly.
+	if (name.type === 'JSXExpressionContainer') return name.expression;
+	return { type: 'Identifier', name: String(name.name || name) };
+}
+
+// Build a `createElement(Comp, { ...props })` CallExpression AST node from a
+// component Element node. Recurses into prop values so nested JSX values lower too.
+function jsxElementToCreateElement(node, ctx) {
+	ctx.runtimeNeeded.add('createElement');
+	const nameNode = node.openingElement?.name || node.id;
+	const compNode = jsxNameToExpr(nameNode);
+	const attrs = node.attributes || node.openingElement?.attributes || [];
+	const properties = [];
+	for (const attr of attrs) {
+		if (attr.type === 'SpreadAttribute' || attr.type === 'JSXSpreadAttribute') {
+			properties.push({ type: 'SpreadElement', argument: rewriteJsxValues(attr.argument, ctx) });
+			continue;
+		}
+		if (attr.type !== 'Attribute' && attr.type !== 'JSXAttribute') continue;
+		const attrName = attr.name.name || attr.name;
+		if (attrName === 'key') continue; // meaningless at value position (no slot)
+		let valNode;
+		if (attr.value == null) {
+			valNode = { type: 'Literal', value: true };
+		} else {
+			const inner =
+				attr.value.type === 'JSXExpressionContainer' ? attr.value.expression : attr.value;
+			valNode = rewriteJsxValues(inner, ctx);
+		}
+		const keyIsIdent = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(attrName);
+		properties.push({
+			type: 'Property',
+			key: keyIsIdent
+				? { type: 'Identifier', name: attrName }
+				: { type: 'Literal', value: attrName },
+			value: valNode,
+			kind: 'init',
+			method: false,
+			shorthand: false,
+			computed: false,
+		});
+	}
+	return {
+		type: 'CallExpression',
+		callee: { type: 'Identifier', name: 'createElement' },
+		arguments: [compNode, { type: 'ObjectExpression', properties }],
+		optional: false,
+	};
 }
 
 function allocHookSymbol(ctx, debugName) {
@@ -3579,7 +3703,7 @@ function makeForCall(node, ctx, componentName, inlinedSubs, parentNs = 'html', c
 		let hasHook = false;
 		const seenDeps = new Set();
 		for (const name of free) {
-			if (HOOK_NAMES.has(name) || name === 'use') {
+			if (HOOK_NAMES.has(name) || name === 'use' || name === 'useContext') {
 				hasHook = true;
 			}
 			if (ctx.currentComponentLocals.has(name)) {
