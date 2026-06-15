@@ -675,6 +675,55 @@ export function runSharedTsxExpressionTsrxTests({ compile, name, classAttrName }
 				expect(code, source).not.toContain(rawNode);
 			}
 		});
+
+		it('lowers @if as the left operand of a logical expression', () => {
+			const { code } = compile(
+				`function App() {
+						let c = (@if (true) { <>{1}</> }) || 'default';
+						return <div>{c}</div>;
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain(`|| 'default'`);
+			expect(code).not.toContain('@if');
+			expect(code).not.toContain('JSXIfExpression');
+		});
+
+		it('lowers @switch as an operand of a logical expression', () => {
+			const { code } = compile(
+				`function App({ status }: { status: string }) {
+						const view =
+							fallback ||
+							@switch (status) {
+								@case 'loading': { <p>Loading...</p> }
+								@default: { <p>Unknown status.</p> }
+							};
+						return <div>{view}</div>;
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('Loading...');
+			expect(code).toContain('Unknown status.');
+			expect(code).not.toContain('@switch');
+			expect(code).not.toContain('JSXSwitchExpression');
+		});
+
+		it('lowers @if as a conditional (ternary) branch', () => {
+			const { code } = compile(
+				`function App({ ok }: { ok: boolean }) {
+						const view = ok
+							? @if (ok) { <p>All good</p> } @else { <p>Broke</p> }
+							: <span>n/a</span>;
+						return <div>{view}</div>;
+					}`,
+				'App.tsrx',
+			);
+			expect(code).toContain('All good');
+			expect(code).toContain('Broke');
+			expect(code).toContain('n/a');
+			expect(code).not.toContain('@if');
+			expect(code).not.toContain('JSXIfExpression');
+		});
 	});
 }
 

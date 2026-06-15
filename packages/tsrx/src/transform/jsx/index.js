@@ -274,8 +274,11 @@ function wrap_in_native_tsrx_fragment(node) {
  * position — an expression-bodied arrow (`() => @switch (…) { … }`), a
  * `return @switch (…) { … }`, an unused expression statement,
  * assignment to a variable
- * (`const x = @switch (…) { … }`, `x = @switch (…) { … }`), or a call/`new`
- * argument (`render(@if (…) { … })`) — in a native TSRX fragment.
+ * (`const x = @switch (…) { … }`, `x = @switch (…) { … }`), a call/`new`
+ * argument (`render(@if (…) { … })`), or an operand of an operator expression
+ * (`(@if (…) { … }) || fallback`, `cond ? @if (…) { … } : <p />`) — in a native
+ * TSRX fragment so it flows through the same render machinery as a `<> … </>`
+ * output instead of leaking to the printer as a raw `JSX…Expression`.
  * @param {any} node
  * @param {TransformContext | null} lower_dynamic_context
  * @param {Set<any>} [seen]
@@ -306,6 +309,11 @@ function wrap_control_flow_expression_values(node, lower_dynamic_context, seen =
 		return;
 	}
 
+	// Wrap a value in a native TSRX fragment when it is a bare control-flow
+	// directive, otherwise leave it untouched.
+	const wrap_value = (/** @type {any} */ value) =>
+		is_jsx_control_flow_expression(value) ? wrap_in_native_tsrx_fragment(value) : value;
+
 	if (
 		node.type === 'ArrowFunctionExpression' &&
 		node.body?.type !== 'BlockStatement' &&
@@ -327,9 +335,19 @@ function wrap_control_flow_expression_values(node, lower_dynamic_context, seen =
 		(node.type === 'CallExpression' || node.type === 'NewExpression') &&
 		Array.isArray(node.arguments)
 	) {
-		node.arguments = node.arguments.map((/** @type {any} */ arg) =>
-			is_jsx_control_flow_expression(arg) ? wrap_in_native_tsrx_fragment(arg) : arg,
-		);
+		node.arguments = node.arguments.map(wrap_value);
+	} else if (node.type === 'LogicalExpression' || node.type === 'BinaryExpression') {
+		// `(@if (…) { … }) || fallback`, `count + @switch (…) { … }`, etc.
+		node.left = wrap_value(node.left);
+		node.right = wrap_value(node.right);
+	} else if (node.type === 'ConditionalExpression') {
+		// `cond ? @if (…) { … } : <p />` — a control-flow branch (or test) leaks
+		// the same way; the JSX-element branches the printer already handles do not.
+		node.test = wrap_value(node.test);
+		node.consequent = wrap_value(node.consequent);
+		node.alternate = wrap_value(node.alternate);
+	} else if (node.type === 'SequenceExpression' && Array.isArray(node.expressions)) {
+		node.expressions = node.expressions.map(wrap_value);
 	}
 
 	for (const key of Object.keys(node)) {
