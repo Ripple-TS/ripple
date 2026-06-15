@@ -1782,6 +1782,32 @@ export function runSharedCompileTests({
 
 			expect(code).toContain('let c = <><></></>;');
 		});
+
+		it('keeps an empty expression container fragment as a fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <>{}</>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <></>;');
+			expect(code).not.toMatch(/let c = ;/);
+		});
+
+		it('keeps a comment-only container fragment as a fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <>{/* note */}</>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <></>;');
+			expect(code).not.toMatch(/let c = ;/);
+		});
 	});
 
 	describe(`[${name}] component export shapes`, () => {

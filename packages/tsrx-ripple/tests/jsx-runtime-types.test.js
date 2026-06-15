@@ -146,6 +146,8 @@ function App() @{
 		);
 		expect(compile('let c = <></>;')).toContain('let c = <></>;');
 		expect(compile('let e = <><></></>;')).toContain('let e = <><></></>;');
+		// An empty expression container fragment must not collapse to `let f = ;`.
+		expect(compile('let f = <>{}</>;')).toContain('let f = <></>;');
 		expect(compile('let d = <pre> <b>1</b> <b>2</b> </pre>;')).toContain(
 			"let d = <pre>{' '}<b>1</b> <b>2</b>{' '}</pre>;",
 		);

@@ -147,6 +147,7 @@ export {
 	create_hook_safe_helper as createHookSafeHelper,
 	create_element_ref_target_type as createElementRefTargetType,
 	create_element_ref_target_type_for_name as createElementRefTargetTypeForName,
+	build_return_expression as buildReturnExpression,
 	createJsxTransform,
 	extract_jsx_setup_declarations as extractJsxSetupDeclarations,
 	is_component_like_element,
@@ -164,7 +165,6 @@ export {
 export {
 	in_jsx_child_context as inJsxChildContext,
 	is_empty_jsx_fragment as isEmptyJsxFragment,
-	tsx_node_to_jsx_expression as tsxNodeToJsxExpression,
 	tsx_with_ts_locations as tsxWithTsLocations,
 	is_template_if_node as isTemplateIfNode,
 	is_template_for_of_node as isTemplateForOfNode,

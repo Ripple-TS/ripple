@@ -10,6 +10,7 @@ import {
 	toJsxAttribute,
 	validateAtMostOneRefAttribute,
 	addJsxSetupDeclaration as add_jsx_setup_declaration,
+	buildReturnExpression as build_return_expression,
 	collectParamBindings as collect_param_bindings,
 	collectStatementBindings as collect_statement_bindings,
 	extractJsxSetupDeclarations as extract_jsx_setup_declarations,
@@ -19,8 +20,6 @@ import {
 	NORMALIZE_SPREAD_PROPS_FOR_REF_ATTR_INTERNAL_NAME,
 	NORMALIZE_SPREAD_PROPS_INTERNAL_NAME,
 	returnValueBodyToExpression as return_value_body_to_expression,
-	tsxNodeToJsxExpression as tsx_node_to_jsx_expression,
-	// Shared AST builders (truly platform-agnostic utilities).
 	clone_expression_node,
 	clone_identifier,
 	clone_jsx_name,
@@ -2216,36 +2215,5 @@ function to_jsx_expression_container(expression, source_node = expression) {
 			metadata: { path: [] },
 		}),
 		source_node,
-	);
-}
-
-/**
- * @param {any[]} render_nodes
- * @returns {any}
- */
-function build_return_expression(render_nodes) {
-	if (render_nodes.length === 0) return null;
-	if (render_nodes.length === 1) {
-		const only = render_nodes[0];
-		if (only.type === 'JSXExpressionContainer') return only.expression;
-		if (only.type === 'JSXText') {
-			const value = (only.value ?? '').trim();
-			return b.literal(value, JSON.stringify(value), only);
-		}
-		return only;
-	}
-	const first = render_nodes[0];
-	const last = render_nodes[render_nodes.length - 1];
-	return set_loc(
-		/** @type {any} */ ({
-			type: 'JSXFragment',
-			openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-			closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
-			children: render_nodes,
-			metadata: { path: [] },
-		}),
-		first?.loc && last?.loc
-			? { start: first.start, end: last.end, loc: { start: first.loc.start, end: last.loc.end } }
-			: undefined,
 	);
 }

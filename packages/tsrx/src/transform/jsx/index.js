@@ -5937,16 +5937,16 @@ function value_has_unmappable_jsx_loc(value) {
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function build_return_expression(render_nodes, in_jsx_child = false) {
+export function build_return_expression(render_nodes, in_jsx_child = false) {
 	if (render_nodes.length === 0) return null;
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
 		if (only.type === 'JSXExpressionContainer') {
-			// Reactive-block containers (dynamic tags) must stay expression
-			// children so the host JSX compiler wraps them in a render block;
-			// returning the bare call would evaluate them once.
 			if (only.metadata?.tsrx_reactive_block === true) {
 				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			}
+			if (only.expression?.type === 'JSXEmptyExpression') {
+				return set_loc(b.jsx_fragment([]), only.loc ? only : undefined);
 			}
 			return only.expression;
 		}

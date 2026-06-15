@@ -51,45 +51,6 @@ export function set_node_path_metadata(node, path) {
 }
 
 /**
- * Flatten a JSX-compatible island's children into a single expression. In a
- * JSX-child position, a JSXExpressionContainer `{expr}` is valid and must stay
- * wrapped. In an expression position (e.g. `return ...`), `{expr}` parses as
- * a block/object literal, so unwrap to `expr`.
- *
- * @param {any} node
- * @param {boolean} [in_jsx_child]
- * @returns {any}
- */
-export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
-	const children = (node.children || []).filter(
-		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
-	);
-
-	if (
-		children.length === 1 &&
-		children[0].type !== 'JSXText' &&
-		// Reactive-block containers (dynamic tags) must stay expression
-		// children so the host JSX compiler wraps them in a render block;
-		// unwrapping to a bare call would evaluate them once.
-		children[0].metadata?.tsrx_reactive_block !== true
-	) {
-		const only = children[0];
-		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
-			return only.expression;
-		}
-		return only;
-	}
-
-	return /** @type {any} */ ({
-		type: 'JSXFragment',
-		openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-		closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
-		children,
-		metadata: { path: [] },
-	});
-}
-
-/**
  * Wrap esrap's `tsx()` printer with location markers for nodes whose spans
  * (e.g. the leading `new ` of a NewExpression or the angle-bracket delimiters
  * around generic arguments) are otherwise invisible to the source map.
