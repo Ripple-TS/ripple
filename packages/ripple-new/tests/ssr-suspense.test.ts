@@ -141,4 +141,20 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 		expect(out2.body).toBe('<div id="p">static</div>');
 		expect(out2.body).not.toContain('data-ripple-new-suspense');
 	});
+
+	it('a use(thenable) that never settles fails the render via the suspense deadline (no hang)', async () => {
+		const prev = RT.getSsrSuspenseTimeout();
+		RT.setSsrSuspenseTimeout(50);
+		try {
+			// A promise that never resolves/rejects — without the deadline this render
+			// would hang forever (MAX_SUSPENSE_PASSES only bounds the pass COUNT, and
+			// is checked BEFORE the await).
+			const stuck = new Promise<string>(() => {});
+			await expect(RT.render(m.AsyncLeaf, { promise: stuck })).rejects.toThrow(
+				/did not settle within 50ms/,
+			);
+		} finally {
+			RT.setSsrSuspenseTimeout(prev);
+		}
+	});
 });

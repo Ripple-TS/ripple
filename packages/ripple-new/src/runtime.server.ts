@@ -431,6 +431,21 @@ export interface RenderResult {
 /** Guard against a `use(thenable)` that never resolves wedging the render loop. */
 const MAX_SUSPENSE_PASSES = 50;
 
+// Wall-clock bound on a single suspense await. MAX_SUSPENSE_PASSES caps the
+// NUMBER of re-render passes, but it's checked BEFORE the await — so a thenable
+// that never settles would leave `Promise.all` (and the request) hung forever.
+// This deadline races that await so a stuck thenable fails the render instead.
+// 0 disables the deadline (await indefinitely). Configurable for tests/hosts.
+let SUSPENSE_TIMEOUT_MS = 10_000;
+
+export function setSsrSuspenseTimeout(ms: number): void {
+	SUSPENSE_TIMEOUT_MS = ms;
+}
+
+export function getSsrSuspenseTimeout(): number {
+	return SUSPENSE_TIMEOUT_MS;
+}
+
 /**
  * Serialize the resolved `use(thenable)` values (in render order) into an inline
  * data `<script>` the client reads during hydration. `<` is escaped to `<`
@@ -526,7 +541,9 @@ export async function render(component: ServerComponent, props?: any): Promise<R
 		}
 		// Await everything this pass surfaced; cache each outcome by its key. Only
 		// render-local state (`suspended`, `resolved`) is touched across the await.
-		await Promise.all(
+		// Raced against SUSPENSE_TIMEOUT_MS so a thenable that never settles fails
+		// the render (with a clear error) instead of hanging the request forever.
+		const settleAll = Promise.all(
 			suspended.map(async ({ promise, key }) => {
 				if (resolved.has(key)) return;
 				try {
@@ -536,5 +553,31 @@ export async function render(component: ServerComponent, props?: any): Promise<R
 				}
 			}),
 		);
+		if (SUSPENSE_TIMEOUT_MS > 0) {
+			let timer: ReturnType<typeof setTimeout> | undefined;
+			const deadline = new Promise<never>((_, reject) => {
+				timer = setTimeout(
+					() =>
+						reject(
+							new Error(
+								'ripple-new SSR: a use(thenable) did not settle within ' +
+									SUSPENSE_TIMEOUT_MS +
+									'ms.',
+							),
+						),
+					SUSPENSE_TIMEOUT_MS,
+				);
+				// Don't let the deadline timer hold the event loop open if the render
+				// settles first (Node-only; harmless where unref is absent).
+				(timer as any)?.unref?.();
+			});
+			try {
+				await Promise.race([settleAll, deadline]);
+			} finally {
+				clearTimeout(timer);
+			}
+		} else {
+			await settleAll;
+		}
 	}
 }

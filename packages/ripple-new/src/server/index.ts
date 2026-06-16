@@ -12,6 +12,8 @@ export {
 	// Entry
 	render,
 	type RenderResult,
+	setSsrSuspenseTimeout,
+	getSsrSuspenseTimeout,
 
 	// Hooks (server semantics)
 	useState,
