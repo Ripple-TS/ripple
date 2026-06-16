@@ -1,12 +1,11 @@
-// Website page shape: <head> (per-route title/meta) + <style> + ONE body root.
-// Head extraction collapses it to a single <section> root that hydrates.
+// Website page shape: hoisted <title>/<meta> (per-route) + <style> + ONE body
+// root. The hoisted head elements + <style> collapse to a single <section> root
+// that hydrates.
 export function Home(props: { params: Record<string, string> }) @{
 	const [count, setCount] = useState(0);
 	<>
-		<head>
-			<title>Home - ripple-new meta</title>
-			<meta name="description" content="The ripple-new metaframework dev-SSR demo home page." />
-		</head>
+		<title>Home - ripple-new meta</title>
+		<meta name="description" content="The ripple-new metaframework dev-SSR demo home page." />
 		<section class="page" id="home">
 			<header class="app-header">
 				<a href="/">

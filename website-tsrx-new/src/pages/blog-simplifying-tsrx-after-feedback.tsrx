@@ -173,13 +173,11 @@ const TAILWIND_STYLE_HTML = highlight_tsrx(
 
 export function BlogSimplifyingTsrxAfterFeedbackPage() @{
 	<>
-		<head>
-			<title>Simplifying TSRX | TSRX Blog</title>
-			<meta
-				name="description"
-				content="TSRX is removing early alpha syntax and moving closer to ordinary TypeScript and JSX patterns."
-			/>
-		</head>
+		<title>Simplifying TSRX | TSRX Blog</title>
+		<meta
+			name="description"
+			content="TSRX is removing early alpha syntax and moving closer to ordinary TypeScript and JSX patterns."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

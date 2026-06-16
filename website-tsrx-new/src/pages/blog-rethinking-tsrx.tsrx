@@ -209,13 +209,11 @@ const EmptyState = ({ search }: EmptyStateProps): JSX.Element => <section>
 
 export function BlogRethinkingTsrxPage() @{
 	<>
-		<head>
-			<title>Rethinking TSRX | TSRX Blog</title>
-			<meta
-				name="description"
-				content="TSRX is leaning back into JSX: regular JSX text, expressions, comments, @{...} statement containers, and @if, @switch, @try, and @for for template control flow."
-			/>
-		</head>
+		<title>Rethinking TSRX | TSRX Blog</title>
+		<meta
+			name="description"
+			content="TSRX is leaning back into JSX: regular JSX text, expressions, comments, @{...} statement containers, and @if, @switch, @try, and @for for template control flow."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

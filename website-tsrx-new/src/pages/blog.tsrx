@@ -1,12 +1,10 @@
 export function BlogPage() @{
 	<>
-		<head>
-			<title>TSRX Blog</title>
-			<meta
-				name="description"
-				content="Updates from the TSRX project: language changes, design notes, and release context."
-			/>
-		</head>
+		<title>TSRX Blog</title>
+		<meta
+			name="description"
+			content="Updates from the TSRX project: language changes, design notes, and release context."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

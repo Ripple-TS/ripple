@@ -64,7 +64,7 @@ export {
 	attachRef,
 	queueRefAttach,
 	injectStyle,
-	mountHead,
+	headBlock,
 	delegateEvents,
 	forBlock,
 	ifBlock,

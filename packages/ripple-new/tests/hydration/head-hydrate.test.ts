@@ -6,10 +6,12 @@ import { hydrate, flushSync, delegateEvents } from '../../src/index.js';
 import * as ServerRT from 'ripple-new/server';
 import { Page } from './_fixtures/head.tsrx';
 
-// Top-level <head> extraction: <head>/<style> are routed out of the body, so the
-// remaining single body root takes the single-root path (no <ripple-frag>) and
-// the head content goes to render().head (server) / document.head (client),
-// adopting the server-rendered head on hydrate (no duplicate <title>).
+// Hoisted document metadata (React-19 model): inline `<title>`/`<meta>` are
+// routed out of the body, so the remaining single body root takes the
+// single-root path (no <ripple-frag>) and the metadata goes to render().head
+// (server, via ssrHeadEl) / document.head (client, via headBlock). On hydrate,
+// headBlock ADOPTS the server-rendered element (matched by its `<!--key-->`
+// marker) rather than appending a duplicate, and removes it on unmount.
 
 delegateEvents(['click']);
 
@@ -37,35 +39,35 @@ afterEach(() => {
 	document.title = '';
 });
 
-describe('top-level <head> extraction — compile', () => {
-	it('client: single-root body template (no <ripple-frag>) + mountHead', () => {
+describe('hoisted document metadata — compile', () => {
+	it('client: single-root body template (no <ripple-frag>) + headBlock', () => {
 		const { code } = compile(readFileSync(FIXTURE, 'utf8'), 'head.tsrx', { mode: 'client' });
 		expect(code).not.toContain('ripple-frag');
-		expect(code).toContain('mountHead(');
-		expect(code).toMatch(/import \{[^}]*\bmountHead\b/);
+		expect(code).toContain('headBlock(__s,');
+		expect(code).toMatch(/import \{[^}]*\bheadBlock\b/);
 	});
 
-	it('server: ssrHead with a marker hash byte-identical to the client mountHead', () => {
+	it('server: ssrHeadEl with a key byte-identical to the client headBlock', () => {
 		const { code: clientCode } = compile(readFileSync(FIXTURE, 'utf8'), 'head.tsrx', {
 			mode: 'client',
 		});
 		const { code: serverCode } = compile(readFileSync(FIXTURE, 'utf8'), 'head.tsrx', {
 			mode: 'server',
 		});
-		const hash = clientCode.match(/mountHead\("(rnh-[a-z0-9]+)"/)?.[1];
-		expect(hash).toBeTruthy();
-		expect(serverCode).toContain(`ssrHead("<!--${hash}-->`);
-		expect(serverCode).toContain('ssrHead(');
+		// The first head element is the <title>; its key must match across modes.
+		const key = clientCode.match(/headBlock\(__s, "(rnh-[a-z0-9]+)"/)?.[1];
+		expect(key).toBeTruthy();
+		expect(serverCode).toContain(`ssrHeadEl("${key}"`);
 	});
 });
 
-describe('top-level <head> extraction — SSR', () => {
-	it('render().head carries the title + meta; body is a single root (no frag)', async () => {
+describe('hoisted document metadata — SSR', () => {
+	it('render().head carries the title + meta (each marker-prefixed); body is single-root', async () => {
 		const { head, body, css } = await ServerRT.render(server.Page, { params: {} });
 		expect(head).toContain('<title>TSRX Page</title>');
 		expect(head).toContain('name="description"');
 		expect(head).toContain('content="A test page"');
-		expect(head).toMatch(/^<!--rnh-/); // leading hash marker
+		expect(head).toMatch(/^<!--rnh-/); // leading adoption marker
 		// Body is the single <section> (wrapped in the component block markers),
 		// NOT a <ripple-frag> multi-root.
 		expect(body).toContain('<section id="body"');
@@ -75,14 +77,13 @@ describe('top-level <head> extraction — SSR', () => {
 	});
 });
 
-describe('top-level <head> extraction — hydration', () => {
-	it('adopts the server head (document.title, one <title>, marker removed) + single-root body', async () => {
+describe('hoisted document metadata — hydration', () => {
+	it('adopts the server head (one <title>/<meta>, markers removed) + single-root body, removed on unmount', async () => {
 		const { head, body } = await ServerRT.render(server.Page, { params: {} });
 		// Simulate the metaframework injecting render().head into the document head.
 		document.head.innerHTML = head;
+		expect(document.head.querySelectorAll('title').length).toBe(1);
 		expect(document.title).toBe('TSRX Page');
-		const titlesBefore = document.head.querySelectorAll('title').length;
-		expect(titlesBefore).toBe(1);
 
 		container.innerHTML = body;
 		const section = container.querySelector('#body') as HTMLElement;
@@ -91,7 +92,7 @@ describe('top-level <head> extraction — hydration', () => {
 		const root = hydrate(Page, container, { params: {} });
 		flushSync(() => {});
 
-		// Head: title still present + de-duplicated, marker comment removed.
+		// Head: title + meta ADOPTED (no duplication), adoption markers removed.
 		expect(document.title).toBe('TSRX Page');
 		expect(document.head.querySelectorAll('title').length).toBe(1);
 		expect(document.head.querySelectorAll('meta[name="description"]').length).toBe(1);
@@ -105,6 +106,10 @@ describe('top-level <head> extraction — hydration', () => {
 		expect(container.querySelector('ripple-frag')).toBeNull();
 		flushSync(() => btn.click());
 		expect(btn.textContent).toBe('n:1');
+
+		// Lifecycle: unmounting the page removes its hoisted head elements.
 		root.unmount();
+		expect(document.head.querySelectorAll('title').length).toBe(0);
+		expect(document.head.querySelectorAll('meta[name="description"]').length).toBe(0);
 	});
 });

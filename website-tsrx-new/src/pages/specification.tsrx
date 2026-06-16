@@ -351,13 +351,11 @@ const NAV_ITEMS = [
 
 export function SpecificationPage() @{
 	<>
-		<head>
-			<title>TSRX | Specification</title>
-			<meta
-				name="description"
-				content="Draft TSRX language specification: TypeScript-compatible JSX extensions, statement containers, control-flow expressions, lazy destructuring, style identifiers, and host-defined server extensions."
-			/>
-		</head>
+		<title>TSRX | Specification</title>
+		<meta
+			name="description"
+			content="Draft TSRX language specification: TypeScript-compatible JSX extensions, statement containers, control-flow expressions, lazy destructuring, style identifiers, and host-defined server extensions."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

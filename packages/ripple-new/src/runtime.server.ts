@@ -388,12 +388,34 @@ export function injectStyle(id: string, css: string): void {
 	if (CSS !== null) CSS.set(id, css);
 }
 
-// Compiler-emitted for each top-level `<head>` block (carrying a `<!--hash-->`
-// marker + the head children HTML). Accumulates into the active render pass's
-// head buffer (null-guarded like injectStyle, so it only collects during a
-// synchronous pass).
-export function ssrHead(content: string): void {
-	if (HEAD !== null) HEAD.html += content;
+// Compiler-emitted for each hoisted `<title>`/`<meta>`/`<link>` (rendered
+// anywhere in a component). Serializes the element — prefixed with a `<!--key-->`
+// marker the client's headBlock adopts — into the active render pass's head
+// buffer (null-guarded like injectStyle, so it only collects during a
+// synchronous pass). Returned as RenderResult.head and injected at <!--ssr-head-->.
+const HEAD_VOID_ELEMENTS = new Set(['meta', 'link', 'base']);
+
+export function ssrHeadEl(
+	key: string,
+	tag: string,
+	attrs: Record<string, unknown> | null,
+	text: unknown,
+): void {
+	if (HEAD === null) return;
+	let s = '<!--' + key + '--><' + tag;
+	if (attrs !== null) {
+		for (const k in attrs) {
+			const v = attrs[k];
+			if (v == null || v === false) continue;
+			s += v === true ? ' ' + k : ' ' + k + '="' + escapeAttr(v) + '"';
+		}
+	}
+	if (HEAD_VOID_ELEMENTS.has(tag)) {
+		s += '>';
+	} else {
+		s += '>' + (text == null ? '' : escapeHtml(text)) + '</' + tag + '>';
+	}
+	HEAD.html += s;
 }
 
 // ---------------------------------------------------------------------------

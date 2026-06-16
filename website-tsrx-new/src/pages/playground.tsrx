@@ -2,13 +2,11 @@ import { CompilerDemo } from '../components/compiler-demo.tsrx';
 
 export function PlaygroundPage() @{
 	<>
-		<head>
-			<title>TSRX | Playground</title>
-			<meta
-				name="description"
-				content="Try TSRX in the browser. Write component code and see the compiled code in real time."
-			/>
-		</head>
+		<title>TSRX | Playground</title>
+		<meta
+			name="description"
+			content="Try TSRX in the browser. Write component code and see the compiled code in real time."
+		/>
 		<div class="demo-page">
 			<header class="demo-nav">
 				<a class="brand-lockup" href="/" aria-label="TSRX home">

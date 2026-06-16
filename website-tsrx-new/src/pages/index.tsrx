@@ -65,15 +65,13 @@ const COLOCATION_HTML = highlight_tsrx(
 
 export const IndexPage = () => @{
 	<>
-		<head>
-			<title>
-				TSRX | A TypeScript language extension for building declarative UIs in an agentic era.
-			</title>
-			<meta
-				name="description"
-				content="TSRX is a TypeScript language extension for building declarative UIs in an agentic era."
-			/>
-		</head>
+		<title>
+			TSRX | A TypeScript language extension for building declarative UIs in an agentic era.
+		</title>
+		<meta
+			name="description"
+			content="TSRX is a TypeScript language extension for building declarative UIs in an agentic era."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

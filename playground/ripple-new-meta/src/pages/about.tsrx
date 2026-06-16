@@ -1,9 +1,7 @@
 export function About(props: { params: Record<string, string> }) @{
 	<>
-		<head>
-			<title>About - ripple-new meta</title>
-			<meta name="description" content="About the ripple-new metaframework demo." />
-		</head>
+		<title>About - ripple-new meta</title>
+		<meta name="description" content="About the ripple-new metaframework demo." />
 		<section class="page" id="about">
 			<header class="app-header">
 				<a href="/">

@@ -279,13 +279,11 @@ const NAV_GROUPS = [
 
 export function GettingStartedPage() @{
 	<>
-		<head>
-			<title>TSRX | Getting Started</title>
-			<meta
-				name="description"
-				content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
-			/>
-		</head>
+		<title>TSRX | Getting Started</title>
+		<meta
+			name="description"
+			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">

@@ -1,6 +1,6 @@
 // The website-tsrx Layout shape: a FRAGMENT whose only body root is
 // `{children}` (+ global `<style>` → CSS). Hydrates via childSlot's cursor-adopt
-// (single body root); the `<head>` per route lives in the pages.
+// (single body root); each route's hoisted <title>/<meta> live in the pages.
 export function Layout({ children }: { children: any }) @{
 	<>
 		{children}

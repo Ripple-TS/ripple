@@ -2604,50 +2604,71 @@ export function setSpread(el: Element, value: any, prev: any, mountScope?: Scope
 const _injectedStyles = new Set<string>();
 
 // ---------------------------------------------------------------------------
-// Top-level <head> mounting — compiler-emitted `mountHead(hash, html)` for each
-// extracted `<head>` block. Idempotent (keyed by the per-block hash). On a
-// hydrated page the server already wrote `<!--hash-->` + the head children into
-// the document <head> (via render().head → <!--ssr-head-->), so mountHead ADOPTS
-// those — finds the marker comment, leaves the elements, removes the marker —
-// rather than duplicating them. On a fresh client render it parses + appends,
-// updating an existing <title> in place rather than adding a second one.
-// (Head elements are mounted imperatively like <style>, NOT tracked as a Block —
-// simpler than original Ripple's HEAD_BLOCK, at the cost of reactive meta/link.)
+// Hoisted document metadata (React-19-shape) — `<title>`, `<meta>`, `<link>`
+// rendered ANYWHERE in a component are lifted to <document.head> by the compiler
+// emitting one `headBlock(scope, key, tag, attrs, text)` call per element
+// (instead of placing it in the body template). Because ripple-new re-invokes a
+// component body on every render, this call recurs each render: the element is
+// created/adopted ONCE (keyed per call-site via `scope[key]`), its attributes
+// and text are re-applied each render (so `<title>{state}</title>` is reactive),
+// and it is removed from <head> when the owning scope unmounts (so a route swap
+// replaces the page's metadata). On a hydrated page the server wrote
+// `<!--key-->` + the element into <head> (ssrHeadEl → RenderResult.head →
+// <!--ssr-head-->); headBlock ADOPTS that element rather than appending a copy.
 // ---------------------------------------------------------------------------
 
-const _mountedHeads = new Set<string>();
+interface HeadSlot {
+	el: Element;
+}
 
-export function mountHead(hash: string, html: string): void {
-	if (_mountedHeads.has(hash)) return;
-	if (typeof document === 'undefined') return;
-
-	// SSR adopt / de-dup: find the server's `<!--hash-->` marker in document.head.
-	// If present, the head children are already in the DOM — adopt them (leave in
-	// place), remove the marker so a later re-mount can't re-match it, and stop.
+// Find the server-rendered element for `key` in <head> (it directly follows the
+// `<!--key-->` marker), remove the marker so a later mount can't re-match it, and
+// return the element. Returns null on a fresh client render (no SSR marker).
+function adoptServerHeadEl(key: string): Element | null {
 	for (let n: Node | null = document.head.firstChild; n !== null; n = n.nextSibling) {
-		if (n.nodeType === 8 && (n as Comment).data === hash) {
-			_mountedHeads.add(hash);
+		if (n.nodeType === 8 && (n as Comment).data === key) {
+			let el: Node | null = n.nextSibling;
+			while (el !== null && el.nodeType === 3 && /^\s*$/.test((el as Text).data)) {
+				el = el.nextSibling;
+			}
 			(n as Comment).remove();
-			return;
+			return el !== null && el.nodeType === 1 ? (el as Element) : null;
 		}
 	}
+	return null;
+}
 
-	// Fresh client mount (no server head): parse the head HTML and append, with a
-	// <title> adopt-or-update so a re-render / navigation keeps exactly one title.
-	_mountedHeads.add(hash);
-	const parsed = new DOMParser().parseFromString('<head>' + html + '</head>', 'text/html');
-	for (const node of Array.from(parsed.head.childNodes)) {
-		if (node.nodeType === 1 && (node as Element).tagName === 'TITLE') {
-			let title = document.head.querySelector('title');
-			if (title === null) {
-				title = document.createElement('title');
-				document.head.appendChild(title);
-			}
-			const text = node.textContent ?? '';
-			if (title.textContent !== text) title.textContent = text;
-		} else {
-			document.head.appendChild(document.importNode(node, true));
+export function headBlock(
+	scope: Scope,
+	key: string,
+	tag: string,
+	attrs: Record<string, any> | null,
+	text: unknown,
+): void {
+	if (typeof document === 'undefined') return;
+	let state = (scope as any)[key] as HeadSlot | undefined;
+	if (state === undefined) {
+		let el = adoptServerHeadEl(key);
+		if (el === null) {
+			el = document.createElement(tag);
+			document.head.appendChild(el);
 		}
+		state = { el };
+		(scope as any)[key] = state;
+		// Removed once, on the owning scope's unmount (NOT between re-renders) —
+		// scope.cleanups fire only on teardown, mirroring the spread-ref cleanup.
+		scope.cleanups.push(() => {
+			state!.el.remove();
+			(scope as any)[key] = undefined;
+		});
+	}
+	const el = state.el;
+	if (attrs !== null) {
+		for (const k in attrs) setAttribute(el, k, attrs[k]);
+	}
+	if (text != null) {
+		const t = String(text);
+		if (el.textContent !== t) el.textContent = t;
 	}
 }
 

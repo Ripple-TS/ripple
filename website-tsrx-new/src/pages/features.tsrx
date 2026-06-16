@@ -320,13 +320,11 @@ const NAV_ITEMS = [
 
 export const FeaturesPage = () => @{
 	<>
-		<head>
-			<title>TSRX | Features</title>
-			<meta
-				name="description"
-				content="TSRX language features: function components, statement containers, JSX control flow, dynamic rendering, error boundaries, and more."
-			/>
-		</head>
+		<title>TSRX | Features</title>
+		<meta
+			name="description"
+			content="TSRX language features: function components, statement containers, JSX control flow, dynamic rendering, error boundaries, and more."
+		/>
 		<div class="app-shell">
 			<div class="page-shell">
 				<header class="masthead">
