@@ -2712,7 +2712,18 @@ function stripTsOnlyWrappers(node) {
 	}
 	// `optional` on a parameter / Identifier is the `x?: T` marker — esrap
 	// emits `x?` even if typeAnnotation is gone, which is also TS-only.
-	if (node.optional === true) node.optional = false;
+	// NB: `optional: true` ALSO marks optional chaining on MemberExpression /
+	// CallExpression (`a?.b`, `a?.()`), which is runtime JavaScript and must be
+	// preserved — so only clear it on non-member/call nodes (the TS `x?` marker).
+	if (
+		node.optional === true &&
+		node.type !== 'MemberExpression' &&
+		node.type !== 'CallExpression' &&
+		node.type !== 'OptionalMemberExpression' &&
+		node.type !== 'OptionalCallExpression'
+	) {
+		node.optional = false;
+	}
 	for (const key of Object.keys(node)) {
 		// Skip `loc`/`range`/`start`/`end` source-position fields and the parent
 		// backref (acorn-typescript sometimes attaches one). These never hold

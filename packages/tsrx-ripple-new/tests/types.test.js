@@ -43,6 +43,26 @@ describe('@tsrx/ripple-new compile — TS stripping (runtime)', () => {
 				expect(out).toContain('new Promise((resolve) => resolve("x"))');
 				expect(out).not.toContain('new Promise<string>');
 			});
+
+			it('preserves optional chaining (?. is runtime JS, not the TS `x?` marker)', () => {
+				// Regression: the TS optional-parameter strip (`function f(x?: T)`) cleared
+				// `optional: true` on EVERY node, which also nuked optional chaining on
+				// MemberExpression/CallExpression — `a?.b` / `a?.()` silently became
+				// `a.b` / `a()`, throwing at runtime on a nullish base.
+				const out = runtime(
+					`const r = obj?.a?.b ?? fallback;\nconst c = fn?.(1, 2);\nconst d = arr?.[0];`,
+					mode,
+				);
+				expect(out).toContain('obj?.a?.b');
+				expect(out).toContain('fn?.(1, 2)');
+				expect(out).toContain('arr?.[0]');
+			});
+
+			it('still strips the TS optional-parameter marker (`x?: T` → `x`)', () => {
+				const out = runtime(`function f(x?: number) { return x; }`, mode);
+				expect(out).toContain('function f(x)');
+				expect(out).not.toMatch(/function f\(x\?/);
+			});
 		});
 	}
 });
