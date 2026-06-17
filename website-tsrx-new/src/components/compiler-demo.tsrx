@@ -121,8 +121,8 @@ export function CompilerDemo() @{
 	// `@for`: a plain keyed `@for` over a derived list hydrates cleanly, and the
 	// list is identical on server and first client render (both default to the
 	// initial target), so the options reconcile 1-for-1.
-	const available_snippets = DEMO_SNIPPETS.filter((snippet) =>
-		is_snippet_available_for_target(snippet, selected_target),
+	const available_snippets = DEMO_SNIPPETS.filter(
+		(snippet) => is_snippet_available_for_target(snippet, selected_target),
 	);
 
 	// Reflect state onto the real <select> elements. Selects have no `value`
@@ -494,7 +494,9 @@ export function CompilerDemo() @{
 						>
 							<option value={CUSTOM_SNIPPET_VALUE}>Custom Source</option>
 							@for (const snippet of available_snippets; key snippet.value) {
-								<option value={snippet.value}>{snippet.label as string}</option>
+								<option value={snippet.value}>
+									{snippet.label as string}
+								</option>
 							}
 						</select>
 					</label>
@@ -505,7 +507,9 @@ export function CompilerDemo() @{
 							onChange={(e) => set_selected_target((e.target as HTMLSelectElement).value)}
 						>
 							@for (const option of TARGET_OPTIONS) {
-								<option value={option.value}>{option.label as string}</option>
+								<option value={option.value}>
+									{option.label as string}
+								</option>
 							}
 						</select>
 					</label>
@@ -536,11 +540,15 @@ export function CompilerDemo() @{
 
 				<div class={`panel panel-output${active_mobile_panel === 'output' ? ' is-active' : ''}`}>
 					<div class="panel-topline">
-						<span>{TARGET_LABELS[selected_target] as string}</span>
+						<span>
+							{TARGET_LABELS[selected_target] as string}
+						</span>
 					</div>
 					<div class="panel-body">
 						@if (error_message) {
-							<div class="panel-error" role="alert">{error_message as string}</div>
+							<div class="panel-error" role="alert">
+								{error_message as string}
+							</div>
 						}
 						<div class="editor-host" ref={output_host_ref} />
 					</div>

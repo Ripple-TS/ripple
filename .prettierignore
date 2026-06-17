@@ -23,6 +23,9 @@ packages/tsrx-mcp/src/generated/docs.js
 packages/ripple/tests/hydration/compiled/
 **/*.d.tsrx.ts
 
+# Generated bench datasets (written by benchmarks/news/gen.mjs)
+benchmarks/news/*/src/data.js
+
 # Dependencies
 **/node_modules/
 
