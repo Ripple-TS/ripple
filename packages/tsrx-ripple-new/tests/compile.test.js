@@ -277,6 +277,16 @@ describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
 	it('an unknown mode throws', () => {
 		expect(() => compile(src, 'App.tsrx', { mode: 'bogus' })).toThrow(/Unknown compile mode/);
 	});
+
+	it("mode: 'server' emits namespaced attribute names literally (no [object Object])", () => {
+		const ns = `export function A() @{ <svg><use xlink:href="#a" /></svg> }`;
+		const server = compile(ns, 'A.tsrx', { mode: 'server' }).code;
+		expect(server).not.toContain('object Object');
+		expect(server).toContain('xlink:href');
+		// Client and server agree on the namespaced attribute name.
+		const client = compile(ns, 'A.tsrx', { mode: 'client' }).code;
+		expect(client).toContain('xlink:href');
+	});
 });
 
 describe('@tsrx/ripple-new compile — JSX component as a value (root.render shape)', () => {

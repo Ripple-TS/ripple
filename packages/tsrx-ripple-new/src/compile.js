@@ -1436,7 +1436,17 @@ function ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 			continue;
 		}
 		if (attr.type !== 'Attribute' && attr.type !== 'JSXAttribute') continue;
-		const rawAttrName = attr.name.name || attr.name;
+		// Namespaced attribute names (`xlink:href`) — parser gives us a
+		// JSXNamespacedName { namespace, name } pair; concatenate to the literal name.
+		let rawAttrName;
+		if (
+			attr.name &&
+			(attr.name.type === 'JSXNamespacedName' || attr.name.type === 'NamespacedName')
+		) {
+			rawAttrName = `${attr.name.namespace.name}:${attr.name.name.name}`;
+		} else {
+			rawAttrName = attr.name.name || attr.name;
+		}
 		if (rawAttrName === 'key') continue;
 		// Events and refs have no server semantics — dropped.
 		if (rawAttrName === 'ref') continue;

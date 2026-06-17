@@ -180,6 +180,11 @@ export function ssrStyle(v: unknown): string {
 	return ' style="' + escapeAttr(css) + '"';
 }
 
+// Legal HTML attribute name: non-empty, no ASCII whitespace, `"`, `'`, `>`, `/`,
+// `=`, or control chars. Rejects spread keys that would inject markup (e.g.
+// 'x onload=alert(1)' or 'a>'); mirrors the client's setAttribute behavior.
+const VALID_ATTR_NAME = /^[^\s"'>\/=\u0000-\u001F]+$/;
+
 /** A spread `{...obj}`: serialize attr-like keys; drop events/refs/key/children. */
 export function ssrSpread(obj: unknown): string {
 	if (obj == null || typeof obj !== 'object') return '';
@@ -190,7 +195,7 @@ export function ssrSpread(obj: unknown): string {
 		const v = (obj as Record<string, unknown>)[k];
 		if (k === 'style') out += ssrStyle(v);
 		else if (k === 'className') out += ssrAttr('class', v);
-		else out += ssrAttr(k, v);
+		else if (VALID_ATTR_NAME.test(k)) out += ssrAttr(k, v); // skip injection-unsafe names
 	}
 	return out;
 }

@@ -121,3 +121,28 @@ describe('SSR Phase 1 — semantics', () => {
 		).toThrow(/does not support `<Activity>`/);
 	});
 });
+
+describe('SSR — ssrSpread attribute-name validation', () => {
+	it('skips injection-unsafe attr names but keeps valid ones', () => {
+		const out = RT.ssrSpread({
+			'data-x': '1',
+			'aria-label': 'ok',
+			'xlink:href': '#a',
+			'bad name': '2',
+			'x onload=alert(1)': '1',
+			'a>': '1',
+			c: '<>',
+		});
+		// Valid names (including data-*, aria-*, namespaced) are emitted; values
+		// are still escaped by escapeAttr (which escapes `&` and `"`).
+		expect(out).toContain(' data-x="1"');
+		expect(out).toContain(' aria-label="ok"');
+		expect(out).toContain(' xlink:href="#a"');
+		expect(out).toContain(' c="<>"');
+		// Injection-unsafe names are dropped entirely — never reach the output.
+		expect(out).not.toContain('bad name');
+		expect(out).not.toContain('onload');
+		expect(out).not.toContain('a>');
+		expect(out).not.toContain('alert');
+	});
+});

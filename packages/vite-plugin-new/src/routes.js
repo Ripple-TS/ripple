@@ -41,8 +41,11 @@ export function get_route_entry_id(entry) {
  * @returns {Function | null}
  */
 export function get_component_export(module, export_name) {
-	if (export_name && typeof module[export_name] === 'function') {
-		return module[export_name];
+	// When an explicit export name is given, require an exact match. Do NOT fall
+	// back to default/first-PascalCase — a typo'd route tuple should fail loudly
+	// rather than silently render the wrong component.
+	if (export_name) {
+		return typeof module[export_name] === 'function' ? module[export_name] : null;
 	}
 	if (typeof module.default === 'function') {
 		return module.default;

@@ -94,7 +94,9 @@ export function create_client_entry_source(_options) {
 import { hydrate } from 'ripple-new';
 
 function getComponentExport(module, exportName) {
-  if (exportName && typeof module[exportName] === 'function') return module[exportName];
+  // Explicit export name requires an exact match; do NOT fall back, so a
+  // typo'd route renders nothing rather than the wrong component.
+  if (exportName) return typeof module[exportName] === 'function' ? module[exportName] : undefined;
   if (typeof module.default === 'function') return module.default;
   return Object.entries(module).find(([key, value]) => typeof value === 'function' && /^[A-Z]/.test(key))?.[1];
 }
