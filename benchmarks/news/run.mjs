@@ -13,10 +13,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const APP = path.join(__dirname, 'ripple-new');
-const ITER = parseInt(process.argv[2] || '20', 10);
+// Targets are sibling app dirs that share the entry convention
+// (`/src/entry-server.ts` → `renderApp()` → `{ head, body, css }`, and a client
+// `window.__hydrate()` / `window.__ready`). Usage:
+//   node run.mjs [target] [iterations]   target ∈ {ripple-new, solid}
+//   node run.mjs 20                      (back-compat: iterations only → ripple-new)
+const TARGET_PORTS = { 'ripple-new': 5191, solid: 5192 };
+const args = process.argv.slice(2);
+let target = 'ripple-new';
+let iterArg = args[0];
+if (args[0] && Object.prototype.hasOwnProperty.call(TARGET_PORTS, args[0])) {
+	target = args[0];
+	iterArg = args[1];
+}
+const APP = path.join(__dirname, target);
+const ITER = parseInt(iterArg || '20', 10);
 const WARMUP = 5;
-const PORT = 5191;
+const PORT = TARGET_PORTS[target];
 
 const vite = await createServer({ root: APP, server: { middlewareMode: true }, appType: 'custom' });
 
@@ -99,6 +112,10 @@ const check = await page.evaluate(async () => {
 	const noRebuild = stripSeed(root.innerHTML) === before; // hydration adopted, didn't rebuild
 	const cls0 = root.querySelector('header.masthead').className;
 	root.querySelector('#theme').click();
+	// Let the framework's reactive update flush before reading the result:
+	// ripple-new commits synchronously on the discrete click, but Solid defers
+	// the DOM update to a microtask, so a synchronous read would miss it.
+	await new Promise((r) => setTimeout(r, 0));
 	const cls1 = root.querySelector('header.masthead').className;
 	return { cards, noRebuild, toggled: cls0 !== cls1 };
 });
@@ -110,7 +127,7 @@ await vite.close();
 const ssr = summarize(ssrSamples);
 const hyd = summarize(hydrateSamples);
 const f = (n) => n.toFixed(2).padStart(7);
-console.log(`\nThe Ripple Times — SSR + hydration bench  (ripple-new)`);
+console.log(`\nThe Ripple Times — SSR + hydration bench  (${target})`);
 console.log(`document: ${check.cards} article cards, ${(htmlBytes / 1024).toFixed(1)} KB HTML\n`);
 console.log(`Metric          | median |    min |    p95`);
 console.log(`----------------+--------+--------+--------`);

@@ -1,5 +1,7 @@
 // Generates a deterministic lorem-ipsum article dataset shared by the bench
-// app(s). Run `node gen.mjs [count]` (default 50). Writes ripple-new/src/data.js.
+// app(s). Run `node gen.mjs [count]` (default 50). Writes the SAME dataset into
+// every target app's src/data.js (ripple-new, solid, …) so each framework
+// renders byte-identical content for a fair comparison.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,7 +52,14 @@ const out =
 	JSON.stringify(articles) +
 	';\n';
 
-const dest = path.resolve(__dirname, 'ripple-new/src/data.js');
-fs.writeFileSync(dest, out);
+// Every target app gets the identical dataset (skip a target whose src/ dir
+// doesn't exist yet, so adding a new target is just creating its folder).
+const TARGETS = ['ripple-new', 'solid'];
 const bytes = Buffer.byteLength(out);
-console.log(`wrote ${articles.length} articles → ${dest} (${(bytes / 1024).toFixed(1)} KB)`);
+for (const target of TARGETS) {
+	const srcDir = path.resolve(__dirname, target, 'src');
+	if (!fs.existsSync(srcDir)) continue;
+	const dest = path.join(srcDir, 'data.js');
+	fs.writeFileSync(dest, out);
+	console.log(`wrote ${articles.length} articles → ${dest} (${(bytes / 1024).toFixed(1)} KB)`);
+}
