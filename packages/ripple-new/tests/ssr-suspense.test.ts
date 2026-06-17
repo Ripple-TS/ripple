@@ -157,4 +157,47 @@ describe('SSR Phase 4 — render() awaits use(promise)', () => {
 			RT.setSsrSuspenseTimeout(prev);
 		}
 	});
+
+	// Regression: `use(thenable)` in JSX / control-flow EXPRESSION positions
+	// (text holes, attributes, @if/@for/@switch heads) must get a stable server
+	// call-site key, exactly like setup statements. Without it they fell back to
+	// the shared base key '@' disambiguated only by render-order occurrence — so an
+	// @if(use(...)) revealing new use() calls shifted the occurrence count and
+	// sibling holes consumed each other's resolved values.
+	it('keys use() in JSX/control-flow positions — siblings/nested do not cross values', async () => {
+		const mod = evalServer(
+			`export function App(p) @{
+				<div>
+					@if (use(p.show)) { <span class="x">{use(p.x) as string}</span> }
+					<span class="y">{use(p.y) as string}</span>
+				</div>
+			}`,
+			'cross.tsrx',
+		);
+		const out = await RT.render(mod.App, {
+			show: Promise.resolve(true),
+			x: Promise.resolve('X'),
+			y: Promise.resolve('Y'),
+		});
+		// x must render "X" and y must render "Y" — NOT crossed (pre-fix: both "Y").
+		expect(out.body).toContain('<span class="x">X</span>');
+		expect(out.body).toContain('<span class="y">Y</span>');
+		expect(out.body).not.toContain('<span class="x">Y</span>');
+	});
+
+	it('keys use() per call-site in an @for body (distinct value per iteration)', async () => {
+		const mod = evalServer(
+			`export function App(p) @{
+				<ul>
+					@for (const item of use(p.items)) { <li>{use(item.v) as string}</li> }
+				</ul>
+			}`,
+			'forUse.tsrx',
+		);
+		const out = await RT.render(mod.App, {
+			items: Promise.resolve([{ v: Promise.resolve('a') }, { v: Promise.resolve('b') }]),
+		});
+		expect(out.body).toContain('<li>a</li>');
+		expect(out.body).toContain('<li>b</li>');
+	});
 });

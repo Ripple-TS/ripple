@@ -1375,12 +1375,14 @@ function ssrEmitNode(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 			// Everything else (`{children}`, `{<Comp/>}`, possibly-renderable values)
 			// → ssrChild, which RENDERS a component/element child (and coerces a
 			// primitive to text) — mirrors Ripple's `{expr}` vs `{expr as string}`.
+			// rewriteHookCalls: a `use(thenable)` in this hole bypasses the setup
+			// rewrite, so key it here too (else it collides with sibling/nested use()).
 			if (isKnownStringExpression(expr)) {
 				ctx.runtimeNeeded.add('ssrText');
-				return `ssrText(${printExpr(resolveStyleExpr(expr, cssHash))})`;
+				return `ssrText(${printExpr(resolveStyleExpr(rewriteHookCalls(expr, ctx, name), cssHash))})`;
 			}
 			ctx.runtimeNeeded.add('ssrChild');
-			return `ssrChild(${printExpr(resolveStyleExpr(expr, cssHash))}, __s)`;
+			return `ssrChild(${printExpr(resolveStyleExpr(rewriteHookCalls(expr, ctx, name), cssHash))}, __s)`;
 		}
 		case 'Element':
 			if (isComponentTag(node)) return ssrEmitComponent(node, ctx, name, inlinedSubs, cssHash);
@@ -1460,7 +1462,7 @@ function ssrEmitElement(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 
 		if (attrName === 'innerHTML' && val) {
 			const inner2 = val.type === 'JSXExpressionContainer' ? val.expression : val;
-			innerHtmlExpr = printExpr(inner2);
+			innerHtmlExpr = printExpr(rewriteHookCalls(inner2, ctx, name));
 			continue;
 		}
 
@@ -1596,7 +1598,9 @@ function ssrCompileSub(bodyStmts, ctx, baseName, paramNodes, cssHash, parentNs) 
 }
 
 function ssrEmitIf(node, ctx, name, inlinedSubs, parentNs, cssHash) {
-	const testExpr = printExpr(node.test);
+	// rewriteHookCalls: key any `use(thenable)` in the @if test (it bypasses the
+	// setup rewrite, so without a stable key it collides with sibling/body use()).
+	const testExpr = printExpr(rewriteHookCalls(node.test, ctx, name));
 	const thenStmts =
 		node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
 	const thenSub = ssrCompileSub(thenStmts, ctx, '__sif', [], cssHash, parentNs);
@@ -1622,7 +1626,8 @@ function ssrEmitIf(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 }
 
 function ssrEmitFor(node, ctx, name, inlinedSubs, parentNs, cssHash) {
-	const itemsExpr = printExpr(node.right);
+	// rewriteHookCalls: key any `use(thenable)` in the @for iterable expression.
+	const itemsExpr = printExpr(rewriteHookCalls(node.right, ctx, name));
 	const itemId = node.left.declarations[0].id; // Identifier or destructuring Pattern
 	const params = [itemId];
 	if (node.index) params.push(node.index);
@@ -1645,7 +1650,8 @@ function ssrEmitFor(node, ctx, name, inlinedSubs, parentNs, cssHash) {
 }
 
 function ssrEmitSwitch(node, ctx, name, inlinedSubs, parentNs, cssHash) {
-	const discExpr = printExpr(node.discriminant);
+	// rewriteHookCalls: key any `use(thenable)` in the @switch discriminant.
+	const discExpr = printExpr(rewriteHookCalls(node.discriminant, ctx, name));
 	const arms = [];
 	let defaultCall = "''";
 	for (const c of node.cases || []) {
@@ -4953,7 +4959,15 @@ function printExpr(node) {
  * Used at attribute-value and prop-value sites where Tsrx is at expression position.
  */
 function printExprWithTsrx(node, ctx, componentName, inlinedSubs) {
-	const rewritten = rewriteTsrxBlocks(node, ctx, componentName, inlinedSubs);
+	// In server mode, JSX expression positions (attribute / prop / spread values)
+	// bypass the setup-statement rewrite in ssrCompileBody, so apply the server
+	// `use(thenable)` call-site keying here too — without a stable key, sibling and
+	// nested `use()` calls collide in render()'s suspense cache (the OCC fallback
+	// keys them by render order, which shifts across passes → crossed values).
+	// No-op in client mode (use() is keyed by per-block call order there) and for
+	// expressions with no hook calls.
+	const keyed = ctx.mode === 'server' ? rewriteHookCalls(node, ctx, componentName) : node;
+	const rewritten = rewriteTsrxBlocks(keyed, ctx, componentName, inlinedSubs);
 	return printExpr(rewritten);
 }
 
