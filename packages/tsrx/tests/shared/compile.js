@@ -1743,6 +1743,71 @@ export function runSharedCompileTests({
 			expect(code).not.toContain('<>{a}a</>');
 			expect(code).not.toContain('<>aa</>');
 		});
+
+		// Regression: an empty fragment as a container's expression must stay
+		// `{<></>}`, not be lowered to the bare `{null}` of expression position.
+		it('keeps an empty fragment inside a container as a fragment', () => {
+			const { code } = compile(
+				`function App() @{
+					<b>{<></>}</b>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<b>{<></>}</b>');
+			expect(code).not.toContain('{null}');
+		});
+
+		it('keeps an empty fragment in expression position as a fragment', () => {
+			const { code } = compile(
+				`function App() @{
+					let b = <></>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let b = <></>;');
+			expect(code).not.toContain('let b = null;');
+		});
+
+		it('keeps the outer fragment of a nested empty fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <><></></>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <><></></>;');
+		});
+
+		it('keeps an empty expression container fragment as a fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <>{}</>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <></>;');
+			expect(code).not.toMatch(/let c = ;/);
+		});
+
+		it('keeps a comment-only container fragment as a fragment in expression position', () => {
+			const { code } = compile(
+				`function App() @{
+					let c = <>{/* note */}</>;
+					<div />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('let c = <></>;');
+			expect(code).not.toMatch(/let c = ;/);
+		});
 	});
 
 	describe(`[${name}] component export shapes`, () => {

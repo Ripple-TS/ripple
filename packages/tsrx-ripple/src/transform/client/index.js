@@ -48,6 +48,7 @@ import {
 	getStyleElementStylesheet,
 	getOriginalEventName,
 	isEventAttribute,
+	isEmptyJsxFragment as is_empty_jsx_fragment,
 	isInsideComponent as is_inside_component,
 	normalizeEventName,
 	shouldPreserveComment,
@@ -3646,7 +3647,10 @@ function statement_to_tsrx_ts_expression(statement) {
  */
 function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
 	if (children.length === 0) {
-		return in_jsx_child ? setLocation(b.jsx_fragment([]), loc_node) : b.literal(null);
+		// An empty fragment is a real value: keep it as `<></>` even in expression
+		// position. Lowering it to `null` (e.g. `let b = <></>`) drops the author's
+		// fragment; `<></>` is a valid value and matches the JSX targets' TS view.
+		return setLocation(b.jsx_fragment([]), loc_node);
 	}
 	if (children.length === 1) {
 		const only = children[0];
@@ -3657,6 +3661,11 @@ function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
 		}
 		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
 			return only.expression;
+		}
+		if (is_empty_jsx_fragment(only)) {
+			// `<><></></>` — keep the outer fragment instead of collapsing to the bare
+			// inner `<></>`, matching the JSX targets and preserving author intent.
+			return setLocation(b.jsx_fragment([only]), loc_node);
 		}
 		return /** @type {TsrxTsViewNode} */ (only);
 	}
@@ -3789,8 +3798,26 @@ function transform_tsrx_tsx_child(node, context) {
 	}
 
 	if (node.type === 'TSRXExpression') {
+		// An EMPTY fragment that is the container's expression (`<b>{<></>}</b>`) must
+		// stay `<></>`: the `{}` already supplies the wrapper, so the default
+		// `in_jsx_child = false` lowering to a bare `null` drops the source fragment.
+		// Build it as a JSX child instead. Non-empty fragments keep their existing
+		// lowering (e.g. `{<>{a}</>}` still unwraps to `{a}`). This matches the JSX
+		// targets and how the same fragment survives in an attribute value.
+		const expr = node.expression;
+		const is_empty_fragment =
+			expr?.type === 'TsrxFragment' &&
+			!(expr.children || []).some(
+				(/** @type {any} */ child) =>
+					child &&
+					child.type !== 'EmptyStatement' &&
+					(child.type !== 'Text' || String(child.expression?.value ?? '') !== ''),
+			);
+		const expression = is_empty_fragment
+			? build_tsrx_to_ts_expression(/** @type {AST.TsrxFragment} */ (expr), context, true)
+			: /** @type {AST.Expression} */ (context.visit(node.expression, context.state));
 		return b.jsx_expression_container(
-			/** @type {AST.Expression} */ (context.visit(node.expression, context.state)),
+			/** @type {AST.Expression} */ (expression),
 			get_tsrx_expression_container_location(node),
 		);
 	}

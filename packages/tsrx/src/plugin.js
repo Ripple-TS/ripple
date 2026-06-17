@@ -232,6 +232,7 @@ export function TSRXPlugin(config) {
 		// If we push an undefined context, Acorn's tokenizer will later crash reading `.override`.
 		const b_stat = tc.b_stat || acorn.tokContexts.b_stat;
 		const b_expr = tc.b_expr || acorn.tokContexts.b_expr;
+		const q_tmpl = tc.q_tmpl || acorn.tokContexts.q_tmpl;
 		const tstt = Parser.acornTypeScript.tokTypes;
 		const tstc = Parser.acornTypeScript.tokContexts;
 
@@ -1272,14 +1273,21 @@ export function TSRXPlugin(config) {
 			 */
 			#parseCodeBlockSetupStatement() {
 				const previous_context = this.context;
-				this.context = previous_context.filter(
-					(context) =>
-						context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
-				);
+				const at_template_literal = this.type === tt.backQuote;
 				let pushed_statement_context = false;
-				if (this.curContext() !== b_stat) {
-					this.context.push(b_stat);
-					pushed_statement_context = true;
+				if (at_template_literal) {
+					if (this.curContext() !== q_tmpl) {
+						this.context.push(q_tmpl);
+					}
+				} else {
+					this.context = previous_context.filter(
+						(context) =>
+							context !== tstc.tc_expr && context !== tstc.tc_oTag && context !== tstc.tc_cTag,
+					);
+					if (this.curContext() !== b_stat) {
+						this.context.push(b_stat);
+						pushed_statement_context = true;
+					}
 				}
 				this.exprAllowed = true;
 				const previous_path = this.#path;
@@ -1287,22 +1295,7 @@ export function TSRXPlugin(config) {
 				this.#templateScriptParsingDepth++;
 				let node;
 				try {
-					// A code-block/directive body is statements plus at most one render node —
-					// never bare text or markup tokens. If the tokenizer mis-read trailing
-					// code as JSX (raw text or a tag-name token — both can happen for a
-					// statement following the render node, depending on the leftover context),
-					// reposition to the token start and re-read it as code now that the
-					// template path is hidden. It then parses as a statement so the
-					// one-render-node rule reports a clear "statements cannot follow" error
-					// instead of a generic parse fault.
 					if (this.type === tstt.jsxText || this.type === tstt.jsxName) {
-						// Rewinding `pos` to the mis-read token's start must also rewind the
-						// line counter: a `jsxText` token can span newlines (e.g. the blank
-						// line before a following render node), and reading it already
-						// advanced `curLine`/`lineStart` to its end. Resetting only `pos`
-						// would leave the line counter ahead of `pos`, inflating the `loc`
-						// of this statement and every node after it (which crashes source-map
-						// mapping when the inflated end line runs past the file).
 						const loc = acorn.getLineInfo(this.input, this.start);
 						this.pos = this.start;
 						this.curLine = loc.line;
@@ -1316,7 +1309,9 @@ export function TSRXPlugin(config) {
 					if (pushed_statement_context && this.curContext() === b_stat) {
 						this.context.pop();
 					}
-					this.context = previous_context;
+					if (!at_template_literal) {
+						this.context = previous_context;
+					}
 				}
 				if (this.curContext() === tstc.tc_expr) {
 					this.context.pop();
@@ -4383,22 +4378,29 @@ export function TSRXPlugin(config) {
 			parseTemplateBody(body) {
 				const current_template_node = this.#currentNativeTemplateNode();
 				if (!current_template_node) return;
-				// Outside a `@{ … }` block every element/fragment body is plain JSX (§2,
-				// §5). There is no script section and no `---` fence to infer — text is
-				// text, and setup code lives only inside a code block.
 				current_template_node.metadata ??= { path: [] };
 				current_template_node.metadata.templateMode = 'template';
 
-				// `@{ … }` code block as element/fragment content (§2 rule 1). Sibling
-				// code blocks are allowed, so this is not gated on an empty body;
-				// reposition onto the `@` if leading whitespace was tokenized ahead of it.
 				if (this.#atCodeBlockStart()) {
 					const at_index = skip_whitespace_from(this.input, this.start);
 					if (this.start !== at_index) {
+						const ws_start = this.start;
+						const ws_start_loc = this.startLoc;
+						const ws_value = this.input.slice(ws_start, at_index);
+						const text_node = /** @type {ESTreeJSX.JSXText} */ (
+							this.startNodeAt(ws_start, ws_start_loc)
+						);
+						text_node.value = ws_value;
+						text_node.raw = ws_value;
 						const loc = acorn.getLineInfo(this.input, at_index);
+						const at_position = new acorn.Position(loc.line, loc.column);
+						this.finishNodeAt(text_node, 'JSXText', at_index, at_position);
+						if (this.#shouldKeepTemplateTextNode(text_node)) {
+							body.push(text_node);
+						}
 						this.pos = at_index;
 						this.start = at_index;
-						this.startLoc = new acorn.Position(loc.line, loc.column);
+						this.startLoc = at_position;
 						this.curLine = loc.line;
 						this.lineStart = at_index - loc.column;
 					}
@@ -4416,8 +4418,23 @@ export function TSRXPlugin(config) {
 					// text never starts at `<`, so drop the leaked context and re-read the
 					// tag instead of emitting an empty node.
 					if (this.input.charCodeAt(this.start) === CharCode.lessThan) {
-						while (this.curContext() === tstc.tc_expr) {
-							this.context.pop();
+						if (this.input.charCodeAt(this.start + 1) === CharCode.slash) {
+							while (this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+							}
+						} else {
+							let native_depth = 0;
+							for (const node of this.#path) {
+								if (this.#isNativeTemplateNode(node)) native_depth++;
+							}
+							let tc_expr_depth = 0;
+							for (const context of this.context) {
+								if (context === tstc.tc_expr) tc_expr_depth++;
+							}
+							while (tc_expr_depth > native_depth && this.curContext() === tstc.tc_expr) {
+								this.context.pop();
+								tc_expr_depth--;
+							}
 						}
 						this.pos = this.start;
 						this.exprAllowed = true;

@@ -20,6 +20,20 @@ export function in_jsx_child_context(path) {
 }
 
 /**
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function is_empty_jsx_fragment(node) {
+	return (
+		node?.type === 'JSXFragment' &&
+		!(node.children || []).some(
+			(/** @type {any} */ child) =>
+				child && (child.type !== 'JSXText' || child.value.trim() !== ''),
+		)
+	);
+}
+
+/**
  * Match Ripple's transform path metadata shape: every node seen by the walker
  * carries its current ancestor path for downstream CSS pruning and mapping
  * helpers.
@@ -34,45 +48,6 @@ export function set_node_path_metadata(node, path) {
 	} else {
 		node.metadata.path = [...path];
 	}
-}
-
-/**
- * Flatten a JSX-compatible island's children into a single expression. In a
- * JSX-child position, a JSXExpressionContainer `{expr}` is valid and must stay
- * wrapped. In an expression position (e.g. `return ...`), `{expr}` parses as
- * a block/object literal, so unwrap to `expr`.
- *
- * @param {any} node
- * @param {boolean} [in_jsx_child]
- * @returns {any}
- */
-export function tsx_node_to_jsx_expression(node, in_jsx_child = false) {
-	const children = (node.children || []).filter(
-		(/** @type {any} */ child) => child.type !== 'JSXText' || child.value.trim() !== '',
-	);
-
-	if (
-		children.length === 1 &&
-		children[0].type !== 'JSXText' &&
-		// Reactive-block containers (dynamic tags) must stay expression
-		// children so the host JSX compiler wraps them in a render block;
-		// unwrapping to a bare call would evaluate them once.
-		children[0].metadata?.tsrx_reactive_block !== true
-	) {
-		const only = children[0];
-		if (only.type === 'JSXExpressionContainer' && !in_jsx_child) {
-			return only.expression;
-		}
-		return only;
-	}
-
-	return /** @type {any} */ ({
-		type: 'JSXFragment',
-		openingFragment: { type: 'JSXOpeningFragment', metadata: { path: [] } },
-		closingFragment: { type: 'JSXClosingFragment', metadata: { path: [] } },
-		children,
-		metadata: { path: [] },
-	});
 }
 
 /**

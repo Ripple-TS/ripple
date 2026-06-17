@@ -123,6 +123,18 @@ function StatusBadge() @{
 		expect(code).not.toContain('<>aa</>');
 	});
 
+	it('keeps an empty fragment inside a container in the TS view', () => {
+		const source = `
+function App() @{
+	<b>{<></>}</b>
+}
+`;
+		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
+
+		expect(code).toContain('<b>{<></>}</b>');
+		expect(code).not.toContain('{null}');
+	});
+
 	it('matches the JSX targets for text, fragments and edge whitespace', () => {
 		const compile = (src) => compile_to_volar_mappings(src, 'App.tsrx', { loose: true }).code;
 
@@ -132,7 +144,10 @@ function StatusBadge() @{
 		expect(compile('let b = <> <></> 2 <></> </>;')).toContain(
 			"let b = <>{' '}<></> 2 <></>{' '}</>;",
 		);
-		expect(compile('let c = <></>;')).toContain('let c = null;');
+		expect(compile('let c = <></>;')).toContain('let c = <></>;');
+		expect(compile('let e = <><></></>;')).toContain('let e = <><></></>;');
+		// An empty expression container fragment must not collapse to `let f = ;`.
+		expect(compile('let f = <>{}</>;')).toContain('let f = <></>;');
 		expect(compile('let d = <pre> <b>1</b> <b>2</b> </pre>;')).toContain(
 			"let d = <pre>{' '}<b>1</b> <b>2</b>{' '}</pre>;",
 		);

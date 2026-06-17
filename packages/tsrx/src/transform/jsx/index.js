@@ -9,6 +9,7 @@ import { analyze_css } from '../../analyze/css-analyze.js';
 import { prune_css } from '../../analyze/prune.js';
 import {
 	in_jsx_child_context,
+	is_empty_jsx_fragment,
 	set_node_path_metadata,
 	tsx_with_ts_locations,
 	is_template_if_node,
@@ -429,7 +430,23 @@ export function createJsxTransform(platform) {
 
 				const style_context = prepare_tsrx_fragment_styles(node, state);
 				const target = style_context?.fragment ?? next() ?? node;
-				const in_jsx_child = in_jsx_child_context(path);
+				// An EMPTY fragment that is the sole expression of a `{ … }` container in a
+				// JSX child slot (`<b>{<></>}</b>`) must stay `<></>`: the container already
+				// supplies the `{}` wrapper, so lowering it to a bare `null` (the default
+				// expression-position behavior) drops the source fragment. This matches how
+				// the same fragment is preserved in an attribute value (`a={<></>}`).
+				// Non-empty fragments keep their existing lowering.
+				const immediate_parent = /** @type {any} */ (path[path.length - 1]);
+				const is_empty_container_child =
+					immediate_parent?.type === 'JSXExpressionContainer' &&
+					in_jsx_child_context(path.slice(0, -1)) &&
+					!(target.children || []).some(
+						(/** @type {any} */ child) =>
+							child &&
+							child.type !== 'EmptyStatement' &&
+							(child.type !== 'JSXText' || child.value !== ''),
+					);
+				const in_jsx_child = in_jsx_child_context(path) || is_empty_container_child;
 				const expression = tsrx_node_to_jsx_expression(target, state, in_jsx_child);
 				for (const statement of create_tsrx_style_ref_setup_statements(
 					target,
@@ -4111,9 +4128,16 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 	/** @type {any} */
 	let expression;
 	if (children.length === 0) {
-		expression = in_jsx_child
-			? set_loc(b.jsx_fragment([]), node.loc ? node : undefined)
-			: create_null_literal();
+		// An empty fragment is a real value: keep it as `<></>` in BOTH child and
+		// expression position. Lowering it to a bare `null` in expression position
+		// (e.g. `let b = <></>`) drops the author's fragment and changes its type;
+		// `<></>` is a valid value and keeps the to_ts/runtime view faithful.
+		expression = set_loc(b.jsx_fragment([]), node.loc ? node : undefined);
+	} else if (children.length === 1 && is_empty_jsx_fragment(children[0])) {
+		// `<><></></>` — a fragment whose only child is an empty fragment. The generic
+		// single-child collapse below would unwrap it to the bare inner `<></>`,
+		// dropping the outer fragment the author wrote. Keep both levels.
+		expression = set_loc(b.jsx_fragment(children), node.loc ? node : undefined);
 	} else {
 		expression = return_value_body_to_expression(children, node, transform_context);
 	}
@@ -5913,16 +5937,16 @@ function value_has_unmappable_jsx_loc(value) {
  * @param {boolean} [in_jsx_child]
  * @returns {any}
  */
-function build_return_expression(render_nodes, in_jsx_child = false) {
+export function build_return_expression(render_nodes, in_jsx_child = false) {
 	if (render_nodes.length === 0) return null;
 	if (render_nodes.length === 1) {
 		const only = render_nodes[0];
 		if (only.type === 'JSXExpressionContainer') {
-			// Reactive-block containers (dynamic tags) must stay expression
-			// children so the host JSX compiler wraps them in a render block;
-			// returning the bare call would evaluate them once.
 			if (only.metadata?.tsrx_reactive_block === true) {
 				return set_loc(b.jsx_fragment([only]), only.loc ? only : undefined);
+			}
+			if (only.expression?.type === 'JSXEmptyExpression') {
+				return set_loc(b.jsx_fragment([]), only.loc ? only : undefined);
 			}
 			return only.expression;
 		}
