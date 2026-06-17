@@ -54,7 +54,7 @@ const out =
 
 // Every target app gets the identical dataset (skip a target whose src/ dir
 // doesn't exist yet, so adding a new target is just creating its folder).
-const TARGETS = ['ripple-new', 'solid'];
+const TARGETS = ['ripple-new', 'solid', 'react'];
 const bytes = Buffer.byteLength(out);
 for (const target of TARGETS) {
 	const srcDir = path.resolve(__dirname, target, 'src');

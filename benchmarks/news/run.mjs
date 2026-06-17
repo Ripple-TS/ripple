@@ -1,56 +1,70 @@
-// News-site SSR + hydration benchmark harness.
+// News-site SSR + hydration benchmark harness — PRODUCTION builds only.
 //
-//   - SSR render time: times renderApp() (server → HTML string) in Node, warm.
+// Benches must reflect production, never dev: dev mode ships unminified code and
+// the frameworks' development runtimes (React/Solid dev builds carry warning +
+// validation overhead, ripple-new dev transforms aren't optimized). So this
+// harness `vite build`s each target (client minified + an SSR bundle, with
+// NODE_ENV=production) and measures the BUILT artifacts:
+//
+//   - SSR render time: times the built renderApp() (server → HTML string), warm.
 //   - Hydration time:  times window.__hydrate() in a real (headless) browser on
-//                      a fresh page whose #app already holds the server DOM.
+//                      a fresh page whose #app already holds the server DOM, with
+//                      the production client bundle loaded.
 //
-// Run:  node benchmarks/news/run.mjs [iterations]   (default 20, +5 warmup)
+// Run:  node benchmarks/news/run.mjs [target] [iterations] [--no-build]
+//         target ∈ {ripple-new, solid, react}  (default ripple-new)
+//         --no-build  reuse the existing dist/ (skip the rebuild for fast re-runs)
+//       node run.mjs 20    (back-compat: a bare number = iterations → ripple-new)
+
+// Set BEFORE importing anything that resolves a framework runtime: externalized
+// react-dom / @solidjs/web pick their PRODUCTION build off process.env.NODE_ENV.
+process.env.NODE_ENV = 'production';
+
+import { build } from 'vite';
 import { chromium } from 'playwright';
-import { createServer } from 'vite';
 import { createServer as createHttp } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Targets are sibling app dirs that share the entry convention
-// (`/src/entry-server.ts` → `renderApp()` → `{ head, body, css }`, and a client
-// `window.__hydrate()` / `window.__ready`). Usage:
-//   node run.mjs [target] [iterations]   target ∈ {ripple-new, solid}
-//   node run.mjs 20                      (back-compat: iterations only → ripple-new)
-const TARGET_PORTS = { 'ripple-new': 5191, solid: 5192 };
+const TARGET_PORTS = { 'ripple-new': 5191, solid: 5192, react: 5193 };
 const args = process.argv.slice(2);
+const noBuild = args.includes('--no-build');
+const positional = args.filter((a) => !a.startsWith('--'));
 let target = 'ripple-new';
-let iterArg = args[0];
-if (args[0] && Object.prototype.hasOwnProperty.call(TARGET_PORTS, args[0])) {
-	target = args[0];
-	iterArg = args[1];
+let iterArg = positional[0];
+if (positional[0] && Object.prototype.hasOwnProperty.call(TARGET_PORTS, positional[0])) {
+	target = positional[0];
+	iterArg = positional[1];
 }
 const APP = path.join(__dirname, target);
 const ITER = parseInt(iterArg || '20', 10);
 const WARMUP = 5;
 const PORT = TARGET_PORTS[target];
+const CLIENT_DIR = path.join(APP, 'dist/client');
+const SSR_ENTRY = path.join(APP, 'dist/server/entry-server.js');
 
-const vite = await createServer({ root: APP, server: { middlewareMode: true }, appType: 'custom' });
-
-// Serve `/` with the server-rendered body spliced in (client hydration is
-// deferred behind window.__hydrate, so the page loads un-hydrated).
-vite.middlewares.use(async (req, res, next) => {
-	if ((req.url || '/').split('?')[0] !== '/') return next();
-	try {
-		const raw = fs.readFileSync(path.join(APP, 'index.html'), 'utf8');
-		const template = await vite.transformIndexHtml(req.url, raw);
-		const { renderApp } = await vite.ssrLoadModule('/src/entry-server.ts');
-		const { head, body, css } = await renderApp();
-		res.setHeader('Content-Type', 'text/html');
-		res.end(template.replace('<!--ssr-head-->', head + css).replace('<!--ssr-body-->', body));
-	} catch (err) {
-		vite.ssrFixStacktrace?.(err);
-		res.statusCode = 500;
-		res.end(err.stack);
-	}
-});
-const httpServer = createHttp(vite.middlewares).listen(PORT);
+// ── 0. Production builds (client minified + SSR bundle) ───────────────────────
+if (!noBuild) {
+	console.log(`building ${target} (production)…`);
+	// Client: index.html is the entry; minify like a real deploy.
+	await build({
+		root: APP,
+		logLevel: 'warn',
+		build: { outDir: 'dist/client', emptyOutDir: true, minify: 'esbuild' },
+	});
+	// SSR: the server entry as a Node-loadable bundle.
+	await build({
+		root: APP,
+		logLevel: 'warn',
+		build: { ssr: 'src/entry-server.ts', outDir: 'dist/server', emptyOutDir: true },
+	});
+}
+if (!fs.existsSync(SSR_ENTRY) || !fs.existsSync(path.join(CLIENT_DIR, 'index.html'))) {
+	console.error(`✗ missing build output for ${target} (run without --no-build first)`);
+	process.exit(1);
+}
 
 const summarize = (samples) => {
 	const s = [...samples].sort((a, b) => a - b);
@@ -61,8 +75,8 @@ const summarize = (samples) => {
 	};
 };
 
-// ── 1. SSR render time (Node, warm) ──────────────────────────────────────────
-const { renderApp } = await vite.ssrLoadModule('/src/entry-server.ts');
+// ── 1. SSR render time (built bundle, Node, warm) ─────────────────────────────
+const { renderApp } = await import(pathToFileURL(SSR_ENTRY).href);
 let htmlBytes = 0;
 const ssrSamples = [];
 for (let i = 0; i < WARMUP + ITER; i++) {
@@ -73,7 +87,36 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 	if (i >= WARMUP) ssrSamples.push(dt);
 }
 
-// ── 2. Hydration time (headless browser, fresh page per sample) ───────────────
+// ── 2. Static server: built client assets + `/` with the SSR body spliced in ──
+const template = fs.readFileSync(path.join(CLIENT_DIR, 'index.html'), 'utf8');
+const MIME = {
+	'.js': 'text/javascript',
+	'.mjs': 'text/javascript',
+	'.css': 'text/css',
+	'.html': 'text/html',
+	'.svg': 'image/svg+xml',
+	'.json': 'application/json',
+	'.ico': 'image/x-icon',
+};
+const httpServer = createHttp(async (req, res) => {
+	const url = (req.url || '/').split('?')[0];
+	if (url === '/') {
+		const { head, body, css } = await renderApp();
+		res.setHeader('Content-Type', 'text/html');
+		res.end(template.replace('<!--ssr-head-->', head + css).replace('<!--ssr-body-->', body));
+		return;
+	}
+	const file = path.join(CLIENT_DIR, path.normalize(url));
+	if (file.startsWith(CLIENT_DIR) && fs.existsSync(file) && fs.statSync(file).isFile()) {
+		res.setHeader('Content-Type', MIME[path.extname(file)] || 'application/octet-stream');
+		res.end(fs.readFileSync(file));
+		return;
+	}
+	res.statusCode = 404;
+	res.end('not found');
+}).listen(PORT);
+
+// ── 3. Hydration time (headless browser, fresh page per sample) ───────────────
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 const hydrateSamples = [];
 for (let i = 0; i < WARMUP + ITER; i++) {
@@ -81,18 +124,21 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 	const page = await ctx.newPage();
 	await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
 	await page.waitForFunction(() => window.__ready === true, null, { timeout: 10000 });
-	const dt = await page.evaluate(async () => {
+	// Measure the SYNCHRONOUS hydration work only. All three targets commit
+	// hydration synchronously inside __hydrate() (ripple-new flushSync, Solid
+	// synchronous hydrate, React flushSync), so this is the actual hydration
+	// cost. (An earlier version awaited rAF + setTimeout inside the timer, but
+	// that ~6–7 ms of frame-scheduling latency dominated and masked the signal.)
+	const dt = await page.evaluate(() => {
 		const t0 = performance.now();
 		window.__hydrate();
-		await new Promise((r) => requestAnimationFrame(r));
-		await new Promise((r) => setTimeout(r, 0));
 		return performance.now() - t0;
 	});
 	if (i >= WARMUP) hydrateSamples.push(dt);
 	await ctx.close();
 }
 
-// ── 3. Correctness: no mismatch + interactive after hydration ─────────────────
+// ── 4. Correctness: no mismatch + interactive after hydration ─────────────────
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
@@ -113,8 +159,8 @@ const check = await page.evaluate(async () => {
 	const cls0 = root.querySelector('header.masthead').className;
 	root.querySelector('#theme').click();
 	// Let the framework's reactive update flush before reading the result:
-	// ripple-new commits synchronously on the discrete click, but Solid defers
-	// the DOM update to a microtask, so a synchronous read would miss it.
+	// ripple-new commits synchronously on the discrete click, but Solid/React
+	// defer the DOM update to a microtask, so a synchronous read would miss it.
 	await new Promise((r) => setTimeout(r, 0));
 	const cls1 = root.querySelector('header.masthead').className;
 	return { cards, noRebuild, toggled: cls0 !== cls1 };
@@ -122,12 +168,11 @@ const check = await page.evaluate(async () => {
 await ctx.close();
 await browser.close();
 await new Promise((r) => httpServer.close(r));
-await vite.close();
 
 const ssr = summarize(ssrSamples);
 const hyd = summarize(hydrateSamples);
 const f = (n) => n.toFixed(2).padStart(7);
-console.log(`\nThe Ripple Times — SSR + hydration bench  (${target})`);
+console.log(`\nThe Ripple Times — SSR + hydration bench  (${target}, production)`);
 console.log(`document: ${check.cards} article cards, ${(htmlBytes / 1024).toFixed(1)} KB HTML\n`);
 console.log(`Metric          | median |    min |    p95`);
 console.log(`----------------+--------+--------+--------`);
