@@ -271,7 +271,14 @@ function is_render_child_or_statement_slot(parent, key, child) {
  */
 function wrap_directive_in_jsx_fragment(directive) {
 	const fragment = /** @type {any} */ (b.jsx_fragment([directive]));
-	fragment.metadata = { ...(fragment.metadata || {}), native_tsrx: true };
+	// Mark as a GENERATED wrapper (not an authored `<> … </>`) so the to_ts
+	// single-child collapse keeps unwrapping it to the directive's lowered value,
+	// unlike an authored fragment which is kept verbatim.
+	fragment.metadata = {
+		...(fragment.metadata || {}),
+		native_tsrx: true,
+		tsrx_generated_wrapper: true,
+	};
 	fragment.start = directive.start;
 	fragment.end = directive.end;
 	fragment.loc = directive.loc;

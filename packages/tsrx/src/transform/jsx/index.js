@@ -260,14 +260,36 @@ function is_jsx_control_flow_expression(node) {
 
 /**
  * Wrap a render-output node in a native TSRX fragment so it flows through the
- * same single-child render path as a `<> … </>` output.
+ * same single-child render path as a `<> … </>` output. This is a compiler
+ * GENERATED wrapper (it wraps a control-flow directive / render output so it
+ * lowers to a value) — it is marked `tsrx_generated_wrapper` so the single-child
+ * collapse keeps unwrapping it, unlike an AUTHORED `<> … </>` which is kept.
  * @param {any} node
  * @returns {any}
  */
 function wrap_in_native_tsrx_fragment(node) {
 	const fragment = b.jsx_fragment([node]);
-	fragment.metadata = { ...(fragment.metadata || {}), native_tsrx: true };
+	fragment.metadata = {
+		...(fragment.metadata || {}),
+		native_tsrx: true,
+		tsrx_generated_wrapper: true,
+	};
 	return fragment;
+}
+
+/**
+ * An AUTHORED `<> … </>` fragment (not a compiler-generated wrapper, nor a Ripple
+ * code-block-chain wrapper). These are kept verbatim in the output instead of
+ * being unwrapped to their single child.
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_authored_native_fragment(node) {
+	return (
+		node?.type === 'JSXFragment' &&
+		node.metadata?.native_tsrx === true &&
+		node.metadata?.tsrx_generated_wrapper !== true
+	);
 }
 
 /**
@@ -599,10 +621,17 @@ export function createJsxTransform(platform) {
 					);
 				const in_jsx_child = in_jsx_child_context(path) || is_empty_container_child;
 				let expression = tsrx_node_to_jsx_expression(target, state, in_jsx_child);
-				// A fragment combined into a surrounding expression keeps its fragment
-				// identity: collapsing `<>{0}</>` to `0` would flip `<>{0}</> || 'x'`
-				// from rendering `0` to rendering `'x'` (a fragment is always truthy).
-				if (!in_jsx_child && is_combined_expression_position(path[path.length - 1], node)) {
+				// Keep a fragment's `<> … </>` identity in expression position when it is
+				// either AUTHORED (the author wrote `<>{1}</>`, so it must not unwrap to a
+				// bare `1`) or combined into a surrounding expression (collapsing `<>{0}</>`
+				// to `0` would flip `<>{0}</> || 'x'` from rendering `0` to `'x'` — a
+				// fragment is always truthy). A compiler-generated wrapper (around a
+				// control-flow directive) is NOT authored, so it still collapses.
+				if (
+					!in_jsx_child &&
+					(is_authored_native_fragment(node) ||
+						is_combined_expression_position(path[path.length - 1], node))
+				) {
 					expression = wrap_lowered_value_in_fragment(expression, node);
 				}
 				for (const statement of create_tsrx_style_ref_setup_statements(
@@ -1657,7 +1686,11 @@ function lower_jsx_code_block_function_body(node) {
 			// component render output. Wrap it in a native fragment so it flows
 			// through the same children-rendering path as a `<> … </>` render.
 			const fragment = b.jsx_fragment([render]);
-			fragment.metadata = { ...fragment.metadata, native_tsrx: true };
+			fragment.metadata = {
+				...fragment.metadata,
+				native_tsrx: true,
+				tsrx_generated_wrapper: true,
+			};
 			render = fragment;
 		}
 		statements.push(b.return(render, code_block.render));
@@ -4290,10 +4323,16 @@ function tsrx_node_to_jsx_expression(node, transform_context, in_jsx_child = fal
 		// (e.g. `let b = <></>`) drops the author's fragment and changes its type;
 		// `<></>` is a valid value and keeps the to_ts/runtime view faithful.
 		expression = set_loc(b.jsx_fragment([]), node.loc ? node : undefined);
-	} else if (children.length === 1 && is_empty_jsx_fragment(children[0])) {
-		// `<><></></>` — a fragment whose only child is an empty fragment. The generic
-		// single-child collapse below would unwrap it to the bare inner `<></>`,
-		// dropping the outer fragment the author wrote. Keep both levels.
+	} else if (
+		children.length === 1 &&
+		(is_empty_jsx_fragment(children[0]) ||
+			(children[0]?.type === 'JSXFragment' && is_authored_native_fragment(node)))
+	) {
+		// `<><X></></>` — a fragment whose only child is a fragment. The generic
+		// single-child collapse below would unwrap it to the bare inner fragment,
+		// dropping the outer fragment the author wrote. Keep both levels. (`<><></></>`
+		// is kept regardless; a non-empty inner is only kept for an authored outer, so
+		// a generated wrapper still collapses.)
 		expression = set_loc(b.jsx_fragment(children), node.loc ? node : undefined);
 	} else {
 		expression = return_value_body_to_expression(children, node, transform_context);

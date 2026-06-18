@@ -2040,9 +2040,15 @@ const visitors = {
 		// to_ts mode: produce a JSX fragment from native TSRX children.
 		if (state.to_ts) {
 			const expression = build_tsrx_to_ts_expression(node, context);
-			// A fragment combined into a surrounding expression keeps its fragment
-			// identity so `<>{0}</> || 'x'` is not collapsed to a falsy `0 || 'x'`.
-			return is_combined_expression_position(context.path, node)
+			// Keep the `<> … </>` when the fragment is AUTHORED in a JS value position
+			// (the author wrote `const v = <>{1}</>`, so it must not unwrap to a bare
+			// `1`) or combined into a surrounding expression (`<>{0}</> || 'x'` must not
+			// collapse to a falsy `0 || 'x'`). The `isTemplateValuePosition` gate keeps a
+			// fragment in a JSX-child / `{ … }` container slot on its existing path.
+			// Generated wrappers around directives still collapse.
+			const parent = context.path[context.path.length - 1];
+			return (is_authored_native_fragment(node) && isTemplateValuePosition(parent, node)) ||
+				is_combined_expression_position(context.path, node)
 				? wrap_to_ts_value_in_fragment(expression, node)
 				: expression;
 		}
@@ -4465,7 +4471,14 @@ function transform_ts_child(node, context) {
 		}
 		state.init.push(/** @type {AST.Statement} */ (result));
 	} else if (node.type === 'TsrxFragment') {
-		const result = build_tsrx_to_ts_expression(node, context);
+		let result = build_tsrx_to_ts_expression(node, context);
+		// Keep an AUTHORED `<> … </>` here too (a render-output / control-flow branch
+		// body, e.g. the `<>{[1,2,3]}</>` branch of an `@if`), so it is not unwrapped to
+		// a bare `[1,2,3]`. The fragment's contents (including any `<style>`) are already
+		// lowered by `build_tsrx_to_ts_expression`; this only re-adds the `<> … </>`.
+		if (is_authored_native_fragment(node)) {
+			result = wrap_to_ts_value_in_fragment(result, node);
+		}
 		if (!state.init) {
 			return result;
 		}
@@ -4591,6 +4604,27 @@ function is_native_tsrx_value_position(path) {
  * bare value flips meaning — a fragment is always truthy, but `<>{0}</>` collapses
  * to a falsy `0`, so `<>{0}</> || 'x'` would render `'x'` instead of `0`. Keep the
  * fragment in these positions.
+ * @param {AST.Node[]} path
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+/**
+ * An AUTHORED `<> … </>` fragment (not a compiler-generated wrapper around a
+ * directive, nor a code-block-chain wrapper). These are kept verbatim in the
+ * to_ts output instead of being unwrapped to their single child.
+ * @param {any} node
+ * @returns {boolean}
+ */
+function is_authored_native_fragment(node) {
+	return (
+		node?.type === 'TsrxFragment' &&
+		node.metadata?.native_tsrx === true &&
+		node.metadata?.tsrx_generated_wrapper !== true &&
+		node.metadata?.tsrx_code_block_chain !== true
+	);
+}
+
+/**
  * @param {AST.Node[]} path
  * @param {AST.Node} node
  * @returns {boolean}

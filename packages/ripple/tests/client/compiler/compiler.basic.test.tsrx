@@ -579,8 +579,11 @@ function App() @{
 `;
 		const result = compile_to_volar_mappings(source, 'test.tsrx').code;
 
-		expect(result).toContain('const nested = <span class="nested-tsx">');
-		expect(result).toContain('return content;');
+		// An authored `<>…</>` is kept verbatim — both as a value (the `nested`
+		// initializer) and as the component's render output (`<>{content}</>`) —
+		// instead of unwrapping to its single child.
+		expect(result).toContain('const nested = <><span class="nested-tsx">');
+		expect(result).toContain('return <>{content}</>;');
 		expect(result).toContain('const content = <div class="native">');
 	});
 

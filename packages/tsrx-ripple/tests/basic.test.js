@@ -438,13 +438,15 @@ describe('@tsrx/ripple keeps fragments combined into an expression in to_ts outp
 		expect(code).not.toMatch(/\?\s*1\s*:\s*2/);
 	});
 
-	it('still collapses a fragment that is the sole value of a slot', () => {
+	it('keeps an authored fragment that is the sole value of a slot', () => {
+		// An authored `<>…</>` is kept verbatim in value position (it must not unwrap
+		// to a bare `1`); only generated directive wrappers collapse.
 		const { code } = compile_to_volar_mappings(
 			`function App() @{ const v = <>{1}</>; <div>{v}</div> }`,
 			'App.tsrx',
 			{ loose: true },
 		);
-		expect(code).toContain('const v = 1;');
+		expect(code).toContain('const v = <>{1}</>;');
 	});
 });
 

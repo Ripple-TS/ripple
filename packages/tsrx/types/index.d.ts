@@ -83,6 +83,7 @@ interface BaseNodeMetaData {
 	commentContainerId?: number;
 	parenthesized?: boolean;
 	native_tsrx?: boolean;
+	tsrx_generated_wrapper?: boolean;
 	native_tsrx_template_block?: boolean;
 	dynamicElement?: boolean;
 	templateMode?: 'script' | 'template';
