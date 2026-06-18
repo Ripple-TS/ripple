@@ -1,0 +1,1145 @@
+// Code snippets (hand-highlighted, matching homepage code-block style)
+
+const INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/vite-plugin-react</span>',
+].join('\n');
+
+const VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxReact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-react\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">5</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxReact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const PREACT_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/vite-plugin-preact</span>',
+].join('\n');
+
+const PREACT_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxPreact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-preact\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">5</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxPreact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const SOLID_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/vite-plugin-solid</span> <span class="str">vite-plugin-solid</span>',
+].join('\n');
+
+const SOLID_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxSolid</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-solid\'</span>;',
+	'<span class="ln">3</span> <span class="kw-export">import</span> <span class="prop">solid</span> <span class="kw-export">from</span> <span class="str">\'vite-plugin-solid\'</span>;',
+	'<span class="ln">4</span>',
+	'<span class="ln">5</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">6</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxSolid</span><span class="br">(</span><span class="br">)</span>, <span class="fn">solid</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">7</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const VUE_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/vite-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
+const VUE_VITE_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">defineConfig</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'vite\'</span>;',
+	'<span class="ln">2</span> <span class="kw-export">import</span> <span class="prop">tsrxVue</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/vite-plugin-vue\'</span>;',
+	'<span class="ln">3</span>',
+	'<span class="ln">4</span> <span class="kw-export">export default</span> <span class="fn">defineConfig</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">5</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxVue</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">6</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const REACT_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/rspack-plugin-react</span>',
+].join('\n');
+
+const PREACT_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/rspack-plugin-preact</span>',
+].join('\n');
+
+const SOLID_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/rspack-plugin-solid</span>',
+].join('\n');
+
+const VUE_RSPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/rspack-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
+const REACT_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxReactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-react\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxReactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const PREACT_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxPreactRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-preact\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxPreactRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const SOLID_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxSolidRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-solid\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxSolidRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const VUE_RSPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="br">{</span> <span class="prop">TsrxVueRspackPlugin</span> <span class="br">}</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/rspack-plugin-vue\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="kw">new</span> <span class="fn">TsrxVueRspackPlugin</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">5</span> <span class="br">}</span>;',
+].join('\n');
+
+const TURBOPACK_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/turbopack-plugin-react</span> <span class="str">next</span> <span class="str">react</span> <span class="str">react-dom</span>',
+].join('\n');
+
+const TURBOPACK_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxReactTurbopack</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/turbopack-plugin-react\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="fn">tsrxReactTurbopack</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">reactStrictMode</span>: <span class="kw">true</span>,',
+	'<span class="ln">5</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const REACT_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/react</span> <span class="str">@tsrx/bun-plugin-react</span> <span class="str">react</span> <span class="str">react-dom</span>',
+].join('\n');
+
+const REACT_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxReact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-react\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxReact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const PREACT_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/preact</span> <span class="str">@tsrx/bun-plugin-preact</span> <span class="str">preact</span>',
+].join('\n');
+
+const PREACT_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxPreact</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-preact\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxPreact</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const SOLID_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/solid</span> <span class="str">@tsrx/bun-plugin-solid</span> <span class="str">solid-js</span> <span class="str">@solidjs/web</span>',
+].join('\n');
+
+const SOLID_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxSolid</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-solid\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxSolid</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const VUE_BUN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">@tsrx/vue</span> <span class="str">@tsrx/bun-plugin-vue</span> <span class="str">vue</span> <span class="str">vue-jsx-vapor</span>',
+].join('\n');
+
+const VUE_BUN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrxVue</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/bun-plugin-vue\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">await</span> <span class="prop">Bun</span>.<span class="fn">build</span><span class="br">(</span><span class="br">{</span>',
+	'<span class="ln">4</span>   <span class="prop">entrypoints</span>: <span class="br">[</span><span class="str">\'./src/App.tsrx\'</span><span class="br">]</span>,',
+	'<span class="ln">5</span>   <span class="prop">outdir</span>: <span class="str">\'./dist\'</span>,',
+	'<span class="ln">6</span>   <span class="prop">target</span>: <span class="str">\'browser\'</span>,',
+	'<span class="ln">7</span>   <span class="prop">plugins</span>: <span class="br">[</span><span class="fn">tsrxVue</span><span class="br">(</span><span class="br">)</span><span class="br">]</span>,',
+	'<span class="ln">8</span> <span class="br">}</span><span class="br">)</span>;',
+].join('\n');
+
+const PRETTIER_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">prettier</span> <span class="str">@tsrx/prettier-plugin</span>',
+].join('\n');
+
+const ESLINT_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">eslint</span> <span class="str">@tsrx/eslint-plugin</span>',
+].join('\n');
+
+const TYPESCRIPT_PLUGIN_INSTALL_HTML = [
+	'<span class="ln">1</span> <span class="fn">pnpm</span> <span class="prop">install</span> <span class="str">-D</span> <span class="str">@tsrx/typescript-plugin</span>',
+].join('\n');
+
+const PRETTIER_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"plugins"</span>: <span class="br">[</span><span class="str">"@tsrx/prettier-plugin"</span><span class="br">]</span>',
+	'<span class="ln">3</span> <span class="br">}</span>',
+].join('\n');
+
+const ESLINT_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="kw-export">import</span> <span class="prop">tsrx</span> <span class="kw-export">from</span> <span class="str">\'@tsrx/eslint-plugin\'</span>;',
+	'<span class="ln">2</span>',
+	'<span class="ln">3</span> <span class="kw-export">export default</span> <span class="br">[</span>...<span class="prop">tsrx</span>.<span class="prop">configs</span>.<span class="prop">recommended</span><span class="br">]</span>;',
+].join('\n');
+
+const TYPESCRIPT_PLUGIN_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"compilerOptions"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"jsx"</span>: <span class="str">"preserve"</span>,',
+	'<span class="ln">4</span>     <span class="attr">"plugins"</span>: <span class="br">[</span>',
+	'<span class="ln">5</span>       <span class="br">{</span> <span class="attr">"name"</span>: <span class="str">"@tsrx/typescript-plugin"</span> <span class="br">}</span>',
+	'<span class="ln">6</span>     <span class="br">]</span>',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
+].join('\n');
+
+const TYPECHECK_SCRIPT_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"scripts"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"typecheck"</span>: <span class="str">"tsrx-tsc --noEmit"</span>',
+	'<span class="ln">4</span>   <span class="br">}</span>',
+	'<span class="ln">5</span> <span class="br">}</span>',
+].join('\n');
+
+const MCP_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="br">{</span>',
+	'<span class="ln">2</span>   <span class="attr">"mcpServers"</span>: <span class="br">{</span>',
+	'<span class="ln">3</span>     <span class="attr">"tsrx"</span>: <span class="br">{</span>',
+	'<span class="ln">4</span>       <span class="attr">"command"</span>: <span class="str">"npx"</span>,',
+	'<span class="ln">5</span>       <span class="attr">"args"</span>: <span class="br">[</span><span class="str">"-y"</span>, <span class="str">"@tsrx/mcp"</span><span class="br">]</span>',
+	'<span class="ln">6</span>     <span class="br">}</span>',
+	'<span class="ln">7</span>   <span class="br">}</span>',
+	'<span class="ln">8</span> <span class="br">}</span>',
+].join('\n');
+
+const MCP_CODEX_CONFIG_HTML = [
+	'<span class="ln">1</span> <span class="comment"># ~/.codex/config.toml</span>',
+	'<span class="ln">2</span> <span class="br">[</span><span class="prop">mcp_servers.tsrx</span><span class="br">]</span>',
+	'<span class="ln">3</span> <span class="prop">command</span> = <span class="str">"npx"</span>',
+	'<span class="ln">4</span> <span class="prop">args</span> = <span class="br">[</span><span class="str">"-y"</span>, <span class="str">"@tsrx/mcp"</span><span class="br">]</span>',
+].join('\n');
+
+const MCP_CLAUDE_CODE_HTML = [
+	'<span class="ln">1</span> <span class="fn">claude</span> <span class="prop">mcp</span> <span class="prop">add</span> <span class="str">tsrx</span> <span class="prop">--</span> <span class="fn">npx</span> <span class="str">-y</span> <span class="str">@tsrx/mcp</span>',
+].join('\n');
+
+const NAV_GROUPS = [
+	{
+		heading: 'Frameworks',
+		items: [
+			{ id: 'react-vite', label: 'React + Vite' },
+			{ id: 'react-rspack', label: 'React + Rspack' },
+			{ id: 'react-turbopack', label: 'React + Turbopack' },
+			{ id: 'react-bun', label: 'React + Bun' },
+			{ id: 'preact-vite', label: 'Preact + Vite' },
+			{ id: 'preact-rspack', label: 'Preact + Rspack' },
+			{ id: 'preact-bun', label: 'Preact + Bun' },
+			{ id: 'solid-vite', label: 'Solid + Vite' },
+			{ id: 'solid-rspack', label: 'Solid + Rspack' },
+			{ id: 'solid-bun', label: 'Solid + Bun' },
+			{ id: 'vue-vite', label: 'Vue + Vite' },
+			{ id: 'vue-rspack', label: 'Vue + Rspack' },
+			{ id: 'vue-bun', label: 'Vue + Bun' },
+			{ id: 'ripple', label: 'Ripple' },
+		],
+	},
+	{
+		heading: 'Tooling',
+		items: [
+			{ id: 'tooling-install', label: 'Tooling overview' },
+			{ id: 'prettier', label: 'Prettier' },
+			{ id: 'eslint', label: 'ESLint' },
+			{ id: 'typescript-plugin', label: 'TypeScript plugin' },
+			{ id: 'vscode', label: 'VS Code' },
+			{ id: 'mcp', label: 'MCP' },
+		],
+	},
+	{
+		heading: 'Next',
+		items: [
+			{ id: 'next', label: 'What\'s next?' },
+		],
+	},
+];
+
+export function GettingStartedPage() @{
+	<>
+		<title>TSRX | Getting Started</title>
+		<meta
+			name="description"
+			content="Get started with TSRX: install with React, Preact, Solid, Vue, or Ripple for Vite, Rspack, Turbopack, or Bun, learn the function-return syntax, and explore inline template control flow."
+		/>
+		<div class="app-shell">
+			<div class="page-shell">
+				<header class="masthead">
+					<a class="brand-lockup" href="/" aria-label="TSRX home">
+						<img class="header-logo" src="/images/tsrx-mark.svg?v=4" alt="TSRX logo" />
+					</a>
+					<nav class="masthead-nav">
+						<a href="/getting-started" aria-current="page">Getting Started</a>
+						<a href="/features">Features</a>
+						<a href="/specification">Specification</a>
+						<a href="/playground">Playground</a>
+						<a href="/blog">Blog</a>
+						<a href="https://discord.gg/HCYpT5QHQR" target="_blank" rel="noopener noreferrer">
+							Discord
+						</a>
+						<a
+							href="https://github.com/Ripple-TS/ripple/tree/main/packages/tsrx"
+							target="_blank"
+							rel="noopener noreferrer"
+						>GitHub</a>
+						<a href="/llms.txt" target="_blank" rel="noopener noreferrer">llms.txt</a>
+					</nav>
+				</header>
+
+				<section class="hero">
+					<h1>Getting Started</h1>
+					<p class="lede">
+						Set up TSRX with React, Preact, Solid, Vue, or Ripple and then wire in the editor
+						tooling that makes
+						<code class="inline-code">.tsrx</code>
+						files feel native in the rest of your repo.
+					</p>
+				</section>
+
+				<div class="docs-layout">
+					<aside class="side-nav">
+						<label class="side-nav-dropdown">
+							<span class="side-nav-dropdown-label">Jump to section</span>
+							<select
+								class="side-nav-select"
+								onChange={(event) => {
+									const select = event.currentTarget as HTMLSelectElement;
+									if (typeof window !== 'undefined' && select.value) {
+										window.location.hash = select.value;
+									}
+								}}
+							>
+								<option value="">Jump to section</option>
+								@for (const group of NAV_GROUPS) {
+									<optgroup label={group.heading}>
+										@for (const item of group.items) {
+											<option value={item.id}>{item.label}</option>
+										}
+									</optgroup>
+								}
+							</select>
+						</label>
+						<nav>
+							@for (const group of NAV_GROUPS) {
+								<>
+									<p class="side-nav-heading">{group.heading}</p>
+									@for (const item of group.items) {
+										<a class="side-nav-link" href={`#${item.id}`}>{item.label}</a>
+									}
+								</>
+							}
+						</nav>
+					</aside>
+
+					<main class="docs-content">
+						<section class="doc-section" id="react-vite">
+							<p class="section-kicker">Framework setup</p>
+							<h2 class="section-heading">React + Vite</h2>
+							<p class="section-body">Install the compiler and Vite plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Vite config:</p>
+							<pre class="code-block">
+								<code innerHTML={VITE_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								That's it — create any
+								<code class="inline-code">.tsrx</code>
+								file and import it from your existing JS, TS, or TSX code. The plugin compiles
+								<code class="inline-code">.tsrx</code>
+								modules into standard React components with scoped CSS.
+							</p>
+						</section>
+
+						<section class="doc-section" id="preact-vite">
+							<h2 class="section-heading">Preact + Vite</h2>
+							<p class="section-body">Install the Preact compiler and Vite plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Vite config:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_VITE_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								The plugin compiles
+								<code class="inline-code">.tsrx</code>
+								modules into standard Preact components.
+								<code class="inline-code">Suspense</code>
+								is imported from
+								<code class="inline-code">preact/compat</code>
+								by default; pass
+								<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+								to
+								<code class="inline-code">tsrxPreact()</code>
+								if you want to avoid pulling in the full compat layer.
+							</p>
+						</section>
+
+						<section class="doc-section" id="preact-rspack">
+							<h2 class="section-heading">Preact + Rspack</h2>
+							<p class="section-body">Install the compiler and Rspack plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_RSPACK_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Rspack config:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_RSPACK_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								Like the React Rspack plugin, it chains
+								<code class="inline-code">builtin:swc-loader</code>
+								for the final JSX transform and routes per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks through Rspack's built-in CSS module type. You can also pass
+								<code class="inline-code">{'{ suspenseSource: \'preact-suspense\' }'}</code>
+								if you want to avoid the default
+								<code class="inline-code">preact/compat</code>
+								Suspense import.
+							</p>
+						</section>
+
+						<section class="doc-section" id="react-rspack">
+							<h2 class="section-heading">React + Rspack</h2>
+							<p class="section-body">Install the compiler and Rspack plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={REACT_RSPACK_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Rspack config:</p>
+							<pre class="code-block">
+								<code innerHTML={REACT_RSPACK_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								The plugin chains
+								<code class="inline-code">builtin:swc-loader</code>
+								for the final JSX transform and routes per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks through Rspack's built-in CSS module type, so no extra loaders are required.
+							</p>
+						</section>
+
+						<section class="doc-section" id="react-turbopack">
+							<h2 class="section-heading">React + Turbopack</h2>
+							<p class="section-body">Install the compiler and Turbopack helper:</p>
+							<pre class="code-block">
+								<code innerHTML={TURBOPACK_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then wrap your Next config with the helper:</p>
+							<pre class="code-block">
+								<code innerHTML={TURBOPACK_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								The helper registers a Turbopack rule for
+								<code class="inline-code">.tsrx</code>
+								files, hands the compiled output back to Next as TSX, and routes component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks through a sibling virtual CSS import so Turbopack can process the scoped
+								styles without extra loader setup.
+							</p>
+						</section>
+
+						<section class="doc-section" id="react-bun">
+							<h2 class="section-heading">React + Bun</h2>
+							<p class="section-body">
+								Install the compiler, the Bun plugin, and the React runtime:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={REACT_BUN_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then use the plugin in your Bun build script:</p>
+							<pre class="code-block">
+								<code innerHTML={REACT_BUN_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/bun-plugin-react</code>
+								compiles
+								<code class="inline-code">.tsrx</code>
+								modules with
+								<code class="inline-code">@tsrx/react</code>
+								and then hands the generated TSX to Bun's automatic JSX pipeline. Component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks are emitted as sibling virtual CSS modules, so Bun can bundle them without
+								extra loader setup.
+							</p>
+						</section>
+
+						<section class="doc-section" id="preact-bun">
+							<h2 class="section-heading">Preact + Bun</h2>
+							<p class="section-body">Install the compiler, the Bun plugin, and Preact:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_BUN_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then use the plugin in your Bun build script:</p>
+							<pre class="code-block">
+								<code innerHTML={PREACT_BUN_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/bun-plugin-preact</code>
+								follows the same Bun integration shape as React, but targets Preact's automatic JSX
+								runtime and supports overriding the default
+								<code class="inline-code">preact/compat</code>
+								Suspense import with
+								<code class="inline-code">{'{ suspenseSource: "preact-suspense" }'}</code>
+								when needed.
+							</p>
+						</section>
+
+						<section class="doc-section" id="solid-vite">
+							<h2 class="section-heading">Solid + Vite</h2>
+							<p class="section-body">
+								Install the Solid compiler, its Vite plugin, and the upstream
+								<code class="inline-code">vite-plugin-solid</code>
+								which runs Solid's JSX transform on the emitted TSX:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								Then wire both plugins into your Vite config (order matters — tsrxSolid first):
+							</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_VITE_CONFIG_HTML} />
+							</pre>
+						</section>
+
+						<section class="doc-section" id="solid-rspack">
+							<h2 class="section-heading">Solid + Rspack</h2>
+							<p class="section-body">Install the Solid compiler and Rspack plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_RSPACK_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Rspack config:</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_RSPACK_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								The plugin compiles
+								<code class="inline-code">.tsrx</code>
+								files with
+								<code class="inline-code">@tsrx/solid</code>
+								and then chains
+								<code class="inline-code">babel-loader</code>
+								with Solid's Babel preset for the final JSX transform. In development mode it also
+								enables
+								<code class="inline-code">solid-refresh/babel</code>
+								automatically, while per-component
+								<code class="inline-code">{'<style>'}</code>
+								blocks still flow through Rspack's built-in CSS module type.
+							</p>
+						</section>
+
+						<section class="doc-section" id="solid-bun">
+							<h2 class="section-heading">Solid + Bun</h2>
+							<p class="section-body">Install the Solid compiler, the Bun plugin, and Solid:</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_BUN_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then use the plugin in your Bun build script:</p>
+							<pre class="code-block">
+								<code innerHTML={SOLID_BUN_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/bun-plugin-solid</code>
+								compiles
+								<code class="inline-code">.tsrx</code>
+								modules with
+								<code class="inline-code">@tsrx/solid</code>
+								and runs Solid's Babel JSX transform inside the Bun plugin. Component-local
+								<code class="inline-code">{'<style>'}</code>
+								blocks are emitted as sibling virtual CSS modules.
+							</p>
+						</section>
+
+						<section class="doc-section" id="vue-vite">
+							<h2 class="section-heading">Vue + Vite</h2>
+							<p class="section-body">
+								Install the Vue compiler, its Vite plugin, the Vue runtime, and the Vapor JSX
+								plugin:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then wire the Vue TSRX plugin into your Vite config:</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_VITE_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/vite-plugin-vue</code>
+								compiles
+								<code class="inline-code">.tsrx</code>
+								modules and performs the downstream Vapor JSX transform. For editor typechecking,
+								set
+								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
+								in your
+								<code class="inline-code">tsconfig.json</code>
+								.
+							</p>
+						</section>
+
+						<section class="doc-section" id="vue-rspack">
+							<h2 class="section-heading">Vue + Rspack</h2>
+							<p class="section-body">
+								Install the Vue compiler, the Rspack plugin, the Vue runtime, and Vue Vapor JSX:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_RSPACK_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then add the plugin to your Rspack config:</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_RSPACK_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/rspack-plugin-vue</code>
+								compiles
+								<code class="inline-code">.tsrx</code>
+								modules into Vue-flavoured TSX, runs the result through
+								<code class="inline-code">vue-jsx-vapor</code>
+								and then strips the remaining TypeScript syntax with Rspack's built-in SWC loader.
+								Like the Vite setup, editor typechecking should set
+								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
+								in your
+								<code class="inline-code">tsconfig.json</code>
+								.
+							</p>
+						</section>
+
+						<section class="doc-section" id="vue-bun">
+							<h2 class="section-heading">Vue + Bun</h2>
+							<p class="section-body">
+								Install the Vue compiler, the Bun plugin, the Vue runtime, and Vue Vapor JSX:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_BUN_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">Then use the plugin in your Bun build script:</p>
+							<pre class="code-block">
+								<code innerHTML={VUE_BUN_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								<code class="inline-code">@tsrx/bun-plugin-vue</code>
+								compiles
+								<code class="inline-code">.tsrx</code>
+								modules with
+								<code class="inline-code">@tsrx/vue</code>
+								and performs the downstream
+								<code class="inline-code">vue-jsx-vapor</code>
+								transform inside the Bun plugin itself, so no extra Bun plugin setup is required.
+								Like the Vite and Rspack Vue setups, editor typechecking should set
+								<code class="inline-code">jsxImportSource: "vue-jsx-vapor"</code>
+								in your
+								<code class="inline-code">tsconfig.json</code>
+								.
+							</p>
+						</section>
+
+						<section class="doc-section" id="ripple">
+							<h2 class="section-heading">Ripple</h2>
+							<p class="section-body">
+								The Ripple framework ships with TSRX support as standard. If you're using Ripple
+								with
+								<code class="inline-code">@ripple-ts/vite-plugin</code>
+								,
+								<code class="inline-code">.tsrx</code>
+								files work out of the box — no additional packages needed.
+							</p>
+						</section>
+
+						<section class="doc-section" id="tooling-install">
+							<p class="section-kicker">Tooling setup</p>
+							<h2 class="section-heading">Choose the tooling you want</h2>
+							<p class="section-body">
+								Once your compiler target is installed, add the editor tooling you actually want so
+								<code class="inline-code">.tsrx</code>
+								files behave like first-class source files in the rest of your repo. Prettier and
+								ESLint are separate paths here, so you can adopt one without committing to the
+								other.
+							</p>
+						</section>
+
+						<section class="doc-section" id="prettier">
+							<h2 class="section-heading">Prettier</h2>
+							<p class="section-body">Install Prettier and the TSRX plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={PRETTIER_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								Add the TSRX Prettier plugin to your
+								<code class="inline-code">.prettierrc</code>
+								so Prettier can parse and format
+								<code class="inline-code">.tsrx</code>
+								modules:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={PRETTIER_CONFIG_HTML} />
+							</pre>
+						</section>
+
+						<section class="doc-section" id="eslint">
+							<h2 class="section-heading">ESLint</h2>
+							<p class="section-body">Install ESLint and the TSRX plugin:</p>
+							<pre class="code-block">
+								<code innerHTML={ESLINT_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								The recommended flat config is the simplest starting point for
+								<code class="inline-code">.tsrx</code>
+								files:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={ESLINT_CONFIG_HTML} />
+							</pre>
+						</section>
+
+						<section class="doc-section" id="typescript-plugin">
+							<h2 class="section-heading">TypeScript plugin</h2>
+							<p class="section-body">
+								Install
+								<code class="inline-code">@tsrx/typescript-plugin</code>
+								when you want TypeScript itself to understand
+								<code class="inline-code">.tsrx</code>
+								files, especially outside the TSRX VS Code extension: other editors,
+								<code class="inline-code">tsserver</code>
+								, and command-line
+								<code class="inline-code">tsc</code>
+								workflows.
+							</p>
+							<pre class="code-block">
+								<code innerHTML={TYPESCRIPT_PLUGIN_INSTALL_HTML} />
+							</pre>
+							<p class="section-body">
+								Then register it in your
+								<code class="inline-code">tsconfig.json</code>
+								. Keep your existing compiler options and add the
+								<code class="inline-code">plugins</code>
+								entry under
+								<code class="inline-code">compilerOptions</code>
+								:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={TYPESCRIPT_PLUGIN_CONFIG_HTML} />
+							</pre>
+							<p class="section-body">
+								The plugin turns TSRX into virtual TypeScript for diagnostics, navigation,
+								completions, and type checking. If you already use the TSRX VS Code extension, this
+								manual setup is optional because the extension runs the language tooling for you.
+							</p>
+							<h3 class="subsection-heading">Command-line type checking</h3>
+							<p class="section-body">
+								The package also ships a
+								<code class="inline-code">tsrx-tsc</code>
+								binary — a drop-in
+								<code class="inline-code">tsc</code>
+								wrapper that understands
+								<code class="inline-code">.tsrx</code>
+								files. Use it for CI type checking and any
+								<code class="inline-code">tsc</code>
+								workflow that needs to see your TSRX modules. Add a
+								<code class="inline-code">typecheck</code>
+								script to your
+								<code class="inline-code">package.json</code>
+								:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={TYPECHECK_SCRIPT_HTML} />
+							</pre>
+							<p class="section-body">
+								Then run
+								<code class="inline-code">pnpm typecheck</code>
+								to type check the whole project, including
+								<code class="inline-code">.tsrx</code>
+								files, without emitting any output. It accepts the same flags as
+								<code class="inline-code">tsc</code>
+								.
+							</p>
+						</section>
+
+						<section class="doc-section" id="vscode">
+							<h2 class="section-heading">VS Code</h2>
+							<p class="section-body">
+								Install
+								<a
+									class="inline-link"
+									href="https://marketplace.visualstudio.com/items?itemName=Ripple-TS.ripple-ts-vscode-plugin"
+									target="_blank"
+									rel="noopener noreferrer"
+								>TSRX for VS Code</a>
+								from the Visual Studio Code Marketplace for diagnostics, navigation, completions,
+								and TypeScript-aware editor support. Pair it with the official Prettier extension if
+								you want format-on-save support inside the editor.
+							</p>
+							<p class="section-body">
+								After that, opening a
+								<code class="inline-code">.tsrx</code>
+								file should give you syntax highlighting, diagnostics, go-to-definition, formatting,
+								and the rest of the normal editor loop without extra manual setup.
+							</p>
+						</section>
+
+						<section class="doc-section" id="mcp">
+							<h2 class="section-heading">MCP</h2>
+							<p class="section-body">
+								Use TSRX MCP when an AI coding tool supports Model Context Protocol. It gives agents
+								current TSRX docs, target detection, project inspection, formatting, compilation,
+								diagnostic advice, and read-only
+								<code class="inline-code">.tsrx</code>
+								file validation.
+							</p>
+							<h3 class="subsection-heading">Hosted Endpoint</h3>
+							<p class="section-body">
+								For hosted MCP apps and connectors, use the public TSRX endpoint:
+							</p>
+							<p class="section-body">
+								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
+							</p>
+							<p class="section-body">
+								This is the best starting point for ChatGPT web and other clients that connect to an
+								HTTP MCP server instead of launching a local command.
+							</p>
+							<h3 class="subsection-heading">ChatGPT</h3>
+							<p class="section-body">
+								Add
+								<code class="inline-code">{'https://mcp.tsrx.dev/mcp'}</code>
+								when creating a custom app or connector from ChatGPT developer mode, then select
+								that app from the tools menu in a chat.
+							</p>
+							<h3 class="subsection-heading">Self-hosting</h3>
+							<p class="section-body">
+								To self-host the endpoint, deploy the monorepo's
+								<code class="inline-code">website-mcp</code>
+								app anywhere that can run a Node HTTP server and connect remote MCP clients to its
+								<code class="inline-code">/mcp</code>
+								route.
+							</p>
+							<h3 class="subsection-heading">Local MCP Server</h3>
+							<p class="section-body">
+								For local repository work in Codex, Cursor, Gemini CLI, or Claude Code, install
+								<code class="inline-code">@tsrx/mcp</code>
+								as a stdio MCP server so the tool can inspect your project.
+							</p>
+							<pre class="code-block">
+								<code innerHTML={MCP_CONFIG_HTML} />
+							</pre>
+							<h3 class="subsection-heading">Codex</h3>
+							<p class="section-body">
+								For Codex, add the server to
+								<code class="inline-code">~/.codex/config.toml</code>
+								:
+							</p>
+							<pre class="code-block">
+								<code innerHTML={MCP_CODEX_CONFIG_HTML} />
+							</pre>
+							<h3 class="subsection-heading">Gemini CLI</h3>
+							<p class="section-body">
+								For Gemini CLI, put the same
+								<code class="inline-code">mcpServers</code>
+								JSON in
+								<code class="inline-code">.gemini/settings.json</code>
+								for a project, or
+								<code class="inline-code">~/.gemini/settings.json</code>
+								globally.
+							</p>
+							<h3 class="subsection-heading">Cursor</h3>
+							<p class="section-body">
+								For Cursor, put the same
+								<code class="inline-code">mcpServers</code>
+								JSON in
+								<code class="inline-code">.cursor/mcp.json</code>
+								for a project, or
+								<code class="inline-code">~/.cursor/mcp.json</code>
+								globally. Cursor Agent and
+								<code class="inline-code">cursor-agent</code>
+								discover the configured tools automatically.
+							</p>
+							<h3 class="subsection-heading">Claude Code</h3>
+							<p class="section-body">For Claude Code, add it directly from the command line:</p>
+							<pre class="code-block">
+								<code innerHTML={MCP_CLAUDE_CODE_HTML} />
+							</pre>
+							<p class="section-body">
+								In an existing repo, start with
+								<code class="inline-code">inspect-project</code>
+								so the agent can detect the runtime target, installed TSRX packages, and likely
+								project commands. For generated code, run
+								<code class="inline-code">format-tsrx</code>
+								,
+								<code class="inline-code">compile-tsrx</code>
+								, and then
+								<code class="inline-code">analyze-tsrx</code>
+								when diagnostics need syntax-aware advice. For existing files, use
+								<code class="inline-code">validate-tsrx-file</code>
+								for a read-only format, compile, and advice pass.
+							</p>
+						</section>
+
+						<section class="doc-section" id="next">
+							<p class="section-kicker">Next</p>
+							<h2 class="section-heading">What's next?</h2>
+							<p class="section-body">
+								Now that TSRX is set up, explore the language syntax — components, control flow,
+								error boundaries, and more.
+							</p>
+							<a class="cta-link" href="/features">Explore the features →</a>
+						</section>
+					</main>
+				</div>
+
+				<footer class="site-footer">
+					<p>Released under the MIT License.</p>
+					<p>Copyright © 2025-present Dominic Gannaway</p>
+				</footer>
+			</div>
+		</div>
+		<style>
+			.page-shell {
+				width: min(1180px, calc(100vw - 2rem));
+				margin: 0 auto;
+				padding: 1rem 0 4rem;
+			}
+
+			.docs-layout {
+				display: grid;
+				grid-template-columns: 200px 1fr;
+				gap: 3rem;
+				align-items: start;
+			}
+
+			.side-nav-heading:not(:first-child) {
+				margin-top: 1.1rem;
+			}
+
+			.hero {
+				padding: 2rem 0 1.5rem;
+			}
+
+			.hero h1 {
+				margin: 0;
+				font-size: clamp(2rem, 5vw, 3.5rem);
+				line-height: 1.125;
+				letter-spacing: -0.04em;
+				background: linear-gradient(90deg, #5521dd 0%, #6f00ff 42%, #8741ff 100%);
+				-webkit-background-clip: text;
+				background-clip: text;
+				color: transparent;
+			}
+
+			.lede {
+				margin: 1rem 0 0;
+				font-size: 1.1rem;
+				line-height: 1.7;
+				color: rgba(26, 22, 64, 0.72);
+				max-width: 42rem;
+			}
+
+			.doc-section {
+				margin-top: 3rem;
+				max-width: 52rem;
+			}
+
+			.section-kicker {
+				margin: 0 0 0.55rem;
+				font-size: 0.78rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: rgba(94, 44, 255, 0.7);
+			}
+
+			.section-heading {
+				margin: 0 0 0.75rem;
+				font-size: clamp(1.5rem, 3vw, 2rem);
+				line-height: 1.1;
+				letter-spacing: -0.03em;
+			}
+
+			.subsection-heading {
+				margin: 1.75rem 0 0.5rem;
+				font-size: 1.1rem;
+				font-weight: 600;
+			}
+
+			.inline-link {
+				display: inline-block;
+				margin: 0 0.18em;
+				color: #5e2cff;
+				text-decoration: underline;
+				text-underline-offset: 0.15em;
+			}
+
+			.inline-link:hover {
+				color: #4a1ad4;
+			}
+
+			.cta-link {
+				display: inline-block;
+				margin-top: 1rem;
+				font-size: 1.05rem;
+				font-weight: 500;
+				color: #5e2cff;
+			}
+
+			.cta-link:hover {
+				color: #4a1ad4;
+			}
+
+			.section-body {
+				margin: 0.5rem 0 0;
+				font-size: 1.05rem;
+				line-height: 1.7;
+				color: rgba(26, 22, 64, 0.76);
+			}
+			.section-body.muted {
+				color: rgba(26, 22, 64, 0.55);
+				font-style: italic;
+			}
+			.doc-section:first-child {
+				margin-top: 0.5rem;
+			}
+			@media (max-width: 720px) {
+				.page-shell {
+					display: flex;
+					flex-direction: column;
+					width: calc(100vw - 1.5rem);
+					padding: 0.5rem 0 2rem;
+				}
+
+				.masthead {
+					order: 1;
+				}
+
+				.docs-layout {
+					order: 3;
+				}
+
+				.hero {
+					order: 2;
+				}
+
+				.site-footer {
+					order: 4;
+				}
+
+				.masthead {
+					padding: 0.75rem 0 1rem;
+					align-items: flex-start;
+					gap: 0.85rem;
+				}
+
+				.brand-lockup {
+					width: 100%;
+					justify-content: center;
+				}
+
+				.masthead-nav {
+					display: flex;
+					width: 100%;
+					flex-wrap: wrap;
+					justify-content: center;
+					gap: 0.5rem;
+					font-size: 0.82rem;
+				}
+
+				.masthead-nav a {
+					display: inline-flex;
+					align-items: center;
+					min-height: 2rem;
+					padding: 0.35rem 0.7rem;
+					border: 1px solid rgba(94, 44, 255, 0.1);
+					border-radius: 999px;
+					background: rgba(94, 44, 255, 0.06);
+					line-height: 1.1;
+				}
+
+				.masthead-nav a[aria-current='page'] {
+					background: rgba(94, 44, 255, 0.12);
+					border-color: rgba(94, 44, 255, 0.18);
+				}
+
+				.header-logo {
+					width: 3.6rem;
+					height: 3.6rem;
+				}
+
+				.hero {
+					padding: 1rem 0 1rem;
+				}
+
+				.hero h1 {
+					font-size: clamp(1.65rem, 7vw, 2.2rem);
+				}
+
+				.docs-layout {
+					display: block;
+				}
+
+				.side-nav {
+					position: sticky;
+					top: 0;
+					z-index: 5;
+					padding: 0.6rem 0;
+					border-bottom: 1px solid rgba(26, 22, 64, 0.1);
+					margin-bottom: 1rem;
+				}
+
+				.side-nav-dropdown {
+					display: block;
+				}
+
+				.side-nav nav {
+					display: none;
+				}
+
+				.side-nav-dropdown-label {
+					margin-bottom: 0.35rem;
+				}
+
+				.side-nav-select {
+					font-size: 0.95rem;
+				}
+
+				.lede {
+					font-size: 1rem;
+				}
+
+				.doc-section {
+					margin-top: 2rem;
+				}
+
+				.section-heading {
+					font-size: clamp(1.3rem, 5vw, 1.65rem);
+				}
+
+				.section-body {
+					font-size: 0.95rem;
+				}
+
+				.site-footer {
+					margin-top: 2rem;
+					padding: 1.5rem 0;
+				}
+			}
+		</style>
+	</>
+}

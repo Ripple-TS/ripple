@@ -12,6 +12,13 @@
  * Reconciliation: LIS-based keyed list inside forBlock (ported from Ripple's patchKeyedChildrenComplex).
  */
 
+import {
+	SUSPENSE_SCRIPT_ATTR,
+	HYDRATION_START,
+	HYDRATION_END,
+	UNDEFINED_SENTINEL_KEY,
+} from './constants';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -117,18 +124,43 @@ export interface Block extends Scope {
 	pendingMode: 'urgent' | 'transition' | null;
 	/** The render mode in effect during the body's *current* execution. */
 	currentRenderMode: 'urgent' | 'transition' | null;
+	/**
+	 * Set on a block inside a HIDDEN `<Activity>` subtree. While inactive, the
+	 * block still renders (state + DOM are produced/updated) but its effects do
+	 * NOT run (enqueueEffect skips when any ancestor is inactive); on reveal the
+	 * flag is cleared and a re-render re-fires the effects.
+	 */
+	inactive: boolean;
 }
 
 interface EffectSlot {
 	deps: any[] | undefined;
 	cleanup: Cleanup | undefined;
+	/** Discriminant so deactivateScope can find effect slots among state/memo/ref. */
+	effect: true;
+	/**
+	 * True once a per-slot finalizer has been registered in scope.cleanups (on the
+	 * slot's first body run, in drainPhase). The finalizer fires slot.cleanup
+	 * exactly once at unmount; registering on first RUN (not slot creation) keeps
+	 * scope.cleanups ordered by phase-execution order (insertion→layout→passive)
+	 * so unmount tears down in the correct reverse order.
+	 */
+	finalized?: boolean;
 }
 
 interface PendingEffect {
 	scope: Scope;
 	slot: symbol;
 	fn: EffectFn;
-	args: any[];
+	/**
+	 * The effect's deps array, spread as positional arguments to the body when it
+	 * runs (`fn.apply(null, args)`). This is a deliberate superset of React: a
+	 * body written as a pure function of its deps — `(a, b) => …` — captures
+	 * nothing from the render scope, so the compiler can hoist it to module scope
+	 * (one allocation, no stale-closure retention). Zero-arg React-style bodies
+	 * still work (extra args are ignored). `undefined` for the no-deps form.
+	 */
+	args: any[] | undefined;
 	/**
 	 * Scope-tree depth captured at enqueue. Used by drainPhase to fire effects
 	 * CHILD-FIRST (post-order) on mount/update — matching React's commit-phase
@@ -207,6 +239,28 @@ type Phase = 0 | 1 | 2;
 
 const effectQueues: [PendingEffect[], PendingEffect[], PendingEffect[]] = [[], [], []];
 let passiveScheduled = false;
+
+// Deferred ref attaches (React-19 timing parity). On mount the whole subtree is
+// built and inserted before its DOM is connected to the document, so attaching a
+// ref inline would hand a callback ref / measure a node that is NOT yet
+// connected. Instead the compiler enqueues mount ref attaches here; they drain
+// during commit, AFTER all renders/DOM insertion and BEFORE layout effects, so
+// callback refs see a connected node and ref.current is populated by the time a
+// layout effect runs — matching React's commit-phase ref attachment.
+const refAttachQueue: { fn: () => void; depth: number; block: Block | null }[] = [];
+
+// FragmentInstances that currently hold event listeners and/or observers. After
+// each commit we re-apply their stored bindings to their CURRENT children, so a
+// child that mounts into a fragment later picks up the listeners/observers added
+// earlier — React's `commitNewChildToFragmentInstance` future-children contract.
+// Empty for any app that doesn't use fragment-ref listeners (the common case),
+// so the per-commit cost is a single `size` check.
+const activeFragments = new Set<FragmentInstance>();
+
+function reapplyFragmentBindings(): void {
+	if (activeFragments.size === 0) return;
+	for (const fi of activeFragments) fi._reapply();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // React-parity act() environment flag.
@@ -336,8 +390,54 @@ export function flushSync<T>(fn: () => T): T {
 // Effect commit pipeline (insertion → layout → passive)
 // ---------------------------------------------------------------------------
 
+/**
+ * Compiler-emitted on a host element's ref MOUNT. Defers the attach until commit
+ * (drainRefAttaches) so the node is connected when a callback ref fires and
+ * ref.current is set before layout effects run. `depth` (block-tree depth) drives
+ * child-before-parent ordering, matching effect ordering. Ref UPDATES stay inline
+ * (the element is already connected by then).
+ */
+export function queueRefAttach(scope: Scope, fn: () => void): void {
+	let depth = 0;
+	let b: Block | null = scope.block.parentBlock;
+	while (b !== null) {
+		depth++;
+		b = b.parentBlock;
+	}
+	refAttachQueue.push({ fn, depth, block: scope.block });
+}
+
+/** Drain queued mount ref attaches child-first (deepest depth → shallowest). */
+function drainRefAttaches(): void {
+	if (refAttachQueue.length === 0) return;
+	const q = refAttachQueue.splice(0);
+	// Descending depth = child-before-parent; stable sort keeps sibling order.
+	q.sort((a, b) => b.depth - a.depth);
+	for (const r of q) {
+		// Skip attaches whose owning subtree was unmounted earlier in THIS flush
+		// (e.g. a try boundary caught a mount-time throw and ran unmountBlock +
+		// the ref-detach cleanup). Without this guard the deferred attach would
+		// re-run on a torn-down node — firing a callback ref on a dead element and
+		// resurrecting an object ref the cleanup just nulled.
+		if (blockSubtreeDisposed(r.block)) continue;
+		r.fn();
+	}
+}
+
+/** True if `block` or any of its ancestors has been disposed (unmounted). */
+function blockSubtreeDisposed(block: Block | null): boolean {
+	let b: Block | null = block;
+	while (b !== null) {
+		if (b.disposed) return true;
+		b = b.parentBlock;
+	}
+	return false;
+}
+
 function commitEffects(): void {
 	drainPhase(INSERTION);
+	drainRefAttaches();
+	reapplyFragmentBindings();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length && !passiveScheduled) {
 		passiveScheduled = true;
@@ -408,6 +508,8 @@ function commitEffectsSync(): void {
 	// Match React semantics: flushSync drains insertion + layout synchronously,
 	// but passive effects (useEffect) still fire AFTER paint via the regular scheduler.
 	drainPhase(INSERTION);
+	drainRefAttaches();
+	reapplyFragmentBindings();
 	drainPhase(LAYOUT);
 	if (effectQueues[PASSIVE].length > 0 && !passiveScheduled) {
 		passiveScheduled = true;
@@ -427,9 +529,13 @@ function drainPhase(phase: Phase): void {
 	// order is preserved within a depth bucket.
 	q.sort((a, b) => b.depth - a.depth);
 	// Cleanups first (in registration order), then bodies. React's contract.
+	// Skip entries whose subtree was hidden by <Activity> after they were queued
+	// but before this drain: deactivateScope already fired their cleanups, and the
+	// body must not run while hidden (it re-enqueues on reveal). See
+	// inInactiveSubtree.
 	for (let i = 0; i < q.length; i++) {
 		const e = q[i];
-		if (e.scope.block.disposed) continue;
+		if (e.scope.block.disposed || inInactiveSubtree(e.scope.block)) continue;
 		const slot = e.scope.hooks?.get(e.slot) as EffectSlot | undefined;
 		if (slot && slot.cleanup) {
 			try {
@@ -442,10 +548,13 @@ function drainPhase(phase: Phase): void {
 	}
 	for (let i = 0; i < q.length; i++) {
 		const e = q[i];
-		if (e.scope.block.disposed) continue;
+		if (e.scope.block.disposed || inInactiveSubtree(e.scope.block)) continue;
 		let cleanup: void | Cleanup;
 		try {
-			cleanup = e.fn.apply(null, e.args as []);
+			// Spread deps as positional args (see PendingEffect.args). A no-deps
+			// effect has args === undefined, so the body is called with zero args.
+			// eslint-disable-next-line prefer-spread
+			cleanup = e.fn.apply(null, (e.args ?? []) as []);
 		} catch (err) {
 			// Route effect errors to the nearest enclosing tryBlock, if any.
 			const handler = findTryHandler(e.scope.block);
@@ -454,9 +563,24 @@ function drainPhase(phase: Phase): void {
 			continue;
 		}
 		const slot = e.scope.hooks?.get(e.slot) as EffectSlot | undefined;
-		if (slot && typeof cleanup === 'function') {
-			slot.cleanup = cleanup;
-			e.scope.cleanups.push(cleanup);
+		if (slot) {
+			if (typeof cleanup === 'function') slot.cleanup = cleanup;
+			// Register ONE stable finalizer per effect slot, on its FIRST run, in
+			// phase-execution order. The finalizer fires the slot's CURRENT cleanup
+			// once at unmount. Registering here (not on each drain) is what stops
+			// the old double-fire bug: previously every returned cleanup was pushed
+			// into scope.cleanups, so a dep-changed effect's stale cleanups replayed
+			// at unmount. The slot owns its latest cleanup; the finalizer reads it.
+			if (!slot.finalized) {
+				slot.finalized = true;
+				e.scope.cleanups.push(() => {
+					const c = slot.cleanup;
+					if (c) {
+						slot.cleanup = undefined;
+						c();
+					}
+				});
+			}
 		}
 	}
 	q.length = 0;
@@ -521,12 +645,17 @@ class BlockImpl {
 	mounted: boolean;
 	pendingMode: 'urgent' | 'transition' | null;
 	currentRenderMode: 'urgent' | 'transition' | null;
+	inactive: boolean;
 	// Hooks + cleanups (per-block state).
 	hooks: Map<symbol, any> | null;
 	cleanups: Cleanup[];
 	children: ChildScope[];
 	_slots: any[] | null;
 	$$ctxValues: Map<Context<any>, any> | null;
+	// Contexts this block READ during its last render, with the value seen.
+	// Populated by useContextInternal; consulted by the memo bailout so a context
+	// change forces a re-render even when props are shallow-equal (React parity).
+	$$ctxReads: Map<Context<any>, any> | null;
 	// __thenableIdx is reset every renderBlock so pre-init costs nothing.
 	__thenableIdx: number;
 	// For-block item bookkeeping.
@@ -566,11 +695,13 @@ class BlockImpl {
 		this.mounted = false;
 		this.pendingMode = null;
 		this.currentRenderMode = null;
+		this.inactive = false;
 		this.hooks = null;
 		this.cleanups = [];
 		this.children = [];
 		this._slots = null;
 		this.$$ctxValues = null;
+		this.$$ctxReads = null;
 		this.__thenableIdx = 0;
 		this.forSlot = null;
 		this.prevSibling = null;
@@ -601,6 +732,7 @@ class ScopeImpl {
 	children: ChildScope[];
 	_slots: any[] | null;
 	$$ctxValues: Map<Context<any>, any> | null;
+	$$ctxReads: Map<Context<any>, any> | null;
 	mounted: boolean;
 	// Compiled bodies stamp bindings (b$0, b$1, ...) directly on the scope.
 	[key: string]: any;
@@ -613,6 +745,7 @@ class ScopeImpl {
 		this.children = [];
 		this._slots = null;
 		this.$$ctxValues = null;
+		this.$$ctxReads = null;
 		this.mounted = false;
 	}
 }
@@ -648,6 +781,10 @@ export function renderBlock(block: Block): void {
 	// in __thenables persist so that earlier use() calls return synchronously
 	// on replay-after-resolve (matches React's thenableState[index] scheme).
 	block.__thenableIdx = 0;
+	// Clear last render's recorded context dependencies; this render repopulates
+	// them (its own reads + descendant reads propagated up). Only memo blocks
+	// ever hold a non-null map, so this is a no-op for the common case.
+	if (block.$$ctxReads !== null) block.$$ctxReads.clear();
 	// Capture the render priority. Explicit pendingMode (set by scheduleRender)
 	// wins. Otherwise INHERIT from the outer block — re-entrant renders (try,
 	// if, for, comp slots) called synchronously inside an outer body should
@@ -751,7 +888,17 @@ export function componentSlotLite<P>(
 		// __s.block.endMarker)` plants content INSIDE the owning element rather
 		// than spilling out to the parent block's range. `parentBlock` keeps the
 		// context-walk Phase B chain pointing at the real ancestor Block.
-		scope.block = new LiteBlockImpl(host, anchor ?? null, parentScope.block) as unknown as Block;
+		let endMarker = anchor ?? null;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped this hookless component's output in a
+			// `<!--[-->…<!--]-->` range (anchor resolved to the `<!--[-->`). Point the
+			// cursor at the content so the body's clone() adopts the server DOM, and
+			// use `<!--]-->` as the insert anchor so the body's
+			// `insertBefore(content, endMarker)` is a no-op (content already there).
+			endMarker = matchingClose(anchor as Node);
+			hydrateNode = (anchor as Node).nextSibling;
+		}
+		scope.block = new LiteBlockImpl(host, endMarker, parentScope.block) as unknown as Block;
 		parentScope[slotKey] = scope;
 		// Register on parent.children so unmountScope(parent) walks into us.
 		parentScope.children.push({ key: slotKey, scope });
@@ -843,7 +990,7 @@ function unmountScope(scope: Scope, detachDom: boolean = true): void {
 			// Read __kind ONCE per slot — the property access is megamorphic across
 			// six slot shapes, so caching the local saves three repeat IC walks.
 			const k = val.__kind;
-			if (k === 'ifBlockSlot' || k === 'switchBlockSlot') {
+			if (k === 'ifBlockSlot' || k === 'switchBlockSlot' || k === 'activityBlockSlot') {
 				if (val.block) unmountBlock(val.block, detachDom);
 			} else if (k === 'forBlockSlot') {
 				const items = val.items as Map<any, Block>;
@@ -976,12 +1123,11 @@ export function useReducer<S, A, I = S>(
 		| { value: S; dispatch: (a: A) => void; reducer: (s: S, a: A) => S }
 		| undefined;
 	if (s === undefined) {
-		const initVal =
-			init !== undefined
-				? init(initialArg)
-				: typeof initialArg === 'function'
-					? (initialArg as unknown as () => S)()
-					: (initialArg as unknown as S);
+		// React parity: the initial state is `initialArg` used AS-IS. Lazy
+		// initialization happens ONLY when the third `init` argument is supplied
+		// (`init(initialArg)`). A function passed as `initialArg` in the 2-arg form
+		// is stored as the state value verbatim — it is NOT called.
+		const initVal = init !== undefined ? init(initialArg) : (initialArg as unknown as S);
 		s = {
 			value: initVal,
 			reducer,
@@ -1009,12 +1155,31 @@ function depsChanged(prev: any[] | undefined, next: any[] | undefined): boolean 
 	return false;
 }
 
-function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): void {
+// True if `block` or any ancestor is in a hidden <Activity> subtree. Effects
+// must not run inside such a subtree — neither freshly (enqueueEffect skips
+// registration) NOR via an entry already sitting in a phase queue when the
+// Activity hides between enqueue and drain (drainPhase skips execution). On
+// reveal, deactivateScope has cleared each effect slot's deps, so the
+// re-render re-enqueues and the effect finally fires.
+function inInactiveSubtree(block: Block | null): boolean {
+	for (let a = block; a !== null; a = a.parentBlock) {
+		if (a.inactive) return true;
+	}
+	return false;
+}
+
+function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[] | undefined, phase: Phase): void {
 	const scope = CURRENT_SCOPE!;
+	// Hidden <Activity> subtree: render (state + DOM) but DON'T run effects. Skip
+	// BEFORE touching the slot so the effect is treated as fresh and re-fires when
+	// the Activity becomes visible (deactivateScope also clears prior deps). Walk
+	// ancestors so a visible inner block inside a hidden outer Activity is skipped
+	// too. Effects are rare on the hot path, so this extra walk is cheap.
+	if (inInactiveSubtree(scope.block)) return;
 	const prev = scope.hooks?.get(slot) as EffectSlot | undefined;
 	if (prev && !depsChanged(prev.deps, deps)) return;
 	if (!prev) {
-		ensureHooks(scope).set(slot, { deps, cleanup: undefined });
+		ensureHooks(scope).set(slot, { deps, cleanup: undefined, effect: true });
 		// Mark any enclosing for-block items so batch-clear knows to walk cleanups.
 		let b: Block | null = scope.block;
 		while (b) {
@@ -1039,37 +1204,70 @@ function enqueueEffect(slot: symbol, fn: EffectFn, deps: any[], phase: Phase): v
 	effectQueues[phase].push({ scope, slot, fn, args: deps, depth });
 }
 
-export function useEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useEffect');
-	enqueueEffect(slot, fn, deps, PASSIVE);
-}
-export function useLayoutEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useLayoutEffect');
-	enqueueEffect(slot, fn, deps, LAYOUT);
-}
-export function useInsertionEffect(fn: EffectFn, deps: any[], slot?: symbol): void {
-	if (slot === undefined) missingSlot('useInsertionEffect');
-	enqueueEffect(slot, fn, deps, INSERTION);
+// ABI: the compiler appends the hook slot as the LAST argument. When the user
+// omits deps (`useEffect(fn)`), the call arrives as `useEffect(fn, slot)` — the
+// symbol lands in the deps position and the real slot param is undefined. Detect
+// the trailing symbol and reinterpret so optional-deps forms work. A returned
+// undefined deps means "run on every commit" (React parity for omitted deps).
+function resolveEffectArgs(
+	name: string,
+	deps: any[] | symbol | undefined,
+	slot: symbol | undefined,
+): [any[] | undefined, symbol] {
+	if (slot === undefined && typeof deps === 'symbol') {
+		slot = deps;
+		deps = undefined;
+	}
+	if (slot === undefined) missingSlot(name);
+	return [deps as any[] | undefined, slot];
 }
 
-export function useMemo<T>(compute: (...deps: any[]) => T, deps: any[], slot?: symbol): T {
+export function useEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useEffect', deps, slot);
+	enqueueEffect(s, fn, d, PASSIVE);
+}
+export function useLayoutEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useLayoutEffect', deps, slot);
+	enqueueEffect(s, fn, d, LAYOUT);
+}
+export function useInsertionEffect(fn: EffectFn, deps?: any[], slot?: symbol): void {
+	const [d, s] = resolveEffectArgs('useInsertionEffect', deps, slot);
+	enqueueEffect(s, fn, d, INSERTION);
+}
+
+export function useMemo<T>(compute: (...deps: any[]) => T, deps?: any[], slot?: symbol): T {
+	// ABI: the compiler appends the hook slot as the LAST argument. When the user
+	// omits deps (`useMemo(fn)`), that call arrives as `useMemo(fn, slot)` — the
+	// symbol lands in the deps position. Reinterpret so optional-deps forms work.
+	if (slot === undefined && typeof deps === 'symbol') {
+		slot = deps as unknown as symbol;
+		deps = undefined;
+	}
 	if (slot === undefined) missingSlot('useMemo');
 	const scope = CURRENT_SCOPE!;
-	const prev = scope.hooks?.get(slot) as { deps: any[]; value: T } | undefined;
-	if (prev && !depsChanged(prev.deps, deps)) return prev.value;
+	const prev = scope.hooks?.get(slot) as { deps: any[] | undefined; value: T } | undefined;
+	// deps === undefined → recompute every render (React parity for omitted deps).
+	if (prev && deps !== undefined && !depsChanged(prev.deps, deps)) return prev.value;
+	// Spread deps as positional args (superset of React — see PendingEffect.args):
+	// a factory written as a pure function of its deps is hoistable. Zero-arg
+	// React-style factories ignore the extra args.
 	// eslint-disable-next-line prefer-spread
-	const value = compute.apply(null, deps);
+	const value = compute.apply(null, (deps ?? []) as []);
 	ensureHooks(scope).set(slot, { deps, value });
 	return value;
 }
 
 export function useCallback<F extends (...args: any[]) => any>(
 	fn: F,
-	deps: any[],
+	deps?: any[],
 	slot?: symbol,
 ): F {
-	if (slot === undefined) missingSlot('useCallback');
-	return useMemo(() => fn, deps, slot);
+	// Trailing-symbol ABI (see resolveEffectArgs): `useCallback(fn)` arrives as
+	// `useCallback(fn, slot)`. useMemo reinterprets the same way, so forward both
+	// args verbatim and let it sort out the omitted-deps case. Guard here (rather
+	// than letting useMemo throw) so the diagnostic names useCallback, not useMemo.
+	if (slot === undefined && typeof deps !== 'symbol') missingSlot('useCallback');
+	return useMemo(() => fn, deps as any[] | undefined, slot);
 }
 
 export function useRef<T>(initial: T, slot?: symbol): { current: T } {
@@ -1092,10 +1290,12 @@ export function useRef<T>(initial: T, slot?: symbol): { current: T } {
 export function useImperativeHandle<T>(
 	ref: { current: T | null } | ((value: T | null) => void) | null | undefined,
 	factory: () => T,
-	deps: any[],
+	deps?: any[],
 	slot?: symbol,
 ): void {
-	if (slot === undefined) missingSlot('useImperativeHandle');
+	const [resolvedDeps, resolvedSlot] = resolveEffectArgs('useImperativeHandle', deps, slot);
+	deps = resolvedDeps;
+	slot = resolvedSlot;
 	const setRef = (value: T | null): void => {
 		if (typeof ref === 'function') (ref as any)(value);
 		else if (ref != null) (ref as { current: T | null }).current = value;
@@ -1145,30 +1345,78 @@ export function useSyncExternalStore<T>(
 	// getServerSnapshot?)`. The compiler appends the hook-slot Symbol as the
 	// LAST argument, so we detect the user-vs-compiler args by counting from
 	// the end. One trailing Symbol → user passed no getServerSnapshot; one
-	// trailing Symbol preceded by another arg → user passed getServerSnapshot
-	// (currently ignored; no SSR pipeline yet).
+	// trailing Symbol preceded by another arg → user passed getServerSnapshot.
 	const slot = rest[rest.length - 1] as symbol | undefined;
 	if (slot === undefined || typeof slot !== 'symbol') missingSlot('useSyncExternalStore');
+	const getServerSnapshot = rest.length >= 2 ? (rest[0] as () => T) : undefined;
 	const desc = slot.description ?? '';
 	const tickSlot = Symbol.for(desc + ':uses:tick');
+	const instSlot = Symbol.for(desc + ':uses:inst');
+	const layoutSlot = Symbol.for(desc + ':uses:layout');
 	const effectSlot = Symbol.for(desc + ':uses:effect');
 
-	// Force a re-render when the store fires onStoreChange.
+	// Fresh read on every render — guards against tearing between commits. DURING
+	// HYDRATION the first read must use getServerSnapshot (if provided) so it
+	// matches the server-rendered value — the layout effect below then re-checks
+	// getSnapshot() and forces an update if the client value differs (React's
+	// hydrate-then-sync behavior). `hydrating` constant-folds out for non-SSR
+	// builds (see the hydration DCE contract).
+	const value = hydrating && getServerSnapshot !== undefined ? getServerSnapshot() : getSnapshot();
+
+	// `inst` mirrors React's mutable cell: the last-committed snapshot plus the
+	// getSnapshot used to produce it. checkIfSnapshotChanged compares the current
+	// store value against it with Object.is — this is the dedup that stops a
+	// store notification from re-rendering when the snapshot is referentially
+	// unchanged.
+	const inst = useRef<{ value: T; getSnapshot: () => T }>({ value, getSnapshot }, instSlot) as {
+		current: { value: T; getSnapshot: () => T };
+	};
+
+	// forceUpdate: a tick bump. setTick uses Object.is internally, so always
+	// increment (never compare against a stale tick) to guarantee a re-render.
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [, setTick] = useState(0, tickSlot);
+	const forceUpdate = (): void => setTick((t: number) => t + 1);
 
-	// Subscribe on mount; re-subscribe if subscribe identity changes.
+	const checkIfSnapshotChanged = (): boolean => {
+		try {
+			return !Object.is(inst.current.value, inst.current.getSnapshot());
+		} catch {
+			// A throwing getSnapshot means the store likely mutated — re-render so
+			// the render-phase read surfaces the error (React's behavior).
+			return true;
+		}
+	};
+
+	// Layout-phase value sync: record the snapshot read during render, then catch
+	// any store mutation that happened between render and commit (re-render if so).
+	// Deps include `value`/`getSnapshot` so the synced cell tracks each render.
+	useLayoutEffect(
+		() => {
+			inst.current.value = value;
+			inst.current.getSnapshot = getSnapshot;
+			if (checkIfSnapshotChanged()) forceUpdate();
+		},
+		[subscribe, value, getSnapshot],
+		layoutSlot,
+	);
+
+	// Subscribe in the passive phase (React parity). Immediately re-check after
+	// subscribing: the store may have changed in the window between the render
+	// read and the subscription taking effect, which would otherwise be missed.
 	useEffect(
 		() => {
-			const handle = (): void => setTick((t: number) => t + 1);
-			return subscribe(handle);
+			if (checkIfSnapshotChanged()) forceUpdate();
+			const handleStoreChange = (): void => {
+				if (checkIfSnapshotChanged()) forceUpdate();
+			};
+			return subscribe(handleStoreChange);
 		},
 		[subscribe],
 		effectSlot,
 	);
 
-	// Fresh read on every render — guards against tearing between commits.
-	return getSnapshot();
+	return value;
 }
 
 export function useEffectEvent<F extends (...args: any[]) => any>(fn: F, slot?: symbol): F {
@@ -1195,6 +1443,13 @@ export interface Context<T> {
 	$$kind: typeof CONTEXT_TAG;
 	defaultValue: T;
 	Provider: ComponentBody<{ value: T; children?: any }>;
+	/**
+	 * Monotonic version bumped whenever a Provider for this context commits a
+	 * changed value. Consumers record the version they read at; the memo bailout
+	 * (componentSlot) compares it so a context change forces a re-render through
+	 * the push-cascade even when props are shallow-equal. See useContextInternal.
+	 */
+	$$version: number;
 }
 
 /**
@@ -1202,7 +1457,7 @@ export interface Context<T> {
  * walks the Block parent chain to find the nearest Provider for that context.
  */
 export function createContext<T>(defaultValue: T): Context<T> {
-	const ctx = { $$kind: CONTEXT_TAG, defaultValue } as Context<T>;
+	const ctx = { $$kind: CONTEXT_TAG, defaultValue, $$version: 0 } as Context<T>;
 	// A Provider is a built-in component that stamps the value on its Block
 	// and renders its `children` body inside its scope.
 	ctx.Provider = function ProviderBody(scope, props) {
@@ -1210,6 +1465,17 @@ export function createContext<T>(defaultValue: T): Context<T> {
 		// $$ctxValues is pre-initialised to null on every Scope/Block so this
 		// assignment is a hidden-class-stable update (not a late stamp).
 		if (scope.$$ctxValues === null) scope.$$ctxValues = new Map();
+		// Bump the context version when an EXISTING value actually changes. This
+		// runs before children() below, so the memo bailout downstream already
+		// sees the new version when the cascade reaches it. First-set is NOT a
+		// change: adding a Provider always creates a fresh scope for its
+		// descendants, so a memoized consumer can't carry pre-Provider state — it's
+		// always freshly mounted within the Provider's scope and reads the value
+		// directly (no memo bailout to invalidate). (Bumping on first-set would
+		// over-invalidate every memo'd consumer of this context elsewhere.)
+		if (scope.$$ctxValues.has(ctx) && !Object.is(scope.$$ctxValues.get(ctx), props.value)) {
+			ctx.$$version++;
+		}
 		scope.$$ctxValues.set(ctx, props.value);
 		// Children is the compiled render-body for the JSX between the Provider tags.
 		if (typeof props.children === 'function') {
@@ -1244,7 +1510,30 @@ export function use<T>(usable: Context<T> | PromiseLike<T> | TrackedThenable<T>)
 	return useThenable(usable as TrackedThenable<T>);
 }
 
+/**
+ * React's `useContext(Context)` — reads the nearest Provider's value (or the
+ * context default). A thin alias for the context branch of `use()`: context
+ * reads carry no per-call-site state, so there is no hook slot and the compiler
+ * needs no rewrite. Provided for React familiarity; `use(Context)` is the
+ * React-19 idiom and remains the primary form.
+ */
+export function useContext<T>(context: Context<T>): T {
+	return useContextInternal(context);
+}
+
 function useContextInternal<T>(context: Context<T>): T {
+	// Record the context dependency on every enclosing memo() block, with the
+	// version read. The push-cascade re-renders a Provider's subtree top-down;
+	// a memo bailout would otherwise sever that cascade and strand consumers
+	// (the memo'd component itself, its lite descendants, AND deeper consumers)
+	// with a stale value. Stamping memo ancestors lets the bailout detect the
+	// version change and decline to skip. Only memo blocks are stamped, so this
+	// costs nothing for the common no-memo tree.
+	for (let b: Block | null = CURRENT_BLOCK; b !== null; b = b.parentBlock) {
+		if ((b.body as any)?.__memo === true) {
+			(b.$$ctxReads ??= new Map()).set(context, context.$$version);
+		}
+	}
 	let s: Scope | null = CURRENT_SCOPE;
 	while (s !== null) {
 		const m = s.$$ctxValues;
@@ -1290,6 +1579,19 @@ function useThenable<T>(thenable: TrackedThenable<T>): T {
 	const state: TrackedThenable<any>[] = ((block as any).__thenables ??= []);
 	const idx = block.__thenableIdx;
 	block.__thenableIdx = idx + 1;
+
+	// Hydration seeding (SSR Phase 4): the server already resolved this use() and
+	// serialized the value. Adopt the next seeded value (use() calls hydrate in
+	// the same render order the server produced them in) and mark the thenable
+	// fulfilled, so this render and every later one return synchronously — no
+	// re-suspend, no client re-fetch. Folds out for client-only builds.
+	if (hydrating && hydrationSeeds !== null && hydrationSeedCursor < hydrationSeeds.length) {
+		const value = hydrationSeeds[hydrationSeedCursor++] as T;
+		thenable.status = 'fulfilled';
+		thenable.value = value;
+		state[idx] = thenable;
+		return value;
+	}
 
 	const stored = state[idx];
 	// Replay path: same promise as last attempt — fast lookup of the cached entry.
@@ -1356,8 +1658,162 @@ export function template(html: string, ns: number = 0, frag: number = 0): Elemen
 	return frag ? wrapEl : (wrapEl.firstChild as Element);
 }
 
+// ---------------------------------------------------------------------------
+// Hydration (SSR Phase 2). When `hydrating`, the compiled mount path ADOPTS the
+// server-rendered DOM instead of cloning a fresh template: `clone()` returns the
+// adopted server root, and `htext()` adopts the existing server text node rather
+// than creating one. Element/attribute/event/ref bindings are unchanged — their
+// template paths (`_root.firstChild.nextSibling…`) already align with the server
+// DOM, because text lives INSIDE elements and so doesn't shift element siblings.
+//
+// Dead-code-elimination contract (mirrors Ripple/Svelte): `hydrating` is set
+// `true` ONLY inside the `hydrate()` entry. An app that never imports `hydrate`
+// lets the bundler tree-shake it, after which `hydrating` is provably always
+// `false`, so it constant-folds and EVERY `if (hydrating)` branch below (in the
+// hot-path clone/htext) is dropped — client-only builds pay zero hydration cost.
+// Do NOT assign `hydrating = true` anywhere except `hydrate()`, or this breaks.
+// ---------------------------------------------------------------------------
+let hydrating = false;
+// The HYDRATION CURSOR (ported from Ripple's `hydrate_node`). While hydrating,
+// this points at the server-rendered node the next adopt operation should claim.
+// `clone()` adopts the cursor as a template root; the compiler-emitted cursor
+// walk (`child`/`sibling` — used only for templates that contain control-flow /
+// component holes, whose server DOM no longer matches the raw template paths)
+// advances it node-by-node; block functions (forBlock/ifBlock/componentSlot/…)
+// adopt the server `<!--[-->`/`<!--]-->` markers off it. For hole-free leaf
+// templates the cursor is just the adopted root and the old raw path-walk
+// (`_root.firstChild.nextSibling…`) still resolves bindings correctly.
+let hydrateNode: Node | null = null;
+// Server-resolved `use(thenable)` values (SSR Phase 4), parsed from the inline
+// `<script data-ripple-new-suspense>` in `hydrate()` and consumed in render
+// order by `useThenable` so a hydrating boundary returns synchronously. Both are
+// touched ONLY under `if (hydrating)` and assigned ONLY in `hydrate()`, so they
+// constant-fold away with the rest of the hydration path in client-only builds.
+let hydrationSeeds: unknown[] | null = null;
+let hydrationSeedCursor = 0;
+
 export function clone<T extends Node>(node: T): T {
+	if (hydrating && hydrateNode !== null) {
+		// Adopt the server node at the cursor as this template's root. The cursor
+		// stays put so a hole-template's subsequent child()/sibling() walk descends
+		// into it; for a hole-free leaf the raw path-walk takes over from here.
+		return hydrateNode as unknown as T;
+	}
 	return node.cloneNode(true) as T;
+}
+
+/**
+ * Compiler-emitted for a single-text-child binding's mount. Normally creates the
+ * text node and appends it; while hydrating, ADOPTS the element's existing
+ * (server-rendered) text node so the DOM isn't rebuilt. The prev-value the
+ * compiler seeds alongside this makes the first update a no-op when the client
+ * value matches the server text (avoiding a mismatch re-render).
+ */
+export function htext(el: Node, text: string): Text {
+	if (hydrating) {
+		const first = el.firstChild;
+		if (first !== null && first.nodeType === 3) return first as Text;
+		// Server rendered an empty hole (value was ''/null) — create + adopt.
+	}
+	const t = document.createTextNode(text);
+	el.appendChild(t);
+	return t;
+}
+
+/**
+ * Compiler-emitted mount for a `{x as string}` text hole that sits AMONG sibling
+ * nodes (the `<!>` placeholder lives at a resolved position, `posNode`).
+ *
+ * `posNode` is resolved with the hole-aware `child`/`sibling` walk, so during
+ * hydration it is the SERVER's text node at that logical position (the server
+ * rendered the value directly, with no `<!>`), even when earlier siblings are
+ * components / control-flow that expanded into `<!--[-->…<!--]-->` ranges. We
+ * ADOPT it. While NOT hydrating, `posNode` is the cloned template's `<!>`
+ * comment, which we replace 1-for-1 with a text node (position-preserving, so
+ * later sibling walks are unaffected). This is the sibling-position analog of
+ * `htext` (which handles the only-child fast path).
+ */
+export function htextSwap(posNode: Node | null, text: string): Text {
+	if (hydrating) {
+		if (posNode !== null && posNode.nodeType === 3) {
+			// Adopt the server text node.
+			if ((posNode as Text).data !== text) (posNode as Text).data = text;
+			return posNode as Text;
+		}
+		// Server emitted no text node here (empty value, or it merged with an
+		// adjacent static text run): insert a fresh node before the next logical
+		// node without removing it.
+		const t = document.createTextNode(text);
+		if (posNode !== null && posNode.parentNode !== null) {
+			posNode.parentNode.insertBefore(t, posNode);
+		}
+		return t;
+	}
+	// Fresh mount: posNode is the `<!>` placeholder — replace it in place.
+	const t = document.createTextNode(text);
+	const parent = posNode!.parentNode!;
+	parent.insertBefore(t, posNode);
+	parent.removeChild(posNode!);
+	return t;
+}
+
+// ---------------------------------------------------------------------------
+// Hydration navigation helpers. The compiler emits `child`/`sibling` instead of
+// raw `.firstChild`/`.nextSibling` ONLY for templates containing control-flow /
+// component holes — there the server DOM expands each hole into a
+// `<!--[-->…<!--]-->` range, so a raw sibling walk would land on the wrong node.
+// `child`/`sibling` are PURE navigators (they don't move the cursor): they treat
+// a whole `<!--[-->…<!--]-->` block as ONE logical sibling, which exactly matches
+// the single `<!>` placeholder the template uses for that hole — so ripple-new's
+// existing path+childIndex binding resolution keeps working unchanged on the
+// server DOM. The `hydrateNode` cursor is set by each block call (forBlock /
+// ifBlock / componentSlot, to its content start) for the child's `clone()` to
+// adopt. When `hydrating` is false these are trivial DOM reads and the whole
+// hydration path DCE-folds away for client-only builds.
+// ---------------------------------------------------------------------------
+
+/** True if `node` is a server block-open marker `<!--[-->`. */
+function isBlockOpen(node: Node | null): node is Comment {
+	return node !== null && node.nodeType === 8 && (node as Comment).data === HYDRATION_START;
+}
+
+/** From a block-open `<!--[-->`, the matching `<!--]-->` (depth-tracked). */
+function matchingClose(open: Node): Comment {
+	let depth = 0;
+	let node: Node = open.nextSibling as Node;
+	for (;;) {
+		if (node.nodeType === 8) {
+			const data = (node as Comment).data;
+			if (data === HYDRATION_END) {
+				if (depth === 0) return node as Comment;
+				depth -= 1;
+			} else if (data === HYDRATION_START) {
+				depth += 1;
+			}
+		}
+		node = node.nextSibling as Node;
+	}
+}
+
+/** Logical index-0 child: `node.firstChild` for both client and hydration. */
+export function child<T extends Node>(node: T): Node | null {
+	return node.firstChild;
+}
+
+/**
+ * The n-th logical sibling after `node`. Client: plain `.nextSibling` × n.
+ * Hydrating: a `<!--[-->…<!--]-->` block counts as ONE step (we jump past its
+ * range), so an element/hole after a block resolves to the right server node.
+ */
+export function sibling(node: Node, n: number = 1): Node | null {
+	let c: Node | null = node;
+	for (let i = 0; i < n; i++) {
+		// Over-walk (cursor already past the last node) → return null, don't throw.
+		if (c === null) return null;
+		if (hydrating && isBlockOpen(c)) c = matchingClose(c);
+		c = c.nextSibling;
+	}
+	return c;
 }
 
 // ---------------------------------------------------------------------------
@@ -1379,10 +1835,29 @@ export function setText(node: Text, value: any): void {
 //               Matches React's `ref={[a, b]}` convention.
 // Called by the compiler-emitted ref binding mount + update paths and
 // by the scope cleanup hook installed at mount time.
+// React 19 callback-ref cleanup. A callback ref may RETURN a cleanup function;
+// when it does, that cleanup runs on detach INSTEAD of calling the ref with
+// null. We remember the returned cleanup keyed by the ref function so the later
+// detach call — `attachRef(ref, null)`, emitted as the scope cleanup — can run
+// it. Legacy callback refs (that return nothing) keep the `ref(null)` contract.
+const refCleanups = new WeakMap<(el: any) => unknown, () => void>();
+
 export function attachRef(ref: any, el: Element | FragmentInstance | null): void {
 	if (ref == null) return;
 	if (typeof ref === 'function') {
-		ref(el);
+		if (el === null) {
+			// Detach: prefer the React-19 cleanup the callback returned at attach.
+			const cleanup = refCleanups.get(ref);
+			if (cleanup !== undefined) {
+				refCleanups.delete(ref);
+				cleanup();
+			} else {
+				ref(null);
+			}
+		} else {
+			const cleanup = ref(el);
+			if (typeof cleanup === 'function') refCleanups.set(ref, cleanup as () => void);
+		}
 		return;
 	}
 	if (Array.isArray(ref)) {
@@ -1414,6 +1889,14 @@ export function attachRef(ref: any, el: Element | FragmentInstance | null): void
 
 export const Fragment: unique symbol = Symbol.for('ripple-new.Fragment');
 
+/**
+ * React-19 `<Activity mode="hidden"|"visible">` sentinel. The compiler matches
+ * the `Activity` tag by NAME (so this export is only needed so user imports
+ * `import { Activity } from 'ripple-new'` resolve); the runtime work happens in
+ * `activityBlock`.
+ */
+export const Activity: unique symbol = Symbol.for('ripple-new.Activity');
+
 export class FragmentInstance {
 	/**
 	 * Sentinel that React's test suite asserts is truthy as a sanity-check
@@ -1426,18 +1909,30 @@ export class FragmentInstance {
 	_endMarker: Comment;
 	_destroyed: boolean;
 	/**
-	 * Live registry of listeners added via addEventListener so subsequent
-	 * removeEventListener calls can find them. Each entry records the host
-	 * elements the listener was applied to so we can detach in one walk.
-	 * `null` until the first addEventListener — keeps the per-instance
-	 * memory cost at zero for fragments that never use the listener API.
+	 * Registry of listeners added via addEventListener, deduped by
+	 * (type, listener, capture). `null` until the first addEventListener — zero
+	 * per-instance cost for fragments that never use the listener API. Stored
+	 * (not snapshotted onto specific elements) so they can be RE-APPLIED to
+	 * children that mount later: `_reapply` (run after every commit) attaches
+	 * each stored listener to the current children, matching React's
+	 * future-children contract.
 	 */
 	_listeners: Array<{
 		type: string;
 		listener: EventListenerOrEventListenerObject;
 		options: AddEventListenerOptions | boolean | undefined;
-		applied: Element[];
 	}> | null;
+	/**
+	 * Observers registered via observeUsing, re-applied to future children the
+	 * same way as `_listeners`. `null` until the first observeUsing.
+	 */
+	_observers: Set<{ observe(target: Element): void; unobserve(target: Element): void }> | null;
+	/**
+	 * The ref currently pointed at this instance. Held here (not captured in the
+	 * mount closure) so the unmount cleanup detaches whatever ref is current AND
+	 * the compiler's update path can re-point a changed `<Fragment ref={…}>`.
+	 */
+	_currentRef: any;
 
 	constructor(ownerBlock: Block, startMarker: Comment, endMarker: Comment) {
 		this._ownerBlock = ownerBlock;
@@ -1445,19 +1940,55 @@ export class FragmentInstance {
 		this._endMarker = endMarker;
 		this._destroyed = false;
 		this._listeners = null;
+		this._observers = null;
+		this._currentRef = null;
 	}
 
 	_destroy(): void {
 		this._destroyed = true;
-		// Detach any still-registered listeners from their host elements so
-		// stale closures don't keep DOM nodes / scopes alive after unmount.
+		activeFragments.delete(this);
+		// Detach any still-registered listeners from the current children (cleanups
+		// run before the DOM range is removed, so the children are still attached)
+		// so stale closures don't keep nodes/scopes alive after unmount. Observers
+		// are NOT explicitly unobserved — like React, we rely on the browser
+		// dropping disconnected nodes; the observer's owner manages its lifecycle.
 		if (this._listeners) {
-			for (const entry of this._listeners) {
-				for (const el of entry.applied) {
-					el.removeEventListener(entry.type, entry.listener, entry.options as any);
+			for (const el of fragmentDirectChildren(this)) {
+				for (const e of this._listeners) {
+					el.removeEventListener(e.type, e.listener, e.options as any);
 				}
 			}
 			this._listeners = null;
+		}
+		this._observers = null;
+	}
+
+	/** Deregister from the commit re-apply set once no bindings remain. */
+	_maybeDeactivate(): void {
+		if (
+			(this._listeners === null || this._listeners.length === 0) &&
+			(this._observers === null || this._observers.size === 0)
+		) {
+			activeFragments.delete(this);
+		}
+	}
+
+	/**
+	 * Re-apply every stored listener + observer to the CURRENT direct children.
+	 * Run after each commit (reapplyFragmentBindings) so children that mounted
+	 * since the last pass pick up the fragment's bindings. addEventListener and
+	 * observer.observe are idempotent for an already-wired (element, binding)
+	 * pair, so re-applying is safe.
+	 */
+	_reapply(): void {
+		if (this._destroyed) return;
+		for (const el of fragmentDirectChildren(this)) {
+			if (this._listeners) {
+				for (const e of this._listeners) el.addEventListener(e.type, e.listener, e.options as any);
+			}
+			if (this._observers) {
+				for (const ob of this._observers) ob.observe(el);
+			}
 		}
 	}
 
@@ -1510,20 +2041,11 @@ export class FragmentInstance {
 
 	// ─── addEventListener / removeEventListener (Stage 3) ───────────────
 	/**
-	 * Attaches a listener to every DIRECT (host-Element) child of the
-	 * fragment, in tree order. Events that bubble up from descendants
-	 * fire the listener too (standard DOM event bubbling). The listener
-	 * is also recorded on the FragmentInstance so a later
-	 * removeEventListener with the same (type, listener, options.capture)
-	 * tuple detaches them in one walk.
-	 *
-	 * The current implementation is a SNAPSHOT model: children present
-	 * at addEventListener-time get the listener, but children inserted
-	 * later (via state changes inside the fragment) do not. React's spec
-	 * is "applies to future children too" — that's tracked separately and
-	 * will land alongside the dynamic-list integration. Snapshot mode is
-	 * sufficient for the vast majority of real-world fragment-ref uses
-	 * (tooltip / focus-trap libraries attach to a static child set).
+	 * Attaches a listener to every DIRECT (host-Element) child of the fragment.
+	 * The (type, listener, capture) tuple is stored and RE-APPLIED after each
+	 * commit, so children inserted into the fragment LATER also get the listener
+	 * — React's future-children contract. Deduped by (type, listener, capture)
+	 * like the DOM, so repeat calls are no-ops.
 	 */
 	addEventListener(
 		type: string,
@@ -1531,25 +2053,30 @@ export class FragmentInstance {
 		options?: AddEventListenerOptions | boolean,
 	): void {
 		if (this._destroyed) return;
-		const applied: Element[] = [];
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) {
-				(node as Element).addEventListener(type, listener, options as any);
-				applied.push(node as Element);
-			}
-			node = node.nextSibling;
-		}
+		const capture = listenerCapturePhase(options);
 		if (!this._listeners) this._listeners = [];
-		this._listeners.push({ type, listener, options, applied });
+		for (const e of this._listeners) {
+			if (
+				e.type === type &&
+				e.listener === listener &&
+				listenerCapturePhase(e.options) === capture
+			) {
+				return; // already registered — no-op (DOM/React dedupe)
+			}
+		}
+		this._listeners.push({ type, listener, options });
+		for (const el of fragmentDirectChildren(this)) {
+			el.addEventListener(type, listener, options as any);
+		}
+		activeFragments.add(this);
 	}
 
 	/**
-	 * Removes a listener that was previously added via this same
-	 * FragmentInstance. The (type, listener, options.capture) tuple must
-	 * match the original add call — same identity rule the platform
-	 * uses on EventTarget.removeEventListener. Unmatched calls are a
-	 * silent no-op (DOM parity).
+	 * Removes a listener previously added via this FragmentInstance. The
+	 * (type, listener, options.capture) tuple must match the add call — the same
+	 * identity rule EventTarget.removeEventListener uses. Detaches from the
+	 * current children and stops re-applying it to future ones. Unmatched calls
+	 * are a silent no-op (DOM parity).
 	 */
 	removeEventListener(
 		type: string,
@@ -1563,10 +2090,11 @@ export class FragmentInstance {
 			if (entry.type !== type) continue;
 			if (entry.listener !== listener) continue;
 			if (listenerCapturePhase(entry.options) !== wantCapture) continue;
-			for (const el of entry.applied) {
+			for (const el of fragmentDirectChildren(this)) {
 				el.removeEventListener(type, listener, entry.options as any);
 			}
 			this._listeners.splice(i, 1);
+			this._maybeDeactivate();
 			return;
 		}
 	}
@@ -1579,27 +2107,30 @@ export class FragmentInstance {
 	 * stand in for "watch this list of siblings" — react-aria's Virtualizer
 	 * and dnd-kit's drop-zone primitives are the canonical clients.
 	 */
-	observeUsing(observer: { observe(target: Element): void }): void {
+	observeUsing(observer: {
+		observe(target: Element): void;
+		unobserve(target: Element): void;
+	}): void {
 		if (this._destroyed) return;
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) observer.observe(node as Element);
-			node = node.nextSibling;
-		}
+		if (!this._observers) this._observers = new Set();
+		this._observers.add(observer);
+		for (const el of fragmentDirectChildren(this)) observer.observe(el);
+		activeFragments.add(this);
 	}
 
 	/**
-	 * Forwards .unobserve() on the supplied observer to every direct fragment
-	 * child. Mirrors observeUsing — same membership rule (direct children
-	 * present at call time).
+	 * Stops observing with the given observer: unobserves the current children
+	 * and stops re-applying it to future ones. (The walk runs even without a
+	 * preceding observeUsing, matching the DOM's tolerant unobserve.)
 	 */
-	unobserveUsing(observer: { unobserve(target: Element): void }): void {
+	unobserveUsing(observer: {
+		observe(target: Element): void;
+		unobserve(target: Element): void;
+	}): void {
 		if (this._destroyed) return;
-		let node: ChildNode | null = this._startMarker.nextSibling;
-		while (node && node !== this._endMarker) {
-			if (node.nodeType === 1) observer.unobserve(node as Element);
-			node = node.nextSibling;
-		}
+		if (this._observers) this._observers.delete(observer);
+		for (const el of fragmentDirectChildren(this)) observer.unobserve(el);
+		this._maybeDeactivate();
 	}
 
 	/**
@@ -1629,6 +2160,7 @@ export class FragmentInstance {
 	 * so callers don't need null-checks.
 	 */
 	getRootNode(): Node {
+		if (this._destroyed) return this._startMarker.getRootNode();
 		let node: ChildNode | null = this._startMarker.nextSibling;
 		while (node && node !== this._endMarker) {
 			if (node.nodeType === 1) return (node as Element).getRootNode();
@@ -1746,6 +2278,21 @@ function* fragmentDescendants(fi: FragmentInstance): Generator<Element> {
 }
 
 /**
+ * Yield the DIRECT (first-level) Element children between the fragment markers,
+ * in document order. This is the membership set for the per-child operations
+ * (event listeners, observers) — matching React's first-level traverse — as
+ * opposed to fragmentDescendants which deep-walks (used by focus/scrollIntoView).
+ */
+function* fragmentDirectChildren(fi: FragmentInstance): Generator<Element> {
+	let node: ChildNode | null = fi._startMarker.nextSibling;
+	while (node && node !== fi._endMarker) {
+		const next = node.nextSibling;
+		if (node.nodeType === 1) yield node as Element;
+		node = next;
+	}
+}
+
+/**
  * Is `node` strictly between the fragment's start and end markers in
  * document order? Uses compareDocumentPosition so the check works for
  * arbitrary descendants — not just immediate children — and returns false
@@ -1796,9 +2343,15 @@ export function mountFragmentRef(
 	ref: any,
 ): FragmentInstance {
 	const fi = new FragmentInstance(scope.block, startMarker, endMarker);
-	attachRef(ref, fi);
+	fi._currentRef = ref;
+	// Defer the attach to commit (after DOM insertion, before layout effects) so
+	// the fragment's markers/children are connected when a callback ref fires —
+	// same React-19 timing as element refs. Read `_currentRef` (not the captured
+	// `ref`) so a ref the compiler re-points via the update path is honored, and
+	// so the detach cleanup always releases whatever ref is current on unmount.
+	queueRefAttach(scope, () => attachRef(fi._currentRef, fi));
 	scope.cleanups.push(() => {
-		attachRef(ref, null);
+		attachRef(fi._currentRef, null);
 		fi._destroy();
 	});
 	return fi;
@@ -1852,9 +2405,10 @@ export function setClassName(el: Element, value: string | null | undefined): voi
 }
 
 // ---------------------------------------------------------------------------
-// Style — kebab-case object form (Ripple semantics) or full cssText string.
-// `prev` is the previous value tracked by the compiler so we can diff
-// object→object and only touch the properties that changed.
+// Style — object form (keys may be kebab-case `font-size` OR React-style
+// camelCase `fontSize`; see styleName) or a full cssText string. `prev` is the
+// previous value tracked by the compiler so we can diff object→object and only
+// touch the properties that changed.
 // ---------------------------------------------------------------------------
 
 const IMPORTANT_SUFFIX = '!important';
@@ -1877,12 +2431,12 @@ export function setStyle(el: HTMLElement | SVGElement, value: any, prev: any): v
 	// so leftover declarations don't leak across the transition.
 	if (prev && typeof prev === 'object') {
 		for (const k in prev) {
-			if (!(k in value)) style.removeProperty(k);
+			if (!(k in value)) style.removeProperty(styleName(k));
 		}
 		for (const k in value) {
 			const v = value[k];
 			if (v === prev[k]) continue;
-			if (v == null || v === false) style.removeProperty(k);
+			if (v == null || v === false) style.removeProperty(styleName(k));
 			else applyStyleProperty(style, k, v);
 		}
 	} else {
@@ -1894,7 +2448,50 @@ export function setStyle(el: HTMLElement | SVGElement, value: any, prev: any): v
 	}
 }
 
+// Normalize a style-object key to a CSS property name CSSOM accepts. Supports
+// BOTH kebab-case (`font-size`) and React-style camelCase (`fontSize`) keys —
+// the latter is converted to kebab. Mirrors React's hyphenateStyleName:
+//   fontSize        → font-size
+//   backgroundColor → background-color
+//   WebkitTransform → -webkit-transform   (leading uppercase = vendor prefix)
+//   msFilter        → -ms-filter          (the `ms` prefix gets a leading dash)
+// Custom properties (`--myVar`) and already-hyphenated names (anything starting
+// with `-`) pass through verbatim — custom properties are case-sensitive and
+// must NOT be hyphenated. No regex (char-walk) to avoid backtracking concerns.
+function styleName(name: string): string {
+	// `--custom-prop` and pre-hyphenated `-webkit-…` keys: leave untouched.
+	if (name.charCodeAt(0) === 45 /* - */) return name;
+	// Fast path: no uppercase → already kebab (the common case), no allocation.
+	let hasUpper = false;
+	for (let i = 0; i < name.length; i++) {
+		const c = name.charCodeAt(i);
+		if (c >= 65 && c <= 90) {
+			hasUpper = true;
+			break;
+		}
+	}
+	if (!hasUpper) return name;
+	let out = '';
+	for (let i = 0; i < name.length; i++) {
+		const c = name.charCodeAt(i);
+		// Uppercase → `-` + lowercase. A leading uppercase therefore yields the
+		// leading dash a vendor prefix needs (`WebkitX` → `-webkit-x`).
+		if (c >= 65 && c <= 90) out += '-' + String.fromCharCode(c + 32);
+		else out += name[i];
+	}
+	// React parity: `msFoo` → `ms-foo` (above) → `-ms-foo`.
+	if (
+		out.charCodeAt(0) === 109 /* m */ &&
+		out.charCodeAt(1) === 115 /* s */ &&
+		out.charCodeAt(2) === 45
+	) {
+		out = '-' + out;
+	}
+	return out;
+}
+
 function applyStyleProperty(style: CSSStyleDeclaration, name: string, value: any): void {
+	const prop = styleName(name);
 	const s = typeof value === 'number' ? String(value) : (value as string);
 	// CodeQL flagged the prior `/\s*!important\s*$/` test+replace combo as
 	// polynomial-regex-on-uncontrolled-input. Same job in linear time using
@@ -1902,12 +2499,12 @@ function applyStyleProperty(style: CSSStyleDeclaration, name: string, value: any
 	const tail = s.trimEnd();
 	if (tail.endsWith(IMPORTANT_SUFFIX)) {
 		style.setProperty(
-			name,
+			prop,
 			tail.slice(0, tail.length - IMPORTANT_SUFFIX.length).trimEnd(),
 			'important',
 		);
 	} else {
-		style.setProperty(name, s);
+		style.setProperty(prop, s);
 	}
 }
 
@@ -1929,11 +2526,25 @@ function isEventKey(k: string): boolean {
 	);
 }
 
-export function setSpread(el: Element, value: any, prev: any): void {
+export function setSpread(el: Element, value: any, prev: any, mountScope?: Scope): void {
+	// `mountScope` is passed only on the mount call (not on updates). When present
+	// a spread-supplied ref attach is DEFERRED to commit so a callback ref sees a
+	// connected node — same React-19 timing as element/fragment refs. On update
+	// the element is already connected, so the ref attaches inline.
 	// Remove keys present in prev but absent (or set differently for events) in value.
 	if (prev) {
 		for (const k in prev) {
-			if (k === 'key' || k === 'children' || k === 'ref') continue;
+			if (k === 'key' || k === 'children') continue;
+			if (k === 'ref') {
+				// Detach the prior ref when it's removed from the spread or its
+				// identity changed (the value loop re-attaches a changed ref).
+				// attachRef runs a callback's React-19 cleanup-return (or calls it
+				// with null) and clears object/array refs — full parity with a
+				// direct `ref={}` binding.
+				const nextRef = value ? value.ref : undefined;
+				if (prev.ref != null && prev.ref !== nextRef) attachRef(prev.ref, null);
+				continue;
+			}
 			if (value && k in value) continue;
 			if (isEventKey(k)) {
 				(el as any)['$$' + k.slice(2).toLowerCase()] = null;
@@ -1953,8 +2564,12 @@ export function setSpread(el: Element, value: any, prev: any): void {
 		const pv = prev ? prev[k] : undefined;
 		if (k === 'ref') {
 			if (v === pv) continue;
-			if (typeof v === 'function') v(el);
-			else if (v != null) (v as any).current = el;
+			// Route through attachRef for full parity: callback cleanup-return,
+			// object `.current`, and array refs. The prior ref (if any) was already
+			// detached in the removal loop above (detach-before-attach). On mount,
+			// defer the attach to commit so a callback ref sees a connected node.
+			if (mountScope) queueRefAttach(mountScope, () => attachRef(v, el));
+			else attachRef(v, el);
 			continue;
 		}
 		if (k === 'class' || k === 'className') {
@@ -1988,8 +2603,85 @@ export function setSpread(el: Element, value: any, prev: any): void {
 
 const _injectedStyles = new Set<string>();
 
+// ---------------------------------------------------------------------------
+// Hoisted document metadata (React-19-shape) — `<title>`, `<meta>`, `<link>`
+// rendered ANYWHERE in a component are lifted to <document.head> by the compiler
+// emitting one `headBlock(scope, key, tag, attrs, text)` call per element
+// (instead of placing it in the body template). Because ripple-new re-invokes a
+// component body on every render, this call recurs each render: the element is
+// created/adopted ONCE (keyed per call-site via `scope[key]`), its attributes
+// and text are re-applied each render (so `<title>{state}</title>` is reactive),
+// and it is removed from <head> when the owning scope unmounts (so a route swap
+// replaces the page's metadata). On a hydrated page the server wrote
+// `<!--key-->` + the element into <head> (ssrHeadEl → RenderResult.head →
+// <!--ssr-head-->); headBlock ADOPTS that element rather than appending a copy.
+// ---------------------------------------------------------------------------
+
+interface HeadSlot {
+	el: Element;
+}
+
+// Find the server-rendered element for `key` in <head> (it directly follows the
+// `<!--key-->` marker), remove the marker so a later mount can't re-match it, and
+// return the element. Returns null on a fresh client render (no SSR marker).
+function adoptServerHeadEl(key: string): Element | null {
+	for (let n: Node | null = document.head.firstChild; n !== null; n = n.nextSibling) {
+		if (n.nodeType === 8 && (n as Comment).data === key) {
+			let el: Node | null = n.nextSibling;
+			while (el !== null && el.nodeType === 3 && /^\s*$/.test((el as Text).data)) {
+				el = el.nextSibling;
+			}
+			(n as Comment).remove();
+			return el !== null && el.nodeType === 1 ? (el as Element) : null;
+		}
+	}
+	return null;
+}
+
+export function headBlock(
+	scope: Scope,
+	key: string,
+	tag: string,
+	attrs: Record<string, any> | null,
+	text: unknown,
+): void {
+	if (typeof document === 'undefined') return;
+	let state = (scope as any)[key] as HeadSlot | undefined;
+	if (state === undefined) {
+		let el = adoptServerHeadEl(key);
+		if (el === null) {
+			el = document.createElement(tag);
+			document.head.appendChild(el);
+		}
+		state = { el };
+		(scope as any)[key] = state;
+		// Removed once, on the owning scope's unmount (NOT between re-renders) —
+		// scope.cleanups fire only on teardown, mirroring the spread-ref cleanup.
+		scope.cleanups.push(() => {
+			state!.el.remove();
+			(scope as any)[key] = undefined;
+		});
+	}
+	const el = state.el;
+	if (attrs !== null) {
+		for (const k in attrs) setAttribute(el, k, attrs[k]);
+	}
+	if (text != null) {
+		const t = String(text);
+		if (el.textContent !== t) el.textContent = t;
+	}
+}
+
 export function injectStyle(id: string, css: string): void {
 	if (_injectedStyles.has(id)) return;
+	// SSR de-dup: the server already emitted this scoped stylesheet (the css of
+	// the RenderResult, a `<style data-ripple-new="hash">`). On a hydrated page
+	// the per-runtime Set is empty, so also check the DOM before re-injecting —
+	// otherwise hydration would append a duplicate <style>.
+	if (typeof document !== 'undefined' && document.querySelector(`style[data-ripple-new="${id}"]`)) {
+		_injectedStyles.add(id);
+		return;
+	}
 	_injectedStyles.add(id);
 	const el = document.createElement('style');
 	el.setAttribute('data-ripple-new', id);
@@ -2197,6 +2889,138 @@ function dispatchDelegated(event: Event): void {
 function noop(): void {}
 
 // ---------------------------------------------------------------------------
+// React 19 Actions — <form action={fn}>, useActionState, useFormStatus,
+// useOptimistic. A function passed to a form/button action intercepts native
+// submit, builds FormData, and runs the action inside a transition. Submission
+// status is published per-form so a descendant useFormStatus() can read it.
+// ---------------------------------------------------------------------------
+
+export interface FormStatus {
+	pending: boolean;
+	data: FormData | null;
+	method: string;
+	action: ((formData: FormData) => unknown) | string | null;
+}
+const IDLE_FORM_STATUS: FormStatus = { pending: false, data: null, method: 'get', action: null };
+
+// Per-form current submission status + the descendant useFormStatus subscribers.
+const FORM_STATUS = new WeakMap<HTMLFormElement, FormStatus>();
+const FORM_STATUS_LISTENERS = new WeakMap<HTMLFormElement, Set<() => void>>();
+
+function setFormStatus(form: HTMLFormElement, status: FormStatus): void {
+	FORM_STATUS.set(form, status);
+	const ls = FORM_STATUS_LISTENERS.get(form);
+	if (ls) for (const l of ls) l();
+}
+
+/**
+ * Compiler-emitted binding for `<form action={fn}>` / `<button formAction={fn}>`.
+ * A FUNCTION value wires submit interception (stored on the element as
+ * `$$formAction`, with the form gaining a delegated `$$submit` handler once);
+ * a string/null value falls back to the native attribute so ordinary form posts
+ * still work. `prev` lets the update path clean up when switching function→string.
+ */
+export function setFormAction(
+	el: HTMLFormElement | HTMLButtonElement | HTMLInputElement,
+	name: string,
+	value: unknown,
+	prev: unknown,
+): void {
+	if (typeof value === 'function') {
+		(el as any).$$formAction = value;
+		if (el.nodeName === 'FORM') {
+			if (!(el as any).$$formSubmitWired) {
+				(el as any).$$formSubmitWired = true;
+				(el as any).$$submit = (event: Event) => handleFormSubmit(el as HTMLFormElement, event);
+				delegateEvents(['submit']);
+			}
+		}
+		// A function action implies a non-native submit; drop any stale attribute.
+		el.removeAttribute(name);
+		return;
+	}
+	// Non-function (string/null): native behavior. Clear any prior handler.
+	(el as any).$$formAction = undefined;
+	if (typeof prev === 'function' && el.nodeName === 'FORM') {
+		(el as any).$$submit = undefined;
+	}
+	setAttribute(el, name, value);
+}
+
+function handleFormSubmit(form: HTMLFormElement, event: Event): void {
+	// A `<button formAction>` / `<input type=submit formAction>` submitter
+	// overrides the form-level action (React parity).
+	const submitter = (event as SubmitEvent).submitter as HTMLElement | null;
+	const action =
+		(submitter && (submitter as any).$$formAction) || ((form as any).$$formAction as unknown);
+	if (typeof action !== 'function') return; // native submit / no function action
+	event.preventDefault();
+
+	const data = new FormData(form);
+	// Include the activating submitter's name/value (FormData(form, submitter)
+	// isn't universally available; append manually for parity).
+	if (submitter && (submitter as HTMLInputElement).name) {
+		data.append((submitter as HTMLInputElement).name, (submitter as HTMLInputElement).value ?? '');
+	}
+
+	const fn = action as (formData: FormData) => unknown;
+	// Track in-flight submissions per form. A useActionState dispatcher returns a
+	// promise that resolves when THAT dispatch's action finishes — not when the
+	// whole sequential queue drains — so a rapid second submit must NOT flip the
+	// form's status to idle while a later queued action is still running. Only
+	// clear when the count returns to 0.
+	const fa = form as any;
+	fa.$$pendingSubmits = (fa.$$pendingSubmits || 0) + 1;
+	setFormStatus(form, { pending: true, data, method: 'post', action: fn });
+
+	// useActionState dispatchers self-wrap in a transition AND keep typed-in
+	// values (no auto-reset); a raw action function is wrapped here and its form
+	// is reset on success.
+	const isDispatcher = (fn as any).$$isActionDispatcher === true;
+
+	const settle = (ok: boolean) => {
+		fa.$$pendingSubmits = Math.max(0, (fa.$$pendingSubmits || 1) - 1);
+		if (fa.$$pendingSubmits === 0) setFormStatus(form, IDLE_FORM_STATUS);
+		// React resets a plain <form action={fn}>'s uncontrolled fields on success;
+		// useActionState-driven forms keep their values. form.reset() restores
+		// uncontrolled inputs to defaultValue; controlled inputs are re-applied by
+		// the next render's value bindings.
+		if (ok && !isDispatcher) {
+			try {
+				form.reset();
+			} catch {
+				/* jsdom/detached form */
+			}
+		}
+	};
+
+	let result: unknown;
+	try {
+		if (isDispatcher) {
+			result = fn(data);
+		} else {
+			startTransition(() => {
+				result = fn(data);
+				return result as void | Promise<unknown>;
+			});
+		}
+	} catch (err) {
+		// A SYNCHRONOUS throw from the action (or a startTransition rethrow) would
+		// otherwise skip the settle wiring below, leaving the form's status stuck
+		// on `pending`. Clear it, then report — an error thrown inside a DOM submit
+		// handler has no meaningful propagation target (mirrors the runtime's
+		// effect-error handling: recover + console.error).
+		settle(false);
+		console.error(err);
+		return;
+	}
+	Promise.resolve(result).then(
+		() => settle(true),
+		() => settle(false),
+	);
+}
+
+// ---------------------------------------------------------------------------
 // Portals — createPortal renders into a foreign DOM target while staying
 // part of the React-tree for context / unmount / event delegation.
 // ---------------------------------------------------------------------------
@@ -2288,6 +3112,27 @@ export function createPortal(
 }
 
 // ---------------------------------------------------------------------------
+// Element descriptor — `createElement(Comp, props)`. The compiler lowers a JSX
+// component element used at VALUE position (e.g. `root.render(<App foo={x}/>)`)
+// to this call, so JSX-as-a-value matches React's `root.render(<App/>)` shape.
+// It is a plain { type, props } record (like a ReactElement). `root.render`
+// unwraps it; props are evaluated fresh at each call site, so re-rendering with
+// `root.render(<App foo={next}/>)` updates props while keeping `type` identity.
+// ---------------------------------------------------------------------------
+const ELEMENT_TAG = Symbol.for('ripple-new.element');
+export interface ElementDescriptor<P = any> {
+	$$kind: typeof ELEMENT_TAG;
+	type: ComponentBody<P>;
+	props: P;
+}
+export function createElement<P>(type: ComponentBody<P>, props?: P): ElementDescriptor<P> {
+	return { $$kind: ELEMENT_TAG, type, props: (props ?? {}) as P };
+}
+function isElementDescriptor(v: any): v is ElementDescriptor {
+	return v != null && v.$$kind === ELEMENT_TAG;
+}
+
+// ---------------------------------------------------------------------------
 // Component slot — JSX `<Foo>` / `<ctx.Provider>` invocation as a Block
 // ---------------------------------------------------------------------------
 
@@ -2329,13 +3174,25 @@ export function componentSlot(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as CompSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('comp');
-		const end = document.createComment('/comp');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a multi-root template
-		// and must sit before its enclosing block's endMarker).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped this component's output in a
+			// `<!--[-->…<!--]-->` range (anchor resolved to the `<!--[-->`). Adopt
+			// those comments as our markers and point the cursor at the first
+			// content node so the child's clone() adopts the server DOM.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('comp');
+			end = document.createComment('/comp');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a multi-root template
+			// and must sit before its enclosing block's endMarker).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = {
 			__kind: 'componentSlotSlot',
 			start,
@@ -2383,14 +3240,191 @@ export function componentSlot(
 		// `memo(Component)` — skip the body when new props shallow-equal the
 		// committed props. Matches React.memo's contract; the wrapped fn carries
 		// the `__memo: true` marker the wrapper installs.
-		if ((comp as any).__memo === true && shallowEqualProps(state.block.props, props)) {
-			// Keep the committed props identity — diffing against them next time
-			// is what makes the memo terminate.
-			return;
+		if ((comp as any).__memo === true && !ctxDepsChanged(state.block)) {
+			const compare = (comp as any).__compare as ((prev: any, next: any) => boolean) | undefined;
+			// React.memo's optional comparator: returns true when props are equal
+			// (→ skip the render). Falls back to a shallow Object.is comparison.
+			const equal = compare
+				? compare(state.block.props, props)
+				: shallowEqualProps(state.block.props, props);
+			if (equal) {
+				// Keep the committed props identity — diffing against them next time
+				// is what makes the memo terminate.
+				return;
+			}
 		}
 		state.block.props = props;
 		renderBlock(state.block);
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Renderable expression hole — `{expr}` (no string cast) as element content
+// ---------------------------------------------------------------------------
+//
+// `{x as string}` (and string literals / template literals) compile to the fast
+// text binding (`htext`/`setText`). A bare `{x}` is a RENDERABLE hole, matching
+// Ripple: it renders a component/children-function or an element descriptor,
+// and coerces a primitive to text. The compiler routes these through a compCall
+// entry tagged `isChild`, emitting `childSlot(...)` instead of `componentSlot`.
+//
+// childSlot owns ONE `<!--[-->`/`<!--]-->` marker pair (the same shape the
+// server emits via `ssrBlock`/`ssrComponent` for every renderable hole, so
+// hydration alignment is uniform whether the value is a component or a
+// primitive). Between the markers it holds EITHER a Block (function /
+// ElementDescriptor) or a single Text node (primitive). A value whose mode
+// flips across renders tears the old content down — cleanups fire, content
+// nodes are removed — and rebuilds in place, keeping the markers.
+
+interface ChildSlot {
+	__kind: 'childSlot';
+	start: Comment;
+	end: Comment;
+	block: Block | null;
+	text: Text | null;
+	currentComp: ComponentBody | null;
+}
+
+// `true`/`false`/`null`/`undefined` render as empty (React parity); everything
+// else stringifies. Text-node `.data` is literal, so no HTML escaping here (that
+// is only the server's concern, where output is serialized into markup).
+function coerceChildText(v: unknown): string {
+	return v == null || v === false || v === true ? '' : String(v);
+}
+
+// Remove the slot's current content (Block or Text) while preserving its marker
+// pair, so a mode switch (or component-identity swap) rebuilds in place.
+function clearChildContent(state: ChildSlot): void {
+	if (state.block !== null) {
+		// Fire the subtree's cleanups but DON'T let unmountBlock strip the DOM —
+		// it would take our markers with it. We remove the content nodes by hand.
+		unmountBlock(state.block, false);
+		state.block = null;
+	}
+	const parent = state.start.parentNode;
+	if (parent !== null) {
+		let n: Node | null = state.start.nextSibling;
+		while (n !== null && n !== state.end) {
+			const next: Node | null = n.nextSibling;
+			parent.removeChild(n);
+			n = next;
+		}
+	}
+	state.text = null;
+	state.currentComp = null;
+}
+
+export function childSlot(
+	parentScope: Scope,
+	slotKey: string,
+	domParent: Node,
+	value: unknown,
+	anchor?: Node | null,
+): void {
+	const parentBlock = parentScope.block;
+	let state = parentScope[slotKey] as ChildSlot | undefined;
+	if (state === undefined) {
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration (nested hole): the anchor resolved via child/sibling to the
+			// server's `<!--[-->`. Adopt that `<!--[-->…<!--]-->` range as our markers
+			// and point the cursor at the first content node for the Block's clone()
+			// / the text adopt below.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else if (hydrating && isBlockOpen(hydrateNode)) {
+			// Hydration (sole top-level hole, e.g. a layout `<>{children}…</>`): the
+			// anchor is the block's end-marker (not a `<!--[-->`), but the CURSOR sits
+			// on the server's range-open. Adopt from the cursor. This is what lets a
+			// component whose only body root is `{children}` hydrate as single-root.
+			start = hydrateNode as Comment;
+			end = matchingClose(hydrateNode as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('');
+			end = document.createComment('');
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
+		state = { __kind: 'childSlot', start, end, block: null, text: null, currentComp: null };
+		parentScope[slotKey] = state;
+		registerSlot(parentScope, state);
+	}
+
+	// Classify: function → ComponentBody (empty props, e.g. a `{children}`
+	// render-fn); ElementDescriptor → its `type` + carried props; anything else
+	// → text/empty.
+	let comp: ComponentBody | null = null;
+	let props: any = {};
+	if (typeof value === 'function') {
+		comp = value as ComponentBody;
+	} else if (isElementDescriptor(value)) {
+		comp = value.type as ComponentBody;
+		props = value.props;
+	}
+
+	if (comp !== null) {
+		if (state.block !== null && comp === state.currentComp) {
+			// Same component identity → update in place (matches componentSlot).
+			state.block.props = props;
+			renderBlock(state.block);
+			return;
+		}
+		// New component (first render, or identity swap from text / another comp).
+		clearChildContent(state);
+		state.currentComp = comp;
+		const b = createBlock('dynamic', parentBlock, domParent, state.start, state.end, comp, props);
+		state.block = b;
+		renderBlock(b);
+		return;
+	}
+
+	// Text / empty.
+	if (state.block !== null) clearChildContent(state); // swapped away from a component
+	const str = coerceChildText(value);
+	if (str === '') {
+		// `null` / `undefined` / `false` / `true` / `''` render NOTHING — not even
+		// an empty text node — matching React/Ripple. The server emits an empty
+		// `<!--[--><!--]-->` range for these, so the marker pair stays content-less
+		// on both sides. Drop a text node left over from a prior non-empty render.
+		if (state.text !== null) {
+			state.text.remove();
+			state.text = null;
+		}
+		return;
+	}
+	if (state.text !== null) {
+		if (state.text.data !== str) state.text.data = str;
+		return;
+	}
+	if (hydrating) {
+		// Adopt the server text sitting between our adopted markers. (An empty hole
+		// has no text node, but `str !== ''` here means the server emitted one.)
+		const n = hydrateNode;
+		if (n !== null && n !== state.end && n.nodeType === 3) {
+			state.text = n as Text;
+			hydrateNode = n.nextSibling;
+			if ((n as Text).data !== str) (n as Text).data = str;
+			return;
+		}
+	}
+	const tn = document.createTextNode(str);
+	domParent.insertBefore(tn, state.end);
+	state.text = tn;
+}
+
+// True if any context the block read last render has since changed value
+// (its Provider bumped the version). When so, a memo bailout must NOT skip —
+// the block (or a consumer in its subtree) needs the new context value.
+function ctxDepsChanged(block: Block): boolean {
+	const reads = block.$$ctxReads;
+	if (reads === null) return false;
+	for (const [ctx, version] of reads) {
+		if (ctx.$$version !== version) return true;
+	}
+	return false;
 }
 
 function shallowEqualProps(a: any, b: any): boolean {
@@ -2401,7 +3435,8 @@ function shallowEqualProps(a: any, b: any): boolean {
 	if (ka.length !== kb.length) return false;
 	for (let i = 0; i < ka.length; i++) {
 		const k = ka[i];
-		if (a[k] !== b[k]) return false;
+		// React uses Object.is (not ===) so NaN props compare equal and ±0 differ.
+		if (!Object.prototype.hasOwnProperty.call(b, k) || !Object.is(a[k], b[k])) return false;
 	}
 	return true;
 }
@@ -2413,12 +3448,21 @@ function shallowEqualProps(a: any, b: any): boolean {
  * first render and any non-skip render. Pair with `useCallback` /
  * `useMemo` on the parent so handler + computed prop refs stay stable across
  * renders that don't conceptually change the child's view.
+ *
+ * An optional `arePropsEqual(prevProps, nextProps)` comparator mirrors
+ * React.memo's second argument: return `true` to skip the render (props are
+ * "equal"), `false` to re-render. When omitted, a shallow Object.is comparison
+ * of own enumerable keys is used.
  */
-export function memo<P>(component: ComponentBody<P>): ComponentBody<P> {
+export function memo<P>(
+	component: ComponentBody<P>,
+	arePropsEqual?: (prevProps: Readonly<P>, nextProps: Readonly<P>) => boolean,
+): ComponentBody<P> {
 	function memoWrapper(scope: Scope, props: P, extra: any): void {
 		component(scope, props, extra);
 	}
 	(memoWrapper as any).__memo = true;
+	if (arePropsEqual) (memoWrapper as any).__compare = arePropsEqual;
 	return memoWrapper as ComponentBody<P>;
 }
 
@@ -2578,13 +3622,24 @@ export function tryBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as TrySlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('try');
-		const end = document.createComment('/try');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a mixed-children
-		// template and must sit before its in-template static-sibling anchor).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server (Phase 4) awaited use() and wrapped the resolved
+			// SUCCESS arm (or @catch arm) in a `<!--[-->…<!--]-->` range. Adopt it as
+			// the slot; mountTry brackets the content and the seeded use() values
+			// (hydrationSeeds) let the try body render its success arm synchronously.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('try');
+			end = document.createComment('/try');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a mixed-children
+			// template and must sit before its in-template static-sibling anchor).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		const newState: TrySlot = {
 			__kind: 'trySlotSlot',
 			start,
@@ -2668,10 +3723,21 @@ function mountTry(state: TrySlot): void {
 	state.savedDom = null;
 	state.hasResolved = false;
 	state.branch = 1;
-	const bStart = document.createComment('try-b');
-	const bEnd = document.createComment('/try-b');
-	state.domParent.insertBefore(bStart, state.end);
-	state.domParent.insertBefore(bEnd, state.end);
+	let bStart: Node;
+	let bEnd: Node;
+	if (hydrating && isBlockOpen(state.start.nextSibling)) {
+		// ADOPT the server's inner arm range (no inserted markers — byte-for-byte;
+		// see ifBlock). The seeded use() values let the try body render its success
+		// arm and adopt the server DOM.
+		bStart = state.start.nextSibling as Comment;
+		bEnd = matchingClose(bStart);
+		hydrateNode = bStart.nextSibling;
+	} else {
+		bStart = document.createComment('try-b');
+		bEnd = document.createComment('/try-b');
+		state.domParent.insertBefore(bStart, state.end);
+		state.domParent.insertBefore(bEnd, state.end);
+	}
 	const b = createBlock(
 		'control-flow',
 		state.parentBlock,
@@ -2793,20 +3859,16 @@ function handleSuspense(state: TrySlot, thenable: TrackedThenable<any>, sourceBl
 		return;
 	}
 
-	if (sourceBlock === state.tryBlock) {
-		// Urgent suspend on the try-body block itself (initial render OR
-		// re-render). PRESERVE its hooks Map and `_b.*` bindings so useMemo /
-		// useState etc. survive across replays — matches React's WIP-discard
-		// contract where even an unfinished render's hook state is preserved.
-		softDetachTryBlock(state);
-	} else {
-		// Nested-block suspended — pop the whole try subtree. (Rare in current
-		// codegen; future enhancement could preserve more granularly.)
-		if (state.tryBlock) {
-			unmountBlock(state.tryBlock);
-			state.tryBlock = null;
-		}
-	}
+	// PRESERVE the try-body block's hooks Map, `_b.*` bindings, and DOM via
+	// softDetach — whether the suspend came from the try-body block itself OR a
+	// nested descendant block (e.g. a child component that re-renders on its own
+	// and then suspends). The old nested-case behavior unmounted the whole try
+	// subtree, discarding every descendant `scope.hooks` Map, so useState /
+	// useMemo / useRef silently reset on resume — a latent data-loss bug. Keeping
+	// the same blocks means the resume path (attachResume) re-renders the held
+	// tryBlock, which reconciles descendants by key with their state intact —
+	// React's committed-state-preserved-while-suspended contract.
+	softDetachTryBlock(state);
 	state.block = null;
 	state.branch = 2;
 
@@ -3016,6 +4078,264 @@ export function useTransition(
 		scope.cleanups.push(() => TRANSITION_LISTENERS.delete(listener));
 	}
 	return [s.isPending, s.start];
+}
+
+// ---------------------------------------------------------------------------
+// useActionState(action, initialState, permalink?) → [state, formAction, isPending]
+//
+// `action(previousState, payload)` runs inside a transition. `formAction` is a
+// stable dispatcher you wire to `<form action={formAction}>` (payload = FormData)
+// or call directly (`formAction(payload)`). Dispatches run SEQUENTIALLY, each
+// receiving the previous COMPLETED result as previousState. `isPending` is true
+// from dispatch until the queue drains. The action's resolved value becomes the
+// new state. Errors route to the nearest @try boundary (else console.error).
+// `permalink` (SSR progressive enhancement) is accepted for signature parity and
+// ignored — ripple-new is client-only. Form auto-reset is intentionally skipped
+// for useActionState forms (typed-in values are kept), matching React.
+// ---------------------------------------------------------------------------
+
+interface ActionStateSlot<S> {
+	state: S;
+	isPending: boolean;
+	pendingCount: number;
+	chain: Promise<S>;
+	action: (prev: S, payload: any) => S | Promise<S>;
+	dispatch: ((payload?: any) => Promise<S>) & { $$isActionDispatcher?: true };
+}
+
+export function useActionState<S>(
+	action: (prevState: S, payload: any) => S | Promise<S>,
+	initialState: S,
+	permalinkOrSlot?: string | symbol,
+	slot?: symbol,
+): [S, (payload?: any) => void, boolean] {
+	// `permalink` is optional, the compiler appends the slot last. Disambiguate:
+	// a trailing symbol in the 3rd position means no permalink was passed.
+	if (typeof permalinkOrSlot === 'symbol') slot = permalinkOrSlot;
+	if (slot === undefined) missingSlot('useActionState');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as ActionStateSlot<S> | undefined;
+	if (s === undefined) {
+		const slotRef: ActionStateSlot<S> = {
+			state: initialState,
+			isPending: false,
+			pendingCount: 0,
+			chain: Promise.resolve(initialState),
+			action,
+			dispatch: undefined as any,
+		};
+		const setPending = (next: boolean): void => {
+			if (slotRef.isPending !== next) {
+				slotRef.isPending = next;
+				if (!block.disposed) scheduleRender(block);
+			}
+		};
+		const dispatch = ((payload?: any): Promise<S> => {
+			slotRef.pendingCount++;
+			setPending(true);
+			// Sequential queue: each run sees the prior COMPLETED state.
+			slotRef.chain = slotRef.chain.then(
+				(prevState) =>
+					new Promise<S>((resolveResult) => {
+						const finish = (): void => {
+							slotRef.pendingCount--;
+							if (slotRef.pendingCount === 0) setPending(false);
+						};
+						startTransition(() => {
+							let p: Promise<S>;
+							try {
+								p = Promise.resolve(slotRef.action(prevState, payload));
+							} catch (err) {
+								// A SYNCHRONOUS throw from the action would otherwise escape
+								// startTransition before `finish` is wired, leaving pendingCount
+								// (and isPending) stuck true forever and rejecting the chain so the
+								// queue stops threading. Settle it exactly like the async-rejection
+								// path: clear pending, route the error, keep prior state.
+								finish();
+								const handler = findTryHandler(block);
+								if (handler) handler(err);
+								else console.error(err);
+								resolveResult(prevState);
+								return;
+							}
+							p.then(
+								(result) => {
+									slotRef.state = result;
+									finish();
+									if (!block.disposed) scheduleRender(block);
+									resolveResult(result);
+								},
+								(err) => {
+									finish();
+									const handler = findTryHandler(block);
+									if (handler) handler(err);
+									else console.error(err);
+									// Keep prior state so the next queued dispatch threads it.
+									resolveResult(prevState);
+								},
+							);
+							return p;
+						});
+					}),
+			);
+			return slotRef.chain;
+		}) as ActionStateSlot<S>['dispatch'];
+		dispatch.$$isActionDispatcher = true;
+		slotRef.dispatch = dispatch;
+		s = slotRef;
+		ensureHooks(scope).set(slot, slotRef);
+	}
+	// Keep the action reference fresh across renders (closures over latest props).
+	s.action = action;
+	return [s.state, s.dispatch, s.isPending];
+}
+
+// ---------------------------------------------------------------------------
+// useFormStatus() → { pending, data, method, action }
+//
+// Reads the submission status of the nearest ANCESTOR <form> (found by walking
+// the DOM up from this component's markers — so a <form> rendered BY this same
+// component is correctly ignored, matching React). Subscribes to that form's
+// status so a submission re-renders the consumer. Defaults to the idle status
+// when there is no ancestor form or no active submission.
+// ---------------------------------------------------------------------------
+
+function findAncestorForm(block: Block): HTMLFormElement | null {
+	let n: Node | null = block.startMarker ?? block.parentNode ?? null;
+	while (n) {
+		if ((n as any).nodeName === 'FORM') return n as HTMLFormElement;
+		n = n.parentNode;
+	}
+	return null;
+}
+
+interface FormStatusSlot {
+	form: HTMLFormElement | null;
+	listener: (() => void) | null;
+}
+
+export function useFormStatus(slot?: symbol): FormStatus {
+	if (slot === undefined) missingSlot('useFormStatus');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as FormStatusSlot | undefined;
+	if (s === undefined) {
+		s = { form: null, listener: null };
+		const slotRef = s;
+		ensureHooks(scope).set(slot, slotRef);
+		scope.cleanups.push(() => {
+			if (slotRef.form && slotRef.listener)
+				FORM_STATUS_LISTENERS.get(slotRef.form)?.delete(slotRef.listener);
+		});
+	}
+	// Re-resolve the nearest ANCESTOR <form> on EVERY render: a conditionally
+	// rendered form (or a moved consumer) means the form can appear/change after
+	// the first run. Re-subscribe when it changes; caching only the first result
+	// would leave the hook stuck reporting idle for a form that showed up later.
+	const form = findAncestorForm(block);
+	if (form !== s.form) {
+		if (s.form && s.listener) FORM_STATUS_LISTENERS.get(s.form)?.delete(s.listener);
+		s.form = form;
+		if (form) {
+			const listener = (): void => {
+				if (!block.disposed) scheduleRender(block);
+			};
+			s.listener = listener;
+			let set = FORM_STATUS_LISTENERS.get(form);
+			if (!set) {
+				set = new Set();
+				FORM_STATUS_LISTENERS.set(form, set);
+			}
+			set.add(listener);
+		} else {
+			s.listener = null;
+		}
+	}
+	return s.form ? (FORM_STATUS.get(s.form) ?? IDLE_FORM_STATUS) : IDLE_FORM_STATUS;
+}
+
+// ---------------------------------------------------------------------------
+// useOptimistic(state, updateFn?) → [optimisticState, addOptimistic]
+//
+// `optimisticState` equals `state` unless an Action/transition is in flight, in
+// which case it is `state` folded through `updateFn(acc, value)` for each queued
+// addOptimistic call (or the raw value when no updateFn). The queue is cleared
+// when the owning transition settles, so optimistic and real state converge in
+// the same commit — on success `state` has advanced, on error it is unchanged
+// (automatic revert). addOptimistic should be called inside an Action.
+// ---------------------------------------------------------------------------
+
+interface OptimisticSlot<S, V> {
+	queue: V[];
+	updateFn?: (state: S, value: V) => S;
+	add: (value: V) => void;
+	/**
+	 * True when the queue was populated INSIDE a transition, so it should clear
+	 * when that transition settles (count → 0). Without this, an addOptimistic
+	 * called outside any transition would (a) never clear via the listener, and
+	 * (b) be wiped by an unrelated transition elsewhere settling. See `add`.
+	 */
+	armed: boolean;
+}
+
+export function useOptimistic<S, V = S>(
+	passthrough: S,
+	updateFnOrSlot?: ((state: S, value: V) => S) | symbol,
+	slot?: symbol,
+): [S, (value: V) => void] {
+	let updateFn: ((state: S, value: V) => S) | undefined;
+	if (typeof updateFnOrSlot === 'symbol') slot = updateFnOrSlot;
+	else updateFn = updateFnOrSlot;
+	if (slot === undefined) missingSlot('useOptimistic');
+	const scope = CURRENT_SCOPE!;
+	const block = CURRENT_BLOCK!;
+	let s = scope.hooks?.get(slot) as OptimisticSlot<S, V> | undefined;
+	if (s === undefined) {
+		const clear = (): void => {
+			slotRef.armed = false;
+			if (slotRef.queue.length > 0) {
+				slotRef.queue.length = 0;
+				if (!block.disposed) scheduleRender(block);
+			}
+		};
+		const slotRef: OptimisticSlot<S, V> = {
+			queue: [],
+			updateFn,
+			armed: false,
+			add: (value: V) => {
+				slotRef.queue.push(value);
+				if (TRANSITION_PENDING_COUNT > 0) {
+					// Inside an Action: the optimistic value is held until that
+					// transition settles (the listener below clears it then).
+					slotRef.armed = true;
+				} else {
+					// Outside any Action: React warns and shows the value only
+					// briefly. Clear on the next microtask so it renders once and
+					// reverts — never left stuck waiting on a transition that won't come.
+					queueMicrotask(clear);
+				}
+				if (!block.disposed) scheduleRender(block);
+			},
+		};
+		s = slotRef;
+		ensureHooks(scope).set(slot, slotRef);
+		// When the owning transition settles (pending count hits 0), drop the
+		// optimistic queue so the next render re-derives from the real state. Gated
+		// on `armed` so an unrelated transition settling doesn't wipe a queue this
+		// hook populated outside any transition (that path self-clears via microtask).
+		const listener = (): void => {
+			if (TRANSITION_PENDING_COUNT === 0 && slotRef.armed) clear();
+		};
+		TRANSITION_LISTENERS.add(listener);
+		scope.cleanups.push(() => TRANSITION_LISTENERS.delete(listener));
+	}
+	s.updateFn = updateFn;
+	let optimistic = passthrough;
+	for (let i = 0; i < s.queue.length; i++) {
+		optimistic = s.updateFn ? s.updateFn(optimistic, s.queue[i]) : (s.queue[i] as unknown as S);
+	}
+	return [optimistic, s.add];
 }
 
 // ---------------------------------------------------------------------------
@@ -3239,15 +4559,25 @@ export function ifBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as IfSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('if');
-		const end = document.createComment('/if');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot lives in a mixed-children
-		// template and must sit before its static-element/text siblings). The
-		// compiler emits a `<!>` placeholder at the if-block's source-order
-		// index and passes the captured Comment as `anchor`.
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped the taken branch in a `<!--[-->…<!--]-->`
+			// range (anchor resolved to the `<!--[-->`). Adopt it as the slot markers;
+			// the branch mount below brackets the already-present content.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('if');
+			end = document.createComment('/if');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot lives in a mixed-children
+			// template and must sit before its static-element/text siblings). The
+			// compiler emits a `<!>` placeholder at the if-block's source-order
+			// index and passes the captured Comment as `anchor`.
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = { __kind: 'ifBlockSlot', start, end, branch: -1, block: null };
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
@@ -3265,10 +4595,22 @@ export function ifBlock(
 			// Each branch gets its OWN start/end markers inside the if's permanent
 			// range. Branch unmount removes them along with the branch's DOM; the
 			// permanent state.start / state.end stay put.
-			const bStart = document.createComment('br');
-			const bEnd = document.createComment('/br');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			let bStart: Node;
+			let bEnd: Node;
+			if (hydrating && isBlockOpen(state.start.nextSibling)) {
+				// ADOPT the server's inner branch range (no inserted markers →
+				// byte-for-byte). The server nests `<!--[-->`(slot) `<!--[-->`(branch)
+				// content `<!--]-->`(branch) `<!--]-->`(slot); the inner pair IS the
+				// branch's start/end (so swap still removes just the branch range).
+				bStart = state.start.nextSibling as Comment;
+				bEnd = matchingClose(bStart);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				bStart = document.createComment('br');
+				bEnd = document.createComment('/br');
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
 			state.block = b;
 			renderBlock(b);
@@ -3277,6 +4619,186 @@ export function ifBlock(
 		// Same branch — re-render in place.
 		state.block.body = body!;
 		renderBlock(state.block);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Control flow: activityBlock — React 19 <Activity mode="hidden"|"visible">
+//
+// Unlike ifBlock (which unmounts on branch change), an Activity keeps ONE
+// long-lived child Block across the whole hidden/visible lifecycle. Hidden:
+// children stay mounted (state + DOM preserved) but visually hidden via
+// display:none and their effects are torn down (cleanups run); the subtree is
+// marked `inactive` so re-renders while hidden update the DOM but skip effects.
+// Visible: display restored and a re-render re-fires the effects. State is
+// preserved because the block is never disposed while toggling.
+// ---------------------------------------------------------------------------
+
+interface ActivitySlot {
+	__kind: 'activityBlockSlot';
+	block: Block | null;
+	hidden: boolean;
+	/** Direct child elements we hid → their prior inline `display`, for restore. */
+	savedDisplay: Map<HTMLElement, string>;
+	/**
+	 * Direct child TEXT nodes we hid → their prior `data`, for restore. Text nodes
+	 * have no box and can't take `display:none`, so a bare-text Activity child
+	 * (`<Activity mode="hidden">{'…'}</Activity>`) is hidden by blanking its data.
+	 */
+	savedText: Map<Text, string>;
+}
+
+/**
+ * Hide every direct child between the block's markers (idempotent). Elements get
+ * `display:none`; bare text nodes can't be styled, so their `data` is blanked
+ * (original saved for restore). Re-runs after each hidden re-render, so newly
+ * created children — and dynamic text re-populated by setText — get re-hidden.
+ */
+function hideActivityRange(state: ActivitySlot): void {
+	const b = state.block;
+	if (!b) return;
+	let node: ChildNode | null = (b.startMarker as Comment).nextSibling;
+	while (node && node !== b.endMarker) {
+		if (node.nodeType === 1) {
+			const el = node as HTMLElement;
+			if (!state.savedDisplay.has(el)) state.savedDisplay.set(el, el.style.display);
+			el.style.display = 'none';
+		} else if (node.nodeType === 3) {
+			const t = node as Text;
+			if (!state.savedText.has(t)) state.savedText.set(t, t.data);
+			if (t.data !== '') t.data = '';
+		}
+		node = node.nextSibling;
+	}
+}
+
+/** Restore the inline `display` / text `data` we saved on hide. */
+function showActivityRange(state: ActivitySlot): void {
+	for (const [el, display] of state.savedDisplay) el.style.display = display;
+	state.savedDisplay.clear();
+	for (const [t, data] of state.savedText) t.data = data;
+	state.savedText.clear();
+}
+
+export function activityBlock(
+	parentScope: Scope,
+	slotKey: string,
+	domParent: Node,
+	mode: 'visible' | 'hidden' | string,
+	body: ComponentBody,
+	anchor?: Node | null,
+): void {
+	const parentBlock = parentScope.block;
+	const wantHidden = mode === 'hidden';
+	let state = parentScope[slotKey] as ActivitySlot | undefined;
+
+	if (state === undefined) {
+		const bStart = document.createComment('activity');
+		const bEnd = document.createComment('/activity');
+		domParent.insertBefore(bStart, anchor ?? null);
+		domParent.insertBefore(bEnd, anchor ?? null);
+		const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
+		state = {
+			__kind: 'activityBlockSlot',
+			block: b,
+			hidden: false,
+			savedDisplay: new Map(),
+			savedText: new Map(),
+		};
+		parentScope[slotKey] = state;
+		registerSlot(parentScope, state);
+		if (wantHidden) {
+			// Mount while hidden: render children (creates state + DOM) but no
+			// effects — mark inactive BEFORE the render so enqueueEffect skips them.
+			b.inactive = true;
+			renderBlock(b);
+			hideActivityRange(state);
+			state.hidden = true;
+		} else {
+			renderBlock(b);
+		}
+		return;
+	}
+
+	const b = state.block!;
+	b.body = body;
+
+	if (wantHidden) {
+		if (!state.hidden) {
+			// visible → hidden: prerender latest content with effects suppressed,
+			// tear down the previously-mounted effects (cleanups BEFORE hiding the
+			// DOM, matching React), then hide.
+			b.inactive = true;
+			renderBlock(b);
+			deactivateScope(b);
+			hideActivityRange(state);
+			state.hidden = true;
+		} else {
+			// hidden → hidden: prerender (no effects), then hide any new children.
+			renderBlock(b);
+			hideActivityRange(state);
+		}
+	} else {
+		if (state.hidden) {
+			// hidden → visible: restore DOM, clear inactive, re-render to re-fire
+			// effects (deactivateScope cleared their deps so they re-enqueue).
+			showActivityRange(state);
+			b.inactive = false;
+			state.hidden = false;
+			renderBlock(b);
+		} else {
+			// visible → visible: ordinary re-render in place.
+			renderBlock(b);
+		}
+	}
+}
+
+/**
+ * Run a subtree's effect CLEANUPS without disposing it, and reset its effect
+ * slots so the setups re-fire on reactivation. Used by activityBlock on hide:
+ * effects are torn down (cleanups run, parent-before-child) while state, DOM and
+ * the blocks all stay alive. Refs are intentionally LEFT attached to the
+ * preserved (hidden) DOM — they point at valid, still-present nodes.
+ */
+function deactivateScope(scope: Scope): void {
+	const hooks = scope.hooks;
+	if (hooks) {
+		for (const slot of hooks.values()) {
+			if (slot && (slot as EffectSlot).effect === true) {
+				const e = slot as EffectSlot;
+				if (typeof e.cleanup === 'function') {
+					const cleanup = e.cleanup;
+					// Clear it BEFORE firing so the per-slot unmount finalizer (still
+					// registered in scope.cleanups) sees no cleanup and won't re-run it.
+					e.cleanup = undefined;
+					try {
+						cleanup();
+					} catch (err) {
+						console.error(err);
+					}
+				}
+				// Force the setup to re-enqueue + re-fire when the subtree reactivates.
+				e.deps = undefined;
+			}
+		}
+	}
+	const children = scope.children;
+	for (let i = 0, n = children.length; i < n; i++) deactivateScope(children[i].scope);
+	const slots = scope._slots;
+	if (slots !== null) {
+		for (let i = 0, n = slots.length; i < n; i++) {
+			const val = slots[i];
+			if (val.__kind === 'forBlockSlot') {
+				const it = (val.items as Map<any, Block>).values();
+				for (let r = it.next(); !r.done; r = it.next()) deactivateScope(r.value);
+				if (val.emptyBlock) deactivateScope(val.emptyBlock);
+			} else if (val.block) {
+				deactivateScope(val.block);
+				if (val.__kind === 'trySlotSlot' && val.tryBlock && val.tryBlock !== val.block) {
+					deactivateScope(val.tryBlock);
+				}
+			}
+		}
 	}
 }
 
@@ -3317,13 +4839,22 @@ export function switchBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as SwitchSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('switch');
-		const end = document.createComment('/switch');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (e.g. when this slot sits before static-element
-		// siblings authored AFTER the @switch in source order).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: adopt the server's `<!--[-->…<!--]-->` range (the matched
+			// case's content) as the slot markers (see ifBlock).
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+		} else {
+			start = document.createComment('switch');
+			end = document.createComment('/switch');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (e.g. when this slot sits before static-element
+			// siblings authored AFTER the @switch in source order).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = { __kind: 'switchBlockSlot', start, end, caseIdx: -1, block: null };
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
@@ -3345,10 +4876,19 @@ export function switchBlock(
 		}
 		state.caseIdx = nextIdx;
 		if (body) {
-			const bStart = document.createComment('case');
-			const bEnd = document.createComment('/case');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			let bStart: Node;
+			let bEnd: Node;
+			if (hydrating && isBlockOpen(state.start.nextSibling)) {
+				// ADOPT the server's inner case range (no inserted markers — see ifBlock).
+				bStart = state.start.nextSibling as Comment;
+				bEnd = matchingClose(bStart);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				bStart = document.createComment('case');
+				bEnd = document.createComment('/case');
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
 			state.block = b;
 			renderBlock(b);
@@ -3406,14 +4946,26 @@ export function forBlock<T, E = undefined>(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as ForSlot | undefined;
 	if (state === undefined) {
-		const start = document.createComment('for');
-		const end = document.createComment('/for');
-		// insertBefore(_, null) === appendChild — covers both end-of-parent and
-		// mid-range insertion (when a static sibling follows this @for in mixed
-		// children, the compiler emits a `<!>` anchor at the @for's source-order
-		// index and threads it here so the markers land BEFORE the sibling).
-		domParent.insertBefore(start, anchor ?? null);
-		domParent.insertBefore(end, anchor ?? null);
+		let start: Comment;
+		let end: Comment;
+		if (hydrating && isBlockOpen(anchor ?? null)) {
+			// Hydration: the server wrapped the whole @for in a `<!--[-->…<!--]-->`
+			// range (anchor resolved to the outer `<!--[-->`). Adopt it as the slot
+			// markers and point the cursor at the first item's `<!--[-->` so the
+			// empty→fill mount below adopts each item via mountItem.
+			start = anchor as Comment;
+			end = matchingClose(anchor as Node);
+			hydrateNode = start.nextSibling;
+		} else {
+			start = document.createComment('for');
+			end = document.createComment('/for');
+			// insertBefore(_, null) === appendChild — covers both end-of-parent and
+			// mid-range insertion (when a static sibling follows this @for in mixed
+			// children, the compiler emits a `<!>` anchor at the @for's source-order
+			// index and threads it here so the markers land BEFORE the sibling).
+			domParent.insertBefore(start, anchor ?? null);
+			domParent.insertBefore(end, anchor ?? null);
+		}
 		state = {
 			__kind: 'forBlockSlot',
 			start,
@@ -3447,8 +4999,18 @@ export function forBlock<T, E = undefined>(
 		} else {
 			const bStart = document.createComment('empty');
 			const bEnd = document.createComment('/empty');
-			domParent.insertBefore(bStart, state.end);
-			domParent.insertBefore(bEnd, state.end);
+			if (hydrating) {
+				// The server rendered the @empty content directly inside the adopted
+				// `<!--[-->…<!--]-->` range — bracket it (don't insert at the end +
+				// re-mount, which would move the adopted content) and point the cursor
+				// at it so the empty body's clone() adopts the server DOM.
+				domParent.insertBefore(bStart, state.start.nextSibling);
+				domParent.insertBefore(bEnd, state.end);
+				hydrateNode = bStart.nextSibling;
+			} else {
+				domParent.insertBefore(bStart, state.end);
+				domParent.insertBefore(bEnd, state.end);
+			}
 			const b = createBlock(
 				'control-flow',
 				parentBlock,
@@ -3461,6 +5023,9 @@ export function forBlock<T, E = undefined>(
 			state.emptyBlock = b;
 			renderBlock(b);
 		}
+		// Advance the cursor past the whole @for so the next sibling's clone()
+		// doesn't read a position left inside this consumed range.
+		if (hydrating) hydrateNode = state.end.nextSibling;
 		return;
 	}
 	// We have items (or no empty body). If an empty branch was previously
@@ -3503,6 +5068,11 @@ export function forBlock<T, E = undefined>(
 		(f & 2) !== 0,
 		lite,
 	);
+	// Advance the hydration cursor past the @for's `<!--]-->` so a later sibling's
+	// clone() starts after this block — covers the zero-item, no-@empty case where
+	// reconcileKeyed mounts nothing and the cursor would otherwise stay on the
+	// inner close marker.
+	if (hydrating) hydrateNode = state.end.nextSibling;
 }
 
 function depsEqual(a: any[], b: any[]): boolean {
@@ -4091,6 +5661,32 @@ function mountItem<T, E>(
 	forSlot: ForSlot,
 	singleRoot: boolean,
 ): Block {
+	if (hydrating) {
+		// Hydration: the server wrapped EVERY item in its own `<!--[-->…<!--]-->`
+		// range (regardless of the client `singleRoot` optimization, which the
+		// server can't know). Adopt this item's markers off the cursor, point the
+		// cursor at its content for the body's clone(), then advance past it to the
+		// next item's marker. (Hydrated items thus carry markers — the singleRoot
+		// no-marker path is a client-mount-only optimization.)
+		const itemStart = hydrateNode as Comment;
+		const itemEnd = matchingClose(itemStart as Node);
+		hydrateNode = itemStart.nextSibling;
+		const block = createBlock(
+			'control-flow',
+			parentBlock,
+			parentNode,
+			itemStart,
+			itemEnd,
+			body as ComponentBody,
+			item,
+			extra,
+		);
+		block.forSlot = forSlot;
+		block.itemIndex = index;
+		renderBlock(block);
+		hydrateNode = itemEnd.nextSibling;
+		return block;
+	}
 	if (singleRoot) {
 		// Compiler verified the body emits exactly one Element root — skip the
 		// per-item Comment markers and use the inserted element as both start
@@ -4207,6 +5803,16 @@ function lis(arr: Int32Array): number[] {
 // ---------------------------------------------------------------------------
 
 export interface Root {
+	/**
+	 * Render into this root. Two forms:
+	 *  - React-style:   `root.render(<App foo={x}/>)` — a single element descriptor
+	 *    (the compiler lowers the JSX to `createElement(App, {foo: x})`).
+	 *  - Body + props:  `root.render(App, { foo: x })` — the original ripple-new
+	 *    form, kept for direct (non-JSX) callers and existing test helpers.
+	 * Re-rendering with the same component (`type`/body) updates props in place;
+	 * a different component tears down and remounts.
+	 */
+	render(element: ElementDescriptor): void;
 	render(body: ComponentBody, props?: any): void;
 	unmount(): void;
 }
@@ -4219,7 +5825,16 @@ export function createRoot(container: Element): Root {
 	// registered later (via `delegateEvents`) will back-attach automatically.
 	registerDelegationTarget(container);
 	return {
-		render(body, props) {
+		render(bodyOrElement: ComponentBody | ElementDescriptor, props?: any) {
+			// React-style `render(<App foo={x}/>)` arrives as an element descriptor:
+			// unwrap to (type, props). The `render(body, props)` form passes through.
+			let body: ComponentBody;
+			if (isElementDescriptor(bodyOrElement)) {
+				body = bodyOrElement.type;
+				props = bodyOrElement.props;
+			} else {
+				body = bodyOrElement;
+			}
 			if (rootBlock && currentBody === body) {
 				rootBlock.props = props;
 				scheduleRender(rootBlock);
@@ -4252,6 +5867,78 @@ export function createRoot(container: Element): Root {
 				rootBlock = null;
 				currentBody = null;
 			}
+			unregisterDelegationTarget(container);
+		},
+	};
+}
+
+/**
+ * Hydrate a server-rendered container (SSR Phase 2). Instead of clearing the
+ * container and cloning fresh DOM, the compiled mount ADOPTS the existing
+ * server DOM: `clone()` returns the server root, `htext()` adopts server text
+ * nodes, and event handlers / update bindings are stamped on the adopted nodes
+ * (`hydrating` flag, see clone/htext). The seeded prev-values make the first
+ * update a no-op when the client matches the server (no mismatch re-render).
+ *
+ * Phase 2 scope: a single-root leaf component — element structure, attributes,
+ * single-text-children, events, refs, innerHTML. Nested components, adjacent /
+ * mixed text holes and control flow arrive in a later phase.
+ */
+export function hydrate(
+	bodyOrElement: ComponentBody | ElementDescriptor,
+	container: Element,
+	props?: any,
+): { unmount(): void } {
+	let body: ComponentBody;
+	if (isElementDescriptor(bodyOrElement)) {
+		body = bodyOrElement.type;
+		props = bodyOrElement.props;
+	} else {
+		body = bodyOrElement;
+	}
+	registerDelegationTarget(container);
+	const rootBlock = createBlock('root', null, container, null, null, body, props);
+	hydrating = true;
+	// Adopt server-serialized use(thenable) values, if any: pull them out of the
+	// inline data <script> (and remove it, so it isn't taken for a hydratable
+	// node) and stage them for useThenable to consume in render order.
+	const seedScript = container.querySelector('script[' + SUSPENSE_SCRIPT_ATTR + ']');
+	if (seedScript !== null) {
+		try {
+			// Reviver decodes the server's `undefined` sentinel back to `undefined`
+			// (JSON has no `undefined`), so a `use(thenable)` that resolved to
+			// `undefined` is seeded as `undefined`, not `null`.
+			hydrationSeeds = JSON.parse(seedScript.textContent || '[]', (_key, value) =>
+				value !== null && typeof value === 'object' && value[UNDEFINED_SENTINEL_KEY] === true
+					? undefined
+					: value,
+			);
+		} catch {
+			hydrationSeeds = null;
+		}
+		hydrationSeedCursor = 0;
+		seedScript.remove();
+	}
+	// The component's server root is the container's first node — the initial
+	// cursor position. clone() adopts it; a hole-template walk advances from here.
+	hydrateNode = container.firstChild;
+	try {
+		renderBlock(rootBlock);
+	} finally {
+		hydrating = false;
+		hydrateNode = null;
+		hydrationSeeds = null;
+		hydrationSeedCursor = 0;
+	}
+	// Commit effects on the next microtask flush (same as createRoot's first render).
+	if (!syncFlush && !scheduled) {
+		scheduled = true;
+		queueMicrotask(flush);
+	}
+	return {
+		unmount() {
+			unmountBlock(rootBlock, /*detachDom*/ false);
+			container.textContent = '';
 			unregisterDelegationTarget(container);
 		},
 	};

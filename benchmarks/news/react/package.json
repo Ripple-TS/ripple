@@ -1,0 +1,19 @@
+{
+  "name": "react-news-bench",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "news-site SSR+hydration bench fixture for React 19 (authored in .tsrx, compiled via @tsrx/react).",
+  "scripts": {
+    "dev": "vite --host --port 5193 --strictPort"
+  },
+  "dependencies": {
+    "react": "catalog:default",
+    "react-dom": "catalog:default"
+  },
+  "devDependencies": {
+    "@tsrx/react": "workspace:*",
+    "@tsrx/vite-plugin-react": "workspace:*",
+    "vite": "catalog:default"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "ripple-new-ssr",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Minimal SSR + hydration example for ripple-new (SSR Phase 5): hand-written entry-server / entry-client wired through a Vite middleware-mode dev server.",
+  "scripts": {
+    "dev": "node server.js",
+    "dev:stream": "node server-stream.js",
+    "build": "vite build --outDir dist/client && vite build --ssr src/entry-server.ts --outDir dist/server",
+    "preview": "node server.js"
+  },
+  "dependencies": {
+    "ripple-new": "workspace:*"
+  },
+  "devDependencies": {
+    "@tsrx/ripple-new": "workspace:*",
+    "polka": "catalog:default",
+    "typescript": "catalog:default",
+    "vite": "catalog:default"
+  }
+}

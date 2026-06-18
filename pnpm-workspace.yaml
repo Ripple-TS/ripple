@@ -34,6 +34,7 @@ packages:
   - grammars/tree-sitter
   - website-new
   - website-tsrx
+  - website-tsrx-new
   - benchmarks
   - benchmarks/js-framework
   - benchmarks/js-framework/*
@@ -41,10 +42,21 @@ packages:
   - benchmarks/recursive-context/*
   - benchmarks/signal-favoring
   - benchmarks/signal-favoring/*
+  - benchmarks/news
+  - benchmarks/news/*
 
 overrides:
   esrap: *esrap_common
   semver: ^7.7.4
+  # Solid 2.0 SSR alignment: vite-plugin-solid@3.0.0-next.5 pulls
+  # babel-preset-solid@2.0.0-beta.7 transitively (→ babel-plugin-jsx-dom-expressions
+  # 0.41, which still EMITS the `ssrRunInScope` SSR helper), but @solidjs/web@2.0.0-beta.14
+  # REMOVED that export (dom-expressions 0.50 stopped emitting it). Force the
+  # transform to the 0.50-era preset the catalog already intends so SSR output
+  # matches the installed runtime. Without this, SSR throws "does not provide an
+  # export named 'ssrRunInScope'".
+  babel-preset-solid: '2.0.0-beta.14'
+  babel-plugin-jsx-dom-expressions: '0.50.0-next.13'
 
 catalogs:
   default:

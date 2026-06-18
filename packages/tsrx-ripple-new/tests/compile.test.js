@@ -241,3 +241,137 @@ export function Second() @{
 		expect(srcLines[srcSeg.srcLine].slice(srcSeg.srcCol)).toMatch(/^useState/);
 	});
 });
+
+describe('@tsrx/ripple-new compile — mode flag (SSR plumbing)', () => {
+	const src = `export function App() @{ <div>{'hi'}</div> }`;
+
+	it("mode: 'client' is the default and produces identical output", () => {
+		const a = compile(src, 'App.tsrx').code;
+		const b = compile(src, 'App.tsrx', { mode: 'client' }).code;
+		expect(b).toBe(a);
+	});
+
+	it("mode: 'server' emits HTML-string-building bodies importing 'ripple-new/server'", () => {
+		const out = compile(
+			`export function G(props) @{ <p class={props.c}>{props.name as string}</p> }`,
+			'G.tsrx',
+			{ mode: 'server' },
+		).code;
+		expect(out).toContain("from 'ripple-new/server'");
+		expect(out).toContain('ssrText(');
+		expect(out).toContain('ssrAttr(');
+		// No client template-clone codegen in server mode.
+		expect(out).not.toContain('template(');
+	});
+
+	it("mode: 'server' lowers control flow to string builders with block markers", () => {
+		const out = compile(
+			`export function L(p) @{ <ul>@for (const x of p.items) { <li>{x as any}</li> }</ul> }`,
+			'l.tsrx',
+			{ mode: 'server' },
+		).code;
+		expect(out).toContain('ssrBlock(');
+		expect(out).toMatch(/from 'ripple-new\/server'/);
+	});
+
+	it('an unknown mode throws', () => {
+		expect(() => compile(src, 'App.tsrx', { mode: 'bogus' })).toThrow(/Unknown compile mode/);
+	});
+
+	it("mode: 'server' emits namespaced attribute names literally (no [object Object])", () => {
+		const ns = `export function A() @{ <svg><use xlink:href="#a" /></svg> }`;
+		const server = compile(ns, 'A.tsrx', { mode: 'server' }).code;
+		expect(server).not.toContain('object Object');
+		expect(server).toContain('xlink:href');
+		// Client and server agree on the namespaced attribute name.
+		const client = compile(ns, 'A.tsrx', { mode: 'client' }).code;
+		expect(client).toContain('xlink:href');
+	});
+});
+
+describe('@tsrx/ripple-new compile — JSX component as a value (root.render shape)', () => {
+	const imp = `import { createRoot } from 'ripple-new';`;
+
+	it('lowers root.render(<App/>) to createElement(App, {}) and imports createElement', () => {
+		const out = code(`${imp} createRoot(x).render(<App/>);`);
+		expect(out).toContain('createElement(App, {})');
+		expect(out).toContain('render(createElement(App, {}))');
+		expect(out).toMatch(/import \{[^}]*\bcreateElement\b[^}]*\} from 'ripple-new'/);
+		expect(out).not.toContain('<App');
+	});
+
+	it('passes attributes (and spreads) through as the props object', () => {
+		const out = code(`${imp} createRoot(x).render(<App count={1} name="hi" {...rest}/>);`);
+		expect(out).toContain('createElement(App, { count: 1, name: "hi", ...rest })');
+	});
+
+	it('lowers a JSX component value in setup position (const el = <App/>)', () => {
+		const out = code(`${imp} const el = <App x={2}/>;`);
+		expect(out).toContain('createElement(App, { x: 2 })');
+	});
+
+	it('lowers nested JSX in a prop value recursively', () => {
+		const out = code(`${imp} createRoot(x).render(<App icon={<Icon size={3}/>}/>);`);
+		expect(out).toContain('createElement(App, { icon: createElement(Icon, { size: 3 }) })');
+	});
+
+	it('drops key= from the props (meaningless at value position)', () => {
+		const out = code(`${imp} createRoot(x).render(<App key={1} a={2}/>);`);
+		expect(out).toContain('createElement(App, { a: 2 })');
+	});
+
+	it('rejects a host element used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<div/>);`)).toThrow(
+			/Host element <div\/> used as a value/,
+		);
+	});
+
+	it('rejects a component element with children used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<App><Child/></App>);`)).toThrow(
+			/with children used as a value/,
+		);
+	});
+
+	it('rejects a fragment used as a value', () => {
+		expect(() => code(`${imp} createRoot(x).render(<>{'a'}</>);`)).toThrow(
+			/Fragment used as a value/,
+		);
+	});
+});
+
+describe('@tsrx/ripple-new compile — Actions bundle', () => {
+	it('routes a dynamic <form action={fn}> to setFormAction (not setAttribute)', () => {
+		const out = code(`export function F(props) @{ <form action={props.act}>{'x'}</form> }`);
+		expect(out).toContain('setFormAction(');
+		expect(out).toMatch(/import \{[^}]*\bsetFormAction\b[^}]*\} from 'ripple-new'/);
+	});
+
+	it('leaves a static string action as a native attribute', () => {
+		const out = code(`export function F() @{ <form action="/submit">{'x'}</form> }`);
+		// Inlined into the template() HTML string, not routed to setFormAction.
+		expect(out).toMatch(/template\([^)]*action=/);
+		expect(out).not.toContain('setFormAction(');
+	});
+
+	it('routes <button formAction={fn}> to setFormAction', () => {
+		const out = code(
+			`export function F(props) @{ <form>{'x'}<button formAction={props.act}>{'go'}</button></form> }`,
+		);
+		expect(out).toContain('setFormAction(');
+		expect(out).toContain('"formaction"');
+	});
+
+	it('injects hook slots for useActionState / useFormStatus / useOptimistic', () => {
+		const out = code(
+			`export function F(props) @{
+				const [s, a] = useActionState(props.fn, 0);
+				const st = useFormStatus();
+				const [o, add] = useOptimistic(s);
+				<form action={a}>{String(s) + st.pending + o as string}</form>
+			}`,
+		);
+		expect(out).toMatch(/useActionState\([^)]*_h\$\d+\)/);
+		expect(out).toMatch(/useFormStatus\(_h\$\d+\)/);
+		expect(out).toMatch(/useOptimistic\([^)]*_h\$\d+\)/);
+	});
+});

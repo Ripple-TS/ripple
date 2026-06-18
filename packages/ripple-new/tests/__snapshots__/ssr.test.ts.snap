@@ -1,0 +1,117 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SSR Phase 1 — basic fixtures > renders SVG and MathML (static + dynamic attrs) > MathDynamic 1`] = `
+{
+  "body": "<math id="dyneq" display="block"><mn class="m">x</mn></math>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders SVG and MathML (static + dynamic attrs) > SvgDynamic 1`] = `
+{
+  "body": "<svg id="dyn" viewBox="0 0 100 100" class="c"><rect x="0" y="0" width="30" height="20" fill="blue"></rect></svg>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders SVG and MathML (static + dynamic attrs) > SvgStatic 1`] = `
+{
+  "body": "<svg id="chart" viewBox="0 0 100 100" class="chart"><circle cx="50" cy="50" r="40" fill="red"></circle><g class="labels"><text x="50" y="55">hi</text></g></svg>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, and attributes > Counter 1`] = `
+{
+  "body": "<span>5</span>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, and attributes > Greet 1`] = `
+{
+  "body": "<p>Hello, <!--[-->Ada<!--]--> !</p>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, and attributes > Hello 1`] = `
+{
+  "body": "<div class="greet">Hello, world</div>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — basic fixtures > renders static markup, dynamic text, and attributes > Mixed 1`] = `
+{
+  "body": "<div id="m"><span class="a">A</span><span class="b">B</span></div>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > collects scoped CSS into the css field > Scoped 1`] = `
+{
+  "body": "<div class="box tsrx-170b2cb6">scoped</div>",
+  "css": "<style data-ripple-new="tsrx-170b2cb6">
+			.box.tsrx-170b2cb6 {
+				color: red;
+			}
+		</style>",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > emits innerHTML raw (unescaped) > Raw 1`] = `
+{
+  "body": "<div><b>bold</b></div>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > renders boolean attributes, void elements, and dynamic attrs > Field-disabled 1`] = `
+{
+  "body": "<label><input type="text" name="q" value="v" disabled/></label>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > renders boolean attributes, void elements, and dynamic attrs > Field-enabled 1`] = `
+{
+  "body": "<label><input type="text" name="q" value="v"/></label>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > renders dynamic object style with camelCase keys > Styled 1`] = `
+{
+  "body": "<div class="a" style="color:red;font-size:12px;">hi</div>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > renders nested component composition > Card 1`] = `
+{
+  "body": "<article class="card"><h2>T</h2><!--[--><em class="badge">new</em><!--]--></article>",
+  "css": "",
+  "head": "",
+}
+`;
+
+exports[`SSR Phase 1 — ssr fixture (style / spread / innerHTML / components / hooks / css) > serializes spread attributes > Spread 1`] = `
+{
+  "body": "<div id="x" data-k="1" class="base">x</div>",
+  "css": "",
+  "head": "",
+}
+`;

@@ -92,3 +92,17 @@ export function Counter(props) @{
 export function KeyHost(props) @{
 	<Counter key={props.k} label={props.label} />
 }
+
+// Arrow-function component (`const X = (props) => @{…}`) — the compiler
+// normalizes this to FunctionDeclaration form.
+export const ArrowComp = (props) => @{
+	<div id="arrow">{`hi ${props.who}`}</div>
+};
+
+// Arrow component with a fragment body + nested components (mixed shapes).
+export const ArrowFragHost = () => @{
+	<>
+		<ArrowComp who="arrow" />
+		<Label text="sibling" />
+	</>
+};
