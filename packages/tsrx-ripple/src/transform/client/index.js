@@ -3717,6 +3717,20 @@ function transform_tsrx_ts_children(children, context) {
  * @returns {TsrxTsViewNode}
  */
 function build_tsrx_to_ts_expression(node, context, in_jsx_child = false) {
+	// A compiler-generated wrapper (utils.js `wrap_directive_in_jsx_fragment`) around
+	// a single VALUE-position directive lowers to a TYPED VALUE (ternary / `.map` /
+	// returning IIFE), not the void render IIFE `transform_tsrx_tsx_children` would
+	// emit. Render position never sets `tsrx_generated_wrapper`, so it is unaffected;
+	// authored `<> … </>` (no wrapper flag) keeps flowing through the normal path.
+	if (node.metadata?.tsrx_generated_wrapper === true) {
+		const only = (node.children || []).find(
+			(/** @type {any} */ child) => child && child.type !== 'EmptyStatement',
+		);
+		if (only && /** @type {any} */ (only).metadata?.tsrxDirective) {
+			const value = build_tsrx_ts_directive_value(only, context);
+			return in_jsx_child ? b.jsx_expression_container(value) : value;
+		}
+	}
 	const children = transform_tsrx_tsx_children(/** @type {AST.Node[]} */ (node.children), context);
 	return build_tsrx_ts_return_expression(
 		children,
@@ -4096,6 +4110,147 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 		: null;
 
 	return b.try(try_body, catch_handler, finalizer, pending);
+}
+
+/**
+ * Lower a VALUE-position control-flow directive (`const v = @if (…) { … }`) to a
+ * typed TS value for the to_ts view — a ternary (`@if`), an array `.map` (`@for`),
+ * or a returning IIFE (`@switch`/`@try`) — matching the JS targets' types. Unlike
+ * the render path (`transform_tsrx_ts_render_control_flow_statement`), each branch
+ * LEAF is returned, so the value is not a void IIFE. Render position never reaches
+ * here — only the generated value-wrapper fragment does (see
+ * `build_tsrx_to_ts_expression`).
+ * @param {any} node
+ * @param {VisitorClientContext} context
+ * @returns {AST.Expression}
+ */
+function build_tsrx_ts_directive_value(node, context) {
+	const scoped = (/** @type {AST.Node} */ scope_node) => ({
+		...context,
+		state: {
+			...context.state,
+			scope:
+				/** @type {ScopeInterface} */ (context.state.scopes.get(scope_node)) || context.state.scope,
+		},
+	});
+	// Lower a branch body to a single VALUE expression: a single returning leaf
+	// becomes the bare expression (a ternary arm); anything with setup becomes an
+	// IIFE that returns; an empty branch is `null`.
+	const branch_value = (/** @type {AST.Node[]} */ body, /** @type {AST.Node} */ scope_node) => {
+		const stmts = transform_tsrx_ts_statements_to_render_body(
+			transform_tsrx_ts_children(body, scoped(scope_node)),
+		);
+		if (stmts.length === 0) return b.literal(null);
+		if (stmts.length === 1 && stmts[0].type === 'ReturnStatement' && stmts[0].argument) {
+			return /** @type {AST.Expression} */ (stmts[0].argument);
+		}
+		return b.call(b.thunk(b.block(stmts)));
+	};
+
+	if (node.type === 'IfStatement') {
+		const cons_body =
+			node.consequent.type === 'BlockStatement' ? node.consequent.body : [node.consequent];
+		const consequent = branch_value(cons_body, node.consequent);
+		let alternate = /** @type {AST.Expression} */ (b.literal(null));
+		if (node.alternate) {
+			const alt = /** @type {any} */ (node.alternate);
+			alternate =
+				alt.type === 'IfStatement'
+					? build_tsrx_ts_directive_value(alt, scoped(alt))
+					: branch_value(alt.type === 'BlockStatement' ? alt.body : [alt], alt);
+		}
+		return b.conditional(
+			/** @type {AST.Expression} */ (context.visit(node.test, context.state)),
+			consequent,
+			alternate,
+		);
+	}
+
+	if (node.type === 'ForOfStatement') {
+		const body = transform_tsrx_ts_statements_to_render_body(
+			transform_tsrx_ts_children(
+				/** @type {AST.BlockStatement} */ (node.body).body,
+				scoped(node.body),
+			),
+		);
+		// `node.left` is a `const x` VariableDeclaration; the `.map` callback needs the
+		// bare pattern (`x`), not the declaration statement.
+		const left = /** @type {any} */ (node.left);
+		const param = left.type === 'VariableDeclaration' ? left.declarations[0].id : left;
+		const map_call = b.call(
+			b.member(/** @type {AST.Expression} */ (context.visit(node.right)), b.id('map')),
+			b.arrow([/** @type {AST.Pattern} */ (context.visit(param))], b.block(body)),
+		);
+		if (node.empty != null) {
+			return b.conditional(
+				b.binary(
+					'===',
+					b.member(/** @type {AST.Expression} */ (context.visit(node.right)), b.id('length')),
+					b.literal(0),
+				),
+				branch_value(node.empty.body, node.empty),
+				map_call,
+			);
+		}
+		return map_call;
+	}
+
+	if (node.type === 'SwitchStatement') {
+		const cases = node.cases.map((/** @type {any} */ sc) =>
+			b.switch_case(
+				sc.test ? /** @type {AST.Expression} */ (context.visit(sc.test)) : null,
+				transform_tsrx_ts_statements_to_render_body(
+					transform_tsrx_ts_children(
+						flatten_switch_consequent(sc.consequent),
+						scoped(sc.consequent),
+					),
+				),
+			),
+		);
+		const switch_stmt = b.switch(
+			/** @type {AST.Expression} */ (context.visit(node.discriminant)),
+			cases,
+			/** @type {AST.NodeWithLocation} */ (node),
+		);
+		return b.call(b.thunk(b.block([switch_stmt, b.return(b.literal(null))])));
+	}
+
+	// TryStatement: try/catch/pending leaves return; a `finally` must not.
+	const try_body = b.block(
+		transform_tsrx_ts_statements_to_render_body(
+			transform_tsrx_ts_children(node.block.body, scoped(node.block)),
+		),
+		/** @type {AST.NodeWithLocation} */ (node.block),
+	);
+	let catch_handler = null;
+	if (node.handler) {
+		catch_handler = b.catch_clause(
+			node.handler.param || null,
+			node.handler.resetParam || null,
+			b.block(
+				transform_tsrx_ts_statements_to_render_body(
+					transform_tsrx_ts_children(node.handler.body.body, scoped(node.handler.body)),
+				),
+				/** @type {AST.NodeWithLocation} */ (node.handler.body),
+			),
+			/** @type {AST.NodeWithLocation} */ (node.handler),
+		);
+	}
+	const pending = node.pending
+		? b.block(
+				transform_tsrx_ts_statements_to_render_body(
+					transform_tsrx_ts_children(node.pending.body, scoped(node.pending)),
+				),
+				/** @type {AST.NodeWithLocation} */ (node.pending),
+			)
+		: null;
+	const finalizer = node.finalizer
+		? b.block(
+				transform_body(node.finalizer.body, scoped(node.finalizer)),
+				/** @type {AST.NodeWithLocation} */ (node.finalizer),
+			)
+		: null;
+	return b.call(b.thunk(b.block([b.try(try_body, catch_handler, finalizer, pending)])));
 }
 
 /**

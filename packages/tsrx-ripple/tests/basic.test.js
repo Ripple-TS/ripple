@@ -393,9 +393,15 @@ describe('@tsrx/ripple lowers control flow combined into an expression', () => {
 		it(`wraps a sole-value ${kind} directive (to_ts)`, () => {
 			const { code, errors } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 			expect(errors).toEqual([]);
-			// to_ts lowers a sole-value directive to a valid IIFE (the fragment wrapper
-			// only survives when the directive is combined into a larger expression).
-			expect(code).toMatch(/\(\(\)\s*=>/);
+			// to_ts lowers a sole-value directive to a typed VALUE (matching the JS
+			// targets): a ternary for `@if`, a returning IIFE for `@switch` — never a
+			// void IIFE whose branches lack `return`.
+			if (kind === '@switch') {
+				expect(code).toContain('return null;');
+				expect(code).toMatch(/case true:\s*return </);
+			} else {
+				expect(code).toMatch(/cd = c \?/);
+			}
 			expect(code).not.toMatch(/=\s*if\b/);
 			expect(code).not.toMatch(/=\s*switch\b/);
 		});
@@ -410,6 +416,56 @@ describe('@tsrx/ripple lowers control flow combined into an expression', () => {
 		expect(errors).toEqual([]);
 		expect(code).toContain('_$_.tsrx_element');
 		expect(code).not.toMatch(/=\s*if\b/);
+	});
+});
+
+describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like the JS targets)', () => {
+	// A directive in VALUE position must lower to a value the const can be typed
+	// from — a ternary / `.map` / returning IIFE — NOT a void IIFE whose branches
+	// lack `return` (which would type the const as `void`).
+	const ts = (src) => compile_to_volar_mappings(src, 'App.tsrx', { loose: true }).code;
+
+	it('@if -> ternary', () => {
+		expect(
+			ts(`function App() @{ const v = @if (cond()) { <a /> } @else { <b /> }; <div>{v}</div> }`),
+		).toContain('const v = cond() ? <a /> : <b />;');
+	});
+
+	it('@if without else -> ternary with null', () => {
+		expect(ts(`function App() @{ const v = @if (cond()) { <a /> }; <div>{v}</div> }`)).toContain(
+			'const v = cond() ? <a /> : null;',
+		);
+	});
+
+	it('@switch -> returning IIFE with trailing return null', () => {
+		const code = ts(
+			`function App() @{ const v = @switch (cond()) { @case 1: { <a /> } @case 2: { <b /> } }; <div>{v}</div> }`,
+		);
+		expect(code).toMatch(/case 1:\s*return <a \/>;/);
+		expect(code).toContain('return null;');
+	});
+
+	it('@try -> returning IIFE with try/catch', () => {
+		const code = ts(
+			`function App() @{ const v = @try { <a /> } @catch (e) { <b /> }; <div>{v}</div> }`,
+		);
+		expect(code).toMatch(/try \{\s*return <a \/>;/);
+		expect(code).toMatch(/catch \(e\) \{\s*return <b \/>;/);
+	});
+
+	it('@for -> array .map (not an IIFE-with-for)', () => {
+		const code = ts(
+			`function App({ xs }: { xs: number[] }) @{ const v = @for (const x of xs) { <li>{x}</li> }; <div>{v}</div> }`,
+		);
+		expect(code).toMatch(/const v = xs\.map\(\(x\) =>/);
+		expect(code).toContain('return <li>{x}</li>;');
+		expect(code).not.toMatch(/=\s*\(\(\)\s*=>\s*\{\s*for\b/);
+	});
+
+	it('a directive in RENDER position is unchanged (still renders, no value lowering)', () => {
+		const code = ts(`function App() @{ <div>@if (cond()) { <a /> } @else { <b /> }</div> }`);
+		// Render position keeps its render IIFE; it is NOT turned into a ternary value.
+		expect(code).not.toMatch(/<div>\{cond\(\) \?/);
 	});
 });
 
