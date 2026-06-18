@@ -56,6 +56,7 @@ import {
 	setLocation,
 	createElementRefTargetTypeForName as create_element_ref_target_type_for_name,
 	wrapEdgeWhitespace as wrap_edge_whitespace,
+	isTemplateValuePosition,
 } from '@tsrx/core';
 const b = builders;
 import {
@@ -2038,7 +2039,12 @@ const visitors = {
 
 		// to_ts mode: produce a JSX fragment from native TSRX children.
 		if (state.to_ts) {
-			return build_tsrx_to_ts_expression(node, context);
+			const expression = build_tsrx_to_ts_expression(node, context);
+			// A fragment combined into a surrounding expression keeps its fragment
+			// identity so `<>{0}</> || 'x'` is not collapsed to a falsy `0 || 'x'`.
+			return is_combined_expression_position(context.path, node)
+				? wrap_to_ts_value_in_fragment(expression, node)
+				: expression;
 		}
 
 		const children_filtered = node.children.filter((child) => {
@@ -4576,6 +4582,55 @@ function is_native_tsrx_value_position(path) {
 		parent?.type === 'Element' ||
 		parent?.type === 'TsrxFragment'
 	);
+}
+
+/**
+ * A `<> … </>` combined INTO a surrounding expression (an operator operand, a
+ * conditional branch, an array element, …) rather than being the sole value of a
+ * render-output slot. There the to_ts collapse of a single-child fragment to its
+ * bare value flips meaning — a fragment is always truthy, but `<>{0}</>` collapses
+ * to a falsy `0`, so `<>{0}</> || 'x'` would render `'x'` instead of `0`. Keep the
+ * fragment in these positions.
+ * @param {AST.Node[]} path
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_combined_expression_position(path, node) {
+	const parent = /** @type {any} */ (path.at(-1));
+	if (!parent || !isTemplateValuePosition(parent, node)) return false;
+	switch (parent.type) {
+		// Sole-value render-output slots: the collapse is invisible, keep it.
+		case 'VariableDeclarator':
+			return parent.init !== node;
+		case 'AssignmentExpression':
+			return parent.right !== node;
+		case 'CallExpression':
+		case 'NewExpression':
+			return !(Array.isArray(parent.arguments) && parent.arguments.includes(node));
+		default:
+			return true;
+	}
+}
+
+/**
+ * Re-wrap a lowered to_ts value in a `<> … </>` fragment so a fragment combined
+ * into an expression keeps its fragment identity (see
+ * `is_combined_expression_position`). A value that is already a fragment is left
+ * as-is; a JSX element/text/container nests directly; any other expression goes in
+ * a `{ … }` container.
+ * @param {any} expression
+ * @param {AST.Node} source
+ * @returns {any}
+ */
+function wrap_to_ts_value_in_fragment(expression, source) {
+	if (expression?.type === 'JSXFragment') return expression;
+	const child =
+		expression?.type === 'JSXElement' ||
+		expression?.type === 'JSXText' ||
+		expression?.type === 'JSXExpressionContainer'
+			? expression
+			: b.jsx_expression_container(/** @type {AST.Expression} */ (expression));
+	return setLocation(b.jsx_fragment([child]), /** @type {AST.NodeWithLocation} */ (source));
 }
 
 /**

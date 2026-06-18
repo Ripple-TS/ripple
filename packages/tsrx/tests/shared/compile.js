@@ -2524,6 +2524,28 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).toContain('hi');
 		});
 
+		// A fragment is always a truthy element, but its single child may be falsy.
+		// In a render-output slot the collapse is invisible (covered above), but when
+		// the fragment is COMBINED into an expression the collapse flips meaning:
+		// `<>{0}</> || 'd'` renders `0`, while `0 || 'd'` renders `'d'`. Keep the
+		// fragment in those positions instead of unwrapping it.
+		it('keeps a fragment combined into an expression as a fragment', () => {
+			const operand = compile(
+				`function App() { let c = <>{0}</> || 'd'; return <div>{c}</div>; }`,
+				'App.tsrx',
+			);
+			expect(operand.code).toContain('<>');
+			expect(operand.code).toContain('</>');
+			expect(operand.code).not.toMatch(/let c = 0 \|\|/);
+
+			const ternary = compile(
+				`function App({ o }: { o: boolean }) { let c = o ? <>{1}</> : <>{2}</>; return <div>{c}</div>; }`,
+				'App.tsrx',
+			);
+			expect(ternary.code).toContain('<>');
+			expect(ternary.code).not.toMatch(/\?\s*1\s*:\s*2/);
+		});
+
 		it('keeps an explicit JSX fragment with multiple children', () => {
 			const { code } = compile(
 				`class Foo { bar() { return <><div>a</div><div>b</div></>; } }`,

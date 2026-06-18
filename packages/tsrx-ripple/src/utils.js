@@ -193,7 +193,144 @@ export function is_native_tsrx_template_node(node) {
  * @returns {T}
  */
 export function normalize_jsx_tsrx_templates(node) {
+	wrap_directives_combined_into_expressions(/** @type {any} */ (node));
 	return /** @type {T} */ (normalize_jsx_tsrx_node(/** @type {any} */ (node), []));
+}
+
+/**
+ * A `@if`/`@for`/`@switch`/`@try` control-flow directive — a raw `JSX…Expression`
+ * before normalization, or a statement carrying `metadata.tsrxDirective` after.
+ * (A `@{ … }` code block is deliberately NOT included: it self-lowers to an IIFE
+ * in every position, so it never needs wrapping and wrapping it would add a
+ * redundant fragment.)
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function is_control_flow_directive(node) {
+	const directive = node?.metadata?.tsrxDirective;
+	return (
+		directive === 'if' ||
+		directive === 'for' ||
+		directive === 'switch' ||
+		directive === 'try' ||
+		node?.type === 'JSXIfExpression' ||
+		node?.type === 'JSXForExpression' ||
+		node?.type === 'JSXSwitchExpression' ||
+		node?.type === 'JSXTryExpression'
+	);
+}
+
+/**
+ * Slots where a control-flow directive is a render child / statement and is
+ * lowered correctly as-is — so it must NOT be wrapped. Every OTHER slot is a
+ * value position (an operator operand, a variable initializer, a `@for` iterable,
+ * an `@if`/`@switch` test, a concise arrow body, a `return` argument, a member
+ * object, …), where a bare directive would leak as an `if (…) { … }` statement
+ * and is wrapped instead. Enumerating the render positions (rather than the value
+ * ones) is robust: it covers every value slot, and the pre- and post-normalization
+ * node shapes alike.
+ * @param {AST.Node} parent
+ * @param {string} key
+ * @param {AST.Node} child
+ * @returns {boolean}
+ */
+function is_render_child_or_statement_slot(parent, key, child) {
+	// JSX children.
+	if (key === 'children') return true;
+	// Block/program/loop/function bodies are statement lists — but a CONCISE
+	// (non-block) arrow body is an expression position, not a statement.
+	if (key === 'body') {
+		return !(
+			parent?.type === 'ArrowFunctionExpression' &&
+			/** @type {any} */ (child)?.type !== 'BlockStatement'
+		);
+	}
+	// A `@{ … }` code block's trailing render output.
+	if (parent?.type === 'JSXCodeBlock' && key === 'render') return true;
+	// `{ … }` containers lower their expression through the render machinery.
+	if (parent?.type === 'JSXExpressionContainer' && key === 'expression') return true;
+	// Switch-case statement lists.
+	if (parent?.type === 'SwitchCase' && key === 'consequent') return true;
+	// An if-node's branches, and the `@else if` chain (another directive) that
+	// lives in `alternate`.
+	if (
+		(parent?.type === 'IfStatement' || parent?.type === 'JSXIfExpression') &&
+		(key === 'consequent' || key === 'alternate')
+	) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Wrap a directive in a `<> … </>` so it normalizes to a `TsrxFragment` — the
+ * same shape an authored `<>@if … </>` produces — and flows through the render
+ * machinery (a `tsrx_element` on the client/server, a `<> … </>` in to_ts).
+ * @param {any} directive
+ * @returns {any}
+ */
+function wrap_directive_in_jsx_fragment(directive) {
+	const fragment = /** @type {any} */ (b.jsx_fragment([directive]));
+	fragment.metadata = { ...(fragment.metadata || {}), native_tsrx: true };
+	fragment.start = directive.start;
+	fragment.end = directive.end;
+	fragment.loc = directive.loc;
+	return fragment;
+}
+
+/**
+ * Pre-normalization pass: a `@if`/`@for`/`@switch`/`@try` directive used in ANY
+ * value position — the sole value of a slot (`let cd = @if (…) { … }`), an
+ * operator operand, a conditional branch, an array element, a `@for` iterable, an
+ * `@if`/`@switch` test, a concise arrow body (`xs.map((x) => @if (…) { … })`), a
+ * `return` argument, a member object — is wrapped in a `<> … </>` so it becomes a
+ * valid value (a `tsrx_element` render, or a `<> … </>` in to_ts) instead of a
+ * bare `if (…) { … }` statement leaking into expression position (or a raw
+ * `JSX…Expression` crashing the printer). The render positions where a directive
+ * is already lowered correctly are enumerated in `is_render_child_or_statement_slot`;
+ * everything else is wrapped. A `@{ … }` code block self-lowers to an IIFE in
+ * every position and is never wrapped.
+ * @param {any} ast
+ */
+function wrap_directives_combined_into_expressions(ast) {
+	const seen = new Set();
+	/**
+	 * @param {any} parent
+	 * @param {string} key
+	 * @param {any} child
+	 * @returns {boolean}
+	 */
+	const is_flagged = (parent, key, child) =>
+		is_control_flow_directive(child) && !is_render_child_or_statement_slot(parent, key, child);
+	/**
+	 * @param {any} node
+	 */
+	const visit = (node) => {
+		if (!node || typeof node !== 'object' || seen.has(node)) return;
+		seen.add(node);
+		if (Array.isArray(node)) {
+			for (const item of node) visit(item);
+			return;
+		}
+		for (const key of Object.keys(node)) {
+			if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') continue;
+			const value = node[key];
+			if (Array.isArray(value)) {
+				for (let i = 0; i < value.length; i++) {
+					if (is_flagged(node, key, value[i])) {
+						value[i] = wrap_directive_in_jsx_fragment(value[i]);
+					}
+					visit(value[i]);
+				}
+			} else if (is_flagged(node, key, value)) {
+				node[key] = wrap_directive_in_jsx_fragment(value);
+				visit(node[key]);
+			} else {
+				visit(value);
+			}
+		}
+	};
+	visit(ast);
 }
 
 /**
