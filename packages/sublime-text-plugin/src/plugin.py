@@ -1,55 +1,44 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import shutil
-from typing import Iterable, Optional
 
 import sublime
-from lsp_utils import NpmClientHandler
+from LSP.plugin import LspPlugin, OnPreStartContext, WorkspaceFolder
+from lsp_utils import NodeManager
+from sublime_lib import ResourcePath
 
 
 def plugin_loaded() -> None:
-    LspRipplePlugin.setup()
+    LspRipplePlugin.register()
 
 
 def plugin_unloaded() -> None:
-    LspRipplePlugin.cleanup()
+    LspRipplePlugin.unregister()
 
-class LspRipplePlugin(NpmClientHandler):
-    package_name = __package__
-    server_directory = 'language-server'
-    server_binary_path = os.path.join(
-        server_directory,
-        'node_modules',
-        '@ripple-ts',
-        'language-server',
-        'bin',
-        'language-server.js'
-    )
 
+class LspRipplePlugin(LspPlugin):
     @classmethod
-    def required_node_version(cls) -> str:
-        return '>=18.0.0'
-
-    @classmethod
-    def on_start(
-        cls,
-        window: sublime.Window,
-        initiating_view: Optional[sublime.View],
-        workspace_folders: Iterable,
-        configuration: 'ClientConfig'
-    ) -> bool:
-        external_binary = cls._determine_external_binary(initiating_view, workspace_folders)
-        if external_binary:
-            configuration.command = [external_binary, '--stdio']
-        return super().on_start(window, initiating_view, workspace_folders, configuration)
+    def on_pre_start_async(cls, context: OnPreStartContext) -> None:
+        if external_binary := cls._determine_external_binary(context.view, context.workspace_folders):
+            context.configuration.command = [external_binary, '--stdio']
+        else:
+            package_name = cls.plugin_storage_path.name
+            NodeManager.on_pre_start_async(
+                context,
+                cls.plugin_storage_path,
+                ResourcePath('Packages', package_name, 'language-server'),
+                Path('node_modules', '@ripple-ts', 'language-server', 'bin', 'language-server.js'),
+                node_version_requirement='>=18',
+            )
 
     @classmethod
     def _determine_external_binary(
         cls,
-        initiating_view: Optional[sublime.View],
-        workspace_folders: Iterable
-    ) -> Optional[str]:
+        initiating_view: sublime.View,
+        workspace_folders: list[WorkspaceFolder]
+    ) -> str | None:
         local_binary = cls._find_local_binary(initiating_view, workspace_folders)
         if local_binary:
             return local_binary
@@ -63,19 +52,17 @@ class LspRipplePlugin(NpmClientHandler):
     @classmethod
     def _find_local_binary(
         cls,
-        initiating_view: Optional[sublime.View],
-        workspace_folders: Iterable
-    ) -> Optional[str]:
+        initiating_view: sublime.View,
+        workspace_folders: list[WorkspaceFolder]
+    ) -> str | None:
         script_name = cls._binary_name()
-        candidates = []
+        candidates: list[str] = []
 
-        if initiating_view and initiating_view.file_name():
-            candidates.extend(cls._node_modules_dirs_from_path(initiating_view.file_name()))
+        if file_path := initiating_view.file_name():
+            candidates.extend(cls._node_modules_dirs_from_path(file_path))
 
-        for folder in workspace_folders or []:
-            folder_path = cls._workspace_folder_path(folder)
-            if folder_path:
-                candidates.extend(cls._node_modules_dirs_from_path(folder_path))
+        for folder in workspace_folders:
+            candidates.extend(cls._node_modules_dirs_from_path(folder.path))
 
         seen = set()
         for node_modules_path in candidates:
@@ -95,11 +82,11 @@ class LspRipplePlugin(NpmClientHandler):
         return None
 
     @classmethod
-    def _node_modules_dirs_from_path(cls, path: str) -> Iterable[str]:
+    def _node_modules_dirs_from_path(cls, path: str) -> list[str]:
         if not path:
             return []
 
-        directories = []
+        directories: list[str] = []
         current = os.path.abspath(path)
 
         if os.path.isfile(current):
@@ -115,25 +102,12 @@ class LspRipplePlugin(NpmClientHandler):
         return directories
 
     @classmethod
-    def _find_global_binary(cls) -> Optional[str]:
+    def _find_global_binary(cls) -> str | None:
         script_name = cls._binary_name()
         for candidate in (script_name, cls._maybe_windows_script(script_name)):
             if candidate:
-                path = shutil.which(candidate)
-                if path:
+                if path := shutil.which(candidate):
                     return path
-        return None
-
-    @staticmethod
-    def _workspace_folder_path(folder: object) -> Optional[str]:
-        path = getattr(folder, 'path', None)
-        if isinstance(path, str) and path:
-            return path
-
-        uri = getattr(folder, 'uri', None)
-        if isinstance(uri, str) and uri:
-            return sublime.uri_to_file_name(uri)
-
         return None
 
     @classmethod
@@ -141,7 +115,7 @@ class LspRipplePlugin(NpmClientHandler):
         return 'ripple-language-server'
 
     @classmethod
-    def _maybe_windows_script(cls, script_path: str) -> Optional[str]:
+    def _maybe_windows_script(cls, script_path: str) -> str | None:
         if script_path and sublime.platform() == 'windows':
             return script_path + '.cmd' if not script_path.endswith('.cmd') else script_path
         return None

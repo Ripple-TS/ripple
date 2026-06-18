@@ -1,3 +1,4 @@
 {
 	"selector": "source.tsrx",
+	"command": ["${node_bin}", "${server_path}", "--stdio"],
 }
