@@ -13,6 +13,10 @@
     "url": "git+https://github.com/Ripple-TS/ripple.git",
     "directory": "packages/rspack-plugin-react"
   },
+  "homepage": "https://github.com/Ripple-TS/ripple#readme",
+  "bugs": {
+    "url": "https://github.com/Ripple-TS/ripple/issues"
+  },
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
