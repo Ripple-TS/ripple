@@ -3690,16 +3690,18 @@ function build_tsrx_ts_return_expression(children, in_jsx_child, loc_node) {
  * @returns {TsrxTsStatement[]}
  */
 function transform_tsrx_ts_children(children, context) {
-	const { state, visit } = context;
+	const { state } = context;
 	/** @type {TsrxTsStatement[]} */
 	const init = [];
 	const ts_state = { ...state, init };
 
 	for (const child of children) {
 		if (child == null || child.type === 'EmptyStatement') continue;
+		// Spread `context` (not just `visit`/`state`) so flags like `value_position`
+		// reach nested fragment/element children — see transform_tsrx_tsx_child.
 		transform_ts_child(
 			/** @type {AST.Node} */ (child),
-			/** @type {TransformClientContext} */ ({ visit, state: ts_state }),
+			/** @type {TransformClientContext} */ ({ ...context, state: ts_state }),
 		);
 	}
 
@@ -3874,10 +3876,15 @@ function transform_tsrx_tsx_child(node, context) {
 		return b.jsx_expression_container(expression);
 	}
 
-	// A directive nested as a child (inside an authored fragment or a DOM element) is
-	// value content for the type view, like the JS targets — lower it to its value
-	// (`{cond ? <a/> : <b/>}`), not the void render IIFE that drops its branches.
-	if (/** @type {any} */ (node).metadata?.tsrxDirective) {
+	// A directive nested as a child of VALUE content (inside an authored fragment that
+	// is itself a directive's branch/case value) is value content too — lower it to
+	// its value (`{cond ? <a/> : <b/>}`), like the JS targets. In render position (a
+	// direct child of the component's rendered output) it still renders, so this is
+	// gated on `value_position` set by `build_tsrx_ts_directive_value`.
+	if (
+		/** @type {any} */ (context).value_position &&
+		/** @type {any} */ (node).metadata?.tsrxDirective
+	) {
 		return b.jsx_expression_container(build_tsrx_ts_directive_value(node, context));
 	}
 
@@ -4134,6 +4141,9 @@ function transform_tsrx_ts_render_control_flow_statement(node, context) {
 function build_tsrx_ts_directive_value(node, context) {
 	const scoped = (/** @type {AST.Node} */ scope_node) => ({
 		...context,
+		// Everything lowered as a directive's branch/case value is value content, so a
+		// directive nested in a fragment here lowers to a value (see transform_tsrx_tsx_child).
+		value_position: true,
 		state: {
 			...context.state,
 			scope:

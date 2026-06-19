@@ -502,6 +502,28 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		// The nested @if must NOT leak as a bare render statement (no value).
 		expect(code).not.toMatch(/if \(cond\(\)\) \{\s*<div>Hello<\/div>;/);
 	});
+
+	// A directive nested inside an authored fragment that is itself a branch's value
+	// is value content too — it lowers to its own value (a `.map`, not the void
+	// render IIFE-with-`for` that drops to `void`).
+	it('lowers a directive nested in a fragment inside a branch value to a value', () => {
+		const code = ts(
+			`function App({ xs, c }: { xs: number[]; c: any }) @{ const v = @switch (c) { @case 1: { <><a /> @for (const x of xs) { <li>{x}</li> }</> } }; <div>{v}</div> }`,
+		);
+		expect(code).toMatch(/<><a \/>\{xs\.map\(\(x\) => \{\s*return <li>\{x\}<\/li>;\s*\}\)\}<\/>/);
+		// not a void IIFE-with-for inside the fragment.
+		expect(code).not.toMatch(/<a \/>\{\(\(\) => \{\s*for \(/);
+	});
+
+	// The same nested directive in RENDER position (a direct child of the rendered
+	// output) is NOT value-lowered — it still renders as a `for` loop.
+	it('keeps a nested directive in render position rendering (not value-lowered)', () => {
+		const code = ts(
+			`export const Head = ({ scripts }: { scripts: { src: string }[] }) => @{ <head>@for (const script of scripts) { <script src={script.src} /> }</head> }`,
+		);
+		expect(code).toContain('for (const script of scripts)');
+		expect(code).not.toMatch(/scripts\.map\(/);
+	});
 });
 
 describe('@tsrx/ripple keeps fragments combined into an expression in to_ts output', () => {

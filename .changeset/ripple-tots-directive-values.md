@@ -18,11 +18,13 @@ Previously `const v = @if (cond()) { <a/> } @else { <b/> }` produced
 
 A branch or case with multiple sibling templates (`@case 1: { <a /> <b /> }`) is
 merged into a single `return <><a /><b /></>` rather than several returns where
-only the first would be reachable. A directive NESTED inside a branch is itself
-render content, so it is lowered to its own value and merged into the branch's
-returned fragment — `@case 1: { <a /> @if (c) { <b /> } }` becomes
-`return <><a />{c ? <b /> : null}</>`, not a bare `if (c) { … }` dropped from the
-value. So the editor types match the template.
+only the first would be reachable. A directive NESTED inside a branch — directly
+(`@case 1: { <a /> @if (c) { <b /> } }` → `return <><a />{c ? <b /> : null}</>`) or
+inside an authored fragment that is the branch's value (`@case 1: { <><a /> @for (…)
+{ … }</> }` → `return <><a />{xs.map(…)}</>`) — is value content too, so it is
+lowered to its own value and merged into the fragment, not left as a bare
+`if (c) { … }` / `for (…) { … }` dropped from the value. This holds at any nesting
+depth and for every directive combination. So the editor types match the template.
 
 The change is scoped to the generated value-position wrapper, so a directive in
 render position (a statement, a component's output, a direct JSX child) still
