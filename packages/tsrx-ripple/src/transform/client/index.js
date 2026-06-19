@@ -3874,6 +3874,13 @@ function transform_tsrx_tsx_child(node, context) {
 		return b.jsx_expression_container(expression);
 	}
 
+	// A directive nested as a child (inside an authored fragment or a DOM element) is
+	// value content for the type view, like the JS targets — lower it to its value
+	// (`{cond ? <a/> : <b/>}`), not the void render IIFE that drops its branches.
+	if (/** @type {any} */ (node).metadata?.tsrxDirective) {
+		return b.jsx_expression_container(build_tsrx_ts_directive_value(node, context));
+	}
+
 	return undefined;
 }
 
@@ -4144,22 +4151,34 @@ function build_tsrx_ts_directive_value(node, context) {
 			: b.jsx_expression_container(/** @type {AST.Expression} */ (expr));
 
 	// Lower a branch body to statements ending in a SINGLE `return` of the combined
-	// render value. Multiple sibling templates (`{ <a/> <b/> }`) become one
-	// `return <><a/><b/></>` (not several returns where only the first is reachable);
-	// setup statements are kept before the return so they share the IIFE scope.
+	// render value. All sibling templates — plain elements/expressions AND nested
+	// `@if`/`@for`/`@switch`/`@try` directives (each lowered to its own VALUE) — are
+	// merged into one `return <> … </>` (not several returns where only the first is
+	// reachable, nor a bare nested `if` dropped from the value). Setup statements are
+	// kept before the return so they share the IIFE scope.
 	const branch_returning_body = (
 		/** @type {AST.Node[]} */ body,
 		/** @type {AST.Node} */ scope_node,
 	) => {
-		const stmts = transform_tsrx_ts_children(body, scoped(scope_node));
+		const ctx = scoped(scope_node);
 		/** @type {AST.Statement[]} */
 		const setup = [];
 		/** @type {any[]} */
 		const renders = [];
-		for (const statement of stmts) {
-			const expr = statement_to_tsrx_ts_expression(statement);
-			if (expr) renders.push(to_fragment_child(expr));
-			else setup.push(/** @type {AST.Statement} */ (statement));
+		for (const stmt of body) {
+			if (stmt == null || stmt.type === 'EmptyStatement') continue;
+			if (/** @type {any} */ (stmt).metadata?.tsrxDirective) {
+				// A nested directive is render content here — lower it to its own value.
+				renders.push(to_fragment_child(build_tsrx_ts_directive_value(stmt, scoped(stmt))));
+				continue;
+			}
+			// A render node lowers to a render expression (collected into the fragment);
+			// anything else (a `const`, a side effect) stays setup before the return.
+			for (const lowered of transform_tsrx_ts_children([stmt], ctx)) {
+				const expr = statement_to_tsrx_ts_expression(lowered);
+				if (expr) renders.push(to_fragment_child(expr));
+				else setup.push(/** @type {AST.Statement} */ (lowered));
+			}
 		}
 		const value = build_tsrx_ts_return_expression(
 			renders,

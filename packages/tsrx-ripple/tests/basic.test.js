@@ -490,6 +490,18 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		);
 		expect(forCode).toMatch(/\.map\(\(x\) => \{\s*return <><a \/><b \/><\/>;\s*\}\)/);
 	});
+
+	// A NESTED directive inside a branch/case is render content too: it must be
+	// lowered to its own value and merged into the branch's returned fragment — not
+	// emitted as a bare `if (…) { … }` dropped from the value.
+	it('lowers a nested directive inside a branch to a value and includes it in the return', () => {
+		const code = ts(
+			`function App() @{ const v = @switch (cond()) { @case 1: { <a /> <b /> @if (cond()) { <div>Hello</div> } } }; <div>{v}</div> }`,
+		);
+		expect(code).toContain('return <><a /><b />{cond() ? <div>Hello</div> : null}</>;');
+		// The nested @if must NOT leak as a bare render statement (no value).
+		expect(code).not.toMatch(/if \(cond\(\)\) \{\s*<div>Hello<\/div>;/);
+	});
 });
 
 describe('@tsrx/ripple keeps fragments combined into an expression in to_ts output', () => {
