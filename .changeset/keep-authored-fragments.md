@@ -23,6 +23,9 @@ Authored fragments are now kept everywhere:
 - Ripple `to_ts` additionally keeps a fragment in a JSX-child `{ … }` container slot
   (`<div>{<>{x}</>}</div>`), matching the JS targets.
 
+An empty authored `<></>` is also kept verbatim everywhere — `return <></>` stays
+`return <></>` (not `null`) on all targets.
+
 A compiler-generated wrapper fragment (the one added around a control-flow directive
 so it lowers to a value) is marked internally and still collapses, so
 `const x = @switch (…) { … }` is unchanged. A nested authored fragment collapses

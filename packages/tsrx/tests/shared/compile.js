@@ -2458,6 +2458,12 @@ export function optionalFn(bar: string, baz?: string) {
 			expect(code).not.toContain('return null;');
 		});
 
+		it('keeps an empty authored fragment as render output (not null)', () => {
+			const { code } = compile(`class Foo { bar() { return <></>; } }`, 'App.tsrx');
+			expect(code).toContain('return <></>;');
+			expect(code).not.toContain('return null;');
+		});
+
 		it('parses text-only fragment initializers before template expression children', () => {
 			const { code } = compile(
 				`export function Button() @{

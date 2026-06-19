@@ -1296,16 +1296,20 @@ function build_render_statements(
 	}
 
 	let return_arg = build_return_expression(render_nodes);
-	// Keep an authored `<> … </>` render output verbatim: re-wrap the lowered value
-	// in a fragment instead of letting a single child collapse to a bare value (the
-	// `!== 'JSXFragment'` guard avoids double-wrapping a multi-child / nested result
-	// `build_return_expression` already returns as a fragment — matching the value seam).
-	if (
-		return_arg &&
-		return_arg.type !== 'JSXFragment' &&
-		is_authored_native_fragment(source_authored_fragment)
-	) {
-		return_arg = wrap_lowered_value_in_fragment(return_arg, source_authored_fragment);
+	// Keep an authored `<> … </>` render output verbatim instead of collapsing it:
+	// an empty `<></>` stays `<></>` (not `null`), and a single child stays wrapped
+	// (not its bare value). The `!== 'JSXFragment'` guard avoids double-wrapping a
+	// multi-child / nested result already returned as a fragment — matching the value
+	// seam. A generated wrapper is not authored, so it still collapses.
+	if (is_authored_native_fragment(source_authored_fragment)) {
+		if (return_arg === null) {
+			return_arg = set_loc(
+				b.jsx_fragment([]),
+				source_authored_fragment.loc ? source_authored_fragment : undefined,
+			);
+		} else if (return_arg.type !== 'JSXFragment') {
+			return_arg = wrap_lowered_value_in_fragment(return_arg, source_authored_fragment);
+		}
 	}
 	if (return_arg || (return_null_when_empty && !has_terminal_return)) {
 		statements.push(b.return(return_arg || b.literal(null)));
