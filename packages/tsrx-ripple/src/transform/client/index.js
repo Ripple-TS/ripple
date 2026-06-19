@@ -4133,14 +4133,46 @@ function build_tsrx_ts_directive_value(node, context) {
 				/** @type {ScopeInterface} */ (context.state.scopes.get(scope_node)) || context.state.scope,
 		},
 	});
-	// Lower a branch body to a single VALUE expression: a single returning leaf
-	// becomes the bare expression (a ternary arm); anything with setup becomes an
-	// IIFE that returns; an empty branch is `null`.
-	const branch_value = (/** @type {AST.Node[]} */ body, /** @type {AST.Node} */ scope_node) => {
-		const stmts = transform_tsrx_ts_statements_to_render_body(
-			transform_tsrx_ts_children(body, scoped(scope_node)),
+	// Combine a render expression into a JSX child so multiple siblings can be
+	// merged into one fragment.
+	const to_fragment_child = (/** @type {any} */ expr) =>
+		expr?.type === 'JSXElement' ||
+		expr?.type === 'JSXFragment' ||
+		expr?.type === 'JSXText' ||
+		expr?.type === 'JSXExpressionContainer'
+			? expr
+			: b.jsx_expression_container(/** @type {AST.Expression} */ (expr));
+
+	// Lower a branch body to statements ending in a SINGLE `return` of the combined
+	// render value. Multiple sibling templates (`{ <a/> <b/> }`) become one
+	// `return <><a/><b/></>` (not several returns where only the first is reachable);
+	// setup statements are kept before the return so they share the IIFE scope.
+	const branch_returning_body = (
+		/** @type {AST.Node[]} */ body,
+		/** @type {AST.Node} */ scope_node,
+	) => {
+		const stmts = transform_tsrx_ts_children(body, scoped(scope_node));
+		/** @type {AST.Statement[]} */
+		const setup = [];
+		/** @type {any[]} */
+		const renders = [];
+		for (const statement of stmts) {
+			const expr = statement_to_tsrx_ts_expression(statement);
+			if (expr) renders.push(to_fragment_child(expr));
+			else setup.push(/** @type {AST.Statement} */ (statement));
+		}
+		const value = build_tsrx_ts_return_expression(
+			renders,
+			false,
+			/** @type {AST.NodeWithLocation} */ (scope_node),
 		);
-		if (stmts.length === 0) return b.literal(null);
+		return [...setup, b.return(/** @type {AST.Expression} */ (value))];
+	};
+
+	// A branch as a VALUE (a ternary arm): the bare value when there is no setup, an
+	// IIFE that returns it otherwise.
+	const branch_value = (/** @type {AST.Node[]} */ body, /** @type {AST.Node} */ scope_node) => {
+		const stmts = branch_returning_body(body, scope_node);
 		if (stmts.length === 1 && stmts[0].type === 'ReturnStatement' && stmts[0].argument) {
 			return /** @type {AST.Expression} */ (stmts[0].argument);
 		}
@@ -4167,11 +4199,9 @@ function build_tsrx_ts_directive_value(node, context) {
 	}
 
 	if (node.type === 'ForOfStatement') {
-		const body = transform_tsrx_ts_statements_to_render_body(
-			transform_tsrx_ts_children(
-				/** @type {AST.BlockStatement} */ (node.body).body,
-				scoped(node.body),
-			),
+		const body = branch_returning_body(
+			/** @type {AST.BlockStatement} */ (node.body).body,
+			node.body,
 		);
 		// `node.left` is a `const x` VariableDeclaration; the `.map` callback needs the
 		// bare pattern (`x`), not the declaration statement.
@@ -4199,12 +4229,7 @@ function build_tsrx_ts_directive_value(node, context) {
 		const cases = node.cases.map((/** @type {any} */ sc) =>
 			b.switch_case(
 				sc.test ? /** @type {AST.Expression} */ (context.visit(sc.test)) : null,
-				transform_tsrx_ts_statements_to_render_body(
-					transform_tsrx_ts_children(
-						flatten_switch_consequent(sc.consequent),
-						scoped(sc.consequent),
-					),
-				),
+				branch_returning_body(flatten_switch_consequent(sc.consequent), sc.consequent),
 			),
 		);
 		const switch_stmt = b.switch(
@@ -4217,9 +4242,7 @@ function build_tsrx_ts_directive_value(node, context) {
 
 	// TryStatement: try/catch/pending leaves return; a `finally` must not.
 	const try_body = b.block(
-		transform_tsrx_ts_statements_to_render_body(
-			transform_tsrx_ts_children(node.block.body, scoped(node.block)),
-		),
+		branch_returning_body(node.block.body, node.block),
 		/** @type {AST.NodeWithLocation} */ (node.block),
 	);
 	let catch_handler = null;
@@ -4228,9 +4251,7 @@ function build_tsrx_ts_directive_value(node, context) {
 			node.handler.param || null,
 			node.handler.resetParam || null,
 			b.block(
-				transform_tsrx_ts_statements_to_render_body(
-					transform_tsrx_ts_children(node.handler.body.body, scoped(node.handler.body)),
-				),
+				branch_returning_body(node.handler.body.body, node.handler.body),
 				/** @type {AST.NodeWithLocation} */ (node.handler.body),
 			),
 			/** @type {AST.NodeWithLocation} */ (node.handler),
@@ -4238,9 +4259,7 @@ function build_tsrx_ts_directive_value(node, context) {
 	}
 	const pending = node.pending
 		? b.block(
-				transform_tsrx_ts_statements_to_render_body(
-					transform_tsrx_ts_children(node.pending.body, scoped(node.pending)),
-				),
+				branch_returning_body(node.pending.body, node.pending),
 				/** @type {AST.NodeWithLocation} */ (node.pending),
 			)
 		: null;

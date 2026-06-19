@@ -16,6 +16,10 @@ Previously `const v = @if (cond()) { <a/> } @else { <b/> }` produced
 - `@try` → a returning IIFE: `(() => { try { return <a />; } catch (e) { return <b />; } })()`.
 - `@for` → an array `.map`: `xs.map((x) => { return <li>{x}</li>; })`.
 
+A branch or case with multiple sibling templates (`@case 1: { <a /> <b /> }`) is
+merged into a single `return <><a /><b /></>` rather than several returns where
+only the first would be reachable, so the editor types match the template.
+
 The change is scoped to the generated value-position wrapper, so a directive in
 render position (a statement, a component's output, a direct JSX child) still
 renders unchanged, and the client/server runtime output is byte-identical (only

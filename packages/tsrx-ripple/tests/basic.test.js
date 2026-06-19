@@ -467,6 +467,29 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		// Render position keeps its render IIFE; it is NOT turned into a ternary value.
 		expect(code).not.toMatch(/<div>\{cond\(\) \?/);
 	});
+
+	// A branch/case with multiple sibling templates must merge into ONE `return` of
+	// a fragment — not several returns where only the first is reachable (which would
+	// make the editor types disagree with the template).
+	it('merges multiple sibling templates in a branch into a single return', () => {
+		const ifCode = ts(
+			`function App() @{ const v = @if (cond()) { <a /> <b /> } @else { <c /> }; <div>{v}</div> }`,
+		);
+		expect(ifCode).toContain('const v = cond() ? <><a /><b /></> : <c />;');
+
+		const switchCode = ts(
+			`function App() @{ const v = @switch (cond()) { @case 1: { <a /> <b /> } }; <div>{v}</div> }`,
+		);
+		// One return per case (the merged fragment), not two unreachable returns —
+		// the `toMatch` would fail on `case 1: return <a />; return <b />;`.
+		expect(switchCode).toMatch(/case 1:\s*return <><a \/><b \/><\/>;/);
+		expect(switchCode).not.toMatch(/return <a \/>;\s*return <b \/>;/);
+
+		const forCode = ts(
+			`function App({ xs }: { xs: number[] }) @{ const v = @for (const x of xs) { <a /> <b /> }; <div>{v}</div> }`,
+		);
+		expect(forCode).toMatch(/\.map\(\(x\) => \{\s*return <><a \/><b \/><\/>;\s*\}\)/);
+	});
 });
 
 describe('@tsrx/ripple keeps fragments combined into an expression in to_ts output', () => {
