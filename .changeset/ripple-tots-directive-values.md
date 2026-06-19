@@ -14,7 +14,15 @@ Previously `const v = @if (cond()) { <a/> } @else { <b/> }` produced
   a missing/empty branch is `null`; a branch with setup becomes a returning IIFE).
 - `@switch` → a returning IIFE: `(() => { switch (cond()) { case 1: return <a />; … } return null; })()`.
 - `@try` → a returning IIFE: `(() => { try { return <a />; } catch (e) { return <b />; } })()`.
-- `@for` → an array `.map`: `xs.map((x) => { return <li>{x}</li>; })`.
+- `@for` → `Array.from(iterable).map((x, i) => { return <li>{x}</li>; })`. `@for`
+  accepts any iterable, but `Set`/`Map`/generators have no `.length` or `.map`, so
+  lowering them directly typed the binding as an error and never surfaced the
+  `@empty` branch; `Array.from(…)` yields a real array (the `to_ts` analog of the
+  JS targets' `map_iterable` helper). `; index i` becomes the callback's second
+  parameter `(x, i)`; `@empty` is `Array.from(…).length === 0 ? <empty> : <map>`.
+  `@for await` iterates an `AsyncIterable`, which `Array.from` does not accept, so
+  it instead lowers to an awaited async IIFE with a real `for await` loop
+  (`await (async () => { const a = []; for await (const x of xs) a.push(…); return a; })()`).
 
 A branch or case with multiple sibling templates (`@case 1: { <a /> <b /> }`) is
 merged into a single `return <><a /><b /></>` rather than several returns where

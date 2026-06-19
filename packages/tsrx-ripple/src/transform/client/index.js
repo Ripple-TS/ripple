@@ -4228,25 +4228,88 @@ function build_tsrx_ts_directive_value(node, context) {
 	}
 
 	if (node.type === 'ForOfStatement') {
+		// `@for await` iterates an AsyncIterable, which `Array.from` does NOT accept.
+		// Accumulate with a real `for await` loop instead (the runtime renders via
+		// `_$_.for`; this is the to_ts type view only). Await the async IIFE so the
+		// binding types as the item array, not a `Promise` — the enclosing component is
+		// async, since `for await` requires it.
+		if (node.await) {
+			const items_id = b.id('$$items');
+			/** @type {AST.Statement[]} */
+			const loop_body = [];
+			// `; index i` has no map-callback equivalent here; declare it as a typed
+			// `number` (its runtime value is irrelevant to the type view), like the
+			// render path. `; key expr` stays so it type-checks.
+			if (node.index) {
+				loop_body.push(
+					b.let(/** @type {AST.Identifier} */ (context.visit(node.index)), b.literal(0)),
+				);
+			}
+			if (node.key) {
+				loop_body.push(b.stmt(/** @type {AST.Expression} */ (context.visit(node.key))));
+			}
+			loop_body.push(
+				b.stmt(
+					b.call(
+						b.member(items_id, b.id('push')),
+						b.call(b.thunk(b.block(branch_returning_body(node.body.body, node.body)))),
+					),
+				),
+			);
+			const for_await = b.for_of(
+				/** @type {AST.Pattern} */ (context.visit(node.left)),
+				/** @type {AST.Expression} */ (context.visit(node.right)),
+				b.block(loop_body),
+				true,
+				/** @type {AST.NodeWithLocation} */ (node),
+			);
+			const result =
+				node.empty != null
+					? b.conditional(
+							b.binary('===', b.member(items_id, b.id('length')), b.literal(0)),
+							branch_value(node.empty.body, node.empty),
+							items_id,
+						)
+					: items_id;
+			const iife = b.arrow(
+				[],
+				b.block([b.const(items_id, b.array([])), for_await, b.return(result)]),
+				true,
+			);
+			// The custom esrap AwaitExpression printer reads `node.loc`, so stamp it.
+			return setLocation(b.await(b.call(iife)), /** @type {AST.NodeWithLocation} */ (node));
+		}
 		const body = branch_returning_body(
 			/** @type {AST.BlockStatement} */ (node.body).body,
 			node.body,
 		);
+		// A keyed `@for (…; key expr)` evaluates `expr` per item — keep it so the key
+		// type-checks (it references the loop variable), matching the render path.
+		if (node.key) {
+			body.unshift(b.stmt(/** @type {AST.Expression} */ (context.visit(node.key))));
+		}
 		// `node.left` is a `const x` VariableDeclaration; the `.map` callback needs the
-		// bare pattern (`x`), not the declaration statement.
+		// bare pattern (`x`), not the declaration statement. `; index i` becomes the
+		// callback's second parameter (`(x, i)`), not a dropped reference.
 		const left = /** @type {any} */ (node.left);
 		const param = left.type === 'VariableDeclaration' ? left.declarations[0].id : left;
-		const map_call = b.call(
-			b.member(/** @type {AST.Expression} */ (context.visit(node.right)), b.id('map')),
-			b.arrow([/** @type {AST.Pattern} */ (context.visit(param))], b.block(body)),
-		);
+		const params = [/** @type {AST.Pattern} */ (context.visit(param))];
+		if (node.index) {
+			params.push(/** @type {AST.Pattern} */ (context.visit(node.index)));
+		}
+		// `@for` iterates ANY iterable, but many (Set, Map, generators) have no `.length`
+		// or `.map`, so lowering those directly typed the binding as an error and never
+		// surfaced the `@empty` branch. `Array.from(iterable)` yields a real array — the
+		// Ripple `to_ts` analog of the JS targets' `map_iterable` helper.
+		const items = () =>
+			b.call(
+				b.member(b.id('Array'), b.id('from')),
+				/** @type {AST.Expression} */ (context.visit(node.right)),
+			);
+		const map_call = b.call(b.member(items(), b.id('map')), b.arrow(params, b.block(body)));
 		if (node.empty != null) {
 			return b.conditional(
-				b.binary(
-					'===',
-					b.member(/** @type {AST.Expression} */ (context.visit(node.right)), b.id('length')),
-					b.literal(0),
-				),
+				b.binary('===', b.member(items(), b.id('length')), b.literal(0)),
 				branch_value(node.empty.body, node.empty),
 				map_call,
 			);

@@ -453,13 +453,40 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		expect(code).toMatch(/catch \(e\) \{\s*return <b \/>;/);
 	});
 
-	it('@for -> array .map (not an IIFE-with-for)', () => {
+	it('@for -> Array.from(iterable).map (iterable-safe, not an IIFE-with-for)', () => {
 		const code = ts(
 			`function App({ xs }: { xs: number[] }) @{ const v = @for (const x of xs) { <li>{x}</li> }; <div>{v}</div> }`,
 		);
-		expect(code).toMatch(/const v = xs\.map\(\(x\) =>/);
+		expect(code).toMatch(/const v = Array\.from\(xs\)\.map\(\(x\) =>/);
 		expect(code).toContain('return <li>{x}</li>;');
 		expect(code).not.toMatch(/=\s*\(\(\)\s*=>\s*\{\s*for\b/);
+	});
+
+	// `@for` accepts any iterable, but `Set`/`Map`/generators have no `.length` or
+	// `.map`. Lower through `Array.from(...)` so the binding and the `@empty` branch
+	// type-check (the index `; index i` becomes the map callback's 2nd param).
+	it('@for over a non-array iterable is iterable-safe via Array.from (+ index, + @empty)', () => {
+		const empty = ts(
+			`function App({ xs }: { xs: Set<number> }) @{ const v = @for (const x of xs; index i) { <li>{i}{x}</li> } @empty { <p>none</p> }; <div>{v}</div> }`,
+		);
+		// no bare `xs.length` / `xs.map` (Set has neither) — both go through Array.from.
+		expect(empty).not.toMatch(/\bxs\.length\b/);
+		expect(empty).not.toMatch(/\bxs\.map\b/);
+		expect(empty).toMatch(/Array\.from\(xs\)\.length === 0/);
+		expect(empty).toMatch(/Array\.from\(xs\)\.map\(\(x, i\) =>/);
+	});
+
+	// `@for await` iterates an AsyncIterable, which `Array.from` does NOT accept — it
+	// lowers to an awaited async IIFE with a real `for await` loop (no `Array.from`).
+	it('@for await lowers to an awaited for-await IIFE (not Array.from of an AsyncIterable)', () => {
+		const code = ts(
+			`async function App({ xs }: { xs: AsyncIterable<number> }) @{ const v = @for await (const x of xs) { <li>{x}</li> } @empty { <p/> }; <div>{v}</div> }`,
+		);
+		expect(code).toMatch(/const v = await \(async \(\) =>/);
+		expect(code).toMatch(/for await \(const x of xs\)/);
+		expect(code).toMatch(/\$\$items\.length === 0 \? <p \/> : \$\$items/);
+		// must NOT pass an AsyncIterable to Array.from (the bug).
+		expect(code).not.toMatch(/Array\.from\(xs\)/);
 	});
 
 	it('a directive in RENDER position is unchanged (still renders, no value lowering)', () => {
@@ -510,7 +537,9 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		const code = ts(
 			`function App({ xs, c }: { xs: number[]; c: any }) @{ const v = @switch (c) { @case 1: { <><a /> @for (const x of xs) { <li>{x}</li> }</> } }; <div>{v}</div> }`,
 		);
-		expect(code).toMatch(/<><a \/>\{xs\.map\(\(x\) => \{\s*return <li>\{x\}<\/li>;\s*\}\)\}<\/>/);
+		expect(code).toMatch(
+			/<><a \/>\{Array\.from\(xs\)\.map\(\(x\) => \{\s*return <li>\{x\}<\/li>;\s*\}\)\}<\/>/,
+		);
 		// not a void IIFE-with-for inside the fragment.
 		expect(code).not.toMatch(/<a \/>\{\(\(\) => \{\s*for \(/);
 	});
