@@ -1746,6 +1746,22 @@ describe('lazy destructuring', () => {
 		expect(code).toContain('let { name } = props');
 	});
 
+	it('keeps a lazy binding used as a JSX name unrewritten in type-only output', () => {
+		const { code } = compile_to_volar_mappings(
+			`export function Comp(&{ Item }) @{
+				<Item></Item>
+			}`,
+			'App.tsrx',
+		);
+
+		// The param stays a bare destructure (so `Item` maps identity-style to
+		// source) and `<Item>` keeps referencing that in-scope binding — no rename
+		// to `__lazy0.Item`, which only happens in production output.
+		expect(code).not.toContain('__lazy');
+		expect(code).toContain('{ Item }');
+		expect(code).toContain('<Item>');
+	});
+
 	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(

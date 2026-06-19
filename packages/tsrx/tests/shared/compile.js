@@ -1093,6 +1093,77 @@ export function runSharedLazyScopeNestingTests({ compile, name }) {
 }
 
 /**
+ * A lazy binding used as a JSX element/component name must be rewritten to a JSX
+ * member expression in production output (`<Item>` → `<__lazy0.Item>`), because
+ * the bound name is no longer a local — it is a property of the synthesized lazy
+ * source. The element shape is identical across targets, so the assertions are
+ * framework-agnostic.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedLazyJsxNameTests({ compile, name }) {
+	describe(`[${name}] lazy binding as a JSX name`, () => {
+		it('rewrites a lazy object param used as a component name', () => {
+			const { code } = compile(
+				`export function Comp(&{ Item }) @{
+					<Item></Item>
+				}`,
+				'App.tsrx',
+			);
+
+			// Untyped lazy object param is left implicitly `any` — no synthesized type.
+			expect(code).toContain('function Comp(__lazy0)');
+			expect(code).not.toContain('{ Item: any }');
+			expect(code).toContain('<__lazy0.Item>');
+			expect(code).toContain('</__lazy0.Item>');
+			// The bare element name must not survive — it would reference a local that
+			// no longer exists (the param is now `__lazy0`).
+			expect(code).not.toContain('<Item>');
+			expect(code).not.toContain('</Item>');
+		});
+
+		it('rewrites a self-closing lazy component name', () => {
+			const { code } = compile(
+				`export function Comp(&{ Item }) @{
+					<Item />
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<__lazy0.Item />');
+			expect(code).not.toContain('<Item ');
+		});
+
+		it('rewrites a lazy component name declared with let', () => {
+			const { code } = compile(
+				`export function Comp(props) @{
+					let &{ Item } = props;
+					<Item></Item>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = props');
+			expect(code).toContain('<__lazy0.Item>');
+			expect(code).not.toContain('<Item>');
+		});
+
+		it('rewrites a lazy component name alongside its attributes and children', () => {
+			const { code } = compile(
+				`export function Comp(&{ Item, label }) @{
+					<Item title={label}>{label}</Item>
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('<__lazy0.Item');
+			expect(code).toContain('title={__lazy0.label}');
+			expect(code).toContain('{__lazy0.label}');
+		});
+	});
+}
+
+/**
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedFragmentExpressionRenderTests({ compile, name }) {
@@ -1908,6 +1979,7 @@ export function runSharedCompileTests({
 	runSharedComponentLoopControlFlowTests({ compile, name });
 	runSharedNestedLazyDestructuringTests({ compile, name });
 	runSharedLazyScopeNestingTests({ compile, name });
+	runSharedLazyJsxNameTests({ compile, name });
 
 	describe(`[${name}] fragment expression children`, () => {
 		// A bare expression placed directly as a JSX child reads as JSX text
@@ -3335,7 +3407,7 @@ export function optionalFn(bar: string, baz?: string) {
 		// component scope, but locals with the same name must shadow — the
 		// shared `applyLazyTransforms` helper in @tsrx/core handles this.
 
-		it('gives untyped lazy object params an object-shaped generated type', () => {
+		it('leaves an untyped lazy object param implicitly any (no synthesized type)', () => {
 			const { code } = compile(
 				`export function App(&{ name, age }) @{
 					<div>{name}{age}</div>
@@ -3343,12 +3415,15 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('function App(__lazy0: { name: any; age: any })');
+			// No type was written, so the generated param carries none either — it is
+			// left implicitly `any` rather than getting a fabricated `{ … : any }`.
+			expect(code).toContain('function App(__lazy0)');
+			expect(code).not.toContain('{ name: any; age: any }');
 			expect(code).toContain('__lazy0.name');
 			expect(code).toContain('__lazy0.age');
 		});
 
-		it('uses the source property name for aliased lazy object params', () => {
+		it('reads an aliased lazy object binding off its source property name', () => {
 			const { code } = compile(
 				`export function App(&{ name: displayName }) @{
 					<div>{displayName}</div>
@@ -3356,7 +3431,8 @@ export function optionalFn(bar: string, baz?: string) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('function App(__lazy0: { name: any })');
+			// The binding `displayName` resolves through the source property `name`.
+			expect(code).toContain('function App(__lazy0)');
 			expect(code).toContain('__lazy0.name');
 			expect(code).not.toContain('__lazy0.displayName');
 		});

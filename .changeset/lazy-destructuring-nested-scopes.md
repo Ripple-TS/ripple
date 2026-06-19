@@ -18,5 +18,20 @@ A `@switch` case body's lazy bindings are now collected too (the shared switch
 block scope), so a reference like `{value}` becomes `{__lazy0.value}` rather than
 a half-transformed `let __lazy0 = props` with a dangling `value`.
 
+Also rewrite a lazy binding used as a JSX element/component name to a member
+expression (`function Comp(&{ Item }) @{ <Item></Item> }` →
+`function Comp(__lazy0) { return <__lazy0.Item></__lazy0.Item>; }`). The bound
+name is no longer a local once the param/declaration is replaced with the
+generated `__lazy0` source, so `<Item>` had been leaking a reference to an
+undefined identifier; it now reads the component off the lazy source like every
+other reference does.
+
+An untyped lazy object param no longer gets a synthesized `{ … : any }` type. The
+source specified no type, so the generated param is left implicitly `any`
+(`function Comp(__lazy0)`) instead of carrying a fabricated object shape; a param
+with an author-provided type still keeps it (`function Comp(__lazy0: Props)`).
+
 Type-only (virtual TSX) output is unchanged: it never runs the lazy transform, so
-the pattern keeps printing as a plain destructure.
+the param keeps printing as a plain destructure (`{ Item }`, untyped) and `<Item>`
+keeps referencing that in-scope binding, which preserves identity-style source
+mappings for editor features.

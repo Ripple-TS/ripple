@@ -100,38 +100,6 @@ function get_lazy_pattern_mapping_range(pattern) {
 }
 
 /**
- * Synthesize an object-shaped annotation for untyped lazy object params so the
- * virtual TSX can expose prop names to TypeScript completions.
- *
- * @param {any} pattern
- * @returns {any | null}
- */
-function create_lazy_object_type_annotation(pattern) {
-	if (pattern.type !== 'ObjectPattern') return null;
-
-	const members = [];
-	for (const prop of pattern.properties || []) {
-		if (prop.type === 'RestElement' || prop.computed) continue;
-
-		const key = prop.key;
-		if (key.type !== 'Identifier' && key.type !== 'Literal') continue;
-
-		const member_key =
-			key.type === 'Identifier'
-				? create_generated_identifier(key.name, key)
-				: set_source_location({ ...key, metadata: { path: [] } }, key);
-
-		members.push(
-			b.ts_property_signature(member_key, b.ts_type_annotation(b.ts_keyword_type('any'))),
-		);
-	}
-
-	if (members.length === 0) return null;
-
-	return b.ts_type_annotation(b.ts_type_literal(members));
-}
-
-/**
  * @param {any} node
  * @returns {string | null}
  */
@@ -348,12 +316,14 @@ function visit_topmost_lazy_patterns(pattern, visit) {
 
 /**
  * Build the replacement identifier for a lazy pattern. When `is_top` is true
- * (the pattern is itself a function parameter) we attach the original
- * `typeAnnotation`, synthesize an object-shaped annotation for untyped object
- * params so TypeScript sees prop names, and register source-mapping info.
- * Nested replacements (inside a non-lazy outer destructure) can't carry an
- * inline type annotation — that's not valid syntax — so they get a plain
- * identifier with just source-range info.
+ * (the pattern is itself a function parameter) we carry over the author's
+ * `typeAnnotation` if one was written and register source-mapping info. An
+ * untyped lazy object param gets NO synthesized annotation: since the source
+ * specified no type, the generated param is left implicitly `any` rather than
+ * being given a fabricated `{ … : any }` object type. Nested replacements
+ * (inside a non-lazy outer destructure) can't carry an inline type annotation —
+ * that's not valid syntax — so they get a plain identifier with just source-range
+ * info.
  *
  * @param {any} pattern
  * @param {boolean} is_top
@@ -372,9 +342,6 @@ function build_lazy_id_for_pattern(pattern, is_top) {
 	if (!is_top) return lazy_id;
 	if (pattern.typeAnnotation) {
 		lazy_id.typeAnnotation = pattern.typeAnnotation;
-	} else {
-		const type_annotation = create_lazy_object_type_annotation(pattern);
-		if (type_annotation) lazy_id.typeAnnotation = type_annotation;
 	}
 	set_lazy_param_binding_mappings(lazy_id, pattern);
 	return lazy_id;
@@ -509,6 +476,53 @@ export function preallocate_lazy_ids(root, context) {
 	};
 
 	visit(root);
+}
+
+/**
+ * Convert an ESTree member-access chain (`__lazy0.Item`, `__lazy0.a.b`) into the
+ * equivalent JSX element-name node (a `JSXIdentifier` or `JSXMemberExpression`),
+ * so a lazy binding used as a component/element name (`<Item>`) can be rewritten
+ * to `<__lazy0.Item>`. Returns null for a computed access (`__lazy0[0]`, from an
+ * array destructure), which has no JSX-name form.
+ *
+ * @param {any} expr
+ * @param {any} [source]
+ * @returns {any | null}
+ */
+function estree_member_to_jsx_name(expr, source) {
+	if (expr.type === 'Identifier') {
+		return set_source_location(b.jsx_id(expr.name), source);
+	}
+	if (expr.type === 'MemberExpression' && !expr.computed && expr.property?.type === 'Identifier') {
+		const object = estree_member_to_jsx_name(expr.object, source);
+		if (!object) return null;
+		return set_source_location(b.jsx_member(object, b.jsx_id(expr.property.name)), source);
+	}
+	return null;
+}
+
+/**
+ * If a JSX element/component name references a lazy binding, return the rewritten
+ * JSX name (`<Item>` → `<__lazy0.Item>`, `<Item.Sub>` → `<__lazy0.Item.Sub>`).
+ * Returns null when the name does not reference a lazy binding (or the access has
+ * no JSX-name form), so the caller leaves the original name untouched.
+ *
+ * @param {any} name
+ * @param {Map<string, LazyBinding>} lazy_bindings
+ * @returns {any | null}
+ */
+function rewrite_lazy_jsx_name(name, lazy_bindings) {
+	if (!name) return null;
+	if (name.type === 'JSXIdentifier') {
+		const binding = lazy_bindings.get(name.name);
+		if (!binding) return null;
+		return estree_member_to_jsx_name(binding.read(name), name);
+	}
+	if (name.type === 'JSXMemberExpression') {
+		const new_object = rewrite_lazy_jsx_name(name.object, lazy_bindings);
+		return new_object ? { ...name, object: new_object } : null;
+	}
+	return null;
 }
 
 /**
@@ -842,6 +856,21 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 		if (key === 'name' && node.type === 'JSXAttribute') continue;
 		// Skip VariableDeclarator id (already handled above).
 		if (key === 'id' && node.type === 'VariableDeclarator') continue;
+
+		// A JSX element/component name that resolves to a lazy binding becomes a
+		// JSX member expression (`<Item>` → `<__lazy0.Item>`): the bound name is no
+		// longer a local, it is a property of the synthesized lazy source.
+		if (
+			key === 'name' &&
+			(node.type === 'JSXOpeningElement' || node.type === 'JSXClosingElement')
+		) {
+			const jsx_name = rewrite_lazy_jsx_name(node[key], lazy_bindings);
+			if (jsx_name) {
+				clone[key] = jsx_name;
+				changed = true;
+				continue;
+			}
+		}
 
 		const new_value = apply_lazy_transforms(node[key], lazy_bindings);
 		if (new_value !== node[key]) {
