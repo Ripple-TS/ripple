@@ -944,6 +944,155 @@ export function runSharedNestedLazyDestructuringTests({ compile, name }) {
 }
 
 /**
+ * Lazy `&{...}` / `&[...]` declarations inside a nested `@{ ... }` code block or a
+ * `@if` / `@for` / `@switch` directive body must be rewritten exactly as they are
+ * in a flat component body. These scopes lower to generated function boundaries
+ * (scoped IIFEs, `.map(...)` callbacks, `<Show>` / `<For>` / `<Match>` render
+ * closures), so the lazy transform has to descend into them rather than stopping
+ * at the component function. Assertions check only the framework-agnostic member
+ * accessor (`__lazy0.x` / `__lazy0[0]`), so they hold whichever way each target
+ * lowers the control flow.
+ *
+ * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
+ */
+export function runSharedLazyScopeNestingTests({ compile, name }) {
+	describe(`[${name}] lazy destructuring across nested scopes`, () => {
+		it('transforms lazy object destructuring inside a nested code block', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					@{
+						let &{ name } = props;
+						<div>{name}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = props');
+			expect(code).toContain('__lazy0.name');
+			// The lazy declaration must not survive as a plain destructure.
+			expect(code).not.toContain('let { name } = props');
+		});
+
+		it('transforms lazy array destructuring inside a nested code block', () => {
+			const { code } = compile(
+				`export function App() @{
+					@{
+						let &[val] = getState();
+						<div>{val}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = getState()');
+			expect(code).toContain('__lazy0[0]');
+			expect(code).not.toContain('let [val] = getState()');
+		});
+
+		it('transforms lazy destructuring through two levels of nested code blocks', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					@{
+						@{
+							let &{ a } = props;
+							<div>{a}</div>
+						}
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = props');
+			expect(code).toContain('__lazy0.a');
+		});
+
+		it('transforms lazy destructuring declared inside a @for body', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					@for (const row of props.rows) {
+						let &{ name } = row;
+						<div>{name}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = row');
+			expect(code).toContain('__lazy0.name');
+			expect(code).not.toContain('let { name } = row');
+		});
+
+		it('transforms lazy destructuring declared inside a @if body', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					@if (props.show) {
+						let &{ label } = props;
+						<div>{label}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = props');
+			expect(code).toContain('__lazy0.label');
+			expect(code).not.toContain('let { label } = props');
+		});
+
+		it('transforms lazy destructuring declared inside a @switch case body', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					let &{ kind } = props;
+					@switch (kind) {
+						@case 'a': {
+							let &{ value } = props;
+							<div>{value}</div>
+						}
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0.kind');
+			expect(code).toContain('__lazy1.value');
+			expect(code).not.toContain('let { value } = props');
+		});
+
+		it('rewrites an outer lazy binding referenced inside a nested code block', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					let &{ name } = props;
+					@{
+						<div>{name}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain('__lazy0 = props');
+			expect(code).toContain('__lazy0.name');
+		});
+
+		it('keeps a nested binding that shadows an outer lazy name unrewritten', () => {
+			const { code } = compile(
+				`export function App(props) @{
+					let &{ name } = props;
+					@{
+						let name = 'x';
+						<div>{name}</div>
+					}
+				}`,
+				'App.tsrx',
+			);
+
+			expect(code).toContain("let name = 'x'");
+			// The shadowed reference resolves to the local `name`, never the lazy source.
+			expect(code).not.toContain('__lazy0.name');
+		});
+	});
+}
+
+/**
  * @param {Pick<CompileHarness, 'compile' | 'name'>} harness
  */
 export function runSharedFragmentExpressionRenderTests({ compile, name }) {
@@ -1758,6 +1907,7 @@ export function runSharedCompileTests({
 
 	runSharedComponentLoopControlFlowTests({ compile, name });
 	runSharedNestedLazyDestructuringTests({ compile, name });
+	runSharedLazyScopeNestingTests({ compile, name });
 
 	describe(`[${name}] fragment expression children`, () => {
 		// A bare expression placed directly as a JSX child reads as JSX text

@@ -747,6 +747,12 @@ export function createJsxTransform(platform) {
 			inject_try_imports(expanded, transform_context, platform, suspense_source);
 		}
 
+		// Lower any `@{ … }` code blocks left in generated helper bodies before the
+		// lazy transform runs, so every `@{ … }` block / `@`-directive has already
+		// been lowered to its final closure / block shape. The lazy transform can
+		// then walk the complete function structure in one pass.
+		lower_remaining_jsx_code_blocks(expanded, transform_context);
+
 		// Apply lazy destructuring transforms to module-level code (top-level function
 		// declarations, arrow functions, etc.).
 		// In type-only mode, the lazy patterns survive untouched: esrap ignores the
@@ -754,12 +760,25 @@ export function createJsxTransform(platform) {
 		// = expr` prints as `let [a] = expr`, and the bare statement-level form
 		// `&[x] = expr;` (used when `x` is already declared) prints as `[x] =
 		// expr;` — a valid destructuring assignment to the existing binding.
+		//
+		// Re-run `preallocate_lazy_ids` first. The initial pre-walk pass stamps
+		// `metadata.has_lazy_descendants` (the fast-path gate that tells
+		// `apply_lazy_transforms` a function body is worth walking) on the function
+		// boundaries that existed in the source. Lowering `@{ … }` blocks and
+		// `@if`/`@for`/`@switch`/`@try` directives introduces NEW function
+		// boundaries — scoped IIFEs and `.map(...)` callbacks — that wrap those same
+		// lazy patterns but were never stamped. Re-running over the lowered tree
+		// stamps them too (it is idempotent: already-allocated `lazy_id`s are kept),
+		// so lazy bindings declared inside a nested block or directive body are
+		// rewritten just like a flat function body.
+		if (!transform_context.typeOnly) {
+			preallocate_lazy_ids(/** @type {any} */ (expanded), transform_context);
+		}
 		const final_program = /** @type {any} */ (
 			transform_context.typeOnly
 				? expanded
 				: apply_lazy_transforms(/** @type {any} */ (expanded), new Map())
 		);
-		lower_remaining_jsx_code_blocks(final_program, transform_context);
 
 		const result = print(/** @type {any} */ (final_program), tsx_with_ts_locations(), {
 			sourceMapSource: filename,

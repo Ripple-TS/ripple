@@ -1728,6 +1728,24 @@ describe('lazy destructuring', () => {
 		expect(code).not.toContain('App__Continue');
 	});
 
+	it('leaves lazy destructuring inside nested scopes untouched in type-only output', () => {
+		const { code } = compile_to_volar_mappings(
+			`export function App(props) @{
+				@{
+					let &{ name } = props;
+					<div>{name}</div>
+				}
+			}`,
+			'App.tsrx',
+		);
+
+		// Type-only (virtual TSX) output must not run the lazy transform: the
+		// pattern prints as a plain destructure and no generated `__lazy` source
+		// id appears, even when the lazy declaration sits in a nested code block.
+		expect(code).not.toContain('__lazy');
+		expect(code).toContain('let { name } = props');
+	});
+
 	describe('ref attributes', () => {
 		it('passes a single ref={expr} through unchanged with no helper import', () => {
 			const { code } = compile(

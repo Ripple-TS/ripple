@@ -669,16 +669,36 @@ export function apply_lazy_transforms(node, lazy_bindings) {
 	}
 
 	if (node.type === 'SwitchStatement') {
+		// All case consequents share one lexical block scope, and `@switch`
+		// case bodies are flattened (the `{ … }` wrapper is dropped), so a
+		// `let &[x] = …` / `let &{ … } = …` declared in a case body is scoped to
+		// the whole switch block. Collect names and lazy bindings across every
+		// consequent — like the BlockStatement handler does for a block body — so
+		// references in any case resolve to the generated id, and an inner
+		// declaration shadowing an outer lazy name is dropped.
+		const all_consequents = node.cases.flatMap(
+			(/** @type {any} */ switch_case) => switch_case.consequent,
+		);
+		const block_shadowed = collect_block_shadowed_names(all_consequents, lazy_bindings);
+		const after_shadow =
+			block_shadowed.size > 0 ? remove_shadowed(lazy_bindings, block_shadowed) : lazy_bindings;
+
+		/** @type {Map<string, LazyBinding>} */
+		const block_lazy = new Map();
+		collect_lazy_bindings_from_statements(all_consequents, block_lazy);
+		const effective_bindings =
+			block_lazy.size > 0 ? new Map([...after_shadow, ...block_lazy]) : after_shadow;
+
 		let changed = false;
-		const new_discriminant = apply_lazy_transforms(node.discriminant, lazy_bindings);
+		// The discriminant is evaluated before any case body runs, so it sees the
+		// bindings visible at the switch (outer, minus inner shadows), not a lazy
+		// binding declared inside a case body.
+		const new_discriminant = apply_lazy_transforms(node.discriminant, after_shadow);
 		if (new_discriminant !== node.discriminant) changed = true;
 		const new_cases = node.cases.map((/** @type {any} */ switch_case) => {
-			const case_bindings = collect_block_shadowed_names(switch_case.consequent, lazy_bindings);
-			const effective_bindings =
-				case_bindings.size > 0 ? remove_shadowed(lazy_bindings, case_bindings) : lazy_bindings;
 			let case_changed = false;
 			const new_test = switch_case.test
-				? apply_lazy_transforms(switch_case.test, lazy_bindings)
+				? apply_lazy_transforms(switch_case.test, effective_bindings)
 				: null;
 			if (new_test !== switch_case.test) case_changed = true;
 			const new_consequent = switch_case.consequent.map((/** @type {any} */ stmt) => {
