@@ -2044,10 +2044,14 @@ const visitors = {
 			// (`const v = <>{1}</>`), render output (`return <>{x}</>`, `() => <>{x}</>`),
 			// or a JSX-child `{ … }` container (`<div>{<>{x}</>}</div>`) — matching the JS
 			// targets; collapsing it to a bare child risks the wrong output (a fragment is
-			// always truthy, and the type changes). A non-authored fragment combined into a
-			// surrounding expression (`<>{0}</> || 'x'`) is likewise kept. Generated wrappers
-			// around directives are NOT authored, so they still collapse; a nested authored
-			// fragment collapses outer→inner via `wrap_to_ts_value_in_fragment`'s short-circuit.
+			// always truthy, and the type changes). A fragment COMBINED into a surrounding
+			// expression is likewise kept, including the compiler-generated wrapper around a
+			// directive used as a `||`/`&&` operand (`@if (…) { … } || 'x'` → `<>{…}</> || 'x'`):
+			// the wrapper is a truthy value so the fallback stays dead, exactly as the JS
+			// targets / runtime treat it (the type view must agree). A directive as the SOLE
+			// value of a slot (`const v = @if (…)`) still collapses — `is_combined_expression_position`
+			// excludes those slots — and a nested authored fragment collapses outer→inner via
+			// `wrap_to_ts_value_in_fragment`'s short-circuit.
 			return is_authored_native_fragment(node) ||
 				is_combined_expression_position(context.path, node)
 				? wrap_to_ts_value_in_fragment(expression, node)
@@ -4307,15 +4311,28 @@ function build_tsrx_ts_directive_value(node, context) {
 				b.member(b.id('Array'), b.id('from')),
 				/** @type {AST.Expression} */ (context.visit(node.right)),
 			);
-		const map_call = b.call(b.member(items(), b.id('map')), b.arrow(params, b.block(body)));
+		const map_arrow = b.arrow(params, b.block(body));
 		if (node.empty != null) {
-			return b.conditional(
-				b.binary('===', b.member(items(), b.id('length')), b.literal(0)),
-				branch_value(node.empty.body, node.empty),
-				map_call,
+			// Bind `Array.from(iterable)` ONCE: a one-shot iterable (a generator) would be
+			// exhausted by a second `Array.from`, so the `.length` test and the `.map` must
+			// read the same materialized array.
+			const items_id = b.id('$$items');
+			return b.call(
+				b.thunk(
+					b.block([
+						b.const(items_id, items()),
+						b.return(
+							b.conditional(
+								b.binary('===', b.member(items_id, b.id('length')), b.literal(0)),
+								branch_value(node.empty.body, node.empty),
+								b.call(b.member(items_id, b.id('map')), map_arrow),
+							),
+						),
+					]),
+				),
 			);
 		}
-		return map_call;
+		return b.call(b.member(items(), b.id('map')), map_arrow);
 	}
 
 	if (node.type === 'SwitchStatement') {

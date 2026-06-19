@@ -306,8 +306,14 @@ describe('@tsrx/ripple lowers control flow combined into an expression', () => {
 	it('wraps the directive in a fragment in to_ts output', () => {
 		const { code, errors } = compile_to_volar_mappings(operand, 'App.tsrx', { loose: true });
 		expect(errors).toEqual([]);
-		expect(code).toContain('<>');
-		expect(code).toContain('</>');
+		// The directive value is wrapped in a `<> … </>` (a truthy fragment) as the `||`
+		// operand, matching React and the client/server runtime — NOT lowered to a bare
+		// `(something ? … : null) || …`, which would imply the fallback can fire when at
+		// runtime the render handle is always truthy. The type view must agree.
+		expect(code).toContain(
+			"const ad = <>{something ? <div>Hello</div> : null}</> || 'something else';",
+		);
+		expect(code).not.toMatch(/const ad = \(/);
 		expect(code).not.toMatch(/const ad = if\b/);
 	});
 
@@ -472,8 +478,12 @@ describe('@tsrx/ripple lowers a directive value to a typed value in to_ts (like 
 		// no bare `xs.length` / `xs.map` (Set has neither) — both go through Array.from.
 		expect(empty).not.toMatch(/\bxs\.length\b/);
 		expect(empty).not.toMatch(/\bxs\.map\b/);
-		expect(empty).toMatch(/Array\.from\(xs\)\.length === 0/);
-		expect(empty).toMatch(/Array\.from\(xs\)\.map\(\(x, i\) =>/);
+		// `Array.from(xs)` is materialized ONCE (a generator would be exhausted twice),
+		// then the length test and `.map` read the same bound array.
+		expect(empty).toContain('const $$items = Array.from(xs);');
+		expect(empty).toMatch(/\$\$items\.length === 0/);
+		expect(empty).toMatch(/\$\$items\.map\(\(x, i\) =>/);
+		expect((empty.match(/Array\.from/g) || []).length).toBe(1);
 	});
 
 	// `@for await` iterates an AsyncIterable, which `Array.from` does NOT accept — it
