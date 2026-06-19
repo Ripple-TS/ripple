@@ -3,26 +3,30 @@
 '@tsrx/ripple': patch
 ---
 
-Keep an authored `<> … </>` fragment verbatim when it is used as a JavaScript
-value, instead of unwrapping a single-child fragment to its bare child (React,
-Preact, Solid, Vue, and Ripple `to_ts`).
+Keep an authored `<> … </>` fragment verbatim in EVERY position, instead of
+unwrapping a single-child fragment to its bare child (React, Preact, Solid, Vue,
+and Ripple `to_ts`).
 
-Previously a single-child fragment in a value position was collapsed —
-`const v = <>{1}</>` became `const v = 1`, and
-`@if (cond()) { <>{[1, 2, 3]}</> } @else { <>{[3, 4, 5]}</> }` became
-`cond() ? [1, 2, 3] : [3, 4, 5]` — turning the author's JSX into a plain value and
-changing its meaning. Authored fragments are now kept in value positions: a
-variable initializer, an assignment, an operator operand, a conditional branch,
-an array element, and the branches of an `@if`/`@for`/`@switch`/`@try`.
+Previously a single-child fragment was collapsed — `const v = <>{1}</>` became
+`const v = 1`, `return <>{x}</>` became `return x`, and
+`@if (cond()) { <>{'Hi'}</> }` became `cond() ? 'Hi' : null` — turning the author's
+JSX into a plain value and changing its meaning (a fragment is always a truthy
+element and has a different type, so collapsing can produce the wrong output).
+Authored fragments are now kept everywhere:
 
-A compiler-generated wrapper fragment (the one added around a control-flow
-directive so it lowers to a value) is marked internally and still collapses, so
-`const x = @switch (…) { … }` is unchanged. Multi-child fragments, empty `<></>`,
-and `<><></></>` were already kept; a fragment in a JSX-child / `{ … }` container
-slot is unchanged.
+- value positions: a variable initializer, an assignment, an operator operand, a
+  conditional branch, an array element, a call argument;
+- render output: a component's `<> … </>` render, a `return <>…</>`, an arrow body
+  `() => <>…</>`;
+- the branches of an `@if`/`@for`/`@switch`/`@try` (`@if (c) { <>{'Hi'}</> }` →
+  `c ? <>{'Hi'}</> : null`, `@for (…) { <>{x}</> }` → `… => <>{x}</>`);
+- Ripple `to_ts` additionally keeps a fragment in a JSX-child `{ … }` container slot
+  (`<div>{<>{x}</>}</div>`), matching the JS targets.
 
-For the JSX targets, render-output positions (a component's render, a `return`)
-still collapse. Ripple's `to_ts` view additionally keeps authored render-output
-fragments (a directive branch body, the component's `<> … </>` output); Ripple's
-client/server runtime output is unaffected (it already renders fragments via
-`tsrx_element`), so only the `to_ts` view changes.
+A compiler-generated wrapper fragment (the one added around a control-flow directive
+so it lowers to a value) is marked internally and still collapses, so
+`const x = @switch (…) { … }` is unchanged. A nested authored fragment collapses
+outer→inner (`<><>{x}</></>` → `<>{x}</>`) — still a fragment, so no wrong output.
+A `<style>` inside a fragment is still collected and scoped (the re-wrap operates on
+the already style-stripped value). Ripple's client/server runtime output is
+unaffected (it renders fragments via `tsrx_element`).

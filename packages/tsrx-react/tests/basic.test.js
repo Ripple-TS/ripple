@@ -88,7 +88,7 @@ describe('@tsrx/react basic', () => {
 			expect(css).toContain(`div.${cssHash}`);
 			expect(css).toContain('color: red;');
 			expect(code).toContain(`className="${cssHash}"`);
-			expect(code).toContain('return x ?');
+			expect(code).toContain('return <>{x ?');
 			expect(code).toContain('idle');
 			expect(code).not.toContain('<style>');
 		});

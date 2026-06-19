@@ -2040,14 +2040,15 @@ const visitors = {
 		// to_ts mode: produce a JSX fragment from native TSRX children.
 		if (state.to_ts) {
 			const expression = build_tsrx_to_ts_expression(node, context);
-			// Keep the `<> … </>` when the fragment is AUTHORED in a JS value position
-			// (the author wrote `const v = <>{1}</>`, so it must not unwrap to a bare
-			// `1`) or combined into a surrounding expression (`<>{0}</> || 'x'` must not
-			// collapse to a falsy `0 || 'x'`). The `isTemplateValuePosition` gate keeps a
-			// fragment in a JSX-child / `{ … }` container slot on its existing path.
-			// Generated wrappers around directives still collapse.
-			const parent = context.path[context.path.length - 1];
-			return (is_authored_native_fragment(node) && isTemplateValuePosition(parent, node)) ||
+			// Keep an AUTHORED `<> … </>` verbatim in EVERY position — a value slot
+			// (`const v = <>{1}</>`), render output (`return <>{x}</>`, `() => <>{x}</>`),
+			// or a JSX-child `{ … }` container (`<div>{<>{x}</>}</div>`) — matching the JS
+			// targets; collapsing it to a bare child risks the wrong output (a fragment is
+			// always truthy, and the type changes). A non-authored fragment combined into a
+			// surrounding expression (`<>{0}</> || 'x'`) is likewise kept. Generated wrappers
+			// around directives are NOT authored, so they still collapse; a nested authored
+			// fragment collapses outer→inner via `wrap_to_ts_value_in_fragment`'s short-circuit.
+			return is_authored_native_fragment(node) ||
 				is_combined_expression_position(context.path, node)
 				? wrap_to_ts_value_in_fragment(expression, node)
 				: expression;

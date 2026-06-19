@@ -956,7 +956,7 @@ export function runSharedFragmentExpressionRenderTests({ compile, name }) {
 				'App.tsrx',
 			);
 
-			expect(code).toContain('return "Hello";');
+			expect(code).toContain('return <>{"Hello"}</>;');
 		});
 
 		it('renders lone expression fragment shorthand inside conditional render bodies', () => {
@@ -2289,7 +2289,7 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).toContain("const visible = 'render me'");
-			expect(code).toContain('return visible;');
+			expect(code).toContain('return <>{visible}</>;');
 			expect(code).not.toMatch(/\{\n\s+visible;\n\s+\}/);
 		});
 
@@ -2432,7 +2432,7 @@ export function optionalFn(bar: string, baz?: string) {
 				`class Foo { bar() { const props = {}; return <><Bar {...props} /></>; } }`,
 				'App.tsrx',
 			);
-			expect(code).toContain('return <Bar {...props} />;');
+			expect(code).toContain('return <><Bar {...props} /></>;');
 			expect(code).not.toContain('<tsx');
 		});
 
@@ -2442,13 +2442,13 @@ export function optionalFn(bar: string, baz?: string) {
 			// opens a block/object literal. The JSXExpressionContainer must
 			// be unwrapped to its inner expression in expression position.
 			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
-			expect(code).toContain("return 'Hello';");
+			expect(code).toContain("return <>{'Hello'}</>;");
 			expect(code).not.toContain("return {'Hello'}");
 		});
 
 		it('unwraps a JSX fragment containing a single identifier expression', () => {
 			const { code } = compile(`class Foo { bar() { const x = 1; return <>{x}</>; } }`, 'App.tsrx');
-			expect(code).toContain('return x;');
+			expect(code).toContain('return <>{x}</>;');
 			expect(code).not.toContain('return {x}');
 		});
 
@@ -2470,7 +2470,7 @@ export function optionalFn(bar: string, baz?: string) {
 			// An authored `<>…</>` is kept verbatim in value position (var-init), so the
 			// text fragment stays a fragment instead of unwrapping to a bare string.
 			expect(code).toContain('const x = <>{"Hello world"}</>;');
-			expect(code).toContain('return x;');
+			expect(code).toContain('return <>{x}</>;');
 		});
 
 		it('parses backtick text inside fragments as JSX text', () => {
@@ -2513,12 +2513,12 @@ export function optionalFn(bar: string, baz?: string) {
 
 		it('unwraps a JSX fragment whose single child is already a fragment', () => {
 			const { code } = compile(`class Foo { bar() { return <><>{'x'}</></>; } }`, 'App.tsrx');
-			expect(code).toContain("return 'x';");
+			expect(code).toContain("return <>{'x'}</>;");
 		});
 
 		it('unwraps an explicit JSX fragment with a single expression', () => {
 			const { code } = compile(`class Foo { bar() { return <>{'Hello'}</>; } }`, 'App.tsrx');
-			expect(code).toContain("return 'Hello';");
+			expect(code).toContain("return <>{'Hello'}</>;");
 		});
 
 		it('unwraps an explicit JSX fragment with a single element', () => {
@@ -2622,10 +2622,10 @@ export function optionalFn(bar: string, baz?: string) {
 			);
 
 			expect(code).not.toContain('return;');
-			expect(code).toMatch(/function FragmentReturn\(\) {\s+return App__static/);
-			expect(code).toMatch(/function TsxReturn\(\) {\s+return App__static/);
+			expect(code).toMatch(/function FragmentReturn\(\) {\s+return <>{App__static\d+}<\/>;/);
+			expect(code).toMatch(/function TsxReturn\(\) {\s+return <>{App__static\d+}<\/>;/);
 			expect(code).toMatch(/const App__static\d+ = <div[^>]*>tsrx<\/div>;/);
-			expect(code).toMatch(/function TsrxReturn\(\) {\s+return App__static/);
+			expect(code).toMatch(/function TsrxReturn\(\) {\s+return <>{App__static\d+}<\/>;/);
 		});
 
 		it('keeps special fragment returns inside component prop arrow functions', () => {

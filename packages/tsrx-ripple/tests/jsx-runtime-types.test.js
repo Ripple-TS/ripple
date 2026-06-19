@@ -119,7 +119,7 @@ function StatusBadge() @{
 `;
 		const { code } = compile_to_volar_mappings(source, 'App.tsrx', { loose: true });
 
-		expect(code).toContain("<>{a} {a}{' '}</>");
+		expect(code).toContain("<>{a} {<>{a}</>}{' '}</>");
 		expect(code).not.toContain('<>aa</>');
 	});
 

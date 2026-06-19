@@ -1135,12 +1135,32 @@ function lower_code_block_stream_node(block, transform_context) {
  * @param {any[]} body_nodes
  * @param {boolean} return_null_when_empty
  * @param {TransformContext} transform_context
+ * @param {any} [source_authored_fragment] When the render output is an AUTHORED
+ *   `<> … </>` (`is_authored_native_fragment`), the built return value is re-wrapped
+ *   in a fragment so the author's fragment is kept verbatim (not collapsed to its
+ *   single child), matching value positions. A generated wrapper passes nothing.
  * @returns {any[]}
  */
-function build_render_statements(body_nodes, return_null_when_empty, transform_context) {
+function build_render_statements(
+	body_nodes,
+	return_null_when_empty,
+	transform_context,
+	source_authored_fragment = null,
+) {
 	body_nodes = body_nodes.flatMap((node) =>
 		node?.type === 'JSXCodeBlock' ? lower_code_block_stream_node(node, transform_context) : [node],
 	);
+
+	// When a caller (e.g. a directive branch / loop / switch-case body) passes the
+	// authored `<> … </>` as the trailing body node rather than a pre-unwrapped child
+	// list, detect it here so its wrapper is kept too. A generated wrapper carries
+	// `tsrx_generated_wrapper`, so it is excluded and still collapses.
+	if (!source_authored_fragment) {
+		const last_body_node = body_nodes[body_nodes.length - 1];
+		if (is_authored_native_fragment(last_body_node)) {
+			source_authored_fragment = last_body_node;
+		}
+	}
 
 	const statements = [];
 	const render_nodes = [];
@@ -1275,7 +1295,18 @@ function build_render_statements(body_nodes, return_null_when_empty, transform_c
 		hoist_static_render_nodes(render_nodes, transform_context);
 	}
 
-	const return_arg = build_return_expression(render_nodes);
+	let return_arg = build_return_expression(render_nodes);
+	// Keep an authored `<> … </>` render output verbatim: re-wrap the lowered value
+	// in a fragment instead of letting a single child collapse to a bare value (the
+	// `!== 'JSXFragment'` guard avoids double-wrapping a multi-child / nested result
+	// `build_return_expression` already returns as a fragment — matching the value seam).
+	if (
+		return_arg &&
+		return_arg.type !== 'JSXFragment' &&
+		is_authored_native_fragment(source_authored_fragment)
+	) {
+		return_arg = wrap_lowered_value_in_fragment(return_arg, source_authored_fragment);
+	}
 	if (return_arg || (return_null_when_empty && !has_terminal_return)) {
 		statements.push(b.return(return_arg || b.literal(null)));
 	}
@@ -1596,10 +1627,15 @@ function transform_return_statement(node, { next, visit, state, path }) {
 function transform_jsx_code_block(node, { state, path, visit }) {
 	const body_nodes = get_jsx_code_block_body_nodes(node, state);
 	const parent = /** @type {any} */ (path.at(-1));
+	// Keep an authored `<> … </>` trailing render output verbatim (a generated
+	// control-flow wrapper carries `tsrx_generated_wrapper`, so it stays null).
+	const render_authored_fragment = is_authored_native_fragment(node.render) ? node.render : null;
 
 	if (parent && parent.body === node && is_function_or_class_boundary(parent)) {
 		const block = b.block(
-			mark_native_pretransformed_jsx(build_render_statements(body_nodes, true, state)),
+			mark_native_pretransformed_jsx(
+				build_render_statements(body_nodes, true, state, render_authored_fragment),
+			),
 			node,
 		);
 		block.metadata = {
@@ -1613,7 +1649,9 @@ function transform_jsx_code_block(node, { state, path, visit }) {
 		b.arrow(
 			[],
 			b.block(
-				mark_native_pretransformed_jsx(build_render_statements(body_nodes, true, state)),
+				mark_native_pretransformed_jsx(
+					build_render_statements(body_nodes, true, state, render_authored_fragment),
+				),
 				node,
 			),
 		),
@@ -2471,7 +2509,7 @@ function create_native_tsrx_render_statements(fragment, transform_context) {
 			target.type === 'JSXFragment' ? get_tsrx_render_children(target) : [target];
 		return [
 			...create_tsrx_style_ref_setup_statements(target, style_context, transform_context),
-			...build_render_statements(render_nodes, true, transform_context),
+			...build_render_statements(render_nodes, true, transform_context, fragment),
 		];
 	});
 }
@@ -3000,7 +3038,12 @@ function lower_remaining_jsx_code_blocks(node, transform_context, seen = new Set
 					if (child?.type !== 'JSXCodeBlock') return [child];
 					const body_nodes = get_jsx_code_block_body_nodes(child, transform_context);
 					return mark_native_pretransformed_jsx(
-						build_render_statements(body_nodes, true, transform_context),
+						build_render_statements(
+							body_nodes,
+							true,
+							transform_context,
+							is_authored_native_fragment(child.render) ? child.render : null,
+						),
 					);
 				});
 			}
