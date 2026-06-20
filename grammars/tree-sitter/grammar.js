@@ -131,12 +131,7 @@ module.exports = grammar({
 		[$.type, $.nested_type_identifier],
 		[$._type_annotation, $.array_type],
 		[$.empty_statement, $.object_type],
-		[$.empty_statement, $.object_type],
 		[$.call_expression, $.ternary_expression],
-		[$.generic_type, $.binary_expression],
-		[$.primary_expression, $.property_name, $.generic_type],
-		[$.primary_expression, $.type],
-		[$.type, $.generic_type],
 	],
 
 	rules: {
@@ -892,7 +887,6 @@ module.exports = grammar({
 				$.jsx_for_expression,
 				$.jsx_switch_expression,
 				$.jsx_try_expression,
-				$.generic_type,
 			),
 
 		module_declaration: ($) =>
@@ -1049,8 +1043,9 @@ module.exports = grammar({
 				PREC.NEW,
 				seq(
 					'new',
-					field('constructor', $.primary_expression),
-					optional(field('arguments', $.arguments)),
+				field('constructor', $.primary_expression),
+				optional(field('type_arguments', $.type_arguments)),
+				optional(field('arguments', $.arguments)),
 				),
 			),
 
