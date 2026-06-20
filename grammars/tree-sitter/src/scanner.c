@@ -278,10 +278,7 @@ bool tree_sitter_ripple_external_scanner_scan(void *payload, TSLexer *lexer,
 
   if (valid_symbols[AUTOMATIC_SEMICOLON]) {
     bool ret = scan_automatic_semicolon(lexer);
-    if (!ret && !valid_symbols[TERNARY_QMARK] && lexer->lookahead == '?') {
-      return false;
-    }
-    return ret;
+    if (ret) return true;
   }
 
   if (valid_symbols[TERNARY_QMARK]) {
