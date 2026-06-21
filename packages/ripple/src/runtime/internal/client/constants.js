@@ -19,6 +19,10 @@ export var DERIVED = 1 << 18;
 export var DEFERRED = 1 << 19;
 export var PAUSED = 1 << 20;
 export var DESTROYED = 1 << 21;
+// Marks a block that was directly scheduled (the owner of a mutated tracked).
+// Its whole subtree is scanned for dirty subscribers during flush; blocks above
+// it are only traversed along the CONTAINS_UPDATE routing path.
+export var UPDATE_SOURCE = 1 << 22;
 
 export var CONTROL_FLOW_BLOCK = FOR_BLOCK | IF_BLOCK | SWITCH_BLOCK | TRY_BLOCK | COMPOSITE_BLOCK;
 

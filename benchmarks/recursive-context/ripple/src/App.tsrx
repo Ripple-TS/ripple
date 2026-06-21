@@ -35,16 +35,16 @@ export function showMid() {
 }
 
 function Mid(props) @{
+	let &[local, localT] = track(0);
 	let &[visible] = track(true);
+	_bumpLocal = () => {
+		local += 1;
+	};
 	_setVisible = (v) => {
 		visible = v;
 	};
 	@if (visible) {
-		let &[local, localT] = track(0);
 		LocalCtx.set(localT);
-		_bumpLocal = () => {
-			local += 1;
-		};
 		<div class="mid">
 			<Node depth={props.depth - 1} path={props.path + 'L'} />
 			<Node depth={props.depth - 1} path={props.path + 'R'} />
