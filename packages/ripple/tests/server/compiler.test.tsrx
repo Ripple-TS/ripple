@@ -192,7 +192,9 @@ export default function A() @{
 
 		const result = compile(source, 'test.tsrx', { mode: 'server' }).code;
 
-		expect(result).toContain(`_$_.output_push('Hello')`);
+		// Indented text is trimmed to `Hello` and emitted as output (not a dangling
+		// `"Hello";`); the server accumulator merges it into the parent element.
+		expect(result).toContain(`__out += '<div>Hello</div>'`);
 		expect(result).not.toContain(`"Hello";`);
 	});
 
@@ -275,7 +277,9 @@ export function App() @{
 			{ mode: 'server' },
 		);
 
-		expect(result.code).toContain(`_$_.output_push('Rock &amp; "Roll"')`);
+		// Entities decode then re-escape for text (`&amp;`→`&`→`&amp;`, `&quot;`→`"`);
+		// the server accumulator merges the result into the parent element.
+		expect(result.code).toContain(`__out += '<div>Rock &amp; "Roll"</div>'`);
 	});
 
 	it('emits anonymous component expressions as arrows in SSR output', () => {

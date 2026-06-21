@@ -4,15 +4,18 @@ import * as _$_ from 'ripple/internal/server';
 export function Layout(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout">';
 
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(__props.children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -20,17 +23,14 @@ export function Layout(__props) {
 export function TextWrappedLayout(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('before');
-				_$_.render_expression(__props.children);
-				_$_.output_push('after');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="layout">before';
+			_$_.output_push(__out);
+			__out = '';
+			_$_.render_expression(__props.children);
+			__out += 'after</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -38,15 +38,10 @@ export function TextWrappedLayout(__props) {
 export function SingleChild() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="single"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('single');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="single">single</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -54,24 +49,10 @@ export function SingleChild() {
 export function MultiRootChild() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<h1');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('title');
-				}
-
-				_$_.output_push('</h1>');
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('description');
-				}
-
-				_$_.output_push('</p>');
-			}
+			__out += '<h1>title</h1><p>description</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -126,22 +107,19 @@ export function LayoutWithMultipleChildren() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
+								let __out = '';
+
 								{
 									const comp = SingleChild;
 									const args = [{}];
 
+									_$_.output_push(__out);
+									__out = '';
 									_$_.render_component(comp, ...args);
 								}
 
-								_$_.output_push('<div');
-								_$_.output_push(' class="extra"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('extra');
-								}
-
-								_$_.output_push('</div>');
+								__out += '<div class="extra">extra</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -221,7 +199,10 @@ export function DynamicTagElement() {
 						class: "host",
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('hello');
+								let __out = '';
+
+								__out += 'hello';
+								_$_.output_push(__out);
 							});
 						})
 					}

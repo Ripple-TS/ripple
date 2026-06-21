@@ -6,11 +6,10 @@ export function SimpleTemplateHtml() {
 		const data = 'test data';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<template');
-			_$_.output_push(' id="data1"');
-			_$_.output_push('>');
-			_$_.output_push(String(data ?? ''));
-			_$_.output_push('</template>');
+			let __out = '';
+
+			__out += '<template id="data1">' + String(data ?? '') + '</template>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -20,11 +19,10 @@ export function TemplateWithJSON() {
 		const jsonData = JSON.stringify({ message: 'hello', count: 42 });
 
 		_$_.regular_block(() => {
-			_$_.output_push('<template');
-			_$_.output_push(' id="data2"');
-			_$_.output_push('>');
-			_$_.output_push(String(jsonData ?? ''));
-			_$_.output_push('</template>');
+			let __out = '';
+
+			__out += '<template id="data2">' + String(jsonData ?? '') + '</template>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -34,38 +32,16 @@ export function TemplateAroundIfBlock() {
 		const show = true;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<template');
-				_$_.output_push(' id="before"');
-				_$_.output_push('>');
-				_$_.output_push('before');
-				_$_.output_push('</template>');
-				_$_.output_push('<!--[-->');
+			__out += '<div><template id="before">before</template><!--[-->';
 
-				if (show) {
-					_$_.output_push('<span');
-					_$_.output_push(' class="inside"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('inside');
-					}
-
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('<!--]-->');
-				_$_.output_push('<template');
-				_$_.output_push(' id="after"');
-				_$_.output_push('>');
-				_$_.output_push('after');
-				_$_.output_push('</template>');
+			if (show) {
+				__out += '<span class="inside">inside</span>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--><template id="after">after</template></div>';
+			_$_.output_push(__out);
 		});
 	});
 }

@@ -6,32 +6,18 @@ import { track } from 'ripple/server';
 export function Layout({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout"><nav class="nav">Navigation</nav><main class="main">';
 
 			{
-				_$_.output_push('<nav');
-				_$_.output_push(' class="nav"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Navigation');
-				}
-
-				_$_.output_push('</nav>');
-				_$_.output_push('<main');
-				_$_.output_push(' class="main"');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(children);
-				}
-
-				_$_.output_push('</main>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</main></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -41,29 +27,16 @@ export function Content() {
 		let lazy = _$_.track(true, '0bdb1500');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="content"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="content"><!--[-->';
 
-				if (lazy.value) {
-					_$_.output_push('<p');
-					_$_.output_push(' class="text"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Hello world');
-					}
-
-					_$_.output_push('</p>');
-				}
-
-				_$_.output_push('<!--]-->');
+			if (lazy.value) {
+				__out += '<p class="text">Hello world</p>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }

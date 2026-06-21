@@ -8,21 +8,16 @@ export function IfTruthy() {
 		const show = true;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			if (show) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="shown"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Visible');
-				}
-
-				_$_.output_push('</div>');
+				__out += '<div class="shown">Visible</div>';
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -32,21 +27,16 @@ export function IfFalsy() {
 		const show = false;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			if (show) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="shown"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Visible');
-				}
-
-				_$_.output_push('</div>');
+				__out += '<div class="shown">Visible</div>';
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -56,31 +46,18 @@ export function IfElse() {
 		const isLoggedIn = true;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			if (isLoggedIn) {
-				_$_.output_push('<div');
-				_$_.output_push(' class="logged-in"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Welcome back!');
-				}
-
-				_$_.output_push('</div>');
+				__out += '<div class="logged-in">Welcome back!</div>';
 			} else {
-				_$_.output_push('<div');
-				_$_.output_push(' class="logged-out"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Please log in');
-				}
-
-				_$_.output_push('</div>');
+				__out += '<div class="logged-out">Please log in</div>';
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -90,32 +67,16 @@ export function ReactiveIf() {
 		let lazy = _$_.track(true, '19a16ff0');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle');
-				}
+			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="content"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Content visible');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+			if (lazy.value) {
+				__out += '<div class="content">Content visible</div>';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -125,42 +86,18 @@ export function ReactiveIfElse() {
 		let lazy_1 = _$_.track(false, '41177f39');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle');
-				}
+			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_1.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="on"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('ON');
-					}
-
-					_$_.output_push('</div>');
-				} else {
-					_$_.output_push('<div');
-					_$_.output_push(' class="off"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('OFF');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+			if (lazy_1.value) {
+				__out += '<div class="on">ON</div>';
+			} else {
+				__out += '<div class="off">OFF</div>';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -171,56 +108,22 @@ export function NestedIf() {
 		let lazy_3 = _$_.track(true, 'f21b8c26');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="outer-toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Outer');
+			__out += '<button class="outer-toggle">Outer</button><button class="inner-toggle">Inner</button><!--[-->';
+
+			if (lazy_2.value) {
+				__out += '<div class="outer-content">Outer<!--[-->';
+
+				if (lazy_3.value) {
+					__out += '<span class="inner-content">Inner</span>';
 				}
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="inner-toggle"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Inner');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_2.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="outer-content"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Outer');
-						_$_.output_push('<!--[-->');
-
-						if (lazy_3.value) {
-							_$_.output_push('<span');
-							_$_.output_push(' class="inner-content"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('Inner');
-							}
-
-							_$_.output_push('</span>');
-						}
-
-						_$_.output_push('<!--]-->');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+				__out += '<!--]--></div>';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -230,81 +133,26 @@ export function IfElseIfChain() {
 		let lazy_4 = _$_.track('loading', '4c69c94a');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="success"');
-				_$_.output_push('>');
+			__out += '<div><button class="success">Success</button><button class="error">Error</button><button class="loading">Loading</button><!--[-->';
 
-				{
-					_$_.output_push('Success');
-				}
+			if (lazy_4.value === 'loading') {
+				__out += '<div class="state">Loading...</div>';
+			} else {
+				__out += '<!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="error"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Error');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="loading"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Loading');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_4.value === 'loading') {
-					_$_.output_push('<div');
-					_$_.output_push(' class="state"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Loading...');
-					}
-
-					_$_.output_push('</div>');
+				if (lazy_4.value === 'success') {
+					__out += '<div class="state">Success!</div>';
 				} else {
-					_$_.output_push('<!--[-->');
-
-					if (lazy_4.value === 'success') {
-						_$_.output_push('<div');
-						_$_.output_push(' class="state"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Success!');
-						}
-
-						_$_.output_push('</div>');
-					} else {
-						_$_.output_push('<div');
-						_$_.output_push(' class="state"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Error occurred');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('<!--]-->');
+					__out += '<div class="state">Error occurred</div>';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }

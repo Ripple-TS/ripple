@@ -6,49 +6,39 @@ import { Portal, track } from 'ripple/server';
 export function SimplePortal() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="container"><h1>Main Content</h1>';
 
 			{
-				_$_.output_push('<h1');
-				_$_.output_push('>');
+				const comp = Portal;
 
-				{
-					_$_.output_push('Main Content');
-				}
+				_$_.output_push(__out);
+				__out = '';
 
-				_$_.output_push('</h1>');
+				const args = [
+					{
+						target: typeof document !== 'undefined' ? document.body : null,
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
 
-				{
-					const comp = Portal;
-
-					const args = [
-						{
-							target: typeof document !== 'undefined' ? document.body : null,
-							children: _$_.tsrx_element(() => {
-								return _$_.tsrx_element(() => {
-									_$_.output_push('<div');
-									_$_.output_push(' class="portal-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('Portal content');
-									}
-
-									_$_.output_push('</div>');
-								});
-							})
-						}
-					];
-
-					if (comp) {
-						_$_.render_component(comp, ...args);
+								__out += '<div class="portal-content">Portal content</div>';
+								_$_.output_push(__out);
+							});
+						})
 					}
+				];
+
+				if (comp) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
 				}
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -58,55 +48,41 @@ export function ConditionalPortal() {
 		let lazy = _$_.track(true, '4f6df174');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
+			__out += '<div class="container"><button class="toggle">Toggle</button><!--[-->';
 
+			if (lazy.value) {
 				{
-					_$_.output_push('Toggle');
-				}
+					const comp = Portal;
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+					_$_.output_push(__out);
+					__out = '';
 
-				if (lazy.value) {
-					{
-						const comp = Portal;
+					const args = [
+						{
+							target: typeof document !== 'undefined' ? document.body : null,
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									let __out = '';
 
-						const args = [
-							{
-								target: typeof document !== 'undefined' ? document.body : null,
-								children: _$_.tsrx_element(() => {
-									return _$_.tsrx_element(() => {
-										_$_.output_push('<div');
-										_$_.output_push(' class="portal-content"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('Portal is visible');
-										}
-
-										_$_.output_push('</div>');
-									});
-								})
-							}
-						];
-
-						if (comp) {
-							_$_.render_component(comp, ...args);
+									__out += '<div class="portal-content">Portal is visible</div>';
+									_$_.output_push(__out);
+								});
+							})
 						}
+					];
+
+					if (comp) {
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
 					}
 				}
-
-				_$_.output_push('<!--]-->');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -114,59 +90,39 @@ export function ConditionalPortal() {
 export function PortalWithMainContent() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div><div class="main-content">Main page content</div>';
 
 			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="main-content"');
-				_$_.output_push('>');
+				const comp = Portal;
 
-				{
-					_$_.output_push('Main page content');
-				}
+				_$_.output_push(__out);
+				__out = '';
 
-				_$_.output_push('</div>');
+				const args = [
+					{
+						target: typeof document !== 'undefined' ? document.body : null,
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
 
-				{
-					const comp = Portal;
-
-					const args = [
-						{
-							target: typeof document !== 'undefined' ? document.body : null,
-							children: _$_.tsrx_element(() => {
-								return _$_.tsrx_element(() => {
-									_$_.output_push('<div');
-									_$_.output_push(' class="portal-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('Modal content');
-									}
-
-									_$_.output_push('</div>');
-								});
-							})
-						}
-					];
-
-					if (comp) {
-						_$_.render_component(comp, ...args);
+								__out += '<div class="portal-content">Modal content</div>';
+								_$_.output_push(__out);
+							});
+						})
 					}
+				];
+
+				if (comp) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
 				}
-
-				_$_.output_push('<div');
-				_$_.output_push(' class="footer"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Footer');
-				}
-
-				_$_.output_push('</div>');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<div class="footer">Footer</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -174,57 +130,39 @@ export function PortalWithMainContent() {
 export function NestedContentWithPortal() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="outer"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="outer"><div class="inner"><span>Nested content</span></div>';
 
 			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="inner"');
-				_$_.output_push('>');
+				const comp = Portal;
 
-				{
-					_$_.output_push('<span');
-					_$_.output_push('>');
+				_$_.output_push(__out);
+				__out = '';
 
+				const args = [
 					{
-						_$_.output_push('Nested content');
+						target: typeof document !== 'undefined' ? document.body : null,
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								__out += '<div class="portal-content">Portal content</div>';
+								_$_.output_push(__out);
+							});
+						})
 					}
+				];
 
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('</div>');
-
-				{
-					const comp = Portal;
-
-					const args = [
-						{
-							target: typeof document !== 'undefined' ? document.body : null,
-							children: _$_.tsrx_element(() => {
-								return _$_.tsrx_element(() => {
-									_$_.output_push('<div');
-									_$_.output_push(' class="portal-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('Portal content');
-									}
-
-									_$_.output_push('</div>');
-								});
-							})
-						}
-					];
-
-					if (comp) {
-						_$_.render_component(comp, ...args);
-					}
+				if (comp) {
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
 				}
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }

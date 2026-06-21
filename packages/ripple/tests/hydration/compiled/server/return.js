@@ -10,15 +10,10 @@ export function GuardReturnRenders() {
 		}
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="ready"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('ready');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="ready">ready</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -32,15 +27,10 @@ export function GuardReturnNull() {
 		}
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="ready"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('ready');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="ready">ready</div>';
+			_$_.output_push(__out);
 		});
 	});
 }

@@ -8,39 +8,24 @@ export function IfWithChildren({ children }) {
 		let lazy = _$_.track(true, 'c64714b1');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' role="button"');
-				_$_.output_push(' class="header"');
-				_$_.output_push('>');
+			__out += '<div class="container"><div role="button" class="header">Toggle</div><!--[-->';
+
+			if (lazy.value) {
+				__out += '<div class="content">';
 
 				{
-					_$_.output_push('Toggle');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(children);
 				}
 
-				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="content"');
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(children);
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+				__out += '</div>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -48,15 +33,10 @@ export function IfWithChildren({ children }) {
 export function ChildItem({ text: label }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="item"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(label));
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="item">' + _$_.escape(label) + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -100,54 +80,16 @@ export function IfWithStaticChildren() {
 		let lazy_1 = _$_.track(true, '3bba8f77');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' role="button"');
-				_$_.output_push(' class="header"');
-				_$_.output_push('>');
+			__out += '<div class="container"><div role="button" class="header">Toggle</div><!--[-->';
 
-				{
-					_$_.output_push('Toggle');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_1.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="content"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<span');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Static child 1');
-						}
-
-						_$_.output_push('</span>');
-						_$_.output_push('<span');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Static child 2');
-						}
-
-						_$_.output_push('</span>');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+			if (lazy_1.value) {
+				__out += '<div class="content"><span>Static child 1</span><span>Static child 2</span></div>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -157,74 +99,24 @@ export function IfWithSiblingsAndChildren({ children }) {
 		let lazy_2 = _$_.track(true, 'a1b8fb4c');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="group"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' role="button"');
-				_$_.output_push(' class="item"');
-				_$_.output_push('>');
+			__out += '<section class="group"><div role="button" class="item"><div class="indicator"></div><h2 class="text">Title</h2><div class="caret"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></div></div><!--[-->';
+
+			if (lazy_2.value) {
+				__out += '<div class="items">';
 
 				{
-					_$_.output_push('<div');
-					_$_.output_push(' class="indicator"');
-					_$_.output_push('>');
-					_$_.output_push('</div>');
-					_$_.output_push('<h2');
-					_$_.output_push(' class="text"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Title');
-					}
-
-					_$_.output_push('</h2>');
-					_$_.output_push('<div');
-					_$_.output_push(' class="caret"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<svg');
-						_$_.output_push(' xmlns="http://www.w3.org/2000/svg"');
-						_$_.output_push(' width="18"');
-						_$_.output_push(' height="18"');
-						_$_.output_push(' viewBox="0 0 24 24"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<path');
-							_$_.output_push(' d="m9 18 6-6-6-6"');
-							_$_.output_push('>');
-							_$_.output_push('</path>');
-						}
-
-						_$_.output_push('</svg>');
-					}
-
-					_$_.output_push('</div>');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(children);
 				}
 
-				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_2.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="items"');
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(children);
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+				__out += '</div>';
 			}
 
-			_$_.output_push('</section>');
+			__out += '<!--]--></section>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -268,65 +160,16 @@ export function ElementWithChildrenThenIf() {
 		let lazy_3 = _$_.track(true, '7cd4817b');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="wrapper"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('<div');
-					_$_.output_push(' class="nested-parent"');
-					_$_.output_push('>');
+			__out += '<div class="wrapper"><div class="nested-parent"><div class="nested-child"><span class="deep">Deep content</span></div></div><!--[-->';
 
-					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="nested-child"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<span');
-							_$_.output_push(' class="deep"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('Deep content');
-							}
-
-							_$_.output_push('</span>');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('</div>');
-					_$_.output_push('<!--[-->');
-
-					if (lazy_3.value) {
-						_$_.output_push('<div');
-						_$_.output_push(' class="conditional"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Conditional content');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Toggle');
-				}
-
-				_$_.output_push('</button>');
+			if (lazy_3.value) {
+				__out += '<div class="conditional">Conditional content</div>';
 			}
+
+			__out += '<!--]--></div><button class="toggle">Toggle</button>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -336,80 +179,16 @@ export function DeepNestingThenIf() {
 		let lazy_4 = _$_.track(true, '923116be');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<section');
-				_$_.output_push(' class="outer"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('<article');
-					_$_.output_push(' class="middle"');
-					_$_.output_push('>');
+			__out += '<section class="outer"><article class="middle"><div class="inner"><p class="leaf"><strong>Bold</strong><em>Italic</em></p></div></article><!--[-->';
 
-					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="inner"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<p');
-							_$_.output_push(' class="leaf"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<strong');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Bold');
-								}
-
-								_$_.output_push('</strong>');
-								_$_.output_push('<em');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Italic');
-								}
-
-								_$_.output_push('</em>');
-							}
-
-							_$_.output_push('</p>');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('</article>');
-					_$_.output_push('<!--[-->');
-
-					if (lazy_4.value) {
-						_$_.output_push('<footer');
-						_$_.output_push(' class="footer"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Footer');
-						}
-
-						_$_.output_push('</footer>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</section>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="btn"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Toggle');
-				}
-
-				_$_.output_push('</button>');
+			if (lazy_4.value) {
+				__out += '<footer class="footer">Footer</footer>';
 			}
+
+			__out += '<!--]--></section><button class="btn">Toggle</button>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -419,75 +198,18 @@ export function DomElementChildrenThenSibling() {
 		let lazy_5 = _$_.track('code', '33a1e97f');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="tabs"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="tab-list"');
-				_$_.output_push('>');
+			__out += '<div class="tabs"><div class="tab-list"><button' + _$_.attr('aria-selected', lazy_5.value === 'code' ? 'true' : 'false', false) + ' class="tab">Code</button><button' + _$_.attr('aria-selected', lazy_5.value === 'preview' ? 'true' : 'false', false) + ' class="tab">Preview</button></div><div class="panel"><!--[-->';
 
-				{
-					_$_.output_push('<button');
-					_$_.output_push(_$_.attr('aria-selected', lazy_5.value === 'code' ? 'true' : 'false', false));
-					_$_.output_push(' class="tab"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Code');
-					}
-
-					_$_.output_push('</button>');
-					_$_.output_push('<button');
-					_$_.output_push(_$_.attr('aria-selected', lazy_5.value === 'preview' ? 'true' : 'false', false));
-					_$_.output_push(' class="tab"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Preview');
-					}
-
-					_$_.output_push('</button>');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<div');
-				_$_.output_push(' class="panel"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					if (lazy_5.value === 'code') {
-						_$_.output_push('<pre');
-						_$_.output_push(' class="code"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('const x = 1;');
-						}
-
-						_$_.output_push('</pre>');
-					} else {
-						_$_.output_push('<div');
-						_$_.output_push(' class="preview"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Preview content');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</div>');
+			if (lazy_5.value === 'code') {
+				__out += '<pre class="code">const x = 1;</pre>';
+			} else {
+				__out += '<div class="preview">Preview content</div>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -497,69 +219,10 @@ export function DomChildrenThenStaticSiblings() {
 		let lazy_6 = _$_.track(0, '0ea64305');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="container"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('<ul');
-					_$_.output_push(' class="list"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<li');
-						_$_.output_push(' class="item"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape('Item count: ' + String(lazy_6.value ?? '')));
-						}
-
-						_$_.output_push('</li>');
-						_$_.output_push('<li');
-						_$_.output_push(' class="item"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Another item');
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('</ul>');
-					_$_.output_push('<h2');
-					_$_.output_push(' class="heading"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Static Heading');
-					}
-
-					_$_.output_push('</h2>');
-					_$_.output_push('<p');
-					_$_.output_push(' class="para"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Static paragraph');
-					}
-
-					_$_.output_push('</p>');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="inc"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Increment');
-				}
-
-				_$_.output_push('</button>');
-			}
+			__out += '<div class="container"><ul class="list"><li class="item">' + _$_.escape('Item count: ' + String(lazy_6.value ?? '')) + '</li><li class="item">Another item</li></ul><h2 class="heading">Static Heading</h2><p class="para">Static paragraph</p></div><button class="inc">Increment</button>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -567,107 +230,10 @@ export function DomChildrenThenStaticSiblings() {
 export function StaticListThenStaticSiblings() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="wrapper"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<ul');
-				_$_.output_push(' class="features"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<strong');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Feature One');
-						}
-
-						_$_.output_push('</strong>');
-						_$_.output_push(': Description of feature one with ');
-						_$_.output_push('<code');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('code');
-						}
-
-						_$_.output_push('</code>');
-						_$_.output_push(' reference');
-					}
-
-					_$_.output_push('</li>');
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<strong');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Feature Two');
-						}
-
-						_$_.output_push('</strong>');
-						_$_.output_push(': Another feature description');
-					}
-
-					_$_.output_push('</li>');
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<strong');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Feature Three');
-						}
-
-						_$_.output_push('</strong>');
-						_$_.output_push(': Third feature');
-					}
-
-					_$_.output_push('</li>');
-				}
-
-				_$_.output_push('</ul>');
-				_$_.output_push('<h2');
-				_$_.output_push(' class="section-heading"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Section Heading');
-				}
-
-				_$_.output_push('</h2>');
-				_$_.output_push('<p');
-				_$_.output_push(' class="section-content"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Static paragraph with ');
-					_$_.output_push('<a');
-					_$_.output_push(' href="/link"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('a link');
-					}
-
-					_$_.output_push('</a>');
-					_$_.output_push(' and more text.');
-				}
-
-				_$_.output_push('</p>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="wrapper"><ul class="features"><li><strong>Feature One</strong>: Description of feature one with <code>code</code> reference</li><li><strong>Feature Two</strong>: Another feature description</li><li><strong>Feature Three</strong>: Third feature</li></ul><h2 class="section-heading">Section Heading</h2><p class="section-content">Static paragraph with <a href="/link">a link</a> and more text.</p></div>';
+			_$_.output_push(__out);
 		});
 	});
 }

@@ -6,15 +6,10 @@ import { trackAsync } from 'ripple/server';
 export function RootPending() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="root-pending"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('root loading...');
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p class="root-pending">root loading...</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -22,32 +17,10 @@ export function RootPending() {
 export function RootCatch({ error, reset }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="root-catch"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<p');
-				_$_.output_push(' class="root-error"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(error.message));
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="root-reset"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('retry');
-				}
-
-				_$_.output_push('</button>');
-			}
-
-			_$_.output_push('</section>');
+			__out += '<section class="root-catch"><p class="root-error">' + _$_.escape(error.message) + '</p><button class="root-reset">retry</button></section>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -57,14 +30,10 @@ export function RootThrows() {
 		throw new Error('root exploded');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('should not render');
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p>should not render</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -74,15 +43,10 @@ export function RootAsyncDirect() {
 		let lazy = _$_.track_async(() => Promise.resolve('root async value'), 'd6bf9e33');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="root-async-value"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy.value));
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p class="root-async-value">' + _$_.escape(lazy.value) + '</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -92,15 +56,10 @@ export function RootAsyncRejects() {
 		let lazy_1 = _$_.track_async(() => Promise.reject(new Error('root async failed')), 'd2fe7b64');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="root-async-value"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy_1.value));
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p class="root-async-value">' + _$_.escape(lazy_1.value) + '</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -109,7 +68,11 @@ export function AsyncListInTryPending() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
 					{
@@ -120,25 +83,26 @@ export function AsyncListInTryPending() {
 					}
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="loading">loading...</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -149,28 +113,16 @@ function AsyncList() {
 		let lazy_2 = _$_.track_async(() => Promise.resolve(['alpha', 'beta', 'gamma']), 'b3d31627');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="items"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="items"><!--[-->';
 
-				for (let item of lazy_2.value) {
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item));
-					}
-
-					_$_.output_push('</li>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (let item of lazy_2.value) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -178,46 +130,40 @@ function AsyncList() {
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="before"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('before');
-				}
+			__out += '<div class="before">before</div>';
+			_$_.output_push(__out);
+			__out = '';
 
-				_$_.output_push('</div>');
+			_$_.try_block(
+				() => {
+					let __out = '';
 
-				_$_.try_block(
-					() => {
-						_$_.output_push('<!--[-->');
+					__out += '<!--[-->';
 
-						{
-							const comp = AsyncContent;
-							const args = [{}];
+					{
+						const comp = AsyncContent;
+						const args = [{}];
 
-							_$_.render_component(comp, ...args);
-						}
-
-						_$_.output_push('<!--]-->');
-					},
-					null,
-					() => {
-						_$_.output_push('<!--[-->');
-						_$_.output_push('<div');
-						_$_.output_push(' class="loading"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('loading async content');
-						}
-
-						_$_.output_push('</div>');
-						_$_.output_push('<!--]-->');
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
 					}
-				);
-			}
+
+					__out += '<!--]-->';
+					_$_.output_push(__out);
+				},
+				null,
+				() => {
+					let __out = '';
+
+					__out += '<!--[--><div class="loading">loading async content</div><!--]-->';
+					_$_.output_push(__out);
+				}
+			);
+
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -227,15 +173,10 @@ function AsyncContent() {
 		let lazy_3 = _$_.track_async(() => Promise.resolve('ready'), '15ea8758');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="resolved"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy_3.value));
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="resolved">' + _$_.escape(lazy_3.value) + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }

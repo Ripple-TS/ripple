@@ -12,95 +12,66 @@ export function MixedControlFlowStatic() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="mixed-static"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<section class="mixed-static"><!--[-->';
 
-				for (const row of rows) {
-					_$_.output_push('<!--[-->');
+			for (const row of rows) {
+				__out += '<!--[-->';
 
-					if (row.enabled) {
-						_$_.output_push('<!--[-->');
+				if (row.enabled) {
+					__out += '<!--[-->';
 
-						switch (row.kind) {
-							case 'a':
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<div');
-										_$_.output_push(_$_.attr('class', `row row-${row.id} kind-a`));
-										_$_.output_push('>');
+					switch (row.kind) {
+						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										{
-											_$_.output_push(_$_.escape(`A-${row.id}`));
-										}
+									__out += '<!--[--><div' + _$_.attr('class', `row row-${row.id} kind-a`) + '>' + _$_.escape(`A-${row.id}`) + '</div><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-										_$_.output_push('</div>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<div');
-										_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
-										_$_.output_push('>');
+									__out += '<!--[--><div' + _$_.attr('class', `pending pending-${row.id}`) + '>pending a</div><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 
-										{
-											_$_.output_push('pending a');
-										}
+						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										_$_.output_push('</div>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
+									__out += '<!--[--><div' + _$_.attr('class', `row row-${row.id} kind-b`) + '>' + _$_.escape(`B-${row.id}`) + '</div><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-							default:
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<div');
-										_$_.output_push(_$_.attr('class', `row row-${row.id} kind-b`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`B-${row.id}`));
-										}
-
-										_$_.output_push('</div>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<div');
-										_$_.output_push(_$_.attr('class', `pending pending-${row.id}`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('pending b');
-										}
-
-										_$_.output_push('</div>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+									__out += '<!--[--><div' + _$_.attr('class', `pending pending-${row.id}`) + '>pending b</div><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</section>');
+			__out += '<!--]--></section>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -112,124 +83,66 @@ export function MixedControlFlowReactive() {
 		let lazy_2 = _$_.track([{ id: 1, label: 'One' }, { id: 2, label: 'Two' }], '7890dad6');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle-show"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle Show');
-				}
+			__out += '<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle-mode"');
-				_$_.output_push('>');
+			if (lazy.value) {
+				__out += '<div class="mixed-reactive-list"><!--[-->';
 
-				{
-					_$_.output_push('Toggle Mode');
-				}
+				for (const item of lazy_2.value) {
+					__out += '<!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="add-item"');
-				_$_.output_push('>');
+					switch (lazy_1.value) {
+						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-				{
-					_$_.output_push('Add Item');
-				}
+									__out += '<!--[--><p' + _$_.attr('class', `item item-${item.id}`) + '>' + _$_.escape(`A:${item.label}`) + '</p><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+									__out += '<!--[--><p class="pending">pending a</p><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 
-				if (lazy.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="mixed-reactive-list"');
-					_$_.output_push('>');
+						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-					{
-						_$_.output_push('<!--[-->');
+									__out += '<!--[--><p' + _$_.attr('class', `item item-${item.id}`) + '>' + _$_.escape(`B:${item.label}`) + '</p><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-						for (const item of lazy_2.value) {
-							_$_.output_push('<!--[-->');
-
-							switch (lazy_1.value) {
-								case 'a':
-									_$_.try_block(
-										() => {
-											_$_.output_push('<!--[-->');
-											_$_.output_push('<p');
-											_$_.output_push(_$_.attr('class', `item item-${item.id}`));
-											_$_.output_push('>');
-
-											{
-												_$_.output_push(_$_.escape(`A:${item.label}`));
-											}
-
-											_$_.output_push('</p>');
-											_$_.output_push('<!--]-->');
-										},
-										null,
-										() => {
-											_$_.output_push('<!--[-->');
-											_$_.output_push('<p');
-											_$_.output_push(' class="pending"');
-											_$_.output_push('>');
-
-											{
-												_$_.output_push('pending a');
-											}
-
-											_$_.output_push('</p>');
-											_$_.output_push('<!--]-->');
-										}
-									);
-									break;
-
-								default:
-									_$_.try_block(
-										() => {
-											_$_.output_push('<!--[-->');
-											_$_.output_push('<p');
-											_$_.output_push(_$_.attr('class', `item item-${item.id}`));
-											_$_.output_push('>');
-
-											{
-												_$_.output_push(_$_.escape(`B:${item.label}`));
-											}
-
-											_$_.output_push('</p>');
-											_$_.output_push('<!--]-->');
-										},
-										null,
-										() => {
-											_$_.output_push('<!--[-->');
-											_$_.output_push('<p');
-											_$_.output_push(' class="pending"');
-											_$_.output_push('>');
-
-											{
-												_$_.output_push('pending b');
-											}
-
-											_$_.output_push('</p>');
-											_$_.output_push('<!--]-->');
-										}
-									);
-									break;
-							}
-
-							_$_.output_push('<!--]-->');
-						}
-
-						_$_.output_push('<!--]-->');
+									__out += '<!--[--><p class="pending">pending b</p><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 					}
 
-					_$_.output_push('</div>');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]--></div>';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -240,75 +153,61 @@ export function MixedControlFlowAsyncPending() {
 		const state = 'slow';
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="before"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('before');
-				}
+			__out += '<div class="before">before</div><!--[-->';
 
-				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
+			for (const row of rows) {
+				__out += '<!--[-->';
 
-				for (const row of rows) {
-					_$_.output_push('<!--[-->');
+				if (row === 1) {
+					__out += '<!--[-->';
 
-					if (row === 1) {
-						_$_.output_push('<!--[-->');
+					switch (state) {
+						case 'slow':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-						switch (state) {
-							case 'slow':
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
+									__out += '<!--[-->';
 
-										{
-											const comp = AsyncRow;
-											const args = [{ label: `row-${row}` }];
+									{
+										const comp = AsyncRow;
+										const args = [{ label: `row-${row}` }];
 
-											_$_.render_component(comp, ...args);
-										}
-
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<div');
-										_$_.output_push(_$_.attr('class', `pending-row pending-row-${row}`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`pending ${row}`));
-										}
-
-										_$_.output_push('</div>');
-										_$_.output_push('<!--]-->');
+										_$_.output_push(__out);
+										__out = '';
+										_$_.render_component(comp, ...args);
 									}
-								);
-								break;
 
-							default:
-								_$_.output_push('<div');
-								_$_.output_push(' class="unexpected"');
-								_$_.output_push('>');
-								{
-									_$_.output_push('unexpected');
+									__out += '<!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
+
+									__out += '<!--[--><div' + _$_.attr('class', `pending-row pending-row-${row}`) + '>' + _$_.escape(`pending ${row}`) + '</div><!--]-->';
+									_$_.output_push(__out);
 								}
-								_$_.output_push('</div>');
-								break;
-						}
+							);
+							break;
 
-						_$_.output_push('<!--]-->');
+						default:
+							__out += '<div class="unexpected">unexpected</div>';
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -318,15 +217,10 @@ function AsyncRow({ label }) {
 		let lazy_3 = _$_.track_async(() => Promise.resolve(label), '10cc79a0');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="resolved-row"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy_3.value));
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="resolved-row">' + _$_.escape(lazy_3.value) + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }

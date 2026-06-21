@@ -8,41 +8,26 @@ export function SwitchStatic() {
 		const status = 'success';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			switch (status) {
 				case 'success':
-					_$_.output_push('<div');
-					_$_.output_push(' class="status-success"');
-					_$_.output_push('>');
-					{
-						_$_.output_push('Success');
-					}
-					_$_.output_push('</div>');
+					__out += '<div class="status-success">Success</div>';
 					break;
 
 				case 'error':
-					_$_.output_push('<div');
-					_$_.output_push(' class="status-error"');
-					_$_.output_push('>');
-					{
-						_$_.output_push('Error');
-					}
-					_$_.output_push('</div>');
+					__out += '<div class="status-error">Error</div>';
 					break;
 
 				default:
-					_$_.output_push('<div');
-					_$_.output_push(' class="status-unknown"');
-					_$_.output_push('>');
-					{
-						_$_.output_push('Unknown');
-					}
-					_$_.output_push('</div>');
+					__out += '<div class="status-unknown">Unknown</div>';
 					break;
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -52,52 +37,26 @@ export function SwitchReactive() {
 		let lazy = _$_.track('a', '9b34d955');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle');
-				}
+			__out += '<button class="toggle">Toggle</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+			switch (lazy.value) {
+				case 'a':
+					__out += '<div class="case-a">Case A</div>';
+					break;
 
-				switch (lazy.value) {
-					case 'a':
-						_$_.output_push('<div');
-						_$_.output_push(' class="case-a"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Case A');
-						}
-						_$_.output_push('</div>');
-						break;
+				case 'b':
+					__out += '<div class="case-b">Case B</div>';
+					break;
 
-					case 'b':
-						_$_.output_push('<div');
-						_$_.output_push(' class="case-b"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Case B');
-						}
-						_$_.output_push('</div>');
-						break;
-
-					default:
-						_$_.output_push('<div');
-						_$_.output_push(' class="case-c"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Case C');
-						}
-						_$_.output_push('</div>');
-						break;
-				}
-
-				_$_.output_push('<!--]-->');
+				default:
+					__out += '<div class="case-c">Case C</div>';
+					break;
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -107,34 +66,25 @@ export function SwitchFallthrough() {
 		const val = 1;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			switch (val) {
 				case 1:
 					break;
 
 				case 2:
-					_$_.output_push('<div');
-					_$_.output_push(' class="case-1-2"');
-					_$_.output_push('>');
-					{
-						_$_.output_push('1 or 2');
-					}
-					_$_.output_push('</div>');
+					__out += '<div class="case-1-2">1 or 2</div>';
 					break;
 
 				default:
-					_$_.output_push('<div');
-					_$_.output_push(' class="case-other"');
-					_$_.output_push('>');
-					{
-						_$_.output_push('Other');
-					}
-					_$_.output_push('</div>');
+					__out += '<div class="case-other">Other</div>';
 					break;
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -144,52 +94,26 @@ export function SwitchNumericLevels() {
 		let lazy_1 = _$_.track(1, '7581a7ab');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="level-toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle Level');
-				}
+			__out += '<button class="level-toggle">Toggle Level</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+			switch (lazy_1.value) {
+				case 1:
+					__out += '<div class="level-1">Level 1</div>';
+					break;
 
-				switch (lazy_1.value) {
-					case 1:
-						_$_.output_push('<div');
-						_$_.output_push(' class="level-1"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Level 1');
-						}
-						_$_.output_push('</div>');
-						break;
+				case 2:
+					__out += '<div class="level-2">Level 2</div>';
+					break;
 
-					case 2:
-						_$_.output_push('<div');
-						_$_.output_push(' class="level-2"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Level 2');
-						}
-						_$_.output_push('</div>');
-						break;
-
-					case 3:
-						_$_.output_push('<div');
-						_$_.output_push(' class="level-3"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Level 3');
-						}
-						_$_.output_push('</div>');
-						break;
-				}
-
-				_$_.output_push('<!--]-->');
+				case 3:
+					__out += '<div class="level-3">Level 3</div>';
+					break;
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -199,52 +123,26 @@ export function SwitchBlockScoped() {
 		let lazy_2 = _$_.track(1, 'ca9f9852');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="block-toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle');
-				}
+			__out += '<button class="block-toggle">Toggle</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+			switch (lazy_2.value) {
+				case 1:
+					__out += '<div class="block-1">Block 1</div>';
+					break;
 
-				switch (lazy_2.value) {
-					case 1:
-						_$_.output_push('<div');
-						_$_.output_push(' class="block-1"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Block 1');
-						}
-						_$_.output_push('</div>');
-						break;
+				case 2:
+					__out += '<div class="block-2">Block 2</div>';
+					break;
 
-					case 2:
-						_$_.output_push('<div');
-						_$_.output_push(' class="block-2"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Block 2');
-						}
-						_$_.output_push('</div>');
-						break;
-
-					case 3:
-						_$_.output_push('<div');
-						_$_.output_push(' class="block-3"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Block 3');
-						}
-						_$_.output_push('</div>');
-						break;
-				}
-
-				_$_.output_push('<!--]-->');
+				case 3:
+					__out += '<div class="block-3">Block 3</div>';
+					break;
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -254,52 +152,26 @@ export function SwitchNoBreak() {
 		let lazy_3 = _$_.track(1, '6b7cb0ea');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="nobreak-toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle');
-				}
+			__out += '<button class="nobreak-toggle">Toggle</button><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
+			switch (lazy_3.value) {
+				case 1:
+					__out += '<div class="nobreak-1">NoBreak 1</div>';
+					break;
 
-				switch (lazy_3.value) {
-					case 1:
-						_$_.output_push('<div');
-						_$_.output_push(' class="nobreak-1"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('NoBreak 1');
-						}
-						_$_.output_push('</div>');
-						break;
+				case 2:
+					__out += '<div class="nobreak-2">NoBreak 2</div>';
+					break;
 
-					case 2:
-						_$_.output_push('<div');
-						_$_.output_push(' class="nobreak-2"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('NoBreak 2');
-						}
-						_$_.output_push('</div>');
-						break;
-
-					case 3:
-						_$_.output_push('<div');
-						_$_.output_push(' class="nobreak-3"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('NoBreak 3');
-						}
-						_$_.output_push('</div>');
-						break;
-				}
-
-				_$_.output_push('<!--]-->');
+				case 3:
+					__out += '<div class="nobreak-3">NoBreak 3</div>';
+					break;
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }

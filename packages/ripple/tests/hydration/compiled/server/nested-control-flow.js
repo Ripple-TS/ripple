@@ -10,35 +10,22 @@ export function ForIf() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item item-${item.id}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item.label));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
+				if (item.show) {
+					__out += '<li' + _$_.attr('class', `item item-${item.id}`) + '>' + _$_.escape(item.label) + '</li>';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -52,45 +39,28 @@ export function ForSwitch() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-switch"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-switch"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					switch (item.kind) {
-						case 'a':
-							_$_.output_push('<li');
-							_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-							_$_.output_push('>');
-							{
-								_$_.output_push(_$_.escape(`A-${item.id}`));
-							}
-							_$_.output_push('</li>');
-							break;
+				switch (item.kind) {
+					case 'a':
+						__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
+						break;
 
-						default:
-							_$_.output_push('<li');
-							_$_.output_push(_$_.attr('class', `item item-${item.id} kind-b`));
-							_$_.output_push('>');
-							{
-								_$_.output_push(_$_.escape(`B-${item.id}`));
-							}
-							_$_.output_push('</li>');
-							break;
-					}
-
-					_$_.output_push('<!--]-->');
+					default:
+						__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
+						break;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -101,45 +71,28 @@ export function IfSwitch() {
 		const kind = 'a';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="if-switch"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="if-switch"><!--[-->';
 
-				if (show) {
-					_$_.output_push('<!--[-->');
+			if (show) {
+				__out += '<!--[-->';
 
-					switch (kind) {
-						case 'a':
-							_$_.output_push('<p');
-							_$_.output_push(' class="case-a"');
-							_$_.output_push('>');
-							{
-								_$_.output_push('Case A');
-							}
-							_$_.output_push('</p>');
-							break;
+				switch (kind) {
+					case 'a':
+						__out += '<p class="case-a">Case A</p>';
+						break;
 
-						default:
-							_$_.output_push('<p');
-							_$_.output_push(' class="case-default"');
-							_$_.output_push('>');
-							{
-								_$_.output_push('Default');
-							}
-							_$_.output_push('</p>');
-							break;
-					}
-
-					_$_.output_push('<!--]-->');
+					default:
+						__out += '<p class="case-default">Default</p>';
+						break;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -150,54 +103,28 @@ export function IfSwitchHidden() {
 		const kind = 'a';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="if-switch-hidden"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="if-switch-hidden"><!--[-->';
 
-				if (show) {
-					_$_.output_push('<!--[-->');
+			if (show) {
+				__out += '<!--[-->';
 
-					switch (kind) {
-						case 'a':
-							_$_.output_push('<p');
-							_$_.output_push(' class="case-a"');
-							_$_.output_push('>');
-							{
-								_$_.output_push('Case A');
-							}
-							_$_.output_push('</p>');
-							break;
+				switch (kind) {
+					case 'a':
+						__out += '<p class="case-a">Case A</p>';
+						break;
 
-						default:
-							_$_.output_push('<p');
-							_$_.output_push(' class="case-default"');
-							_$_.output_push('>');
-							{
-								_$_.output_push('Default');
-							}
-							_$_.output_push('</p>');
-							break;
-					}
-
-					_$_.output_push('<!--]-->');
+					default:
+						__out += '<p class="case-default">Default</p>';
+						break;
 				}
 
-				_$_.output_push('<!--]-->');
-				_$_.output_push('<p');
-				_$_.output_push(' class="after"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('after');
-				}
-
-				_$_.output_push('</p>');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--><p class="after">after</p></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -207,51 +134,34 @@ export function ForIfSwitchSingle() {
 		const items = [{ id: 1, kind: 'a', show: true }];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-switch-single"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-switch-single"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<!--[-->');
+				if (item.show) {
+					__out += '<!--[-->';
 
-						switch (item.kind) {
-							case 'a':
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`A-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
+					switch (item.kind) {
+						case 'a':
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
+							break;
 
-							default:
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-default`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`D-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+						default:
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-default`) + '>' + _$_.escape(`D-${item.id}`) + '</li>';
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -264,51 +174,34 @@ export function ForIfSwitchMulti() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-switch-multi"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-switch-multi"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<!--[-->');
+				if (item.show) {
+					__out += '<!--[-->';
 
-						switch (item.kind) {
-							case 'a':
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`A-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
+					switch (item.kind) {
+						case 'a':
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
+							break;
 
-							default:
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-b`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`B-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+						default:
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -322,51 +215,34 @@ export function ForIfSwitchWithDisabled() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-switch-disabled"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-switch-disabled"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<!--[-->');
+				if (item.show) {
+					__out += '<!--[-->';
 
-						switch (item.kind) {
-							case 'a':
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`A-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
+					switch (item.kind) {
+						case 'a':
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li>';
+							break;
 
-							default:
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id} kind-b`));
-								_$_.output_push('>');
-								{
-									_$_.output_push(_$_.escape(`B-${item.id}`));
-								}
-								_$_.output_push('</li>');
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+						default:
+							__out += '<li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li>';
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -376,61 +252,38 @@ export function SwitchTry() {
 		const kind = 'a';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="switch-try"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="switch-try"><!--[-->';
 
-				switch (kind) {
-					case 'a':
-						_$_.try_block(
-							() => {
-								_$_.output_push('<!--[-->');
-								_$_.output_push('<p');
-								_$_.output_push(' class="resolved-a"');
-								_$_.output_push('>');
+			switch (kind) {
+				case 'a':
+					_$_.output_push(__out);
+					__out = '';
+					_$_.try_block(
+						() => {
+							let __out = '';
 
-								{
-									_$_.output_push('A resolved');
-								}
+							__out += '<!--[--><p class="resolved-a">A resolved</p><!--]-->';
+							_$_.output_push(__out);
+						},
+						null,
+						() => {
+							let __out = '';
 
-								_$_.output_push('</p>');
-								_$_.output_push('<!--]-->');
-							},
-							null,
-							() => {
-								_$_.output_push('<!--[-->');
-								_$_.output_push('<p');
-								_$_.output_push(' class="pending-a"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('A pending');
-								}
-
-								_$_.output_push('</p>');
-								_$_.output_push('<!--]-->');
-							}
-						);
-						break;
-
-					default:
-						_$_.output_push('<p');
-						_$_.output_push(' class="default"');
-						_$_.output_push('>');
-						{
-							_$_.output_push('Default');
+							__out += '<!--[--><p class="pending-a">A pending</p><!--]-->';
+							_$_.output_push(__out);
 						}
-						_$_.output_push('</p>');
-						break;
-				}
+					);
+					break;
 
-				_$_.output_push('<!--]-->');
+				default:
+					__out += '<p class="default">Default</p>';
+					break;
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -440,89 +293,60 @@ export function ForSwitchTry() {
 		const items = [{ id: 1, kind: 'a' }, { id: 2, kind: 'b' }];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-switch-try"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-switch-try"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					switch (item.kind) {
-						case 'a':
-							_$_.try_block(
-								() => {
-									_$_.output_push('<!--[-->');
-									_$_.output_push('<li');
-									_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-									_$_.output_push('>');
+				switch (item.kind) {
+					case 'a':
+						_$_.output_push(__out);
+						__out = '';
+						_$_.try_block(
+							() => {
+								let __out = '';
 
-									{
-										_$_.output_push(_$_.escape(`A-${item.id}`));
-									}
+								__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li><!--]-->';
+								_$_.output_push(__out);
+							},
+							null,
+							() => {
+								let __out = '';
 
-									_$_.output_push('</li>');
-									_$_.output_push('<!--]-->');
-								},
-								null,
-								() => {
-									_$_.output_push('<!--[-->');
-									_$_.output_push('<li');
-									_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-									_$_.output_push('>');
+								__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+								_$_.output_push(__out);
+							}
+						);
+						break;
 
-									{
-										_$_.output_push(_$_.escape(`pending ${item.id}`));
-									}
+					default:
+						_$_.output_push(__out);
+						__out = '';
+						_$_.try_block(
+							() => {
+								let __out = '';
 
-									_$_.output_push('</li>');
-									_$_.output_push('<!--]-->');
-								}
-							);
-							break;
+								__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li><!--]-->';
+								_$_.output_push(__out);
+							},
+							null,
+							() => {
+								let __out = '';
 
-						default:
-							_$_.try_block(
-								() => {
-									_$_.output_push('<!--[-->');
-									_$_.output_push('<li');
-									_$_.output_push(_$_.attr('class', `item item-${item.id} kind-b`));
-									_$_.output_push('>');
-
-									{
-										_$_.output_push(_$_.escape(`B-${item.id}`));
-									}
-
-									_$_.output_push('</li>');
-									_$_.output_push('<!--]-->');
-								},
-								null,
-								() => {
-									_$_.output_push('<!--[-->');
-									_$_.output_push('<li');
-									_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-									_$_.output_push('>');
-
-									{
-										_$_.output_push(_$_.escape(`pending ${item.id}`));
-									}
-
-									_$_.output_push('</li>');
-									_$_.output_push('<!--]-->');
-								}
-							);
-							break;
-					}
-
-					_$_.output_push('<!--]-->');
+								__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+								_$_.output_push(__out);
+							}
+						);
+						break;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -532,55 +356,39 @@ export function ForIfTry() {
 		const items = [{ id: 1, show: true }, { id: 2, show: true }];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-try"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-try"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.try_block(
-							() => {
-								_$_.output_push('<!--[-->');
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `item item-${item.id}`));
-								_$_.output_push('>');
+				if (item.show) {
+					_$_.output_push(__out);
+					__out = '';
 
-								{
-									_$_.output_push(_$_.escape(`item-${item.id}`));
-								}
+					_$_.try_block(
+						() => {
+							let __out = '';
 
-								_$_.output_push('</li>');
-								_$_.output_push('<!--]-->');
-							},
-							null,
-							() => {
-								_$_.output_push('<!--[-->');
-								_$_.output_push('<li');
-								_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-								_$_.output_push('>');
+							__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id}`) + '>' + _$_.escape(`item-${item.id}`) + '</li><!--]-->';
+							_$_.output_push(__out);
+						},
+						null,
+						() => {
+							let __out = '';
 
-								{
-									_$_.output_push(_$_.escape(`pending ${item.id}`));
-								}
-
-								_$_.output_push('</li>');
-								_$_.output_push('<!--]-->');
-							}
-						);
-					}
-
-					_$_.output_push('<!--]-->');
+							__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+							_$_.output_push(__out);
+						}
+					);
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -590,95 +398,66 @@ export function ForIfSwitchTrySingle() {
 		const items = [{ id: 1, kind: 'a', show: true }];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-switch-try-single"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-switch-try-single"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<!--[-->');
+				if (item.show) {
+					__out += '<!--[-->';
 
-						switch (item.kind) {
-							case 'a':
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-										_$_.output_push('>');
+					switch (item.kind) {
+						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										{
-											_$_.output_push(_$_.escape(`A-${item.id}`));
-										}
+									__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-										_$_.output_push('>');
+									__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 
-										{
-											_$_.output_push(_$_.escape(`pending ${item.id}`));
-										}
+						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
+									__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-default`) + '>' + _$_.escape(`D-${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-							default:
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `item item-${item.id} kind-default`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`D-${item.id}`));
-										}
-
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`pending ${item.id}`));
-										}
-
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+									__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -691,95 +470,66 @@ export function ForIfSwitchTryMulti() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="for-if-switch-try-multi"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul class="for-if-switch-try-multi"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<!--[-->');
+			for (const item of items) {
+				__out += '<!--[-->';
 
-					if (item.show) {
-						_$_.output_push('<!--[-->');
+				if (item.show) {
+					__out += '<!--[-->';
 
-						switch (item.kind) {
-							case 'a':
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `item item-${item.id} kind-a`));
-										_$_.output_push('>');
+					switch (item.kind) {
+						case 'a':
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										{
-											_$_.output_push(_$_.escape(`A-${item.id}`));
-										}
+									__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-a`) + '>' + _$_.escape(`A-${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-										_$_.output_push('>');
+									__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 
-										{
-											_$_.output_push(_$_.escape(`pending ${item.id}`));
-										}
+						default:
+							_$_.output_push(__out);
+							__out = '';
+							_$_.try_block(
+								() => {
+									let __out = '';
 
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
+									__out += '<!--[--><li' + _$_.attr('class', `item item-${item.id} kind-b`) + '>' + _$_.escape(`B-${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								},
+								null,
+								() => {
+									let __out = '';
 
-							default:
-								_$_.try_block(
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `item item-${item.id} kind-b`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`B-${item.id}`));
-										}
-
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									},
-									null,
-									() => {
-										_$_.output_push('<!--[-->');
-										_$_.output_push('<li');
-										_$_.output_push(_$_.attr('class', `pending pending-${item.id}`));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(`pending ${item.id}`));
-										}
-
-										_$_.output_push('</li>');
-										_$_.output_push('<!--]-->');
-									}
-								);
-								break;
-						}
-
-						_$_.output_push('<!--]-->');
+									__out += '<!--[--><li' + _$_.attr('class', `pending pending-${item.id}`) + '>' + _$_.escape(`pending ${item.id}`) + '</li><!--]-->';
+									_$_.output_push(__out);
+								}
+							);
+							break;
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '<!--]-->';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }

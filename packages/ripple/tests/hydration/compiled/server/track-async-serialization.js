@@ -22,15 +22,10 @@ function ServerCallResult({ count }) {
 		let lazy = _$_.track_async(() => formatValue(count.value), '2e21cbe9');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="result"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy.value));
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p class="result">' + _$_.escape(lazy.value) + '</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -40,46 +35,40 @@ export function AsyncWithServerCall() {
 		let lazy_1 = _$_.track(0, 'f0c2b41e');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="increment"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('increment');
-				}
+			__out += '<button class="increment">increment</button>';
+			_$_.output_push(__out);
+			__out = '';
 
-				_$_.output_push('</button>');
+			_$_.try_block(
+				() => {
+					let __out = '';
 
-				_$_.try_block(
-					() => {
-						_$_.output_push('<!--[-->');
+					__out += '<!--[-->';
 
-						{
-							const comp = ServerCallResult;
-							const args = [{ count: lazy_1 }];
+					{
+						const comp = ServerCallResult;
+						const args = [{ count: lazy_1 }];
 
-							_$_.render_component(comp, ...args);
-						}
-
-						_$_.output_push('<!--]-->');
-					},
-					null,
-					() => {
-						_$_.output_push('<!--[-->');
-						_$_.output_push('<p');
-						_$_.output_push(' class="loading"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('loading...');
-						}
-
-						_$_.output_push('</p>');
-						_$_.output_push('<!--]-->');
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
 					}
-				);
-			}
+
+					__out += '<!--]-->';
+					_$_.output_push(__out);
+				},
+				null,
+				() => {
+					let __out = '';
+
+					__out += '<!--[--><p class="loading">loading...</p><!--]-->';
+					_$_.output_push(__out);
+				}
+			);
+
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -88,41 +77,42 @@ export function AsyncSimpleValue() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_2 = _$_.track_async(() => Promise.resolve('hydrated value'), '4e502c38');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="result"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(lazy_2.value));
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="result">' + _$_.escape(lazy_2.value) + '</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="loading">loading...</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -132,41 +122,42 @@ export function AsyncNumericValue() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_3 = _$_.track_async(() => Promise.resolve(42), '14891754');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<span');
-					_$_.output_push(' class="count"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(lazy_3.value));
-					}
-
-					_$_.output_push('</span>');
+					__out += '<span class="count">' + _$_.escape(lazy_3.value) + '</span>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<span');
-					_$_.output_push(' class="pending"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('...');
-					}
-
-					_$_.output_push('</span>');
+					__out += '<span class="pending">...</span>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -176,58 +167,42 @@ export function AsyncObjectValue() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_4 = _$_.track_async(() => Promise.resolve({ name: 'Alice', age: 30 }), 'f325448a');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<div');
-					_$_.output_push(' class="user"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('<span');
-						_$_.output_push(' class="name"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(lazy_4.value.name));
-						}
-
-						_$_.output_push('</span>');
-						_$_.output_push('<span');
-						_$_.output_push(' class="age"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(lazy_4.value.age));
-						}
-
-						_$_.output_push('</span>');
-					}
-
-					_$_.output_push('</div>');
+					__out += '<div class="user"><span class="name">' + _$_.escape(lazy_4.value.name) + '</span><span class="age">' + _$_.escape(lazy_4.value.age) + '</span></div>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<div');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading user...');
-					}
-
-					_$_.output_push('</div>');
+					__out += '<div class="loading">loading user...</div>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -237,59 +212,43 @@ export function AsyncMultipleValues() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_5 = _$_.track_async(() => Promise.resolve('alpha'), 'ab8199a0');
 				let lazy_6 = _$_.track_async(() => Promise.resolve('beta'), 'fb7ad40b');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<div');
-					_$_.output_push(' class="multi"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('<span');
-						_$_.output_push(' class="first"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(lazy_5.value));
-						}
-
-						_$_.output_push('</span>');
-						_$_.output_push('<span');
-						_$_.output_push(' class="second"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(lazy_6.value));
-						}
-
-						_$_.output_push('</span>');
-					}
-
-					_$_.output_push('</div>');
+					__out += '<div class="multi"><span class="first">' + _$_.escape(lazy_5.value) + '</span><span class="second">' + _$_.escape(lazy_6.value) + '</span></div>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<div');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</div>');
+					__out += '<div class="loading">loading...</div>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -299,57 +258,58 @@ export function AsyncWithCatch() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_7 = _$_.track_async(() => Promise.reject(new Error('fetch failed')), '99982de5');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="result"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(lazy_7.value));
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="result">' + _$_.escape(lazy_7.value) + '</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			(e) => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="error"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(e.message));
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="error">' + _$_.escape(e.message) + '</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="loading"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="loading">loading...</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -359,41 +319,42 @@ export function ChildWithError() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
 
 				let lazy_8 = _$_.track_async(() => Promise.reject(new Error('child error')), '1dea4c85');
 
+				_$_.output_push(__out);
+				__out = '';
+
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="result"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(lazy_8.value));
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="result">' + _$_.escape(lazy_8.value) + '</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null,
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="pending"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push('loading...');
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="pending">loading...</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			}
 		);
 	});
@@ -403,7 +364,11 @@ export function ParentWithCatch() {
 	return _$_.tsrx_element(() => {
 		_$_.try_block(
 			() => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
 					{
@@ -414,24 +379,25 @@ export function ParentWithCatch() {
 					}
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			(e) => {
-				_$_.output_push('<!--[-->');
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
 
 				_$_.regular_block(() => {
-					_$_.output_push('<p');
-					_$_.output_push(' class="parent-error"');
-					_$_.output_push('>');
+					let __out = '';
 
-					{
-						_$_.output_push(_$_.escape(e.message));
-					}
-
-					_$_.output_push('</p>');
+					__out += '<p class="parent-error">' + _$_.escape(e.message) + '</p>';
+					_$_.output_push(__out);
 				});
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
+				_$_.output_push(__out);
 			},
 			null
 		);
@@ -443,15 +409,10 @@ function ReactiveDependencyResult({ count }) {
 		let lazy_9 = _$_.track_async(() => Promise.resolve(`count-${count.value}`), 'c9d12acf');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<p');
-			_$_.output_push(' class="result"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy_9.value));
-			}
-
-			_$_.output_push('</p>');
+			__out += '<p class="result">' + _$_.escape(lazy_9.value) + '</p>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -461,46 +422,40 @@ export function AsyncWithReactiveDependency() {
 		let lazy_10 = _$_.track(0, 'cdd1adb8');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="increment"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('increment');
-				}
+			__out += '<button class="increment">increment</button>';
+			_$_.output_push(__out);
+			__out = '';
 
-				_$_.output_push('</button>');
+			_$_.try_block(
+				() => {
+					let __out = '';
 
-				_$_.try_block(
-					() => {
-						_$_.output_push('<!--[-->');
+					__out += '<!--[-->';
 
-						{
-							const comp = ReactiveDependencyResult;
-							const args = [{ count: lazy_10 }];
+					{
+						const comp = ReactiveDependencyResult;
+						const args = [{ count: lazy_10 }];
 
-							_$_.render_component(comp, ...args);
-						}
-
-						_$_.output_push('<!--]-->');
-					},
-					null,
-					() => {
-						_$_.output_push('<!--[-->');
-						_$_.output_push('<p');
-						_$_.output_push(' class="loading"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('loading...');
-						}
-
-						_$_.output_push('</p>');
-						_$_.output_push('<!--]-->');
+						_$_.output_push(__out);
+						__out = '';
+						_$_.render_component(comp, ...args);
 					}
-				);
-			}
+
+					__out += '<!--]-->';
+					_$_.output_push(__out);
+				},
+				null,
+				() => {
+					let __out = '';
+
+					__out += '<!--[--><p class="loading">loading...</p><!--]-->';
+					_$_.output_push(__out);
+				}
+			);
+
+			_$_.output_push(__out);
 		});
 	});
 }

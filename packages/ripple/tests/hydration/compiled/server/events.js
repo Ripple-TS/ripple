@@ -8,31 +8,10 @@ export function ClickCounter() {
 		let lazy = _$_.track(0, 'a070e3a7');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="increment"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Increment');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="count"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy.value));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><button class="increment">Increment</button><span class="count">' + _$_.escape(lazy.value) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -42,40 +21,10 @@ export function IncrementDecrement() {
 		let lazy_1 = _$_.track(0, '87fcabdd');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="decrement"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('-');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="count"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_1.value));
-				}
-
-				_$_.output_push('</span>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="increment"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('+');
-				}
-
-				_$_.output_push('</button>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><button class="decrement">-</button><span class="count">' + _$_.escape(lazy_1.value) + '</span><button class="increment">+</button></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -86,40 +35,10 @@ export function MultipleEvents() {
 		let lazy_3 = _$_.track(0, '72789f75');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="target"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Target');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="clicks"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_2.value));
-				}
-
-				_$_.output_push('</span>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="hovers"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_3.value));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><button class="target">Target</button><span class="clicks">' + _$_.escape(lazy_2.value) + '</span><span class="hovers">' + _$_.escape(lazy_3.value) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -135,40 +54,10 @@ export function MultiStateUpdate() {
 		};
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="btn"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Click');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="count"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_4.value));
-				}
-
-				_$_.output_push('</span>');
-				_$_.output_push('<span');
-				_$_.output_push(' class="action"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_5.value));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><button class="btn">Click</button><span class="count">' + _$_.escape(lazy_4.value) + '</span><span class="action">' + _$_.escape(lazy_5.value) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -178,22 +67,10 @@ export function ToggleButton() {
 		let lazy_6 = _$_.track(false, 'be823ec7');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_6.value ? 'ON' : 'OFF'));
-				}
-
-				_$_.output_push('</button>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><button class="toggle">' + _$_.escape(lazy_6.value ? 'ON' : 'OFF') + '</button></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -201,15 +78,10 @@ export function ToggleButton() {
 export function ChildButton(props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<button');
-			_$_.output_push(' class="child-btn"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(props.label));
-			}
-
-			_$_.output_push('</button>');
+			__out += '<button class="child-btn">' + _$_.escape(props.label) + '</button>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -219,37 +91,29 @@ export function ParentWithChildButton() {
 		let lazy_7 = _$_.track(0, 'dcc2e0f9');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div>';
 
 			{
-				{
-					const comp = ChildButton;
+				const comp = ChildButton;
 
-					const args = [
-						{
-							onClick: () => {
-								_$_.update(lazy_7);
-							},
-							label: "Click me"
-						}
-					];
+				const args = [
+					{
+						onClick: () => {
+							_$_.update(lazy_7);
+						},
+						label: "Click me"
+					}
+				];
 
-					_$_.render_component(comp, ...args);
-				}
-
-				_$_.output_push('<span');
-				_$_.output_push(' class="count"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_7.value));
-				}
-
-				_$_.output_push('</span>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
 			}
 
-			_$_.output_push('</div>');
+			__out += '<span class="count">' + _$_.escape(lazy_7.value) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }

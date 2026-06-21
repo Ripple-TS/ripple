@@ -8,10 +8,10 @@ export function StaticHtml() {
 		const html = '<p><strong>Bold</strong> text</p>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-			_$_.output_push(String(html ?? ''));
-			_$_.output_push('</div>');
+			let __out = '';
+
+			__out += '<div>' + String(html ?? '') + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -21,10 +21,10 @@ export function DynamicHtml() {
 		const content = '<p>Dynamic <span>HTML</span> content</p>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-			_$_.output_push(String(content ?? ''));
-			_$_.output_push('</div>');
+			let __out = '';
+
+			__out += '<div>' + String(content ?? '') + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -34,10 +34,10 @@ export function EmptyHtml() {
 		const html = '';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-			_$_.output_push(String(html ?? ''));
-			_$_.output_push('</div>');
+			let __out = '';
+
+			__out += '<div>' + String(html ?? '') + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -47,10 +47,10 @@ export function ComplexHtml() {
 		const html = '<div class="nested"><span>Nested <em>content</em></span></div>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push('>');
-			_$_.output_push(String(html ?? ''));
-			_$_.output_push('</section>');
+			let __out = '';
+
+			__out += '<section>' + String(html ?? '') + '</section>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -61,24 +61,22 @@ export function MultipleHtml() {
 		const html2 = '<p>Second paragraph</p>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div>';
 
 			{
 				const html_value = String(html1 ?? '');
 
-				_$_.output_push('<!--' + _$_.simple_hash(html_value) + '-->');
-				_$_.output_push(html_value);
-				_$_.output_push('<!---->');
+				__out += '<!--' + _$_.simple_hash(html_value) + '-->' + html_value + '<!---->';
 
 				const html_value_1 = String(html2 ?? '');
 
-				_$_.output_push('<!--' + _$_.simple_hash(html_value_1) + '-->');
-				_$_.output_push(html_value_1);
-				_$_.output_push('<!---->');
+				__out += '<!--' + _$_.simple_hash(html_value_1) + '-->' + html_value_1 + '<!---->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -86,24 +84,10 @@ export function MultipleHtml() {
 export function HtmlWithReactivity() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--1tb17hh-->');
-				_$_.output_push('<p>Count: 0</p>');
-				_$_.output_push('<!---->');
-				_$_.output_push('<button');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Increment');
-				}
-
-				_$_.output_push('</button>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><!--1tb17hh--><p>Count: 0</p><!----><button>Increment</button></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -111,23 +95,18 @@ export function HtmlWithReactivity() {
 export function HtmlWrapper({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="wrapper"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="wrapper"><div class="inner">';
 
 			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="inner"');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(children);
-				}
-
-				_$_.output_push('</div>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -144,11 +123,10 @@ export function HtmlInChildren() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="vp-doc"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="vp-doc">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -172,19 +150,10 @@ export function HtmlInChildrenWithSiblings() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<h1');
-								_$_.output_push('>');
+								let __out = '';
 
-								{
-									_$_.output_push('Title');
-								}
-
-								_$_.output_push('</h1>');
-								_$_.output_push('<div');
-								_$_.output_push(' class="content"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								__out += '<h1>Title</h1><div class="content">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -209,25 +178,22 @@ export function MultipleHtmlInChildren() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc"');
-								_$_.output_push('>');
+								let __out = '';
+
+								__out += '<div class="doc">';
 
 								{
 									const html_value_2 = String(html1 ?? '');
 
-									_$_.output_push('<!--' + _$_.simple_hash(html_value_2) + '-->');
-									_$_.output_push(html_value_2);
-									_$_.output_push('<!---->');
+									__out += '<!--' + _$_.simple_hash(html_value_2) + '-->' + html_value_2 + '<!---->';
 
 									const html_value_3 = String(html2 ?? '');
 
-									_$_.output_push('<!--' + _$_.simple_hash(html_value_3) + '-->');
-									_$_.output_push(html_value_3);
-									_$_.output_push('<!---->');
+									__out += '<!--' + _$_.simple_hash(html_value_3) + '-->' + html_value_3 + '<!---->';
 								}
 
-								_$_.output_push('</div>');
+								__out += '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -244,10 +210,10 @@ export function HtmlWithComments() {
 		const content = '<p>Before comment</p><!-- TODO: Elaborate --><p>After comment</p>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-			_$_.output_push(String(content ?? ''));
-			_$_.output_push('</div>');
+			let __out = '';
+
+			__out += '<div>' + String(content ?? '') + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -257,10 +223,10 @@ export function HtmlWithEmptyComment() {
 		const content = '<p>Before</p><!----><p>After</p>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
-			_$_.output_push(String(content ?? ''));
-			_$_.output_push('</div>');
+			let __out = '';
+
+			__out += '<div>' + String(content ?? '') + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -277,11 +243,10 @@ export function HtmlWithCommentsInChildren() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="vp-doc"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="vp-doc">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -296,15 +261,10 @@ export function HtmlWithCommentsInChildren() {
 function DocFooter() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<footer');
-			_$_.output_push(' class="doc-footer"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('Footer content');
-			}
-
-			_$_.output_push('</footer>');
+			__out += '<footer class="doc-footer">Footer content</footer>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -312,140 +272,121 @@ function DocFooter() {
 export function DocLayout(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout"><div class="content-container"><article><div>';
 
 			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(__props.children);
+			}
+
+			__out += '</div></article><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.editPath, '')) {
 				_$_.output_push('<div');
-				_$_.output_push(' class="content-container"');
+				_$_.output_push(' class="edit-link"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('<article');
+					_$_.output_push('<a');
+					_$_.output_push(_$_.attr('href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`, false));
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('<div');
-						_$_.output_push('>');
-
-						{
-							_$_.render_expression(__props.children);
-						}
-
-						_$_.output_push('</div>');
+						_$_.output_push('Edit');
 					}
 
-					_$_.output_push('</article>');
-					_$_.output_push('<!--[-->');
-
-					if (_$_.fallback(__props.editPath, '')) {
-						_$_.output_push('<div');
-						_$_.output_push(' class="edit-link"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<a');
-							_$_.output_push(_$_.attr('href', `https://github.com/edit/${_$_.fallback(__props.editPath, '')}`, false));
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('Edit');
-							}
-
-							_$_.output_push('</a>');
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('<!--]-->');
-					_$_.output_push('<!--[-->');
-
-					if (_$_.fallback(__props.nextLink, null)) {
-						_$_.output_push('<nav');
-						_$_.output_push(' class="prev-next"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<a');
-							_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
-							}
-
-							_$_.output_push('</a>');
-						}
-
-						_$_.output_push('</nav>');
-					}
-
-					_$_.output_push('<!--]-->');
-
-					{
-						const comp = DocFooter;
-						const args = [{}];
-
-						_$_.render_component(comp, ...args);
-					}
+					_$_.output_push('</a>');
 				}
 
 				_$_.output_push('</div>');
-				_$_.output_push('<aside');
+			}
+
+			__out += '<!--]--><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.nextLink, null)) {
+				_$_.output_push('<nav');
+				_$_.output_push(' class="prev-next"');
 				_$_.output_push('>');
 
 				{
-					_$_.output_push('<!--[-->');
+					_$_.output_push('<a');
+					_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
+					_$_.output_push('>');
 
-					if (_$_.fallback(__props.toc, []).length > 0) {
-						_$_.output_push('<div');
-						_$_.output_push(' class="toc"');
-						_$_.output_push('>');
+					{
+						_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+					}
 
-						{
-							_$_.output_push('<ul');
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</nav>');
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = DocFooter;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div><aside><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.toc, []).length > 0) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="toc"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<ul');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<!--[-->');
+
+						for (const item of _$_.fallback(__props.toc, [])) {
+							_$_.output_push('<li');
 							_$_.output_push('>');
 
 							{
-								_$_.output_push('<!--[-->');
+								_$_.output_push('<a');
+								_$_.output_push(_$_.attr('href', item.href, false));
+								_$_.output_push('>');
 
-								for (const item of _$_.fallback(__props.toc, [])) {
-									_$_.output_push('<li');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('<a');
-										_$_.output_push(_$_.attr('href', item.href, false));
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(item.text));
-										}
-
-										_$_.output_push('</a>');
-									}
-
-									_$_.output_push('</li>');
+								{
+									_$_.output_push(_$_.escape(item.text));
 								}
 
-								_$_.output_push('<!--]-->');
+								_$_.output_push('</a>');
 							}
 
-							_$_.output_push('</ul>');
+							_$_.output_push('</li>');
 						}
 
-						_$_.output_push('</div>');
+						_$_.output_push('<!--]-->');
 					}
 
-					_$_.output_push('<!--]-->');
+					_$_.output_push('</ul>');
 				}
 
-				_$_.output_push('</aside>');
+				_$_.output_push('</div>');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></aside></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -469,11 +410,10 @@ export function HtmlWithServerData() {
 
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="vp-doc"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="vp-doc">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -497,11 +437,10 @@ export function HtmlWithClientDefaults() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="vp-doc"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="vp-doc">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -525,11 +464,10 @@ export function HtmlWithUndefinedContent() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="vp-doc"');
-								_$_.output_push('>');
-								_$_.output_push(String(content ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="vp-doc">' + String(content ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -544,31 +482,34 @@ export function HtmlWithUndefinedContent() {
 function DynamicHeading({ level, children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<!--[-->');
+			let __out = '';
+
+			__out += '<!--[-->';
 
 			switch (level) {
 				case 1:
-					_$_.output_push('<h1');
-					_$_.output_push(' class="heading"');
-					_$_.output_push('>');
+					__out += '<h1 class="heading">';
 					{
+						_$_.output_push(__out);
+						__out = '';
 						_$_.render_expression(children);
 					}
-					_$_.output_push('</h1>');
+					__out += '</h1>';
 					break;
 
 				case 2:
-					_$_.output_push('<h2');
-					_$_.output_push(' class="heading"');
-					_$_.output_push('>');
+					__out += '<h2 class="heading">';
 					{
+						_$_.output_push(__out);
+						__out = '';
 						_$_.render_expression(children);
 					}
-					_$_.output_push('</h2>');
+					__out += '</h2>';
 					break;
 			}
 
-			_$_.output_push('<!--]-->');
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -578,44 +519,10 @@ function CodeBlock({ code }) {
 		const highlighted = `<pre class="shiki"><code>${code}</code></pre>`;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="code-block"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="header"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<button');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Copy');
-					}
-
-					_$_.output_push('</button>');
-					_$_.output_push('<span');
-					_$_.output_push(' class="lang"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('js');
-					}
-
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<div');
-				_$_.output_push(' class="content"');
-				_$_.output_push('>');
-				_$_.output_push(String(highlighted ?? ''));
-				_$_.output_push('</div>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="code-block"><div class="header"><button>Copy</button><span class="lang">js</span></div><div class="content">' + String(highlighted ?? '') + '</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -623,23 +530,18 @@ function CodeBlock({ code }) {
 function ContentWrapper({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="wrapper"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="wrapper"><div class="inner">';
 
 			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="inner"');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(children);
-				}
-
-				_$_.output_push('</div>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -654,55 +556,46 @@ export function HtmlAfterSwitchInChildren() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
+								let __out = '';
+
 								{
 									const comp = DynamicHeading;
+
+									_$_.output_push(__out);
+									__out = '';
 
 									const args = [
 										{
 											level: 1,
 											children: _$_.tsrx_element(() => {
 												return _$_.tsrx_element(() => {
-													_$_.output_push('Title');
+													let __out = '';
+
+													__out += 'Title';
+													_$_.output_push(__out);
 												});
 											})
 										}
 									];
 
+									_$_.output_push(__out);
+									__out = '';
 									_$_.render_component(comp, ...args);
 								}
 
-								_$_.output_push('<p');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('First paragraph');
-								}
-
-								_$_.output_push('</p>');
-								_$_.output_push('<p');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Second paragraph');
-								}
-
-								_$_.output_push('</p>');
+								__out += '<p>First paragraph</p><p>Second paragraph</p>';
 
 								{
 									const comp = CodeBlock;
 									const args = [{ code: "const x = 1;" }];
 
+									_$_.output_push(__out);
+									__out = '';
 									_$_.render_component(comp, ...args);
 								}
 
-								_$_.output_push('<p');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('After code');
-								}
-
-								_$_.output_push('</p>');
+								__out += '<p>After code</p>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -717,40 +610,21 @@ export function HtmlAfterSwitchInChildren() {
 function NavItem(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(_$_.attr('class', `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`));
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div' + _$_.attr('class', `nav-item${_$_.fallback(__props.active, false) ? ' active' : ''}`) + '><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
 
-				if (_$_.fallback(__props.active, false)) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="indicator"');
-					_$_.output_push('>');
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
-				_$_.output_push('<a');
-				_$_.output_push(_$_.attr('href', __props.href, false));
+			if (_$_.fallback(__props.active, false)) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="indicator"');
 				_$_.output_push('>');
-
-				{
-					_$_.output_push('<span');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(__props.text));
-					}
-
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('</a>');
+				_$_.output_push('</div>');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--><a' + _$_.attr('href', __props.href, false) + '><span>' + _$_.escape(__props.text) + '</span></a></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -760,53 +634,24 @@ function SidebarSection({ title, children }) {
 		let lazy = _$_.track(true, '6ac6906f');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="sidebar-section"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="section-header"');
-				_$_.output_push('>');
+			__out += '<section class="sidebar-section"><div class="section-header"><h2>' + _$_.escape(title) + '</h2><button>Toggle</button></div><!--[-->';
+
+			if (lazy.value) {
+				__out += '<div class="section-items">';
 
 				{
-					_$_.output_push('<h2');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(title));
-					}
-
-					_$_.output_push('</h2>');
-					_$_.output_push('<button');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('Toggle');
-					}
-
-					_$_.output_push('</button>');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(children);
 				}
 
-				_$_.output_push('</div>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy.value) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="section-items"');
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(children);
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+				__out += '</div>';
 			}
 
-			_$_.output_push('</section>');
+			__out += '<!--]--></section>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -814,121 +659,114 @@ function SidebarSection({ title, children }) {
 function SideNav({ currentPath }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<aside');
-			_$_.output_push(' class="sidebar"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<aside class="sidebar"><nav><div class="group">';
 
 			{
-				_$_.output_push('<nav');
-				_$_.output_push('>');
-
 				{
-					_$_.output_push('<div');
-					_$_.output_push(' class="group"');
-					_$_.output_push('>');
+					const comp = SidebarSection;
 
-					{
+					_$_.output_push(__out);
+					__out = '';
+
+					const args = [
 						{
-							const comp = SidebarSection;
+							title: "Getting Started",
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									{
+										const comp = NavItem;
 
-							const args = [
-								{
-									title: "Getting Started",
-									children: _$_.tsrx_element(() => {
-										return _$_.tsrx_element(() => {
+										const args = [
 											{
-												const comp = NavItem;
-
-												const args = [
-													{
-														href: "/intro",
-														text: "Introduction",
-														active: currentPath === '/intro'
-													}
-												];
-
-												_$_.render_component(comp, ...args);
+												href: "/intro",
+												text: "Introduction",
+												active: currentPath === '/intro'
 											}
+										];
 
+										_$_.render_component(comp, ...args);
+									}
+
+									{
+										const comp = NavItem;
+
+										const args = [
 											{
-												const comp = NavItem;
-
-												const args = [
-													{
-														href: "/start",
-														text: "Quick Start",
-														active: currentPath === '/start'
-													}
-												];
-
-												_$_.render_component(comp, ...args);
+												href: "/start",
+												text: "Quick Start",
+												active: currentPath === '/start'
 											}
-										});
-									})
-								}
-							];
+										];
 
-							_$_.render_component(comp, ...args);
+										_$_.render_component(comp, ...args);
+									}
+								});
+							})
 						}
-					}
+					];
 
-					_$_.output_push('</div>');
-					_$_.output_push('<div');
-					_$_.output_push(' class="group"');
-					_$_.output_push('>');
-
-					{
-						{
-							const comp = SidebarSection;
-
-							const args = [
-								{
-									title: "Guide",
-									children: _$_.tsrx_element(() => {
-										return _$_.tsrx_element(() => {
-											{
-												const comp = NavItem;
-
-												const args = [
-													{
-														href: "/guide/app",
-														text: "Application",
-														active: currentPath === '/guide/app'
-													}
-												];
-
-												_$_.render_component(comp, ...args);
-											}
-
-											{
-												const comp = NavItem;
-
-												const args = [
-													{
-														href: "/guide/syntax",
-														text: "Syntax",
-														active: currentPath === '/guide/syntax'
-													}
-												];
-
-												_$_.render_component(comp, ...args);
-											}
-										});
-									})
-								}
-							];
-
-							_$_.render_component(comp, ...args);
-						}
-					}
-
-					_$_.output_push('</div>');
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
 				}
-
-				_$_.output_push('</nav>');
 			}
 
-			_$_.output_push('</aside>');
+			__out += '</div><div class="group">';
+
+			{
+				{
+					const comp = SidebarSection;
+
+					_$_.output_push(__out);
+					__out = '';
+
+					const args = [
+						{
+							title: "Guide",
+							children: _$_.tsrx_element(() => {
+								return _$_.tsrx_element(() => {
+									{
+										const comp = NavItem;
+
+										const args = [
+											{
+												href: "/guide/app",
+												text: "Application",
+												active: currentPath === '/guide/app'
+											}
+										];
+
+										_$_.render_component(comp, ...args);
+									}
+
+									{
+										const comp = NavItem;
+
+										const args = [
+											{
+												href: "/guide/syntax",
+												text: "Syntax",
+												active: currentPath === '/guide/syntax'
+											}
+										];
+
+										_$_.render_component(comp, ...args);
+									}
+								});
+							})
+						}
+					];
+
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
+				}
+			}
+
+			__out += '</div></nav></aside>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -936,23 +774,10 @@ function SideNav({ currentPath }) {
 function PageHeader() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<header');
-			_$_.output_push(' class="page-header"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="logo"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('MyApp');
-				}
-
-				_$_.output_push('</div>');
-			}
-
-			_$_.output_push('</header>');
+			__out += '<header class="page-header"><div class="logo">MyApp</div></header>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -960,105 +785,49 @@ function PageHeader() {
 export function LayoutWithSidebarAndMain() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout">';
 
 			{
-				{
-					const comp = PageHeader;
-					const args = [{}];
+				const comp = PageHeader;
+				const args = [{}];
 
-					_$_.render_component(comp, ...args);
-				}
-
-				_$_.output_push('<div');
-				_$_.output_push(' class="content-wrapper"');
-				_$_.output_push('>');
-
-				{
-					{
-						const comp = SideNav;
-						const args = [{ currentPath: "/intro" }];
-
-						_$_.render_component(comp, ...args);
-					}
-
-					_$_.output_push('<main');
-					_$_.output_push(' class="main-content"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="article"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<div');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<h1');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Introduction');
-								}
-
-								_$_.output_push('</h1>');
-								_$_.output_push('<p');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Welcome to the docs.');
-								}
-
-								_$_.output_push('</p>');
-							}
-
-							_$_.output_push('</div>');
-						}
-
-						_$_.output_push('</div>');
-						_$_.output_push('<!--[-->');
-
-						if (true) {
-							_$_.output_push('<div');
-							_$_.output_push(' class="edit-link"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<a');
-								_$_.output_push(' href="/edit"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('Edit');
-								}
-
-								_$_.output_push('</a>');
-							}
-
-							_$_.output_push('</div>');
-						}
-
-						_$_.output_push('<!--]-->');
-
-						{
-							const comp = PageHeader;
-							const args = [{}];
-
-							_$_.render_component(comp, ...args);
-						}
-					}
-
-					_$_.output_push('</main>');
-				}
-
-				_$_.output_push('</div>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
 			}
 
-			_$_.output_push('</div>');
+			__out += '<div class="content-wrapper">';
+
+			{
+				const comp = SideNav;
+				const args = [{ currentPath: "/intro" }];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!--[-->';
+
+			if (true) {
+				__out += '<div class="edit-link"><a href="/edit">Edit</a></div>';
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = PageHeader;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</main></div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1066,22 +835,18 @@ export function LayoutWithSidebarAndMain() {
 function ArticleWrapper({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<article');
-			_$_.output_push(' class="doc-content"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<article class="doc-content"><div>';
 
 			{
-				_$_.output_push('<div');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(children);
-				}
-
-				_$_.output_push('</div>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</article>');
+			__out += '</div></article>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1089,15 +854,10 @@ function ArticleWrapper({ children }) {
 function SimpleFooter() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<footer');
-			_$_.output_push(' class="doc-footer"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('Footer');
-			}
-
-			_$_.output_push('</footer>');
+			__out += '<footer class="doc-footer">Footer</footer>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1105,98 +865,59 @@ function SimpleFooter() {
 export function ArticleWithChildrenThenSibling() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="content-container"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="content-container">';
 
 			{
-				{
-					const comp = ArticleWrapper;
+				const comp = ArticleWrapper;
 
-					const args = [
-						{
-							children: _$_.tsrx_element(() => {
-								return _$_.tsrx_element(() => {
-									_$_.output_push('<h1');
-									_$_.output_push('>');
+				_$_.output_push(__out);
+				__out = '';
 
-									{
-										_$_.output_push('Title');
-									}
-
-									_$_.output_push('</h1>');
-									_$_.output_push('<p');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('Content goes here.');
-									}
-
-									_$_.output_push('</p>');
-								});
-							})
-						}
-					];
-
-					_$_.render_component(comp, ...args);
-				}
-
-				_$_.output_push('<!--[-->');
-
-				if (true) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="edit-link"');
-					_$_.output_push('>');
-
+				const args = [
 					{
-						_$_.output_push('<a');
-						_$_.output_push(' href="/edit"');
-						_$_.output_push('>');
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
 
-						{
-							_$_.output_push('Edit');
-						}
-
-						_$_.output_push('</a>');
+								__out += '<h1>Title</h1><p>Content goes here.</p>';
+								_$_.output_push(__out);
+							});
+						})
 					}
+				];
 
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
-				_$_.output_push('<!--[-->');
-
-				if (true) {
-					_$_.output_push('<nav');
-					_$_.output_push(' class="prev-next"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<a');
-						_$_.output_push(' href="/prev"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Previous');
-						}
-
-						_$_.output_push('</a>');
-					}
-
-					_$_.output_push('</nav>');
-				}
-
-				_$_.output_push('<!--]-->');
-
-				{
-					const comp = SimpleFooter;
-					const args = [{}];
-
-					_$_.render_component(comp, ...args);
-				}
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--[-->';
+
+			if (true) {
+				__out += '<div class="edit-link"><a href="/edit">Edit</a></div>';
+			}
+
+			__out += '<!--]--><!--[-->';
+
+			if (true) {
+				__out += '<nav class="prev-next"><a href="/prev">Previous</a></nav>';
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1206,64 +927,53 @@ export function ArticleWithHtmlChildThenSibling() {
 		const htmlContent = '<pre><code>const x = 1;</code></pre>';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="content-container"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="content-container">';
 
 			{
-				{
-					const comp = ArticleWrapper;
+				const comp = ArticleWrapper;
 
-					const args = [
-						{
-							children: _$_.tsrx_element(() => {
-								return _$_.tsrx_element(() => {
-									_$_.output_push('<div');
-									_$_.output_push(' class="doc-content"');
-									_$_.output_push('>');
-									_$_.output_push(String(htmlContent ?? ''));
-									_$_.output_push('</div>');
-								});
-							})
-						}
-					];
+				_$_.output_push(__out);
+				__out = '';
 
-					_$_.render_component(comp, ...args);
-				}
-
-				_$_.output_push('<!--[-->');
-
-				if (true) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="edit-link"');
-					_$_.output_push('>');
-
+				const args = [
 					{
-						_$_.output_push('<a');
-						_$_.output_push(' href="/edit"');
-						_$_.output_push('>');
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
 
-						{
-							_$_.output_push('Edit');
-						}
-
-						_$_.output_push('</a>');
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
+							});
+						})
 					}
+				];
 
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
-
-				{
-					const comp = SimpleFooter;
-					const args = [{}];
-
-					_$_.render_component(comp, ...args);
-				}
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--[-->';
+
+			if (true) {
+				__out += '<div class="edit-link"><a href="/edit">Edit</a></div>';
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1271,60 +981,35 @@ export function ArticleWithHtmlChildThenSibling() {
 function InlineArticleLayout({ children }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="content-container"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="content-container"><article class="doc-content"><div>';
 
 			{
-				_$_.output_push('<article');
-				_$_.output_push(' class="doc-content"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<div');
-					_$_.output_push('>');
-
-					{
-						_$_.render_expression(children);
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('</article>');
-				_$_.output_push('<!--[-->');
-
-				if (true) {
-					_$_.output_push('<div');
-					_$_.output_push(' class="edit-link"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<a');
-						_$_.output_push(' href="/edit"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('Edit');
-						}
-
-						_$_.output_push('</a>');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
-
-				{
-					const comp = SimpleFooter;
-					const args = [{}];
-
-					_$_.render_component(comp, ...args);
-				}
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div></article><!--[-->';
+
+			if (true) {
+				__out += '<div class="edit-link"><a href="/edit">Edit</a></div>';
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = SimpleFooter;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1341,11 +1026,10 @@ export function InlineArticleWithHtmlChild() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(htmlContent ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -1360,15 +1044,10 @@ export function InlineArticleWithHtmlChild() {
 function HeaderStub() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<header');
-			_$_.output_push(' class="header"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('Header');
-			}
-
-			_$_.output_push('</header>');
+			__out += '<header class="header">Header</header>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1376,15 +1055,10 @@ function HeaderStub() {
 function SidebarStub() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<aside');
-			_$_.output_push(' class="sidebar"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('Sidebar');
-			}
-
-			_$_.output_push('</aside>');
+			__out += '<aside class="sidebar">Sidebar</aside>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1392,15 +1066,10 @@ function SidebarStub() {
 function FooterStub() {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<footer');
-			_$_.output_push(' class="footer"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('Footer');
-			}
-
-			_$_.output_push('</footer>');
+			__out += '<footer class="footer">Footer</footer>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1408,137 +1077,99 @@ function FooterStub() {
 function DocsLayoutInner(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout">';
 
 			{
-				{
-					const comp = HeaderStub;
-					const args = [{}];
+				const comp = HeaderStub;
+				const args = [{}];
 
-					_$_.render_component(comp, ...args);
-				}
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
 
+			__out += '<div class="docs-wrapper">';
+
+			{
+				const comp = SidebarStub;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(__props.children);
+			}
+
+			__out += '</div></article><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.editPath, '')) {
 				_$_.output_push('<div');
-				_$_.output_push(' class="docs-wrapper"');
+				_$_.output_push(' class="edit-link"');
 				_$_.output_push('>');
 
 				{
-					{
-						const comp = SidebarStub;
-						const args = [{}];
-
-						_$_.render_component(comp, ...args);
-					}
-
-					_$_.output_push('<main');
-					_$_.output_push(' class="docs-main"');
+					_$_.output_push('<a');
+					_$_.output_push(' href="/edit"');
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="docs-container"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<div');
-							_$_.output_push(' class="content"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<div');
-								_$_.output_push(' class="content-container"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('<article');
-									_$_.output_push(' class="doc-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('<div');
-										_$_.output_push('>');
-
-										{
-											_$_.render_expression(__props.children);
-										}
-
-										_$_.output_push('</div>');
-									}
-
-									_$_.output_push('</article>');
-									_$_.output_push('<!--[-->');
-
-									if (_$_.fallback(__props.editPath, '')) {
-										_$_.output_push('<div');
-										_$_.output_push(' class="edit-link"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('<a');
-											_$_.output_push(' href="/edit"');
-											_$_.output_push('>');
-
-											{
-												_$_.output_push('Edit on GitHub');
-											}
-
-											_$_.output_push('</a>');
-										}
-
-										_$_.output_push('</div>');
-									}
-
-									_$_.output_push('<!--]-->');
-									_$_.output_push('<!--[-->');
-
-									if (_$_.fallback(__props.nextLink, null)) {
-										_$_.output_push('<nav');
-										_$_.output_push(' class="prev-next"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('<a');
-											_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-											_$_.output_push('>');
-
-											{
-												_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
-											}
-
-											_$_.output_push('</a>');
-										}
-
-										_$_.output_push('</nav>');
-									}
-
-									_$_.output_push('<!--]-->');
-
-									{
-										const comp = FooterStub;
-										const args = [{}];
-
-										_$_.render_component(comp, ...args);
-									}
-								}
-
-								_$_.output_push('</div>');
-							}
-
-							_$_.output_push('</div>');
-						}
-
-						_$_.output_push('</div>');
+						_$_.output_push('Edit on GitHub');
 					}
 
-					_$_.output_push('</main>');
+					_$_.output_push('</a>');
 				}
 
 				_$_.output_push('</div>');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.nextLink, null)) {
+				_$_.output_push('<nav');
+				_$_.output_push(' class="prev-next"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<a');
+					_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
+					_$_.output_push('>');
+
+					{
+						_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+					}
+
+					_$_.output_push('</a>');
+				}
+
+				_$_.output_push('</nav>');
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = FooterStub;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div></div></div></main></div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1557,11 +1188,10 @@ export function DocsLayoutWithData() {
 						nextLink: { href: '/next', text: 'Next' },
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(htmlContent ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -1585,11 +1215,10 @@ export function DocsLayoutWithoutData() {
 					{
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(htmlContent ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -1604,225 +1233,180 @@ export function DocsLayoutWithoutData() {
 function DocsLayoutExact(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout">';
 
 			{
-				{
-					const comp = HeaderStub;
-					const args = [{}];
+				const comp = HeaderStub;
+				const args = [{}];
 
-					_$_.render_component(comp, ...args);
-				}
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
 
+			__out += '<div class="docs-wrapper">';
+
+			{
+				const comp = SidebarStub;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '<main class="docs-main"><div class="docs-container"><div class="content"><div class="content-container"><article class="doc-content"><div>';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(__props.children);
+			}
+
+			__out += '</div></article><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.editPath, '')) {
 				_$_.output_push('<div');
-				_$_.output_push(' class="docs-wrapper"');
+				_$_.output_push(' class="edit-link"');
 				_$_.output_push('>');
 
 				{
-					{
-						const comp = SidebarStub;
-						const args = [{}];
-
-						_$_.render_component(comp, ...args);
-					}
-
-					_$_.output_push('<main');
-					_$_.output_push(' class="docs-main"');
+					_$_.output_push('<a');
+					_$_.output_push(_$_.attr('href', `/edit/${_$_.fallback(__props.editPath, '')}`, false));
 					_$_.output_push('>');
 
 					{
-						_$_.output_push('<div');
-						_$_.output_push(' class="docs-container"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<div');
-							_$_.output_push(' class="content"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<div');
-								_$_.output_push(' class="content-container"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('<article');
-									_$_.output_push(' class="doc-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('<div');
-										_$_.output_push('>');
-
-										{
-											_$_.render_expression(__props.children);
-										}
-
-										_$_.output_push('</div>');
-									}
-
-									_$_.output_push('</article>');
-									_$_.output_push('<!--[-->');
-
-									if (_$_.fallback(__props.editPath, '')) {
-										_$_.output_push('<div');
-										_$_.output_push(' class="edit-link"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('<a');
-											_$_.output_push(_$_.attr('href', `/edit/${_$_.fallback(__props.editPath, '')}`, false));
-											_$_.output_push('>');
-
-											{
-												_$_.output_push('Edit on GitHub');
-											}
-
-											_$_.output_push('</a>');
-										}
-
-										_$_.output_push('</div>');
-									}
-
-									_$_.output_push('<!--]-->');
-									_$_.output_push('<!--[-->');
-
-									if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) {
-										_$_.output_push('<nav');
-										_$_.output_push(' class="prev-next"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('<!--[-->');
-
-											if (_$_.fallback(__props.prevLink, null)) {
-												_$_.output_push('<a');
-												_$_.output_push(_$_.attr('href', _$_.fallback(__props.prevLink, null).href, false));
-												_$_.output_push(' class="pager prev"');
-												_$_.output_push('>');
-
-												{
-													_$_.output_push('<span');
-													_$_.output_push(' class="title"');
-													_$_.output_push('>');
-
-													{
-														_$_.output_push(_$_.escape(_$_.fallback(__props.prevLink, null).text));
-													}
-
-													_$_.output_push('</span>');
-												}
-
-												_$_.output_push('</a>');
-											} else {
-												_$_.output_push('<span');
-												_$_.output_push('>');
-												_$_.output_push('</span>');
-											}
-
-											_$_.output_push('<!--]-->');
-											_$_.output_push('<!--[-->');
-
-											if (_$_.fallback(__props.nextLink, null)) {
-												_$_.output_push('<a');
-												_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
-												_$_.output_push(' class="pager next"');
-												_$_.output_push('>');
-
-												{
-													_$_.output_push('<span');
-													_$_.output_push(' class="title"');
-													_$_.output_push('>');
-
-													{
-														_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
-													}
-
-													_$_.output_push('</span>');
-												}
-
-												_$_.output_push('</a>');
-											}
-
-											_$_.output_push('<!--]-->');
-										}
-
-										_$_.output_push('</nav>');
-									}
-
-									_$_.output_push('<!--]-->');
-
-									{
-										const comp = FooterStub;
-										const args = [{}];
-
-										_$_.render_component(comp, ...args);
-									}
-								}
-
-								_$_.output_push('</div>');
-							}
-
-							_$_.output_push('</div>');
-							_$_.output_push('<aside');
-							_$_.output_push(' class="aside"');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<!--[-->');
-
-								if (_$_.fallback(__props.toc, []).length > 0) {
-									_$_.output_push('<div');
-									_$_.output_push(' class="aside-content"');
-									_$_.output_push('>');
-
-									{
-										_$_.output_push('<nav');
-										_$_.output_push(' class="outline"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push('<!--[-->');
-
-											for (const item of _$_.fallback(__props.toc, [])) {
-												_$_.output_push('<a');
-												_$_.output_push(_$_.attr('href', item.href, false));
-												_$_.output_push('>');
-
-												{
-													_$_.output_push(_$_.escape(item.text));
-												}
-
-												_$_.output_push('</a>');
-											}
-
-											_$_.output_push('<!--]-->');
-										}
-
-										_$_.output_push('</nav>');
-									}
-
-									_$_.output_push('</div>');
-								}
-
-								_$_.output_push('<!--]-->');
-							}
-
-							_$_.output_push('</aside>');
-						}
-
-						_$_.output_push('</div>');
+						_$_.output_push('Edit on GitHub');
 					}
 
-					_$_.output_push('</main>');
+					_$_.output_push('</a>');
 				}
 
 				_$_.output_push('</div>');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) {
+				_$_.output_push('<nav');
+				_$_.output_push(' class="prev-next"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<!--[-->');
+
+					if (_$_.fallback(__props.prevLink, null)) {
+						_$_.output_push('<a');
+						_$_.output_push(_$_.attr('href', _$_.fallback(__props.prevLink, null).href, false));
+						_$_.output_push(' class="pager prev"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<span');
+							_$_.output_push(' class="title"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(_$_.fallback(__props.prevLink, null).text));
+							}
+
+							_$_.output_push('</span>');
+						}
+
+						_$_.output_push('</a>');
+					} else {
+						_$_.output_push('<span');
+						_$_.output_push('>');
+						_$_.output_push('</span>');
+					}
+
+					_$_.output_push('<!--]-->');
+					_$_.output_push('<!--[-->');
+
+					if (_$_.fallback(__props.nextLink, null)) {
+						_$_.output_push('<a');
+						_$_.output_push(_$_.attr('href', _$_.fallback(__props.nextLink, null).href, false));
+						_$_.output_push(' class="pager next"');
+						_$_.output_push('>');
+
+						{
+							_$_.output_push('<span');
+							_$_.output_push(' class="title"');
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(_$_.fallback(__props.nextLink, null).text));
+							}
+
+							_$_.output_push('</span>');
+						}
+
+						_$_.output_push('</a>');
+					}
+
+					_$_.output_push('<!--]-->');
+				}
+
+				_$_.output_push('</nav>');
+			}
+
+			__out += '<!--]-->';
+
+			{
+				const comp = FooterStub;
+				const args = [{}];
+
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_component(comp, ...args);
+			}
+
+			__out += '</div></div><aside class="aside"><!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			if (_$_.fallback(__props.toc, []).length > 0) {
+				_$_.output_push('<div');
+				_$_.output_push(' class="aside-content"');
+				_$_.output_push('>');
+
+				{
+					_$_.output_push('<nav');
+					_$_.output_push(' class="outline"');
+					_$_.output_push('>');
+
+					{
+						_$_.output_push('<!--[-->');
+
+						for (const item of _$_.fallback(__props.toc, [])) {
+							_$_.output_push('<a');
+							_$_.output_push(_$_.attr('href', item.href, false));
+							_$_.output_push('>');
+
+							{
+								_$_.output_push(_$_.escape(item.text));
+							}
+
+							_$_.output_push('</a>');
+						}
+
+						_$_.output_push('<!--]-->');
+					}
+
+					_$_.output_push('</nav>');
+				}
+
+				_$_.output_push('</div>');
+			}
+
+			__out += '<!--]--></aside></div></main></div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1847,11 +1431,10 @@ export function DocsLayoutExactWithData() {
 
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(htmlContent ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -1883,11 +1466,10 @@ export function DocsLayoutExactWithoutData() {
 						toc,
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(htmlContent ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(htmlContent ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -1904,27 +1486,10 @@ export function TemplateWithHtmlContent() {
 		const data = { title: 'Test', value: 42 };
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<template');
-				_$_.output_push(' id="t1"');
-				_$_.output_push('>');
-				_$_.output_push(String(JSON.stringify(data) ?? ''));
-				_$_.output_push('</template>');
-				_$_.output_push('<p');
-				_$_.output_push(' class="content"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Main content');
-				}
-
-				_$_.output_push('</p>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><template id="t1">' + String(JSON.stringify(data) ?? '') + '</template><p class="content">Main content</p></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1934,36 +1499,10 @@ export function TemplateWithHtmlAndSiblings() {
 		const data = { name: 'Ripple', version: '1.0' };
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="wrapper"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<h1');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Title');
-				}
-
-				_$_.output_push('</h1>');
-				_$_.output_push('<template');
-				_$_.output_push(' id="data-template"');
-				_$_.output_push('>');
-				_$_.output_push(String(JSON.stringify(data) ?? ''));
-				_$_.output_push('</template>');
-				_$_.output_push('<p');
-				_$_.output_push(' class="after-template"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Content after template');
-				}
-
-				_$_.output_push('</p>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="wrapper"><h1>Title</h1><template id="data-template">' + String(JSON.stringify(data) ?? '') + '</template><p class="after-template">Content after template</p></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1971,27 +1510,18 @@ export function TemplateWithHtmlAndSiblings() {
 function LayoutWithTemplate({ children, data }) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="layout"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="layout"><template id="page-data">' + String(JSON.stringify(data) ?? '') + '</template><main>';
 
 			{
-				_$_.output_push('<template');
-				_$_.output_push(' id="page-data"');
-				_$_.output_push('>');
-				_$_.output_push(String(JSON.stringify(data) ?? ''));
-				_$_.output_push('</template>');
-				_$_.output_push('<main');
-				_$_.output_push('>');
-
-				{
-					_$_.render_expression(children);
-				}
-
-				_$_.output_push('</main>');
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
 			}
 
-			_$_.output_push('</div>');
+			__out += '</main></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -2009,11 +1539,10 @@ export function NestedTemplateInLayout() {
 						data: doc,
 						children: _$_.tsrx_element(() => {
 							return _$_.tsrx_element(() => {
-								_$_.output_push('<div');
-								_$_.output_push(' class="doc-content"');
-								_$_.output_push('>');
-								_$_.output_push(String(doc.html ?? ''));
-								_$_.output_push('</div>');
+								let __out = '';
+
+								__out += '<div class="doc-content">' + String(doc.html ?? '') + '</div>';
+								_$_.output_push(__out);
 							});
 						})
 					}
@@ -2032,98 +1561,10 @@ export function HtmlCodeBlocksWithSiblingChain() {
 		const html3 = '<span class="kw">const</span> <span class="id">c</span> = 3;';
 
 		_$_.regular_block(() => {
-			_$_.output_push('<section');
-			_$_.output_push(' class="readable-section"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Ergonomics');
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<h2');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Sibling traversal pattern');
-				}
-
-				_$_.output_push('</h2>');
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Before first block');
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Before second block');
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<pre');
-				_$_.output_push(' class="code-block"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<code');
-					_$_.output_push('>');
-					_$_.output_push(String(html1 ?? ''));
-					_$_.output_push('</code>');
-				}
-
-				_$_.output_push('</pre>');
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Between one and two');
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<pre');
-				_$_.output_push(' class="code-block"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<code');
-					_$_.output_push('>');
-					_$_.output_push(String(html2 ?? ''));
-					_$_.output_push('</code>');
-				}
-
-				_$_.output_push('</pre>');
-				_$_.output_push('<p');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Between two and three');
-				}
-
-				_$_.output_push('</p>');
-				_$_.output_push('<pre');
-				_$_.output_push(' class="code-block"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<code');
-					_$_.output_push('>');
-					_$_.output_push(String(html3 ?? ''));
-					_$_.output_push('</code>');
-				}
-
-				_$_.output_push('</pre>');
-			}
-
-			_$_.output_push('</section>');
+			__out += '<section class="readable-section"><p>Ergonomics</p><h2>Sibling traversal pattern</h2><p>Before first block</p><p>Before second block</p><pre class="code-block"><code>' + String(html1 ?? '') + '</code></pre><p>Between one and two</p><pre class="code-block"><code>' + String(html2 ?? '') + '</code></pre><p>Between two and three</p><pre class="code-block"><code>' + String(html3 ?? '') + '</code></pre></section>';
+			_$_.output_push(__out);
 		});
 	});
 }

@@ -8,15 +8,10 @@ export function TrackedState() {
 		let lazy = _$_.track(0, 'c1818584');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="count"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push(_$_.escape(lazy.value));
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="count">' + _$_.escape(lazy.value) + '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -26,22 +21,10 @@ export function CounterWithInitial(props) {
 		let lazy_1 = _$_.track(props.initial, '03ea4348');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<span');
-				_$_.output_push(' class="count"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_1.value));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div><span class="count">' + _$_.escape(lazy_1.value) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -66,15 +49,18 @@ export function ComputedValues() {
 		const sum = () => lazy_2.value + lazy_3.value;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="sum"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="sum">';
 
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(sum());
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -86,41 +72,10 @@ export function MultipleTracked() {
 		let lazy_6 = _$_.track(30, '048c3fd0');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="multiple-tracked"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="x"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_4.value));
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<div');
-				_$_.output_push(' class="y"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_5.value));
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<div');
-				_$_.output_push(' class="z"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(lazy_6.value));
-				}
-
-				_$_.output_push('</div>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div class="multiple-tracked"><div class="x">' + _$_.escape(lazy_4.value) + '</div><div class="y">' + _$_.escape(lazy_5.value) + '</div><div class="z">' + _$_.escape(lazy_6.value) + '</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -132,15 +87,18 @@ export function DerivedState() {
 		const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="name"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="name">';
 
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(fullName());
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }

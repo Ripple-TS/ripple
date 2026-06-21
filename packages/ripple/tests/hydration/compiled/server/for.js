@@ -8,27 +8,16 @@ export function StaticForLoop() {
 		const items = ['Apple', 'Banana', 'Cherry'];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item));
-					}
-
-					_$_.output_push('</li>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (const item of items) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -38,30 +27,25 @@ export function ForLoopWithIndex() {
 		const items = ['A', 'B', 'C'];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<ul>';
 
 			{
-				_$_.output_push('<!--[-->');
+				__out += '<!--[-->';
 
 				var i = 0;
 
 				for (const item of items) {
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(`${i}: ${item}`));
-					}
-
-					_$_.output_push('</li>');
+					__out += '<li>' + _$_.escape(`${i}: ${item}`) + '</li>';
 					i++;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '</ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -75,27 +59,16 @@ export function KeyedForLoop() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<li');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item.name));
-					}
-
-					_$_.output_push('</li>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (const item of items) {
+				__out += '<li>' + _$_.escape(item.name) + '</li>';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -105,38 +78,16 @@ export function ReactiveForLoopAdd() {
 		let lazy = _$_.track(['A', 'B'], 'e145678a');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="add"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Add');
-				}
+			__out += '<button class="add">Add</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy.value) {
-						_$_.output_push('<li');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy.value) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -146,38 +97,16 @@ export function ReactiveForLoopRemove() {
 		let lazy_1 = _$_.track(['A', 'B', 'C'], 'b4e9bd54');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="remove"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Remove');
-				}
+			__out += '<button class="remove">Remove</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_1.value) {
-						_$_.output_push('<li');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_1.value) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -187,48 +116,25 @@ export function ForLoopInteractive() {
 		let lazy_2 = _$_.track([0, 0, 0], '36f563df');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div>';
 
 			{
-				_$_.output_push('<!--[-->');
+				__out += '<!--[-->';
 
 				var i = 0;
 
 				for (const count of lazy_2.value) {
-					_$_.output_push('<div');
-					_$_.output_push(_$_.attr('class', `item-${i}`));
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<span');
-						_$_.output_push(' class="value"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(count));
-						}
-
-						_$_.output_push('</span>');
-						_$_.output_push('<button');
-						_$_.output_push(' class="increment"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('+');
-						}
-
-						_$_.output_push('</button>');
-					}
-
-					_$_.output_push('</div>');
+					__out += '<div' + _$_.attr('class', `item-${i}`) + '><span class="value">' + _$_.escape(count) + '</span><button class="increment">+</button></div>';
 					i++;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -238,49 +144,40 @@ export function NestedForLoop() {
 		const grid = [[1, 2], [3, 4]];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="grid"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="grid">';
 
 			{
-				_$_.output_push('<!--[-->');
+				__out += '<!--[-->';
 
 				var rowIndex = 0;
 
 				for (const row of grid) {
-					_$_.output_push('<div');
-					_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
-					_$_.output_push('>');
+					__out += '<div' + _$_.attr('class', `row-${rowIndex}`) + '>';
 
 					{
-						_$_.output_push('<!--[-->');
+						__out += '<!--[-->';
 
 						var colIndex = 0;
 
 						for (const cell of row) {
-							_$_.output_push('<span');
-							_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(cell));
-							}
-
-							_$_.output_push('</span>');
+							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>' + _$_.escape(cell) + '</span>';
 							colIndex++;
 						}
 
-						_$_.output_push('<!--]-->');
+						__out += '<!--]-->';
 					}
 
-					_$_.output_push('</div>');
+					__out += '</div>';
 					rowIndex++;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -290,28 +187,16 @@ export function EmptyForLoop() {
 		const items = [];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="container"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="container"><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<span');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item));
-					}
-
-					_$_.output_push('</span>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (const item of items) {
+				__out += '<span>' + _$_.escape(item) + '</span>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -324,45 +209,16 @@ export function ForLoopComplexObjects() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div><!--[-->';
 
-				for (const user of users) {
-					_$_.output_push('<div');
-					_$_.output_push(_$_.attr('class', `user-${user.id}`));
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<span');
-						_$_.output_push(' class="name"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(user.name));
-						}
-
-						_$_.output_push('</span>');
-						_$_.output_push('<span');
-						_$_.output_push(' class="role"');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(user.role));
-						}
-
-						_$_.output_push('</span>');
-					}
-
-					_$_.output_push('</div>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (const user of users) {
+				__out += '<div' + _$_.attr('class', `user-${user.id}`) + '><span class="name">' + _$_.escape(user.name) + '</span><span class="role">' + _$_.escape(user.role) + '</span></div>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -379,39 +235,16 @@ export function KeyedForLoopReorder() {
 		);
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="reorder"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Reorder');
-				}
+			__out += '<button class="reorder">Reorder</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_3.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item.id}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item.name));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_3.value) {
+				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(item.name) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -421,39 +254,16 @@ export function KeyedForLoopUpdate() {
 		let lazy_4 = _$_.track([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }], '7a2c2ada');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="update"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Update');
-				}
+			__out += '<button class="update">Update</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_4.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item.id}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item.name));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_4.value) {
+				__out += '<li' + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(item.name) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -463,39 +273,16 @@ export function ForLoopMixedOperations() {
 		let lazy_5 = _$_.track(['A', 'B', 'C', 'D'], '3dd7c7b6');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="shuffle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Shuffle');
-				}
+			__out += '<button class="shuffle">Shuffle</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_5.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_5.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -506,54 +293,22 @@ export function ForLoopInsideIf() {
 		let lazy_7 = _$_.track(['X', 'Y', 'Z'], 'bf375103');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="toggle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Toggle List');
+			__out += '<button class="toggle">Toggle List</button><button class="add">Add Item</button><!--[-->';
+
+			if (lazy_6.value) {
+				__out += '<ul class="list"><!--[-->';
+
+				for (const item of lazy_7.value) {
+					__out += '<li>' + _$_.escape(item) + '</li>';
 				}
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="add"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Add Item');
-				}
-
-				_$_.output_push('</button>');
-				_$_.output_push('<!--[-->');
-
-				if (lazy_6.value) {
-					_$_.output_push('<ul');
-					_$_.output_push(' class="list"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('<!--[-->');
-
-						for (const item of lazy_7.value) {
-							_$_.output_push('<li');
-							_$_.output_push('>');
-
-							{
-								_$_.output_push(_$_.escape(item));
-							}
-
-							_$_.output_push('</li>');
-						}
-
-						_$_.output_push('<!--]-->');
-					}
-
-					_$_.output_push('</ul>');
-				}
-
-				_$_.output_push('<!--]-->');
+				__out += '<!--]--></ul>';
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -563,39 +318,16 @@ export function ForLoopEmptyToPopulated() {
 		let lazy_8 = _$_.track([], '525c5dbc');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="populate"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Populate');
-				}
+			__out += '<button class="populate">Populate</button><ul class="list"><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push(' class="list"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_8.value) {
-						_$_.output_push('<li');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_8.value) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -605,39 +337,16 @@ export function ForLoopPopulatedToEmpty() {
 		let lazy_9 = _$_.track(['One', 'Two', 'Three'], 'ee47f078');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="clear"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Clear');
-				}
+			__out += '<button class="clear">Clear</button><ul class="list"><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push(' class="list"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_9.value) {
-						_$_.output_push('<li');
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_9.value) {
+				__out += '<li>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -647,75 +356,40 @@ export function NestedForLoopReactive() {
 		let lazy_10 = _$_.track([[1, 2], [3, 4]], 'a2f41fb3');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="nested-for-reactive"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<div class="nested-for-reactive"><button class="add-row">Add Row</button><button class="update-cell">Update Cell</button><div class="grid">';
 
 			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="add-row"');
-				_$_.output_push('>');
+				__out += '<!--[-->';
 
-				{
-					_$_.output_push('Add Row');
-				}
+				var rowIndex = 0;
 
-				_$_.output_push('</button>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="update-cell"');
-				_$_.output_push('>');
+				for (const row of lazy_10.value) {
+					__out += '<div' + _$_.attr('class', `row-${rowIndex}`) + '>';
 
-				{
-					_$_.output_push('Update Cell');
-				}
+					{
+						__out += '<!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<div');
-				_$_.output_push(' class="grid"');
-				_$_.output_push('>');
+						var colIndex = 0;
 
-				{
-					_$_.output_push('<!--[-->');
-
-					var rowIndex = 0;
-
-					for (const row of lazy_10.value) {
-						_$_.output_push('<div');
-						_$_.output_push(_$_.attr('class', `row-${rowIndex}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push('<!--[-->');
-
-							var colIndex = 0;
-
-							for (const cell of row) {
-								_$_.output_push('<span');
-								_$_.output_push(_$_.attr('class', `cell-${rowIndex}-${colIndex}`));
-								_$_.output_push('>');
-
-								{
-									_$_.output_push(_$_.escape(cell));
-								}
-
-								_$_.output_push('</span>');
-								colIndex++;
-							}
-
-							_$_.output_push('<!--]-->');
+						for (const cell of row) {
+							__out += '<span' + _$_.attr('class', `cell-${rowIndex}-${colIndex}`) + '>' + _$_.escape(cell) + '</span>';
+							colIndex++;
 						}
 
-						_$_.output_push('</div>');
-						rowIndex++;
+						__out += '<!--]-->';
 					}
 
-					_$_.output_push('<!--]-->');
+					__out += '</div>';
+					rowIndex++;
 				}
 
-				_$_.output_push('</div>');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</div>');
+			__out += '</div></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -740,82 +414,28 @@ export function ForLoopDeeplyNested() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(' class="org"');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div class="org"><!--[-->';
 
-				for (const dept of departments) {
-					_$_.output_push('<div');
-					_$_.output_push(_$_.attr('class', `dept-${dept.id}`));
-					_$_.output_push('>');
+			for (const dept of departments) {
+				__out += '<div' + _$_.attr('class', `dept-${dept.id}`) + '><h2 class="dept-name">' + _$_.escape(dept.name) + '</h2><!--[-->';
 
-					{
-						_$_.output_push('<h2');
-						_$_.output_push(' class="dept-name"');
-						_$_.output_push('>');
+				for (const team of dept.teams) {
+					__out += '<div' + _$_.attr('class', `team-${team.id}`) + '><h3 class="team-name">' + _$_.escape(team.name) + '</h3><ul><!--[-->';
 
-						{
-							_$_.output_push(_$_.escape(dept.name));
-						}
-
-						_$_.output_push('</h2>');
-						_$_.output_push('<!--[-->');
-
-						for (const team of dept.teams) {
-							_$_.output_push('<div');
-							_$_.output_push(_$_.attr('class', `team-${team.id}`));
-							_$_.output_push('>');
-
-							{
-								_$_.output_push('<h3');
-								_$_.output_push(' class="team-name"');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push(_$_.escape(team.name));
-								}
-
-								_$_.output_push('</h3>');
-								_$_.output_push('<ul');
-								_$_.output_push('>');
-
-								{
-									_$_.output_push('<!--[-->');
-
-									for (const member of team.members) {
-										_$_.output_push('<li');
-										_$_.output_push(' class="member"');
-										_$_.output_push('>');
-
-										{
-											_$_.output_push(_$_.escape(member));
-										}
-
-										_$_.output_push('</li>');
-									}
-
-									_$_.output_push('<!--]-->');
-								}
-
-								_$_.output_push('</ul>');
-							}
-
-							_$_.output_push('</div>');
-						}
-
-						_$_.output_push('<!--]-->');
+					for (const member of team.members) {
+						__out += '<li class="member">' + _$_.escape(member) + '</li>';
 					}
 
-					_$_.output_push('</div>');
+					__out += '<!--]--></ul></div>';
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]--></div>';
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -825,42 +445,25 @@ export function ForLoopIndexUpdate() {
 		let lazy_11 = _$_.track(['First', 'Second', 'Third'], 'f61e31e6');
 
 		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button class="prepend">Prepend</button><ul>';
+
 			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="prepend"');
-				_$_.output_push('>');
+				__out += '<!--[-->';
 
-				{
-					_$_.output_push('Prepend');
+				var i = 0;
+
+				for (const item of lazy_11.value) {
+					__out += '<li' + _$_.attr('class', `item-${i}`) + '>' + _$_.escape(`[${i}] ${item}`) + '</li>';
+					i++;
 				}
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					var i = 0;
-
-					for (const item of lazy_11.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${i}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(`[${i}] ${item}`));
-						}
-
-						_$_.output_push('</li>');
-						i++;
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+				__out += '<!--]-->';
 			}
+
+			__out += '</ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -877,43 +480,25 @@ export function KeyedForLoopWithIndex() {
 		);
 
 		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<button class="reorder">Rotate</button><ul>';
+
 			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="reorder"');
-				_$_.output_push('>');
+				__out += '<!--[-->';
 
-				{
-					_$_.output_push('Rotate');
+				var i = 0;
+
+				for (const item of lazy_12.value) {
+					__out += '<li' + _$_.attr('data-index', i, false) + _$_.attr('class', `item-${item.id}`) + '>' + _$_.escape(`[${i}] ${item.id}: ${item.value}`) + '</li>';
+					i++;
 				}
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					var i = 0;
-
-					for (const item of lazy_12.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('data-index', i, false));
-						_$_.output_push(_$_.attr('class', `item-${item.id}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(`[${i}] ${item.id}: ${item.value}`));
-						}
-
-						_$_.output_push('</li>');
-						i++;
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+				__out += '<!--]-->';
 			}
+
+			__out += '</ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -923,58 +508,16 @@ export function ForLoopWithSiblings() {
 		let lazy_13 = _$_.track(['A', 'B'], '3c7e8152');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<div');
-				_$_.output_push(' class="wrapper"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('<header');
-					_$_.output_push(' class="before"');
-					_$_.output_push('>');
+			__out += '<div class="wrapper"><header class="before">Before</header><!--[-->';
 
-					{
-						_$_.output_push('Before');
-					}
-
-					_$_.output_push('</header>');
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_13.value) {
-						_$_.output_push('<div');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</div>');
-					}
-
-					_$_.output_push('<!--]-->');
-					_$_.output_push('<footer');
-					_$_.output_push(' class="after"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push('After');
-					}
-
-					_$_.output_push('</footer>');
-				}
-
-				_$_.output_push('</div>');
-				_$_.output_push('<button');
-				_$_.output_push(' class="add"');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('Add');
-				}
-
-				_$_.output_push('</button>');
+			for (const item of lazy_13.value) {
+				__out += '<div' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</div>';
 			}
+
+			__out += '<!--]--><footer class="after">After</footer></div><button class="add">Add</button>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -988,25 +531,23 @@ export function ForLoopItemState() {
 		];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<div><!--[-->';
 
-				for (const item of initialItems) {
-					{
-						const comp = TodoItem;
-						const args = [{ id: item.id, text: item.text }];
+			for (const item of initialItems) {
+				{
+					const comp = TodoItem;
+					const args = [{ id: item.id, text: item.text }];
 
-						_$_.render_component(comp, ...args);
-					}
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_component(comp, ...args);
 				}
-
-				_$_.output_push('<!--]-->');
 			}
 
-			_$_.output_push('</div>');
+			__out += '<!--]--></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1016,28 +557,10 @@ function TodoItem(props) {
 		let lazy_14 = _$_.track(false, '4f2402a4');
 
 		_$_.regular_block(() => {
-			_$_.output_push('<div');
-			_$_.output_push(_$_.attr('class', `todo-${props.id}`));
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<input');
-				_$_.output_push(' type="checkbox"');
-				_$_.output_push(_$_.attr('checked', lazy_14.value, true));
-				_$_.output_push(' class="checkbox"');
-				_$_.output_push(' />');
-				_$_.output_push('<span');
-				_$_.output_push(_$_.attr('class', lazy_14.value ? 'completed' : 'pending'));
-				_$_.output_push('>');
-
-				{
-					_$_.output_push(_$_.escape(props.text));
-				}
-
-				_$_.output_push('</span>');
-			}
-
-			_$_.output_push('</div>');
+			__out += '<div' + _$_.attr('class', `todo-${props.id}`) + '><input type="checkbox"' + _$_.attr('checked', lazy_14.value, true) + ' class="checkbox" /><span' + _$_.attr('class', lazy_14.value ? 'completed' : 'pending') + '>' + _$_.escape(props.text) + '</span></div>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1047,28 +570,16 @@ export function ForLoopSingleItem() {
 		const items = ['Only'];
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push('>');
+			let __out = '';
 
-			{
-				_$_.output_push('<!--[-->');
+			__out += '<ul><!--[-->';
 
-				for (const item of items) {
-					_$_.output_push('<li');
-					_$_.output_push(' class="single"');
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item));
-					}
-
-					_$_.output_push('</li>');
-				}
-
-				_$_.output_push('<!--]-->');
+			for (const item of items) {
+				__out += '<li class="single">' + _$_.escape(item) + '</li>';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1078,39 +589,16 @@ export function ForLoopAddAtBeginning() {
 		let lazy_15 = _$_.track(['B', 'C'], '1561403a');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="prepend"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Prepend A');
-				}
+			__out += '<button class="prepend">Prepend A</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_15.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_15.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1120,39 +608,16 @@ export function ForLoopAddInMiddle() {
 		let lazy_16 = _$_.track(['A', 'C'], '1bc60b46');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="insert"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Insert B');
-				}
+			__out += '<button class="insert">Insert B</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_16.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_16.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1162,39 +627,16 @@ export function ForLoopRemoveFromMiddle() {
 		let lazy_17 = _$_.track(['A', 'B', 'C'], '1c87f95f');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="remove-middle"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Remove B');
-				}
+			__out += '<button class="remove-middle">Remove B</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_17.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_17.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1204,32 +646,25 @@ export function ForLoopLargeList() {
 		const items = Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`);
 
 		_$_.regular_block(() => {
-			_$_.output_push('<ul');
-			_$_.output_push(' class="large-list"');
-			_$_.output_push('>');
+			let __out = '';
+
+			__out += '<ul class="large-list">';
 
 			{
-				_$_.output_push('<!--[-->');
+				__out += '<!--[-->';
 
 				var i = 0;
 
 				for (const item of items) {
-					_$_.output_push('<li');
-					_$_.output_push(_$_.attr('class', `item-${i}`));
-					_$_.output_push('>');
-
-					{
-						_$_.output_push(_$_.escape(item));
-					}
-
-					_$_.output_push('</li>');
+					__out += '<li' + _$_.attr('class', `item-${i}`) + '>' + _$_.escape(item) + '</li>';
 					i++;
 				}
 
-				_$_.output_push('<!--]-->');
+				__out += '<!--]-->';
 			}
 
-			_$_.output_push('</ul>');
+			__out += '</ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1239,39 +674,16 @@ export function ForLoopSwap() {
 		let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], '5f8d152f');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="swap"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Swap First and Last');
-				}
+			__out += '<button class="swap">Swap First and Last</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_18.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_18.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -1281,39 +693,16 @@ export function ForLoopReverse() {
 		let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], '24602e64');
 
 		_$_.regular_block(() => {
-			{
-				_$_.output_push('<button');
-				_$_.output_push(' class="reverse"');
-				_$_.output_push('>');
+			let __out = '';
 
-				{
-					_$_.output_push('Reverse');
-				}
+			__out += '<button class="reverse">Reverse</button><ul><!--[-->';
 
-				_$_.output_push('</button>');
-				_$_.output_push('<ul');
-				_$_.output_push('>');
-
-				{
-					_$_.output_push('<!--[-->');
-
-					for (const item of lazy_19.value) {
-						_$_.output_push('<li');
-						_$_.output_push(_$_.attr('class', `item-${item}`));
-						_$_.output_push('>');
-
-						{
-							_$_.output_push(_$_.escape(item));
-						}
-
-						_$_.output_push('</li>');
-					}
-
-					_$_.output_push('<!--]-->');
-				}
-
-				_$_.output_push('</ul>');
+			for (const item of lazy_19.value) {
+				__out += '<li' + _$_.attr('class', `item-${item}`) + '>' + _$_.escape(item) + '</li>';
 			}
+
+			__out += '<!--]--></ul>';
+			_$_.output_push(__out);
 		});
 	});
 }

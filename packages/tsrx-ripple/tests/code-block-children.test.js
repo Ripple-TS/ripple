@@ -153,7 +153,10 @@ describe('@tsrx/ripple code blocks in template children position', () => {
 		for (const source of [template_only, template_only_nested]) {
 			const { code, errors } = compile(source, 'App.tsrx', { mode: 'server' });
 			expect(errors).toEqual([]);
-			expect(code).toContain(`_$_.output_push(' class="x"')`);
+			// Merged statically (not via render_expression); the server accumulator
+			// collapses the whole template — static + the `'a'`/`'x'` holes — into a
+			// single `__out +=`, mirroring the client output.
+			expect(code).toContain(`__out += '<span class="a">a</span><span class="x">x</span>'`);
 			expect(code).not.toContain('render_expression');
 		}
 	});

@@ -2847,6 +2847,409 @@ const visitors = {
 };
 
 /**
+ * Returns the single argument expression of a `_$_.output_push(x)` statement, or
+ * `null` for anything else. Every `output_push` argument is a pure string
+ * expression (a literal, or `escape(…)` / `attr(…)` / a value id) computed before
+ * the push, so any run of these folds into one `output_push(a + b + c)` without
+ * changing evaluation order or the emitted bytes.
+ * @param {AST.Node} stmt
+ * @returns {AST.Expression | null}
+ */
+function output_push_arg(stmt) {
+	if (stmt.type !== 'ExpressionStatement') return null;
+	const expr = stmt.expression;
+	if (
+		expr.type === 'CallExpression' &&
+		expr.callee.type === 'Identifier' &&
+		expr.callee.name === '_$_.output_push' &&
+		expr.arguments.length === 1 &&
+		expr.arguments[0].type !== 'SpreadElement'
+	) {
+		return /** @type {AST.Expression} */ (expr.arguments[0]);
+	}
+	return null;
+}
+
+/**
+ * True if a block body declares any block-scoped binding, in which case the
+ * `{ … }` is a meaningful lexical scope and must not be unwrapped. Conservative:
+ * treats every declaration form (incl. hoisting `var`) as a binding.
+ * @param {AST.Statement[]} body
+ * @returns {boolean}
+ */
+function declares_binding(body) {
+	return body.some(
+		(stmt) =>
+			stmt.type === 'VariableDeclaration' ||
+			stmt.type === 'FunctionDeclaration' ||
+			stmt.type === 'ClassDeclaration',
+	);
+}
+
+/**
+ * @param {AST.Expression} arg
+ * @returns {boolean}
+ */
+function is_string_literal(arg) {
+	return arg.type === 'Literal' && typeof arg.value === 'string';
+}
+
+/**
+ * True if a block directly contains an `output_push` — i.e. unwrapping it would
+ * enable a fold. Keeps the unwrap scoped to the SSR template path instead of
+ * stripping every binding-free block (e.g. server-module export wrappers).
+ * @param {AST.Statement[]} body
+ * @returns {boolean}
+ */
+function contains_output_push(body) {
+	return body.some((stmt) => output_push_arg(stmt) !== null);
+}
+
+/**
+ * Builds one `+`-concatenated expression from a run of `output_push` argument
+ * expressions, merging consecutive string literals into single literals.
+ * @param {AST.Expression[]} args
+ * @returns {AST.Expression}
+ */
+function build_concat(args) {
+	/** @type {(string | AST.Expression)[]} */
+	const parts = [];
+	for (const arg of args) {
+		const last = parts[parts.length - 1];
+		if (is_string_literal(arg)) {
+			const value = /** @type {string} */ (/** @type {AST.Literal} */ (arg).value);
+			if (typeof last === 'string') {
+				parts[parts.length - 1] = last + value;
+			} else {
+				parts.push(value);
+			}
+		} else {
+			parts.push(arg);
+		}
+	}
+	const exprs = parts.map((p) => (typeof p === 'string' ? b.literal(p) : p));
+	let concat = exprs[0];
+	for (let i = 1; i < exprs.length; i++) {
+		concat = b.binary('+', concat, exprs[i]);
+	}
+	return concat;
+}
+
+// Runtime helpers whose calls return a string and never touch the output buffer
+// — safe to leave inside an accumulated run. Anything else under the `_$_.`
+// namespace (render_component, regular_block, try_block, set_output_target, the
+// serialized-push helpers, …) may branch/emit and forces a flush before it.
+const PURE_RUNTIME_CALLS = new Set(['_$_.escape', '_$_.attr', '_$_.clsx']);
+
+/**
+ * True if `node` contains a runtime call that may create a child block or emit
+ * out of band (i.e. anything `_$_.*` that isn't in {@link PURE_RUNTIME_CALLS}),
+ * not crossing into nested functions (those are separate blocks).
+ * @param {AST.Node} node
+ * @returns {boolean}
+ */
+function contains_branching_call(node) {
+	let found = false;
+	/** @param {any} n */
+	const visit = (n) => {
+		if (found || !n || typeof n !== 'object') return;
+		if (Array.isArray(n)) {
+			for (const child of n) visit(child);
+			return;
+		}
+		if (typeof n.type !== 'string' || isFunctionNode(n)) return;
+		if (
+			n.type === 'CallExpression' &&
+			n.callee.type === 'Identifier' &&
+			n.callee.name.startsWith('_$_.') &&
+			n.callee.name !== '_$_.output_push' &&
+			!PURE_RUNTIME_CALLS.has(n.callee.name)
+		) {
+			found = true;
+			return;
+		}
+		for (const key in n) {
+			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
+			visit(n[key]);
+		}
+	};
+	visit(node);
+	return found;
+}
+
+/**
+ * Inlines binding-free `{ … }` blocks that directly contain a push (the
+ * `{ escape(x) }` holes) so their pushes become siblings and can coalesce.
+ * Recurses only through such blocks — control flow and bindful blocks are left
+ * for the threader to descend into.
+ * @param {AST.Statement[]} list
+ * @returns {AST.Statement[]}
+ */
+function flatten_push_blocks(list) {
+	/** @type {AST.Statement[]} */
+	const out = [];
+	for (const stmt of list) {
+		if (
+			stmt.type === 'BlockStatement' &&
+			!declares_binding(stmt.body) &&
+			contains_output_push(stmt.body)
+		) {
+			out.push(...flatten_push_blocks(/** @type {AST.Statement[]} */ (stmt.body)));
+		} else {
+			out.push(stmt);
+		}
+	}
+	return out;
+}
+
+const CONTAINER_TYPES = new Set([
+	'BlockStatement',
+	'IfStatement',
+	'ForStatement',
+	'ForInStatement',
+	'ForOfStatement',
+	'WhileStatement',
+	'DoWhileStatement',
+	'SwitchStatement',
+	'TryStatement',
+	'LabeledStatement',
+]);
+
+/**
+ * True if any of a container's non-body header expressions (a loop init/test, an
+ * `if`/`switch` discriminant, …) contains a branching call — in which case we
+ * cannot safely thread the accumulator through it.
+ * @param {any} stmt
+ * @returns {boolean}
+ */
+function container_header_branches(stmt) {
+	switch (stmt.type) {
+		case 'IfStatement':
+		case 'WhileStatement':
+		case 'DoWhileStatement':
+			return contains_branching_call(stmt.test);
+		case 'SwitchStatement':
+			return (
+				contains_branching_call(stmt.discriminant) ||
+				stmt.cases.some((/** @type {any} */ c) => c.test && contains_branching_call(c.test))
+			);
+		case 'ForStatement':
+			return (
+				(stmt.init && contains_branching_call(stmt.init)) ||
+				(stmt.test && contains_branching_call(stmt.test)) ||
+				(stmt.update && contains_branching_call(stmt.update))
+			);
+		case 'ForInStatement':
+		case 'ForOfStatement':
+			return contains_branching_call(stmt.right);
+		default:
+			return false;
+	}
+}
+
+/**
+ * Accumulator threading for one runtime block body and everything inside it
+ * except nested functions (separate blocks). Coalesces adjacent pushes into
+ * `__out += a + b + c`, threads the same accumulator through control flow and
+ * binding-free blocks, and flushes (`output_push(__out); __out = ''`) before any
+ * branching statement. See {@link accumulate_output_pushes} for why this stays
+ * within block boundaries.
+ * @param {AST.Statement[]} list
+ * @param {string} out_id
+ * @returns {AST.Statement[]}
+ */
+function thread_statement_list(list, out_id) {
+	const flat = flatten_push_blocks(list);
+	/** @type {AST.Statement[]} */
+	const out = [];
+	/** @type {AST.Expression[]} */
+	let pending = [];
+	const commit = () => {
+		if (pending.length === 0) return;
+		out.push(b.stmt(b.assignment('+=', b.id(out_id), build_concat(pending))));
+		pending = [];
+	};
+	const flush = () => {
+		commit();
+		out.push(b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))));
+		out.push(b.stmt(b.assignment('=', b.id(out_id), b.literal(''))));
+	};
+	for (const stmt of flat) {
+		const arg = output_push_arg(stmt);
+		if (arg !== null) {
+			pending.push(arg);
+		} else if (CONTAINER_TYPES.has(stmt.type) && !container_header_branches(stmt)) {
+			commit();
+			thread_container(stmt, out_id);
+			out.push(stmt);
+		} else if (stmt.type === 'ReturnStatement' || contains_branching_call(stmt)) {
+			flush();
+			out.push(stmt);
+		} else {
+			// Pure statement (var decl, `i++`, …): keep, no flush, but commit first
+			// so accumulated pushes stay ordered relative to it.
+			commit();
+			out.push(stmt);
+		}
+	}
+	commit();
+	return out;
+}
+
+/**
+ * Threads the accumulator into a container's body slot(s), in place.
+ * @param {any} stmt
+ * @param {string} out_id
+ * @returns {void}
+ */
+function thread_container(stmt, out_id) {
+	/** @param {AST.Statement} node @returns {AST.Statement} */
+	const body_slot = (node) => {
+		if (node.type === 'BlockStatement') {
+			node.body = thread_statement_list(node.body, out_id);
+			return node;
+		}
+		return b.block(thread_statement_list([node], out_id));
+	};
+	switch (stmt.type) {
+		case 'BlockStatement':
+			stmt.body = thread_statement_list(stmt.body, out_id);
+			break;
+		case 'IfStatement':
+			stmt.consequent = body_slot(stmt.consequent);
+			if (stmt.alternate) stmt.alternate = body_slot(stmt.alternate);
+			break;
+		case 'ForStatement':
+		case 'ForInStatement':
+		case 'ForOfStatement':
+		case 'WhileStatement':
+		case 'DoWhileStatement':
+		case 'LabeledStatement':
+			stmt.body = body_slot(stmt.body);
+			break;
+		case 'SwitchStatement':
+			for (const switch_case of stmt.cases) {
+				switch_case.consequent = thread_statement_list(switch_case.consequent, out_id);
+			}
+			break;
+		case 'TryStatement':
+			stmt.block.body = thread_statement_list(stmt.block.body, out_id);
+			if (stmt.handler)
+				stmt.handler.body.body = thread_statement_list(stmt.handler.body.body, out_id);
+			if (stmt.finalizer) stmt.finalizer.body = thread_statement_list(stmt.finalizer.body, out_id);
+			break;
+	}
+}
+
+/**
+ * True if `body` directly contains an `output_push` (not inside a nested
+ * function), i.e. it is a runtime block body the accumulator should rewrite.
+ * @param {AST.Statement[]} body
+ * @returns {boolean}
+ */
+function has_direct_output_push(body) {
+	let found = false;
+	/** @param {any} n */
+	const visit = (n) => {
+		if (found || !n || typeof n !== 'object') return;
+		if (Array.isArray(n)) {
+			for (const child of n) visit(child);
+			return;
+		}
+		if (typeof n.type !== 'string' || isFunctionNode(n)) return;
+		if (output_push_arg(n) !== null) {
+			found = true;
+			return;
+		}
+		for (const key in n) {
+			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
+			visit(n[key]);
+		}
+	};
+	body.forEach(visit);
+	return found;
+}
+
+/**
+ * Picks an accumulator name not used anywhere in `body` (incl. nested scopes).
+ * @param {AST.Statement[]} body
+ * @returns {string}
+ */
+function fresh_accumulator_name(body) {
+	/** @type {Set<string>} */
+	const names = new Set();
+	/** @param {any} n */
+	const visit = (n) => {
+		if (!n || typeof n !== 'object') return;
+		if (Array.isArray(n)) {
+			for (const child of n) visit(child);
+			return;
+		}
+		if (n.type === 'Identifier' && typeof n.name === 'string') names.add(n.name);
+		for (const key in n) {
+			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
+			visit(n[key]);
+		}
+	};
+	body.forEach(visit);
+	let name = '__out';
+	for (let i = 2; names.has(name); i++) name = `__out${i}`;
+	return name;
+}
+
+/**
+ * Pass over the generated server program: within each runtime block, accumulate
+ * output into a single `let __out` string and push it once per block instead of
+ * once per element — flushing only before a child block. This beats the per-item
+ * push shape (the whole `@for` feed lands in one push) because accumulation spans
+ * loops and control flow.
+ *
+ * Correctness rests on the block model: every runtime block owns its own output
+ * buffer, and a child block reserves its slot in the parent buffer at the moment
+ * it branches — so everything before it must already be in the buffer. We declare
+ * one accumulator per runtime block body (a function/arrow that directly pushes),
+ * thread it through that body's control flow without crossing nested functions,
+ * and flush before every branching statement and at block end. So a child block's
+ * slot always follows what the parent already flushed: we never accumulate across
+ * a block boundary.
+ * @param {AST.Program} program
+ * @returns {void}
+ */
+function accumulate_output_pushes(program) {
+	const seen = new WeakSet();
+	/** @param {any} node */
+	const recurse = (node) => {
+		if (Array.isArray(node)) {
+			for (const child of node) recurse(child);
+			return;
+		}
+		if (!node || typeof node !== 'object' || typeof node.type !== 'string') return;
+		if (seen.has(node)) return;
+		seen.add(node);
+
+		if (
+			isFunctionNode(node) &&
+			node.body &&
+			node.body.type === 'BlockStatement' &&
+			has_direct_output_push(node.body.body)
+		) {
+			const out_id = fresh_accumulator_name(node.body.body);
+			node.body.body = [
+				b.let(b.id(out_id), b.literal('')),
+				...thread_statement_list(node.body.body, out_id),
+				b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
+			];
+		}
+
+		for (const key in node) {
+			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
+			recurse(node[key]);
+		}
+	};
+	recurse(program);
+}
+
+/**
  * @param {string} filename
  * @param {string} source
  * @param {AnalysisResult} analysis
@@ -2909,6 +3312,12 @@ export function transform_server(filename, source, analysis, minify_css, dev = f
 	body.push(...program.body);
 
 	program.body = body;
+
+	// Accumulate each runtime block's output into a single `__out` string and
+	// push it once per block (flushing only before a child block) so the whole
+	// `@for` feed lands in one push. Stays within block boundaries by
+	// construction (see accumulate_output_pushes).
+	accumulate_output_pushes(/** @type {AST.Program} */ (program));
 
 	const { code, map } = print(
 		program,
