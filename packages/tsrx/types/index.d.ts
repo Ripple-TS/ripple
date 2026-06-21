@@ -296,6 +296,8 @@ declare module 'estree' {
 		TSAsExpression: TSAsExpression;
 	}
 
+	type TraversableAstNode = AST.Node & Record<string, unknown>;
+
 	// Ripple-normalized template node shapes. The core parser emits JSX-shaped
 	// TSRX nodes; @tsrx/ripple creates these during its normalization pass.
 	interface Attribute extends AST.BaseNode {

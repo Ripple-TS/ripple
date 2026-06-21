@@ -78,6 +78,20 @@ import {
 } from '../../utils.js';
 
 /**
+ * @param {unknown} value
+ * @returns {value is AST.TraversableAstNode}
+ */
+function is_traversable_ast_node(value) {
+	return (
+		value != null &&
+		typeof value === 'object' &&
+		!Array.isArray(value) &&
+		'type' in value &&
+		typeof value.type === 'string'
+	);
+}
+
+/**
  * Re-run CSS pruning on JSX converted into Ripple template nodes so server
  * output applies the same scoped metadata as regular Ripple template elements.
  *
@@ -2950,14 +2964,18 @@ const PURE_RUNTIME_CALLS = new Set(['_$_.escape', '_$_.attr', '_$_.clsx']);
  */
 function contains_branching_call(node) {
 	let found = false;
-	/** @param {any} n */
+	/** @param {unknown} n */
 	const visit = (n) => {
-		if (found || !n || typeof n !== 'object') return;
+		if (found || !n || typeof n !== 'object') {
+			return;
+		}
 		if (Array.isArray(n)) {
 			for (const child of n) visit(child);
 			return;
 		}
-		if (typeof n.type !== 'string' || isFunctionNode(n)) return;
+		if (!is_traversable_ast_node(n) || isFunctionNode(n)) {
+			return;
+		}
 		if (
 			n.type === 'CallExpression' &&
 			n.callee.type === 'Identifier' &&
@@ -3019,7 +3037,7 @@ const CONTAINER_TYPES = new Set([
  * True if any of a container's non-body header expressions (a loop init/test, an
  * `if`/`switch` discriminant, …) contains a branching call — in which case we
  * cannot safely thread the accumulator through it.
- * @param {any} stmt
+ * @param {AST.Statement} stmt
  * @returns {boolean}
  */
 function container_header_branches(stmt) {
@@ -3031,13 +3049,13 @@ function container_header_branches(stmt) {
 		case 'SwitchStatement':
 			return (
 				contains_branching_call(stmt.discriminant) ||
-				stmt.cases.some((/** @type {any} */ c) => c.test && contains_branching_call(c.test))
+				stmt.cases.some((c) => c.test && contains_branching_call(c.test))
 			);
 		case 'ForStatement':
 			return (
-				(stmt.init && contains_branching_call(stmt.init)) ||
-				(stmt.test && contains_branching_call(stmt.test)) ||
-				(stmt.update && contains_branching_call(stmt.update))
+				(!!stmt.init && contains_branching_call(stmt.init)) ||
+				(!!stmt.test && contains_branching_call(stmt.test)) ||
+				(!!stmt.update && contains_branching_call(stmt.update))
 			);
 		case 'ForInStatement':
 		case 'ForOfStatement':
@@ -3098,7 +3116,7 @@ function thread_statement_list(list, out_id) {
 
 /**
  * Threads the accumulator into a container's body slot(s), in place.
- * @param {any} stmt
+ * @param {AST.Statement} stmt
  * @param {string} out_id
  * @returns {void}
  */
@@ -3149,14 +3167,14 @@ function thread_container(stmt, out_id) {
  */
 function has_direct_output_push(body) {
 	let found = false;
-	/** @param {any} n */
+	/** @param {unknown} n */
 	const visit = (n) => {
 		if (found || !n || typeof n !== 'object') return;
 		if (Array.isArray(n)) {
 			for (const child of n) visit(child);
 			return;
 		}
-		if (typeof n.type !== 'string' || isFunctionNode(n)) return;
+		if (!is_traversable_ast_node(n) || isFunctionNode(n)) return;
 		if (output_push_arg(n) !== null) {
 			found = true;
 			return;
@@ -3178,13 +3196,14 @@ function has_direct_output_push(body) {
 function fresh_accumulator_name(body) {
 	/** @type {Set<string>} */
 	const names = new Set();
-	/** @param {any} n */
+	/** @param {unknown} n */
 	const visit = (n) => {
 		if (!n || typeof n !== 'object') return;
 		if (Array.isArray(n)) {
 			for (const child of n) visit(child);
 			return;
 		}
+		if (!is_traversable_ast_node(n)) return;
 		if (n.type === 'Identifier' && typeof n.name === 'string') names.add(n.name);
 		for (const key in n) {
 			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
@@ -3217,32 +3236,38 @@ function fresh_accumulator_name(body) {
  */
 function accumulate_output_pushes(program) {
 	const seen = new WeakSet();
-	/** @param {any} node */
+	/** @param {unknown} node */
 	const recurse = (node) => {
 		if (Array.isArray(node)) {
 			for (const child of node) recurse(child);
 			return;
 		}
-		if (!node || typeof node !== 'object' || typeof node.type !== 'string') return;
+		if (!is_traversable_ast_node(node)) return;
 		if (seen.has(node)) return;
 		seen.add(node);
 
-		if (
-			isFunctionNode(node) &&
-			node.body &&
-			node.body.type === 'BlockStatement' &&
-			has_direct_output_push(node.body.body)
-		) {
-			const out_id = fresh_accumulator_name(node.body.body);
-			node.body.body = [
-				b.let(b.id(out_id), b.literal('')),
-				...thread_statement_list(node.body.body, out_id),
-				b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
-			];
+		if (isFunctionNode(node)) {
+			const body = /** @type {AST.Function} */ (node).body;
+			if (body && body.type === 'BlockStatement' && has_direct_output_push(body.body)) {
+				const out_id = fresh_accumulator_name(body.body);
+				body.body = [
+					b.let(b.id(out_id), b.literal('')),
+					...thread_statement_list(body.body, out_id),
+					b.stmt(b.call(b.id('_$_.output_push'), b.id(out_id))),
+				];
+			}
 		}
 
 		for (const key in node) {
-			if (key === 'metadata' || key === 'loc' || key === 'leadingComments') continue;
+			if (
+				key === 'metadata' ||
+				key === 'loc' ||
+				key === 'start' ||
+				key === 'end' ||
+				key === 'leadingComments'
+			) {
+				continue;
+			}
 			recurse(node[key]);
 		}
 	};
