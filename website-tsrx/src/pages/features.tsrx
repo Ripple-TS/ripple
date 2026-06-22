@@ -94,10 +94,16 @@ const IF_HTML = highlight_tsrx(
 
 const FOR_HTML = highlight_tsrx(
 	`function TodoList({ items }: { items: Todo[] }) @{
-  const visibleItems = items.filter((item) => !item.hidden);
+  const visibleItems = function* () {
+		for (const item of items) {
+			if (!item.hidden) {
+				yield item;
+			}
+		}
+	}
 
   <ul>
-    @for (const item of visibleItems; index i; key item.id) {
+    @for (const item of visibleItems(); index i; key item.id) {
       <li>{i + 1}. {item.text}</li>
     } @empty {
       <li>No todos yet</li>
