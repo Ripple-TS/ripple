@@ -76,4 +76,19 @@ window.__bumpAt91 = () => {
 	bumpAt91();
 	flush();
 };
+// Batched sweep: enqueue all 10 stateful bumps, then ONE flush() — Solid's natural
+// microtask coalescing, bounded synchronously. Contrast bump_sweep (flush per bump).
+window.__sweepBatched = () => {
+	bumpAt1();
+	bumpAt11();
+	bumpAt21();
+	bumpAt31();
+	bumpAt41();
+	bumpAt51();
+	bumpAt61();
+	bumpAt71();
+	bumpAt81();
+	bumpAt91();
+	flush();
+};
 window.__ready = true;

@@ -43,4 +43,20 @@ window.__bumpAt61 = () => flushSync(bumpAt61);
 window.__bumpAt71 = () => flushSync(bumpAt71);
 window.__bumpAt81 = () => flushSync(bumpAt81);
 window.__bumpAt91 = () => flushSync(bumpAt91);
+// Batched sweep: enqueue all 10 stateful bumps, then ONE synchronous flush — the
+// framework's natural microtask coalescing, bounded synchronously so the harness
+// times it without a frame wait. Contrast bump_sweep, which flushes per bump.
+window.__sweepBatched = () =>
+	flushSync(() => {
+		bumpAt1();
+		bumpAt11();
+		bumpAt21();
+		bumpAt31();
+		bumpAt41();
+		bumpAt51();
+		bumpAt61();
+		bumpAt71();
+		bumpAt81();
+		bumpAt91();
+	});
 window.__ready = true;

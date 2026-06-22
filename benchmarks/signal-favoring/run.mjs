@@ -11,8 +11,11 @@
 //                         for signals.
 //   - bump_deep         — bump C91; ~10 cascading renders for hooks, 1 expr
 //                         for signals.
-//   - bump_sweep        — bump every C{1,11,...,91} in sequence; total update
-//                         cost across all 10 stateful nodes.
+//   - bump_sweep        — bump all 10 stateful nodes, flushing after EACH
+//                         (flush-on-every-change); 10 separate commits.
+//   - bump_sweep_batched— bump all 10, then a SINGLE flush; the framework's
+//                         natural microtask coalescing (one commit). The gap
+//                         vs bump_sweep is what batching buys.
 //   - unmount           — full teardown via the framework's unmount API.
 //
 // The bench is named "signal-favoring" because bump_shallow has a clear
@@ -123,23 +126,35 @@ async function measureBump(browser, url, idx) {
 	return summarize(samples);
 }
 
-// SWEEP — bump every stateful index once per sample; total cost across all 10
-// stateful nodes, timed synchronously with gc() before each sample.
-async function measureSweep(browser, url) {
+// SWEEP — bump all 10 stateful nodes per sample, in one of two modes:
+//   batched=false → each bump flushes (10 separate commits, "flush on every
+//                   change"); the worst case, no coalescing.
+//   batched=true  → all 10 enqueue, then ONE flush (__sweepBatched); the
+//                   framework's natural microtask coalescing, bounded
+//                   synchronously. The gap between the two is what batching buys.
+// Both end in the same DOM; only the commit count (and so the flush overhead
+// paid) differs. Timed synchronously with gc() before each sample.
+async function measureSweep(browser, url, batched) {
 	const { ctx, page } = await freshPage(browser, url);
 	await page.evaluate(() => window.__mount());
 	await sleep(50);
 	const samples = await page.evaluate(
-		async ({ indices, WARMUP, ITER, YIELD_MS }) => {
+		async ({ indices, batched, WARMUP, ITER, YIELD_MS }) => {
 			const gc = window.gc || (() => {});
+			const sweepBatched = window.__sweepBatched;
+			if (batched && typeof sweepBatched !== 'function') throw new Error('missing __sweepBatched');
 			const out = [];
 			for (let i = 0; i < WARMUP + ITER; i++) {
 				gc();
 				const t0 = performance.now();
-				for (const idx of indices) {
-					const fn = window['__bumpAt' + idx];
-					if (typeof fn !== 'function') throw new Error('missing __bumpAt' + idx);
-					fn();
+				if (batched) {
+					sweepBatched();
+				} else {
+					for (const idx of indices) {
+						const fn = window['__bumpAt' + idx];
+						if (typeof fn !== 'function') throw new Error('missing __bumpAt' + idx);
+						fn();
+					}
 				}
 				const dt = performance.now() - t0;
 				if (i >= WARMUP) out.push(dt);
@@ -147,7 +162,7 @@ async function measureSweep(browser, url) {
 			}
 			return out;
 		},
-		{ indices: STATEFUL_INDICES, WARMUP, ITER, YIELD_MS },
+		{ indices: STATEFUL_INDICES, batched, WARMUP, ITER, YIELD_MS },
 	);
 	await ctx.close();
 	return summarize(samples);
@@ -193,15 +208,25 @@ async function runTarget(t) {
 	const bump_middle = await measureBump(browser, t.url, 51);
 	console.error(`  → bump_deep (C91)`);
 	const bump_deep = await measureBump(browser, t.url, 91);
-	console.error(`  → bump_sweep (10 in lockstep)`);
-	const bump_sweep = await measureSweep(browser, t.url);
+	console.error(`  → bump_sweep (10 bumps, flush each)`);
+	const bump_sweep = await measureSweep(browser, t.url, false);
+	console.error(`  → bump_sweep_batched (10 bumps, 1 flush)`);
+	const bump_sweep_batched = await measureSweep(browser, t.url, true);
 	console.error(`  → unmount`);
 	const unmount = await measureUnmount(browser, t.url);
 	await browser.close();
-	return { mount, bump_shallow, bump_middle, bump_deep, bump_sweep, unmount };
+	return { mount, bump_shallow, bump_middle, bump_deep, bump_sweep, bump_sweep_batched, unmount };
 }
 
-const OPS = ['mount', 'bump_shallow', 'bump_middle', 'bump_deep', 'bump_sweep', 'unmount'];
+const OPS = [
+	'mount',
+	'bump_shallow',
+	'bump_middle',
+	'bump_deep',
+	'bump_sweep',
+	'bump_sweep_batched',
+	'unmount',
+];
 
 (async () => {
 	const all = {};
@@ -258,6 +283,19 @@ const OPS = ['mount', 'bump_shallow', 'bump_middle', 'bump_deep', 'bump_sweep', 
 			const deep = r.bump_deep.median;
 			const ratioStr = deep === 0 ? '—' : (r.bump_shallow.median / deep).toFixed(2) + 'x';
 			console.log(`  ${c.padEnd(14)} ${ratioStr}  (hooks expect ~10x, signals ~1x)`);
+		}
+
+		// Coalescing benefit: batched (1 flush) vs per-bump (10 flushes) for the
+		// same 10 mutations. <1 means batching is cheaper; the further below 1, the
+		// more the framework's queue saves by committing once instead of per write.
+		console.log(
+			'\ncoalescing ratio (bump_sweep_batched / bump_sweep, lower = bigger win from batching):',
+		);
+		for (const c of cols) {
+			const r = all[c];
+			const perOp = r.bump_sweep.median;
+			const ratioStr = perOp === 0 ? '—' : (r.bump_sweep_batched.median / perOp).toFixed(2) + 'x';
+			console.log(`  ${c.padEnd(14)} ${ratioStr}`);
 		}
 	}
 })().catch((e) => {
