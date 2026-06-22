@@ -4641,8 +4641,18 @@ function handleRenderError(block: Block, err: any): void {
 
 interface IfSlot {
 	__kind: 'ifBlockSlot';
-	start: Comment;
-	end: Comment;
+	/** Insertion point for the FIRST branch (compiler position / null = append). */
+	anchor: Node | null;
+	/**
+	 * Non-null once the slot uses comment markers: adopted server markers
+	 * (hydration), or client markers minted for a multi-node / empty branch (or
+	 * after a swap). Null while self-marking a single-element branch — then the
+	 * element IS the boundary (block.startMarker === endMarker === it).
+	 */
+	start: Comment | null;
+	/** Trailing node of the current branch: the self-marking element, the end
+	 *  marker, or an empty placeholder — the position reference for the next swap. */
+	end: Node | null;
 	/** Current branch: 1 = then, 0 = else, -1 = uninitialized. */
 	branch: -1 | 0 | 1;
 	block: Block | null;
@@ -4660,65 +4670,103 @@ export function ifBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as IfSlot | undefined;
 	if (state === undefined) {
-		let start: Comment;
-		let end: Comment;
+		let start: Comment | null = null;
+		let end: Node | null = null;
 		if (hydrating && isBlockOpen(anchor ?? null)) {
-			// Hydration: the server wrapped the taken branch in a `<!--[-->…<!--]-->`
-			// range (anchor resolved to the `<!--[-->`). Adopt it as the slot markers;
-			// the branch mount below brackets the already-present content.
+			// Hydration: adopt the server's `<!--[-->…<!--]-->` slot range. Client
+			// mounts defer marker creation entirely (self-mark or mint on demand).
 			start = anchor as Comment;
 			end = matchingClose(anchor as Node);
-		} else {
-			start = document.createComment('if');
-			end = document.createComment('/if');
-			// insertBefore(_, null) === appendChild — covers both end-of-parent and
-			// mid-range insertion (e.g. when this slot lives in a mixed-children
-			// template and must sit before its static-element/text siblings). The
-			// compiler emits a `<!>` placeholder at the if-block's source-order
-			// index and passes the captured Comment as `anchor`.
-			domParent.insertBefore(start, anchor ?? null);
-			domParent.insertBefore(end, anchor ?? null);
 		}
-		state = { __kind: 'ifBlockSlot', start, end, branch: -1, block: null };
+		state = { __kind: 'ifBlockSlot', anchor: anchor ?? null, start, end, branch: -1, block: null };
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
 	}
 	const next: 0 | 1 = cond ? 1 : 0;
 	const body = next ? thenBody : elseBody;
 	if (next !== state.branch) {
-		// Branch changed — tear down old, mount new. The branch block borrows the
-		// slot's start/end (client path) so its `exclusiveMarkers` teardown removes
-		// just the branch content while the slot markers stay put — identical
-		// cleanup to the old per-branch `br`/`/br` pair, minus the two comments.
+		// Position for the new branch: just after the current branch's trailing node,
+		// or the slot anchor on first mount. Captured BEFORE teardown (a self-marked
+		// branch's trailing node is removed by it).
+		const after: Node | null = state.end !== null ? state.end.nextSibling : state.anchor;
+		const firstMount = state.branch === -1;
 		if (state.block) {
 			unmountBlock(state.block);
 			state.block = null;
 		}
 		state.branch = next;
-		if (body) {
-			let bStart: Node;
-			let bEnd: Node;
-			let borrowed = false;
-			if (hydrating && isBlockOpen(state.start.nextSibling)) {
-				// Hydration: ADOPT the server's inner branch range (the SSR HTML still
-				// brackets the taken branch with its own `<!--[-->…<!--]-->` pair) so
-				// adoption stays byte-for-byte. The inner pair IS the branch's
-				// start/end (owned markers → inclusive removal on a later swap).
-				bStart = state.start.nextSibling as Comment;
-				bEnd = matchingClose(bStart);
-				hydrateNode = bStart.nextSibling;
-			} else {
-				// Client mount: NO per-branch markers. The branch renders directly
-				// between the slot's permanent start/end, which bracket it exactly —
-				// halving the comment nodes emitted per `@if`.
-				bStart = state.start;
-				bEnd = state.end;
-				borrowed = true;
+		if (state.start !== null) {
+			// MARKER path — hydration-adopted, or already markered (multi-node / post-
+			// swap). The branch borrows the slot's start/end (exclusiveMarkers teardown
+			// keeps the markers); hydration adopts the inner range byte-for-byte.
+			if (body) {
+				let bStart: Node;
+				let bEnd: Node;
+				let borrowed = false;
+				if (hydrating && isBlockOpen(state.start.nextSibling)) {
+					bStart = state.start.nextSibling as Comment;
+					bEnd = matchingClose(bStart);
+					hydrateNode = bStart.nextSibling;
+				} else {
+					bStart = state.start;
+					bEnd = state.end as Node;
+					borrowed = true;
+				}
+				const b = createBlock(
+					'control-flow',
+					parentBlock,
+					domParent,
+					bStart,
+					bEnd,
+					body,
+					undefined,
+				);
+				if (borrowed) b.exclusiveMarkers = true;
+				state.block = b;
+				renderBlock(b);
 			}
-			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
-			if (borrowed) b.exclusiveMarkers = true;
+		} else if (firstMount && body) {
+			// First client mount — pick the boundary by what the branch renders.
+			const before = after ? after.previousSibling : domParent.lastChild;
+			const b = createBlock('control-flow', parentBlock, domParent, null, after, body, undefined);
 			state.block = b;
 			renderBlock(b);
+			const first = before ? before.nextSibling : domParent.firstChild;
+			const last = after ? after.previousSibling : domParent.lastChild;
+			if (last !== null && first === last && (first as Node).nodeType === 1) {
+				// Single element — self-mark (no markers). Teardown is one removeChild,
+				// and the slot now LOOKS single-element to an enclosing @if, so the
+				// optimization cascades up the tree.
+				b.startMarker = first;
+				b.endMarker = first;
+				state.end = first;
+			} else {
+				// Multi-node (or rendered nothing) — mint markers around the content.
+				const s = document.createComment('if');
+				const e = document.createComment('if');
+				domParent.insertBefore(s, first ?? after);
+				domParent.insertBefore(e, after);
+				b.startMarker = s;
+				b.endMarker = e;
+				b.exclusiveMarkers = true;
+				state.start = s;
+				state.end = e;
+			}
+		} else {
+			// Swap away from a self-marked branch, or an empty branch: mint stable
+			// markers at the position so the slot has a boundary from here on.
+			const s = document.createComment('if');
+			const e = document.createComment('if');
+			domParent.insertBefore(s, after);
+			domParent.insertBefore(e, after);
+			state.start = s;
+			state.end = e;
+			if (body) {
+				const b = createBlock('control-flow', parentBlock, domParent, s, e, body, undefined);
+				b.exclusiveMarkers = true;
+				state.block = b;
+				renderBlock(b);
+			}
 		}
 	} else if (state.block) {
 		// Same branch — re-render in place.
@@ -4925,8 +4973,15 @@ function deactivateScope(scope: Scope): void {
 // Index `-2` is reserved for the default branch, `-1` for uninitialized.
 interface SwitchSlot {
 	__kind: 'switchBlockSlot';
-	start: Comment;
-	end: Comment;
+	/** Insertion point for the FIRST case (compiler position / null = append). */
+	anchor: Node | null;
+	/** Non-null once the slot uses comment markers (hydration-adopted, or minted
+	 *  for a multi-node / post-swap case); null while self-marking a single-element
+	 *  case (the element is its own boundary). See IfSlot for the full scheme. */
+	start: Comment | null;
+	/** Trailing node of the current case — the self-marking element, the end
+	 *  marker, or an empty placeholder (position reference for the next swap). */
+	end: Node | null;
 	/** Currently-mounted case index, or -1 if uninitialized / -2 for default. */
 	caseIdx: number;
 	block: Block | null;
@@ -4944,23 +4999,23 @@ export function switchBlock(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as SwitchSlot | undefined;
 	if (state === undefined) {
-		let start: Comment;
-		let end: Comment;
+		let start: Comment | null = null;
+		let end: Node | null = null;
 		if (hydrating && isBlockOpen(anchor ?? null)) {
 			// Hydration: adopt the server's `<!--[-->…<!--]-->` range (the matched
-			// case's content) as the slot markers (see ifBlock).
+			// case's content) as the slot markers. Client mounts defer marker creation
+			// (self-mark or mint on demand — see ifBlock).
 			start = anchor as Comment;
 			end = matchingClose(anchor as Node);
-		} else {
-			start = document.createComment('switch');
-			end = document.createComment('/switch');
-			// insertBefore(_, null) === appendChild — covers both end-of-parent and
-			// mid-range insertion (e.g. when this slot sits before static-element
-			// siblings authored AFTER the @switch in source order).
-			domParent.insertBefore(start, anchor ?? null);
-			domParent.insertBefore(end, anchor ?? null);
 		}
-		state = { __kind: 'switchBlockSlot', start, end, caseIdx: -1, block: null };
+		state = {
+			__kind: 'switchBlockSlot',
+			anchor: anchor ?? null,
+			start,
+			end,
+			caseIdx: -1,
+			block: null,
+		};
 		parentScope[slotKey] = state;
 		registerSlot(parentScope, state);
 	}
@@ -4975,31 +5030,82 @@ export function switchBlock(
 		}
 	}
 	if (nextIdx !== state.caseIdx) {
+		// Position for the new case (after the current trailing node, or the slot
+		// anchor on first mount), captured BEFORE teardown. Same dynamic self-marking
+		// scheme as ifBlock: single-element case → self-mark; multi-node / empty →
+		// mint markers; swap away from self-marked → mint markers; hydration → adopt.
+		const after: Node | null = state.end !== null ? state.end.nextSibling : state.anchor;
+		const firstMount = state.caseIdx === -1;
 		if (state.block) {
 			unmountBlock(state.block);
 			state.block = null;
 		}
 		state.caseIdx = nextIdx;
-		if (body) {
-			let bStart: Node;
-			let bEnd: Node;
-			let borrowed = false;
-			if (hydrating && isBlockOpen(state.start.nextSibling)) {
-				// ADOPT the server's inner case range (no inserted markers — see ifBlock).
-				bStart = state.start.nextSibling as Comment;
-				bEnd = matchingClose(bStart);
-				hydrateNode = bStart.nextSibling;
-			} else {
-				// Client mount: the case renders directly between the switch slot's
-				// permanent start/end (borrowed markers, no per-case comments).
-				bStart = state.start;
-				bEnd = state.end;
-				borrowed = true;
+		if (state.start !== null) {
+			// MARKER path — hydration-adopted, or already markered (multi-node / post-swap).
+			if (body) {
+				let bStart: Node;
+				let bEnd: Node;
+				let borrowed = false;
+				if (hydrating && isBlockOpen(state.start.nextSibling)) {
+					bStart = state.start.nextSibling as Comment;
+					bEnd = matchingClose(bStart);
+					hydrateNode = bStart.nextSibling;
+				} else {
+					bStart = state.start;
+					bEnd = state.end as Node;
+					borrowed = true;
+				}
+				const b = createBlock(
+					'control-flow',
+					parentBlock,
+					domParent,
+					bStart,
+					bEnd,
+					body,
+					undefined,
+				);
+				if (borrowed) b.exclusiveMarkers = true;
+				state.block = b;
+				renderBlock(b);
 			}
-			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
-			if (borrowed) b.exclusiveMarkers = true;
+		} else if (firstMount && body) {
+			// First client mount — self-mark a single-element case, else mint markers.
+			const before = after ? after.previousSibling : domParent.lastChild;
+			const b = createBlock('control-flow', parentBlock, domParent, null, after, body, undefined);
 			state.block = b;
 			renderBlock(b);
+			const first = before ? before.nextSibling : domParent.firstChild;
+			const last = after ? after.previousSibling : domParent.lastChild;
+			if (last !== null && first === last && (first as Node).nodeType === 1) {
+				b.startMarker = first;
+				b.endMarker = first;
+				state.end = first;
+			} else {
+				const s = document.createComment('switch');
+				const e = document.createComment('switch');
+				domParent.insertBefore(s, first ?? after);
+				domParent.insertBefore(e, after);
+				b.startMarker = s;
+				b.endMarker = e;
+				b.exclusiveMarkers = true;
+				state.start = s;
+				state.end = e;
+			}
+		} else {
+			// Swap away from a self-marked case, or an empty case: mint stable markers.
+			const s = document.createComment('switch');
+			const e = document.createComment('switch');
+			domParent.insertBefore(s, after);
+			domParent.insertBefore(e, after);
+			state.start = s;
+			state.end = e;
+			if (body) {
+				const b = createBlock('control-flow', parentBlock, domParent, s, e, body, undefined);
+				b.exclusiveMarkers = true;
+				state.block = b;
+				renderBlock(b);
+			}
 		}
 	} else if (state.block) {
 		state.block.body = body!;
