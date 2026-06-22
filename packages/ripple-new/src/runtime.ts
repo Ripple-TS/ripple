@@ -959,12 +959,14 @@ export function unmountBlock(block: Block, detachDom: boolean = true): void {
 				n = next;
 			}
 		}
-	} else {
+	} else if (block.kind === 'root') {
 		// Root block — clear the whole container.
 		while (block.parentNode.firstChild) {
 			block.parentNode.removeChild(block.parentNode.firstChild);
 		}
 	}
+	// else: a non-root block with no markers produced no DOM (e.g. a singleRoot
+	// component that suspended/threw before inserting) — nothing to remove.
 }
 
 /** Fire cleanups (depth-first child scopes first) without touching the DOM.
@@ -3163,8 +3165,15 @@ function isElementDescriptor(v: any): v is ElementDescriptor {
 
 interface CompSlot {
 	__kind: 'componentSlotSlot';
-	start: Comment;
-	end: Comment;
+	// Null on the client `singleRoot` path: the component's single root element
+	// self-delimits (block.startMarker === block.endMarker === that element), so
+	// no `comp`/`/comp` markers are minted. Non-null otherwise (and always after
+	// hydration, which adopts the server's range).
+	start: Comment | null;
+	end: Comment | null;
+	/** singleRoot client mount: insert anchor for the self-marked element. */
+	anchor: Node | null;
+	singleRoot: boolean;
 	block: Block | null;
 	currentComp: ComponentBody | null;
 	// Last-render `key` value. Sentinel `NO_KEY` when the slot was created
@@ -3195,12 +3204,13 @@ export function componentSlot(
 	props: any,
 	anchor?: Node | null,
 	key?: any,
+	singleRoot?: boolean,
 ): void {
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as CompSlot | undefined;
 	if (state === undefined) {
-		let start: Comment;
-		let end: Comment;
+		let start: Comment | null;
+		let end: Comment | null;
 		// Resolve the server's `<!--[-->` to adopt: directly when anchored, or — for
 		// an appended (anchor-less, all-component-children) child — by descending
 		// into the host's child stream (host.firstChild for the first such child;
@@ -3218,6 +3228,11 @@ export function componentSlot(
 			start = open as Comment;
 			end = matchingClose(open);
 			hydrateNode = start.nextSibling;
+		} else if (singleRoot) {
+			// Client singleRoot: NO markers — the component's single root element
+			// self-delimits (set as block.startMarker/endMarker after render below).
+			start = null;
+			end = null;
 		} else {
 			start = document.createComment('comp');
 			end = document.createComment('/comp');
@@ -3231,6 +3246,8 @@ export function componentSlot(
 			__kind: 'componentSlotSlot',
 			start,
 			end,
+			anchor: anchor ?? null,
+			singleRoot: start === null,
 			block: null,
 			currentComp: null,
 			prevKey: NO_KEY,
@@ -3250,26 +3267,54 @@ export function componentSlot(
 	state.prevKey = key === undefined ? NO_KEY : key;
 	if (comp !== state.currentComp) {
 		if (state.block) {
-			// The slot's `state.start`/`state.end` markers ARE the previous block's
-			// range, so unmountBlock removes them along with the inner DOM. Capture
-			// the position just outside the slot (the node that came AFTER our end
-			// marker) so we can re-create fresh markers at the same logical
-			// location for the new comp to mount into. `after` may be `null` when
-			// the slot was at the end of `domParent` — that's fine; insertBefore
-			// treats null as appendChild.
-			const after = state.end.nextSibling;
-			unmountBlock(state.block);
-			const newStart = document.createComment('comp');
-			const newEnd = document.createComment('/comp');
-			domParent.insertBefore(newStart, after);
-			domParent.insertBefore(newEnd, after);
-			state.start = newStart;
-			state.end = newEnd;
+			if (state.singleRoot) {
+				// Self-marked block — unmountBlock removes exactly the root element
+				// (block.startMarker === endMarker === it); nothing to recreate.
+				unmountBlock(state.block);
+			} else {
+				// The slot's `state.start`/`state.end` markers ARE the previous block's
+				// range, so unmountBlock removes them along with the inner DOM. Capture
+				// the position just outside the slot (the node that came AFTER our end
+				// marker) so we can re-create fresh markers at the same logical
+				// location for the new comp to mount into. `after` may be `null` when
+				// the slot was at the end of `domParent` — insertBefore treats it as
+				// appendChild.
+				const after = state.end!.nextSibling;
+				unmountBlock(state.block);
+				const newStart = document.createComment('comp');
+				const newEnd = document.createComment('/comp');
+				domParent.insertBefore(newStart, after);
+				domParent.insertBefore(newEnd, after);
+				state.start = newStart;
+				state.end = newEnd;
+			}
 		}
 		state.currentComp = comp;
-		const b = createBlock('dynamic', parentBlock, domParent, state.start, state.end, comp, props);
-		state.block = b;
-		renderBlock(b);
+		if (state.singleRoot) {
+			// Client singleRoot self-mark (mirrors mountItem): render with
+			// endMarker = the slot's anchor, then promote the inserted root element
+			// to be the block's own start === end so teardown removes exactly it.
+			// The `finally` matters because a single-root component can still SUSPEND
+			// or THROW during render (e.g. `use(rejectedPromise)`): then it inserts
+			// nothing, so we leave start/end null and unmountBlock no-ops for it
+			// (rather than capturing a stale sibling).
+			const before = state.anchor ? state.anchor.previousSibling : domParent.lastChild;
+			const b = createBlock('dynamic', parentBlock, domParent, null, state.anchor, comp, props);
+			state.block = b;
+			try {
+				renderBlock(b);
+			} finally {
+				const last = state.anchor ? state.anchor.previousSibling : domParent.lastChild;
+				if (last !== null && last !== before) {
+					b.startMarker = last;
+					b.endMarker = last;
+				}
+			}
+		} else {
+			const b = createBlock('dynamic', parentBlock, domParent, state.start, state.end, comp, props);
+			state.block = b;
+			renderBlock(b);
+		}
 	} else if (state.block) {
 		// `memo(Component)` — skip the body when new props shallow-equal the
 		// committed props. Matches React.memo's contract; the wrapped fn carries
