@@ -57,28 +57,27 @@ var root_50 = _$_.template(`<!>`, 1, 1);
 var root_55 = _$_.template(`<div> </div>`, 0);
 var root_54 = _$_.template(`<div class="wrapper"><header class="before">Before</header><!><footer class="after">After</footer></div><button class="add">Add</button>`, 1, 2);
 var root_53 = _$_.template(`<!>`, 1, 1);
-var root_57 = _$_.template(`<!>`, 1, 1);
 var root_56 = _$_.template(`<div></div>`, 0);
-var root_58 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
-var root_60 = _$_.template(`<li class="single"> </li>`, 0);
-var root_59 = _$_.template(`<ul></ul>`, 0);
-var root_63 = _$_.template(`<li> </li>`, 0);
-var root_62 = _$_.template(`<button class="prepend">Prepend A</button><ul></ul>`, 1, 2);
-var root_61 = _$_.template(`<!>`, 1, 1);
-var root_66 = _$_.template(`<li> </li>`, 0);
-var root_65 = _$_.template(`<button class="insert">Insert B</button><ul></ul>`, 1, 2);
-var root_64 = _$_.template(`<!>`, 1, 1);
-var root_69 = _$_.template(`<li> </li>`, 0);
-var root_68 = _$_.template(`<button class="remove-middle">Remove B</button><ul></ul>`, 1, 2);
-var root_67 = _$_.template(`<!>`, 1, 1);
-var root_71 = _$_.template(`<li> </li>`, 0);
-var root_70 = _$_.template(`<ul class="large-list"></ul>`, 0);
-var root_74 = _$_.template(`<li> </li>`, 0);
-var root_73 = _$_.template(`<button class="swap">Swap First and Last</button><ul></ul>`, 1, 2);
-var root_72 = _$_.template(`<!>`, 1, 1);
-var root_77 = _$_.template(`<li> </li>`, 0);
-var root_76 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
-var root_75 = _$_.template(`<!>`, 1, 1);
+var root_57 = _$_.template(`<div><input type="checkbox" class="checkbox"><span> </span></div>`, 0);
+var root_59 = _$_.template(`<li class="single"> </li>`, 0);
+var root_58 = _$_.template(`<ul></ul>`, 0);
+var root_62 = _$_.template(`<li> </li>`, 0);
+var root_61 = _$_.template(`<button class="prepend">Prepend A</button><ul></ul>`, 1, 2);
+var root_60 = _$_.template(`<!>`, 1, 1);
+var root_65 = _$_.template(`<li> </li>`, 0);
+var root_64 = _$_.template(`<button class="insert">Insert B</button><ul></ul>`, 1, 2);
+var root_63 = _$_.template(`<!>`, 1, 1);
+var root_68 = _$_.template(`<li> </li>`, 0);
+var root_67 = _$_.template(`<button class="remove-middle">Remove B</button><ul></ul>`, 1, 2);
+var root_66 = _$_.template(`<!>`, 1, 1);
+var root_70 = _$_.template(`<li> </li>`, 0);
+var root_69 = _$_.template(`<ul class="large-list"></ul>`, 0);
+var root_73 = _$_.template(`<li> </li>`, 0);
+var root_72 = _$_.template(`<button class="swap">Swap First and Last</button><ul></ul>`, 1, 2);
+var root_71 = _$_.template(`<!>`, 1, 1);
+var root_76 = _$_.template(`<li> </li>`, 0);
+var root_75 = _$_.template(`<button class="reverse">Reverse</button><ul></ul>`, 1, 2);
+var root_74 = _$_.template(`<!>`, 1, 1);
 
 import { track } from 'ripple';
 
@@ -1167,10 +1166,7 @@ export function ForLoopItemState() {
 				div_16,
 				() => initialItems,
 				(__anchor, pattern_7) => {
-					var fragment_22 = root_57();
-					var node_14 = _$_.first_child_frag(fragment_22);
-
-					_$_.render_component(TodoItem, node_14, {
+					_$_.render_component(TodoItem, __anchor, {
 						get id() {
 							return _$_.get(pattern_7).id;
 						},
@@ -1179,8 +1175,6 @@ export function ForLoopItemState() {
 							return _$_.get(pattern_7).text;
 						}
 					});
-
-					_$_.append(__anchor, fragment_22);
 				},
 				4,
 				(pattern_7) => _$_.get(pattern_7).id
@@ -1196,7 +1190,7 @@ export function ForLoopItemState() {
 function TodoItem(props) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_14 = _$_.track(false, __block, '4f2402a4');
-		var div_17 = root_58();
+		var div_17 = root_57();
 
 		{
 			var input_1 = _$_.child(div_17);
@@ -1245,14 +1239,14 @@ function TodoItem(props) {
 export function ForLoopSingleItem() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = ['Only'];
-		var ul_15 = root_59();
+		var ul_15 = root_58();
 
 		{
 			_$_.for(
 				ul_15,
 				() => items,
 				(__anchor, item) => {
-					var li_15 = root_60();
+					var li_15 = root_59();
 
 					{
 						var expression_24 = _$_.child(li_15);
@@ -1276,12 +1270,12 @@ export function ForLoopSingleItem() {
 export function ForLoopAddAtBeginning() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_15 = _$_.track(['B', 'C'], __block, '1561403a');
-		var fragment_23 = root_61();
-		var node_15 = _$_.first_child_frag(fragment_23);
+		var fragment_22 = root_60();
+		var node_14 = _$_.first_child_frag(fragment_22);
 
-		_$_.expression(node_15, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_24 = root_62();
-			var button_16 = _$_.first_child_frag(fragment_24);
+		_$_.expression(node_14, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_23 = root_61();
+			var button_16 = _$_.first_child_frag(fragment_23);
 
 			button_16.__click = () => {
 				_$_.set(lazy_15, ['A', ...lazy_15.value]);
@@ -1294,7 +1288,7 @@ export function ForLoopAddAtBeginning() {
 					ul_16,
 					() => lazy_15.value,
 					(__anchor, item) => {
-						var li_16 = root_63();
+						var li_16 = root_62();
 
 						_$_.set_class(li_16, `item-${item}`, void 0, true);
 
@@ -1314,22 +1308,22 @@ export function ForLoopAddAtBeginning() {
 			}
 
 			_$_.next();
-			_$_.append(__anchor, fragment_24, true);
+			_$_.append(__anchor, fragment_23, true);
 		}));
 
-		_$_.append(__anchor, fragment_23);
+		_$_.append(__anchor, fragment_22);
 	});
 }
 
 export function ForLoopAddInMiddle() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_16 = _$_.track(['A', 'C'], __block, '1bc60b46');
-		var fragment_25 = root_64();
-		var node_16 = _$_.first_child_frag(fragment_25);
+		var fragment_24 = root_63();
+		var node_15 = _$_.first_child_frag(fragment_24);
 
-		_$_.expression(node_16, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_26 = root_65();
-			var button_17 = _$_.first_child_frag(fragment_26);
+		_$_.expression(node_15, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_25 = root_64();
+			var button_17 = _$_.first_child_frag(fragment_25);
 
 			button_17.__click = () => {
 				const copy = [...lazy_16.value];
@@ -1345,7 +1339,7 @@ export function ForLoopAddInMiddle() {
 					ul_17,
 					() => lazy_16.value,
 					(__anchor, item) => {
-						var li_17 = root_66();
+						var li_17 = root_65();
 
 						_$_.set_class(li_17, `item-${item}`, void 0, true);
 
@@ -1365,22 +1359,22 @@ export function ForLoopAddInMiddle() {
 			}
 
 			_$_.next();
-			_$_.append(__anchor, fragment_26, true);
+			_$_.append(__anchor, fragment_25, true);
 		}));
 
-		_$_.append(__anchor, fragment_25);
+		_$_.append(__anchor, fragment_24);
 	});
 }
 
 export function ForLoopRemoveFromMiddle() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_17 = _$_.track(['A', 'B', 'C'], __block, '1c87f95f');
-		var fragment_27 = root_67();
-		var node_17 = _$_.first_child_frag(fragment_27);
+		var fragment_26 = root_66();
+		var node_16 = _$_.first_child_frag(fragment_26);
 
-		_$_.expression(node_17, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_28 = root_68();
-			var button_18 = _$_.first_child_frag(fragment_28);
+		_$_.expression(node_16, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_27 = root_67();
+			var button_18 = _$_.first_child_frag(fragment_27);
 
 			button_18.__click = () => {
 				_$_.set(lazy_17, _$_.with_scope(__block, () => lazy_17.value.filter((item) => item !== 'B')));
@@ -1393,7 +1387,7 @@ export function ForLoopRemoveFromMiddle() {
 					ul_18,
 					() => lazy_17.value,
 					(__anchor, item) => {
-						var li_18 = root_69();
+						var li_18 = root_68();
 
 						_$_.set_class(li_18, `item-${item}`, void 0, true);
 
@@ -1413,24 +1407,24 @@ export function ForLoopRemoveFromMiddle() {
 			}
 
 			_$_.next();
-			_$_.append(__anchor, fragment_28, true);
+			_$_.append(__anchor, fragment_27, true);
 		}));
 
-		_$_.append(__anchor, fragment_27);
+		_$_.append(__anchor, fragment_26);
 	});
 }
 
 export function ForLoopLargeList() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		const items = _$_.with_scope(__block, () => Array.from({ length: 50 }, (_, i) => `Item ${i + 1}`));
-		var ul_19 = root_70();
+		var ul_19 = root_69();
 
 		{
 			_$_.for(
 				ul_19,
 				() => items,
 				(__anchor, item, i) => {
-					var li_19 = root_71();
+					var li_19 = root_70();
 
 					{
 						var expression_28 = _$_.child(li_19);
@@ -1458,12 +1452,12 @@ export function ForLoopLargeList() {
 export function ForLoopSwap() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_18 = _$_.track(['A', 'B', 'C', 'D'], __block, '5f8d152f');
-		var fragment_29 = root_72();
-		var node_18 = _$_.first_child_frag(fragment_29);
+		var fragment_28 = root_71();
+		var node_17 = _$_.first_child_frag(fragment_28);
 
-		_$_.expression(node_18, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_30 = root_73();
-			var button_19 = _$_.first_child_frag(fragment_30);
+		_$_.expression(node_17, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_29 = root_72();
+			var button_19 = _$_.first_child_frag(fragment_29);
 
 			button_19.__click = () => {
 				const copy = [...lazy_18.value];
@@ -1479,7 +1473,7 @@ export function ForLoopSwap() {
 					ul_20,
 					() => lazy_18.value,
 					(__anchor, item) => {
-						var li_20 = root_74();
+						var li_20 = root_73();
 
 						_$_.set_class(li_20, `item-${item}`, void 0, true);
 
@@ -1499,22 +1493,22 @@ export function ForLoopSwap() {
 			}
 
 			_$_.next();
-			_$_.append(__anchor, fragment_30, true);
+			_$_.append(__anchor, fragment_29, true);
 		}));
 
-		_$_.append(__anchor, fragment_29);
+		_$_.append(__anchor, fragment_28);
 	});
 }
 
 export function ForLoopReverse() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_19 = _$_.track(['A', 'B', 'C', 'D'], __block, '24602e64');
-		var fragment_31 = root_75();
-		var node_19 = _$_.first_child_frag(fragment_31);
+		var fragment_30 = root_74();
+		var node_18 = _$_.first_child_frag(fragment_30);
 
-		_$_.expression(node_19, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_32 = root_76();
-			var button_20 = _$_.first_child_frag(fragment_32);
+		_$_.expression(node_18, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_31 = root_75();
+			var button_20 = _$_.first_child_frag(fragment_31);
 
 			button_20.__click = () => {
 				_$_.set(lazy_19, _$_.with_scope(__block, () => [...lazy_19.value].reverse()));
@@ -1527,7 +1521,7 @@ export function ForLoopReverse() {
 					ul_21,
 					() => lazy_19.value,
 					(__anchor, item) => {
-						var li_21 = root_77();
+						var li_21 = root_76();
 
 						_$_.set_class(li_21, `item-${item}`, void 0, true);
 
@@ -1547,10 +1541,10 @@ export function ForLoopReverse() {
 			}
 
 			_$_.next();
-			_$_.append(__anchor, fragment_32, true);
+			_$_.append(__anchor, fragment_31, true);
 		}));
 
-		_$_.append(__anchor, fragment_31);
+		_$_.append(__anchor, fragment_30);
 	});
 }
 

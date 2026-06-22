@@ -852,6 +852,95 @@ export function HtmlAfterTryInChildren() {
 	});
 }
 
+function Boxed({ children }) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<span class="boxed">';
+
+			{
+				_$_.output_push(__out);
+				__out = '';
+				_$_.render_expression(children);
+			}
+
+			__out += '</span>';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+function IndirectHeading({ text }) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			{
+				const comp = Boxed;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								__out += _$_.escape(text);
+								_$_.output_push(__out);
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
+export function HtmlAfterComponentInChildren() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			{
+				const comp = ContentWrapper;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								{
+									const comp = IndirectHeading;
+									const args = [{ text: "Title" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>First paragraph</p>';
+
+								{
+									const comp = CodeBlock;
+									const args = [{ code: "const x = 1;" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>After code</p>';
+								_$_.output_push(__out);
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
 function NavItem(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {

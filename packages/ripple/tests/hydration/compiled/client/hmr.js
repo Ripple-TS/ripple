@@ -4,8 +4,6 @@ import * as _$_ from 'ripple/internal/client';
 var root = _$_.template(`<div class="layout"><nav class="nav">Navigation</nav><main class="main"><!></main></div>`, 0);
 var root_2 = _$_.template(`<p class="text">Hello world</p>`, 0);
 var root_1 = _$_.template(`<div class="content"><!></div>`, 0);
-var root_4 = _$_.template(`<!>`, 1, 1);
-var root_3 = _$_.template(`<!>`, 1, 1);
 
 import { track } from 'ripple';
 
@@ -58,19 +56,10 @@ export function Content() {
 
 export function LayoutWithContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment = root_3();
-		var node_1 = _$_.first_child_frag(fragment);
-
-		_$_.render_component(Layout, node_1, {
+		_$_.render_component(Layout, __anchor, {
 			children: _$_.tsrx_element((__anchor, __block) => {
-				var fragment_1 = root_4();
-				var node_2 = _$_.first_child_frag(fragment_1);
-
-				_$_.render_component(Content, node_2, {});
-				_$_.append(__anchor, fragment_1);
+				_$_.render_component(Content, __anchor, {});
 			})
 		});
-
-		_$_.append(__anchor, fragment);
 	});
 }

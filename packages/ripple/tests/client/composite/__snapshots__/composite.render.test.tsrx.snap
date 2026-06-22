@@ -2,7 +2,6 @@
 
 exports[`composite > render > correct handles passing through component props and children 1`] = `
 <div>
-  <!---->
   <div>
     <div>
       I am A
@@ -17,21 +16,18 @@ exports[`composite > render > correct handles passing through component props an
     </div>
     <!---->
   </div>
-  <!---->
   
 </div>
 `;
 
 exports[`composite > render > render simple text as children 1`] = `
 <div>
-  <!---->
   <button
     class="my-button"
   >
     Click Me
     <!---->
   </button>
-  <!---->
   
 </div>
 `;

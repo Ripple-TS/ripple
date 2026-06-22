@@ -3,10 +3,9 @@ import * as _$_ from 'ripple/internal/client';
 
 var root = _$_.template(`<div class="count"> </div>`, 0);
 var root_1 = _$_.template(`<div><span class="count"> </span></div>`, 0);
-var root_2 = _$_.template(`<!>`, 1, 1);
-var root_3 = _$_.template(`<div class="sum"> </div>`, 0);
-var root_4 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
-var root_5 = _$_.template(`<div class="name"> </div>`, 0);
+var root_2 = _$_.template(`<div class="sum"> </div>`, 0);
+var root_3 = _$_.template(`<div class="multiple-tracked"><div class="x"> </div><div class="y"> </div><div class="z"> </div></div>`, 0);
+var root_4 = _$_.template(`<div class="name"> </div>`, 0);
 
 import { track } from 'ripple';
 
@@ -48,11 +47,7 @@ export function CounterWithInitial(props) {
 
 export function CounterWrapper() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment = root_2();
-		var node = _$_.first_child_frag(fragment);
-
-		_$_.render_component(CounterWithInitial, node, { initial: 5 });
-		_$_.append(__anchor, fragment);
+		_$_.render_component(CounterWithInitial, __anchor, { initial: 5 });
 	});
 }
 
@@ -61,7 +56,7 @@ export function ComputedValues() {
 		let lazy_2 = _$_.track(2, __block, 'b78281db');
 		let lazy_3 = _$_.track(3, __block, 'a0cf6c6d');
 		const sum = () => lazy_2.value + lazy_3.value;
-		var div_3 = root_3();
+		var div_3 = root_2();
 
 		{
 			var expression_2 = _$_.child(div_3);
@@ -79,7 +74,7 @@ export function MultipleTracked() {
 		let lazy_4 = _$_.track(10, __block, '843522de');
 		let lazy_5 = _$_.track(20, __block, '1308996d');
 		let lazy_6 = _$_.track(30, __block, '048c3fd0');
-		var div_4 = root_4();
+		var div_4 = root_3();
 
 		{
 			var div_5 = _$_.child(div_4);
@@ -119,7 +114,7 @@ export function DerivedState() {
 		let lazy_7 = _$_.track('John', __block, '6015eeca');
 		let lazy_8 = _$_.track('Doe', __block, '4fa9a20e');
 		const fullName = () => `${lazy_7.value} ${lazy_8.value}`;
-		var div_8 = root_5();
+		var div_8 = root_4();
 
 		{
 			var expression_6 = _$_.child(div_8);

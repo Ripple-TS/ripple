@@ -2635,9 +2635,12 @@ const visitors = {
 				state.init?.push(b.block(init));
 			}
 		} else {
-			const id = state.flush_node?.();
+			const root_controlled = /** @type {any} */ (node).root_controlled === true;
+			const id = root_controlled ? b.id('__anchor') : state.flush_node?.();
 
-			state.template?.push('<!>');
+			if (!root_controlled) {
+				state.template?.push('<!>');
+			}
 
 			const apply_parent_css_scope = state.applyParentCssScope;
 
@@ -5203,14 +5206,25 @@ function transform_children(children, context) {
 	// flow runtimes render before their given anchor, and during hydration consume
 	// the SSR boundary marker via append(), so __anchor replaces the wrapper.
 	const root_output = root ? normalized.filter(is_template_or_control_flow) : [];
+	const single_output = root_output.length === 1 ? root_output[0] : null;
 	const root_controlled =
-		root_output.length === 1 &&
-		(root_output[0].type === 'IfStatement' ||
-			root_output[0].type === 'SwitchStatement' ||
-			root_output[0].type === 'ForOfStatement' ||
-			root_output[0].type === 'TryStatement');
+		single_output !== null &&
+		(single_output.type === 'IfStatement' ||
+			single_output.type === 'SwitchStatement' ||
+			single_output.type === 'ForOfStatement' ||
+			single_output.type === 'TryStatement' ||
+			// A single static component child (`render_component`, not a dynamic/
+			// composite tag, DOM element, or ripple `Fragment`) renders before
+			// __anchor too.
+			(single_output.type === 'Element' &&
+				single_output.isDynamic !== true &&
+				single_output.id.type === 'Identifier' &&
+				!(/** @type {any} */ (single_output.id).tracked) &&
+				single_output.id.name !== 'children' &&
+				!is_element_dom_element(single_output) &&
+				!is_ripple_fragment_element(single_output, context)));
 	if (root_controlled) {
-		/** @type {any} */ (root_output[0]).root_controlled = true;
+		/** @type {any} */ (single_output).root_controlled = true;
 	}
 
 	/** @param {AST.Node} node */

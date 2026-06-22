@@ -13,12 +13,11 @@ var root_11 = _$_.template(`<p class="pending">pending b</p>`, 0);
 var root_7 = _$_.template(`<div class="mixed-reactive-list"></div>`, 0);
 var root_6 = _$_.template(`<button class="toggle-show">Toggle Show</button><button class="toggle-mode">Toggle Mode</button><button class="add-item">Add Item</button><!>`, 1, 4);
 var root_5 = _$_.template(`<!>`, 1, 1);
-var root_14 = _$_.template(`<!>`, 1, 1);
-var root_15 = _$_.template(`<div> </div>`, 0);
-var root_16 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
+var root_14 = _$_.template(`<div> </div>`, 0);
+var root_15 = _$_.template(`<div class="unexpected">unexpected</div>`, 0);
 var root_13 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
 var root_12 = _$_.template(`<!>`, 1, 1);
-var root_17 = _$_.template(`<div class="resolved-row"> </div>`, 0);
+var root_16 = _$_.template(`<div class="resolved-row"> </div>`, 0);
 
 import { track, trackAsync } from 'ripple';
 
@@ -338,9 +337,9 @@ export function MixedControlFlowAsyncPending() {
 		const rows = [1, 2];
 		const state = 'slow';
 		var fragment_2 = root_12();
-		var node_4 = _$_.first_child_frag(fragment_2);
+		var node_3 = _$_.first_child_frag(fragment_2);
 
-		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
+		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
 			var fragment_3 = root_13();
 			var div_6 = _$_.first_child_frag(fragment_3);
 			var node_2 = _$_.sibling(div_6);
@@ -356,15 +355,11 @@ export function MixedControlFlowAsyncPending() {
 									_$_.try(
 										__anchor,
 										(__anchor) => {
-											var fragment_4 = root_14();
-											var node_3 = _$_.first_child_frag(fragment_4);
-
-											_$_.render_component(AsyncRow, node_3, { label: `row-${row}` });
-											_$_.append(__anchor, fragment_4);
+											_$_.render_component(AsyncRow, __anchor, { label: `row-${row}` });
 										},
 										null,
 										(__anchor) => {
-											var div_7 = root_15();
+											var div_7 = root_14();
 
 											_$_.set_class(div_7, `pending-row pending-row-${row}`, void 0, true);
 
@@ -382,7 +377,7 @@ export function MixedControlFlowAsyncPending() {
 								};
 
 								var switch_case_default_2 = (__anchor) => {
-									var div_8 = root_16();
+									var div_8 = root_15();
 
 									_$_.append(__anchor, div_8);
 								};
@@ -429,7 +424,7 @@ export function MixedControlFlowAsyncPending() {
 function AsyncRow({ label }) {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(label)), __block, '10cc79a0');
-		var div_9 = root_17();
+		var div_9 = root_16();
 
 		{
 			var expression_5 = _$_.child(div_9);

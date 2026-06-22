@@ -185,6 +185,18 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('After code');
 	});
 
+	it('hydrates html block after single-component-root component in children', async () => {
+		await hydrateComponent(
+			ServerComponents.HtmlAfterComponentInChildren,
+			ClientComponents.HtmlAfterComponentInChildren,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('First paragraph');
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('After code');
+	});
+
 	it('hydrates layout with sidebar (if-blocks) followed by main sibling', async () => {
 		await hydrateComponent(
 			ServerComponents.LayoutWithSidebarAndMain,

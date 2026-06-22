@@ -3,13 +3,12 @@ import * as _$_ from 'ripple/internal/client';
 
 var root_1 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
 var root = _$_.template(`<div class="container"><h1>Main Content</h1><!></div>`, 0);
-var root_4 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
-var root_3 = _$_.template(`<!>`, 1, 1);
+var root_3 = _$_.template(`<div class="portal-content">Portal is visible</div>`, 0);
 var root_2 = _$_.template(`<div class="container"><button class="toggle">Toggle</button><!></div>`, 0);
-var root_6 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
-var root_5 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
-var root_8 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
-var root_7 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div><!></div>`, 0);
+var root_5 = _$_.template(`<div class="portal-content">Modal content</div>`, 0);
+var root_4 = _$_.template(`<div><div class="main-content">Main page content</div><!><div class="footer">Footer</div></div>`, 0);
+var root_7 = _$_.template(`<div class="portal-content">Portal content</div>`, 0);
+var root_6 = _$_.template(`<div class="outer"><div class="inner"><span>Nested content</span></div><!></div>`, 0);
 
 import { Portal, track } from 'ripple';
 
@@ -54,22 +53,17 @@ export function ConditionalPortal() {
 
 			{
 				var consequent = (__anchor) => {
-					var fragment = root_3();
-					var node_2 = _$_.first_child_frag(fragment);
-
-					_$_.render_component(Portal, node_2, {
+					_$_.render_component(Portal, __anchor, {
 						get target() {
 							return typeof document !== 'undefined' ? document.body : null;
 						},
 
 						children: _$_.tsrx_element((__anchor, __block) => {
-							var div_4 = root_4();
+							var div_4 = root_3();
 
 							_$_.append(__anchor, div_4);
 						})
 					});
-
-					_$_.append(__anchor, fragment);
 				};
 
 				_$_.if(node_1, (__render) => {
@@ -86,19 +80,19 @@ export function ConditionalPortal() {
 
 export function PortalWithMainContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_5 = root_5();
+		var div_5 = root_4();
 
 		{
 			var div_6 = _$_.child(div_5);
-			var node_3 = _$_.sibling(div_6);
+			var node_2 = _$_.sibling(div_6);
 
-			_$_.render_component(Portal, node_3, {
+			_$_.render_component(Portal, node_2, {
 				get target() {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
 				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_7 = root_6();
+					var div_7 = root_5();
 
 					_$_.append(__anchor, div_7);
 				})
@@ -113,22 +107,22 @@ export function PortalWithMainContent() {
 
 export function NestedContentWithPortal() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var div_8 = root_7();
+		var div_8 = root_6();
 
 		{
 			var div_9 = _$_.child(div_8);
 
 			_$_.pop(div_9);
 
-			var node_4 = _$_.sibling(div_9);
+			var node_3 = _$_.sibling(div_9);
 
-			_$_.render_component(Portal, node_4, {
+			_$_.render_component(Portal, node_3, {
 				get target() {
 					return typeof document !== 'undefined' ? document.body : null;
 				},
 
 				children: _$_.tsrx_element((__anchor, __block) => {
-					var div_10 = root_8();
+					var div_10 = root_7();
 
 					_$_.append(__anchor, div_10);
 				})

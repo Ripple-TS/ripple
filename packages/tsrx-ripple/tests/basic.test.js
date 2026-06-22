@@ -1048,7 +1048,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1062,7 +1062,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1076,7 +1076,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, node, { prop: placeholder });');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: placeholder });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1105,7 +1105,7 @@ describe('@tsrx/ripple <> expression values', () => {
 			'App.tsrx',
 		);
 
-		expect(code).toContain('_$_.render_component(Some, node, { prop: first + second });');
+		expect(code).toContain('_$_.render_component(Some, __anchor, { prop: first + second });');
 		expect(code).not.toContain('get prop()');
 	});
 
@@ -1360,7 +1360,7 @@ describe('@tsrx/ripple <> expression values', () => {
 
 		expect(code).toContain('function Label()');
 		expect(code).toContain('return "Hi";');
-		expect(code).toContain('_$_.render_component(Label, node, {})');
+		expect(code).toContain('_$_.render_component(Label, __anchor, {})');
 	});
 
 	it('uses server render_expression for conditional array expression values', () => {
@@ -1663,7 +1663,7 @@ describe('@tsrx/ripple unified function and component compilation', () => {
 		const client = compile(source, 'App.tsrx');
 		const server = compile(source, 'App.tsrx', { mode: 'server' });
 
-		expect(client.code).toContain('_$_.render_component(Test, node, {})');
+		expect(client.code).toContain('_$_.render_component(Test, __anchor, {})');
 		expect(server.code).toContain('_$_.render_component(comp, ...args)');
 	});
 

@@ -255,6 +255,25 @@ export function HtmlAfterTryInChildren() @{
 	</ContentWrapper>
 }
 
+// Root-controlled single component: a component whose body is a single child
+// component (no `<!>` wrapper), used as a composite child with siblings.
+function Boxed({ children }: { children: any }) @{
+	<span class="boxed">{children}</span>
+}
+
+function IndirectHeading({ text }: { text: string }) @{
+	<Boxed>{text}</Boxed>
+}
+
+export function HtmlAfterComponentInChildren() @{
+	<ContentWrapper>
+		<IndirectHeading text="Title" />
+		<p>{'First paragraph'}</p>
+		<CodeBlock code="const x = 1;" />
+		<p>{'After code'}</p>
+	</ContentWrapper>
+}
+
 function NavItem(&{
 	href,
 	text: label,
