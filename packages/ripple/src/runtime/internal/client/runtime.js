@@ -1155,18 +1155,34 @@ export function schedule_update(block) {
  */
 function register_dependency(tracked) {
 	if (!disable_scoped_flush && active_block !== null && active_block !== tracked.b) {
-		// Scoped flush only scans the owner's subtree for dirty subscribers, which
-		// is valid only while every subscriber lives inside it. Walk up from the
-		// subscriber: if the owner block is not an ancestor, this tracked has
-		// escaped its subtree, so fall back to full scans to stay correct.
-		var owner = tracked.b;
-		/** @type {Block | null} */
-		var node = active_block;
-		while (node !== null && node !== owner) {
-			node = node.p;
+		// Scoped flush only scans the owner's subtree for dirty subscribers, valid
+		// only while every subscriber lives inside it. The subscriber↔owner
+		// ancestry is structural and stable for a block's lifetime (its `.p` chain
+		// never changes — DOM moves don't reparent blocks), so we only need to
+		// verify *new* dependency edges: if this reaction already depended on
+		// `tracked` on its previous run (it's in the prior chain), the ancestry
+		// walk was already done — skip it. This keeps the (possibly deep) walk off
+		// the hot path for the common case of stable subscriptions.
+		var already_seen = false;
+		var prev_dep = active_reaction === null ? null : active_reaction.d;
+		while (prev_dep !== null) {
+			if (prev_dep.t === tracked) {
+				already_seen = true;
+				break;
+			}
+			prev_dep = prev_dep.n;
 		}
-		if (node === null) {
-			disable_scoped_flush = true;
+
+		if (!already_seen) {
+			var owner = tracked.b;
+			/** @type {Block | null} */
+			var node = active_block;
+			while (node !== null && node !== owner) {
+				node = node.p;
+			}
+			if (node === null) {
+				disable_scoped_flush = true;
+			}
 		}
 	}
 
