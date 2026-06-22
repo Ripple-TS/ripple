@@ -3872,6 +3872,20 @@ function emitElementHtml(
 		// binding (path captured); the matching FragmentEnd pops and patches in
 		// the endPath. Stacked so nested <Fragment ref={…}> pairs cleanly.
 		const fragRefStack = [];
+		// When EVERY child is a component, each can APPEND to the host in source
+		// order instead of inserting before its own `<!>` placeholder — there's no
+		// static/template sibling to sit in front of, so appending lands them right
+		// (componentSlot/Lite with no anchor → appendChild). Restricted to the
+		// all-component case so hydration's adopt cursor can simply descend into the
+		// host's child stream (host.firstChild); mixed static+component children keep
+		// their placeholders, where the cursor would otherwise mis-track.
+		let allComponentChildren = children.length > 0;
+		for (const c of children) {
+			if (!(c.type === 'Element' && isComponentTag(c))) {
+				allComponentChildren = false;
+				break;
+			}
+		}
 		for (const child of children) {
 			const prevBaked = prevBakedText;
 			prevBakedText = false;
@@ -3943,15 +3957,22 @@ function emitElementHtml(
 						cssHash,
 					);
 					cc.hostPath = path;
-					// Emit a `<!>` anchor at the component's source-order position so
-					// componentSlot inserts BEFORE this anchor — preserving sibling
-					// order when a Component appears before static-element/text
-					// siblings. Without this, the slot's start/end markers get
-					// appended to the parent host AFTER the static template content.
-					cc.anchorPath = [...path, childIdx];
-					compCalls.push(cc);
-					html += '<!>';
-					childIdx++;
+					if (allComponentChildren) {
+						// All-component children: append to the host in source order (no
+						// `<!>` placeholder, no anchor). Hydration adopts from the cursor
+						// descending into the host (see componentSlot/Lite).
+						compCalls.push(cc);
+					} else {
+						// Emit a `<!>` anchor at the component's source-order position so
+						// componentSlot inserts BEFORE this anchor — preserving sibling
+						// order when a Component appears before static-element/text
+						// siblings. Without this, the slot's start/end markers get
+						// appended to the parent host AFTER the static template content.
+						cc.anchorPath = [...path, childIdx];
+						compCalls.push(cc);
+						html += '<!>';
+						childIdx++;
+					}
 				} else {
 					html += emitElementHtml(
 						child,

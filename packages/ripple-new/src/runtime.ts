@@ -94,6 +94,13 @@ export interface Block extends Scope {
 	parentNode: Node;
 	startMarker: Node | null;
 	endMarker: Node | null;
+	/**
+	 * When true, start/end are BORROWED from an enclosing slot (e.g. an `@if`
+	 * branch that reuses the if-slot's permanent markers instead of minting its
+	 * own `br`/`/br` pair). DOM teardown then removes the content BETWEEN the
+	 * markers but leaves the markers themselves for the owning slot/parent.
+	 */
+	exclusiveMarkers: boolean;
 	body: ComponentBody;
 	props: any;
 	extra: any;
@@ -638,6 +645,7 @@ class BlockImpl {
 	parentBlock: Block | null;
 	startMarker: Node | null;
 	endMarker: Node | null;
+	exclusiveMarkers: boolean;
 	itemIndex: number;
 	// Scheduler / lifecycle.
 	pending: boolean;
@@ -689,6 +697,7 @@ class BlockImpl {
 		this.parentBlock = parentBlock;
 		this.startMarker = startMarker;
 		this.endMarker = endMarker;
+		this.exclusiveMarkers = false;
 		this.itemIndex = 0;
 		this.pending = false;
 		this.disposed = false;
@@ -897,6 +906,19 @@ export function componentSlotLite<P>(
 			// `insertBefore(content, endMarker)` is a no-op (content already there).
 			endMarker = matchingClose(anchor as Node);
 			hydrateNode = (anchor as Node).nextSibling;
+		} else if (hydrating && anchor == null) {
+			// Anchor-less (appended) component — the compiler dropped the `<!>`
+			// placeholder because every child of `host` is a component. The server
+			// still wrapped each in a `<!--[-->…<!--]-->` range. The FIRST appended
+			// child finds the cursor parked AFTER the just-cloned (empty) host, so
+			// descend to host.firstChild; later siblings already have the cursor on
+			// their own open marker (its parentNode is host).
+			let open: Node | null = hydrateNode;
+			if (open === null || open.parentNode !== host) open = host.firstChild;
+			if (open !== null && isBlockOpen(open)) {
+				endMarker = matchingClose(open);
+				hydrateNode = open.nextSibling;
+			}
 		}
 		scope.block = new LiteBlockImpl(host, endMarker, parentScope.block) as unknown as Block;
 		parentScope[slotKey] = scope;
@@ -926,8 +948,11 @@ export function unmountBlock(block: Block, detachDom: boolean = true): void {
 	if (block.startMarker && block.endMarker) {
 		const parent = block.startMarker.parentNode;
 		if (parent) {
-			let n: Node | null = block.startMarker;
-			const stop = block.endMarker.nextSibling;
+			// Borrowed (slot) markers stay put — remove only the content between
+			// them. Owned markers are removed inclusively with the content.
+			const excl = block.exclusiveMarkers;
+			let n: Node | null = excl ? block.startMarker.nextSibling : block.startMarker;
+			const stop = excl ? block.endMarker : block.endMarker.nextSibling;
 			while (n && n !== stop) {
 				const next: Node | null = n.nextSibling;
 				parent.removeChild(n);
@@ -3176,13 +3201,22 @@ export function componentSlot(
 	if (state === undefined) {
 		let start: Comment;
 		let end: Comment;
+		// Resolve the server's `<!--[-->` to adopt: directly when anchored, or — for
+		// an appended (anchor-less, all-component-children) child — by descending
+		// into the host's child stream (host.firstChild for the first such child;
+		// the cursor is already parked on the open marker for later siblings).
+		let open: Node | null = null;
 		if (hydrating && isBlockOpen(anchor ?? null)) {
-			// Hydration: the server wrapped this component's output in a
-			// `<!--[-->…<!--]-->` range (anchor resolved to the `<!--[-->`). Adopt
-			// those comments as our markers and point the cursor at the first
-			// content node so the child's clone() adopts the server DOM.
-			start = anchor as Comment;
-			end = matchingClose(anchor as Node);
+			open = anchor as Node;
+		} else if (hydrating && anchor == null) {
+			let c: Node | null = hydrateNode;
+			if (c === null || c.parentNode !== domParent) c = domParent.firstChild;
+			if (c !== null && isBlockOpen(c)) open = c;
+		}
+		if (open !== null) {
+			// Adopt the server range: its comments become our markers, cursor → content.
+			start = open as Comment;
+			end = matchingClose(open);
 			hydrateNode = start.nextSibling;
 		} else {
 			start = document.createComment('comp');
@@ -3278,7 +3312,14 @@ export function componentSlot(
 
 interface ChildSlot {
 	__kind: 'childSlot';
-	start: Comment;
+	/**
+	 * Lower-bound marker. Null on the client text/empty path — a single `Text`
+	 * node is tracked directly via `text` and needs no start marker. Lazily
+	 * created the first time the slot hosts a (possibly multi-node) component, so
+	 * `clearChildContent` can sweep the component's range. Always present after
+	 * hydration (adopted from the server's `<!--[-->`).
+	 */
+	start: Comment | null;
 	end: Comment;
 	block: Block | null;
 	text: Text | null;
@@ -3301,14 +3342,21 @@ function clearChildContent(state: ChildSlot): void {
 		unmountBlock(state.block, false);
 		state.block = null;
 	}
-	const parent = state.start.parentNode;
-	if (parent !== null) {
-		let n: Node | null = state.start.nextSibling;
-		while (n !== null && n !== state.end) {
-			const next: Node | null = n.nextSibling;
-			parent.removeChild(n);
-			n = next;
+	if (state.start !== null) {
+		// Component (or hydrated) range: sweep everything between the markers —
+		// covers a multi-node component body as well as any leftover text node.
+		const parent = state.start.parentNode;
+		if (parent !== null) {
+			let n: Node | null = state.start.nextSibling;
+			while (n !== null && n !== state.end) {
+				const next: Node | null = n.nextSibling;
+				parent.removeChild(n);
+				n = next;
+			}
 		}
+	} else if (state.text !== null) {
+		// Client text path: a single tracked Text node, no start marker to sweep.
+		state.text.remove();
 	}
 	state.text = null;
 	state.currentComp = null;
@@ -3324,7 +3372,7 @@ export function childSlot(
 	const parentBlock = parentScope.block;
 	let state = parentScope[slotKey] as ChildSlot | undefined;
 	if (state === undefined) {
-		let start: Comment;
+		let start: Comment | null;
 		let end: Comment;
 		if (hydrating && isBlockOpen(anchor ?? null)) {
 			// Hydration (nested hole): the anchor resolved via child/sibling to the
@@ -3343,9 +3391,11 @@ export function childSlot(
 			end = matchingClose(hydrateNode as Node);
 			hydrateNode = start.nextSibling;
 		} else {
-			start = document.createComment('');
+			// Client mount: a SINGLE end anchor. A text/empty hole tracks its own
+			// `Text` node (no start needed); the component path lazily mints a start
+			// marker when first required. Saves one comment per `{expr}` text hole.
+			start = null;
 			end = document.createComment('');
-			domParent.insertBefore(start, anchor ?? null);
 			domParent.insertBefore(end, anchor ?? null);
 		}
 		state = { __kind: 'childSlot', start, end, block: null, text: null, currentComp: null };
@@ -3375,6 +3425,12 @@ export function childSlot(
 		// New component (first render, or identity swap from text / another comp).
 		clearChildContent(state);
 		state.currentComp = comp;
+		if (state.start === null) {
+			// First component in this slot — mint the lower-bound marker now so
+			// clearChildContent can sweep a (possibly multi-node) component body.
+			state.start = document.createComment('');
+			domParent.insertBefore(state.start, state.end);
+		}
 		const b = createBlock('dynamic', parentBlock, domParent, state.start, state.end, comp, props);
 		state.block = b;
 		renderBlock(b);
@@ -4585,33 +4641,37 @@ export function ifBlock(
 	const next: 0 | 1 = cond ? 1 : 0;
 	const body = next ? thenBody : elseBody;
 	if (next !== state.branch) {
-		// Branch changed — tear down old, mount new.
+		// Branch changed — tear down old, mount new. The branch block borrows the
+		// slot's start/end (client path) so its `exclusiveMarkers` teardown removes
+		// just the branch content while the slot markers stay put — identical
+		// cleanup to the old per-branch `br`/`/br` pair, minus the two comments.
 		if (state.block) {
 			unmountBlock(state.block);
 			state.block = null;
 		}
 		state.branch = next;
 		if (body) {
-			// Each branch gets its OWN start/end markers inside the if's permanent
-			// range. Branch unmount removes them along with the branch's DOM; the
-			// permanent state.start / state.end stay put.
 			let bStart: Node;
 			let bEnd: Node;
+			let borrowed = false;
 			if (hydrating && isBlockOpen(state.start.nextSibling)) {
-				// ADOPT the server's inner branch range (no inserted markers →
-				// byte-for-byte). The server nests `<!--[-->`(slot) `<!--[-->`(branch)
-				// content `<!--]-->`(branch) `<!--]-->`(slot); the inner pair IS the
-				// branch's start/end (so swap still removes just the branch range).
+				// Hydration: ADOPT the server's inner branch range (the SSR HTML still
+				// brackets the taken branch with its own `<!--[-->…<!--]-->` pair) so
+				// adoption stays byte-for-byte. The inner pair IS the branch's
+				// start/end (owned markers → inclusive removal on a later swap).
 				bStart = state.start.nextSibling as Comment;
 				bEnd = matchingClose(bStart);
 				hydrateNode = bStart.nextSibling;
 			} else {
-				bStart = document.createComment('br');
-				bEnd = document.createComment('/br');
-				domParent.insertBefore(bStart, state.end);
-				domParent.insertBefore(bEnd, state.end);
+				// Client mount: NO per-branch markers. The branch renders directly
+				// between the slot's permanent start/end, which bracket it exactly —
+				// halving the comment nodes emitted per `@if`.
+				bStart = state.start;
+				bEnd = state.end;
+				borrowed = true;
 			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
+			if (borrowed) b.exclusiveMarkers = true;
 			state.block = b;
 			renderBlock(b);
 		}
@@ -4878,18 +4938,21 @@ export function switchBlock(
 		if (body) {
 			let bStart: Node;
 			let bEnd: Node;
+			let borrowed = false;
 			if (hydrating && isBlockOpen(state.start.nextSibling)) {
 				// ADOPT the server's inner case range (no inserted markers — see ifBlock).
 				bStart = state.start.nextSibling as Comment;
 				bEnd = matchingClose(bStart);
 				hydrateNode = bStart.nextSibling;
 			} else {
-				bStart = document.createComment('case');
-				bEnd = document.createComment('/case');
-				domParent.insertBefore(bStart, state.end);
-				domParent.insertBefore(bEnd, state.end);
+				// Client mount: the case renders directly between the switch slot's
+				// permanent start/end (borrowed markers, no per-case comments).
+				bStart = state.start;
+				bEnd = state.end;
+				borrowed = true;
 			}
 			const b = createBlock('control-flow', parentBlock, domParent, bStart, bEnd, body, undefined);
+			if (borrowed) b.exclusiveMarkers = true;
 			state.block = b;
 			renderBlock(b);
 		}
