@@ -52,7 +52,7 @@ hydration was extended beyond single leaf templates.
 
 ```bash
 pnpm install
-node benchmarks/news/gen.mjs 50          # regenerate the dataset into every target (default 50)
+node benchmarks/news/gen.mjs 1000        # regenerate the dataset into every target (default 1000)
 node benchmarks/news/run.mjs ripple-new  # builds (prod) + benches; `run.mjs 20` also works
 node benchmarks/news/run.mjs ripple 20   # original Ripple, 20 iterations (+5 warmup)
 node benchmarks/news/run.mjs solid 20    # Solid 2.0

@@ -1,24 +1,31 @@
-// recursive-context bench harness — drives ripple-new and ripple via Playwright.
-// Each adapter installs window.__mount/__updateRoot/__updatePartial/__unmount/__reset/__ready.
+// recursive-context bench harness — drives ripple-new / solid / react / ripple
+// via Playwright.
 //
-// Four operations are measured:
-//   - mount:          fresh page per sample (module-eval already paid by goto)
-//   - update_root:    full fan-out re-render (all 1024 leaves)
-//   - update_partial: scoped subtree update (32 leaves at depth 5)
-//   - unmount:        full teardown
+// Methodology: every op (mount, update_root, update_partial, partial_unmount /
+// remount, unmount) mutates the DOM SYNCHRONOUSLY inside its adapter call — all
+// four adapters flush synchronously (ripple / ripple-new / react via `flushSync`,
+// solid via `flush()`). So we time ONLY the synchronous op (the framework's JS
+// work) and force a GC right before each timed sample, so a surprise mid-sample
+// collection can't inflate it. This isolates framework cost from browser paint
+// and GC jitter and yields low-variance medians.
 //
-// Each timed call wraps the framework op in performance.now() *inside* the page —
-// no per-call CDP IPC overhead, no JS↔CDP marshaling cost.
+// (The previous harness awaited a `requestAnimationFrame` + task after each op;
+// that ~16ms frame wait + paint + non-deterministic GC swamped the ~1–4ms of
+// real work, making `update_root` in particular swing wildly run to run. The
+// numbers below are smaller AND far more reproducible — they're the framework
+// cost, not the browser's paint cycle.)
+//
+// NOTE: this measures framework JS work, not pixels-on-screen latency. Adapters
+// MUST flush their DOM mutations synchronously within the op call.
 //
 // Usage:
-//   pnpm --filter ripple-new-recursive-bench dev   # :5185
-//   pnpm --filter ripple-recursive-bench dev       # :5184
-//   node benchmarks/recursive-context/run.mjs [iter]   # default 20
+//   node run.mjs [iter]   # default 20 (bench:long passes 40)
 
 import { chromium } from 'playwright';
 
 const ITER = parseInt(process.argv[2] || '20', 10);
-const WARMUP = 5;
+const WARMUP = 10;
+const YIELD_MS = 5; // breathe between samples: let paint settle, don't block the page
 
 const TARGETS = process.env.TARGETS
 	? JSON.parse(process.env.TARGETS)
@@ -31,18 +38,17 @@ const TARGETS = process.env.TARGETS
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// In-page op timer: awaits one rAF + one task to ensure the framework flushed
-// to the DOM, then returns the elapsed wall time.
-async function timeInPage(page, fnName) {
-	return await page.evaluate(async (fnName) => {
-		const fn = window[fnName];
-		if (typeof fn !== 'function') throw new Error('missing ' + fnName);
-		const t0 = performance.now();
-		fn();
-		await new Promise((r) => requestAnimationFrame(r));
-		await new Promise((r) => setTimeout(r, 0));
-		return performance.now() - t0;
-	}, fnName);
+function summarize(samples) {
+	const sorted = [...samples].sort((a, b) => a - b);
+	const n = sorted.length;
+	const mean = sorted.reduce((a, b) => a + b, 0) / n;
+	const stddev = Math.sqrt(sorted.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
+	return {
+		median: sorted[n >> 1],
+		min: sorted[0],
+		p95: sorted[Math.min(n - 1, Math.floor(n * 0.95))],
+		stddev,
+	};
 }
 
 async function freshPage(browser, url) {
@@ -53,90 +59,128 @@ async function freshPage(browser, url) {
 	return { ctx, page };
 }
 
-function summarize(samples) {
-	const sorted = [...samples].sort((a, b) => a - b);
-	const median = sorted[sorted.length >> 1];
-	const min = sorted[0];
-	const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
-	return { median, min, p95 };
-}
-
+// MOUNT — fresh page per sample (module-eval amortized by goto, quiescent start);
+// time the synchronous __mount() with a freshly-collected heap.
 async function measureMount(browser, url) {
-	// Fresh page per sample so each mount starts from a quiescent state.
 	const samples = [];
 	for (let i = 0; i < WARMUP + ITER; i++) {
 		const { ctx, page } = await freshPage(browser, url);
-		const dt = await timeInPage(page, '__mount');
+		const dt = await page.evaluate(() => {
+			(window.gc || (() => {}))();
+			const t0 = performance.now();
+			window.__mount();
+			return performance.now() - t0;
+		});
 		if (i >= WARMUP) samples.push(dt);
 		await ctx.close();
 	}
 	return summarize(samples);
 }
 
-async function measureLoop(browser, url, opName) {
-	// One page; mount once; loop the op.
+// LOOP op (update_root / update_partial) — mount once, time the op in a tight
+// in-page loop with gc() before each sample.
+async function measureLoop(browser, url, op) {
 	const { ctx, page } = await freshPage(browser, url);
 	await page.evaluate(() => window.__mount());
 	await sleep(50);
-	const samples = [];
-	for (let i = 0; i < WARMUP + ITER; i++) {
-		const dt = await timeInPage(page, opName);
-		if (i >= WARMUP) samples.push(dt);
-		await sleep(20);
-	}
+	const samples = await page.evaluate(
+		async ({ op, WARMUP, ITER, YIELD_MS }) => {
+			const fn = window[op];
+			const gc = window.gc || (() => {});
+			const out = [];
+			for (let i = 0; i < WARMUP + ITER; i++) {
+				gc();
+				const t0 = performance.now();
+				fn();
+				const dt = performance.now() - t0;
+				if (i >= WARMUP) out.push(dt);
+				await new Promise((r) => setTimeout(r, YIELD_MS));
+			}
+			return out;
+		},
+		{ op, WARMUP, ITER, YIELD_MS },
+	);
 	await ctx.close();
 	return summarize(samples);
 }
 
+// UNMOUNT — per sample: mount (untimed), settle, time the synchronous
+// __unmount(), reset.
 async function measureUnmount(browser, url) {
-	// One page; per-iter: mount (untimed), time unmount, reset, sleep.
 	const { ctx, page } = await freshPage(browser, url);
-	const samples = [];
-	for (let i = 0; i < WARMUP + ITER; i++) {
-		await page.evaluate(() => window.__mount());
-		await sleep(40);
-		const dt = await timeInPage(page, '__unmount');
-		if (i >= WARMUP) samples.push(dt);
-		await page.evaluate(() => window.__reset());
-		await sleep(20);
-	}
+	const samples = await page.evaluate(
+		async ({ WARMUP, ITER, YIELD_MS }) => {
+			const gc = window.gc || (() => {});
+			const out = [];
+			for (let i = 0; i < WARMUP + ITER; i++) {
+				window.__mount();
+				await new Promise((r) => setTimeout(r, YIELD_MS));
+				gc();
+				const t0 = performance.now();
+				window.__unmount();
+				const dt = performance.now() - t0;
+				window.__reset();
+				if (i >= WARMUP) out.push(dt);
+				await new Promise((r) => setTimeout(r, YIELD_MS));
+			}
+			return out;
+		},
+		{ WARMUP, ITER, YIELD_MS },
+	);
 	await ctx.close();
 	return summarize(samples);
 }
 
-// Partial unmount/remount: hide/show the 32-leaf Mid subtree without tearing
-// down the rest of the tree. Mounted once; each iteration alternates
-// __partialUnmount + __partialRemount and records both halves of the cycle
-// — so any GC/JIT noise hits both ops symmetrically.
+// PARTIAL unmount/remount — mount once; each iter time __partialUnmount then
+// __partialRemount (mirrored work), recording both halves of the cycle.
 async function measurePartialUnmountRemount(browser, url) {
 	const { ctx, page } = await freshPage(browser, url);
 	await page.evaluate(() => window.__mount());
 	await sleep(50);
-	const unmountSamples = [];
-	const remountSamples = [];
-	for (let i = 0; i < WARMUP + ITER; i++) {
-		// Mid subtree currently mounted (start state).
-		const dtUnmount = await timeInPage(page, '__partialUnmount');
-		await sleep(10);
-		const dtRemount = await timeInPage(page, '__partialRemount');
-		if (i >= WARMUP) {
-			unmountSamples.push(dtUnmount);
-			remountSamples.push(dtRemount);
-		}
-		await sleep(20);
-	}
+	const { u, r } = await page.evaluate(
+		async ({ WARMUP, ITER, YIELD_MS }) => {
+			const gc = window.gc || (() => {});
+			const u = [];
+			const r = [];
+			for (let i = 0; i < WARMUP + ITER; i++) {
+				gc();
+				let t0 = performance.now();
+				window.__partialUnmount();
+				const du = performance.now() - t0;
+				await new Promise((res) => setTimeout(res, YIELD_MS));
+				gc();
+				t0 = performance.now();
+				window.__partialRemount();
+				const dr = performance.now() - t0;
+				if (i >= WARMUP) {
+					u.push(du);
+					r.push(dr);
+				}
+				await new Promise((res) => setTimeout(res, YIELD_MS));
+			}
+			return { u, r };
+		},
+		{ WARMUP, ITER, YIELD_MS },
+	);
 	await ctx.close();
-	return {
-		partial_unmount: summarize(unmountSamples),
-		partial_remount: summarize(remountSamples),
-	};
+	return { partial_unmount: summarize(u), partial_remount: summarize(r) };
 }
 
 async function runTarget(t) {
 	const browser = await chromium.launch({
 		headless: true,
-		args: ['--disable-extensions', '--no-sandbox'],
+		args: ['--disable-extensions', '--no-sandbox', '--js-flags=--expose-gc'],
 	});
+
+	const { ctx, page } = await freshPage(browser, t.url);
+	const hasGc = await page.evaluate(() => typeof window.gc === 'function');
+	await ctx.close();
+	if (!hasGc) {
+		console.error(
+			'  ! window.gc unavailable (need --js-flags=--expose-gc) — results will be noisier',
+		);
+	}
+
 	console.error(`  → mount`);
 	const mount = await measureMount(browser, t.url);
 	console.error(`  → update_root`);
@@ -177,7 +221,7 @@ const OPS = [
 		for (const c of cols) {
 			const r = all[c][op];
 			row.push(
-				`${r.median.toFixed(2)} (min ${r.min.toFixed(2)}, p95 ${r.p95.toFixed(2)})`.padEnd(W),
+				`${r.median.toFixed(2)} (min ${r.min.toFixed(2)}, sd ${r.stddev.toFixed(2)})`.padEnd(W),
 			);
 		}
 		console.log(row.join('| '));

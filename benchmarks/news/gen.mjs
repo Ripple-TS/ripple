@@ -1,13 +1,15 @@
 // Generates a deterministic lorem-ipsum article dataset shared by the bench
-// app(s). Run `node gen.mjs [count]` (default 50). Writes the SAME dataset into
+// app(s). Run `node gen.mjs [count]` (default 1000). Writes the SAME dataset into
 // every target app's src/data.js (ripple-new, solid, …) so each framework
-// renders byte-identical content for a fair comparison.
+// renders byte-identical content for a fair comparison. 1000 cards (~815 KB
+// HTML) is large enough that SSR + hydration times clear the noise floor; the
+// older 50-card default rendered sub-millisecond SSR that was mostly jitter.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const COUNT = parseInt(process.argv[2] || '50', 10);
+const COUNT = parseInt(process.argv[2] || '1000', 10);
 
 const WORDS =
 	'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum'.split(

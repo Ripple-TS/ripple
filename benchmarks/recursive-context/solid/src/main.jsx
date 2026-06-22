@@ -1,4 +1,5 @@
 import { render } from '@solidjs/web';
+import { flush } from 'solid-js';
 import App, { bumpRoot, bumpPartial, hideMid, showMid } from './App.jsx';
 
 const target = document.getElementById('main');
@@ -8,21 +9,25 @@ let dispose = null;
 window.__mount = () => {
 	dispose = render(() => <App depth={10} />, target);
 };
-// Solid signal sets are synchronous; no flushSync wrapper needed. The harness
-// still gates on rAF + setTimeout(0) so the paint cycle settles.
+// Solid 2.0 batches updates and flushes asynchronously, so `flush()` forces the
+// DOM mutation to complete synchronously — matching the other adapters'
+// `flushSync`, so each op's work is fully captured inside the timed call.
 window.__updateRoot = () => {
 	bumpRoot();
+	flush();
 };
 window.__updatePartial = () => {
 	bumpPartial();
+	flush();
 };
-// Partial unmount/remount of the Mid subtree. Solid signal sets are sync;
-// the harness's rAF + setTimeout gate ensures DOM mutations have settled.
+// Partial unmount/remount of the Mid subtree.
 window.__partialUnmount = () => {
 	hideMid();
+	flush();
 };
 window.__partialRemount = () => {
 	showMid();
+	flush();
 };
 window.__unmount = () => {
 	if (dispose) {

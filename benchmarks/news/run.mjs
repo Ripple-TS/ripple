@@ -25,7 +25,16 @@ import { chromium } from 'playwright';
 import { createServer as createHttp } from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import v8 from 'node:v8';
+import vm from 'node:vm';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Force a GC right before each timed sample so a surprise collection can't
+// inflate it (SSR allocates an HTML string per render; hydration allocates the
+// adopted tree). In Node we expose gc() via the v8 flag; in the browser the
+// launch passes --js-flags=--expose-gc and the page reads window.gc.
+v8.setFlagsFromString('--expose-gc');
+const nodeGc = vm.runInNewContext('gc');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TARGET_PORTS = { 'ripple-new': 5191, solid: 5192, react: 5193, ripple: 5194 };
@@ -80,6 +89,7 @@ const { renderApp } = await import(pathToFileURL(SSR_ENTRY).href);
 let htmlBytes = 0;
 const ssrSamples = [];
 for (let i = 0; i < WARMUP + ITER; i++) {
+	nodeGc();
 	const t0 = performance.now();
 	const { body } = await renderApp();
 	const dt = performance.now() - t0;
@@ -117,7 +127,10 @@ const httpServer = createHttp(async (req, res) => {
 }).listen(PORT);
 
 // ── 3. Hydration time (headless browser, fresh page per sample) ───────────────
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
+const browser = await chromium.launch({
+	headless: true,
+	args: ['--no-sandbox', '--js-flags=--expose-gc'],
+});
 const hydrateSamples = [];
 for (let i = 0; i < WARMUP + ITER; i++) {
 	const ctx = await browser.newContext();
@@ -130,6 +143,7 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 	// cost. (An earlier version awaited rAF + setTimeout inside the timer, but
 	// that ~6–7 ms of frame-scheduling latency dominated and masked the signal.)
 	const dt = await page.evaluate(() => {
+		(window.gc || (() => {}))();
 		const t0 = performance.now();
 		window.__hydrate();
 		return performance.now() - t0;

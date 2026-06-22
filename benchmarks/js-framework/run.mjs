@@ -76,20 +76,28 @@ async function ensureState(page, pre) {
 	await sleep(20);
 }
 
+// Time ONLY the synchronous click handler: the target commits its DOM mutation
+// synchronously on the discrete click (ripple-new flushes on the event), so the
+// post-click rAF + task wait was pure noise — ~16ms of frame latency + the paint
+// of up to 10K rows, which swamped and destabilised the real JS work. A gc()
+// right before each sample keeps a surprise collection from inflating it.
+// (Any TARGETS added here must likewise commit synchronously on click.)
 async function timeClick(page, sel) {
-	return await page.evaluate(async (sel) => {
+	return await page.evaluate((sel) => {
 		const el = document.querySelector(sel);
 		if (!el) throw new Error('selector not found: ' + sel);
+		(window.gc || (() => {}))();
 		const t0 = performance.now();
 		el.click();
-		await new Promise((r) => requestAnimationFrame(r));
-		await new Promise((r) => setTimeout(r, 0));
 		return performance.now() - t0;
 	}, sel);
 }
 
 async function runTarget(t) {
-	const browser = await chromium.launch({ headless: true, args: ['--disable-extensions'] });
+	const browser = await chromium.launch({
+		headless: true,
+		args: ['--disable-extensions', '--js-flags=--expose-gc'],
+	});
 	const context = await browser.newContext();
 	const page = await context.newPage();
 	await page.goto(t.url, { waitUntil: 'load' });
