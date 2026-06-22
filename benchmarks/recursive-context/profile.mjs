@@ -42,7 +42,7 @@ const selfHits = new Map(); // id -> sample count
 for (const id of profile.samples) selfHits.set(id, (selfHits.get(id) || 0) + 1);
 
 const totalSamples = profile.samples.length;
-const totalTimeUs = (profile.endTime - profile.startTime);
+const totalTimeUs = profile.endTime - profile.startTime;
 const usPerSample = totalTimeUs / totalSamples;
 
 // Aggregate by function key.
@@ -57,7 +57,9 @@ for (const [id, hits] of selfHits) {
 }
 
 const sorted = [...byFn.entries()].sort((a, b) => b[1] - a[1]);
-console.log(`\n${fnName} on ${url} — ${reps} reps, ${totalSamples} samples, ${(totalTimeUs / 1000).toFixed(1)}ms total profiled\n`);
+console.log(
+	`\n${fnName} on ${url} — ${reps} reps, ${totalSamples} samples, ${(totalTimeUs / 1000).toFixed(1)}ms total profiled\n`,
+);
 console.log('self%    self-ms   function');
 console.log('-------  --------  ----------------------------------------');
 for (const [key, hits] of sorted.slice(0, 28)) {

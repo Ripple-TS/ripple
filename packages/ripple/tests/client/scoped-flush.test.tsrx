@@ -18,7 +18,9 @@ describe('scoped flush', () => {
 		}
 
 		function Consumer() @{
-			<div class="consumer">{shared ? shared.value : -1}</div>
+			<div class="consumer">
+				{shared ? shared.value : -1}
+			</div>
 		}
 
 		function App() @{
@@ -51,7 +53,9 @@ describe('scoped flush', () => {
 
 		function Leaf(props) @{
 			const rootT = Ctx.get();
-			<span class={'leaf-' + props.id}>{rootT ? rootT.value : -1}</span>
+			<span class={'leaf-' + props.id}>
+				{rootT ? rootT.value : -1}
+			</span>
 		}
 
 		function Branch(props) @{
@@ -81,8 +85,9 @@ describe('scoped flush', () => {
 
 		render(App);
 
-		const leaves = () =>
-			['L0', 'L1', 'R0', 'R1'].map((id) => container.querySelector('.leaf-' + id).textContent);
+		const leaves = () => ['L0', 'L1', 'R0', 'R1'].map(
+			(id) => container.querySelector('.leaf-' + id).textContent,
+		);
 
 		expect(leaves()).toEqual(['0', '0', '0', '0']);
 

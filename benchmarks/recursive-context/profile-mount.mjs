@@ -41,9 +41,13 @@ for (const [id, hits] of selfHits) {
 	byFn.set(key, (byFn.get(key) || 0) + hits);
 }
 const sorted = [...byFn.entries()].sort((a, b) => b[1] - a[1]);
-console.log(`\nmount+reset on ${url} — ${reps} reps, ${total} samples, ${((profile.endTime-profile.startTime)/1000).toFixed(1)}ms profiled\n`);
+console.log(
+	`\nmount+reset on ${url} — ${reps} reps, ${total} samples, ${((profile.endTime - profile.startTime) / 1000).toFixed(1)}ms profiled\n`,
+);
 console.log('self%    self-ms   function');
 console.log('-------  --------  ----------------------------------------');
 for (const [key, hits] of sorted.slice(0, 26)) {
-	console.log(`${((hits/total)*100).toFixed(1).padStart(6)}%  ${((hits*usPer)/1000).toFixed(1).padStart(7)}  ${key}`);
+	console.log(
+		`${((hits / total) * 100).toFixed(1).padStart(6)}%  ${((hits * usPer) / 1000).toFixed(1).padStart(7)}  ${key}`,
+	);
 }
