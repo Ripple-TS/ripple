@@ -9,7 +9,8 @@ import {
 	resume_block,
 } from './blocks.js';
 import { TRY_BLOCK } from './constants.js';
-import { hydrate_next, hydrating } from './hydration.js';
+import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
+import { append } from './template.js';
 import {
 	active_block,
 	queue_microtask,
@@ -34,8 +35,10 @@ import {
  * @param {PendingFunction | null} [pending_fn=null]
  * @returns {void}
  */
-export function try_block(node, try_fn, catch_fn, pending_fn = null) {
+export function try_block(node, try_fn, catch_fn, pending_fn = null, root_controlled = false) {
 	var anchor = node;
+	/** @type {Node | undefined} */
+	var boundary;
 	var pending_count = 0;
 	var request_version = 0;
 	/** @type {Set<number>} */
@@ -316,12 +319,19 @@ export function try_block(node, try_fn, catch_fn, pending_fn = null) {
 		if (pending_fn !== null) {
 			has_resolved = true;
 		}
+		if (root_controlled) {
+			boundary = /** @type {Node} */ (hydrate_node);
+		}
 		hydrate_next(); // consume <!--[-->
 	}
 
 	try_block = create_try_block(() => {
 		resolved_branch = boundary_fn_running_block(() => try_fn(anchor));
 	}, state);
+
+	if (hydrating && root_controlled) {
+		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
+	}
 }
 
 /**

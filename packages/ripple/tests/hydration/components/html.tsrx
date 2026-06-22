@@ -199,6 +199,62 @@ export function HtmlAfterSwitchInChildren() @{
 	</ContentWrapper>
 }
 
+// A component whose root is a single @if (root-controlled: no `<!>` wrapper),
+// used as the first child of a composite slot with following siblings — exercises
+// the hydration boundary advance for a root-controlled block inside a composite.
+function IfHeading({ primary, children }: { primary: boolean; children: any }) @{
+	@if (primary) {
+		<h1 class="heading">{children}</h1>
+	} @else {
+		<h2 class="heading">{children}</h2>
+	}
+}
+
+export function HtmlAfterIfInChildren() @{
+	<ContentWrapper>
+		<IfHeading primary={true}>{'Title'}</IfHeading>
+		<p>{'First paragraph'}</p>
+		<p>{'Second paragraph'}</p>
+		<CodeBlock code="const x = 1;" />
+		<p>{'After code'}</p>
+	</ContentWrapper>
+}
+
+// Root-controlled @for (sibling semantics via the ROOT_CONTROLLED flag) as a
+// composite child with following siblings.
+function ForList({ items }: { items: string[] }) @{
+	@for (const item of items) {
+		<span class="for-item">{item}</span>
+	}
+}
+
+export function HtmlAfterForInChildren() @{
+	<ContentWrapper>
+		<ForList items={['Title', 'Subtitle']} />
+		<p>{'First paragraph'}</p>
+		<CodeBlock code="const x = 1;" />
+		<p>{'After code'}</p>
+	</ContentWrapper>
+}
+
+// Root-controlled @try (async branches) as a composite child with siblings.
+function TryBox({ value }: { value: string }) @{
+	@try {
+		<div class="try-box">{value}</div>
+	} @catch (e) {
+		<span>{'error'}</span>
+	}
+}
+
+export function HtmlAfterTryInChildren() @{
+	<ContentWrapper>
+		<TryBox value="Title" />
+		<p>{'First paragraph'}</p>
+		<CodeBlock code="const x = 1;" />
+		<p>{'After code'}</p>
+	</ContentWrapper>
+}
+
 function NavItem(&{
 	href,
 	text: label,

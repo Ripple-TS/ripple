@@ -319,7 +319,6 @@ exports[`for statements > renders a simple dynamic array 2`] = `
 
 exports[`for statements > renders a simple static array 1`] = `
 <div>
-  <!---->
   <div
     class="Item 1"
   >
@@ -335,7 +334,6 @@ exports[`for statements > renders a simple static array 1`] = `
   >
     Item 3
   </div>
-  <!---->
   
 </div>
 `;

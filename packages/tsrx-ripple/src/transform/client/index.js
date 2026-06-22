@@ -30,6 +30,7 @@ import {
 	analyzeCss,
 	IS_CONTROLLED,
 	IS_INDEXED,
+	ROOT_CONTROLLED,
 	TEMPLATE_FRAGMENT,
 	TEMPLATE_SVG_NAMESPACE,
 	TEMPLATE_MATHML_NAMESPACE,
@@ -534,11 +535,13 @@ function is_stringish_expression(expression, state, visited = new Set()) {
 	if (expression.type === 'BinaryExpression' && expression.operator === '+') {
 		const left = /** @type {AST.Expression} */ (expression.left);
 		const right = /** @type {AST.Expression} */ (expression.right);
+		// `string + anything` (and `anything + string`) always evaluates to a
+		// string in JS, so one provably-stringish operand is enough — the result
+		// can never be an element or collection. (String literals are stringish,
+		// so this subsumes the literal-operand cases.)
 		return (
-			is_string_literal_expression(left) ||
-			is_string_literal_expression(right) ||
-			(is_stringish_expression(left, state, visited) &&
-				is_stringish_expression(right, state, visited))
+			is_stringish_expression(left, state, visited) ||
+			is_stringish_expression(right, state, visited)
 		);
 	}
 
@@ -2990,9 +2993,14 @@ const visitors = {
 			return context.next();
 		}
 		const is_controlled = node.is_controlled;
+		const root_controlled = /** @type {any} */ (node).root_controlled === true;
 		const index = node.index;
 		const key = node.key;
 		let flags = is_controlled ? IS_CONTROLLED : 0;
+
+		if (root_controlled) {
+			flags |= ROOT_CONTROLLED;
+		}
 
 		if (index != null) {
 			flags |= IS_INDEXED;
@@ -3027,11 +3035,13 @@ const visitors = {
 		}
 
 		// do only if not controller
-		if (!is_controlled) {
+		if (!is_controlled && !root_controlled) {
 			context.state.template?.push('<!>');
 		}
 
-		const id = context.state.flush_node?.(false, is_controlled);
+		const id = root_controlled
+			? b.id('__anchor')
+			: context.state.flush_node?.(false, is_controlled);
 		const pattern = /** @type {AST.VariableDeclaration} */ (node.left).declarations[0].id;
 		const body_scope = /** @type {ScopeInterface} */ (context.state.scopes.get(node.body));
 		const body_nodes = /** @type {AST.BlockStatement} */ (node.body).body;
@@ -3110,9 +3120,12 @@ const visitors = {
 			return context.next();
 		}
 
-		context.state.template?.push('<!>');
+		const root_controlled = /** @type {any} */ (node).root_controlled === true;
+		if (!root_controlled) {
+			context.state.template?.push('<!>');
+		}
 
-		const id = context.state.flush_node?.();
+		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
 		const statements = [];
 		const cases = [];
 
@@ -3164,6 +3177,7 @@ const visitors = {
 							b.switch(/** @type {AST.Expression} */ (context.visit(node.discriminant)), cases),
 						]),
 					),
+					root_controlled ? b.true : undefined,
 				),
 			),
 		);
@@ -3221,9 +3235,12 @@ const visitors = {
 			return;
 		}
 
-		context.state.template?.push('<!>');
+		const root_controlled = /** @type {any} */ (node).root_controlled === true;
+		if (!root_controlled) {
+			context.state.template?.push('<!>');
+		}
 
-		const id = context.state.flush_node?.();
+		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
 		const statements = [];
 
 		const consequent_scope =
@@ -3288,7 +3305,14 @@ const visitors = {
 		);
 
 		statements.push(
-			b.stmt(b.call('_$_.if', id, b.arrow([b.id('__render')], b.block(callback_body)))),
+			b.stmt(
+				b.call(
+					'_$_.if',
+					id,
+					b.arrow([b.id('__render')], b.block(callback_body)),
+					root_controlled ? b.true : undefined,
+				),
+			),
 		);
 
 		context.state.init?.push(b.block(statements));
@@ -3401,9 +3425,12 @@ const visitors = {
 		if (context.state.to_ts) {
 			return transform_ts_child(node, context);
 		}
-		context.state.template?.push('<!>');
+		const root_controlled = /** @type {any} */ (node).root_controlled === true;
+		if (!root_controlled) {
+			context.state.template?.push('<!>');
+		}
 
-		const id = context.state.flush_node?.();
+		const id = root_controlled ? b.id('__anchor') : context.state.flush_node?.();
 		const handler = /** @type {AST.CatchClause | null} */ (node.handler);
 		const pending = /** @type {AST.BlockStatement | null} */ (node.pending);
 		let body = transform_body(node.block.body, {
@@ -3421,50 +3448,55 @@ const visitors = {
 			delete handler.resetParam.typeAnnotation;
 		}
 
-		context.state.init?.push(
-			b.stmt(
-				b.call(
-					'_$_.try',
-					id,
-					b.arrow([b.id('__anchor')], b.block(body)),
-					handler === null
-						? b.literal(null)
-						: b.arrow(
-								[
-									b.id('__anchor'),
-									...(handler.param && handler.resetParam
-										? [handler.param, handler.resetParam]
-										: handler.param
-											? [handler.param]
-											: []),
-								],
-								b.block(
-									transform_body(handler.body.body, {
-										...context,
-										state: {
-											...context.state,
-											scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
-										},
-									}),
-								),
-							),
-					pending === null
-						? undefined
-						: b.arrow(
-								[b.id('__anchor')],
-								b.block(
-									transform_body(pending.body, {
-										...context,
-										state: {
-											...context.state,
-											scope: /** @type {ScopeInterface} */ (context.state.scopes.get(pending)),
-										},
-									}),
-								),
-							),
-				),
-			),
-		);
+		const catch_arg =
+			handler === null
+				? b.literal(null)
+				: b.arrow(
+						[
+							b.id('__anchor'),
+							...(handler.param && handler.resetParam
+								? [handler.param, handler.resetParam]
+								: handler.param
+									? [handler.param]
+									: []),
+						],
+						b.block(
+							transform_body(handler.body.body, {
+								...context,
+								state: {
+									...context.state,
+									scope: /** @type {ScopeInterface} */ (context.state.scopes.get(handler.body)),
+								},
+							}),
+						),
+					);
+
+		const pending_arg =
+			pending === null
+				? null
+				: b.arrow(
+						[b.id('__anchor')],
+						b.block(
+							transform_body(pending.body, {
+								...context,
+								state: {
+									...context.state,
+									scope: /** @type {ScopeInterface} */ (context.state.scopes.get(pending)),
+								},
+							}),
+						),
+					);
+
+		const try_args = [id, b.arrow([b.id('__anchor')], b.block(body)), catch_arg];
+		if (root_controlled) {
+			// Keep pending_fn positioned (null when absent) so root_controlled lands
+			// in the 5th slot.
+			try_args.push(pending_arg ?? b.literal(null), b.true);
+		} else if (pending_arg !== null) {
+			try_args.push(pending_arg);
+		}
+
+		context.state.init?.push(b.stmt(b.call('_$_.try', ...try_args)));
 	},
 
 	BinaryExpression(node, context) {
@@ -5165,6 +5197,22 @@ function transform_children(children, context) {
 	let prev = null;
 	let template_id = null;
 
+	// A component whose entire renderable body is a single control-flow block can
+	// render that block directly before the parent-provided __anchor, skipping the
+	// synthesized `<!>` wrapper fragment and its extra append/clone. The control-
+	// flow runtimes render before their given anchor, and during hydration consume
+	// the SSR boundary marker via append(), so __anchor replaces the wrapper.
+	const root_output = root ? normalized.filter(is_template_or_control_flow) : [];
+	const root_controlled =
+		root_output.length === 1 &&
+		(root_output[0].type === 'IfStatement' ||
+			root_output[0].type === 'SwitchStatement' ||
+			root_output[0].type === 'ForOfStatement' ||
+			root_output[0].type === 'TryStatement');
+	if (root_controlled) {
+		/** @type {any} */ (root_output[0]).root_controlled = true;
+	}
+
 	/** @param {AST.Node} node */
 	const get_id = (node) => {
 		return b.id(
@@ -5257,7 +5305,7 @@ function transform_children(children, context) {
 				is_create_text_only = normalized.length === 1 && expression.type === 'Literal';
 			}
 
-			if (initial === null && root && !is_create_text_only) {
+			if (initial === null && root && !is_create_text_only && !root_controlled) {
 				create_initial(node);
 			}
 

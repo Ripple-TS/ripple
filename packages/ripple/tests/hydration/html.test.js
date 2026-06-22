@@ -147,6 +147,44 @@ describe('hydration > html tags', () => {
 		expect(html).toContain('After code');
 	});
 
+	it('hydrates html block after if-based component in children', async () => {
+		await hydrateComponent(
+			ServerComponents.HtmlAfterIfInChildren,
+			ClientComponents.HtmlAfterIfInChildren,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('First paragraph');
+		expect(html).toContain('Second paragraph');
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('After code');
+	});
+
+	it('hydrates html block after for-based component in children', async () => {
+		await hydrateComponent(
+			ServerComponents.HtmlAfterForInChildren,
+			ClientComponents.HtmlAfterForInChildren,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('Subtitle');
+		expect(html).toContain('First paragraph');
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('After code');
+	});
+
+	it('hydrates html block after try-based component in children', async () => {
+		await hydrateComponent(
+			ServerComponents.HtmlAfterTryInChildren,
+			ClientComponents.HtmlAfterTryInChildren,
+		);
+		const html = container.innerHTML;
+		expect(html).toContain('Title');
+		expect(html).toContain('First paragraph');
+		expect(html).toContain('const x = 1;');
+		expect(html).toContain('After code');
+	});
+
 	it('hydrates layout with sidebar (if-blocks) followed by main sibling', async () => {
 		await hydrateComponent(
 			ServerComponents.LayoutWithSidebarAndMain,

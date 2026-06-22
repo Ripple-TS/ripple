@@ -607,6 +607,251 @@ export function HtmlAfterSwitchInChildren() {
 	});
 }
 
+function IfHeading({ primary, children }) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			if (primary) {
+				__out += '<h1 class="heading">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(children);
+				}
+
+				__out += '</h1>';
+			} else {
+				__out += '<h2 class="heading">';
+
+				{
+					_$_.output_push(__out);
+					__out = '';
+					_$_.render_expression(children);
+				}
+
+				__out += '</h2>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function HtmlAfterIfInChildren() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			{
+				const comp = ContentWrapper;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								{
+									const comp = IfHeading;
+
+									_$_.output_push(__out);
+									__out = '';
+
+									const args = [
+										{
+											primary: true,
+											children: _$_.tsrx_element(() => {
+												return _$_.tsrx_element(() => {
+													let __out = '';
+
+													__out += 'Title';
+													_$_.output_push(__out);
+												});
+											})
+										}
+									];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>First paragraph</p><p>Second paragraph</p>';
+
+								{
+									const comp = CodeBlock;
+									const args = [{ code: "const x = 1;" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>After code</p>';
+								_$_.output_push(__out);
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
+function ForList({ items }) {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
+			for (const item of items) {
+				__out += '<span class="for-item">' + _$_.escape(item) + '</span>';
+			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
+export function HtmlAfterForInChildren() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			{
+				const comp = ContentWrapper;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								{
+									const comp = ForList;
+									const args = [{ items: ['Title', 'Subtitle'] }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>First paragraph</p>';
+
+								{
+									const comp = CodeBlock;
+									const args = [{ code: "const x = 1;" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>After code</p>';
+								_$_.output_push(__out);
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
+function TryBox({ value }) {
+	return _$_.tsrx_element(() => {
+		_$_.try_block(
+			() => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					let __out = '';
+
+					__out += '<div class="try-box">' + _$_.escape(value) + '</div>';
+					_$_.output_push(__out);
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			},
+			(e) => {
+				let __out = '';
+
+				__out += '<!--[-->';
+				_$_.output_push(__out);
+				__out = '';
+
+				_$_.regular_block(() => {
+					let __out = '';
+
+					__out += '<span>error</span>';
+					_$_.output_push(__out);
+				});
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			},
+			null
+		);
+	});
+}
+
+export function HtmlAfterTryInChildren() {
+	return _$_.tsrx_element(() => {
+		_$_.regular_block(() => {
+			{
+				const comp = ContentWrapper;
+
+				const args = [
+					{
+						children: _$_.tsrx_element(() => {
+							return _$_.tsrx_element(() => {
+								let __out = '';
+
+								{
+									const comp = TryBox;
+									const args = [{ value: "Title" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>First paragraph</p>';
+
+								{
+									const comp = CodeBlock;
+									const args = [{ code: "const x = 1;" }];
+
+									_$_.output_push(__out);
+									__out = '';
+									_$_.render_component(comp, ...args);
+								}
+
+								__out += '<p>After code</p>';
+								_$_.output_push(__out);
+							});
+						})
+					}
+				];
+
+				_$_.render_component(comp, ...args);
+			}
+		});
+	});
+}
+
 function NavItem(__props) {
 	return _$_.tsrx_element(() => {
 		_$_.regular_block(() => {

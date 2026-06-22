@@ -6,16 +6,15 @@ var root_1 = _$_.template(`<section class="root-catch"><p class="root-error"> </
 var root_2 = _$_.template(`<p>should not render</p>`, 1, 1);
 var root_3 = _$_.template(`<p class="root-async-value"> </p>`, 0);
 var root_4 = _$_.template(`<p class="root-async-value"> </p>`, 0);
-var root_6 = _$_.template(`<!>`, 1, 1);
-var root_7 = _$_.template(`<p class="loading">loading...</p>`, 0);
 var root_5 = _$_.template(`<!>`, 1, 1);
-var root_9 = _$_.template(`<li> </li>`, 0);
-var root_8 = _$_.template(`<ul class="items"></ul>`, 0);
-var root_12 = _$_.template(`<!>`, 1, 1);
-var root_13 = _$_.template(`<div class="loading">loading async content</div>`, 0);
-var root_11 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
-var root_10 = _$_.template(`<!>`, 1, 1);
-var root_14 = _$_.template(`<div class="resolved"> </div>`, 0);
+var root_6 = _$_.template(`<p class="loading">loading...</p>`, 0);
+var root_8 = _$_.template(`<li> </li>`, 0);
+var root_7 = _$_.template(`<ul class="items"></ul>`, 0);
+var root_11 = _$_.template(`<!>`, 1, 1);
+var root_12 = _$_.template(`<div class="loading">loading async content</div>`, 0);
+var root_10 = _$_.template(`<div class="before">before</div><!>`, 1, 2);
+var root_9 = _$_.template(`<!>`, 1, 1);
+var root_13 = _$_.template(`<div class="resolved"> </div>`, 0);
 
 import { trackAsync } from 'ripple';
 
@@ -94,41 +93,37 @@ export function RootAsyncRejects() {
 
 export function AsyncListInTryPending() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_1 = root_5();
-		var node = _$_.first_child_frag(fragment_1);
-
 		_$_.try(
-			node,
+			__anchor,
 			(__anchor) => {
-				var fragment_2 = root_6();
-				var node_1 = _$_.first_child_frag(fragment_2);
+				var fragment_1 = root_5();
+				var node = _$_.first_child_frag(fragment_1);
 
-				_$_.render_component(AsyncList, node_1, {});
-				_$_.append(__anchor, fragment_2);
+				_$_.render_component(AsyncList, node, {});
+				_$_.append(__anchor, fragment_1);
 			},
 			null,
 			(__anchor) => {
-				var p_5 = root_7();
+				var p_5 = root_6();
 
 				_$_.append(__anchor, p_5);
-			}
+			},
+			true
 		);
-
-		_$_.append(__anchor, fragment_1);
 	});
 }
 
 function AsyncList() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_2 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve(['alpha', 'beta', 'gamma'])), __block, 'b3d31627');
-		var ul_1 = root_8();
+		var ul_1 = root_7();
 
 		{
 			_$_.for(
 				ul_1,
 				() => lazy_2.value,
 				(__anchor, item) => {
-					var li_1 = root_9();
+					var li_1 = root_8();
 
 					{
 						var expression_3 = _$_.child(li_1);
@@ -151,42 +146,42 @@ function AsyncList() {
 
 export function AsyncTryWithLeadingSibling() {
 	return _$_.tsrx_element((__anchor, __block) => {
-		var fragment_3 = root_10();
-		var node_4 = _$_.first_child_frag(fragment_3);
+		var fragment_2 = root_9();
+		var node_3 = _$_.first_child_frag(fragment_2);
 
-		_$_.expression(node_4, () => _$_.tsrx_element((__anchor, __block) => {
-			var fragment_4 = root_11();
-			var div_1 = _$_.first_child_frag(fragment_4);
-			var node_2 = _$_.sibling(div_1);
+		_$_.expression(node_3, () => _$_.tsrx_element((__anchor, __block) => {
+			var fragment_3 = root_10();
+			var div_1 = _$_.first_child_frag(fragment_3);
+			var node_1 = _$_.sibling(div_1);
 
 			_$_.try(
-				node_2,
+				node_1,
 				(__anchor) => {
-					var fragment_5 = root_12();
-					var node_3 = _$_.first_child_frag(fragment_5);
+					var fragment_4 = root_11();
+					var node_2 = _$_.first_child_frag(fragment_4);
 
-					_$_.render_component(AsyncContent, node_3, {});
-					_$_.append(__anchor, fragment_5);
+					_$_.render_component(AsyncContent, node_2, {});
+					_$_.append(__anchor, fragment_4);
 				},
 				null,
 				(__anchor) => {
-					var div_2 = root_13();
+					var div_2 = root_12();
 
 					_$_.append(__anchor, div_2);
 				}
 			);
 
-			_$_.append(__anchor, fragment_4);
+			_$_.append(__anchor, fragment_3);
 		}));
 
-		_$_.append(__anchor, fragment_3);
+		_$_.append(__anchor, fragment_2);
 	});
 }
 
 function AsyncContent() {
 	return _$_.tsrx_element((__anchor, __block) => {
 		let lazy_3 = _$_.track_async(() => _$_.with_scope(__block, () => Promise.resolve('ready')), __block, '15ea8758');
-		var div_3 = root_14();
+		var div_3 = root_13();
 
 		{
 			var expression_4 = _$_.child(div_3);

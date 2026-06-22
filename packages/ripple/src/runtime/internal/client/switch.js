@@ -2,7 +2,7 @@
 
 import { branch, destroy_block, render } from './blocks.js';
 import { SWITCH_BLOCK } from './constants.js';
-import { hydrate_next, hydrating } from './hydration.js';
+import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
 import { append } from './template.js';
 
@@ -32,10 +32,20 @@ function move(block, anchor) {
 /**
  * @param {ChildNode} anchor
  * @param {() => ((anchor: ChildNode) => void)[] | null} fn
+ * @param {boolean} [root_controlled] When true the block renders before the
+ *   component's `__anchor` (no `<!>` wrapper); during hydration the SSR boundary
+ *   marker is handed to `append()` afterwards for the context-aware cursor
+ *   advance the eliminated wrapper used to perform.
  * @returns {void}
  */
-export function switch_block(anchor, fn) {
+export function switch_block(anchor, fn, root_controlled) {
+	/** @type {Node | undefined} */
+	var boundary;
+
 	if (hydrating) {
+		if (root_controlled) {
+			boundary = /** @type {Node} */ (hydrate_node);
+		}
 		hydrate_next();
 	}
 
@@ -82,4 +92,8 @@ export function switch_block(anchor, fn) {
 		null,
 		SWITCH_BLOCK,
 	);
+
+	if (hydrating && root_controlled) {
+		append(anchor, /** @type {Node} */ (boundary));
+	}
 }

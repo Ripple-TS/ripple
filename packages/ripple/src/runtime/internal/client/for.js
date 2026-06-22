@@ -1,10 +1,11 @@
 /** @import { Block, Tracked } from '#client' */
 
-import { IS_CONTROLLED, IS_INDEXED } from '../../../constants.js';
+import { IS_CONTROLLED, IS_INDEXED, ROOT_CONTROLLED } from '../../../constants.js';
 import { branch, destroy_block, destroy_block_children, render } from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { create_text, get_first_child, get_last_child, next_sibling } from './operations.js';
+import { append } from './template.js';
 import { active_block, set, tracked, untrack } from './runtime.js';
 import { array_from, is_array } from '@tsrx/core/runtime/language-helpers';
 
@@ -121,7 +122,10 @@ function collection_to_array(collection) {
 export function for_block(node, get_collection, render_fn, flags, render_empty) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
+	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
 	var anchor = /** @type {Element | Text} */ (node);
+	/** @type {Node | undefined} */
+	var boundary;
 
 	if (is_controlled) {
 		if (hydrating) {
@@ -133,6 +137,9 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 	}
 
 	if (hydrating) {
+		if (root_controlled) {
+			boundary = /** @type {Node} */ (hydrate_node);
+		}
 		hydrate_next();
 	}
 
@@ -153,6 +160,10 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 		null,
 		FOR_BLOCK,
 	);
+
+	if (hydrating && root_controlled) {
+		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
+	}
 }
 
 /**
@@ -169,7 +180,10 @@ export function for_block(node, get_collection, render_fn, flags, render_empty) 
 export function for_block_keyed(node, get_collection, render_fn, flags, get_key, render_empty) {
 	var is_controlled = (flags & IS_CONTROLLED) !== 0;
 	var is_indexed = (flags & IS_INDEXED) !== 0;
+	var root_controlled = (flags & ROOT_CONTROLLED) !== 0;
 	var anchor = /** @type {Element | Text} */ (node);
+	/** @type {Node | undefined} */
+	var boundary;
 
 	if (is_controlled) {
 		var parent_node = /** @type {Element} */ (node);
@@ -183,6 +197,9 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 	}
 
 	if (hydrating) {
+		if (root_controlled) {
+			boundary = /** @type {Node} */ (hydrate_node);
+		}
 		hydrate_next();
 	}
 
@@ -208,6 +225,10 @@ export function for_block_keyed(node, get_collection, render_fn, flags, get_key,
 		null,
 		FOR_BLOCK,
 	);
+
+	if (hydrating && root_controlled) {
+		append(/** @type {ChildNode} */ (node), /** @type {Node} */ (boundary));
+	}
 }
 
 /**
