@@ -14,7 +14,7 @@ if (!container) throw new Error('Missing #app root in index.html');
 // immediately (concurrent), so the work would land outside the measured window
 // and React would look ~instant. flushSync forces the hydration to commit
 // synchronously, so the harness measures the actual work — apples-to-apples with
-// ripple-new (which flushSync's) and Solid (synchronous hydrate).
+// Ripple (which flushSync's) and Solid (synchronous hydrate).
 (window as any).__hydrate = () => {
 	let root: ReturnType<typeof hydrateRoot> | undefined;
 	flushSync(() => {

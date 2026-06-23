@@ -2,7 +2,7 @@
 //
 // Benches must reflect production, never dev: dev mode ships unminified code and
 // the frameworks' development runtimes (React/Solid dev builds carry warning +
-// validation overhead, ripple-new dev transforms aren't optimized). So this
+// validation overhead). So this
 // harness `vite build`s each target (client minified + an SSR bundle, with
 // NODE_ENV=production) and measures the BUILT artifacts:
 //
@@ -12,9 +12,9 @@
 //                      the production client bundle loaded.
 //
 // Run:  node benchmarks/news/run.mjs [target] [iterations] [--no-build]
-//         target ∈ {ripple-new, solid, react}  (default ripple-new)
+//         target ∈ {ripple, solid, react}  (default ripple)
 //         --no-build  reuse the existing dist/ (skip the rebuild for fast re-runs)
-//       node run.mjs 20    (back-compat: a bare number = iterations → ripple-new)
+//       node run.mjs 20    (back-compat: a bare number = iterations → ripple)
 
 // Set BEFORE importing anything that resolves a framework runtime: externalized
 // react-dom / @solidjs/web pick their PRODUCTION build off process.env.NODE_ENV.
@@ -37,11 +37,11 @@ v8.setFlagsFromString('--expose-gc');
 const nodeGc = vm.runInNewContext('gc');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TARGET_PORTS = { 'ripple-new': 5191, solid: 5192, react: 5193, ripple: 5194 };
+const TARGET_PORTS = { ripple: 5194, solid: 5192, react: 5193 };
 const args = process.argv.slice(2);
 const noBuild = args.includes('--no-build');
 const positional = args.filter((a) => !a.startsWith('--'));
-let target = 'ripple-new';
+let target = 'ripple';
 let iterArg = positional[0];
 if (positional[0] && Object.prototype.hasOwnProperty.call(TARGET_PORTS, positional[0])) {
 	target = positional[0];
@@ -138,8 +138,8 @@ for (let i = 0; i < WARMUP + ITER; i++) {
 	await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
 	await page.waitForFunction(() => window.__ready === true, null, { timeout: 10000 });
 	// Measure the SYNCHRONOUS hydration work only. All three targets commit
-	// hydration synchronously inside __hydrate() (ripple-new flushSync, Solid
-	// synchronous hydrate, React flushSync), so this is the actual hydration
+	// hydration synchronously inside __hydrate() (Ripple/React flushSync, Solid
+	// synchronous hydrate), so this is the actual hydration
 	// cost. (An earlier version awaited rAF + setTimeout inside the timer, but
 	// that ~6–7 ms of frame-scheduling latency dominated and masked the signal.)
 	const dt = await page.evaluate(() => {
@@ -158,22 +158,15 @@ const page = await ctx.newPage();
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
 const check = await page.evaluate(async () => {
 	const root = document.getElementById('app');
-	// hydrate() consumes + REMOVES the server's suspense seed
-	// (<script data-ripple-new-suspense>) from the container, so comparing raw
-	// innerHTML before/after would report a false rebuild for any app that
-	// emitted that script. Exclude it from both sides; the no-rebuild check is
-	// about the rendered tree, not the seed.
-	const stripSeed = (html) =>
-		html.replace(/<script[^>]*\bdata-ripple-new-suspense\b[^>]*>[\s\S]*?<\/script>/g, '');
-	const before = stripSeed(root.innerHTML);
+	const before = root.innerHTML;
 	window.__hydrate();
 	await new Promise((r) => requestAnimationFrame(r));
 	const cards = root.querySelectorAll('article.card').length;
-	const noRebuild = stripSeed(root.innerHTML) === before; // hydration adopted, didn't rebuild
+	const noRebuild = root.innerHTML === before; // hydration adopted, didn't rebuild
 	const cls0 = root.querySelector('header.masthead').className;
 	root.querySelector('#theme').click();
 	// Let the framework's reactive update flush before reading the result:
-	// ripple-new commits synchronously on the discrete click, but Solid/React
+	// Ripple commits synchronously on the discrete click, but Solid/React
 	// defer the DOM update to a microtask, so a synchronous read would miss it.
 	await new Promise((r) => setTimeout(r, 0));
 	const cls1 = root.querySelector('header.masthead').className;

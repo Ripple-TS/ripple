@@ -23,7 +23,6 @@
 // often small enough that the choice doesn't dominate real-world apps.
 //
 // Usage:
-//   pnpm --filter ripple-new-signal-bench dev   # :5190
 //   pnpm --filter solid-signal-bench dev        # :5191
 //   pnpm --filter react-signal-bench dev        # :5192
 //   pnpm --filter ripple-signal-bench dev       # :5193
@@ -38,7 +37,6 @@ const STATEFUL_INDICES = [1, 11, 21, 31, 41, 51, 61, 71, 81, 91];
 const TARGETS = process.env.TARGETS
 	? JSON.parse(process.env.TARGETS)
 	: [
-			{ name: 'ripple-new', url: 'http://localhost:5190/' },
 			{ name: 'solid', url: 'http://localhost:5191/' },
 			{ name: 'react', url: 'http://localhost:5192/' },
 			{ name: 'ripple', url: 'http://localhost:5193/' },
@@ -48,7 +46,7 @@ const YIELD_MS = 5; // breathe between samples: let paint settle, don't block th
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // All ops mutate the DOM SYNCHRONOUSLY inside the adapter call (ripple /
-// ripple-new / react via flushSync, solid via flush()), so we time ONLY the
+// react via flushSync, solid via flush()), so we time ONLY the
 // synchronous op and force a GC right before each timed sample. This isolates
 // framework JS work from browser paint + GC jitter — the prior rAF + task wait
 // added ~16ms of frame latency that swamped the sub-ms signal and made medians

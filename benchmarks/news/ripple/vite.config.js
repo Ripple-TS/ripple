@@ -3,7 +3,7 @@ import { compile } from '@tsrx/ripple';
 
 // Minimal `.tsrx` → original Ripple transform (NOT the @ripple-ts/vite-plugin
 // metaframework — the bench renders/hydrates directly). Per-module mode from
-// Vite's SSR signal, mirroring @tsrx/ripple-new/vite's rippleNew plugin: the SSR
+// Vite's SSR signal, for SSR mode: the SSR
 // pass (ssrLoadModule / `--ssr` build) compiles `mode: 'server'` (HTML string),
 // the client pass compiles `mode: 'client'` (DOM runtime + hydration).
 function ripple() {

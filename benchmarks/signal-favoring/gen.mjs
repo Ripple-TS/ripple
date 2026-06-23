@@ -3,7 +3,7 @@
 // Emits four <framework>/src/App.* files: 100 uniquely-named components in a
 // linear chain C1 → C2 → ... → C100. Stateful counters live at C1, C11, C21,
 // ..., C91. On `__bumpAt<N>`, signal frameworks (solid, ripple) re-evaluate
-// only the `{count}` text node inside CN; hook frameworks (react, ripple-new)
+// only the `{count}` text node inside CN; hook frameworks (react)
 // re-render CN and cascade through CN+1..C100. The bench measures the median
 // cost of bumping at shallow, middle, and deep stateful positions plus
 // MOUNT and UNMOUNT.
@@ -21,39 +21,6 @@ const STATEFUL_INDICES = [];
 for (let i = 1; i <= N; i += 10) STATEFUL_INDICES.push(i);
 
 const isStateful = (i) => i % 10 === 1;
-
-// ----------------------------------------------------------------------------
-// ripple-new (.tsrx, React-shape hooks)
-// ----------------------------------------------------------------------------
-function genRippleNew() {
-	let out = `import { useState } from 'ripple-new';\n\n`;
-	out += `// 100 uniquely-named components in a chain. Stateful counters at C${STATEFUL_INDICES.join(', C')}.\n`;
-	out += `// hook-frameworks cascade re-renders down the chain on each bump.\n\n`;
-	// Module-level setters + bump exports
-	for (const i of STATEFUL_INDICES) out += `let _set${i} = null;\n`;
-	out += '\n';
-	for (const i of STATEFUL_INDICES) {
-		out += `export function bumpAt${i}() { if (_set${i}) _set${i}((v) => v + 1); }\n`;
-	}
-	out += '\n';
-	// Define components in reverse order so each one's child is already declared
-	// (TSRX hoists function declarations, but ordering keeps the file readable).
-	for (let i = N; i >= 1; i--) {
-		if (i === N) {
-			out += `function C${i}(props) @{ <span class='leaf'>${i}</span> }\n`;
-		} else if (isStateful(i)) {
-			out += `function C${i}(props) @{\n`;
-			out += `  const [v, set] = useState(0);\n`;
-			out += `  _set${i} = set;\n`;
-			out += `  <div class='c'>${i}:{v as number} <C${i + 1} /></div>\n`;
-			out += `}\n`;
-		} else {
-			out += `function C${i}(props) @{ <div class='c'>${i} <C${i + 1} /></div> }\n`;
-		}
-	}
-	out += '\nexport default function App(props) @{ <C1 /> }\n';
-	return out;
-}
 
 // ----------------------------------------------------------------------------
 // ripple (existing framework, signal-based via track)
@@ -158,26 +125,6 @@ const bumpExports = STATEFUL_INDICES.map(
 	(i) => `window.__bumpAt${i} = () => __WRAP__(bumpAt${i});`,
 ).join('\n');
 
-function genRippleNewMain() {
-	let out = `import { createRoot, flushSync } from 'ripple-new';\n`;
-	out += `import App, { ${bumpImports} } from './App.tsrx';\n\n`;
-	out += `const target = document.getElementById('main');\n`;
-	out += `let root = null;\n\n`;
-	out += `// index.html does NOT auto-mount — harness wraps each call in performance.now().\n`;
-	out += `window.__mount = () => {\n`;
-	out += `  root = createRoot(target);\n`;
-	out += `  root.render(App, {});\n`;
-	out += `};\n`;
-	out += `window.__unmount = () => { if (root) { root.unmount(); root = null; } };\n`;
-	out += `window.__reset = () => {\n`;
-	out += `  if (root) { root.unmount(); root = null; }\n`;
-	out += `  while (target.firstChild) target.removeChild(target.firstChild);\n`;
-	out += `};\n`;
-	out += bumpExports.replace(/__WRAP__/g, 'flushSync') + '\n';
-	out += `window.__ready = true;\n`;
-	return out;
-}
-
 function genRippleMain() {
 	let out = `import { mount, flushSync } from 'ripple';\n`;
 	out += `import App, { ${bumpImports} } from './App.tsrx';\n\n`;
@@ -210,7 +157,7 @@ function genReactMain() {
 	out += `  if (root) { root.unmount(); root = null; }\n`;
 	out += `  while (target.firstChild) target.removeChild(target.firstChild);\n`;
 	out += `};\n`;
-	// React's flushSync takes a thunk, same shape as ripple/ripple-new.
+	// React's flushSync takes a thunk, same shape as ripple.
 	out += bumpExports.replace(/__WRAP__/g, 'flushSync') + '\n';
 	out += `window.__ready = true;\n`;
 	return out;
@@ -238,8 +185,6 @@ function genSolidMain() {
 // ----------------------------------------------------------------------------
 
 const targets = [
-	{ rel: 'ripple-new/src/App.tsrx', content: genRippleNew() },
-	{ rel: 'ripple-new/src/main.js', content: genRippleNewMain() },
 	{ rel: 'ripple/src/App.tsrx', content: genRipple() },
 	{ rel: 'ripple/src/main.js', content: genRippleMain() },
 	{ rel: 'react/src/App.jsx', content: genReact() },

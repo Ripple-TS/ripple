@@ -1,9 +1,9 @@
-// recursive-context bench harness — drives ripple-new / solid / react / ripple
+// recursive-context bench harness — drives ripple / solid / react
 // via Playwright.
 //
 // Methodology: every op (mount, update_root, update_partial, partial_unmount /
 // remount, unmount) mutates the DOM SYNCHRONOUSLY inside its adapter call — all
-// four adapters flush synchronously (ripple / ripple-new / react via `flushSync`,
+// the adapters flush synchronously (ripple / react via `flushSync`,
 // solid via `flush()`). So we time ONLY the synchronous op (the framework's JS
 // work) and force a GC right before each timed sample, so a surprise mid-sample
 // collection can't inflate it. This isolates framework cost from browser paint
@@ -30,7 +30,6 @@ const YIELD_MS = 5; // breathe between samples: let paint settle, don't block th
 const TARGETS = process.env.TARGETS
 	? JSON.parse(process.env.TARGETS)
 	: [
-			{ name: 'ripple-new', url: 'http://localhost:5185/' },
 			{ name: 'solid', url: 'http://localhost:5187/' },
 			{ name: 'react', url: 'http://localhost:5186/' },
 			{ name: 'ripple', url: 'http://localhost:5184/' },

@@ -5,11 +5,11 @@ recursive-context bench measures wide fan-out across a balanced binary tree. Thi
 one measures the **signal vs hook update cascade** along a deep linear chain.
 
 The bench is named honestly: it has a structural bias toward signal-based
-reactivity (Solid, ripple) over hook-based reactivity (React, ripple-new). When
-state changes at a mid-chain node, signal frameworks re-evaluate **only the text
-expression that read the signal** — they don't re-render any component bodies.
-Hook frameworks re-render the owning component, which cascades through every
-descendant unless wrapped in `memo`.
+reactivity (Solid, ripple) over hook-based reactivity (React). When state changes
+at a mid-chain node, signal frameworks re-evaluate **only the text expression that
+read the signal** — they don't re-render any component bodies. Hook frameworks
+re-render the owning component, which cascades through every descendant unless
+wrapped in `memo`.
 
 The point of the bench is not to declare a winner — it's to **quantify how much
 the cascade actually costs** in absolute terms. Often less than you'd expect.
@@ -18,7 +18,6 @@ the cascade actually costs** in absolute terms. Often less than you'd expect.
 
 ```
 benchmarks/signal-favoring/
-├── ripple-new/        # Vite app, dev :5190
 ├── solid/             # Vite app, dev :5191 (Solid 2.0 beta)
 ├── react/             # Vite app, dev :5192 (React 19)
 ├── ripple/            # Vite app, dev :5193
@@ -37,12 +36,11 @@ total).
 
 Each stateful component owns its own counter via the framework's native primitive:
 
-| framework      | primitive                | what a `setN(v+1)` triggers                                            |
-| -------------- | ------------------------ | ---------------------------------------------------------------------- |
-| **ripple-new** | `useState` (React-shape) | re-render of `CN`, cascade through `CN+1 .. C100`                      |
-| **react**      | `useState`               | re-render of `CN`, cascade through `CN+1 .. C100`                      |
-| **solid**      | `createSignal`           | re-evaluate the `{v()}` text expression in `CN`; descendants untouched |
-| **ripple**     | `track()`                | re-evaluate the `{v}` text expression in `CN`; descendants untouched   |
+| framework  | primitive      | what a `setN(v+1)` triggers                                            |
+| ---------- | -------------- | ---------------------------------------------------------------------- |
+| **react**  | `useState`     | re-render of `CN`, cascade through `CN+1 .. C100`                      |
+| **solid**  | `createSignal` | re-evaluate the `{v()}` text expression in `CN`; descendants untouched |
+| **ripple** | `track()`      | re-evaluate the `{v}` text expression in `CN`; descendants untouched   |
 
 Generator-driven so the chain length, stateful spacing, and per-component shape
 stay consistent across frameworks. Edit `gen.mjs` and re-run `node gen.mjs` to
@@ -77,7 +75,6 @@ pnpm install
 node benchmarks/signal-favoring/gen.mjs
 
 # 3. Start each adapter's dev server (separate terminals):
-pnpm --filter ripple-new-signal-bench dev    # :5190
 pnpm --filter solid-signal-bench dev         # :5191
 pnpm --filter react-signal-bench dev         # :5192
 pnpm --filter ripple-signal-bench dev        # :5193

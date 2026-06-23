@@ -1,15 +1,14 @@
 # News SSR + hydration benchmark
 
 A large "news site" document (header + a `@for` feed of article cards, lorem
-ipsum) that measures, per target (**ripple-new**, **ripple**, **Solid 2.0**,
-**React 19**):
+ipsum) that measures, per target (**ripple**, **Solid 2.0**, **React 19**):
 
 - **SSR render time** — the built `renderApp()` → HTML string, in Node, warm.
 - **Hydration time** — the SYNCHRONOUS hydration work in a headless browser, on a
   fresh page whose `#app` already holds the server-rendered DOM (timed in
   isolation via a deferred `window.__hydrate()`), with the production client
   bundle loaded. All targets commit hydration synchronously inside `__hydrate()` —
-  ripple-new and React via `flushSync`, Solid is synchronous — so this is the
+  React via `flushSync`, Ripple and Solid are synchronous — so this is the
   hydration _work_, not frame-scheduling latency. (React's `hydrateRoot` is
   concurrent and would otherwise defer the work out of the measured window,
   reading as near-zero; `flushSync` forces it to commit so the comparison is
@@ -19,9 +18,9 @@ ipsum) that measures, per target (**ripple-new**, **ripple**, **Solid 2.0**,
 **Production only.** The harness `vite build`s each target (client minified + an
 SSR bundle, `NODE_ENV=production`) and measures the BUILT artifacts — never dev.
 Dev numbers are misleading: unminified code plus the frameworks' _development_
-runtimes (React/Solid dev builds carry warning + validation overhead; ripple-new
-dev transforms aren't optimized). The difference is large — e.g. React's
-`renderToString` measured ~2 ms in dev vs ~0.1–0.3 ms in production.
+runtimes (React/Solid dev builds carry warning + validation overhead). The
+difference is large — e.g. React's `renderToString` measured ~2 ms in dev vs
+~0.1–0.3 ms in production.
 
 It also asserts **correctness**: that hydration _adopts_ the server DOM with no
 rebuild (`#app.innerHTML` unchanged) and that the page is interactive afterward
@@ -30,7 +29,6 @@ rebuild (`#app.innerHTML` unchanged) and that the page is interactive afterward
 All apps are authored in the SAME `.tsrx` source shape and render the same
 dataset, so the comparison is pure framework cost:
 
-- **ripple-new** — `@tsrx/ripple-new` (single runtime, `render()` + `hydrate()`).
 - **ripple** (original) — `@tsrx/ripple` + `ripple` (`ripple/server` `render()` →
   `{ head, body, css }` + `ripple` `hydrate()`). State via `track`. There's no
   transform-only Ripple vite plugin (the published one is the metaframework), so
@@ -40,31 +38,25 @@ dataset, so the comparison is pure framework cost:
 - **React 19** — `@tsrx/react` (`react-dom/server` `renderToString` +
   `react-dom/client` `hydrateRoot`; one JSX transform serves both, no two-build).
 
-Reactive state is authored per target (the one real authoring difference):
-ripple-new/React `useState`, Solid `createSignal`, original Ripple `track`.
-
-This bench exercises ripple-new's cursor-based hydration of **control flow +
-nested components** (the `@for` feed adopts each item's `<!--[-->…<!--]-->` range;
-the `Header` component adopts its own range) — i.e. it only works because
-hydration was extended beyond single leaf templates.
+Reactive state is authored per target (the one real authoring difference): React
+`useState`, Solid `createSignal`, original Ripple `track`.
 
 ## Run
 
 ```bash
 pnpm install
 node benchmarks/news/gen.mjs 1000        # regenerate the dataset into every target (default 1000)
-node benchmarks/news/run.mjs ripple-new  # builds (prod) + benches; `run.mjs 20` also works
+node benchmarks/news/run.mjs ripple      # builds (prod) + benches; `run.mjs 20` also works
 node benchmarks/news/run.mjs ripple 20   # original Ripple, 20 iterations (+5 warmup)
 node benchmarks/news/run.mjs solid 20    # Solid 2.0
 node benchmarks/news/run.mjs react 20    # React 19
 node benchmarks/news/run.mjs react 20 --no-build   # reuse the existing dist/ (skip rebuild)
 ```
 
-`run.mjs [target] [iterations] [--no-build]` — `target` ∈
-`{ripple-new, ripple, solid, react}` (default `ripple-new`; a bare number is
-treated as iterations for back-compat). Each run rebuilds the target's production
-client + SSR bundles unless `--no-build` is passed. Build output goes to
-`<target>/dist/` (git-ignored).
+`run.mjs [target] [iterations] [--no-build]` — `target` ∈ `{ripple, solid, react}`
+(default `ripple`; a bare number is treated as iterations for back-compat). Each
+run rebuilds the target's production client + SSR bundles unless `--no-build` is
+passed. Build output goes to `<target>/dist/` (git-ignored).
 
 ## Layout
 
@@ -72,7 +64,7 @@ client + SSR bundles unless `--no-build` is passed. Build output goes to
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `gen.mjs`                      | Generates `<target>/src/data.js` for every target (deterministic lorem-ipsum).                                                       |
 | `<target>/src/App.tsrx`        | Header component + `@for` feed of article cards + footer.                                                                            |
-| `<target>/src/Header.tsrx`     | A stateful component (ripple-new/React `useState`, Solid `createSignal`, Ripple `track`) with a theme toggle.                        |
+| `<target>/src/Header.tsrx`     | A stateful component (React `useState`, Solid `createSignal`, Ripple `track`) with a theme toggle.                                   |
 | `<target>/src/entry-server.ts` | `renderApp()` → `{ head, body, css }`.                                                                                               |
 | `<target>/src/entry-client.ts` | Deferred `window.__hydrate()`.                                                                                                       |
 | `run.mjs`                      | `vite build` (client + SSR, prod) → static-serves the built artifacts + Playwright; measures SSR + hydration; prints median/min/p95. |
@@ -102,11 +94,4 @@ React's components use `className` (not `class`): `@tsrx/react` only rewrites
 `class` → `className` while injecting a CSS-scope hash, which these style-free
 bench components skip. `className` renders to the same `class` DOM attribute, so
 the document is identical to the other targets — it just avoids React's dev-mode
-_"Invalid DOM property `class`"_ warning. State uses React's own `useState`
-(ripple-new's is React-shaped, so the authoring is otherwise identical).
-
-## Follow-ups
-
-- **`@if`/`@switch` hydration (ripple-new)**: not yet wired (the bench uses `@for`
-  - components, which are). Hookless ("lite") nested components also don't hydrate
-    yet — give a hydrated component a hook so it uses the full slot.
+_"Invalid DOM property `class`"_ warning. State uses React's own `useState`.

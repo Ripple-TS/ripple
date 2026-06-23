@@ -1,6 +1,6 @@
 // Generates a deterministic lorem-ipsum article dataset shared by the bench
 // app(s). Run `node gen.mjs [count]` (default 1000). Writes the SAME dataset into
-// every target app's src/data.js (ripple-new, solid, …) so each framework
+// every target app's src/data.js (solid, react, ripple) so each framework
 // renders byte-identical content for a fair comparison. 1000 cards (~815 KB
 // HTML) is large enough that SSR + hydration times clear the noise floor; the
 // older 50-card default rendered sub-millisecond SSR that was mostly jitter.
@@ -56,7 +56,7 @@ const out =
 
 // Every target app gets the identical dataset (skip a target whose src/ dir
 // doesn't exist yet, so adding a new target is just creating its folder).
-const TARGETS = ['ripple-new', 'solid', 'react', 'ripple'];
+const TARGETS = ['solid', 'react', 'ripple'];
 const bytes = Buffer.byteLength(out);
 for (const target of TARGETS) {
 	const srcDir = path.resolve(__dirname, target, 'src');

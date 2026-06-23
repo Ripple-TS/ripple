@@ -1,7 +1,7 @@
 import { ARTICLES } from './data.js';
 import { Header } from './Header.tsrx';
 
-// React analogue of the ripple-new App: a nested component (Header) + a keyed
+// React version of the shared news App: a nested component (Header) + a keyed
 // `@for` feed of article cards (→ `ARTICLES.map(a => <article key={a.id}>…)`) +
 // footer. React's `.map` passes each item by value, so `a.title` is direct
 // (no accessor, unlike Solid's keyed <For>). Same markup + dataset as the other

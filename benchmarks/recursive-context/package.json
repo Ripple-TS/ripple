@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "Recursive-component + Context-read bench. Same DOM shape rendered by ripple-new and ripple; harness measures mount / update / unmount independently. Adjacent to benchmarks/js-framework.",
+  "description": "Recursive-component + Context-read bench. Same DOM shape rendered by ripple, react, and solid; harness measures mount / update / unmount independently.",
   "scripts": {
     "bench": "node run.mjs",
     "bench:long": "node run.mjs 40"

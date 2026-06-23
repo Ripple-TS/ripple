@@ -1,9 +1,9 @@
 import { createSignal } from 'solid-js';
 
-// Solid analogue of the ripple-new Header: a component with reactive state
-// (createSignal — Solid's fine-grained primitive, vs ripple-new's useState).
+// Solid version of the shared news Header: a component with reactive state
+// (createSignal — Solid's fine-grained primitive, vs React's useState).
 // The theme toggle gives a visible interactivity proof after hydration; the
-// markup is byte-identical to the ripple-new fixture for a fair comparison.
+// markup is byte-identical to the other fixtures for a fair comparison.
 export function Header() @{
 	const [dark, setDark] = createSignal(false);
 	<header class={dark() ? 'masthead dark' : 'masthead'}>

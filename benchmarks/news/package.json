@@ -3,11 +3,10 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "News-site SSR + hydration benchmark — measures pure server render time and full client hydration time for a large lorem-ipsum document. Targets: ripple-new, ripple, Solid 2.0, React 19.",
+  "description": "News-site SSR + hydration benchmark — measures pure server render time and full client hydration time for a large lorem-ipsum document. Targets: ripple, Solid 2.0, React 19.",
   "scripts": {
     "gen": "node gen.mjs",
     "bench": "node run.mjs",
-    "bench:ripple-new": "node run.mjs ripple-new",
     "bench:ripple": "node run.mjs ripple",
     "bench:solid": "node run.mjs solid",
     "bench:react": "node run.mjs react"

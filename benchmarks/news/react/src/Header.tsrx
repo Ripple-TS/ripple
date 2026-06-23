@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-// React analogue of the ripple-new Header: reactive state via React's own
-// useState (ripple-new's useState is React-shaped, so the authoring is identical
+// React version of the shared news Header: reactive state via React's own
+// useState (all targets share a React-shape authoring, so the fixtures are identical
 // bar the import + `className`). React wants `className` (it only auto-converts
 // `class` during CSS-scope injection, which these style-free components skip);
 // it renders to the same `class` DOM attribute as the other targets. The theme

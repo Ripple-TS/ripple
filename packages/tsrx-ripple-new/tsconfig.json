@@ -1,8 +1,0 @@
-{
-  "extends": "../tsrx/tsconfig.json",
-  "compilerOptions": {
-    "checkJs": false
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "tests"]
-}

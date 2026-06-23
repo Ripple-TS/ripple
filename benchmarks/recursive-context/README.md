@@ -1,9 +1,7 @@
-# recursive-context bench — ripple-new vs ripple vs react vs solid
+# recursive-context bench — ripple vs react vs solid
 
-A second benchmark adjacent to [`js-framework`](../js-framework/). Where
-js-framework-benchmark measures wide flat-list rendering (1000 rows in a table),
-this one measures **deep recursive component trees** with Context reads at every
-leaf — the workload that stresses createBlock/renderBlock overhead per node,
+This benchmark measures **deep recursive component trees** with Context reads at
+every leaf — the workload that stresses createBlock/renderBlock overhead per node,
 hook-slot allocation per scope, and Context lookup through the active-component
 parent chain.
 
@@ -11,7 +9,6 @@ parent chain.
 
 ```
 benchmarks/recursive-context/
-├── ripple-new/        # Vite app, dev :5185
 ├── solid/             # Vite app, dev :5187 (Solid 2.0 beta)
 ├── react/             # Vite app, dev :5186 (React 19)
 ├── ripple/            # Vite app, dev :5184
@@ -27,8 +24,7 @@ Each leaf reads two Context values (root + local) and renders one `<span>` with
 the leaf's path + both values.
 
 - Deep nesting (1000 levels) is degenerate (a single linear chain).
-- Pure wide fanout (1000 siblings) is what `@for` already exercises in
-  js-framework.
+- Pure wide fanout (1000 siblings) is a separate axis (flat-list rendering).
 - A balanced tree exercises both axes: component-call overhead AND DOM
   reconciliation.
 
@@ -56,9 +52,9 @@ updates), **structural change** (toggle a subtree on/off vs mutate a value), and
   path that exercises the same code as MOUNT but at 1/32 the work — useful for
   separating per-component overhead from total tree cost.
 - **UNMOUNT** — full teardown via the framework's unmount API. Some frameworks
-  (ripple-new with the `container.textContent = ''` shortcut, Solid with
-  owner-tree dispose) can short-circuit this; the contrast against PARTIAL_UNMOUNT
-  shows whether the win is structural or only applies to the whole-container case.
+  (Solid with owner-tree dispose) can short-circuit this; the contrast against
+  PARTIAL_UNMOUNT shows whether the win is structural or only applies to the
+  whole-container case.
 
 ## Quick start
 
@@ -67,7 +63,6 @@ updates), **structural change** (toggle a subtree on/off vs mutate a value), and
 pnpm install
 
 # 2. Start each adapter's dev server (separate terminals):
-pnpm --filter ripple-new-recursive-bench dev    # :5185
 pnpm --filter solid-recursive-bench dev         # :5187
 pnpm --filter react-recursive-bench dev         # :5186
 pnpm --filter ripple-recursive-bench dev        # :5184
@@ -82,7 +77,7 @@ Output is a side-by-side table of median / min / p95 millis per op, followed by 
 pairwise ratio block, e.g.:
 
 ```
-ripple-new / ripple ratio (median; <1 means ripple-new faster):
+solid / ripple ratio (median; <1 means solid faster):
   mount             0.71x  ++ faster
   update_root       0.59x  ++ faster
   update_partial    0.84x  ++ faster

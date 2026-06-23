@@ -1,12 +1,12 @@
 import { ARTICLES } from './data.js';
 import { Header } from './Header.tsrx';
 
-// Solid analogue of the ripple-new App: a nested component (Header) + a `@for`
+// Solid version of the shared news App: a nested component (Header) + a `@for`
 // feed of article cards (→ Solid `<For each>`) + footer. Same markup and dataset
-// as the ripple-new fixture so the two frameworks render near-identical
+// as the other fixtures so the frameworks render near-identical
 // documents — the bench compares pure SSR-render + hydration cost.
 //
-// No `; key` clause (unlike the ripple-new fixture): Solid's keyed `<For>`
+// No `; key` clause (unlike the keyed fixtures): Solid's keyed `<For>`
 // passes each item as an ACCESSOR (`a().title`), while the default value `<For>`
 // passes it directly (`a.title`) and is both typecheck-clean and runtime-correct.
 // Keying only affects UPDATE reconciliation, which this render-once + hydrate
