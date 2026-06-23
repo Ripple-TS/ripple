@@ -1,5 +1,14 @@
 # ripple-signal-bench
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2),
+  [`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2)]:
+  - ripple@0.3.85
+
 ## 0.0.1
 
 ### Patch Changes

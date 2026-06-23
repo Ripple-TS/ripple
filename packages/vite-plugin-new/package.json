@@ -3,7 +3,7 @@
   "description": "Vite metaframework plugin for the ripple-new renderer (dev SSR + routing + hydrate; production build is Phase 2)",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "module": "src/index.js",

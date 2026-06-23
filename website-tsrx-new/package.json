@@ -1,6 +1,6 @@
 {
   "name": "website-tsrx-new",
-  "version": "0.1.67",
+  "version": "0.1.68",
   "description": "Marketing site for TSRX built on the ripple-new renderer (migration stress test)",
   "private": true,
   "type": "module",

@@ -1,5 +1,206 @@
 # @tsrx/core
 
+## 0.1.33
+
+### Patch Changes
+
+- [#1283](https://github.com/Ripple-TS/ripple/pull/1283)
+  [`ba498cd`](https://github.com/Ripple-TS/ripple/commit/ba498cde76e9f83235ce91da825f403a28441bff)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Print empty fragements as is
+  inside expressions {<></>} instead of {null}
+
+- [#1290](https://github.com/Ripple-TS/ripple/pull/1290)
+  [`313b351`](https://github.com/Ripple-TS/ripple/commit/313b3513e4a959dd80b546da41c798066c5ccb0f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix a parser crash when a
+  template literal is the first thing in a `@{ … }` code block: `let c = @{`123`}`
+  (and `@{ `${x}` }`) threw "Unterminated template" while `@{ '123' }` parsed
+  fine. The code block's opening brace reads the next token ahead, and a template
+  literal's backtick pushes its own tokenizer context; the setup-statement parser
+  then shadowed (or stranded, after a prior statement) that context, so the
+  template body tokenized as ordinary code and never closed. The backtick is now
+  detected so the template-literal context stays on top and the body parses
+  correctly.
+
+- [#1292](https://github.com/Ripple-TS/ripple/pull/1292)
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Allow a
+  `@if`/`@for`/`@switch`/`@try` control-flow directive or a `@{ … }` code block to
+  be combined into an expression (React, Preact, Solid, Vue, and Ripple), instead
+  of crashing the printer with "Not implemented: JSX…Expression" or leaking a bare
+  `if (…) { … }` into expression position.
+
+  A directive combined into an expression — an operator operand
+  (`const ad = (@if (…) { … }) || 'fallback'`), a conditional branch, a `@for`
+  iterable, an `@if`/`@switch` test — is now wrapped so it lives inside a
+  fragment. For the JSX targets the directive is wrapped in a `<> … </>` (kept as
+  the truthy fragment value in an operand position, collapsed to its rendered
+  value in a "raw value" slot). For Ripple the directive is wrapped before
+  normalization, so the client and server lower it to a `_$_.tsrx_element(…)`
+  render (the control flow runs inside the render callback) and the `to_ts` output
+  keeps the `<> … </>` for its TSX type view.
+
+  For Ripple the wrap covers a directive used in ANY value position, not just
+  operators: the sole value of a slot (`let cd = @if (…) { … }`,
+  `cd = @switch (…) { … }`, `render(@if (…) { … })`), a concise arrow body
+  (`xs.map((x) => @if (x) { … })`), a `return` argument inside a nested function,
+  a member object, and so on — all previously leaked a bare `if (…) { … }`
+  statement in some or all modes. The positions where a directive is already
+  lowered correctly (render children, statements, `@if` branches, a `@{ … }` code
+  block's render output) are left untouched. A `@{ … }` code block self-lowers to
+  an IIFE in every position and is never wrapped (so it is not redundantly
+  fragment-wrapped in, e.g., an array element). The JSX targets already collapse a
+  sole-value directive to its rendered value, so they are unchanged.
+
+- [#1288](https://github.com/Ripple-TS/ripple/pull/1288)
+  [`bbe6e74`](https://github.com/Ripple-TS/ripple/commit/bbe6e7422c690558f0dfcb3abe5452d4f4cdde91)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep an empty expression
+  container fragment in expression position: `let c = <>{}</>` (and
+  `<>{/* comment */}</>`) now stays `<></>` instead of collapsing to a bare empty
+  expression (`let c = ;`), which was a syntax error. Applies to the React,
+  Preact, Solid, and Vue to_ts targets (Ripple already produced `<></>`).
+
+- [#1286](https://github.com/Ripple-TS/ripple/pull/1286)
+  [`0e9f523`](https://github.com/Ripple-TS/ripple/commit/0e9f52358a615c2fc7759544e96c43dccb533c86)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep empty fragments in
+  expression position: `let b = <></>` stays `<></>` instead of `null`, and
+  `let c = <><></></>` keeps both levels instead of collapsing to `<></>`. Applies
+  to the React, Preact, Solid, Vue, and Ripple to_ts targets.
+
+- [#1292](https://github.com/Ripple-TS/ripple/pull/1292)
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep an authored `<> … </>`
+  fragment verbatim in EVERY position, instead of unwrapping a single-child
+  fragment to its bare child (React, Preact, Solid, Vue, and Ripple `to_ts`).
+
+  Previously a single-child fragment was collapsed — `const v = <>{1}</>` became
+  `const v = 1`, `return <>{x}</>` became `return x`, and
+  `@if (cond()) { <>{'Hi'}</> }` became `cond() ? 'Hi' : null` — turning the
+  author's JSX into a plain value and changing its meaning (a fragment is always a
+  truthy element and has a different type, so collapsing can produce the wrong
+  output). Authored fragments are now kept everywhere:
+  - value positions: a variable initializer, an assignment, an operator operand, a
+    conditional branch, an array element, a call argument;
+  - render output: a component's `<> … </>` render, a `return <>…</>`, an arrow
+    body `() => <>…</>`;
+  - the branches of an `@if`/`@for`/`@switch`/`@try` (`@if (c) { <>{'Hi'}</> }` →
+    `c ? <>{'Hi'}</> : null`, `@for (…) { <>{x}</> }` → `… => <>{x}</>`);
+  - Ripple `to_ts` additionally keeps a fragment in a JSX-child `{ … }` container
+    slot (`<div>{<>{x}</>}</div>`), matching the JS targets.
+
+  An empty authored `<></>` is also kept verbatim everywhere — `return <></>`
+  stays `return <></>` (not `null`) on all targets.
+
+  A compiler-generated wrapper fragment (the one added around a control-flow
+  directive so it lowers to a value) is marked internally and still collapses, so
+  `const x = @switch (…) { … }` is unchanged. A nested authored fragment collapses
+  outer→inner (`<><>{x}</></>` → `<>{x}</>`) — still a fragment, so no wrong
+  output. A `<style>` inside a fragment is still collected and scoped (the re-wrap
+  operates on the already style-stripped value). Ripple's client/server runtime
+  output is unaffected (it renders fragments via `tsrx_element`).
+
+- [#1292](https://github.com/Ripple-TS/ripple/pull/1292)
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Keep a `<> … </>` fragment
+  that is combined into an expression as a fragment, instead of collapsing its
+  single child to a bare value (React, Preact, Solid, Vue, and Ripple `to_ts`).
+
+  A fragment is always a truthy element, but its single child may be falsy, so
+  unwrapping `<>{0}</>` to `0` flipped the meaning of `<>{0}</> || 'default'` from
+  rendering `0` to rendering `'default'`. When a fragment is the operand of an
+  operator, a conditional branch, an array element, or another combined
+  expression, the fragment is now preserved. The existing collapse is unchanged
+  for a fragment that is the sole value of a render-output slot (a `return`, a
+  variable initializer, an arrow body, a call argument), where it only renders and
+  the collapse is invisible.
+
+- [#1298](https://github.com/Ripple-TS/ripple/pull/1298)
+  [`2b65285`](https://github.com/Ripple-TS/ripple/commit/2b65285bfcd4c6a0aa93d7fa0b25082e6ec74e1f)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Apply lazy `&{ … }` /
+  `&[ … ]` destructuring inside nested `@{ … }` code blocks and `@if` / `@for` /
+  `@switch` / `@try` directive bodies (React, Preact, Solid, and Vue production
+  output), instead of leaving the lazy declaration as a plain destructure while
+  its references go unrewritten.
+
+  These scopes lower to compiler-generated function boundaries — scoped IIFEs,
+  `.map(...)` callbacks, and `<Show>` / `<For>` / `<Match>` render closures — that
+  did not exist when `has_lazy_descendants` was first stamped, so the lazy
+  transform's fast-path skipped them. The descendant flag is now re-derived over
+  the fully lowered tree before the transform runs, so a `let &{ name } = props`
+  declared in a nested block or directive body is rewritten to
+  `let __lazy0 = props` + `__lazy0.name` exactly as it is in a flat component
+  body. A `@switch` case body's lazy bindings are now collected too (the shared
+  switch block scope), so a reference like `{value}` becomes `{__lazy0.value}`
+  rather than a half-transformed `let __lazy0 = props` with a dangling `value`.
+
+  Also rewrite a lazy binding used as a JSX element/component name to a member
+  expression (`function Comp(&{ Item }) @{ <Item></Item> }` →
+  `function Comp(__lazy0) { return <__lazy0.Item></__lazy0.Item>; }`). The bound
+  name is no longer a local once the param/declaration is replaced with the
+  generated `__lazy0` source, so `<Item>` had been leaking a reference to an
+  undefined identifier; it now reads the component off the lazy source like every
+  other reference does.
+
+  An untyped lazy object param no longer gets a synthesized `{ … : any }` type.
+  The source specified no type, so the generated param is left implicitly `any`
+  (`function Comp(__lazy0)`) instead of carrying a fabricated object shape; a
+  param with an author-provided type still keeps it
+  (`function Comp(__lazy0: Props)`).
+
+  Type-only (virtual TSX) output is unchanged: it never runs the lazy transform,
+  so the param keeps printing as a plain destructure (`{ Item }`, untyped) and
+  `<Item>` keeps referencing that in-scope binding, which preserves identity-style
+  source mappings for editor features.
+
+- [#1307](https://github.com/Ripple-TS/ripple/pull/1307)
+  [`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Skip the wrapper anchor for
+  single control-flow / code-block / component root scopes. When a scope's entire
+  renderable output is a single `@if`, `@switch`, `@for`, `@try`, or static child
+  component — i.e. a component body, a control-flow branch, or a `@{}` body whose
+  only output after setup is one of these — the compiler now renders it directly
+  before the parent-provided `__anchor` instead of synthesizing a `<!>` fragment
+  wrapper and an extra append + clone. For deep recursive trees this measurably
+  cuts mount time and shrinks generated output; in the recursive-context benchmark
+  it brought mount DOM operations to one clone + one append per element (from
+  ~1.5×) and halved the comment-anchor nodes.
+
+  Hydration is preserved. The control-flow runtimes
+  (`if_block`/`switch_block`/`for_block`/`for_block_keyed`/`try_block`) capture
+  the SSR boundary marker and hand it to `append()` afterward, so the existing
+  context-aware cursor advance still runs — including for a root scope used as a
+  child of a composite/slot with following siblings. Single-component roots need
+  no runtime change at all, since a component's own content advances the hydration
+  cursor.
+
+  Also relaxes the compiler's text-expression detection: `string + anything` (e.g.
+  `{a + '|' + b}`) is now recognized as text and lowered to the fast `set_text`
+  path without requiring an explicit `as string`, since such an expression always
+  evaluates to a string in JS.
+
+- [#1281](https://github.com/Ripple-TS/ripple/pull/1281)
+  [`b887deb`](https://github.com/Ripple-TS/ripple/commit/b887debf5f47e63d73184ac218ec8b3542a5e21c)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Fix a parser stack overflow
+  on a text-then-element sibling that follows newline-separated sibling elements
+  (e.g. `<pre><b>2</b>\n<b>3</b>1<b>4</b></pre>`). The newline between two
+  siblings leaves a stale `jsxText` token anchored on the next `<`; recovering
+  from it used to clear _every_ JSX children context — including the parent
+  element's own — so the later `text<tag>` sibling tokenized its `<` as a
+  relational operator that `parseTemplateBody` has no branch for, recursing
+  forever. The recovery now keeps one children context per still-open ancestor
+  when the `<` opens a child/sibling tag, and only clears the full run when it
+  opens a closing `</tag>`.
+
+- [#1284](https://github.com/Ripple-TS/ripple/pull/1284)
+  [`3668c5f`](https://github.com/Ripple-TS/ripple/commit/3668c5fe9cdaca4862707d653d23af94780f42af)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - fix(parser): keep significant
+  whitespace before a `@{ … }` code block
+
+  The native template body skipped leading whitespace when repositioning onto a
+  `@{ … }` code block, so `<>   @{<b>123</b>}   </>` lost its leading edge space
+  (only the trailing one survived). The whitespace is now emitted as a text child,
+  matching the equivalent plain-element case; layout indentation (whitespace
+  containing a newline) is still dropped.
+
 ## 0.1.32
 
 ### Patch Changes

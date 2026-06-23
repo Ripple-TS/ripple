@@ -1,5 +1,65 @@
 # ripple
 
+## 0.3.85
+
+### Patch Changes
+
+- [#1307](https://github.com/Ripple-TS/ripple/pull/1307)
+  [`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Skip the wrapper anchor for
+  single control-flow / code-block / component root scopes. When a scope's entire
+  renderable output is a single `@if`, `@switch`, `@for`, `@try`, or static child
+  component — i.e. a component body, a control-flow branch, or a `@{}` body whose
+  only output after setup is one of these — the compiler now renders it directly
+  before the parent-provided `__anchor` instead of synthesizing a `<!>` fragment
+  wrapper and an extra append + clone. For deep recursive trees this measurably
+  cuts mount time and shrinks generated output; in the recursive-context benchmark
+  it brought mount DOM operations to one clone + one append per element (from
+  ~1.5×) and halved the comment-anchor nodes.
+
+  Hydration is preserved. The control-flow runtimes
+  (`if_block`/`switch_block`/`for_block`/`for_block_keyed`/`try_block`) capture
+  the SSR boundary marker and hand it to `append()` afterward, so the existing
+  context-aware cursor advance still runs — including for a root scope used as a
+  child of a composite/slot with following siblings. Single-component roots need
+  no runtime change at all, since a component's own content advances the hydration
+  cursor.
+
+  Also relaxes the compiler's text-expression detection: `string + anything` (e.g.
+  `{a + '|' + b}`) is now recognized as text and lowered to the fast `set_text`
+  path without requiring an explicit `as string`, since such an expression always
+  evaluates to a string in JS.
+
+- [#1307](https://github.com/Ripple-TS/ripple/pull/1307)
+  [`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2)
+  Thanks [@leonidaz](https://github.com/leonidaz)! - Scope the client flush
+  traversal to the updated subtree. Previously every flush walked the whole root
+  block tree to find dirty subscribers, so a deeply-scoped update (e.g. mutating
+  state read by only a small subtree) paid a cost proportional to the entire tree
+  rather than the affected branch. `flush_updates` now descends only along the
+  routing path to each directly-scheduled block and fully scans just that block's
+  subtree, where its subscribers live. A tracked read from outside its owner's
+  subtree (e.g. smuggled across sibling subtrees via a module-level variable) is
+  detected in `register_dependency` and transparently falls back to the original
+  full-tree scan, so behavior is unchanged.
+
+- Updated dependencies
+  [[`ba498cd`](https://github.com/Ripple-TS/ripple/commit/ba498cde76e9f83235ce91da825f403a28441bff),
+  [`313b351`](https://github.com/Ripple-TS/ripple/commit/313b3513e4a959dd80b546da41c798066c5ccb0f),
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115),
+  [`bbe6e74`](https://github.com/Ripple-TS/ripple/commit/bbe6e7422c690558f0dfcb3abe5452d4f4cdde91),
+  [`0e9f523`](https://github.com/Ripple-TS/ripple/commit/0e9f52358a615c2fc7759544e96c43dccb533c86),
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115),
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115),
+  [`2b65285`](https://github.com/Ripple-TS/ripple/commit/2b65285bfcd4c6a0aa93d7fa0b25082e6ec74e1f),
+  [`35ac700`](https://github.com/Ripple-TS/ripple/commit/35ac70052d79efae41bb1df2440fee3f052ca115),
+  [`f55466b`](https://github.com/Ripple-TS/ripple/commit/f55466bde65d0cff00c0c4525af9d68ae794ffd2),
+  [`b887deb`](https://github.com/Ripple-TS/ripple/commit/b887debf5f47e63d73184ac218ec8b3542a5e21c),
+  [`3668c5f`](https://github.com/Ripple-TS/ripple/commit/3668c5fe9cdaca4862707d653d23af94780f42af),
+  [`bbc3843`](https://github.com/Ripple-TS/ripple/commit/bbc384387e33c538234be36c07cc4b30ef6ce136)]:
+  - @tsrx/ripple@0.1.33
+  - @tsrx/core@0.1.33
+
 ## 0.3.84
 
 ### Patch Changes
