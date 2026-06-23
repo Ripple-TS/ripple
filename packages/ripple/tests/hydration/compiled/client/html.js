@@ -45,7 +45,7 @@ var root_41 = _$_.template(`<div class="section-items"><!></div>`, 0);
 var root_40 = _$_.template(`<section class="sidebar-section"><div class="section-header"><h2> </h2><button>Toggle</button></div><!></section>`, 0);
 var root_43 = _$_.template(`<!><!>`, 1, 2);
 var root_44 = _$_.template(`<!><!>`, 1, 2);
-var root_42 = _$_.template(`<aside class="sidebar"><nav><div class="group"><!></div><div class="group"><!></div></nav></aside>`, 0);
+var root_42 = _$_.template(`<aside class="sidebar"><nav><div class="group"></div><div class="group"></div></nav></aside>`, 0);
 var root_45 = _$_.template(`<header class="page-header"><div class="logo">MyApp</div></header>`, 0);
 var root_47 = _$_.template(`<div class="edit-link"><a href="/edit">Edit</a></div>`, 0);
 var root_46 = _$_.template(`<div class="layout"><!><div class="content-wrapper"><!><main class="main-content"><div class="article"><div><h1>Introduction</h1><p>Welcome to the docs.</p></div></div><!><!></main></div></div>`, 0);
@@ -923,23 +923,23 @@ function SideNav({ currentPath }) {
 				var div_32 = _$_.child(nav_2);
 
 				{
-					var node_21 = _$_.child(div_32);
+					var append_anchor = _$_.append_into(div_32);
 
-					_$_.render_component(SidebarSection, node_21, {
+					_$_.render_component(SidebarSection, append_anchor, {
 						title: "Getting Started",
 						children: _$_.tsrx_element((__anchor, __block) => {
 							var fragment_7 = root_43();
-							var node_22 = _$_.first_child_frag(fragment_7);
+							var node_21 = _$_.first_child_frag(fragment_7);
 
-							_$_.render_component(NavItem, node_22, {
+							_$_.render_component(NavItem, node_21, {
 								href: "/intro",
 								text: "Introduction",
 								active: currentPath === '/intro'
 							});
 
-							var node_23 = _$_.sibling(node_22);
+							var node_22 = _$_.sibling(node_21);
 
-							_$_.render_component(NavItem, node_23, {
+							_$_.render_component(NavItem, node_22, {
 								href: "/start",
 								text: "Quick Start",
 								active: currentPath === '/start'
@@ -955,23 +955,23 @@ function SideNav({ currentPath }) {
 				var div_33 = _$_.sibling(div_32);
 
 				{
-					var node_24 = _$_.child(div_33);
+					var append_anchor_1 = _$_.append_into(div_33);
 
-					_$_.render_component(SidebarSection, node_24, {
+					_$_.render_component(SidebarSection, append_anchor_1, {
 						title: "Guide",
 						children: _$_.tsrx_element((__anchor, __block) => {
 							var fragment_8 = root_44();
-							var node_25 = _$_.first_child_frag(fragment_8);
+							var node_23 = _$_.first_child_frag(fragment_8);
 
-							_$_.render_component(NavItem, node_25, {
+							_$_.render_component(NavItem, node_23, {
 								href: "/guide/app",
 								text: "Application",
 								active: currentPath === '/guide/app'
 							});
 
-							var node_26 = _$_.sibling(node_25);
+							var node_24 = _$_.sibling(node_23);
 
-							_$_.render_component(NavItem, node_26, {
+							_$_.render_component(NavItem, node_24, {
 								href: "/guide/syntax",
 								text: "Syntax",
 								active: currentPath === '/guide/syntax'
@@ -1003,25 +1003,25 @@ export function LayoutWithSidebarAndMain() {
 		var div_34 = root_46();
 
 		{
-			var node_27 = _$_.child(div_34);
+			var node_25 = _$_.child(div_34);
 
-			_$_.render_component(PageHeader, node_27, {});
+			_$_.render_component(PageHeader, node_25, {});
 
-			var div_35 = _$_.sibling(node_27);
+			var div_35 = _$_.sibling(node_25);
 
 			{
-				var node_28 = _$_.child(div_35);
+				var node_26 = _$_.child(div_35);
 
-				_$_.render_component(SideNav, node_28, { currentPath: "/intro" });
+				_$_.render_component(SideNav, node_26, { currentPath: "/intro" });
 
-				var main_1 = _$_.sibling(node_28);
+				var main_1 = _$_.sibling(node_26);
 
 				{
 					var div_36 = _$_.child(main_1);
 
 					_$_.pop(div_36);
 
-					var node_29 = _$_.sibling(div_36);
+					var node_27 = _$_.sibling(div_36);
 
 					{
 						var consequent_6 = (__anchor) => {
@@ -1030,14 +1030,14 @@ export function LayoutWithSidebarAndMain() {
 							_$_.append(__anchor, div_37);
 						};
 
-						_$_.if(node_29, (__render) => {
+						_$_.if(node_27, (__render) => {
 							if (true) __render(consequent_6);
 						});
 					}
 
-					var node_30 = _$_.sibling(node_29);
+					var node_28 = _$_.sibling(node_27);
 
-					_$_.render_component(PageHeader, node_30, {});
+					_$_.render_component(PageHeader, node_28, {});
 					_$_.pop(main_1);
 				}
 
@@ -1083,9 +1083,9 @@ export function ArticleWithChildrenThenSibling() {
 		var div_39 = root_50();
 
 		{
-			var node_31 = _$_.child(div_39);
+			var node_29 = _$_.child(div_39);
 
-			_$_.render_component(ArticleWrapper, node_31, {
+			_$_.render_component(ArticleWrapper, node_29, {
 				children: _$_.tsrx_element((__anchor, __block) => {
 					var fragment_9 = root_51();
 
@@ -1093,7 +1093,7 @@ export function ArticleWithChildrenThenSibling() {
 				})
 			});
 
-			var node_32 = _$_.sibling(node_31);
+			var node_30 = _$_.sibling(node_29);
 
 			{
 				var consequent_7 = (__anchor) => {
@@ -1102,12 +1102,12 @@ export function ArticleWithChildrenThenSibling() {
 					_$_.append(__anchor, div_40);
 				};
 
-				_$_.if(node_32, (__render) => {
+				_$_.if(node_30, (__render) => {
 					if (true) __render(consequent_7);
 				});
 			}
 
-			var node_33 = _$_.sibling(node_32);
+			var node_31 = _$_.sibling(node_30);
 
 			{
 				var consequent_8 = (__anchor) => {
@@ -1116,14 +1116,14 @@ export function ArticleWithChildrenThenSibling() {
 					_$_.append(__anchor, nav_3);
 				};
 
-				_$_.if(node_33, (__render) => {
+				_$_.if(node_31, (__render) => {
 					if (true) __render(consequent_8);
 				});
 			}
 
-			var node_34 = _$_.sibling(node_33);
+			var node_32 = _$_.sibling(node_31);
 
-			_$_.render_component(SimpleFooter, node_34, {});
+			_$_.render_component(SimpleFooter, node_32, {});
 			_$_.pop(div_39);
 		}
 
@@ -1137,9 +1137,9 @@ export function ArticleWithHtmlChildThenSibling() {
 		var div_41 = root_54();
 
 		{
-			var node_35 = _$_.child(div_41);
+			var node_33 = _$_.child(div_41);
 
-			_$_.render_component(ArticleWrapper, node_35, {
+			_$_.render_component(ArticleWrapper, node_33, {
 				children: _$_.tsrx_element((__anchor, __block) => {
 					var div_42 = root_55();
 
@@ -1148,7 +1148,7 @@ export function ArticleWithHtmlChildThenSibling() {
 				})
 			});
 
-			var node_36 = _$_.sibling(node_35);
+			var node_34 = _$_.sibling(node_33);
 
 			{
 				var consequent_9 = (__anchor) => {
@@ -1157,14 +1157,14 @@ export function ArticleWithHtmlChildThenSibling() {
 					_$_.append(__anchor, div_43);
 				};
 
-				_$_.if(node_36, (__render) => {
+				_$_.if(node_34, (__render) => {
 					if (true) __render(consequent_9);
 				});
 			}
 
-			var node_37 = _$_.sibling(node_36);
+			var node_35 = _$_.sibling(node_34);
 
-			_$_.render_component(SimpleFooter, node_37, {});
+			_$_.render_component(SimpleFooter, node_35, {});
 			_$_.pop(div_41);
 		}
 
@@ -1192,7 +1192,7 @@ function InlineArticleLayout({ children }) {
 
 			_$_.pop(article_3);
 
-			var node_38 = _$_.sibling(article_3);
+			var node_36 = _$_.sibling(article_3);
 
 			{
 				var consequent_10 = (__anchor) => {
@@ -1201,14 +1201,14 @@ function InlineArticleLayout({ children }) {
 					_$_.append(__anchor, div_46);
 				};
 
-				_$_.if(node_38, (__render) => {
+				_$_.if(node_36, (__render) => {
 					if (true) __render(consequent_10);
 				});
 			}
 
-			var node_39 = _$_.sibling(node_38);
+			var node_37 = _$_.sibling(node_36);
 
-			_$_.render_component(SimpleFooter, node_39, {});
+			_$_.render_component(SimpleFooter, node_37, {});
 			_$_.pop(div_44);
 		}
 
@@ -1260,18 +1260,18 @@ function DocsLayoutInner(__props) {
 		var div_48 = root_63();
 
 		{
-			var node_40 = _$_.child(div_48);
+			var node_38 = _$_.child(div_48);
 
-			_$_.render_component(HeaderStub, node_40, {});
+			_$_.render_component(HeaderStub, node_38, {});
 
-			var div_49 = _$_.sibling(node_40);
+			var div_49 = _$_.sibling(node_38);
 
 			{
-				var node_41 = _$_.child(div_49);
+				var node_39 = _$_.child(div_49);
 
-				_$_.render_component(SidebarStub, node_41, {});
+				_$_.render_component(SidebarStub, node_39, {});
 
-				var main_2 = _$_.sibling(node_41);
+				var main_2 = _$_.sibling(node_39);
 
 				{
 					var div_53 = _$_.child(main_2);
@@ -1298,7 +1298,7 @@ function DocsLayoutInner(__props) {
 
 								_$_.pop(article_4);
 
-								var node_42 = _$_.sibling(article_4);
+								var node_40 = _$_.sibling(article_4);
 
 								{
 									var consequent_11 = (__anchor) => {
@@ -1307,12 +1307,12 @@ function DocsLayoutInner(__props) {
 										_$_.append(__anchor, div_54);
 									};
 
-									_$_.if(node_42, (__render) => {
+									_$_.if(node_40, (__render) => {
 										if (_$_.fallback(__props.editPath, '')) __render(consequent_11);
 									});
 								}
 
-								var node_43 = _$_.sibling(node_42);
+								var node_41 = _$_.sibling(node_40);
 
 								{
 									var consequent_12 = (__anchor) => {
@@ -1336,14 +1336,14 @@ function DocsLayoutInner(__props) {
 										_$_.append(__anchor, nav_4);
 									};
 
-									_$_.if(node_43, (__render) => {
+									_$_.if(node_41, (__render) => {
 										if (_$_.fallback(__props.nextLink, null)) __render(consequent_12);
 									});
 								}
 
-								var node_44 = _$_.sibling(node_43);
+								var node_42 = _$_.sibling(node_41);
 
-								_$_.render_component(FooterStub, node_44, {});
+								_$_.render_component(FooterStub, node_42, {});
 								_$_.pop(div_51);
 							}
 						}
@@ -1397,18 +1397,18 @@ function DocsLayoutExact(__props) {
 		var div_57 = root_68();
 
 		{
-			var node_45 = _$_.child(div_57);
+			var node_43 = _$_.child(div_57);
 
-			_$_.render_component(HeaderStub, node_45, {});
+			_$_.render_component(HeaderStub, node_43, {});
 
-			var div_58 = _$_.sibling(node_45);
+			var div_58 = _$_.sibling(node_43);
 
 			{
-				var node_46 = _$_.child(div_58);
+				var node_44 = _$_.child(div_58);
 
-				_$_.render_component(SidebarStub, node_46, {});
+				_$_.render_component(SidebarStub, node_44, {});
 
-				var main_3 = _$_.sibling(node_46);
+				var main_3 = _$_.sibling(node_44);
 
 				{
 					var div_62 = _$_.child(main_3);
@@ -1435,7 +1435,7 @@ function DocsLayoutExact(__props) {
 
 								_$_.pop(article_5);
 
-								var node_47 = _$_.sibling(article_5);
+								var node_45 = _$_.sibling(article_5);
 
 								{
 									var consequent_13 = (__anchor) => {
@@ -1452,19 +1452,19 @@ function DocsLayoutExact(__props) {
 										_$_.append(__anchor, div_63);
 									};
 
-									_$_.if(node_47, (__render) => {
+									_$_.if(node_45, (__render) => {
 										if (_$_.fallback(__props.editPath, '')) __render(consequent_13);
 									});
 								}
 
-								var node_48 = _$_.sibling(node_47);
+								var node_46 = _$_.sibling(node_45);
 
 								{
 									var consequent_16 = (__anchor) => {
 										var nav_5 = root_70();
 
 										{
-											var node_49 = _$_.child(nav_5);
+											var node_47 = _$_.child(nav_5);
 
 											{
 												var consequent_14 = (__anchor) => {
@@ -1494,12 +1494,12 @@ function DocsLayoutExact(__props) {
 													_$_.append(__anchor, span_6);
 												};
 
-												_$_.if(node_49, (__render) => {
+												_$_.if(node_47, (__render) => {
 													if (_$_.fallback(__props.prevLink, null)) __render(consequent_14); else __render(alternate_1, false);
 												});
 											}
 
-											var node_50 = _$_.sibling(node_49);
+											var node_48 = _$_.sibling(node_47);
 
 											{
 												var consequent_15 = (__anchor) => {
@@ -1523,7 +1523,7 @@ function DocsLayoutExact(__props) {
 													_$_.append(__anchor, a_8);
 												};
 
-												_$_.if(node_50, (__render) => {
+												_$_.if(node_48, (__render) => {
 													if (_$_.fallback(__props.nextLink, null)) __render(consequent_15);
 												});
 											}
@@ -1534,14 +1534,14 @@ function DocsLayoutExact(__props) {
 										_$_.append(__anchor, nav_5);
 									};
 
-									_$_.if(node_48, (__render) => {
+									_$_.if(node_46, (__render) => {
 										if (_$_.fallback(__props.prevLink, null) || _$_.fallback(__props.nextLink, null)) __render(consequent_16);
 									});
 								}
 
-								var node_51 = _$_.sibling(node_48);
+								var node_49 = _$_.sibling(node_46);
 
-								_$_.render_component(FooterStub, node_51, {});
+								_$_.render_component(FooterStub, node_49, {});
 								_$_.pop(div_60);
 							}
 						}
@@ -1551,7 +1551,7 @@ function DocsLayoutExact(__props) {
 						var aside_4 = _$_.sibling(div_61);
 
 						{
-							var node_52 = _$_.child(aside_4);
+							var node_50 = _$_.child(aside_4);
 
 							{
 								var consequent_17 = (__anchor) => {
@@ -1590,7 +1590,7 @@ function DocsLayoutExact(__props) {
 									_$_.append(__anchor, div_64);
 								};
 
-								_$_.if(node_52, (__render) => {
+								_$_.if(node_50, (__render) => {
 									if (_$_.fallback(__props.toc, []).length > 0) __render(consequent_17);
 								});
 							}

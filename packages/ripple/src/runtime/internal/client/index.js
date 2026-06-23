@@ -2,6 +2,7 @@ export {
 	first_child as child,
 	first_child_frag,
 	next_sibling as sibling,
+	append_into,
 	document,
 	create_text,
 	init_operations,

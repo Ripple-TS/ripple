@@ -1,4 +1,4 @@
-/** @import { Block } from '#client' */
+/** @import { AppendIntoAnchor, Block } from '#client' */
 
 import { is_tsrx_element } from '../../element.js';
 import { render_value } from './expression.js';
@@ -6,7 +6,7 @@ import { active_block, pop_component, push_component } from './runtime.js';
 
 /**
  * @param {Function} fn
- * @param {Node} anchor
+ * @param {Node | AppendIntoAnchor} anchor
  * @param {Record<string, any>} props
  * @param {Block | null} [block=active_block]
  * @returns {void}
@@ -21,7 +21,7 @@ export function render_component(fn, anchor, props, block = active_block) {
 
 /**
  * @param {Function} fn
- * @param {Node} anchor
+ * @param {Node | AppendIntoAnchor} anchor
  * @param {Record<string, any>} props
  * @param {Block | null} [block=active_block]
  * @returns {void}

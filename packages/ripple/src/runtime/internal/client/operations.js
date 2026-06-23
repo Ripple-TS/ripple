@@ -1,3 +1,5 @@
+/** @import { AppendIntoAnchor } from '#client' */
+
 import { TEXT_NODE } from '../../../constants.js';
 import { hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { get_descriptor } from '@tsrx/core/runtime/language-helpers';
@@ -81,6 +83,29 @@ export function first_child(node, is_text) {
 	set_hydrate_node(child);
 
 	return child;
+}
+
+/**
+ * Anchor sentinel for all-component children: components render directly into
+ * `parent` instead of each inserting before a placeholder comment. `append()`
+ * detects the sentinel (no `nodeType`) and appendChild()s into `parent`. During
+ * hydration we descend the cursor into `parent` (mirroring first_child) so the
+ * first appended component adopts the server's first child of `parent`.
+ * @param {Node} parent
+ * @returns {AppendIntoAnchor}
+ */
+export function append_into(parent) {
+	if (hydrating) {
+		var child = get_first_child(/** @type {Node} */ (hydrate_node));
+
+		if (child === null) {
+			child = /** @type {Node} */ (hydrate_node).appendChild(create_text());
+		}
+
+		set_hydrate_node(child);
+	}
+
+	return { parent };
 }
 
 /**

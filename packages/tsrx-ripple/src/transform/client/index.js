@@ -2636,9 +2636,17 @@ const visitors = {
 			}
 		} else {
 			const root_controlled = /** @type {any} */ (node).root_controlled === true;
-			const id = root_controlled ? b.id('__anchor') : state.flush_node?.();
+			// `append_into` is a `{ parent }` sentinel set by transform_children when
+			// every sibling is a static component: render directly into the parent,
+			// no `<!>` placeholder and no child()/sibling() navigation.
+			const append_into = node.append_into ?? null;
+			const id = root_controlled
+				? b.id('__anchor')
+				: append_into
+					? append_into
+					: state.flush_node?.();
 
-			if (!root_controlled) {
+			if (!root_controlled && !append_into) {
 				state.template?.push('<!>');
 			}
 
@@ -5225,6 +5233,34 @@ function transform_children(children, context) {
 				!is_ripple_fragment_element(single_output, context)));
 	if (root_controlled) {
 		/** @type {any} */ (single_output).root_controlled = true;
+	}
+
+	// All-component children can append directly into the parent element instead of
+	// each rendering before a synthesized `<!>` placeholder. We pass a `{ parent }`
+	// sentinel as the anchor; append() detects it (no nodeType) and appendChild()s
+	// the component's root, dropping the placeholder comment nodes from the template.
+	/** @param {AST.Node} n */
+	const is_static_component_child = (n) =>
+		n.type === 'Element' &&
+		/** @type {any} */ (n).isDynamic !== true &&
+		n.id.type === 'Identifier' &&
+		!n.id.tracked &&
+		n.id.name !== 'children' &&
+		!is_element_dom_element(n) &&
+		!is_ripple_fragment_element(n, context);
+	const all_component_append =
+		!root &&
+		!root_controlled &&
+		state.flush_node != null &&
+		normalized.length > 0 &&
+		normalized.every(is_static_component_child);
+	if (all_component_append) {
+		const parent_id = /** @type {AST.Expression} */ (state.flush_node?.());
+		const append_anchor_id = b.id(state.scope.generate('append_anchor'));
+		state.init?.push(b.var(append_anchor_id, b.call('_$_.append_into', parent_id)));
+		for (const child of normalized) {
+			child.append_into = append_anchor_id;
+		}
 	}
 
 	/** @param {AST.Node} node */

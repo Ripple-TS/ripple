@@ -26,6 +26,10 @@ export type DeferredTrackedEntry = {
 	r: number; // request version id
 };
 
+export type AppendIntoAnchor = {
+	parent: Node;
+};
+
 export type Block = {
 	co: null | Component;
 	d: null | Dependency;

@@ -1,4 +1,4 @@
-/** @import { Block } from '#client' */
+/** @import { AppendIntoAnchor, Block } from '#client' */
 
 import {
 	COMMENT_NODE,
@@ -137,7 +137,7 @@ export function template(content, flags, count = 1) {
 
 /**
  * Appends a DOM node before the anchor node.
- * @param {ChildNode} anchor - The anchor node.
+ * @param {ChildNode | AppendIntoAnchor} anchor - The anchor node.
  * @param {Node} dom - The DOM node to append.
  * @param {boolean} [skip_advance] - If true, don't advance hydrate_node (used when next() already positioned it).
  */
@@ -189,6 +189,14 @@ export function append(anchor, dom, skip_advance) {
 		// Only advance if there's a next sibling. At the end of a component's
 		// content, there might not be more siblings, and that's fine.
 		hydrate_advance();
+		return;
+	}
+	if ('parent' in anchor) {
+		// Append-into-parent sentinel: an all-component-children element passes a
+		// `{ parent }` object (no `nodeType`) so each component's root appends as
+		// the host's last child instead of inserting before a placeholder comment.
+		// The block still self-marks its range via assign_nodes, so teardown works.
+		anchor.parent.appendChild(dom);
 		return;
 	}
 	anchor.before(/** @type {Node} */ (dom));
