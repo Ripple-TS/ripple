@@ -1480,6 +1480,13 @@ export interface TransformServerState extends BaseState {
 	dev?: boolean;
 	return_flags?: Map<AST.ReturnStatement, { name: string; tracked: boolean }>;
 	template_child?: boolean;
+	/**
+	 * True while transforming the direct body of a control-flow branch
+	 * (`@if`/`@else`/`@for`/`@switch`/`@try`). A `<>…</>` in this position is
+	 * bracketed with hydration block markers so the client's fragment
+	 * `expression()` finds a matching boundary during hydration.
+	 */
+	control_flow_branch_body?: boolean;
 	skip_regular_blocks?: boolean;
 	in_regular_block?: boolean;
 	is_tsrx_element?: boolean;
