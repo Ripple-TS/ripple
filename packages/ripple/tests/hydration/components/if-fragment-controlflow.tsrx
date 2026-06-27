@@ -69,6 +69,23 @@ export function ComponentBodyFragmentControlFlow() @{
 	</>
 }
 
+// Component-body fragment whose first child is a `@{}` code block that renders
+// control flow. The code block lowers to a render_expression(tsrx_element) on
+// the client and emits its own SSR marker; hydration must keep the code block's
+// boundary aligned.
+export function ComponentBodyCodeBlockControlFlow() @{
+	const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
+	<>
+		@{
+			const rows = muzes;
+			@for (const muze of rows; key muze.muzeId) {
+				<p class="muze">{muze.muzeId}</p>
+			}
+		}
+		<span class="after">{'after'}</span>
+	</>
+}
+
 // @if branch fragment whose first child is a `@{}` code block that renders
 // control flow. The fragment is a control-flow branch body, so it is bracketed
 // via the control_flow_branch_body flag.

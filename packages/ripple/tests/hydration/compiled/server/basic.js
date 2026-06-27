@@ -544,9 +544,18 @@ export function NestedTsrxInsideTopLevelTsxExpression() {
 		});
 
 		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(content);
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -563,9 +572,18 @@ export function NestedTsrxElementsInsideTopLevelTsxValue() {
 		});
 
 		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(content);
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }
@@ -599,9 +617,18 @@ export function TsxDeclaredBeforeTopLevelTsx() {
 		});
 
 		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+
 			{
+				_$_.output_push(__out);
+				__out = '';
 				_$_.render_expression(content);
 			}
+
+			__out += '<!--]-->';
+			_$_.output_push(__out);
 		});
 	});
 }

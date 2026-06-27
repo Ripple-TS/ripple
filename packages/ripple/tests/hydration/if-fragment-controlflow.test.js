@@ -50,6 +50,18 @@ describe('hydration > @if body is a fragment of control-flow siblings', () => {
 		expect(container.querySelector('.after')).not.toBeNull();
 	});
 
+	it('hydrates a component-body fragment leading with a @{} code block of control flow', async () => {
+		await hydrateComponent(
+			ServerComponents.ComponentBodyCodeBlockControlFlow,
+			ClientComponents.ComponentBodyCodeBlockControlFlow,
+		);
+		expect(Array.from(container.querySelectorAll('.muze')).map((n) => n.textContent)).toEqual([
+			'b',
+			'c',
+		]);
+		expect(container.querySelector('.after')).not.toBeNull();
+	});
+
 	it('hydrates an @if branch fragment leading with a @{} code block of control flow', async () => {
 		await hydrateComponent(
 			ServerComponents.IfCodeBlockControlFlow,

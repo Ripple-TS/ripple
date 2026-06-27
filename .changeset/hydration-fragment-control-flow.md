@@ -13,6 +13,8 @@ control-flow's start marker as its own and advanced the hydration cursor past
 that child's content, landing later operations on a comment node. The server
 transform now brackets such fragments with hydration block markers — matching
 every other control-flow block — when the fragment is a control-flow branch body
-(or nested in an element within one) or leads with control flow. Fragments that
-lead with an element/component are unchanged (they reuse their host boundary), so
-no extra comment nodes are emitted for the common cases.
+(or nested in an element within one) or leads with content that emits its own
+start marker: a control-flow directive or a `{ … }`/`@{ … }` expression lowered
+to `render_expression`. Fragments that lead with an element/component/plain text
+are unchanged (they reuse their host boundary), so no extra comment nodes are
+emitted for the common cases.

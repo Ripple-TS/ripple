@@ -103,6 +103,37 @@ export function ComponentBodyFragmentControlFlow() {
 	});
 }
 
+export function ComponentBodyCodeBlockControlFlow() {
+	return _$_.tsrx_element(() => {
+		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];
+
+		_$_.regular_block(() => {
+			let __out = '';
+
+			__out += '<!--[-->';
+			_$_.output_push(__out);
+			__out = '';
+
+			_$_.render_expression(_$_.tsrx_element(() => {
+				let __out = '';
+				const rows = muzes;
+
+				__out += '<!--[-->';
+
+				for (const muze of rows) {
+					__out += '<p class="muze">' + _$_.escape(muze.muzeId) + '</p>';
+				}
+
+				__out += '<!--]-->';
+				_$_.output_push(__out);
+			}));
+
+			__out += '<span class="after">after</span><!--]-->';
+			_$_.output_push(__out);
+		});
+	});
+}
+
 export function IfCodeBlockControlFlow() {
 	return _$_.tsrx_element(() => {
 		const muzes = [{ muzeId: 'b' }, { muzeId: 'c' }];

@@ -750,10 +750,40 @@ function is_template_or_control_flow(node) {
 }
 
 /**
+ * Whether a `{ … }` expression child is lowered to `_$_.render_expression(…)`,
+ * which (unlike `render_tsrx_element` or plain text output) brackets its output
+ * in a `<!--[-->`…`<!--]-->` hydration boundary. Mirrors the routing in the
+ * `TSRXExpression` server visitor. A `@{ … }` block in template position reaches
+ * here as a `TSRXExpression` wrapping its IIFE call.
+ * @param {AST.TSRXExpression} node
+ * @param {TransformServerContext} context
+ * @returns {boolean}
+ */
+function tsrx_expression_emits_marker(node, context) {
+	const expression = /** @type {AST.Expression} */ (node.expression);
+	if (expression.type === 'Literal') {
+		return false;
+	}
+	if (is_static_native_tsrx_function_call(expression, context)) {
+		return false;
+	}
+	const scope = context.state.scope;
+	return (
+		is_children_template_expression(expression, scope) ||
+		contains_template_value_node(/** @type {AST.Node} */ (expression)) ||
+		is_template_value_call(expression, scope) ||
+		is_template_value_binding(expression, scope) ||
+		is_collection_value_expression(expression, scope, context) ||
+		expression_contains_call(expression)
+	);
+}
+
+/**
  * Classify a single node for {@link fragment_leads_with_control_flow}:
- *   - `true`  — it renders leading with a TSRX control-flow directive
- *               (`@if`/`@for`/`@switch`/`@try`), which emits its own `<!--[-->`
- *               start marker during SSR;
+ *   - `true`  — it renders leading with content that emits its own `<!--[-->`
+ *               start marker during SSR: a TSRX control-flow directive
+ *               (`@if`/`@for`/`@switch`/`@try`) or a `{ … }`/`@{ … }` expression
+ *               lowered to `render_expression`;
  *   - `false` — it renders leading with an element/component/text (real DOM that
  *               the fragment reuses / adopts, no borrowable marker);
  *   - `null`  — it produces no leading DOM (plain JS setup, a code-only `@{}`
@@ -761,9 +791,10 @@ function is_template_or_control_flow(node) {
  * Only TSRX directives count; a regular JS `if`/`for`/`switch`/`try` (marked
  * `metadata.regular_js`) is setup, renders nothing, and is skipped.
  * @param {AST.Node} node
+ * @param {TransformServerContext} context
  * @returns {boolean | null}
  */
-function node_leads_with_control_flow(node) {
+function node_leads_with_control_flow(node, context) {
 	switch (node.type) {
 		case 'IfStatement':
 		case 'ForOfStatement':
@@ -772,16 +803,18 @@ function node_leads_with_control_flow(node) {
 			return node.metadata?.regular_js ? null : true;
 		case 'Element':
 		case 'Text':
-		case 'TSRXExpression':
 			return false;
+		case 'TSRXExpression':
+			return tsrx_expression_emits_marker(/** @type {AST.TSRXExpression} */ (node), context);
 		case 'TsrxFragment':
 			return fragment_leads_with_control_flow(
 				node.children.filter((c) => c != null && c.type !== 'EmptyStatement'),
+				context,
 			);
 		case 'JSXCodeBlock':
 			// A `@{ … }` block renders only its `render` output (the body is setup);
 			// a code-only block (no render) contributes no DOM.
-			return node.render != null ? node_leads_with_control_flow(node.render) : null;
+			return node.render != null ? node_leads_with_control_flow(node.render, context) : null;
 		default:
 			// Non-renderable setup statement — keep scanning for the first node.
 			return null;
@@ -789,18 +822,20 @@ function node_leads_with_control_flow(node) {
 }
 
 /**
- * Whether a template fragment's first renderable child is a TSRX control-flow
- * directive. Such a child emits its own `<!--[-->` start marker during SSR,
- * which the client's fragment `expression()` would otherwise mistake for the
- * fragment's own boundary — so the fragment must be bracketed with its own
- * hydration markers. A fragment leading with an element/component/text reuses its
- * host boundary (or adopts real nodes) and must not be bracketed.
+ * Whether a template fragment's first renderable child emits its own `<!--[-->`
+ * start marker during SSR (a TSRX control-flow directive or a `render_expression`
+ * child such as a `@{ … }` block). The client's fragment `expression()` would
+ * otherwise mistake that child's marker for the fragment's own boundary — so the
+ * fragment must be bracketed with its own hydration markers. A fragment leading
+ * with an element/component/text reuses its host boundary (or adopts real nodes)
+ * and must not be bracketed.
  * @param {AST.Node[]} children
+ * @param {TransformServerContext} context
  * @returns {boolean}
  */
-function fragment_leads_with_control_flow(children) {
+function fragment_leads_with_control_flow(children, context) {
 	for (const child of children) {
-		const result = node_leads_with_control_flow(child);
+		const result = node_leads_with_control_flow(child, context);
 		if (result !== null) {
 			return result;
 		}
@@ -2810,7 +2845,8 @@ const visitors = {
 		}
 	},
 
-	TsrxFragment(node, { visit, state }) {
+	TsrxFragment(node, context) {
+		const { visit, state } = context;
 		const children = node.children.filter(
 			(child) => child != null && child.type !== 'EmptyStatement',
 		);
@@ -2852,7 +2888,7 @@ const visitors = {
 			// boundary (or adopts real nodes) and must NOT be bracketed, or the extra
 			// markers desync the static-cursor (`next()` + skip_advance) client path.
 			const needs_boundary =
-				state.control_flow_branch_body || fragment_leads_with_control_flow(children);
+				state.control_flow_branch_body || fragment_leads_with_control_flow(children, context);
 			if (needs_boundary && init.length > 0) {
 				state.init?.push(b.stmt(b.call(b.id('_$_.output_push'), b.literal(BLOCK_OPEN))));
 				state.init?.push(b.block(init));
