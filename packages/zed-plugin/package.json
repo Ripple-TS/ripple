@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "config": {
-    "@ripple-ts/language-server": "0.3.85"
+    "@ripple-ts/language-server": "0.3.86"
   },
   "packageManager": "pnpm@11.1.1"
 }

@@ -3,7 +3,7 @@
   "description": "TypeScript plugin for TSRX",
   "license": "MIT",
   "author": "Dominic Gannaway",
-  "version": "0.3.85",
+  "version": "0.3.86",
   "main": "dist/index.js",
   "bin": {
     "tsrx-tsc": "./dist/tsc.js"

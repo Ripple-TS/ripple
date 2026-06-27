@@ -1,5 +1,12 @@
 # @ripple-ts/adapter-node
 
+## 0.3.86
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ripple-ts/adapter@0.3.86
+
 ## 0.3.85
 
 ### Patch Changes
