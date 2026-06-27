@@ -41,6 +41,8 @@ packages:
   - benchmarks/signal-favoring/*
   - benchmarks/news
   - benchmarks/news/*
+  - benchmarks/for-reconcile
+  - benchmarks/for-reconcile/*
 
 overrides:
   esrap: *esrap_common

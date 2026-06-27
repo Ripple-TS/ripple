@@ -1,6 +1,6 @@
 /** @import { Block } from '#client' */
 
-import { branch, destroy_block, render } from './blocks.js';
+import { branch, destroy_block, get_first_node, get_last_node, render } from './blocks.js';
 import { SWITCH_BLOCK } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating } from './hydration.js';
 import { next_sibling } from './operations.js';
@@ -13,8 +13,22 @@ import { append } from './template.js';
  * @returns {void}
  */
 function move(block, anchor) {
-	var node = block.s.start;
-	var end = block.s.end;
+	// Fast path: a normal case records its own range. Only an optimized single
+	// control-flow / component root case (DOM rendered through a descendant
+	// block, `s.start` null) needs the descent via `get_first_node`/`get_last_node`.
+	var s = block.s;
+	var node = s !== null ? s.start : null;
+	var end;
+
+	if (node === null) {
+		node = get_first_node(block);
+		if (node === null) {
+			return;
+		}
+		end = get_last_node(block);
+	} else {
+		end = s.end;
+	}
 	/** @type {Node | null} */
 	var sibling;
 

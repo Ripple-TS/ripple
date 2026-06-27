@@ -1,0 +1,13 @@
+{
+  "name": "@benchmarks/for-reconcile",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Keyed-@for reconcile bench. Measures mount + reverse + shuffle for four item shapes (direct / wrapped / single-component / switch) on the production build via Playwright, to quantify the descent-based anchor resolution introduced for #1307-optimized single-root items.",
+  "scripts": {
+    "bench": "node run.mjs"
+  },
+  "dependencies": {
+    "playwright": "catalog:default"
+  }
+}

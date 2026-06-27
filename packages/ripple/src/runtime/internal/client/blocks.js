@@ -430,6 +430,59 @@ export function move_block(block, target) {
 }
 
 /**
+ * Resolve the first DOM node owned by a block. A block normally records its
+ * range in `s.start`/`s.end`, but an optimized single control-flow / component
+ * root scope renders its content through a descendant block instead of a
+ * synthesized `<!>` wrapper, so its own `s.start` is null. In that case we
+ * descend into child blocks to find the real first node. Returns null when the
+ * block currently renders no DOM.
+ * @param {Block} block
+ * @returns {Node | null}
+ */
+export function get_first_node(block) {
+	var f = block.f;
+	if ((f & BRANCH_BLOCK) !== 0 && (f & TRY_BLOCK) === 0) {
+		var s = block.s;
+		if (s !== null && s.start !== null) {
+			return s.start;
+		}
+	}
+	var child = block.first;
+	while (child !== null) {
+		var node = get_first_node(child);
+		if (node !== null) {
+			return node;
+		}
+		child = child.next;
+	}
+	return null;
+}
+
+/**
+ * Mirror of {@link get_first_node} for the last DOM node owned by a block.
+ * @param {Block} block
+ * @returns {Node | null}
+ */
+export function get_last_node(block) {
+	var f = block.f;
+	if ((f & BRANCH_BLOCK) !== 0 && (f & TRY_BLOCK) === 0) {
+		var s = block.s;
+		if (s !== null && s.start !== null) {
+			return s.end;
+		}
+	}
+	var child = block.last;
+	while (child !== null) {
+		var node = get_last_node(child);
+		if (node !== null) {
+			return node;
+		}
+		child = child.prev;
+	}
+	return null;
+}
+
+/**
  * @param {Block} block
  * @param {boolean} [remove_dom]
  */

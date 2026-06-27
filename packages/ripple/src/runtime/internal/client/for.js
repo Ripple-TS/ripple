@@ -1,7 +1,14 @@
 /** @import { Block, Tracked } from '#client' */
 
 import { IS_CONTROLLED, IS_INDEXED, ROOT_CONTROLLED } from '../../../constants.js';
-import { branch, destroy_block, destroy_block_children, render } from './blocks.js';
+import {
+	branch,
+	destroy_block,
+	destroy_block_children,
+	get_first_node,
+	get_last_node,
+	render,
+} from './blocks.js';
 import { FOR_BLOCK, TRACKED_ARRAY } from './constants.js';
 import { hydrate_next, hydrate_node, hydrating, set_hydrate_node } from './hydration.js';
 import { create_text, get_first_child, get_last_child, next_sibling } from './operations.js';
@@ -71,12 +78,26 @@ function create_empty(anchor, render_empty) {
 
 /**
  * @param {Block} block
- * @param {Element} anchor
+ * @param {ChildNode} anchor
  * @returns {void}
  */
 function move(block, anchor) {
-	var node = block.s.start;
-	var end = block.s.end;
+	// Fast path: a normal item records its own range. Only an optimized single
+	// control-flow / component root item (DOM rendered through a descendant
+	// block, `s.start` null) needs the descent via `get_first_node`/`get_last_node`.
+	var s = block.s;
+	var node = s.start;
+	var end;
+
+	if (node === null) {
+		node = get_first_node(block);
+		if (node === null) {
+			return;
+		}
+		end = get_last_node(block);
+	} else {
+		end = s.end;
+	}
 
 	if (node === end) {
 		anchor.before(node);
@@ -87,10 +108,41 @@ function move(block, anchor) {
 		anchor.before(node);
 		node = next_node;
 		if (node === end) {
-			anchor.before(end);
+			anchor.before(/** @type {Node} */ (end));
 			break;
 		}
 	}
+}
+
+/**
+ * Resolve the insertion anchor for a block at `index`: the first real DOM node
+ * at or after `index`, or `fallback` when every remaining block renders nothing.
+ * Scanning forward keeps insertions correct even when an optimized item renders
+ * no DOM (e.g. a single `@if` that is currently false), which previously relied
+ * on a synthesized `<!>` wrapper as a stable position marker.
+ * @param {Block[]} blocks
+ * @param {number} index
+ * @param {number} length
+ * @param {Element | Text} fallback
+ * @returns {ChildNode}
+ */
+function block_start(blocks, index, length, fallback) {
+	if (index >= length) {
+		return fallback;
+	}
+	// Fast path: a normal item records its own boundary, so this is the same
+	// single property read the pre-#1307 code did — no descent, no scan.
+	var first = blocks[index].s.start;
+	if (first !== null) {
+		return first;
+	}
+	for (var k = index; k < length; k++) {
+		var node = get_first_node(blocks[k]);
+		if (node !== null) {
+			return /** @type {ChildNode} */ (node);
+		}
+	}
+	return fallback;
 }
 
 /**
@@ -429,7 +481,7 @@ function reconcile_by_key(
 		if (j <= b_end) {
 			while (j <= b_end) {
 				b_val = b[j];
-				var target = j >= a_length ? anchor : a_blocks[j].s.start;
+				var target = block_start(a_blocks, j, a_length, anchor);
 				b_blocks[j] = create_item(target, b_val, j, render_fn, is_indexed, true);
 				j++;
 			}
@@ -548,14 +600,14 @@ function reconcile_by_key(
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true);
 			} else if (j < 0 || i !== seq[j]) {
 				pos = i + b_start;
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				move(b_blocks[pos], target);
 			} else {
 				j--;
@@ -568,7 +620,7 @@ function reconcile_by_key(
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, true);
 			}
 		}
@@ -716,7 +768,7 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 		if (j <= b_end) {
 			while (j <= b_end) {
 				b_val = b[j];
-				var target = j >= a_length ? anchor : a_blocks[j].s.start;
+				var target = block_start(a_blocks, j, a_length, anchor);
 				b_blocks[j] = create_item(target, b_val, j, render_fn, is_indexed, false);
 				j++;
 			}
@@ -829,14 +881,14 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, false);
 			} else if (j < 0 || i !== seq[j]) {
 				pos = i + b_start;
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				move(b_blocks[pos], target);
 			} else {
 				j--;
@@ -849,7 +901,7 @@ function reconcile_by_ref(anchor, block, b, render_fn, is_controlled, is_indexed
 				b_val = b[pos];
 				next_pos = pos + 1;
 
-				var target = next_pos < b_length ? b_blocks[next_pos].s.start : anchor;
+				var target = block_start(b_blocks, next_pos, b_length, anchor);
 				b_blocks[pos] = create_item(target, b_val, pos, render_fn, is_indexed, false);
 			}
 		}
