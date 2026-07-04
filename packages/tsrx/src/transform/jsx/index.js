@@ -3203,7 +3203,11 @@ function get_loop_skip_if_consequent_body(node) {
 function create_component_loop_skip_if_statement(node, render_nodes, transform_context) {
 	const consequent_body = /** @type {any[]} */ (get_loop_skip_if_consequent_body(node));
 	const branch_statements = build_render_statements(consequent_body, true, transform_context);
-	prepend_render_nodes_to_return_statements(branch_statements, render_nodes);
+	prepend_render_nodes_to_return_statements(
+		branch_statements,
+		render_nodes,
+		transform_context.typeOnly,
+	);
 
 	const statement = set_loc(
 		b.if(node.test, set_loc(b.block(branch_statements), node.consequent), null),
@@ -3219,15 +3223,16 @@ function create_component_loop_skip_if_statement(node, render_nodes, transform_c
 /**
  * @param {any[]} statements
  * @param {any[]} render_nodes
+ * @param {boolean} [type_only]
  * @returns {void}
  */
-function prepend_render_nodes_to_return_statements(statements, render_nodes) {
+function prepend_render_nodes_to_return_statements(statements, render_nodes, type_only = false) {
 	if (render_nodes.length === 0) {
 		return;
 	}
 
 	for (const statement of statements) {
-		prepend_render_nodes_to_return_statement(statement, render_nodes, false);
+		prepend_render_nodes_to_return_statement(statement, render_nodes, false, type_only);
 	}
 }
 
@@ -3235,9 +3240,15 @@ function prepend_render_nodes_to_return_statements(statements, render_nodes) {
  * @param {any} node
  * @param {any[]} render_nodes
  * @param {boolean} inside_nested_function
+ * @param {boolean} [type_only]
  * @returns {void}
  */
-function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nested_function) {
+function prepend_render_nodes_to_return_statement(
+	node,
+	render_nodes,
+	inside_nested_function,
+	type_only = false,
+) {
 	if (!node || typeof node !== 'object') {
 		return;
 	}
@@ -3251,13 +3262,18 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
 	}
 
 	if (!inside_nested_function && node.type === 'ReturnStatement') {
-		node.argument = combine_render_return_argument(render_nodes, node.argument);
+		node.argument = combine_render_return_argument(render_nodes, node.argument, type_only);
 		return;
 	}
 
 	if (Array.isArray(node)) {
 		for (const child of node) {
-			prepend_render_nodes_to_return_statement(child, render_nodes, inside_nested_function);
+			prepend_render_nodes_to_return_statement(
+				child,
+				render_nodes,
+				inside_nested_function,
+				type_only,
+			);
 		}
 		return;
 	}
@@ -3266,23 +3282,29 @@ function prepend_render_nodes_to_return_statement(node, render_nodes, inside_nes
 		if (key === 'loc' || key === 'start' || key === 'end' || key === 'metadata') {
 			continue;
 		}
-		prepend_render_nodes_to_return_statement(node[key], render_nodes, inside_nested_function);
+		prepend_render_nodes_to_return_statement(
+			node[key],
+			render_nodes,
+			inside_nested_function,
+			type_only,
+		);
 	}
 }
 
 /**
  * @param {any[]} render_nodes
  * @param {any} return_argument
+ * @param {boolean} [type_only]
  * @returns {any}
  */
-function combine_render_return_argument(render_nodes, return_argument) {
+function combine_render_return_argument(render_nodes, return_argument, type_only = false) {
 	const combined = render_nodes.map((node) => clone_expression_node(node, false));
 
 	if (return_argument != null && !is_null_literal(return_argument)) {
 		combined.push(return_argument_to_render_node(return_argument));
 	}
 
-	return build_return_expression(combined) || create_null_literal();
+	return build_return_expression(combined, false, type_only) || create_null_literal();
 }
 
 /**
