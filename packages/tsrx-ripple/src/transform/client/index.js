@@ -2287,7 +2287,10 @@ const visitors = {
 						}
 
 						if (attr.value === null) {
-							handle_static_attr(name, true);
+							// omit a valueless event attr (analyze errored); `hidden` etc. still emit
+							if (!isEventAttribute(name)) {
+								handle_static_attr(name, true);
+							}
 							continue;
 						}
 
@@ -2391,10 +2394,6 @@ const visitors = {
 						}
 
 						if (isEventAttribute(name)) {
-							if (attr.value === null) {
-								// analyze already errored on the valueless event attribute
-								continue;
-							}
 							const metadata = { tracking: false };
 							let handler = /** @type {AST.Expression} */ (
 								visit(attr.value, { ...state, metadata })

@@ -24,6 +24,8 @@ describe('@tsrx/ripple valueless event attributes', () => {
 	};
 
 	for (const [kind, source] of Object.entries(sources)) {
+		const attr_name = source.includes('onClick') ? 'onClick' : 'onC';
+
 		it(`collects a positioned error and completes client compilation (${kind})`, () => {
 			const { code, errors } = compile(source, 'App.tsrx', { collect: true });
 			const { start, end } = attr_range(source);
@@ -35,6 +37,8 @@ describe('@tsrx/ripple valueless event attributes', () => {
 			// the error range covers the attribute node
 			expect(error?.pos).toBeLessThanOrEqual(start);
 			expect(error?.end).toBeGreaterThanOrEqual(end);
+			// the broken attribute is omitted, not emitted as `onClick=""` markup
+			expect(code).not.toContain(`${attr_name}=`);
 		});
 
 		it(`collects a positioned error and completes server compilation (${kind})`, () => {
@@ -46,6 +50,7 @@ describe('@tsrx/ripple valueless event attributes', () => {
 			expect(error).toBeDefined();
 			expect(error?.pos).toBeLessThanOrEqual(start);
 			expect(error?.end).toBeGreaterThanOrEqual(end);
+			expect(code).not.toContain(`${attr_name}=`);
 		});
 
 		it(`completes compile_to_volar_mappings with full mappings (${kind})`, () => {
